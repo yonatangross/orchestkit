@@ -1,757 +1,301 @@
 /**
- * Unit tests for cross-instance-test-validator hook
- * Tests enforcement of test coverage for cross-instance code changes
+ * Unit tests for cross-instance-test-validator hook (Stop-time shape, #3804)
  *
- * Coverage Focus: Validates test file detection, testable unit extraction,
- * test coverage verification, and warning/blocking behavior
+ * Real filesystem, no fs mocks: the previous suite built a payload carrying
+ * `tool_input.file_path` that the registered event (Stop) never delivers, so
+ * every test was green while the hook was dead in production. These tests
+ * drive the hook with a Stop payload and a seeded `.claude/state/edit-history.jsonl`.
  */
 
-import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, test, expect, beforeEach, afterEach } from 'vitest';
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync, existsSync, readFileSync, appendFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join, dirname } from 'node:path';
 import type { HookInput } from '../../types.js';
-import { mockCommonBasic } from '../fixtures/mock-common.js';
-
-// =============================================================================
-// Mocks - MUST come before imports
-// =============================================================================
-
-const mockExistsSync = vi.fn();
-const mockReadFileSync = vi.fn();
-const mockReaddirSync = vi.fn();
-const mockStatSync = vi.fn();
-const mockExecSync = vi.fn();
-
-vi.mock('node:fs', () => ({
-  existsSync: (...args: unknown[]) => mockExistsSync(...args),
-  readFileSync: (...args: unknown[]) => mockReadFileSync(...args),
-  readdirSync: (...args: unknown[]) => mockReaddirSync(...args),
-  statSync: (...args: unknown[]) => mockStatSync(...args),
-}));
-
-vi.mock('node:child_process', () => ({
-  execSync: (...args: unknown[]) => mockExecSync(...args),
-}));
-
-vi.mock('../../lib/common.js', () => mockCommonBasic());
-
-vi.mock('../../lib/git.js', () => ({
-  getRepoRoot: vi.fn(() => '/test/project'),
-}));
-
-import { crossInstanceTestValidator } from '../../skill/cross-instance-test-validator.js';
-import { outputSilentSuccess, outputBlock, outputWithContext } from '../../lib/common.js';
+import { crossInstanceTestValidator, testFileCandidates } from '../../skill/cross-instance-test-validator.js';
 import { createTestContext } from '../fixtures/test-context.js';
 
-// =============================================================================
-// Test Utilities
-// =============================================================================
+const SID = 'sid-aaaa-1111';
+const OTHER_SID = 'sid-bbbb-2222';
 
-/**
- * Create a mock HookInput for file operations
- */
-function createFileInput(
-  filePath: string,
-  content: string,
-  overrides: Partial<HookInput> = {},
-): HookInput {
+let project: string;
+
+function write(rel: string, content: string): string {
+  const full = join(project, rel);
+  mkdirSync(dirname(full), { recursive: true });
+  writeFileSync(full, content, 'utf8');
+  return full;
+}
+
+function recordEdit(file: string, sid: string = SID, tool = 'Write'): void {
+  const p = join(project, '.claude', 'state', 'edit-history.jsonl');
+  mkdirSync(dirname(p), { recursive: true });
+  appendFileSync(p, `${JSON.stringify({ t: Date.now(), f: file, tool, sid })}\n`);
+}
+
+function stopInput(overrides: Partial<HookInput> = {}): HookInput {
   return {
-    tool_name: 'Write',
-    session_id: 'test-session-123',
-    project_dir: '/test/project',
-    tool_input: { file_path: filePath, content },
+    tool_name: '',
+    session_id: SID,
+    project_dir: project,
+    tool_input: {},
+    stop_hook_active: false,
     ...overrides,
   };
 }
 
-// =============================================================================
-// Cross-Instance Test Validator Tests
-// =============================================================================
+const IMPL = 'export function alpha() { return 1; }\nexport function beta() { return 2; }\n';
 
-let testCtx: ReturnType<typeof createTestContext>;
-describe('cross-instance-test-validator', () => {
+describe('cross-instance-test-validator (Stop)', () => {
   beforeEach(() => {
-    testCtx = createTestContext();
-    vi.clearAllMocks();
+    project = mkdtempSync(join(tmpdir(), 'citv-'));
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
+    rmSync(project, { recursive: true, force: true });
   });
 
-  // ---------------------------------------------------------------------------
-  // CC 2.1.7 Compliance
-  // ---------------------------------------------------------------------------
-
-  describe('CC 2.1.7 compliance', () => {
-    test('returns continue: true for test files', () => {
-      // Arrange
-      const input = createFileInput(
-        '/test/project/src/utils.test.ts',
-        'test("example", () => {})',
-      );
-
-      // Act
-      const result = crossInstanceTestValidator(input, testCtx);
-
-      // Assert
-      expect(result.continue).toBe(true);
-    });
-
-    test('returns continue: true for files with tests', () => {
-      // Arrange
-      mockExistsSync.mockReturnValue(true);
-      mockReadFileSync.mockReturnValue('describe("MyFunction", () => { test("works", () => {}) })');
-      const input = createFileInput(
-        '/test/project/src/utils.ts',
-        'export function MyFunction() { return 1; }',
-      );
-
-      // Act
-      const result = crossInstanceTestValidator(input, testCtx);
-
-      // Assert
-      expect(result.continue).toBe(true);
-    });
-
-    test('returns continue: false for missing tests with proper structure', () => {
-      // Arrange
-      mockExistsSync.mockReturnValue(false);
-      const input = createFileInput(
-        '/test/project/src/utils.ts',
-        'export function MyFunction() { return 1; }',
-      );
-
-      // Act
-      const result = crossInstanceTestValidator(input, testCtx);
-
-      // Assert
-      expect(result.continue).toBe(false);
-      expect(result.stopReason).toBeDefined();
-    });
-
-    test('always returns valid HookResult structure', () => {
-      // Arrange
-      mockExistsSync.mockReturnValue(false);
-      const input = createFileInput('/test/project/src/utils.ts', 'export const x = 1;');
-
-      // Act
-      const result = crossInstanceTestValidator(input, testCtx);
-
-      // Assert
-      expect(typeof result.continue).toBe('boolean');
-    });
+  test('silent when the session wrote nothing', () => {
+    const r = crossInstanceTestValidator(stopInput(), createTestContext({ projectDir: project }));
+    expect(r.continue).toBe(true);
+    expect(r.stopReason).toBeUndefined();
   });
 
-  // ---------------------------------------------------------------------------
-  // Test file detection
-  // ---------------------------------------------------------------------------
+  test('blocks at Stop when a new implementation file has exports and no test file', () => {
+    const f = write('src/svc.ts', IMPL);
+    recordEdit(f);
 
-  describe('test file detection', () => {
-    test.each([
-      ['utils.test.ts', 'TypeScript test'],
-      ['utils.spec.ts', 'TypeScript spec'],
-      ['utils.test.tsx', 'TSX test'],
-      ['utils.spec.tsx', 'TSX spec'],
-      ['utils.test.js', 'JavaScript test'],
-      ['utils.spec.js', 'JavaScript spec'],
-      ['utils.test.jsx', 'JSX test'],
-      ['utils.spec.jsx', 'JSX spec'],
-      ['test_utils.py', 'Python test_ prefix'],
-      ['utils_test.py', 'Python _test suffix'],
-    ])('skips test file: %s (%s)', (filename, _description) => {
-      // Arrange
-      const input = createFileInput(`/test/project/src/${filename}`, 'test code');
+    const r = crossInstanceTestValidator(stopInput(), createTestContext({ projectDir: project }));
 
-      // Act
-      const result = crossInstanceTestValidator(input, testCtx);
-
-      // Assert
-      expect(result.continue).toBe(true);
-      expect(outputSilentSuccess).toHaveBeenCalled();
-    });
+    expect(r.continue).toBe(false);
+    expect(r.stopReason).toContain('Missing test coverage');
+    expect(r.stopReason).toContain(f);
+    expect(r.stopReason).toContain('alpha');
+    expect(r.stopReason).toContain('beta');
   });
 
-  // ---------------------------------------------------------------------------
-  // Non-code file handling
-  // ---------------------------------------------------------------------------
+  test('stop_hook_active short-circuits even with an untested file', () => {
+    const f = write('src/svc.ts', IMPL);
+    recordEdit(f);
 
-  describe('non-code file handling', () => {
-    test.each([
-      ['readme.md', 'Markdown'],
-      ['config.json', 'JSON'],
-      ['styles.css', 'CSS'],
-      ['image.png', 'Image'],
-      ['data.yaml', 'YAML'],
-      ['Makefile', 'Makefile'],
-    ])('skips non-code file: %s (%s)', (filename, _description) => {
-      // Arrange
-      const input = createFileInput(`/test/project/${filename}`, 'content');
+    const r = crossInstanceTestValidator(stopInput({ stop_hook_active: true }), createTestContext({ projectDir: project }));
 
-      // Act
-      const result = crossInstanceTestValidator(input, testCtx);
-
-      // Assert
-      expect(result.continue).toBe(true);
-    });
+    expect(r.continue).toBe(true);
+    expect(r.stopReason).toBeUndefined();
   });
 
-  // ---------------------------------------------------------------------------
-  // Test file finding
-  // ---------------------------------------------------------------------------
+  test('a sibling .test.ts file satisfies the check', () => {
+    const f = write('src/svc.ts', IMPL);
+    write('src/svc.test.ts', 'import { alpha, beta } from "./svc";\n');
+    recordEdit(f);
 
-  describe('test file finding', () => {
-    test('finds .test.ts file in same directory', () => {
-      // Arrange
-      mockExistsSync.mockImplementation((path: string) => {
-        return path === '/test/project/src/utils.test.ts';
-      });
-      mockReadFileSync.mockReturnValue('test("myFunc", () => {})');
-      const input = createFileInput(
-        '/test/project/src/utils.ts',
-        'export function myFunc() {}',
-      );
+    const r = crossInstanceTestValidator(stopInput(), createTestContext({ projectDir: project }));
 
-      // Act
-      const result = crossInstanceTestValidator(input, testCtx);
-
-      // Assert
-      expect(result.continue).toBe(true);
-    });
-
-    test('finds .spec.ts file in same directory', () => {
-      // Arrange
-      mockExistsSync.mockImplementation((path: string) => {
-        return path === '/test/project/src/utils.spec.ts';
-      });
-      mockReadFileSync.mockReturnValue('test("myFunc", () => {})');
-      const input = createFileInput(
-        '/test/project/src/utils.ts',
-        'export function myFunc() {}',
-      );
-
-      // Act
-      const result = crossInstanceTestValidator(input, testCtx);
-
-      // Assert
-      expect(result.continue).toBe(true);
-    });
-
-    test('finds test file in __tests__ directory', () => {
-      // Arrange
-      mockExistsSync.mockImplementation((path: string) => {
-        return path === '/test/project/src/__tests__/utils.test.ts';
-      });
-      mockReadFileSync.mockReturnValue('test("myFunc", () => {})');
-      const input = createFileInput(
-        '/test/project/src/utils.ts',
-        'export function myFunc() {}',
-      );
-
-      // Act
-      const result = crossInstanceTestValidator(input, testCtx);
-
-      // Assert
-      expect(result.continue).toBe(true);
-    });
-
-    test('finds Python test file with test_ prefix', () => {
-      // Arrange
-      mockExistsSync.mockImplementation((path: string) => {
-        return path === '/test/project/app/test_utils.py';
-      });
-      mockReadFileSync.mockReturnValue('def test_my_func(): pass');
-      const input = createFileInput(
-        '/test/project/app/utils.py',
-        'def my_func(): return 1',
-      );
-
-      // Act
-      const result = crossInstanceTestValidator(input, testCtx);
-
-      // Assert
-      expect(result.continue).toBe(true);
-    });
-
-    test('finds Python test in tests/ directory', () => {
-      // Arrange
-      mockExistsSync.mockImplementation((path: string) => {
-        return path === '/test/project/tests/test_utils.py';
-      });
-      mockReadFileSync.mockReturnValue('def test_my_func(): pass');
-      const input = createFileInput(
-        '/test/project/app/utils.py',
-        'def my_func(): return 1',
-      );
-
-      // Act
-      const result = crossInstanceTestValidator(input, testCtx);
-
-      // Assert
-      expect(result.continue).toBe(true);
-    });
+    expect(r.continue).toBe(true);
+    expect(r.systemMessage).toBeUndefined();
   });
 
-  // ---------------------------------------------------------------------------
-  // Testable unit extraction - TypeScript/JavaScript
-  // ---------------------------------------------------------------------------
+  test('a MIRRORED __tests__ tree satisfies the check (this repo\'s own layout)', () => {
+    const f = write('src/hooks/src/skill/thing.ts', IMPL);
+    write('src/hooks/src/__tests__/skill/thing.test.ts', 'alpha(); beta();\n');
+    recordEdit(f);
 
-  describe('testable unit extraction - TypeScript/JavaScript', () => {
-    test.each([
-      ['export function myFunc() {}', ['myFunc']],
-      ['export class MyClass {}', ['MyClass']],
-      ['export const myConst = () => {}', ['myConst']],
-      ['export async function fetchData() {}', ['fetchData']],
-    ])('extracts testable units from: %s', (code, _expectedUnits) => {
-      // Arrange
-      mockExistsSync.mockReturnValue(false);
-      const input = createFileInput('/test/project/src/utils.ts', code);
+    const r = crossInstanceTestValidator(stopInput(), createTestContext({ projectDir: project }));
 
-      // Act
-      const result = crossInstanceTestValidator(input, testCtx);
-
-      // Assert - the hook blocks when no test file found
-      expect(result.continue).toBe(false);
-      expect(result.stopReason).toContain('Missing test coverage');
-    });
-
-    test('extracts multiple exports', () => {
-      // Arrange
-      mockExistsSync.mockReturnValue(false);
-      const code = `
-export function funcOne() {}
-export class ClassTwo {}
-export const constThree = 1;
-`;
-      const input = createFileInput('/test/project/src/utils.ts', code);
-
-      // Act
-      const result = crossInstanceTestValidator(input, testCtx);
-
-      // Assert - blocks when testable units found without test file
-      expect(result.continue).toBe(false);
-      expect(result.stopReason).toContain('Missing test coverage');
-    });
-
-    test('deduplicates extracted units', () => {
-      // Arrange
-      mockExistsSync.mockReturnValue(false);
-      const code = `
-export function myFunc() {}
-export function myFunc() {} // duplicate
-`;
-      const input = createFileInput('/test/project/src/utils.ts', code);
-
-      // Act
-      const result = crossInstanceTestValidator(input, testCtx);
-
-      // Assert - blocks and reports missing test
-      expect(result.continue).toBe(false);
-      expect(result.stopReason).toBeDefined();
-    });
+    expect(r.continue).toBe(true);
+    expect(r.systemMessage).toBeUndefined();
   });
 
-  // ---------------------------------------------------------------------------
-  // Testable unit extraction - Python
-  // ---------------------------------------------------------------------------
+  test('a python tests/ mirror satisfies the check', () => {
+    const f = write('pkg/mod/svc.py', 'def alpha():\n    return 1\n\nclass Beta:\n    pass\n');
+    write('pkg/tests/mod/test_svc.py', 'from mod.svc import alpha, Beta\n');
+    recordEdit(f);
 
-  describe('testable unit extraction - Python', () => {
-    test.each([
-      ['def my_function():\n    pass', 'my_function'],
-      ['class MyClass:\n    pass', 'MyClass'],
-    ])('extracts testable units from Python: %s', (code, _expectedUnit) => {
-      // Arrange
-      mockExistsSync.mockReturnValue(false);
-      const input = createFileInput('/test/project/app/utils.py', code);
+    const r = crossInstanceTestValidator(stopInput(), createTestContext({ projectDir: project }));
 
-      // Act
-      const result = crossInstanceTestValidator(input, testCtx);
-
-      // Assert - blocks when no test file found
-      expect(result.continue).toBe(false);
-      expect(result.stopReason).toContain('Missing test coverage');
-    });
-
-    test('skips private methods like __init__', () => {
-      // Arrange - __init__ alone doesn't trigger blocking
-      mockExistsSync.mockReturnValue(false);
-      const input = createFileInput(
-        '/test/project/app/utils.py',
-        'def __init__(self):\n    pass',
-      );
-
-      // Act
-      const result = crossInstanceTestValidator(input, testCtx);
-
-      // Assert - __init__ is not considered a public testable unit
-      // The hook may or may not extract it based on implementation
-      expect(result.continue).toBeDefined();
-    });
-
-    test('extracts multiple Python definitions', () => {
-      // Arrange
-      mockExistsSync.mockReturnValue(false);
-      const code = `
-def func_one():
-    pass
-
-class ClassTwo:
-    pass
-
-def func_three():
-    return 1
-`;
-      const input = createFileInput('/test/project/app/utils.py', code);
-
-      // Act
-      const result = crossInstanceTestValidator(input, testCtx);
-
-      // Assert - blocks when testable units found without test file
-      expect(result.continue).toBe(false);
-      expect(result.stopReason).toContain('Missing test coverage');
-    });
+    expect(r.continue).toBe(true);
   });
 
-  // ---------------------------------------------------------------------------
-  // Test coverage verification
-  // ---------------------------------------------------------------------------
+  test('warns (systemMessage, no block) when the test file exists but misses a unit', () => {
+    const f = write('src/svc.ts', IMPL);
+    write('src/svc.test.ts', 'import { alpha } from "./svc";\n');
+    recordEdit(f);
 
-  describe('test coverage verification', () => {
-    test('warns when unit not found in test file', () => {
-      // Arrange
-      mockExistsSync.mockImplementation((path: string) => {
-        return path === '/test/project/src/utils.test.ts';
-      });
-      mockReadFileSync.mockReturnValue('test("otherFunc", () => {})');
-      const input = createFileInput(
-        '/test/project/src/utils.ts',
-        'export function newFunc() {}',
-      );
+    const r = crossInstanceTestValidator(stopInput(), createTestContext({ projectDir: project }));
 
-      // Act
-      const result = crossInstanceTestValidator(input, testCtx);
-
-      // Assert
-      expect(result.continue).toBe(true);
-      expect(outputWithContext).toHaveBeenCalledWith(
-        expect.stringContaining('newFunc'),
-      );
-    });
-
-    test('passes when unit is tested', () => {
-      // Arrange
-      mockExistsSync.mockImplementation((path: string) => {
-        return path === '/test/project/src/utils.test.ts';
-      });
-      mockReadFileSync.mockReturnValue('describe("myFunc", () => { test("works", () => {}) })');
-      const input = createFileInput(
-        '/test/project/src/utils.ts',
-        'export function myFunc() {}',
-      );
-
-      // Act
-      const result = crossInstanceTestValidator(input, testCtx);
-
-      // Assert
-      expect(result.continue).toBe(true);
-      expect(outputSilentSuccess).toHaveBeenCalled();
-    });
-
-    test('uses word boundary matching', () => {
-      // Arrange
-      mockExistsSync.mockImplementation((path: string) => {
-        return path === '/test/project/src/utils.test.ts';
-      });
-      // "getUserData" contains "get" but should not match "get" unit
-      mockReadFileSync.mockReturnValue('test("getUserData", () => {})');
-      const input = createFileInput(
-        '/test/project/src/utils.ts',
-        'export function get() {}',
-      );
-
-      // Act
-      const _result = crossInstanceTestValidator(input, testCtx);
-
-      // Assert
-      expect(outputWithContext).toHaveBeenCalledWith(
-        expect.stringContaining('get'),
-      );
-    });
+    expect(r.continue).toBe(true);
+    expect(r.systemMessage).toContain('beta');
+    expect(r.systemMessage).not.toContain('- alpha');
   });
 
-  // ---------------------------------------------------------------------------
-  // Edge cases
-  // ---------------------------------------------------------------------------
+  test('ignores edits recorded by another session (#2919)', () => {
+    const f = write('src/svc.ts', IMPL);
+    recordEdit(f, OTHER_SID);
 
-  describe('edge cases', () => {
-    test('handles empty file path', () => {
-      // Arrange
-      const input = createFileInput('', 'export function test() {}');
+    const r = crossInstanceTestValidator(stopInput(), createTestContext({ projectDir: project }));
 
-      // Act
-      const result = crossInstanceTestValidator(input, testCtx);
-
-      // Assert
-      expect(result.continue).toBe(true);
-    });
-
-    test('handles empty content', () => {
-      // Arrange
-      const input = createFileInput('/test/project/src/utils.ts', '');
-
-      // Act
-      const result = crossInstanceTestValidator(input, testCtx);
-
-      // Assert
-      expect(result.continue).toBe(true);
-    });
-
-    test('handles file with no testable units', () => {
-      // Arrange
-      const input = createFileInput(
-        '/test/project/src/types.ts',
-        'interface User { name: string; }',
-      );
-
-      // Act
-      const result = crossInstanceTestValidator(input, testCtx);
-
-      // Assert
-      expect(result.continue).toBe(true);
-    });
-
-    test('handles tool_result instead of content', () => {
-      // Arrange
-      mockExistsSync.mockReturnValue(false);
-      const input: HookInput = {
-        tool_name: 'Read',
-        session_id: 'test-session-123',
-        tool_input: { file_path: '/test/project/src/utils.ts' },
-        tool_result: 'export function myFunc() {}',
-      } as any;
-
-      // Act
-      const result = crossInstanceTestValidator(input, testCtx);
-
-      // Assert
-      expect(result.continue).toBe(false);
-    });
-
-    test('handles test file read error gracefully', () => {
-      // Arrange
-      mockExistsSync.mockImplementation((path: string) => {
-        return path === '/test/project/src/utils.test.ts';
-      });
-      mockReadFileSync.mockImplementation(() => {
-        throw new Error('ENOENT');
-      });
-      const input = createFileInput(
-        '/test/project/src/utils.ts',
-        'export function myFunc() {}',
-      );
-
-      // Act
-      const result = crossInstanceTestValidator(input, testCtx);
-
-      // Assert
-      expect(result.continue).toBe(true);
-    });
-
-    test('handles regex special characters in unit names', () => {
-      // Arrange
-      mockExistsSync.mockImplementation((path: string) => {
-        return path === '/test/project/src/utils.test.ts';
-      });
-      mockReadFileSync.mockReturnValue('test("$special", () => {})');
-      const input = createFileInput(
-        '/test/project/src/utils.ts',
-        'export const $special = () => {}',
-      );
-
-      // Act
-      const result = crossInstanceTestValidator(input, testCtx);
-
-      // Assert
-      // Should not throw due to regex special chars
-      expect(result.continue).toBe(true);
-    });
-
-    test('limits displayed units to 5', () => {
-      // Arrange
-      mockExistsSync.mockReturnValue(false);
-      const code = `
-export function func1() {}
-export function func2() {}
-export function func3() {}
-export function func4() {}
-export function func5() {}
-export function func6() {}
-export function func7() {}
-`;
-      const input = createFileInput('/test/project/src/utils.ts', code);
-
-      // Act
-      const result = crossInstanceTestValidator(input, testCtx);
-
-      // Assert
-      expect(result.stopReason).not.toContain('func6');
-      expect(result.stopReason).not.toContain('func7');
-    });
+    expect(r.continue).toBe(true);
   });
 
-  // ---------------------------------------------------------------------------
-  // Error message format
-  // ---------------------------------------------------------------------------
+  test('ignores entries with no session id and a payload with no session id', () => {
+    const f = write('src/svc.ts', IMPL);
+    recordEdit(f, '');
 
-  describe('error message format', () => {
-    test('includes indication of missing test coverage', () => {
-      // Arrange
-      mockExistsSync.mockReturnValue(false);
-      const input = createFileInput(
-        '/test/project/src/utils.ts',
-        'export function myFunc() {}',
-      );
+    const r = crossInstanceTestValidator(
+      stopInput({ session_id: '' }),
+      createTestContext({ projectDir: project, sessionId: '' }),
+    );
 
-      // Act
-      const result = crossInstanceTestValidator(input, testCtx);
-
-      // Assert
-      expect(result.stopReason).toContain('Missing test coverage');
-    });
-
-    test('blocks when testable units found', () => {
-      // Arrange
-      mockExistsSync.mockReturnValue(false);
-      const input = createFileInput(
-        '/test/project/src/utils.ts',
-        'export function myFunc() {}',
-      );
-
-      // Act
-      const result = crossInstanceTestValidator(input, testCtx);
-
-      // Assert
-      expect(result.continue).toBe(false);
-      expect(outputBlock).toHaveBeenCalled();
-    });
-
-    test('block reason references test coverage', () => {
-      // Arrange
-      mockExistsSync.mockReturnValue(false);
-      const input = createFileInput(
-        '/test/project/src/utils.ts',
-        `
-export function func1() {}
-export function func2() {}
-export function func3() {}
-`,
-      );
-
-      // Act
-      const result = crossInstanceTestValidator(input, testCtx);
-
-      // Assert
-      expect(result.continue).toBe(false);
-      expect(result.stopReason).toContain('TEST COVERAGE');
-    });
+    expect(r.continue).toBe(true);
   });
 
-  // ---------------------------------------------------------------------------
-  // Warning context format
-  // ---------------------------------------------------------------------------
+  test('reports each file once per session: the second Stop is silent', () => {
+    const f = write('src/svc.ts', IMPL);
+    recordEdit(f);
+    const ctx = createTestContext({ projectDir: project });
 
-  describe('warning context format', () => {
-    test('outputs context when untested units found', () => {
-      // Arrange
-      mockExistsSync.mockImplementation((path: string) => {
-        return path === '/test/project/src/utils.test.ts';
-      });
-      mockReadFileSync.mockReturnValue('test("oldFunc", () => {})');
-      const input = createFileInput(
-        '/test/project/src/utils.ts',
-        `
-export function newFunc1() {}
-export function newFunc2() {}
-`,
-      );
+    const first = crossInstanceTestValidator(stopInput(), ctx);
+    const second = crossInstanceTestValidator(stopInput(), ctx);
 
-      // Act
-      crossInstanceTestValidator(input, testCtx);
-
-      // Assert
-      expect(outputWithContext).toHaveBeenCalled();
-    });
-
-    test('returns continue: true with warning when test file exists', () => {
-      // Arrange
-      mockExistsSync.mockImplementation((path: string) => {
-        return path === '/test/project/src/utils.test.ts';
-      });
-      mockReadFileSync.mockReturnValue('test("oldFunc", () => {})');
-      const input = createFileInput(
-        '/test/project/src/utils.ts',
-        'export function newFunc() {}',
-      );
-
-      // Act
-      const result = crossInstanceTestValidator(input, testCtx);
-
-      // Assert
-      expect(result.continue).toBe(true);
-    });
-
-    test('warns about test coverage gaps', () => {
-      // Arrange
-      mockExistsSync.mockImplementation((path: string) => {
-        return path === '/test/project/src/utils.test.ts';
-      });
-      mockReadFileSync.mockReturnValue('test("oldFunc", () => {})');
-      const input = createFileInput(
-        '/test/project/src/utils.ts',
-        'export function newFunc() {}',
-      );
-
-      // Act
-      crossInstanceTestValidator(input, testCtx);
-
-      // Assert
-      expect(outputWithContext).toHaveBeenCalledWith(
-        expect.stringContaining('Test coverage warnings'),
-      );
-    });
+    expect(first.continue).toBe(false);
+    expect(second.continue).toBe(true);
+    const marker = join(project, '.claude', 'state', `test-coverage-reported-${SID}.json`);
+    expect(existsSync(marker)).toBe(true);
+    expect(JSON.parse(readFileSync(marker, 'utf8'))).toEqual([f]);
   });
 
-  // ---------------------------------------------------------------------------
-  // Missing file path edge cases
-  // ---------------------------------------------------------------------------
+  test('a file written by another session in the same project is not remembered against this one', () => {
+    const f = write('src/svc.ts', IMPL);
+    recordEdit(f);
+    crossInstanceTestValidator(stopInput(), createTestContext({ projectDir: project }));
 
-  describe('missing file path edge cases', () => {
-    test('handles undefined file_path', () => {
-      // Arrange
-      const input: HookInput = {
-        tool_name: 'Write',
-        session_id: 'test-session-123',
-        tool_input: { content: 'export function test() {}' },
-      };
+    // the other session now writes the same file and stops
+    recordEdit(f, OTHER_SID);
+    const r = crossInstanceTestValidator(
+      stopInput({ session_id: OTHER_SID }),
+      createTestContext({ projectDir: project, sessionId: OTHER_SID }),
+    );
 
-      // Act
-      const result = crossInstanceTestValidator(input, testCtx);
+    expect(r.continue).toBe(false);
+  });
 
-      // Assert
-      expect(result.continue).toBe(true);
-    });
+  test('skips test files, non-code files and files deleted since the write', () => {
+    const t = write('src/svc.test.ts', 'export function helper() {}\n');
+    const md = write('docs/notes.md', '# export function looksLikeCode() {}\n');
+    const gone = join(project, 'src', 'gone.ts');
+    recordEdit(t);
+    recordEdit(md);
+    recordEdit(gone);
 
-    test('handles undefined tool_input', () => {
-      // Arrange
-      const input: HookInput = {
-        tool_name: 'Write',
-        session_id: 'test-session-123',
-        tool_input: {},
-      };
+    const r = crossInstanceTestValidator(stopInput(), createTestContext({ projectDir: project }));
 
-      // Act
-      const result = crossInstanceTestValidator(input, testCtx);
+    expect(r.continue).toBe(true);
+  });
 
-      // Assert
-      expect(result.continue).toBe(true);
-    });
+  test('a file with no exports needs no test', () => {
+    const f = write('src/script.ts', 'const x = 1;\nconsole.log(x);\n');
+    recordEdit(f);
+
+    const r = crossInstanceTestValidator(stopInput(), createTestContext({ projectDir: project }));
+
+    expect(r.continue).toBe(true);
+  });
+
+  test('resolves a relative edit-history path against the project dir', () => {
+    write('src/svc.ts', IMPL);
+    recordEdit('src/svc.ts');
+
+    const r = crossInstanceTestValidator(stopInput(), createTestContext({ projectDir: project }));
+
+    expect(r.continue).toBe(false);
+    expect(r.stopReason).toContain(join(project, 'src', 'svc.ts'));
+  });
+
+  test('falls back to ctx for projectDir and sessionId when the payload omits them', () => {
+    const f = write('src/svc.ts', IMPL);
+    recordEdit(f);
+
+    const r = crossInstanceTestValidator(
+      { tool_name: '', session_id: '', tool_input: {} } as HookInput,
+      createTestContext({ projectDir: project, sessionId: SID }),
+    );
+
+    expect(r.continue).toBe(false);
+  });
+
+  test('lists at most five files and counts the rest', () => {
+    for (let i = 0; i < 7; i++) recordEdit(write(`src/m${i}.ts`, IMPL));
+
+    const r = crossInstanceTestValidator(stopInput(), createTestContext({ projectDir: project }));
+
+    expect(r.continue).toBe(false);
+    expect(r.stopReason).toContain('and 2 more file(s)');
+  });
+});
+
+describe('cross-instance-test-validator (legacy single-file dispatch)', () => {
+  beforeEach(() => {
+    project = mkdtempSync(join(tmpdir(), 'citv-'));
+  });
+
+  afterEach(() => {
+    rmSync(project, { recursive: true, force: true });
+  });
+
+  test('blocks on a Write payload for an implementation without a test file', () => {
+    const f = join(project, 'src', 'svc.ts');
+    const r = crossInstanceTestValidator(
+      { tool_name: 'Write', session_id: SID, project_dir: project, tool_input: { file_path: f, content: IMPL } },
+      createTestContext({ projectDir: project }),
+    );
+
+    expect(r.continue).toBe(false);
+    expect(r.stopReason).toContain(f);
+  });
+
+  test('reads the file from disk when the payload carries no content (Edit)', () => {
+    const f = write('src/svc.ts', IMPL);
+    write('src/svc.test.ts', 'alpha();\n');
+
+    const r = crossInstanceTestValidator(
+      { tool_name: 'Edit', session_id: SID, project_dir: project, tool_input: { file_path: f } },
+      createTestContext({ projectDir: project }),
+    );
+
+    expect(r.continue).toBe(true);
+    expect(r.systemMessage).toContain('beta');
+  });
+
+  test('silent for a test file payload', () => {
+    const r = crossInstanceTestValidator(
+      { tool_name: 'Write', session_id: SID, project_dir: project, tool_input: { file_path: join(project, 'a.test.ts'), content: 'export function x() {}' } },
+      createTestContext({ projectDir: project }),
+    );
+    expect(r.continue).toBe(true);
+  });
+});
+
+describe('testFileCandidates', () => {
+  test('includes sibling, sibling __tests__ and every mirrored ancestor tree', () => {
+    const c = testFileCandidates('/p/src/hooks/src/skill/x.ts', '/p');
+    expect(c).toContain('/p/src/hooks/src/skill/x.test.ts');
+    expect(c).toContain('/p/src/hooks/src/skill/__tests__/x.test.ts');
+    expect(c).toContain('/p/src/hooks/src/__tests__/skill/x.test.ts');
+    expect(c).toContain('/p/src/hooks/tests/src/skill/x.spec.ts');
+    expect(c).toContain('/p/__tests__/src/hooks/src/skill/x.test.tsx');
+  });
+
+  test('stops the ancestor walk at the project dir', () => {
+    const c = testFileCandidates('/p/src/x.ts', '/p');
+    expect(c.some((p) => p.startsWith('/__tests__/') || p.startsWith('/tests/'))).toBe(false);
+  });
+
+  test('python: sibling, tests/ subdir, and mirrored tests/ at each ancestor', () => {
+    const c = testFileCandidates('/p/pkg/mod/svc.py', '/p');
+    expect(c).toContain('/p/pkg/mod/test_svc.py');
+    expect(c).toContain('/p/pkg/mod/tests/test_svc.py');
+    expect(c).toContain('/p/pkg/tests/mod/test_svc.py');
+    expect(c).toContain('/p/pkg/tests/test_svc.py');
+    expect(c).toContain('/p/tests/pkg/mod/svc_test.py');
   });
 });
