@@ -5,6 +5,19 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.63](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.62...v10.0.0-alpha.63) (2026-08-30)
+
+
+### Features
+
+* **build:** plugin dependencies handed to CC, Phase 5 retired ([#3326](https://github.com/yonatangross/orchestkit/issues/3326)) ([#3809](https://github.com/yonatangross/orchestkit/issues/3809)) ([9a62f23](https://github.com/yonatangross/orchestkit/commit/9a62f232bed66080c34408575e55ddf3c849234a))
+* **hooks:** egress guard stands down behind an enforced sandbox ([#3322](https://github.com/yonatangross/orchestkit/issues/3322)) ([#3808](https://github.com/yonatangross/orchestkit/issues/3808)) ([4b5e4e8](https://github.com/yonatangross/orchestkit/commit/4b5e4e89e8b36e0cbe9599f2e3d26ad714707478))
+
+
+### Bug Fixes
+
+* **build:** stop shipping command wrappers to Claude Code ([#3541](https://github.com/yonatangross/orchestkit/issues/3541)) ([#3807](https://github.com/yonatangross/orchestkit/issues/3807)) ([f83d5a3](https://github.com/yonatangross/orchestkit/commit/f83d5a3bb2255bd0f84f53e7dc78ca2ef3e310c1))
+
 ## [10.0.0-alpha.62](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.61...v10.0.0-alpha.62) (2026-08-29)
 
 
