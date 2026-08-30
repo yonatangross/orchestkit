@@ -15,6 +15,20 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "wrappers-that-stopped-doing-anything",
+    "title": "Thirty-Five Wrappers That Stopped Doing Anything",
+    "description": "Claude Code once surfaced only command files as slash commands, so every invocable skill was mirrored into commands/. On 2.1.251 the skill expands natively with the wrappers removed, byte-identical request bodies in three fixtures, so the wrappers only double-registered every skill. They now live under .cursor-plugin/commands/ for the one host that reads them.",
+    "tags": [
+      "plugin",
+      "measurement",
+      "false-signals"
+    ],
+    "date": "2026-08-30",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 5
+  },
+  {
     "slug": "a-check-that-could-only-answer-for-itself",
     "title": "A Check That Could Only Ever Answer for Itself",
     "description": "Build Phase 5 validated a manifest's dependencies by looking for a sibling manifest file in this repo, so it could only confirm plugins this repo builds. CC now owns the field: passed through to plugin.json, installed transitively, refused when unsatisfied. Type a value and see what each layer says. Also found: the plugin.json schema gate had never validated the shipped plugin.",
