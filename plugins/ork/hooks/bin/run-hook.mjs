@@ -9,9 +9,9 @@
  * Reads hook input from stdin, executes the hook, outputs result to stdout.
  */
 
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
-import { existsSync, readFileSync, appendFile, mkdirSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, appendFile, appendFileSync, mkdirSync, readdirSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { createHash } from 'node:crypto';
 import { sanitizeOutput } from './output-guard.mjs';
@@ -74,19 +74,6 @@ function getBundleName(hookName) {
     agent: 'agent',
   };
   return bundleMap[prefix] || null;
-}
-
-/**
- * Load the appropriate split bundle for the hook
- */
-async function loadBundle(hookName) {
-  const bundleName = getBundleName(hookName);
-  if (!bundleName) return null;
-
-  const bundlePath = join(distDir, `${bundleName}.mjs`);
-  if (!existsSync(bundlePath)) return null;
-
-  return await import(bundlePath);
 }
 
 /**
@@ -340,7 +327,18 @@ function resolveDistDir(primaryDist) {
 const resolvedDist = resolveDistDir(distDir);
 const effectiveDistDir = resolvedDist || distDir;
 
-// Override loadBundle to use the resolved dist directory
+/**
+ * Load the split bundle for the hook from the resolved dist directory.
+ * Returns null when the bundle FILE is absent (not built yet, stale cache
+ * with no dist anywhere): that is the legitimate silent case. Throws when the
+ * file exists and cannot be imported, which is a runner fault.
+ *
+ * #3817: the import goes through pathToFileURL. A bare absolute path is
+ * accepted by import() on posix but rejected on win32, where Node reads
+ * `C:` as a URL scheme (ERR_UNSUPPORTED_ESM_URL_SCHEME). With the bare path,
+ * every hook no-oped on Windows through this dispatcher and the catch below
+ * reported silent success for it.
+ */
 async function loadBundleFallback(hookName) {
   const bundleName = getBundleName(hookName);
   if (!bundleName) return null;
@@ -348,23 +346,64 @@ async function loadBundleFallback(hookName) {
   const bundlePath = join(effectiveDistDir, `${bundleName}.mjs`);
   if (!existsSync(bundlePath)) return null;
 
-  return await import(bundlePath);
+  return await import(pathToFileURL(bundlePath).href);
+}
+
+/**
+ * The bundle exists but could not be imported (#3817). This must never look
+ * like a pass: a caught load error rendered as {"continue":true} is
+ * indistinguishable from a hook that ran and found nothing, and on Windows it
+ * was exactly that for every hook. Three outputs, in order: one stderr line
+ * naming the file and the error, a hook-timing row with its own verdict
+ * (`bundle-error`, written synchronously so it lands before exit), and a
+ * non-zero exit. Exit 2 (CC: blocking error, stderr shown to Claude) for
+ * security hooks and for entries that opted into the loud channel with
+ * --rewake, so a guard that cannot run fails closed; exit 1 (non-blocking,
+ * shown to the user) for every other hook. Nothing is written to stdout.
+ * No session event is recorded: stdin has not been read, so the session id
+ * is unknown, and the timing row carries no session id anyway.
+ */
+function failBundleLoad(failedHookName, err, tAfterImport) {
+  const bundleName = getBundleName(failedHookName);
+  const bundlePath = join(effectiveDistDir, `${bundleName}.mjs`);
+  const code = (err && (err.code || err.name)) || 'Error';
+  const message = String((err && err.message) || err).split('\n')[0];
+  process.stderr.write(
+    `[orchestkit] ERROR: hook "${failedHookName}" bundle at ${bundlePath} exists but failed to load (${code}: ${message}). ` +
+    'Every hook in this bundle is inert until fixed. Rebuild (cd src/hooks && npm run build) or reinstall the plugin; on Windows see #3817.\n',
+  );
+  try {
+    const projectDir = process.env.CLAUDE_PROJECT_DIR || '.';
+    const analyticsDir = join(homedir(), '.claude', 'analytics');
+    mkdirSync(analyticsDir, { recursive: true });
+    const timingPath = join(analyticsDir, 'hook-timing.jsonl');
+    rotateAnalyticsIfNeeded(timingPath);
+    const bundleMs = Number(tAfterImport - t0) / 1e6;
+    appendFileSync(timingPath, JSON.stringify(timingRow(failedHookName, false, bundleMs, 'bundle-error', projectDir, { t_bundle_ms: bundleMs })) + '\n');
+  } catch {
+    // The stderr line and the exit code are the load-bearing signals; telemetry is best-effort.
+  }
+  process.exit(SECURITY_HOOKS.has(failedHookName) || REWAKE ? 2 : 1);
 }
 
 // Load the appropriate bundle
-let hooks;
+let hooks = null;
+let bundleLoadError = null;
 try {
   hooks = await loadBundleFallback(hookName);
 } catch (err) {
-  // Bundle not found - likely not built yet
-  // Output silent success to not block Claude Code
-  silentExit();
+  bundleLoadError = err;
 }
 
 /** t1: after bundle import */
 const t1 = process.hrtime.bigint();
 
+if (bundleLoadError) {
+  failBundleLoad(hookName, bundleLoadError, t1);
+}
+
 if (!hooks) {
+  // Bundle file absent: not built yet, or a stale cache with no dist anywhere.
   silentExit();
 }
 
@@ -539,6 +578,12 @@ function isValidSessionId(sessionId) {
  * months. The verdict field makes that visible: a decisive hook whose
  * verdicts are all `silent` over a window is either healthy-and-unprovoked or
  * dead, and the verdict-probe suite (tests/hooks/verdict-probes) decides which.
+ *
+ * Vocabulary: deny / ask / allow / defer (permissionDecision), block
+ * (continue:false or decision:block), context (only context came back),
+ * silent, error (the hook threw), and `bundle-error`, written by
+ * failBundleLoad() when the dist bundle exists but cannot be imported (#3817);
+ * that last one never reaches this function because no hook ran.
  */
 function classifyVerdict(result) {
   if (!result || typeof result !== 'object') return 'silent';
@@ -550,6 +595,16 @@ function classifyVerdict(result) {
   if (hso && typeof hso === 'object' && (hso.additionalContext || hso.updatedInput)) return 'context';
   if (result.systemMessage || result.additionalContext) return 'context';
   return 'silent';
+}
+
+/**
+ * One hook-timing.jsonl row. Shared by trackHookTriggered() (a hook ran) and
+ * failBundleLoad() (no hook could run) so the two writers cannot drift.
+ */
+function timingRow(hook, ok, durationMs, verdict, projectDir, stageTimings) {
+  const pid = getProjectHash(projectDir);
+  const team = process.env.CLAUDE_CODE_TEAM_NAME || undefined;
+  return { ts: new Date().toISOString(), hook, duration_ms: durationMs, ok, verdict, pid, ...(team ? { team } : {}), ...(stageTimings || {}) };
 }
 
 function trackHookTriggered(trackedHookName, success, durationMs, projectDir, timing, sessionIdFromInput, verdict = 'error') {
@@ -607,8 +662,6 @@ function trackHookTriggered(trackedHookName, success, durationMs, projectDir, ti
     // precisely so both sides can import one implementation instead of two.
     const analyticsDir = join(homedir(), '.claude', 'analytics');
     mkdirSync(analyticsDir, { recursive: true });
-    const pid = getProjectHash(projectDir);
-    const team = process.env.CLAUDE_CODE_TEAM_NAME || undefined;
     /** t4: right before the JSONL write — measures tracking overhead (t3→t4) */
     const t4 = timing?._t3 !== undefined ? process.hrtime.bigint() : undefined;
     const stageTimings = timing ? {
@@ -620,7 +673,7 @@ function trackHookTriggered(trackedHookName, success, durationMs, projectDir, ti
     const timingPath = join(analyticsDir, 'hook-timing.jsonl');
     rotateAnalyticsIfNeeded(timingPath);
     appendFile(timingPath,
-      JSON.stringify({ ts: new Date().toISOString(), hook: trackedHookName, duration_ms: durationMs, ok: success, verdict, pid, ...(team ? { team } : {}), ...stageTimings }) + '\n', (err) => {
+      JSON.stringify(timingRow(trackedHookName, success, durationMs, verdict, projectDir, stageTimings)) + '\n', (err) => {
       if (err) process.stderr.write(`[orchestkit] WARNING: failed to write hook timing to ${timingPath}: ${err.message}\n`);
     });
   } catch {

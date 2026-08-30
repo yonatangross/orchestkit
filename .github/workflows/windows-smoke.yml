@@ -14,10 +14,12 @@ on:
     branches: [main]
     paths:
       - 'src/hooks/**'
+      - 'tests/hooks/verdict-probes/**'
       - '.github/workflows/windows-smoke.yml'
   pull_request:
     paths:
       - 'src/hooks/**'
+      - 'tests/hooks/verdict-probes/**'
       - '.github/workflows/windows-smoke.yml'
   workflow_dispatch:
 
@@ -71,3 +73,15 @@ jobs:
           $result = $payload | node src/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker
           Write-Output "Hook result: $result"
           if ($LASTEXITCODE -ne 0) { throw "Hook invocation failed with exit $LASTEXITCODE" }
+
+      # #3817: the step above asserts only the exit code, and a dispatcher whose
+      # dist import fails on win32 exited 0 with the silent-success envelope for
+      # the entire life of that bug. This step drives the real runner with a
+      # payload that MUST be denied and asserts the verdict. PLUGIN_ROOT=src
+      # points the probe runner at src/hooks/bin/run-hook.mjs, whose dist is the
+      # one built above; the probe needs no fixture files or env of its own.
+      - name: Verdict probe through the dispatcher (asserts deny, not exit code)
+        shell: pwsh
+        env:
+          PLUGIN_ROOT: src
+        run: node tests/hooks/verdict-probes/run-probes.mjs tests/hooks/verdict-probes/probes.json --only bash-catastrophic-rm-deny
