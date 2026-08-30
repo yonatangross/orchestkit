@@ -36,6 +36,13 @@ import { contextFileBudgetGuard } from '../../pretool/write-edit/context-file-bu
 import { taskAgentAdvisor } from '../../pretool/task/task-agent-advisor.js';
 import { fableSpendConsent } from '../../pretool/task/fable-spend-consent.js';
 
+// #3322: network-egress-guard reads the real settings scopes when no override
+// is set, and this machine may have the sandbox on (then its ASK tier stands
+// down and the egress case below reads `undefined`, on main as well). Pin the
+// posture to unknown so this file tests the gate, not the machine; the
+// stand-down itself is covered by network-egress-guard-sandbox.test.ts.
+process.env.ORK_SANDBOX_ENABLED = 'unknown';
+
 const BYPASS = 'bypassPermissions' as const;
 
 function decisionOf(result: { hookSpecificOutput?: unknown }): string | undefined {

@@ -15,6 +15,20 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "stop-hook-payload-it-never-got",
+    "title": "The Stop Hook That Read a Payload It Never Got",
+    "description": "cross-instance-test-validator was registered on Stop but read tool_input.file_path, a field a Stop payload never carries, so it returned silent success on every invocation while every unit test stayed green. It now reads the stopping session's edit-history, validates each file from disk, reports once per session, and knows the mirrored __tests__ layout. Interactive verdict simulator plus the probe numbers before and after.",
+    "tags": [
+      "hooks",
+      "false-signals",
+      "measurement"
+    ],
+    "date": "2026-08-30",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 12
+  },
+  {
     "slug": "connect-tunnel-failed-403",
     "title": "CONNECT Tunnel Failed, Response 403",
     "description": "The operator froze the regex egress guard and chose CC's OS sandbox. Its retirement gate was an observation: with sandbox.enabled and an allowlist, a curl to example.com is refused by the proxy and reported in a sandbox_violations block; with the sandbox off it reaches the host. The guard's ASK tier now stands down behind that boundary; DENY stays.",
