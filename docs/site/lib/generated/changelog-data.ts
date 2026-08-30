@@ -17,6 +17,26 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.64",
+    "date": "2026-08-30",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**hooks:** cross-instance-test-validator checks the session's files at Stop ([#3812](https://github.com/yonatangross/orchestkit/issues/3812)) ([c7608b5](https://github.com/yonatangross/orchestkit/commit/c7608b5e4d0e40a60c843de0821254d436249228))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**hooks:** CLAUDE_ENV_FILE exports reach Bash only, not later hooks ([#3814](https://github.com/yonatangross/orchestkit/issues/3814)) ([70af11c](https://github.com/yonatangross/orchestkit/commit/70af11c1ba196806e245107f9ec1d3641ff7a485)), closes [#3806](https://github.com/yonatangross/orchestkit/issues/3806)",
+          "**playgrounds:** land three 2026-08-29 session explainers ([#3811](https://github.com/yonatangross/orchestkit/issues/3811)) ([a53b164](https://github.com/yonatangross/orchestkit/commit/a53b164f992afb7da1ae943d9e53ba47aac5f5f6))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.63",
     "date": "2026-08-30",
     "compareUrl": "",
