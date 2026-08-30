@@ -634,6 +634,18 @@
         "measurement"
       ],
       "date": "2026-08-30"
+    },
+    {
+      "slug": "env-file-reaches-the-shell-not-the-next-hook",
+      "source": "docs/fix--3806-env-file-reaches-bash-only/index.html",
+      "title": "CLAUDE_ENV_FILE Reaches the Shell, Not the Next Hook",
+      "description": "The hooks README said an export written at SessionStart reaches all future hook invocations. Measured on CC 2.1.251 with four observers: the Bash tool sees it, no later hook does, sync or async, plugin or settings. Per-consumer audit found one writer that survived by also writing a flag file, and three comments that had the channels inverted. Pick a reader and see what it gets.",
+      "tags": [
+        "hooks",
+        "false-signals",
+        "measurement"
+      ],
+      "date": "2026-08-30"
     }
   ]
 }

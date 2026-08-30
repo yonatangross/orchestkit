@@ -115,12 +115,15 @@ function writeAuditEntry(projectDir: string, entry: { session: string; action: s
  * Sync OrchestKit debug mode with CC's /debug toggle (CC 2.1.71).
  *
  * When /debug is toggled on, CC sets CLAUDE_DEBUG=1 in the process env.
- * Primary: write `export ORK_DEBUG=1` to CLAUDE_ENV_FILE so all subsequent
- * hooks see it via process.env.ORK_DEBUG without file I/O.
- * Fallback: also write a flag file for hooks on events that don't receive
- * CLAUDE_ENV_FILE (PostToolUse, PreToolUse, etc.).
+ * Two channels, for two different readers (#3806, measured on CC 2.1.251):
+ *   - the flag file (~/.claude/logs/ork/debug-mode.flag) is what HOOKS read,
+ *     via getLogLevel() in lib/env.ts. No hook event receives a variable
+ *     exported through CLAUDE_ENV_FILE, so this is the working path, not a
+ *     fallback.
+ *   - `export ORK_DEBUG=1` in CLAUDE_ENV_FILE reaches the Bash tool's
+ *     environment only, so a shell command Claude runs sees $ORK_DEBUG.
  *
- * When /debug is toggled off, CLAUDE_DEBUG is unset — we clear ORK_DEBUG
+ * When /debug is toggled off, CLAUDE_DEBUG is unset; we clear ORK_DEBUG
  * via the env file and remove the flag file.
  */
 function syncDebugMode(): void {
@@ -129,7 +132,7 @@ function syncDebugMode(): void {
   const flagPath = join(flagDir, 'debug-mode.flag');
 
   if (process.env.CLAUDE_DEBUG) {
-    // /debug is ON — propagate via CLAUDE_ENV_FILE (primary) + flag file (fallback)
+    // /debug is ON: env file for Bash tool commands, flag file for hooks (#3806)
     try {
       const envFile = getEnvFile();
       appendFileSync(envFile, `export ORK_DEBUG=1\n`);

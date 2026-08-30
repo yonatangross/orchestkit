@@ -15,6 +15,20 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "env-file-reaches-the-shell-not-the-next-hook",
+    "title": "CLAUDE_ENV_FILE Reaches the Shell, Not the Next Hook",
+    "description": "The hooks README said an export written at SessionStart reaches all future hook invocations. Measured on CC 2.1.251 with four observers: the Bash tool sees it, no later hook does, sync or async, plugin or settings. Per-consumer audit found one writer that survived by also writing a flag file, and three comments that had the channels inverted. Pick a reader and see what it gets.",
+    "tags": [
+      "hooks",
+      "false-signals",
+      "measurement"
+    ],
+    "date": "2026-08-30",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 8
+  },
+  {
     "slug": "stop-hook-payload-it-never-got",
     "title": "The Stop Hook That Read a Payload It Never Got",
     "description": "cross-instance-test-validator was registered on Stop but read tool_input.file_path, a field a Stop payload never carries, so it returned silent success on every invocation while every unit test stayed green. It now reads the stopping session's edit-history, validates each file from disk, reports once per session, and knows the mirrored __tests__ layout. Interactive verdict simulator plus the probe numbers before and after.",
