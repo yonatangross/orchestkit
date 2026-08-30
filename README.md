@@ -370,6 +370,12 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.63](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.62...v10.0.0-alpha.63)** · 2026-08-30
+
+- **build:** plugin dependencies handed to CC, Phase 5 retired (#3326) (#3809)
+- **hooks:** egress guard stands down behind an enforced sandbox (#3322) (#3808)
+- **build:** stop shipping command wrappers to Claude Code (#3541) (#3807)
+
 **[v10.0.0-alpha.62](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.61...v10.0.0-alpha.62)** · 2026-08-29
 
 - **agents:** experimental.cacheTtl 1h on five long-running agents (#3797)
@@ -414,11 +420,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **cc-watch:** snapshot upstream CHANGELOG (2.1.241) (#3719)
 - **orank:** repo-root plugin.json mirror and fuller pricing.md (#3712), closes [#3675](https://github.com/yonatangross/orchestkit/issues/3675)
 - …and 1 more (see [CHANGELOG.md](CHANGELOG.md))
-
-**[v10.0.0-alpha.55](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.54...v10.0.0-alpha.55)** · 2026-08-24
-
-- **hooks:** rewrite inert security-scan-aggregator (#3709)
-- **docs:** track two untracked ledgers (#3706)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
