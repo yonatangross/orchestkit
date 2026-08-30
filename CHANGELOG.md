@@ -5,6 +5,19 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.64](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.63...v10.0.0-alpha.64) (2026-08-30)
+
+
+### Bug Fixes
+
+* **hooks:** cross-instance-test-validator checks the session's files at Stop ([#3812](https://github.com/yonatangross/orchestkit/issues/3812)) ([c7608b5](https://github.com/yonatangross/orchestkit/commit/c7608b5e4d0e40a60c843de0821254d436249228))
+
+
+### Documentation
+
+* **hooks:** CLAUDE_ENV_FILE exports reach Bash only, not later hooks ([#3814](https://github.com/yonatangross/orchestkit/issues/3814)) ([70af11c](https://github.com/yonatangross/orchestkit/commit/70af11c1ba196806e245107f9ec1d3641ff7a485)), closes [#3806](https://github.com/yonatangross/orchestkit/issues/3806)
+* **playgrounds:** land three 2026-08-29 session explainers ([#3811](https://github.com/yonatangross/orchestkit/issues/3811)) ([a53b164](https://github.com/yonatangross/orchestkit/commit/a53b164f992afb7da1ae943d9e53ba47aac5f5f6))
+
 ## [10.0.0-alpha.63](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.62...v10.0.0-alpha.63) (2026-08-30)
 
 
