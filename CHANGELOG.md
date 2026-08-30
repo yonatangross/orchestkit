@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.65](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.64...v10.0.0-alpha.65) (2026-08-30)
+
+
+### Bug Fixes
+
+* **hooks:** redact-secrets reads tool_response, the field CC sends ([#3815](https://github.com/yonatangross/orchestkit/issues/3815)) ([9e01296](https://github.com/yonatangross/orchestkit/commit/9e01296643c7869c7eb9191f26af73a861ea2124)), closes [#3725](https://github.com/yonatangross/orchestkit/issues/3725)
+
+
+### Documentation
+
+* **hooks:** paperwork for [#3725](https://github.com/yonatangross/orchestkit/issues/3725), the redact-secrets read order fix ([#3818](https://github.com/yonatangross/orchestkit/issues/3818)) ([857afb5](https://github.com/yonatangross/orchestkit/commit/857afb5b0dc9e893d127cbaf0948d16e555ac159))
+
 ## [10.0.0-alpha.64](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.63...v10.0.0-alpha.64) (2026-08-30)
 
 

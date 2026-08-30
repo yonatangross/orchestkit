@@ -370,6 +370,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.65](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.64...v10.0.0-alpha.65)** · 2026-08-30
+
+- **hooks:** redact-secrets reads tool_response, the field CC sends (#3815), closes [#3725](https://github.com/yonatangross/orchestkit/issues/3725)
+- **hooks:** paperwork for [#3725](https://github.com/yonatangross/orchestkit/issues/3725), the redact-secrets read order fix (#3818)
+
 **[v10.0.0-alpha.64](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.63...v10.0.0-alpha.64)** · 2026-08-30
 
 - **hooks:** cross-instance-test-validator checks the session's files at Stop (#3812)
@@ -412,11 +417,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **hooks:** guards must parse shell structure, not raw text (#3742)
 - **hooks:** read git status without taking the index lock (#3743)
 - **hooks:** restrict-bash must not read quoted pipes as shell operators (#3740)
-
-**[v10.0.0-alpha.57](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.56...v10.0.0-alpha.57)** · 2026-08-25
-
-- **cc-watch:** fallback stub ignores below-floor sentinels (#3724)
-- register the repo-root plugin.json with the drift roster (#3728)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
