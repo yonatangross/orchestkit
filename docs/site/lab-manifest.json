@@ -586,6 +586,18 @@
         "false-signals"
       ],
       "date": "2026-08-29"
+    },
+    {
+      "slug": "a-check-that-could-only-answer-for-itself",
+      "source": "docs/feat--3326-plugin-dependencies/index.html",
+      "title": "A Check That Could Only Ever Answer for Itself",
+      "description": "Build Phase 5 validated a manifest's dependencies by looking for a sibling manifest file in this repo, so it could only confirm plugins this repo builds. CC now owns the field: passed through to plugin.json, installed transitively, refused when unsatisfied. Type a value and see what each layer says. Also found: the plugin.json schema gate had never validated the shipped plugin.",
+      "tags": [
+        "plugin",
+        "build",
+        "false-signals"
+      ],
+      "date": "2026-08-30"
     }
   ]
 }

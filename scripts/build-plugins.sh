@@ -402,6 +402,7 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
         --argjson has_skills "$([[ -d "$PLUGIN_DIR/skills" ]] && echo true || echo false)" \
         --argjson has_commands "$([[ -d "$PLUGIN_DIR/commands" ]] && echo true || echo false)" \
         --argjson has_workflows "$([[ -d "$PLUGIN_DIR/workflows" ]] && echo true || echo false)" \
+        --argjson deps "$(jq -c '.dependencies // null' "$manifest")" \
         '{
           name: $name,
           version: $version,
@@ -418,6 +419,11 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
         }
         + if $has_skills then {skills: "./skills/"} else {} end
         + if $has_commands then {commands: "./commands/"} else {} end
+        # #3326: CC owns `dependencies` (plugin names, or {name, version}); pass
+        # it through verbatim. CC installs them transitively at enable time and
+        # refuses to enable/disable when unsatisfied, which the retired Phase 5
+        # check only approximated by looking for a sibling manifest file.
+        + if $deps != null then {dependencies: $deps} else {} end
         + if $has_workflows then {workflows: "./workflows/"} else {} end' \
         > "$PLUGIN_DIR/.claude-plugin/plugin.json"
 
@@ -426,7 +432,7 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
     # Claude hooks use ${CLAUDE_PLUGIN_ROOT} and must not be registered here.
     mkdir -p "$PLUGIN_DIR/.cursor-plugin"
     jq --argjson has_agents "$([[ -d "$PLUGIN_DIR/agents" ]] && echo true || echo false)" \
-      'del(.workflows) + (if $has_agents then {agents: "./agents/"} else {} end)' \
+      'del(.workflows, .dependencies) + (if $has_agents then {agents: "./agents/"} else {} end)' \
       "$PLUGIN_DIR/.claude-plugin/plugin.json" \
       > "$PLUGIN_DIR/.cursor-plugin/plugin.json"
 
@@ -549,42 +555,15 @@ echo -e "${GREEN}  All $PLUGINS_BUILT plugins validated${NC}"
 echo ""
 
 # ============================================================================
-# Phase 5: Validate Plugin Dependencies
+# Phase 5: Plugin dependencies (retired 2026-08-29, #3326)
 # ============================================================================
-echo -e "${BLUE}[5/10] Validating plugin dependencies...${NC}"
-
-DEP_WARNINGS=0
-DEP_CHECKED=0
-
-for manifest in "$MANIFESTS_DIR"/*.json; do
-    [[ ! -f "$manifest" ]] && continue
-
-    PLUGIN_NAME=$(jq -r '.name' "$manifest")
-    DEPS=$(jq -r '.dependencies[]? // empty' "$manifest" 2>/dev/null)
-
-    if [[ -z "$DEPS" ]]; then
-        continue
-    fi
-
-    while IFS= read -r dep; do
-        [[ -z "$dep" ]] && continue
-        DEP_CHECKED=$((DEP_CHECKED + 1))
-
-        # Check if dependency manifest exists
-        DEP_MANIFEST="$MANIFESTS_DIR/${dep}.json"
-        if [[ ! -f "$DEP_MANIFEST" ]]; then
-            echo -e "${YELLOW}  WARNING: $PLUGIN_NAME depends on '$dep' but no manifest found${NC}"
-            DEP_WARNINGS=$((DEP_WARNINGS + 1))
-        fi
-    done < <(printf '%s\n' "$DEPS")
-done
-
-if [[ $DEP_WARNINGS -gt 0 ]]; then
-    echo -e "${YELLOW}  $DEP_WARNINGS dependency warnings (of $DEP_CHECKED checked)${NC}"
-else
-    echo -e "${GREEN}  All $DEP_CHECKED dependencies resolved${NC}"
-fi
-
+# The hand-rolled check that looked for a sibling manifest per `dependencies`
+# entry is gone: CC owns the field. It is passed through to plugin.json in
+# Phase 3, `claude plugin validate` rejects a malformed value, and CC installs
+# dependencies transitively at enable time and refuses to enable or disable a
+# plugin whose dependencies are unsatisfied. A local check could only answer
+# for plugins built in this repo, which is not where a dependency lives.
+echo -e "${BLUE}[5/10] Plugin dependencies: owned by CC (passed through to plugin.json)${NC}"
 echo ""
 
 # ============================================================================

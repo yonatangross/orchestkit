@@ -83,6 +83,15 @@ validate_plugin() {
     fi
 
     # 5. Validate hooks structure (if present)
+    # #3326: `dependencies` is CC's field (plugin-name strings or {name, version}).
+    # CC's validate rejects a non-array; assert the shape here so a typo in a
+    # manifest fails this run, not a user's `plugin enable`.
+    if jq -e '.dependencies' "$plugin_file" >/dev/null 2>&1; then
+        if ! jq -e '.dependencies | type == "array" and all(.[]; (type == "string") or (type == "object" and (.name | type) == "string"))' "$plugin_file" >/dev/null 2>&1; then
+            log_error "[$plugin_name] 'dependencies' must be an array of plugin names or {name, version} objects"
+        fi
+    fi
+
     if jq -e '.hooks' "$plugin_file" >/dev/null 2>&1; then
         hooks_type=$(jq -r '.hooks | type' "$plugin_file")
         if [[ "$hooks_type" != "object" ]]; then
@@ -128,7 +137,11 @@ fi
 # 2. Validate all modular plugins
 echo ""
 echo "2. Validating modular plugins..."
-for plugin_dir in "${ROOT_DIR}"/plugins/ork-*/; do
+# Every built plugin dir. This used to be plugins/ork-*/, a glob from the
+# multi-plugin era that plugins/ork/ never matched, so the one shipped
+# plugin.json was never validated here (found 2026-08-30 while adding the
+# dependencies check: a string-shaped value produced "Total errors: 0").
+for plugin_dir in "${ROOT_DIR}"/plugins/*/; do
     [[ -d "$plugin_dir" ]] || continue
     plugin_name=$(basename "$plugin_dir")
 
