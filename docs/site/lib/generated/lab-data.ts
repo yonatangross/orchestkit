@@ -15,6 +15,20 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "a-sieve-that-was-not-in-the-flow",
+    "title": "A Sieve That Was Not in the Flow",
+    "description": "skill/redact-secrets read two legacy aliases and never tool_response, the field CC sends, so every pattern in that layer had matched nothing in production while 65 unit tests stayed green on the alias they fed it. An outside contributor fixed the read order and proved it with an integration test that fails against main's built bundle. Pick a payload field and see which reader catches the token, before and after.",
+    "tags": [
+      "hooks",
+      "security",
+      "false-signals"
+    ],
+    "date": "2026-08-30",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 8
+  },
+  {
     "slug": "env-file-reaches-the-shell-not-the-next-hook",
     "title": "CLAUDE_ENV_FILE Reaches the Shell, Not the Next Hook",
     "description": "The hooks README said an export written at SessionStart reaches all future hook invocations. Measured on CC 2.1.251 with four observers: the Bash tool sees it, no later hook does, sync or async, plugin or settings. Per-consumer audit found one writer that survived by also writing a flag file, and three comments that had the channels inverted. Pick a reader and see what it gets.",
