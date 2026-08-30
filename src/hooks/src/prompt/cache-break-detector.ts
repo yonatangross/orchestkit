@@ -12,7 +12,8 @@
  *
  * Design:
  * - Hashes the set of active context injection keys (hook names, section markers)
- * - Compares to previous turn's shape hash (persisted via CLAUDE_ENV_FILE)
+ * - Compares to previous turn's shape hash (persisted in the turn-state file
+ *   below; CLAUDE_ENV_FILE exports never reach a later hook, #3806)
  * - On shape change, logs the marker delta via ctx.log — NOTHING ELSE
  * - Never modifies Claude's behavior
  *

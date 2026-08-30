@@ -54,7 +54,10 @@ export function getPluginDataDir(): string | null {
 
 /**
  * Get the environment file path (CC 2.1.25: CLAUDE_ENV_FILE support)
- * Falls back to .instance_env for backward compatibility
+ * Falls back to .instance_env for backward compatibility.
+ *
+ * Exports appended here reach the Bash tool's environment, not later hooks
+ * (#3806, measured on CC 2.1.251). Hook-to-hook state goes through files.
  */
 export function getEnvFile(): string {
   if (process.env.CLAUDE_ENV_FILE) {
@@ -150,9 +153,11 @@ export function isGitWorktree(projectDir?: string): boolean {
  * Resolution order (first match wins):
  * 1. ORCHESTKIT_LOG_LEVEL env var (explicit override)
  * 2. CLAUDE_DEBUG env var (CC 2.1.71 /debug toggle → auto-enable debug)
- * 3. ORK_DEBUG env var (set via CLAUDE_ENV_FILE by ConfigChange or failure-handler)
- * 4. Debug flag file (~/.claude/logs/ork/debug-mode.flag) — fallback for hooks
- *    on events that don't receive CLAUDE_ENV_FILE propagated vars
+ * 3. ORK_DEBUG env var (an operator export, or the CLAUDE_ENV_FILE line
+ *    settings-reload writes; the latter reaches Bash tool commands only and
+ *    is never set in a hook process, #3806 measured on CC 2.1.251)
+ * 4. Debug flag file (~/.claude/logs/ork/debug-mode.flag), the path hooks
+ *    actually take when /debug is on
  * 5. Default: 'info' — must admit logHook's default level ('info'). When this
  *    defaulted to 'warn', every bare ctx.log() call in the tree was silently
  *    dropped in production (#3386).
@@ -168,12 +173,12 @@ export function getLogLevel(): string {
     return 'debug';
   }
 
-  // CLAUDE_ENV_FILE propagated: ORK_DEBUG set by ConfigChange or failure-handler
+  // Operator-set ORK_DEBUG. The CLAUDE_ENV_FILE export never arrives here (#3806).
   if (process.env.ORK_DEBUG) {
     return 'debug';
   }
 
-  // Flag file fallback: for hooks on events that don't inherit env file vars
+  // Flag file: the channel settings-reload uses that hooks can actually read
   try {
     const flagPath = join(
       process.env.HOME || process.env.USERPROFILE || '',

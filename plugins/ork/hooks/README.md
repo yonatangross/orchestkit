@@ -253,32 +253,42 @@ CLAUDE_PLUGIN_DATA not set (CC < 2.1.78 fallback):
 
 ## CLAUDE_ENV_FILE Pattern
 
-CC provides a `CLAUDE_ENV_FILE` env var to hooks running on `SessionStart`, `CwdChanged`, `FileChanged`, and `ConfigChange` events. Hook scripts write `export KEY=value` lines to this file, and CC reads them back after execution, setting those env vars for **all future hook invocations** in the session. This is cleaner than file-based state for lightweight key-value data.
+CC provides a `CLAUDE_ENV_FILE` env var to hooks running on `SessionStart`, `CwdChanged`, `FileChanged`, and `ConfigChange` events. Hook scripts write `export KEY=value` lines to this file, and CC reads them back after execution. **The values reach the Bash tool's environment for the rest of the session. They do NOT reach later hooks.**
+
+That second sentence is a measurement, not the documented contract. An earlier version of this section said "all future hook invocations in the session", and `sandbox-posture` was designed on that claim before it was measured dead (#3806, 2026-08-30, CC 2.1.251, `claude -p` with `--settings` hooks and a loopback Messages-API stub):
+
+| observer | `CLAUDE_ENV_FILE` present | sees `PROBE_EXPORTED` written at SessionStart |
+|---|---|---|
+| SessionStart hook | yes | n/a (it wrote it) |
+| PostToolUse hook (Bash) | unset | **unset** |
+| Stop hook | unset | **unset** |
+| Bash tool command (`echo ${PROBE_EXPORTED}`) | n/a | **yes** |
+
+Same result for a plugin hook (async) and for a sub-hook inside the sync `sync-session-dispatcher`. Whether that is a CC bug or the intended scope of the feature is not settled upstream; until it is, the file is a way to put a variable in front of shell commands, and hook-to-hook state goes through files.
 
 > **Effort awareness (CC 2.1.133+)**: Hooks can read `$CLAUDE_EFFORT` (or the `effort.level` JSON input field) directly to gate expensive checks on `high`/`xhigh` and skip them on `low`. Bash tool commands also see `$CLAUDE_EFFORT`. See `src/skills/configure/references/cc-version-settings.md` ("Hooks Now Receive `effort.level` Input + `$CLAUDE_EFFORT` Env").
 
 ### How It Works
 
 ```
-Hook receives CLAUDE_ENV_FILE=/tmp/claude-env-abc123
+Hook receives CLAUDE_ENV_FILE=~/.claude/session-env/<sid>/sessionstart-hook-0.sh
     ↓
 Hook appends: export ORK_DEBUG=1
     ↓
 CC reads the file after hook exits
     ↓
-All subsequent hooks see process.env.ORK_DEBUG === '1'
+Bash tool commands see $ORK_DEBUG        (measured)
+Later hooks do NOT see process.env.ORK_DEBUG   (measured, #3806)
 ```
 
 ### When to Use
 
 | Use Case | CLAUDE_ENV_FILE | File-Based State |
 |----------|-----------------|------------------|
-| Session-level flags (debug mode, feature toggles) | **Preferred** | Overkill |
-| Detected project tier (interview/mvp/production) | **Preferred** | Overkill |
-| Simple counters (< 5 values) | **Preferred** | Overkill |
+| A flag a shell command run by Claude should see (`$ORK_DEBUG` in a script) | **Preferred** | Not visible to Bash |
+| A flag a LATER HOOK must read (debug level, detected tier, sandbox posture) | Does not arrive | **Use this** (flag file or state file) |
 | Complex structured data (JSON objects, arrays) | Not suitable | **Use this** |
 | Data needed across sessions | Not suitable | **Use this** |
-| Data > 10 key-value pairs | Not suitable | **Use this** |
 
 ### TypeScript Example
 
@@ -287,27 +297,26 @@ import { appendFileSync } from 'node:fs';
 import { getEnvFile } from '../lib/common.js';
 
 /**
- * Write a session-scoped env var via CLAUDE_ENV_FILE.
- * All subsequent hooks in this session will see the value
- * via process.env[key].
+ * Put a session-scoped variable in front of the Bash tool.
+ * Later hooks will NOT see process.env[key] (#3806); if a hook
+ * needs the value, write a flag or state file it can read as well.
  */
-function setSessionEnv(key: string, value: string): void {
+function setBashEnv(key: string, value: string): void {
   const envFile = getEnvFile();
   try {
     appendFileSync(envFile, `export ${key}=${value}\n`);
   } catch {
-    // Non-fatal — env file may not exist on older CC versions
+    // Non-fatal, the env file may be absent on older CC versions
   }
 }
 
 // Usage in a SessionStart or ConfigChange hook:
-setSessionEnv('ORK_DEBUG', '1');
-setSessionEnv('ORK_PROJECT_TIER', 'production');
+setBashEnv('ORK_DEBUG', '1');
 ```
 
 ### Helper: `getEnvFile()`
 
-Located in `lib/common.ts`. Returns `CLAUDE_ENV_FILE` if set, falls back to legacy `.instance_env` path:
+Located in `lib/env.ts` (re-exported from `lib/common.ts`). Returns `CLAUDE_ENV_FILE` if set, falls back to legacy `.instance_env` path:
 
 ```typescript
 export function getEnvFile(): string {
@@ -320,14 +329,15 @@ export function getEnvFile(): string {
 
 ### Adoption
 
-The `syncDebugMode()` function in `config-change/settings-reload.ts` uses `CLAUDE_ENV_FILE` to propagate the `ORK_DEBUG` flag when `/debug` is toggled. Instead of writing a flag file to disk that every hook must stat, it writes `export ORK_DEBUG=1` to the env file, making the flag instantly available via `process.env.ORK_DEBUG` in all subsequent hooks.
+`syncDebugMode()` in `config-change/settings-reload.ts` writes BOTH channels when `/debug` is toggled: `export ORK_DEBUG=1` to the env file (so a shell command Claude runs sees `$ORK_DEBUG`) and `~/.claude/logs/ork/debug-mode.flag` (what hooks actually read: `getLogLevel()` in `lib/env.ts` checks `process.env.ORK_DEBUG` and then the flag file). Before #3806 the comments called the env file "primary" and the flag file a "fallback for events that don't receive the env var"; the measurement showed no hook event receives it, so the flag file is the working path and the env export is the Bash-facing one. It is the only ork consumer of this pattern (audited 2026-08-30: `session-env-setup` writes JSON state, not exports; `cache-break-detector` persists its shape hash in a state file; every other `ORK_*` variable hooks read is operator-set).
 
 ### Constraints
 
-- **Session-scoped only** — values do not persist across sessions. For cross-session state, use `CLAUDE_PLUGIN_DATA` or project-local files.
-- **Event support** — only available on events where CC provides the env var (`SessionStart`, `CwdChanged`, `FileChanged`, `ConfigChange`). Other events can *read* values set earlier, but cannot write new ones.
-- **String values only** — no JSON, no arrays. For structured data, use file-based state.
-- **No deletion** — you cannot unset a previously exported variable via this file. To "disable" a flag, overwrite it with an empty value (`export ORK_DEBUG=`).
+- **Session-scoped only**: values do not persist across sessions. For cross-session state, use `CLAUDE_PLUGIN_DATA` or project-local files.
+- **Write events**: only `SessionStart`, `CwdChanged`, `FileChanged`, `ConfigChange` receive the env var.
+- **Readers**: Bash tool commands. Not later hooks (#3806).
+- **String values only**: no JSON, no arrays. For structured data, use file-based state.
+- **No deletion**: you cannot unset a previously exported variable via this file. To "disable" a flag, overwrite it with an empty value (`export ORK_DEBUG=`).
 
 ---
 
@@ -1221,7 +1231,7 @@ First run, 17 probes: 13 passed, 1 known-dead, 3 red. The three reds were two re
 |---|---|---|
 | `sync-write-edit-dispatcher` dropped sibling `ask` verdicts (only `additionalContext` and `updatedInput` were merged), so `file-guard` and `context-file-budget-guard` had been inert since they moved from deny to ask | direct: `ask`; through the dispatcher: `updatedInput` only | the merge now carries the most severe `permissionDecision` (deny over ask) alongside context and updatedInput |
 | `git-validator` allowed `git push origin HEAD:main` from a feature branch: the early return judged only the session branch, while its own comment on `extractPushDestinations` says `HEAD:main -> ['main'] (still protected)` | `silent` with and without a git repo in cwd | an explicitly named protected destination denies from any branch; the #3455 allow (every destination non-protected) is unchanged |
-| `cross-instance-test-validator` is registered on `Stop` but reads `tool_input.file_path`, which a Stop payload never carries (#3804) | `silent` on a fixture with two untested exports | was tracked as `xfail`; fixed 2026-08-30 (see the registry changelog): the hook now reads the session's `edit-history.jsonl` at Stop, the probe seeds that file and asserts `block`, and its control adds a test file and asserts `silent` |
+| `cross-instance-test-validator` is registered on `Stop` but reads `tool_input.file_path`, which a Stop payload never carries (#3804) | `silent` on a fixture with two untested exports | tracked as `xfail` until its event or its input is fixed |
 
 Adding a probe: copy an entry, point `hook` at the hooks.json entry (not the sub-guard), write a trip that satisfies every condition in the handler's own code, and a control one condition short. If the trip stays silent, run the sub-guard directly through `run-hook.mjs` with the same payload before blaming the wiring; a `{repeat, times}` value expands to bulk content in files and payload fields alike.
 
@@ -1396,6 +1406,8 @@ See the async hooks section above for detailed async hook patterns.
 ## Registry changelog (archived from hooks.json description, 2026-07-18)
 
 The registry's change history used to accumulate inside the `description` field of `hooks.json`, which made the count unreadable and the JSON diff-hostile. The field now carries only the stamped count line; history continues here.
+
+(count unchanged at 175, 2026-08-30, #3806): the "CLAUDE_ENV_FILE Pattern" section claimed exports from a SessionStart/ConfigChange hook reach "all future hook invocations in the session". Measured on CC 2.1.251 (the #3322 build first designed its sandbox-posture publisher on that claim): the export reaches the Bash tool's environment and no later hook, sync or async, plugin or `--settings`, dispatcher sub-hook or top-level. Consumer audit, decided per consumer as the issue asked: `config-change/settings-reload` was the only writer, and it already wrote a flag file alongside the export, which `lib/env.ts` `getLogLevel()` already read as its step 4; so `/debug` propagation was never broken, but its comments called the dead channel "primary" and the live one a "fallback", inverted. `session-env-setup` writes JSON state files, not exports; `cache-break-detector`'s header said its shape hash was "persisted via CLAUDE_ENV_FILE" while the code has always used a turn-state file; every other `ORK_*` variable hooks read is operator-set. No code path changed: the env-file append is kept because a shell command Claude runs does see `$ORK_DEBUG`, which is a real reader. The README section, the `When to Use` table, the example and the constraints now state the measured scope, with the observer table as the repro; the three comments say which reader each channel serves. Whether the hook-side blindness is a CC defect or the feature's intended scope is unsettled upstream and is not claimed either way here.
 
 (count unchanged at 175, 2026-08-30, #3804): `skill/cross-instance-test-validator` became a real Stop-time check. It was registered on `Stop` (async, `asyncRewake`) but read `tool_input.file_path` and `tool_input.content`, fields a Stop payload never carries, so it returned silent success on every invocation and its block path had never executed in production; the verdict probe measured `trip=silent` and carried it as the suite's one `xfail`. The unit suite was green throughout because it built the PostToolUse payload the registered event does not deliver (the #3801 / #959 class). The set of files to validate now comes from `.claude/state/edit-history.jsonl`, which `posttool/write/edit-history-tracker` already appends on every Write/Edit/MultiEdit with the writing session's `sid`, so the read is scoped to the stopping session (#2919) and each file's content is read from disk at Stop time. Findings are remembered per session in `.claude/state/test-coverage-reported-<sid>.json` so a file the operator chose to leave untested blocks once, not on every later turn; `stop_hook_active` short-circuits so a block cannot re-enter (the CC 2.1.78 loop shape); a file with no exports, a deleted file, a test file and a non-code file are skipped. Test discovery gained the MIRRORED layout (`src/__tests__/skill/x.test.ts` for `src/skill/x.ts`, walking ancestors up to the project root for `__tests__/`, `tests/` and `test/`, plus the Python `tests/` equivalents): without it the hook would have blocked every ork hook author at Stop, since this repo mirrors its tests rather than placing them beside the source. Warnings for a present-but-incomplete test file use `systemMessage` (a Stop-legal key) instead of `outputWithContext`, whose hardcoded `hookEventName: PostToolUse` the output guard strips on Stop (#1794). The single-file payload shape is still honoured when present, so a PostToolUse dispatch would work without another rewrite. The probe's `xfail` marker is removed; its trip seeds `edit-history.jsonl` with the runner's session id and asserts `block`, and its control adds `src/svc.test.ts` and asserts `silent`. The unit suite was rewritten on the real filesystem (temp project dir, seeded history, Stop payload), with cases for the re-entry guard, the once-per-session marker, cross-session isolation, the mirrored tree, relative history paths, and the legacy dispatch.
 
