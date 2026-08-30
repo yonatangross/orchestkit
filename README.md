@@ -370,6 +370,12 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.64](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.63...v10.0.0-alpha.64)** · 2026-08-30
+
+- **hooks:** cross-instance-test-validator checks the session's files at Stop (#3812)
+- **hooks:** CLAUDE_ENV_FILE exports reach Bash only, not later hooks (#3814), closes [#3806](https://github.com/yonatangross/orchestkit/issues/3806)
+- **playgrounds:** land three 2026-08-29 session explainers (#3811)
+
 **[v10.0.0-alpha.63](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.62...v10.0.0-alpha.63)** · 2026-08-30
 
 - **build:** plugin dependencies handed to CC, Phase 5 retired (#3326) (#3809)
@@ -411,15 +417,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **cc-watch:** fallback stub ignores below-floor sentinels (#3724)
 - register the repo-root plugin.json with the drift roster (#3728)
-
-**[v10.0.0-alpha.56](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.55...v10.0.0-alpha.56)** · 2026-08-24
-
-- **hooks:** debt-surfacer reads a HEAD-keyed ledger (#3710), closes [#3708](https://github.com/yonatangross/orchestkit/issues/3708)
-- **hooks:** redact GitLab tokens in all three redaction layers (#3722), closes [#3589](https://github.com/yonatangross/orchestkit/issues/3589)
-- **cc-watch:** advance latest_known to 2.1.241 with triage doc (#3723)
-- **cc-watch:** snapshot upstream CHANGELOG (2.1.241) (#3719)
-- **orank:** repo-root plugin.json mirror and fuller pricing.md (#3712), closes [#3675](https://github.com/yonatangross/orchestkit/issues/3675)
-- …and 1 more (see [CHANGELOG.md](CHANGELOG.md))
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
