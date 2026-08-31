@@ -2340,4 +2340,4 @@ export const CC_SUPPORT = {
 } as const;
 
 /** sha256 (first 12 hex) of the two source files above, in that order. */
-export const SOURCE_DIGEST = "9e0bbc4d369f" as const;
+export const SOURCE_DIGEST = "d5179ef06767" as const;

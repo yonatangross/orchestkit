@@ -1,0 +1,387 @@
+{
+  "README": "One trip case per rule in src/skills/setup/references/operator-permissions.json. probe-payload-rules.sh asserts this file covers every rule and no others, so adding a rule without a case fails the probe instead of going silently untested. mode=live: the case is really executed, and is harmless even when the rule fails to hold. mode=not-live: executing it IS the harm the rule exists to prevent, so the rule is checked for presence only and class_proof names a live case of the same matcher shape. A not-live case is NOT evidence that its own rule enforces. mode=twin: the rule itself is measurably inert, but an equivalent rule in the payload does enforce the same tool call; the trip arm carries the TWIN, so the protection is proven even though this spelling is not what delivers it.",
+  "generated": "2026-08-31",
+  "counts": {
+    "rules": 53,
+    "live": 31,
+    "twin": 10,
+    "not_live": 12
+  },
+  "cases": [
+    {
+      "rule": "Read(~/.aws/credentials)",
+      "mode": "live",
+      "kind": "read",
+      "target": "$FAKE_HOME/.aws/credentials"
+    },
+    {
+      "rule": "Read(~/.ssh/**)",
+      "mode": "live",
+      "kind": "read",
+      "target": "$FAKE_HOME/.ssh/id_rsa"
+    },
+    {
+      "rule": "Read(~/.gnupg/**)",
+      "mode": "live",
+      "kind": "read",
+      "target": "$FAKE_HOME/.gnupg/secring.gpg"
+    },
+    {
+      "rule": "Read(~/.netrc)",
+      "mode": "live",
+      "kind": "read",
+      "target": "$FAKE_HOME/.netrc"
+    },
+    {
+      "rule": "Read(~/.npmrc)",
+      "mode": "live",
+      "kind": "read",
+      "target": "$FAKE_HOME/.npmrc"
+    },
+    {
+      "rule": "Read(**/.env)",
+      "mode": "live",
+      "kind": "read",
+      "target": "$WORKDIR/.env"
+    },
+    {
+      "rule": "Read(**/.env.local)",
+      "mode": "live",
+      "kind": "read",
+      "target": "$WORKDIR/.env.local"
+    },
+    {
+      "rule": "Read(**/.env.production)",
+      "mode": "live",
+      "kind": "read",
+      "target": "$WORKDIR/.env.production"
+    },
+    {
+      "rule": "Edit(**/.env)",
+      "mode": "live",
+      "kind": "edit",
+      "target": "$WORKDIR/.env"
+    },
+    {
+      "rule": "Edit(**/.env.local)",
+      "mode": "live",
+      "kind": "edit",
+      "target": "$WORKDIR/.env.local"
+    },
+    {
+      "rule": "Edit(**/.env.production)",
+      "mode": "live",
+      "kind": "edit",
+      "target": "$WORKDIR/.env.production"
+    },
+    {
+      "rule": "Write(**/.env)",
+      "mode": "twin",
+      "kind": "write",
+      "target": "$WORKDIR/.env",
+      "twin": "Edit(**/.env)",
+      "reason": "no Write() spelling denies anything: measured identical to no rule at all across **/x, *x, x, ./x and **/*.json. CC matches file-writing tools under the Edit namespace, so Edit(**/.env) is what actually blocks this Write, and that is what the trip arm asserts."
+    },
+    {
+      "rule": "Write(**/.env.local)",
+      "mode": "twin",
+      "kind": "write",
+      "target": "$WORKDIR/.env.local",
+      "twin": "Edit(**/.env.local)",
+      "reason": "no Write() spelling denies anything: measured identical to no rule at all across **/x, *x, x, ./x and **/*.json. CC matches file-writing tools under the Edit namespace, so Edit(**/.env.local) is what actually blocks this Write, and that is what the trip arm asserts."
+    },
+    {
+      "rule": "Write(**/.env.production)",
+      "mode": "twin",
+      "kind": "write",
+      "target": "$WORKDIR/.env.production",
+      "twin": "Edit(**/.env.production)",
+      "reason": "no Write() spelling denies anything: measured identical to no rule at all across **/x, *x, x, ./x and **/*.json. CC matches file-writing tools under the Edit namespace, so Edit(**/.env.production) is what actually blocks this Write, and that is what the trip arm asserts."
+    },
+    {
+      "rule": "Edit(**/credentials.json)",
+      "mode": "live",
+      "kind": "edit",
+      "target": "$WORKDIR/credentials.json"
+    },
+    {
+      "rule": "Edit(**/secrets.json)",
+      "mode": "live",
+      "kind": "edit",
+      "target": "$WORKDIR/secrets.json"
+    },
+    {
+      "rule": "Edit(**/*.pem)",
+      "mode": "live",
+      "kind": "edit",
+      "target": "$WORKDIR/server.pem"
+    },
+    {
+      "rule": "Edit(**/private.key)",
+      "mode": "live",
+      "kind": "edit",
+      "target": "$WORKDIR/private.key"
+    },
+    {
+      "rule": "Edit(**/id_rsa)",
+      "mode": "live",
+      "kind": "edit",
+      "target": "$WORKDIR/id_rsa"
+    },
+    {
+      "rule": "Edit(**/id_ed25519)",
+      "mode": "live",
+      "kind": "edit",
+      "target": "$WORKDIR/id_ed25519"
+    },
+    {
+      "rule": "Edit(**/.husky/**)",
+      "mode": "live",
+      "kind": "edit",
+      "target": "$WORKDIR/.husky/pre-commit"
+    },
+    {
+      "rule": "Write(**/credentials.json)",
+      "mode": "twin",
+      "kind": "write",
+      "target": "$WORKDIR/credentials.json",
+      "twin": "Edit(**/credentials.json)",
+      "reason": "no Write() spelling denies anything: measured identical to no rule at all across **/x, *x, x, ./x and **/*.json. CC matches file-writing tools under the Edit namespace, so Edit(**/credentials.json) is what actually blocks this Write, and that is what the trip arm asserts."
+    },
+    {
+      "rule": "Write(**/secrets.json)",
+      "mode": "twin",
+      "kind": "write",
+      "target": "$WORKDIR/secrets.json",
+      "twin": "Edit(**/secrets.json)",
+      "reason": "no Write() spelling denies anything: measured identical to no rule at all across **/x, *x, x, ./x and **/*.json. CC matches file-writing tools under the Edit namespace, so Edit(**/secrets.json) is what actually blocks this Write, and that is what the trip arm asserts."
+    },
+    {
+      "rule": "Write(**/*.pem)",
+      "mode": "twin",
+      "kind": "write",
+      "target": "$WORKDIR/server.pem",
+      "twin": "Edit(**/*.pem)",
+      "reason": "no Write() spelling denies anything: measured identical to no rule at all across **/x, *x, x, ./x and **/*.json. CC matches file-writing tools under the Edit namespace, so Edit(**/*.pem) is what actually blocks this Write, and that is what the trip arm asserts."
+    },
+    {
+      "rule": "Write(**/private.key)",
+      "mode": "twin",
+      "kind": "write",
+      "target": "$WORKDIR/private.key",
+      "twin": "Edit(**/private.key)",
+      "reason": "no Write() spelling denies anything: measured identical to no rule at all across **/x, *x, x, ./x and **/*.json. CC matches file-writing tools under the Edit namespace, so Edit(**/private.key) is what actually blocks this Write, and that is what the trip arm asserts."
+    },
+    {
+      "rule": "Write(**/id_rsa)",
+      "mode": "twin",
+      "kind": "write",
+      "target": "$WORKDIR/id_rsa",
+      "twin": "Edit(**/id_rsa)",
+      "reason": "no Write() spelling denies anything: measured identical to no rule at all across **/x, *x, x, ./x and **/*.json. CC matches file-writing tools under the Edit namespace, so Edit(**/id_rsa) is what actually blocks this Write, and that is what the trip arm asserts."
+    },
+    {
+      "rule": "Write(**/id_ed25519)",
+      "mode": "twin",
+      "kind": "write",
+      "target": "$WORKDIR/id_ed25519",
+      "twin": "Edit(**/id_ed25519)",
+      "reason": "no Write() spelling denies anything: measured identical to no rule at all across **/x, *x, x, ./x and **/*.json. CC matches file-writing tools under the Edit namespace, so Edit(**/id_ed25519) is what actually blocks this Write, and that is what the trip arm asserts."
+    },
+    {
+      "rule": "Write(**/.husky/**)",
+      "mode": "twin",
+      "kind": "write",
+      "target": "$WORKDIR/.husky/pre-commit",
+      "twin": "Edit(**/.husky/**)",
+      "reason": "no Write() spelling denies anything: measured identical to no rule at all across **/x, *x, x, ./x and **/*.json. CC matches file-writing tools under the Edit namespace, so Edit(**/.husky/**) is what actually blocks this Write, and that is what the trip arm asserts."
+    },
+    {
+      "rule": "Bash(rm -rf /)",
+      "mode": "not-live",
+      "kind": "bash",
+      "reason": "executing the trip case IS the harm the rule exists to prevent",
+      "class_proof": "Bash(rm -rf .)"
+    },
+    {
+      "rule": "Bash(rm -rf ~)",
+      "mode": "live",
+      "kind": "bash",
+      "command": "rm -rf ~",
+      "setup_sh": "mkdir -p $FAKE_HOME/victim && touch $FAKE_HOME/victim/keep",
+      "effect_sh": "[ ! -e $FAKE_HOME/victim/keep ]"
+    },
+    {
+      "rule": "Bash(rm -rf .)",
+      "mode": "live",
+      "kind": "bash",
+      "command": "rm -rf .",
+      "setup_sh": "touch $WORKDIR/keep-rmdot",
+      "effect_sh": "[ ! -e $WORKDIR/keep-rmdot ]"
+    },
+    {
+      "rule": "Bash(rm -fr /)",
+      "mode": "not-live",
+      "kind": "bash",
+      "reason": "executing the trip case IS the harm the rule exists to prevent",
+      "class_proof": "Bash(rm -fr .)"
+    },
+    {
+      "rule": "Bash(rm -fr ~)",
+      "mode": "live",
+      "kind": "bash",
+      "command": "rm -fr ~",
+      "setup_sh": "mkdir -p $FAKE_HOME/victim && touch $FAKE_HOME/victim/keep",
+      "effect_sh": "[ ! -e $FAKE_HOME/victim/keep ]"
+    },
+    {
+      "rule": "Bash(rm -fr .)",
+      "mode": "live",
+      "kind": "bash",
+      "command": "rm -fr .",
+      "setup_sh": "touch $WORKDIR/keep-rmdot",
+      "effect_sh": "[ ! -e $WORKDIR/keep-rmdot ]"
+    },
+    {
+      "rule": "Bash(rm -rf /private/etc*)",
+      "mode": "not-live",
+      "kind": "bash",
+      "reason": "would delete this machine's /private/etc",
+      "class_proof": "Bash(rm -rf .)"
+    },
+    {
+      "rule": "Bash(rm -rf /private/var*)",
+      "mode": "not-live",
+      "kind": "bash",
+      "reason": "would delete this machine's /private/var",
+      "class_proof": "Bash(rm -rf .)"
+    },
+    {
+      "rule": "Bash(rm -rf /private/home*)",
+      "mode": "not-live",
+      "kind": "bash",
+      "reason": "same class, and the path may not exist, so absence would prove nothing",
+      "class_proof": "Bash(rm -rf .)"
+    },
+    {
+      "rule": "Bash(rm -fr /private/etc*)",
+      "mode": "not-live",
+      "kind": "bash",
+      "reason": "would delete this machine's /private/etc",
+      "class_proof": "Bash(rm -fr .)"
+    },
+    {
+      "rule": "Bash(rm -fr /private/var*)",
+      "mode": "not-live",
+      "kind": "bash",
+      "reason": "would delete this machine's /private/var",
+      "class_proof": "Bash(rm -fr .)"
+    },
+    {
+      "rule": "Bash(rm -fr /private/home*)",
+      "mode": "not-live",
+      "kind": "bash",
+      "reason": "same class, and the path may not exist, so absence would prove nothing",
+      "class_proof": "Bash(rm -fr .)"
+    },
+    {
+      "rule": "Bash(mv /* /dev/null)",
+      "mode": "not-live",
+      "kind": "bash",
+      "reason": "would move the filesystem root",
+      "class_proof": "Bash(rm -rf .)"
+    },
+    {
+      "rule": "Bash(find *-delete*)",
+      "mode": "live",
+      "kind": "bash",
+      "command": "find . -name findcanary -delete",
+      "setup_sh": "touch $WORKDIR/findcanary",
+      "effect_sh": "[ ! -e $WORKDIR/findcanary ]"
+    },
+    {
+      "rule": "Bash(find *-fprint*)",
+      "mode": "live",
+      "kind": "bash",
+      "command": "find . -name findcanary -fprint fprint.out",
+      "setup_sh": "touch $WORKDIR/findcanary",
+      "effect_sh": "[ -e $WORKDIR/fprint.out ]"
+    },
+    {
+      "rule": "Bash(chmod 777 *)",
+      "mode": "live",
+      "kind": "bash",
+      "command": "chmod 777 *",
+      "setup_sh": "touch $WORKDIR/modefile && chmod 600 $WORKDIR/modefile",
+      "effect_sh": "[ \"$(stat -c %a \"$WORKDIR/modefile\" 2>/dev/null || stat -f %Lp \"$WORKDIR/modefile\" 2>/dev/null)\" = 777 ]"
+    },
+    {
+      "rule": "Bash(chmod -R 777 *)",
+      "mode": "live",
+      "kind": "bash",
+      "command": "chmod -R 777 *",
+      "setup_sh": "touch $WORKDIR/modefile && chmod 600 $WORKDIR/modefile",
+      "effect_sh": "[ \"$(stat -c %a \"$WORKDIR/modefile\" 2>/dev/null || stat -f %Lp \"$WORKDIR/modefile\" 2>/dev/null)\" = 777 ]"
+    },
+    {
+      "rule": "Bash(git push --force origin main)",
+      "mode": "live",
+      "kind": "bash",
+      "command": "git push --force origin main",
+      "setup_sh": "SETUP_GIT_REPO main",
+      "effect_sh": "GIT_PUSHED main"
+    },
+    {
+      "rule": "Bash(git push --force origin master)",
+      "mode": "live",
+      "kind": "bash",
+      "command": "git push --force origin master",
+      "setup_sh": "SETUP_GIT_REPO master",
+      "effect_sh": "GIT_PUSHED master"
+    },
+    {
+      "rule": "Bash(git push -f origin main)",
+      "mode": "live",
+      "kind": "bash",
+      "command": "git push -f origin main",
+      "setup_sh": "SETUP_GIT_REPO main",
+      "effect_sh": "GIT_PUSHED main"
+    },
+    {
+      "rule": "Bash(git push -f origin master)",
+      "mode": "live",
+      "kind": "bash",
+      "command": "git push -f origin master",
+      "setup_sh": "SETUP_GIT_REPO master",
+      "effect_sh": "GIT_PUSHED master"
+    },
+    {
+      "rule": "Bash(mkfs*)",
+      "mode": "not-live",
+      "kind": "bash",
+      "reason": "mkfs is absent on darwin so the effect is unobservable, and naming a real device is not survivable",
+      "class_proof": "Bash(dd if=*)"
+    },
+    {
+      "rule": "Bash(dd if=*)",
+      "mode": "live",
+      "kind": "bash",
+      "command": "dd if=/dev/zero of=ddout bs=1 count=1",
+      "setup_sh": "true",
+      "effect_sh": "[ -e $WORKDIR/ddout ]"
+    },
+    {
+      "rule": "Bash(> /dev/sd*)",
+      "mode": "not-live",
+      "kind": "bash",
+      "reason": "no /dev/sd* on darwin; on linux the effect is a raw device write",
+      "class_proof": "Bash(dd if=*)"
+    },
+    {
+      "rule": "Bash(:(){ :|:& };:)",
+      "mode": "not-live",
+      "kind": "bash",
+      "reason": "a fork bomb takes the machine down if the rule does not hold"
+    }
+  ]
+}

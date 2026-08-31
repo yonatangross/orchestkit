@@ -72,7 +72,7 @@ describe('validateHookInput', () => {
         session_id: 'session-123',
         tool_input: { command: 'ls -la' },
       };
-      const result = validateHookInput(input, 'pretool/bash/dangerous-command-blocker');
+      const result = validateHookInput(input, 'pretool/bash/network-egress-guard');
       expect(result.valid).toBe(true);
       expect(result.errors).toHaveLength(0);
     });
@@ -146,7 +146,7 @@ describe('validateHookInput', () => {
   describe('Level 3: Event-specific validation', () => {
     // -- pretool hooks --
     describe('pretool hooks', () => {
-      const hookName = 'pretool/bash/dangerous-command-blocker';
+      const hookName = 'pretool/bash/network-egress-guard';
 
       test('warns when tool_name is missing', () => {
         const result = validateHookInput({}, hookName);

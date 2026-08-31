@@ -1,5 +1,5 @@
 {
-  "description": "OrchestKit hooks - 154 global + 0 agent-scoped + 21 skill-scoped = 175 total hooks. Agent-scoped is 0 by design since #3461: CC's plugin-agent loader ignores `hooks:` in frontmatter, so ork's own 45 declarations never fired and were removed. The key still works in a consumer's own .claude/agents/, which is what the agent-hooks skill documents. Registry history lives in README.md (Registry changelog) - do not append changelog prose here, only re-stamp the counts.",
+  "description": "OrchestKit hooks - 153 global + 0 agent-scoped + 19 skill-scoped = 172 total hooks. Agent-scoped is 0 by design since #3461: CC's plugin-agent loader ignores `hooks:` in frontmatter, so ork's own 45 declarations never fired and were removed. The key still works in a consumer's own .claude/agents/, which is what the agent-hooks skill documents. Registry history lives in README.md (Registry changelog) - do not append changelog prose here, only re-stamp the counts.",
   "hooks": {
     "PreToolUse": [
       {
@@ -156,16 +156,6 @@
           {
             "type": "command",
             "command": "node",
-            "timeout": 10,
-            "statusMessage": "Checking credential paths...",
-            "args": [
-              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
-              "pretool/read/credential-read-guard"
-            ]
-          },
-          {
-            "type": "command",
-            "command": "node",
             "timeout": 15,
             "statusMessage": "Analyzing file structure...",
             "args": [
@@ -238,16 +228,6 @@
       {
         "matcher": "CronCreate",
         "hooks": [
-          {
-            "type": "command",
-            "command": "node",
-            "timeout": 5,
-            "statusMessage": "Checking cron permissions...",
-            "args": [
-              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
-              "pretool/cron-guard"
-            ]
-          },
           {
             "type": "command",
             "command": "node",
@@ -893,6 +873,16 @@
             "args": [
               "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
               "lifecycle/sweep-stale-worktrees"
+            ]
+          },
+          {
+            "type": "command",
+            "command": "node",
+            "async": true,
+            "timeout": 5,
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs",
+              "lifecycle/stray-playground-pages"
             ]
           },
           {

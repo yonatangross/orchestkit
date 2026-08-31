@@ -110,13 +110,6 @@ function createHookInput(overrides: Partial<HookInput> = {}): HookInput {
   };
 }
 
-function createBashInput(command: string, overrides: Partial<HookInput> = {}): HookInput {
-  return createHookInput({
-    tool_name: 'Bash',
-    tool_input: { command },
-    ...overrides,
-  });
-}
 
 function _createWriteInput(filePath: string, content: string = '', overrides: Partial<HookInput> = {}): HookInput {
   return createHookInput({
@@ -262,30 +255,7 @@ describe('Error Path Coverage', () => {
     });
   });
 
-  describe('Git Command Error Handling', () => {
-    test('git-validator handles git not installed', async () => {
-      mockExecSync.mockImplementation(() => {
-        throw new Error('command not found: git');
-      });
-
-      const { gitValidator } = await import('../../pretool/bash/git-validator.js');
-      const input = createBashInput('git status');
-      const result = gitValidator(input);
-
-      // Should allow through when git is unavailable
-      expectValidResult(result);
-    });
-
-    test('git-validator handles detached HEAD state', async () => {
-      mockExecSync.mockReturnValue('HEAD detached at abc1234\n');
-
-      const { gitValidator } = await import('../../pretool/bash/git-validator.js');
-      const input = createBashInput('git commit -m "test"');
-      const result = gitValidator(input);
-
-      expectValidResult(result);
-    });
-  });
+  // Git Command Error Handling cases retired with git-validator (#3835 wave 4)
 
   describe('Concurrent Access Error Handling', () => {
     // file-lock-release and multi-instance-cleanup removed in Issue #362

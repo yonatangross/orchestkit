@@ -6,8 +6,8 @@
  * Consolidates 3 Bash PreToolUse hooks into a single dispatcher.
  *
  * Consolidated hooks (security-first order):
- * - dangerous-command-blocker (blocks rm -rf, sudo, force push etc — FIRST)
- * - compound-command-validator (validates chained commands — SECOND)
+ * - (dangerous-command-blocker and git-validator retired 2026-08-31, #3835 wave 4:
+ *    operator-scope permissions.deny rules carry those opinions now)
  * - unified-advisory-dispatcher (advisory guidance — LAST)
  *
  * SHORT-CIRCUIT: On first block, returns immediately without running remaining hooks.
@@ -20,22 +20,17 @@ import type { HookInput, HookResult , HookContext} from '../../types.js';
 import { outputSilentSuccess, outputWithUpdatedInput, logHook, extractContext } from '../../lib/common.js';
 
 // Import consolidated hook implementations
-import { dangerousCommandBlocker } from './dangerous-command-blocker.js';
-import { compoundCommandValidator } from './compound-command-validator.js';
 import { networkEgressGuard } from './network-egress-guard.js';
-import { restrictBash } from '../../agent/restrict-bash.js';
 import { unifiedBashAdvisoryDispatcher } from './unified-advisory-dispatcher.js';
 
 // Phase 0: Headless deferral (merged from separate hooks.json group — #optimization)
 import { headlessDefer } from '../../permission/headless-defer.js';
 // Phase 2: Git/GH enforcement hooks (merged from separate spawns — #912, #913, #914)
-import { gitValidator } from './git-validator.js';
 import { issueReferenceChecker } from './issue-reference-checker.js';
 // Phase 2: New GH enforcement hooks (#916)
 import { ghLabelEnforcer } from './gh-label-enforcer.js';
 import { ghMilestoneEnforcer } from './gh-milestone-enforcer.js';
 // Phase 4: Pre-commit quality checks (CC 2.1.71 utilization — lint/test/typecheck)
-import { preCommitQualityRunner } from './pre-commit-quality-runner.js';
 // Phase 5: Pre-commit test-gate — advisory warn on stale tests (#1281)
 import { preCommitTestGate } from './pre-commit-test-gate.js';
 // Phase 6: Worktree merge verifier — advisory warn on unmerged worktree removal (#1278)
@@ -66,25 +61,11 @@ const BASH_HOOKS: BlockingHookConfig[] = [
   // Phase 0: Headless deferral (blocks destructive ops in -p mode)
   { name: 'headless-defer', fn: headlessDefer },
   // Phase 1: Security
-  { name: 'dangerous-command-blocker', fn: dangerousCommandBlocker },
-  { name: 'compound-command-validator', fn: compoundCommandValidator },
-  // Agent-scoped allowlist (#3430). Ordering is load-bearing, in both directions:
-  //
-  //   AFTER dangerous-command-blocker / compound-command-validator, so the
-  //   universal hard blocks apply to every session regardless of agent.
-  //
-  //   BEFORE network-egress-guard, because the dispatcher short-circuits on the
-  //   FIRST non-silent result and egress-guard answers `ask` for exfil-shaped
-  //   commands. With the reverse order, a restricted agent running `nc -l 1234`
-  //   got `ask` — a prompt a human might approve — instead of the `deny` its
-  //   allowlist demands. Caught by case 4 of the positive control. For these 7
-  //   agents the allowlist is the strictest applicable control, so it decides
-  //   first; every other session pays one Set lookup and falls through.
-  { name: 'restrict-bash', fn: restrictBash },
+  // restrict-bash retired 2026-08-31 (#3835 wave 2): agent allowlisting is
+  // agent tools:/disallowedTools frontmatter plus the --restricted lane.
   // Network egress: DENY remote-code-exec (bash <(curl)), ASK exfil/staged-run
   { name: 'network-egress-guard', fn: networkEgressGuard },
   // Phase 2: Git/GH enforcement (previously separate process spawns + new)
-  { name: 'git-validator', fn: gitValidator },
   { name: 'issue-reference-checker', fn: issueReferenceChecker },
   { name: 'gh-label-enforcer', fn: ghLabelEnforcer },
   { name: 'gh-milestone-enforcer', fn: ghMilestoneEnforcer },
@@ -94,7 +75,6 @@ const BASH_HOOKS: BlockingHookConfig[] = [
   // Phase 3: Advisory
   { name: 'unified-advisory-dispatcher', fn: unifiedBashAdvisoryDispatcher },
   // Phase 4: Pre-commit quality (lint/test/typecheck — blocks on failure)
-  { name: 'pre-commit-quality-runner', fn: preCommitQualityRunner },
   // Phase 5: Pre-commit test-gate (advisory — records test runs, warns on stale)
   { name: 'pre-commit-test-gate', fn: preCommitTestGate },
   // Phase 6: Worktree merge verifier (advisory — warn on unmerged worktree removal)
@@ -171,8 +151,7 @@ function buildMergedResult(
  * Consolidated sync Bash PreToolUse dispatcher.
  *
  * Execution order:
- * 1. dangerous-command-blocker (can block — security critical)
- * 2. compound-command-validator (can block — security critical)
+ * 1. (retired) dangerous-command-blocker, #3835
  * 3. unified-advisory-dispatcher (context + input modifier)
  *
  * On first block: SHORT-CIRCUIT immediately.

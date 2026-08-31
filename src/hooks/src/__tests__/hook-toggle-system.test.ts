@@ -47,9 +47,6 @@ function loadOverrides(projectDir: string): HookOverrides | null {
  * (mirrors run-hook.mjs SECURITY_HOOKS)
  */
 const SECURITY_HOOKS = new Set([
-  'pretool/bash/dangerous-command-blocker',
-  'pretool/bash/compound-command-validator',
-  'pretool/write-edit/file-guard',
   'pretool/Write/security-pattern-validator',
   'skill/redact-secrets',
 ]);
@@ -269,7 +266,6 @@ describe('isHookDisabled', () => {
     };
 
     // Act & Assert
-    expect(isHookDisabled('pretool/bash/dangerous-command-blocker', overrides)).toBe(false);
   });
 
   it('returns true when hook name matches exactly', () => {
@@ -290,7 +286,6 @@ describe('isHookDisabled', () => {
     };
 
     // Act & Assert
-    expect(isHookDisabled('pretool/bash/dangerous-command-blocker', overrides)).toBe(false);
   });
 
   it('returns false for suffix matches (reverse partial)', () => {
@@ -477,7 +472,6 @@ describe('Hook Toggle Integration', () => {
     expect(shouldHookExecute('posttool/unified-dispatcher', projectDir)).toBe(false);
 
     // Non-disabled hooks should still execute
-    expect(shouldHookExecute('pretool/bash/dangerous-command-blocker', projectDir)).toBe(true);
     expect(shouldHookExecute('permission/auto-approve-safe-bash', projectDir)).toBe(true);
   });
 
@@ -569,9 +563,6 @@ describe('SECURITY_HOOKS allowlist', () => {
     // Arrange — all security hooks listed in disabled
     const overridesContent: HookOverrides = {
       disabled: [
-        'pretool/bash/dangerous-command-blocker',
-        'pretool/bash/compound-command-validator',
-        'pretool/write-edit/file-guard',
         'pretool/Write/security-pattern-validator',
         'skill/redact-secrets',
       ],
@@ -612,7 +603,6 @@ describe('SECURITY_HOOKS allowlist', () => {
     // Arrange — mix of security and non-security hooks
     const overridesContent: HookOverrides = {
       disabled: [
-        'pretool/bash/dangerous-command-blocker',
         'prompt/skill-auto-suggest',
         'skill/redact-secrets',
         'posttool/unified-dispatcher',
@@ -622,7 +612,6 @@ describe('SECURITY_HOOKS allowlist', () => {
     mockReadFileSync.mockReturnValue(JSON.stringify(overridesContent));
 
     // Security hooks still execute
-    expect(shouldHookExecute('pretool/bash/dangerous-command-blocker', '/proj')).toBe(true);
     expect(shouldHookExecute('skill/redact-secrets', '/proj')).toBe(true);
 
     // Non-security hooks are disabled
@@ -632,9 +621,6 @@ describe('SECURITY_HOOKS allowlist', () => {
 
   it('SECURITY_HOOKS set contains exactly the expected hooks', () => {
     const expected = [
-      'pretool/bash/dangerous-command-blocker',
-      'pretool/bash/compound-command-validator',
-      'pretool/write-edit/file-guard',
       'pretool/Write/security-pattern-validator',
       'skill/redact-secrets',
     ];

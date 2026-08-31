@@ -156,14 +156,8 @@ else
     FAILED=$((FAILED + 1))
 fi
 
-echo -n "  compound-command-validator (safe cmd)... "
-if run_ts_hook "pretool/bash/compound-command-validator" "$(get_fixture pretool_bash_safe)" 0; then
-    echo -e "${GREEN}PASS${NC}"
-    PASSED=$((PASSED + 1))
-else
-    echo -e "${RED}FAIL${NC}"
-    FAILED=$((FAILED + 1))
-fi
+# compound-command-validator case removed 2026-08-31 (#3835 wave 1): hook deleted,
+# CC decomposes compound commands itself. Tripwire lives in test-context-deferral.sh.
 
 # =====================================================================
 # Test: Permission hooks (auto-approve safe reads)

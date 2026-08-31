@@ -477,7 +477,8 @@ describe('Cross-Bundle Consistency', () => {
     //             the entries-map handler count moves. Both numbers are correct
     //             and they count different things.
     // 194 -> 196: #3789 (CC 2.1.251) — PreModelSwitch consent gate + PostModelSwitch telemetry (lifecycle/model-switch-consent, lifecycle/model-switch-telemetry)
-    expect(totalHooks).toBe(196);
+    // 196 -> 197: #3727 — lifecycle/stray-playground-pages added
+    expect(totalHooks).toBe(184); // 186 - 2 (#3835 wave 4: dangerous-command-blocker, git-validator); the purge is complete
   });
 });
 
@@ -506,7 +507,7 @@ describe('Hook Execution Smoke Tests', () => {
   });
 
   test('pretool hooks return valid HookResult', async () => {
-    const resultOrPromise = pretoolBundle.hooks['pretool/bash/git-validator']({
+    const resultOrPromise = pretoolBundle.hooks['pretool/bash/network-egress-guard']({
       ...baseInput,
       tool_name: 'Bash',
       tool_input: { command: 'git status' },

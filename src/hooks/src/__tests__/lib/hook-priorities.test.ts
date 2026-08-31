@@ -39,8 +39,11 @@ describe('hook-priorities', () => {
 
   describe('getHookPriority', () => {
     test('returns P0 for security hooks', () => {
-      expect(getHookPriority('pretool/bash/dangerous-command-blocker')).toBe('P0');
-      expect(getHookPriority('pretool/write-edit/file-guard')).toBe('P0');
+      expect(getHookPriority('pretool/Write/security-pattern-validator')).toBe('P0');
+      expect(getHookPriority('permission/auto-approve-safe-bash')).toBe('P0');
+      // #3835: retired from P0 with their deletion; default priority applies
+      expect(getHookPriority('pretool/bash/dangerous-command-blocker')).toBe('P2');
+      expect(getHookPriority('pretool/write-edit/file-guard')).toBe('P2');
     });
 
     test('returns P2 as default for non-security hooks', () => {
@@ -93,7 +96,7 @@ describe('hook-priorities', () => {
         records: [],
       }));
 
-      expect(shouldThrottle('pretool/bash/dangerous-command-blocker')).toBe(false);
+      expect(shouldThrottle('pretool/Write/security-pattern-validator')).toBe(false);
     });
   });
 
