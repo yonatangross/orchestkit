@@ -3112,6 +3112,13 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
             "tag": null
           },
           {
+            "num": "5.5",
+            "label": "Index budget",
+            "does": "Consistency (1:1 with the files) and budget (bytes a session can afford) are different questions;",
+            "out": null,
+            "tag": null
+          },
+          {
             "num": "6",
             "label": "Report",
             "does": "Output a summary table after consolidation:",

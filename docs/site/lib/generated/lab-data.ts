@@ -15,6 +15,20 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "an-index-that-outgrew-its-own-budget",
+    "title": "An Index That Outgrew Its Own Budget",
+    "description": "MEMORY.md had a 17 KB budget in prose and a guard that asked before over-budget writes, yet six projects sat over it: the guard was skipped in bypass mode, the population that writes the index most, and nothing ever proposed moving old entries out. Now the guard emits advisory context in bypass mode and dream runs a deterministic budget pass with rule-based demotion. Paste an index and watch the rule pick.",
+    "tags": [
+      "skills",
+      "hooks",
+      "memory"
+    ],
+    "date": "2026-08-31",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 8
+  },
+  {
     "slug": "pages-nothing-looked-at",
     "title": "Pages Nothing Looked At",
     "description": "Three rules together made untracked explainer pages invisible: glyph never stages them, .gitignore un-ignores docs/playgrounds/, and the CI gate treats the dir as inert. Five were found by hand in one day. A SessionStart hook now names any such page older than an hour, once per session. Toggle the file's state and age and see whether the next session hears about it.",

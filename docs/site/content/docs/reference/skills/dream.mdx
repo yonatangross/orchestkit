@@ -329,7 +329,12 @@ Rules for the rebuilt index:
   `budget_chars = (17 * 1024 - non_entry_overhead) / entry_count`
 - If the rebuild exceeds the target, **trim hooks to the derived budget before dropping any entry**.
   Truncate at a word boundary and keep the leading clause (it carries the discriminating detail).
-  Every memory file must remain represented 1:1 — verify `indexed == files_on_disk` after writing.
+- **The 1:1 invariant is two-file (#3741).** Every memory file is indexed exactly once across
+  `MEMORY.md` and `MEMORY-ARCHIVE.md`: `indexed(MEMORY.md) + indexed(MEMORY-ARCHIVE.md) == files_on_disk`,
+  the two sets are disjoint, every link target exists with its exact-case name, and `MEMORY.md`
+  carries exactly one trailer line (`> N memory files ...`) that links `MEMORY-ARCHIVE.md`. Exclude
+  `MEMORY*.md`, `.MEMORY.md.prev`, `.trash/` and `_backup/` from `files_on_disk`. A single-file check
+  (`indexed == files_on_disk`) flags every archived entry as missing and is wrong once an archive exists.
 - Only if trimming to ~90 chars still overflows should you warn the user. Never auto-delete a memory
   to fit the index; the index is a pointer table, and shrinking it is a formatting problem, not a
   retention one.
@@ -339,6 +344,21 @@ Rules for the rebuilt index:
 # replaces every memory's pointer, so a bad index degrades sessions silently.
 Write(path="<memory_dir>/MEMORY.md", content=rebuilt_index)
 ```
+
+### STEP 5.5: Index budget (report, then demote by rule)
+
+Consistency (1:1 with the files) and budget (bytes a session can afford) are different questions;
+the rebuild answers only the first. The budget pass is a script, so the report is the same whoever
+runs it. Read-only by default; `--apply` only after the user accepts the moves (batch when > 3):
+
+```python
+Bash(command=f"node ${{CLAUDE_PLUGIN_ROOT}}/skills/dream/scripts/index-budget.mjs '{memory_dir}' --json")
+# bytes vs ceiling (ORK_CONTEXT_FILE_BUDGET_BYTES, else 17,408 B), per-section sizes, long entries,
+# the two-file invariant, and moves proposed BY RULE (oldest first). Add --apply to rotate
+# .MEMORY.md.prev, move the lines to MEMORY-ARCHIVE.md, rewrite the trailer, re-verify (exit 1 on failure).
+```
+
+Rule, never-move set, exhausted-candidates fallback: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/dream/references/index-budget.md")`.
 
 ---
 
@@ -392,7 +412,7 @@ If `--dry-run`, prefix the entire report with:
 | No memory directories found | Report "No memory directories found" and exit |
 | No memory files in directory | Report "Directory empty, nothing to consolidate" |
 | All memories are FRESH | Report "All N memories are current, nothing to prune" |
-| MEMORY.md exceeds 200 lines after rebuild | Warn user, do not auto-truncate |
+| MEMORY.md still exceeds the byte ceiling after rebuild and demotion | Warn user, list the remaining candidates, never auto-truncate |
 | File deletion fails | Report error, continue with remaining files |
 | Memory file has no frontmatter | Treat as EVERGREEN (cannot verify refs without metadata) |
 
@@ -493,7 +513,53 @@ grep -l -i "<topic-key>" ~/.claude/projects/*/memory/MEMORY.md \
 
 ---
 
-## References (1)
+## References (2)
+
+### Index budget: rule-based demotion into MEMORY-ARCHIVE.md
+
+
+# Index budget (STEP 5.5)
+
+`scripts/index-budget.mjs &lt;memory_dir&gt; [--ceiling N] [--handoff-days 7] [--entry-days 30] [--apply] [--json]`
+
+## Why a script
+
+MEMORY.md is loaded every session, so its size is a permanent per-session cost. The rebuild
+step keeps the index consistent with the files; nothing kept it within budget. A PreToolUse
+guard asks before an over-budget write, but it was silent in bypass mode, the population that
+writes MEMORY.md most (#3741: six projects at or over 17,408 B; this repo 22,234 B). A
+deterministic pass makes the budget a reviewable number and the demotions a rule that binds
+every author equally, which is defensible where demoting another session's entry on judgement
+is not.
+
+## The report
+
+Bytes vs ceiling (`--ceiling`, else `ORK_CONTEXT_FILE_BUDGET_BYTES`, else 17,408 B, the same
+figure the guard reads; the often-quoted "~24 KB hard read limit" failed to reproduce twice and
+is not used), entries and bytes per section, entries over 400 chars, overhead bytes, and the
+two-file invariant: `indexed(MEMORY.md) + indexed(MEMORY-ARCHIVE.md) == files_on_disk`, disjoint,
+every link target present with exact-case name, exactly one trailer line.
+
+## The demotion rule
+
+| class | rule |
+|---|---|
+| `## Handoffs` | older than `--handoff-days` (date from `project_handoff_YYYY_MM_DD`, else file mtime) |
+| `## Feedback`, `## Project` | file mtime older than `--entry-days` |
+| never | `hub_*`, anything under `## Policy`, `user_*`, anything modified within 7 days |
+
+Oldest first within each class, handoffs first, until the projected size (including the
+rewritten trailer) fits the ceiling. If the candidates are exhausted and the index is still over,
+fall through to hook trimming in the rebuild step, then warn. Nothing is ever deleted.
+
+## Apply
+
+`--apply` copies `MEMORY.md` to `.MEMORY.md.prev` first, removes the proposed lines from
+`MEMORY.md`, appends them to `MEMORY-ARCHIVE.md` under `## Moved from MEMORY.md &lt;date&gt; (N)`
+(creating the archive with a short header if absent), rewrites the single trailer to link
+`MEMORY-ARCHIVE.md` by exact name, re-verifies the invariant from disk, and exits 1 if it fails.
+The archive is not budgeted: it is read on demand, never auto-loaded.
+
 
 ### Safe Deletes
 
