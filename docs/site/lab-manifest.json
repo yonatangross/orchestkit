@@ -798,6 +798,17 @@
         "docs"
       ],
       "date": "2026-08-31"
+    },
+    {
+      "slug": "adoption-queue-is-a-queue-not-a-ledger",
+      "source": "docs/chore--drop-stale-2-1-219-gap-row/index.html",
+      "title": "The Adoption Queue Is a Queue, Not a Ledger",
+      "description": "Why a dead 2.1.219 row could sit in shared/cc-adoption-gaps.json looking load-bearing: the queue holds what still needs triage while the generated board holds history, and the merge is add-only precisely so the queue can shrink without the record losing a wave. Includes the three checks run before removing the row and the CI drift trap that shipping the regenerated board in the same commit avoids.",
+      "tags": [
+        "adoption",
+        "ci"
+      ],
+      "date": "2026-08-31"
     }
   ]
 }
