@@ -47,11 +47,17 @@ else
 fi
 
 section "2. Every pattern file-guard denied is a native deny rule in the payload"
+# Read the deny ARRAY, never the file text: the payload's own changelog quotes rule
+# strings verbatim, so a raw grep matches prose and reports the opposite of the truth.
+DENY_RULES="$(node -e 'process.stdout.write(require(process.argv[1]).deny.join("\n"))' "$PAYLOAD")"
 # file-guard.ts PROTECTED_PATTERNS at deletion: .env, .env.local, .env.production,
 # credentials.json, secrets.json, private.key, *.pem, id_rsa, id_ed25519, .husky/
 for needle in '.env)' '.env.local)' '.env.production)' 'credentials.json)' 'secrets.json)' 'private.key)' '*.pem)' 'id_rsa)' 'id_ed25519)' '.husky/**)'; do
-  if grep -qF "Write(**/$needle" "$PAYLOAD" && grep -qF "Edit(**/$needle" "$PAYLOAD"; then
-    ok "payload carries Edit+Write deny for $needle"
+  # Edit(path) is the rule form CC matches for file-editing tools, and it covers the
+  # Write tool too (measured 2.1.252: Edit(**/.env) leaves a Write-tool write unapplied,
+  # Write(**/.env) does not). The Write() twins were deleted in payload v4 (#3854).
+  if printf '%s\n' "$DENY_RULES" | grep -qF "Edit(**/$needle" && ! printf '%s\n' "$DENY_RULES" | grep -qF "Write(**/$needle"; then
+    ok "payload carries the Edit deny for $needle, with no inert Write twin"
   else
     bad "payload lost the rule for $needle (file-guard's opinion went unguarded)"
   fi

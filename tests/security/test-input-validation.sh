@@ -42,10 +42,24 @@ else
   ok "not in the entries map"
 fi
 
+# Read the deny ARRAY, never the file text: the payload's own changelog quotes rule
+# strings verbatim, so a raw grep matches prose and reports the opposite of the truth.
+DENY_RULES="$(node -e 'process.stdout.write(require(process.argv[1]).deny.join("\n"))' "$PAYLOAD")"
 section "2. The DENY patterns the normalisation cases exercised are in the payload"
-for needle in "Bash(rm -rf /)" "Bash(rm -rf ~)" "Bash(rm -fr /)" "Bash(rm -fr ~)" "Bash(mv /* /dev/null)" "Bash(> /dev/sd*)" "Bash(mkfs*)" "Bash(dd if=*)" "Bash(chmod -R 777 *)" "Bash(:(){ :|:& };:)" "Bash(rm -rf /private/etc*)"; do
+for needle in "Bash(rm -rf /)" "Bash(rm -rf ~)" "Bash(rm -fr /)" "Bash(rm -fr ~)" "Bash(mv /* /dev/null)" "Bash(> /dev/sd*)" "Bash(mkfs*)" "Bash(dd if=*)" "Bash(chmod -R 777 *)" "Bash(rm -rf /private/etc*)"; do
   if grep -qF "$needle" "$PAYLOAD"; then ok "payload carries $needle"; else bad "payload lost $needle"; fi
 done
+
+section "2b. The payload carries no rule CC cannot parse"
+# A rule CC skips at load is not protection, and since 2.1.252 it also prints a
+# Settings Warning on every launch. Bash(:(){ :|:& };:) was skipped for "Empty
+# parentheses"; no working spelling exists (Bash(*:|:*) and Bash(:*) both measured
+# identical to no rule), so the fork bomb is an ADMITTED gap, not a covered one.
+if printf '%s\n' "$DENY_RULES" | grep -qF ':(){'; then
+  bad "payload re-added the fork-bomb rule; CC skips it at load, it protects nothing"
+else
+  ok "no unparseable fork-bomb rule in the payload (gap is admitted, see README)"
+fi
 
 section "3. The native layer has a gate that fails loudly"
 if [[ -f "$PROBE" ]]; then ok "canary probe present"; else bad "canary probe missing"; fi
