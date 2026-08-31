@@ -6,7 +6,7 @@ import { syncWriteEditDispatcher } from '../../../pretool/write-edit/sync-write-
 import type { HookInput } from '../../../types.js';
 import { createTestContext } from '../../fixtures/test-context.js';
 
-// Found by tests/hooks/verdict-probes: file-guard and context-file-budget-guard
+// Found by tests/hooks/verdict-probes: context-file-budget-guard (file-guard retired, #3835)
 // both answered `ask` when called directly and the dispatcher returned
 // updatedInput / silent, because its merge only carried additionalContext and
 // updatedInput. An `ask` is continue:true, so it was never short-circuited
@@ -26,22 +26,16 @@ function write(filePath: string, content: string): HookInput {
 const ctx = createTestContext({ projectDir: '/tmp/verdict-dispatcher' });
 
 describe('sync-write-edit-dispatcher carries sibling verdicts', () => {
-  it('surfaces file-guard ask for an oversized source file', () => {
-    const r = syncWriteEditDispatcher(write('/tmp/verdict-dispatcher/src/big.ts', 'export const x = 1;\n'.repeat(400)), ctx);
-    expect(r.continue).toBe(true);
-    expect(r.hookSpecificOutput?.permissionDecision).toBe('ask');
-    expect(String(r.hookSpecificOutput?.permissionDecisionReason)).toMatch(/\[file-guard\]/);
-  });
 
   it('surfaces context-file-budget-guard ask for an oversized MEMORY.md', () => {
     const r = syncWriteEditDispatcher(write('/tmp/verdict-dispatcher/MEMORY.md', '- a memory line that is long enough to add up quickly\n'.repeat(400)), ctx);
     expect(r.hookSpecificOutput?.permissionDecision).toBe('ask');
   });
 
-  it('keeps updatedInput from write-headers next to the ask', () => {
-    const r = syncWriteEditDispatcher(write('/tmp/verdict-dispatcher/src/big.ts', 'export const x = 1;\n'.repeat(400)), ctx);
-    // write-headers only rewrites when it has something to add; either way the
-    // verdict must survive whatever else the merge carries.
+  it('keeps updatedInput from write-headers next to the ask (budget guard)', () => {
+    // file-guard's oversized-source ask retired with the hook (#3835 wave 3); the
+    // budget guard's ask is the surviving sibling verdict the merge must carry.
+    const r = syncWriteEditDispatcher(write('/tmp/verdict-dispatcher/MEMORY.md', '- a memory line that is long enough to add up quickly\n'.repeat(400)), ctx);
     expect(r.hookSpecificOutput?.permissionDecision).toBe('ask');
   });
 

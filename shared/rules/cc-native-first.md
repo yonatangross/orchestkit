@@ -85,6 +85,36 @@ carry a written `KEEP` justification.
 | `subagent-start/model-cost-advisor.ts` + `pretool/task/fable-spend-consent.ts` | CC 2.1.178 `Tool(param:value)` permission rules, e.g. `Agent(model:opus)` | 🟢 **KEEP** — *subtraction pass run for 2.1.178, adversarially verified.* `Tool(param:value)` is **static** allow/deny matching with no I/O. `model-cost-advisor` reads agent frontmatter at runtime, infers complexity, computes savings %, and warns when a pinned tier is excluded by `availableModels` (#2408 correctness check); `fable-spend-consent` issues an interactive `outputAsk()` consent prompt with an `ORK_FABLE_OK` env bypass. Neither is a static gate — a permission rule cannot run logic, output advisory context, or prompt the user. Orthogonal, not Shadow. |
 | (none — no ork code) | CC 2.1.178 fix: MCP server-level specs (`mcp__server`, `mcp__*`) in subagent `disallowedTools` now enforced | ✅ **N/A** — subtraction pass found **no ork workaround** for the pre-2.1.178 bug (no agent used `mcp__*` in `disallowedTools`; `mcp-health-check.ts` only validates config, never restricts tools). Pure CC bug fix — nothing to retire. Agents may now rely on native `disallowedTools: [mcp__*]` to scope MCP in subagents. |
 
+### The 2026-08-31 purge rows (#3835, operator-ordered, measured)
+
+> Operator directive 2026-08-31: remove every diverging blocking hook fully, one push;
+> PARTIAL losses accepted explicitly. Both audit gates below were run: the CC-capability
+> checks are measurements (a zero-spend canary probe proved `permissions.deny` blocks a
+> Bash `tool_use` under `--dangerously-skip-permissions` with no hooks loaded, control
+> arm executing; the plugin-settings inertness is binary-proven: CC picks only
+> `agent`/`subagentStatusLine`, so ork's shipped 26 deny rules never enforced), and the
+> consumers were read, not grepped (dispatcher rosters, SECURITY_HOOKS registry,
+> security-suite assertions). Full evidence: `docs/audits/hook-divergence-purge-2026-08-31.md`.
+> Delivery constraint that ordered the PRs: a plugin cannot ship `permissions`, so the
+> vehicle (#3836: consent-gated writer into the OPERATOR's scope + doctor audit + the
+> REGRESSED tripwire probe in CI) lands before any deletion.
+
+| ork mechanism | CC-native equivalent | Verdict (measured) |
+|---------------|----------------------|--------------------|
+| `agent/block-writes`, `ci-safety-check`, `deployment-safety-check`, `migration-safety-check` | none needed | 🔴 **DELETE**: already dead, reachable only via agent-frontmatter `hooks:`, which CC ignores (#3461). |
+| `pretool/bash/compound-command-validator` | CC decomposes compound commands per segment (nine-release fix trail, latest 2.1.251) | 🔴 **DELETE**: Shadow of CC's own decomposition. |
+| `pretool/bash/agent-browser-safety` | `sandbox.network.allowedDomains/deniedDomains` (OS-enforced, measured 403 + violations block) | 🔴 **DELETE**: robots/rate-limit opinion retires with it; loss accepted. |
+| `network-egress-guard` ASK tier | sandbox network policy | 🔴 **DELETE**: already stood down behind an enforced sandbox (#3808); the tier goes entirely, the vehicle writes the allowlist. |
+| `network-egress-guard` DENY tier | none | 🟢 **KEEP**: judges executing fetched bytes (`curl \| sh`); no network policy sees that. |
+| `pretool/cron-guard` | `deny: ["CronCreate"]` in the CI settings scope | 🔴 **DELETE**. |
+| `pretool/bash/pre-commit-quality-runner` | `bin/git-hooks/pre-commit` | 🔴 **DELETE, rehomed**: the repo already ships git hooks. |
+| `write-edit/file-guard` (both halves) | `Read()/Edit()/Write()` deny rules; a Read deny also hides from Glob/Grep (2.1.162, stronger) | 🔴 **DELETE**: rules delivered by the vehicle. |
+| `read/credential-read-guard` | same `Read()` deny rules | 🔴 **DELETE after probe**: only once doctor's audit shows the rules enforcing in an operator scope on the target machine. |
+| `pretool/bash/git-validator` | `Bash(git push --force*)` deny rules + origin branch protection | 🔴 **DELETE**: loss accepted, a rule cannot read the current branch. |
+| `pretool/bash/dangerous-command-blocker` | operator-scope `Bash()` deny rules (payload carries all expressible patterns) | 🔴 **DELETE**: loss accepted, quote/heredoc scan views and the 3 SQL substrings are inexpressible as rules. |
+| `agent/restrict-bash`, `task/team-size-gate` | agent `tools:` frontmatter + the `--restricted` CI lane (#3799) | 🔴 **DELETE**: loss accepted, deny-by-default allowlisting and the spawn counter go. |
+| `posttool/content-secret-scanner`, `context-file-budget-guard`, MCP config validators, `elicitation-guard`, Stop tier, `fable-spend-consent` + `model-cost-advisor`, M140 goal trio, notification path, session spine | none matches written bytes / budgets / consent / OS notification / FK spine | 🟢 **KEEP**: unchanged from the rows above; none of these blocks a tool call CC also judges. |
+
 ## Adopting a CC feature = often deleting ork code
 
 When a CC release adds a native mechanism, frame the adoption **subtractively**:

@@ -1,121 +1,72 @@
 #!/bin/bash
-# Security Tests: file-guard path and symlink handling
+# Security Tests: file-guard retirement tripwire (was: path and symlink handling)
 #
-# Priority: CRITICAL
-# Reference: OWASP Path Traversal, CWE-22, CWE-59 (symlink following)
-#
-# =============================================================================
 # WHAT THIS FILE USED TO BE
-# =============================================================================
-# Every test here called `pretool/input-mod/path-normalizer.sh` and
-# `pretool/write-edit/file-guard.sh` through run_hook_capture. Neither path has
-# existed since the TypeScript hook migration, so run_hook returned 127, the
-# `if [[ $HOOK_EXIT_CODE -eq 0 ]]` branch never ran, and every function ended in
-# an unconditional `return 0`. 7 of 8 functions could not fail. The suite passed
-# BECAUSE the hooks were gone.
+# A contract test for pretool/write-edit/file-guard: protected patterns denied,
+# ordinary files abstained, traversal and symlinks resolved before matching
+# (the ME-001 / CWE-59 defence), dangling symlinks tolerated.
 #
-# path-normalizer was consolidated away (commit e844b4b25, "consolidate to 24
-# hooks"); its path resolution now lives inside file-guard.ts:153
-# (resolveRealPath). So file-guard is the correct target for both concerns.
+# WHAT IT TESTS NOW (#3835 wave 3, 2026-08-31)
+# file-guard was deleted by operator decision. Its opinion re-homed as
+# Edit()/Write() deny rules in the OPERATOR's settings scope, delivered by
+# skills/setup (phase 3.6) and audited by skills/doctor. CC resolves the target
+# path itself before matching a deny rule, so the traversal/symlink concern is
+# CC's, and it is gated in CI by the canary probe
+# tests/ci/restricted-smoke/probe-permission-deny.sh (REGRESSED on failure).
 #
-# =============================================================================
-# WHAT IT TESTS NOW: file-guard's ACTUAL contract
-# =============================================================================
-# From file-guard.ts:1-8 and its PROTECTED_PATTERNS at :128 —
+# This file is the #3807-shaped tripwire: it asserts the hook is GONE and that
+# the assumption which made removing it safe still holds (the payload carries
+# every pattern the hook used to deny). A revived hook, or a payload that lost
+# a pattern, fails here.
 #
-#   "Protects sensitive files from modification"
-#   "Resolves symlinks before checking patterns (ME-001 fix) to prevent
-#    symlink-based bypasses of file protection"
-#
-# It is NOT a general outside-the-project blocker. Writing to /etc/passwd is
-# ALLOWED by this hook (the OS and CC's own permission layer gate that), and
-# asserting otherwise would be inventing a contract the code never claimed.
-# Measured before writing these assertions, not assumed.
-# =============================================================================
+# Priority: HIGH
+# Reference: OWASP A01/A02, CWE-22, CWE-59
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 source "$SCRIPT_DIR/../fixtures/test-helpers.sh"
 
-GUARD="pretool/write-edit/file-guard"
-PASS=0
-FAIL=0
-
 RED=$'\033[0;31m'; GREEN=$'\033[0;32m'; YELLOW=$'\033[1;33m'; NC=$'\033[0m'
-log_pass() { echo "  ${GREEN}✓${NC} $1"; }
-log_fail() { echo "  ${RED}✗${NC} $1"; }
+PASS=0; FAIL=0
 section()  { echo; echo "${YELLOW}$1${NC}"; }
+ok()  { echo "  ${GREEN}✓${NC} $1"; PASS=$((PASS + 1)); }
+bad() { echo "  ${RED}✗${NC} $1"; FAIL=$((FAIL + 1)); }
 
-write_input() { jq -n --arg p "$1" '{tool_name:"Write",tool_input:{file_path:$p,content:"x"}}'; }
+GUARD_TS="$PROJECT_ROOT/src/hooks/src/pretool/write-edit/file-guard.ts"
+PAYLOAD="$PROJECT_ROOT/src/skills/setup/references/operator-permissions.json"
+PROBE="$PROJECT_ROOT/tests/ci/restricted-smoke/probe-permission-deny.sh"
 
-expect_write() { # expect_write <deny|allow> <path> <label>
-  expect_decision "$1" "$GUARD" "$(write_input "$2")" "$3"
-}
-
-echo "=========================================="
-echo "  file-guard: path + symlink protection"
-echo "=========================================="
-
-# The hook must be reachable. Without this, a renamed key would make every
-# "allow" assertion below pass against a hook that never ran — which is exactly
-# how this file went blind for months.
-if ! assert_hook_registered "$GUARD"; then
-  echo "${RED}✗ $GUARD is not registered — aborting rather than reporting green${NC}"
-  exit 1
+section "1. The hook is retired"
+if [[ ! -e "$GUARD_TS" ]]; then ok "file-guard.ts absent"; else bad "file-guard.ts revived at $GUARD_TS"; fi
+if grep -q "pretool/write-edit/file-guard" "$PROJECT_ROOT/src/hooks/src/entries/pretool.ts"; then
+  bad "file-guard still registered in entries/pretool.ts"
+else
+  ok "file-guard not in the entries map"
 fi
 
-section "1. Protected patterns are denied (file-guard.ts:128)"
-expect_write deny ".env"                        "deny .env"
-expect_write deny ".env.local"                  "deny .env.local"
-expect_write deny ".env.production"             "deny .env.production"
-expect_write deny "config/server.pem"           "deny .pem private key"
-expect_write deny "$HOME/.ssh/id_rsa"           "deny id_rsa"
+section "2. Every pattern file-guard denied is a native deny rule in the payload"
+# file-guard.ts PROTECTED_PATTERNS at deletion: .env, .env.local, .env.production,
+# credentials.json, secrets.json, private.key, *.pem, id_rsa, id_ed25519, .husky/
+for needle in '.env)' '.env.local)' '.env.production)' 'credentials.json)' 'secrets.json)' 'private.key)' '*.pem)' 'id_rsa)' 'id_ed25519)' '.husky/**)'; do
+  if grep -qF "Write(**/$needle" "$PAYLOAD" && grep -qF "Edit(**/$needle" "$PAYLOAD"; then
+    ok "payload carries Edit+Write deny for $needle"
+  else
+    bad "payload lost the rule for $needle (file-guard's opinion went unguarded)"
+  fi
+done
 
-section "2. Ordinary files are untouched (no false positives)"
-# file-guard abstains on unprotected paths — it emits no permissionDecision and
-# the write falls through to the normal permission flow. It never affirmatively
-# allows, which would auto-approve the write.
-expect_write abstain "src/index.ts"             "ordinary source file"
-expect_write abstain "README.md"                "markdown"
-expect_write abstain ".envrc"                   ".envrc (not .env)"
-expect_write abstain "docs/environment.md"      "filename merely containing 'environment'"
-
-section "3. Traversal cannot reach a protected file"
-# The concern is not '..' itself but whether a traversal-built path that RESOLVES
-# onto a protected name still gets caught.
-expect_write deny "src/../.env"                 "traversal resolving onto .env"
-expect_write deny "a/b/../../.env.local"        "multi-hop traversal onto .env.local"
-
-section "4. Symlink bypass — the ME-001 defence (CWE-59)"
-# file-guard.ts:1-8 claims it resolves symlinks BEFORE pattern-matching. Nothing
-# in the suite exercised that claim, so it was documentation rather than a
-# tested behaviour. A symlink pointing at a protected file must be denied on the
-# basis of its TARGET, not its innocuous-looking name.
-TMPD="$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")"
-# Chain, do not replace: a bare `trap ... EXIT` OVERWRITES the helper's
-# `trap cleanup_test_env EXIT` (test-helpers.sh), so $TMPDIR/orchestkit-tests-$$
-# leaked on every run of this file.
-trap 'rm -rf "$TMPD"; cleanup_test_env' EXIT
-printf 'SECRET=1\n' > "$TMPD/.env"
-ln -s "$TMPD/.env" "$TMPD/harmless-name.txt"
-
-expect_write deny "$TMPD/harmless-name.txt"     "symlink to .env denied by TARGET, not name"
-expect_write deny "$TMPD/.env"                  "the real .env still denied"
-
-section "5. A broken symlink must not crash the hook"
-ln -s "$TMPD/does-not-exist" "$TMPD/dangling.txt"
-got="$(hook_decision "$GUARD" "$(write_input "$TMPD/dangling.txt")")"
-if [[ "$got" == "ERROR" ]]; then
-  log_fail "dangling symlink produced ERROR (hook crashed or was unreachable)"
-  FAIL=$((FAIL + 1))
+section "3. The native layer has a gate that fails loudly"
+if [[ -x "$PROBE" || -f "$PROBE" ]]; then ok "canary probe present: ${PROBE#$PROJECT_ROOT/}"; else bad "canary probe missing; the deletion has no watchdog"; fi
+if grep -q "probe-permission-deny.sh" "$PROJECT_ROOT/.github/workflows/plugin-validation.yml"; then
+  ok "canary probe wired into CI"
 else
-  log_pass "dangling symlink handled without crashing (-> $got)"
-  PASS=$((PASS + 1))
+  bad "canary probe not invoked by any workflow"
 fi
 
 echo
 echo "=========================================="
 echo "  ${GREEN}${PASS} passed${NC}, ${RED}${FAIL} failed${NC}"
 echo "=========================================="
-[[ $FAIL -eq 0 ]]
+[[ "$FAIL" -eq 0 ]]

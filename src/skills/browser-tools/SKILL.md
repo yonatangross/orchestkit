@@ -6,7 +6,7 @@ description: Security wrapper over the upstream agent-browser skill, adding URL 
 tags: [browser, automation, security, rate-limiting, scraping-ethics]
 context: fork
 agent: web-research-analyst
-version: 5.0.0
+version: 6.0.0
 author: OrchestKit
 user-invocable: false
 complexity: medium
@@ -114,7 +114,7 @@ each other's tabs.
 - **`@agent-browser/sandbox`** — companion helper package for running agent-browser headless inside a Vercel Sandbox / eve ephemeral env (provisions Chrome + the native daemon for you, no host browser needed). Hook's URL/rate/robots checks still apply to whatever the sandboxed session navigates to.
 
 **Built-in MCP server (0.28):**
-- **`agent-browser --mcp`** — runs agent-browser as a Model Context Protocol server over stdio, exposing typed tools (open/snapshot/find/click/extract/...) with paginated capability discovery. Lets you wire browser automation MCP-native — directly into an MCP client — without going through the CLI Bash wrapper. Note: MCP-native sessions bypass the `agent-browser-safety` PreToolUse Bash hook (the hook only intercepts `agent-browser` Bash commands), so apply URL/rate/robots policy at the MCP-client layer when using this path.
+- **`agent-browser --mcp`** — runs agent-browser as a Model Context Protocol server over stdio, exposing typed tools (open/snapshot/find/click/extract/...) with paginated capability discovery. Lets you wire browser automation MCP-native — directly into an MCP client — without going through the CLI Bash wrapper. Note: URL policy comes from `sandbox.network` in the operator scope (see Safety Guardrails below), which covers the MCP path and the CLI path equally; the per-path Bash hook that once guarded only the CLI was retired in #3835.
 
 **React introspection + perf observability (0.27):**
 - **`react tree` / `react inspect <fiberId>` / `react renders start|stop` / `react suspense`** — first-class React DevTools integration via a vendored MIT-licensed hook embedded in the binary (zero runtime deps). Component-tree visibility, per-fiber props/hooks/state inspection, render profiling with mount/re-render counts and change details, Suspense boundary classification with root-cause grouping. Hook treats fiber state dumps as sensitive — gitignore captures.
@@ -204,32 +204,16 @@ each other's tabs.
 
 **Native Rust rewrite (v0.20):** agent-browser is now 100% native Rust — the old Node.js/Playwright daemon (the "sidecar") is **gone**. It drives Chrome directly over CDP, so there is **no Node runtime, no Playwright, and no separate browser-driver process** to install or keep alive. Result: 99x smaller install (710→7 MB), 18x less memory (143→8 MB), 1.6x faster cold start.
 
-## Safety Guardrails (6 rules + the agent-browser-safety hook)
+## Safety Guardrails (6 rules; URL policy is the sandbox's job)
 
-This skill enforces safety through the `agent-browser-safety` PreToolUse hook and 6 rule files:
+The `agent-browser-safety` PreToolUse hook was retired 2026-08-31 (#3835 purge wave 1; `shared/rules/cc-native-first.md` purge rows). It only ever saw the Bash CLI path anyway; the MCP path (`--mcp`) and every other engine were structurally invisible to it. URL policy now lives where the OS enforces it, for every path at once:
 
-### Hook: agent-browser-safety
+```json
+{ "sandbox": { "enabled": true, "network": {
+    "allowedDomains": ["your-targets.example"] } } }
+```
 
-The hook intercepts all `agent-browser` Bash commands and enforces:
-
-| Check | What It Does | Action |
-|-------|-------------|--------|
-| **Encryption key leak** | Detects `echo`/`printf`/pipe of `AGENT_BROWSER_ENCRYPTION_KEY` | **BLOCK** |
-| **URL blocklist** | Blocks localhost, internal, file://, SSRF endpoints, OAuth login pages, RFC 1918 private IPs | **BLOCK** |
-| **Rate limiting** | Per-domain limits (10/min, 100/hour, 3/3s burst) | **BLOCK** on exceed |
-| **robots.txt** | Fetches and caches robots.txt, blocks disallowed paths | **BLOCK** |
-| **Sensitive actions** | Detects delete/remove clicks, password fills, payment submissions | **WARN** + native confirmation |
-| **Network routes** | Validates `network route` target URLs against blocklist | **BLOCK** |
-| **User-agent spoofing** | Warns when `--user-agent` flag is used | **WARN** |
-| **File access** | Warns when `--allow-file-access` flag is used | **WARN** |
-| **DevTools inspect** | `inspect` / `get cdp-url` opens local CDP proxy — new attack surface (v0.18+) | **WARN** |
-| **Clipboard read** | `clipboard read` accesses host clipboard without prompt (v0.19+) | **WARN** |
-| **HAR capture** | `network har stop` dumps full request/response bodies incl. auth tokens (v0.21+) | **WARN** |
-| **Skill install** | `skills get` fetches third-party capability packs — treat as code install (v0.25+) | **WARN** |
-| **Chat transcripts** | `chat` REPL logs may capture sensitive page text — pipe through same URL rules (v0.25+) | **WARN** |
-| **Remote provider** | `--provider agentcore/browserless` sends traffic to cloud endpoints; routing disabled remotely | **WARN** |
-| **Init scripts** | `--init-script <path>` registers arbitrary JS before first navigation — code-execution surface (v0.27+) | **WARN** |
-| **React fiber dumps** | `react tree`/`react inspect` may expose sensitive props/state from prod apps; gitignore captures (v0.27+) | **WARN** |
+in the operator's `.claude/settings.json` (setup phase 3.6 offers to write it; doctor's `check-operator-permissions.sh` audits it; a blocked navigation surfaces as `CONNECT tunnel failed, response 403` plus a `sandbox_violations` block). Native Windows has no sandbox backend; there, and for behaviours no network policy covers (rate limiting, robots.txt etiquette, sensitive-action confirmation, encryption-key hygiene, HAR/clipboard/init-script caution), the 6 rule files below carry the policy as model-followed guidance rather than a hook.
 
 ### Security Rules (in `rules/`)
 

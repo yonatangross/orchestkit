@@ -136,19 +136,20 @@ test_plugin_version_requirement() {
 }
 test_plugin_version_requirement
 
-log_section "Test 6: Compound command validator exists"
-test_compound_validator_exists() {
-  # Check for TypeScript source (Phase 4 migration)
+log_section "Test 6: Compound command validator retired (#3835 wave 1)"
+test_compound_validator_retired() {
+  # Deleted 2026-08-31: CC decomposes compound commands per segment itself.
+  # Assert the ABSENCE so a silent revival fails here; the runner must remain.
   local ts_validator="$PROJECT_ROOT/src/hooks/src/pretool/bash/compound-command-validator.ts"
   local runner="$PROJECT_ROOT/src/hooks/bin/run-hook.mjs"
 
-  if [[ -f "$ts_validator" ]] && [[ -f "$runner" ]]; then
-    log_pass "Compound command validator exists (TypeScript)"
+  if [[ ! -e "$ts_validator" ]] && [[ -f "$runner" ]]; then
+    log_pass "Compound command validator retired; runner present"
   else
-    log_fail "Compound command validator not found"
+    log_fail "Compound command validator revived, or runner missing"
   fi
 }
-test_compound_validator_exists
+test_compound_validator_retired
 
 # ============================================================================
 # SUMMARY

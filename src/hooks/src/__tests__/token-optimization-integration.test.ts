@@ -177,7 +177,7 @@ describe('Hook Priority Integration', () => {
   test('priority throttling disabled by default (no config file)', () => {
     expect(isPriorityThrottlingEnabled()).toBe(false);
     // Should never throttle when disabled
-    expect(shouldThrottle('pretool/bash/dangerous-command-blocker')).toBe(false);
+    expect(shouldThrottle('pretool/Write/security-pattern-validator')).toBe(false);
   });
 
   test('P0 hooks never throttled even when enabled and over budget', () => {
@@ -189,8 +189,8 @@ describe('Hook Priority Integration', () => {
     trackTokenUsage('filler', 'skill-injection', 2500);
 
     expect(isPriorityThrottlingEnabled()).toBe(true);
-    expect(shouldThrottle('pretool/bash/dangerous-command-blocker')).toBe(false);
-    expect(shouldThrottle('pretool/write-edit/file-guard')).toBe(false);
+    expect(shouldThrottle('pretool/Write/security-pattern-validator')).toBe(false);
+    expect(shouldThrottle('permission/auto-approve-safe-bash')).toBe(false);
   });
 
   test('P3 hooks throttled at 50% budget when enabled', () => {
@@ -214,11 +214,11 @@ describe('Hook Priority Integration', () => {
     // P2 throttles at 70%
     expect(shouldThrottle('stop/handoff-writer')).toBe(true);
     // P0 never throttled
-    expect(shouldThrottle('pretool/bash/dangerous-command-blocker')).toBe(false);
+    expect(shouldThrottle('pretool/Write/security-pattern-validator')).toBe(false);
   });
 
   test('priority assignments are correct for all known hooks', () => {
-    expect(getHookPriority('pretool/bash/dangerous-command-blocker')).toBe('P0');
+    expect(getHookPriority('pretool/Write/security-pattern-validator')).toBe('P0'); // #3835: the blocker left P0 with its deletion
     expect(getHookPriority('unknown-hook')).toBe('P2'); // default
   });
 });
