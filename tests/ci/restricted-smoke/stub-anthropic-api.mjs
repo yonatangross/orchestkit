@@ -15,15 +15,35 @@ const PORT = Number(process.env.STUB_PORT || 0);
 const LOG = process.env.STUB_LOG || '/tmp/stub-anthropic-api.jsonl';
 const REPLY = process.env.STUB_REPLY || 'ok';
 const GREP = process.env.STUB_GREP ? new RegExp(process.env.STUB_GREP) : null;
+// STUB_TOOL_USE (#3835): JSON {name, input}. When set, any request whose
+// messages carry NO tool_result yet gets a scripted tool_use block instead of
+// text, so a probe can make CC evaluate its OWN permission layer against a
+// known tool call with zero model spend. Requests that already carry a
+// tool_result (the follow-up turn) get the normal text reply, closing the loop.
+const TOOL_USE = process.env.STUB_TOOL_USE ? JSON.parse(process.env.STUB_TOOL_USE) : null;
 
-function sse(res, model) {
+function hasToolResult(messages) {
+  for (const m of messages || []) {
+    if (Array.isArray(m.content)) for (const b of m.content) if (b.type === 'tool_result') return true;
+  }
+  return false;
+}
+
+function sse(res, model, toolUse) {
   const ev = (type, data) => res.write(`event: ${type}\ndata: ${JSON.stringify({ type, ...data })}\n\n`);
   res.writeHead(200, { 'content-type': 'text/event-stream', 'cache-control': 'no-cache' });
   ev('message_start', { message: { id: 'msg_stub', type: 'message', role: 'assistant', model, content: [], stop_reason: null, stop_sequence: null, usage: { input_tokens: 1, output_tokens: 1 } } });
-  ev('content_block_start', { index: 0, content_block: { type: 'text', text: '' } });
-  ev('content_block_delta', { index: 0, delta: { type: 'text_delta', text: REPLY } });
-  ev('content_block_stop', { index: 0 });
-  ev('message_delta', { delta: { stop_reason: 'end_turn', stop_sequence: null }, usage: { output_tokens: 1 } });
+  if (toolUse) {
+    ev('content_block_start', { index: 0, content_block: { type: 'tool_use', id: 'toolu_stub01', name: toolUse.name, input: {} } });
+    ev('content_block_delta', { index: 0, delta: { type: 'input_json_delta', partial_json: JSON.stringify(toolUse.input || {}) } });
+    ev('content_block_stop', { index: 0 });
+    ev('message_delta', { delta: { stop_reason: 'tool_use', stop_sequence: null }, usage: { output_tokens: 1 } });
+  } else {
+    ev('content_block_start', { index: 0, content_block: { type: 'text', text: '' } });
+    ev('content_block_delta', { index: 0, delta: { type: 'text_delta', text: REPLY } });
+    ev('content_block_stop', { index: 0 });
+    ev('message_delta', { delta: { stop_reason: 'end_turn', stop_sequence: null }, usage: { output_tokens: 1 } });
+  }
   ev('message_stop', {});
   res.end();
 }
@@ -72,12 +92,16 @@ const server = http.createServer((req, res) => {
     }
     fs.appendFileSync(LOG, JSON.stringify(line) + '\n');
     if (req.method === 'POST' && /\/v1\/messages(\?|$)/.test(req.url)) {
+      const toolUse = TOOL_USE && parsed && !hasToolResult(parsed.messages) ? TOOL_USE : null;
       if (parsed && parsed.stream === false) {
+        const content = toolUse
+          ? [{ type: 'tool_use', id: 'toolu_stub01', name: toolUse.name, input: toolUse.input || {} }]
+          : [{ type: 'text', text: REPLY }];
         res.writeHead(200, { 'content-type': 'application/json' });
-        res.end(JSON.stringify({ id: 'msg_stub', type: 'message', role: 'assistant', model: parsed.model, content: [{ type: 'text', text: REPLY }], stop_reason: 'end_turn', stop_sequence: null, usage: { input_tokens: 1, output_tokens: 1 } }));
+        res.end(JSON.stringify({ id: 'msg_stub', type: 'message', role: 'assistant', model: parsed.model, content, stop_reason: toolUse ? 'tool_use' : 'end_turn', stop_sequence: null, usage: { input_tokens: 1, output_tokens: 1 } }));
         return;
       }
-      return sse(res, (parsed && parsed.model) || 'stub');
+      return sse(res, (parsed && parsed.model) || 'stub', toolUse);
     }
     res.writeHead(404, { 'content-type': 'application/json' });
     res.end(JSON.stringify({ type: 'error', error: { type: 'not_found_error', message: `stub has no route for ${req.method} ${req.url}` } }));

@@ -6429,6 +6429,13 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
             "tag": null
           },
           {
+            "num": "3.6",
+            "label": "Protect",
+            "does": "Deliver ork's canonical permissions.deny payload to an ENFORCING scope (a plugin settings.json is inert: CC reads only agent/subagentStatusLine, #3835). Run node ${CLAUDE_PLUGIN_ROOT}/skills/setup/scripts/write-operator-permissions.mjs --scope user --dry-run, show the additions and the print-only sandbox suggestion, then ONLY on an explicit yes rerun without --dry-run. The script backs up the file and prints the one-command rollback. Never write without the dry-run + consent pair.",
+            "out": "Bash, AskUserQuestion",
+            "tag": null
+          },
+          {
             "num": "4",
             "label": "Skills",
             "does": "Match stack to skills, suggest custom skills",

@@ -1,0 +1,53 @@
+{
+  "README": "Canonical operator-scope permission payload (#3835). CC reads only `agent` and `subagentStatusLine` from a plugin settings.json (binary-proven at 2.1.226 and 2.1.251), so rules only enforce from the OPERATOR's own scopes: ~/.claude/settings.json, <project>/.claude/settings.json, or their .local variants. scripts/write-operator-permissions.mjs delivers this payload there with consent; doctor's check-operator-permissions.sh audits presence. The three SQL substrings the old dangerous-command-blocker matched (drop database / drop schema / truncate table inside a psql -c string) are NOT expressible as Bash() rules; that loss was accepted by operator decision 2026-08-31.",
+  "version": 1,
+  "deny": [
+    "Read(~/.aws/credentials)",
+    "Read(~/.ssh/**)",
+    "Read(~/.gnupg/**)",
+    "Read(~/.netrc)",
+    "Read(~/.npmrc)",
+    "Read(**/.env)",
+    "Read(**/.env.local)",
+    "Read(**/.env.production)",
+    "Edit(**/.env)",
+    "Edit(**/.env.local)",
+    "Edit(**/.env.production)",
+    "Write(**/.env)",
+    "Write(**/.env.local)",
+    "Write(**/.env.production)",
+    "Bash(rm -rf /)",
+    "Bash(rm -rf ~)",
+    "Bash(rm -rf .)",
+    "Bash(rm -fr /)",
+    "Bash(rm -fr ~)",
+    "Bash(rm -fr .)",
+    "Bash(rm -rf /private/etc*)",
+    "Bash(rm -rf /private/var*)",
+    "Bash(rm -rf /private/home*)",
+    "Bash(rm -fr /private/etc*)",
+    "Bash(rm -fr /private/var*)",
+    "Bash(rm -fr /private/home*)",
+    "Bash(mv /* /dev/null)",
+    "Bash(find:*-delete*)",
+    "Bash(find:*-fprint*)",
+    "Bash(chmod 777 *)",
+    "Bash(chmod -R 777 *)",
+    "Bash(git push --force origin main)",
+    "Bash(git push --force origin master)",
+    "Bash(git push -f origin main)",
+    "Bash(git push -f origin master)",
+    "Bash(mkfs*)",
+    "Bash(dd if=*)",
+    "Bash(> /dev/sd*)",
+    "Bash(:(){ :|:& };:)"
+  ],
+  "sandboxSuggestion": {
+    "sandbox": {
+      "enabled": true,
+      "network": {
+        "allowedDomains": ["github.com", "registry.npmjs.org", "pypi.org", "api.anthropic.com"]
+      }
+    }
+  }
+}

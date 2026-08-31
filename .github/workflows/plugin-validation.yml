@@ -394,6 +394,13 @@ jobs:
       - name: Run restricted smoke lane
         run: bash tests/ci/restricted-smoke/run-restricted-smoke.sh ./plugins/ork
 
+      # #3835: the divergence purge stands on CC's native permissions.deny
+      # holding under --dangerously-skip-permissions with NO hooks loaded.
+      # Canary probe: control arm must execute, trip arm must be denied.
+      # Exit 1 here is REGRESSED (restore the retired guards), not flaky.
+      - name: Probe native permission deny under bypass (#3835)
+        run: bash tests/ci/restricted-smoke/probe-permission-deny.sh
+
   # Job 7: Component Counts Validation
   counts-validation:
     name: Component Counts
