@@ -21,12 +21,23 @@ const GREP = process.env.STUB_GREP ? new RegExp(process.env.STUB_GREP) : null;
 // known tool call with zero model spend. Requests that already carry a
 // tool_result (the follow-up turn) get the normal text reply, closing the loop.
 const TOOL_USE = process.env.STUB_TOOL_USE ? JSON.parse(process.env.STUB_TOOL_USE) : null;
+// STUB_TOOL_USE_SEQ (#3849): JSON array of {name, input}, scripted in order.
+// The Nth request is answered with element N, counting how many tool_results
+// the conversation already carries; when the array runs out, the normal text
+// reply closes the loop. STUB_TOOL_USE is the one-element case and still works.
+// Needed because Edit is a two-step tool: CC refuses to edit a file this
+// session has not read, so a one-shot Edit measures that refusal, not the
+// permission rule under test.
+const TOOL_USE_SEQ = process.env.STUB_TOOL_USE_SEQ
+  ? JSON.parse(process.env.STUB_TOOL_USE_SEQ)
+  : (TOOL_USE ? [TOOL_USE] : []);
 
-function hasToolResult(messages) {
+function countToolResults(messages) {
+  let n = 0;
   for (const m of messages || []) {
-    if (Array.isArray(m.content)) for (const b of m.content) if (b.type === 'tool_result') return true;
+    if (Array.isArray(m.content)) for (const b of m.content) if (b.type === 'tool_result') n++;
   }
-  return false;
+  return n;
 }
 
 function sse(res, model, toolUse) {
@@ -92,7 +103,7 @@ const server = http.createServer((req, res) => {
     }
     fs.appendFileSync(LOG, JSON.stringify(line) + '\n');
     if (req.method === 'POST' && /\/v1\/messages(\?|$)/.test(req.url)) {
-      const toolUse = TOOL_USE && parsed && !hasToolResult(parsed.messages) ? TOOL_USE : null;
+      const toolUse = parsed ? (TOOL_USE_SEQ[countToolResults(parsed.messages)] || null) : null;
       if (parsed && parsed.stream === false) {
         const content = toolUse
           ? [{ type: 'tool_use', id: 'toolu_stub01', name: toolUse.name, input: toolUse.input || {} }]
