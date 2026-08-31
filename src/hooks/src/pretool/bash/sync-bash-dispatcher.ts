@@ -6,7 +6,8 @@
  * Consolidates 3 Bash PreToolUse hooks into a single dispatcher.
  *
  * Consolidated hooks (security-first order):
- * - dangerous-command-blocker (blocks rm -rf, sudo, force push etc — FIRST)
+ * - (dangerous-command-blocker and git-validator retired 2026-08-31, #3835 wave 4:
+ *    operator-scope permissions.deny rules carry those opinions now)
  * - unified-advisory-dispatcher (advisory guidance — LAST)
  *
  * SHORT-CIRCUIT: On first block, returns immediately without running remaining hooks.
@@ -19,14 +20,12 @@ import type { HookInput, HookResult , HookContext} from '../../types.js';
 import { outputSilentSuccess, outputWithUpdatedInput, logHook, extractContext } from '../../lib/common.js';
 
 // Import consolidated hook implementations
-import { dangerousCommandBlocker } from './dangerous-command-blocker.js';
 import { networkEgressGuard } from './network-egress-guard.js';
 import { unifiedBashAdvisoryDispatcher } from './unified-advisory-dispatcher.js';
 
 // Phase 0: Headless deferral (merged from separate hooks.json group — #optimization)
 import { headlessDefer } from '../../permission/headless-defer.js';
 // Phase 2: Git/GH enforcement hooks (merged from separate spawns — #912, #913, #914)
-import { gitValidator } from './git-validator.js';
 import { issueReferenceChecker } from './issue-reference-checker.js';
 // Phase 2: New GH enforcement hooks (#916)
 import { ghLabelEnforcer } from './gh-label-enforcer.js';
@@ -62,13 +61,11 @@ const BASH_HOOKS: BlockingHookConfig[] = [
   // Phase 0: Headless deferral (blocks destructive ops in -p mode)
   { name: 'headless-defer', fn: headlessDefer },
   // Phase 1: Security
-  { name: 'dangerous-command-blocker', fn: dangerousCommandBlocker },
   // restrict-bash retired 2026-08-31 (#3835 wave 2): agent allowlisting is
   // agent tools:/disallowedTools frontmatter plus the --restricted lane.
   // Network egress: DENY remote-code-exec (bash <(curl)), ASK exfil/staged-run
   { name: 'network-egress-guard', fn: networkEgressGuard },
   // Phase 2: Git/GH enforcement (previously separate process spawns + new)
-  { name: 'git-validator', fn: gitValidator },
   { name: 'issue-reference-checker', fn: issueReferenceChecker },
   { name: 'gh-label-enforcer', fn: ghLabelEnforcer },
   { name: 'gh-milestone-enforcer', fn: ghMilestoneEnforcer },
@@ -154,7 +151,7 @@ function buildMergedResult(
  * Consolidated sync Bash PreToolUse dispatcher.
  *
  * Execution order:
- * 1. dangerous-command-blocker (can block — security critical)
+ * 1. (retired) dangerous-command-blocker, #3835
  * 3. unified-advisory-dispatcher (context + input modifier)
  *
  * On first block: SHORT-CIRCUIT immediately.

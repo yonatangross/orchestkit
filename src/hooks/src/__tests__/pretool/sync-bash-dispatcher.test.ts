@@ -36,17 +36,9 @@ vi.mock('../../lib/common.js', async () => {
   };
 });
 
-vi.mock('../../pretool/bash/dangerous-command-blocker.js', () => ({
-  dangerousCommandBlocker: vi.fn(() => ({ continue: true, suppressOutput: true })),
-}));
-
 
 vi.mock('../../pretool/bash/unified-advisory-dispatcher.js', () => ({
   unifiedBashAdvisoryDispatcher: vi.fn(() => ({ continue: true, suppressOutput: true })),
-}));
-
-vi.mock('../../pretool/bash/git-validator.js', () => ({
-  gitValidator: vi.fn(() => ({ continue: true, suppressOutput: true })),
 }));
 
 vi.mock('../../pretool/bash/issue-reference-checker.js', () => ({
@@ -62,9 +54,7 @@ vi.mock('../../pretool/bash/gh-milestone-enforcer.js', () => ({
 }));
 
 import { syncBashDispatcher } from '../../pretool/bash/sync-bash-dispatcher.js';
-import { dangerousCommandBlocker } from '../../pretool/bash/dangerous-command-blocker.js';
 import { unifiedBashAdvisoryDispatcher } from '../../pretool/bash/unified-advisory-dispatcher.js';
-import { gitValidator } from '../../pretool/bash/git-validator.js';
 import { issueReferenceChecker } from '../../pretool/bash/issue-reference-checker.js';
 import { ghLabelEnforcer } from '../../pretool/bash/gh-label-enforcer.js';
 import { ghMilestoneEnforcer } from '../../pretool/bash/gh-milestone-enforcer.js';
@@ -132,8 +122,6 @@ describe('sync-bash-dispatcher', () => {
     // preventing bleed-over from tests that override implementations (e.g., block scenarios)
     vi.resetAllMocks();
     // Re-establish default passing implementations after reset
-    vi.mocked(dangerousCommandBlocker).mockReturnValue({ continue: true, suppressOutput: true });
-    vi.mocked(gitValidator).mockReturnValue({ continue: true, suppressOutput: true });
     vi.mocked(issueReferenceChecker).mockReturnValue({ continue: true, suppressOutput: true });
     vi.mocked(ghLabelEnforcer).mockReturnValue({ continue: true, suppressOutput: true });
     vi.mocked(ghMilestoneEnforcer).mockReturnValue({ continue: true, suppressOutput: true });
@@ -153,14 +141,10 @@ describe('sync-bash-dispatcher', () => {
       expect(result.suppressOutput).toBe(true);
     });
 
-    it('calls all 7 hooks exactly once', () => {
+    it('calls every registered hook exactly once', () => {
       const input = createBashInput('npm run build');
       syncBashDispatcher(input, testCtx);
 
-      expect(dangerousCommandBlocker).toHaveBeenCalled();
-      expect(vi.mocked(dangerousCommandBlocker).mock.calls[0][0]).toEqual(input);
-      expect(gitValidator).toHaveBeenCalled();
-      expect(vi.mocked(gitValidator).mock.calls[0][0]).toEqual(input);
       expect(issueReferenceChecker).toHaveBeenCalled();
       expect(vi.mocked(issueReferenceChecker).mock.calls[0][0]).toEqual(input);
       expect(ghLabelEnforcer).toHaveBeenCalled();
@@ -190,68 +174,41 @@ describe('sync-bash-dispatcher', () => {
       },
     });
 
-    it('propagates an ask from dangerous-command-blocker verbatim', () => {
-      vi.mocked(dangerousCommandBlocker).mockReturnValue(makeAskResult('Elevated privileges requested'));
-
-      const result = syncBashDispatcher(createBashInput('sudo rm /tmp/x'), testCtx);
-
+    // #3835: the blocker's ask sites are retired; gh-label-enforcer is the
+    // mocked Phase 2 ask site. The property under test is unchanged.
+    it('propagates an ask from a Phase 2 hook verbatim', () => {
+      vi.mocked(ghLabelEnforcer).mockReturnValue(makeAskResult('label required'));
+      const result = syncBashDispatcher(createBashInput('gh issue create --title x'), testCtx);
       expect(result.hookSpecificOutput?.permissionDecision).toBe('ask');
+      expect(result.hookSpecificOutput?.permissionDecisionReason).toBe('label required');
     });
-
-    it('does not call later hooks after an ask', () => {
-      vi.mocked(dangerousCommandBlocker).mockReturnValue(makeAskResult('ask'));
-
-      syncBashDispatcher(createBashInput('sudo rm /tmp/x'), testCtx);
-
-      expect(unifiedBashAdvisoryDispatcher).not.toHaveBeenCalled();
-    });
-
   });
 
   describe('short-circuit on first block', () => {
-    it('returns block result immediately when dangerous-command-blocker blocks', () => {
-      const blockResult = makeBlockResult('rm -rf / is dangerous');
-      vi.mocked(dangerousCommandBlocker).mockReturnValue(blockResult);
-
-      const input = createBashInput('rm -rf /');
-      const result = syncBashDispatcher(input, testCtx);
-
-      expect(result.continue).toBe(false);
-      expect(result.stopReason).toBe('rm -rf / is dangerous');
-    });
-
-    it('does not call later hooks after Phase 1 block', () => {
-      vi.mocked(dangerousCommandBlocker).mockReturnValue(makeBlockResult('blocked'));
-
-      const input = createBashInput('rm -rf /');
-      syncBashDispatcher(input, testCtx);
-
-      expect(gitValidator).not.toHaveBeenCalled();
+    // #3835: the blockers are retired; issue-reference-checker is the mocked block site.
+    it('does not call later hooks after a block', () => {
+      vi.mocked(issueReferenceChecker).mockReturnValue(makeBlockResult('blocked'));
+      syncBashDispatcher(createBashInput('git commit -m x'), testCtx);
       expect(ghLabelEnforcer).not.toHaveBeenCalled();
       expect(unifiedBashAdvisoryDispatcher).not.toHaveBeenCalled();
     });
 
+    it('logs short-circuit message when block occurs', () => {
+      vi.mocked(issueReferenceChecker).mockReturnValue(makeBlockResult('blocked'));
+      syncBashDispatcher(createBashInput('git commit -m x'), testCtx);
+      expect(testCtx.log).toHaveBeenCalledWith('sync-bash-dispatcher', expect.stringContaining('short-circuiting'));
+    });
 
-    it('does not call Phase 3 advisory after Phase 2 git-validator block', () => {
-      vi.mocked(gitValidator).mockReturnValue(makeBlockResult('git: direct push to main blocked'));
-
-      const input = createBashInput('git push origin main --force');
-      syncBashDispatcher(input, testCtx);
-
+    it('does not call later hooks after an ask', () => {
+      vi.mocked(ghLabelEnforcer).mockReturnValue({ continue: true, suppressOutput: true, hookSpecificOutput: { hookEventName: 'PreToolUse', permissionDecision: 'ask' as const, permissionDecisionReason: 'ask' } });
+      syncBashDispatcher(createBashInput('gh issue create --title x'), testCtx);
+      expect(ghMilestoneEnforcer).not.toHaveBeenCalled();
       expect(unifiedBashAdvisoryDispatcher).not.toHaveBeenCalled();
     });
 
-    it('logs short-circuit message when block occurs', () => {
-      vi.mocked(dangerousCommandBlocker).mockReturnValue(makeBlockResult('blocked'));
 
-      const input = createBashInput('rm -rf /');
-      syncBashDispatcher(input, testCtx);
 
-      expect(testCtx.log).toHaveBeenCalledWith(
-        'sync-bash-dispatcher',
-        expect.stringContaining('short-circuiting'),
-      );
-    });
+
   });
 
   // -------------------------------------------------------------------------
@@ -437,19 +394,20 @@ describe('sync-bash-dispatcher', () => {
     });
 
     it('continues calling subsequent hooks after one throws', () => {
-      vi.mocked(gitValidator).mockImplementation(() => {
-        throw new Error('git validator crashed');
+      // #3835: issue-reference-checker is the mocked thrower now (git-validator retired).
+      vi.mocked(issueReferenceChecker).mockImplementation(() => {
+        throw new Error('issue reference checker crashed');
       });
 
       const input = createBashInput('git status');
       syncBashDispatcher(input, testCtx);
 
-      // gh-label-enforcer comes after git-validator — should still run
+      // gh-label-enforcer comes after issue-reference-checker; it must still run
       expect(ghLabelEnforcer).toHaveBeenCalled();
     });
 
     it('handles non-Error throws gracefully', () => {
-      vi.mocked(dangerousCommandBlocker).mockImplementation(() => {
+      vi.mocked(issueReferenceChecker).mockImplementation(() => {
         throw 'string error'; // eslint-disable-line no-throw-literal
       });
 
@@ -463,16 +421,14 @@ describe('sync-bash-dispatcher', () => {
   // -------------------------------------------------------------------------
 
   describe('phase ordering', () => {
-
-    it('calls git-validator before gh-label-enforcer', () => {
+    it('calls issue-reference-checker before gh-label-enforcer', () => {
       const order: string[] = [];
-      vi.mocked(gitValidator).mockImplementation(() => { order.push('git-validator'); return { continue: true, suppressOutput: true }; });
+      vi.mocked(issueReferenceChecker).mockImplementation(() => { order.push('issue-reference-checker'); return { continue: true, suppressOutput: true }; });
       vi.mocked(ghLabelEnforcer).mockImplementation(() => { order.push('gh-label-enforcer'); return { continue: true, suppressOutput: true }; });
-
       syncBashDispatcher(createBashInput('git commit'), testCtx);
-
-      expect(order.indexOf('git-validator')).toBeLessThan(order.indexOf('gh-label-enforcer'));
+      expect(order.indexOf('issue-reference-checker')).toBeLessThan(order.indexOf('gh-label-enforcer'));
     });
+
 
     it('calls all Phase 2 hooks before advisory dispatcher (Phase 3)', () => {
       const order: string[] = [];

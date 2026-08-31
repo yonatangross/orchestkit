@@ -776,6 +776,17 @@
         "security"
       ],
       "date": "2026-08-31"
+    },
+    {
+      "slug": "purge-wave-4-the-big-two-and-the-purge-is-done",
+      "source": "docs/chore--3835-purge-wave4/index.html",
+      "title": "Purge Wave 4: The Big Two, and the Purge Is Done",
+      "description": "dangerous-command-blocker and git-validator deleted, with what each cost stated; the runner tests that used the blocker as a fixture moved to the surviving egress DENY tier; seven security files rewritten or re-pointed; and the day's strip: 29 blocking hooks audited, 16 deleted across four waves, 13 kept with a written reason each. The retiring blocker blocked its own deletion scripts twice, which is the whole point.",
+      "tags": [
+        "hooks",
+        "security"
+      ],
+      "date": "2026-08-31"
     }
   ]
 }

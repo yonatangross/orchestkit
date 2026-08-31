@@ -1017,7 +1017,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "commit",
     "description": "Creates commits with Conventional Commits format (feat/fix/docs/refactor/test/chore), automatic scope detection, co-author attribution, and pre-commit hook compliance. Validates staged changes, generates descriptive messages focusing on the 'why', and prevents secrets or generated-only files from being committed. Requires an explicit request naming this skill; plain `git commit` during normal work stays a bare CLI call. Use when committing changes or generating commit messages.",
     "version": "1.2.0",
-    "sha256": "da78ba3b3d428e36492495d7b707d1666483961825d10b0c44d75e1e90b3e0ad",
+    "sha256": "d79f455613b9e9b33f133567a11cd2f3b5217dc7eca4da4ce87f6c270e507add",
     "author": "OrchestKit",
     "tags": [
       "git",
@@ -4115,7 +4115,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "security-patterns",
     "description": "Security patterns for authentication, defense-in-depth, input validation, OWASP Top 10, LLM safety, and PII masking. Use when implementing auth flows, security layers, input sanitization, vulnerability prevention, prompt injection defense, or data redaction.",
     "version": "2.0.0",
-    "sha256": "2a5218be380ffc195a1037dfadd29b6b63abcebfa45db9f095a12b886a84c2e8",
+    "sha256": "78d032799c79b78b2c2fd2c2683f31a07872c650f8a03de3a80391f150fd616b",
     "author": "OrchestKit",
     "tags": [
       "security",
