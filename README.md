@@ -370,6 +370,15 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.66](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.65...v10.0.0-alpha.66)** · 2026-08-31
+
+- **dream:** budget pass and rule-based demotion for MEMORY.md (#3833), closes [#3741](https://github.com/yonatangross/orchestkit/issues/3741)
+- **hooks:** name untracked playground pages at SessionStart (#3831), closes [#3727](https://github.com/yonatangross/orchestkit/issues/3727)
+- **setup:** operator-scope permission vehicle for the purge (#3836)
+- **hooks:** runner names a dist bundle that exists but cannot load (#3819), closes [#3817](https://github.com/yonatangross/orchestkit/issues/3817)
+- **hooks:** task nudge gives up after N unanswered prompts (#3832), closes [#3733](https://github.com/yonatangross/orchestkit/issues/3733)
+- …and 10 more (see [CHANGELOG.md](CHANGELOG.md))
+
 **[v10.0.0-alpha.65](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.64...v10.0.0-alpha.65)** · 2026-08-30
 
 - **hooks:** redact-secrets reads tool_response, the field CC sends (#3815), closes [#3725](https://github.com/yonatangross/orchestkit/issues/3725)
@@ -410,13 +419,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **ci:** playground gate must verify the page is viewable (#3745)
 - **hooks:** make a subagent empty result loud instead of silent (#3744)
 - **ci:** add CodeRabbit as an advisory review lane (#3746)
-
-**[v10.0.0-alpha.58](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.57...v10.0.0-alpha.58)** · 2026-08-25
-
-- **evals:** run the train/test split through jq, mikefarah yq has no -y (#3730)
-- **hooks:** guards must parse shell structure, not raw text (#3742)
-- **hooks:** read git status without taking the index lock (#3743)
-- **hooks:** restrict-bash must not read quoted pipes as shell operators (#3740)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
