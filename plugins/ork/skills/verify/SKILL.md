@@ -7,7 +7,7 @@ argument-hint: "[feature-or-scope]"
 context: fork
 # user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
 background: false
-version: 4.6.0
+version: 4.7.0
 author: OrchestKit
 tags: [verification, testing, quality, validation, parallel-agents, grading]
 user-invocable: true
@@ -250,13 +250,19 @@ This gives users real-time visibility into multi-agent verification. If any dime
 Use `Monitor` for streaming test output. **A `run_in_background` request may not be honoured, so never wait unconditionally on the result.**
 
 ```python
-task = Bash(command="npm test 2>&1", run_in_background=true)
-if not task.id:                 # request ignored → output already returned inline
-    use_inline_output(task)     # do NOT wait; there is no task to wait for
+LOG = f"verification-output/{ts}/npmtest.log"   # named file: evidence lands here whether or not backgrounding is honoured
+task = Bash(command=f"npm test > {LOG} 2>&1; echo EXIT=$? >> {LOG}", run_in_background=true)
+if not task.id:                 # request ignored → the command ran inline and LOG is already complete
+    pass                        # do NOT wait; there is no task to wait for
 else:
-    Monitor(pid=task.id)        # bounded: see the contract reference below
-    # Still empty AND no live process → the run never happened.
-    # Report NO VERDICT as a FAILURE. Never emit a grade from an empty run.
+    Monitor(pid=task.id)        # bounded: see the contract reference below; progress via `tail -n 5 {LOG}`
+# The verdict gate is EXECUTABLE, not prose (#3263). Only outcome=EVIDENCE may be graded:
+Bash(command=f"bash ${{CLAUDE_PLUGIN_ROOT}}/skills/verify/scripts/assert-evidence.sh {LOG} --task-id '{task.id or 'none'}'")
+# exit 0 EVIDENCE   → grade from LOG's runner summary line
+# exit 4 STILL-RUNNING → keep the bounded wait, re-run the gate
+# exit 3 COULD-NOT-OBSERVE (0 bytes, no live process) or exit 1 NO-BANNER →
+#   the Tests dimension has NO score; report `Tests: COULD-NOT-OBSERVE (assert-evidence exit N, bytes, pid_alive)`
+#   and the verdict is BLOCKED. Never emit a grade from an empty run.
 ```
 
 Measured (#3263): three backgrounded suites wrote **0 bytes**, npm's own banner never appeared, and the skill waited ~40 min on a completion signal that could not fire. An empty run must be loud, not pending. Contract and the refuted hypotheses: `Read("${CLAUDE_PLUGIN_ROOT}/skills/verify/references/background-task-contract.md")`.
@@ -299,6 +305,7 @@ Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/quality-gates/references/unified-scorin
 
 Composite is necessary but not sufficient — a strong composite can average away a critical dimension. In Phase 4 (Nuanced Grading), read per-dimension thresholds from `${CLAUDE_PLUGIN_ROOT}/skills/verify/rubric.json` (schema: `${CLAUDE_PLUGIN_ROOT}/shared/rubric.schema.json`): security `min_blocker` 4.0, compliance `min_pass` 6.0.
 
+- **A dimension whose evidence outcome is `COULD-NOT-OBSERVE` or `NO-BANNER` (per `scripts/assert-evidence.sh`) has NO score.** Report it verbatim, e.g. `Tests: COULD-NOT-OBSERVE (assert-evidence exit 3, 0 bytes, no live pid)`, and the verdict is BLOCKED. Never average a missing dimension into the composite.
 - **ANY dimension below its `min_blocker` → verdict is BLOCKED regardless of composite.** Report it explicitly: `Security 3.2/10 (CRITICAL BLOCKER — below min_blocker 4.0)`.
 - A dimension below its `min_pass` (but at/above `min_blocker`) caps the verdict at IMPROVEMENTS RECOMMENDED — it cannot grade READY FOR MERGE.
 - Blocked verdicts list every tripped dimension first, each with the fix needed to clear it.
@@ -351,7 +358,7 @@ Define verification rules in `.claude/policies/verification-policy.json`:
 
 ## Verification Manifest (VERIFIED vs CLAIMED)
 
-Agent scores, tool summaries, and every "X is clean / passing / fixed" sentence are **claims** until the lead re-runs the proof. Before the verdict, build a **Verification Manifest** marking every *load-bearing* claim ✅ VERIFIED (lead ran it fresh — cites `command · exit · key line`), 🟡 CLAIMED (an agent/tool/doc asserted it, not re-run), ⬜ UNCHECKED, or ⚪ WAIVED (accepted non-blocking, with a reason). An agent's "PASS" copied into the report is still CLAIMED — VERIFIED means *the lead* ran it; a sub-agent's number (price, model-id, count) is CLAIMED until checked against source.
+Agent scores, tool summaries, and every "X is clean / passing / fixed" sentence are **claims** until the lead re-runs the proof. Before the verdict, build a **Verification Manifest** marking every *load-bearing* claim ✅ VERIFIED (lead ran it fresh — cites `command · exit · key line`), 🟡 CLAIMED (an agent/tool/doc asserted it, not re-run), ⬜ UNCHECKED, ⚪ WAIVED (accepted non-blocking, with a reason), or 🔴 COULD-NOT-OBSERVE (evidence was attempted and nothing was observed; the `assert-evidence.sh` line is the citation, and a load-bearing row in this state makes the verdict BLOCKED, not merely capped). An agent's "PASS" copied into the report is still CLAIMED — VERIFIED means *the lead* ran it; a sub-agent's number (price, model-id, count) is CLAIMED until checked against source.
 
 > **Verdict rule:** any load-bearing claim still 🟡 CLAIMED or ⬜ UNCHECKED **caps the verdict at IMPROVEMENTS RECOMMENDED** (never READY FOR MERGE) until it is ✅ VERIFIED or ⚪ WAIVED — this stacks with the dimension-level blockers (both must clear), and under `--streak=N` it resets the streak.
 
@@ -394,7 +401,7 @@ Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/verify/references/report-templ
 [--streak=N mode only: **STREAK [current]/[target]** — READY FOR MERGE requires the full target; any non-ready run resets to 0.]
 
 ## Verification Manifest
-[✅ VERIFIED · 🟡 CLAIMED · ⬜ UNCHECKED · ⚪ WAIVED — any load-bearing 🟡/⬜ caps the verdict below READY FOR MERGE]
+[✅ VERIFIED · 🟡 CLAIMED · ⬜ UNCHECKED · ⚪ WAIVED · 🔴 COULD-NOT-OBSERVE — any load-bearing 🟡/⬜ caps the verdict below READY FOR MERGE; any load-bearing 🔴 makes it BLOCKED]
 [Reached: 🟢 REACHED · 🟡 UNREACHED · n/a — any 🟡 on a test this diff added/modified also caps the verdict]
 | # | Load-bearing claim | Asserted by | Provenance | Reached | Evidence (cmd · exit · key line) |
 ```
@@ -486,12 +493,13 @@ Done means all of these hold:
 - every test the diff added or modified carries a Reached mark: REACHED cites the failing run AND the passing run; a green-only row is UNREACHED, not evidence
 - any dimension below its `min_blocker` is reported BLOCKED regardless of composite
 - READY FOR MERGE only when no load-bearing claim is still CLAIMED/UNCHECKED, no diff-added test is still UNREACHED (and under `--streak=N`, the full streak is met)
+- no dimension is reported VERIFIED on evidence whose `assert-evidence.sh` outcome was not `EVIDENCE`; a `COULD-NOT-OBSERVE` or `NO-BANNER` run is named verbatim in the report, never silently regraded
 
 ## Before trusting a green check
 
 A check that prints the same thing whether or not the fault is present has
 measured nothing, yet it still returns an answer and that answer reads as
-evidence. The `paired-probe` skill exists for this and is model-invocable: it applies
+evidence. The `paired-probe` skill exists for this and is model-invocable (and `scripts/assert-evidence.sh` is the Tests-dimension instance: it refuses the verdict when the run produced no observable evidence): it applies
 to any check whose PASS decides the verdict,
 especially a sweep that reported zero findings or a gate that passed
 unexpectedly. It refuses the verdict rather than the check.
@@ -506,6 +514,7 @@ unexpectedly. It refuses the verdict rather than the check.
 
 ---
 
+**Version:** 4.7.0 (August 2026) — Phase 3 evidence gate became executable (#3263): tests redirect to a named log, `scripts/assert-evidence.sh` names one of five outcomes, and COULD-NOT-OBSERVE joined the manifest as a blocking state. A verdict skill can no longer end without a verdict: an empty run is a named failure, not silence
 **Version:** 4.6.0 (July 2026) — Added the Reachability Proof (REACHED vs UNREACHED): the manifest's second axis. Provenance grades who ran a claim; reachability grades whether the green means anything. A test the diff added that has never been seen to fail caps the verdict below READY FOR MERGE
 **Version:** 4.5.0 (July 2026) — Added the Verification Manifest (VERIFIED vs CLAIMED) — a load-bearing-claim provenance ledger that caps the verdict below READY FOR MERGE until unverified claims are re-run or waived
 **Version:** 4.4.0 (June 2026) — Added `--streak=N` consecutive-pass gate (#2540)

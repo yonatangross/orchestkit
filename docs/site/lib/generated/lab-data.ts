@@ -15,6 +15,20 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "a-verdict-skill-that-could-end-without-a-verdict",
+    "title": "A Verdict Skill That Could End Without a Verdict",
+    "description": "/ork:verify once waited 40 minutes on three background test runs that wrote 0 bytes with no process alive, then produced no verdict. The contract that prevents it lived in prose; now scripts/assert-evidence.sh names one of five outcomes and only EVIDENCE may be graded. Toggle the log and process state and read what the gate says.",
+    "tags": [
+      "skills",
+      "false-signals",
+      "verification"
+    ],
+    "date": "2026-08-31",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 7
+  },
+  {
     "slug": "every-hook-no-oped-on-windows",
     "title": "Every Hook No-oped on Windows, and the Smoke Test Was Green",
     "description": "run-hook.mjs imported its dist bundle by bare absolute path, which win32 rejects, and the catch reported the throw as silent success with exit 0 and no telemetry. The Windows job asserted only the exit code, so a dead dispatcher and a live one were the same green. Fix: pathToFileURL, a named bundle-error outcome with exit 2 for security hooks, and a CI probe that asserts a deny verdict. Pick a bundle state and a hook and read what the runner does.",
