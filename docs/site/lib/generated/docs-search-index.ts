@@ -523,7 +523,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/hooks",
     "title": "Hooks Reference",
-    "description": "Complete reference for all 154 global lifecycle hook entries across 32 event categories."
+    "description": "Complete reference for all 153 global lifecycle hook entries across 32 event categories."
   },
   {
     "url": "/docs/reference/hooks/instructions-loaded",
@@ -588,7 +588,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/hooks/pre-tool-use",
     "title": "PreToolUse",
-    "description": "Hooks triggered on PreToolUse events (22 hooks)."
+    "description": "Hooks triggered on PreToolUse events (21 hooks)."
   },
   {
     "url": "/docs/reference/hooks/session-end",
