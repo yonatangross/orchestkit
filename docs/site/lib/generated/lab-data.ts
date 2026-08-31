@@ -15,6 +15,19 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "docs-kept-three-deleted-hooks-alive",
+    "title": "The Docs Kept Three Deleted Hooks Alive",
+    "description": "A purge leftover found the hard way: two deleted hooks blocked a live session, and looking them up showed the docs still describing them as current. The coherent fix is eleven files, not the six the issue named, because a page is also a nav entry and whatever links to it. Records what was deliberately left for a separate editorial pass: 94 prose mentions across 21 hand-written files that use these hooks as the worked example.",
+    "tags": [
+      "docs",
+      "hooks"
+    ],
+    "date": "2026-08-31",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 4
+  },
+  {
     "slug": "we-never-tested-the-rules-we-shipped",
     "title": "We Never Tested the Rules We Shipped",
     "description": "The purge deleted 16 blocking hooks and handed their job to one JSON payload, so this executes a real trip case for every rule in it: 27 proven, 10 inert as spelled but covered by an Edit twin, 4 that CC refuses with no rule at all, and 12 that cannot be run because running them is the harm. It found two rules that matched nothing, copied out of the plugin settings file CC never reads, plus two defects in the probe itself that produced confident false verdicts.",
