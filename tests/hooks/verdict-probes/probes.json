@@ -140,29 +140,6 @@
       }
     },
     {
-      "id": "compound-herestring-ask",
-      "hook": "pretool/bash/compound-command-validator",
-      "event": "PreToolUse",
-      "trip": {
-        "payload": {
-          "tool_name": "Bash",
-          "tool_input": {
-            "command": "bash <<< \"echo hi\""
-          }
-        },
-        "expect": "ask"
-      },
-      "control": {
-        "payload": {
-          "tool_name": "Bash",
-          "tool_input": {
-            "command": "echo hi"
-          }
-        },
-        "expect": "silent"
-      }
-    },
-    {
       "id": "write-file-guard-oversize-ask",
       "hook": "pretool/write-edit/sync-write-edit-dispatcher",
       "event": "PreToolUse",

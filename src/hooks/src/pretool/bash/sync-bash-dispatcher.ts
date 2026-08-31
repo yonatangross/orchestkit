@@ -7,7 +7,6 @@
  *
  * Consolidated hooks (security-first order):
  * - dangerous-command-blocker (blocks rm -rf, sudo, force push etc — FIRST)
- * - compound-command-validator (validates chained commands — SECOND)
  * - unified-advisory-dispatcher (advisory guidance — LAST)
  *
  * SHORT-CIRCUIT: On first block, returns immediately without running remaining hooks.
@@ -21,7 +20,6 @@ import { outputSilentSuccess, outputWithUpdatedInput, logHook, extractContext } 
 
 // Import consolidated hook implementations
 import { dangerousCommandBlocker } from './dangerous-command-blocker.js';
-import { compoundCommandValidator } from './compound-command-validator.js';
 import { networkEgressGuard } from './network-egress-guard.js';
 import { restrictBash } from '../../agent/restrict-bash.js';
 import { unifiedBashAdvisoryDispatcher } from './unified-advisory-dispatcher.js';
@@ -67,10 +65,9 @@ const BASH_HOOKS: BlockingHookConfig[] = [
   { name: 'headless-defer', fn: headlessDefer },
   // Phase 1: Security
   { name: 'dangerous-command-blocker', fn: dangerousCommandBlocker },
-  { name: 'compound-command-validator', fn: compoundCommandValidator },
   // Agent-scoped allowlist (#3430). Ordering is load-bearing, in both directions:
   //
-  //   AFTER dangerous-command-blocker / compound-command-validator, so the
+  //   AFTER dangerous-command-blocker, so the
   //   universal hard blocks apply to every session regardless of agent.
   //
   //   BEFORE network-egress-guard, because the dispatcher short-circuits on the
@@ -172,7 +169,6 @@ function buildMergedResult(
  *
  * Execution order:
  * 1. dangerous-command-blocker (can block — security critical)
- * 2. compound-command-validator (can block — security critical)
  * 3. unified-advisory-dispatcher (context + input modifier)
  *
  * On first block: SHORT-CIRCUIT immediately.

@@ -771,8 +771,8 @@ export const SKILLS: Record<string, SkillMeta> = {
   "browser-tools": {
     "name": "browser-tools",
     "description": "Security wrapper over the upstream agent-browser skill, adding URL blocklisting, rate limiting, robots.txt enforcement, and scraping guardrails. Use when automating browser workflows that need safety limits.",
-    "version": "5.0.0",
-    "sha256": "8ec8990a129c66830adf00f48553aaeef751ebcf984f51e58aaed1d6b640ec78",
+    "version": "6.0.0",
+    "sha256": "9a6c5e05083e40e075a00978917666cde2e7198f2de009b661c9ef57d2e460ad",
     "author": "OrchestKit",
     "tags": [
       "browser",

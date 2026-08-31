@@ -23,7 +23,7 @@
 # Measured against every current candidate before rewriting:
 #
 #   19 command_injection fixtures -> dangerous-command-blocker      2 deny
-#                                 -> compound-command-validator     1 deny
+#                                 (compound-command-validator retired, #3835)
 #                                 -> network-egress-guard           0 deny
 #
 # That is not a hole. dangerous-command-blocker.ts:34 states its own scope:

@@ -169,7 +169,7 @@ section "5. ${GREEN}CLOSED FINDINGS${NC} — continuations INSIDE a token"
 # contrast asserted below: a BARE newline after the pipe is still denied,
 # because trimStart does consume that. Only the backslash form escapes.
 #
-# At the time of the finding neither was backstopped: compound-command-validator
+# At the time of the finding neither was backstopped: the then-extant compound-command-validator (retired #3835)
 # and network-egress-guard both answered `allow` for both payloads (measured).
 #
 # BOTH ARE FIXED (#3289, merged 2026-08-05):

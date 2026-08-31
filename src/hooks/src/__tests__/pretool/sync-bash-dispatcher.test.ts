@@ -40,9 +40,6 @@ vi.mock('../../pretool/bash/dangerous-command-blocker.js', () => ({
   dangerousCommandBlocker: vi.fn(() => ({ continue: true, suppressOutput: true })),
 }));
 
-vi.mock('../../pretool/bash/compound-command-validator.js', () => ({
-  compoundCommandValidator: vi.fn(() => ({ continue: true, suppressOutput: true })),
-}));
 
 vi.mock('../../pretool/bash/unified-advisory-dispatcher.js', () => ({
   unifiedBashAdvisoryDispatcher: vi.fn(() => ({ continue: true, suppressOutput: true })),
@@ -66,7 +63,6 @@ vi.mock('../../pretool/bash/gh-milestone-enforcer.js', () => ({
 
 import { syncBashDispatcher } from '../../pretool/bash/sync-bash-dispatcher.js';
 import { dangerousCommandBlocker } from '../../pretool/bash/dangerous-command-blocker.js';
-import { compoundCommandValidator } from '../../pretool/bash/compound-command-validator.js';
 import { unifiedBashAdvisoryDispatcher } from '../../pretool/bash/unified-advisory-dispatcher.js';
 import { gitValidator } from '../../pretool/bash/git-validator.js';
 import { issueReferenceChecker } from '../../pretool/bash/issue-reference-checker.js';
@@ -137,7 +133,6 @@ describe('sync-bash-dispatcher', () => {
     vi.resetAllMocks();
     // Re-establish default passing implementations after reset
     vi.mocked(dangerousCommandBlocker).mockReturnValue({ continue: true, suppressOutput: true });
-    vi.mocked(compoundCommandValidator).mockReturnValue({ continue: true, suppressOutput: true });
     vi.mocked(gitValidator).mockReturnValue({ continue: true, suppressOutput: true });
     vi.mocked(issueReferenceChecker).mockReturnValue({ continue: true, suppressOutput: true });
     vi.mocked(ghLabelEnforcer).mockReturnValue({ continue: true, suppressOutput: true });
@@ -164,8 +159,6 @@ describe('sync-bash-dispatcher', () => {
 
       expect(dangerousCommandBlocker).toHaveBeenCalled();
       expect(vi.mocked(dangerousCommandBlocker).mock.calls[0][0]).toEqual(input);
-      expect(compoundCommandValidator).toHaveBeenCalled();
-      expect(vi.mocked(compoundCommandValidator).mock.calls[0][0]).toEqual(input);
       expect(gitValidator).toHaveBeenCalled();
       expect(vi.mocked(gitValidator).mock.calls[0][0]).toEqual(input);
       expect(issueReferenceChecker).toHaveBeenCalled();
@@ -210,17 +203,9 @@ describe('sync-bash-dispatcher', () => {
 
       syncBashDispatcher(createBashInput('sudo rm /tmp/x'), testCtx);
 
-      expect(compoundCommandValidator).not.toHaveBeenCalled();
       expect(unifiedBashAdvisoryDispatcher).not.toHaveBeenCalled();
     });
 
-    it('propagates an ask from compound-command-validator verbatim', () => {
-      vi.mocked(compoundCommandValidator).mockReturnValue(makeAskResult('here-string'));
-
-      const result = syncBashDispatcher(createBashInput('bash <<< "echo hi"'), testCtx);
-
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('ask');
-    });
   });
 
   describe('short-circuit on first block', () => {
@@ -241,21 +226,11 @@ describe('sync-bash-dispatcher', () => {
       const input = createBashInput('rm -rf /');
       syncBashDispatcher(input, testCtx);
 
-      expect(compoundCommandValidator).not.toHaveBeenCalled();
       expect(gitValidator).not.toHaveBeenCalled();
       expect(ghLabelEnforcer).not.toHaveBeenCalled();
       expect(unifiedBashAdvisoryDispatcher).not.toHaveBeenCalled();
     });
 
-    it('returns block result immediately when compound-command-validator blocks', () => {
-      const blockResult = makeBlockResult('compound commands not allowed');
-      vi.mocked(compoundCommandValidator).mockReturnValue(blockResult);
-
-      const input = createBashInput('rm -rf . && exit');
-      const result = syncBashDispatcher(input, testCtx);
-
-      expect(result.continue).toBe(false);
-    });
 
     it('does not call Phase 3 advisory after Phase 2 git-validator block', () => {
       vi.mocked(gitValidator).mockReturnValue(makeBlockResult('git: direct push to main blocked'));
@@ -488,15 +463,6 @@ describe('sync-bash-dispatcher', () => {
   // -------------------------------------------------------------------------
 
   describe('phase ordering', () => {
-    it('calls dangerous-command-blocker before compound-command-validator', () => {
-      const order: string[] = [];
-      vi.mocked(dangerousCommandBlocker).mockImplementation(() => { order.push('dangerous'); return { continue: true, suppressOutput: true }; });
-      vi.mocked(compoundCommandValidator).mockImplementation(() => { order.push('compound'); return { continue: true, suppressOutput: true }; });
-
-      syncBashDispatcher(createBashInput('git status'), testCtx);
-
-      expect(order.indexOf('dangerous')).toBeLessThan(order.indexOf('compound'));
-    });
 
     it('calls git-validator before gh-label-enforcer', () => {
       const order: string[] = [];

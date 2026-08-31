@@ -15,6 +15,19 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "purge-wave-1-six-hooks-one-refuted-verdict",
+    "title": "Purge Wave 1: Six Hooks, One Refuted Verdict",
+    "description": "First deletion wave of the divergence purge: compound-command-validator (CC decomposes compound commands itself), agent-browser-safety (URL policy re-homed to sandbox.network), and four agent safety checks whose dead verdict the typecheck refuted mid-purge (a task dispatcher fanned them out; the register was corrected before merge). Plus a machine-sensitive egress security test found and pinned.",
+    "tags": [
+      "hooks",
+      "security"
+    ],
+    "date": "2026-08-31",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 4
+  },
+  {
     "slug": "rules-that-were-never-enforced",
     "title": "Rules That Were Never Enforced",
     "description": "ork shipped 26 permissions.deny rules in its plugin settings.json; CC reads only agent and subagentStatusLine from that file, so every rule was dead text and 29 blocking hooks were the only live enforcement. PR 1 of the divergence purge builds the delivery vehicle: a consent-gated writer into the operator's own settings scope, a doctor audit, and a zero-spend canary probe proving native deny holds under dangerously-skip-permissions.",

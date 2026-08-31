@@ -24,6 +24,14 @@ source "$SCRIPT_DIR/../fixtures/test-helpers.sh"
 
 GUARD="pretool/bash/network-egress-guard"
 
+# Pin the sandbox posture (#3835 wave 1): the ASK tier stands down behind an
+# enforced sandbox (#3808), so on a machine whose USER scope enables
+# sandbox.network the ask cases read abstain and this file fails for
+# machine-local reasons. Found 2026-08-31: a worktree has no project-scope
+# settings to mask the operator's user scope. The suite tests the TIERS, not
+# the machine (same pin the unit tests use).
+export ORK_SANDBOX_ENABLED=false
+
 # Defined AFTER the source: test-helpers.sh sets its own RED/GREEN/NC using
 # literal \033 (which needs `echo -e`), and sourcing later would overwrite these
 # and print raw escape codes.
