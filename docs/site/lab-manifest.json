@@ -670,6 +670,18 @@
         "measurement"
       ],
       "date": "2026-08-30"
+    },
+    {
+      "slug": "a-verdict-skill-that-could-end-without-a-verdict",
+      "source": "docs/fix--3263-verify-assert-evidence/index.html",
+      "title": "A Verdict Skill That Could End Without a Verdict",
+      "description": "/ork:verify once waited 40 minutes on three background test runs that wrote 0 bytes with no process alive, then produced no verdict. The contract that prevents it lived in prose; now scripts/assert-evidence.sh names one of five outcomes and only EVIDENCE may be graded. Toggle the log and process state and read what the gate says.",
+      "tags": [
+        "skills",
+        "false-signals",
+        "verification"
+      ],
+      "date": "2026-08-31"
     }
   ]
 }

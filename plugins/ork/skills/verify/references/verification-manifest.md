@@ -28,6 +28,7 @@ manifest the claims the merge *rests on*. If in doubt, it's load-bearing.
 | 🟡 **CLAIMED** | A sub-agent, tool summary, doc, or memory asserted it — **not** independently re-run by the lead. | Who asserted it |
 | ⬜ **UNCHECKED** | Assumed true; nobody ran a proof (e.g. "no other caller depends on this" with no grep). | Why it was assumed |
 | ⚪ **WAIVED** | A CLAIMED/UNCHECKED item deliberately accepted as non-blocking. | A one-line reason + issue ref if deferred |
+| 🔴 **COULD-NOT-OBSERVE** | Evidence was **attempted and nothing was observed**: the run wrote 0 bytes with no live process, or the runner's banner never appeared (`scripts/assert-evidence.sh` exit 3 or 1). | The assert-evidence output line |
 
 > An agent reporting "PASS" and the lead **copying** that into the manifest is still
 > 🟡 CLAIMED — not ✅ VERIFIED. VERIFIED means *the lead* ran it. The distinction is the
@@ -37,7 +38,8 @@ manifest the claims the merge *rests on*. If in doubt, it's load-bearing.
 
 > **Any load-bearing claim that is 🟡 CLAIMED or ⬜ UNCHECKED caps the verdict at
 > IMPROVEMENTS RECOMMENDED — it cannot grade READY FOR MERGE — until it is ✅ VERIFIED
-> or explicitly ⚪ WAIVED with a reason.**
+> or explicitly ⚪ WAIVED with a reason. A load-bearing 🔴 COULD-NOT-OBSERVE row makes
+> the verdict BLOCKED: the evidence does not exist, so nothing can cap-and-continue.**
 
 This sits *alongside* the dimension-level blockers (see `grading-rubric.md`): a strong
 composite score never launders an unverified load-bearing claim into "done." Both gates
