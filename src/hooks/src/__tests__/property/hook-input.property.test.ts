@@ -23,7 +23,6 @@ import * as fc from 'fast-check';
 import type { HookInput, HookResult, ToolInput } from '../../types.js';
 import { NOOP_CTX } from '../../lib/context.js';
 
-import { dangerousCommandBlocker } from '../../pretool/bash/dangerous-command-blocker.js';
 import { defaultTimeoutSetter } from '../../pretool/bash/default-timeout-setter.js';
 import { errorPatternWarner } from '../../pretool/bash/error-pattern-warner.js';
 import { securityPatternValidator } from '../../pretool/Write/security-pattern-validator.js';
@@ -129,7 +128,6 @@ const HOOKS: Array<{
   name: string;
   fn: (input: HookInput, ctx?: typeof NOOP_CTX) => HookResult | Promise<HookResult>;
 }> = [
-  { name: 'pretool/bash/dangerous-command-blocker', fn: dangerousCommandBlocker },
   { name: 'pretool/bash/default-timeout-setter', fn: defaultTimeoutSetter },
   { name: 'pretool/bash/error-pattern-warner', fn: errorPatternWarner },
   { name: 'pretool/Write/security-pattern-validator', fn: securityPatternValidator },

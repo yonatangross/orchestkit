@@ -110,7 +110,8 @@ test_dangerous_command_blocker_registered() {
 }
 
 test_dangerous_command_blocker_ts_exists() {
-    assert_file_exists "$HOOKS_SRC_DIR/pretool/bash/dangerous-command-blocker.ts"
+    # #3835 wave 4: retired; assert the ABSENCE so a silent revival fails here
+    [[ ! -e "$HOOKS_SRC_DIR/pretool/bash/dangerous-command-blocker.ts" ]]
 }
 
 test_dangerous_command_blocker_executes() {

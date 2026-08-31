@@ -84,4 +84,4 @@ jobs:
         shell: pwsh
         env:
           PLUGIN_ROOT: src
-        run: node tests/hooks/verdict-probes/run-probes.mjs tests/hooks/verdict-probes/probes.json --only bash-catastrophic-rm-deny
+        run: node tests/hooks/verdict-probes/run-probes.mjs tests/hooks/verdict-probes/probes.json --only bash-remote-exec-deny

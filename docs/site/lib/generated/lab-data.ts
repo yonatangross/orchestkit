@@ -15,6 +15,19 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "purge-wave-4-the-big-two-and-the-purge-is-done",
+    "title": "Purge Wave 4: The Big Two, and the Purge Is Done",
+    "description": "dangerous-command-blocker and git-validator deleted, with what each cost stated; the runner tests that used the blocker as a fixture moved to the surviving egress DENY tier; seven security files rewritten or re-pointed; and the day's strip: 29 blocking hooks audited, 16 deleted across four waves, 13 kept with a written reason each. The retiring blocker blocked its own deletion scripts twice, which is the whole point.",
+    "tags": [
+      "hooks",
+      "security"
+    ],
+    "date": "2026-08-31",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 6
+  },
+  {
     "slug": "purge-wave-3-the-baseline-moves-two-guards-go",
     "title": "Purge Wave 3: The Baseline Moves, Two Guards Go",
     "description": "Why an un-disableable hook was the weaker guarantee next to a native permissions.deny rule, the security baseline commit that moved three guards out of SECURITY_HOOKS, and the deletion of file-guard and credential-read-guard with their patterns ported to the operator payload first. The four security shell files that asserted file-guard's contract now assert its absence plus the payload's completeness.",

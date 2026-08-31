@@ -401,6 +401,12 @@ jobs:
       - name: Probe native permission deny under bypass (#3835)
         run: bash tests/ci/restricted-smoke/probe-permission-deny.sh
 
+      # #3835: the assumption that made the ASK-tier deletions safe, asserted
+      # directly: an unattended -p session completes an upload to an unlisted
+      # host with no hook prompt. Exit 1 reads REGRESSED (an ask tier is back).
+      - name: Probe that no hook asks on an unattended upload (#3835)
+        run: bash tests/ci/restricted-smoke/probe-no-hook-ask.sh ./plugins/ork
+
   # Job 7: Component Counts Validation
   counts-validation:
     name: Component Counts
