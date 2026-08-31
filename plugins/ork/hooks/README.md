@@ -113,7 +113,7 @@ hooks/
 ├── tsconfig.json           # TypeScript configuration
 └── esbuild.config.mjs      # Build configuration (split bundles)
 
-**Total:** <!--ork:hooks-->176<!--/ork--> hooks (<!--ork:hooks-global-->155<!--/ork--> global + <!--ork:hooks-agent-->0<!--/ork--> agent-scoped + <!--ork:hooks-skill-->21<!--/ork--> skill-scoped)
+**Total:** <!--ork:hooks-->175<!--/ork--> hooks (<!--ork:hooks-global-->154<!--/ork--> global + <!--ork:hooks-agent-->0<!--/ork--> agent-scoped + <!--ork:hooks-skill-->21<!--/ork--> skill-scoped)
 ```
 
 ---
@@ -1399,7 +1399,7 @@ OrchestKit hooks are managed defaults. Users retain full control to disable any 
 **Last Updated:** 2026-02-28
 **Version:** 2.1.0 (Async hooks support)
 **Architecture:** 11 split bundles (648KB total)
-**Hooks:** <!--ork:hooks-->176<!--/ork--> hooks (<!--ork:hooks-global-->155<!--/ork--> global + <!--ork:hooks-agent-->0<!--/ork--> agent-scoped + <!--ork:hooks-skill-->21<!--/ork--> skill-scoped)
+**Hooks:** <!--ork:hooks-->175<!--/ork--> hooks (<!--ork:hooks-global-->154<!--/ork--> global + <!--ork:hooks-agent-->0<!--/ork--> agent-scoped + <!--ork:hooks-skill-->21<!--/ork--> skill-scoped)
 **Average Bundle:** ~35KB per event
 **Claude Code Requirement:** >= 2.1.78
 
@@ -1408,6 +1408,8 @@ See the async hooks section above for detailed async hook patterns.
 ## Registry changelog (archived from hooks.json description, 2026-07-18)
 
 The registry's change history used to accumulate inside the `description` field of `hooks.json`, which made the count unreadable and the JSON diff-hostile. The field now carries only the stamped count line; history continues here.
+
+(count 176 -> 175, 2026-08-31, #3835 purge wave 2): the ask storm ends. `pretool/bash/network-egress-guard` loses its whole ASK tier (staged download-then-run, uploads and nc/scp/rsync to non-allowlisted hosts): it had stood down behind an enforced sandbox since #3808, and the operator ordered the tier deleted outright, its opinion re-homed to `sandbox.network.allowedDomains/deniedDomains` in the operator scope (setup phase 3.6 writes it with consent, doctor audits it). The DENY tier (executing fetched bytes) stays and is now posture-independent by test. Deleted with it: `pretool/cron-guard` (the one hooks.json entry in this wave, hence 176 -> 175; a CI settings scope says `deny: ["CronCreate"]` natively), `pretool/task/team-size-gate` and `agent/restrict-bash` (agent `tools:`/`disallowedTools` frontmatter plus the `--restricted` CI lane; the load-bearing ordering comment in `sync-bash-dispatcher` that anchored on restrict-bash is rewritten), and `pretool/bash/pre-commit-quality-runner` (a PreToolUse hook running tsc/eslint on every `git commit` is a git hook's job; the repo already ships `bin/git-hooks/`, and CI runs the same checks). `tests/security/test-egress-guard.sh` pins the four former asks as abstain, so a revived tier fails there. Entries-map total 197 -> 194 on this branch (188 once wave 1 is also on main); probes 18 -> 17 (`cron-guard` probe retired). This is the wave that removes the "Yes or No every few minutes" both users reported on 2026-08-31.
 
 (count unchanged at 176, 2026-08-31, #3835 purge wave 1): six blocking sub-hooks deleted per the drift register (`shared/rules/cc-native-first.md`, purge rows; evidence `docs/audits/hook-divergence-purge-2026-08-31.md`). `pretool/bash/compound-command-validator` (CC decomposes compound commands per segment itself; the deliberately-retired coverage is recorded inside `tests/security/test-compound-commands.sh`), `pretool/bash/agent-browser-safety` (URL policy re-homed to `sandbox.network` in the operator scope; the advisory dispatcher's phase 2 block removed), and the four agent safety checks `agent/block-writes`, `agent/ci-safety-check`, `agent/deployment-safety-check`, `agent/migration-safety-check`. The four were first called dead (only `entries/agent.ts` was checked); the typecheck refuted that: `pretool/task/unified-agent-safety-dispatcher` fanned them out on the Task matcher. Corrected verdict, same outcome: their native home is agent `tools:`/`disallowedTools` frontmatter plus the `--restricted` CI lane. The hooks.json count is unchanged because all six were dispatcher sub-hooks; the entries-map total moved 197 -> 191 (`split-bundles.test.ts:481`). Probes 18 -> 17 (`compound-herestring-ask` retired). Also in this PR: `tests/security/test-egress-guard.sh` pins `ORK_SANDBOX_ENABLED=false`, because on a machine whose USER scope enables `sandbox.network` the #3808 stand-down correctly turns the ask cases into abstain and the file failed for machine-local reasons (found in a worktree, which has no project-scope settings to mask the operator's user scope).
 

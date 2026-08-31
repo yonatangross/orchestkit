@@ -15,6 +15,20 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "purge-wave-2-the-ask-storm-ends",
+    "title": "Purge Wave 2: The Ask Storm Ends",
+    "description": "The wave that answers this morning's two user reports: network-egress-guard loses its whole ASK tier (the exfil confirmations both users hit on every transfer to their own servers), plus cron-guard, team-size-gate, restrict-bash and the pre-commit quality runner. Pick a command and see what it said before and what happens after; the DENY tier for executing fetched bytes is untouched and now posture-independent by test.",
+    "tags": [
+      "hooks",
+      "security",
+      "user-feedback"
+    ],
+    "date": "2026-08-31",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 6
+  },
+  {
     "slug": "the-purge-register-who-guards-what-now",
     "title": "The Purge Register: Who Guards What Now",
     "description": "The drift register rows for the operator-ordered divergence purge, rendered: pick any blocking hook and see its measured verdict (DELETE with the native replacement, or KEEP with the ability no JSON rule has). Every verdict stands on a measurement: the plugin-settings inertness proof and a zero-spend canary probe showing permissions.deny holds under dangerously-skip-permissions.",

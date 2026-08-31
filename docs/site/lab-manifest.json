@@ -753,6 +753,18 @@
         "policy"
       ],
       "date": "2026-08-31"
+    },
+    {
+      "slug": "purge-wave-2-the-ask-storm-ends",
+      "source": "docs/chore--3835-purge-wave2/index.html",
+      "title": "Purge Wave 2: The Ask Storm Ends",
+      "description": "The wave that answers this morning's two user reports: network-egress-guard loses its whole ASK tier (the exfil confirmations both users hit on every transfer to their own servers), plus cron-guard, team-size-gate, restrict-bash and the pre-commit quality runner. Pick a command and see what it said before and what happens after; the DENY tier for executing fetched bytes is untouched and now posture-independent by test.",
+      "tags": [
+        "hooks",
+        "security",
+        "user-feedback"
+      ],
+      "date": "2026-08-31"
     }
   ]
 }
