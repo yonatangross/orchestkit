@@ -48,7 +48,6 @@ function loadOverrides(projectDir: string): HookOverrides | null {
  */
 const SECURITY_HOOKS = new Set([
   'pretool/bash/dangerous-command-blocker',
-  'pretool/bash/compound-command-validator',
   'pretool/write-edit/file-guard',
   'pretool/Write/security-pattern-validator',
   'skill/redact-secrets',
@@ -570,7 +569,6 @@ describe('SECURITY_HOOKS allowlist', () => {
     const overridesContent: HookOverrides = {
       disabled: [
         'pretool/bash/dangerous-command-blocker',
-        'pretool/bash/compound-command-validator',
         'pretool/write-edit/file-guard',
         'pretool/Write/security-pattern-validator',
         'skill/redact-secrets',
@@ -633,8 +631,7 @@ describe('SECURITY_HOOKS allowlist', () => {
   it('SECURITY_HOOKS set contains exactly the expected hooks', () => {
     const expected = [
       'pretool/bash/dangerous-command-blocker',
-      'pretool/bash/compound-command-validator',
-      'pretool/write-edit/file-guard',
+          'pretool/write-edit/file-guard',
       'pretool/Write/security-pattern-validator',
       'skill/redact-secrets',
     ];

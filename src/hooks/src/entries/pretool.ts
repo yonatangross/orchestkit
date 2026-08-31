@@ -15,14 +15,12 @@ export * from '../lib/guards.js';
 import { dangerousCommandBlocker } from '../pretool/bash/dangerous-command-blocker.js';
 import { networkEgressGuard } from '../pretool/bash/network-egress-guard.js';
 import { gitValidator } from '../pretool/bash/git-validator.js';
-import { compoundCommandValidator } from '../pretool/bash/compound-command-validator.js';
 import { defaultTimeoutSetter } from '../pretool/bash/default-timeout-setter.js';
 import { errorPatternWarner } from '../pretool/bash/error-pattern-warner.js';
 import { affectedTestsFinder } from '../pretool/bash/affected-tests-finder.js';
 import { preCommitTestGate } from '../pretool/bash/pre-commit-test-gate.js';
 import { displayLint } from '../pretool/bash/display-lint.js';
 import { worktreeMergeVerifier } from '../pretool/bash/worktree-merge-verifier.js';
-import { agentBrowserSafety } from '../pretool/bash/agent-browser-safety.js';
 import { issueReferenceChecker } from '../pretool/bash/issue-reference-checker.js';
 import { ghLabelEnforcer } from '../pretool/bash/gh-label-enforcer.js';
 import { ghMilestoneEnforcer } from '../pretool/bash/gh-milestone-enforcer.js';
@@ -89,14 +87,12 @@ export const hooks: Record<string, HookFn> = {
   'pretool/bash/dangerous-command-blocker': dangerousCommandBlocker,
   'pretool/bash/network-egress-guard': networkEgressGuard,
   'pretool/bash/git-validator': gitValidator,
-  'pretool/bash/compound-command-validator': compoundCommandValidator,
   'pretool/bash/default-timeout-setter': defaultTimeoutSetter,
   'pretool/bash/error-pattern-warner': errorPatternWarner,
   'pretool/bash/affected-tests-finder': affectedTestsFinder,
   'pretool/bash/pre-commit-test-gate': preCommitTestGate,
   'pretool/bash/display-lint': displayLint,
   'pretool/bash/worktree-merge-verifier': worktreeMergeVerifier,
-  'pretool/bash/agent-browser-safety': agentBrowserSafety,
   'pretool/bash/issue-reference-checker': issueReferenceChecker,
   'pretool/bash/gh-label-enforcer': ghLabelEnforcer,
   'pretool/bash/gh-milestone-enforcer': ghMilestoneEnforcer,

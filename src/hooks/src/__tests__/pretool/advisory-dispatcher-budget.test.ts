@@ -33,9 +33,6 @@ const ctxResult = (additionalContext: string) => ({
 vi.mock('../../pretool/bash/default-timeout-setter.js', () => ({
   defaultTimeoutSetter: () => ({ continue: true, suppressOutput: true }),
 }));
-vi.mock('../../pretool/bash/agent-browser-safety.js', () => ({
-  agentBrowserSafety: () => ({ continue: true, suppressOutput: true }),
-}));
 // Advisory hooks (in registry order): first small (fits), second huge (dropped by cap)
 vi.mock('../../pretool/bash/error-pattern-warner.js', () => ({
   errorPatternWarner: () => ctxResult(SMALL_CTX),

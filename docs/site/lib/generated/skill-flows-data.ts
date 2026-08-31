@@ -1320,7 +1320,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           },
           {
             "num": "",
-            "label": "Safety Guardrails (6 rules + the agent-brow…",
+            "label": "Safety Guardrails (6 rules; URL policy is t…",
             "does": "",
             "out": null,
             "tag": null

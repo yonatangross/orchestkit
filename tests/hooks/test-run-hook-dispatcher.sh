@@ -184,7 +184,6 @@ cat > "$TEMP_PROJECT/.claude/hook-overrides.json" << 'OVERRIDE_EOF'
 {
   "disabled": [
     "pretool/bash/dangerous-command-blocker",
-    "pretool/bash/compound-command-validator",
     "pretool/write-edit/file-guard",
     "pretool/Write/security-pattern-validator",
     "skill/redact-secrets"

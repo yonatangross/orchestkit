@@ -730,6 +730,17 @@
         "settings"
       ],
       "date": "2026-08-31"
+    },
+    {
+      "slug": "purge-wave-1-six-hooks-one-refuted-verdict",
+      "source": "docs/chore--3835-purge-wave1/index.html",
+      "title": "Purge Wave 1: Six Hooks, One Refuted Verdict",
+      "description": "First deletion wave of the divergence purge: compound-command-validator (CC decomposes compound commands itself), agent-browser-safety (URL policy re-homed to sandbox.network), and four agent safety checks whose dead verdict the typecheck refuted mid-purge (a task dispatcher fanned them out; the register was corrected before merge). Plus a machine-sensitive egress security test found and pinned.",
+      "tags": [
+        "hooks",
+        "security"
+      ],
+      "date": "2026-08-31"
     }
   ]
 }
