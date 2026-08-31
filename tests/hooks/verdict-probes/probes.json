@@ -117,7 +117,9 @@
       "id": "egress-staged-download-run-ask",
       "hook": "pretool/bash/network-egress-guard",
       "event": "PreToolUse",
-      "env": { "ORK_SANDBOX_ENABLED": "unknown" },
+      "env": {
+        "ORK_SANDBOX_ENABLED": "unknown"
+      },
       "trip": {
         "payload": {
           "tool_name": "Bash",
@@ -573,6 +575,37 @@
           "tool_response": {
             "filePath": "$DIR/src/util/b.ts",
             "success": true
+          }
+        },
+        "expect": "silent"
+      }
+    },
+    {
+      "id": "context-file-budget-guard-bypass",
+      "hook": "pretool/write-edit/sync-write-edit-dispatcher",
+      "event": "PreToolUse",
+      "note": "#3741: in bypass mode the budget guard must not stay silent on an over-budget MEMORY.md write; it returns advisory context (merged by the dispatcher) and never asks.",
+      "trip": {
+        "payload": {
+          "tool_name": "Write",
+          "permission_mode": "bypassPermissions",
+          "tool_input": {
+            "file_path": "$DIR/MEMORY.md",
+            "content": {
+              "repeat": "x",
+              "times": 18432
+            }
+          }
+        },
+        "expect": "context"
+      },
+      "control": {
+        "payload": {
+          "tool_name": "Write",
+          "permission_mode": "bypassPermissions",
+          "tool_input": {
+            "file_path": "$DIR/MEMORY.md",
+            "content": "small index\n"
           }
         },
         "expect": "silent"
