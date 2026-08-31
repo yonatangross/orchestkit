@@ -15,6 +15,19 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "adoption-queue-is-a-queue-not-a-ledger",
+    "title": "The Adoption Queue Is a Queue, Not a Ledger",
+    "description": "Why a dead 2.1.219 row could sit in shared/cc-adoption-gaps.json looking load-bearing: the queue holds what still needs triage while the generated board holds history, and the merge is add-only precisely so the queue can shrink without the record losing a wave. Includes the three checks run before removing the row and the CI drift trap that shipping the regenerated board in the same commit avoids.",
+    "tags": [
+      "adoption",
+      "ci"
+    ],
+    "date": "2026-08-31",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 4
+  },
+  {
     "slug": "platform-adoption-triage-08-01-to-08-27",
     "title": "Platform Adoption Triage, 08-01 to 08-27",
     "description": "27 Claude Platform capabilities across 11 snapshots, closing the three platform-watch issues open since 08-21. 21 were already decided in #3641; the 6 that were never triaged are decided here with the measurement behind each: five declines and one doc note. The one code action is an upper bound on the anthropic pin, and the page records the lane's standing shape, that triage is human by construction and that closing the issues cannot cause a re-file.",
