@@ -178,10 +178,10 @@ const SILENT_OK = JSON.stringify({ continue: true, suppressOutput: true });
  * Covered by tests/hooks/test-run-hook-dispatcher.sh "Security Hook
  * Override Protection" (was Linux-only flake before this hoist).
  */
+// #3835 (2026-08-31): dangerous-command-blocker, compound-command-validator and
+// file-guard removed from this set with their deletion; their opinions are
+// operator-scope permissions.deny rules, which CC enforces without any hook.
 const SECURITY_HOOKS = new Set([
-  'pretool/bash/dangerous-command-blocker',
-  'pretool/bash/compound-command-validator',
-  'pretool/write-edit/file-guard',
   'pretool/Write/security-pattern-validator',
   'skill/redact-secrets',
 ]);

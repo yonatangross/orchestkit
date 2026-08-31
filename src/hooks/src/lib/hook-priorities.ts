@@ -22,8 +22,8 @@ export type HookPriority = 'P0' | 'P1' | 'P2' | 'P3';
 /** Priority assignments for known hooks */
 const HOOK_PRIORITIES: Record<string, HookPriority> = {
   // P0: Security - never throttled
-  'pretool/bash/dangerous-command-blocker': 'P0',
-  'pretool/write-edit/file-guard': 'P0',
+  // (dangerous-command-blocker and file-guard removed 2026-08-31, #3835:
+  // their opinions are operator-scope permissions.deny rules now)
   'pretool/Write/security-pattern-validator': 'P0',
   'permission/auto-approve-safe-bash': 'P0',
   'permission/auto-approve-project-writes': 'P0',

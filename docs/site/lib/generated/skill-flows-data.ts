@@ -1320,7 +1320,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           },
           {
             "num": "",
-            "label": "Safety Guardrails (6 rules + the agent-brow…",
+            "label": "Safety Guardrails (6 rules; URL policy is t…",
             "does": "",
             "out": null,
             "tag": null
@@ -3108,6 +3108,13 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
             "num": "5",
             "label": "Execute Changes",
             "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "5.5",
+            "label": "Index budget",
+            "does": "Consistency (1:1 with the files) and budget (bytes a session can afford) are different questions;",
             "out": null,
             "tag": null
           },
@@ -6419,6 +6426,13 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
             "label": "Configure",
             "does": "Interactive project configuration wizard → writes env block to per-project settings",
             "out": "Read, Write, AskUserQuestion",
+            "tag": null
+          },
+          {
+            "num": "3.6",
+            "label": "Protect",
+            "does": "Deliver ork's canonical permissions.deny payload to an ENFORCING scope (a plugin settings.json is inert: CC reads only agent/subagentStatusLine, #3835). Run node ${CLAUDE_PLUGIN_ROOT}/skills/setup/scripts/write-operator-permissions.mjs --scope user --dry-run, show the additions and the print-only sandbox suggestion, then ONLY on an explicit yes rerun without --dry-run. The script backs up the file and prints the one-command rollback. Never write without the dry-run + consent pair.",
+            "out": "Bash, AskUserQuestion",
             "tag": null
           },
           {

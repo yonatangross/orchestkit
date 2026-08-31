@@ -12,17 +12,13 @@ export * from '../lib/git.js';
 export * from '../lib/guards.js';
 
 // PreTool/Bash hooks (21)
-import { dangerousCommandBlocker } from '../pretool/bash/dangerous-command-blocker.js';
 import { networkEgressGuard } from '../pretool/bash/network-egress-guard.js';
-import { gitValidator } from '../pretool/bash/git-validator.js';
-import { compoundCommandValidator } from '../pretool/bash/compound-command-validator.js';
 import { defaultTimeoutSetter } from '../pretool/bash/default-timeout-setter.js';
 import { errorPatternWarner } from '../pretool/bash/error-pattern-warner.js';
 import { affectedTestsFinder } from '../pretool/bash/affected-tests-finder.js';
 import { preCommitTestGate } from '../pretool/bash/pre-commit-test-gate.js';
 import { displayLint } from '../pretool/bash/display-lint.js';
 import { worktreeMergeVerifier } from '../pretool/bash/worktree-merge-verifier.js';
-import { agentBrowserSafety } from '../pretool/bash/agent-browser-safety.js';
 import { issueReferenceChecker } from '../pretool/bash/issue-reference-checker.js';
 import { ghLabelEnforcer } from '../pretool/bash/gh-label-enforcer.js';
 import { ghMilestoneEnforcer } from '../pretool/bash/gh-milestone-enforcer.js';
@@ -30,7 +26,6 @@ import { ghMilestoneEnforcer } from '../pretool/bash/gh-milestone-enforcer.js';
 // PreTool/Write-Edit hooks (2)
 import { contentSecretScanner } from '../pretool/write-edit/content-secret-scanner.js';
 import { contextFileBudgetGuard } from '../pretool/write-edit/context-file-budget-guard.js';
-import { fileGuard } from '../pretool/write-edit/file-guard.js';
 
 // PreTool/Write hooks (4)
 import { architectureChangeDetector } from '../pretool/Write/architecture-change-detector.js';
@@ -48,13 +43,11 @@ import { skillTracker } from '../pretool/skill/skill-tracker.js';
 
 // PreTool/Read hooks (2)
 import { tldrSummary } from '../pretool/read/tldr-summary.js';
-import { credentialReadGuard } from '../pretool/read/credential-read-guard.js';
 
 // PreTool/Ask hooks (1) — CC 2.1.85 headless AskUserQuestion
 import headlessResponder from '../pretool/ask/headless-responder.js';
 
 // PreTool/Task hooks (1) — Agent Teams
-import { teamSizeGate } from '../pretool/task/team-size-gate.js';
 
 // PreTool/Tool-invocation linter (1) — registry-driven rule engine
 // for known-bad built-in tool invocations. See #1883 (seed rule).
@@ -64,7 +57,6 @@ import { toolInvocationLinter } from '../pretool/tool-invocation-linter.js';
 import { workflowAgentTypeAdvisor } from '../pretool/task/workflow-agenttype-advisor.js';
 
 // PreTool/Cron hooks (1) — CI/headless guard
-import { cronGuard } from '../pretool/cron-guard.js';
 
 // PreTool/Settings-override resolver (1) — M168 Phase 4 (#1914)
 import { settingsOverrideResolver } from '../pretool/settings-override-resolver.js';
@@ -86,17 +78,13 @@ import type { HookFn } from '../types.js';
  */
 export const hooks: Record<string, HookFn> = {
   // PreTool/Bash hooks (21)
-  'pretool/bash/dangerous-command-blocker': dangerousCommandBlocker,
   'pretool/bash/network-egress-guard': networkEgressGuard,
-  'pretool/bash/git-validator': gitValidator,
-  'pretool/bash/compound-command-validator': compoundCommandValidator,
   'pretool/bash/default-timeout-setter': defaultTimeoutSetter,
   'pretool/bash/error-pattern-warner': errorPatternWarner,
   'pretool/bash/affected-tests-finder': affectedTestsFinder,
   'pretool/bash/pre-commit-test-gate': preCommitTestGate,
   'pretool/bash/display-lint': displayLint,
   'pretool/bash/worktree-merge-verifier': worktreeMergeVerifier,
-  'pretool/bash/agent-browser-safety': agentBrowserSafety,
   'pretool/bash/issue-reference-checker': issueReferenceChecker,
   'pretool/bash/gh-label-enforcer': ghLabelEnforcer,
   'pretool/bash/gh-milestone-enforcer': ghMilestoneEnforcer,
@@ -104,7 +92,6 @@ export const hooks: Record<string, HookFn> = {
   // PreTool/Write-Edit hooks (2)
   'pretool/write-edit/content-secret-scanner': contentSecretScanner,
   'pretool/write-edit/context-file-budget-guard': contextFileBudgetGuard,
-  'pretool/write-edit/file-guard': fileGuard,
 
   // PreTool/Write hooks (4)
   'pretool/Write/architecture-change-detector': architectureChangeDetector,
@@ -122,13 +109,11 @@ export const hooks: Record<string, HookFn> = {
 
   // PreTool/Read hooks (2)
   'pretool/read/tldr-summary': tldrSummary,
-  'pretool/read/credential-read-guard': credentialReadGuard,
 
   // PreTool/Ask hooks (1) — CC 2.1.85 headless AskUserQuestion
   'pretool/ask/headless-responder': headlessResponder,
 
   // PreTool/Task hooks (1) — Agent Teams
-  'pretool/task/team-size-gate': teamSizeGate,
 
   // PreTool/Tool-invocation linter (1) — registry-driven rule engine
   'pretool/tool-invocation-linter': toolInvocationLinter,
@@ -137,7 +122,6 @@ export const hooks: Record<string, HookFn> = {
   'pretool/task/workflow-agenttype-advisor': workflowAgentTypeAdvisor,
 
   // PreTool/Cron hooks (1) — CI/headless guard
-  'pretool/cron-guard': cronGuard,
 
   // PreTool/Settings-override resolver — M168 Phase 4 (#1914)
   'pretool/settings-override-resolver': settingsOverrideResolver,

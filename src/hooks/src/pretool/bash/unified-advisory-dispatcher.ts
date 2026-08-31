@@ -7,7 +7,6 @@
  *
  * Hooks consolidated here:
  * - default-timeout-setter (input modifier — runs first)
- * - agent-browser-safety (can block — runs second)
  * - error-pattern-warner (context)
  * - affected-tests-finder (context)
  *
@@ -30,7 +29,6 @@ import {
 
 // Import hook implementations
 import { defaultTimeoutSetter } from './default-timeout-setter.js';
-import { agentBrowserSafety } from './agent-browser-safety.js';
 import { errorPatternWarner } from './error-pattern-warner.js';
 // issue-docs-requirement: moved to pr-merge-gate (#915)
 // multi-instance-quality-gate: moved to pr-merge-gate (#915)
@@ -69,7 +67,6 @@ const ADVISORY_HOOKS: AdvisoryHookConfig[] = [
 /** Exposed for testing */
 export const registeredHookNames = () => [
   'default-timeout-setter',
-  'agent-browser-safety',
   ...ADVISORY_HOOKS.map(h => h.name),
 ];
 
@@ -88,7 +85,6 @@ export const registeredHookNames = () => [
  *
  * Execution order:
  * 1. default-timeout-setter (input modifier)
- * 2. agent-browser-safety (can block)
  * 3. Advisory hooks (context producers, budget-capped)
  */
 export function unifiedBashAdvisoryDispatcher(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
@@ -105,25 +101,10 @@ export function unifiedBashAdvisoryDispatcher(input: HookInput, ctx: HookContext
     ctx.log(HOOK_NAME, `default-timeout-setter failed: ${message}`, 'warn');
   }
 
-  // --- Phase 2: Blocking check (agent-browser-safety) ---
-  // Fix #907: collect browser context without short-circuiting advisory hooks
-  let browserContext: string | null = null;
-  try {
-    const browserResult = agentBrowserSafety(input, ctx);
-    if (!browserResult.continue) {
-      // Blocked — return the deny immediately
-      return browserResult;
-    }
-    // If it produced context, capture it for prepending (don't return early)
-    browserContext = extractContext(browserResult);
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    ctx.log(HOOK_NAME, `agent-browser-safety failed: ${message}`, 'warn');
-  }
-
   // --- Phase 3: Advisory hooks (context producers) ---
-  // Always run all advisory hooks, prepend browser safety context if present
-  return mergeAdvisoryContext(input, ctx, updatedInput, browserContext);
+  // Always run all advisory hooks (browser safety retired 2026-08-31, #3835:
+  // URL policy re-homed to sandbox.network in the operator scope)
+  return mergeAdvisoryContext(input, ctx, updatedInput, null);
 }
 
 /**
