@@ -95,6 +95,7 @@ import { cleanupEnvelopeCorruption } from '../lifecycle/cleanup-envelope-corrupt
 // #1884 — sweep stale empty sibling paths from aborted git-worktree-add runs
 // (blocks fresh worktree creation otherwise; opt-out via ORK_NO_STALE_SWEEP=1).
 import { sweepStaleWorktrees } from '../lifecycle/sweep-stale-worktrees.js';
+import { strayPlaygroundPages } from '../lifecycle/stray-playground-pages.js';
 // #1860 — warn when $ORCHESTKIT_HOOK_TOKEN is unset but type:http hooks
 // reference it (fail-silent class closer; pairs with generator --write refusal).
 import { hookTokenCheck } from '../lifecycle/hook-token-check.js';
@@ -151,6 +152,7 @@ export const hooks: Record<string, HookFn> = {
   'lifecycle/cleanup-envelope-corruption': cleanupEnvelopeCorruption,
   // #1884 — sweep stale empty sibling paths from aborted worktree-add runs
   'lifecycle/sweep-stale-worktrees': sweepStaleWorktrees,
+  'lifecycle/stray-playground-pages': strayPlaygroundPages,
   // #1860 — warn when $ORCHESTKIT_HOOK_TOKEN is unset but type:http hooks reference it
   'lifecycle/hook-token-check': hookTokenCheck,
   'lifecycle/telemetry-dark-check': telemetryDarkCheck,

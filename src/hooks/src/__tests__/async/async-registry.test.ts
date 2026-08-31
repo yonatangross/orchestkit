@@ -181,14 +181,13 @@ describe('Async Hooks Registry', () => {
       //             notification/message-display-observer (MessageDisplay),
       //             both async 5s observer-only hooks.
       // 106 -> 109: #3789 (CC 2.1.251) — async PostModelSwitch telemetry + webhook forwarders on both new events; the PreModelSwitch consent gate is sync
-      expect(asyncHooks.length, 'Should have exactly 109 async hooks').toBe(109);
+      // 109 -> 110: #3727 — lifecycle/stray-playground-pages (SessionStart, async)
+      expect(asyncHooks.length, 'Should have exactly 110 async hooks').toBe(110);
     });
 
     it('should NOT have async: true for blocking hooks', () => {
       const blockingHookPaths = [
         // PreToolUse - security critical
-        'pretool/bash/dangerous-command-blocker',
-        'pretool/write-edit/file-guard',
         // PermissionRequest - must block
         'permission/auto-approve-safe-bash',
         'permission/auto-approve-project-writes',

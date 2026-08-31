@@ -32,8 +32,10 @@ test_memory_validator_registered() {
     assert_file_contains "$HOOKS_JSON" "pretool/mcp/memory-validator"
 }
 
-test_agent_browser_safety_source_exists() {
-    assert_file_exists "$HOOKS_SRC_DIR/pretool/bash/agent-browser-safety.ts"
+test_agent_browser_safety_retired() {
+    # #3835 wave 1: the hook is deleted; URL policy re-homed to sandbox.network.
+    # Assert the ABSENCE so a silent revival shows up here.
+    assert_file_not_exists "$HOOKS_SRC_DIR/pretool/bash/agent-browser-safety.ts"
 }
 
 # ============================================================================
@@ -108,7 +110,8 @@ test_dangerous_command_blocker_registered() {
 }
 
 test_dangerous_command_blocker_ts_exists() {
-    assert_file_exists "$HOOKS_SRC_DIR/pretool/bash/dangerous-command-blocker.ts"
+    # #3835 wave 4: retired; assert the ABSENCE so a silent revival fails here
+    [[ ! -e "$HOOKS_SRC_DIR/pretool/bash/dangerous-command-blocker.ts" ]]
 }
 
 test_dangerous_command_blocker_executes() {

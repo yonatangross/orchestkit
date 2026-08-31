@@ -1,7 +1,7 @@
 [project]
 name = "orchestkit"
 version = "10.0.0-alpha.65" # x-release-please-version
-description = "OrchestKit Complete - AI-assisted development toolkit for Claude Code with 106 skills, 36 agents, and 175 hooks"
+description = "OrchestKit Complete - AI-assisted development toolkit for Claude Code with 106 skills, 36 agents, and 172 hooks"
 requires-python = ">=3.11"
 readme = "README.md"
 license = {text = "MIT"}
@@ -21,7 +21,7 @@ dev = [
 ]
 # Memory Fabric Agent SDK (for guaranteed MCP execution)
 memory = [
-    "anthropic>=0.40.0",
+    "anthropic>=0.40.0,<2",
 ]
 # Template dependencies (for validating skill templates)
 templates = [

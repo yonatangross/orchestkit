@@ -23,7 +23,9 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 const BIN_DIR = join(__dirname, '../../../bin');
 const RUNNER_FILES = ['run-hook.mjs', 'output-guard.mjs', 'analytics-rotate.mjs', 'cc-output-keys.generated.mjs'];
-const SECURITY_HOOK = 'pretool/bash/dangerous-command-blocker';
+// #3835: the blocker left the un-disableable set; security-pattern-validator
+// remains in it AND lives in the pretool bundle this fixture corrupts.
+const SECURITY_HOOK = 'pretool/Write/security-pattern-validator';
 const PLAIN_HOOK = 'pretool/bash/sync-bash-dispatcher';
 
 let root: string;

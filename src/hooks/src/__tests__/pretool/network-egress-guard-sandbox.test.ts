@@ -24,23 +24,24 @@ afterEach(() => {
   if (saved.n === undefined) delete process.env.ORK_SANDBOX_NETWORK; else process.env.ORK_SANDBOX_NETWORK = saved.n;
 });
 
-describe('network-egress-guard under an enforced sandbox network policy', () => {
-  it('ASK tier stands down when the sandbox enforces an allowlist', () => {
-    process.env.ORK_SANDBOX_ENABLED = 'true'; process.env.ORK_SANDBOX_NETWORK = 'allowlist';
-    expect(networkEgressGuard(bash(STAGED), ctx).hookSpecificOutput?.permissionDecision).toBeUndefined();
-  });
-  it('DENY tier still fires under the same policy', () => {
+// #3835 wave 2: the ASK tier is gone entirely, so sandbox posture no longer
+// changes the guard's answer. These cases pin that the DENY tier is
+// posture-independent in every direction (the old file asserted the ASK tier
+// stood down only behind an enforced policy; that tier no longer exists).
+describe('network-egress-guard DENY tier is independent of sandbox posture (#3835)', () => {
+  it('DENY fires under an enforced allowlist', () => {
     process.env.ORK_SANDBOX_ENABLED = 'true'; process.env.ORK_SANDBOX_NETWORK = 'allowlist';
     expect(networkEgressGuard(bash(PIPE), ctx).hookSpecificOutput?.permissionDecision).toBe('deny');
   });
-  it('ASK tier stays when the sandbox is on without a network policy', () => {
-    process.env.ORK_SANDBOX_ENABLED = 'true'; process.env.ORK_SANDBOX_NETWORK = 'none';
-    expect(networkEgressGuard(bash(STAGED), ctx).hookSpecificOutput?.permissionDecision).toBe('ask');
+  it('DENY fires with the sandbox off', () => {
+    process.env.ORK_SANDBOX_ENABLED = 'false'; delete process.env.ORK_SANDBOX_NETWORK;
+    expect(networkEgressGuard(bash(PIPE), ctx).hookSpecificOutput?.permissionDecision).toBe('deny');
   });
-  it('ASK tier stays when posture is unknown (control)', () => {
-    // The env override is the only way to say "unknown" from a unit test:
-    // with no override the guard reads this machine's real settings scopes.
-    process.env.ORK_SANDBOX_ENABLED = 'unknown'; delete process.env.ORK_SANDBOX_NETWORK;
-    expect(networkEgressGuard(bash(STAGED), ctx).hookSpecificOutput?.permissionDecision).toBe('ask');
+  it('a former ASK shape is silent regardless of posture (retired tier)', () => {
+    for (const [e, n] of [['true', 'allowlist'], ['true', 'none'], ['false', undefined], ['unknown', undefined]] as const) {
+      process.env.ORK_SANDBOX_ENABLED = e;
+      if (n === undefined) delete process.env.ORK_SANDBOX_NETWORK; else process.env.ORK_SANDBOX_NETWORK = n;
+      expect(networkEgressGuard(bash(STAGED), ctx).hookSpecificOutput?.permissionDecision).toBeUndefined();
+    }
   });
 });

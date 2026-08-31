@@ -15,6 +15,182 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "we-never-tested-the-rules-we-shipped",
+    "title": "We Never Tested the Rules We Shipped",
+    "description": "The purge deleted 16 blocking hooks and handed their job to one JSON payload, so this executes a real trip case for every rule in it: 27 proven, 10 inert as spelled but covered by an Edit twin, 4 that CC refuses with no rule at all, and 12 that cannot be run because running them is the harm. It found two rules that matched nothing, copied out of the plugin settings file CC never reads, plus two defects in the probe itself that produced confident false verdicts.",
+    "tags": [
+      "security",
+      "hooks"
+    ],
+    "date": "2026-08-31",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 6
+  },
+  {
+    "slug": "adoption-queue-is-a-queue-not-a-ledger",
+    "title": "The Adoption Queue Is a Queue, Not a Ledger",
+    "description": "Why a dead 2.1.219 row could sit in shared/cc-adoption-gaps.json looking load-bearing: the queue holds what still needs triage while the generated board holds history, and the merge is add-only precisely so the queue can shrink without the record losing a wave. Includes the three checks run before removing the row and the CI drift trap that shipping the regenerated board in the same commit avoids.",
+    "tags": [
+      "adoption",
+      "ci"
+    ],
+    "date": "2026-08-31",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 4
+  },
+  {
+    "slug": "platform-adoption-triage-08-01-to-08-27",
+    "title": "Platform Adoption Triage, 08-01 to 08-27",
+    "description": "27 Claude Platform capabilities across 11 snapshots, closing the three platform-watch issues open since 08-21. 21 were already decided in #3641; the 6 that were never triaged are decided here with the measurement behind each: five declines and one doc note. The one code action is an upper bound on the anthropic pin, and the page records the lane's standing shape, that triage is human by construction and that closing the issues cannot cause a re-file.",
+    "tags": [
+      "adoption",
+      "docs"
+    ],
+    "date": "2026-08-31",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 6
+  },
+  {
+    "slug": "purge-wave-4-the-big-two-and-the-purge-is-done",
+    "title": "Purge Wave 4: The Big Two, and the Purge Is Done",
+    "description": "dangerous-command-blocker and git-validator deleted, with what each cost stated; the runner tests that used the blocker as a fixture moved to the surviving egress DENY tier; seven security files rewritten or re-pointed; and the day's strip: 29 blocking hooks audited, 16 deleted across four waves, 13 kept with a written reason each. The retiring blocker blocked its own deletion scripts twice, which is the whole point.",
+    "tags": [
+      "hooks",
+      "security"
+    ],
+    "date": "2026-08-31",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 6
+  },
+  {
+    "slug": "purge-wave-3-the-baseline-moves-two-guards-go",
+    "title": "Purge Wave 3: The Baseline Moves, Two Guards Go",
+    "description": "Why an un-disableable hook was the weaker guarantee next to a native permissions.deny rule, the security baseline commit that moved three guards out of SECURITY_HOOKS, and the deletion of file-guard and credential-read-guard with their patterns ported to the operator payload first. The four security shell files that asserted file-guard's contract now assert its absence plus the payload's completeness.",
+    "tags": [
+      "hooks",
+      "security"
+    ],
+    "date": "2026-08-31",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 5
+  },
+  {
+    "slug": "purge-wave-2-the-ask-storm-ends",
+    "title": "Purge Wave 2: The Ask Storm Ends",
+    "description": "The wave that answers this morning's two user reports: network-egress-guard loses its whole ASK tier (the exfil confirmations both users hit on every transfer to their own servers), plus cron-guard, team-size-gate, restrict-bash and the pre-commit quality runner. Pick a command and see what it said before and what happens after; the DENY tier for executing fetched bytes is untouched and now posture-independent by test.",
+    "tags": [
+      "hooks",
+      "security",
+      "user-feedback"
+    ],
+    "date": "2026-08-31",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 6
+  },
+  {
+    "slug": "the-purge-register-who-guards-what-now",
+    "title": "The Purge Register: Who Guards What Now",
+    "description": "The drift register rows for the operator-ordered divergence purge, rendered: pick any blocking hook and see its measured verdict (DELETE with the native replacement, or KEEP with the ability no JSON rule has). Every verdict stands on a measurement: the plugin-settings inertness proof and a zero-spend canary probe showing permissions.deny holds under dangerously-skip-permissions.",
+    "tags": [
+      "hooks",
+      "security",
+      "policy"
+    ],
+    "date": "2026-08-31",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 7
+  },
+  {
+    "slug": "purge-wave-1-six-hooks-one-refuted-verdict",
+    "title": "Purge Wave 1: Six Hooks, One Refuted Verdict",
+    "description": "First deletion wave of the divergence purge: compound-command-validator (CC decomposes compound commands itself), agent-browser-safety (URL policy re-homed to sandbox.network), and four agent safety checks whose dead verdict the typecheck refuted mid-purge (a task dispatcher fanned them out; the register was corrected before merge). Plus a machine-sensitive egress security test found and pinned.",
+    "tags": [
+      "hooks",
+      "security"
+    ],
+    "date": "2026-08-31",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 4
+  },
+  {
+    "slug": "rules-that-were-never-enforced",
+    "title": "Rules That Were Never Enforced",
+    "description": "ork shipped 26 permissions.deny rules in its plugin settings.json; CC reads only agent and subagentStatusLine from that file, so every rule was dead text and 29 blocking hooks were the only live enforcement. PR 1 of the divergence purge builds the delivery vehicle: a consent-gated writer into the operator's own settings scope, a doctor audit, and a zero-spend canary probe proving native deny holds under dangerously-skip-permissions.",
+    "tags": [
+      "hooks",
+      "security",
+      "settings"
+    ],
+    "date": "2026-08-31",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 4
+  },
+  {
+    "slug": "an-index-that-outgrew-its-own-budget",
+    "title": "An Index That Outgrew Its Own Budget",
+    "description": "MEMORY.md had a 17 KB budget in prose and a guard that asked before over-budget writes, yet six projects sat over it: the guard was skipped in bypass mode, the population that writes the index most, and nothing ever proposed moving old entries out. Now the guard emits advisory context in bypass mode and dream runs a deterministic budget pass with rule-based demotion. Paste an index and watch the rule pick.",
+    "tags": [
+      "skills",
+      "hooks",
+      "memory"
+    ],
+    "date": "2026-08-31",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 8
+  },
+  {
+    "slug": "pages-nothing-looked-at",
+    "title": "Pages Nothing Looked At",
+    "description": "Three rules together made untracked explainer pages invisible: glyph never stages them, .gitignore un-ignores docs/playgrounds/, and the CI gate treats the dir as inert. Five were found by hand in one day. A SessionStart hook now names any such page older than an hour, once per session. Toggle the file's state and age and see whether the next session hears about it.",
+    "tags": [
+      "hooks",
+      "lifecycle",
+      "false-signals"
+    ],
+    "date": "2026-08-31",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 8
+  },
+  {
+    "slug": "a-nudge-for-a-tool-that-was-not-in-the-room",
+    "title": "A Nudge for a Tool That Was Not in the Room",
+    "description": "multi-step-task-nudge silenced itself only on a TaskCreated event, which a session with no TaskCreate tool can never produce, so it re-fired every sixth prompt all session telling the model to call a tool it did not have. The hook payload carries no tool list, so the fix caps on the session's own non-usage: N unanswered prompts, one final conditional line, then silence. Slide N and the prompt where a task appears.",
+    "tags": [
+      "hooks",
+      "prompt",
+      "false-signals"
+    ],
+    "date": "2026-08-31",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 5
+  },
+  {
+    "slug": "a-verdict-skill-that-could-end-without-a-verdict",
+    "title": "A Verdict Skill That Could End Without a Verdict",
+    "description": "/ork:verify once waited 40 minutes on three background test runs that wrote 0 bytes with no process alive, then produced no verdict. The contract that prevents it lived in prose; now scripts/assert-evidence.sh names one of five outcomes and only EVIDENCE may be graded. Toggle the log and process state and read what the gate says.",
+    "tags": [
+      "skills",
+      "false-signals",
+      "verification"
+    ],
+    "date": "2026-08-31",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 7
+  },
+  {
     "slug": "every-hook-no-oped-on-windows",
     "title": "Every Hook No-oped on Windows, and the Smoke Test Was Green",
     "description": "run-hook.mjs imported its dist bundle by bare absolute path, which win32 rejects, and the catch reported the throw as silent success with exit 0 and no telemetry. The Windows job asserted only the exit code, so a dead dispatcher and a live one were the same green. Fix: pathToFileURL, a named bundle-error outcome with exit 2 for security hooks, and a CI probe that asserts a deny verdict. Pick a bundle state and a hook and read what the runner does.",

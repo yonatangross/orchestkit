@@ -153,6 +153,19 @@ assert_file_exists() {
   fi
 }
 
+# Assert file does NOT exist (retirement tripwire: a revived file fails here)
+# Usage: assert_file_not_exists "$path"
+assert_file_not_exists() {
+  local path="$1"
+
+  if [[ ! -e "$path" ]]; then
+    return 0
+  else
+    echo -e "${RED}ASSERTION FAILED${NC}: File exists but was retired: $path" >&2
+    return 1
+  fi
+}
+
 # Assert file is executable
 # Usage: assert_file_executable "$path"
 assert_file_executable() {
