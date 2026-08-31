@@ -5,6 +5,43 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.66](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.65...v10.0.0-alpha.66) (2026-08-31)
+
+
+### Features
+
+* **dream:** budget pass and rule-based demotion for MEMORY.md ([#3833](https://github.com/yonatangross/orchestkit/issues/3833)) ([4687957](https://github.com/yonatangross/orchestkit/commit/46879579ac8e6fe22e6e050d2de0b102438c5c53)), closes [#3741](https://github.com/yonatangross/orchestkit/issues/3741)
+* **hooks:** name untracked playground pages at SessionStart ([#3831](https://github.com/yonatangross/orchestkit/issues/3831)) ([283a84a](https://github.com/yonatangross/orchestkit/commit/283a84a7b252bc1d139cb06c20d740e84f38dd73)), closes [#3727](https://github.com/yonatangross/orchestkit/issues/3727)
+* **setup:** operator-scope permission vehicle for the purge ([#3836](https://github.com/yonatangross/orchestkit/issues/3836)) ([cec5bdf](https://github.com/yonatangross/orchestkit/commit/cec5bdfb157bb9155ad0b353eaa8524b42cdd81a))
+
+
+### Bug Fixes
+
+* **hooks:** runner names a dist bundle that exists but cannot load ([#3819](https://github.com/yonatangross/orchestkit/issues/3819)) ([cd2bfdc](https://github.com/yonatangross/orchestkit/commit/cd2bfdc968ec3ea1b70622bb8c19a110aef45800)), closes [#3817](https://github.com/yonatangross/orchestkit/issues/3817)
+* **hooks:** task nudge gives up after N unanswered prompts ([#3832](https://github.com/yonatangross/orchestkit/issues/3832)) ([5fa000a](https://github.com/yonatangross/orchestkit/commit/5fa000a0dfee0f40259cfce4200966c09c53332e)), closes [#3733](https://github.com/yonatangross/orchestkit/issues/3733)
+* **verify:** evidence gate becomes a script, not prose ([#3830](https://github.com/yonatangross/orchestkit/issues/3830)) ([f6136cc](https://github.com/yonatangross/orchestkit/commit/f6136cc4348f749e5f37d7c1cba463e31769c502))
+
+
+### Miscellaneous
+
+* **cc-watch:** drop the stale 2.1.219 parse_failed row ([#3847](https://github.com/yonatangross/orchestkit/issues/3847)) ([612ae31](https://github.com/yonatangross/orchestkit/commit/612ae3168261a1485a8080c93d9615ffff28d488))
+* **deps-dev:** bump @types/node ([#3823](https://github.com/yonatangross/orchestkit/issues/3823)) ([d943481](https://github.com/yonatangross/orchestkit/commit/d943481d773f316b0006af07e0359b39e1595a27))
+* **hooks:** purge wave 1, six diverging sub-hooks deleted ([#3838](https://github.com/yonatangross/orchestkit/issues/3838)) ([11d3b7d](https://github.com/yonatangross/orchestkit/commit/11d3b7de23d5661ccb21b97302d71384a75ec11d))
+* **hooks:** purge wave 2, the ask storm ends ([#3839](https://github.com/yonatangross/orchestkit/issues/3839)) ([10c7d2c](https://github.com/yonatangross/orchestkit/commit/10c7d2c0d71270d8f9ca99c730ba62c0422e3a3f))
+* **hooks:** purge wave 3, file-guard and credential-read-guard deleted ([#3840](https://github.com/yonatangross/orchestkit/issues/3840)) ([c88cb78](https://github.com/yonatangross/orchestkit/commit/c88cb78bd59e93cad91cca87aeb343a87ed802ab))
+* **hooks:** purge wave 4, the blocker and git-validator deleted ([#3841](https://github.com/yonatangross/orchestkit/issues/3841)) ([60c2725](https://github.com/yonatangross/orchestkit/commit/60c27251a47e3a42077974bc87bf7eaff9c1868d))
+
+
+### Documentation
+
+* **audits:** platform adoption triage, 08-01 to 08-27 ([#3845](https://github.com/yonatangross/orchestkit/issues/3845)) ([96c4ed8](https://github.com/yonatangross/orchestkit/commit/96c4ed826f7487717717b4a46fc0dc8567119f15))
+* **rules:** divergence-purge verdicts land in the drift register ([#3837](https://github.com/yonatangross/orchestkit/issues/3837)) ([235335e](https://github.com/yonatangross/orchestkit/commit/235335ef5c1f9473cf18ac7ce2c0ab90ed227e26))
+
+
+### CI/CD
+
+* bump the github-actions group across 1 directory with 5 updates ([#3829](https://github.com/yonatangross/orchestkit/issues/3829)) ([54c4185](https://github.com/yonatangross/orchestkit/commit/54c41859c7ea5fdca7e6f2d6a83134dbec7b6efe))
+
 ## [10.0.0-alpha.65](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.64...v10.0.0-alpha.65) (2026-08-30)
 
 
