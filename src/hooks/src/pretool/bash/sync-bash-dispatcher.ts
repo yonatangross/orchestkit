@@ -21,7 +21,6 @@ import { outputSilentSuccess, outputWithUpdatedInput, logHook, extractContext } 
 // Import consolidated hook implementations
 import { dangerousCommandBlocker } from './dangerous-command-blocker.js';
 import { networkEgressGuard } from './network-egress-guard.js';
-import { restrictBash } from '../../agent/restrict-bash.js';
 import { unifiedBashAdvisoryDispatcher } from './unified-advisory-dispatcher.js';
 
 // Phase 0: Headless deferral (merged from separate hooks.json group — #optimization)
@@ -33,7 +32,6 @@ import { issueReferenceChecker } from './issue-reference-checker.js';
 import { ghLabelEnforcer } from './gh-label-enforcer.js';
 import { ghMilestoneEnforcer } from './gh-milestone-enforcer.js';
 // Phase 4: Pre-commit quality checks (CC 2.1.71 utilization — lint/test/typecheck)
-import { preCommitQualityRunner } from './pre-commit-quality-runner.js';
 // Phase 5: Pre-commit test-gate — advisory warn on stale tests (#1281)
 import { preCommitTestGate } from './pre-commit-test-gate.js';
 // Phase 6: Worktree merge verifier — advisory warn on unmerged worktree removal (#1278)
@@ -65,19 +63,8 @@ const BASH_HOOKS: BlockingHookConfig[] = [
   { name: 'headless-defer', fn: headlessDefer },
   // Phase 1: Security
   { name: 'dangerous-command-blocker', fn: dangerousCommandBlocker },
-  // Agent-scoped allowlist (#3430). Ordering is load-bearing, in both directions:
-  //
-  //   AFTER dangerous-command-blocker, so the
-  //   universal hard blocks apply to every session regardless of agent.
-  //
-  //   BEFORE network-egress-guard, because the dispatcher short-circuits on the
-  //   FIRST non-silent result and egress-guard answers `ask` for exfil-shaped
-  //   commands. With the reverse order, a restricted agent running `nc -l 1234`
-  //   got `ask` — a prompt a human might approve — instead of the `deny` its
-  //   allowlist demands. Caught by case 4 of the positive control. For these 7
-  //   agents the allowlist is the strictest applicable control, so it decides
-  //   first; every other session pays one Set lookup and falls through.
-  { name: 'restrict-bash', fn: restrictBash },
+  // restrict-bash retired 2026-08-31 (#3835 wave 2): agent allowlisting is
+  // agent tools:/disallowedTools frontmatter plus the --restricted lane.
   // Network egress: DENY remote-code-exec (bash <(curl)), ASK exfil/staged-run
   { name: 'network-egress-guard', fn: networkEgressGuard },
   // Phase 2: Git/GH enforcement (previously separate process spawns + new)
@@ -91,7 +78,6 @@ const BASH_HOOKS: BlockingHookConfig[] = [
   // Phase 3: Advisory
   { name: 'unified-advisory-dispatcher', fn: unifiedBashAdvisoryDispatcher },
   // Phase 4: Pre-commit quality (lint/test/typecheck — blocks on failure)
-  { name: 'pre-commit-quality-runner', fn: preCommitQualityRunner },
   // Phase 5: Pre-commit test-gate (advisory — records test runs, warns on stale)
   { name: 'pre-commit-test-gate', fn: preCommitTestGate },
   // Phase 6: Worktree merge verifier (advisory — warn on unmerged worktree removal)

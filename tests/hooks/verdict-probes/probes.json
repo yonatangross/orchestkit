@@ -274,41 +274,6 @@
       }
     },
     {
-      "id": "cron-create-in-ci-block",
-      "hook": "pretool/cron-guard",
-      "event": "PreToolUse",
-      "trip": {
-        "env": {
-          "CI": "true"
-        },
-        "payload": {
-          "tool_name": "CronCreate",
-          "tool_input": {
-            "cron": "* * * * *",
-            "prompt": "probe"
-          }
-        },
-        "expect": "block"
-      },
-      "control": {
-        "unsetEnv": [
-          "CI",
-          "GITHUB_ACTIONS",
-          "GITLAB_CI",
-          "CODEBUILD_BUILD_ID",
-          "CLAUDE_CODE_DISABLE_CRON"
-        ],
-        "payload": {
-          "tool_name": "CronCreate",
-          "tool_input": {
-            "cron": "* * * * *",
-            "prompt": "probe"
-          }
-        },
-        "expect": "silent"
-      }
-    },
-    {
       "id": "read-credential-file-deny",
       "hook": "pretool/read/credential-read-guard",
       "event": "PreToolUse",

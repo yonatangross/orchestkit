@@ -14,7 +14,6 @@ export * from '../lib/guards.js';
 // block-writes, ci-safety-check, deployment-safety-check,
 // migration-safety-check) were dead since #3461: reachable only through
 // agent-frontmatter `hooks:`, which CC ignores.
-import { restrictBash } from '../agent/restrict-bash.js';
 import { securityCommandAudit } from '../agent/security-command-audit.js';
 
 import type { HookFn } from '../types.js';
@@ -23,7 +22,6 @@ import type { HookFn } from '../types.js';
  * Agent hooks registry
  */
 export const hooks: Record<string, HookFn> = {
-  'agent/restrict-bash': restrictBash,
   'agent/security-command-audit': securityCommandAudit,
 };
 

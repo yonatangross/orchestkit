@@ -41,11 +41,9 @@
  */
 
 import type { HookInput, HookResult, HookContext } from '../../types.js';
-import { outputSilentSuccess, outputDeny, outputAsk } from '../../lib/common.js';
+import { outputSilentSuccess, outputDeny } from '../../lib/common.js';
 import { normalizeSingle, blankQuotedHeredocBodies } from '../../lib/normalize-command.js';
 import { NOOP_CTX } from '../../lib/context.js';
-import { isBypassMode } from '../../lib/guards.js';
-import { isSandboxNetworkEnforced } from '../../lib/sandbox-posture.js';
 
 const HOOK_NAME = 'network-egress-guard';
 
@@ -125,35 +123,6 @@ const DENY_REGEX: { re: RegExp; label: string }[] = [
     label: 'nc -e — netcat command-exec (reverse shell)',
   },
 ];
-
-// =============================================================================
-// ASK tier — sometimes-legit egress that is also the classic exfil vector
-// =============================================================================
-
-// Staged download-then-run: a fetch that writes a file, then an interpreter,
-// joined by && / ; / newline. Catches `curl -o i.sh URL && bash i.sh`.
-const STAGED_RUN_RE =
-  /\b(?:curl|wget)\b[^\n]*?(?:\s-o\b|\s-O\b|\s--output\b|>)[^\n]*?(?:&&|;|\n)[^\n]*?\b(?:ba|z|k|da)?sh\b|\b(?:curl|wget)\b[^\n]*?(?:\s-o\b|\s-O\b|\s--output\b|>)[^\n]*?(?:&&|;|\n)[^\n]*?\b(?:source|python[0-9.]*|node|ruby|perl)\b/i;
-
-// curl/wget that UPLOADS data (vs a plain GET). Presence of any of these = a
-// body/method that sends data out.
-const UPLOAD_RE =
-  /(?:\s-d\b|\s--data(?:-binary|-raw|-urlencode)?\b|\s-F\b|\s--form\b|\s-T\b|\s--upload-file\b|-X\s+(?:POST|PUT|PATCH)\b|--request\s+(?:POST|PUT|PATCH)\b)/i;
-
-const FETCH_RE = /\b(?:curl|wget)\b/i;
-const NC_RE = /\b(?:nc|ncat|netcat)\b/i;
-const SCP_RSYNC_REMOTE_RE = /\b(?:scp|rsync)\b[^\n]*?\b[\w.-]+@[\w.-]+:|(?:\brsync\b[^\n]*?\b[\w.-]+::)/i;
-
-/** First non-flag token after an nc/scp invocation that looks like a host. */
-function firstRemoteHost(cmd: string): string | null {
-  // nc/ncat/netcat host port  (skip leading flags)
-  const nc = cmd.match(/\b(?:nc|ncat|netcat)\s+((?:-\S+\s+)*)([\w.-]+)/i);
-  if (nc?.[2] && !/^-/.test(nc[2])) return nc[2];
-  // user@host: (scp/rsync)
-  const at = cmd.match(/\b[\w.-]+@([\w.-]+):/);
-  if (at) return at[1];
-  return null;
-}
 
 // =============================================================================
 // Quote-aware view for the DENY tier (#3122)
@@ -261,67 +230,12 @@ export function networkEgressGuard(input: HookInput, ctx: HookContext = NOOP_CTX
     }
   }
 
-  // --- ASK tier gate: bypassPermissions means the user opted out of prompts ---
-  // DENY above stays active in every mode; only the confirmations below are
-  // skipped. See isBypassMode() for why a PreToolUse `ask` otherwise survives
-  // `--dangerously-skip-permissions`.
-  if (isBypassMode(input)) {
-    ctx.log(HOOK_NAME, 'ASK tier skipped: bypassPermissions mode');
-    return outputSilentSuccess();
-  }
-
-  // --- ASK tier gate: the OS sandbox enforces a network policy (#3322) ---
-  // Operator decision 2026-08-23: freeze this guard, lean on the sandbox. When
-  // the settings scopes carry sandbox.enabled with an allowlist or denylist
-  // (measured 2026-08-29: the OS refuses the connection, `CONNECT tunnel
-  // failed, response 403` + <sandbox_violations>), the exfil-shaped
-  // confirmations below are a weaker guesser in front of a real boundary.
-  // Only the ASK tier stands down; the DENY tier above judges executing
-  // fetched bytes, which no network policy sees. Unknown posture (managed
-  // settings, --settings, unreadable files) keeps the full guard.
-  if (isSandboxNetworkEnforced(input.project_dir || ctx.projectDir)) {
-    ctx.log(HOOK_NAME, 'ASK tier skipped: OS sandbox network policy is enforced');
-    return outputSilentSuccess();
-  }
-
-  // --- ASK tier: staged download-then-run ---
-  // #3125: was command (quote-stripped raw) — a quoted MENTION of a staged-run
-  // pattern (grep "curl -o x.sh && bash x.sh", echo "...") false-positived.
-  // No URL needed here, so denyScan is safe and closes the gap.
-  if (STAGED_RUN_RE.test(denyScan)) {
-    const reason = 'Downloads a script from the network and then executes it. Proceed?';
-    ctx.log(HOOK_NAME, `ASK: staged download-then-run`);
-    ctx.logPermission('ask', reason, input);
-    return outputAsk(reason);
-  }
-
-  // --- ASK tier: data upload to a non-allowlisted host ---
-  // #3125: FETCH_RE/UPLOAD_RE now test denyScan — a real upload flag (-d/-X
-  // POST) is never quoted, so this only drops quoted MENTIONS, not real
-  // uploads. Host extraction stays on `command`: it must see the quoted URL.
-  if (FETCH_RE.test(denyScan) && UPLOAD_RE.test(denyScan)) {
-    const offHost = extractUrlHosts(command).find((h) => !isAllowlisted(h));
-    if (offHost) {
-      const reason = `Uploads data to a non-allowlisted host (${offHost}). Possible exfiltration. Proceed?`;
-      ctx.log(HOOK_NAME, `ASK: data upload to ${offHost}`);
-      ctx.logPermission('ask', reason, input);
-      return outputAsk(reason);
-    }
-  }
-
-  // --- ASK tier: nc / scp / rsync to a non-allowlisted host ---
-  // #3125: matchers test denyScan (no URL needed to detect nc/scp/rsync
-  // presence); host extraction stays on `command` for the same reason as
-  // the upload check above.
-  if (NC_RE.test(denyScan) || SCP_RSYNC_REMOTE_RE.test(denyScan)) {
-    const host = firstRemoteHost(command);
-    if (host && !isAllowlisted(host)) {
-      const reason = `Opens a raw connection / transfers files to a non-allowlisted host (${host}). Proceed?`;
-      ctx.log(HOOK_NAME, `ASK: raw/transfer to ${host}`);
-      ctx.logPermission('ask', reason, input);
-      return outputAsk(reason);
-    }
-  }
-
+  // ASK tier retired 2026-08-31 (#3835 wave 2). It stood down behind an
+  // enforced sandbox since #3808; the operator ordered the tier deleted
+  // entirely: the confirmations (staged download-then-run, uploads and
+  // nc/scp/rsync to non-allowlisted hosts) re-home to
+  // sandbox.network.allowedDomains/deniedDomains in the operator scope,
+  // written by setup phase 3.6 and audited by doctor. The DENY tier above
+  // stays: executing fetched bytes is invisible to any network policy.
   return outputSilentSuccess();
 }

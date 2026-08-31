@@ -21,7 +21,6 @@ import { outputSilentSuccess, extractContext } from '../../lib/common.js';
 
 // Import consolidated hook implementations
 import { unifiedAgentSafetyDispatcher } from './unified-agent-safety-dispatcher.js';
-import { teamSizeGate } from './team-size-gate.js';
 import { fableSpendConsent } from './fable-spend-consent.js';
 import { taskExistenceGate } from './task-existence-gate.js';
 import { taskAgentAdvisor } from './task-agent-advisor.js';
@@ -44,7 +43,6 @@ interface TaskHookConfig {
  */
 const TASK_HOOKS: TaskHookConfig[] = [
   { name: 'unified-agent-safety-dispatcher', fn: unifiedAgentSafetyDispatcher },
-  { name: 'team-size-gate', fn: teamSizeGate },
   // spawn-intent-logger: records subagent_type + description to the spawn
   // log — PreToolUse is the only event that carries them (SubagentStart
   // payload has neither; live-verified CC 2.1.173). Append-only, never

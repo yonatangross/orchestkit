@@ -478,7 +478,7 @@ describe('Cross-Bundle Consistency', () => {
     //             and they count different things.
     // 194 -> 196: #3789 (CC 2.1.251) — PreModelSwitch consent gate + PostModelSwitch telemetry (lifecycle/model-switch-consent, lifecycle/model-switch-telemetry)
     // 196 -> 197: #3727 — lifecycle/stray-playground-pages added
-    expect(totalHooks).toBe(191); // 197 - 6: #3835 wave 1 (4 agent safety checks, compound-command-validator, agent-browser-safety)
+    expect(totalHooks).toBe(188); // 191 - 3 (#3835 wave 2: cron-guard, team-size-gate, restrict-bash)
   });
 });
 
