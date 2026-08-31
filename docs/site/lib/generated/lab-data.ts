@@ -15,6 +15,19 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "purge-wave-3-the-baseline-moves-two-guards-go",
+    "title": "Purge Wave 3: The Baseline Moves, Two Guards Go",
+    "description": "Why an un-disableable hook was the weaker guarantee next to a native permissions.deny rule, the security baseline commit that moved three guards out of SECURITY_HOOKS, and the deletion of file-guard and credential-read-guard with their patterns ported to the operator payload first. The four security shell files that asserted file-guard's contract now assert its absence plus the payload's completeness.",
+    "tags": [
+      "hooks",
+      "security"
+    ],
+    "date": "2026-08-31",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 5
+  },
+  {
     "slug": "purge-wave-2-the-ask-storm-ends",
     "title": "Purge Wave 2: The Ask Storm Ends",
     "description": "The wave that answers this morning's two user reports: network-egress-guard loses its whole ASK tier (the exfil confirmations both users hit on every transfer to their own servers), plus cron-guard, team-size-gate, restrict-bash and the pre-commit quality runner. Pick a command and see what it said before and what happens after; the DENY tier for executing fetched bytes is untouched and now posture-independent by test.",

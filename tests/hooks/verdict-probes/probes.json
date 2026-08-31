@@ -114,41 +114,6 @@
       }
     },
     {
-      "id": "write-file-guard-oversize-ask",
-      "hook": "pretool/write-edit/sync-write-edit-dispatcher",
-      "event": "PreToolUse",
-      "trip": {
-        "payload": {
-          "tool_name": "Write",
-          "tool_input": {
-            "file_path": "$DIR/src/big.ts",
-            "content": {
-              "repeat": "export const x = 1;\n",
-              "times": 400
-            }
-          }
-        },
-        "expect": "ask"
-      },
-      "control": {
-        "payload": {
-          "tool_name": "Write",
-          "tool_input": {
-            "file_path": "$DIR/src/small.ts",
-            "content": {
-              "repeat": "export const x = 1;\n",
-              "times": 20
-            }
-          }
-        },
-        "expect": [
-          "silent",
-          "context",
-          "allow"
-        ]
-      }
-    },
-    {
       "id": "write-memory-budget-ask",
       "hook": "pretool/write-edit/sync-write-edit-dispatcher",
       "event": "PreToolUse",
@@ -245,32 +210,6 @@
           "context",
           "allow"
         ]
-      }
-    },
-    {
-      "id": "read-credential-file-deny",
-      "hook": "pretool/read/credential-read-guard",
-      "event": "PreToolUse",
-      "trip": {
-        "payload": {
-          "tool_name": "Read",
-          "tool_input": {
-            "file_path": "~/.aws/credentials"
-          }
-        },
-        "expect": "deny"
-      },
-      "control": {
-        "files": {
-          "README.md": "hello\n"
-        },
-        "payload": {
-          "tool_name": "Read",
-          "tool_input": {
-            "file_path": "$DIR/README.md"
-          }
-        },
-        "expect": "silent"
       }
     },
     {

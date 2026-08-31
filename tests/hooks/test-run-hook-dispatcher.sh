@@ -191,8 +191,11 @@ cat > "$TEMP_PROJECT/.claude/hook-overrides.json" << 'OVERRIDE_EOF'
 }
 OVERRIDE_EOF
 
-run_hook "pretool/bash/dangerous-command-blocker" \
-  "{\"tool_input\":{\"command\":\"echo hello\"},\"hook_event\":\"PreToolUse\",\"project_dir\":\"$TEMP_PROJECT\"}" \
+# #3835 wave 3: dangerous-command-blocker left the runner's un-disableable set
+# (its opinion is an operator-scope permissions.deny rule now), so the probe
+# uses security-pattern-validator, which remains in SECURITY_HOOKS.
+run_hook "pretool/Write/security-pattern-validator" \
+  "{\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"$TEMP_PROJECT/probe.ts\",\"content\":\"export const ok = 1;\"},\"hook_event\":\"PreToolUse\",\"project_dir\":\"$TEMP_PROJECT\"}" \
   "CLAUDE_PROJECT_DIR=$TEMP_PROJECT"
 if [[ $LAST_EXIT -eq 0 ]] && echo "$LAST_STDERR" | grep -q "cannot disable security hook"; then
   pass "Security hook override rejected with warning"

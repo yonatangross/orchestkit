@@ -113,7 +113,7 @@ hooks/
 ├── tsconfig.json           # TypeScript configuration
 └── esbuild.config.mjs      # Build configuration (split bundles)
 
-**Total:** <!--ork:hooks-->175<!--/ork--> hooks (<!--ork:hooks-global-->154<!--/ork--> global + <!--ork:hooks-agent-->0<!--/ork--> agent-scoped + <!--ork:hooks-skill-->21<!--/ork--> skill-scoped)
+**Total:** <!--ork:hooks-->174<!--/ork--> hooks (<!--ork:hooks-global-->153<!--/ork--> global + <!--ork:hooks-agent-->0<!--/ork--> agent-scoped + <!--ork:hooks-skill-->21<!--/ork--> skill-scoped)
 ```
 
 ---
@@ -1399,7 +1399,7 @@ OrchestKit hooks are managed defaults. Users retain full control to disable any 
 **Last Updated:** 2026-02-28
 **Version:** 2.1.0 (Async hooks support)
 **Architecture:** 11 split bundles (648KB total)
-**Hooks:** <!--ork:hooks-->175<!--/ork--> hooks (<!--ork:hooks-global-->154<!--/ork--> global + <!--ork:hooks-agent-->0<!--/ork--> agent-scoped + <!--ork:hooks-skill-->21<!--/ork--> skill-scoped)
+**Hooks:** <!--ork:hooks-->174<!--/ork--> hooks (<!--ork:hooks-global-->153<!--/ork--> global + <!--ork:hooks-agent-->0<!--/ork--> agent-scoped + <!--ork:hooks-skill-->21<!--/ork--> skill-scoped)
 **Average Bundle:** ~35KB per event
 **Claude Code Requirement:** >= 2.1.78
 
@@ -1408,6 +1408,8 @@ See the async hooks section above for detailed async hook patterns.
 ## Registry changelog (archived from hooks.json description, 2026-07-18)
 
 The registry's change history used to accumulate inside the `description` field of `hooks.json`, which made the count unreadable and the JSON diff-hostile. The field now carries only the stamped count line; history continues here.
+
+(count 175 -> 174, 2026-08-31, #3835 purge wave 3): the security baseline changes, then two guards go. First, in its own reviewed commit, `dangerous-command-blocker`, `file-guard` and `git-validator` leave `src/hooks/src/lib/security-hooks-registry.ts` (6 -> 3), the P0 priority table and the runner's un-disableable set: their opinions are `permissions.deny` rules in the OPERATOR's settings scope (setup phase 3.6 writes them with consent, doctor audits them, `tests/ci/restricted-smoke/probe-permission-deny.sh` gates them in CI), which CC enforces even under `--dangerously-skip-permissions`; a plugin settings.json cannot carry them, so "un-disableable hook" was never the strongest guarantee available. Then `pretool/write-edit/file-guard` (its PROTECTED_PATTERNS ported to payload v2 as `Edit()`/`Write()` deny rules for credentials.json, secrets.json, *.pem, private.key, id_rsa, id_ed25519, .husky/, before deletion) and `pretool/read/credential-read-guard` (the one hooks.json entry in this wave, hence 176 -> 175; it existed precisely because plugin-shipped `Read()` rules were inert, and it goes now that the operator-scope delivery exists and is probed) are deleted. The four security shell files that asserted file-guard's contract (`test-path-traversal.sh`, `test-symlink-attacks.sh`, `test-unicode-attacks.sh` section 2, `test-additional-security.sh` probes) are rewritten in the #3807 tripwire shape: the hook must stay gone AND every pattern it denied must remain in the payload, with the CI canary probe named as the native layer's watchdog; the full old contracts are in git history at the commit before this one. Entries-map 197 -> 195 on this branch; probes 18 -> 16 (`write-file-guard-oversize-ask`, `read-credential-file-deny` retired).
 
 (count 176 -> 175, 2026-08-31, #3835 purge wave 2): the ask storm ends. `pretool/bash/network-egress-guard` loses its whole ASK tier (staged download-then-run, uploads and nc/scp/rsync to non-allowlisted hosts): it had stood down behind an enforced sandbox since #3808, and the operator ordered the tier deleted outright, its opinion re-homed to `sandbox.network.allowedDomains/deniedDomains` in the operator scope (setup phase 3.6 writes it with consent, doctor audits it). The DENY tier (executing fetched bytes) stays and is now posture-independent by test. Deleted with it: `pretool/cron-guard` (the one hooks.json entry in this wave, hence 176 -> 175; a CI settings scope says `deny: ["CronCreate"]` natively), `pretool/task/team-size-gate` and `agent/restrict-bash` (agent `tools:`/`disallowedTools` frontmatter plus the `--restricted` CI lane; the load-bearing ordering comment in `sync-bash-dispatcher` that anchored on restrict-bash is rewritten), and `pretool/bash/pre-commit-quality-runner` (a PreToolUse hook running tsc/eslint on every `git commit` is a git hook's job; the repo already ships `bin/git-hooks/`, and CI runs the same checks). `tests/security/test-egress-guard.sh` pins the four former asks as abstain, so a revived tier fails there. Entries-map total 197 -> 194 on this branch (188 once wave 1 is also on main); probes 18 -> 17 (`cron-guard` probe retired). This is the wave that removes the "Yes or No every few minutes" both users reported on 2026-08-31.
 

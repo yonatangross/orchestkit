@@ -62,7 +62,6 @@ vi.mock('../../lib/guards.js', async () => {
 // Import security hooks
 import { dangerousCommandBlocker } from '../../pretool/bash/dangerous-command-blocker.js';
 import { gitValidator } from '../../pretool/bash/git-validator.js';
-import { fileGuard } from '../../pretool/write-edit/file-guard.js';
 import { autoApproveSafeBash } from '../../permission/auto-approve-safe-bash.js';
 import { autoApproveProjectWrites } from '../../permission/auto-approve-project-writes.js';
 import { createTestContext } from '../fixtures/test-context.js';
@@ -249,79 +248,6 @@ describe('Security Boundaries E2E', () => {
     });
   });
 
-  describe('File Guard', () => {
-    describe('Sensitive File Protection', () => {
-      // These files are blocked by file-guard
-      const blockedFiles = [
-        '/test/project/.env',
-        '/test/project/.env.local',
-        '/test/project/.env.production',
-      ];
-
-      test.each(blockedFiles)('should block write to: %s', async (file) => {
-        const input = createWriteInput(file);
-        const result = await Promise.resolve(fileGuard(input, testCtx));
-
-        expect(result.continue).toBe(false);
-        expect(result.stopReason).toBeDefined();
-      });
-
-      // Some files may pass file-guard but have other protections
-      const sensitivePatterns = [
-        '/test/project/credentials.json',
-        '/test/project/secrets.yaml',
-      ];
-
-      test.each(sensitivePatterns)('sensitive pattern file: %s', async (file) => {
-        const input = createWriteInput(file);
-        const result = await Promise.resolve(fileGuard(input, testCtx));
-
-        // File-guard may or may not block these - document actual behavior
-        expect(result.continue).toBeDefined();
-      });
-    });
-
-    describe('Allowed Files', () => {
-      const allowedFiles = [
-        '/test/project/src/index.ts',
-        '/test/project/package.json',
-        '/test/project/README.md',
-        '/test/project/src/components/App.tsx',
-      ];
-
-      test.each(allowedFiles)('should allow write to: %s', async (file) => {
-        const input = createWriteInput(file);
-        const result = await Promise.resolve(fileGuard(input, testCtx));
-
-        expect(result.continue).toBe(true);
-      });
-    });
-
-    describe('Symlink Attack Prevention', () => {
-      test('should handle symlink resolution (document actual behavior)', async () => {
-        // File-guard behavior with symlinks depends on implementation
-        // This test documents the actual behavior
-        mockLstatSync.mockReturnValue({ isSymbolicLink: () => true });
-        mockRealpathSync.mockReturnValue('/test/project/.env');
-
-        const input = createWriteInput('/test/project/link-to-env');
-        const result = await Promise.resolve(fileGuard(input, testCtx));
-
-        // Document actual behavior - may pass or fail depending on implementation
-        expect(result).toHaveProperty('continue');
-      });
-
-      test('symlink to safe file should continue', async () => {
-        mockLstatSync.mockReturnValue({ isSymbolicLink: () => true });
-        mockRealpathSync.mockReturnValue('/test/project/src/utils.ts');
-
-        const input = createWriteInput('/test/project/link-to-utils');
-        const result = await Promise.resolve(fileGuard(input, testCtx));
-
-        expect(result.continue).toBe(true);
-      });
-    });
-  });
 
   describe('Permission Auto-Approve: Safe Bash', () => {
     describe('Auto-Approved Commands', () => {
@@ -445,15 +371,6 @@ describe('Security Boundaries E2E', () => {
       expect(permResult.hookSpecificOutput?.permissionDecision).toBe('allow');
     });
 
-    test('Write to sensitive file is blocked at file-guard', async () => {
-      const writeInput = createWriteInput('/test/project/.env');
-
-      // PreToolUse: file-guard blocks
-      const guardResult = await Promise.resolve(fileGuard(writeInput, testCtx));
-      expect(guardResult.continue).toBe(false);
-
-      // Permission auto-approve would pass but file-guard already blocked
-    });
   });
 
   describe('Attack Surface Coverage', () => {
@@ -493,31 +410,9 @@ describe('Security Boundaries E2E', () => {
       });
     });
 
-    describe('OWASP A02: Cryptographic Failures', () => {
-      test('should protect .env files', async () => {
-        const envFiles = [
-          '/test/project/.env',
-          '/test/project/.env.local',
-        ];
-
-        for (const file of envFiles) {
-          const input = createWriteInput(file);
-          const result = await Promise.resolve(fileGuard(input, testCtx));
-
-          expect(result.continue).toBe(false);
-        }
-      });
-
-      test('should handle other sensitive patterns', async () => {
-        // These may or may not be blocked by file-guard
-        // Document actual behavior
-        const input = createWriteInput('/test/project/credentials.json');
-        const result = await Promise.resolve(fileGuard(input, testCtx));
-
-        // File-guard focuses on .env files primarily
-        expect(result).toHaveProperty('continue');
-      });
-    });
+    // OWASP A02 cases retired with file-guard (#3835 wave 3): .env and credential
+    // writes are operator-scope Edit()/Write() deny rules now, gated by the CI
+    // canary probe rather than a hook unit test.
   });
 
   describe('Performance Under Attack', () => {
