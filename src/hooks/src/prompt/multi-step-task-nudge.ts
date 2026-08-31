@@ -50,6 +50,26 @@ const MIN_PROMPT_LENGTH = 40;
 const THROTTLE_EVERY = 6;
 
 /**
+ * #3733: in a session whose tool set has no TaskCreate (dispatch-style
+ * sessions), the permanent silencer can never trip, so the nudge re-fired
+ * every 6th qualifying prompt for the whole session, telling the model to
+ * call a tool it does not have. HookInput carries no tool list, so the cap is
+ * keyed to this session's own non-usage: after DOWNGRADE_AFTER qualifying
+ * prompts with zero TaskCreated events, one final conditional line fires and
+ * the nudge stays silent for the rest of the session. Explicit asks still
+ * fire (conditionally worded past the cap). Read once at module load;
+ * clamped so the full nudge always fires at least once before the final.
+ */
+const DOWNGRADE_AFTER = (() => {
+  const raw = Number.parseInt(process.env.ORK_TASK_NUDGE_MAX_UNANSWERED ?? '3', 10);
+  const n = Number.isFinite(raw) ? raw : 3;
+  return Math.min(1000, Math.max(2, n));
+})();
+
+type NudgeMode = 'full' | 'final' | 'conditional';
+interface NudgeFire { ordinal: number; mode: NudgeMode }
+
+/**
  * EXPLICIT ask: the operator is talking about task/todo organisation itself.
  * Never throttled — rate-limiting the literal request is how visual-style-nudge
  * measured 4 silenced explicit asks in one session before its bypass existed.
@@ -99,7 +119,7 @@ function counterPath(sessionId: string): string {
  * Fails CLOSED as null — a counter problem must never become per-turn noise.
  * The counter doubles as the Stop-side "qualifying prompts seen" measurement.
  */
-function fireOrdinal(sessionId: string, explicit: boolean): number | null {
+function fireOrdinal(sessionId: string, explicit: boolean): NudgeFire | null {
   const path = counterPath(sessionId);
   let seen = 0;
   try {
@@ -118,9 +138,32 @@ function fireOrdinal(sessionId: string, explicit: boolean): number | null {
     return null;
   }
 
-  if (explicit) return seen + 1;
+  const n = seen + 1; // this prompt's 1-based index among qualifying prompts
+  if (explicit) return { ordinal: n, mode: n >= DOWNGRADE_AFTER ? 'conditional' : 'full' };
+  if (n > DOWNGRADE_AFTER) return null; // capped: silent for the rest of the session (#3733)
+  if (n === DOWNGRADE_AFTER) return { ordinal: n, mode: 'final' };
   if (seen % THROTTLE_EVERY !== 0) return null;
-  return Math.floor(seen / THROTTLE_EVERY) + 1;
+  return { ordinal: Math.floor(seen / THROTTLE_EVERY) + 1, mode: 'full' };
+}
+
+function nudgeText(fire: NudgeFire): string {
+  if (fire.mode === 'full') {
+    return (
+      `[task-nudge #${fire.ordinal}] This prompt reads as 3+ step work and no task ` +
+      `list exists yet this session. If TaskCreate is in this session's tool set, open one now ` +
+      `(TaskCreate per step, then TaskUpdate(status=in_progress/completed) as you go) so ` +
+      `progress is visible and survives interruption. This nudge goes silent for the ` +
+      `whole session after the first TaskCreate.`
+    );
+  }
+  const tail = fire.mode === 'final'
+    ? ' If it is not in this session\'s tool set, disregard; this nudge stays silent for the rest of the session.'
+    : ' If it is not in this session\'s tool set, disregard.';
+  return (
+    `[task-nudge #${fire.ordinal} ${fire.mode}] ${DOWNGRADE_AFTER} prompts this session read as 3+ step work ` +
+    `and none created a task. If TaskCreate is available, open a task list now ` +
+    `(one task per step, TaskUpdate as you go).` + tail
+  );
 }
 
 /** Exposed for the Stop-side measurement (task-completion-check). */
@@ -153,20 +196,17 @@ export function multiStepTaskNudge(
   // done. Checked AFTER shape detection so the tail-read runs only on the rare
   // qualifying prompt, and the counter still advances first — the Stop-side
   // telemetry must count qualifying work even in sessions that used tasks.
-  const ordinal = fireOrdinal(sessionId, explicit);
+  const fire = fireOrdinal(sessionId, explicit);
   if (sessionHasTasks(projectDir, sessionId)) return outputSilentSuccess();
-  if (ordinal === null) return outputSilentSuccess();
+  if (fire === null) return outputSilentSuccess();
 
-  ctx.log(HOOK_NAME, `fired #${ordinal} (explicit=${explicit})`);
+  ctx.log(HOOK_NAME, `fired #${fire.ordinal} mode=${fire.mode} (explicit=${explicit})`);
 
   // The ordinal is load-bearing: unified-dispatcher delta-detects consolidated
   // context and drops byte-identical turns, so a constant message would fire
   // exactly once per session and every later re-anchor would be swallowed.
-  return outputPromptContext(
-    `[task-nudge #${ordinal}] This prompt reads as 3+ step work and no task ` +
-      `list exists yet this session. Open one now — TaskCreate per step, then ` +
-      `TaskUpdate(status=in_progress/completed) as you go — so progress is ` +
-      `visible and survives interruption. This nudge goes silent for the ` +
-      `whole session after the first TaskCreate.`,
-  );
+  return outputPromptContext(nudgeText(fire));
 }
+
+/** Exposed for tests. */
+export const __internals = { DOWNGRADE_AFTER, THROTTLE_EVERY };

@@ -21,6 +21,7 @@ import {
   multiStepTaskNudge,
   isMultiStepShaped,
   qualifyingPromptCount,
+  __internals,
 } from '../../prompt/multi-step-task-nudge.js';
 import { sessionHasTasks } from '../../lib/task-usage-signal.js';
 
@@ -57,6 +58,11 @@ function prompt(text: string, sid = `s-${session}`): HookInput {
 function fired(r: ReturnType<typeof multiStepTaskNudge>): boolean {
   const out = r.hookSpecificOutput as { additionalContext?: string } | undefined;
   return typeof out?.additionalContext === 'string' && out.additionalContext.length > 0;
+}
+
+function contextOf(r: ReturnType<typeof multiStepTaskNudge>): string {
+  const hso = (r as { hookSpecificOutput?: { additionalContext?: string } }).hookSpecificOutput;
+  return hso?.additionalContext ?? '';
 }
 
 /** Seed the project's task-creations log with an entry for `sid`. */
@@ -151,9 +157,53 @@ describe('multiStepTaskNudge', () => {
     expect(fired(multiStepTaskNudge(prompt(QUALIFYING, sid)))).toBe(false);
   });
 
-  it('throttles: 1st qualifying fires, 2..6 stay quiet, 7th re-fires', () => {
+  it('#3733 cap: with no tasks all session, 1st fires, the 3rd fires the final line, silent after', () => {
+    // The control that fails on main: main re-fires the 7th forever.
     const results = Array.from({ length: 7 }, () => fired(multiStepTaskNudge(prompt(QUALIFYING))));
-    expect(results).toEqual([true, false, false, false, false, false, true]);
+    expect(results).toEqual([true, false, true, false, false, false, false]);
+  });
+
+  it('#3733 final line is conditional on TaskCreate and announces silence', () => {
+    multiStepTaskNudge(prompt(QUALIFYING));
+    multiStepTaskNudge(prompt(QUALIFYING));
+    const third = contextOf(multiStepTaskNudge(prompt(QUALIFYING)));
+    expect(third).toContain('[task-nudge #3 final]');
+    expect(third).toContain('If TaskCreate is available');
+    expect(third).toContain('stays silent for the rest of the session');
+    expect(third).not.toContain('Open one now');
+  });
+
+  it('#3733 full nudge never asserts the tool exists', () => {
+    const first = contextOf(multiStepTaskNudge(prompt(QUALIFYING)));
+    expect(first).toContain("If TaskCreate is in this session's tool set");
+    expect(first).not.toMatch(/Open one now —/);
+  });
+
+  it('#3733 explicit asks still fire past the cap, conditionally worded', () => {
+    for (let i = 0; i < 4; i++) multiStepTaskNudge(prompt(QUALIFYING));
+    const explicit = contextOf(multiStepTaskNudge(prompt('please organise the session with a todo list for this work')));
+    expect(explicit).toContain('conditional]');
+    expect(explicit).toContain('If TaskCreate is available');
+  });
+
+  it('#3733 a TaskCreated before the cap restores normal silencing, counter keeps advancing', () => {
+    const sid = `s-${session}`;
+    multiStepTaskNudge(prompt(QUALIFYING, sid));
+    multiStepTaskNudge(prompt(QUALIFYING, sid));
+    seedTaskLog(sid);
+    expect(fired(multiStepTaskNudge(prompt(QUALIFYING, sid)))).toBe(false);
+    expect(qualifyingPromptCount(sid)).toBe(3);
+  });
+
+  it('#3733 counter keeps advancing while capped', () => {
+    const sid = `s-${session}`;
+    for (let i = 0; i < 5; i++) multiStepTaskNudge(prompt(QUALIFYING, sid));
+    expect(qualifyingPromptCount(sid)).toBe(5);
+  });
+
+  it('#3733 the cap clamps to at least 2 and the throttle is unchanged under a high cap', () => {
+    expect(__internals.DOWNGRADE_AFTER).toBeGreaterThanOrEqual(2);
+    expect(__internals.THROTTLE_EVERY).toBe(6);
   });
 
   it('counter advances even while silenced by existing tasks (telemetry denominator)', () => {
