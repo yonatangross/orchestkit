@@ -15,6 +15,19 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "platform-adoption-triage-08-01-to-08-27",
+    "title": "Platform Adoption Triage, 08-01 to 08-27",
+    "description": "27 Claude Platform capabilities across 11 snapshots, closing the three platform-watch issues open since 08-21. 21 were already decided in #3641; the 6 that were never triaged are decided here with the measurement behind each: five declines and one doc note. The one code action is an upper bound on the anthropic pin, and the page records the lane's standing shape, that triage is human by construction and that closing the issues cannot cause a re-file.",
+    "tags": [
+      "adoption",
+      "docs"
+    ],
+    "date": "2026-08-31",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 6
+  },
+  {
     "slug": "purge-wave-4-the-big-two-and-the-purge-is-done",
     "title": "Purge Wave 4: The Big Two, and the Purge Is Done",
     "description": "dangerous-command-blocker and git-validator deleted, with what each cost stated; the runner tests that used the blocker as a fixture moved to the surviving egress DENY tier; seven security files rewritten or re-pointed; and the day's strip: 29 blocking hooks audited, 16 deleted across four waves, 13 kept with a written reason each. The retiring blocker blocked its own deletion scripts twice, which is the whole point.",

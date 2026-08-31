@@ -21,7 +21,7 @@ dev = [
 ]
 # Memory Fabric Agent SDK (for guaranteed MCP execution)
 memory = [
-    "anthropic>=0.40.0",
+    "anthropic>=0.40.0,<2",
 ]
 # Template dependencies (for validating skill templates)
 templates = [
