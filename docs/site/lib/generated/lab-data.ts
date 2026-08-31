@@ -15,6 +15,20 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "a-nudge-for-a-tool-that-was-not-in-the-room",
+    "title": "A Nudge for a Tool That Was Not in the Room",
+    "description": "multi-step-task-nudge silenced itself only on a TaskCreated event, which a session with no TaskCreate tool can never produce, so it re-fired every sixth prompt all session telling the model to call a tool it did not have. The hook payload carries no tool list, so the fix caps on the session's own non-usage: N unanswered prompts, one final conditional line, then silence. Slide N and the prompt where a task appears.",
+    "tags": [
+      "hooks",
+      "prompt",
+      "false-signals"
+    ],
+    "date": "2026-08-31",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 5
+  },
+  {
     "slug": "a-verdict-skill-that-could-end-without-a-verdict",
     "title": "A Verdict Skill That Could End Without a Verdict",
     "description": "/ork:verify once waited 40 minutes on three background test runs that wrote 0 bytes with no process alive, then produced no verdict. The contract that prevents it lived in prose; now scripts/assert-evidence.sh names one of five outcomes and only EVIDENCE may be graded. Toggle the log and process state and read what the gate says.",
