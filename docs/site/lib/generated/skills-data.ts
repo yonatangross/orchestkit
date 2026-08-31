@@ -1852,8 +1852,8 @@ export const SKILLS: Record<string, SkillMeta> = {
   "doctor": {
     "name": "doctor",
     "description": "OrchestKit doctor for health diagnostics across manifest integrity, hook configuration, skill validation, agent frontmatter, MCP server connectivity, CC version compatibility, and permission rules. Reports issues with severity levels and auto-remediation suggestions. Validates component counts, detects orphaned entries, and checks CC version matrix compliance. Use when diagnosing plugin health, troubleshooting configuration issues, or running pre-release checks.",
-    "version": "3.2.0",
-    "sha256": "5844a9098af163807a01fc045f3d99c4217b148615299491e56412cb0c335260",
+    "version": "3.3.0",
+    "sha256": "284a9525ff503227ea773baafb8670ea5ea7d31f26cd2bf2c7dfd21371036fac",
     "author": "OrchestKit",
     "tags": [
       "health-check",
@@ -1897,6 +1897,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       ],
       "scripts": [
         "check-mcp-pinning.sh",
+        "check-operator-permissions.cjs",
+        "check-operator-permissions.sh",
         "check-plugin-health.sh",
         "check-sandbox-violations.sh"
       ]
@@ -4186,8 +4188,8 @@ export const SKILLS: Record<string, SkillMeta> = {
   "setup": {
     "name": "setup",
     "description": "Personalized 7-phase onboarding wizard that scans the codebase, detects tech stack, recommends skills and MCP servers, and generates an improvement plan with readiness score. Includes safety checks and project-scoped configuration. Use when setting up OrchestKit for a new project or rescanning after major changes.",
-    "version": "2.0.0",
-    "sha256": "a51fd35e5e7aae4410d56cf337464e449451fb65529628324c8830a9c0ff601f",
+    "version": "2.1.0",
+    "sha256": "05935231f18c517f4209f613d65cfe3c3c0ceb60901d47d63a4b541ad9fd5ec3",
     "author": "OrchestKit",
     "tags": [
       "onboarding",
@@ -4228,12 +4230,16 @@ export const SKILLS: Record<string, SkillMeta> = {
         "claude-md-health.md",
         "configure-wizard.md",
         "integrations.md",
+        "operator-permissions.json",
         "presets.md",
         "readiness-scoring.md",
         "safety-check.md",
         "scan-phase.md",
         "stack-skill-mapping.md",
         "telemetry-setup.md"
+      ],
+      "scripts": [
+        "write-operator-permissions.mjs"
       ]
     },
     "plugins": [
