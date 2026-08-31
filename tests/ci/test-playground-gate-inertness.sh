@@ -64,6 +64,8 @@ check "LICENSE"                                no  "license only"
 check ".github/workflows/ci.yml"               no  "workflow config only"
 check "vercel.json"                            no  "deploy config only"
 check "pyproject.toml"                         no  "root toml only"
+check "docs/audits/x-triage-2026-08-31.md"     no  "a dated audit record only"
+check $'docs/audits/a.md\npyproject.toml'      no  "an audit record plus a root toml (the #3845 diff)"
 
 section "3. Anything user-facing still REQUIRES a playground"
 check "src/skills/glyph/SKILL.md"           yes "a skill change"
@@ -72,6 +74,10 @@ check "src/agents/explore.md"                  yes "an agent change"
 check "docs/site/components/world/x.tsx"       yes "docs-site component"
 check "tests/evals/scripts/run-skill-eval.sh"  yes "eval harness change"
 check "manifests/ork.json"                     yes "manifest change"
+# The exemption is for the RECORD, never for what the record is about: an audit
+# file riding along with a source change must still require a playground, or
+# adding a docs/audits/ file becomes a way to launder any diff past the gate.
+check $'docs/audits/a.md\nsrc/hooks/src/prompt/foo.ts' yes "an audit record plus a hook change"
 
 section "4. Mixed diffs are decided by the non-inert file"
 check $'README.md\nsrc/skills/glyph/SKILL.md' yes "docs + a skill"
