@@ -15,6 +15,20 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "the-purge-register-who-guards-what-now",
+    "title": "The Purge Register: Who Guards What Now",
+    "description": "The drift register rows for the operator-ordered divergence purge, rendered: pick any blocking hook and see its measured verdict (DELETE with the native replacement, or KEEP with the ability no JSON rule has). Every verdict stands on a measurement: the plugin-settings inertness proof and a zero-spend canary probe showing permissions.deny holds under dangerously-skip-permissions.",
+    "tags": [
+      "hooks",
+      "security",
+      "policy"
+    ],
+    "date": "2026-08-31",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 7
+  },
+  {
     "slug": "purge-wave-1-six-hooks-one-refuted-verdict",
     "title": "Purge Wave 1: Six Hooks, One Refuted Verdict",
     "description": "First deletion wave of the divergence purge: compound-command-validator (CC decomposes compound commands itself), agent-browser-safety (URL policy re-homed to sandbox.network), and four agent safety checks whose dead verdict the typecheck refuted mid-purge (a task dispatcher fanned them out; the register was corrected before merge). Plus a machine-sensitive egress security test found and pinned.",

@@ -741,6 +741,18 @@
         "security"
       ],
       "date": "2026-08-31"
+    },
+    {
+      "slug": "the-purge-register-who-guards-what-now",
+      "source": "docs/docs--3835-divergence-register/index.html",
+      "title": "The Purge Register: Who Guards What Now",
+      "description": "The drift register rows for the operator-ordered divergence purge, rendered: pick any blocking hook and see its measured verdict (DELETE with the native replacement, or KEEP with the ability no JSON rule has). Every verdict stands on a measurement: the plugin-settings inertness proof and a zero-spend canary probe showing permissions.deny holds under dangerously-skip-permissions.",
+      "tags": [
+        "hooks",
+        "security",
+        "policy"
+      ],
+      "date": "2026-08-31"
     }
   ]
 }
