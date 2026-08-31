@@ -28,6 +28,19 @@ export const LAB_ENTRIES: LabEntry[] = [
     "sizeKb": 4
   },
   {
+    "slug": "a-page-about-a-page-for-the-third-time",
+    "title": "A Page About a Page, for the Third Time",
+    "description": "The PR Playground gate demanded a hand-authored interactive page for a dated audit record, which is the same circularity it already fixed twice for README diffs and for session explainers. docs/audits/ joins the exempt list with the rationale written next to the other two, fail-closed behaviour unchanged, and a test pinning that an audit file riding along with a source change still requires a page so the exemption cannot be used to launder a diff past a required gate.",
+    "tags": [
+      "ci",
+      "docs"
+    ],
+    "date": "2026-08-31",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 4
+  },
+  {
     "slug": "we-never-tested-the-rules-we-shipped",
     "title": "We Never Tested the Rules We Shipped",
     "description": "The purge deleted 16 blocking hooks and handed their job to one JSON payload, so this executes a real trip case for every rule in it: 27 proven, 10 inert as spelled but covered by an Edit twin, 4 that CC refuses with no rule at all, and 12 that cannot be run because running them is the harm. It found two rules that matched nothing, copied out of the plugin settings file CC never reads, plus two defects in the probe itself that produced confident false verdicts.",

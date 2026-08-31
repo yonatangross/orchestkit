@@ -233,7 +233,13 @@ describe('telemetry-http-sink', () => {
           return circuitJson;
         }
         throw new Error('ENOENT');
-      }) as typeof readFileSync);
+        // `as unknown as` and not a bare `as`: @types/node 26.4.0 retyped
+        // readFileSync's overload set to return NonSharedBuffer / BufferView<T>,
+        // so a (path) => string implementation no longer overlaps it and TS2352
+        // fires. This double is deliberately narrow, it serves only the
+        // string-encoding overload the code under test calls, so the compiler's
+        // own prescribed escape is the honest annotation here.
+      }) as unknown as typeof readFileSync);
       vi.mocked(writeFileSync).mockImplementation(((p: string, data: string) => {
         if (typeof p === 'string' && p.endsWith('circuit.json')) circuitJson = data;
       }) as typeof writeFileSync);

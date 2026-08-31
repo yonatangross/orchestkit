@@ -822,6 +822,17 @@
       "date": "2026-08-31"
     },
     {
+      "slug": "a-page-about-a-page-for-the-third-time",
+      "source": "docs/ci--3848-audits-inert/index.html",
+      "title": "A Page About a Page, for the Third Time",
+      "description": "The PR Playground gate demanded a hand-authored interactive page for a dated audit record, which is the same circularity it already fixed twice for README diffs and for session explainers. docs/audits/ joins the exempt list with the rationale written next to the other two, fail-closed behaviour unchanged, and a test pinning that an audit file riding along with a source change still requires a page so the exemption cannot be used to launder a diff past a required gate.",
+      "tags": [
+        "ci",
+        "docs"
+      ],
+      "date": "2026-08-31"
+    },
+    {
       "slug": "docs-kept-three-deleted-hooks-alive",
       "source": "docs/docs--3850-stale-spotlights/index.html",
       "title": "The Docs Kept Three Deleted Hooks Alive",
