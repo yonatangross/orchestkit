@@ -21,16 +21,13 @@ import {
 
 describe('SECURITY_HOOKS registry', () => {
   test('contains exactly 6 security-critical hooks', () => {
-    expect(SECURITY_HOOKS.size).toBe(6);
+    expect(SECURITY_HOOKS.size).toBe(3); // #3835: dangerous-command-blocker, file-guard, git-validator left the set
   });
 
   test('contains all expected security hooks', () => {
     const expected = [
-      'dangerous-command-blocker',
-      'file-guard',
       'auto-approve-safe-bash',
       'redact-secrets',
-      'git-validator',
       'security-command-audit',
     ];
     for (const hook of expected) {
@@ -41,18 +38,19 @@ describe('SECURITY_HOOKS registry', () => {
   test('is immutable (ReadonlySet)', () => {
     // TypeScript enforces this at compile time, but verify at runtime
     // that the Set contents are correct after any mutation attempts
-    expect(SECURITY_HOOKS.size).toBe(6);
+    expect(SECURITY_HOOKS.size).toBe(3);
   });
 });
 
 describe('isSecurityCritical', () => {
   test('returns true for each security hook', () => {
-    expect(isSecurityCritical('dangerous-command-blocker')).toBe(true);
-    expect(isSecurityCritical('file-guard')).toBe(true);
     expect(isSecurityCritical('auto-approve-safe-bash')).toBe(true);
     expect(isSecurityCritical('redact-secrets')).toBe(true);
-    expect(isSecurityCritical('git-validator')).toBe(true);
     expect(isSecurityCritical('security-command-audit')).toBe(true);
+    // #3835: retired from the set; a JSON deny rule is the guarantee now
+    expect(isSecurityCritical('dangerous-command-blocker')).toBe(false);
+    expect(isSecurityCritical('file-guard')).toBe(false);
+    expect(isSecurityCritical('git-validator')).toBe(false);
   });
 
   test('returns false for non-security hooks', () => {
@@ -65,10 +63,10 @@ describe('isSecurityCritical', () => {
 
 describe('assertCanToggle', () => {
   test('throws for security hooks', () => {
-    expect(() => assertCanToggle('dangerous-command-blocker')).toThrow(
+    expect(() => assertCanToggle('redact-secrets')).toThrow(
       'Cannot disable security-critical hook'
     );
-    expect(() => assertCanToggle('file-guard')).toThrow(
+    expect(() => assertCanToggle('auto-approve-safe-bash')).toThrow(
       'Cannot disable security-critical hook'
     );
   });
@@ -81,14 +79,11 @@ describe('assertCanToggle', () => {
 
   test('error message lists all security hooks', () => {
     try {
-      assertCanToggle('dangerous-command-blocker');
+      assertCanToggle('redact-secrets');
     } catch (e) {
       const message = (e as Error).message;
-      expect(message).toContain('dangerous-command-blocker');
-      expect(message).toContain('file-guard');
       expect(message).toContain('auto-approve-safe-bash');
       expect(message).toContain('redact-secrets');
-      expect(message).toContain('git-validator');
       expect(message).toContain('security-command-audit');
     }
   });

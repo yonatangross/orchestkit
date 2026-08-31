@@ -3,7 +3,7 @@
  *
  * Tests all 6 security-critical hooks with thorough coverage:
  * 1. dangerousCommandBlocker - Blocks destructive system commands
- * 2. fileGuard - Protects sensitive files from writes
+ * 2. fileGuard - RETIRED 2026-08-31 (#3835): Edit()/Write() deny rules in the operator scope
  * 3. autoApproveSafeBash - Auto-approves known-safe commands
  * 4. redactSecrets - Detects and warns on leaked secrets
  * 5. gitValidator - Consolidated branch/commit protection
@@ -19,7 +19,6 @@ import { SECURITY_HOOKS, isSecurityCritical, getSecurityHooks, assertCanToggle }
 
 // Hook imports
 import { dangerousCommandBlocker } from '../pretool/bash/dangerous-command-blocker.js';
-import { fileGuard } from '../pretool/write-edit/file-guard.js';
 import { autoApproveSafeBash } from '../permission/auto-approve-safe-bash.js';
 import { redactSecrets } from '../skill/redact-secrets.js';
 import { gitValidator } from '../pretool/bash/git-validator.js';
@@ -304,131 +303,6 @@ describe('dangerousCommandBlocker', () => {
 // 2. FILE GUARD
 // =============================================================================
 
-describe('fileGuard', () => {
-  describe('blocks protected environment files', () => {
-    test.each([
-      '.env',
-      '/project/.env',
-      'path/to/.env',
-    ])('blocks .env file: %s', (filePath) => {
-      const result = fileGuard(createWriteInput(filePath));
-      expectDeny(result);
-    });
-
-    test('blocks .env.local', () => {
-      const result = fileGuard(createWriteInput('/project/.env.local'));
-      expectDeny(result);
-    });
-
-    test('blocks .env.production', () => {
-      const result = fileGuard(createWriteInput('/project/.env.production'));
-      expectDeny(result);
-    });
-  });
-
-  describe('blocks credential and key files', () => {
-    test('blocks credentials.json', () => {
-      const result = fileGuard(createWriteInput('/project/credentials.json'));
-      expectDeny(result);
-    });
-
-    test('blocks secrets.json', () => {
-      const result = fileGuard(createWriteInput('/project/secrets.json'));
-      expectDeny(result);
-    });
-
-    test('blocks private.key', () => {
-      const result = fileGuard(createWriteInput('/project/private.key'));
-      expectDeny(result);
-    });
-
-    test('blocks .pem files', () => {
-      const result = fileGuard(createWriteInput('/project/cert.pem'));
-      expectDeny(result);
-    });
-
-    test('blocks id_rsa', () => {
-      const result = fileGuard(createWriteInput('/home/user/.ssh/id_rsa'));
-      expectDeny(result);
-    });
-
-    test('blocks id_ed25519', () => {
-      const result = fileGuard(createWriteInput('/home/user/.ssh/id_ed25519'));
-      expectDeny(result);
-    });
-  });
-
-  describe('allows but warns on config files', () => {
-    test('allows package.json (not blocked)', () => {
-      const result = fileGuard(createWriteInput('/project/package.json'));
-      expectSilentSuccess(result);
-    });
-
-    test('allows pyproject.toml (not blocked)', () => {
-      const result = fileGuard(createWriteInput('/project/pyproject.toml'));
-      expectSilentSuccess(result);
-    });
-
-    test('allows tsconfig.json (not blocked)', () => {
-      const result = fileGuard(createWriteInput('/project/tsconfig.json'));
-      expectSilentSuccess(result);
-    });
-  });
-
-  describe('allows non-protected files', () => {
-    test.each([
-      '/project/src/index.ts',
-      '/project/README.md',
-      '/project/tests/test.py',
-      '/project/src/components/Button.tsx',
-      '/project/Dockerfile',
-    ])('allows regular file: %s', (filePath) => {
-      const result = fileGuard(createWriteInput(filePath));
-      expectSilentSuccess(result);
-    });
-  });
-
-  describe('handles empty and missing input', () => {
-    test('returns silent success for empty file_path', () => {
-      const result = fileGuard(createWriteInput(''));
-      expectSilentSuccess(result);
-    });
-
-    test('returns silent success when file_path is undefined', () => {
-      const result = fileGuard(createHookInput({
-        tool_name: 'Write',
-        tool_input: {},
-      }));
-      expectSilentSuccess(result);
-    });
-  });
-
-  describe('deny result structure', () => {
-    test('includes descriptive stop reason for blocked files', () => {
-      const result = fileGuard(createWriteInput('/project/.env'));
-      expect(result.continue).toBe(false);
-      expect(result.stopReason).toContain('Cannot modify protected file');
-      expect(result.stopReason).toContain('.env');
-    });
-
-    test('includes matched pattern in stop reason', () => {
-      const result = fileGuard(createWriteInput('/project/credentials.json'));
-      expect(result.stopReason).toContain('credentials.json');
-    });
-  });
-
-  describe('path traversal protection', () => {
-    test('blocks .env even with deep path', () => {
-      const result = fileGuard(createWriteInput('/very/deep/path/.env'));
-      expectDeny(result);
-    });
-
-    test('blocks private.key in nested directories', () => {
-      const result = fileGuard(createWriteInput('/a/b/c/d/private.key'));
-      expectDeny(result);
-    });
-  });
-});
 
 // =============================================================================
 // 3. AUTO-APPROVE SAFE BASH
@@ -1074,17 +948,21 @@ describe('securityCommandAudit', () => {
 // =============================================================================
 
 describe('SECURITY_HOOKS registry', () => {
+  // #3835 (2026-08-31): dangerous-command-blocker, file-guard and git-validator
+  // left the set ahead of deletion; their opinions are operator-scope
+  // permissions.deny rules. Pinned so a silent re-add shows up here.
   const EXPECTED_HOOKS = [
-    'dangerous-command-blocker',
-    'file-guard',
     'auto-approve-safe-bash',
     'redact-secrets',
-    'git-validator',
     'security-command-audit',
   ];
+  const RETIRED_FROM_SET = ['dangerous-command-blocker', 'file-guard', 'git-validator'];
 
-  test('contains exactly the 6 known security hooks', () => {
-    expect(SECURITY_HOOKS.size).toBe(6);
+  test('contains exactly the 3 remaining security hooks', () => {
+    expect(SECURITY_HOOKS.size).toBe(3);
+    for (const hook of RETIRED_FROM_SET) {
+      expect(SECURITY_HOOKS.has(hook as never)).toBe(false);
+    }
     for (const hook of EXPECTED_HOOKS) {
       expect(SECURITY_HOOKS.has(hook as never)).toBe(true);
     }
@@ -1101,9 +979,9 @@ describe('SECURITY_HOOKS registry', () => {
     expect(isSecurityCritical('some-random-hook')).toBe(false);
   });
 
-  test('getSecurityHooks() returns all 6 hooks', () => {
+  test('getSecurityHooks() returns all 3 hooks', () => {
     const hooks = getSecurityHooks();
-    expect(hooks).toHaveLength(6);
+    expect(hooks).toHaveLength(3);
     for (const hook of EXPECTED_HOOKS) {
       expect(hooks).toContain(hook);
     }

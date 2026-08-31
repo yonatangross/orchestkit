@@ -205,7 +205,6 @@ fi
 
 HOOK_KEYS=(
   'pretool/bash/dangerous-command-blocker'
-  'pretool/write-edit/file-guard'
   'permission/auto-approve-safe-bash'
   'permission/auto-approve-project-writes'
   'instructions-loaded/instructions-loaded-dispatcher'
@@ -512,7 +511,7 @@ fi
 # suite runs on. If a hook slurped the file it was asked about, those bytes
 # would surface in the response.
 HOSTS_PROBE="$(write_input '/etc/hosts')"
-for key in 'pretool/write-edit/file-guard' 'permission/auto-approve-project-writes'; do
+for key in 'permission/auto-approve-project-writes'; do
   out="$(raw_hook "$key" "$HOSTS_PROBE")"
   if [[ "$out" == *'localhost'* ]]; then
     log_fail "${key##*/} echoed the contents of the file it was asked about"
@@ -521,14 +520,7 @@ for key in 'pretool/write-edit/file-guard' 'permission/auto-approve-project-writ
   fi
 done
 
-# A deny message names the path the CALLER supplied, which is not a disclosure
-# — but it must not carry the file's bytes either.
-DENY_OUT="$(raw_hook 'pretool/write-edit/file-guard' "$(write_input "$HOME/.ssh/id_rsa")")"
-if [[ "$DENY_OUT" == *'BEGIN'*'PRIVATE KEY'* ]]; then
-  log_fail "file-guard's deny message contains private key material"
-else
-  log_pass "file-guard's deny message carries no key material"
-fi
+# (file-guard deny-message probe retired with the hook, #3835 wave 3)
 
 # ---------------------------------------------------------------------------
 # 8. Permission bypass via malformed or spoofed input

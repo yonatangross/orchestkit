@@ -66,7 +66,6 @@ source "$SCRIPT_DIR/../fixtures/test-helpers.sh"
 
 RUNNER="$PROJECT_ROOT/src/hooks/bin/run-hook.mjs"
 GATE="skill/coverage-threshold-gate"
-GUARD="pretool/write-edit/file-guard"
 BLOCKER="pretool/bash/dangerous-command-blocker"
 
 PASS=0
@@ -104,7 +103,7 @@ echo "=========================================="
 # Reachability first. An unregistered key returns {"continue":true} from
 # run-hook.mjs, which reads as "allow" and would pass every negative assertion
 # below against a hook that never ran.
-for key in "$GATE" "$GUARD" "$BLOCKER"; do
+for key in "$GATE" "$BLOCKER"; do
   if ! assert_hook_registered "$key"; then
     echo "${RED}✗ $key is not registered — aborting rather than reporting green${NC}"
     exit 1
@@ -236,34 +235,17 @@ else
 fi
 
 # ===========================================================================
-section "2. file-guard: invisible characters do not smuggle a protected write"
+section "2. file-guard: RETIRED (#3835 wave 3)"
 # ===========================================================================
-# The measured rule is substring-based, and that turns out to be the right
-# shape. Two cases, and they are opposites:
-#   - decoration AROUND an intact ".env" -> still denied (no bypass)
-#   - a character INSIDE ".env"          -> allowed, because the write now
-#     targets a DIFFERENT file on disk; ".en<ZWSP>v" is not ".env" and denying
-#     it would be a false positive, not a defence.
-
-write_input() { jq -n --arg p "$1" '{tool_name:"Write",tool_input:{file_path:$p,content:"x"}}'; }
-expect_write() { expect_decision "$1" "$GUARD" "$(write_input "$2")" "$3"; }
-
-expect_write deny  ".env"                    "control: plain .env denied"
-expect_write deny  "${RLO}.env"              "U+202E prefix does not hide .env"
-expect_write deny  "${LRI}.env"              "U+2066 prefix does not hide .env"
-expect_write deny  "${BOM}.env"              "U+FEFF prefix does not hide .env"
-expect_write deny  "${FW_STOP}${FW_STOP}/.env" \
-  "fullwidth-dot traversal still resolves onto .env"
-
-# These are NOT-DENIED-by-design, not gaps. Each names a real file that is not
-# .env. The guard abstains rather than allowing: it emits no permissionDecision,
-# so the write falls through to the normal permission flow instead of being
-# auto-approved. Asserting `allow` here would credit the hook with a decision it
-# never made.
-expect_write abstain ".en${ZWSP}v"           "zero-width inside the name is a different file"
-expect_write abstain ".env${ZWSP}"           "zero-width suffix is a different file"
-expect_write abstain "${FW_STOP}env"         "fullwidth dot does not decode to ASCII '.'"
-expect_write abstain ".${CYR_E}nv"           "Cyrillic homoglyph is a different file, not a bypass"
+# The invisible-character cases (RLO/LRI/BOM prefixes, fullwidth-dot traversal
+# onto .env) proved file-guard's substring rule held. The hook is deleted; the
+# .env opinion is an operator-scope Edit()/Write() deny rule and CC matches the
+# resolved path itself. Tripwire only: the hook must stay gone.
+if [[ ! -e "$SCRIPT_DIR/../../src/hooks/src/pretool/write-edit/file-guard.ts" ]]; then
+  log_pass "file-guard retired; unicode smuggling cases now belong to CC's rule matcher"; PASS=$((PASS + 1))
+else
+  log_fail "file-guard revived; restore the unicode cases from git history"; FAIL=$((FAIL + 1))
+fi
 
 # ===========================================================================
 section "3. dangerous-command-blocker vs Unicode lookalikes"

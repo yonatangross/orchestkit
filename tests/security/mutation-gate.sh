@@ -65,6 +65,8 @@ declare -A STATIC_ONLY=(
   [test-dependency-confusion.sh]="reads package.json/lockfile registry pins"
   [test-mcp-deny-case.sh]="asserts deny-rule casing in settings JSON, not a runtime verdict"
   [test-json-island-breakout.sh]="static scan of workflow YAML for JSON-island script breakout"
+  [test-path-traversal.sh]="#3835 retirement tripwire: asserts file-guard is absent and its patterns live in the operator payload; the runtime verdict is the CI canary probe"
+  [test-symlink-attacks.sh]="#3835 retirement tripwire: asserts file-guard is absent and the .husky rule is in the payload; no hook in the loop"
 )
 
 # ---------------------------------------------------------------------------

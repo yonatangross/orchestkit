@@ -765,6 +765,17 @@
         "user-feedback"
       ],
       "date": "2026-08-31"
+    },
+    {
+      "slug": "purge-wave-3-the-baseline-moves-two-guards-go",
+      "source": "docs/chore--3835-purge-wave3/index.html",
+      "title": "Purge Wave 3: The Baseline Moves, Two Guards Go",
+      "description": "Why an un-disableable hook was the weaker guarantee next to a native permissions.deny rule, the security baseline commit that moved three guards out of SECURITY_HOOKS, and the deletion of file-guard and credential-read-guard with their patterns ported to the operator payload first. The four security shell files that asserted file-guard's contract now assert its absence plus the payload's completeness.",
+      "tags": [
+        "hooks",
+        "security"
+      ],
+      "date": "2026-08-31"
     }
   ]
 }

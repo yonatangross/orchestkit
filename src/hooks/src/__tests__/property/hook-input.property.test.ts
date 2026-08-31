@@ -28,7 +28,6 @@ import { defaultTimeoutSetter } from '../../pretool/bash/default-timeout-setter.
 import { errorPatternWarner } from '../../pretool/bash/error-pattern-warner.js';
 import { securityPatternValidator } from '../../pretool/Write/security-pattern-validator.js';
 import { contentSecretScanner } from '../../pretool/write-edit/content-secret-scanner.js';
-import { fileGuard } from '../../pretool/write-edit/file-guard.js';
 import { tldrSummary } from '../../pretool/read/tldr-summary.js';
 import { failureHandler } from '../../posttool/failure-handler.js';
 import { validateHookInput } from '../../lib/input-validator.js';
@@ -135,7 +134,6 @@ const HOOKS: Array<{
   { name: 'pretool/bash/error-pattern-warner', fn: errorPatternWarner },
   { name: 'pretool/Write/security-pattern-validator', fn: securityPatternValidator },
   { name: 'pretool/write-edit/content-secret-scanner', fn: contentSecretScanner },
-  { name: 'pretool/write-edit/file-guard', fn: fileGuard },
   { name: 'pretool/read/tldr-summary', fn: tldrSummary },
   { name: 'posttool/failure-handler', fn: failureHandler },
 ];
