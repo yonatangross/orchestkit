@@ -694,6 +694,18 @@
         "false-signals"
       ],
       "date": "2026-08-31"
+    },
+    {
+      "slug": "pages-nothing-looked-at",
+      "source": "docs/feat--3727-stray-playground-pages/index.html",
+      "title": "Pages Nothing Looked At",
+      "description": "Three rules together made untracked explainer pages invisible: glyph never stages them, .gitignore un-ignores docs/playgrounds/, and the CI gate treats the dir as inert. Five were found by hand in one day. A SessionStart hook now names any such page older than an hour, once per session. Toggle the file's state and age and see whether the next session hears about it.",
+      "tags": [
+        "hooks",
+        "lifecycle",
+        "false-signals"
+      ],
+      "date": "2026-08-31"
     }
   ]
 }

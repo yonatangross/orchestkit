@@ -477,7 +477,8 @@ describe('Cross-Bundle Consistency', () => {
     //             the entries-map handler count moves. Both numbers are correct
     //             and they count different things.
     // 194 -> 196: #3789 (CC 2.1.251) — PreModelSwitch consent gate + PostModelSwitch telemetry (lifecycle/model-switch-consent, lifecycle/model-switch-telemetry)
-    expect(totalHooks).toBe(196);
+    // 196 -> 197: #3727 — lifecycle/stray-playground-pages added
+    expect(totalHooks).toBe(197);
   });
 });
 

@@ -15,6 +15,20 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "pages-nothing-looked-at",
+    "title": "Pages Nothing Looked At",
+    "description": "Three rules together made untracked explainer pages invisible: glyph never stages them, .gitignore un-ignores docs/playgrounds/, and the CI gate treats the dir as inert. Five were found by hand in one day. A SessionStart hook now names any such page older than an hour, once per session. Toggle the file's state and age and see whether the next session hears about it.",
+    "tags": [
+      "hooks",
+      "lifecycle",
+      "false-signals"
+    ],
+    "date": "2026-08-31",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 8
+  },
+  {
     "slug": "a-nudge-for-a-tool-that-was-not-in-the-room",
     "title": "A Nudge for a Tool That Was Not in the Room",
     "description": "multi-step-task-nudge silenced itself only on a TaskCreated event, which a session with no TaskCreate tool can never produce, so it re-fired every sixth prompt all session telling the model to call a tool it did not have. The hook payload carries no tool list, so the fix caps on the session's own non-usage: N unanswered prompts, one final conditional line, then silence. Slide N and the prompt where a task appears.",

@@ -113,7 +113,7 @@ hooks/
 ├── tsconfig.json           # TypeScript configuration
 └── esbuild.config.mjs      # Build configuration (split bundles)
 
-**Total:** <!--ork:hooks-->175<!--/ork--> hooks (<!--ork:hooks-global-->154<!--/ork--> global + <!--ork:hooks-agent-->0<!--/ork--> agent-scoped + <!--ork:hooks-skill-->21<!--/ork--> skill-scoped)
+**Total:** <!--ork:hooks-->176<!--/ork--> hooks (<!--ork:hooks-global-->155<!--/ork--> global + <!--ork:hooks-agent-->0<!--/ork--> agent-scoped + <!--ork:hooks-skill-->21<!--/ork--> skill-scoped)
 ```
 
 ---
@@ -1399,7 +1399,7 @@ OrchestKit hooks are managed defaults. Users retain full control to disable any 
 **Last Updated:** 2026-02-28
 **Version:** 2.1.0 (Async hooks support)
 **Architecture:** 11 split bundles (648KB total)
-**Hooks:** <!--ork:hooks-->175<!--/ork--> hooks (<!--ork:hooks-global-->154<!--/ork--> global + <!--ork:hooks-agent-->0<!--/ork--> agent-scoped + <!--ork:hooks-skill-->21<!--/ork--> skill-scoped)
+**Hooks:** <!--ork:hooks-->176<!--/ork--> hooks (<!--ork:hooks-global-->155<!--/ork--> global + <!--ork:hooks-agent-->0<!--/ork--> agent-scoped + <!--ork:hooks-skill-->21<!--/ork--> skill-scoped)
 **Average Bundle:** ~35KB per event
 **Claude Code Requirement:** >= 2.1.78
 
@@ -1408,6 +1408,8 @@ See the async hooks section above for detailed async hook patterns.
 ## Registry changelog (archived from hooks.json description, 2026-07-18)
 
 The registry's change history used to accumulate inside the `description` field of `hooks.json`, which made the count unreadable and the JSON diff-hostile. The field now carries only the stamped count line; history continues here.
+
+(count 175 -> 176, 2026-08-31, #3727): `lifecycle/stray-playground-pages` added (SessionStart, async, 5 s). Three rules together made untracked explainer pages invisible: the glyph skill writes `docs/playgrounds/<category>/<slug>.html` and never stages it; `.gitignore` ignores `playgrounds/` globally and un-ignores `docs/playgrounds/`, so the pages are untracked AND un-ignored; and the CI playground gate treats both `docs/playgrounds/` and `docs/<type>--<slug>/` as INERT, so no gate ever sees them. Five such pages were found by hand on 2026-08-30 (#3706 recurred as #3727). The hook runs `git --no-optional-locks status --porcelain=v1 --untracked-files=all -z -- docs/playgrounds 'docs/*--*'` (3 s bound; silent on any git failure, no repo, or timeout), keeps `??` entries under the two roots, drops anything younger than the threshold (1 h, `ORK_STRAY_PLAYGROUND_MIN_AGE_HOURS`), and reports up to ten paths with their age as SessionStart `additionalContext`, advisory only, with the two resolutions (commit on a branch plus a Lab manifest entry, or delete). Once per session: `.claude/state/stray-playgrounds-<sid>.json`, read back after writing, siblings older than 7 days unlinked; opt-out `ORK_NO_STRAY_PLAYGROUND_CHECK=1`. SessionStart rather than Stop because at Stop the page the session just wrote is minutes old, so any threshold is zero or meaningless; the forgotten page is the one the NEXT session finds an hour later. `bin/stop-uncommitted-check.mjs`, which already counts untracked files anonymously, was left alone: it is a release-please governed file. Tests run on a real temp git repo with backdated mtimes (`__tests__/lifecycle/stray-playground-pages.test.ts`, 11 cases); the first case fails on main, where the hook does not exist. The verdict-probe harness cannot git-init or backdate, so the real-runner check is the vitest file rather than a probes.json entry.
 
 (count unchanged at 176, 2026-08-31, #3733): `prompt/multi-step-task-nudge` gives up after N unanswered prompts. Its permanent silencer keys on a TaskCreated event in `.claude/logs/task-creations.jsonl`, which cannot occur in a session whose tool set has no TaskCreate (dispatch-style sessions), so the nudge re-fired every 6th qualifying prompt for the whole session and told the model to call a tool it did not have (observed 2026-08-25). `HookInput` carries no tool list, so the fix is a cap keyed to this session's own non-usage: after `ORK_TASK_NUDGE_MAX_UNANSWERED` qualifying prompts (default 3, clamped 2..1000, read once at module load) with zero TaskCreated events, one final line fires, conditionally worded ("if TaskCreate is available ... if it is not in this session's tool set, disregard; this nudge stays silent for the rest of the session"), and the nudge is silent thereafter. The full nudge no longer asserts the tool exists either. Explicit asks ("todo list", "organise the session") still fire past the cap, conditionally worded. State stays in the existing per-session counter file, so `qualifyingPromptCount` (the Stop-side telemetry denominator) keeps advancing while capped, and a TaskCreated before the cap restores the normal silencing with no new code. The fix lives on the branch a task-less session actually reaches and is verified by postcondition on such a session: the throttle test that expected the 7th prompt to re-fire now expects `[T,F,T,F,F,F,F]` and fails on main.
 
