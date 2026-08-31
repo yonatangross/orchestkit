@@ -409,6 +409,16 @@ jobs:
           bash tests/ci/restricted-smoke/probe-no-hook-ask.sh --self-test
           bash tests/ci/restricted-smoke/probe-no-hook-ask.sh ./plugins/ork
 
+      # #3849: probe-permission-deny proves the MECHANISM with one synthetic
+      # rule. This proves the ARTIFACT: every rule /ork:setup writes into the
+      # operator's own settings is executed against a real trip case, because
+      # after the purge that payload is the protection. It found two rules that
+      # matched nothing (Bash(find:*-delete*) and its fprint twin), copied from
+      # the plugin settings file CC never reads, so their syntax had never run.
+      # Exit 1 is REGRESSED, exit 2 is payload/case-map drift; neither is flaky.
+      - name: Probe every shipped operator-permission rule (#3849)
+        run: bash tests/ci/restricted-smoke/probe-payload-rules.sh
+
   # Job 7: Component Counts Validation
   counts-validation:
     name: Component Counts
