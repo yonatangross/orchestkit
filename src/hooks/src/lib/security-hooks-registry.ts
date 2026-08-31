@@ -6,23 +6,27 @@
  *
  * Issue #686: Centralized registry for security hook identification.
  *
- * The 6 security-critical hooks (validated by security-critical-hooks.test.ts):
- * 1. dangerous-command-blocker — Blocks destructive system commands
- * 2. file-guard — Protects sensitive files from writes
- * 3. auto-approve-safe-bash — Dual-role: rejects dangerous commands via REJECT_PATTERNS first,
+ * The 3 security-critical hooks (validated by security-critical-hooks.test.ts):
+ * 1. auto-approve-safe-bash — Dual-role: rejects dangerous commands via REJECT_PATTERNS first,
  *    then auto-approves known-safe commands. Despite the name, this is a security gate.
- * 4. redact-secrets — Detects and warns on leaked secrets
- * 5. git-validator — Branch/commit protection
- * 6. security-command-audit — Audit logs Bash commands
+ * 2. redact-secrets — Detects and warns on leaked secrets
+ * 3. security-command-audit — Audit logs Bash commands
+ *
+ * SECURITY BASELINE CHANGE, 2026-08-31 (#3835, operator-ordered divergence purge):
+ * dangerous-command-blocker, file-guard and git-validator were removed from this
+ * set ahead of their deletion. Their opinions now live as permissions.deny rules
+ * in the OPERATOR's settings scope (delivered by setup phase 3.6, audited by
+ * doctor, gated in CI by tests/ci/restricted-smoke/probe-permission-deny.sh),
+ * which CC enforces even under --dangerously-skip-permissions. A plugin
+ * settings.json cannot carry them (CC reads only agent/subagentStatusLine), so
+ * "un-disableable hook" was never the strongest guarantee available; a native
+ * deny rule is. Register: shared/rules/cc-native-first.md, purge rows.
  */
 
 /** Immutable set of security-critical hook names that cannot be toggled off or disabled. */
 export const SECURITY_HOOKS = new Set([
-  'dangerous-command-blocker',
-  'file-guard',
   'auto-approve-safe-bash',
   'redact-secrets',
-  'git-validator',
   'security-command-audit',
 ] as const);
 

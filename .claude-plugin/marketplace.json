@@ -1,8 +1,8 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "orchestkit",
-  "version": "10.0.0-alpha.65",
-  "description": "The Complete AI Development Toolkit - 106 skills, 36 agents, 35 commands, 175 hooks for full-stack development",
+  "version": "10.0.0-alpha.66",
+  "description": "The Complete AI Development Toolkit - 106 skills, 36 agents, 35 commands, 172 hooks for full-stack development",
   "owner": {
     "name": "Yonatan Gross",
     "email": "yonaigross@gmail.com"
@@ -15,7 +15,7 @@
     {
       "name": "ork",
       "version": "9.8.0",
-      "description": "Complete AI development toolkit with 106 skills covering AI/LLM, backend, frontend, security, and testing patterns. Includes 36 specialized agents, 35 commands, and 175 lifecycle hooks.",
+      "description": "Complete AI development toolkit with 106 skills covering AI/LLM, backend, frontend, security, and testing patterns. Includes 36 specialized agents, 35 commands, and 172 lifecycle hooks.",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonaigross@gmail.com"
@@ -30,7 +30,7 @@
     },
     {
       "name": "ork-alpha",
-      "version": "10.0.0-alpha.65",
+      "version": "10.0.0-alpha.66",
       "description": "Prerelease channel for OrchestKit. Tracks main, so it carries alpha and beta builds ahead of the stable ork plugin. Install only if you want unreleased changes.",
       "author": {
         "name": "Yonatan Gross",

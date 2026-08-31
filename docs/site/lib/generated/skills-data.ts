@@ -771,8 +771,8 @@ export const SKILLS: Record<string, SkillMeta> = {
   "browser-tools": {
     "name": "browser-tools",
     "description": "Security wrapper over the upstream agent-browser skill, adding URL blocklisting, rate limiting, robots.txt enforcement, and scraping guardrails. Use when automating browser workflows that need safety limits.",
-    "version": "5.0.0",
-    "sha256": "8ec8990a129c66830adf00f48553aaeef751ebcf984f51e58aaed1d6b640ec78",
+    "version": "6.0.0",
+    "sha256": "9a6c5e05083e40e075a00978917666cde2e7198f2de009b661c9ef57d2e460ad",
     "author": "OrchestKit",
     "tags": [
       "browser",
@@ -1017,7 +1017,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "commit",
     "description": "Creates commits with Conventional Commits format (feat/fix/docs/refactor/test/chore), automatic scope detection, co-author attribution, and pre-commit hook compliance. Validates staged changes, generates descriptive messages focusing on the 'why', and prevents secrets or generated-only files from being committed. Requires an explicit request naming this skill; plain `git commit` during normal work stays a bare CLI call. Use when committing changes or generating commit messages.",
     "version": "1.2.0",
-    "sha256": "da78ba3b3d428e36492495d7b707d1666483961825d10b0c44d75e1e90b3e0ad",
+    "sha256": "d79f455613b9e9b33f133567a11cd2f3b5217dc7eca4da4ce87f6c270e507add",
     "author": "OrchestKit",
     "tags": [
       "git",
@@ -1852,8 +1852,8 @@ export const SKILLS: Record<string, SkillMeta> = {
   "doctor": {
     "name": "doctor",
     "description": "OrchestKit doctor for health diagnostics across manifest integrity, hook configuration, skill validation, agent frontmatter, MCP server connectivity, CC version compatibility, and permission rules. Reports issues with severity levels and auto-remediation suggestions. Validates component counts, detects orphaned entries, and checks CC version matrix compliance. Use when diagnosing plugin health, troubleshooting configuration issues, or running pre-release checks.",
-    "version": "3.2.0",
-    "sha256": "5844a9098af163807a01fc045f3d99c4217b148615299491e56412cb0c335260",
+    "version": "3.3.0",
+    "sha256": "284a9525ff503227ea773baafb8670ea5ea7d31f26cd2bf2c7dfd21371036fac",
     "author": "OrchestKit",
     "tags": [
       "health-check",
@@ -1897,6 +1897,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       ],
       "scripts": [
         "check-mcp-pinning.sh",
+        "check-operator-permissions.cjs",
+        "check-operator-permissions.sh",
         "check-plugin-health.sh",
         "check-sandbox-violations.sh"
       ]
@@ -1983,8 +1985,8 @@ export const SKILLS: Record<string, SkillMeta> = {
   "dream": {
     "name": "dream",
     "description": "Nightly memory consolidation — prunes stale entries, merges duplicates, resolves contradictions, rebuilds MEMORY.md index. Use when memory files have accumulated over many sessions and need cleanup. Do NOT use for storing new decisions (use remember) or searching memory (use memory).",
-    "version": "1.0.0",
-    "sha256": "5db16e90139a1dba1050328b631e338f8959af9a39260176c2b9129e2f4e0a1d",
+    "version": "1.1.0",
+    "sha256": "6c5ee3f4a257552d6977d681dbf3652ce9c29e1b3123b3e46f017a4934ea0998",
     "author": "OrchestKit",
     "tags": [
       "memory",
@@ -2006,7 +2008,11 @@ export const SKILLS: Record<string, SkillMeta> = {
     "complexity": "medium",
     "structure": {
       "references": [
+        "index-budget.md",
         "safe-deletes.md"
+      ],
+      "scripts": [
+        "index-budget.mjs"
       ]
     },
     "plugins": [
@@ -4109,7 +4115,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "security-patterns",
     "description": "Security patterns for authentication, defense-in-depth, input validation, OWASP Top 10, LLM safety, and PII masking. Use when implementing auth flows, security layers, input sanitization, vulnerability prevention, prompt injection defense, or data redaction.",
     "version": "2.0.0",
-    "sha256": "2a5218be380ffc195a1037dfadd29b6b63abcebfa45db9f095a12b886a84c2e8",
+    "sha256": "78d032799c79b78b2c2fd2c2683f31a07872c650f8a03de3a80391f150fd616b",
     "author": "OrchestKit",
     "tags": [
       "security",
@@ -4182,8 +4188,8 @@ export const SKILLS: Record<string, SkillMeta> = {
   "setup": {
     "name": "setup",
     "description": "Personalized 7-phase onboarding wizard that scans the codebase, detects tech stack, recommends skills and MCP servers, and generates an improvement plan with readiness score. Includes safety checks and project-scoped configuration. Use when setting up OrchestKit for a new project or rescanning after major changes.",
-    "version": "2.0.0",
-    "sha256": "a51fd35e5e7aae4410d56cf337464e449451fb65529628324c8830a9c0ff601f",
+    "version": "2.1.0",
+    "sha256": "05935231f18c517f4209f613d65cfe3c3c0ceb60901d47d63a4b541ad9fd5ec3",
     "author": "OrchestKit",
     "tags": [
       "onboarding",
@@ -4224,12 +4230,16 @@ export const SKILLS: Record<string, SkillMeta> = {
         "claude-md-health.md",
         "configure-wizard.md",
         "integrations.md",
+        "operator-permissions.json",
         "presets.md",
         "readiness-scoring.md",
         "safety-check.md",
         "scan-phase.md",
         "stack-skill-mapping.md",
         "telemetry-setup.md"
+      ],
+      "scripts": [
+        "write-operator-permissions.mjs"
       ]
     },
     "plugins": [
@@ -4821,8 +4831,8 @@ export const SKILLS: Record<string, SkillMeta> = {
   "verify": {
     "name": "verify",
     "description": "Grade work that already exists and decide whether it can merge. Runs the project's current unit, integration, and E2E suites plus security scanning and type checking, scores every dimension 0-10, and returns a merge verdict with a VERIFIED-vs-CLAIMED evidence manifest. Writes no test files and edits no source. Use when verifying changes are ready to merge. Use /ork:cover instead when the tests still have to be written.",
-    "version": "4.6.0",
-    "sha256": "3dbc7ff68e285d58947e0fbf8dfa26423f6240271d41a60b67d36ed4e2e95573",
+    "version": "4.7.0",
+    "sha256": "c23006f82078dde6edbe2b2223c5d10cd22757d92a25c09618689f0e05f628b4",
     "author": "OrchestKit",
     "tags": [
       "verification",
@@ -4889,6 +4899,9 @@ export const SKILLS: Record<string, SkillMeta> = {
         "gallery-template.html",
         "quality-policy.yaml",
         "verification-report.md"
+      ],
+      "scripts": [
+        "assert-evidence.sh"
       ],
       "checklists": [
         "verification-checklist.md"

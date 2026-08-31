@@ -16,7 +16,7 @@ import { describe, expect, it } from 'vitest';
 // the way a fix like this goes wrong.
 
 const RUN_HOOK = join(__dirname, '../../../bin/run-hook.mjs');
-const HOOK = 'pretool/bash/dangerous-command-blocker';
+const HOOK = 'pretool/bash/network-egress-guard'; // #3835: surviving Bash fixture
 const WARNING = /stdin delivered 0 bytes in 100ms/;
 
 const PAYLOAD = JSON.stringify({

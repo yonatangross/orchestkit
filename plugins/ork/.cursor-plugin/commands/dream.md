@@ -323,7 +323,12 @@ Rules for the rebuilt index:
   `budget_chars = (17 * 1024 - non_entry_overhead) / entry_count`
 - If the rebuild exceeds the target, **trim hooks to the derived budget before dropping any entry**.
   Truncate at a word boundary and keep the leading clause (it carries the discriminating detail).
-  Every memory file must remain represented 1:1 — verify `indexed == files_on_disk` after writing.
+- **The 1:1 invariant is two-file (#3741).** Every memory file is indexed exactly once across
+  `MEMORY.md` and `MEMORY-ARCHIVE.md`: `indexed(MEMORY.md) + indexed(MEMORY-ARCHIVE.md) == files_on_disk`,
+  the two sets are disjoint, every link target exists with its exact-case name, and `MEMORY.md`
+  carries exactly one trailer line (`> N memory files ...`) that links `MEMORY-ARCHIVE.md`. Exclude
+  `MEMORY*.md`, `.MEMORY.md.prev`, `.trash/` and `_backup/` from `files_on_disk`. A single-file check
+  (`indexed == files_on_disk`) flags every archived entry as missing and is wrong once an archive exists.
 - Only if trimming to ~90 chars still overflows should you warn the user. Never auto-delete a memory
   to fit the index; the index is a pointer table, and shrinking it is a formatting problem, not a
   retention one.
@@ -333,6 +338,21 @@ Rules for the rebuilt index:
 # replaces every memory's pointer, so a bad index degrades sessions silently.
 Write(path="<memory_dir>/MEMORY.md", content=rebuilt_index)
 ```
+
+### STEP 5.5: Index budget (report, then demote by rule)
+
+Consistency (1:1 with the files) and budget (bytes a session can afford) are different questions;
+the rebuild answers only the first. The budget pass is a script, so the report is the same whoever
+runs it. Read-only by default; `--apply` only after the user accepts the moves (batch when > 3):
+
+```python
+Bash(command=f"node ${{CLAUDE_PLUGIN_ROOT}}/skills/dream/scripts/index-budget.mjs '{memory_dir}' --json")
+# bytes vs ceiling (ORK_CONTEXT_FILE_BUDGET_BYTES, else 17,408 B), per-section sizes, long entries,
+# the two-file invariant, and moves proposed BY RULE (oldest first). Add --apply to rotate
+# .MEMORY.md.prev, move the lines to MEMORY-ARCHIVE.md, rewrite the trailer, re-verify (exit 1 on failure).
+```
+
+Rule, never-move set, exhausted-candidates fallback: `Read("${CLAUDE_PLUGIN_ROOT}/skills/dream/references/index-budget.md")`.
 
 
 ## STEP 6: Report
@@ -384,7 +404,7 @@ If `--dry-run`, prefix the entire report with:
 | No memory directories found | Report "No memory directories found" and exit |
 | No memory files in directory | Report "Directory empty, nothing to consolidate" |
 | All memories are FRESH | Report "All N memories are current, nothing to prune" |
-| MEMORY.md exceeds 200 lines after rebuild | Warn user, do not auto-truncate |
+| MEMORY.md still exceeds the byte ceiling after rebuild and demotion | Warn user, list the remaining candidates, never auto-truncate |
 | File deletion fails | Report error, continue with remaining files |
 | Memory file has no frontmatter | Treat as EVERGREEN (cannot verify refs without metadata) |
 

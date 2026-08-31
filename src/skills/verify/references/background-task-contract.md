@@ -54,6 +54,34 @@ The contract above deliberately does not depend on H5 being right. Whatever
 empties the file, an unbounded wait on an unconfirmed task is a defect on its
 own, and bounding it converts a silent hang into a reported failure.
 
+## The executable form of this contract
+
+`scripts/assert-evidence.sh <logfile> [--task-id <id|none>] [--pid <pid>] [--banner-re <re>] [--json]`
+implements rules 1-3: EVIDENCE (0) / NO-BANNER (1) / usage (2) / COULD-NOT-OBSERVE (3) /
+STILL-RUNNING (4). Phase 3 runs it before any grade; only EVIDENCE may be graded.
+The banner regex defaults to npm's `> pkg@ver script` line; pass `--banner-re` for other
+runners (pytest: `'^=+ test session'`).
+
+## Settling H5: the one-off measurement
+
+Redirection makes the harness task-output file empty by construction, so H5 cannot be
+measured through the normal Phase 3 path. To settle it, run ONCE on a quiet tree the
+UNredirected shape the original failure used:
+
+```python
+M = f"verification-output/{ts}/marker.txt"
+task = Bash(command=f"echo START-$(date +%s) > {M}; npm test 2>&1", run_in_background=true)
+```
+
+Record exactly four fields: (1) was a task id returned; (2) bytes in the harness
+task-output file (`wc -c` on the path Monitor/TaskOutput reports); (3) where npm's banner
+appeared: in that file, inline in the tool result, or nowhere; (4) does `marker.txt`
+exist (absent = the command never launched; present with an empty output file = launched
+and the output was lost). Post the four fields as a comment on #3263 — the operator's
+comment, not a memory entry. If (1) is null, the Agent-fork result generalises to the
+skill fork; if an id arrives with 0 bytes and the marker exists, the skill-fork path is a
+distinct defect and #3263 gets a new hypothesis rather than a close.
+
 ## Reproducing the original signature is still blocked
 
 It needs a real `/ork:verify` run, which runs `npm test`.

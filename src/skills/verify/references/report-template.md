@@ -26,8 +26,9 @@ Copy this template and fill in results from parallel agent verification.
 ## Verification Manifest
 
 > Provenance of every load-bearing claim. Any 🟡 CLAIMED or ⬜ UNCHECKED row caps the
-> status below READY FOR MERGE until it is ✅ VERIFIED or ⚪ WAIVED. See
-> `references/verification-manifest.md`.
+> status below READY FOR MERGE until it is ✅ VERIFIED or ⚪ WAIVED. A 🔴 COULD-NOT-OBSERVE
+> row (assert-evidence exit 3/1: the run left nothing to observe) makes the status BLOCKED.
+> See `references/verification-manifest.md`.
 
 | # | Load-bearing claim | Asserted by | Provenance | Evidence (cmd · exit · key line) |
 |---|--------------------|-------------|------------|----------------------------------|

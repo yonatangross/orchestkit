@@ -10,12 +10,10 @@ export * from '../types.js';
 export * from '../lib/common.js';
 export * from '../lib/guards.js';
 
-// Agent hooks (6)
-import { blockWrites } from '../agent/block-writes.js';
-import { restrictBash } from '../agent/restrict-bash.js';
-import { ciSafetyCheck } from '../agent/ci-safety-check.js';
-import { deploymentSafetyCheck } from '../agent/deployment-safety-check.js';
-import { migrationSafetyCheck } from '../agent/migration-safety-check.js';
+// Agent hooks (2). The four deleted 2026-08-31 (#3835 purge wave 1:
+// block-writes, ci-safety-check, deployment-safety-check,
+// migration-safety-check) were dead since #3461: reachable only through
+// agent-frontmatter `hooks:`, which CC ignores.
 import { securityCommandAudit } from '../agent/security-command-audit.js';
 
 import type { HookFn } from '../types.js';
@@ -24,11 +22,6 @@ import type { HookFn } from '../types.js';
  * Agent hooks registry
  */
 export const hooks: Record<string, HookFn> = {
-  'agent/block-writes': blockWrites,
-  'agent/restrict-bash': restrictBash,
-  'agent/ci-safety-check': ciSafetyCheck,
-  'agent/deployment-safety-check': deploymentSafetyCheck,
-  'agent/migration-safety-check': migrationSafetyCheck,
   'agent/security-command-audit': securityCommandAudit,
 };
 

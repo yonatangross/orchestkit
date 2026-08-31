@@ -28,7 +28,7 @@
     {
       "slug": "ork-cursor-adapter",
       "source": "docs/feat--ork-cursor-adapter/adapter.html",
-      "title": "OrchestKit for Cursor — the same plugin, not a five-skill fork",
+      "title": "OrchestKit for Cursor \u2014 the same plugin, not a five-skill fork",
       "description": "Cursor loads Agent Plugins. The marketplace points at ork, the same plugin Claude Code installs. Claude hooks are omitted because they need CLAUDE_PLUGIN_ROOT. Click install, skills, Task, and the third-party-toggle leak to see what actually loads.",
       "tags": [
         "cursor",
@@ -218,7 +218,7 @@
     {
       "slug": "release-rail",
       "source": "docs/fix--release-rail-counts-and-account/release-rail.html",
-      "title": "Release Rail — Zeroed Counts and an Unnamed Identity",
+      "title": "Release Rail \u2014 Zeroed Counts and an Unnamed Identity",
       "description": "Two defects found by composing a release payload locally instead of reading the code: every release video rendered \"0 skills, 0 hooks\", and the announce rail named no posting identity. Includes the evidence for leaving the prerelease gate closed.",
       "tags": [
         "audit",
@@ -229,7 +229,7 @@
     {
       "slug": "cc-adoption-wave-210-212",
       "source": "docs/cc-adoption-wave-210-212/index.html",
-      "title": "CC Adoption Wave — 2.1.210 → 2.1.212",
+      "title": "CC Adoption Wave \u2014 2.1.210 \u2192 2.1.212",
       "description": "37 auto-filed adoption issues across three Claude Code releases. Filter by version, category, and gap score, click cards to build a work batch, and copy a triage prompt.",
       "tags": [
         "cc-adoption",
@@ -243,7 +243,7 @@
     {
       "slug": "yonyon-portfolio-adoption-options",
       "source": "docs/yonyon-portfolio-adoption-options/index.html",
-      "title": "Portfolio Bundle — Decision Board",
+      "title": "Portfolio Bundle \u2014 Decision Board",
       "description": "The decision board that planned this very Lab: 18 brainstormed ideas scored and mocked up, with a prompt composer that emitted the implementation instruction.",
       "tags": [
         "decision-board",
@@ -255,7 +255,7 @@
     {
       "slug": "session-standing-board",
       "source": "docs/session-standing-board.html",
-      "title": "Session Standing — Decision Board",
+      "title": "Session Standing \u2014 Decision Board",
       "description": "Drag-to-triage standing board for session outcomes: mouse, touch, and keyboard reorder, live buckets, and a prioritization prompt composer.",
       "tags": [
         "decision-board",
@@ -269,7 +269,7 @@
     {
       "slug": "swarm-coordination-2026",
       "source": "docs/swarm-coordination-2026.html",
-      "title": "Multi-Agent Coordination — Swarm vs Agents vs Workflow",
+      "title": "Multi-Agent Coordination \u2014 Swarm vs Agents vs Workflow",
       "description": "State-of-practice explainer comparing coordinator/worker swarms, agent teams, and deterministic workflows, with when-to-use guidance per topology.",
       "tags": [
         "multi-agent",
@@ -280,7 +280,7 @@
     {
       "slug": "triage-board",
       "source": "docs/triage-playground.html",
-      "title": "Issue Triage — 98 Open Issues",
+      "title": "Issue Triage \u2014 98 Open Issues",
       "description": "The whole open-issue backlog as one interactive board: drag to triage, milestone breakdowns, and a copy-out execution prompt for the chosen batch.",
       "tags": [
         "triage",
@@ -294,7 +294,7 @@
     {
       "slug": "lib-currency-audit",
       "source": "docs/playgrounds/lib-currency-audit-2026-05-31.html",
-      "title": "Library-Currency Audit — 2026-05-31",
+      "title": "Library-Currency Audit \u2014 2026-05-31",
       "description": "Verifier-corrected audit of library freshness across the toolchain, with severity re-ranks shown transparently.",
       "tags": [
         "audit",
@@ -305,7 +305,7 @@
     {
       "slug": "vercel-labs-adoption-ideas",
       "source": "docs/playgrounds/vercel-labs-2026-04-29-adoption-ideas.html",
-      "title": "Vercel Labs — 8 Adoption Ideas",
+      "title": "Vercel Labs \u2014 8 Adoption Ideas",
       "description": "Impact-vs-effort explorer for adopting emulate, portless, agent-browser, and json-render capabilities into OrchestKit.",
       "tags": [
         "adoption",
@@ -317,7 +317,7 @@
     {
       "slug": "m126-bundle-b-explainer",
       "source": "docs/playgrounds/m126-bundle-b-explainer.html",
-      "title": "M126 Bundle B — ultrareview + Fork Subagents",
+      "title": "M126 Bundle B \u2014 ultrareview + Fork Subagents",
       "description": "Deep-dive explainer for the claude ultrareview subcommand and CLAUDE_CODE_FORK_SUBAGENT adoption bundle.",
       "tags": [
         "explainer",
@@ -328,7 +328,7 @@
     {
       "slug": "vercel-labs-integration",
       "source": "docs/playgrounds/vercel-labs-integration.html",
-      "title": "Vercel Labs Integration — Staged Plan",
+      "title": "Vercel Labs Integration \u2014 Staged Plan",
       "description": "Stage-composable integration plan: pick a stage, see what changes, click idea cards for full detail. Each stage assumes the prior one shipped.",
       "tags": [
         "plan",
@@ -340,7 +340,7 @@
     {
       "slug": "superpowers-learnings",
       "source": "docs/playgrounds/superpowers-learnings.html",
-      "title": "OrchestKit × Superpowers — Gap Analysis",
+      "title": "OrchestKit \u00d7 Superpowers \u2014 Gap Analysis",
       "description": "Side-by-side of OrchestKit today vs improvements recommended by the Superpowers plugin analysis.",
       "tags": [
         "analysis",
@@ -670,6 +670,156 @@
         "measurement"
       ],
       "date": "2026-08-30"
+    },
+    {
+      "slug": "a-verdict-skill-that-could-end-without-a-verdict",
+      "source": "docs/fix--3263-verify-assert-evidence/index.html",
+      "title": "A Verdict Skill That Could End Without a Verdict",
+      "description": "/ork:verify once waited 40 minutes on three background test runs that wrote 0 bytes with no process alive, then produced no verdict. The contract that prevents it lived in prose; now scripts/assert-evidence.sh names one of five outcomes and only EVIDENCE may be graded. Toggle the log and process state and read what the gate says.",
+      "tags": [
+        "skills",
+        "false-signals",
+        "verification"
+      ],
+      "date": "2026-08-31"
+    },
+    {
+      "slug": "a-nudge-for-a-tool-that-was-not-in-the-room",
+      "source": "docs/fix--3733-task-nudge-cap/index.html",
+      "title": "A Nudge for a Tool That Was Not in the Room",
+      "description": "multi-step-task-nudge silenced itself only on a TaskCreated event, which a session with no TaskCreate tool can never produce, so it re-fired every sixth prompt all session telling the model to call a tool it did not have. The hook payload carries no tool list, so the fix caps on the session's own non-usage: N unanswered prompts, one final conditional line, then silence. Slide N and the prompt where a task appears.",
+      "tags": [
+        "hooks",
+        "prompt",
+        "false-signals"
+      ],
+      "date": "2026-08-31"
+    },
+    {
+      "slug": "pages-nothing-looked-at",
+      "source": "docs/feat--3727-stray-playground-pages/index.html",
+      "title": "Pages Nothing Looked At",
+      "description": "Three rules together made untracked explainer pages invisible: glyph never stages them, .gitignore un-ignores docs/playgrounds/, and the CI gate treats the dir as inert. Five were found by hand in one day. A SessionStart hook now names any such page older than an hour, once per session. Toggle the file's state and age and see whether the next session hears about it.",
+      "tags": [
+        "hooks",
+        "lifecycle",
+        "false-signals"
+      ],
+      "date": "2026-08-31"
+    },
+    {
+      "slug": "an-index-that-outgrew-its-own-budget",
+      "source": "docs/feat--3741-dream-index-budget/index.html",
+      "title": "An Index That Outgrew Its Own Budget",
+      "description": "MEMORY.md had a 17 KB budget in prose and a guard that asked before over-budget writes, yet six projects sat over it: the guard was skipped in bypass mode, the population that writes the index most, and nothing ever proposed moving old entries out. Now the guard emits advisory context in bypass mode and dream runs a deterministic budget pass with rule-based demotion. Paste an index and watch the rule pick.",
+      "tags": [
+        "skills",
+        "hooks",
+        "memory"
+      ],
+      "date": "2026-08-31"
+    },
+    {
+      "slug": "rules-that-were-never-enforced",
+      "source": "docs/feat--3835-operator-scope-vehicle/index.html",
+      "title": "Rules That Were Never Enforced",
+      "description": "ork shipped 26 permissions.deny rules in its plugin settings.json; CC reads only agent and subagentStatusLine from that file, so every rule was dead text and 29 blocking hooks were the only live enforcement. PR 1 of the divergence purge builds the delivery vehicle: a consent-gated writer into the operator's own settings scope, a doctor audit, and a zero-spend canary probe proving native deny holds under dangerously-skip-permissions.",
+      "tags": [
+        "hooks",
+        "security",
+        "settings"
+      ],
+      "date": "2026-08-31"
+    },
+    {
+      "slug": "purge-wave-1-six-hooks-one-refuted-verdict",
+      "source": "docs/chore--3835-purge-wave1/index.html",
+      "title": "Purge Wave 1: Six Hooks, One Refuted Verdict",
+      "description": "First deletion wave of the divergence purge: compound-command-validator (CC decomposes compound commands itself), agent-browser-safety (URL policy re-homed to sandbox.network), and four agent safety checks whose dead verdict the typecheck refuted mid-purge (a task dispatcher fanned them out; the register was corrected before merge). Plus a machine-sensitive egress security test found and pinned.",
+      "tags": [
+        "hooks",
+        "security"
+      ],
+      "date": "2026-08-31"
+    },
+    {
+      "slug": "the-purge-register-who-guards-what-now",
+      "source": "docs/docs--3835-divergence-register/index.html",
+      "title": "The Purge Register: Who Guards What Now",
+      "description": "The drift register rows for the operator-ordered divergence purge, rendered: pick any blocking hook and see its measured verdict (DELETE with the native replacement, or KEEP with the ability no JSON rule has). Every verdict stands on a measurement: the plugin-settings inertness proof and a zero-spend canary probe showing permissions.deny holds under dangerously-skip-permissions.",
+      "tags": [
+        "hooks",
+        "security",
+        "policy"
+      ],
+      "date": "2026-08-31"
+    },
+    {
+      "slug": "purge-wave-2-the-ask-storm-ends",
+      "source": "docs/chore--3835-purge-wave2/index.html",
+      "title": "Purge Wave 2: The Ask Storm Ends",
+      "description": "The wave that answers this morning's two user reports: network-egress-guard loses its whole ASK tier (the exfil confirmations both users hit on every transfer to their own servers), plus cron-guard, team-size-gate, restrict-bash and the pre-commit quality runner. Pick a command and see what it said before and what happens after; the DENY tier for executing fetched bytes is untouched and now posture-independent by test.",
+      "tags": [
+        "hooks",
+        "security",
+        "user-feedback"
+      ],
+      "date": "2026-08-31"
+    },
+    {
+      "slug": "purge-wave-3-the-baseline-moves-two-guards-go",
+      "source": "docs/chore--3835-purge-wave3/index.html",
+      "title": "Purge Wave 3: The Baseline Moves, Two Guards Go",
+      "description": "Why an un-disableable hook was the weaker guarantee next to a native permissions.deny rule, the security baseline commit that moved three guards out of SECURITY_HOOKS, and the deletion of file-guard and credential-read-guard with their patterns ported to the operator payload first. The four security shell files that asserted file-guard's contract now assert its absence plus the payload's completeness.",
+      "tags": [
+        "hooks",
+        "security"
+      ],
+      "date": "2026-08-31"
+    },
+    {
+      "slug": "purge-wave-4-the-big-two-and-the-purge-is-done",
+      "source": "docs/chore--3835-purge-wave4/index.html",
+      "title": "Purge Wave 4: The Big Two, and the Purge Is Done",
+      "description": "dangerous-command-blocker and git-validator deleted, with what each cost stated; the runner tests that used the blocker as a fixture moved to the surviving egress DENY tier; seven security files rewritten or re-pointed; and the day's strip: 29 blocking hooks audited, 16 deleted across four waves, 13 kept with a written reason each. The retiring blocker blocked its own deletion scripts twice, which is the whole point.",
+      "tags": [
+        "hooks",
+        "security"
+      ],
+      "date": "2026-08-31"
+    },
+    {
+      "slug": "platform-adoption-triage-08-01-to-08-27",
+      "source": "docs/docs--platform-triage-2026-08-31/index.html",
+      "title": "Platform Adoption Triage, 08-01 to 08-27",
+      "description": "27 Claude Platform capabilities across 11 snapshots, closing the three platform-watch issues open since 08-21. 21 were already decided in #3641; the 6 that were never triaged are decided here with the measurement behind each: five declines and one doc note. The one code action is an upper bound on the anthropic pin, and the page records the lane's standing shape, that triage is human by construction and that closing the issues cannot cause a re-file.",
+      "tags": [
+        "adoption",
+        "docs"
+      ],
+      "date": "2026-08-31"
+    },
+    {
+      "slug": "adoption-queue-is-a-queue-not-a-ledger",
+      "source": "docs/chore--drop-stale-2-1-219-gap-row/index.html",
+      "title": "The Adoption Queue Is a Queue, Not a Ledger",
+      "description": "Why a dead 2.1.219 row could sit in shared/cc-adoption-gaps.json looking load-bearing: the queue holds what still needs triage while the generated board holds history, and the merge is add-only precisely so the queue can shrink without the record losing a wave. Includes the three checks run before removing the row and the CI drift trap that shipping the regenerated board in the same commit avoids.",
+      "tags": [
+        "adoption",
+        "ci"
+      ],
+      "date": "2026-08-31"
+    },
+    {
+      "slug": "we-never-tested-the-rules-we-shipped",
+      "source": "docs/test--payload-rule-probe/index.html",
+      "title": "We Never Tested the Rules We Shipped",
+      "description": "The purge deleted 16 blocking hooks and handed their job to one JSON payload, so this executes a real trip case for every rule in it: 27 proven, 10 inert as spelled but covered by an Edit twin, 4 that CC refuses with no rule at all, and 12 that cannot be run because running them is the harm. It found two rules that matched nothing, copied out of the plugin settings file CC never reads, plus two defects in the probe itself that produced confident false verdicts.",
+      "tags": [
+        "security",
+        "hooks"
+      ],
+      "date": "2026-08-31"
     }
   ]
 }

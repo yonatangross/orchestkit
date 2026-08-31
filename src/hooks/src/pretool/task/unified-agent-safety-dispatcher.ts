@@ -6,11 +6,16 @@
  * Consolidates 5 agent-scoped hooks into a single dispatcher to reduce process spawns.
  *
  * Hooks consolidated here:
- * - block-writes (agent-scoped — can block)
- * - migration-safety-check (agent-scoped — can block)
- * - security-command-audit (agent-scoped — audit logging)
- * - ci-safety-check (agent-scoped — can block)
- * - deployment-safety-check (agent-scoped — can block)
+ * - security-command-audit (agent-scoped audit logging, KEEP: telemetry only)
+ *
+ * Retired 2026-08-31 (#3835 purge wave 1): block-writes,
+ * migration-safety-check, ci-safety-check, deployment-safety-check. The
+ * 08-31 inventory first called them dead (only entries/agent.ts was checked);
+ * the typecheck refuted that: THIS dispatcher fanned them out on the Task
+ * matcher. Corrected verdict, same outcome: agent-scoped spawn restrictions
+ * whose native home is agent frontmatter `tools:`/`disallowedTools` plus the
+ * --restricted CI lane (#3799), the same row as restrict-bash in
+ * shared/rules/cc-native-first.md.
  *
  * NOT consolidated (remains separate in hooks.json):
  * - team-size-gate (Agent Teams gate, different concern)
@@ -27,11 +32,7 @@ import {
 } from '../../lib/common.js';
 
 // Import hook implementations
-import { blockWrites } from '../../agent/block-writes.js';
-import { migrationSafetyCheck } from '../../agent/migration-safety-check.js';
 import { securityCommandAudit } from '../../agent/security-command-audit.js';
-import { ciSafetyCheck } from '../../agent/ci-safety-check.js';
-import { deploymentSafetyCheck } from '../../agent/deployment-safety-check.js';
 import { NOOP_CTX } from '../../lib/context.js';
 
 // -----------------------------------------------------------------------------
@@ -62,10 +63,6 @@ interface SafetyHookConfig {
 // -----------------------------------------------------------------------------
 
 const SAFETY_HOOKS: SafetyHookConfig[] = [
-  { name: 'block-writes', fn: blockWrites, canBlock: true },
-  { name: 'migration-safety-check', fn: migrationSafetyCheck, canBlock: true },
-  { name: 'ci-safety-check', fn: ciSafetyCheck, canBlock: true },
-  { name: 'deployment-safety-check', fn: deploymentSafetyCheck, canBlock: true },
   { name: 'security-command-audit', fn: securityCommandAudit, canBlock: false },
 ];
 
