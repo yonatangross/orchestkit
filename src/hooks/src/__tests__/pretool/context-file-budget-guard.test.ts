@@ -146,6 +146,25 @@ describe('context-file-budget-guard', () => {
     expect(isAsk(relaxed)).toBe(false);
   });
 
+  it('#3741 bypass mode emits advisory context instead of silence when over budget', () => {
+    const over = 'x'.repeat(18 * 1024);
+    const input = { ...writeInput(join(dir, 'MEMORY.md'), over), permissionMode: 'bypassPermissions' } as HookInput;
+    const result = contextFileBudgetGuard(input);
+    expect(result.continue).toBe(true);
+    expect(isAsk(result)).toBe(false);
+    const ctxText = (result.hookSpecificOutput as { additionalContext?: string } | undefined)?.additionalContext ?? '';
+    expect(ctxText).toContain('bypass mode, not asking');
+    expect(ctxText).toContain('MEMORY.md');
+    expect(ctxText).toContain('/ork:dream');
+  });
+
+  it('#3741 bypass mode stays silent under budget', () => {
+    const input = { ...writeInput(join(dir, 'MEMORY.md'), 'small index\n'), permissionMode: 'bypassPermissions' } as HookInput;
+    const result = contextFileBudgetGuard(input);
+    expect(isAsk(result)).toBe(false);
+    expect((result.hookSpecificOutput as { additionalContext?: string } | undefined)?.additionalContext).toBeUndefined();
+  });
+
   it('measures bytes, not characters (multi-byte content)', () => {
     // 9000 × '🧠' (4 bytes each) = 36KB of bytes but only 9000 code points.
     const emoji = '🧠'.repeat(9000);
