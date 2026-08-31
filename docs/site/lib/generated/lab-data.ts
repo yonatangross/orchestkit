@@ -15,6 +15,19 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "we-never-tested-the-rules-we-shipped",
+    "title": "We Never Tested the Rules We Shipped",
+    "description": "The purge deleted 16 blocking hooks and handed their job to one JSON payload, so this executes a real trip case for every rule in it: 27 proven, 10 inert as spelled but covered by an Edit twin, 4 that CC refuses with no rule at all, and 12 that cannot be run because running them is the harm. It found two rules that matched nothing, copied out of the plugin settings file CC never reads, plus two defects in the probe itself that produced confident false verdicts.",
+    "tags": [
+      "security",
+      "hooks"
+    ],
+    "date": "2026-08-31",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 6
+  },
+  {
     "slug": "adoption-queue-is-a-queue-not-a-ledger",
     "title": "The Adoption Queue Is a Queue, Not a Ledger",
     "description": "Why a dead 2.1.219 row could sit in shared/cc-adoption-gaps.json looking load-bearing: the queue holds what still needs triage while the generated board holds history, and the merge is add-only precisely so the queue can shrink without the record losing a wave. Includes the three checks run before removing the row and the CI drift trap that shipping the regenerated board in the same commit avoids.",
