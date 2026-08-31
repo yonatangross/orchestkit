@@ -15,6 +15,19 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "docs-kept-three-deleted-hooks-alive",
+    "title": "The Docs Kept Three Deleted Hooks Alive",
+    "description": "A purge leftover found the hard way: two deleted hooks blocked a live session, and looking them up showed the docs still describing them as current. The coherent fix is eleven files, not the six the issue named, because a page is also a nav entry and whatever links to it. Records what was deliberately left for a separate editorial pass: 94 prose mentions across 21 hand-written files that use these hooks as the worked example.",
+    "tags": [
+      "docs",
+      "hooks"
+    ],
+    "date": "2026-08-31",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 4
+  },
+  {
     "slug": "a-page-about-a-page-for-the-third-time",
     "title": "A Page About a Page, for the Third Time",
     "description": "The PR Playground gate demanded a hand-authored interactive page for a dated audit record, which is the same circularity it already fixed twice for README diffs and for session explainers. docs/audits/ joins the exempt list with the rationale written next to the other two, fail-closed behaviour unchanged, and a test pinning that an audit file riding along with a source change still requires a page so the exemption cannot be used to launder a diff past a required gate.",

@@ -236,21 +236,6 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
     "description": "How OrchestKit blocks dangerous commands, protects sensitive files, and auto-approves safe operations -- the defense-in-depth hooks that run before every tool use."
   },
   {
-    "url": "/docs/hooks/spotlights/block-writes",
-    "title": "Block Writes",
-    "description": "Enforces read-only boundaries for investigation and review agents"
-  },
-  {
-    "url": "/docs/hooks/spotlights/dangerous-command-blocker",
-    "title": "Dangerous Command Blocker",
-    "description": "Blocks catastrophic shell commands before they execute"
-  },
-  {
-    "url": "/docs/hooks/spotlights/file-guard",
-    "title": "File Guard",
-    "description": "Protects sensitive files and enforces file size limits on writes"
-  },
-  {
     "url": "/docs/hooks/spotlights/memory-validator",
     "title": "Memory Validator",
     "description": "Validates MCP memory operations to prevent accidental data loss"
@@ -604,21 +589,6 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
     "url": "/docs/reference/hooks/setup",
     "title": "Setup",
     "description": "Hooks triggered on Setup events (2 hooks)."
-  },
-  {
-    "url": "/docs/reference/hooks/spotlights/block-writes",
-    "title": "Block Writes",
-    "description": "Enforces read-only boundaries for investigation and review agents"
-  },
-  {
-    "url": "/docs/reference/hooks/spotlights/dangerous-command-blocker",
-    "title": "Dangerous Command Blocker",
-    "description": "Blocks catastrophic shell commands before they execute"
-  },
-  {
-    "url": "/docs/reference/hooks/spotlights/file-guard",
-    "title": "File Guard",
-    "description": "Protects sensitive files and enforces file size limits on writes"
   },
   {
     "url": "/docs/reference/hooks/spotlights/memory-validator",
