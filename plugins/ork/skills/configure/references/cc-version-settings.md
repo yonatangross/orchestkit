@@ -1017,3 +1017,69 @@ documented in analytics' `otel-fields.md`.
 **Action for OrchestKit**: none in settings — ork ships no OTEL config. Relevant when debugging
 truncated prompt/tool content in an OTEL pipeline (or the HQ Langfuse bridge): raise the limit on the
 host that launches `claude`, not in per-project config.
+
+## CC 2.1.257 Settings
+
+CC 2.1.252 through 2.1.256 add no settings (2.1.252 is four bug fixes; 2.1.253 to 2.1.256 were never
+published). CC 2.1.257 adds four keys and changes the meaning of one.
+
+### `timeFormat` and `timeZone`, the turn-end clock
+
+The turn-end clock and transcript-view timestamps follow `timeFormat` (12-hour, 24-hour, 24-hour UTC,
+or a strftime pattern) and `timeZone` (an IANA zone name):
+
+```json
+{ "timeFormat": "24h", "timeZone": "Asia/Jerusalem" }
+```
+
+**Action for OrchestKit**: none. Cosmetic, user scope. Nothing in ork renders CC timestamps.
+
+### `permissions.blockReadsOutsideWorkingDirectories`, reads outside the working directories
+
+Auto mode now prompts once before the first file read outside the working directories (cwd plus
+`additionalDirectories`), with an option to block such reads for good:
+
+```json
+{ "permissions": { "blockReadsOutsideWorkingDirectories": true } }
+```
+
+**Action for OrchestKit**: leave it unset unless every path a session reads is listed in
+`additionalDirectories`. Several ork skills read `~/.claude/` on purpose (analytics, dream, memory,
+doctor) and cross-repo work reads sibling checkouts; with the key set to `true` those reads fail
+instead of prompting. Answer the one-time prompt with allow. A doctor check for the key is tracked
+as a follow-up.
+
+### `CLAUDE_CODE_SUBAGENT_MODEL_FORCE`, one model for every subagent
+
+With `CLAUDE_CODE_SUBAGENT_MODEL_FORCE=1`, every subagent runs on `CLAUDE_CODE_SUBAGENT_MODEL` (or the
+main model when that is unset), ignoring the `model:` field in agent definitions and the `model`
+parameter on `Agent` spawns.
+
+```bash
+# Cap all subagent spend for this session
+export CLAUDE_CODE_SUBAGENT_MODEL=sonnet CLAUDE_CODE_SUBAGENT_MODEL_FORCE=1
+```
+
+**Action for OrchestKit**: the 23 explicit `model:` pins in `src/agents/` (7 haiku, 10 sonnet,
+6 opus) remain the authoring policy and are still validated, but they are inert while FORCE is set.
+Do not set FORCE without `CLAUDE_CODE_SUBAGENT_MODEL`: with a Fable main model that routes every
+haiku-tier agent to Fable. The `fable-spend-consent` hook still prompts on an explicit fable pin that
+CC would ignore under FORCE; a short-circuit is tracked as a follow-up.
+
+### `defaultMode: "bypassPermissions"` no longer honored in project settings
+
+`.claude/settings.json` and `.claude/settings.local.json` values of `"bypassPermissions"` for
+`permissions.defaultMode` are ignored from CC 2.1.257, exactly like `"auto"` already was. Set it in
+user or managed settings, or pass `--permission-mode bypassPermissions`.
+
+**Action for OrchestKit**: none in ork's shipped settings (no profile sets `defaultMode`). Users who
+put bypass mode in a project file lose it silently on upgrade; the setup and configure skills
+should point them at user scope.
+
+### `/effort s` and `--effort`, session scope
+
+`/effort s` changes effort for the current session only, matching `/model`. `--effort` now lifts a
+new model's default-effort hold for that session rather than permanently. Skill-level `effort:`
+frontmatter is a separate mechanism and is unchanged.
+
+**Action for OrchestKit**: none.

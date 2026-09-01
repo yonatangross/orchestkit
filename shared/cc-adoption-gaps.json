@@ -1,236 +1,457 @@
 [
   {
-    "version": "2.1.251",
+    "version": "2.1.252",
     "parse_failed": false,
     "features": [
       {
-        "feature_slug": "symlink_swap_after_permission_check",
-        "category": "breaking",
-        "description": "File tools no longer follow a symlink swapped in after the permission check, closing an out-of-scope read/write hole.",
-        "gap_score": 20,
-        "affected_skills": [
-          "security-patterns"
-        ],
-        "reference_changelog_line": "Fixed file tools (Read, Write, Edit) following a symlink swapped inside the working directory after the permission check, which could read or write outside the approved location",
-        "relevance": "plugin",
-        "disposition": "triaged-noop-no-evidence"
-      },
-      {
-        "feature_slug": "plugin_command_path_traversal",
-        "category": "breaking",
-        "description": "Marketplace plugin commands pointing outside the plugin directory are now rejected as path traversal.",
-        "gap_score": 20,
-        "affected_skills": [
-          "security-patterns"
-        ],
-        "reference_changelog_line": "Fixed plugin commands declared in a marketplace entry being able to point outside the plugin directory; such paths are now rejected with a path-traversal error",
-        "relevance": "plugin"
-      },
-      {
-        "feature_slug": "settings_beta_tracing_blocked",
-        "category": "breaking",
-        "description": "Project settings can no longer enable raw API body logging or bypass a managed OTLP collector.",
-        "gap_score": 20,
-        "affected_skills": [
-          "monitoring-observability",
-          "security-patterns"
-        ],
-        "reference_changelog_line": "Fixed project settings being able to enable detailed beta tracing or raw API body logging, and a lower-scope beta tracing endpoint bypassing an OTLP collector pinned by managed settings or a host app",
-        "relevance": "plugin",
-        "disposition": "triaged-noop-no-evidence"
-      },
-      {
-        "feature_slug": "workflow_scriptpath_read_check",
-        "category": "breaking",
-        "description": "Workflow tool no longer reads or quotes a scriptPath outside session-readable paths before permission checks run.",
-        "gap_score": 20,
-        "affected_skills": [
-          "agent-orchestration",
-          "security-patterns"
-        ],
-        "reference_changelog_line": "Fixed the Workflow tool reading (and quoting in errors) a `scriptPath` outside what the session may read before the permission check ran",
-        "relevance": "plugin"
-      },
-      {
-        "feature_slug": "grep_glob_symlink_deny_rules",
-        "category": "breaking",
-        "description": "Grep and Glob now apply Read(...) deny rules to files reached through symlinked search paths.",
-        "gap_score": 20,
-        "affected_skills": [
-          "security-patterns",
-          "configure"
-        ],
-        "reference_changelog_line": "Fixed Grep and Glob not applying `Read(...)` deny rules to files reached through a symlinked search path",
-        "relevance": "plugin",
-        "disposition": "triaged-noop-no-evidence"
-      },
-      {
-        "feature_slug": "disable_auto_mode_mid_session",
-        "category": "breaking",
-        "description": "Managed-settings disableAutoMode arriving mid-session now demotes a running auto-mode session to default mode.",
-        "gap_score": 20,
-        "affected_skills": [
-          "configure",
-          "security-patterns"
-        ],
-        "reference_changelog_line": "Fixed managed-settings `disableAutoMode` arriving mid-session not moving an already-running auto-mode session back to default mode",
-        "relevance": "plugin",
-        "disposition": "triaged-noop-no-evidence"
-      },
-      {
-        "feature_slug": "bash_arith_assign_auto_approve",
-        "category": "breaking",
-        "description": "Bash commands assigning arithmetic expressions to integer shell variables now prompt instead of auto-approving.",
-        "gap_score": 20,
-        "affected_skills": [
-          "security-patterns",
-          "configure"
-        ],
-        "reference_changelog_line": "Fixed Bash permission checks auto-approving commands that assign an arithmetic expression to an integer shell variable (e.g. `OPTIND=1/0`, `RANDOM=2+2`); these now prompt for approval",
-        "relevance": "plugin",
-        "disposition": "triaged-noop-no-evidence"
-      },
-      {
-        "feature_slug": "chrome_actions_permission_checks",
-        "category": "breaking",
-        "description": "Claude in Chrome browser actions now always route through Claude Code permission checks, not the extension's prompts.",
+        "feature_slug": "bug_fixes_only_252",
+        "category": "new_attr",
+        "description": "Four fixes: macOS 'task output swap refused' Bash failures, always-allow not saving in a project with no settings.local.json yet, Remote Control stalls on degraded connections, oversized background-task failure notifications exceeding the API size limit.",
         "gap_score": 5,
         "affected_skills": [
-          "browser-tools",
-          "security-patterns"
+          "configure"
         ],
-        "reference_changelog_line": "Changed Claude in Chrome so browser actions always go through Claude Code's permission checks, including in sessions with telemetry disabled, which previously used the Chrome extension's own prompts",
-        "relevance": "end-user",
-        "downgraded_from": 20,
-        "disposition": "unfiled-subfloor"
-      },
+        "reference_changelog_line": "Fixed \"always allow\" not saving in a project that has no .claude/settings.local.json yet",
+        "relevance": "plugin",
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "Already recorded as featureless in cc-support.json (2026-09-01 note). No settings keys, hook events, tools or permission surfaces changed."
+      }
+    ],
+    "raw_bullets_count": 4,
+    "triaged_by": "hand, lane adopt-cc-257, 2026-09-01"
+  },
+  {
+    "version": "2.1.257",
+    "parse_failed": false,
+    "features": [
       {
-        "feature_slug": "subagent_model_env_precedence",
-        "category": "breaking",
-        "description": "CLAUDE_CODE_SUBAGENT_MODEL is now only a default; agent definition model: and per-spawn model take precedence.",
-        "gap_score": 20,
+        "feature_slug": "fable_5_1_default_model",
+        "category": "new_attr",
+        "description": "claude-fable-5-1 is the default Fable model: 1M context, $10/$50 per MTok, cache reads $0.25/MTok.",
+        "gap_score": 5,
         "affected_skills": [
-          "agent-orchestration",
-          "chain-patterns"
-        ],
-        "reference_changelog_line": "Changed `CLAUDE_CODE_SUBAGENT_MODEL` to set the default subagent model rather than override everything: an agent definition's `model:` and an explicit per-spawn model now take precedence over it",
-        "relevance": "plugin"
-      },
-      {
-        "feature_slug": "default_commit_trailer_non_claude",
-        "category": "breaking",
-        "description": "Default commit trailer becomes Co-Authored-By: Claude Code when the active model is not a recognized Claude model.",
-        "gap_score": 20,
-        "affected_skills": [
-          "commit"
-        ],
-        "reference_changelog_line": "Changed the default commit trailer to `Co-Authored-By: Claude Code` when the active model isn't a recognized Claude model (e.g. third-party models behind a custom `ANTHROPIC_BASE_URL`)",
-        "relevance": "plugin"
-      },
-      {
-        "feature_slug": "sandbox_bash_output_file_hardening",
-        "category": "breaking",
-        "description": "Sandboxed Bash commands can no longer redirect or replace the files their output is captured in.",
-        "gap_score": 20,
-        "affected_skills": [
-          "security-patterns",
-          "devops-deployment"
-        ],
-        "reference_changelog_line": "Changed how Bash command output files are created and read back when commands run in the sandbox, so a sandboxed command cannot redirect or replace them",
-        "relevance": "plugin"
-      },
-      {
-        "feature_slug": "project_env_config_dir_blocked",
-        "category": "breaking",
-        "description": "Project .claude/settings.json env can no longer set CLAUDE_CONFIG_DIR, CLAUDE_CODE_TMPDIR, or TMPDIR/TMP/TEMP.",
-        "gap_score": 20,
-        "affected_skills": [
-          "configure",
+          "llm-integration",
+          "analytics",
           "doctor"
         ],
-        "reference_changelog_line": "Changed project-level `.claude/settings.json` `env` to no longer set `CLAUDE_CONFIG_DIR`, `CLAUDE_CODE_TMPDIR`, or `TMPDIR`/`TMP`/`TEMP`; set them in your shell, user, or managed settings instead",
-        "relevance": "plugin"
+        "reference_changelog_line": "Added Claude Fable 5.1 (`claude-fable-5-1`), now the default Fable model — 1M context, $10/$50 per Mtok with $0.25/Mtok cache reads",
+        "relevance": "plugin",
+        "disposition": "adopted-in-pr",
+        "ork_disposition_note": "Added to src/hooks/src/lib/models.vocab.json (fullIds + pricing, `fable` alias now resolves to 5.1 like CC does) and tests/ci/claude-model-ids.txt. cost-estimator picks the $0.25 cache-read rate up via the vocab import."
       },
       {
-        "feature_slug": "background_session_cli_subcommands",
+        "feature_slug": "subagent_model_force_env",
+        "category": "new_attr",
+        "description": "CLAUDE_CODE_SUBAGENT_MODEL_FORCE applies CLAUDE_CODE_SUBAGENT_MODEL (or the main model) to every subagent, ignoring per-spawn and agent-definition model overrides.",
+        "gap_score": 5,
+        "affected_skills": [
+          "configure",
+          "doctor",
+          "agent-orchestration"
+        ],
+        "reference_changelog_line": "Added `CLAUDE_CODE_SUBAGENT_MODEL_FORCE` to apply `CLAUDE_CODE_SUBAGENT_MODEL` (or the main model) to every subagent, ignoring per-spawn and agent-definition model overrides",
+        "relevance": "plugin",
+        "disposition": "deferred-S",
+        "ork_disposition_note": "Documented in configure/cc-version-settings.md. DEFERRED (S): fable-spend-consent still prompts on an explicit fable pin that CC will ignore when FORCE is set; add an env short-circuit. The 23 explicit `model:` pins (7 haiku, 10 sonnet, 6 opus) and test-agent-model-tool-correlation.sh stay correct as authoring policy but are inert under FORCE; note that in agent-authoring.md."
+      },
+      {
+        "feature_slug": "effort_session_scope",
         "category": "new_command",
-        "description": "claude --help now documents attach, logs, stop, respawn, and rm for background sessions.",
+        "description": "`/effort s` sets effort for the current session only; `--effort` now lifts a new model's default-effort hold per session instead of permanently.",
         "gap_score": 15,
         "affected_skills": [
-          "agent-orchestration",
-          "chain-patterns"
+          "configure"
         ],
-        "reference_changelog_line": "Added `attach`, `logs`, `stop`, `respawn`, and `rm` to `claude --help`; the `--resume` message for a running background session now names the exact `claude attach <id>` command",
-        "relevance": "plugin",
-        "disposition": "triaged-noop-no-evidence"
+        "reference_changelog_line": "Added `s` in `/effort` to change effort for the current session only, matching `/model`",
+        "relevance": "end-user",
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "Doc note only. Skill-level `effort:` frontmatter is a different mechanism and is untouched."
       },
       {
-        "feature_slug": "sandbox_settings_require_approval",
+        "feature_slug": "block_reads_outside_working_dirs",
         "category": "new_perm",
-        "description": "Server-managed settings that weaken sandbox isolation, terminate TLS, or inject credentials now require approval.",
+        "description": "Auto mode prompts once before the first file read outside the working directories; permissions.blockReadsOutsideWorkingDirectories blocks such reads.",
+        "gap_score": 12,
+        "affected_skills": [
+          "configure",
+          "doctor",
+          "setup",
+          "security-patterns"
+        ],
+        "reference_changelog_line": "Added a one-time prompt in auto mode before the first file read outside the working directories, with the option to block such reads (`permissions.blockReadsOutsideWorkingDirectories`)",
+        "relevance": "plugin",
+        "disposition": "deferred-S",
+        "ork_disposition_note": "Documented in configure/cc-version-settings.md. DEFERRED (S): ork skills read ~/.claude (analytics, dream, memory) and cross-repo paths; doctor should warn when the key is true and additionalDirectories does not cover those paths."
+      },
+      {
+        "feature_slug": "time_format_timezone_settings",
+        "category": "new_attr",
+        "description": "timeFormat and timeZone settings control the turn-end clock and transcript timestamps (12h, 24h, 24h UTC, or strftime).",
+        "gap_score": 5,
+        "affected_skills": [
+          "configure"
+        ],
+        "reference_changelog_line": "Added \"Time format\" (`timeFormat`) and `timeZone` settings: 12-hour, 24-hour, 24-hour UTC, or a strftime pattern for the turn-end clock and transcript-view timestamps",
+        "relevance": "end-user",
+        "disposition": "adopted-doc",
+        "ork_disposition_note": "Documented in configure/cc-version-settings.md. Operator proposal: timeFormat 24h."
+      },
+      {
+        "feature_slug": "containment_escape_auto_mode_rule",
+        "category": "new_perm",
+        "description": "Auto mode no longer auto-approves cloud metadata-credential fetches, egress evasion, or cross-tenant reach unless the environment marks them expected.",
         "gap_score": 12,
         "affected_skills": [
           "security-patterns",
           "configure"
         ],
-        "reference_changelog_line": "Changed server-managed settings that terminate sandbox TLS, route sandbox traffic through your own proxy, inject credentials, or weaken sandbox isolation to require approval before they apply",
-        "relevance": "plugin"
+        "reference_changelog_line": "Added a Containment Escape rule to auto mode so cloud metadata-credential fetches, egress evasion, and cross-tenant reach are no longer auto-approved unless your environment marks them expected",
+        "relevance": "plugin",
+        "disposition": "triaged-noop-cc-native",
+        "ork_disposition_note": "network-egress-guard.ts has no metadata-endpoint coverage (grep 169.254 in src/hooks/src: 0 hits). CC now covers it natively in auto mode; per shared/rules/cc-native-first.md do not add a regex twin."
       },
       {
-        "feature_slug": "custom_headers_require_approval",
-        "category": "new_perm",
-        "description": "ANTHROPIC_CUSTOM_HEADERS from managed or project settings now requires approval for credential or routing headers.",
-        "gap_score": 12,
+        "feature_slug": "default_mode_bypass_ignored_project_scope",
+        "category": "breaking",
+        "description": "defaultMode: bypassPermissions in .claude/settings.json or settings.local.json is now ignored (like auto); set it in user or managed settings or pass --permission-mode.",
+        "gap_score": 20,
+        "affected_skills": [
+          "configure",
+          "setup"
+        ],
+        "reference_changelog_line": "Changed `defaultMode: \"bypassPermissions\"` in `.claude/settings.json` or `.claude/settings.local.json` to be ignored, like `\"auto\"`; set it in user or managed settings, or pass `--permission-mode`",
+        "relevance": "plugin",
+        "disposition": "adopted-doc",
+        "ork_disposition_note": "Documented in configure/cc-version-settings.md. ork's tracked settings set no defaultMode (grep: 0). Users who fled to bypass mode via project settings (08-31 feedback) lose it silently; the doc says where it must live now."
+      },
+      {
+        "feature_slug": "worktree_isolation_bash_loop_fix",
+        "category": "breaking",
+        "description": "Worktree-isolated sessions no longer refuse Bash loops, $VAR reads, \"$(...)\" and heredocs that never touch git as too complex to verify.",
+        "gap_score": 20,
+        "affected_skills": [
+          "agent-orchestration",
+          "chain-patterns"
+        ],
+        "reference_changelog_line": "Fixed worktree-isolated sessions refusing Bash loops, `$VAR` reads, `\"$(…)\"` and heredocs that never touch git as \"too complex to verify that it stays inside the worktree\"",
+        "relevance": "plugin",
+        "disposition": "upside",
+        "ork_disposition_note": "25 agents declare `isolation: worktree` (grep src/agents). Free. The cross-repo `git -C` refusal (hq-ext #795) is a different check and is NOT lifted by this bullet."
+      },
+      {
+        "feature_slug": "worktree_common_gitdir_write_after_cd",
+        "category": "breaking",
+        "description": "Sandboxed git in a linked worktree keeps write access to the common .git directory after cd into a subdirectory.",
+        "gap_score": 20,
+        "affected_skills": [
+          "agent-orchestration"
+        ],
+        "reference_changelog_line": "Fixed sandboxed git commands in a linked worktree losing write access to the repository's common `.git` directory after `cd` into a subdirectory",
+        "relevance": "plugin",
+        "disposition": "upside",
+        "ork_disposition_note": "Free. A plausible contributor to the 'worktree operations exit 0 but do nothing' reports in memory; not re-measured here."
+      },
+      {
+        "feature_slug": "claude_p_waits_for_monitor",
+        "category": "breaking",
+        "description": "claude -p no longer exits ~5s after its final result while a Monitor the model armed is still running; it waits for the watch to fire or time out.",
+        "gap_score": 20,
+        "affected_skills": [
+          "verify",
+          "bare-eval",
+          "chain-patterns"
+        ],
+        "reference_changelog_line": "Fixed `claude -p` exiting about 5 seconds after its final result while a Monitor the model armed was still running; it now waits for the watch to fire or time out",
+        "relevance": "plugin",
+        "disposition": "watch",
+        "ork_disposition_note": "Headless callers with an outer timeout (tests/evals/scripts/lib/eval-common.sh run_with_timeout 30; ci-sentinel ORK_SENTINEL_PER_PR_TIMEOUT_S 300) will now hit that timeout if the model arms a Monitor. Watch on the next eval run; no code change yet."
+      },
+      {
+        "feature_slug": "disallowed_tools_reload_fix",
+        "category": "breaking",
+        "description": "--disallowedTools and session deny rules survive the first settings reload under allowManagedPermissionRulesOnly.",
+        "gap_score": 20,
         "affected_skills": [
           "configure",
           "security-patterns"
         ],
-        "reference_changelog_line": "Changed `ANTHROPIC_CUSTOM_HEADERS` from managed or project settings to require approval when it sets a credential, org/tenant, routing, or API-behavior header (e.g. `Authorization`, `Host`)",
+        "reference_changelog_line": "Fixed `--disallowedTools` and session deny rules being dropped after the first settings reload when `allowManagedPermissionRulesOnly` is enabled",
         "relevance": "plugin",
-        "disposition": "triaged-noop-no-evidence"
+        "disposition": "upside",
+        "ork_disposition_note": "No ork guard depends on the CLI flag; agent frontmatter disallowedTools is a different mechanism. Free."
       },
       {
-        "feature_slug": "model_switch_hook_events",
-        "category": "new_event",
-        "description": "New PreModelSwitch and PostModelSwitch hook events can block, confirm, or annotate a model switch.",
-        "gap_score": 10,
+        "feature_slug": "bash_read_edit_deny_redirect_fix",
+        "category": "breaking",
+        "description": "Bash Read()/Edit() deny rules now apply to < file redirects and reader commands like tac and egrep.",
+        "gap_score": 20,
+        "affected_skills": [
+          "security-patterns",
+          "configure"
+        ],
+        "reference_changelog_line": "Fixed Bash `Read()`/`Edit()` deny rules not applying to `< file` redirects and reader commands like `tac` and `egrep`; a deny rule on any argument or redirect target now refuses the command",
+        "relevance": "plugin",
+        "disposition": "upside",
+        "ork_disposition_note": "Strengthens the CC-native Read() deny rules that replaced credential-read-guard in purge wave 3 (#3840). Free."
+      },
+      {
+        "feature_slug": "permissions_ask_compound_auto_mode_fix",
+        "category": "breaking",
+        "description": "A permissions.ask rule is no longer skipped in auto mode when the matching command runs inside a compound command or subshell.",
+        "gap_score": 20,
+        "affected_skills": [
+          "security-patterns"
+        ],
+        "reference_changelog_line": "Fixed a `permissions.ask` rule being skipped in auto mode when the matching command ran inside a compound command or subshell, letting it run without the confirmation prompt",
+        "relevance": "plugin",
+        "disposition": "upside",
+        "ork_disposition_note": "Free; ork ships no permissions.ask rules of its own."
+      },
+      {
+        "feature_slug": "zsh_double_bracket_prompt_fix",
+        "category": "breaking",
+        "description": "Bash permission checks no longer auto-approve [[ ]] conditionals that zsh parses differently from bash.",
+        "gap_score": 20,
+        "affected_skills": [
+          "security-patterns"
+        ],
+        "reference_changelog_line": "Fixed Bash permission checks auto-approving certain `[[ ]]` conditionals that zsh parses differently from bash; these commands now prompt for approval",
+        "relevance": "plugin",
+        "disposition": "upside",
+        "ork_disposition_note": "Free."
+      },
+      {
+        "feature_slug": "plugin_symlink_component_refused",
+        "category": "breaking",
+        "description": "Plugin component paths (command, agent, skill, hooks) that are symlinks are refused, closing reads outside the plugin directory.",
+        "gap_score": 20,
+        "affected_skills": [
+          "security-patterns"
+        ],
+        "reference_changelog_line": "Fixed plugins being able to read files outside their own directory through a declared command, agent, skill, hooks or other component path that is a symlink; such paths are now refused with an error",
+        "relevance": "plugin",
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "plugins/ork contains 0 symlinks (find -type l, VERIFIED). No-op."
+      },
+      {
+        "feature_slug": "add_dir_inside_cwd_loads_components",
+        "category": "new_attr",
+        "description": "/add-dir accepts a directory inside the cwd and loads its skills, commands and agents like --add-dir does at startup.",
+        "gap_score": 5,
+        "affected_skills": [
+          "setup"
+        ],
+        "reference_changelog_line": "Fixed `/add-dir` rejecting a directory inside the current working directory; it now loads that directory's skills, commands, and agents like `--add-dir` does at startup",
+        "relevance": "plugin",
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "No ork surface depends on it."
+      },
+      {
+        "feature_slug": "fork_keeps_prompt_cache",
+        "category": "new_attr",
+        "description": "/fork keeps the original conversation's prompt cache in the new background session; the worktree briefing arrives as a message, not a system-prompt change.",
+        "gap_score": 5,
+        "affected_skills": [
+          "chain-patterns",
+          "brainstorm"
+        ],
+        "reference_changelog_line": "Improved `/fork` to keep the original conversation's prompt cache in the new background session: its worktree briefing now arrives as a message instead of a system-prompt change",
+        "relevance": "plugin",
+        "disposition": "upside",
+        "ork_disposition_note": "Free for the 80 `context: fork` skills."
+      },
+      {
+        "feature_slug": "subagent_autocontinue_after_cutoff",
+        "category": "breaking",
+        "description": "Subagents cut off mid-stream (sleep, dropped connection, server error) now continue automatically instead of ending with an incomplete response.",
+        "gap_score": 20,
+        "affected_skills": [
+          "agent-orchestration"
+        ],
+        "reference_changelog_line": "Fixed subagents stopping when a response was cut off mid-stream by a computer sleep, dropped connection, or server error; they now automatically continue instead of ending with an incomplete response",
+        "relevance": "plugin",
+        "disposition": "upside",
+        "ork_disposition_note": "subagent-stop/retry-handler.ts is orchestration-level (failed agent, suggest alternative), not a mid-stream retry, so nothing to subtract. Free."
+      },
+      {
+        "feature_slug": "background_session_lifecycle_fixes",
+        "category": "new_attr",
+        "description": "Background sessions: start during macOS npm self-update, state.json detail, Completed ordering, --bg from a deleted dir, --resume double listing, --continue opens finished sessions, old-binary retirement, agents --json raw-mode fix, stashed prompt kept.",
+        "gap_score": 5,
+        "affected_skills": [
+          "chain-patterns"
+        ],
+        "reference_changelog_line": "Fixed `claude agents --json` briefly switching the terminal to raw mode and undoing another program's terminal settings on exit",
+        "relevance": "plugin",
+        "disposition": "upside",
+        "ork_disposition_note": "Free. ork drives no `claude --bg`; herdr is a separate multiplexer and unaffected."
+      },
+      {
+        "feature_slug": "stream_json_non_jsonl_fail_fast",
+        "category": "breaking",
+        "description": "Non-JSONL data piped into claude -p --input-format stream-json fails fast instead of growing memory unbounded.",
+        "gap_score": 20,
+        "affected_skills": [
+          "bare-eval"
+        ],
+        "reference_changelog_line": "Fixed unbounded memory growth when non-JSONL data is piped into `claude -p --input-format stream-json`; it now fails fast with a clear error",
+        "relevance": "plugin",
+        "disposition": "upside",
+        "ork_disposition_note": "eval-common.sh:258 pipes probe input into --input-format stream-json; a malformed probe now errors instead of hanging. Free."
+      },
+      {
+        "feature_slug": "gateway_model_description_and_discovery",
+        "category": "new_attr",
+        "description": "Gateway-discovered /model entries may carry a description; discovery runs even under CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC; `fable`/`best` keep resolving to Fable 5 on gateways until 5.1 is configured there.",
+        "gap_score": 5,
+        "affected_skills": [
+          "llm-integration",
+          "configure"
+        ],
+        "reference_changelog_line": "Added support for a gateway-supplied `description` on discovered `/model` picker entries (`CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY`); entries without one still read \"From gateway\"",
+        "relevance": "end-user",
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "llm-integration/model-selection.md already documents the discovery env. Note only."
+      },
+      {
+        "feature_slug": "sandbox_denied_domains_trailing_dot",
+        "category": "breaking",
+        "description": "sandbox.network.deniedDomains entries now block a host written with a trailing dot inside the sandbox.",
+        "gap_score": 20,
         "affected_skills": [
           "configure",
+          "security-patterns"
+        ],
+        "reference_changelog_line": "Fixed sandbox network hosts written with a trailing dot (`example.com.`): a `deniedDomains` entry didn't block the host inside the sandbox, and \"don't ask again\" for such a host kept prompting",
+        "relevance": "plugin",
+        "disposition": "upside",
+        "ork_disposition_note": "Closes a bypass in the deniedDomains rollout (#3322/#3424) that network-egress-guard's retirement is gated on. Free."
+      },
+      {
+        "feature_slug": "doctor_stale_sandbox_mask_warning",
+        "category": "new_command",
+        "description": "/doctor warns about stale sandbox mask files left by a killed session.",
+        "gap_score": 15,
+        "affected_skills": [
           "doctor"
         ],
-        "reference_changelog_line": "Added `PreModelSwitch` and `PostModelSwitch` hook events (block, confirm, or annotate a model switch); `SessionStart` resume hooks now receive session staleness and the estimated re-cache cost",
-        "relevance": "plugin"
+        "reference_changelog_line": "Added a `/doctor` warning for stale sandbox mask files left by a killed session",
+        "relevance": "end-user",
+        "disposition": "triaged-noop-cc-native",
+        "ork_disposition_note": "CC's /doctor now owns this; ork's sandbox-posture lib does not duplicate it (cc-native-first)."
       },
       {
-        "feature_slug": "rate_limits_spend_limit_field",
-        "category": "new_field",
-        "description": "New rate_limits.spend_limit status line field for gateway users with spend limits.",
-        "gap_score": 10,
+        "feature_slug": "code_review_comment_gitlab",
+        "category": "new_attr",
+        "description": "/code-review --comment posts findings on GitLab merge requests via glab mr note.",
+        "gap_score": 5,
         "affected_skills": [
-          "analytics"
+          "review-pr"
         ],
-        "reference_changelog_line": "Added a Spend limit bar to `/usage` and a `rate_limits.spend_limit` status line field for developers behind a Claude apps gateway with spend limits",
+        "reference_changelog_line": "Improved `/code-review --comment` to post findings on GitLab merge requests via `glab mr note` instead of reporting the target as unsupported",
         "relevance": "plugin",
-        "recall_boosted_from": 5,
-        "disposition": "triaged-noop-no-evidence"
+        "disposition": "adopted-in-pr",
+        "ork_disposition_note": "One-line note added to review-pr/SKILL.md next to the existing --comment sentence."
       },
       {
-        "feature_slug": "prompt_cache_statusline_object",
-        "category": "new_field",
-        "description": "New prompt_cache object for status line scripts exposing hit ratio, misses, re-cached tokens, and warm/cold.",
-        "gap_score": 10,
+        "feature_slug": "settings_dir_created_after_startup",
+        "category": "breaking",
+        "description": "Settings in a .claude/ folder created after startup are picked up without a restart.",
+        "gap_score": 20,
         "affected_skills": [
-          "analytics",
-          "telemetry-inspect"
+          "configure"
         ],
-        "reference_changelog_line": "Added a per-session prompt-cache line to `/cost` (hit ratio, misses, tokens re-cached, warm/cold) and a matching `prompt_cache` object for status line scripts",
+        "reference_changelog_line": "Fixed settings in a `.claude/` folder created after startup not being picked up until restart",
         "relevance": "plugin",
-        "recall_boosted_from": 5,
-        "disposition": "triaged-noop-no-evidence"
+        "disposition": "upside",
+        "ork_disposition_note": "The ConfigChange settings-reload hook now also sees a late-created project settings file. Free."
+      },
+      {
+        "feature_slug": "background_command_detach_and_monitor_stop_fixes",
+        "category": "breaking",
+        "description": "Detached background commands (timeout, setsid) no longer survive a task stop or exit; stopping a background subagent stops its monitors; Claude is told when you stop a background command.",
+        "gap_score": 20,
+        "affected_skills": [
+          "chain-patterns"
+        ],
+        "reference_changelog_line": "Fixed background commands that detach from their shell (for example under `timeout` or `setsid`) surviving a task stop or Claude Code exit",
+        "relevance": "plugin",
+        "disposition": "upside",
+        "ork_disposition_note": "Free."
+      },
+      {
+        "feature_slug": "add_dir_refuses_network_paths",
+        "category": "breaking",
+        "description": "--add-dir, /add-dir and additionalDirectories refuse UNC shares and /net automounts.",
+        "gap_score": 20,
+        "affected_skills": [
+          "setup",
+          "configure"
+        ],
+        "reference_changelog_line": "Changed `--add-dir`, `/add-dir`, and `additionalDirectories` to refuse network paths (UNC shares, `/net/<host>` automounts) with a message before touching them; on Windows use a mapped drive letter",
+        "relevance": "plugin",
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "No network paths in any ork settings profile."
+      },
+      {
+        "feature_slug": "proactive_style_busy_loop_fix",
+        "category": "breaking",
+        "description": "Proactive output style sessions idle instead of busy-looping while a background command or Monitor they started is running.",
+        "gap_score": 20,
+        "affected_skills": [],
+        "reference_changelog_line": "Fixed Proactive output style sessions busy-looping with filler messages and repeated log reads instead of idling while a background command or Monitor they started is still running",
+        "relevance": "end-user",
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "ork ships no Proactive style."
+      },
+      {
+        "feature_slug": "btw_history_keys_changed",
+        "category": "new_command",
+        "description": "/btw history browsing moved from left/right arrows to Shift+arrows or [ ]; Ctrl+E command explanation removed from Bash permission prompts.",
+        "gap_score": 15,
+        "affected_skills": [],
+        "reference_changelog_line": "Changed `/btw` history browsing from `←`/`→` to `Shift+←`/`Shift+→` (or `[`/`]`), stepping through your recent side questions and back to the live answer",
+        "relevance": "end-user",
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "No ork doc cites the old keys (grep /btw and Ctrl+E: 0 in src)."
+      },
+      {
+        "feature_slug": "managed_settings_and_policy_helper_changes",
+        "category": "new_attr",
+        "description": "managedSourcesBehavior merge takes sandbox.credentials.awsPairs and sandbox.ripgrep whole from the highest source; policyHelper timeouts clamped; shadowed policyHelper runs when the fetch reports removal.",
+        "gap_score": 5,
+        "affected_skills": [
+          "configure"
+        ],
+        "reference_changelog_line": "Changed `managedSourcesBehavior: \"merge\"` to take `sandbox.credentials.awsPairs` and `sandbox.ripgrep` whole from the highest managed source that sets them instead of combining the sources' values",
+        "relevance": "end-user",
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "No managed settings in the estate."
+      },
+      {
+        "feature_slug": "provider_auth_and_remote_control_fixes",
+        "category": "new_attr",
+        "description": "Bedrock/Vertex/Foundry header and profile fixes, Remote Control consent and model fixes, gateway TLS pinning, Cowork artifact asks.",
+        "gap_score": 5,
+        "affected_skills": [],
+        "reference_changelog_line": "Fixed dismissing the Remote Control consent prompt (Esc, or `n` at `claude remote-control`) counting as consent, so the next request connected without asking",
+        "relevance": "end-user",
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "Not a plugin surface."
+      },
+      {
+        "feature_slug": "vscode_ui_changes",
+        "category": "new_attr",
+        "description": "VS Code: account/usage headers, model pill with effort row, output style picker, archive sessions, provider-feature gating.",
+        "gap_score": 5,
+        "affected_skills": [],
+        "reference_changelog_line": "[VSCode] Added output style selection to the command menu, including custom styles",
+        "relevance": "end-user",
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "Not a plugin surface."
       }
     ],
-    "raw_bullets_count": 71,
-    "features_extracted": 18,
-    "issues_filed_at": "2026-08-29T10:42:45Z"
+    "raw_bullets_count": 104,
+    "triaged_by": "hand, lane adopt-cc-257, 2026-09-01"
   }
 ]
