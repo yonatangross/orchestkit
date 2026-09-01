@@ -115,7 +115,10 @@ describe('bypassPermissions ASK gate', () => {
   describe('context-file-budget-guard', () => {
     let dir: string;
 
-    it('asks on an over-budget MEMORY.md write in default mode', () => {
+    // Advisory-only since 2026-09-01: no longer an ASK site in ANY mode. It
+    // stays in this file as the negative pin, so a future revival of its ask
+    // path fails here rather than surfacing as a dialog in every lane.
+    it('does not ask on an over-budget MEMORY.md write in default mode either', () => {
       dir = mkdtempSync(join(tmpdir(), 'bypass-gate-'));
       try {
         const input = {
@@ -125,7 +128,10 @@ describe('bypassPermissions ASK gate', () => {
           tool_input: { file_path: join(dir, 'MEMORY.md'), content: 'y'.repeat(18 * 1024) },
           permissionMode: 'default',
         } as HookInput;
-        expect(decisionOf(contextFileBudgetGuard(input))).toBe('ask');
+        const r = contextFileBudgetGuard(input);
+        expect(decisionOf(r)).not.toBe('ask');
+        expect(r.continue).toBe(true);
+        expect((r.hookSpecificOutput as { additionalContext?: string } | undefined)?.additionalContext ?? '').toContain('not asking, advising');
       } finally {
         rmSync(dir, { recursive: true, force: true });
       }

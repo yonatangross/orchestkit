@@ -27,16 +27,20 @@ const ctx = createTestContext({ projectDir: '/tmp/verdict-dispatcher' });
 
 describe('sync-write-edit-dispatcher carries sibling verdicts', () => {
 
-  it('surfaces context-file-budget-guard ask for an oversized MEMORY.md', () => {
+  it('surfaces context-file-budget-guard advisory for an oversized MEMORY.md', () => {
+    // The guard stopped asking on 2026-09-01 (advisory-only, see its header);
+    // the dispatcher must carry its additionalContext, and must NOT turn an
+    // over-budget write into a permission dialog.
     const r = syncWriteEditDispatcher(write('/tmp/verdict-dispatcher/MEMORY.md', '- a memory line that is long enough to add up quickly\n'.repeat(400)), ctx);
-    expect(r.hookSpecificOutput?.permissionDecision).toBe('ask');
+    expect(r.hookSpecificOutput?.permissionDecision).toBeUndefined();
+    expect(r.hookSpecificOutput?.additionalContext ?? '').toContain('context-file-budget-guard');
+    expect(r.hookSpecificOutput?.additionalContext ?? '').toContain('MEMORY.md');
   });
 
-  it('keeps updatedInput from write-headers next to the ask (budget guard)', () => {
-    // file-guard's oversized-source ask retired with the hook (#3835 wave 3); the
-    // budget guard's ask is the surviving sibling verdict the merge must carry.
-    const r = syncWriteEditDispatcher(write('/tmp/verdict-dispatcher/MEMORY.md', '- a memory line that is long enough to add up quickly\n'.repeat(400)), ctx);
-    expect(r.hookSpecificOutput?.permissionDecision).toBe('ask');
+  it('a small MEMORY.md write carries no budget advisory (negative control)', () => {
+    const r = syncWriteEditDispatcher(write('/tmp/verdict-dispatcher/MEMORY.md', '# memory\n- one line\n'), ctx);
+    expect(r.hookSpecificOutput?.permissionDecision).toBeUndefined();
+    expect(r.hookSpecificOutput?.additionalContext ?? '').not.toContain('context-file-budget-guard');
   });
 
   it('stays quiet for a small source file (negative control)', () => {

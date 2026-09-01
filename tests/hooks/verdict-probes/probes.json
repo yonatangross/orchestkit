@@ -29,7 +29,7 @@
       }
     },
     {
-      "id": "write-memory-budget-ask",
+      "id": "write-memory-budget-advisory",
       "hook": "pretool/write-edit/sync-write-edit-dispatcher",
       "event": "PreToolUse",
       "trip": {
@@ -43,7 +43,7 @@
             }
           }
         },
-        "expect": "ask"
+        "expect": "context"
       },
       "control": {
         "payload": {
@@ -58,7 +58,8 @@
           "context",
           "allow"
         ]
-      }
+      },
+      "note": "2026-09-01: the budget guard is advisory-only in every permission mode; an over-budget MEMORY.md write yields context, never ask."
     },
     {
       "id": "agent-fable-pin-consent-ask",
@@ -354,7 +355,7 @@
       "id": "context-file-budget-guard-bypass",
       "hook": "pretool/write-edit/sync-write-edit-dispatcher",
       "event": "PreToolUse",
-      "note": "#3741: in bypass mode the budget guard must not stay silent on an over-budget MEMORY.md write; it returns advisory context (merged by the dispatcher) and never asks.",
+      "note": "#3741 then 2026-09-01: the budget guard returns advisory context on an over-budget MEMORY.md write in EVERY permission mode (bypass shown here), and never asks.",
       "trip": {
         "payload": {
           "tool_name": "Write",

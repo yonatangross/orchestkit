@@ -57,6 +57,19 @@ function isAsk(result: ReturnType<typeof contextFileBudgetGuard>): boolean {
   return out?.permissionDecision === 'ask';
 }
 
+function advisoryOf(result: ReturnType<typeof contextFileBudgetGuard>): string {
+  const out = result.hookSpecificOutput as { additionalContext?: string } | undefined;
+  return out?.additionalContext ?? '';
+}
+
+/** Over budget: advisory context to the model, continue:true, and NEVER an ask (2026-09-01). */
+function expectAdvisory(result: ReturnType<typeof contextFileBudgetGuard>): void {
+  expect(result.continue).toBe(true);
+  expect(isAsk(result)).toBe(false);
+  expect(advisoryOf(result)).toContain('not asking, advising');
+  expect(advisoryOf(result)).toContain('/ork:dream');
+}
+
 describe('context-file-budget-guard', () => {
   it('passes non-guarded files silently regardless of size', () => {
     const big = 'x'.repeat(100 * 1024);
@@ -70,16 +83,16 @@ describe('context-file-budget-guard', () => {
     expect(isAsk(result)).toBe(false);
   });
 
-  it('ASKs when a Write pushes MEMORY.md over 17KB', () => {
+  it('advises (never asks) when a Write pushes MEMORY.md over 17KB', () => {
     const over = 'y'.repeat(18 * 1024);
     const result = contextFileBudgetGuard(writeInput(join(dir, 'MEMORY.md'), over));
-    expect(isAsk(result)).toBe(true);
+    expectAdvisory(result);
   });
 
-  it('ASKs when a Write pushes CLAUDE.md over 20KB', () => {
+  it('advises (never asks) when a Write pushes CLAUDE.md over 20KB', () => {
     const over = 'y'.repeat(21 * 1024);
     const result = contextFileBudgetGuard(writeInput(join(dir, 'CLAUDE.md'), over));
-    expect(isAsk(result)).toBe(true);
+    expectAdvisory(result);
   });
 
   it('passes CLAUDE.md between 17KB and 20KB (budgets are per-file)', () => {
@@ -97,7 +110,7 @@ describe('context-file-budget-guard', () => {
     const result = contextFileBudgetGuard(
       editInput(filePath, 'HEADER', `HEADER${'w'.repeat(200)}`),
     );
-    expect(isAsk(result)).toBe(true);
+    expectAdvisory(result);
   });
 
   it('projects replace_all correctly (every occurrence counts)', () => {
@@ -109,7 +122,7 @@ describe('context-file-budget-guard', () => {
       editInput(filePath, 'MARK', `MARK${'w'.repeat(160)}`, true),
     );
     // 100 * 160 = 16000 extra bytes + ~1.5KB base ≈ 17.5KB -> over
-    expect(isAsk(result)).toBe(true);
+    expectAdvisory(result);
 
     // Single-occurrence replace of the same strings stays under: proves the
     // projection distinguishes replace_all from single replace.
@@ -139,7 +152,7 @@ describe('context-file-budget-guard', () => {
   it('respects ORK_CONTEXT_FILE_BUDGET_BYTES override', () => {
     process.env.ORK_CONTEXT_FILE_BUDGET_BYTES = '100';
     const result = contextFileBudgetGuard(writeInput(join(dir, 'MEMORY.md'), 'x'.repeat(200)));
-    expect(isAsk(result)).toBe(true);
+    expectAdvisory(result);
 
     process.env.ORK_CONTEXT_FILE_BUDGET_BYTES = String(1024 * 1024);
     const relaxed = contextFileBudgetGuard(writeInput(join(dir, 'MEMORY.md'), 'x'.repeat(30 * 1024)));
@@ -153,7 +166,7 @@ describe('context-file-budget-guard', () => {
     expect(result.continue).toBe(true);
     expect(isAsk(result)).toBe(false);
     const ctxText = (result.hookSpecificOutput as { additionalContext?: string } | undefined)?.additionalContext ?? '';
-    expect(ctxText).toContain('bypass mode, not asking');
+    expect(ctxText).toContain('not asking, advising');
     expect(ctxText).toContain('MEMORY.md');
     expect(ctxText).toContain('/ork:dream');
   });
@@ -169,7 +182,7 @@ describe('context-file-budget-guard', () => {
     // 9000 × '🧠' (4 bytes each) = 36KB of bytes but only 9000 code points.
     const emoji = '🧠'.repeat(9000);
     const result = contextFileBudgetGuard(writeInput(join(dir, 'MEMORY.md'), emoji));
-    expect(isAsk(result)).toBe(true);
+    expectAdvisory(result);
   });
 
   it('handles missing file_path without throwing', () => {
