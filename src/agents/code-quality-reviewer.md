@@ -1,7 +1,7 @@
 ---
 name: code-quality-reviewer
 description: "Code quality reviewer: bug detection, security vulnerabilities, performance issues, linting, type checking, test coverage."
-model: inherit
+model: opus
 experimental:
   # Per-agent prompt-cache TTL, used when no subagentPromptCacheTtl setting is
   # configured. This agent idles past the default 5m window (workflow stage,

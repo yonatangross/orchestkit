@@ -49,7 +49,7 @@ export const AGENTS: AgentSummary[] = [
     "plugins": [
       "ork"
     ],
-    "model": "inherit",
+    "model": "sonnet",
     "category": "devops"
   },
   {
@@ -67,7 +67,7 @@ export const AGENTS: AgentSummary[] = [
     "plugins": [
       "ork"
     ],
-    "model": "inherit",
+    "model": "opus",
     "category": "testing"
   },
   {
@@ -76,7 +76,7 @@ export const AGENTS: AgentSummary[] = [
     "plugins": [
       "ork"
     ],
-    "model": "inherit",
+    "model": "sonnet",
     "category": "frontend"
   },
   {
@@ -85,7 +85,7 @@ export const AGENTS: AgentSummary[] = [
     "plugins": [
       "ork"
     ],
-    "model": "haiku",
+    "model": "sonnet",
     "category": "data"
   },
   {
@@ -121,7 +121,7 @@ export const AGENTS: AgentSummary[] = [
     "plugins": [
       "ork"
     ],
-    "model": "haiku",
+    "model": "sonnet",
     "category": "devops"
   },
   {
@@ -130,7 +130,7 @@ export const AGENTS: AgentSummary[] = [
     "plugins": [
       "ork"
     ],
-    "model": "inherit",
+    "model": "sonnet",
     "category": "frontend"
   },
   {
@@ -139,7 +139,7 @@ export const AGENTS: AgentSummary[] = [
     "plugins": [
       "ork"
     ],
-    "model": "inherit",
+    "model": "sonnet",
     "category": "frontend"
   },
   {
@@ -148,7 +148,7 @@ export const AGENTS: AgentSummary[] = [
     "plugins": [
       "ork"
     ],
-    "model": "inherit",
+    "model": "haiku",
     "category": "testing"
   },
   {
@@ -166,7 +166,7 @@ export const AGENTS: AgentSummary[] = [
     "plugins": [
       "ork"
     ],
-    "model": "opus",
+    "model": "sonnet",
     "category": "backend"
   },
   {
@@ -202,7 +202,7 @@ export const AGENTS: AgentSummary[] = [
     "plugins": [
       "ork"
     ],
-    "model": "inherit",
+    "model": "sonnet",
     "category": "frontend"
   },
   {
@@ -211,7 +211,7 @@ export const AGENTS: AgentSummary[] = [
     "plugins": [
       "ork"
     ],
-    "model": "haiku",
+    "model": "sonnet",
     "category": "git"
   },
   {
@@ -238,7 +238,7 @@ export const AGENTS: AgentSummary[] = [
     "plugins": [
       "ork"
     ],
-    "model": "haiku",
+    "model": "sonnet",
     "category": "product"
   },
   {
@@ -247,7 +247,7 @@ export const AGENTS: AgentSummary[] = [
     "plugins": [
       "ork"
     ],
-    "model": "haiku",
+    "model": "sonnet",
     "category": "devops"
   },
   {
@@ -274,7 +274,7 @@ export const AGENTS: AgentSummary[] = [
     "plugins": [
       "ork"
     ],
-    "model": "inherit",
+    "model": "sonnet",
     "category": "backend"
   },
   {
@@ -319,7 +319,7 @@ export const AGENTS: AgentSummary[] = [
     "plugins": [
       "ork"
     ],
-    "model": "inherit",
+    "model": "sonnet",
     "category": "testing"
   },
   {

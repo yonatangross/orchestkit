@@ -10,7 +10,7 @@
 #         may have Write/Edit as writing files is their core function.
 #
 # Rule 2: ALL premium-tier (opus/fable) agents must be high-complexity:
-#         name must contain one of: safety, security, event-driven, system-design, workflow
+#         name must contain one of: safety, security, event-driven, system-design, workflow, reviewer
 #
 # Rule 3: NO haiku agent should have more than 12 tools listed.
 #         Large tool sets signal a task that needs a more capable model tier.
@@ -184,7 +184,10 @@ echo ""
 
 # ---------------------------------------------------------------------------
 # Rule 2: Opus agents must be high-complexity
-# Patterns: security, safety, event-driven, system-design, workflow
+# Patterns: security, safety, event-driven, system-design, workflow, reviewer
+# "reviewer" joined on 2026-09-01 (routing review, PR #3872): judge and
+# reviewer agents are a premium-tier class, measured that night at Fable-grade
+# review quality on Opus 5 for half the Fable price.
 # ---------------------------------------------------------------------------
 echo "--- Rule 2: Premium-tier (opus/fable) agents must be high-complexity (security/safety/design/orchestration) ---"
 echo ""
@@ -195,6 +198,7 @@ OPUS_COMPLEXITY_PATTERNS=(
   "event-driven"
   "system-design"
   "workflow"
+  "reviewer"
 )
 
 for agent_file in "$AGENTS_DIR"/*.md; do
@@ -219,7 +223,7 @@ for agent_file in "$AGENTS_DIR"/*.md; do
   else
     echo "FAIL: $agent_name ($model) — name does not match any high-complexity pattern"
     echo "      Valid patterns: ${OPUS_COMPLEXITY_PATTERNS[*]}"
-    echo "      Premium tiers (opus/fable) are reserved for security, safety, system-design, event-driven, or workflow agents"
+    echo "      Premium tiers (opus/fable) are reserved for security, safety, system-design, event-driven, workflow, or reviewer (judge) agents"
     FAILED=1
   fi
 done

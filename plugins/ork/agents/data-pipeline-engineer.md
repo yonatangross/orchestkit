@@ -2,7 +2,7 @@
 name: data-pipeline-engineer
 description: "Data pipeline specialist: embeddings, chunking strategies, vector indexes, data transformation for AI consumption."
 category: data
-model: haiku
+model: sonnet
 maxTurns: 20
 effort: low
 context: fork

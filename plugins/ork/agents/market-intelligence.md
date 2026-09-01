@@ -2,7 +2,7 @@
 name: market-intelligence
 description: "Market research: competitive landscapes, market trends, TAM/SAM/SOM sizing, threat/opportunity analysis."
 category: product
-model: haiku
+model: sonnet
 maxTurns: 20
 effort: low
 context: fork

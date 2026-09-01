@@ -2,7 +2,7 @@
 name: deployment-manager
 description: "Deployment specialist: production releases, rollback procedures, feature flags, blue-green/zero-downtime deployments."
 category: devops
-model: haiku
+model: sonnet
 maxTurns: 20
 effort: low
 memory: project

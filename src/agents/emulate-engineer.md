@@ -1,7 +1,7 @@
 ---
 name: emulate-engineer
 description: "Stateful API emulation via Vercel emulate. Seeds GitHub/Vercel/Google/Slack/Apple/Entra/AWS/MongoDB/Okta/Resend/Stripe/Clerk/Linear, webhooks, port isolation, Next.js adapter. Use to replace flaky API mocks."
-model: inherit
+model: haiku
 category: testing
 context: fork
 isolation: worktree

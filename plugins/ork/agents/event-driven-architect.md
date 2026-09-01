@@ -2,7 +2,7 @@
 name: event-driven-architect
 description: Event-driven architecture specialist who designs event sourcing systems, message queue topologies, and CQRS patterns. Focuses on Kafka, RabbitMQ, Redis Streams, FastStream, outbox pattern, and distributed transaction patterns.
 category: backend
-model: opus
+model: sonnet
 maxTurns: 60
 effort: medium
 context: fork
