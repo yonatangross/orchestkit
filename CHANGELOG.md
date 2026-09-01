@@ -5,6 +5,26 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.68](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.67...v10.0.0-alpha.68) (2026-09-01)
+
+
+### Features
+
+* **cc:** CC 2.1.257 follow-ups on top of the adoption PR ([#3871](https://github.com/yonatangross/orchestkit/issues/3871)) ([18e60a0](https://github.com/yonatangross/orchestkit/commit/18e60a064c5d89f12f84377c73a26e19ef9b5b1f))
+
+
+### Bug Fixes
+
+* **hooks:** budget guard advises, never asks ([#3869](https://github.com/yonatangross/orchestkit/issues/3869)) ([4b266d3](https://github.com/yonatangross/orchestkit/commit/4b266d3c9cfd2571d813528c2122c34d20d1b4cf))
+* **hooks:** scope test validator to project files ([#3844](https://github.com/yonatangross/orchestkit/issues/3844)) ([#3865](https://github.com/yonatangross/orchestkit/issues/3865)) ([e8d3cc0](https://github.com/yonatangross/orchestkit/commit/e8d3cc0be2839c024c38efe32e0faddfd66fb6ce))
+
+
+### Miscellaneous
+
+* **cc-adoption:** advance latest_known to 2.1.252, featureless for ork ([#3863](https://github.com/yonatangross/orchestkit/issues/3863)) ([e1394d6](https://github.com/yonatangross/orchestkit/commit/e1394d6b0ce4f446c14b4178004bc288f60d625e))
+* **cc:** adopt CC 2.1.252 and 2.1.257, latest_known to 2.1.257 ([#3870](https://github.com/yonatangross/orchestkit/issues/3870)) ([3967924](https://github.com/yonatangross/orchestkit/commit/3967924a1217f37a859f81b371d37a3f3d280be6))
+* **hooks:** delete legacy debris the purge never covered ([#3868](https://github.com/yonatangross/orchestkit/issues/3868)) ([102887c](https://github.com/yonatangross/orchestkit/commit/102887cff180409cb928832ba085be9c10ca8be5))
+
 ## [10.0.0-alpha.67](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.66...v10.0.0-alpha.67) (2026-09-01)
 
 
