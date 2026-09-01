@@ -16,6 +16,323 @@ export interface AdoptionWave {
 
 export const ADOPTION_WAVES: AdoptionWave[] = [
   {
+    "version": "2.1.257",
+    "features": [
+      {
+        "slug": "fable_5_1_default_model",
+        "category": "new_attr",
+        "description": "claude-fable-5-1 is the default Fable model: 1M context, $10/$50 per MTok, cache reads $0.25/MTok.",
+        "gapScore": 5,
+        "affectedSkills": [
+          "llm-integration",
+          "analytics",
+          "doctor"
+        ]
+      },
+      {
+        "slug": "subagent_model_force_env",
+        "category": "new_attr",
+        "description": "CLAUDE_CODE_SUBAGENT_MODEL_FORCE applies CLAUDE_CODE_SUBAGENT_MODEL (or the main model) to every subagent, ignoring per-spawn and agent-definition model overrides.",
+        "gapScore": 5,
+        "affectedSkills": [
+          "configure",
+          "doctor",
+          "agent-orchestration"
+        ]
+      },
+      {
+        "slug": "effort_session_scope",
+        "category": "new_command",
+        "description": "`/effort s` sets effort for the current session only; `--effort` now lifts a new model's default-effort hold per session instead of permanently.",
+        "gapScore": 15,
+        "affectedSkills": [
+          "configure"
+        ]
+      },
+      {
+        "slug": "block_reads_outside_working_dirs",
+        "category": "new_perm",
+        "description": "Auto mode prompts once before the first file read outside the working directories; permissions.blockReadsOutsideWorkingDirectories blocks such reads.",
+        "gapScore": 12,
+        "affectedSkills": [
+          "configure",
+          "doctor",
+          "setup",
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "time_format_timezone_settings",
+        "category": "new_attr",
+        "description": "timeFormat and timeZone settings control the turn-end clock and transcript timestamps (12h, 24h, 24h UTC, or strftime).",
+        "gapScore": 5,
+        "affectedSkills": [
+          "configure"
+        ]
+      },
+      {
+        "slug": "containment_escape_auto_mode_rule",
+        "category": "new_perm",
+        "description": "Auto mode no longer auto-approves cloud metadata-credential fetches, egress evasion, or cross-tenant reach unless the environment marks them expected.",
+        "gapScore": 12,
+        "affectedSkills": [
+          "security-patterns",
+          "configure"
+        ]
+      },
+      {
+        "slug": "default_mode_bypass_ignored_project_scope",
+        "category": "breaking",
+        "description": "defaultMode: bypassPermissions in .claude/settings.json or settings.local.json is now ignored (like auto); set it in user or managed settings or pass --permission-mode.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "configure",
+          "setup"
+        ]
+      },
+      {
+        "slug": "worktree_isolation_bash_loop_fix",
+        "category": "breaking",
+        "description": "Worktree-isolated sessions no longer refuse Bash loops, $VAR reads, \"$(...)\" and heredocs that never touch git as too complex to verify.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "agent-orchestration",
+          "chain-patterns"
+        ]
+      },
+      {
+        "slug": "worktree_common_gitdir_write_after_cd",
+        "category": "breaking",
+        "description": "Sandboxed git in a linked worktree keeps write access to the common .git directory after cd into a subdirectory.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "agent-orchestration"
+        ]
+      },
+      {
+        "slug": "claude_p_waits_for_monitor",
+        "category": "breaking",
+        "description": "claude -p no longer exits ~5s after its final result while a Monitor the model armed is still running; it waits for the watch to fire or time out.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "verify",
+          "bare-eval",
+          "chain-patterns"
+        ]
+      },
+      {
+        "slug": "disallowed_tools_reload_fix",
+        "category": "breaking",
+        "description": "--disallowedTools and session deny rules survive the first settings reload under allowManagedPermissionRulesOnly.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "configure",
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "bash_read_edit_deny_redirect_fix",
+        "category": "breaking",
+        "description": "Bash Read()/Edit() deny rules now apply to < file redirects and reader commands like tac and egrep.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "security-patterns",
+          "configure"
+        ]
+      },
+      {
+        "slug": "permissions_ask_compound_auto_mode_fix",
+        "category": "breaking",
+        "description": "A permissions.ask rule is no longer skipped in auto mode when the matching command runs inside a compound command or subshell.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "zsh_double_bracket_prompt_fix",
+        "category": "breaking",
+        "description": "Bash permission checks no longer auto-approve [[ ]] conditionals that zsh parses differently from bash.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "plugin_symlink_component_refused",
+        "category": "breaking",
+        "description": "Plugin component paths (command, agent, skill, hooks) that are symlinks are refused, closing reads outside the plugin directory.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "add_dir_inside_cwd_loads_components",
+        "category": "new_attr",
+        "description": "/add-dir accepts a directory inside the cwd and loads its skills, commands and agents like --add-dir does at startup.",
+        "gapScore": 5,
+        "affectedSkills": [
+          "setup"
+        ]
+      },
+      {
+        "slug": "fork_keeps_prompt_cache",
+        "category": "new_attr",
+        "description": "/fork keeps the original conversation's prompt cache in the new background session; the worktree briefing arrives as a message, not a system-prompt change.",
+        "gapScore": 5,
+        "affectedSkills": [
+          "chain-patterns",
+          "brainstorm"
+        ]
+      },
+      {
+        "slug": "subagent_autocontinue_after_cutoff",
+        "category": "breaking",
+        "description": "Subagents cut off mid-stream (sleep, dropped connection, server error) now continue automatically instead of ending with an incomplete response.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "agent-orchestration"
+        ]
+      },
+      {
+        "slug": "background_session_lifecycle_fixes",
+        "category": "new_attr",
+        "description": "Background sessions: start during macOS npm self-update, state.json detail, Completed ordering, --bg from a deleted dir, --resume double listing, --continue opens finished sessions, old-binary retirement, agents --json raw-mode fix, stashed prompt kept.",
+        "gapScore": 5,
+        "affectedSkills": [
+          "chain-patterns"
+        ]
+      },
+      {
+        "slug": "stream_json_non_jsonl_fail_fast",
+        "category": "breaking",
+        "description": "Non-JSONL data piped into claude -p --input-format stream-json fails fast instead of growing memory unbounded.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "bare-eval"
+        ]
+      },
+      {
+        "slug": "gateway_model_description_and_discovery",
+        "category": "new_attr",
+        "description": "Gateway-discovered /model entries may carry a description; discovery runs even under CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC; `fable`/`best` keep resolving to Fable 5 on gateways until 5.1 is configured there.",
+        "gapScore": 5,
+        "affectedSkills": [
+          "llm-integration",
+          "configure"
+        ]
+      },
+      {
+        "slug": "sandbox_denied_domains_trailing_dot",
+        "category": "breaking",
+        "description": "sandbox.network.deniedDomains entries now block a host written with a trailing dot inside the sandbox.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "configure",
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "doctor_stale_sandbox_mask_warning",
+        "category": "new_command",
+        "description": "/doctor warns about stale sandbox mask files left by a killed session.",
+        "gapScore": 15,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "code_review_comment_gitlab",
+        "category": "new_attr",
+        "description": "/code-review --comment posts findings on GitLab merge requests via glab mr note.",
+        "gapScore": 5,
+        "affectedSkills": [
+          "review-pr"
+        ]
+      },
+      {
+        "slug": "settings_dir_created_after_startup",
+        "category": "breaking",
+        "description": "Settings in a .claude/ folder created after startup are picked up without a restart.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "configure"
+        ]
+      },
+      {
+        "slug": "background_command_detach_and_monitor_stop_fixes",
+        "category": "breaking",
+        "description": "Detached background commands (timeout, setsid) no longer survive a task stop or exit; stopping a background subagent stops its monitors; Claude is told when you stop a background command.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "chain-patterns"
+        ]
+      },
+      {
+        "slug": "add_dir_refuses_network_paths",
+        "category": "breaking",
+        "description": "--add-dir, /add-dir and additionalDirectories refuse UNC shares and /net automounts.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "setup",
+          "configure"
+        ]
+      },
+      {
+        "slug": "proactive_style_busy_loop_fix",
+        "category": "breaking",
+        "description": "Proactive output style sessions idle instead of busy-looping while a background command or Monitor they started is running.",
+        "gapScore": 20,
+        "affectedSkills": []
+      },
+      {
+        "slug": "btw_history_keys_changed",
+        "category": "new_command",
+        "description": "/btw history browsing moved from left/right arrows to Shift+arrows or [ ]; Ctrl+E command explanation removed from Bash permission prompts.",
+        "gapScore": 15,
+        "affectedSkills": []
+      },
+      {
+        "slug": "managed_settings_and_policy_helper_changes",
+        "category": "new_attr",
+        "description": "managedSourcesBehavior merge takes sandbox.credentials.awsPairs and sandbox.ripgrep whole from the highest source; policyHelper timeouts clamped; shadowed policyHelper runs when the fetch reports removal.",
+        "gapScore": 5,
+        "affectedSkills": [
+          "configure"
+        ]
+      },
+      {
+        "slug": "provider_auth_and_remote_control_fixes",
+        "category": "new_attr",
+        "description": "Bedrock/Vertex/Foundry header and profile fixes, Remote Control consent and model fixes, gateway TLS pinning, Cowork artifact asks.",
+        "gapScore": 5,
+        "affectedSkills": []
+      },
+      {
+        "slug": "vscode_ui_changes",
+        "category": "new_attr",
+        "description": "VS Code: account/usage headers, model pill with effort row, output style picker, archive sessions, provider-feature gating.",
+        "gapScore": 5,
+        "affectedSkills": []
+      }
+    ]
+  },
+  {
+    "version": "2.1.252",
+    "features": [
+      {
+        "slug": "bug_fixes_only_252",
+        "category": "new_attr",
+        "description": "Four fixes: macOS 'task output swap refused' Bash failures, always-allow not saving in a project with no settings.local.json yet, Remote Control stalls on degraded connections, oversized background-task failure notifications exceeding the API size limit.",
+        "gapScore": 5,
+        "affectedSkills": [
+          "configure"
+        ]
+      }
+    ]
+  },
+  {
     "version": "2.1.251",
     "features": [
       {
@@ -2334,10 +2651,10 @@ export const ADOPTION_WAVES: AdoptionWave[] = [
 
 export const CC_SUPPORT = {
   latest: "2.1.251",
-  latestKnown: "2.1.252",
+  latestKnown: "2.1.257",
   supportedFloor: "2.1.251",
   policy: "latest + 3 previous minors",
 } as const;
 
 /** sha256 (first 12 hex) of the two source files above, in that order. */
-export const SOURCE_DIGEST = "3d75b54c8580" as const;
+export const SOURCE_DIGEST = "56cd28d482f8" as const;
