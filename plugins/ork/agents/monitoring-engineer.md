@@ -2,7 +2,7 @@
 name: monitoring-engineer
 description: Observability and monitoring specialist. Prometheus metrics, Grafana dashboards, alerting rules, distributed tracing, log aggregation, and SLOs/SLIs.
 category: devops
-model: haiku
+model: sonnet
 maxTurns: 20
 effort: low
 context: fork

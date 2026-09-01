@@ -2,7 +2,7 @@
 name: git-operations-engineer
 description: "Git operations: branch management, rebases, merges, stacked PRs, recovery operations, clean commit history."
 category: git
-model: haiku
+model: sonnet
 maxTurns: 20
 effort: low
 isolation: worktree

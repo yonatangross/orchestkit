@@ -1,7 +1,7 @@
 ---
 name: design-context-extractor
 description: "Design context extraction: analyzes screenshots, URLs, or live apps to extract color palettes, typography, spacing, and component patterns as structured design tokens."
-model: inherit
+model: sonnet
 category: frontend
 maxTurns: 20
 effort: low
