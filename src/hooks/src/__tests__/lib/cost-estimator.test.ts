@@ -42,11 +42,29 @@ describe('cost-estimator vocab canaries (#2338)', () => {
     expect(opus?.output_per_mtok).toBe(25.0);
   });
 
+  // Fable 5.1 (CC 2.1.257, 2026-09-01) breaks the 0.1x cache-read convention on
+  // purpose: $10 input, $0.25 cache reads (0.025x, 75% cheaper than Fable 5). The
+  // write multiplier is unchanged. Any other model still has to follow 0.1x, so a
+  // future entry cannot hide a typo behind this exception.
+  const CACHE_READ_RATIO_EXCEPTIONS: Record<string, number> = { 'claude-fable-5-1': 0.025 };
+
   it('every vocab pricing entry follows the cache 0.1x/1.25x convention', () => {
     for (const [id, p] of Object.entries(modelsVocab.pricing)) {
-      expect(p.cache_read_per_mtok, `${id} cache_read`).toBeCloseTo(p.input_per_mtok * 0.1, 5);
+      const readRatio = CACHE_READ_RATIO_EXCEPTIONS[id] ?? 0.1;
+      expect(p.cache_read_per_mtok, `${id} cache_read`).toBeCloseTo(p.input_per_mtok * readRatio, 5);
       expect(p.cache_write_per_mtok, `${id} cache_write`).toBeCloseTo(p.input_per_mtok * 1.25, 5);
     }
+  });
+
+  it('prices claude-fable-5-1 at $10/$50 per MTok with $0.25 cache reads (CC 2.1.257)', () => {
+    const fable51 = getCostConfig().models['claude-fable-5-1'];
+    expect(fable51).toEqual({
+      input_per_mtok: 10.0,
+      output_per_mtok: 50.0,
+      cache_read_per_mtok: 0.25,
+      cache_write_per_mtok: 12.5,
+    });
+    expect(getPricing('claude-fable-5-1[1m]').cache_read_per_mtok).toBe(0.25);
   });
 
   it('resolves the `fable` alias to claude-fable-5 pricing', () => {

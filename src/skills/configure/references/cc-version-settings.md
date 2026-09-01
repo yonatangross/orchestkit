@@ -1073,7 +1073,7 @@ CC would ignore under FORCE; a short-circuit is tracked as a follow-up.
 user or managed settings, or pass `--permission-mode bypassPermissions`.
 
 **Action for OrchestKit**: none in ork's shipped settings (no profile sets `defaultMode`). Users who
-put bypass mode in a project file lose it silently on upgrade; `/ork:setup` and `/ork:configure`
+put bypass mode in a project file lose it silently on upgrade; the setup and configure skills
 should point them at user scope.
 
 ### `/effort s` and `--effort`, session scope
