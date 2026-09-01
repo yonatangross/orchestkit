@@ -15,6 +15,14 @@
  * follow it without re-prompting (the model-cost-advisor separately warns
  * when inherited-fable runs low/medium-complexity tasks).
  *
+ * CLAUDE_CODE_SUBAGENT_MODEL_FORCE (CC 2.1.257): when set, CC applies
+ * CLAUDE_CODE_SUBAGENT_MODEL (or the main model) to EVERY subagent and ignores
+ * the per-spawn `model` parameter this hook inspects. The pin is inert, so
+ * prompting about it would ask consent for spend that cannot happen. The hook
+ * stays silent under FORCE unless CLAUDE_CODE_SUBAGENT_MODEL itself is a fable
+ * pin, which is a session-level choice like the main model and is not
+ * re-prompted either.
+ *
  * DELIBERATELY NOT gated on isBypassMode(). Every other ork ASK site is now
  * skipped under `--dangerously-skip-permissions`, because a permission prompt
  * is what that flag exists to turn off. This one is not a permission prompt:
@@ -37,6 +45,12 @@ function isFablePin(model: string): boolean {
   return model === 'fable' || model.startsWith('claude-fable');
 }
 
+/** CC 2.1.257: FORCE makes every per-spawn model pin inert. */
+function subagentModelForced(): boolean {
+  const v = (process.env.CLAUDE_CODE_SUBAGENT_MODEL_FORCE || '').trim().toLowerCase();
+  return v === '1' || v === 'true';
+}
+
 export function fableSpendConsent(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const toolInput = input.tool_input || {};
   const model = (toolInput.model as string) || '';
@@ -50,9 +64,14 @@ export function fableSpendConsent(input: HookInput, ctx: HookContext = NOOP_CTX)
     return outputSilentSuccess();
   }
 
+  if (subagentModelForced()) {
+    ctx.log(HOOK_NAME, `fable pin inert under CLAUDE_CODE_SUBAGENT_MODEL_FORCE: ${model}`);
+    return outputSilentSuccess();
+  }
+
   ctx.log(HOOK_NAME, `escalating fable pin to user consent: ${model}`);
   return outputAsk(
-    `This agent spawn pins model "${model}" — Claude Fable 5 bills $10/$50 per MTok ` +
+    `This agent spawn pins model "${model}" — Claude Fable 5.x bills $10/$50 per MTok ` +
     `(2x Opus output pricing). Approve to spend deliberately, or deny and re-spawn ` +
     `with model "inherit"/"sonnet". Pre-consent for this session with ORK_FABLE_OK=1.`,
   );

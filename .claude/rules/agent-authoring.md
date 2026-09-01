@@ -8,7 +8,7 @@ paths:
 ## Required Frontmatter
 - `name` (kebab-case, must match filename)
 - `description` (third person, concise — Claude uses this for agent selection)
-- `model`: fable | opus | sonnet | haiku | inherit (vocabulary: src/hooks/src/lib/models.vocab.json — premium tiers fable/opus are reserved for high-complexity agents, enforced by test-agent-model-tool-correlation.sh)
+- `model`: fable | opus | sonnet | haiku | inherit (vocabulary: src/hooks/src/lib/models.vocab.json — premium tiers fable/opus are reserved for high-complexity agents, enforced by test-agent-model-tool-correlation.sh). Under `CLAUDE_CODE_SUBAGENT_MODEL_FORCE` (CC 2.1.257) every `model:` pin is ignored at spawn time; the field stays the authoring policy, not a runtime guarantee
 - `tools`: array of tool names — e.g. Read, Write, Edit, Bash, Grep, Glob, Agent(sub-name)
 - `skills`: array of skill names the agent can access
 
