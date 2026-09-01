@@ -233,45 +233,45 @@ describe('cross-instance-test-validator (Stop)', () => {
   });
 });
 
-describe('cross-instance-test-validator (legacy single-file dispatch)', () => {
+describe('cross-instance-test-validator (project scoping, #3844)', () => {
+  let outside: string;
+
   beforeEach(() => {
     project = mkdtempSync(join(tmpdir(), 'citv-'));
+    outside = mkdtempSync(join(tmpdir(), 'citv-outside-'));
   });
 
   afterEach(() => {
     rmSync(project, { recursive: true, force: true });
+    rmSync(outside, { recursive: true, force: true });
   });
 
-  test('blocks on a Write payload for an implementation without a test file', () => {
-    const f = join(project, 'src', 'svc.ts');
-    const r = crossInstanceTestValidator(
-      { tool_name: 'Write', session_id: SID, project_dir: project, tool_input: { file_path: f, content: IMPL } },
-      createTestContext({ projectDir: project }),
-    );
+  test('a session-edited file outside the project dir produces zero findings', () => {
+    // On pre-fix main this blocked with a doubled-slash `//tests/...` candidate:
+    // the ancestor walk never reaches projectDir and runs to the filesystem root.
+    const f = join(outside, 'ork-w4-disp-tolerant.py');
+    writeFileSync(f, 'def alpha():\n    return 1\n\nclass Beta:\n    pass\n', 'utf8');
+    recordEdit(f);
+
+    const r = crossInstanceTestValidator(stopInput(), createTestContext({ projectDir: project }));
+
+    expect(r.continue).toBe(true);
+    expect(r.stopReason).toBeUndefined();
+    expect(r.systemMessage).toBeUndefined();
+  });
+
+  test('an outside-project file does not mask a real in-project finding', () => {
+    const out = join(outside, 'scratch.py');
+    writeFileSync(out, 'def gamma():\n    return 3\n', 'utf8');
+    recordEdit(out);
+    const f = write('src/svc.ts', IMPL);
+    recordEdit(f);
+
+    const r = crossInstanceTestValidator(stopInput(), createTestContext({ projectDir: project }));
 
     expect(r.continue).toBe(false);
     expect(r.stopReason).toContain(f);
-  });
-
-  test('reads the file from disk when the payload carries no content (Edit)', () => {
-    const f = write('src/svc.ts', IMPL);
-    write('src/svc.test.ts', 'alpha();\n');
-
-    const r = crossInstanceTestValidator(
-      { tool_name: 'Edit', session_id: SID, project_dir: project, tool_input: { file_path: f } },
-      createTestContext({ projectDir: project }),
-    );
-
-    expect(r.continue).toBe(true);
-    expect(r.systemMessage).toContain('beta');
-  });
-
-  test('silent for a test file payload', () => {
-    const r = crossInstanceTestValidator(
-      { tool_name: 'Write', session_id: SID, project_dir: project, tool_input: { file_path: join(project, 'a.test.ts'), content: 'export function x() {}' } },
-      createTestContext({ projectDir: project }),
-    );
-    expect(r.continue).toBe(true);
+    expect(r.stopReason).not.toContain(out);
   });
 });
 

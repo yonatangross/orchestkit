@@ -15,6 +15,20 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "fix-3844-validator-project-scope",
+    "title": "The validator that demanded tests for /tmp scripts",
+    "description": "ork #3844: the Stop-time test validator walked ancestors past the project root for outside-project files and blocked with //tests/... candidates. The fix scopes it to projectDir; the unreachable legacy dispatch branch is deleted.",
+    "tags": [
+      "hooks",
+      "bugfix",
+      "dead-code"
+    ],
+    "date": "2026-09-01",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 8
+  },
+  {
     "slug": "eleven-deny-rules-that-never-denied",
     "title": "Eleven Deny Rules That Never Denied Anything",
     "description": "CC 2.1.252 began printing a per-rule diagnostic for rules it cannot apply, which turned two long-inert classes in ork's operator permission payload into eleven red lines at every launch. Measured each spelling with the stub harness before touching it: Edit(path) does stop the Write tool, Write(path) stops nothing, and the fork bomb has no working spelling at all, so it becomes an admitted gap rather than a rule that only looks like protection. Includes the self-inflicted test bug where four security tests grepped the payload file and matched its own changelog prose.",
