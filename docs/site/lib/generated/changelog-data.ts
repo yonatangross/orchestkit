@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.69",
+    "date": "2026-09-01",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "**agents:** pin 15 agent model tiers (2026-09-01 routing) ([#3872](https://github.com/yonatangross/orchestkit/issues/3872)) ([f8b94b1](https://github.com/yonatangross/orchestkit/commit/f8b94b18b8925f966d918b83ccc914ae8edfbb82))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.68",
     "date": "2026-09-01",
     "compareUrl": "",
