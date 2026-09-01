@@ -5,6 +5,25 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.67](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.66...v10.0.0-alpha.67) (2026-09-01)
+
+
+### Bug Fixes
+
+* **setup:** drop 11 deny rules CC cannot enforce, payload v4 ([#3855](https://github.com/yonatangross/orchestkit/issues/3855)) ([4ca49aa](https://github.com/yonatangross/orchestkit/commit/4ca49aa57f043bd53ac2fa2e32edc72a7342b23a))
+
+
+### Miscellaneous
+
+* **deps-dev:** bump the npm-minor-patch group in /src/hooks with 2 updates ([#3824](https://github.com/yonatangross/orchestkit/issues/3824)) ([4982e01](https://github.com/yonatangross/orchestkit/commit/4982e014196c173db13c17801e9e13798a450458))
+* **deps-dev:** bump the npm-minor-patch group with 2 updates ([#3825](https://github.com/yonatangross/orchestkit/issues/3825)) ([896c78c](https://github.com/yonatangross/orchestkit/commit/896c78c9c0298d40f2282a344b7f614fbc66f647))
+* **deps:** bump the remotion group ([#3826](https://github.com/yonatangross/orchestkit/issues/3826)) ([3437122](https://github.com/yonatangross/orchestkit/commit/343712229c1a09d3d079aec158313386db839f18))
+
+
+### CI/CD
+
+* **playground:** exempt docs/audits from the playground gate ([#3853](https://github.com/yonatangross/orchestkit/issues/3853)) ([41fe011](https://github.com/yonatangross/orchestkit/commit/41fe011afeda899c1fdc77668332142c4b605e0b)), closes [#3848](https://github.com/yonatangross/orchestkit/issues/3848)
+
 ## [10.0.0-alpha.66](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.65...v10.0.0-alpha.66) (2026-08-31)
 
 

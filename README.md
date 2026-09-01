@@ -370,6 +370,14 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.67](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.66...v10.0.0-alpha.67)** · 2026-09-01
+
+- **setup:** drop 11 deny rules CC cannot enforce, payload v4 (#3855)
+- **deps-dev:** bump the npm-minor-patch group in /src/hooks with 2 updates (#3824)
+- **deps-dev:** bump the npm-minor-patch group with 2 updates (#3825)
+- **deps:** bump the remotion group (#3826)
+- **playground:** exempt docs/audits from the playground gate (#3853), closes [#3848](https://github.com/yonatangross/orchestkit/issues/3848)
+
 **[v10.0.0-alpha.66](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.65...v10.0.0-alpha.66)** · 2026-08-31
 
 - **dream:** budget pass and rule-based demotion for MEMORY.md (#3833), closes [#3741](https://github.com/yonatangross/orchestkit/issues/3741)
@@ -413,12 +421,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **ork:** expose the full plugin to Cursor (#3748)
 - **ork:** Cursor import rejects ./plugins/ork as invalid_argument (#3750)
-
-**[v10.0.0-alpha.59](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.58...v10.0.0-alpha.59)** · 2026-08-25
-
-- **ci:** playground gate must verify the page is viewable (#3745)
-- **hooks:** make a subagent empty result loud instead of silent (#3744)
-- **ci:** add CodeRabbit as an advisory review lane (#3746)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
