@@ -2334,10 +2334,10 @@ export const ADOPTION_WAVES: AdoptionWave[] = [
 
 export const CC_SUPPORT = {
   latest: "2.1.251",
-  latestKnown: "2.1.251",
+  latestKnown: "2.1.252",
   supportedFloor: "2.1.251",
   policy: "latest + 3 previous minors",
 } as const;
 
 /** sha256 (first 12 hex) of the two source files above, in that order. */
-export const SOURCE_DIGEST = "d5179ef06767" as const;
+export const SOURCE_DIGEST = "3d75b54c8580" as const;
