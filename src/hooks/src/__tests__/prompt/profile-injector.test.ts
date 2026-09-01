@@ -2,11 +2,11 @@
  * Unit tests for profile-injector hook
  * Tests materializeProfileRules() which writes user profile to .claude/rules/
  *
- * Updated: profileInjector(testCtx) deprecated — tests now cover materializeProfileRules()
+ * The deprecated profileInjector stub was deleted 2026-09-01 (#3867 sweep);
+ * materializeProfileRules() is the only entry point.
  */
 
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
-import type { HookInput } from '../../types.js';
 import type { UserProfile, UsageStats, RecordedDecision } from '../../lib/user-profile.js';
 import { mockCommonBasic } from '../fixtures/mock-common.js';
 
@@ -33,10 +33,9 @@ vi.mock('../../lib/user-profile.js', () => ({
   getRecentDecisions: vi.fn(),
 }));
 
-import { materializeProfileRules, profileInjector } from '../../prompt/profile-injector.js';
+import { materializeProfileRules } from '../../prompt/profile-injector.js';
 import { loadUserProfile, getTopSkills, getTopAgents, getRecentDecisions } from '../../lib/user-profile.js';
-import { outputSilentSuccess, writeRulesFile } from '../../lib/common.js';
-import { createTestContext } from '../fixtures/test-context.js';
+import { writeRulesFile } from '../../lib/common.js';
 
 // =============================================================================
 // Test Utilities
@@ -130,7 +129,6 @@ function createPartialProfile(): UserProfile {
 // Tests for materializeProfileRules (the active function)
 // =============================================================================
 
-let testCtx: ReturnType<typeof createTestContext>;
 describe('prompt/materializeProfileRules', () => {
   const mockLoadUserProfile = vi.mocked(loadUserProfile);
   const mockGetTopSkills = vi.mocked(getTopSkills);
@@ -139,7 +137,6 @@ describe('prompt/materializeProfileRules', () => {
   const mockWriteRulesFile = vi.mocked(writeRulesFile);
 
   beforeEach(() => {
-    testCtx = createTestContext({ writeRules: vi.fn() });
     vi.clearAllMocks();
   });
 
@@ -424,35 +421,5 @@ describe('prompt/materializeProfileRules', () => {
       // May throw due to null — caller (sync-session-dispatcher) catches
       try { materializeProfileRules(); } catch { /* acceptable */ }
     });
-  });
-});
-
-// =============================================================================
-// Tests for deprecated profileInjector (backward compat stub, testCtx)
-// =============================================================================
-
-describe('prompt/profileInjector (deprecated, testCtx)', () => {
-  const mockOutputSilentSuccess = vi.mocked(outputSilentSuccess);
-
-  beforeEach(() => {
-    vi.clearAllMocks();
-    mockOutputSilentSuccess.mockReturnValue({ continue: true, suppressOutput: true });
-  });
-
-  test('returns silent success without doing work', () => {
-    const input: HookInput = {
-      hook_event: 'UserPromptSubmit',
-      tool_name: 'UserPromptSubmit',
-      session_id: 'test-session',
-      project_dir: '/test/project',
-      tool_input: {},
-      prompt: 'Hello',
-    };
-
-    const result = profileInjector(input, testCtx);
-
-    expect(result.continue).toBe(true);
-    expect(result.suppressOutput).toBe(true);
-    expect(mockOutputSilentSuccess).toHaveBeenCalled();
   });
 });

@@ -478,7 +478,11 @@ describe('Cross-Bundle Consistency', () => {
     //             and they count different things.
     // 194 -> 196: #3789 (CC 2.1.251) — PreModelSwitch consent gate + PostModelSwitch telemetry (lifecycle/model-switch-consent, lifecycle/model-switch-telemetry)
     // 196 -> 197: #3727 — lifecycle/stray-playground-pages added
-    expect(totalHooks).toBe(184); // 186 - 2 (#3835 wave 4: dangerous-command-blocker, git-validator); the purge is complete
+    // 184 -> 183: 2026-09-01 legacy-debris sweep (#3867 filing) — deleted the
+    //             @deprecated no-op prompt/profile-injector map slot (no
+    //             hooks.json entry ever existed; materializeProfileRules()
+    //             from SessionStart is the live path and is unchanged).
+    expect(totalHooks).toBe(183); // 186 - 2 (#3835 wave 4) - 1 (profile-injector dead slot)
   });
 });
 

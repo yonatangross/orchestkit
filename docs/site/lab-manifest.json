@@ -865,6 +865,18 @@
         "dead-code"
       ],
       "date": "2026-09-01"
+    },
+    {
+      "slug": "legacy-debris-sweep",
+      "source": "docs/chore--legacy-debris-sweep/index.html",
+      "title": "Legacy-debris sweep: what the purge never covered",
+      "description": "After the #3835 blocking-hook purge, an outside-in reachability sweep deleted a dead entries-map slot, a 163-release-stale version branch, and an unused type field, and fixed two lying comments. Why registration audits are structurally blind to sub-registration debris.",
+      "tags": [
+        "hooks",
+        "dead-code",
+        "chore"
+      ],
+      "date": "2026-09-01"
     }
   ]
 }

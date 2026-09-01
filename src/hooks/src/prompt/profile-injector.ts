@@ -33,8 +33,7 @@
  * ```
  */
 
-import type { HookInput, HookResult , HookContext} from '../types.js';
-import { outputSilentSuccess, logHook, writeRulesFile } from '../lib/common.js';
+import { logHook, writeRulesFile } from '../lib/common.js';
 import { getHomeDir } from '../lib/paths.js';
 import {
   loadUserProfile,
@@ -43,7 +42,6 @@ import {
   getRecentDecisions,
   type UserProfile,
 } from '../lib/user-profile.js';
-import { NOOP_CTX } from '../lib/context.js';
 
 // =============================================================================
 // CONSTANTS
@@ -261,38 +259,9 @@ function buildProfileContext(profile: UserProfile): string {
 }
 
 // =============================================================================
-// MAIN HOOK
+// MAIN ENTRY
 // =============================================================================
 
-/**
- * Profile Injector Hook - Injects user profile context on first prompt.
- *
- * This hook is configured with `once: true` in hooks.json, ensuring it runs
- * only once per session (on the first UserPromptSubmit event).
- *
- * Behavior:
- * 1. Loads user profile from ~/.claude/orchestkit/users/{user_id}/profile.json
- * 2. Checks if profile has meaningful data
- * 3. Builds compact context string (~200 tokens)
- * 4. Injects via additionalContext (CC 2.1.9)
- *
- * Graceful degradation:
- * - Empty profile: Returns silent success (no injection)
- * - Load error: Logs warning and returns silent success
- * - Never crashes the hook chain
- *
- * @param _input - Hook input from Claude Code (prompt and session info)
- * @returns HookResult with additionalContext containing profile summary,
- *          or silent success if profile is empty/unavailable
- *
- * @example
- * // Hook is registered in hooks.json:
- * // {
- * //   "type": "command",
- * //   "command": "node .../run-hook.mjs prompt/profile-injector",
- * //   "once": true
- * // }
- */
 /**
  * Materialize user profile to ~/.claude/rules/user-profile.md
  * Called from sync-session-dispatcher at SessionStart (correct lifecycle point).
@@ -307,15 +276,6 @@ export function materializeProfileRules(): void {
   const rulesDir = `${getHomeDir()}/.claude/rules`;
   writeRulesFile(rulesDir, 'user-profile.md', context, 'profile-injector');
   logHook('profile-injector', `Wrote profile context for ${profile.display_name} to rules file`);
-}
-
-/**
- * @deprecated Use materializeProfileRules() from SessionStart instead.
- * Kept for backward compatibility — returns silent success (materialization moved to SessionStart).
- */
-export function profileInjector(_input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
-  ctx.log('profile-injector', 'Skipping — materialization moved to SessionStart');
-  return outputSilentSuccess();
 }
 
 // =============================================================================
