@@ -889,6 +889,18 @@
         "memory"
       ],
       "date": "2026-09-01"
+    },
+    {
+      "slug": "adopt-cc-257",
+      "source": "docs/chore--adopt-cc-257/index.html",
+      "title": "CC 2.1.252 to 2.1.257: 33 rows, one real break, none for us",
+      "description": "Every bullet of Claude Code 2.1.252 and 2.1.257 triaged against OrchestKit and hq-ext surfaces with the proof command behind each noop; Fable 5.1 adopted in the model vocab, five settings documented, two follow-ups sized.",
+      "tags": [
+        "cc-adoption",
+        "settings",
+        "models"
+      ],
+      "date": "2026-09-01"
     }
   ]
 }

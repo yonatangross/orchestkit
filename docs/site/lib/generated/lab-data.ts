@@ -15,6 +15,20 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "adopt-cc-257",
+    "title": "CC 2.1.252 to 2.1.257: 33 rows, one real break, none for us",
+    "description": "Every bullet of Claude Code 2.1.252 and 2.1.257 triaged against OrchestKit and hq-ext surfaces with the proof command behind each noop; Fable 5.1 adopted in the model vocab, five settings documented, two follow-ups sized.",
+    "tags": [
+      "cc-adoption",
+      "settings",
+      "models"
+    ],
+    "date": "2026-09-01",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 18
+  },
+  {
     "slug": "context-file-budget-guard-advisory",
     "title": "The hook that kept blocking us: budget guard goes advisory",
     "description": "Both MEMORY.md indexes over the 17 KB budget plus auto mode meant ork own context-file-budget-guard raised a permission dialog on every handoff write. Root fix: compact the index. Structural fix: the guard is advisory-only in every mode.",
