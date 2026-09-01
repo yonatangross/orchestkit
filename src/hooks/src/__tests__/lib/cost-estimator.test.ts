@@ -67,9 +67,9 @@ describe('cost-estimator vocab canaries (#2338)', () => {
     expect(getPricing('claude-fable-5-1[1m]').cache_read_per_mtok).toBe(0.25);
   });
 
-  it('resolves the `fable` alias to claude-fable-5 pricing', () => {
-    expect(resolveModelKey('fable')).toBe('claude-fable-5');
-    expect(calculateCost('fable', MTOK).total).toBeCloseTo(60.0, 5); // $10 + $50
+  it('resolves the `fable` alias to claude-fable-5-1 pricing (advanced 2026-09-01, CC 2.1.257 default)', () => {
+    expect(resolveModelKey('fable')).toBe('claude-fable-5-1');
+    expect(calculateCost('fable', MTOK).total).toBeCloseTo(60.0, 5); // $10 + $50, unchanged from Fable 5
   });
 
   it('resolves `opus` alias to claude-opus-5 (alias table cannot silently flip)', () => {

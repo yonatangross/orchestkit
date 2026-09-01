@@ -15,6 +15,11 @@ const scopes = [
 ];
 const denyByScope = {};
 const sandbox = { enabled: 'unset', network: 'none' };
+// CC 2.1.257: permissions.blockReadsOutsideWorkingDirectories turns the auto-mode
+// one-time prompt into a hard refusal. ork skills read ~/.claude on purpose
+// (analytics, dream, memory, doctor), so the key is only safe when
+// additionalDirectories covers those paths. Observed, never fixed by this script.
+const readBoundary = { block_reads_outside: 'unset', additional_directories: [], warning: null };
 for (const f of scopes) {
   if (!existsSync(f)) continue;
   let s;
@@ -25,11 +30,23 @@ for (const f of scopes) {
     continue;
   }
   denyByScope[f] = Array.isArray(s.permissions?.deny) ? s.permissions.deny : [];
+  if (readBoundary.block_reads_outside === 'unset' && typeof s.permissions?.blockReadsOutsideWorkingDirectories === 'boolean') {
+    readBoundary.block_reads_outside = String(s.permissions.blockReadsOutsideWorkingDirectories);
+  }
+  if (Array.isArray(s.permissions?.additionalDirectories)) {
+    for (const d of s.permissions.additionalDirectories) if (!readBoundary.additional_directories.includes(d)) readBoundary.additional_directories.push(d);
+  }
   if (sandbox.enabled === 'unset' && typeof s.sandbox?.enabled === 'boolean') {
     sandbox.enabled = String(s.sandbox.enabled);
     const n = s.sandbox.network || {};
     sandbox.network = Array.isArray(n.allowedDomains) && n.allowedDomains.length ? 'allowlist'
       : Array.isArray(n.deniedDomains) && n.deniedDomains.length ? 'denylist' : 'none';
+  }
+}
+if (readBoundary.block_reads_outside === 'true') {
+  const coversHome = readBoundary.additional_directories.some((d) => d === homeDir || d === join(homeDir, '.claude') || d.startsWith(join(homeDir, '.claude')));
+  if (!coversHome) {
+    readBoundary.warning = 'permissions.blockReadsOutsideWorkingDirectories is true and additionalDirectories does not cover ~/.claude: ork analytics, dream, memory and doctor reads outside the project will be refused, not prompted. Add ~/.claude to additionalDirectories or unset the key.';
   }
 }
 const allDeny = new Set(Object.values(denyByScope).filter(Array.isArray).flat());
@@ -44,6 +61,7 @@ const out = {
     state: !(f in denyByScope) ? 'absent' : denyByScope[f] === 'UNPARSEABLE' ? 'unparseable' : `${denyByScope[f].length} deny rules`,
   })),
   sandbox,
+  read_boundary: readBoundary,
   remedy: missing.length
     ? 'node <plugin>/skills/setup/scripts/write-operator-permissions.mjs --scope user   (dry-run first; consent required)'
     : null,
@@ -54,6 +72,8 @@ if (jsonOut === '1') {
   console.log(`operator permissions: ${present}/${payload.deny.length} payload rules enforced`);
   for (const s of out.scopes_scanned) console.log(`  ${s.state.padEnd(16)} ${s.file}`);
   console.log(`  sandbox: enabled=${sandbox.enabled} network=${sandbox.network}`);
+  console.log(`  read boundary: blockReadsOutsideWorkingDirectories=${readBoundary.block_reads_outside} additionalDirectories=${readBoundary.additional_directories.length}`);
+  if (readBoundary.warning) console.log(`  warn: ${readBoundary.warning}`);
   if (missing.length) {
     console.log(`  missing (${missing.length}): ${missing.slice(0, 5).join(', ')}${missing.length > 5 ? ', ...' : ''}`);
     console.log(`  remedy: ${out.remedy}`);

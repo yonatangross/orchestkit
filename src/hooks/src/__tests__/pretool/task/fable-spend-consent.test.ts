@@ -27,6 +27,7 @@ function spawn(model?: string): HookInput {
 const savedEnv = { ...process.env };
 beforeEach(() => {
   delete process.env.ORK_FABLE_OK;
+  delete process.env.CLAUDE_CODE_SUBAGENT_MODEL_FORCE;
 });
 afterEach(() => {
   process.env = { ...savedEnv };
@@ -63,6 +64,26 @@ describe('fableSpendConsent', () => {
       const r = fableSpendConsent(spawn(m), NOOP_CTX);
       expect(r.hookSpecificOutput?.permissionDecision, m).toBeUndefined();
     }
+  });
+
+  test('silent under CLAUDE_CODE_SUBAGENT_MODEL_FORCE (CC 2.1.257 ignores the pin)', () => {
+    for (const v of ['1', 'true']) {
+      process.env.CLAUDE_CODE_SUBAGENT_MODEL_FORCE = v;
+      const r = fableSpendConsent(spawn('claude-fable-5-1'), NOOP_CTX);
+      expect(r.continue, v).toBe(true);
+      expect(r.hookSpecificOutput?.permissionDecision, v).toBeUndefined();
+    }
+  });
+
+  test('still asks when FORCE is set to something that is not on', () => {
+    process.env.CLAUDE_CODE_SUBAGENT_MODEL_FORCE = '0';
+    const r = fableSpendConsent(spawn('fable'), NOOP_CTX);
+    expect(r.hookSpecificOutput?.permissionDecision).toBe('ask');
+  });
+
+  test('escalates the Fable 5.1 ID (claude-fable-5-1)', () => {
+    const r = fableSpendConsent(spawn('claude-fable-5-1'), NOOP_CTX);
+    expect(r.hookSpecificOutput?.permissionDecision).toBe('ask');
   });
 
   test('silent when no model is pinned (inherit follows the session)', () => {
