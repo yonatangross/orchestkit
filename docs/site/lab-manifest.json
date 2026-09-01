@@ -913,6 +913,18 @@
         "models"
       ],
       "date": "2026-09-01"
+    },
+    {
+      "slug": "agent-routing-2026-09-01",
+      "source": "docs/chore--agent-routing-2026-09-01/index.html",
+      "title": "Agent routing 2026-09-01: 15 model pins, one field each",
+      "description": "CC 2.1.257 made inherit resolve to Fable 5.1, so fifteen ork agents get an explicit tier: one to opus, thirteen to sonnet, one to haiku. Each row names before, after and why, with list prices per MTok and the two things a pin cannot do (FORCE overrides it, and it does not pass to spawned agents).",
+      "tags": [
+        "agents",
+        "models",
+        "cost"
+      ],
+      "date": "2026-09-02"
     }
   ]
 }

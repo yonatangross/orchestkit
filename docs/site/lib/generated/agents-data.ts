@@ -256,7 +256,7 @@ export const AGENTS: Agent[] = [
     "name": "Ci Cd Engineer",
     "description": "CI/CD specialist: GitHub Actions, GitLab CI pipelines, deployment automation, build optimization, caching, security scanning.",
     "category": "devops",
-    "model": "inherit",
+    "model": "sonnet",
     "taskTypes": [
       "deploy",
       "build"
@@ -303,7 +303,7 @@ export const AGENTS: Agent[] = [
     "name": "Code Quality Reviewer",
     "description": "Code quality reviewer: bug detection, security vulnerabilities, performance issues, linting, type checking, test coverage.",
     "category": "testing",
-    "model": "inherit",
+    "model": "opus",
     "taskTypes": [
       "review"
     ],
@@ -326,7 +326,7 @@ export const AGENTS: Agent[] = [
     "name": "Component Curator",
     "description": "Component library curator: audits project component usage, searches 21st.dev registry for alternatives, tracks component freshness, and recommends upgrades for design consistency.",
     "category": "frontend",
-    "model": "inherit",
+    "model": "sonnet",
     "taskTypes": [
       "review",
       "research"
@@ -350,7 +350,7 @@ export const AGENTS: Agent[] = [
     "name": "Data Pipeline Engineer",
     "description": "Data pipeline specialist: embeddings, chunking strategies, vector indexes, data transformation for AI consumption.",
     "category": "ai",
-    "model": "haiku",
+    "model": "sonnet",
     "taskTypes": [
       "build",
       "optimize"
@@ -444,7 +444,7 @@ export const AGENTS: Agent[] = [
     "name": "Deployment Manager",
     "description": "Deployment specialist: production releases, rollback procedures, feature flags, blue-green/zero-downtime deployments.",
     "category": "devops",
-    "model": "haiku",
+    "model": "sonnet",
     "taskTypes": [
       "deploy"
     ],
@@ -466,7 +466,7 @@ export const AGENTS: Agent[] = [
     "name": "Design Context Extractor",
     "description": "Design context extraction: analyzes screenshots, URLs, or live apps to extract color palettes, typography, spacing, and component patterns as structured design tokens.",
     "category": "frontend",
-    "model": "inherit",
+    "model": "sonnet",
     "taskTypes": [
       "design",
       "research"
@@ -489,7 +489,7 @@ export const AGENTS: Agent[] = [
     "name": "Design System Architect",
     "description": "Design system architect: token hierarchies, theming strategies, component library design, Figma-to-code pipelines, and design governance.",
     "category": "frontend",
-    "model": "inherit",
+    "model": "sonnet",
     "taskTypes": [
       "design",
       "build"
@@ -512,7 +512,7 @@ export const AGENTS: Agent[] = [
     "name": "Emulate Engineer",
     "description": "Stateful API emulation via Vercel emulate. Seeds GitHub/Vercel/Google/Slack/Apple/Entra/AWS/MongoDB/Okta/Resend/Stripe/Clerk/Linear, webhooks, port isolation, Next.js adapter. Use to replace flaky API mocks.",
     "category": "testing",
-    "model": "inherit",
+    "model": "haiku",
     "taskTypes": [
       "test",
       "build"
@@ -562,7 +562,7 @@ export const AGENTS: Agent[] = [
     "name": "Event Driven Architect",
     "description": "Event-driven architecture specialist who designs event sourcing systems, message queue topologies, and CQRS patterns. Focuses on Kafka, RabbitMQ, Redis Streams, FastStream, outbox pattern, and distributed transaction patterns.",
     "category": "backend",
-    "model": "opus",
+    "model": "sonnet",
     "taskTypes": [
       "design",
       "build"
@@ -659,7 +659,7 @@ export const AGENTS: Agent[] = [
     "name": "Genui Architect",
     "description": "Generative UI and json-render catalog specialist. Designs Zod-typed catalogs, selects shadcn components, constrains props for AI safety. Use when defining component catalogs or building AI-generated UIs.",
     "category": "frontend",
-    "model": "inherit",
+    "model": "sonnet",
     "taskTypes": [
       "design",
       "build"
@@ -682,7 +682,7 @@ export const AGENTS: Agent[] = [
     "name": "Git Operations Engineer",
     "description": "Git operations: branch management, rebases, merges, stacked PRs, recovery operations, clean commit history.",
     "category": "other",
-    "model": "haiku",
+    "model": "sonnet",
     "taskTypes": [
       "build"
     ],
@@ -753,7 +753,7 @@ export const AGENTS: Agent[] = [
     "name": "Market Intelligence",
     "description": "Market research: competitive landscapes, market trends, TAM/SAM/SOM sizing, threat/opportunity analysis.",
     "category": "product",
-    "model": "haiku",
+    "model": "sonnet",
     "taskTypes": [
       "research"
     ],
@@ -775,7 +775,7 @@ export const AGENTS: Agent[] = [
     "name": "Monitoring Engineer",
     "description": "Observability and monitoring specialist. Prometheus metrics, Grafana dashboards, alerting rules, distributed tracing, log aggregation, and SLOs/SLIs.",
     "category": "devops",
-    "model": "haiku",
+    "model": "sonnet",
     "taskTypes": [
       "build",
       "design"
@@ -844,7 +844,7 @@ export const AGENTS: Agent[] = [
     "name": "Python Performance Engineer",
     "description": "Python performance: profiling, memory optimization, async performance, database query optimization, caching, load testing.",
     "category": "backend",
-    "model": "inherit",
+    "model": "sonnet",
     "taskTypes": [
       "optimize",
       "debug"
@@ -961,7 +961,7 @@ export const AGENTS: Agent[] = [
     "name": "Test Generator",
     "description": "Test specialist: coverage gap analysis, unit/integration test generation, fixtures, API mocking (MSW), HTTP recording.",
     "category": "testing",
-    "model": "inherit",
+    "model": "sonnet",
     "taskTypes": [
       "test",
       "build"

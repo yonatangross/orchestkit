@@ -15,6 +15,20 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "agent-routing-2026-09-01",
+    "title": "Agent routing 2026-09-01: 15 model pins, one field each",
+    "description": "CC 2.1.257 made inherit resolve to Fable 5.1, so fifteen ork agents get an explicit tier: one to opus, thirteen to sonnet, one to haiku. Each row names before, after and why, with list prices per MTok and the two things a pin cannot do (FORCE overrides it, and it does not pass to spawned agents).",
+    "tags": [
+      "agents",
+      "models",
+      "cost"
+    ],
+    "date": "2026-09-02",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 11
+  },
+  {
     "slug": "cc-257-followups",
     "title": "Three follow-ups CC 2.1.257 asked for: a prompt that lied, a read boundary, an alias",
     "description": "fable-spend-consent goes silent when CLAUDE_CODE_SUBAGENT_MODEL_FORCE makes the pin inert (simulate a spawn), doctor reports the new read boundary and warns when ~/.claude is not covered, and the fable alias moves to 5.1 because the recency ratchet never blocked it.",
