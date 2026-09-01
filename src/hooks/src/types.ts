@@ -249,8 +249,8 @@ export interface HookInput {
   task_description?: string;
 
   // WorktreeCreate/WorktreeRemove specific fields (CC 2.1.69, 2.1.84)
-  /** Worktree slug identifier, e.g. 'feature-auth' or 'bold-oak-a3f2' (WorktreeCreate, legacy field) */
-  name?: string;
+  // (the legacy `name` slug field was deleted 2026-09-01: WorktreeCreate is not
+  // a registered event here and no production reader existed)
   /** NOT sent — WorktreeRemove delivers `worktree_path` (verified 2.1.227:
    *  {hook_event_name:"WorktreeRemove", worktree_path}, declared below);
    *  #2335's name never appeared in a payload builder. */

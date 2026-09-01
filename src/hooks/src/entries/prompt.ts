@@ -19,9 +19,9 @@ export * from '../lib/task-integration.js';
 export * from '../lib/retry-manager.js';
 
 // --- Individual hooks still registered separately in hooks.json ---
-
-// Once-only hooks (once: true)
-import { profileInjector } from '../prompt/profile-injector.js';
+// (prompt/profile-injector deleted 2026-09-01: the @deprecated stub was a
+// no-op with no hooks.json entry; the real work is materializeProfileRules()
+// called from lifecycle/sync-session-dispatcher at SessionStart.)
 
 // --- Unified dispatcher (Issue #448) ---
 // Consolidates: context-injector, todo-enforcer,
@@ -45,7 +45,8 @@ import { worktreeAdvisoryConsumer } from '../prompt/worktree-advisory-consumer.j
 // P3-A3: UserPromptExpansion observer (CC 2.1.208) — observer-only telemetry
 import { promptExpansionObserver } from '../prompt/prompt-expansion-observer.js';
 
-// --- Legacy hooks kept in bundle for backward compat (not in hooks.json) ---
+// ACTIVE: registered in hooks.json (UserPromptSubmit). The old "legacy, not in
+// hooks.json" label here was wrong and misled a 2026-09-01 dead-code sweep.
 import { thrashDetector } from '../prompt/thrash-detector.js';
 // communicationStyleTracker removed: replaced by type:prompt hook in hooks.json (#980)
 
@@ -54,15 +55,13 @@ import type { HookFn } from '../types.js';
 /**
  * Prompt hooks registry
  *
- * Issue #448: Only 5 hooks are registered in hooks.json now.
- * The remaining 9 are consolidated into unified-dispatcher.
- * Legacy entries kept for backward compat if users reference them in overrides.
+ * Issue #448: most every-turn hooks are consolidated into unified-dispatcher;
+ * the rest are registered individually in hooks.json. Every map entry below is
+ * dispatchable; dead slots are deleted, not kept "for compat" (#3867 sweep).
  */
 export const hooks: Record<string, HookFn> = {
-  // Active hooks (registered in hooks.json)
   'prompt/unified-dispatcher': unifiedPromptDispatcher,
   'prompt/handoff-injector': handoffInjector,
-  'prompt/profile-injector': profileInjector,
   // M140 G3 (#1790) — /goal convergence telemetry
   'prompt/goal-tracker': goalTracker,
   // M119 (#1795) — ask-fallback-injector moved to lifecycle/ in M104 PR-A
@@ -71,7 +70,7 @@ export const hooks: Record<string, HookFn> = {
   'prompt/worktree-advisory-consumer': worktreeAdvisoryConsumer,
   // P3-A3: UserPromptExpansion (CC 2.1.208) — never blocks, never modifies
   'prompt/prompt-expansion-observer': promptExpansionObserver,
-  // Legacy hooks (consolidated into unified-dispatcher, kept for override compat)
+  // ACTIVE in hooks.json (UserPromptSubmit); previously mislabeled "legacy"
   'prompt/thrash-detector': thrashDetector,
 };
 

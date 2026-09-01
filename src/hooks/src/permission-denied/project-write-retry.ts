@@ -21,7 +21,6 @@
 import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess } from '../lib/common.js';
 import { isInsideDir, hasExcludedDir, resolveRealPath } from '../lib/path-containment.js';
-import { isAbsolute, resolve } from 'node:path';
 import { NOOP_CTX } from '../lib/context.js';
 
 const HOOK_NAME = 'project-write-retry';
@@ -48,11 +47,8 @@ export function projectWriteRetry(input: HookInput, ctx: HookContext = NOOP_CTX)
 
   ctx.log(HOOK_NAME, `Evaluating denied write to: ${filePath}`);
 
-  // CC >= 2.1.88: file_path always absolute for Write/Edit/Read. Kept for CC < 2.1.88 compat.
-  if (!isAbsolute(filePath)) {
-    filePath = resolve(projectDir, filePath);
-  }
-
+  // CC >= 2.1.88 delivers absolute file_path for Write/Edit/Read; the support
+  // floor is far above that, so no relative-path compat branch remains.
   // SEC: Resolve symlinks to prevent bypass attacks (ME-001 / PD-001)
   filePath = resolveRealPath(filePath, projectDir);
 
