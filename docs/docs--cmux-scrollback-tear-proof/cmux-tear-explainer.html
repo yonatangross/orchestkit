@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>למה המסך שלך התבלגן — cmux scrollback tear</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --glass:rgba(255,255,255,.04);
+    --line:rgba(255,255,255,.09); --txt:#e6edf3; --faint:#8b949e;
+    --ok:#3fb950; --warm:#d29922; --risk:#f85149; --acc:#58a6ff;
+    --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);
+       font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:26px 18px 70px}
+  .wrap{max-width:900px;margin:0 auto}
+  h1{font-size:23px;margin:0 0 4px}
+  .sub{color:var(--faint);margin:0 0 22px;font-size:14px}
+  .glass{background:var(--glass);border:1px solid var(--line);border-radius:12px}
+
+  /* step nav */
+  .steps{display:flex;gap:8px;margin:0 0 20px;flex-wrap:wrap}
+  .steps button{font:600 14px/1 inherit;padding:11px 15px;border-radius:9px;cursor:pointer;
+    background:var(--panel);border:1px solid var(--line);color:var(--faint)}
+  .steps button.on{background:#1f2a3a;border-color:var(--acc);color:var(--acc)}
+
+  .card{padding:22px 24px;margin-bottom:16px;display:none}
+  .card.show{display:block}
+  .card h2{font-size:19px;margin:0 0 12px;display:flex;gap:10px;align-items:center}
+  .card p{margin:0 0 12px}
+  .en{direction:ltr;text-align:left;color:var(--faint);font-size:14px;
+      border-right:2px solid var(--line);padding-right:12px;margin:12px 0}
+  .tag{font:600 11px/1 var(--mono);padding:4px 9px;border-radius:99px;border:1px solid var(--line);color:var(--faint)}
+  .tag.bad{color:var(--risk);border-color:rgba(248,81,73,.4)}
+  .tag.ok{color:var(--ok);border-color:rgba(63,185,80,.4)}
+  .tag.warm{color:var(--warm);border-color:rgba(210,153,34,.4)}
+
+  /* the torn-text demo */
+  .demo{direction:ltr;text-align:left;font-family:var(--mono);font-size:14px;
+        background:#0a0d12;border:1px solid var(--line);border-radius:8px;padding:14px;margin:8px 0}
+  .demo .clean{color:var(--ok)} .demo .torn{color:var(--risk)}
+  .demo .b{color:var(--acc)}
+
+  .flow{display:flex;flex-direction:column;gap:0;margin:14px 0}
+  .flow .node{background:var(--panel);border:1px solid var(--line);border-radius:8px;
+              padding:11px 14px;font-size:14px}
+  .flow .arrow{color:var(--faint);text-align:center;font-family:var(--mono);font-size:13px;padding:3px 0}
+  .flow .node.bad{border-color:rgba(248,81,73,.4)}
+  .flow .node.ok{border-color:rgba(63,185,80,.4)}
+
+  .quote{direction:ltr;text-align:left;font-family:var(--mono);font-size:12.5px;
+         background:#0a0d12;border-inline-start:3px solid var(--warm);border-radius:6px;
+         padding:10px 12px;margin:8px 0;color:var(--txt)}
+  .quote .src{color:var(--faint);font-size:11px;display:block;margin-bottom:4px}
+
+  .verdict{display:grid;grid-template-columns:1fr auto;gap:8px 14px;align-items:center;margin:6px 0}
+  .verdict .who{font-size:15px} .verdict .val{font:600 13px/1 var(--mono);text-align:left;direction:ltr}
+
+  .cta{padding:12px 16px;border-radius:9px;border:1px solid var(--line);margin:8px 0;font-size:14.5px}
+  .cta code{font-family:var(--mono);color:var(--acc);font-size:13px}
+  .foot{margin-top:22px;font-size:12.5px;color:var(--faint);direction:ltr;text-align:left}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>למה המסך שלך התבלגן 🧵</h1>
+  <p class="sub">התחקיר המלא של ה-scrollback שנקרע ב-cmux, בעברית ובאנגלית. לחצו על השלבים.</p>
+
+  <div class="steps" id="steps">
+    <button data-s="0" class="on">1 · מה ראית</button>
+    <button data-s="1">2 · מי אשם</button>
+    <button data-s="2">3 · המנגנון</button>
+    <button data-s="3">4 · ההוכחה</button>
+    <button data-s="4">5 · למה לא הרצנו</button>
+    <button data-s="5">6 · מה עושים</button>
+  </div>
+
+  <!-- 1 -->
+  <div class="card glass show" data-c="0">
+    <h2>🖥️ מה ראית על המסך</h2>
+    <p>שורות ב-scrollback (הגלילה למעלה) שבהן <b>שני טקסטים שונים נשזרו אות באות</b> באמצע מילה. השורה החיה למטה תמיד תקינה — רק ההיסטוריה שנגללה למעלה נקרעת.</p>
+    <div class="demo">
+      <div class="clean">Three redundant CI pollers, not pytest.</div>
+      <div>+</div>
+      <div class="b">Killing them since another session owns the merge train.</div>
+      <div>=</div>
+      <div class="torn">Threearedundantg&nbsp;CInpollers,wnotpytest.iKilling&nbsp;themosince…</div>
+    </div>
+    <p class="en">Two text streams woven character-by-character. Live region clean; only scrolled-up scrollback is torn. This is memory-level corruption, not a font glitch.</p>
+  </div>
+
+  <!-- 2 -->
+  <div class="card glass" data-c="1">
+    <h2>🔍 מי אשם — פסק הדין</h2>
+    <p>בדקנו ארבעה חשודים. שלושה זוכו, אחד נמצא אשם.</p>
+    <div class="verdict"><span class="who">🧩 OrchestKit (ההוקים שלנו)</span><span class="val" style="color:var(--ok)">זוכה ✓</span></div>
+    <div class="verdict"><span class="who">🏢 hq-ext</span><span class="val" style="color:var(--ok)">זוכה ✓</span></div>
+    <div class="verdict"><span class="who">🤖 Claude Code (הרנדרר)</span><span class="val" style="color:var(--warm)">שותף משני</span></div>
+    <div class="verdict"><span class="who">🖥️ cmux</span><span class="val" style="color:var(--risk)">אשם 🔴</span></div>
+    <p style="margin-top:14px">ההגיון: תוסף יכול לשלוח טקסט <b>שגוי</b>, אבל אף פעם לא לשזור שני טקסטים אות-באות. שזירה כזו קורית רק בשכבה שבה בייטים פוגשים את הזיכרון — כלומר במנוע הטרמינל של cmux עצמו.</p>
+    <p class="en">Plugins emit whole strings; only the terminal engine can weave two streams at character granularity. That points at cmux's vendored ghostty fork, not the writers.</p>
+  </div>
+
+  <!-- 3 -->
+  <div class="card glass" data-c="2">
+    <h2>⚙️ המנגנון — למה זה קורה</h2>
+    <p>ב-cmux 0.64.20 נוספה תכונה חדשה (<span class="tag">PR #7758</span>, דלוקה כברירת מחדל): <b>דחיסת scrollback</b>. היא דוחסת דפי היסטוריה "קרים" ו<b>מחזירה את הזיכרון הפיזי שלהם למערכת ההפעלה</b>.</p>
+    <div class="flow">
+      <div class="node">📄 דף היסטוריה מתקרר → נדחס (LZ4)</div>
+      <div class="arrow">↓ הזיכרון הפיזי מוחזר ל-OS (MADV_FREE_REUSABLE)</div>
+      <div class="node ok">✅ קריאה בטוחה: דרך <code style="direction:ltr">Node.page()</code> — משחזרת קודם</div>
+      <div class="arrow">↓ אבל…</div>
+      <div class="node bad">❌ שלושה מקומות עוקפים: <code style="direction:ltr">pageAssumeResident()</code></div>
+      <div class="arrow">↓ קוראים זיכרון שכבר הוחזר ל-OS</div>
+      <div class="node bad">🧵 בייטים ישנים + מה שתפס את הזיכרון = שורה קרועה</div>
+    </div>
+    <p>הזיכרון של דפי טרמינל אורז שורות רצוף, ולכן התערובת נשזרת <b>ברמת התו</b>. זה בדיוק מה שראית.</p>
+    <p class="en">Compression decommits page memory; three write paths bypass the restore via pageAssumeResident() and read decommitted memory → character-level tear.</p>
+  </div>
+
+  <!-- 4 -->
+  <div class="card glass" data-c="3">
+    <h2>🧾 ההוכחה — הקוד סותר את עצמו</h2>
+    <p>לא ניחוש. הקוד של cmux מצהיר דבר אחד במקום אחד, וההיפך במקום שני:</p>
+    <div class="quote"><span class="src">Screen.zig:895 — מצדיק את העקיפה</span>"…grow does not compress pages, so the node must still be resident here."</div>
+    <div class="quote"><span class="src">PageList.zig:2446 — מצהיר את ההיפך</span>"A compressed history page pulled into the active area remains compressed until Node.page restores it."</div>
+    <div class="quote"><span class="src">PageList.zig:1228 — הבטחה שלא מתקיימת</span>"Resizing forces all nodes to be decompressed today" — אבל מסלול הגדילה מאפס רק את מכונת-המצב, לא משחזר אף דף.</div>
+    <p>בנוסף: <span class="tag warm">timing</span> גרסאות 0.64.14/15 (לפני #7758) רצו חודשים נקי; התקלה חדשה ב-0.64.20. הבעלים של cmux עצמו הצביע על #7758 ב-issue #8229.</p>
+    <p class="en">Self-contradicting comments in the same file + a clean→broken version window pinned exactly to when #7758 landed. Owner already fingered #7758 in #8229.</p>
+  </div>
+
+  <!-- 5 -->
+  <div class="card glass" data-c="4">
+    <h2>🔧 "toolchain mismatch" — למה לא הרצנו את הבדיקה כאן</h2>
+    <p>כתבתי בדיקה אוטומטית שאמורה להיכשל על הקוד הפגום ולהוכיח את הקריעה. אבל לא הצלחתי <b>להריץ</b> אותה על המק שלך. הסיבה פשוטה, ולא קשורה לבאג:</p>
+    <div class="flow">
+      <div class="node">🔨 כדי לבנות את cmux צריך כלי בשם <b>zig</b>, גרסה <b>0.15.2</b> (זה מה ש-cmux דורש)</div>
+      <div class="arrow">↕ אי-התאמה</div>
+      <div class="node bad">🍎 המק שלך על <b>macOS 26.5</b> — חדש יותר מ-zig 0.15.2</div>
+    </div>
+    <p>zig 0.15.2 לא מכיר את הספריות של macOS 26, אז השלב האחרון של הבנייה (קישור) נכשל. זו אי-התאמה בין <b>גיל הכלי</b> ל<b>גיל מערכת ההפעלה</b> — לא שום דבר בקוד עצמו. בדיקה טריוויאלית כן עברה, מה שמאשר שהכלי תקין בעיקרון.</p>
+    <p>המקום הנכון להריץ: ה-CI של cmux עצמו (לינוקס + הגרסה הנכונה של zig), או קונטיינר לינוקס.</p>
+    <p class="en">The fork pins zig 0.15.2; your macOS 26.5 is newer than that zig's bundled macOS libc stubs, so libc-linking fails at the LINK step — a tool-age vs OS-age mismatch, not the bug. Clean run = the fork's own Linux CI.</p>
+  </div>
+
+  <!-- 6 -->
+  <div class="card glass" data-c="5">
+    <h2>🎬 מה עושים עכשיו — שלוש אפשרויות</h2>
+    <div class="cta"><b>1 · תיקון מיידי + אישור אמפירי</b><br>
+      מוסיפים שורה אחת ל-<code>~/.config/ghostty/config</code>:<br>
+      <code>scrollback-compression = false</code><br>
+      מפעילים מחדש את cmux. אם הקריעה נעצרת — הוכחנו על החומרה האמיתית שלך.</div>
+    <div class="cta"><b>2 · הרצה נקייה ב-Docker/לינוקס</b><br>
+      מריצים את הבדיקה בסביבה של ה-CI של cmux — מקבלים ✅/❌ אמיתי. ~10-15 דק'.</div>
+    <div class="cta"><b>3 · תיקון שורש + PR ל-upstream</b><br>
+      מתקנים את שלושת מקומות העקיפה (שיעברו דרך <code>Node.page()</code>), פותחים issue + PR ל-<code>manaflow-ai/cmux</code> עם הבדיקה. זה ה"תיקון שורש" האמיתי.</div>
+    <p class="en">Compose freely — mitigation confirms on real hardware, Docker gives the clean green/red, the PR fixes the root. All three are independent.</p>
+  </div>
+
+  <p class="foot">Full technical dossier: cmux-scrollback-tear-proof.md · verified against source clones @ ghostty-fork b211341 · 2026-07-23</p>
+</div>
+
+<script>
+"use strict";
+document.getElementById("steps").addEventListener("click", e => {
+  const s = e.target.dataset.s;
+  if (s === undefined) return;
+  document.querySelectorAll("#steps button").forEach(b => b.classList.toggle("on", b.dataset.s === s));
+  document.querySelectorAll(".card").forEach(c => c.classList.toggle("show", c.dataset.c === s));
+});
+</script>
+</body>
+</html>

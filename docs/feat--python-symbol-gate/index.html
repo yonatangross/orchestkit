@@ -1,0 +1,73 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>The phantom-symbol gate was npm-only</title><style>
+:root{--bg:hsl(232 26% 7%);--ink:hsl(220 18% 93%);--muted:hsl(220 14% 64%);--faint:hsl(220 12% 46%);
+--glass:hsl(0 0% 100% / .05);--edge:hsl(0 0% 100% / .18);--accent:hsl(248 84% 68%);--ok:hsl(162 62% 52%);--bad:hsl(354 78% 62%)}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(54rem 36rem at 88% -6%,hsl(248 70% 26% / .38),transparent 62%),var(--bg);
+background-attachment:fixed;color:var(--ink);font:15px/1.65 -apple-system,system-ui,sans-serif}
+.wrap{max-width:920px;margin-inline:auto;padding:48px 24px 80px}
+.eyebrow{display:inline-block;font-size:11.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;
+color:var(--faint);border:1px solid var(--edge);border-radius:999px;background:var(--glass);padding:6px 12px}
+h1{font-size:clamp(23px,3.4vw,32px);font-weight:700;margin:14px 0 10px}h1 span{color:var(--accent)}
+.lede{color:var(--muted);max-width:66ch;margin:0 0 26px}.lede b{color:var(--ink)}
+h2{font-size:17px;margin:28px 0 8px}
+pre{background:hsl(232 30% 4% / .6);border:1px solid var(--edge);border-radius:12px;padding:12px;overflow-x:auto;font-size:12px;color:var(--muted)}
+code{font-family:ui-monospace,Menlo,monospace;font-size:12px;background:hsl(0 0% 100% / .07);padding:1px 5px;border-radius:5px}
+table{width:100%;border-collapse:collapse;font-size:13px;border:1px solid var(--edge);border-radius:12px;overflow:hidden;background:var(--glass)}
+th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--faint);padding:9px 11px;border-bottom:1px solid var(--edge)}
+td{padding:9px 11px;border-bottom:1px solid hsl(0 0% 100% / .06)}tr:last-child td{border-bottom:none}
+.ok{color:var(--ok)}.bad{color:var(--bad)}
+.card{border:1px solid var(--edge);border-radius:12px;background:var(--glass);padding:15px 17px;margin-top:11px}
+.card h3{margin:0 0 5px;font-size:14px}.card p{margin:0;font-size:13px;color:var(--muted)}
+.foot{margin-top:30px;font-size:12px;color:var(--faint);line-height:1.9}
+</style></head><body><div class="wrap">
+<div class="eyebrow">2026-07-31 &middot; the gate that could not see Python</div>
+<h1>The phantom-symbol gate <span>was npm-only</span></h1>
+<p class="lede"><code>check-import-symbols.mjs</code> exists to catch imports of symbols that were
+never published. It has caught real ones. It reads <code>.d.ts</code> files, so it had
+<b>never looked at a single line of Python</b> &mdash; and this repo ships Python in mcp-patterns,
+langgraph, python-backend and testing-llm.</p>
+
+<h2>What the blind spot was hiding</h2>
+<pre>mcp 1.28.0  ->  19 files under mcp/server/fastmcp/
+mcp 2.0.0   ->   0 files</pre>
+<p class="lede"><code>from mcp.server.fastmcp import FastMCP</code> ships in 7 places and is a hard
+ImportError on the 2.x that <code>pip install mcp</code> now resolves to. No version gate catches
+that: a floor is satisfied by any newer release. Only reading the artifact catches it.</p>
+
+<h2>How it verifies, with no type declarations to read</h2>
+<pre>1. resolve the version the skill's DECLARED floor permits  (a <2.0.0 bound means newest 1.x)
+2. unzip -Z1 the wheel   -> does the MODULE PATH exist?
+3. unzip -p that module  -> is the SYMBOL defined or re-exported?</pre>
+
+<h2>Three wrong versions before the right one</h2>
+<div class="card"><h3>1. Accused submodules</h3>
+<p><code>from sqlalchemy import event</code> was flagged. <code>event</code> is a submodule
+(<code>sqlalchemy/event/__init__.py</code>), not a name in <code>__init__.py</code>. Fixed by
+checking the filesystem shape before the source text.</p></div>
+<div class="card"><h3>2. Then suppressed the real finding</h3>
+<p>Skipping whenever a sibling-named distribution existed silently waved through the mcp finding,
+because an <b>unrelated</b> package literally named <code>mcp-server</code> (0.1.4) is published.
+A false negative is worse than a false positive: nobody looks again.</p></div>
+<div class="card"><h3>3. Then guessed names that cannot be guessed</h3>
+<p><code>langgraph.store.base</code> ships in <code>langgraph-checkpoint</code>, and
+<code>langgraph.store.postgres</code> in <code>langgraph-checkpoint-postgres</code>, which langgraph
+does not declare at all. A namespace module can live in ANY distribution, so absence from the root
+wheel is not evidence. The unit of judgement became the ROOT: if a dependency also ships
+<code>&lt;root&gt;/</code>, skip the root entirely. <code>mcp</code> is not a namespace root, so it is
+still reported.</p></div>
+
+<h2>Findings: 9 real, 0 false positives</h2>
+<table><thead><tr><th>finding</th><th>status</th></tr></thead><tbody>
+<tr><td><code>mcp.server.fastmcp</code> &times; 7</td><td class="bad">real, absent in mcp 2.0</td></tr>
+<tr><td><code>RemainingSteps</code> from <code>langgraph.types</code></td><td class="bad">real &mdash; lives in <code>langgraph.managed</code></td></tr>
+<tr><td><code>get_runnable_config</code></td><td class="bad">real &mdash; the name is <code>get_config</code></td></tr>
+</tbody></table>
+<p class="lede" style="margin-top:12px">Both langgraph phantoms are fixed in this PR. The 7 mcp ones
+are fixed by <b>#3229</b>, and that composition is verified: applying its <code>&lt;2.0.0</code>
+bound makes this gate resolve to the newest 1.x and report <i>"Every verified python import
+resolves"</i>. Two independent PRs, one coherent outcome.</p>
+
+<p class="foot">Opt-in via <code>ORK_PYTHON_SYMBOLS=1</code>: it downloads wheels, and a
+network-dependent hard gate is one people learn to ignore. Wired into run-all-tests.sh so the
+orphaned-test ratchet stays at its baseline of 1.</p>
+</div></body></html>

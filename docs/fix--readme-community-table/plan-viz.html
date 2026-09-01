@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>README community table · verified against the live WhatsApp invites</title>
+<style>
+:root{
+  --pg-bg:hsl(232 26% 7%);
+  --pg-ink:hsl(220 18% 93%);
+  --pg-muted:hsl(220 14% 64%);
+  --pg-faint:hsl(220 12% 46%);
+  --pg-glass:hsl(0 0% 100% / .05);
+  --pg-glass-2:hsl(0 0% 100% / .08);
+  --pg-glass-edge:hsl(0 0% 100% / .18);
+  --pg-accent:hsl(248 84% 68%);
+  --pg-accent-deep:hsl(248 74% 52%);
+  --pg-danger:hsl(352 78% 62%);
+  --pg-warn:hsl(38 92% 60%);
+  --pg-ok:hsl(158 64% 52%);
+  --r-sm:9px; --r-md:16px; --r-lg:24px;
+  --sh-amb:0 20px 60px -22px hsl(248 60% 4% / .7);
+  --sh-tight:0 4px 12px -6px hsl(248 60% 4% / .5);
+  --ease:cubic-bezier(.2,.8,.25,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:
+    radial-gradient(58rem 38rem at 10% -10%, hsl(240 70% 40% / .30), transparent 60%),
+    radial-gradient(50rem 34rem at 94% 4%, hsl(264 68% 42% / .24), transparent 62%),
+    var(--pg-bg);
+  background-attachment:fixed;
+  color:var(--pg-ink);
+  font-family:ui-sans-serif,-apple-system,"Segoe UI",Inter,system-ui,sans-serif;
+  line-height:1.5;-webkit-font-smoothing:antialiased;
+}
+.mono{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-variant-numeric:tabular-nums}
+.wrap{max-width:1040px;margin-inline:auto;padding:48px 24px 96px}
+.eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--pg-faint);
+  font-weight:600;margin-block-end:8px}
+h1{font-size:clamp(25px,3.4vw,36px);font-weight:700;letter-spacing:-.3px;line-height:1.18}
+h1 em{font-style:normal;color:var(--pg-accent)}
+.sub{color:var(--pg-muted);margin-block-start:12px;max-width:76ch;font-size:15px}
+
+.glass{background:var(--pg-glass);border:1px solid var(--pg-glass-edge);border-radius:var(--r-md);
+  box-shadow:var(--sh-amb),var(--sh-tight),inset 0 1px 0 hsl(0 0% 100% / .12);
+  -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px)}
+
+.stage{margin-block-start:24px;padding:24px}
+.st-hd{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-block-end:8px}
+.st-hd h2{font-size:18px;letter-spacing:-.2px;font-weight:650}
+.tag{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+  padding:3px 9px;border-radius:var(--r-sm)}
+.tag.bad{background:hsl(352 78% 62% / .16);color:var(--pg-danger)}
+.tag.good{background:hsl(158 64% 52% / .15);color:var(--pg-ok)}
+.tag.warn{background:hsl(38 92% 60% / .15);color:var(--pg-warn)}
+.st-why{color:var(--pg-muted);font-size:14px;margin-block-end:16px;max-width:78ch}
+
+table{border-collapse:collapse;width:100%;font-size:14px;
+  background:hsl(232 30% 5%);border-radius:var(--r-sm);overflow:hidden}
+th,td{padding:10px 12px;text-align:start;border-block-end:1px solid hsl(0 0% 100% / .07);
+  vertical-align:top}
+th{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--pg-faint);
+  background:hsl(0 0% 100% / .04);font-weight:700}
+tr:last-child td{border-block-end:none}
+td .who{color:var(--pg-muted);font-size:13px}
+a{color:var(--pg-accent);text-underline-offset:3px}
+
+.seg{display:inline-flex;gap:4px;padding:4px;border-radius:var(--r-sm);
+  background:hsl(0 0% 100% / .06);border:1px solid var(--pg-glass-edge);margin-block-end:16px}
+.seg button{appearance:none;border:0;cursor:pointer;font:inherit;font-size:13px;font-weight:600;
+  padding:7px 14px;border-radius:6px;color:var(--pg-muted);background:transparent;
+  transition:all .18s var(--ease)}
+.seg button[aria-pressed="true"]{background:var(--pg-accent-deep);color:hsl(0 0% 100%)}
+.seg button:hover:not([aria-pressed="true"]){color:var(--pg-ink)}
+
+.ev{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;
+  margin-block-start:16px}
+.ev-card{padding:14px;border-radius:var(--r-sm);background:hsl(0 0% 100% / .04);
+  border:1px solid hsl(0 0% 100% / .10)}
+.ev-card .code{font-size:11px;color:var(--pg-faint);word-break:break-all}
+.ev-card .real{font-size:16px;font-weight:650;margin-block:6px 4px}
+.ev-card .claim{font-size:12.5px;color:var(--pg-muted)}
+.ev-card.bad{border-color:hsl(352 78% 62% / .40)}
+.ev-card.good{border-color:hsl(158 64% 52% / .34)}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-inline-end:7px;
+  vertical-align:middle}
+.dot.bad{background:var(--pg-danger)} .dot.good{background:var(--pg-ok)}
+.dot.warn{background:var(--pg-warn)}
+
+.matrix td.y{color:var(--pg-ok);font-weight:650}
+.matrix td.n{color:var(--pg-danger);font-weight:650}
+.note{margin-block-start:14px;padding:12px 14px;border-radius:var(--r-sm);font-size:13.5px;
+  background:hsl(38 92% 60% / .08);border:1px solid hsl(38 92% 60% / .28);color:hsl(38 60% 84%)}
+.foot{margin-block-start:32px;color:var(--pg-faint);font-size:12.5px;text-align:center}
+[dir="rtl"]{unicode-bidi:isolate}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="eyebrow">OrchestKit · fix/readme-community-table</div>
+  <h1>The README's hand-written half had <em>rotted for months</em></h1>
+  <p class="sub">
+    The auto-generated blocks are healthy: What's New is stamped to v9.1.1 and
+    <span class="mono">check-docs-facts</span> passes at 114 skills / 36 agents / 219 hooks. Nothing
+    regenerates or gates the prose around them, so three separate defects survived there: a
+    community table wrong on 3 of 4 rows, an install path for release channels that never existed,
+    and a slash command that cannot be invoked. Every claim below was verified against a live
+    surface, not inferred.
+  </p>
+
+  <!-- ───────────────────────── stage 1 : evidence ───────────────────────── -->
+  <section class="glass stage">
+    <div class="st-hd">
+      <h2>1 · What each link actually resolves to</h2>
+      <span class="tag bad">3 wrong · 1 missing</span>
+    </div>
+    <p class="st-why">
+      Resolved live. The group name is whatever WhatsApp renders in
+      <span class="mono">og:title</span>, which is the same string a person sees on the join screen.
+      That is the only source that cannot drift.
+    </p>
+
+    <div class="ev">
+      <div class="ev-card good">
+        <div class="code mono">IKgu1xuvKNXHikJ4Qeotpk</div>
+        <div class="real"><span class="dot good"></span>🤝 <span dir="rtl">בונים עם AI</span></div>
+        <div class="claim">README said: <b>Community</b> (all channels). Close enough, but now named.</div>
+      </div>
+      <div class="ev-card" style="border-color:hsl(38 92% 60% / .38)">
+        <div class="code mono">CFAQoyGl2rp4P3JHcwC9Uu</div>
+        <div class="real"><span class="dot warn"></span>🎻 The Orchestra</div>
+        <div class="claim">README said: <b>AI Dev (EN)</b>. Live, but absent from both canonical
+          registries and its name fails the clarity-first doctrine. <b>Row removed</b>, see stage 5.</div>
+      </div>
+      <div class="ev-card bad">
+        <div class="code mono">BC4QoLEUNR76ygZwyrgZZT</div>
+        <div class="real"><span class="dot bad"></span>🛠️ <span dir="rtl">בילדרים</span> (Builders)</div>
+        <div class="claim">README said: <span dir="rtl">יש לך AI?</span> Stale name from an earlier round.</div>
+      </div>
+      <div class="ev-card good">
+        <div class="code mono">Krraz7LhB951K7nQfC08B2</div>
+        <div class="real"><span class="dot good"></span>🎻 OrchestKit</div>
+        <div class="claim">README said: <b>OrchestKit Users</b>. Correct.</div>
+      </div>
+      <div class="ev-card bad">
+        <div class="code mono">HcOREpW7PyqFRkPmnIMNMD</div>
+        <div class="real"><span class="dot bad"></span>📈 <span dir="rtl">AI לעסקים</span></div>
+        <div class="claim">README said: <b>nothing</b>. The room was absent from the table entirely.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────────────────── stage 2 : before / after ───────────────────────── -->
+  <section class="glass stage">
+    <div class="st-hd">
+      <h2>2 · The table, before and after</h2>
+      <span class="tag good">rendered as GitHub renders it</span>
+    </div>
+    <p class="st-why">
+      Toggle to compare. Names and audience lines are copied from what
+      <span class="mono">yonyon.ai/en</span> actually renders, so the README cannot drift from the
+      site. No Hebrew reaches this table, which retires the
+      <span class="mono">&lt;strong dir="rtl"&gt;</span> bidi-isolation workaround from #3153 rather
+      than perpetuating it.
+    </p>
+
+    <div class="note" style="background:hsl(248 84% 68% / .09);border-color:hsl(248 84% 68% / .30);color:hsl(248 40% 86%)">
+      <b>Three naming layers, easy to confuse.</b> A room has a group-internal WhatsApp name
+      (<span class="mono">og:title</span>, often Hebrew plus emoji), an English display name, and a
+      Hebrew display name. The first draft of this fix put the <i>group-internal</i> names into an
+      English README, which is the wrong layer. An English surface uses the English display name;
+      the Hebrew variant belongs to <span class="mono">yonyon.ai/he</span> only.
+    </div>
+
+    <table style="margin-block-start:14px">
+      <thead><tr><th>Layer</th><th>Builders</th><th>AI for Business</th></tr></thead>
+      <tbody>
+        <tr><td>WhatsApp <span class="mono">og:title</span></td>
+            <td>🛠️ <span dir="rtl">בילדרים</span></td>
+            <td><span dir="rtl">AI לעסקים</span> 📈</td></tr>
+        <tr><td><span class="mono">yonyon.ai/en</span> (this README)</td>
+            <td><b>Builders</b></td><td><b>AI for Business</b></td></tr>
+        <tr><td><span class="mono">yonyon.ai/he</span></td>
+            <td><span dir="rtl">בילדרים</span></td><td><span dir="rtl">AI לעסקים</span></td></tr>
+      </tbody>
+    </table>
+
+    <div class="seg" role="group" aria-label="Table version">
+      <button type="button" data-v="before" aria-pressed="false">Before</button>
+      <button type="button" data-v="after"  aria-pressed="true">After</button>
+    </div>
+
+    <div id="tbl"></div>
+  </section>
+
+  <!-- ───────────────────────── stage 3 : cross-surface ───────────────────────── -->
+  <section class="glass stage">
+    <div class="st-hd">
+      <h2>3 · Where each room is declared</h2>
+      <span class="tag warn">one surface still disagrees</span>
+    </div>
+    <p class="st-why">
+      Three repos independently list the community rooms. After this PR all three agree on the same
+      four entries, which is the state that makes future drift detectable.
+    </p>
+
+    <table class="matrix">
+      <thead><tr>
+        <th>Room</th>
+        <th>orchestkit README</th>
+        <th>portfolio seeds</th>
+        <th>platform COMMUNITY_ROOMS</th>
+      </tr></thead>
+      <tbody>
+        <tr>
+          <td><b>Building with AI</b> · <span dir="rtl">בונים עם AI</span></td>
+          <td class="y">yes</td><td class="y">yes (umbrella)</td><td class="y">yes</td>
+        </tr>
+        <tr>
+          <td><b>OrchestKit</b></td>
+          <td class="y">yes</td><td class="y">yes</td><td class="y">yes</td>
+        </tr>
+        <tr>
+          <td><b>Builders</b> · <span dir="rtl">בילדרים</span></td>
+          <td class="y">yes</td><td class="y">yes</td><td class="y">yes</td>
+        </tr>
+        <tr>
+          <td><b>AI for Business</b> · <span dir="rtl">AI לעסקים</span></td>
+          <td class="y">added here</td><td class="y">yes</td><td class="y">yes</td>
+        </tr>
+        <tr>
+          <td><b>The Orchestra</b></td>
+          <td class="n">removed</td><td class="n">absent</td><td class="n">absent</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ───────────────────────── stage 5 : the naming call ───────────────────────── -->
+  <section class="glass stage">
+    <div class="st-hd">
+      <h2>5 · Why The Orchestra is not in the table</h2>
+      <span class="tag warn">reversed mid-review</span>
+    </div>
+    <p class="st-why">
+      An earlier draft of this PR added it, on the reasoning that a live room missing from the
+      registries was an oversight. That reasoning was wrong, and the repo says so in writing.
+    </p>
+
+    <div class="note" style="background:hsl(0 0% 100% / .04);border-color:var(--pg-glass-edge);color:var(--pg-ink)">
+      <span class="mono" style="font-size:12.5px">portfolio/src/data/community-rooms-seeds.ts:6</span><br>
+      <i>"Naming strategy (settled 2026-07-17 after three rounds): clarity first. Every name tells a
+      stranger what the room is and who it's for in one second; no metaphor system to decode."</i>
+    </div>
+
+    <table style="margin-block-start:14px">
+      <thead><tr><th>Name</th><th>What a stranger learns in one second</th><th></th></tr></thead>
+      <tbody>
+        <tr><td><b>Builders</b></td><td class="who">who it is for</td><td>✅</td></tr>
+        <tr><td><b>OrchestKit</b></td><td class="who">the product it is about</td><td>✅</td></tr>
+        <tr><td><b>AI for Business</b></td><td class="who">who it is for</td><td>✅</td></tr>
+        <tr><td><b>The Orchestra</b></td>
+            <td class="who">nothing. it is a pun on orchestration</td><td>❌</td></tr>
+      </tbody>
+    </table>
+
+    <p class="st-why" style="margin-block-start:16px">
+      The timeline supports reading the omission as deliberate. A 2026-06-21 platform audit praised
+      "The Orchestra" as on-theme during the metaphor era; the 2026-07-17 round then replaced
+      metaphor names with literal ones and did not carry it over. It is absent from the portfolio
+      seeds and from platform's <span class="mono">COMMUNITY_ROOMS</span> independently. Two
+      omissions after a three-round naming exercise is a decision, not a gap.
+    </p>
+
+    <div class="note">
+      <b>The irony:</b> the README's original label for that invite was "AI Dev (EN)", which
+      <i>passes</i> the doctrine. The first draft of this fix replaced a compliant display name with
+      the non-compliant internal group name. That row was not the stale one. The group stays live and
+      unadvertised, exactly as before this PR; republishing it is a branding decision, not a docs fix.
+    </div>
+  </section>
+
+  <!-- ───────────────────────── stage 4 : dead sections ───────────────────────── -->
+  <section class="glass stage">
+    <div class="st-hd">
+      <h2>4 · Two things the README told you to run that cannot work</h2>
+      <span class="tag bad">removed</span>
+    </div>
+    <p class="st-why">
+      Both are documentation for features that do not exist. Neither is caught by any gate, because
+      <span class="mono">check-docs-facts.mjs</span> validates counts and the Claude Code floor and
+      never reads a URL or a command name.
+    </p>
+
+    <table>
+      <thead><tr><th>Claim in README</th><th>Verification run</th><th>Result</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>
+            <b>Release Channels</b><br>
+            <span class="who mono">/plugin marketplace add … --ref beta</span>
+          </td>
+          <td class="mono" style="font-size:12.5px">git ls-remote --heads --tags origin</td>
+          <td><span class="dot bad"></span>No <span class="mono">beta</span> or
+            <span class="mono">alpha</span> ref has ever existed. The linked docs page was deleted in
+            <span class="mono">b23da597e</span> (2026-07-19, <i>"remove … the never-published release
+            channels"</i>) but the README section stayed, pointing at a 404.</td>
+        </tr>
+        <tr>
+          <td><b>Configuration</b><br><span class="who mono">/ork:configure</span></td>
+          <td class="mono" style="font-size:12.5px">src/skills/configure/SKILL.md</td>
+          <td><span class="dot bad"></span><span class="mono">user-invocable: false</span> and
+            <span class="mono">disable-model-invocation: true</span>, so no command is generated and
+            the model cannot reach it either. Replaced with <span class="mono">/ork:setup</span>,
+            which is real and does the MCP configuration.</td>
+        </tr>
+        <tr>
+          <td><b>Sequential Thinking</b><br><span class="who">listed as Optional</span></td>
+          <td class="mono" style="font-size:12.5px">src/skills/setup/SKILL.md:161</td>
+          <td><span class="dot warn"></span>Called part of the "universally-needed T2 trio" with a
+            recommended <span class="mono">alwaysLoad: true</span>. Promoted to Recommended so the
+            README and the setup wizard stop disagreeing.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="note">
+      <b>Root cause, not fixed here:</b> there is no link checker in CI. A
+      <span class="mono">lychee</span> step scoped to <span class="mono">README.md</span> would have
+      caught the 404 and the dead install path months ago. Worth its own issue.
+    </div>
+  </section>
+
+  <p class="foot">
+    Evidence captured 2026-07-28 by resolving each invite's <span class="mono">og:title</span>.
+    Counts cross-checked with <span class="mono">scripts/check-docs-facts.mjs</span> (114 skills,
+    36 agents, 219 hooks).
+  </p>
+</div>
+
+<script>
+const ROWS = {
+  before: {
+    head: ['Group', 'Link'],
+    body: [
+      ['<b>Community</b> (all channels)', 'Join on WhatsApp'],
+      ['<b>AI Dev (EN)</b>', 'English Group'],
+      ['<strong dir="rtl">יש לך AI?</strong>', 'Hebrew Group'],
+      ['<b>OrchestKit Users</b>', 'Support &amp; Showcase'],
+    ],
+  },
+  after: {
+    head: ['Group', "Who it's for", 'Link'],
+    body: [
+      ['<b>Building with AI</b>',
+       'The umbrella community. One join, every room below.', 'Join · /go/community'],
+      ['<b>Builders</b>', 'For people already building', 'Join · /go/builders'],
+      ['<b>OrchestKit</b>', 'For OrchestKit users', 'Join · /go/orchestkit'],
+      ['<b>AI for Business</b>', 'For people leading AI adoption', 'Join · /go/business'],
+    ],
+  },
+};
+
+const host = document.getElementById('tbl');
+
+function render(v) {
+  const d = ROWS[v];
+  const head = '<tr>' + d.head.map(h => `<th>${h}</th>`).join('') + '</tr>';
+  const body = d.body.map(r => '<tr>' + r.map((c, i) => {
+    const cls = (d.head.length === 3 && i === 1) ? ' class="who"' : '';
+    const cell = (i === r.length - 1) ? `<a href="#">${c}</a>` : c;
+    return `<td${cls}>${cell}</td>`;
+  }).join('') + '</tr>').join('');
+  host.innerHTML = `<table><thead>${head}</thead><tbody>${body}</tbody></table>`;
+}
+
+document.querySelectorAll('.seg button').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('.seg button')
+      .forEach(o => o.setAttribute('aria-pressed', String(o === b)));
+    render(b.dataset.v);
+  });
+});
+
+render('after');
+</script>
+</body>
+</html>

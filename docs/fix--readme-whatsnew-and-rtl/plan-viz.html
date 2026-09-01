@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PR #3153 · README What's New + RTL table-cell isolation</title>
+<style>
+:root{
+  --pg-bg:hsl(232 26% 7%);
+  --pg-ink:hsl(220 18% 93%);
+  --pg-muted:hsl(220 14% 64%);
+  --pg-faint:hsl(220 12% 46%);
+  --pg-glass:hsl(0 0% 100% / .05);
+  --pg-glass-2:hsl(0 0% 100% / .08);
+  --pg-glass-edge:hsl(0 0% 100% / .18);
+  --pg-accent:hsl(248 84% 68%);
+  --pg-accent-deep:hsl(248 74% 52%);
+  --pg-danger:hsl(352 78% 62%);
+  --pg-ok:hsl(158 64% 52%);
+  --r-sm:9px; --r-md:16px; --r-lg:24px;
+  --sh-amb:0 20px 60px -22px hsl(248 60% 4% / .7);
+  --sh-tight:0 4px 12px -6px hsl(248 60% 4% / .5);
+  --ease:cubic-bezier(.2,.8,.25,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:
+    radial-gradient(58rem 38rem at 10% -10%, hsl(240 70% 40% / .30), transparent 60%),
+    radial-gradient(50rem 34rem at 94% 4%, hsl(264 68% 42% / .24), transparent 62%),
+    var(--pg-bg);
+  background-attachment:fixed;
+  color:var(--pg-ink);
+  font-family:ui-sans-serif,-apple-system,"Segoe UI",Inter,system-ui,sans-serif;
+  line-height:1.5;-webkit-font-smoothing:antialiased;
+}
+.mono{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-variant-numeric:tabular-nums}
+.wrap{max-width:1000px;margin-inline:auto;padding:48px 24px 96px}
+.eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--pg-faint);
+  font-weight:600;margin-block-end:8px}
+h1{font-size:clamp(25px,3.4vw,36px);font-weight:700;letter-spacing:-.3px;line-height:1.18}
+h1 em{font-style:normal;color:var(--pg-accent)}
+.sub{color:var(--pg-muted);margin-block-start:12px;max-width:74ch;font-size:15px}
+
+.glass{background:var(--pg-glass);border:1px solid var(--pg-glass-edge);border-radius:var(--r-md);
+  box-shadow:var(--sh-amb),var(--sh-tight),inset 0 1px 0 hsl(0 0% 100% / .12);
+  -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px)}
+
+/* ---- stage (primary) ---- */
+.stage{margin-block-start:24px;padding:24px}
+.st-hd{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-block-end:16px}
+.st-hd h2{font-size:18px;letter-spacing:-.2px;font-weight:650}
+.tag{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+  padding:3px 9px;border-radius:var(--r-sm)}
+.tag.bad{background:hsl(352 78% 62% / .16);color:var(--pg-danger)}
+.tag.good{background:hsl(158 64% 52% / .15);color:var(--pg-ok)}
+.st-why{color:var(--pg-muted);font-size:14px;margin-block-end:16px;max-width:76ch}
+
+/* the rendered markdown table */
+table{border-collapse:collapse;width:100%;font-size:14px;
+  background:hsl(232 30% 5%);border-radius:var(--r-sm);overflow:hidden}
+th,td{padding:10px 14px;border:1px solid hsl(0 0% 100% / .1);text-align:start}
+th{background:hsl(0 0% 100% / .05);font-weight:650;font-size:12px;
+  letter-spacing:.06em;text-transform:uppercase;color:var(--pg-muted)}
+td a{color:var(--pg-accent);text-decoration:none}
+td a:hover{text-decoration:underline}
+tr.focus td{background:hsl(248 84% 68% / .1)}
+
+/* source view */
+.src{margin-block-start:16px;background:hsl(232 30% 5%);border:1px solid var(--pg-glass-edge);
+  border-radius:var(--r-sm);padding:14px;font-family:ui-monospace,Menlo,monospace;font-size:12.5px;
+  line-height:1.7;white-space:pre-wrap;word-break:break-word;color:var(--pg-muted);
+  unicode-bidi:plaintext}
+.src b{color:var(--pg-ink);font-weight:600}
+.src .add{color:var(--pg-ok)}
+.src .del{color:var(--pg-danger)}
+
+/* transport */
+.transport{display:flex;gap:8px;align-items:center;margin-block-start:24px;flex-wrap:wrap}
+.tbtn{font:inherit;font-size:13px;font-weight:650;padding:9px 18px;border-radius:var(--r-sm);
+  cursor:pointer;color:var(--pg-ink);background:var(--pg-glass);
+  border:1px solid var(--pg-glass-edge);transition:background 100ms var(--ease)}
+.tbtn:hover{background:var(--pg-glass-2)}
+.tbtn.primary{background:var(--pg-accent-deep);border-color:var(--pg-accent);color:hsl(0 0% 100%)}
+.tbtn.primary:hover{background:var(--pg-accent)}
+.tbtn:disabled{opacity:.38;cursor:default}
+.step{font-size:12px;color:var(--pg-faint);margin-inline-start:auto}
+
+/* secondary cards */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-block-start:24px}
+@media(max-width:820px){.grid{grid-template-columns:1fr}}
+.mini{padding:16px}
+.mini h3{font-size:14px;font-weight:700;margin-block-end:8px}
+.mini p{font-size:13px;color:var(--pg-muted)}
+.mini code{font-family:ui-monospace,Menlo,monospace;font-size:12px;
+  background:hsl(0 0% 100% / .07);padding:1px 5px;border-radius:5px;color:var(--pg-ink)}
+
+/* copy bar (tertiary) */
+.copybar{display:flex;gap:8px;margin-block-start:24px;opacity:.82}
+.copybar pre{flex:1;background:hsl(232 30% 5%);border:1px solid var(--pg-glass-edge);
+  border-radius:var(--r-sm);padding:12px;font-family:ui-monospace,Menlo,monospace;
+  font-size:12px;line-height:1.55;color:var(--pg-faint);white-space:pre-wrap;word-break:break-word}
+.copybar button{font:inherit;font-size:13px;font-weight:650;padding:0 16px;border-radius:var(--r-sm);
+  cursor:pointer;color:var(--pg-ink);background:var(--pg-glass);
+  border:1px solid var(--pg-glass-edge);white-space:nowrap;transition:background 100ms var(--ease)}
+.copybar button:hover{background:var(--pg-glass-2)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.foot{margin-block-start:48px;font-size:12px;color:var(--pg-faint)}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+.fade{animation:fade 300ms var(--ease)}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="eyebrow">PR #3153 · orchestkit · fix/readme-whatsnew-and-rtl</div>
+<h1>A bidi-neutral pipe is <em>not</em> a table border.</h1>
+<p class="sub">A markdown table cell holding Hebrew reorders at render time, because the <span class="mono">|</span>
+delimiters are bidi-neutral and get swept into the RTL run. Step through the two states below and watch
+the row physically rearrange. Same bytes, different resolved direction.</p>
+
+<section class="glass stage">
+  <div class="st-hd">
+    <h2 id="st-ttl"></h2>
+    <span class="tag" id="st-tag"></span>
+  </div>
+  <p class="st-why" id="st-why"></p>
+
+  <table>
+    <thead><tr><th>Group</th><th>Link</th></tr></thead>
+    <tbody id="tb"></tbody>
+  </table>
+
+  <div class="src" id="src"></div>
+
+  <div class="transport">
+    <button class="tbtn" id="prev">&lsaquo; Before</button>
+    <button class="tbtn primary" id="next">After &rsaquo;</button>
+    <span class="step mono" id="stepn"></span>
+  </div>
+</section>
+
+<div class="grid">
+  <section class="glass mini">
+    <h3>🔤 Why <code>&lt;strong dir="rtl"&gt;</code> and not <code>**bold**</code></h3>
+    <p>Markdown <code>**</code> emits a bare <code>&lt;strong&gt;</code> with no direction, so the cell inherits
+    the document's LTR base and the Unicode bidi algorithm resolves the neutrals around the Hebrew run
+    by surrounding-strength. An explicit <code>dir="rtl"</code> opens an isolate: the run resolves inside
+    the element and cannot reach the cell delimiters.</p>
+  </section>
+  <section class="glass mini">
+    <h3>📋 The other half of this PR</h3>
+    <p>The What's New block is generated by <code>scripts/stamp-whats-new.mjs</code> on
+    <code>npm run build</code>, and CI runs it with <code>--check</code>. It was stale for v9.0.0 —
+    the release landed but the README still topped out at v8.85.0. Regenerating drops the aged-out
+    v8.84.4 entry, which is why the diff both adds and removes.</p>
+  </section>
+</div>
+
+<div class="copybar">
+  <pre id="prompt"></pre>
+  <button id="cp">Copy</button>
+</div>
+
+<p class="foot">Single file, zero dependencies. Rendered direction is real — this page does not simulate
+the bidi algorithm, it lets your browser run it.</p>
+
+<div class="sr" aria-live="polite" id="live"></div>
+</div>
+
+<script>
+// The Hebrew group label from README.md. Kept as a JS string so the two states
+// differ ONLY by the wrapper element, never by the bytes of the label itself.
+const HE = 'יש לך AI?';
+const LINK = 'Hebrew Group';
+
+const STEPS = [
+  { ttl:'Before — bare bold, no direction',
+    tag:'bad', tagTxt:'reorders',
+    why:'The cell holds a bare <strong>. With no direction on it, the Hebrew run is the strongest '
+      + 'directional content in the cell, and the neutral characters beside it (the question mark, '
+      + 'and in a terminal the pipe delimiters) resolve into that run. In a plain-text or terminal '
+      + 'renderer the row visibly rearranges and a copy-paste carries the damage with it.',
+    cell: '<strong>' + HE + '</strong>',
+    src: '| <b>**' + HE + '**</b> | [' + LINK + '](https://chat.whatsapp.com/…) |',
+    srcCls:'del' },
+  { ttl:'After — explicit RTL isolate',
+    tag:'good', tagTxt:'isolated',
+    why:'dir="rtl" on the element opens a bidi isolate. The Hebrew resolves inside its own box, the '
+      + 'surrounding neutrals keep the document base direction, and the cell boundary holds. The '
+      + 'label still reads right-to-left; only its blast radius changed.',
+    cell: '<strong dir="rtl">' + HE + '</strong>',
+    src: '| <b>&lt;strong dir="rtl"&gt;' + HE + '&lt;/strong&gt;</b> | [' + LINK + '](https://chat.whatsapp.com/…) |',
+    srcCls:'add' },
+];
+
+let i = 0;
+const $ = id => document.getElementById(id);
+
+function paint(){
+  const s = STEPS[i];
+  $('st-ttl').textContent = s.ttl;
+  $('st-tag').textContent = s.tagTxt;
+  $('st-tag').className = 'tag ' + s.tag;
+  $('st-why').innerHTML = s.why;
+
+  $('tb').innerHTML =
+    '<tr><td>Community (all channels)</td><td><a href="#">WhatsApp</a></td></tr>' +
+    '<tr><td><strong>AI Dev (EN)</strong></td><td><a href="#">English Group</a></td></tr>' +
+    '<tr class="focus"><td>' + s.cell + '</td><td><a href="#">' + LINK + '</a></td></tr>' +
+    '<tr><td><strong>OrchestKit Users</strong></td><td><a href="#">Support &amp; Showcase</a></td></tr>';
+
+  const src = $('src');
+  src.className = 'src ' + s.srcCls;
+  src.innerHTML = s.src;
+
+  $('stepn').textContent = 'step ' + (i+1) + ' of ' + STEPS.length;
+  $('prev').disabled = i === 0;
+  $('next').disabled = i === STEPS.length - 1;
+
+  const stage = document.querySelector('.stage');
+  stage.classList.remove('fade'); void stage.offsetWidth; stage.classList.add('fade');
+  $('live').textContent = s.ttl;
+}
+
+$('prev').addEventListener('click', () => { if (i > 0){ i--; paint(); } });
+$('next').addEventListener('click', () => { if (i < STEPS.length-1){ i++; paint(); } });
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowLeft'  && i > 0){ i--; paint(); }
+  if (e.key === 'ArrowRight' && i < STEPS.length-1){ i++; paint(); }
+});
+
+const PROMPT = 'Audit this repo for RTL text sitting in a bidi-neutral container '
+  + '(markdown table cells, blockquotes, box-drawing frames) and wrap each run in an explicit '
+  + 'dir="rtl" isolate. Plan-only: list the hits before changing anything.';
+$('prompt').textContent = PROMPT;
+$('cp').addEventListener('click', e => {
+  navigator.clipboard.writeText(PROMPT).then(() => {
+    e.target.textContent = '✓';
+    $('live').textContent = 'prompt copied';
+    setTimeout(() => { e.target.textContent = 'Copy'; }, 1500);
+  });
+});
+
+paint();
+</script>
+</body>
+</html>

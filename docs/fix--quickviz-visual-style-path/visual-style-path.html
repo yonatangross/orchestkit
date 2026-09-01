@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>quickviz visual-style path — bundled vs repo-only</title>
+<style>
+  :root {
+    --pg-bg: hsl(232 26% 7%);
+    --pg-ink: hsl(220 18% 93%);
+    --pg-muted: hsl(220 14% 64%);
+    --pg-faint: hsl(220 12% 46%);
+    --pg-glass: hsl(0 0% 100% / .05);
+    --pg-glass-edge: hsl(0 0% 100% / .18);
+    --pg-accent: hsl(248 84% 68%);
+    --pg-warm: hsl(38 95% 60%);
+    --pg-red: hsl(2 76% 62%);
+    --pg-teal: hsl(172 62% 52%);
+    --r-sm: 9px; --r-md: 16px; --r-lg: 24px;
+    --shadow: 0 20px 60px -22px hsl(232 40% 3% / .7), 0 4px 12px -6px hsl(232 40% 3% / .5);
+    --ease: cubic-bezier(.2,.8,.25,1);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background:
+      radial-gradient(900px 600px at 12% -5%, hsl(248 84% 68% / .16), transparent 60%),
+      radial-gradient(800px 520px at 88% 8%,  hsl(262 78% 62% / .13), transparent 62%),
+      var(--pg-bg);
+    background-attachment: fixed;
+    color: var(--pg-ink);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    line-height: 1.5; -webkit-font-smoothing: antialiased;
+  }
+  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .wrap { max-width: 1080px; margin-inline: auto; padding: 48px 24px 96px; }
+  .eyebrow { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--pg-faint); font-weight: 600; margin-block-end: 12px; }
+  h1 { font-size: clamp(26px,4vw,40px); line-height: 1.12; letter-spacing: -.3px; margin: 0 0 12px; font-weight: 700; }
+  h1 em { font-style: normal; color: var(--pg-accent); }
+  .lede { color: var(--pg-muted); max-width: 70ch; margin: 0; }
+  .card { background: var(--pg-glass); border: 1px solid var(--pg-glass-edge); border-radius: var(--r-lg);
+          padding: 20px; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+          box-shadow: var(--shadow), inset 0 1px 0 hsl(0 0% 100% / .12); }
+  h2 { font-size: 19px; letter-spacing: -.25px; margin: 0 0 6px; }
+  .sub { color: var(--pg-muted); font-size: 14px; margin: 0 0 16px; max-width: 74ch; }
+  section { margin-block-start: 32px; }
+
+  .seg { display: inline-flex; gap: 4px; background: var(--pg-glass); border: 1px solid var(--pg-glass-edge);
+         border-radius: var(--r-md); padding: 4px; margin-block-end: 16px; }
+  .seg button { appearance: none; border: 0; background: transparent; color: var(--pg-muted); font: inherit;
+                font-size: 13px; font-weight: 600; cursor: pointer; padding: 7px 15px; border-radius: 12px;
+                transition: all 100ms var(--ease); }
+  .seg button[aria-pressed="true"] { background: var(--pg-accent); color: hsl(232 44% 8%); }
+  .seg button:focus-visible { outline: 2px solid var(--pg-accent); outline-offset: 2px; }
+
+  .lane { display: flex; flex-wrap: wrap; align-items: stretch; gap: 6px; margin-block: 14px; }
+  .node { background: var(--pg-glass); border: 1px solid var(--pg-glass-edge); border-radius: var(--r-md);
+          padding: 10px 12px; min-width: 158px; max-width: 220px; }
+  .node .t { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--pg-faint); font-weight: 700; }
+  .node .v { font-size: 13px; font-weight: 600; margin-block-start: 3px; }
+  .node .n { font-size: 11px; color: var(--pg-muted); margin-block-start: 4px; }
+  .arrow { align-self: center; color: var(--pg-accent); opacity: .55; }
+  .bad  { border-color: hsl(2 76% 62% / .5);   background: hsl(2 60% 40% / .13); }
+  .good { border-color: hsl(172 62% 52% / .45); background: hsl(172 50% 34% / .13); }
+  .pill { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 999px; display: inline-block; margin-block-start: 6px; }
+  .p-bad  { background: hsl(2 76% 62% / .18);   color: var(--pg-red); }
+  .p-good { background: hsl(172 62% 52% / .18); color: var(--pg-teal); }
+
+  pre { background: hsl(232 24% 10%); border: 1px solid hsl(0 0% 100% / .07); border-radius: var(--r-md);
+        padding: 14px; overflow-x: auto; font-size: 12.5px; margin: 0; }
+  pre .del { color: var(--pg-red); }
+  pre .ins { color: var(--pg-teal); }
+  pre .cmt { color: var(--pg-faint); }
+
+  table { border-collapse: collapse; width: 100%; font-size: 13px; margin-block-start: 12px; }
+  th, td { text-align: start; padding: 8px 10px; border-block-end: 1px solid hsl(0 0% 100% / .08); }
+  th { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--pg-faint); }
+  .ok { color: var(--pg-teal); font-weight: 700; }
+  .no { color: var(--pg-red); font-weight: 700; }
+
+  .promptbar { margin-block-start: 32px; display: flex; gap: 12px; align-items: center;
+               background: var(--pg-glass); border: 1px solid var(--pg-glass-edge);
+               border-radius: var(--r-md); padding: 14px 16px; }
+  .promptbar code { flex: 1; font-size: 12.5px; color: var(--pg-muted); }
+  .promptbar button { appearance: none; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer;
+                      background: var(--pg-accent); border: 0; color: hsl(232 44% 8%);
+                      border-radius: 12px; padding: 10px 18px; white-space: nowrap; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">OrchestKit · skills/quickviz</div>
+    <h1>The skill pointed at a file that <em>does not ship with it</em>.</h1>
+    <p class="lede">
+      <code class="mono">quickviz</code> told the model to use the glyph vocabulary
+      "defined in <code class="mono">src/rules/visual-style.md</code>". That path exists in the repo and
+      nowhere in the installed plugin, so at runtime the reference resolved to nothing and the vocabulary
+      the rule depends on was never loaded.
+    </p>
+  </header>
+
+  <section>
+    <div class="seg" role="group" aria-label="View">
+      <button id="b-before" aria-pressed="true">Before</button>
+      <button id="b-after" aria-pressed="false">After</button>
+    </div>
+
+    <div class="card">
+      <h2 id="ph">Resolving the rule at runtime</h2>
+      <p class="sub" id="ps"></p>
+      <div class="lane" id="lane"></div>
+      <pre id="snip"></pre>
+    </div>
+  </section>
+
+  <section>
+    <h2>What ships in the bundle</h2>
+    <p class="sub">
+      A skill can only reference files packaged under its own directory. Anything addressed as
+      <code class="mono">src/...</code> is a repo path and is absent from the installed plugin.
+    </p>
+    <table>
+      <thead><tr><th>Path referenced</th><th>In repo</th><th>In installed plugin</th><th>Resolves at runtime</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="mono">src/rules/visual-style.md</td>
+          <td class="ok">yes</td><td class="no">no</td><td class="no">no</td>
+        </tr>
+        <tr>
+          <td class="mono">rules/visual-style.md</td>
+          <td class="ok">yes</td><td class="ok">yes</td><td class="ok">yes</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Why it mattered</h2>
+    <p class="sub">
+      The twelve-glyph vocabulary is what makes <code class="mono">quickviz</code> output consistent, and it
+      is enforced by <code class="mono">validate-visual-style.py</code> on PR titles and bodies. A rule that
+      cannot load is a rule that silently is not applied, while the validator downstream still holds output
+      to it. That gap is the whole defect: the standard was enforced but never delivered.
+    </p>
+  </section>
+
+  <div class="promptbar">
+    <code class="mono" id="pt">Ship the visual-style rules file inside the quickviz skill bundle and reference it by its bundle-relative path, so the glyph vocabulary actually resolves when the plugin is installed.</code>
+    <button id="cp">Copy prompt</button>
+  </div>
+  <p class="sr" id="live" aria-live="polite"></p>
+
+</div>
+
+<script>
+const VIEW = {
+  before: {
+    h: "Resolving the rule at runtime",
+    s: "Installed plugin. The skill loads, the referenced rule does not.",
+    nodes: [
+      { t: "skill loads", v: "quickviz/SKILL.md", n: "shipped in the bundle", cls: "good", pill: "found" },
+      { t: "rule reference", v: "src/rules/visual-style.md", n: "a REPO path", cls: "bad", pill: "not shipped" },
+      { t: "resolve", v: "no such file", n: "nothing to load", cls: "bad", pill: "miss" },
+      { t: "result", v: "vocabulary absent", n: "glyph rules never applied", cls: "bad", pill: "silent" }
+    ],
+    code:
+`<span class="cmt">// src/skills/quickviz/SKILL.md</span>
+4. <span class="del">Use the 12-emoji semantic set and box-drawing vocabulary</span>
+   <span class="del">defined in \`src/rules/visual-style.md\`.</span>
+
+<span class="cmt">// bundle contents</span>
+plugins/ork/skills/quickviz/
+  SKILL.md
+  <span class="del">(no rules/ directory)</span>`
+  },
+  after: {
+    h: "Resolving the rule at runtime",
+    s: "The rules file is packaged with the skill and addressed relative to it.",
+    nodes: [
+      { t: "skill loads", v: "quickviz/SKILL.md", n: "shipped in the bundle", cls: "good", pill: "found" },
+      { t: "rule reference", v: "rules/visual-style.md", n: "bundle-relative", cls: "good", pill: "shipped" },
+      { t: "resolve", v: "file loaded", n: "12-glyph vocabulary", cls: "good", pill: "hit" },
+      { t: "result", v: "vocabulary applied", n: "matches the validator", cls: "good", pill: "consistent" }
+    ],
+    code:
+`<span class="cmt">// src/skills/quickviz/SKILL.md</span>
+4. <span class="ins">Use the 12-emoji semantic set and box-drawing vocabulary</span>
+   <span class="ins">defined in \`rules/visual-style.md\` (shipped with this skill).</span>
+
+<span class="cmt">// bundle contents</span>
+plugins/ork/skills/quickviz/
+  SKILL.md
+  <span class="ins">rules/visual-style.md    &lt;- now packaged</span>`
+  }
+};
+
+const $ = (id) => document.getElementById(id);
+
+function render(k) {
+  const v = VIEW[k];
+  $("ph").textContent = v.h;
+  $("ps").textContent = v.s;
+  const lane = $("lane");
+  lane.innerHTML = "";
+  v.nodes.forEach((s, i) => {
+    const d = document.createElement("div");
+    d.className = "node " + s.cls;
+    d.innerHTML = '<div class="t"></div><div class="v"></div><div class="n"></div>' +
+                  '<span class="pill ' + (s.cls === "bad" ? "p-bad" : "p-good") + '"></span>';
+    d.querySelector(".t").textContent = s.t;
+    d.querySelector(".v").textContent = s.v;
+    d.querySelector(".n").textContent = s.n;
+    d.querySelector(".pill").textContent = s.pill;
+    lane.appendChild(d);
+    if (i < v.nodes.length - 1) {
+      const a = document.createElement("span");
+      a.className = "arrow"; a.setAttribute("aria-hidden", "true"); a.textContent = "→";
+      lane.appendChild(a);
+    }
+  });
+  $("snip").innerHTML = v.code;
+  $("b-before").setAttribute("aria-pressed", String(k === "before"));
+  $("b-after").setAttribute("aria-pressed", String(k === "after"));
+}
+
+$("b-before").addEventListener("click", () => render("before"));
+$("b-after").addEventListener("click", () => render("after"));
+$("cp").addEventListener("click", async () => {
+  try {
+    await navigator.clipboard.writeText($("pt").textContent);
+    $("cp").textContent = "✓ Copied";
+    setTimeout(() => { $("cp").textContent = "Copy prompt"; }, 1500);
+  } catch (_) { $("live").textContent = "Copy failed — select the text manually."; }
+});
+
+render("before");
+</script>
+</body>
+</html>
