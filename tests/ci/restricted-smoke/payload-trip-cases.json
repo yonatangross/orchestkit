@@ -1,11 +1,11 @@
 {
-  "README": "One trip case per rule in src/skills/setup/references/operator-permissions.json. probe-payload-rules.sh asserts this file covers every rule and no others, so adding a rule without a case fails the probe instead of going silently untested. mode=live: the case is really executed, and is harmless even when the rule fails to hold. mode=not-live: executing it IS the harm the rule exists to prevent, so the rule is checked for presence only and class_proof names a live case of the same matcher shape. A not-live case is NOT evidence that its own rule enforces. mode=twin: the rule itself is measurably inert, but an equivalent rule in the payload does enforce the same tool call; the trip arm carries the TWIN, so the protection is proven even though this spelling is not what delivers it.",
+  "README": "One trip case per rule in src/skills/setup/references/operator-permissions.json. probe-payload-rules.sh asserts this file covers every rule and no others, so adding a rule without a case fails the probe instead of going silently untested. mode=live: the case is really executed, and is harmless even when the rule fails to hold. mode=not-live: executing it IS the harm the rule exists to prevent, so the rule is checked for presence only and class_proof names a live case of the same matcher shape. A not-live case is NOT evidence that its own rule enforces. mode=twin: retired in v4, no twin cases remain; a rule measured inert is now deleted from the payload rather than carried with a twin, because CC 2.1.252 prints a launch diagnostic for every one of them.",
   "generated": "2026-08-31",
   "counts": {
-    "rules": 53,
+    "rules": 42,
     "live": 31,
-    "twin": 10,
-    "not_live": 12
+    "twin": 0,
+    "not_live": 11
   },
   "cases": [
     {
@@ -75,30 +75,6 @@
       "target": "$WORKDIR/.env.production"
     },
     {
-      "rule": "Write(**/.env)",
-      "mode": "twin",
-      "kind": "write",
-      "target": "$WORKDIR/.env",
-      "twin": "Edit(**/.env)",
-      "reason": "no Write() spelling denies anything: measured identical to no rule at all across **/x, *x, x, ./x and **/*.json. CC matches file-writing tools under the Edit namespace, so Edit(**/.env) is what actually blocks this Write, and that is what the trip arm asserts."
-    },
-    {
-      "rule": "Write(**/.env.local)",
-      "mode": "twin",
-      "kind": "write",
-      "target": "$WORKDIR/.env.local",
-      "twin": "Edit(**/.env.local)",
-      "reason": "no Write() spelling denies anything: measured identical to no rule at all across **/x, *x, x, ./x and **/*.json. CC matches file-writing tools under the Edit namespace, so Edit(**/.env.local) is what actually blocks this Write, and that is what the trip arm asserts."
-    },
-    {
-      "rule": "Write(**/.env.production)",
-      "mode": "twin",
-      "kind": "write",
-      "target": "$WORKDIR/.env.production",
-      "twin": "Edit(**/.env.production)",
-      "reason": "no Write() spelling denies anything: measured identical to no rule at all across **/x, *x, x, ./x and **/*.json. CC matches file-writing tools under the Edit namespace, so Edit(**/.env.production) is what actually blocks this Write, and that is what the trip arm asserts."
-    },
-    {
       "rule": "Edit(**/credentials.json)",
       "mode": "live",
       "kind": "edit",
@@ -139,62 +115,6 @@
       "mode": "live",
       "kind": "edit",
       "target": "$WORKDIR/.husky/pre-commit"
-    },
-    {
-      "rule": "Write(**/credentials.json)",
-      "mode": "twin",
-      "kind": "write",
-      "target": "$WORKDIR/credentials.json",
-      "twin": "Edit(**/credentials.json)",
-      "reason": "no Write() spelling denies anything: measured identical to no rule at all across **/x, *x, x, ./x and **/*.json. CC matches file-writing tools under the Edit namespace, so Edit(**/credentials.json) is what actually blocks this Write, and that is what the trip arm asserts."
-    },
-    {
-      "rule": "Write(**/secrets.json)",
-      "mode": "twin",
-      "kind": "write",
-      "target": "$WORKDIR/secrets.json",
-      "twin": "Edit(**/secrets.json)",
-      "reason": "no Write() spelling denies anything: measured identical to no rule at all across **/x, *x, x, ./x and **/*.json. CC matches file-writing tools under the Edit namespace, so Edit(**/secrets.json) is what actually blocks this Write, and that is what the trip arm asserts."
-    },
-    {
-      "rule": "Write(**/*.pem)",
-      "mode": "twin",
-      "kind": "write",
-      "target": "$WORKDIR/server.pem",
-      "twin": "Edit(**/*.pem)",
-      "reason": "no Write() spelling denies anything: measured identical to no rule at all across **/x, *x, x, ./x and **/*.json. CC matches file-writing tools under the Edit namespace, so Edit(**/*.pem) is what actually blocks this Write, and that is what the trip arm asserts."
-    },
-    {
-      "rule": "Write(**/private.key)",
-      "mode": "twin",
-      "kind": "write",
-      "target": "$WORKDIR/private.key",
-      "twin": "Edit(**/private.key)",
-      "reason": "no Write() spelling denies anything: measured identical to no rule at all across **/x, *x, x, ./x and **/*.json. CC matches file-writing tools under the Edit namespace, so Edit(**/private.key) is what actually blocks this Write, and that is what the trip arm asserts."
-    },
-    {
-      "rule": "Write(**/id_rsa)",
-      "mode": "twin",
-      "kind": "write",
-      "target": "$WORKDIR/id_rsa",
-      "twin": "Edit(**/id_rsa)",
-      "reason": "no Write() spelling denies anything: measured identical to no rule at all across **/x, *x, x, ./x and **/*.json. CC matches file-writing tools under the Edit namespace, so Edit(**/id_rsa) is what actually blocks this Write, and that is what the trip arm asserts."
-    },
-    {
-      "rule": "Write(**/id_ed25519)",
-      "mode": "twin",
-      "kind": "write",
-      "target": "$WORKDIR/id_ed25519",
-      "twin": "Edit(**/id_ed25519)",
-      "reason": "no Write() spelling denies anything: measured identical to no rule at all across **/x, *x, x, ./x and **/*.json. CC matches file-writing tools under the Edit namespace, so Edit(**/id_ed25519) is what actually blocks this Write, and that is what the trip arm asserts."
-    },
-    {
-      "rule": "Write(**/.husky/**)",
-      "mode": "twin",
-      "kind": "write",
-      "target": "$WORKDIR/.husky/pre-commit",
-      "twin": "Edit(**/.husky/**)",
-      "reason": "no Write() spelling denies anything: measured identical to no rule at all across **/x, *x, x, ./x and **/*.json. CC matches file-writing tools under the Edit namespace, so Edit(**/.husky/**) is what actually blocks this Write, and that is what the trip arm asserts."
     },
     {
       "rule": "Bash(rm -rf /)",
@@ -376,12 +296,6 @@
       "kind": "bash",
       "reason": "no /dev/sd* on darwin; on linux the effect is a raw device write",
       "class_proof": "Bash(dd if=*)"
-    },
-    {
-      "rule": "Bash(:(){ :|:& };:)",
-      "mode": "not-live",
-      "kind": "bash",
-      "reason": "a fork bomb takes the machine down if the rule does not hold"
     }
   ]
 }

@@ -1,7 +1,7 @@
 {
-  "README": "Canonical operator-scope permission payload (#3835). CC reads only `agent` and `subagentStatusLine` from a plugin settings.json (binary-proven at 2.1.226 and 2.1.251), so rules only enforce from the OPERATOR's own scopes: ~/.claude/settings.json, <project>/.claude/settings.json, or their .local variants. scripts/write-operator-permissions.mjs delivers this payload there with consent; doctor's check-operator-permissions.sh audits presence. The three SQL substrings the old dangerous-command-blocker matched (drop database / drop schema / truncate table inside a psql -c string) are NOT expressible as Bash() rules; that loss was accepted by operator decision 2026-08-31.",
-  "version": 3,
-  "changelog": "v3 (2026-08-31, #3849): the two find rules were inert as shipped. Bash(find:*-delete*) measured identical to no rule at all (0 permission_denials, the file deleted), while Bash(find *-delete*) denies. CC's colon form is a prefix separator, so it only matches as cmd:* and text placed after the star kills the match. Both rules were copied verbatim from src/settings/ork.settings.json, which CC never reads, so nothing had ever exercised their syntax. v2 (2026-08-31, #3835 wave 3): file-guard's PROTECTED_PATTERNS ported as Edit()/Write() deny rules (credentials.json, secrets.json, *.pem, private.key, id_rsa, id_ed25519, .husky/) before the hook was deleted. v1: the 26 never-enforced rules plus rm -fr twins, mv to /dev/null and .env Read/Edit/Write.",
+  "README": "Canonical operator-scope permission payload (#3835). CC reads only `agent` and `subagentStatusLine` from a plugin settings.json (binary-proven at 2.1.226 and 2.1.251), so rules only enforce from the OPERATOR's own scopes: ~/.claude/settings.json, <project>/.claude/settings.json, or their .local variants. scripts/write-operator-permissions.mjs delivers this payload there with consent; doctor's check-operator-permissions.sh audits presence. The three SQL substrings the old dangerous-command-blocker matched (drop database / drop schema / truncate table inside a psql -c string) are NOT expressible as Bash() rules; that loss was accepted by operator decision 2026-08-31. The fork bomb is the same shape of gap: CC cannot parse a Bash() pattern containing (), and no alternative spelling matches, so v4 stopped shipping a rule for it.",
+  "version": 4,
+  "changelog": "v4 (2026-08-31, #3855): removed the 10 Write() twins and the fork-bomb rule. CC 2.1.252 now prints a per-rule diagnostic at every launch for both classes, so an inert rule is no longer silent: 10 lines of 'Write(**/.env) is not matched by file permission checks, only Edit(path) rules are' plus a Settings Warning box for 'Bash(:(){ :|:& };:)' (Empty parentheses, rule skipped). Measured on 2.1.252 with the probe harness: Edit(**/.env) DENIES the Write tool (file unchanged) while Write(**/.env) does not (file written), so dropping the twins costs no coverage. The fork-bomb rule has no working spelling: Bash(*:|:*) and Bash(:*) both measured identical to no rule. It is now an admitted gap, not a rule with a comment on it. v3 (2026-08-31, #3849): the two find rules were inert as shipped. Bash(find:*-delete*) measured identical to no rule at all (0 permission_denials, the file deleted), while Bash(find *-delete*) denies. CC's colon form is a prefix separator, so it only matches as cmd:* and text placed after the star kills the match. Both rules were copied verbatim from src/settings/ork.settings.json, which CC never reads, so nothing had ever exercised their syntax. v2 (2026-08-31, #3835 wave 3): file-guard's PROTECTED_PATTERNS ported as Edit()/Write() deny rules (credentials.json, secrets.json, *.pem, private.key, id_rsa, id_ed25519, .husky/) before the hook was deleted. v1: the 26 never-enforced rules plus rm -fr twins, mv to /dev/null and .env Read/Edit/Write.",
   "deny": [
     "Read(~/.aws/credentials)",
     "Read(~/.ssh/**)",
@@ -14,9 +14,6 @@
     "Edit(**/.env)",
     "Edit(**/.env.local)",
     "Edit(**/.env.production)",
-    "Write(**/.env)",
-    "Write(**/.env.local)",
-    "Write(**/.env.production)",
     "Edit(**/credentials.json)",
     "Edit(**/secrets.json)",
     "Edit(**/*.pem)",
@@ -24,13 +21,6 @@
     "Edit(**/id_rsa)",
     "Edit(**/id_ed25519)",
     "Edit(**/.husky/**)",
-    "Write(**/credentials.json)",
-    "Write(**/secrets.json)",
-    "Write(**/*.pem)",
-    "Write(**/private.key)",
-    "Write(**/id_rsa)",
-    "Write(**/id_ed25519)",
-    "Write(**/.husky/**)",
     "Bash(rm -rf /)",
     "Bash(rm -rf ~)",
     "Bash(rm -rf .)",
@@ -54,8 +44,7 @@
     "Bash(git push -f origin master)",
     "Bash(mkfs*)",
     "Bash(dd if=*)",
-    "Bash(> /dev/sd*)",
-    "Bash(:(){ :|:& };:)"
+    "Bash(> /dev/sd*)"
   ],
   "sandboxSuggestion": {
     "sandbox": {

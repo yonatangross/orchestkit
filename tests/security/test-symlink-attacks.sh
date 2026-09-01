@@ -36,7 +36,8 @@ if [[ ! -e "$PROJECT_ROOT/src/hooks/src/pretool/write-edit/file-guard.ts" ]]; th
 else
   bad "file-guard revived; restore this file's full contract from git history"
 fi
-if grep -qF 'Write(**/.husky/**)' "$PROJECT_ROOT/src/skills/setup/references/operator-permissions.json"; then
+if node -e 'process.exit(require(process.argv[1]).deny.includes("Edit(**/.husky/**)")?0:1)' \
+     "$PROJECT_ROOT/src/skills/setup/references/operator-permissions.json"; then
   ok ".husky/ opinion lives in the operator payload"
 else
   bad ".husky/ deny rule missing from the payload"

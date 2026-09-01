@@ -15,6 +15,19 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "eleven-deny-rules-that-never-denied",
+    "title": "Eleven Deny Rules That Never Denied Anything",
+    "description": "CC 2.1.252 began printing a per-rule diagnostic for rules it cannot apply, which turned two long-inert classes in ork's operator permission payload into eleven red lines at every launch. Measured each spelling with the stub harness before touching it: Edit(path) does stop the Write tool, Write(path) stops nothing, and the fork bomb has no working spelling at all, so it becomes an admitted gap rather than a rule that only looks like protection. Includes the self-inflicted test bug where four security tests grepped the payload file and matched its own changelog prose.",
+    "tags": [
+      "security",
+      "hooks"
+    ],
+    "date": "2026-08-31",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 7
+  },
+  {
     "slug": "docs-kept-three-deleted-hooks-alive",
     "title": "The Docs Kept Three Deleted Hooks Alive",
     "description": "A purge leftover found the hard way: two deleted hooks blocked a live session, and looking them up showed the docs still describing them as current. The coherent fix is eleven files, not the six the issue named, because a page is also a nav entry and whatever links to it. Records what was deliberately left for a separate editorial pass: 94 prose mentions across 21 hand-written files that use these hooks as the worked example.",

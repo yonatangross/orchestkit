@@ -22,8 +22,8 @@
       "Bash(rm -fr /private/etc*)",
       "Bash(rm -fr /private/var*)",
       "Bash(rm -fr /private/home*)",
-      "Bash(find:*-delete*)",
-      "Bash(find:*-fprint*)",
+      "Bash(find *-delete*)",
+      "Bash(find *-fprint*)",
       "Bash(chmod 777 *)",
       "Bash(chmod -R 777 *)",
       "Bash(git push --force origin main)",
@@ -32,8 +32,7 @@
       "Bash(git push -f origin master)",
       "Bash(mkfs*)",
       "Bash(dd if=*)",
-      "Bash(> /dev/sd*)",
-      "Bash(:(){ :|:& };:)"
+      "Bash(> /dev/sd*)"
     ]
   }
 }

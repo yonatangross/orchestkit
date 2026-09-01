@@ -24,7 +24,7 @@
 # that was never denied. Measured 2026-08-31; it is why each case plants a
 # random canary instead.
 #
-# 41 of the 53 rules are executed for real. The other 12 are marked not-live in
+# 31 of the 42 rules are executed for real. The other 11 are marked not-live in
 # payload-trip-cases.json because running the trip case IS the harm the rule
 # exists to prevent, and they are reported as NOT PROVEN, never as passes.
 #
