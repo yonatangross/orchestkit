@@ -1,0 +1,158 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Output styles post: review and approve</title><style>
+*{box-sizing:border-box}
+body{margin:0;font:15px/1.55 ui-sans-serif,-apple-system,"Segoe UI",Roboto,sans-serif;background:#f6f6f4;color:#1a1a1a}
+.wrap{max-width:1180px;margin:0 auto;padding:32px 22px 90px}
+.stamp{font:600 11px/1 ui-monospace,Menlo,monospace;letter-spacing:.09em;text-transform:uppercase;color:#6b6b6b;margin:0 0 14px}
+h1{font-size:34px;line-height:1.1;margin:0 0 10px;letter-spacing:-.02em}
+.lede{font-size:17px;color:#4a4a4a;max-width:70ch;margin:0 0 26px}
+h2{font-size:19px;margin:34px 0 4px;letter-spacing:-.01em}
+.n0{font:600 11px/1 ui-monospace,Menlo,monospace;letter-spacing:.09em;text-transform:uppercase;color:#2f6f4e}
+.lead{color:#555;margin:6px 0 16px;max-width:74ch}
+.grid{display:grid;grid-template-columns:1fr 380px;gap:22px;align-items:start}
+@media(max-width:900px){.grid{grid-template-columns:1fr}}
+.card{background:#fff;border:1px solid #e2e2dd;border-radius:12px;padding:18px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 16px}
+button.pill{font:600 13px/1 inherit;padding:9px 14px;border-radius:999px;border:1.5px solid #d5d5cf;background:#fff;cursor:pointer;color:#333}
+button.pill[aria-pressed=true]{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.opts{display:flex;flex-direction:column;gap:9px;margin:2px 0 0}
+label.opt{display:flex;gap:9px;align-items:flex-start;font-size:14px;cursor:pointer;padding:8px 10px;border:1px solid #e6e6e1;border-radius:9px;background:#fbfbfa}
+label.opt:hover{background:#f2f2ee}
+label.opt input{margin-top:3px}
+.post{direction:rtl;text-align:right;white-space:pre-wrap;font-size:15.5px;line-height:1.72;background:#fff;border:1px solid #e2e2dd;border-radius:12px;padding:20px 22px}
+.post .ai{color:#8a5a00;font-weight:700}
+.meta{display:flex;gap:16px;flex-wrap:wrap;font:600 12px/1 ui-monospace,Menlo,monospace;color:#666;margin:10px 2px 0}
+.ok{color:#2f6f4e}.warn{color:#8a5a00}.bad{color:#b91c1c}
+table{border-collapse:collapse;width:100%;font-size:13.5px;margin-top:6px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid #ececE6;vertical-align:top}
+th{font:600 11px/1 ui-monospace,Menlo,monospace;letter-spacing:.07em;text-transform:uppercase;color:#777}
+td.he{direction:rtl;text-align:right;font-size:14px}
+code{font:12.5px ui-monospace,Menlo,monospace;background:#f0f0ec;padding:1px 5px;border-radius:4px}
+img.cover{width:100%;border-radius:9px;border:1px solid #e2e2dd;display:block}
+.cap{font:12px ui-monospace,Menlo,monospace;color:#777;margin:7px 0 0}
+.copy{font:600 14px/1 inherit;padding:11px 18px;border-radius:9px;border:0;background:#2f6f4e;color:#fff;cursor:pointer}
+.copy:active{transform:translateY(1px)}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-inline-end:7px}
+.foot{color:#777;font-size:13px;margin-top:40px;border-top:1px solid #e2e2dd;padding-top:14px}
+a{color:#2a78d6}
+</style></head><body><div class="wrap">
+<p class="stamp">OrchestKit playground &middot; dev &middot; 2026-08-31 &middot; review before publish</p>
+<h1>Output styles post: review and approve</h1>
+<p class="lede">Nothing here is published. Flip the two open decisions, read the post exactly as it will appear, and copy the final text out. Channel status below is from a live authenticated check.</p>
+
+<div class="bar" id="vbar"></div>
+
+<div class="grid">
+ <div>
+  <span class="n0">01 &middot; the post</span>
+  <h2 id="vlabel"></h2>
+  <p class="lead" id="vnote"></p>
+  <div class="post" id="post"></div>
+  <div class="meta">
+    <span id="chars"></span><span id="glued"></span><span id="dash"></span>
+  </div>
+  <p style="margin-top:14px"><button class="copy" id="copy">Copy final text</button>
+  <span style="margin-inline-start:10px;color:#777;font-size:12.5px">paste-safe: every Hebrew block is RLM-anchored so LinkedIn and X cannot flip it</span>
+  <span id="copied" style="margin-inline-start:10px;color:#2f6f4e;font-weight:600"></span></p>
+ </div>
+
+ <div>
+  <div class="card">
+   <span class="n0">02 &middot; open decisions</span>
+   <h2 style="margin-top:6px;font-size:16px">Link target</h2>
+   <div class="opts" id="linkopts"></div>
+   <h2 style="font-size:16px">AI-Mix line</h2>
+   <div class="opts" id="aiopts"></div>
+  </div>
+  <div class="card" style="margin-top:18px">
+   <span class="n0">03 &middot; cover image</span>
+   <img class="cover" id="cover" alt="">
+   <p class="cap" id="covercap"></p>
+  </div>
+ </div>
+</div>
+
+<span class="n0">04 &middot; channels, live checked</span>
+<h2>Where this can actually publish</h2>
+<p class="lead">From <code>marketing_platform_status(verify=true)</code>. Only a real authenticated call can return connected.</p>
+<div class="card"><table id="chtbl"><thead><tr><th>channel</th><th>status</th><th>detail</th></tr></thead><tbody></tbody></table></div>
+
+<span class="n0">05 &middot; hebrew audit</span>
+<h2>What the copy pass changed</h2>
+<p class="lead">Audited against Tal's rule: when everyday Hebrew exists use it, otherwise keep the English term in Latin letters. Never Latin written in Hebrew letters.</p>
+<div class="card"><table id="dtbl"><thead><tr><th>was</th><th>now</th><th>why</th><th>n</th></tr></thead><tbody></tbody></table></div>
+
+<p class="foot">Drafts only. The three pipeline items stay <code>status=draft</code> with <code>scheduled_for=null</code>. The stored bodies still hold the pre-audit Hebrew, so the text on this page is the source of truth until the records are edited by hand.</p>
+</div>
+<script>
+const V = {"linkedin": {"label": "LinkedIn (long-form)", "limit": 3000, "cover": "output-styles-shots/pairs/pair-arch.png", "coverName": "pair-arch.png", "coverAlt": "Explanatory vs Terse, same URL-shortener prompt", "channel": "error", "channelNote": "No refresh_token stored. Manual paste only.", "aimix": "[AI-Mix: 4/10]", "body": "אתמול כתבו כאן שקלוד \"הפך ללא קריא, לא שמיש, לא כלום\". התלונה לא הייתה על קוד. היא הייתה על כתיבה, מחקר ועבודה משותפת: ז'רגון, ניפוח, וצורך לקרוא פעמיים כדי להבין מה נאמר.\n\nזו לא בעיית מודל. זו בעיית תדריך, ויש לה שם: Output Styles.\n\nהרקע: ה-system prompt של Claude Code בנוי למהנדס תוכנה. כשמבקשים ממנו לכתוב, לחקור או לחשוב יחד, נלחמים בברירת המחדל שלו. משם מגיע ה-slop.\n\nאז במקום להתווכח, מדדתי.\n\nהמערך: ארבע שאלות יומיומיות. מה לעשות עם שלוש שעות פנויות ביום שישי. להסביר feature flags למייסד לא טכני. לשכתב פסקה לפוסט. לתכנן ארכיטקטורה של מקצר לינקים ל-1M כתיבות ביום. כל שאלה עברה דרך שבעה סגנונות: חמישה מובנים של Claude Code ושניים שכתבתי בעצמי. אותו מודל בכל התאים (Fable 5, high effort, גרסה 2.1.251), תיקייה נפרדת וסשן נקי לכל תא, בלי hooks. 28 תשובות, 28 צילומי מסך של טרמינל אמיתי.\n\nמה שיצא:\n\n1. הסגנון לא משנה את התשובה, הוא משנה את האריזה. בשאלת יום שישי כל שבעת הסגנונות אמרו את אותו הדבר: תכתוב את מסמך ה-onboarding. האורך נע בין 111 מילים ל-584. אותה החלטה, פי חמישה טקסט.\n\n2. Concise הוא לא \"קצר\", הוא \"בלי נרטיב\". חילצתי את ההוראות שלו מהבינארי. הן אומרות \"keep your responses short and direct while doing the work just as thoroughly\", ועוד שישה כללים: תוביל עם התוצאה, תחתוך נרטיב ותשאיר תוכן, תשובות של שורה עד שלוש לשאלות פשוטות, בלי לרכך, פירוט מלא כשמבקשים, ולעולם לא לוותר על נכונות בשביל קיצור. אף אחד מהם לא מגביל אורך. בפועל: 217 מילים מול 382 ב-Default בשאלת יום שישי, 283 מול 501 על feature flags, 399 מול 589 בשאלת הארכיטקטורה. בשלוש השאלות האלה הוא חותך שליש עד חצי, ואז ממשיך.\n\nכלומר מי שאומר \"אני על Concise והוא לא concise\" צודק חצי, ושווה להגיד את זה בקול. הוא מקבל בדיוק את מה שכתוב בהגדרה.\n\n3. אם רוצים באמת קצר, כותבים מספר. כתבתי סגנון של ארבע שורות עם \"מקסימום 120 מילים\". הוא החזיק 83, 111, 123 ו-128 מילים בארבע השאלות, עם אותה החלטה בפנים ובלי לאבד רכיב אחד בתשובת הארכיטקטורה.\n\n4. קובץ markdown אחד מספיק כדי להגדיר קול שלם. הסגנון האישי שלי אומר: תשובה קודם, בלי חנופה, ראיות לפני מסקנות, בלי מקפים ארוכים. בלי שביקשתי, הוא הוציא טבלת החלטה עם עמודת סיכון בשלושה צבעים, וסגר במשפט \"לא בדקתי שום repo או ticket\". זו שורת הראיות מהקובץ, עובדת מילה במילה.\n\nהנקודה המעשית: זה לא חמישה skills ושבעה hooks. זה קובץ markdown אחד ב-~/.claude/output-styles, או ברמת הפרויקט ב-.claude/output-styles. וזה שונה מ-CLAUDE.md: סגנון מחליף את ה-system prompt עצמו, בעוד CLAUDE.md רק מוסיף בקשה מנומסת מעליו.\n\nושלושה פחים שגורמים לאנשים להגיד \"ניסיתי, אין הבדל\":\nהסגנון נטען פעם אחת בתחילת הסשן. שיניתם באמצע? שום דבר לא קורה עד /clear או סשן חדש.\nsub-agents לא יורשים את הסגנון. אם העבודה רצה דרכם, הם עונים בסגנון של עצמם.\nהפקודה /output-style הוסרה בגרסה 2.1.91. אם ניסיתם דרכה, זה באמת לא עשה כלום. היום זה /config.\n\nקלוד לא הפך ללא שמיש. הוא מגיע מכוון למשימה אחת, ורוב האנשים אף פעם לא מזיזים את הכיוון.\n\nהדף המלא עם כל 28 התשובות והצילומים:", "id": "01a057c2-6bdc-7654-b52a-e37c04132109"}, "x": {"label": "X (standalone)", "limit": 25000, "cover": "output-styles-shots/pairs/pair-arch.png", "coverName": "pair-arch.png", "coverAlt": "Explanatory vs Terse, same URL-shortener prompt", "channel": "connected", "channelNote": "Verified by a live authenticated call.", "aimix": "[AI-Mix: 4/10]", "body": "\"קלוד הפך ללא קריא\" זו לא בעיית מודל. זו בעיית תדריך.\n\nאז מדדתי במקום להתווכח. ארבע שאלות יומיומיות: מה לעשות עם שלוש שעות פנויות ביום שישי, להסביר feature flags למייסד לא טכני, לשכתב פסקה לפוסט, ולתכנן ארכיטקטורה של מקצר לינקים. כל שאלה עברה דרך 7 סגנונות תשובה: חמישה מובנים של Claude Code ושניים שכתבתי בעצמי.\n\nאותו מודל בכל התאים (Fable 5, high effort, גרסה 2.1.251), סשן נקי לכל תא, בלי hooks. 28 תשובות, 28 צילומי מסך של טרמינל אמיתי.\n\nארבע מסקנות:\n\n1. כולם הגיעו לאותה החלטה. בשאלת יום שישי כל השבעה אמרו \"תכתוב את מסמך ה-onboarding\". מה שהשתנה זו רק האריזה: מ-111 מילים ל-584.\n\n2. Concise הוא לא \"קצר\", הוא \"בלי נרטיב\". חילצתי את ההוראות שלו מהבינארי. כתוב שם \"keep your responses short and direct while doing the work just as thoroughly\", ועוד שישה כללים. אף אחד מהם לא מגביל אורך. בפועל: 217 מילים מול 382 ב-Default בשאלת יום שישי, ו-283 מול 501 על feature flags. מי שאומר \"אני על Concise והוא לא concise\" צודק חצי. הוא באמת חותך, הוא פשוט אף פעם לא עוצר.\n\n3. אם רוצים באמת קצר, כותבים מספר. קובץ של ארבע שורות עם \"מקסימום 120 מילים\" החזיק 83 עד 128 מילים בכל ארבע השאלות, עם אותה החלטה בפנים.\n\n4. קובץ markdown אחד מספיק כדי להגדיר קול שלם. הסגנון האישי שלי (תשובה קודם, בלי חנופה, בלי מקפים ארוכים, ראיות לפני מסקנות) הוציא מיוזמתו טבלה עם עמודת סיכון אדום צהוב ירוק, וסגר במשפט \"לא בדקתי שום repo או ticket\".\n\nזה לא חמישה skills ושבעה hooks. זה קובץ אחד ב-~/.claude/output-styles.\n\nושלושה פחים שגורמים ל\"ניסיתי, אין הבדל\":\nהסגנון נטען פעם אחת בתחילת הסשן. בלי /clear שום דבר לא זז.\nsub-agents לא יורשים אותו בכלל.\nהפקודה /output-style הוסרה בגרסה 2.1.91. היום זה /config בלבד.\n\nהדף המלא, עם 28 התשובות וכל הצילומים:", "id": "01a057c1-425e-7e99-a2b0-4f51fea0756c"}, "reply": {"label": "X (thread reply)", "limit": 25000, "cover": "output-styles-shots/pairs/pair-friday.png", "coverName": "pair-friday.png", "coverAlt": "Concise vs custom house-rules style, Friday prompt", "channel": "connected", "channelNote": "Verified by a live authenticated call.", "aimix": "[AI-Mix: 4/10]", "body": "כמו שהבטחתי. מדדתי במקום להתווכח.\n\nארבע שאלות יומיומיות (החלטה על יום שישי, feature flags למייסד לא טכני, שכתוב פסקה, ארכיטקטורה), 7 סגנונות, סשן נקי לכל תא, בלי hooks, אותו מודל. 28 תשובות ו-28 צילומי מסך.\n\nכולם הגיעו לאותה החלטה. מה שהשתנה זו האריזה: 111 עד 584 מילים על אותה שאלה בדיוק.\n\n@misrafot צודק חצי. חילצתי את ההוראות של Concise מהבינארי: יש שם \"short and direct\" ועוד שישה כללים, ואין שום מגבלת אורך. אז 283 מילים על feature flags זו התנהגות תקינה שלו, לא תקלה. הוא חותך נרטיב, הוא לא עוצר.\n\n@coh61482339 זה לא חמישה skills ושבעה hooks. קובץ של ארבע שורות עם \"מקסימום 120 מילים\" נתן 83 עד 128 מילים בכל ארבע השאלות, עם אותה החלטה בפנים.\n\nושלושה פחים: הסגנון נטען רק בתחילת סשן (בלי /clear כלום לא זז), sub-agents לא יורשים אותו, והפקודה /output-style הוסרה ב-2.1.91 (היום /config).\n\nהכל כאן, כולל הצילומים:", "id": "01a057c1-95b9-76b8-894a-8a9d08863604"}}, DEF = [["הסיסטם פרומפט", "ה-system prompt", "transliteration, the banned third option", "2"], ["פרסונה הדיפולטית", "ברירת המחדל שלו", "double transliteration; everyday Hebrew exists", "1"], ["חמישה סקילים", "חמישה skills", "in Tal's own defect list", "1"], ["או טיקט", "או ticket", "inconsistent: repo stayed Latin, ticket did not", "1"], ["נושא קול שלם", "מספיק כדי להגדיר קול שלם", "calque", "1"], ["בלי גידור", "בלי לרכך", "reads as finance hedging", "1"], ["הonboarding / בDefault / ל584", "ה-onboarding / ב-Default / ל-584", "glued RTL to Latin boundary", "13"]], CH = [["linkedin", "error", "No refresh_token stored"], ["twitter", "connected", "verified"], ["facebook", "connected", "verified"], ["devto", "connected", "verified"], ["threads", "error", "No access_token stored"], ["instagram", "error", "No access_token stored"]];
+
+const RLM = "\u200F";
+const HEB = /[\u0590-\u05FF]/;
+/** Anchor every Hebrew block RTL so a pasting composer cannot guess wrong. */
+function rtlSafe(text){
+  return text.split("\n").map(function(line){
+    if(!line.trim() || !HEB.test(line)) return line;
+    var p = line.replace(new RegExp("^"+RLM+"+"), "");
+    p = RLM + p;
+    p = p.replace(/([A-Za-z0-9\)\]])([.,:;!?])(?=\s|$)/g, "$1$2"+RLM);
+    p = p.replace(/([A-Za-z0-9])$/g, "$1"+RLM);
+    return p;
+  }).join("\n");
+}
+
+const LINKS = {
+  he:  {label:"Hebrew page (needs push first)", url:"https://github.com/yonatangross/orchestkit/blob/main/docs/playgrounds/dev/output-styles-side-by-side-2026-08-31-explainer-he.html"},
+  en:  {label:"English page (already on main)", url:"https://github.com/yonatangross/orchestkit/blob/main/docs/playgrounds/dev/output-styles-side-by-side-2026-08-31-explainer.html"},
+  none:{label:"Leave the link out for now", url:""}
+};
+let cur="linkedin", link="he", ai=true;
+const $=s=>document.querySelector(s);
+
+function finalText(){
+  const v=V[cur]; let t=v.body;
+  const u=LINKS[link].url;
+  t = u ? t+"\n"+u : t.replace(/\n?[^\n]*:\s*$/,"");
+  return (ai&&v.aimix? v.aimix+"\n\n":"")+t;
+}
+function render(){
+  const v=V[cur];
+  $("#vbar").innerHTML=Object.entries(V).map(([k,o])=>
+    `<button class="pill" data-v="${k}" aria-pressed="${k===cur}">${o.label}</button>`).join("");
+  $("#vlabel").textContent=v.label;
+  const dot=v.channel==="connected"?"#2f6f4e":"#b91c1c";
+  $("#vnote").innerHTML=`<span class="dot" style="background:${dot}"></span>${v.channelNote} Item <code>${v.id}</code>`;
+  const t=finalText();
+  $("#post").textContent=t;
+  if(ai&&v.aimix){const h=$("#post").innerHTML;$("#post").innerHTML=h.replace(v.aimix,'<span class="ai">'+v.aimix+'</span>');}
+  const n=t.length, over=n>v.limit;
+  $("#chars").innerHTML=`<span class="${over?'bad':'ok'}">${n} chars / ${v.limit}</span>`;
+  const glued=(t.match(/[֐-׿](?=[A-Za-z0-9])/g)||[]).length;
+  const dash=(t.match(/[–—]/g)||[]).length;
+  $("#glued").innerHTML=`<span class="${glued?'bad':'ok'}">glued RTL to Latin: ${glued}</span>`;
+  $("#dash").innerHTML=`<span class="${dash?'bad':'ok'}">long dashes: ${dash}</span>`;
+  $("#cover").src=v.cover; $("#cover").alt=v.coverAlt;
+  $("#covercap").textContent=v.coverName+" \u00b7 "+v.coverAlt;
+  $("#linkopts").innerHTML=Object.entries(LINKS).map(([k,o])=>
+    `<label class="opt"><input type="radio" name="lk" value="${k}" ${k===link?"checked":""}><span><b>${o.label}</b>${o.url?'<br><code style="font-size:11px">'+o.url.replace(/^https:\/\/github.com\/yonatangross\/orchestkit\/blob\/main\//,'')+'</code>':''}</span></label>`).join("");
+  $("#aiopts").innerHTML=[[true,"Keep [AI-Mix: 4/10]","required by bot-operating-rules rule 2"],[false,"Strike it","if these are your own words"]]
+    .map(([val,lab,sub])=>`<label class="opt"><input type="radio" name="ai" value="${val}" ${val===ai?"checked":""}><span><b>${lab}</b><br><span style="color:#777;font-size:12.5px">${sub}</span></span></label>`).join("");
+}
+document.addEventListener("click",e=>{
+  const b=e.target.closest("button.pill"); if(b){cur=b.dataset.v;render();}
+});
+document.addEventListener("change",e=>{
+  if(e.target.name==="lk"){link=e.target.value;render();}
+  if(e.target.name==="ai"){ai=e.target.value==="true";render();}
+});
+$("#copy").addEventListener("click",async()=>{
+  await navigator.clipboard.writeText(rtlSafe(finalText()));
+  $("#copied").textContent="copied, RTL-safe"; setTimeout(()=>$("#copied").textContent="",1600);
+});
+document.querySelector("#chtbl tbody").innerHTML=CH.map(([a,b,c])=>
+  `<tr><td><code>${a}</code></td><td class="${b==='connected'?'ok':'bad'}"><b>${b}</b></td><td>${c}</td></tr>`).join("");
+document.querySelector("#dtbl tbody").innerHTML=DEF.map(([a,b,c,n])=>
+  `<tr><td class="he">${a}</td><td class="he">${b}</td><td>${c}</td><td>${n}</td></tr>`).join("");
+render();
+</script></body></html>
