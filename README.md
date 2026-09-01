@@ -370,6 +370,15 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.68](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.67...v10.0.0-alpha.68)** · 2026-09-01
+
+- **cc:** CC 2.1.257 follow-ups on top of the adoption PR (#3871)
+- **hooks:** budget guard advises, never asks (#3869)
+- **hooks:** scope test validator to project files (#3844) (#3865)
+- **cc-adoption:** advance latest_known to 2.1.252, featureless for ork (#3863)
+- **cc:** adopt CC 2.1.252 and 2.1.257, latest_known to 2.1.257 (#3870)
+- …and 1 more (see [CHANGELOG.md](CHANGELOG.md))
+
 **[v10.0.0-alpha.67](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.66...v10.0.0-alpha.67)** · 2026-09-01
 
 - **setup:** drop 11 deny rules CC cannot enforce, payload v4 (#3855)
@@ -416,11 +425,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-alpha.61](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.60...v10.0.0-alpha.61)** · 2026-08-25
 
 - **ork-codex:** ship ork-implement and one install matrix (#3753)
-
-**[v10.0.0-alpha.60](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.59...v10.0.0-alpha.60)** · 2026-08-25
-
-- **ork:** expose the full plugin to Cursor (#3748)
-- **ork:** Cursor import rejects ./plugins/ork as invalid_argument (#3750)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
