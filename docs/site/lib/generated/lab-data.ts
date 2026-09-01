@@ -15,6 +15,20 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "cc-257-followups",
+    "title": "Three follow-ups CC 2.1.257 asked for: a prompt that lied, a read boundary, an alias",
+    "description": "fable-spend-consent goes silent when CLAUDE_CODE_SUBAGENT_MODEL_FORCE makes the pin inert (simulate a spawn), doctor reports the new read boundary and warns when ~/.claude is not covered, and the fable alias moves to 5.1 because the recency ratchet never blocked it.",
+    "tags": [
+      "hooks",
+      "doctor",
+      "models"
+    ],
+    "date": "2026-09-01",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 6
+  },
+  {
     "slug": "adopt-cc-257",
     "title": "CC 2.1.252 to 2.1.257: 33 rows, one real break, none for us",
     "description": "Every bullet of Claude Code 2.1.252 and 2.1.257 triaged against OrchestKit and hq-ext surfaces with the proof command behind each noop; Fable 5.1 adopted in the model vocab, five settings documented, two follow-ups sized.",

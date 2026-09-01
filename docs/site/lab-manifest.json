@@ -901,6 +901,18 @@
         "models"
       ],
       "date": "2026-09-01"
+    },
+    {
+      "slug": "cc-257-followups",
+      "source": "docs/chore--cc-257-followups/index.html",
+      "title": "Three follow-ups CC 2.1.257 asked for: a prompt that lied, a read boundary, an alias",
+      "description": "fable-spend-consent goes silent when CLAUDE_CODE_SUBAGENT_MODEL_FORCE makes the pin inert (simulate a spawn), doctor reports the new read boundary and warns when ~/.claude is not covered, and the fable alias moves to 5.1 because the recency ratchet never blocked it.",
+      "tags": [
+        "hooks",
+        "doctor",
+        "models"
+      ],
+      "date": "2026-09-01"
     }
   ]
 }
