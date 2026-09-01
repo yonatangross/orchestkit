@@ -877,6 +877,18 @@
         "chore"
       ],
       "date": "2026-09-01"
+    },
+    {
+      "slug": "context-file-budget-guard-advisory",
+      "source": "docs/fix--context-file-budget-guard-advisory/index.html",
+      "title": "The hook that kept blocking us: budget guard goes advisory",
+      "description": "Both MEMORY.md indexes over the 17 KB budget plus auto mode meant ork own context-file-budget-guard raised a permission dialog on every handoff write. Root fix: compact the index. Structural fix: the guard is advisory-only in every mode.",
+      "tags": [
+        "hooks",
+        "permissions",
+        "memory"
+      ],
+      "date": "2026-09-01"
     }
   ]
 }

@@ -13,13 +13,17 @@
  * which surfaces the overflow AFTER the write landed — measured 2026-07-26:
  * an index rebuild discovered its 17 KB target was structurally unreachable
  * only at the END of the task. This hook does the arithmetic BEFORE the write
- * lands: it projects the post-write byte size and asks for confirmation when
- * the projection crosses the budget.
+ * lands: it projects the post-write byte size and, when the projection crosses
+ * the budget, returns advisory context that the write-edit dispatcher merges
+ * and the model reads on the same turn.
  *
- * ASK, not DENY: crossing the budget can be a deliberate, informed choice
- * (the budget itself is a soft target below the hard read limit). A deny here
- * would repeat the #2947 display-lint mistake — blocking correct work and
- * teaching users the escape hatch.
+ * ADVISORY, never ASK (2026-09-01). It asked in non-bypass modes until then,
+ * and the day both MEMORY.md indexes sat over budget every handoff write in
+ * every lane raised a permission dialog (since CC 2.1.211 a hook's ask wins
+ * even under auto mode). ork's stance since the #3835 purge is that a plugin
+ * hook never prompts; the opinion here is "trim the index", which the model
+ * can act on itself (/ork:dream index-budget). A deny would repeat the #2947
+ * display-lint mistake and teach users the escape hatch instead.
  *
  * Edit inputs carry old_string/new_string diffs, not the full body, so the
  * projection reads the current file and applies the replacement to compute
@@ -28,11 +32,10 @@
  */
 
 import type { HookInput, HookResult, HookContext } from '../../types.js';
-import { outputSilentSuccess, outputAsk, logHook, outputPreToolAdvisory } from '../../lib/common.js';
+import { outputSilentSuccess, logHook, outputPreToolAdvisory } from '../../lib/common.js';
 import { readFileSync, existsSync } from 'node:fs';
 import { basename } from 'node:path';
 import { NOOP_CTX } from '../../lib/context.js';
-import { isBypassMode } from '../../lib/guards.js';
 
 const HOOK_NAME = 'context-file-budget-guard';
 
@@ -97,15 +100,7 @@ function projectSize(input: HookInput): number | null {
   return null;
 }
 
-export function contextFileBudgetGuard(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
-  // Bypass mode: an ASK with nobody to ask is noise, but silence here was
-  // measured against the population that writes MEMORY.md most, the long
-  // autonomous sessions (#3741: six projects at or over budget). So in bypass
-  // mode the guard never asks and instead returns advisory context, which the
-  // write-edit dispatcher merges and the model reads (a systemMessage would be
-  // dropped there, the #3801 class).
-  const bypass = isBypassMode(input);
-
+export function contextFileBudgetGuard(input: HookInput, _ctx: HookContext = NOOP_CTX): HookResult {
   const ti = input.tool_input as { file_path?: string };
   const filePath = ti?.file_path;
   if (!filePath) return outputSilentSuccess();
@@ -117,26 +112,18 @@ export function contextFileBudgetGuard(input: HookInput, ctx: HookContext = NOOP
   const projected = projectSize(input);
   if (projected === null || projected <= budget) return outputSilentSuccess();
 
-  const currentSize = existsSync(filePath) ? readFileSync(filePath, 'utf8').length : 0;
+  const currentSize = existsSync(filePath) ? Buffer.byteLength(readFileSync(filePath, 'utf8'), 'utf8') : 0;
   const overBy = projected - budget;
-  const reason =
-    `[${HOOK_NAME}] This ${input.tool_name} puts ${fileName} at ` +
+  // Advisory context is the only channel that reaches the model here: the
+  // write-edit dispatcher merges additionalContext and drops systemMessage
+  // (the #3801 class), and a permission ask is deliberately not an option.
+  const advisory =
+    `[${HOOK_NAME}] not asking, advising: this ${input.tool_name} puts ${fileName} at ` +
     `${(projected / 1024).toFixed(1)} KB, ${(overBy / 1024).toFixed(1)} KB over its ` +
     `${(budget / 1024).toFixed(0)} KB budget (currently ${(currentSize / 1024).toFixed(1)} KB). ` +
     `${fileName} loads into every session; past its read limit it degrades silently. ` +
-    `Approve to write anyway, or trim first. ` +
+    `Trim, or run /ork:dream (index-budget) before writing more. ` +
     `(Override budget: ORK_CONTEXT_FILE_BUDGET_BYTES=<bytes>)`;
-
-  if (bypass) {
-    const advisory =
-      `[${HOOK_NAME}] bypass mode, not asking: this ${input.tool_name} puts ${fileName} at ` +
-      `${(projected / 1024).toFixed(1)} KB, ${(overBy / 1024).toFixed(1)} KB over the ` +
-      `${(budget / 1024).toFixed(0)} KB budget. Trim, or run /ork:dream (index-budget) before writing more.`;
-    logHook(HOOK_NAME, `ADVISORY (bypass): ${fileName} projected ${projected}B > budget ${budget}B`);
-    return outputPreToolAdvisory(advisory);
-  }
-
-  logHook(HOOK_NAME, `ASK: ${fileName} projected ${projected}B > budget ${budget}B`);
-  ctx.logPermission?.('ask', reason, input);
-  return outputAsk(reason);
+  logHook(HOOK_NAME, `ADVISORY: ${fileName} projected ${projected}B > budget ${budget}B`);
+  return outputPreToolAdvisory(advisory);
 }

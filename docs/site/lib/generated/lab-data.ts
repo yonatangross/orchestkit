@@ -15,6 +15,20 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "context-file-budget-guard-advisory",
+    "title": "The hook that kept blocking us: budget guard goes advisory",
+    "description": "Both MEMORY.md indexes over the 17 KB budget plus auto mode meant ork own context-file-budget-guard raised a permission dialog on every handoff write. Root fix: compact the index. Structural fix: the guard is advisory-only in every mode.",
+    "tags": [
+      "hooks",
+      "permissions",
+      "memory"
+    ],
+    "date": "2026-09-01",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 8
+  },
+  {
     "slug": "legacy-debris-sweep",
     "title": "Legacy-debris sweep: what the purge never covered",
     "description": "After the #3835 blocking-hook purge, an outside-in reachability sweep deleted a dead entries-map slot, a 163-release-stale version branch, and an unused type field, and fixed two lying comments. Why registration audits are structurally blind to sub-registration debris.",
