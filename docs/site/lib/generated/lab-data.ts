@@ -15,6 +15,20 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "legacy-debris-sweep",
+    "title": "Legacy-debris sweep: what the purge never covered",
+    "description": "After the #3835 blocking-hook purge, an outside-in reachability sweep deleted a dead entries-map slot, a 163-release-stale version branch, and an unused type field, and fixed two lying comments. Why registration audits are structurally blind to sub-registration debris.",
+    "tags": [
+      "hooks",
+      "dead-code",
+      "chore"
+    ],
+    "date": "2026-09-01",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 7
+  },
+  {
     "slug": "fix-3844-validator-project-scope",
     "title": "The validator that demanded tests for /tmp scripts",
     "description": "ork #3844: the Stop-time test validator walked ancestors past the project root for outside-project files and blocked with //tests/... candidates. The fix scopes it to projectDir; the unreachable legacy dispatch branch is deleted.",
