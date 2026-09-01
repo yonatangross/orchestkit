@@ -853,6 +853,18 @@
         "hooks"
       ],
       "date": "2026-08-31"
+    },
+    {
+      "slug": "fix-3844-validator-project-scope",
+      "source": "docs/fix--3844-validator-project-scope/index.html",
+      "title": "The validator that demanded tests for /tmp scripts",
+      "description": "ork #3844: the Stop-time test validator walked ancestors past the project root for outside-project files and blocked with //tests/... candidates. The fix scopes it to projectDir; the unreachable legacy dispatch branch is deleted.",
+      "tags": [
+        "hooks",
+        "bugfix",
+        "dead-code"
+      ],
+      "date": "2026-09-01"
     }
   ]
 }
