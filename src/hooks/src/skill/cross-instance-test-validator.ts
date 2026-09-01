@@ -17,10 +17,6 @@
  * (`.claude/state/test-coverage-reported-<sid>.json`) so a finding the
  * operator chose to leave does not re-block every later turn.
  *
- * The legacy single-file shape (`tool_input.file_path` + `content`, the
- * PostToolUse dispatch) is still honoured when present, so the hook can be
- * moved or dual-registered without another rewrite.
- *
  * Test discovery knows three layouts: a sibling `x.test.ts` / `x.spec.ts`, a
  * sibling `__tests__/` dir, and a MIRRORED tree (`src/__tests__/skill/x.test.ts`
  * for `src/skill/x.ts`, which is how this repo lays out its own hook tests).
@@ -72,6 +68,16 @@ function isTestFile(filePath: string): boolean {
 
 function uniq(items: string[]): string[] {
   return [...new Set(items)];
+}
+
+/**
+ * A file outside projectDir (a /tmp scratch script, another repo, ~/.claude/...)
+ * is not ours to validate: the ancestor walk would never reach projectDir, so it
+ * would run to the filesystem root and emit candidates rooted at `/` (#3844).
+ */
+function isUnderProject(filePath: string, projectDir: string): boolean {
+  const rel = relative(projectDir, filePath);
+  return rel !== '' && !rel.startsWith('..') && !isAbsolute(rel);
 }
 
 /**
@@ -299,8 +305,7 @@ function formatGaps(findings: FileFinding[]): string {
 }
 
 /**
- * Validate test coverage for the files this session wrote (Stop), or for one
- * file when dispatched with a Write/Edit payload.
+ * Validate test coverage for the files this session wrote (Stop).
  */
 export function crossInstanceTestValidator(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   // Stop re-entry guard: CC sets this when a Stop hook already blocked once in
@@ -310,28 +315,9 @@ export function crossInstanceTestValidator(input: HookInput, ctx: HookContext = 
   const projectDir = input.project_dir || ctx.projectDir;
   const sessionId = input.session_id || ctx.sessionId || '';
 
-  // Legacy single-file shape (PostToolUse dispatch): validate that one file.
-  const payloadPath = input.tool_input?.file_path || '';
-  if (payloadPath) {
-    if (isTestFile(payloadPath) || !CODE_FILE_RE.test(payloadPath)) return outputSilentSuccess();
-    let content = input.tool_input?.content || '';
-    if (!content) {
-      try {
-        content = readFileSync(payloadPath, 'utf8');
-      } catch {
-        return outputSilentSuccess();
-      }
-    }
-    const finding = inspectFile(payloadPath, content, projectDir);
-    if (!finding) return outputSilentSuccess();
-    if (!finding.testFile) {
-      return outputBlock(`Missing test coverage for new code: TEST COVERAGE: No test file found for implementation\n${formatMissing([finding])}`);
-    }
-    if (finding.untested.length > 0) return outputWarning(formatGaps([finding]));
-    return outputSilentSuccess();
-  }
-
-  // Stop shape: the session's written files come from edit-history.
+  // The session's written files come from edit-history. (The pre-#3844 "legacy
+  // single-file shape" branch that read tool_input.file_path is deleted: the
+  // hook is registered on Stop only, and a Stop payload never carries it.)
   const files = sessionEditedFiles(projectDir, sessionId, ctx);
   if (files.length === 0) return outputSilentSuccess();
 
@@ -342,6 +328,7 @@ export function crossInstanceTestValidator(input: HookInput, ctx: HookContext = 
 
   for (const filePath of files) {
     if (reported.has(filePath)) continue;
+    if (!isUnderProject(filePath, projectDir)) continue;
     if (isTestFile(filePath) || !CODE_FILE_RE.test(filePath)) continue;
     if (!existsSync(filePath)) continue; // written, then deleted
     let content: string;
