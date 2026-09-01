@@ -1,7 +1,7 @@
 ---
 name: ci-cd-engineer
 description: "CI/CD specialist: GitHub Actions, GitLab CI pipelines, deployment automation, build optimization, caching, security scanning."
-model: inherit
+model: sonnet
 experimental:
   # Per-agent prompt-cache TTL, used when no subagentPromptCacheTtl setting is
   # configured. This agent idles past the default 5m window (workflow stage,
