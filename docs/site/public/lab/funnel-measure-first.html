@@ -35,7 +35,7 @@
       <tr><td>Stargazers link</td><td class="bad">plain anchor</td><td class="ok"><code>star_clicked</code>, same chokepoint</td></tr>
       <tr><td>Beacon <code>path</code></td><td class="bad">pathname only, query string dropped</td><td class="ok">pathname + search, so the platform ingest lifts utm_campaign</td></tr>
       <tr><td>Community link on the site</td><td class="bad">none</td><td class="ok">Join the community, to <code>platform.yonyon.ai/circle?ref=site-home</code></td></tr>
-      <tr><td>README and marketplace links</td><td class="bad">unattributed</td><td class="ok"><code>?ref=readme</code>, <code>?utm_campaign=readme</code>, <code>?utm_campaign=marketplace</code></td></tr>
+      <tr><td>README links</td><td class="bad">unattributed</td><td class="ok"><code>?ref=readme</code>, <code>?utm_campaign=readme</code>. The marketplace and third-party listings attribute by referrer host: the CC marketplace schema has no link field on a plugin entry</td></tr>
     </table>
   </section>
 
@@ -54,7 +54,7 @@
 <script>
   var SURFACES = [
     ["readme", "README badge or table", "platform.yonyon.ai/circle?ref=readme"],
-    ["marketplace", "marketplace.json homepage", "orchestkit.yonyon.ai/?utm_campaign=marketplace"],
+    ["marketplace", "marketplace listing (referrer host)", "orchestkit.yonyon.ai/ with no param; page_view keeps the referrer"],
     ["site-home", "Join the community button", "platform.yonyon.ai/circle?ref=site-home"],
     ["room-orchestkit", "pinned message in the room", "yonyon.ai/go/orchestkit?utm_campaign=room-orchestkit"]
   ];
