@@ -772,7 +772,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "browser-tools",
     "description": "Security wrapper over the upstream agent-browser skill, adding URL blocklisting, rate limiting, robots.txt enforcement, and scraping guardrails. Use when automating browser workflows that need safety limits.",
     "version": "6.0.0",
-    "sha256": "d13d50f7d82460e0b31cf65d57d368d6a25309bb6e0d949a960206a6166c4368",
+    "sha256": "469eb1307b0293850da218691a694e50147c20def27ab37921afeb248f21b118",
     "author": "OrchestKit",
     "tags": [
       "browser",
@@ -2104,7 +2104,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "expect",
     "description": "Diff-aware AI browser testing — reads the git diff, maps changes to affected pages via the route map, generates a targeted test plan, and executes it via agent-browser (Rust daemon + CDP, ARIA-tree-first) with pass/fail reporting. Use when testing UI changes, verifying PRs before merge, or running regression checks on changed components.",
     "version": "1.1.0",
-    "sha256": "e77fe65115f6899eec51f52dd278b5f81aeae6ca1930cdcfcc269b43cef536af",
+    "sha256": "ab6b0e3da7903ff31dd0f7433736c5be41699b76e19e741076b2602b7e48fe0b",
     "author": "OrchestKit",
     "tags": [
       "testing",
