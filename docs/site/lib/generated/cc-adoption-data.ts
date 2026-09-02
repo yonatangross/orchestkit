@@ -16,6 +16,27 @@ export interface AdoptionWave {
 
 export const ADOPTION_WAVES: AdoptionWave[] = [
   {
+    "version": "2.1.258",
+    "features": [
+      {
+        "slug": "macos_12_launch_regression_fix",
+        "category": "breaking",
+        "description": "Claude Code launches again on macOS 12 (Monterey); the regression came in with 2.1.255, a build that never got a CHANGELOG entry.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "remote_scheduled_session_resent_approval_fix",
+        "category": "breaking",
+        "description": "Remote and scheduled sessions no longer fail with \"user messages must have non-empty content\" after a re-sent permission approval could not be applied.",
+        "gapScore": 20,
+        "affectedSkills": []
+      }
+    ]
+  },
+  {
     "version": "2.1.257",
     "features": [
       {
@@ -2651,10 +2672,10 @@ export const ADOPTION_WAVES: AdoptionWave[] = [
 
 export const CC_SUPPORT = {
   latest: "2.1.251",
-  latestKnown: "2.1.257",
+  latestKnown: "2.1.258",
   supportedFloor: "2.1.251",
   policy: "latest + 3 previous minors",
 } as const;
 
 /** sha256 (first 12 hex) of the two source files above, in that order. */
-export const SOURCE_DIGEST = "56cd28d482f8" as const;
+export const SOURCE_DIGEST = "29825b6ab30c" as const;

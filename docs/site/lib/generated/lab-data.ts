@@ -15,6 +15,19 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "adopt-cc-258",
+    "title": "CC 2.1.258: two fixes, zero surfaces",
+    "description": "Both bullets of Claude Code 2.1.258 triaged against OrchestKit with the proof command behind each verdict: the macOS 12 launch regression from an unpublished 2.1.255 build, and the remote/scheduled-session re-sent-approval fix. latest_known moves to 2.1.258; nothing else changes.",
+    "tags": [
+      "cc-adoption",
+      "triage"
+    ],
+    "date": "2026-09-02",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 7
+  },
+  {
     "slug": "agent-routing-2026-09-01",
     "title": "Agent routing 2026-09-01: 15 model pins, one field each",
     "description": "CC 2.1.257 made inherit resolve to Fable 5.1, so fifteen ork agents get an explicit tier: one to opus, thirteen to sonnet, one to haiku. Each row names before, after and why, with list prices per MTok and the two things a pin cannot do (FORCE overrides it, and it does not pass to spawned agents).",

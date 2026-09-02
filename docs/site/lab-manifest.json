@@ -937,6 +937,17 @@
         "cost"
       ],
       "date": "2026-09-02"
+    },
+    {
+      "slug": "adopt-cc-258",
+      "source": "docs/chore--adopt-cc-258/index.html",
+      "title": "CC 2.1.258: two fixes, zero surfaces",
+      "description": "Both bullets of Claude Code 2.1.258 triaged against OrchestKit with the proof command behind each verdict: the macOS 12 launch regression from an unpublished 2.1.255 build, and the remote/scheduled-session re-sent-approval fix. latest_known moves to 2.1.258; nothing else changes.",
+      "tags": [
+        "cc-adoption",
+        "triage"
+      ],
+      "date": "2026-09-02"
     }
   ]
 }
