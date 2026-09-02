@@ -90,5 +90,35 @@ f.writeFileSync(p, JSON.stringify(s,null,2));' "$H/.claude/settings.json"
 ORK_SETTINGS_HOME="$H" bash "$CHECKER" "$T/no-such-project" --json > "$T/check-sb.json" || true  # silent: known-noise
 grep -q '"network": "allowlist"' "$T/check-sb.json" && ok "sandbox allowlist posture reported" || bad "sandbox posture missing"
 
+# 9. #3877: a project-scope sandbox.enabled:false over a user scope that sets it true
+#    is reported with the project file:line and the user file:line, never failed on.
+H2="$T/home-sb"; mkdir -p "$H2/.claude"
+printf '{\n  "sandbox": {\n    "enabled": true\n  }\n}\n' > "$H2/.claude/settings.json"
+PJ="$T/proj-override"; mkdir -p "$PJ/.claude"
+printf '{\n  "permissions": {},\n  "sandbox": {\n    "enabled": false\n  }\n}\n' > "$PJ/.claude/settings.local.json"
+ORK_SETTINGS_HOME="$H2" bash "$CHECKER" "$PJ" --json > "$T/check-ov.json" || true  # exit 1 expected: H2 carries no deny payload
+node -e '
+const o=JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")); const ov=o.sandbox_override;
+const ok = ov && ov.file===process.argv[2] && ov.line===4 && ov.user_file===process.argv[3] && ov.user_line===3
+  && o.sandbox.enabled==="false" && o.sandbox.source===process.argv[2];
+process.exit(ok?0:1)' "$T/check-ov.json" "$PJ/.claude/settings.local.json" "$H2/.claude/settings.json" \
+  && ok "sandbox override names the project file:line and the user file:line" || bad "sandbox override missing or wrong: $(head -c 600 "$T/check-ov.json")"
+ORK_SETTINGS_HOME="$H2" bash "$CHECKER" "$PJ" > "$T/check-ov.txt" || true
+grep -q 'warn: sandbox override: .*settings.local.json:4 sets sandbox.enabled=false' "$T/check-ov.txt" && ok "text mode prints the override warning" || bad "text mode has no override warning"
+
+# 9b. control: no project settings at all, user scope true: no override
+ORK_SETTINGS_HOME="$H2" bash "$CHECKER" "$T/no-such-project" --json > "$T/check-noov.json" || true
+grep -q '"sandbox_override": null' "$T/check-noov.json" && ok "no project settings: sandbox_override null" || bad "false positive override with no project settings"
+
+# 9c. control: project false but user scope unset: nothing is overridden
+H3="$T/home-unset"; mkdir -p "$H3/.claude"; printf '{}\n' > "$H3/.claude/settings.json"
+ORK_SETTINGS_HOME="$H3" bash "$CHECKER" "$PJ" --json > "$T/check-unset.json" || true
+grep -q '"sandbox_override": null' "$T/check-unset.json" && ok "project false with user unset: no override reported" || bad "override reported with nothing to override"
+
+# 9d. control: project true over user true: no override
+PJ2="$T/proj-true"; mkdir -p "$PJ2/.claude"; printf '{\n  "sandbox": {\n    "enabled": true\n  }\n}\n' > "$PJ2/.claude/settings.json"
+ORK_SETTINGS_HOME="$H2" bash "$CHECKER" "$PJ2" --json > "$T/check-both.json" || true
+grep -q '"sandbox_override": null' "$T/check-both.json" && ok "project true over user true: no override" || bad "override reported when both scopes agree"
+
 echo "Results: $PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ]

