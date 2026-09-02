@@ -117,7 +117,11 @@ fi
 
 ## Model Routing
 
-See [docs/model-routing.md](../../../../docs/model-routing.md) for per-agent model assignment rationale and version history.
+`docs/model-routing.md` was deleted in #1302; do not look for it. The per-agent assignment is the `model:` field in each `src/agents/*.md` frontmatter (values from `src/hooks/src/lib/models.vocab.json` `shortNames`), pinned in #3872 after CC 2.1.257 made `inherit` resolve to the premium tier. The rationale and the before/after per agent are in the Lab page `docs/chore--agent-routing-2026-09-01/index.html` (published at `/lab/agent-routing-2026-09-01.html`). To list the live assignment:
+
+```bash
+grep -h '^model:' src/agents/*.md | sort | uniq -c
+```
 
 **Fail action:** List missing agents for manual investigation. Common causes:
 - Plugin not installed or not rebuilt after adding agents
