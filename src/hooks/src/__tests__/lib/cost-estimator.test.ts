@@ -81,13 +81,22 @@ describe('cost-estimator vocab canaries (#2338)', () => {
   // purpose: $10 input, $0.25 cache reads (0.025x, 75% cheaper than Fable 5). The
   // write multiplier is unchanged. Any other model still has to follow 0.1x, so a
   // future entry cannot hide a typo behind this exception.
-  const CACHE_READ_RATIO_EXCEPTIONS: Record<string, number> = { 'claude-fable-5-1': 0.025 };
+  //
+  // gemini-3.8-flash (2026-09-02) keeps the 0.1x read but has NO 1.25x write
+  // premium: Google bills cache creation at the input rate plus per-hour
+  // storage, so the row stamps writes at 1.0x. Each exception names the one
+  // ratio it bends; the other stays on the convention.
+  const CACHE_RATIO_EXCEPTIONS: Record<string, { read?: number; write?: number }> = {
+    'claude-fable-5-1': { read: 0.025 },
+    'gemini-3.8-flash': { write: 1.0 },
+  };
 
   it('every vocab pricing entry follows the cache 0.1x/1.25x convention', () => {
     for (const [id, p] of Object.entries(modelsVocab.pricing)) {
-      const readRatio = CACHE_READ_RATIO_EXCEPTIONS[id] ?? 0.1;
+      const readRatio = CACHE_RATIO_EXCEPTIONS[id]?.read ?? 0.1;
+      const writeRatio = CACHE_RATIO_EXCEPTIONS[id]?.write ?? 1.25;
       expect(p.cache_read_per_mtok, `${id} cache_read`).toBeCloseTo(p.input_per_mtok * readRatio, 5);
-      expect(p.cache_write_per_mtok, `${id} cache_write`).toBeCloseTo(p.input_per_mtok * 1.25, 5);
+      expect(p.cache_write_per_mtok, `${id} cache_write`).toBeCloseTo(p.input_per_mtok * writeRatio, 5);
     }
   });
 
@@ -170,6 +179,39 @@ describe('cost-estimator vocab canaries (#2338)', () => {
       const expected = OFF_TIER[id] ?? TIER[family as string];
       expect(getPricing(id).input_per_mtok, `${id} priced off-tier`).toBe(expected);
     }
+  });
+
+  // gemini-3.8-flash (Google GA, 2026-09-02): the first non-Claude row. It is
+  // priced so gateway or managed-override usage lands on its OWN row. The
+  // platform lesson of 2026-09-01 (feedback_prefix_model_resolver_hides_cache_
+  // price_divergence): a prefix or substring resolver bills a new model at its
+  // predecessor's rates, so the id must resolve to itself and the predecessor
+  // must not inherit it. Promo price through 2026-12-31; Google doubles it to
+  // $1.50/$7.50/$0.15 on 2027-01-01, at which point this pin and the vocab row
+  // move together.
+  it('prices gemini-3.8-flash at its own promo row, $0.75/$3.75 with $0.075 cache reads (through 2026-12-31)', () => {
+    expect(getCostConfig().models['gemini-3.8-flash']).toEqual({
+      input_per_mtok: 0.75,
+      output_per_mtok: 3.75,
+      cache_read_per_mtok: 0.075,
+      cache_write_per_mtok: 0.75,
+    });
+    expect(calculateCost('gemini-3.8-flash', MTOK).total).toBeCloseTo(4.5, 5); // $0.75 + $3.75
+  });
+
+  it('resolves gemini-3.8-flash to itself, never to a Claude row or the sonnet fallback', () => {
+    expect(resolveModelKey('gemini-3.8-flash')).toBe('gemini-3.8-flash');
+    expect(getPricing('gemini-3.8-flash').input_per_mtok).toBe(0.75);
+    expect(getPricing('gemini-3.8-flash').output_per_mtok).toBe(3.75);
+  });
+
+  it('the unpriced predecessor gemini-3.7-flash does not inherit the 3.8 Flash row', () => {
+    // Neither id is a substring of the other, so partial match cannot relate
+    // them; an unpriced 3.7 Flash takes the pinned unknown-model fallback
+    // rather than a neighbour's promo price. Same for the older preview id.
+    expect(resolveModelKey('gemini-3.7-flash')).toBe('gemini-3.7-flash');
+    expect(getPricing('gemini-3.7-flash').input_per_mtok).toBe(2.0);
+    expect(getPricing('gemini-3-flash-preview').input_per_mtok).toBe(2.0);
   });
 
   it('PINS current behavior: unknown models fall back to sonnet pricing', () => {

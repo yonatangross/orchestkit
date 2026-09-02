@@ -1044,6 +1044,18 @@
         "portability"
       ],
       "date": "2026-09-02"
+    },
+    {
+      "slug": "feat--gemini-38-flash-pricing",
+      "source": "docs/feat--gemini-38-flash-pricing/index.html",
+      "title": "Gemini 3.8 Flash gets its own pricing row",
+      "description": "How the cost-estimator resolves a model id to a pricing row, why gemini-3.8-flash needed its own row instead of the sonnet fallback or a substring neighbour, what the promo price does on 2027-01-01, and where the id landed in the routing surfaces.",
+      "tags": [
+        "pricing",
+        "models",
+        "hooks"
+      ],
+      "date": "2026-09-02"
     }
   ]
 }

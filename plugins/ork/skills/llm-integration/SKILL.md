@@ -188,7 +188,7 @@ and scars. Our delta on all of it is in `references/ork-delta.md`.
 | Training epochs | 1-3 (more risks overfitting) |
 | Context compression | Anchored iterative (60-80%) |
 | Compress trigger | 70% utilization, target 50% |
-| Judge model | `claude-haiku-4-5-20251001` (cost tier) or `gpt-5.5` |
+| Judge model | `claude-haiku-4-5-20251001` (cost tier), `gpt-5.5`, or `gemini-3.8-flash` (Google's GA general-purpose model, priced under Haiku through 2026-12-31 and a third vendor for the different-model rule; price lives in `models.vocab.json`, not here) |
 | Quality threshold | 0.7 production, 0.6 drafts |
 | Few-shot examples | 3-5 diverse, representative |
 | Prompt versioning | Langfuse with labels |

@@ -318,8 +318,12 @@ def get_llm_provider(task_type: TaskType = TaskType.REASONING) -> OllamaProvider
     # Cloud fallback (customize for your cloud provider)
     from langchain.chat_models import init_chat_model
 
+    # REASONING routes to Google's GA general-purpose Flash (2026-09-02): its
+    # multi-step reasoning gains over 3.7 Flash and a price under Haiku put it
+    # on the cost lane; Claude rows unchanged. gemini-3.8-flash-cyber is not
+    # available (Fairwind Program only). Prices live in models.vocab.json.
     model = {
-        TaskType.REASONING: "gemini-3-flash-preview",
+        TaskType.REASONING: "gemini-3.8-flash",
         TaskType.CODING: "claude-sonnet-4-6",
         TaskType.GENERAL: "claude-haiku-4-5-20251001",
     }.get(task_type, "claude-haiku-4-5-20251001")
