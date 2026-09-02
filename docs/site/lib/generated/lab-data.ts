@@ -15,6 +15,20 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "fix--doctor-model-routing-link",
+    "title": "Where the model routing rationale actually lives",
+    "description": "The doctor reference linked docs/model-routing.md, deleted in #1302. This page shows the three live sources the link now points at and the current per-agent assignment.",
+    "tags": [
+      "docs",
+      "doctor",
+      "models"
+    ],
+    "date": "2026-09-03",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 5
+  },
+  {
     "slug": "feat--gemini-38-restamp-canary",
     "title": "A dated note does not turn red: the Gemini 3.8 Flash re-stamp canary",
     "description": "The gemini-3.8-flash promo price doubles on 2027-01-01. Three files say so in prose; this canary makes the first CI run of 2027 fail until the row is re-stamped, and shows both arms so the canary is known to be armed.",

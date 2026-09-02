@@ -1068,6 +1068,18 @@
         "tests"
       ],
       "date": "2026-09-03"
+    },
+    {
+      "slug": "fix--doctor-model-routing-link",
+      "source": "docs/fix--doctor-model-routing-link/index.html",
+      "title": "Where the model routing rationale actually lives",
+      "description": "The doctor reference linked docs/model-routing.md, deleted in #1302. This page shows the three live sources the link now points at and the current per-agent assignment.",
+      "tags": [
+        "docs",
+        "doctor",
+        "models"
+      ],
+      "date": "2026-09-03"
     }
   ]
 }
