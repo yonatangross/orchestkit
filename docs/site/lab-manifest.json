@@ -1020,6 +1020,18 @@
         "epic-a"
       ],
       "date": "2026-09-02"
+    },
+    {
+      "slug": "fix--3822-skill-path-lint-prereq",
+      "source": "docs/fix--3822-skill-path-lint-prereq/index.html",
+      "title": "Skill path forms: the lint moves first (#3822 step 1)",
+      "description": "Why a SKILL.md body should reference its own files with a bare relative path, what Claude Code, pi, the Skills API and Cursor each do with the three forms, and what the placeholder gate now resolves. Lint prerequisite only: no skill body changes, the codemod is step 2.",
+      "tags": [
+        "skills",
+        "lint",
+        "portability"
+      ],
+      "date": "2026-09-02"
     }
   ]
 }
