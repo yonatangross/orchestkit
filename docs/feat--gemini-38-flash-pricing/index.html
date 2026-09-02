@@ -97,22 +97,31 @@
       tb.appendChild(tr);
     });
   }
+  // Segments are [text, cssClass]; rendered with textContent, never innerHTML,
+  // so the typed id is data, not markup.
   function resolve(id){
-    var key=ALIASES[id]||id;var lines=[];
-    lines.push('input:      '+id);
-    lines.push('alias step: '+(ALIASES[id]?id+' -> '+key:'none'));
+    var key=ALIASES[id]||id;var seg=[];
+    seg.push(['input:      '+id+'\n','']);
+    seg.push(['alias step: '+(ALIASES[id]?id+' -> '+key:'none')+'\n','']);
     var exact=ROWS.filter(function(r){return r[0]===key;})[0];
-    if(exact){lines.push('<span class="ok">exact row:  '+key+'  '+money(exact[1])+' / '+money(exact[2])+'</span>');return lines.join('\n');}
+    if(exact){seg.push(['exact row:  '+key+'  '+money(exact[1])+' / '+money(exact[2]),'ok']);return seg;}
     var partial=ROWS.filter(function(r){return key.indexOf(r[0])>=0||r[0].indexOf(key)>=0;})[0];
     if(partial){
-      var hazard=/cyber/.test(key)?'  <span class="bad">HAZARD: an unpriced, non-GA id billed at a neighbour\'s promo rate. This is the substring failure the lesson names.</span>':'  <span class="warn">intended: [1m] is a CC session label, not an API id</span>';
-      lines.push('<span class="warn">substring:  '+key+' matched '+partial[0]+'  '+money(partial[1])+' / '+money(partial[2])+'</span>'+hazard);
-      return lines.join('\n');
+      seg.push(['substring:  '+key+' matched '+partial[0]+'  '+money(partial[1])+' / '+money(partial[2]),'warn']);
+      if(/cyber/.test(key)) seg.push(['  HAZARD: an unpriced, non-GA id billed at a neighbour\'s promo rate. This is the substring failure the lesson names.','bad']);
+      else seg.push(['  intended: [1m] is a CC session label, not an API id','warn']);
+      return seg;
     }
-    lines.push('<span class="bad">fallback:   claude-sonnet-5  $2 / $10  (no row, no substring neighbour). The predecessor does NOT inherit 3.8 Flash.</span>');
-    return lines.join('\n');
+    seg.push(['fallback:   claude-sonnet-5  $2 / $10  (no row, no substring neighbour). The predecessor does NOT inherit 3.8 Flash.','bad']);
+    return seg;
   }
-  function show(){document.getElementById('res').innerHTML=resolve(document.getElementById('q').value.trim().toLowerCase());}
+  function show(){
+    var box=document.getElementById('res');
+    while(box.firstChild)box.removeChild(box.firstChild);
+    resolve(document.getElementById('q').value.trim().toLowerCase()).forEach(function(s){
+      var el=document.createElement('span');if(s[1])el.className=s[1];el.textContent=s[0];box.appendChild(el);
+    });
+  }
   document.getElementById('d-now').onclick=function(){doubled=false;this.classList.add('on');document.getElementById('d-2027').classList.remove('on');renderTable();};
   document.getElementById('d-2027').onclick=function(){doubled=true;this.classList.add('on');document.getElementById('d-now').classList.remove('on');renderTable();};
   document.querySelectorAll('button[data-q]').forEach(function(b){b.onclick=function(){document.getElementById('q').value=b.getAttribute('data-q');show();};});
