@@ -26,7 +26,8 @@
         "url": "https://github.com/yonatangross/orchestkit.git",
         "path": "plugins/ork",
         "ref": "v9.8.0"
-      }
+      },
+      "homepage": "https://orchestkit.yonyon.ai/?utm_campaign=marketplace"
     },
     {
       "name": "ork-alpha",
@@ -42,7 +43,8 @@
         "url": "https://github.com/yonatangross/orchestkit.git",
         "path": "plugins/ork",
         "ref": "main"
-      }
+      },
+      "homepage": "https://orchestkit.yonyon.ai/?utm_campaign=marketplace"
     }
   ]
 }

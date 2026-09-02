@@ -2,8 +2,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, BadgeCheck, Ban } from "lucide-react";
 import { CopyInstallButton } from "./copy-button";
+import { StarLink } from "./star-link";
 import { SITE, COUNTS } from "@/lib/constants";
-import { formatStars } from "@/lib/format-stars";
 import { AgentReadinessSection } from "@/components/agent-readiness-section";
 import { HomepageStructuredData } from "@/components/structured-data";
 import FactoryRide from "@/components/world/factory-ride";
@@ -207,6 +207,12 @@ export default async function HomePage() {
                   <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
                 </Link>
                 <CopyInstallButton />
+                <a
+                  href={SITE.communityUrl}
+                  className="inline-flex h-10 items-center rounded-lg border border-[oklch(1_0_0/0.16)] bg-transparent px-[18px] text-sm font-medium text-[oklch(0.93_0.012_270)] transition-colors hover:border-[oklch(1_0_0/0.3)] hover:bg-[oklch(1_0_0/0.06)]"
+                >
+                  Join the community
+                </a>
                 <Link
                   href="#cookbook"
                   className="inline-flex h-10 items-center rounded-lg border border-[oklch(1_0_0/0.16)] bg-transparent px-[18px] text-sm font-medium text-[oklch(0.93_0.012_270)] transition-colors hover:border-[oklch(1_0_0/0.3)] hover:bg-[oklch(1_0_0/0.06)]"
@@ -216,24 +222,7 @@ export default async function HomePage() {
               </div>
 
               <div className="mt-7 flex flex-wrap items-center justify-center font-mono text-[12px] text-[oklch(0.86_0.015_264)]">
-                <a
-                  href={`${SITE.github}/stargazers`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3.5 transition-colors hover:text-[oklch(0.93_0.012_270)]"
-                >
-                  <svg className="h-3 w-3 opacity-70" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                  </svg>
-                  {stars !== null ? (
-                    <>
-                      <span className="font-medium tabular-nums text-[oklch(0.95_0.008_270)]">{formatStars(stars)}</span>
-                      <span>stars</span>
-                    </>
-                  ) : (
-                    <span>Star on GitHub</span>
-                  )}
-                </a>
+                <StarLink stars={stars} />
                 <span aria-hidden="true" className="h-3 w-px bg-[oklch(1_0_0/0.16)]" />
                 <span className="inline-flex items-center gap-1.5 px-3.5">MIT license</span>
                 <span aria-hidden="true" className="h-3 w-px bg-[oklch(1_0_0/0.16)]" />

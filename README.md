@@ -8,7 +8,7 @@
 [![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.251-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](./LICENSE)
 [![GitHub Stars](https://img.shields.io/github/stars/yonatangross/orchestkit?style=for-the-badge&logo=github)](https://github.com/yonatangross/orchestkit)
-[![Community](https://img.shields.io/badge/Community-WhatsApp-25D366?style=for-the-badge&logo=whatsapp)](https://yonyon.ai/go/community)
+[![Community](https://img.shields.io/badge/Community-WhatsApp-25D366?style=for-the-badge&logo=whatsapp)](https://platform.yonyon.ai/circle?ref=readme)
 [![Ask DeepWiki](https://img.shields.io/badge/Ask-DeepWiki-1A1A2E?style=for-the-badge&logo=bookstack&logoColor=4F9CF9)](https://deepwiki.com/yonatangross/orchestkit)
 
 [![MCP Toplist](https://mcptoplist.com/badge/io.github.yonatangross%2Forchestkit.svg)](https://mcptoplist.com/server/io.github.yonatangross%2Forchestkit)
@@ -19,7 +19,7 @@
 
 <p align="center">
   <a href="https://orchestkit.yonyon.ai/"><strong>Explore the Docs →</strong></a> ·
-  <a href="https://yonyon.ai/go/orchestkit"><strong>OrchestKit Community →</strong></a><br>
+  <a href="https://yonyon.ai/go/orchestkit?utm_campaign=readme"><strong>OrchestKit Community →</strong></a><br>
   <sub>Skill browser, demo gallery, setup wizard</sub>
 </p>
 
@@ -433,10 +433,10 @@ Join the **Building with AI** community for AI dev tips, OrchestKit support, and
 
 | Room | Who it's for | Link |
 |------|--------------|------|
-| **Building with AI** | The umbrella community. One join, every room below. | [Join](https://yonyon.ai/go/community) |
-| **Builders** | For people already building | [Join](https://yonyon.ai/go/builders) |
-| **OrchestKit** | For OrchestKit users | [Join](https://yonyon.ai/go/orchestkit) |
-| **AI for Business** | For people leading AI adoption | [Join](https://yonyon.ai/go/business) |
+| **Building with AI** | The umbrella community. One join, every room below. | [Join](https://platform.yonyon.ai/circle?ref=readme) |
+| **Builders** | For people already building | [Join](https://yonyon.ai/go/builders?utm_campaign=readme) |
+| **OrchestKit** | For OrchestKit users | [Join](https://yonyon.ai/go/orchestkit?utm_campaign=readme) |
+| **AI for Business** | For people leading AI adoption | [Join](https://yonyon.ai/go/business?utm_campaign=readme) |
 
 Names and audiences match what [yonyon.ai](https://yonyon.ai/en) renders, so the two surfaces cannot drift. Every link resolves through `yonyon.ai/go/*`, so a rotated invite never needs a README change and no raw invite is published here.
 
@@ -450,7 +450,7 @@ It stays MIT and free. Nothing is gated, and none of the below changes that.
 
 **Working out where AI actually fits in your business?** The [**AI readiness audit**](https://platform.yonyon.ai/ai-audit) is a free assessment that maps your workflows and returns a prioritized report — the same diagnostic that opens a consulting engagement.
 
-**Want the toolkit running properly in your team?** Setup, configuration, and a working agent loop tailored to your stack is something I do as a fixed-scope engagement. Start a [discussion](https://github.com/yonatangross/orchestkit/discussions) or reach out through the [community](https://yonyon.ai/go/business).
+**Want the toolkit running properly in your team?** Setup, configuration, and a working agent loop tailored to your stack is something I do as a fixed-scope engagement. Start a [discussion](https://github.com/yonatangross/orchestkit/discussions) or reach out through the [community](https://yonyon.ai/go/business?utm_campaign=readme).
 
 Security policy and reporting: [SECURITY.md](SECURITY.md).
 
@@ -458,7 +458,7 @@ Security policy and reporting: [SECURITY.md](SECURITY.md).
 
 <div align="center">
 
-**[Docs](https://orchestkit.yonyon.ai/)** · **[Issues](https://github.com/yonatangross/orchestkit/issues)** · **[Discussions](https://github.com/yonatangross/orchestkit/discussions)** · **[Community](https://yonyon.ai/go/community)**
+**[Docs](https://orchestkit.yonyon.ai/)** · **[Issues](https://github.com/yonatangross/orchestkit/issues)** · **[Discussions](https://github.com/yonatangross/orchestkit/discussions)** · **[Community](https://platform.yonyon.ai/circle?ref=readme)**
 
 MIT License · [@yonatangross](https://github.com/yonatangross)
 

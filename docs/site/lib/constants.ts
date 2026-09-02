@@ -11,6 +11,9 @@ export const SITE = {
   domain: "https://orchestkit.yonyon.ai",
   github: "https://github.com/yonatangross/orchestkit",
   installCommand: "claude install orchestkit/ork",
+  // Community join surface (funnel A3): the platform gate reads ref into
+  // circle_intent.source. Never a raw wa.me invite here.
+  communityUrl: "https://platform.yonyon.ai/circle?ref=site-home",
   ccVersion: `${MIN_CC_VERSION}+`,
 } as const;
 
