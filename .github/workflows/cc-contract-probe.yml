@@ -165,3 +165,35 @@ jobs:
             echo "derive-cc-output-keys exit code: ${rc}"
           } | tee -a "$GITHUB_STEP_SUMMARY"
           exit "$rc"
+
+      # Pricing canary (#3878). models.vocab.json is the runtime price table the
+      # cost estimator reads; the binary carries the same models as catalog rows
+      # with a pricing tier string. Nothing else prints that catalog, so this is
+      # the one place the two can be compared. Runs even when the contract step
+      # above drifted: a pricing mismatch is a separate finding.
+      - name: Pin the model price table to the binary's pricing tiers
+        if: ${{ !cancelled() }}
+        run: |
+          set -uo pipefail
+          rc=0
+          node scripts/check-model-pricing-tiers.mjs --check > /tmp/pricing.txt 2>&1 || rc=$?
+          {
+            echo '## Model pricing tiers vs models.vocab.json'
+            echo ''
+            if [ "$rc" -eq 0 ]; then
+              echo 'OK: every priced vocab model with a catalog row decodes to the same four numbers.'
+            elif [ "$rc" -eq 1 ]; then
+              echo 'DRIFT: a vocab row disagrees with the binary. Update src/hooks/src/lib/models.vocab.json.'
+            elif [ "$rc" -eq 2 ]; then
+              echo 'CANNOT-OBSERVE: no binary or no catalog rows parsed. Nothing was verified.'
+            elif [ "$rc" -eq 3 ]; then
+              echo 'UNKNOWN-TIER: the binary names a tier the decoder cannot read. Extend decodeTier() after reading the binary; never skip it.'
+            else
+              echo "Unexpected exit ${rc}."
+            fi
+            echo ''
+            echo '```'
+            cat /tmp/pricing.txt
+            echo '```'
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+          exit "$rc"

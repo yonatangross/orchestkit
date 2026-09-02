@@ -2,6 +2,18 @@
   "$comment": "Allowlist for the Lab gallery (docs/showcase/lab). Only entries listed here are copied to public/lab/ and surfaced on the site. `source` is repo-root-relative. Title/description here OVERRIDE what generate-lab-data.mjs extracts from the HTML <head>. Run `node docs/site/scripts/generate-lab-data.mjs` after editing.",
   "entries": [
     {
+      "slug": "pricing-tier-canary",
+      "source": "docs/ci--3878-pricing-tier-canary/index.html",
+      "title": "Where Claude Code keeps its prices, and how the vocab is pinned to them",
+      "description": "CC's model prices live only inside its binary: a pricing_tiers table plus catalog rows naming a tier; the managed modelPricing setting is an override, not a source. A nightly canary reads the binary's own tier table and fails on drift or on a tier the table does not define. Includes the tier table.",
+      "tags": [
+        "cc-adoption",
+        "cost",
+        "ci"
+      ],
+      "date": "2026-09-02"
+    },
+    {
       "slug": "cache-ttl-verdict",
       "source": "docs/docs--3876-cache-ttl-verdict/index.html",
       "title": "The 1-hour cache you already have, and the one that would cost more",
