@@ -2,6 +2,18 @@
   "$comment": "Allowlist for the Lab gallery (docs/showcase/lab). Only entries listed here are copied to public/lab/ and surfaced on the site. `source` is repo-root-relative. Title/description here OVERRIDE what generate-lab-data.mjs extracts from the HTML <head>. Run `node docs/site/scripts/generate-lab-data.mjs` after editing.",
   "entries": [
     {
+      "slug": "dist-release-owned",
+      "source": "docs/chore--3578-dist-release-owned/index.html",
+      "title": "Four files every hooks PR rewrote, and the CI that went silent",
+      "description": "Why committed hook bundles made every hooks PR conflict-prone, why a conflicting PR gets zero CI, and the fix: the bundles become release-owned, rebuilt only on the release-please branch, with a required gate that fails any feature PR carrying them.",
+      "tags": [
+        "ci",
+        "hooks",
+        "git"
+      ],
+      "date": "2026-09-02"
+    },
+    {
       "slug": "oss-surface-hygiene",
       "source": "docs/chore--oss-surface-hygiene/install-matrix.html",
       "title": "One plugin. Four first commands.",

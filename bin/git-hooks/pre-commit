@@ -159,6 +159,23 @@ if [[ -n "$WORKFLOW_FILES" ]]; then
   fi
 fi
 
+# ===== 9. Release-owned hook bundles (#3578) =====
+# src/hooks/dist/ and plugins/ork/hooks/dist/ are rebuilt on the release-please
+# branch only. A feature commit that carries them re-creates the structural
+# conflict #3578 describes (every hooks PR rewriting the same four files) and
+# fails ci.yml's "release-owned" gate. Keep the locally built bundles on disk
+# for tests; just do not stage them. Release automation sets ORK_DIST_COMMIT=1.
+if [[ "${ORK_DIST_COMMIT:-0}" != "1" ]]; then
+  # silent: known-noise (grep returns 1 when no bundle is staged; that's the no-op case)
+  DIST_STAGED=$(echo "$STAGED_FILES" | grep -E '^(src/hooks/dist|plugins/ork/hooks/dist)/' || true)
+  if [[ -n "$DIST_STAGED" ]]; then
+    echo "  Hook bundles are release-owned (#3578) and must not be committed from a feature branch:"
+    echo "$DIST_STAGED" | sed 's/^/    /'
+    echo "    Unstage them: git restore --staged src/hooks/dist plugins/ork/hooks/dist"
+    ERRORS=$((ERRORS + 1))
+  fi
+fi
+
 # ===== Summary =====
 if [[ $ERRORS -gt 0 ]]; then
   echo ""
