@@ -60,7 +60,7 @@ skill is no longer marked `experimental:` in its frontmatter.
 | `once: true` hooks | 2.1.69 | 13 skill context loaders fire once then auto-remove | Loaders fire every prompt (wasted tokens) |
 | `permissionDecision: 'ask'` | 2.1.69 | Gray-zone command escalation to user | Binary allow/deny only |
 | `tool_use_id` correlation | 2.1.69 | Pre/PostToolUse pair tracking | No correlation between pre/post |
-| `${ENV_VAR}` in HTTP hooks | 2.1.69 | `$TOKEN` in headers works; `${VAR}` in URLs broken since 2.1.71 (validated before expansion) — use `generate-http-hooks` CLI with real URLs instead | Must use command hooks for env vars |
+| `${ENV_VAR}` in HTTP hooks | 2.1.69 | `$TOKEN` in headers works; `${VAR}` in URLs broken since 2.1.71 (validated before expansion), so a hand-written HTTP hook needs a literal URL | Must use command hooks for env vars |
 | Path-scoped rules (`paths:`) | 2.1.69 | 10 conditional rules scoped to file paths | All rules always loaded |
 | Worktree dedup fixes | 2.1.70 | Prevents duplicate hook fires in worktrees | Hooks may fire twice |
 | 74% prompt re-render reduction | 2.1.70 | CC-internal perf (no action needed) | Higher latency on re-renders |

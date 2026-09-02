@@ -720,36 +720,32 @@ Header field:  "Bearer $ORCHESTKIT_HOOK_TOKEN" ✅ Works (headers not URL-valida
 
 This means HTTP hooks cannot use env var placeholders in URLs at the plugin level. They must contain real URLs — which vary per user.
 
-### Solution: User-Level Generation
+### Solution: Runtime Config, Not Generated Hook Entries
 
-HTTP hooks live in `.claude/settings.local.json` (per-user, not committed), generated with real URLs via CLI:
+Streaming leaves the machine through the HMAC-signed `lib/http-sink.ts` (registered by `lib/sink-registry.ts`), which reads its URL from `.claude/orchestration/config.json` (`webhookUrl`, or `ORCHESTKIT_HOOK_URL`) at runtime and authenticates with `$ORCHESTKIT_HOOK_TOKEN`. No `type: "http"` entry is written anywhere.
 
-```bash
-npm run generate:http-hooks -- https://your-api.com/hooks --write
-```
+The per-event generator (`src/hooks/src/cli/generate-http-hooks.ts`, `npm run generate:http-hooks`, "channel 1") that used to write 19 such entries into `settings.local.json` was deprecated in #1861 and deleted in #3867. It double-sent every event next to the sink and drove a 61% rate-limit reject rate on the receiving platform (2026-05-13).
 
 ### Required Env Var Checklist (#1860)
 
-Every generated entry references `$ORCHESTKIT_HOOK_TOKEN` literally as the Bearer token. If the var is unset in the shell that launches Claude Code, **every hook fire returns 401** and CC surfaces on-screen `PreToolUse:Bash hook error` spam — which masks real errors (e.g. yonatan-hq/platform#3589 ingestion gaps).
-
-The generator now fails closed: `--write` refuses to persist entries when `$ORCHESTKIT_HOOK_TOKEN` is empty.
+If `$ORCHESTKIT_HOOK_TOKEN` is unset in the shell that launches Claude Code, the sink stays unregistered (silently local-only) and any leftover channel-1 entry **returns 401 on every fire**, surfacing on-screen `PreToolUse:Bash hook error` spam that masks real errors (e.g. yonatan-hq/platform#3589 ingestion gaps).
 
 ```text
-1. Pick a token:           your CC plugin server expects a bearer string.
+1. Pick a token:           your receiving server expects a bearer string.
 2. Export it in the shell: export ORCHESTKIT_HOOK_TOKEN=<token>
 3. Persist it:             echo 'export ORCHESTKIT_HOOK_TOKEN=...' >> ~/.zshrc
    - OR 1Password ref:     op read 'op://<vault>/orchestkit/hook-token'
-4. Run the generator:      npm run generate:http-hooks -- <url> --write
-5. Restart the CC session  so the new settings.local.json takes effect.
+4. Save the endpoint:      .claude/orchestration/config.json -> { "webhookUrl": "<url>" }
+5. Restart the CC session  so the sink registers with the new config.
 ```
 
-If you intend to set the token later (in a different shell init, secret manager fetch, etc.), pass `--allow-missing-token` to bypass the guard — but the SessionStart hook (`lifecycle/hook-token-check`) will still emit a stderr warning every time CC starts until the var is exported.
+The SessionStart hook `lifecycle/hook-token-check` emits a stderr warning every time CC starts while a `type: "http"` entry in either `settings.local.json` references the token and the var is not exported. That covers entries a pre-#3867 install generated; delete them rather than keep feeding the double-send.
 
-See `src/skills/configure/references/http-hooks.md` for full setup guide.
+See `src/skills/configure/references/http-hooks.md` for the full setup guide.
 
 ### Do NOT Re-Add HTTP Hooks to Plugin hooks.json
 
-Any `type: "http"` entry in plugin-level `hooks.json` must use a hardcoded URL. Env var placeholders in the `url` field will break the entire plugin. Use the generator CLI for user-specific endpoints.
+Any `type: "http"` entry in plugin-level `hooks.json` must use a hardcoded URL. Env var placeholders in the `url` field will break the entire plugin. User-specific endpoints belong in `.claude/orchestration/config.json`, read by the sink at runtime.
 
 ---
 
@@ -1408,6 +1404,8 @@ OrchestKit hooks are managed defaults. Users retain full control to disable any 
 See the async hooks section above for detailed async hook patterns.
 
 ## Registry changelog (archived from hooks.json description, 2026-07-18)
+
+(count unchanged at 172, 2026-09-02, #3867 channel 1 deleted): `src/hooks/src/cli/generate-http-hooks.ts` and the `generate:http-hooks` npm script are gone, closing the EPIC A (#3306) child the 2026-09-01 legacy-debris sweep filed instead of drive-by deleting. The CLI was DEPRECATED since #1861 with a `warnDeprecated()` banner on every run, and `hooks.json` has shipped zero `type:"http"` entries for its whole life, but it was not zero-ref: the npm script, the `lifecycle/hook-token-check` header (which credited `scripts/generate-http-hooks` for the entries it scans), the configure skill (`SKILL.md` Step 10 plus `references/http-hooks.md`), the setup skill (`SKILL.md` Phase 9, `references/configure-wizard.md` Step 6, `references/telemetry-setup.md`, `rules/telemetry-consent-gate.md`) and the doctor `version-compatibility.md` row all named it, re-derived at execution time with `git grep`, not from the issue's list. Every doc now routes streaming through the one surviving channel, the HMAC-signed `lib/http-sink` activated by `webhookUrl` in `.claude/orchestration/config.json` plus `ORCHESTKIT_HOOK_TOKEN`; the setup and configure wizards lose the "Full streaming" versus "Summary only" split, which only existed because channel 1 did. `hook-token-check` itself is unchanged in behaviour: it keeps scanning both `settings.local.json` files for `type:"http"` entries referencing the token, because entries a pre-#3867 install generated outlive the generator, and its header now says so. `warnDeprecated` had no other caller and dies with the file. No test imported the CLI (its exports were never covered). Count unchanged: no hooks.json registration moved.
 
 (count unchanged at 172, 2026-09-02, #3578 hook bundles become release-owned): no hook changed; the artifact policy did. Every hooks PR committed the regenerated `src/hooks/dist/*.mjs` + `bundle-stats.json` and their `plugins/ork/hooks/dist/` mirror, and because a bundle is a whole-file rewrite, any two PRs touching any two hooks conflicted on the same four files. A conflicting PR has no merge ref, so GitHub fires no `pull_request` event and runs no CI (measured on #3570: 14 runs on the mergeable head, 0 on the conflicting one, `pull_request_target` still 2). Measured over the 30 days before this change: 88 of 372 commits on main touched the bundles. From now on feature PRs never commit them: ci.yml's Build drift roster excludes both dist paths and a new required step "Check hook bundles are release-owned" fails a PR whose merge ref changes them against the base; `skill-autobuild.yml`'s heal roster excludes them; `bin/git-hooks/pre-commit` section 9 refuses them staged (`ORK_DIST_COMMIT=1` for automation); `bump-version.sh` no longer stages them. The single writer is `release-please.yml`'s new step "Rebuild hook bundles on the release PR": on every push to main it checks out the bot-authored release branch, refuses to build unless the branch differs from `origin/main` only in release-owned paths (so no branch code runs with the App token in scope; the token is also stripped from the build env), runs `npm ci` + `npm run build`, and commits `chore(dist): rebuild hook bundles for the release (#3578)` when the bundles moved. On the release PR the same ci.yml step flips meaning and requires the bundles to equal a fresh build, so a release can never ship stale bundles: the bot step is best-effort, the gate is required. Consequence to know: between releases, main's committed bundles are stale relative to `src/hooks/src` by design; every CI job already builds from source before testing (`install-hooks-deps: 'true'`), and installs pin release tags, which are exactly the commits that carry fresh bundles.
 

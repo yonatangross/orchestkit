@@ -199,15 +199,15 @@ Ask user preference with AskUserQuestion:
 
 | Mode | Events | Auth | Overhead |
 |------|--------|------|----------|
-| **Full streaming** | All 18 CC events via HTTP hooks | Bearer token | Near-zero |
-| **Summary only** | SessionEnd + worktree events | HMAC auth | None |
-| **Skip** | No telemetry | — | None |
+| **Stream to a webhook** | Analytics events + SessionEnd summaries via the HMAC-signed `http-sink` | `ORCHESTKIT_HOOK_TOKEN` | Batched, async |
+| **Skip** | No telemetry | none | None |
 
 If streaming selected:
 1. Ask for webhook URL
-2. Run `npm run generate:http-hooks -- <url> --write`
-3. Save to `.claude/orchestration/config.json`
-4. Remind about `ORCHESTKIT_HOOK_TOKEN` env var
+2. Save `webhookUrl` to `.claude/orchestration/config.json`
+3. Remind about `ORCHESTKIT_HOOK_TOKEN` env var
+
+The per-event native HTTP hook generator (channel 1) was deleted in #3867; nothing writes `type: "http"` entries into `settings.local.json`.
 
 ## Phase 10: Optional Integrations
 

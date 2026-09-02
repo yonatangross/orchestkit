@@ -27,7 +27,7 @@ AskUserQuestion(questions=[{
 
 # If user picked "Full streaming", immediately configure
 webhook_url = "https://company-default.example.com/hooks"  # Hardcoded default
-Bash(command=f'npm run generate:http-hooks -- {webhook_url} --write')
+saveConfig({"webhookUrl": webhook_url})  # .claude/orchestration/config.json
 # No explanation of what data is sent, no consent trail
 ```
 
@@ -43,8 +43,7 @@ AskUserQuestion(questions=[{
     "header": "Telemetry Setup (Optional)",
     "options": [
         {"label": "Skip (Default)", "description": "No telemetry -- no data leaves your machine"},
-        {"label": "Summary only", "description": "Only session-end summaries"},
-        {"label": "Full streaming", "description": "All 18 event types -- requires webhook URL"}
+        {"label": "Stream to a webhook", "description": "Analytics events + session-end summaries via the HMAC-signed http-sink -- requires webhook URL"}
     ]
 }])
 

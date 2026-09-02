@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>#3867: channel 1 is deleted</title>
+<style>
+  :root { --bg:#0f1117; --panel:#171a23; --line:#2a2f3d; --fg:#e6e8ef; --muted:#9aa3b5; --red:#ff6b6b; --green:#4ade80; --amber:#fbbf24; --blue:#60a5fa; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:15px/1.55 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+  main { max-width:960px; margin:0 auto; padding:40px 24px 80px; }
+  h1 { font-size:28px; margin:0 0 6px; }
+  h2 { font-size:19px; margin:36px 0 12px; border-bottom:1px solid var(--line); padding-bottom:6px; }
+  p.lead { color:var(--muted); margin:0 0 24px; }
+  code, pre { font:13px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; }
+  code { background:#1f2330; padding:1px 5px; border-radius:4px; }
+  pre { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:14px 16px; overflow:auto; }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:16px 18px; }
+  .card h3 { margin:0 0 8px; font-size:15px; }
+  .before h3 { color:var(--red); } .after h3 { color:var(--green); }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  th, td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { color:var(--muted); font-weight:600; }
+  .tag { display:inline-block; font-size:12px; padding:2px 8px; border-radius:999px; border:1px solid var(--line); color:var(--muted); margin-right:6px; }
+  .del { color:var(--red); } .kept { color:var(--green); } .re { color:var(--amber); }
+  button { background:#232838; color:var(--fg); border:1px solid var(--line); border-radius:6px; padding:6px 12px; cursor:pointer; font-size:13px; }
+  button.on { border-color:var(--blue); color:var(--blue); }
+  .flow { display:flex; gap:10px; align-items:stretch; flex-wrap:wrap; }
+  .node { flex:1 1 140px; background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:10px 12px; font-size:13px; text-align:center; }
+  .node.dead { border-style:dashed; color:var(--muted); text-decoration:line-through; }
+  .arrow { align-self:center; color:var(--muted); }
+  small { color:var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <span class="tag">chore</span><span class="tag">hooks</span><span class="tag">EPIC A #3306</span>
+  <h1>#3867: the deprecated <code>generate-http-hooks</code> CLI is gone</h1>
+  <p class="lead">Channel 1 was a per-event HTTP hook generator that double-sent every event next to the HMAC-signed sink. It was deprecated in #1861, warned on every run, and shipped zero <code>type:"http"</code> entries in <code>hooks.json</code> for its whole life. It was still not zero-ref. This PR deletes the file and every entry point.</p>
+
+  <h2>Before and after</h2>
+  <div class="flow" id="flow"></div>
+  <p style="margin-top:12px"><button id="btnBefore" class="on">Before</button> <button id="btnAfter">After</button> <small id="flowNote"></small></p>
+
+  <h2>Entry points, re-derived at execution time</h2>
+  <p>The issue listed a hypothesis. The real set came from <code>git grep -n 'generate-http-hooks\|generate:http-hooks\|warnDeprecated'</code> across <code>src</code>, <code>scripts</code>, <code>package.json</code>, <code>tests</code> and <code>docs/site/content</code>. Six of the eleven source hits were not in the issue.</p>
+  <table>
+    <thead><tr><th>Path</th><th>Was</th><th>Now</th><th>In issue?</th></tr></thead>
+    <tbody id="refs"></tbody>
+  </table>
+
+  <h2>Why <code>hook-token-check</code> stays</h2>
+  <div class="grid">
+    <div class="card before"><h3>The old header said</h3><p><code>scripts/generate-http-hooks</code> writes 19 type:http entries; this hook pairs with the generator's <code>--write</code> refusal.</p></div>
+    <div class="card after"><h3>The new header says</h3><p>The generator is gone, but entries a pre-#3867 install wrote sit in per-user <code>settings.local.json</code> files nothing regenerates, and a hand-written entry has the same shape. The hook is now the only guard for those leftovers. Behaviour unchanged, 51 unit tests still pass.</p></div>
+  </div>
+
+  <h2>What the wizards do now</h2>
+  <p>The "Full streaming" versus "Summary only" split in <code>/ork:setup</code> Phase 9 and <code>/ork:configure</code> Step 10 only existed because channel 1 did. Both collapse to one option, and the option does exactly what channel 4 always needed:</p>
+<pre>.claude/orchestration/config.json  ->  { "webhookUrl": "https://your-api.com/hooks" }
+export ORCHESTKIT_HOOK_TOKEN=...       # in the shell that launches Claude Code</pre>
+  <p><small><code>lib/sink-registry.ts</code> registers the built-in <code>HttpSink</code> when both are present; <code>lifecycle/usage-summary-reporter</code> posts the SessionEnd summary to the same URL.</small></p>
+
+  <h2>Gates run on this branch</h2>
+  <pre id="gates"></pre>
+</main>
+<script>
+(function () {
+  var refs = [
+    ["src/hooks/src/cli/generate-http-hooks.ts", "330-line CLI, warnDeprecated() on every run", "deleted (cli/ dir removed)", "yes", "del"],
+    ["package.json", "script generate:http-hooks", "removed", "yes", "del"],
+    ["src/hooks/src/lifecycle/hook-token-check.ts", "header credits scripts/generate-http-hooks", "header explains leftovers; behaviour unchanged", "yes", "re"],
+    ["src/skills/doctor/references/version-compatibility.md", "\"use generate-http-hooks CLI with real URLs\"", "\"a hand-written HTTP hook needs a literal URL\"", "yes", "re"],
+    ["src/skills/setup/references/configure-wizard.md", "Step 6 runs the generator via npx tsx", "Step 6 saves webhookUrl to orchestration config", "yes", "re"],
+    ["src/skills/configure/SKILL.md", "Step 10 runs npm run generate:http-hooks", "one streaming option via http-sink", "no", "re"],
+    ["src/skills/configure/references/http-hooks.md", "generator CLI guide, generated config format", "channel history + CC url constraint + leftovers", "no", "re"],
+    ["src/skills/setup/SKILL.md", "Phase 9 step 2 runs the generator", "Phase 9 saves webhookUrl", "no", "re"],
+    ["src/skills/setup/references/telemetry-setup.md", "dual-channel doc, generator step", "single-channel doc", "no", "re"],
+    ["src/skills/setup/rules/telemetry-consent-gate.md", "examples name the generator + 18 events", "examples save config; one streaming option", "no", "re"],
+    ["src/hooks/README.md", "HTTP Hooks section says \"run the generator\"", "runtime config section + Registry changelog entry", "changelog only", "re"],
+    ["docs/site/content/docs/reference/skills/*.mdx", "generated mirrors of the above", "regenerated by npm run build", "yes", "re"]
+  ];
+  var tb = document.getElementById("refs");
+  refs.forEach(function (r) {
+    var tr = document.createElement("tr");
+    tr.innerHTML = "<td><code>" + r[0] + "</code></td><td>" + r[1] + "</td><td class='" + r[4] + "'>" + r[2] + "</td><td>" + r[3] + "</td>";
+    tb.appendChild(tr);
+  });
+
+  var flow = document.getElementById("flow"), note = document.getElementById("flowNote");
+  function render(after) {
+    flow.innerHTML = "";
+    var nodes = after
+      ? [["CC hook event"], ["analytics.ts"], ["http-sink (HMAC, batched, retry, breaker)"], ["your endpoint"]]
+      : [["CC hook event"], ["19 type:http entries in settings.local.json (Bearer, no retry)", "dead"], ["http-sink (HMAC, batched, retry, breaker)"], ["your endpoint, every event twice"]];
+    nodes.forEach(function (n, i) {
+      if (i) { var a = document.createElement("span"); a.className = "arrow"; a.textContent = "→"; flow.appendChild(a); }
+      var d = document.createElement("div"); d.className = "node" + (n[1] ? " " + n[1] : ""); d.textContent = n[0]; flow.appendChild(d);
+    });
+    note.textContent = after
+      ? "One channel. Activated by webhookUrl + ORCHESTKIT_HOOK_TOKEN."
+      : "Two channels, same endpoint: 61% rate-limit reject rate on the receiving platform (2026-05-13).";
+    document.getElementById("btnBefore").className = after ? "" : "on";
+    document.getElementById("btnAfter").className = after ? "on" : "";
+  }
+  document.getElementById("btnBefore").onclick = function () { render(false); };
+  document.getElementById("btnAfter").onclick = function () { render(true); };
+  render(false);
+
+  document.getElementById("gates").textContent = [
+    "npm run build            rc=0  Build complete! Plugins assembled in plugins/ directory",
+    "npm run typecheck        rc=0",
+    "npm run test:manifests   rc=0  (skill uniqueness, ordering, orphan skills, server-json, version consistency, plugin manifest)",
+    "npm run test:skills      rc=0  (skill-md, rules, askuserquestion schema, tool signatures, reachability, docs-site drift: 269 MDX)",
+    "vitest hook-token-check + split-bundles   Test Files 2 passed, Tests 51 passed",
+    "bash bin/validate-counts.sh                Hooks: 172, Validation PASSED"
+  ].join("\n");
+})();
+</script>
+</body>
+</html>

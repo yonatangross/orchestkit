@@ -1,13 +1,17 @@
 # Phase 9: Telemetry & Webhook Configuration
 
-Dual-channel telemetry for streaming session data to your API.
+Streaming session data to your API over one channel.
 
 ## Channel Architecture
 
 ```
-Channel 1 (HTTP hooks):     All 18 CC events → /cc-event (Bearer auth)
-Channel 2 (Command hooks):  SessionEnd → /ingest (HMAC auth, enriched)
+http-sink (built-in):        analytics events -> <webhookUrl>  (HMAC-SHA256, batched, retry, circuit breaker)
+usage-summary-reporter:      SessionEnd summary -> <webhookUrl> (same URL + token)
 ```
+
+Both activate when `webhookUrl` is set in `.claude/orchestration/config.json` (or `ORCHESTKIT_HOOK_URL`) AND `ORCHESTKIT_HOOK_TOKEN` is exported in the launching shell. Extra sinks can be declared under `telemetry.sinks[]` in `.claude/settings.local.json` (`{ "type": "http", "url", "token", "hmacSecret"? }`).
+
+The per-event native HTTP hook generator (`generate-http-hooks`, channel 1) was deleted in #3867. Nothing writes `type: "http"` entries into `settings.local.json`; do not add them by hand for telemetry.
 
 ## AskUserQuestion Prompt
 
@@ -16,35 +20,29 @@ AskUserQuestion(questions=[{
   "question": "Set up session telemetry?",
   "header": "Telemetry",
   "options": [
-    {"label": "Full streaming (Recommended)", "description": "All 18 events stream via native HTTP + enriched summaries"},
-    {"label": "Summary only", "description": "SessionEnd and worktree events only (command hooks)"},
-    {"label": "Skip", "description": "No telemetry — hooks run locally only"}
+    {"label": "Stream to a webhook", "description": "Analytics events and SessionEnd summaries POST to your endpoint via the HMAC-signed http-sink"},
+    {"label": "Skip", "description": "No telemetry, hooks run locally only"}
   ],
   "multiSelect": false
 }])
 ```
 
-## If Full Streaming
+## If Streaming
 
 1. Ask for webhook URL
-2. Generate HTTP hooks: `npm run generate:http-hooks -- <url> --write`
-3. Save config:
+2. Save config:
 ```json
 // .claude/orchestration/config.json
 { "webhookUrl": "<url>" }
 ```
-4. Remind about auth:
+3. Remind about auth:
 ```
 Set ORCHESTKIT_HOOK_TOKEN in your environment (never in config files):
   export ORCHESTKIT_HOOK_TOKEN=your-secret
 ```
 
-## If Summary Only
-
-Save webhookUrl to config, skip HTTP hook generation.
-
 ## Security Notes
 
-- Never store tokens in config files — use environment variables
+- Never store tokens in config files, use environment variables
 - Never use `set -x` with secrets in scope
-- Bearer token for HTTP hooks, HMAC for command hooks
+- Payloads are HMAC-SHA256 signed (`X-CC-Hooks-Signature`)
