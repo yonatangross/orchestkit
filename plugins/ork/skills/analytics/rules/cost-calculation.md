@@ -40,4 +40,4 @@ const savings = withoutCache - cost;
 - Show cache savings prominently — users want to know caching is working
 - When daily data only has total tokens (no split), estimate 70% input / 30% output
 - Use `formatCost()` from `cost-estimator.ts` for consistent formatting
-- Pricing is user-overridable via `~/.claude/orchestkit-pricing.json`
+- Pricing is user-overridable via `~/.claude/orchestkit-pricing.json`; an org's managed `modelPricing` (overrides, then multiplier) wins over both it and the vocab, see `references/cost-estimation.md`

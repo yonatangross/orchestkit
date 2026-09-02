@@ -17,11 +17,46 @@
  * public). Deleting it remains an option but belongs in its own PR.
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+
+// Virtual files for the two config paths the estimator reads. Only paths that
+// end in one of these names are intercepted; every other fs call is real, so
+// the vocab JSON import and the rest of the suite are untouched. This also
+// keeps the canaries hermetic: the developer's own orchestkit-pricing.json and
+// the machine's real managed-settings.json (present on this Mac, #3878) can no
+// longer leak into a test.
+const { _virtualFiles, _CONTROLLED } = vi.hoisted(() => ({
+  _virtualFiles: new Map<string, string>(),
+  _CONTROLLED: ['managed-settings.json', 'orchestkit-pricing.json'],
+}));
+
+vi.mock('node:fs', async () => {
+  const actual = await vi.importActual<typeof import('node:fs')>('node:fs');
+  const controlled = (p: unknown): boolean =>
+    typeof p === 'string' && _CONTROLLED.some(name => p.endsWith(name));
+  return {
+    ...actual,
+    existsSync: (p: unknown) => (controlled(p) ? _virtualFiles.has(p as string) : actual.existsSync(p as string)),
+    readFileSync: (p: unknown, ...rest: unknown[]) => {
+      if (controlled(p)) {
+        const content = _virtualFiles.get(p as string);
+        if (content === undefined) throw new Error(`ENOENT: ${String(p)}`);
+        return content;
+      }
+      return (actual.readFileSync as (...a: unknown[]) => unknown)(p, ...rest);
+    },
+  };
+});
+
+vi.mock('../../lib/paths.js', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../lib/paths.js')>();
+  return { ...actual, getHomeDir: () => '/mock/home' };
+});
+
 import { getCostConfig, __internals } from '../../lib/cost-estimator.js';
 import modelsVocab from '../../lib/models.vocab.json';
 
-const { resolveModelKey, getPricing, calculateCost } = __internals;
+const { resolveModelKey, getPricing, calculateCost, getManagedSettingsPath, loadManagedModelPricing } = __internals;
 
 const MTOK = { input: 1_000_000, output: 1_000_000, cache_read: 0, cache_write: 0 };
 
@@ -151,5 +186,211 @@ describe('cost-estimator vocab canaries (#2338)', () => {
     const p = getPricing('zz-totally-unknown-model-9');
     expect(p.input_per_mtok).toBe(2.0);
     expect(p.output_per_mtok).toBe(10.0);
+  });
+});
+
+// ============================================================================
+// Managed modelPricing (#3878): CC prices usage at an org's contracted rates
+// when managed-settings.json carries `modelPricing`. The estimator has to show
+// the same number as /cost, so it reads the same block from the same file.
+// Shape pinned from the 2.1.258 binary: multiplier in (0, 1] scales every
+// rate, overridden or not; a row is {input, output, cacheRead, cacheWrite},
+// all four required; an invalid row or multiplier is skipped, the rest apply.
+// ============================================================================
+
+describe('managed modelPricing (#3878)', () => {
+  const MANAGED = getManagedSettingsPath();
+  const USER = '/mock/home/.claude/orchestkit-pricing.json';
+  const LIST_FABLE_51 = {
+    input_per_mtok: 10.0,
+    output_per_mtok: 50.0,
+    cache_read_per_mtok: 0.25,
+    cache_write_per_mtok: 12.5,
+  };
+  const CONTRACT_ROW = { input: 8, output: 40, cacheRead: 0.2, cacheWrite: 10 };
+  let stderr: ReturnType<typeof vi.spyOn>;
+
+  const setManaged = (value: unknown): void => {
+    _virtualFiles.set(MANAGED, typeof value === 'string' ? value : JSON.stringify(value));
+  };
+
+  beforeEach(() => {
+    _virtualFiles.clear();
+    __internals.resetManagedPricingWarning();
+    stderr = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+  });
+
+  afterEach(() => {
+    stderr.mockRestore();
+    _virtualFiles.clear();
+  });
+
+  it('resolves the managed settings path for this platform', () => {
+    const expected: Record<string, string> = {
+      darwin: '/Library/Application Support/ClaudeCode/managed-settings.json',
+      win32: 'C:\\Program Files\\ClaudeCode\\managed-settings.json',
+      linux: '/etc/claude-code/managed-settings.json',
+    };
+    expect(MANAGED).toBe(expected[process.platform] ?? '/etc/claude-code/managed-settings.json');
+  });
+
+  it('no managed file: list price, no warning', () => {
+    expect(loadManagedModelPricing()).toEqual({ overrides: {} });
+    expect(getPricing('claude-fable-5-1')).toEqual(LIST_FABLE_51);
+    expect(calculateCost('fable', MTOK).total).toBeCloseTo(60.0, 5);
+    expect(stderr).not.toHaveBeenCalled();
+  });
+
+  it('managed file without a modelPricing block: list price, no warning', () => {
+    setManaged({ strictKnownMarketplaces: true });
+    expect(getPricing('claude-fable-5-1')).toEqual(LIST_FABLE_51);
+    expect(stderr).not.toHaveBeenCalled();
+  });
+
+  it('multiplier only: every rate of every model is scaled', () => {
+    setManaged({ modelPricing: { multiplier: 0.85 } });
+    const fable = getPricing('claude-fable-5-1');
+    expect(fable.input_per_mtok).toBeCloseTo(8.5, 10);
+    expect(fable.output_per_mtok).toBeCloseTo(42.5, 10);
+    expect(fable.cache_read_per_mtok).toBeCloseTo(0.2125, 10);
+    expect(fable.cache_write_per_mtok).toBeCloseTo(10.625, 10);
+    expect(calculateCost('fable', MTOK).total).toBeCloseTo(51.0, 5);
+    // Not only the model under test: the whole table moves together.
+    for (const [id, list] of Object.entries(modelsVocab.pricing)) {
+      expect(getCostConfig().models[id].input_per_mtok, id).toBeCloseTo(list.input_per_mtok * 0.85, 10);
+    }
+    expect(stderr).not.toHaveBeenCalled();
+  });
+
+  it('multiplier 1 leaves the table byte-identical', () => {
+    setManaged({ modelPricing: { multiplier: 1 } });
+    expect(getPricing('claude-fable-5-1')).toEqual(LIST_FABLE_51);
+  });
+
+  it('override for a known model replaces its row and leaves the others at list', () => {
+    setManaged({ modelPricing: { overrides: { 'claude-fable-5-1': CONTRACT_ROW } } });
+    expect(getPricing('claude-fable-5-1')).toEqual({
+      input_per_mtok: 8,
+      output_per_mtok: 40,
+      cache_read_per_mtok: 0.2,
+      cache_write_per_mtok: 10,
+    });
+    // Alias and the [1m] session-label variant reach the same row.
+    expect(getPricing('fable').input_per_mtok).toBe(8);
+    expect(getPricing('claude-fable-5-1[1m]').input_per_mtok).toBe(8);
+    expect(calculateCost('claude-fable-5-1', MTOK).total).toBeCloseTo(48.0, 5);
+    expect(getPricing('claude-opus-5').input_per_mtok).toBe(5.0);
+    expect(stderr).not.toHaveBeenCalled();
+  });
+
+  it('override for an unknown model prices it instead of the sonnet fallback', () => {
+    setManaged({ modelPricing: { overrides: { 'my-gateway-model': CONTRACT_ROW } } });
+    expect(getPricing('my-gateway-model').input_per_mtok).toBe(8);
+    expect(getPricing('my-gateway-model').output_per_mtok).toBe(40);
+    // A different unknown model still takes the pinned fallback.
+    expect(getPricing('zz-totally-unknown-model-9').input_per_mtok).toBe(2.0);
+  });
+
+  it('override keys match case-insensitively and the earlier row wins a duplicate', () => {
+    setManaged({
+      modelPricing: {
+        overrides: {
+          'Claude-Fable-5-1': CONTRACT_ROW,
+          'claude-fable-5-1': { ...CONTRACT_ROW, input: 999 },
+        },
+      },
+    });
+    expect(getPricing('claude-fable-5-1').input_per_mtok).toBe(8);
+  });
+
+  it('invalid multiplier is ignored with one stderr warning; overrides in the same file still apply', () => {
+    for (const bad of [1.5, 0, -0.2, 'abc', null]) {
+      _virtualFiles.clear();
+      __internals.resetManagedPricingWarning();
+      stderr.mockClear();
+      setManaged({ modelPricing: { multiplier: bad, overrides: { 'claude-fable-5-1': CONTRACT_ROW } } });
+      const fable = getPricing('claude-fable-5-1');
+      expect(fable.input_per_mtok, `multiplier ${String(bad)}`).toBe(8);
+      expect(getPricing('claude-opus-5').input_per_mtok).toBe(5.0);
+      expect(stderr).toHaveBeenCalledTimes(1);
+      expect(String(stderr.mock.calls[0][0])).toContain('"multiplier" must be a number in (0, 1]');
+    }
+  });
+
+  it('warns once per process, not once per lookup', () => {
+    setManaged({ modelPricing: { multiplier: 7 } });
+    getPricing('claude-fable-5-1');
+    getPricing('claude-opus-5');
+    getCostConfig();
+    expect(stderr).toHaveBeenCalledTimes(1);
+  });
+
+  it('malformed JSON is ignored with one warning and never throws', () => {
+    setManaged('{ "modelPricing": { "multiplier": 0.5,');
+    expect(() => getCostConfig()).not.toThrow();
+    expect(getPricing('claude-fable-5-1')).toEqual(LIST_FABLE_51);
+    expect(stderr).toHaveBeenCalledTimes(1);
+    expect(String(stderr.mock.calls[0][0])).toContain('could not be read as JSON');
+  });
+
+  it('non-object modelPricing block is ignored with a warning', () => {
+    setManaged({ modelPricing: [0.5] });
+    expect(getPricing('claude-fable-5-1')).toEqual(LIST_FABLE_51);
+    expect(stderr).toHaveBeenCalledTimes(1);
+  });
+
+  it('an incomplete or out-of-range row is skipped; the other rows still apply', () => {
+    setManaged({
+      modelPricing: {
+        overrides: {
+          'claude-opus-5': { input: 4, output: 20, cacheRead: 0.4 }, // cacheWrite missing
+          'claude-sonnet-5': { input: 20_000, output: 1, cacheRead: 0.1, cacheWrite: 0.1 }, // > 10000
+          'claude-fable-5-1': CONTRACT_ROW,
+        },
+      },
+    });
+    expect(getPricing('claude-opus-5').input_per_mtok).toBe(5.0);
+    expect(getPricing('claude-sonnet-5').input_per_mtok).toBe(2.0);
+    expect(getPricing('claude-fable-5-1').input_per_mtok).toBe(8);
+    expect(stderr).toHaveBeenCalledTimes(1);
+    expect(String(stderr.mock.calls[0][0])).toContain('override "claude-opus-5"');
+    expect(String(stderr.mock.calls[0][0])).toContain('override "claude-sonnet-5"');
+  });
+
+  it('precedence: managed override beats orchestkit-pricing.json, which beats the vocab', () => {
+    _virtualFiles.set(
+      USER,
+      JSON.stringify({
+        models: {
+          'claude-fable-5-1': { ...LIST_FABLE_51, input_per_mtok: 1 },
+          'claude-opus-5': { input_per_mtok: 3, output_per_mtok: 9, cache_read_per_mtok: 0.3, cache_write_per_mtok: 3.75 },
+        },
+      }),
+    );
+    // User file alone: both rows come from it.
+    expect(getPricing('claude-fable-5-1').input_per_mtok).toBe(1);
+    expect(getPricing('claude-opus-5').input_per_mtok).toBe(3);
+    // Managed override on top: only the overridden row changes.
+    setManaged({ modelPricing: { overrides: { 'claude-fable-5-1': CONTRACT_ROW } } });
+    expect(getPricing('claude-fable-5-1').input_per_mtok).toBe(8);
+    expect(getPricing('claude-opus-5').input_per_mtok).toBe(3);
+  });
+
+  it('multiplier is applied last, on top of overrides and the user file alike', () => {
+    _virtualFiles.set(USER, JSON.stringify({ models: { 'claude-opus-5': { input_per_mtok: 4, output_per_mtok: 20, cache_read_per_mtok: 0.4, cache_write_per_mtok: 5 } } }));
+    setManaged({ modelPricing: { multiplier: 0.5, overrides: { 'claude-fable-5-1': CONTRACT_ROW } } });
+    expect(getPricing('claude-fable-5-1').input_per_mtok).toBe(4); // 8 * 0.5
+    expect(getPricing('claude-fable-5-1').output_per_mtok).toBe(20); // 40 * 0.5
+    expect(getPricing('claude-opus-5').input_per_mtok).toBe(2); // user 4 * 0.5
+    expect(getPricing('claude-haiku-4-5').input_per_mtok).toBe(0.5); // vocab 1 * 0.5
+    expect(stderr).not.toHaveBeenCalled();
+  });
+
+  it('never mutates the vocab-derived defaults', () => {
+    setManaged({ modelPricing: { multiplier: 0.5, overrides: { 'claude-fable-5-1': CONTRACT_ROW } } });
+    getCostConfig();
+    expect(modelsVocab.pricing['claude-fable-5-1']).toEqual(LIST_FABLE_51);
+    _virtualFiles.clear();
+    expect(getPricing('claude-fable-5-1')).toEqual(LIST_FABLE_51);
   });
 });

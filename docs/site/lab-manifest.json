@@ -2,6 +2,18 @@
   "$comment": "Allowlist for the Lab gallery (docs/showcase/lab). Only entries listed here are copied to public/lab/ and surfaced on the site. `source` is repo-root-relative. Title/description here OVERRIDE what generate-lab-data.mjs extracts from the HTML <head>. Run `node docs/site/scripts/generate-lab-data.mjs` after editing.",
   "entries": [
     {
+      "slug": "managed-model-pricing",
+      "source": "docs/feat--3878-managed-model-pricing/index.html",
+      "title": "Managed modelPricing in the cost estimator: three layers, one number",
+      "description": "CC 2.1.243+ prices usage at an org's contracted rates when managed-settings.json carries modelPricing. The OrchestKit cost estimator now reads the same block from the same file, so /ork:analytics and /cost agree. Try a multiplier and an override and watch the rate table move.",
+      "tags": [
+        "cc-adoption",
+        "cost",
+        "hooks"
+      ],
+      "date": "2026-09-02"
+    },
+    {
       "slug": "pricing-tier-canary",
       "source": "docs/ci--3878-pricing-tier-canary/index.html",
       "title": "Where Claude Code keeps its prices, and how the vocab is pinned to them",

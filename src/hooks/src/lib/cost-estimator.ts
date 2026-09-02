@@ -85,8 +85,8 @@ function getPricingConfigPath(): string {
   return join(getHomeDir(), '.claude', 'orchestkit-pricing.json');
 }
 
-/** Load pricing config — user override or defaults */
-export function getCostConfig(): PricingConfig {
+/** User layer: ~/.claude/orchestkit-pricing.json over the vocab defaults */
+function getUserPricingConfig(): PricingConfig {
   const configPath = getPricingConfigPath();
   if (existsSync(configPath)) {
     try {
@@ -101,6 +101,159 @@ export function getCostConfig(): PricingConfig {
     }
   }
   return DEFAULT_PRICING;
+}
+
+// ============================================================================
+// Managed modelPricing (#3878)
+//
+// CC 2.1.243+ prices usage at an org's contracted rates when the managed
+// settings file carries `modelPricing`. Shape, read from the 2.1.258 binary:
+//   multiplier: number in (0, 1], scales every computed cost, overridden or not
+//   overrides:  { [modelId]: { input, output, cacheRead, cacheWrite } }
+//               all four required, each 0 to 10000, USD per million tokens;
+//               cacheWrite prices both the 5-minute and the 1-hour write
+// CC honours it from managed sources only (never user, project or --settings),
+// so this reads the OS managed-settings.json and nothing else. An invalid
+// multiplier or row is skipped and the rest still applies, same as CC.
+//
+// Precedence, lowest to highest: models.vocab.json < orchestkit-pricing.json
+// < managed overrides, then the multiplier is applied to every rate last.
+// ============================================================================
+
+export interface ManagedModelPricing {
+  multiplier?: number;
+  overrides: Record<string, ModelPricing>;
+}
+
+/** OS-level managed settings path, per the CC docs and the binary's own strings */
+export function getManagedSettingsPath(): string {
+  switch (process.platform) {
+    case 'darwin':
+      return '/Library/Application Support/ClaudeCode/managed-settings.json';
+    case 'win32':
+      return 'C:\\Program Files\\ClaudeCode\\managed-settings.json';
+    default:
+      return '/etc/claude-code/managed-settings.json';
+  }
+}
+
+const EMPTY_MANAGED: ManagedModelPricing = { overrides: {} };
+const RATE_KEYS = ['input', 'output', 'cacheRead', 'cacheWrite'] as const;
+let managedPricingWarned = false;
+
+/** One stderr line per process, never a throw: a bad managed file must not break cost output */
+function warnManagedPricingOnce(reason: string): void {
+  if (managedPricingWarned) return;
+  managedPricingWarned = true;
+  process.stderr.write(`[cost-estimator] managed modelPricing: ${reason}\n`);
+}
+
+function isRate(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 10_000;
+}
+
+/** CC's `{input, output, cacheRead, cacheWrite}` row to the estimator's ModelPricing */
+function parseOverrideRow(row: unknown): ModelPricing | null {
+  if (!row || typeof row !== 'object' || Array.isArray(row)) return null;
+  const r = row as Record<string, unknown>;
+  if (!RATE_KEYS.every(k => isRate(r[k]))) return null;
+  return {
+    input_per_mtok: r.input as number,
+    output_per_mtok: r.output as number,
+    cache_read_per_mtok: r.cacheRead as number,
+    cache_write_per_mtok: r.cacheWrite as number,
+  };
+}
+
+/**
+ * Read `modelPricing` from the managed settings file. Missing file, malformed
+ * JSON, a non-object block, an out-of-range multiplier or an incomplete row
+ * are each ignored with a single stderr warning; nothing here throws.
+ */
+export function loadManagedModelPricing(path: string = getManagedSettingsPath()): ManagedModelPricing {
+  if (!existsSync(path)) return EMPTY_MANAGED;
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(readFileSync(path, 'utf8'));
+  } catch {
+    warnManagedPricingOnce(`${path} could not be read as JSON; pricing at list`);
+    return EMPTY_MANAGED;
+  }
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    warnManagedPricingOnce(`${path} is not a JSON object; pricing at list`);
+    return EMPTY_MANAGED;
+  }
+
+  const block = (parsed as Record<string, unknown>).modelPricing;
+  if (block === undefined) return EMPTY_MANAGED;
+  if (!block || typeof block !== 'object' || Array.isArray(block)) {
+    warnManagedPricingOnce(`"modelPricing" must be an object; it was ignored (${path})`);
+    return EMPTY_MANAGED;
+  }
+
+  const { multiplier, overrides } = block as Record<string, unknown>;
+  const result: ManagedModelPricing = { overrides: {} };
+  const problems: string[] = [];
+
+  if (multiplier !== undefined) {
+    if (typeof multiplier === 'number' && Number.isFinite(multiplier) && multiplier > 0 && multiplier <= 1) {
+      result.multiplier = multiplier;
+    } else {
+      problems.push(`"multiplier" must be a number in (0, 1], received ${JSON.stringify(multiplier)}; it was ignored`);
+    }
+  }
+
+  if (overrides !== undefined) {
+    if (!overrides || typeof overrides !== 'object' || Array.isArray(overrides)) {
+      problems.push('"overrides" must be an object mapping model ID to rates; it was ignored');
+    } else {
+      for (const [id, row] of Object.entries(overrides as Record<string, unknown>)) {
+        if (id === '__proto__' || id === 'constructor') continue;
+        const rates = parseOverrideRow(row);
+        if (!rates) {
+          problems.push(`override "${id}" needs input, output, cacheRead, cacheWrite as numbers 0 to 10000; it was ignored`);
+          continue;
+        }
+        // CC matches keys case-insensitively and lets the earlier row win on a
+        // duplicate. Aliases resolve so `fable` prices the current Fable.
+        const key = resolveModelKey(id.toLowerCase());
+        if (!(key in result.overrides)) result.overrides[key] = rates;
+      }
+    }
+  }
+
+  if (problems.length > 0) {
+    warnManagedPricingOnce(`${problems.join('; ')} (${path}); the rest still applies`);
+  }
+  return result;
+}
+
+function scaleRates(p: ModelPricing, multiplier: number): ModelPricing {
+  return {
+    input_per_mtok: p.input_per_mtok * multiplier,
+    output_per_mtok: p.output_per_mtok * multiplier,
+    cache_read_per_mtok: p.cache_read_per_mtok * multiplier,
+    cache_write_per_mtok: p.cache_write_per_mtok * multiplier,
+  };
+}
+
+/**
+ * Effective pricing: vocab defaults, then ~/.claude/orchestkit-pricing.json,
+ * then managed `modelPricing.overrides`, with `modelPricing.multiplier`
+ * applied to every rate last. Same number as CC's /cost for an org on a
+ * contract; list price for everyone else.
+ */
+export function getCostConfig(): PricingConfig {
+  const base = getUserPricingConfig();
+  const managed = loadManagedModelPricing();
+  const models: Record<string, ModelPricing> = { ...base.models, ...managed.overrides };
+  if (managed.multiplier !== undefined && managed.multiplier !== 1) {
+    for (const [id, rates] of Object.entries(models)) {
+      models[id] = scaleRates(rates, managed.multiplier);
+    }
+  }
+  return { ...base, models };
 }
 
 /** Write default pricing config for user customization */
@@ -288,4 +441,10 @@ export const __internals = {
   resolveModelKey,
   getPricing,
   calculateCost,
+  getManagedSettingsPath,
+  loadManagedModelPricing,
+  /** Tests only: re-arm the once-per-process managed pricing warning */
+  resetManagedPricingWarning(): void {
+    managedPricingWarned = false;
+  },
 };
