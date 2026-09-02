@@ -14,6 +14,18 @@
       "date": "2026-09-02"
     },
     {
+      "slug": "managed-model-pricing",
+      "source": "docs/feat--3878-managed-model-pricing/index.html",
+      "title": "Managed modelPricing in the cost estimator: three layers, one number",
+      "description": "CC 2.1.243+ prices usage at an org's contracted rates when managed-settings.json carries modelPricing. The OrchestKit cost estimator now reads the same block from the same file, so /ork:analytics and /cost agree. Try a multiplier and an override and watch the rate table move.",
+      "tags": [
+        "cc-adoption",
+        "cost",
+        "hooks"
+      ],
+      "date": "2026-09-02"
+    },
+    {
       "slug": "pricing-tier-canary",
       "source": "docs/ci--3878-pricing-tier-canary/index.html",
       "title": "Where Claude Code keeps its prices, and how the vocab is pinned to them",
@@ -994,6 +1006,18 @@
         "skills",
         "security",
         "settings"
+      ],
+      "date": "2026-09-02"
+    },
+    {
+      "slug": "chore--3867-delete-generate-http-hooks",
+      "source": "docs/chore--3867-delete-generate-http-hooks/index.html",
+      "title": "#3867: the deprecated generate-http-hooks CLI is deleted",
+      "description": "Channel 1, the per-event HTTP hook generator that double-sent every event next to the HMAC-signed http-sink, is removed with every entry point re-derived by git grep at execution time: the CLI, the npm script, the hook-token-check header, the configure and setup wizards, the doctor compatibility row, and a Registry changelog entry. Hook count unchanged at 172.",
+      "tags": [
+        "hooks",
+        "legacy-debris",
+        "epic-a"
       ],
       "date": "2026-09-02"
     }
