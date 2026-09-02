@@ -9,5 +9,6 @@
     "silent": true,
     "autoJobCancelation": true
   },
-  "ignoreCommand": "git diff HEAD^ HEAD --quiet -- ."
+  "ignoreCommand": "git diff HEAD^ HEAD --quiet -- .",
+  "installCommand": "bash scripts/vercel-install.sh"
 }
