@@ -15,6 +15,20 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "the-override-doctor-could-not-see",
+    "title": "The override doctor could not see",
+    "description": "A gitignored project-scope settings.local.json set sandbox.enabled:false and every denied host answered 200 while the user scope still read as protected. Doctor's operator-permissions check now names the project file:line and the user file:line when a project scope turns the sandbox off over a user scope that turned it on. Pick the two scope states and read what doctor prints.",
+    "tags": [
+      "skills",
+      "security",
+      "settings"
+    ],
+    "date": "2026-09-02",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 7
+  },
+  {
     "slug": "adopt-cc-258",
     "title": "CC 2.1.258: two fixes, zero surfaces",
     "description": "Both bullets of Claude Code 2.1.258 triaged against OrchestKit with the proof command behind each verdict: the macOS 12 launch regression from an unpublished 2.1.255 build, and the remote/scheduled-session re-sent-approval fix. latest_known moves to 2.1.258; nothing else changes.",
