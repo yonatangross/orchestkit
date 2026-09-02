@@ -14,7 +14,7 @@ persuasion-type: discipline
 metadata:
   category: mcp-enhancement
   upstream-skill: agent-browser
-  upstream-version-tested: "0.35.1"
+  upstream-version-tested: "0.36.0"
 allowed-tools:
   - Read
   - Glob
@@ -67,7 +67,9 @@ agent-browser open "https://myapp.localhost"
 agent-browser open "http://localhost:3000"  # which app is this?
 ```
 
-## New in 2026-04 to 2026-08 (agent-browser 0.23 to 0.35.1)
+## New in 2026-04 to 2026-09 (agent-browser 0.23 to 0.36.0)
+
+**0.36.0** (2026-09-01, from the release notes, not yet exercised here): experimental WebMCP support for discovering and invoking tools the current page exposes (frame-aware selection, detached results, cancellation, bounded metadata and output), plus a WebMCP generation skill for turning page workflows into validated page tools. Drops the obsolete Lightpanda session-timeout launch argument.
 
 **0.35.1:** `diff snapshot` ref numbering resets per diff, refs are invalidated across
 navigations, and the previous refs survive a failed diff. The streaming `url` event

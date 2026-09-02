@@ -21,7 +21,7 @@ metadata:
   category: testing
   milestone: M99
   upstream-package: agent-browser
-  upstream-version-tested: "0.35.1"
+  upstream-version-tested: "0.36.0"
 triggers:
   keywords: [expect, "test my changes", "browser test", "diff test", "test what I changed", "test the UI", "visual regression", "check my changes"]
   examples:
@@ -240,7 +240,7 @@ Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/expect/references/test-plan.md")`
 
 ### agent-browser Quick Primer
 
-> Floor is `>= 0.31.1` (0.27.1 is documented broken on prod pages); current tested release is **0.35.1** (see `upstream-version-tested`). Commands below hold across this range. 0.30+ adds `agent-browser read` (agent-readable text extraction) and the `--restore` / `--namespace` session-restore workflow for stable, isolated browser state across agent runs. 0.33.0 adds `agent-browser a11y [url]`, an embedded axe-core audit (WCAG tag filtering, selector scoping, iframe-aware text/JSON output) available as both a CLI command and an MCP tool. 0.34.0 adds persistent session-to-tab binding for shared Chrome sessions, with `--pin-tab` making the binding strict so an externally closed tab yields a stable `tab_gone` error. 0.35.0 adds `--ca-cert <path>` for a trusted local CA behind an SSL-inspecting proxy (Linux-only; the targeted alternative to `--ignore-https-errors`). 0.35.1 changes behaviour the Diff row below relies on: `diff snapshot` now resets ref numbering per diff and invalidates refs across navigations, so refs captured before a navigation must be re-read rather than reused.
+> Floor is `>= 0.31.1` (0.27.1 is documented broken on prod pages); current tested release is **0.36.0** (see `upstream-version-tested`). Commands below hold across this range. 0.30+ adds `agent-browser read` (agent-readable text extraction) and the `--restore` / `--namespace` session-restore workflow for stable, isolated browser state across agent runs. 0.33.0 adds `agent-browser a11y [url]`, an embedded axe-core audit (WCAG tag filtering, selector scoping, iframe-aware text/JSON output) available as both a CLI command and an MCP tool. 0.34.0 adds persistent session-to-tab binding for shared Chrome sessions, with `--pin-tab` making the binding strict so an externally closed tab yields a stable `tab_gone` error. 0.35.0 adds `--ca-cert <path>` for a trusted local CA behind an SSL-inspecting proxy (Linux-only; the targeted alternative to `--ignore-https-errors`). 0.35.1 changes behaviour the Diff row below relies on: `diff snapshot` now resets ref numbering per diff and invalidates refs across navigations, so refs captured before a navigation must be re-read rather than reused.
 
 
 | Area | Command | Notes |
