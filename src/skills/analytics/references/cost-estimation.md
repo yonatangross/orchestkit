@@ -69,6 +69,32 @@ Note: `dailyModelTokens` only has total tokens per model, not split by type. Est
 | **Total** | **$18.50** |
 ```
 
-## User-Overridable Config
+## Pricing Precedence (#3878)
 
-Users can override pricing by creating `~/.claude/orchestkit-pricing.json` — see `src/hooks/src/lib/cost-estimator.ts` for the schema.
+`getCostConfig()` in `src/hooks/src/lib/cost-estimator.ts` builds the effective rate table from three layers. Higher rows win; the multiplier is applied to every rate last.
+
+| Layer | File | Row shape | Who sets it |
+|-------|------|-----------|-------------|
+| 1 (lowest) | `src/hooks/src/lib/models.vocab.json` `pricing` | `input_per_mtok`, `output_per_mtok`, `cache_read_per_mtok`, `cache_write_per_mtok` | OrchestKit, pinned to the CC binary by the nightly pricing canary |
+| 2 | `~/.claude/orchestkit-pricing.json` `models` | same as layer 1, partial table allowed | the user |
+| 3 | managed `modelPricing.overrides` | CC's `{ "input", "output", "cacheRead", "cacheWrite" }`, all four required, each 0 to 10000 | the org, in the OS managed settings file |
+| last | managed `modelPricing.multiplier` | number in (0, 1], scales every rate including overrides | the org |
+
+The managed file is the one CC itself reads for org policy, and nothing else: `/Library/Application Support/ClaudeCode/managed-settings.json` on macOS, `/etc/claude-code/managed-settings.json` on Linux and WSL, `C:\Program Files\ClaudeCode\managed-settings.json` on Windows. A `modelPricing` block in user, project or `--settings` files is ignored, the same as CC ignores it there.
+
+```json
+{
+  "modelPricing": {
+    "multiplier": 0.85,
+    "overrides": {
+      "claude-fable-5-1": { "input": 8, "output": 40, "cacheRead": 0.2, "cacheWrite": 10 }
+    }
+  }
+}
+```
+
+With that file, `claude-fable-5-1` prices at $6.80 in / $34 out (the override, then 0.85x) and every other model at 0.85x list, which is the figure CC's `/cost` shows for the same org. Override keys match case-insensitively, resolve through the vocab aliases (`fable` prices the current Fable), and the earlier row wins a duplicate.
+
+Failure handling, matching CC: a missing file or a file without `modelPricing` means list price and no output. Malformed JSON, a non-object block, a multiplier outside (0, 1] or a row missing one of the four rates is skipped with one stderr line per process (`[cost-estimator] managed modelPricing: ...`); the valid parts of the same block still apply, and nothing throws.
+
+Not covered: `managed-settings.d/` drop-ins, MDM or server-managed policy sources, and the host-application fallback CC allows when no managed source sets `modelPricing`. Those still price at list here.
