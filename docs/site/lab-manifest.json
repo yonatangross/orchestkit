@@ -2,6 +2,18 @@
   "$comment": "Allowlist for the Lab gallery (docs/showcase/lab). Only entries listed here are copied to public/lab/ and surfaced on the site. `source` is repo-root-relative. Title/description here OVERRIDE what generate-lab-data.mjs extracts from the HTML <head>. Run `node docs/site/scripts/generate-lab-data.mjs` after editing.",
   "entries": [
     {
+      "slug": "vercel-preview-stub-fallback",
+      "source": "docs/fix--vercel-preview-stub-fallback/index.html",
+      "title": "One pin, two environments: why every preview build broke at install",
+      "description": "Restoring the real analytics package fixed production and broke every Vercel preview build in the same hour, because the registry token lives on Production only. The install step now falls back to the no-op stub on a 401.",
+      "tags": [
+        "ci",
+        "vercel",
+        "analytics"
+      ],
+      "date": "2026-09-02"
+    },
+    {
       "slug": "funnel-measure-first",
       "source": "docs/feat--funnel-measure-first-site/index.html",
       "title": "Two buttons nobody counted: the install page gets a measured funnel",
