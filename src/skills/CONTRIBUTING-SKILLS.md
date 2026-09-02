@@ -173,6 +173,32 @@ invocation_hooks:
 
 Keep commands fast (<2s) and idempotent. They run in the user's shell, not in a sandbox.
 
+### Referencing Supporting Files
+
+A SKILL.md body is loaded by more than Claude Code: pi, the Claude Skills API export (`scripts/publish-skills.mjs`) and the Cursor command wrappers (`scripts/build-plugins.sh`) all ship the text, and none of them expand a `${CLAUDE_*}` placeholder (#3822: pi delivered `${CLAUDE_PLUGIN_ROOT}` to the model as a literal string). Three forms exist; pick by what the reference points at.
+
+| Form | Example | Use for |
+|------|---------|---------|
+| Bare relative (preferred) | `Read("references/x.md")`, `[rule](rules/area-name.md)`, `bash scripts/x.sh` | The skill's own files. Resolved against the SKILL.md directory. |
+| `${CLAUDE_SKILL_DIR}` | `python3 ${CLAUDE_SKILL_DIR}/scripts/x.py` | Exec shapes in Claude Code only bodies where the cwd is unknown. |
+| `${CLAUDE_PLUGIN_ROOT}` | `${CLAUDE_PLUGIN_ROOT}/skills/<other-skill>/references/x.md`, `${CLAUDE_PLUGIN_ROOT}/shared/rules/x.md`, hook `command:` lines | Another skill, `shared/`, hooks: anywhere a plugin root is genuinely needed. |
+
+What each consumer does with the form (measured 2026-08-30 on CC 2.1.251 with a throwaway plugin and three nonces, run from `/tmp` and from the skill dir; pi 0.84.4):
+
+| Consumer | Bare relative | `${CLAUDE_SKILL_DIR}` | `${CLAUDE_PLUGIN_ROOT}` |
+|----------|---------------|-----------------------|-------------------------|
+| Claude Code | Resolves against the SKILL.md dir, from any cwd | Expanded (documented substitution) | Expanded |
+| pi | Resolves against the SKILL.md dir (Agent Skills spec) | Literal | Literal |
+| Claude Skills API | `publish-skills.mjs` uploads the whole skill dir; relative resolves per the Agent Skills spec (not measured here) | Literal | Literal |
+| Cursor | Not measured: the wrapper copies the body out of the skill dir | Literal | Literal |
+
+Rules that follow from the matrix:
+
+- Same-skill references are bare relative. `${CLAUDE_PLUGIN_ROOT}/skills/<this-skill>/...` inside that skill's own SKILL.md works in Claude Code and nowhere else; it is being migrated (#3822 step 2) and `tests/skills/structure/test-placeholder-validity.sh` counts what is left.
+- Cross-skill and `shared/` references keep `${CLAUDE_PLUGIN_ROOT}`. There is no portable form for those today; add a one-line note near the first use if the skill is expected to run outside Claude Code.
+- Every referenced file must exist. The placeholder gate resolves all three forms against the tree and fails on a missing target, in both `Read("...")` and markdown-link shape.
+- Any other `${CLAUDE_*}` name is undocumented and delivered literally. The gate blocks it.
+
 ### Structure Pattern
 
 For skills with rules, use this index layout:
@@ -759,8 +785,8 @@ For complex skills where agents benefit from debate/cross-pollination, offer a m
 
 ```python
 # In SKILL.md — offer as alternative to star topology
-# Load Agent Teams config:
-#   Read("${CLAUDE_PLUGIN_ROOT}/skills/<your-skill>/references/agent-teams-mode.md")
+# Load Agent Teams config (bare relative: resolved against this skill's directory):
+#   Read("references/agent-teams-mode.md")
 ```
 
 Decision guidance:
@@ -792,6 +818,7 @@ Before submitting a skill change:
 - [ ] No content Claude already knows (the "Claude filter")
 - [ ] Area-prefixed filenames in `rules/`
 - [ ] Supporting files referenced from SKILL.md
+- [ ] Same-skill references are bare relative (`references/x.md`), not `${CLAUDE_PLUGIN_ROOT}/skills/<this-skill>/`
 - [ ] Team-spawning skills include `Ctrl+F` cleanup note
 - [ ] **Multi-phase skills (3+ phases) include Task Management section with full lifecycle**
 - [ ] User-invocable skills have eval YAML in `tests/evals/skills/`
