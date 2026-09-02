@@ -370,6 +370,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.70](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.69...v10.0.0-alpha.70)** · 2026-09-02
+
+- **ci:** allow autoheal plugin.json mirrors on the release branch (#3880)
+- **ci:** make hook bundles release-owned (#3578) (#3875)
+
 **[v10.0.0-alpha.69](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.68...v10.0.0-alpha.69)** · 2026-09-01
 
 - **agents:** pin 15 agent model tiers (2026-09-01 routing) (#3872)
@@ -416,15 +421,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **build:** plugin dependencies handed to CC, Phase 5 retired (#3326) (#3809)
 - **hooks:** egress guard stands down behind an enforced sandbox (#3322) (#3808)
 - **build:** stop shipping command wrappers to Claude Code (#3541) (#3807)
-
-**[v10.0.0-alpha.62](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.61...v10.0.0-alpha.62)** · 2026-08-29
-
-- **agents:** experimental.cacheTtl 1h on five long-running agents (#3797)
-- **ci:** --restricted smoke lane against a stub Messages API (#3774) (#3799)
-- **glyph:** v3 two-dial front door (audience x surface) (#3793)
-- **hooks:** a maxTurns stop is a partial result, continue the agent (CC 2.1.246) (#3796)
-- **hooks:** asyncRewake on the three background verifiers (#3800)
-- …and 16 more (see [CHANGELOG.md](CHANGELOG.md))
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

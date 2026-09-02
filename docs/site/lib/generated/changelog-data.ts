@@ -17,6 +17,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.70",
+    "date": "2026-09-02",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "**ci:** allow autoheal plugin.json mirrors on the release branch ([#3880](https://github.com/yonatangross/orchestkit/issues/3880)) ([679d0a0](https://github.com/yonatangross/orchestkit/commit/679d0a0d78bf64c2e097ac6f109aba46783838c6))",
+          "**ci:** make hook bundles release-owned ([#3578](https://github.com/yonatangross/orchestkit/issues/3578)) ([#3875](https://github.com/yonatangross/orchestkit/issues/3875)) ([f43cee6](https://github.com/yonatangross/orchestkit/commit/f43cee670ccb60cfbac2dc4dd17b4242bcb22c27))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.69",
     "date": "2026-09-01",
     "compareUrl": "",
