@@ -4,12 +4,14 @@
 /**
  * Hook Token Check — SessionStart Hook (#1860)
  *
- * `scripts/generate-http-hooks` writes 19 type:"http" hook entries into the
- * user's settings.local.json, each carrying `Authorization: Bearer
- * $ORCHESTKIT_HOOK_TOKEN`. When the env var is unset in the launching shell
- * every hook fires returns 401 and the user only sees on-screen
- * "PreToolUse:Bash hook error" spam — masking real errors (the cc-event
- * ingestion gap, see yonatan-hq/platform#3589).
+ * The `generate-http-hooks` CLI (channel 1, deleted in #3867) used to write
+ * 19 type:"http" hook entries into the user's settings.local.json, each
+ * carrying `Authorization: Bearer $ORCHESTKIT_HOOK_TOKEN`. Those entries
+ * outlive the generator: they sit in per-user files nothing regenerates, and
+ * a hand-written type:"http" entry has the same shape. When the env var is
+ * unset in the launching shell every hook fire returns 401 and the user only
+ * sees on-screen "PreToolUse:Bash hook error" spam, masking real errors (the
+ * cc-event ingestion gap, see yonatan-hq/platform#3589).
  *
  * This hook closes the fail-silent class: at SessionStart, if any type:"http"
  * hook entry in either project-scoped (.claude/settings.local.json) or
@@ -17,7 +19,8 @@
  * AND the env var is absent/empty, emit a single stderr banner naming the
  * offending file and the count.
  *
- * Pairs with the generator's --write refusal (same issue, defense-in-depth).
+ * The generator's --write refusal was the other half of this defense; with
+ * the generator gone this hook is the only guard for leftover entries.
  *
  * Cost: 2 file reads + JSON parse, ~3-5ms on SSD. Async — non-blocking.
  *

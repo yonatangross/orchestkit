@@ -180,53 +180,39 @@ Tokens: `{host}`, `{owner}`, `{repo}`, `{n}`. See `src/skills/chain-patterns/ref
 
 ## Step 10: Webhook & Telemetry Configuration
 
-Configure dual-channel telemetry for streaming session data to HQ or your own API.
+Configure streaming of session events to HQ or your own API. There is one channel: the HMAC-signed `http-sink` (batched, retry with backoff, circuit breaker). It activates when `webhookUrl` is set in `.claude/orchestration/config.json` AND `ORCHESTKIT_HOOK_TOKEN` is exported in the launching shell. The per-event native HTTP hook generator (channel 1) was deleted in #3867; nothing writes `type: "http"` entries into `settings.local.json`.
 
 ```python
 AskUserQuestion(questions=[{
   "question": "Set up session telemetry?",
   "header": "Telemetry",
   "options": [
-    {"label": "Full streaming (Recommended)", "description": "All 18 events stream via native HTTP + enriched summaries"},
-    {"label": "Summary only", "description": "SessionEnd and worktree events only (command hooks)"},
-    {"label": "Skip", "description": "No telemetry — hooks run locally only"}
+    {"label": "Stream to a webhook", "description": "Analytics events and SessionEnd summaries POST to your endpoint via the HMAC-signed http-sink"},
+    {"label": "Skip", "description": "No telemetry, hooks run locally only"}
   ],
   "multiSelect": false
 }])
 ```
 
-### If "Full streaming"
+### If "Stream to a webhook"
 
-1. Ask for the webhook URL in plain text — AskUserQuestion needs ≥2 options (CC schema `minItems: 2`) and can't capture a free-form URL, so prompt directly:
+1. Ask for the webhook URL in plain text. AskUserQuestion needs at least 2 options (CC schema `minItems: 2`) and cannot capture a free-form URL, so prompt directly:
 
    > What is your webhook endpoint URL? Reply with the full URL (e.g., `https://api.example.com/hooks`).
 
-2. Run the HTTP hook generator:
-```bash
-npm run generate:http-hooks -- <webhook-url> --write
-```
-
-3. Save webhookUrl to orchestration config for command hooks:
+2. Save webhookUrl to orchestration config:
 ```bash
 # File: .claude/orchestration/config.json
 saveConfig({ webhookUrl: "<webhook-url>" })
 ```
 
-4. Remind the user to set the auth token:
+3. Remind the user to set the auth token:
 ```
 Set ORCHESTKIT_HOOK_TOKEN in your environment (never in config files):
   export ORCHESTKIT_HOOK_TOKEN=your-secret
-
-Two channels now active:
-  Channel 1 (HTTP):    All 18 events → /cc-event (Bearer auth, zero overhead)
-  Channel 2 (Command): SessionEnd → /ingest (HMAC auth, enriched data)
 ```
 
-### If "Summary only"
-
-Save webhookUrl to config and remind about env var (same as above, skip generator step).
-
-Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/configure/references/http-hooks.md")` for architecture details.
+Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/configure/references/http-hooks.md")` for the channel history and the CC URL-validation constraint.
 
 ## Step 11: Preview & Save
 

@@ -1,118 +1,74 @@
-# HTTP Hooks — Dual-Channel Telemetry (CC 2.1.63+)
+# HTTP Hooks and Streaming Telemetry (CC 2.1.63+)
 
-> ⚠️ **Channel 1 is DEPRECATED (#1861).** Do not configure it for new installs.
->
-> Both channels POST to the **same** downstream endpoint, so running both delivers
-> **every hook event twice**. That duplication is not free — it drove a **61% rate-limit
-> reject rate** on the yonatan-hq platform (2026-05-13) and forced a per-session bucketing
-> workaround server-side that exists only to absorb the double-send.
->
-> **Channel 4 (the HMAC-signed `http-sink`) is now canonical**: batched, retried with
-> exponential backoff + jitter, circuit-broken, and verified end-to-end against the
-> published hook contract (`@orchestkit/hook-contract` / `orchestkit-hook-contract` on
-> PyPI — M141). Nothing depends on channel 1.
->
-> `npm run generate:http-hooks` still works but **warns on every run**, and becomes a
-> **no-op in v9.x** (breaking). Track #1861.
+> **Channel 1 is gone.** The per-event native HTTP hook generator (`generate-http-hooks`,
+> `npm run generate:http-hooks`) was deprecated in #1861 and deleted in #3867. Nothing in
+> OrchestKit writes `type: "http"` entries into `settings.local.json` any more, and
+> `hooks.json` ships zero of them.
 
-OrchestKit supports two parallel channels for streaming session data:
+## Why channel 1 died
 
-- **Channel 1: Native HTTP hooks** — ⚠️ *deprecated* — CC POSTs raw JSON to HQ for ALL 18 event types (Bearer auth, no batching, no retry, no dedupe)
-- **Channel 2: Command hooks** — Node spawn for enriched reporting (token usage, metrics, HMAC auth)
+OrchestKit used to emit hook events over two channels that POSTed to the **same**
+downstream endpoint, so every event was delivered **twice**:
+
+- **Channel 1**: 19 per-event `type: "http"` entries generated into `settings.local.json`
+  (Bearer auth, no batching, no retry, no dedupe).
+- **Channel 4**: the HMAC-signed `http-sink` (batched, retried with exponential backoff
+  and jitter, circuit-broken).
+
+The duplication drove a **61% rate-limit reject rate** on the yonatan-hq platform
+(2026-05-13) and forced a per-session bucketing workaround server-side that existed only
+to absorb the double-send. Channel 4 is canonical: the hook contract is published
+(`@orchestkit/hook-contract` / `orchestkit-hook-contract` on PyPI, M141) and the sink's
+HMAC format is verified end-to-end by the platform consumer.
+
+## The one channel that ships: `http-sink`
+
+| | `http-sink` |
+|---|---|
+| Source | `src/hooks/src/lib/http-sink.ts`, registered by `lib/sink-registry.ts` |
+| Activation | `webhookUrl` in `.claude/orchestration/config.json` (or `ORCHESTKIT_HOOK_URL`) AND `ORCHESTKIT_HOOK_TOKEN` exported |
+| Auth | HMAC-SHA256 signed payloads (`X-CC-Hooks-Signature`) plus the bearer token |
+| Delivery | Batched, retry with exponential backoff and jitter, circuit breaker |
+| Extra sinks | `telemetry.sinks[]` in `.claude/settings.local.json`: `{ "type": "http", "url", "token", "hmacSecret"? }` |
+
+The SessionEnd `lifecycle/usage-summary-reporter` hook POSTs the enriched session summary
+to the same `webhookUrl` with the same token.
 
 ## Quick Start
 
 ```bash
-# 1. Generate native HTTP hook config for all 18 events
-npm run generate:http-hooks -- https://your-api.com/hooks --write
+# 1. Save the endpoint (never committed)
+#    .claude/orchestration/config.json  ->  { "webhookUrl": "https://your-api.com/hooks" }
 
-# 2. Set auth token
+# 2. Export the token in the shell that launches Claude Code
 export ORCHESTKIT_HOOK_TOKEN=your-secret-token
 ```
 
-This writes to `.claude/settings.local.json` (not committed). CC merges plugin `hooks.json` + user `settings.local.json` — both channels fire in parallel.
+## CC constraint: no env var placeholders in `url`
 
-> **Known Limitation (CC 2.1.71+):** HTTP hooks must use real URLs, not env var placeholders. CC validates `url` fields as proper URLs *before* expanding `${ENV_VAR}` — so `"url": "${ORCHESTKIT_HOOK_URL}"` fails validation and breaks ALL hooks. This is why HTTP hooks are generated per-user with real URLs (not shipped in the plugin). Env var expansion in `headers` (e.g., `$ORCHESTKIT_HOOK_TOKEN`) works fine — only the `url` field is affected.
+CC 2.1.71+ validates `url` fields as proper URLs *before* expanding `${ENV_VAR}`, so
+`"url": "${ORCHESTKIT_HOOK_URL}"` fails validation and breaks ALL hooks in that file,
+command hooks included. This is why OrchestKit ships zero `type: "http"` hooks in plugin
+`hooks.json` and why the sink reads its URL from config at runtime instead. Env var
+expansion in `headers` (e.g. `$ORCHESTKIT_HOOK_TOKEN`) works; only the `url` field is
+affected. If you ever hand-write a `type: "http"` hook, give it a literal URL.
 
-## User Tiers
+## Leftover channel-1 entries
 
-| Tier | Setup | What You Get |
-|------|-------|-------------|
-| **1. Default** | Nothing | All hooks local (command only), JSONL analytics |
-| **2. Streaming** | Generator + env var | All 18 events stream via native HTTP (zero overhead) |
-| **3. Full HQ** | Both channels | Real-time stream + enriched summaries (token usage, metrics) |
-
-## Channel Comparison
-
-| | Channel 1: Native HTTP | Channel 2: Command |
-|---|---|---|
-| Coverage | All 18 events, real-time | SessionEnd + worktree only |
-| Overhead | Zero (CC native) | Node spawn per event |
-| Data | Raw CC payload | Enriched (tokens, metrics, branch) |
-| Auth | Bearer token | HMAC-SHA256 |
-| Config | `.claude/settings.local.json` | `hooks.json` (plugin-level) |
-
-## Generator CLI
-
-```bash
-# Print to stdout
-npm run generate:http-hooks -- https://your-api.com/hooks
-
-# Write to default location (.claude/settings.local.json)
-npm run generate:http-hooks -- https://your-api.com/hooks --write
-
-# Dry run (preview without writing)
-npm run generate:http-hooks -- https://your-api.com/hooks --dry-run
-
-# Custom path
-npm run generate:http-hooks -- https://your-api.com/hooks --write --path ~/.claude/settings.local.json
-```
-
-The generator is idempotent — running twice replaces existing cc-event entries without duplicating.
-
-## Generated Config Format
-
-Each event type gets a native HTTP hook entry:
-
-```json
-{
-  "hooks": {
-    "SessionStart": [{
-      "type": "http",
-      "url": "https://your-api.com/hooks/cc-event",
-      "headers": { "Authorization": "Bearer $ORCHESTKIT_HOOK_TOKEN" },
-      "allowedEnvVars": ["ORCHESTKIT_HOOK_TOKEN"],
-      "timeout": 5
-    }],
-    "UserPromptSubmit": [{ "...same..." }],
-    "PreToolUse": [{ "...same..." }],
-    "...": "...all 18 events..."
-  }
-}
-```
-
-## What HQ Gets Per Event (natively from CC)
-
-| Event | Key Data |
-|-------|----------|
-| SessionStart | model, source, cwd, permission_mode |
-| UserPromptSubmit | prompt text |
-| PreToolUse | tool_name, tool_input |
-| PostToolUse | tool_name, tool_input, tool_result |
-| PostToolUseFailure | tool_name, error |
-| SubagentStart/Stop | agent lifecycle |
-| Stop | transcript_path |
-| WorktreeCreate/Remove | worktree lifecycle |
-| SessionEnd | session cleanup |
+If a previous install ran the generator, `settings.local.json` may still carry up to 19
+`type: "http"` entries pointing at `<url>/cc-event`. Remove them: they double-send every
+event and carry a Bearer token with no batching or retry. The `lifecycle/hook-token-check`
+SessionStart hook still warns when such an entry references `$ORCHESTKIT_HOOK_TOKEN` and
+the variable is unset in the launching shell.
 
 ## Security
 
-- Bearer token auth via `ORCHESTKIT_HOOK_TOKEN`
-- `allowedEnvVars` whitelist prevents env var leakage
-- HTTP errors are non-blocking (graceful degradation)
-- Security hooks (blocker, scanner, guard) stay `type: "command"` — never HTTP
-- Token never stored in config files — env var only
+- Token lives in the env var only, never in config files
+- Payloads are HMAC-SHA256 signed
+- HTTP errors are non-blocking (graceful degradation); the local JSONL sink is always on
+- Security hooks (blockers, scanners, guards) stay `type: "command"`, never HTTP
 
 ## Disabling
 
-Remove the generated entries from `.claude/settings.local.json`, or delete the file entirely. Plugin command hooks continue working independently.
+Remove `webhookUrl` from `.claude/orchestration/config.json` (or unset
+`ORCHESTKIT_HOOK_TOKEN`). Plugin command hooks continue working independently.

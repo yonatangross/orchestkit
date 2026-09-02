@@ -15,6 +15,20 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "chore--3867-delete-generate-http-hooks",
+    "title": "#3867: the deprecated generate-http-hooks CLI is deleted",
+    "description": "Channel 1, the per-event HTTP hook generator that double-sent every event next to the HMAC-signed http-sink, is removed with every entry point re-derived by git grep at execution time: the CLI, the npm script, the hook-token-check header, the configure and setup wizards, the doctor compatibility row, and a Registry changelog entry. Hook count unchanged at 172.",
+    "tags": [
+      "hooks",
+      "legacy-debris",
+      "epic-a"
+    ],
+    "date": "2026-09-02",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 9
+  },
+  {
     "slug": "the-override-doctor-could-not-see",
     "title": "The override doctor could not see",
     "description": "A gitignored project-scope settings.local.json set sandbox.enabled:false and every denied host answered 200 while the user scope still read as protected. Doctor's operator-permissions check now names the project file:line and the user file:line when a project scope turns the sandbox off over a user scope that turned it on. Pick the two scope states and read what doctor prints.",

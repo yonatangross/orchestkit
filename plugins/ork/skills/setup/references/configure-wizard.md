@@ -165,9 +165,11 @@ AskUserQuestion(questions=[{
 
 Generated env var: `ORCHESTKIT_LOG_LEVEL=<value>`
 
-## Step 6: Webhook Telemetry (HTTP Hooks)
+## Step 6: Webhook Telemetry
 
-> This step always uses AskUserQuestion — the conditional webhook URL follow-up requires interactive flow that elicitation cannot handle.
+> This step always uses AskUserQuestion: the conditional webhook URL follow-up requires interactive flow that elicitation cannot handle.
+
+Events leave the machine over one channel only, the HMAC-signed `http-sink` (batched, retried with backoff, circuit-broken). It activates when a webhook URL is configured AND `ORCHESTKIT_HOOK_TOKEN` is exported in the launching shell. The per-event native HTTP hook generator (`generate-http-hooks`, "channel 1") was deleted in #3867; never write `type: "http"` entries into `settings.local.json` for telemetry.
 
 ```python
 AskUserQuestion(questions=[{
@@ -176,11 +178,11 @@ AskUserQuestion(questions=[{
   "options": [
     {
       "label": "Yes, enable webhooks",
-      "description": "Runs `generate-http-hooks` to write native CC HTTP hooks to settings.local.json."
+      "description": "Saves the webhook URL to .claude/orchestration/config.json; the built-in http-sink streams events to it."
     },
     {
       "label": "No, skip webhooks (Recommended for most users)",
-      "description": "No HTTP hooks. All hook processing stays local."
+      "description": "No streaming. All hook processing stays local."
     }
   ],
   "multiSelect": false
@@ -211,17 +213,17 @@ AskUserQuestion(questions=[{
 }])
 ```
 
-Then run the generator:
+Then save the URL to orchestration config:
 
 ```python
-Bash(command=f"npx tsx ${{CLAUDE_PLUGIN_ROOT}}/hooks/../src/hooks/src/cli/generate-http-hooks.ts {webhook_url} --write")
+saveConfig({ "webhookUrl": webhook_url })   # .claude/orchestration/config.json
 ```
 
-This writes 19 HTTP hook entries to `.claude/settings.local.json`. The hooks use `Bearer $ORCHESTKIT_HOOK_TOKEN` — the user must set this env var in their shell (e.g. `.zshrc`).
+The `http-sink` and the SessionEnd `usage-summary-reporter` both read this URL and authenticate with `ORCHESTKIT_HOOK_TOKEN`; the user must export that env var in their shell (e.g. `.zshrc`), never in a config file.
 
 Remind the user:
 ```
-Webhook hooks written to .claude/settings.local.json
+Webhook URL saved to .claude/orchestration/config.json
 Set ORCHESTKIT_HOOK_TOKEN in your shell:
   export ORCHESTKIT_HOOK_TOKEN="your-token-here"
 ```

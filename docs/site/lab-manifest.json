@@ -996,6 +996,18 @@
         "settings"
       ],
       "date": "2026-09-02"
+    },
+    {
+      "slug": "chore--3867-delete-generate-http-hooks",
+      "source": "docs/chore--3867-delete-generate-http-hooks/index.html",
+      "title": "#3867: the deprecated generate-http-hooks CLI is deleted",
+      "description": "Channel 1, the per-event HTTP hook generator that double-sent every event next to the HMAC-signed http-sink, is removed with every entry point re-derived by git grep at execution time: the CLI, the npm script, the hook-token-check header, the configure and setup wizards, the doctor compatibility row, and a Registry changelog entry. Hook count unchanged at 172.",
+      "tags": [
+        "hooks",
+        "legacy-debris",
+        "epic-a"
+      ],
+      "date": "2026-09-02"
     }
   ]
 }
