@@ -304,7 +304,10 @@ jobs:
           git checkout --quiet -B "$BRANCH" "origin/${BRANCH}"
 
           # Only release-owned paths may differ from main before branch code runs.
-          ALLOWED='^(CHANGELOG\.md|\.release-please-manifest\.json|version\.txt|package\.json|package-lock\.json|\.claude-plugin/marketplace\.json|manifests/ork\.json|plugins/ork/\.claude-plugin/plugin\.json|plugins/ork/plugin\.json|plugin\.json|server\.json|pyproject\.toml|CLAUDE\.md|README\.md|docs/site/lib/generated/(plugins-data|changelog-data)\.ts|plugins/ork/hooks/bin/stop-uncommitted-check\.mjs|src/hooks/dist/.*|plugins/ork/hooks/dist/.*)$'
+          # The two plugin.json mirrors are what skill-autobuild regenerates on the
+          # release branch after the version bump (seen on #3879, 22227583a); they
+          # are data, not code, so they are allowed alongside release-please's own.
+          ALLOWED='^(CHANGELOG\.md|\.release-please-manifest\.json|version\.txt|package\.json|package-lock\.json|\.claude-plugin/marketplace\.json|manifests/ork\.json|plugins/ork/\.claude-plugin/plugin\.json|plugins/ork/plugin\.json|plugin\.json|server\.json|pyproject\.toml|CLAUDE\.md|README\.md|docs/site/lib/generated/(plugins-data|changelog-data)\.ts|plugins/ork/hooks/bin/stop-uncommitted-check\.mjs|plugins/ork-codex/\.codex-plugin/plugin\.json|plugins/ork/\.cursor-plugin/plugin\.json|src/hooks/dist/.*|plugins/ork/hooks/dist/.*)$'
           # silent: known-noise (grep -v returns 1 when every changed path is allowed; that is the pass case)
           OUTSIDE=$(git diff --name-only "origin/main...${BRANCH}" | grep -Ev "$ALLOWED" || true)
           if [ -n "$OUTSIDE" ]; then
