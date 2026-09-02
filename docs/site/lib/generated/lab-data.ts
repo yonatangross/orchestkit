@@ -15,6 +15,20 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "feat--gemini-38-flash-pricing",
+    "title": "Gemini 3.8 Flash gets its own pricing row",
+    "description": "How the cost-estimator resolves a model id to a pricing row, why gemini-3.8-flash needed its own row instead of the sonnet fallback or a substring neighbour, what the promo price does on 2027-01-01, and where the id landed in the routing surfaces.",
+    "tags": [
+      "pricing",
+      "models",
+      "hooks"
+    ],
+    "date": "2026-09-02",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 10
+  },
+  {
     "slug": "fix--3822-skill-path-lint-prereq",
     "title": "Skill path forms: the lint moves first (#3822 step 1)",
     "description": "Why a SKILL.md body should reference its own files with a bare relative path, what Claude Code, pi, the Skills API and Cursor each do with the three forms, and what the placeholder gate now resolves. Lint prerequisite only: no skill body changes, the codemod is step 2.",

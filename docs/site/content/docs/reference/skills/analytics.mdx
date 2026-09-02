@@ -504,7 +504,7 @@ function AccessibleChart({ data, title }: { data: ChartData[]; title: string }) 
 
 Estimate token costs from CC's `~/.claude/stats-cache.json` using model-specific pricing.
 
-## Pricing Table (Jun 2026)
+## Pricing Table (Sep 2026)
 
 Authoritative source: `src/hooks/src/lib/models.vocab.json` (`pricing`). Keep in sync.
 
@@ -514,6 +514,9 @@ Authoritative source: `src/hooks/src/lib/models.vocab.json` (`pricing`). Keep in
 | claude-sonnet-5 | $2.00 | $10.00 | $0.20 | $2.50 |
 | claude-sonnet-4-6 | $3.00 | $15.00 | $0.30 | $3.75 |
 | claude-haiku-4-5 | $1.00 | $5.00 | $0.10 | $1.25 |
+| gemini-3.8-flash | $0.75 | $3.75 | $0.075 | $0.75 |
+
+> `gemini-3.8-flash` (Google, GA 2026-09-02) is the first non-Claude row. It is priced so gateway or managed-override usage lands on its own row instead of the sonnet fallback. The figures are a promo through 2026-12-31; Google doubles them to $1.50 / $7.50 / $0.15 on 2027-01-01, so re-stamp the vocab row and this mirror that day. Cache write is the input rate (Google bills cache creation at input plus per-hour storage, no write premium). `gemini-3.8-flash-cyber` is not available: gated behind the Fairwind Program, not GA, no public price, no row.
 
 > `claude-sonnet-5` is $2/$10 per MTok. This was the launch rate and was scheduled to rise to $3/$15 on 2026-09-01, so this table carried the higher sticker on purpose. The 2026-08-10 platform release notes cancelled that increase and made $2/$10 standard, so the sticker was wrong from that date until it was corrected on 2026-08-21. Note that `claude-sonnet-4-6` stays at $3/$15; the two Sonnets no longer share a price.
 

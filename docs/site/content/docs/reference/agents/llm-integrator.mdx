@@ -169,6 +169,15 @@ PROVIDERS = {
         "supports_caching": False,
         "supports_streaming": True
     },
+    "google": {
+        # gemini-3.8-flash: Google's GA general-purpose model (2026-09-02),
+        # balanced tier by Google's own positioning; promo price through
+        # 2026-12-31, doubles 2027-01-01 (row in models.vocab.json).
+        # gemini-3.8-flash-cyber is not available (Fairwind Program only).
+        "models": {"balanced": "gemini-3.8-flash"},
+        "supports_caching": True,
+        "supports_streaming": True
+    },
     "ollama": {
         "base_url": "http://localhost:11434",
         "models": {"balanced": "llama3.3"},
