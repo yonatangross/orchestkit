@@ -5,6 +5,23 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.71](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.70...v10.0.0-alpha.71) (2026-09-02)
+
+
+### Miscellaneous
+
+* **cc:** adopt CC 2.1.258, latest_known to 2.1.258 ([#3883](https://github.com/yonatangross/orchestkit/issues/3883)) ([6752906](https://github.com/yonatangross/orchestkit/commit/6752906fea148ab174cc4b910d1de7e715522d8f))
+
+
+### Documentation
+
+* **configure:** record the measured prompt-cache TTL verdict ([#3876](https://github.com/yonatangross/orchestkit/issues/3876)) ([#3881](https://github.com/yonatangross/orchestkit/issues/3881)) ([78d61af](https://github.com/yonatangross/orchestkit/commit/78d61af8471a64ad089a6416548fe14ea0e05f77))
+
+
+### CI/CD
+
+* **probe:** pin the model price table to the binary's pricing tiers ([#3885](https://github.com/yonatangross/orchestkit/issues/3885)) ([5d53ea9](https://github.com/yonatangross/orchestkit/commit/5d53ea9b7066272b054247887b521183db3f96ff)), closes [#3878](https://github.com/yonatangross/orchestkit/issues/3878)
+
 ## [10.0.0-alpha.70](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.69...v10.0.0-alpha.70) (2026-09-02)
 
 
