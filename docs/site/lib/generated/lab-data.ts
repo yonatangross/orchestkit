@@ -140,6 +140,20 @@ export const LAB_ENTRIES: LabEntry[] = [
     "sizeKb": 9
   },
   {
+    "slug": "funnel-measure-first",
+    "title": "Two buttons nobody counted: the install page gets a measured funnel",
+    "description": "The install page had a copy button and a star link and neither fired an event; the analytics package was a no-op stub since 10 Aug. Real package restored, install_copied and star_clicked added, every owned link carries a utm_campaign surface. The paid rung, if any, is decided 16 Sep from two weeks of numbers.",
+    "tags": [
+      "analytics",
+      "funnel",
+      "site"
+    ],
+    "date": "2026-09-02",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 6
+  },
+  {
     "slug": "cc-257-followups",
     "title": "Three follow-ups CC 2.1.257 asked for: a prompt that lied, a read boundary, an alias",
     "description": "fable-spend-consent goes silent when CLAUDE_CODE_SUBAGENT_MODEL_FORCE makes the pin inert (simulate a spawn), doctor reports the new read boundary and warns when ~/.claude is not covered, and the fable alias moves to 5.1 because the recency ratchet never blocked it.",

@@ -41,7 +41,9 @@ function send(name: string, props: EventProps, mirrorProps: EventProps = props) 
 			events: [
 				{
 					name,
-					path: window.location.pathname,
+					// pathname + search so the platform ingest can lift utm_campaign
+					// from the path (routes/analytics/ingest.py _extract_utm_campaign).
+					path: `${window.location.pathname}${window.location.search || ""}`,
 					referrer: "",
 					properties: props,
 				},
@@ -150,4 +152,48 @@ export function reportSearchResultClicked(input: {
 		result_type: input.resultType,
 		tag: input.tag,
 	});
+}
+
+// ---------------------------------------------------------------------------
+// Funnel events (measure-first, 2026-09-02). Same chokepoint as the search
+// beacons: first-party first, PostHog mirror second, one event name string.
+// ---------------------------------------------------------------------------
+
+const CAMPAIGN_RE = /^[a-z0-9_-]{1,64}$/;
+const REF_COOKIE = "hq_ref";
+const REF_COOKIE_DAYS = 30;
+
+/**
+ * First-touch attribution. Reads `?utm_campaign=<surface>` off the landing URL,
+ * persists it in a first-party cookie for 30 days, and returns whichever value
+ * is current. A return visit without the param keeps the original surface, so
+ * install_copied on day 3 still attributes to the README click on day 1.
+ * Returns "" when nothing is known. Never throws.
+ */
+export function firstTouchCampaign(): string {
+	try {
+		const fromUrl = new URLSearchParams(window.location.search).get("utm_campaign") ?? "";
+		const stored = document.cookie
+			.split("; ")
+			.find((c) => c.startsWith(`${REF_COOKIE}=`))
+			?.slice(REF_COOKIE.length + 1) ?? "";
+		if (CAMPAIGN_RE.test(stored)) return stored;
+		if (CAMPAIGN_RE.test(fromUrl)) {
+			const maxAge = REF_COOKIE_DAYS * 24 * 60 * 60;
+			document.cookie = `${REF_COOKIE}=${fromUrl}; Max-Age=${maxAge}; Path=/; SameSite=Lax`;
+			return fromUrl;
+		}
+		return "";
+	} catch {
+		return "";
+	}
+}
+
+/**
+ * Report one named funnel event (install_copied, star_clicked). Adds the
+ * first-touch utm_campaign so the D2 read can group by surface. Same dual-send
+ * rules as the search beacons; safe to call anywhere client-side.
+ */
+export function track(name: string, props: EventProps = {}): void {
+	send(name, { utm_campaign: firstTouchCampaign(), ...props });
 }
