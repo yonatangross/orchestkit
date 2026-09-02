@@ -84,6 +84,20 @@ export const LAB_ENTRIES: LabEntry[] = [
     "sizeKb": 7
   },
   {
+    "slug": "managed-model-pricing",
+    "title": "Managed modelPricing in the cost estimator: three layers, one number",
+    "description": "CC 2.1.243+ prices usage at an org's contracted rates when managed-settings.json carries modelPricing. The OrchestKit cost estimator now reads the same block from the same file, so /ork:analytics and /cost agree. Try a multiplier and an override and watch the rate table move.",
+    "tags": [
+      "cc-adoption",
+      "cost",
+      "hooks"
+    ],
+    "date": "2026-09-02",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 9
+  },
+  {
     "slug": "cc-257-followups",
     "title": "Three follow-ups CC 2.1.257 asked for: a prompt that lied, a read boundary, an alias",
     "description": "fable-spend-consent goes silent when CLAUDE_CODE_SUBAGENT_MODEL_FORCE makes the pin inert (simulate a spawn), doctor reports the new read boundary and warns when ~/.claude is not covered, and the fable alias moves to 5.1 because the recency ratchet never blocked it.",
