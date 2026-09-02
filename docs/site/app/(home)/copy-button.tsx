@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Check, Copy } from "lucide-react";
 import { SITE } from "@/lib/constants";
+import { track } from "@/lib/search-beacon";
 
 export function CopyInstallButton() {
   const [copied, setCopied] = useState(false);
@@ -12,6 +13,7 @@ export function CopyInstallButton() {
       type="button"
       onClick={() => {
         navigator.clipboard.writeText(SITE.installCommand).catch(() => {});
+        track("install_copied");
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
       }}
