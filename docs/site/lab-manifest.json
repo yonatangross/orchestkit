@@ -1056,6 +1056,18 @@
         "hooks"
       ],
       "date": "2026-09-02"
+    },
+    {
+      "slug": "feat--gemini-38-restamp-canary",
+      "source": "docs/feat--gemini-38-restamp-canary/index.html",
+      "title": "A dated note does not turn red: the Gemini 3.8 Flash re-stamp canary",
+      "description": "The gemini-3.8-flash promo price doubles on 2027-01-01. Three files say so in prose; this canary makes the first CI run of 2027 fail until the row is re-stamped, and shows both arms so the canary is known to be armed.",
+      "tags": [
+        "pricing",
+        "models",
+        "tests"
+      ],
+      "date": "2026-09-03"
     }
   ]
 }

@@ -15,6 +15,20 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "feat--gemini-38-restamp-canary",
+    "title": "A dated note does not turn red: the Gemini 3.8 Flash re-stamp canary",
+    "description": "The gemini-3.8-flash promo price doubles on 2027-01-01. Three files say so in prose; this canary makes the first CI run of 2027 fail until the row is re-stamped, and shows both arms so the canary is known to be armed.",
+    "tags": [
+      "pricing",
+      "models",
+      "tests"
+    ],
+    "date": "2026-09-03",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 7
+  },
+  {
     "slug": "feat--gemini-38-flash-pricing",
     "title": "Gemini 3.8 Flash gets its own pricing row",
     "description": "How the cost-estimator resolves a model id to a pricing row, why gemini-3.8-flash needed its own row instead of the sonnet fallback or a substring neighbour, what the promo price does on 2027-01-01, and where the id landed in the routing surfaces.",

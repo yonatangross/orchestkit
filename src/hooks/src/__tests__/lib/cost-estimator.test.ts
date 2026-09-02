@@ -214,6 +214,42 @@ describe('cost-estimator vocab canaries (#2338)', () => {
     expect(getPricing('gemini-3-flash-preview').input_per_mtok).toBe(2.0);
   });
 
+  // Promo-end canary (2026-09-03). The gemini-3.8-flash row is a promo through
+  // 2026-12-31 and Google doubles it on 2027-01-01. Three files carry a dated
+  // note saying so; a note does not turn red. This does: from 2027-01-01 UTC
+  // the vocab row must carry the list price, so the first CI run of 2027 fails
+  // until someone re-stamps
+  //   src/hooks/src/lib/models.vocab.json (the row and its $comment note),
+  //   src/skills/analytics/references/cost-estimation.md (the mirror table),
+  //   the promo pin above and GEMINI_38_PROMO here.
+  // The flip is probed at fixed instants on both sides of the boundary so the
+  // canary itself is tested, not just armed: a check that cannot disagree with
+  // the row has measured nothing.
+  const GEMINI_38_PROMO_END_UTC = Date.UTC(2027, 0, 1);
+  const GEMINI_38_PROMO = { input_per_mtok: 0.75, output_per_mtok: 3.75, cache_read_per_mtok: 0.075, cache_write_per_mtok: 0.75 };
+  const GEMINI_38_LIST = { input_per_mtok: 1.5, output_per_mtok: 7.5, cache_read_per_mtok: 0.15, cache_write_per_mtok: 1.5 };
+  const expectedGemini38Row = (nowMs: number) => (nowMs >= GEMINI_38_PROMO_END_UTC ? GEMINI_38_LIST : GEMINI_38_PROMO);
+
+  it('promo-end canary flips exactly at 2027-01-01T00:00Z and the list row is the promo doubled', () => {
+    expect(expectedGemini38Row(Date.UTC(2026, 11, 31, 23, 59, 59))).toEqual(GEMINI_38_PROMO);
+    expect(expectedGemini38Row(GEMINI_38_PROMO_END_UTC)).toEqual(GEMINI_38_LIST);
+    expect(expectedGemini38Row(GEMINI_38_PROMO_END_UTC - 1)).not.toEqual(expectedGemini38Row(GEMINI_38_PROMO_END_UTC));
+    for (const k of Object.keys(GEMINI_38_PROMO) as Array<keyof typeof GEMINI_38_PROMO>) {
+      expect(GEMINI_38_LIST[k], `${k} is the promo doubled, not a retype`).toBeCloseTo(GEMINI_38_PROMO[k] * 2, 10);
+    }
+  });
+
+  it('promo-end canary: the gemini-3.8-flash vocab row is the price in force today', () => {
+    // ORK_TEST_NOW=2027-01-02 is the paired probe: it must turn this test red
+    // today, which is how the canary is known to be armed rather than decorative.
+    const override = process.env.ORK_TEST_NOW ? Date.parse(process.env.ORK_TEST_NOW) : Number.NaN;
+    const inForce = expectedGemini38Row(Number.isNaN(override) ? Date.now() : override);
+    expect(
+      modelsVocab.pricing['gemini-3.8-flash'],
+      'gemini-3.8-flash promo ended on 2027-01-01: re-stamp models.vocab.json (row + $comment), analytics/references/cost-estimation.md, the promo pin in this file and GEMINI_38_PROMO to $1.50 / $7.50 / $0.15 / $1.50',
+    ).toEqual(inForce);
+  });
+
   it('PINS current behavior: unknown models fall back to sonnet pricing', () => {
     // This is the behavior that hid the missing fable entry. Pinned so any
     // future change (e.g. throw / log) is a conscious decision, and so the
