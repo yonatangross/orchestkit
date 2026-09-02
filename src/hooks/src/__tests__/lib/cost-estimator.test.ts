@@ -205,6 +205,28 @@ describe('cost-estimator vocab canaries (#2338)', () => {
     expect(getPricing('gemini-3.8-flash').output_per_mtok).toBe(3.75);
   });
 
+  // Suffix products (2026-09-03). "gemini-3.8-flash-cyber" and "-lite" contain
+  // the 3.8 Flash id as a prefix, and the old substring match billed both at
+  // its promo row (measured with a probe before the fix: CYBER=0.75/3.75). A
+  // hyphenated suffix is a different product; only a bracketed session label
+  // like "[1m]" may ride on a row. Unpriced products take the fallback.
+  it('gemini-3.8-flash-cyber and -lite do not inherit the 3.8 Flash row (suffix products, not session labels)', () => {
+    for (const id of ['gemini-3.8-flash-cyber', 'gemini-3.8-flash-lite', 'gemini-3.8-flash-20270101']) {
+      expect(resolveModelKey(id), id).toBe(id);
+      expect(getPricing(id).input_per_mtok, `${id} took a neighbour's row`).toBe(2.0);
+      expect(getPricing(id).output_per_mtok, id).toBe(10.0);
+    }
+  });
+
+  it('session-label suffixes still ride on their row and hyphen suffixes never do, for Claude ids too', () => {
+    expect(getPricing('gemini-3.8-flash[1m]').input_per_mtok).toBe(0.75);
+    expect(getPricing('claude-opus-5[1m]').input_per_mtok).toBe(5.0);
+    // A dated snapshot of an unpriced Opus is not Opus 5; it is unknown.
+    expect(getPricing('claude-opus-5-20270101').input_per_mtok).toBe(2.0);
+    // Family shorthand (the name is a PREFIX of a priced id) is unchanged.
+    expect(getPricing('claude-opus').input_per_mtok).toBe(5.0);
+  });
+
   it('the unpriced predecessor gemini-3.7-flash does not inherit the 3.8 Flash row', () => {
     // Neither id is a substring of the other, so partial match cannot relate
     // them; an unpriced 3.7 Flash takes the pinned unknown-model fallback

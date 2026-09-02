@@ -279,15 +279,36 @@ function resolveModelKey(modelName: string): string {
   return MODEL_ALIASES[modelName] || modelName;
 }
 
+/**
+ * True when `rest` (what follows a priced id in a longer model name) is a CC
+ * session-label decoration rather than a product suffix. Today that is the
+ * bracketed context tag ("[1m]") and nothing else: an empty remainder is the
+ * exact match and is handled before this runs; "-cyber", "-lite", ":q8_0" or
+ * "-20260101" name a different product or snapshot and must not inherit.
+ */
+function isSessionLabelSuffix(rest: string): boolean {
+  return /^(\[[^\]]+\])+$/.test(rest);
+}
+
 function getPricing(modelName: string): ModelPricing {
   const config = getCostConfig();
   const key = resolveModelKey(modelName);
   // Try exact match, then partial match
   if (config.models[key]) return config.models[key];
 
-  // Partial match: "claude-opus" matches "claude-opus-4-6"
+  // Partial match, two directions with different rules:
+  //   1. the name EXTENDS a priced id: only a session-label suffix may ride on
+  //      a row ("claude-opus-5[1m]" is Opus 5). A hyphenated suffix is a
+  //      different product and must NOT inherit: "gemini-3.8-flash-cyber" and
+  //      "gemini-3.8-flash-lite" are not 3.8 Flash and were billed at its promo
+  //      row until 2026-09-03 (the platform lesson of 09-01, a prefix resolver
+  //      bills a new model at its predecessor's rates; CodeRabbit raised the
+  //      same on core #2389). An unpriced product takes the fallback instead.
+  //   2. the name is a PREFIX of a priced id ("claude-opus" -> claude-opus-4-6):
+  //      a family shorthand, kept as before.
   for (const [k, v] of Object.entries(config.models)) {
-    if (key.includes(k) || k.includes(key)) return v;
+    if (key.startsWith(k) && isSessionLabelSuffix(key.slice(k.length))) return v;
+    if (k.includes(key)) return v;
   }
 
   // Default to sonnet pricing as fallback
