@@ -972,6 +972,18 @@
         "triage"
       ],
       "date": "2026-09-02"
+    },
+    {
+      "slug": "the-override-doctor-could-not-see",
+      "source": "docs/feat--3877-doctor-sandbox-override-check/index.html",
+      "title": "The override doctor could not see",
+      "description": "A gitignored project-scope settings.local.json set sandbox.enabled:false and every denied host answered 200 while the user scope still read as protected. Doctor's operator-permissions check now names the project file:line and the user file:line when a project scope turns the sandbox off over a user scope that turned it on. Pick the two scope states and read what doctor prints.",
+      "tags": [
+        "skills",
+        "security",
+        "settings"
+      ],
+      "date": "2026-09-02"
     }
   ]
 }
