@@ -5,25 +5,47 @@
 # =============================================================================
 # Placeholder Validity Gate
 # =============================================================================
-# Claude Code documents exactly THREE path substitutions that it expands inside
-# skill text before delivering it to the model:
+# Claude Code documents FOUR path substitutions that it expands inside skill
+# text before delivering it to the model:
 #
-#     ${CLAUDE_PLUGIN_ROOT}   ${CLAUDE_PLUGIN_DATA}   ${CLAUDE_PROJECT_DIR}
+#     ${CLAUDE_PLUGIN_ROOT}  ${CLAUDE_PLUGIN_DATA}  ${CLAUDE_PROJECT_DIR}  ${CLAUDE_SKILL_DIR}
 #
 # Anything else of the form ${CLAUDE_*} is delivered to the model as a LITERAL
 # string. It fails silently: no error, no warning, just an instruction the model
 # cannot act on.
 #
-# That is exactly how ${CLAUDE_SKILL_DIR} — a placeholder OrchestKit invented —
-# reached 442 references across 68 skills and shipped in the installed artifact
-# for months. It was found by an external user (#3083), not by us, and it grew
-# partly because scripts/eval/conformance-check.mjs recommended it.
+# History, because the premise of this gate has moved once already:
+#   - #3083: ${CLAUDE_SKILL_DIR} was NOT documented when OrchestKit started using
+#     it. It reached 442 references across 68 skills before an outside user
+#     reported that CC delivered it verbatim. The sweep replaced every use with
+#     ${CLAUDE_PLUGIN_ROOT}/skills/<name>/... and this gate was written with an
+#     "exactly THREE substitutions" header.
+#   - #3822 (measured 2026-08-30 on CC 2.1.251, throwaway plugin, three nonces,
+#     run from /tmp and from the skill dir): ${CLAUDE_SKILL_DIR} is now a
+#     documented substitution and it expands. So does a BARE RELATIVE path:
+#     Read("references/x.md") resolves against the SKILL.md directory even when
+#     the cwd is elsewhere. The Agent Skills spec and pi resolve relative paths
+#     the same way, and pi expands NO ${CLAUDE_*} form at all.
 #
-# Two distinct failure modes, and the second is the nastier one:
-#   PROSE: the model receives "${CLAUDE_SKILL_DIR}/references/x.md" verbatim.
+# So there are three valid forms, and only one of them is portable:
+#   bare relative            references/x.md          same-skill files (preferred:
+#                                                     CC, pi, Skills API all resolve it)
+#   ${CLAUDE_SKILL_DIR}      exec shapes only         CC-only; non-CC hosts get the literal
+#   ${CLAUDE_PLUGIN_ROOT}    skills/<other>/, shared/, hook command:   cross-skill and
+#                                                     shared refs, where a plugin root is
+#                                                     genuinely needed
+#
+# Two distinct failure modes for an unexpanded placeholder, and the second is
+# the nastier one:
+#   PROSE: the model receives "${CLAUDE_X}/references/x.md" verbatim.
 #   BASH:  the shell expands an unset variable to EMPTY, so
-#          `python3 ${CLAUDE_SKILL_DIR}/scripts/x.py` runs as `python3 /scripts/x.py`
-#          — a plausible-looking absolute path that simply is not there.
+#          `python3 ${CLAUDE_X}/scripts/x.py` runs as `python3 /scripts/x.py`,
+#          a plausible-looking absolute path that simply is not there.
+#
+# Both the plugin-root form and the bare relative form are ACCEPTED for
+# same-skill references. The codemod that rewrites the same-skill plugin-root
+# references to bare relative is #3822 step 2; this gate only counts them
+# (advisory) so the lint and the codebase can move separately.
 #
 # This gate is BLOCKING. A silent-failure class that took an outside report to
 # find does not get a warn-only ratchet.
@@ -35,10 +57,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 cd "$REPO_ROOT"
 
-RED=$'\033[0;31m'; GREEN=$'\033[0;32m'
+RED=$'\033[0;31m'; GREEN=$'\033[0;32m'; YELLOW=$'\033[0;33m'
 BLUE=$'\033[0;34m'; BOLD=$'\033[1m'; NC=$'\033[0m'
 
-VALID="CLAUDE_PLUGIN_ROOT CLAUDE_PLUGIN_DATA CLAUDE_PROJECT_DIR"
+VALID="CLAUDE_PLUGIN_ROOT CLAUDE_PLUGIN_DATA CLAUDE_PROJECT_DIR CLAUDE_SKILL_DIR"
 fail=0
 
 echo "${BLUE}${BOLD}Placeholder validity (only CC-documented substitutions)${NC}"
@@ -76,18 +98,49 @@ if [[ -n "$found" ]]; then
     echo ""
     echo "  Only these are expanded by Claude Code:"
     for v in $VALID; do echo "      \${$v}"; done
-    echo "  For a skill's own files use: \${CLAUDE_PLUGIN_ROOT}/skills/<name>/..."
+    echo "  For a skill's own files use a bare relative path: references/<file>.md"
+    echo "  For another skill or shared/ use: \${CLAUDE_PLUGIN_ROOT}/skills/<name>/... or \${CLAUDE_PLUGIN_ROOT}/shared/..."
     fail=1
 else
     echo "  ${GREEN}✓${NC} every \${CLAUDE_*} reference in src/ is a documented substitution"
 fi
 
-# --- 2. every ${CLAUDE_PLUGIN_ROOT}/skills/<path> target must exist ----------
-# A valid placeholder pointing at a missing file fails just as silently.
+# --- 2. every skill-file reference must point at a file that exists ----------
+# A valid placeholder (or a valid relative path) pointing at a missing file
+# fails just as silently. Three shapes are resolved:
+#   a. ${CLAUDE_PLUGIN_ROOT}/skills/<path>      against src/skills/   (any src/ file)
+#   b. ${CLAUDE_SKILL_DIR}/<path>               against the containing skill dir
+#   c. bare relative references/|rules/|scripts/|checklists/|assets/|workflows/|
+#      examples/<path> in Read("...") and markdown ](...) form, in SKILL.md
+#      only, against that SKILL.md's directory (the resolution CC, pi and the
+#      Agent Skills spec all use; measured in #3822).
+# Doc templates (<name>), nested variables (${...}) and globs (*) are skipped.
+# The summary line reports how many of each shape were checked, so a regex that
+# silently stops matching reads as a dropped count, not as a clean run.
 dead="$(python3 - <<'PY'
 import os, re, glob
 doc = re.compile(r'<[a-z-]+>')
+cpr = re.compile(r'\$\{CLAUDE_PLUGIN_ROOT\}/skills/([^\s"\'`)\]]+)')
+sdir = re.compile(r'\$\{CLAUDE_SKILL_DIR\}/([^\s"\'`)\]]+)')
+SUB = r'(?:references|rules|scripts|checklists|assets|workflows|examples)/'
+rel_read = re.compile(r'Read\(\s*["\'](' + SUB + r'[^"\')]+)["\']')
+rel_link = re.compile(r'\]\((' + SUB + r'[^)\s]+)\)')
+
+def skip(rel):
+    return bool(doc.search(rel)) or "${" in rel or "*" in rel
+
+def target(rel):
+    return rel.split("#", 1)[0]
+
+def skill_dir_of(f):
+    parts = os.path.normpath(f).split(os.sep)
+    # src/skills/<name>/... only: a file directly under src/skills/ (CONTRIBUTING-SKILLS.md) has no skill dir.
+    if len(parts) >= 4 and parts[0] == "src" and parts[1] == "skills" and parts[2] != "shared":
+        return os.path.join("src", "skills", parts[2])
+    return None
+
 hits = []
+checked = {"plugin-root": 0, "skill-dir": 0, "relative": 0}
 for f in glob.glob("src/**/*", recursive=True):
     if not os.path.isfile(f):
         continue
@@ -97,46 +150,113 @@ for f in glob.glob("src/**/*", recursive=True):
         lines = open(f, encoding="utf-8").read().splitlines()
     except (OSError, UnicodeDecodeError):
         continue
+    sdir_base = skill_dir_of(f)
+    is_skill_md = sdir_base is not None and os.path.basename(f) == "SKILL.md" and os.path.dirname(f) == sdir_base
     for i, line in enumerate(lines, 1):
-        for m in re.finditer(r'\$\{CLAUDE_PLUGIN_ROOT\}/skills/([^\s"\'`)\]]+)', line):
+        for m in cpr.finditer(line):
             rel = m.group(1)
-            if doc.search(rel) or "${" in rel:      # doc template or nested var
+            if skip(rel):
                 continue
-            if not os.path.exists(os.path.normpath(os.path.join("src/skills", rel))):
-                hits.append(f"{f}:{i}\t{rel[:60]}")
+            checked["plugin-root"] += 1
+            if not os.path.exists(os.path.normpath(os.path.join("src/skills", target(rel)))):
+                hits.append(f"{f}:{i}\t${{CLAUDE_PLUGIN_ROOT}}/skills/{rel[:60]}")
+        if sdir_base is not None:
+            for m in sdir.finditer(line):
+                rel = m.group(1)
+                if skip(rel):
+                    continue
+                checked["skill-dir"] += 1
+                if not os.path.exists(os.path.normpath(os.path.join(sdir_base, target(rel)))):
+                    hits.append(f"{f}:{i}\t${{CLAUDE_SKILL_DIR}}/{rel[:60]}")
+        if is_skill_md:
+            for pat in (rel_read, rel_link):
+                for m in pat.finditer(line):
+                    rel = m.group(1)
+                    if skip(rel):
+                        continue
+                    checked["relative"] += 1
+                    if not os.path.exists(os.path.normpath(os.path.join(sdir_base, target(rel)))):
+                        hits.append(f"{f}:{i}\t{rel[:60]}")
+print("CHECKED\t" + "\t".join(f"{k}={v}" for k, v in checked.items()))
 print("\n".join(hits))
 PY
 )"
 
+checked_line="$(printf '%s\n' "$dead" | head -1 | cut -f2- | tr '\t' ' ')"
+dead="$(printf '%s\n' "$dead" | tail -n +2)"
+
 if [[ -n "$dead" ]]; then
     n=$(printf '%s\n' "$dead" | grep -c .)
-    echo "  ${RED}✗ ${n} reference(s) point at a file that does not exist${NC}"
+    echo "  ${RED}✗ ${n} reference(s) point at a file that does not exist${NC} (checked: ${checked_line})"
     printf '%s\n' "$dead" | head -12 | while IFS=$'\t' read -r loc rel; do
         echo "      ${loc} -> ${rel}"
     done
     fail=1
 else
-    echo "  ${GREEN}✓${NC} every \${CLAUDE_PLUGIN_ROOT}/skills/... target exists"
+    echo "  ${GREEN}✓${NC} every skill-file reference resolves (checked: ${checked_line})"
 fi
 
 # --- 3. the built artifact must be clean too ---------------------------------
-# src/ is what authors read; plugins/ is what users actually load. grep exit 1
-# means "no matches", which is the passing case here; anything above 1 is a real
-# scan failure and must not be mistaken for cleanliness.
+# src/ is what authors read; plugins/ is what users actually load. Same rule as
+# section 1, applied to the build output: only documented substitutions may
+# survive into the artifact. grep exit 1 means "no matches", which is the
+# passing case here; anything above 1 is a real scan failure and must not be
+# mistaken for cleanliness.
 if [[ -d plugins ]]; then
     grep_rc=0
-    built_files="$(grep -rl 'CLAUDE_SKILL_DIR' plugins/)" || grep_rc=$?
+    built_vars="$(grep -rhoE '\$\{CLAUDE_[A-Z_]+\}' plugins/ 2>/dev/null | sort -u)" || grep_rc=$?
     if (( grep_rc > 1 )); then
         echo "  ${RED}✗ could not scan plugins/ (grep exit ${grep_rc})${NC}"
         fail=1
-    elif [[ -n "$built_files" ]]; then
-        n=$(printf '%s\n' "$built_files" | grep -c .)
-        echo "  ${RED}✗ ${n} built file(s) still contain \${CLAUDE_SKILL_DIR}${NC}"
-        echo "      run: npm run build"
-        fail=1
     else
-        echo "  ${GREEN}✓${NC} built plugins/ carry no invented placeholder"
+        bad_built=""
+        for v in $built_vars; do
+            name="${v#\$\{}"; name="${name%\}}"
+            case " $VALID " in
+                *" $name "*) ;;
+                *) bad_built+="$v "$'\n' ;;
+            esac
+        done
+        if [[ -n "${bad_built// /}" ]]; then
+            echo "  ${RED}✗ built plugins/ contain undocumented placeholder(s):${NC}"
+            printf '%s' "$bad_built" | sed '/^$/d' | while read -r v; do
+                echo "      ${v}  ($(grep -rl "$v" plugins/ | wc -l | tr -d ' ') file(s))"
+            done
+            echo "      run: npm run build"
+            fail=1
+        else
+            echo "  ${GREEN}✓${NC} built plugins/ carry no undocumented placeholder"
+        fi
     fi
+fi
+
+# --- 4. advisory: same-skill references still on the plugin-root form --------
+# ${CLAUDE_PLUGIN_ROOT}/skills/<self>/... inside <self>/SKILL.md works in CC but
+# is delivered literally by pi and every other Agent Skills consumer. The
+# portable form is the bare relative path. This is a COUNT, not a failure: the
+# rewrite is #3822 step 2, and this gate must stay green on the unmigrated tree
+# so the lint and the codebase can land separately.
+same_skill="$(python3 - <<'PY'
+import os, re, glob
+n = 0; files = 0
+for f in sorted(glob.glob("src/skills/*/SKILL.md")):
+    name = os.path.basename(os.path.dirname(f))
+    pat = re.compile(r'\$\{CLAUDE_PLUGIN_ROOT\}/skills/' + re.escape(name) + r'/')
+    try:
+        c = open(f, encoding="utf-8").read()
+    except (OSError, UnicodeDecodeError):
+        continue
+    k = len(pat.findall(c))
+    if k:
+        n += k; files += 1
+print(f"{n} {files}")
+PY
+)"
+read -r ss_refs ss_files <<< "$same_skill"
+if (( ss_refs > 0 )); then
+    echo "  ${YELLOW}i${NC} ${ss_refs} same-skill reference(s) in ${ss_files} SKILL.md file(s) still use \${CLAUDE_PLUGIN_ROOT}/skills/<self>/ (portable form is bare relative; #3822 step 2)"
+else
+    echo "  ${GREEN}✓${NC} no same-skill reference uses the plugin-root form"
 fi
 
 echo ""
