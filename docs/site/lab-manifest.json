@@ -1080,6 +1080,18 @@
         "models"
       ],
       "date": "2026-09-03"
+    },
+    {
+      "slug": "fix--pricing-suffix-inherit",
+      "source": "docs/fix--pricing-suffix-inherit/index.html",
+      "title": "A hyphen is a different product: closing the suffix-inherit hole in the cost estimator",
+      "description": "getPricing() billed gemini-3.8-flash-cyber and -lite at the 3.8 Flash promo row through substring matching. Now only a bracketed session label may ride on a row; type any id and compare the old and new resolver side by side.",
+      "tags": [
+        "pricing",
+        "models",
+        "hooks"
+      ],
+      "date": "2026-09-03"
     }
   ]
 }
