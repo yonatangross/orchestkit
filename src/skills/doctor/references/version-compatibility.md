@@ -511,6 +511,8 @@ This extends the prompt cache TTL from 5 minutes to 1 hour, significantly reduci
 - Running multi-phase skills that exceed the 5-minute cache window
 - Using `/loop` or scheduled tasks with intervals > 5 minutes
 
+Measured 2026-09-02 (#3876): on a subscription the main conversation already writes with the 1-hour cache (94% of writes carried `ephemeral_1h_input_tokens` with no setting present), subagents write with 5 minutes, and subagent turns after a 5 to 60 minute gap are 0.2% of turns and 2.8% of write tokens, below the roughly 38% where a 1-hour subagent TTL breaks even. `scripts/measure-cache-gaps.py` reproduces the table from local transcripts; the 2.1.243 keys `promptCacheTtl` and `subagentPromptCacheTtl` stay unset.
+
 **Note:** Since CC 2.1.110, session recap is enabled by default even with telemetry disabled. Opt out via `/config` or `CLAUDE_CODE_ENABLE_AWAY_SUMMARY=0`. On CC 2.1.108-2.1.109, users with `DISABLE_TELEMETRY=1` must set `CLAUDE_CODE_ENABLE_AWAY_SUMMARY=1` manually.
 
 Doctor should check for this env var and recommend it when:

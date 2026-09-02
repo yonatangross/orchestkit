@@ -2,6 +2,18 @@
   "$comment": "Allowlist for the Lab gallery (docs/showcase/lab). Only entries listed here are copied to public/lab/ and surfaced on the site. `source` is repo-root-relative. Title/description here OVERRIDE what generate-lab-data.mjs extracts from the HTML <head>. Run `node docs/site/scripts/generate-lab-data.mjs` after editing.",
   "entries": [
     {
+      "slug": "cache-ttl-verdict",
+      "source": "docs/docs--3876-cache-ttl-verdict/index.html",
+      "title": "The 1-hour cache you already have, and the one that would cost more",
+      "description": "170K real assistant turns measured: subscription main sessions already write with a 1-hour prompt cache, subagents evict after 5 minutes but only 0.2% of their turns follow a long gap, so the CC 2.1.243 TTL settings stay unset. Includes the break-even slider.",
+      "tags": [
+        "cc-adoption",
+        "cost",
+        "measurement"
+      ],
+      "date": "2026-09-02"
+    },
+    {
       "slug": "dist-release-owned",
       "source": "docs/chore--3578-dist-release-owned/index.html",
       "title": "Four files every hooks PR rewrote, and the CI that went silent",

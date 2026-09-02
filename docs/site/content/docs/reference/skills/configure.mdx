@@ -1508,6 +1508,19 @@ documented in analytics' `otel-fields.md`.
 truncated prompt/tool content in an OTEL pipeline (or the HQ Langfuse bridge): raise the limit on the
 host that launches `claude`, not in per-project config.
 
+## CC 2.1.243 Settings
+
+### `promptCacheTtl` and `subagentPromptCacheTtl`, measured verdict: leave both unset
+
+CC 2.1.243 added two settings so API-key and cloud-provider users can keep a 1-hour prompt cache on the main conversation while subagents stay at 5 minutes. On a subscription there is nothing to set, and the subagent half was settled by measurement rather than policy (#3876, 2026-09-02, 14 days of one workstation's transcripts, 170K assistant turns):
+
+| kind | writes already on 1h TTL | turns after a 5 to 60 min gap | share of write tokens |
+|---|---|---|---|
+| main sessions | 94% (setting absent) | 2.0% | 7.6% |
+| subagents | 0.01% | 0.2% | 2.8% |
+
+A 1-hour TTL pays only when re-writes after 5 to 60 minute gaps exceed about 38% of all write tokens (1h write 2x input, 5m write 1.25x, read 0.025x; the same 38 to 40% for Opus tiers). The eviction is real (in the 5 to 15 minute bucket subagent writes outrun reads five to one) and still too rare to pay for. Re-measure with `scripts/measure-cache-gaps.py --days 14` if subagents start idling (long Monitor waits inside a fan-out); API-key users who see 5m writes on the main conversation are the one audience `promptCacheTtl: "1h"` is for.
+
 ## CC 2.1.257 Settings
 
 CC 2.1.252 through 2.1.256 add no settings (2.1.252 is four bug fixes; 2.1.253 to 2.1.256 were never
