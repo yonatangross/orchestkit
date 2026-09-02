@@ -43,6 +43,20 @@ export const LAB_ENTRIES: LabEntry[] = [
     "sizeKb": 10
   },
   {
+    "slug": "cache-ttl-verdict",
+    "title": "The 1-hour cache you already have, and the one that would cost more",
+    "description": "170K real assistant turns measured: subscription main sessions already write with a 1-hour prompt cache, subagents evict after 5 minutes but only 0.2% of their turns follow a long gap, so the CC 2.1.243 TTL settings stay unset. Includes the break-even slider.",
+    "tags": [
+      "cc-adoption",
+      "cost",
+      "measurement"
+    ],
+    "date": "2026-09-02",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 6
+  },
+  {
     "slug": "cc-257-followups",
     "title": "Three follow-ups CC 2.1.257 asked for: a prompt that lied, a read boundary, an alias",
     "description": "fable-spend-consent goes silent when CLAUDE_CODE_SUBAGENT_MODEL_FORCE makes the pin inert (simulate a spawn), doctor reports the new read boundary and warns when ~/.claude is not covered, and the fable alias moves to 5.1 because the recency ratchet never blocked it.",
