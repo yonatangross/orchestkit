@@ -1,5 +1,37 @@
 [
   {
+    "version": "2.1.258",
+    "parse_failed": false,
+    "features": [
+      {
+        "feature_slug": "macos_12_launch_regression_fix",
+        "category": "breaking",
+        "description": "Claude Code launches again on macOS 12 (Monterey); the regression came in with 2.1.255, a build that never got a CHANGELOG entry.",
+        "gap_score": 20,
+        "affected_skills": [
+          "doctor"
+        ],
+        "reference_changelog_line": "Fixed Claude Code failing to launch on macOS 12 (Monterey), a regression introduced in 2.1.255",
+        "relevance": "end-user",
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "ork declares no macOS version floor and no hook branches on the OS release: grep -rniE \"monterey|macos 12|darwin 21\" over src shared tests scripts manifests CLAUDE.md = 0 hits; the five process.platform checks in src/hooks/src (notification/desktop.ts, notification/sound.ts, permission-denied/denial-notification.ts, setup/*.ts) pick a notifier by platform, not by version. Nothing to change; users on Monterey regain a binary that starts."
+      },
+      {
+        "feature_slug": "remote_scheduled_session_resent_approval_fix",
+        "category": "breaking",
+        "description": "Remote and scheduled sessions no longer fail with \"user messages must have non-empty content\" after a re-sent permission approval could not be applied.",
+        "gap_score": 20,
+        "affected_skills": [],
+        "reference_changelog_line": "Fixed remote and scheduled sessions failing with \"user messages must have non-empty content\" after a re-sent permission approval could not be applied",
+        "relevance": "end-user",
+        "disposition": "upside",
+        "ork_disposition_note": "Free. ork drives no remote (claude.ai Remote Control) or scheduled (cloud routine) sessions: every headless caller in ork is a local `claude -p` (ci-sentinel, claude-triage, claude-health, claude-release-watch, labs-version-watch, skill-eval, plugin-validation workflows; tests/evals/scripts/lib/eval-common.sh), which is a different session type. grep for the error text in src, shared/rules, tests, scripts = 0 relevant hits (three unrelated \"non-empty content\" strings in analytics docs and a script-structure test)."
+      }
+    ],
+    "raw_bullets_count": 2,
+    "triaged_by": "hand, lane adopt-cc-258, 2026-09-02"
+  },
+  {
     "version": "2.1.252",
     "parse_failed": false,
     "features": [
