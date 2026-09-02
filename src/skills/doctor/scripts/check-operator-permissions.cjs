@@ -14,7 +14,21 @@ const scopes = [
   join(homeDir, '.claude', 'settings.json'),
 ];
 const denyByScope = {};
-const sandbox = { enabled: 'unset', network: 'none' };
+const sandbox = { enabled: 'unset', network: 'none', source: null };
+// #3877: a project-scope sandbox.enabled:false silently defeats the user-scope
+// posture setup phase 3.6 writes. CC merges local > project > user, so the
+// project file wins and the session runs with no Bash sandbox at all while the
+// user scope still reads as protected. Observed with file and line, never fixed.
+const projectScopes = new Set(scopes.slice(0, 2));
+const sandboxByScope = []; // { file, enabled, line } in precedence order
+function sandboxEnabledLine(text, value) {
+  const lines = text.split('\n');
+  const start = lines.findIndex((l) => /"sandbox"\s*:/.test(l));
+  if (start < 0) return null;
+  const key = new RegExp(`"enabled"\\s*:\\s*${value}\\b`);
+  for (let i = start; i < lines.length; i++) if (key.test(lines[i])) return i + 1;
+  return null;
+}
 // CC 2.1.257: permissions.blockReadsOutsideWorkingDirectories turns the auto-mode
 // one-time prompt into a hard refusal. ork skills read ~/.claude on purpose
 // (analytics, dream, memory, doctor), so the key is only safe when
@@ -23,8 +37,10 @@ const readBoundary = { block_reads_outside: 'unset', additional_directories: [],
 for (const f of scopes) {
   if (!existsSync(f)) continue;
   let s;
+  let text;
   try {
-    s = JSON.parse(readFileSync(f, 'utf8'));
+    text = readFileSync(f, 'utf8');
+    s = JSON.parse(text);
   } catch {
     denyByScope[f] = 'UNPARSEABLE'; // surfaced per-scope below, never dropped
     continue;
@@ -36,8 +52,12 @@ for (const f of scopes) {
   if (Array.isArray(s.permissions?.additionalDirectories)) {
     for (const d of s.permissions.additionalDirectories) if (!readBoundary.additional_directories.includes(d)) readBoundary.additional_directories.push(d);
   }
+  if (typeof s.sandbox?.enabled === 'boolean') {
+    sandboxByScope.push({ file: f, enabled: s.sandbox.enabled, line: sandboxEnabledLine(text, String(s.sandbox.enabled)) });
+  }
   if (sandbox.enabled === 'unset' && typeof s.sandbox?.enabled === 'boolean') {
     sandbox.enabled = String(s.sandbox.enabled);
+    sandbox.source = f;
     const n = s.sandbox.network || {};
     sandbox.network = Array.isArray(n.allowedDomains) && n.allowedDomains.length ? 'allowlist'
       : Array.isArray(n.deniedDomains) && n.deniedDomains.length ? 'denylist' : 'none';
@@ -48,6 +68,20 @@ if (readBoundary.block_reads_outside === 'true') {
   if (!coversHome) {
     readBoundary.warning = 'permissions.blockReadsOutsideWorkingDirectories is true and additionalDirectories does not cover ~/.claude: ork analytics, dream, memory and doctor reads outside the project will be refused, not prompted. Add ~/.claude to additionalDirectories or unset the key.';
   }
+}
+// First declaring file per side, in CC precedence order (local before project, user local before user).
+const projectSandbox = sandboxByScope.find((e) => projectScopes.has(e.file)) || null;
+const userSandbox = sandboxByScope.find((e) => !projectScopes.has(e.file)) || null;
+let sandboxOverride = null;
+if (projectSandbox && projectSandbox.enabled === false && userSandbox && userSandbox.enabled === true) {
+  const at = (e) => `${e.file}${e.line ? `:${e.line}` : ''}`;
+  sandboxOverride = {
+    file: projectSandbox.file,
+    line: projectSandbox.line,
+    user_file: userSandbox.file,
+    user_line: userSandbox.line,
+    warning: `sandbox override: ${at(projectSandbox)} sets sandbox.enabled=false while ${at(userSandbox)} sets it true. The project-scope file wins, so Bash in this project runs with NO sandbox (no egress denylist, no filesystem boundary) while the user scope still reads as protected. Remove the key from the project file or set it true.`,
+  };
 }
 const allDeny = new Set(Object.values(denyByScope).filter(Array.isArray).flat());
 const missing = payload.deny.filter((r) => !allDeny.has(r));
@@ -62,6 +96,7 @@ const out = {
   })),
   sandbox,
   read_boundary: readBoundary,
+  sandbox_override: sandboxOverride,
   remedy: missing.length
     ? 'node <plugin>/skills/setup/scripts/write-operator-permissions.mjs --scope user   (dry-run first; consent required)'
     : null,
@@ -71,7 +106,8 @@ if (jsonOut === '1') {
 } else {
   console.log(`operator permissions: ${present}/${payload.deny.length} payload rules enforced`);
   for (const s of out.scopes_scanned) console.log(`  ${s.state.padEnd(16)} ${s.file}`);
-  console.log(`  sandbox: enabled=${sandbox.enabled} network=${sandbox.network}`);
+  console.log(`  sandbox: enabled=${sandbox.enabled} network=${sandbox.network}${sandbox.source ? ` source=${sandbox.source}` : ''}`);
+  if (sandboxOverride) console.log(`  warn: ${sandboxOverride.warning}`);
   console.log(`  read boundary: blockReadsOutsideWorkingDirectories=${readBoundary.block_reads_outside} additionalDirectories=${readBoundary.additional_directories.length}`);
   if (readBoundary.warning) console.log(`  warn: ${readBoundary.warning}`);
   if (missing.length) {
