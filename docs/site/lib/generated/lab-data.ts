@@ -15,6 +15,20 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "fix--pricing-suffix-inherit",
+    "title": "A hyphen is a different product: closing the suffix-inherit hole in the cost estimator",
+    "description": "getPricing() billed gemini-3.8-flash-cyber and -lite at the 3.8 Flash promo row through substring matching. Now only a bracketed session label may ride on a row; type any id and compare the old and new resolver side by side.",
+    "tags": [
+      "pricing",
+      "models",
+      "hooks"
+    ],
+    "date": "2026-09-03",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 7
+  },
+  {
     "slug": "fix--doctor-model-routing-link",
     "title": "Where the model routing rationale actually lives",
     "description": "The doctor reference linked docs/model-routing.md, deleted in #1302. This page shows the three live sources the link now points at and the current per-agent assignment.",
