@@ -15,6 +15,20 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "fix--3822-skill-path-lint-prereq",
+    "title": "Skill path forms: the lint moves first (#3822 step 1)",
+    "description": "Why a SKILL.md body should reference its own files with a bare relative path, what Claude Code, pi, the Skills API and Cursor each do with the three forms, and what the placeholder gate now resolves. Lint prerequisite only: no skill body changes, the codemod is step 2.",
+    "tags": [
+      "skills",
+      "lint",
+      "portability"
+    ],
+    "date": "2026-09-02",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 12
+  },
+  {
     "slug": "chore--3867-delete-generate-http-hooks",
     "title": "#3867: the deprecated generate-http-hooks CLI is deleted",
     "description": "Channel 1, the per-event HTTP hook generator that double-sent every event next to the HMAC-signed http-sink, is removed with every entry point re-derived by git grep at execution time: the CLI, the npm script, the hook-token-check header, the configure and setup wizards, the doctor compatibility row, and a Registry changelog entry. Hook count unchanged at 172.",

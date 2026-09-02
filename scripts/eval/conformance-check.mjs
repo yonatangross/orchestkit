@@ -10,6 +10,10 @@
  *                            intentional historical model mentions)
  *   C2  hook-count drift   — a hardcoded "N hooks" disagreeing with hooks.json
  *                            (scans SKILL.md + every skill references/*.md + agents)
+ *   C3  install-path       : absolute /Users/ paths, hardcoded plugins/ork/skills/
+ *                            paths, ${CLAUDE_SKILL_DIR} in Read/link shapes, and
+ *                            (opt-in, CONFORMANCE_SAME_SKILL=1) same-skill refs on
+ *                            the plugin-root form. Portable forms: #3822.
  *
  * Explicitly does NOT check CC-version *annotations* like "(CC 2.1.76)" — those
  * document when a feature landed and are the CORRECT idiom, not drift. An earlier
@@ -31,6 +35,7 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const SKILLS_DIR = join(ROOT, 'src', 'skills');
 const AGENTS_DIR = join(ROOT, 'src', 'agents');
 const STALE_OPUS_MAX = 6; // flag Opus 4.6 and older (4.7 is one-back; too historical to flag)
+const SAME_SKILL_CHECK = process.env.CONFORMANCE_SAME_SKILL === '1'; // C3c opt-in until #3822 step 2
 
 function realHookCount() {
   try {
@@ -128,32 +133,55 @@ for (const t of all) {
       }
     }
 
-    // C3 — install-path portability: absolute /Users/ paths or hardcoded
-    // plugins/ork/skills/<name>/ paths. The portable form is
-    // ${CLAUDE_PLUGIN_ROOT}/skills/<name>/... for BOTH same-skill and
-    // cross-skill references.
+    // C3: install-path portability: absolute /Users/ paths or hardcoded
+    // plugins/ork/skills/<name>/ paths. Three portable forms exist (#3822,
+    // measured 2026-08-30 on CC 2.1.251; see src/skills/CONTRIBUTING-SKILLS.md
+    // "Referencing Supporting Files"):
     //
-    // This rule used to recommend ${CLAUDE_SKILL_DIR} for same-skill paths.
-    // That placeholder does not exist: Claude Code documents exactly three path
-    // substitutions — CLAUDE_PLUGIN_ROOT, CLAUDE_PLUGIN_DATA, CLAUDE_PROJECT_DIR
-    // — and SKILL_DIR is not among them, so it was delivered to the model as a
-    // literal string and never resolved. Reported externally as #3083 after it
-    // had reached 442 references across 68 skills, growing partly BECAUSE this
-    // lint recommended it. Keep the recommendation and the codebase in agreement.
+    //   same-skill file     bare relative: references/x.md, rules/x.md
+    //                       (CC resolves it against the SKILL.md dir; so do pi
+    //                       and the Agent Skills spec). PREFERRED.
+    //   cross-skill/shared  ${CLAUDE_PLUGIN_ROOT}/skills/<other>/..., ${CLAUDE_PLUGIN_ROOT}/shared/...
+    //                       and hook `command:` lines. A plugin root is genuinely
+    //                       needed there; stays valid.
+    //   exec shapes         ${CLAUDE_SKILL_DIR}/scripts/x.py in CC-only bodies.
+    //                       Documented CC substitution, but pi and every non-CC
+    //                       consumer deliver it as a literal.
+    //
+    // History: this rule once recommended ${CLAUDE_SKILL_DIR} for same-skill
+    // paths while CC did not expand it (#3083, 442 references across 68 skills,
+    // grown partly BECAUSE this lint recommended it), then flipped to demanding
+    // ${CLAUDE_PLUGIN_ROOT}/skills/<name>/ for everything. That form is CC-only
+    // too. Keep the recommendation, the placeholder gate
+    // (tests/skills/structure/test-placeholder-validity.sh) and the codebase in
+    // agreement.
     const PLACEHOLDER = /\/Users\/(foo|bar|baz|john|jane|dev|me|you|user|username|alice|bob|example|test)\b/i;
+    const PORTABLE_HINT = 'same-skill files: bare relative (references/<file>.md); other skills or shared/: ${CLAUDE_PLUGIN_ROOT}/skills/<name>/ or ${CLAUDE_PLUGIN_ROOT}/shared/';
     if (!/\$\{CLAUDE_PLUGIN_ROOT\}/.test(line)) {
       // case-SENSITIVE: /Users/ is the macOS home dir; /users/ is a REST resource path (not a bug)
       if (/\/Users\/[A-Za-z0-9._-]+\//.test(line) && !PLACEHOLDER.test(line)) {
-        add('C3-install-path', t, lineno, 'absolute /Users/ path — non-portable; use ${CLAUDE_PLUGIN_ROOT}/skills/<name>/ (or ~ for home paths)');
+        add('C3-install-path', t, lineno, `absolute /Users/ path is non-portable; ${PORTABLE_HINT} (or ~ for home paths)`);
       } else if (/plugins\/ork\/skills\/[a-z0-9-]+\//i.test(line) && !/plugins\/ork\/skills\/\*/.test(line)) {
-        add('C3-install-path', t, lineno, 'hardcoded plugins/ork/skills/<name>/ path — use ${CLAUDE_PLUGIN_ROOT}/skills/<name>/');
+        add('C3-install-path', t, lineno, `hardcoded plugins/ork/skills/<name>/ path; ${PORTABLE_HINT}`);
       }
     }
 
-    // C3b — the invented placeholder itself. Fail on any reintroduction, or the
-    // 442-reference sweep silently grows back one skill at a time.
-    if (/\$\{CLAUDE_SKILL_DIR\}/.test(line)) {
-      add('C3-install-path', t, lineno, '${CLAUDE_SKILL_DIR} is not a Claude Code placeholder and is never expanded — use ${CLAUDE_PLUGIN_ROOT}/skills/<name>/');
+    // C3b: ${CLAUDE_SKILL_DIR} in a Read("...") or markdown-link shape. Narrowed
+    // in #3822: the placeholder is a documented CC substitution now, so exec
+    // shapes (bash/node/python3 ${CLAUDE_SKILL_DIR}/scripts/x) are left alone.
+    // A Read or link has a portable alternative that works in every consumer,
+    // so only those two shapes are flagged.
+    if (/Read\(\s*["']\$\{CLAUDE_SKILL_DIR\}\//.test(line) || /\]\(\$\{CLAUDE_SKILL_DIR\}\//.test(line)) {
+      add('C3-install-path', t, lineno, '${CLAUDE_SKILL_DIR} is CC-only (pi and the Skills API deliver it literally); a Read or link to the skill\'s own file should be bare relative: references/<file>.md');
+    }
+
+    // C3c: same-skill reference on the plugin-root form inside that skill's own
+    // SKILL.md. Opt-in (CONFORMANCE_SAME_SKILL=1) until the #3822 step 2 codemod
+    // lands, so the unmigrated tree reports 0 new findings and the lint and the
+    // codebase can move separately. Step 2 flips this to always-on.
+    if (SAME_SKILL_CHECK && t.kind === 'skill' && t.primary &&
+        line.includes('${CLAUDE_PLUGIN_ROOT}/skills/' + t.name + '/')) {
+      add('C3-install-path', t, lineno, `same-skill reference uses \${CLAUDE_PLUGIN_ROOT}/skills/${t.name}/; portable form is bare relative (references/<file>.md)`);
     }
   });
 }
