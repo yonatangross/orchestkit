@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.69](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.68...v10.0.0-alpha.69) (2026-09-01)
+
+
+### Miscellaneous
+
+* **agents:** pin 15 agent model tiers (2026-09-01 routing) ([#3872](https://github.com/yonatangross/orchestkit/issues/3872)) ([f8b94b1](https://github.com/yonatangross/orchestkit/commit/f8b94b18b8925f966d918b83ccc914ae8edfbb82))
+
 ## [10.0.0-alpha.68](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.67...v10.0.0-alpha.68) (2026-09-01)
 
 

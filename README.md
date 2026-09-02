@@ -370,6 +370,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.69](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.68...v10.0.0-alpha.69)** · 2026-09-01
+
+- **agents:** pin 15 agent model tiers (2026-09-01 routing) (#3872)
+
 **[v10.0.0-alpha.68](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.67...v10.0.0-alpha.68)** · 2026-09-01
 
 - **cc:** CC 2.1.257 follow-ups on top of the adoption PR (#3871)
@@ -421,10 +425,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **hooks:** a maxTurns stop is a partial result, continue the agent (CC 2.1.246) (#3796)
 - **hooks:** asyncRewake on the three background verifiers (#3800)
 - …and 16 more (see [CHANGELOG.md](CHANGELOG.md))
-
-**[v10.0.0-alpha.61](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.60...v10.0.0-alpha.61)** · 2026-08-25
-
-- **ork-codex:** ship ork-implement and one install matrix (#3753)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
