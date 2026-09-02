@@ -77,14 +77,58 @@ jobs:
       # the very next release because neither this roster nor release-please
       # extra-files knew the file existed. A generated file outside this list is
       # a file CI rewrites and never diffs.
+      #
+      # Hook bundles are RELEASE-OWNED (#3578): src/hooks/dist/ and
+      # plugins/ork/hooks/dist/ are excluded from this roster on purpose. Every
+      # hooks PR used to commit the regenerated bundles, and because a bundle is
+      # a whole-file rewrite, two PRs touching any two hooks conflicted on the
+      # same four files; a conflicting PR has no merge ref and therefore gets no
+      # `pull_request` CI at all (measured on #3570: 14 runs, then 0). The
+      # bundles are now rebuilt only on the release-please branch
+      # (release-please.yml "Rebuild hook bundles on the release PR"), so
+      # feature PRs never touch them and never conflict on them. The next step
+      # enforces the other half: a feature PR must not carry a dist change.
       - name: Check for uncommitted build changes
         run: |
-          GENERATED=(plugins/ src/hooks/dist/ README.md docs/site/lib/generated/ plugin.json)
+          GENERATED=(plugins/ ':!plugins/ork/hooks/dist' README.md docs/site/lib/generated/ plugin.json)
           if ! git diff --quiet -- "${GENERATED[@]}"; then
             echo "::error::Build drift detected! Run 'npm run build' and commit the changes (${GENERATED[*]})."
             git diff --stat -- "${GENERATED[@]}"
             exit 1
           fi
+
+      # The other half of #3578. HEAD here is the PR's merge ref (base + PR).
+      # Feature PR: the committed bundles must equal the base's bundles, so
+      # `git diff BASE HEAD -- dist` must be empty. Release-please PR: the
+      # bundles must equal a fresh build (the step above just built one), the
+      # one place they are allowed, and required, to change. Pushes to main are
+      # not gated: main's bundles are stale by design between releases.
+      - name: Check hook bundles are release-owned (#3578)
+        if: github.event_name == 'pull_request'
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -uo pipefail
+          DIST=(src/hooks/dist plugins/ork/hooks/dist)
+          if [[ "$HEAD_REF" == release-please--* ]]; then
+            if ! git diff --quiet -- "${DIST[@]}"; then
+              echo "::error::Release branch carries stale hook bundles. release-please.yml's rebuild step has not landed on this head yet; it re-runs on every push to main, so re-check after the next run or dispatch release-please.yml."
+              git diff --stat -- "${DIST[@]}"
+              exit 1
+            fi
+            echo "Release branch: hook bundles match a fresh build."
+            exit 0
+          fi
+          git fetch --quiet --depth=1 origin "$BASE_SHA"
+          CHANGED=$(git diff --name-only "$BASE_SHA" HEAD -- "${DIST[@]}")
+          if [[ -n "$CHANGED" ]]; then
+            echo "::error::This PR changes hook bundles, which are release-owned (#3578). Keep the local build for tests, but restore the committed copies and commit only src/:"
+            echo "::error::  git checkout ${BASE_SHA} -- ${DIST[*]} && git commit -m 'chore: drop release-owned hook bundles from PR'"
+            echo "$CHANGED"
+            exit 1
+          fi
+          echo "Feature PR: hook bundles untouched."
 
       - name: Upload built plugins
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1

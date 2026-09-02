@@ -29,6 +29,20 @@ export const LAB_ENTRIES: LabEntry[] = [
     "sizeKb": 11
   },
   {
+    "slug": "dist-release-owned",
+    "title": "Four files every hooks PR rewrote, and the CI that went silent",
+    "description": "Why committed hook bundles made every hooks PR conflict-prone, why a conflicting PR gets zero CI, and the fix: the bundles become release-owned, rebuilt only on the release-please branch, with a required gate that fails any feature PR carrying them.",
+    "tags": [
+      "ci",
+      "hooks",
+      "git"
+    ],
+    "date": "2026-09-02",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 10
+  },
+  {
     "slug": "cc-257-followups",
     "title": "Three follow-ups CC 2.1.257 asked for: a prompt that lied, a read boundary, an alias",
     "description": "fable-spend-consent goes silent when CLAUDE_CODE_SUBAGENT_MODEL_FORCE makes the pin inert (simulate a spawn), doctor reports the new read boundary and warns when ~/.claude is not covered, and the fable alias moves to 5.1 because the recency ratchet never blocked it.",

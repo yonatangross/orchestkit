@@ -180,7 +180,8 @@ rebuild_plugins() {
 stage_changes() {
   echo "Staging changes..."
   cd "$PROJECT_ROOT"
-  git add plugins/ src/hooks/dist/ docs/site/ 2>/dev/null || true
+  # Hook bundles are release-owned (#3578): never staged from here.
+  git add plugins/ ':!plugins/ork/hooks/dist' docs/site/ 2>/dev/null || true
   git add .claude-plugin/marketplace.json 2>/dev/null || true
   git add manifests/*.json 2>/dev/null || true
   git add pyproject.toml CLAUDE.md CHANGELOG.md package.json 2>/dev/null || true

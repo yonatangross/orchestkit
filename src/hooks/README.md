@@ -92,7 +92,7 @@ hooks/
 │   ├── setup/              # Setup and maintenance hooks (9)
 │   ├── agent/              # Agent-specific hooks (5)
 │   └── skill/              # Skill validation hooks (22)
-├── dist/                   # Compiled output (11 split bundles)
+├── dist/                   # Compiled output (11 split bundles); release-owned, never committed from a feature branch (#3578)
 │   ├── permission.mjs      # Permission bundle (8KB)
 │   ├── pretool.mjs         # PreToolUse bundle (48KB)
 │   ├── posttool.mjs        # PostToolUse bundle (58KB)
@@ -346,7 +346,9 @@ export function getEnvFile(): string {
 ### Building
 
 ```bash
-# Build production bundle (minified)
+# Build production bundle (minified). The output under dist/ is release-owned
+# (#3578): keep it on disk for tests, do not commit it; the release-please
+# branch rebuilds it and CI fails a feature PR that changes it.
 npm run build
 
 # Build and watch for changes (development)
@@ -1406,6 +1408,8 @@ OrchestKit hooks are managed defaults. Users retain full control to disable any 
 See the async hooks section above for detailed async hook patterns.
 
 ## Registry changelog (archived from hooks.json description, 2026-07-18)
+
+(count unchanged at 172, 2026-09-02, #3578 hook bundles become release-owned): no hook changed; the artifact policy did. Every hooks PR committed the regenerated `src/hooks/dist/*.mjs` + `bundle-stats.json` and their `plugins/ork/hooks/dist/` mirror, and because a bundle is a whole-file rewrite, any two PRs touching any two hooks conflicted on the same four files. A conflicting PR has no merge ref, so GitHub fires no `pull_request` event and runs no CI (measured on #3570: 14 runs on the mergeable head, 0 on the conflicting one, `pull_request_target` still 2). Measured over the 30 days before this change: 88 of 372 commits on main touched the bundles. From now on feature PRs never commit them: ci.yml's Build drift roster excludes both dist paths and a new required step "Check hook bundles are release-owned" fails a PR whose merge ref changes them against the base; `skill-autobuild.yml`'s heal roster excludes them; `bin/git-hooks/pre-commit` section 9 refuses them staged (`ORK_DIST_COMMIT=1` for automation); `bump-version.sh` no longer stages them. The single writer is `release-please.yml`'s new step "Rebuild hook bundles on the release PR": on every push to main it checks out the bot-authored release branch, refuses to build unless the branch differs from `origin/main` only in release-owned paths (so no branch code runs with the App token in scope; the token is also stripped from the build env), runs `npm ci` + `npm run build`, and commits `chore(dist): rebuild hook bundles for the release (#3578)` when the bundles moved. On the release PR the same ci.yml step flips meaning and requires the bundles to equal a fresh build, so a release can never ship stale bundles: the bot step is best-effort, the gate is required. Consequence to know: between releases, main's committed bundles are stale relative to `src/hooks/src` by design; every CI job already builds from source before testing (`install-hooks-deps: 'true'`), and installs pin release tags, which are exactly the commits that carry fresh bundles.
 
 The registry's change history used to accumulate inside the `description` field of `hooks.json`, which made the count unreadable and the JSON diff-hostile. The field now carries only the stamped count line; history continues here.
 
