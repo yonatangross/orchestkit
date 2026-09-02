@@ -154,6 +154,20 @@ export const LAB_ENTRIES: LabEntry[] = [
     "sizeKb": 6
   },
   {
+    "slug": "vercel-preview-stub-fallback",
+    "title": "One pin, two environments: why every preview build broke at install",
+    "description": "Restoring the real analytics package fixed production and broke every Vercel preview build in the same hour, because the registry token lives on Production only. The install step now falls back to the no-op stub on a 401.",
+    "tags": [
+      "ci",
+      "vercel",
+      "analytics"
+    ],
+    "date": "2026-09-02",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 4
+  },
+  {
     "slug": "cc-257-followups",
     "title": "Three follow-ups CC 2.1.257 asked for: a prompt that lied, a read boundary, an alias",
     "description": "fable-spend-consent goes silent when CLAUDE_CODE_SUBAGENT_MODEL_FORCE makes the pin inert (simulate a spawn), doctor reports the new read boundary and warns when ~/.claude is not covered, and the fable alias moves to 5.1 because the recency ratchet never blocked it.",
