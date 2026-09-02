@@ -17,6 +17,31 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.71",
+    "date": "2026-09-02",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "**cc:** adopt CC 2.1.258, latest_known to 2.1.258 ([#3883](https://github.com/yonatangross/orchestkit/issues/3883)) ([6752906](https://github.com/yonatangross/orchestkit/commit/6752906fea148ab174cc4b910d1de7e715522d8f))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**configure:** record the measured prompt-cache TTL verdict ([#3876](https://github.com/yonatangross/orchestkit/issues/3876)) ([#3881](https://github.com/yonatangross/orchestkit/issues/3881)) ([78d61af](https://github.com/yonatangross/orchestkit/commit/78d61af8471a64ad089a6416548fe14ea0e05f77))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**probe:** pin the model price table to the binary's pricing tiers ([#3885](https://github.com/yonatangross/orchestkit/issues/3885)) ([5d53ea9](https://github.com/yonatangross/orchestkit/commit/5d53ea9b7066272b054247887b521183db3f96ff)), closes [#3878](https://github.com/yonatangross/orchestkit/issues/3878)"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.70",
     "date": "2026-09-02",
     "compareUrl": "",
