@@ -17,6 +17,34 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.72",
+    "date": "2026-09-02",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**doctor:** warn when a project scope turns the sandbox off ([#3877](https://github.com/yonatangross/orchestkit/issues/3877)) ([#3887](https://github.com/yonatangross/orchestkit/issues/3887)) ([16221f1](https://github.com/yonatangross/orchestkit/commit/16221f1bc5f97b34c74e7dd8e1741e34f3af94b7))",
+          "**hooks:** honour CC managed modelPricing in the cost estimator ([#3889](https://github.com/yonatangross/orchestkit/issues/3889)) ([cc619bd](https://github.com/yonatangross/orchestkit/commit/cc619bd3e69d0dc8ec08fbdd28493cbdf9aac8ee)), closes [#3878](https://github.com/yonatangross/orchestkit/issues/3878)",
+          "**site:** real analytics pin + install_copied/star_clicked (A1-A3) ([#3882](https://github.com/yonatangross/orchestkit/issues/3882)) ([2868be7](https://github.com/yonatangross/orchestkit/commit/2868be7f2563c488fb55c6f7c4a815c17a616bcc))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**skills:** accept relative and SKILL_DIR paths in the lint ([#3822](https://github.com/yonatangross/orchestkit/issues/3822) step 1) ([#3890](https://github.com/yonatangross/orchestkit/issues/3890)) ([bc042f2](https://github.com/yonatangross/orchestkit/commit/bc042f251097a8f04b3fc8b5c1baf5af74a57d20))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**deps:** weekly upstream pin sync ([#3886](https://github.com/yonatangross/orchestkit/issues/3886)) ([22e7b14](https://github.com/yonatangross/orchestkit/commit/22e7b14d2e49223d98568f8a44a829fb8f537f8d))",
+          "**hooks:** delete deprecated generate-http-hooks CLI (channel 1) ([#3888](https://github.com/yonatangross/orchestkit/issues/3888)) ([cd56e69](https://github.com/yonatangross/orchestkit/commit/cd56e69498c9ad3efa9652fe7b0b6c913eacf59f))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.71",
     "date": "2026-09-02",
     "compareUrl": "",

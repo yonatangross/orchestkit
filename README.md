@@ -370,6 +370,15 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.72](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.71...v10.0.0-alpha.72)** · 2026-09-02
+
+- **doctor:** warn when a project scope turns the sandbox off (#3877) (#3887)
+- **hooks:** honour CC managed modelPricing in the cost estimator (#3889), closes [#3878](https://github.com/yonatangross/orchestkit/issues/3878)
+- **site:** real analytics pin + install_copied/star_clicked (A1-A3) (#3882)
+- **skills:** accept relative and SKILL_DIR paths in the lint ([#3822](https://github.com/yonatangross/orchestkit/issues/3822) step 1) (#3890)
+- **deps:** weekly upstream pin sync (#3886)
+- …and 1 more (see [CHANGELOG.md](CHANGELOG.md))
+
 **[v10.0.0-alpha.71](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.70...v10.0.0-alpha.71)** · 2026-09-02
 
 - **cc:** adopt CC 2.1.258, latest_known to 2.1.258 (#3883)
@@ -415,12 +424,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **hooks:** redact-secrets reads tool_response, the field CC sends (#3815), closes [#3725](https://github.com/yonatangross/orchestkit/issues/3725)
 - **hooks:** paperwork for [#3725](https://github.com/yonatangross/orchestkit/issues/3725), the redact-secrets read order fix (#3818)
-
-**[v10.0.0-alpha.64](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.63...v10.0.0-alpha.64)** · 2026-08-30
-
-- **hooks:** cross-instance-test-validator checks the session's files at Stop (#3812)
-- **hooks:** CLAUDE_ENV_FILE exports reach Bash only, not later hooks (#3814), closes [#3806](https://github.com/yonatangross/orchestkit/issues/3806)
-- **playgrounds:** land three 2026-08-29 session explainers (#3811)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
