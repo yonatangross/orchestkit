@@ -351,8 +351,22 @@ the PR is still a draft.
 H="${CLAUDE_PLUGIN_ROOT}/skills/create-pr/scripts/coderabbit-harvest.sh"
 PR_NUMBER=$(gh pr view --json number -q .number)
 bash "$H" "$PR_NUMBER" --unresolved > /tmp/cr-threads.json   # ONE GraphQL call, coderabbitai only
-jq length /tmp/cr-threads.json                                  # 0 → continue to merge
+jq length /tmp/cr-threads.json                                  # 0 → see below, then merge
 ```
+
+A zero here is ambiguous: CodeRabbit read the diff and found nothing, or CodeRabbit never
+saw the PR. Both print `0`, and the phase treats both as clean, so a repo the app cannot
+reach passes this gate on every PR forever. Measured on this repo 2026-09-03: a valid
+`.coderabbit.yaml` had been on `main` since 2026-08-25 while CodeRabbit had posted zero
+comments in the repo's entire history and ignored an explicit `@coderabbitai review`, so
+the app is either uninstalled on the `yonatangross` account or disabled account-side.
+Note what that verdict does NOT say: absence never proves absence from a session, only the
+settings page separates those two. The first time a repo's harvest returns zero,
+disambiguate with
+`Read("${CLAUDE_PLUGIN_ROOT}/skills/create-pr/references/coderabbit-zero-reviews.md")`:
+it carries the two-endpoint query, the positive control that keeps a zero honest, and the
+operator steps for the installation grant. Editing `.coderabbit.yaml` cannot fix an app
+that was never installed.
 
 For each unresolved thread, spawn a refuter in ONE message: an isolated `Agent` (no
 `team_name`), `subagent_type="ork:code-quality-reviewer"` (`ork:security-auditor` for a
@@ -439,3 +453,4 @@ Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/create-pr/references/<fi
 | `references/multi-commit-pr.md` | Multi-commit PR guidance |
 | `assets/pr-template.md` | PR template (legacy) |
 | `scripts/coderabbit-harvest.sh` | CodeRabbit threads: read (one GraphQL call), `--reply`, `--resolve` |
+| `references/coderabbit-zero-reviews.md` | Harvest returned zero: reviewed clean, or never reviewed? |

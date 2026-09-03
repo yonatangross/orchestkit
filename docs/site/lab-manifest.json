@@ -2,6 +2,18 @@
   "$comment": "Allowlist for the Lab gallery (docs/showcase/lab). Only entries listed here are copied to public/lab/ and surfaced on the site. `source` is repo-root-relative. Title/description here OVERRIDE what generate-lab-data.mjs extracts from the HTML <head>. Run `node docs/site/scripts/generate-lab-data.mjs` after editing.",
   "entries": [
     {
+      "slug": "coderabbit-never-installed",
+      "source": "docs/fix--coderabbit-live/index.html",
+      "title": "A valid config is not a running reviewer: CodeRabbit was never installed on orchestkit",
+      "description": "orchestkit carried a valid .coderabbit.yaml on main since 2026-08-25 and zero CodeRabbit comments in its entire history, while Yonatan-HQ/platform got CodeRabbit on 238 of its 311 non-bot PRs over the same window. The GitHub App grant is per owner account, so no edit to the config could ever have reached it.",
+      "tags": [
+        "ci",
+        "code-review",
+        "coderabbit"
+      ],
+      "date": "2026-09-03"
+    },
+    {
       "slug": "vercel-preview-stub-fallback",
       "source": "docs/fix--vercel-preview-stub-fallback/index.html",
       "title": "One pin, two environments: why every preview build broke at install",

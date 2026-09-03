@@ -71,6 +71,20 @@ export const LAB_ENTRIES: LabEntry[] = [
     "sizeKb": 7
   },
   {
+    "slug": "coderabbit-never-installed",
+    "title": "A valid config is not a running reviewer: CodeRabbit was never installed on orchestkit",
+    "description": "orchestkit carried a valid .coderabbit.yaml on main since 2026-08-25 and zero CodeRabbit comments in its entire history, while Yonatan-HQ/platform got CodeRabbit on 238 of its 311 non-bot PRs over the same window. The GitHub App grant is per owner account, so no edit to the config could ever have reached it.",
+    "tags": [
+      "ci",
+      "code-review",
+      "coderabbit"
+    ],
+    "date": "2026-09-03",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 9
+  },
+  {
     "slug": "feat--gemini-38-flash-pricing",
     "title": "Gemini 3.8 Flash gets its own pricing row",
     "description": "How the cost-estimator resolves a model id to a pricing row, why gemini-3.8-flash needed its own row instead of the sonnet fallback or a substring neighbour, what the promo price does on 2027-01-01, and where the id landed in the routing surfaces.",
