@@ -13,6 +13,23 @@
 # Ported from Yonatan-HQ/platform's .coderabbit.yaml, with the defect classes
 # rewritten for this stack: TypeScript hooks, shell test harnesses, and
 # markdown skills/agents rather than a Python API.
+#
+# THIS FILE IS INERT UNTIL THE APP IS INSTALLED ON THE OWNER ACCOUNT, and its
+# presence is not evidence that anything reads it. Measured 2026-09-03: this
+# config had been on main since 2026-08-25 (#3746) and CodeRabbit had posted
+# ZERO comments in the repo's entire history, on either the issue-comment or
+# the PR-review-comment surface. Every review comment on record here is from
+# github-advanced-security[bot] (56) or Copilot (9). Over the same window
+# Yonatan-HQ/platform had CodeRabbit on 238 of 311 non-bot PRs, so the
+# subscription was live the whole time; the installation is scoped per OWNER
+# ACCOUNT, and the org grant covering Yonatan-HQ never covered the personal
+# yonatangross account that owns this repo. No edit below this line can fix
+# that. The grant lives at https://github.com/settings/installations.
+#
+# orchestkit is PUBLIC, and CodeRabbit reviews public repositories for free
+# (coderabbit.ai/pricing, read 2026-09-03), so installing it here costs no
+# seat. Diagnostic ladder, with the positive control that keeps a zero honest:
+# src/skills/create-pr/references/coderabbit-zero-reviews.md
 
 language: "en-US"
 
