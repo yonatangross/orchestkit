@@ -67,28 +67,47 @@ if [[ ! -d "$DOCS_SITE/node_modules/@mdx-js/mdx" ]]; then
 
   if [[ $npm_exit -ne 0 ]]; then
     if grep -qE "401 Unauthorized|E401|unauthenticated" "$INSTALL_LOG"; then
-      echo "  ${YELLOW}⚠${NC} npm ci hit 401 on @yonatan-hq/analytics — swapping to local stub and regenerating lockfile"
-      # Deterministic fallback: swap analytics to the local file: stub, drop
-      # the bumped lockfile, regenerate with --package-lock-only, then npm ci.
-      # Once analytics points at a file: path, no @yonatan-hq registry lookups
-      # happen — the .npmrc auth requirement no longer applies and `npm
-      # install` succeeds without NPM_TOKEN. `--ignore-scripts` skips
-      # fumadocs-mdx's postinstall (which would fail at the lockfile-only
-      # stage with no node_modules yet).
+      echo "  ${YELLOW}⚠${NC} npm ci hit 401 on @yonatan-hq/analytics — swapping to local stub"
+      # Swap analytics to the local file: stub and let `npm install` reconcile
+      # package.json against the EXISTING lockfile. Once analytics points at a
+      # file: path, no @yonatan-hq registry lookups happen, so the .npmrc auth
+      # requirement no longer applies and the install succeeds without
+      # NPM_TOKEN. `--ignore-scripts` skips fumadocs-mdx's postinstall.
       #
-      # PR #1426 noted that `npm install --package-lock-only` was tried and
-      # failed — but only WITHOUT swapping analytics first. After the swap
-      # there are no @yonatan-hq registry calls and regeneration succeeds.
-      # The committed package-lock.stub.json was deleted alongside this
-      # change because it trapped every dependabot bump (#1630).
+      # KEEP THE LOCKFILE. This block used to `rm -f package-lock.json` and
+      # rebuild with `--package-lock-only`, which threw away a pinned graph of
+      # ~700 packages in order to change ONE entry, and re-resolved all of it
+      # live from the registry. npm 10.9.8, which `actions/setup-node` gives
+      # node 22, crashes on that walk:
+      #   TypeError: Cannot read properties of null (reading 'edgesOut')
+      #     at #loadPeerSet (@npmcli/arborist/lib/arborist/build-ideal-tree.js:1289)
+      # Reproduced 2026-09-03 under npm 10.9.8 (rc=1) against the same tree
+      # where npm 10.8.2 (node 20) and npm 11.19.0 both pass, which is why only
+      # the node-22 matrix leg went red. Because there was no lockfile to pin
+      # it, the resolution was exposed to registry peer-dep drift: the same
+      # commit passed at 09:03Z and failed at 12:52Z with the same npm.
+      # Keeping the lockfile re-resolves only the changed entry, never enters
+      # the whole-tree peer-set walk, and is version-independent. (#3913)
+      #
+      # Deleting the lockfile also turned one red test into two: the delete
+      # happened before anything could regenerate it, so every failure mode of
+      # this block left the tree short a tracked file and test-sync-versions.sh
+      # then died on `tar: docs/site/package-lock.json: Cannot stat`.
+      #
+      # Full output is captured, and printed on failure. `| tail -3` used to
+      # discard the stack, which is what made this undiagnosable from CI logs.
+      STUB_LOG=$(mktemp "${TMPDIR:-/tmp}/ork-stub.XXXXXX")
       (cd "$DOCS_SITE" \
         && npm pkg set 'dependencies.@yonatan-hq/analytics=file:../stubs/analytics-stub' >/dev/null \
-        && rm -f package-lock.json \
-        && npm install --no-audit --no-fund --package-lock-only --ignore-scripts 2>&1 | tail -3 \
-        && npm ci --no-audit --no-fund 2>&1 | tail -3) || {
-        fail "stub-regen + npm ci failed in docs/site"
+        && npm install --no-audit --no-fund --ignore-scripts) >"$STUB_LOG" 2>&1 || {
+        echo "  ── npm output (last 40 lines) ──"
+        tail -40 "$STUB_LOG"
+        rm -f "$STUB_LOG"
+        fail "stub swap + npm install failed in docs/site"
         exit 1
       }
+      tail -3 "$STUB_LOG"
+      rm -f "$STUB_LOG"
     else
       tail -10 "$INSTALL_LOG"
       fail "npm install failed in docs/site (not auth-related — see log above)"
