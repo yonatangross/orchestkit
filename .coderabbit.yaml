@@ -19,12 +19,17 @@
 # config had been on main since 2026-08-25 (#3746) and CodeRabbit had posted
 # ZERO comments in the repo's entire history, on either the issue-comment or
 # the PR-review-comment surface. Every review comment on record here is from
-# github-advanced-security[bot] (56) or Copilot (9). Over the same window
+# github-advanced-security[bot] (56) or Copilot (9), and an explicit
+# @coderabbitai review on #3912 went unanswered. Over the same window
 # Yonatan-HQ/platform had CodeRabbit on 238 of 311 non-bot PRs, so the
-# subscription was live the whole time; the installation is scoped per OWNER
-# ACCOUNT, and the org grant covering Yonatan-HQ never covered the personal
-# yonatangross account that owns this repo. No edit below this line can fix
-# that. The grant lives at https://github.com/settings/installations.
+# subscription was live the whole time. CodeRabbit is therefore either
+# uninstalled on the yonatangross account or disabled account-side; a session
+# cannot tell those apart, because both post nothing and
+# `gh api /user/installations` is 403 on a normal token. The leading hypothesis
+# is the grant, since installation is scoped per OWNER ACCOUNT and the org
+# install covering Yonatan-HQ does not reach a user-owned repo. Either way no
+# edit below this line can fix it. Both live at
+# https://github.com/settings/installations and https://app.coderabbit.ai.
 #
 # orchestkit is PUBLIC, and CodeRabbit reviews public repositories for free
 # (coderabbit.ai/pricing, read 2026-09-03), so installing it here costs no

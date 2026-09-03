@@ -378,9 +378,11 @@ A zero here is ambiguous: CodeRabbit read the diff and found nothing, or CodeRab
 saw the PR. Both print `0`, and the phase treats both as clean, so a repo the app cannot
 reach passes this gate on every PR forever. Measured on this repo 2026-09-03: a valid
 `.coderabbit.yaml` had been on `main` since 2026-08-25 while CodeRabbit had posted zero
-comments in the repo's entire history, because the GitHub App was installed on the
-`Yonatan-HQ` org and never on the `yonatangross` account that owns it. The first time a
-repo's harvest returns zero, disambiguate with
+comments in the repo's entire history and ignored an explicit `@coderabbitai review`, so
+the app is either uninstalled on the `yonatangross` account or disabled account-side.
+Note what that verdict does NOT say: absence never proves absence from a session, only the
+settings page separates those two. The first time a repo's harvest returns zero,
+disambiguate with
 `Read("${CLAUDE_PLUGIN_ROOT}/skills/create-pr/references/coderabbit-zero-reviews.md")`:
 it carries the two-endpoint query, the positive control that keeps a zero honest, and the
 operator steps for the installation grant. Editing `.coderabbit.yaml` cannot fix an app
