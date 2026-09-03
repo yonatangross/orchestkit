@@ -5,6 +5,23 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.73](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.72...v10.0.0-alpha.73) (2026-09-02)
+
+
+### Features
+
+* **pricing:** adopt gemini-3.8-flash as its own pricing row ([#3905](https://github.com/yonatangross/orchestkit/issues/3905)) ([725471b](https://github.com/yonatangross/orchestkit/commit/725471bdf361a192333d8fd343f1215ff3fc48cd))
+
+
+### Bug Fixes
+
+* **pricing:** a hyphenated suffix never inherits a shorter model's row ([#3909](https://github.com/yonatangross/orchestkit/issues/3909)) ([59af1fb](https://github.com/yonatangross/orchestkit/commit/59af1fb15ae58d8b18c35dda264813a8a5f8fc36))
+
+
+### Documentation
+
+* **doctor:** repoint the model-routing reference at the live sources ([#3908](https://github.com/yonatangross/orchestkit/issues/3908)) ([6c48343](https://github.com/yonatangross/orchestkit/commit/6c4834313c6d50b776fab2a97401958a2cc5d960))
+
 ## [10.0.0-alpha.72](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.71...v10.0.0-alpha.72) (2026-09-02)
 
 

@@ -17,6 +17,31 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.73",
+    "date": "2026-09-02",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**pricing:** adopt gemini-3.8-flash as its own pricing row ([#3905](https://github.com/yonatangross/orchestkit/issues/3905)) ([725471b](https://github.com/yonatangross/orchestkit/commit/725471bdf361a192333d8fd343f1215ff3fc48cd))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**pricing:** a hyphenated suffix never inherits a shorter model's row ([#3909](https://github.com/yonatangross/orchestkit/issues/3909)) ([59af1fb](https://github.com/yonatangross/orchestkit/commit/59af1fb15ae58d8b18c35dda264813a8a5f8fc36))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**doctor:** repoint the model-routing reference at the live sources ([#3908](https://github.com/yonatangross/orchestkit/issues/3908)) ([6c48343](https://github.com/yonatangross/orchestkit/commit/6c4834313c6d50b776fab2a97401958a2cc5d960))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.72",
     "date": "2026-09-02",
     "compareUrl": "",

@@ -370,6 +370,12 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.73](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.72...v10.0.0-alpha.73)** · 2026-09-02
+
+- **pricing:** adopt gemini-3.8-flash as its own pricing row (#3905)
+- **pricing:** a hyphenated suffix never inherits a shorter model's row (#3909)
+- **doctor:** repoint the model-routing reference at the live sources (#3908)
+
 **[v10.0.0-alpha.72](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.71...v10.0.0-alpha.72)** · 2026-09-02
 
 - **doctor:** warn when a project scope turns the sandbox off (#3877) (#3887)
@@ -419,11 +425,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **hooks:** runner names a dist bundle that exists but cannot load (#3819), closes [#3817](https://github.com/yonatangross/orchestkit/issues/3817)
 - **hooks:** task nudge gives up after N unanswered prompts (#3832), closes [#3733](https://github.com/yonatangross/orchestkit/issues/3733)
 - …and 10 more (see [CHANGELOG.md](CHANGELOG.md))
-
-**[v10.0.0-alpha.65](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.64...v10.0.0-alpha.65)** · 2026-08-30
-
-- **hooks:** redact-secrets reads tool_response, the field CC sends (#3815), closes [#3725](https://github.com/yonatangross/orchestkit/issues/3725)
-- **hooks:** paperwork for [#3725](https://github.com/yonatangross/orchestkit/issues/3725), the redact-secrets read order fix (#3818)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
