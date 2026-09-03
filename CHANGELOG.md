@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.74](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.73...v10.0.0-alpha.74) (2026-09-03)
+
+
+### Features
+
+* **create-pr:** CodeRabbit harvest stage, refute then fix or dismiss, resolve every thread ([#3910](https://github.com/yonatangross/orchestkit/issues/3910)) ([cb2e99f](https://github.com/yonatangross/orchestkit/commit/cb2e99fcd22da79895c25e5a9eb904ae85165c72))
+
+
+### Documentation
+
+* **create-pr:** a zero from the harvest can mean never reviewed ([#3912](https://github.com/yonatangross/orchestkit/issues/3912)) ([56029de](https://github.com/yonatangross/orchestkit/commit/56029dec60fd15cceed2b53f7fa7565a2927dd22))
+
 ## [10.0.0-alpha.73](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.72...v10.0.0-alpha.73) (2026-09-02)
 
 
