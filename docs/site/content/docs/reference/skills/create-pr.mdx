@@ -345,6 +345,43 @@ CronCreate(
 )
 ```
 
+### CodeRabbit harvest (after checks green, before merge or auto-merge)
+
+CodeRabbit reviews expire unread: on Yonatan-HQ/platform (last 80 PRs, measured 2026-09-02)
+23 of the 24 PRs it reviewed merged with every thread still open. This phase reads the threads
+once, refutes each, and closes every one with a stated outcome. Run it after CI is green and
+before `gh pr merge` or arming `--auto`. Skip only when the repo has no `.coderabbit.yaml` or
+the PR is still a draft.
+
+```bash
+H="${CLAUDE_PLUGIN_ROOT}/skills/create-pr/scripts/coderabbit-harvest.sh"
+PR_NUMBER=$(gh pr view --json number -q .number)
+bash "$H" "$PR_NUMBER" --unresolved > /tmp/cr-threads.json   # ONE GraphQL call, coderabbitai only
+jq length /tmp/cr-threads.json                                  # 0 → continue to merge
+```
+
+For each unresolved thread, spawn a refuter in ONE message: an isolated `Agent` (no
+`team_name`), `subagent_type="ork:code-quality-reviewer"` (`ork:security-auditor` for a
+security category). Give it `path`, `line`, `title`, `body`, and the diff slice
+`git diff origin/$BASE...HEAD -- &lt;path&gt;`; instruct it to REFUTE the finding against that diff
+and return `\{"refuted": true|false, "reason": "&lt;one sentence&gt;"\}`, defaulting to `refuted: true`
+when the failure scenario cannot be reproduced. Refuters never edit files.
+
+| Outcome | Action on the branch | Reply on the thread |
+|---|---|---|
+| Survived (`refuted: false`) | Fix in the same branch, commit, push | `Fixed in &lt;sha&gt;: &lt;one line&gt;` |
+| Refuted (`refuted: true`) | Nothing | `Dismissed: &lt;the one-sentence reason&gt;` |
+
+```bash
+bash "$H" "$PR_NUMBER" --reply "$THREAD_ID" "Fixed in $(git rev-parse --short HEAD): <what changed>"
+bash "$H" "$PR_NUMBER" --resolve "$THREAD_ID"       # every thread, fixed or dismissed
+bash "$H" "$PR_NUMBER" --unresolved | jq length     # must print 0 before proceeding
+```
+
+A fix push re-runs CI, so re-verify green afterwards. CodeRabbit may post new threads on the
+fix commit; give those exactly one more pass, then dismiss the rest with `Deferred to #&lt;issue&gt;`
+and a filed issue, so the phase terminates instead of looping.
+
 ### Handoff File
 
 Write PR details for downstream skills:
@@ -387,6 +424,7 @@ Done means all of these hold:
 - Pre-flight validation for the chosen PR type passed locally before creation (skipped only for the Quick type)
 - Playground HTML exists at docs/\{branch-dir\}/*.html and the body links it (required for non-bot PRs)
 - `gh pr view --json url` returns the created PR URL
+- Every CodeRabbit thread on the PR is resolved, with a reply naming the fix sha or the dismissal reason (`scripts/coderabbit-harvest.sh --unresolved` prints `[]`)
 
 ## Related Skills
 
@@ -407,6 +445,7 @@ Load on demand with `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/create-pr/references/&
 | `references/ci-integration.md` | CI integration patterns |
 | `references/multi-commit-pr.md` | Multi-commit PR guidance |
 | `assets/pr-template.md` | PR template (legacy) |
+| `scripts/coderabbit-harvest.sh` | CodeRabbit threads: read (one GraphQL call), `--reply`, `--resolve` |
 
 
 ---

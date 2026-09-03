@@ -15,6 +15,20 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "feat--coderabbit-harvest-stage",
+    "title": "Reviews that expire unread: the CodeRabbit harvest stage in create-pr",
+    "description": "Measured on 80 platform PRs: CodeRabbit posted 65 threads on 24 PRs and 23 of those PRs merged with every thread still open. The new create-pr phase reads each thread once, refutes it against the diff, fixes or dismisses, and resolves every one before merge. Walk a sample PR through the contract and watch the unresolved count reach zero.",
+    "tags": [
+      "create-pr",
+      "code-review",
+      "github"
+    ],
+    "date": "2026-09-03",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 11
+  },
+  {
     "slug": "fix--pricing-suffix-inherit",
     "title": "A hyphen is a different product: closing the suffix-inherit hole in the cost estimator",
     "description": "getPricing() billed gemini-3.8-flash-cyber and -lite at the 3.8 Flash promo row through substring matching. Now only a bracketed session label may ride on a row; type any id and compare the old and new resolver side by side.",
