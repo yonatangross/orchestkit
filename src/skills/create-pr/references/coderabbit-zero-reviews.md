@@ -21,7 +21,13 @@ R=owner/repo
 # 1. Has CodeRabbit EVER commented here? Both endpoints, because they are different
 #    surfaces: summaries land as issue comments, findings as PR review comments.
 #    A single-endpoint read is structurally blind to half the answer.
-gh api --paginate "/repos/$R/issues/comments?per_page=100&since=2026-01-01T00:00:00Z" \
+#
+#    NO `since=`. It bounds the window, and it filters on updated_at rather than
+#    created_at, so a repo whose CodeRabbit activity predates the cutoff returns 0
+#    and reads exactly like a repo that was never installed. If you must bound it
+#    for rate-limit reasons, the answer you get is "none in that window", never
+#    "none ever", and the table below only accepts the unbounded form.
+gh api --paginate "/repos/$R/issues/comments?per_page=100" \
   --jq '.[] | select(.user.login=="coderabbitai[bot]") | (.issue_url|split("/")|last)' | sort -u | wc -l
 gh api --paginate "/repos/$R/pulls/comments?per_page=100" \
   --jq '.[] | select(.user.login=="coderabbitai[bot]") | (.pull_request_url|split("/")|last)' | sort -u | wc -l
@@ -30,24 +36,41 @@ gh api --paginate "/repos/$R/pulls/comments?per_page=100" \
 #    Without it, a zero is indistinguishable from a wrong query: the bot login is
 #    `coderabbitai[bot]`, and the bare `coderabbitai` form silently returns 0.
 
-# 3. Which apps actually act on this repo? An installed app with checks:write gets a
-#    check-suite on every push. CodeRabbit missing from this list while other apps
-#    appear is the installation signal.
+# 3. CORROBORATION ONLY, never proof on its own. GitHub creates a check-suite per
+#    installed app that has the checks permission; an installed app without it emits
+#    nothing, so a missing slug does not by itself mean "not installed" for an
+#    arbitrary app. It does mean it for CodeRabbit, but only because that was
+#    MEASURED: on Yonatan-HQ/platform, where CodeRabbit demonstrably reviews, the
+#    `coderabbitai` slug is present on every PR head checked (#11024, #11057, #11058).
+#    Run this against your control repo FIRST. If the slug is absent there too, this
+#    probe is inert for your setup and step 1 is the only evidence you have.
+#    Query check-SUITES, not check-RUNS: on those same platform PRs the check-runs
+#    app list is `github-actions` alone, because CodeRabbit opens a suite and files
+#    no runs in it.
 SHA=$(gh pr view <n> --repo "$R" --json headRefOid --jq .headRefOid)
 gh api "/repos/$R/commits/$SHA/check-suites?per_page=100" --jq '.check_suites[].app.slug' | sort -u
 ```
 
 ## Read the result
 
-| Signal | Meaning | Fix |
-|---|---|---|
-| Zero comments ever, on both endpoints, with a control that returns non-zero | App not installed for this repo's owner account | Operator installs it, below |
-| No `coderabbit` in the check-suite app list while other apps appear | Same | Same |
-| Comments exist but stopped on a date | Subscription lapsed, or the repo was dropped from the installation grant | Dashboard, below |
-| Comments exist and are recent, this PR has none | Real config exclusion: check `path_filters`, `ignore_title_keywords`, `ignore_usernames`, `base_branches`, `drafts` | `.coderabbit.yaml` |
+| Signal | Strength | Meaning | Fix |
+|---|---|---|---|
+| Zero comments, **unbounded** query, both endpoints, control returns non-zero | conclusive | App not installed for this repo's owner account | Operator installs it, below |
+| No `coderabbit` check-suite slug, **and** the control repo has one | corroborating | Agrees with the row above; cannot carry the diagnosis alone | Same |
+| Zero comments but the query carried a `since=` | **none** | Bounded window, not "ever". Re-run unbounded before concluding anything | rerun step 1 |
+| Comments exist but stopped on a date | conclusive | Subscription lapsed, or the repo was dropped from the installation grant | Dashboard, below |
+| Comments exist and are recent, this PR has none | conclusive | Real config exclusion: check `path_filters`, `ignore_title_keywords`, `ignore_usernames`, `base_branches`, `drafts` | `.coderabbit.yaml` |
 
-Only the last row is a config bug. The first three cannot be fixed by editing
-`.coderabbit.yaml`, and a valid config is not evidence of a running reviewer.
+Only the last row is a config bug, and only the rows marked conclusive may end the
+investigation. A valid config is not evidence of a running reviewer, and neither is a
+bounded zero or a missing check-suite on its own.
+
+The installation list itself is the one direct answer, and it is not reachable from a
+session: `gh api /user/installations` returns 403 on a normal user token ("must
+authenticate with an access token authorized to a GitHub App"). So the direct path is
+https://github.com/settings/installations and https://app.coderabbit.ai, both browser-only.
+When the browser is unavailable, step 1 with its control is the strongest evidence you can
+get, and the verdict should say so rather than implying the settings page was read.
 
 ## Installation is per owner account, not per repo
 
