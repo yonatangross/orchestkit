@@ -147,10 +147,19 @@ QUERY='query($owner: String!, $name: String!, $number: Int!) {
   }
 }'
 
-# Parses the body header for severity and the first bold line for the title.
-# Falls back to the header line (underscores stripped) when no bold line exists.
-# shellcheck disable=SC2016  # jq variables, not shell expansion
-JQ_THREADS='
+fetch_threads() {
+  local raw total
+  raw=$(gh api graphql -f query="$QUERY" -F owner="$OWNER" -F name="$NAME" -F number="$PR_NUMBER")
+  total=$(printf '%s' "$raw" | jq -r '.data.repository.pullRequest.reviewThreads.totalCount // 0')
+  if [[ "$total" -gt 100 ]]; then
+    echo "Warning: PR has $total review threads; only the first 100 were read" >&2
+  fi
+  # Parses the body header for severity and the first bold line for the title.
+  # Falls back to the header line (underscores stripped) when no bold line exists.
+  # The program is a single-quoted literal on purpose: tests/security/test-jq-injection.sh
+  # rejects a jq PROGRAM assembled from a shell variable.
+  # shellcheck disable=SC2016  # jq variables, not shell expansion
+  printf '%s' "$raw" | jq -c '
   .data.repository.pullRequest.reviewThreads.nodes
   | map(select((.comments.nodes[0].author.login // "") | test("^coderabbitai(\\[bot\\])?$")))
   | map(
@@ -173,15 +182,6 @@ JQ_THREADS='
         }
     )
 '
-
-fetch_threads() {
-  local raw total
-  raw=$(gh api graphql -f query="$QUERY" -F owner="$OWNER" -F name="$NAME" -F number="$PR_NUMBER")
-  total=$(printf '%s' "$raw" | jq -r '.data.repository.pullRequest.reviewThreads.totalCount // 0')
-  if [[ "$total" -gt 100 ]]; then
-    echo "Warning: PR has $total review threads; only the first 100 were read" >&2
-  fi
-  printf '%s' "$raw" | jq -c "$JQ_THREADS"
 }
 
 case "$MODE" in
