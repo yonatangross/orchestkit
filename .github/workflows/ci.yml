@@ -181,6 +181,13 @@ jobs:
       - name: Hook registry closure
         run: cd src/hooks && node scripts/validate-registry.mjs
 
+      # FH-ready handler policy (anthropics/claude-code#91870): new handlers take
+      # their I/O through HookContext or injected deps, never node:fs,
+      # node:child_process or fetch directly. Ratchet baseline in
+      # src/hooks/scripts/fh-ready-baseline.json only shrinks.
+      - name: FH-ready handler policy
+        run: cd src/hooks && node scripts/fh-ready-check.mjs
+
   # ============================================================================
   # STAGE 1b: Dependency Security Audit (BLOCKING)
   # ============================================================================
