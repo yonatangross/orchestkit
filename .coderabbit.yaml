@@ -13,6 +13,13 @@
 # Ported from Yonatan-HQ/platform's .coderabbit.yaml, with the defect classes
 # rewritten for this stack: TypeScript hooks, shell test harnesses, and
 # markdown skills/agents rather than a Python API.
+#
+# THIS FILE CONFIGURES THE APP, IT DOES NOT INSTALL IT. Measured 2026-09-04,
+# ten days after it landed: 0 of the 108 PRs between #3746 and #3910 carried a
+# coderabbitai comment, while the same search on Yonatan-HQ/platform returned
+# 252. The second reader never existed here. Check with
+#   bash src/skills/create-pr/scripts/coderabbit-harvest.sh <pr> --status
+# and install or grant the repo at https://github.com/apps/coderabbitai/installations/new.
 
 language: "en-US"
 

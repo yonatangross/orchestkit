@@ -7,7 +7,7 @@ argument-hint: "[title]"
 context: fork
 # user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
 background: false
-version: 2.6.0
+version: 2.7.0
 author: OrchestKit
 tags: [git, github, pull-request, pr, code-review]
 user-invocable: true
@@ -364,15 +364,30 @@ CronCreate(
 CodeRabbit reviews expire unread: on Yonatan-HQ/platform (last 80 PRs, measured 2026-09-02)
 23 of the 24 PRs it reviewed merged with every thread still open. This phase reads the threads
 once, refutes each, and closes every one with a stated outcome. Run it after CI is green and
-before `gh pr merge` or arming `--auto`. Skip only when the repo has no `.coderabbit.yaml` or
-the PR is still a draft.
+before `gh pr merge` or arming `--auto`.
+
+A `.coderabbit.yaml` is configuration, not evidence: it does not install the app. orchestkit
+carried one for ten days with CodeRabbit never installed (0 of 108 PRs with a coderabbitai
+comment, against 252 on platform with the same query, measured 2026-09-04), and every harvest
+read `[]` and reported clean. Gate on `--status` first. The read modes exit non-zero with
+nothing on stdout when CodeRabbit never reviewed the PR, so `[]` means exactly "reviewed, no
+open threads".
 
 ```bash
 H="${CLAUDE_PLUGIN_ROOT}/skills/create-pr/scripts/coderabbit-harvest.sh"
 PR_NUMBER=$(gh pr view --json number -q .number)
+bash "$H" "$PR_NUMBER" --status                                 # 0 reviewed, 3 never, 4 skipped, 5 pending
 bash "$H" "$PR_NUMBER" --unresolved > /tmp/cr-threads.json   # ONE GraphQL call, coderabbitai only
 jq length /tmp/cr-threads.json                                  # 0 → continue to merge
 ```
+
+| `--status` | Meaning | Action |
+|---|---|---|
+| `reviewed` (0) | CodeRabbit posted on this PR | Harvest below |
+| `never_reviewed` (3) | No PR in this repo carries a CodeRabbit comment: app not installed or not granted the repo | Write "CodeRabbit: not installed on this repo, harvest could not run" in the PR body and the final report. Do not claim the quality-bar item. Merge is not blocked (advisory lane) |
+| `skipped` (4) | Draft, ignored title, ignored author, or base outside `base_branches` | Undraft if that is the cause and re-run; otherwise state the reason and continue |
+| `pending` (5) | Repo has CodeRabbit history, this PR has none yet | Wait a few minutes or comment `@coderabbitai review`, re-run once |
+| `unobservable` (1) | The history search failed (auth, rate limit) | Report could-not-observe, never zero; retry later |
 
 For each unresolved thread, spawn a refuter in ONE message: an isolated `Agent` (no
 `team_name`), `subagent_type="ork:code-quality-reviewer"` (`ork:security-auditor` for a
@@ -438,7 +453,7 @@ Done means all of these hold:
 - Pre-flight validation for the chosen PR type passed locally before creation (skipped only for the Quick type)
 - Playground HTML exists at docs/{branch-dir}/*.html and the body links it (required for non-bot PRs)
 - `gh pr view --json url` returns the created PR URL
-- Every CodeRabbit thread on the PR is resolved, with a reply naming the fix sha or the dismissal reason (`scripts/coderabbit-harvest.sh --unresolved` prints `[]`)
+- Every CodeRabbit thread on the PR is resolved, with a reply naming the fix sha or the dismissal reason (`scripts/coderabbit-harvest.sh --unresolved` prints `[]`), or `--status` returned `never_reviewed` / `skipped` and the PR body says so in those words
 
 ## Related Skills
 
@@ -459,4 +474,4 @@ Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/create-pr/references/<fi
 | `references/ci-integration.md` | CI integration patterns |
 | `references/multi-commit-pr.md` | Multi-commit PR guidance |
 | `assets/pr-template.md` | PR template (legacy) |
-| `scripts/coderabbit-harvest.sh` | CodeRabbit threads: read (one GraphQL call), `--reply`, `--resolve` |
+| `scripts/coderabbit-harvest.sh` | CodeRabbit threads: `--status` (did it review this PR, and why not), read (one GraphQL call), `--reply`, `--resolve` |

@@ -10,25 +10,49 @@
 # because no SDLC step read them. This script is the read/write primitive that
 # the create-pr "CodeRabbit harvest" phase drives.
 #
+# Why --status exists: a .coderabbit.yaml configures the app, it does not install
+# it. Measured 2026-09-04 on yonatangross/orchestkit: the config had been in the
+# repo for ten days and 0 of 108 PRs carried a coderabbitai comment, while the
+# same search on Yonatan-HQ/platform returned 252. Read mode printed [] on every
+# PR and the harvest phase read that as "clean". Could-not-observe and zero are
+# different answers, so the read modes now refuse to print [] for a PR that
+# CodeRabbit never reviewed.
+#
 # Usage:
+#   coderabbit-harvest.sh <pr-number> [owner/repo] --status              # did CodeRabbit review this PR?
 #   coderabbit-harvest.sh <pr-number> [owner/repo]                      # read mode
 #   coderabbit-harvest.sh <pr-number> [owner/repo] --unresolved         # read, open threads only
 #   coderabbit-harvest.sh <pr-number> [owner/repo] --resolve <threadId>
 #   coderabbit-harvest.sh <pr-number> [owner/repo] --reply <threadId> "<text>"
 #
-# Read mode runs ONE GraphQL query (reviewThreads, first 100) and prints a
-# compact JSON array of:
+# --status runs ONE GraphQL query (plus one search API call when the PR shows no
+# CodeRabbit activity) and prints a JSON object:
+#   {status, reason, next, pr: {number, draft, title, author, base},
+#    evidence: {prReviews, prComments, prThreads, repoPrsWithCodeRabbit, configPresent}}
+# status is one of: reviewed, never_reviewed, skipped, pending, unobservable.
+# repoPrsWithCodeRabbit is null when the search call failed (unobservable), never 0.
+#
+# Read mode runs the same GraphQL query and prints a compact JSON array of:
 #   {threadId, commentId, path, line, severity, title, body, resolved, outdated}
 # filtered to threads whose first comment is authored by coderabbitai.
+# When the PR has no CodeRabbit activity, read mode prints NOTHING on stdout,
+# prints the status reason on stderr, and exits with the status code below, so
+# [] means exactly "reviewed, no open threads".
 # severity and title are parsed from CodeRabbit's body format:
 #   _<category>_ | _<emoji> Major_ | _<effort>_   (first line)
 #   **Title sentence.**                          (first bold line)
 # commentId is the first comment's REST databaseId, which --reply needs.
 #
+# CODERABBIT_CONFIG overrides the .coderabbit.yaml path (default: repo root).
+#
 # Exit codes:
-#   0 = success
-#   1 = gh failure, thread not found, or PR has no such thread
+#   0 = success (for --status and read modes: CodeRabbit reviewed this PR)
+#   1 = gh failure, thread not found, PR has no such thread, or repo history unobservable
 #   2 = usage error
+#   3 = never_reviewed: no PR in this repo carries a CodeRabbit comment (app not installed
+#       or not granted this repository)
+#   4 = skipped: draft PR, ignored title, ignored author, or base outside base_branches
+#   5 = pending: the repo has CodeRabbit history but this PR has no review yet
 
 set -euo pipefail
 
@@ -51,6 +75,10 @@ while [[ $# -gt 0 ]]; do
     --help|-h)
       usage
       exit 0
+      ;;
+    --status)
+      MODE="status"
+      shift
       ;;
     --unresolved)
       MODE="unresolved"
@@ -116,6 +144,11 @@ fi
 OWNER="${REPO%%/*}"
 NAME="${REPO#*/}"
 
+if [[ -z "${CODERABBIT_CONFIG:-}" ]]; then
+  TOPLEVEL=$(git rev-parse --show-toplevel 2>/dev/null || true)
+  CODERABBIT_CONFIG="${TOPLEVEL:-.}/.coderabbit.yaml"
+fi
+
 # =============================================================================
 # READ: one GraphQL query, parsed with jq
 # =============================================================================
@@ -124,6 +157,13 @@ NAME="${REPO#*/}"
 QUERY='query($owner: String!, $name: String!, $number: Int!) {
   repository(owner: $owner, name: $name) {
     pullRequest(number: $number) {
+      number
+      isDraft
+      title
+      baseRefName
+      author { login }
+      reviews(first: 100) { nodes { author { login } } }
+      comments(first: 100) { nodes { author { login } } }
       reviewThreads(first: 100) {
         totalCount
         nodes {
@@ -147,19 +187,25 @@ QUERY='query($owner: String!, $name: String!, $number: Int!) {
   }
 }'
 
-fetch_threads() {
-  local raw total
-  raw=$(gh api graphql -f query="$QUERY" -F owner="$OWNER" -F name="$NAME" -F number="$PR_NUMBER")
-  total=$(printf '%s' "$raw" | jq -r '.data.repository.pullRequest.reviewThreads.totalCount // 0')
+RAW=""
+
+fetch_raw() {
+  [[ -n "$RAW" ]] && return 0
+  RAW=$(gh api graphql -f query="$QUERY" -F owner="$OWNER" -F name="$NAME" -F number="$PR_NUMBER")
+  local total
+  total=$(printf '%s' "$RAW" | jq -r '.data.repository.pullRequest.reviewThreads.totalCount // 0')
   if [[ "$total" -gt 100 ]]; then
     echo "Warning: PR has $total review threads; only the first 100 were read" >&2
   fi
+}
+
+parse_threads() {
   # Parses the body header for severity and the first bold line for the title.
   # Falls back to the header line (underscores stripped) when no bold line exists.
   # The program is a single-quoted literal on purpose: tests/security/test-jq-injection.sh
   # rejects a jq PROGRAM assembled from a shell variable.
   # shellcheck disable=SC2016  # jq variables, not shell expansion
-  printf '%s' "$raw" | jq -c '
+  printf '%s' "$RAW" | jq -c '
   .data.repository.pullRequest.reviewThreads.nodes
   | map(select((.comments.nodes[0].author.login // "") | test("^coderabbitai(\\[bot\\])?$")))
   | map(
@@ -184,12 +230,167 @@ fetch_threads() {
 '
 }
 
+# =============================================================================
+# STATUS: did CodeRabbit review this PR, and if not, why not?
+# =============================================================================
+
+# yaml_list <key>: prints the items of the YAML list under "<key>:" in
+# CODERABBIT_CONFIG, quotes stripped, one per line. Good enough for the flat
+# string lists CodeRabbit uses (ignore_title_keywords, ignore_usernames,
+# base_branches); it is not a YAML parser.
+yaml_list() {
+  local key="$1"
+  [[ -f "$CODERABBIT_CONFIG" ]] || return 0
+  awk -v key="$key" '
+    function indent(s) { match(s, /^[ ]*/); return RLENGTH }
+    started && /^[ ]*(#|$)/ { next }
+    started {
+      if (indent($0) > key_indent && $0 ~ /^[ ]*- /) {
+        v = $0; sub(/^[ ]*- */, "", v); sub(/[ ]*(#.*)?$/, "", v)
+        gsub(/^["'\'']|["'\'']$/, "", v); print v; next
+      }
+      exit
+    }
+    $0 ~ "^[ ]*" key ":[ ]*$" { started = 1; key_indent = indent($0) }
+  ' "$CODERABBIT_CONFIG"
+}
+
+config_allows_drafts() {
+  [[ -f "$CODERABBIT_CONFIG" ]] || return 1
+  grep -Eq '^[[:space:]]*drafts:[[:space:]]*true' "$CODERABBIT_CONFIG"
+}
+
+STATUS="" STATUS_CODE=0 REASON="" NEXT="" REPO_CR_PRS="null"
+PR_DRAFT="" PR_TITLE="" PR_AUTHOR="" PR_BASE="" CR_REVIEWS=0 CR_COMMENTS=0 CR_THREADS=0
+
+assess_status() {
+  fetch_raw
+  local pr
+  pr=$(printf '%s' "$RAW" | jq -c '.data.repository.pullRequest')
+  if [[ -z "$pr" || "$pr" == "null" ]]; then
+    echo "Error: PR #$PR_NUMBER not found in $REPO" >&2
+    exit 1
+  fi
+  PR_DRAFT=$(printf '%s' "$pr" | jq -r '.isDraft')
+  PR_TITLE=$(printf '%s' "$pr" | jq -r '.title // ""')
+  PR_AUTHOR=$(printf '%s' "$pr" | jq -r '.author.login // ""')
+  PR_BASE=$(printf '%s' "$pr" | jq -r '.baseRefName // ""')
+  CR_REVIEWS=$(printf '%s' "$pr" | jq -r '[.reviews.nodes[] | select((.author.login // "") | test("^coderabbitai(\\[bot\\])?$"))] | length')
+  CR_COMMENTS=$(printf '%s' "$pr" | jq -r '[.comments.nodes[] | select((.author.login // "") | test("^coderabbitai(\\[bot\\])?$"))] | length')
+  CR_THREADS=$(printf '%s' "$pr" | jq -r '[.reviewThreads.nodes[] | select((.comments.nodes[0].author.login // "") | test("^coderabbitai(\\[bot\\])?$"))] | length')
+
+  if (( CR_REVIEWS + CR_COMMENTS + CR_THREADS > 0 )); then
+    STATUS="reviewed"; STATUS_CODE=0
+    REASON="CodeRabbit reviewed PR #$PR_NUMBER ($CR_REVIEWS reviews, $CR_COMMENTS comments, $CR_THREADS threads)."
+    NEXT="Harvest: refute each unresolved thread, fix or dismiss, resolve every one."
+    return 0
+  fi
+
+  local kw
+  if [[ "$PR_DRAFT" == "true" ]] && ! config_allows_drafts; then
+    STATUS="skipped"; STATUS_CODE=4
+    REASON="PR #$PR_NUMBER is a draft and CodeRabbit skips drafts (auto_review.drafts is not true)."
+    NEXT="Mark the PR ready for review, wait for the review, then re-run."
+    return 0
+  fi
+  while IFS= read -r kw; do
+    [[ -n "$kw" ]] || continue
+    if [[ "$PR_TITLE" == *"$kw"* ]]; then
+      STATUS="skipped"; STATUS_CODE=4
+      REASON="Title of PR #$PR_NUMBER matches ignore_title_keywords entry '$kw'."
+      NEXT="Nothing to harvest; state the skip reason and continue."
+      return 0
+    fi
+  done < <(yaml_list ignore_title_keywords)
+  while IFS= read -r kw; do
+    [[ -n "$kw" ]] || continue
+    if [[ "$PR_AUTHOR" == "$kw" || "${PR_AUTHOR}[bot]" == "$kw" ]]; then
+      STATUS="skipped"; STATUS_CODE=4
+      REASON="Author '$PR_AUTHOR' of PR #$PR_NUMBER is in ignore_usernames."
+      NEXT="Nothing to harvest; state the skip reason and continue."
+      return 0
+    fi
+  done < <(yaml_list ignore_usernames)
+  local bases base_ok=1
+  bases=$(yaml_list base_branches)
+  if [[ -n "$bases" ]]; then
+    base_ok=0
+    while IFS= read -r kw; do
+      [[ "$kw" == "$PR_BASE" ]] && base_ok=1
+    done <<< "$bases"
+  fi
+  if (( base_ok == 0 )); then
+    STATUS="skipped"; STATUS_CODE=4
+    REASON="Base branch '$PR_BASE' of PR #$PR_NUMBER is not in auto_review.base_branches."
+    NEXT="Nothing to harvest; state the skip reason and continue."
+    return 0
+  fi
+
+  # No activity on this PR and no config reason: ask whether CodeRabbit has EVER
+  # posted on this repo. A failed search is unobservable, not zero.
+  # `commenter:app/coderabbitai` is the qualifier that resolves the bot; the bare
+  # login form returns a validation error (measured 2026-09-04).
+  local total
+  if total=$(gh api -X GET search/issues -f q="repo:$REPO is:pr commenter:app/coderabbitai" -f per_page=1 -q .total_count 2>&1) \
+     && [[ "$total" =~ ^[0-9]+$ ]]; then
+    REPO_CR_PRS="$total"
+  else
+    STATUS="unobservable"; STATUS_CODE=1
+    REASON="Could not observe CodeRabbit history for $REPO (search API failed: ${total:-no output})."
+    NEXT="Fix gh auth or rate limiting and re-run; do not read this as zero threads."
+    return 0
+  fi
+  if (( REPO_CR_PRS == 0 )); then
+    local cfg="no .coderabbit.yaml found"
+    [[ -f "$CODERABBIT_CONFIG" ]] && cfg=".coderabbit.yaml is present but only configures the app, it does not install it"
+    STATUS="never_reviewed"; STATUS_CODE=3
+    REASON="CodeRabbit has never reviewed $REPO: 0 PRs carry a coderabbitai comment; $cfg."
+    NEXT="Install the CodeRabbit GitHub App or grant it this repository at https://github.com/apps/coderabbitai/installations/new, then re-run. Until then say 'CodeRabbit: not installed, harvest could not run' instead of claiming zero threads."
+    return 0
+  fi
+  STATUS="pending"; STATUS_CODE=5
+  REASON="CodeRabbit has reviewed $REPO_CR_PRS PRs in $REPO but has not posted on PR #$PR_NUMBER yet."
+  NEXT="Wait a few minutes or comment '@coderabbitai review' on the PR, then re-run once."
+}
+
+print_status() {
+  local cfg_present=false
+  [[ -f "$CODERABBIT_CONFIG" ]] && cfg_present=true
+  # shellcheck disable=SC2016  # jq variables, not shell expansion
+  jq -n -c \
+    --arg status "$STATUS" --arg reason "$REASON" --arg next "$NEXT" \
+    --argjson number "$PR_NUMBER" --argjson draft "${PR_DRAFT:-false}" \
+    --arg title "$PR_TITLE" --arg author "$PR_AUTHOR" --arg base "$PR_BASE" \
+    --argjson reviews "$CR_REVIEWS" --argjson comments "$CR_COMMENTS" --argjson threads "$CR_THREADS" \
+    --argjson repoPrs "$REPO_CR_PRS" --argjson configPresent "$cfg_present" \
+    '{status: $status, reason: $reason, next: $next,
+      pr: {number: $number, draft: $draft, title: $title, author: $author, base: $base},
+      evidence: {prReviews: $reviews, prComments: $comments, prThreads: $threads,
+                 repoPrsWithCodeRabbit: $repoPrs, configPresent: $configPresent}}'
+}
+
+# Read modes refuse to print [] for a PR CodeRabbit never looked at.
+require_reviewed() {
+  assess_status
+  if [[ "$STATUS" != "reviewed" ]]; then
+    echo "Error: $REASON $NEXT (status=$STATUS; run --status for the JSON)" >&2
+    exit "$STATUS_CODE"
+  fi
+}
+
 case "$MODE" in
+  status)
+    assess_status
+    print_status
+    exit "$STATUS_CODE"
+    ;;
   read)
-    fetch_threads
+    require_reviewed
+    parse_threads
     ;;
   unresolved)
-    fetch_threads | jq -c 'map(select(.resolved | not))'
+    require_reviewed
+    parse_threads | jq -c 'map(select(.resolved | not))'
     ;;
   resolve)
     # shellcheck disable=SC2016  # GraphQL variable, not shell expansion
@@ -205,7 +406,8 @@ case "$MODE" in
     printf '%s' "$RESULT" | jq -c '.data.resolveReviewThread.thread | {threadId: .id, resolved: .isResolved}'
     ;;
   reply)
-    COMMENT_ID=$(fetch_threads | jq -r --arg t "$THREAD_ID" '.[] | select(.threadId == $t) | .commentId')
+    fetch_raw
+    COMMENT_ID=$(parse_threads | jq -r --arg t "$THREAD_ID" '.[] | select(.threadId == $t) | .commentId')
     if [[ -z "$COMMENT_ID" || "$COMMENT_ID" == "null" ]]; then
       echo "Error: thread $THREAD_ID not found among CodeRabbit threads on PR #$PR_NUMBER" >&2
       exit 1
