@@ -53,20 +53,20 @@ run_wrapper() {
   NPM_AUDIT_MAX_ATTEMPTS=3 \
   NPM_AUDIT_RETRY_DELAY_SECONDS=0 \
   PATH="$tmpdir/bin:$PATH" \
-    bash "$WRAPPER" "$tmpdir/project"
+    bash "$WRAPPER" "$tmpdir/project" "$@"
 }
 
 rm -f "$tmpdir/args" "$tmpdir/count"
-NPM_STUB_FIRST_STATUS=124 NPM_STUB_SECOND_STATUS=124 NPM_STUB_THIRD_STATUS=0 run_wrapper
+NPM_STUB_FIRST_STATUS=124 NPM_STUB_SECOND_STATUS=124 NPM_STUB_THIRD_STATUS=0 run_wrapper --audit-level=moderate --package-lock-only --json
 if [[ "$(cat "$tmpdir/count")" == 3 ]]; then
   ok "retries a timed-out registry request twice"
 else
   bad "did not retry a timed-out registry request twice"
 fi
-if grep -Fxq 'audit --audit-level=critical' "$tmpdir/args"; then
-  ok "keeps the critical-severity audit gate"
+if grep -Fxq 'audit --audit-level=moderate --package-lock-only --json' "$tmpdir/args"; then
+  ok "passes through the lockfile audit arguments"
 else
-  bad "dropped the critical-severity audit gate"
+  bad "dropped the lockfile audit arguments"
 fi
 
 rm -f "$tmpdir/args" "$tmpdir/count"

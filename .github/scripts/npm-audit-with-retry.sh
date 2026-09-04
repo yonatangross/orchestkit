@@ -7,7 +7,7 @@
 # request that never completes. Retry only that status and preserve all other
 # npm exit statuses unchanged.
 #
-# Usage: npm-audit-with-retry.sh [directory]
+# Usage: npm-audit-with-retry.sh [directory] [npm-audit arguments...]
 #
 # Environment:
 #   NPM_AUDIT_TIMEOUT_SECONDS  Seconds per audit attempt (default: 60).
@@ -18,6 +18,13 @@
 set -euo pipefail
 
 AUDIT_DIRECTORY="${1:-.}"
+if [[ "$#" -gt 0 ]]; then
+  shift
+fi
+AUDIT_ARGUMENTS=("$@")
+if [[ "${#AUDIT_ARGUMENTS[@]}" -eq 0 ]]; then
+  AUDIT_ARGUMENTS=(--audit-level=critical)
+fi
 TIMEOUT_SECONDS="${NPM_AUDIT_TIMEOUT_SECONDS:-60}"
 MAX_ATTEMPTS="${NPM_AUDIT_MAX_ATTEMPTS:-3}"
 MAX_RETRY_DELAY_SECONDS=15
@@ -43,13 +50,13 @@ if [[ ! -d "$AUDIT_DIRECTORY" ]]; then
 fi
 
 for ((attempt = 1; attempt <= MAX_ATTEMPTS; attempt++)); do
-  echo "npm-audit-with-retry: attempt ${attempt}/${MAX_ATTEMPTS} in ${AUDIT_DIRECTORY}"
+  echo "npm-audit-with-retry: attempt ${attempt}/${MAX_ATTEMPTS} in ${AUDIT_DIRECTORY}" >&2
 
   status=0
   (
     cd "$AUDIT_DIRECTORY"
     timeout --signal=TERM --kill-after=10s "${TIMEOUT_SECONDS}s" \
-      npm audit --audit-level=critical
+      npm audit "${AUDIT_ARGUMENTS[@]}"
   ) || status=$?
 
   if [[ "$status" -eq 0 ]]; then
