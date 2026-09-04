@@ -11,14 +11,16 @@
 #
 # Environment:
 #   NPM_AUDIT_TIMEOUT_SECONDS  Seconds per audit attempt (default: 60).
-#   NPM_AUDIT_MAX_ATTEMPTS     Attempts for a timeout only (default: 2).
-#   NPM_AUDIT_RETRY_DELAY_SECONDS  Delay before retrying (default: 5).
+#   NPM_AUDIT_MAX_ATTEMPTS     Attempts for a timeout only (default: 3).
+#   NPM_AUDIT_RETRY_DELAY_SECONDS  Initial retry delay in seconds (default: 5).
+#     Each delay increases by this value and never exceeds 15 seconds.
 
 set -euo pipefail
 
 AUDIT_DIRECTORY="${1:-.}"
 TIMEOUT_SECONDS="${NPM_AUDIT_TIMEOUT_SECONDS:-60}"
-MAX_ATTEMPTS="${NPM_AUDIT_MAX_ATTEMPTS:-2}"
+MAX_ATTEMPTS="${NPM_AUDIT_MAX_ATTEMPTS:-3}"
+MAX_RETRY_DELAY_SECONDS=15
 RETRY_DELAY_SECONDS="${NPM_AUDIT_RETRY_DELAY_SECONDS:-5}"
 
 is_positive_integer() {
@@ -66,6 +68,11 @@ for ((attempt = 1; attempt <= MAX_ATTEMPTS; attempt++)); do
     exit "$status"
   fi
 
-  echo "npm-audit-with-retry: registry request timed out after ${TIMEOUT_SECONDS}s; retrying once" >&2
-  sleep "$RETRY_DELAY_SECONDS"
+  retry_delay=$((RETRY_DELAY_SECONDS * attempt))
+  if [[ "$retry_delay" -gt "$MAX_RETRY_DELAY_SECONDS" ]]; then
+    retry_delay="$MAX_RETRY_DELAY_SECONDS"
+  fi
+
+  echo "npm-audit-with-retry: registry request timed out after ${TIMEOUT_SECONDS}s; retrying in ${retry_delay}s" >&2
+  sleep "$retry_delay"
 done

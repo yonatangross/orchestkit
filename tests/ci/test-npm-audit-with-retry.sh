@@ -33,7 +33,10 @@ printf '%s\n' "$count" > "$NPM_STUB_COUNT"
 if [[ "$count" -eq 1 ]]; then
   exit "$NPM_STUB_FIRST_STATUS"
 fi
-exit "$NPM_STUB_SECOND_STATUS"
+if [[ "$count" -eq 2 ]]; then
+  exit "$NPM_STUB_SECOND_STATUS"
+fi
+exit "$NPM_STUB_THIRD_STATUS"
 EOF
 
 chmod +x "$tmpdir/bin/timeout" "$tmpdir/bin/npm"
@@ -47,18 +50,18 @@ run_wrapper() {
   NPM_STUB_ARGS="$tmpdir/args" \
   NPM_STUB_COUNT="$tmpdir/count" \
   NPM_AUDIT_TIMEOUT_SECONDS=1 \
-  NPM_AUDIT_MAX_ATTEMPTS=2 \
+  NPM_AUDIT_MAX_ATTEMPTS=3 \
   NPM_AUDIT_RETRY_DELAY_SECONDS=0 \
   PATH="$tmpdir/bin:$PATH" \
     bash "$WRAPPER" "$tmpdir/project"
 }
 
 rm -f "$tmpdir/args" "$tmpdir/count"
-NPM_STUB_FIRST_STATUS=124 NPM_STUB_SECOND_STATUS=0 run_wrapper
-if [[ "$(cat "$tmpdir/count")" == 2 ]]; then
-  ok "retries a timed-out registry request once"
+NPM_STUB_FIRST_STATUS=124 NPM_STUB_SECOND_STATUS=124 NPM_STUB_THIRD_STATUS=0 run_wrapper
+if [[ "$(cat "$tmpdir/count")" == 3 ]]; then
+  ok "retries a timed-out registry request twice"
 else
-  bad "did not retry a timed-out registry request"
+  bad "did not retry a timed-out registry request twice"
 fi
 if grep -Fxq 'audit --audit-level=critical' "$tmpdir/args"; then
   ok "keeps the critical-severity audit gate"
@@ -67,7 +70,7 @@ else
 fi
 
 rm -f "$tmpdir/args" "$tmpdir/count"
-if NPM_STUB_FIRST_STATUS=1 NPM_STUB_SECOND_STATUS=0 run_wrapper; then
+if NPM_STUB_FIRST_STATUS=1 NPM_STUB_SECOND_STATUS=0 NPM_STUB_THIRD_STATUS=0 run_wrapper; then
   bad "accepted a critical-advisory exit"
 else
   if [[ "$(cat "$tmpdir/count")" == 1 ]]; then
@@ -78,11 +81,11 @@ else
 fi
 
 rm -f "$tmpdir/args" "$tmpdir/count"
-if NPM_STUB_FIRST_STATUS=124 NPM_STUB_SECOND_STATUS=124 run_wrapper; then
+if NPM_STUB_FIRST_STATUS=124 NPM_STUB_SECOND_STATUS=124 NPM_STUB_THIRD_STATUS=124 run_wrapper; then
   bad "accepted repeated timeouts"
 else
-  if [[ "$(cat "$tmpdir/count")" == 2 ]]; then
-    ok "fails after the bounded timeout retry"
+  if [[ "$(cat "$tmpdir/count")" == 3 ]]; then
+    ok "fails after three bounded attempts"
   else
     bad "did not enforce the timeout attempt limit"
   fi
