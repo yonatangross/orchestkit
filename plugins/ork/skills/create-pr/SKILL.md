@@ -371,8 +371,19 @@ the PR is still a draft.
 H="${CLAUDE_PLUGIN_ROOT}/skills/create-pr/scripts/coderabbit-harvest.sh"
 PR_NUMBER=$(gh pr view --json number -q .number)
 bash "$H" "$PR_NUMBER" --unresolved > /tmp/cr-threads.json   # ONE GraphQL call, coderabbitai only
-jq length /tmp/cr-threads.json                                  # 0 → continue to merge
+jq length /tmp/cr-threads.json                                  # 0 → disambiguate before merging
 ```
+
+A zero is ambiguous: CodeRabbit may have read the diff and found nothing, or it may never
+have seen the PR. Both print `0`, so a repository the app cannot reach passes this phase
+forever. On this repository, a valid `.coderabbit.yaml` had been on `main` since 2026-08-25
+while CodeRabbit posted no comments and ignored an explicit `@coderabbitai review` request.
+The app is either not installed for the `yonatangross` owner account or disabled account-side.
+Do not turn that evidence into a claim that it is definitely uninstalled: only the settings
+page separates those cases. The first zero for a repository must be disambiguated with
+`Read("${CLAUDE_PLUGIN_ROOT}/skills/create-pr/references/coderabbit-zero-reviews.md")`.
+It covers both comment surfaces, a positive control, the explicit-trigger probe, and the
+operator action. Editing `.coderabbit.yaml` cannot fix an app that never reaches the repo.
 
 For each unresolved thread, spawn a refuter in ONE message: an isolated `Agent` (no
 `team_name`), `subagent_type="ork:code-quality-reviewer"` (`ork:security-auditor` for a
@@ -460,3 +471,4 @@ Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/create-pr/references/<fi
 | `references/multi-commit-pr.md` | Multi-commit PR guidance |
 | `assets/pr-template.md` | PR template (legacy) |
 | `scripts/coderabbit-harvest.sh` | CodeRabbit threads: read (one GraphQL call), `--reply`, `--resolve` |
+| `references/coderabbit-zero-reviews.md` | Harvest returned zero: reviewed clean, or never reviewed? |

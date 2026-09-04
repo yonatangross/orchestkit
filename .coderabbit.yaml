@@ -13,6 +13,19 @@
 # Ported from Yonatan-HQ/platform's .coderabbit.yaml, with the defect classes
 # rewritten for this stack: TypeScript hooks, shell test harnesses, and
 # markdown skills/agents rather than a Python API.
+#
+# THIS FILE IS INERT UNTIL THE APP IS INSTALLED FOR THE OWNER ACCOUNT. Its
+# presence does not prove CodeRabbit reads it. Measured 2026-09-03: this config
+# had been on main since 2026-08-25 (#3746), but CodeRabbit had posted zero
+# comments in the repository's history and did not answer an explicit
+# @coderabbitai review request. The app is either absent for the yonatangross
+# account or disabled account-side. A session cannot distinguish those cases;
+# both produce no reviews, and the account installation endpoint is unavailable
+# to a normal user token. The leading hypothesis is the owner-level grant:
+# an installation for the Yonatan-HQ organization does not cover this
+# user-owned repository. Editing settings below cannot repair an unreachable
+# app. See src/skills/create-pr/references/coderabbit-zero-reviews.md for the
+# diagnostic ladder and the required settings-page check.
 
 language: "en-US"
 
