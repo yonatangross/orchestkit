@@ -370,6 +370,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.76](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.75...v10.0.0-alpha.76)** · 2026-09-04
+
+- **hooks:** FH-ready handler policy and gate (#3917) (#3918)
+
 **[v10.0.0-alpha.75](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.74...v10.0.0-alpha.75)** · 2026-09-04
 
 - **announce:** preflight release API credential (#3916)
@@ -408,15 +412,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-alpha.69](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.68...v10.0.0-alpha.69)** · 2026-09-01
 
 - **agents:** pin 15 agent model tiers (2026-09-01 routing) (#3872)
-
-**[v10.0.0-alpha.68](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.67...v10.0.0-alpha.68)** · 2026-09-01
-
-- **cc:** CC 2.1.257 follow-ups on top of the adoption PR (#3871)
-- **hooks:** budget guard advises, never asks (#3869)
-- **hooks:** scope test validator to project files (#3844) (#3865)
-- **cc-adoption:** advance latest_known to 2.1.252, featureless for ork (#3863)
-- **cc:** adopt CC 2.1.252 and 2.1.257, latest_known to 2.1.257 (#3870)
-- …and 1 more (see [CHANGELOG.md](CHANGELOG.md))
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
