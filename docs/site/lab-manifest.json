@@ -2,6 +2,18 @@
   "$comment": "Allowlist for the Lab gallery (docs/showcase/lab). Only entries listed here are copied to public/lab/ and surfaced on the site. `source` is repo-root-relative. Title/description here OVERRIDE what generate-lab-data.mjs extracts from the HTML <head>. Run `node docs/site/scripts/generate-lab-data.mjs` after editing.",
   "entries": [
     {
+      "slug": "announce-credential-preflight",
+      "source": "docs/fix--announce-rail-token-3650/index.html",
+      "title": "A red check before the live release announce",
+      "description": "The release announce rail now authenticates a non-persisting dry-run before its live POST. Pick valid, missing, retired, or slow credentials to see where the rail stops, what is safe, and the operator recovery path.",
+      "tags": [
+        "release",
+        "security",
+        "ci"
+      ],
+      "date": "2026-09-04"
+    },
+    {
       "slug": "coderabbit-never-installed",
       "source": "docs/fix--coderabbit-live/index.html",
       "title": "A valid config is not a running reviewer: CodeRabbit was never installed on orchestkit",

@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Release announce credential preflight</title>
+<style>
+  :root { --bg:#0b1020; --panel:#121a2e; --line:#293653; --text:#e8edf8; --muted:#9ca9c3; --accent:#7c9cff; --ok:#48c78e; --bad:#ff6b7a; --warn:#ffc45e; --mono:ui-monospace,SFMono-Regular,Menlo,monospace; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:radial-gradient(circle at top right,#202b50 0,transparent 38%),var(--bg); color:var(--text); font:15px/1.55 system-ui,sans-serif; }
+  main { max-width:940px; margin:0 auto; padding:38px 20px 72px; }
+  h1 { margin:0; font-size:clamp(25px,4vw,38px); letter-spacing:-.03em; }
+  h2 { font-size:17px; margin:0 0 8px; }
+  p { color:var(--muted); margin:8px 0; }
+  code,pre { font-family:var(--mono); }
+  code { color:#d5ddff; font-size:.9em; }
+  .eyebrow { color:var(--accent); font:12px var(--mono); letter-spacing:.08em; text-transform:uppercase; }
+  .card { background:color-mix(in srgb,var(--panel) 94%,transparent); border:1px solid var(--line); border-radius:16px; padding:20px; margin-top:18px; }
+  .chooser { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:16px; }
+  button { appearance:none; border:1px solid var(--line); border-radius:10px; background:#17223c; color:var(--text); cursor:pointer; padding:10px 12px; font:13px var(--mono); }
+  button:hover,button:focus-visible { border-color:var(--accent); outline:none; }
+  button[aria-pressed="true"] { background:#26365f; border-color:var(--accent); }
+  .flow { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:18px; }
+  .step { min-height:120px; border:1px solid var(--line); border-radius:12px; background:#0e1628; padding:13px; }
+  .num { color:var(--muted); font:12px var(--mono); }
+  .name { font-weight:700; margin-top:8px; }
+  .state { margin-top:9px; font:12px var(--mono); color:var(--muted); }
+  .step.ok { border-color:color-mix(in srgb,var(--ok) 58%,var(--line)); } .step.ok .state { color:var(--ok); }
+  .step.bad { border-color:color-mix(in srgb,var(--bad) 62%,var(--line)); } .step.bad .state { color:var(--bad); }
+  .step.warn { border-color:color-mix(in srgb,var(--warn) 62%,var(--line)); } .step.warn .state { color:var(--warn); }
+  .step.dim { opacity:.42; }
+  .result { border-left:3px solid var(--accent); background:#101a31; border-radius:8px; padding:14px 16px; margin-top:16px; }
+  .result strong { display:block; font-family:var(--mono); }
+  pre { margin:14px 0 0; padding:14px; overflow:auto; background:#09101e; border:1px solid var(--line); border-radius:10px; color:#c4cfe9; font-size:12px; }
+  .facts { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .facts li { color:var(--muted); margin:8px 0; }
+  .facts ul { margin:8px 0 0; padding-left:20px; }
+  .note { font-size:13px; }
+  @media (max-width:700px) { .chooser,.flow,.facts { grid-template-columns:1fr 1fr; } }
+  @media (max-width:420px) { .chooser,.flow,.facts { grid-template-columns:1fr; } }
+  @media (prefers-reduced-motion:reduce) { * { transition:none !important; } }
+</style>
+</head>
+<body>
+<main>
+  <div class="eyebrow">Issue #3650 · release announce rail</div>
+  <h1>Fail before the live release post</h1>
+  <p>The release announce rail now sends an authenticated platform dry-run before a live POST. It catches a missing, retired, or unreachable credential without creating drafts or publishing content.</p>
+
+  <section class="card" aria-labelledby="scenario-title">
+    <h2 id="scenario-title">Try a credential state</h2>
+    <p>Select a simulated result. This page has no token and makes no network request.</p>
+    <div class="chooser" role="group" aria-label="Credential state">
+      <button data-mode="valid" aria-pressed="true">valid token</button>
+      <button data-mode="missing" aria-pressed="false">missing secret</button>
+      <button data-mode="retired" aria-pressed="false">retired token</button>
+      <button data-mode="timeout" aria-pressed="false">slow platform</button>
+    </div>
+    <div class="flow" id="flow" aria-live="polite"></div>
+    <div class="result" id="result"></div>
+  </section>
+
+  <div class="facts">
+    <section class="card">
+      <h2>What the preflight does</h2>
+      <ul>
+        <li>Uses the same release facts and bearer credential as the live request.</li>
+        <li>Sets <code>dry_run: true</code>, so the platform composes but does not create drafts.</li>
+        <li>Uses a 10 second abort signal for both preflight and live POSTs.</li>
+      </ul>
+    </section>
+    <section class="card">
+      <h2>What it does not do</h2>
+      <ul>
+        <li>It does not rotate a credential.</li>
+        <li>It does not reveal a token in the workflow or this page.</li>
+        <li>It does not bypass the platform's human approval flow.</li>
+      </ul>
+    </section>
+  </div>
+
+  <section class="card">
+    <h2>Operator recovery path</h2>
+    <p>For a rejected token, rotate the canonical 1Password item through the estate chokepoint, validate the result, then update only the GitHub repository secret.</p>
+    <pre>HQ_API_TOKEN="$(~/.claude/hooks/op-read.sh --cache 3600 \
+  op://Platform/API-Static-Token/credential)"
+op_read_status=$?
+if [[ "$op_read_status" -ne 0 || -z "$HQ_API_TOKEN" ]]; then exit 1; fi
+printf '%s' "$HQ_API_TOKEN" | gh secret set HQ_API_TOKEN --repo yonatangross/orchestkit
+unset HQ_API_TOKEN</pre>
+    <p class="note">The real rail reports the exact reference when the secret is missing or the platform returns 401. A manual dispatch with <code>dry_run: true</code> remains local and skips the preflight.</p>
+  </section>
+</main>
+<script>
+  const modes = {
+    valid: {
+      steps: [["ok","credential preflight","200 dry-run"],["ok","platform compose","no drafts created"],["ok","live announce","may POST"],["ok","human review","drafts await approval"]],
+      title:"Preflight passed. The live announce may continue.",
+      body:"The platform authenticated a non-persisting dry-run. A later live POST still has the same 10 second bound."
+    },
+    missing: {
+      steps: [["bad","credential preflight","missing secret"],["dim","platform compose","not called"],["dim","live announce","blocked"],["dim","human review","no drafts"]],
+      title:"Stopped before any platform request.",
+      body:"The workflow names HQ_API_TOKEN and op://Platform/API-Static-Token/credential so the rotation target is actionable."
+    },
+    retired: {
+      steps: [["bad","credential preflight","401 rejected"],["bad","platform compose","authentication failed"],["dim","live announce","blocked"],["dim","human review","no drafts"]],
+      title:"Stopped on the dry-run 401, before the live POST.",
+      body:"Rotate the referenced API_STATIC_TOKEN and update the repository secret. The preflight never persists drafts."
+    },
+    timeout: {
+      steps: [["warn","credential preflight","aborted at 10s"],["dim","platform compose","incomplete"],["dim","live announce","blocked"],["dim","human review","no drafts"]],
+      title:"Stopped on a bounded preflight failure.",
+      body:"The workflow reports a credential-preflight failure rather than holding the release job indefinitely."
+    }
+  };
+  const flow = document.getElementById("flow");
+  const result = document.getElementById("result");
+  function render(mode) {
+    const data = modes[mode];
+    flow.textContent = "";
+    data.steps.forEach((step, index) => {
+      const item = document.createElement("div");
+      item.className = "step " + step[0];
+      const number = document.createElement("div");
+      number.className = "num";
+      number.textContent = `0${index + 1}`;
+      const name = document.createElement("div");
+      name.className = "name";
+      name.textContent = step[1];
+      const state = document.createElement("div");
+      state.className = "state";
+      state.textContent = step[2];
+      item.append(number, name, state);
+      flow.append(item);
+    });
+    result.textContent = "";
+    const title = document.createElement("strong");
+    title.textContent = data.title;
+    result.append(title, document.createTextNode(data.body));
+  }
+  document.querySelectorAll("[data-mode]").forEach(button => button.addEventListener("click", () => {
+    document.querySelectorAll("[data-mode]").forEach(item => item.setAttribute("aria-pressed", String(item === button)));
+    render(button.dataset.mode);
+  }));
+  render("valid");
+</script>
+</body>
+</html>
