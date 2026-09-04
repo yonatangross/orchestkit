@@ -15,6 +15,20 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "announce-credential-preflight",
+    "title": "A red check before the live release announce",
+    "description": "The release announce rail now authenticates a non-persisting dry-run before its live POST. Pick valid, missing, retired, or slow credentials to see where the rail stops, what is safe, and the operator recovery path.",
+    "tags": [
+      "release",
+      "security",
+      "ci"
+    ],
+    "date": "2026-09-04",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 8
+  },
+  {
     "slug": "feat--coderabbit-harvest-stage",
     "title": "Reviews that expire unread: the CodeRabbit harvest stage in create-pr",
     "description": "Measured on 80 platform PRs: CodeRabbit posted 65 threads on 24 PRs and 23 of those PRs merged with every thread still open. The new create-pr phase reads each thread once, refutes it against the diff, fixes or dismisses, and resolves every one before merge. Walk a sample PR through the contract and watch the unresolved count reach zero.",

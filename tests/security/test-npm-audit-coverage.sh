@@ -68,19 +68,19 @@ for tree in "${TREES[@]}"; do
 done
 
 # The count must match, so a NEW tree can't be added without wiring the gate.
-invocations=$(grep -cE '^audit_project +"' "$GATE")
+invocations=$(grep -cE '^start_audit +"' "$GATE")
 if [[ "$invocations" -eq "${#TREES[@]}" ]]; then
-  pass "audit_project invocation count (${invocations}) matches tracked lockfiles (${#TREES[@]})"
+  pass "start_audit invocation count (${invocations}) matches tracked lockfiles (${#TREES[@]})"
 else
-  fail "gate audits ${invocations} trees but ${#TREES[@]} lockfiles are tracked"
+  fail "gate starts ${invocations} audits but ${#TREES[@]} lockfiles are tracked"
 fi
 
 # 2. The audit reads the LOCKFILE, not node_modules. Dropping --package-lock-only
 #    reintroduces the install dependency that caused the silent skip.
-if grep -qE 'npm audit .*--package-lock-only' "$GATE"; then
-  pass "audits --package-lock-only (no node_modules dependency)"
+if grep -qF 'npm-audit-with-retry.sh' "$GATE" && grep -q -- '--package-lock-only' "$GATE"; then
+  pass "uses the bounded audit wrapper with --package-lock-only"
 else
-  fail "npm audit invocation lost --package-lock-only — reverts to node_modules coverage"
+  fail "bounded audit invocation lost --package-lock-only — reverts to node_modules coverage"
 fi
 
 # 3. A missing lockfile must FAIL, never pass. The original bug was a skip that

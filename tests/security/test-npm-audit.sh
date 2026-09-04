@@ -26,6 +26,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 LEVEL="${NPM_AUDIT_LEVEL:-moderate}"
 ALLOWLIST="$PROJECT_ROOT/.claude/audit-allowlist.json"
+AUDIT_WRAPPER="$PROJECT_ROOT/.github/scripts/npm-audit-with-retry.sh"
 
 RED=$'\033[0;31m'
 GREEN=$'\033[0;32m'
@@ -125,7 +126,7 @@ audit_project() {
   # on the report instead. stderr is captured rather than discarded: an earlier
   # version sent it to /dev/null, which is precisely how a registry 401 would
   # have been reported as the uninformative "produced no output".
-  report=$(cd "$dir" && npm audit --audit-level="$LEVEL" --package-lock-only --json 2>"$errfile")
+  report=$(bash "$AUDIT_WRAPPER" "$dir" "--audit-level=$LEVEL" --package-lock-only --json 2>"$errfile")
 
   if [[ -z "$report" ]] || ! jq -e . >/dev/null 2>&1 <<<"$report"; then
     fail "$label: npm audit produced no usable JSON report"
@@ -165,6 +166,24 @@ audit_project() {
     pass "$label: $total finding(s), all allowlisted"
   fi
   echo ""
+  [[ "$unlisted" -eq 0 ]]
+}
+
+AUDIT_LOG_DIR="$(mktemp -d "${TMPDIR:-/tmp}/ork-audit-projects.XXXXXX")"
+trap 'rm -rf "$AUDIT_LOG_DIR"' EXIT
+AUDIT_PIDS=()
+AUDIT_LOGS=()
+
+start_audit() {
+  local label="$1"
+  local dir="$2"
+  local logfile
+
+  AUDITED_DIRS+=("$dir")
+  logfile="$(mktemp "$AUDIT_LOG_DIR/audit.XXXXXX")"
+  (audit_project "$label" "$dir") >"$logfile" 2>&1 &
+  AUDIT_PIDS+=("$!")
+  AUDIT_LOGS+=("$logfile")
 }
 
 # ─── run across EVERY tracked lockfile ──────────────────────────────
@@ -176,13 +195,24 @@ audit_project() {
 # per-manifest and this gate does not. A workspace missing from this list is
 # not "unaudited", it is silently PASSING — the same failure class the
 # --package-lock-only note above was written for.
-audit_project "root"           "$PROJECT_ROOT"
-audit_project "docs/site"      "$PROJECT_ROOT/docs/site"
-audit_project "src/hooks"      "$PROJECT_ROOT/src/hooks"
-audit_project "src/mcp-server" "$PROJECT_ROOT/src/mcp-server"
-audit_project "orchestkit-demos" "$PROJECT_ROOT/orchestkit-demos"
-audit_project "hook-contract/examples/generic-client" \
+start_audit "root"           "$PROJECT_ROOT"
+start_audit "docs/site"      "$PROJECT_ROOT/docs/site"
+start_audit "src/hooks"      "$PROJECT_ROOT/src/hooks"
+start_audit "src/mcp-server" "$PROJECT_ROOT/src/mcp-server"
+start_audit "orchestkit-demos" "$PROJECT_ROOT/orchestkit-demos"
+start_audit "hook-contract/examples/generic-client" \
               "$PROJECT_ROOT/packages/hook-contract/examples/generic-client"
+
+for index in "${!AUDIT_PIDS[@]}"; do
+  status=0
+  wait "${AUDIT_PIDS[$index]}" || status=$?
+  cat "${AUDIT_LOGS[$index]}"
+  if [[ "$status" -eq 0 ]]; then
+    PASS=$((PASS + 1))
+  else
+    FAIL=$((FAIL + 1))
+  fi
+done
 
 # ─── coverage assertion: every tracked lockfile must have been walked ──
 #
