@@ -15,6 +15,21 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "feat--fh-handler-policy",
+    "title": "FH-ready handlers: the policy that makes the Function Hooks port mechanical",
+    "description": "Claude Code is designing Function Hooks (anthropics/claude-code#91870): in-process hooks where every side effect goes through one engine object. This page shows the same ork guard in both shapes, the ratchet gate that grandfathers 111 existing handlers and blocks new direct node:fs, child_process and fetch imports, and the 8,000 character additionalContext cap read out of the CC binary.",
+    "tags": [
+      "hooks",
+      "function-hooks",
+      "cc-adoption",
+      "policy"
+    ],
+    "date": "2026-09-04",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 3
+  },
+  {
     "slug": "feat--coderabbit-harvest-stage",
     "title": "Reviews that expire unread: the CodeRabbit harvest stage in create-pr",
     "description": "Measured on 80 platform PRs: CodeRabbit posted 65 threads on 24 PRs and 23 of those PRs merged with every thread still open. The new create-pr phase reads each thread once, refutes it against the diff, fixes or dismisses, and resolves every one before merge. Walk a sample PR through the contract and watch the unresolved count reach zero.",
