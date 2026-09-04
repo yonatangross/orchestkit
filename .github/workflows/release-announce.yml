@@ -141,6 +141,24 @@ jobs:
           echo "### 📣 Release announce skipped" >> "$GITHUB_STEP_SUMMARY"
           echo "Patch release \`${{ steps.meta.outputs.version }}\` — announcements fire on minor/major (X.Y.0) only." >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Credential preflight (platform dry-run)
+        # Fail before the live POST when a provisioned secret was revoked or
+        # retired. The preflight sends the same release facts with dry_run=true,
+        # which the platform authenticates and composes without creating drafts.
+        if: steps.meta.outputs.skip == 'false' && github.event.inputs.dry_run != 'true'
+        id: credential_preflight
+        env:
+          RELEASE_VERSION: ${{ steps.meta.outputs.version }}
+          RELEASE_URL: ${{ github.event.release.html_url || format('https://github.com/{0}/releases/tag/v{1}', github.repository, steps.meta.outputs.version) }}
+          RELEASE_NOTES: ${{ github.event.release.body }}
+          REPO: ${{ github.repository }}
+          ANNOUNCE_CHANNELS: twitter,devto,hashnode,substack,threads
+          ANNOUNCE_ACCOUNT: yonyon2ai
+          HQ_API_URL: ${{ secrets.HQ_API_URL }}
+          HQ_API_TOKEN: ${{ secrets.HQ_API_TOKEN }}
+          PREFLIGHT: "true"
+        run: node scripts/announce-release.mjs
+
       - name: Announce (draft via platform marketing)
         if: steps.meta.outputs.skip == 'false'
         id: announce
