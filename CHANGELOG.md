@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.76](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.75...v10.0.0-alpha.76) (2026-09-04)
+
+
+### Features
+
+* **hooks:** FH-ready handler policy and gate ([#3917](https://github.com/yonatangross/orchestkit/issues/3917)) ([#3918](https://github.com/yonatangross/orchestkit/issues/3918)) ([4968c0b](https://github.com/yonatangross/orchestkit/commit/4968c0b60e07955322d93b465b09ccfc0aeef1ce))
+
 ## [10.0.0-alpha.75](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.74...v10.0.0-alpha.75) (2026-09-04)
 
 

@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.76",
+    "date": "2026-09-04",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**hooks:** FH-ready handler policy and gate ([#3917](https://github.com/yonatangross/orchestkit/issues/3917)) ([#3918](https://github.com/yonatangross/orchestkit/issues/3918)) ([4968c0b](https://github.com/yonatangross/orchestkit/commit/4968c0b60e07955322d93b465b09ccfc0aeef1ce))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.75",
     "date": "2026-09-04",
     "compareUrl": "",
