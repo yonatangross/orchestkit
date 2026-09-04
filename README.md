@@ -370,6 +370,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.75](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.74...v10.0.0-alpha.75)** · 2026-09-04
+
+- **announce:** preflight release API credential (#3916)
+
 **[v10.0.0-alpha.74](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.73...v10.0.0-alpha.74)** · 2026-09-03
 
 - **create-pr:** CodeRabbit harvest stage, refute then fix or dismiss, resolve every thread (#3910)
@@ -413,14 +417,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **cc-adoption:** advance latest_known to 2.1.252, featureless for ork (#3863)
 - **cc:** adopt CC 2.1.252 and 2.1.257, latest_known to 2.1.257 (#3870)
 - …and 1 more (see [CHANGELOG.md](CHANGELOG.md))
-
-**[v10.0.0-alpha.67](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.66...v10.0.0-alpha.67)** · 2026-09-01
-
-- **setup:** drop 11 deny rules CC cannot enforce, payload v4 (#3855)
-- **deps-dev:** bump the npm-minor-patch group in /src/hooks with 2 updates (#3824)
-- **deps-dev:** bump the npm-minor-patch group with 2 updates (#3825)
-- **deps:** bump the remotion group (#3826)
-- **playground:** exempt docs/audits from the playground gate (#3853), closes [#3848](https://github.com/yonatangross/orchestkit/issues/3848)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
