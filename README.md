@@ -370,6 +370,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.74](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.73...v10.0.0-alpha.74)** · 2026-09-03
+
+- **create-pr:** CodeRabbit harvest stage, refute then fix or dismiss, resolve every thread (#3910)
+- **create-pr:** a zero from the harvest can mean never reviewed (#3912)
+
 **[v10.0.0-alpha.73](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.72...v10.0.0-alpha.73)** · 2026-09-02
 
 - **pricing:** adopt gemini-3.8-flash as its own pricing row (#3905)
@@ -416,15 +421,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **deps-dev:** bump the npm-minor-patch group with 2 updates (#3825)
 - **deps:** bump the remotion group (#3826)
 - **playground:** exempt docs/audits from the playground gate (#3853), closes [#3848](https://github.com/yonatangross/orchestkit/issues/3848)
-
-**[v10.0.0-alpha.66](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.65...v10.0.0-alpha.66)** · 2026-08-31
-
-- **dream:** budget pass and rule-based demotion for MEMORY.md (#3833), closes [#3741](https://github.com/yonatangross/orchestkit/issues/3741)
-- **hooks:** name untracked playground pages at SessionStart (#3831), closes [#3727](https://github.com/yonatangross/orchestkit/issues/3727)
-- **setup:** operator-scope permission vehicle for the purge (#3836)
-- **hooks:** runner names a dist bundle that exists but cannot load (#3819), closes [#3817](https://github.com/yonatangross/orchestkit/issues/3817)
-- **hooks:** task nudge gives up after N unanswered prompts (#3832), closes [#3733](https://github.com/yonatangross/orchestkit/issues/3733)
-- …and 10 more (see [CHANGELOG.md](CHANGELOG.md))
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
