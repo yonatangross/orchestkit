@@ -15,6 +15,21 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "feat--fh-handler-policy",
+    "title": "FH-ready handlers: the policy that makes the Function Hooks port mechanical",
+    "description": "Claude Code is designing Function Hooks (anthropics/claude-code#91870): in-process hooks where every side effect goes through one engine object. This page shows the same ork guard in both shapes, the ratchet gate that grandfathers 111 existing handlers and blocks new direct node:fs, child_process and fetch imports, and the 8,000 character additionalContext cap read out of the CC binary.",
+    "tags": [
+      "hooks",
+      "function-hooks",
+      "cc-adoption",
+      "policy"
+    ],
+    "date": "2026-09-04",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 3
+  },
+  {
     "slug": "announce-credential-preflight",
     "title": "A red check before the live release announce",
     "description": "The release announce rail now authenticates a non-persisting dry-run before its live POST. Pick valid, missing, retired, or slow credentials to see where the rail stops, what is safe, and the operator recovery path.",

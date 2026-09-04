@@ -31,3 +31,11 @@ paths:
 ## Cache Safety
 - SAFE: `additionalContext` injection, `<system-reminder>` tags, async hooks
 - DANGEROUS: modifying system prompt, changing tool definitions mid-session
+
+## FH-ready handlers (2026-09-04)
+Claude Code is designing Function Hooks (anthropics/claude-code#91870): hooks become in-process functions, and the plugin sandbox has no ambient filesystem or network, every side effect goes through the engine object `$`. Whether or not that ships, a handler that owns its own I/O is harder to test and impossible to port; one that receives its I/O is both.
+
+- **New handlers** under `src/hooks/src/` (everything except `lib/`, `entries/`, `types.ts`, tests) must not import `node:fs` or `node:child_process`, and must not call `fetch` directly.
+- Side effects go through `HookContext` (the #3386 DI seam) or an injected `deps` object built once by the runner. Today `deps.git` is `execSync`-backed; under Function Hooks it is `$.process`-backed; the handler does not change.
+- Existing offenders are grandfathered by path in `src/hooks/scripts/fh-ready-baseline.json` (a ratchet: shrink it, never grow it). `node scripts/fh-ready-check.mjs` runs in CI beside `validate-registry.mjs` and fails on any file not in the baseline.
+- Output caps are real and silent: CC 2.1.258 truncates `additionalContext` at 8,000 characters or 200 lines, `reason` at 2,000 characters or 20 lines, mid-word, with no report (anthropics/claude-code#91870, issuecomment-5532305564). `src/__tests__/fh-output-cap.test.ts` asserts no static payload approaches the cap.

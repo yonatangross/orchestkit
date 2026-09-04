@@ -184,14 +184,9 @@ Session and instance lifecycle management.
 - `TaskCreated` / `TaskCompleted` - Task lifecycle tracking (CC 2.1.84)
 - `TeammateIdle` - Teammate agent idle detection (CC 2.1.33)
 - `WorktreeCreate` / `WorktreeRemove` - Worktree lifecycle (CC 2.1.69)
-<<<<<<< HEAD
 - `CwdChanged` - Working directory changed (CC 2.1.83) — hooked: `lifecycle/cwd-changed` + webhook forwarder
 - `FileChanged` - File modified externally (CC 2.1.83) — hooked: `lifecycle/file-changed` + webhook forwarder (PostToolUse still covers tool writes)
-=======
 - `PreModelSwitch` / `PostModelSwitch` - Session model change, before (can allow/deny/ask) and after (CC 2.1.251, #3789) — hooked: `lifecycle/model-switch-consent`, `lifecycle/model-switch-telemetry`
-- `CwdChanged` - Working directory changed (CC 2.1.83) — **not hooked** (no use case yet)
-- `FileChanged` - File modified externally (CC 2.1.83) — **not hooked** (PostToolUse covers writes)
->>>>>>> 4a129148b (feat(hooks): PreModelSwitch consent gate + PostModelSwitch telemetry)
 
 ### Notification Hooks (Notification)
 Handle notifications and alerts.
@@ -1322,16 +1317,10 @@ When adding new hooks, place them in the appropriate entry point for optimal bun
 | ConfigChange | (root hooks.json) | lifecycle.mjs |
 | TaskCreated/TaskCompleted | (root hooks.json) | lifecycle.mjs |
 | TeammateIdle | (root hooks.json) | lifecycle.mjs |
-<<<<<<< HEAD
 | WorktreeRemove | (root hooks.json) | lifecycle.mjs (webhook-forwarder only; WorktreeCreate is deliberately unregistered, #3315) |
 | CwdChanged | src/entries/lifecycle.ts | lifecycle.mjs (`lifecycle/cwd-changed`) |
 | FileChanged | src/entries/lifecycle.ts | lifecycle.mjs (`lifecycle/file-changed`) |
-=======
-| WorktreeCreate/Remove | (root hooks.json) | lifecycle.mjs |
 | PreModelSwitch/PostModelSwitch | (root hooks.json) | lifecycle.mjs (`lifecycle/model-switch-consent`, `lifecycle/model-switch-telemetry`) |
-| CwdChanged | *not hooked* | — |
-| FileChanged | *not hooked* | — |
->>>>>>> 4a129148b (feat(hooks): PreModelSwitch consent gate + PostModelSwitch telemetry)
 | Skill-specific | src/entries/skill.ts | skill.mjs |
 | Agent-specific | src/entries/agent.ts | agent.mjs |
 
@@ -1404,6 +1393,8 @@ OrchestKit hooks are managed defaults. Users retain full control to disable any 
 See the async hooks section above for detailed async hook patterns.
 
 ## Registry changelog (archived from hooks.json description, 2026-07-18)
+
+(count unchanged at 172, 2026-09-04, #3917 FH-ready handler policy): no hook changed; a gate did. Claude Code is designing Function Hooks (anthropics/claude-code#91870): in-process `($, e, next)` middleware with no ambient fs or network, every side effect through `$`. New handlers under `src/hooks/src/` (excluding `lib/`, `entries/`, `types.ts`, tests) may no longer import `node:fs` or `node:child_process` or call `fetch` directly; I/O comes through `HookContext` (#3386) or an injected `deps` object, so the same handler runs behind `run-hook.mjs` today and behind a `$`-backed context if FH ships. `scripts/fh-ready-check.mjs` runs in ci.yml beside `validate-registry.mjs`; the 111 existing offenders are grandfathered by path in `scripts/fh-ready-baseline.json`, a ratchet that only shrinks (a stale entry fails the gate too). `src/__tests__/fh-output-cap.test.ts` asserts no static payload exceeds half of the additionalContext cap (CC 2.1.258 truncates at 8000 chars / 200 lines, silently and mid-word, per issuecomment-5532305564 on that issue) and lists the 37 handlers that build context from files at runtime. Rule text in `.claude/rules/hooks-development.md`.
 
 (count unchanged at 172, 2026-09-02, #3867 channel 1 deleted): `src/hooks/src/cli/generate-http-hooks.ts` and the `generate:http-hooks` npm script are gone, closing the EPIC A (#3306) child the 2026-09-01 legacy-debris sweep filed instead of drive-by deleting. The CLI was DEPRECATED since #1861 with a `warnDeprecated()` banner on every run, and `hooks.json` has shipped zero `type:"http"` entries for its whole life, but it was not zero-ref: the npm script, the `lifecycle/hook-token-check` header (which credited `scripts/generate-http-hooks` for the entries it scans), the configure skill (`SKILL.md` Step 10 plus `references/http-hooks.md`), the setup skill (`SKILL.md` Phase 9, `references/configure-wizard.md` Step 6, `references/telemetry-setup.md`, `rules/telemetry-consent-gate.md`) and the doctor `version-compatibility.md` row all named it, re-derived at execution time with `git grep`, not from the issue's list. Every doc now routes streaming through the one surviving channel, the HMAC-signed `lib/http-sink` activated by `webhookUrl` in `.claude/orchestration/config.json` plus `ORCHESTKIT_HOOK_TOKEN`; the setup and configure wizards lose the "Full streaming" versus "Summary only" split, which only existed because channel 1 did. `hook-token-check` itself is unchanged in behaviour: it keeps scanning both `settings.local.json` files for `type:"http"` entries referencing the token, because entries a pre-#3867 install generated outlive the generator, and its header now says so. `warnDeprecated` had no other caller and dies with the file. No test imported the CLI (its exports were never covered). Count unchanged: no hooks.json registration moved.
 
