@@ -184,14 +184,9 @@ Session and instance lifecycle management.
 - `TaskCreated` / `TaskCompleted` - Task lifecycle tracking (CC 2.1.84)
 - `TeammateIdle` - Teammate agent idle detection (CC 2.1.33)
 - `WorktreeCreate` / `WorktreeRemove` - Worktree lifecycle (CC 2.1.69)
-<<<<<<< HEAD
 - `CwdChanged` - Working directory changed (CC 2.1.83) — hooked: `lifecycle/cwd-changed` + webhook forwarder
 - `FileChanged` - File modified externally (CC 2.1.83) — hooked: `lifecycle/file-changed` + webhook forwarder (PostToolUse still covers tool writes)
-=======
 - `PreModelSwitch` / `PostModelSwitch` - Session model change, before (can allow/deny/ask) and after (CC 2.1.251, #3789) — hooked: `lifecycle/model-switch-consent`, `lifecycle/model-switch-telemetry`
-- `CwdChanged` - Working directory changed (CC 2.1.83) — **not hooked** (no use case yet)
-- `FileChanged` - File modified externally (CC 2.1.83) — **not hooked** (PostToolUse covers writes)
->>>>>>> 4a129148b (feat(hooks): PreModelSwitch consent gate + PostModelSwitch telemetry)
 
 ### Notification Hooks (Notification)
 Handle notifications and alerts.
@@ -1322,16 +1317,10 @@ When adding new hooks, place them in the appropriate entry point for optimal bun
 | ConfigChange | (root hooks.json) | lifecycle.mjs |
 | TaskCreated/TaskCompleted | (root hooks.json) | lifecycle.mjs |
 | TeammateIdle | (root hooks.json) | lifecycle.mjs |
-<<<<<<< HEAD
 | WorktreeRemove | (root hooks.json) | lifecycle.mjs (webhook-forwarder only; WorktreeCreate is deliberately unregistered, #3315) |
 | CwdChanged | src/entries/lifecycle.ts | lifecycle.mjs (`lifecycle/cwd-changed`) |
 | FileChanged | src/entries/lifecycle.ts | lifecycle.mjs (`lifecycle/file-changed`) |
-=======
-| WorktreeCreate/Remove | (root hooks.json) | lifecycle.mjs |
 | PreModelSwitch/PostModelSwitch | (root hooks.json) | lifecycle.mjs (`lifecycle/model-switch-consent`, `lifecycle/model-switch-telemetry`) |
-| CwdChanged | *not hooked* | — |
-| FileChanged | *not hooked* | — |
->>>>>>> 4a129148b (feat(hooks): PreModelSwitch consent gate + PostModelSwitch telemetry)
 | Skill-specific | src/entries/skill.ts | skill.mjs |
 | Agent-specific | src/entries/agent.ts | agent.mjs |
 

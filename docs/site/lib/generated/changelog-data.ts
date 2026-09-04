@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.75",
+    "date": "2026-09-04",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**announce:** preflight release API credential ([#3916](https://github.com/yonatangross/orchestkit/issues/3916)) ([908c1bc](https://github.com/yonatangross/orchestkit/commit/908c1bc38473d4d0fb5b504596163087610d9520))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.74",
     "date": "2026-09-03",
     "compareUrl": "",

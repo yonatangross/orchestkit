@@ -22,6 +22,8 @@
  *   HQ_API_URL        platform API base                       [enables live POST]
  *   HQ_API_TOKEN      platform API_STATIC_TOKEN               [enables live POST]
  *   DRY_RUN           "true" to compose without posting
+ *   PREFLIGHT          "true" to authenticate with a non-persisting dry-run
+ *                      before the live POST
  *
  * Safe by default: with DRY_RUN set or HQ_API_URL/HQ_API_TOKEN unset, it prints
  * the payload and exits 0 (so releases never fail just because the marketing
@@ -45,9 +47,13 @@ const {
   HQ_API_URL,
   HQ_API_TOKEN,
   DRY_RUN = "false",
+  PREFLIGHT = "false",
   GITHUB_OUTPUT,
   GITHUB_STEP_SUMMARY,
 } = process.env;
+
+const HQ_API_TOKEN_REFERENCE = "op://Platform/API-Static-Token/credential";
+const REQUEST_TIMEOUT_MS = 10_000;
 
 function die(msg) {
   console.error(`[announce-release] ${msg}`);
@@ -66,6 +72,7 @@ if (!RELEASE_VERSION) die("RELEASE_VERSION is required");
 if (!RELEASE_URL) die("RELEASE_URL is required");
 
 const dryRun = DRY_RUN === "true" || DRY_RUN === "1";
+const preflight = PREFLIGHT === "true" || PREFLIGHT === "1";
 
 // Structured highlights from the changelog (best-effort — never fatal).
 let highlights = [];
@@ -103,12 +110,21 @@ const payload = {
   highlights,
   channels: ANNOUNCE_CHANNELS.split(",").map((s) => s.trim()).filter(Boolean),
   account: ANNOUNCE_ACCOUNT,
-  dry_run: dryRun,
+  // The preflight uses the platform's dry-run contract, so it authenticates
+  // and composes the exact release request without creating drafts.
+  dry_run: dryRun || preflight,
 };
 
 const haveCreds = Boolean(HQ_API_URL && HQ_API_TOKEN);
 
-if (dryRun || !haveCreds) {
+if (preflight && !haveCreds) {
+  die(
+    "credential preflight requires HQ_API_URL and HQ_API_TOKEN. " +
+      `Rotate ${HQ_API_TOKEN_REFERENCE} and update the repository HQ_API_TOKEN secret.`,
+  );
+}
+
+if ((dryRun && !preflight) || !haveCreds) {
   if (!haveCreds) {
     console.error(
       "[announce-release] HQ_API_URL/HQ_API_TOKEN unset — dry-run only. " +
@@ -122,21 +138,41 @@ if (dryRun || !haveCreds) {
 }
 
 const endpoint = `${HQ_API_URL.replace(/\/$/, "")}/api/marketing/release-announce`;
-const res = await fetch(endpoint, {
-  method: "POST",
-  headers: {
-    "content-type": "application/json",
-    authorization: `Bearer ${HQ_API_TOKEN}`,
-  },
-  body: JSON.stringify(payload),
-});
+let res;
+try {
+  res = await fetch(endpoint, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      authorization: `Bearer ${HQ_API_TOKEN}`,
+    },
+    body: JSON.stringify(payload),
+    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+  });
+} catch (error) {
+  const context = preflight ? "credential preflight" : "platform request";
+  const detail = error instanceof Error ? error.message : String(error);
+  die(`${context} failed within ${REQUEST_TIMEOUT_MS}ms: ${detail}`);
+}
 
 const text = await res.text();
 if (!res.ok) {
   // The release is already published; a failed announce is a visible red check,
   // not a broken release. Surface the error clearly.
   summary(`### ⚠️ Release announce failed (${res.status})\n\`\`\`\n${text.slice(0, 800)}\n\`\`\``);
+  if (res.status === 401) {
+    die(
+      `HQ_API_TOKEN was rejected. Rotate ${HQ_API_TOKEN_REFERENCE} and update ` +
+        `the repository HQ_API_TOKEN secret. Platform response: ${text.slice(0, 500)}`,
+    );
+  }
   die(`platform returned ${res.status}: ${text.slice(0, 500)}`);
+}
+
+if (preflight) {
+  console.log(JSON.stringify({ mode: "credential-preflight", status: res.status }, null, 2));
+  summary("### Release announce credential preflight\nAuthenticated with a non-persisting platform dry-run.");
+  process.exit(0);
 }
 
 let data = {};
