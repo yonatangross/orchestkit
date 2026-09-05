@@ -2,6 +2,18 @@
   "$comment": "Allowlist for the Lab gallery (docs/showcase/lab). Only entries listed here are copied to public/lab/ and surfaced on the site. `source` is repo-root-relative. Title/description here OVERRIDE what generate-lab-data.mjs extracts from the HTML <head>. Run `node docs/site/scripts/generate-lab-data.mjs` after editing.",
   "entries": [
     {
+      "slug": "cc-version-compatibility-nudge",
+      "source": "docs/feat--ork-3919/compatibility-nudge.html",
+      "title": "A compatibility nudge that survives installation",
+      "description": "Toggle whether the packaged compatibility reference is present to see how cc-version-check stays inside the shipped plugin first, then falls back to a repository-qualified adoption issue query.",
+      "tags": [
+        "hooks",
+        "cc-adoption",
+        "compatibility"
+      ],
+      "date": "2026-09-05"
+    },
+    {
       "slug": "function-hooks-adoption-gate",
       "source": "docs/docs--3917-function-hooks-watch/function-hooks-gate.html",
       "title": "Observed is not shipped: the Function Hooks adoption gate",

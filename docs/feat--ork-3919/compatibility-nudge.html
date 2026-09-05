@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Claude Code compatibility nudge</title>
+  <meta name="description" content="See how OrchestKit routes a newer-version nudge to shipped compatibility guidance, with a repository-qualified issue fallback.">
+  <style>
+    :root { --bg:#0d1220; --panel:#171f33; --ink:#f6f8ff; --muted:#aeb9d4; --line:#34415f; --accent:#75e4c1; --warn:#ffcf70; color-scheme:dark; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; color:var(--ink); background:radial-gradient(circle at 12% 8%,#173f4b 0,transparent 34rem),var(--bg); font:1rem/1.55 ui-sans-serif,system-ui,sans-serif; }
+    main { width:min(68rem,calc(100% - 2rem)); margin:auto; padding:3rem 0; }
+    .eyebrow { color:var(--accent); font-size:.78rem; font-weight:800; letter-spacing:.12em; text-transform:uppercase; }
+    h1 { max-width:16ch; margin:.4rem 0 .8rem; font-size:clamp(2.2rem,6vw,4.7rem); line-height:.98; }
+    .intro { max-width:66ch; color:var(--muted); }
+    .panel { margin-top:2rem; padding:1.25rem; border:1px solid var(--line); border-radius:1rem; background:color-mix(in srgb,var(--panel) 94%,transparent); }
+    .choices { display:flex; flex-wrap:wrap; gap:.7rem; }
+    button { padding:.65rem .9rem; border:1px solid var(--line); border-radius:.65rem; color:var(--ink); background:#202b45; cursor:pointer; font:inherit; }
+    button:hover,button[aria-pressed="true"] { border-color:var(--accent); background:#17443f; }
+    button:focus-visible { outline:3px solid var(--accent); outline-offset:3px; }
+    .route { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.8rem; margin:1.25rem 0; }
+    .step { min-height:9rem; padding:1rem; border:1px solid var(--line); border-radius:.8rem; background:#10182a; }
+    .step strong { display:block; margin:.25rem 0; font-size:1.2rem; }
+    .step small,.detail { color:var(--muted); }
+    .active { border-color:var(--accent); box-shadow:inset 0 .25rem 0 var(--accent); }
+    .fallback.active { border-color:var(--warn); box-shadow:inset 0 .25rem 0 var(--warn); }
+    code { overflow-wrap:anywhere; color:#d9fff4; }
+    .message { min-height:6.5rem; padding:1rem; border-left:.25rem solid var(--accent); border-radius:.45rem; background:#0b101d; }
+    @media (max-width:44rem) { .route { grid-template-columns:1fr; } }
+    @media (prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto !important; transition:none !important; } }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="eyebrow">cc-version-check · packaged guidance</p>
+    <h1>Point the nudge at something users can open.</h1>
+    <p class="intro">When Claude Code is newer than OrchestKit's tested matrix, the hook should name a reference that ships inside the plugin. If that reference is unavailable, the fallback must identify the owning repository instead of assuming the current project is OrchestKit.</p>
+    <section class="panel" aria-labelledby="scenario-title">
+      <h2 id="scenario-title">Choose the installed state</h2>
+      <div class="choices" role="group" aria-label="Compatibility reference state">
+        <button type="button" data-state="shipped" aria-pressed="true">Reference shipped</button>
+        <button type="button" data-state="missing" aria-pressed="false">Reference unavailable</button>
+      </div>
+      <div class="route" aria-label="Nudge decision route">
+        <article class="step active" id="detect"><small>1 · detect</small><strong>Newer CC version</strong><span>The running version exceeds the known matrix.</span></article>
+        <article class="step active" id="reference"><small>2 · primary</small><strong>Installed compatibility guide</strong><code>skills/doctor/references/version-compatibility.md</code></article>
+        <article class="step fallback" id="fallback"><small>3 · fallback</small><strong>Repository issue query</strong><code>github.com/yonatangross/orchestkit/issues?…label:cc-adoption</code></article>
+      </div>
+      <p class="message" id="message" aria-live="polite">Read <code>skills/doctor/references/version-compatibility.md</code> in this plugin. The nudge resolves entirely inside the shipped artifact.</p>
+      <p class="detail">The old route named <code>shared/cc-adoption-gaps.json</code>, a repository-only file absent from installed plugin bundles.</p>
+    </section>
+  </main>
+  <script>
+    const buttons = [...document.querySelectorAll('[data-state]')];
+    const reference = document.getElementById('reference');
+    const fallback = document.getElementById('fallback');
+    const message = document.getElementById('message');
+    function render(state) {
+      const shipped = state === 'shipped';
+      reference.classList.toggle('active', shipped);
+      fallback.classList.toggle('active', !shipped);
+      message.innerHTML = shipped
+        ? 'Read <code>skills/doctor/references/version-compatibility.md</code> in this plugin. The nudge resolves entirely inside the shipped artifact.'
+        : 'Review <code>github.com/yonatangross/orchestkit/issues?q=is:issue label:cc-adoption</code>. The repository-qualified fallback works from any consumer project.';
+      buttons.forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.state === state)));
+    }
+    buttons.forEach((button) => button.addEventListener('click', () => render(button.dataset.state)));
+  </script>
+</body>
+</html>

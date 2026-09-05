@@ -29,6 +29,20 @@ export const LAB_ENTRIES: LabEntry[] = [
     "sizeKb": 5
   },
   {
+    "slug": "cc-version-compatibility-nudge",
+    "title": "A compatibility nudge that survives installation",
+    "description": "Toggle whether the packaged compatibility reference is present to see how cc-version-check stays inside the shipped plugin first, then falls back to a repository-qualified adoption issue query.",
+    "tags": [
+      "hooks",
+      "cc-adoption",
+      "compatibility"
+    ],
+    "date": "2026-09-05",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 5
+  },
+  {
     "slug": "feat--fh-handler-policy",
     "title": "FH-ready handlers: the policy that makes the Function Hooks port mechanical",
     "description": "Claude Code is designing Function Hooks (anthropics/claude-code#91870): in-process hooks where every side effect goes through one engine object. This page shows the same ork guard in both shapes, the ratchet gate that grandfathers 111 existing handlers and blocks new direct node:fs, child_process and fetch imports, and the 8,000 character additionalContext cap read out of the CC binary.",
