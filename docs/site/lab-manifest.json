@@ -2,6 +2,18 @@
   "$comment": "Allowlist for the Lab gallery (docs/showcase/lab). Only entries listed here are copied to public/lab/ and surfaced on the site. `source` is repo-root-relative. Title/description here OVERRIDE what generate-lab-data.mjs extracts from the HTML <head>. Run `node docs/site/scripts/generate-lab-data.mjs` after editing.",
   "entries": [
     {
+      "slug": "next-navigation-vitest-resolution",
+      "source": "docs/fix--docs-site-next-nav-3931/next-navigation-resolution.html",
+      "title": "One ESM import, two resolvers",
+      "description": "Choose the resolver to see why the docs build accepts analytics 1.2.0 while Vitest needs to inline the package until its upstream build is corrected.",
+      "tags": [
+        "vitest",
+        "esm",
+        "analytics"
+      ],
+      "date": "2026-09-05"
+    },
+    {
       "slug": "cc-adoption-lens-259-261",
       "source": "docs/feat--adopt-cc-259-261/cc-adoption-lens.html",
       "title": "CC 2.1.259 to 2.1.261 adoption lens",
