@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.77",
+    "date": "2026-09-05",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "**hooks:** record Function Hooks watch gate ([#3917](https://github.com/yonatangross/orchestkit/issues/3917)) ([#3925](https://github.com/yonatangross/orchestkit/issues/3925)) ([2fcae42](https://github.com/yonatangross/orchestkit/commit/2fcae4253ef9f5f4fb884ef43876b1d63b1b7e67))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.76",
     "date": "2026-09-04",
     "compareUrl": "",

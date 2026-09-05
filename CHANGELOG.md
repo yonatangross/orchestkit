@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.77](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.76...v10.0.0-alpha.77) (2026-09-05)
+
+
+### Documentation
+
+* **hooks:** record Function Hooks watch gate ([#3917](https://github.com/yonatangross/orchestkit/issues/3917)) ([#3925](https://github.com/yonatangross/orchestkit/issues/3925)) ([2fcae42](https://github.com/yonatangross/orchestkit/commit/2fcae4253ef9f5f4fb884ef43876b1d63b1b7e67))
+
 ## [10.0.0-alpha.76](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.75...v10.0.0-alpha.76) (2026-09-04)
 
 

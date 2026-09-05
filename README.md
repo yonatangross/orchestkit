@@ -370,6 +370,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.77](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.76...v10.0.0-alpha.77)** · 2026-09-05
+
+- **hooks:** record Function Hooks watch gate (#3917) (#3925)
+
 **[v10.0.0-alpha.76](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.75...v10.0.0-alpha.76)** · 2026-09-04
 
 - **hooks:** FH-ready handler policy and gate (#3917) (#3918)
@@ -408,10 +412,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **ci:** allow autoheal plugin.json mirrors on the release branch (#3880)
 - **ci:** make hook bundles release-owned (#3578) (#3875)
-
-**[v10.0.0-alpha.69](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.68...v10.0.0-alpha.69)** · 2026-09-01
-
-- **agents:** pin 15 agent model tiers (2026-09-01 routing) (#3872)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
