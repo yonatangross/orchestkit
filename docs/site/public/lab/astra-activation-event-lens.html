@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Activation event lens</title>
+  <style>
+    :root { --pg-bg:hsl(225 28% 11%); --pg-surface:hsl(224 25% 16% / 92%); --pg-ink:hsl(215 33% 96%); --pg-muted:hsl(216 18% 72%); --pg-line:hsl(215 22% 67% / 26%); --pg-focus:hsl(187 88% 62%); --pg-attempt:hsl(38 88% 61%); --pg-start:hsl(187 88% 62%); --pg-complete:hsl(146 63% 58%); color-scheme:dark; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-block-size:100vh; color:var(--pg-ink); background:radial-gradient(circle at 18% 8%, hsl(187 88% 35% / 28%), transparent 32rem), var(--pg-bg); font:1rem/1.5 ui-sans-serif,system-ui,sans-serif; }
+    main { inline-size:min(66rem,calc(100% - 2rem)); margin:0 auto; padding:3rem 0; }
+    .eyebrow { color:var(--pg-focus); font-size:.78rem; font-weight:750; letter-spacing:.11em; text-transform:uppercase; }
+    h1 { margin:.4rem 0 .7rem; font-size:clamp(2rem,5vw,4rem); line-height:1; }
+    .intro,.note { max-inline-size:65ch; color:var(--pg-muted); }
+    .panel { margin-block-start:2rem; padding:1.25rem; border:1px solid var(--pg-line); border-radius:1rem; background:var(--pg-surface); box-shadow:0 1.5rem 4rem hsl(225 35% 4% / 30%); }
+    .toolbar,.actions { display:flex; flex-wrap:wrap; gap:.65rem; align-items:center; }
+    .coverage { margin-inline-start:auto; color:var(--pg-muted); }
+    button { border:1px solid var(--pg-line); border-radius:.6rem; padding:.55rem .8rem; color:var(--pg-ink); background:hsl(224 23% 20%); cursor:pointer; font:inherit; }
+    button:hover,button[aria-pressed="true"] { border-color:var(--pg-focus); background:hsl(187 65% 26%); }
+    button:focus-visible { outline:3px solid var(--pg-focus); outline-offset:3px; }
+    .metrics { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.9rem; margin-block:1.25rem; }
+    .metric { min-block-size:9rem; padding:1rem; border-radius:.85rem; background:hsl(223 23% 10% / 55%); border-block-start:.3rem solid var(--accent); }
+    .metric b { display:block; margin-block-start:.3rem; font-size:clamp(2.2rem,6vw,3.7rem); line-height:1; }
+    .metric small,th { color:var(--pg-muted); }
+    .attempt { --accent:var(--pg-attempt); } .start { --accent:var(--pg-start); } .complete { --accent:var(--pg-complete); }
+    table { inline-size:100%; border-collapse:collapse; } th,td { padding:.7rem; border-block-end:1px solid var(--pg-line); text-align:start; }
+    .step { min-block-size:3rem; color:var(--pg-muted); }
+    @media (max-width:42rem) { .metrics { grid-template-columns:1fr; } .coverage { inline-size:100%; margin-inline-start:0; } }
+    @media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; scroll-behavior:auto !important; transition-duration:.01ms !important; } }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="eyebrow">Activation audit playground</p>
+    <h1>Keep each event stream honest.</h1>
+    <p class="intro">Attempts, starts, and completions answer different questions. The collector reports them separately because the telemetry feeds do not share a stable event id.</p>
+    <section class="panel" aria-labelledby="lens-title">
+      <div class="toolbar">
+        <strong id="lens-title">Coverage lens</strong>
+        <div class="actions" role="group" aria-label="Coverage state">
+          <button type="button" data-coverage="observed" aria-pressed="true">Observed feed</button>
+          <button type="button" data-coverage="missing" aria-pressed="false">Missing feed</button>
+        </div>
+        <span class="coverage" id="coverageStatus" aria-live="polite">Observed local feed. Estate coverage remains unproven.</span>
+      </div>
+      <div class="metrics" aria-label="Separate activation event counts">
+        <article class="metric attempt"><small>Pre-tool attempts</small><b id="attempted">4</b><span>Intent was recorded.</span></article>
+        <article class="metric start"><small>Started agents</small><b id="started">2</b><span>Only start events count here.</span></article>
+        <article class="metric complete"><small>Completed agents</small><b id="completed">1</b><span>Stop feed is independent.</span></article>
+      </div>
+      <table><thead><tr><th>Question</th><th>Evidence</th><th>Safe conclusion</th></tr></thead><tbody id="evidenceRows">
+        <tr><td>Did someone request an agent?</td><td>Pre-tool intent</td><td>4 attempts</td></tr>
+        <tr><td>Did an agent start?</td><td>Start event</td><td>2 starts</td></tr>
+        <tr><td>Did a stop arrive?</td><td>Restored stop feed</td><td>1 completion</td></tr>
+      </tbody></table>
+      <p class="step" id="step" aria-live="polite">Step 1 of 2: inspect a local observed feed before interpreting a zero.</p>
+      <div class="actions"><button type="button" id="previous">Previous step</button><button type="button" id="next">Next step</button><button type="button" id="copyPrompt">Copy audit prompt</button></div>
+      <p class="note">Missing, empty, and malformed inputs block an observed-zero result. Even an observed local feed is not proof that an agent never fired across the estate.</p>
+    </section>
+  </main>
+  <script>
+    const data = {
+      observed: { counts: [4, 2, 1], status: 'Observed local feed. Estate coverage remains unproven.', rows: [['Did someone request an agent?', 'Pre-tool intent', '4 attempts'], ['Did an agent start?', 'Start event', '2 starts'], ['Did a stop arrive?', 'Restored stop feed', '1 completion']] },
+      missing: { counts: ['0', '0', '0'], status: 'Missing feed. Zero counts are not a dormancy verdict.', rows: [['Did someone request an agent?', 'No readable feed', 'Unknown'], ['Did an agent start?', 'No readable feed', 'Unknown'], ['Did a stop arrive?', 'No readable stop feed', 'Unknown']] }
+    };
+    const fields = ['attempted', 'started', 'completed'];
+    const buttons = [...document.querySelectorAll('[data-coverage]')];
+    function renderCoverage(kind) {
+      const view = data[kind];
+      fields.forEach((id, index) => { document.getElementById(id).textContent = view.counts[index]; });
+      document.getElementById('coverageStatus').textContent = view.status;
+      document.getElementById('evidenceRows').replaceChildren(...view.rows.map((row) => {
+        const tr = document.createElement('tr'); row.forEach((cell) => { const td = document.createElement('td'); td.textContent = cell; tr.append(td); }); return tr;
+      }));
+      buttons.forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.coverage === kind)));
+    }
+    buttons.forEach((button) => button.addEventListener('click', () => renderCoverage(button.dataset.coverage)));
+    let step = 1;
+    function renderStep() { document.getElementById('step').textContent = `Step ${step} of 2: ${step === 1 ? 'inspect a local observed feed before interpreting a zero.' : 'keep completions independent from starts and attempts.'}`; }
+    document.getElementById('previous').addEventListener('click', () => { step = 1; renderStep(); });
+    document.getElementById('next').addEventListener('click', () => { step = 2; renderStep(); });
+    document.getElementById('copyPrompt').addEventListener('click', async () => {
+      await navigator.clipboard?.writeText('Report attempts, starts, completions, and coverage separately. Do not infer estate-wide dormancy from missing or local telemetry.');
+      document.getElementById('copyPrompt').textContent = 'Prompt copied';
+    });
+  </script>
+</body>
+</html>

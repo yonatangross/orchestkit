@@ -2,6 +2,18 @@
   "$comment": "Allowlist for the Lab gallery (docs/showcase/lab). Only entries listed here are copied to public/lab/ and surfaced on the site. `source` is repo-root-relative. Title/description here OVERRIDE what generate-lab-data.mjs extracts from the HTML <head>. Run `node docs/site/scripts/generate-lab-data.mjs` after editing.",
   "entries": [
     {
+      "slug": "astra-activation-event-lens",
+      "source": "docs/fix--astra-installed-activation-audit-3922/activation-events.html",
+      "title": "Activation event lens",
+      "description": "A compact interactive lens for keeping attempted, started, and completed agent events separate while showing why missing telemetry cannot prove dormancy.",
+      "tags": [
+        "agents",
+        "telemetry",
+        "audit"
+      ],
+      "date": "2026-09-05"
+    },
+    {
       "slug": "cc-version-compatibility-nudge",
       "source": "docs/feat--ork-3919/compatibility-nudge.html",
       "title": "A compatibility nudge that survives installation",

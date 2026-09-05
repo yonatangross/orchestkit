@@ -897,7 +897,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           },
           {
             "num": "",
-            "label": "Never-fired agents (6 of 20 — ALL listed, r…",
+            "label": "Observed zero-start agents (6 of 20 in the…",
             "does": "",
             "out": null,
             "tag": null

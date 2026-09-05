@@ -723,7 +723,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/audit-activation",
     "title": "Audit Activation",
-    "description": "Audits OrchestKit sub-agent activation from real spawn telemetry — computes the generic-vs-specialist spawn split, flags dormant agents (never fired), and classifies each as fires/mis-triggered/niche. The agent-side analogue of audit-skills. Use when specialized agents feel under-used, before pruning the catalog, or after wiring new agent spawn paths."
+    "description": "Audits sub-agent activation from explicit consumer telemetry roots. It separates attempted, started, completed, and unattributed events, reports coverage, and identifies observed zero starts without making an estate-wide dormancy claim. Use when specialized agents feel under-used, before pruning the catalog, or after wiring new agent spawn paths."
   },
   {
     "url": "/docs/reference/skills/audit-full",

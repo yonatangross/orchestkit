@@ -7,9 +7,10 @@
       "rule": null,
       "query": "Audit which OrchestKit agents actually get spawned vs generic ones",
       "expectedBehavior": [
-        "Reads .claude/logs/subagent-spawns.jsonl (fresh stream), not the dead agent-usage.jsonl",
+        "Reads explicit consumer .claude/logs/subagent-spawns.jsonl roots and reports their coverage state",
+        "Triangulates an explicitly supplied restored agent-usage.jsonl stop feed without joining it to starts",
         "Computes the generic-vs-ork-catalog-vs-other spawn split as counts + percentages",
-        "Lists agents that fired and agents that never fired in the window",
+        "Keeps per-agent attempted, started, and completed counts distinct and lists observed zero starts only when coverage is observed",
         "Reports concentration (top-5 share of catalog spawns)"
       ]
     },
@@ -42,7 +43,7 @@
       "expectedBehavior": [
         "Runs or references scripts/run-activation-audit.sh for the deterministic data",
         "States the telemetry window dates",
-        "Caveats that never-fired means absent from the window — strong signal, not proof of zero",
+        "Caveats that observed zero starts mean absent from supplied roots and window, not proof of estate-wide zero",
         "Recommends pruning only DEAD (zero-reference) agents"
       ]
     }

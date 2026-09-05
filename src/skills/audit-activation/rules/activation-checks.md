@@ -7,14 +7,14 @@ tags: agents, activation, telemetry, metrics
 
 # Activation Checks
 
-What to compute for the activation audit. All counts come from the FRESH spawn stream `.claude/logs/subagent-spawns.jsonl` (NOT the dead `~/.claude/analytics/agent-usage.jsonl`).
+What to compute for the activation audit. Explicit consumer roots provide the spawn stream `.claude/logs/subagent-spawns.jsonl`; the restored `agent-usage.jsonl` stop feed is optional corroboration. Keep attempted, started, completed, and unattributed events separate because the streams have no stable common ID.
 
 ## 1. Spawn split (the headline)
 
-Classify every spawn's `subagent_type` into one of three buckets:
+Classify every `source:start` event's `subagent_type` into one of three buckets:
 
 - **generic CC** — `Explore`, `general-purpose`, `Plan`, `workflow-subagent`, `statusline-setup`
-- **ork catalog** — name (minus any `ork:` prefix) matches a file in `src/agents/`
+- **ork catalog** — name (minus the configured namespace prefix) matches a file in the script-resolved catalog
 - **other-plugin** — anything else (`candlekeep-cloud:*`, `claude-code-guide`, `hq-ext:*`)
 
 Report each as count + % of total. A healthy catalog is NOT dominated by generic.
@@ -23,9 +23,9 @@ Report each as count + % of total. A healthy catalog is NOT dominated by generic
 
 **Correct** — `generic 690 (74%) · ork 130 (14%) · other 107 (11%)` — the ratio is the finding.
 
-## 2. Per-agent fire counts + never-fired set
+## 2. Per-agent event counts + observed-zero-start set
 
-Tally ork-catalog spawns by agent. Then `never-fired = inventory − fired`. List both.
+Report per-agent attempted, started, and completed counts. `fires` is a backwards-compatible alias for `started`. When spawn coverage is `observed`, compute `observed-zero-start = inventory − started`; otherwise report no zero-start list. This is scoped to supplied roots, never an estate-wide dormant verdict.
 
 ## 3. Concentration
 
