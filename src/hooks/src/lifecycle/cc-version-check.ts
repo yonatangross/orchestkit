@@ -191,7 +191,8 @@ export function ccVersionCheck(input: HookInput, ctx: HookContext = NOOP_CTX): H
     return outputSessionStartContext(
       `[cc-version-check] Running CC ${running} — OrchestKit's feature matrix knows up to ${matrixLatest}. ` +
         `New features may be available for adoption. Suggest /release-notes (CC 2.1.173+) for the upstream notes; ` +
-        `check shared/cc-adoption-gaps.json or open issues with label "cc-adoption".`,
+        `read skills/doctor/references/version-compatibility.md in this plugin; if that reference is unavailable, ` +
+        `review https://github.com/yonatangross/orchestkit/issues?q=is%3Aissue%20label%3Acc-adoption.`,
     );
   }
 
