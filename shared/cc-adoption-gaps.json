@@ -1,5 +1,577 @@
 [
   {
+    "version": "2.1.259",
+    "parse_failed": false,
+    "features": [
+      {
+        "feature_slug": "skill_command_frontmatter_model_honored",
+        "category": "breaking",
+        "relevance": "plugin-author",
+        "gap_score": 70,
+        "reference_changelog_line": "Fixed frontmatter `model:` on custom commands and skills being ignored in interactive sessions",
+        "description": "A skill's or command's frontmatter `model:` was silently ignored in interactive sessions; it now applies.",
+        "affected_skills": [
+          "auto",
+          "assess",
+          "brainstorm",
+          "audit-full",
+          "analytics"
+        ],
+        "disposition": "upside",
+        "ork_disposition_note": "Largest single behaviour change in this wave for ork. VERIFIED 39 of ork's skills declare a model pin: `grep -rl '^model:' src/skills/*/SKILL.md | wc -l` = 39 (sampled: analytics=haiku, assess=sonnet, audit-full=opus, auto=sonnet, brainstorm=sonnet). Before 2.1.259 every one of those pins was inert in an interactive session, so a skill authored to run on haiku ran on whatever the session used. Nothing to change in ork: the pins were already correct and now take effect. Users below the fix keep the old behaviour, which is why ork's floor (2.1.251) still cannot assume it."
+      },
+      {
+        "feature_slug": "auto_mode_unsupported_frontmatter_model",
+        "category": "breaking",
+        "relevance": "end-user",
+        "gap_score": 30,
+        "reference_changelog_line": "Fixed auto mode running a turn on a model it doesn't support when a command or skill's frontmatter `model:` named one; the turn now keeps the session model",
+        "description": "Auto mode no longer switches to a frontmatter-named model it cannot support; it keeps the session model instead.",
+        "affected_skills": [
+          "auto"
+        ],
+        "disposition": "upside",
+        "ork_disposition_note": "Paired with the fix above and bounds it. ork's 39 pinned skills name only opus, sonnet and haiku (`grep -rh '^model:' src/skills/*/SKILL.md | sort -u`), all of which auto mode supports, so ork never triggered the unsupported branch. Free."
+      },
+      {
+        "feature_slug": "concurrent_sessions_claude_json_revert_fix",
+        "category": "breaking",
+        "relevance": "end-user",
+        "gap_score": 60,
+        "reference_changelog_line": "Fixed concurrent sessions silently reverting each other's `~/.claude.json` changes",
+        "description": "Concurrent sessions no longer clobber each other's ~/.claude.json; workspace trust and MCP/project state survive many parallel sessions.",
+        "affected_skills": [
+          "configure",
+          "doctor"
+        ],
+        "disposition": "upside",
+        "ork_disposition_note": "Directly relevant to how this estate is actually run: ListAgents reported 17 peer sessions (4 live interactive) while this lane was open, which is exactly the condition that produced the silent revert. ork ships no fix of its own for it and never could; the shared-state hazard it documents in the worktree rules is narrower (working tree, index, node_modules) than the ~/.claude.json class this closes. Free upside, no ork change."
+      },
+      {
+        "feature_slug": "blocking_stop_hook_reasoning_loss_fix",
+        "category": "breaking",
+        "relevance": "plugin-author",
+        "gap_score": 45,
+        "reference_changelog_line": "Fixed blocking Stop hooks causing the turn after a block to lose the model's reasoning from that turn and, on some models, miss the prompt cache",
+        "description": "A blocking Stop hook no longer costs the next turn its reasoning and a prompt-cache hit.",
+        "affected_skills": [],
+        "disposition": "upside",
+        "ork_disposition_note": "ork registers 8 Stop hooks (`ls src/hooks/src/stop/`: goal-tracker, handoff-writer, ledger-cleanup, security-scan-aggregator, session-heartbeat-finalizer, session-summary, stop-failure-handler, task-completion-check). VERIFIED none of them blocks: `grep -rn 'process.exit|decision|continue: false|block' src/hooks/src/stop/*.ts` returns only comments and unrelated identifiers (goal-tracker.ts:23 states the contract outright, 'Async: telemetry write only, must not block Stop'), and all Stop entries in src/hooks/hooks.json carry `async: true`. So ork never paid this cost and gains nothing measurable; the fix matters for users who add their own blocking Stop hook on top of ork."
+      },
+      {
+        "feature_slug": "worktree_isolation_hook_created_worktrees",
+        "category": "breaking",
+        "relevance": "plugin-author",
+        "gap_score": 40,
+        "reference_changelog_line": "Fixed worktree isolation refusing hook-created worktrees on machines where `git rev-parse` fails with a message other than \"not a git repository\"",
+        "description": "Worktree isolation no longer refuses a hook-created worktree when git rev-parse fails with an unexpected message.",
+        "affected_skills": [],
+        "disposition": "upside",
+        "ork_disposition_note": "ork has both halves of this surface: 25 agents declare `isolation: worktree` (`grep -rl 'isolation: *worktree' src/agents/*.md | wc -l` = 25) and a hook manages worktree lifecycle (`src/hooks/src/lifecycle/sweep-stale-worktrees.ts`, written for #1884). The refusal was environment-dependent, so it was never reproducible here; free upside."
+      },
+      {
+        "feature_slug": "worktree_isolated_bash_loops_refused_fix",
+        "category": "breaking",
+        "relevance": "plugin-author",
+        "gap_score": 25,
+        "reference_changelog_line": "Fixed worktree-isolated sessions refusing common Bash loops, xargs pipelines and launcher-wrapped commands that cannot reach the main checkout",
+        "description": "Worktree-isolated sessions stop refusing Bash loops, xargs pipelines and launcher-wrapped commands.",
+        "affected_skills": [],
+        "disposition": "upside",
+        "ork_disposition_note": "Second helping of the same free upgrade already recorded for the 25 isolation:worktree agents in the 2.1.252-257 triage. No ork change."
+      },
+      {
+        "feature_slug": "plugin_validate_json",
+        "category": "new_attr",
+        "relevance": "plugin-author",
+        "gap_score": 55,
+        "reference_changelog_line": "Added `--json` to `claude plugin validate` for a machine-readable validation report",
+        "description": "claude plugin validate gains --json for a machine-readable report.",
+        "affected_skills": [
+          "doctor"
+        ],
+        "disposition": "deferred-S",
+        "ork_disposition_note": "Actionable and small. ork already runs the command in CI at `.github/workflows/plugin-validation.yml:347`, but consumes only its exit code: `claude plugin validate ./plugins/ork 2>&1 || { echo \"::warning::claude plugin validate reported issues\"; exit 1; }`. A red run therefore says 'reported issues' and nothing about which. With --json the workflow could name the failing entries in the annotation. Deferred rather than adopted because it must not run below ork's floor (2.1.251) without a version guard, and the step already installs an unpinned CC."
+      },
+      {
+        "feature_slug": "permission_prompts_none_headless",
+        "category": "new_attr",
+        "relevance": "plugin-author",
+        "gap_score": 50,
+        "reference_changelog_line": "Added `--permission-prompts none` for unattended headless hosts",
+        "description": "New --permission-prompts none denies anything that would prompt, while the active permission mode keeps deciding.",
+        "affected_skills": [
+          "ci-sentinel",
+          "bare-eval"
+        ],
+        "disposition": "deferred-S",
+        "ork_disposition_note": "ork has 7 headless workflows plus eval scripts driving `claude -p` (labs-version-watch, plugin-validation, ci-sentinel, claude-health, claude-release-watch, skill-eval, claude-triage; tests/evals/scripts/run-trigger-eval.sh and others). Today an unexpected prompt in those hosts hangs until the job timeout. The flag converts that into an immediate deny, which is the behaviour the workflows already want. Deferred for the same floor-guard reason as --json."
+      },
+      {
+        "feature_slug": "allowed_mcp_servers_scope_change",
+        "category": "breaking",
+        "relevance": "end-user",
+        "gap_score": 45,
+        "reference_changelog_line": "Changed `allowedMcpServers` to govern only servers users add: a literal `managed-mcp.json` server your allowlist used to filter out now loads on upgrade; use `deniedMcpServers` to keep it off",
+        "description": "allowedMcpServers now governs only user-added servers; managed-mcp.json entries it used to filter out now load.",
+        "affected_skills": [
+          "mcp-patterns",
+          "configure",
+          "security-patterns"
+        ],
+        "disposition": "adopted-doc",
+        "ork_disposition_note": "ork documents allowedMcpServers/deniedMcpServers enforcement in four places (`plugins/ork/skills/mcp-patterns/SKILL.md:177`, `configure/references/mcp-config.md:348`, `configure/SKILL.md:132`, `security-patterns/SKILL.md:296` and `:378`), all framed as an org-wide allowlist that filters every server. That framing is now wrong for managed entries: on upgrade, a managed-mcp.json server an allowlist used to exclude starts loading. A security doc that overstates what an allowlist covers is the kind of claim worth correcting, so this gets a doc note rather than a noop."
+      },
+      {
+        "feature_slug": "managed_mcp_servers_setting",
+        "category": "new_attr",
+        "relevance": "end-user",
+        "gap_score": 15,
+        "reference_changelog_line": "Added `managedMcpServers` managed setting",
+        "description": "Organizations can push HTTP/SSE MCP servers to every user via a managed setting; command-based entries are skipped.",
+        "affected_skills": [
+          "mcp-patterns"
+        ],
+        "disposition": "triaged-noop-cc-native",
+        "ork_disposition_note": "Enterprise managed-settings surface. ork ships no managed settings and cannot: managed settings are machine or org scoped, and ork's own plugin settings file is inert for everything except `agent` and `subagentStatusLine`. Nothing for ork to do beyond the mcp-config note already covering the family."
+      },
+      {
+        "feature_slug": "managed_settings_refuse_start_on_parse_error",
+        "category": "breaking",
+        "relevance": "end-user",
+        "gap_score": 20,
+        "reference_changelog_line": "Fixed managed settings silently going unenforced when the managed-settings file, a drop-in, the MDM plist, or the HKLM value cannot be parsed",
+        "description": "Unparseable managed settings now stop Claude Code from starting, naming the source, instead of silently disabling enforcement.",
+        "affected_skills": [
+          "security-patterns"
+        ],
+        "disposition": "upside",
+        "ork_disposition_note": "Same failure class ork already documents at `security-patterns/SKILL.md:296` for CC 2.1.166 (one invalid entry silently voiding the rest). This closes the remaining parse-level variant by refusing to start. Free; the existing note stays accurate."
+      },
+      {
+        "feature_slug": "bash_read_deny_option_values_259",
+        "category": "new_perm",
+        "relevance": "end-user",
+        "gap_score": 10,
+        "reference_changelog_line": "Fixed Bash `Read()` deny rules not covering files given as option values, `git diff`/`git grep` file operands, or `cd DIR && cat FILE` compounds",
+        "description": "Read() deny rules were extended over Bash option values, git file operands and cd-compounds.",
+        "affected_skills": [
+          "security-patterns"
+        ],
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "Do not adopt: 2.1.260 REVERTED this one release later ('it denied `npm run build` under a `Read(./**/build/**)` rule in every mode and made `cd … && grep` prompt even in auto mode'). Net effect across the wave is zero. Recorded so a future reader does not re-adopt a reverted behaviour from the 2.1.259 snapshot alone."
+      },
+      {
+        "feature_slug": "glab_mr_recognition",
+        "category": "new_attr",
+        "relevance": "end-user",
+        "gap_score": 5,
+        "reference_changelog_line": "Added recognition of `glab mr create/merge/close/reopen/note/update`",
+        "description": "GitLab merge requests now render as MR !N in the collapsed tool summary and refresh the footer MR badge.",
+        "affected_skills": [
+          "github-operations"
+        ],
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "ork is GitHub-only: `github-operations` and every workflow use `gh`, and no ork file invokes `glab`. Nothing to adopt."
+      }
+    ],
+    "raw_bullets_count": 37,
+    "triaged_by": "hand, lane adopt-cc-259-261, 2026-09-05"
+  },
+  {
+    "version": "2.1.260",
+    "parse_failed": false,
+    "features": [
+      {
+        "feature_slug": "skill_deny_rules_nested_dir_name",
+        "category": "breaking",
+        "relevance": "plugin-author",
+        "gap_score": 65,
+        "reference_changelog_line": "Fixed managed `skillOverrides` entries keyed on a bundled skill's alias (e.g. `checkup` for `/doctor`) not applying, and `Skill(name)` deny rules not covering a nested skill listed as `<dir>:name`",
+        "description": "Skill(name) deny rules now cover a nested skill addressed as <dir>:name, and skillOverrides keyed on an alias apply.",
+        "affected_skills": [
+          "configure",
+          "security-patterns"
+        ],
+        "disposition": "adopted-doc",
+        "ork_disposition_note": "Every user-facing ork skill IS a `<dir>:name` skill: all 106 surface as `/ork:<skillname>` (CLAUDE.md, Plugin Architecture). Before 2.1.260 an operator who wrote `Skill(audit-full)` to deny one of them was not actually denying anything, because the skill is listed as `ork:audit-full`. That is a silent-permission-gap of exactly the class ork's own security docs warn about, and it argues for spelling the prefixed form in `configure`. Doc-level, since ork ships no Skill() deny rules of its own."
+      },
+      {
+        "feature_slug": "block_reads_outside_wd_worktree_subagent_fix",
+        "category": "breaking",
+        "relevance": "plugin-author",
+        "gap_score": 55,
+        "reference_changelog_line": "Fixed `permissions.blockReadsOutsideWorkingDirectories` on macOS hiding the user's git config from sandboxed git and hiding a worktree-isolated sub-agent's own checkout",
+        "description": "blockReadsOutsideWorkingDirectories no longer hides git config from sandboxed git, nor a worktree-isolated subagent's own checkout.",
+        "affected_skills": [
+          "configure"
+        ],
+        "disposition": "upside",
+        "ork_disposition_note": "Hits ork's most-used isolation path: 25 agents declare `isolation: worktree`, and `permissions.blockReadsOutsideWorkingDirectories` is already documented in `configure` (adopted in the 2.1.252-257 wave). A subagent that cannot read its OWN checkout is the worst shape of this bug, because the failure reads as a missing file rather than a permission denial. Free at 2.1.260; the configure note stays correct."
+      },
+      {
+        "feature_slug": "zsh_reporttime_command_substitution_approval",
+        "category": "new_perm",
+        "relevance": "end-user",
+        "gap_score": 60,
+        "reference_changelog_line": "Fixed Bash permission checks auto-approving zsh commands that hide a command substitution in a REPORTTIME, REPORTMEMORY or DIRSTACKSIZE assignment; these now prompt for approval",
+        "description": "Command substitution hidden in a zsh REPORTTIME/REPORTMEMORY/DIRSTACKSIZE assignment no longer auto-approves.",
+        "affected_skills": [
+          "security-patterns"
+        ],
+        "disposition": "adopted-doc",
+        "ork_disposition_note": "A real permission-bypass class, and one ork's own suite did not cover: `ls tests/security/` includes test-command-injection.sh, test-compound-commands.sh and test-line-continuation-bypass.sh, none of which probes a zsh numeric-assignment carrier. It also lands on this machine's actual shell (`Shell: zsh`). Worth a line in security-patterns; a matching probe in tests/security is the natural follow-up but is a code change, not a triage row."
+      },
+      {
+        "feature_slug": "subagent_background_command_1h_limit_removed",
+        "category": "breaking",
+        "relevance": "plugin-author",
+        "gap_score": 45,
+        "reference_changelog_line": "Removed the one-hour time limit on background commands started by subagents; they now run until they exit or are stopped, matching the main session",
+        "description": "Background commands started by subagents no longer die at one hour.",
+        "affected_skills": [
+          "implement",
+          "cover",
+          "verify"
+        ],
+        "disposition": "upside",
+        "ork_disposition_note": "ork fans work out to subagents that start long-running background commands (test suites, builds, browser sessions), and a silent one-hour ceiling is the kind of limit that reads as a hung agent rather than a kill. Free upside, no ork change; worth knowing when a long agent run previously 'stalled' near the hour mark."
+      },
+      {
+        "feature_slug": "bash_mode_outside_sandbox_strict",
+        "category": "breaking",
+        "relevance": "end-user",
+        "gap_score": 50,
+        "reference_changelog_line": "Changed commands typed at the `!` bash-mode prompt to run outside the sandbox even when strict sandbox mode (`sandbox.allowUnsandboxedCommands: false`) is on, like typing into your own terminal",
+        "description": "The ! bash-mode prompt now runs outside the sandbox even under strict sandbox mode.",
+        "affected_skills": [
+          "security-patterns",
+          "configure"
+        ],
+        "disposition": "adopted-doc",
+        "ork_disposition_note": "A deliberate hole in a setting whose name promises the opposite: `allowUnsandboxedCommands: false` no longer covers the `!` prompt. It is defensible (the operator typed it themselves) but anyone reading the setting as a hard boundary is now wrong, so it belongs in the sandbox prose rather than left implicit."
+      },
+      {
+        "feature_slug": "prompt_cache_miss_cause_in_cost",
+        "category": "new_attr",
+        "relevance": "plugin-author",
+        "gap_score": 45,
+        "reference_changelog_line": "Added a likely cause for prompt-cache misses (e.g. tool definitions or system prompt changed, idle past the TTL) to `/cost` and the status line's `prompt_cache` field",
+        "description": "/cost and the status line's prompt_cache field now name a likely cause for a cache miss.",
+        "affected_skills": [
+          "analytics"
+        ],
+        "disposition": "adopted-doc",
+        "ork_disposition_note": "ork's cost story is cache-dominated (the estate's measured cache-read to fresh-input ratio is roughly 386:1), and a plugin that injects tool definitions and a system prompt is itself a plausible cache-miss cause. A native per-miss reason is strictly better than inferring it from token counts, which is what ork's analytics currently does. Doc note in analytics."
+      },
+      {
+        "feature_slug": "permission_rule_parens_dropped_fix",
+        "category": "breaking",
+        "relevance": "end-user",
+        "gap_score": 30,
+        "reference_changelog_line": "Fixed `Edit`/`Write`/`Read` permission rules whose path contains parentheses being dropped as invalid or ignored by the Bash sandbox, which left \"read-only\" folders writable",
+        "description": "Permission rules whose path contains parentheses are no longer dropped as invalid or ignored by the Bash sandbox.",
+        "affected_skills": [
+          "configure"
+        ],
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "Noop for ork's shipped rules, for two independent reasons. VERIFIED none of the 25 deny rules in src/settings/ork.settings.json contains a parenthesis inside the path (they are plain forms such as `Read(~/.ssh/**)`, `Bash(rm -rf /)`, `Bash(find *-delete*)`). And ork's plugin settings `permissions` block is discarded by CC regardless: only `agent` and `subagentStatusLine` are read from a plugin settings file. Users writing their own parenthesised rules get the fix."
+      },
+      {
+        "feature_slug": "uncompilable_pattern_breaks_all_edits_fix",
+        "category": "breaking",
+        "relevance": "end-user",
+        "gap_score": 35,
+        "reference_changelog_line": "Fixed one file permission rule with an uncompilable pattern (e.g. an unclosed `[`) making every file edit fail with `Invalid regular expression`",
+        "description": "A single uncompilable permission pattern no longer breaks every file edit; the deny rule now guards the literal path it spells.",
+        "affected_skills": [
+          "configure"
+        ],
+        "disposition": "upside",
+        "ork_disposition_note": "Blast radius out of all proportion to the typo: one unclosed bracket anywhere in a user's rules broke every edit in the session. Free; ork ships no bracket patterns (see the rule list above)."
+      },
+      {
+        "feature_slug": "fable_1m_tag_ignored_fix",
+        "category": "breaking",
+        "relevance": "end-user",
+        "gap_score": 25,
+        "reference_changelog_line": "Fixed `model: fable` agents ignoring the `[1m]` tag on an `ANTHROPIC_DEFAULT_FABLE_MODEL` pin and silently running with a 200K context window",
+        "description": "model: fable agents now honour the [1m] tag on an ANTHROPIC_DEFAULT_FABLE_MODEL pin instead of silently using 200K.",
+        "affected_skills": [
+          "auto",
+          "verify"
+        ],
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "VERIFIED no ork agent pins fable: `grep -rh '^model:' src/agents/*.md | sort | uniq -c` gives 23 sonnet, 6 opus, 4 inherit, 3 haiku and nothing else. ork mentions fable only in prose (`auto`, `verify`, `configure/references/cc-version-settings.md`) and deliberately keeps fable behind a consent hook rather than a pin. Silent context-window downgrade is exactly the failure that hook exists to avoid, so the fix is welcome but unexercised here."
+      },
+      {
+        "feature_slug": "read_deny_bash_args_revert",
+        "category": "breaking",
+        "relevance": "end-user",
+        "gap_score": 20,
+        "reference_changelog_line": "Reverted the 2.1.259 change applying `Read()` deny rules to Bash arguments",
+        "description": "The 2.1.259 extension of Read() deny rules over Bash arguments was reverted after it denied npm run build and made cd-compounds prompt in auto mode.",
+        "affected_skills": [
+          "security-patterns"
+        ],
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "The other half of `bash_read_deny_option_values_259`. Worth reading as a warning about ork's own guard design: a path-shaped deny rule applied to command TEXT catches builds and greps that were never reading a secret. ork has hit the same class in its own hooks."
+      },
+      {
+        "feature_slug": "permission_rule_trailing_text_invalid",
+        "category": "breaking",
+        "relevance": "end-user",
+        "gap_score": 15,
+        "reference_changelog_line": "Changed permission rules with text after the closing parenthesis (e.g. `Bash(ls) x`), which never matched anything, to be reported as invalid settings instead of being silently ignored",
+        "description": "A permission rule with trailing text after the closing parenthesis is now reported invalid instead of silently ignored.",
+        "affected_skills": [
+          "configure"
+        ],
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "VERIFIED no rule in src/settings/ork.settings.json has text after the closing parenthesis (all 30 allow+deny entries end at `)` or are bare tool names such as `Read`, `Glob`, `Grep`). A silently-ignored rule that now speaks up is the right direction; nothing to change."
+      },
+      {
+        "feature_slug": "workflow_schema_unsatisfiable_rejected",
+        "category": "new_attr",
+        "relevance": "plugin-author",
+        "gap_score": 25,
+        "reference_changelog_line": "Improved structured output: Workflow `agent({schema})` rejects a JSON Schema that can never be satisfied up front, and retry-cap errors now include the last validation failure",
+        "description": "Workflow agent({schema}) rejects an unsatisfiable JSON Schema up front; retry-cap errors name the last validation failure.",
+        "affected_skills": [
+          "audit-full-mapreduce",
+          "skill-fitness"
+        ],
+        "disposition": "upside",
+        "ork_disposition_note": "ork's fan-out skills pass schemas to Workflow agents (audit-full-mapreduce, skill-fitness). Failing at definition time instead of after N burned retries is a straight win on both latency and spend. Free."
+      },
+      {
+        "feature_slug": "autocompact_1m_models",
+        "category": "breaking",
+        "relevance": "end-user",
+        "gap_score": 25,
+        "reference_changelog_line": "Improved auto-compact for 1M-context models: Opus and Fable sessions now compact shortly before the 1M-token limit, and recovery compaction on very large contexts no longer times out at 10 minutes",
+        "description": "1M-context Opus and Fable sessions compact near the real limit, and recovery compaction no longer times out.",
+        "affected_skills": [],
+        "disposition": "upside",
+        "ork_disposition_note": "Applies to the sessions ork development actually runs in (this lane is Opus with a 1M window). Free."
+      },
+      {
+        "feature_slug": "background_session_unpushed_commits_message",
+        "category": "new_attr",
+        "relevance": "plugin-author",
+        "gap_score": 20,
+        "reference_changelog_line": "Improved deleting a background session whose worktree has unpushed commits: the message now names the branch and commit count, and deleting again discards the worktree",
+        "description": "Deleting a background session with unpushed commits names the branch and commit count before discarding.",
+        "affected_skills": [],
+        "disposition": "upside",
+        "ork_disposition_note": "Guards the exact loss ork's worktree rules exist to prevent, and does it natively. Free."
+      },
+      {
+        "feature_slug": "reload_plugins_headless",
+        "category": "new_attr",
+        "relevance": "plugin-author",
+        "gap_score": 20,
+        "reference_changelog_line": "Added `/reload-plugins` to headless sessions, so it appears in the Claude Code Desktop and SDK command lists",
+        "description": "/reload-plugins is now available in headless sessions and listed in Desktop and SDK command lists.",
+        "affected_skills": [
+          "doctor"
+        ],
+        "disposition": "upside",
+        "ork_disposition_note": "Relevant to ork's plugin-development loop (edit src, rebuild, reload) now that the headless hosts can reload too. No ork change; worth knowing when debugging a stale plugin in a `claude -p` host."
+      },
+      {
+        "feature_slug": "diff_panel_fullscreen",
+        "category": "new_attr",
+        "relevance": "end-user",
+        "gap_score": 10,
+        "reference_changelog_line": "Added a diff panel that opens beside the conversation in fullscreen mode and shows your uncommitted changes as Claude edits; toggle it with `/diff`",
+        "description": "A /diff panel shows uncommitted changes beside the conversation in fullscreen mode.",
+        "affected_skills": [],
+        "disposition": "triaged-noop-cc-native",
+        "ork_disposition_note": "Native UI, no plugin surface. Noted because it overlaps what ork's stop-uncommitted-check hook nags about: the operator can now see the same uncommitted state continuously instead of at Stop."
+      }
+    ],
+    "raw_bullets_count": 66,
+    "triaged_by": "hand, lane adopt-cc-259-261, 2026-09-05"
+  },
+  {
+    "version": "2.1.261",
+    "parse_failed": false,
+    "features": [
+      {
+        "feature_slug": "skill_doctor_command",
+        "category": "new_attr",
+        "relevance": "plugin-author",
+        "gap_score": 85,
+        "reference_changelog_line": "Added `/skill-doctor` to show which loaded skills go unused and what they cost in context, so you can prune them",
+        "description": "New /skill-doctor reports which loaded skills go unused and what they cost in context.",
+        "affected_skills": [
+          "audit-activation",
+          "skill-fitness",
+          "doctor",
+          "analytics"
+        ],
+        "disposition": "adopted-doc",
+        "ork_disposition_note": "Highest-value row of the wave for ork specifically. ork ships 106 skills in one plugin and CLAUDE.md already treats per-session token cost as a headline number (`claude plugin details ork`). `/skill-doctor` answers the unused-and-what-does-it-cost question natively, per session, on the real loaded set, which is strictly better evidence than ork's own two attempts at it: `audit-activation` reads spawn telemetry and `skill-fitness` scores a rubric, neither measures context cost. VERIFIED ork has no reference to it yet: `grep -rn 'skill-doctor' src shared docs/site/content` hits only the 2.1.261 snapshot. This is a doc adoption now and a candidate to make audit-activation cite /skill-doctor rather than approximate it."
+      },
+      {
+        "feature_slug": "auto_mode_diagram_renderer_url_upload",
+        "category": "breaking",
+        "relevance": "plugin-author",
+        "gap_score": 70,
+        "reference_changelog_line": "Changed auto mode to treat a link that packs content into a public diagram renderer's URL as an upload to that site: no longer auto-approved unless you asked for it",
+        "description": "Auto mode treats a URL that packs content into a public diagram renderer as an upload to that site, so it is no longer auto-approved.",
+        "affected_skills": [
+          "visualize-plan",
+          "glyph"
+        ],
+        "disposition": "watch",
+        "ork_disposition_note": "ork contains exactly one call site of this shape and it is latent, not live. VERIFIED `src/hooks/src/lib/decision-history.ts:803-822` defines `validateMermaidViaAPI`, which base64-encodes caller-supplied Mermaid and fetches `https://mermaid.ink/svg/${base64}`, which is precisely 'packs content into a public diagram renderer's URL'. VERIFIED it is dead: `grep -rn 'validateMermaidViaAPI' src` finds the definition and its own unit test and no other caller, so nothing in ork is broken by this change today. Recorded as watch, not noop, because the function is exported and its only guard is a catch that returns true; if it is ever wired into a hook path it will need explicit approval in auto mode, and it would be silently shipping decision text to a third-party host either way. The right follow-up is to delete it or gate it, which is a code change and out of scope for a triage row."
+      },
+      {
+        "feature_slug": "bash_task_output_max_chars",
+        "category": "new_attr",
+        "relevance": "plugin-author",
+        "gap_score": 55,
+        "reference_changelog_line": "Added `bashOutputMaxChars` and `taskOutputMaxChars` settings to raise how much command and background-task output Claude receives inline before it is saved to a file, up to 128K characters",
+        "description": "New bashOutputMaxChars and taskOutputMaxChars settings raise the inline output ceiling to 128K characters before spill-to-file.",
+        "affected_skills": [
+          "configure",
+          "analytics"
+        ],
+        "disposition": "adopted-doc",
+        "ork_disposition_note": "Directly governs a behaviour ork sessions hit constantly: a large tool result is truncated to a persisted-output file (this lane hit it once, at 31KB). Both settings belong in `configure`'s settings reference. VERIFIED ork documents neither today: `grep -rniE 'bashOutputMaxChars|taskOutputMaxChars|maxOutputChars' src shared docs/site/content` hits only the 2.1.261 snapshot. Raising the ceiling trades context spend for fewer round-trips, so the doc note should say that rather than recommend a value."
+      },
+      {
+        "feature_slug": "keybinding_flavor_inert",
+        "category": "breaking",
+        "relevance": "end-user",
+        "gap_score": 50,
+        "reference_changelog_line": "Changed the prompt's word-editing keys to match Bash: Ctrl+W deletes back to whitespace, Alt+F and Alt+D stop at word end, punctuation separates words; `keybindingFlavor` no longer has any effect",
+        "description": "Bash-style word editing is now unconditional and the keybindingFlavor setting is inert.",
+        "affected_skills": [
+          "configure"
+        ],
+        "disposition": "adopted-doc",
+        "ork_disposition_note": "This one makes an existing ork claim STALE, which is why it is an adoption and not a noop. ork adopted `keybindingFlavor` across two earlier waves (snapshots 2.1.238 introduced it, 2.1.239 extended it) and carries the resulting note in `docs/site/lib/generated/cc-adoption-data.ts:1340`: 'New keybindingFlavor settings key (classic|readline) changes prompt editing-key semantics; operator-scope settings references should list it.' A settings reference that lists a key CC no longer reads is worse than no note. The generated file derives from the gaps feed, so the correction belongs here and propagates on rebuild."
+      },
+      {
+        "feature_slug": "dangerous_rm_positional_and_shc",
+        "category": "new_perm",
+        "relevance": "end-user",
+        "gap_score": 50,
+        "reference_changelog_line": "Improved the dangerous-`rm` safety prompt to also catch `rm -rf` on positional parameters and inside double-quoted `sh -c` scripts",
+        "description": "The dangerous-rm prompt now catches rm -rf on positional parameters and inside double-quoted sh -c scripts.",
+        "affected_skills": [
+          "security-patterns"
+        ],
+        "disposition": "upside",
+        "ork_disposition_note": "Closes two carriers that ork's own deny rules structurally cannot see. VERIFIED ork ships 9 literal `rm -rf` deny rules in src/settings/ork.settings.json (`Bash(rm -rf /)`, `Bash(rm -rf ~)`, `Bash(rm -rf .)`, the /private/* pair set), all of which match command TEXT and therefore miss `rm -rf \"$1\"` and `sh -c \"rm -rf …\"` entirely; those rules are also discarded because CC reads only `agent` and `subagentStatusLine` from a plugin settings file. So the native prompt is the only thing that ever covered this, and it now covers more. Free."
+      },
+      {
+        "feature_slug": "agent_team_first_turn_announcement_cache_miss",
+        "category": "breaking",
+        "relevance": "plugin-author",
+        "gap_score": 45,
+        "reference_changelog_line": "Fixed in-process agent-team teammates re-sending their first-turn tool and skill announcements on the second turn, which changed the request prefix and missed the prompt cache",
+        "description": "In-process teammates no longer re-send first-turn tool and skill announcements, which was changing the request prefix and missing the prompt cache.",
+        "affected_skills": [
+          "implement",
+          "cover",
+          "brainstorm"
+        ],
+        "disposition": "upside",
+        "ork_disposition_note": "A prefix change on turn 2 is the most expensive shape of cache miss for a plugin like ork, because the announcement it re-sent is proportional to the loaded tool and skill surface, and ork's is large (106 skills, 36 agents). Every ork skill that fans out to in-process teammates paid it. Free, and it should show up as a measurable drop in fresh-input tokens on multi-turn fan-outs."
+      },
+      {
+        "feature_slug": "resume_loses_hook_output_parallel_calls",
+        "category": "breaking",
+        "relevance": "plugin-author",
+        "gap_score": 45,
+        "reference_changelog_line": "Fixed resuming a session losing hook output and other context around parallel tool calls, which changed the resumed request",
+        "description": "Resuming a session no longer drops hook output and other context around parallel tool calls.",
+        "affected_skills": [],
+        "disposition": "upside",
+        "ork_disposition_note": "ork is hook-dense and its hooks speak by injecting context (nudges, rule-precedence banners, guard warnings), so a resume that drops hook output silently removes guardrails from the resumed session. Nothing to change in ork; the fix restores an assumption ork's hook design already made."
+      },
+      {
+        "feature_slug": "org_policy_line_status_doctor",
+        "category": "new_attr",
+        "relevance": "plugin-author",
+        "gap_score": 30,
+        "reference_changelog_line": "Added an \"Organization policy\" line to `/status` and `claude doctor` that says why your organization's policy could not be loaded, such as a proxy not passing the endpoint through",
+        "description": "/status and claude doctor now explain why an organization policy could not be loaded.",
+        "affected_skills": [
+          "doctor"
+        ],
+        "disposition": "adopted-doc",
+        "ork_disposition_note": "ork's `doctor` skill is the diagnostic front door and already reconciles CC-native signals; a native policy-load failure line is one more thing it should point at rather than reimplement. Small doc note."
+      },
+      {
+        "feature_slug": "append_subagent_system_prompt_file",
+        "category": "new_attr",
+        "relevance": "plugin-author",
+        "gap_score": 30,
+        "reference_changelog_line": "Added `--append-subagent-system-prompt-file` to read the subagent system prompt from a file, for prompts too large to pass on the command line",
+        "description": "New --append-subagent-system-prompt-file reads a subagent system prompt from a file.",
+        "affected_skills": [
+          "bare-eval",
+          "skill-fitness"
+        ],
+        "disposition": "deferred-S",
+        "ork_disposition_note": "Fits ork's headless eval harness, where subagent prompts are assembled and passed on the command line (tests/evals/scripts, bare-eval). A file avoids both the argv ceiling and the shell-quoting hazards this repo's own rules warn about. Deferred: it needs a floor guard, and the eval harness is not currently blocked by prompt size."
+      },
+      {
+        "feature_slug": "sendmessage_offline_remote_queued",
+        "category": "breaking",
+        "relevance": "plugin-author",
+        "gap_score": 25,
+        "reference_changelog_line": "Fixed `SendMessage` to an offline Remote Control session on another machine reading as delivered; the result now says delivery is queued until that machine reconnects",
+        "description": "SendMessage to an offline Remote Control session now reports queued delivery instead of success.",
+        "affected_skills": [],
+        "disposition": "upside",
+        "ork_disposition_note": "A success string that meant nothing had been delivered, which is the exact false-signal class ork's verification rules exist to catch. Relevant here in practice: ListAgents in this lane listed 13 offline Remote Control peers alongside 4 live ones, so a cross-session handoff could easily have addressed one. Free."
+      },
+      {
+        "feature_slug": "plugin_install_hint_leak_background_bash",
+        "category": "breaking",
+        "relevance": "plugin-author",
+        "gap_score": 25,
+        "reference_changelog_line": "Fixed plugin install hints from CLIs run in background Bash commands: they are now detected, and the raw `<claude-code-hint>` tag no longer leaks into the conversation",
+        "description": "Plugin install hints from background Bash commands are detected and the raw tag no longer leaks into the conversation.",
+        "affected_skills": [],
+        "disposition": "upside",
+        "ork_disposition_note": "Plugin-adjacent and free. ork runs CLIs in background Bash commands from hooks and skills; a leaked raw tag is cosmetic but reads as corrupted output."
+      },
+      {
+        "feature_slug": "context_local_token_estimate",
+        "category": "breaking",
+        "relevance": "end-user",
+        "gap_score": 20,
+        "reference_changelog_line": "Changed `/context` token counting to use a local estimate when the token-counting API is unavailable, instead of extra small-model requests",
+        "description": "/context falls back to a local token estimate instead of issuing extra small-model requests.",
+        "affected_skills": [
+          "analytics"
+        ],
+        "disposition": "upside",
+        "ork_disposition_note": "Removes a hidden spend path behind a diagnostic command. Free; worth knowing when reconciling ork's analytics cost figures against /context."
+      },
+      {
+        "feature_slug": "cloud_session_plugin_sync_managed_settings",
+        "category": "breaking",
+        "relevance": "plugin-author",
+        "gap_score": 20,
+        "reference_changelog_line": "Fixed cloud sessions discarding a plugin synced from claude.ai when managed settings force-enable it in `enabledPlugins`, then falling back to a marketplace clone that could fail",
+        "description": "Cloud sessions no longer discard a claude.ai-synced plugin that managed settings force-enable, then fail on a marketplace clone.",
+        "affected_skills": [],
+        "disposition": "upside",
+        "ork_disposition_note": "ork is distributed through a marketplace, so the failing fallback path is one its users can land on. ork itself sets no managed `enabledPlugins`. Free."
+      }
+    ],
+    "raw_bullets_count": 67,
+    "triaged_by": "hand, lane adopt-cc-259-261, 2026-09-05"
+  },
+  {
     "version": "2.1.258",
     "parse_failed": false,
     "features": [

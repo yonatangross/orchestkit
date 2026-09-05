@@ -16,6 +16,401 @@ export interface AdoptionWave {
 
 export const ADOPTION_WAVES: AdoptionWave[] = [
   {
+    "version": "2.1.261",
+    "features": [
+      {
+        "slug": "skill_doctor_command",
+        "category": "new_attr",
+        "description": "New /skill-doctor reports which loaded skills go unused and what they cost in context.",
+        "gapScore": 85,
+        "affectedSkills": [
+          "audit-activation",
+          "skill-fitness",
+          "doctor",
+          "analytics"
+        ]
+      },
+      {
+        "slug": "auto_mode_diagram_renderer_url_upload",
+        "category": "breaking",
+        "description": "Auto mode treats a URL that packs content into a public diagram renderer as an upload to that site, so it is no longer auto-approved.",
+        "gapScore": 70,
+        "affectedSkills": [
+          "visualize-plan",
+          "glyph"
+        ]
+      },
+      {
+        "slug": "bash_task_output_max_chars",
+        "category": "new_attr",
+        "description": "New bashOutputMaxChars and taskOutputMaxChars settings raise the inline output ceiling to 128K characters before spill-to-file.",
+        "gapScore": 55,
+        "affectedSkills": [
+          "configure",
+          "analytics"
+        ]
+      },
+      {
+        "slug": "keybinding_flavor_inert",
+        "category": "breaking",
+        "description": "Bash-style word editing is now unconditional and the keybindingFlavor setting is inert.",
+        "gapScore": 50,
+        "affectedSkills": [
+          "configure"
+        ]
+      },
+      {
+        "slug": "dangerous_rm_positional_and_shc",
+        "category": "new_perm",
+        "description": "The dangerous-rm prompt now catches rm -rf on positional parameters and inside double-quoted sh -c scripts.",
+        "gapScore": 50,
+        "affectedSkills": [
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "agent_team_first_turn_announcement_cache_miss",
+        "category": "breaking",
+        "description": "In-process teammates no longer re-send first-turn tool and skill announcements, which was changing the request prefix and missing the prompt cache.",
+        "gapScore": 45,
+        "affectedSkills": [
+          "implement",
+          "cover",
+          "brainstorm"
+        ]
+      },
+      {
+        "slug": "resume_loses_hook_output_parallel_calls",
+        "category": "breaking",
+        "description": "Resuming a session no longer drops hook output and other context around parallel tool calls.",
+        "gapScore": 45,
+        "affectedSkills": []
+      },
+      {
+        "slug": "org_policy_line_status_doctor",
+        "category": "new_attr",
+        "description": "/status and claude doctor now explain why an organization policy could not be loaded.",
+        "gapScore": 30,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "append_subagent_system_prompt_file",
+        "category": "new_attr",
+        "description": "New --append-subagent-system-prompt-file reads a subagent system prompt from a file.",
+        "gapScore": 30,
+        "affectedSkills": [
+          "bare-eval",
+          "skill-fitness"
+        ]
+      },
+      {
+        "slug": "sendmessage_offline_remote_queued",
+        "category": "breaking",
+        "description": "SendMessage to an offline Remote Control session now reports queued delivery instead of success.",
+        "gapScore": 25,
+        "affectedSkills": []
+      },
+      {
+        "slug": "plugin_install_hint_leak_background_bash",
+        "category": "breaking",
+        "description": "Plugin install hints from background Bash commands are detected and the raw tag no longer leaks into the conversation.",
+        "gapScore": 25,
+        "affectedSkills": []
+      },
+      {
+        "slug": "context_local_token_estimate",
+        "category": "breaking",
+        "description": "/context falls back to a local token estimate instead of issuing extra small-model requests.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "analytics"
+        ]
+      },
+      {
+        "slug": "cloud_session_plugin_sync_managed_settings",
+        "category": "breaking",
+        "description": "Cloud sessions no longer discard a claude.ai-synced plugin that managed settings force-enable, then fail on a marketplace clone.",
+        "gapScore": 20,
+        "affectedSkills": []
+      }
+    ]
+  },
+  {
+    "version": "2.1.260",
+    "features": [
+      {
+        "slug": "skill_deny_rules_nested_dir_name",
+        "category": "breaking",
+        "description": "Skill(name) deny rules now cover a nested skill addressed as <dir>:name, and skillOverrides keyed on an alias apply.",
+        "gapScore": 65,
+        "affectedSkills": [
+          "configure",
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "block_reads_outside_wd_worktree_subagent_fix",
+        "category": "breaking",
+        "description": "blockReadsOutsideWorkingDirectories no longer hides git config from sandboxed git, nor a worktree-isolated subagent's own checkout.",
+        "gapScore": 55,
+        "affectedSkills": [
+          "configure"
+        ]
+      },
+      {
+        "slug": "zsh_reporttime_command_substitution_approval",
+        "category": "new_perm",
+        "description": "Command substitution hidden in a zsh REPORTTIME/REPORTMEMORY/DIRSTACKSIZE assignment no longer auto-approves.",
+        "gapScore": 60,
+        "affectedSkills": [
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "subagent_background_command_1h_limit_removed",
+        "category": "breaking",
+        "description": "Background commands started by subagents no longer die at one hour.",
+        "gapScore": 45,
+        "affectedSkills": [
+          "implement",
+          "cover",
+          "verify"
+        ]
+      },
+      {
+        "slug": "bash_mode_outside_sandbox_strict",
+        "category": "breaking",
+        "description": "The ! bash-mode prompt now runs outside the sandbox even under strict sandbox mode.",
+        "gapScore": 50,
+        "affectedSkills": [
+          "security-patterns",
+          "configure"
+        ]
+      },
+      {
+        "slug": "prompt_cache_miss_cause_in_cost",
+        "category": "new_attr",
+        "description": "/cost and the status line's prompt_cache field now name a likely cause for a cache miss.",
+        "gapScore": 45,
+        "affectedSkills": [
+          "analytics"
+        ]
+      },
+      {
+        "slug": "permission_rule_parens_dropped_fix",
+        "category": "breaking",
+        "description": "Permission rules whose path contains parentheses are no longer dropped as invalid or ignored by the Bash sandbox.",
+        "gapScore": 30,
+        "affectedSkills": [
+          "configure"
+        ]
+      },
+      {
+        "slug": "uncompilable_pattern_breaks_all_edits_fix",
+        "category": "breaking",
+        "description": "A single uncompilable permission pattern no longer breaks every file edit; the deny rule now guards the literal path it spells.",
+        "gapScore": 35,
+        "affectedSkills": [
+          "configure"
+        ]
+      },
+      {
+        "slug": "fable_1m_tag_ignored_fix",
+        "category": "breaking",
+        "description": "model: fable agents now honour the [1m] tag on an ANTHROPIC_DEFAULT_FABLE_MODEL pin instead of silently using 200K.",
+        "gapScore": 25,
+        "affectedSkills": [
+          "auto",
+          "verify"
+        ]
+      },
+      {
+        "slug": "read_deny_bash_args_revert",
+        "category": "breaking",
+        "description": "The 2.1.259 extension of Read() deny rules over Bash arguments was reverted after it denied npm run build and made cd-compounds prompt in auto mode.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "permission_rule_trailing_text_invalid",
+        "category": "breaking",
+        "description": "A permission rule with trailing text after the closing parenthesis is now reported invalid instead of silently ignored.",
+        "gapScore": 15,
+        "affectedSkills": [
+          "configure"
+        ]
+      },
+      {
+        "slug": "workflow_schema_unsatisfiable_rejected",
+        "category": "new_attr",
+        "description": "Workflow agent({schema}) rejects an unsatisfiable JSON Schema up front; retry-cap errors name the last validation failure.",
+        "gapScore": 25,
+        "affectedSkills": [
+          "audit-full-mapreduce",
+          "skill-fitness"
+        ]
+      },
+      {
+        "slug": "autocompact_1m_models",
+        "category": "breaking",
+        "description": "1M-context Opus and Fable sessions compact near the real limit, and recovery compaction no longer times out.",
+        "gapScore": 25,
+        "affectedSkills": []
+      },
+      {
+        "slug": "background_session_unpushed_commits_message",
+        "category": "new_attr",
+        "description": "Deleting a background session with unpushed commits names the branch and commit count before discarding.",
+        "gapScore": 20,
+        "affectedSkills": []
+      },
+      {
+        "slug": "reload_plugins_headless",
+        "category": "new_attr",
+        "description": "/reload-plugins is now available in headless sessions and listed in Desktop and SDK command lists.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "diff_panel_fullscreen",
+        "category": "new_attr",
+        "description": "A /diff panel shows uncommitted changes beside the conversation in fullscreen mode.",
+        "gapScore": 10,
+        "affectedSkills": []
+      }
+    ]
+  },
+  {
+    "version": "2.1.259",
+    "features": [
+      {
+        "slug": "skill_command_frontmatter_model_honored",
+        "category": "breaking",
+        "description": "A skill's or command's frontmatter `model:` was silently ignored in interactive sessions; it now applies.",
+        "gapScore": 70,
+        "affectedSkills": [
+          "auto",
+          "assess",
+          "brainstorm",
+          "audit-full",
+          "analytics"
+        ]
+      },
+      {
+        "slug": "auto_mode_unsupported_frontmatter_model",
+        "category": "breaking",
+        "description": "Auto mode no longer switches to a frontmatter-named model it cannot support; it keeps the session model instead.",
+        "gapScore": 30,
+        "affectedSkills": [
+          "auto"
+        ]
+      },
+      {
+        "slug": "concurrent_sessions_claude_json_revert_fix",
+        "category": "breaking",
+        "description": "Concurrent sessions no longer clobber each other's ~/.claude.json; workspace trust and MCP/project state survive many parallel sessions.",
+        "gapScore": 60,
+        "affectedSkills": [
+          "configure",
+          "doctor"
+        ]
+      },
+      {
+        "slug": "blocking_stop_hook_reasoning_loss_fix",
+        "category": "breaking",
+        "description": "A blocking Stop hook no longer costs the next turn its reasoning and a prompt-cache hit.",
+        "gapScore": 45,
+        "affectedSkills": []
+      },
+      {
+        "slug": "worktree_isolation_hook_created_worktrees",
+        "category": "breaking",
+        "description": "Worktree isolation no longer refuses a hook-created worktree when git rev-parse fails with an unexpected message.",
+        "gapScore": 40,
+        "affectedSkills": []
+      },
+      {
+        "slug": "worktree_isolated_bash_loops_refused_fix",
+        "category": "breaking",
+        "description": "Worktree-isolated sessions stop refusing Bash loops, xargs pipelines and launcher-wrapped commands.",
+        "gapScore": 25,
+        "affectedSkills": []
+      },
+      {
+        "slug": "plugin_validate_json",
+        "category": "new_attr",
+        "description": "claude plugin validate gains --json for a machine-readable report.",
+        "gapScore": 55,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "permission_prompts_none_headless",
+        "category": "new_attr",
+        "description": "New --permission-prompts none denies anything that would prompt, while the active permission mode keeps deciding.",
+        "gapScore": 50,
+        "affectedSkills": [
+          "ci-sentinel",
+          "bare-eval"
+        ]
+      },
+      {
+        "slug": "allowed_mcp_servers_scope_change",
+        "category": "breaking",
+        "description": "allowedMcpServers now governs only user-added servers; managed-mcp.json entries it used to filter out now load.",
+        "gapScore": 45,
+        "affectedSkills": [
+          "mcp-patterns",
+          "configure",
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "managed_mcp_servers_setting",
+        "category": "new_attr",
+        "description": "Organizations can push HTTP/SSE MCP servers to every user via a managed setting; command-based entries are skipped.",
+        "gapScore": 15,
+        "affectedSkills": [
+          "mcp-patterns"
+        ]
+      },
+      {
+        "slug": "managed_settings_refuse_start_on_parse_error",
+        "category": "breaking",
+        "description": "Unparseable managed settings now stop Claude Code from starting, naming the source, instead of silently disabling enforcement.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "bash_read_deny_option_values_259",
+        "category": "new_perm",
+        "description": "Read() deny rules were extended over Bash option values, git file operands and cd-compounds.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "glab_mr_recognition",
+        "category": "new_attr",
+        "description": "GitLab merge requests now render as MR !N in the collapsed tool summary and refresh the footer MR badge.",
+        "gapScore": 5,
+        "affectedSkills": [
+          "github-operations"
+        ]
+      }
+    ]
+  },
+  {
     "version": "2.1.258",
     "features": [
       {
@@ -2672,10 +3067,10 @@ export const ADOPTION_WAVES: AdoptionWave[] = [
 
 export const CC_SUPPORT = {
   latest: "2.1.251",
-  latestKnown: "2.1.258",
+  latestKnown: "2.1.261",
   supportedFloor: "2.1.251",
   policy: "latest + 3 previous minors",
 } as const;
 
 /** sha256 (first 12 hex) of the two source files above, in that order. */
-export const SOURCE_DIGEST = "29825b6ab30c" as const;
+export const SOURCE_DIGEST = "6b03563bb372" as const;
