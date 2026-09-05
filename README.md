@@ -370,6 +370,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.79](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.78...v10.0.0-alpha.79)** · 2026-09-05
+
+- **skills:** make activation audits portable and coverage-aware (#3923)
+
 **[v10.0.0-alpha.78](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.77...v10.0.0-alpha.78)** · 2026-09-05
 
 - **hooks:** cc-version-check nudge points at a shipped file (#3919) (#3924)
@@ -405,12 +409,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **skills:** accept relative and SKILL_DIR paths in the lint ([#3822](https://github.com/yonatangross/orchestkit/issues/3822) step 1) (#3890)
 - **deps:** weekly upstream pin sync (#3886)
 - …and 1 more (see [CHANGELOG.md](CHANGELOG.md))
-
-**[v10.0.0-alpha.71](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.70...v10.0.0-alpha.71)** · 2026-09-02
-
-- **cc:** adopt CC 2.1.258, latest_known to 2.1.258 (#3883)
-- **configure:** record the measured prompt-cache TTL verdict (#3876) (#3881)
-- **probe:** pin the model price table to the binary's pricing tiers (#3885), closes [#3878](https://github.com/yonatangross/orchestkit/issues/3878)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

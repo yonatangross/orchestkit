@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.79",
+    "date": "2026-09-05",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**skills:** make activation audits portable and coverage-aware ([#3923](https://github.com/yonatangross/orchestkit/issues/3923)) ([a3f64a7](https://github.com/yonatangross/orchestkit/commit/a3f64a7f45859885f37ca1753940e188f792dcea))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.78",
     "date": "2026-09-05",
     "compareUrl": "",
