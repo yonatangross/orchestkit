@@ -2,6 +2,18 @@
   "$comment": "Allowlist for the Lab gallery (docs/showcase/lab). Only entries listed here are copied to public/lab/ and surfaced on the site. `source` is repo-root-relative. Title/description here OVERRIDE what generate-lab-data.mjs extracts from the HTML <head>. Run `node docs/site/scripts/generate-lab-data.mjs` after editing.",
   "entries": [
     {
+      "slug": "function-hooks-adoption-gate",
+      "source": "docs/docs--3917-function-hooks-watch/function-hooks-gate.html",
+      "title": "Observed is not shipped: the Function Hooks adoption gate",
+      "description": "Choose private prototype, upstream closure, or public shipment evidence to see why OrchestKit remains watch-only until a supported Function Hooks contract actually ships.",
+      "tags": [
+        "hooks",
+        "cc-adoption",
+        "policy"
+      ],
+      "date": "2026-09-05"
+    },
+    {
       "slug": "announce-credential-preflight",
       "source": "docs/fix--announce-rail-token-3650/index.html",
       "title": "A red check before the live release announce",
