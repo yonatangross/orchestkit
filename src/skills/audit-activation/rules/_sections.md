@@ -7,7 +7,7 @@ version: 1.0.0
 
 ## 1. Activation Checks (checks) — HIGH — 1 rule
 
-What to compute from the spawn telemetry: the generic-vs-specialist spawn split, per-agent fire counts, the never-fired set, concentration, and the per-agent skill-reference count (the root-cause signal).
+What to compute from explicit spawn telemetry roots: the generic-vs-specialist start split, per-agent attempted/started/completed counts, observed zero starts when coverage permits, concentration, and the per-agent skill-reference count.
 
 - `activation-checks.md` — Metrics definitions, the fresh telemetry source, and the skill-naming cross-check
 
