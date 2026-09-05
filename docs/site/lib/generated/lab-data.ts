@@ -1382,5 +1382,19 @@ export const LAB_ENTRIES: LabEntry[] = [
     "featured": false,
     "caseStudy": null,
     "sizeKb": 47
+  },
+  {
+    "slug": "cc-adoption-lens-259-261",
+    "title": "CC 2.1.259 to 2.1.261 adoption lens",
+    "description": "Filter the 42 triaged rows of the CC 2.1.259 to 2.1.261 wave by version, disposition and relevance to see which upstream changes actually touch OrchestKit and which are free.",
+    "tags": [
+      "cc-adoption",
+      "triage",
+      "reference"
+    ],
+    "date": "",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 31
   }
 ];

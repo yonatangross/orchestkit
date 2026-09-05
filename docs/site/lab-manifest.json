@@ -2,6 +2,17 @@
   "$comment": "Allowlist for the Lab gallery (docs/showcase/lab). Only entries listed here are copied to public/lab/ and surfaced on the site. `source` is repo-root-relative. Title/description here OVERRIDE what generate-lab-data.mjs extracts from the HTML <head>. Run `node docs/site/scripts/generate-lab-data.mjs` after editing.",
   "entries": [
     {
+      "slug": "cc-adoption-lens-259-261",
+      "source": "docs/feat--adopt-cc-259-261/cc-adoption-lens.html",
+      "title": "CC 2.1.259 to 2.1.261 adoption lens",
+      "description": "Filter the 42 triaged rows of the CC 2.1.259 to 2.1.261 wave by version, disposition and relevance to see which upstream changes actually touch OrchestKit and which are free.",
+      "tags": [
+        "cc-adoption",
+        "triage",
+        "reference"
+      ]
+    },
+    {
       "slug": "astra-activation-event-lens",
       "source": "docs/fix--astra-installed-activation-audit-3922/activation-events.html",
       "title": "Activation event lens",
