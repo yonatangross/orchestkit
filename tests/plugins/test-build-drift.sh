@@ -110,6 +110,26 @@ for src_hook in "$PROJECT_ROOT"/src/hooks/dist/*.mjs; do
 done
 echo "   Hook dist checked."
 
+# --- E. cc-version-check shipped nudge boundary --------------------------------
+# The version-drift nudge must name a reference that exists inside the installed
+# plugin. Its fallback is deliberately repository-qualified, not a repo-relative
+# artifact that disappears when the plugin is installed elsewhere (#3919).
+echo "E. Checking cc-version-check shipped nudge target..."
+CHECKED=$((CHECKED + 1))
+NUDGE_BUNDLE="$PLUGIN_DIR/hooks/dist/lifecycle.mjs"
+NUDGE_REFERENCE="skills/doctor/references/version-compatibility.md"
+NUDGE_FALLBACK="https://github.com/yonatangross/orchestkit/issues?q=is%3Aissue%20label%3Acc-adoption"
+if [[ -f "$PLUGIN_DIR/$NUDGE_REFERENCE" ]] \
+    && [[ -f "$NUDGE_BUNDLE" ]] \
+    && grep -qF "$NUDGE_REFERENCE" "$NUDGE_BUNDLE" \
+    && grep -qF "$NUDGE_FALLBACK" "$NUDGE_BUNDLE" \
+    && ! grep -qF 'shared/cc-adoption-gaps.json' "$NUDGE_BUNDLE"; then
+    echo "   cc-version-check points to a shipped reference with a qualified fallback."
+else
+    DRIFTED=$((DRIFTED + 1))
+    DRIFTED_FILES+=("INVALID: cc-version-check nudge must target a shipped reference and qualified fallback")
+fi
+
 # --- Summary ------------------------------------------------------------------
 echo ""
 echo "=========================================="

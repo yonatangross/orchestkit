@@ -120,10 +120,16 @@ describe('cc-version-check', () => {
   it('nudges Claude when running CC is above matrix latest', () => {
     process.env.CLAUDE_CODE_VERSION = '2.1.999';
     const result = ccVersionCheck(makeInput('above-test'), createTestContext());
+    const nudge = result.hookSpecificOutput?.additionalContext ?? '';
     expect(result.continue).toBe(true);
-    expect(result.hookSpecificOutput?.additionalContext).toContain('cc-version-check');
-    expect(result.hookSpecificOutput?.additionalContext).toContain('2.1.999');
-    expect(result.hookSpecificOutput?.additionalContext).toContain('cc-adoption');
+    expect(nudge).toContain('cc-version-check');
+    expect(nudge).toContain('2.1.999');
+    // This is a real plugin-relative file, emitted by the build under plugins/ork.
+    expect(nudge).toContain('skills/doctor/references/version-compatibility.md');
+    // The repository-qualified query stays useful if a packaged reference is absent.
+    expect(nudge).toContain('https://github.com/yonatangross/orchestkit/issues?q=is%3Aissue%20label%3Acc-adoption');
+    // The installed plugin does not ship this repo-only triage artifact.
+    expect(nudge).not.toContain('shared/cc-adoption-gaps.json');
   });
 
   it('silent success when running CC is exactly the matrix latest', () => {
