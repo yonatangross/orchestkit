@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.80",
+    "date": "2026-09-05",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "**cc:** triage CC 2.1.259 to 2.1.261, latest_known 2.1.258 to 2.1.261 ([#3929](https://github.com/yonatangross/orchestkit/issues/3929)) ([8c225ca](https://github.com/yonatangross/orchestkit/commit/8c225ca2e2dfc8900d96b0af5554edf3cc605986))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.79",
     "date": "2026-09-05",
     "compareUrl": "",

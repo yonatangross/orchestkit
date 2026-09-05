@@ -370,6 +370,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.80](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.79...v10.0.0-alpha.80)** · 2026-09-05
+
+- **cc:** triage CC 2.1.259 to 2.1.261, latest_known 2.1.258 to 2.1.261 (#3929)
+
 **[v10.0.0-alpha.79](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.78...v10.0.0-alpha.79)** · 2026-09-05
 
 - **skills:** make activation audits portable and coverage-aware (#3923)
@@ -400,15 +404,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **pricing:** adopt gemini-3.8-flash as its own pricing row (#3905)
 - **pricing:** a hyphenated suffix never inherits a shorter model's row (#3909)
 - **doctor:** repoint the model-routing reference at the live sources (#3908)
-
-**[v10.0.0-alpha.72](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.71...v10.0.0-alpha.72)** · 2026-09-02
-
-- **doctor:** warn when a project scope turns the sandbox off (#3877) (#3887)
-- **hooks:** honour CC managed modelPricing in the cost estimator (#3889), closes [#3878](https://github.com/yonatangross/orchestkit/issues/3878)
-- **site:** real analytics pin + install_copied/star_clicked (A1-A3) (#3882)
-- **skills:** accept relative and SKILL_DIR paths in the lint ([#3822](https://github.com/yonatangross/orchestkit/issues/3822) step 1) (#3890)
-- **deps:** weekly upstream pin sync (#3886)
-- …and 1 more (see [CHANGELOG.md](CHANGELOG.md))
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
