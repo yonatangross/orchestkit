@@ -134,7 +134,9 @@ function timestamp(row) {
 }
 
 function normalise(name, namespace) {
-  return typeof name === 'string' ? name.replace(new RegExp(`^${namespace}:`), '') : '';
+  if (typeof name !== 'string') return '';
+  const prefix = `${namespace}:`;
+  return name.startsWith(prefix) ? name.slice(prefix.length) : name;
 }
 
 function rawType(row) {

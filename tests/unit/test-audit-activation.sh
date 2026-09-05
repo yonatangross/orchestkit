@@ -93,8 +93,9 @@ CONSUMER_NAMESPACE="$SBX/consumer-namespace"
 mkdir -p "$CONSUMER_NAMESPACE/.claude/logs"
 printf '%s\n' '{"timestamp":"2026-08-23T00:00:00Z","session_id":"hq","source":"start","subagent_type":"hq-ext:alpha-agent"}' > "$CONSUMER_NAMESPACE/.claude/logs/subagent-spawns.jsonl"
 printf 'subagent_type="hq-ext:alpha-agent"\n' > "$SBX/package/plugins/ork/skills/demo/SKILL.md"
+printf '%s\n' '{"timestamp":"2026-08-23T00:00:01Z","session_id":"hq","source":"start","subagent_type":"other:hq-ext:alpha-agent"}' >> "$CONSUMER_NAMESPACE/.claude/logs/subagent-spawns.jsonl"
 json="$($PACKAGE_RUN --json --namespace hq-ext --telemetry-root "$CONSUMER_NAMESPACE" --days 30 --end "$END")"
-assert_json 'configured namespace makes the collector reusable without hardcoding ork' "$json" 'r.catalog.namespace==="hq-ext" && r.totals.catalog===1 && r.agents.find(a=>a.name==="alpha-agent").started===1 && r.agents.find(a=>a.name==="alpha-agent").skillRefs===1'
+assert_json 'configured namespace uses a literal prefix and does not strip it from the middle of another type' "$json" 'r.catalog.namespace==="hq-ext" && r.totals.catalog===1 && r.totals.other===1 && r.agents.find(a=>a.name==="alpha-agent").started===1 && r.agents.find(a=>a.name==="alpha-agent").skillRefs===1'
 
 ln -s "$CONSUMER_B" "$SBX/consumer-b-alias"
 json="$($PACKAGE_RUN --json --telemetry-root "$CONSUMER_B" --telemetry-root "$SBX/consumer-b-alias" --days 30 --end "$END")"
