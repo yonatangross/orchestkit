@@ -15,6 +15,20 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "function-hooks-adoption-gate",
+    "title": "Observed is not shipped: the Function Hooks adoption gate",
+    "description": "Choose private prototype, upstream closure, or public shipment evidence to see why OrchestKit remains watch-only until a supported Function Hooks contract actually ships.",
+    "tags": [
+      "hooks",
+      "cc-adoption",
+      "policy"
+    ],
+    "date": "2026-09-05",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 5
+  },
+  {
     "slug": "feat--fh-handler-policy",
     "title": "FH-ready handlers: the policy that makes the Function Hooks port mechanical",
     "description": "Claude Code is designing Function Hooks (anthropics/claude-code#91870): in-process hooks where every side effect goes through one engine object. This page shows the same ork guard in both shapes, the ratchet gate that grandfathers 111 existing handlers and blocks new direct node:fs, child_process and fetch imports, and the 8,000 character additionalContext cap read out of the CC binary.",
