@@ -39,3 +39,22 @@ Claude Code is designing Function Hooks (anthropics/claude-code#91870): hooks be
 - Side effects go through `HookContext` (the #3386 DI seam) or an injected `deps` object built once by the runner. Today `deps.git` is `execSync`-backed; under Function Hooks it is `$.process`-backed; the handler does not change.
 - Existing offenders are grandfathered by path in `src/hooks/scripts/fh-ready-baseline.json` (a ratchet: shrink it, never grow it). `node scripts/fh-ready-check.mjs` runs in CI beside `validate-registry.mjs` and fails on any file not in the baseline.
 - Output caps are real and silent: CC 2.1.258 truncates `additionalContext` at 8,000 characters or 200 lines, `reason` at 2,000 characters or 20 lines, mid-word, with no report (anthropics/claude-code#91870, issuecomment-5532305564). `src/__tests__/fh-output-cap.test.ts` asserts no static payload approaches the cap.
+
+## Function Hooks watch gate (2026-09-05)
+
+Function Hooks remains a watch, not an adoption. The off-by-default prototype observed in
+Claude Code 2.1.260 and 2.1.261 is binary behavior, not a public contract
+([2.1.260 measurement](https://github.com/anthropics/claude-code/issues/91870#issuecomment-5540419526),
+[2.1.261 measurement](https://github.com/anthropics/claude-code/issues/91870#issuecomment-5549854514)).
+
+Until a Claude Code changelog names Function Hooks **or**
+[anthropics/claude-code#91870](https://github.com/anthropics/claude-code/issues/91870) closes:
+
+- Do not add a `modules` key to `hooks.json`, enable rollout flags, or document either for users.
+- Do not port handlers to Function Hooks or add Function Hooks runtime code.
+- Do not raise the Claude Code support floor or open an adoption issue for Function Hooks.
+
+When either close condition fires, link and record the outcome on #3917:
+
+- If a Claude Code changelog publicly ships and names Function Hooks, verify the public surface and open a separate adoption issue.
+- If #91870 closes without shipment, record that outcome and do not adopt.
