@@ -370,6 +370,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.78](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.77...v10.0.0-alpha.78)** · 2026-09-05
+
+- **hooks:** cc-version-check nudge points at a shipped file (#3919) (#3924)
+
 **[v10.0.0-alpha.77](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.76...v10.0.0-alpha.77)** · 2026-09-05
 
 - **hooks:** record Function Hooks watch gate (#3917) (#3925)
@@ -407,11 +411,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **cc:** adopt CC 2.1.258, latest_known to 2.1.258 (#3883)
 - **configure:** record the measured prompt-cache TTL verdict (#3876) (#3881)
 - **probe:** pin the model price table to the binary's pricing tiers (#3885), closes [#3878](https://github.com/yonatangross/orchestkit/issues/3878)
-
-**[v10.0.0-alpha.70](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.69...v10.0.0-alpha.70)** · 2026-09-02
-
-- **ci:** allow autoheal plugin.json mirrors on the release branch (#3880)
-- **ci:** make hook bundles release-owned (#3578) (#3875)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

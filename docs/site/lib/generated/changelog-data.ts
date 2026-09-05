@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.78",
+    "date": "2026-09-05",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**hooks:** cc-version-check nudge points at a shipped file ([#3919](https://github.com/yonatangross/orchestkit/issues/3919)) ([#3924](https://github.com/yonatangross/orchestkit/issues/3924)) ([91aa63d](https://github.com/yonatangross/orchestkit/commit/91aa63df3a7b26ef160076a4402513bd1bf7173c))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.77",
     "date": "2026-09-05",
     "compareUrl": "",
