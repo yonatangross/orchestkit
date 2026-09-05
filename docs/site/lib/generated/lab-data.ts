@@ -57,6 +57,20 @@ export const LAB_ENTRIES: LabEntry[] = [
     "sizeKb": 7
   },
   {
+    "slug": "next-navigation-vitest-resolution",
+    "title": "One ESM import, two resolvers",
+    "description": "Choose the resolver to see why the docs build accepts analytics 1.2.0 while Vitest needs to inline the package until its upstream build is corrected.",
+    "tags": [
+      "vitest",
+      "esm",
+      "analytics"
+    ],
+    "date": "2026-09-05",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 3
+  },
+  {
     "slug": "feat--fh-handler-policy",
     "title": "FH-ready handlers: the policy that makes the Function Hooks port mechanical",
     "description": "Claude Code is designing Function Hooks (anthropics/claude-code#91870): in-process hooks where every side effect goes through one engine object. This page shows the same ork guard in both shapes, the ratchet gate that grandfathers 111 existing handlers and blocks new direct node:fs, child_process and fetch imports, and the 8,000 character additionalContext cap read out of the CC binary.",

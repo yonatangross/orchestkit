@@ -17,6 +17,13 @@ export default defineConfig({
       "@/lib": resolve(__dirname, "lib"),
       "@/components": resolve(__dirname, "components"),
     },
+    // Yonatan-HQ/core typescript/analytics owns the extensionless ESM import.
+    // Revert this once upstream ships a corrected build that Node ESM resolves.
+    server: {
+      deps: {
+        inline: ["@yonatan-hq/analytics"],
+      },
+    },
     setupFiles: ["./__tests__/setup.ts"],
   },
 });
