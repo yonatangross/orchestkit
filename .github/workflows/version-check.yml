@@ -47,34 +47,20 @@ jobs:
         env:
           BRANCH_NAME: ${{ github.head_ref }}
         run: |
-          # Skip version check for branches handled by release-please.
-          # release-please (release-type: simple) computes next version from
-          # conventional-commit types since last tag — manual bumps on these
-          # branches create "ghost versions" when the two disagree (see #1457).
-          # Must stay in lock-step with bin/git-hooks/pre-push L23.
+          # Skip the version check for branches release-please or Dependabot
+          # own. The pattern lives in ONE file shared with bin/git-hooks/pre-push
+          # (#1460, #1457); edit it there, never inline here. An unreadable or
+          # empty pattern fails this step: the gate refuses to decide rather
+          # than skip or enforce on a guess.
           # Note: BRANCH_NAME set via env to prevent shell injection from PR branch names
-
-          # Check branch name prefix
-          # Includes issue/ and bug/ since they host conventional-commits feature
-          # work (see CONTRIBUTING.md "Branch naming" — those prefixes are valid).
-          # Must stay in lock-step with bin/git-hooks/pre-push L23.
-          if [[ "$BRANCH_NAME" =~ ^(docs|chore|ci|style|test|feat|fix|perf|refactor|issue|bug)/ ]]; then
-            echo "skip=true" >> $GITHUB_OUTPUT
-            echo "Skipping version check for $BRANCH_NAME (release-please handles versioning)"
-            exit 0
+          source scripts/ci/version-skip-pattern.sh
+          if [[ -z "${VERSION_SKIP_PATTERN:-}" ]]; then
+            echo "::error::VERSION_SKIP_PATTERN is empty; scripts/ci/version-skip-pattern.sh must define it"
+            exit 1
           fi
-
-          # Skip release-please PRs (automated versioning)
-          if [[ "$BRANCH_NAME" =~ ^release-please ]]; then
+          if [[ "$BRANCH_NAME" =~ $VERSION_SKIP_PATTERN ]]; then
             echo "skip=true" >> $GITHUB_OUTPUT
-            echo "Skipping version check for release-please PR (automated)"
-            exit 0
-          fi
-
-          # Skip Dependabot PRs (dependency updates, no version bump needed)
-          if [[ "$BRANCH_NAME" =~ ^dependabot/ ]]; then
-            echo "skip=true" >> $GITHUB_OUTPUT
-            echo "Skipping version check for Dependabot PR (automated dependency update)"
+            echo "Skipping version check for $BRANCH_NAME (release-please or Dependabot owns the version)"
             exit 0
           fi
 

@@ -2,6 +2,18 @@
   "$comment": "Allowlist for the Lab gallery (docs/showcase/lab). Only entries listed here are copied to public/lab/ and surfaced on the site. `source` is repo-root-relative. Title/description here OVERRIDE what generate-lab-data.mjs extracts from the HTML <head>. Run `node docs/site/scripts/generate-lab-data.mjs` after editing.",
   "entries": [
     {
+      "slug": "skip-pattern-one-source",
+      "source": "docs/refactor--1460-single-skip-regex/index.html",
+      "title": "One skip pattern, two consumers, and a gate that never opened its spec",
+      "description": "The version-bump skip regex lived in the pre-push hook and in version-check.yml, held equal by a parity test. It now lives once; both consumers source it and fail when it is empty. Also: verify:cc-keys passed with its spec emptied or deleted, measured, then guarded. Type a branch name to see the gate's verdict.",
+      "tags": [
+        "ci",
+        "false-signals",
+        "measurement"
+      ],
+      "date": "2026-09-06"
+    },
+    {
       "slug": "unused-tables-verdict",
       "source": "docs/chore--3353-unused-tables-verdict/index.html",
       "title": "Zero rows is not dead code: three tables, one live reader, one wrong register row",

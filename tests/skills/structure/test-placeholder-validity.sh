@@ -104,7 +104,7 @@ if [[ -n "$found" ]]; then
     echo "  For another skill or shared/ use: \${CLAUDE_PLUGIN_ROOT}/skills/<name>/... or \${CLAUDE_PLUGIN_ROOT}/shared/..."
     fail=1
 else
-    echo "  ${GREEN}✓${NC} every \${CLAUDE_*} reference in src/ is a documented substitution"
+    echo "  ${GREEN}PASS${NC} every \${CLAUDE_*} reference in src/ is a documented substitution"
 fi
 
 # --- 2. every skill-file reference must point at a file that exists ----------
@@ -195,7 +195,7 @@ if [[ -n "$dead" ]]; then
     done
     fail=1
 else
-    echo "  ${GREEN}✓${NC} every skill-file reference resolves (checked: ${checked_line})"
+    echo "  ${GREEN}PASS${NC} every skill-file reference resolves (checked: ${checked_line})"
 fi
 
 # --- 3. the built artifact must be clean too ---------------------------------
@@ -227,7 +227,7 @@ if [[ -d plugins ]]; then
             echo "      run: npm run build"
             fail=1
         else
-            echo "  ${GREEN}✓${NC} built plugins/ carry no undocumented placeholder"
+            echo "  ${GREEN}PASS${NC} built plugins/ carry no undocumented placeholder"
         fi
     fi
 fi
@@ -261,12 +261,12 @@ if (( ss_refs > 0 )); then
     echo "      portable form is bare relative (exec shapes: \${CLAUDE_SKILL_DIR}); run: node scripts/codemod/skill-paths-relative.mjs"
     fail=1
 else
-    echo "  ${GREEN}✓${NC} no same-skill reference uses the plugin-root form"
+    echo "  ${GREEN}PASS${NC} no same-skill reference uses the plugin-root form"
 fi
 
 echo ""
 if (( fail == 0 )); then
-    echo "${GREEN}✓ Placeholder validity gate passed${NC}"
+    echo "${GREEN}PASS: Placeholder validity gate passed${NC}"
 else
     echo "${RED}✗ Placeholder validity gate FAILED${NC}"
 fi

@@ -151,6 +151,10 @@ fi
 B="$WORK/vbump.sh"; extract_step "$WF/version-check.yml" "Check if version bump required" > "$B"
 if assert_body "Check if version bump required" "$B"; then
     d="$WORK/vb"; mkdir -p "$d"; git_init "$d"; echo a > "$d/a.js"; git -C "$d" add -A; git -C "$d" commit -qm base
+    # The step sources scripts/ci/version-skip-pattern.sh from the checkout
+    # (#1460); the emptied and missing states of that file are exercised by
+    # tests/ci/fault-arms/version-skip-pattern.sh, so here it is simply present.
+    mkdir -p "$d/scripts/ci"; cp "$REPO_ROOT/scripts/ci/version-skip-pattern.sh" "$d/scripts/ci/"
     git -C "$d" update-ref refs/remotes/origin/main HEAD
     git -C "$d" checkout -qb feature/x; echo b > "$d/a.js"; git -C "$d" commit -qam change
     : > "$WORK/vb.out"
