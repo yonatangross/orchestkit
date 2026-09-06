@@ -32,6 +32,16 @@ run_fault_arms() {
     harness="$(mktemp -d "${TMPDIR:-/tmp}/ork-fault-arms.XXXXXX")"
     mkdir -p "$harness/fixtures"
 
+    # Probes build throwaway git repos (`git init`, `git add -A` in a fixture
+    # dir). Under a git hook the environment carries GIT_INDEX_FILE (absolute in
+    # a linked worktree) and can carry GIT_DIR / GIT_WORK_TREE; a nested `git`
+    # then writes the FIXTURE's tree into the REAL index. Measured 2026-09-06 in
+    # .worktrees/skill-dir-codemod: one pre-commit run left 2 of 6947 entries
+    # (src/offender.sh and the copied gate) and staged 6945 deletions. Scrub
+    # every repo-locating GIT_* variable so each probe sees only its own cwd.
+    unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_PREFIX GIT_COMMON_DIR \
+        GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES
+
     local pass=0 fail=0 n=0
     for probe in "$dir"/*.sh; do
         [[ -f "$probe" ]] || continue
