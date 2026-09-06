@@ -203,6 +203,13 @@ def main() -> int:
         return 1
 
     total_events = len(npm_names)
+    # Two empty sets are equal, so with no events on either side every check
+    # above passes vacuously. codegen-py.py's 19-event assertion fires first in
+    # practice; this keeps the second line of defence from being a blank one
+    # (gate-fault-arm audit 2026-09-06, guard added unexercised: see the audit).
+    if total_events == 0:
+        print("[parity-check] FAIL: zero events on both sides; nothing was compared.")
+        return 1
     total_with_payload = sum(
         1
         for e in npm_names

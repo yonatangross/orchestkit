@@ -189,6 +189,14 @@ for agent_md in "$SRC_DIR/agents"/*.md; do
     fi
 done
 
+# Corpus floor: with src/agents emptied both equality checks below printed
+# green vacuously (0 -eq 0) and the only non-zero exit came from an accidental
+# division by zero further down; guarding that division would have made this
+# gate fully inert (gate-fault-arm audit 2026-09-06).
+if [[ "$PLUGINS_WITH_AGENTS" -eq 0 || "$AGENTS_WITH_SKILLS" -eq 0 ]]; then
+    fail "corpus is empty ($PLUGINS_WITH_AGENTS plugins with agents, $AGENTS_WITH_SKILLS agents with skills); the index checks examined nothing"
+fi
+
 if [[ "$AGENTS_WITH_SKILLS" -eq "$AGENTS_WITH_INDEX" ]]; then
     pass "All $AGENTS_WITH_SKILLS agents with skills have Tier 2 indexes"
 else
