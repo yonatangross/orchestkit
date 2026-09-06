@@ -44,6 +44,9 @@ describe('posttool/mcp-output-transform', () => {
     // lossy-mode truncation tests into reversible output and see spurious
     // failures. The reversible-mode describe sets it explicitly.
     delete process.env.ORK_HEADROOM_REVERSIBLE;
+    // Same isolation for #3951: an ambient exempt list would silently turn the
+    // redaction assertions above into passthrough ones.
+    delete process.env.ORK_MCP_REDACT_EXEMPT_TOOLS;
   });
 
   // ===========================================================================
@@ -511,6 +514,155 @@ describe('posttool/mcp-output-transform', () => {
       const output = result.hookSpecificOutput?.updatedToolOutput as string;
       // Invalid _meta → falls back to normal truncation
       expect(output).toContain('[Result truncated');
+    });
+  });
+  // ===========================================================================
+  // Per-tool redaction exemption (#3951) — ORK_MCP_REDACT_EXEMPT_TOOLS
+  // ===========================================================================
+
+  describe('redaction exemption (#3951)', () => {
+    // A WhatsApp JID is email-shaped by construction and a linked-device id is
+    // phone-shaped, so a messaging server's own session-status tool had its OWN
+    // account id redacted before the model ever saw it.
+    const SESSION_STATUS = 'mcp__hq-channels__whatsapp_session_status';
+    const MESSAGES = 'mcp__hq-channels__whatsapp_get_messages';
+    const JID_PAYLOAD =
+      '{"me":{"id":"972501234567@c.us","lid":"155512345678901@lid"},"status":"WORKING"}';
+
+    afterEach(() => {
+      delete process.env.ORK_MCP_REDACT_EXEMPT_TOOLS;
+    });
+
+    test('exempt tool passes an email-shaped JID through untouched', () => {
+      process.env.ORK_MCP_REDACT_EXEMPT_TOOLS = SESSION_STATUS;
+      const result = mcpOutputTransform(
+        createInput({ tool_name: SESSION_STATUS, tool_response: JID_PAYLOAD }),
+        testCtx,
+      );
+      // No redaction and no truncation => no transform at all: Claude sees the original.
+      expect(result.hookSpecificOutput?.updatedToolOutput).toBeUndefined();
+    });
+
+    test('exempt tool keeps the JID verbatim when the result is also truncated', () => {
+      process.env.ORK_MCP_REDACT_EXEMPT_TOOLS = SESSION_STATUS;
+      const long = `${JID_PAYLOAD}${'x'.repeat(5000)}`;
+      const result = mcpOutputTransform(
+        createInput({ tool_name: SESSION_STATUS, tool_response: long }),
+        testCtx,
+      );
+      const output = result.hookSpecificOutput?.updatedToolOutput as string;
+      expect(output).toContain('972501234567@c.us');
+      expect(output).toContain('155512345678901@lid');
+      expect(output).not.toContain('[REDACTED_EMAIL]');
+      expect(output).not.toContain('[REDACTED_PHONE]');
+      // Truncation (Phase 2) is unaffected by the exemption.
+      expect(output).toContain('[Result truncated');
+    });
+
+    test('the same payload under a NON-exempt tool is still redacted', () => {
+      process.env.ORK_MCP_REDACT_EXEMPT_TOOLS = SESSION_STATUS;
+      const result = mcpOutputTransform(
+        createInput({ tool_name: MESSAGES, tool_response: JID_PAYLOAD }),
+        testCtx,
+      );
+      const output = result.hookSpecificOutput?.updatedToolOutput as string;
+      expect(output).toContain('[REDACTED_EMAIL]');
+      expect(output).not.toContain('972501234567@c.us');
+    });
+
+    test('a real email under a non-exempt sibling tool is still redacted', () => {
+      process.env.ORK_MCP_REDACT_EXEMPT_TOOLS = SESSION_STATUS;
+      const result = mcpOutputTransform(
+        createInput({
+          tool_name: MESSAGES,
+          tool_response: 'Customer wrote from alice@example.com about the order',
+        }),
+        testCtx,
+      );
+      const output = result.hookSpecificOutput?.updatedToolOutput as string;
+      expect(output).toContain('[REDACTED_EMAIL]');
+      expect(output).not.toContain('alice@example.com');
+    });
+
+    test('a real email inside an EXEMPT tool result is passed through too', () => {
+      // The exemption is per tool, not per field: exempting a tool is a statement
+      // that its whole result is safe. Documented here so the trade-off is explicit.
+      process.env.ORK_MCP_REDACT_EXEMPT_TOOLS = SESSION_STATUS;
+      const result = mcpOutputTransform(
+        createInput({
+          tool_name: SESSION_STATUS,
+          tool_response: 'account owner alice@example.com',
+        }),
+        testCtx,
+      );
+      expect(result.hookSpecificOutput?.updatedToolOutput).toBeUndefined();
+    });
+
+    test('a tool whose name is a PREFIX of an exempt one is NOT exempt', () => {
+      process.env.ORK_MCP_REDACT_EXEMPT_TOOLS = SESSION_STATUS;
+      const result = mcpOutputTransform(
+        createInput({
+          tool_name: 'mcp__hq-channels__whatsapp_session',
+          tool_response: JID_PAYLOAD,
+        }),
+        testCtx,
+      );
+      const output = result.hookSpecificOutput?.updatedToolOutput as string;
+      expect(output).toContain('[REDACTED_EMAIL]');
+    });
+
+    test('a tool whose name EXTENDS an exempt one is NOT exempt', () => {
+      process.env.ORK_MCP_REDACT_EXEMPT_TOOLS = SESSION_STATUS;
+      const result = mcpOutputTransform(
+        createInput({ tool_name: `${SESSION_STATUS}_raw`, tool_response: JID_PAYLOAD }),
+        testCtx,
+      );
+      const output = result.hookSpecificOutput?.updatedToolOutput as string;
+      expect(output).toContain('[REDACTED_EMAIL]');
+    });
+
+    test('parses a comma-separated list with whitespace and empty entries', () => {
+      process.env.ORK_MCP_REDACT_EXEMPT_TOOLS = `mcp__other__thing , ${SESSION_STATUS} ,,`;
+      const result = mcpOutputTransform(
+        createInput({ tool_name: SESSION_STATUS, tool_response: JID_PAYLOAD }),
+        testCtx,
+      );
+      expect(result.hookSpecificOutput?.updatedToolOutput).toBeUndefined();
+    });
+
+    test('a list of only separators and whitespace exempts nothing', () => {
+      process.env.ORK_MCP_REDACT_EXEMPT_TOOLS = '  ,, ';
+      const result = mcpOutputTransform(
+        createInput({ tool_name: SESSION_STATUS, tool_response: JID_PAYLOAD }),
+        testCtx,
+      );
+      const output = result.hookSpecificOutput?.updatedToolOutput as string;
+      expect(output).toContain('[REDACTED_EMAIL]');
+    });
+
+    test('unset env keeps the pre-#3951 behaviour (the JID is redacted)', () => {
+      const result = mcpOutputTransform(
+        createInput({ tool_name: SESSION_STATUS, tool_response: JID_PAYLOAD }),
+        testCtx,
+      );
+      const output = result.hookSpecificOutput?.updatedToolOutput as string;
+      expect(output).toContain('[REDACTED_EMAIL]');
+      expect(output).not.toContain('972501234567@c.us');
+    });
+
+    test('the exempt list is read per call, not at module load', () => {
+      const before = mcpOutputTransform(
+        createInput({ tool_name: SESSION_STATUS, tool_response: JID_PAYLOAD }),
+        testCtx,
+      );
+      expect(before.hookSpecificOutput?.updatedToolOutput).toContain('[REDACTED_EMAIL]');
+
+      process.env.ORK_MCP_REDACT_EXEMPT_TOOLS = SESSION_STATUS;
+      const after = mcpOutputTransform(
+        createInput({ tool_name: SESSION_STATUS, tool_response: JID_PAYLOAD }),
+        testCtx,
+      );
+      expect(after.hookSpecificOutput?.updatedToolOutput).toBeUndefined();
     });
   });
 });

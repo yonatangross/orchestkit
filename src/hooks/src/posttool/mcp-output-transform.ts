@@ -22,7 +22,8 @@
  *
  * Transforms MCP tool outputs before Claude sees them:
  * 1. Token-saving truncation: large results are head+tail truncated
- * 2. PII redaction: emails and phone numbers replaced with [REDACTED]
+ * 2. PII redaction: emails and phone numbers replaced with [REDACTED],
+ *    skippable per tool via ORK_MCP_REDACT_EXEMPT_TOOLS (#3951)
  *
  * CC 2.1.91 integration — "Trust CC's decision" heuristic:
  * CC strips _meta from tool_output before passing to hooks, so we can't
@@ -32,7 +33,8 @@
  *     We skip truncation to avoid defeating CC's decision.
  *   - Results 2K–50K: Our token-saving truncation applies.
  *   - Results <= 2K: No truncation needed.
- * PII redaction always runs regardless of size.
+ * PII redaction always runs regardless of size, unless the tool is listed in
+ * ORK_MCP_REDACT_EXEMPT_TOOLS (#3951).
  * Best-effort _meta extraction kept as fallback (costs nothing if absent).
  *
  * Returns `updatedToolOutput` to replace the original result (the deprecated
@@ -72,6 +74,40 @@ const DEFAULT_TRUNCATION_THRESHOLD =
  */
 function headroomReversibleEnabled(): boolean {
   return process.env.ORK_HEADROOM_REVERSIBLE === '1';
+}
+
+/** Shared empty set so the common (unset) path allocates nothing. */
+const EMPTY_EXEMPT_SET: ReadonlySet<string> = new Set<string>();
+
+/**
+ * #3951: per-tool exemption from Phase 1 PII redaction.
+ *
+ * `EMAIL_RE` and `PHONE_RE` are shape-based, and some identifiers are PII-shaped
+ * by construction: a WhatsApp JID is `<digits>@c.us` (email-shaped) and a linked
+ * device id is `<15 digits>@lid` (phone-shaped). A messaging server's own
+ * session-status tool therefore had its OWN account id rewritten to
+ * `[REDACTED_EMAIL]` before the model ever saw it, so a protocol that must target
+ * the account's own chat could not resolve its target at all (measured live on
+ * alpha.85, 2026-09-06; behaviour dates from #2552).
+ *
+ * `ORK_MCP_REDACT_EXEMPT_TOOLS` is a comma-separated list of FULL tool names
+ * (`mcp__<server>__<tool>`). Matching is exact, never by prefix: a tool whose name
+ * is a prefix of an exempt one is not exempt, so exempting one status tool cannot
+ * silently exempt a whole server. Truncation (Phase 2) is unaffected — an exempt
+ * tool is still truncated, and every other tool on the server still redacts.
+ *
+ * Read at call time (not module load) so it can flip within a session and so
+ * tests can set it per-case.
+ */
+function redactExemptTools(): ReadonlySet<string> {
+  const raw = process.env.ORK_MCP_REDACT_EXEMPT_TOOLS;
+  if (!raw) return EMPTY_EXEMPT_SET;
+  return new Set(
+    raw
+      .split(',')
+      .map((name) => name.trim())
+      .filter((name) => name.length > 0),
+  );
 }
 
 /**
@@ -318,8 +354,12 @@ export function mcpOutputTransform(input: HookInput, ctx: HookContext = NOOP_CTX
   const metaResultSize = extractMetaResultSize(rawOutput);
   const ccKeptLargeResult = metaResultSize != null || outputStr.length > CC_PERSIST_THRESHOLD;
 
-  // Phase 1: PII redaction (ALWAYS runs regardless of size)
-  const { text: redacted, redactionCount } = redactPII(outputStr);
+  // Phase 1: PII redaction (runs regardless of size, unless this tool is exempt)
+  // #3951: an exempt tool skips redaction entirely; truncation below is unchanged.
+  const redactionExempt = redactExemptTools().has(toolName);
+  const { text: redacted, redactionCount } = redactionExempt
+    ? { text: outputStr, redactionCount: 0 }
+    : redactPII(outputStr);
 
   // Phase 2: Truncation (skip if CC explicitly kept a large result)
   let final: string;
