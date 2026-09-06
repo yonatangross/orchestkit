@@ -35,9 +35,9 @@ It answers: "Do my specialized agents get spawned, or does the model default to 
 
 | Category | File | Impact | When to Use |
 |----------|------|--------|-------------|
-| Activation Checks | `${CLAUDE_PLUGIN_ROOT}/skills/audit-activation/rules/activation-checks.md` | HIGH | What to compute per agent |
-| Classification | `${CLAUDE_PLUGIN_ROOT}/skills/audit-activation/rules/activation-status.md` | HIGH | fires / mis-triggered / niche / dead buckets |
-| Output Format | `${CLAUDE_PLUGIN_ROOT}/skills/audit-activation/references/output-format.md` | MEDIUM | Report layout + the spawn-split summary |
+| Activation Checks | `rules/activation-checks.md` | HIGH | What to compute per agent |
+| Classification | `rules/activation-status.md` | HIGH | fires / mis-triggered / niche / dead buckets |
+| Output Format | `references/output-format.md` | MEDIUM | Report layout + the spawn-split summary |
 
 ## CRITICAL: Task Management is MANDATORY (CC 2.1.16)
 
@@ -57,7 +57,7 @@ TaskUpdate(taskId="4", addBlockedBy=["3"])
 1. **Run the script FIRST** — every audit starts by running (or, when execution is impossible, explicitly referencing) the deterministic collector:
 
    ```bash
-   bash "${CLAUDE_PLUGIN_ROOT}/skills/audit-activation/scripts/run-activation-audit.sh" \
+   bash "${CLAUDE_SKILL_DIR}/scripts/run-activation-audit.sh" \
      --telemetry-root /path/to/consumer-project \
      --stop-feed "$HOME/.claude/analytics/agent-usage.jsonl" \
      --days 30 --json
@@ -66,9 +66,9 @@ TaskUpdate(taskId="4", addBlockedBy=["3"])
    It resolves the catalog beside its source or installed script, while every consumer telemetry root is explicit. It reports attempts, starts, and stop-feed completions separately. Never eyeball JSONL by hand when the script exists.
 2. **Inventory** — let the script resolve its own source or installed `agents/` catalog. Do not point it at a consumer project's agent directory.
 3. **Read telemetry** — `.claude/logs/subagent-spawns.jsonl` carries pretool intent and start events. Triangulate it with the restored global `~/.claude/analytics/agent-usage.jsonl` stop feed when available. The streams have no stable common event ID, so never add them together or infer unique spawns.
-4. **Compute** — all checks from `Read("${CLAUDE_PLUGIN_ROOT}/skills/audit-activation/rules/activation-checks.md")`; the Report Contract below lists the mandatory ones.
-5. **Classify** — bucket every agent using the Four Buckets below (full procedure: `Read("${CLAUDE_PLUGIN_ROOT}/skills/audit-activation/rules/activation-status.md")`).
-6. **Render** — output per `Read("${CLAUDE_PLUGIN_ROOT}/skills/audit-activation/references/output-format.md")`, satisfying the Report Contract.
+4. **Compute** — all checks from `Read("rules/activation-checks.md")`; the Report Contract below lists the mandatory ones.
+5. **Classify** — bucket every agent using the Four Buckets below (full procedure: `Read("rules/activation-status.md")`).
+6. **Render** — output per `Read("references/output-format.md")`, satisfying the Report Contract.
 
 ## Report Contract (every audit MUST include all six)
 
