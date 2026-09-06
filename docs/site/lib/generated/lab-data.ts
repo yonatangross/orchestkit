@@ -73,6 +73,20 @@ export const LAB_ENTRIES: LabEntry[] = [
     "sizeKb": 9
   },
   {
+    "slug": "skip-pattern-one-source",
+    "title": "One skip pattern, two consumers, and a gate that never opened its spec",
+    "description": "The version-bump skip regex lived in the pre-push hook and in version-check.yml, held equal by a parity test. It now lives once; both consumers source it and fail when it is empty. Also: verify:cc-keys passed with its spec emptied or deleted, measured, then guarded. Type a branch name to see the gate's verdict.",
+    "tags": [
+      "ci",
+      "false-signals",
+      "measurement"
+    ],
+    "date": "2026-09-06",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 7
+  },
+  {
     "slug": "function-hooks-adoption-gate",
     "title": "Observed is not shipped: the Function Hooks adoption gate",
     "description": "Choose private prototype, upstream closure, or public shipment evidence to see why OrchestKit remains watch-only until a supported Function Hooks contract actually ships.",
