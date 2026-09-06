@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OrchestKit · מפת דרכים · 6 בספטמבר 2026</title>
+<style>
+  :root{
+    --bg:#0f1115; --panel:#171a21; --panel2:#1e222b; --line:#2a2f3a;
+    --ink:#e6e9ef; --dim:#9aa3b2; --faint:#6b7383;
+    --hot:#ff6b5e; --warm:#d9a441; --cool:#46c08a; --info:#4ea1ff; --accent:#a78bfa;
+  }
+  @media (prefers-color-scheme:light){
+    :root{
+      --bg:#f7f8fa; --panel:#fff; --panel2:#f0f2f6; --line:#dfe3ea;
+      --ink:#12151b; --dim:#59616f; --faint:#8b93a1;
+      --hot:#c0392b; --warm:#a86a00; --cool:#1a7f57; --info:#1f6feb; --accent:#6d43d9;
+    }
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;background:var(--bg);color:var(--ink);
+    font:16px/1.75 "Segoe UI","Noto Sans Hebrew",Arial,sans-serif;
+    padding:36px 20px 72px;
+  }
+  main{max-width:900px;margin:0 auto}
+  h1{font-size:28px;margin:0 0 6px;line-height:1.3}
+  .sub{color:var(--dim);margin:0 0 8px}
+  .stamp{color:var(--faint);font-size:14px;margin:0 0 30px}
+  h2{font-size:20px;margin:38px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+  p{margin:0 0 14px}
+  .en{direction:ltr;unicode-bidi:isolate;display:inline-block;
+      font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.88em;
+      background:var(--panel2);padding:1px 6px;border-radius:4px}
+
+  .card{border:1px solid var(--line);background:var(--panel);border-radius:12px;
+        padding:16px 20px;margin:0 0 12px}
+  .card.hot{border-right:4px solid var(--hot)}
+  .card.warm{border-right:4px solid var(--warm)}
+  .card.cool{border-right:4px solid var(--cool)}
+  .card.info{border-right:4px solid var(--info)}
+  .card h3{margin:0 0 6px;font-size:17px;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+  .card p{margin:0;color:var(--dim);font-size:15px}
+  .id{direction:ltr;unicode-bidi:isolate;font-family:ui-monospace,Menlo,monospace;
+      font-size:13px;color:var(--faint)}
+
+  .done{border:1px solid var(--line);border-right:4px solid var(--cool);
+        background:var(--panel);border-radius:12px;padding:18px 20px;margin:0 0 26px}
+  .kv{display:grid;grid-template-columns:auto 1fr;gap:4px 18px;font-size:15px;margin-top:10px}
+  .kv dt{color:var(--faint)}
+  .kv dd{margin:0}
+
+  .rail{display:flex;flex-direction:column;gap:0;margin:14px 0 0}
+  .step{display:grid;grid-template-columns:34px 1fr;gap:14px;align-items:start}
+  .node{display:flex;flex-direction:column;align-items:center;height:100%}
+  .bullet{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);
+          background:var(--panel2);display:flex;align-items:center;justify-content:center;
+          font-size:15px;flex:none}
+  .line{width:2px;flex:1;background:var(--line);min-height:16px}
+  .body{padding-bottom:20px}
+  .body strong{display:block;margin-bottom:2px}
+  .body span{color:var(--dim);font-size:15px}
+
+  table{border-collapse:collapse;width:100%;margin:10px 0 0;font-size:15px}
+  th,td{text-align:right;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--faint);font-size:13px;font-weight:600}
+  .note{border:1px solid var(--line);border-right:4px solid var(--accent);
+        background:var(--panel);border-radius:12px;padding:16px 20px;margin:20px 0 0}
+  footer{margin:48px 0 0;padding-top:16px;border-top:1px solid var(--line);
+         color:var(--faint);font-size:14px}
+</style>
+</head>
+<body>
+<main>
+
+<h1>OrchestKit · מפת דרכים</h1>
+<p class="sub">מה נסגר, מה פתוח, ובאיזה סדר כדאי לטפל בזה.</p>
+<p class="stamp">6 בספטמבר 2026 · הענף הראשי נמצא ב־<span class="en">550e5c890</span></p>
+
+<div class="done">
+  <h3 style="margin:0;font-size:18px">✅ נסגר היום · <span class="en">#3933</span></h3>
+  <p style="color:var(--dim);margin:8px 0 0">
+    אימוץ גרסאות <span class="en">2.1.262</span> ו־<span class="en">2.1.263</span> של Claude Code,
+    ובנוסף תיקון של שער בדיקה שלא היה מסוגל להיכשל.
+  </p>
+  <dl class="kv">
+    <dt>בדיקות</dt><dd>51 עברו · 0 נכשלו · 0 ממתינות</dd>
+    <dt>מיזוג</dt><dd><span class="en">squash</span>, בלי <span class="en">admin</span>, בשעה <span class="en">06:12Z</span></dd>
+    <dt>ניקיון</dt><dd>44 ענפים ירדו ל־24 · 9 עצי עבודה ירדו ל־5</dd>
+  </dl>
+</div>
+
+<h2>🎯 החוט המקשר: כלים שמשקרים</h2>
+<p>
+  כמעט כל מה שנמצא היום שייך למשפחה אחת. לא קוד שקורס, אלא כלי שמדווח תשובה
+  שהוא לא באמת מדד. זו הסיבה שהסדר למטה מתחיל דווקא בבדיקות ולא בפיצ׳רים.
+</p>
+
+<div class="note">
+  <p style="margin:0">
+    <strong>הדוגמה מהיום.</strong> הבדיקה <span class="en">test-cc-version-floor.sh</span>
+    קיימת כדי לתפוס סטייה של מספר הגרסה המינימלית בין קבצים. היא חיפשה מחרוזת
+    שמעולם לא היתה קיימת בקובץ, וכשלא מצאה אותה היא רשמה <span class="en">PASS</span>.
+    כלומר: סימן ירוק, בלי שנקרא ולו מספר גרסה אחד. במצב הזה היא עברה מעבר לשינוי
+    מ־<span class="en">2.1.220</span> ל־<span class="en">2.1.251</span>, והשאירה טבלה
+    שאומרת למשתמשים שגרסה לא נתמכת היא בסדר.
+  </p>
+  <p style="margin:12px 0 0">
+    <strong>המבחן הזול.</strong> להריץ כל בדיקה גם על קלט שבור בכוונה. אם היא לא
+    מסוגלת לצאת אדומה, היא לא מדדה כלום. חשוב באותה מידה להריץ גם את הזרוע התקינה,
+    כי בדיקה שנכשלת על הכול נראית זהה לבדיקה שעובדת.
+  </p>
+</div>
+
+<h2>🔥 מנה ראשונה · שלושה באגים, פול־ריקווסט אחד</h2>
+<p>שלושתם באותה משפחה, שלושתם קטנים, שלושתם בשכבת ה־hooks והבדיקות.</p>
+
+<div class="card hot">
+  <h3>⚡ הרדקטור בולע מזהי טאבים <span class="id">#3894</span></h3>
+  <p>
+    <span class="en">mcp-output-transform</span> מזהה מזהי טאבים של הדפדפן כמספרי
+    טלפון ומצנזר אותם. זה שובר אוטומציית דפדפן בזמן אמת, וכנראה מדובר בביטוי רגולרי
+    אחד רעב מדי.
+  </p>
+</div>
+<div class="card hot">
+  <h3>🧪 בדיקה מהבהבת עם סף זמן קשיח <span class="id">#3522</span></h3>
+  <p>
+    טסט שדורש פחות מ־200 מילישניות, ונמדד ב־158, 710 ו־312 על ענף ראשי נקי. כלומר
+    כל פול־ריקווסט יורש הטלת מטבע אדומה. הנזק האמיתי הוא חינוכי: אנשים לומדים
+    להתעלם מאדום.
+  </p>
+</div>
+<div class="card hot">
+  <h3>🚨 הכלי מציע פקודה שהוא עצמו חוסם <span class="id">#3493</span></h3>
+  <p>
+    <span class="en">git-validator</span> מדפיס תיקון עם <span class="en">-C</span>,
+    ואז שומר הענפים שרץ אחריו מסרב לו. ההנחיה לא רק לא עוזרת, אי אפשר לבצע אותה.
+  </p>
+</div>
+
+<h2>🟡 מנה שנייה · אמיתי, אבל לא באותה חבילה</h2>
+<table>
+  <thead><tr><th>נושא</th><th>למה בנפרד</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>🟡 <span class="en">#2528</span> · סקילים נשמרים פעמיים־שלוש</td>
+      <td>מסומן <span class="en">priority:high</span> ומבני. הבנייה חסומה בשער סטייה. מגיע לו מסלול משלו, לא סעיף בחבילה.</td>
+    </tr>
+    <tr>
+      <td>🟡 <span class="en">#3822</span> · <span class="en">${CLAUDE_PLUGIN_ROOT}</span> נשאר כטקסט</td>
+      <td>פוגע רק בלקוחות שאינם Claude Code. שייך לחוט של Codex ו־pi, לא לחבילת הבאגים.</td>
+    </tr>
+    <tr>
+      <td>🟡 <span class="en">#3448</span> · מחקר של סוכן אובד</td>
+      <td>אובדן מידע אמיתי כשקריאת Bash ארוכה עוברת לרקע. דורש שחזור לפני תיקון.</td>
+    </tr>
+    <tr>
+      <td>🟡 <span class="en">#3780</span> · סקילים לא פותרים כינוי גוף</td>
+      <td>חוויית שימוש, מוגדר באופן רופף. צריך חידוד לפני שאפשר לעבוד עליו.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>🟢 מנה שלישית · נמוך, או מוקפא</h2>
+<table>
+  <tbody>
+    <tr><td>🟢 <span class="en">#3684</span></td><td>בדיקת כתובת לפי תת־מחרוזת, ושני תאומי markdown</td></tr>
+    <tr><td>🟢 <span class="en">#3667</span></td><td>תיאור המאגר נושא ספירות שאף אחד לא מעדכן</td></tr>
+    <tr><td>🟢 <span class="en">#3190</span></td><td>קיפאון של here-string ב־bash 5.3 על macOS · מוקפא</td></tr>
+    <tr><td>🟢 <span class="en">#3101</span></td><td>דיאגרמות mermaid נשברות בלשוניות לא פעילות · משימה טובה למתחילים</td></tr>
+  </tbody>
+</table>
+
+<h2>🛤️ הסדר המומלץ</h2>
+<div class="rail">
+  <div class="step">
+    <div class="node"><div class="bullet">🔥</div><div class="line"></div></div>
+    <div class="body">
+      <strong>סחיפת גרסאות <span class="en">#3537</span></strong>
+      <span>
+        הפריט היחיד עם התראה אוטומטית שדולקת כל לילה.
+        <span class="en">emulate</span> מ־0.10 ל־0.11, ובנוסף
+        <span class="en">motion</span> ו־<span class="en">react-i18next</span>
+        מפגרים בגרסה ראשית שלמה. הפעולה היא הפעלה ידנית של
+        <span class="en">Upstream Version Watch</span>.
+      </span>
+    </div>
+  </div>
+  <div class="step">
+    <div class="node"><div class="bullet">2</div><div class="line"></div></div>
+    <div class="body">
+      <strong>חבילת שלושת הבאגים</strong>
+      <span>עץ עבודה חדש מ־<span class="en">origin/main</span>, ומתחילים ב־<span class="en">#3894</span>, כי הוא היחיד שנוגע בכלים שאנחנו משתמשים בהם עכשיו.</span>
+    </div>
+  </div>
+  <div class="step">
+    <div class="node"><div class="bullet">3</div><div class="line"></div></div>
+    <div class="body">
+      <strong>אי־התאמת החוזה של Codex</strong>
+      <span>
+        <span class="en">manifests/codex/ork-codex.json</span> הפסיק להתעדכן ותקוע על
+        <span class="en">9.5.4</span>, בדיוק מה שה־<span class="en">pinned_ref</span> מצהיר,
+        בזמן שהמותקן הוא <span class="en">10.0.0-alpha.80</span>. הראיה הסטטית מנבאת
+        כישלון של אימות מקור.
+      </span>
+    </div>
+  </div>
+  <div class="step">
+    <div class="node"><div class="bullet">4</div></div>
+    <div class="body">
+      <strong>אבני דרך <span class="en">165</span> עד <span class="en">168</span></strong>
+      <span>תשע משימות: סוכני מסחר, הגשת עמוד לאדם, עמוד לכל סקיל, ותוכן מכירות. אף אחת לא נגעה מאז ה־2 בספטמבר, וכולן צריכות הגדרה לפני שאפשר לעבוד עליהן.</span>
+    </div>
+  </div>
+</div>
+
+<h2>⚠️ מה לא נבדק</h2>
+<p>
+  אף אחד מאחד עשר הבאגים לא שוחזר בפועל. הדירוג נקרא מהכותרות, מהתוויות ומהתאריכים
+  בלבד. <span class="en">#3522</span> הוא זה שהכי סביר שאטעה לגביו, כי טענות על
+  בדיקה מהבהבת מתיישנות מהר והוא נגע לאחרונה ב־21 באוגוסט. גם סריקת
+  <span class="en">npm test</span> המלאה לא רצה בשום שלב היום; מה שהסתמכתי עליו זה
+  51 הבדיקות הירוקות של המערכת האוטומטית.
+</p>
+
+<footer>
+  נבנה מתוך רשימת הסוגיות הפתוחות של <span class="en">yonatangross/orchestkit</span>,
+  ממצב הענפים המקומי, ומהיסטוריית ה־git, כפי שנקראו ב־6 בספטמבר 2026.
+  צבע וסימן מציינים דחיפות בלבד, לא גודל.
+</footer>
+
+</main>
+</body>
+</html>
