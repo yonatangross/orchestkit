@@ -2,12 +2,16 @@
 // Created: 2026-05-20
 
 /**
- * Regression tests for #1884 stale-worktree sweep hook.
+ * Regression tests for the stale-worktree sweep hook (#1884, narrowed #3353).
  *
- * The hook removes sibling directories matching `<repo-name>-*` that:
- *   - are NOT in `git worktree list`
+ * The hook removes orphan `.worktrees/<name>/` shells and stale
+ * `.claude/state/worktree-pending/*.json` markers that:
+ *   - are NOT in `git worktree list` (fail-closed when git cannot answer)
  *   - contain zero regular files
  *   - have mtime >1 hour old (race protection)
+ *
+ * It no longer scans sibling `<repo>-*` directories (#3319 retired that
+ * layout); a test below pins that a stale sibling survives.
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
@@ -20,7 +24,7 @@ import {
   utimesSync,
 } from 'node:fs';
 import { execFileSync } from 'node:child_process';
-import { homedir, tmpdir } from 'node:os';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import {
@@ -31,7 +35,6 @@ import { NOOP_CTX } from '../../lib/context.js';
 
 const {
   isEmptyOfFiles,
-  sweepStaleSiblings,
   sweepWorktreeShells,
   sweepPendingMarkers,
   MIN_AGE_MS,
@@ -114,124 +117,60 @@ describe('sweepStaleWorktrees (#1884)', () => {
     expect(isEmptyOfFiles(d)).toBe(true);
   });
 
-  it('removes a stale empty sibling matching <repo>-*', () => {
-    const stale = join(parent, 'fakerepo-aborted');
-    mkdirSync(join(stale, 'apps'), { recursive: true });
-    backdate(stale, MIN_AGE_MS + 60_000);
+  it('LEAVES a stale empty sibling <repo>-* alone (#3319 layout retired, #3353)', () => {
+    // The original #1884 reaper walked the parent directory for this shape.
+    // That branch is gone: the hook must not touch anything outside the
+    // project directory, so this sibling survives even though it satisfies
+    // every deletion predicate the old branch had.
+    const sibling = join(parent, 'fakerepo-aborted');
+    mkdirSync(join(sibling, 'apps'), { recursive: true });
+    backdate(sibling, MIN_AGE_MS + 60_000);
 
-    const removed = sweepStaleSiblings(project, NOOP_CTX);
-    expect(removed).toBe(1);
-    expect(existsSync(stale)).toBe(false);
+    sweepStaleWorktrees({} as any, NOOP_CTX);
+
+    expect(existsSync(sibling)).toBe(true);
   });
 
-  it('SKIPS sibling that contains files (non-empty)', () => {
-    const real = join(parent, 'fakerepo-real');
-    mkdirSync(real, { recursive: true });
-    writeFileSync(join(real, 'README.md'), 'real worktree');
-    backdate(real, MIN_AGE_MS + 60_000);
-
-    const removed = sweepStaleSiblings(project, NOOP_CTX);
-    expect(removed).toBe(0);
-    expect(existsSync(real)).toBe(true);
-  });
-
-  it('SKIPS sibling under the 1-hour mtime threshold (race protection)', () => {
-    const fresh = join(parent, 'fakerepo-in-flight');
-    mkdirSync(fresh, { recursive: true });
-    // mtime is "now" by default — within the MIN_AGE_MS guard window.
-
-    const removed = sweepStaleSiblings(project, NOOP_CTX);
-    expect(removed).toBe(0);
-    expect(existsSync(fresh)).toBe(true);
-  });
-
-  it('SKIPS sibling that does NOT match <repo>-* prefix', () => {
-    const otherRepo = join(parent, 'otherrepo-aborted');
-    mkdirSync(otherRepo, { recursive: true });
-    backdate(otherRepo, MIN_AGE_MS + 60_000);
-
-    const removed = sweepStaleSiblings(project, NOOP_CTX);
-    expect(removed).toBe(0);
-    expect(existsSync(otherRepo)).toBe(true);
-  });
-
-  it('NEVER removes the project directory itself', () => {
-    // The project dir does NOT match `<repo>-*` (it IS the repo), so this is
-    // already excluded by the name filter. But re-verify defensively.
-    backdate(project, MIN_AGE_MS + 60_000);
-
-    const removed = sweepStaleSiblings(project, NOOP_CTX);
-    expect(removed).toBe(0);
-    expect(existsSync(project)).toBe(true);
-  });
-
-  it('refuses to scan when projectDir is the filesystem root', () => {
-    // Pathological: if projectDir resolves to "/", dirname is also "/", so
-    // parent === projectDir. Must bail out cleanly without scanning.
-    const removed = sweepStaleSiblings('/', NOOP_CTX);
-    expect(removed).toBe(0);
-  });
-
-  it('refuses to scan when projectDir is the user home directory', () => {
-    // Pathological: never sweep siblings of $HOME — they're not project-related.
-    // Use the actual homedir() since the guard compares resolved paths.
-    const removed = sweepStaleSiblings(homedir(), NOOP_CTX);
-    expect(removed).toBe(0);
-  });
-
-  it('skips sweep when git worktree list fails (null registry → fail-closed)', () => {
-    // Build a separate tmp project that is NOT a git repo. `git -C project
-    // worktree list` will fail with "not a git repo", so registeredWorktrees
-    // returns null. Sweep MUST skip — not fall through to predicates 3+4
-    // (which alone would still delete the stale dir, but the spec is
-    // fail-closed: no registry verification → no sweep).
+  it('skips the .worktrees sweep when git worktree list fails (null registry → fail-closed)', () => {
+    // A project that is NOT a git repo: `git -C project worktree list` fails,
+    // registeredWorktrees returns null, and the sweep MUST skip rather than
+    // fall through to the emptiness + mtime predicates.
     const nogitParent = mkdtempSync(join(tmpdir(), 'sweep-nogit-'));
     const nogitProject = join(nogitParent, 'norepo');
-    mkdirSync(nogitProject, { recursive: true });
-    // Intentionally do NOT run `git init` here.
-    const stale = join(nogitParent, 'norepo-aborted');
-    mkdirSync(stale, { recursive: true });
-    backdate(stale, MIN_AGE_MS + 60_000);
+    const shell = join(nogitProject, '.worktrees', 'agent-stale');
+    mkdirSync(join(shell, 'children'), { recursive: true });
+    backdate(shell, MIN_AGE_MS + 60_000);
 
     try {
-      const removed = sweepStaleSiblings(nogitProject, NOOP_CTX);
+      const removed = sweepWorktreeShells(nogitProject, NOOP_CTX);
       expect(removed).toBe(0);
-      expect(existsSync(stale)).toBe(true);
+      expect(existsSync(shell)).toBe(true);
     } finally {
       rmSync(nogitParent, { recursive: true, force: true });
     }
   });
 
   it('opt-out via ORK_NO_STALE_SWEEP=1 short-circuits the hook', () => {
-    const stale = join(parent, 'fakerepo-aborted');
-    mkdirSync(stale, { recursive: true });
-    backdate(stale, MIN_AGE_MS + 60_000);
+    const shell = join(project, '.worktrees', 'agent-stale');
+    mkdirSync(join(shell, 'children'), { recursive: true });
+    backdate(shell, MIN_AGE_MS + 60_000);
 
     process.env.ORK_NO_STALE_SWEEP = '1';
     sweepStaleWorktrees({} as any, NOOP_CTX);
 
-    expect(existsSync(stale)).toBe(true);
+    expect(existsSync(shell)).toBe(true);
   });
 
-  it('multiple stale siblings — removes all of them in one pass', () => {
-    const stale1 = join(parent, 'fakerepo-task-1');
-    const stale2 = join(parent, 'fakerepo-task-2');
-    const real = join(parent, 'fakerepo-real');
+  it('the hook entry point removes a stale orphan shell end to end', () => {
+    const shell = join(project, '.worktrees', 'agent-stale');
+    mkdirSync(join(shell, 'children'), { recursive: true });
+    writeFileSync(join(shell, 'children', '.gitkeep'), '');
+    backdate(shell, MIN_AGE_MS + 60_000);
 
-    mkdirSync(stale1);
-    mkdirSync(stale2);
-    mkdirSync(real, { recursive: true });
-    writeFileSync(join(real, 'README.md'), 'real');
+    const res = sweepStaleWorktrees({} as any, NOOP_CTX);
 
-    backdate(stale1, MIN_AGE_MS + 60_000);
-    backdate(stale2, MIN_AGE_MS + 60_000);
-    backdate(real, MIN_AGE_MS + 60_000);
-
-    const removed = sweepStaleSiblings(project, NOOP_CTX);
-    expect(removed).toBe(2);
-    expect(existsSync(stale1)).toBe(false);
-    expect(existsSync(stale2)).toBe(false);
-    expect(existsSync(real)).toBe(true);
+    expect(res.continue).toBe(true);
+    expect(existsSync(shell)).toBe(false);
   });
 });
 

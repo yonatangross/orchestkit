@@ -2,32 +2,31 @@
 // Created: 2026-05-20
 
 /**
- * Sweep Stale Worktrees — SessionStart Hook (#1884)
+ * Sweep Stale Worktrees — SessionStart Hook (#1884, narrowed #3353)
  *
- * Removes sibling directories matching `<repo-name>-*` that look like aborted
- * `git worktree add` attempts. The symptom (from #1884):
+ * Removes debris that a failed `Agent(isolation: "worktree")` spawn leaves
+ * INSIDE the repo and that `git worktree prune` cannot see, because it was
+ * never registered with git:
  *
- *   $ git worktree add ../<repo>-<task> -b feat/<task> origin/dev
- *   fatal: '../<repo>-<task>' already exists
+ *   1. `<projectDir>/.worktrees/<name>/` shells that hold no real file
+ *      (`.gitkeep` placeholders ignored), see #2335.
+ *   2. `.claude/state/worktree-pending/<name>.json` markers whose recorded
+ *      worktree never materialized.
  *
- * NOTE (#3319): the sibling path above is DEPRECATED and is reproduced here only
- * to describe the historical failure this sweeper cleans up after. Do not copy it.
- * Worktrees now go INSIDE the repo at `.worktrees/<task>`, because a sibling sits
- * outside the session's project directory and the harness silently bounces any
- * `cd` into it. This hook remains useful as legacy cleanup for debris left by the
- * old pattern.
- *
- * Cause: a prior session's worktree-add was aborted mid-flight (truncation,
- * OOM, force-quit) leaving an empty (or near-empty) directory at the path
- * that's NOT registered in `git worktree list`. The next session can't
- * recreate the worktree at the same path without manual `rm -rf` cleanup.
+ * History: the hook was born (#1884) to reap sibling `../<repo>-<task>`
+ * directories left by aborted `git worktree add` runs. #3319 retired that
+ * layout (a sibling sits outside the session's project directory and the
+ * harness silently bounces any `cd` into it; worktrees now live at
+ * `.worktrees/<task>`), and #3353 removed the sibling-scanning branch here:
+ * it walked the PARENT directory of every repo on every SessionStart to find
+ * a shape nothing produces any more. This hook never touches paths outside
+ * the project directory now.
  *
  * Safety predicates (ALL must hold to delete):
- *   1. Path is NOT the current project directory (never delete self).
- *   2. Path is NOT in `git worktree list` (genuinely orphaned).
- *   3. Path contains zero regular files via `find -type f` (empty in the
- *      meaningful sense — nested empty dirs are OK to remove).
- *   4. Path mtime is older than 1 hour (race protection — don't kill a
+ *   1. Path is NOT in `git worktree list` (genuinely orphaned). If the git
+ *      call itself fails the whole sweep is skipped (fail-closed).
+ *   2. Path contains zero regular files (nested empty dirs are OK to remove).
+ *   3. Path mtime is older than 1 hour (race protection — don't kill a
  *      worktree-add that's currently in flight).
  *
  * Opt-out: set `ORK_NO_STALE_SWEEP=1` to skip entirely.
@@ -39,8 +38,7 @@ import type { HookInput, HookResult, HookContext } from '../types.js';
 import { outputSilentSuccess } from '../lib/common.js';
 import { NOOP_CTX } from '../lib/context.js';
 import { existsSync, readFileSync, realpathSync, rmSync, readdirSync, statSync } from 'node:fs';
-import { homedir } from 'node:os';
-import { basename, dirname, join, resolve } from 'node:path';
+import { join, resolve } from 'node:path';
 
 import { execFileSync } from 'node:child_process';
 import { getProjectDir } from '../lib/paths.js';
@@ -68,7 +66,7 @@ const MAX_DEPTH_FILES = 3; // Find files up to 3 levels deep (avoids deep scans)
  * Return paths registered with git worktree list, or `null` if the git call
  * itself failed (binary missing, repo corrupt, timeout). The caller treats
  * `null` as "skip this sweep cycle entirely" — fail-closed: if we cannot
- * verify the registry (predicate #2), do nothing.
+ * verify the registry (predicate #1), do nothing.
  */
 function registeredWorktrees(projectDir: string): Set<string> | null {
   try {
@@ -131,91 +129,11 @@ function isEmptyOfFiles(path: string, depth = 0): boolean {
 }
 
 /**
- * Walk siblings of `projectDir` matching `<repo-name>-*` and remove the
- * stale ones. Returns count removed. Safe — never throws.
- */
-export function sweepStaleSiblings(projectDir: string, ctx: HookContext): number {
-  const resolvedProject = resolve(projectDir);
-  const parent = dirname(resolvedProject);
-  const repoName = basename(resolvedProject);
-
-  // ─── Pathological projectDir guards (fail-closed) ─────────────────────
-  // If projectDir is the filesystem root, the user's home directory, or
-  // doesn't have a real basename, scanning its siblings could touch arbitrary
-  // user files. Predicates 3+4 (file emptiness + mtime) still prevent
-  // deletion in those cases, but we shouldn't even iterate — a) wasted work,
-  // b) a future predicate weakening could turn a wasted scan into damage.
-  if (!repoName || repoName === '.' || repoName === '..') return 0;
-  if (parent === resolvedProject) return 0;                  // filesystem root
-  if (resolvedProject === resolve(homedir())) return 0;      // never scan from $HOME
-  if (!existsSync(parent)) return 0;
-
-  let siblings: string[];
-  try {
-    siblings = readdirSync(parent);
-  } catch {
-    return 0;
-  }
-
-  // ─── Registry check (predicate #2) — fail-closed if git is unhealthy ──
-  const registered = registeredWorktrees(resolvedProject);
-  if (registered === null) {
-    // Git failed (binary missing, repo corrupt, timeout). Skip this entire
-    // sweep cycle — without a known-good registry we can't safely identify
-    // which siblings are orphan worktrees vs legitimate registered ones.
-    // Next SessionStart with healthy git will catch up.
-    ctx.log(HOOK_NAME, 'skipping sweep — `git worktree list` failed; cannot verify registry');
-    return 0;
-  }
-
-  const now = Date.now();
-  let removed = 0;
-
-  for (const sibling of siblings) {
-    if (!sibling.startsWith(`${repoName}-`)) continue;
-    const fullPath = resolve(parent, sibling);
-
-    // Predicate 1: never delete project root itself (defensive — startsWith
-    // already filters this out, but belt-and-braces).
-    if (fullPath === resolvedProject) continue;
-
-    // Predicate 2: skip if registered as a real worktree (canon: the
-    // registry holds realpaths).
-    if (registered.has(canon(fullPath))) continue;
-
-    let st: ReturnType<typeof statSync>;
-    try {
-      st = statSync(fullPath);
-    } catch {
-      continue;
-    }
-    if (!st.isDirectory()) continue;
-
-    // Predicate 4 (cheaper than 3, gate it first): mtime ≥ 1h.
-    if (now - st.mtimeMs < MIN_AGE_MS) continue;
-
-    // Predicate 3: zero regular files.
-    if (!isEmptyOfFiles(fullPath)) continue;
-
-    // All predicates passed — sweep.
-    try {
-      rmSync(fullPath, { recursive: true, force: true });
-      removed++;
-      ctx.log(HOOK_NAME, `removed stale empty worktree path: ${fullPath}`);
-    } catch (err) {
-      ctx.log(HOOK_NAME, `rm failed for ${fullPath}: ${(err as Error).message}`);
-    }
-  }
-
-  return removed;
-}
-
-/**
  * Sweep orphan shells INSIDE `<projectDir>/.worktrees/` (#2335). Failed
  * Agent(isolation:"worktree") spawns on the pre-#2335 hook chain left
  * `.worktrees/<name>/children/.gitkeep` shells that were never registered
- * with git. Same safety predicates as the sibling sweep: not registered,
- * older than 1h, and empty of real files (`.gitkeep` placeholders ignored).
+ * with git. Predicates: not registered, older than 1h, and empty of real
+ * files (`.gitkeep` placeholders ignored).
  */
 export function sweepWorktreeShells(projectDir: string, ctx: HookContext): number {
   const worktreesDir = join(resolve(projectDir), '.worktrees');
@@ -333,7 +251,6 @@ export function sweepStaleWorktrees(
   const projectDir = getProjectDir();
   try {
     const removed =
-      sweepStaleSiblings(projectDir, ctx) +
       sweepWorktreeShells(projectDir, ctx) +
       sweepPendingMarkers(projectDir, ctx);
     if (removed > 0) {
@@ -351,7 +268,6 @@ export function sweepStaleWorktrees(
 export const __internals = {
   registeredWorktrees,
   isEmptyOfFiles,
-  sweepStaleSiblings,
   sweepWorktreeShells,
   sweepPendingMarkers,
   MIN_AGE_MS,
