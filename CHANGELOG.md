@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.85](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.84...v10.0.0-alpha.85) (2026-09-06)
+
+
+### Miscellaneous
+
+* **build:** stamp harness manifests from package.json, close [#2528](https://github.com/yonatangross/orchestkit/issues/2528) ([#3946](https://github.com/yonatangross/orchestkit/issues/3946)) ([4d4f547](https://github.com/yonatangross/orchestkit/commit/4d4f547a799ce2c77b38ac65940cb23dbb24f837))
+
 ## [10.0.0-alpha.84](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.83...v10.0.0-alpha.84) (2026-09-06)
 
 
