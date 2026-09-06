@@ -370,6 +370,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.1](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.86...v10.0.0-beta.1)** · 2026-09-06
+
+- **release:** flip the prerelease train to beta (#3952)
+
 **[v10.0.0-alpha.86](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.85...v10.0.0-alpha.86)** · 2026-09-06
 
 - **rules:** record the [#3877](https://github.com/yonatangross/orchestkit/issues/3877) KEEP verdict for the egress DENY tier (#3949)
@@ -398,10 +402,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-alpha.80](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.79...v10.0.0-alpha.80)** · 2026-09-05
 
 - **cc:** triage CC 2.1.259 to 2.1.261, latest_known 2.1.258 to 2.1.261 (#3929)
-
-**[v10.0.0-alpha.79](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.78...v10.0.0-alpha.79)** · 2026-09-05
-
-- **skills:** make activation audits portable and coverage-aware (#3923)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

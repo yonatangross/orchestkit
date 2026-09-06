@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.1",
+    "date": "2026-09-06",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "**release:** flip the prerelease train to beta ([#3952](https://github.com/yonatangross/orchestkit/issues/3952)) ([045b7f6](https://github.com/yonatangross/orchestkit/commit/045b7f6956c9c1a42aecb0c7b45fde858c2ded3c))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.86",
     "date": "2026-09-06",
     "compareUrl": "",
