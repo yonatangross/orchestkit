@@ -370,6 +370,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.85](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.84...v10.0.0-alpha.85)** · 2026-09-06
+
+- **build:** stamp harness manifests from package.json, close [#2528](https://github.com/yonatangross/orchestkit/issues/2528) (#3946)
+
 **[v10.0.0-alpha.84](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.83...v10.0.0-alpha.84)** · 2026-09-06
 
 - **ci:** single skip pattern, cc-keys spec guard, PASS glyph (#1460) (#3944)
@@ -398,10 +402,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-alpha.78](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.77...v10.0.0-alpha.78)** · 2026-09-05
 
 - **hooks:** cc-version-check nudge points at a shipped file (#3919) (#3924)
-
-**[v10.0.0-alpha.77](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.76...v10.0.0-alpha.77)** · 2026-09-05
-
-- **hooks:** record Function Hooks watch gate (#3917) (#3925)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
