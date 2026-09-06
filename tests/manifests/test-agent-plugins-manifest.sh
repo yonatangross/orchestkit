@@ -54,9 +54,13 @@ fail() {
   FAILURES=$((FAILURES + 1))
 }
 
+# A missing plugins/ is a FAILURE, not a skip. Every CI path builds before this
+# runs, and an EMPTY plugins/ already fails below ('no plugins found'), so the
+# old exit 0 here was the one absent-input shape this gate waved through
+# (gate-fault-arm audit 2026-09-06: control 0, missing dir 0).
 if [[ ! -d "$PLUGINS_DIR" ]]; then
-  echo "SKIP: plugins/ not built (run npm run build)"
-  exit 0
+  echo "FAIL: plugins/ not built (run npm run build); nothing to validate"
+  exit 1
 fi
 
 PLUGIN_COUNT=0

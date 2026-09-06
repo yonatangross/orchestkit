@@ -106,6 +106,17 @@ check_version() {
 echo "Validating version sync..."
 EXPECTED_VERSION=$(jq -r '.version' "$PROJECT_ROOT/package.json")
 
+# Every version surface below is REQUIRED in this repo (release-please stamps
+# all of them). The `[[ -f ]]` guards that follow made a deleted or moved
+# surface a silent skip: with all five absent the script printed "Validation
+# PASSED: All counts and versions match" (gate-fault-arm audit 2026-09-06).
+for required in pyproject.toml manifests/ork.json .claude-plugin/marketplace.json .release-please-manifest.json CLAUDE.md; do
+    if [[ ! -f "$PROJECT_ROOT/$required" ]]; then
+        echo "MISSING version surface: $required (cannot verify it matches $EXPECTED_VERSION)"
+        ERRORS=$((ERRORS + 1))
+    fi
+done
+
 if [[ -f "$PROJECT_ROOT/pyproject.toml" ]]; then
     PY_VERSION=$(grep -E '^version = ' "$PROJECT_ROOT/pyproject.toml" | head -1 | sed -E 's/^version = "([^"]+)".*/\1/')
     check_version "pyproject.toml" "pyproject.toml" "$PY_VERSION"

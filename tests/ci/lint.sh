@@ -82,8 +82,14 @@ for file in "${CRITICAL_JSON_FILES[@]}"; do
     fi
 done
 
-if [ "$json_errors" -eq 0 ]; then
-    pass "All JSON files are valid"
+# Corpus floors (gate-fault-arm audit 2026-09-06): with src/skills, src/agents,
+# manifests and .claude-plugin all absent this suite printed "All JSON files
+# are valid", "All 0 src/skills ...", "All 0 agents ..." and exited 0. A section
+# that scanned nothing has verified nothing.
+if [ "${#CRITICAL_JSON_FILES[@]}" -lt 3 ]; then
+    fail "Only ${#CRITICAL_JSON_FILES[@]} critical JSON file(s) found (package.json, hooks.json, manifests/, .claude-plugin/ expected); nothing was validated"
+elif [ "$json_errors" -eq 0 ]; then
+    pass "All ${#CRITICAL_JSON_FILES[@]} JSON files are valid"
 else
     fail "$json_errors JSON files have errors"
 fi
@@ -153,7 +159,9 @@ for skill_dir in "$PROJECT_ROOT/src/skills"/*; do
     fi
 done
 
-if [ "$incomplete_skills" -eq 0 ]; then
+if [ "$complete_skills" -eq 0 ]; then
+    fail "Zero skills found under src/skills; nothing was validated"
+elif [ "$incomplete_skills" -eq 0 ]; then
     pass "All $complete_skills src/skills have SKILL.md (CC 2.1.7 compliant)"
 else
     fail "$incomplete_skills src/skills missing SKILL.md"
@@ -219,7 +227,9 @@ for agent_file in "$PROJECT_ROOT/src/agents"/*.md; do
     fi
 done
 
-if [ "$agent_errors" -eq 0 ]; then
+if [ "$agent_count" -eq 0 ]; then
+    fail "Zero agents found under src/agents; nothing was validated"
+elif [ "$agent_errors" -eq 0 ]; then
     pass "All $agent_count agents have valid CC 2.1.6 frontmatter"
 else
     fail "$agent_errors agents have frontmatter errors"
@@ -307,7 +317,7 @@ WORKFLOW_DIR="$PROJECT_ROOT/.github/workflows"
 if [ ! -f "$MODEL_ALLOWLIST" ]; then
     fail "Model-ID allowlist missing: tests/ci/claude-model-ids.txt"
 elif [ ! -d "$WORKFLOW_DIR" ]; then
-    warn "No .github/workflows directory to scan for model IDs"
+    fail "No .github/workflows directory to scan for model IDs; the gate had no input"
 else
     # Two pin shapes exist: `--model <id>` (raw `claude -p`) and
     # `claude_args: "... --model <id>"` (anthropics/claude-code-action); a
@@ -354,7 +364,9 @@ else
     done < <(printf '%s\n' "$model_pins")
 
     if [ "$model_checked" -eq 0 ]; then
-        warn "No pinned Claude model IDs found in .github/workflows — the match pattern may need updating"
+        # Workflows pin models at HEAD, so zero matches means the extractor
+        # broke, not that the pins went away (gate-fault-arm audit 2026-09-06).
+        fail "No pinned Claude model IDs found in .github/workflows — the match pattern is broken, or the pins were removed; update tests/ci/lint.sh section 6 in the same commit"
     elif [ "$model_bad" -eq 0 ]; then
         pass "All $model_checked pinned workflow model ID(s) are servable"
     fi

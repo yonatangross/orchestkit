@@ -257,6 +257,14 @@ jobs:
             (.command + (if has("args") and (.args|type) == "array" then " " + (.args | join(" ")) else "" end))
           ' "$HOOKS_JSON" | sort -u)
 
+          # A hooks.json that parses but registers nothing has no paths to
+          # check and used to print "All hook paths are valid!" (gate-fault-arm
+          # audit 2026-09-06, the #959 shape: a file present, a gate inert).
+          if [[ -z "$hooks" ]]; then
+            echo "ERROR: hooks.json declares zero hook commands; nothing to validate"
+            exit 1
+          fi
+
           missing=0
           while IFS= read -r hook; do
             [[ -z "$hook" ]] && continue

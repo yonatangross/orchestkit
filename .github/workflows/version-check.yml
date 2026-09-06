@@ -80,6 +80,14 @@ jobs:
 
           # Check if only non-code files changed
           CHANGED_FILES=$(git diff --name-only origin/main...HEAD)
+          # An EMPTY diff used to fall through as "only docs changed" and set
+          # skip=true, disarming every later step (gate-fault-arm audit
+          # 2026-09-06). A PR with zero changed files cannot exist; an empty
+          # three-dot diff means the base ref is wrong, so refuse to decide.
+          if [[ -z "$CHANGED_FILES" ]]; then
+            echo "::error::git diff origin/main...HEAD listed no files; the diff base is wrong, refusing to skip the version check"
+            exit 1
+          fi
           CODE_CHANGES=$(echo "$CHANGED_FILES" | grep -vE '\.(md|txt)$|^docs/' || true)
 
           if [[ -z "$CODE_CHANGES" ]]; then

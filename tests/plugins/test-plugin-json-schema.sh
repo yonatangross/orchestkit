@@ -259,8 +259,11 @@ MAIN_PLUGIN="$PROJECT_ROOT/plugins/ork/.claude-plugin/plugin.json"
 if [[ -f "$MAIN_PLUGIN" ]]; then
     validate_plugin_schema "$MAIN_PLUGIN" "Main Plugin (ork)"
 else
-    echo -e "${YELLOW}WARN${NC}: Main ork plugin.json not found at $MAIN_PLUGIN"
-    TOTAL_WARNINGS=$((TOTAL_WARNINGS + 1))
+    # The one manifest this gate exists to validate. Its absence used to be a
+    # warning under "All 0 plugins validated successfully"
+    # (gate-fault-arm audit 2026-09-06).
+    echo -e "${RED}FAIL${NC}: Main ork plugin.json not found at $MAIN_PLUGIN (run npm run build)"
+    TOTAL_FAILED=$((TOTAL_FAILED + 1))
 fi
 
 # 2. Test all modular plugins
@@ -293,7 +296,10 @@ echo "Total failures: $TOTAL_FAILED"
 echo "Total warnings: $TOTAL_WARNINGS"
 echo ""
 
-if [[ $TOTAL_FAILED -gt 0 ]]; then
+if [[ $PLUGINS_TESTED -eq 0 ]]; then
+    echo -e "${RED}FAILED${NC}: zero plugins validated; nothing was checked"
+    exit 1
+elif [[ $TOTAL_FAILED -gt 0 ]]; then
     echo -e "${RED}FAILED${NC}: $TOTAL_FAILED test(s) failed across $PLUGINS_TESTED plugins"
     echo ""
     echo "To fix plugin.json schema issues:"

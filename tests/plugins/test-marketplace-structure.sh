@@ -161,7 +161,13 @@ echo "  Total plugins in marketplace: $PLUGIN_COUNT"
 PLUGIN_DIRS=$(find "$REPO_ROOT/plugins" -maxdepth 1 -mindepth 1 -type d | wc -l | tr -d ' ')
 echo "  Plugin directories: $PLUGIN_DIRS"
 
-if [[ $PLUGIN_COUNT -ne $PLUGIN_DIRS ]]; then
+# An empty plugins array clears Tests 1, 2, 4 and 5 by having nothing to
+# iterate; this was the only check that noticed, and it only warned
+# (gate-fault-arm audit 2026-09-06).
+if [[ $PLUGIN_COUNT -eq 0 ]]; then
+  echo "❌ ERROR: marketplace.json lists zero plugins; Tests 1 to 5 examined nothing"
+  ERRORS=$((ERRORS + 1))
+elif [[ $PLUGIN_COUNT -ne $PLUGIN_DIRS ]]; then
   echo "⚠ WARNING: Mismatch between marketplace entries ($PLUGIN_COUNT) and plugin directories ($PLUGIN_DIRS)"
   WARNINGS=$((WARNINGS + 1))
 else

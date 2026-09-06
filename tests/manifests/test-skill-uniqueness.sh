@@ -165,6 +165,17 @@ if [[ "$DUPLICATE_COUNT" -gt 0 ]]; then
     echo "  Each skill must have exactly ONE canonical plugin owner."
     echo "  See: https://github.com/yonatangross/orchestkit/issues/252"
     exit 1
+elif [[ "$TOTAL_SLOTS" -eq 0 ]]; then
+    # Zero slots means no manifest carries an explicit skills array, so nothing
+    # was compared. At HEAD this is the by-design state (the only manifest,
+    # ork.json, declares skills: "all" and is skipped above), which is why this
+    # stays exit 0; but it is labelled as NOT APPLICABLE rather than PASSED so a
+    # green run is never read as a verified property. Same convention as
+    # test-manifest-dependencies.sh. (gate-fault-arm audit 2026-09-06)
+    echo -e "${YELLOW}SKIPPED${NC} — NOT APPLICABLE: 0 explicit skill arrays, so 0 comparisons ran."
+    echo "  This is not a pass. Nothing was verified. Arms itself when a second manifest"
+    echo "  with an explicit skills array is added."
+    exit 0
 else
     echo -e "${GREEN}PASSED${NC} — All skills are uniquely owned."
     exit 0

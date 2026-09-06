@@ -93,6 +93,20 @@ scratch_file() {
     return 1
 }
 
+# Every declared surface directory must exist BEFORE the sweep runs. The
+# `[ -d ] || continue` inside the pipeline below sits in a subshell, so a
+# renamed bin/ or scripts/ used to print "raw call sites found : 0" and pass
+# while the unbounded call sat in the renamed dir (gate-fault-arm audit
+# 2026-09-06). This is the #3557 shape the header above says the gate exists
+# to stop: a sweep cannot prove coverage of a surface it never opened.
+for d in "${SEARCH_DIRS[@]}"; do
+    if [ ! -d "$REPO_ROOT/$d" ]; then
+        echo "  FAIL: declared surface dir $d is missing; the sweep cannot claim coverage"
+        echo "RESULT: FAIL"
+        exit 1
+    fi
+done
+
 HITS_FILE="$(scratch_file)"
 trap 'rm -f "$HITS_FILE"' EXIT
 

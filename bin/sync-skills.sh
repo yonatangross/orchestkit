@@ -92,6 +92,14 @@ done
 
 log "Checked $checked skill entries"
 
+# Zero entries means plugins/*/skills is empty or missing: the loop above had
+# nothing to judge and used to print "Skill sync validation passed!" anyway
+# (gate-fault-arm audit 2026-09-06). Run npm run build first.
+if [[ $checked -eq 0 ]]; then
+    echo "FAILED: 0 skill entries checked under plugins/*/skills (not built, or wrong root)"
+    exit 1
+fi
+
 # Check orphans: Skills in root that aren't in any plugin
 if [[ "$CHECK_ORPHANS" == "true" ]]; then
     log "Checking for orphan skills..."

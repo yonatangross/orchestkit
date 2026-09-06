@@ -94,6 +94,7 @@ echo "────────────────────────�
 echo "  Check 2: Dependency ordering (deps before dependents)"
 echo "───────────────────────────────────────────────────────────────"
 
+ordering_manifests_seen=0
 for manifest in "$MANIFESTS_DIR"/*.json; do
     [[ -f "$manifest" ]] || continue
     plugin_name=$(jq -r '.name' "$manifest")
@@ -109,7 +110,11 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
             continue
         fi
 
-        jq -r '.dependencies[]' "$manifest" | while read -r dep; do
+        # Process substitution, NOT `jq | while`: a piped while runs in a
+        # subshell, so log_fail's counter never reached the parent and an
+        # out-of-order dependency printed [FAIL] and still exited 0
+        # (gate-fault-arm audit 2026-09-06).
+        while read -r dep; do
             dep_pos=$(get_position "$dep")
 
             if [[ -z "$dep_pos" ]]; then
@@ -119,9 +124,16 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
             else
                 log_fail "$plugin_name (pos $plugin_pos) is listed BEFORE its dependency '$dep' (pos $dep_pos)"
             fi
-        done
+        done < <(jq -r '.dependencies[]' "$manifest")
     fi
+    ordering_manifests_seen=$((ordering_manifests_seen + 1))
 done
+# An empty manifests/ makes this check inert while checks 1 and 3 still pass,
+# so the run went green with the ordering property unexamined
+# (gate-fault-arm audit 2026-09-06).
+if [[ "${ordering_manifests_seen:-0}" -eq 0 ]]; then
+    log_fail "check 2 scanned zero manifests under $MANIFESTS_DIR; ordering was not examined"
+fi
 
 # ============================================================================
 # CHECK 3: All plugins have consistent versions

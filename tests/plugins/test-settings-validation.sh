@@ -102,3 +102,12 @@ echo "========================================"
 if [[ "$TOTAL_FAILED" -gt 0 ]]; then
     exit 1
 fi
+
+# The header above records that #3357 removed presence-guarded blocks because
+# they "reported success while asserting nothing"; the outer glob did the same
+# for the whole file when plugins/*/settings.json matched nothing
+# (gate-fault-arm audit 2026-09-06).
+if [[ $((TOTAL_PASSED + TOTAL_FAILED)) -eq 0 ]]; then
+    echo -e "${RED}FAIL${NC}: no plugins/*/settings.json found; zero assertions ran"
+    exit 1
+fi

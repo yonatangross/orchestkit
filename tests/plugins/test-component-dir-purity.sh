@@ -40,7 +40,13 @@ echo ""
 #     CC loads whatever it finds either way.
 for tree in src plugins/ork; do
     AGENTS="$REPO_ROOT/$tree/agents"
-    [ -d "$AGENTS" ] || continue
+    # A missing tree is a failure, not a skip: with both trees absent this
+    # printed zero check lines and RESULT: PASS (gate-fault-arm audit 2026-09-06).
+    if [ ! -d "$AGENTS" ]; then
+        echo "  FAIL: $tree/agents is missing; purity cannot be checked"
+        FAILED=1
+        continue
+    fi
     echo "--- $tree/agents ---"
 
     subcount=0
@@ -52,31 +58,47 @@ for tree in src plugins/ork; do
     [ "$subcount" -eq 0 ] && echo "  PASS: no subdirectories"
 
     missing=0
+    seen=0
     while IFS= read -r f; do
+        seen=$((seen + 1))
         if [ "$(head -1 "$f")" != "---" ]; then
             echo "  FAIL: $(basename "$f") has no frontmatter, so it loads with no declared tools"
             missing=$((missing + 1))
             FAILED=1
         fi
     done < <(find "$AGENTS" -name '*.md' -type f | grep -viE '/(README|INDEX|CONTRIBUTING)\.md$' | sort)
-    [ "$missing" -eq 0 ] && echo "  PASS: every agent .md carries frontmatter"
+    if [ "$seen" -eq 0 ]; then
+        echo "  FAIL: $tree/agents holds zero agent .md files; nothing was checked"
+        FAILED=1
+    fi
+    [ "$missing" -eq 0 ] && [ "$seen" -gt 0 ] && echo "  PASS: every agent .md carries frontmatter ($seen)"
     echo ""
 done
 
 # --- skills: every directory under skills/ must actually be a skill.
 for tree in src plugins/ork; do
     SKILLS="$REPO_ROOT/$tree/skills"
-    [ -d "$SKILLS" ] || continue
+    if [ ! -d "$SKILLS" ]; then
+        echo "  FAIL: $tree/skills is missing; purity cannot be checked"
+        FAILED=1
+        continue
+    fi
     echo "--- $tree/skills ---"
     bad=0
+    seen=0
     while IFS= read -r d; do
+        seen=$((seen + 1))
         if [ ! -f "$d/SKILL.md" ]; then
             echo "  FAIL: $(basename "$d")/ has no SKILL.md, so it is a directory in the skills tree that is not a skill"
             bad=$((bad + 1))
             FAILED=1
         fi
     done < <(find "$SKILLS" -mindepth 1 -maxdepth 1 -type d | sort)
-    [ "$bad" -eq 0 ] && echo "  PASS: every skills/ subdirectory has a SKILL.md"
+    if [ "$seen" -eq 0 ]; then
+        echo "  FAIL: $tree/skills holds zero skill directories; nothing was checked"
+        FAILED=1
+    fi
+    [ "$bad" -eq 0 ] && [ "$seen" -gt 0 ] && echo "  PASS: every skills/ subdirectory has a SKILL.md ($seen)"
     echo ""
 done
 

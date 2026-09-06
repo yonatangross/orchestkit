@@ -123,7 +123,20 @@ def read_input(args: argparse.Namespace) -> str:
         with open(args.file, encoding="utf-8") as fh:
             return fh.read()
     if args.env is not None:
-        return os.environ.get(args.env, "") or ""
+        value = os.environ.get(args.env)
+        if value is None:
+            # "variable absent" and "variable empty" are different states. An
+            # absent variable is a wiring error (the env name drifted from the
+            # workflow) and used to read as a clean, empty title: a forbidden
+            # emoji passed whenever the name was wrong (gate-fault-arm audit
+            # 2026-09-06). An explicitly empty value stays legitimate: a PR
+            # body may be empty.
+            print(
+                f"::error::env var {args.env} is not set; the validator has no input",
+                file=sys.stderr,
+            )
+            sys.exit(2)
+        return value
     return sys.stdin.read()
 
 

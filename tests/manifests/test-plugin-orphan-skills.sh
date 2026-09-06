@@ -128,7 +128,13 @@ fi
 echo -e "  True orphans (no delivery):   ${RED}$ORPHAN_COUNT${NC}"
 echo ""
 
-if [[ "$ORPHAN_COUNT" -gt 0 ]]; then
+if [[ "$TOTAL_SKILLS" -eq 0 ]]; then
+    # An empty src/skills has no orphans and no delivered skills either: the
+    # gate had nothing to judge. This used to print "PASSED - All 0 skills"
+    # (gate-fault-arm audit 2026-09-06).
+    echo -e "${RED}FAILED${NC} — zero skill directories under src/skills; nothing was checked."
+    exit 1
+elif [[ "$ORPHAN_COUNT" -gt 0 ]]; then
     echo -e "${RED}FAILED${NC} — $ORPHAN_COUNT skill(s) have no delivery path."
     echo "  These skills exist in src/skills/ but no installable plugin delivers them."
     echo "  See: https://github.com/yonatangross/orchestkit/issues/252"

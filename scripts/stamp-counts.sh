@@ -343,6 +343,25 @@ sync_versions() {
 if [[ "${1:-}" == "--check" ]]; then
   # Create temp copies, stamp them, diff against originals
   STALE=0
+
+  # Every stamped surface is REQUIRED. The `[[ -f ]]` guards below turned a
+  # deleted or moved surface into a silent skip: with all of them absent this
+  # printed "All counts up to date" having compared zero files
+  # (gate-fault-arm audit 2026-09-06).
+  for required in "${MARKER_FILES[@]}" \
+      "$PROJECT_ROOT/.claude-plugin/marketplace.json" \
+      "$PROJECT_ROOT/pyproject.toml" \
+      "$PROJECT_ROOT/manifests/ork.json" \
+      "$PROJECT_ROOT/CLAUDE.md"; do
+    if [[ ! -f "$required" ]]; then
+      echo "MISSING: ${required#"$PROJECT_ROOT"/} (stamped surface not found; cannot check it)"
+      STALE=1
+    fi
+  done
+  if [[ ! -d "$PROJECT_ROOT/docs/site/content" ]]; then
+    echo "MISSING: docs/site/content (stamped MDX surface not found; cannot check it)"
+    STALE=1
+  fi
   for file in "${MARKER_FILES[@]}"; do
     if [[ ! -f "$file" ]]; then continue; fi
     TMP=$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")

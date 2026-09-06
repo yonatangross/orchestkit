@@ -38,7 +38,13 @@ echo "=========================================="
 # Matches a Bash rule whose '*' is followed by whitespace and more text before ')'.
 BAD_RE='^Bash\([^)]*\*[[:space:]]+[^)[:space:]]'
 
+# nullglob: without it an unmatched glob expands to the literal pattern, so
+# ${#files[@]} is always >= 1 and the guard below could never fire; the run
+# then reported "across 0 Bash rule(s) in 1 settings file(s)" and passed
+# (gate-fault-arm audit 2026-09-06).
+shopt -s nullglob
 files=("$PROJECT_ROOT"/src/settings/*.settings.json)
+shopt -u nullglob
 [[ ${#files[@]} -gt 0 ]] || { log_fail "settings files" "none found under src/settings"; }
 
 total=0; bad=0; informational=0
@@ -68,7 +74,9 @@ for f in "${files[@]}"; do
     }' "$f")
 done
 
-if [[ $bad -eq 0 ]]; then
+if [[ $total -eq 0 ]]; then
+  log_fail "corpus" "zero Bash rules found across ${#files[@]} settings file(s); nothing was checked"
+elif [[ $bad -eq 0 ]]; then
   log_pass "no allow rule with a wildcard before its subcommand across $total Bash rule(s) in ${#files[@]} settings file(s) ($informational informational in deny/ask)"
 fi
 
