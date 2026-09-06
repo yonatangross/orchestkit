@@ -70,6 +70,16 @@
           "jsonpath": "$.version"
         },
         {
+          "type": "json",
+          "path": "manifests/codex/ork-codex.json",
+          "jsonpath": "$.version"
+        },
+        {
+          "type": "json",
+          "path": "src/codex/ork-codex/.codex-plugin/plugin.json",
+          "jsonpath": "$.version"
+        },
+        {
           "type": "generic",
           "path": "pyproject.toml"
         },

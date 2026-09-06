@@ -1,7 +1,7 @@
 {
   "name": "ork-codex",
   "host": "codex",
-  "version": "9.5.4",
+  "version": "10.0.0-alpha.83",
   "description": "Native OrchestKit skills and reusable agent roles for Codex.",
   "source": "src/codex/ork-codex",
   "skills": [
@@ -26,7 +26,10 @@
         "transport": "http",
         "url": "https://mcp.context7.com/mcp",
         "bearerTokenEnvVar": "CONTEXT7_API_KEY_CODEX",
-        "enabledTools": ["resolve-library-id", "query-docs"]
+        "enabledTools": [
+          "resolve-library-id",
+          "query-docs"
+        ]
       }
     ]
   }
