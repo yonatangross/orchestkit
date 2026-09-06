@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.83](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.82...v10.0.0-alpha.83) (2026-09-06)
+
+
+### Miscellaneous
+
+* retire unused tables, orphan validator, sibling sweep ([#3353](https://github.com/yonatangross/orchestkit/issues/3353), [#3937](https://github.com/yonatangross/orchestkit/issues/3937)) ([#3943](https://github.com/yonatangross/orchestkit/issues/3943)) ([900de6c](https://github.com/yonatangross/orchestkit/commit/900de6c16cc04df4245a2b6fdd572a8164f37a58))
+
+
+### Code Refactoring
+
+* **skills:** same-skill refs to relative paths ([#3822](https://github.com/yonatangross/orchestkit/issues/3822) steps 2, 3) ([#3940](https://github.com/yonatangross/orchestkit/issues/3940)) ([fc0b166](https://github.com/yonatangross/orchestkit/commit/fc0b1665496cb0608c7269fbff40f07a17fdaf08))
+
 ## [10.0.0-alpha.82](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.81...v10.0.0-alpha.82) (2026-09-06)
 
 
