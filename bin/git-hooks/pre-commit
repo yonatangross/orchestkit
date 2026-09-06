@@ -110,7 +110,15 @@ fi
 if echo "$STAGED_FILES" | grep -qE "^(src/hooks/|src/skills/|src/agents/|.claude-plugin/)"; then
   if [[ -x "tests/run-all-tests.sh" ]]; then
     echo -n "  Running quick lint tests... "
-    if ! ./tests/run-all-tests.sh --lint >/dev/null 2>&1; then
+    # A hook inherits GIT_INDEX_FILE (absolute in a linked worktree) and can
+    # inherit GIT_DIR / GIT_WORK_TREE. Several lint tests build throwaway git
+    # repos (git init, git add -A); with that env leaked, their `git add` writes
+    # the FIXTURE's tree into the REAL index. Measured 2026-09-06 in a worktree:
+    # one commit attempt left 1 of 6947 index entries and staged 6946 deletions
+    # (#3822 lane). The lint suite gets a scrubbed environment.
+    if ! env -u GIT_INDEX_FILE -u GIT_DIR -u GIT_WORK_TREE -u GIT_PREFIX \
+         -u GIT_COMMON_DIR -u GIT_OBJECT_DIRECTORY \
+         ./tests/run-all-tests.sh --lint >/dev/null 2>&1; then
       echo "FAILED"
       echo "    Run './tests/run-all-tests.sh --lint' for details"
       ERRORS=$((ERRORS + 1))
