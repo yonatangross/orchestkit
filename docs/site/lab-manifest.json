@@ -1262,6 +1262,20 @@
         "agent-skills"
       ],
       "date": "2026-09-06"
+    },
+    {
+      "slug": "stamp-harness-manifests",
+      "source": "docs/chore--2528-stamp-harness-manifests/index.html",
+      "title": "Seven manifests, one version: the #2528 close-out",
+      "description": "Two Codex manifests sat at 9.5.4 for 40 releases while package.json said 10.0.0-alpha.84, because nothing stamped them. Every harness manifest is now stamped from package.json in the build and gated by a fault-armed test; pick a tree state to see the measured exit codes. Plus the probe that decides the spec-clean frontmatter sweep: CC 2.1.263 ignores argument-hint, disable-model-invocation and user-invocable under metadata.*.",
+      "tags": [
+        "build",
+        "manifests",
+        "versioning",
+        "skills",
+        "agent-skills"
+      ],
+      "date": "2026-09-06"
     }
   ]
 }
