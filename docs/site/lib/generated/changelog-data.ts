@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.86",
+    "date": "2026-09-06",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "**rules:** record the [#3877](https://github.com/yonatangross/orchestkit/issues/3877) KEEP verdict for the egress DENY tier ([#3949](https://github.com/yonatangross/orchestkit/issues/3949)) ([c326ca5](https://github.com/yonatangross/orchestkit/commit/c326ca5fec8e2a726cb1cc973e4fda6e26c6152d))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.85",
     "date": "2026-09-06",
     "compareUrl": "",
