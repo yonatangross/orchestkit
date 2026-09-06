@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.82",
+    "date": "2026-09-06",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**ci:** fail 37 gates that passed on absent input ([#3938](https://github.com/yonatangross/orchestkit/issues/3938)) ([016dbe5](https://github.com/yonatangross/orchestkit/commit/016dbe5f752d204e4ab350f8d0fa012b9fb3b872))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.81",
     "date": "2026-09-06",
     "compareUrl": "",

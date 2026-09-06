@@ -370,6 +370,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.82](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.81...v10.0.0-alpha.82)** · 2026-09-06
+
+- **ci:** fail 37 gates that passed on absent input (#3938)
+
 **[v10.0.0-alpha.81](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.80...v10.0.0-alpha.81)** · 2026-09-06
 
 - **cc:** triage CC 2.1.262 and 2.1.263, latest_known 2.1.261 to 2.1.263 (#3933)
@@ -397,11 +401,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-alpha.75](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.74...v10.0.0-alpha.75)** · 2026-09-04
 
 - **announce:** preflight release API credential (#3916)
-
-**[v10.0.0-alpha.74](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.73...v10.0.0-alpha.74)** · 2026-09-03
-
-- **create-pr:** CodeRabbit harvest stage, refute then fix or dismiss, resolve every thread (#3910)
-- **create-pr:** a zero from the harvest can mean never reviewed (#3912)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
