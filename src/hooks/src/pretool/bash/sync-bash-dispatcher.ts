@@ -63,7 +63,10 @@ const BASH_HOOKS: BlockingHookConfig[] = [
   // Phase 1: Security
   // restrict-bash retired 2026-08-31 (#3835 wave 2): agent allowlisting is
   // agent tools:/disallowedTools frontmatter plus the --restricted lane.
-  // Network egress: DENY remote-code-exec (bash <(curl)), ASK exfil/staged-run
+  // Network egress: DENY tier only (executing fetched bytes: bash <(curl), curl | sh).
+  // ASK tier retired 2026-08-31 (#3835 wave 2). DENY tier KEPT on measurement
+  // 2026-09-06 (#3877): CC 2.1.263 ran `curl | sh` from an allowlisted host with
+  // nothing intervening; see shared/rules/cc-native-first.md.
   { name: 'network-egress-guard', fn: networkEgressGuard },
   // Phase 2: Git/GH enforcement (previously separate process spawns + new)
   { name: 'issue-reference-checker', fn: issueReferenceChecker },

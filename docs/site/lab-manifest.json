@@ -1276,6 +1276,20 @@
         "agent-skills"
       ],
       "date": "2026-09-06"
+    },
+    {
+      "slug": "egress-deny-tier-keep-verdict",
+      "source": "docs/docs--3877-egress-keep-verdict/index.html",
+      "title": "Who judges curl | sh? The #3877 KEEP verdict",
+      "description": "The convergence program's last standalone tail. Four arms on real machines: the sandbox decides which hosts a command may reach, and on CC 2.1.263 nothing native judges what happens to the bytes from an allowlisted host, so the network-egress-guard DENY tier stays on a dated measurement. Pick the lane to read each arm's transcript, plus the two register rows that had gone stale while still reading as current.",
+      "tags": [
+        "hooks",
+        "security",
+        "sandbox",
+        "cc-native-first",
+        "convergence"
+      ],
+      "date": "2026-09-06"
     }
   ]
 }

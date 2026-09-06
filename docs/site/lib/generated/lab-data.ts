@@ -15,6 +15,22 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "egress-deny-tier-keep-verdict",
+    "title": "Who judges curl | sh? The #3877 KEEP verdict",
+    "description": "The convergence program's last standalone tail. Four arms on real machines: the sandbox decides which hosts a command may reach, and on CC 2.1.263 nothing native judges what happens to the bytes from an allowlisted host, so the network-egress-guard DENY tier stays on a dated measurement. Pick the lane to read each arm's transcript, plus the two register rows that had gone stale while still reading as current.",
+    "tags": [
+      "hooks",
+      "security",
+      "sandbox",
+      "cc-native-first",
+      "convergence"
+    ],
+    "date": "2026-09-06",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 8
+  },
+  {
     "slug": "stamp-harness-manifests",
     "title": "Seven manifests, one version: the #2528 close-out",
     "description": "Two Codex manifests sat at 9.5.4 for 40 releases while package.json said 10.0.0-alpha.84, because nothing stamped them. Every harness manifest is now stamped from package.json in the build and gated by a fault-armed test; pick a tree state to see the measured exit codes. Plus the probe that decides the spec-clean frontmatter sweep: CC 2.1.263 ignores argument-hint, disable-model-invocation and user-invocable under metadata.*.",
