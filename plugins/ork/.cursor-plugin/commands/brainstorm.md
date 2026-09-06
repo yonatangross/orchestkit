@@ -32,7 +32,7 @@ TOPIC = "$ARGUMENTS"  # Full argument string, e.g., "API design for payments"
 
 Probe MCP servers once at skill start, store capabilities, and resume from any prior crashed session. Each phase emits a JSON handoff file consumed by the next.
 
-Full procedure + handoff-file table: `Read("${CLAUDE_PLUGIN_ROOT}/skills/brainstorm/references/mcp-probe-resume.md")`
+Full procedure + handoff-file table: `Read("references/mcp-probe-resume.md")`
 
 
 ## STEP 0: Project Context Discovery
@@ -167,7 +167,7 @@ ExitPlanMode()
 
 **If 'Iterative optimization' selected:** skip Phases 2-6 and enter the autoresearch-style metric-driven loop.
 
-Full sub-flow (metric question, baseline, loop body): `Read("${CLAUDE_PLUGIN_ROOT}/skills/brainstorm/references/iterative-optimization-mode.md")`
+Full sub-flow (metric question, baseline, loop body): `Read("references/iterative-optimization-mode.md")`
 
 
 ## STEP 0b: Select Orchestration Mode (skip for Tier 1-2)
@@ -192,7 +192,7 @@ Choose **Agent Teams** (mesh — agents debate and challenge ideas) or **Task to
 
 Read the `/effort` setting and scale brainstorm depth — `low` runs phases 0/2/5 only, `high` (default) runs all 7, `xhigh` adds extra devil's-advocate and synthesis rounds. Explicit user choice in STEP 0a always overrides downscaling.
 
-Full level table + detection rules: `Read("${CLAUDE_PLUGIN_ROOT}/skills/brainstorm/references/effort-scaling.md")`
+Full level table + detection rules: `Read("references/effort-scaling.md")`
 
 
 ## 🚨 CRITICAL: Task Management is MANDATORY (CC 2.1.16)
@@ -254,7 +254,7 @@ plan = one file, never fork.
 After Phase 6 lands, optionally invoke `scripts/post_synth_podcast.py <session-dir>` to auto-emit an audio podcast summarizing the top approaches + trade-offs. Self-skips on every non-happy-path so it never breaks the brainstorm:
 
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/brainstorm/scripts/post_synth_podcast.py "$CLAUDE_JOB_DIR"
+python3 ${CLAUDE_SKILL_DIR}/scripts/post_synth_podcast.py "$CLAUDE_JOB_DIR"
 ```
 
 Auto-skip conditions (all exit 0, all WARN-logged):
@@ -286,7 +286,7 @@ For Phase 2 parallel agents, output each agent's ideas **as soon as it returns**
 
 Load the phase workflow for detailed instructions:
 ```
-Read("${CLAUDE_PLUGIN_ROOT}/skills/brainstorm/references/phase-workflow.md")
+Read("references/phase-workflow.md")
 ```
 
 
@@ -382,7 +382,7 @@ Agent(subagent_type="ork:test-generator", name="testability-assessor",
 ExitWorktree(action="keep")  # Keep branch for follow-up /ork:implement
 ```
 
-> **Fallback:** If team formation fails, load `Read("${CLAUDE_PLUGIN_ROOT}/skills/brainstorm/references/phase-workflow.md")` and use standard Phase 2 Task spawns.
+> **Fallback:** If team formation fails, load `Read("references/phase-workflow.md")` and use standard Phase 2 Task spawns.
 
 > **Partial results (CC 2.1.76, extended 2.1.246):** Background agents that are killed (timeout, context limit) return responses tagged with `[PARTIAL RESULT]`. Since CC 2.1.246 an agent that stops at its `maxTurns` limit is ALSO reported as partial: its summary reads "stopped at its N-turn limit (partial result; continue it with SendMessage to the task-id)" and its output is marked partial instead of appearing finished. When collecting Phase 2 divergent ideas, check each agent's output for either shape. If present, include the partial ideas but note them as incomplete in Phase 3 feasibility. For the turn-limit shape, `SendMessage` to that agent's id with "continue from where you stopped" reuses its context; a re-spawn starts from zero and pays the prompt again. Never treat a turn-limited agent as finished.
 
@@ -455,7 +455,7 @@ The picker stall reported in orchestkit#1795 was a **schema break, not a CC inpu
 
 ## References
 
-Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/brainstorm/references/<file>")`:
+Load on demand with `Read("references/<file>")`:
 
 | File | Content |
 |------|---------|
