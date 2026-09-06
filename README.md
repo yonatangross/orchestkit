@@ -370,6 +370,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.81](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.80...v10.0.0-alpha.81)** · 2026-09-06
+
+- **cc:** triage CC 2.1.262 and 2.1.263, latest_known 2.1.261 to 2.1.263 (#3933)
+
 **[v10.0.0-alpha.80](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.79...v10.0.0-alpha.80)** · 2026-09-05
 
 - **cc:** triage CC 2.1.259 to 2.1.261, latest_known 2.1.258 to 2.1.261 (#3929)
@@ -398,12 +402,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **create-pr:** CodeRabbit harvest stage, refute then fix or dismiss, resolve every thread (#3910)
 - **create-pr:** a zero from the harvest can mean never reviewed (#3912)
-
-**[v10.0.0-alpha.73](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.72...v10.0.0-alpha.73)** · 2026-09-02
-
-- **pricing:** adopt gemini-3.8-flash as its own pricing row (#3905)
-- **pricing:** a hyphenated suffix never inherits a shorter model's row (#3909)
-- **doctor:** repoint the model-routing reference at the live sources (#3908)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
