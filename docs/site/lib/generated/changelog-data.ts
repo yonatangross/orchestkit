@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.84",
+    "date": "2026-09-06",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "**ci:** single skip pattern, cc-keys spec guard, PASS glyph ([#1460](https://github.com/yonatangross/orchestkit/issues/1460)) ([#3944](https://github.com/yonatangross/orchestkit/issues/3944)) ([7d07387](https://github.com/yonatangross/orchestkit/commit/7d073870a2ccb8fc73005de7eb4fd747a60c2537))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.83",
     "date": "2026-09-06",
     "compareUrl": "",
