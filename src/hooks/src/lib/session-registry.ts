@@ -4,8 +4,9 @@
 /**
  * Session Registry — M168 Layer 1 (#1912). Coordination DB at
  * ~/.local/state/orchestkit/sessions.db, shared across all CC sessions.
- * Tables (sqlite-migrations/001-initial.sql): sessions, locks,
- * settings_overrides, worktree_links. Reads are lock-free (WAL); writes
+ * Tables (sqlite-migrations/): sessions (001), skill_invocation (002);
+ * 005 dropped locks, settings_overrides and worktree_links (#3353, never
+ * held a row). Reads are lock-free (WAL); writes
  * serialize via BEGIN IMMEDIATE + writeWithRetry on SQLITE_BUSY.
  *
  * Engine (#2003/#2005): hooks ship as esbuild bundles WITHOUT node_modules, so

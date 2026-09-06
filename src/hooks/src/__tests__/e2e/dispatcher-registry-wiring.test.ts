@@ -370,7 +370,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
       // 107 -> 106: #3354 removed subagent-stop/handoff-preparer (0-reader handoff writes)
       // 106 -> 109: #3789 (CC 2.1.251) — async PostModelSwitch telemetry + webhook forwarders on both new events; the PreModelSwitch consent gate is sync
       // 109 -> 110: #3727 — lifecycle/stray-playground-pages (SessionStart, async)
-      expect(asyncHooks.length, 'Should have exactly 110 async hooks').toBe(110);
+      // 110 -> 109: #3353 — pretool/settings-override-resolver deleted (table dropped in 005)
+      expect(asyncHooks.length, 'Should have exactly 109 async hooks').toBe(109);
     });
 
     // v7.30.0: Notification dispatcher flattened — 2 individual async hooks (#1264)
@@ -515,7 +516,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
       // 107 -> 106: #3354 removed subagent-stop/handoff-preparer (0-reader handoff writes)
       // 106 -> 109: #3789 (CC 2.1.251) — async PostModelSwitch telemetry + webhook forwarders on both new events; the PreModelSwitch consent gate is sync
       // 109 -> 110: #3727 — lifecycle/stray-playground-pages (SessionStart, async)
-      expect(asyncCount).toBe(110);
+      // 110 -> 109: #3353 — pretool/settings-override-resolver deleted (table dropped in 005)
+      expect(asyncCount).toBe(109);
     });
 
     it('should have hooks for all critical security operations', () => {

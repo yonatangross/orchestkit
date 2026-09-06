@@ -5,9 +5,9 @@
  * Session Finalizer — SessionEnd hook (M168 Phase 2, #1912)
  *
  * Marks this session's row as status='completed' and stamps ended_at.
- * CASCADE on settings_overrides + locks (via foreign key) is handled
- * automatically by SQLite at row delete time; this hook deliberately
- * does NOT delete the session row so post-mortem queries still work.
+ * This hook deliberately does NOT delete the session row so post-mortem
+ * queries still work. (An older comment here described CASCADE on
+ * settings_overrides + locks; those tables were dropped in 005, #3353.)
  *
  * Hook event: SessionEnd (async, timeout: 5s).
  */

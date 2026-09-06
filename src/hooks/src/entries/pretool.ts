@@ -58,9 +58,6 @@ import { workflowAgentTypeAdvisor } from '../pretool/task/workflow-agenttype-adv
 
 // PreTool/Cron hooks (1) — CI/headless guard
 
-// PreTool/Settings-override resolver (1) — M168 Phase 4 (#1914)
-import { settingsOverrideResolver } from '../pretool/settings-override-resolver.js';
-
 // Unified dispatchers (3) — consolidate sequential hooks into single process
 import { unifiedBashAdvisoryDispatcher } from '../pretool/bash/unified-advisory-dispatcher.js';
 import { unifiedWriteEditQualityDispatcher } from '../pretool/write-edit/unified-quality-dispatcher.js';
@@ -122,9 +119,6 @@ export const hooks: Record<string, HookFn> = {
   'pretool/task/workflow-agenttype-advisor': workflowAgentTypeAdvisor,
 
   // PreTool/Cron hooks (1) — CI/headless guard
-
-  // PreTool/Settings-override resolver — M168 Phase 4 (#1914)
-  'pretool/settings-override-resolver': settingsOverrideResolver,
 
   // Unified dispatchers (3) — consolidate sequential hooks into single process
   'pretool/bash/unified-advisory-dispatcher': unifiedBashAdvisoryDispatcher,

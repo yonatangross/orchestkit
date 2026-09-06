@@ -27,8 +27,7 @@
 # =============================================================================
 # The coordination DB (src/hooks/src/lib/session-registry.ts, sessions.db at
 # ~/.local/state/orchestkit) is reached from src/hooks/src/lifecycle/*,
-# posttool/heartbeat.ts, worktree/exit-finalizer.ts, lib/settings-override.ts
-# and lib/session-registry.ts. Every one of those builds SQL as a CONSTANT
+# posttool/heartbeat.ts and lib/session-registry.ts. Every one of those builds SQL as a CONSTANT
 # string and binds values with `?` placeholders. There is no escape function in
 # production, because escaping is not how this code defends itself.
 #
@@ -320,7 +319,7 @@ check_eq "PRAGMA integrity_check" "ok" "$(db 'PRAGMA integrity_check;')"
 # noticing if a payload ever managed to drop or redefine it. The type prefix
 # also makes a table-swapped-for-view substitution visible.
 check_eq "schema is exactly what the migrations declare — nothing added or lost" \
-  "table:locks view:routing_edge table:sessions table:settings_overrides table:skill_invocation table:worktree_links" \
+  "view:routing_edge table:sessions table:skill_invocation" \
   "$(db "SELECT type||':'||name FROM sqlite_master WHERE name NOT LIKE 'sqlite_%' AND type IN ('table','view') ORDER BY name;" | tr '\n' ' ' | sed 's/ $//')"
 
 echo

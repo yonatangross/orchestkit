@@ -113,7 +113,7 @@ hooks/
 ├── tsconfig.json           # TypeScript configuration
 └── esbuild.config.mjs      # Build configuration (split bundles)
 
-**Total:** <!--ork:hooks-->172<!--/ork--> hooks (<!--ork:hooks-global-->153<!--/ork--> global + <!--ork:hooks-agent-->0<!--/ork--> agent-scoped + <!--ork:hooks-skill-->19<!--/ork--> skill-scoped)
+**Total:** <!--ork:hooks-->171<!--/ork--> hooks (<!--ork:hooks-global-->152<!--/ork--> global + <!--ork:hooks-agent-->0<!--/ork--> agent-scoped + <!--ork:hooks-skill-->19<!--/ork--> skill-scoped)
 ```
 
 ---
@@ -1386,13 +1386,15 @@ OrchestKit hooks are managed defaults. Users retain full control to disable any 
 **Last Updated:** 2026-02-28
 **Version:** 2.1.0 (Async hooks support)
 **Architecture:** 11 split bundles (648KB total)
-**Hooks:** <!--ork:hooks-->172<!--/ork--> hooks (<!--ork:hooks-global-->153<!--/ork--> global + <!--ork:hooks-agent-->0<!--/ork--> agent-scoped + <!--ork:hooks-skill-->19<!--/ork--> skill-scoped)
+**Hooks:** <!--ork:hooks-->171<!--/ork--> hooks (<!--ork:hooks-global-->152<!--/ork--> global + <!--ork:hooks-agent-->0<!--/ork--> agent-scoped + <!--ork:hooks-skill-->19<!--/ork--> skill-scoped)
 **Average Bundle:** ~35KB per event
 **Claude Code Requirement:** >= 2.1.78
 
 See the async hooks section above for detailed async hook patterns.
 
 ## Registry changelog (archived from hooks.json description, 2026-07-18)
+
+(count 172 -> 171, 2026-09-06, #3353): `pretool/settings-override-resolver` deleted together with the `settings_overrides` table it read (forward migration `005-drop-unused-tables.sql`, which also drops `locks` and `worktree_links`; 001 is never edited). The audit in #3328 read "0 rows ever" as dead code; it was an unused feature with a live read: the resolver rode the only `matcher: null` PreToolUse block and on every tool call spawned node, SELECTed a table that has never held a row (3,085 session rows accumulated, nothing deletes one, so CASCADE never fired), and wrote `~/.claude/state/orchestkit/<sid>/active-overrides.json`, a file with zero readers in the repo. Measured on 2026-09-06 with the real `run-hook.mjs` against a scratch HOME (n=25): 46 ms per call. The webhook-forwarder that shares that block is untouched (the #3315 trap). Also gone: `lib/settings-override.ts`, both unit tests, the `DELETE FROM locks` GC line in `session-registrar` `sweep()` and its test, and the `tests/security/test-sqlite-injection.sh` exact-schema assertion now lists two tables plus the view. Entries-map total 183 -> 182; async 110 -> 109. `sessions` stays: it is the enforced-FK parent of `skill_invocation`. `posttool/heartbeat` also stays, against the register row that called `last_heartbeat` dead: the registrar's 24h crash sweep reads that column (`sweep()`), so the hook is its only post-insert writer, and the register row was corrected instead.
 
 (count unchanged at 172, 2026-09-04, #3917 FH-ready handler policy): no hook changed; a gate did. Claude Code is designing Function Hooks (anthropics/claude-code#91870): in-process `($, e, next)` middleware with no ambient fs or network, every side effect through `$`. New handlers under `src/hooks/src/` (excluding `lib/`, `entries/`, `types.ts`, tests) may no longer import `node:fs` or `node:child_process` or call `fetch` directly; I/O comes through `HookContext` (#3386) or an injected `deps` object, so the same handler runs behind `run-hook.mjs` today and behind a `$`-backed context if FH ships. `scripts/fh-ready-check.mjs` runs in ci.yml beside `validate-registry.mjs`; the 111 existing offenders are grandfathered by path in `scripts/fh-ready-baseline.json`, a ratchet that only shrinks (a stale entry fails the gate too). `src/__tests__/fh-output-cap.test.ts` asserts no static payload exceeds half of the additionalContext cap (CC 2.1.258 truncates at 8000 chars / 200 lines, silently and mid-word, per issuecomment-5532305564 on that issue) and lists the 37 handlers that build context from files at runtime. Rule text in `.claude/rules/hooks-development.md`.
 

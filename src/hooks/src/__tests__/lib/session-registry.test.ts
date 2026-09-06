@@ -65,22 +65,19 @@ describe('session-registry (#1912)', () => {
       expect(existsSync(dbPath)).toBe(true);
       expect(readPragma(db, 'journal_mode')).toBe('wal');
       expect(readPragma(db, 'foreign_keys')).toBe(1);
-      expect(readPragma(db, 'user_version')).toBe(4);
-      // All five tables created (skill_invocation added by 002, #2010).
-      // 003 adds the routing_edge VIEW — views are type='view', so the
-      // table list below is unchanged by it. 004 (#3318) adds a COLUMN to
-      // sessions, so it leaves the table list unchanged too.
+      expect(readPragma(db, 'user_version')).toBe(5);
+      // sessions (001) + skill_invocation (002, #2010). 003 adds the
+      // routing_edge VIEW — views are type='view', so it is not listed. 004
+      // (#3318) adds a COLUMN to sessions. 005 (#3353) DROPS locks,
+      // settings_overrides and worktree_links: 0 rows ever, no writer.
       const tables = db
         .prepare(
           "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name",
         )
         .all() as { name: string }[];
       expect(tables.map(t => t.name)).toEqual([
-        'locks',
         'sessions',
-        'settings_overrides',
         'skill_invocation',
-        'worktree_links',
       ]);
     } finally {
       db.close();

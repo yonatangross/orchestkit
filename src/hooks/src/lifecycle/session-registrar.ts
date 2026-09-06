@@ -10,7 +10,8 @@
  *   1. Mark rows where last_heartbeat < now - 86400 AND status='running'
  *      as status='crashed' (24h liveness window — matches the agent-watchdog
  *      cap from #1882).
- *   2. Delete expired locks (expires_at < now).
+ *   (The expired-locks GC that used to be step 2 went with the `locks` table
+ *   in migration 005, #3353: the acquire path was never built.)
  *
  * The INSERT uses OR REPLACE so re-entering an existing sid (e.g. CC resume)
  * just refreshes the row — never blocks the session.
@@ -188,8 +189,8 @@ function getMessagingSocket(): string | null {
 }
 
 /**
- * Sweep stale sessions + expired locks. Runs inside the hook's write
- * transaction. Pure SQL — no JS allocation per row.
+ * Sweep stale sessions. Runs inside the hook's write transaction. Pure SQL —
+ * no JS allocation per row.
  */
 function sweep(db: import('node:sqlite').DatabaseSync, nowSec: number): void {
   const cutoff = nowSec - SECONDS_PER_DAY;
@@ -197,7 +198,6 @@ function sweep(db: import('node:sqlite').DatabaseSync, nowSec: number): void {
     `UPDATE sessions SET status = 'crashed'
      WHERE last_heartbeat < ? AND status = 'running'`,
   ).run(cutoff);
-  db.prepare('DELETE FROM locks WHERE expires_at < ?').run(nowSec);
 }
 
 /**
