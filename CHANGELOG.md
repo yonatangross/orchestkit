@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.82](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.81...v10.0.0-alpha.82) (2026-09-06)
+
+
+### Bug Fixes
+
+* **ci:** fail 37 gates that passed on absent input ([#3938](https://github.com/yonatangross/orchestkit/issues/3938)) ([016dbe5](https://github.com/yonatangross/orchestkit/commit/016dbe5f752d204e4ab350f8d0fa012b9fb3b872))
+
 ## [10.0.0-alpha.81](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.80...v10.0.0-alpha.81) (2026-09-06)
 
 
