@@ -12,7 +12,7 @@
  *                            (scans SKILL.md + every skill references/*.md + agents)
  *   C3  install-path       : absolute /Users/ paths, hardcoded plugins/ork/skills/
  *                            paths, ${CLAUDE_SKILL_DIR} in Read/link shapes, and
- *                            (opt-in, CONFORMANCE_SAME_SKILL=1) same-skill refs on
+ *                            same-skill refs on
  *                            the plugin-root form. Portable forms: #3822.
  *
  * Explicitly does NOT check CC-version *annotations* like "(CC 2.1.76)" — those
@@ -35,7 +35,6 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const SKILLS_DIR = join(ROOT, 'src', 'skills');
 const AGENTS_DIR = join(ROOT, 'src', 'agents');
 const STALE_OPUS_MAX = 6; // flag Opus 4.6 and older (4.7 is one-back; too historical to flag)
-const SAME_SKILL_CHECK = process.env.CONFORMANCE_SAME_SKILL === '1'; // C3c opt-in until #3822 step 2
 
 function realHookCount() {
   try {
@@ -176,11 +175,13 @@ for (const t of all) {
     }
 
     // C3c: same-skill reference on the plugin-root form inside that skill's own
-    // SKILL.md. Opt-in (CONFORMANCE_SAME_SKILL=1) until the #3822 step 2 codemod
-    // lands, so the unmigrated tree reports 0 new findings and the lint and the
-    // codebase can move separately. Step 2 flips this to always-on.
-    if (SAME_SKILL_CHECK && t.kind === 'skill' && t.primary &&
-        line.includes('${CLAUDE_PLUGIN_ROOT}/skills/' + t.name + '/')) {
+    // SKILL.md. Always-on since the #3822 step 2 codemod
+    // (scripts/codemod/skill-paths-relative.mjs) rewrote every such reference.
+    // One documented exception: a skill naming its OWN SKILL.md path is
+    // documenting the load path an agent must Read, and agents keep the
+    // plugin-root form (#3313).
+    if (t.kind === 'skill' && t.primary &&
+        new RegExp('\\$\\{CLAUDE_PLUGIN_ROOT\\}/skills/' + t.name + '/(?!SKILL\\.md\\b)').test(line)) {
       add('C3-install-path', t, lineno, `same-skill reference uses \${CLAUDE_PLUGIN_ROOT}/skills/${t.name}/; portable form is bare relative (references/<file>.md)`);
     }
   });

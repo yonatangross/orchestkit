@@ -42,10 +42,12 @@
 #          `python3 ${CLAUDE_X}/scripts/x.py` runs as `python3 /scripts/x.py`,
 #          a plausible-looking absolute path that simply is not there.
 #
-# Both the plugin-root form and the bare relative form are ACCEPTED for
-# same-skill references. The codemod that rewrites the same-skill plugin-root
-# references to bare relative is #3822 step 2; this gate only counts them
-# (advisory) so the lint and the codebase can move separately.
+# Same-skill references MUST be bare relative (or ${CLAUDE_SKILL_DIR} for an
+# exec shape). The #3822 step 2 codemod (scripts/codemod/skill-paths-relative.mjs)
+# rewrote every same-skill plugin-root reference; section 4 below now FAILS on
+# any that comes back. One exception: a skill naming its own SKILL.md path is
+# documenting the load path an agent must Read (agents keep the plugin-root
+# form, #3313).
 #
 # This gate is BLOCKING. A silent-failure class that took an outside report to
 # find does not get a warn-only ratchet.
@@ -230,18 +232,19 @@ if [[ -d plugins ]]; then
     fi
 fi
 
-# --- 4. advisory: same-skill references still on the plugin-root form --------
+# --- 4. no same-skill reference on the plugin-root form ----------------------
 # ${CLAUDE_PLUGIN_ROOT}/skills/<self>/... inside <self>/SKILL.md works in CC but
 # is delivered literally by pi and every other Agent Skills consumer. The
-# portable form is the bare relative path. This is a COUNT, not a failure: the
-# rewrite is #3822 step 2, and this gate must stay green on the unmigrated tree
-# so the lint and the codebase can land separately.
+# portable form is the bare relative path (exec shapes: ${CLAUDE_SKILL_DIR}).
+# Was a count while #3822 step 2 was pending; the codemod landed, so this is a
+# failure now. Re-run `node scripts/codemod/skill-paths-relative.mjs` to fix.
+# A reference to the skill's own SKILL.md is exempt (see the header).
 same_skill="$(python3 - <<'PY'
 import os, re, glob
 n = 0; files = 0
 for f in sorted(glob.glob("src/skills/*/SKILL.md")):
     name = os.path.basename(os.path.dirname(f))
-    pat = re.compile(r'\$\{CLAUDE_PLUGIN_ROOT\}/skills/' + re.escape(name) + r'/')
+    pat = re.compile(r'\$\{CLAUDE_PLUGIN_ROOT\}/skills/' + re.escape(name) + r'/(?!SKILL\.md\b)')
     try:
         c = open(f, encoding="utf-8").read()
     except (OSError, UnicodeDecodeError):
@@ -254,7 +257,9 @@ PY
 )"
 read -r ss_refs ss_files <<< "$same_skill"
 if (( ss_refs > 0 )); then
-    echo "  ${YELLOW}i${NC} ${ss_refs} same-skill reference(s) in ${ss_files} SKILL.md file(s) still use \${CLAUDE_PLUGIN_ROOT}/skills/<self>/ (portable form is bare relative; #3822 step 2)"
+    echo "  ${RED}✗ ${ss_refs} same-skill reference(s) in ${ss_files} SKILL.md file(s) use \${CLAUDE_PLUGIN_ROOT}/skills/<self>/${NC}"
+    echo "      portable form is bare relative (exec shapes: \${CLAUDE_SKILL_DIR}); run: node scripts/codemod/skill-paths-relative.mjs"
+    fail=1
 else
     echo "  ${GREEN}✓${NC} no same-skill reference uses the plugin-root form"
 fi
