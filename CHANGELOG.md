@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-alpha.86](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.85...v10.0.0-alpha.86) (2026-09-06)
+
+
+### Documentation
+
+* **rules:** record the [#3877](https://github.com/yonatangross/orchestkit/issues/3877) KEEP verdict for the egress DENY tier ([#3949](https://github.com/yonatangross/orchestkit/issues/3949)) ([c326ca5](https://github.com/yonatangross/orchestkit/commit/c326ca5fec8e2a726cb1cc973e4fda6e26c6152d))
+
 ## [10.0.0-alpha.85](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.84...v10.0.0-alpha.85) (2026-09-06)
 
 
