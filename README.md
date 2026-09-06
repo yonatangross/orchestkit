@@ -370,6 +370,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.83](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.82...v10.0.0-alpha.83)** · 2026-09-06
+
+- retire unused tables, orphan validator, sibling sweep ([#3353](https://github.com/yonatangross/orchestkit/issues/3353), [#3937](https://github.com/yonatangross/orchestkit/issues/3937)) (#3943)
+- **skills:** same-skill refs to relative paths ([#3822](https://github.com/yonatangross/orchestkit/issues/3822) steps 2, 3) (#3940)
+
 **[v10.0.0-alpha.82](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.81...v10.0.0-alpha.82)** · 2026-09-06
 
 - **ci:** fail 37 gates that passed on absent input (#3938)
@@ -397,10 +402,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-alpha.76](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.75...v10.0.0-alpha.76)** · 2026-09-04
 
 - **hooks:** FH-ready handler policy and gate (#3917) (#3918)
-
-**[v10.0.0-alpha.75](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.74...v10.0.0-alpha.75)** · 2026-09-04
-
-- **announce:** preflight release API credential (#3916)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
