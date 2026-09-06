@@ -169,6 +169,32 @@ stamp('src/skills/doctor/references/version-compatibility.md', [
     replacement: `$1${supported_floor}.`,
     expectedMatches: 1,
   },
+  {
+    // The row's own text says it mirrors shared/cc-support.json. Until 2026-09-06
+    // nothing made that true, so it sat at 2.1.220 through the 2.1.251 bump (#3933).
+    // A comment asserting cross-file parity is a claim, not an enforcement.
+    label: 'Floor-table row',
+    pattern: /(\| >= )\d+\.\d+\.\d+( \| \*\*Minimum \(current floor\)\*\*)/,
+    replacement: `$1${supported_floor}$2`,
+    expectedMatches: 1,
+  },
+  {
+    // Users copy these blocks. A stale number here tells somebody running an
+    // unsupported build that they are fine.
+    label: 'Doctor OK example',
+    pattern: /(Claude Code: )\d+\.\d+\.\d+( \(OK\))/,
+    replacement: `$1${supported_floor}$2`,
+    expectedMatches: 1,
+  },
+  {
+    // Two occurrences: the OK example and the DEGRADED example. The pattern is
+    // global so replace() reaches both; a non-global pattern would silently fix
+    // only the first while the match count reported two.
+    label: 'Doctor minimum-required examples',
+    pattern: /(- Minimum required: )\d+\.\d+\.\d+/g,
+    replacement: `$1${supported_floor}`,
+    expectedMatches: 2,
+  },
 ]);
 
 stamp('docs/site/content/docs/troubleshooting/index.mdx', [

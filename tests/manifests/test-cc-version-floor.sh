@@ -72,22 +72,81 @@ else
     log_fail "CLAUDE.md Claude Code floor" "got '$CLAUDE_VAL', want '$SOT' (run: node scripts/stamp-cc-support.mjs)"
 fi
 
-# 3. doctor version-compatibility.md :: overview line (may be absent)
-# Read the file first into a variable, then grep that variable. This avoids
-# pipefail-aborting on the no-match case where grep exits 1, which the script
-# would otherwise treat as a hard fail.
+# 3. doctor version-compatibility.md :: every derived floor declaration
+#
+# Three markers are checked and a MISSING marker is a FAIL, never a skip.
+#
+# History (2026-09-06, #3933). This check used to grep for the string
+# "Minimum supported CC version: **X.Y.Z**", which has never existed in the
+# file: scripts/stamp-cc-support.mjs writes "OrchestKit requires Claude Code
+# >= X.Y.Z." instead. The no-match branch then logged a PASS, so the check
+# reported green while reading no version at all. It sat that way across the
+# floor moving 2.1.220 to 2.1.251, which is how the floor-table row and three
+# doctor examples were left asserting 2.1.220 while cc-support.json said
+# 2.1.251. A check whose absent-marker branch passes cannot fail in the way it
+# exists to fail, so both the marker and that branch are fixed here.
 DOCTOR_MD="$PROJECT_ROOT/src/skills/doctor/references/version-compatibility.md"
-if [[ -f "$DOCTOR_MD" ]]; then
+if [[ ! -f "$DOCTOR_MD" ]]; then
+    log_fail "doctor version-compatibility.md" "missing"
+else
     DOCTOR_CONTENT=$(cat "$DOCTOR_MD")
-    if [[ "$DOCTOR_CONTENT" =~ Minimum\ supported\ CC\ version:\ \*\*([0-9]+\.[0-9]+\.[0-9]+)\*\* ]]; then
+
+    # 3a. Overview line, stamped by scripts/stamp-cc-support.mjs.
+    RE_OVERVIEW='OrchestKit requires Claude Code >= ([0-9]+\.[0-9]+\.[0-9]+)'
+    if [[ "$DOCTOR_CONTENT" =~ $RE_OVERVIEW ]]; then
         DOCTOR_VAL="${BASH_REMATCH[1]}"
         if [[ "$DOCTOR_VAL" == "$SOT" ]]; then
-            log_pass "doctor version-compatibility.md = $DOCTOR_VAL"
+            log_pass "doctor version-compatibility.md overview = $DOCTOR_VAL"
         else
-            log_fail "doctor version-compatibility.md" "got '$DOCTOR_VAL', want '$SOT'"
+            log_fail "doctor version-compatibility.md overview" "got '$DOCTOR_VAL', want '$SOT' (run: node scripts/stamp-cc-support.mjs)"
         fi
     else
-        log_pass "doctor version-compatibility.md (overview-line marker absent, skipping)"
+        log_fail "doctor version-compatibility.md overview" "marker absent; the stamper writes 'OrchestKit requires Claude Code >= X.Y.Z.' and nothing matched it"
+    fi
+
+    # 3b. Floor-table row. This row's own text claims it mirrors cc-support.json,
+    #     so an unenforced mirror is a claim, not an enforcement.
+    RE_FLOORROW='\| >= ([0-9]+\.[0-9]+\.[0-9]+) \| \*\*Minimum \(current floor\)\*\*'
+    if [[ "$DOCTOR_CONTENT" =~ $RE_FLOORROW ]]; then
+        ROW_VAL="${BASH_REMATCH[1]}"
+        if [[ "$ROW_VAL" == "$SOT" ]]; then
+            log_pass "doctor version-compatibility.md floor row = $ROW_VAL"
+        else
+            log_fail "doctor version-compatibility.md floor row" "got '$ROW_VAL', want '$SOT' (run: node scripts/stamp-cc-support.mjs)"
+        fi
+    else
+        log_fail "doctor version-compatibility.md floor row" "'| >= X.Y.Z | **Minimum (current floor)**' row absent"
+    fi
+
+    # 3c. Doctor output examples. Users copy these blocks, so a stale number here
+    #     tells somebody on an unsupported build that they are fine.
+    #
+    #     Two-step on purpose. Under `set -euo pipefail` a single
+    #     `grep ... | grep -v ...` pipeline cannot distinguish "no example lines
+    #     exist" from "every example line is correct": both surface as rc=1, and
+    #     the first of those is the vacuous pass this whole block exists to stop.
+    #     So count the lines first and fail on zero, then judge their contents.
+    EX_RE='^(- Minimum required: |Claude Code: [0-9]+\.[0-9]+\.[0-9]+ \(OK\))'
+    EX_LINES=""
+    EX_RC=0
+    if ! EX_LINES=$(grep -nE "$EX_RE" "$DOCTOR_MD"); then EX_RC=$?; fi
+    EX_TOTAL=$(printf '%s' "$EX_LINES" | awk 'NF{n++} END{print n+0}')
+
+    if [[ "$EX_RC" -gt 1 ]]; then
+        log_fail "doctor version-compatibility.md examples" "could not observe (grep rc=$EX_RC)"
+    elif [[ "$EX_TOTAL" -eq 0 ]]; then
+        log_fail "doctor version-compatibility.md examples" "zero example lines matched '$EX_RE'; the probe cannot pass vacuously"
+    else
+        BAD_LINES=""
+        BAD_RC=0
+        if ! BAD_LINES=$(printf '%s\n' "$EX_LINES" | grep -vF "$SOT"); then BAD_RC=$?; fi
+        if [[ "$BAD_RC" -gt 1 ]]; then
+            log_fail "doctor version-compatibility.md examples" "could not observe (grep -v rc=$BAD_RC)"
+        elif [[ -n "$BAD_LINES" ]]; then
+            log_fail "doctor version-compatibility.md examples" "$(printf '%s' "$BAD_LINES" | tr '\n' ';') want '$SOT' (run: node scripts/stamp-cc-support.mjs)"
+        else
+            log_pass "doctor version-compatibility.md examples = $SOT ($EX_TOTAL lines)"
+        fi
     fi
 fi
 

@@ -571,15 +571,15 @@ claude --version  # Returns e.g. "2.1.47"
 | >= 2.1.105 | Full | EnterWorktree path param, PreCompact blocking (exit code 2 / decision:block), plugin monitors manifest, skill description cap 1536 chars, WebFetch script stripping, stale worktree squash cleanup |
 | >= 2.1.108 | Full | ENABLE_PROMPT_CACHING_1H for 1-hour cache TTL (major cost savings), /recap session context restoration, Skill tool auto-discovery of built-in commands, model switch warning, lazy language grammars (lower memory), rate limit distinction, agent auto-classifier fix |
 | >= 2.1.110 | Full | /tui fullscreen rendering, PushNotification tool for long sessions, /focus command (replaces Ctrl+O), Bash max timeout enforced, Write user-edit signal, session recap default-on (no env var needed), --resume resurrects scheduled tasks, /doctor MCP duplicate warning, Remote Control commands (/autocompact, /context, /exit, /reload-plugins), SDK TRACEPARENT/TRACESTATE auto-propagation |
-| >= 2.1.220 | **Minimum (current floor)** | **OrchestKit's supported floor. Anything below is unsupported. `shared/cc-support.json` is the single source of truth; this row mirrors it.** |
+| >= 2.1.251 | **Minimum (current floor)** | **OrchestKit's supported floor. Anything below is unsupported. `shared/cc-support.json` is the single source of truth; this row mirrors it.** |
 
 ## Doctor Check Implementation
 
 The doctor skill validates CC version in category 10:
 
 ```
-Claude Code: 2.1.220 (OK)
-- Minimum required: 2.1.220
+Claude Code: 2.1.251 (OK)
+- Minimum required: 2.1.251
 ```
 
 When CC version is below the floor, doctor should show the shortfall. Example on a
@@ -587,7 +587,7 @@ much older build, where the missing-feature list is long enough to be useful:
 
 ```
 Claude Code: 2.1.44 (DEGRADED)
-- Minimum required: 2.1.220
+- Minimum required: 2.1.251
 - Missing features:
   - last_assistant_message (Stop/SubagentStop context)
   - added_dirs (multi-directory support)
