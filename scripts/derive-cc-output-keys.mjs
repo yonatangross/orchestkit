@@ -55,6 +55,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = join(HERE, '..');
 const GENERATED = join(REPO, 'src/hooks/bin/cc-output-keys.generated.mjs');
+const SPEC = join(REPO, 'spec/cc-output-keys.spec.yml');
 
 const EXIT_OK = 0;
 const EXIT_DRIFT = 1;
@@ -167,8 +168,34 @@ function additionalContextEventsFrom(strings) {
   return found;
 }
 
+/**
+ * The generated module is hand-mirrored from the spec (its header says so),
+ * so a --check that never opens the spec can report OK with the spec emptied
+ * or deleted. Measured 2026-09-06 (tests/ci/fault-arms/verify-cc-keys.sh):
+ * control 0, spec emptied 0, spec missing 0. Same class as the 37 gates in
+ * #3938 that passed on absent input. Refuse to judge without the declared
+ * source of truth; a comment-only file counts as absent.
+ */
+function requireSpec() {
+  if (!existsSync(SPEC)) {
+    console.error(`CANNOT OBSERVE: ${SPEC} is missing.`);
+    console.error('  The generated module is mirrored from that spec; without it there is');
+    console.error('  no source of truth to check against. Refusing to report a pass.');
+    process.exit(EXIT_CANNOT_OBSERVE);
+  }
+  const live = readFileSync(SPEC, 'utf8')
+    .split('\n')
+    .filter((line) => line.trim() !== '' && !line.trimStart().startsWith('#'));
+  if (live.length === 0) {
+    console.error(`CANNOT OBSERVE: ${SPEC} has no content beyond comments and blank lines.`);
+    console.error('  An empty spec asserts nothing, so nothing here could be checked against it.');
+    process.exit(EXIT_CANNOT_OBSERVE);
+  }
+}
+
 async function main() {
   const check = process.argv.includes('--check');
+  if (check) requireSpec();
 
   const bin = findBinary();
   if (!bin) {
