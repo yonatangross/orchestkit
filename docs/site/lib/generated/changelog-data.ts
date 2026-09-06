@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.85",
+    "date": "2026-09-06",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "**build:** stamp harness manifests from package.json, close [#2528](https://github.com/yonatangross/orchestkit/issues/2528) ([#3946](https://github.com/yonatangross/orchestkit/issues/3946)) ([4d4f547](https://github.com/yonatangross/orchestkit/commit/4d4f547a799ce2c77b38ac65940cb23dbb24f837))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.84",
     "date": "2026-09-06",
     "compareUrl": "",
