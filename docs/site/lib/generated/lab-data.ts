@@ -15,6 +15,20 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "cc-release-gaps-262-263",
+    "title": "A build number is not a release: CC 2.1.250 to 2.1.263",
+    "description": "Of the fourteen Claude Code build numbers from 2.1.250 to 2.1.263, five never shipped changelog notes and one shipped notes with nothing in them. Click any version to see which of the three empties it is, and why an empty features array and a triaged-noop verdict are not the same record.",
+    "tags": [
+      "cc-adoption",
+      "triage",
+      "false-signals"
+    ],
+    "date": "2026-09-06",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 13
+  },
+  {
     "slug": "function-hooks-adoption-gate",
     "title": "Observed is not shipped: the Function Hooks adoption gate",
     "description": "Choose private prototype, upstream closure, or public shipment evidence to see why OrchestKit remains watch-only until a supported Function Hooks contract actually ships.",

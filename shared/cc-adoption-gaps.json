@@ -1,5 +1,24 @@
 [
   {
+    "version": "2.1.263",
+    "parse_failed": false,
+    "features": [
+      {
+        "feature_slug": "bug_fixes_only_263",
+        "category": "new_attr",
+        "description": "The entire 2.1.263 changelog is one bullet, \"Bug fixes and reliability improvements\", with no enumerated fixes. Nothing names a settings key, hook event, tool, permission surface, CLI flag or model id.",
+        "gap_score": 0,
+        "affected_skills": [],
+        "reference_changelog_line": "Bug fixes and reliability improvements",
+        "relevance": "plugin",
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "Content-free by construction, not by omission: upstream published a single unenumerated bullet, so there is nothing to map onto an ork surface. Recorded as an explicit verdict rather than left as an empty features array, so a later reader can tell \"triaged, nothing there\" from \"never triaged\". 2.1.262 was never published (the upstream CHANGELOG jumps 2.1.261 to 2.1.263), same shape as the 2.1.192 and 2.1.253-to-2.1.256 gaps."
+      }
+    ],
+    "raw_bullets_count": 1,
+    "triaged_by": "hand, lane adopt-cc-262-263, 2026-09-06"
+  },
+  {
     "version": "2.1.259",
     "parse_failed": false,
     "features": [
