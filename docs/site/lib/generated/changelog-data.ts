@@ -17,6 +17,25 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-alpha.83",
+    "date": "2026-09-06",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "retire unused tables, orphan validator, sibling sweep ([#3353](https://github.com/yonatangross/orchestkit/issues/3353), [#3937](https://github.com/yonatangross/orchestkit/issues/3937)) ([#3943](https://github.com/yonatangross/orchestkit/issues/3943)) ([900de6c](https://github.com/yonatangross/orchestkit/commit/900de6c16cc04df4245a2b6fdd572a8164f37a58))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**skills:** same-skill refs to relative paths ([#3822](https://github.com/yonatangross/orchestkit/issues/3822) steps 2, 3) ([#3940](https://github.com/yonatangross/orchestkit/issues/3940)) ([fc0b166](https://github.com/yonatangross/orchestkit/commit/fc0b1665496cb0608c7269fbff40f07a17fdaf08))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-alpha.82",
     "date": "2026-09-06",
     "compareUrl": "",
