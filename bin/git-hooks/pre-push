@@ -47,26 +47,21 @@ REMOTE_URL="$2"
 
 echo "Running pre-push validations for branch: $BRANCH"
 
-# ===== Skip for branches handled by release-please =====
-# release-please is "release-type: simple" and computes next version from
-# conventional-commit types since last tag — manual bumps on these branches
-# create "ghost versions" when the two disagree (see #1457). Skip enforcement
-# on all conventional-commit prefixes; release-please owns the version.
-# Bare-named branches (e.g. hotfixes) still get enforced.
-if [[ "$BRANCH" =~ ^(docs|chore|ci|style|test|feat|fix|perf|refactor|issue|bug)/ ]]; then
-  echo "  ✓ Skipping version check for $BRANCH (release-please handles versioning)"
-  exit 0
+# ===== Skip for branches release-please or Dependabot own =====
+# The skip pattern lives in ONE file shared with version-check.yml (#1460,
+# #1457); edit it there, never inline here. An unreadable or empty pattern is
+# a failure, not a skip and not an enforce: the gate refuses to decide.
+# shellcheck source=../../scripts/ci/version-skip-pattern.sh
+if ! . "$PROJECT_ROOT/scripts/ci/version-skip-pattern.sh"; then
+  echo "FAILED: cannot source scripts/ci/version-skip-pattern.sh"
+  exit 1
 fi
-
-# Skip release-please PRs (automated versioning) — mirrors version-check.yml L67-72
-if [[ "$BRANCH" =~ ^release-please ]]; then
-  echo "  ✓ Skipping version check for release-please PR (automated)"
-  exit 0
+if [[ -z "${VERSION_SKIP_PATTERN:-}" ]]; then
+  echo "FAILED: VERSION_SKIP_PATTERN is empty; scripts/ci/version-skip-pattern.sh must define it"
+  exit 1
 fi
-
-# Skip Dependabot PRs (dependency updates, no version bump needed) — mirrors version-check.yml L74-79
-if [[ "$BRANCH" =~ ^dependabot/ ]]; then
-  echo "  ✓ Skipping version check for Dependabot PR (automated dependency update)"
+if [[ "$BRANCH" =~ $VERSION_SKIP_PATTERN ]]; then
+  echo "  Skipping version check for $BRANCH (release-please or Dependabot owns the version)"
   exit 0
 fi
 

@@ -120,51 +120,72 @@ test_run_with_timeout_spaces() {
     fi
 }
 
-# Test 4: Branch-prefix skip regex stays in sync between pre-push hook and CI workflow
-# Prevents #1457 ghost-version regressions where one layer skips but the other enforces.
+# Test 4: the branch skip pattern has ONE source (#1460)
+#
+# #1458 mirrored the skip alternation into the pre-push hook and
+# version-check.yml and this test held the two copies equal, which made drift
+# loud but not impossible. The pattern now lives in
+# scripts/ci/version-skip-pattern.sh and both consumers source it. This test
+# is the inversion: the file defines the pattern with the expected behaviour,
+# each consumer SOURCES it, and neither carries an inline alternation any more.
+# The emptied-file and missing-file failure modes are proved by
+# tests/ci/fault-arms/version-skip-pattern.sh, not here.
 test_skip_regex_parity() {
-    log_section "Test 4: Branch-prefix skip regex parity (hook ↔ CI workflow)"
+    log_section "Test 4: Branch skip pattern has one source (#1460)"
 
+    local pattern_file="${PROJECT_ROOT}/scripts/ci/version-skip-pattern.sh"
     local hook_file="${PROJECT_ROOT}/bin/git-hooks/pre-push"
     local ci_file="${PROJECT_ROOT}/.github/workflows/version-check.yml"
 
-    # Extract the alternation group from each file's skip-list regex.
-    local hook_regex ci_regex
-    hook_regex=$(grep -oE '\^\([a-z|]+\)/' "$hook_file" | head -1)
-    ci_regex=$(grep -oE '\^\([a-z|]+\)/' "$ci_file" | head -1)
-
-    if [[ -z "$hook_regex" ]]; then
-        log_fail "Could not extract skip regex from $hook_file"
+    # 4a: the file defines a non-empty pattern, read the way a consumer reads it.
+    local pattern
+    pattern=$(/bin/bash -c '. "$1" && printf "%s" "${VERSION_SKIP_PATTERN:-}"' _ "$pattern_file" 2>&1)
+    if [[ -z "$pattern" ]]; then
+        log_fail "scripts/ci/version-skip-pattern.sh does not define VERSION_SKIP_PATTERN"
         return
     fi
-    if [[ -z "$ci_regex" ]]; then
-        log_fail "Could not extract skip regex from $ci_file"
-        return
-    fi
+    log_pass "scripts/ci/version-skip-pattern.sh defines VERSION_SKIP_PATTERN"
 
-    if [[ "$hook_regex" == "$ci_regex" ]]; then
-        log_pass "Skip regex matches: $hook_regex"
+    # 4b: behaviour, not text. Every conventional-commit prefix, a release-please
+    # branch and a Dependabot branch skip; a bare-named branch and main do not.
+    local wrong=()
+    local skip_names=(docs/x chore/x ci/x style/x test/x feat/x fix/x perf/x refactor/x issue/x bug/x
+        release-please--branches--main dependabot/npm_and_yarn/lodash-4.17.21)
+    local enforce_names=(main hotfix-1457 docs bugfix/x feature/x)
+    local name
+    for name in "${skip_names[@]}"; do
+        [[ "$name" =~ $pattern ]] || wrong+=("should-skip:$name")
+    done
+    for name in "${enforce_names[@]}"; do
+        [[ "$name" =~ $pattern ]] && wrong+=("should-enforce:$name")
+    done
+    if [[ ${#wrong[@]} -eq 0 ]]; then
+        log_pass "pattern skips ${#skip_names[@]} owned branch shapes and enforces ${#enforce_names[@]} bare ones"
     else
-        log_fail "Skip regex drift! hook: $hook_regex vs CI: $ci_regex"
+        log_fail "pattern misclassifies: ${wrong[*]}"
     fi
 
-    # Subtest: required prefixes are all present (defensive for future edits)
-    local required=(docs chore ci style test feat fix perf refactor)
-    local missing=()
-    for prefix in "${required[@]}"; do
-        if [[ "$hook_regex" != *"$prefix"* ]]; then
-            missing+=("hook:$prefix")
-        fi
-        if [[ "$ci_regex" != *"$prefix"* ]]; then
-            missing+=("ci:$prefix")
+    # 4c: each consumer sources the shared file on a non-comment line.
+    local consumer
+    for consumer in "$hook_file" "$ci_file"; do
+        if grep -v '^[[:space:]]*#' "$consumer" | grep -qE '(source|[[:space:]]\.)[[:space:]]+"?[^"[:space:]]*scripts/ci/version-skip-pattern\.sh'; then
+            log_pass "$(basename "$consumer") sources scripts/ci/version-skip-pattern.sh"
+        else
+            log_fail "$(basename "$consumer") does not source scripts/ci/version-skip-pattern.sh"
         fi
     done
 
-    if [[ ${#missing[@]} -eq 0 ]]; then
-        log_pass "All conventional-commit prefixes present in both regexes"
-    else
-        log_fail "Missing prefixes: ${missing[*]}"
-    fi
+    # 4d: no consumer carries an inline alternation (the exact shape the old
+    # parity test extracted; its presence now means a second copy came back).
+    local inline
+    for consumer in "$hook_file" "$ci_file"; do
+        inline=$(grep -nE '\^\([a-z|]+\)/' "$consumer" || true)
+        if [[ -z "$inline" ]]; then
+            log_pass "$(basename "$consumer") carries no inline skip alternation"
+        else
+            log_fail "$(basename "$consumer") has an inline skip alternation again -> ${inline}"
+        fi
+    done
 }
 
 # Test 5: the hook parses and runs under the bash the shebang actually gets
