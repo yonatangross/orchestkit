@@ -15,6 +15,21 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "feat--gate-marker-audit",
+    "title": "Gate fault-arm audit: 37 CI gates that passed on absent input",
+    "description": "Every orchestkit CI gate run twice, once with its input present and once with it removed, emptied or mis-rooted. 68 gates: 37 passed on nothing and now fail closed, 26 were sound, 2 are by design, 1 filed. Before/after flow of the #3933 shape, the full gate table with measured exit codes, and the milestone path this PR feeds.",
+    "tags": [
+      "ci",
+      "gates",
+      "audit",
+      "fail-closed"
+    ],
+    "date": "2026-09-06",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 30
+  },
+  {
     "slug": "cc-release-gaps-262-263",
     "title": "A build number is not a release: CC 2.1.250 to 2.1.263",
     "description": "Of the fourteen Claude Code build numbers from 2.1.250 to 2.1.263, five never shipped changelog notes and one shipped notes with nothing in them. Click any version to see which of the three empties it is, and why an empty features array and a triaged-noop verdict are not the same record.",
