@@ -1303,6 +1303,20 @@
         "milestone-164"
       ],
       "date": "2026-09-06"
+    },
+    {
+      "slug": "mcp-redact-exempt-tools",
+      "source": "docs/feat--ork-3951-mcp-output-exempt/index.html",
+      "title": "An id that is email-shaped: the #3951 per-tool redaction exemption",
+      "description": "A WhatsApp JID is <digits>@c.us, so the MCP PostToolUse redaction hook, which matches on shape and has exempted nothing since #2552, rewrote an account's OWN id to [REDACTED_EMAIL] and left a self-chat protocol unable to resolve its target. Pick a tool, a payload and the ORK_MCP_REDACT_EXEMPT_TOOLS value to see what the model actually reads. The regexes and the exact-match Set run in the page, copied from the shipped hook, so a prefix or an extension of an exempt name visibly stays redacted.",
+      "tags": [
+        "hooks",
+        "mcp",
+        "privacy",
+        "redaction",
+        "posttooluse"
+      ],
+      "date": "2026-09-06"
     }
   ]
 }
