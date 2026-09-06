@@ -15,6 +15,22 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "stamp-harness-manifests",
+    "title": "Seven manifests, one version: the #2528 close-out",
+    "description": "Two Codex manifests sat at 9.5.4 for 40 releases while package.json said 10.0.0-alpha.84, because nothing stamped them. Every harness manifest is now stamped from package.json in the build and gated by a fault-armed test; pick a tree state to see the measured exit codes. Plus the probe that decides the spec-clean frontmatter sweep: CC 2.1.263 ignores argument-hint, disable-model-invocation and user-invocable under metadata.*.",
+    "tags": [
+      "build",
+      "manifests",
+      "versioning",
+      "skills",
+      "agent-skills"
+    ],
+    "date": "2026-09-06",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 8
+  },
+  {
     "slug": "skill-dir-codemod",
     "title": "Three path forms, one that every client resolves: the #3822 skill-path codemod",
     "description": "106 OrchestKit skills carried 497 ${CLAUDE_PLUGIN_ROOT} references; pi and every Agent Skills client delivered them to the model as literal text. Pick a client and a path form to see what the model actually receives, then compare the census before and after the codemod that rewrote 424 same-skill references to bare relative paths.",

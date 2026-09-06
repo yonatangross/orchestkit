@@ -8,8 +8,20 @@
 #   - .claude-plugin/marketplace.json (top-level + plugins[0].version)
 #   - .release-please-manifest.json
 #   - CLAUDE.md ("**Current**: X.Y.Z" line)
+#   - every harness manifest, source and built (#2528 close-out, 2026-09-06):
+#       manifests/codex/ork-codex.json
+#       src/codex/ork-codex/.codex-plugin/plugin.json
+#       plugins/ork-codex/.codex-plugin/plugin.json
+#       plugins/ork/.claude-plugin/plugin.json
+#       plugins/ork/.cursor-plugin/plugin.json
+#       plugins/ork/plugin.json
+#       plugin.json (repo-root mirror, #3675)
 #
 # This test pins that behavior: bump, sync, assert.
+#
+# `--live-only` runs Test 0 (the read-only live-tree assertion) and exits.
+# tests/ci/fault-arms/sync-versions.sh copies this file into a fixture tree
+# with one manifest hand-edited back to 9.5.4 and expects that mode to FAIL.
 #
 # ─── WHY THIS RUNS IN A SANDBOX ─────────────────────────────────────────
 # It used to write FAKE_VER="999.888.777" into the LIVE working tree and rely
@@ -50,6 +62,8 @@ NC=$'\033[0m'
 
 PASS=0
 FAIL=0
+LIVE_ONLY=0
+[[ "${1:-}" == "--live-only" ]] && LIVE_ONLY=1
 
 pass() { echo "  ${GREEN}✓${NC} $1"; PASS=$((PASS + 1)); }
 fail() { echo "  ${RED}✗${NC} $1"; FAIL=$((FAIL + 1)); }
@@ -68,7 +82,32 @@ read_versions() { # read_versions <root> -> prints "key=value" lines
   # reports drift on a tree that is in fact consistent (same defect fixed in
   # bin/validate-counts.sh on #3337).
   echo "CLAUDE=$(grep -E '^\- \*\*Current\*\*:' "$r/CLAUDE.md" | sed -E 's/.*Current\*\*: ([0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?([+][0-9A-Za-z.-]+)?).*/\1/' | head -1)"
+  # Harness manifests. A missing file reads as MISSING, never as an empty
+  # string that a loose comparison could wave through: every one of these is
+  # tracked, so absence is a broken tree, not an optional surface.
+  local hm
+  for hm in "${HARNESS_MANIFESTS[@]}"; do
+    if [[ -f "$r/$hm" ]]; then
+      echo "$hm=$(jq -r '.version // "MISSING"' "$r/$hm")"
+    else
+      echo "$hm=MISSING"
+    fi
+  done
 }
+
+# Every plugin manifest a host reads. Source files first, then the build
+# outputs, then the repo-root mirror. Measured drift that motivated this list:
+# the first two sat at 9.5.4 on origin/main 2026-09-06 while package.json said
+# 10.0.0-alpha.8x (docs/audits/codex-alignment-readonly-2026-09-06.md).
+HARNESS_MANIFESTS=(
+  manifests/codex/ork-codex.json
+  src/codex/ork-codex/.codex-plugin/plugin.json
+  plugins/ork-codex/.codex-plugin/plugin.json
+  plugins/ork/.claude-plugin/plugin.json
+  plugins/ork/.cursor-plugin/plugin.json
+  plugins/ork/plugin.json
+  plugin.json
+)
 
 echo "════════════════════════════════════════════════════════════════"
 echo "  sync_versions round-trip (Lane 2 #1407) — sandboxed"
@@ -83,20 +122,28 @@ echo "▶ Test 0: live working tree agrees on one version (read-only)"
 echo "────────────────────────────────────────────────────────────────"
 LIVE_PKG=$(jq -r '.version' package.json)
 LIVE_BAD=0
+LIVE_SEEN=0
 while IFS='=' read -r key value; do
   [[ "$key" == "package" ]] && continue
+  LIVE_SEEN=$((LIVE_SEEN + 1))
   if [[ "$value" != "$LIVE_PKG" ]]; then
     fail "live $key shows $value, expected $LIVE_PKG"
     LIVE_BAD=1
   fi
 done < <(read_versions "$PROJECT_ROOT")
 if [[ $LIVE_BAD -eq 0 ]]; then
-  pass "all 7 live files agree at $LIVE_PKG"
+  pass "all $LIVE_SEEN live version surfaces agree at $LIVE_PKG"
 else
   echo ""
   echo "  Run \`npm run build\` to reconcile."
 fi
 echo ""
+
+if [[ $LIVE_ONLY -eq 1 ]]; then
+  echo "  --live-only: Test 0 only. Total: $((PASS + FAIL))  |  Passed: ${GREEN}${PASS}${NC}  |  Failed: ${RED}${FAIL}${NC}"
+  [[ $FAIL -eq 0 ]] || exit 1
+  exit 0
+fi
 
 # ─── Sandbox: a throwaway copy of the tracked working tree ──────────
 SANDBOX="$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")"
@@ -192,7 +239,8 @@ if grep -rqF "$FAKE_VER" \
      "$PROJECT_ROOT/package.json" \
      "$PROJECT_ROOT/pyproject.toml" \
      "$PROJECT_ROOT/CLAUDE.md" \
-     "$PROJECT_ROOT/manifests/ork.json"; then
+     "$PROJECT_ROOT/manifests/ork.json" \
+     "${HARNESS_MANIFESTS[@]/#/$PROJECT_ROOT/}"; then
   fail "sentinel $FAKE_VER leaked into a live tracked file"
 else
   pass "sentinel never appeared in any live tracked file"

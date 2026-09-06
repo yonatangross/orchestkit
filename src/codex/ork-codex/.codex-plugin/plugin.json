@@ -1,6 +1,6 @@
 {
   "name": "ork-codex",
-  "version": "9.5.4",
+  "version": "10.0.0-alpha.84",
   "description": "Portable OrchestKit workflows for Codex: brainstorm, explore, implement, assess, verify, and review pull requests.",
   "author": {
     "name": "Yonatan Gross",
@@ -9,7 +9,12 @@
   "homepage": "https://github.com/yonatangross/orchestkit",
   "repository": "https://github.com/yonatangross/orchestkit",
   "license": "MIT",
-  "keywords": ["orchestration", "code-review", "verification", "planning"],
+  "keywords": [
+    "orchestration",
+    "code-review",
+    "verification",
+    "planning"
+  ],
   "skills": "./skills/",
   "mcpServers": "./mcp.json",
   "interface": {
@@ -18,7 +23,10 @@
     "longDescription": "A small, Codex-native OrchestKit pack for deliberate planning, codebase exploration, scoped implementation, assessment, verification, and pull-request review. It uses Codex skills and subagents without Claude-only commands or hooks.",
     "developerName": "Yonatan Gross",
     "category": "Productivity",
-    "capabilities": ["Read", "Write"],
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
     "defaultPrompt": "Use $ork-brainstorm to compare approaches before I implement a change."
   }
 }

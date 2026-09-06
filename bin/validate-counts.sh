@@ -110,10 +110,29 @@ EXPECTED_VERSION=$(jq -r '.version' "$PROJECT_ROOT/package.json")
 # all of them). The `[[ -f ]]` guards that follow made a deleted or moved
 # surface a silent skip: with all five absent the script printed "Validation
 # PASSED: All counts and versions match" (gate-fault-arm audit 2026-09-06).
-for required in pyproject.toml manifests/ork.json .claude-plugin/marketplace.json .release-please-manifest.json CLAUDE.md; do
+# Harness manifests (#2528 close-out, 2026-09-06): every plugin manifest a host
+# reads, source and built. The first two had no stamper and sat at 9.5.4 while
+# package.json said 10.0.0-alpha.8x; scripts/stamp-counts.sh sync_versions()
+# now stamps all of them and this gate refuses a tree where any disagrees.
+HARNESS_MANIFESTS=(
+    manifests/codex/ork-codex.json
+    src/codex/ork-codex/.codex-plugin/plugin.json
+    plugins/ork-codex/.codex-plugin/plugin.json
+    plugins/ork/.claude-plugin/plugin.json
+    plugins/ork/.cursor-plugin/plugin.json
+    plugins/ork/plugin.json
+    plugin.json
+)
+for required in pyproject.toml manifests/ork.json .claude-plugin/marketplace.json .release-please-manifest.json CLAUDE.md "${HARNESS_MANIFESTS[@]}"; do
     if [[ ! -f "$PROJECT_ROOT/$required" ]]; then
         echo "MISSING version surface: $required (cannot verify it matches $EXPECTED_VERSION)"
         ERRORS=$((ERRORS + 1))
+    fi
+done
+
+for hm in "${HARNESS_MANIFESTS[@]}"; do
+    if [[ -f "$PROJECT_ROOT/$hm" ]]; then
+        check_version "$hm" "$hm" "$(jq -r '.version // "MISSING"' "$PROJECT_ROOT/$hm")"
     fi
 done
 
