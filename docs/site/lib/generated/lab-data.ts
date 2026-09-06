@@ -15,6 +15,22 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "mcp-redact-exempt-tools",
+    "title": "An id that is email-shaped: the #3951 per-tool redaction exemption",
+    "description": "A WhatsApp JID is <digits>@c.us, so the MCP PostToolUse redaction hook, which matches on shape and has exempted nothing since #2552, rewrote an account's OWN id to [REDACTED_EMAIL] and left a self-chat protocol unable to resolve its target. Pick a tool, a payload and the ORK_MCP_REDACT_EXEMPT_TOOLS value to see what the model actually reads. The regexes and the exact-match Set run in the page, copied from the shipped hook, so a prefix or an extension of an exempt name visibly stays redacted.",
+    "tags": [
+      "hooks",
+      "mcp",
+      "privacy",
+      "redaction",
+      "posttooluse"
+    ],
+    "date": "2026-09-06",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 9
+  },
+  {
     "slug": "beta-1-flip",
     "title": "alpha to beta: which path produces 10.0.0-beta.1",
     "description": "The v10 train shipped 86 alphas and milestone 164 is empty, so the label moves to beta. A config flip alone yields alpha.87: release-please's bump() ignores prerelease-type whenever the version already carries a label. Toggle the current version, the configured type and a Release-As footer to see which combination actually produces beta.1, and why the footer is the only route from a labelled version to a new label.",
