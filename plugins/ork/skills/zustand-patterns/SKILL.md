@@ -92,7 +92,7 @@ const useStore = create((set) => ({ users: [], fetchUsers: async () => ... }));
 
 Forbidden patterns (store destructuring, derived state, server state, direct mutation) and React Query integration guidance.
 
-Load Read("${CLAUDE_PLUGIN_ROOT}/skills/zustand-patterns/references/anti-patterns-and-integration.md") for anti-pattern examples and TanStack Query separation patterns.
+Load Read("references/anti-patterns-and-integration.md") for anti-pattern examples and TanStack Query separation patterns.
 
 ## Related Skills
 
@@ -124,7 +124,7 @@ Load Read("${CLAUDE_PLUGIN_ROOT}/skills/zustand-patterns/references/anti-pattern
 
 ## References
 
-Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/zustand-patterns/references/<file>")`:
+Load on demand with `Read("references/<file>")`:
 
 | File | Content |
 |------|---------|
@@ -132,5 +132,5 @@ Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/zustand-patterns/referen
 | `anti-patterns-and-integration.md` | Forbidden patterns and React Query integration |
 
 Other resources:
-- Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/zustand-patterns/scripts/store-template.ts")` - Production-ready store template
-- Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/zustand-patterns/checklists/zustand-checklist.md")` - Implementation checklist
+- Load: `Read("scripts/store-template.ts")` - Production-ready store template
+- Load: `Read("checklists/zustand-checklist.md")` - Implementation checklist

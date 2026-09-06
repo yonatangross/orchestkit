@@ -201,9 +201,9 @@ mcp__memory__search_nodes(query="architecture")
 
 ### Phase 3: Parallel Deep Exploration (4 Agents)
 
-Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/explore/rules/exploration-agents.md")` for Task tool mode prompts.
+Load `Read("rules/exploration-agents.md")` for Task tool mode prompts.
 
-Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/explore/rules/agent-teams-mode.md")` for Agent Teams alternative.
+Load `Read("rules/agent-teams-mode.md")` for Agent Teams alternative.
 
 ### Phase 4: AI System Exploration (If Applicable)
 
@@ -211,19 +211,19 @@ For AI/ML topics, add exploration of: LangGraph workflows, prompt templates, RAG
 
 ### Phase 5: Code Health Assessment
 
-Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/explore/rules/code-health-assessment.md")` for agent prompt. Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/explore/references/code-health-rubric.md")` for scoring criteria.
+Load `Read("rules/code-health-assessment.md")` for agent prompt. Load `Read("references/code-health-rubric.md")` for scoring criteria.
 
 ### Phase 6: Dependency Hotspot Map
 
-Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/explore/rules/dependency-hotspot-analysis.md")` for agent prompt. Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/explore/references/dependency-analysis.md")` for metrics.
+Load `Read("rules/dependency-hotspot-analysis.md")` for agent prompt. Load `Read("references/dependency-analysis.md")` for metrics.
 
 ### Phase 7: Product Perspective
 
-Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/explore/rules/product-perspective.md")` for agent prompt. Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/explore/references/findability-patterns.md")` for best practices.
+Load `Read("rules/product-perspective.md")` for agent prompt. Load `Read("references/findability-patterns.md")` for best practices.
 
 ### Phase 8: Generate Report
 
-Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/explore/references/exploration-report-template.md")`.
+Load `Read("references/exploration-report-template.md")`.
 
 ### Phase 8b: Emit Dashboard Spec (json-render)
 
@@ -237,13 +237,13 @@ Parse `--render=` from `$ARGUMENTS`. Default is `both`.
 
 When emitting a spec:
 
-1. Load the format and catalog: `Read("${CLAUDE_PLUGIN_ROOT}/skills/explore/references/dashboard-spec.md")`. Reference example: `references/dashboard-example.json`.
+1. Load the format and catalog: `Read("references/dashboard-spec.md")`. Reference example: `references/dashboard-example.json`.
 2. Build the spec object using only catalog component types: `Card`, `StatGrid`, `DataTable`, `StatusBadge`, `BarMeter`, `Heatmap`, `Markdown`.
 3. Write to `.claude/chain/explore-dashboard.json` with compact JSON (no indentation) — minimizes token cost for downstream consumers.
 4. Validate before declaring success:
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/skills/explore/scripts/render-spec.mjs" .claude/chain/explore-dashboard.json --check
+node "${CLAUDE_SKILL_DIR}/scripts/render-spec.mjs" .claude/chain/explore-dashboard.json --check
 ```
 
 If validation fails (exit ≠ 0), **do not emit** — fall back to markdown-only and surface the error to the user. Never write a partial or invalid spec.
@@ -251,7 +251,7 @@ If validation fails (exit ≠ 0), **do not emit** — fall back to markdown-only
 5. For `--render=both`, render the markdown view from the spec for consistency:
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/skills/explore/scripts/render-spec.mjs" .claude/chain/explore-dashboard.json
+node "${CLAUDE_SKILL_DIR}/scripts/render-spec.mjs" .claude/chain/explore-dashboard.json
 ```
 
 Pipe the output into the user-facing markdown report (or use it as-is). This guarantees the JSON spec and markdown report stay in sync — a single source of truth.
@@ -263,7 +263,7 @@ Pipe the output into the user-facing markdown report (or use it as-is). This gua
 After the session synthesis lands, optionally invoke `scripts/post_explore_summary.py <session-dir>` to auto-emit a notebook-backed summary of the exploration. Self-skips on every non-happy-path so it never breaks the run:
 
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/explore/scripts/post_explore_summary.py "$CLAUDE_JOB_DIR"
+python3 ${CLAUDE_SKILL_DIR}/scripts/post_explore_summary.py "$CLAUDE_JOB_DIR"
 ```
 
 Auto-skip conditions (all exit 0, all WARN-logged):

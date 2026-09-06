@@ -76,7 +76,7 @@ Use `stream-json` over `json` when:
 Load detailed patterns and examples:
 
 ```
-Read("${CLAUDE_PLUGIN_ROOT}/skills/bare-eval/references/invocation-patterns.md")
+Read("references/invocation-patterns.md")
 ```
 
 ## Grading Schemas
@@ -84,7 +84,7 @@ Read("${CLAUDE_PLUGIN_ROOT}/skills/bare-eval/references/invocation-patterns.md")
 JSON schemas for structured eval output:
 
 ```
-Read("${CLAUDE_PLUGIN_ROOT}/skills/bare-eval/references/grading-schemas.md")
+Read("references/grading-schemas.md")
 ```
 
 ## Pipeline Integration
@@ -154,13 +154,13 @@ This produced ~5–10% retry rate and non-reproducible scores — the eval basel
 ## Rules
 
 ```
-Read("${CLAUDE_PLUGIN_ROOT}/skills/bare-eval/rules/_sections.md")
+Read("rules/_sections.md")
 ```
 
 ## Troubleshooting
 
 ```
-Read("${CLAUDE_PLUGIN_ROOT}/skills/bare-eval/references/troubleshooting.md")
+Read("references/troubleshooting.md")
 ```
 
 ## Dynamic-workflow harness (template-in-skill)
@@ -168,7 +168,7 @@ Read("${CLAUDE_PLUGIN_ROOT}/skills/bare-eval/references/troubleshooting.md")
 `workflows/skill-fitness.js` is a runnable dynamic-workflow template — the workflow-backed complement to the static conformance grader (`scripts/eval/conformance-check.mjs`). It fans out one **isolated-context** agent per skill to score fitness (freshness / router-clarity / structure) and synthesizes a ranked scorecard, catching qualitative drift a static grep can't (description/body count mismatches, duplicate headings, install-specific absolute paths, version drift). Run it with the Workflow tool:
 
 ```
-Workflow({ scriptPath: "${CLAUDE_PLUGIN_ROOT}/skills/bare-eval/workflows/skill-fitness.js",
+Workflow({ scriptPath: "${CLAUDE_SKILL_DIR}/workflows/skill-fitness.js",
            args: ["assess", "commit", "doctor"] })
 ```
 

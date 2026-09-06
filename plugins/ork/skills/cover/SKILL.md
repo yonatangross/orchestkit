@@ -234,7 +234,7 @@ Grep(pattern=SCOPE, output_mode="files_with_matches")
 - Neither found + `--real-services` flag → error: "No docker-compose or testcontainers found. Install testcontainers or remove --real-services flag."
 - Neither found, no flag → integration tests use mocks (MSW/VCR)
 
-Load real-service detection details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/cover/references/real-service-detection.md")`
+Load real-service detection details: `Read("references/real-service-detection.md")`
 
 ### Phase 2: Coverage Analysis
 
@@ -333,7 +333,7 @@ Do NOT hand-roll the loop. Run the real executor:
 
 ```python
 Workflow(
-  scriptPath="${CLAUDE_PLUGIN_ROOT}/skills/cover/workflows/heal-loop.js",
+  scriptPath="${CLAUDE_SKILL_DIR}/workflows/heal-loop.js",
   args={"testCommand": "<tier test command>", "tier": "unit", "testGlob": "tests/unit/",
         "maxIterations": 3}   # from the effort table above; omitted defaults to 3
 )
@@ -358,7 +358,7 @@ The workflow returns `status: "healed"` or a **structured failure** (`status: "f
 ledger. Never report a `"failed"` result as a success: surface the still-failing tests in
 the Phase 6 report.
 
-Strategy detail (taxonomy table, fix rules, flaky prevention): `Read("${CLAUDE_PLUGIN_ROOT}/skills/cover/references/heal-loop-strategy.md")`
+Strategy detail (taxonomy table, fix rules, flaky prevention): `Read("references/heal-loop-strategy.md")`
 
 **Boundary: heal fixes TESTS, not source code.** If a test fails because the source code has a bug, report it — don't silently fix production code.
 
@@ -366,7 +366,7 @@ Strategy detail (taxonomy table, fix rules, flaky prevention): `Read("${CLAUDE_P
 
 Generate coverage report with before/after comparison.
 
-Full report layout (baseline→after table, tests-generated counts, heal iterations, files created, remaining gaps, next-steps commands): `Read("${CLAUDE_PLUGIN_ROOT}/skills/cover/references/coverage-report-template.md")`.
+Full report layout (baseline→after table, tests-generated counts, heal iterations, files created, remaining gaps, next-steps commands): `Read("references/coverage-report-template.md")`.
 
 ### PushNotification on Completion (CC 2.1.110+)
 
@@ -478,7 +478,7 @@ Done means all of these hold:
 
 ## References
 
-Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/cover/references/<file>")`:
+Load on demand with `Read("references/<file>")`:
 
 | File | Content |
 |------|---------|

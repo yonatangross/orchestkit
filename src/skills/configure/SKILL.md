@@ -162,7 +162,7 @@ Add to your shell profile (`~/.zshrc` or `~/.bashrc`) to persist across sessions
 
 ## Steps 6-9: CC Version-Specific Settings
 
-Load details: `Read("${CLAUDE_PLUGIN_ROOT}/skills/configure/references/cc-version-settings.md")` for full configuration options.
+Load details: `Read("references/cc-version-settings.md")` for full configuration options.
 
 Covers CC 2.1.7 (MCP deferral threshold, effective context window), CC 2.1.20 (task deletion, PR enrichment, agent permissions, monorepo detection, team distribution), CC 2.1.23 (spinner verbs customization), and CC 2.1.79 (turn duration display).
 
@@ -212,7 +212,7 @@ Set ORCHESTKIT_HOOK_TOKEN in your environment (never in config files):
   export ORCHESTKIT_HOOK_TOKEN=your-secret
 ```
 
-Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/configure/references/http-hooks.md")` for the channel history and the CC URL-validation constraint.
+Load `Read("references/http-hooks.md")` for the channel history and the CC URL-validation constraint.
 
 ## Step 11: Preview & Save
 
@@ -240,7 +240,7 @@ Some controls cannot ship in the plugin at all. A plugin's bundled `settings.jso
 `ork:doctor` Check 16 detects the absence. The paste-ready JSON lives here:
 
 ```bash
-Read("${CLAUDE_PLUGIN_ROOT}/skills/configure/references/operator-scope-settings.md")
+Read("references/operator-scope-settings.md")
 ```
 
 That reference stages the rollout per #3424 rather than handing over one all-or-nothing block:
@@ -262,7 +262,7 @@ VSCode users can run `/remote-control` to bridge their terminal session to `clau
 - `ork:doctor`: Diagnose configuration issues
 ## References
 
-Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/configure/references/<file>")`:
+Load on demand with `Read("references/<file>")`:
 | File | Content |
 |------|---------|
 | `references/presets.md` | Preset definitions |

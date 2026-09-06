@@ -142,7 +142,7 @@ TaskUpdate(taskId="2", status="completed")    # When done — repeat for each su
 
 ### Phase 1: Pre-Flight Checks
 
-Load: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/create-pr/rules/preflight-validation.md")` for the full checklist.
+Load: `Read("rules/preflight-validation.md")` for the full checklist.
 
 ```bash
 BRANCH=$(git branch --show-current)
@@ -155,7 +155,7 @@ git rev-parse --verify "origin/$BRANCH" &>/dev/null || git push -u origin "$BRAN
 
 ### Phase 2: Parallel Validation (Feature/Bug fix PRs)
 
-Launch agents in ONE message. Load `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/create-pr/references/parallel-validation.md")` for full agent configs.
+Launch agents in ONE message. Load `Read("references/parallel-validation.md")` for full agent configs.
 
 | PR Type | Agents to launch |
 |---------|-----------------|
@@ -200,7 +200,7 @@ If the ledger doesn't exist or is empty, skip this step — create PR normally.
 
 ### Phase 4: Create PR
 
-Follow `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/create-pr/rules/pr-title-format.md")` and `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/create-pr/rules/pr-body-structure.md")`. Use HEREDOC pattern from `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/create-pr/references/pr-body-templates.md")`.
+Follow `Read("rules/pr-title-format.md")` and `Read("rules/pr-body-structure.md")`. Use HEREDOC pattern from `Read("references/pr-body-templates.md")`.
 
 Include agent attribution sections (from Phase 3b) after the Test Plan section in the PR body.
 
@@ -354,7 +354,7 @@ before `gh pr merge` or arming `--auto`. Skip only when the repo has no `.codera
 the PR is still a draft.
 
 ```bash
-H="${CLAUDE_PLUGIN_ROOT}/skills/create-pr/scripts/coderabbit-harvest.sh"
+H="${CLAUDE_SKILL_DIR}/scripts/coderabbit-harvest.sh"
 PR_NUMBER=$(gh pr view --json number -q .number)
 bash "$H" "$PR_NUMBER" --unresolved > /tmp/cr-threads.json   # ONE GraphQL call, coderabbitai only
 jq length /tmp/cr-threads.json                                  # 0 → see below, then merge
@@ -369,7 +369,7 @@ the app is either uninstalled on the `yonatangross` account or disabled account-
 Note what that verdict does NOT say: absence never proves absence from a session, only the
 settings page separates those two. The first time a repo's harvest returns zero,
 disambiguate with
-`Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/create-pr/references/coderabbit-zero-reviews.md")`:
+`Read("references/coderabbit-zero-reviews.md")`:
 it carries the two-endpoint query, the positive control that keeps a zero honest, and the
 operator steps for the installation grant. Editing `.coderabbit.yaml` cannot fix an app
 that was never installed.
@@ -451,7 +451,7 @@ If the `AskUserQuestion` picker stalls (schema break, not a CC input bug — orc
 
 ## References
 
-Load on demand with `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/create-pr/references/&lt;file&gt;")`:
+Load on demand with `Read("references/&lt;file&gt;")`:
 | File | Content |
 |------|---------|
 | `references/pr-body-templates.md` | PR body templates |

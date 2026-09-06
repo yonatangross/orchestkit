@@ -352,7 +352,7 @@ Bash(command=f"node ${{CLAUDE_PLUGIN_ROOT}}/skills/dream/scripts/index-budget.mj
 # .MEMORY.md.prev, move the lines to MEMORY-ARCHIVE.md, rewrite the trailer, re-verify (exit 1 on failure).
 ```
 
-Rule, never-move set, exhausted-candidates fallback: `Read("${CLAUDE_PLUGIN_ROOT}/skills/dream/references/index-budget.md")`.
+Rule, never-move set, exhausted-candidates fallback: `Read("references/index-budget.md")`.
 
 
 ## STEP 6: Report

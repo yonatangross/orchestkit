@@ -84,8 +84,8 @@ const isVendored = (rel) =>
 // Placeholder anchors (#3822): a bare CLAUDE_PLUGIN_ROOT or CLAUDE_SKILL_DIR is a
 // Claude Code idiom any plugin can carry, and CLAUDE_SKILL_DIR is a documented CC
 // substitution now, so neither is "ours" on its own. What is ours is a plugin-root
-// path INTO this layout: skills/<ork-skill>/, shared/, hooks/. Same-skill refs are
-// moving to bare relative paths (step 2 codemod); cross-skill and shared refs keep
+// path INTO this layout: skills/<ork-skill>/, shared/, hooks/. Same-skill refs
+// moved to bare relative paths (#3822 step 2 codemod); cross-skill and shared refs keep
 // the plugin-root form, so this anchor survives the migration. Verified on the
 // swap: the ORPHAN/RESTATEMENT/OVERLAP report was byte-identical before and after.
 const ORK_ANCHOR = new RegExp(

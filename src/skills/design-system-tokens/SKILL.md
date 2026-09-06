@@ -128,21 +128,21 @@ Key advantage: adjusting lightness channel alone creates accessible shade scales
 
 Each rule file contains incorrect/correct code pairs and implementation guidance.
 
-Read("${CLAUDE_PLUGIN_ROOT}/skills/design-system-tokens/rules/tokens-w3c-format.md")
+Read("rules/tokens-w3c-format.md")
 
-Read("${CLAUDE_PLUGIN_ROOT}/skills/design-system-tokens/rules/tokens-contrast-enforcement.md")
+Read("rules/tokens-contrast-enforcement.md")
 
-Read("${CLAUDE_PLUGIN_ROOT}/skills/design-system-tokens/rules/tokens-three-tier.md")
+Read("rules/tokens-three-tier.md")
 
-Read("${CLAUDE_PLUGIN_ROOT}/skills/design-system-tokens/rules/tokens-oklch-color.md")
+Read("rules/tokens-oklch-color.md")
 
-Read("${CLAUDE_PLUGIN_ROOT}/skills/design-system-tokens/rules/tokens-spacing-depth.md")
+Read("rules/tokens-spacing-depth.md")
 
-Read("${CLAUDE_PLUGIN_ROOT}/skills/design-system-tokens/rules/tokens-style-dictionary.md")
+Read("rules/tokens-style-dictionary.md")
 
-Read("${CLAUDE_PLUGIN_ROOT}/skills/design-system-tokens/rules/tokens-theming-darkmode.md")
+Read("rules/tokens-theming-darkmode.md")
 
-Read("${CLAUDE_PLUGIN_ROOT}/skills/design-system-tokens/rules/tokens-versioning.md")
+Read("rules/tokens-versioning.md")
 
 ## Style Dictionary Integration
 

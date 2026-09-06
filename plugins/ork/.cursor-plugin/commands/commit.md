@@ -214,21 +214,21 @@ Each category has individual rule files in `rules/` loaded on-demand:
 
 | Category | Rule | Impact | Key Pattern |
 |----------|------|--------|-------------|
-| Atomic Commits | `${CLAUDE_PLUGIN_ROOT}/skills/commit/rules/atomic-commit.md` | CRITICAL | One logical change per commit, atomicity test |
-| Branch Protection | `${CLAUDE_PLUGIN_ROOT}/skills/commit/rules/branch-protection.md` | CRITICAL | Protected branches, required PR workflow |
-| Commit Splitting | `${CLAUDE_PLUGIN_ROOT}/skills/commit/rules/commit-splitting.md` | HIGH | `git add -p`, interactive staging, separation strategies |
-| Conventional Format | `${CLAUDE_PLUGIN_ROOT}/skills/commit/rules/conventional-format.md` | HIGH | type(scope): description, breaking changes |
-| History Hygiene | `${CLAUDE_PLUGIN_ROOT}/skills/commit/rules/history-hygiene.md` | HIGH | Squash WIP, fixup commits, clean history |
-| Issue Reference | `${CLAUDE_PLUGIN_ROOT}/skills/commit/rules/issue-reference-required.md` | HIGH | Reference issue `#N` in commits on issue branches |
-| Merge Strategy | `${CLAUDE_PLUGIN_ROOT}/skills/commit/rules/merge-strategy.md` | HIGH | Rebase-first, conflict resolution, force-with-lease |
-| Stacked PRs | `${CLAUDE_PLUGIN_ROOT}/skills/commit/rules/stacked-pr-workflow.md` | HIGH | Stack planning, PR creation, dependency tracking |
-| Stacked PRs | `${CLAUDE_PLUGIN_ROOT}/skills/commit/rules/stacked-pr-rebase.md` | HIGH | Rebase management, force-with-lease, retargeting |
+| Atomic Commits | `rules/atomic-commit.md` | CRITICAL | One logical change per commit, atomicity test |
+| Branch Protection | `rules/branch-protection.md` | CRITICAL | Protected branches, required PR workflow |
+| Commit Splitting | `rules/commit-splitting.md` | HIGH | `git add -p`, interactive staging, separation strategies |
+| Conventional Format | `rules/conventional-format.md` | HIGH | type(scope): description, breaking changes |
+| History Hygiene | `rules/history-hygiene.md` | HIGH | Squash WIP, fixup commits, clean history |
+| Issue Reference | `rules/issue-reference-required.md` | HIGH | Reference issue `#N` in commits on issue branches |
+| Merge Strategy | `rules/merge-strategy.md` | HIGH | Rebase-first, conflict resolution, force-with-lease |
+| Stacked PRs | `rules/stacked-pr-workflow.md` | HIGH | Stack planning, PR creation, dependency tracking |
+| Stacked PRs | `rules/stacked-pr-rebase.md` | HIGH | Rebase management, force-with-lease, retargeting |
 
 **Total: 9 rules across 8 categories**
 
 ## References
 
-Load on demand with `Read("${CLAUDE_PLUGIN_ROOT}/skills/commit/references/<file>")`:
+Load on demand with `Read("references/<file>")`:
 | File | Content |
 |------|---------|
 | `references/conventional-commits.md` | Conventional commits specification |

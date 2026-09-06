@@ -15,6 +15,21 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "skill-dir-codemod",
+    "title": "Three path forms, one that every client resolves: the #3822 skill-path codemod",
+    "description": "106 OrchestKit skills carried 497 ${CLAUDE_PLUGIN_ROOT} references; pi and every Agent Skills client delivered them to the model as literal text. Pick a client and a path form to see what the model actually receives, then compare the census before and after the codemod that rewrote 424 same-skill references to bare relative paths.",
+    "tags": [
+      "skills",
+      "portability",
+      "codemod",
+      "agent-skills"
+    ],
+    "date": "2026-09-06",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 10
+  },
+  {
     "slug": "feat--gate-marker-audit",
     "title": "Gate fault-arm audit: 37 CI gates that passed on absent input",
     "description": "Every orchestkit CI gate run twice, once with its input present and once with it removed, emptied or mis-rooted. 68 gates: 37 passed on nothing and now fail closed, 26 were sound, 2 are by design, 1 filed. Before/after flow of the #3933 shape, the full gate table with measured exit codes, and the milestone path this PR feeds.",

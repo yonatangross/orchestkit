@@ -194,7 +194,7 @@ What each consumer does with the form (measured 2026-08-30 on CC 2.1.251 with a 
 
 Rules that follow from the matrix:
 
-- Same-skill references are bare relative. `${CLAUDE_PLUGIN_ROOT}/skills/<this-skill>/...` inside that skill's own SKILL.md works in Claude Code and nowhere else; it is being migrated (#3822 step 2) and `tests/skills/structure/test-placeholder-validity.sh` counts what is left.
+- Same-skill references are bare relative. `${CLAUDE_PLUGIN_ROOT}/skills/<this-skill>/...` inside that skill's own SKILL.md works in Claude Code and nowhere else; `tests/skills/structure/test-placeholder-validity.sh` fails on it, and `node scripts/codemod/skill-paths-relative.mjs` rewrites it (read shapes to bare relative, exec shapes to `${CLAUDE_SKILL_DIR}`). The one exception is a skill naming its own `SKILL.md` load path for agents (#3313).
 - Cross-skill and `shared/` references keep `${CLAUDE_PLUGIN_ROOT}`. There is no portable form for those today; add a one-line note near the first use if the skill is expected to run outside Claude Code.
 - Every referenced file must exist. The placeholder gate resolves all three forms against the tree and fails on a missing target, in both `Read("...")` and markdown-link shape.
 - Any other `${CLAUDE_*}` name is undocumented and delivered literally. The gate blocks it.
