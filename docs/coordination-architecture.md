@@ -28,10 +28,10 @@ All coordination state lives **outside `.claude/`**, under
 
 | Layer | Store | Written by | Purpose |
 |-------|-------|-----------|---------|
-| 1. Session registry + locks | `sessions.db` (SQLite) | `lifecycle/session-registrar` (SessionStart), `session-finalizer` (SessionEnd) | Live session table + named locks with TTL |
-| 2. Settings overrides | `sessions.db` `settings_overrides` | per-session writers | Per-session config deltas |
+| 1. Session registry | `sessions.db` (SQLite) | `lifecycle/session-registrar` (SessionStart), `session-finalizer` (SessionEnd), `posttool/heartbeat` (PostToolUse) | Live session table |
+| 2. Settings overrides | removed (#3353, migration 005) | none | The `settings_overrides` table never held a row; per-session effort and model are CC-native now |
 | 3. Event stream | `events.jsonl` | `stop/goal-convergence-emitter`, `posttool/chain-staleness-checker` | Append-only coordination events |
-| 4. Worktree advisory | `sessions.db` `worktree_links` | `worktree/enter-registrar` (WorktreeCreate), `worktree/exit-finalizer` (WorktreeRemove) | Parent↔child worktree links + result hand-back |
+| 4. Worktree advisory | removed (#3315 retired the writers, #3353 dropped `worktree_links`) | none | Worktree provisioning is CC-native |
 | Analytics | `sessions.db` `skill_invocation` | `recordInvocation()` | Skill usage (#2010) |
 | Telemetry | `coordination-metrics.jsonl` | `lib/metrics-emitter` (#1915) | Async `sessions.db` write counters |
 
@@ -40,10 +40,8 @@ All coordination state lives **outside `.claude/`**, under
 Migrations live in `src/hooks/src/lib/sqlite-migrations/`:
 
 - **sessions** (`sid` PK) — pid, cwd, repo_hash, repo_path, worktree_path, branch, parent_sid, status, started_at, last_heartbeat, ended_at, cc_version, ork_version
-- **locks** (`name` PK) — holder_sid (FK), acquired_at, expires_at
-- **settings_overrides** (`sid`+`key` PK) — value, set_at
-- **worktree_links** (`child_sid` PK) — parent_sid (FK), purpose, created_at, result_status, result_payload
 - **skill_invocation** — session_id (FK), skill, invoked_at
+- `locks`, `settings_overrides` and `worktree_links` were declared in 001 and dropped in 005 (#3353): 0 rows ever written, no production writer.
 
 ### Write discipline
 
@@ -89,8 +87,7 @@ Opt out with `ORK_DISABLE_COORDINATION_METRICS=1`.
 ```bash
 DB="$HOME/.local/state/orchestkit/sessions.db"
 sqlite3 "$DB" "SELECT sid, status, branch FROM sessions WHERE status='running'"
-sqlite3 "$DB" "SELECT name, holder_sid, expires_at FROM locks"
-sqlite3 "$DB" "SELECT child_sid, parent_sid, result_status FROM worktree_links"
+sqlite3 "$DB" "SELECT skill, COUNT(*) FROM skill_invocation GROUP BY skill ORDER BY 2 DESC LIMIT 10"
 ```
 
 Or run `/ork:telemetry-inspect` for a health summary. See also

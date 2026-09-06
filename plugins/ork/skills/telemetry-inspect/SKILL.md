@@ -129,8 +129,6 @@ The SQLite coordination layer lives **outside `.claude/`**, at `~/.local/state/o
 DB="$HOME/.local/state/orchestkit/sessions.db"
 [ -f "$DB" ] || echo "coordination layer idle (no multi-session activity yet)"
 sqlite3 "$DB" "SELECT COUNT(*) FROM sessions WHERE status='running'"                  # live sessions
-sqlite3 "$DB" "SELECT COUNT(*) FROM locks WHERE expires_at > strftime('%s','now')"    # held locks
-sqlite3 "$DB" "SELECT COUNT(*) FROM worktree_links WHERE result_status IS NULL"       # pending worktrees
 sqlite3 "$DB" "SELECT COUNT(*) FROM skill_invocation"                                 # skill invocations
 ```
 

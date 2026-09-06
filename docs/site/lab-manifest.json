@@ -2,6 +2,18 @@
   "$comment": "Allowlist for the Lab gallery (docs/showcase/lab). Only entries listed here are copied to public/lab/ and surfaced on the site. `source` is repo-root-relative. Title/description here OVERRIDE what generate-lab-data.mjs extracts from the HTML <head>. Run `node docs/site/scripts/generate-lab-data.mjs` after editing.",
   "entries": [
     {
+      "slug": "unused-tables-verdict",
+      "source": "docs/chore--3353-unused-tables-verdict/index.html",
+      "title": "Zero rows is not dead code: three tables, one live reader, one wrong register row",
+      "description": "Three SQLite tables that never held a row, one read on every tool call by a hook costing 46 ms per PreToolUse for a file nothing consumed. Reader and schema removed together, an orphan validator deleted, and the register row that called last_heartbeat dead refuted at HEAD. Includes a per-session cost slider.",
+      "tags": [
+        "hooks",
+        "measurement",
+        "false-signals"
+      ],
+      "date": "2026-09-06"
+    },
+    {
       "slug": "cc-release-gaps-262-263",
       "source": "docs/feat--adopt-cc-262-263/release-gaps.html",
       "title": "A build number is not a release: CC 2.1.250 to 2.1.263",

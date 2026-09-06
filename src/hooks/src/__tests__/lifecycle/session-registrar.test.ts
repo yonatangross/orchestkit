@@ -412,33 +412,4 @@ describe('lifecycle/session-registrar (#1912)', () => {
     db.close();
     expect(peers).toEqual([]);
   });
-
-  it('sweeps expired locks', () => {
-    // Seed an active session + expired lock + non-expired lock.
-    const db = openDb();
-    const now = Math.floor(Date.now() / 1000);
-    db.prepare(
-      `INSERT INTO sessions (sid, pid, cwd, repo_hash, repo_path, started_at, last_heartbeat)
-       VALUES ('s-holder', 1, '/x', 'h', '/x', ?, ?)`,
-    ).run(now, now);
-    db.prepare(
-      `INSERT INTO locks (name, holder_sid, acquired_at, expires_at)
-       VALUES ('expired', 's-holder', ?, ?)`,
-    ).run(now - 1000, now - 100);
-    db.prepare(
-      `INSERT INTO locks (name, holder_sid, acquired_at, expires_at)
-       VALUES ('alive', 's-holder', ?, ?)`,
-    ).run(now, now + 1000);
-    db.close();
-    __resetDbForTests();
-
-    sessionRegistrar(makeInput('s-new', workDir), NOOP_CTX);
-
-    const db2 = new DatabaseSync(dbPath, { readOnly: true });
-    const names = (db2
-      .prepare('SELECT name FROM locks ORDER BY name')
-      .all() as { name: string }[]).map(r => r.name);
-    db2.close();
-    expect(names).toEqual(['alive']);
-  });
 });

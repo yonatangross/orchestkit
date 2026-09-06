@@ -59,6 +59,20 @@ export const LAB_ENTRIES: LabEntry[] = [
     "sizeKb": 13
   },
   {
+    "slug": "unused-tables-verdict",
+    "title": "Zero rows is not dead code: three tables, one live reader, one wrong register row",
+    "description": "Three SQLite tables that never held a row, one read on every tool call by a hook costing 46 ms per PreToolUse for a file nothing consumed. Reader and schema removed together, an orphan validator deleted, and the register row that called last_heartbeat dead refuted at HEAD. Includes a per-session cost slider.",
+    "tags": [
+      "hooks",
+      "measurement",
+      "false-signals"
+    ],
+    "date": "2026-09-06",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 9
+  },
+  {
     "slug": "function-hooks-adoption-gate",
     "title": "Observed is not shipped: the Function Hooks adoption gate",
     "description": "Choose private prototype, upstream closure, or public shipment evidence to see why OrchestKit remains watch-only until a supported Function Hooks contract actually ships.",

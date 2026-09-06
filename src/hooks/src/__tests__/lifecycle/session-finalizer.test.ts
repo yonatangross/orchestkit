@@ -4,8 +4,7 @@
 /**
  * Tests for the SessionEnd finalizer hook (#1912).
  *
- * Verifies the UPDATE flips status='completed' and stamps ended_at, with
- * CASCADE on settings_overrides confirmed via a foreign-key-driven delete.
+ * Verifies the UPDATE flips status='completed' and stamps ended_at.
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';

@@ -326,10 +326,6 @@ tests/plugins/test-plugin-json-schema.sh ==> ".$field // empty"
 # $event is a key read from the repo's own checked-in plugin.json
 tests/plugins/test-plugin-json-schema.sh ==> ".hooks[\"$event\"][] | .hooks[]? // . | select(.type == \"command\" and .command == null) | \"$event\""
 tests/plugins/test-plugin-json-schema.sh ==> ".hooks[\"$event\"][] | .hooks[]? // . | select(.type == \"http\" and .url == null) | \"$event\""
-# $plugin_name is read from the repo's own checked-in marketplace.json
-tests/plugins/validate-all.sh ==> ".plugins[] | select(.name == \"$plugin_name\") | .source"
-# $dir_name is a basename of a directory under plugins/, repo-controlled
-tests/plugins/validate-all.sh ==> ".plugins[] | select(.name == \"$dir_name\") | .name // empty"
 # $field iterates the literal list `name version description plugins`
 tests/schemas/test-marketplace-schema.sh ==> ".$field // empty"
 # $i is the integer index from `seq 0 $((plugin_count - 1))`

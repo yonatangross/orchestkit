@@ -482,7 +482,9 @@ describe('Cross-Bundle Consistency', () => {
     //             @deprecated no-op prompt/profile-injector map slot (no
     //             hooks.json entry ever existed; materializeProfileRules()
     //             from SessionStart is the live path and is unchanged).
-    expect(totalHooks).toBe(183); // 186 - 2 (#3835 wave 4) - 1 (profile-injector dead slot)
+    // 183 -> 182: #3353 — pretool/settings-override-resolver deleted with its
+    //              settings_overrides table (0 rows ever, snapshot had no reader).
+    expect(totalHooks).toBe(182); // 183 - 1 (#3353 settings-override-resolver)
   });
 });
 

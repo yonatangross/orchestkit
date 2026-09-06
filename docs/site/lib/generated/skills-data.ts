@@ -4428,7 +4428,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "telemetry-inspect",
     "description": "Inspects the OrchestKit telemetry pipeline for the current project — lists all known telemetry files with write counts, sizes, schema status, growth trend, and orphan detection. Use when verifying the observability pipeline is healthy, debugging a missing writer, or auditing which files have schema locks vs. which are drift-vulnerable. Read-only — never modifies telemetry files.",
     "version": "1.0.0",
-    "sha256": "05b8e8c4f676539ce1376997c5969f46330a24aadb7221cc88a296f8337face6",
+    "sha256": "4f4c4a8ca03eed5003d4662ab5612cf9d75230cfc42d95c88181eef30c485197",
     "author": "OrchestKit",
     "tags": [
       "telemetry",
