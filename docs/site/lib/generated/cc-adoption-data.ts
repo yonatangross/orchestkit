@@ -16,6 +16,18 @@ export interface AdoptionWave {
 
 export const ADOPTION_WAVES: AdoptionWave[] = [
   {
+    "version": "2.1.263",
+    "features": [
+      {
+        "slug": "bug_fixes_only_263",
+        "category": "new_attr",
+        "description": "The entire 2.1.263 changelog is one bullet, \"Bug fixes and reliability improvements\", with no enumerated fixes. Nothing names a settings key, hook event, tool, permission surface, CLI flag or model id.",
+        "gapScore": 0,
+        "affectedSkills": []
+      }
+    ]
+  },
+  {
     "version": "2.1.261",
     "features": [
       {
@@ -3067,10 +3079,10 @@ export const ADOPTION_WAVES: AdoptionWave[] = [
 
 export const CC_SUPPORT = {
   latest: "2.1.251",
-  latestKnown: "2.1.261",
+  latestKnown: "2.1.263",
   supportedFloor: "2.1.251",
   policy: "latest + 3 previous minors",
 } as const;
 
 /** sha256 (first 12 hex) of the two source files above, in that order. */
-export const SOURCE_DIGEST = "6b03563bb372" as const;
+export const SOURCE_DIGEST = "0660e0441a69" as const;
