@@ -107,6 +107,11 @@ else
     done < <(find "$skills_dir" -maxdepth 2 -name "SKILL.md" -type f 2>/dev/null)
 
     echo -e "  ${GREEN}Found${NC}: $total_skills src/skills"
+    if [[ $total_skills -eq 0 ]]; then
+        # Zero discovered skills printed next to PASSED (gate-fault-arm audit 2026-09-06).
+        echo -e "  ${RED}FAIL${NC}: zero skills discovered; the plugin ships none or the path is wrong"
+        FAILED=$((FAILED + 1))
+    fi
     echo "    - User-invocable: ${#user_invocable_skills[@]}"
     echo "    - Internal: ${#internal_skills[@]}"
 
@@ -162,6 +167,10 @@ else
     done
 
     echo -e "  ${GREEN}Found${NC}: $agent_count agents"
+    if [[ $agent_count -eq 0 ]]; then
+        echo -e "  ${RED}FAIL${NC}: zero agents discovered; the plugin ships none or the path is wrong"
+        FAILED=$((FAILED + 1))
+    fi
     echo ""
     echo "  Available agents (via Task tool subagent_type):"
     for agent in "${agent_names[@]:0:5}"; do

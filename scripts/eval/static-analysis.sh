@@ -560,6 +560,24 @@ $JSON_ONLY || echo -e "  Total: $TOTAL  |  ${GREEN}Passed: $PASS_COUNT${NC}  |  
 $JSON_ONLY || echo -e "  Duration: ${DURATION}ms"
 $JSON_ONLY || echo -e "  Results: $RESULTS_FILE"
 
+# Corpus floor. Every section above is a "did we find anything bad" scan over
+# a loop, so ZERO skills and ZERO agents produced a result file that read as a
+# clean run (gate-fault-arm audit 2026-09-06, the plainest #3933 instance in
+# this repo). A scan over nothing has verified nothing. A missing dir yields an
+# empty glob here and therefore a zero, which is the failure we want.
+corpus_skills=0
+for corpus_f in "$SKILLS_DIR"/*/SKILL.md; do
+  [[ -f "$corpus_f" ]] && corpus_skills=$((corpus_skills + 1))
+done
+corpus_agents=0
+for corpus_f in "$AGENTS_DIR"/*.md; do
+  [[ -f "$corpus_f" ]] && corpus_agents=$((corpus_agents + 1))
+done
+if [[ "$corpus_skills" -eq 0 || "$corpus_agents" -eq 0 ]]; then
+  $JSON_ONLY || echo -e "  ${RED}FAIL${NC}: corpus is empty (${corpus_skills} skills, ${corpus_agents} agents); nothing was analyzed"
+  exit 1
+fi
+
 # Exit with failure if any checks failed
 if [[ $FAIL_COUNT -gt 0 ]]; then
   exit 1

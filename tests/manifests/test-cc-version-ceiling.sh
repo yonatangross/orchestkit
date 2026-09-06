@@ -85,7 +85,12 @@ while IFS= read -r f; do
     done
 done < <(find "$PROJECT_ROOT/src/skills" "$PROJECT_ROOT/src/agents" -name '*.md' ! -name 'README.md')
 
-if [[ $violations -eq 0 ]]; then
+# The comparator self-test above proves the check CAN fire; this proves it had
+# a corpus to fire on. Zero scanned files (moved src/, wrong CLAUDE_PROJECT_DIR)
+# used to log a PASS "across 0 authored file(s)" (gate-fault-arm audit 2026-09-06).
+if [[ $scanned -eq 0 ]]; then
+    log_fail "corpus" "zero authored files found under src/skills and src/agents; nothing was scanned"
+elif [[ $violations -eq 0 ]]; then
     log_pass "no CC version above ceiling across $scanned authored file(s)"
 fi
 

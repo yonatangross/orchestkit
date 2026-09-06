@@ -126,6 +126,15 @@ jobs:
         env:
           BASE_REF: ${{ github.base_ref }}
         run: |
+          # A PR with zero changed files cannot exist, so an empty list means the
+          # diff base was wrong. It used to make the grep below swallow rc 1 into
+          # an empty violations string and clear the PR (gate-fault-arm audit
+          # 2026-09-06).
+          if [[ ! -s /tmp/changed.txt ]]; then
+            echo "::error::changed-file list is empty; refusing to clear the PR against release-please-governed files."
+            exit 1
+          fi
+
           # Use grep -F -f to find lines from governed.txt present in changed.txt.
           # An empty match list = clean PR; any match = violation.
           violations=$(grep -F -x -f /tmp/governed.txt /tmp/changed.txt || true)

@@ -66,7 +66,14 @@ NODE_OUT=$(node -e '
   }
   visit(root, "$");
   if (offenders.length === 0) {
-    console.log("OK: " + countArgsEntries(root) + " entries in args[] form, 0 in legacy string form");
+    const n = countArgsEntries(root);
+    // Zero entries is an empty or wrong hooks.json, not a clean one: the walker
+    // had nothing to judge (gate-fault-arm audit 2026-09-06: `{}` exited 0).
+    if (n === 0) {
+      console.error("FAIL: hooks.json declares 0 hook entries; nothing was checked");
+      process.exit(1);
+    }
+    console.log("OK: " + n + " entries in args[] form, 0 in legacy string form");
     process.exit(0);
   }
   console.error("FAIL: " + offenders.length + " entr" + (offenders.length === 1 ? "y" : "ies") + " still in legacy string form:");

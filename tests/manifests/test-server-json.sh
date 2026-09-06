@@ -81,8 +81,20 @@ if jq -e 'has("packages") and (.packages | length > 0)' "$SERVER_JSON" >/dev/nul
   else
     fail "Dockerfile io.modelcontextprotocol.server.name ('$LABEL_NAME') != server.json name ('$SERVER_NAME') — registry publish validates this pair"
   fi
-else
+elif [ -f "$REPO_ROOT/Dockerfile" ] && grep -q 'io.modelcontextprotocol.server.name=' "$REPO_ROOT/Dockerfile"; then
+  # The Dockerfile publishes an OCI image, so packages[] is not optional here:
+  # dropping it (or emptying it) silently retired the OCI shape check AND the
+  # Dockerfile label check while the run stayed green
+  # (gate-fault-arm audit 2026-09-06, the #3933 empty-array shape).
+  fail "server.json has no packages[] but Dockerfile carries the MCP OCI label; the shape checks had nothing to check"
+elif [ "$(jq -r '(.remotes // []) | length' "$SERVER_JSON")" -gt 0 ]; then
   pass "no packages[] — remotes-only manifest, shape checks skipped"
+else
+  # Neither packages[] nor remotes[]: the manifest publishes nothing, and the
+  # OCI shape + Dockerfile label checks were silently retired along with it.
+  # `del(.packages)` and `packages: []` both exited 0 here before
+  # (gate-fault-arm audit 2026-09-06, the #3933 empty-array shape).
+  fail "server.json has neither packages[] nor remotes[]; the shape checks had nothing to check"
 fi
 
 echo ""

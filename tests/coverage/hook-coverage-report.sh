@@ -135,6 +135,16 @@ fi
 # ============================================================================
 # FALLBACK: grep-based heuristic (no coverage JSON available)
 # ============================================================================
+# In CI the vitest coverage step always writes the JSON, so reaching this
+# boundary there means the measurement step broke. The heuristic only asks
+# whether a test file NAME matches each hook; measured 2026-09-06 it reported
+# 96% against 88% real line coverage and would score a suite that asserts
+# nothing just as high. ORK_COVERAGE_REQUIRE_JSON=1 (set in ci.yml) refuses to
+# degrade; local runs without the flag still get the heuristic.
+if [[ "${ORK_COVERAGE_REQUIRE_JSON:-0}" == "1" ]]; then
+    echo -e "  ${RED}coverage-summary.json not found at $COVERAGE_JSON and ORK_COVERAGE_REQUIRE_JSON=1; refusing to fall back to the name-match heuristic${NC}"
+    exit 1
+fi
 echo -e "  ${YELLOW}Source: grep-based heuristic (coverage-summary.json not found)${NC}"
 echo ""
 

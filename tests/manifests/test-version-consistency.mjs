@@ -58,6 +58,13 @@ const expected = pkg.version;
 const lockTop = lock.version;
 const lockRoot = lock.packages?.['']?.version;
 
+// Both sides absent compared equal (undefined === undefined) and logged a
+// PASS reading "matches package.json (undefined)" (gate-fault-arm audit
+// 2026-09-06). A missing version is a failure, not a match.
+if (typeof expected !== 'string' || expected.length === 0) {
+  fail('package.json has no version string; nothing to compare');
+}
+
 if (lockTop === expected) {
   pass(`package-lock.json $.version matches package.json (${expected})`);
 } else {

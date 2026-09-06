@@ -77,6 +77,11 @@ const rows = fs.readFileSync(timing, 'utf8').trim().split('\n').map((l) => { try
 const ran = [...new Set(rows.map((r) => r.hook))].sort();
 const failed = [...new Set(rows.filter((r) => r.ok === false).map((r) => r.hook))].sort();
 const expected = fs.readFileSync(expectedFile, 'utf8').split('\n').map((s) => s.trim()).filter((s) => s && !s.startsWith('#')).sort();
+// A timing file that is non-empty in bytes but has zero parseable rows passed
+// the -s guard above and then matched the (empty) expected set. Zero hooks
+// fired means the plugin did not load, which is never a pass
+// (gate-fault-arm audit 2026-09-06, guard added unexercised: see the audit).
+if (ran.length === 0) { console.log('FAIL: zero plugin hooks parsed from hook-timing.jsonl; the plugin did not load or the log is corrupt'); process.exit(1); }
 console.log(`PASS: ${ran.length} distinct plugin hooks fired under --restricted (${rows.length} entries)`);
 console.log('hooks: ' + ran.join(' '));
 const same = JSON.stringify(failed) === JSON.stringify(expected);

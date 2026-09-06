@@ -46,6 +46,13 @@ jobs:
 
       - name: Validate no symlinks
         run: |
+          # A missing plugins/ made `find` print to stderr and pipe nothing, so
+          # grep saw zero matches and the step passed with nothing to inspect
+          # (gate-fault-arm audit 2026-09-06).
+          if [ ! -d plugins ]; then
+            echo "::error::plugins/ is missing; the build did not produce it"
+            exit 1
+          fi
           if find plugins/ -type l | grep -q .; then
             echo "ERROR: Found symlinks in plugins/"
             exit 1
@@ -91,6 +98,17 @@ jobs:
       - name: Check for uncommitted build changes
         run: |
           GENERATED=(plugins/ ':!plugins/ork/hooks/dist' README.md docs/site/lib/generated/ plugin.json)
+          # `git diff` does not error on a pathspec that matches nothing, so a
+          # roster entry naming a moved or deleted path contributed nothing and
+          # the gate stayed green (gate-fault-arm audit 2026-09-06). Every
+          # positive entry must exist before the diff is trusted.
+          for p in "${GENERATED[@]}"; do
+            case "$p" in :!*) continue ;; esac
+            if [ ! -e "$p" ]; then
+              echo "::error::Generated-file roster names a missing path: $p (moved? update the roster in the same PR)"
+              exit 1
+            fi
+          done
           if ! git diff --quiet -- "${GENERATED[@]}"; then
             echo "::error::Build drift detected! Run 'npm run build' and commit the changes (${GENERATED[*]})."
             git diff --stat -- "${GENERATED[@]}"
@@ -111,6 +129,15 @@ jobs:
         run: |
           set -uo pipefail
           DIST=(src/hooks/dist plugins/ork/hooks/dist)
+          # Both bundle dirs must exist: an unmatched pathspec makes every diff
+          # below empty, which read as "bundles untouched" (gate-fault-arm
+          # audit 2026-09-06).
+          for d in "${DIST[@]}"; do
+            if [[ ! -d "$d" ]]; then
+              echo "::error::Hook bundle directory missing: $d (the build step above should have produced it)"
+              exit 1
+            fi
+          done
           if [[ "$HEAD_REF" == release-please--* ]]; then
             if ! git diff --quiet -- "${DIST[@]}"; then
               echo "::error::Release branch carries stale hook bundles. release-please.yml's rebuild step has not landed on this head yet; it re-runs on every push to main, so re-check after the next run or dispatch release-please.yml."
@@ -422,15 +449,26 @@ jobs:
           echo "::notice::$(awk 'NF{n++} END{print n+0}' "$SOURCES") entries registered in the Lab manifest"
 
           UNREGISTERED=0
+          SEEN=0
           while IFS= read -r html; do
             [ -n "$html" ] || continue
+            SEEN=$((SEEN+1))
             # grep against a FILE, never a pipe: `-q` early-exits and would
             # SIGPIPE a producer, flipping the test under pipefail (#603).
             if ! grep -Fxq "$html" "$SOURCES"; then
               echo "::error::Playground not published: ${html}"
               UNREGISTERED=$((UNREGISTERED+1))
             fi
-          done < <(find "$DOCS_DIR" -name '*.html' | sort)
+          done < <(find "$DOCS_DIR" -name '*.html' 2>/dev/null | sort)  # silent: a missing dir is caught by SEEN below
+
+          # The step above already fails on a missing dir or zero pages, but this
+          # loop must not depend on that ordering: with zero .html the loop never
+          # ran and printed "All playground files ... are registered"
+          # (gate-fault-arm audit 2026-09-06).
+          if [ "$SEEN" -eq 0 ]; then
+            echo "::error::No .html found under ${DOCS_DIR}/; nothing to verify against the Lab manifest."
+            exit 1
+          fi
 
           if [ "$UNREGISTERED" -gt 0 ]; then
             echo "::error::${UNREGISTERED} playground file(s) are not registered in ${MANIFEST}."
@@ -974,6 +1012,10 @@ jobs:
           # coverage-summary.json (real lines ≈84% as of 2026-07; the ~73% note
           # in vitest.config.ts is stale). Stricter than vitest thresholds.lines=70.
           export COVERAGE_THRESHOLD=75
+          # The step above must have written coverage-summary.json; without it
+          # the report silently swaps to a name-match heuristic that scored 96%
+          # on an 88% tree (gate-fault-arm audit 2026-09-06). Refuse to degrade.
+          export ORK_COVERAGE_REQUIRE_JSON=1
           bash tests/coverage/hook-coverage-report.sh | tee coverage-report.txt
 
       - name: Upload coverage report

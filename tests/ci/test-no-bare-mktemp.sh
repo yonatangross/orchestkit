@@ -49,8 +49,15 @@ for f in sys.stdin.read().split():
             print(f"{f}:{i}:{line.strip()[:80]}")
 ')
 
-if [ -z "$HITS" ]; then
-    echo "  PASS: no bare mktemp on the CI-executed surface"
+# Zero files listed is an empty index or a wrong cwd, and it is byte-identical
+# to a clean scan (gate-fault-arm audit 2026-09-06: an offender on disk in an
+# unindexed bin/ printed PASS). The surface is hundreds of files at HEAD.
+SCANNED=$(cd "$REPO_ROOT" && git ls-files tests bin scripts .github | awk 'NF{n++} END{print n+0}')
+if [ "$SCANNED" -lt 50 ]; then
+    echo "  FAIL: git ls-files listed only $SCANNED file(s) under tests bin scripts .github; the scan did not cover the surface"
+    FAILED=1
+elif [ -z "$HITS" ]; then
+    echo "  PASS: no bare mktemp on the CI-executed surface ($SCANNED files scanned)"
 else
     while IFS= read -r h; do
         [ -n "$h" ] || continue

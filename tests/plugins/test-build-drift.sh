@@ -50,6 +50,7 @@ echo "A. Checking skill content drift..."
 for src_skill in "$PROJECT_ROOT"/src/skills/*/SKILL.md; do
     [[ -f "$src_skill" ]] || continue
     skill_name=$(basename "$(dirname "$src_skill")")
+    SKILLS_COMPARED=$((${SKILLS_COMPARED:-0} + 1))
     check_file "$src_skill" "$PLUGIN_DIR/skills/$skill_name/SKILL.md"
 done
 echo "   Skills checked."
@@ -68,6 +69,7 @@ for src_agent in "$PROJECT_ROOT"/src/agents/*.md; do
 
     dest_agent="$PLUGIN_DIR/agents/$agent_name"
     CHECKED=$((CHECKED + 1))
+    AGENTS_COMPARED=$((${AGENTS_COMPARED:-0} + 1))
     if [[ ! -f "$dest_agent" ]]; then
         DRIFTED=$((DRIFTED + 1))
         DRIFTED_FILES+=("MISSING: src/agents/$agent_name -> plugins/ork/agents/$agent_name")
@@ -137,6 +139,14 @@ echo "Build Drift Summary"
 echo "=========================================="
 echo -e "Files checked: ${GREEN}$CHECKED${NC}"
 echo -e "Files drifted: ${RED}$DRIFTED${NC}"
+
+# Corpus floor: an empty src/ tree drops CHECKED to the one hardcoded section
+# and still printed "PASSED: No build drift detected" (gate-fault-arm audit
+# 2026-09-06). Skills alone are over 100 files at HEAD.
+if [[ "${SKILLS_COMPARED:-0}" -eq 0 ]]; then
+    DRIFTED=$((DRIFTED + 1))
+    DRIFTED_FILES+=("VACUOUS: ${SKILLS_COMPARED:-0} skill(s) and ${AGENTS_COMPARED:-0} agent(s) compared; src/skills or src/agents is empty or mis-rooted")
+fi
 
 if [[ "$DRIFTED" -gt 0 ]]; then
     echo ""

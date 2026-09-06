@@ -111,6 +111,26 @@ extract_refs() {
     | greptol -oE "'[^']+'$" | tr -d "'"
 }
 
+# The label side refuses to pass on an empty read (above). The reference side
+# must too: a renamed workflows dir, an unmatched glob, or a third gating idiom
+# the two regexes miss all made extract_refs yield nothing inside a process
+# substitution whose rc is discarded, and the loop never ran, printing "All
+# workflow gate labels exist." (gate-fault-arm audit 2026-09-06).
+if [[ ! -d "$WF_DIR" ]]; then
+  echo "::error::Workflow directory ${WF_DIR} does not exist. Refusing to pass vacuously."
+  exit 1
+fi
+wf_count=$(find "$WF_DIR" -maxdepth 1 -name '*.yml' -type f | awk 'NF{n++} END{print n+0}')
+if [[ "$wf_count" -eq 0 ]]; then
+  echo "::error::No *.yml under ${WF_DIR}. Refusing to pass vacuously."
+  exit 1
+fi
+ref_count=$(extract_refs | sort -u | awk 'NF{n++} END{print n+0}')
+if [[ "$ref_count" -eq 0 ]]; then
+  echo "::error::${wf_count} workflow(s) scanned but zero gate-label references extracted. Either every label gate was removed (update this script's idioms) or the extractor is broken. Refusing to pass vacuously."
+  exit 1
+fi
+
 missing=0
 while read -r ref; do
   [[ -z "$ref" ]] && continue

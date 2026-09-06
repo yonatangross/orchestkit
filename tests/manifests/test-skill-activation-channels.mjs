@@ -158,5 +158,13 @@ if (islands.length) {
   process.exit(1);
 }
 
+if (userInvocable.length === 0) {
+  // No user-invocable skills means no islands, but also nothing judged: an
+  // empty or mis-rooted src/skills printed "PASSED - all 0" before
+  // (gate-fault-arm audit 2026-09-06).
+  console.log(`${C.r}FAILED${C.n} — zero user-invocable skills found under src/skills; nothing was checked.`);
+  process.exit(1);
+}
+
 console.log(`${C.g}PASSED${C.n} — all ${userInvocable.length} user-invocable skills have a trigger path.`);
 process.exit(0);

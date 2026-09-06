@@ -35,11 +35,40 @@ jobs:
         run: |
           set +e
           node scripts/audit-skill-claims.mjs --json > /tmp/claims.json
-          echo "stale=$(jq '.stale | length' /tmp/claims.json)" >> "$GITHUB_OUTPUT"
+          # Two counts, not one. `stale` alone cannot tell a clean sweep from a
+          # blind one: when every gh lookup fails the script used to emit
+          # `stale: []`, this step wrote stale=0, and the step below marked the
+          # rolling issue "clean". An empty array is byte-identical to a
+          # triaged one (#3933). `unresolved` counts lookups that failed, and
+          # an empty or unparseable claims file counts as blind too.
+          STALE=$(jq -r '.stale | length' /tmp/claims.json 2>/dev/null)
+          UNRESOLVED=$(jq -r '.unresolved // 0' /tmp/claims.json 2>/dev/null)
+          SCANNED=$(jq -r '.scanned // 0' /tmp/claims.json 2>/dev/null)
+          if [ -z "$STALE" ] || [ -z "$UNRESOLVED" ]; then
+            echo "::error::audit-skill-claims produced no parseable JSON; treating the sweep as blind, not clean."
+            STALE=0; UNRESOLVED=1; SCANNED=0
+          fi
+          if [ "$SCANNED" = "0" ]; then
+            echo "::error::audit-skill-claims scanned zero files; treating the sweep as blind, not clean."
+            UNRESOLVED=$((UNRESOLVED + 1))
+          fi
+          {
+            echo "stale=$STALE"
+            echo "unresolved=$UNRESOLVED"
+          } >> "$GITHUB_OUTPUT"
           exit 0
 
+      - name: Fail loudly when the sweep was blind
+        if: ${{ steps.audit.outputs.unresolved != '0' }}
+        env:
+          UNRESOLVED: ${{ steps.audit.outputs.unresolved }}
+        run: |
+          echo "::error::${UNRESOLVED} issue lookup(s) failed; this run proves nothing about stale claims. Check GH_TOKEN, rate limits, and the /tmp/claims.json unresolved_refs list."
+          jq -r '.unresolved_refs[]? | "  #\(.ref): \(.error)"' /tmp/claims.json || true
+          exit 1
+
       - name: Update or create report issue
-        if: ${{ steps.audit.outputs.stale != '0' }}
+        if: ${{ steps.audit.outputs.stale != '0' && steps.audit.outputs.unresolved == '0' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -59,7 +88,9 @@ jobs:
           fi
 
       - name: Mark report issue clean
-        if: ${{ steps.audit.outputs.stale == '0' }}
+        # Clean means swept AND every lookup answered. A blind sweep never
+        # reaches this step (the fail-loud step above exits 1 first).
+        if: ${{ steps.audit.outputs.stale == '0' && steps.audit.outputs.unresolved == '0' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |

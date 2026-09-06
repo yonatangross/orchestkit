@@ -172,13 +172,17 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
     deps_count=$(jq -r 'if .dependencies then (.dependencies | length) else 0 end' "$manifest")
 
     if [[ "$deps_count" -gt 0 ]]; then
-        jq -r '.dependencies[]' "$manifest" | while read -r dep; do
+        # Process substitution, NOT `jq | while`: a piped while runs in a
+        # subshell, so log_fail's counter never reached the parent and this
+        # check printed [FAIL] and still exited 0 (gate-fault-arm audit
+        # 2026-09-06). Checks 1 and 2 already use this form.
+        while read -r dep; do
             if grep -q "^${dep}$" "$KNOWN_PLUGINS"; then
                 log_pass "$plugin_name: dependency '$dep' exists in manifests"
             else
                 log_fail "$plugin_name: dependency '$dep' does NOT exist in manifests"
             fi
-        done
+        done < <(jq -r '.dependencies[]' "$manifest")
     else
         log_info "$plugin_name: no dependencies declared"
     fi
