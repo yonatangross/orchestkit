@@ -74,9 +74,18 @@ while IFS= read -r file; do
   [[ -n "$file" ]] && TEST_FILES+=("$file")
 done < <(printf '%s\n' "$FOUND")
 
+# Zero discovered tests is a FAILURE, not a warning. Every ci.yml job calls
+# this engine on a directory and treats exit 0 as "that directory's gates
+# passed". A directory that exists but matches nothing (a rename sweep that
+# drops the test- prefix, a moved roster, a pattern typo) used to exit 0 here
+# and read as green for a suite that never ran. That is the #3933 shape: an
+# empty result byte-identical to a passing one. Measured 2026-09-06: every
+# directory this engine is pointed at holds at least one test file, so no
+# caller depends on the old exit 0.
 if [[ ${#TEST_FILES[@]} -eq 0 ]]; then
-  echo -e "${YELLOW}WARNING: No tests found matching '$PATTERN' in $TEST_DIR${NC}"
-  exit 0
+  echo -e "${RED}ERROR: No tests found matching '$PATTERN' in $TEST_DIR${NC}"
+  echo -e "${RED}       A gate with nothing to run is not a passing gate. Add a test or drop the directory from the roster.${NC}"
+  exit 1
 fi
 
 echo -e "${BLUE}========================================${NC}"

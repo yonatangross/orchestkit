@@ -506,38 +506,15 @@ jobs:
           build-plugins: 'false'
           run-ci-setup: 'false'
 
+      # Validates the BUILT tree (plugins/ork/skills from the artifact above).
+      # This used to be an inline body that tested a root `skills/` directory
+      # and exited 0 when it was absent; there has been no root skills/ since
+      # the plugins/ restructure, so the step passed every run without reading
+      # a skill. The script fails on a missing dir and on zero skills; the
+      # paired arms live in tests/ci/test-check-skill-structure.sh.
       - name: Validate skill structure
         shell: bash
-        run: |
-          echo "Validating skills (flat structure)..."
-
-          if [[ ! -d "skills" ]]; then
-            echo "No skills directory found"
-            exit 0
-          fi
-
-          errors=0
-          skill_count=0
-
-          for skill_dir in skills/*/; do
-            [[ -d "$skill_dir" ]] || continue
-            skill_name=$(basename "$skill_dir")
-            skill_count=$((skill_count + 1))
-
-            if [[ ! -f "$skill_dir/SKILL.md" ]]; then
-              echo "  ERROR: $skill_name missing SKILL.md"
-              errors=$((errors + 1))
-            fi
-          done
-
-          echo "Validated $skill_count skills"
-
-          if [[ $errors -gt 0 ]]; then
-            echo "Found $errors skill errors"
-            exit 1
-          fi
-
-          echo "All skills are valid!"
+        run: bash scripts/ci/check-skill-structure.sh plugins/ork/skills
 
   # Job 8: Skill Sync Drift Detection
   skill-sync-validation:
