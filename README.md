@@ -370,6 +370,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-alpha.84](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.83...v10.0.0-alpha.84)** · 2026-09-06
+
+- **ci:** single skip pattern, cc-keys spec guard, PASS glyph (#1460) (#3944)
+
 **[v10.0.0-alpha.83](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.82...v10.0.0-alpha.83)** · 2026-09-06
 
 - retire unused tables, orphan validator, sibling sweep ([#3353](https://github.com/yonatangross/orchestkit/issues/3353), [#3937](https://github.com/yonatangross/orchestkit/issues/3937)) (#3943)
@@ -398,10 +402,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-alpha.77](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.76...v10.0.0-alpha.77)** · 2026-09-05
 
 - **hooks:** record Function Hooks watch gate (#3917) (#3925)
-
-**[v10.0.0-alpha.76](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.75...v10.0.0-alpha.76)** · 2026-09-04
-
-- **hooks:** FH-ready handler policy and gate (#3917) (#3918)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
