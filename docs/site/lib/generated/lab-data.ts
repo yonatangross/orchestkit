@@ -15,6 +15,21 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "beta-1-flip",
+    "title": "alpha to beta: which path produces 10.0.0-beta.1",
+    "description": "The v10 train shipped 86 alphas and milestone 164 is empty, so the label moves to beta. A config flip alone yields alpha.87: release-please's bump() ignores prerelease-type whenever the version already carries a label. Toggle the current version, the configured type and a Release-As footer to see which combination actually produces beta.1, and why the footer is the only route from a labelled version to a new label.",
+    "tags": [
+      "release",
+      "release-please",
+      "versioning",
+      "milestone-164"
+    ],
+    "date": "2026-09-06",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 7
+  },
+  {
     "slug": "egress-deny-tier-keep-verdict",
     "title": "Who judges curl | sh? The #3877 KEEP verdict",
     "description": "The convergence program's last standalone tail. Four arms on real machines: the sandbox decides which hosts a command may reach, and on CC 2.1.263 nothing native judges what happens to the bytes from an allowlisted host, so the network-egress-guard DENY tier stays on a dated measurement. Pick the lane to read each arm's transcript, plus the two register rows that had gone stale while still reading as current.",

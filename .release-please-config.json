@@ -3,7 +3,7 @@
   "release-type": "simple",
   "versioning": "prerelease",
   "prerelease": true,
-  "prerelease-type": "alpha",
+  "prerelease-type": "beta",
   "include-component-in-tag": false,
   "changelog-sections": [
     { "type": "feat", "section": "Features", "hidden": false },
