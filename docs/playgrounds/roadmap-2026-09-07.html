@@ -114,7 +114,7 @@ flowchart LR
   </div>
 
   <h3>Where each lane stands today</h3>
-  <div class="meter"><span>1 GA gate</span><div class="track"><div class="fill r" style="width:2%"></div></div><span class="val">no issue yet</span></div>
+  <div class="meter"><span>1 GA gate</span><div class="track"><div class="fill w" style="width:20%"></div></div><span class="val">#3972 filed</span></div>
   <div class="meter"><span>2 Bugs (10 open)</span><div class="track"><div class="fill w" style="width:0%"></div></div><span class="val">0 of 10</span></div>
   <div class="meter"><span>3 Page serve (166)</span><div class="track"><div class="fill w" style="width:0%"></div></div><span class="val">0 of 3</span></div>
   <div class="meter"><span>4 Glyph docs (167)</span><div class="track"><div class="fill w" style="width:0%"></div></div><span class="val">0 of 2</span></div>
@@ -126,7 +126,7 @@ flowchart LR
   <div class="beat">
     <div class="head"><b>What it is</b> <span class="badge hot">blocks GA</span> <span class="badge acc">1 issue to write, then N to do</span></div>
     <p class="analogy">Analogy: beta says "the shape will not change". GA says "we stand behind it". The second needs a checklist, and there is none.</p>
-    <p class="muted">Measured: <code>grep GA CHANGELOG.md</code> finds only past product GAs (Fable 5, 1M context); no issue titled 10.0.0 GA; release-please will happily emit beta.3, beta.4 forever. Two things make GA different from another beta for this repo specifically. First, the stable channel: <code>ork</code> is pinned at 9.8.0 by design and <code>bump-stable-pin</code> has exited 3 on every prerelease since alpha.1, so GA is the first time in v10 that script does real work, for every consumer on the stable pin. Second, the consumer evidence from 08-31 (two users fled to bypass mode over the egress ASK storm, the 8x palette, an unguarded find -delete) lives in #1881 and was the reason for the purge; GA should re-ask those two users.</p>
+    <p class="muted">Measured: <code>grep GA CHANGELOG.md</code> finds only past product GAs (Fable 5, 1M context); no issue titled 10.0.0 GA at render time; release-please will happily emit beta.3, beta.4 forever. Update, same morning: the gate is now filed as #3972 in milestone 169 "v10.0.0 GA" with the five criteria below. Two things make GA different from another beta for this repo specifically. First, the stable channel: <code>ork</code> is pinned at 9.8.0 by design and <code>bump-stable-pin</code> has exited 3 on every prerelease since alpha.1, so GA is the first time in v10 that script does real work, for every consumer on the stable pin. Second, the consumer evidence from 08-31 (two users fled to bypass mode over the egress ASK storm, the 8x palette, an unguarded find -delete) lives in #1881 and was the reason for the purge; GA should re-ask those two users.</p>
     <h3>Proposed criteria, five lines, measurable</h3>
     <table>
       <tr><th>#</th><th>Criterion</th><th>How it is checked</th></tr>
@@ -205,7 +205,7 @@ flowchart LR
       <tr><td>76 Video Gallery and Demos</td><td>8 / 10</td><td class="risk">due 2026-06-30, overdue 10 weeks</td><td>decide #2842 (extract demos repo) and either re-date or close the rest as parked</td></tr>
       <tr><td>154 CC adoption</td><td>1 / 372</td><td>one issue left, #1848</td><td>do #1848 (small) and close the milestone; CC watch continues as issues, not a milestone</td></tr>
       <tr><td>95 Docs and Discoverability</td><td>16 / 39</td><td>alive</td><td>fold #3901/#3902 in here or keep 167 separate; pick one home</td></tr>
-      <tr><td>104 Hook and Agent Quality</td><td>9 / 51</td><td>alive</td><td>the bug lane's natural home; move the 10 bugs here</td></tr>
+      <tr><td>104 Hook and Agent Quality</td><td>21 / 63</td><td>alive, now the bug lane</td><td>done: the open bugs were moved here the same morning; #3974 and #3894 fixed since</td></tr>
       <tr><td>97 Memory System Hardening</td><td>9 / 20</td><td>quiet since August</td><td>re-triage after GA</td></tr>
       <tr><td>168 Sales dept content</td><td>1 / 1</td><td>hq-ext side, tracking only</td><td>leave</td></tr>
     </table>
@@ -232,11 +232,11 @@ timeline
 
   <div class="beat decide">
     <div class="q">D1. The GA gate</div>
-    <label class="opt"><input type="radio" name="d1" value="write-5"><span class="lab">Open the GA issue with the five criteria above<span class="rec">recommended</span></span><span class="cons">Beta becomes a countdown. I file it now, labelled, in milestone 104 or a new one.</span></label>
+    <label class="opt"><input type="radio" name="d1" value="write-5"><span class="lab">Open the GA issue with the five criteria above<span class="rec">recommended, and done: #3972</span></span><span class="cons">Beta becomes a countdown. Filed as #3972 in milestone 169.</span></label>
     <label class="opt"><input type="radio" name="d1" value="write-edit"><span class="lab">Open it, but I edit the criteria first</span><span class="cons">Same, after your pass on the five lines.</span></label>
     <label class="opt"><input type="radio" name="d1" value="later"><span class="lab">Not yet, keep shipping betas</span><span class="cons">Nothing blocks; GA stays undefined.</span></label>
     <div class="after">
-      <label><input type="checkbox" name="d1a"> also move the 10 open bugs into milestone 104</label>
+      <label><input type="checkbox" name="d1a" checked disabled> also move the open bugs into milestone 104 (done)</label>
       <label><input type="checkbox" name="d1b"> also close milestone 154 after #1848 and re-date or park 76</label>
     </div>
   </div>
@@ -257,7 +257,7 @@ timeline
 </div></div>
 
 <script type="module">
-  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11.17.2/dist/mermaid.esm.min.mjs';
   mermaid.initialize({ startOnLoad: true, theme: 'dark', securityLevel: 'loose' });
 </script>
 <script>
