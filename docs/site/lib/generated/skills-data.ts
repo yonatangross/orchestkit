@@ -3281,9 +3281,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "page-serve": {
     "name": "page-serve",
-    "description": "Hand a human a rendered HTML page at a stable HTTPS URL. Registers a portless route for a file or directory (https://<name>.localhost/, never a :port), prints the URL, optionally screenshots it through agent-browser, and tears it down on stop. Use whenever an agent has produced a page a human is meant to open: glyph explainers, playgrounds, decision pages, visualize-plan output, a docs preview. Replaces the ad hoc python http.server plus hand-typed alias pattern that leaves servers alive across sessions.",
+    "description": "Hand a human a rendered HTML page at a stable HTTPS URL. Registers a portless route for a file or directory (https://NAME.localhost/, never a :port), prints the URL, optionally screenshots it through agent-browser, and tears it down on stop. Use whenever an agent has produced a page a human is meant to open: glyph explainers, playgrounds, decision pages, visualize-plan output, a docs preview. Replaces the ad hoc python http.server plus hand-typed alias pattern that leaves servers alive across sessions.",
     "version": "1.0.0",
-    "sha256": "7f1e7eefdad192b0aad1117ca22fe9c6960e5e60e1ef0b80d92f858781a8eebc",
+    "sha256": "d52e06c84c05054df21117fad701620c42e7f2ee4d9f480bd04f16e6404a6cf3",
     "author": "OrchestKit",
     "tags": [
       "page-serve",
