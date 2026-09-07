@@ -53,7 +53,22 @@ updates:
       - "dependencies"
       - "release-please-override"
     groups:
+      # vitest and its coverage provider must move together. #3976: a MAJOR
+      # matches no `update-types: [minor, patch]` group, so Dependabot opened
+      # `vitest` and `@vitest/coverage-v8` as two PRs per manifest; each one
+      # alone leaves the manifest with a runner and a coverage provider on
+      # different majors and npm refuses to resolve it (ERESOLVE, measured on
+      # #3966). No `update-types` here on purpose: that is what makes this
+      # group cover the major, which is the only case that breaks. Same shape
+      # as the `remotion` group below (#3086).
+      vitest:
+        patterns:
+          - "vitest"
+          - "@vitest/*"
       npm-minor-patch:
+        exclude-patterns:
+          - "vitest"
+          - "@vitest/*"
         update-types:
           - "minor"
           - "patch"
@@ -71,7 +86,22 @@ updates:
     labels:
       - "dependencies"
     groups:
+      # vitest and its coverage provider must move together. #3976: a MAJOR
+      # matches no `update-types: [minor, patch]` group, so Dependabot opened
+      # `vitest` and `@vitest/coverage-v8` as two PRs per manifest; each one
+      # alone leaves the manifest with a runner and a coverage provider on
+      # different majors and npm refuses to resolve it (ERESOLVE, measured on
+      # #3966). No `update-types` here on purpose: that is what makes this
+      # group cover the major, which is the only case that breaks. Same shape
+      # as the `remotion` group below (#3086).
+      vitest:
+        patterns:
+          - "vitest"
+          - "@vitest/*"
       npm-minor-patch:
+        exclude-patterns:
+          - "vitest"
+          - "@vitest/*"
         update-types:
           - "minor"
           - "patch"
@@ -89,7 +119,22 @@ updates:
     labels:
       - "dependencies"
     groups:
+      # vitest and its coverage provider must move together. #3976: a MAJOR
+      # matches no `update-types: [minor, patch]` group, so Dependabot opened
+      # `vitest` and `@vitest/coverage-v8` as two PRs per manifest; each one
+      # alone leaves the manifest with a runner and a coverage provider on
+      # different majors and npm refuses to resolve it (ERESOLVE, measured on
+      # #3966). No `update-types` here on purpose: that is what makes this
+      # group cover the major, which is the only case that breaks. Same shape
+      # as the `remotion` group below (#3086).
+      vitest:
+        patterns:
+          - "vitest"
+          - "@vitest/*"
       npm-minor-patch:
+        exclude-patterns:
+          - "vitest"
+          - "@vitest/*"
         update-types:
           - "minor"
           - "patch"
@@ -140,10 +185,24 @@ updates:
         patterns:
           - "remotion"
           - "@remotion/*"
+      # vitest and its coverage provider must move together. #3976: a MAJOR
+      # matches no `update-types: [minor, patch]` group, so Dependabot opened
+      # `vitest` and `@vitest/coverage-v8` as two PRs per manifest; each one
+      # alone leaves the manifest with a runner and a coverage provider on
+      # different majors and npm refuses to resolve it (ERESOLVE, measured on
+      # #3966). No `update-types` here on purpose: that is what makes this
+      # group cover the major, which is the only case that breaks. Same shape
+      # as the `remotion` group below (#3086).
+      vitest:
+        patterns:
+          - "vitest"
+          - "@vitest/*"
       npm-minor-patch:
         exclude-patterns:
           - "remotion"
           - "@remotion/*"
+          - "vitest"
+          - "@vitest/*"
         update-types:
           - "minor"
           - "patch"
