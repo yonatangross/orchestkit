@@ -168,7 +168,11 @@ test_skip_regex_parity() {
     # 4c: each consumer sources the shared file on a non-comment line.
     local consumer
     for consumer in "$hook_file" "$ci_file"; do
-        if grep -v '^[[:space:]]*#' "$consumer" | grep -qE '(source|[[:space:]]\.)[[:space:]]+"?[^"[:space:]]*scripts/ci/version-skip-pattern\.sh'; then
+        # No -q here: under pipefail, grep -q exits on the first match and the
+        # producer grep dies with SIGPIPE (141), which flips this if to the else
+        # branch precisely when the file DOES source the script (#3974, same
+        # class as #603). Reading all input keeps the pipeline status honest.
+        if grep -v '^[[:space:]]*#' "$consumer" | grep -E '(source|[[:space:]]\.)[[:space:]]+"?[^"[:space:]]*scripts/ci/version-skip-pattern\.sh' >/dev/null; then
             log_pass "$(basename "$consumer") sources scripts/ci/version-skip-pattern.sh"
         else
             log_fail "$(basename "$consumer") does not source scripts/ci/version-skip-pattern.sh"
