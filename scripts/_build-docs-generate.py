@@ -306,6 +306,20 @@ def read_subdirectory_files(skill_dir: Path, subdir_name: str) -> list[dict]:
     return results
 
 
+def featured_examples(skill_dir: Path) -> str:
+    """Return the curated examples block for a skill, or "" (#3901).
+
+    Source: ``<skill>/examples/_featured.md``. Frontmatter is dropped; the body
+    is MDX-sanitized like every other page section. The leading underscore is
+    what keeps ``read_subdirectory_files`` from also appending it at the bottom.
+    """
+    f = skill_dir / "examples" / "_featured.md"
+    if not f.is_file():
+        return ""
+    _, body = parse_frontmatter(f.read_text(encoding="utf-8"))
+    return sanitize_mdx_body(body).strip()
+
+
 def format_subdir_sections(skill_dir: Path) -> list[str]:
     """Generate MDX details/summary sections for skill subdirectory content."""
     all_lines: list[str] = []
@@ -434,6 +448,21 @@ def generate_skills(skills_src: str, skills_out: str) -> int:
         answer_block = build_answer_block(title, description)
         if answer_block:
             lines.append(answer_block)
+            lines.append("")
+
+        # Curated examples block (#3901). A skill that wants a page a human can
+        # be ROUTED to (what it draws, the picks, real renders, the exact
+        # invocation) keeps that in examples/_featured.md. The underscore keeps
+        # it out of the bottom "Examples (N)" dump that format_subdir_sections
+        # builds, and this placement puts it before the SKILL.md body, where a
+        # reader who was sent the URL lands. The heading anchors as #examples.
+        featured = featured_examples(skill_dir)
+        if featured:
+            lines.append("## Examples")
+            lines.append("")
+            lines.append(featured)
+            lines.append("")
+            lines.append("---")
             lines.append("")
 
         lines.append(sanitize_mdx_body(body))
