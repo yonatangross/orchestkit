@@ -140,8 +140,19 @@ const EMAIL_RE = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g;
 /**
  * Phone: international (+1-234-567-8901) and US domestic (234-567-8901, (234) 567-8901).
  * Requires at least 10 digits to avoid matching short numeric IDs.
+ *
+ * Two anchors added for #3894, both measured against real MCP output:
+ *  - a bare digit run never matches. The old pattern read a Chrome tab id
+ *    (`1234567890`) as 3-3-4 with empty separators and redacted it, which made
+ *    every tab-scoped claude-in-chrome tool uncallable. A phone needs at least
+ *    one of: a leading `+`, a `(` around the area code, or a separator between
+ *    groups. A bare run is an id.
+ *  - the match may not start mid-digit-run. The old pattern ended in `\b` only,
+ *    so a 19-digit x-read snowflake became `209511[REDACTED_PHONE]`. The
+ *    lookbehind refuses a digit immediately before the match.
  */
-const PHONE_RE = /(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b/g;
+const PHONE_RE =
+  /(?<!\d)(?:\+\d{1,3}[-.\s]?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}|\(\d{3}\)[-.\s]?\d{3}[-.\s]?\d{4}|\d{3}[-.\s]\d{3}[-.\s]\d{4})\b/g;
 
 // -----------------------------------------------------------------------------
 // Secret heuristics (#2264 finding #1 — gate the reversible stash, NOT redaction)
