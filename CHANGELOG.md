@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.2](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.1...v10.0.0-beta.2) (2026-09-07)
+
+
+### Features
+
+* **hooks:** per-tool exemption from MCP PII redaction ([#3951](https://github.com/yonatangross/orchestkit/issues/3951)) ([#3954](https://github.com/yonatangross/orchestkit/issues/3954)) ([a99cb14](https://github.com/yonatangross/orchestkit/commit/a99cb14f22bce1579d0779eb2383ec14faa9b114))
+
+
+### Miscellaneous
+
+* **deps-dev:** bump @types/node ([#3956](https://github.com/yonatangross/orchestkit/issues/3956)) ([6c66356](https://github.com/yonatangross/orchestkit/commit/6c663567beefc54a7678c676d7e493eacc40d0e6))
+
 ## [10.0.0-beta.1](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.86...v10.0.0-beta.1) (2026-09-06)
 
 
