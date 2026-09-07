@@ -142,6 +142,46 @@ describe('posttool/mcp-output-transform', () => {
       expect(output).not.toContain('bob@bar.org');
     });
 
+    // #3894: numeric ids are not phones. Both payload shapes below were seen live
+    // on 2026-09-02 (claude-in-chrome tabs_context_mcp, x-read get_posts_by_id) and
+    // again on 2026-09-06 when the redaction blocked every tab-scoped browser tool.
+    test('does not redact a bare 10-digit id (claude-in-chrome tab id)', () => {
+      const result = mcpOutputTransform(createInput({
+        tool_name: 'mcp__claude-in-chrome__tabs_context_mcp',
+        tool_output: '{"availableTabs":[{"tabId":1234567890,"title":"New Tab"}],"tabGroupId":9876543210}',
+      }), testCtx);
+      // Untouched output means no replacement at all (same contract as the
+      // short-number test below): the ids must not have been rewritten.
+      expect(result.hookSpecificOutput?.updatedToolOutput).toBeUndefined();
+    });
+
+    test('does not redact the tail of a 19-digit snowflake id (x-read)', () => {
+      const result = mcpOutputTransform(createInput({
+        tool_name: 'mcp__x-read__get_posts_by_id',
+        tool_output: '{"data":{"id":"2095111234567890123","author_id":"1234567890123456789"}}',
+      }), testCtx);
+      expect(result.hookSpecificOutput?.updatedToolOutput).toBeUndefined();
+    });
+
+    // Control arm: the pre-#3894 pattern on the same two payloads. If a future
+    // edit reverts PHONE_RE to a bare-digit shape, this is the test that says so
+    // in words instead of the two above going silently vacuous.
+    test('control: the old bare-digit pattern DID match both id shapes', () => {
+      const oldPhoneRe = /(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b/g;
+      expect('{"tabId":1234567890}'.match(oldPhoneRe)).toEqual(['1234567890']);
+      expect('"id":"2095111234567890123"'.match(oldPhoneRe)).not.toBeNull();
+    });
+
+    test('still redacts a phone that sits next to an id in the same payload', () => {
+      const result = mcpOutputTransform(createInput({
+        tool_output: '{"tabId":1234567890,"note":"call +1-234-567-8901"}',
+      }), testCtx);
+      const output = result.hookSpecificOutput?.updatedToolOutput as string;
+      expect(output).toContain('1234567890');
+      expect(output).toContain('[REDACTED_PHONE]');
+      expect(output).not.toContain('234-567-8901');
+    });
+
     test('redacts phone numbers (US format)', () => {
       const result = mcpOutputTransform(createInput({
         tool_output: 'Call 234-567-8901 for support',

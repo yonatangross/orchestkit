@@ -15,6 +15,22 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "phone-regex-ids",
+    "title": "When is a number a phone? The #3894 PHONE_RE fix",
+    "description": "The MCP PII redactor read Chrome tab ids and x-read snowflakes as phone numbers, which made every tab-scoped browser tool uncallable through ork. Both regexes, old and new, run live against real payload shapes; edit the input and watch which one redacts what. The rule the new pattern encodes: a phone needs a separator, a plus, or parentheses; a bare digit run is an id.",
+    "tags": [
+      "hooks",
+      "mcp",
+      "pii",
+      "regex",
+      "claude-in-chrome"
+    ],
+    "date": "2026-09-07",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 8
+  },
+  {
     "slug": "grep-q-sigpipe",
     "title": "grep -q under pipefail: how a true match reads as FAIL",
     "description": "A CI assertion that a workflow file sources a shared script failed on a file that does source it, then passed on re-run with the same bytes. Toggle pipefail, grep -q versus read-all, and whether the producer is still writing, and watch the pipeline status a bash if actually sees. The one-line fix and the 132 sibling sites left for a follow-up.",
