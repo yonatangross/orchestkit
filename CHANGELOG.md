@@ -5,6 +5,24 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.5](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.4...v10.0.0-beta.5) (2026-09-07)
+
+
+### Features
+
+* **skills:** page-serve, hand a human a page at a port-free URL ([#3899](https://github.com/yonatangross/orchestkit/issues/3899)) ([#3987](https://github.com/yonatangross/orchestkit/issues/3987)) ([1e12502](https://github.com/yonatangross/orchestkit/commit/1e12502d08001c18d0867c630534e770026788e8))
+
+
+### Bug Fixes
+
+* **hooks:** PHONE_RE no longer redacts numeric MCP ids ([#3894](https://github.com/yonatangross/orchestkit/issues/3894)) ([#3984](https://github.com/yonatangross/orchestkit/issues/3984)) ([1e59fb1](https://github.com/yonatangross/orchestkit/commit/1e59fb1a18abf5d8f1d37bc46f297ce5098fd3fd))
+* **tests:** Test 4c reads all input, no grep -q SIGPIPE ([#3974](https://github.com/yonatangross/orchestkit/issues/3974)) ([#3982](https://github.com/yonatangross/orchestkit/issues/3982)) ([e1d625b](https://github.com/yonatangross/orchestkit/commit/e1d625b2298bbe36fad299ebeeb6286f0d9fbf2d))
+
+
+### Documentation
+
+* **glyph:** a page an agent can route a human to ([#3901](https://github.com/yonatangross/orchestkit/issues/3901)) ([#3988](https://github.com/yonatangross/orchestkit/issues/3988)) ([4460c57](https://github.com/yonatangross/orchestkit/commit/4460c57e4922afa4836b72be72c981aeaea85d15))
+
 ## [10.0.0-beta.4](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.3...v10.0.0-beta.4) (2026-09-07)
 
 
