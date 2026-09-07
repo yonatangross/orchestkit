@@ -17,6 +17,29 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.4",
+    "date": "2026-09-07",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "**deps-dev:** bump the vitest group across 1 directory with 2 updates ([#3978](https://github.com/yonatangross/orchestkit/issues/3978)) ([5bc26d9](https://github.com/yonatangross/orchestkit/commit/5bc26d9503e2397d0c31d09ebb44c73cb1ca6677))",
+          "**deps-dev:** bump vitest from 4.1.11 to 5.0.0 ([#3960](https://github.com/yonatangross/orchestkit/issues/3960)) ([104afcf](https://github.com/yonatangross/orchestkit/commit/104afcfb1ba932d2c6e37b213e23e4cfdb67ac64))",
+          "**deps:** bump the npm-minor-patch group across 1 directory with 7 updates ([#3965](https://github.com/yonatangross/orchestkit/issues/3965)) ([002dd8f](https://github.com/yonatangross/orchestkit/commit/002dd8f8af92009325cd71a718197b5731e9a5bc))",
+          "**deps:** bump the remotion group across 1 directory with 21 updates ([#3964](https://github.com/yonatangross/orchestkit/issues/3964)) ([4bbaeda](https://github.com/yonatangross/orchestkit/commit/4bbaeda27e3fe9b7acef575a1d1c625816e703d7))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "bump anthropics/claude-code-action ([#3968](https://github.com/yonatangross/orchestkit/issues/3968)) ([cf8da6d](https://github.com/yonatangross/orchestkit/commit/cf8da6d8394cb56c83e588dc859c8aa6788d9246))",
+          "**deps:** group vitest with its coverage provider ([#3977](https://github.com/yonatangross/orchestkit/issues/3977)) ([e8df2b0](https://github.com/yonatangross/orchestkit/commit/e8df2b0e91fa4c51cc48f002306c69c274616ff7))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.3",
     "date": "2026-09-07",
     "compareUrl": "",
