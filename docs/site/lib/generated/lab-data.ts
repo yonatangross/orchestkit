@@ -15,6 +15,22 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "glyph-examples-page",
+    "title": "A page an agent can send a human to: the glyph examples block",
+    "description": "The glyph docs page answered 200 but was a 33 KB dump of SKILL.md. Toggle before and after to see what a human routed to the URL now lands on: a curated block first (what it draws, the two picks, three real renders, the exact invocation) at a stable #examples anchor, generated from the skill's own examples/_featured.md. Any skill opts in by adding that one file.",
+    "tags": [
+      "docs",
+      "docs-site",
+      "glyph",
+      "skills",
+      "generator"
+    ],
+    "date": "2026-09-07",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 8
+  },
+  {
     "slug": "page-serve",
     "title": "page-serve: a URL a human can open, with a stop",
     "description": "An agent renders a page; this skill hands it over at https://<name>.localhost/ (no port), records it, and can take it down. Flip the preconditions (portless missing, 443 service dead, server would not bind, URL not 200) and see which exit code fires and what it says. The real serve, status, stop cycle from the first verified run is shown verbatim.",

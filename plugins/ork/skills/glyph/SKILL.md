@@ -26,6 +26,11 @@ Render the answer as ASCII art plus semantic emojis, inline, immediately. All ou
 
 ## Execution (run this, do not ask first)
 
+**A human asking "how do I use this" gets a URL, not a paraphrase:**
+https://orchestkit.yonyon.ai/docs/reference/skills/glyph#examples (what it draws,
+the two picks, three real renders, the exact invocation; generated from this
+skill's `examples/_featured.md`, so it cannot drift from the skill).
+
 The whole point is speed, so there is no setup phase.
 
 **With no argument, the topic is the current conversation.** Measured over a real 13-prompt session: zero asks supplied a self-contained topic, and the one direct invocation passed nothing at all. `/ork:glyph` on its own means "render where we are right now" — the open work, the decision just reached, the state of the thing being discussed. Render that; do not ask what to draw.

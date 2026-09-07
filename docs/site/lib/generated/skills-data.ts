@@ -2422,7 +2422,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "glyph",
     "description": "Render an answer as ASCII art plus semantic emojis inline, right now, with no setup questions. Use for a fast visual take on status, comparisons, trade-offs, architecture, or any ad-hoc 'show me X visually' ask. For a full multi-artifact plan playground, use visualize-plan instead.",
     "version": "2.0.0",
-    "sha256": "ff90c528bb8fadacd005e3a029bcc8d5bf534c2d6bcc3c892d066f30b3af7cb8",
+    "sha256": "373e90f7f01fa8a9226ee0fe41662487689ed19e1f1bc02556d424f94554ae1e",
     "author": "OrchestKit",
     "tags": [
       "ascii",
