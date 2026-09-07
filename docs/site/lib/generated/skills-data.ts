@@ -619,7 +619,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "auto",
     "description": "Intent-classified router, the front door to OrchestKit and the DEFAULT entry point for any goal-shaped request. Classifies a plain-English goal and routes it to the right specialist skill. Routing is never overhead, so use it even when the target skill seems obvious; skip only when already executing inside another skill (no recursion). Triggers on: auto, do this, figure out, just make, I want, help me, fix, build, improve, any goal description.",
     "version": "1.0.0",
-    "sha256": "c1bf036ae386fa019d6d6907508d1f542b3c73e22b0f846bd1bbc8e2f305d5a0",
+    "sha256": "79ba7782d2fefff46eae1db8f84fd0540eb87254665d7d3b0d8e1910f7ef9c32",
     "author": "OrchestKit",
     "tags": [
       "router",
@@ -2422,7 +2422,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "glyph",
     "description": "Render an answer as ASCII art plus semantic emojis inline, right now, with no setup questions. Use for a fast visual take on status, comparisons, trade-offs, architecture, or any ad-hoc 'show me X visually' ask. For a full multi-artifact plan playground, use visualize-plan instead.",
     "version": "2.0.0",
-    "sha256": "2b216db55855fa20be3537fe8cc9279f3f2fad8eb9b5fcbd7aa6327168eccd0d",
+    "sha256": "ff90c528bb8fadacd005e3a029bcc8d5bf534c2d6bcc3c892d066f30b3af7cb8",
     "author": "OrchestKit",
     "tags": [
       "ascii",
@@ -3272,6 +3272,39 @@ export const SKILLS: Record<string, SkillMeta> = {
     "structure": {
       "references": [
         "okr-workshop-guide.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
+  "page-serve": {
+    "name": "page-serve",
+    "description": "Hand a human a rendered HTML page at a stable HTTPS URL. Registers a portless route for a file or directory (https://<name>.localhost/, never a :port), prints the URL, optionally screenshots it through agent-browser, and tears it down on stop. Use whenever an agent has produced a page a human is meant to open: glyph explainers, playgrounds, decision pages, visualize-plan output, a docs preview. Replaces the ad hoc python http.server plus hand-typed alias pattern that leaves servers alive across sessions.",
+    "version": "1.0.0",
+    "sha256": "7f1e7eefdad192b0aad1117ca22fe9c6960e5e60e1ef0b80d92f858781a8eebc",
+    "author": "OrchestKit",
+    "tags": [
+      "page-serve",
+      "portless",
+      "agent-browser",
+      "playground",
+      "glyph",
+      "dev-loop",
+      "m166"
+    ],
+    "userInvocable": true,
+    "context": "inherit",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "complexity": "low",
+    "structure": {
+      "scripts": [
+        "serve.sh",
+        "status.sh",
+        "stop.sh"
       ]
     },
     "plugins": [
@@ -4921,7 +4954,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "visualize-plan",
     "description": "Renders planned changes — architecture and before/after comparisons, risk heat maps, execution order, dependency graphs, impact metrics — in your chosen output format (ASCII + emojis, an interactive HTML playground, or a NotebookLM infographic). Stores visualizations in memory for cross-session reference. Use when reviewing implementation plans, comparing approaches, assessing risk, or analyzing change propagation.",
     "version": "2.1.0",
-    "sha256": "db1f29344ed2bb8ae7e4f681315b405500a71cfb994473f19c9fcafd865d4067",
+    "sha256": "7c34d3a4db9246fd5583221f085f8a0ae93a7c9d17f40bfc75dae73c4113da8e",
     "author": "OrchestKit",
     "tags": [
       "visualization",

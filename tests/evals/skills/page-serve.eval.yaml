@@ -1,0 +1,25 @@
+# Created: 2026-09-07 (#3899)
+id: page-serve
+name: "Page-serve skill evaluation"
+skill_path: src/skills/page-serve/SKILL.md
+plugin_dir: plugins/ork
+
+trigger_evals:
+  - prompt: "Serve this HTML page so I can open it in my browser at a stable URL"
+    should_trigger: true
+  - prompt: "Give me a link to the roadmap playground you just wrote"
+    should_trigger: true
+  - prompt: "Start the Next.js dev server on a named subdomain"
+    should_trigger: false
+
+quality_evals:
+  - prompt: "Serve docs/playgrounds/roadmap-2026-09-07.html and give me the URL"
+    assertions:
+      - name: "port-free https URL"
+        check: "the reply contains a url of the form https://<name>.localhost/<file> with no :port"
+      - name: "fails loud on a dead proxy"
+        check: "if portless or its 443 service is unavailable the reply says so and points at portless service status, and does not print a :port URL"
+      - name: "stop line offered"
+        check: "the reply names the stop command for the served page"
+
+tags: [page-serve, portless, playground]

@@ -15,6 +15,22 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "page-serve",
+    "title": "page-serve: a URL a human can open, with a stop",
+    "description": "An agent renders a page; this skill hands it over at https://<name>.localhost/ (no port), records it, and can take it down. Flip the preconditions (portless missing, 443 service dead, server would not bind, URL not 200) and see which exit code fires and what it says. The real serve, status, stop cycle from the first verified run is shown verbatim.",
+    "tags": [
+      "skill",
+      "portless",
+      "playground",
+      "glyph",
+      "dev-loop"
+    ],
+    "date": "2026-09-07",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 9
+  },
+  {
     "slug": "phone-regex-ids",
     "title": "When is a number a phone? The #3894 PHONE_RE fix",
     "description": "The MCP PII redactor read Chrome tab ids and x-read snowflakes as phone numbers, which made every tab-scoped browser tool uncallable through ork. Both regexes, old and new, run live against real payload shapes; edit the input and watch which one redacts what. The rule the new pattern encodes: a phone needs a separator, a plus, or parentheses; a bare digit run is an id.",

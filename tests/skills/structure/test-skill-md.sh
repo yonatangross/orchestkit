@@ -509,7 +509,7 @@ echo -e "${CYAN}Test 10: user-invocable Field Validation${NC}"
 echo "────────────────────────────────────────────────────────────────────────────"
 
 # Expected counts
-EXPECTED_USER_INVOCABLE=35  # paired-probe is model-invocable but NOT slash-invocable: it is a gate applied before reporting a verdict, not a command an operator types, so it stays out of the /ork: menu and off this count
+EXPECTED_USER_INVOCABLE=36  # page-serve added 2026-09-07 (#3899); paired-probe is model-invocable but NOT slash-invocable: it is a gate applied before reporting a verdict, not a command an operator types, so it stays out of the /ork: menu and off this count
 EXPECTED_INTERNAL=71  # +1: paired-probe, model-invocable but not slash-invocable (a gate applied before reporting a verdict, not a command an operator types)
 
 missing_user_invocable=()
