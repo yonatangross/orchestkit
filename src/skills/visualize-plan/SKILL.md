@@ -272,7 +272,7 @@ Render the selected sections into the `FORMATS` chosen in STEP 0.5. **ASCII alwa
 | Format | Action |
 |--------|--------|
 | ASCII | Native render (above) — always, the floor |
-| Playground | Classify the archetype (below), then hand the plan brief to the `playground` skill → write `docs/<branch-dir>/plan-viz.html`, link it |
+| Playground | Classify the archetype (below), then hand the plan brief to the `playground` skill → write `docs/<branch-dir>/plan-viz.html`, then serve it with `/ork:page-serve docs/<branch-dir>/plan-viz.html` and put the printed `url=` in the reply's Open section (never a bare path or a hand-started http.server) |
 | Infographic | Run the `notebooklm` `studio_create(artifact_type=infographic\|slides)` flow — **fire-and-notify**, poll `studio_status`, never await |
 | All | ASCII inline now + the rest linked as they finish |
 | Charts (marks *within* Playground / Infographic) | For sections with quantitative marks — **[3] Risk, [5] Impact, [6] Blast Radius** — pick the form via `/dataviz` (`choosing-a-form`) and the palette via its 6-check formula, then run `validate_palette.js`. On validator FAIL **or** `/dataviz` absent, fall back to the ASCII-card layout. Chrome stays ork tokens (§2 of `playground-visual-standard.md`); only the data marks come from the validated palette. See `${CLAUDE_PLUGIN_ROOT}/shared/rules/chart-encoding-standard.md`. |

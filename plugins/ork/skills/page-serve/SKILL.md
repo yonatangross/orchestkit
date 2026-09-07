@@ -1,0 +1,106 @@
+---
+name: page-serve
+compatibility: "Claude Code 2.1.251+"
+description: "Hand a human a rendered HTML page at a stable HTTPS URL. Registers a portless route for a file or directory (https://NAME.localhost/, never a :port), prints the URL, optionally screenshots it through agent-browser, and tears it down on stop. Use whenever an agent has produced a page a human is meant to open: glyph explainers, playgrounds, decision pages, visualize-plan output, a docs preview. Replaces the ad hoc python http.server plus hand-typed alias pattern that leaves servers alive across sessions."
+argument-hint: "[path] [--name slug] [--screenshot|--no-screenshot] | stop [name|--all] | status [--json]"
+tags: [page-serve, portless, agent-browser, playground, glyph, dev-loop, m166]
+version: 1.0.0
+author: OrchestKit
+user-invocable: true
+disable-model-invocation: false
+complexity: low
+context: inherit
+persuasion-type: guidance
+metadata:
+  category: devops
+  milestone: M166
+  upstream-packages: ["portless", "agent-browser"]
+---
+
+# /ork:page-serve, give a human a URL
+
+An agent that renders a page for a human needs a way to hand it over. The pattern
+that grew in sessions was `python3 -m http.server 8991` plus `portless alias <name> 8991`
+typed by hand: no record of the process, no stop, servers outliving the session,
+and one measured night (2026-09-06) where the same session did it twice and the
+server was still up the next morning. This skill is that pattern with a state file,
+a stop, a status, and a loud failure when the URL contract cannot be met.
+
+## The contract
+
+- The URL is `https://<name>.localhost/<file>`. No port, ever. portless's 443 service
+  owns the port; a `:1355` or `:8991` in the URL is the pre-service fallback and the
+  skill refuses rather than emit one.
+- One static server per name, on a free loopback port, rooted at the file's
+  directory (so sibling assets resolve) or at the directory you pass.
+- State in `.claude/state/page-serve/<name>.json`: root, file, port, pid, url, time.
+  `status` re-measures pid, route, and HTTP on every call; it never trusts the file.
+- Idempotent per name: same name + same root reuses the live server; a different root
+  replaces it; `--force` on the alias overrides a stale route with the same name.
+
+## Usage
+
+```
+/ork:page-serve docs/playgrounds/roadmap-2026-09-07.html
+/ork:page-serve docs/playgrounds/ --name playgrounds
+/ork:page-serve <path> --screenshot          # agent-browser, returns the png path
+/ork:page-serve status [--json]
+/ork:page-serve stop <name>
+/ork:page-serve stop --all
+```
+
+`serve.sh` prints `url=`, `name=`, `port=`, `pid=`, `http=`, optional `screenshot=`,
+and the exact `stop=` line to paste. Put the `url=` line in your reply's Open section.
+
+## Modes
+
+| Invocation | Script | What happens |
+|---|---|---|
+| `<path> [flags]` | `scripts/serve.sh` | prerequisites, server, alias, state, curl check, optional screenshot |
+| `status [--json]` | `scripts/status.sh` | one line per served page: server up/dead, route registered/missing, HTTP code |
+| `stop <name>` or `stop --all` | `scripts/stop.sh` | alias removed, server killed, state and screenshot deleted; every step reports |
+
+## Failure modes, all loud
+
+| Condition | Exit | What it says |
+|---|---|---|
+| portless not installed | 2 | install line, then `portless service install` |
+| 443 service not responding | 2 | `portless service status`, the operator's `launchctl kickstart` line, and "do not fall back to a :port URL" |
+| server did not bind | 3 | port and log path |
+| alias registration failed | 2 | portless's own message, server cleaned up |
+| route up but URL not 200 | 4 | code, curl rc, and `portless list`; server left running for inspection |
+| screenshot failed | 0 | reported on stderr, page still served, `screenshot=` line omitted |
+
+A page that "served" but does not answer 200 through the proxy is exit 4, not 0, so a
+caller that only reads the exit code cannot report a dead link as done.
+
+## Screenshot
+
+With agent-browser installed the default is to take one (`--no-screenshot` to skip;
+`--screenshot` to insist and get a stderr line if it is missing). The png lands
+beside the state file. The screenshot is evidence the page rendered, not proof it
+rendered correctly: read the image before claiming the page looks right
+(the glyph skill's rule 1).
+
+## What this is not
+
+- Not a dev server. For a framework app with hot reload use `/ork:dev`, which wraps
+  the app's own dev command in portless. This skill serves static files.
+- Not a publisher. Nothing leaves the machine; `.localhost` resolves locally only.
+- Not a docs-site deploy. Lab pages under `docs/site/public/lab/` still ship through
+  the docs-site build; this skill is for the hand-over before or beside that.
+
+## Retiring the old pattern (#3900)
+
+Any skill or page that tells an agent to run `python3 -m http.server` or to type
+`portless alias` by hand should say `/ork:page-serve <path>` instead. As of this
+skill's first release, `grep -rln 'http.server' src/skills` is empty; the pattern
+lived in session habits and in hq-ext, so the sweep is glyph, playground,
+visualize-plan and expect (the four that hand a human a page) plus hq-ext's glyph.
+
+## Related skills
+
+- `/ork:dev`, the dev-loop sibling for framework apps (portless wrapping a dev command)
+- `portless` (the reference skill, model-invoked): service install, LAN mode, gotchas
+- `/ork:glyph`, `/ork:visualize-plan`, `playground`, the producers of pages this serves
+- `/ork:expect`, browser verification against the URL this prints

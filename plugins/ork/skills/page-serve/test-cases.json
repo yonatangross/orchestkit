@@ -1,0 +1,64 @@
+{
+  "skill": "page-serve",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "trigger-path",
+      "rule": null,
+      "query": "/ork:page-serve docs/playgrounds/roadmap-2026-09-07.html",
+      "expectedBehavior": [
+        "Calls scripts/serve.sh with the path",
+        "Refuses with exit 2 if portless is missing or the 443 service is not responding",
+        "Prints a url= line of the form https://<name>.localhost/<file> with no port",
+        "Records state under .claude/state/page-serve/<name>.json",
+        "Puts the url= line in the reply's Open section"
+      ]
+    },
+    {
+      "id": "trigger-dir-name",
+      "rule": null,
+      "query": "/ork:page-serve docs/playgrounds/ --name playgrounds",
+      "expectedBehavior": [
+        "Serves the directory root",
+        "Registers playgrounds.localhost",
+        "Second identical call reuses the live server (same pid)"
+      ]
+    },
+    {
+      "id": "trigger-stop",
+      "rule": null,
+      "query": "/ork:page-serve stop playgrounds",
+      "expectedBehavior": [
+        "Calls scripts/stop.sh playgrounds",
+        "Removes the portless alias and kills the server",
+        "Reports each step; does not claim stopped when the alias removal failed"
+      ]
+    },
+    {
+      "id": "trigger-status",
+      "rule": null,
+      "query": "/ork:page-serve status",
+      "expectedBehavior": [
+        "Calls scripts/status.sh",
+        "Re-measures pid, route and HTTP per row rather than trusting the state file"
+      ]
+    },
+    {
+      "id": "negative-dev-server",
+      "rule": null,
+      "query": "start the next dev server with a stable URL",
+      "expectedBehavior": [
+        "Routes to /ork:dev, not page-serve: this skill serves static files only"
+      ]
+    },
+    {
+      "id": "negative-port-url",
+      "rule": null,
+      "query": "/ork:page-serve page.html when the portless 443 service is dead",
+      "expectedBehavior": [
+        "Exits 2 with the portless service status line",
+        "Never prints a URL carrying a :port"
+      ]
+    }
+  ]
+}

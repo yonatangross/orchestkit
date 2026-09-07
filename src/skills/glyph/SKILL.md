@@ -52,7 +52,7 @@ Given a topic (or the conversation, when none is given):
 
 **When NOT to use this skill:** if the deliverable is a multi-section HTML playground, a persisted plan artifact, or anything needing file output, use `visualize-plan` instead. Glyph is the cheap inline path; visualize-plan is the full pipeline.
 
-**Over budget is the same signal.** If the honest rendering needs more than ~12 lines, that is not a bigger chat answer, it is a different deliverable: write the playground or file and print the path. The old escape hatch fired on artifact TYPE only, so a 40-line inline reply never tripped it.
+**Over budget is the same signal.** If the honest rendering needs more than ~12 lines, that is not a bigger chat answer, it is a different deliverable: write the playground or file, then hand the human a URL with `/ork:page-serve <path>` (a port-free `https://<name>.localhost/` route, with a stop) instead of a bare file path or a hand-started `python3 -m http.server`. The old escape hatch fired on artifact TYPE only, so a 40-line inline reply never tripped it.
 
 
 ## Box-Drawing Character Reference

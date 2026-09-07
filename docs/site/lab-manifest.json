@@ -1345,6 +1345,20 @@
         "claude-in-chrome"
       ],
       "date": "2026-09-07"
+    },
+    {
+      "slug": "page-serve",
+      "source": "docs/feat--3899-page-serve/index.html",
+      "title": "page-serve: a URL a human can open, with a stop",
+      "description": "An agent renders a page; this skill hands it over at https://<name>.localhost/ (no port), records it, and can take it down. Flip the preconditions (portless missing, 443 service dead, server would not bind, URL not 200) and see which exit code fires and what it says. The real serve, status, stop cycle from the first verified run is shown verbatim.",
+      "tags": [
+        "skill",
+        "portless",
+        "playground",
+        "glyph",
+        "dev-loop"
+      ],
+      "date": "2026-09-07"
     }
   ]
 }
