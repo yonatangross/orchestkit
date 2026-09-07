@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<!--
+  OrchestKit roadmap after v10.0.0-beta.2, rendered 2026-09-07 ~06:30Z.
+  Inputs read live: gh milestones (9 open), gh issue list (92 open: 42 unmilestoned + 50
+  milestoned; 10 bug, 57 enhancement, 9 parked), gh release list (beta.2 05:54Z), CHANGELOG
+  grep for GA criteria (none). Rankings are the agent's opinion; counts are measured.
+-->
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OrchestKit roadmap, after beta: what is next and in what order</title>
+<style>
+  :root{--bg:hsl(232 26% 7%);--ink:hsl(220 18% 93%);--muted:hsl(226 14% 66%);--faint:hsl(226 12% 48%);--glass:hsl(0 0% 100% / .05);--glass-2:hsl(0 0% 100% / .08);--edge:hsl(0 0% 100% / .14);--accent:hsl(248 84% 68%);--ok:hsl(152 62% 52%);--warn:hsl(38 95% 58%);--risk:hsl(0 78% 66%);font-size:15px}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--ink);font-family:-apple-system,'SF Pro Text',Inter,sans-serif;line-height:1.55;padding:32px 24px 140px;background-image:radial-gradient(60% 42% at 12% 0%,hsl(248 84% 68% / .14),transparent 62%),radial-gradient(48% 36% at 88% 8%,hsl(152 62% 52% / .10),transparent 60%)}
+  .wrap{max-width:1000px;margin:0 auto}
+  h1{font-size:1.7rem;font-weight:650;letter-spacing:-.01em}
+  .sub{color:var(--muted);margin-top:6px}
+  h2.sec{font-size:1.15rem;font-weight:600;margin:44px 0 12px;display:flex;align-items:center;gap:8px;scroll-margin-top:70px}
+  h3{font-size:.95rem;font-weight:600;margin:16px 0 8px;color:var(--muted)}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:20px}
+  .card{background:var(--glass);border:1px solid var(--edge);border-radius:14px;padding:16px}
+  .card .n{font-size:1.9rem;font-weight:700}
+  .card .lbl{color:var(--muted);font-size:.8rem;margin-top:2px}
+  .ok{color:var(--ok)} .warn{color:var(--warn)} .risk{color:var(--risk)} .acc{color:var(--accent)}
+  nav.tabs{position:sticky;top:0;z-index:5;background:hsl(232 26% 7% / .92);backdrop-filter:blur(8px);border-bottom:1px solid var(--edge);margin:24px -24px 0;padding:10px 24px;display:flex;gap:8px;flex-wrap:wrap}
+  nav.tabs a{color:var(--muted);text-decoration:none;font-size:.82rem;padding:5px 10px;border-radius:999px;border:1px solid transparent}
+  nav.tabs a:hover{border-color:var(--edge);color:var(--ink)}
+  .beat{background:var(--glass);border:1px solid var(--edge);border-radius:16px;padding:20px;margin-top:14px}
+  .beat .head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .beat .head b{font-size:1.02rem}
+  .badge{display:inline-block;padding:2px 9px;border-radius:999px;font-size:.72rem;font-weight:600;white-space:nowrap}
+  .badge.hot{background:hsl(0 78% 66% / .18);color:var(--risk)} .badge.warn{background:hsl(38 95% 58% / .18);color:var(--warn)} .badge.ok{background:hsl(152 62% 52% / .18);color:var(--ok)} .badge.acc{background:hsl(248 84% 68% / .18);color:var(--accent)} .badge.dim{background:var(--glass-2);color:var(--faint)}
+  .analogy{color:var(--muted);font-style:italic;margin:8px 0 12px}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+  .two .c{border-radius:12px;padding:12px 14px;font-size:.9rem;border:1px solid var(--edge)}
+  .two .c.means{background:hsl(152 62% 52% / .08)} .two .c.nothing{background:hsl(0 78% 66% / .08);border-color:hsl(0 78% 66% / .3)}
+  .two .c .t{font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:var(--faint);margin-bottom:4px}
+  .mermaid{background:hsl(232 30% 4%);border:1px solid var(--edge);border-radius:12px;padding:12px;margin-top:14px;display:flex;justify-content:center}
+  table{width:100%;border-collapse:collapse;margin-top:10px;font-size:.88rem}
+  th{text-align:left;color:var(--faint);font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;padding:8px 10px;border-bottom:1px solid var(--edge)}
+  td{padding:10px;border-bottom:1px solid var(--glass-2);vertical-align:top}
+  tr:last-child td{border-bottom:none}
+  code{background:var(--glass-2);padding:1px 5px;border-radius:5px;font-size:.85em}
+  .muted{color:var(--muted);font-size:.88rem}
+  .meter{display:grid;grid-template-columns:230px 1fr 90px;gap:10px;align-items:center;margin-top:8px;font-size:.85rem}
+  .meter .track{height:10px;background:var(--glass-2);border-radius:999px;overflow:hidden}
+  .meter .fill{height:100%;background:var(--ok);border-radius:999px}
+  .meter .fill.w{background:var(--warn)} .meter .fill.r{background:var(--risk)}
+  .meter .val{color:var(--muted);text-align:right}
+  .rank{font-size:1.4rem;width:40px}
+  .decide{margin-top:14px}
+  .decide .q{font-weight:600;margin-bottom:10px}
+  .opt{display:grid;grid-template-columns:24px 1fr 1fr;gap:12px;align-items:start;padding:12px;border:1px solid var(--edge);border-radius:12px;margin-bottom:8px;cursor:pointer;background:var(--glass)}
+  .opt:has(input:checked){border-color:var(--accent);background:hsl(248 84% 68% / .10)}
+  .opt input{margin-top:4px;accent-color:var(--accent)}
+  .opt .lab{font-weight:600} .opt .lab .rec{color:var(--ok);font-size:.75rem;margin-left:6px}
+  .opt .cons{color:var(--muted);font-size:.85rem}
+  .after{margin-top:8px;padding-left:4px}
+  .after label{display:block;font-size:.85rem;color:var(--muted);padding:3px 0}
+  .after input{accent-color:var(--ok);margin-right:8px}
+  #answers{position:fixed;left:0;right:0;bottom:0;background:hsl(232 26% 9% / .96);backdrop-filter:blur(10px);border-top:1px solid var(--edge);padding:12px 24px;z-index:10}
+  #answers .in{max-width:1000px;margin:0 auto;display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center}
+  #answers pre{font-family:ui-monospace,Menlo,monospace;font-size:.78rem;color:var(--muted);white-space:pre-wrap;max-height:70px;overflow:auto}
+  #answers button{background:var(--accent);color:#fff;border:0;border-radius:10px;padding:10px 16px;font-weight:600;cursor:pointer}
+  #answers button:disabled{opacity:.4;cursor:not-allowed}
+  #answers .cnt{font-size:.78rem;color:var(--faint);margin-top:4px}
+  footer{margin-top:48px;padding-top:16px;border-top:1px solid var(--edge);color:var(--faint);font-size:.78rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>OrchestKit after beta: what is next, in order</h1>
+    <div class="sub">Rendered 2026-09-07 06:30Z. Latest release <code>v10.0.0-beta.2</code>. Milestone 164 closed last night; this page is the one that replaces it.</div>
+  </header>
+
+  <div class="kpis">
+    <div class="card"><div class="n">92</div><div class="lbl">open issues (42 unmilestoned)</div></div>
+    <div class="card"><div class="n warn">10</div><div class="lbl">open bugs</div></div>
+    <div class="card"><div class="n">9</div><div class="lbl">open milestones, 1 overdue (Video, due 06-30)</div></div>
+    <div class="card"><div class="n risk">0</div><div class="lbl">written criteria for beta to 10.0.0 GA</div></div>
+  </div>
+
+  <nav class="tabs">
+    <a href="#big">🎯 Shape</a>
+    <a href="#l1">🔥 1 GA gate</a>
+    <a href="#l2">2 Bugs</a>
+    <a href="#l3">3 Page serve</a>
+    <a href="#l4">4 Glyph docs</a>
+    <a href="#l5">5 Commerce</a>
+    <a href="#l6">6 Old milestones</a>
+    <a href="#decide">✅ Decide</a>
+  </nav>
+
+  <h2 class="sec" id="big">🎯 The shape of the next quarter in one sentence</h2>
+  <p class="muted">v10 is feature complete and shipping as beta. The road from here has one gate (say what GA means, then meet it), one debt pile (10 bugs, three of which bit this week), and three new product lanes you opened yesterday as milestones 165 to 167, which chain in a natural order: page-serve is infrastructure the glyph docs page needs, and both are cheaper than the commerce lane.</p>
+  <p class="analogy">Analogy: the house is built and people are living in it (beta). Nobody wrote down what "finished" means, so the inspector cannot sign off. Meanwhile there is a list of dripping taps, and three extensions are drawn up, one of which is the hallway the other two open onto.</p>
+
+  <div class="mermaid">
+flowchart LR
+  GA["🔥 1  GA gate\nwrite the criteria"]:::hot --> GA2["meet them\nbeta.N to 10.0.0"]:::wait
+  B["2  bug burn-down\n10 open, 3 hit this week"]:::warn --> GA2
+  PS["3  page serve\n#3899 #3900 #3904"]:::indep --> GD["4  glyph docs page\n#3901 then #3902"]:::indep
+  GD --> C["5  commerce agents\n#3896 #3897 #3898"]:::indep
+  OM["6  old milestones\nretire or re-date 4"]:::dim
+  classDef hot fill:#3a1414,stroke:#e06666,color:#fff
+  classDef wait fill:#3a2a10,stroke:#f0b040,color:#fff
+  classDef warn fill:#3a2a10,stroke:#f0b040,color:#fff
+  classDef indep fill:#1b1b4a,stroke:#8f88f0,color:#fff
+  classDef dim fill:#222,stroke:#666,color:#ccc
+  </div>
+
+  <h3>Where each lane stands today</h3>
+  <div class="meter"><span>1 GA gate</span><div class="track"><div class="fill r" style="width:2%"></div></div><span class="val">no issue yet</span></div>
+  <div class="meter"><span>2 Bugs (10 open)</span><div class="track"><div class="fill w" style="width:0%"></div></div><span class="val">0 of 10</span></div>
+  <div class="meter"><span>3 Page serve (166)</span><div class="track"><div class="fill w" style="width:0%"></div></div><span class="val">0 of 3</span></div>
+  <div class="meter"><span>4 Glyph docs (167)</span><div class="track"><div class="fill w" style="width:0%"></div></div><span class="val">0 of 2</span></div>
+  <div class="meter"><span>5 Commerce (165)</span><div class="track"><div class="fill w" style="width:0%"></div></div><span class="val">0 of 3</span></div>
+  <div class="meter"><span>6 Old milestones</span><div class="track"><div class="fill" style="width:55%"></div></div><span class="val">75 of 120 closed</span></div>
+
+  <!-- 1 -->
+  <h2 class="sec" id="l1">🔥 Lane 1: the GA gate. Write down what 10.0.0 means</h2>
+  <div class="beat">
+    <div class="head"><b>What it is</b> <span class="badge hot">blocks GA</span> <span class="badge acc">1 issue to write, then N to do</span></div>
+    <p class="analogy">Analogy: beta says "the shape will not change". GA says "we stand behind it". The second needs a checklist, and there is none.</p>
+    <p class="muted">Measured: <code>grep GA CHANGELOG.md</code> finds only past product GAs (Fable 5, 1M context); no issue titled 10.0.0 GA; release-please will happily emit beta.3, beta.4 forever. Two things make GA different from another beta for this repo specifically. First, the stable channel: <code>ork</code> is pinned at 9.8.0 by design and <code>bump-stable-pin</code> has exited 3 on every prerelease since alpha.1, so GA is the first time in v10 that script does real work, for every consumer on the stable pin. Second, the consumer evidence from 08-31 (two users fled to bypass mode over the egress ASK storm, the 8x palette, an unguarded find -delete) lives in #1881 and was the reason for the purge; GA should re-ask those two users.</p>
+    <h3>Proposed criteria, five lines, measurable</h3>
+    <table>
+      <tr><th>#</th><th>Criterion</th><th>How it is checked</th></tr>
+      <tr><td>1</td><td>Two consecutive betas with zero hook regressions filed</td><td><code>gh issue list --label bug,hooks --search created:&gt;beta.N-1</code> is empty</td></tr>
+      <tr><td>2</td><td>The 10 open bugs triaged: fixed, or labelled wontfix with a reason</td><td>lane 2 below; count of unlabelled open bugs = 0</td></tr>
+      <tr><td>3</td><td><code>bump-stable-pin.sh</code> exercised once on a dry run against 10.0.0</td><td>a CI job or a manual run with the exit code pasted into the GA issue</td></tr>
+      <tr><td>4</td><td>The two 08-31 consumers re-run one session each on beta and report no ASK storm</td><td>their words in #1881, not a claim</td></tr>
+      <tr><td>5</td><td><code>claude plugin details ork</code> reads 10.0.0 on a clean machine after <code>plugin update</code></td><td>the last step of the release checklist, pasted</td></tr>
+    </table>
+    <div class="two">
+      <div class="c means"><div class="t">What it means</div>One issue, five checkboxes, and beta becomes a countdown instead of a plateau.</div>
+      <div class="c nothing"><div class="t">If we do nothing</div>beta.3, beta.4, beta.12. Consumers on the stable pin stay on 9.8.0 indefinitely.</div>
+    </div>
+  </div>
+
+  <!-- 2 -->
+  <h2 class="sec" id="l2">Lane 2: the bug pile, 10 open</h2>
+  <div class="beat">
+    <div class="head"><b>What it is</b> <span class="badge warn">feeds the GA gate</span> <span class="badge dim">yesterday's Hebrew roadmap had the same theme: tools that lie</span></div>
+    <p class="analogy">Analogy: ten dripping taps. Three of them soaked someone this week.</p>
+    <table>
+      <tr><th>Issue</th><th>What</th><th>Hit</th><th>Suggested</th></tr>
+      <tr><td>#3894</td><td>mcp-output-transform redacts claude-in-chrome tab ids as phone numbers</td><td>blocked screenshot verification 3x last night</td><td><span class="badge hot">first</span></td></tr>
+      <tr><td>#3892</td><td>alpha.67: subagent-stop/feedback-loop throws "Dynamic require of node:os"; review-pr fork reviews HEAD silently on a non-PR target</td><td>a crash and a silent wrong review</td><td><span class="badge hot">second</span></td></tr>
+      <tr><td>#3936</td><td>display-lint nudges on the exact shape it recommends when paths are long</td><td>every long command last night</td><td>third, small</td></tr>
+      <tr><td>#3522</td><td>flaky: skill-validation Test 6 asserts a hard 200 ms wall clock</td><td>random CI red</td><td>fix the assertion, not the runner</td></tr>
+      <tr><td>#3190</td><td>bash 5.3 here-string deadlock past PIPE_BUF hangs the eval guard suite</td><td>known, memory has the recipe</td><td>apply the recipe</td></tr>
+      <tr><td>#3101</td><td>playground mermaid breaks in non-default tabs</td><td>good first issue</td><td>ship with lane 4</td></tr>
+      <tr><td>#3684, #3780, #3667</td><td>URL check follow-ups; pronoun targets; stamped counts in the repo description</td><td>low</td><td>one sweep PR or wontfix with a reason</td></tr>
+    </table>
+    <div class="two">
+      <div class="c means"><div class="t">What it means</div>Two real defects (#3894, #3892), one lint, one flake, six paper cuts. About a week of lanes.</div>
+      <div class="c nothing"><div class="t">If we do nothing</div>GA criterion 2 never clears, and the browser tools stay unverifiable.</div>
+    </div>
+  </div>
+
+  <!-- 3 -->
+  <h2 class="sec" id="l3">Lane 3: page serve (milestone 166), the hallway</h2>
+  <div class="beat">
+    <div class="head"><b>What it is</b> <span class="badge acc">infrastructure, unblocks lane 4</span> <span class="badge dim">#3899 skill, #3900 retire the ad hoc pattern, #3904 editable images</span></div>
+    <p class="analogy">Analogy: every session that wants to show you a page currently builds its own front door out of <code>python3 -m http.server</code> and a portless alias. Last night's session did it twice, and the door is still open (pid 30156). The skill makes it one call, with a screenshot and a cleanup.</p>
+    <div class="two">
+      <div class="c means"><div class="t">What it means</div>#3899 is a two-day skill: register a portless route, print the URL, screenshot, clean up. #3900 deletes the pattern it replaces. #3904 can wait.</div>
+      <div class="c nothing"><div class="t">If we do nothing</div>Every glyph page keeps an orphan server behind it, and lane 4 has no delivery path.</div>
+    </div>
+  </div>
+
+  <!-- 4 -->
+  <h2 class="sec" id="l4">Lane 4: the glyph docs page (milestone 167)</h2>
+  <div class="beat">
+    <div class="head"><b>What it is</b> <span class="badge acc">docs, small</span> <span class="badge dim">#3901 one page, then #3902 one page per user-invocable skill</span></div>
+    <p class="analogy">Analogy: last night was #3901 done by hand: a human asked "what is left", an agent drew it, and the page had to be served ad hoc. The issue is exactly that, but generated from SKILL.md so it never drifts, at a stable URL an agent can route a human to.</p>
+    <div class="two">
+      <div class="c means"><div class="t">What it means</div>#3901 is one generator template plus a curated examples block; #3902 loops it over 106 skills and adds the drift test.</div>
+      <div class="c nothing"><div class="t">If we do nothing</div>"How do I use this" keeps getting answered in chat, per session, from scratch.</div>
+    </div>
+  </div>
+
+  <!-- 5 -->
+  <h2 class="sec" id="l5">Lane 5: commerce agents (milestone 165)</h2>
+  <div class="beat">
+    <div class="head"><b>What it is</b> <span class="badge warn">biggest, revenue-facing, least defined</span> <span class="badge dim">#3896 skill, #3897 catalog adapter contract, #3898 evals into ork:testing-llm</span></div>
+    <p class="analogy">Analogy: the extension with the biggest floor plan and the fewest measurements. The contract (#3897) is the load-bearing wall; build it first or the skill (#3896) gets rebuilt twice.</p>
+    <div class="two">
+      <div class="c means"><div class="t">What it means</div>Order inside the lane: #3897 contract, then #3896 skill against it, then #3898 evals. Two to three weeks, and it should start after lanes 3 and 4 so its pages have a delivery path.</div>
+      <div class="c nothing"><div class="t">If we do nothing</div>Nothing breaks. This is the one lane that is opportunity, not debt.</div>
+    </div>
+  </div>
+
+  <!-- 6 -->
+  <h2 class="sec" id="l6">Lane 6: the old milestones, four of them need a verdict</h2>
+  <div class="beat">
+    <div class="head"><b>What it is</b> <span class="badge dim">hygiene, one sitting</span></div>
+    <table>
+      <tr><th>Milestone</th><th>Open / total</th><th>State</th><th>Suggested</th></tr>
+      <tr><td>76 Video Gallery and Demos</td><td>8 / 10</td><td class="risk">due 2026-06-30, overdue 10 weeks</td><td>decide #2842 (extract demos repo) and either re-date or close the rest as parked</td></tr>
+      <tr><td>154 CC adoption</td><td>1 / 372</td><td>one issue left, #1848</td><td>do #1848 (small) and close the milestone; CC watch continues as issues, not a milestone</td></tr>
+      <tr><td>95 Docs and Discoverability</td><td>16 / 39</td><td>alive</td><td>fold #3901/#3902 in here or keep 167 separate; pick one home</td></tr>
+      <tr><td>104 Hook and Agent Quality</td><td>9 / 51</td><td>alive</td><td>the bug lane's natural home; move the 10 bugs here</td></tr>
+      <tr><td>97 Memory System Hardening</td><td>9 / 20</td><td>quiet since August</td><td>re-triage after GA</td></tr>
+      <tr><td>168 Sales dept content</td><td>1 / 1</td><td>hq-ext side, tracking only</td><td>leave</td></tr>
+    </table>
+    <div class="two">
+      <div class="c means"><div class="t">What it means</div>Fewer open milestones with truer numbers; the bug lane gets a home.</div>
+      <div class="c nothing"><div class="t">If we do nothing</div>An overdue milestone and a 1-of-372 milestone keep reading as active work.</div>
+    </div>
+  </div>
+
+  <h2 class="sec">Suggested calendar</h2>
+  <div class="mermaid">
+timeline
+  title Next four weeks, if the order above holds
+  week of 09-08 : GA gate issue written : bugs #3894 #3892 #3936 : milestones 76 + 154 decided
+  week of 09-15 : page-serve skill #3899 + #3900 : remaining bug sweep : beta.3
+  week of 09-22 : glyph docs page #3901 : #3902 generator : beta.4, GA criteria 1 and 3 checked
+  week of 09-29 : commerce #3897 contract : consumers re-run (criterion 4) : 10.0.0 if 1 to 5 hold
+  </div>
+  <p class="muted">Dates are a proposal, not a commitment. One lane at a time is the floor rule that held last night; the calendar assumes it.</p>
+
+  <!-- decide -->
+  <h2 class="sec" id="decide">✅ Decide</h2>
+  <p class="muted">Two forks. Pick one per block; the bar collects your answers as text.</p>
+
+  <div class="beat decide">
+    <div class="q">D1. The GA gate</div>
+    <label class="opt"><input type="radio" name="d1" value="write-5"><span class="lab">Open the GA issue with the five criteria above<span class="rec">recommended</span></span><span class="cons">Beta becomes a countdown. I file it now, labelled, in milestone 104 or a new one.</span></label>
+    <label class="opt"><input type="radio" name="d1" value="write-edit"><span class="lab">Open it, but I edit the criteria first</span><span class="cons">Same, after your pass on the five lines.</span></label>
+    <label class="opt"><input type="radio" name="d1" value="later"><span class="lab">Not yet, keep shipping betas</span><span class="cons">Nothing blocks; GA stays undefined.</span></label>
+    <div class="after">
+      <label><input type="checkbox" name="d1a"> also move the 10 open bugs into milestone 104</label>
+      <label><input type="checkbox" name="d1b"> also close milestone 154 after #1848 and re-date or park 76</label>
+    </div>
+  </div>
+
+  <div class="beat decide">
+    <div class="q">D2. First product lane to open after the bugs</div>
+    <label class="opt"><input type="radio" name="d2" value="page-serve"><span class="lab">Page serve #3899<span class="rec">recommended</span></span><span class="cons">Two days, unblocks the docs page, retires the ad hoc server pattern that leaked last night.</span></label>
+    <label class="opt"><input type="radio" name="d2" value="glyph-docs"><span class="lab">Glyph docs page #3901 first</span><span class="cons">Docs value sooner, but its delivery path stays ad hoc until #3899.</span></label>
+    <label class="opt"><input type="radio" name="d2" value="commerce"><span class="lab">Commerce #3897 first</span><span class="cons">Revenue-facing, biggest, and it will want pages it cannot yet serve.</span></label>
+  </div>
+
+  <footer>Inputs: <code>gh api milestones</code> (9 open), <code>gh issue list</code> (92 open), <code>gh release list</code>, CHANGELOG grep. Suggested columns and the ranking are opinion. Not read: the two consumers' current state (#1881 is from 08-31), the demos repo question (#2842), and anything in hq-ext for milestone 168.</footer>
+</div>
+
+<div id="answers"><div class="in">
+  <div><pre id="summary">(no picks yet)</pre><div class="cnt" id="cnt">0/2 chosen</div></div>
+  <button id="copy" disabled>copy my answers</button>
+</div></div>
+
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({ startOnLoad: true, theme: 'dark', securityLevel: 'loose' });
+</script>
+<script>
+  const blocks = ['d1','d2'], labels = {d1:'ga-gate', d2:'first-lane'};
+  const sum = document.getElementById('summary'), cnt = document.getElementById('cnt'), btn = document.getElementById('copy');
+  function render(){
+    let n = 0, lines = [];
+    for (const b of blocks){ const r = document.querySelector(`input[name="${b}"]:checked`); if (r) n++; lines.push(`${labels[b].padEnd(10)}: ${r ? r.value : '?'}`); }
+    const todos = [...document.querySelectorAll('.after input:checked')].map(i => i.name);
+    if (todos.length) lines.push(`todos     : ${todos.join(',')}`);
+    sum.textContent = lines.join('\n'); cnt.textContent = `${n}/2 chosen`; btn.disabled = n < 2;
+  }
+  document.addEventListener('change', render);
+  btn.addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText(sum.textContent); btn.textContent = 'copied'; }
+    catch { const r = document.createRange(); r.selectNodeContents(sum); const s = getSelection(); s.removeAllRanges(); s.addRange(r); btn.textContent = 'selected, press Cmd+C'; }
+    setTimeout(() => btn.textContent = 'copy my answers', 1800);
+  });
+  render();
+</script>
+</body>
+</html>
