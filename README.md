@@ -370,6 +370,13 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.5](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.4...v10.0.0-beta.5)** · 2026-09-07
+
+- **skills:** page-serve, hand a human a page at a port-free URL (#3899) (#3987)
+- **hooks:** PHONE_RE no longer redacts numeric MCP ids (#3894) (#3984)
+- **tests:** Test 4c reads all input, no grep -q SIGPIPE (#3974) (#3982)
+- **glyph:** a page an agent can route a human to (#3901) (#3988)
+
 **[v10.0.0-beta.4](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.3...v10.0.0-beta.4)** · 2026-09-07
 
 - **deps-dev:** bump the vitest group across 1 directory with 2 updates (#3978)
@@ -404,11 +411,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-alpha.84](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.83...v10.0.0-alpha.84)** · 2026-09-06
 
 - **ci:** single skip pattern, cc-keys spec guard, PASS glyph (#1460) (#3944)
-
-**[v10.0.0-alpha.83](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.82...v10.0.0-alpha.83)** · 2026-09-06
-
-- retire unused tables, orphan validator, sibling sweep ([#3353](https://github.com/yonatangross/orchestkit/issues/3353), [#3937](https://github.com/yonatangross/orchestkit/issues/3937)) (#3943)
-- **skills:** same-skill refs to relative paths ([#3822](https://github.com/yonatangross/orchestkit/issues/3822) steps 2, 3) (#3940)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

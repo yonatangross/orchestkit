@@ -17,6 +17,32 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.5",
+    "date": "2026-09-07",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**skills:** page-serve, hand a human a page at a port-free URL ([#3899](https://github.com/yonatangross/orchestkit/issues/3899)) ([#3987](https://github.com/yonatangross/orchestkit/issues/3987)) ([1e12502](https://github.com/yonatangross/orchestkit/commit/1e12502d08001c18d0867c630534e770026788e8))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "**hooks:** PHONE_RE no longer redacts numeric MCP ids ([#3894](https://github.com/yonatangross/orchestkit/issues/3894)) ([#3984](https://github.com/yonatangross/orchestkit/issues/3984)) ([1e59fb1](https://github.com/yonatangross/orchestkit/commit/1e59fb1a18abf5d8f1d37bc46f297ce5098fd3fd))",
+          "**tests:** Test 4c reads all input, no grep -q SIGPIPE ([#3974](https://github.com/yonatangross/orchestkit/issues/3974)) ([#3982](https://github.com/yonatangross/orchestkit/issues/3982)) ([e1d625b](https://github.com/yonatangross/orchestkit/commit/e1d625b2298bbe36fad299ebeeb6286f0d9fbf2d))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**glyph:** a page an agent can route a human to ([#3901](https://github.com/yonatangross/orchestkit/issues/3901)) ([#3988](https://github.com/yonatangross/orchestkit/issues/3988)) ([4460c57](https://github.com/yonatangross/orchestkit/commit/4460c57e4922afa4836b72be72c981aeaea85d15))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.4",
     "date": "2026-09-07",
     "compareUrl": "",
