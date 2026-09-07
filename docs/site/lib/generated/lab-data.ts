@@ -15,6 +15,22 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "grep-q-sigpipe",
+    "title": "grep -q under pipefail: how a true match reads as FAIL",
+    "description": "A CI assertion that a workflow file sources a shared script failed on a file that does source it, then passed on re-run with the same bytes. Toggle pipefail, grep -q versus read-all, and whether the producer is still writing, and watch the pipeline status a bash if actually sees. The one-line fix and the 132 sibling sites left for a follow-up.",
+    "tags": [
+      "ci",
+      "tests",
+      "bash",
+      "flake",
+      "pipefail"
+    ],
+    "date": "2026-09-07",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 7
+  },
+  {
     "slug": "mcp-redact-exempt-tools",
     "title": "An id that is email-shaped: the #3951 per-tool redaction exemption",
     "description": "A WhatsApp JID is <digits>@c.us, so the MCP PostToolUse redaction hook, which matches on shape and has exempted nothing since #2552, rewrote an account's OWN id to [REDACTED_EMAIL] and left a self-chat protocol unable to resolve its target. Pick a tool, a payload and the ORK_MCP_REDACT_EXEMPT_TOOLS value to see what the model actually reads. The regexes and the exact-match Set run in the page, copied from the shipped hook, so a prefix or an extension of an exempt name visibly stays redacted.",
