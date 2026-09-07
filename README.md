@@ -370,6 +370,15 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.4](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.3...v10.0.0-beta.4)** · 2026-09-07
+
+- **deps-dev:** bump the vitest group across 1 directory with 2 updates (#3978)
+- **deps-dev:** bump vitest from 4.1.11 to 5.0.0 (#3960)
+- **deps:** bump the npm-minor-patch group across 1 directory with 7 updates (#3965)
+- **deps:** bump the remotion group across 1 directory with 21 updates (#3964)
+- bump anthropics/claude-code-action (#3968)
+- …and 1 more (see [CHANGELOG.md](CHANGELOG.md))
+
 **[v10.0.0-beta.3](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.2...v10.0.0-beta.3)** · 2026-09-07
 
 - **deps-dev:** bump @types/node (#3958)
@@ -400,10 +409,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - retire unused tables, orphan validator, sibling sweep ([#3353](https://github.com/yonatangross/orchestkit/issues/3353), [#3937](https://github.com/yonatangross/orchestkit/issues/3937)) (#3943)
 - **skills:** same-skill refs to relative paths ([#3822](https://github.com/yonatangross/orchestkit/issues/3822) steps 2, 3) (#3940)
-
-**[v10.0.0-alpha.82](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.81...v10.0.0-alpha.82)** · 2026-09-06
-
-- **ci:** fail 37 gates that passed on absent input (#3938)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
