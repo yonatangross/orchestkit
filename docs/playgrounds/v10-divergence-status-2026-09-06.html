@@ -4,7 +4,7 @@
 <!--
   SOURCE, all read live at render time on 2026-09-06 ~20:15 IL:
   - milestone 164 via gh api graphql: 0 open, 63 issues + 57 PRs closed = 120
-  - #3877 latest comment (07:53Z step-3 hypothesis, no probe run yet)
+  - #3877 latest comment (07:53Z step-3 hypothesis); probe MEASURED later that night (20:45, headless arm), see item 1
   - git worktree list: 4 real worktrees; ls .worktrees: 6 dirs (2 strays with no .git)
   - git stash list: 9 entries (7 station-close + 2 park)
   - gh release list: alpha.85 is latest, no beta.1
@@ -141,7 +141,7 @@ flowchart LR
   <div class="beat">
     <div class="head"><b>What it is</b> <span class="badge ready">measured 20:45, outcome 3: nothing intervened</span></div>
     <p class="analogy">Analogy: we built our own guard dog (a hook called <code>network-egress-guard</code>) years before the house got an alarm system (Claude Code's own sandbox). The question is whether the alarm now covers what the dog was for. If yes, retire the dog. If no, keep him.</p>
-    <p class="muted">Concretely: does Claude Code 2.1.263 by itself stop a command that downloads a script from an allowed website and immediately runs it (<code>curl url | sh</code>)? Our hook has a DENY tier that blocks exactly that. Nobody has tested whether CC now does it too. The last comment on the issue (today, 07:53Z) is a research read that says "probably not", but it is explicitly CLAIMED, not measured.</p>
+    <p class="muted">Concretely: does Claude Code 2.1.263 by itself stop a command that downloads a script from an allowed website and immediately runs it (<code>curl url | sh</code>)? Our hook has a DENY tier that blocks exactly that. It was measured at 20:45 (headless arm, CC 2.1.263, ork off): nothing intervened, the fetched bytes ran. Before that, the last comment on the issue (07:53Z) was a research read that said "probably not", explicitly CLAIMED, not measured; the measurement replaced the claim, and the CLAIMED/measured distinction is why this beat records both.</p>
     <div class="two">
       <div class="c means"><div class="t">What it means</div>One 10 minute experiment decides whether a hook file lives or dies.</div>
       <div class="c nothing"><div class="t">If we do nothing</div>Milestone 164 stays open forever and beta.1 never cuts.</div>
@@ -272,7 +272,7 @@ stash@{8}  conductor-close-ork-3919-1110        NOT in the proof  ?</div>
 </div></div>
 
 <script type="module">
-  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11.17.2/dist/mermaid.esm.min.mjs';
   mermaid.initialize({ startOnLoad: true, theme: 'dark', securityLevel: 'loose' });
 </script>
 <script>
