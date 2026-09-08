@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Paths that open: the Cursor export</title>
+<style>
+  :root{
+    --pg-bg:          hsl(232 26% 7%);
+    --pg-panel:       hsl(232 22% 11%);
+    --pg-ink:         hsl(220 18% 93%);
+    --pg-muted:       hsl(220 12% 64%);
+    --pg-faint:       hsl(220 10% 46%);
+    --pg-line:        hsl(0 0% 100% / 0.10);
+    --pg-glass:       hsl(0 0% 100% / 0.05);
+    --pg-accent:      hsl(248 84% 68%);
+    --pg-emerald:     hsl(160 68% 45%);
+    --pg-warm:        hsl(38 95% 60%);
+    --pg-rose:        hsl(345 76% 63%);
+    --pg-shadow: 0 20px 60px -22px hsl(232 40% 2% / 0.7), 0 4px 12px -6px hsl(232 40% 2% / 0.5);
+    --pg-r-sm: 9px; --pg-r-md: 16px;
+    --pg-dur-fast: 200ms;
+    --pg-ease: cubic-bezier(.2,.8,.25,1);
+    --pg-font: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, system-ui, sans-serif;
+    --pg-mono: "SF Mono", "JetBrains Mono", ui-monospace, Menlo, monospace;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;padding:28px;font-family:var(--pg-font);color:var(--pg-ink);
+    background:
+      radial-gradient(900px 600px at 88% -8%, hsl(248 84% 68% / 0.14), transparent 60%),
+      radial-gradient(820px 620px at 4% 110%, hsl(160 68% 45% / 0.10), transparent 58%),
+      var(--pg-bg);
+    min-block-size:100%;
+  }
+  main{max-inline-size:1000px;margin-inline:auto}
+  h1{margin:0 0 6px;font-size:26px;letter-spacing:-0.01em}
+  h2{margin:0 0 10px;font-size:17px}
+  .sub{color:var(--pg-muted);line-height:1.55;margin-block:0 22px}
+  section{
+    background:var(--pg-panel);border:1px solid var(--pg-line);border-radius:var(--pg-r-md);
+    padding:18px;margin-block-end:16px;box-shadow:var(--pg-shadow);
+  }
+  code,pre{font-family:var(--pg-mono)}
+  pre{
+    white-space:pre-wrap;background:var(--pg-glass);border:1px solid var(--pg-line);
+    border-radius:var(--pg-r-sm);padding:13px;line-height:1.55;font-size:13px;margin:0;
+  }
+  .switch{display:flex;gap:10px;flex-wrap:wrap;margin-block-end:14px}
+  button{
+    font:inherit;font-size:13px;color:var(--pg-ink);background:var(--pg-glass);
+    border:1px solid var(--pg-line);border-radius:var(--pg-r-sm);padding:8px 13px;cursor:pointer;
+    transition:border-color var(--pg-dur-fast) var(--pg-ease), background var(--pg-dur-fast) var(--pg-ease);
+  }
+  button:hover{border-color:var(--pg-accent)}
+  button[aria-pressed="true"]{border-color:var(--pg-accent);background:hsl(248 84% 68% / 0.16)}
+  .verdict{font-family:var(--pg-mono);font-size:19px;letter-spacing:-0.01em;margin-block-end:4px}
+  .verdict.bad{color:var(--pg-rose)}
+  .verdict.good{color:var(--pg-emerald)}
+  .verdict.warn{color:var(--pg-warm)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}
+  table{inline-size:100%;border-collapse:collapse;font-size:13.5px}
+  th,td{text-align:start;padding:8px 6px;border-block-end:1px solid var(--pg-line);vertical-align:top}
+  th{color:var(--pg-faint);font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+  td.num{font-family:var(--pg-mono);text-align:end;white-space:nowrap}
+  .bar{display:inline-block;font-family:var(--pg-mono);color:var(--pg-accent)}
+  .zero{color:var(--pg-emerald)}
+  .note{color:var(--pg-muted);font-size:13px;line-height:1.55}
+  .tag{
+    display:inline-block;font-family:var(--pg-mono);font-size:12px;
+    padding:3px 8px;border-radius:999px;border:1px solid var(--pg-line);color:var(--pg-muted);
+  }
+  .tag.good{color:var(--pg-emerald);border-color:hsl(160 68% 45% / 0.45)}
+  .tag.bad{color:var(--pg-rose);border-color:hsl(345 76% 63% / 0.45)}
+  footer{color:var(--pg-faint);font-size:12.5px;margin-block-start:20px;line-height:1.6}
+  .copy{margin-block-start:10px}
+  .copied{color:var(--pg-emerald)}
+  @media (prefers-reduced-motion: reduce){
+    *{transition-duration:0.01ms !important;animation-duration:0.01ms !important}
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>Paths that open: the Cursor export</h1>
+  <p class="sub">
+    A command wrapper is written to <code>plugins/ork/.cursor-plugin/commands/&lt;skill&gt;.md</code>,
+    one directory away from the skill whose body it carries. Every way that body has ever spelled a
+    same-skill reference therefore failed from there, in two different ways, and neither raised an
+    error. Pick a spelling below and see where it points. Measured on the branch base
+    <code>7b6f27893</code> and on cursor-agent <code>2026.09.02-c22c1a3</code>, 2026-09-08.
+  </p>
+
+  <section>
+    <h2>1. Pick a reference spelling</h2>
+    <div class="switch" id="shapes"></div>
+    <div class="grid">
+      <div>
+        <div class="verdict" id="verdict"></div>
+        <p class="note" id="explain"></p>
+        <p class="note">Lines carrying this spelling before the fix: <strong id="before"></strong></p>
+      </div>
+      <div>
+        <pre id="snippet"></pre>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>2. What the 36 wrappers carried</h2>
+    <p class="note">
+      Counted by running the rewriter's own matchers over <code>git show 7b6f27893:&lt;file&gt;</code>,
+      so the before column is the tree this PR branched from, not a recollection. A bare reference is
+      counted only when the file it names really exists under that skill: prose about this repo's own
+      <code>scripts/build-plugins.sh</code> is not a defect and is never rewritten.
+    </p>
+    <table>
+      <thead><tr><th>Spelling</th><th>Before</th><th>After</th><th>Why it could not resolve</th></tr></thead>
+      <tbody id="counts"></tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>3. Cursor's rule router</h2>
+    <p class="note">
+      <code>rules</code> is a first-class key in Cursor's plugin manifest, next to
+      <code>skills</code>, <code>agents</code>, <code>commands</code> and <code>hooks</code>. Its
+      loader routes each rule by frontmatter alone. Set the frontmatter and watch the class change.
+    </p>
+    <div class="switch" id="fm"></div>
+    <div class="grid">
+      <div>
+        <div class="verdict" id="ruleclass"></div>
+        <p class="note" id="rulewhy"></p>
+      </div>
+      <div>
+        <pre id="rulesnippet"></pre>
+      </div>
+    </div>
+    <p class="note">
+      All 14 exported rules land in <strong>agentFetched</strong>. Pinning them global would put
+      every rule in every session's context whether or not it is relevant; manually attached would
+      mean nobody ever loads them. The description is the whole retrieval surface, so where a source
+      carries a hand-written <code>impactDescription</code> (9 of the 14) that is what ships.
+    </p>
+  </section>
+
+  <section>
+    <h2>4. The gate, and proof it bites</h2>
+    <p class="note">
+      A grep for <code>CLAUDE_</code> returning zero is the wrong gate: 24 lines in the export are
+      prose about real Claude Code environment variables, and rewriting documentation is not a fix.
+      The gate keys on the trailing slash that turns a variable into a path, and then checks the
+      harder direction: every rewritten path is stat'd against the plugin, so a rewriter that
+      invents targets fails even when the placeholder grep is clean. Each row below was injected
+      into a wrapper and run.
+    </p>
+    <table>
+      <thead><tr><th>Injected into a wrapper</th><th>Result</th><th>Check that fired</th></tr></thead>
+      <tbody id="bite"></tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>5. Reproduce it</h2>
+    <pre id="repro"></pre>
+    <button class="copy" id="copy" type="button">Copy the commands</button>
+    <span id="copystate" class="note"></span>
+  </section>
+
+  <footer>
+    Sources: cursor-agent <code>2026.09.02-c22c1a3</code> <code>index.js</code>, read directly for
+    the manifest schema, the <code>[".md", ".mdc", ".markdown"]</code> extension list and the rule
+    routing expression; <code>docs/audits/multi-engine-support-2026-09-08.md</code>; and the gate
+    <code>tests/plugins/test-cursor-paths.sh</code>. The discovery counts are a re-derivation of
+    Cursor's loader rules over the built plugin, not a live Cursor install: every route to a live
+    install writes state outside this repo, so it is named here as the one thing not measured.
+  </footer>
+</main>
+
+<script type="application/json" id="data">
+{
+  "shapes": [
+    {
+      "id": "pluginroot",
+      "label": "${CLAUDE_PLUGIN_ROOT}/...",
+      "tone": "bad",
+      "verdict": "Delivered literally. Points at nothing.",
+      "before": "53 lines",
+      "snippet": "in the skill body\n  Read(\"${CLAUDE_PLUGIN_ROOT}/shared/rules/verification-gate.md\")\n\nwhat Cursor gets\n  Read(\"${CLAUDE_PLUGIN_ROOT}/shared/rules/verification-gate.md\")\n\nafter the rewrite\n  Read(\"shared/rules/verification-gate.md\")",
+      "explain": "A Claude Code contract, not a general one. Cursor never substitutes it and pi delivers it as a literal string (#3822), so the path opens on no engine but the one that defines it. The export strips the prefix, leaving the path anchored at the plugin root where every other manifest path is anchored."
+    },
+    {
+      "id": "skilldir",
+      "label": "${CLAUDE_SKILL_DIR}/...",
+      "tone": "bad",
+      "verdict": "Same failure, one directory deeper.",
+      "before": "15 lines",
+      "snippet": "in the skill body\n  python3 ${CLAUDE_SKILL_DIR}/scripts/post_explore_summary.py\n\nafter the rewrite\n  python3 skills/explore/scripts/post_explore_summary.py",
+      "explain": "The exec shapes. The variable names the skill's own directory, which the export knows from the wrapper's filename, so the rewrite is exact rather than a guess."
+    },
+    {
+      "id": "fstring",
+      "label": "${{CLAUDE_PLUGIN_ROOT}}/... (f-string)",
+      "tone": "warn",
+      "verdict": "Same defect, invisible to a single-brace matcher.",
+      "before": "3 lines",
+      "snippet": "in the skill body\n  Bash(command=f\"bash ${{CLAUDE_PLUGIN_ROOT}}/skills/verify/scripts/assert-evidence.sh {LOG}\")\n\nafter the rewrite\n  Bash(command=f\"bash skills/verify/scripts/assert-evidence.sh {LOG}\")",
+      "explain": "Several skills emit a shell command from inside a Python f-string, where a brace has to be doubled. It renders to the plain form at runtime and is exactly as unresolvable, but ${CLAUDE_PLUGIN_ROOT} does not appear as a substring of ${{CLAUDE_PLUGIN_ROOT}}. The first pass walked straight past all three lines and the placeholder count still read as clean. Both spellings are handled now, longest first."
+    },
+    {
+      "id": "skilldirvar",
+      "label": "$SKILL_DIR/...",
+      "tone": "warn",
+      "verdict": "Defined nowhere at all. Expands to an empty string.",
+      "before": "3 lines",
+      "snippet": "in the skill body\n  bash \"$SKILL_DIR/scripts/analyze-impact.sh\"\n\nwhat any shell does with it\n  bash \"/scripts/analyze-impact.sh\"\n\nafter the rewrite\n  bash \"skills/visualize-plan/scripts/analyze-impact.sh\"",
+      "explain": "Not in the issue's list, and not a Cursor problem either: no engine defines it. Three lines in visualize-plan that should read ${CLAUDE_SKILL_DIR}. It is handled here because the export must not ship a path that cannot open regardless of which side is eventually corrected."
+    },
+    {
+      "id": "bare",
+      "label": "references/x.md (bare relative)",
+      "tone": "bad",
+      "verdict": "Resolves against the SKILL.md directory. The wrapper is not in it.",
+      "before": "247 lines in 26 files",
+      "snippet": "in the skill body\n  Read(\"references/tier-classification.md\")\n\nresolved from .cursor-plugin/commands/implement.md\n  .cursor-plugin/commands/references/tier-classification.md   (absent)\n\nafter the rewrite\n  Read(\"skills/implement/references/tier-classification.md\")",
+      "explain": "The correct spelling per the Agent Skills spec, and what #3940 moved the bodies to. It resolves in Claude Code, in pi and in the spec, all of which read the SKILL.md itself. The wrapper is a copy of that body in a different directory, so the same string that fixed three consumers broke on the fourth. No regression: unresolvable before #3940, unresolvable after, for a different reason."
+    }
+  ],
+  "counts": [
+    {"k": "${CLAUDE_PLUGIN_ROOT}", "before": 53, "after": 1, "why": "Claude Code contract, never substituted by Cursor. The one survivor is a comment explaining what the variable means, not a path."},
+    {"k": "${CLAUDE_SKILL_DIR}", "before": 15, "after": 0, "why": "Same, scoped to the skill's own directory."},
+    {"k": "$SKILL_DIR", "before": 3, "after": 0, "why": "Defined by no engine at all."},
+    {"k": "bare same-skill refs", "before": 247, "after": 0, "why": "Resolve against the SKILL.md directory, which the wrapper is not in."},
+    {"k": "wrappers", "before": 36, "after": 36, "why": "Every user-invocable skill, unchanged. Only the paths inside them moved."},
+    {"k": "rules exported", "before": 0, "after": 14, "why": "src/rules and src/shared/rules, one .mdc each, registered by the manifest rules key."}
+  ],
+  "frontmatter": [
+    {
+      "id": "always",
+      "label": "alwaysApply: true",
+      "cls": "global",
+      "tone": "warn",
+      "snippet": "---\nname: verification-gate\ndescription: \"Verification Gate. Prevents premature completion claims across all skills\"\nalwaysApply: true\n---",
+      "why": "Pinned into every session, relevant or not. Fourteen of these is a context tax nobody asked for, so this is not what ships."
+    },
+    {
+      "id": "globs",
+      "label": "globs: set",
+      "cls": "fileGlobbed",
+      "tone": "warn",
+      "snippet": "---\nname: verification-gate\ndescription: \"Verification Gate. Prevents premature completion claims across all skills\"\nglobs: src/**/*.ts\nalwaysApply: false\n---",
+      "why": "Loaded when a matching file is in play. Right for a rule about one language or directory; these rules are about how to work, not about a file type."
+    },
+    {
+      "id": "desc",
+      "label": "description only (shipped)",
+      "cls": "agentFetched",
+      "tone": "good",
+      "snippet": "---\nname: verification-gate\ndescription: \"Verification Gate. Prevents premature completion claims across all skills\"\nalwaysApply: false\n---",
+      "why": "Pulled in when the description matches the task, and costs nothing until then. This is what all 14 exported rules carry."
+    },
+    {
+      "id": "none",
+      "label": "neither",
+      "cls": "manuallyAttached",
+      "tone": "bad",
+      "snippet": "---\nname: verification-gate\nalwaysApply: false\n---",
+      "why": "Reachable only if a human attaches it by hand, which for a shipped plugin means never. Dropping the description would silently retire all 14."
+    }
+  ],
+  "bite": [
+    {"inject": "${CLAUDE_PLUGIN_ROOT}/skills/dream/references/safe-deletes.md", "res": "FAIL", "check": "test_no_placeholder_used_as_a_path"},
+    {"inject": "${{CLAUDE_SKILL_DIR}}/scripts/index-budget.mjs", "res": "FAIL", "check": "test_no_placeholder_used_as_a_path"},
+    {"inject": "bare references/safe-deletes.md", "res": "FAIL", "check": "test_no_bare_same_skill_reference"},
+    {"inject": "skills/dream/references/does-not-exist.md", "res": "FAIL", "check": "test_rewritten_paths_resolve"},
+    {"inject": "prose: $CLAUDE_EFFORT and CLAUDE_CODE_OAUTH_TOKEN", "res": "PASS", "check": "none, correctly ignored"},
+    {"inject": "a stray .mdc under plugins/ork/skills/", "res": "FAIL", "check": "test:packaging, carve-out is scoped"}
+  ],
+  "repro": "# rebuild, then run the gate\nnpm run build\nbash tests/plugins/test-cursor-paths.sh\n\n# what the wrappers carried before this branch\ngit show 7b6f27893:plugins/ork/.cursor-plugin/commands/verify.md | grep -c CLAUDE_PLUGIN_ROOT\n\n# what they carry now: only prose, never a path\ngrep -rE '\\$\\{{0,2}CLAUDE_[A-Z_]+\\}{0,2}/' plugins/ork/.cursor-plugin/ | wc -l\n\n# Cursor's own rules, read out of the shipped bundle\nCA=~/.local/share/cursor-agent/versions/2026.09.02-c22c1a3\ngrep -o 'fc=\\[\\\"\\.md\\\".\\{0,40\\}' \"$CA/index.js\"\n\n# the one thing not measured here: a live Cursor install\ncursor-agent --plugin-dir plugins/ork --mode ask -p 'list the plugin rules and commands you can see'"
+}
+</script>
+
+<script>
+(function () {
+  const DATA = JSON.parse(document.getElementById("data").textContent);
+  const $ = (id) => document.getElementById(id);
+
+  function switcher(host, items, render) {
+    const box = $(host);
+    items.forEach((item, i) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.textContent = item.label;
+      b.setAttribute("aria-pressed", String(i === 0));
+      b.addEventListener("click", () => {
+        [...box.children].forEach((c) => c.setAttribute("aria-pressed", "false"));
+        b.setAttribute("aria-pressed", "true");
+        render(item);
+      });
+      box.appendChild(b);
+    });
+    render(items[0]);
+  }
+
+  switcher("shapes", DATA.shapes, (s) => {
+    const v = $("verdict");
+    v.textContent = s.verdict;
+    v.className = "verdict " + s.tone;
+    $("explain").textContent = s.explain;
+    $("before").textContent = s.before;
+    $("snippet").textContent = s.snippet;
+  });
+
+  switcher("fm", DATA.frontmatter, (f) => {
+    const v = $("ruleclass");
+    v.textContent = f.cls;
+    v.className = "verdict " + f.tone;
+    $("rulewhy").textContent = f.why;
+    $("rulesnippet").textContent = f.snippet;
+  });
+
+  const max = Math.max(...DATA.counts.map((c) => Math.max(c.before, c.after)));
+  $("counts").innerHTML = DATA.counts.map((c) => {
+    const w = Math.max(1, Math.round((c.before / max) * 18));
+    const after = c.after === 0
+      ? '<span class="zero">0</span>'
+      : String(c.after);
+    return "<tr><td><code>" + esc(c.k) + "</code></td>"
+      + '<td class="num"><span class="bar">' + "▓".repeat(w) + "</span> " + c.before + "</td>"
+      + '<td class="num">' + after + "</td>"
+      + "<td>" + esc(c.why) + "</td></tr>";
+  }).join("");
+
+  $("bite").innerHTML = DATA.bite.map((b) => {
+    const cls = b.res === "PASS" ? "tag good" : "tag bad";
+    return "<tr><td><code>" + esc(b.inject) + '</code></td><td><span class="' + cls + '">'
+      + b.res + "</span></td><td><code>" + esc(b.check) + "</code></td></tr>";
+  }).join("");
+
+  $("repro").textContent = DATA.repro;
+  $("copy").addEventListener("click", async () => {
+    const state = $("copystate");
+    try {
+      await navigator.clipboard.writeText(DATA.repro);
+      state.textContent = "copied";
+      state.className = "note copied";
+    } catch (e) {
+      state.textContent = "select the block above and copy";
+      state.className = "note";
+    }
+  });
+
+  function esc(s) {
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+})();
+</script>
+</body>
+</html>
