@@ -105,6 +105,30 @@ updates:
         update-types:
           - "minor"
           - "patch"
+    ignore:
+      # vitest MAJOR is a migration for this manifest, not a bump. Tracked in
+      # #3981, which measured the real API breakage on #3980: `bench` is gone
+      # from the vitest root export (TypeError plus TS2724),
+      # `describe.sequential` is removed (TS2339), and three mock-helper return
+      # types can no longer be named (TS2883). None of that is fixable by
+      # rebasing, and #3980 was reopened weekly on the hope that it was.
+      #
+      # The bump is also structurally unlandable by Dependabot regardless of the
+      # API breakage: the tracked generated mirror plugins/ork/hooks/package.json
+      # sits inside the build-drift roster and Dependabot never runs a build
+      # (#3971). That gate fires BEFORE the suites, so a red here never even
+      # reached the vitest code, which is how the migration went unnoticed.
+      #
+      # Scoped to major only. Minor and patch keep flowing, and keep using the
+      # `vitest` group above so the runner and its coverage provider stay in
+      # lockstep (#3976, ERESOLVE when they split across majors).
+      #
+      # REMOVE THIS when #3981 lands: it is a pause on a known migration, not a
+      # decision to stay on vitest 4.
+      - dependency-name: "vitest"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@vitest/*"
+        update-types: ["version-update:semver-major"]
     open-pull-requests-limit: 5
 
   # ── npm: docs/site (Next.js docs site) ──────────────────────────────
