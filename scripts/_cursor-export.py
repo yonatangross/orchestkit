@@ -142,10 +142,18 @@ def rewrite_bare_refs(text: str, skill_name: str, skill_dir: Path) -> str:
 
 
 def rewrite_command(text: str, skill_name: str, skill_dir: Path) -> str:
-    # Order matters. Strip the plugin root first so an already-anchored
-    # `${CLAUDE_PLUGIN_ROOT}/skills/other/references/x.md` becomes
-    # `skills/other/references/x.md` and is then protected by NOT_PATH_CHAR from
-    # the bare-ref pass, which would otherwise retarget it at THIS skill.
+    # Order matters, though not for the reason it first looks like. A
+    # cross-skill `${CLAUDE_PLUGIN_ROOT}/skills/other/references/x.md` is safe
+    # either way: NOT_PATH_CHAR sees the slash before `references/` and refuses
+    # it whichever pass runs first. The case that actually needs this order is
+    # `${CLAUDE_PLUGIN_ROOT}/references/x.md`, where the same slash HIDES a
+    # reference that should be anchored. Strip first and the bare-ref pass sees
+    # `references/x.md` at a word boundary and anchors it; run the passes the
+    # other way round and it survives as a bare relative path, which is the
+    # defect this whole file exists to remove.
+    # Measured, not assumed: reversing these three lines leaves
+    # `Read("references/guide.md")` where `Read("skills/demo/references/guide.md")`
+    # belongs.
     text = strip_plugin_root(text)
     text = rewrite_skill_dir(text, skill_name)
     return rewrite_bare_refs(text, skill_name, skill_dir)
