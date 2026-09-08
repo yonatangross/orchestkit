@@ -1,0 +1,150 @@
+---
+title: "OrchestKit on pi, Codex and Cursor"
+description: "What each engine loads from an OrchestKit install, what it cannot load, the exact config per engine, and the sweep, mech and reason lane model. Measured on pi 0.85, Codex CLI and cursor-agent, September 2026."
+---
+
+import { Count } from '@/components/count';
+
+# OrchestKit on pi, Codex and Cursor
+
+OrchestKit is built for Claude Code. Three other engines can load parts of it, and the parts
+differ per engine. This page is measured, not aspirational: every claim was checked against
+pi 0.85.0, Codex CLI 2026.09.02 and cursor-agent 2026.09.02 on 2026-09-08. The full audit,
+with the commands and their output, is in the repo at
+[`docs/audits/multi-engine-support-2026-09-08.md`](https://github.com/yonatangross/orchestkit/blob/main/docs/audits/multi-engine-support-2026-09-08.md).
+
+## Support matrix
+
+| Surface | Claude Code | Cursor | Codex | pi |
+|---|---|---|---|---|
+| Skills (SKILL.md) | <Count k="skills" /> | <Count k="skills" /> via the `ork` plugin | 6, the `ork-codex` pack | 107 loaded, 78 auto-listed, via `--skill` or `.agents/skills` |
+| Agents | <Count k="agents" /> | <Count k="agents" /> | 4 role templates, installed by script | none |
+| Slash commands | `/ork:<skill>` | 36 generated command wrappers | `$ork-<skill>` | `/skill:<name>` |
+| Hooks | <Count k="hooks" /> | none (Cursor has its own `hooks.json`) | none (Codex has its own hooks) | none (pi has extensions) |
+| MCP config | `.mcp.json` | `.cursor/mcp.json` | plugin `mcp.json` (context7 shipped) | `.pi/mcp.json` and `.mcp.json` |
+| Install status | shipped | shipped (#3748) | shipped (#3265) | **not shipped**, see below |
+
+The SKILL.md format is the cross-engine contract. Codex, Cursor and pi all read the
+[Agent Skills](https://agentskills.io) shape, so a skill body written for Claude Code loads
+everywhere. Hooks are Claude Code only. MCP configuration is a different file on every engine.
+
+## What works and what does not
+
+**Works on every engine**: the skill body. Same-skill references are bare relative paths
+since #3940, and all four engines resolve those against the SKILL.md directory.
+
+**Does not port**: hooks (they need `${CLAUDE_PLUGIN_ROOT}` and the Claude Code event
+payload), agents (only Claude Code and Cursor read the `agents` manifest key), and any
+`${CLAUDE_PLUGIN_ROOT}` reference that is left in cross-skill or `shared/` paths. pi delivers
+that variable as a literal string, Cursor never substitutes it (#3822, #3941).
+
+**Hidden on pi by design**: 29 of the 107 skills carry `disable-model-invocation: true`.
+pi honours that flag, so those skills never appear in the model's auto-list and are reachable
+only as `/skill:<name>`. The remaining 78 cost about 11k tokens of catalog before any body is
+read.
+
+## pi
+
+pi has no shipped adapter yet. Two things are measured and one is derived.
+
+Measured: pointing pi at the skills directory works.
+
+```bash
+# from a checkout of the repo
+pi --skill ./plugins/ork/skills
+```
+
+pi's loader returns all 107 skills with zero diagnostics, the auto-list shows 78, and a
+headless run reported `HAS_IMPLEMENT=yes`. The same directory can be symlinked into
+`.agents/skills` (project) or `~/.agents/skills` (user) and pi picks it up on the next start.
+
+Measured: **`--no-builtin-tools` hides every skill.** pi appends the skills block only when a
+tool that can read files is enabled. With built-in tools off the model reported `SKILLS=0` at
+1.6k input tokens; with them on it reported 139 skills at 21.7k. This matters for the sweep
+lane below.
+
+Derived from the loader source: `pi install git:github.com/yonatangross/orchestkit` registers
+nothing today. pi resolves a git package through the `pi` key in `package.json`, or falls back
+to `skills/`, `extensions/`, `prompts/` and `themes/` at the package root. OrchestKit has
+neither. The fix is a five-line manifest, tracked in the epic below.
+
+MCP on pi comes from `pi-mcp-adapter`, which reads `.pi/mcp.json`, then `.mcp.json`, then
+`~/.config/mcp/mcp.json`. It does not discover other hosts' configs. A project-level
+`.pi/mcp.json` can add an `includeTools` allowlist per server, which is how a pi session is
+made read-mostly by construction. OrchestKit ships no template for it yet.
+
+Two headless contracts, both load-bearing: `pi -p` blocks forever on an open stdin, so close
+it with `</dev/null`; and the session directory is pi's first write, so pass `--no-session` or
+`--session-dir <writable>` in confined shells.
+
+## Codex
+
+Shipped as a separate, thin plugin so Claude-only commands and hooks never reach Codex.
+
+```bash
+codex plugin marketplace add yonatangross/orchestkit --ref main --sparse .agents/plugins --sparse plugins/ork-codex
+codex plugin add ork-codex@orchestkit-codex
+# optional roles, loaded from ~/.codex/agents, not from the plugin
+plugins/ork-codex/scripts/install-codex-roles.sh ~/.codex/agents
+export CONTEXT7_API_KEY_CODEX="<your-context7-api-key>"
+```
+
+What loads: six workflow skills (`$ork-brainstorm`, `$ork-explore`, `$ork-implement`,
+`$ork-assess`, `$ork-verify`, `$ork-review-pr`), one MCP server (context7 over HTTP, key by
+environment variable, never written to `config.toml`), and four role templates if you ran the
+script. Codex also reads project `.agents/skills`, `~/.agents/skills` and `AGENTS.md`, so a
+checkout of this repo already contributes its `AGENTS.md`.
+
+Known caveat: the plugin source says `ref main` but the installed copy is cached. On the
+audit machine it showed beta.5 while main was at beta.8. Run `codex plugin update` after a
+release.
+
+Codex has a hooks system with the same event names as Claude Code (`SessionStart`,
+`PreToolUse`, `PostToolUse`, `UserPromptSubmit`), trust-gated per hook. OrchestKit ships
+nothing for it yet.
+
+## Cursor
+
+Cursor loads Agent Plugins, so it gets the same `ork` plugin Claude Code gets, minus hook
+scripts.
+
+1. Settings, Plugins, add marketplace `yonatangross/orchestkit`.
+2. Enable **ork**.
+3. Open a new chat.
+
+What loads: <Count k="skills" /> skills, <Count k="agents" /> agents and 36 command wrappers
+generated from the user-invocable skills into `.cursor-plugin/commands/`. Cursor also reads
+`.cursor/skills`, `.cursor/rules`, `.cursorrules` and `AGENTS.md` from the project.
+
+Known defect: the command wrappers still carry paths that only resolve from a skill
+directory or a Claude plugin root (#3941). The skills themselves are fine; the wrappers need
+a generation-time rewrite.
+
+Cursor's hooks live in `.cursor/hooks.json` (`version: 1`, camelCase events such as
+`sessionStart`). Enforcement for a project stays in that project's file; nothing ships from
+OrchestKit.
+
+## The sweep, mech and reason lane model
+
+When several engines are available, route by class of work, not by preference.
+
+| Class | What it is | Engine and guard | Sees OrchestKit skills? |
+|---|---|---|---|
+| **sweep** | read-only: lint names, dry runs, verification, collector fan-outs | pi on a cheap model with `--no-builtin-tools`, MCP reads only | **no**, measured above |
+| **mech** | mechanical writes: renames, bumps, codemods, sweeps with a diff | pi with `--approve`, Codex `--profile mech` (approval never, workspace-write sandbox), or cursor-agent `--force --sandbox enabled` | yes |
+| **reason** | judgement: design, review, debugging, anything that needs hooks | Claude Code, attended | yes, plus hooks and agents |
+
+Two consequences. A sweep cannot use OrchestKit until its guard changes from "no tools" to "a
+read-only tool set", which is one of the epic's items. And a mech lane on Codex or Cursor gets
+skills but no hooks, so the quality gates that hooks enforce in Claude Code have to come from
+the engine's own sandbox and from CI.
+
+## Tracking
+
+Epic [#4005](https://github.com/yonatangross/orchestkit/issues/4005) on the
+[Multi-engine support milestone](https://github.com/yonatangross/orchestkit/milestone/170), with
+one issue per adapter: pi manifest and MCP allowlist template
+([#4001](https://github.com/yonatangross/orchestkit/issues/4001)), Codex profile
+([#4002](https://github.com/yonatangross/orchestkit/issues/4002)), Cursor rules export
+([#4003](https://github.com/yonatangross/orchestkit/issues/4003)), hooks fallback
+([#4004](https://github.com/yonatangross/orchestkit/issues/4004)).
