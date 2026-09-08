@@ -33,7 +33,16 @@ fi
 # pass.
 MIN_CC="2.1.259"
 CC_RAW="$(claude --version 2>&1)"
+
+# Capture rc around the parse. `grep` exits 1 on no match, and under
+# `set -euo pipefail` a failing pipeline inside a command substitution kills the
+# script: measured, a non-semver banner exited 1 with EMPTY output, which the CI
+# step then reports as DRIFT. A version we could not read is its own outcome and
+# must never be indistinguishable from a contract change.
+set +e
 CC_VER="$(printf '%s' "$CC_RAW" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)"
+set -e
+
 if [ -z "$CC_VER" ]; then
   echo "SKIP: could not parse a version out of: $CC_RAW"
   exit 0
