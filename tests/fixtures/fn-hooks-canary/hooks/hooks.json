@@ -1,0 +1,5 @@
+{
+  "description": "Canary for the upstream Function Hooks `modules` contract. See tests/fixtures/fn-hooks-canary/README.md.",
+  "modules": ["./hooks-handlers/canary.ts"],
+  "hooks": {}
+}

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Route nudge: widening a regex traded one bug for a worse one</title>
+<style>
+  :root{
+    --bg:#0e1116; --panel:#161b22; --line:#2a313a; --ink:#e6edf3; --dim:#9aa7b4;
+    --ok:#3fb950; --bad:#f85149; --warn:#d29922; --accent:#7c3aed;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
+  .wrap{max-width:920px;margin:0 auto;padding:40px 20px 80px}
+  h1{font-size:26px;line-height:1.25;margin:0 0 8px}
+  .sub{color:var(--dim);margin:0 0 28px}
+  h2{font-size:17px;margin:34px 0 12px;padding-top:18px;border-top:1px solid var(--line)}
+  code,kbd{font-family:var(--mono);font-size:.9em}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px}
+  textarea{width:100%;min-height:74px;resize:vertical;background:#0b0e13;color:var(--ink);
+           border:1px solid var(--line);border-radius:8px;padding:11px 12px;font-family:var(--mono);font-size:13px}
+  textarea:focus{outline:none;border-color:var(--accent)}
+  .presets{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0 0}
+  .presets button{background:#1d232c;color:var(--ink);border:1px solid var(--line);border-radius:999px;
+                  padding:5px 12px;font-size:12.5px;cursor:pointer}
+  .presets button:hover{border-color:var(--accent)}
+  table{width:100%;border-collapse:collapse;margin-top:16px;font-size:13.5px}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--dim);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+  td.re{font-family:var(--mono);font-size:11.5px;color:var(--dim);max-width:270px;word-break:break-all}
+  .yes{color:var(--ok);font-weight:600}
+  .no{color:var(--bad);font-weight:600}
+  .verdict{margin-top:16px;padding:13px 15px;border-radius:8px;border:1px solid var(--line);font-size:14px}
+  .v-nudge{background:rgba(210,153,34,.10);border-color:rgba(210,153,34,.4)}
+  .v-silent{background:rgba(63,185,80,.10);border-color:rgba(63,185,80,.4)}
+  .steps{list-style:none;padding:0;margin:14px 0 0;font-family:var(--mono);font-size:12.5px}
+  .steps li{padding:4px 0;color:var(--dim)}
+  .steps b{color:var(--ink);font-weight:600}
+  p{margin:0 0 12px}
+  .note{color:var(--dim);font-size:13.5px}
+  .flag{display:inline-block;padding:1px 7px;border-radius:4px;font-size:11px;font-weight:600;
+        font-family:var(--mono);letter-spacing:.02em}
+  .flag.regress{background:rgba(248,81,73,.16);color:var(--bad)}
+  .flag.fixed{background:rgba(63,185,80,.16);color:var(--ok)}
+  a{color:#7aa7ff}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Route nudge: widening a regex traded one bug for a worse one</h1>
+  <p class="sub">
+    OrchestKit PR #3990. Type a prompt and watch three versions of
+    <code>ALREADY_ROUTED_RE</code> disagree about whether the user already routed their work.
+  </p>
+
+  <p>
+    <code>executor-route-nudge</code> fires at most once per session when a prompt looks
+    build-shaped, reminding you that the executor skills carry specialist wiring. It stays
+    quiet when you have <em>already</em> routed, for example by typing
+    <code>/ork:implement</code>. Deciding "already routed" is one regex, and that regex went
+    through three versions in one afternoon.
+  </p>
+
+  <h2>Try it</h2>
+  <div class="panel">
+    <textarea id="inp" spellcheck="false">build a client from https://example.com/guide:setup and explain the auth flow</textarea>
+    <div class="presets">
+      <button data-p="build a client from https://example.com/guide:setup and explain the auth flow">URL with a colon path</button>
+      <button data-p="fix the flaky retry logic via /ork:fix-issue and report the root cause">routed to ork</button>
+      <button data-p="fix the failing preview deploy via /vercel:deploy and report what broke">routed to vercel</button>
+      <button data-p="implement cursor-based pagination for the sessions listing endpoint">not routed at all</button>
+      <button data-p="see https://docs.site/foo:bar for details and fix the broken upload handler">link plus real work</button>
+    </div>
+
+    <table>
+      <thead>
+        <tr><th>version</th><th>pattern</th><th>already routed?</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>original<br><span class="note">hardcoded</span></td>
+          <td class="re">/\/(?:ork|hq-ext):[a-z-]+/i</td>
+          <td id="r-orig"></td>
+        </tr>
+        <tr>
+          <td>widened<br><span class="flag regress">regression</span></td>
+          <td class="re">/\/[a-z][a-z0-9-]*:[a-z][a-z0-9-]+/i</td>
+          <td id="r-wide"></td>
+        </tr>
+        <tr>
+          <td>shipped<br><span class="flag fixed">fixed</span></td>
+          <td class="re">/(?:^|\s)\/[a-z][a-z0-9-]*:[a-z][a-z0-9-]+/i</td>
+          <td id="r-final"></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div id="verdict" class="verdict"></div>
+    <ul class="steps" id="steps"></ul>
+  </div>
+
+  <h2>What actually happened</h2>
+  <p>
+    The original named <code>ork</code> and <code>hq-ext</code> literally. That was two problems
+    at once. A consumer of the public plugin who typed <code>/vercel:deploy</code> had already
+    routed their work and got nudged to route it anyway, and a public OSS plugin should not carry
+    a private plugin's namespace in its shipped source.
+  </p>
+  <p>
+    Widening it to any <code>/&lt;plugin&gt;:&lt;skill&gt;</code> fixed both, and quietly broke
+    something bigger: <code>/guide:setup</code> inside an ordinary URL matches that shape. Any
+    prompt merely <em>containing</em> a link with a colon path stopped nudging. The old
+    hardcoded form never had that reach, so the fix was a net regression, and it was caught in
+    review rather than by a test.
+  </p>
+  <p>
+    The shipped version requires the token to stand alone: start of string, or preceded by
+    whitespace. Two regression tests now pin both directions, one per bug.
+  </p>
+
+  <h2>The lesson worth keeping</h2>
+  <p class="note">
+    Widening a pattern to remove a special case also widens what it accidentally matches.
+    The question to ask is not "does this now catch the case I wanted", it is
+    "what else just became catchable". Here the answer was every URL in every prompt.
+  </p>
+
+</div>
+
+<script>
+(function () {
+  var RES = {
+    orig:  /\/(?:ork|hq-ext):[a-z-]+/i,
+    wide:  /\/[a-z][a-z0-9-]*:[a-z][a-z0-9-]+/i,
+    final: /(?:^|\s)\/[a-z][a-z0-9-]*:[a-z][a-z0-9-]+/i
+  };
+  var MIN_GOAL_LENGTH = 40;
+  var BUILD_VERB_RE =
+    /^(?:please\s+|can you\s+|let'?s\s+)?(?:fix|debug|build|implement|create|add|scaffold|set up|refactor)\b/i;
+
+  var inp = document.getElementById('inp');
+  var verdict = document.getElementById('verdict');
+  var steps = document.getElementById('steps');
+
+  function mark(id, hit) {
+    var el = document.getElementById(id);
+    el.textContent = hit ? 'yes, stay silent' : 'no';
+    el.className = hit ? 'yes' : 'no';
+  }
+
+  function render() {
+    var s = inp.value;
+    mark('r-orig',  RES.orig.test(s));
+    mark('r-wide',  RES.wide.test(s));
+    var routed = RES.final.test(s);
+    mark('r-final', routed);
+
+    var longEnough = s.length >= MIN_GOAL_LENGTH;
+    var buildShaped = BUILD_VERB_RE.test(s.trim());
+    var nudges = longEnough && buildShaped && !routed;
+
+    verdict.className = 'verdict ' + (nudges ? 'v-nudge' : 'v-silent');
+    verdict.textContent = nudges
+      ? 'Shipped behaviour: the nudge FIRES. This prompt is build-shaped and carries no explicit route.'
+      : 'Shipped behaviour: SILENT. ' + (
+          !longEnough  ? 'Shorter than ' + MIN_GOAL_LENGTH + ' characters, so it reads as a command, not a goal.'
+        : !buildShaped ? 'No imperative build or fix verb at the start.'
+        :                'The user already routed explicitly.');
+
+    steps.innerHTML = '';
+    [
+      ['length >= ' + MIN_GOAL_LENGTH, longEnough, s.length + ' chars'],
+      ['build verb at start', buildShaped, buildShaped ? 'matched' : 'no match'],
+      ['already routed', routed, routed ? 'suppresses the nudge' : 'does not suppress']
+    ].forEach(function (row) {
+      var li = document.createElement('li');
+      li.innerHTML = '<b>' + (row[1] ? 'yes' : 'no ') + '</b>  ' + row[0] + '  (' + row[2] + ')';
+      steps.appendChild(li);
+    });
+  }
+
+  inp.addEventListener('input', render);
+  Array.prototype.forEach.call(document.querySelectorAll('.presets button'), function (b) {
+    b.addEventListener('click', function () { inp.value = b.getAttribute('data-p'); render(); });
+  });
+  render();
+})();
+</script>
+</body>
+</html>

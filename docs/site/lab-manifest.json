@@ -1373,6 +1373,19 @@
         "generator"
       ],
       "date": "2026-09-07"
+    },
+    {
+      "slug": "route-nudge-regex-widening",
+      "source": "docs/chore--depersonalize-public-docs-hq-refs/route-nudge-regex.html",
+      "title": "Widening a regex traded one bug for a worse one",
+      "description": "executor-route-nudge stayed silent when you had already typed /ork:implement, but the check named ork and hq-ext literally, so a consumer typing /vercel:deploy was nudged anyway. Widening it to any /<plugin>:<skill> fixed that and quietly broke more: a colon path inside an ordinary URL matches the same shape, so any prompt containing a link stopped nudging. Type a prompt and watch all three versions disagree.",
+      "tags": [
+        "hooks",
+        "regression",
+        "regex",
+        "code-review"
+      ],
+      "date": "2026-09-08"
     }
   ]
 }

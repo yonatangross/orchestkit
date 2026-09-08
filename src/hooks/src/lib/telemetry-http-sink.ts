@@ -2,12 +2,13 @@
 // Created: 2026-05-12
 
 /**
- * Telemetry HTTP sink — dual-write to yonatan-hq platform.
+ * Telemetry HTTP sink: optional dual-write to an aggregation endpoint.
  *
  * Cross-Project Analytics today writes JSONL to ~/.claude/analytics/ via
  * appendAnalytics(). That gives a great per-machine view but no fleet-wide
- * aggregation. This sink mirrors each entry to platform's /api/hooks/cc-event
- * endpoint so the Intelligence Tab can deep-dive across all hosts.
+ * aggregation. This sink optionally mirrors each entry to an HTTP endpoint you
+ * configure, so a fleet can be analysed across hosts. It stays off until BOTH a
+ * receiver URL and a bearer token resolve; either one alone is still a no-op.
  *
  * Design tenets (all enforced below):
  *
@@ -79,8 +80,8 @@ export function resolveSinkToken(): string | null {
  * Convert an analytics JSONL filename into the platform's CCHookEvent
  * wire value. `skill-usage.jsonl` → `OrkSkillUsage`.
  *
- * Mirrors the names registered in
- * yonatan-hq/platform: apps/api/app/schemas/cc_hooks/_enums.py.
+ * These names are the wire contract with whatever receiver you point the sink
+ * at; the reference implementation registers the same enum server-side.
  * Any filename that doesn't resolve to a known event returns null so the
  * sink no-ops rather than emitting a `Generic` row.
  */
