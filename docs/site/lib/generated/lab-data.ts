@@ -62,6 +62,20 @@ export const LAB_ENTRIES: LabEntry[] = [
     "sizeKb": 9
   },
   {
+    "slug": "cursor-export-paths",
+    "title": "Paths that open: the Cursor command export",
+    "description": "A command wrapper is a copy of a skill body in a different directory, so every spelling of a same-skill path failed from it: 53 lines of a Claude Code variable Cursor never substitutes, 3 more hidden inside a Python f-string, and 247 bare relative refs that resolve against a directory the wrapper is not in. Pick a spelling to see where it pointed, and set a rule's frontmatter to watch Cursor's router move it between global, file-globbed and agent-fetched.",
+    "tags": [
+      "engines",
+      "measurement",
+      "false-signals"
+    ],
+    "date": "2026-09-08",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 19
+  },
+  {
     "slug": "glyph-examples-page",
     "title": "A page an agent can send a human to: the glyph examples block",
     "description": "The glyph docs page answered 200 but was a 33 KB dump of SKILL.md. Toggle before and after to see what a human routed to the URL now lands on: a curated block first (what it draws, the two picks, three real renders, the exact invocation) at a stable #examples anchor, generated from the skill's own examples/_featured.md. Any skill opts in by adding that one file.",

@@ -21,6 +21,7 @@ with the commands and their output, is in the repo at
 | Agents | <Count k="agents" /> | <Count k="agents" /> | 4 role templates, installed by script | none |
 | Slash commands | `/ork:<skill>` | 36 generated command wrappers | `$ork-<skill>` | `/skill:<name>` |
 | Hooks | <Count k="hooks" /> | none (Cursor has its own `hooks.json`) | none (Codex has its own hooks) | none (pi has extensions) |
+| Rules | repo convention, not a plugin key | 14, `.cursor-plugin/rules/` | `AGENTS.md` | none |
 | MCP config | `.mcp.json` | `.cursor/mcp.json` | plugin `mcp.json` (context7 shipped) | `.pi/mcp.json` and `.mcp.json` |
 | Install status | shipped | shipped (#3748) | shipped (#3265) | shipped (#4001) |
 
@@ -34,9 +35,10 @@ everywhere. Hooks are Claude Code only. MCP configuration is a different file on
 since #3940, and all four engines resolve those against the SKILL.md directory.
 
 **Does not port**: hooks (they need `${CLAUDE_PLUGIN_ROOT}` and the Claude Code event
-payload), agents (only Claude Code and Cursor read the `agents` manifest key), and any
-`${CLAUDE_PLUGIN_ROOT}` reference that is left in cross-skill or `shared/` paths. pi delivers
-that variable as a literal string, Cursor never substitutes it (#3822, #3941).
+payload) and agents (only Claude Code and Cursor read the `agents` manifest key). pi delivers
+`${CLAUDE_PLUGIN_ROOT}` as a literal string and Cursor never substitutes it (#3822), so the
+Cursor export strips it at generation time (#3941); pi reads the skill bodies directly and
+still sees the variable in cross-skill and `shared/` paths.
 
 **Hidden on pi by design**: 29 of the 107 skills carry `disable-model-invocation: true`.
 pi honours that flag, so those skills never appear in the model's auto-list and are reachable
@@ -143,13 +145,74 @@ scripts.
 2. Enable **ork**.
 3. Open a new chat.
 
-What loads: <Count k="skills" /> skills, <Count k="agents" /> agents and 36 command wrappers
-generated from the user-invocable skills into `.cursor-plugin/commands/`. Cursor also reads
-`.cursor/skills`, `.cursor/rules`, `.cursorrules` and `AGENTS.md` from the project.
+What loads: <Count k="skills" /> skills, <Count k="agents" /> agents, 36 command wrappers
+generated from the user-invocable skills into `.cursor-plugin/commands/`, and 14 rules under
+`.cursor-plugin/rules/`. Cursor also reads `.cursor/skills`, `.cursor/rules`, `.cursorrules`
+and `AGENTS.md` from the project, so a repo can add its own on top.
 
-Known defect: the command wrappers still carry paths that only resolve from a skill
-directory or a Claude plugin root (#3941). The skills themselves are fine; the wrappers need
-a generation-time rewrite.
+### Rules
+Re-deriving Cursor's discovery over the built plugin, using the loader rules read out of the
+shipped `cursor-agent` bundle (manifest keys, the `[".md", ".mdc", ".markdown"]` extension list,
+the frontmatter router):
+
+```
+manifest keys: agents, author, commands, description, homepage,
+               keywords, license, name, repository, rules, skills, version
+skills   107
+agents    36
+commands  36
+rules     14   routing: {'agentFetched': 14}
+```
+
+That is a re-derivation, not a live install. Every route to a live install writes state outside
+the repo (`cursor-agent plugin marketplace add` writes to your Cursor account, `--plugin-dir`
+needs an authenticated model turn), so it is named here rather than claimed. The cheapest live
+check is one command:
+
+```bash
+cursor-agent --plugin-dir plugins/ork --mode ask -p 'list the plugin rules and commands you can see'
+```
+
+
+`rules` is a first-class key in Cursor's plugin manifest, alongside `skills`, `agents`,
+`commands` and `hooks`. Claude Code has no equivalent (its rules are a repo convention, not a
+plugin surface), so this key exists only in `.cursor-plugin/plugin.json`:
+
+```json
+"rules": "./.cursor-plugin/rules/"
+```
+
+The build generates one `.mdc` per rule from `src/rules/` (host-neutral engineering rules) and
+`src/shared/rules/` (the rules the skill bodies cite by name: the verification gate,
+anti-sycophancy, adversarial refutation, evidence replay, the chart and playground standards).
+Each carries `name`, `description` and `alwaysApply: false`, which is Cursor's **agent-fetched**
+class: the rule is pulled in when its description matches the task and costs nothing until then.
+Pinning 14 rules globally would be a context tax nobody asked for.
+
+`.claude/rules/` is deliberately not exported. Those rules are scoped by `paths:` to this
+repository's own tree (`src/hooks/**`, `tests/**`, the manifests) and tell an agent how to build
+OrchestKit; a downstream Cursor user has no such tree, so shipping them would inject
+instructions about a codebase that is not theirs.
+
+### Wrapper paths
+
+Fixed in #3941. A command wrapper lives in `.cursor-plugin/commands/`, one directory away from
+the skill whose body it carries, so a same-skill reference could not resolve from there in
+either form it has ever had: `${CLAUDE_PLUGIN_ROOT}/skills/<name>/references/x.md` is a Claude Code
+contract Cursor never substitutes, and bare `references/x.md` resolves against the SKILL.md
+directory, which the wrapper is not in. The build now rewrites both to plugin-relative paths at
+generation time:
+
+| in the skill body | in the Cursor wrapper |
+|---|---|
+| `${CLAUDE_PLUGIN_ROOT}/shared/rules/x.md` | `shared/rules/x.md` |
+| `${CLAUDE_SKILL_DIR}/scripts/x.py` | `skills/<name>/scripts/x.py` |
+| `references/x.md` | `skills/<name>/references/x.md` |
+
+A bare reference is rewritten only when the file really exists under that skill, so prose about
+OrchestKit's own `scripts/build-plugins.sh` is left alone and the rewrite cannot invent a target.
+`tests/plugins/test-cursor-paths.sh` gates all three shapes plus the reverse check that every
+rewritten path resolves to a real file in the plugin.
 
 Cursor's hooks live in `.cursor/hooks.json` (`version: 1`, camelCase events such as
 `sessionStart`). Enforcement for a project stays in that project's file; nothing ships from

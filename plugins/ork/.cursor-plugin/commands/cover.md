@@ -206,7 +206,7 @@ Grep(pattern=SCOPE, output_mode="files_with_matches")
 - Neither found + `--real-services` flag → error: "No docker-compose or testcontainers found. Install testcontainers or remove --real-services flag."
 - Neither found, no flag → integration tests use mocks (MSW/VCR)
 
-Load real-service detection details: `Read("references/real-service-detection.md")`
+Load real-service detection details: `Read("skills/cover/references/real-service-detection.md")`
 
 ### Phase 2: Coverage Analysis
 
@@ -244,7 +244,7 @@ Spawn test-generator agents per tier. Launch ALL in ONE message with `run_in_bac
 > applies: every tier agent branches from `origin/<default>`, unpushed local
 > commits are invisible to it, and `tsc` fails with "cannot find module" for
 > code you just wrote. Verify the setting before spawning. Full pattern:
-> `Read("${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/references/worktree-agent-pattern.md")`
+> `Read("skills/chain-patterns/references/worktree-agent-pattern.md")`
 
 ```python
 # Unit tests agent (worktree-isolated)
@@ -305,7 +305,7 @@ Do NOT hand-roll the loop. Run the real executor:
 
 ```python
 Workflow(
-  scriptPath="${CLAUDE_SKILL_DIR}/workflows/heal-loop.js",
+  scriptPath="skills/cover/workflows/heal-loop.js",
   args={"testCommand": "<tier test command>", "tier": "unit", "testGlob": "tests/unit/",
         "maxIterations": 3}   # from the effort table above; omitted defaults to 3
 )
@@ -330,7 +330,7 @@ The workflow returns `status: "healed"` or a **structured failure** (`status: "f
 ledger. Never report a `"failed"` result as a success: surface the still-failing tests in
 the Phase 6 report.
 
-Strategy detail (taxonomy table, fix rules, flaky prevention): `Read("references/heal-loop-strategy.md")`
+Strategy detail (taxonomy table, fix rules, flaky prevention): `Read("skills/cover/references/heal-loop-strategy.md")`
 
 **Boundary: heal fixes TESTS, not source code.** If a test fails because the source code has a bug, report it — don't silently fix production code.
 
@@ -338,11 +338,11 @@ Strategy detail (taxonomy table, fix rules, flaky prevention): `Read("references
 
 Generate coverage report with before/after comparison.
 
-Full report layout (baseline→after table, tests-generated counts, heal iterations, files created, remaining gaps, next-steps commands): `Read("references/coverage-report-template.md")`.
+Full report layout (baseline→after table, tests-generated counts, heal iterations, files created, remaining gaps, next-steps commands): `Read("skills/cover/references/coverage-report-template.md")`.
 
 ### PushNotification on Completion (CC 2.1.110+)
 
-Full `/ork:cover` runs (unit + integration + E2E with heal loop) take 15–45 min. After the Phase 6 report is assembled, call `PushNotification(message=f"ork:cover complete — {SCOPE}: {coverage_pct}% coverage · {tests_generated} tests · {heal_loops} heal iters", status="proactive")`. Full rule: `Read("${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/rules/push-notification-on-completion.md")`.
+Full `/ork:cover` runs (unit + integration + E2E with heal loop) take 15–45 min. After the Phase 6 report is assembled, call `PushNotification(message=f"ork:cover complete — {SCOPE}: {coverage_pct}% coverage · {tests_generated} tests · {heal_loops} heal iters", status="proactive")`. Full rule: `Read("skills/chain-patterns/rules/push-notification-on-completion.md")`.
 
 ### Coverage Drift Monitor (CC 2.1.71)
 
@@ -389,7 +389,7 @@ Bash(command="npm test -- --coverage 2>&1", run_in_background=true)
 Monitor(pid=test_task_id)  # Each line → notification
 ```
 
-Full pattern reference (until-condition gates, partial-result salvage, `TaskOutput` vs `Monitor` decision): `Read("${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/references/monitor-patterns.md")`.
+Full pattern reference (until-condition gates, partial-result salvage, `TaskOutput` vs `Monitor` decision): `Read("skills/chain-patterns/references/monitor-patterns.md")`.
 
 **Partial results (CC 2.1.98):** If a test-generator crashes mid-generation, synthesize what it produced:
 
@@ -422,11 +422,11 @@ Standard chain: `implement → cover → verify → commit`. Use `addBlockedBy` 
 
 ### Verification Gate
 
-Before claiming coverage is complete, apply: `Read("${CLAUDE_PLUGIN_ROOT}/shared/rules/verification-gate.md")`. Run the coverage report fresh. "Should pass" is not evidence.
+Before claiming coverage is complete, apply: `Read("shared/rules/verification-gate.md")`. Run the coverage report fresh. "Should pass" is not evidence.
 
 ### Agent Status Protocol
 
-All test-generator agents report using: `Read("${CLAUDE_PLUGIN_ROOT}/shared/status-protocol.md")`. BLOCKED if tests can't be written due to missing interfaces. NEEDS_CONTEXT if test expectations are unclear.
+All test-generator agents report using: `Read("shared/status-protocol.md")`. BLOCKED if tests can't be written due to missing interfaces. NEEDS_CONTEXT if test expectations are unclear.
 
 ## Quality Bar
 
@@ -455,7 +455,7 @@ Load on demand with `Read("references/<file>")`:
 | `real-service-detection.md` | Docker-compose/testcontainers detection, service startup, teardown |
 | `heal-loop-strategy.md` | Failure classification, fix patterns, iteration budget |
 | `coverage-report-template.md` | Report format, delta calculation, gap analysis |
-| `workflows/heal-loop.js` | Phase 5 executor — script-enforced 3-iteration repair loop (run via the Workflow tool) |
+| `skills/cover/workflows/heal-loop.js` | Phase 5 executor — script-enforced 3-iteration repair loop (run via the Workflow tool) |
 
 
 **Version:** 1.2.0 (April 2026) — `$CLAUDE_EFFORT` env var as primary effort signal (CC 2.1.120, #1540)

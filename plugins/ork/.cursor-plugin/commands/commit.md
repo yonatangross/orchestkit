@@ -190,7 +190,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 
 ## Verification Gate
 
-Before committing, apply the 5-step gate: `Read("${CLAUDE_PLUGIN_ROOT}/shared/rules/verification-gate.md")`. Run tests fresh. Read the output. Only commit if tests pass. "Should be fine" is not evidence.
+Before committing, apply the 5-step gate: `Read("shared/rules/verification-gate.md")`. Run tests fresh. Read the output. Only commit if tests pass. "Should be fine" is not evidence.
 
 ## Quality Bar
 
@@ -214,15 +214,15 @@ Each category has individual rule files in `rules/` loaded on-demand:
 
 | Category | Rule | Impact | Key Pattern |
 |----------|------|--------|-------------|
-| Atomic Commits | `rules/atomic-commit.md` | CRITICAL | One logical change per commit, atomicity test |
-| Branch Protection | `rules/branch-protection.md` | CRITICAL | Protected branches, required PR workflow |
-| Commit Splitting | `rules/commit-splitting.md` | HIGH | `git add -p`, interactive staging, separation strategies |
-| Conventional Format | `rules/conventional-format.md` | HIGH | type(scope): description, breaking changes |
-| History Hygiene | `rules/history-hygiene.md` | HIGH | Squash WIP, fixup commits, clean history |
-| Issue Reference | `rules/issue-reference-required.md` | HIGH | Reference issue `#N` in commits on issue branches |
-| Merge Strategy | `rules/merge-strategy.md` | HIGH | Rebase-first, conflict resolution, force-with-lease |
-| Stacked PRs | `rules/stacked-pr-workflow.md` | HIGH | Stack planning, PR creation, dependency tracking |
-| Stacked PRs | `rules/stacked-pr-rebase.md` | HIGH | Rebase management, force-with-lease, retargeting |
+| Atomic Commits | `skills/commit/rules/atomic-commit.md` | CRITICAL | One logical change per commit, atomicity test |
+| Branch Protection | `skills/commit/rules/branch-protection.md` | CRITICAL | Protected branches, required PR workflow |
+| Commit Splitting | `skills/commit/rules/commit-splitting.md` | HIGH | `git add -p`, interactive staging, separation strategies |
+| Conventional Format | `skills/commit/rules/conventional-format.md` | HIGH | type(scope): description, breaking changes |
+| History Hygiene | `skills/commit/rules/history-hygiene.md` | HIGH | Squash WIP, fixup commits, clean history |
+| Issue Reference | `skills/commit/rules/issue-reference-required.md` | HIGH | Reference issue `#N` in commits on issue branches |
+| Merge Strategy | `skills/commit/rules/merge-strategy.md` | HIGH | Rebase-first, conflict resolution, force-with-lease |
+| Stacked PRs | `skills/commit/rules/stacked-pr-workflow.md` | HIGH | Stack planning, PR creation, dependency tracking |
+| Stacked PRs | `skills/commit/rules/stacked-pr-rebase.md` | HIGH | Rebase management, force-with-lease, retargeting |
 
 **Total: 9 rules across 8 categories**
 
@@ -231,5 +231,5 @@ Each category has individual rule files in `rules/` loaded on-demand:
 Load on demand with `Read("references/<file>")`:
 | File | Content |
 |------|---------|
-| `references/conventional-commits.md` | Conventional commits specification |
-| `references/recovery.md` | Recovery procedures |
+| `skills/commit/references/conventional-commits.md` | Conventional commits specification |
+| `skills/commit/references/recovery.md` | Recovery procedures |
