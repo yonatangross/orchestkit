@@ -370,6 +370,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.6](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.5...v10.0.0-beta.6)** · 2026-09-08
+
+- **docs:** drop private-plugin specifics from public source (#3990)
+
 **[v10.0.0-beta.5](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.4...v10.0.0-beta.5)** · 2026-09-07
 
 - **skills:** page-serve, hand a human a page at a port-free URL (#3899) (#3987)
@@ -407,10 +411,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-alpha.85](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.84...v10.0.0-alpha.85)** · 2026-09-06
 
 - **build:** stamp harness manifests from package.json, close [#2528](https://github.com/yonatangross/orchestkit/issues/2528) (#3946)
-
-**[v10.0.0-alpha.84](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.83...v10.0.0-alpha.84)** · 2026-09-06
-
-- **ci:** single skip pattern, cc-keys spec guard, PASS glyph (#1460) (#3944)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
