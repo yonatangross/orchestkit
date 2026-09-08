@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.8",
+    "date": "2026-09-08",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "**deps:** ignore vitest major under /src/hooks ([#3996](https://github.com/yonatangross/orchestkit/issues/3996)) ([34c940d](https://github.com/yonatangross/orchestkit/commit/34c940dba04d525c2aad400c61427c8f0a947060))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.7",
     "date": "2026-09-08",
     "compareUrl": "",
