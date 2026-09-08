@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.6",
+    "date": "2026-09-08",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "**docs:** drop private-plugin specifics from public source ([#3990](https://github.com/yonatangross/orchestkit/issues/3990)) ([0ac908c](https://github.com/yonatangross/orchestkit/commit/0ac908c0748d48dffe685abb1e965dd5b8900ecc))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.5",
     "date": "2026-09-07",
     "compareUrl": "",
