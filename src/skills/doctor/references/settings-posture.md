@@ -138,10 +138,14 @@ machine, and for every other user of the same repo.
 
 ## Example output, FAILING (what a typical machine prints today)
 
-Measured on the operator's real machine, 2026-08-09, CC 2.1.226. `~/.claude/settings.json`
-carries 20 top-level keys and `permissions.deny` holds 5 entries, all five of them MCP
-tool names (`mcp__hq-channels__whatsapp_send_image`, `…_send_audio`, `…_send_document`,
-`…_logout_session`, `…_email_send`). Not one is a credential-read rule.
+Measured on a real machine, 2026-08-09, CC 2.1.226. `~/.claude/settings.json` carries 20
+top-level keys and `permissions.deny` holds 5 entries, all five of them MCP tool names
+from a single private server (`mcp__<server>__<tool>`, four message-send tools and one
+session-logout). Not one is a credential-read rule.
+
+That shape is the common one and it is the point of this check: operators reach for
+`permissions.deny` to stop a specific noisy tool, not to close the credential-read lane.
+Five rules can look like a configured posture while covering nothing this check is about.
 
 ```
 +-- Check 16: Operator Settings Posture ----------------------------------+

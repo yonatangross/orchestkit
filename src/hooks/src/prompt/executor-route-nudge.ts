@@ -39,8 +39,15 @@ const MIN_GOAL_LENGTH = 40;
 const BUILD_VERB_RE =
   /^(?:please\s+|can you\s+|let'?s\s+)?(?:fix|debug|build|implement|create|add|scaffold|set up|refactor)\b/i;
 
-/** The user is already routing — do not second-guess an explicit invocation. */
-const ALREADY_ROUTED_RE = /\/(?:ork|hq-ext):[a-z-]+/i;
+/**
+ * The user is already routing — do not second-guess an explicit invocation.
+ *
+ * Any `/<plugin>:<skill>` counts, not a hardcoded list. The earlier form named
+ * `ork` and `hq-ext` only, which meant a consumer who typed `/vercel:deploy` or
+ * `/posthog:exec` was still nudged to route work they had already routed. It
+ * also put a private plugin's namespace in the public plugin's shipped source.
+ */
+const ALREADY_ROUTED_RE = /\/[a-z][a-z0-9-]*:[a-z][a-z0-9-]+/i;
 
 function flagPath(sessionId: string): string {
   // #1826-class hardening: session_id is untrusted hook input. Route it
