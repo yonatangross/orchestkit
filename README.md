@@ -53,6 +53,7 @@ Measured 2026-09-08 on pi 0.85, Codex CLI and cursor-agent. Details, commands an
 | Skills (SKILL.md) | all | all, via the `ork` plugin | 6 (`ork-codex` pack) | all via `pi install`, 78 auto-listed |
 | Agents | all | all | 4 role templates | none |
 | Hooks | all | none | none | none |
+| Rules | repo convention | 14, plugin `rules` key | `AGENTS.md` | none |
 | Commands | `/ork:<skill>` | 36 wrappers | `$ork-<skill>` | `/skill:<name>` |
 | MCP config | `.mcp.json` | `.cursor/mcp.json` | plugin `mcp.json` | `.pi/mcp.json` |
 | Status | shipped | shipped | shipped | shipped |
@@ -260,6 +261,10 @@ This repo already ships the Agent Plugins manifest at `plugins/ork/plugin.json`.
 Add the GitHub repo as a Cursor marketplace (Settings → `yonatangross/orchestkit`),
 enable **`ork`**, then **open a new chat**. That is the same plugin Claude Code
 installs, not a five-skill fork.
+
+It also ships 14 rules under the plugin's `rules` key, generated from
+`src/rules/` and `src/shared/rules/`. They are agent-fetched, so a rule costs
+context only when its description matches the task.
 
 Claude hook scripts are not registered for Cursor: they depend on
 `${CLAUDE_PLUGIN_ROOT}` (orchestkit#293, closed). Cursor enforcement for HQ
