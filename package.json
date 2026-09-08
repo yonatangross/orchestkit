@@ -62,5 +62,11 @@
   "license": "MIT",
   "engines": {
     "node": ">=24 <25"
+  },
+  "pi": {
+    "skills": [
+      "./plugins/ork/skills",
+      "-plugins/ork/skills/CONTRIBUTING-SKILLS.md"
+    ]
   }
 }

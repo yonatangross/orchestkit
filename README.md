@@ -50,12 +50,12 @@ Measured 2026-09-08 on pi 0.85, Codex CLI and cursor-agent. Details, commands an
 
 | Surface | Claude Code | Cursor | Codex | pi |
 |---|---|---|---|---|
-| Skills (SKILL.md) | all | all, via the `ork` plugin | 6 (`ork-codex` pack) | all via `--skill`, 78 auto-listed |
+| Skills (SKILL.md) | all | all, via the `ork` plugin | 6 (`ork-codex` pack) | all via `pi install`, 78 auto-listed |
 | Agents | all | all | 4 role templates | none |
 | Hooks | all | none | none | none |
 | Commands | `/ork:<skill>` | 36 wrappers | `$ork-<skill>` | `/skill:<name>` |
 | MCP config | `.mcp.json` | `.cursor/mcp.json` | plugin `mcp.json` | `.pi/mcp.json` |
-| Status | shipped | shipped | shipped | not shipped, see [pi](#pi) |
+| Status | shipped | shipped | shipped | shipped |
 
 ### Claude Code
 
@@ -331,20 +331,31 @@ Two behaviors worth knowing:
 
 ### pi
 
-pi (0.85) reads the same SKILL.md format, but OrchestKit ships no pi manifest
-yet, so `pi install git:github.com/yonatangross/orchestkit` registers nothing.
-Until the adapter lands, point pi at the skills directory of a checkout:
+pi (0.85) reads the same SKILL.md format, and the repo now carries a `pi`
+manifest, so the package installs directly:
 
 ```bash
-pi --skill ./plugins/ork/skills
+pi install git:github.com/yonatangross/orchestkit
 ```
 
-pi's loader picks up every skill; the 29 marked `disable-model-invocation`
-stay reachable only as `/skill:<name>`. Two measured caveats: `--no-builtin-tools`
-hides every skill (pi lists skills only when a file-reading tool is enabled),
-and `pi -p` blocks on an open stdin, so headless runs need `</dev/null`. MCP
-servers for pi come from `.pi/mcp.json` or `.mcp.json` in the project. Full
-detail and the tracking epic:
+That registers every skill. Add `-l` to write `.pi/settings.json` in the
+project instead of your user settings. Pointing pi at a checkout still works
+and needs no install (`pi --skill ./plugins/ork/skills`).
+
+The 29 skills marked `disable-model-invocation` stay reachable only as
+`/skill:<name>`. Two measured caveats: `--no-builtin-tools` hides every skill
+(pi lists skills only when a file-reading tool is enabled), and `pi -p` blocks
+on an open stdin, so headless runs need `</dev/null`.
+
+MCP servers for pi come from `.pi/mcp.json`, then `.mcp.json`, then
+`~/.config/mcp/mcp.json`. Copy the shipped template to get the recommended
+servers with a read-only `includeTools` allowlist per server:
+
+```bash
+cp .pi/mcp.json.example .pi/mcp.json
+```
+
+Full detail and the tracking epic:
 [OrchestKit on pi, Codex and Cursor](https://orchestkit.yonyon.ai/docs/guides/orchestkit-on-pi-codex-cursor).
 
 ---

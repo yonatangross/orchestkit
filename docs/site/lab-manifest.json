@@ -1400,6 +1400,20 @@
         "explainer"
       ],
       "date": "2026-09-08"
+    },
+    {
+      "slug": "pi-adapter",
+      "source": "docs/feat--pi-adapter-4001/pi-adapter.html",
+      "title": "The pi adapter: what one package.json key changes",
+      "description": "Flip the pi manifest between no key, a bare directory entry and the shipped force-exclude, and watch pi's own resolver return 0, 108-for-107, then 107 clean. Plus the per-server includeTools allowlist the .pi/mcp.json template ships.",
+      "tags": [
+        "pi",
+        "mcp",
+        "manifest",
+        "engines",
+        "explainer"
+      ],
+      "date": "2026-09-08"
     }
   ]
 }

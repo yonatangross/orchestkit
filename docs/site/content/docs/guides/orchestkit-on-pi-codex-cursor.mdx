@@ -22,7 +22,7 @@ with the commands and their output, is in the repo at
 | Slash commands | `/ork:<skill>` | 36 generated command wrappers | `$ork-<skill>` | `/skill:<name>` |
 | Hooks | <Count k="hooks" /> | none (Cursor has its own `hooks.json`) | none (Codex has its own hooks) | none (pi has extensions) |
 | MCP config | `.mcp.json` | `.cursor/mcp.json` | plugin `mcp.json` (context7 shipped) | `.pi/mcp.json` and `.mcp.json` |
-| Install status | shipped | shipped (#3748) | shipped (#3265) | **not shipped**, see below |
+| Install status | shipped | shipped (#3748) | shipped (#3265) | shipped (#4001) |
 
 The SKILL.md format is the cross-engine contract. Codex, Cursor and pi all read the
 [Agent Skills](https://agentskills.io) shape, so a skill body written for Claude Code loads
@@ -45,33 +45,64 @@ read.
 
 ## pi
 
-pi has no shipped adapter yet. Two things are measured and one is derived.
-
-Measured: pointing pi at the skills directory works.
+Shipped since #4001. The package installs directly:
 
 ```bash
-# from a checkout of the repo
-pi --skill ./plugins/ork/skills
+pi install git:github.com/yonatangross/orchestkit
 ```
 
-pi's loader returns all 107 skills with zero diagnostics, the auto-list shows 78, and a
-headless run reported `HAS_IMPLEMENT=yes`. The same directory can be symlinked into
-`.agents/skills` (project) or `~/.agents/skills` (user) and pi picks it up on the next start.
+Add `-l` to write the source into the project's `.pi/settings.json` instead of your user
+settings. Pointing pi at a checkout still works and needs no install
+(`pi --skill ./plugins/ork/skills`), and the same directory can be symlinked into
+`.agents/skills` (project) or `~/.agents/skills` (user).
+
+What makes the install work is five lines in the root `package.json`. pi resolves a git or
+local package through the `pi` key, and falls back to `skills/`, `extensions/`, `prompts/` and
+`themes/` at the package root only when that key is absent. OrchestKit's skills live in
+`plugins/ork/skills`, which matches neither default, so before #4001 an install registered
+zero resources and raised no error:
+
+```json
+"pi": {
+  "skills": [
+    "./plugins/ork/skills",
+    "-plugins/ork/skills/CONTRIBUTING-SKILLS.md"
+  ]
+}
+```
+
+The second entry is a force-exclude. Without it pi registers 108 resources for 107 skills:
+`collectSkillEntries` takes every markdown child of the entry directory, and the extra file
+parses to nothing, so it would sit in `pi list` as a resource that is not a skill.
+
+`tests/plugins/test-pi-plugin.sh` gates this. When pi is installed it runs pi's own
+`collectPackageResources` and `loadSkillsFromDir` against the tree and asserts the count
+matches the repo's SKILL.md set with zero diagnostics; in CI, where pi is absent, it re-derives
+the same resolution from pi's documented rules and says which arm ran.
 
 Measured: **`--no-builtin-tools` hides every skill.** pi appends the skills block only when a
 tool that can read files is enabled. With built-in tools off the model reported `SKILLS=0` at
 1.6k input tokens; with them on it reported 139 skills at 21.7k. This matters for the sweep
-lane below.
-
-Derived from the loader source: `pi install git:github.com/yonatangross/orchestkit` registers
-nothing today. pi resolves a git package through the `pi` key in `package.json`, or falls back
-to `skills/`, `extensions/`, `prompts/` and `themes/` at the package root. OrchestKit has
-neither. The fix is a five-line manifest, tracked in the epic below.
+lane below, and no manifest changes it.
 
 MCP on pi comes from `pi-mcp-adapter`, which reads `.pi/mcp.json`, then `.mcp.json`, then
-`~/.config/mcp/mcp.json`. It does not discover other hosts' configs. A project-level
-`.pi/mcp.json` can add an `includeTools` allowlist per server, which is how a pi session is
-made read-mostly by construction. OrchestKit ships no template for it yet.
+`~/.config/mcp/mcp.json`. It does not discover other hosts' configs. OrchestKit ships no
+`.mcp.json`, so copy the template:
+
+```bash
+cp .pi/mcp.json.example .pi/mcp.json
+```
+
+It defines context7, memory, sequential-thinking and tavily, each with a read-only
+`includeTools` allowlist. That allowlist is fail-closed and applied at metadata-build time, so
+an excluded tool never enters the tool map and is not reachable through the mcp proxy either.
+It is a convenience filter and not a security perimeter: pi ships a `bash` tool and inherits
+the environment that started it, so a session can reach an endpoint directly. What it buys is
+that a cheap model following instructions cannot hit a mutating tool by accident.
+
+One shape difference worth pinning: pi's `ServerEntry` has no `type` field. stdio is
+`command` plus `args`, HTTP is `url`. A Claude Code entry pasted verbatim carries
+`"type": "http"`, which pi ignores.
 
 Two headless contracts, both load-bearing: `pi -p` blocks forever on an open stdin, so close
 it with `</dev/null`; and the session directory is pi's first write, so pass `--no-session` or
