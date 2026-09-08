@@ -17,6 +17,31 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.7",
+    "date": "2026-09-08",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "fixed",
+        "items": [
+          "**ci:** report an unreadable version as SKIP, not DRIFT ([#3989](https://github.com/yonatangross/orchestkit/issues/3989)) ([bea3149](https://github.com/yonatangross/orchestkit/commit/bea31491488f00c6c353408f4b01ffab39262f8e))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**rules:** scope the modules-key ban to shipped hooks.json ([#3993](https://github.com/yonatangross/orchestkit/issues/3993)) ([31cfe79](https://github.com/yonatangross/orchestkit/commit/31cfe794449d47a20fe64b0858219a2ce262bf13))"
+        ]
+      },
+      {
+        "type": "changed",
+        "items": [
+          "**playground:** treat .claude/rules/ as inert ([#3994](https://github.com/yonatangross/orchestkit/issues/3994)) ([75a3b26](https://github.com/yonatangross/orchestkit/commit/75a3b260980e7d02b2fc86ebb5e89e0a3b7d75e0))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.6",
     "date": "2026-09-08",
     "compareUrl": "",
