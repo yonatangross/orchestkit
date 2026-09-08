@@ -9,7 +9,7 @@ import { Count } from '@/components/count';
 
 OrchestKit is built for Claude Code. Three other engines can load parts of it, and the parts
 differ per engine. This page is measured, not aspirational: every claim was checked against
-pi 0.85.0, Codex CLI 2026.09.02 and cursor-agent 2026.09.02 on 2026-09-08. The full audit,
+pi 0.85.0, codex-cli 0.153.4 and cursor-agent 2026.09.02 on 2026-09-08. The full audit,
 with the commands and their output, is in the repo at
 [`docs/audits/multi-engine-support-2026-09-08.md`](https://github.com/yonatangross/orchestkit/blob/main/docs/audits/multi-engine-support-2026-09-08.md).
 
@@ -23,7 +23,7 @@ with the commands and their output, is in the repo at
 | Hooks | <Count k="hooks" /> | none (Cursor has its own `hooks.json`) | none (Codex has its own hooks) | none (pi has extensions) |
 | Rules | repo convention, not a plugin key | 14, `.cursor-plugin/rules/` | `AGENTS.md` | none |
 | MCP config | `.mcp.json` | `.cursor/mcp.json` | plugin `mcp.json` (context7 shipped) | `.pi/mcp.json` and `.mcp.json` |
-| Install status | shipped | shipped (#3748) | shipped (#3265) | shipped (#4001) |
+| Install status | shipped | shipped (#3748) | shipped (#3265), mech profile (#4002) | shipped (#4001) |
 
 The SKILL.md format is the cross-engine contract. Codex, Cursor and pi all read the
 [Agent Skills](https://agentskills.io) shape, so a skill body written for Claude Code loads
@@ -128,9 +128,56 @@ environment variable, never written to `config.toml`), and four role templates i
 script. Codex also reads project `.agents/skills`, `~/.agents/skills` and `AGENTS.md`, so a
 checkout of this repo already contributes its `AGENTS.md`.
 
+### The `ork-mech` profile
+
+Shipped since #4002, for unattended mechanical work:
+
+```bash
+plugins/ork-codex/scripts/install-codex-profile.sh ~/.codex
+codex exec --profile ork-mech "<task>" </dev/null
+```
+
+It is a file, not a `config.toml` snippet, and that distinction is load-bearing. Measured on
+codex-cli 0.153.4: `--profile <name>` layers `$CODEX_HOME/<name>.config.toml` over the base
+user config. A legacy `[profiles.<name>]` table inside `config.toml` turns the same flag into
+a hard config-load error, quoting the file it wants instead. The installer refuses both that
+collision and an overwrite.
+
+The profile sets approval `never`, `workspace-write` with network on, and high reasoning
+effort. `codex exec` prints the resolved shape in its header, which is how each line below was
+measured rather than assumed:
+
+```
+approval: never
+sandbox: workspace-write [workdir, /tmp, $TMPDIR] (network access enabled)
+reasoning effort: high
+```
+
+It pins no model (pass `-m`) and never reaches for
+`--dangerously-bypass-approvals-and-sandbox`, which drops the sandbox rather than widening it.
+A mech worker doing a rename does not need that.
+
+Two contracts live on the command line because a TOML file cannot carry them:
+
+| Contract | Why |
+|---|---|
+| `</dev/null` | `codex exec` reads stdin even with a prompt argument. An inherited open pipe blocks forever on `Reading additional input from stdin...` with no timeout, the same shape as `pi -p`. |
+| `--add-dir "$(git rev-parse --path-format=absolute --git-common-dir)"` | The writable roots are `[workdir, /tmp, $TMPDIR]`. A linked worktree's git common dir is outside the workdir, so the first commit dies on `index.lock`. With the flag the header adds that path to the roots list. |
+
+One silent state worth naming: `--profile` pointing at a file that does not exist is **not**
+an error. Codex proceeds on the base config, so a typo gives you a run with the wrong sandbox
+and no warning. Check the header, not the flag.
+
+### Keeping the Codex install current
+
 Known caveat: the plugin source says `ref main` but the installed copy is cached. On the
 audit machine it showed beta.5 while main was at beta.8. Run `codex plugin update` after a
-release.
+release, then compare the two versions:
+
+```bash
+codex plugin list | grep ork-codex
+jq -r .version plugins/ork-codex/.codex-plugin/plugin.json
+```
 
 Codex has a hooks system with the same event names as Claude Code (`SessionStart`,
 `PreToolUse`, `PostToolUse`, `UserPromptSubmit`), trust-gated per hook. OrchestKit ships
@@ -225,7 +272,7 @@ When several engines are available, route by class of work, not by preference.
 | Class | What it is | Engine and guard | Sees OrchestKit skills? |
 |---|---|---|---|
 | **sweep** | read-only: lint names, dry runs, verification, collector fan-outs | pi on a cheap model with `--no-builtin-tools`, MCP reads only | **no**, measured above |
-| **mech** | mechanical writes: renames, bumps, codemods, sweeps with a diff | pi with `--approve`, Codex `--profile mech` (approval never, workspace-write sandbox), or cursor-agent `--force --sandbox enabled` | yes |
+| **mech** | mechanical writes: renames, bumps, codemods, sweeps with a diff | pi with `--approve`, Codex `--profile ork-mech` (approval never, workspace-write sandbox, network on), or cursor-agent `--force --sandbox enabled` | yes |
 | **reason** | judgement: design, review, debugging, anything that needs hooks | Claude Code, attended | yes, plus hooks and agents |
 
 Two consequences. A sweep cannot use OrchestKit until its guard changes from "no tools" to "a

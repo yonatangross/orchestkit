@@ -18,6 +18,9 @@
     "ork_reviewer",
     "ork_verifier"
   ],
+  "profiles": [
+    "ork-mech"
+  ],
   "mcpServers": {
     "source": "src/codex/ork-codex/mcp.json",
     "servers": [

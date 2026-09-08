@@ -300,6 +300,60 @@ plugins/ork-codex/scripts/install-codex-roles.sh ~/.codex/agents
 It installs `ork_explorer`, `ork_implementer`, `ork_reviewer`, and
 `ork_verifier`; restart Codex before spawning them.
 
+#### Unattended runs: the `ork-mech` profile
+
+For mechanical work (renames, bumps, codemods, sweeps that end in a diff),
+install the shipped profile and run `codex exec` against it:
+
+```bash
+plugins/ork-codex/scripts/install-codex-profile.sh ~/.codex
+codex exec --profile ork-mech "<task>" </dev/null
+```
+
+The profile is a FILE, not a snippet you paste into `config.toml`. Measured on
+codex-cli 0.153.4: `--profile <name>` layers `$CODEX_HOME/<name>.config.toml`
+over the base config, and a legacy `[profiles.<name>]` table left inside
+`config.toml` makes the same flag a hard config-load error. The installer
+refuses to run next to that table, and refuses to overwrite a profile you
+already have.
+
+What it sets, as `codex exec` prints it in its own header:
+
+```
+approval: never
+sandbox: workspace-write [workdir, /tmp, $TMPDIR] (network access enabled)
+reasoning effort: high
+```
+
+It deliberately does not pin a model (pass `-m`) and does not use
+`--dangerously-bypass-approvals-and-sandbox`, which drops the sandbox entirely.
+Two contracts a TOML file cannot express, so they stay on the command line:
+
+- **`</dev/null`.** `codex exec` reads stdin even when a prompt argument is
+  given. An inherited open pipe blocks the run with `Reading additional input
+  from stdin...` and no timeout.
+- **`--add-dir` inside a git worktree.** The writable roots are
+  `[workdir, /tmp, $TMPDIR]`. A linked worktree's git common dir sits outside
+  the workdir, so the first commit dies on `index.lock`. Add it:
+
+  ```bash
+  codex exec --profile ork-mech \
+    --add-dir "$(git rev-parse --path-format=absolute --git-common-dir)" \
+    "<task>" </dev/null
+  ```
+
+#### Keeping the install current
+
+`ref main` in the marketplace source is a cached snapshot, not a tracker. On the
+2026-09-08 audit machine `codex plugin list` showed `10.0.0-beta.5` while main
+was three releases ahead. After an OrchestKit release, update and check:
+
+```bash
+codex plugin update
+codex plugin list | grep ork-codex          # installed version
+jq -r .version plugins/ork-codex/.codex-plugin/plugin.json   # what main ships
+```
+
 #### Documentation lookup (context7)
 
 The plugin ships a [context7](https://context7.com) MCP server in its own
