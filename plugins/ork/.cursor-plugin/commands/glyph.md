@@ -24,7 +24,7 @@ Render the answer as ASCII art plus semantic emojis, inline, immediately. All ou
 **A human asking "how do I use this" gets a URL, not a paraphrase:**
 https://orchestkit.yonyon.ai/docs/reference/skills/glyph#examples (what it draws,
 the two picks, three real renders, the exact invocation; generated from this
-skill's `examples/_featured.md`, so it cannot drift from the skill).
+skill's `skills/glyph/examples/_featured.md`, so it cannot drift from the skill).
 
 The whole point is speed, so there is no setup phase.
 
@@ -45,8 +45,8 @@ Given a topic (or the conversation, when none is given):
    | over time | sparkline or milestone track |
 
 3. **Emit inline in the reply.** Never write a file unless the user asked for one. This is a chat answer, not an artifact.
-4. **Use the 12-emoji semantic set and box-drawing vocabulary** defined in `rules/visual-style.md` (shipped with this skill). Semantic, never decorative: an emoji must mean something (✅ pass, ❌ fail, ⚠️ risk, 🔴 blocked).
-5. **Stay inside the budget: ≤ 12 visual lines, and ≤ 40% of the reply.** Block count within that is free — two 5-line blocks are fine, four 10-line blocks are not. This skill renders on request, it does not render without limit (#3558). Full derivation of the numbers is in `rules/visual-style.md`.
+4. **Use the 12-emoji semantic set and box-drawing vocabulary** defined in `skills/glyph/rules/visual-style.md` (shipped with this skill). Semantic, never decorative: an emoji must mean something (✅ pass, ❌ fail, ⚠️ risk, 🔴 blocked).
+5. **Stay inside the budget: ≤ 12 visual lines, and ≤ 40% of the reply.** Block count within that is free — two 5-line blocks are fine, four 10-line blocks are not. This skill renders on request, it does not render without limit (#3558). Full derivation of the numbers is in `skills/glyph/rules/visual-style.md`.
 6. **State the point in prose first**, in one or two sentences, then show the visual. The visual supports the answer; it is never the answer. If the reader has to parse a diagram to find out what happened, the reply failed.
 7. **Stay honest.** If a number is unknown, print `?` rather than inventing one. A confident-looking chart built on guesses is worse than prose.
 
@@ -89,7 +89,7 @@ Rename codemod (D8): old `light/heavy/double/rounded/ascii-fallback` → new nam
 
 ### Status Glyph Vocabulary
 
-Closed-set v1 of 11 semantic glyphs (`●○✓✗⚠◆◇▶▷ ↑↓→ ▓▒░`). Single source of truth — see `rules/status-glyph-vocabulary.md`. Add-a-glyph process in `CONTRIBUTING.md`.
+Closed-set v1 of 11 semantic glyphs (`●○✓✗⚠◆◇▶▷ ↑↓→ ▓▒░`). Single source of truth — see `skills/glyph/rules/status-glyph-vocabulary.md`. Add-a-glyph process in `CONTRIBUTING.md`.
 
 
 ## Diagram Patterns

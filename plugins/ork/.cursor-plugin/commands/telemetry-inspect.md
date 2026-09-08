@@ -83,7 +83,7 @@ Summary
 
 ## Implementation plan (for an agent/LLM running this skill)
 
-1. **List known files** — read `lib/telemetry-schemas.ts`'s `SCHEMA_LOCKED` inventory for the 7 locked paths. Extend with the unlocked paths listed in the skill-local `references/telemetry-inventory.md`.
+1. **List known files** — read `lib/telemetry-schemas.ts`'s `SCHEMA_LOCKED` inventory for the 7 locked paths. Extend with the unlocked paths listed in the skill-local `skills/telemetry-inspect/references/telemetry-inventory.md`.
 2. **Cross-check inventory writers against the registry closure** — never trust the inventory blindly:
    - Run `node src/hooks/scripts/validate-registry.mjs` (from the OrchestKit repo root; skip gracefully if not in the OrchestKit repo) and confirm it passes.
    - For every writer named in the inventory (e.g. `posttool/metrics-bridge`), verify the source file exists: `test -f src/hooks/src/<writer>.ts`.

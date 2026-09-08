@@ -73,7 +73,7 @@ list subdomains via `portless list` or `/ork:dev status`.
 9. print summary
 ```
 
-The full annotated walkthrough: `references/boot-sequence.md`.
+The full annotated walkthrough: `skills/dev/references/boot-sequence.md`.
 
 ## State file shape
 
@@ -108,7 +108,7 @@ When `--share` / `--funnel` / `--live` is used (M127 #1561 / #1565), `share` bec
 }
 ```
 
-`mode` is `"single"` (default) or `"monorepo"` (when `turbo.json`/workspaces detected). Note `portlessWrapper` (not `portless` + `devServer`) — portless owns the dev server. Full schema: `references/state-schema.md`.
+`mode` is `"single"` (default) or `"monorepo"` (when `turbo.json`/workspaces detected). Note `portlessWrapper` (not `portless` + `devServer`) — portless owns the dev server. Full schema: `skills/dev/references/state-schema.md`.
 
 ## Auto-surfaced hints (M127)
 
@@ -208,27 +208,27 @@ If the dev stack isn't live, auto-expect skips silently — `/ork:dev` is the pr
 
 | Script | What it does |
 |---|---|
-| `scripts/boot.sh` | All-or-nothing prereq check, then 9-step boot. Idempotent (no-ops if already live). Honors `CI=1` to skip in CI. |
-| `scripts/stop.sh` | SIGTERM in reverse boot order with 5-second SIGKILL fallback. Removes state file last. |
-| `scripts/status.sh` | Pretty status. `--quiet` for liveness-only (exit 0 live, 1 down). Used by boot for idempotency. |
+| `skills/dev/scripts/boot.sh` | All-or-nothing prereq check, then 9-step boot. Idempotent (no-ops if already live). Honors `CI=1` to skip in CI. |
+| `skills/dev/scripts/stop.sh` | SIGTERM in reverse boot order with 5-second SIGKILL fallback. Removes state file last. |
+| `skills/dev/scripts/status.sh` | Pretty status. `--quiet` for liveness-only (exit 0 live, 1 down). Used by boot for idempotency. |
 
-`/ork:dev` invokes `scripts/boot.sh`; `stop` → `stop.sh`; `status` → `status.sh`. The shell scripts are the source of truth.
+`/ork:dev` invokes `skills/dev/scripts/boot.sh`; `stop` → `stop.sh`; `status` → `status.sh`. The shell scripts are the source of truth.
 
 ## References
 
 | File | Purpose |
 |---|---|
-| `references/boot-sequence.md` | Step-by-step boot annotated with commands |
-| `references/state-schema.md` | Full JSON shape + field semantics |
+| `skills/dev/references/boot-sequence.md` | Step-by-step boot annotated with commands |
+| `skills/dev/references/state-schema.md` | Full JSON shape + field semantics |
 
 ## Rules
 
 | Rule | Impact | When it applies |
 |---|---|---|
-| `rules/lab-stack-prerequisites.md` | CRITICAL | Every boot |
-| `rules/branch-named-subdomain.md` | HIGH | Subdomain resolution |
-| `rules/idempotent-boot.md` | HIGH | Re-running while live |
-| `rules/teardown-order.md` | MEDIUM | `stop` invocations |
+| `skills/dev/rules/lab-stack-prerequisites.md` | CRITICAL | Every boot |
+| `skills/dev/rules/branch-named-subdomain.md` | HIGH | Subdomain resolution |
+| `skills/dev/rules/idempotent-boot.md` | HIGH | Re-running while live |
+| `skills/dev/rules/teardown-order.md` | MEDIUM | `stop` invocations |
 
 ## Running unattended with /goal
 

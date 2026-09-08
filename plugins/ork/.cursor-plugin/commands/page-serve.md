@@ -51,9 +51,9 @@ and the exact `stop=` line to paste. Put the `url=` line in your reply's Open se
 
 | Invocation | Script | What happens |
 |---|---|---|
-| `<path> [flags]` | `scripts/serve.sh` | prerequisites, server, alias, state, curl check, optional screenshot |
-| `status [--json]` | `scripts/status.sh` | one line per served page: server up/dead, route registered/missing, HTTP code |
-| `stop <name>` or `stop --all` | `scripts/stop.sh` | alias removed, server killed, state and screenshot deleted; every step reports |
+| `<path> [flags]` | `skills/page-serve/scripts/serve.sh` | prerequisites, server, alias, state, curl check, optional screenshot |
+| `status [--json]` | `skills/page-serve/scripts/status.sh` | one line per served page: server up/dead, route registered/missing, HTTP code |
+| `stop <name>` or `stop --all` | `skills/page-serve/scripts/stop.sh` | alias removed, server killed, state and screenshot deleted; every step reports |
 
 ## Failure modes, all loud
 

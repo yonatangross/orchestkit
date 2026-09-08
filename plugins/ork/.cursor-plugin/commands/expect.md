@@ -122,12 +122,12 @@ Git Diff → Route Map → Fingerprint Check → Test Plan → Execute → Repor
 
 | Phase | What | Output | Reference |
 |-------|------|--------|-----------|
-| **1. Fingerprint** | SHA-256 hash of changed files | Skip if unchanged since last run | `references/fingerprint.md` |
-| **2. Diff Scan** | Parse git diff, classify changes | ChangesFor data (files, components, routes) | `references/diff-scanner.md` |
-| **3. Route Map** | Map changed files to affected pages/URLs | Scoped page list | `references/route-map.md` |
-| **4. Test Plan** | Generate AI test plan from diff + route map | Markdown test plan with steps | `references/test-plan.md` |
-| **5. Execute** | Run test plan via agent-browser | Pass/fail per step, screenshots | `references/execution.md` |
-| **6. Report** | Aggregate results, artifacts, exit code | Structured report + artifacts | `references/report.md` |
+| **1. Fingerprint** | SHA-256 hash of changed files | Skip if unchanged since last run | `skills/expect/references/fingerprint.md` |
+| **2. Diff Scan** | Parse git diff, classify changes | ChangesFor data (files, components, routes) | `skills/expect/references/diff-scanner.md` |
+| **3. Route Map** | Map changed files to affected pages/URLs | Scoped page list | `skills/expect/references/route-map.md` |
+| **4. Test Plan** | Generate AI test plan from diff + route map | Markdown test plan with steps | `skills/expect/references/test-plan.md` |
+| **5. Execute** | Run test plan via agent-browser | Pass/fail per step, screenshots | `skills/expect/references/execution.md` |
+| **6. Report** | Aggregate results, artifacts, exit code | Structured report + artifacts | `skills/expect/references/report.md` |
 
 
 ## Phase 1: Fingerprint Check
@@ -141,7 +141,7 @@ Read(".expect/fingerprints.json")  # Previous run hashes
 # If no match or --force: continue to Phase 2
 ```
 
-Load: `Read("references/fingerprint.md")`
+Load: `Read("skills/expect/references/fingerprint.md")`
 
 
 ## Phase 2: Diff Scan
@@ -165,7 +165,7 @@ Classify each changed file into 3 levels:
 2. **Imported** — a file that imports the changed file
 3. **Routed** — the page/route that renders the changed component
 
-Load: `Read("references/diff-scanner.md")`
+Load: `Read("skills/expect/references/diff-scanner.md")`
 
 
 ## Phase 3: Route Map
@@ -183,7 +183,7 @@ route_map:
 
 If no route map exists, infer from Next.js App Router / Pages Router conventions.
 
-Load: `Read("references/route-map.md")`
+Load: `Read("skills/expect/references/route-map.md")`
 
 
 ## Phase 4: Test Plan Generation
@@ -191,7 +191,7 @@ Load: `Read("references/route-map.md")`
 Build an AI test plan scoped to the diff, using the scope strategy for the current target:
 
 ```python
-scope_strategy = get_scope_strategy(TARGET)  # See references/scope-strategy.md
+scope_strategy = get_scope_strategy(TARGET)  # See skills/expect/references/scope-strategy.md
 
 prompt = f"""
 {scope_strategy}
@@ -212,7 +212,7 @@ If `--flow` specified, load saved flow from `.expect/flows/{slug}.yaml` instead 
 
 If NOT `--y`, present plan to user via `AskUserQuestion` for review before executing.
 
-Load: `Read("references/test-plan.md")`
+Load: `Read("skills/expect/references/test-plan.md")`
 
 
 ## Phase 5: Execution
@@ -257,7 +257,7 @@ expect_task = Agent(
 # Stream agent-browser progress line-by-line instead of polling (CC 2.1.98+)
 # Each stdout line from agent-browser arrives as a notification — useful for
 # catching a failing step early rather than waiting for the full plan.
-# Full pattern: Read("${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/references/monitor-patterns.md")
+# Full pattern: Read("skills/chain-patterns/references/monitor-patterns.md")
 Monitor(pid=expect_task.agent_id)
 
 # For long test plans (>3 min typical), notify on completion — requires
@@ -270,7 +270,7 @@ if test_plan_duration_estimate > 180:
     )
 ```
 
-Load: `Read("references/execution.md")`
+Load: `Read("skills/expect/references/execution.md")`
 
 
 ## Phase 6: Report
@@ -295,7 +295,7 @@ Artifacts:
   .expect/screenshots/dashboard-error.png
 ```
 
-Load: `Read("references/report.md")`
+Load: `Read("skills/expect/references/report.md")`
 
 
 ## Saved Flows

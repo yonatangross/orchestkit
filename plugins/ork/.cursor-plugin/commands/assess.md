@@ -97,7 +97,7 @@ Use `EFFORT` to gate dimension count, agent count, and the optional `xhigh` unce
 
 ## STEP -1: MCP Probe + Resume Check
 
-> Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/references/mcp-detection.md")`
+> Load: `Read("skills/chain-patterns/references/mcp-detection.md")`
 
 ```python
 # 1. Probe MCP servers (once at skill start)
@@ -156,7 +156,7 @@ AskUserQuestion(
 
 ## STEP 0b: Select Orchestration Mode
 
-Load details: `Read("references/orchestration-mode.md")` for env var check logic, Agent Teams vs Task Tool comparison, and mode selection rules.
+Load details: `Read("skills/assess/references/orchestration-mode.md")` for env var check logic, Agent Teams vs Task Tool comparison, and mode selection rules.
 
 
 ## 🚨 Task Management (CC 2.1.16)
@@ -237,7 +237,7 @@ topic, not a path" and continue to Phase 1.5, which discovers the real file list
 
 ## Phase 1.5: Scope Discovery
 
-Load `Read("references/scope-discovery.md")` for the full file discovery, limit application (MAX 30 files), and sampling priority logic. **Always include the scoped file list** in every agent prompt.
+Load `Read("skills/assess/references/scope-discovery.md")` for the full file discovery, limit application (MAX 30 files), and sampling priority logic. **Always include the scoped file list** in every agent prompt.
 
 ### Progressive Output (CC 2.1.76)
 
@@ -255,9 +255,9 @@ For Phase 2 parallel agents, show each dimension's score **as soon as the evalua
 
 ## Phase 2: Quality Rating (6 Dimensions)
 
-Rate each dimension 0-10 with weighted composite score. Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/quality-gates/references/unified-scoring-framework.md")` for dimensions, weights, grade interpretation, and per-dimension criteria. Load `Read("references/quality-model.md")` for assess-specific overrides.
+Rate each dimension 0-10 with weighted composite score. Load `Read("skills/quality-gates/references/unified-scoring-framework.md")` for dimensions, weights, grade interpretation, and per-dimension criteria. Load `Read("skills/assess/references/quality-model.md")` for assess-specific overrides.
 
-Load `Read("references/agent-spawn-definitions.md")` for Task Tool mode spawn patterns and Agent Teams alternative.
+Load `Read("skills/assess/references/agent-spawn-definitions.md")` for Task Tool mode spawn patterns and Agent Teams alternative.
 
 **Composite Score:** Weighted average of all 6 dimensions (see quality-model.md).
 
@@ -269,13 +269,13 @@ A separate **blind refuter** verifies decision-bearing scores before they reach 
 composite. **Effort gate:** `low`/`medium` skip this phase entirely; `high` runs up-to-4
 single refuters (advisory, no auto-swing); `xhigh` runs 3-refuter majority with auto-revise.
 
-Load the protocol + assess bindings: `Read("references/adversarial-refutation.md")`
-(which loads the shared engine `${CLAUDE_PLUGIN_ROOT}/shared/rules/adversarial-refutation.md`).
-Producer findings must first pass the evidence-replay gate before entering any score or verdict: `Read("${CLAUDE_PLUGIN_ROOT}/shared/rules/evidence-replay.md")`.
+Load the protocol + assess bindings: `Read("skills/assess/references/adversarial-refutation.md")`
+(which loads the shared engine `shared/rules/adversarial-refutation.md`).
+Producer findings must first pass the evidence-replay gate before entering any score or verdict: `Read("shared/rules/evidence-replay.md")`.
 
 ### Cross-model refuter (optional, provenance-labeled, cost-gated)
 
-When `ORK_ALT_MODEL_CMD` is configured and effort is `high`/`xhigh`, one quorum slot per high-weight or boundary-adjacent dimension score can route to a non-Claude model (Codex/GPT) for diverse failure modes. Off by default; substitutes one same-model slot, stamps `refuter_model` for provenance, cannot silently raise the grade (engine §7), owns no credentials/egress (shells out via `ORK_ALT_MODEL_CMD`, matches the egress guard #2533), and degrades to same-model on an absent command. Shares the review-pr operational doc: `Read("${CLAUDE_PLUGIN_ROOT}/skills/review-pr/references/cross-model-refuter.md")`.
+When `ORK_ALT_MODEL_CMD` is configured and effort is `high`/`xhigh`, one quorum slot per high-weight or boundary-adjacent dimension score can route to a non-Claude model (Codex/GPT) for diverse failure modes. Off by default; substitutes one same-model slot, stamps `refuter_model` for provenance, cannot silently raise the grade (engine §7), owns no credentials/egress (shells out via `ORK_ALT_MODEL_CMD`, matches the egress guard #2533), and degrades to same-model on an absent command. Shares the review-pr operational doc: `Read("skills/review-pr/references/cross-model-refuter.md")`.
 
 Runs after Phase 2 returns, before the composite/grade and Phases 3-7. Refuters are ALWAYS
 isolated `Agent(...)` Task spawns (never team members, even in Agent Teams mode) fed only the
@@ -287,9 +287,9 @@ score — refutation never silently raises the grade.
 
 ## Phases 3-7: Analysis, Comparison & Report
 
-Load `Read("references/phase-templates.md")` for output templates for pros/cons, alternatives, improvements, effort, and the final report.
+Load `Read("skills/assess/references/phase-templates.md")` for output templates for pros/cons, alternatives, improvements, effort, and the final report.
 
-See also: `Read("references/alternative-analysis.md")` | `Read("references/improvement-prioritization.md")`
+See also: `Read("skills/assess/references/alternative-analysis.md")` | `Read("skills/assess/references/improvement-prioritization.md")`
 
 
 ## Phase 7b: Emit Dashboard Spec (json-render)
@@ -304,14 +304,14 @@ Parse `--render=` from `$ARGUMENTS`. Default is `both`.
 
 When emitting a spec:
 
-1. Load format and catalog: `Read("references/dashboard-spec.md")`. Example: `references/dashboard-example.json`.
+1. Load format and catalog: `Read("skills/assess/references/dashboard-spec.md")`. Example: `skills/assess/references/dashboard-example.json`.
 2. Build the spec using only catalog types: `Card`, `StatGrid`, `DataTable`, `StatusBadge`, `BarMeter`, `Markdown`. Top-level fields `composite` (number) and `grade` (string) are required for assess specs.
 3. One `BarMeter` per dimension scored. The `verdict` element is a `StatusBadge` with status `success`/`warning`/`error` mapped from grade (A/B → success, C → warning, D/F → error).
 4. Write to `.claude/chain/assess-dashboard.json` with compact JSON.
 5. Validate before declaring success:
 
 ```bash
-node "${CLAUDE_SKILL_DIR}/scripts/render-spec.mjs" .claude/chain/assess-dashboard.json --check
+node "skills/assess/scripts/render-spec.mjs" .claude/chain/assess-dashboard.json --check
 ```
 
 If validation fails, fall back to markdown-only and surface the error. Never write a partial spec.
@@ -319,12 +319,12 @@ If validation fails, fall back to markdown-only and surface the error. Never wri
 6. For `--render=both`, render the markdown view from the spec:
 
 ```bash
-node "${CLAUDE_SKILL_DIR}/scripts/render-spec.mjs" .claude/chain/assess-dashboard.json
+node "skills/assess/scripts/render-spec.mjs" .claude/chain/assess-dashboard.json
 ```
 
 This guarantees JSON spec and markdown report stay in sync.
 
-**xhigh effort:** when `effort=xhigh` is active, add a sibling `Markdown` element per dimension containing `confidence` and `caveats` from the uncertainty pass. Reference list it in the `dimensions` Card's children alongside the `BarMeter`. See `references/dashboard-spec.md` for the exact pattern.
+**xhigh effort:** when `effort=xhigh` is active, add a sibling `Markdown` element per dimension containing `confidence` and `caveats` from the uncertainty pass. Reference list it in the `dimensions` Card's children alongside the `BarMeter`. See `skills/assess/references/dashboard-spec.md` for the exact pattern.
 
 **Downstream consumption:** `/ork:implement` reads `.claude/chain/assess-dashboard.json` and pulls the lowest-scoring dimension and high-priority improvements (effort ≤ 2 AND impact ≥ 4) without parsing markdown tables. Measured: assess spec ≈ 830 tokens vs ~3500 token markdown for the same content.
 
@@ -334,7 +334,7 @@ This guarantees JSON spec and markdown report stay in sync.
 When the assessment lands with a composite score, optionally persist scores + summary to the memory MCP knowledge graph as a typed entity. Future `/ork:memory` queries can then surface assessment lineage (which decisions did this codebase score 9/10 on testability? when did security regress below 7.0?).
 
 ```bash
-python3 ${CLAUDE_SKILL_DIR}/scripts/memory_writeback.py "<assessment-dir>"
+python3 skills/assess/scripts/memory_writeback.py "<assessment-dir>"
 ```
 
 `<assessment-dir>` is the dir containing `assessment.json` (typically the session's `.claude/chain/`). The script writes a `memory-writeback.json` handoff alongside it.
@@ -374,7 +374,7 @@ After the composite and grade are final (post-refutation, Phase 2.5), ALWAYS wri
 }
 ```
 
-Verdict rules — thresholds come from `rubric.json` (schema: `${CLAUDE_PLUGIN_ROOT}/shared/rubric.schema.json`):
+Verdict rules — thresholds come from `rubric.json` (schema: `shared/rubric.schema.json`):
 
 - `verdict = "fail"` when `composite < min_pass` (5.5) **OR** any dimension scores below its `min_blocker`. Otherwise `"pass"`.
 - Every dimension below its `min_blocker` gets a `blockers[]` entry — dimension, score, one evidence-backed reason. `blockers` is `[]` on pass.
@@ -412,7 +412,7 @@ Rules:
 
 ## 💡 Grade Interpretation
 
-Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/quality-gates/references/unified-scoring-framework.md")` for grade thresholds and scoring criteria.
+Load `Read("skills/quality-gates/references/unified-scoring-framework.md")` for grade thresholds and scoring criteria.
 
 
 ## Key Decisions
@@ -429,8 +429,8 @@ Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/quality-gates/references/unified-scorin
 
 | Rule | Impact | What It Covers |
 |------|--------|----------------|
-| complexity-metrics (load `rules/complexity-metrics.md`) | HIGH | 7-criterion scoring (1-5), complexity levels, thresholds |
-| complexity-breakdown (load `rules/complexity-breakdown.md`) | HIGH | Task decomposition strategies, risk assessment |
+| complexity-metrics (load `skills/assess/rules/complexity-metrics.md`) | HIGH | 7-criterion scoring (1-5), complexity levels, thresholds |
+| complexity-breakdown (load `skills/assess/rules/complexity-breakdown.md`) | HIGH | Task decomposition strategies, risk assessment |
 
 ## Quality Bar
 

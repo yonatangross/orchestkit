@@ -55,7 +55,7 @@ so there is no "too obvious for auto".
 | **improve-skill** | improve the skill, optimize the prompt, SKILL.md | the **holdout-promotion gate** (see Gaps) |
 | **(fallback)** | no confident category | clarify with ONE question |
 
-Full per-category parameter extraction + edge cases: `references/routing-rules.md`.
+Full per-category parameter extraction + edge cases: `skills/auto/references/routing-rules.md`.
 
 ## Model weight (orthogonal second dimension)
 
@@ -71,7 +71,7 @@ Tiers are the ones already declared in `src/agents/*.md` frontmatter (`haiku` 7 
 
 **Resolution is asymmetric:** ANY heavy signal ⇒ Heavy; Light requires ALL light signals; everything else is Standard. Under-powering a security review yields a confident wrong answer nobody catches; over-powering a rename only wastes money.
 
-Weight is **per leg, not per route**. A PR review can be a Heavy security leg plus a Light lint leg. Full signal table, per-intent defaults, and the honest limits of this lever: `references/routing-rules.md`.
+Weight is **per leg, not per route**. A PR review can be a Heavy security leg plus a Light lint leg. Full signal table, per-intent defaults, and the honest limits of this lever: `skills/auto/references/routing-rules.md`.
 
 > **This is the selector, not the cap.** `src/hooks/src/pretool/task/team-size-gate.ts` is an ex-post, per-session counter keyed on `ORK_TEAM_OPUS_MAX` (default 8). Its default posture is advisory (`outputWarning`); with `ORK_TEAM_SIZE_HARD=1` it escalates to `outputDeny` and refuses the spawn outright. Either way it reads the model read-only: it can refuse a premium spawn, but it cannot *choose* a cheaper one for you. Routing is what chooses. The two compose, cap as backstop and routing as selector; never duplicate the cap's counting here.
 
@@ -89,7 +89,7 @@ Weight is **per leg, not per route**. A PR review can be a Heavy security leg pl
 
 State your reasoning **before** committing to a route — this triggers chain-of-thought and is the single biggest accuracy lever (Anthropic, *Writing Effective Tools for Agents*). Example: *"'get latency under 200ms' names a metric + a direction → optimize, not fix."*
 
-Apply the disambiguation rules (most specific wins; explicit verb beats inferred intent). **The load-bearing one: explicit verb wins** — "Fix the slow query" → `fix`, not `optimize`. For the full ordered ruleset (all 7, including the truly-ambiguous fallback), `references/routing-rules.md` is canonical.
+Apply the disambiguation rules (most specific wins; explicit verb beats inferred intent). **The load-bearing one: explicit verb wins** — "Fix the slow query" → `fix`, not `optimize`. For the full ordered ruleset (all 7, including the truly-ambiguous fallback), `skills/auto/references/routing-rules.md` is canonical.
 
 Then classify **weight in the same pass**, naming the signal that decided it: *"touches auth and models an attacker → Heavy."* Intent first, weight second; a weight call never rewrites the intent you just committed to.
 
@@ -159,7 +159,7 @@ Target ≥95% category accuracy; track the fallback rate as a degradation alarm 
 
 ## References
 
-- `references/routing-rules.md` — per-category parameter extraction, edge cases, disambiguation
+- `skills/auto/references/routing-rules.md` — per-category parameter extraction, edge cases, disambiguation
 - `routing-benchmark.json` — 50 labeled goal→category pairs for accuracy validation
 
 ## Quality Bar

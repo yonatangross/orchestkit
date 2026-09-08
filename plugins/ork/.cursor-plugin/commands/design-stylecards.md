@@ -37,7 +37,7 @@ to avoid manifest sprawl.
 ### 1. Resolve the request to a recipe
 
 ```python
-Read("references/stylecards.md")   # The catalog — always read before choosing
+Read("skills/design-stylecards/references/stylecards.md")   # The catalog — always read before choosing
 # Match the user's intent to ONE recipe by its Use-When line.
 # No match → say so and offer the closest two; never freehand values.
 ```
@@ -55,7 +55,7 @@ element"). Violating an Avoid rule to satisfy a user request requires saying so 
 
 ## Catalog index
 
-Full recipes with exact values: `references/stylecards.md`.
+Full recipes with exact values: `skills/design-stylecards/references/stylecards.md`.
 
 | Recipe | Use when |
 |--------|----------|
@@ -68,7 +68,7 @@ Full recipes with exact values: `references/stylecards.md`.
 
 ## Authoring a new stylecard
 
-Add to `references/stylecards.md` following the contract — a recipe without all three parts is
+Add to `skills/design-stylecards/references/stylecards.md` following the contract — a recipe without all three parts is
 not shippable:
 
 1. **Use when** — one line, concrete surfaces ("cards, panels, popovers"), not adjectives.

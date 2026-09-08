@@ -101,10 +101,10 @@ mcp__memory__search_nodes(query="plan visualization {PLAN_INPUT}")
 
 ## STEP 0: Detect or Clarify Plan Context
 
-**First**, attempt auto-detection by running `scripts/detect-plan-context.sh`:
+**First**, attempt auto-detection by running `skills/visualize-plan/scripts/detect-plan-context.sh`:
 
 ```bash
-bash "$SKILL_DIR/scripts/detect-plan-context.sh"
+bash "skills/visualize-plan/scripts/detect-plan-context.sh"
 ```
 
 This outputs branch name, issue number (if any), commit count, and file change summary.
@@ -133,9 +133,9 @@ AskUserQuestion(
 ## STEP 0.5: Probe Formats (silent — no question here)
 
 Probe **capabilities** now so STEP 5 can offer only what will actually work. **Do not ask
-anything at this step.** Full procedure: `Read("references/format-dispatch.md")`.
+anything at this step.** Full procedure: `Read("skills/visualize-plan/references/format-dispatch.md")`.
 
-Use the established MCP-probe pattern — `Read("${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/references/mcp-detection.md")` — not ad-hoc checks:
+Use the established MCP-probe pattern — `Read("skills/chain-patterns/references/mcp-detection.md")` — not ad-hoc checks:
 
 ```python
 # infographic is available IFF the notebooklm studio tool resolves:
@@ -168,10 +168,10 @@ NotebookLM job.
 
 ## STEP 1: Gather Data
 
-Run `scripts/analyze-impact.sh` for precise counts:
+Run `skills/visualize-plan/scripts/analyze-impact.sh` for precise counts:
 
 ```bash
-bash "$SKILL_DIR/scripts/analyze-impact.sh"
+bash "skills/visualize-plan/scripts/analyze-impact.sh"
 ```
 
 This produces: files by action (add/modify/delete), line counts, test files affected, and dependency changes.
@@ -189,14 +189,14 @@ Agent(
 )
 ```
 
-If the diff touches frontend (`*.tsx`/`*.css`/route files), also run a `design-context-extract` pass so the design surface is part of before/after. Patterns: `Read("references/before-after-arch-patterns.md")`.
+If the diff touches frontend (`*.tsx`/`*.css`/route files), also run a `design-context-extract` pass so the design surface is part of before/after. Patterns: `Read("skills/visualize-plan/references/before-after-arch-patterns.md")`.
 
 Build a compact **plan brief** (markdown) from this data — the single interchange every non-ASCII format consumes (see `format-dispatch.md`).
 
 
 ## STEP 2: Render Tier 1 Header (Always)
 
-Use `assets/tier1-header.md` template. Load `Read("references/visualization-tiers.md")` for field computation (risk level, confidence, reversibility).
+Use `skills/visualize-plan/assets/tier1-header.md` template. Load `Read("skills/visualize-plan/references/visualization-tiers.md")` for field computation (risk level, confidence, reversibility).
 
 ```
 PLAN: {plan_name} ({issue_ref})  |  {phase_count} phases  |  {file_count} files  |  +{added} -{removed} lines
@@ -226,21 +226,21 @@ skipped with a one-line note otherwise. If the user asked for specific sections 
 
 ## STEP 4: Render Requested Sections
 
-Render each requested section following `rules/section-rendering.md` conventions. Use the corresponding reference for ASCII patterns:
+Render each requested section following `skills/visualize-plan/rules/section-rendering.md` conventions. Use the corresponding reference for ASCII patterns:
 
 | Section | Reference | Key Convention |
 |---------|-----------|----------------|
-| [0] Before/After Arch | (load `references/before-after-arch-patterns.md`) | Side-by-side base vs head; mark `[+]`/`[~]`/`[-]`; skip if nothing structural changed |
-| [1] Change Manifest | (load `references/change-manifest-patterns.md`) | `[A]`/`[M]`/`[D]` + `+N -N` per file |
-| [2] Execution Swimlane | (load `references/execution-swimlane-patterns.md`) | `===` active, `---` blocked, `\|` deps |
-| [3] Risk Dashboard | (load `references/risk-dashboard-patterns.md`) | Reversibility timeline + 3 pre-mortems |
-| [4] Decision Log | (load `references/decision-log-patterns.md`) | ADR-lite: Context/Decision/Alternatives/Tradeoff |
-| [5] Impact Summary | (load `assets/impact-dashboard.md`) | Table: Added/Modified/Deleted/NET + tests/API/deps |
+| [0] Before/After Arch | (load `skills/visualize-plan/references/before-after-arch-patterns.md`) | Side-by-side base vs head; mark `[+]`/`[~]`/`[-]`; skip if nothing structural changed |
+| [1] Change Manifest | (load `skills/visualize-plan/references/change-manifest-patterns.md`) | `[A]`/`[M]`/`[D]` + `+N -N` per file |
+| [2] Execution Swimlane | (load `skills/visualize-plan/references/execution-swimlane-patterns.md`) | `===` active, `---` blocked, `\|` deps |
+| [3] Risk Dashboard | (load `skills/visualize-plan/references/risk-dashboard-patterns.md`) | Reversibility timeline + 3 pre-mortems |
+| [4] Decision Log | (load `skills/visualize-plan/references/decision-log-patterns.md`) | ADR-lite: Context/Decision/Alternatives/Tradeoff |
+| [5] Impact Summary | (load `skills/visualize-plan/assets/impact-dashboard.md`) | Table: Added/Modified/Deleted/NET + tests/API/deps |
 
 
 ## STEP 4b: Dispatch to Format(s)
 
-Render the selected sections into the `FORMATS` chosen in STEP 0.5. **ASCII always renders first/inline** — the other formats consume the same plan brief. Full table + delegation patterns: `Read("references/format-dispatch.md")`.
+Render the selected sections into the `FORMATS` chosen in STEP 0.5. **ASCII always renders first/inline** — the other formats consume the same plan brief. Full table + delegation patterns: `Read("skills/visualize-plan/references/format-dispatch.md")`.
 
 | Format | Action |
 |--------|--------|
@@ -248,7 +248,7 @@ Render the selected sections into the `FORMATS` chosen in STEP 0.5. **ASCII alwa
 | Playground | Classify the archetype (below), then hand the plan brief to the `playground` skill → write `docs/<branch-dir>/plan-viz.html`, then serve it with `/ork:page-serve docs/<branch-dir>/plan-viz.html` and put the printed `url=` in the reply's Open section (never a bare path or a hand-started http.server) |
 | Infographic | Run the `notebooklm` `studio_create(artifact_type=infographic\|slides)` flow — **fire-and-notify**, poll `studio_status`, never await |
 | All | ASCII inline now + the rest linked as they finish |
-| Charts (marks *within* Playground / Infographic) | For sections with quantitative marks — **[3] Risk, [5] Impact, [6] Blast Radius** — pick the form via `/dataviz` (`choosing-a-form`) and the palette via its 6-check formula, then run `validate_palette.js`. On validator FAIL **or** `/dataviz` absent, fall back to the ASCII-card layout. Chrome stays ork tokens (§2 of `playground-visual-standard.md`); only the data marks come from the validated palette. See `${CLAUDE_PLUGIN_ROOT}/shared/rules/chart-encoding-standard.md`. |
+| Charts (marks *within* Playground / Infographic) | For sections with quantitative marks — **[3] Risk, [5] Impact, [6] Blast Radius** — pick the form via `/dataviz` (`choosing-a-form`) and the palette via its 6-check formula, then run `validate_palette.js`. On validator FAIL **or** `/dataviz` absent, fall back to the ASCII-card layout. Chrome stays ork tokens (§2 of `playground-visual-standard.md`); only the data marks come from the validated palette. See `shared/rules/chart-encoding-standard.md`. |
 
 `<branch-dir>` = branch with `/` → `--` (same path the PR Playground gate checks). The filename is
 **always `plan-viz.html`** — not `index.html`, not a topic name. One name is what makes slug lookup
@@ -261,12 +261,12 @@ and the artifact gallery work at all.
 > sections `[0]`–`[5]`, a table twin per chart, the copy-prompt bar, and the reduced-motion gate.
 > If the plan instead demonstrates a *user-facing flow* or a *prioritization/decision*, route to the
 > **user-story-player** or **decision-board** archetype. Apply the §0 routing rule in
-> `Read("${CLAUDE_PLUGIN_ROOT}/shared/rules/playground-visual-standard.md")` and run its §10
+> `Read("shared/rules/playground-visual-standard.md")` and run its §10
 > self-audit — including the DASHBOARD rows — before declaring done.
 >
 > **Backlog to dispatch?** If the plan is a backlog the user must prioritize **and route to execution**,
 > use the **decision-router** variant — each card routes to an ork strategy and emits a plan-only
-> invocation: `Read("references/decision-router.md")`.
+> invocation: `Read("skills/visualize-plan/references/decision-router.md")`.
 >
 > **Living plan (multi-wave)?** If the plan executes over multiple sessions/waves, or completion is
 > verifiable by commands, use the **living-plan** exemplar (`living-plan.template.html`): the playground
@@ -278,12 +278,12 @@ and the artifact gallery work at all.
 > BEFORE authoring:
 >
 > ```bash
-> bash "$SKILL_DIR/scripts/find-living-plan.sh" "$SLUG"   # 0=update it · 1=author new · 2=already forked, STOP
+> bash "skills/visualize-plan/scripts/find-living-plan.sh" "$SLUG"   # 0=update it · 1=author new · 2=already forked, STOP
 > ```
 >
 > On exit 0, MERGE into the file it printed (flip statuses, append changelog, move removed items to
 > dropped) wherever it lives. On exit 2, do not write a third file — name both paths and ask which
-> survives. Full contract: `Read("references/format-dispatch.md")`
+> survives. Full contract: `Read("skills/visualize-plan/references/format-dispatch.md")`
 > §Living-plan update mode. Gated by `tests/orphans/test-duplicate-living-plans.sh`.
 
 
@@ -315,13 +315,13 @@ AskUserQuestion(questions=[{"question": "What next?", "header": "Actions",
 ```
 
 Anything squeezed out by the cap stays reachable by asking — the menu is a shortcut, not the
-whole surface. `Write to designs/{branch}.md` (template: `assets/plan-report.md`) is one of these.
+whole surface. `Write to designs/{branch}.md` (template: `skills/visualize-plan/assets/plan-report.md`) is one of these.
 
 Upgrading reuses the plan brief built in STEP 1 — **no recomputation**
-(see `references/format-dispatch.md`). If nothing richer is available, the question drops to
+(see `skills/visualize-plan/references/format-dispatch.md`). If nothing richer is available, the question drops to
 drill-deeper / issues / done.
 
-**Write to file:** Save full report to `designs/{branch-name}.md` using `assets/plan-report.md` template.
+**Write to file:** Save full report to `designs/{branch-name}.md` using `skills/visualize-plan/assets/plan-report.md` template.
 
 **Generate issues:** For each execution phase, create a GitHub issue with title `[{component}] {phase_description}`, labels (component + `risk:{level}`), milestone, body from plan sections, and blocked-by references.
 
@@ -343,13 +343,13 @@ mcp__memory__create_entities(entities=[{
 
 ## Deep Dives (Tier 3, on request)
 
-Available when user selects "Drill deeper". Load `Read("references/deep-dives.md")` for cross-layer and migration patterns.
+Available when user selects "Drill deeper". Load `Read("skills/visualize-plan/references/deep-dives.md")` for cross-layer and migration patterns.
 
 | Section | What It Shows | Reference |
 |---------|--------------|-----------|
-| [6] Blast Radius | Concentric rings of impact (direct -> transitive -> tests) | (load `references/blast-radius-patterns.md`) |
-| [7] Cross-Layer Consistency | Frontend/backend endpoint alignment with gap detection | (load `references/deep-dives.md`) |
-| [8] Migration Checklist | Ordered runbook with sequential/parallel blocks and time estimates | (load `references/deep-dives.md`) |
+| [6] Blast Radius | Concentric rings of impact (direct -> transitive -> tests) | (load `skills/visualize-plan/references/blast-radius-patterns.md`) |
+| [7] Cross-Layer Consistency | Frontend/backend endpoint alignment with gap detection | (load `skills/visualize-plan/references/deep-dives.md`) |
+| [8] Migration Checklist | Ordered runbook with sequential/parallel blocks and time estimates | (load `skills/visualize-plan/references/deep-dives.md`) |
 
 
 ## Key Principles
@@ -367,7 +367,7 @@ Available when user selects "Drill deeper". Load `Read("references/deep-dives.md
 
 | Rule | Impact | What It Covers |
 |------|--------|----------------|
-| section-rendering (load `rules/section-rendering.md`) | HIGH | Rendering conventions for all 6 core sections ([0]–[5]) |
+| section-rendering (load `skills/visualize-plan/rules/section-rendering.md`) | HIGH | Rendering conventions for all 6 core sections ([0]–[5]) |
 | ASCII diagrams | MEDIUM | Via `glyph` skill (box-drawing, file trees, workflows) |
 
 ## References
@@ -392,9 +392,9 @@ them match `references/*-patterns.md` exactly, so they are safe to imitate direc
 
 | File | Shows |
 |------|-------|
-| `examples/01-dashboard-run.md` | The default path end to end: detect → gather → header → all six sections → the one question → the emitted HTML. Same scenario as the sample state in `plan-dashboard.template.html`. |
-| `examples/02-living-plan-update.md` | Update mode on a **renamed branch**: slug-keyed detection, the JSON merge, the evidence gate, and the exit-2 fork case. |
-| `examples/03-quick-run.md` | `--quick`: what is skipped, what the output looks like, and what it must never fabricate. |
+| `skills/visualize-plan/examples/01-dashboard-run.md` | The default path end to end: detect → gather → header → all six sections → the one question → the emitted HTML. Same scenario as the sample state in `plan-dashboard.template.html`. |
+| `skills/visualize-plan/examples/02-living-plan-update.md` | Update mode on a **renamed branch**: slug-keyed detection, the JSON merge, the evidence gate, and the exit-2 fork case. |
+| `skills/visualize-plan/examples/03-quick-run.md` | `--quick`: what is skipped, what the output looks like, and what it must never fabricate. |
 
 ## Assets
 
@@ -409,9 +409,9 @@ Load on demand with `Read("assets/<file>")`:
 
 Done means all of these hold:
 - The Tier 1 header always renders with every field populated — risk, confidence, reversibility, branch, and file/line counts.
-- File and line counts come from `scripts/analyze-impact.sh`, not estimated or guessed.
+- File and line counts come from `skills/visualize-plan/scripts/analyze-impact.sh`, not estimated or guessed.
 - Every rendered section answers its reviewer question; a section with no content is skipped with a one-line reason, never padded.
-- **Section [3] names the point of no return by phase id** (`--- POINT OF NO RETURN (after P3) ---`), not by implication, and each pre-mortem states a **mechanism** — trigger, sequence, resulting bad state — not a category. "Migration risk" is a heading; "P2 ships while an in-flight retry queue still points at the inline charge path, so the same invoice is charged twice" is a pre-mortem. This is the section's measured failure mode, not a style preference: `rules/section-rendering.md` §[3] carries the falsifiable test for both.
+- **Section [3] names the point of no return by phase id** (`--- POINT OF NO RETURN (after P3) ---`), not by implication, and each pre-mortem states a **mechanism** — trigger, sequence, resulting bad state — not a category. "Migration risk" is a heading; "P2 ships while an in-flight retry queue still points at the inline charge path, so the same invoice is charged twice" is a pre-mortem. This is the section's measured failure mode, not a style preference: `skills/visualize-plan/rules/section-rendering.md` §[3] carries the falsifiable test for both.
 - Section [0] Before/After maps base (`git show origin/main:<path>`) against head (working tree), marking each node `[+]`/`[~]`/`[-]`, and is skipped with a note when nothing structural changed.
 - ASCII renders first/inline regardless of chosen format; any async format (infographic) is fired-and-notified, never awaited.
 - The plan summary is stored to the memory knowledge graph for cross-session comparison (skipped under `--quick`).
@@ -421,7 +421,7 @@ Done means all of these hold:
 - A playground output started from `plan-dashboard.template.html` (or the living-plan / player /
   board exemplar the §0 routing rule selected) — never hand-rolled CSS — and passed the §10
   self-audit including the DASHBOARD rows.
-- A living plan was located by **slug** via `scripts/find-living-plan.sh` before authoring, so an
+- A living plan was located by **slug** via `skills/visualize-plan/scripts/find-living-plan.sh` before authoring, so an
   existing plan is updated in place rather than forked into a second file.
 
 ## Related Skills

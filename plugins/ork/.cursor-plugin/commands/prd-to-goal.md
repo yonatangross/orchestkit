@@ -72,7 +72,7 @@ No commentary, no markdown wrapper — the user copies the line straight into Cl
 
 ### Optional: rubric emission (`.claude/rubric.json`)
 
-When the user wants graded feedback beyond pass/fail booleans, the skill MAY also emit `.claude/rubric.json` conforming to `ork-rubric/1.0` (schema: `${CLAUDE_PLUGIN_ROOT}/shared/rubric.schema.json`), mapping each acceptance criterion to one dimension:
+When the user wants graded feedback beyond pass/fail booleans, the skill MAY also emit `.claude/rubric.json` conforming to `ork-rubric/1.0` (schema: `shared/rubric.schema.json`), mapping each acceptance criterion to one dimension:
 
 ```json
 {
@@ -171,7 +171,7 @@ Where §3–5 *generate* a custom `/goal` line from a spec, the recipe library *
 | 🎫 Ticket → PR-ready | drive an issue to a CI-green PR | `/ork:fix-issue` → `/ork:create-pr` |
 | 🧼 Type/lint zero | clear a type/lint backlog without suppressions | fixer agent |
 
-Full recipes — the exact single-line `/goal until …, or stop after N turns` lines, convergent signal, and per-recipe guardrail: `references/recipe-library.md`. That file is the in-repo source intended for an `ork-loops` pack on skills.sh (not yet built; the channel Forward Future's Loop Library uses), so the loop *recipes* can travel while ork supplies the *machinery* each pass runs on.
+Full recipes — the exact single-line `/goal until …, or stop after N turns` lines, convergent signal, and per-recipe guardrail: `skills/prd-to-goal/references/recipe-library.md`. That file is the in-repo source intended for an `ork-loops` pack on skills.sh (not yet built; the channel Forward Future's Loop Library uses), so the loop *recipes* can travel while ork supplies the *machinery* each pass runs on.
 
 ## 7. Anti-patterns
 
@@ -201,7 +201,7 @@ The grader receives the `/goal` line, `.claude/rubric.json` (if emitted), a comp
 
 Grading must happen in an independent context window — never self-critique (verifier sub-agents outperform self-critique because the grader does not share the producer's context; Lance Martin, 2026-06-09). Budget: one grader call per timeout, and the grader never loops itself.
 
-Full pattern (prompt template, independence rules, worked example): `${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/references/assertion-grader.md`.
+Full pattern (prompt template, independence rules, worked example): `skills/chain-patterns/references/assertion-grader.md`.
 
 ## 9. Related skills
 

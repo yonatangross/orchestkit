@@ -138,7 +138,7 @@ TaskUpdate(taskId="2", status="completed")    # When done — repeat for each su
 
 ### Phase 1: Pre-Flight Checks
 
-Load: `Read("rules/preflight-validation.md")` for the full checklist.
+Load: `Read("skills/create-pr/rules/preflight-validation.md")` for the full checklist.
 
 ```bash
 BRANCH=$(git branch --show-current)
@@ -151,7 +151,7 @@ git rev-parse --verify "origin/$BRANCH" &>/dev/null || git push -u origin "$BRAN
 
 ### Phase 2: Parallel Validation (Feature/Bug fix PRs)
 
-Launch agents in ONE message. Load `Read("references/parallel-validation.md")` for full agent configs.
+Launch agents in ONE message. Load `Read("skills/create-pr/references/parallel-validation.md")` for full agent configs.
 
 | PR Type | Agents to launch |
 |---------|-----------------|
@@ -196,7 +196,7 @@ If the ledger doesn't exist or is empty, skip this step — create PR normally.
 
 ### Phase 4: Create PR
 
-Follow `Read("rules/pr-title-format.md")` and `Read("rules/pr-body-structure.md")`. Use HEREDOC pattern from `Read("references/pr-body-templates.md")`.
+Follow `Read("skills/create-pr/rules/pr-title-format.md")` and `Read("skills/create-pr/rules/pr-body-structure.md")`. Use HEREDOC pattern from `Read("skills/create-pr/references/pr-body-templates.md")`.
 
 Include agent attribution sections (from Phase 3b) after the Test Plan section in the PR body.
 
@@ -251,11 +251,11 @@ Generate an interactive HTML playground visualizing the PR's changes. CI validat
 > **Requires** the `playground` plugin (external): `/plugin marketplace add anthropics/claude-plugins-official && /plugin install playground`
 
 **First classify the archetype** — a feature PR must not ship as a flat dashboard.
-`Read("${CLAUDE_PLUGIN_ROOT}/shared/rules/playground-visual-standard.md")` and apply its §0 routing rule:
+`Read("shared/rules/playground-visual-standard.md")` and apply its §0 routing rule:
 
 - **Visual PR** (adds/changes a user-facing feature, flow, or a prioritization/decision surface) →
   **USER-STORY PLAYER** or **DECISION BOARD**. Build to the standard: adapt the matching exemplar at
-  `${CLAUDE_PLUGIN_ROOT}/shared/assets/playground-exemplars/` (`user-story-player.template.html`
+  `shared/assets/playground-exemplars/` (`user-story-player.template.html`
   or `decision-board.template.html`), and bring full design firepower (the `frontend-design` skill /
   the `ork:frontend-ui-developer` agent). When delegating to `playground:playground`, brief it with the
   **archetype + persona + tokens** — never hand it a pre-built HTML blob.
@@ -348,7 +348,7 @@ before `gh pr merge` or arming `--auto`. Skip only when the repo has no `.codera
 the PR is still a draft.
 
 ```bash
-H="${CLAUDE_SKILL_DIR}/scripts/coderabbit-harvest.sh"
+H="skills/create-pr/scripts/coderabbit-harvest.sh"
 PR_NUMBER=$(gh pr view --json number -q .number)
 bash "$H" "$PR_NUMBER" --unresolved > /tmp/cr-threads.json   # ONE GraphQL call, coderabbitai only
 jq length /tmp/cr-threads.json                                  # 0 → see below, then merge
@@ -363,7 +363,7 @@ the app is either uninstalled on the `yonatangross` account or disabled account-
 Note what that verdict does NOT say: absence never proves absence from a session, only the
 settings page separates those two. The first time a repo's harvest returns zero,
 disambiguate with
-`Read("references/coderabbit-zero-reviews.md")`:
+`Read("skills/create-pr/references/coderabbit-zero-reviews.md")`:
 it carries the two-endpoint query, the positive control that keeps a zero honest, and the
 operator steps for the installation grant. Editing `.coderabbit.yaml` cannot fix an app
 that was never installed.
@@ -420,7 +420,7 @@ Write(".claude/chain/pr-created.json", JSON.stringify({
 
 ## Verification Gate
 
-Before claiming PR is ready, apply: `Read("${CLAUDE_PLUGIN_ROOT}/shared/rules/verification-gate.md")`. All tests must pass with fresh evidence. All CI checks green. No "should be fine."
+Before claiming PR is ready, apply: `Read("shared/rules/verification-gate.md")`. All tests must pass with fresh evidence. All CI checks green. No "should be fine."
 
 ## Quality Bar
 
@@ -431,7 +431,7 @@ Done means all of these hold:
 - Pre-flight validation for the chosen PR type passed locally before creation (skipped only for the Quick type)
 - Playground HTML exists at docs/{branch-dir}/*.html and the body links it (required for non-bot PRs)
 - `gh pr view --json url` returns the created PR URL
-- Every CodeRabbit thread on the PR is resolved, with a reply naming the fix sha or the dismissal reason (`scripts/coderabbit-harvest.sh --unresolved` prints `[]`)
+- Every CodeRabbit thread on the PR is resolved, with a reply naming the fix sha or the dismissal reason (`skills/create-pr/scripts/coderabbit-harvest.sh --unresolved` prints `[]`)
 
 ## Related Skills
 
@@ -447,10 +447,10 @@ If the `AskUserQuestion` picker stalls (schema break, not a CC input bug — orc
 Load on demand with `Read("references/<file>")`:
 | File | Content |
 |------|---------|
-| `references/pr-body-templates.md` | PR body templates |
-| `references/parallel-validation.md` | Parallel validation agent configs |
-| `references/ci-integration.md` | CI integration patterns |
-| `references/multi-commit-pr.md` | Multi-commit PR guidance |
-| `assets/pr-template.md` | PR template (legacy) |
-| `scripts/coderabbit-harvest.sh` | CodeRabbit threads: read (one GraphQL call), `--reply`, `--resolve` |
-| `references/coderabbit-zero-reviews.md` | Harvest returned zero: reviewed clean, or never reviewed? |
+| `skills/create-pr/references/pr-body-templates.md` | PR body templates |
+| `skills/create-pr/references/parallel-validation.md` | Parallel validation agent configs |
+| `skills/create-pr/references/ci-integration.md` | CI integration patterns |
+| `skills/create-pr/references/multi-commit-pr.md` | Multi-commit PR guidance |
+| `skills/create-pr/assets/pr-template.md` | PR template (legacy) |
+| `skills/create-pr/scripts/coderabbit-harvest.sh` | CodeRabbit threads: read (one GraphQL call), `--reply`, `--resolve` |
+| `skills/create-pr/references/coderabbit-zero-reviews.md` | Harvest returned zero: reviewed clean, or never reviewed? |
