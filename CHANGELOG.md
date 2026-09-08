@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.11](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.10...v10.0.0-beta.11) (2026-09-08)
+
+
+### Features
+
+* **codex:** ship the ork-mech profile and the plugin cache-lag note ([#4012](https://github.com/yonatangross/orchestkit/issues/4012)) ([bcc122d](https://github.com/yonatangross/orchestkit/commit/bcc122d6dd2ae9caff29cbf16b941ee0f5095dc0))
+
 ## [10.0.0-beta.10](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.9...v10.0.0-beta.10) (2026-09-08)
 
 
