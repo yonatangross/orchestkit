@@ -15,6 +15,21 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "route-nudge-regex-widening",
+    "title": "Widening a regex traded one bug for a worse one",
+    "description": "executor-route-nudge stayed silent when you had already typed /ork:implement, but the check named ork and hq-ext literally, so a consumer typing /vercel:deploy was nudged anyway. Widening it to any /<plugin>:<skill> fixed that and quietly broke more: a colon path inside an ordinary URL matches the same shape, so any prompt containing a link stopped nudging. Type a prompt and watch all three versions disagree.",
+    "tags": [
+      "hooks",
+      "regression",
+      "regex",
+      "code-review"
+    ],
+    "date": "2026-09-08",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 9
+  },
+  {
     "slug": "glyph-examples-page",
     "title": "A page an agent can send a human to: the glyph examples block",
     "description": "The glyph docs page answered 200 but was a 33 KB dump of SKILL.md. Toggle before and after to see what a human routed to the URL now lands on: a curated block first (what it draws, the two picks, three real renders, the exact invocation) at a stable #examples anchor, generated from the skill's own examples/_featured.md. Any skill opts in by adding that one file.",
