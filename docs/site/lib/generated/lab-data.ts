@@ -15,6 +15,22 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "pi-adapter",
+    "title": "The pi adapter: what one package.json key changes",
+    "description": "Flip the pi manifest between no key, a bare directory entry and the shipped force-exclude, and watch pi's own resolver return 0, 108-for-107, then 107 clean. Plus the per-server includeTools allowlist the .pi/mcp.json template ships.",
+    "tags": [
+      "pi",
+      "mcp",
+      "manifest",
+      "engines",
+      "explainer"
+    ],
+    "date": "2026-09-08",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 14
+  },
+  {
     "slug": "multi-engine-support",
     "title": "OrchestKit on pi, Codex and Cursor: what each engine actually loads",
     "description": "Measured support matrix per engine (skills, agents, hooks, commands, MCP), the four-run pi headless probe that shows --no-builtin-tools hides every skill, and the sweep, mech and reason lane model.",
