@@ -283,7 +283,7 @@
   function pad(s){while(s.length<width)s+=' ';return s;}
   function build(){var lines=[],picked=0;blocks.forEach(function(b){var key=b.getAttribute('data-key')||'?';var r=b.querySelector('.opt input:checked');if(r)picked++;lines.push(pad(key)+': '+(r?r.value:'(not chosen)'));b.querySelectorAll('.todo input:checked').forEach(function(c){lines.push(pad('')+'  [x] '+c.value);});});sum.textContent=lines.join('\n');cnt.textContent=picked+'/'+blocks.length+' chosen';btn.disabled=picked<blocks.length;return sum.textContent;}
   document.addEventListener('change',build);build();
-  btn.addEventListener('click',function(){var t=build();var done=function(){note.textContent='copied';setTimeout(function(){note.textContent='';},1400);};var fallback=function(){var range=document.createRange();range.selectNodeContents(sum);var sel=window.getSelection();sel.removeAllRanges();sel.addRange(range);note.textContent='selected: press Cmd+C (or Ctrl+C)';};if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(done,fallback);else fallback();});
+  btn.addEventListener('click',function(){var t=build();var done=function(){note.textContent='copied';setTimeout(function(){note.textContent='';},1400);};var fallback=function(){var range=document.createRange();range.selectNodeContents(sum);var sel=window.getSelection();sel.removeAllRanges();sel.addRange(range);note.textContent='selected, copy it';};if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(done,fallback);else fallback();});
 })();
 </script>
 </body>

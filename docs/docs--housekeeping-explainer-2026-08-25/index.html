@@ -408,7 +408,7 @@
         if (sel) {
           var range = document.createRange(); range.selectNodeContents(sum);
           sel.removeAllRanges(); sel.addRange(range);
-          note.textContent = 'selected: press Cmd+C (or Ctrl+C)';
+          note.textContent = 'selected, copy it';
         } else {
           note.textContent = 'copy unavailable: select the text above manually';
         }

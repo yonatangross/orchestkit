@@ -295,7 +295,7 @@ stash@{8}  conductor-close-ork-3919-1110        NOT in the proof  ?</div>
   document.addEventListener('change', render);
   btn.addEventListener('click', async () => {
     try { await navigator.clipboard.writeText(sum.textContent); btn.textContent = 'copied'; }
-    catch { const r = document.createRange(); r.selectNodeContents(sum); const s = getSelection(); s.removeAllRanges(); s.addRange(r); btn.textContent = 'selected, press Cmd+C'; }
+    catch { const r = document.createRange(); r.selectNodeContents(sum); const s = getSelection(); s.removeAllRanges(); s.addRange(r); btn.textContent = 'selected, copy it'; }
     setTimeout(() => btn.textContent = 'copy my answers', 1800);
   });
   render();
