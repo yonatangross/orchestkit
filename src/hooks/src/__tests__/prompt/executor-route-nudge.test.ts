@@ -109,6 +109,31 @@ describe('prompt/executor-route-nudge', () => {
     ).toBe('');
   });
 
+  // Any plugin namespace counts, not just ork. A consumer who typed
+  // /vercel:deploy had already routed their work and was nudged anyway.
+  test('silent when the user routes to a non-ork plugin', () => {
+    expect(
+      contextOf(
+        executorRouteNudge(
+          makeInput('fix the failing preview deploy via /vercel:deploy and report what broke'),
+        ),
+      ),
+    ).toBe('');
+  });
+
+  // Regression for a CodeRabbit finding on PR #3990: widening the namespace
+  // without requiring a standalone token made any URL with a colon path match,
+  // so a prompt merely CONTAINING a link silently suppressed the nudge.
+  test('a colon path inside a URL does not count as routing', () => {
+    expect(
+      contextOf(
+        executorRouteNudge(
+          makeInput('build a client from https://example.com/guide:setup and explain the auth flow'),
+        ),
+      ),
+    ).not.toBe('');
+  });
+
   test('accepts polite/imperative openers', () => {
     const result = executorRouteNudge(
       makeInput('please implement cursor-based pagination for the sessions listing endpoint'),

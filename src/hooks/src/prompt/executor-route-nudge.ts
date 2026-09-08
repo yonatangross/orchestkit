@@ -46,8 +46,14 @@ const BUILD_VERB_RE =
  * `ork` and `hq-ext` only, which meant a consumer who typed `/vercel:deploy` or
  * `/posthog:exec` was still nudged to route work they had already routed. It
  * also put a private plugin's namespace in the public plugin's shipped source.
+ *
+ * The token must stand alone. Widening the namespace without this made
+ * `https://example.com/guide:setup` match, so a prompt containing any URL with a
+ * colon path silently suppressed the nudge. The old hardcoded form did not have
+ * that reach, so the leading-boundary requirement is what keeps the widening from
+ * being a regression.
  */
-const ALREADY_ROUTED_RE = /\/[a-z][a-z0-9-]*:[a-z][a-z0-9-]+/i;
+const ALREADY_ROUTED_RE = /(?:^|\s)\/[a-z][a-z0-9-]*:[a-z][a-z0-9-]+/i;
 
 function flagPath(sessionId: string): string {
   // #1826-class hardening: session_id is untrusted hook input. Route it

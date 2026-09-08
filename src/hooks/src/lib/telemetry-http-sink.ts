@@ -7,7 +7,8 @@
  * Cross-Project Analytics today writes JSONL to ~/.claude/analytics/ via
  * appendAnalytics(). That gives a great per-machine view but no fleet-wide
  * aggregation. This sink optionally mirrors each entry to an HTTP endpoint you
- * configure, so a fleet can be analysed across hosts. Off unless you set one.
+ * configure, so a fleet can be analysed across hosts. It stays off until BOTH a
+ * receiver URL and a bearer token resolve; either one alone is still a no-op.
  *
  * Design tenets (all enforced below):
  *
