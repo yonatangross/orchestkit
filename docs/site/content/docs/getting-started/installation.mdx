@@ -15,7 +15,7 @@ import { Count, MinCC } from '@/components/count';
 | **Claude Code** (full plugin) | <Count k="skills" /> skills, <Count k="agents" /> agents, <Count k="hooks" /> hooks | `claude install orchestkit/ork` |
 | **Cursor** | Same `ork` plugin minus Claude hook scripts | Marketplace `yonatangross/orchestkit` → enable **ork** → new chat |
 | **Codex** | Six workflow skills plus context7 (`ork-codex`) | `codex plugin add ork-codex@orchestkit-codex` after adding the marketplace |
-| **pi** | Skills via `--skill`; no plugin manifest yet | `pi --skill ./plugins/ork/skills` from a checkout, see [the engine guide](/docs/guides/orchestkit-on-pi-codex-cursor) |
+| **pi** | Skills via the shipped `pi` manifest | `pi install git:github.com/yonatangross/orchestkit`, see [the engine guide](/docs/guides/orchestkit-on-pi-codex-cursor) |
 | **skills.sh** | Skills only. Start with 12, not the whole catalog | see below |
 
 Coming from Superpowers (official Anthropic marketplace)? They are complementary — [OrchestKit vs Superpowers](/docs/getting-started/superpowers).
@@ -38,6 +38,36 @@ Slash-command equivalent:
 ## Cursor
 
 Add the GitHub repo as a Cursor marketplace (`yonatangross/orchestkit`), enable **ork**, then open a **new** chat. That is the same plugin Claude Code installs, not a five-skill fork. Claude hook scripts are not registered in Cursor (`CLAUDE_PLUGIN_ROOT`).
+
+## Codex
+
+```bash
+codex plugin marketplace add yonatangross/orchestkit --ref main --sparse .agents/plugins --sparse plugins/ork-codex
+codex plugin add ork-codex@orchestkit-codex
+```
+
+That installs the six-skill `ork-codex` pack plus context7. For unattended
+mechanical runs, add the shipped profile:
+
+```bash
+plugins/ork-codex/scripts/install-codex-profile.sh ~/.codex
+codex exec --profile ork-mech "<task>" </dev/null
+```
+
+<Callout type="warn">
+`ref main` is a cached snapshot, not a tracker. On the 2026-09-08 audit machine
+`codex plugin list` reported `10.0.0-beta.5` while main was three releases ahead.
+Run `codex plugin update` after an OrchestKit release, then compare
+`codex plugin list | grep ork-codex` against
+`jq -r .version plugins/ork-codex/.codex-plugin/plugin.json`.
+</Callout>
+
+The profile is a file at `~/.codex/ork-mech.config.toml`, never a
+`[profiles.ork-mech]` table inside `config.toml`; codex rejects `--profile` while
+that legacy table exists. Inside a git worktree add
+`--add-dir "$(git rev-parse --path-format=absolute --git-common-dir)"` or the
+first commit fails on `index.lock`. Details and the measurements are in
+[the engine guide](/docs/guides/orchestkit-on-pi-codex-cursor).
 
 ## skills.sh starter (any agent)
 

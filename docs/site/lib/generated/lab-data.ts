@@ -15,6 +15,22 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "codex-mech-profile",
+    "title": "The Codex mech profile: which file codex actually reads",
+    "description": "Put the ork-mech profile in three places and read codex 0.153.4's own answer: a hard config-load error for the legacy [profiles.*] table, a silent base-config run for a name that does not exist, and the measured header for the shipped file. Plus the worktree writable-roots line with and without --add-dir.",
+    "tags": [
+      "codex",
+      "profile",
+      "sandbox",
+      "engines",
+      "explainer"
+    ],
+    "date": "2026-09-08",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 14
+  },
+  {
     "slug": "pi-adapter",
     "title": "The pi adapter: what one package.json key changes",
     "description": "Flip the pi manifest between no key, a bare directory entry and the shipped force-exclude, and watch pi's own resolver return 0, 108-for-107, then 107 clean. Plus the per-server includeTools allowlist the .pi/mcp.json template ships.",
