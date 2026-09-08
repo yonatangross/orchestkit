@@ -362,7 +362,18 @@ jobs:
           # one audit file plus a one-line upper bound in pyproject.toml (which
           # is already exempt). Requiring a hand-authored interactive page for
           # an evidence record is the tax this list exists to remove.
-          INERT='^(README\.md|CHANGELOG\.md|CONTRIBUTING\.md|SECURITY\.md|CODE_OF_CONDUCT\.md|LICENSE|\.github/.*|vercel\.json|[^/]*\.toml|docs/[^/]*--[^/]*/.*|docs/playgrounds/.*|docs/audits/.*)$'
+          # `.claude/rules/` holds the agent-facing rule texts this repo writes for
+          # itself. They are repo-internal instructions, not product: there is no
+          # user-facing behaviour to demonstrate in an interactive page, and a
+          # playground about a rule amendment is a page about a page. Same
+          # circularity the three widenings above already removed, hit a fourth time
+          # on #3993, a one-file edit to .claude/rules/hooks-development.md that this
+          # gate demanded a hand-authored playground for.
+          #
+          # Scoped to `rules/` deliberately, NOT all of `.claude/`. `.claude/skills/`
+          # and `.claude/hooks/` would be real behaviour a reviewer should be able to
+          # open, and the fail-closed property below is the thing worth keeping.
+          INERT='^(README\.md|CHANGELOG\.md|CONTRIBUTING\.md|SECURITY\.md|CODE_OF_CONDUCT\.md|LICENSE|\.github/.*|vercel\.json|[^/]*\.toml|docs/[^/]*--[^/]*/.*|docs/playgrounds/.*|docs/audits/.*|\.claude/rules/.*)$'
 
           FILES=$(gh pr diff "$PR_NUMBER" --name-only 2>/dev/null || true)
           if [ -z "$FILES" ]; then
