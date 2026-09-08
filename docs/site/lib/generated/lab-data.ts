@@ -73,7 +73,7 @@ export const LAB_ENTRIES: LabEntry[] = [
     "date": "2026-09-08",
     "featured": false,
     "caseStudy": null,
-    "sizeKb": 18
+    "sizeKb": 19
   },
   {
     "slug": "glyph-examples-page",

@@ -320,23 +320,58 @@
     $("rulesnippet").textContent = f.snippet;
   });
 
-  const max = Math.max(...DATA.counts.map((c) => Math.max(c.before, c.after)));
-  $("counts").innerHTML = DATA.counts.map((c) => {
-    const w = Math.max(1, Math.round((c.before / max) * 18));
-    const after = c.after === 0
-      ? '<span class="zero">0</span>'
-      : String(c.after);
-    return "<tr><td><code>" + esc(c.k) + "</code></td>"
-      + '<td class="num"><span class="bar">' + "▓".repeat(w) + "</span> " + c.before + "</td>"
-      + '<td class="num">' + after + "</td>"
-      + "<td>" + esc(c.why) + "</td></tr>";
-  }).join("");
+  // Built with createElement + textContent, never innerHTML. Every value here is
+  // authored in the JSON island above, so nothing is attacker-controlled, but a
+  // text-to-HTML flow is a text-to-HTML flow: CodeQL flagged the string-concat
+  // version of these two loops as high severity and it was right to.
+  function cell(tag, opts) {
+    const el = document.createElement(tag);
+    if (opts.cls) el.className = opts.cls;
+    if (opts.code) {
+      const c = document.createElement("code");
+      c.textContent = opts.code;
+      el.appendChild(c);
+    }
+    if (opts.text !== undefined) el.appendChild(document.createTextNode(opts.text));
+    if (opts.spans) {
+      for (const sp of opts.spans) {
+        const s2 = document.createElement("span");
+        s2.className = sp.cls;
+        s2.textContent = sp.text;
+        el.appendChild(s2);
+      }
+    }
+    return el;
+  }
 
-  $("bite").innerHTML = DATA.bite.map((b) => {
-    const cls = b.res === "PASS" ? "tag good" : "tag bad";
-    return "<tr><td><code>" + esc(b.inject) + '</code></td><td><span class="' + cls + '">'
-      + b.res + "</span></td><td><code>" + esc(b.check) + "</code></td></tr>";
-  }).join("");
+  const max = Math.max(...DATA.counts.map((c) => Math.max(c.before, c.after)));
+  const countsBody = $("counts");
+  for (const c of DATA.counts) {
+    const w = Math.max(1, Math.round((c.before / max) * 18));
+    const tr = document.createElement("tr");
+    tr.appendChild(cell("td", {code: c.k}));
+    tr.appendChild(cell("td", {
+      cls: "num",
+      spans: [{cls: "bar", text: "\u2593".repeat(w)}],
+      text: " " + c.before,
+    }));
+    tr.appendChild(c.after === 0
+      ? cell("td", {cls: "num", spans: [{cls: "zero", text: "0"}]})
+      : cell("td", {cls: "num", text: String(c.after)}));
+    tr.appendChild(cell("td", {text: c.why}));
+    countsBody.appendChild(tr);
+  }
+
+  const biteBody = $("bite");
+  for (const b of DATA.bite) {
+    const tr = document.createElement("tr");
+    tr.appendChild(cell("td", {code: b.inject}));
+    tr.appendChild(cell("td", {
+      spans: [{cls: b.res === "PASS" ? "tag good" : "tag bad", text: b.res}],
+    }));
+    tr.appendChild(cell("td", {code: b.check}));
+    biteBody.appendChild(tr);
+  }
 
   $("repro").textContent = DATA.repro;
   $("copy").addEventListener("click", async () => {
@@ -351,9 +386,6 @@
     }
   });
 
-  function esc(s) {
-    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-  }
 })();
 </script>
 </body>
