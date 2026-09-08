@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.9",
+    "date": "2026-09-08",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "**engines:** pi, Codex and Cursor guide, matrix and audit ([#4006](https://github.com/yonatangross/orchestkit/issues/4006)) ([101922a](https://github.com/yonatangross/orchestkit/commit/101922af3cd0208b39734fa4941f9e301241267d))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.8",
     "date": "2026-09-08",
     "compareUrl": "",
