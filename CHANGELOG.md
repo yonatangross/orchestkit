@@ -5,6 +5,23 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.7](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.6...v10.0.0-beta.7) (2026-09-08)
+
+
+### Bug Fixes
+
+* **ci:** report an unreadable version as SKIP, not DRIFT ([#3989](https://github.com/yonatangross/orchestkit/issues/3989)) ([bea3149](https://github.com/yonatangross/orchestkit/commit/bea31491488f00c6c353408f4b01ffab39262f8e))
+
+
+### Documentation
+
+* **rules:** scope the modules-key ban to shipped hooks.json ([#3993](https://github.com/yonatangross/orchestkit/issues/3993)) ([31cfe79](https://github.com/yonatangross/orchestkit/commit/31cfe794449d47a20fe64b0858219a2ce262bf13))
+
+
+### CI/CD
+
+* **playground:** treat .claude/rules/ as inert ([#3994](https://github.com/yonatangross/orchestkit/issues/3994)) ([75a3b26](https://github.com/yonatangross/orchestkit/commit/75a3b260980e7d02b2fc86ebb5e89e0a3b7d75e0))
+
 ## [10.0.0-beta.6](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.5...v10.0.0-beta.6) (2026-09-08)
 
 

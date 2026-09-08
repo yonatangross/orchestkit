@@ -370,6 +370,12 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.7](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.6...v10.0.0-beta.7)** · 2026-09-08
+
+- **ci:** report an unreadable version as SKIP, not DRIFT (#3989)
+- **rules:** scope the modules-key ban to shipped hooks.json (#3993)
+- **playground:** treat .claude/rules/ as inert (#3994)
+
 **[v10.0.0-beta.6](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.5...v10.0.0-beta.6)** · 2026-09-08
 
 - **docs:** drop private-plugin specifics from public source (#3990)
@@ -407,10 +413,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-alpha.86](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.85...v10.0.0-alpha.86)** · 2026-09-06
 
 - **rules:** record the [#3877](https://github.com/yonatangross/orchestkit/issues/3877) KEEP verdict for the egress DENY tier (#3949)
-
-**[v10.0.0-alpha.85](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.84...v10.0.0-alpha.85)** · 2026-09-06
-
-- **build:** stamp harness manifests from package.json, close [#2528](https://github.com/yonatangross/orchestkit/issues/2528) (#3946)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
