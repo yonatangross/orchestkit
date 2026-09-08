@@ -15,6 +15,22 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "multi-engine-support",
+    "title": "OrchestKit on pi, Codex and Cursor: what each engine actually loads",
+    "description": "Measured support matrix per engine (skills, agents, hooks, commands, MCP), the four-run pi headless probe that shows --no-builtin-tools hides every skill, and the sweep, mech and reason lane model.",
+    "tags": [
+      "pi",
+      "codex",
+      "cursor",
+      "engines",
+      "explainer"
+    ],
+    "date": "2026-09-08",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 8
+  },
+  {
     "slug": "route-nudge-regex-widening",
     "title": "Widening a regex traded one bug for a worse one",
     "description": "executor-route-nudge stayed silent when you had already typed /ork:implement, but the check named ork and hq-ext literally, so a consumer typing /vercel:deploy was nudged anyway. Widening it to any /<plugin>:<skill> fixed that and quietly broke more: a colon path inside an ordinary URL matches the same shape, so any prompt containing a link stopped nudging. Type a prompt and watch all three versions disagree.",

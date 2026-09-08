@@ -14,6 +14,8 @@ import { Count, MinCC } from '@/components/count';
 |---|---|---|
 | **Claude Code** (full plugin) | <Count k="skills" /> skills, <Count k="agents" /> agents, <Count k="hooks" /> hooks | `claude install orchestkit/ork` |
 | **Cursor** | Same `ork` plugin minus Claude hook scripts | Marketplace `yonatangross/orchestkit` → enable **ork** → new chat |
+| **Codex** | Six workflow skills plus context7 (`ork-codex`) | `codex plugin add ork-codex@orchestkit-codex` after adding the marketplace |
+| **pi** | Skills via `--skill`; no plugin manifest yet | `pi --skill ./plugins/ork/skills` from a checkout, see [the engine guide](/docs/guides/orchestkit-on-pi-codex-cursor) |
 | **skills.sh** | Skills only. Start with 12, not the whole catalog | see below |
 
 Coming from Superpowers (official Anthropic marketplace)? They are complementary — [OrchestKit vs Superpowers](/docs/getting-started/superpowers).
