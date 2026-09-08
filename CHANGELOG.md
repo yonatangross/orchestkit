@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.9](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.8...v10.0.0-beta.9) (2026-09-08)
+
+
+### Documentation
+
+* **engines:** pi, Codex and Cursor guide, matrix and audit ([#4006](https://github.com/yonatangross/orchestkit/issues/4006)) ([101922a](https://github.com/yonatangross/orchestkit/commit/101922af3cd0208b39734fa4941f9e301241267d))
+
 ## [10.0.0-beta.8](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.7...v10.0.0-beta.8) (2026-09-08)
 
 

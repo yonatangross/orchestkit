@@ -401,6 +401,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.9](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.8...v10.0.0-beta.9)** · 2026-09-08
+
+- **engines:** pi, Codex and Cursor guide, matrix and audit (#4006)
+
 **[v10.0.0-beta.8](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.7...v10.0.0-beta.8)** · 2026-09-08
 
 - **deps:** ignore vitest major under /src/hooks (#3996)
@@ -440,10 +444,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **hooks:** per-tool exemption from MCP PII redaction (#3951) (#3954)
 - **deps-dev:** bump @types/node (#3956)
-
-**[v10.0.0-beta.1](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.86...v10.0.0-beta.1)** · 2026-09-06
-
-- **release:** flip the prerelease train to beta (#3952)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
