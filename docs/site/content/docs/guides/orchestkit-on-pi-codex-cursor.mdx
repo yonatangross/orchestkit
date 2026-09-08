@@ -151,6 +151,28 @@ generated from the user-invocable skills into `.cursor-plugin/commands/`, and 14
 and `AGENTS.md` from the project, so a repo can add its own on top.
 
 ### Rules
+Re-deriving Cursor's discovery over the built plugin, using the loader rules read out of the
+shipped `cursor-agent` bundle (manifest keys, the `[".md", ".mdc", ".markdown"]` extension list,
+the frontmatter router):
+
+```
+manifest keys: agents, author, commands, description, homepage,
+               keywords, license, name, repository, rules, skills, version
+skills   107
+agents    36
+commands  36
+rules     14   routing: {'agentFetched': 14}
+```
+
+That is a re-derivation, not a live install. Every route to a live install writes state outside
+the repo (`cursor-agent plugin marketplace add` writes to your Cursor account, `--plugin-dir`
+needs an authenticated model turn), so it is named here rather than claimed. The cheapest live
+check is one command:
+
+```bash
+cursor-agent --plugin-dir plugins/ork --mode ask -p 'list the plugin rules and commands you can see'
+```
+
 
 `rules` is a first-class key in Cursor's plugin manifest, alongside `skills`, `agents`,
 `commands` and `hooks`. Claude Code has no equivalent (its rules are a repo convention, not a
