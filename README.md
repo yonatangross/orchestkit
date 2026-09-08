@@ -417,6 +417,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.10](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.9...v10.0.0-beta.10)** · 2026-09-08
+
+- **cursor:** export rules to .cursor-plugin and rewrite wrapper paths at generation time (#4011)
+- **pi:** ship a pi manifest and a .pi/mcp.json allowlist template (#4009)
+
 **[v10.0.0-beta.9](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.8...v10.0.0-beta.9)** · 2026-09-08
 
 - **engines:** pi, Codex and Cursor guide, matrix and audit (#4006)
@@ -455,11 +460,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **deps-dev:** bump @types/node (#3958)
 - **deps-dev:** bump the npm-minor-patch group in /src/hooks with 2 updates (#3957)
-
-**[v10.0.0-beta.2](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.1...v10.0.0-beta.2)** · 2026-09-07
-
-- **hooks:** per-tool exemption from MCP PII redaction (#3951) (#3954)
-- **deps-dev:** bump @types/node (#3956)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
