@@ -196,6 +196,11 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
     "description": "Longer-form walkthroughs for specific stacks and adoption topics."
   },
   {
+    "url": "/docs/guides/orchestkit-on-pi-codex-cursor",
+    "title": "OrchestKit on pi, Codex and Cursor",
+    "description": "What each engine loads from an OrchestKit install, what it cannot load, the exact config per engine, and the sweep, mech and reason lane model. Measured on pi 0.85, Codex CLI and cursor-agent, September 2026."
+  },
+  {
     "url": "/docs/guides/orchestkit-with-nextjs",
     "title": "Using OrchestKit with Next.js",
     "description": "How OrchestKit's skills, agents, and hooks apply to a Next.js / React codebase — installation, which components activate, and real workflows."

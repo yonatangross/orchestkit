@@ -44,6 +44,19 @@
 
 Pick the host you actually use. Claude Code is the full plugin (skills + agents + hooks). Cursor gets the same `ork` plugin minus Claude hook scripts. skills.sh is skills only — start with the 12 below, not the whole catalog.
 
+#### Host support matrix
+
+Measured 2026-09-08 on pi 0.85, Codex CLI and cursor-agent. Details, commands and the lane model: [OrchestKit on pi, Codex and Cursor](https://orchestkit.yonyon.ai/docs/guides/orchestkit-on-pi-codex-cursor).
+
+| Surface | Claude Code | Cursor | Codex | pi |
+|---|---|---|---|---|
+| Skills (SKILL.md) | all | all, via the `ork` plugin | 6 (`ork-codex` pack) | all via `--skill`, 78 auto-listed |
+| Agents | all | all | 4 role templates | none |
+| Hooks | all | none | none | none |
+| Commands | `/ork:<skill>` | 36 wrappers | `$ork-<skill>` | `/skill:<name>` |
+| MCP config | `.mcp.json` | `.cursor/mcp.json` | plugin `mcp.json` | `.pi/mcp.json` |
+| Status | shipped | shipped | shipped | not shipped, see [pi](#pi) |
+
 ### Claude Code
 
 ```bash
@@ -315,6 +328,24 @@ Two behaviors worth knowing:
 - Without a valid key the server still connects and still lists its tools.
   Only a real call fails, with `Invalid API key`. A successful connection is
   therefore not proof of authentication.
+
+### pi
+
+pi (0.85) reads the same SKILL.md format, but OrchestKit ships no pi manifest
+yet, so `pi install git:github.com/yonatangross/orchestkit` registers nothing.
+Until the adapter lands, point pi at the skills directory of a checkout:
+
+```bash
+pi --skill ./plugins/ork/skills
+```
+
+pi's loader picks up every skill; the 29 marked `disable-model-invocation`
+stay reachable only as `/skill:<name>`. Two measured caveats: `--no-builtin-tools`
+hides every skill (pi lists skills only when a file-reading tool is enabled),
+and `pi -p` blocks on an open stdin, so headless runs need `</dev/null`. MCP
+servers for pi come from `.pi/mcp.json` or `.mcp.json` in the project. Full
+detail and the tracking epic:
+[OrchestKit on pi, Codex and Cursor](https://orchestkit.yonyon.ai/docs/guides/orchestkit-on-pi-codex-cursor).
 
 ---
 
