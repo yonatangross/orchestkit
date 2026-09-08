@@ -40,19 +40,57 @@ Claude Code is designing Function Hooks (anthropics/claude-code#91870): hooks be
 - Existing offenders are grandfathered by path in `src/hooks/scripts/fh-ready-baseline.json` (a ratchet: shrink it, never grow it). `node scripts/fh-ready-check.mjs` runs in CI beside `validate-registry.mjs` and fails on any file not in the baseline.
 - Output caps are real and silent: CC 2.1.258 truncates `additionalContext` at 8,000 characters or 200 lines, `reason` at 2,000 characters or 20 lines, mid-word, with no report (anthropics/claude-code#91870, issuecomment-5532305564). `src/__tests__/fh-output-cap.test.ts` asserts no static payload approaches the cap.
 
-## Function Hooks watch gate (2026-09-05)
+## Function Hooks watch gate (2026-09-05, amended 2026-09-08)
 
-Function Hooks remains a watch, not an adoption. The off-by-default prototype observed in
-Claude Code 2.1.260 and 2.1.261 is binary behavior, not a public contract
+Function Hooks remains a watch, not an adoption. The off-by-default prototype is binary
+behavior, not a public contract
 ([2.1.260 measurement](https://github.com/anthropics/claude-code/issues/91870#issuecomment-5540419526),
 [2.1.261 measurement](https://github.com/anthropics/claude-code/issues/91870#issuecomment-5549854514)).
+Measured 2026-09-08, the `CLAUDE_CODE_ENABLE_FUNCTION_HOOKS` flag and the event
+vocabulary first appear at **2.1.259**, not 2.1.260; 2.1.260 was simply the oldest
+binary on hand when the earlier note was written.
 
 Until a Claude Code changelog names Function Hooks **or**
 [anthropics/claude-code#91870](https://github.com/anthropics/claude-code/issues/91870) closes:
 
-- Do not add a `modules` key to `hooks.json`, enable rollout flags, or document either for users.
+- Do not add a `modules` key to any **shipped** `hooks.json`, enable rollout flags, or
+  document either for users. **Test fixtures may carry one** (see the exception below).
 - Do not port handlers to Function Hooks or add Function Hooks runtime code.
 - Do not raise the Claude Code support floor or open an adoption issue for Function Hooks.
+
+### The fixture exception, and why the old blanket ban rested on a false premise
+
+The original rule banned a `modules` key outright, on the understanding that such a key
+breaks older Claude Code. **That premise was measured false on 2026-09-08**, across seven
+binaries pulled from npm (`@anthropic-ai/claude-code-darwin-arm64@<version>`) and run
+through `claude plugin validate`:
+
+| behaviour | boundary |
+|---|---|
+| `modules` key parsed | every published version from **2.1.250** up |
+| unknown **event** key | FATAL through 2.1.252, tolerated from **2.1.257** |
+| fn-hooks flag and event vocabulary | first present at **2.1.259** |
+
+2.1.253 through 2.1.256 and 2.1.262 were never published, so these boundaries are exact
+rather than bracketed. `modules` is recognized at 2.1.250, which is **below** our own
+2.1.251 support floor, so there is no version in the supported range where the key is
+unknown, and no floor bump is needed to carry one.
+
+The real hazard the 2026-08-29 measurement found was an unknown **event** key, which is a
+different key in a different position. That result was generalised to `modules` without
+re-testing, and it blocked a floor bump for days on a claim nobody had checked. See
+[[feedback_unknown_hook_event_key_drops_whole_hooks_json]] and orchestkit#3917.
+
+So the gate keeps its purpose (nothing users install carries an unshipped API) and drops
+the part that was not true. A fixture under `tests/` that is never installed, never
+shipped, and never loaded at runtime may carry a `modules` key. `tests/fixtures/fn-hooks-canary/`
+is the intended shape: it exists to make the watch mechanical, asserting the events and
+`$` capabilities an upstream module registers so a rename upstream turns CI red instead of
+being noticed by hand months later.
+
+Note the limit of that fixture's oracle: `claude plugin validate` checks **shape, not
+membership**. `banana.PreToolUse` and `$.zzz.nope` both validate clean. It is not the
+runtime loader and cannot observe the fold, skip semantics, or `next.to`.
 
 When either close condition fires, link and record the outcome on #3917:
 
