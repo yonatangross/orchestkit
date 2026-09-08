@@ -197,3 +197,39 @@ jobs:
             echo '```'
           } | tee -a "$GITHUB_STEP_SUMMARY"
           exit "$rc"
+
+      # Function Hooks module contract (#3917). OrchestKit is NOT migrating: 78 of
+      # 152 hook entries have no native address and the identifiers are still
+      # moving. This is the mechanical half of "keep watching" — it asserts the
+      # events and $ capabilities a fixture module registers, so a rename upstream
+      # (the announced but unshipped `fs.readFile` -> `fs.read`, say) turns red here
+      # instead of being noticed by hand months later.
+      #
+      # Belongs in THIS workflow and not plugin-validation.yml for the same reason
+      # spelled out at the top of this file: the other job is pinned to the support
+      # floor, and the event vocabulary this checks does not exist until 2.1.259.
+      # A floor-pinned host would skip every run, which reads as a pass.
+      #
+      # Offline. `claude plugin validate` makes no model call and needs no key.
+      - name: Function Hooks contract canary
+        if: ${{ !cancelled() }}
+        run: |
+          set -uo pipefail
+          rc=0
+          bash scripts/validate-fn-hooks-canary.sh > /tmp/fnhooks.txt 2>&1 || rc=$?
+          {
+            echo '## Function Hooks module contract'
+            echo ''
+            if [ "$rc" -eq 0 ] && grep -q '^SKIP:' /tmp/fnhooks.txt; then
+              echo 'SKIP: host CC is older than the function-hooks vocabulary. Nothing was verified.'
+            elif [ "$rc" -eq 0 ]; then
+              echo 'OK: registered events and $ capabilities unchanged from the 2.1.263 measurement.'
+            else
+              echo 'DRIFT: the upstream contract moved. Re-read #3917 before updating the expected values, and record what moved.'
+            fi
+            echo ''
+            echo '```'
+            cat /tmp/fnhooks.txt
+            echo '```'
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+          exit "$rc"
