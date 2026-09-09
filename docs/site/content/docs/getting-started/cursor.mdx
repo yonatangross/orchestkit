@@ -1,0 +1,32 @@
+---
+title: Cursor
+description: Install OrchestKit in Cursor. Same ork plugin as Claude Code, minus Claude hook scripts. Marketplace yonatangross/orchestkit.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Card, Cards } from 'fumadocs-ui/components/card';
+import { HostInstall } from '@/components/host-install';
+
+Cursor is an OrchestKit **host**, not a competing product. It loads [Agent Plugins](https://agent-plugins.org) and Cursor plugins. This repo already ships the Agent Plugins manifest at `plugins/ork/plugin.json`. There is no `cursor install` CLI for this repo. Copy the marketplace slug, paste it, enable **ork**.
+
+<HostInstall host="cursor" />
+
+That is the same plugin Claude Code installs, not a five-skill fork.
+
+<Callout type="warn">
+Claude hook scripts are not registered in Cursor. They depend on `${CLAUDE_PLUGIN_ROOT}` (orchestkit#293, closed). Cursor enforcement for HQ repos stays in the consuming project's `.cursor/hooks.json`.
+</Callout>
+
+"Include third-party Plugins" can leak SKILL.md from `~/.claude/plugins`. That is not an install. Proof is the `ork` plugin id plus the full skill catalog.
+
+## After install
+
+Run `/ork:setup` in the new Cursor chat (the skill is in the plugin). Then [configure project knobs](/docs/getting-started/configuration#project-settings-wizard) if you want protected branches, commit scope, and the rest.
+
+Need skills only, without the Cursor marketplace plugin? Use the [skills.sh starter](/docs/getting-started/skills-sh).
+
+<Cards>
+  <Card title="Hosts" href="/docs/getting-started/hosts" description="Claude Code, Codex, Pi, Muse Code" />
+  <Card title="Claude Code" href="/docs/getting-started/claude-code" description="Full plugin plus hooks" />
+  <Card title="Configuration" href="/docs/getting-started/configuration" description="/ork:setup --configure" />
+</Cards>

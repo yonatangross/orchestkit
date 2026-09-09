@@ -2,6 +2,7 @@ import type * as PageTree from "fumadocs-core/page-tree";
 import { DocsLayout } from "fumadocs-ui/layouts/docs";
 import type { ReactNode } from "react";
 import { baseOptions } from "@/app/layout.config";
+import { HostMark, HOST_PAGE_ICONS } from "@/components/host-marks";
 import { getSectionGlyph } from "@/components/world/station-glyphs";
 import { source } from "@/lib/source";
 
@@ -30,10 +31,37 @@ function withStationGlyphs(tree: PageTree.Root): PageTree.Root {
   };
 }
 
+function withHostPageIcons(node: PageTree.Node): PageTree.Node {
+  if (node.type === "folder") {
+    return {
+      ...node,
+      index: node.index ? withHostPageIcons(node.index) : node.index,
+      children: node.children.map(withHostPageIcons),
+    } as PageTree.Folder;
+  }
+  if (node.type === "page") {
+    const host = HOST_PAGE_ICONS[node.url];
+    if (host) {
+      return {
+        ...node,
+        icon: <HostMark host={host} className="size-4 shrink-0" />,
+      };
+    }
+  }
+  return node;
+}
+
+function withHostPageTree(tree: PageTree.Root): PageTree.Root {
+  return {
+    ...tree,
+    children: tree.children.map(withHostPageIcons),
+  };
+}
+
 export default function Layout({ children }: { children: ReactNode }) {
   return (
     <DocsLayout
-      tree={withStationGlyphs(source.pageTree)}
+      tree={withHostPageTree(withStationGlyphs(source.pageTree))}
       sidebar={{ defaultOpenLevel: 0, collapsible: true }}
       {...baseOptions}
     >

@@ -1,0 +1,47 @@
+---
+title: Muse Code
+description: "Install OrchestKit skills in Meta's Muse Code. Agent Skills via skills.sh and .agents/skills. No native ork-muse plugin pack yet."
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Card, Cards } from 'fumadocs-ui/components/card';
+import { HostHeading, HostMark } from '@/components/host-marks';
+import { HostInstall } from '@/components/host-install';
+
+**Muse Code** is Meta's terminal coding agent ([docs](https://ai.developer.meta.com/docs/muse-code/)). OrchestKit treats it as a host. This page is that host, not a fake marketplace plugin.
+
+There is no `ork-muse` pack in this repository. Muse Code loads [Agent Skills](https://dev.meta.ai/docs/muse-code/extending/#skills) from project `.agents/skills`, user `~/.agents/skills` / `$XDG_CONFIG_HOME/muse/skills`, and (by default) `.claude/skills`. That is the path we use today.
+
+## Install skills
+
+Starter 12 (not the whole catalog). Click the chip to copy.
+
+<HostInstall host="muse" />
+
+`npx skills add` writes SKILL.md trees under `.agents/skills`. Muse Code already scans that directory.
+
+If you already installed **ork** in Claude Code on this machine:
+
+```bash
+muse skills import --from claude
+```
+
+Then start Muse Code in the repo (`muse`) and invoke a skill by its slash name. The skill named `implement` is the implement workflow. Codex's pack exposes the same workflow as `$ork-implement`; Muse Code has no `$ork-implement` alias.
+
+## What you do not get
+
+<Callout type="warn">
+Claude Code hook scripts are not Muse Code hooks. Muse Code reads `.muse/hooks.json`, not OrchestKit's Claude `hooks.json`. Do not expect secret-scanning or quality-gate hooks from `ork` to fire here until a native pack exists.
+</Callout>
+
+No `muse plugin add ork-muse`. No `pi install` style git URL. Official Muse Code install and auth stay on Meta's docs.
+
+<HostHeading host="muse" id="muse">Muse</HostHeading>
+
+Search for **muse** should land on this page. The word Muse in this heading is the product short name for Muse Code.
+
+<Cards>
+  <Card title="Hosts" href="/docs/getting-started/hosts" description="Full host matrix" />
+  <Card title="skills.sh" href="/docs/getting-started/skills-sh" description="Pi, OpenCode, and other clients" icon={<HostMark host="pi" />} />
+  <Card title="Claude Code" href="/docs/getting-started/claude-code" description="Full ork plugin plus hooks" icon={<HostMark host="claude" />} />
+</Cards>

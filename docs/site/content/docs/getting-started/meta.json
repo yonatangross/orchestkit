@@ -3,6 +3,12 @@
   "icon": "Rocket",
   "pages": [
     "installation",
+    "hosts",
+    "claude-code",
+    "cursor",
+    "codex",
+    "muse",
+    "skills-sh",
     "superpowers",
     "first-10-minutes",
     "navigating",

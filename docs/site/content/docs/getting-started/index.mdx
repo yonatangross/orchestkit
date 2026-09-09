@@ -5,13 +5,18 @@ description: Install OrchestKit, run your first workflow, and learn how the piec
 
 import { Card, Cards } from 'fumadocs-ui/components/card';
 
-Install the plugin, get a real result in the first ten minutes, then learn how to navigate and configure it.
+Install the plugin on the host you use, get a real result in the first ten minutes, then learn how to navigate and configure it.
 
 <Cards>
   <Card
     title="Installation"
-    description="Add the plugin to Claude Code and verify it loaded."
+    description="Pick Claude Code, Cursor, Codex, Muse Code, or skills.sh (Pi, OpenCode)."
     href="/docs/getting-started/installation"
+  />
+  <Card
+    title="Hosts"
+    description="What each runtime actually gets. Pi is pi install, not ork-pi. Muse Code is skills-only until ork-muse exists."
+    href="/docs/getting-started/hosts"
   />
   <Card
     title="First 10 minutes"
@@ -25,7 +30,7 @@ Install the plugin, get a real result in the first ten minutes, then learn how t
   />
   <Card
     title="Configuration"
-    description="Permissions, settings, and per-project overrides."
+    description="/ork:setup --configure, env vars, MCP, memory tiers."
     href="/docs/getting-started/configuration"
   />
 </Cards>

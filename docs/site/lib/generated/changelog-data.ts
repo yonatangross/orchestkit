@@ -5,6 +5,7 @@ export type SectionType = "added" | "fixed" | "changed" | "removed" | "deprecate
 
 export interface ChangelogSection {
   type: SectionType;
+  heading: string;
   items: string[];
 }
 
@@ -19,10 +20,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-beta.11",
     "date": "2026-09-08",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.10...v10.0.0-beta.11",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**codex:** ship the ork-mech profile and the plugin cache-lag note ([#4012](https://github.com/yonatangross/orchestkit/issues/4012)) ([bcc122d](https://github.com/yonatangross/orchestkit/commit/bcc122d6dd2ae9caff29cbf16b941ee0f5095dc0))"
         ]
@@ -32,10 +34,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-beta.10",
     "date": "2026-09-08",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.9...v10.0.0-beta.10",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**cursor:** export rules to .cursor-plugin and rewrite wrapper paths at generation time ([#4011](https://github.com/yonatangross/orchestkit/issues/4011)) ([7476d54](https://github.com/yonatangross/orchestkit/commit/7476d54124f550c7a6cf16a4a7c7c422cf59331a))",
           "**pi:** ship a pi manifest and a .pi/mcp.json allowlist template ([#4009](https://github.com/yonatangross/orchestkit/issues/4009)) ([7b6f278](https://github.com/yonatangross/orchestkit/commit/7b6f2789394b11e136a69a401e25a240422db9bd))"
@@ -46,10 +49,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-beta.9",
     "date": "2026-09-08",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.8...v10.0.0-beta.9",
     "sections": [
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**engines:** pi, Codex and Cursor guide, matrix and audit ([#4006](https://github.com/yonatangross/orchestkit/issues/4006)) ([101922a](https://github.com/yonatangross/orchestkit/commit/101922af3cd0208b39734fa4941f9e301241267d))"
         ]
@@ -59,10 +63,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-beta.8",
     "date": "2026-09-08",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.7...v10.0.0-beta.8",
     "sections": [
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "**deps:** ignore vitest major under /src/hooks ([#3996](https://github.com/yonatangross/orchestkit/issues/3996)) ([34c940d](https://github.com/yonatangross/orchestkit/commit/34c940dba04d525c2aad400c61427c8f0a947060))"
         ]
@@ -72,22 +77,25 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-beta.7",
     "date": "2026-09-08",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.6...v10.0.0-beta.7",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**ci:** report an unreadable version as SKIP, not DRIFT ([#3989](https://github.com/yonatangross/orchestkit/issues/3989)) ([bea3149](https://github.com/yonatangross/orchestkit/commit/bea31491488f00c6c353408f4b01ffab39262f8e))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**rules:** scope the modules-key ban to shipped hooks.json ([#3993](https://github.com/yonatangross/orchestkit/issues/3993)) ([31cfe79](https://github.com/yonatangross/orchestkit/commit/31cfe794449d47a20fe64b0858219a2ce262bf13))"
         ]
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "**playground:** treat .claude/rules/ as inert ([#3994](https://github.com/yonatangross/orchestkit/issues/3994)) ([75a3b26](https://github.com/yonatangross/orchestkit/commit/75a3b260980e7d02b2fc86ebb5e89e0a3b7d75e0))"
         ]
@@ -97,10 +105,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-beta.6",
     "date": "2026-09-08",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.5...v10.0.0-beta.6",
     "sections": [
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**docs:** drop private-plugin specifics from public source ([#3990](https://github.com/yonatangross/orchestkit/issues/3990)) ([0ac908c](https://github.com/yonatangross/orchestkit/commit/0ac908c0748d48dffe685abb1e965dd5b8900ecc))"
         ]
@@ -110,16 +119,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-beta.5",
     "date": "2026-09-07",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.4...v10.0.0-beta.5",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**skills:** page-serve, hand a human a page at a port-free URL ([#3899](https://github.com/yonatangross/orchestkit/issues/3899)) ([#3987](https://github.com/yonatangross/orchestkit/issues/3987)) ([1e12502](https://github.com/yonatangross/orchestkit/commit/1e12502d08001c18d0867c630534e770026788e8))"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** PHONE_RE no longer redacts numeric MCP ids ([#3894](https://github.com/yonatangross/orchestkit/issues/3894)) ([#3984](https://github.com/yonatangross/orchestkit/issues/3984)) ([1e59fb1](https://github.com/yonatangross/orchestkit/commit/1e59fb1a18abf5d8f1d37bc46f297ce5098fd3fd))",
           "**tests:** Test 4c reads all input, no grep -q SIGPIPE ([#3974](https://github.com/yonatangross/orchestkit/issues/3974)) ([#3982](https://github.com/yonatangross/orchestkit/issues/3982)) ([e1d625b](https://github.com/yonatangross/orchestkit/commit/e1d625b2298bbe36fad299ebeeb6286f0d9fbf2d))"
@@ -127,6 +138,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**glyph:** a page an agent can route a human to ([#3901](https://github.com/yonatangross/orchestkit/issues/3901)) ([#3988](https://github.com/yonatangross/orchestkit/issues/3988)) ([4460c57](https://github.com/yonatangross/orchestkit/commit/4460c57e4922afa4836b72be72c981aeaea85d15))"
         ]
@@ -136,10 +148,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-beta.4",
     "date": "2026-09-07",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.3...v10.0.0-beta.4",
     "sections": [
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**deps-dev:** bump the vitest group across 1 directory with 2 updates ([#3978](https://github.com/yonatangross/orchestkit/issues/3978)) ([5bc26d9](https://github.com/yonatangross/orchestkit/commit/5bc26d9503e2397d0c31d09ebb44c73cb1ca6677))",
           "**deps-dev:** bump vitest from 4.1.11 to 5.0.0 ([#3960](https://github.com/yonatangross/orchestkit/issues/3960)) ([104afcf](https://github.com/yonatangross/orchestkit/commit/104afcfb1ba932d2c6e37b213e23e4cfdb67ac64))",
@@ -149,6 +162,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump anthropics/claude-code-action ([#3968](https://github.com/yonatangross/orchestkit/issues/3968)) ([cf8da6d](https://github.com/yonatangross/orchestkit/commit/cf8da6d8394cb56c83e588dc859c8aa6788d9246))",
           "**deps:** group vitest with its coverage provider ([#3977](https://github.com/yonatangross/orchestkit/issues/3977)) ([e8df2b0](https://github.com/yonatangross/orchestkit/commit/e8df2b0e91fa4c51cc48f002306c69c274616ff7))"
@@ -159,10 +173,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-beta.3",
     "date": "2026-09-07",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.2...v10.0.0-beta.3",
     "sections": [
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**deps-dev:** bump @types/node ([#3958](https://github.com/yonatangross/orchestkit/issues/3958)) ([56ff3c7](https://github.com/yonatangross/orchestkit/commit/56ff3c721598342bc6845af56277d35cffb56944))",
           "**deps-dev:** bump the npm-minor-patch group in /src/hooks with 2 updates ([#3957](https://github.com/yonatangross/orchestkit/issues/3957)) ([7ffa630](https://github.com/yonatangross/orchestkit/commit/7ffa630ad94fb386b6d4794d09d56a85eb2cb017))"
@@ -173,16 +188,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-beta.2",
     "date": "2026-09-07",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.1...v10.0.0-beta.2",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**hooks:** per-tool exemption from MCP PII redaction ([#3951](https://github.com/yonatangross/orchestkit/issues/3951)) ([#3954](https://github.com/yonatangross/orchestkit/issues/3954)) ([a99cb14](https://github.com/yonatangross/orchestkit/commit/a99cb14f22bce1579d0779eb2383ec14faa9b114))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**deps-dev:** bump @types/node ([#3956](https://github.com/yonatangross/orchestkit/issues/3956)) ([6c66356](https://github.com/yonatangross/orchestkit/commit/6c663567beefc54a7678c676d7e493eacc40d0e6))"
         ]
@@ -192,10 +209,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-beta.1",
     "date": "2026-09-06",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.86...v10.0.0-beta.1",
     "sections": [
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**release:** flip the prerelease train to beta ([#3952](https://github.com/yonatangross/orchestkit/issues/3952)) ([045b7f6](https://github.com/yonatangross/orchestkit/commit/045b7f6956c9c1a42aecb0c7b45fde858c2ded3c))"
         ]
@@ -205,10 +223,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.86",
     "date": "2026-09-06",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.85...v10.0.0-alpha.86",
     "sections": [
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**rules:** record the [#3877](https://github.com/yonatangross/orchestkit/issues/3877) KEEP verdict for the egress DENY tier ([#3949](https://github.com/yonatangross/orchestkit/issues/3949)) ([c326ca5](https://github.com/yonatangross/orchestkit/commit/c326ca5fec8e2a726cb1cc973e4fda6e26c6152d))"
         ]
@@ -218,10 +237,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.85",
     "date": "2026-09-06",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.84...v10.0.0-alpha.85",
     "sections": [
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**build:** stamp harness manifests from package.json, close [#2528](https://github.com/yonatangross/orchestkit/issues/2528) ([#3946](https://github.com/yonatangross/orchestkit/issues/3946)) ([4d4f547](https://github.com/yonatangross/orchestkit/commit/4d4f547a799ce2c77b38ac65940cb23dbb24f837))"
         ]
@@ -231,10 +251,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.84",
     "date": "2026-09-06",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.83...v10.0.0-alpha.84",
     "sections": [
       {
         "type": "changed",
+        "heading": "Code Refactoring",
         "items": [
           "**ci:** single skip pattern, cc-keys spec guard, PASS glyph ([#1460](https://github.com/yonatangross/orchestkit/issues/1460)) ([#3944](https://github.com/yonatangross/orchestkit/issues/3944)) ([7d07387](https://github.com/yonatangross/orchestkit/commit/7d073870a2ccb8fc73005de7eb4fd747a60c2537))"
         ]
@@ -244,16 +265,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.83",
     "date": "2026-09-06",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.82...v10.0.0-alpha.83",
     "sections": [
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "retire unused tables, orphan validator, sibling sweep ([#3353](https://github.com/yonatangross/orchestkit/issues/3353), [#3937](https://github.com/yonatangross/orchestkit/issues/3937)) ([#3943](https://github.com/yonatangross/orchestkit/issues/3943)) ([900de6c](https://github.com/yonatangross/orchestkit/commit/900de6c16cc04df4245a2b6fdd572a8164f37a58))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Code Refactoring",
         "items": [
           "**skills:** same-skill refs to relative paths ([#3822](https://github.com/yonatangross/orchestkit/issues/3822) steps 2, 3) ([#3940](https://github.com/yonatangross/orchestkit/issues/3940)) ([fc0b166](https://github.com/yonatangross/orchestkit/commit/fc0b1665496cb0608c7269fbff40f07a17fdaf08))"
         ]
@@ -263,10 +286,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.82",
     "date": "2026-09-06",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.81...v10.0.0-alpha.82",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**ci:** fail 37 gates that passed on absent input ([#3938](https://github.com/yonatangross/orchestkit/issues/3938)) ([016dbe5](https://github.com/yonatangross/orchestkit/commit/016dbe5f752d204e4ab350f8d0fa012b9fb3b872))"
         ]
@@ -276,10 +300,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.81",
     "date": "2026-09-06",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.80...v10.0.0-alpha.81",
     "sections": [
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**cc:** triage CC 2.1.262 and 2.1.263, latest_known 2.1.261 to 2.1.263 ([#3933](https://github.com/yonatangross/orchestkit/issues/3933)) ([550e5c8](https://github.com/yonatangross/orchestkit/commit/550e5c89076cb352a05d0730002d06bd24fc10af))"
         ]
@@ -289,10 +314,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.80",
     "date": "2026-09-05",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.79...v10.0.0-alpha.80",
     "sections": [
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**cc:** triage CC 2.1.259 to 2.1.261, latest_known 2.1.258 to 2.1.261 ([#3929](https://github.com/yonatangross/orchestkit/issues/3929)) ([8c225ca](https://github.com/yonatangross/orchestkit/commit/8c225ca2e2dfc8900d96b0af5554edf3cc605986))"
         ]
@@ -302,10 +328,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.79",
     "date": "2026-09-05",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.78...v10.0.0-alpha.79",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**skills:** make activation audits portable and coverage-aware ([#3923](https://github.com/yonatangross/orchestkit/issues/3923)) ([a3f64a7](https://github.com/yonatangross/orchestkit/commit/a3f64a7f45859885f37ca1753940e188f792dcea))"
         ]
@@ -315,10 +342,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.78",
     "date": "2026-09-05",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.77...v10.0.0-alpha.78",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** cc-version-check nudge points at a shipped file ([#3919](https://github.com/yonatangross/orchestkit/issues/3919)) ([#3924](https://github.com/yonatangross/orchestkit/issues/3924)) ([91aa63d](https://github.com/yonatangross/orchestkit/commit/91aa63df3a7b26ef160076a4402513bd1bf7173c))"
         ]
@@ -328,10 +356,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.77",
     "date": "2026-09-05",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.76...v10.0.0-alpha.77",
     "sections": [
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**hooks:** record Function Hooks watch gate ([#3917](https://github.com/yonatangross/orchestkit/issues/3917)) ([#3925](https://github.com/yonatangross/orchestkit/issues/3925)) ([2fcae42](https://github.com/yonatangross/orchestkit/commit/2fcae4253ef9f5f4fb884ef43876b1d63b1b7e67))"
         ]
@@ -341,10 +370,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.76",
     "date": "2026-09-04",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.75...v10.0.0-alpha.76",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**hooks:** FH-ready handler policy and gate ([#3917](https://github.com/yonatangross/orchestkit/issues/3917)) ([#3918](https://github.com/yonatangross/orchestkit/issues/3918)) ([4968c0b](https://github.com/yonatangross/orchestkit/commit/4968c0b60e07955322d93b465b09ccfc0aeef1ce))"
         ]
@@ -354,10 +384,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.75",
     "date": "2026-09-04",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.74...v10.0.0-alpha.75",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**announce:** preflight release API credential ([#3916](https://github.com/yonatangross/orchestkit/issues/3916)) ([908c1bc](https://github.com/yonatangross/orchestkit/commit/908c1bc38473d4d0fb5b504596163087610d9520))"
         ]
@@ -367,16 +398,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.74",
     "date": "2026-09-03",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.73...v10.0.0-alpha.74",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**create-pr:** CodeRabbit harvest stage, refute then fix or dismiss, resolve every thread ([#3910](https://github.com/yonatangross/orchestkit/issues/3910)) ([cb2e99f](https://github.com/yonatangross/orchestkit/commit/cb2e99fcd22da79895c25e5a9eb904ae85165c72))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**create-pr:** a zero from the harvest can mean never reviewed ([#3912](https://github.com/yonatangross/orchestkit/issues/3912)) ([56029de](https://github.com/yonatangross/orchestkit/commit/56029dec60fd15cceed2b53f7fa7565a2927dd22))"
         ]
@@ -386,22 +419,25 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.73",
     "date": "2026-09-02",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.72...v10.0.0-alpha.73",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**pricing:** adopt gemini-3.8-flash as its own pricing row ([#3905](https://github.com/yonatangross/orchestkit/issues/3905)) ([725471b](https://github.com/yonatangross/orchestkit/commit/725471bdf361a192333d8fd343f1215ff3fc48cd))"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**pricing:** a hyphenated suffix never inherits a shorter model's row ([#3909](https://github.com/yonatangross/orchestkit/issues/3909)) ([59af1fb](https://github.com/yonatangross/orchestkit/commit/59af1fb15ae58d8b18c35dda264813a8a5f8fc36))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**doctor:** repoint the model-routing reference at the live sources ([#3908](https://github.com/yonatangross/orchestkit/issues/3908)) ([6c48343](https://github.com/yonatangross/orchestkit/commit/6c4834313c6d50b776fab2a97401958a2cc5d960))"
         ]
@@ -411,10 +447,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.72",
     "date": "2026-09-02",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.71...v10.0.0-alpha.72",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**doctor:** warn when a project scope turns the sandbox off ([#3877](https://github.com/yonatangross/orchestkit/issues/3877)) ([#3887](https://github.com/yonatangross/orchestkit/issues/3887)) ([16221f1](https://github.com/yonatangross/orchestkit/commit/16221f1bc5f97b34c74e7dd8e1741e34f3af94b7))",
           "**hooks:** honour CC managed modelPricing in the cost estimator ([#3889](https://github.com/yonatangross/orchestkit/issues/3889)) ([cc619bd](https://github.com/yonatangross/orchestkit/commit/cc619bd3e69d0dc8ec08fbdd28493cbdf9aac8ee)), closes [#3878](https://github.com/yonatangross/orchestkit/issues/3878)",
@@ -423,12 +460,14 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**skills:** accept relative and SKILL_DIR paths in the lint ([#3822](https://github.com/yonatangross/orchestkit/issues/3822) step 1) ([#3890](https://github.com/yonatangross/orchestkit/issues/3890)) ([bc042f2](https://github.com/yonatangross/orchestkit/commit/bc042f251097a8f04b3fc8b5c1baf5af74a57d20))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**deps:** weekly upstream pin sync ([#3886](https://github.com/yonatangross/orchestkit/issues/3886)) ([22e7b14](https://github.com/yonatangross/orchestkit/commit/22e7b14d2e49223d98568f8a44a829fb8f537f8d))",
           "**hooks:** delete deprecated generate-http-hooks CLI (channel 1) ([#3888](https://github.com/yonatangross/orchestkit/issues/3888)) ([cd56e69](https://github.com/yonatangross/orchestkit/commit/cd56e69498c9ad3efa9652fe7b0b6c913eacf59f))"
@@ -439,22 +478,25 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.71",
     "date": "2026-09-02",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.70...v10.0.0-alpha.71",
     "sections": [
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc:** adopt CC 2.1.258, latest_known to 2.1.258 ([#3883](https://github.com/yonatangross/orchestkit/issues/3883)) ([6752906](https://github.com/yonatangross/orchestkit/commit/6752906fea148ab174cc4b910d1de7e715522d8f))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**configure:** record the measured prompt-cache TTL verdict ([#3876](https://github.com/yonatangross/orchestkit/issues/3876)) ([#3881](https://github.com/yonatangross/orchestkit/issues/3881)) ([78d61af](https://github.com/yonatangross/orchestkit/commit/78d61af8471a64ad089a6416548fe14ea0e05f77))"
         ]
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "**probe:** pin the model price table to the binary's pricing tiers ([#3885](https://github.com/yonatangross/orchestkit/issues/3885)) ([5d53ea9](https://github.com/yonatangross/orchestkit/commit/5d53ea9b7066272b054247887b521183db3f96ff)), closes [#3878](https://github.com/yonatangross/orchestkit/issues/3878)"
         ]
@@ -464,10 +506,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.70",
     "date": "2026-09-02",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.69...v10.0.0-alpha.70",
     "sections": [
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**ci:** allow autoheal plugin.json mirrors on the release branch ([#3880](https://github.com/yonatangross/orchestkit/issues/3880)) ([679d0a0](https://github.com/yonatangross/orchestkit/commit/679d0a0d78bf64c2e097ac6f109aba46783838c6))",
           "**ci:** make hook bundles release-owned ([#3578](https://github.com/yonatangross/orchestkit/issues/3578)) ([#3875](https://github.com/yonatangross/orchestkit/issues/3875)) ([f43cee6](https://github.com/yonatangross/orchestkit/commit/f43cee670ccb60cfbac2dc4dd17b4242bcb22c27))"
@@ -478,10 +521,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.69",
     "date": "2026-09-01",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.68...v10.0.0-alpha.69",
     "sections": [
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**agents:** pin 15 agent model tiers (2026-09-01 routing) ([#3872](https://github.com/yonatangross/orchestkit/issues/3872)) ([f8b94b1](https://github.com/yonatangross/orchestkit/commit/f8b94b18b8925f966d918b83ccc914ae8edfbb82))"
         ]
@@ -491,16 +535,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.68",
     "date": "2026-09-01",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.67...v10.0.0-alpha.68",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**cc:** CC 2.1.257 follow-ups on top of the adoption PR ([#3871](https://github.com/yonatangross/orchestkit/issues/3871)) ([18e60a0](https://github.com/yonatangross/orchestkit/commit/18e60a064c5d89f12f84377c73a26e19ef9b5b1f))"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** budget guard advises, never asks ([#3869](https://github.com/yonatangross/orchestkit/issues/3869)) ([4b266d3](https://github.com/yonatangross/orchestkit/commit/4b266d3c9cfd2571d813528c2122c34d20d1b4cf))",
           "**hooks:** scope test validator to project files ([#3844](https://github.com/yonatangross/orchestkit/issues/3844)) ([#3865](https://github.com/yonatangross/orchestkit/issues/3865)) ([e8d3cc0](https://github.com/yonatangross/orchestkit/commit/e8d3cc0be2839c024c38efe32e0faddfd66fb6ce))"
@@ -508,6 +554,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc-adoption:** advance latest_known to 2.1.252, featureless for ork ([#3863](https://github.com/yonatangross/orchestkit/issues/3863)) ([e1394d6](https://github.com/yonatangross/orchestkit/commit/e1394d6b0ce4f446c14b4178004bc288f60d625e))",
           "**cc:** adopt CC 2.1.252 and 2.1.257, latest_known to 2.1.257 ([#3870](https://github.com/yonatangross/orchestkit/issues/3870)) ([3967924](https://github.com/yonatangross/orchestkit/commit/3967924a1217f37a859f81b371d37a3f3d280be6))",
@@ -519,16 +566,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.67",
     "date": "2026-09-01",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.66...v10.0.0-alpha.67",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**setup:** drop 11 deny rules CC cannot enforce, payload v4 ([#3855](https://github.com/yonatangross/orchestkit/issues/3855)) ([4ca49aa](https://github.com/yonatangross/orchestkit/commit/4ca49aa57f043bd53ac2fa2e32edc72a7342b23a))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**deps-dev:** bump the npm-minor-patch group in /src/hooks with 2 updates ([#3824](https://github.com/yonatangross/orchestkit/issues/3824)) ([4982e01](https://github.com/yonatangross/orchestkit/commit/4982e014196c173db13c17801e9e13798a450458))",
           "**deps-dev:** bump the npm-minor-patch group with 2 updates ([#3825](https://github.com/yonatangross/orchestkit/issues/3825)) ([896c78c](https://github.com/yonatangross/orchestkit/commit/896c78c9c0298d40f2282a344b7f614fbc66f647))",
@@ -537,6 +586,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "**playground:** exempt docs/audits from the playground gate ([#3853](https://github.com/yonatangross/orchestkit/issues/3853)) ([41fe011](https://github.com/yonatangross/orchestkit/commit/41fe011afeda899c1fdc77668332142c4b605e0b)), closes [#3848](https://github.com/yonatangross/orchestkit/issues/3848)"
         ]
@@ -546,10 +596,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.66",
     "date": "2026-08-31",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.65...v10.0.0-alpha.66",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**dream:** budget pass and rule-based demotion for MEMORY.md ([#3833](https://github.com/yonatangross/orchestkit/issues/3833)) ([4687957](https://github.com/yonatangross/orchestkit/commit/46879579ac8e6fe22e6e050d2de0b102438c5c53)), closes [#3741](https://github.com/yonatangross/orchestkit/issues/3741)",
           "**hooks:** name untracked playground pages at SessionStart ([#3831](https://github.com/yonatangross/orchestkit/issues/3831)) ([283a84a](https://github.com/yonatangross/orchestkit/commit/283a84a7b252bc1d139cb06c20d740e84f38dd73)), closes [#3727](https://github.com/yonatangross/orchestkit/issues/3727)",
@@ -558,6 +609,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** runner names a dist bundle that exists but cannot load ([#3819](https://github.com/yonatangross/orchestkit/issues/3819)) ([cd2bfdc](https://github.com/yonatangross/orchestkit/commit/cd2bfdc968ec3ea1b70622bb8c19a110aef45800)), closes [#3817](https://github.com/yonatangross/orchestkit/issues/3817)",
           "**hooks:** task nudge gives up after N unanswered prompts ([#3832](https://github.com/yonatangross/orchestkit/issues/3832)) ([5fa000a](https://github.com/yonatangross/orchestkit/commit/5fa000a0dfee0f40259cfce4200966c09c53332e)), closes [#3733](https://github.com/yonatangross/orchestkit/issues/3733)",
@@ -566,6 +618,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc-watch:** drop the stale 2.1.219 parse_failed row ([#3847](https://github.com/yonatangross/orchestkit/issues/3847)) ([612ae31](https://github.com/yonatangross/orchestkit/commit/612ae3168261a1485a8080c93d9615ffff28d488))",
           "**deps-dev:** bump @types/node ([#3823](https://github.com/yonatangross/orchestkit/issues/3823)) ([d943481](https://github.com/yonatangross/orchestkit/commit/d943481d773f316b0006af07e0359b39e1595a27))",
@@ -577,6 +630,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**audits:** platform adoption triage, 08-01 to 08-27 ([#3845](https://github.com/yonatangross/orchestkit/issues/3845)) ([96c4ed8](https://github.com/yonatangross/orchestkit/commit/96c4ed826f7487717717b4a46fc0dc8567119f15))",
           "**rules:** divergence-purge verdicts land in the drift register ([#3837](https://github.com/yonatangross/orchestkit/issues/3837)) ([235335e](https://github.com/yonatangross/orchestkit/commit/235335ef5c1f9473cf18ac7ce2c0ab90ed227e26))"
@@ -584,6 +638,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump the github-actions group across 1 directory with 5 updates ([#3829](https://github.com/yonatangross/orchestkit/issues/3829)) ([54c4185](https://github.com/yonatangross/orchestkit/commit/54c41859c7ea5fdca7e6f2d6a83134dbec7b6efe))"
         ]
@@ -593,16 +648,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.65",
     "date": "2026-08-30",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.64...v10.0.0-alpha.65",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** redact-secrets reads tool_response, the field CC sends ([#3815](https://github.com/yonatangross/orchestkit/issues/3815)) ([9e01296](https://github.com/yonatangross/orchestkit/commit/9e01296643c7869c7eb9191f26af73a861ea2124)), closes [#3725](https://github.com/yonatangross/orchestkit/issues/3725)"
         ]
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**hooks:** paperwork for [#3725](https://github.com/yonatangross/orchestkit/issues/3725), the redact-secrets read order fix ([#3818](https://github.com/yonatangross/orchestkit/issues/3818)) ([857afb5](https://github.com/yonatangross/orchestkit/commit/857afb5b0dc9e893d127cbaf0948d16e555ac159))"
         ]
@@ -612,16 +669,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.64",
     "date": "2026-08-30",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.63...v10.0.0-alpha.64",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** cross-instance-test-validator checks the session's files at Stop ([#3812](https://github.com/yonatangross/orchestkit/issues/3812)) ([c7608b5](https://github.com/yonatangross/orchestkit/commit/c7608b5e4d0e40a60c843de0821254d436249228))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**hooks:** CLAUDE_ENV_FILE exports reach Bash only, not later hooks ([#3814](https://github.com/yonatangross/orchestkit/issues/3814)) ([70af11c](https://github.com/yonatangross/orchestkit/commit/70af11c1ba196806e245107f9ec1d3641ff7a485)), closes [#3806](https://github.com/yonatangross/orchestkit/issues/3806)",
           "**playgrounds:** land three 2026-08-29 session explainers ([#3811](https://github.com/yonatangross/orchestkit/issues/3811)) ([a53b164](https://github.com/yonatangross/orchestkit/commit/a53b164f992afb7da1ae943d9e53ba47aac5f5f6))"
@@ -632,10 +691,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.63",
     "date": "2026-08-30",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.62...v10.0.0-alpha.63",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**build:** plugin dependencies handed to CC, Phase 5 retired ([#3326](https://github.com/yonatangross/orchestkit/issues/3326)) ([#3809](https://github.com/yonatangross/orchestkit/issues/3809)) ([9a62f23](https://github.com/yonatangross/orchestkit/commit/9a62f232bed66080c34408575e55ddf3c849234a))",
           "**hooks:** egress guard stands down behind an enforced sandbox ([#3322](https://github.com/yonatangross/orchestkit/issues/3322)) ([#3808](https://github.com/yonatangross/orchestkit/issues/3808)) ([4b5e4e8](https://github.com/yonatangross/orchestkit/commit/4b5e4e89e8b36e0cbe9599f2e3d26ad714707478))"
@@ -643,6 +703,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**build:** stop shipping command wrappers to Claude Code ([#3541](https://github.com/yonatangross/orchestkit/issues/3541)) ([#3807](https://github.com/yonatangross/orchestkit/issues/3807)) ([f83d5a3](https://github.com/yonatangross/orchestkit/commit/f83d5a3bb2255bd0f84f53e7dc78ca2ef3e310c1))"
         ]
@@ -652,10 +713,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.62",
     "date": "2026-08-29",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.61...v10.0.0-alpha.62",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**agents:** experimental.cacheTtl 1h on five long-running agents ([#3797](https://github.com/yonatangross/orchestkit/issues/3797)) ([c741b3b](https://github.com/yonatangross/orchestkit/commit/c741b3be177476185d64bb58a0bf7753e0788a93))",
           "**ci:** --restricted smoke lane against a stub Messages API ([#3774](https://github.com/yonatangross/orchestkit/issues/3774)) ([#3799](https://github.com/yonatangross/orchestkit/issues/3799)) ([65d9812](https://github.com/yonatangross/orchestkit/commit/65d98120a43286850a5da564b2d2ad8939dcb19a))",
@@ -669,6 +731,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**assess:** resolve a conversational reference instead of refusing ([#3781](https://github.com/yonatangross/orchestkit/issues/3781)) ([435a864](https://github.com/yonatangross/orchestkit/commit/435a864ce55d119bd4f02949b0496b577caaf4a8))",
           "**cc-watch:** two gates reported verdicts they had not established ([#3779](https://github.com/yonatangross/orchestkit/issues/3779)) ([11663ad](https://github.com/yonatangross/orchestkit/commit/11663ada6fe69ecb9ba5722dac59549a43003081))",
@@ -682,6 +745,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc-support:** latest_known 2.1.241 -&gt; 2.1.251 + hooks README drift ([#3791](https://github.com/yonatangross/orchestkit/issues/3791)) ([cbfa694](https://github.com/yonatangross/orchestkit/commit/cbfa69462a3192b677fc1a62aa5b4251eccd414a))",
           "**cc-support:** support floor 2.1.220 -&gt; 2.1.251 ([#3794](https://github.com/yonatangross/orchestkit/issues/3794)) ([2aed0b0](https://github.com/yonatangross/orchestkit/commit/2aed0b05824b50eff088b298ba6946f9151d06b7))",
@@ -691,6 +755,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**messaging:** cross-session reply and platform notes (CC 2.1.248) ([#3798](https://github.com/yonatangross/orchestkit/issues/3798)) ([b1a2d7b](https://github.com/yonatangross/orchestkit/commit/b1a2d7bdd70fcf18a54cc6f5f06b0228d2783b18))"
         ]
@@ -700,10 +765,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.61",
     "date": "2026-08-25",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.60...v10.0.0-alpha.61",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**ork-codex:** ship ork-implement and one install matrix ([#3753](https://github.com/yonatangross/orchestkit/issues/3753)) ([dc3bfe8](https://github.com/yonatangross/orchestkit/commit/dc3bfe80565e68fb4674b5e2873d4ce96105e2da))"
         ]
@@ -713,16 +779,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.60",
     "date": "2026-08-25",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.59...v10.0.0-alpha.60",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**ork:** expose the full plugin to Cursor ([#3748](https://github.com/yonatangross/orchestkit/issues/3748)) ([0546427](https://github.com/yonatangross/orchestkit/commit/05464277fd52744f68f8f00ac2747583caec5a8c))"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**ork:** Cursor import rejects ./plugins/ork as invalid_argument ([#3750](https://github.com/yonatangross/orchestkit/issues/3750)) ([303b1f3](https://github.com/yonatangross/orchestkit/commit/303b1f3ddc40cbeccecbba87272253cd0bd3b4b4))"
         ]
@@ -732,22 +800,25 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.59",
     "date": "2026-08-25",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.58...v10.0.0-alpha.59",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**ci:** playground gate must verify the page is viewable ([#3745](https://github.com/yonatangross/orchestkit/issues/3745)) ([053f6e3](https://github.com/yonatangross/orchestkit/commit/053f6e345e2dcb7b92eb217ec6022da891cacf1a))"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** make a subagent empty result loud instead of silent ([#3744](https://github.com/yonatangross/orchestkit/issues/3744)) ([5641a58](https://github.com/yonatangross/orchestkit/commit/5641a5891420ce5979c852fb2abc1a4dee3de742))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**ci:** add CodeRabbit as an advisory review lane ([#3746](https://github.com/yonatangross/orchestkit/issues/3746)) ([13d15ae](https://github.com/yonatangross/orchestkit/commit/13d15aeaaf0da265f0798c532ace4d1b5e1b08a2))"
         ]
@@ -757,10 +828,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.58",
     "date": "2026-08-25",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.57...v10.0.0-alpha.58",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**evals:** run the train/test split through jq, mikefarah yq has no -y ([#3730](https://github.com/yonatangross/orchestkit/issues/3730)) ([57cd01d](https://github.com/yonatangross/orchestkit/commit/57cd01df626f1d4a2405339bbb2ff7e385d6893d))",
           "**hooks:** guards must parse shell structure, not raw text ([#3742](https://github.com/yonatangross/orchestkit/issues/3742)) ([d20cae0](https://github.com/yonatangross/orchestkit/commit/d20cae07aca5b4c308ed0d14f307391da1bc0a8b))",
@@ -773,16 +845,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.57",
     "date": "2026-08-25",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.56...v10.0.0-alpha.57",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**cc-watch:** fallback stub ignores below-floor sentinels ([#3724](https://github.com/yonatangross/orchestkit/issues/3724)) ([3f5359f](https://github.com/yonatangross/orchestkit/commit/3f5359f7fbe0569f925be501a0c953cd35df52f4))"
         ]
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "register the repo-root plugin.json with the drift roster ([#3728](https://github.com/yonatangross/orchestkit/issues/3728)) ([2c7d758](https://github.com/yonatangross/orchestkit/commit/2c7d758ba2806574a2634bf63443b9e92501ac06))"
         ]
@@ -792,10 +866,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.56",
     "date": "2026-08-24",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.55...v10.0.0-alpha.56",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** debt-surfacer reads a HEAD-keyed ledger ([#3710](https://github.com/yonatangross/orchestkit/issues/3710)) ([f075001](https://github.com/yonatangross/orchestkit/commit/f075001bbc882ad6de3e129e8e13d68cf6410fcc)), closes [#3708](https://github.com/yonatangross/orchestkit/issues/3708)",
           "**hooks:** redact GitLab tokens in all three redaction layers ([#3722](https://github.com/yonatangross/orchestkit/issues/3722)) ([18f3aa6](https://github.com/yonatangross/orchestkit/commit/18f3aa6f6e538b1e600f4cb3d779290d986473cd)), closes [#3589](https://github.com/yonatangross/orchestkit/issues/3589)"
@@ -803,6 +878,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc-watch:** advance latest_known to 2.1.241 with triage doc ([#3723](https://github.com/yonatangross/orchestkit/issues/3723)) ([104b538](https://github.com/yonatangross/orchestkit/commit/104b538944f417adc51e3e3c2c4e5fe9587c02a7))",
           "**cc-watch:** snapshot upstream CHANGELOG (2.1.241) ([#3719](https://github.com/yonatangross/orchestkit/issues/3719)) ([f2c8662](https://github.com/yonatangross/orchestkit/commit/f2c8662fc7f061eb2b8fda476fa566e2e06be6a4))",
@@ -811,6 +887,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**cc-adoption:** fix four skill docs describing pre-change CC behaviour ([#3721](https://github.com/yonatangross/orchestkit/issues/3721)) ([6b85ca8](https://github.com/yonatangross/orchestkit/commit/6b85ca80cc149f90c60d42398ea3dbdb9859fb28))"
         ]
@@ -820,16 +897,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.55",
     "date": "2026-08-24",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.54...v10.0.0-alpha.55",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** rewrite inert security-scan-aggregator ([#3709](https://github.com/yonatangross/orchestkit/issues/3709)) ([592cc6b](https://github.com/yonatangross/orchestkit/commit/592cc6bfb2b4b549cf53ae8be3101d4e80a5b0ae))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**docs:** track two untracked ledgers ([#3706](https://github.com/yonatangross/orchestkit/issues/3706)) ([2565717](https://github.com/yonatangross/orchestkit/commit/256571749acfce8ebf0b23e992811eeac2c25514))"
         ]
@@ -839,10 +918,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.54",
     "date": "2026-08-24",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.53...v10.0.0-alpha.54",
     "sections": [
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**deps:** bump the npm-minor-patch group across 1 directory with 4 updates ([#3701](https://github.com/yonatangross/orchestkit/issues/3701)) ([ae43fbd](https://github.com/yonatangross/orchestkit/commit/ae43fbd8f2db1a2a0323d97db686c7e796906489))"
         ]
@@ -852,16 +932,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.53",
     "date": "2026-08-24",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.52...v10.0.0-alpha.53",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**docs-site:** auth.md carries no frontmatter, on spec grounds ([#3694](https://github.com/yonatangross/orchestkit/issues/3694)) ([a9cf3f1](https://github.com/yonatangross/orchestkit/commit/a9cf3f1c0a9e9ae8c317d76b8654cbbc96ddf1d3))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**deps-dev:** bump the npm-minor-patch group in /src/hooks with 3 updates ([#3698](https://github.com/yonatangross/orchestkit/issues/3698)) ([c9373dd](https://github.com/yonatangross/orchestkit/commit/c9373dd42acba7d6d418b4bd1d17bdf2e2e714b6))",
           "**deps-dev:** bump vitest in the npm-minor-patch group ([#3697](https://github.com/yonatangross/orchestkit/issues/3697)) ([74085a0](https://github.com/yonatangross/orchestkit/commit/74085a02d4584ec8ef6ec246142b569f844d1b66))",
@@ -870,6 +952,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump the github-actions group with 5 updates ([#3702](https://github.com/yonatangross/orchestkit/issues/3702)) ([5d27ff2](https://github.com/yonatangross/orchestkit/commit/5d27ff22deedcd7432987a13955e6dbc64b96878))"
         ]
@@ -879,10 +962,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.52",
     "date": "2026-08-23",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.51...v10.0.0-alpha.52",
     "sections": [
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**git:** untrack committed session state, close the anchoring gap ([#3692](https://github.com/yonatangross/orchestkit/issues/3692)) ([5e31893](https://github.com/yonatangross/orchestkit/commit/5e31893a0848cd32d4a30ae5c01adcfaac2000cd))"
         ]
@@ -892,10 +976,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.51",
     "date": "2026-08-23",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.50...v10.0.0-alpha.51",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**build:** ship a conforming Agent Plugins 1.0.0 manifest ([#3685](https://github.com/yonatangross/orchestkit/issues/3685)) ([c334a8b](https://github.com/yonatangross/orchestkit/commit/c334a8b89bed2d99317ea59303044e990af32a9c))"
         ]
@@ -905,16 +990,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.50",
     "date": "2026-08-23",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.49...v10.0.0-alpha.50",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**agents:** multimodal-specialist documented every modality but one ([#3680](https://github.com/yonatangross/orchestkit/issues/3680)) ([46ec55b](https://github.com/yonatangross/orchestkit/commit/46ec55be1f87683c861b655e0bf822126af74c8d))"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** a quoted heredoc body is payload, not an operator ([#3676](https://github.com/yonatangross/orchestkit/issues/3676)) ([a9bbdeb](https://github.com/yonatangross/orchestkit/commit/a9bbdeb5ff4d85dda564d2c424f3998891ddc160))",
           "**hooks:** the analytics liveness guard was watching 3 of 11 writers ([#3678](https://github.com/yonatangross/orchestkit/issues/3678)) ([f6180dd](https://github.com/yonatangross/orchestkit/commit/f6180dd75cefd5911f8f28a3650b9a3f5f8f1152)), closes [#3665](https://github.com/yonatangross/orchestkit/issues/3665)",
@@ -923,6 +1010,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**skills:** correct four skill docs that drifted past the code ([#3677](https://github.com/yonatangross/orchestkit/issues/3677)) ([0376978](https://github.com/yonatangross/orchestkit/commit/037697827a9e7cc060d85bdd59f9f4f9cb903a9a)), closes [#3601](https://github.com/yonatangross/orchestkit/issues/3601) [#3587](https://github.com/yonatangross/orchestkit/issues/3587) [#3512](https://github.com/yonatangross/orchestkit/issues/3512) [#3178](https://github.com/yonatangross/orchestkit/issues/3178)"
         ]
@@ -932,16 +1020,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.49",
     "date": "2026-08-22",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.48...v10.0.0-alpha.49",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**skills:** add paired-probe, a gate on checks that cannot disagree ([#3664](https://github.com/yonatangross/orchestkit/issues/3664)) ([a2bfb67](https://github.com/yonatangross/orchestkit/commit/a2bfb67a52119e7b694baf2859bedbce3ba0b412))"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**docs:** order arrowed flow lanes by step number, not file position ([#3671](https://github.com/yonatangross/orchestkit/issues/3671)) ([e892212](https://github.com/yonatangross/orchestkit/commit/e8922122658a6824c9ebb8123755b4db3524526a))",
           "**hooks:** git-validator reads the branch from the dir CC says the session is in ([#3673](https://github.com/yonatangross/orchestkit/issues/3673)) ([43e9457](https://github.com/yonatangross/orchestkit/commit/43e94579f68e48c319cfc86dffa8a0b6a4cb5645))"
@@ -949,6 +1039,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc-watch:** snapshot upstream CHANGELOG (2.1.238) ([#3644](https://github.com/yonatangross/orchestkit/issues/3644)) ([dd02441](https://github.com/yonatangross/orchestkit/commit/dd02441988a7673efb9c0ee476e63091ad90e367))"
         ]
@@ -958,16 +1049,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.48",
     "date": "2026-08-22",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.47...v10.0.0-alpha.48",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**cc-watch:** the adoption board can no longer lose history ([#3662](https://github.com/yonatangross/orchestkit/issues/3662)) ([787ad7a](https://github.com/yonatangross/orchestkit/commit/787ad7a39a4fbb9315b2f723cbed58ae893ed47d))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**sandbox:** pattern excludedCommands + allowUnixSockets ([#3659](https://github.com/yonatangross/orchestkit/issues/3659)) ([deda673](https://github.com/yonatangross/orchestkit/commit/deda6730278696b59537b106f43d0c2f5aa63bae))"
         ]
@@ -977,16 +1070,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.47",
     "date": "2026-08-22",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.46...v10.0.0-alpha.47",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**docs-site:** claim the CLI now that it is actually published ([#3658](https://github.com/yonatangross/orchestkit/issues/3658)) ([f0713f4](https://github.com/yonatangross/orchestkit/commit/f0713f47d6291adc5448daa790a7b78aa7c046f1))"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**ci:** playground gate blocked the playground prune ([#3661](https://github.com/yonatangross/orchestkit/issues/3661)) ([ed99c87](https://github.com/yonatangross/orchestkit/commit/ed99c87b71879190828cbe64fcf872a1c9707b80))",
           "**cli:** npm strips a bin value that starts with ./ ([#3656](https://github.com/yonatangross/orchestkit/issues/3656)) ([028ea3d](https://github.com/yonatangross/orchestkit/commit/028ea3d5fb9e5e7e458155b117495ecbbdf49a9e))"
@@ -997,10 +1092,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.46",
     "date": "2026-08-22",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.45...v10.0.0-alpha.46",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**docs-site:** close four agent-readiness gaps, add a CLI ([#3654](https://github.com/yonatangross/orchestkit/issues/3654)) ([8ac263e](https://github.com/yonatangross/orchestkit/commit/8ac263e06f7ffade0520d8c32d0409b00acbf4c0))",
           "**skills:** Skills API publish rail ([#3628](https://github.com/yonatangross/orchestkit/issues/3628)) ([#3649](https://github.com/yonatangross/orchestkit/issues/3649)) ([bfb83a8](https://github.com/yonatangross/orchestkit/commit/bfb83a895ee57195670f039cfb2a67b0ca1a6d9a))"
@@ -1011,22 +1107,25 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.45",
     "date": "2026-08-21",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.44...v10.0.0-alpha.45",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**announce:** label-gated alpha announcements plus RSS feed ([#3638](https://github.com/yonatangross/orchestkit/issues/3638)) ([#3639](https://github.com/yonatangross/orchestkit/issues/3639)) ([1e28cdf](https://github.com/yonatangross/orchestkit/commit/1e28cdf0024ba4b4ace940e5df1df1cb92f5aa13))"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**pricing:** Sonnet 5 is $2/$10, and retire retired model IDs ([#3647](https://github.com/yonatangross/orchestkit/issues/3647)) ([d16f33a](https://github.com/yonatangross/orchestkit/commit/d16f33affa785bfe49b8eb74f379ab33af70ce3f))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc:** snapshot 2.1.238, hand-triage, advance latest_known ([#3636](https://github.com/yonatangross/orchestkit/issues/3636)) ([5a21e79](https://github.com/yonatangross/orchestkit/commit/5a21e79c49ef5894e00d5d910133b65c8e3123b6))"
         ]
@@ -1036,10 +1135,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.44",
     "date": "2026-08-21",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.43...v10.0.0-alpha.44",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**cc-watch:** watch the Claude Platform release notes ([#3627](https://github.com/yonatangross/orchestkit/issues/3627)) ([#3635](https://github.com/yonatangross/orchestkit/issues/3635)) ([d273c6f](https://github.com/yonatangross/orchestkit/commit/d273c6fb2ae43ae6584850e0bf14ec6ca58fac94))",
           "**doctor:** read the macOS sandbox violation log, fail closed ([#3631](https://github.com/yonatangross/orchestkit/issues/3631)) ([3a6dd7b](https://github.com/yonatangross/orchestkit/commit/3a6dd7bdda5cc57a2ce3ff165974d8921612fefe))",
@@ -1049,6 +1149,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**cc-triage:** tolerate fenced JSON and resolve the umbrella with state=all ([#3580](https://github.com/yonatangross/orchestkit/issues/3580)) ([0a3d19a](https://github.com/yonatangross/orchestkit/commit/0a3d19ad08b111ca3ffbd646734d7b6b1448db93))",
           "**docs-site:** regenerate the CC adoption board data in the build ([#3581](https://github.com/yonatangross/orchestkit/issues/3581)) ([ac27a86](https://github.com/yonatangross/orchestkit/commit/ac27a8661bf3c53024c5edcd75bc327dbcc96b74))",
@@ -1062,10 +1163,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.43",
     "date": "2026-08-19",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.42...v10.0.0-alpha.43",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**doctor:** report the credential guard that actually exists ([#3577](https://github.com/yonatangross/orchestkit/issues/3577)) ([5bf1a0b](https://github.com/yonatangross/orchestkit/commit/5bf1a0b5b9d9c10a45875f3d8fee28d5611ab6b2))",
           "**hooks:** a file operand means stdin is data, not the script ([#3574](https://github.com/yonatangross/orchestkit/issues/3574)) ([a4da29f](https://github.com/yonatangross/orchestkit/commit/a4da29fa908e34aa4cedd15eb94f332427c1a0de)), closes [#3559](https://github.com/yonatangross/orchestkit/issues/3559)",
@@ -1075,6 +1177,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**configure:** caveat when excludedCommands is inert ([#3573](https://github.com/yonatangross/orchestkit/issues/3573)) ([4d77e58](https://github.com/yonatangross/orchestkit/commit/4d77e580799c978f2f41e24471c360218d6b265a))",
           "**glyph:** replace the UNLIMITED chat licence with a measured budget ([#3576](https://github.com/yonatangross/orchestkit/issues/3576)) ([2a4206b](https://github.com/yonatangross/orchestkit/commit/2a4206bcf1cc660eedd4b94c4193d0522663fc19))"
@@ -1085,10 +1188,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.42",
     "date": "2026-08-19",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.41...v10.0.0-alpha.42",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**build:** stop a denied scratch file from zeroing the hook subcount ([#3567](https://github.com/yonatangross/orchestkit/issues/3567)) ([21b11c5](https://github.com/yonatangross/orchestkit/commit/21b11c5757e1afbe5eb8f7aee1a842ba3d4d85df)), closes [#3564](https://github.com/yonatangross/orchestkit/issues/3564)",
           "**ci:** bound the second apt-get, the one outside .github/ ([#3561](https://github.com/yonatangross/orchestkit/issues/3561)) ([f2c7866](https://github.com/yonatangross/orchestkit/commit/f2c786606a9ece2c0199969152f855389e5c4217)), closes [#3557](https://github.com/yonatangross/orchestkit/issues/3557)",
@@ -1097,6 +1201,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**configure:** add good first issues link to issue template ([#3555](https://github.com/yonatangross/orchestkit/issues/3555)) ([37fd4d4](https://github.com/yonatangross/orchestkit/commit/37fd4d416640c1a1ee1fbaed05b702e195de9d91)), closes [#3506](https://github.com/yonatangross/orchestkit/issues/3506)"
         ]
@@ -1106,10 +1211,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.41",
     "date": "2026-08-19",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.40...v10.0.0-alpha.41",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**ork-codex:** ship context7 as a plugin-native MCP server ([#3549](https://github.com/yonatangross/orchestkit/issues/3549)) ([cf231c6](https://github.com/yonatangross/orchestkit/commit/cf231c64fad870e300cfe20c2d12948ef541fd1c))"
         ]
@@ -1119,16 +1225,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.40",
     "date": "2026-08-18",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.39...v10.0.0-alpha.40",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**agents:** grant context7 deliberately, per agent ([#3547](https://github.com/yonatangross/orchestkit/issues/3547)) ([e065b28](https://github.com/yonatangross/orchestkit/commit/e065b288260f6d4c353587af98ef0211afa1adcb))"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**ci:** bound and skip system dep installs ([#3550](https://github.com/yonatangross/orchestkit/issues/3550)) ([4c4c25c](https://github.com/yonatangross/orchestkit/commit/4c4c25cb128e7f7ac066b1f1f39514f99fa8635c)), closes [#3545](https://github.com/yonatangross/orchestkit/issues/3545)",
           "**tests:** read the MCP gate's server list from a tracked manifest ([#3546](https://github.com/yonatangross/orchestkit/issues/3546)) ([36bf3c1](https://github.com/yonatangross/orchestkit/commit/36bf3c191e86b9d89509e070567de2084eb5b193))"
@@ -1136,6 +1244,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**configure:** add staged operator-scope settings ([#3553](https://github.com/yonatangross/orchestkit/issues/3553)) ([11cde42](https://github.com/yonatangross/orchestkit/commit/11cde42b4f906eaa0a95d941ee3aad2f900ebfa6))",
           "**mcp:** document context7 as a prerequisite, Pro tier, hosted transport ([#3548](https://github.com/yonatangross/orchestkit/issues/3548)) ([f7a1b1a](https://github.com/yonatangross/orchestkit/commit/f7a1b1a4b2079d8c2f5ea70d66c5777c9193d872))"
@@ -1146,16 +1255,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.39",
     "date": "2026-08-18",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.38...v10.0.0-alpha.39",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**plugin:** move shared fragments out of component trees ([#3543](https://github.com/yonatangross/orchestkit/issues/3543)) ([87bc499](https://github.com/yonatangross/orchestkit/commit/87bc4992575958bb46433dd88509926869e76827))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**deps-dev:** bump js-yaml ([#3538](https://github.com/yonatangross/orchestkit/issues/3538)) ([73323e1](https://github.com/yonatangross/orchestkit/commit/73323e19d0565cac1307ccfbfd4bb2de30934afc))"
         ]
@@ -1165,16 +1276,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.38",
     "date": "2026-08-18",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.37...v10.0.0-alpha.38",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**workflows:** default fan-out stages to specialist agentType ([#3535](https://github.com/yonatangross/orchestkit/issues/3535)) ([22e35c4](https://github.com/yonatangross/orchestkit/commit/22e35c4e9691aefc5c9c1e3e2c977e345fec6038))"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**agents:** grant the MCP tools 27 agents declare ([#3532](https://github.com/yonatangross/orchestkit/issues/3532)) ([16330df](https://github.com/yonatangross/orchestkit/commit/16330dfba43f39412a9c1fc2d104c302657ae98a))",
           "**hooks:** close agent-browser URL-coverage hole in safety hook ([#3531](https://github.com/yonatangross/orchestkit/issues/3531)) ([f69f3ea](https://github.com/yonatangross/orchestkit/commit/f69f3ea31c3971408459ef491e5ef26e8615ce1a))",
@@ -1184,6 +1297,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**dependabot:** hold docker majors, keep digest bumps flowing ([#3528](https://github.com/yonatangross/orchestkit/issues/3528)) ([5b59b2b](https://github.com/yonatangross/orchestkit/commit/5b59b2b0c1f8e92d17997126dd276154c22c671d))",
           "**deps-dev:** bump @sanity/client in /orchestkit-demos ([#3520](https://github.com/yonatangross/orchestkit/issues/3520)) ([a710f0a](https://github.com/yonatangross/orchestkit/commit/a710f0a94e47d1a2e2822f58a85aac90f042335a))",
@@ -1194,6 +1308,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**skills:** correct agent-browser command forms against live 0.34.0 ([#3534](https://github.com/yonatangross/orchestkit/issues/3534)) ([4bf6449](https://github.com/yonatangross/orchestkit/commit/4bf64496721f340379681cebc174314bc8d91e1d))"
         ]
@@ -1203,16 +1318,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.37",
     "date": "2026-08-17",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.36...v10.0.0-alpha.37",
     "sections": [
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**deps:** bump the remotion group across 1 directory with 21 updates ([#3518](https://github.com/yonatangross/orchestkit/issues/3518)) ([08c815c](https://github.com/yonatangross/orchestkit/commit/08c815c24b6c6963fb0aec38eb943e892862d337))"
         ]
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "**probe:** route drift to one long-lived issue instead of a summary ([#3529](https://github.com/yonatangross/orchestkit/issues/3529)) ([39efdb4](https://github.com/yonatangross/orchestkit/commit/39efdb4a70cc1e87c8125eaf4f7383420f96db3b))"
         ]
@@ -1222,10 +1339,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.36",
     "date": "2026-08-17",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.35...v10.0.0-alpha.36",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**21st-dev:** grant the MCP tools four surfaces already claimed to use ([#3509](https://github.com/yonatangross/orchestkit/issues/3509)) ([c198ee6](https://github.com/yonatangross/orchestkit/commit/c198ee68239080ae78cff6f083ce5e1b921cbb44))",
           "**docker:** pin node 24 to match .nvmrc ([#3510](https://github.com/yonatangross/orchestkit/issues/3510)) ([93e84bf](https://github.com/yonatangross/orchestkit/commit/93e84bfca89637a981c00775c46946d4baae264c))"
@@ -1233,6 +1351,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**deps-dev:** bump @types/node in the npm-minor-patch group ([#3514](https://github.com/yonatangross/orchestkit/issues/3514)) ([79c03ec](https://github.com/yonatangross/orchestkit/commit/79c03ec3701f0935c143298ed599f786721cc64b))",
           "**deps-dev:** bump the npm-minor-patch group across 1 directory with 2 updates ([#3515](https://github.com/yonatangross/orchestkit/issues/3515)) ([52f9908](https://github.com/yonatangross/orchestkit/commit/52f9908595fd0030e9662601b5d78a4925c78893))"
@@ -1240,6 +1359,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**21st-dev:** argue the picker from choice, not from the 2/day cap ([#3513](https://github.com/yonatangross/orchestkit/issues/3513)) ([57150dc](https://github.com/yonatangross/orchestkit/commit/57150dc43cca633a2769c25b637c39ca4b71cd89))",
           "**skills:** re-sync upstream refs; portless defaults to 443 ([#3525](https://github.com/yonatangross/orchestkit/issues/3525)) ([45895c7](https://github.com/yonatangross/orchestkit/commit/45895c71627ef237036e578595ba78bef62ff227))"
@@ -1247,6 +1367,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump the github-actions group across 1 directory with 5 updates ([#3521](https://github.com/yonatangross/orchestkit/issues/3521)) ([2878a31](https://github.com/yonatangross/orchestkit/commit/2878a319673d6c4533be1fa148adc947716a7b65))",
           "**probe:** a failed probe is UNKNOWN, not \"every pin is current\" ([#3527](https://github.com/yonatangross/orchestkit/issues/3527)) ([a335d3f](https://github.com/yonatangross/orchestkit/commit/a335d3f0dfc16f44a3b369c4e5826bc242c455be))"
@@ -1257,16 +1378,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.35",
     "date": "2026-08-16",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.34...v10.0.0-alpha.35",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**api-design:** make ProblemType a StrEnum ([#3496](https://github.com/yonatangross/orchestkit/issues/3496)) ([ad1fbe9](https://github.com/yonatangross/orchestkit/commit/ad1fbe98dc4da637097675e5291027d60416b4a4))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**agents:** delete the inert hooks: block from 33 agent frontmatters ([#3494](https://github.com/yonatangross/orchestkit/issues/3494)) ([95700b2](https://github.com/yonatangross/orchestkit/commit/95700b250d18750c5eedf72f995cdf936e408ca3))",
           "**git:** land the reap-lane branch recovery evidence ([#3497](https://github.com/yonatangross/orchestkit/issues/3497)) ([1a7123f](https://github.com/yonatangross/orchestkit/commit/1a7123f166afd148b3856d7839eb35130fe66155))"
@@ -1274,12 +1397,14 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**contributing:** plugins/ is generated AND tracked ([#3498](https://github.com/yonatangross/orchestkit/issues/3498)) ([c9cf392](https://github.com/yonatangross/orchestkit/commit/c9cf3928631e2e09de0cf11ff83418ec0ff1dde0))"
         ]
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "**playground:** exempt fork PRs from the playground gate ([#3508](https://github.com/yonatangross/orchestkit/issues/3508)) ([831ad2f](https://github.com/yonatangross/orchestkit/commit/831ad2f21122035306ac6570abb70eb3b20fa38d)), closes [#3502](https://github.com/yonatangross/orchestkit/issues/3502)"
         ]
@@ -1289,10 +1414,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.34",
     "date": "2026-08-14",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.33...v10.0.0-alpha.34",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**docs:** publish release-rail to the Lab, drop the render proxy ([#3491](https://github.com/yonatangross/orchestkit/issues/3491)) ([04ea99f](https://github.com/yonatangross/orchestkit/commit/04ea99f64a0fb56b5f781fd1521a2ef46ac92e1b))",
           "**release:** real component counts, and a named announce identity ([#3489](https://github.com/yonatangross/orchestkit/issues/3489)) ([7e9e1ed](https://github.com/yonatangross/orchestkit/commit/7e9e1ed455da133905943e4540a38f5b540db7f1))"
@@ -1303,10 +1429,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.33",
     "date": "2026-08-14",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.32...v10.0.0-alpha.33",
     "sections": [
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**mcp:** drop the last ork-elicit leftover from the esbuild header ([#3485](https://github.com/yonatangross/orchestkit/issues/3485)) ([1189c60](https://github.com/yonatangross/orchestkit/commit/1189c605091ba590ce21ff447dd6a6e6dd274780))"
         ]
@@ -1316,10 +1443,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.32",
     "date": "2026-08-14",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.31...v10.0.0-alpha.32",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**deps:** bump nanoid to 3.3.18 for advisory 1139427 ([#3481](https://github.com/yonatangross/orchestkit/issues/3481)) ([1fac660](https://github.com/yonatangross/orchestkit/commit/1fac66044c85d5ab755c7523400e762c4fb96a60))",
           "**hooks:** squash-aware worktree verifier, and close a shell injection ([#3480](https://github.com/yonatangross/orchestkit/issues/3480)) ([3a9f776](https://github.com/yonatangross/orchestkit/commit/3a9f776fb87d97643b5dfa411949747fbb7e0df9))"
@@ -1330,10 +1458,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.31",
     "date": "2026-08-13",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.30...v10.0.0-alpha.31",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**ci:** centralize Node version ([#3473](https://github.com/yonatangross/orchestkit/issues/3473)) ([26baafa](https://github.com/yonatangross/orchestkit/commit/26baafaef440b97a5a492857de0f067a3f0c800f))",
           "**hooks:** branch guard reads explicit push destinations ([#3455](https://github.com/yonatangross/orchestkit/issues/3455)) ([#3475](https://github.com/yonatangross/orchestkit/issues/3475)) ([6c9951d](https://github.com/yonatangross/orchestkit/commit/6c9951dff258bcfda20917b84deb9cc0fdaf7ee6))",
@@ -1342,6 +1471,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc:** adopt 2.1.231, renew override to 2026-11-20 ([#3474](https://github.com/yonatangross/orchestkit/issues/3474)) ([a8bf560](https://github.com/yonatangross/orchestkit/commit/a8bf560ad9435e2cdbb5b5a6aa88e653ca7445c6))"
         ]
@@ -1351,10 +1481,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.30",
     "date": "2026-08-13",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.29...v10.0.0-alpha.30",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**cc:** retract two wrong agent-grant counts ([#3472](https://github.com/yonatangross/orchestkit/issues/3472)) ([64f6423](https://github.com/yonatangross/orchestkit/commit/64f64233bbcee334cb9ef3859f1f309b01b44458))",
           "**hooks:** delete unreachable task-existence-gate Case 3 ([#3467](https://github.com/yonatangross/orchestkit/issues/3467)) ([#3471](https://github.com/yonatangross/orchestkit/issues/3471)) ([e1110e7](https://github.com/yonatangross/orchestkit/commit/e1110e79889583a89ab8b964b53a16cd48aca138))"
@@ -1362,6 +1493,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc:** adopt 2.1.227 through 2.1.229, fix the dead detect stage ([#3469](https://github.com/yonatangross/orchestkit/issues/3469)) ([13214c9](https://github.com/yonatangross/orchestkit/commit/13214c9917a2d30f1c9cf12a595adb4a0aef28f7))"
         ]
@@ -1371,10 +1503,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.29",
     "date": "2026-08-13",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.28...v10.0.0-alpha.29",
     "sections": [
       {
         "type": "changed",
+        "heading": "Code Refactoring",
         "items": [
           "**hooks:** delete dead custom-pipeline mechanism ([#3352](https://github.com/yonatangross/orchestkit/issues/3352)) ([#3466](https://github.com/yonatangross/orchestkit/issues/3466)) ([72dfaca](https://github.com/yonatangross/orchestkit/commit/72dfacae2e153e2d65ac7f014be20e93c34170dc))"
         ]
@@ -1384,16 +1517,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.28",
     "date": "2026-08-12",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.27...v10.0.0-alpha.28",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**cc-adoption:** adopt MAX_SUBAGENT_SPAWN_DEPTH, fix depth 5/3 mismatch ([#3463](https://github.com/yonatangross/orchestkit/issues/3463)) ([84549cc](https://github.com/yonatangross/orchestkit/commit/84549cccfb40be024437d5b06343f3841a857516)), closes [#3324](https://github.com/yonatangross/orchestkit/issues/3324)"
         ]
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**marketplace:** retire engine field for --strict ([#3465](https://github.com/yonatangross/orchestkit/issues/3465)) ([1226a9e](https://github.com/yonatangross/orchestkit/commit/1226a9e0f6ad71e3d24c9cac8d8566a0d3cf19ee)), closes [#3349](https://github.com/yonatangross/orchestkit/issues/3349)"
         ]
@@ -1403,10 +1538,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.27",
     "date": "2026-08-12",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.26...v10.0.0-alpha.27",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** bidirectional contract gate, real PostToolUseFailure field ([#3457](https://github.com/yonatangross/orchestkit/issues/3457)) ([3b701ab](https://github.com/yonatangross/orchestkit/commit/3b701ab231974e59c759741dc58103c0ec161f89)), closes [#3418](https://github.com/yonatangross/orchestkit/issues/3418)",
           "**hooks:** measure context, stop reading fields CC never sends ([#3459](https://github.com/yonatangross/orchestkit/issues/3459)) ([e968377](https://github.com/yonatangross/orchestkit/commit/e968377e19ae9c8e48846d04f37cac511dcbc9d0))",
@@ -1418,10 +1554,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.26",
     "date": "2026-08-12",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.25...v10.0.0-alpha.26",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** allow the safe `IFS= read` idiom ([#3454](https://github.com/yonatangross/orchestkit/issues/3454)) ([92d66af](https://github.com/yonatangross/orchestkit/commit/92d66aff0497d48ebb6bbb7cec43ae7596fb234c))",
           "**hooks:** stop pre-compact-guard blocking auto-compaction ([#3452](https://github.com/yonatangross/orchestkit/issues/3452)) ([7648c82](https://github.com/yonatangross/orchestkit/commit/7648c8220b8e0cc052643a3bfaf5cd93516a0500))"
@@ -1432,10 +1569,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.25",
     "date": "2026-08-12",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.24...v10.0.0-alpha.25",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** make restrict-bash actually run, ungate the dispatcher ([#3449](https://github.com/yonatangross/orchestkit/issues/3449)) ([2e75146](https://github.com/yonatangross/orchestkit/commit/2e75146932157017037917646456af0b5336de25)), closes [#3430](https://github.com/yonatangross/orchestkit/issues/3430) [#3438](https://github.com/yonatangross/orchestkit/issues/3438)"
         ]
@@ -1445,10 +1583,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.24",
     "date": "2026-08-11",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.23...v10.0.0-alpha.24",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**security-tests:** fail loudly on a broken payload ([#3446](https://github.com/yonatangross/orchestkit/issues/3446)) ([0ca7660](https://github.com/yonatangross/orchestkit/commit/0ca76608605451089a91e08d8e4052b721c5c318))",
           "**workflows:** rename plugin workflows to .js so they actually register ([#3445](https://github.com/yonatangross/orchestkit/issues/3445)) ([537e778](https://github.com/yonatangross/orchestkit/commit/537e778a0d8dc847853f3996caeceee915ca3733))"
@@ -1459,10 +1598,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.23",
     "date": "2026-08-11",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.22...v10.0.0-alpha.23",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**chain-patterns:** correct Pattern 8 /loop facts against official docs ([#3442](https://github.com/yonatangross/orchestkit/issues/3442)) ([c884823](https://github.com/yonatangross/orchestkit/commit/c8848238c475c31a346fa914fe15955f71b31851))",
           "**hooks:** stop `git fetch` reading as a network source ([#3441](https://github.com/yonatangross/orchestkit/issues/3441)) ([268524b](https://github.com/yonatangross/orchestkit/commit/268524bdea74dcdbfe9279c08b7bb8dd82352323))"
@@ -1473,10 +1613,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.22",
     "date": "2026-08-11",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.21...v10.0.0-alpha.22",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**workflows:** adopt CC 2.1.224 capabilities and evidence-replay gate ([#3439](https://github.com/yonatangross/orchestkit/issues/3439)) ([106a03e](https://github.com/yonatangross/orchestkit/commit/106a03ef58c69f0424fb91d6b01415f26b91582c))"
         ]
@@ -1486,10 +1627,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.21",
     "date": "2026-08-11",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.20...v10.0.0-alpha.21",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** stop run-hook.mjs failing silently and crashing ([#3436](https://github.com/yonatangross/orchestkit/issues/3436)) ([e5cc860](https://github.com/yonatangross/orchestkit/commit/e5cc8603087a185d888a732532fd964a6314c808))"
         ]
@@ -1499,10 +1641,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.20",
     "date": "2026-08-11",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.19...v10.0.0-alpha.20",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** stop the pipe-to-shell deny from inventing a fetch ([#3434](https://github.com/yonatangross/orchestkit/issues/3434)) ([4ea34b4](https://github.com/yonatangross/orchestkit/commit/4ea34b4b1832c9c2b8a0236c69c8dda55b0d3b8b))"
         ]
@@ -1512,10 +1655,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.19",
     "date": "2026-08-11",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.18...v10.0.0-alpha.19",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**agents:** drop two frontmatter keys CC provably ignores ([#3431](https://github.com/yonatangross/orchestkit/issues/3431)) ([9842537](https://github.com/yonatangross/orchestkit/commit/98425379c13a522ed87b15ead7601695ec70e343))"
         ]
@@ -1525,10 +1669,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.18",
     "date": "2026-08-11",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.17...v10.0.0-alpha.18",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** match the agent names CC actually sends, drop unread writes ([#3428](https://github.com/yonatangross/orchestkit/issues/3428)) ([61d0661](https://github.com/yonatangross/orchestkit/commit/61d0661d8429407724b830a79bb08980b4f03957))"
         ]
@@ -1538,16 +1683,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.17",
     "date": "2026-08-11",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.16...v10.0.0-alpha.17",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**hooks:** adopt autoCompactWindow, delete what could not fire ([#3427](https://github.com/yonatangross/orchestkit/issues/3427)) ([448794e](https://github.com/yonatangross/orchestkit/commit/448794e8b035a6c698823f2d98ba1fc9ae29aa50))"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**ci:** contract gate now names its own blind half on every run ([#3421](https://github.com/yonatangross/orchestkit/issues/3421)) ([5e933e6](https://github.com/yonatangross/orchestkit/commit/5e933e6c5b0f14e0cf1af5832163b92f75112935))",
           "**hooks:** give guard denials a rewrite and a repetition signal ([#3423](https://github.com/yonatangross/orchestkit/issues/3423)) ([7b7f2fa](https://github.com/yonatangross/orchestkit/commit/7b7f2fa761e30ab2de70a9c08e15a9207d052b20))",
@@ -1557,6 +1704,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc:** advance latest_known to 2.1.227, floor stays frozen ([#3419](https://github.com/yonatangross/orchestkit/issues/3419)) ([44e9d53](https://github.com/yonatangross/orchestkit/commit/44e9d53fb2bf06a228cf6026fedfb4dadd280769))"
         ]
@@ -1566,10 +1714,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.16",
     "date": "2026-08-10",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.15...v10.0.0-alpha.16",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**ci:** contract probe looked in the one layout runners lack ([#3417](https://github.com/yonatangross/orchestkit/issues/3417)) ([b4ac670](https://github.com/yonatangross/orchestkit/commit/b4ac67023dfeb1ebafadbb6b9d97f9f6b371403d))",
           "**hooks:** branch guard's third path never ran, in 1763 sessions ([#3414](https://github.com/yonatangross/orchestkit/issues/3414)) ([6cca3eb](https://github.com/yonatangross/orchestkit/commit/6cca3eb29802281eb64fafb70c1030a38f890f9c))"
@@ -1580,10 +1729,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.15",
     "date": "2026-08-10",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.14...v10.0.0-alpha.15",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**security:** scanners knew one worktree layout, not two ([#3412](https://github.com/yonatangross/orchestkit/issues/3412)) ([b187c3a](https://github.com/yonatangross/orchestkit/commit/b187c3a459f8575a2ba78bc90dca1f7de9d0fc67))"
         ]
@@ -1593,16 +1743,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.14",
     "date": "2026-08-10",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.13...v10.0.0-alpha.14",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**agents:** correct 8 false \"slash-only\" comments ([#3405](https://github.com/yonatangross/orchestkit/issues/3405)) ([b7f8bca](https://github.com/yonatangross/orchestkit/commit/b7f8bca75456bbcbb2511a0bf208f73c419d85d6))"
         ]
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "arm the CC contract probe nothing was running ([#3407](https://github.com/yonatangross/orchestkit/issues/3407)) ([e0ac334](https://github.com/yonatangross/orchestkit/commit/e0ac3342f0e8ccba2d098976ae832d4dea4e2ee9))",
           "tee probe diagnostics to stdout, not just the step summary ([#3408](https://github.com/yonatangross/orchestkit/issues/3408)) ([01d9636](https://github.com/yonatangross/orchestkit/commit/01d96363aa41a4483c07181e89914fac828fa7e1))"
@@ -1613,10 +1765,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.13",
     "date": "2026-08-10",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.12...v10.0.0-alpha.13",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** stop logging an invented cache-break token cost ([#3403](https://github.com/yonatangross/orchestkit/issues/3403)) ([4d6c8fa](https://github.com/yonatangross/orchestkit/commit/4d6c8fa23693acf8520199b77e2bbfa22764b73b))"
         ]
@@ -1626,10 +1779,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.12",
     "date": "2026-08-10",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.11...v10.0.0-alpha.12",
     "sections": [
       {
         "type": "changed",
+        "heading": "Code Refactoring",
         "items": [
           "**mcp:** retire the ork-elicit server for AskUserQuestion ([#3400](https://github.com/yonatangross/orchestkit/issues/3400)) ([e4e08de](https://github.com/yonatangross/orchestkit/commit/e4e08de04a312549c5c3ef4929e78a52c854dcfd))"
         ]
@@ -1639,10 +1793,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.11",
     "date": "2026-08-10",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.10...v10.0.0-alpha.11",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**docs:** gate the README prose counts instead of correcting them ([#3398](https://github.com/yonatangross/orchestkit/issues/3398)) ([ae432ba](https://github.com/yonatangross/orchestkit/commit/ae432ba6a2dd7d14a9dfe4841852063785f00135))"
         ]
@@ -1652,10 +1807,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.10",
     "date": "2026-08-10",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.9...v10.0.0-alpha.10",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**docs:** retire the keybindings that never fired ([#3395](https://github.com/yonatangross/orchestkit/issues/3395)) ([cd8d890](https://github.com/yonatangross/orchestkit/commit/cd8d890e0288fcc954ba1ec71462bf3e1202fd90))",
           "**hooks:** admit bare ctx.log() through the default level gate ([#3386](https://github.com/yonatangross/orchestkit/issues/3386)) ([#3390](https://github.com/yonatangross/orchestkit/issues/3390)) ([e68b2de](https://github.com/yonatangross/orchestkit/commit/e68b2de1873b5ecca491d65383fb2e350b70684f))",
@@ -1667,16 +1823,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.9",
     "date": "2026-08-10",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.8...v10.0.0-alpha.9",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** two guards that treated \"cannot observe\" as \"not there\" ([#3387](https://github.com/yonatangross/orchestkit/issues/3387)) ([cf6ae25](https://github.com/yonatangross/orchestkit/commit/cf6ae256554c22b1b22def8828160c9cb2e078da))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**deps-dev:** bump @biomejs/biome from 2.5.6 to 2.5.7 in /src/hooks in the npm-minor-patch group ([#3379](https://github.com/yonatangross/orchestkit/issues/3379)) ([386e8c8](https://github.com/yonatangross/orchestkit/commit/386e8c8660e6e195c229a0b9f5acf239991e0e19))",
           "**deps-dev:** bump js-yaml in the npm-minor-patch group ([#3378](https://github.com/yonatangross/orchestkit/issues/3378)) ([a4ba323](https://github.com/yonatangross/orchestkit/commit/a4ba323723a30fed54a9d73d2dc07f2168c2f828))",
@@ -1686,6 +1844,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump the github-actions group with 6 updates ([#3383](https://github.com/yonatangross/orchestkit/issues/3383)) ([61802f2](https://github.com/yonatangross/orchestkit/commit/61802f248c1aa1f26167d2230b9a1c7c16bdd278))"
         ]
@@ -1695,10 +1854,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.8",
     "date": "2026-08-10",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.7...v10.0.0-alpha.8",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** four values that looked like measurements and were not ([#3375](https://github.com/yonatangross/orchestkit/issues/3375)) ([6d477e5](https://github.com/yonatangross/orchestkit/commit/6d477e52f49d1e133a1af246f368df50a6f6b22d)), closes [#3317](https://github.com/yonatangross/orchestkit/issues/3317) [#3318](https://github.com/yonatangross/orchestkit/issues/3318) [#3323](https://github.com/yonatangross/orchestkit/issues/3323) [#3330](https://github.com/yonatangross/orchestkit/issues/3330)",
           "**hooks:** two events with no listener, one handoff with two ([#3377](https://github.com/yonatangross/orchestkit/issues/3377)) ([b6dd6a8](https://github.com/yonatangross/orchestkit/commit/b6dd6a81c5cabdecd1a75cffef1cddfa1a911ba2))",
@@ -1710,10 +1870,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.7",
     "date": "2026-08-09",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.6...v10.0.0-alpha.7",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** two hooks read the legacy alias, never the field CC sends ([#3372](https://github.com/yonatangross/orchestkit/issues/3372)) ([909997d](https://github.com/yonatangross/orchestkit/commit/909997d03e353bfb52df8257aaac35e49ba8e7ee))"
         ]
@@ -1723,10 +1884,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.6",
     "date": "2026-08-09",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.5...v10.0.0-alpha.6",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** --allow-file-access widened one rule and switched off eight ([#3370](https://github.com/yonatangross/orchestkit/issues/3370)) ([68b8f41](https://github.com/yonatangross/orchestkit/commit/68b8f41b99001717a25fb1d4b617b44f2f0cc7ba)), closes [#3320](https://github.com/yonatangross/orchestkit/issues/3320)"
         ]
@@ -1736,10 +1898,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.5",
     "date": "2026-08-09",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.4...v10.0.0-alpha.5",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**docs:** re-stamp the hook counts in the source, not the build output ([#3369](https://github.com/yonatangross/orchestkit/issues/3369)) ([2d12630](https://github.com/yonatangross/orchestkit/commit/2d1263055cb4bc4a65073ff71a543bb6e787473c))",
           "**hooks:** stop owning worktree provisioning, CC does it better ([#3366](https://github.com/yonatangross/orchestkit/issues/3366)) ([6a26db0](https://github.com/yonatangross/orchestkit/commit/6a26db042c7df0febc92db7d56dd79fee35fa96e))",
@@ -1751,10 +1914,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.4",
     "date": "2026-08-09",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.3...v10.0.0-alpha.4",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** stop teaching the sibling-worktree idiom ([#3363](https://github.com/yonatangross/orchestkit/issues/3363)) ([08fb023](https://github.com/yonatangross/orchestkit/commit/08fb023ef3ff8eb344ad683087dca823016f77f8))"
         ]
@@ -1764,10 +1928,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.3",
     "date": "2026-08-09",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.2...v10.0.0-alpha.3",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**cc-triage:** make the feature cap announce itself ([#3361](https://github.com/yonatangross/orchestkit/issues/3361)) ([46f2fbc](https://github.com/yonatangross/orchestkit/commit/46f2fbc068ab8c798d92ada8d5a0439800350ed8))",
           "**pre-push:** resolve the branch from the pushed refspec, not HEAD ([#3299](https://github.com/yonatangross/orchestkit/issues/3299)) ([1809519](https://github.com/yonatangross/orchestkit/commit/1809519ada5093829070ccf35c7eb02120d060c1)), closes [#3290](https://github.com/yonatangross/orchestkit/issues/3290)"
@@ -1778,16 +1943,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.2",
     "date": "2026-08-09",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.1...v10.0.0-alpha.2",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**hooks:** deny credential-file reads at the Read tool ([#3360](https://github.com/yonatangross/orchestkit/issues/3360)) ([eed7bb0](https://github.com/yonatangross/orchestkit/commit/eed7bb0c2cc03eaa0631a5afacbf83acea3308df))"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**agents:** scope peer messaging by lifecycle ([#3355](https://github.com/yonatangross/orchestkit/issues/3355)) ([24d5fb6](https://github.com/yonatangross/orchestkit/commit/24d5fb60f666e385f99298afca9c423be6332f60))",
           "**security:** let the DYLD probe observe instead of aborting ([#3358](https://github.com/yonatangross/orchestkit/issues/3358)) ([57a6cfa](https://github.com/yonatangross/orchestkit/commit/57a6cfa11bdbdf0ae0ed5eba73259dd70b58ff1b))",
@@ -1799,22 +1966,25 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha.1",
     "date": "2026-08-08",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha...v10.0.0-alpha.1",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** advisory context-gate on SubagentStart, arm sandbox ([#3345](https://github.com/yonatangross/orchestkit/issues/3345)) ([7658118](https://github.com/yonatangross/orchestkit/commit/76581187bd698060aec8a60777e198791e7b464b))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**build:** probe the command wrappers, verdict KEEP, add tripwire ([#3347](https://github.com/yonatangross/orchestkit/issues/3347)) ([6eff4eb](https://github.com/yonatangross/orchestkit/commit/6eff4ebe3314129077bce1ddeca13e3495c3ca6d)), closes [#164](https://github.com/yonatangross/orchestkit/issues/164) [#3314](https://github.com/yonatangross/orchestkit/issues/3314)"
         ]
       },
       {
         "type": "changed",
+        "heading": "Code Refactoring",
         "items": [
           "**hooks:** trim the bus halves nothing ever called ([#3351](https://github.com/yonatangross/orchestkit/issues/3351)) ([7bf5153](https://github.com/yonatangross/orchestkit/commit/7bf5153fde36058711f259f5eeb415d7a5df3e9e))"
         ]
@@ -1824,10 +1994,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "10.0.0-alpha",
     "date": "2026-08-08",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v9.8.0...v10.0.0-alpha",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**marketplace:** split stable and prerelease into two channels ([#3340](https://github.com/yonatangross/orchestkit/issues/3340)) ([147b1f9](https://github.com/yonatangross/orchestkit/commit/147b1f9ae0f8d921099dc3dab7b657b392ee0fd6)), closes [#164](https://github.com/yonatangross/orchestkit/issues/164) [#3333](https://github.com/yonatangross/orchestkit/issues/3333)",
           "**release:** arm the prerelease train and unblock 10.0.0-alpha.1 ([#3337](https://github.com/yonatangross/orchestkit/issues/3337)) ([9cbc02b](https://github.com/yonatangross/orchestkit/commit/9cbc02bf8e187c33d4435e1259f403606551b2c7)), closes [#164](https://github.com/yonatangross/orchestkit/issues/164) [#3333](https://github.com/yonatangross/orchestkit/issues/3333)"
@@ -1835,6 +2006,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**build:** keep the version sync off pinned channel entries ([#3344](https://github.com/yonatangross/orchestkit/issues/3344)) ([6c80f65](https://github.com/yonatangross/orchestkit/commit/6c80f657d873fd041ae5b989317cfdf8d01cc490)), closes [#164](https://github.com/yonatangross/orchestkit/issues/164) [#3333](https://github.com/yonatangross/orchestkit/issues/3333)",
           "**counts:** read the release version off the tracking entry by name ([#3341](https://github.com/yonatangross/orchestkit/issues/3341)) ([18fdb71](https://github.com/yonatangross/orchestkit/commit/18fdb71f9b1ad3448389c2673415218e2ddf5748)), closes [#164](https://github.com/yonatangross/orchestkit/issues/164) [#3333](https://github.com/yonatangross/orchestkit/issues/3333)",
@@ -1847,12 +2019,14 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc:** triage 2.1.223 through 2.1.226, advance latest_known to 2.1.226 ([#3338](https://github.com/yonatangross/orchestkit/issues/3338)) ([c80783c](https://github.com/yonatangross/orchestkit/commit/c80783cf8453d7e2f748433ba3ec8fcc04ac6a89)), closes [#3334](https://github.com/yonatangross/orchestkit/issues/3334)"
         ]
       },
       {
         "type": "changed",
+        "heading": "Code Refactoring",
         "items": [
           "**glyph:** rename quickviz, its prefix collided with /quit ([#3301](https://github.com/yonatangross/orchestkit/issues/3301)) ([bdce685](https://github.com/yonatangross/orchestkit/commit/bdce68503f4d5934415cac37673807ff289a6f4c))"
         ]
@@ -1862,16 +2036,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "9.8.0",
     "date": "2026-08-07",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v9.7.0...v9.8.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**dream:** STEP 9 cross-repo promotion candidates ([#3296](https://github.com/yonatangross/orchestkit/issues/3296)) ([b6e6524](https://github.com/yonatangross/orchestkit/commit/b6e65248f2e032afda66afc38b4193bebc79048b))"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** read the permission mode key CC actually sends ([#3294](https://github.com/yonatangross/orchestkit/issues/3294)) ([6b14358](https://github.com/yonatangross/orchestkit/commit/6b1435886c65f731f562e1016b0277091e609213))",
           "**pre-push:** replace mapfile so the hook runs on macOS bash 3.2 ([#3287](https://github.com/yonatangross/orchestkit/issues/3287)) ([5c98332](https://github.com/yonatangross/orchestkit/commit/5c98332e2288d4daa838761e7c74374a46a8d64c))",
@@ -1884,6 +2060,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc:** adopt 2.1.221 and 2.1.222, bump cc-support latest_known ([#3284](https://github.com/yonatangross/orchestkit/issues/3284)) ([a28e2b3](https://github.com/yonatangross/orchestkit/commit/a28e2b3ed1dc3dcf59d89e8297a0697c571d52c7))",
           "**community:** add code of conduct and user-facing issue templates ([#3300](https://github.com/yonatangross/orchestkit/issues/3300)) ([e0edf17](https://github.com/yonatangross/orchestkit/commit/e0edf17d0d5bc523d1375cc0e139b5cbcd5306d8))"
@@ -1894,16 +2071,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "9.7.0",
     "date": "2026-08-05",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v9.6.1...v9.7.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**visualize-plan:** make DASHBOARD a first-class archetype ([#3275](https://github.com/yonatangross/orchestkit/issues/3275)) ([2081957](https://github.com/yonatangross/orchestkit/commit/20819571e223da6d0c59612aa5f73d342189e6a9))"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** validate agent spawn targets against the real registry ([#3280](https://github.com/yonatangross/orchestkit/issues/3280)) ([de5ed6b](https://github.com/yonatangross/orchestkit/commit/de5ed6b7f2dd95cdb99fa73062804cfadab778bd))",
           "**security:** audit every tracked lockfile, not four of six ([#3274](https://github.com/yonatangross/orchestkit/issues/3274)) ([607c88c](https://github.com/yonatangross/orchestkit/commit/607c88c388312e04e2c10ec7bb972284f51f859f))"
@@ -1911,6 +2090,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**worktree:** fix a silent no-op and remove the dead worktree CLI ([#3282](https://github.com/yonatangross/orchestkit/issues/3282)) ([c5b2d28](https://github.com/yonatangross/orchestkit/commit/c5b2d28713de129051f4ad9a82660455e119f40c))",
           "**worktree:** share one node_modules across worktrees ([#3281](https://github.com/yonatangross/orchestkit/issues/3281)) ([e2c788a](https://github.com/yonatangross/orchestkit/commit/e2c788adc8294398f42eebc19c628d6a0ed8b571))"
@@ -1921,10 +2101,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "9.6.1",
     "date": "2026-08-04",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v9.6.0...v9.6.1",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**deps:** clear the npm-audit wave via in-range transitive updates ([#3272](https://github.com/yonatangross/orchestkit/issues/3272)) ([4f76215](https://github.com/yonatangross/orchestkit/commit/4f76215b4a42c7cba000a6bce77a73caf988b06d))"
         ]
@@ -1934,10 +2115,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "9.6.0",
     "date": "2026-08-03",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v9.5.4...v9.6.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**codex:** add native OrchestKit adapter ([#3265](https://github.com/yonatangross/orchestkit/issues/3265)) ([f1e7a49](https://github.com/yonatangross/orchestkit/commit/f1e7a4965a23d9fed961c1d590983599f2402866))"
         ]
@@ -1947,16 +2129,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "9.5.4",
     "date": "2026-08-03",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v9.5.3...v9.5.4",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**ci:** run the demos' 284 tests, stop chmod churn on .mjs ([#3262](https://github.com/yonatangross/orchestkit/issues/3262)) ([c0adbee](https://github.com/yonatangross/orchestkit/commit/c0adbee64bc5b843b230fa209d2cf100779a2f74))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**deps-dev:** bump jsdom from 29.1.1 to 30.0.1 in /orchestkit-demos ([#3259](https://github.com/yonatangross/orchestkit/issues/3259)) ([9204825](https://github.com/yonatangross/orchestkit/commit/9204825d53e0a88fbd987b6add821c2d65b2ac5f))",
           "**deps-dev:** bump the npm-minor-patch group across 1 directory with 3 updates ([#3258](https://github.com/yonatangross/orchestkit/issues/3258)) ([bf71ee5](https://github.com/yonatangross/orchestkit/commit/bf71ee560da4df560a72a242a7958cf62abda24e))",
@@ -1967,6 +2151,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump the github-actions group with 5 updates ([#3260](https://github.com/yonatangross/orchestkit/issues/3260)) ([6b216b8](https://github.com/yonatangross/orchestkit/commit/6b216b80c2c507f84ffcbc104405794176e26ab8))"
         ]
@@ -1976,16 +2161,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "9.5.3",
     "date": "2026-08-03",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v9.5.2...v9.5.3",
     "sections": [
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**deps-dev:** bump @types/node in the npm-minor-patch group ([#3253](https://github.com/yonatangross/orchestkit/issues/3253)) ([bc61e37](https://github.com/yonatangross/orchestkit/commit/bc61e37254777445c3958491351f90197de0f4c1))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**contributing:** add entry-point section and fork-CI expectation note ([#3250](https://github.com/yonatangross/orchestkit/issues/3250)) ([747321e](https://github.com/yonatangross/orchestkit/commit/747321ef4345776bf186a3adcafc11919bf293ea))",
           "fix nonexistent scripts/hooks path in SECURITY.md ([#3248](https://github.com/yonatangross/orchestkit/issues/3248)) ([c7855ba](https://github.com/yonatangross/orchestkit/commit/c7855bac9be35d818de6f6e9a90004bf1d56e78f))"
@@ -1996,16 +2183,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "9.5.2",
     "date": "2026-08-02",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v9.5.1...v9.5.2",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** branch-switch awareness in git-validator protection ([#3246](https://github.com/yonatangross/orchestkit/issues/3246)) ([9ef10e9](https://github.com/yonatangross/orchestkit/commit/9ef10e9436b5450db0c7465a3c37b7030c46a334))"
         ]
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "glob the five orphan test dirs into blocking coverage ([#3245](https://github.com/yonatangross/orchestkit/issues/3245)) ([79f9479](https://github.com/yonatangross/orchestkit/commit/79f9479a9fb986c6a7844e1b89ee425b324b70d7))"
         ]
@@ -2015,10 +2204,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "9.5.1",
     "date": "2026-08-02",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v9.5.0...v9.5.1",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**skills:** never block a user-typed invocation ([#3243](https://github.com/yonatangross/orchestkit/issues/3243)) ([a9f7ea3](https://github.com/yonatangross/orchestkit/commit/a9f7ea351ec2a716287247dd086a1e8fa3844c60))"
         ]
@@ -2028,16 +2218,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "9.5.0",
     "date": "2026-08-01",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v9.4.0...v9.5.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**hooks:** nudge TaskCreate on 3+ step work and measure compliance ([#3232](https://github.com/yonatangross/orchestkit/issues/3232)) ([ec1ca84](https://github.com/yonatangross/orchestkit/commit/ec1ca847617c7b3a44bacc4feda13a86e3a840b4))"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**docs-site:** fix count and command drift at source, add a drift gate ([#3231](https://github.com/yonatangross/orchestkit/issues/3231)) ([0ed071d](https://github.com/yonatangross/orchestkit/commit/0ed071d45229806277bcd2fdbbf178c1adc6efa1))",
           "**skills:** keep user-typed fork skills interactive on CC 2.1.218+ ([#3239](https://github.com/yonatangross/orchestkit/issues/3239)) ([a47d763](https://github.com/yonatangross/orchestkit/commit/a47d763b3dc8dad08c7096044a0fda8f0136ea02))",
@@ -2046,12 +2238,14 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**evals:** retire the prose-grading eval, wire the nudge reader ([#3237](https://github.com/yonatangross/orchestkit/issues/3237)) ([80b0e26](https://github.com/yonatangross/orchestkit/commit/80b0e26ffa38d522a273151dd6fad6af6cbd4ecf))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**cc:** adopt the 2.1.216-218 doc rows for worktree, OTEL, code-review ([#3240](https://github.com/yonatangross/orchestkit/issues/3240)) ([079b685](https://github.com/yonatangross/orchestkit/commit/079b6851d89f8bf309701c8eb66e520d96ebe5ff)), closes [#3092](https://github.com/yonatangross/orchestkit/issues/3092) [#3068](https://github.com/yonatangross/orchestkit/issues/3068) [#3066](https://github.com/yonatangross/orchestkit/issues/3066)",
           "correct the task-existence-gate registration claim ([#3242](https://github.com/yonatangross/orchestkit/issues/3242)) ([0c65a46](https://github.com/yonatangross/orchestkit/commit/0c65a46f909118df0436fa2ab3e2af5cadf3a775))",
@@ -2063,10 +2257,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "9.4.0",
     "date": "2026-08-01",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v9.3.0...v9.4.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**quality:** add the python half of the phantom-symbol gate ([#3230](https://github.com/yonatangross/orchestkit/issues/3230)) ([63bf412](https://github.com/yonatangross/orchestkit/commit/63bf412237cfbb297fcc91561472cdc39e240d21))",
           "**quality:** skill-delta ratchet gate (campaign phase 0) ([#3211](https://github.com/yonatangross/orchestkit/issues/3211)) ([0e6a3a8](https://github.com/yonatangross/orchestkit/commit/0e6a3a8aea0b18a6bbf94c25694ca892ffcc3ca8))"
@@ -2074,6 +2269,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**agents:** clear all 94 dead skill preload declarations ([#3221](https://github.com/yonatangross/orchestkit/issues/3221)) ([8e6213b](https://github.com/yonatangross/orchestkit/commit/8e6213b4f7983dbda54f1bb5687b96ead26f59cc))",
           "**ci:** accept the app/ author form and stop swallowing gh failures ([#3227](https://github.com/yonatangross/orchestkit/issues/3227)) ([e08ee88](https://github.com/yonatangross/orchestkit/commit/e08ee8878bba106cafc24cdd758b43eb96561808))",
@@ -2090,6 +2286,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**ci:** bump internal CI Node pins from EOL Node 20 to 22 ([#3214](https://github.com/yonatangross/orchestkit/issues/3214)) ([bc0eced](https://github.com/yonatangross/orchestkit/commit/bc0ecedb0b8fcb9de9e4092022ac86087f4d0c85))",
           "regen v9.3.0 build output and widen the drift gate ([#3217](https://github.com/yonatangross/orchestkit/issues/3217)) ([acfbc4f](https://github.com/yonatangross/orchestkit/commit/acfbc4f70d874b2d32b7e022b08569836d634626))"
@@ -2097,6 +2294,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "add SECURITY.md and a commercial surface to the README ([#3209](https://github.com/yonatangross/orchestkit/issues/3209)) ([75eb781](https://github.com/yonatangross/orchestkit/commit/75eb781c80a877fc7ca3def5239dbe7aa9f5ff2f))"
         ]
@@ -2106,10 +2304,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "9.3.0",
     "date": "2026-07-31",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v9.2.1...v9.3.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**agents:** key Tavily guidance on the tvly CLI rail ([#3204](https://github.com/yonatangross/orchestkit/issues/3204)) ([7fd6ca2](https://github.com/yonatangross/orchestkit/commit/7fd6ca2a9c33153ff237cfbc296a8e790ccf920e))",
           "**skills:** fix 5 shipped bugs and add 4 missing CI gates ([#3181](https://github.com/yonatangross/orchestkit/issues/3181)) ([d4422c3](https://github.com/yonatangross/orchestkit/commit/d4422c330f3aa03fb1f68cbea195330be27ad004))"
@@ -2117,6 +2316,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**ci:** decide the playground gate from the diff, not the branch ([#3196](https://github.com/yonatangross/orchestkit/issues/3196)) ([33969f5](https://github.com/yonatangross/orchestkit/commit/33969f5a693e9a12a9120d2e9d74ee4cad1ff9be))",
           "**hooks:** stop output-validator killing five sibling SubagentStop hooks ([#3201](https://github.com/yonatangross/orchestkit/issues/3201)) ([c5bea1e](https://github.com/yonatangross/orchestkit/commit/c5bea1ea1af380da7aea3fdfd1607e6f4e31c3b2))"
@@ -2124,12 +2324,14 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**marketplace:** prep official plugin directory submission ([#3205](https://github.com/yonatangross/orchestkit/issues/3205)) ([d1297fb](https://github.com/yonatangross/orchestkit/commit/d1297fb60ede9a355135308ace30dd7b79d84b48))"
         ]
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "**demos:** report Validate Renderer to the merge queue ([#3199](https://github.com/yonatangross/orchestkit/issues/3199)) ([356e9be](https://github.com/yonatangross/orchestkit/commit/356e9becab42307fa01a81ca35586c2b319abf01))"
         ]
@@ -2139,10 +2341,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "9.2.1",
     "date": "2026-07-28",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v9.2.0...v9.2.1",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**evals:** propagate INCONCLUSIVE through the --changed fan-out ([#3188](https://github.com/yonatangross/orchestkit/issues/3188)) ([5d91f2c](https://github.com/yonatangross/orchestkit/commit/5d91f2c23c3cf45654fb4dee3491de418b098b8e))",
           "**quickviz:** ship visual-style.md inside the skill bundle ([#3185](https://github.com/yonatangross/orchestkit/issues/3185)) ([db038a1](https://github.com/yonatangross/orchestkit/commit/db038a14fb49b7ee757ff09c1896ec874e6ea1d6))"
@@ -2150,6 +2353,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump the github-actions group across 1 directory with 2 updates ([#3174](https://github.com/yonatangross/orchestkit/issues/3174)) ([ea01f8e](https://github.com/yonatangross/orchestkit/commit/ea01f8eb8885eccd9a94e20fa0b2593eddebb7a9))"
         ]
@@ -2159,16 +2363,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "9.2.0",
     "date": "2026-07-28",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v9.1.1...v9.2.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**docs:** derive a flow graph for every skill reference page ([#3184](https://github.com/yonatangross/orchestkit/issues/3184)) ([060ab5e](https://github.com/yonatangross/orchestkit/commit/060ab5ebf6cb4953d82bcd1b18d5fa0ea0b1c766))"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** skip ASK tiers in bypassPermissions mode ([#3177](https://github.com/yonatangross/orchestkit/issues/3177)) ([f2c3d38](https://github.com/yonatangross/orchestkit/commit/f2c3d387b8841e22f9d7b163a713c42b66716e67))",
           "**visual-style:** stop the emoji vocabulary rejecting the ASCII palette ([#3169](https://github.com/yonatangross/orchestkit/issues/3169)) ([a5dd7fb](https://github.com/yonatangross/orchestkit/commit/a5dd7fb8d5613115317eb9c9745584b133901742))"
@@ -2176,6 +2382,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**deps:** bump the npm-minor-patch group across 1 directory with 4 updates ([#3179](https://github.com/yonatangross/orchestkit/issues/3179)) ([5c8169a](https://github.com/yonatangross/orchestkit/commit/5c8169ac83abc2e401b1aa7185ad079f2d3a8e3c))",
           "**deps:** bump the remotion group across 1 directory with 21 updates ([#3175](https://github.com/yonatangross/orchestkit/issues/3175)) ([728a7e7](https://github.com/yonatangross/orchestkit/commit/728a7e77af8b883820fbbf722143f07e63ef7d4f))"
@@ -2183,12 +2390,14 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**readme:** rebuild the community table and drop two dead sections ([#3183](https://github.com/yonatangross/orchestkit/issues/3183)) ([1b06de9](https://github.com/yonatangross/orchestkit/commit/1b06de967e5fb9b60c3b325dba7c42ce8d8a4590))"
         ]
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "gate README command references, sweep dead links weekly ([#3187](https://github.com/yonatangross/orchestkit/issues/3187)) ([cf961b1](https://github.com/yonatangross/orchestkit/commit/cf961b1c0923fe939a0ab71ffa22f2b2191564d9))"
         ]
@@ -2198,10 +2407,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "9.1.1",
     "date": "2026-07-26",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v9.1.0...v9.1.1",
     "sections": [
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "sync README and changelog data to v9.1.0 ([#3167](https://github.com/yonatangross/orchestkit/issues/3167)) ([5694f4b](https://github.com/yonatangross/orchestkit/commit/5694f4b3a2b1de1857e3fd71fdaf45b9aeeeb07c))"
         ]
@@ -2211,10 +2421,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "9.1.0",
     "date": "2026-07-26",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v9.0.2...v9.1.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "retro-hardening mechanisms 5+6 (invocability check, byte-budget guard) ([#3161](https://github.com/yonatangross/orchestkit/issues/3161)) ([c5ac1aa](https://github.com/yonatangross/orchestkit/commit/c5ac1aa3ac62f304ac015c5cc71ea71d1faba2fa))",
           "**viz:** re-anchor visual-style rule + quickviz on-ramp ([#3164](https://github.com/yonatangross/orchestkit/issues/3164)) ([9ff788e](https://github.com/yonatangross/orchestkit/commit/9ff788eae26609fa6d3e903e642742ac013c44d9))"
@@ -2222,6 +2433,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**viz:** stop throttling explicit visual asks ([#3166](https://github.com/yonatangross/orchestkit/issues/3166)) ([dde0e87](https://github.com/yonatangross/orchestkit/commit/dde0e871d7806d3d39246fefdc27d3ae0d0b1bf7))"
         ]
@@ -2231,10 +2443,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "9.0.2",
     "date": "2026-07-26",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v9.0.1...v9.0.2",
     "sections": [
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**ci:** remove the Claude PR Review workflow and its labeler ([#3159](https://github.com/yonatangross/orchestkit/issues/3159)) ([6223023](https://github.com/yonatangross/orchestkit/commit/6223023ef82e2e9f94ca635e844f89c6ea7bc7ff))"
         ]
@@ -2244,10 +2457,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "9.0.1",
     "date": "2026-07-26",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v9.0.0...v9.0.1",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "bound rotated analytics archives, unstale the CC floor ([#3156](https://github.com/yonatangross/orchestkit/issues/3156)) ([bf2bd9d](https://github.com/yonatangross/orchestkit/commit/bf2bd9d37e33614316371ba19de47e3b9b460a3d))",
           "**build:** default-deny frontmatter gate, pass all 10 fields ([#3158](https://github.com/yonatangross/orchestkit/issues/3158)) ([4e02e1c](https://github.com/yonatangross/orchestkit/commit/4e02e1c7671777f350225964bb440b2517123854))",
@@ -2256,6 +2470,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc-watch:** snapshot upstream CHANGELOG (2.1.220) ([#3155](https://github.com/yonatangross/orchestkit/issues/3155)) ([b56a1fd](https://github.com/yonatangross/orchestkit/commit/b56a1fd085b4f8a6472f6d364e318baa7914d247))"
         ]
@@ -2265,10 +2480,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "9.0.0",
     "date": "2026-07-25",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.85.0...v9.0.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**cc:** adopt Opus 5, strict-renew the support floor to 2.1.220 ([#3141](https://github.com/yonatangross/orchestkit/issues/3141)) ([47b78fb](https://github.com/yonatangross/orchestkit/commit/47b78fbe891e3d6b76c7d782dccf3b877bcd8f71))",
           "**verify:** add the Reachability Proof axis (REACHED vs UNREACHED) ([#3149](https://github.com/yonatangross/orchestkit/issues/3149)) ([5fc5031](https://github.com/yonatangross/orchestkit/commit/5fc5031cac828c31284eed6dbd899f700acd7f4c))"
@@ -2276,6 +2492,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**docs:** pin playground links to the commit SHA, not the branch ([#3148](https://github.com/yonatangross/orchestkit/issues/3148)) ([30d575f](https://github.com/yonatangross/orchestkit/commit/30d575f5e034057d0027e15d716904c68660b539))",
           "**hooks:** bound hook-timing.jsonl, the one analytics file with no cap ([#3151](https://github.com/yonatangross/orchestkit/issues/3151)) ([d389c37](https://github.com/yonatangross/orchestkit/commit/d389c374d00c349a9852f77bc84f25e076d5c930))"
@@ -2283,6 +2500,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**deps:** weekly upstream pin sync ([#3145](https://github.com/yonatangross/orchestkit/issues/3145)) ([9dd49fe](https://github.com/yonatangross/orchestkit/commit/9dd49fe42764acb297b6c019cb63621703ba5b12))"
         ]
@@ -2292,16 +2510,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.85.0",
     "date": "2026-07-25",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.84.10...v8.85.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "agent activation routing (M170) ([#3133](https://github.com/yonatangross/orchestkit/issues/3133)) ([af4d6fd](https://github.com/yonatangross/orchestkit/commit/af4d6fdc807c84329035b240908fc8f1f91f4c87))"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "3 defects found by /ork:assess on the M170 diff ([#3136](https://github.com/yonatangross/orchestkit/issues/3136)) ([b8be78c](https://github.com/yonatangross/orchestkit/commit/b8be78c1786e49f9a368b8526ce00cf93eb6e47d))",
           "**build:** stop dropping argument-hint from generated commands ([#3146](https://github.com/yonatangross/orchestkit/issues/3146)) ([be63597](https://github.com/yonatangross/orchestkit/commit/be635970a637381feb24ee85f655d9b4f8c2b34a))",
@@ -2315,6 +2535,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc-watch:** snapshot upstream CHANGELOG (2.1.218) ([#3120](https://github.com/yonatangross/orchestkit/issues/3120)) ([2414aaf](https://github.com/yonatangross/orchestkit/commit/2414aafa2c500c916bea76d8c6f300450b65e978))",
           "**cc-watch:** snapshot upstream CHANGELOG (2.1.220) ([#3140](https://github.com/yonatangross/orchestkit/issues/3140)) ([5dc0175](https://github.com/yonatangross/orchestkit/commit/5dc0175c8e32c0e458c032e31c8674608b42d46d))",
@@ -2327,16 +2548,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.84.10",
     "date": "2026-07-23",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.84.9...v8.84.10",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**ci:** drop the What's New freshness gate blocking the PR queue ([#3118](https://github.com/yonatangross/orchestkit/issues/3118)) ([c9308d0](https://github.com/yonatangross/orchestkit/commit/c9308d02d32715ca91974b1197bf91c111adae32))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**deps:** bump the npm-minor-patch group across 1 directory with 4 updates ([#3111](https://github.com/yonatangross/orchestkit/issues/3111)) ([5efd7e6](https://github.com/yonatangross/orchestkit/commit/5efd7e68e8e3b25cea818613f420f3995fbcaeca))",
           "**deps:** bump the remotion group across 1 directory with 21 updates ([#3110](https://github.com/yonatangross/orchestkit/issues/3110)) ([7278d19](https://github.com/yonatangross/orchestkit/commit/7278d19213b0e4ba7348a05bf4f18d7c3a87553e))"
@@ -2344,6 +2567,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump the github-actions group across 1 directory with 6 updates ([#3112](https://github.com/yonatangross/orchestkit/issues/3112)) ([6e83f3a](https://github.com/yonatangross/orchestkit/commit/6e83f3aa81827b67b72ca22c8990ce4f3a6c3723))"
         ]
@@ -2353,16 +2577,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.84.9",
     "date": "2026-07-23",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.84.8...v8.84.9",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**ci:** scope What's New --check to PRs, refresh for 8.84.8 ([#3113](https://github.com/yonatangross/orchestkit/issues/3113)) ([b14c62d](https://github.com/yonatangross/orchestkit/commit/b14c62d430a15a6e28c375697beead6760d1480b))"
         ]
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "**review:** allow the release bot to trigger a review ([#3114](https://github.com/yonatangross/orchestkit/issues/3114)) ([bbff822](https://github.com/yonatangross/orchestkit/commit/bbff8220ec9eb36e123348c1df1e7acd9da8f584))",
           "**review:** skip auto-label on Dependabot PRs (no secret access) ([#3116](https://github.com/yonatangross/orchestkit/issues/3116)) ([8707f66](https://github.com/yonatangross/orchestkit/commit/8707f661abd9d9ff738b1c1707feb4ec35607ab9))"
@@ -2373,10 +2599,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.84.8",
     "date": "2026-07-23",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.84.7...v8.84.8",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** stop denying local data piped to an interpreter ([#3097](https://github.com/yonatangross/orchestkit/issues/3097)) ([4c9b973](https://github.com/yonatangross/orchestkit/commit/4c9b9731c29854a96e716f32c286b11d53345327))",
           "**security:** remove privesc in release regen, tighten allowlist ([#3102](https://github.com/yonatangross/orchestkit/issues/3102)) ([7a11882](https://github.com/yonatangross/orchestkit/commit/7a1188234724b435b5f53e8b53e321848b9cb0b4))"
@@ -2384,6 +2611,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "**demos:** make renderer check gate-able, split remotion bumps ([#3105](https://github.com/yonatangross/orchestkit/issues/3105)) ([aba09d4](https://github.com/yonatangross/orchestkit/commit/aba09d41ef387bb93859ad0601c28ddc61b3fb42))",
           "**review:** auto-run Claude review on sensitive PRs, ban dead gates ([#3104](https://github.com/yonatangross/orchestkit/issues/3104)) ([5900e29](https://github.com/yonatangross/orchestkit/commit/5900e298b2637d837f67cc1296d7e04da4df791f))"
@@ -2394,10 +2622,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.84.7",
     "date": "2026-07-23",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.84.6...v8.84.7",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**demos:** repair the Remotion renderer, validate it pre-merge ([#3099](https://github.com/yonatangross/orchestkit/issues/3099)) ([1447afa](https://github.com/yonatangross/orchestkit/commit/1447afa35cf290ece3bfd2de075cfc2262564a40))"
         ]
@@ -2407,16 +2636,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.84.6",
     "date": "2026-07-23",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.84.5...v8.84.6",
     "sections": [
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc-watch:** snapshot upstream CHANGELOG (2.1.218) ([#3094](https://github.com/yonatangross/orchestkit/issues/3094)) ([bbd760e](https://github.com/yonatangross/orchestkit/commit/bbd760e48e03396a3f0a63fd0c1b97615f904940))"
         ]
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "**readme:** auto-generate What's New from CHANGELOG ([#3096](https://github.com/yonatangross/orchestkit/issues/3096)) ([667aebe](https://github.com/yonatangross/orchestkit/commit/667aebe872f4ff7a1eb1a4ea162aff7713f3ee94))"
         ]
@@ -2426,10 +2657,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.84.5",
     "date": "2026-07-22",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.84.4...v8.84.5",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**ci:** scope Claude workflow tools, gate triage on author ([#3085](https://github.com/yonatangross/orchestkit/issues/3085)) ([2835d07](https://github.com/yonatangross/orchestkit/commit/2835d075ad065ea273c5e1339f88a0650018d9e3))",
           "**security:** audit all four trees in CI, pin sharp ([#3090](https://github.com/yonatangross/orchestkit/issues/3090)) ([b23e208](https://github.com/yonatangross/orchestkit/commit/b23e2087f8089a001be9a6f933aba73246518e01))",
@@ -2441,10 +2673,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.84.4",
     "date": "2026-07-22",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.84.3...v8.84.4",
     "sections": [
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**skills:** burn model-recency ratchet to zero ([#3056](https://github.com/yonatangross/orchestkit/issues/3056)) ([f0f9557](https://github.com/yonatangross/orchestkit/commit/f0f9557369e2f1a7f3d268af09f1ba4f810aebd0))"
         ]
@@ -2454,16 +2687,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.84.3",
     "date": "2026-07-22",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.84.2...v8.84.3",
     "sections": [
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**hook-contract:** bump to 0.1.2, domain-anchored SDK provenance ([#3080](https://github.com/yonatangross/orchestkit/issues/3080)) ([dd17002](https://github.com/yonatangross/orchestkit/commit/dd17002e5be00408177ebb6169e0d26287808924))"
         ]
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "pin npm to 11.x in the hook-contract publish job ([#3082](https://github.com/yonatangross/orchestkit/issues/3082)) ([0aad2e7](https://github.com/yonatangross/orchestkit/commit/0aad2e7cae5eca201f2cd08098fb04e05f1a7f22))"
         ]
@@ -2473,10 +2708,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.84.2",
     "date": "2026-07-22",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.84.1...v8.84.2",
     "sections": [
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc-watch:** snapshot upstream CHANGELOG (2.1.217) ([#3070](https://github.com/yonatangross/orchestkit/issues/3070)) ([565e5e7](https://github.com/yonatangross/orchestkit/commit/565e5e7f8d53e3aaba0f4e013a65a4004b98e418))",
           "**deps:** bump body-parser from 2.2.2 to 2.3.0 in /src/mcp-server ([#3065](https://github.com/yonatangross/orchestkit/issues/3065)) ([c7dba92](https://github.com/yonatangross/orchestkit/commit/c7dba92134716cff5c8728456be0efcd3c47ee01))",
@@ -2487,6 +2723,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "make nightly health failures diagnosable ([#3072](https://github.com/yonatangross/orchestkit/issues/3072)) ([d3b2901](https://github.com/yonatangross/orchestkit/commit/d3b2901090ca40dea4d8fffb866f9c847aecb778))",
           "validate pinned Claude model IDs at commit time ([#3077](https://github.com/yonatangross/orchestkit/issues/3077)) ([2e850e3](https://github.com/yonatangross/orchestkit/commit/2e850e31f472f1afd330ee16d95332adb4ae7e6b))"
@@ -2497,10 +2734,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.84.1",
     "date": "2026-07-21",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.84.0...v8.84.1",
     "sections": [
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "fix playground gate messaging and release-PR stranding ([#3063](https://github.com/yonatangross/orchestkit/issues/3063)) ([95d8e8d](https://github.com/yonatangross/orchestkit/commit/95d8e8dfa73306ffe3bc4c66841a3756343a5e79))"
         ]
@@ -2510,16 +2748,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.84.0",
     "date": "2026-07-21",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.83.1...v8.84.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**evals:** honest verdicts, three new gates, and a budget governor ([a1490b0](https://github.com/yonatangross/orchestkit/commit/a1490b022d235105dd6fe04dfac28c966c063a0c))"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**dream:** stop auto-pruning live memories with out-of-repo refs ([1df5cd4](https://github.com/yonatangross/orchestkit/commit/1df5cd4834f7a73a1de487fd17c2dea1c4b1f51f))",
           "**evals:** score effective recall over the full positive population ([#3049](https://github.com/yonatangross/orchestkit/issues/3049)) ([e821cbf](https://github.com/yonatangross/orchestkit/commit/e821cbf4bd25e8c72982cce1de28c31ff3a1f903))"
@@ -2527,12 +2767,14 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc-watch:** snapshot upstream CHANGELOG (2.1.216) ([#3053](https://github.com/yonatangross/orchestkit/issues/3053)) ([4a671c9](https://github.com/yonatangross/orchestkit/commit/4a671c9fa16611bbf6b62d249ccb47300898cd95))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "add AGENTS.md for AI coding agent discoverability ([#3059](https://github.com/yonatangross/orchestkit/issues/3059)) ([df25757](https://github.com/yonatangross/orchestkit/commit/df2575715520e951ffeab47267a01bd980ce937a))"
         ]
@@ -2542,10 +2784,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.83.1",
     "date": "2026-07-20",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.83.0...v8.83.1",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**evals:** report an eval outage as inconclusive, not as a skill regression ([#3047](https://github.com/yonatangross/orchestkit/issues/3047)) ([105cd62](https://github.com/yonatangross/orchestkit/commit/105cd6246b1032f9fcb5ffb7e646152c843307f0))"
         ]
@@ -2555,10 +2798,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.83.0",
     "date": "2026-07-20",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.82.1...v8.83.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**cmux:** add declarative team layout for cmux ([#3045](https://github.com/yonatangross/orchestkit/issues/3045)) ([1eb838b](https://github.com/yonatangross/orchestkit/commit/1eb838bfeae4e526a111198ae88458e3704589c1))",
           "**cover,hooks,auto:** close four AI-developer-workflow gaps ([#3044](https://github.com/yonatangross/orchestkit/issues/3044)) ([f644290](https://github.com/yonatangross/orchestkit/commit/f644290a881a41b1915ed6beb76809bd0c9f07cb))"
@@ -2569,10 +2813,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.82.1",
     "date": "2026-07-20",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.82.0...v8.82.1",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**evals:** refuse to grade dead generations ([#3043](https://github.com/yonatangross/orchestkit/issues/3043)) ([6c40c80](https://github.com/yonatangross/orchestkit/commit/6c40c80d126e71cea79c1c75b5e7b7969e0dc5f2))",
           "**hooks:** mark phantom stops, recover model, drop dead fields ([#3041](https://github.com/yonatangross/orchestkit/issues/3041)) ([7fcdce8](https://github.com/yonatangross/orchestkit/commit/7fcdce8dbe2e2b2b38bdd3df4324c01b6475042f))"
@@ -2580,12 +2825,14 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**labs:** weekly upstream pin sync ([#3039](https://github.com/yonatangross/orchestkit/issues/3039)) ([8470fa5](https://github.com/yonatangross/orchestkit/commit/8470fa51da9b571d0a402dd4dd9c562fa5544935))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "reconcile every surface this session made stale ([#3040](https://github.com/yonatangross/orchestkit/issues/3040)) ([5b6239a](https://github.com/yonatangross/orchestkit/commit/5b6239a401c2935bc19c13fc822814fdb6188bf0))"
         ]
@@ -2595,28 +2842,32 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.82.0",
     "date": "2026-07-20",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.81.0...v8.82.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**playgrounds:** living-plan archetype (LPP) ([#3019](https://github.com/yonatangross/orchestkit/issues/3019)) ([cb03e49](https://github.com/yonatangross/orchestkit/commit/cb03e4981cf5b4fa99c1be697431aa3cc13a63c1))"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**analytics:** stop advertising data the file cannot provide ([#3037](https://github.com/yonatangross/orchestkit/issues/3037)) ([96bc00c](https://github.com/yonatangross/orchestkit/commit/96bc00c4834222750371085b6eaeb5923bd2c3c9))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**deps:** bump the npm-minor-patch group across 1 directory with 21 updates ([#3030](https://github.com/yonatangross/orchestkit/issues/3030)) ([927229c](https://github.com/yonatangross/orchestkit/commit/927229c34ba6e4eb70f0af8563ea7d9801dd05bc))"
         ]
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump the github-actions group across 1 directory with 2 updates ([#3031](https://github.com/yonatangross/orchestkit/issues/3031)) ([e062c96](https://github.com/yonatangross/orchestkit/commit/e062c96a83ed7e87edae613ac67b00882e7b9af5))"
         ]
@@ -2626,10 +2877,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.81.0",
     "date": "2026-07-20",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.80.3...v8.81.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**hooks:** analytics dead-writer liveness guard + routing_edge view ([#3026](https://github.com/yonatangross/orchestkit/issues/3026)) ([ac3d7ba](https://github.com/yonatangross/orchestkit/commit/ac3d7bae5bdb3f3f8fef71b7c0781e9ebc69a926))"
         ]
@@ -2639,10 +2891,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.80.3",
     "date": "2026-07-20",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.80.2...v8.80.3",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** latch the session-title /rename guard so it can't leak ([#3025](https://github.com/yonatangross/orchestkit/issues/3025)) ([b2f075f](https://github.com/yonatangross/orchestkit/commit/b2f075f4a0233339506fe957a3d8ee56866c5017))",
           "**security:** resolve 5 real CodeQL findings, dismiss 4 as noise ([#3022](https://github.com/yonatangross/orchestkit/issues/3022)) ([ddc4759](https://github.com/yonatangross/orchestkit/commit/ddc475937bce454d18ac87295c6891198f05b143))"
@@ -2653,10 +2906,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.80.2",
     "date": "2026-07-19",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.80.1...v8.80.2",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** here-string guard escalates to ASK instead of DENY ([#3021](https://github.com/yonatangross/orchestkit/issues/3021)) ([69fbfcb](https://github.com/yonatangross/orchestkit/commit/69fbfcbfe0eef3188a455954319321f656781786))",
           "**hooks:** stop flagging quoted-heredoc bodies as shell attacks ([#3015](https://github.com/yonatangross/orchestkit/issues/3015)) ([6747007](https://github.com/yonatangross/orchestkit/commit/6747007adb735fcd147f420d5b8cf4d994491ac6))"
@@ -2664,6 +2918,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "make the gates real, and stop the pipe guard blocking quoted text ([#3018](https://github.com/yonatangross/orchestkit/issues/3018)) ([eb3e4e9](https://github.com/yonatangross/orchestkit/commit/eb3e4e9b3b487780d1fbb1f7b1d8b44bfd89c0c9))",
           "pin actions in skill-claims-audit to SHA ([#3020](https://github.com/yonatangross/orchestkit/issues/3020)) ([f7349ec](https://github.com/yonatangross/orchestkit/commit/f7349ec9376a0d815e48bd02c01b5fb857018972))"
@@ -2674,10 +2929,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.80.1",
     "date": "2026-07-19",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.80.0...v8.80.1",
     "sections": [
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**deps-dev:** bump @biomejs/biome from 2.5.3 to 2.5.4 in /src/hooks in the npm-minor-patch group ([#3006](https://github.com/yonatangross/orchestkit/issues/3006)) ([89057c4](https://github.com/yonatangross/orchestkit/commit/89057c4a4b4e1a506db93961b277b27d64f39717))",
           "**deps:** bump the npm-minor-patch group ([#3009](https://github.com/yonatangross/orchestkit/issues/3009)) ([deebb70](https://github.com/yonatangross/orchestkit/commit/deebb7016514baa9473ed03edff5c51d377e7763))"
@@ -2685,6 +2941,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump the github-actions group with 7 updates ([#3010](https://github.com/yonatangross/orchestkit/issues/3010)) ([def4f72](https://github.com/yonatangross/orchestkit/commit/def4f72908868a083e0d93811226e3ff3451dc1b))",
           "skip autoheal on dependabot PRs instead of failing ([#3013](https://github.com/yonatangross/orchestkit/issues/3013)) ([ade336b](https://github.com/yonatangross/orchestkit/commit/ade336b58a5864149d99a03b06df893984895d0c))"
@@ -2695,16 +2952,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.80.0",
     "date": "2026-07-19",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.79.0...v8.80.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**docs-site:** scroll-world ride homepage + yonyon rebrand ([d348761](https://github.com/yonatangross/orchestkit/commit/d348761059362e40772c114053c8d6dd93a443f0))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc-watch:** snapshot upstream CHANGELOG (2.1.215) ([#3004](https://github.com/yonatangross/orchestkit/issues/3004)) ([6f0747a](https://github.com/yonatangross/orchestkit/commit/6f0747a98acc32990000285ea009456e29d04653))",
           "remove agentation and the never-published release channels ([b23da59](https://github.com/yonatangross/orchestkit/commit/b23da597e15980cef182e39029147a3c97ce6b34))"
@@ -2715,10 +2974,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.79.0",
     "date": "2026-07-18",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.78.0...v8.79.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**cc-watch:** evidence-gated filing lanes - precision gate + sub-floor recall ([#2992](https://github.com/yonatangross/orchestkit/issues/2992), [#2993](https://github.com/yonatangross/orchestkit/issues/2993)) ([#2995](https://github.com/yonatangross/orchestkit/issues/2995)) ([efee8f1](https://github.com/yonatangross/orchestkit/commit/efee8f1d663242d014307db7209113897bf8d140))",
           "**cc:** adopt CC 2.1.209-214, advance latest_known to 2.1.214 ([#2994](https://github.com/yonatangross/orchestkit/issues/2994)) ([04b6906](https://github.com/yonatangross/orchestkit/commit/04b6906131adc0d76383121462f9fe006688b38d))",
@@ -2729,6 +2989,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc-watch:** snapshot upstream CHANGELOG (2.1.214) ([#2989](https://github.com/yonatangross/orchestkit/issues/2989)) ([a951b80](https://github.com/yonatangross/orchestkit/commit/a951b803d8f051b019e6f30e2f8ca78877e81203))",
           "**hygiene:** drift fixes - claims gate, islands gate, hooks.json ([#2996](https://github.com/yonatangross/orchestkit/issues/2996)) ([01c5dbd](https://github.com/yonatangross/orchestkit/commit/01c5dbdcaa72d05d9924feaa74f48eb72007d217))"
@@ -2739,16 +3000,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.78.0",
     "date": "2026-07-17",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.77.1...v8.78.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**docs-site:** reference root tab + sidebar IA repair ([#2963](https://github.com/yonatangross/orchestkit/issues/2963)) ([a001df0](https://github.com/yonatangross/orchestkit/commit/a001df0296494a2c23208dadf86de232ae9aae87))"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**audit:** correct silently-wrong line counts in audit scripts ([#2966](https://github.com/yonatangross/orchestkit/issues/2966)) ([017841a](https://github.com/yonatangross/orchestkit/commit/017841a681713128c3f6eeaaf90e0fdd9f28477c))",
           "**counts:** correct the CI line gate and the complexity LOC scan ([#2973](https://github.com/yonatangross/orchestkit/issues/2973)) ([740dd9c](https://github.com/yonatangross/orchestkit/commit/740dd9c020aa98aa26bf0d490851e1c8c0c7bb0f))",
@@ -2759,6 +3022,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc-watch:** snapshot upstream CHANGELOG (2.1.212) ([#2946](https://github.com/yonatangross/orchestkit/issues/2946)) ([0210a37](https://github.com/yonatangross/orchestkit/commit/0210a37f665c2be71ce158d2440261f5a4e27348))"
         ]
@@ -2768,10 +3032,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.77.1",
     "date": "2026-07-16",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.77.0...v8.77.1",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** close two display-lint exemption bypasses ([#2932](https://github.com/yonatangross/orchestkit/issues/2932)) ([fe8b8c2](https://github.com/yonatangross/orchestkit/commit/fe8b8c292ae53369e22094fc4839a218fdd9e49d))"
         ]
@@ -2781,10 +3046,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.77.0",
     "date": "2026-07-16",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.76.0...v8.77.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**hooks:** display-lint gate, de-clutter Bash transcript at the source ([#2930](https://github.com/yonatangross/orchestkit/issues/2930)) ([86f1b56](https://github.com/yonatangross/orchestkit/commit/86f1b56e22cbb22ff365fc6422bb87b17e9290e3))"
         ]
@@ -2794,10 +3060,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.76.0",
     "date": "2026-07-16",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.75.0...v8.76.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**hooks:** fired-census + fix a 4.5-month telemetry blind spot ([#2913](https://github.com/yonatangross/orchestkit/issues/2913)) ([958b897](https://github.com/yonatangross/orchestkit/commit/958b89719f4a7678133bf2f44d8205c8f903ae59))",
           "**telemetry-inspect:** consume the fired-census ([#2915](https://github.com/yonatangross/orchestkit/issues/2915)) ([7e40ffd](https://github.com/yonatangross/orchestkit/commit/7e40ffd2fec3fe31e8588f54e5afe305d5c34058))"
@@ -2805,6 +3072,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**cc-triage:** raise opus extraction timeout to 180s (was 60s) ([#2922](https://github.com/yonatangross/orchestkit/issues/2922)) ([8885c8e](https://github.com/yonatangross/orchestkit/commit/8885c8e2a03865cfa4fc4a8aca5b942f22463ee6))",
           "**hooks:** session-scope shared state, kill cross-session bleed ([#2920](https://github.com/yonatangross/orchestkit/issues/2920)) ([e21b720](https://github.com/yonatangross/orchestkit/commit/e21b720b98016f5973da7b70febc87a662de188b)), closes [#2919](https://github.com/yonatangross/orchestkit/issues/2919)"
@@ -2812,6 +3080,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc-watch:** snapshot upstream CHANGELOG (2.1.211) ([#2918](https://github.com/yonatangross/orchestkit/issues/2918)) ([38f5155](https://github.com/yonatangross/orchestkit/commit/38f5155382bbed2f8f44213aefb1b8d76bc8b67f))",
           "**cc-watch:** snapshot upstream CHANGELOG (2.1.211) ([#2921](https://github.com/yonatangross/orchestkit/issues/2921)) ([56306f9](https://github.com/yonatangross/orchestkit/commit/56306f9a22bbb89b87c4a086065b755cb4805ac2))",
@@ -2823,16 +3092,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.75.0",
     "date": "2026-07-15",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.74.0...v8.75.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**hooks:** phases 3-5 — see, speed, prove ([#2908](https://github.com/yonatangross/orchestkit/issues/2908)) ([e75d8c9](https://github.com/yonatangross/orchestkit/commit/e75d8c99ec8efa79af3d57bb7213f0dcae4423b8)), closes [#1847](https://github.com/yonatangross/orchestkit/issues/1847)"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**ci:** unbreak main tails - skill counts, eval content, file guard ([#2911](https://github.com/yonatangross/orchestkit/issues/2911)) ([dd75fc1](https://github.com/yonatangross/orchestkit/commit/dd75fc1b2cd56bc035a91f0393b89e3eecebc2eb))",
           "**hooks:** unbreak main — 3 red checks from the P3-5 merge ([#2910](https://github.com/yonatangross/orchestkit/issues/2910)) ([a20eac1](https://github.com/yonatangross/orchestkit/commit/a20eac1363a53033c9b6a798718a06f400eea002))"
@@ -2840,6 +3111,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc-watch:** snapshot upstream CHANGELOG (2.1.210) ([#2907](https://github.com/yonatangross/orchestkit/issues/2907)) ([6190c5f](https://github.com/yonatangross/orchestkit/commit/6190c5fdf64ad4ae5572135f7579f8dfbf3f333c))",
           "**ci:** bump remaining CC pins from 2.1.148 to floor 2.1.206 ([#2912](https://github.com/yonatangross/orchestkit/issues/2912)) ([2d22a3a](https://github.com/yonatangross/orchestkit/commit/2d22a3a9b4956f9ac8573c5b5d36c034fc0d0a5f))"
@@ -2850,10 +3122,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.74.0",
     "date": "2026-07-14",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.73.0...v8.74.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**hooks:** bury all 51 dead hooks — registry closure now exact ([#2889](https://github.com/yonatangross/orchestkit/issues/2889)) ([51c4d21](https://github.com/yonatangross/orchestkit/commit/51c4d214c27efed1d3cc83232fbd51667dc31b57))",
           "**hooks:** CI gate for hook-registry reachability closure ([#2887](https://github.com/yonatangross/orchestkit/issues/2887)) ([0859f22](https://github.com/yonatangross/orchestkit/commit/0859f224c610666bbd969d40a52db0dee6f89e00))"
@@ -2861,6 +3134,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** team-size-gate never fired — matcher is Agent, not Task ([#2886](https://github.com/yonatangross/orchestkit/issues/2886)) ([546613d](https://github.com/yonatangross/orchestkit/commit/546613d28b2c0bc2b727cafd7ac320de494b6f1c))"
         ]
@@ -2870,10 +3144,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.73.0",
     "date": "2026-07-14",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.72.0...v8.73.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**hooks:** deprecate channel-1 generate:http-hooks ([#2884](https://github.com/yonatangross/orchestkit/issues/2884)) ([f3243be](https://github.com/yonatangross/orchestkit/commit/f3243be8b4a4ab9c63b99d21cab7d5bb2128f3c5)), closes [#1861](https://github.com/yonatangross/orchestkit/issues/1861)"
         ]
@@ -2883,16 +3158,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.72.0",
     "date": "2026-07-14",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.71.1...v8.72.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**hook-contract:** OpenAPI sink spec + portable client example ([#2883](https://github.com/yonatangross/orchestkit/issues/2883)) ([ce2ecc1](https://github.com/yonatangross/orchestkit/commit/ce2ecc14734878da71991fb6cf5b6a17994abaf2)), closes [#1806](https://github.com/yonatangross/orchestkit/issues/1806) [#1808](https://github.com/yonatangross/orchestkit/issues/1808)"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** revive team-size-gate as session fan-out ledger ([#2561](https://github.com/yonatangross/orchestkit/issues/2561)) ([#2881](https://github.com/yonatangross/orchestkit/issues/2881)) ([3a460da](https://github.com/yonatangross/orchestkit/commit/3a460da900f2fb7b3ee3207b175120451a604bcd))"
         ]
@@ -2902,10 +3179,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.71.1",
     "date": "2026-07-14",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.71.0...v8.71.1",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**vocab:** un-suspend Fable 5 — GA, consent-gated (not suspended) ([#2879](https://github.com/yonatangross/orchestkit/issues/2879)) ([ee91a33](https://github.com/yonatangross/orchestkit/commit/ee91a33527219050c3820542c2ed485f218c049b))"
         ]
@@ -2915,16 +3193,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.71.0",
     "date": "2026-07-14",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.70.3...v8.71.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**loop-gates:** harden streak + cross-model gates, review holdout labels (M161) ([#2873](https://github.com/yonatangross/orchestkit/issues/2873)) ([a470f19](https://github.com/yonatangross/orchestkit/commit/a470f19ba70fedfe8488688f01a87d0bd9f53902))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**hooks:** ORK_NO_NOTIFY opt-out + playground-warner opt-in-by-detection ([#2876](https://github.com/yonatangross/orchestkit/issues/2876)) ([f5ef746](https://github.com/yonatangross/orchestkit/commit/f5ef74635580f482249556d4fde5c66c46aa4889))"
         ]
@@ -2934,10 +3214,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.70.3",
     "date": "2026-07-14",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.70.2...v8.70.3",
     "sections": [
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc:** reconcile 7 auto-filed 2.1.207-208 adoption issues ([#2871](https://github.com/yonatangross/orchestkit/issues/2871)) ([ab3282d](https://github.com/yonatangross/orchestkit/commit/ab3282d3e32a205c357ec802d901a8c290a1e17f))"
         ]
@@ -2947,10 +3228,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.70.2",
     "date": "2026-07-14",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.70.1...v8.70.2",
     "sections": [
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc-watch:** snapshot upstream CHANGELOG (2.1.208) ([#2867](https://github.com/yonatangross/orchestkit/issues/2867)) ([9d8942a](https://github.com/yonatangross/orchestkit/commit/9d8942a90aeedfe678caad1abfb89b5483fd54a4))",
           "**cc:** advance latest_known 2.1.206 → 2.1.208 (soft, floor frozen) ([#2870](https://github.com/yonatangross/orchestkit/issues/2870)) ([90996b5](https://github.com/yonatangross/orchestkit/commit/90996b56aa657b7c50f901182909851210f828d7))",
@@ -2966,22 +3248,25 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.70.1",
     "date": "2026-07-13",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.70.0...v8.70.1",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "quote argument-hint YAML values so Copilot CLI ≥1.0.65 loads all skills (closes [#2863](https://github.com/yonatangross/orchestkit/issues/2863)) ([#2864](https://github.com/yonatangross/orchestkit/issues/2864)) ([4d7d2d0](https://github.com/yonatangross/orchestkit/commit/4d7d2d051e32a4f320ac32f24d18a74a4918c0e6))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**deps-dev:** bump @types/node ([#2851](https://github.com/yonatangross/orchestkit/issues/2851)) ([b8e9a9f](https://github.com/yonatangross/orchestkit/commit/b8e9a9f2dbb2003b40e9727fad5efe2eeb1d8ca2))"
         ]
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "add argument-hint quoting lint, skip fork PR report comment ([#2865](https://github.com/yonatangross/orchestkit/issues/2865)) ([fc8c8ed](https://github.com/yonatangross/orchestkit/commit/fc8c8edc4f3f678c590c5a4ddcb6cb549a998b2f))"
         ]
@@ -2991,22 +3276,25 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.70.0",
     "date": "2026-07-12",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.69.1...v8.70.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**auto:** reframe /ork:auto as the default front door ([#2849](https://github.com/yonatangross/orchestkit/issues/2849)) ([4d4c0e8](https://github.com/yonatangross/orchestkit/commit/4d4c0e8f22f9e1bbf5e035ac7ff6fb7bddbe5a56))"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** restore skill-usage analytics + agent-type attribution at SubagentStop ([#2850](https://github.com/yonatangross/orchestkit/issues/2850)) ([f2e0159](https://github.com/yonatangross/orchestkit/commit/f2e0159e7210ce87d2cba52db9b2d40fcb85e975))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc-watch:** snapshot upstream CHANGELOG (2.1.207) ([#2848](https://github.com/yonatangross/orchestkit/issues/2848)) ([a7d9678](https://github.com/yonatangross/orchestkit/commit/a7d96786074d0004bbfa8b6c00d413ca210e9195))",
           "untrack 7.5MB build artifacts + local state, remove dead playgrounds/ ([#2845](https://github.com/yonatangross/orchestkit/issues/2845)) ([d2c724c](https://github.com/yonatangross/orchestkit/commit/d2c724ca2fec1fdb1a60c86ca89f380514715a69))"
@@ -3014,6 +3302,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "add READMEs for the 4 convention-anchor dirs ([#2847](https://github.com/yonatangross/orchestkit/issues/2847)) ([154f9fb](https://github.com/yonatangross/orchestkit/commit/154f9fb6dd84e0f0b7f187ddd159e8617da80f48))"
         ]
@@ -3023,10 +3312,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.69.1",
     "date": "2026-07-11",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.69.0...v8.69.1",
     "sections": [
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc-watch:** snapshot upstream CHANGELOG (2.1.207) ([#2839](https://github.com/yonatangross/orchestkit/issues/2839)) ([1031ff3](https://github.com/yonatangross/orchestkit/commit/1031ff388b4d16cada2dd86128a39e696bfdea59))",
           "de-bloat logo + add playground-drift recurrence guard ([#2844](https://github.com/yonatangross/orchestkit/issues/2844)) ([8abd7d0](https://github.com/yonatangross/orchestkit/commit/8abd7d005a751a1529c35c30f272b221065db4c7))",
@@ -3039,16 +3329,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.69.0",
     "date": "2026-07-10",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.68.3...v8.69.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**cc:** bump support floor 2.1.183 → 2.1.206 (renew strict pin) ([#2830](https://github.com/yonatangross/orchestkit/issues/2830)) ([10a2d30](https://github.com/yonatangross/orchestkit/commit/10a2d30e8fd4bfaaad45e385f7e3aa4eaa6afd32))"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** re-architect InstructionsLoaded to real single-file payload ([#2832](https://github.com/yonatangross/orchestkit/issues/2832)) ([7061fcb](https://github.com/yonatangross/orchestkit/commit/7061fcb1a0d744301822b35e6ab97e099f8b318c)), closes [#2475](https://github.com/yonatangross/orchestkit/issues/2475)"
         ]
@@ -3058,10 +3350,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.68.3",
     "date": "2026-07-10",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.68.2...v8.68.3",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "bug-triage sweep — eval-runner grounding, telemetry dark-check, orphaned stager, autobuild re-trigger ([#2828](https://github.com/yonatangross/orchestkit/issues/2828)) ([8426e45](https://github.com/yonatangross/orchestkit/commit/8426e4591045921eb560118e6994917b96210668))"
         ]
@@ -3071,16 +3364,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.68.2",
     "date": "2026-07-10",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.68.1...v8.68.2",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** restore [#959](https://github.com/yonatangross/orchestkit/issues/959)-dropped PreToolUse Skill dispatch ([#2813](https://github.com/yonatangross/orchestkit/issues/2813)) ([c069e27](https://github.com/yonatangross/orchestkit/commit/c069e27b7f5d4b1dface60bdf007eec2930d376e))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**1p:** genericize committed op:// refs in public repo ([#2814](https://github.com/yonatangross/orchestkit/issues/2814)) ([d70a23e](https://github.com/yonatangross/orchestkit/commit/d70a23ebf08b47ffd68461dce689c48b77fc4a0e))",
           "**cc-watch:** snapshot upstream CHANGELOG (2.1.205) ([#2812](https://github.com/yonatangross/orchestkit/issues/2812)) ([2b062f3](https://github.com/yonatangross/orchestkit/commit/2b062f3ff07822b410a3efe3907425e8b6ef83f0))",
@@ -3094,10 +3389,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.68.1",
     "date": "2026-07-08",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.68.0...v8.68.1",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**agent-readiness:** orank gap triage - block scrape bots, fix PyPI homepage ([#2797](https://github.com/yonatangross/orchestkit/issues/2797)) ([b0526a6](https://github.com/yonatangross/orchestkit/commit/b0526a61167aba885a53169c28714a292a634f01))",
           "**hooks:** telemetry event field falls back to '' instead of 'unknown' ([#2800](https://github.com/yonatangross/orchestkit/issues/2800)) ([81f8563](https://github.com/yonatangross/orchestkit/commit/81f85639c6e0092b6f5816ef3b5a5e4c684e3a6b)), closes [#2799](https://github.com/yonatangross/orchestkit/issues/2799)"
@@ -3108,10 +3404,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.68.0",
     "date": "2026-07-08",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.67.0...v8.68.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**skills:** adopt MengTo/Skills quality-bar + stylecard patterns ([#2794](https://github.com/yonatangross/orchestkit/issues/2794)) ([f1104d4](https://github.com/yonatangross/orchestkit/commit/f1104d4dfcf3e2d99ca54170ebc04e31c2159f17))"
         ]
@@ -3121,16 +3418,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.67.0",
     "date": "2026-07-08",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.66.0...v8.67.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**cc-adoption:** adopt CC 2.1.203 + 2.1.204 ([#2792](https://github.com/yonatangross/orchestkit/issues/2792)) ([21a97cf](https://github.com/yonatangross/orchestkit/commit/21a97cf011499be5cf65472b1c08f21ebf16653d))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**skills:** document fable symbolic model name in --model plumbing ([#2791](https://github.com/yonatangross/orchestkit/issues/2791)) ([8dba6fb](https://github.com/yonatangross/orchestkit/commit/8dba6fb29e6903c5ed8d2c7a15a9b5343c493cd6))"
         ]
@@ -3140,22 +3439,25 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.66.0",
     "date": "2026-07-08",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.65.2...v8.66.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**cc-adoption:** adopt CC 2.1.202 ([2669c62](https://github.com/yonatangross/orchestkit/commit/2669c6242708008997d40b654f8974583c820976))"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**emulate-seed:** mention emulate 0.9.0 (Nuxt adapter) in skill body ([#2778](https://github.com/yonatangross/orchestkit/issues/2778)) ([347b2a5](https://github.com/yonatangross/orchestkit/commit/347b2a58c00da20fc4410ec215a8298290d95759))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc-watch:** snapshot upstream CHANGELOG (2.1.202) ([#2777](https://github.com/yonatangross/orchestkit/issues/2777)) ([79761bb](https://github.com/yonatangross/orchestkit/commit/79761bb7b4edb993e64405d5d4065662a10fa736))",
           "**cc-watch:** snapshot upstream CHANGELOG (2.1.204) ([#2789](https://github.com/yonatangross/orchestkit/issues/2789)) ([37cb450](https://github.com/yonatangross/orchestkit/commit/37cb450c46f3addaeb1eda71ef607f34a2adf416))",
@@ -3164,6 +3466,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "**auth:** move 4 Claude workflows to OAuth, throttle sentinel to daily ([#2790](https://github.com/yonatangross/orchestkit/issues/2790)) ([81f449a](https://github.com/yonatangross/orchestkit/commit/81f449ad5ed5c6723df2bee4255169d362ee1df7))",
           "**release-announce:** growth channels, no LinkedIn ([#2781](https://github.com/yonatangross/orchestkit/issues/2781)) ([2f6a1d1](https://github.com/yonatangross/orchestkit/commit/2f6a1d12e96ef101c871d667f8fae9ebb1b1ae94))",
@@ -3175,10 +3478,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.65.2",
     "date": "2026-07-06",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.65.1...v8.65.2",
     "sections": [
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc-watch:** snapshot upstream CHANGELOG (2.1.201) ([#2771](https://github.com/yonatangross/orchestkit/issues/2771)) ([95e468e](https://github.com/yonatangross/orchestkit/commit/95e468ef9165bde7a022b607fee2ef1b75c5e83e))",
           "**deps-dev:** bump the npm-minor-patch group across 1 directory with 3 updates ([#2774](https://github.com/yonatangross/orchestkit/issues/2774)) ([0b9b330](https://github.com/yonatangross/orchestkit/commit/0b9b3307b303af02485c046a2c16a1aa111bab2e))",
@@ -3189,6 +3493,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump the github-actions group with 5 updates ([#2770](https://github.com/yonatangross/orchestkit/issues/2770)) ([1324ad6](https://github.com/yonatangross/orchestkit/commit/1324ad67f8af9b1da4c3e1e6c9cd91b16bf89102))"
         ]
@@ -3198,10 +3503,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.65.1",
     "date": "2026-07-06",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.65.0...v8.65.1",
     "sections": [
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**deps-dev:** bump @types/node ([#2764](https://github.com/yonatangross/orchestkit/issues/2764)) ([ebc4505](https://github.com/yonatangross/orchestkit/commit/ebc45053f033fe123c7ef58f6cdf99224d3c66a9))"
         ]
@@ -3211,10 +3517,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.65.0",
     "date": "2026-07-05",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.64.1...v8.65.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**cc-adoption:** adopt CC 2.1.198-2.1.201 ([#2756](https://github.com/yonatangross/orchestkit/issues/2756)) ([6416db9](https://github.com/yonatangross/orchestkit/commit/6416db9a1581e99b225ae38a494d8c86cb7d1f1f))",
           "**fix-issue:** add Phase 4-5 blast-radius clarification gate ([#2758](https://github.com/yonatangross/orchestkit/issues/2758)) ([2347e64](https://github.com/yonatangross/orchestkit/commit/2347e64b5d47ac4b709f0cdb42612d6cc46cf7a6))",
@@ -3224,6 +3531,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**cc-triage:** graduate thin product announcements token-free ([#2760](https://github.com/yonatangross/orchestkit/issues/2760)) ([0bd5c1d](https://github.com/yonatangross/orchestkit/commit/0bd5c1d0cf6ea124a7ac72f297f11a78de7036a3))",
           "**skills:** heal labs skill version drift + close CI gap ([#2759](https://github.com/yonatangross/orchestkit/issues/2759)) ([541d5cc](https://github.com/yonatangross/orchestkit/commit/541d5cc98a2aa8f03fe3a01d46271c68473ed428))"
@@ -3231,6 +3539,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc-watch:** snapshot upstream CHANGELOG (2.1.199) ([#2743](https://github.com/yonatangross/orchestkit/issues/2743)) ([9adf6dc](https://github.com/yonatangross/orchestkit/commit/9adf6dcb5b2075489e2b720a630940fafa359873))",
           "**cc-watch:** snapshot upstream CHANGELOG (2.1.201) ([#2750](https://github.com/yonatangross/orchestkit/issues/2750)) ([d2677cc](https://github.com/yonatangross/orchestkit/commit/d2677cc1c5803fc3c01a325a93daa9b65c8a792a))",
@@ -3243,10 +3552,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.64.1",
     "date": "2026-07-02",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.64.0...v8.64.1",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**docs:** heal stale CC floor + fact rot, add docs-facts freshness gate ([#2736](https://github.com/yonatangross/orchestkit/issues/2736)) ([1379b8b](https://github.com/yonatangross/orchestkit/commit/1379b8bcdf54387769cbff2d572ba40ae16e391d))"
         ]
@@ -3256,10 +3566,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.64.0",
     "date": "2026-07-02",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.63.2...v8.64.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**auto:** tune routing rules from measured LLM misses + eval harness ([#2731](https://github.com/yonatangross/orchestkit/issues/2731)) ([878c7a5](https://github.com/yonatangross/orchestkit/commit/878c7a52cd31cf18134edd2e4c78d44772db2960))",
           "**hooks:** advisor reads configured default model for inherit ([#2710](https://github.com/yonatangross/orchestkit/issues/2710)) ([716ffd1](https://github.com/yonatangross/orchestkit/commit/716ffd1f91c649b3b3c95dd16b30ee701056e8c0))",
@@ -3269,6 +3580,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**ci:** release-please guard fetches full base history ([#2711](https://github.com/yonatangross/orchestkit/issues/2711)) ([356fb66](https://github.com/yonatangross/orchestkit/commit/356fb663372f91ccd0fc31ae1c6e3c0b629a54f1))",
           "**docs-site:** prebuilt search index cuts NLWeb /ask cold-start ([#2719](https://github.com/yonatangross/orchestkit/issues/2719)) ([7059bc8](https://github.com/yonatangross/orchestkit/commit/7059bc815578989a50d68eef3869a5f0a1bda5b7))",
@@ -3278,6 +3590,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc-watch:** snapshot upstream CHANGELOG (2.1.195) ([#2688](https://github.com/yonatangross/orchestkit/issues/2688)) ([d6dbadc](https://github.com/yonatangross/orchestkit/commit/d6dbadc34856fdfe393f2658a7c63d9f4641f1bb))",
           "**cc-watch:** snapshot upstream CHANGELOG (2.1.196) ([#2708](https://github.com/yonatangross/orchestkit/issues/2708)) ([2dafe24](https://github.com/yonatangross/orchestkit/commit/2dafe24f14570a37516be12cb2eed191a86dac3b))",
@@ -3298,6 +3611,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump the github-actions group across 1 directory with 3 updates ([#2693](https://github.com/yonatangross/orchestkit/issues/2693)) ([bd0ea33](https://github.com/yonatangross/orchestkit/commit/bd0ea33d12df22d16740a21637845367ab0cce2e))"
         ]
@@ -3307,10 +3621,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.63.2",
     "date": "2026-06-27",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.63.1...v8.63.2",
     "sections": [
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc-watch:** snapshot upstream CHANGELOG (2.1.195) ([#2686](https://github.com/yonatangross/orchestkit/issues/2686)) ([754c986](https://github.com/yonatangross/orchestkit/commit/754c986b71efb6bdfbd1300808c0d0e7a7f0530b))",
           "**release:** exclude docs/ from plugin version bumps ([#2687](https://github.com/yonatangross/orchestkit/issues/2687)) ([b4d1f74](https://github.com/yonatangross/orchestkit/commit/b4d1f7402ca40946138ecb8dd0717828d2156a4b))"
@@ -3321,10 +3636,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.63.1",
     "date": "2026-06-26",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.63.0...v8.63.1",
     "sections": [
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**chain-patterns:** add Workflow parse-safety section (the 3 killers) ([#2679](https://github.com/yonatangross/orchestkit/issues/2679)) ([1ae5d75](https://github.com/yonatangross/orchestkit/commit/1ae5d7588856689d496c09a56be144b72d1b65b1))"
         ]
@@ -3334,16 +3650,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.63.0",
     "date": "2026-06-26",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.62.1...v8.63.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**ci:** draft release announcements via HQ platform marketing ([#2677](https://github.com/yonatangross/orchestkit/issues/2677)) ([d3ba41e](https://github.com/yonatangross/orchestkit/commit/d3ba41e9bba910ba17ac598ab298c7f665884070))"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**site:** make OpenAPI/NLWeb discoverable at probed paths (orank) ([#2676](https://github.com/yonatangross/orchestkit/issues/2676)) ([4bb40d8](https://github.com/yonatangross/orchestkit/commit/4bb40d84c557ff60dd37c44899618a8e77896e14))"
         ]
@@ -3353,10 +3671,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.62.1",
     "date": "2026-06-26",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.62.0...v8.62.1",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**mcp:** resolve memory KG path at runtime so the graph persists ([#2674](https://github.com/yonatangross/orchestkit/issues/2674)) ([d7322be](https://github.com/yonatangross/orchestkit/commit/d7322bea5466291988270e0de6a494b476c148cc)), closes [#2631](https://github.com/yonatangross/orchestkit/issues/2631)"
         ]
@@ -3366,10 +3685,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.62.0",
     "date": "2026-06-26",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.61.0...v8.62.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**adoption:** 3 CC security/hygiene wins + triage sweep of 17 tickets ([#2661](https://github.com/yonatangross/orchestkit/issues/2661)) ([f102bd6](https://github.com/yonatangross/orchestkit/commit/f102bd627a0c4717b789965e1c05776a96e445e1))",
           "**cc-support:** bump latest_known 2.1.183 to 2.1.191 ([#2663](https://github.com/yonatangross/orchestkit/issues/2663)) ([36284ee](https://github.com/yonatangross/orchestkit/commit/36284ee03fba424c51c49e11dfa9ad31d80a68bb))",
@@ -3378,6 +3698,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc-watch:** snapshot upstream CHANGELOG (2.1.193) ([#2671](https://github.com/yonatangross/orchestkit/issues/2671)) ([6fd3b63](https://github.com/yonatangross/orchestkit/commit/6fd3b6363d5b40192b3131ca8dfe557ccf6c9cdd))"
         ]
@@ -3387,16 +3708,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.61.0",
     "date": "2026-06-25",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.60.1...v8.61.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**agents:** wire 7 under-activated agents/skills (P2) ([#2644](https://github.com/yonatangross/orchestkit/issues/2644)) ([f2bf2d2](https://github.com/yonatangross/orchestkit/commit/f2bf2d2cae29bafe566489a795c7d47ecd1bc923))"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** pre-commit runner treats timeouts as skips, not failures ([#2658](https://github.com/yonatangross/orchestkit/issues/2658)) ([456f582](https://github.com/yonatangross/orchestkit/commit/456f58281212288f5a80c8d4bf8d076061b6a708))",
           "**skills:** salvage standalone fixes from superseded [#2643](https://github.com/yonatangross/orchestkit/issues/2643) ([#2657](https://github.com/yonatangross/orchestkit/issues/2657)) ([e169b2e](https://github.com/yonatangross/orchestkit/commit/e169b2ef2789c399c561c88a85f173c6557aa2bc))"
@@ -3407,16 +3730,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.60.1",
     "date": "2026-06-25",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.60.0...v8.60.1",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "untrack node_modules symlink + rewire activation telemetry ([#2653](https://github.com/yonatangross/orchestkit/issues/2653)) ([ac3a86b](https://github.com/yonatangross/orchestkit/commit/ac3a86be887ce6caa2bb2086264ad6519a9001ab))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc-watch:** snapshot upstream CHANGELOG (2.1.191) ([#2652](https://github.com/yonatangross/orchestkit/issues/2652)) ([623b726](https://github.com/yonatangross/orchestkit/commit/623b726d45c349b52417f52e81d51d36a68eb371))"
         ]
@@ -3426,10 +3751,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.60.0",
     "date": "2026-06-24",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.59.0...v8.60.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**skills:** add /ork:auto intent router (+ telemetry breaker fix) ([#2645](https://github.com/yonatangross/orchestkit/issues/2645)) ([252ce9d](https://github.com/yonatangross/orchestkit/commit/252ce9dbccec6507eaeb3dd22a5ec70bf4023708))"
         ]
@@ -3439,16 +3765,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.59.0",
     "date": "2026-06-24",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.58.0...v8.59.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**agents:** ground 14 specialists + wire monitoring-engineer ([#2641](https://github.com/yonatangross/orchestkit/issues/2641)) ([67cad0c](https://github.com/yonatangross/orchestkit/commit/67cad0cd100b888902db8a61194c9070bfaa9df8))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc-watch:** snapshot upstream CHANGELOG (2.1.187) ([#2640](https://github.com/yonatangross/orchestkit/issues/2640)) ([7efb950](https://github.com/yonatangross/orchestkit/commit/7efb950684b5810bffb7768e92a87811ed5d63e5))"
         ]
@@ -3458,10 +3786,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.58.0",
     "date": "2026-06-23",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.57.0...v8.58.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**cc-watch:** add precision+recall verify gate to cc-triage ([#2626](https://github.com/yonatangross/orchestkit/issues/2626)) ([2b20c3f](https://github.com/yonatangross/orchestkit/commit/2b20c3fbda2142e032a321458dc2b6c7ca280d29))",
           "**doctor:** complete MEMORY.md budget check (line cap + path fix) ([#2623](https://github.com/yonatangross/orchestkit/issues/2623)) ([bd01b2f](https://github.com/yonatangross/orchestkit/commit/bd01b2f3a6b8942c894cb0b280100f0e8898ac9b))",
@@ -3472,6 +3801,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**cc-watch:** release-integration SOP + cc-support SoT schema ([#2627](https://github.com/yonatangross/orchestkit/issues/2627)) ([592533c](https://github.com/yonatangross/orchestkit/commit/592533c87cf8fc36febd8e3c4783cc2be851c5a1))"
         ]
@@ -3481,16 +3811,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.57.0",
     "date": "2026-06-23",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.56.0...v8.57.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**doctor:** add auto-memory MEMORY.md index budget check ([#2610](https://github.com/yonatangross/orchestkit/issues/2610)) ([bcb5820](https://github.com/yonatangross/orchestkit/commit/bcb582027050d87b3e244806d39ac519c4762fb8))"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**counts:** stamp pyproject description so counts can't drift ([#2604](https://github.com/yonatangross/orchestkit/issues/2604)) ([28cbbd4](https://github.com/yonatangross/orchestkit/commit/28cbbd4889643f04e206a4d45e5d0fa182403f8f))",
           "**labs:** refresh stale Vercel Labs docs + extend watcher TARGETS ([#2605](https://github.com/yonatangross/orchestkit/issues/2605)) ([d5c47a3](https://github.com/yonatangross/orchestkit/commit/d5c47a3ebdc542acec7c680376a5b96ed886bf43))"
@@ -3498,6 +3830,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc-watch:** snapshot upstream CHANGELOG (2.1.186) ([#2622](https://github.com/yonatangross/orchestkit/issues/2622)) ([79ca903](https://github.com/yonatangross/orchestkit/commit/79ca903c57f86d2e6e9de6e1f8324940c2a76d72))",
           "**counts:** retire update-counts.sh + enforce stamped counts in CI ([#2606](https://github.com/yonatangross/orchestkit/issues/2606)) ([3e85b90](https://github.com/yonatangross/orchestkit/commit/3e85b909d64d6ece8ed8730b20afc88e1c208684))",
@@ -3507,12 +3840,14 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**ci-debug:** add pattern [#11](https://github.com/yonatangross/orchestkit/issues/11) (vercel status orphaned on path-skip) ([#2595](https://github.com/yonatangross/orchestkit/issues/2595)) ([544a022](https://github.com/yonatangross/orchestkit/commit/544a022f40aefa91a0fb7c7bdb5565d68a55883e))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Code Refactoring",
         "items": [
           "**agents:** defer Labs versions to the skill, add guard ([#2608](https://github.com/yonatangross/orchestkit/issues/2608)) ([4617e5f](https://github.com/yonatangross/orchestkit/commit/4617e5fe97a965db49bf41faafe6f378750d56f8)), closes [#2600](https://github.com/yonatangross/orchestkit/issues/2600)"
         ]
@@ -3522,10 +3857,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.56.0",
     "date": "2026-06-22",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.55.2...v8.56.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**hooks:** nudge general-purpose test-run spawns toward Bash ([#2576](https://github.com/yonatangross/orchestkit/issues/2576)) ([ed73464](https://github.com/yonatangross/orchestkit/commit/ed73464bf80e5f8b7b5599a2f48aa5c53183caae))",
           "**hooks:** reliable session auto-rename + content-emoji color ([#2593](https://github.com/yonatangross/orchestkit/issues/2593)) ([2e4da25](https://github.com/yonatangross/orchestkit/commit/2e4da258db474f44e59a3cccf84e73d89a1ec68e))"
@@ -3533,12 +3869,14 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**skill-evolution:** store per-entry decisions outside .claude/rules/ ([#2592](https://github.com/yonatangross/orchestkit/issues/2592)) ([9facc9a](https://github.com/yonatangross/orchestkit/commit/9facc9a8478f761b78038a80fc57346aa59cf4f8))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc-watch:** snapshot upstream CHANGELOG (2.1.185) ([#2587](https://github.com/yonatangross/orchestkit/issues/2587)) ([5087b3f](https://github.com/yonatangross/orchestkit/commit/5087b3f2a93898eebc8270084b4642a67f317e24))",
           "**deps-dev:** bump @types/node from 25.9.3 to 26.0.0 ([#2579](https://github.com/yonatangross/orchestkit/issues/2579)) ([7586104](https://github.com/yonatangross/orchestkit/commit/7586104dbe8eb614db5a5fbaf1b5c65caf951ab6))",
@@ -3554,6 +3892,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump the github-actions group across 1 directory with 2 updates ([#2586](https://github.com/yonatangross/orchestkit/issues/2586)) ([2db8005](https://github.com/yonatangross/orchestkit/commit/2db800528ebf8b729feaa4c8a931f58d00c9b991))"
         ]
@@ -3563,10 +3902,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.55.2",
     "date": "2026-06-21",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.55.1...v8.55.2",
     "sections": [
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "**cc-triage:** exclude presentational rewords from the now-&lt;verb&gt;s hint ([#2570](https://github.com/yonatangross/orchestkit/issues/2570)) ([745f9b9](https://github.com/yonatangross/orchestkit/commit/745f9b9670ac407b48b70b0eb9b98a76783c233f))"
         ]
@@ -3576,10 +3916,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.55.1",
     "date": "2026-06-21",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.55.0...v8.55.1",
     "sections": [
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "**cc-watch:** move release-watch cron to 06:00 IL (03:00 UTC) ([#2566](https://github.com/yonatangross/orchestkit/issues/2566)) ([512dd62](https://github.com/yonatangross/orchestkit/commit/512dd625abcc3f41e1669d3a1547f58990c9a83e))"
         ]
@@ -3589,16 +3930,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.55.0",
     "date": "2026-06-20",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.54.0...v8.55.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**skill-evolution:** make holdout gate executable for assess ([#2562](https://github.com/yonatangross/orchestkit/issues/2562)) ([7031857](https://github.com/yonatangross/orchestkit/commit/7031857da2ee660e428edd7b5250988b198756e3))"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** stop mcp-health-check false-positive on op-read keys ([#2563](https://github.com/yonatangross/orchestkit/issues/2563)) ([e345c79](https://github.com/yonatangross/orchestkit/commit/e345c79b1ccf1a94b3789f0bd86d27bc09ed3980))"
         ]
@@ -3608,16 +3951,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.54.0",
     "date": "2026-06-20",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.53.0...v8.54.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**cc:** modernize to 2.1.183 (drop TeamCreate/Task, bump floor) ([#2559](https://github.com/yonatangross/orchestkit/issues/2559)) ([5700399](https://github.com/yonatangross/orchestkit/commit/57003991e8ed2f3b73801d87deae3451dae4d668))"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** CCR reads tool_response, the field CC actually sends ([#2552](https://github.com/yonatangross/orchestkit/issues/2552)) ([#2553](https://github.com/yonatangross/orchestkit/issues/2553)) ([e3ae43d](https://github.com/yonatangross/orchestkit/commit/e3ae43de9a027aacef5c1c64be25275d6e30b87c))",
           "**skills:** soften overclaims and fix streak goal race ([#2554](https://github.com/yonatangross/orchestkit/issues/2554)) ([d05782f](https://github.com/yonatangross/orchestkit/commit/d05782f00f66a7654371732cdfb8e7318552d3de))"
@@ -3625,6 +3970,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "**security:** resolve all 109 zizmor code-scanning alerts ([#2560](https://github.com/yonatangross/orchestkit/issues/2560)) ([0f1694b](https://github.com/yonatangross/orchestkit/commit/0f1694bcabddc06320fc47877412172b0edfef90))"
         ]
@@ -3634,10 +3980,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.53.0",
     "date": "2026-06-20",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.52.0...v8.53.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**doctor:** add sandbox-posture check + /sandbox nudge ([#2534](https://github.com/yonatangross/orchestkit/issues/2534)) ([#2546](https://github.com/yonatangross/orchestkit/issues/2546)) ([ee78d41](https://github.com/yonatangross/orchestkit/commit/ee78d41ed06bf2f448f765d3d94863dad90478e7))",
           "**hooks:** revive CCR output compression via updatedToolOutput ([#2302](https://github.com/yonatangross/orchestkit/issues/2302)) ([#2552](https://github.com/yonatangross/orchestkit/issues/2552)) ([4fd8163](https://github.com/yonatangross/orchestkit/commit/4fd816314c448991439410ae3d76af91678056e8))",
@@ -3649,12 +3996,14 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** route CLAUDE_PLUGIN_ROOT off the user-facing banner ([#2543](https://github.com/yonatangross/orchestkit/issues/2543)) ([848da6b](https://github.com/yonatangross/orchestkit/commit/848da6b81cb30c978a8bd747bc3b58556f6eba64))"
         ]
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "**security:** add zizmor GitHub Actions security gate ([#2535](https://github.com/yonatangross/orchestkit/issues/2535)) ([#2548](https://github.com/yonatangross/orchestkit/issues/2548)) ([d0ab0b4](https://github.com/yonatangross/orchestkit/commit/d0ab0b4e3583f9456a664637a71ea34ffcf405a9))",
           "**security:** gate docs.yml NPM_TOKEN to push events ([#2536](https://github.com/yonatangross/orchestkit/issues/2536)) ([#2550](https://github.com/yonatangross/orchestkit/issues/2550)) ([8a445e9](https://github.com/yonatangross/orchestkit/commit/8a445e9000b109c488dfacc3d47d5a1d6cadd07c))"
@@ -3665,10 +4014,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.52.0",
     "date": "2026-06-20",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.51.0...v8.52.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**hooks:** network-egress guard — remote-exec + exfil ([#2533](https://github.com/yonatangross/orchestkit/issues/2533)) ([#2537](https://github.com/yonatangross/orchestkit/issues/2537)) ([3e2c43a](https://github.com/yonatangross/orchestkit/commit/3e2c43a7206f66e0f0b482cb16414eebce05612b))"
         ]
@@ -3678,28 +4028,32 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.51.0",
     "date": "2026-06-19",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.50.0...v8.51.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "adopt CC 2.1.183 (git/IaC guard parity + capability docs) ([#2529](https://github.com/yonatangross/orchestkit/issues/2529)) ([f02bb72](https://github.com/yonatangross/orchestkit/commit/f02bb72cf5c5c53547c5cfdcd1ade25a2de27381))"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**agents:** add worktree isolation to 2 frontend Bash+Write agents ([#2530](https://github.com/yonatangross/orchestkit/issues/2530)) ([5905f9b](https://github.com/yonatangross/orchestkit/commit/5905f9b2fc65ade1b50a8b1ce5cbaf44e356f91e))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc-watch:** snapshot upstream CHANGELOG (2.1.179) ([#2526](https://github.com/yonatangross/orchestkit/issues/2526)) ([995f309](https://github.com/yonatangross/orchestkit/commit/995f309c3b79e7996a328de76c2b8d5aafb025c1))"
         ]
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "auto-heal skill build drift on src-only PRs ([#2528](https://github.com/yonatangross/orchestkit/issues/2528)) ([#2532](https://github.com/yonatangross/orchestkit/issues/2532)) ([793aa66](https://github.com/yonatangross/orchestkit/commit/793aa668b5abcdeaae250753ce497ac3bdd80f74))"
         ]
@@ -3709,16 +4063,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.50.0",
     "date": "2026-06-18",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.49.0...v8.50.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**playground:** release-notes player + execution-router decision board (visualize-plan) ([#2518](https://github.com/yonatangross/orchestkit/issues/2518)) ([435dfd9](https://github.com/yonatangross/orchestkit/commit/435dfd9ab0b198742e30f1993eaa1acbad90886d))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "triage + close adopted/N-A CC 2.1.178-179 backlog issues ([#2525](https://github.com/yonatangross/orchestkit/issues/2525)) ([3514449](https://github.com/yonatangross/orchestkit/commit/35144493fdad6dbef3e60048b3f2753ea77b5e42))"
         ]
@@ -3728,10 +4084,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.49.0",
     "date": "2026-06-18",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.48.2...v8.49.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "adopt CC 2.1.181 (config, fg depth-cap, AskUserQuestion) ([#2523](https://github.com/yonatangross/orchestkit/issues/2523)) ([6a672af](https://github.com/yonatangross/orchestkit/commit/6a672afff7a7072b08da922960bb5cad89807ce3))",
           "**playground:** Arieh-grade visual standard + decision boards ([#2516](https://github.com/yonatangross/orchestkit/issues/2516)) ([e386dd2](https://github.com/yonatangross/orchestkit/commit/e386dd2b9e1cd756f79f0237c0ab1fbf67855520))",
@@ -3740,6 +4097,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc-watch:** snapshot upstream CHANGELOG (2.1.179) ([#2515](https://github.com/yonatangross/orchestkit/issues/2515)) ([2e5b227](https://github.com/yonatangross/orchestkit/commit/2e5b22749b47c8b3ee51f32358d15d9805436a56))"
         ]
@@ -3749,16 +4107,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.48.2",
     "date": "2026-06-17",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.48.1...v8.48.2",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**ci:** remediate 6 Scorecard Token-Permissions alerts (fix [#212](https://github.com/yonatangross/orchestkit/issues/212), filter [#207](https://github.com/yonatangross/orchestkit/issues/207)-211) ([#2512](https://github.com/yonatangross/orchestkit/issues/2512)) ([199b7fb](https://github.com/yonatangross/orchestkit/commit/199b7fb8a13f2cf03ace8e4f8a3a5ca59c899d06))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc:** adopt CC 2.1.179 (latest_known 2.1.176 → 2.1.179) ([#2510](https://github.com/yonatangross/orchestkit/issues/2510)) ([8fe436d](https://github.com/yonatangross/orchestkit/commit/8fe436d172c1fa79ce17bcc4a217559eb4347568))",
           "**deps-dev:** bump @types/node from 24.12.4 to 25.9.3 ([#2497](https://github.com/yonatangross/orchestkit/issues/2497)) ([95709a6](https://github.com/yonatangross/orchestkit/commit/95709a6349e7d010ba8464d3f0230d52f56c9f58))",
@@ -3779,12 +4139,14 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**readme:** add Ask DeepWiki documentation badge ([#2509](https://github.com/yonatangross/orchestkit/issues/2509)) ([6c8599d](https://github.com/yonatangross/orchestkit/commit/6c8599d42d977471af08f09d31cd6daa6b08f315))"
         ]
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump anthropics/claude-code-action ([#2505](https://github.com/yonatangross/orchestkit/issues/2505)) ([ed4cf33](https://github.com/yonatangross/orchestkit/commit/ed4cf337c664582661e05687de320ae4439abcd4))",
           "**deps:** grouped Dependabot + auto-merge across all npm trees ([#2492](https://github.com/yonatangross/orchestkit/issues/2492)) ([1490ea6](https://github.com/yonatangross/orchestkit/commit/1490ea648176e27a25ebda53f762d696646049b8)), closes [#2490](https://github.com/yonatangross/orchestkit/issues/2490)",
@@ -3796,16 +4158,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.48.1",
     "date": "2026-06-16",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.48.0...v8.48.1",
     "sections": [
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc-watch:** snapshot upstream CHANGELOG (2.1.178) ([#2484](https://github.com/yonatangross/orchestkit/issues/2484)) ([36af4bb](https://github.com/yonatangross/orchestkit/commit/36af4bb3935ddc989e61a489fd8432aa9d3f3bd4))"
         ]
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump hono ([#2488](https://github.com/yonatangross/orchestkit/issues/2488)) ([7517300](https://github.com/yonatangross/orchestkit/commit/75173008b71e4bb3efcec8441b7a0b5867776869))"
         ]
@@ -3815,16 +4179,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.48.0",
     "date": "2026-06-16",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.47.3...v8.48.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**memory:** close the VERIFY loop — consult log + dream gate ([#2351](https://github.com/yonatangross/orchestkit/issues/2351)) ([#2486](https://github.com/yonatangross/orchestkit/issues/2486)) ([a16c4a5](https://github.com/yonatangross/orchestkit/commit/a16c4a53118ad399240fed543e53f2b0917c05a4))"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**mcp:** write memory KG to repo via MEMORY_FILE_PATH ([#2474](https://github.com/yonatangross/orchestkit/issues/2474)) ([#2485](https://github.com/yonatangross/orchestkit/issues/2485)) ([dd3f873](https://github.com/yonatangross/orchestkit/commit/dd3f873a5a9eb681992e7085548cdee2d0edeb28))"
         ]
@@ -3834,10 +4200,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.47.3",
     "date": "2026-06-16",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.47.2...v8.47.3",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**deps:** bump hono to 4.12.25 (5 high CVEs) ([#2487](https://github.com/yonatangross/orchestkit/issues/2487)) ([5cf5a48](https://github.com/yonatangross/orchestkit/commit/5cf5a482dcc0aebe6c0752fc456cd90c69bbc8d0))",
           "**hooks:** Wave 1 — revive 3 born-dead CC event hooks + [#1264](https://github.com/yonatangross/orchestkit/issues/1264) drift-check ([#2476](https://github.com/yonatangross/orchestkit/issues/2476)) ([71a72b8](https://github.com/yonatangross/orchestkit/commit/71a72b8111ba45c063598ac7c52affc6a3b120c7))"
@@ -3848,16 +4215,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.47.2",
     "date": "2026-06-16",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.47.1...v8.47.2",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**security:** unblock security-tests gate (audit + stat fix) ([#2470](https://github.com/yonatangross/orchestkit/issues/2470)) ([32fd3cb](https://github.com/yonatangross/orchestkit/commit/32fd3cba8f043e0683bc3a98cf91a1aecbcf1bb5))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**deps:** Bump the npm_and_yarn group across 2 directories with 5 updates ([#2472](https://github.com/yonatangross/orchestkit/issues/2472)) ([8df1cd1](https://github.com/yonatangross/orchestkit/commit/8df1cd117f3844d98ff2858748c18bc6e367c731))",
           "**labs:** bump upstream-version-tested pins for drifted skills ([#2461](https://github.com/yonatangross/orchestkit/issues/2461)) ([5f86cff](https://github.com/yonatangross/orchestkit/commit/5f86cfff2a4900b63f6ff6dca10d38c5fef0c04e))",
@@ -3866,12 +4235,14 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "add README hero banner + preview playground ([#2467](https://github.com/yonatangross/orchestkit/issues/2467)) ([fb80d1a](https://github.com/yonatangross/orchestkit/commit/fb80d1a048ed16bb15645785d57f4e6c31d4e558))"
         ]
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump anthropics/claude-code-action from 1.0.140 to 1.0.148 ([#2456](https://github.com/yonatangross/orchestkit/issues/2456)) ([951af4b](https://github.com/yonatangross/orchestkit/commit/951af4b739583253260abf6ec6afc18268cfb7cf))"
         ]
@@ -3881,10 +4252,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.47.1",
     "date": "2026-06-15",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.47.0...v8.47.1",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** unify debt-scan extensions to stop capture/surface drift ([#2463](https://github.com/yonatangross/orchestkit/issues/2463)) ([9dd1dbb](https://github.com/yonatangross/orchestkit/commit/9dd1dbbdf3054f2973c15d0e9f479183a6adce0f))"
         ]
@@ -3894,10 +4266,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.47.0",
     "date": "2026-06-15",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.46.0...v8.47.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**hooks:** auto-track deferred-debt markers (ork-debt ledger) ([#2457](https://github.com/yonatangross/orchestkit/issues/2457)) ([1513a7f](https://github.com/yonatangross/orchestkit/commit/1513a7fcef5b6a951763f06757fe3c21a4a30bb5))"
         ]
@@ -3907,16 +4280,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.46.0",
     "date": "2026-06-14",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.45.0...v8.46.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**docs-site:** add /yonyon page + Yonyon entity for brand-keying ([#2453](https://github.com/yonatangross/orchestkit/issues/2453)) ([f795dd0](https://github.com/yonatangross/orchestkit/commit/f795dd0431eb61d367dcdf4b7c823777c4e4c63a))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc-watch:** snapshot upstream CHANGELOG (2.1.176) ([#2454](https://github.com/yonatangross/orchestkit/issues/2454)) ([1b036ec](https://github.com/yonatangross/orchestkit/commit/1b036ec6b6fe356b847c0482248495c1717a5608))"
         ]
@@ -3926,22 +4301,25 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.45.0",
     "date": "2026-06-14",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.44.1...v8.45.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**hooks:** haiku-powered session auto-rename + auto-color ([#2449](https://github.com/yonatangross/orchestkit/issues/2449)) ([df86117](https://github.com/yonatangross/orchestkit/commit/df8611734900f2f953dde7b6603e469f1e871d32))"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** respect CC language setting in session-title prompt ([#2452](https://github.com/yonatangross/orchestkit/issues/2452)) ([f901335](https://github.com/yonatangross/orchestkit/commit/f9013356b5149d2b072066b5a34d85a818c15477))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**configure:** catalog CC 2.1.172-176 settings ([#2451](https://github.com/yonatangross/orchestkit/issues/2451)) ([e0d8e81](https://github.com/yonatangross/orchestkit/commit/e0d8e8165903a19eea72637111ff6c23195b543d))"
         ]
@@ -3951,10 +4329,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.44.1",
     "date": "2026-06-14",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.44.0...v8.44.1",
     "sections": [
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**deps:** esbuild 0.28.1 bundle rebuild (supersedes [#2437](https://github.com/yonatangross/orchestkit/issues/2437)) ([#2447](https://github.com/yonatangross/orchestkit/issues/2447)) ([40af8e3](https://github.com/yonatangross/orchestkit/commit/40af8e34562ef5b2e5d5ba77717b1b602bc26c69))"
         ]
@@ -3964,22 +4343,25 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.44.0",
     "date": "2026-06-14",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.43.0...v8.44.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**cc-watch:** note when CC binary ships ahead of its changelog notes ([#2444](https://github.com/yonatangross/orchestkit/issues/2444)) ([1dc5d4c](https://github.com/yonatangross/orchestkit/commit/1dc5d4c16a68d2c187ebf9911f1a4668d8a85789)), closes [#2442](https://github.com/yonatangross/orchestkit/issues/2442)"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**cc-watch:** key staleness alarm on latest_known, not upstream head ([#2427](https://github.com/yonatangross/orchestkit/issues/2427)) ([a0d2489](https://github.com/yonatangross/orchestkit/commit/a0d24895e20385d750a333cf8112b0b4be33963c))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc-adoption:** advance latest_known to 2.1.176 ([#2445](https://github.com/yonatangross/orchestkit/issues/2445)) ([5b1d6be](https://github.com/yonatangross/orchestkit/commit/5b1d6be10df050e7ecb4b437daa3badb42841377))",
           "**cc-adoption:** groom 6 no-surface 2.1.176 issues ([#2446](https://github.com/yonatangross/orchestkit/issues/2446)) ([c7b07be](https://github.com/yonatangross/orchestkit/commit/c7b07becf635128f6b8781a2c4f9446ff0a123d6))",
@@ -3990,6 +4372,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**models:** mark claude-fable-5 unavailable, access suspended ([#2436](https://github.com/yonatangross/orchestkit/issues/2436)) ([48f1c53](https://github.com/yonatangross/orchestkit/commit/48f1c530510f0b34084db8f29b083be5414ff0a4))"
         ]
@@ -3999,10 +4382,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.43.0",
     "date": "2026-06-12",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.42.2...v8.43.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**cc-adoption:** staleness alarm, depth-3 example, /usage attribution ([#2423](https://github.com/yonatangross/orchestkit/issues/2423)) ([35f7a9b](https://github.com/yonatangross/orchestkit/commit/35f7a9bca7b7c357032863f2e0356dca11a35b5e)), closes [#2418](https://github.com/yonatangross/orchestkit/issues/2418)"
         ]
@@ -4012,16 +4396,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.42.2",
     "date": "2026-06-12",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.42.1...v8.42.2",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**cc-adoption:** model resilience under availableModels (WS-2) ([#2420](https://github.com/yonatangross/orchestkit/issues/2420)) ([0a10d37](https://github.com/yonatangross/orchestkit/commit/0a10d3732ecea355bb00519c6949edb228a5c2ba))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**multimodal-llm:** clarify 2,576px is 3x the Opus 4.6 vision budget ([#2422](https://github.com/yonatangross/orchestkit/issues/2422)) ([f791df3](https://github.com/yonatangross/orchestkit/commit/f791df3b8f40c5cfe4d7aecbb63fe2191021fcfe))"
         ]
@@ -4031,10 +4417,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.42.1",
     "date": "2026-06-12",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.42.0...v8.42.1",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**cc-watch:** catch up snapshots to 2.1.175 + unstick featureless gate ([#2415](https://github.com/yonatangross/orchestkit/issues/2415)) ([03d1336](https://github.com/yonatangross/orchestkit/commit/03d1336de46130aebba3734797ef917a8a581e60))"
         ]
@@ -4044,10 +4431,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.42.0",
     "date": "2026-06-12",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.41.1...v8.42.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**docs-site:** orank Discovery — crawlable content + entity graph + flywheel prep ([#2407](https://github.com/yonatangross/orchestkit/issues/2407)) ([318d627](https://github.com/yonatangross/orchestkit/commit/318d627dc1fdc01464943d8d32b5d1c75f002990))"
         ]
@@ -4057,10 +4445,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.41.1",
     "date": "2026-06-11",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.41.0...v8.41.1",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** correct hook count drift in hooks.json description ([#2405](https://github.com/yonatangross/orchestkit/issues/2405)) ([690b721](https://github.com/yonatangross/orchestkit/commit/690b721f78550659c456c7412ec01661d5afd8c5))"
         ]
@@ -4070,10 +4459,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.41.0",
     "date": "2026-06-11",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.40.0...v8.41.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**docs-site:** category share-of-voice content batch ([#2403](https://github.com/yonatangross/orchestkit/issues/2403)) ([14e3757](https://github.com/yonatangross/orchestkit/commit/14e37570385cb979753debd916f449c9cad587b9))"
         ]
@@ -4083,10 +4473,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.40.0",
     "date": "2026-06-11",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.39.0...v8.40.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**docs-site:** discovery on-site gaps — density, brand tie, dev hub ([#2401](https://github.com/yonatangross/orchestkit/issues/2401)) ([e57afb2](https://github.com/yonatangross/orchestkit/commit/e57afb24e091b9447a41b65c647248fdb3d5cfcf))"
         ]
@@ -4096,10 +4487,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.39.0",
     "date": "2026-06-11",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.38.0...v8.39.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**docs-site:** anonymous-only RFC 9728 PRM + async-job pattern ([#2392](https://github.com/yonatangross/orchestkit/issues/2392)) ([6656be7](https://github.com/yonatangross/orchestkit/commit/6656be7301e43b818c5773517cd3467ed4e700f7))"
         ]
@@ -4109,10 +4501,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.38.0",
     "date": "2026-06-11",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.37.1...v8.38.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**docs-site:** surface MCP stdio package, policy, SDKs to checkers ([#2390](https://github.com/yonatangross/orchestkit/issues/2390)) ([80985df](https://github.com/yonatangross/orchestkit/commit/80985df9e433909f7299f95c3c1177337620d746))"
         ]
@@ -4122,10 +4515,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.37.1",
     "date": "2026-06-11",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.37.0...v8.37.1",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**docker:** pin base images by digest ([#2388](https://github.com/yonatangross/orchestkit/issues/2388)) ([e15d01e](https://github.com/yonatangross/orchestkit/commit/e15d01edd9e5d7fd24d1c10e8aace47c135b4a51))"
         ]
@@ -4135,16 +4529,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.37.0",
     "date": "2026-06-11",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.36.2...v8.37.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**docs-site:** close orank on-site gaps ([#2385](https://github.com/yonatangross/orchestkit/issues/2385)) ([d209214](https://github.com/yonatangross/orchestkit/commit/d2092144d68c2319af4d034ccb3be80d2f66e393))"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**release:** canonical OCI format + publish hardening ([#2387](https://github.com/yonatangross/orchestkit/issues/2387)) ([48a9e42](https://github.com/yonatangross/orchestkit/commit/48a9e42d04a8fcf31302e0c7636ecfff43c719a8))"
         ]
@@ -4154,10 +4550,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.36.2",
     "date": "2026-06-11",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.36.1...v8.36.2",
     "sections": [
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "**release:** auto-publish MCP registry on every release ([#2383](https://github.com/yonatangross/orchestkit/issues/2383)) ([65db4a9](https://github.com/yonatangross/orchestkit/commit/65db4a9263905391b58c444afc1a990c1527abb5))"
         ]
@@ -4167,10 +4564,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.36.1",
     "date": "2026-06-11",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.36.0...v8.36.1",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**delegation:** close verify follow-ups from [#2374](https://github.com/yonatangross/orchestkit/issues/2374) audit ([#2381](https://github.com/yonatangross/orchestkit/issues/2381)) ([c6a6ca7](https://github.com/yonatangross/orchestkit/commit/c6a6ca7419783c08b87ba98f1b15d4616606bdf7))"
         ]
@@ -4180,10 +4578,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.36.0",
     "date": "2026-06-11",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.35.0...v8.36.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**docs-site:** skills.sh bi-directional verification + registry version sync ([#2379](https://github.com/yonatangross/orchestkit/issues/2379)) ([f4d15fe](https://github.com/yonatangross/orchestkit/commit/f4d15fe3c15ea690131c195ea7f22f65eff731ca))"
         ]
@@ -4193,10 +4592,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.35.0",
     "date": "2026-06-11",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.34.0...v8.35.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**delegation:** specialist routing + Agent() grant repairs ([#2374](https://github.com/yonatangross/orchestkit/issues/2374)) ([27aff02](https://github.com/yonatangross/orchestkit/commit/27aff02e3ceea35822d3898a41b2274ef92b577c))",
           "**docs-site:** close orank agent-readiness gaps ([#2378](https://github.com/yonatangross/orchestkit/issues/2378)) ([bba0e84](https://github.com/yonatangross/orchestkit/commit/bba0e842838ea79161d2a10594e344c874449620))"
@@ -4207,10 +4607,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.34.0",
     "date": "2026-06-11",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.33.0...v8.34.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**docs:** add Glama ownership claim files (server + connector) ([#2372](https://github.com/yonatangross/orchestkit/issues/2372)) ([7cc33f8](https://github.com/yonatangross/orchestkit/commit/7cc33f8639345e2c93fb7b5d7c8345f5d776312c))"
         ]
@@ -4220,10 +4621,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.33.0",
     "date": "2026-06-11",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.32.2...v8.33.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**adoption:** adopt CC nested sub-agents + /release-notes ([#2368](https://github.com/yonatangross/orchestkit/issues/2368)) ([6f1219d](https://github.com/yonatangross/orchestkit/commit/6f1219d6243c3ab63e8d4ed55d77578e267839b8))",
           "**agents:** nested-delegation sweep + depth injection ([#2370](https://github.com/yonatangross/orchestkit/issues/2370)) ([59bc53b](https://github.com/yonatangross/orchestkit/commit/59bc53bc9586aa1d0950a7e890c9bf5d91a6fdf1))"
@@ -4234,10 +4636,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.32.2",
     "date": "2026-06-10",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.32.1...v8.32.2",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**ci:** repair ci-sentinel analyze loop (3 bugs) ([#2366](https://github.com/yonatangross/orchestkit/issues/2366)) ([d6d0e1e](https://github.com/yonatangross/orchestkit/commit/d6d0e1e0983d37971bf0bc34e14afce7267bd3b3)), closes [#1862](https://github.com/yonatangross/orchestkit/issues/1862) [#1934](https://github.com/yonatangross/orchestkit/issues/1934)",
           "**hooks:** worktree-aware git-validator branch protection ([#2365](https://github.com/yonatangross/orchestkit/issues/2365)) ([7ed184c](https://github.com/yonatangross/orchestkit/commit/7ed184c2bec1f54bf19388ad5e16e5f539dc3e91)), closes [#2363](https://github.com/yonatangross/orchestkit/issues/2363) [#2244](https://github.com/yonatangross/orchestkit/issues/2244)"
@@ -4248,16 +4651,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.32.1",
     "date": "2026-06-10",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.32.0...v8.32.1",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**build:** ship hook dist bundles + hard-fail stale-bundle paths ([#2362](https://github.com/yonatangross/orchestkit/issues/2362)) ([a680f3c](https://github.com/yonatangross/orchestkit/commit/a680f3ce4268d1d01136a4d1fa3b2edf77dd3f1e)), closes [#2360](https://github.com/yonatangross/orchestkit/issues/2360)"
         ]
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc-watch:** snapshot upstream CHANGELOG (2.1.170) ([#2361](https://github.com/yonatangross/orchestkit/issues/2361)) ([f3bdc89](https://github.com/yonatangross/orchestkit/commit/f3bdc89b7f69e43c250c79b3f4255f538df43922))"
         ]
@@ -4267,10 +4672,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.32.0",
     "date": "2026-06-10",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.31.0...v8.32.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**hooks:** fable spend-consent gate + Claude Fable 5 docs guide ([#2358](https://github.com/yonatangross/orchestkit/issues/2358)) ([59110a2](https://github.com/yonatangross/orchestkit/commit/59110a2864aad660ec6c318a70ec7d21e835af6b))"
         ]
@@ -4280,16 +4686,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.31.0",
     "date": "2026-06-10",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.30.0...v8.31.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**rubric:** adopt ork-rubric/1.0 stop-gating contract ([#2356](https://github.com/yonatangross/orchestkit/issues/2356)) ([0ce1c7f](https://github.com/yonatangross/orchestkit/commit/0ce1c7f80ed47910e4b3ae24607cbca42bf4d85a))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc:** bump supported floor to 2.1.170 + adopt 2.1.169 features ([#2355](https://github.com/yonatangross/orchestkit/issues/2355)) ([44f5d29](https://github.com/yonatangross/orchestkit/commit/44f5d29851cf82c7abf138b6575c7ad46e23b3b0))"
         ]
@@ -4299,16 +4707,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.30.0",
     "date": "2026-06-10",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.29.1...v8.30.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**models:** adopt Claude Fable 5 via single model vocabulary ([#2339](https://github.com/yonatangross/orchestkit/issues/2339)) ([7b47e77](https://github.com/yonatangross/orchestkit/commit/7b47e774d62c4e82f0823be878a08150e978704b)), closes [#2338](https://github.com/yonatangross/orchestkit/issues/2338)"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** own WorktreeCreate provisioning per current CC contract ([#2336](https://github.com/yonatangross/orchestkit/issues/2336)) ([64b7c76](https://github.com/yonatangross/orchestkit/commit/64b7c767422ef9a7824df3ac833d8966ced2d5bd)), closes [#2335](https://github.com/yonatangross/orchestkit/issues/2335)"
         ]
@@ -4318,16 +4728,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.29.1",
     "date": "2026-06-09",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.29.0...v8.29.1",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**docs-site:** move buildLlmsTxt out of the route module ([#2337](https://github.com/yonatangross/orchestkit/issues/2337)) ([7aaf9eb](https://github.com/yonatangross/orchestkit/commit/7aaf9ebe82ca9d834f9eda0dd1766b77090d25ab)), closes [#2329](https://github.com/yonatangross/orchestkit/issues/2329)"
         ]
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**mcp:** link mcp.so listing in sameAs ([#2334](https://github.com/yonatangross/orchestkit/issues/2334)) ([d112226](https://github.com/yonatangross/orchestkit/commit/d11222636befb82bd2195608fb619208970a1bc6))",
           "**mcp:** link Smithery listing in sameAs ([#2333](https://github.com/yonatangross/orchestkit/issues/2333)) ([e3f3103](https://github.com/yonatangross/orchestkit/commit/e3f310329c208c950a4f699e14ad7196fd96fab1))",
@@ -4339,16 +4751,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.29.0",
     "date": "2026-06-08",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.28.1...v8.29.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**docs-site:** orank layers 2/3/4 honest wins ([#2329](https://github.com/yonatangross/orchestkit/issues/2329)) ([615a356](https://github.com/yonatangross/orchestkit/commit/615a356ae827a7bcd994f471a22267cb027cf859))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**security-patterns:** document CC ≥2.1.166 permission-rule semantics ([#2328](https://github.com/yonatangross/orchestkit/issues/2328)) ([ff0a52a](https://github.com/yonatangross/orchestkit/commit/ff0a52a322d91f4c5a0fabae51eaa5c6deeb22b6))"
         ]
@@ -4358,10 +4772,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.28.1",
     "date": "2026-06-08",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.28.0...v8.28.1",
     "sections": [
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "**cc-stale:** never auto-stale breaking/new_perm adoption issues ([#2326](https://github.com/yonatangross/orchestkit/issues/2326)) ([3097b9d](https://github.com/yonatangross/orchestkit/commit/3097b9d4c95b220f4c51e16e023eb780c7b287ba)), closes [#2325](https://github.com/yonatangross/orchestkit/issues/2325)"
         ]
@@ -4371,10 +4786,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.28.0",
     "date": "2026-06-08",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.27.2...v8.28.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**docs-site:** GEO-enhance /compare + /alternatives for AI citation ([#2323](https://github.com/yonatangross/orchestkit/issues/2323)) ([2b20fcd](https://github.com/yonatangross/orchestkit/commit/2b20fcd280c8d1ef44fc49bf4bfba8bc83c30e40))"
         ]
@@ -4384,16 +4800,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.27.2",
     "date": "2026-06-08",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.27.1...v8.27.2",
     "sections": [
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc-watch:** snapshot upstream CHANGELOG (2.1.167) ([#2319](https://github.com/yonatangross/orchestkit/issues/2319)) ([16e3c1d](https://github.com/yonatangross/orchestkit/commit/16e3c1d50634294c517a9f995eda892eab2aa0a9))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**hooks-ref:** clarify 143 global vs 211 total hook count ([#2321](https://github.com/yonatangross/orchestkit/issues/2321)) ([e92df60](https://github.com/yonatangross/orchestkit/commit/e92df60af9ca282aa542d30a217492facc023dea)), closes [#2279](https://github.com/yonatangross/orchestkit/issues/2279)"
         ]
@@ -4403,22 +4821,25 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.27.1",
     "date": "2026-06-08",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.27.0...v8.27.1",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**docs-site:** serve API errors as application/json ([#2320](https://github.com/yonatangross/orchestkit/issues/2320)) ([4b2c897](https://github.com/yonatangross/orchestkit/commit/4b2c89743c77b4d932989203273485a93c00e4fb)), closes [#2279](https://github.com/yonatangross/orchestkit/issues/2279)"
         ]
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**labs:** weekly upstream pin sync ([#2310](https://github.com/yonatangross/orchestkit/issues/2310)) ([bd57e9c](https://github.com/yonatangross/orchestkit/commit/bd57e9c38d9825587c037ee4fafc7cf1e81600c3))"
         ]
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "**labs:** rebuild plugins/ in version-watch bot to fix drift gate ([#2317](https://github.com/yonatangross/orchestkit/issues/2317)) ([dc9c299](https://github.com/yonatangross/orchestkit/commit/dc9c2999d5b1272632b76235a503d6bf7bfb3be1))"
         ]
@@ -4428,10 +4849,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.27.0",
     "date": "2026-06-08",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.26.0...v8.27.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**docs-search:** show stable facet counts on browser pills ([#2282](https://github.com/yonatangross/orchestkit/issues/2282)) ([#2311](https://github.com/yonatangross/orchestkit/issues/2311)) ([7b99d77](https://github.com/yonatangross/orchestkit/commit/7b99d7741ae2f2e1fd076de5c8de16cfb05676ed))",
           "**docs-site:** content-negotiated JSON 404 + MCP App-view CSP ([#2316](https://github.com/yonatangross/orchestkit/issues/2316)) ([128aae9](https://github.com/yonatangross/orchestkit/commit/128aae9074c6199e8b08e07f0630d7ca4d5b05f2))",
@@ -4441,12 +4863,14 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**mcp:** add server.json for MCP registry publish ([#2309](https://github.com/yonatangross/orchestkit/issues/2309)) ([cef2957](https://github.com/yonatangross/orchestkit/commit/cef2957014ef930711b20bc93ba538c3ca613938))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**configure:** clarify op:// vault assumption for MCP keys ([#2314](https://github.com/yonatangross/orchestkit/issues/2314)) ([4e5e147](https://github.com/yonatangross/orchestkit/commit/4e5e1474423b1fdf8944eeaa4c93be36f6d8434b))",
           "**readme:** add skills.sh install path ([#2285](https://github.com/yonatangross/orchestkit/issues/2285)) ([#2315](https://github.com/yonatangross/orchestkit/issues/2315)) ([ba847b8](https://github.com/yonatangross/orchestkit/commit/ba847b84b8a8d88054de5668adb45a46e5126f1c))",
@@ -4455,6 +4879,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump actions/checkout from 6.0.2 to 6.0.3 ([#2300](https://github.com/yonatangross/orchestkit/issues/2300)) ([7a5899c](https://github.com/yonatangross/orchestkit/commit/7a5899c656ba5051c1c93de570eacc091a331ac2))"
         ]
@@ -4464,22 +4889,25 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.26.0",
     "date": "2026-06-08",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.25.2...v8.26.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**docs-site:** link homepage sameAs to Wikidata (Q140128295) ([#2305](https://github.com/yonatangross/orchestkit/issues/2305)) ([db60407](https://github.com/yonatangross/orchestkit/commit/db60407d586536943a5f37f6708c0475595bc9dc))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**hooks:** label headroom inert + fix test env isolation ([#2304](https://github.com/yonatangross/orchestkit/issues/2304)) ([51fd608](https://github.com/yonatangross/orchestkit/commit/51fd608b545a290ff2826ae2d114990dc2ef8bd3))"
         ]
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump anthropics/claude-code-action from 1.0.133 to 1.0.140 ([#2299](https://github.com/yonatangross/orchestkit/issues/2299)) ([fd12189](https://github.com/yonatangross/orchestkit/commit/fd121898dfb878ed5ef01ed3a32aa2be0fa8bfae))",
           "bump github/codeql-action from 4.36.0 to 4.36.2 ([#2298](https://github.com/yonatangross/orchestkit/issues/2298)) ([fcab076](https://github.com/yonatangross/orchestkit/commit/fcab076e378e50f83236478fab2ddbf9cad763b9))"
@@ -4490,10 +4918,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.25.2",
     "date": "2026-06-07",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.25.1...v8.25.2",
     "sections": [
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc-watch:** snapshot upstream CHANGELOG (2.1.167) ([#2296](https://github.com/yonatangross/orchestkit/issues/2296)) ([c26db27](https://github.com/yonatangross/orchestkit/commit/c26db27a34f23e20d3d24f130b3293ddd27ae94c))",
           "**cc:** bump supported floor to 2.1.168 + fix stale banner counts ([#2295](https://github.com/yonatangross/orchestkit/issues/2295)) ([aae6be4](https://github.com/yonatangross/orchestkit/commit/aae6be45f8395257ddf7d92b714844e76e7397d4))"
@@ -4504,10 +4933,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.25.1",
     "date": "2026-06-07",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.25.0...v8.25.1",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** ship [#2264](https://github.com/yonatangross/orchestkit/issues/2264) reversible compression (stale dist was inert) ([#2293](https://github.com/yonatangross/orchestkit/issues/2293)) ([4053c7d](https://github.com/yonatangross/orchestkit/commit/4053c7d69ce34febf6560f0802eed855b860d7c5))"
         ]
@@ -4517,10 +4947,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.25.0",
     "date": "2026-06-07",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.24.0...v8.25.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**docs-search:** unified Orama search (relevance, typo, coverage) ([#2278](https://github.com/yonatangross/orchestkit/issues/2278)) ([129dcc4](https://github.com/yonatangross/orchestkit/commit/129dcc48382b089cbe94aff77382d0d1f11219d9))",
           "**docs-site:** agent-readiness endpoints for orank gaps ([#2279](https://github.com/yonatangross/orchestkit/issues/2279)) ([ddd5b7d](https://github.com/yonatangross/orchestkit/commit/ddd5b7d4f54d0e900f3d3d92e186f2168bae2695))",
@@ -4529,6 +4960,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**cc-triage:** run featureless reconciliation token-free + heal the ledger ([#2290](https://github.com/yonatangross/orchestkit/issues/2290)) ([aa9f289](https://github.com/yonatangross/orchestkit/commit/aa9f289fdcafbc36936efa4d5d27c73c22d2eb7f))",
           "**docs-site:** open CORS for cross-origin agents + MCP paths ([#2292](https://github.com/yonatangross/orchestkit/issues/2292)) ([c03c8e8](https://github.com/yonatangross/orchestkit/commit/c03c8e86322702643af943f1a65ef6e71a7fcdfb))"
@@ -4536,6 +4968,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**hooks:** bump types.ts CC-compliance ledger to 2.1.168 ([#2268](https://github.com/yonatangross/orchestkit/issues/2268)) ([#2281](https://github.com/yonatangross/orchestkit/issues/2281)) ([5ed3873](https://github.com/yonatangross/orchestkit/commit/5ed387389a09b51b102fc74a360f16fb5461773d))"
         ]
@@ -4545,10 +4978,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.24.0",
     "date": "2026-06-07",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.23.1...v8.24.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**hooks:** GC reversible-compression stashes on session end ([#2264](https://github.com/yonatangross/orchestkit/issues/2264)) ([#2274](https://github.com/yonatangross/orchestkit/issues/2274)) ([5ed5e7c](https://github.com/yonatangross/orchestkit/commit/5ed5e7ce31d051c4a57285ba38d1209a2a304b80))",
           "**hooks:** headroom reversible-compression backing store ([#2264](https://github.com/yonatangross/orchestkit/issues/2264)) ([#2270](https://github.com/yonatangross/orchestkit/issues/2270)) ([8aa331d](https://github.com/yonatangross/orchestkit/commit/8aa331d05cf79145a3c459849bb6bf6c9eff3593))",
@@ -4559,12 +4993,14 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**cc-triage:** graduate featureless CC versions + snapshot 2.1.168 ([#2271](https://github.com/yonatangross/orchestkit/issues/2271)) ([9c8c92b](https://github.com/yonatangross/orchestkit/commit/9c8c92b514b7f9790ee015be795baa5df279ca84))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**hooks:** reframe stale Stop additionalContext comments ([#2269](https://github.com/yonatangross/orchestkit/issues/2269)) ([#2276](https://github.com/yonatangross/orchestkit/issues/2276)) ([e5b94f8](https://github.com/yonatangross/orchestkit/commit/e5b94f87183b0b20452a9459feb5af26654f5a20))"
         ]
@@ -4574,10 +5010,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.23.1",
     "date": "2026-06-06",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.23.0...v8.23.1",
     "sections": [
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "exempt ci/ config branches from the PR playground gate ([#2262](https://github.com/yonatangross/orchestkit/issues/2262)) ([797bf61](https://github.com/yonatangross/orchestkit/commit/797bf617c031fc53fd4c05ed45a69d817d9608a5))",
           "**vercel:** production-only ignoreCommand — no preview deploys ([#2261](https://github.com/yonatangross/orchestkit/issues/2261)) ([fb9b04a](https://github.com/yonatangross/orchestkit/commit/fb9b04a83b1484cb3184d925546eb1abf71a501c))"
@@ -4588,10 +5025,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.23.0",
     "date": "2026-06-06",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.22.0...v8.23.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**audit-full:** map-reduce workflow tier for over-budget repos ([#2259](https://github.com/yonatangross/orchestkit/issues/2259)) ([8c74273](https://github.com/yonatangross/orchestkit/commit/8c74273d3c2ecf226d292c2344a22e51ff375801))",
           "**skills:** adversarial verification for review-pr + audit-full ([#2256](https://github.com/yonatangross/orchestkit/issues/2256)) ([f24926a](https://github.com/yonatangross/orchestkit/commit/f24926a0d9969a8d7bbfb489dac8ac62cd1239f8))"
@@ -4599,18 +5037,21 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**skills:** trim review-pr under length gate + CC-orchestration hygiene ([#2260](https://github.com/yonatangross/orchestkit/issues/2260)) ([48311ca](https://github.com/yonatangross/orchestkit/commit/48311cafcf34105b120be4be4c362b5739f733f9))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc-watch:** snapshot upstream CHANGELOG (2.1.167) ([#2255](https://github.com/yonatangross/orchestkit/issues/2255)) ([375eaa3](https://github.com/yonatangross/orchestkit/commit/375eaa382f27ae0f1782c1033319717a4a108d81))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**chain-patterns:** label the 6 workflow patterns as ork's taxonomy ([#2258](https://github.com/yonatangross/orchestkit/issues/2258)) ([f68bfdd](https://github.com/yonatangross/orchestkit/commit/f68bfddf2e0fa4ea2338a58bd2a99bc9e1446ffc))"
         ]
@@ -4620,10 +5061,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.22.0",
     "date": "2026-06-06",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.21.0...v8.22.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**docs:** agent-ready docs site (well-known + content negotiation) ([#2236](https://github.com/yonatangross/orchestkit/issues/2236)) ([fa749a6](https://github.com/yonatangross/orchestkit/commit/fa749a6afc57fb709bd8722eb6ebd22538a94e40))",
           "**hooks:** warn on concurrent same-tree session collision ([#2242](https://github.com/yonatangross/orchestkit/issues/2242)) ([#2245](https://github.com/yonatangross/orchestkit/issues/2245)) ([7ed8cf2](https://github.com/yonatangross/orchestkit/commit/7ed8cf271357d08c015be893e68883df325ab4a2))"
@@ -4634,10 +5076,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.21.0",
     "date": "2026-06-06",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.20.1...v8.21.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**skills:** adversarial verification engine + assess pilot ([#2231](https://github.com/yonatangross/orchestkit/issues/2231)) ([#2235](https://github.com/yonatangross/orchestkit/issues/2235)) ([f1c90a1](https://github.com/yonatangross/orchestkit/commit/f1c90a1a0e20a1370c7cdadd6ac388395f868348))",
           "**skills:** dynamic-workflow patterns reference + quarantine rule ([#2240](https://github.com/yonatangross/orchestkit/issues/2240)) ([a082314](https://github.com/yonatangross/orchestkit/commit/a0823148581fec7527b3526eef3f88bcc01d551e))"
@@ -4645,6 +5088,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**cc:** stamp LATEST_KNOWN_CC from SoT + repair auto-bump workflow ([#2241](https://github.com/yonatangross/orchestkit/issues/2241)) ([3499996](https://github.com/yonatangross/orchestkit/commit/3499996f35c2786827ce62e79bc672d50ea5ca69)), closes [#2238](https://github.com/yonatangross/orchestkit/issues/2238)",
           "**hooks:** pin session title to first-seen branch (survives concurrent-session thrash) ([#2246](https://github.com/yonatangross/orchestkit/issues/2246)) ([fec9775](https://github.com/yonatangross/orchestkit/commit/fec9775249bbb029074ff26e8ce18ab475f4c514))",
@@ -4653,18 +5097,21 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc-watch:** snapshot upstream CHANGELOG (2.1.165) ([#2228](https://github.com/yonatangross/orchestkit/issues/2228)) ([76a5407](https://github.com/yonatangross/orchestkit/commit/76a5407fba6e00b2f1d62bdf70f7c8f6a90cd540))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**rules:** correct drift register from adversarial re-audit ([#2217](https://github.com/yonatangross/orchestkit/issues/2217)) ([#2221](https://github.com/yonatangross/orchestkit/issues/2221)) ([b3c4ffb](https://github.com/yonatangross/orchestkit/commit/b3c4ffb1e08ab7217a8b7442a23df77566691e41))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Code Refactoring",
         "items": [
           "**hooks:** thin cc-version-matrix to 2 constants ([#2229](https://github.com/yonatangross/orchestkit/issues/2229)) ([#2237](https://github.com/yonatangross/orchestkit/issues/2237)) ([19b4dd7](https://github.com/yonatangross/orchestkit/commit/19b4dd715144a2ffb4278e3619abc9912e024b91))"
         ]
@@ -4674,10 +5121,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.20.1",
     "date": "2026-06-05",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.20.0...v8.20.1",
     "sections": [
       {
         "type": "changed",
+        "heading": "Code Refactoring",
         "items": [
           "**hooks:** remove stop/goal-convergence-emitter (drift cleanup) ([#2219](https://github.com/yonatangross/orchestkit/issues/2219)) ([e1236e2](https://github.com/yonatangross/orchestkit/commit/e1236e2376eb6c91b590c46acfaec73a3ac62ed7)), closes [#2217](https://github.com/yonatangross/orchestkit/issues/2217)"
         ]
@@ -4687,16 +5135,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.20.0",
     "date": "2026-06-05",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.19.1...v8.20.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**eval:** ship skill-fitness workflow harness ([#2212](https://github.com/yonatangross/orchestkit/issues/2212)) ([099abd4](https://github.com/yonatangross/orchestkit/commit/099abd48f7d45e867fa439265a7b4206aa6dcdd8))"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** give SessionEnd handoff a real budget (CC 2.1.74 env) ([#2214](https://github.com/yonatangross/orchestkit/issues/2214)) ([d3d1205](https://github.com/yonatangross/orchestkit/commit/d3d120530e531a4ec6e46cc9654dbbb2ef741fb5))",
           "**skills:** clear skill-fitness workflow findings ([#2215](https://github.com/yonatangross/orchestkit/issues/2215)) ([5b217b9](https://github.com/yonatangross/orchestkit/commit/5b217b9c38a1788343f384cce7147426a7d310a9))",
@@ -4705,6 +5155,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**rules:** codify CC-native-first (don't drift from Claude Code) ([#2216](https://github.com/yonatangross/orchestkit/issues/2216)) ([2645b78](https://github.com/yonatangross/orchestkit/commit/2645b78e5b07c36f58b00f9f2c5a774691edb8df))"
         ]
@@ -4714,10 +5165,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.19.1",
     "date": "2026-06-05",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.19.0...v8.19.1",
     "sections": [
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump hono ([#2210](https://github.com/yonatangross/orchestkit/issues/2210)) ([a7d6738](https://github.com/yonatangross/orchestkit/commit/a7d67384d3169305f5a7608c9582b32fc97e0c60))"
         ]
@@ -4727,16 +5179,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.19.0",
     "date": "2026-06-04",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.18.1...v8.19.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**evals:** CC-idiom conformance grader (advisory) ([#2207](https://github.com/yonatangross/orchestkit/issues/2207)) ([6083a44](https://github.com/yonatangross/orchestkit/commit/6083a446c520a1b92581bbd359a25f8b76242799))"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**deps:** bump Hono 4.12.18 -&gt; 4.12.23 (4 moderate CVEs) ([#2208](https://github.com/yonatangross/orchestkit/issues/2208)) ([1771c1f](https://github.com/yonatangross/orchestkit/commit/1771c1fa8174cb968680eaf732f8cdecb388bdad))",
           "**hooks:** guard tool_input.file_path against non-string ([#2205](https://github.com/yonatangross/orchestkit/issues/2205)) ([cb8b299](https://github.com/yonatangross/orchestkit/commit/cb8b2994d44d916ef5cff10d2306e0b65b178f95))",
@@ -4745,6 +5199,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc-watch:** snapshot upstream CHANGELOG (2.1.162) ([#2204](https://github.com/yonatangross/orchestkit/issues/2204)) ([cf51913](https://github.com/yonatangross/orchestkit/commit/cf519136b455ec14973ee9f7c259a7b344699026))"
         ]
@@ -4754,10 +5209,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.18.1",
     "date": "2026-06-04",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.18.0...v8.18.1",
     "sections": [
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc:** catalogue CC 2.1.162 in version matrix + README ledger ([#2196](https://github.com/yonatangross/orchestkit/issues/2196)) ([8e74901](https://github.com/yonatangross/orchestkit/commit/8e7490101bd67ac3d0d4f2821fa434f851ad02e4))",
           "**docs:** resync fumadocs reference pages + add drift gate ([#2198](https://github.com/yonatangross/orchestkit/issues/2198)) ([a94b5e0](https://github.com/yonatangross/orchestkit/commit/a94b5e071d7f5a74e691fc75b1061a02faf7b8fe))"
@@ -4768,10 +5224,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.18.0",
     "date": "2026-06-03",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.17.0...v8.18.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**hooks:** memory-driven lint — feedback_*.md rules to linter ([#1901](https://github.com/yonatangross/orchestkit/issues/1901)) ([#2190](https://github.com/yonatangross/orchestkit/issues/2190)) ([c69ae80](https://github.com/yonatangross/orchestkit/commit/c69ae805b39fec35daedc6de091d803337587637))",
           "**tests:** extend tool-call verifier to TaskCreate/TaskUpdate ([#2188](https://github.com/yonatangross/orchestkit/issues/2188)) ([41764f0](https://github.com/yonatangross/orchestkit/commit/41764f0ecc4bb45427e1f640a981231c1894a054)), closes [#2177](https://github.com/yonatangross/orchestkit/issues/2177)"
@@ -4782,10 +5239,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.17.0",
     "date": "2026-06-03",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.16.2...v8.17.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**cc:** adopt CC 2.1.142 + 2.1.145 stragglers (3 issues) ([#2186](https://github.com/yonatangross/orchestkit/issues/2186)) ([6897217](https://github.com/yonatangross/orchestkit/commit/6897217d4c802ed295bfe72e1faa084f58da82ce))",
           "**tests:** schema-conformance verifier for skill tool-call examples ([#2185](https://github.com/yonatangross/orchestkit/issues/2185)) ([f7eb487](https://github.com/yonatangross/orchestkit/commit/f7eb487a9a4a56b327c85d8721aec0a4e3d8f3b7)), closes [#2177](https://github.com/yonatangross/orchestkit/issues/2177)"
@@ -4796,16 +5254,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.16.2",
     "date": "2026-06-03",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.16.1...v8.16.2",
     "sections": [
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**labs:** weekly upstream pin sync ([#2160](https://github.com/yonatangross/orchestkit/issues/2160)) ([94f9d44](https://github.com/yonatangross/orchestkit/commit/94f9d44abb060d4840d2d51175ccebfae74edbdb))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**cc:** close CC 2.1.140-147 verify/doc backlog (8 issues) ([#2183](https://github.com/yonatangross/orchestkit/issues/2183)) ([a41299c](https://github.com/yonatangross/orchestkit/commit/a41299cd0d1fec26aa91f51fb5cb771cbac1b20a))"
         ]
@@ -4815,10 +5275,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.16.1",
     "date": "2026-06-03",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.16.0...v8.16.1",
     "sections": [
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump actions/upload-artifact from 5.0.0 to 7.0.1 ([#2157](https://github.com/yonatangross/orchestkit/issues/2157)) ([4e714c3](https://github.com/yonatangross/orchestkit/commit/4e714c3120ff540ce8be13379405d43b6476ed40))",
           "bump gitleaks/gitleaks-action from 2.3.9 to 3.0.0 ([#2158](https://github.com/yonatangross/orchestkit/issues/2158)) ([2fe3106](https://github.com/yonatangross/orchestkit/commit/2fe3106f4432f0ad5e2d4a9f3f57677c57b3b4aa))"
@@ -4829,22 +5290,25 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.16.0",
     "date": "2026-06-03",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.15.0...v8.16.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**cc:** adopt Claude Code 2.1.157 + refresh README ([#2179](https://github.com/yonatangross/orchestkit/issues/2179)) ([68aadea](https://github.com/yonatangross/orchestkit/commit/68aadeae6bccc0781e77b117be2fc42b47269f2f))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc-watch:** snapshot upstream CHANGELOG (2.1.161) ([#2181](https://github.com/yonatangross/orchestkit/issues/2181)) ([de42100](https://github.com/yonatangross/orchestkit/commit/de42100d86beddab95e4d302daa280ca6972c348))"
         ]
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump actions/setup-python from 5.6.0 to 6.2.0 ([#2159](https://github.com/yonatangross/orchestkit/issues/2159)) ([9e06d3e](https://github.com/yonatangross/orchestkit/commit/9e06d3ea7bc27b3461d5dbba842016fe20fb9b14))"
         ]
@@ -4854,22 +5318,25 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.15.0",
     "date": "2026-06-03",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.14.0...v8.15.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**cc:** adopt Claude Code 2.1.160 + 2.1.161 ([#2174](https://github.com/yonatangross/orchestkit/issues/2174)) ([77f97e6](https://github.com/yonatangross/orchestkit/commit/77f97e6f38acbf587ea063051e242c0ebfe1a72d))"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**skills:** correct stale tool-call signatures in skill examples ([#2176](https://github.com/yonatangross/orchestkit/issues/2176)) ([cf07883](https://github.com/yonatangross/orchestkit/commit/cf07883091895daf6544cec4955f2cabdecf0006))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc-watch:** snapshot upstream CHANGELOG (2.1.159) ([#2162](https://github.com/yonatangross/orchestkit/issues/2162)) ([44f38b2](https://github.com/yonatangross/orchestkit/commit/44f38b20f06bbb9c50b7256591d24c2eea0f9164))",
           "**cc-watch:** snapshot upstream CHANGELOG (2.1.160) ([#2169](https://github.com/yonatangross/orchestkit/issues/2169)) ([8c4f250](https://github.com/yonatangross/orchestkit/commit/8c4f250b1331011a6aab8e867bedb679a4ab5b22))",
@@ -4881,16 +5348,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.14.0",
     "date": "2026-06-01",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.13.1...v8.14.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**hooks:** channel-aware skill telemetry (main + subagent) ([#2154](https://github.com/yonatangross/orchestkit/issues/2154)) ([3cb8375](https://github.com/yonatangross/orchestkit/commit/3cb83751f21e0c21a316260c864ad14f9f317c8c))"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**ci:** split Scorecard publish + SARIF filter into two jobs ([#2155](https://github.com/yonatangross/orchestkit/issues/2155)) ([5f365f3](https://github.com/yonatangross/orchestkit/commit/5f365f32b9422f1fb8088f400e05fb12038cb049))"
         ]
@@ -4900,10 +5369,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.13.1",
     "date": "2026-06-01",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.13.0...v8.13.1",
     "sections": [
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "pin ci-sentinel actions + filter irreducible Scorecard pinned-deps ([#2152](https://github.com/yonatangross/orchestkit/issues/2152)) ([68ddc00](https://github.com/yonatangross/orchestkit/commit/68ddc006d96f5aa4a797cb70be5f44eaa562ef84))"
         ]
@@ -4913,10 +5383,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.13.0",
     "date": "2026-06-01",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.12.8...v8.13.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**skills:** wire 9 island skills + add activation-channel CI gate ([#2150](https://github.com/yonatangross/orchestkit/issues/2150)) ([c2cb0dd](https://github.com/yonatangross/orchestkit/commit/c2cb0dd25870cbcc916e49e4e203610b8aa20a28))"
         ]
@@ -4926,10 +5397,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.12.8",
     "date": "2026-06-01",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.12.7...v8.12.8",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "close library-audit coverage-misses (PostgresSaver, jose, gpt-5.5) ([#2147](https://github.com/yonatangross/orchestkit/issues/2147)) ([ab523ea](https://github.com/yonatangross/orchestkit/commit/ab523eaee07cbcf4bd5b6cd30044567ac071ccca))",
           "**hooks:** antipattern hook recommends PyJWT not python-jose (CVE) ([#2149](https://github.com/yonatangross/orchestkit/issues/2149)) ([14f3a30](https://github.com/yonatangross/orchestkit/commit/14f3a3074fa080699b8ef499fdee90c593df2116))"
@@ -4940,10 +5412,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.12.7",
     "date": "2026-05-31",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.12.6...v8.12.7",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**skills:** residual library-currency sweep (16 skills) ([#2145](https://github.com/yonatangross/orchestkit/issues/2145)) ([f32cfd7](https://github.com/yonatangross/orchestkit/commit/f32cfd750da87714c776d04bc85dae89c14b367d))"
         ]
@@ -4953,10 +5426,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.12.6",
     "date": "2026-05-31",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.12.5...v8.12.6",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**skills:** Lane 1 library hard-breaks across 11 skills ([#2142](https://github.com/yonatangross/orchestkit/issues/2142)) ([ac9a7b8](https://github.com/yonatangross/orchestkit/commit/ac9a7b8ac20902a116dc96bdbbc7f67d146ed2e6))",
           "**skills:** Lane 2+3 library remediation (12 clusters) ([#2143](https://github.com/yonatangross/orchestkit/issues/2143)) ([e4854df](https://github.com/yonatangross/orchestkit/commit/e4854df83b88d01ef901b384512cefea104b8689))"
@@ -4964,6 +5438,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc-watch:** snapshot upstream CHANGELOG (2.1.158) ([#2127](https://github.com/yonatangross/orchestkit/issues/2127)) ([34f14a1](https://github.com/yonatangross/orchestkit/commit/34f14a133cc5f21ec498ef0ab0ad16a1b196dbf3))"
         ]
@@ -4973,10 +5448,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.12.5",
     "date": "2026-05-31",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.12.4...v8.12.5",
     "sections": [
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "generate reference-skills page from frontmatter (closes [#2120](https://github.com/yonatangross/orchestkit/issues/2120)) ([#2123](https://github.com/yonatangross/orchestkit/issues/2123)) ([3166e86](https://github.com/yonatangross/orchestkit/commit/3166e869b364ed2824ae0d148903f9cec0bf8f93))",
           "refresh stale model sample + CC-floor cites (post-ship sweep) ([#2124](https://github.com/yonatangross/orchestkit/issues/2124)) ([a885c3f](https://github.com/yonatangross/orchestkit/commit/a885c3f2ae73a29c1f557c7597ebdd2dbbf689dd))"
@@ -4987,10 +5463,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.12.4",
     "date": "2026-05-31",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.12.3...v8.12.4",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**cost-estimator:** add claude-opus-4-8 pricing row + repoint `opus` alias; ([abcd0ba](https://github.com/yonatangross/orchestkit/commit/abcd0ba2442fcb8132dac014e1cd017f49a48538))",
           "post-ship 8.12.3 hardening (doc counts, AUQ guard, CI, pricing) ([#2121](https://github.com/yonatangross/orchestkit/issues/2121)) ([abcd0ba](https://github.com/yonatangross/orchestkit/commit/abcd0ba2442fcb8132dac014e1cd017f49a48538))"
@@ -4998,6 +5475,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**generator:** _build-docs-generate.py counted every skill dir (incl ([abcd0ba](https://github.com/yonatangross/orchestkit/commit/abcd0ba2442fcb8132dac014e1cd017f49a48538))",
           "**troubleshooting:** bump stale CC floor 2.1.34 -&gt; 2.1.148. ([abcd0ba](https://github.com/yonatangross/orchestkit/commit/abcd0ba2442fcb8132dac014e1cd017f49a48538))"
@@ -5005,6 +5483,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "**release-please-guard:** trigger on labeled/unlabeled so a ([abcd0ba](https://github.com/yonatangross/orchestkit/commit/abcd0ba2442fcb8132dac014e1cd017f49a48538))"
         ]
@@ -5014,10 +5493,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.12.3",
     "date": "2026-05-30",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.12.2...v8.12.3",
     "sections": [
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**deps:** major bumps esbuild 0.28, @types/node 24, lucide 1.x ([#2115](https://github.com/yonatangross/orchestkit/issues/2115)) ([500e238](https://github.com/yonatangross/orchestkit/commit/500e238def21fb7328e79a6f58be2e2781fecae4))",
           "**marketplace:** align engine floor to &gt;=2.1.148 ([#2116](https://github.com/yonatangross/orchestkit/issues/2116)) ([260c5da](https://github.com/yonatangross/orchestkit/commit/260c5da971bfb0657423cdae3906947f32203be9))",
@@ -5026,6 +5506,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**site:** uplift — IA, fumadocs 15, perf, a11y + stale-content sweep ([#2117](https://github.com/yonatangross/orchestkit/issues/2117)) ([2c6cd11](https://github.com/yonatangross/orchestkit/commit/2c6cd1143723f6618f90b95e51c4c4fabf270b8c))"
         ]
@@ -5035,10 +5516,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.12.2",
     "date": "2026-05-30",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.12.1...v8.12.2",
     "sections": [
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**readme:** point doc links at orchestkit.yonyon.ai ([#2113](https://github.com/yonatangross/orchestkit/issues/2113)) ([a5a65c8](https://github.com/yonatangross/orchestkit/commit/a5a65c84454ac40c011225ca86ac7d44c06aa47e))"
         ]
@@ -5048,10 +5530,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.12.1",
     "date": "2026-05-30",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.12.0...v8.12.1",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "remediate 2026-05-30 staleness audit (CC 2.1.158 adoption + Opus 4.8 sweep) ([#2111](https://github.com/yonatangross/orchestkit/issues/2111)) ([d9f5ff8](https://github.com/yonatangross/orchestkit/commit/d9f5ff8e36542e2b63aa417a6723ede67fcf7c55))"
         ]
@@ -5061,10 +5544,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.12.0",
     "date": "2026-05-30",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.11.1...v8.12.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**docs-site:** serve docs from orchestkit.yonyon.ai (canonical) ([#2101](https://github.com/yonatangross/orchestkit/issues/2101)) ([442a02f](https://github.com/yonatangross/orchestkit/commit/442a02ffd0a8c0c3a1cd1c9355afbef4f52eef06))",
           "**docs:** docs-site uplift — IA, nav, fumadocs 15, perf ([#2100](https://github.com/yonatangross/orchestkit/issues/2100)) ([f52b7d3](https://github.com/yonatangross/orchestkit/commit/f52b7d30c3061917433d5db27defd0221edf6623))"
@@ -5072,6 +5556,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc-watch:** snapshot upstream CHANGELOG (2.1.158) ([#2110](https://github.com/yonatangross/orchestkit/issues/2110)) ([981b854](https://github.com/yonatangross/orchestkit/commit/981b8546209ac299262179afeee9582f4d21799c))"
         ]
@@ -5081,10 +5566,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.11.1",
     "date": "2026-05-29",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.11.0...v8.11.1",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**ci:** npm publish tarball must use an absolute path ([#2098](https://github.com/yonatangross/orchestkit/issues/2098)) ([4b6d22b](https://github.com/yonatangross/orchestkit/commit/4b6d22b9860bdb6a72cada0bde9a737a5a653d1b))"
         ]
@@ -5094,22 +5580,25 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.11.0",
     "date": "2026-05-29",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.10.2...v8.11.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**ci:** lockstep npm publish workflow for hook-contract ([#2096](https://github.com/yonatangross/orchestkit/issues/2096)) ([067d16c](https://github.com/yonatangross/orchestkit/commit/067d16c863dbaf2989872c3f2f45719e546b1a38))"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**build:** reinstall mcp-server deps when lockfile changes ([#1796](https://github.com/yonatangross/orchestkit/issues/1796)) ([#2093](https://github.com/yonatangross/orchestkit/issues/2093)) ([f7db2d0](https://github.com/yonatangross/orchestkit/commit/f7db2d0556e80c93800bdfff5ac4b1f511928f13))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**hook-contract:** release 0.1.1 (npm + PyPI lockstep) ([#2097](https://github.com/yonatangross/orchestkit/issues/2097)) ([5475c1c](https://github.com/yonatangross/orchestkit/commit/5475c1cde3fcdcdcbd5108fb5a8d31b2f4cbc2a8))"
         ]
@@ -5119,16 +5608,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.10.2",
     "date": "2026-05-29",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.10.1...v8.10.2",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**cc-watch:** carry triaged gaps + shared visual-style validator ([#2090](https://github.com/yonatangross/orchestkit/issues/2090)) ([b1f3304](https://github.com/yonatangross/orchestkit/commit/b1f330437480038f68d8631f3bd07325f0207cdd))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc-watch:** snapshot upstream CHANGELOG (2.1.156) ([#2089](https://github.com/yonatangross/orchestkit/issues/2089)) ([4117ee0](https://github.com/yonatangross/orchestkit/commit/4117ee080192dbb00d5b1ae688492087b4e21687))",
           "**dx:** fix Closes-N drift template bug + advisory body lint ([#2091](https://github.com/yonatangross/orchestkit/issues/2091)) ([9cd4f9e](https://github.com/yonatangross/orchestkit/commit/9cd4f9e7863cceadb5dfe6950ea8c536d5e566a4))"
@@ -5139,10 +5630,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.10.1",
     "date": "2026-05-29",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.10.0...v8.10.1",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**adoption:** 9 CC 2.1.154 stragglers the sweep missed ([#2086](https://github.com/yonatangross/orchestkit/issues/2086)) ([7ce52b1](https://github.com/yonatangross/orchestkit/commit/7ce52b1101e113b016c32d369f30291da2416845))",
           "**cc-watch:** restore triaged gaps for 2.1.153/154 ([#2084](https://github.com/yonatangross/orchestkit/issues/2084)) ([d1df958](https://github.com/yonatangross/orchestkit/commit/d1df958953fd1849c5fe95eeeac0817152983427))"
@@ -5153,16 +5645,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.10.0",
     "date": "2026-05-29",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.9.3...v8.10.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**hooks:** finish M168 coordination + subagent budget signal ([#2054](https://github.com/yonatangross/orchestkit/issues/2054)) ([a8313f3](https://github.com/yonatangross/orchestkit/commit/a8313f3aa1d449cbc5fd0c9a9fd6908db619110c))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**skills:** adopt CC 2.1.153 tail + close 2.1.153/154 issue sweep ([#2083](https://github.com/yonatangross/orchestkit/issues/2083)) ([112fd32](https://github.com/yonatangross/orchestkit/commit/112fd32505c19798504335793d06a74291975400))",
           "**skills:** adopt CC 2.1.154 (Opus 4.8, /simplify, worktree) ([#2058](https://github.com/yonatangross/orchestkit/issues/2058)) ([fc76fa5](https://github.com/yonatangross/orchestkit/commit/fc76fa58a592846aa3bf51cec4d4a1e4cdfc267a))"
@@ -5173,10 +5667,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.9.3",
     "date": "2026-05-28",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.9.2...v8.9.3",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** add hookEventName to permission output envelopes ([#1910](https://github.com/yonatangross/orchestkit/issues/1910)) ([#2052](https://github.com/yonatangross/orchestkit/issues/2052)) ([5773311](https://github.com/yonatangross/orchestkit/commit/577331135f26dad8a4e44f102bd9ed25e63dfb91))"
         ]
@@ -5186,10 +5681,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.9.2",
     "date": "2026-05-28",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.9.1...v8.9.2",
     "sections": [
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**skills:** adopt CC 2.1.152 quick-wins ([#2046](https://github.com/yonatangross/orchestkit/issues/2046)) ([d2004c3](https://github.com/yonatangross/orchestkit/commit/d2004c31fd388bf646241439835044cc28550024))",
           "**skills:** adopt CC 2.1.152 umbrella tail ([#2049](https://github.com/yonatangross/orchestkit/issues/2049)) ([9d9f1a7](https://github.com/yonatangross/orchestkit/commit/9d9f1a7c1ee253b00adbdd14efa22ae215017529))"
@@ -5200,10 +5696,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.9.1",
     "date": "2026-05-28",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.9.0...v8.9.1",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**cc-watch:** dedup on changelog-ref hash, not LLM slug ([#2041](https://github.com/yonatangross/orchestkit/issues/2041)) ([#2044](https://github.com/yonatangross/orchestkit/issues/2044)) ([d0765f4](https://github.com/yonatangross/orchestkit/commit/d0765f43e6ff770d1b4d2d4fbf749883dfd9ff0f))",
           "**cc-watch:** resilient cc-stale label-ensure (don't die on a 403) ([#2040](https://github.com/yonatangross/orchestkit/issues/2040)) ([1b8f56e](https://github.com/yonatangross/orchestkit/commit/1b8f56ee750456c846bb100f429090d460e151c9))",
@@ -5212,6 +5709,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc-watch:** snapshot upstream CHANGELOG (2.1.152) ([#2037](https://github.com/yonatangross/orchestkit/issues/2037)) ([d99fc5f](https://github.com/yonatangross/orchestkit/commit/d99fc5fef0195194fe49f5c7a21c7d0ca93fed87))"
         ]
@@ -5221,16 +5719,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.9.0",
     "date": "2026-05-27",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.8.0...v8.9.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**cc-watch:** loud auth-failure signal + below-floor cc-stale sweep ([#2035](https://github.com/yonatangross/orchestkit/issues/2035)) ([65fba9b](https://github.com/yonatangross/orchestkit/commit/65fba9b531504f594417af22cb11d14f15363f50))"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**cc-watch:** preserve parse_failed gaps + umbrella the fallback issue ([#2034](https://github.com/yonatangross/orchestkit/issues/2034)) ([3a381b5](https://github.com/yonatangross/orchestkit/commit/3a381b5eea44797f1d4c14f2b82addf40a304153))",
           "**skills:** conform AskUserQuestion calls to CC 2.1.152 schema ([#2023](https://github.com/yonatangross/orchestkit/issues/2023)) ([19d42c8](https://github.com/yonatangross/orchestkit/commit/19d42c8dc36220a8b97134b1ff3cc7b3e25961e4))"
@@ -5238,6 +5738,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc-watch:** collapse per-version milestones into rolling umbrella ([#2019](https://github.com/yonatangross/orchestkit/issues/2019)) ([e24aa5d](https://github.com/yonatangross/orchestkit/commit/e24aa5d4f51497bdc0be5570a7544c352423e009))",
           "**cc-watch:** snapshot upstream CHANGELOG (2.1.152) ([#2022](https://github.com/yonatangross/orchestkit/issues/2022)) ([388b725](https://github.com/yonatangross/orchestkit/commit/388b725d04cd88a6627a06bd3433c06a70b36726))",
@@ -5250,22 +5751,25 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.8.0",
     "date": "2026-05-26",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.7.1...v8.8.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**hooks:** M168 skill_invocation table for usage analytics ([#2015](https://github.com/yonatangross/orchestkit/issues/2015)) ([bc1e1bb](https://github.com/yonatangross/orchestkit/commit/bc1e1bba9b2301cabf9c2a687219024aad20fa46)), closes [#2010](https://github.com/yonatangross/orchestkit/issues/2010)"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** ship SQLite migrations into the bundle dir (closes [#2012](https://github.com/yonatangross/orchestkit/issues/2012)) ([#2013](https://github.com/yonatangross/orchestkit/issues/2013)) ([09b9565](https://github.com/yonatangross/orchestkit/commit/09b9565b33a1617b1b87b6552108f58ee8b393e0))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**hooks:** M168 SQLite test/build cleanup + ci-report Node 22 ([#2018](https://github.com/yonatangross/orchestkit/issues/2018)) ([73cefe3](https://github.com/yonatangross/orchestkit/commit/73cefe3d9a77683a69fd0dc37538168a1dc049ac)), closes [#2017](https://github.com/yonatangross/orchestkit/issues/2017)"
         ]
@@ -5275,16 +5779,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.7.1",
     "date": "2026-05-26",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.7.0...v8.7.1",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** issue-ref-checker scope, worktree branch, non-blocking ([#2004](https://github.com/yonatangross/orchestkit/issues/2004)) ([99d6d00](https://github.com/yonatangross/orchestkit/commit/99d6d006d58b33ade1ccc8431032d56237d04c45))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**labs:** bump upstream-version-tested pins for drifted skills ([#2001](https://github.com/yonatangross/orchestkit/issues/2001)) ([dd32737](https://github.com/yonatangross/orchestkit/commit/dd3273790831db6a1aae6829eaf3011eac619c6f))"
         ]
@@ -5294,10 +5800,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.7.0",
     "date": "2026-05-25",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.6.6...v8.7.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**hooks:** migrate session registry to node:sqlite ([#2005](https://github.com/yonatangross/orchestkit/issues/2005)) ([#2008](https://github.com/yonatangross/orchestkit/issues/2008)) ([d8f88b5](https://github.com/yonatangross/orchestkit/commit/d8f88b55f88e74da865c15cb35f5c00e413885d0))",
           "**visualize-plan:** format front-door + before/after arch ([#2002](https://github.com/yonatangross/orchestkit/issues/2002)) ([42f9ede](https://github.com/yonatangross/orchestkit/commit/42f9ede056d2fa3310d395dbd6bac7b10b0ed999))"
@@ -5305,6 +5812,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**cc-2147:** /code-review rename + multi-Agent tools guard ([#1999](https://github.com/yonatangross/orchestkit/issues/1999)) ([19230b9](https://github.com/yonatangross/orchestkit/commit/19230b9d868d2fd1a9edc89bd91cda08ecaa0798))"
         ]
@@ -5314,16 +5822,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.6.6",
     "date": "2026-05-25",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.6.5...v8.6.6",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** hook bundles load without node_modules (lazy better-sqlite3) ([#2003](https://github.com/yonatangross/orchestkit/issues/2003)) ([294471e](https://github.com/yonatangross/orchestkit/commit/294471e505cf0ad566dafdd64cb0574f2411cb5a))"
         ]
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump actions/download-artifact from 4.3.0 to 8.0.1 ([#1993](https://github.com/yonatangross/orchestkit/issues/1993)) ([bd855b3](https://github.com/yonatangross/orchestkit/commit/bd855b3b248a0d8040b3e0853d0849007f510816))",
           "bump actions/setup-node from 4 to 6 ([#1995](https://github.com/yonatangross/orchestkit/issues/1995)) ([74f819e](https://github.com/yonatangross/orchestkit/commit/74f819e2e95e41415fa9aba1909117ad695a970b))",
@@ -5337,10 +5847,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.6.5",
     "date": "2026-05-25",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.6.4...v8.6.5",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** WorktreeCreate emits empty stdout, not the envelope ([#1996](https://github.com/yonatangross/orchestkit/issues/1996)) ([4d4400b](https://github.com/yonatangross/orchestkit/commit/4d4400bb72bcf2175dc9afcee7c12eedbc1e0f6e))"
         ]
@@ -5350,10 +5861,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.6.4",
     "date": "2026-05-24",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.6.3...v8.6.4",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**cc-watch:** give parse_failed an escape hatch (closes [#1985](https://github.com/yonatangross/orchestkit/issues/1985)) ([#1988](https://github.com/yonatangross/orchestkit/issues/1988)) ([bbd3c28](https://github.com/yonatangross/orchestkit/commit/bbd3c2856f6ab0ddfe80fbf6f2aacb6e8b2ab53f))"
         ]
@@ -5363,10 +5875,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.6.3",
     "date": "2026-05-24",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.6.2...v8.6.3",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** SessionStart output missing hookEventName (closes [#1983](https://github.com/yonatangross/orchestkit/issues/1983)) ([#1984](https://github.com/yonatangross/orchestkit/issues/1984)) ([b4eeeab](https://github.com/yonatangross/orchestkit/commit/b4eeeabe4ea8e9a3bc4f5bf792015c77d30fa9a1))"
         ]
@@ -5376,10 +5889,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.6.2",
     "date": "2026-05-24",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.6.1...v8.6.2",
     "sections": [
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**skills:** adopt CC 2.1.140-2.1.148 long/bg-session features ([#1981](https://github.com/yonatangross/orchestkit/issues/1981)) ([7d94722](https://github.com/yonatangross/orchestkit/commit/7d947225989d7b6a715b6a8aaf8bea7eaa506d4b))"
         ]
@@ -5389,16 +5903,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.6.1",
     "date": "2026-05-24",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.6.0...v8.6.1",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** sweep project root for envelope corruption (closes [#1978](https://github.com/yonatangross/orchestkit/issues/1978)) ([#1979](https://github.com/yonatangross/orchestkit/issues/1979)) ([a7335f1](https://github.com/yonatangross/orchestkit/commit/a7335f13141add3a4b897b4e4f59f27beab4cd03))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "bump CC floor to 2.1.148 (closes [#1945](https://github.com/yonatangross/orchestkit/issues/1945)) ([#1977](https://github.com/yonatangross/orchestkit/issues/1977)) ([8c0c493](https://github.com/yonatangross/orchestkit/commit/8c0c4939529d839b0e8fb7404f3fea296bc386b1))"
         ]
@@ -5408,10 +5924,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.6.0",
     "date": "2026-05-23",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.5.0...v8.6.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**scripts:** cc-triage skill-feature gap pass (closes [#1964](https://github.com/yonatangross/orchestkit/issues/1964)) ([#1975](https://github.com/yonatangross/orchestkit/issues/1975)) ([99b3165](https://github.com/yonatangross/orchestkit/commit/99b3165fb972582a0ecf98e05a1dab8fdd41acc8))"
         ]
@@ -5421,16 +5938,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.5.0",
     "date": "2026-05-23",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.4.0...v8.5.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**hooks:** M168 Phase 4 — Layer 4 worktree + settings overrides ([#1969](https://github.com/yonatangross/orchestkit/issues/1969)) ([094f595](https://github.com/yonatangross/orchestkit/commit/094f595a641f2c69aae21870e1220db330dfafc5))"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** emit security-hook override warning before bundle load ([#1974](https://github.com/yonatangross/orchestkit/issues/1974)) ([d846f99](https://github.com/yonatangross/orchestkit/commit/d846f996a393a6f04dadf46969e5ed4a0fa544cf))",
           "**hooks:** tighten watchdog session-id filter ([#1971](https://github.com/yonatangross/orchestkit/issues/1971)) ([a434421](https://github.com/yonatangross/orchestkit/commit/a43442176fc23e92451ea9948c40102fc30fa2c6))"
@@ -5438,6 +5957,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc-watch:** snapshot upstream CHANGELOG (2.1.150) ([#1973](https://github.com/yonatangross/orchestkit/issues/1973)) ([cb7113f](https://github.com/yonatangross/orchestkit/commit/cb7113f7e2f783f59730a121cf2e1449dd69060a))"
         ]
@@ -5447,10 +5967,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.4.0",
     "date": "2026-05-23",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.3.0...v8.4.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**hooks:** adopt CC 2.1.145 background_tasks in agent-watchdog ([#1967](https://github.com/yonatangross/orchestkit/issues/1967)) ([800feb0](https://github.com/yonatangross/orchestkit/commit/800feb0b0948fb8694afa12175cf36d4f72aceed))",
           "**tests:** scan SKILL.md compat floors (closes [#1963](https://github.com/yonatangross/orchestkit/issues/1963)) ([#1968](https://github.com/yonatangross/orchestkit/issues/1968)) ([c476f9f](https://github.com/yonatangross/orchestkit/commit/c476f9f5bfb5194c85e0a7a0f2338bafa903b1c0))"
@@ -5458,18 +5979,21 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** rotate subagent-spawns.jsonl at 500KB (closes [#1956](https://github.com/yonatangross/orchestkit/issues/1956)) ([#1966](https://github.com/yonatangross/orchestkit/issues/1966)) ([2d168a0](https://github.com/yonatangross/orchestkit/commit/2d168a08c70ca6f1f5c05f8f15be75dd34e1f679))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**skills:** bump 108 SKILL.md floors to 2.1.139 + flip STRICT default ([#1970](https://github.com/yonatangross/orchestkit/issues/1970)) ([82d4830](https://github.com/yonatangross/orchestkit/commit/82d48300a65a6c120cf37e61aec5178f448e0552))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**milestones:** mark M170 as superseded after prior-art assessment ([#1962](https://github.com/yonatangross/orchestkit/issues/1962)) ([cbf5920](https://github.com/yonatangross/orchestkit/commit/cbf59208b02e175a9afddebd772dcbc48ab26aae))"
         ]
@@ -5479,10 +6003,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.3.0",
     "date": "2026-05-23",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.2.1...v8.3.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**skills:** pilot visual-style on explore, assess, brainstorm ([#1955](https://github.com/yonatangross/orchestkit/issues/1955)) ([fd3095d](https://github.com/yonatangross/orchestkit/commit/fd3095dd62035616f67a6712df181783b3d81f74))",
           "**visual-style:** lint PR titles + bodies + code comments ([#1960](https://github.com/yonatangross/orchestkit/issues/1960)) ([9830e2e](https://github.com/yonatangross/orchestkit/commit/9830e2e771e5cbc2ece28dcf4bd0ff07a354bd6f))"
@@ -5490,6 +6015,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**milestones:** draft M170 spec — skill auto-eval vs latest CC ([#1961](https://github.com/yonatangross/orchestkit/issues/1961)) ([e332e1b](https://github.com/yonatangross/orchestkit/commit/e332e1b9e60bee8548235fadb1bc757a89445840))"
         ]
@@ -5499,10 +6025,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.2.1",
     "date": "2026-05-22",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.2.0...v8.2.1",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**deps:** bump transitive qs 6.15.0 → 6.15.2 (GHSA-q8mj-m7cp-5q26) ([#1957](https://github.com/yonatangross/orchestkit/issues/1957)) ([201229d](https://github.com/yonatangross/orchestkit/commit/201229d7c2a1914cc07edd7b2e4ae93e7ad6d518))",
           "**hooks:** cross-session watchdog filter + auto-rebuild bundle ([#1952](https://github.com/yonatangross/orchestkit/issues/1952)) ([a625044](https://github.com/yonatangross/orchestkit/commit/a62504464345d8d0617f9d5c9634df3db886335d))"
@@ -5510,12 +6037,14 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**deps:** remove stale pnpm-lock.yaml (closes 3 dependabot alerts) ([#1953](https://github.com/yonatangross/orchestkit/issues/1953)) ([218dfe0](https://github.com/yonatangross/orchestkit/commit/218dfe017e98313f3456c0a794a8b65fd5e3820c))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**audits:** postmortem for release-please version drift incident ([#1950](https://github.com/yonatangross/orchestkit/issues/1950)) ([4e30fd5](https://github.com/yonatangross/orchestkit/commit/4e30fd5a5b72a77ad69199e28152e00aea8f6964))",
           "**skills:** brainstorm CC 2.1.141 + 2.1.143 version-floor notes ([#1951](https://github.com/yonatangross/orchestkit/issues/1951)) ([f6d360c](https://github.com/yonatangross/orchestkit/commit/f6d360c336237b82202e12676cd81742910d99c9))"
@@ -5523,6 +6052,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump the npm_and_yarn group across 2 directories with 1 update ([#1958](https://github.com/yonatangross/orchestkit/issues/1958)) ([5159133](https://github.com/yonatangross/orchestkit/commit/515913389279ec61932fca52513c9ae31849087f))"
         ]
@@ -5532,10 +6062,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.2.0",
     "date": "2026-05-22",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.1.0...v8.2.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**hooks:** events.jsonl + chain-staleness + goal-emitter (M168 Phase 3) ([#1948](https://github.com/yonatangross/orchestkit/issues/1948)) ([f1fcb70](https://github.com/yonatangross/orchestkit/commit/f1fcb70763b5d67afc1c8b060b241ef643d574d8))"
         ]
@@ -5545,22 +6076,25 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.1.0",
     "date": "2026-05-22",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v8.0.0...v8.1.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**hooks:** SQLite Layer 1 — session registry + locks (M168 Phase 2) ([#1920](https://github.com/yonatangross/orchestkit/issues/1920)) ([96267da](https://github.com/yonatangross/orchestkit/commit/96267da069c1a4dfc86e5a3577457b5751e912ce))"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**release:** revert version drift + guard against recurrence ([#1947](https://github.com/yonatangross/orchestkit/issues/1947)) ([eb4059d](https://github.com/yonatangross/orchestkit/commit/eb4059d3db846678545c4e07c4a612973f19a347))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**rules:** add visual-style rule for ASCII art and emoji usage ([#1939](https://github.com/yonatangross/orchestkit/issues/1939)) ([f831757](https://github.com/yonatangross/orchestkit/commit/f8317573e7e4e1dc852592494451d4c01acb1ac5))"
         ]
@@ -5570,10 +6104,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "8.0.0",
     "date": "2026-05-22",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.95.0...v8.0.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "/ork:expect — Diff-Aware AI Browser Testing (M99) ([#1183](https://github.com/yonatangross/orchestkit/issues/1183)) ([7b88cb7](https://github.com/yonatangross/orchestkit/commit/7b88cb704a7fd3cc974df12df04b6b867cd321e6))",
           "**#117:** close M117 — doctor MCP pinning + hook property tests ([#1496](https://github.com/yonatangross/orchestkit/issues/1496)) ([6adc493](https://github.com/yonatangross/orchestkit/commit/6adc4933977a2760c6868e746fed827c6a5fbf2d))",
@@ -5672,6 +6207,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**#1525:** bump invocable caps + dev argument-hint ([#1535](https://github.com/yonatangross/orchestkit/issues/1535)) ([9709025](https://github.com/yonatangross/orchestkit/commit/9709025d82446273c2b8217d6edf4d1e8a98f3f7))",
           "**#1525:** finish real implementations — close 4 vapor gaps ([#1538](https://github.com/yonatangross/orchestkit/issues/1538)) ([f48821f](https://github.com/yonatangross/orchestkit/commit/f48821fa4aba90fcdeddf0ca5fb0f31d2160d776))",
@@ -5751,6 +6287,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**#1446:** MCP version-pin audit matrix ([#1463](https://github.com/yonatangross/orchestkit/issues/1463)) ([ae69651](https://github.com/yonatangross/orchestkit/commit/ae696512f204940ea98bdd723dbadd7414f7884c))",
           "**7.91:** adopt CC 2.1.142 (M123 P0 bundle) ([#1836](https://github.com/yonatangross/orchestkit/issues/1836)) ([ce6f429](https://github.com/yonatangross/orchestkit/commit/ce6f429ad8492aa48b622e303b6814964d4546b2))",
@@ -5903,6 +6440,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "add agent attribution page to fumadocs site ([#1199](https://github.com/yonatangross/orchestkit/issues/1199)) ([2646561](https://github.com/yonatangross/orchestkit/commit/264656140eda5caceffe2c6dfed9743816806c6f))",
           "**agents:** recategorize all 37 agents — 7 readable categories ([#1523](https://github.com/yonatangross/orchestkit/issues/1523)) ([ae9c650](https://github.com/yonatangross/orchestkit/commit/ae9c6505aa080dbe03b79239faf22b35c5fa398d))",
@@ -5916,6 +6454,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Code Refactoring",
         "items": [
           "split testing-patterns, CC 2.1.72 upgrade, HTTP hooks fix ([#1015](https://github.com/yonatangross/orchestkit/issues/1015)) ([7bcab43](https://github.com/yonatangross/orchestkit/commit/7bcab430a21abdaaba714b8c7153351877387646))",
           "**tests:** drop fragile counts from cc-version-matrix ([#1761](https://github.com/yonatangross/orchestkit/issues/1761)) ([f2a29bd](https://github.com/yonatangross/orchestkit/commit/f2a29bdbb2056b441dcae017b4befccfc783d4b6))"
@@ -5923,6 +6462,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Performance",
         "items": [
           "**hooks:** migrate agentation-context → SessionStart (M104 PR-B) ([#1827](https://github.com/yonatangross/orchestkit/issues/1827)) ([cfa0984](https://github.com/yonatangross/orchestkit/commit/cfa0984e43d6c19a380ca22c26b78235b8f78265))",
           "**hooks:** migrate ask-fallback-injector → SessionStart (M104 PR-A) ([#1825](https://github.com/yonatangross/orchestkit/issues/1825)) ([34d80de](https://github.com/yonatangross/orchestkit/commit/34d80de521b8af014c53c22a5d369936b907cf75))"
@@ -5930,6 +6470,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "50 SUCCESS / 3 FAILURE — all 3 failures pre-existing on origin/main, tracked in [#1865](https://github.com/yonatangross/orchestkit/issues/1865). ([2cbf5e2](https://github.com/yonatangross/orchestkit/commit/2cbf5e250354f372ef744f6f7fba4bbfcf7ac15e))",
           "actionlint enforcement (pre-commit + CI workflow) ([#1601](https://github.com/yonatangross/orchestkit/issues/1601)) ([cf3bcaf](https://github.com/yonatangross/orchestkit/commit/cf3bcaf83303663d459421c87a8ec20b1209cf48))",
@@ -5976,6 +6517,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "removed",
+        "heading": "Removed",
         "items": [
           "`src/monitors/` directory (entire)",
           "`\"monitors\"` registration from `manifests/ork.json`",
@@ -5985,6 +6527,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "Closes #1877 — `goal-convergence` notification spam (monitor deleted entirely)"
         ]
@@ -5994,10 +6537,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.94.0",
     "date": "2026-05-22",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.93.1...v7.94.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "/ork:expect — Diff-Aware AI Browser Testing (M99) ([#1183](https://github.com/yonatangross/orchestkit/issues/1183)) ([7b88cb7](https://github.com/yonatangross/orchestkit/commit/7b88cb704a7fd3cc974df12df04b6b867cd321e6))",
           "**#117:** close M117 — doctor MCP pinning + hook property tests ([#1496](https://github.com/yonatangross/orchestkit/issues/1496)) ([6adc493](https://github.com/yonatangross/orchestkit/commit/6adc4933977a2760c6868e746fed827c6a5fbf2d))",
@@ -6095,6 +6639,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**#1525:** bump invocable caps + dev argument-hint ([#1535](https://github.com/yonatangross/orchestkit/issues/1535)) ([9709025](https://github.com/yonatangross/orchestkit/commit/9709025d82446273c2b8217d6edf4d1e8a98f3f7))",
           "**#1525:** finish real implementations — close 4 vapor gaps ([#1538](https://github.com/yonatangross/orchestkit/issues/1538)) ([f48821f](https://github.com/yonatangross/orchestkit/commit/f48821fa4aba90fcdeddf0ca5fb0f31d2160d776))",
@@ -6174,6 +6719,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**#1446:** MCP version-pin audit matrix ([#1463](https://github.com/yonatangross/orchestkit/issues/1463)) ([ae69651](https://github.com/yonatangross/orchestkit/commit/ae696512f204940ea98bdd723dbadd7414f7884c))",
           "**7.91:** adopt CC 2.1.142 (M123 P0 bundle) ([#1836](https://github.com/yonatangross/orchestkit/issues/1836)) ([ce6f429](https://github.com/yonatangross/orchestkit/commit/ce6f429ad8492aa48b622e303b6814964d4546b2))",
@@ -6325,6 +6871,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "add agent attribution page to fumadocs site ([#1199](https://github.com/yonatangross/orchestkit/issues/1199)) ([2646561](https://github.com/yonatangross/orchestkit/commit/264656140eda5caceffe2c6dfed9743816806c6f))",
           "**agents:** recategorize all 37 agents — 7 readable categories ([#1523](https://github.com/yonatangross/orchestkit/issues/1523)) ([ae9c650](https://github.com/yonatangross/orchestkit/commit/ae9c6505aa080dbe03b79239faf22b35c5fa398d))",
@@ -6338,6 +6885,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Code Refactoring",
         "items": [
           "split testing-patterns, CC 2.1.72 upgrade, HTTP hooks fix ([#1015](https://github.com/yonatangross/orchestkit/issues/1015)) ([7bcab43](https://github.com/yonatangross/orchestkit/commit/7bcab430a21abdaaba714b8c7153351877387646))",
           "**tests:** drop fragile counts from cc-version-matrix ([#1761](https://github.com/yonatangross/orchestkit/issues/1761)) ([f2a29bd](https://github.com/yonatangross/orchestkit/commit/f2a29bdbb2056b441dcae017b4befccfc783d4b6))"
@@ -6345,6 +6893,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Performance",
         "items": [
           "**hooks:** migrate agentation-context → SessionStart (M104 PR-B) ([#1827](https://github.com/yonatangross/orchestkit/issues/1827)) ([cfa0984](https://github.com/yonatangross/orchestkit/commit/cfa0984e43d6c19a380ca22c26b78235b8f78265))",
           "**hooks:** migrate ask-fallback-injector → SessionStart (M104 PR-A) ([#1825](https://github.com/yonatangross/orchestkit/issues/1825)) ([34d80de](https://github.com/yonatangross/orchestkit/commit/34d80de521b8af014c53c22a5d369936b907cf75))"
@@ -6352,6 +6901,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "50 SUCCESS / 3 FAILURE — all 3 failures pre-existing on origin/main, tracked in [#1865](https://github.com/yonatangross/orchestkit/issues/1865). ([2cbf5e2](https://github.com/yonatangross/orchestkit/commit/2cbf5e250354f372ef744f6f7fba4bbfcf7ac15e))",
           "actionlint enforcement (pre-commit + CI workflow) ([#1601](https://github.com/yonatangross/orchestkit/issues/1601)) ([cf3bcaf](https://github.com/yonatangross/orchestkit/commit/cf3bcaf83303663d459421c87a8ec20b1209cf48))",
@@ -6398,6 +6948,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "**tests:** `stop-uncommitted-check.test.ts` fixtures no longer corrupt"
         ]
@@ -6407,10 +6958,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.93.0",
     "date": "2026-05-20",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.92.0...v7.93.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**hooks:** sweep stale empty worktree paths (closes [#1884](https://github.com/yonatangross/orchestkit/issues/1884)) ([#1905](https://github.com/yonatangross/orchestkit/issues/1905)) ([834467d](https://github.com/yonatangross/orchestkit/commit/834467d1ba9730a3e271e977240e949aa20a6106))"
         ]
@@ -6420,10 +6972,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.92.0",
     "date": "2026-05-20",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.91.0...v7.92.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**hooks:** cross-session state bus for [#1885](https://github.com/yonatangross/orchestkit/issues/1885) ([#1906](https://github.com/yonatangross/orchestkit/issues/1906)) ([9bab036](https://github.com/yonatangross/orchestkit/commit/9bab0368966d2f4f1bb9d7cf2aaaf6f6ac16ef16))",
           "**hooks:** tool-invocation-linter framework ([#1883](https://github.com/yonatangross/orchestkit/issues/1883) seed) ([#1900](https://github.com/yonatangross/orchestkit/issues/1900)) ([3800941](https://github.com/yonatangross/orchestkit/commit/3800941c4776d5b6d2d61d1575411a2ed93740b5))",
@@ -6432,6 +6985,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**build:** preflight check for missing node_modules (closes [#1899](https://github.com/yonatangross/orchestkit/issues/1899)) ([#1904](https://github.com/yonatangross/orchestkit/issues/1904)) ([431c66e](https://github.com/yonatangross/orchestkit/commit/431c66e20109070706cfb3f47db69260639a6879))",
           "**hooks:** cap agent-watchdog at 24h to reap zombies ([#1882](https://github.com/yonatangross/orchestkit/issues/1882)) ([#1896](https://github.com/yonatangross/orchestkit/issues/1896)) ([a03e5cb](https://github.com/yonatangross/orchestkit/commit/a03e5cb013eec4f8f6875c9630294e9e3511a09d))"
@@ -6439,12 +6993,14 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc-watch:** snapshot upstream CHANGELOG (2.1.145) ([#1903](https://github.com/yonatangross/orchestkit/issues/1903)) ([0a4374c](https://github.com/yonatangross/orchestkit/commit/0a4374c4cde50b71ce87e0a3bf28ff4666c09fbe))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**skills:** codify manual-worktree pattern in /ork:cover (closes platform[#3224](https://github.com/yonatangross/orchestkit/issues/3224)) ([#1835](https://github.com/yonatangross/orchestkit/issues/1835)) ([523b39d](https://github.com/yonatangross/orchestkit/commit/523b39d626088ea4d28adc88fd0865150163f83b))"
         ]
@@ -6454,10 +7010,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.91.0",
     "date": "2026-05-20",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.90.0...v7.91.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**ci:** cross-language parity gate (M141-6, [#1807](https://github.com/yonatangross/orchestkit/issues/1807)) ([903d870](https://github.com/yonatangross/orchestkit/commit/903d87022494f4c1b71cc5944a5bfde51cebbfdf))",
           "**ci:** PyPI publish workflow for hook-contract-py ([#1864](https://github.com/yonatangross/orchestkit/issues/1864)) ([204efe9](https://github.com/yonatangross/orchestkit/commit/204efe996510a7c03e53e64e8dedb90c77869a30))",
@@ -6474,6 +7031,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**ci-sentinel:** drop --bare (auth broken), bump budget 500k→1M ([#1857](https://github.com/yonatangross/orchestkit/issues/1857)) ([42ee3ab](https://github.com/yonatangross/orchestkit/commit/42ee3ab2cae6dbf92146cfda9dfaf791a4b6acde))",
           "**ci-sentinel:** file-backed apiKeyHelper + safer smoke test ([#1859](https://github.com/yonatangross/orchestkit/issues/1859)) ([25cfbfc](https://github.com/yonatangross/orchestkit/commit/25cfbfca68dede95e6f73a2615cf84baec03ff16))",
@@ -6487,6 +7045,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**7.91:** adopt CC 2.1.142 (M123 P0 bundle) ([#1836](https://github.com/yonatangross/orchestkit/issues/1836)) ([ce6f429](https://github.com/yonatangross/orchestkit/commit/ce6f429ad8492aa48b622e303b6814964d4546b2))",
           "**cc-watch:** snapshot upstream CHANGELOG (2.1.141) ([#1829](https://github.com/yonatangross/orchestkit/issues/1829)) ([a7f9e87](https://github.com/yonatangross/orchestkit/commit/a7f9e87e3f74ad5e4b233835fa3ceb11150443f6))",
@@ -6500,12 +7059,14 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Performance",
         "items": [
           "**hooks:** migrate agentation-context → SessionStart (M104 PR-B) ([#1827](https://github.com/yonatangross/orchestkit/issues/1827)) ([cfa0984](https://github.com/yonatangross/orchestkit/commit/cfa0984e43d6c19a380ca22c26b78235b8f78265))"
         ]
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "50 SUCCESS / 3 FAILURE — all 3 failures pre-existing on origin/main, tracked in [#1865](https://github.com/yonatangross/orchestkit/issues/1865). ([2cbf5e2](https://github.com/yonatangross/orchestkit/commit/2cbf5e250354f372ef744f6f7fba4bbfcf7ac15e))",
           "bump actions/checkout from 4 to 6 ([#1851](https://github.com/yonatangross/orchestkit/issues/1851)) ([9e6dd22](https://github.com/yonatangross/orchestkit/commit/9e6dd22cff371516ffcacbc5e9849a07429b1f6d))",
@@ -6520,22 +7081,25 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.90.0",
     "date": "2026-05-14",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.89.1...v7.90.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**implement:** codify manual-worktree for parallel agents ([#1824](https://github.com/yonatangross/orchestkit/issues/1824)) ([a0b80b7](https://github.com/yonatangross/orchestkit/commit/a0b80b7b1ad90a4e01dd208988965746e5be365b))"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** allow SessionStart + PostCompact in output-guard ([#1234](https://github.com/yonatangross/orchestkit/issues/1234)) ([#1822](https://github.com/yonatangross/orchestkit/issues/1822)) ([921e113](https://github.com/yonatangross/orchestkit/commit/921e1131c123884821d7c754a9d204df703ef255))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Performance",
         "items": [
           "**hooks:** migrate ask-fallback-injector → SessionStart (M104 PR-A) ([#1825](https://github.com/yonatangross/orchestkit/issues/1825)) ([34d80de](https://github.com/yonatangross/orchestkit/commit/34d80de521b8af014c53c22a5d369936b907cf75))"
         ]
@@ -6545,10 +7109,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.89.1",
     "date": "2026-05-13",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.89.0...v7.89.1",
     "sections": [
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "**playground-gate:** allow-list cron snapshot + orchestkit-release-bot ([#1820](https://github.com/yonatangross/orchestkit/issues/1820)) ([7069d57](https://github.com/yonatangross/orchestkit/commit/7069d5755a2777f71e15444af856da0d439f220a))"
         ]
@@ -6558,10 +7123,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.89.0",
     "date": "2026-05-13",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.88.1...v7.89.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**hooks:** rules-size-check + storage-patterns ([#1815](https://github.com/yonatangross/orchestkit/issues/1815) [#1816](https://github.com/yonatangross/orchestkit/issues/1816)) ([#1817](https://github.com/yonatangross/orchestkit/issues/1817)) ([a6ca836](https://github.com/yonatangross/orchestkit/commit/a6ca836d9bb86bdae26da41513eaa765bbf51c55))"
         ]
@@ -6571,10 +7137,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.88.1",
     "date": "2026-05-13",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.88.0...v7.88.1",
     "sections": [
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**deps:** npm audit fix in orchestkit-demos + src/mcp-server — final 2 high GHSAs ([#1813](https://github.com/yonatangross/orchestkit/issues/1813)) ([2fb455b](https://github.com/yonatangross/orchestkit/commit/2fb455b3e8dbcb035a9d83802d1d5c82f03f161b))"
         ]
@@ -6584,16 +7151,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.88.0",
     "date": "2026-05-13",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.87.0...v7.88.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**hooks:** deferred worktree advisory consumer — PR-2 [#1794](https://github.com/yonatangross/orchestkit/issues/1794) follow-up ([#1801](https://github.com/yonatangross/orchestkit/issues/1801)) ([f017d9e](https://github.com/yonatangross/orchestkit/commit/f017d9e9cb9939e0e07ce1951be136386e9a4b88))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**deps:** npm audit fix in docs/site — 15 GHSAs resolved ([#1810](https://github.com/yonatangross/orchestkit/issues/1810)) ([3428ea1](https://github.com/yonatangross/orchestkit/commit/3428ea1386c4ce3db856e473bbf6fddaa297e2fd))"
         ]
@@ -6603,16 +7172,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.87.0",
     "date": "2026-05-12",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.86.8...v7.87.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**hooks/lib:** dual-write analytics to yonatan-hq platform ([#1799](https://github.com/yonatangross/orchestkit/issues/1799)) ([7070412](https://github.com/yonatangross/orchestkit/commit/70704122c7bb305826d627cfc70e030b27638e02))"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** [#1795](https://github.com/yonatangross/orchestkit/issues/1795) — ORK_ASK_FALLBACK=text picker stall mitigation ([#1798](https://github.com/yonatangross/orchestkit/issues/1798)) ([19fbc6e](https://github.com/yonatangross/orchestkit/commit/19fbc6eebdb4d462e681c5784780bdc38c526b15))",
           "**hooks:** kill [#1794](https://github.com/yonatangross/orchestkit/issues/1794) — WorktreeCreate output shape + dispatcher guard ([#1797](https://github.com/yonatangross/orchestkit/issues/1797)) ([3e6d164](https://github.com/yonatangross/orchestkit/commit/3e6d164c8093a832592d52873e18c67ba5174cae))"
@@ -6623,10 +7194,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.86.8",
     "date": "2026-05-12",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.86.7...v7.86.8",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** preserve /rename via sessionTitle delta-detect ([#1779](https://github.com/yonatangross/orchestkit/issues/1779)) ([2cb8ec6](https://github.com/yonatangross/orchestkit/commit/2cb8ec658d7d3ab91e589f50fbb2e833c7f6f6b6))",
           "**hooks:** titler double-prefix — strip leading ork: before wrap ([#1789](https://github.com/yonatangross/orchestkit/issues/1789)) ([2abf7e0](https://github.com/yonatangross/orchestkit/commit/2abf7e0c1827f589ddef3379ae52be4e2d34c142))"
@@ -6634,6 +7206,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**adopt:** M139 Bundle A — close the M137 loop ([#1786](https://github.com/yonatangross/orchestkit/issues/1786)) ([79623c0](https://github.com/yonatangross/orchestkit/commit/79623c00d940987e5cf7b92aa87396fff56b6472))",
           "**adopt:** M140 Bundle B — make /goal real ([#1793](https://github.com/yonatangross/orchestkit/issues/1793)) ([dca28a5](https://github.com/yonatangross/orchestkit/commit/dca28a5aff9910ec3ce193860249daedfa5f00e8))"
@@ -6641,6 +7214,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**claude:** replace static counts with plugin-details pointer (D2) ([#1777](https://github.com/yonatangross/orchestkit/issues/1777)) ([e04ba7d](https://github.com/yonatangross/orchestkit/commit/e04ba7def4b7039dd5d57a56a4f999c5009906a0))",
           "**release:** add v7.86 release-window slideshow + infographic ([#1776](https://github.com/yonatangross/orchestkit/issues/1776)) ([6d673c1](https://github.com/yonatangross/orchestkit/commit/6d673c1acc012976386642237c70685ac8d9791e))"
@@ -6651,10 +7225,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.86.7",
     "date": "2026-05-12",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.86.6...v7.86.7",
     "sections": [
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**adopt:** M135 Group I CC 2.1.136 autoMode + plan-mode ([#1760](https://github.com/yonatangross/orchestkit/issues/1760)) ([3e44265](https://github.com/yonatangross/orchestkit/commit/3e442656d4284243b78d7edee62e629db77ec077)), closes [#1711](https://github.com/yonatangross/orchestkit/issues/1711) [#1717](https://github.com/yonatangross/orchestkit/issues/1717) [#1710](https://github.com/yonatangross/orchestkit/issues/1710) [#1719](https://github.com/yonatangross/orchestkit/issues/1719)",
           "**adopt:** M137 CC 2.1.139 adoption + 2.1.136 matrix backfill ([#1773](https://github.com/yonatangross/orchestkit/issues/1773)) ([c05d712](https://github.com/yonatangross/orchestkit/commit/c05d712de96bb3378f4250e999a0b3d6115e222c))"
@@ -6662,24 +7237,28 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**release:** add v7.86 release-window slideshow + infographic ([#1758](https://github.com/yonatangross/orchestkit/issues/1758)) ([c5b00e8](https://github.com/yonatangross/orchestkit/commit/c5b00e8d114133a323e5d99b5aea01c636221869))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Code Refactoring",
         "items": [
           "**tests:** drop fragile counts from cc-version-matrix ([#1761](https://github.com/yonatangross/orchestkit/issues/1761)) ([f2a29bd](https://github.com/yonatangross/orchestkit/commit/f2a29bdbb2056b441dcae017b4befccfc783d4b6))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Changed",
         "items": [
           "**mcp/memory:** Memory graph dir moves from user-global to `${CLAUDE_PROJECT_DIR}/.claude/memory/`. Resolved by CC 2.1.139 stdio MCP env injection — no manual path expansion needed. Existing entries auto-discovered; manual move possible by relocating the prior `memory.json` into the new project-scoped path."
         ]
       },
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "**skill:** `ork:agents-view` — Research Preview wrapper around `claude agents` and `claude plugin details ork` for parallel-agent observability and per-session cost projection (CC 2.1.139+)."
         ]
@@ -6689,16 +7268,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.86.6",
     "date": "2026-05-11",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.86.5...v7.86.6",
     "sections": [
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**labs:** thorough pin sync 2026-05 (3 skills) ([#1753](https://github.com/yonatangross/orchestkit/issues/1753)) ([11a6984](https://github.com/yonatangross/orchestkit/commit/11a69848a68b66f63f588c60bc88108165df00a7))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**skills:** deepen @json-render/directives coverage in skill body ([#1755](https://github.com/yonatangross/orchestkit/issues/1755)) ([5de3d5b](https://github.com/yonatangross/orchestkit/commit/5de3d5b6d7c5ad574b5cfa9707e983199b9eb20a))"
         ]
@@ -6708,10 +7289,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.86.5",
     "date": "2026-05-11",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.86.4...v7.86.5",
     "sections": [
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**adopt:** M132 Group H CC 2.1.133 effort+skill discovery ([#1750](https://github.com/yonatangross/orchestkit/issues/1750)) ([45378c5](https://github.com/yonatangross/orchestkit/commit/45378c5038a33477760e0edbfa108d21679aa253)), closes [#1702](https://github.com/yonatangross/orchestkit/issues/1702) [#1708](https://github.com/yonatangross/orchestkit/issues/1708) [#1709](https://github.com/yonatangross/orchestkit/issues/1709)"
         ]
@@ -6721,10 +7303,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.86.4",
     "date": "2026-05-11",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.86.3...v7.86.4",
     "sections": [
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**adopt:** M132 Group F CC 2.1.133 OAuth+session+network ([#1747](https://github.com/yonatangross/orchestkit/issues/1747)) ([ad12153](https://github.com/yonatangross/orchestkit/commit/ad1215389d8338ede2873fc800793596225b5b87))"
         ]
@@ -6734,10 +7317,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.86.3",
     "date": "2026-05-11",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.86.2...v7.86.3",
     "sections": [
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump anthropics/claude-code-action from 1.0.111 to 1.0.119 ([#1743](https://github.com/yonatangross/orchestkit/issues/1743)) ([c672ae8](https://github.com/yonatangross/orchestkit/commit/c672ae8e313f965bbf0c700a0f9edc48e108345d))"
         ]
@@ -6747,10 +7331,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.86.2",
     "date": "2026-05-11",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.86.1...v7.86.2",
     "sections": [
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump github/codeql-action from 4.35.3 to 4.35.4 ([#1744](https://github.com/yonatangross/orchestkit/issues/1744)) ([f99744e](https://github.com/yonatangross/orchestkit/commit/f99744eec682f5f8e7ebc5538540e6e622c29407))"
         ]
@@ -6760,10 +7345,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.86.1",
     "date": "2026-05-10",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.86.0...v7.86.1",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**cc-watch:** skip cc-triage for versions below supported floor ([#1739](https://github.com/yonatangross/orchestkit/issues/1739)) ([#1740](https://github.com/yonatangross/orchestkit/issues/1740)) ([5e551a6](https://github.com/yonatangross/orchestkit/commit/5e551a6ce24780b782dd25c31714fb0248733a1a))",
           "**ci:** cc-watch uses GH App token ([#1735](https://github.com/yonatangross/orchestkit/issues/1735)) ([#1736](https://github.com/yonatangross/orchestkit/issues/1736)) ([e726b8d](https://github.com/yonatangross/orchestkit/commit/e726b8d2a0c1bb4c4a63601663ab36ae90bc368c))"
@@ -6771,6 +7357,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc-watch:** snapshot upstream CHANGELOG (2.1.123) ([#1741](https://github.com/yonatangross/orchestkit/issues/1741)) ([8f9099e](https://github.com/yonatangross/orchestkit/commit/8f9099e3e188542e4d2949168a1217a12c13cd1b))"
         ]
@@ -6780,16 +7367,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.86.0",
     "date": "2026-05-10",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.85.0...v7.86.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**cc:** bump CC floor 2.1.132 → 2.1.138 ([#1682](https://github.com/yonatangross/orchestkit/issues/1682)) ([#1734](https://github.com/yonatangross/orchestkit/issues/1734)) ([70c2e4a](https://github.com/yonatangross/orchestkit/commit/70c2e4a5aa940e5a601586e472f2266017539411))"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**cc-watch:** silent-skip + reissue flag + LLM retry ([#1730](https://github.com/yonatangross/orchestkit/issues/1730)) ([78aa054](https://github.com/yonatangross/orchestkit/commit/78aa0541c3f077256811f1c1f429ba624caf1209))",
           "**ci:** cc-watch PR uses PAT + version-stamped title ([#1685](https://github.com/yonatangross/orchestkit/issues/1685) [#1697](https://github.com/yonatangross/orchestkit/issues/1697)) ([#1698](https://github.com/yonatangross/orchestkit/issues/1698)) ([fbd1728](https://github.com/yonatangross/orchestkit/commit/fbd172844a117cc3c7be8b115f683b2a9ba86141))",
@@ -6798,6 +7387,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**adopt:** CC 2.1.128/129 Group A — foundation doc adoption ([#1672](https://github.com/yonatangross/orchestkit/issues/1672)) ([3bb704e](https://github.com/yonatangross/orchestkit/commit/3bb704e75b2524793958cc193956a93331f3686a))",
           "**adopt:** CC 2.1.128/129 Group B — MCP hygiene + manifest restructure ([#1674](https://github.com/yonatangross/orchestkit/issues/1674)) ([907f78e](https://github.com/yonatangross/orchestkit/commit/907f78e3f79c6154c224a1e85fa9afe003437ccb))",
@@ -6813,16 +7403,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.85.0",
     "date": "2026-05-07",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.84.0...v7.85.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "ASCII Design System + status glyph vocab + preview audit + drift fixes ([#1619](https://github.com/yonatangross/orchestkit/issues/1619)) ([1770365](https://github.com/yonatangross/orchestkit/commit/17703656b7a4d4b5376569ebbd115fcbcd6fc16f))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc-watch:** snapshot upstream CHANGELOG ([#1670](https://github.com/yonatangross/orchestkit/issues/1670)) ([3eef0f6](https://github.com/yonatangross/orchestkit/commit/3eef0f63c23c09787e60cad280e2f0bbacc31d45))"
         ]
@@ -6832,16 +7424,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.84.0",
     "date": "2026-05-07",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.83.2...v7.84.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**cc:** bolder floor bump 2.1.125 → 2.1.132 ([#1623](https://github.com/yonatangross/orchestkit/issues/1623)) ([2292524](https://github.com/yonatangross/orchestkit/commit/2292524c836b3d7e0d57ba4d7be346bce14e0e23))"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**ci:** cc-triage drops --bare so CLAUDE_CODE_OAUTH_TOKEN is honored ([#1629](https://github.com/yonatangross/orchestkit/issues/1629)) ([fbb3199](https://github.com/yonatangross/orchestkit/commit/fbb31994d2cdb1aa61e533738f1ac0f8c1b21d70))",
           "**ci:** cc-triage uses opus alias + logs stdout on failure ([#1633](https://github.com/yonatangross/orchestkit/issues/1633)) ([311a514](https://github.com/yonatangross/orchestkit/commit/311a514bbe9c702aca773db90a5a288196b8b9f2))",
@@ -6852,6 +7446,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump the npm_and_yarn group across 2 directories with 3 updates ([#1630](https://github.com/yonatangross/orchestkit/issues/1630)) ([2e6010c](https://github.com/yonatangross/orchestkit/commit/2e6010c928a1b5da9f87470f16f47c36143cb770))"
         ]
@@ -6861,10 +7456,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.83.2",
     "date": "2026-05-05",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.83.1...v7.83.2",
     "sections": [
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump actions/setup-node from 4.4.0 to 6.4.0 ([#1612](https://github.com/yonatangross/orchestkit/issues/1612)) ([ce35dd9](https://github.com/yonatangross/orchestkit/commit/ce35dd93febb23d4009d930d81c6fe2b423b2d08))",
           "bump anthropics/claude-code-action from 1.0.107 to 1.0.111 ([#1611](https://github.com/yonatangross/orchestkit/issues/1611)) ([6cfd862](https://github.com/yonatangross/orchestkit/commit/6cfd862fc107a388a978f0bcf22bbf8774e33c5c))"
@@ -6875,10 +7471,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.83.1",
     "date": "2026-05-05",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.83.0...v7.83.1",
     "sections": [
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump github/codeql-action from 4.35.2 to 4.35.3 ([#1609](https://github.com/yonatangross/orchestkit/issues/1609)) ([fe98da4](https://github.com/yonatangross/orchestkit/commit/fe98da4416f6cd04e8844fdd057b82589faadde8))",
           "bump peter-evans/create-pull-request from 7.0.5 to 8.1.1 ([#1610](https://github.com/yonatangross/orchestkit/issues/1610)) ([d172010](https://github.com/yonatangross/orchestkit/commit/d1720103eb785284771b42f02959e2aa21f399b1))"
@@ -6889,22 +7486,25 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.83.0",
     "date": "2026-05-05",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.82.1...v7.83.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**cc:** adopt CC 2.1.128 + bump floor to 2.1.125 ([#1616](https://github.com/yonatangross/orchestkit/issues/1616)) ([4686952](https://github.com/yonatangross/orchestkit/commit/468695234803c081a916bf2cf35af16bd54bd055))"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**cc-watch:** normalize double-dash bullets + --retry-failed flag ([#1614](https://github.com/yonatangross/orchestkit/issues/1614)) ([4a9f52c](https://github.com/yonatangross/orchestkit/commit/4a9f52c5876b89ca64aaa9c1047a77f297cd07e4))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "vercel preview tier 2 (no previews) ([#1613](https://github.com/yonatangross/orchestkit/issues/1613)) ([61b42d0](https://github.com/yonatangross/orchestkit/commit/61b42d0341de1677da9215e3f5c54e3d9cc1d474))"
         ]
@@ -6914,10 +7514,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.82.1",
     "date": "2026-05-03",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.82.0...v7.82.1",
     "sections": [
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc-watch:** snapshot upstream CHANGELOG ([#1607](https://github.com/yonatangross/orchestkit/issues/1607)) ([fb85961](https://github.com/yonatangross/orchestkit/commit/fb859612804063dbee188a18abf0faf122ddb66a))"
         ]
@@ -6927,16 +7528,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.82.0",
     "date": "2026-05-03",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.81.1...v7.82.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**m127:** bundle Vercel Labs 2026-04-29 adoption (5 issues) ([#1604](https://github.com/yonatangross/orchestkit/issues/1604)) ([ac9ec5b](https://github.com/yonatangross/orchestkit/commit/ac9ec5b95477607aaf413ac61bcff1d5bc6e64f8))"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** close JSON-leak holes that mkdir literal {...} dirs ([#1606](https://github.com/yonatangross/orchestkit/issues/1606)) ([f93e88d](https://github.com/yonatangross/orchestkit/commit/f93e88d81cb6ea2e50a7871636ee4818bcfa77ed))"
         ]
@@ -6946,16 +7549,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.81.1",
     "date": "2026-05-03",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.81.0...v7.81.1",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**ci:** enable auto-merge on cron-generated snapshot PRs ([#1603](https://github.com/yonatangross/orchestkit/issues/1603)) ([cfea028](https://github.com/yonatangross/orchestkit/commit/cfea028bde0ecf9eb19f931b630ea9734d9ed78f))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cc-watch:** snapshot upstream CHANGELOG ([#1600](https://github.com/yonatangross/orchestkit/issues/1600)) ([37ddcdc](https://github.com/yonatangross/orchestkit/commit/37ddcdce4444703f56f1e59b3574bdf27d86e8a4))"
         ]
@@ -6965,16 +7570,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.81.0",
     "date": "2026-05-02",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.80.0...v7.81.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**cc:** M130 auto-adoption pipeline ([#1486](https://github.com/yonatangross/orchestkit/issues/1486) [#1487](https://github.com/yonatangross/orchestkit/issues/1487) [#1488](https://github.com/yonatangross/orchestkit/issues/1488)) ([#1589](https://github.com/yonatangross/orchestkit/issues/1589)) ([ec14387](https://github.com/yonatangross/orchestkit/commit/ec14387503faed2a976ed7406fd24c1c096a3c4e))"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "add the same step-level env block to Step 1 too. ([d79dbb5](https://github.com/yonatangross/orchestkit/commit/d79dbb5b913b2269c0a59cfceefa89261a602358))",
           "**ci:** add GH_TOKEN to Snapshot step ([#1598](https://github.com/yonatangross/orchestkit/issues/1598)) ([d79dbb5](https://github.com/yonatangross/orchestkit/commit/d79dbb5b913b2269c0a59cfceefa89261a602358))",
@@ -6990,6 +7597,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "actionlint enforcement (pre-commit + CI workflow) ([#1601](https://github.com/yonatangross/orchestkit/issues/1601)) ([cf3bcaf](https://github.com/yonatangross/orchestkit/commit/cf3bcaf83303663d459421c87a8ec20b1209cf48))"
         ]
@@ -6999,16 +7607,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.80.0",
     "date": "2026-05-02",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.79.1...v7.80.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**cc:** adopt CC 2.1.122 + 2.1.126 features (M128) ([#1585](https://github.com/yonatangross/orchestkit/issues/1585)) ([372b9d0](https://github.com/yonatangross/orchestkit/commit/372b9d05ec6c8e7359eb664a98a47665dc8ccafa))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**m129:** fix lossy path decode + add OTEL panel fixture tests ([#1588](https://github.com/yonatangross/orchestkit/issues/1588)) ([1f30144](https://github.com/yonatangross/orchestkit/commit/1f301449941451f3ed1e27b7c2b7c9581e55203e))"
         ]
@@ -7018,10 +7628,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.79.1",
     "date": "2026-05-01",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.79.0...v7.79.1",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**brainstorm:** restore 81 lines of headroom under cap ([#1578](https://github.com/yonatangross/orchestkit/issues/1578)) ([75ba909](https://github.com/yonatangross/orchestkit/commit/75ba909d7bc234f11f2fb018ddd9d3a06918ad23))"
         ]
@@ -7031,16 +7642,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.79.0",
     "date": "2026-05-01",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.78.0...v7.79.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**hooks:** local-dev hygiene bundle — 3 advisory hooks ([#1574](https://github.com/yonatangross/orchestkit/issues/1574)) ([dc446a1](https://github.com/yonatangross/orchestkit/commit/dc446a106a17eef1161e052e2ac92245cb045351))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**deps:** bump notebooklm-mcp-cli 0.5.25 → 0.6.1 (2026-04-28) ([#1575](https://github.com/yonatangross/orchestkit/issues/1575)) ([3ba2cc5](https://github.com/yonatangross/orchestkit/commit/3ba2cc5cd6b8e5ba852b5fba3cae0793c2ad2378))"
         ]
@@ -7050,10 +7663,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.78.0",
     "date": "2026-05-01",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.77.0...v7.78.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**doctor:** wire agent-browser doctor --json ([#1559](https://github.com/yonatangross/orchestkit/issues/1559)) ([#1573](https://github.com/yonatangross/orchestkit/issues/1573)) ([399b030](https://github.com/yonatangross/orchestkit/commit/399b030d9b165371de20243fb6cc71339bd31cd0))",
           "**M127:** cost-hygiene A1 — CI fork-subagent + slash-only skills ([#1572](https://github.com/yonatangross/orchestkit/issues/1572)) ([1d947a9](https://github.com/yonatangross/orchestkit/commit/1d947a9e7ec41ee6b980c491d475971ab5b35097))",
@@ -7062,6 +7676,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**brainstorm:** trim SKILL.md to 500-line cap (unblocks 4 PRs) ([#1576](https://github.com/yonatangross/orchestkit/issues/1576)) ([247943a](https://github.com/yonatangross/orchestkit/commit/247943aaa7bb7a0a97dbf586bc55191fbd937233))",
           "**ultrareview:** label-gate + fix broken TARGET arg + suppress empty comment ([#1569](https://github.com/yonatangross/orchestkit/issues/1569)) ([c8097f5](https://github.com/yonatangross/orchestkit/commit/c8097f558f6aabfb27619ac61cf60e647c5a5f8d))"
@@ -7069,6 +7684,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**M126:** re-stamp component counts across docs ([#1567](https://github.com/yonatangross/orchestkit/issues/1567)) ([4d9a7fd](https://github.com/yonatangross/orchestkit/commit/4d9a7fd5216de6ab7ec9224edfeeac54a74a0042))"
         ]
@@ -7078,16 +7694,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.77.0",
     "date": "2026-04-29",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.76.0...v7.77.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**M126:** secret-handler PostToolUse hook ([#1543](https://github.com/yonatangross/orchestkit/issues/1543), Bundle C — last of M126) ([#1553](https://github.com/yonatangross/orchestkit/issues/1553)) ([8cf8448](https://github.com/yonatangross/orchestkit/commit/8cf844878292fb723da9f9f8ca778d0ad3a02579))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**deps:** bump Vercel Labs upstreams to 2026-04-29 latest ([#1558](https://github.com/yonatangross/orchestkit/issues/1558)) ([bc582e5](https://github.com/yonatangross/orchestkit/commit/bc582e5083110d35748e97005d4174cde8bd36d9))",
           "M126 followups — close 5 audit-driven gaps from /ork:assess ([#1556](https://github.com/yonatangross/orchestkit/issues/1556)) ([fb5b563](https://github.com/yonatangross/orchestkit/commit/fb5b5636ee63a1d6aaad7ec9a9ead40ce0f3f235))"
@@ -7098,10 +7716,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.76.0",
     "date": "2026-04-28",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.75.0...v7.76.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**M126:** ${CLAUDE_EFFORT} env ([#1540](https://github.com/yonatangross/orchestkit/issues/1540)) + /skills filter tip ([#1546](https://github.com/yonatangross/orchestkit/issues/1546)) ([#1549](https://github.com/yonatangross/orchestkit/issues/1549)) ([d5ce5f6](https://github.com/yonatangross/orchestkit/commit/d5ce5f6232ef40bab5240c42e7c646f790fa339f))",
           "**M126:** alwaysLoad MCP ([#1541](https://github.com/yonatangross/orchestkit/issues/1541)) + claude plugin prune ([#1544](https://github.com/yonatangross/orchestkit/issues/1544)) ([#1551](https://github.com/yonatangross/orchestkit/issues/1551)) ([dedc53e](https://github.com/yonatangross/orchestkit/commit/dedc53e7695d41c1399b38f1198bf3d5ab8dc271))",
@@ -7113,10 +7732,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.75.0",
     "date": "2026-04-28",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.74.0...v7.75.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**M125 Lane C:** json-render dashboards ([#1527](https://github.com/yonatangross/orchestkit/issues/1527)) + Storybook → genui catalog ([#1529](https://github.com/yonatangross/orchestkit/issues/1529)) ([#1539](https://github.com/yonatangross/orchestkit/issues/1539)) ([afb19e0](https://github.com/yonatangross/orchestkit/commit/afb19e057bff05b9837a4735e371befe215261d7))"
         ]
@@ -7126,16 +7746,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.74.0",
     "date": "2026-04-27",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.73.0...v7.74.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**#1525:** /ork:dev gains scripts, rules, test-cases ([#1536](https://github.com/yonatangross/orchestkit/issues/1536)) ([cb30501](https://github.com/yonatangross/orchestkit/commit/cb3050173ad94ed9e18b6a3f9cc9cb582123ce69))"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**#1525:** finish real implementations — close 4 vapor gaps ([#1538](https://github.com/yonatangross/orchestkit/issues/1538)) ([f48821f](https://github.com/yonatangross/orchestkit/commit/f48821fa4aba90fcdeddf0ca5fb0f31d2160d776))"
         ]
@@ -7145,10 +7767,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.73.0",
     "date": "2026-04-27",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.72.1...v7.73.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**M125:** Lane A — labs version watcher + emulate auto-discovery ([#1532](https://github.com/yonatangross/orchestkit/issues/1532)) ([a53f342](https://github.com/yonatangross/orchestkit/commit/a53f3428d4ab33bfab3a16892faa425fd25e7c46))",
           "**M125:** Lane B — /ork:dev lab-stack + auto-expect + ARIA snapshots ([#1534](https://github.com/yonatangross/orchestkit/issues/1534)) ([1e626fd](https://github.com/yonatangross/orchestkit/commit/1e626fdf03c88e1914f957e99f8c931ac41eeddf))"
@@ -7156,6 +7779,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**#1525:** bump invocable caps + dev argument-hint ([#1535](https://github.com/yonatangross/orchestkit/issues/1535)) ([9709025](https://github.com/yonatangross/orchestkit/commit/9709025d82446273c2b8217d6edf4d1e8a98f3f7))"
         ]
@@ -7165,16 +7789,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.72.1",
     "date": "2026-04-27",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.72.0...v7.72.1",
     "sections": [
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "**agents:** recategorize all 37 agents — 7 readable categories ([#1523](https://github.com/yonatangross/orchestkit/issues/1523)) ([ae9c650](https://github.com/yonatangross/orchestkit/commit/ae9c6505aa080dbe03b79239faf22b35c5fa398d))"
         ]
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump actions/setup-node from 4.4.0 to 6.4.0 ([#1521](https://github.com/yonatangross/orchestkit/issues/1521)) ([08140ff](https://github.com/yonatangross/orchestkit/commit/08140ff94f8553341ebd18a041b5efbb23fb64a5))",
           "bump anthropics/claude-code-action from 1.0.101 to 1.0.107 ([#1519](https://github.com/yonatangross/orchestkit/issues/1519)) ([23d2a7c](https://github.com/yonatangross/orchestkit/commit/23d2a7c52a1bfe39d77caa86f62db5590e0d1959))",
@@ -7187,10 +7813,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.72.0",
     "date": "2026-04-27",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.71.2...v7.72.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**hooks,M119:** dogfood cluster — zones, cache-aware, outcome ([#1515](https://github.com/yonatangross/orchestkit/issues/1515)) ([8641214](https://github.com/yonatangross/orchestkit/commit/8641214efdcbcb2911e1a72158564bd8a89a8c98))"
         ]
@@ -7200,10 +7827,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.71.2",
     "date": "2026-04-26",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.71.1...v7.71.2",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**docs:** sync stale skill/agent/hook counts in fumadocs site ([#1516](https://github.com/yonatangross/orchestkit/issues/1516)) ([f4fb5ad](https://github.com/yonatangross/orchestkit/commit/f4fb5ad846c84d2b981ccd7dd85833d4e8b72044))"
         ]
@@ -7213,10 +7841,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.71.1",
     "date": "2026-04-26",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.71.0...v7.71.1",
     "sections": [
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**design:** align Bet B refs to M124 + close-ref M118 trail ([#1512](https://github.com/yonatangross/orchestkit/issues/1512)) ([ebb1c77](https://github.com/yonatangross/orchestkit/commit/ebb1c77db89c996bfe24a1cc853d3ccee5b5f363)), closes [#1465](https://github.com/yonatangross/orchestkit/issues/1465) [#1466](https://github.com/yonatangross/orchestkit/issues/1466) [#1467](https://github.com/yonatangross/orchestkit/issues/1467)"
         ]
@@ -7226,10 +7855,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.71.0",
     "date": "2026-04-26",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.70.0...v7.71.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**M118:** elicitation retrofit (5 issues) ([#1510](https://github.com/yonatangross/orchestkit/issues/1510)) ([b2577df](https://github.com/yonatangross/orchestkit/commit/b2577df5aec0cd5164d514af8b362b13f9a9ce46))"
         ]
@@ -7239,16 +7869,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.70.0",
     "date": "2026-04-26",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.69.0...v7.70.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**M122:** adopt CC 2.1.118 + 2.1.119 across stack ([#1507](https://github.com/yonatangross/orchestkit/issues/1507)) ([9fad64a](https://github.com/yonatangross/orchestkit/commit/9fad64a552f5528d55e71ae4eda3236156a9e21c))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**mcp:** re-audit MCP version matrix (2026-04-26 refresh) ([#1509](https://github.com/yonatangross/orchestkit/issues/1509)) ([d241758](https://github.com/yonatangross/orchestkit/commit/d24175877364407c8448cf81eae1d1a558228096))"
         ]
@@ -7258,10 +7890,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.69.0",
     "date": "2026-04-25",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.68.0...v7.69.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**#117:** close M117 — doctor MCP pinning + hook property tests ([#1496](https://github.com/yonatangross/orchestkit/issues/1496)) ([6adc493](https://github.com/yonatangross/orchestkit/commit/6adc4933977a2760c6868e746fed827c6a5fbf2d))"
         ]
@@ -7271,10 +7904,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.68.0",
     "date": "2026-04-25",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.67.0...v7.68.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**skills,#117:** M117 adoption closeout — Monitor + Push + OTEL + cron ([#1494](https://github.com/yonatangross/orchestkit/issues/1494)) ([24cf12d](https://github.com/yonatangross/orchestkit/commit/24cf12d63b0ea4dc36c16c4c1d1fe7009b41398a))"
         ]
@@ -7284,10 +7918,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.67.0",
     "date": "2026-04-23",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.66.0...v7.67.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**#1489:** M121 observability consolidation ([#1492](https://github.com/yonatangross/orchestkit/issues/1492)) ([d5ea635](https://github.com/yonatangross/orchestkit/commit/d5ea6356290d720778e2cd76dfd2414ebedf5e34))"
         ]
@@ -7297,10 +7932,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.66.0",
     "date": "2026-04-23",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.65.1...v7.66.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**hooks,#1478:** content-aware token estimator — replace char/4 ([#1484](https://github.com/yonatangross/orchestkit/issues/1484)) ([782677c](https://github.com/yonatangross/orchestkit/commit/782677c22ec54e0b68dfc8f499d4e590af8c6410))",
           "**hooks,#1478:** coverage hardening — close all P1 + P2 audit gaps ([#1485](https://github.com/yonatangross/orchestkit/issues/1485)) ([b1e7757](https://github.com/yonatangross/orchestkit/commit/b1e7757105d5b329cb765f9a10b48d0b7d9949d4))",
@@ -7312,16 +7948,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.65.1",
     "date": "2026-04-22",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.65.0...v7.65.1",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**ci:** skip pre-push version check on feat/fix/perf/refactor branches ([#1458](https://github.com/yonatangross/orchestkit/issues/1458)) ([065454d](https://github.com/yonatangross/orchestkit/commit/065454df238a44cc7a872a2c9800f2ee7c7f8855))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**#1446:** MCP version-pin audit matrix ([#1463](https://github.com/yonatangross/orchestkit/issues/1463)) ([ae69651](https://github.com/yonatangross/orchestkit/commit/ae696512f204940ea98bdd723dbadd7414f7884c))"
         ]
@@ -7331,10 +7969,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.65.0",
     "date": "2026-04-22",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.64.0...v7.65.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "/ork:expect — Diff-Aware AI Browser Testing (M99) ([#1183](https://github.com/yonatangross/orchestkit/issues/1183)) ([7b88cb7](https://github.com/yonatangross/orchestkit/commit/7b88cb704a7fd3cc974df12df04b6b867cd321e6))",
           "add ci-automation skill + GitHub Actions workflows ([#1006](https://github.com/yonatangross/orchestkit/issues/1006)) ([8b328a7](https://github.com/yonatangross/orchestkit/commit/8b328a7dc3e06428c17b2349dae1d8b92eb57350))",
@@ -7385,6 +8024,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**ci:** add bootstrap-sha to release-please config ([#997](https://github.com/yonatangross/orchestkit/issues/997)) ([0d46843](https://github.com/yonatangross/orchestkit/commit/0d468437e75ffc7d3842f46972bd19836c565435))",
           "**ci:** add plugins[0].version to release-please extra-files ([#1001](https://github.com/yonatangross/orchestkit/issues/1001)) ([8a4faad](https://github.com/yonatangross/orchestkit/commit/8a4faadf651d822d3c4e748360a27ca23cc9af14))",
@@ -7418,6 +8058,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**agents:** wire up emulate-engineer (close last orphan) ([#1381](https://github.com/yonatangross/orchestkit/issues/1381)) ([42cec16](https://github.com/yonatangross/orchestkit/commit/42cec16a0f3c25fd90df9dc940a094f5a91be37a))",
           "bump Vercel Labs tool versions (json-render 0.17 / emulate 0.4.1 / agent-browser 0.25.4 / portless 0.10.2) ([#1343](https://github.com/yonatangross/orchestkit/issues/1343)) ([b68168f](https://github.com/yonatangross/orchestkit/commit/b68168f223b69375efd9e6e91016d82392d4f827))",
@@ -7480,6 +8121,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "add agent attribution page to fumadocs site ([#1199](https://github.com/yonatangross/orchestkit/issues/1199)) ([2646561](https://github.com/yonatangross/orchestkit/commit/264656140eda5caceffe2c6dfed9743816806c6f))",
           "update README What's New to v7.18.0, link to docs site changelog ([#1134](https://github.com/yonatangross/orchestkit/issues/1134)) ([d8aebef](https://github.com/yonatangross/orchestkit/commit/d8aebef11f99b45f20261a52c96059b91dd74318))"
@@ -7487,12 +8129,14 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Code Refactoring",
         "items": [
           "split testing-patterns, CC 2.1.72 upgrade, HTTP hooks fix ([#1015](https://github.com/yonatangross/orchestkit/issues/1015)) ([7bcab43](https://github.com/yonatangross/orchestkit/commit/7bcab430a21abdaaba714b8c7153351877387646))"
         ]
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump actions/cache from 5.0.4 to 5.0.5 ([#1421](https://github.com/yonatangross/orchestkit/issues/1421)) ([b548f86](https://github.com/yonatangross/orchestkit/commit/b548f86b6fce61b4cc78f3cf82d387c733cfb243))",
           "bump actions/checkout from 5 to 6 ([#1420](https://github.com/yonatangross/orchestkit/issues/1420)) ([4c18de7](https://github.com/yonatangross/orchestkit/commit/4c18de711a34f3ba27d6d22a26740d760fa22b24))",
@@ -7520,6 +8164,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "**CC 2.1.117 matrix entries** (14 features, ending at `opus_47_context_window_fix`). MIN_CC_VERSION bumped 2.1.116 → 2.1.117. Closes #1441.",
           "Doc-table backfill in `version-compatibility.md` for all 14 new entries."
@@ -7527,6 +8172,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Changed",
         "items": [
           "Agent `mcpServers:` audit for CC 2.1.117's main-thread firing behavior: 37 agents, 30 with non-empty `mcpServers:`, 8 unique MCP sets — all intentional. No agent changes required (same outcome as 2.1.116 hooks audit).",
           "Effort-default messaging updated: on CC ≥ 2.1.117, Pro/Max Opus 4.6 + Sonnet 4.6 now default to `high` (was `medium`)."
@@ -7534,6 +8180,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "CHANGELOG `[7.62.0]` ghost entry removed — no v7.62.0 tag was ever cut; content shipped as v7.63.0 via release-please. Closes #1440."
         ]
@@ -7543,10 +8190,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.63.1",
     "date": "2026-04-22",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.63.0...v7.63.1",
     "sections": [
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**cleanup:** fix skill count drift + refresh What's New ([#1442](https://github.com/yonatangross/orchestkit/issues/1442)) ([e28e7da](https://github.com/yonatangross/orchestkit/commit/e28e7da139004ca524a9fdd980f685c4870aa7d2))"
         ]
@@ -7556,10 +8204,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.63.0",
     "date": "2026-04-22",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.62.0...v7.63.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "/ork:expect — Diff-Aware AI Browser Testing (M99) ([#1183](https://github.com/yonatangross/orchestkit/issues/1183)) ([7b88cb7](https://github.com/yonatangross/orchestkit/commit/7b88cb704a7fd3cc974df12df04b6b867cd321e6))",
           "add ci-automation skill + GitHub Actions workflows ([#1006](https://github.com/yonatangross/orchestkit/issues/1006)) ([8b328a7](https://github.com/yonatangross/orchestkit/commit/8b328a7dc3e06428c17b2349dae1d8b92eb57350))",
@@ -7608,6 +8257,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**ci:** add bootstrap-sha to release-please config ([#997](https://github.com/yonatangross/orchestkit/issues/997)) ([0d46843](https://github.com/yonatangross/orchestkit/commit/0d468437e75ffc7d3842f46972bd19836c565435))",
           "**ci:** add plugins[0].version to release-please extra-files ([#1001](https://github.com/yonatangross/orchestkit/issues/1001)) ([8a4faad](https://github.com/yonatangross/orchestkit/commit/8a4faadf651d822d3c4e748360a27ca23cc9af14))",
@@ -7641,6 +8291,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**agents:** wire up emulate-engineer (close last orphan) ([#1381](https://github.com/yonatangross/orchestkit/issues/1381)) ([42cec16](https://github.com/yonatangross/orchestkit/commit/42cec16a0f3c25fd90df9dc940a094f5a91be37a))",
           "bump Vercel Labs tool versions (json-render 0.17 / emulate 0.4.1 / agent-browser 0.25.4 / portless 0.10.2) ([#1343](https://github.com/yonatangross/orchestkit/issues/1343)) ([b68168f](https://github.com/yonatangross/orchestkit/commit/b68168f223b69375efd9e6e91016d82392d4f827))",
@@ -7700,6 +8351,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "add agent attribution page to fumadocs site ([#1199](https://github.com/yonatangross/orchestkit/issues/1199)) ([2646561](https://github.com/yonatangross/orchestkit/commit/264656140eda5caceffe2c6dfed9743816806c6f))",
           "update README What's New to v7.18.0, link to docs site changelog ([#1134](https://github.com/yonatangross/orchestkit/issues/1134)) ([d8aebef](https://github.com/yonatangross/orchestkit/commit/d8aebef11f99b45f20261a52c96059b91dd74318))"
@@ -7707,12 +8359,14 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Code Refactoring",
         "items": [
           "split testing-patterns, CC 2.1.72 upgrade, HTTP hooks fix ([#1015](https://github.com/yonatangross/orchestkit/issues/1015)) ([7bcab43](https://github.com/yonatangross/orchestkit/commit/7bcab430a21abdaaba714b8c7153351877387646))"
         ]
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump actions/cache from 5.0.4 to 5.0.5 ([#1421](https://github.com/yonatangross/orchestkit/issues/1421)) ([b548f86](https://github.com/yonatangross/orchestkit/commit/b548f86b6fce61b4cc78f3cf82d387c733cfb243))",
           "bump actions/checkout from 5 to 6 ([#1420](https://github.com/yonatangross/orchestkit/issues/1420)) ([4c18de7](https://github.com/yonatangross/orchestkit/commit/4c18de711a34f3ba27d6d22a26740d760fa22b24))",
@@ -7736,10 +8390,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.61.0",
     "date": "2026-04-20",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.60.1...v7.61.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "/ork:expect — Diff-Aware AI Browser Testing (M99) ([#1183](https://github.com/yonatangross/orchestkit/issues/1183)) ([7b88cb7](https://github.com/yonatangross/orchestkit/commit/7b88cb704a7fd3cc974df12df04b6b867cd321e6))",
           "add ci-automation skill + GitHub Actions workflows ([#1006](https://github.com/yonatangross/orchestkit/issues/1006)) ([8b328a7](https://github.com/yonatangross/orchestkit/commit/8b328a7dc3e06428c17b2349dae1d8b92eb57350))",
@@ -7787,6 +8442,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**ci:** add bootstrap-sha to release-please config ([#997](https://github.com/yonatangross/orchestkit/issues/997)) ([0d46843](https://github.com/yonatangross/orchestkit/commit/0d468437e75ffc7d3842f46972bd19836c565435))",
           "**ci:** add plugins[0].version to release-please extra-files ([#1001](https://github.com/yonatangross/orchestkit/issues/1001)) ([8a4faad](https://github.com/yonatangross/orchestkit/commit/8a4faadf651d822d3c4e748360a27ca23cc9af14))",
@@ -7820,6 +8476,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**agents:** wire up emulate-engineer (close last orphan) ([#1381](https://github.com/yonatangross/orchestkit/issues/1381)) ([42cec16](https://github.com/yonatangross/orchestkit/commit/42cec16a0f3c25fd90df9dc940a094f5a91be37a))",
           "bump Vercel Labs tool versions (json-render 0.17 / emulate 0.4.1 / agent-browser 0.25.4 / portless 0.10.2) ([#1343](https://github.com/yonatangross/orchestkit/issues/1343)) ([b68168f](https://github.com/yonatangross/orchestkit/commit/b68168f223b69375efd9e6e91016d82392d4f827))",
@@ -7877,6 +8534,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "add agent attribution page to fumadocs site ([#1199](https://github.com/yonatangross/orchestkit/issues/1199)) ([2646561](https://github.com/yonatangross/orchestkit/commit/264656140eda5caceffe2c6dfed9743816806c6f))",
           "update README What's New to v7.18.0, link to docs site changelog ([#1134](https://github.com/yonatangross/orchestkit/issues/1134)) ([d8aebef](https://github.com/yonatangross/orchestkit/commit/d8aebef11f99b45f20261a52c96059b91dd74318))"
@@ -7884,12 +8542,14 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Code Refactoring",
         "items": [
           "split testing-patterns, CC 2.1.72 upgrade, HTTP hooks fix ([#1015](https://github.com/yonatangross/orchestkit/issues/1015)) ([7bcab43](https://github.com/yonatangross/orchestkit/commit/7bcab430a21abdaaba714b8c7153351877387646))"
         ]
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump actions/cache from 5.0.4 to 5.0.5 ([#1421](https://github.com/yonatangross/orchestkit/issues/1421)) ([b548f86](https://github.com/yonatangross/orchestkit/commit/b548f86b6fce61b4cc78f3cf82d387c733cfb243))",
           "bump actions/checkout from 5 to 6 ([#1420](https://github.com/yonatangross/orchestkit/issues/1420)) ([4c18de7](https://github.com/yonatangross/orchestkit/commit/4c18de711a34f3ba27d6d22a26740d760fa22b24))",
@@ -7917,6 +8577,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "**Release Video composition paths.** `release-video.yml` constructed composition IDs like `Production/Landscape-16x9/ReleaseNotes/RN-v${SAFE_VERSION}` with a fictional folder prefix — Remotion Studio's folder tree is cosmetic and the CLI resolves bare `id` attributes only. Additionally no per-version `RN-v*` comps get registered (the only one, `RN-v602`, is from v6.0.2). Both the bespoke path and the `Templates/TPL-ReleaseNotes` fallback had this bug, so the workflow has silently failed every release since its creation. Simplified to bare `TPL-ReleaseNotes` (already registered) for landscape and registered a new `TPL-ReleaseNotesSquare` template in `orchestkit-demos/src/Root.tsx` for the square render. Verified locally against v7.60.0 CHANGELOG props — both render cleanly (1.7 MB landscape, 1.1 MB square for 30-frame smoke render)."
         ]
@@ -7926,10 +8587,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.60.0",
     "date": "2026-04-20",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.59.1...v7.60.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "/ork:expect — Diff-Aware AI Browser Testing (M99) ([#1183](https://github.com/yonatangross/orchestkit/issues/1183)) ([7b88cb7](https://github.com/yonatangross/orchestkit/commit/7b88cb704a7fd3cc974df12df04b6b867cd321e6))",
           "add ci-automation skill + GitHub Actions workflows ([#1006](https://github.com/yonatangross/orchestkit/issues/1006)) ([8b328a7](https://github.com/yonatangross/orchestkit/commit/8b328a7dc3e06428c17b2349dae1d8b92eb57350))",
@@ -7977,6 +8639,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**ci:** add bootstrap-sha to release-please config ([#997](https://github.com/yonatangross/orchestkit/issues/997)) ([0d46843](https://github.com/yonatangross/orchestkit/commit/0d468437e75ffc7d3842f46972bd19836c565435))",
           "**ci:** add plugins[0].version to release-please extra-files ([#1001](https://github.com/yonatangross/orchestkit/issues/1001)) ([8a4faad](https://github.com/yonatangross/orchestkit/commit/8a4faadf651d822d3c4e748360a27ca23cc9af14))",
@@ -8009,6 +8672,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**agents:** wire up emulate-engineer (close last orphan) ([#1381](https://github.com/yonatangross/orchestkit/issues/1381)) ([42cec16](https://github.com/yonatangross/orchestkit/commit/42cec16a0f3c25fd90df9dc940a094f5a91be37a))",
           "bump Vercel Labs tool versions (json-render 0.17 / emulate 0.4.1 / agent-browser 0.25.4 / portless 0.10.2) ([#1343](https://github.com/yonatangross/orchestkit/issues/1343)) ([b68168f](https://github.com/yonatangross/orchestkit/commit/b68168f223b69375efd9e6e91016d82392d4f827))",
@@ -8065,6 +8729,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "add agent attribution page to fumadocs site ([#1199](https://github.com/yonatangross/orchestkit/issues/1199)) ([2646561](https://github.com/yonatangross/orchestkit/commit/264656140eda5caceffe2c6dfed9743816806c6f))",
           "update README What's New to v7.18.0, link to docs site changelog ([#1134](https://github.com/yonatangross/orchestkit/issues/1134)) ([d8aebef](https://github.com/yonatangross/orchestkit/commit/d8aebef11f99b45f20261a52c96059b91dd74318))"
@@ -8072,12 +8737,14 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Code Refactoring",
         "items": [
           "split testing-patterns, CC 2.1.72 upgrade, HTTP hooks fix ([#1015](https://github.com/yonatangross/orchestkit/issues/1015)) ([7bcab43](https://github.com/yonatangross/orchestkit/commit/7bcab430a21abdaaba714b8c7153351877387646))"
         ]
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump actions/cache from 5.0.4 to 5.0.5 ([#1421](https://github.com/yonatangross/orchestkit/issues/1421)) ([b548f86](https://github.com/yonatangross/orchestkit/commit/b548f86b6fce61b4cc78f3cf82d387c733cfb243))",
           "bump actions/checkout from 5 to 6 ([#1420](https://github.com/yonatangross/orchestkit/issues/1420)) ([4c18de7](https://github.com/yonatangross/orchestkit/commit/4c18de711a34f3ba27d6d22a26740d760fa22b24))",
@@ -8105,6 +8772,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "**`orchestkit-demos` zod peer-dep conflict.** `@remotion/zod-types@4.0.447` added a `peer zod@\"4.3.6\"` requirement, which `npm ERESOLVE`'d against the pinned `zod@3.22.3`. The `Release Video` workflow had been failing `npm install` on every release since — including v7.58.0 and v7.59.0. Bumped to `zod@^4.3.6`; existing usage (`z.object`, `z.string`, `z.number`, `z.array`, `z.union`, `z.record`, `z.infer`) is API-compatible v3↔v4, `tsc --noEmit` passes clean."
         ]
@@ -8114,10 +8782,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.59.0",
     "date": "2026-04-20",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.58.1...v7.59.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "/ork:expect — Diff-Aware AI Browser Testing (M99) ([#1183](https://github.com/yonatangross/orchestkit/issues/1183)) ([7b88cb7](https://github.com/yonatangross/orchestkit/commit/7b88cb704a7fd3cc974df12df04b6b867cd321e6))",
           "add ci-automation skill + GitHub Actions workflows ([#1006](https://github.com/yonatangross/orchestkit/issues/1006)) ([8b328a7](https://github.com/yonatangross/orchestkit/commit/8b328a7dc3e06428c17b2349dae1d8b92eb57350))",
@@ -8165,6 +8834,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**ci:** add bootstrap-sha to release-please config ([#997](https://github.com/yonatangross/orchestkit/issues/997)) ([0d46843](https://github.com/yonatangross/orchestkit/commit/0d468437e75ffc7d3842f46972bd19836c565435))",
           "**ci:** add plugins[0].version to release-please extra-files ([#1001](https://github.com/yonatangross/orchestkit/issues/1001)) ([8a4faad](https://github.com/yonatangross/orchestkit/commit/8a4faadf651d822d3c4e748360a27ca23cc9af14))",
@@ -8196,6 +8866,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**agents:** wire up emulate-engineer (close last orphan) ([#1381](https://github.com/yonatangross/orchestkit/issues/1381)) ([42cec16](https://github.com/yonatangross/orchestkit/commit/42cec16a0f3c25fd90df9dc940a094f5a91be37a))",
           "bump Vercel Labs tool versions (json-render 0.17 / emulate 0.4.1 / agent-browser 0.25.4 / portless 0.10.2) ([#1343](https://github.com/yonatangross/orchestkit/issues/1343)) ([b68168f](https://github.com/yonatangross/orchestkit/commit/b68168f223b69375efd9e6e91016d82392d4f827))",
@@ -8251,6 +8922,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "add agent attribution page to fumadocs site ([#1199](https://github.com/yonatangross/orchestkit/issues/1199)) ([2646561](https://github.com/yonatangross/orchestkit/commit/264656140eda5caceffe2c6dfed9743816806c6f))",
           "update README What's New to v7.18.0, link to docs site changelog ([#1134](https://github.com/yonatangross/orchestkit/issues/1134)) ([d8aebef](https://github.com/yonatangross/orchestkit/commit/d8aebef11f99b45f20261a52c96059b91dd74318))"
@@ -8258,12 +8930,14 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Code Refactoring",
         "items": [
           "split testing-patterns, CC 2.1.72 upgrade, HTTP hooks fix ([#1015](https://github.com/yonatangross/orchestkit/issues/1015)) ([7bcab43](https://github.com/yonatangross/orchestkit/commit/7bcab430a21abdaaba714b8c7153351877387646))"
         ]
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump actions/cache from 5.0.4 to 5.0.5 ([#1421](https://github.com/yonatangross/orchestkit/issues/1421)) ([b548f86](https://github.com/yonatangross/orchestkit/commit/b548f86b6fce61b4cc78f3cf82d387c733cfb243))",
           "bump actions/checkout from 5 to 6 ([#1420](https://github.com/yonatangross/orchestkit/issues/1420)) ([4c18de7](https://github.com/yonatangross/orchestkit/commit/4c18de711a34f3ba27d6d22a26740d760fa22b24))",
@@ -8291,6 +8965,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "**`release.yml` SBOM + attestation skip.** The tag-triggered release workflow was wrapped in `if: steps.check.outputs.exists == 'false'` on every step, so whenever release-please created the GitHub Release first (which it always does now that both workflows use the App token), SBOM generation, upload, and provenance attestation were silently skipped. v7.57.0 and v7.58.0 both shipped with zero release assets. Only `gh release create` is now gated on existence; SBOM generation, upload (`--clobber` for idempotency), and attestation run every time.",
           "**`scripts/changelog-to-props.mjs` parses release-please CHANGELOG format.** The script only recognized `## [X.Y.Z] - YYYY-MM-DD` (bump-version.sh output) and failed on every release-please release with `Error: Version X.Y.Z not found in CHANGELOG.md`, breaking the `Release Video` workflow. Now accepts both formats plus the conventional-commit section headings (`Features`, `Bug Fixes`, etc.) and strips trailing link artifacts. Added `tests/unit/test-changelog-parser.sh` to lock both formats in."
@@ -8301,10 +8976,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.58.0",
     "date": "2026-04-20",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.57.1...v7.58.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "/ork:expect — Diff-Aware AI Browser Testing (M99) ([#1183](https://github.com/yonatangross/orchestkit/issues/1183)) ([7b88cb7](https://github.com/yonatangross/orchestkit/commit/7b88cb704a7fd3cc974df12df04b6b867cd321e6))",
           "add ci-automation skill + GitHub Actions workflows ([#1006](https://github.com/yonatangross/orchestkit/issues/1006)) ([8b328a7](https://github.com/yonatangross/orchestkit/commit/8b328a7dc3e06428c17b2349dae1d8b92eb57350))",
@@ -8352,6 +9028,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**ci:** add bootstrap-sha to release-please config ([#997](https://github.com/yonatangross/orchestkit/issues/997)) ([0d46843](https://github.com/yonatangross/orchestkit/commit/0d468437e75ffc7d3842f46972bd19836c565435))",
           "**ci:** add plugins[0].version to release-please extra-files ([#1001](https://github.com/yonatangross/orchestkit/issues/1001)) ([8a4faad](https://github.com/yonatangross/orchestkit/commit/8a4faadf651d822d3c4e748360a27ca23cc9af14))",
@@ -8382,6 +9059,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**agents:** wire up emulate-engineer (close last orphan) ([#1381](https://github.com/yonatangross/orchestkit/issues/1381)) ([42cec16](https://github.com/yonatangross/orchestkit/commit/42cec16a0f3c25fd90df9dc940a094f5a91be37a))",
           "bump Vercel Labs tool versions (json-render 0.17 / emulate 0.4.1 / agent-browser 0.25.4 / portless 0.10.2) ([#1343](https://github.com/yonatangross/orchestkit/issues/1343)) ([b68168f](https://github.com/yonatangross/orchestkit/commit/b68168f223b69375efd9e6e91016d82392d4f827))",
@@ -8436,6 +9114,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "add agent attribution page to fumadocs site ([#1199](https://github.com/yonatangross/orchestkit/issues/1199)) ([2646561](https://github.com/yonatangross/orchestkit/commit/264656140eda5caceffe2c6dfed9743816806c6f))",
           "update README What's New to v7.18.0, link to docs site changelog ([#1134](https://github.com/yonatangross/orchestkit/issues/1134)) ([d8aebef](https://github.com/yonatangross/orchestkit/commit/d8aebef11f99b45f20261a52c96059b91dd74318))"
@@ -8443,12 +9122,14 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Code Refactoring",
         "items": [
           "split testing-patterns, CC 2.1.72 upgrade, HTTP hooks fix ([#1015](https://github.com/yonatangross/orchestkit/issues/1015)) ([7bcab43](https://github.com/yonatangross/orchestkit/commit/7bcab430a21abdaaba714b8c7153351877387646))"
         ]
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump actions/cache from 5.0.4 to 5.0.5 ([#1421](https://github.com/yonatangross/orchestkit/issues/1421)) ([b548f86](https://github.com/yonatangross/orchestkit/commit/b548f86b6fce61b4cc78f3cf82d387c733cfb243))",
           "bump actions/checkout from 5 to 6 ([#1420](https://github.com/yonatangross/orchestkit/issues/1420)) ([4c18de7](https://github.com/yonatangross/orchestkit/commit/4c18de711a34f3ba27d6d22a26740d760fa22b24))",
@@ -8476,6 +9157,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "**Scorecard supply-chain alerts — closed all 11 open code-scanning findings.**\n  - **Pinned-Dependencies**: `windows-smoke.yml` pins `actions/checkout@v6.0.2` and `actions/setup-node@v6` to SHA; `docs.yml` and `tests/unit/test-mdx-compile.sh` replace bare `npm install` fallbacks with lockfile regen + `npm ci`.\n  - **Token-Permissions**: `release.yml`, `prerelease.yml`, `release-video.yml`, `channel-sync.yml`, and `release-please.yml` now mint short-lived installation tokens from the **OrchestKit Release Bot** GitHub App via `actions/create-github-app-token` (pinned to v3.1.1 SHA). `GITHUB_TOKEN` stays read-only (or `{}` where unused). `release.yml` keeps `id-token: write` + `attestations: write` for `attest-build-provenance` (OIDC-bound, not App-bound).\n  - **PAT retirement**: `RELEASE_PLEASE_TOKEN` is no longer referenced. Delete the repo secret after merge: `gh secret delete RELEASE_PLEASE_TOKEN --repo yonatangross/orchestkit`.\n  - **Commit identity alignment**: `prerelease.yml` and `channel-sync.yml` configure git user as `orchestkit-release-bot[bot]` so commits match the token that pushes them (yields \"verified\" on GitHub)."
         ]
@@ -8485,10 +9167,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.57.0",
     "date": "2026-04-20",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.56.3...v7.57.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "/ork:expect — Diff-Aware AI Browser Testing (M99) ([#1183](https://github.com/yonatangross/orchestkit/issues/1183)) ([7b88cb7](https://github.com/yonatangross/orchestkit/commit/7b88cb704a7fd3cc974df12df04b6b867cd321e6))",
           "add ci-automation skill + GitHub Actions workflows ([#1006](https://github.com/yonatangross/orchestkit/issues/1006)) ([8b328a7](https://github.com/yonatangross/orchestkit/commit/8b328a7dc3e06428c17b2349dae1d8b92eb57350))",
@@ -8536,6 +9219,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**ci:** add bootstrap-sha to release-please config ([#997](https://github.com/yonatangross/orchestkit/issues/997)) ([0d46843](https://github.com/yonatangross/orchestkit/commit/0d468437e75ffc7d3842f46972bd19836c565435))",
           "**ci:** add plugins[0].version to release-please extra-files ([#1001](https://github.com/yonatangross/orchestkit/issues/1001)) ([8a4faad](https://github.com/yonatangross/orchestkit/commit/8a4faadf651d822d3c4e748360a27ca23cc9af14))",
@@ -8565,6 +9249,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**agents:** wire up emulate-engineer (close last orphan) ([#1381](https://github.com/yonatangross/orchestkit/issues/1381)) ([42cec16](https://github.com/yonatangross/orchestkit/commit/42cec16a0f3c25fd90df9dc940a094f5a91be37a))",
           "bump Vercel Labs tool versions (json-render 0.17 / emulate 0.4.1 / agent-browser 0.25.4 / portless 0.10.2) ([#1343](https://github.com/yonatangross/orchestkit/issues/1343)) ([b68168f](https://github.com/yonatangross/orchestkit/commit/b68168f223b69375efd9e6e91016d82392d4f827))",
@@ -8618,6 +9303,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "add agent attribution page to fumadocs site ([#1199](https://github.com/yonatangross/orchestkit/issues/1199)) ([2646561](https://github.com/yonatangross/orchestkit/commit/264656140eda5caceffe2c6dfed9743816806c6f))",
           "update README What's New to v7.18.0, link to docs site changelog ([#1134](https://github.com/yonatangross/orchestkit/issues/1134)) ([d8aebef](https://github.com/yonatangross/orchestkit/commit/d8aebef11f99b45f20261a52c96059b91dd74318))"
@@ -8625,12 +9311,14 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Code Refactoring",
         "items": [
           "split testing-patterns, CC 2.1.72 upgrade, HTTP hooks fix ([#1015](https://github.com/yonatangross/orchestkit/issues/1015)) ([7bcab43](https://github.com/yonatangross/orchestkit/commit/7bcab430a21abdaaba714b8c7153351877387646))"
         ]
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump actions/cache from 5.0.4 to 5.0.5 ([#1421](https://github.com/yonatangross/orchestkit/issues/1421)) ([b548f86](https://github.com/yonatangross/orchestkit/commit/b548f86b6fce61b4cc78f3cf82d387c733cfb243))",
           "bump actions/checkout from 5 to 6 ([#1420](https://github.com/yonatangross/orchestkit/issues/1420)) ([4c18de7](https://github.com/yonatangross/orchestkit/commit/4c18de711a34f3ba27d6d22a26740d760fa22b24))",
@@ -8658,6 +9346,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "TODO: Describe your changes here"
         ]
@@ -8667,10 +9356,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.56.2",
     "date": "2026-04-19",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.56.1...v7.56.2",
     "sections": [
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "`scripts/list-invocable-agents.mjs` — scans `src/agents/*.md`, extracts YAML frontmatter, writes a table to `src/agents/README.md` between BEGIN/END markers. Answers the \"which specific ork agent do I spawn\" question that cost cycles during Lane 2.",
           "`src/agents/README.md` — agent registry with decision tree + auto-generated table (37 agents).",
@@ -8680,6 +9370,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Changed",
         "items": [
           "`tests/security/run-security-tests.sh` — registers the npm audit gate.",
           "`bin/count-components.sh`, `bin/validate-counts.sh`, `scripts/stamp-counts.sh` — exclude `README.md` / `INDEX.md` / `CONTRIBUTING.md` when counting agents."
@@ -8690,10 +9381,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.56.1",
     "date": "2026-04-19",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.56.0...v7.56.1",
     "sections": [
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**agents:** wire up emulate-engineer (close last orphan) ([#1381](https://github.com/yonatangross/orchestkit/issues/1381)) ([42cec16](https://github.com/yonatangross/orchestkit/commit/42cec16a0f3c25fd90df9dc940a094f5a91be37a))"
         ]
@@ -8703,10 +9395,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.56.0",
     "date": "2026-04-19",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.55.2...v7.56.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "/ork:expect — Diff-Aware AI Browser Testing (M99) ([#1183](https://github.com/yonatangross/orchestkit/issues/1183)) ([7b88cb7](https://github.com/yonatangross/orchestkit/commit/7b88cb704a7fd3cc974df12df04b6b867cd321e6))",
           "add ci-automation skill + GitHub Actions workflows ([#1006](https://github.com/yonatangross/orchestkit/issues/1006)) ([8b328a7](https://github.com/yonatangross/orchestkit/commit/8b328a7dc3e06428c17b2349dae1d8b92eb57350))",
@@ -8753,6 +9446,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**ci:** add bootstrap-sha to release-please config ([#997](https://github.com/yonatangross/orchestkit/issues/997)) ([0d46843](https://github.com/yonatangross/orchestkit/commit/0d468437e75ffc7d3842f46972bd19836c565435))",
           "**ci:** add plugins[0].version to release-please extra-files ([#1001](https://github.com/yonatangross/orchestkit/issues/1001)) ([8a4faad](https://github.com/yonatangross/orchestkit/commit/8a4faadf651d822d3c4e748360a27ca23cc9af14))",
@@ -8781,6 +9475,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "bump Vercel Labs tool versions (json-render 0.17 / emulate 0.4.1 / agent-browser 0.25.4 / portless 0.10.2) ([#1343](https://github.com/yonatangross/orchestkit/issues/1343)) ([b68168f](https://github.com/yonatangross/orchestkit/commit/b68168f223b69375efd9e6e91016d82392d4f827))",
           "**deps-dev:** bump flatted ([#1119](https://github.com/yonatangross/orchestkit/issues/1119)) ([5aa1606](https://github.com/yonatangross/orchestkit/commit/5aa16068568f732a28a1ae639c832f5bcea0045c))",
@@ -8831,6 +9526,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "add agent attribution page to fumadocs site ([#1199](https://github.com/yonatangross/orchestkit/issues/1199)) ([2646561](https://github.com/yonatangross/orchestkit/commit/264656140eda5caceffe2c6dfed9743816806c6f))",
           "update README What's New to v7.18.0, link to docs site changelog ([#1134](https://github.com/yonatangross/orchestkit/issues/1134)) ([d8aebef](https://github.com/yonatangross/orchestkit/commit/d8aebef11f99b45f20261a52c96059b91dd74318))"
@@ -8838,12 +9534,14 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Code Refactoring",
         "items": [
           "split testing-patterns, CC 2.1.72 upgrade, HTTP hooks fix ([#1015](https://github.com/yonatangross/orchestkit/issues/1015)) ([7bcab43](https://github.com/yonatangross/orchestkit/commit/7bcab430a21abdaaba714b8c7153351877387646))"
         ]
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump actions/download-artifact from 8.0.0 to 8.0.1 ([#1097](https://github.com/yonatangross/orchestkit/issues/1097)) ([ac52e6a](https://github.com/yonatangross/orchestkit/commit/ac52e6a47089114ec454c1a3e34c779432c49810))",
           "bump actions/github-script from 8.0.0 to 9.0.0 ([#1331](https://github.com/yonatangross/orchestkit/issues/1331)) ([2523518](https://github.com/yonatangross/orchestkit/commit/2523518d59770dcc8bfef728c9285d481fcde5fe))",
@@ -8862,10 +9560,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.55.2",
     "date": "2026-04-19",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.55.1...v7.55.2",
     "sections": [
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "`bin/git-hooks/commit-msg`: blocks commits with banned celebratory phrases (\"shipped cleanly\", \"all green!\", 🎉, etc.) and commit titles > 72 chars. Soft-warns when commit body > 50 lines. See `CLAUDE.md` § Tone.",
           "`scripts/prepare` (via `package.json`): sets `core.hooksPath bin/git-hooks` automatically on `npm install`, so the repo's git hooks activate for every contributor without a manual step.",
@@ -8874,6 +9573,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Changed",
         "items": [
           "`bin/git-hooks/pre-push`: extended to run the `mdx-compile guard`, `test:agents`, `test:skills`, `test:manifests`, and the `token-overhead` budget check. Previous gaps let this session push code that CI then rejected — these gates close the loop locally."
         ]
@@ -8883,10 +9583,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.55.1",
     "date": "2026-04-19",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.55.0...v7.55.1",
     "sections": [
       {
         "type": "changed",
+        "heading": "Changed",
         "items": [
           "`.github/workflows/claude-review.yml`: gated on `needs-claude-review` label so the workflow no longer auto-cancels on every PR and pollutes the rollup state. (#1403)",
           "`.github/workflows/docs.yml`: lowercase `build` job display name changed to `Docs Site Build` to disambiguate from the required `Build` check. (#1404)",
@@ -8901,10 +9602,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.55.0",
     "date": "2026-04-19",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.54.0...v7.55.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "/ork:expect — Diff-Aware AI Browser Testing (M99) ([#1183](https://github.com/yonatangross/orchestkit/issues/1183)) ([7b88cb7](https://github.com/yonatangross/orchestkit/commit/7b88cb704a7fd3cc974df12df04b6b867cd321e6))",
           "add ci-automation skill + GitHub Actions workflows ([#1006](https://github.com/yonatangross/orchestkit/issues/1006)) ([8b328a7](https://github.com/yonatangross/orchestkit/commit/8b328a7dc3e06428c17b2349dae1d8b92eb57350))",
@@ -8949,6 +9651,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**ci:** add bootstrap-sha to release-please config ([#997](https://github.com/yonatangross/orchestkit/issues/997)) ([0d46843](https://github.com/yonatangross/orchestkit/commit/0d468437e75ffc7d3842f46972bd19836c565435))",
           "**ci:** add plugins[0].version to release-please extra-files ([#1001](https://github.com/yonatangross/orchestkit/issues/1001)) ([8a4faad](https://github.com/yonatangross/orchestkit/commit/8a4faadf651d822d3c4e748360a27ca23cc9af14))",
@@ -8977,6 +9680,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "bump Vercel Labs tool versions (json-render 0.17 / emulate 0.4.1 / agent-browser 0.25.4 / portless 0.10.2) ([#1343](https://github.com/yonatangross/orchestkit/issues/1343)) ([b68168f](https://github.com/yonatangross/orchestkit/commit/b68168f223b69375efd9e6e91016d82392d4f827))",
           "**deps-dev:** bump flatted ([#1119](https://github.com/yonatangross/orchestkit/issues/1119)) ([5aa1606](https://github.com/yonatangross/orchestkit/commit/5aa16068568f732a28a1ae639c832f5bcea0045c))",
@@ -9026,6 +9730,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "add agent attribution page to fumadocs site ([#1199](https://github.com/yonatangross/orchestkit/issues/1199)) ([2646561](https://github.com/yonatangross/orchestkit/commit/264656140eda5caceffe2c6dfed9743816806c6f))",
           "update README What's New to v7.18.0, link to docs site changelog ([#1134](https://github.com/yonatangross/orchestkit/issues/1134)) ([d8aebef](https://github.com/yonatangross/orchestkit/commit/d8aebef11f99b45f20261a52c96059b91dd74318))"
@@ -9033,12 +9738,14 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Code Refactoring",
         "items": [
           "split testing-patterns, CC 2.1.72 upgrade, HTTP hooks fix ([#1015](https://github.com/yonatangross/orchestkit/issues/1015)) ([7bcab43](https://github.com/yonatangross/orchestkit/commit/7bcab430a21abdaaba714b8c7153351877387646))"
         ]
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump actions/download-artifact from 8.0.0 to 8.0.1 ([#1097](https://github.com/yonatangross/orchestkit/issues/1097)) ([ac52e6a](https://github.com/yonatangross/orchestkit/commit/ac52e6a47089114ec454c1a3e34c779432c49810))",
           "bump actions/github-script from 8.0.0 to 9.0.0 ([#1331](https://github.com/yonatangross/orchestkit/issues/1331)) ([2523518](https://github.com/yonatangross/orchestkit/commit/2523518d59770dcc8bfef728c9285d481fcde5fe))",
@@ -9057,10 +9764,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.54.0",
     "date": "2026-04-19",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.53.0...v7.54.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "**`tests/unit/test-mdx-compile.sh` + `scripts/test-mdx-compile.mjs`** — pre-build mdx-compile guard. Walks every `docs/site/content/docs/**/*.mdx`, compiles each via `@mdx-js/mdx` + `remark-gfm`, fails on parse errors with exact filename + line:col. Runs on `npm test`. Wired into `tests/run-all-tests.sh` under UNIT TESTS. (#1401)",
           "**`tests/fixtures/nested-fence.mdx`** — counter-example fixture intentionally broken with a same-length nested fence. The guard wrapper asserts the checker REJECTS this file (TDD safety net so the guard never silently weakens). (#1401)",
@@ -9070,6 +9778,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Changed",
         "items": [
           "**`src/agents/claude-design-orchestrator.md`** — schema rewritten to match the *actual* Claude Design handoff format (gzipped tarball with `README.md` + `chats/*.md` + optional `project/*.html`), discovered during the #1399 dogfood. The first-iteration spec assumed a JSON manifest with `components[]`/`design_tokens{}`/`asset_manifest[]` — none of which exist in real bundles. Adds explicit \"How to parse\" section, fallback for missing `project/` (incomplete bundle), and `?open_file=` query-param handling. (#1400)",
           "**`src/skills/design-import/SKILL.md`** — Phase 1 delegation prompt rewritten to match the new schema. Tells the orchestrator to `tar -xzf` first, read README + chats, then look for `project/*.html`. Switched outer fence to 4-backticks per the new authoring rule. (#1400)"
@@ -9077,6 +9786,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "**`/ork:design-import`** — accepts a Claude Design handoff bundle (URL or local file), reconciles tokens against the project's design system, and pipes surviving components through the existing `design-to-code` pipeline. Does not open a PR. (#1382)",
           "**`/ork:design-ship`** — end-to-end: import → Storybook stories + Playwright tests (`/ork:cover`) → diff-aware browser verification (`/ork:expect`) → PR opened (`/ork:create-pr`) with the handoff URL, before/after screenshots, component decisions, and coverage delta embedded. Auto-labels `claude-design`. (#1387)",
@@ -9087,6 +9797,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Changed",
         "items": [
           "Skill count: 103 → 105. Agent count: 36 → 37. Hook count: 178 → 180 (112 global + 46 agent-scoped + 22 skill-scoped). User-invocable commands: 23 → 25.",
           "`tests/performance/test-token-overhead.sh`: `MAX_USER_INVOCABLE_SKILLS` raised 23 → 25 for the two new Claude Design commands.",
@@ -9099,10 +9810,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.51.0",
     "date": "2026-04-17",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.50.0...v7.51.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**hooks:** Usage-Driven Hardening bundle — 5 analytics hooks + batch rule ([#1378](https://github.com/yonatangross/orchestkit/issues/1378)) ([7c5a3d1](https://github.com/yonatangross/orchestkit/commit/7c5a3d1e2ee79fa2160d6676da18325dd5116ce9))",
           "**hooks:** Usage-Driven Hardening completion — milestone close-out (3 issues) ([#1380](https://github.com/yonatangross/orchestkit/issues/1380)) ([e23be85](https://github.com/yonatangross/orchestkit/commit/e23be85534fd5183bfa006287ba1e10708ae549c))"
@@ -9113,10 +9825,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.52.0",
     "date": "2026-04-17",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.51.0...v7.52.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "**worktree-merge-verifier** (PreToolUse/Bash, Phase 6 of sync dispatcher): intercepts `git worktree remove`, resolves the worktree's branch via `git worktree list --porcelain`, compares against main/master/develop, and skips squash-merged branches (via `git cherry`). Advisory with concrete remediation (push or merge first). Opt-out: `ORK_DISABLE_WORKTREE_VERIFIER=1`. (#1278)",
           "**metrics-bridge** (PostToolUse/catchall, async): accumulates per-session metrics into `.claude/state/ork-metrics-{session_id}.json` — edits, test_runs, commits, bash_calls, agent_spawns, started_at/updated_at. Flat JSON object for easy `jq`. Atomic writes, 1 MB cap. Runtime state gitignored. (#1295)",
@@ -9125,6 +9838,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Changed",
         "items": [
           "Total hooks.json count: 177 → 178 (bundle totals 207 → 209). Async hooks: 74 → 75. `worktree-merge-verifier` runs through the existing `sync-bash-dispatcher` — bundle export but not a new hooks.json entry.",
           "Test count assertions updated across `split-bundles.test.ts`, `async-registry.test.ts`, `dispatcher-registry-wiring.test.ts`."
@@ -9135,10 +9849,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.51.0",
     "date": "2026-04-17",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.50.0...v7.51.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "**stale-import-detector** (PostToolUse/Write|Edit): greps src + tests for import sites referencing a just-edited file's module path. Advisory additionalContext listing up to 10 references. Language-aware TS/JS and Python patterns. (#1280)",
           "**pre-commit-test-gate** (PreToolUse/Bash, Phase 5 of sync dispatcher): records test-runner invocations to `.claude/state/last-test-run.json`; on `git commit`, compares staged-file mtimes against last recorded test run and injects advisory if stale. Never blocks. (#1281)",
@@ -9150,6 +9865,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Changed",
         "items": [
           "Test count assertions updated: `split-bundles.test.ts` 202 → 207, `async-registry.test.ts` + `dispatcher-registry-wiring.test.ts` 70 → 74 async hooks.",
           "Hook totals: 173 → 177 (110 global + 45 agent + 22 skill)."
@@ -9160,10 +9876,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.50.0",
     "date": "2026-04-17",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.49.0...v7.50.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**compat:** CC 2.1.111 + Opus 4.7 full adoption ([#1376](https://github.com/yonatangross/orchestkit/issues/1376)) ([425a7f7](https://github.com/yonatangross/orchestkit/commit/425a7f77d06580300a3ade0f44f96275dba51ec9))"
         ]
@@ -9173,10 +9890,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.50.0",
     "date": "2026-04-17",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.49.0...v7.50.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "**`xhigh` effort tier** across phase-based skills (brainstorm, implement, cover, verify, fix-issue, assess, audit-full). Semantics: `high + one additional deepening pass`. Opus 4.7 only; silently falls back to `high` otherwise. (#1354)",
           "**17 new 2.1.111 feature-matrix entries** in `lib/cc-version-matrix.ts` (294 → 311 total). MIN_CC_VERSION 2.1.108 → 2.1.111. (#1353)",
@@ -9194,6 +9912,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Changed",
         "items": [
           "**Token budgets converted to %-of-context**: `hook-priorities.ts` and `token-budget-tracker.ts` now read `CLAUDE_MAX_CONTEXT` via the shared helper. Absorbs Opus 4.7's 1.0–1.35× tokenizer drift automatically. (#1355)",
           "**Retry policies audited**: `retry-manager.ts` and `http-sink.ts` counts retained at 3 with explicit rationale comments. No behavior change. (#1359)",
@@ -9212,10 +9931,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.49.0",
     "date": "2026-04-16",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.48.0...v7.49.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "/ork:expect — Diff-Aware AI Browser Testing (M99) ([#1183](https://github.com/yonatangross/orchestkit/issues/1183)) ([7b88cb7](https://github.com/yonatangross/orchestkit/commit/7b88cb704a7fd3cc974df12df04b6b867cd321e6))",
           "add ci-automation skill + GitHub Actions workflows ([#1006](https://github.com/yonatangross/orchestkit/issues/1006)) ([8b328a7](https://github.com/yonatangross/orchestkit/commit/8b328a7dc3e06428c17b2349dae1d8b92eb57350))",
@@ -9253,6 +9973,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**ci:** add bootstrap-sha to release-please config ([#997](https://github.com/yonatangross/orchestkit/issues/997)) ([0d46843](https://github.com/yonatangross/orchestkit/commit/0d468437e75ffc7d3842f46972bd19836c565435))",
           "**ci:** add plugins[0].version to release-please extra-files ([#1001](https://github.com/yonatangross/orchestkit/issues/1001)) ([8a4faad](https://github.com/yonatangross/orchestkit/commit/8a4faadf651d822d3c4e748360a27ca23cc9af14))",
@@ -9281,6 +10002,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "bump Vercel Labs tool versions (json-render 0.17 / emulate 0.4.1 / agent-browser 0.25.4 / portless 0.10.2) ([#1343](https://github.com/yonatangross/orchestkit/issues/1343)) ([b68168f](https://github.com/yonatangross/orchestkit/commit/b68168f223b69375efd9e6e91016d82392d4f827))",
           "**deps-dev:** bump flatted ([#1119](https://github.com/yonatangross/orchestkit/issues/1119)) ([5aa1606](https://github.com/yonatangross/orchestkit/commit/5aa16068568f732a28a1ae639c832f5bcea0045c))",
@@ -9327,6 +10049,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "add agent attribution page to fumadocs site ([#1199](https://github.com/yonatangross/orchestkit/issues/1199)) ([2646561](https://github.com/yonatangross/orchestkit/commit/264656140eda5caceffe2c6dfed9743816806c6f))",
           "update README What's New to v7.18.0, link to docs site changelog ([#1134](https://github.com/yonatangross/orchestkit/issues/1134)) ([d8aebef](https://github.com/yonatangross/orchestkit/commit/d8aebef11f99b45f20261a52c96059b91dd74318))"
@@ -9334,12 +10057,14 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Code Refactoring",
         "items": [
           "split testing-patterns, CC 2.1.72 upgrade, HTTP hooks fix ([#1015](https://github.com/yonatangross/orchestkit/issues/1015)) ([7bcab43](https://github.com/yonatangross/orchestkit/commit/7bcab430a21abdaaba714b8c7153351877387646))"
         ]
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump actions/download-artifact from 8.0.0 to 8.0.1 ([#1097](https://github.com/yonatangross/orchestkit/issues/1097)) ([ac52e6a](https://github.com/yonatangross/orchestkit/commit/ac52e6a47089114ec454c1a3e34c779432c49810))",
           "bump actions/github-script from 8.0.0 to 9.0.0 ([#1331](https://github.com/yonatangross/orchestkit/issues/1331)) ([2523518](https://github.com/yonatangross/orchestkit/commit/2523518d59770dcc8bfef728c9285d481fcde5fe))",
@@ -9355,6 +10080,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "TODO: Describe your changes here"
         ]
@@ -9364,10 +10090,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.48.0",
     "date": "2026-04-16",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.47.0...v7.48.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**compat:** CC 2.1.110 full adoption — 16 matrix entries, PushNotification in 5 skills, /focus replaces Ctrl+O, session recap default-on, /tui + autoScrollEnabled in setup, doctor MCP duplicate warning, chain-patterns scheduled task recovery, Recommended tier → 2.1.110 ([#1349](https://github.com/yonatangross/orchestkit/issues/1349))"
         ]
@@ -9377,10 +10104,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.47.0",
     "date": "2026-04-15",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.46.0...v7.47.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "/ork:expect — Diff-Aware AI Browser Testing (M99) ([#1183](https://github.com/yonatangross/orchestkit/issues/1183)) ([7b88cb7](https://github.com/yonatangross/orchestkit/commit/7b88cb704a7fd3cc974df12df04b6b867cd321e6))",
           "add ci-automation skill + GitHub Actions workflows ([#1006](https://github.com/yonatangross/orchestkit/issues/1006)) ([8b328a7](https://github.com/yonatangross/orchestkit/commit/8b328a7dc3e06428c17b2349dae1d8b92eb57350))",
@@ -9416,6 +10144,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**ci:** add bootstrap-sha to release-please config ([#997](https://github.com/yonatangross/orchestkit/issues/997)) ([0d46843](https://github.com/yonatangross/orchestkit/commit/0d468437e75ffc7d3842f46972bd19836c565435))",
           "**ci:** add plugins[0].version to release-please extra-files ([#1001](https://github.com/yonatangross/orchestkit/issues/1001)) ([8a4faad](https://github.com/yonatangross/orchestkit/commit/8a4faadf651d822d3c4e748360a27ca23cc9af14))",
@@ -9444,6 +10173,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "bump Vercel Labs tool versions (json-render 0.17 / emulate 0.4.1 / agent-browser 0.25.4 / portless 0.10.2) ([#1343](https://github.com/yonatangross/orchestkit/issues/1343)) ([b68168f](https://github.com/yonatangross/orchestkit/commit/b68168f223b69375efd9e6e91016d82392d4f827))",
           "**deps-dev:** bump flatted ([#1119](https://github.com/yonatangross/orchestkit/issues/1119)) ([5aa1606](https://github.com/yonatangross/orchestkit/commit/5aa16068568f732a28a1ae639c832f5bcea0045c))",
@@ -9488,6 +10218,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "add agent attribution page to fumadocs site ([#1199](https://github.com/yonatangross/orchestkit/issues/1199)) ([2646561](https://github.com/yonatangross/orchestkit/commit/264656140eda5caceffe2c6dfed9743816806c6f))",
           "update README What's New to v7.18.0, link to docs site changelog ([#1134](https://github.com/yonatangross/orchestkit/issues/1134)) ([d8aebef](https://github.com/yonatangross/orchestkit/commit/d8aebef11f99b45f20261a52c96059b91dd74318))"
@@ -9495,12 +10226,14 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Code Refactoring",
         "items": [
           "split testing-patterns, CC 2.1.72 upgrade, HTTP hooks fix ([#1015](https://github.com/yonatangross/orchestkit/issues/1015)) ([7bcab43](https://github.com/yonatangross/orchestkit/commit/7bcab430a21abdaaba714b8c7153351877387646))"
         ]
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump actions/download-artifact from 8.0.0 to 8.0.1 ([#1097](https://github.com/yonatangross/orchestkit/issues/1097)) ([ac52e6a](https://github.com/yonatangross/orchestkit/commit/ac52e6a47089114ec454c1a3e34c779432c49810))",
           "bump actions/github-script from 8.0.0 to 9.0.0 ([#1331](https://github.com/yonatangross/orchestkit/issues/1331)) ([2523518](https://github.com/yonatangross/orchestkit/commit/2523518d59770dcc8bfef728c9285d481fcde5fe))",
@@ -9519,10 +10252,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.46.0",
     "date": "2026-04-15",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.45.1...v7.46.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**skills:** wrapper-skill modernization sweep (#1345) — 17 skills + expect-agent brought up-to-date with the 2026-04-15 upstream audit. P0 fixes for Stitch MCP tool names (design-to-code, design-context-extract), Playwright 1.58→1.59 + k6 v1.0 API paths (testing-e2e, testing-perf), canonical model IDs (llm-integration, multimodal-llm). P1 adoption of Figma Dev Mode MCP 16-tool surface (figma-design-handoff), Next.js 16.2.3 LTS cache variants + next-browser (react-server-components-framework), v0.app rebrand + Google Stitch + Bolt Cloud (ai-ui-generation), Pact v16 + Testcontainers (testing-integration), gh agent-task + sub-issues + gh-copilot retirement (github-operations). P2 updates across ui-components (shadcn CLI v4), storybook-testing/storybook-mcp-integration (componentsManifest rename), mcp-patterns (SDK floors 1.29/1.27 + --mcp-debug), bare-eval (stream-json), langgraph 1.2 (deferred nodes + node caching), testing-llm (DeepEval 2.3 + RAGAS 1.2), rag-retrieval (voyage-3 tiers + text-embedding-004), component-search (v0.app fallback), design-system-tokens (SD 5.x + DTCG v2025.10), demo-producer (VHS 0.11 + Remotion 4.0.448), and expect-agent (forbids `agent-browser chat`)."
         ]
@@ -9532,10 +10266,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.45.1",
     "date": "2026-04-15",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.45.0...v7.45.1",
     "sections": [
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "bump Vercel Labs tool versions (json-render 0.17 / emulate 0.4.1 / agent-browser 0.25.4 / portless 0.10.2) ([#1343](https://github.com/yonatangross/orchestkit/issues/1343)) ([b68168f](https://github.com/yonatangross/orchestkit/commit/b68168f223b69375efd9e6e91016d82392d4f827))"
         ]
@@ -9545,10 +10280,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.45.0",
     "date": "2026-04-15",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.44.0...v7.45.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "/ork:expect — Diff-Aware AI Browser Testing (M99) ([#1183](https://github.com/yonatangross/orchestkit/issues/1183)) ([7b88cb7](https://github.com/yonatangross/orchestkit/commit/7b88cb704a7fd3cc974df12df04b6b867cd321e6))",
           "add ci-automation skill + GitHub Actions workflows ([#1006](https://github.com/yonatangross/orchestkit/issues/1006)) ([8b328a7](https://github.com/yonatangross/orchestkit/commit/8b328a7dc3e06428c17b2349dae1d8b92eb57350))",
@@ -9583,6 +10319,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**ci:** add bootstrap-sha to release-please config ([#997](https://github.com/yonatangross/orchestkit/issues/997)) ([0d46843](https://github.com/yonatangross/orchestkit/commit/0d468437e75ffc7d3842f46972bd19836c565435))",
           "**ci:** add plugins[0].version to release-please extra-files ([#1001](https://github.com/yonatangross/orchestkit/issues/1001)) ([8a4faad](https://github.com/yonatangross/orchestkit/commit/8a4faadf651d822d3c4e748360a27ca23cc9af14))",
@@ -9611,6 +10348,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**deps-dev:** bump flatted ([#1119](https://github.com/yonatangross/orchestkit/issues/1119)) ([5aa1606](https://github.com/yonatangross/orchestkit/commit/5aa16068568f732a28a1ae639c832f5bcea0045c))",
           "**deps-dev:** bump the npm_and_yarn group across 2 directories with 1 update ([#1025](https://github.com/yonatangross/orchestkit/issues/1025)) ([f924b27](https://github.com/yonatangross/orchestkit/commit/f924b27a7ef02dd1f53be0400390d4a1f4d4600c))",
@@ -9652,6 +10390,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "add agent attribution page to fumadocs site ([#1199](https://github.com/yonatangross/orchestkit/issues/1199)) ([2646561](https://github.com/yonatangross/orchestkit/commit/264656140eda5caceffe2c6dfed9743816806c6f))",
           "update README What's New to v7.18.0, link to docs site changelog ([#1134](https://github.com/yonatangross/orchestkit/issues/1134)) ([d8aebef](https://github.com/yonatangross/orchestkit/commit/d8aebef11f99b45f20261a52c96059b91dd74318))"
@@ -9659,12 +10398,14 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Code Refactoring",
         "items": [
           "split testing-patterns, CC 2.1.72 upgrade, HTTP hooks fix ([#1015](https://github.com/yonatangross/orchestkit/issues/1015)) ([7bcab43](https://github.com/yonatangross/orchestkit/commit/7bcab430a21abdaaba714b8c7153351877387646))"
         ]
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump actions/download-artifact from 8.0.0 to 8.0.1 ([#1097](https://github.com/yonatangross/orchestkit/issues/1097)) ([ac52e6a](https://github.com/yonatangross/orchestkit/commit/ac52e6a47089114ec454c1a3e34c779432c49810))",
           "bump actions/github-script from 8.0.0 to 9.0.0 ([#1331](https://github.com/yonatangross/orchestkit/issues/1331)) ([2523518](https://github.com/yonatangross/orchestkit/commit/2523518d59770dcc8bfef728c9285d481fcde5fe))",
@@ -9687,6 +10428,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "**compat:** CC 2.1.108 full adoption — 25 new matrix entries (253→278), MIN_CC_VERSION bump 2.1.105→2.1.108 across marketplace.json, CLAUDE.md, README badge, docs site",
           "**skills:** Expanded 33 skill descriptions leveraging new 1,536-char cap (was 250) — 11 user-invocable + 22 non-invocable skills now have rich WHAT+WHEN descriptions",
@@ -9700,6 +10442,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "**docs:** Standardized all 15+ fumadocs pages from 5 conflicting hook counts (106/109/115/146) to 173, agents 35→36, skills 98/99/100→103, CC version 2.1.84/2.1.86→2.1.108",
           "**docs:** Installation guide example output updated to v7.43.0 counts, FAQ hook breakdown math corrected",
@@ -9715,10 +10458,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.43.0",
     "date": "2026-04-14",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.42.1...v7.43.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "/ork:expect — Diff-Aware AI Browser Testing (M99) ([#1183](https://github.com/yonatangross/orchestkit/issues/1183)) ([7b88cb7](https://github.com/yonatangross/orchestkit/commit/7b88cb704a7fd3cc974df12df04b6b867cd321e6))",
           "add ci-automation skill + GitHub Actions workflows ([#1006](https://github.com/yonatangross/orchestkit/issues/1006)) ([8b328a7](https://github.com/yonatangross/orchestkit/commit/8b328a7dc3e06428c17b2349dae1d8b92eb57350))",
@@ -9752,6 +10496,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**ci:** add bootstrap-sha to release-please config ([#997](https://github.com/yonatangross/orchestkit/issues/997)) ([0d46843](https://github.com/yonatangross/orchestkit/commit/0d468437e75ffc7d3842f46972bd19836c565435))",
           "**ci:** add plugins[0].version to release-please extra-files ([#1001](https://github.com/yonatangross/orchestkit/issues/1001)) ([8a4faad](https://github.com/yonatangross/orchestkit/commit/8a4faadf651d822d3c4e748360a27ca23cc9af14))",
@@ -9780,6 +10525,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**deps-dev:** bump flatted ([#1119](https://github.com/yonatangross/orchestkit/issues/1119)) ([5aa1606](https://github.com/yonatangross/orchestkit/commit/5aa16068568f732a28a1ae639c832f5bcea0045c))",
           "**deps-dev:** bump the npm_and_yarn group across 2 directories with 1 update ([#1025](https://github.com/yonatangross/orchestkit/issues/1025)) ([f924b27](https://github.com/yonatangross/orchestkit/commit/f924b27a7ef02dd1f53be0400390d4a1f4d4600c))",
@@ -9820,6 +10566,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "add agent attribution page to fumadocs site ([#1199](https://github.com/yonatangross/orchestkit/issues/1199)) ([2646561](https://github.com/yonatangross/orchestkit/commit/264656140eda5caceffe2c6dfed9743816806c6f))",
           "update README What's New to v7.18.0, link to docs site changelog ([#1134](https://github.com/yonatangross/orchestkit/issues/1134)) ([d8aebef](https://github.com/yonatangross/orchestkit/commit/d8aebef11f99b45f20261a52c96059b91dd74318))"
@@ -9827,12 +10574,14 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Code Refactoring",
         "items": [
           "split testing-patterns, CC 2.1.72 upgrade, HTTP hooks fix ([#1015](https://github.com/yonatangross/orchestkit/issues/1015)) ([7bcab43](https://github.com/yonatangross/orchestkit/commit/7bcab430a21abdaaba714b8c7153351877387646))"
         ]
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump actions/download-artifact from 8.0.0 to 8.0.1 ([#1097](https://github.com/yonatangross/orchestkit/issues/1097)) ([ac52e6a](https://github.com/yonatangross/orchestkit/commit/ac52e6a47089114ec454c1a3e34c779432c49810))",
           "bump actions/github-script from 8.0.0 to 9.0.0 ([#1331](https://github.com/yonatangross/orchestkit/issues/1331)) ([2523518](https://github.com/yonatangross/orchestkit/commit/2523518d59770dcc8bfef728c9285d481fcde5fe))",
@@ -9851,10 +10600,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.42.1",
     "date": "2026-04-14",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.42.0...v7.42.1",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**docs:** sync website MIN_CC_VERSION 2.1.94 → 2.1.105, fix hardcoded counts on homepage personas (104 hooks → dynamic, 33 agents → dynamic)",
           "**docs:** update alt text on homepage composition thumbnails to be descriptive",
@@ -9866,10 +10616,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.42.0",
     "date": "2026-04-14",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.41.2...v7.42.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**compat:** CC 2.1.105 adoption — PreCompact guard hook blocks compaction during active agent work (override via `CLAUDE_CODE_ALLOW_COMPACT_DURING_AGENTS=1`)",
           "**hooks:** PermissionDenied retry flag (CC 2.1.89) — isolated Bash/Write/Edit denials surface retry UI",
@@ -9879,6 +10630,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** add `windowsHide: true` to 140+ subprocess calls across 38 source files — fixes Windows CMD window spam ([#1338](https://github.com/yonatangross/orchestkit/issues/1338))"
         ]
@@ -9888,10 +10640,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.41.2",
     "date": "2026-04-14",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.41.1...v7.41.2",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**docs:** sync stale hook count 169→172 across README, hooks.json description, and GitHub repo about"
         ]
@@ -9901,10 +10654,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.41.1",
     "date": "2026-04-13",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.41.0...v7.41.1",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**hooks:** resolve 3 HIGH memory bugs — dedup silent drop, recursion crash, regex truncation ([#1137](https://github.com/yonatangross/orchestkit/issues/1137))",
           "**hooks:** resolve 5 MEDIUM memory bugs — mixed workflows, heredoc parsing, ID collision ([#1138](https://github.com/yonatangross/orchestkit/issues/1138))",
@@ -9918,10 +10672,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.41.0",
     "date": "2026-04-12",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.40.0...v7.41.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "/ork:expect — Diff-Aware AI Browser Testing (M99) ([#1183](https://github.com/yonatangross/orchestkit/issues/1183)) ([7b88cb7](https://github.com/yonatangross/orchestkit/commit/7b88cb704a7fd3cc974df12df04b6b867cd321e6))",
           "add ci-automation skill + GitHub Actions workflows ([#1006](https://github.com/yonatangross/orchestkit/issues/1006)) ([8b328a7](https://github.com/yonatangross/orchestkit/commit/8b328a7dc3e06428c17b2349dae1d8b92eb57350))",
@@ -9955,6 +10710,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**ci:** add bootstrap-sha to release-please config ([#997](https://github.com/yonatangross/orchestkit/issues/997)) ([0d46843](https://github.com/yonatangross/orchestkit/commit/0d468437e75ffc7d3842f46972bd19836c565435))",
           "**ci:** add plugins[0].version to release-please extra-files ([#1001](https://github.com/yonatangross/orchestkit/issues/1001)) ([8a4faad](https://github.com/yonatangross/orchestkit/commit/8a4faadf651d822d3c4e748360a27ca23cc9af14))",
@@ -9979,6 +10735,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**deps-dev:** bump flatted ([#1119](https://github.com/yonatangross/orchestkit/issues/1119)) ([5aa1606](https://github.com/yonatangross/orchestkit/commit/5aa16068568f732a28a1ae639c832f5bcea0045c))",
           "**deps-dev:** bump the npm_and_yarn group across 2 directories with 1 update ([#1025](https://github.com/yonatangross/orchestkit/issues/1025)) ([f924b27](https://github.com/yonatangross/orchestkit/commit/f924b27a7ef02dd1f53be0400390d4a1f4d4600c))",
@@ -10018,6 +10775,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "add agent attribution page to fumadocs site ([#1199](https://github.com/yonatangross/orchestkit/issues/1199)) ([2646561](https://github.com/yonatangross/orchestkit/commit/264656140eda5caceffe2c6dfed9743816806c6f))",
           "update README What's New to v7.18.0, link to docs site changelog ([#1134](https://github.com/yonatangross/orchestkit/issues/1134)) ([d8aebef](https://github.com/yonatangross/orchestkit/commit/d8aebef11f99b45f20261a52c96059b91dd74318))"
@@ -10025,12 +10783,14 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Code Refactoring",
         "items": [
           "split testing-patterns, CC 2.1.72 upgrade, HTTP hooks fix ([#1015](https://github.com/yonatangross/orchestkit/issues/1015)) ([7bcab43](https://github.com/yonatangross/orchestkit/commit/7bcab430a21abdaaba714b8c7153351877387646))"
         ]
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump actions/download-artifact from 8.0.0 to 8.0.1 ([#1097](https://github.com/yonatangross/orchestkit/issues/1097)) ([ac52e6a](https://github.com/yonatangross/orchestkit/commit/ac52e6a47089114ec454c1a3e34c779432c49810))",
           "bump actions/setup-node from 6.2.0 to 6.3.0 ([#1008](https://github.com/yonatangross/orchestkit/issues/1008)) ([61f73f5](https://github.com/yonatangross/orchestkit/commit/61f73f5f49327e0a773110aefb387d4b2bb2113b))",
@@ -10050,6 +10810,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "**Session Quality Governor** — multi-signal quality score (0-100, S-F grades) injected into Claude's context on every turn via `additionalContext`. Claude self-regulates behavior based on grade: S/A normal, B efficiency mode, C conservation, D/F emergency. Computed from 4 signals: context fill %, compaction count, session age, and decision density. No new hooks, skills, or dependencies — enhances existing `context-exhaustion-warner.ts` from a single-signal threshold alarm into a behavioral governor. ~15ms overhead (3 file reads). Inspired by [token-optimizer](https://github.com/alexgreensh/token-optimizer)."
         ]
@@ -10063,6 +10824,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "**Code scanning alert #138, #139** — wrap `health_db()` endpoint in try/except to prevent stack trace leaking to HTTP response (CodeQL py/stack-trace-exposure)",
           "**Code scanning alert #143** — pin `@anthropic-ai/claude-code@2.1.101` with `--ignore-scripts` in orchestkit-eval.yml (Scorecard PinnedDependencies)",
@@ -10074,10 +10836,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.39.0",
     "date": "2026-04-11",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.38.0...v7.39.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "/ork:expect — Diff-Aware AI Browser Testing (M99) ([#1183](https://github.com/yonatangross/orchestkit/issues/1183)) ([7b88cb7](https://github.com/yonatangross/orchestkit/commit/7b88cb704a7fd3cc974df12df04b6b867cd321e6))",
           "add ci-automation skill + GitHub Actions workflows ([#1006](https://github.com/yonatangross/orchestkit/issues/1006)) ([8b328a7](https://github.com/yonatangross/orchestkit/commit/8b328a7dc3e06428c17b2349dae1d8b92eb57350))",
@@ -10110,6 +10873,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**ci:** add bootstrap-sha to release-please config ([#997](https://github.com/yonatangross/orchestkit/issues/997)) ([0d46843](https://github.com/yonatangross/orchestkit/commit/0d468437e75ffc7d3842f46972bd19836c565435))",
           "**ci:** add plugins[0].version to release-please extra-files ([#1001](https://github.com/yonatangross/orchestkit/issues/1001)) ([8a4faad](https://github.com/yonatangross/orchestkit/commit/8a4faadf651d822d3c4e748360a27ca23cc9af14))",
@@ -10133,6 +10897,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**deps-dev:** bump flatted ([#1119](https://github.com/yonatangross/orchestkit/issues/1119)) ([5aa1606](https://github.com/yonatangross/orchestkit/commit/5aa16068568f732a28a1ae639c832f5bcea0045c))",
           "**deps-dev:** bump the npm_and_yarn group across 2 directories with 1 update ([#1025](https://github.com/yonatangross/orchestkit/issues/1025)) ([f924b27](https://github.com/yonatangross/orchestkit/commit/f924b27a7ef02dd1f53be0400390d4a1f4d4600c))",
@@ -10171,6 +10936,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "add agent attribution page to fumadocs site ([#1199](https://github.com/yonatangross/orchestkit/issues/1199)) ([2646561](https://github.com/yonatangross/orchestkit/commit/264656140eda5caceffe2c6dfed9743816806c6f))",
           "update README What's New to v7.18.0, link to docs site changelog ([#1134](https://github.com/yonatangross/orchestkit/issues/1134)) ([d8aebef](https://github.com/yonatangross/orchestkit/commit/d8aebef11f99b45f20261a52c96059b91dd74318))"
@@ -10178,12 +10944,14 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Code Refactoring",
         "items": [
           "split testing-patterns, CC 2.1.72 upgrade, HTTP hooks fix ([#1015](https://github.com/yonatangross/orchestkit/issues/1015)) ([7bcab43](https://github.com/yonatangross/orchestkit/commit/7bcab430a21abdaaba714b8c7153351877387646))"
         ]
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump actions/download-artifact from 8.0.0 to 8.0.1 ([#1097](https://github.com/yonatangross/orchestkit/issues/1097)) ([ac52e6a](https://github.com/yonatangross/orchestkit/commit/ac52e6a47089114ec454c1a3e34c779432c49810))",
           "bump actions/setup-node from 6.2.0 to 6.3.0 ([#1008](https://github.com/yonatangross/orchestkit/issues/1008)) ([61f73f5](https://github.com/yonatangross/orchestkit/commit/61f73f5f49327e0a773110aefb387d4b2bb2113b))",
@@ -10203,6 +10971,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "**CC 2.1.101 full adoption** — 18 new entries in cc-version-matrix.ts (253 total): deny-overrides-ask, subagent dynamic MCP inheritance, worktree agent file access, skill context:fork enforcement, `/team-onboarding`, OS CA cert trust, focus mode summaries, RemoteTrigger run fix, settings resilience, LSP command injection fix",
           "**`/team-onboarding` and enterprise TLS** documented in setup skill"
@@ -10210,6 +10979,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "**26 skill frontmatter corrections** — CC 2.1.101 enforces `context:` and `agent:` fields that were previously silently ignored:\n  - Removed `agent:` from commit and create-pr (prevents CC from delegating instead of running skill workflow)\n  - Fixed wrong agent: performance→frontend-performance-engineer, devops-deployment→ci-cd-engineer\n  - Changed `context: fork` → `inherit` on 10 skills that need project state (help, memory, analytics, 7 reference skills)\n  - Added missing `context: inherit` to 9 skills (bare-eval, dream, portless, etc.)\n  - Fixed `remember` from `context: none` → `inherit`",
           "**deny-overrides-ask** documented in dangerous-command-blocker.ts — `permissions.deny` rules now correctly override our `outputAsk()` decisions"
@@ -10224,6 +10994,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "**CC 2.1.98 full adoption** — 17 new entries in cc-version-matrix.ts covering Monitor tool, SCRIPT_CAPS, subprocess PID sandboxing, Vertex AI wizard, /agents tabbed layout, partial progress from failed bg subagents, hook stderr display, and Bash permission hardening",
           "**Monitor tool** added to `implement`, `cover`, `verify`, `review-pr` allowed-tools for real-time streaming of background build/test output (CC 2.1.98)",
@@ -10235,6 +11006,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Changed",
         "items": [
           "Recommended CC version bumped from 2.1.97 to **2.1.98**",
           "`implement`, `cover`, `verify`, `review-pr` compatibility bumped to CC 2.1.98+ (Monitor tool dependency)"
@@ -10245,10 +11017,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.36.0",
     "date": "2026-04-09",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.35.1...v7.36.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "/ork:expect — Diff-Aware AI Browser Testing (M99) ([#1183](https://github.com/yonatangross/orchestkit/issues/1183)) ([7b88cb7](https://github.com/yonatangross/orchestkit/commit/7b88cb704a7fd3cc974df12df04b6b867cd321e6))",
           "add ci-automation skill + GitHub Actions workflows ([#1006](https://github.com/yonatangross/orchestkit/issues/1006)) ([8b328a7](https://github.com/yonatangross/orchestkit/commit/8b328a7dc3e06428c17b2349dae1d8b92eb57350))",
@@ -10279,6 +11052,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**ci:** add bootstrap-sha to release-please config ([#997](https://github.com/yonatangross/orchestkit/issues/997)) ([0d46843](https://github.com/yonatangross/orchestkit/commit/0d468437e75ffc7d3842f46972bd19836c565435))",
           "**ci:** add plugins[0].version to release-please extra-files ([#1001](https://github.com/yonatangross/orchestkit/issues/1001)) ([8a4faad](https://github.com/yonatangross/orchestkit/commit/8a4faadf651d822d3c4e748360a27ca23cc9af14))",
@@ -10302,6 +11076,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**deps-dev:** bump flatted ([#1119](https://github.com/yonatangross/orchestkit/issues/1119)) ([5aa1606](https://github.com/yonatangross/orchestkit/commit/5aa16068568f732a28a1ae639c832f5bcea0045c))",
           "**deps-dev:** bump the npm_and_yarn group across 2 directories with 1 update ([#1025](https://github.com/yonatangross/orchestkit/issues/1025)) ([f924b27](https://github.com/yonatangross/orchestkit/commit/f924b27a7ef02dd1f53be0400390d4a1f4d4600c))",
@@ -10338,6 +11113,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "add agent attribution page to fumadocs site ([#1199](https://github.com/yonatangross/orchestkit/issues/1199)) ([2646561](https://github.com/yonatangross/orchestkit/commit/264656140eda5caceffe2c6dfed9743816806c6f))",
           "update README What's New to v7.18.0, link to docs site changelog ([#1134](https://github.com/yonatangross/orchestkit/issues/1134)) ([d8aebef](https://github.com/yonatangross/orchestkit/commit/d8aebef11f99b45f20261a52c96059b91dd74318))"
@@ -10345,12 +11121,14 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Code Refactoring",
         "items": [
           "split testing-patterns, CC 2.1.72 upgrade, HTTP hooks fix ([#1015](https://github.com/yonatangross/orchestkit/issues/1015)) ([7bcab43](https://github.com/yonatangross/orchestkit/commit/7bcab430a21abdaaba714b8c7153351877387646))"
         ]
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump actions/download-artifact from 8.0.0 to 8.0.1 ([#1097](https://github.com/yonatangross/orchestkit/issues/1097)) ([ac52e6a](https://github.com/yonatangross/orchestkit/commit/ac52e6a47089114ec454c1a3e34c779432c49810))",
           "bump actions/setup-node from 6.2.0 to 6.3.0 ([#1008](https://github.com/yonatangross/orchestkit/issues/1008)) ([61f73f5](https://github.com/yonatangross/orchestkit/commit/61f73f5f49327e0a773110aefb387d4b2bb2113b))",
@@ -10370,6 +11148,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "**CORS hardening** — restrict `Access-Control-Allow-Origin` from wildcard `*` to `https://orchestkit.vercel.app` on the docs site. Vercel defaults to `*` for static assets; this override ensures only same-origin requests are allowed."
         ]
@@ -10379,10 +11158,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.35.0",
     "date": "2026-04-09",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.34.1...v7.35.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "/ork:expect — Diff-Aware AI Browser Testing (M99) ([#1183](https://github.com/yonatangross/orchestkit/issues/1183)) ([7b88cb7](https://github.com/yonatangross/orchestkit/commit/7b88cb704a7fd3cc974df12df04b6b867cd321e6))",
           "add ci-automation skill + GitHub Actions workflows ([#1006](https://github.com/yonatangross/orchestkit/issues/1006)) ([8b328a7](https://github.com/yonatangross/orchestkit/commit/8b328a7dc3e06428c17b2349dae1d8b92eb57350))",
@@ -10413,6 +11193,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**ci:** add bootstrap-sha to release-please config ([#997](https://github.com/yonatangross/orchestkit/issues/997)) ([0d46843](https://github.com/yonatangross/orchestkit/commit/0d468437e75ffc7d3842f46972bd19836c565435))",
           "**ci:** add plugins[0].version to release-please extra-files ([#1001](https://github.com/yonatangross/orchestkit/issues/1001)) ([8a4faad](https://github.com/yonatangross/orchestkit/commit/8a4faadf651d822d3c4e748360a27ca23cc9af14))",
@@ -10435,6 +11216,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**deps-dev:** bump flatted ([#1119](https://github.com/yonatangross/orchestkit/issues/1119)) ([5aa1606](https://github.com/yonatangross/orchestkit/commit/5aa16068568f732a28a1ae639c832f5bcea0045c))",
           "**deps-dev:** bump the npm_and_yarn group across 2 directories with 1 update ([#1025](https://github.com/yonatangross/orchestkit/issues/1025)) ([f924b27](https://github.com/yonatangross/orchestkit/commit/f924b27a7ef02dd1f53be0400390d4a1f4d4600c))",
@@ -10470,6 +11252,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "add agent attribution page to fumadocs site ([#1199](https://github.com/yonatangross/orchestkit/issues/1199)) ([2646561](https://github.com/yonatangross/orchestkit/commit/264656140eda5caceffe2c6dfed9743816806c6f))",
           "update README What's New to v7.18.0, link to docs site changelog ([#1134](https://github.com/yonatangross/orchestkit/issues/1134)) ([d8aebef](https://github.com/yonatangross/orchestkit/commit/d8aebef11f99b45f20261a52c96059b91dd74318))"
@@ -10477,12 +11260,14 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Code Refactoring",
         "items": [
           "split testing-patterns, CC 2.1.72 upgrade, HTTP hooks fix ([#1015](https://github.com/yonatangross/orchestkit/issues/1015)) ([7bcab43](https://github.com/yonatangross/orchestkit/commit/7bcab430a21abdaaba714b8c7153351877387646))"
         ]
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump actions/download-artifact from 8.0.0 to 8.0.1 ([#1097](https://github.com/yonatangross/orchestkit/issues/1097)) ([ac52e6a](https://github.com/yonatangross/orchestkit/commit/ac52e6a47089114ec454c1a3e34c779432c49810))",
           "bump actions/setup-node from 6.2.0 to 6.3.0 ([#1008](https://github.com/yonatangross/orchestkit/issues/1008)) ([61f73f5](https://github.com/yonatangross/orchestkit/commit/61f73f5f49327e0a773110aefb387d4b2bb2113b))",
@@ -10502,6 +11287,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "**release-please build drift** — add `x-release-please-version` marker to `stop-uncommitted-check.mjs` so release-please updates the baked-in `PLUGIN_VERSION` const in sync with the manifest version. Previously, release-please bumped `manifests/ork.json` but left the generated hook file stale, causing CI to detect build drift on every release PR."
         ]
@@ -10515,6 +11301,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "**Persuasion-type classification** — all 103 skills tagged with `persuasion-type` frontmatter (14 discipline, 32 guidance, 35 reference, 22 collaborative) based on Cialdini's persuasion principles ([#1308](https://github.com/yonatangross/orchestkit/issues/1308))",
           "**Anti-sycophancy protocol** — shared rule banning performative agreement (\"Great work!\", \"You're absolutely right!\") in review and feedback skills, with pushback protocol ([#1309](https://github.com/yonatangross/orchestkit/issues/1309))",
@@ -10525,6 +11312,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "`stamp-counts.sh`, `validate-counts.sh`, and lint scripts now exclude `shared/` utility dirs from skill/agent enumeration"
         ]
@@ -10534,10 +11322,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.33.0",
     "date": "2026-04-09",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.32.1...v7.33.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "/ork:expect — Diff-Aware AI Browser Testing (M99) ([#1183](https://github.com/yonatangross/orchestkit/issues/1183)) ([7b88cb7](https://github.com/yonatangross/orchestkit/commit/7b88cb704a7fd3cc974df12df04b6b867cd321e6))",
           "add ci-automation skill + GitHub Actions workflows ([#1006](https://github.com/yonatangross/orchestkit/issues/1006)) ([8b328a7](https://github.com/yonatangross/orchestkit/commit/8b328a7dc3e06428c17b2349dae1d8b92eb57350))",
@@ -10567,6 +11356,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**ci:** add bootstrap-sha to release-please config ([#997](https://github.com/yonatangross/orchestkit/issues/997)) ([0d46843](https://github.com/yonatangross/orchestkit/commit/0d468437e75ffc7d3842f46972bd19836c565435))",
           "**ci:** add plugins[0].version to release-please extra-files ([#1001](https://github.com/yonatangross/orchestkit/issues/1001)) ([8a4faad](https://github.com/yonatangross/orchestkit/commit/8a4faadf651d822d3c4e748360a27ca23cc9af14))",
@@ -10588,6 +11378,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**deps-dev:** bump flatted ([#1119](https://github.com/yonatangross/orchestkit/issues/1119)) ([5aa1606](https://github.com/yonatangross/orchestkit/commit/5aa16068568f732a28a1ae639c832f5bcea0045c))",
           "**deps-dev:** bump the npm_and_yarn group across 2 directories with 1 update ([#1025](https://github.com/yonatangross/orchestkit/issues/1025)) ([f924b27](https://github.com/yonatangross/orchestkit/commit/f924b27a7ef02dd1f53be0400390d4a1f4d4600c))",
@@ -10622,6 +11413,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "add agent attribution page to fumadocs site ([#1199](https://github.com/yonatangross/orchestkit/issues/1199)) ([2646561](https://github.com/yonatangross/orchestkit/commit/264656140eda5caceffe2c6dfed9743816806c6f))",
           "update README What's New to v7.18.0, link to docs site changelog ([#1134](https://github.com/yonatangross/orchestkit/issues/1134)) ([d8aebef](https://github.com/yonatangross/orchestkit/commit/d8aebef11f99b45f20261a52c96059b91dd74318))"
@@ -10629,12 +11421,14 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Code Refactoring",
         "items": [
           "split testing-patterns, CC 2.1.72 upgrade, HTTP hooks fix ([#1015](https://github.com/yonatangross/orchestkit/issues/1015)) ([7bcab43](https://github.com/yonatangross/orchestkit/commit/7bcab430a21abdaaba714b8c7153351877387646))"
         ]
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump actions/download-artifact from 8.0.0 to 8.0.1 ([#1097](https://github.com/yonatangross/orchestkit/issues/1097)) ([ac52e6a](https://github.com/yonatangross/orchestkit/commit/ac52e6a47089114ec454c1a3e34c779432c49810))",
           "bump actions/setup-node from 6.2.0 to 6.3.0 ([#1008](https://github.com/yonatangross/orchestkit/issues/1008)) ([61f73f5](https://github.com/yonatangross/orchestkit/commit/61f73f5f49327e0a773110aefb387d4b2bb2113b))",
@@ -10654,6 +11448,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**compat:** CC 2.1.97 full utilization — 26 new features tracked (2 for 2.1.95, 24 for 2.1.97)",
           "**hooks:** Worktree-aware session titles — prompt bar shows `· wt` when inside a linked git worktree",
@@ -10669,10 +11464,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.32.0",
     "date": "2026-04-08",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.31.1...v7.32.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "/ork:expect — Diff-Aware AI Browser Testing (M99) ([#1183](https://github.com/yonatangross/orchestkit/issues/1183)) ([7b88cb7](https://github.com/yonatangross/orchestkit/commit/7b88cb704a7fd3cc974df12df04b6b867cd321e6))",
           "add ci-automation skill + GitHub Actions workflows ([#1006](https://github.com/yonatangross/orchestkit/issues/1006)) ([8b328a7](https://github.com/yonatangross/orchestkit/commit/8b328a7dc3e06428c17b2349dae1d8b92eb57350))",
@@ -10701,6 +11497,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**ci:** add bootstrap-sha to release-please config ([#997](https://github.com/yonatangross/orchestkit/issues/997)) ([0d46843](https://github.com/yonatangross/orchestkit/commit/0d468437e75ffc7d3842f46972bd19836c565435))",
           "**ci:** add plugins[0].version to release-please extra-files ([#1001](https://github.com/yonatangross/orchestkit/issues/1001)) ([8a4faad](https://github.com/yonatangross/orchestkit/commit/8a4faadf651d822d3c4e748360a27ca23cc9af14))",
@@ -10722,6 +11519,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**deps-dev:** bump flatted ([#1119](https://github.com/yonatangross/orchestkit/issues/1119)) ([5aa1606](https://github.com/yonatangross/orchestkit/commit/5aa16068568f732a28a1ae639c832f5bcea0045c))",
           "**deps-dev:** bump the npm_and_yarn group across 2 directories with 1 update ([#1025](https://github.com/yonatangross/orchestkit/issues/1025)) ([f924b27](https://github.com/yonatangross/orchestkit/commit/f924b27a7ef02dd1f53be0400390d4a1f4d4600c))",
@@ -10755,6 +11553,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "add agent attribution page to fumadocs site ([#1199](https://github.com/yonatangross/orchestkit/issues/1199)) ([2646561](https://github.com/yonatangross/orchestkit/commit/264656140eda5caceffe2c6dfed9743816806c6f))",
           "update README What's New to v7.18.0, link to docs site changelog ([#1134](https://github.com/yonatangross/orchestkit/issues/1134)) ([d8aebef](https://github.com/yonatangross/orchestkit/commit/d8aebef11f99b45f20261a52c96059b91dd74318))"
@@ -10762,12 +11561,14 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Code Refactoring",
         "items": [
           "split testing-patterns, CC 2.1.72 upgrade, HTTP hooks fix ([#1015](https://github.com/yonatangross/orchestkit/issues/1015)) ([7bcab43](https://github.com/yonatangross/orchestkit/commit/7bcab430a21abdaaba714b8c7153351877387646))"
         ]
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump actions/download-artifact from 8.0.0 to 8.0.1 ([#1097](https://github.com/yonatangross/orchestkit/issues/1097)) ([ac52e6a](https://github.com/yonatangross/orchestkit/commit/ac52e6a47089114ec454c1a3e34c779432c49810))",
           "bump actions/setup-node from 6.2.0 to 6.3.0 ([#1008](https://github.com/yonatangross/orchestkit/issues/1008)) ([61f73f5](https://github.com/yonatangross/orchestkit/commit/61f73f5f49327e0a773110aefb387d4b2bb2113b))",
@@ -10787,6 +11588,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "**Docs site CC version** — banner showed \"Claude Code 2.1.76+\" instead of \"2.1.94+\". Now derived dynamically from `MIN_CC_VERSION` in `cc-version-matrix.ts` via the docs data generator, so it stays in sync automatically."
         ]
@@ -10796,10 +11598,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.31.0",
     "date": "2026-04-08",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.30.1...v7.31.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "/ork:expect — Diff-Aware AI Browser Testing (M99) ([#1183](https://github.com/yonatangross/orchestkit/issues/1183)) ([7b88cb7](https://github.com/yonatangross/orchestkit/commit/7b88cb704a7fd3cc974df12df04b6b867cd321e6))",
           "add ci-automation skill + GitHub Actions workflows ([#1006](https://github.com/yonatangross/orchestkit/issues/1006)) ([8b328a7](https://github.com/yonatangross/orchestkit/commit/8b328a7dc3e06428c17b2349dae1d8b92eb57350))",
@@ -10828,6 +11631,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**ci:** add bootstrap-sha to release-please config ([#997](https://github.com/yonatangross/orchestkit/issues/997)) ([0d46843](https://github.com/yonatangross/orchestkit/commit/0d468437e75ffc7d3842f46972bd19836c565435))",
           "**ci:** add plugins[0].version to release-please extra-files ([#1001](https://github.com/yonatangross/orchestkit/issues/1001)) ([8a4faad](https://github.com/yonatangross/orchestkit/commit/8a4faadf651d822d3c4e748360a27ca23cc9af14))",
@@ -10848,6 +11652,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**deps-dev:** bump flatted ([#1119](https://github.com/yonatangross/orchestkit/issues/1119)) ([5aa1606](https://github.com/yonatangross/orchestkit/commit/5aa16068568f732a28a1ae639c832f5bcea0045c))",
           "**deps-dev:** bump the npm_and_yarn group across 2 directories with 1 update ([#1025](https://github.com/yonatangross/orchestkit/issues/1025)) ([f924b27](https://github.com/yonatangross/orchestkit/commit/f924b27a7ef02dd1f53be0400390d4a1f4d4600c))",
@@ -10880,6 +11685,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "add agent attribution page to fumadocs site ([#1199](https://github.com/yonatangross/orchestkit/issues/1199)) ([2646561](https://github.com/yonatangross/orchestkit/commit/264656140eda5caceffe2c6dfed9743816806c6f))",
           "update README What's New to v7.18.0, link to docs site changelog ([#1134](https://github.com/yonatangross/orchestkit/issues/1134)) ([d8aebef](https://github.com/yonatangross/orchestkit/commit/d8aebef11f99b45f20261a52c96059b91dd74318))"
@@ -10887,12 +11693,14 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Code Refactoring",
         "items": [
           "split testing-patterns, CC 2.1.72 upgrade, HTTP hooks fix ([#1015](https://github.com/yonatangross/orchestkit/issues/1015)) ([7bcab43](https://github.com/yonatangross/orchestkit/commit/7bcab430a21abdaaba714b8c7153351877387646))"
         ]
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump actions/download-artifact from 8.0.0 to 8.0.1 ([#1097](https://github.com/yonatangross/orchestkit/issues/1097)) ([ac52e6a](https://github.com/yonatangross/orchestkit/commit/ac52e6a47089114ec454c1a3e34c779432c49810))",
           "bump actions/setup-node from 6.2.0 to 6.3.0 ([#1008](https://github.com/yonatangross/orchestkit/issues/1008)) ([61f73f5](https://github.com/yonatangross/orchestkit/commit/61f73f5f49327e0a773110aefb387d4b2bb2113b))",
@@ -10912,6 +11720,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "**27 Dependabot vulnerabilities resolved** — refreshed lockfiles across all 5 workspaces (root, docs/site, src/hooks, orchestkit-demos, src/mcp-server). Bumped `@modelcontextprotocol/sdk` ^1.27.1 → ^1.29.0 which resolves hono@4.12.12 and @hono/node-server@1.19.13 natively. Vite resolved to 8.0.7 via vitest peer range.",
           "**2 CodeQL alerts** — pinned `orchestkit-eval.yml` actions to SHA (Scorecard Pinned-Dependencies); redacted exception in `pool-setup-template.py` `check_db_health()` (py/stack-trace-exposure)",
@@ -10929,6 +11738,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "**CC 2.1.94 + 2.1.96 integration** (minimum CC version: 2.1.92 → 2.1.94)\n  - **Skill frontmatter hooks unlock (CC 2.1.94 bug fix)** — before 2.1.94, skill `hooks:` blocks in SKILL.md frontmatter were silently ignored by CC. 20 OrchestKit context loaders across 15 skills (assess, implement, verify, brainstorm, review-pr, fix-issue, doctor, explore, cover, setup, commit, quality-gates, visualize-plan, release-checklist, code-review-playbook) were dead code until now. CC 2.1.94 activates them — users now get primed context (PR context, project conventions, assessment baselines, verify scoring rubric, etc.) before every workflow skill runs.\n  - **`hookSpecificOutput.sessionTitle` on UserPromptSubmit (CC 2.1.94)** — unified prompt dispatcher now sets the CC session title dynamically. Format: `{branch}` or `{branch} · {effort}` when effort differs from the default. Visible in the prompt bar, `--resume` picker, and `/remote-control` session list. Emitted on every turn (no delta skip) so the title stays current across branch changes.\n  - **New output builder `outputPromptContextWithTitle(ctx, title)`** in `src/hooks/src/lib/output.ts` — handles all four combinations: ctx+title, ctx only, title only, neither.\n  - **`sessionTitle` field in `HookSpecificOutput`** type (CC 2.1.94).\n  - **`DEFAULT_EFFORT_LEVEL` constant** in `src/hooks/src/lib/effort-detector.ts` — set to `'high'` to match CC 2.1.94's new default (was `'medium'` pre-2.1.94). Used by unified-dispatcher to decide when to log effort and when to suffix the session title.\n  - **`keep-coding-instructions` frontmatter field documentation** (CC 2.1.94) for future plugin output-style skills.\n  - **`src/__tests__/skill-frontmatter-hooks-invariant.test.ts`** — guards against dangling `skill/<name>` references in SKILL.md frontmatter. Every reference must be registered in `src/hooks/src/entries/skill.ts`, otherwise CC 2.1.94+ will try to spawn a missing handler on every invocation.\n  - **`src/__tests__/prompt/session-title.test.ts`** — 13 new tests covering `outputPromptContextWithTitle` semantics, `buildSessionTitle` format, branch cleanup, effort suffix, branch prefix stripping, truncation, and edge cases (empty branch, oversized prompt, newlines in branch).\n  - **13 new entries in `cc-version-matrix.ts`** — 12 for 2.1.94, 1 for 2.1.96 (Bedrock bearer-token 403 hotfix).",
           "**Task lifecycle enforcement across 21 skills + 33 agents** — all multi-phase skills and agents now follow complete TaskCreate → TaskGet → TaskUpdate lifecycle with `addBlockedBy` dependency chains, `activeForm` spinner text, and explicit completion markers\n  - 8 MANDATORY skills enhanced: brainstorm, explore, verify, assess, implement, create-pr, audit-full, expect\n  - 7 skills got new task sections: fix-issue, github-operations, notebooklm, demo-producer, audit-skills, release-management, setup\n  - 6 partial skills completed: cover, visualize-plan, write-prd, component-search, design-context-extract, design-to-code\n  - 33 agents upgraded to 6-item task management standard (added TaskGet validation)\n  - CONTRIBUTING-SKILLS.md updated with task management authoring requirements",
@@ -10940,6 +11750,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Changed",
         "items": [
           "**Hook dispatcher flattening** — all 6 async dispatchers replaced with CC 2.1.92 native async hook entries\n  - Stop dispatcher → 9 individual entries (ff75bedd)\n  - 4 more async dispatchers flattened (1de40ec3)\n  - PostToolUse dispatcher — last of 6 (6a082e32)\n  - Hook count: 146 → 169 (100 global + 47 agent-scoped + 22 skill-scoped)",
           "**3 dead/low-value hooks removed** — gh-issue-creation-guide, license-compliance, pr-merge-gate (−494 LOC) (#1274)",
@@ -10948,6 +11759,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "**19 stale skill name references** across docs, demos, and source\n  - `brainstorming` → `brainstorm` (6 files), `plan-viz` → `visualize-plan` (2), `prd` → `write-prd` (1), `assess-complexity` → `quality-gates` (4), `agent-browser` prefix fix (2), `git-workflow` rows removed (2)",
           "**2 phantom demo configs deleted** — `add-golden-demo.ts`, `worktree-coordination-demo.ts` (skills never existed)",
@@ -10961,6 +11773,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Performance",
         "items": [
           "**learning-tracker pattern caching** — patterns compiled once per process instead of per-invocation (#1265)",
           "**SessionStart sync hooks gated on `input.source`** — skip sync hooks when source is not relevant (#1269)",
@@ -10976,6 +11789,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "**72 new tests for P0 coverage gaps**:\n  - 54 tests for `normalizeInput()` edge cases: JSON-string unwrapping (12), STRING_FIELDS allowlist (12), tool_name/session_id/hook_event normalization (8), project_dir isValidPath resolution (6), agent_type/agent_id promotion (5), tool_input fallback (6), isValidPath validation (5)\n  - 11 tests for crypto sanitization: 3 missing patterns (gho_, github_pat_, xoxp-), 4 boundary/minimum-length tests, 3 false-positive prevention tests, 1 extra short-PAT rejection test\n  - 7 tests for `HookContext` shape: compile-time type assertion, runtime property audit across all 11 HookContext properties, NOOP_CTX callability, `buildContext()` shape parity",
           "**CC 2.1.92 version compatibility** — 12 new entries in version-compatibility.md, 8 features in cc-version-matrix.ts (#1263)\n  - `forceRemoteSettingsRefresh` policy: fail-closed startup for enterprise managed settings\n  - Stop hook `preventContinuation:true` semantics restored\n  - Tool input JSON-string streaming fix\n  - Plugin MCP stuck \"connecting\" fix\n  - Write tool 60% faster diff computation\n  - Remote Control hostname-based session naming\n  - Per-model `/cost` breakdown\n  - Subagent tmux pane count fix\n  - `/tag` and `/vim` commands removed (no OrchestKit impact)",
@@ -10985,6 +11799,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Changed",
         "items": [
           "**HookContext DI migration completed** — all 214 hook source files migrated to `(input, ctx)` signature with `NOOP_CTX` default fallback\n  - `buildContext()` factory + `createTestContext()` test helper for dependency injection\n  - Shared mock factory replaces inline mocks across 137 test files\n  - `common.ts` god module split into `output.ts`, `env.ts`, `log.ts`\n  - Telemetry decoupled — inline webhookForwarder removed from common module\n  - All unused `testCtx` scaffolding removed from lib/utility test files (16 files)\n  - All biome lint errors resolved: 0 errors, 0 warnings across 530 files"
         ]
@@ -10998,6 +11813,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "**Telemetry Provider Architecture (M105)** — pluggable sink system with Grafana Echo-style interface\n  - `TelemetrySink` interface: `{ name, supportedEvents, addEvent, flush }` for pluggable sinks\n  - `emit()` API: central fan-out to registered sinks with per-sink failure isolation\n  - `JsonlSink`: local JSONL backup via `appendFile` (async, non-blocking). Always-on safety net — events never lost even when HTTP sink is down\n  - `HttpSink`: HMAC-signed POST with 3x retry (full-jitter exponential backoff) and circuit breaker (5 fails → OPEN, 30s cooldown → HALF_OPEN)\n  - `telemetry-sync.mjs`: batch replay CLI — reads JSONL, POSTs to `/batch-ingest` as NDJSON, deletes synced rotated files\n  - Config-based sink registry: plugin.json and settings.local.json can register custom HTTP sinks\n  - Webhook forwarder coverage validator: CI gate ensuring all 27 CC events have forwarder coverage\n  - Rotation: files >10MB renamed on SessionEnd, rotated files >7 days cleaned up",
           "**Payload sanitization** — 15 secret patterns redacted before transmission\n  - API keys: `sk-ant-` (Anthropic), `sk-` (OpenAI), `AKIA` (AWS), `AIza` (Google/Firebase)\n  - Tokens: GitHub PATs (`ghp_`, `gho_`, `github_pat_`), Slack (`xoxb-`, `xoxp-`), Bearer\n  - Database URLs: MongoDB, PostgreSQL, MySQL connection strings\n  - Environment variable assignments with secret names\n  - Recursive sanitization with 500-char truncation",
@@ -11006,6 +11822,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "Webhook forwarder coverage: 9 gaps fixed (FileChanged standalone, 8 dispatcher inlines)",
           "`JsonlSink` always registers (was gated behind HTTP config — silent data loss when webhooks disabled)",
@@ -11019,6 +11836,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Changed",
         "items": [
           "`webhookForwarder()` simplified to thin wrapper around `emit()` (public API unchanged — dispatchers need zero changes)",
           "`signPayload()` extracted from `usage-summary-reporter.ts` to shared `lib/crypto.ts`",
@@ -11039,6 +11857,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "**shadcn/ui v4 style system** across 7 design skills: `ui-components`, `design-to-code`, `component-search`, `design-context-extract`, `json-render-catalog`, `design-system-tokens`, `ai-ui-generation`\n  - 6 styles documented: Vega, Nova, Maia, Lyra, Mira, Luma\n  - Preset code system (`npx shadcn@latest init --preset <code>`)\n  - Style detection from `components.json` → `\"style\"` field\n  - Style-aware component adaptation in design-to-code pipeline\n  - Best-fit style recommender in design-context-extract\n  - Style-aware catalog overrides in json-render-catalog\n  - Luma elevation tokens (shadow-md + ring) in design-system-tokens",
           "`ui-components/rules/shadcn-v4-styles.md` — new rule file for v4 style detection, class mapping, and preset codes (622 total rules)"
@@ -11046,6 +11865,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "**P0 BUG** denial-notification.ts: in-memory `denialTimestamps` array reset on every hook invocation (fresh Node.js process per call). Now reads persisted timestamps from `permission-denials.jsonl` written by denial-logger, with cooldown state in separate JSON file",
           "**P1 SEC** project-write-retry.ts: added `resolveRealPath()` before `isInsideDir()` to prevent symlink bypass attacks (replicates ME-001 fix from file-guard.ts)",
@@ -11058,6 +11878,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "**CC 2.1.88 integration**: 5 PermissionDenied hooks via unified-dispatcher (denial-logger, denial-notification, safe-command-retry, project-write-retry)",
           "**CC 2.1.89 integration**: `headless-defer` PreToolUse hook returns `{decision:\"defer\"}` in headless `-p` mode for destructive ops (force push, npm publish, terraform apply, kubectl, docker push, gh merge). Configurable via `ORCHESTKIT_DEFER_TOOLS` env var",
@@ -11077,6 +11898,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Changed",
         "items": [
           "**Option E**: Replaced 37 copied Vercel Labs skills with upstream references. Their SKILL.md content deposited as `references/upstream-*.md` inside 6 existing OrchestKit skill directories (browser-tools, json-render-catalog, mcp-visual-output, multi-surface-render, emulate-seed, portless). Skill count: 132 → 102 (101 after Option E + 1 release-sync)",
           "`scripts/sync-vercel-skills.sh` enhanced with JSON mapping file, content-hash dedup (no timestamp-only diffs), SHA pinning in manifest, `--check` and `--dry-run` modes",
@@ -11106,6 +11928,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "Flaky analytics-consent-check test (daysAgo boundary jitter at exact 30 days)",
           "path-to-regexp ReDoS vulnerability (8.3.0 → 8.4.0)"
@@ -11113,6 +11936,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "568 unit tests across 17 files — hook coverage 67% → 82%",
           "Tests for: decision-history, problem-tracker, task-integration, guards,"
@@ -11127,6 +11951,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "Agent attribution: race condition in session state (lockedAtomicWriteSync)",
           "Agent attribution: path traversal in sanitizeBranch (allowlist-based)",
@@ -11137,12 +11962,14 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Changed",
         "items": [
           "Split agent-attribution.ts into 3 files (types, core, formatters)"
         ]
       },
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "35 unit tests for agent attribution (sanitize, ledger, format, deduplicate)",
           "16 integration + E2E tests (session state pipeline, concurrent access, full flow)",
@@ -11158,6 +11985,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "changed",
+        "heading": "Changed",
         "items": [
           "Refactored `run-hook.mjs`: extracted `SILENT_OK` constant replacing 5 hardcoded JSON strings"
         ]
@@ -11171,6 +11999,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "Bumped `path-to-regexp` to fix ReDoS vulnerabilities (Dependabot alerts #47, #48, #53, #54)"
         ]
@@ -11184,6 +12013,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "**`/ork:expect` improvements** — reliability and DX upgrades (#1185, #1186, #1187):\n  - Route-map script: framework-aware file→URL mapping for Next.js App Router, Pages Router, Remix, SvelteKit — replaces Phase 3 prompt guessing with deterministic detection (#1185)\n  - `--init` scaffolder: `bash scripts/init.sh` creates `.expect/` directory with config.yaml template, .gitignore, and flows/ directory in 5 seconds (#1186)\n  - Rich expect-agent directive: 194-line agent body (was 61) with full agent-browser command reference, ARIA selector patterns, form interaction workflow, status protocol examples, and failure decision tree (#1187)\n  - Report script: parses status protocol to terminal/CI/JSON output, auto-saves to `.expect/reports/` (#1189)\n  - Example saved flows: login.md, crud.md, navigation.md — ARIA-first templates for common test patterns (#1190)\n  - Fingerprint auto-save hook: PostToolUse dispatcher saves fingerprint after successful run, enabling zero-cost skip on next invocation (#1191)",
           "**CC 2.1.86 adoption**: bumped minimum from 2.1.85 → 2.1.86 for config disk write fix (eliminates unnecessary writes on every skill invocation) and Write/Edit fix for files outside project root"
@@ -11198,6 +12028,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "**`/ork:expect` — Diff-Aware AI Browser Testing** (M99, 18 issues):\n  - Skill scaffold: SKILL.md (301 lines), 13 reference files, 5 rules, 3 scripts, 12 test cases (#1165)\n  - Git diff scanner: 4 target modes (changes/unstaged/branch/commit), 3 data levels (files/stats/preview), magnitude-based 12-file prioritization (#1166)\n  - SHA-256 fingerprint gating: check/save/clear commands, zero-cost skip when unchanged (#1167)\n  - Scope-aware test depth: commit=narrow(2-4), unstaged=exact(2-3), changes=combined(3-5), branch=thorough(5-8) (#1168)\n  - AI test plan generation: 8-section prompt template with coverage context, ARIA-first interaction, anti-rabbit-hole heuristics (#1169)\n  - Machine-parseable status protocol: STEP_START/STEP_DONE/ASSERTION_FAILED/RUN_COMPLETED with parser (#1170)\n  - Failure categorization: 6 types (app-bug, env-issue, auth-blocked, missing-test-data, selector-drift, agent-misread) (#1171)\n  - ARIA snapshot diffing: semantic UI change detection via accessibility tree comparison (#1172)\n  - Saved test flows: Markdown+YAML format_version 1 with adaptive replay (#1173)\n  - Test coverage context: cross-reference changed files with existing tests, 4 patterns (#1174)\n  - Execution engine: agent-browser orchestration, auth profiles, failure decision tree (#1175)\n  - Report generator: terminal/CI/JSON output, GitHub Actions annotations, exit codes (#1176)\n  - `.expect/config.yaml` convention: base_url, route_map, auth, ARIA snapshots, accessibility (#1177)\n  - rrweb session recording: DOM event replay without video encoding (#1178)\n  - Human-in-the-loop plan review: AskUserQuestion gate before execution (#1179)\n  - CI integration: GitHub Actions workflow, pre-push hook, fingerprint-gated zero-cost skip (#1180)\n  - Research reference: millionco/expect architecture analysis + feature comparison (#1181)\n  - `expect-agent`: specialized browser test execution subagent (#1182)",
           "**Skill count** 99 → 100, **agent count** 35 → 36, **invocable commands** 20 → 21",
@@ -11213,6 +12044,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "**fal.ai MCP integration** — added fal MCP server to configure skill reference (1000+ models: FLUX.2, Kling 3.0, LTX 2.0, Veo 3.1, Chatterbox TTS), new \"Generative media\" project type",
           "**Video model pricing refresh** — updated stale fal.ai pricing in multimodal-llm skill ($0.90/10s → Kling $0.07/s, Veo 3.1 $0.40/s, Wan 2.5 $0.05/s)"
@@ -11220,6 +12052,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "**Scorecard #132** — added nosemgrep annotation for npm pinned-dependencies advisory"
         ]
@@ -11233,6 +12066,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "**Stop hook version display** — replaced hardcoded `ork@7.22.0` with build-time injection from `manifests/ork.json` via `__PLUGIN_VERSION__` placeholder",
           "**Security: picomatch CVE-2026-33671 + CVE-2026-33672** — bumped picomatch to 4.0.4 across 3 directories; also bumped express-rate-limit (GHSA-46wh-pxpv-q5gq)",
@@ -11248,6 +12082,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "**CC 2.1.84 adoption — Phase 1 quick wins**:\n  - `paths:` YAML glob lists on 13 skills — auto-loads relevant context files when skill activates (implement, design-to-code, memory, storybook-mcp, mcp-patterns, database-patterns, cover, fix-issue, devops-deployment, security-patterns, architecture-patterns, configure, explore)\n  - `CLAUDE_STREAM_IDLE_TIMEOUT_MS=180000` — prevents long-running agents (audit-full, implement) from hitting the 90s default idle timeout\n  - WorktreeCreate `type: \"http\"` support — returns worktree path via `hookSpecificOutput.worktreePath` for API-driven orchestration\n  - 21 CC 2.1.84 features added to doctor version compatibility matrix\n  - MCP 2KB tool description cap documented in CONTRIBUTING-SKILLS.md",
           "**TaskCreated hook event** (CC 2.1.84) — 3 new handlers:\n  - `creation-tracker` — logs task creation events to JSONL + cross-project analytics\n  - `task-context-injector` — enriches tasks with branch/commit context via `additionalContext`\n  - `task-progress-initializer` — detects `[N/M]` numbered task patterns and initializes progress bar state",
@@ -11258,6 +12093,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Changed",
         "items": [
           "**CC version requirement** bumped to >= 2.1.84 (from >= 2.1.83)",
           "**Hook count** 106 → 109 (37 → 40 global hooks)",
@@ -11275,6 +12111,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "**CC 2.1.83 adoption — Tier 1 quick wins**:\n  - `sandbox.failIfUnavailable: true` — fail-fast when sandbox runtime unavailable instead of running unsandboxed\n  - `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1` — strip Anthropic/cloud credentials from all subprocess environments (Bash, hooks, MCP servers)\n  - `initialPrompt` for all 15 background agents — zero-wasted-turn bootstrap on spawn\n  - `userConfig` with `sensitive:true` — keychain-backed webhook token storage via manifest",
           "**RTK proxy compatibility** — git-validator and guardGitCommand now strip `rtk ` prefix before pattern matching, ensuring commit/branch validation works with RTK-rewritten commands"
@@ -11282,6 +12119,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Changed",
         "items": [
           "**Deprecated `TaskOutput` removed** from 6 agents (eval-runner, release-engineer, monitoring-engineer, data-pipeline-engineer, market-intelligence, web-research-analyst) — replaced by `Read` on background task output file per CC 2.1.83 deprecation",
           "**CC version requirement** bumped to >= 2.1.83 (from >= 2.1.81)"
@@ -11296,6 +12134,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "**YAML parser `>-` folded scalar support**: `parse-frontmatter.js` now handles `>-`, `|-`, `>`, `|` multiline scalars — prevents \"description too short (2 chars)\" CI failures for new skills/agents",
           "**test-cases.json 100% coverage**: created missing test-cases.json for 8 skills (component-search, cover, design-context-extract, testing-e2e, testing-llm, testing-patterns, testing-perf, testing-unit)"
@@ -11303,6 +12142,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "**Pre-commit frontmatter schema validator**: checks agent required fields (category, context, mcpServers, description ≤250 bytes) and skill required fields before commit",
           "**Pre-commit test-case rule validator**: verifies each `rule:` reference in test-cases.json has a matching `rules/*.md` file",
@@ -11319,12 +12159,14 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "**json-render + emulate integration** (Milestone #98): 4 new skills, 2 agents, 3 skill upgrades wrapping Vercel Labs' json-render (AI-safe GenUI) and emulate (stateful API emulation)\n  - `json-render-catalog` skill: Zod-typed component catalogs for AI-safe UI generation, 36 shadcn components, YAML token optimization\n  - `emulate-seed` skill: stateful API emulation config generation for GitHub (:4001), Vercel (:4000), Google OAuth (:4002)\n  - `mcp-visual-output` skill: interactive dashboards via @json-render/mcp in Claude/Cursor conversations\n  - `multi-surface-render` skill: same JSON spec renders to React, PDF, email, Remotion video, OG images\n  - `genui-architect` agent: json-render catalog design specialist\n  - `emulate-engineer` agent: stateful API emulation specialist"
         ]
       },
       {
         "type": "changed",
+        "heading": "Changed",
         "items": [
           "`ai-ui-generation`: json-render added as **first choice** option alongside v0/Bolt/Cursor",
           "`testing-integration`: emulate added as **first choice** for GitHub/Vercel/Google API tests (new `emulate-stateful-testing` rule)",
@@ -11335,6 +12177,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "`ai-review-checklist.md`: impact value `CRITICAL` → `HIGH` (invalid enum)",
           "`integration-api.md`: trimmed from 165 to 140 lines (was over 150 limit)",
@@ -11351,6 +12194,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "**Brace expansion false positive on jq syntax**: `--jq '{name, os, status}'` was blocked as \"brace expansion with command-like pattern\". Bash brace expansion requires NO spaces between elements (`{cat,/etc/passwd}`), so spaced patterns (`{name, os}`) and JSON/jq colon syntax (`{key: .value}`) are now correctly allowed."
         ]
@@ -11364,6 +12208,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "**Portless + agent-browser in debug workflows**: all debug-related skills/agents now instruct to use Portless named URLs and agent-browser for visual inspection\n  - `debug-investigator` agent: service discovery step, visual inspection, updated examples\n  - `fix-issue` skill: service discovery + agent-browser phase before hypothesis formation\n  - `errors` skill: ECONNREFUSED/connection refused pattern with Portless fix\n  - `doctor` skill: Portless health check in external dependencies\n  - `performance` skill: local profiling target section with Portless URLs\n  - `browser-tools` skill: new `portless-local-dev` rule file with incorrect/correct patterns",
           "**CC 2.1.81 integration**: `--bare` mode for eval pipeline, version-compatibility matrix, configure skill docs",
@@ -11377,6 +12222,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Changed",
         "items": [
           "Default eval model: **Haiku** for all generation AND grading (was Sonnet — 12x cost reduction)",
           "Trigger reps: 5→3 (95%+ detection with 40% fewer calls)",
@@ -11388,6 +12234,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "**Hook resilience — 5 fail-silent bugs made visible**:\n  - `run-hook.mjs`: stderr warning when stdin >512KB truncated (was silent data loss)\n  - `run-hook.mjs`: stderr warning when truncated JSON falls back to `{}` (was silent no-op)\n  - `run-hook.mjs`: appendFile error callbacks replace fire-and-forget `() => {}` (was silent write failure)\n  - `run-hook.mjs`: session ID validation strengthened to UUID + smart-ID structural patterns (was permissive regex)\n  - `stop-failure-handler`: tries fallback field names, logs available keys when reason unknown (was always \"unknown\")\n  - `unified-dispatcher`: webhook health check on SessionStart — warns if endpoint unreachable",
           "agent-browser blocking localhost:PORT and 127.0.0.1:PORT URLs",
@@ -11405,6 +12252,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "feat(eval): unified `npm run eval:skill` command — trigger + quality in one command per skill",
           "feat(eval): `npm run eval:optimize-desc` — iterative description improvement with train/test split",
@@ -11416,10 +12264,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.19.0",
     "date": "2026-03-21",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.18.0...v7.19.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "add ci-automation skill + GitHub Actions workflows ([#1006](https://github.com/yonatangross/orchestkit/issues/1006)) ([8b328a7](https://github.com/yonatangross/orchestkit/commit/8b328a7dc3e06428c17b2349dae1d8b92eb57350))",
           "CC 2.1.78 adoption — StopFailure, PLUGIN_DATA, effort frontmatter, worktree ([#1104](https://github.com/yonatangross/orchestkit/issues/1104)) ([de50151](https://github.com/yonatangross/orchestkit/commit/de501510ea39940312a74efe30270c634332f413))",
@@ -11439,6 +12288,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**ci:** add bootstrap-sha to release-please config ([#997](https://github.com/yonatangross/orchestkit/issues/997)) ([0d46843](https://github.com/yonatangross/orchestkit/commit/0d468437e75ffc7d3842f46972bd19836c565435))",
           "**ci:** add plugins[0].version to release-please extra-files ([#1001](https://github.com/yonatangross/orchestkit/issues/1001)) ([8a4faad](https://github.com/yonatangross/orchestkit/commit/8a4faadf651d822d3c4e748360a27ca23cc9af14))",
@@ -11456,6 +12306,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**deps-dev:** bump flatted ([#1119](https://github.com/yonatangross/orchestkit/issues/1119)) ([5aa1606](https://github.com/yonatangross/orchestkit/commit/5aa16068568f732a28a1ae639c832f5bcea0045c))",
           "**deps-dev:** bump the npm_and_yarn group across 2 directories with 1 update ([#1025](https://github.com/yonatangross/orchestkit/issues/1025)) ([f924b27](https://github.com/yonatangross/orchestkit/commit/f924b27a7ef02dd1f53be0400390d4a1f4d4600c))",
@@ -11486,18 +12337,21 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Documentation",
         "items": [
           "update README What's New to v7.18.0, link to docs site changelog ([#1134](https://github.com/yonatangross/orchestkit/issues/1134)) ([d8aebef](https://github.com/yonatangross/orchestkit/commit/d8aebef11f99b45f20261a52c96059b91dd74318))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Code Refactoring",
         "items": [
           "split testing-patterns, CC 2.1.72 upgrade, HTTP hooks fix ([#1015](https://github.com/yonatangross/orchestkit/issues/1015)) ([7bcab43](https://github.com/yonatangross/orchestkit/commit/7bcab430a21abdaaba714b8c7153351877387646))"
         ]
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump actions/download-artifact from 8.0.0 to 8.0.1 ([#1097](https://github.com/yonatangross/orchestkit/issues/1097)) ([ac52e6a](https://github.com/yonatangross/orchestkit/commit/ac52e6a47089114ec454c1a3e34c779432c49810))",
           "bump actions/setup-node from 6.2.0 to 6.3.0 ([#1008](https://github.com/yonatangross/orchestkit/issues/1008)) ([61f73f5](https://github.com/yonatangross/orchestkit/commit/61f73f5f49327e0a773110aefb387d4b2bb2113b))",
@@ -11514,6 +12368,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "feat(skills): `targets` frontmatter with library version ranges on 14 skills",
           "test: validate all `skills:` cross-references point to existing skills (93 refs)",
@@ -11525,10 +12380,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.17.0",
     "date": "2026-03-21",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.16.2...v7.17.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**skills:** update notebooklm skill for v0.5.2 + cinematic video ([#1130](https://github.com/yonatangross/orchestkit/issues/1130)) ([28d3726](https://github.com/yonatangross/orchestkit/commit/28d37263c5fa11257cf781843e1d8b6520ed3adf))"
         ]
@@ -11538,10 +12394,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.16.2",
     "date": "2026-03-20",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.16.1...v7.16.2",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**docs:** parse release-please changelog format in data generator ([#1128](https://github.com/yonatangross/orchestkit/issues/1128)) ([6efbf19](https://github.com/yonatangross/orchestkit/commit/6efbf19f62b46ec5123bd44de3754b94136096fb))"
         ]
@@ -11551,10 +12408,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.16.1",
     "date": "2026-03-20",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.16.0...v7.16.1",
     "sections": [
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**deps-dev:** bump flatted ([#1119](https://github.com/yonatangross/orchestkit/issues/1119)) ([5aa1606](https://github.com/yonatangross/orchestkit/commit/5aa16068568f732a28a1ae639c832f5bcea0045c))"
         ]
@@ -11564,10 +12422,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.16.0",
     "date": "2026-03-20",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.15.0...v7.16.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "add ci-automation skill + GitHub Actions workflows ([#1006](https://github.com/yonatangross/orchestkit/issues/1006)) ([8b328a7](https://github.com/yonatangross/orchestkit/commit/8b328a7dc3e06428c17b2349dae1d8b92eb57350))",
           "CC 2.1.78 adoption — StopFailure, PLUGIN_DATA, effort frontmatter, worktree ([#1104](https://github.com/yonatangross/orchestkit/issues/1104)) ([de50151](https://github.com/yonatangross/orchestkit/commit/de501510ea39940312a74efe30270c634332f413))",
@@ -11585,6 +12444,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**ci:** add bootstrap-sha to release-please config ([#997](https://github.com/yonatangross/orchestkit/issues/997)) ([0d46843](https://github.com/yonatangross/orchestkit/commit/0d468437e75ffc7d3842f46972bd19836c565435))",
           "**ci:** add plugins[0].version to release-please extra-files ([#1001](https://github.com/yonatangross/orchestkit/issues/1001)) ([8a4faad](https://github.com/yonatangross/orchestkit/commit/8a4faadf651d822d3c4e748360a27ca23cc9af14))",
@@ -11601,6 +12461,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**deps-dev:** bump the npm_and_yarn group across 2 directories with 1 update ([#1025](https://github.com/yonatangross/orchestkit/issues/1025)) ([f924b27](https://github.com/yonatangross/orchestkit/commit/f924b27a7ef02dd1f53be0400390d4a1f4d4600c))",
           "fix hono CVE + organize playgrounds by date ([#1039](https://github.com/yonatangross/orchestkit/issues/1039)) ([b43cf2d](https://github.com/yonatangross/orchestkit/commit/b43cf2dc8f9d62d54b727de72928e123c2330e51))",
@@ -11626,12 +12487,14 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Code Refactoring",
         "items": [
           "split testing-patterns, CC 2.1.72 upgrade, HTTP hooks fix ([#1015](https://github.com/yonatangross/orchestkit/issues/1015)) ([7bcab43](https://github.com/yonatangross/orchestkit/commit/7bcab430a21abdaaba714b8c7153351877387646))"
         ]
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump actions/download-artifact from 8.0.0 to 8.0.1 ([#1097](https://github.com/yonatangross/orchestkit/issues/1097)) ([ac52e6a](https://github.com/yonatangross/orchestkit/commit/ac52e6a47089114ec454c1a3e34c779432c49810))",
           "bump actions/setup-node from 6.2.0 to 6.3.0 ([#1008](https://github.com/yonatangross/orchestkit/issues/1008)) ([61f73f5](https://github.com/yonatangross/orchestkit/commit/61f73f5f49327e0a773110aefb387d4b2bb2113b))",
@@ -11648,6 +12511,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "feat(skills): effort frontmatter on 40 skills — CC 2.1.80 overrides model effort level (18 high, 22 low)",
           "feat(hooks): rate_limits display in statusline — shows rate limit usage alongside context percentage",
@@ -11660,10 +12524,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.14.1",
     "date": "2026-03-19",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.14.0...v7.14.1",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**ci:** auto-bump docs site version on release ([#1117](https://github.com/yonatangross/orchestkit/issues/1117)) ([ddf5f3b](https://github.com/yonatangross/orchestkit/commit/ddf5f3bb17e41f19669442a4c3e120efb871deb6))"
         ]
@@ -11673,10 +12538,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.14.0",
     "date": "2026-03-19",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.13.0...v7.14.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "add ci-automation skill + GitHub Actions workflows ([#1006](https://github.com/yonatangross/orchestkit/issues/1006)) ([8b328a7](https://github.com/yonatangross/orchestkit/commit/8b328a7dc3e06428c17b2349dae1d8b92eb57350))",
           "CC 2.1.78 adoption — StopFailure, PLUGIN_DATA, effort frontmatter, worktree ([#1104](https://github.com/yonatangross/orchestkit/issues/1104)) ([de50151](https://github.com/yonatangross/orchestkit/commit/de501510ea39940312a74efe30270c634332f413))",
@@ -11693,6 +12559,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**ci:** add bootstrap-sha to release-please config ([#997](https://github.com/yonatangross/orchestkit/issues/997)) ([0d46843](https://github.com/yonatangross/orchestkit/commit/0d468437e75ffc7d3842f46972bd19836c565435))",
           "**ci:** add plugins[0].version to release-please extra-files ([#1001](https://github.com/yonatangross/orchestkit/issues/1001)) ([8a4faad](https://github.com/yonatangross/orchestkit/commit/8a4faadf651d822d3c4e748360a27ca23cc9af14))",
@@ -11707,6 +12574,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**deps-dev:** bump the npm_and_yarn group across 2 directories with 1 update ([#1025](https://github.com/yonatangross/orchestkit/issues/1025)) ([f924b27](https://github.com/yonatangross/orchestkit/commit/f924b27a7ef02dd1f53be0400390d4a1f4d4600c))",
           "fix hono CVE + organize playgrounds by date ([#1039](https://github.com/yonatangross/orchestkit/issues/1039)) ([b43cf2d](https://github.com/yonatangross/orchestkit/commit/b43cf2dc8f9d62d54b727de72928e123c2330e51))",
@@ -11730,12 +12598,14 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Code Refactoring",
         "items": [
           "split testing-patterns, CC 2.1.72 upgrade, HTTP hooks fix ([#1015](https://github.com/yonatangross/orchestkit/issues/1015)) ([7bcab43](https://github.com/yonatangross/orchestkit/commit/7bcab430a21abdaaba714b8c7153351877387646))"
         ]
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump actions/download-artifact from 8.0.0 to 8.0.1 ([#1097](https://github.com/yonatangross/orchestkit/issues/1097)) ([ac52e6a](https://github.com/yonatangross/orchestkit/commit/ac52e6a47089114ec454c1a3e34c779432c49810))",
           "bump actions/setup-node from 6.2.0 to 6.3.0 ([#1008](https://github.com/yonatangross/orchestkit/issues/1008)) ([61f73f5](https://github.com/yonatangross/orchestkit/commit/61f73f5f49327e0a773110aefb387d4b2bb2113b))",
@@ -11752,6 +12622,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "Invocation CTA on all 93 skill reference pages — copy-to-clipboard `/ork:skillname` for commands, auto-activated notice for reference skills (#1082)",
           "8 category index pages at `/skills/by-category/` — backend, frontend, testing, security, AI/LLM, devops, product, workflows (#1082)",
@@ -11762,6 +12633,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "Dependency graph readability — 800px viewport, LR layout, focus dropdown, auto-focus on hub nodes, node dimming on hover",
           "Category false positives — removed overly broad tags from AI/LLM and product categories",
@@ -11777,6 +12649,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**StopFailure hook** (CC 2.1.78): new `stop/stop-failure-handler.ts` flushes state and writes emergency handoff on API error/rate limit — error-loop safe by design (#1106)",
           "**CLAUDE_PLUGIN_DATA persistence** (CC 2.1.78): `getPluginDataDir/getSessionStorageDir/getAnalyticsStorageDir` in `paths.ts`; session storage migrates to persistent directory that survives plugin updates (#1107)",
@@ -11786,6 +12659,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Changed",
         "items": [
           "Minimum Claude Code engine bumped to `>= 2.1.78`",
           "Hook count: 105 → 106"
@@ -11800,6 +12674,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "TODO: Describe your changes here"
         ]
@@ -11809,16 +12684,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.11.1",
     "date": "2026-03-16",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.11.0...v7.11.1",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**security:** resolve yauzl CVE and pinned-dependencies alert ([#1101](https://github.com/yonatangross/orchestkit/issues/1101)) ([d96d68d](https://github.com/yonatangross/orchestkit/commit/d96d68d1bbaf55a8f41e982b0debfcf71fc792a6))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "remove release-as pin after 7.11.0 release ([#1103](https://github.com/yonatangross/orchestkit/issues/1103)) ([5fd681c](https://github.com/yonatangross/orchestkit/commit/5fd681cf73bf1362c4b4fd254c4100e86185f51e))"
         ]
@@ -11828,10 +12705,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.11.0",
     "date": "2026-03-16",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.11.0...v7.11.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "add ci-automation skill + GitHub Actions workflows ([#1006](https://github.com/yonatangross/orchestkit/issues/1006)) ([8b328a7](https://github.com/yonatangross/orchestkit/commit/8b328a7dc3e06428c17b2349dae1d8b92eb57350))",
           "**cover:** add /ork:cover skill + bump to 7.11.0 ([#1096](https://github.com/yonatangross/orchestkit/issues/1096)) ([36f14c6](https://github.com/yonatangross/orchestkit/commit/36f14c6f3266460a5a1afe14e1927bba2fa0a948))",
@@ -11846,6 +12724,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**ci:** add bootstrap-sha to release-please config ([#997](https://github.com/yonatangross/orchestkit/issues/997)) ([0d46843](https://github.com/yonatangross/orchestkit/commit/0d468437e75ffc7d3842f46972bd19836c565435))",
           "**ci:** add plugins[0].version to release-please extra-files ([#1001](https://github.com/yonatangross/orchestkit/issues/1001)) ([8a4faad](https://github.com/yonatangross/orchestkit/commit/8a4faadf651d822d3c4e748360a27ca23cc9af14))",
@@ -11859,6 +12738,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**deps-dev:** bump the npm_and_yarn group across 2 directories with 1 update ([#1025](https://github.com/yonatangross/orchestkit/issues/1025)) ([f924b27](https://github.com/yonatangross/orchestkit/commit/f924b27a7ef02dd1f53be0400390d4a1f4d4600c))",
           "fix hono CVE + organize playgrounds by date ([#1039](https://github.com/yonatangross/orchestkit/issues/1039)) ([b43cf2d](https://github.com/yonatangross/orchestkit/commit/b43cf2dc8f9d62d54b727de72928e123c2330e51))",
@@ -11879,12 +12759,14 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Code Refactoring",
         "items": [
           "split testing-patterns, CC 2.1.72 upgrade, HTTP hooks fix ([#1015](https://github.com/yonatangross/orchestkit/issues/1015)) ([7bcab43](https://github.com/yonatangross/orchestkit/commit/7bcab430a21abdaaba714b8c7153351877387646))"
         ]
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump actions/download-artifact from 8.0.0 to 8.0.1 ([#1097](https://github.com/yonatangross/orchestkit/issues/1097)) ([ac52e6a](https://github.com/yonatangross/orchestkit/commit/ac52e6a47089114ec454c1a3e34c779432c49810))",
           "bump actions/setup-node from 6.2.0 to 6.3.0 ([#1008](https://github.com/yonatangross/orchestkit/issues/1008)) ([61f73f5](https://github.com/yonatangross/orchestkit/commit/61f73f5f49327e0a773110aefb387d4b2bb2113b))",
@@ -11901,6 +12783,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "Integrate `@yonatan-hq/analytics` for cross-project page view tracking in docs site",
           "Add Edge route handler for HMAC-signed analytics event forwarding to HQ API"
@@ -11911,10 +12794,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.9.0",
     "date": "2026-03-15",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.8.0...v7.9.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "add ci-automation skill + GitHub Actions workflows ([#1006](https://github.com/yonatangross/orchestkit/issues/1006)) ([8b328a7](https://github.com/yonatangross/orchestkit/commit/8b328a7dc3e06428c17b2349dae1d8b92eb57350))",
           "**eval:** Sprint 1 — trigger runner + CONTRIBUTING-SKILLS eval docs ([#1065](https://github.com/yonatangross/orchestkit/issues/1065)) ([8d845c7](https://github.com/yonatangross/orchestkit/commit/8d845c7090ff8d799789ff1b24c34360261c8f49))",
@@ -11926,6 +12810,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**ci:** add bootstrap-sha to release-please config ([#997](https://github.com/yonatangross/orchestkit/issues/997)) ([0d46843](https://github.com/yonatangross/orchestkit/commit/0d468437e75ffc7d3842f46972bd19836c565435))",
           "**ci:** add plugins[0].version to release-please extra-files ([#1001](https://github.com/yonatangross/orchestkit/issues/1001)) ([8a4faad](https://github.com/yonatangross/orchestkit/commit/8a4faadf651d822d3c4e748360a27ca23cc9af14))",
@@ -11939,6 +12824,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**deps-dev:** bump the npm_and_yarn group across 2 directories with 1 update ([#1025](https://github.com/yonatangross/orchestkit/issues/1025)) ([f924b27](https://github.com/yonatangross/orchestkit/commit/f924b27a7ef02dd1f53be0400390d4a1f4d4600c))",
           "fix hono CVE + organize playgrounds by date ([#1039](https://github.com/yonatangross/orchestkit/issues/1039)) ([b43cf2d](https://github.com/yonatangross/orchestkit/commit/b43cf2dc8f9d62d54b727de72928e123c2330e51))",
@@ -11956,12 +12842,14 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Code Refactoring",
         "items": [
           "split testing-patterns, CC 2.1.72 upgrade, HTTP hooks fix ([#1015](https://github.com/yonatangross/orchestkit/issues/1015)) ([7bcab43](https://github.com/yonatangross/orchestkit/commit/7bcab430a21abdaaba714b8c7153351877387646))"
         ]
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump actions/setup-node from 6.2.0 to 6.3.0 ([#1008](https://github.com/yonatangross/orchestkit/issues/1008)) ([61f73f5](https://github.com/yonatangross/orchestkit/commit/61f73f5f49327e0a773110aefb387d4b2bb2113b))",
           "bump github/codeql-action from 4.32.4 to 4.32.6 ([#1009](https://github.com/yonatangross/orchestkit/issues/1009)) ([13a0975](https://github.com/yonatangross/orchestkit/commit/13a097584115d899681c321d15e2b8c05bda68ac))"
@@ -11976,6 +12864,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "**monitoring-observability:** Langfuse Python SDK v4 coverage — `as_type` semantic types (generation, retriever, chain, embedding, agent, guardrail, evaluator), `score_current_span()` / `score_current_trace()`, `should_export_span` filter, `LangfuseMedia` attachments, `run_experiment()` batch evaluation",
           "**monitoring-observability:** Python v3→v4 migration guide section with breaking changes checklist, code examples, and version pin guidance (`langfuse>=4.0.0`)"
@@ -11983,6 +12872,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Changed",
         "items": [
           "**monitoring-observability:** v2.0.0→3.0.0 — all code examples updated from v3 to v4 patterns across rules, scripts, checklists, and references",
           "**monitoring-observability:** Setup checklist updated with v4 version pins and migration steps",
@@ -11998,6 +12888,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "**hooks:** PostCompact recovery hook — re-injects branch, tasks, decisions after compaction using CC-provided `compaction_count` and `context_size_after` fields",
           "**hooks:** Elicitation guard — blocks form-mode MCP elicitations requesting secret fields (api_key, password, token), forces URL mode",
@@ -12010,6 +12901,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Changed",
         "items": [
           "**hooks:** MIN_CC_VERSION bumped from 2.1.74 to 2.1.76 — backward compatibility dropped",
           "**hooks:** SubagentStop retry-handler now returns early with `[PARTIAL RESULT]` tag for killed background agents instead of entering retry logic (CC 2.1.76 partial results)",
@@ -12020,6 +12912,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "**docs:** Missing v7.7.x row in version history table (between v7.8.x and v7.5.x)",
           "**docs:** Stale \"CC 2.1.74 format\" agent reference in CLAUDE.md directory structure",
@@ -12036,6 +12929,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "**design-to-code:** New user-invocable skill (`/ork:design-to-code`) — mockup-to-component pipeline using Google Stitch MCP and 21st.dev component registry",
           "**component-search:** New user-invocable skill (`/ork:component-search`) — search 21st.dev registry for production-ready React components",
@@ -12047,6 +12941,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Changed",
         "items": [
           "**frontend-ui-developer:** Added 21st-dev-magic MCP scope + component-search, design-to-code, design-context-extract skills",
           "**design-system-architect:** Added stitch-mcp MCP scope + design-context-extract, component-search skills",
@@ -12062,6 +12957,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "**api-design:** Agent-facing RFC 9457 error patterns with structured retry signals — `retryable`, `error_category`, `retry_after`, `owner_action_required` extensions for deterministic AI agent error handling",
           "**api-design:** Content negotiation middleware pattern (JSON/Markdown/HTML via Accept header) with token efficiency budget (<300 tokens)",
@@ -12072,6 +12968,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Changed",
         "items": [
           "**hooks:** retry-manager now extracts RFC 9457 structured errors before regex fallback — uses server-provided `retry_after` instead of calculated backoff",
           "**hooks:** failure-handler detects structured errors for richer context injection with `error_category` and `what_you_should_do`"
@@ -12079,6 +12976,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "**python-backend:** Updated stale RFC 7807 reference to RFC 9457 (the active standard)"
         ]
@@ -12092,6 +12990,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "**eval:** Quality evaluation runner (`npm run eval:quality`) — A/B skill vs baseline grading with Claude-as-judge",
           "**eval:** Seed eval YAMLs for all 16 user-invocable skills with trigger + quality assertions",
@@ -12104,6 +13003,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "**eval:** SEC-001 path traversal in skill name input validation",
           "**eval:** SEC-002 JSON injection via unsanitized YAML-sourced strings",
@@ -12114,6 +13014,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Changed",
         "items": [
           "**eval:** Trigger runner refactored to source shared `eval-common.sh`",
           "**eval:** All 17 eval YAMLs hardened with adversarial prompts, confusion pairs, and negative assertions"
@@ -12128,6 +13029,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "**eval:** Trigger evaluation runner (`npm run eval:trigger`) — measures skill trigger precision and recall with flaky detection",
           "**docs:** Expanded CONTRIBUTING-SKILLS.md with mandatory eval requirements, writing guidance, and pre-submit checklist"
@@ -12138,10 +13040,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.5.1",
     "date": "2026-03-12",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.5.0...v7.5.1",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**docs:** update CC version requirement from 2.1.72 to 2.1.74 ([#1062](https://github.com/yonatangross/orchestkit/issues/1062)) ([622ba4c](https://github.com/yonatangross/orchestkit/commit/622ba4cfa0d5d4b9b1707c2f93897a311b3a1586))"
         ]
@@ -12151,16 +13054,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.5.0",
     "date": "2026-03-12",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.4.0...v7.5.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**skills:** adopt CC 2.1.72 features — ExitWorktree, model override ([#1036](https://github.com/yonatangross/orchestkit/issues/1036)) ([#1060](https://github.com/yonatangross/orchestkit/issues/1060)) ([96fd3a0](https://github.com/yonatangross/orchestkit/commit/96fd3a0ece399e3f843b11d3f018a0792eea9d46))"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**docs:** update generated plugins-data version to 7.4.0 ([#1058](https://github.com/yonatangross/orchestkit/issues/1058)) ([e2693b1](https://github.com/yonatangross/orchestkit/commit/e2693b16b3f8cddb40348b5790611a004f37009e))",
           "**skills:** add ExitWorktree + model override to Agent Teams teardown paths ([#1061](https://github.com/yonatangross/orchestkit/issues/1061)) ([c326666](https://github.com/yonatangross/orchestkit/commit/c3266663634912450ed965fae5ca6df752019705))"
@@ -12171,10 +13076,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.4.0",
     "date": "2026-03-12",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.3.3...v7.4.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "add ci-automation skill + GitHub Actions workflows ([#1006](https://github.com/yonatangross/orchestkit/issues/1006)) ([8b328a7](https://github.com/yonatangross/orchestkit/commit/8b328a7dc3e06428c17b2349dae1d8b92eb57350))",
           "**skills:** add 13 cognitive-science UX rules across 5 existing skills ([#1011](https://github.com/yonatangross/orchestkit/issues/1011)) ([91b62ac](https://github.com/yonatangross/orchestkit/commit/91b62ac1ab43a1d3296b84e05b402d0102600531))",
@@ -12183,6 +13089,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**ci:** add bootstrap-sha to release-please config ([#997](https://github.com/yonatangross/orchestkit/issues/997)) ([0d46843](https://github.com/yonatangross/orchestkit/commit/0d468437e75ffc7d3842f46972bd19836c565435))",
           "**ci:** add plugins[0].version to release-please extra-files ([#1001](https://github.com/yonatangross/orchestkit/issues/1001)) ([8a4faad](https://github.com/yonatangross/orchestkit/commit/8a4faadf651d822d3c4e748360a27ca23cc9af14))",
@@ -12193,6 +13100,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**deps-dev:** bump the npm_and_yarn group across 2 directories with 1 update ([#1025](https://github.com/yonatangross/orchestkit/issues/1025)) ([f924b27](https://github.com/yonatangross/orchestkit/commit/f924b27a7ef02dd1f53be0400390d4a1f4d4600c))",
           "fix hono CVE + organize playgrounds by date ([#1039](https://github.com/yonatangross/orchestkit/issues/1039)) ([b43cf2d](https://github.com/yonatangross/orchestkit/commit/b43cf2dc8f9d62d54b727de72928e123c2330e51))",
@@ -12207,12 +13115,14 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Code Refactoring",
         "items": [
           "split testing-patterns, CC 2.1.72 upgrade, HTTP hooks fix ([#1015](https://github.com/yonatangross/orchestkit/issues/1015)) ([7bcab43](https://github.com/yonatangross/orchestkit/commit/7bcab430a21abdaaba714b8c7153351877387646))"
         ]
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump actions/setup-node from 6.2.0 to 6.3.0 ([#1008](https://github.com/yonatangross/orchestkit/issues/1008)) ([61f73f5](https://github.com/yonatangross/orchestkit/commit/61f73f5f49327e0a773110aefb387d4b2bb2113b))",
           "bump github/codeql-action from 4.32.4 to 4.32.6 ([#1009](https://github.com/yonatangross/orchestkit/issues/1009)) ([13a0975](https://github.com/yonatangross/orchestkit/commit/13a097584115d899681c321d15e2b8c05bda68ac))"
@@ -12227,6 +13137,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "changed",
+        "heading": "Changed",
         "items": [
           "**platform:** bump minimum Claude Code version from >= 2.1.73 to >= 2.1.74\n  - SessionEnd `hook.timeout` now respected (was hardcoded to 1.5s — hooks silently killed)\n  - New `CLAUDE_CODE_SESSIONEND_HOOKS_TIMEOUT_MS` env var for timeout override\n  - Managed policy `ask` rules now correctly override user `allow` + skill `allowed-tools`\n  - Full model IDs (`claude-opus-4-6`) accepted in agent frontmatter (symbolic names still recommended)\n  - `/context` command surfaces actionable optimization suggestions\n  - `autoMemoryDirectory` setting for custom auto-memory storage path\n  - `--plugin-dir` local overrides take precedence over marketplace plugins\n  - Streaming API + bash prefix caching memory leaks fixed",
           "**skills:** update `compatibility` field to \"Claude Code 2.1.74+\" across 78 skills",
@@ -12242,6 +13153,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "changed",
+        "heading": "Changed",
         "items": [
           "**platform:** bump minimum Claude Code version from >= 2.1.72 to >= 2.1.73\n  - Fixes skill-file deadlock on `git pull` (critical for 89-skill plugin)\n  - Fixes SessionStart hooks double-firing on `--resume`/`--continue`\n  - Fixes no-op system reminder injection (~2K tokens/turn recovered across 99 hooks)\n  - Opus 4.6 now default on Bedrock/Vertex/Foundry (6 opus-tier agents auto-upgrade)",
           "**skills:** update `compatibility` field to \"Claude Code 2.1.73+\" across 78 skills",
@@ -12250,6 +13162,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "**docs:** fix broken light mode on documentation site — split dark-only `@theme` into proper light/dark token sets following fumadocs convention (`@theme` for light defaults, `.dark {}` for dark overrides)"
         ]
@@ -12263,6 +13176,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "**skills:** shared unified scoring framework in quality-gates for assess/verify",
           "**skills:** 33 rule files across 12 skills (setup, implement, brainstorm, remember, help, audit-full, configure, errors, memory-fabric, release-management, scope-appropriate-architecture, testing-patterns)",
@@ -12273,12 +13187,14 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Changed",
         "items": [
           "**skills:** compress 12 bloated skills under 300 lines via reference extraction (setup, write-prd, code-review-playbook, zustand-patterns, release-management, vite-advanced, async-jobs, devops-deployment, audit-full, implement, react-server-components-framework, remember)"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "**hooks:** improve subagent-quality-gate and unified-dispatcher"
         ]
@@ -12288,16 +13204,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.3.2",
     "date": "2026-03-11",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.3.1...v7.3.2",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**security:** resolve CodeQL and Scorecard alerts ([#1027](https://github.com/yonatangross/orchestkit/issues/1027)) ([ab9136c](https://github.com/yonatangross/orchestkit/commit/ab9136c09593632a9c10a7d44ca4c9799df297ed))"
         ]
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "fix hono CVE + organize playgrounds by date ([#1039](https://github.com/yonatangross/orchestkit/issues/1039)) ([b43cf2d](https://github.com/yonatangross/orchestkit/commit/b43cf2dc8f9d62d54b727de72928e123c2330e51))"
         ]
@@ -12311,6 +13229,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "security",
+        "heading": "Security",
         "items": [
           "**hooks:** fix second-order command injection in `gitExec()` (CodeQL #124, High) — add `assertSafeGitArgs()` blocklist for `--upload-pack`, `--receive-pack`, `--exec`, `-c` options that can execute arbitrary commands via git",
           "**ci:** fix unpinned npm dependency in `claude-health.yml` (Scorecard #125, Medium) — add `--ignore-scripts` to `npm install` and bump to `@2.1.72`"
@@ -12321,10 +13240,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.3.1",
     "date": "2026-03-11",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.3.0...v7.3.1",
     "sections": [
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**deps-dev:** bump the npm_and_yarn group across 2 directories with 1 update ([#1025](https://github.com/yonatangross/orchestkit/issues/1025)) ([f924b27](https://github.com/yonatangross/orchestkit/commit/f924b27a7ef02dd1f53be0400390d4a1f4d4600c))"
         ]
@@ -12334,10 +13254,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.3.0",
     "date": "2026-03-10",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.2.2...v7.3.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "add ci-automation skill + GitHub Actions workflows ([#1006](https://github.com/yonatangross/orchestkit/issues/1006)) ([8b328a7](https://github.com/yonatangross/orchestkit/commit/8b328a7dc3e06428c17b2349dae1d8b92eb57350))",
           "**skills:** add 13 cognitive-science UX rules across 5 existing skills ([#1011](https://github.com/yonatangross/orchestkit/issues/1011)) ([91b62ac](https://github.com/yonatangross/orchestkit/commit/91b62ac1ab43a1d3296b84e05b402d0102600531))"
@@ -12345,6 +13266,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**ci:** add bootstrap-sha to release-please config ([#997](https://github.com/yonatangross/orchestkit/issues/997)) ([0d46843](https://github.com/yonatangross/orchestkit/commit/0d468437e75ffc7d3842f46972bd19836c565435))",
           "**ci:** add plugins[0].version to release-please extra-files ([#1001](https://github.com/yonatangross/orchestkit/issues/1001)) ([8a4faad](https://github.com/yonatangross/orchestkit/commit/8a4faadf651d822d3c4e748360a27ca23cc9af14))",
@@ -12354,6 +13276,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**main:** release 7.1.10 ([#1000](https://github.com/yonatangross/orchestkit/issues/1000)) ([d0c48a1](https://github.com/yonatangross/orchestkit/commit/d0c48a1f8f135fa741bb16a39166c1f0e5ebc965))",
           "**main:** release 7.1.7 ([#998](https://github.com/yonatangross/orchestkit/issues/998)) ([c4607ad](https://github.com/yonatangross/orchestkit/commit/c4607ad811ec43b9cd6dc5ac323af953eca4096a))",
@@ -12363,12 +13286,14 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Code Refactoring",
         "items": [
           "split testing-patterns, CC 2.1.72 upgrade, HTTP hooks fix ([#1015](https://github.com/yonatangross/orchestkit/issues/1015)) ([7bcab43](https://github.com/yonatangross/orchestkit/commit/7bcab430a21abdaaba714b8c7153351877387646))"
         ]
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump actions/setup-node from 6.2.0 to 6.3.0 ([#1008](https://github.com/yonatangross/orchestkit/issues/1008)) ([61f73f5](https://github.com/yonatangross/orchestkit/commit/61f73f5f49327e0a773110aefb387d4b2bb2113b))",
           "bump github/codeql-action from 4.32.4 to 4.32.6 ([#1009](https://github.com/yonatangross/orchestkit/issues/1009)) ([13a0975](https://github.com/yonatangross/orchestkit/commit/13a097584115d899681c321d15e2b8c05bda68ac))"
@@ -12383,6 +13308,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "**agents:** remove stale `git-workflow` references from git-operations-engineer, frontend-ui-developer, release-engineer",
           "**agents:** remove stale `ci-automation` reference from ci-cd-engineer",
@@ -12397,6 +13323,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Changed",
         "items": [
           "**hooks:** skill-scoped hooks 23→21 (removed 2 non-existent refs), total 101→99",
           "**verify:** add cross-route findings panel to gallery template (common issues, strengths, breakdown)",
@@ -12413,6 +13340,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "removed",
+        "heading": "Removed",
         "items": [
           "**skills:** remove git-workflow skill (5 best rules migrated to commit skill)",
           "**skills:** remove ci-automation skill (ci-cd-engineer agent covers this)",
@@ -12421,6 +13349,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Changed",
         "items": [
           "**skills:** upgrade write-prd to v2.0.0 — AskUserQuestion, Task Management, memory integration, disk output",
           "**skills:** upgrade commit to v1.2.0 — absorb 5 git-workflow rules (branch-protection, merge-strategy, history-hygiene, stacked-pr-workflow, stacked-pr-rebase)",
@@ -12430,6 +13359,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "**skills:** split testing-patterns into 5 focused sub-skills — testing-unit, testing-e2e, testing-integration, testing-llm, testing-perf (#669)",
           "**skills:** add visual verification portfolio to verify skill — Phase 2.5 (screenshot gallery) + Phase 8.5 (agentation feedback loop)",
@@ -12443,6 +13373,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "**evals:** update help.eval.json from \"5 GIT skills\" to \"4 GIT skills\"",
           "**tests:** update split-bundles expected hook count to 176"
@@ -12453,16 +13384,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.2.1",
     "date": "2026-03-09",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.2.0...v7.2.1",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**docs:** update generated plugins-data version to 7.2.0 ([#1012](https://github.com/yonatangross/orchestkit/issues/1012)) ([dca7243](https://github.com/yonatangross/orchestkit/commit/dca72432fd9982b3457d3423aad1124155a94584))"
         ]
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump actions/setup-node from 6.2.0 to 6.3.0 ([#1008](https://github.com/yonatangross/orchestkit/issues/1008)) ([61f73f5](https://github.com/yonatangross/orchestkit/commit/61f73f5f49327e0a773110aefb387d4b2bb2113b))",
           "bump github/codeql-action from 4.32.4 to 4.32.6 ([#1009](https://github.com/yonatangross/orchestkit/issues/1009)) ([13a0975](https://github.com/yonatangross/orchestkit/commit/13a097584115d899681c321d15e2b8c05bda68ac))"
@@ -12473,10 +13406,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.2.0",
     "date": "2026-03-09",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.1.14...v7.2.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "add ci-automation skill + GitHub Actions workflows ([#1006](https://github.com/yonatangross/orchestkit/issues/1006)) ([8b328a7](https://github.com/yonatangross/orchestkit/commit/8b328a7dc3e06428c17b2349dae1d8b92eb57350))",
           "**skills:** add 13 cognitive-science UX rules across 5 existing skills ([#1011](https://github.com/yonatangross/orchestkit/issues/1011)) ([91b62ac](https://github.com/yonatangross/orchestkit/commit/91b62ac1ab43a1d3296b84e05b402d0102600531))"
@@ -12484,6 +13418,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**ci:** add bootstrap-sha to release-please config ([#997](https://github.com/yonatangross/orchestkit/issues/997)) ([0d46843](https://github.com/yonatangross/orchestkit/commit/0d468437e75ffc7d3842f46972bd19836c565435))",
           "**ci:** add plugins[0].version to release-please extra-files ([#1001](https://github.com/yonatangross/orchestkit/issues/1001)) ([8a4faad](https://github.com/yonatangross/orchestkit/commit/8a4faadf651d822d3c4e748360a27ca23cc9af14))",
@@ -12492,6 +13427,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**main:** release 7.1.10 ([#1000](https://github.com/yonatangross/orchestkit/issues/1000)) ([d0c48a1](https://github.com/yonatangross/orchestkit/commit/d0c48a1f8f135fa741bb16a39166c1f0e5ebc965))",
           "**main:** release 7.1.7 ([#998](https://github.com/yonatangross/orchestkit/issues/998)) ([c4607ad](https://github.com/yonatangross/orchestkit/commit/c4607ad811ec43b9cd6dc5ac323af953eca4096a))"
@@ -12506,6 +13442,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "**skills:** add 234 test case entries for 222 previously untested rules across 63 skills",
           "**skills:** fix 18 term mismatches in expectedBehavior strings for rule traceability",
@@ -12522,6 +13459,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "**ci:** resolve TypeScript type error in home-environment test (tuple annotation mismatch)",
           "**ci:** update stale skill names in trigger tests — brainstorming→brainstorm, plan-viz→visualize-plan",
@@ -12543,6 +13481,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "**hooks:** InstructionsLoaded dispatcher — shared content cache eliminates 3x redundant file reads",
           "**hooks:** classifySource uses basename() check to prevent substring misclassification",
@@ -12553,6 +13492,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Changed",
         "items": [
           "**hooks:** all 6 InstructionsLoaded handlers now receive shared `Map<string, string>` content cache",
           "**hooks:** dispatcher validates `files_loaded` elements with runtime type guard"
@@ -12560,6 +13500,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "**tests:** 12 new tests for edge cases, all 6 conflict patterns, false-positive prevention"
         ]
@@ -12573,6 +13514,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "**skill:** ci-automation skill with SKILL.md + 4 reference docs (cost-model, gh-action-patterns, headless-cli, security)",
           "**ci:** GitHub Actions workflows for claude-health, claude-review, claude-triage",
@@ -12584,10 +13526,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.1.10",
     "date": "2026-03-06",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.1.9...v7.1.10",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**ci:** add bootstrap-sha to release-please config ([#997](https://github.com/yonatangross/orchestkit/issues/997)) ([0d46843](https://github.com/yonatangross/orchestkit/commit/0d468437e75ffc7d3842f46972bd19836c565435))",
           "**ci:** add plugins[0].version to release-please extra-files ([#1001](https://github.com/yonatangross/orchestkit/issues/1001)) ([8a4faad](https://github.com/yonatangross/orchestkit/commit/8a4faadf651d822d3c4e748360a27ca23cc9af14))",
@@ -12596,6 +13539,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**main:** release 7.1.7 ([#998](https://github.com/yonatangross/orchestkit/issues/998)) ([c4607ad](https://github.com/yonatangross/orchestkit/commit/c4607ad811ec43b9cd6dc5ac323af953eca4096a))"
         ]
@@ -12609,6 +13553,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "Add `$.plugins[0].version` to release-please extra-files so release PRs update both top-level and plugin versions in marketplace.json"
         ]
@@ -12622,6 +13567,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "Replace broken ASCII box-drawing diagrams with fumadocs Steps components and markdown tables across 12 docs pages",
           "Add missing `/ork:prd` command to command-skills page",
@@ -12634,10 +13580,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "7.1.7",
     "date": "2026-03-06",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v7.1.6...v7.1.7",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**ci:** add bootstrap-sha to release-please config ([#997](https://github.com/yonatangross/orchestkit/issues/997)) ([0d46843](https://github.com/yonatangross/orchestkit/commit/0d468437e75ffc7d3842f46972bd19836c565435))"
         ]
@@ -12651,6 +13598,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "TODO: Describe your changes here"
         ]
@@ -12664,12 +13612,14 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "**docs:** Full fumadocs sync — fix 40+ stale references across 37 MDX files\n  - All counts corrected: 79 skills (18 cmd + 61 ref), 30 agents, 105 hooks\n  - Remove 8 demoted agent references from 15 files (replaced with current agents)\n  - Remove deleted hook references (graph-memory-inject, agent-memory-store, capture-user-intent, memory-capture) from 8 files\n  - Rewrite memory docs for graph-first architecture (session-summary replaces 4 hooks)"
         ]
       },
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "**docs:** Document CC 2.1.69/70 hook features in fumadocs\n  - ConfigChange, InstructionsLoaded, WorktreeCreate/Remove events in hook timeline\n  - Native HTTP hooks section (12 type:\"http\" hooks)\n  - once:true auto-removal pattern (13 skill context loaders)\n  - statusMessage spinner UX documentation"
         ]
@@ -12683,6 +13633,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "**docs:** Fix 30+ stale counts across fumadocs site, skills, and source files\n  - 71 skills → 79 skills, 83/98/106 hooks → 105 hooks (42 global + 44 agent + 19 skill)\n  - CC version badge ≥2.1.59 → ≥2.1.69, user-invocable 17 → 18\n  - Fix `count-hooks.sh` to exclude CONTRIBUTING-SKILLS.md example (was inflating skill count by 1)\n  - Regenerated docs data + rebuilt plugins to match"
         ]
@@ -12696,6 +13647,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "**feat(skills):** Enable CC native matching on 10 knowledge skills (#960)\n  - security-patterns, api-design, testing-patterns, database-patterns, python-backend, architecture-patterns, performance, quality-gates, react-server-components-framework, devops-deployment\n  - Changed `disable-model-invocation: true → false` so CC auto-selects these based on prompt/description matching\n  - Skills visible to CC: 17 → 27 (17 user-invocable + 10 model-invocable)",
           "**docs(skills):** Document model-invocable pattern in CONTRIBUTING-SKILLS.md"
@@ -12703,12 +13655,14 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "removed",
+        "heading": "Removed",
         "items": [
           "**perf(hooks):** Delete ~1,550 lines dead routing code (#960)\n  - Deleted: intent-classifier.ts (669 lines), calibration-engine.ts, skill-nudge.ts, calibration-tracker.ts, calibration-persist.ts, + 4 test files\n  - These modules were superseded by CC native skill matching and never ran in production\n  - Prompt pipeline hooks: 5 → 4 (removed skill-nudge-prompt)\n  - Split-bundles test count: 170 → 167"
         ]
       },
       {
         "type": "changed",
+        "heading": "Changed",
         "items": [
           "**perf(agents):** Demote 8 redundant agents to reduce routing overhead (#863)\n  - Removed: requirements-translator, documentation-specialist, prompt-engineer, ux-researcher, rapid-ui-designer, business-case-builder, metrics-architect, prioritization-analyst\n  - Agent count: 38 to 30, Hook count: 98 to 88 (10 agent-scoped hooks removed)\n  - Reduces routing complexity and eliminates ~98k tokens/invocation for unnecessary agent spawns",
           "**docs(build):** Document skills/commands duplication token waste (#889) with upstream CC bug tracking"
@@ -12716,6 +13670,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "removed",
+        "heading": "Removed",
         "items": [
           "CC-v3 feature issues (#930-933) removed from perf milestone — already built, architecturally impossible, or superseded by CC native tools"
         ]
@@ -12729,6 +13684,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "**browser-tools skill v3.0.0**: 7 new sections documenting agent-browser v0.16 features (semantic locators, mouse commands, tab management, debug/recording, mobile testing, configuration flags, auth vault)",
           "**2 new rules**: `browser-debug-recording.md` (trace/profiler safety), `browser-mobile-testing.md` (device emulation verification)",
@@ -12747,6 +13703,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "**NotebookLM MCP bloat** (#890): Disabled `notebooklm-mcp` at project level (`disabled: true` in `.mcp.json`), saving ~6k tokens/session from 25 unused tools",
           "**Tool name mismatch**: Fixed `mcp__notebooklm__*` → `mcp__notebooklm-mcp__*` across `release-notebook` skill, `notebooklm` rules, and `create-release-notebook.sh`",
@@ -12763,6 +13720,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "**Full agent-browser CLI adoption** (#947 #948 #949): 64 commands across 12 categories documented in browser-tools skill",
           "**Interaction commands**: click, dblclick, focus, fill, type, keyboard, press, hover, check/uncheck, select, scroll, scrollintoview, drag, upload (22 commands)",
@@ -12786,6 +13744,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "**Assessment quality gaps** (#946): address code-quality-reviewer blockers in verify skill"
         ]
@@ -12799,6 +13758,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "**Session handoffs** (#464): Structured YAML handoffs on SessionEnd with auto-injection on SessionStart for cross-session continuity",
           "**Release notebook skill** (#836): `release-notebook` skill creates versioned NotebookLM notebooks per release with changelog, manifest, and CLAUDE.md sources",
@@ -12807,6 +13767,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Changed",
         "items": [
           "**Native HTTP hooks** (#896): Converted 3 HQ reporters (session-end, worktree-create, worktree-remove) from type:command to type:http — eliminates ~200ms Node spawn per fire",
           "Hook count: 95 -> 97 (36 global + 54 agent-scoped + 7 skill-scoped)",
@@ -12822,6 +13783,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "Add agents/hooks paths to plugin.json and build script (#900)",
           "Add metadata.description and tags to marketplace.json (#900)",
@@ -12838,6 +13800,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "**setup:** New setup wizard skill (`/ork:setup`) — scans codebase, detects stack, recommends skills and MCPs, generates readiness score",
           "**notifications:** Satisfaction detector bug nudge — suggests `/ork:feedback bug` after 2+ negative signals per session",
@@ -12856,6 +13819,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Changed",
         "items": [
           "**settings:** Unified all plugin settings: identical spinner verbs and permissions across all plugins",
           "**notifications:** Desktop notification sound handling delegated to dedicated sound.ts module with command cache for performance",
@@ -12867,6 +13831,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "Sound notifications now use detached spawn to survive async hook exit",
           "Bump Hono from 4.12.0 to 4.12.2 (CVE-2026-27700)",
@@ -12882,6 +13847,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "Bump skill count 68 → 69 across manifests and docs",
           "Bump Hono 4.12.0 → 4.12.2 (CVE-2026-27700)",
@@ -12897,6 +13863,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**eval:** Overhaul eval skills, agents, and LangGraph/Langfuse compatibility",
           "**skills:** Extract `create-pr` into 7 rules + 4 references (274→156 lines)",
@@ -12906,6 +13873,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "Fix 20 broken cross-skill references across 12 skills",
           "Fix 5 weak skill descriptions (configure, feedback, help, release-checklist, skill-evolution)",
@@ -12918,10 +13886,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "6.7.0",
     "date": "2026-02-23",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v6.6.3...v6.7.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "dead code cleanup & PostToolUse consolidation ([#684](https://github.com/yonatangross/orchestkit/issues/684)) ([#790](https://github.com/yonatangross/orchestkit/issues/790)) ([da245ac](https://github.com/yonatangross/orchestkit/commit/da245ac82c587763b95269c62bf2b9f3c44115d3))",
           "**docs:** add Vercel Analytics, Speed Insights, and dynamic social proof ([#809](https://github.com/yonatangross/orchestkit/issues/809), [#810](https://github.com/yonatangross/orchestkit/issues/810)) ([#812](https://github.com/yonatangross/orchestkit/issues/812)) ([714af85](https://github.com/yonatangross/orchestkit/commit/714af856d4983c2d87d7b5c936c9284e549b003f))",
@@ -12932,6 +13901,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "add plugins/ plugin.json to release-please extra-files ([#822](https://github.com/yonatangross/orchestkit/issues/822)) ([8eb27cb](https://github.com/yonatangross/orchestkit/commit/8eb27cbb258bb1b8d6d0f175691b2c240c3c060b))",
           "eliminate 32 code scanning alerts (19 CodeQL + 13 Scorecard) ([#792](https://github.com/yonatangross/orchestkit/issues/792)) ([12e796b](https://github.com/yonatangross/orchestkit/commit/12e796b5a715b930f43eaa8e08d9fa38603e867d))",
@@ -12946,6 +13916,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**main:** release 6.1.3 ([#787](https://github.com/yonatangross/orchestkit/issues/787)) ([612ad89](https://github.com/yonatangross/orchestkit/commit/612ad8939f4a456ea5714212f96dab9cf6eca75a))",
           "**main:** release 6.2.0 ([#789](https://github.com/yonatangross/orchestkit/issues/789)) ([54042ff](https://github.com/yonatangross/orchestkit/commit/54042ff5f4a4e654e9bb05708a752cd71ce10a97))",
@@ -12958,6 +13929,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump actions/attest-build-provenance from 2.4.0 to 3.2.0 ([#816](https://github.com/yonatangross/orchestkit/issues/816)) ([04a2cee](https://github.com/yonatangross/orchestkit/commit/04a2cee77500cb544e35bd02dc85a397f8f3c810))",
           "bump github/codeql-action from 4.32.3 to 4.32.4 ([#815](https://github.com/yonatangross/orchestkit/issues/815)) ([e31096e](https://github.com/yonatangross/orchestkit/commit/e31096e7624424e1c37c2e7baaabccf8c6b782d6))",
@@ -12974,6 +13946,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "Sanitize `resultsDir` in security-scan-aggregator bandit command (CodeQL alert #43)"
         ]
@@ -12987,6 +13960,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "changed",
+        "heading": "Changed",
         "items": [
           "Use `npm ci` instead of `npm install` in CI for lockfile-based integrity hashes",
           "Remove unnecessary Python/pip dependency from schema validation (uses built-in basic validator)"
@@ -13001,6 +13975,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "TODO: Describe your changes here"
         ]
@@ -13010,10 +13985,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "6.6.0",
     "date": "2026-02-23",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v6.5.3...v6.6.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "dead code cleanup & PostToolUse consolidation ([#684](https://github.com/yonatangross/orchestkit/issues/684)) ([#790](https://github.com/yonatangross/orchestkit/issues/790)) ([da245ac](https://github.com/yonatangross/orchestkit/commit/da245ac82c587763b95269c62bf2b9f3c44115d3))",
           "**docs:** add Vercel Analytics, Speed Insights, and dynamic social proof ([#809](https://github.com/yonatangross/orchestkit/issues/809), [#810](https://github.com/yonatangross/orchestkit/issues/810)) ([#812](https://github.com/yonatangross/orchestkit/issues/812)) ([714af85](https://github.com/yonatangross/orchestkit/commit/714af856d4983c2d87d7b5c936c9284e549b003f))",
@@ -13024,6 +14000,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "add plugins/ plugin.json to release-please extra-files ([#822](https://github.com/yonatangross/orchestkit/issues/822)) ([8eb27cb](https://github.com/yonatangross/orchestkit/commit/8eb27cbb258bb1b8d6d0f175691b2c240c3c060b))",
           "eliminate 32 code scanning alerts (19 CodeQL + 13 Scorecard) ([#792](https://github.com/yonatangross/orchestkit/issues/792)) ([12e796b](https://github.com/yonatangross/orchestkit/commit/12e796b5a715b930f43eaa8e08d9fa38603e867d))",
@@ -13036,6 +14013,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**main:** release 6.1.3 ([#787](https://github.com/yonatangross/orchestkit/issues/787)) ([612ad89](https://github.com/yonatangross/orchestkit/commit/612ad8939f4a456ea5714212f96dab9cf6eca75a))",
           "**main:** release 6.2.0 ([#789](https://github.com/yonatangross/orchestkit/issues/789)) ([54042ff](https://github.com/yonatangross/orchestkit/commit/54042ff5f4a4e654e9bb05708a752cd71ce10a97))",
@@ -13047,6 +14025,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump actions/attest-build-provenance from 2.4.0 to 3.2.0 ([#816](https://github.com/yonatangross/orchestkit/issues/816)) ([04a2cee](https://github.com/yonatangross/orchestkit/commit/04a2cee77500cb544e35bd02dc85a397f8f3c810))",
           "bump github/codeql-action from 4.32.3 to 4.32.4 ([#815](https://github.com/yonatangross/orchestkit/issues/815)) ([e31096e](https://github.com/yonatangross/orchestkit/commit/e31096e7624424e1c37c2e7baaabccf8c6b782d6))",
@@ -13062,6 +14041,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "TODO: Describe your changes here"
         ]
@@ -13075,6 +14055,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "TODO: Describe your changes here"
         ]
@@ -13088,6 +14069,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "Add `presentation-builder` skill — zero-dependency HTML slide presentations with viewport fitting, 12 style presets, PPT conversion, and keyboard/touch navigation (adopted from zarazhangrui/frontend-slides, restructured into OrchestKit format)",
           "Skill count: 67 → 68 skills, 28 → 29 user-invocable"
@@ -13098,10 +14080,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "6.5.0",
     "date": "2026-02-22",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v6.4.1...v6.5.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "dead code cleanup & PostToolUse consolidation ([#684](https://github.com/yonatangross/orchestkit/issues/684)) ([#790](https://github.com/yonatangross/orchestkit/issues/790)) ([da245ac](https://github.com/yonatangross/orchestkit/commit/da245ac82c587763b95269c62bf2b9f3c44115d3))",
           "**docs:** add Vercel Analytics, Speed Insights, and dynamic social proof ([#809](https://github.com/yonatangross/orchestkit/issues/809), [#810](https://github.com/yonatangross/orchestkit/issues/810)) ([#812](https://github.com/yonatangross/orchestkit/issues/812)) ([714af85](https://github.com/yonatangross/orchestkit/commit/714af856d4983c2d87d7b5c936c9284e549b003f))",
@@ -13111,6 +14094,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "eliminate 32 code scanning alerts (19 CodeQL + 13 Scorecard) ([#792](https://github.com/yonatangross/orchestkit/issues/792)) ([12e796b](https://github.com/yonatangross/orchestkit/commit/12e796b5a715b930f43eaa8e08d9fa38603e867d))",
           "eliminate 91 CodeQL alerts + fix 30 pre-existing test failures ([#782](https://github.com/yonatangross/orchestkit/issues/782)) ([ca47641](https://github.com/yonatangross/orchestkit/commit/ca476416b81c217998af5e9b5305b44a4b6ffa8a))",
@@ -13121,6 +14105,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**main:** release 6.1.3 ([#787](https://github.com/yonatangross/orchestkit/issues/787)) ([612ad89](https://github.com/yonatangross/orchestkit/commit/612ad8939f4a456ea5714212f96dab9cf6eca75a))",
           "**main:** release 6.2.0 ([#789](https://github.com/yonatangross/orchestkit/issues/789)) ([54042ff](https://github.com/yonatangross/orchestkit/commit/54042ff5f4a4e654e9bb05708a752cd71ce10a97))",
@@ -13138,6 +14123,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "TODO: Describe your changes here"
         ]
@@ -13147,16 +14133,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "6.4.0",
     "date": "2026-02-22",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v6.3.0...v6.4.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "**docs:** add Vercel Analytics, Speed Insights, and dynamic social proof ([#809](https://github.com/yonatangross/orchestkit/issues/809), [#810](https://github.com/yonatangross/orchestkit/issues/810)) ([#812](https://github.com/yonatangross/orchestkit/issues/812)) ([714af85](https://github.com/yonatangross/orchestkit/commit/714af856d4983c2d87d7b5c936c9284e549b003f))"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "sync manifests and pyproject.toml to v6.3.0 ([#806](https://github.com/yonatangross/orchestkit/issues/806)) ([d06661d](https://github.com/yonatangross/orchestkit/commit/d06661d18a3386367c8a1c3ae06b071a657c885c))"
         ]
@@ -13166,16 +14154,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "6.3.0",
     "date": "2026-02-21",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v6.2.1...v6.3.0",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "sync manifests and pyproject.toml to v6.3.0 (release-please gap)"
         ]
       },
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "dead code cleanup & PostToolUse consolidation ([#684](https://github.com/yonatangross/orchestkit/issues/684)) ([#790](https://github.com/yonatangross/orchestkit/issues/790)) ([da245ac](https://github.com/yonatangross/orchestkit/commit/da245ac82c587763b95269c62bf2b9f3c44115d3))",
           "integrate Claude Code 2.1.50 features ([#805](https://github.com/yonatangross/orchestkit/issues/805)) ([60a16d2](https://github.com/yonatangross/orchestkit/commit/60a16d210227a343364266c7e3b0ee544f80af0e))",
@@ -13184,6 +14174,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "eliminate 32 code scanning alerts (19 CodeQL + 13 Scorecard) ([#792](https://github.com/yonatangross/orchestkit/issues/792)) ([12e796b](https://github.com/yonatangross/orchestkit/commit/12e796b5a715b930f43eaa8e08d9fa38603e867d))",
           "eliminate 91 CodeQL alerts + fix 30 pre-existing test failures ([#782](https://github.com/yonatangross/orchestkit/issues/782)) ([ca47641](https://github.com/yonatangross/orchestkit/commit/ca476416b81c217998af5e9b5305b44a4b6ffa8a))",
@@ -13192,6 +14183,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**main:** release 6.1.3 ([#787](https://github.com/yonatangross/orchestkit/issues/787)) ([612ad89](https://github.com/yonatangross/orchestkit/commit/612ad8939f4a456ea5714212f96dab9cf6eca75a))",
           "**main:** release 6.2.0 ([#789](https://github.com/yonatangross/orchestkit/issues/789)) ([54042ff](https://github.com/yonatangross/orchestkit/commit/54042ff5f4a4e654e9bb05708a752cd71ce10a97))",
@@ -13207,6 +14199,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "WorktreeCreate and WorktreeRemove hook events with lifecycle logger handler (CC 2.1.50)",
           "`isolation: worktree` frontmatter on test-generator, demo-producer, git-operations-engineer agents",
@@ -13218,6 +14211,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Changed",
         "items": [
           "Hook counts: 52 → 54 global, 75 → 77 total, 15 → 17 event types",
           "upgrade-assessment skill updated with 2.1.50 breaking changes and memory leak note",
@@ -13233,6 +14227,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "security",
+        "heading": "Security",
         "items": [
           "Fix 16 CodeQL shell injection alerts — convert execSync template strings to execFileSync array form",
           "Fix 2 CodeQL incomplete string escaping alerts (issue-work-summary, session-cleanup)",
@@ -13251,6 +14246,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "Harden Scorecard workflow security: add explicit job-level permissions to release-please job (least-privilege)",
           "Pin jsonschema dependency to v4.23.0 in plugin-validation workflow (Pinned-Dependencies alert)",
@@ -13262,10 +14258,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "6.2.0",
     "date": "2026-02-20",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v6.1.4...v6.2.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "dead code cleanup & PostToolUse consolidation ([#684](https://github.com/yonatangross/orchestkit/issues/684)) ([#790](https://github.com/yonatangross/orchestkit/issues/790)) ([da245ac](https://github.com/yonatangross/orchestkit/commit/da245ac82c587763b95269c62bf2b9f3c44115d3))",
           "security hardening & hook consolidation (Milestone [#72](https://github.com/yonatangross/orchestkit/issues/72)) ([#788](https://github.com/yonatangross/orchestkit/issues/788)) ([5f014b4](https://github.com/yonatangross/orchestkit/commit/5f014b477d7e4aad04fbaeb13d8b72db08edc19a))"
@@ -13273,6 +14270,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "eliminate 91 CodeQL alerts + fix 30 pre-existing test failures ([#782](https://github.com/yonatangross/orchestkit/issues/782)) ([ca47641](https://github.com/yonatangross/orchestkit/commit/ca476416b81c217998af5e9b5305b44a4b6ffa8a))",
           "**release:** scope release-please from v6.1.0 to prevent 7.0.0 ([#786](https://github.com/yonatangross/orchestkit/issues/786)) ([83a248b](https://github.com/yonatangross/orchestkit/commit/83a248b522313c453fa9fbdeb5e020998542350f))"
@@ -13280,6 +14278,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**main:** release 6.1.3 ([#787](https://github.com/yonatangross/orchestkit/issues/787)) ([612ad89](https://github.com/yonatangross/orchestkit/commit/612ad8939f4a456ea5714212f96dab9cf6eca75a))",
           "**main:** release 6.2.0 ([#789](https://github.com/yonatangross/orchestkit/issues/789)) ([54042ff](https://github.com/yonatangross/orchestkit/commit/54042ff5f4a4e654e9bb05708a752cd71ce10a97))"
@@ -13294,6 +14293,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "changed",
+        "heading": "Changed",
         "items": [
           "Consolidate PostToolUse hooks.json entries from 4 to 1 async dispatcher (#684)",
           "Move redact-secrets, config-change-auditor, team-member-start, error-logger into unified-dispatcher",
@@ -13302,6 +14302,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "removed",
+        "heading": "Removed",
         "items": [
           "Dead hooks: context-budget-monitor (225 LOC), posttool/skill-nudge (47 LOC), context-compressor (159 LOC)",
           "Dead context/ files: 7 agent JSONs, 1 orphaned archive session",
@@ -13310,6 +14311,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "skill-edit-tracker path bug (missing `context/` segment in session state path)"
         ]
@@ -13319,10 +14321,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "6.2.0",
     "date": "2026-02-20",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v6.1.3...v6.2.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "security hardening & hook consolidation (Milestone [#72](https://github.com/yonatangross/orchestkit/issues/72)) ([#788](https://github.com/yonatangross/orchestkit/issues/788)) ([5f014b4](https://github.com/yonatangross/orchestkit/commit/5f014b477d7e4aad04fbaeb13d8b72db08edc19a))"
         ]
@@ -13332,10 +14335,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "6.1.3",
     "date": "2026-02-20",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v6.1.2...v6.1.3",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "eliminate 91 CodeQL alerts + fix 30 pre-existing test failures ([#782](https://github.com/yonatangross/orchestkit/issues/782)) ([ca47641](https://github.com/yonatangross/orchestkit/commit/ca476416b81c217998af5e9b5305b44a4b6ffa8a))",
           "**release:** scope release-please from v6.1.0 to prevent 7.0.0 ([#786](https://github.com/yonatangross/orchestkit/issues/786)) ([83a248b](https://github.com/yonatangross/orchestkit/commit/83a248b522313c453fa9fbdeb5e020998542350f))"
@@ -13350,6 +14354,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "Stale model name in cost-estimation.md (claude-sonnet-4-5 → claude-sonnet-4-6)",
           "CC version badge and FAQ updated from >=2.1.34 to >=2.1.49"
@@ -13364,6 +14369,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "Release-please configuration scoped to prevent major version bump"
         ]
@@ -13373,10 +14379,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "6.1.0",
     "date": "2026-02-20",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v6.0.26...v6.1.0",
     "sections": [
       {
         "type": "added",
+        "heading": "Features",
         "items": [
           "CC 2.1.49 full adoption — hooks, agents, MCP overhaul ([#780](https://github.com/yonatangross/orchestkit/issues/780)) ([1234c46](https://github.com/yonatangross/orchestkit/commit/1234c462436aafcfa9027b08d93324db407219e2))"
         ]
@@ -13390,6 +14397,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "security",
+        "heading": "Security",
         "items": [
           "Eliminate 30 CodeQL ReDoS vulnerabilities (js/polynomial-redos) across 12 hook files",
           "Replace polynomial-time regex patterns with O(n) string operations",
@@ -13401,16 +14409,18 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "6.0.26",
     "date": "2026-02-20",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v6.0.25...v6.0.26",
     "sections": [
       {
         "type": "changed",
+        "heading": "Miscellaneous",
         "items": [
           "**deps-dev:** bump hono ([#761](https://github.com/yonatangross/orchestkit/issues/761)) ([fdc6f69](https://github.com/yonatangross/orchestkit/commit/fdc6f6916abebe40ef923a531b85d31c8b72b8dd))"
         ]
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "2026 best practices — permissions, CodeQL, SLSA, merge queue ([57ca595](https://github.com/yonatangross/orchestkit/commit/57ca595f27295787c33ed47bbb35e7472d7db88d))"
         ]
@@ -13420,10 +14430,11 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
     "version": "6.0.25",
     "date": "2026-02-19",
-    "compareUrl": "",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v6.0.24...v6.0.25",
     "sections": [
       {
         "type": "fixed",
+        "heading": "Bug Fixes",
         "items": [
           "**ci:** skip version check for Dependabot PRs ([#758](https://github.com/yonatangross/orchestkit/issues/758)) ([45c850f](https://github.com/yonatangross/orchestkit/commit/45c850fe890ad0a9900361baba8a6ad18c44fadf))",
           "**ci:** use PAT for release-please to trigger CI on release PRs ([#760](https://github.com/yonatangross/orchestkit/issues/760)) ([5e8c700](https://github.com/yonatangross/orchestkit/commit/5e8c700d3a0d666a13c8f9aba9eb58e9371d7103))"
@@ -13431,6 +14442,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "CI/CD",
         "items": [
           "bump actions/download-artifact from 5.0.0 to 7.0.0 ([#755](https://github.com/yonatangross/orchestkit/issues/755)) ([c28f49b](https://github.com/yonatangross/orchestkit/commit/c28f49b0b8a7c7dc7ee80a3cfeb969f79d8fb387))",
           "bump actions/upload-artifact from 5.0.0 to 6.0.0 ([#753](https://github.com/yonatangross/orchestkit/issues/753)) ([4a4f9e0](https://github.com/yonatangross/orchestkit/commit/4a4f9e0d8eb1a56f3c6551798695cc8422ad61ce))",
@@ -13447,6 +14459,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "**Release automation** — rewrite release-please for v4 manifest mode; was failing on every push to main since v6.0.17 due to invalid inline params (`package-name`, `changelog-types`, `extra-files` silently ignored by v4)",
           "**Version sync** — create `version.txt` + `.release-please-config.json` with jsonpath for `package.json` and `marketplace.json` auto-update",
@@ -13463,6 +14476,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "**CC 2.1.47 Full Adoption** — Milestone #75 (19 issues: #710–#728)",
           "**`cc-version-matrix.ts`** — runtime feature compatibility matrix for 18 CC 2.1.47 features (`last_assistant_message`, `added_dirs`, deferred SessionStart, agent model in teams, worktree discovery, etc.)",
@@ -13479,6 +14493,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "**Cross-platform `/tmp` hardcode** — 13 hook source files migrated from `/tmp/claude-*` to `paths.ts` helpers using `os.tmpdir()` and `path.join()` (#720)",
           "**`ork:` prefix standardization** — ~120 violations fixed across 60 skill files for consistent cross-referencing (#716)",
@@ -13496,6 +14511,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "**Hook: `memory-capture`** — new Stop hook that auto-captures session summaries to `~/.claude/memory/decisions.jsonl` for sessions with >20 tool calls; nudges `/ork:remember` for sessions with >50 tool calls (#708)",
           "**Hook: `skill-nudge` (PostToolUse/Bash)** — nudges `/ork:create-pr` after a successful `git push` (#705)",
@@ -13505,6 +14521,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "**Analytics: zero-tool sessions** — session-cleanup no longer writes to `session-summary.jsonl` when `total_tools == 0`, eliminating 57% noise from short/failed sessions (#707)",
           "**Cross-platform: `/tmp` hardcode** — session-cleanup and memory-capture now use `getMetricsFile()` (via `os.tmpdir()`) instead of hardcoded `/tmp/claude-session-metrics.json` (#704)",
@@ -13521,6 +14538,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "**Hook: `mcp-health-check`** — new SessionStart hook that silently detects MCP misconfigurations at session start: warns if Tavily is enabled but `TAVILY_API_KEY` is unset, or if agentation is enabled but `agentation-mcp` package is not installed. Respects `ORCHESTKIT_SKIP_SLOW_HOOKS=1`.",
           "**Skill: `github-operations`** — new `references/cli-vs-api-identifiers.md` mapping gh CLI identifiers (NAME) to REST API identifiers (NUMBER/node_id) for milestones, issues, PRs, and Projects v2 (#701)",
@@ -13529,6 +14547,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "**Windows: console flashing** — fix fire-and-forget hooks spawning visible `cmd.exe` windows (`detached: true` → `detached: false` + `unref()`) (#644)",
           "**Windows: ENAMETOOLONG** — use `os.tmpdir()` for hook work files instead of deep project-dir paths (79 errors/session eliminated)",
@@ -13547,6 +14566,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "**Hook: `memory-capture`** — new Stop hook that auto-captures session summaries to `~/.claude/memory/decisions.jsonl` for sessions with >20 tool calls; nudges `/ork:remember` for sessions with >50 tool calls (#708)",
           "**Hook: `skill-nudge` (PostToolUse/Bash)** — nudges `/ork:create-pr` after a successful `git push` (#705)",
@@ -13556,6 +14576,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "**Analytics: zero-tool sessions** — session-cleanup no longer writes to `session-summary.jsonl` when `total_tools == 0`, eliminating 57% noise from short/failed sessions (#707)",
           "**Cross-platform: `/tmp` hardcode** — session-cleanup and memory-capture now use `getMetricsFile()` (via `os.tmpdir()`) instead of hardcoded `/tmp/claude-session-metrics.json` (#704)",
@@ -13572,6 +14593,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "Sync `package.json` version from 6.0.12 to 6.0.18 (was drifted from manifests)",
           "Create 19 missing git tags for all historical versions (v5.2.4 through v6.0.17)",
@@ -13588,6 +14610,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "CI: Add `manifest-schema-tests` job (manifests, schemas, hooks, indexes)",
           "CI: Add `eval-static` job running `npm run eval:static` with artifact upload",
@@ -13596,6 +14619,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "Rename `validate-evaluations.sh` → `test-validate-evaluations.sh` so CI test discovery (`test-*.sh` pattern) finds it",
           "Fix `test-agent-categories.sh`: add `research` to valid categories list",
@@ -13604,6 +14628,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "removed",
+        "heading": "Removed",
         "items": [
           "Delete stale `test-json-output-compliance.sh` (hooks migrated to TypeScript, tested via vitest)",
           "Delete stale `test-build-marketplace-sync.sh` (marketplace sync logic removed from build script)"
@@ -13618,6 +14643,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "Add `impactDescription` and `tags` metadata to 98 rule files across 9 skills",
           "Add `**Incorrect**`/`**Correct**` code example pairs to all 258 rules missing them",
@@ -13626,6 +14652,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "Fix 5 skill structure warnings (missing Overview/Related Skills sections)",
           "Resolve all 459 skill test warnings (196 metadata + 258 code examples + 5 structure)"
@@ -13640,6 +14667,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "Rule traceability test: validates test case → rule file → content chain across 28 skills",
           "Eval completeness test: validates consistency between test-cases.json and .eval.json formats",
@@ -13649,6 +14677,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "Corrected rule field mappings in 8 test-cases.json files (39 broken references → actual rule filenames or null)"
         ]
@@ -13662,6 +14691,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "Remove all Mem0 Cloud references from 24 docs files — 4-tier → 3-tier memory architecture",
           "Delete leftover mem0 artifacts (.claude/mem0-webhooks.json, mem0-queue.jsonl, logs)",
@@ -13678,6 +14708,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "**Version sync**: package.json 6.0.9 → 6.0.13 to match manifests/pyproject.toml",
           "**CLAUDE.md**: version 6.0.8 → 6.0.13, hook bundles 11 → 12",
@@ -13699,6 +14730,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "Guard against image paste killing context window — 3-layer defense: stdin cap (512KB), prompt length guard (50K), image/binary detection ([#620](https://github.com/yonatangross/orchestkit/issues/620))",
           "Correct orkl skill count in marketplace.json (62 → 45)"
@@ -13706,6 +14738,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Changed",
         "items": [
           "Rewrote `mcp-patterns` SKILL.md for 2025-11-25 MCP spec + AAIF governance ([#613](https://github.com/yonatangross/orchestkit/issues/613))",
           "Updated `_sections.md` with 7 categories (14 rules) and priority levels",
@@ -13722,6 +14755,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "Sync all component counts across docs, README, CLAUDE.md, marketplace.json, and tests",
           "Hook count 86→89 (3 new hooks from issue-driven git workflow)",
@@ -13741,6 +14775,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "9 test-cases.json files for orchestration skills (commit, review-pr, fix-issue, implement, explore, create-pr, verify, assess, git-workflow) — 39 test cases total ([#563](https://github.com/yonatangross/orchestkit/issues/563))",
           "Skill triggering test suite with trigger-cases.yaml + keyword overlap scoring ([#571](https://github.com/yonatangross/orchestkit/issues/571))",
@@ -13760,6 +14795,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "Replaced ~50 hardcoded hex colors with fd-* design tokens in docs site ([#440](https://github.com/yonatangross/orchestkit/issues/440))",
           "Fixed category color inconsistencies: ai (emerald→cyan), devops (violet→orange), research (indigo→teal) ([#439](https://github.com/yonatangross/orchestkit/issues/439))",
@@ -13775,6 +14811,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "**Hooks**: Add type-error-indexer SessionStart hook — caches `tsc --noEmit` errors for agent awareness ([#304](https://github.com/yonatangross/orchestkit/issues/304))",
           "**Skills**: Extract 27 rules from 7 reference-only tech skills ([#559](https://github.com/yonatangross/orchestkit/issues/559))",
@@ -13784,6 +14821,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Changed",
         "items": [
           "**Agents**: Rename performance-engineer → frontend-performance-engineer to avoid confusion with python-performance-engineer ([#587](https://github.com/yonatangross/orchestkit/issues/587))",
           "**CLAUDE.md**: Update CC format reference from 2.1.6 to 2.1.34 ([#515](https://github.com/yonatangross/orchestkit/issues/515))"
@@ -13791,6 +14829,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "**CI**: Raise vitest coverage thresholds (40/45/30/40 → 70/72/65/70), target 80%",
           "**CI**: Raise hook coverage threshold (20% → 75%), fix detection to match .js imports",
@@ -13817,6 +14856,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "**Bugs**: Close 11 open issues ([#417](https://github.com/yonatangross/orchestkit/issues/417), [#418](https://github.com/yonatangross/orchestkit/issues/418), [#437](https://github.com/yonatangross/orchestkit/issues/437), [#450](https://github.com/yonatangross/orchestkit/issues/450), [#451](https://github.com/yonatangross/orchestkit/issues/451), [#452](https://github.com/yonatangross/orchestkit/issues/452), [#453](https://github.com/yonatangross/orchestkit/issues/453), [#454](https://github.com/yonatangross/orchestkit/issues/454), [#455](https://github.com/yonatangross/orchestkit/issues/455), [#456](https://github.com/yonatangross/orchestkit/issues/456), [#534](https://github.com/yonatangross/orchestkit/issues/534))",
           "**Skills**: Fix doctor \"health diagnostics for health diagnostics\" redundancy ([#456](https://github.com/yonatangross/orchestkit/issues/456))",
@@ -13827,6 +14867,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Changed",
         "items": [
           "**CLAUDE.md**: Prune from 275 to 75 lines, link to docs instead of inline ([#452](https://github.com/yonatangross/orchestkit/issues/452))",
           "**Hooks**: Consolidate 4 PostToolUse Write|Edit hooks into unified-write-quality-dispatcher ([#453](https://github.com/yonatangross/orchestkit/issues/453))\n  - auto-lint, readme-sync, merge-conflict-predictor, coverage-predictor → 1 dispatcher\n  - Hook count: 88 → 86 (63 global + 22 agent + 1 skill)",
@@ -13843,6 +14884,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "**CI**: Remove deleted `evidence-verification` skill from `test-specific-skills.sh` ([#555](https://github.com/yonatangross/orchestkit/issues/555) aftermath)",
           "**CI**: Add missing `version` field and `checklists/` directory to `mcp-patterns` skill for `test-ai-ml-skills.sh`"
@@ -13850,18 +14892,21 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Changed",
         "items": [
           "**Skill Consolidation** ([#536](https://github.com/yonatangross/orchestkit/issues/536)): Restructured 200 skills into 103 through 16 consolidation batches\n  - **Batches 1-6**: LangGraph (10→1), RAG (9→1), Testing (13→1), Caching (4→1), Performance (6→1), Video (14→1)\n  - **Batches 7-16**: Event-Driven (3→1), Golden-Dataset (3→1), Accessibility (3→1), Database-Patterns (4→1), LLM-Integration (7→1), API-Design (3→1), Distributed-Systems (4→1), Agent-Orchestration (3→1), Security-Patterns (6→1), Product-Frameworks (5→1)\n  - **Additional groups**: Monitoring-Observability (2→1), Frontend-Animation (3→1), UI-Components (4→1), Data-Visualization (2→1), Python-Backend (5→1), Architecture-Patterns (2→1), Browser-Tools (2→1), Context-Optimization (2→1), Async-Jobs (2→1)\n  - Total: 200 → 103 skills (76 internal, 27 user-invocable)\n  - ork-creative: 16 → 3 skills (demo-producer, video-production, ascii-visualizer)\n  - Updated 33 agents, hooks, manifests, tests, and CLAUDE.md with corrected counts\n  - Hook count corrected: 93 → 88 (65 global + 22 agent + 1 skill)"
         ]
       },
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "**TLDR-Lite File Summaries** ([#463](https://github.com/yonatangross/orchestkit/issues/463)): New `PreToolUse[Read]` hook injects structural summaries for large files (>500 lines or >2000 tokens)\n  - Regex-based extractors for TypeScript/JS, Python, Go, Rust, Shell, Markdown\n  - Extracts imports, functions, classes, types, exports as a navigation roadmap\n  - ~500 token summary injected as `additionalContext` alongside full file content\n  - 7 guard conditions: skip targeted reads, unsupported extensions, small files, >2MB files\n  - 42 new tests (25 library + 17 hook)\n  - Hook count: 97 → 98 (70 global + 22 agent + 6 skill)\n  - pretool bundle: 57.42 → 63.36 KB (+10%)"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "**Docs**: Corrected stale component counts across README, marketplace.json, CONTRIBUTING.md, Fumadocs site pages, and skill references (199→200 skills, 119→98 hooks)"
         ]
@@ -13875,12 +14920,14 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "**Langfuse v3 Rewrite** (Milestone [#58](https://github.com/yonatangross/orchestkit/milestone/58)): Complete rewrite of `langfuse-observability` skill from deprecated SDK v2 to v3/v4 (OTEL-native)\n  - SKILL.md bumped to v2.0.0 with 3 new capability sections (agent-graphs, mcp-prompt-management, framework-integrations)\n  - 3 new reference files: `agent-observability.md`, `framework-integrations.md`, `migration-v2-v3.md`\n  - 7 existing reference files rewritten with v3 imports (`from langfuse import observe, get_client`)\n  - All `langfuse_context` → `get_client()`, all `langfuse.decorators` → `langfuse` imports\n  - New coverage: Agent Graphs, MCP Server, Experiment Runner SDK, dataset versioning, spend alerts, natural language filtering, evaluator execution tracing\n  - 18 tracking issues ([#419](https://github.com/yonatangross/orchestkit/issues/419)-[#436](https://github.com/yonatangross/orchestkit/issues/436)) under Milestone [#58](https://github.com/yonatangross/orchestkit/milestone/58)"
         ]
       },
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "**Mem0**: Add `--no-infer` flag to `add-memory.py` — passes `infer=False` to mem0's `client.add()`, disabling semantic dedup in batch tests (Test 6, Test 18) so counts are deterministic across parallel CI runners",
           "**CI**: Quote workflow names containing colons (`Validate: Plugins`, `Validate: Version`, `Eval: Agent Routing`, `Visualize: Memory`) — unquoted colons caused YAML parse errors resulting in 0 jobs",
@@ -13897,6 +14944,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "**[#328](https://github.com/yonatangross/orchestkit/issues/328) (P1-C)**: `complexity: low|medium|high` field added to all 199 skill frontmatters for Opus 4.6 adaptive thinking alignment",
           "**[#337](https://github.com/yonatangross/orchestkit/issues/337) (P2-E)**: New `upgrade-assessment` user-invocable skill — 6-phase readiness evaluation with structured JSON scoring across 6 dimensions",
@@ -13922,6 +14970,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "**SEC-001**: SQL injection prevention — `multi-instance-cleanup` and `cleanup-instance` now validate instance IDs with `/^[a-zA-Z0-9_\\-.:]+$/` before SQLite interpolation",
           "**SEC-003**: Atomic file writes — `multi-instance-lock` uses write-to-temp + `renameSync` to prevent TOCTOU race conditions in lock files",
@@ -13930,6 +14979,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Changed",
         "items": [
           "**[#348](https://github.com/yonatangross/orchestkit/issues/348) (P2-G)**: `Task(agent_type)` restrictions on python-performance-engineer and demo-producer (CC 2.1.33)",
           "**[#349](https://github.com/yonatangross/orchestkit/issues/349) (P1-G)**: CC minimum version bumped to >= 2.1.33 (from 2.1.32) for agent memory and new hook events",
@@ -13949,6 +14999,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "removed",
+        "heading": "Removed",
         "items": [
           "Deprecated `sequential-thinking-auto` pretool hook (Opus 4.6 native adaptive thinking replaces MCP sequential-thinking)",
           "**[#362](https://github.com/yonatangross/orchestkit/issues/362)**: 6 coordination hooks removed as redundant with CC native Agent Teams (team-formation-hook, team-coordinator, teammate-monitor, team-cleanup, team-health-check, team-context-share)"
@@ -13963,12 +15014,14 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "changed",
+        "heading": "Changed",
         "items": [
           "**orkl manifest**: Removed 12 language-specific skills to keep orkl truly universal (107 → from 119 skills)\n  - Removed: run-tests, background-jobs, connection-pooling, caching-strategies, rate-limiting, api-versioning, error-handling-rfc9457, input-validation, property-based-testing, i18n-date-patterns, image-optimization, type-safety-validation"
         ]
       },
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "**LangGraph skills**: Added Quick Start sections, 6 cross-links (up from 3), and evaluation test cases",
           "**New skills**: langgraph-streaming, langgraph-subgraphs, langgraph-tools",
@@ -13977,6 +15030,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "Documentation count sync: README.md, CLAUDE.md, CONTRIBUTING.md now show correct counts (197 skills, 36 agents, 117 hooks)"
         ]
@@ -13990,6 +15044,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "changed",
+        "heading": "Changed",
         "items": [
           "**Breaking**: Reorganized plugins from 26 granular plugins to 2-tier architecture:\n  - `orkl` (119 skills) — Universal toolkit, language-agnostic, all workflows work out of the box\n  - `ork` (195 skills) — Full specialized toolkit with Python, React, LLM/RAG patterns",
           "Renamed `ork-lite` to `orkl` for shorter prefix",
@@ -14001,6 +15056,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "`web-research-analyst` agent for browser automation and competitive intelligence",
           "`research` category for agent indexes",
@@ -14009,6 +15065,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "Bash 3.2 compatibility in generate-indexes.sh (macOS default shell)",
           "Agent index generation now includes all categories correctly",
@@ -14024,6 +15081,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "CI report generation using tsx for ESM compatibility"
         ]
@@ -14037,6 +15095,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "changed",
+        "heading": "Changed",
         "items": [
           "Removed redundant skill-resolver hook (Claude Code natively auto-injects skills from agent frontmatter)",
           "Hook count: 117 total (89 global + 28 agent/skill-scoped)",
@@ -14045,6 +15104,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "Eval scripts: Fixed dry-run mode to create all required output directories",
           "Eval scripts: Fixed path prefixes in golden test commands",
@@ -14061,6 +15121,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "**Three-tier auto-suggest UX**: Confidence-based messaging for skill injection\n  - SILENT (≥90%): No user notification, just inject\n  - NOTIFY (80-89%): Brief \"💡 Loaded: X\" notification\n  - SUGGEST (70-79%): Suggest skills with context\n  - HINT (50-69%): Hint at possible matches",
           "**AGENTS.md cross-tool compatibility**: Generate AGENTS.md alongside CLAUDE.md\n  - Enables compatibility with Cursor, Codex, Amp, Zed\n  - AGENTS.md follows the open standard at https://agents.md/",
@@ -14074,6 +15135,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Changed",
         "items": [
           "Removed redundant skill-resolver hook (Claude Code natively auto-injects skills from agent frontmatter)",
           "Hook count: 117 total (89 global + 28 agent/skill-scoped)",
@@ -14084,6 +15146,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "security",
+        "heading": "Security",
         "items": [
           "Pin `googleapis/release-please-action@v4` to SHA commit (SEC-001)",
           "Fix shell injection risk in version-check.yml by using env variable pattern for `github.head_ref` (SEC-002)",
@@ -14104,6 +15167,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "Dynamic test discovery via `scripts/ci/run-tests.sh` (discovers 154 tests vs ~100 hardcoded)",
           "Reusable test-runner workflow (`.github/workflows/reusable-test-runner.yml`)",
@@ -14113,6 +15177,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "changed",
+        "heading": "Changed",
         "items": [
           "CI workflows now use SHA-pinned GitHub Actions",
           "Test execution uses dynamic discovery instead of hardcoded invocations"
@@ -14120,6 +15185,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "security",
+        "heading": "Security",
         "items": [
           "Replaced arbitrary `eval` with allowlist-based command execution",
           "Pinned yq to v4.40.5 with SHA256 checksum verification",
@@ -14135,6 +15201,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "changed",
+        "heading": "Changed",
         "items": [
           "**Model Updates (February 2026)**:\n  - OpenAI: gpt-4o → gpt-5.2, gpt-4o-mini → gpt-5.2-mini\n  - Anthropic: Claude model dates updated to 20251101 (Opus 4.5, Sonnet 4.5, Haiku 4.5)\n  - Meta: llama3.2 → llama3.3\n  - Google: Gemini 2.5 → Gemini 3\n  - xAI: Grok 3 → Grok 4",
           "**Framework Updates**:\n  - Next.js 16: Cache Components with `\"use cache\"` directive, async params/searchParams\n  - Tailwind CSS v4: CSS-first configuration with `@theme {}`, no tailwind.config.js needed\n  - LangGraph 1.0: `create_react_agent` → `create_agent`, `prompt=` → `system_prompt=`\n  - Redis 8.4: Built-in Search/JSON modules, FT.HYBRID with RRF fusion\n  - Vite 8: Rolldown bundler with `advancedChunks` API\n  - CrewAI 1.8.x: Flows architecture with `@start()`, `@listen()`, `@router()` decorators\n  - Playwright 1.58: Agents workflow with `init-agents`, planner/generator/healer pattern"
@@ -14142,6 +15209,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "**New reference files**:\n  - `cache-components.md` — Next.js 16 Cache Components comprehensive guide\n  - `nextjs-16-upgrade.md` — Breaking changes and migration path\n  - `gpt-5-2-codex.md` — GPT-5.2-Codex agentic coding model documentation\n  - Redis 8 FT.HYBRID comparison added to `pgvector-search` skill\n  - CrewAI 1.8.x Flows patterns added to `crewai-patterns.md`",
           "**Updated skills** (193 skills updated with current best practices):\n  - `react-server-components-framework` — v1.4.0 with Cache Components\n  - `vite-advanced` — Rolldown bundler patterns\n  - `e2e-testing` — Playwright Agents workflow\n  - `semantic-caching` — Redis 8 built-in modules\n  - `rag-retrieval` — LangGraph 1.0 API updates\n  - `alternative-agent-frameworks` — OpenAI Agents SDK 0.7.0, CrewAI 1.8.x"
@@ -14149,6 +15217,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
       },
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "`memory/SKILL.md` — Renamed \"Quick Start\" to \"Usage\" for test validation",
           "`implement/SKILL.md` — Reduced from 527 to 474 lines (under 500 limit)",
@@ -14165,6 +15234,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "**Critical**: Remove `\"deps\"` key from marketplace.json that caused \"Invalid schema: Unrecognized key: deps\" errors on all 26 plugins when installing via `/plugin`",
           "Remove dependency propagation from build script (deps stay in manifests for internal use only)",
@@ -14180,6 +15250,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "fixed",
+        "heading": "Fixed",
         "items": [
           "Build script syncs all marketplace.json plugin versions to the project version (eliminates version drift)",
           "Build script propagates `dependencies` from manifests into marketplace.json `deps` fields",
@@ -14195,6 +15266,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     "sections": [
       {
         "type": "added",
+        "heading": "Added",
         "items": [
           "**Memory health check library** (`memory-health.ts`) — Validates JSONL integrity, tier status, queue depths, and file analysis for `/ork:doctor`",
           "**Memory metrics collector** (`memory-metrics.ts`) — Counts decisions by category/type, queue depths, completed flows; appends timestamped snapshots to `memory-metrics.jsonl`",

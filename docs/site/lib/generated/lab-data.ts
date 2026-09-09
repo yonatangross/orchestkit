@@ -15,6 +15,20 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "host-first-install-copy",
+    "title": "Host-first copy: six hosts, six commands",
+    "description": "The homepage chips used to be buttons whose onClick never ran if the client tree did not hydrate. They are now /?host= links, so Cursor, Pi, and Muse copy the real command from the server. Play the traps: no cursor CLI, no ork-muse, no ork-pi.",
+    "tags": [
+      "docs",
+      "install",
+      "engines"
+    ],
+    "date": "2026-09-09",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 16
+  },
+  {
     "slug": "codex-mech-profile",
     "title": "The Codex mech profile: which file codex actually reads",
     "description": "Put the ork-mech profile in three places and read codex 0.153.4's own answer: a hard config-load error for the legacy [profiles.*] table, a silent base-config run for a name that does not exist, and the measured header for the shipped file. Plus the worktree writable-roots line with and without --add-dir.",

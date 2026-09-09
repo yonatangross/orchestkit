@@ -56,6 +56,10 @@ const MUST_INCLUDE: Array<[query: string, urls: string[]]> = [
   // Codex mech profile (#4002). The guide is the only page that carries the
   // profile mechanics; the installation page carries the short version.
   ["codex profile", ["/docs/guides/orchestkit-on-pi-codex-cursor"]],
+  ["codex", ["/docs/getting-started/codex"]],
+  ["cursor", ["/docs/getting-started/cursor"]],
+  ["muse", ["/docs/getting-started/muse"]],
+  ["muse code", ["/docs/getting-started/muse"]],
 ];
 
 // ── Looser golden queries: at least one listed URL in the top 3 ─────────────
@@ -150,5 +154,14 @@ describe("ranking primitives", () => {
     expect(original).toEqual(["agent", "hooks"]);
     expect(synonyms).toContain("subagent");
     expect(synonyms).not.toContain("agent");
+  });
+
+  it("ranks host pages first for pi/codex/cursor/muse, not PII or pipeline", () => {
+    expect(top3("pi")[0]).toBe("/docs/getting-started/skills-sh");
+    expect(top3("pi")).not.toContain("/docs/reference/skills/pii-masking");
+    expect(top3("codex")[0]).toBe("/docs/getting-started/codex");
+    expect(top3("cursor")[0]).toBe("/docs/getting-started/cursor");
+    expect(top3("muse")[0]).toBe("/docs/getting-started/muse");
+    expect(top3("muse code")[0]).toBe("/docs/getting-started/muse");
   });
 });

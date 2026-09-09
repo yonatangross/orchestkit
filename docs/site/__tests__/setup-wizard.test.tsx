@@ -1,348 +1,190 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { SetupWizard } from "@/components/setup-wizard";
+import { SITE } from "@/lib/constants";
+import { SKILLS_SH_STARTER } from "@/lib/host-installs";
 
-// ── Mock clipboard API ──────────────────────────────────────
+vi.mock("next/link", () => ({
+	default: ({
+		children,
+		href,
+		...props
+	}: {
+		children: React.ReactNode;
+		href: string;
+	}) => (
+		<a href={href} {...props}>
+			{children}
+		</a>
+	),
+}));
+
+vi.mock("@/lib/search-beacon", () => ({
+	track: vi.fn(),
+}));
+
 const writeTextMock = vi.fn().mockResolvedValue(undefined);
 Object.defineProperty(navigator, "clipboard", {
-  value: { writeText: writeTextMock },
-  writable: true,
-  configurable: true,
+	value: { writeText: writeTextMock },
+	writable: true,
+	configurable: true,
 });
 
-// ── Mock generated plugins data ─────────────────────────────
-vi.mock("@/lib/generated/types", () => ({}));
-vi.mock("@/lib/generated/plugins-data", () => {
-  const mockPlugins = [
-    {
-      name: "ork",
-      description: "The complete AI development toolkit",
-      fullDescription: "The complete OrchestKit toolkit with all skills, agents, and hooks.",
-      category: "development",
-      version: "7.0.0",
-      skillCount: 69,
-      agentCount: 38,
-      hooks: 96,
-      commandCount: 17,
-      color: "#06b6d4",
-      required: false,
-      recommended: true,
-      skills: [],
-      agents: [],
-      commands: [],
-    },
-  ];
-
-  return { PLUGINS: mockPlugins };
-});
+function copyLine(line: string) {
+	fireEvent.click(
+		screen.getByRole("button", {
+			name: (accessible) =>
+				accessible.toLowerCase().startsWith("copy ") &&
+				accessible.includes(line) &&
+				accessible.toLowerCase().includes("to clipboard"),
+		}),
+	);
+}
 
 describe("SetupWizard", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  // ── Initial rendering ─────────────────────────────────────
-
-  it("renders the setup wizard", () => {
-    render(<SetupWizard />);
-    expect(screen.getByText("Quick presets")).toBeInTheDocument();
-  });
-
-  it("starts on Step 0 (Stack Selection)", () => {
-    render(<SetupWizard />);
-    expect(
-      screen.getByText("What is your primary stack?"),
-    ).toBeInTheDocument();
-  });
-
-  it("renders all stack options on step 0", () => {
-    render(<SetupWizard />);
-    // Stack option buttons have descriptions alongside labels
-    expect(screen.getByText("Server-side APIs, databases, microservices")).toBeInTheDocument();
-    expect(screen.getByText("React, UI, design systems")).toBeInTheDocument();
-    expect(screen.getByText("Both backend and frontend")).toBeInTheDocument();
-    expect(screen.getByText("FastAPI, SQLAlchemy, data science")).toBeInTheDocument();
-  });
-
-  it("renders preset buttons", () => {
-    render(<SetupWizard />);
-    expect(screen.getByRole("button", { name: "Minimal" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "AI" })).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "Everything" }),
-    ).toBeInTheDocument();
-  });
-
-  // ── Step navigation ───────────────────────────────────────
-
-  it("navigates to step 1 when Next is clicked", () => {
-    render(<SetupWizard />);
-
-    fireEvent.click(screen.getByRole("button", { name: /next/i }));
-
-    expect(
-      screen.getByText("What is your primary focus area?"),
-    ).toBeInTheDocument();
-  });
-
-  it("navigates to step 2 when Next is clicked twice", () => {
-    render(<SetupWizard />);
-
-    fireEvent.click(screen.getByRole("button", { name: /next/i }));
-    fireEvent.click(screen.getByRole("button", { name: /next/i }));
-
-    expect(screen.getByText("Optional features")).toBeInTheDocument();
-  });
-
-  it("navigates back when Back is clicked", () => {
-    render(<SetupWizard />);
-
-    fireEvent.click(screen.getByRole("button", { name: /next/i }));
-    expect(
-      screen.getByText("What is your primary focus area?"),
-    ).toBeInTheDocument();
-
-    // Use exact "Back" text (not /back/i which also matches "Backend")
-    fireEvent.click(screen.getByRole("button", { name: /^back$/i }));
-    expect(
-      screen.getByText("What is your primary stack?"),
-    ).toBeInTheDocument();
-  });
-
-  it("disables Back button on step 0", () => {
-    render(<SetupWizard />);
-    const backBtn = screen.getByRole("button", { name: /^back$/i });
-    expect(backBtn).toBeDisabled();
-  });
-
-  it("disables Next button on step 2", () => {
-    render(<SetupWizard />);
-
-    fireEvent.click(screen.getByRole("button", { name: /next/i }));
-    fireEvent.click(screen.getByRole("button", { name: /next/i }));
-
-    const nextBtn = screen.getByRole("button", { name: /next/i });
-    expect(nextBtn).toBeDisabled();
-  });
-
-  it("renders step indicators that can be clicked to navigate", () => {
-    render(<SetupWizard />);
-
-    // Click step 2 directly
-    const step3 = screen.getByLabelText("Step 3: Features");
-    fireEvent.click(step3);
-
-    expect(screen.getByText("Optional features")).toBeInTheDocument();
-  });
-
-  // ── Stack selection ───────────────────────────────────────
-
-  it("selects a stack when clicked", () => {
-    render(<SetupWizard />);
-
-    const pythonBtn = screen.getByRole("button", { name: /python/i });
-    fireEvent.click(pythonBtn);
-    expect(pythonBtn).toHaveAttribute("aria-pressed", "true");
-  });
-
-  it("deselects stack when clicked again", () => {
-    render(<SetupWizard />);
-
-    const pythonBtn = screen.getByRole("button", { name: /python/i });
-    fireEvent.click(pythonBtn);
-    expect(pythonBtn).toHaveAttribute("aria-pressed", "true");
-
-    fireEvent.click(pythonBtn);
-    expect(pythonBtn).toHaveAttribute("aria-pressed", "false");
-  });
-
-  // ── Focus area selection ──────────────────────────────────
-
-  it("renders focus area options on step 1", () => {
-    render(<SetupWizard />);
-    fireEvent.click(screen.getByRole("button", { name: /next/i }));
-
-    expect(screen.getByText("Backend Architecture")).toBeInTheDocument();
-    expect(screen.getByText("Frontend Engineering")).toBeInTheDocument();
-    expect(screen.getByText("AI / LLM")).toBeInTheDocument();
-    expect(screen.getByText("Video Production")).toBeInTheDocument();
-    expect(screen.getByText("Product Strategy")).toBeInTheDocument();
-  });
-
-  // ── Feature toggles ──────────────────────────────────────
-
-  it("renders feature toggles on step 2", () => {
-    render(<SetupWizard />);
-    fireEvent.click(screen.getByRole("button", { name: /next/i }));
-    fireEvent.click(screen.getByRole("button", { name: /next/i }));
-
-    expect(screen.getByLabelText("Toggle Memory")).toBeInTheDocument();
-    expect(screen.getByLabelText("Toggle Web Research")).toBeInTheDocument();
-    expect(screen.getByLabelText("Toggle MCP Integration")).toBeInTheDocument();
-    expect(
-      screen.getByLabelText("Toggle Accessibility Testing"),
-    ).toBeInTheDocument();
-  });
-
-  it("toggles features on/off", () => {
-    render(<SetupWizard />);
-    fireEvent.click(screen.getByRole("button", { name: /next/i }));
-    fireEvent.click(screen.getByRole("button", { name: /next/i }));
-
-    // Memory is on by default
-    const memoryToggle = screen.getByLabelText("Toggle Memory");
-    expect(memoryToggle).toHaveAttribute("aria-checked", "true");
-
-    // Toggle off
-    fireEvent.click(memoryToggle);
-    expect(memoryToggle).toHaveAttribute("aria-checked", "false");
-
-    // Toggle back on
-    fireEvent.click(memoryToggle);
-    expect(memoryToggle).toHaveAttribute("aria-checked", "true");
-  });
-
-  // ── Recommendation logic ──────────────────────────────────
-
-  it("recommends ork by default", () => {
-    render(<SetupWizard />);
-
-    // Preview panel should show ork (the single unified plugin).
-    // The "Full toolkit" label is the ork-specific descriptor next to the badge.
-    expect(screen.getByText("ork")).toBeInTheDocument();
-    expect(screen.getByText("Full toolkit")).toBeInTheDocument();
-  });
-
-  it("recommends ork regardless of stack selection", () => {
-    render(<SetupWizard />);
-
-    fireEvent.click(screen.getByRole("button", { name: /python/i }));
-
-    // v7: always recommends ork (single plugin)
-    expect(screen.getByText("Full toolkit")).toBeInTheDocument();
-    expect(screen.getByText(/claude install orchestkit\/ork/)).toBeInTheDocument();
-  });
-
-  it("recommends ork when AI focus is selected", () => {
-    render(<SetupWizard />);
-
-    fireEvent.click(screen.getByRole("button", { name: /next/i }));
-    fireEvent.click(screen.getByText("AI / LLM"));
-
-    expect(screen.getByText("Full toolkit")).toBeInTheDocument();
-  });
-
-  it("recommends ork when Security focus is selected", () => {
-    render(<SetupWizard />);
-
-    fireEvent.click(screen.getByRole("button", { name: /next/i }));
-
-    const securityBtn = screen.getByRole("button", { name: /security/i });
-    fireEvent.click(securityBtn);
-
-    expect(screen.getByText("Full toolkit")).toBeInTheDocument();
-  });
-
-  it("shows plugin skill count in stats", () => {
-    render(<SetupWizard />);
-
-    // ork has 69 skills (rendered as plugin.skillCount)
-    expect(screen.getByText("69")).toBeInTheDocument();
-  });
-
-  // ── Install command and copy ──────────────────────────────
-
-  it("shows install command", () => {
-    render(<SetupWizard />);
-    expect(
-      screen.getByText(/claude install orchestkit\/ork/),
-    ).toBeInTheDocument();
-  });
-
-  it("copies install command on Copy click", () => {
-    render(<SetupWizard />);
-
-    const copyBtn = screen.getByLabelText(
-      "Copy install command to clipboard",
-    );
-    fireEvent.click(copyBtn);
-
-    expect(writeTextMock).toHaveBeenCalledWith(
-      "claude install orchestkit/ork",
-    );
-  });
-
-  // ── Presets ───────────────────────────────────────────────
-
-  it("applies Backend preset", () => {
-    render(<SetupWizard />);
-
-    fireEvent.click(screen.getByRole("button", { name: "Backend" }));
-
-    // v7: all presets recommend ork (single unified plugin)
-    expect(screen.getByText("Full toolkit")).toBeInTheDocument();
-  });
-
-  it("applies AI preset and recommends ork", () => {
-    render(<SetupWizard />);
-
-    fireEvent.click(screen.getByRole("button", { name: "AI" }));
-
-    expect(screen.getByText("Full toolkit")).toBeInTheDocument();
-    expect(screen.getByText(/claude install orchestkit\/ork/)).toBeInTheDocument();
-  });
-
-  it("applies Everything preset", () => {
-    render(<SetupWizard />);
-
-    fireEvent.click(screen.getByRole("button", { name: "Everything" }));
-
-    // v7: single ork plugin for everything
-    expect(screen.getByText("Full toolkit")).toBeInTheDocument();
-  });
-
-  it("shows active preset button as pressed", () => {
-    render(<SetupWizard />);
-
-    const minimalBtn = screen.getByRole("button", { name: "Minimal" });
-    expect(minimalBtn).toHaveAttribute("aria-pressed", "false");
-
-    fireEvent.click(minimalBtn);
-    expect(minimalBtn).toHaveAttribute("aria-pressed", "true");
-  });
-
-  it("clears active preset when a manual selection is made", () => {
-    render(<SetupWizard />);
-
-    // Apply preset
-    const backendPreset = screen.getByRole("button", { name: "Backend" });
-    fireEvent.click(backendPreset);
-    expect(backendPreset).toHaveAttribute("aria-pressed", "true");
-
-    // Manual stack selection should clear preset
-    fireEvent.click(screen.getByRole("button", { name: /python/i }));
-    expect(backendPreset).toHaveAttribute("aria-pressed", "false");
-  });
-
-  // ── Decision rationale ────────────────────────────────────
-
-  it("shows rationale for ork recommendation", () => {
-    render(<SetupWizard />);
-
-    // v7: ork is always recommended — default rationale (no stack/focus chosen)
-    // points at the full skill toolkit with specialized patterns.
-    expect(
-      screen.getByText(/full .*-skill toolkit with specialized patterns/i),
-    ).toBeInTheDocument();
-  });
-
-  it("shows Python-specific rationale when Python is selected", () => {
-    render(<SetupWizard />);
-
-    fireEvent.click(screen.getByRole("button", { name: /python/i }));
-
-    expect(
-      screen.getByText(/python stack requires specialized/i),
-    ).toBeInTheDocument();
-  });
+	beforeEach(() => {
+		vi.clearAllMocks();
+	});
+
+	it("starts on the host step with Claude selected", () => {
+		render(<SetupWizard />);
+		expect(screen.getByText("Which host do you run?")).toBeInTheDocument();
+		expect(
+			screen.getByRole("button", { name: /^Claude Code$/ }),
+		).toHaveAttribute("aria-pressed", "true");
+		expect(screen.getByText(/claude install orchestkit\/ork/)).toBeInTheDocument();
+	});
+
+	it("keeps a Claude default chip and has no lighter-plugin presets", () => {
+		render(<SetupWizard />);
+		expect(
+			screen.getByRole("button", { name: /I'm on Claude Code, just copy/i }),
+		).toBeInTheDocument();
+		expect(screen.queryByText("Quick presets")).not.toBeInTheDocument();
+		expect(screen.queryByRole("button", { name: "Minimal" })).not.toBeInTheDocument();
+		expect(
+			screen.queryByRole("button", { name: "Everything" }),
+		).not.toBeInTheDocument();
+	});
+
+	it("copies the Claude install command by default", () => {
+		render(<SetupWizard />);
+		copyLine(SITE.installCommand);
+		expect(writeTextMock).toHaveBeenCalledWith(SITE.installCommand);
+	});
+
+	it("switches the clipboard payload when Cursor is selected", () => {
+		render(<SetupWizard />);
+		fireEvent.click(screen.getByRole("button", { name: "Cursor" }));
+		copyLine("yonatangross/orchestkit");
+		expect(writeTextMock).toHaveBeenCalledWith("yonatangross/orchestkit");
+		expect(writeTextMock).not.toHaveBeenCalledWith(
+			expect.stringMatching(/cursor install/i),
+		);
+		expect(screen.getByText(/No cursor install CLI/)).toBeInTheDocument();
+	});
+
+	it("switches Codex to the two-line ork-codex add, not claude install", () => {
+		render(<SetupWizard />);
+		fireEvent.click(screen.getByRole("button", { name: "Codex" }));
+		copyLine("ork-codex@orchestkit-codex");
+		const payload = writeTextMock.mock.calls[0][0] as string;
+		expect(payload).toContain("ork-codex@orchestkit-codex");
+		expect(payload).toContain("codex plugin marketplace add");
+		expect(payload).not.toContain("claude install");
+		expect(screen.getByText(/ork-codex is a portable pack/)).toBeInTheDocument();
+	});
+
+	it("copies the shipped pi install and never emits ork-pi", () => {
+		render(<SetupWizard />);
+		fireEvent.click(screen.getByRole("button", { name: "Pi" }));
+		copyLine("pi install git:github.com/yonatangross/orchestkit");
+		expect(writeTextMock).toHaveBeenCalledWith(
+			"pi install git:github.com/yonatangross/orchestkit",
+		);
+		expect(writeTextMock.mock.calls[0][0]).not.toMatch(/ork-pi/i);
+		expect(screen.getByText(/Command is pi install, not ork-pi/)).toBeInTheDocument();
+	});
+
+	it("never emits ork-muse for Muse Code", () => {
+		render(<SetupWizard />);
+		fireEvent.click(screen.getByRole("button", { name: "Muse Code" }));
+		copyLine(SKILLS_SH_STARTER);
+		expect(writeTextMock).toHaveBeenCalledWith(SKILLS_SH_STARTER);
+		expect(writeTextMock.mock.calls[0][0]).not.toMatch(/ork-muse/i);
+		expect(
+			screen.getByText(/Muse hooks stay in \.muse\/hooks\.json/),
+		).toBeInTheDocument();
+		expect(screen.getByText("muse skills list")).toBeInTheDocument();
+	});
+
+	it("navigates to the optional stack step and back", () => {
+		render(<SetupWizard />);
+		fireEvent.click(screen.getByRole("button", { name: /next/i }));
+		expect(screen.getByText("Optional stack hint")).toBeInTheDocument();
+		expect(
+			screen.getByText(/Does not pick another plugin/),
+		).toBeInTheDocument();
+		fireEvent.click(screen.getByRole("button", { name: /^back$/i }));
+		expect(screen.getByText("Which host do you run?")).toBeInTheDocument();
+	});
+
+	it("disables Back on host and Next on stack", () => {
+		render(<SetupWizard />);
+		expect(screen.getByRole("button", { name: /^back$/i })).toBeDisabled();
+		fireEvent.click(screen.getByRole("button", { name: /next/i }));
+		expect(screen.getByRole("button", { name: /next/i })).toBeDisabled();
+	});
+
+	it("does not change the Claude command when a stack hint is chosen", () => {
+		render(<SetupWizard />);
+		fireEvent.click(screen.getByRole("button", { name: /next/i }));
+		fireEvent.click(screen.getByRole("button", { name: /python/i }));
+		copyLine(SITE.installCommand);
+		expect(writeTextMock).toHaveBeenCalledWith(SITE.installCommand);
+		expect(
+			screen.getByText(/After install, \/ork:setup will bias toward/),
+		).toBeInTheDocument();
+		expect(screen.getByText(/The plugin is still ork/)).toBeInTheDocument();
+	});
+
+	it("appends real -s flags on Muse and still never invents ork-muse", () => {
+		render(<SetupWizard />);
+		fireEvent.click(screen.getByRole("button", { name: "Muse Code" }));
+		fireEvent.click(screen.getByRole("button", { name: /next/i }));
+		fireEvent.click(screen.getByRole("button", { name: /python/i }));
+		copyLine("-s python-backend");
+		const payload = writeTextMock.mock.calls[0][0] as string;
+		expect(payload.startsWith(SKILLS_SH_STARTER)).toBe(true);
+		expect(payload).toContain("-s python-backend");
+		expect(payload).not.toMatch(/ork-pi|ork-muse/);
+	});
+
+	it("keeps Codex on ork-codex when a stack hint is chosen", () => {
+		render(<SetupWizard />);
+		fireEvent.click(screen.getByRole("button", { name: "Codex" }));
+		fireEvent.click(screen.getByRole("button", { name: /next/i }));
+		fireEvent.click(
+			screen.getByRole("button", { name: /Backend APIs, databases/i }),
+		);
+		copyLine("ork-codex@orchestkit-codex");
+		const payload = writeTextMock.mock.calls[0][0] as string;
+		expect(payload).toContain("ork-codex@orchestkit-codex");
+		expect(payload).not.toContain("-s api-design");
+		expect(
+			screen.getByText(/ork-codex stays the same pack/),
+		).toBeInTheDocument();
+	});
+
+	it("shows the selected host what/where, not a second plugin badge", () => {
+		render(<SetupWizard />);
+		expect(
+			screen.getByText("Full ork plugin: skills, agents, hooks."),
+		).toBeInTheDocument();
+		expect(screen.queryByText("Full toolkit")).not.toBeInTheDocument();
+		fireEvent.click(screen.getByRole("button", { name: "Cursor" }));
+		expect(
+			screen.getByText("Same ork plugin. Claude hook scripts are not registered."),
+		).toBeInTheDocument();
+	});
 });

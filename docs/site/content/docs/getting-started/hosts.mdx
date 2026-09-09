@@ -1,0 +1,42 @@
+---
+title: Hosts
+description: "Pick a runtime. Claude Code and Cursor install the full ork plugin. Codex uses ork-codex. Pi uses pi install. Muse Code loads skills from .agents/skills. OpenCode and other skills.sh clients use the starter 12."
+---
+
+import { Card, Cards } from 'fumadocs-ui/components/card';
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Count } from '@/components/count';
+import { HostMark } from '@/components/host-marks';
+import { HostInstallGrid } from '@/components/host-install';
+
+OrchestKit is a plugin library. The host you use decides how much of it you get.
+
+| Host | What you get | Page |
+|---|---|---|
+| **Claude Code** | <Count k="skills" /> skills, <Count k="agents" /> agents, <Count k="hooks" /> hooks | [Claude Code](/docs/getting-started/claude-code) |
+| **Cursor** | Same `ork` plugin. Claude hook scripts are not registered | [Cursor](/docs/getting-started/cursor) |
+| **Codex** | Portable workflow pack `ork-codex` (`$ork-implement`, roles) | [Codex](/docs/getting-started/codex) |
+| **skills.sh** | Skills only. Start with 12, not the whole catalog | [skills.sh](/docs/getting-started/skills-sh) |
+| **Pi** | Shipped `pi` manifest. Skills via `pi install`, not an `ork-pi` pack | [engine guide](/docs/guides/orchestkit-on-pi-codex-cursor) |
+| **Muse Code** | Meta's terminal agent. Skills via `.agents/skills`. No `ork-muse` pack yet | [Muse Code](/docs/getting-started/muse) |
+| **OpenCode** | Agent Skills via skills.sh | [skills.sh](/docs/getting-started/skills-sh) |
+
+<Callout type="info">
+There is no `ork-muse` plugin in this repository. Muse Code stays skills-only. Pi is a real `pi install`, measured in the [engine guide](/docs/guides/orchestkit-on-pi-codex-cursor).
+</Callout>
+
+## Quick install
+
+Copy the chip for the host you actually run. Cursor has no CLI for this repo: paste the GitHub slug into Settings → Plugins.
+
+<HostInstallGrid />
+
+Coming from Superpowers (official Anthropic marketplace)? Complementary, not a rival. See [OrchestKit vs Superpowers](/docs/getting-started/superpowers).
+
+<Cards>
+  <Card title="Claude Code" description="Full plugin. Marketplace install plus /ork:doctor." href="/docs/getting-started/claude-code" icon={<HostMark host="claude" />} />
+  <Card title="Cursor" description="Same ork plugin from the Cursor marketplace." href="/docs/getting-started/cursor" icon={<HostMark host="cursor" />} />
+  <Card title="Codex" description="ork-codex pack, $ork-implement, and Codex roles." href="/docs/getting-started/codex" icon={<HostMark host="codex" />} />
+  <Card title="Muse Code" description="Meta's terminal agent. Skills via skills.sh and .agents/skills." href="/docs/getting-started/muse" icon={<HostMark host="muse" />} />
+  <Card title="skills.sh" description="OpenCode and other Agent Skills clients. Pi has pi install." href="/docs/getting-started/skills-sh" icon={<HostMark host="pi" />} />
+</Cards>

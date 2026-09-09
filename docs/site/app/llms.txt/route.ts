@@ -104,6 +104,7 @@ export function GET() {
 		"- [Claude Agent SDK vs Claude Code plugins](/claude-agent-sdk-vs-claude-code-plugins)",
 		"- [MCP server](/api/mcp) · [server card](/.well-known/mcp/server-card.json) · [MCP well-known](/.well-known/mcp)",
 		"- [API catalog (RFC 9727)](/.well-known/api-catalog)",
+		"- [Changelog](/changelog) · [RSS](/rss.xml)",
 		"- [Pricing](/pricing.md)",
 		"- [Authentication](/auth.md)",
 		"- [API versioning, deprecation & sunset policy](/api-policy) · [as Markdown](/api-policy.md)",
