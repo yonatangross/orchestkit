@@ -35,8 +35,8 @@ Comprehensive PR creation with validation. All output goes directly to GitHub PR
 ## Quick Start
 
 ```bash
-/ork:create-pr
-/ork:create-pr "Add user authentication"
+create-pr
+create-pr "Add user authentication"
 ```
 
 > **CC ≥ 2.1.119 multi-host note (M122):** PR creation works against GitHub, GitLab, Bitbucket, and GitHub Enterprise. Detect the target host from the configured remote (`git remote -v`) and branch on the host family for the right CLI:
@@ -434,7 +434,7 @@ Write(".claude/chain/pr-created.json", JSON.stringify({
 ## Next Steps (suggest to user after PR creation)
 
 ```
-/ork:review-pr {PR_NUMBER}                # Self-review before requesting reviews
+review-pr {PR_NUMBER}                # Self-review before requesting reviews
 /loop 5m gh pr checks {PR_NUMBER}         # Watch CI until green
 /loop 1h gh pr view {PR_NUMBER} --json reviewDecision  # Monitor review status
 ```

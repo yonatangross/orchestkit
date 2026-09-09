@@ -68,15 +68,15 @@ The remember skill uses **knowledge graph** as storage:
 
 ### Store Decisions (Default)
 ```
-/ork:remember <text>
-/ork:remember --category <category> <text>
-/ork:remember --success <text>     # Mark as successful pattern
-/ork:remember --failed <text>      # Mark as anti-pattern
-/ork:remember --success --category <category> <text>
+remember <text>
+remember --category <category> <text>
+remember --success <text>     # Mark as successful pattern
+remember --failed <text>      # Mark as anti-pattern
+remember --success --category <category> <text>
 
 # Agent-scoped memory
-/ork:remember --agent <agent-id> <text>         # Store in agent-specific scope
-/ork:remember --global <text>                   # Store as cross-project best practice
+remember --agent <agent-id> <text>         # Store in agent-specific scope
+remember --global <text>                   # Store as cross-project best practice
 ```
 
 ## Flags
@@ -158,8 +158,8 @@ Auto-classification is best-effort. Before writing, ask the user to confirm both
 
 ```python
 # Skip when the invocation already specifies type and scope:
-#   /ork:remember --type=preference --global  → skip, use those values
-#   /ork:remember --session  → skip, no persistence
+#   remember --type=preference --global  → skip, use those values
+#   remember --session  → skip, no persistence
 #
 # Otherwise, ask both:
 AskUserQuestion(questions=[

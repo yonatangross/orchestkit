@@ -13,7 +13,7 @@ allowed-tools: [Bash, Read, Grep, Glob]
 # Source: https://github.com/yonatangross/orchestkit
 
 
-# /ork:telemetry-inspect
+# telemetry-inspect
 
 One-shot health check for OrchestKit's telemetry pipeline. Reports writer activity, file sizes, schema lock coverage, orphan files, and growth warnings. Use when verifying the pipeline is flowing correctly or debugging a missing writer.
 
@@ -21,7 +21,7 @@ One-shot health check for OrchestKit's telemetry pipeline. Reports writer activi
 
 - Before or after a risky hook refactor, to prove telemetry still writes as expected
 - Weekly health check on a long-running project
-- When `/ork:analytics` output looks suspicious — inspect the underlying data first
+- When `analytics` output looks suspicious — inspect the underlying data first
 - When adding a new telemetry file and wanting to confirm it's picked up
 - Auditing which files are schema-locked vs. drift-vulnerable
 
@@ -38,9 +38,9 @@ One-shot health check for OrchestKit's telemetry pipeline. Reports writer activi
 ## Usage
 
 ```bash
-/ork:telemetry-inspect
-/ork:telemetry-inspect --session sess-abc123
-/ork:telemetry-inspect --json
+telemetry-inspect
+telemetry-inspect --session sess-abc123
+telemetry-inspect --json
 ```
 
 Default mode: terminal-friendly ASCII report. `--json` emits a structured result suitable for piping into another tool or uploading.
@@ -148,5 +148,5 @@ When inspecting Claude Code's own OTel metrics (downstream of this skill — `cl
 ## Related
 
 - `lib/telemetry-schemas.ts` — source of truth for schema-locked paths
-- `/ork:analytics` — aggregates data across sessions (different use case)
+- `analytics` — aggregates data across sessions (different use case)
 - M121 "Observability Consolidation" milestone

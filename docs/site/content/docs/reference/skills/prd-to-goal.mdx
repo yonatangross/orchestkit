@@ -14,7 +14,7 @@ description: "Decomposes a PRD, issue, or spec into a copy-pasteable single `/go
 > **Prd To Goal** Decomposes a PRD, issue, or spec into a copy-pasteable single `/goal until ..., or stop after N turns` line. Use when running /goal against a spec, to reduce acceptance criteria to AND-joined boolean assertions.
 
 
-# /ork:prd-to-goal — PRD → /goal Decomposition
+# prd-to-goal — PRD → /goal Decomposition
 
 Converts a PRD / issue / spec into a single copy-pasteable `/goal` line. The hard part of `/goal` is not running it — it is writing an `until` clause that is *convergent* (terminates), *falsifiable* (testable boolean), and *observable* (the agent can actually check it without subjective judgement). This skill makes that decomposition reproducible.
 
@@ -27,7 +27,7 @@ Converts a PRD / issue / spec into a single copy-pasteable `/goal` line. The har
 
 **Skip it when:**
 - One-shot bug fix where the failing test *is* the acceptance criterion. Just run `/goal until pnpm test -- auth.spec.ts passes`.
-- No written PRD exists. Run `/ork:write-prd` first — vibes do not decompose.
+- No written PRD exists. Run `write-prd` first — vibes do not decompose.
 - The work is destructive or irreversible (DB migrations, mass file deletes). `/goal` retries; you do not want retries on `DROP TABLE`.
 
 ## 2. Inputs the skill accepts
@@ -41,7 +41,7 @@ Converts a PRD / issue / spec into a single copy-pasteable `/goal` line. The har
 
 ## 3. The decomposition algorithm
 
-1. **Extract acceptance criteria.** Pull every `MUST`, `SHOULD`, `Definition of Done`, `Acceptance Criteria`, and checkbox-style line. If the doc has none, stop and tell the user to run `/ork:write-prd` first — there is nothing to converge on.
+1. **Extract acceptance criteria.** Pull every `MUST`, `SHOULD`, `Definition of Done`, `Acceptance Criteria`, and checkbox-style line. If the doc has none, stop and tell the user to run `write-prd` first — there is nothing to converge on.
 2. **Map each criterion to an observable boolean.** Each criterion must reduce to a single shell-checkable assertion. Examples of observable state:
    - `test -f path/to/file` (file exists)
    - `pnpm test -- pattern passes` (test command exits 0)
@@ -165,13 +165,13 @@ Where §3–5 *generate* a custom `/goal` line from a spec, the recipe library *
 
 | Recipe | Use when | Worker |
 |---|---|---|
-| 🧪 Coverage climb | raise coverage to a target, meaningfully | `/ork:cover` |
-| 🔴 Production error sweep | clear a backlog of actionable errors | `/ork:fix-issue` |
-| 📚 Docs-drift sweep | docs / reference drifted from code | `/ork:audit-full` |
-| ⚡ Page-load budget | a page exceeds its latency budget | `/ork:performance` |
-| 🧹 Repository cleanup | stale memory / state accumulated | `/ork:dream` |
-| ✅ Quality streak | don't trust a single green (flaky suite) | `/ork:verify` |
-| 🎫 Ticket → PR-ready | drive an issue to a CI-green PR | `/ork:fix-issue` → `/ork:create-pr` |
+| 🧪 Coverage climb | raise coverage to a target, meaningfully | `cover` |
+| 🔴 Production error sweep | clear a backlog of actionable errors | `fix-issue` |
+| 📚 Docs-drift sweep | docs / reference drifted from code | `audit-full` |
+| ⚡ Page-load budget | a page exceeds its latency budget | `performance` |
+| 🧹 Repository cleanup | stale memory / state accumulated | `dream` |
+| ✅ Quality streak | don't trust a single green (flaky suite) | `verify` |
+| 🎫 Ticket → PR-ready | drive an issue to a CI-green PR | `fix-issue` → `create-pr` |
 | 🧼 Type/lint zero | clear a type/lint backlog without suppressions | fixer agent |
 
 Full recipes — the exact single-line `/goal until …, or stop after N turns` lines, convergent signal, and per-recipe guardrail: `references/recipe-library.md`. That file is the in-repo source intended for an `ork-loops` pack on skills.sh (not yet built; the channel Forward Future's Loop Library uses), so the loop *recipes* can travel while ork supplies the *machinery* each pass runs on.
@@ -182,7 +182,7 @@ Full recipes — the exact single-line `/goal until …, or stop after N turns` 
 |---|---|---|
 | `/goal until tests pass` | Which tests? Existing or new? On which command? The agent can pick whatever subset is already green and claim done. | `/goal until pnpm test -- tests/auth/test_login.py passes AND pnpm test -- tests/auth passes` |
 | `/goal until the code looks clean` | Not falsifiable. The agent cannot check "looks clean" — it will either declare victory immediately or never. | `/goal until pnpm lint passes AND [ $(wc -l &lt; src/auth.ts) -lt 200 ]` |
-| `/goal until done` | Unbounded. There is no terminating condition; combined with a generous `, or stop after 50 turns` this is how runs eat 500K tokens overnight. | Pick 3–5 observable assertions. If you cannot, the PRD is not ready — go to `/ork:write-prd`. |
+| `/goal until done` | Unbounded. There is no terminating condition; combined with a generous `, or stop after 50 turns` this is how runs eat 500K tokens overnight. | Pick 3–5 observable assertions. If you cannot, the PRD is not ready — go to `write-prd`. |
 
 ## 8. Post-timeout assertion grader
 

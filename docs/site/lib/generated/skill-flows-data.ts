@@ -2704,7 +2704,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           },
           {
             "num": "",
-            "label": "Integration with /ork:expect (M125 #2)",
+            "label": "Integration with expect (M125 #2)",
             "does": "",
             "out": null,
             "tag": null
@@ -3970,7 +3970,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "STEP -0.5",
             "label": "Assess Verdict Gate",
-            "does": "If .claude/chain/assess-verdict.json exists with a feature matching this run and verdict == \"fail\" (composite < the 5.5 min_pass in ${CLAUDE_PLUGIN_ROOT}/skills/assess/rubric.json, or any dimension below its min_blocker), BLOCK Phase 1. Present each blockers[] entry (dimension, score, reason), then AskUserQuestion with plain label+description options (no preview):",
+            "does": "If .claude/chain/assess-verdict.json exists with a feature matching this run and verdict == \"fail\" (composite < the 5.5 min_pass in ../assess/rubric.json, or any dimension below its min_blocker), BLOCK Phase 1. Present each blockers[] entry (dimension, score, reason), then AskUserQuestion with plain label+description options (no preview):",
             "out": null,
             "tag": null
           },

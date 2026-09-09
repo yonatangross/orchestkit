@@ -140,8 +140,9 @@ keep-coding-instructions: true   # CC 2.1.94+: for plugin output styles only —
 **`keep-coding-instructions` (CC 2.1.94+)** is only meaningful for skills that ship as **plugin output styles** — skills that change how Claude speaks (tone, verbosity, persona). It has no effect on workflow or reference skills. Use `true` when the output style is a layer on top of coding (e.g., "explain every change in plain English" — Claude should still know how to code). Use `false` (or omit) when the output style is a full replacement (e.g., a creative-writing skill where code generation doesn't apply).
 
 **Model invocation guide:**
-- `disable-model-invocation: true` (default) — Skill only loads via `/ork:name` slash command. Use for workflow skills that orchestrate subagents (implement, verify, review-pr).
-- `disable-model-invocation: false` — CC auto-selects the skill when the user's prompt matches the `description`. Use for knowledge/reference skills (api-design, security-patterns, testing-unit) that should activate contextually without requiring a slash command.
+- Generic invoke is the skill name (`implement`, `verify`). Do not write `/ork:implement` in a skill body. That slash form is Claude Code adapter routing.
+- `disable-model-invocation: true` (default): Claude Code only loads the skill via `/ork:name`. Use for workflow skills that orchestrate subagents (implement, verify, review-pr).
+- `disable-model-invocation: false`: CC auto-selects the skill when the user's prompt matches the `description`. Use for knowledge/reference skills (api-design, security-patterns, testing-unit) that should activate contextually without requiring a slash command. Descriptions may keep `/ork:` for CC slash routing; the body must not require it.
 
 ### Skill-Scoped Hooks
 
@@ -175,13 +176,14 @@ Keep commands fast (<2s) and idempotent. They run in the user's shell, not in a 
 
 ### Referencing Supporting Files
 
-A SKILL.md body is loaded by more than Claude Code: pi, the Claude Skills API export (`scripts/publish-skills.mjs`) and the Cursor command wrappers (`scripts/build-plugins.sh`) all ship the text, and none of them expand a `${CLAUDE_*}` placeholder (#3822: pi delivered `${CLAUDE_PLUGIN_ROOT}` to the model as a literal string). Three forms exist; pick by what the reference points at.
+A SKILL.md body is loaded by more than Claude Code: pi, the Claude Skills API export (`scripts/publish-skills.mjs`) and the Cursor command wrappers (`scripts/build-plugins.sh`) all ship the text, and none of them expand a `${CLAUDE_*}` placeholder (#3822: pi delivered `${CLAUDE_PLUGIN_ROOT}` to the model as a literal string). Portable forms first; Claude-adapter forms only in Claude examples or `references/claude-code.md`.
 
 | Form | Example | Use for |
 |------|---------|---------|
 | Bare relative (preferred) | `Read("references/x.md")`, `[rule](rules/area-name.md)`, `bash scripts/x.sh` | The skill's own files. Resolved against the SKILL.md directory. |
-| `${CLAUDE_SKILL_DIR}` | `python3 ${CLAUDE_SKILL_DIR}/scripts/x.py` | Exec shapes in Claude Code only bodies where the cwd is unknown. |
-| `${CLAUDE_PLUGIN_ROOT}` | `${CLAUDE_PLUGIN_ROOT}/skills/<other-skill>/references/x.md`, `${CLAUDE_PLUGIN_ROOT}/shared/rules/x.md`, hook `command:` lines | Another skill, `shared/`, hooks: anywhere a plugin root is genuinely needed. |
+| Portable cross-skill / shared | `Read("../verify/SKILL.md")`, `Read("../../shared/rules/verification-gate.md")` | Another skill or `shared/`. From `skills/<name>/`, `../<other>/` and `../../shared/` resolve on every host that loads SKILL.md from that directory (CC, pi, Agent Skills). |
+| `${CLAUDE_SKILL_DIR}` | `python3 ${CLAUDE_SKILL_DIR}/scripts/x.py` | Exec shapes in Claude Code only bodies where the cwd is unknown. Put these in `references/claude-code.md` when the skill body must stay portable. |
+| `${CLAUDE_PLUGIN_ROOT}` | hook `command:` lines in YAML frontmatter | Claude-adapter only. YAML hooks that CC executes. Never required in a skill body: pi prints the placeholder as a literal. |
 
 What each consumer does with the form (measured 2026-08-30 on CC 2.1.251 with a throwaway plugin and three nonces, run from `/tmp` and from the skill dir; pi 0.84.4):
 
@@ -195,7 +197,7 @@ What each consumer does with the form (measured 2026-08-30 on CC 2.1.251 with a 
 Rules that follow from the matrix:
 
 - Same-skill references are bare relative. `${CLAUDE_PLUGIN_ROOT}/skills/<this-skill>/...` inside that skill's own SKILL.md works in Claude Code and nowhere else; `tests/skills/structure/test-placeholder-validity.sh` fails on it, and `node scripts/codemod/skill-paths-relative.mjs` rewrites it (read shapes to bare relative, exec shapes to `${CLAUDE_SKILL_DIR}`). The one exception is a skill naming its own `SKILL.md` load path for agents (#3313).
-- Cross-skill and `shared/` references keep `${CLAUDE_PLUGIN_ROOT}`. There is no portable form for those today; add a one-line note near the first use if the skill is expected to run outside Claude Code.
+- Cross-skill and `shared/` references in the body use portable relative paths (`../<skill>/...`, `../../shared/...`). `${CLAUDE_PLUGIN_ROOT}` stays in Claude-adapter YAML `command:` lines and in `references/claude-code.md`.
 - Every referenced file must exist. The placeholder gate resolves all three forms against the tree and fails on a missing target, in both `Read("...")` and markdown-link shape.
 - Any other `${CLAUDE_*}` name is undocumented and delivered literally. The gate blocks it.
 
@@ -562,7 +564,7 @@ Skills that already have effort tables: brainstorm, implement, verify, cover, fi
 
 ### /loop Suggestions in Next Steps (CC 2.1.71)
 
-Skills that produce artifacts users may want to monitor should include `/loop` suggestions in their "Next Steps" section. `/loop` can chain other skills (`/loop 20m /ork:verify`) — this is unique to `/loop` (CronCreate takes raw prompts only). See `chain-patterns` Pattern 8.
+Skills that produce artifacts users may want to monitor should include `/loop` suggestions in their "Next Steps" section. Generic chain: `verify` after a wait. Claude Code adapter: `/loop 20m /ork:verify`. Unique to `/loop` (CronCreate takes raw prompts only). See `chain-patterns` Pattern 8.
 
 ### Plugin Settings
 
@@ -795,13 +797,13 @@ Decision guidance:
 
 ### Skill Chain Dependencies
 
-When a skill references another `/ork:` skill, create a task dependency:
+When a skill references another skill, create a task dependency. Invoke by skill name. The `/ork:` slash form is Claude Code only (see `references/claude-code.md` on workflow skills).
 
 ```python
-# After /ork:implement completes, chain to verify
+# After implement completes, chain to verify
 TaskCreate(subject="Verify implementation", activeForm="Verifying changes")
 TaskUpdate(taskId="verify-task", addBlockedBy=["implement-task"])
-# Then invoke /ork:verify
+# Then invoke verify
 ```
 
 ## Checklist

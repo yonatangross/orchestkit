@@ -101,7 +101,7 @@ if [[ -n "$found" ]]; then
     echo "  Only these are expanded by Claude Code:"
     for v in $VALID; do echo "      \${$v}"; done
     echo "  For a skill's own files use a bare relative path: references/<file>.md"
-    echo "  For another skill or shared/ use: \${CLAUDE_PLUGIN_ROOT}/skills/<name>/... or \${CLAUDE_PLUGIN_ROOT}/shared/..."
+    echo "  For another skill or shared/ in a SKILL.md body use: ../<name>/... or ../../shared/..."
     fail=1
 else
     echo "  ${GREEN}PASS${NC} every \${CLAUDE_*} reference in src/ is a documented substitution"
@@ -113,9 +113,10 @@ fi
 #   a. ${CLAUDE_PLUGIN_ROOT}/skills/<path>      against src/skills/   (any src/ file)
 #   b. ${CLAUDE_SKILL_DIR}/<path>               against the containing skill dir
 #   c. bare relative references/|rules/|scripts/|checklists/|assets/|workflows/|
-#      examples/<path> in Read("...") and markdown ](...) form, in SKILL.md
-#      only, against that SKILL.md's directory (the resolution CC, pi and the
-#      Agent Skills spec all use; measured in #3822).
+#      examples/<path>, plus portable ../<skill>/ and ../../shared/ paths, in
+#      Read("...") and markdown ](...) form, in SKILL.md only, against that
+#      SKILL.md's directory (the resolution CC, pi and the Agent Skills spec
+#      all use; measured in #3822).
 # Doc templates (<name>), nested variables (${...}) and globs (*) are skipped.
 # The summary line reports how many of each shape were checked, so a regex that
 # silently stops matching reads as a dropped count, not as a clean run.
@@ -124,7 +125,7 @@ import os, re, glob
 doc = re.compile(r'<[a-z-]+>')
 cpr = re.compile(r'\$\{CLAUDE_PLUGIN_ROOT\}/skills/([^\s"\'`)\]]+)')
 sdir = re.compile(r'\$\{CLAUDE_SKILL_DIR\}/([^\s"\'`)\]]+)')
-SUB = r'(?:references|rules|scripts|checklists|assets|workflows|examples)/'
+SUB = r'(?:(?:\.{2}/)+|(?:references|rules|scripts|checklists|assets|workflows|examples)/)'
 rel_read = re.compile(r'Read\(\s*["\'](' + SUB + r'[^"\')]+)["\']')
 rel_link = re.compile(r'\]\((' + SUB + r'[^)\s]+)\)')
 

@@ -40,9 +40,9 @@ between "add a nice shadow" (reinvented differently every session) and `elevatio
 every time, reviewed once, versioned forever).
 
 ```bash
-/ork:design-stylecards list                      # Catalog index
-/ork:design-stylecards elevation/md              # Show one recipe
-/ork:design-stylecards apply glass/dark to src/components/Panel.tsx
+design-stylecards list                      # Catalog index
+design-stylecards elevation/md              # Show one recipe
+design-stylecards apply glass/dark to src/components/Panel.tsx
 ```
 
 ## Why declarative recipes

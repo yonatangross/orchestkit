@@ -36,15 +36,17 @@ triggers:
 
 # Assess
 
+Host-neutral workflow. Invoke by skill name (`assess`). Claude Code slash routing, YAML hook loaders, and `.claude/chain` live in `references/claude-code.md`.
+
 Comprehensive assessment skill for answering "is this good?" with structured evaluation, scoring, and actionable recommendations.
 
 ## 🎯 Quick Start
 
 ```bash
-/ork:assess backend/app/services/auth.py
-/ork:assess our caching strategy
-/ork:assess --model=opus the current database schema
-/ork:assess frontend/src/components/Dashboard
+assess backend/app/services/auth.py
+assess our caching strategy
+assess --model=opus the current database schema
+assess frontend/src/components/Dashboard
 ```
 
 ### Effort levels (CC 2.1.111+ adds `xhigh`)
@@ -55,7 +57,7 @@ Comprehensive assessment skill for answering "is this good?" with structured eva
 | `high` (default) | All six dimensions with pros/cons |
 | `xhigh` | All six dimensions + one additional assessor pass focused on uncertainty/caveats; emits `confidence` per dimension |
 
-> `xhigh` silently falls back to `high` on a model that does not implement it: no error, no log line. `/ork:doctor` Category 14 reports this, and only when it can positively prove the active model lacks the tier.
+> `xhigh` silently falls back to `high` on a model that does not implement it: no error, no log line. `doctor` Category 14 reports this, and only when it can positively prove the active model lacks the tier.
 
 ---
 
@@ -72,7 +74,7 @@ turn: *"Reading 'them' as the 3 pretool guards we just probed; say otherwise and
 
 **Refusing is the bug, not the safe option.** Asking "what does this refer to?" when the
 previous turn named the subject burns a round-trip re-deriving what is already on screen.
-Measured 2026-08-28: the operator sent `/ork:assess them throguhly` one message after "bug in
+Measured 2026-08-28: the operator sent `assess them throguhly` one message after "bug in
 orchestkit hooks", mid-investigation of `pretool/bash/dangerous-command-blocker`, and this
 skill replied that "them" had "no antecedent anywhere in this conversation". It had two.
 
@@ -113,13 +115,13 @@ for token in "$ARGUMENTS".split():
 EFFORT = EFFORT or "high"  # default when CC < 2.1.120 and no flag
 ```
 
-Use `EFFORT` to gate dimension count, agent count, and the optional `xhigh` uncertainty pass — see "Effort levels" table above. On CC < 2.1.120 the env var is unset; the explicit `--effort=` override is the only path. `/ork:doctor` Category 14 reports a provably unsupported `xhigh` request.
+Use `EFFORT` to gate dimension count, agent count, and the optional `xhigh` uncertainty pass — see "Effort levels" table above. On CC < 2.1.120 the env var is unset; the explicit `--effort=` override is the only path. `doctor` Category 14 reports a provably unsupported `xhigh` request.
 
 ---
 
 ## STEP -1: MCP Probe + Resume Check
 
-> Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/references/mcp-detection.md")`
+> Load: `Read("../chain-patterns/references/mcp-detection.md")`
 
 ```python
 # 1. Probe MCP servers (once at skill start)
@@ -285,7 +287,7 @@ For Phase 2 parallel agents, show each dimension's score **as soon as the evalua
 
 ## Phase 2: Quality Rating (6 Dimensions)
 
-Rate each dimension 0-10 with weighted composite score. Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/quality-gates/references/unified-scoring-framework.md")` for dimensions, weights, grade interpretation, and per-dimension criteria. Load `Read("references/quality-model.md")` for assess-specific overrides.
+Rate each dimension 0-10 with weighted composite score. Load `Read("../quality-gates/references/unified-scoring-framework.md")` for dimensions, weights, grade interpretation, and per-dimension criteria. Load `Read("references/quality-model.md")` for assess-specific overrides.
 
 Load `Read("references/agent-spawn-definitions.md")` for Task Tool mode spawn patterns and Agent Teams alternative.
 
@@ -301,12 +303,12 @@ composite. **Effort gate:** `low`/`medium` skip this phase entirely; `high` runs
 single refuters (advisory, no auto-swing); `xhigh` runs 3-refuter majority with auto-revise.
 
 Load the protocol + assess bindings: `Read("references/adversarial-refutation.md")`
-(which loads the shared engine `${CLAUDE_PLUGIN_ROOT}/shared/rules/adversarial-refutation.md`).
-Producer findings must first pass the evidence-replay gate before entering any score or verdict: `Read("${CLAUDE_PLUGIN_ROOT}/shared/rules/evidence-replay.md")`.
+(which loads the shared engine `../../shared/rules/adversarial-refutation.md`).
+Producer findings must first pass the evidence-replay gate before entering any score or verdict: `Read("../../shared/rules/evidence-replay.md")`.
 
 ### Cross-model refuter (optional, provenance-labeled, cost-gated)
 
-When `ORK_ALT_MODEL_CMD` is configured and effort is `high`/`xhigh`, one quorum slot per high-weight or boundary-adjacent dimension score can route to a non-Claude model (Codex/GPT) for diverse failure modes. Off by default; substitutes one same-model slot, stamps `refuter_model` for provenance, cannot silently raise the grade (engine §7), owns no credentials/egress (shells out via `ORK_ALT_MODEL_CMD`, matches the egress guard #2533), and degrades to same-model on an absent command. Shares the review-pr operational doc: `Read("${CLAUDE_PLUGIN_ROOT}/skills/review-pr/references/cross-model-refuter.md")`.
+When `ORK_ALT_MODEL_CMD` is configured and effort is `high`/`xhigh`, one quorum slot per high-weight or boundary-adjacent dimension score can route to a non-Claude model (Codex/GPT) for diverse failure modes. Off by default; substitutes one same-model slot, stamps `refuter_model` for provenance, cannot silently raise the grade (engine §7), owns no credentials/egress (shells out via `ORK_ALT_MODEL_CMD`, matches the egress guard #2533), and degrades to same-model on an absent command. Shares the review-pr operational doc: `Read("../review-pr/references/cross-model-refuter.md")`.
 
 Runs after Phase 2 returns, before the composite/grade and Phases 3-7. Refuters are ALWAYS
 isolated `Agent(...)` Task spawns (never team members, even in Agent Teams mode) fed only the
@@ -359,13 +361,13 @@ This guarantees JSON spec and markdown report stay in sync.
 
 **xhigh effort:** when `effort=xhigh` is active, add a sibling `Markdown` element per dimension containing `confidence` and `caveats` from the uncertainty pass. Reference list it in the `dimensions` Card's children alongside the `BarMeter`. See `references/dashboard-spec.md` for the exact pattern.
 
-**Downstream consumption:** `/ork:implement` reads `.claude/chain/assess-dashboard.json` and pulls the lowest-scoring dimension and high-priority improvements (effort ≤ 2 AND impact ≥ 4) without parsing markdown tables. Measured: assess spec ≈ 830 tokens vs ~3500 token markdown for the same content.
+**Downstream consumption:** `implement` reads `.claude/chain/assess-dashboard.json` and pulls the lowest-scoring dimension and high-priority improvements (effort ≤ 2 AND impact ≥ 4) without parsing markdown tables. Measured: assess spec ≈ 830 tokens vs ~3500 token markdown for the same content.
 
 ---
 
 ## Phase 7c: Memory Writeback (signal-fired, optional)
 
-When the assessment lands with a composite score, optionally persist scores + summary to the memory MCP knowledge graph as a typed entity. Future `/ork:memory` queries can then surface assessment lineage (which decisions did this codebase score 9/10 on testability? when did security regress below 7.0?).
+When the assessment lands with a composite score, optionally persist scores + summary to the memory MCP knowledge graph as a typed entity. Future `memory` queries can then surface assessment lineage (which decisions did this codebase score 9/10 on testability? when did security regress below 7.0?).
 
 ```bash
 python3 ${CLAUDE_SKILL_DIR}/scripts/memory_writeback.py "<assessment-dir>"
@@ -392,7 +394,7 @@ Mirrors `Yonatan-HQ/hq-ext-plugin#194` (audio_podcast handler) and orchestkit#18
 
 ## Phase 7d: Emit Chain Verdict (stop-gating)
 
-After the composite and grade are final (post-refutation, Phase 2.5), ALWAYS write the machine-readable verdict — this is the stop-gate `/ork:implement` reads before Phase 1. Mirror the Phase 7b spec-emit pattern: build, write compact JSON, never write a partial file.
+After the composite and grade are final (post-refutation, Phase 2.5), ALWAYS write the machine-readable verdict — this is the stop-gate `implement` reads before Phase 1. Mirror the Phase 7b spec-emit pattern: build, write compact JSON, never write a partial file.
 
 ```json
 // .claude/chain/assess-verdict.json
@@ -409,13 +411,13 @@ After the composite and grade are final (post-refutation, Phase 2.5), ALWAYS wri
 }
 ```
 
-Verdict rules — thresholds come from `rubric.json` (schema: `${CLAUDE_PLUGIN_ROOT}/shared/rubric.schema.json`):
+Verdict rules — thresholds come from `rubric.json` (schema: `../../shared/rubric.schema.json`):
 
 - `verdict = "fail"` when `composite < min_pass` (5.5) **OR** any dimension scores below its `min_blocker`. Otherwise `"pass"`.
 - Every dimension below its `min_blocker` gets a `blockers[]` entry — dimension, score, one evidence-backed reason. `blockers` is `[]` on pass.
 - Scores are the post-refutation numbers — the same ones in the report. Refutation never silently flips a fail to pass.
 
-Consumers: `/ork:implement` Step -0.5 blocks Phase 1 on `verdict == "fail"` (user must fix-first or explicitly override); Phase 7c memory writeback persists the verdict + dimension scores to the memory graph (add a `verdict=pass|fail` observation) for cross-session learning.
+Consumers: `implement` Step -0.5 blocks Phase 1 on `verdict == "fail"` (user must fix-first or explicitly override); Phase 7c memory writeback persists the verdict + dimension scores to the memory graph (add a `verdict=pass|fail` observation) for cross-session learning.
 
 ---
 
@@ -449,7 +451,7 @@ Rules:
 
 ## 💡 Grade Interpretation
 
-Load `Read("${CLAUDE_PLUGIN_ROOT}/skills/quality-gates/references/unified-scoring-framework.md")` for grade thresholds and scoring criteria.
+Load `Read("../quality-gates/references/unified-scoring-framework.md")` for grade thresholds and scoring criteria.
 
 ---
 

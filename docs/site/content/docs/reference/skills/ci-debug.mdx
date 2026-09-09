@@ -150,10 +150,10 @@ When a novel CI failure surfaces (the UNMATCHED report fires), add a row to the 
 2. **Memory ref**: name the memory file you wrote with the full incident write-up.
 3. **Proposed fix**: the EXACT command line. No prose, no "you might want to". The skill produces commands the user runs; ambiguity defeats the purpose.
 
-Commit the SKILL.md change as `docs(ci-debug): add pattern #N (&lt;short-name&gt;)`. The `/ork:ci-sentinel` workflow picks up new patterns automatically on its next sweep — no separate plumbing needed.
+Commit the SKILL.md change as `docs(ci-debug): add pattern #N (&lt;short-name&gt;)`. The `ci-sentinel` workflow picks up new patterns automatically on its next sweep — no separate plumbing needed.
 
 ## Related Skills
 
-- **Composes with** — `/ork:ci-sentinel` (the autonomous hourly trigger for this skill against open red PRs).
+- **Composes with** — `ci-sentinel` (the autonomous hourly trigger for this skill against open red PRs).
 - **Anti-pattern** — manually re-running `gh pr checks` and eyeballing the logs across N repos. That's exactly the toil this skill kills.
 - **Upstream** — `/status` for org-wide sweeps that surface WHICH PRs are red; this skill answers WHY.

@@ -19,12 +19,12 @@ description: "Scaffolds React components from a Claude Design handoff bundle and
 Turn a Claude Design handoff bundle into scaffolded React components, with provenance and dedup against the existing codebase.
 
 ```bash
-/ork:design-import https://claude.ai/design/abc123      # From handoff URL
-/ork:design-import /tmp/handoff-bundle.json             # From local file
+design-import https://claude.ai/design/abc123      # From handoff URL
+design-import /tmp/handoff-bundle.json             # From local file
 ```
 
 ## When to use
-After exporting a handoff bundle from claude.ai/design. This skill is the **entry point** — it does NOT open a PR, run tests, or deploy. For the end-to-end flow (import → tests → PR), use `/ork:design-ship` instead.
+After exporting a handoff bundle from claude.ai/design. This skill is the **entry point** — it does NOT open a PR, run tests, or deploy. For the end-to-end flow (import → tests → PR), use `design-ship` instead.
 
 ## Pipeline
 
@@ -63,7 +63,7 @@ Handoff bundle (URL or file)
            ▼
 ┌──────────────────────────────┐
 │ 5. WRITE PROVENANCE           │  .claude/design-handoffs/<bundle_id>.json
-│    Bundle → files → (PR)      │  PR field empty until /ork:design-ship
+│    Bundle → files → (PR)      │  PR field empty until design-ship
 └──────────┬───────────────────┘
            │
            ▼
@@ -231,13 +231,13 @@ Tokens:
   ~ 1 modified (user accepted bundle value)
   ✗ 0 conflicts unresolved
 
-Next: /ork:design-ship <bundle_id>   # to open PR
-      /ork:expect                     # to verify
+Next: design-ship <bundle_id>   # to open PR
+      expect                     # to verify
 ```
 
 ## Hooks
 
-- After completion, the `post-design-import` hook recommends `/ork:expect` (non-blocking, see hook for details).
+- After completion, the `post-design-import` hook recommends `expect` (non-blocking, see hook for details).
 
 ## Composition
 
@@ -253,9 +253,9 @@ Next: /ork:design-ship <bundle_id>   # to open PR
 
 | Concern | Owned by |
 |---|---|
-| Open PR | `/ork:design-ship` |
-| Run tests | `post-design-import` hook → `/ork:expect` |
-| Generate Storybook stories | `/ork:cover` (called by `/ork:design-ship`) |
+| Open PR | `design-ship` |
+| Run tests | `post-design-import` hook → `expect` |
+| Generate Storybook stories | `cover` (called by `design-ship`) |
 | Re-prompt Claude Design | Not yet — no public API |
 
 ## Limitations

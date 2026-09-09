@@ -16,14 +16,16 @@ description: "Grade work that already exists and decide whether it can merge. Ru
 
 # Verify Feature
 
+Host-neutral workflow. Invoke by skill name (`verify`). Claude Code slash routing, YAML hook loaders, and `.claude/chain` live in `references/claude-code.md`.
+
 Comprehensive verification using parallel specialized agents with nuanced grading (0-10 scale) and improvement suggestions.
 
 ## Quick Start
 
 ```bash
-/ork:verify authentication flow
-/ork:verify --model=opus user profile feature
-/ork:verify --scope=backend database migrations
+verify authentication flow
+verify --model=opus user profile feature
+verify --scope=backend database migrations
 ```
 
 ## Argument Resolution
@@ -234,7 +236,7 @@ if not task.id:                 # request ignored → the command ran inline and
 else:
     Monitor(pid=task.id)        # bounded: see the contract reference below; progress via `tail -n 5 {LOG}`
 # The verdict gate is EXECUTABLE, not prose (#3263). Only outcome=EVIDENCE may be graded:
-Bash(command=f"bash ${{CLAUDE_PLUGIN_ROOT}}/skills/verify/scripts/assert-evidence.sh {LOG} --task-id '{task.id or 'none'}'")
+Bash(command=f"bash scripts/assert-evidence.sh {LOG} --task-id '{task.id or 'none'}'")
 # exit 0 EVIDENCE   → grade from LOG's runner summary line
 # exit 4 STILL-RUNNING → keep the bounded wait, re-run the gate
 # exit 3 COULD-NOT-OBSERVE (0 bytes, no live process) or exit 1 NO-BANNER →
@@ -244,7 +246,7 @@ Bash(command=f"bash ${{CLAUDE_PLUGIN_ROOT}}/skills/verify/scripts/assert-evidenc
 
 Measured (#3263): three backgrounded suites wrote **0 bytes**, npm's own banner never appeared, and the skill waited ~40 min on a completion signal that could not fire. An empty run must be loud, not pending. Contract and the refuted hypotheses: `Read("references/background-task-contract.md")`.
 
-Full pattern reference (when to use vs. `TaskOutput`, until-condition gates, anti-patterns): `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/chain-patterns/references/monitor-patterns.md")`.
+Full pattern reference (when to use vs. `TaskOutput`, until-condition gates, anti-patterns): `Read("../chain-patterns/references/monitor-patterns.md")`.
 
 **Partial results (CC 2.1.98):** If a verification agent fails mid-analysis, synthesize partial scores rather than re-spawning:
 
@@ -276,11 +278,11 @@ Load details: `Read("references/visual-capture.md")` for auto-detection, route d
 
 ## Grading & Scoring
 
-Load `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/quality-gates/references/unified-scoring-framework.md")` for dimensions, weights, grade thresholds, and improvement prioritization. Load `Read("references/quality-model.md")` for verify-specific extensions (Visual dimension). Load `Read("references/grading-rubric.md")` for per-agent scoring criteria.
+Load `Read("../quality-gates/references/unified-scoring-framework.md")` for dimensions, weights, grade thresholds, and improvement prioritization. Load `Read("references/quality-model.md")` for verify-specific extensions (Visual dimension). Load `Read("references/grading-rubric.md")` for per-agent scoring criteria.
 
 ### Dimension-Level Blockers (ork-rubric/1.0)
 
-Composite is necessary but not sufficient — a strong composite can average away a critical dimension. In Phase 4 (Nuanced Grading), read per-dimension thresholds from `rubric.json` (schema: `$\{CLAUDE_PLUGIN_ROOT\}/shared/rubric.schema.json`): security `min_blocker` 4.0, compliance `min_pass` 6.0.
+Composite is necessary but not sufficient — a strong composite can average away a critical dimension. In Phase 4 (Nuanced Grading), read per-dimension thresholds from `rubric.json` (schema: `../../shared/rubric.schema.json`): security `min_blocker` 4.0, compliance `min_pass` 6.0.
 
 - **A dimension whose evidence outcome is `COULD-NOT-OBSERVE` or `NO-BANNER` (per `scripts/assert-evidence.sh`) has NO score.** Report it verbatim, e.g. `Tests: COULD-NOT-OBSERVE (assert-evidence exit 3, 0 bytes, no live pid)`, and the verdict is BLOCKED. Never average a missing dimension into the composite.
 - **ANY dimension below its `min_blocker` → verdict is BLOCKED regardless of composite.** Report it explicitly: `Security 3.2/10 (CRITICAL BLOCKER — below min_blocker 4.0)`.
@@ -302,7 +304,7 @@ A single green is not proof — flaky and order-dependent suites pass once and f
 - The verdict surfaces the count: `STREAK 2/3 — one more green to merge`, or `streak reset to 0/3 (security 3.2 &lt; 4.0)`.
 - This is the native mechanism the `prd-to-goal` quality-streak recipe (#2539) leans on. Pair it with a `/goal` loop, but **`rm` the ledger first** — `/goal` reads `until` before the turn's verify, so a stale `met:true` exits with zero runs (see streak-gate.md "Stale-ledger guard").
 
-Full protocol — ledger schema, run loop, `/goal` wiring, and `/ork:cover` reuse: `Read("references/streak-gate.md")`.
+Full protocol — ledger schema, run loop, `/goal` wiring, and `cover` reuse: `Read("references/streak-gate.md")`.
 
 ---
 
@@ -357,7 +359,7 @@ For every test the diff **adds or modifies**, the manifest carries a second mark
 
 Two ordering rules make the proof safe, and both come from real damage: **commit before mutating** (`git checkout --` restores to HEAD, so mutating uncommitted work destroys the change on restore), and **mutate the call site, not the new unit** (mutating the unit proves the unit's tests work, and leaves a dead call site undetected).
 
-**This skill does not perform the mutation** — it writes no test files and edits no source. The proof is produced upstream by `/ork:implement` or `/ork:cover` and graded here; absent a proof, the row is 🟡 UNREACHED and the verdict is capped.
+**This skill does not perform the mutation** — it writes no test files and edits no source. The proof is produced upstream by `implement` or `cover` and graded here; absent a proof, the row is 🟡 UNREACHED and the verdict is capped.
 
 Protocol — scope, the 5-step proof, what makes a mutation load-bearing, template, and anti-patterns (coverage-as-proof, batch proof, cosmetic mutation): `Read("references/reachability-proof.md")`.
 
@@ -424,17 +426,17 @@ Load on demand with `Read("rules/&lt;file&gt;")`:
 
 ### Verification Gate (Cross-Cutting)
 
-Load `Read("$\{CLAUDE_PLUGIN_ROOT\}/shared/rules/verification-gate.md")` — the minimum 5-step gate that applies to ALL completion claims across all skills. This is non-negotiable: NO COMPLETION CLAIMS WITHOUT FRESH VERIFICATION EVIDENCE.
+Load `Read("../../shared/rules/verification-gate.md")` — the minimum 5-step gate that applies to ALL completion claims across all skills. This is non-negotiable: NO COMPLETION CLAIMS WITHOUT FRESH VERIFICATION EVIDENCE.
 
-Producer findings must also satisfy the evidence-replay gate (machine-checkable `\{file, line, quote\}` or `\{command, expected_output\}`, replayed before entering any verdict or score): `Read("$\{CLAUDE_PLUGIN_ROOT\}/shared/rules/evidence-replay.md")`.
+Producer findings must also satisfy the evidence-replay gate (machine-checkable `\{file, line, quote\}` or `\{command, expected_output\}`, replayed before entering any verdict or score): `Read("../../shared/rules/evidence-replay.md")`.
 
 ### Anti-Sycophancy Protocol
 
-Load `Read("$\{CLAUDE_PLUGIN_ROOT\}/shared/rules/anti-sycophancy.md")` — all verification agents report findings directly without performative agreement. "Should be fine" is not evidence. "Tests pass (exit 0, 47/47)" is.
+Load `Read("../../shared/rules/anti-sycophancy.md")` — all verification agents report findings directly without performative agreement. "Should be fine" is not evidence. "Tests pass (exit 0, 47/47)" is.
 
 ### Agent Status Protocol
 
-All verification agents MUST report using the standardized protocol: `Read("$\{CLAUDE_PLUGIN_ROOT\}/shared/status-protocol.md")`. Never report DONE if concerns exist. Never silently produce work you're unsure about.
+All verification agents MUST report using the standardized protocol: `Read("../../shared/status-protocol.md")`. Never report DONE if concerns exist. Never silently produce work you're unsure about.
 
 ---
 
@@ -456,7 +458,7 @@ After verification, chain to commit if all gates pass:
 ```python
 TaskCreate(subject="Commit verified changes", activeForm="Committing")
 TaskUpdate(taskId=commit_id, addBlockedBy=[verify_task_id])
-# Then: /ork:commit
+# Then: commit
 ```
 
 > **Session recovery (CC 2.1.108+):** After idle periods or interruptions, use `/recap` to restore conversational context alongside checkpoint-resume state. Enabled by default since CC 2.1.110 (even with telemetry disabled).
@@ -490,11 +492,6 @@ unexpectedly. It refuses the verdict rather than the check.
 - `browser-tools` - Browser automation for visual capture
 
 ---
-
-**Version:** 4.7.0 (August 2026) — Phase 3 evidence gate became executable (#3263): tests redirect to a named log, `scripts/assert-evidence.sh` names one of five outcomes, and COULD-NOT-OBSERVE joined the manifest as a blocking state. A verdict skill can no longer end without a verdict: an empty run is a named failure, not silence
-**Version:** 4.6.0 (July 2026) — Added the Reachability Proof (REACHED vs UNREACHED): the manifest's second axis. Provenance grades who ran a claim; reachability grades whether the green means anything. A test the diff added that has never been seen to fail caps the verdict below READY FOR MERGE
-**Version:** 4.5.0 (July 2026) — Added the Verification Manifest (VERIFIED vs CLAIMED) — a load-bearing-claim provenance ledger that caps the verdict below READY FOR MERGE until unverified claims are re-run or waived
-**Version:** 4.4.0 (June 2026) — Added `--streak=N` consecutive-pass gate (#2540)
 
 
 ---
@@ -645,7 +642,7 @@ Verification can be blocked by policy-as-code rules. See [Policy-as-Code](../ref
 
 ---
 
-## References (13)
+## References (15)
 
 ### Alternative Comparison
 
@@ -817,6 +814,32 @@ so the sentinel still runs. Verified at HEAD `b6e65248f` on 2026-08-06.
 Settling H5 therefore requires either a quiet tree or making the sentinel test
 operate on a copy instead of the live working tree. That is tracked separately
 under #3235.
+
+
+### Claude Code
+
+# Claude Code adapter: verify
+
+Slash invoke: `/ork:verify`
+
+YAML `hooks:` / `command:` lines in this skill's frontmatter stay Claude-only.
+They use `$\{CLAUDE_PLUGIN_ROOT\}/hooks/bin/run-hook.mjs` and are ignored by pi.
+
+Session chain files live at `.claude/chain/` (state.json, decisions.json, capabilities.json).
+Other hosts should persist equivalent run state in their own session store.
+
+Agent spawn form, when used: `Agent(ork:...)` is Claude Code. Portable body text uses the skill name.
+
+Lines that still mention a Claude-only path in the body:
+
+```
+Host-neutral workflow. Invoke by skill name (`verify`). Claude Code slash routing, YAML hook loaders, and `.claude/chain` live in `references/claude-code.md`.
+Write(".claude/chain/capabilities.json", { memory, timestamp })
+Read(".claude/chain/state.json")  # resume if exists
+Write(".claude/chain/verify-results.json", JSON.stringify({
+Bash(command=f"bash ${{CLAUDE_PLUGIN_ROOT}}/skills/verify/scripts/assert-evidence.sh {LOG} --task-id '{task.id or 'none'}'")
+A single green is not proof — flaky and order-dependent suites pass once and fail the next run. With `--streak=N`, verify declares **READY FOR MERGE only after N consecutive passing runs**, resetting the count to 0 on any non-ready verdict. The count persists across independent runs in `.claude/chain/verify-streak.json`, keyed by scope.
+```
 
 
 ### Grading Rubric
@@ -2252,6 +2275,16 @@ See [Report Template](report-template.md) for full format.
 ## Verdict
 **[READY FOR MERGE | IMPROVEMENTS RECOMMENDED | BLOCKED]**
 ```
+
+
+### Versions
+
+# verify version history
+
+**Version:** 4.7.0 (August 2026) — Phase 3 evidence gate became executable (#3263): tests redirect to a named log, `scripts/assert-evidence.sh` names one of five outcomes, and COULD-NOT-OBSERVE joined the manifest as a blocking state. A verdict skill can no longer end without a verdict: an empty run is a named failure, not silence
+**Version:** 4.6.0 (July 2026) — Added the Reachability Proof (REACHED vs UNREACHED): the manifest's second axis. Provenance grades who ran a claim; reachability grades whether the green means anything. A test the diff added that has never been seen to fail caps the verdict below READY FOR MERGE
+**Version:** 4.5.0 (July 2026) — Added the Verification Manifest (VERIFIED vs CLAIMED) — a load-bearing-claim provenance ledger that caps the verdict below READY FOR MERGE until unverified claims are re-run or waived
+**Version:** 4.4.0 (June 2026) — Added `--streak=N` consecutive-pass gate (#2540)
 
 
 ### Visual Capture

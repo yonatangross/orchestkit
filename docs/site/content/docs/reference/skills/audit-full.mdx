@@ -19,17 +19,17 @@ Single-pass whole-project analysis leveraging Opus 5's extended context window. 
 ## Quick Start
 
 ```bash
-/ork:audit-full                          # Full audit (all modes)
-/ork:audit-full security                 # Security-focused audit
-/ork:audit-full architecture             # Architecture review
-/ork:audit-full dependencies             # Dependency audit
+audit-full                          # Full audit (all modes)
+audit-full security                 # Security-focused audit
+audit-full architecture             # Architecture review
+audit-full dependencies             # Dependency audit
 ```
 
 > **Opus 5**: Uses `complexity: max` for extended thinking across entire codebases. 1M context (default and maximum on Opus 5) enables cross-file reasoning that chunked approaches miss. Effort defaults to `high`; bump to `xhigh` for one additional cross-file pattern sweep on the hardest codebases.
 
-> **1M Context Required:** If `CLAUDE_CODE_DISABLE_1M_CONTEXT` is set, audit-full cannot perform full-codebase analysis. Check: `echo $CLAUDE_CODE_DISABLE_1M_CONTEXT` — if non-empty, either unset it (`unset CLAUDE_CODE_DISABLE_1M_CONTEXT`) or use `/ork:verify` for chunked analysis instead.
+> **1M Context Required:** If `CLAUDE_CODE_DISABLE_1M_CONTEXT` is set, audit-full cannot perform full-codebase analysis. Check: `echo $CLAUDE_CODE_DISABLE_1M_CONTEXT` — if non-empty, either unset it (`unset CLAUDE_CODE_DISABLE_1M_CONTEXT`) or use `verify` for chunked analysis instead.
 
-> **Effort (CC 2.1.111+):** `xhigh` adds a second pass that re-reads cross-module boundaries specifically looking for patterns the first pass normalized over. The Opus tier has defaulted to `high` since CC 2.1.154 and reserves `xhigh` for the hardest codebases. Silently falls back to `high` on other models; `/ork:doctor` warns on mismatch.
+> **Effort (CC 2.1.111+):** `xhigh` adds a second pass that re-reads cross-module boundaries specifically looking for patterns the first pass normalized over. The Opus tier has defaulted to `high` since CC 2.1.154 and reserves `xhigh` for the hardest codebases. Silently falls back to `high` on other models; `doctor` warns on mismatch.
 
 > **Switching to Opus (CC 2.1.144+):** `/model` now affects the current session only — pick Opus for this audit without it persisting. Press `d` in the picker only if you want it as the default for new sessions too.
 
@@ -210,9 +210,9 @@ Full rule: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/chain-patterns/rules/push-notif
 |-----------|-------------|
 | Small targeted check (1-5 files) | Direct Read + analysis |
 | CI/CD automated scanning | `security-scanning` skill |
-| Multi-agent graded verification | `/ork:verify` |
-| Exploring unfamiliar codebase | `/ork:explore` |
-| Codebase > 125K LOC (exceeds 1M) | **stay here** — STEP 1 routes to the map-reduce tier (`workflows/audit-full-mapreduce.js`); `/ork:verify` only if you want multi-agent *graded* verification instead of an audit |
+| Multi-agent graded verification | `verify` |
+| Exploring unfamiliar codebase | `explore` |
+| Codebase > 125K LOC (exceeds 1M) | **stay here** — STEP 1 routes to the map-reduce tier (`workflows/audit-full-mapreduce.js`); `verify` only if you want multi-agent *graded* verification instead of an audit |
 
 ---
 

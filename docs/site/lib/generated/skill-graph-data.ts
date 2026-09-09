@@ -692,7 +692,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "category": "workflow",
     "hasDeps": false,
     "depCount": 0,
-    "usedByCount": 0
+    "usedByCount": 1
   },
   {
     "id": "paired-probe",
@@ -1031,7 +1031,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "complexity": "medium",
     "category": "workflow",
     "hasDeps": true,
-    "depCount": 5,
+    "depCount": 6,
     "usedByCount": 0
   },
   {
@@ -1548,5 +1548,9 @@ export const GRAPH_EDGES: SkillGraphEdge[] = [
   {
     "source": "visualize-plan",
     "target": "remember"
+  },
+  {
+    "source": "visualize-plan",
+    "target": "page-serve"
   }
 ];

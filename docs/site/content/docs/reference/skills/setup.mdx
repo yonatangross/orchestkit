@@ -28,11 +28,11 @@ Personalized onboarding that scans your codebase, detects your stack, recommends
 ## Quick Start
 
 ```bash
-/ork:setup              # Full 7-phase wizard
-/ork:setup --rescan     # Re-scan after changes (skip safety phase)
-/ork:setup --score-only # Just show readiness score
-/ork:setup --plan-only  # Just show improvement plan
-/ork:setup --configure  # Jump directly to Phase 3.5: project configuration wizard
+setup              # Full 7-phase wizard
+setup --rescan     # Re-scan after changes (skip safety phase)
+setup --score-only # Just show readiness score
+setup --plan-only  # Just show improvement plan
+setup --configure  # Jump directly to Phase 3.5: project configuration wizard
 ```
 
 ## Argument Resolution
@@ -126,7 +126,7 @@ Offers three install scopes: User-only (recommended, invisible to teammates), Pr
 
 Load details: `Read("references/configure-wizard.md")` for the full 6-step interactive configuration flow (branch strategy, commit scope, localhost browser, perf telemetry, log verbosity, webhook telemetry) and env var reference.
 
-> Also reachable directly via `/ork:setup --configure` — skips phases 1-3.
+> Also reachable directly via `setup --configure` — skips phases 1-3.
 
 ---
 
@@ -140,7 +140,7 @@ Check installed vs recommended MCPs by reading `.mcp.json` and `~/.claude/settin
 
 **CC 2.1.121+ tip (#1541):** for the universally-needed T2 trio (memory, context7, sequential-thinking), recommend setting `"alwaysLoad": true` in their `.mcp.json` entries. This skips per-skill `ToolSearch` probes and shaves ~150ms off cold starts. The key is silently ignored on older CC, so it's safe to add eagerly.
 
-**Plugin lifecycle cleanup (CC 2.1.121+, #1544):** mention `claude plugin uninstall &lt;name&gt; --prune` in the cleanup section — it cascades and removes auto-installed deps that became orphaned. Standalone `claude plugin prune` runs the same cleanup without uninstalling anything; `/ork:dream` runs it weekly.
+**Plugin lifecycle cleanup (CC 2.1.121+, #1544):** mention `claude plugin uninstall &lt;name&gt; --prune` in the cleanup section — it cascades and removes auto-installed deps that became orphaned. Standalone `claude plugin prune` runs the same cleanup without uninstalling anything; `dream` runs it weekly.
 
 ## Phase 6: Readiness Score
 
@@ -172,7 +172,7 @@ If CLAUDE.md > 200 lines and no `.claude/rules/` exist, recommend splitting. Sho
 
 ## Phase 9: Telemetry & Webhooks
 
-> Previously in `/ork:configure`. Now part of setup for single entry point.
+> Previously in `configure`. Now part of setup for single entry point.
 
 Load details: `Read("references/telemetry-setup.md")` for the full configuration flow.
 

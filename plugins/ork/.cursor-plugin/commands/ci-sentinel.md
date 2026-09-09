@@ -14,7 +14,7 @@ allowed-tools: [Bash, Read, Write, Edit, Grep, Glob]
 # Source: https://github.com/yonatangross/orchestkit
 
 
-# /ork:ci-sentinel — Daily autonomous CI classifier
+# ci-sentinel — Daily autonomous CI classifier
 
 Direct response to the 275-session insights audit (2026-05-16): 14 ci-debugging + 7 fix-ci-failures sessions in one month, most of them re-running the same 10-pattern classification you already encoded in `/ci-debug`. This skill makes the classifier autonomous.
 
@@ -180,14 +180,14 @@ Dollar cost: the workflow authenticates with a **Max-plan OAuth token**, so a sw
 ## Related Skills
 
 - **Upstream** — `/ci-debug` does the classification (sentinel is the trigger).
-- **Composes with** — `/ork:swarm-migrate` (after sentinel diagnoses, you might fix-and-swarm across repos), `/status` (sentinel doesn't replace org-wide sweeps).
+- **Composes with** — `swarm-migrate` (after sentinel diagnoses, you might fix-and-swarm across repos), `/status` (sentinel doesn't replace org-wide sweeps).
 - **Anti-pattern** — `/loop /ci-debug` in your own session is the manual analog; ship the sentinel and unplug from that.
 
 ## When to invoke this skill (not the cron)
 
-- **`/ork:ci-sentinel install`** — copy the workflow into a new repo + check secrets.
-- **`/ork:ci-sentinel status`** — read `.sentinel/ledger.jsonl` and summarize the last 24h.
-- **`/ork:ci-sentinel enable`** / **`disable`** — toggle the workflow's `on.schedule` block.
+- **`ci-sentinel install`** — copy the workflow into a new repo + check secrets.
+- **`ci-sentinel status`** — read `.sentinel/ledger.jsonl` and summarize the last 24h.
+- **`ci-sentinel enable`** / **`disable`** — toggle the workflow's `on.schedule` block.
 
 The daily cron run itself does **not** invoke this skill — the workflow calls `claude -p` against `/ci-debug` directly (headless mode — not `--bare`, which was dropped over the auth failure documented in "Why no --bare" above). This skill is for the human admin actions around the sentinel.
 

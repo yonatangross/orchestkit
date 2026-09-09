@@ -16,6 +16,8 @@ description: "Creates commits with Conventional Commits format (feat/fix/docs/re
 
 # Smart Commit
 
+Host-neutral workflow. Invoke by skill name (`commit`). Claude Code slash routing, YAML hook loaders, and `.claude/chain` live in `references/claude-code.md`.
+
 Simple, validated commit creation. Run checks locally, no agents needed for standard commits.
 
 > **Note:** If `disableSkillShellExecution` is enabled (CC 2.1.91), the git repository check won't run. This skill requires a git repository.
@@ -23,8 +25,8 @@ Simple, validated commit creation. Run checks locally, no agents needed for stan
 ## Quick Start
 
 ```bash
-/ork:commit
-/ork:commit fix typo in auth module
+commit
+commit fix typo in auth module
 ```
 
 ## Argument Resolution
@@ -41,9 +43,9 @@ Default is "new commit", but voice-flow needs explicit choice when amend / push 
 
 ```python
 # Skip when a flag in the invocation makes the mode unambiguous:
-#   /ork:commit --amend  → skip, mode=amend
-#   /ork:commit --push   → skip, mode=new+push
-#   /ork:commit --stash  → skip, mode=stash-first
+#   commit --amend  → skip, mode=amend
+#   commit --push   → skip, mode=new+push
+#   commit --stash  → skip, mode=stash-first
 #   ORK_COMMIT_DEFAULT_MODE=new (or amend|push|stash) → skip, use env value
 #
 # Otherwise, ask:
@@ -191,7 +193,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 
 ## Verification Gate
 
-Before committing, apply the 5-step gate: `Read("$\{CLAUDE_PLUGIN_ROOT\}/shared/rules/verification-gate.md")`. Run tests fresh. Read the output. Only commit if tests pass. "Should be fine" is not evidence.
+Before committing, apply the 5-step gate: `Read("../../shared/rules/verification-gate.md")`. Run tests fresh. Read the output. Only commit if tests pass. "Should be fine" is not evidence.
 
 ## Quality Bar
 
@@ -930,7 +932,29 @@ gh pr create --base feature/auth-service --title "feat(#100): Add login UI [3/3]
 
 ---
 
-## References (2)
+## References (3)
+
+### Claude Code
+
+# Claude Code adapter: commit
+
+Slash invoke: `/ork:commit`
+
+YAML `hooks:` / `command:` lines in this skill's frontmatter stay Claude-only.
+They use `$\{CLAUDE_PLUGIN_ROOT\}/hooks/bin/run-hook.mjs` and are ignored by pi.
+
+Session chain files live at `.claude/chain/` (state.json, decisions.json, capabilities.json).
+Other hosts should persist equivalent run state in their own session store.
+
+Agent spawn form, when used: `Agent(ork:...)` is Claude Code. Portable body text uses the skill name.
+
+Lines that still mention a Claude-only path in the body:
+
+```
+Host-neutral workflow. Invoke by skill name (`commit`). Claude Code slash routing, YAML hook loaders, and `.claude/chain` live in `references/claude-code.md`.
+Write(".claude/chain/committed.json", JSON.stringify({
+```
+
 
 ### Conventional Commits
 

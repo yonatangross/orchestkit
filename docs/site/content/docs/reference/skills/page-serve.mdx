@@ -14,7 +14,7 @@ description: "Hand a human a rendered HTML page at a stable HTTPS URL. Registers
 > **Page Serve** Hand a human a rendered HTML page at a stable HTTPS URL. Registers a portless route for a file or directory (https://NAME.localhost/, never a :port), prints the URL, optionally screenshots it through agent-browser, and tears it down on stop.
 
 
-# /ork:page-serve, give a human a URL
+# page-serve, give a human a URL
 
 An agent that renders a page for a human needs a way to hand it over. The pattern
 that grew in sessions was `python3 -m http.server 8991` plus `portless alias &lt;name&gt; 8991`
@@ -38,12 +38,12 @@ a stop, a status, and a loud failure when the URL contract cannot be met.
 ## Usage
 
 ```
-/ork:page-serve docs/playgrounds/roadmap-2026-09-07.html
-/ork:page-serve docs/playgrounds/ --name playgrounds
-/ork:page-serve <path> --screenshot          # agent-browser, returns the png path
-/ork:page-serve status [--json]
-/ork:page-serve stop <name>
-/ork:page-serve stop --all
+page-serve docs/playgrounds/roadmap-2026-09-07.html
+page-serve docs/playgrounds/ --name playgrounds
+page-serve <path> --screenshot          # agent-browser, returns the png path
+page-serve status [--json]
+page-serve stop <name>
+page-serve stop --all
 ```
 
 `serve.sh` prints `url=`, `name=`, `port=`, `pid=`, `http=`, optional `screenshot=`,
@@ -81,7 +81,7 @@ rendered correctly: read the image before claiming the page looks right
 
 ## What this is not
 
-- Not a dev server. For a framework app with hot reload use `/ork:dev`, which wraps
+- Not a dev server. For a framework app with hot reload use `dev`, which wraps
   the app's own dev command in portless. This skill serves static files.
 - Not a publisher. Nothing leaves the machine; `.localhost` resolves locally only.
 - Not a docs-site deploy. Lab pages under `docs/site/public/lab/` still ship through
@@ -90,14 +90,14 @@ rendered correctly: read the image before claiming the page looks right
 ## Retiring the old pattern (#3900)
 
 Any skill or page that tells an agent to run `python3 -m http.server` or to type
-`portless alias` by hand should say `/ork:page-serve &lt;path&gt;` instead. As of this
+`portless alias` by hand should say `page-serve &lt;path&gt;` instead. As of this
 skill's first release, `grep -rln 'http.server' src/skills` is empty; the pattern
 lived in session habits and in hq-ext, so the sweep is glyph, playground,
 visualize-plan and expect (the four that hand a human a page) plus hq-ext's glyph.
 
 ## Related skills
 
-- `/ork:dev`, the dev-loop sibling for framework apps (portless wrapping a dev command)
+- `dev`, the dev-loop sibling for framework apps (portless wrapping a dev command)
 - `portless` (the reference skill, model-invoked): service install, LAN mode, gotchas
-- `/ork:glyph`, `/ork:visualize-plan`, `playground`, the producers of pages this serves
-- `/ork:expect`, browser verification against the URL this prints
+- `glyph`, `visualize-plan`, `playground`, the producers of pages this serves
+- `expect`, browser verification against the URL this prints

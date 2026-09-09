@@ -2,6 +2,18 @@
   "$comment": "Allowlist for the Lab gallery (docs/showcase/lab). Only entries listed here are copied to public/lab/ and surfaced on the site. `source` is repo-root-relative. Title/description here OVERRIDE what generate-lab-data.mjs extracts from the HTML <head>. Run `node docs/site/scripts/generate-lab-data.mjs` after editing.",
   "entries": [
     {
+      "slug": "generic-harness-matrix",
+      "source": "docs/docs--generic-harness-matrix/capabilities.html",
+      "title": "Generic floor, native adapter per harness",
+      "description": "Decision surface for ork as a portable skill package plus optional per-harness extras. Three trees, a contamination count, STATE.mode radios, and a clickable capability matrix. Muse hooks are none. Cursor hooks are camelCase.",
+      "tags": [
+        "docs",
+        "engines",
+        "architecture"
+      ],
+      "date": "2026-09-09"
+    },
+    {
       "slug": "host-first-install-copy",
       "source": "docs/docs--host-first-install-wizard/host-copy.html",
       "title": "Host-first copy: six hosts, six commands",

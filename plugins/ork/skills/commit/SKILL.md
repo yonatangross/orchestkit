@@ -35,6 +35,8 @@ invocation_hooks:
 
 # Smart Commit
 
+Host-neutral workflow. Invoke by skill name (`commit`). Claude Code slash routing, YAML hook loaders, and `.claude/chain` live in `references/claude-code.md`.
+
 Simple, validated commit creation. Run checks locally, no agents needed for standard commits.
 
 > **Note:** If `disableSkillShellExecution` is enabled (CC 2.1.91), the git repository check won't run. This skill requires a git repository.
@@ -42,8 +44,8 @@ Simple, validated commit creation. Run checks locally, no agents needed for stan
 ## Quick Start
 
 ```bash
-/ork:commit
-/ork:commit fix typo in auth module
+commit
+commit fix typo in auth module
 ```
 
 ## Argument Resolution
@@ -60,9 +62,9 @@ Default is "new commit", but voice-flow needs explicit choice when amend / push 
 
 ```python
 # Skip when a flag in the invocation makes the mode unambiguous:
-#   /ork:commit --amend  → skip, mode=amend
-#   /ork:commit --push   → skip, mode=new+push
-#   /ork:commit --stash  → skip, mode=stash-first
+#   commit --amend  → skip, mode=amend
+#   commit --push   → skip, mode=new+push
+#   commit --stash  → skip, mode=stash-first
 #   ORK_COMMIT_DEFAULT_MODE=new (or amend|push|stash) → skip, use env value
 #
 # Otherwise, ask:
@@ -210,7 +212,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 
 ## Verification Gate
 
-Before committing, apply the 5-step gate: `Read("${CLAUDE_PLUGIN_ROOT}/shared/rules/verification-gate.md")`. Run tests fresh. Read the output. Only commit if tests pass. "Should be fine" is not evidence.
+Before committing, apply the 5-step gate: `Read("../../shared/rules/verification-gate.md")`. Run tests fresh. Read the output. Only commit if tests pass. "Should be fine" is not evidence.
 
 ## Quality Bar
 

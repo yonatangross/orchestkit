@@ -51,11 +51,11 @@ QUERY = "$ARGUMENTS[1]"       # Second token onward: search query or flags
 ## Usage
 
 ```bash
-/ork:memory search <query>  # Search knowledge graph
-/ork:memory load             # Load context at session start
-/ork:memory history          # View decision timeline
-/ork:memory viz              # Visualize knowledge graph
-/ork:memory status           # Show memory system health
+memory search <query>  # Search knowledge graph
+memory load             # Load context at session start
+memory history          # View decision timeline
+memory viz              # Visualize knowledge graph
+memory status           # Show memory system health
 ```
 
 ---
@@ -170,7 +170,7 @@ Load details: `Read("references/session-resume-patterns.md")` for CC 2.1.31 resu
 
 ## Error Handling
 
-- If graph empty for viz: Show helpful message about using /ork:remember
+- If graph empty for viz: Show helpful message about using remember
 - If subcommand invalid: Show usage help
 - If memory files corrupt: Report and offer repair
 - If search query empty: Show recent entities instead

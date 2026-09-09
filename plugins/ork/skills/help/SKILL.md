@@ -29,15 +29,15 @@ triggers:
 
 Dynamic skill discovery: enumerates the installed plugin at runtime so listings are never stale.
 
-> **CC 2.1.121+ tip:** if you just want to find one skill quickly, the native `/skills` command now has type-to-filter — open it and start typing the skill name. Use `/ork:help` when you want categorized browsing or rationale for *why* a skill applies.
+> **CC 2.1.121+ tip:** if you just want to find one skill quickly, the native `/skills` command now has type-to-filter — open it and start typing the skill name. Use `help` when you want categorized browsing or rationale for *why* a skill applies.
 
 ## Quick Start
 
 ```bash
-/ork:help           # Show all categories
-/ork:help build     # Show BUILD skills only
-/ork:help git       # Show GIT skills only
-/ork:help all       # List every user-invocable skill
+help           # Show all categories
+help build     # Show BUILD skills only
+help git       # Show GIT skills only
+help all       # List every user-invocable skill
 ```
 
 ## Argument Resolution
@@ -211,15 +211,15 @@ Not OrchestKit skills — these are Claude Code built-ins:
 You don't need to memorize skills. Just describe your task naturally:
 
 ```
-"I need to implement user login"     → /ork:implement
-"Show me the payment architecture"   → /ork:explore
-"Review PR 123"                      → /ork:review-pr
-"Is this code good?"                 → /ork:assess
-"Plan out the billing redesign"      → /ork:visualize-plan
+"I need to implement user login"     → implement
+"Show me the payment architecture"   → explore
+"Review PR 123"                      → review-pr
+"Is this code good?"                 → assess
+"Plan out the billing redesign"      → visualize-plan
 ```
 
 ## Related Skills
 
 - `/help` — Claude Code built-in help
-- `/ork:doctor` — OrchestKit health check
-- `/ork:setup` — Full onboarding wizard
+- `doctor` — OrchestKit health check
+- `setup` — Full onboarding wizard
