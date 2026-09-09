@@ -471,6 +471,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.11](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.10...v10.0.0-beta.11)** · 2026-09-08
+
+- **codex:** ship the ork-mech profile and the plugin cache-lag note (#4012)
+
 **[v10.0.0-beta.10](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.9...v10.0.0-beta.10)** · 2026-09-08
 
 - **cursor:** export rules to .cursor-plugin and rewrite wrapper paths at generation time (#4011)
@@ -509,11 +513,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **deps:** bump the remotion group across 1 directory with 21 updates (#3964)
 - bump anthropics/claude-code-action (#3968)
 - …and 1 more (see [CHANGELOG.md](CHANGELOG.md))
-
-**[v10.0.0-beta.3](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.2...v10.0.0-beta.3)** · 2026-09-07
-
-- **deps-dev:** bump @types/node (#3958)
-- **deps-dev:** bump the npm-minor-patch group in /src/hooks with 2 updates (#3957)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

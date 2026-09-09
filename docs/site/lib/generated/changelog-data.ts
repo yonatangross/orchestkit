@@ -17,6 +17,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.11",
+    "date": "2026-09-08",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**codex:** ship the ork-mech profile and the plugin cache-lag note ([#4012](https://github.com/yonatangross/orchestkit/issues/4012)) ([bcc122d](https://github.com/yonatangross/orchestkit/commit/bcc122d6dd2ae9caff29cbf16b941ee0f5095dc0))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.10",
     "date": "2026-09-08",
     "compareUrl": "",
