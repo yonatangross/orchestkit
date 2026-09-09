@@ -44,8 +44,8 @@ export const LAB_ENTRIES: LabEntry[] = [
   },
   {
     "slug": "community-kinetic-bento",
-    "title": "Community doors: mock chat out, kinetic mesh in",
-    "description": "Play the /community rewrite. The mocked WhatsApp thread and three underlined tiles become a cursor-warp Kinetic Grid plus glass bento doors.",
+    "title": "Community doors: kinetic mesh, live-room example",
+    "description": "Play the /community rewrite. Glass bento doors stay the join path. A quiet phone preview shows how the WhatsApp group looks as a room.",
     "tags": [
       "docs",
       "site",
@@ -54,7 +54,7 @@ export const LAB_ENTRIES: LabEntry[] = [
     "date": "2026-09-09",
     "featured": false,
     "caseStudy": null,
-    "sizeKb": 14
+    "sizeKb": 16
   },
   {
     "slug": "codex-mech-profile",

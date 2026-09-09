@@ -8,8 +8,8 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Community doors: mock chat out, kinetic mesh in</title>
-<meta name="description" content="Play the /community rewrite. The mocked WhatsApp thread and three underlined tiles become a cursor-warp Kinetic Grid plus glass bento doors.">
+<title>Community doors: kinetic mesh, live-room example</title>
+<meta name="description" content="Play the /community rewrite. Glass bento doors stay the join path. A quiet phone preview shows how the WhatsApp group looks as a room.">
 <style>
   :root {
     --pg-bg: hsl(20 14% 7%);
@@ -88,6 +88,14 @@
   .card h3 { margin: 7px 0 9px; font-size: 18px; letter-spacing: -.3px; }
   .card .row { display: flex; gap: 8px; font-size: 13px; color: hsl(215 16% 28%); margin-top: 6px; }
   .card .added { margin-top: 13px; padding-top: 12px; border-top: 1px dashed hsl(215 16% 88%); font-size: 11px; color: var(--pg-accent-deep); font-weight: 700; }
+  .room { width: 220px; border-radius: var(--pg-r-md); padding: 10px; background: var(--pg-glass); border: 1px solid var(--pg-line); backdrop-filter: blur(16px); animation: cardin var(--pg-dur-slow) var(--pg-ease) both; }
+  .room .rh { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .room .av { width: 28px; height: 28px; border-radius: 999px; display: grid; place-items: center; font-size: 11px; font-weight: 800; background: linear-gradient(145deg, var(--pg-accent), var(--pg-accent-deep)); color: hsl(160 40% 8%); }
+  .room .nm { font-size: 12px; font-weight: 650; }
+  .room .st { font-size: 10px; color: var(--pg-faint); }
+  .room .msg { max-width: 92%; padding: 6px 8px; border-radius: 10px; font-size: 11px; line-height: 1.4; margin-top: 6px; background: hsl(0 0% 100% / 0.06); border: 1px solid var(--pg-line); }
+  .room .msg .who { font-size: 9px; font-weight: 700; color: var(--pg-accent); margin-bottom: 2px; }
+  .room .msg.out { margin-inline-start: auto; background: hsl(160 50% 22%); border-color: transparent; }
   .placeholder { color: var(--pg-faint); font-size: 12px; max-width: 130px; text-align: center; }
   .promptbar { display: flex; align-items: center; gap: 14px; padding: 14px 16px; }
   .promptbar .pt { flex: 1; font-family: var(--pg-mono); font-size: 12px; line-height: 1.6; color: hsl(28 16% 80%); }
@@ -110,8 +118,8 @@
     <div class="logo">▶️</div>
     <div>
       <h1>Community doors</h1>
-      <p>Press <b>Play</b>. The mocked WhatsApp thread and three underlined tiles
-         become a kinetic mesh plus glass bento doors.</p>
+      <p>Press <b>Play</b>. The ugly WhatsApp chrome goes. Glass doors stay the
+         join path. A still of the live room sits with them.</p>
     </div>
     <div class="right"><button class="toggle" id="dirToggle" aria-pressed="false">⇄ RTL</button></div>
   </header>
@@ -143,19 +151,24 @@ const STORY = {
     { kind: "out", who: "", body: "Where did the background animation go?" },
     { kind: "bot", who: "Site", body: "Cosmic CSS dots were static. FlickeringGrid existed and was never wired." },
     { kind: "out", who: "", body: "Think 21st.dev. Those squares are ugly." },
-    { kind: "bot", who: "Ship", body: "Kinetic Grid warps to the cursor. Bento doors, no underline leak from ContentPage." },
+    { kind: "bot", who: "Ship", body: "Kinetic Grid. Glass doors. A still of the live room — people talking, not install copy." },
   ],
   cardAtStep: 6,
   card: {
     kind: "Shipped surface",
-    title: "Doors, not a chat",
+    title: "Doors, plus the room",
     rows: [
       "WhatsApp · live-room bento",
       "Discussions + Issues · rows",
-      "Mesh · kinetic warp + ripple",
-      "No mock. No /ork: in the copy.",
+      "Example of the live room · still",
+      "No mock labels. No install-script bubbles.",
     ],
   },
+  room: [
+    { who: "Yonatan", body: "Welcome in. This is the live room.", out: false },
+    { who: "Noa", body: "SessionStart ran twice. Anyone else?", out: false },
+    { who: "Lea", body: "The thread caught it before the PR.", out: true },
+  ],
 };
 
 const state = { step: 0, playing: false, rtl: false };
@@ -174,11 +187,17 @@ function render() {
   const shown = STORY.steps.slice(0, state.step + 1).map(bubble).join("");
   const reached = state.step >= STORY.cardAtStep;
   const c = STORY.card;
+  const room = (STORY.room || []).map((m) =>
+    `<div class="msg${m.out ? " out" : ""}"><div class="who">${esc(m.who)}</div>${esc(m.body)}</div>`
+  ).join("");
   const result = reached
-    ? `<div class="card"><div class="stripe"></div><div class="kind">${esc(c.kind)}</div>
+    ? `<div class="room"><div class="rh"><div class="av">OK</div>
+         <div><div class="nm">OrchestKit</div><div class="st">Example of the live room</div></div></div>
+         ${room}</div>
+       <div class="card"><div class="stripe"></div><div class="kind">${esc(c.kind)}</div>
          <h3>${esc(c.title)}</h3>${c.rows.map(r => `<div class="row">${esc(r)}</div>`).join("")}
          <div class="added">Shipped</div></div>`
-    : `<div class="placeholder">Play to see the doors it ships</div>`;
+    : `<div class="placeholder">Play to see the doors and the live-room still</div>`;
 
   stage.innerHTML = `
     <div class="phone"><div class="screen">
@@ -186,7 +205,7 @@ function render() {
         <div><div class="nm">${esc(STORY.appName)}</div><div class="st">${esc(STORY.appStatus)}</div></div></div>
       <div class="body" id="body">${shown}</div>
     </div></div>
-    <div class="arrow"><div class="ar">➜</div><div class="cap">mock out, kinetic in</div></div>
+      <div class="arrow"><div class="ar">➜</div><div class="cap">doors plus the room</div></div>
     ${result}`;
   const b = document.getElementById("body"); if (b) b.scrollTop = b.scrollHeight;
 
@@ -198,7 +217,7 @@ function render() {
 
 function updatePrompt() {
   document.getElementById("promptOut").innerHTML =
-    `Replace the /community WhatsApp mock with glass bento doors. Wire 21st.dev Kinetic Grid on HomeShell. Keep ContentPage underlines off the door links via a <b>hero</b> slot.`;
+    `Keep the /community glass bento doors. Add a still of the live WhatsApp room (people talking, group identity) in the hero slot. Caption: Example of the live room. No mock labels. No install-script bubbles.`;
 }
 
 function stop() { state.playing = false; clearTimeout(timer); document.getElementById("play").innerHTML = "▶ Play"; }
