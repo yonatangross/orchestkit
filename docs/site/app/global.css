@@ -322,6 +322,26 @@
   mask-image: radial-gradient(130% 100% at 50% 30%, black 30%, transparent 75%);
   -webkit-mask-image: radial-gradient(130% 100% at 50% 30%, black 30%, transparent 75%);
 }
+@media (prefers-reduced-motion: no-preference) {
+  .dark body::after {
+    animation:
+      cosmic-drift 36s linear infinite,
+      cosmic-twinkle 10s ease-in-out infinite alternate;
+  }
+}
+/* Kinetic Grid (21st.dev) replaces the CSS particle field on home routes. */
+.dark.has-kinetic-grid body::after {
+  opacity: 0;
+  animation: none;
+}
+@keyframes cosmic-drift {
+  from { background-position: 0 0; }
+  to { background-position: 24px 24px; }
+}
+@keyframes cosmic-twinkle {
+  from { opacity: 0.42; }
+  to { opacity: 0.78; }
+}
 /* Let the cosmic layer read through the docs shell in dark mode while
    prose stays on a near-opaque panel. */
 .dark #nd-docs-layout,

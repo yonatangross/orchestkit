@@ -15,12 +15,15 @@ export function ContentPage({
 	title,
 	path,
 	lead,
+	hero,
 	children,
 }: {
 	title: string;
 	path: string;
 	lead?: string;
-	children: ReactNode;
+	/** Surfaces that must not inherit the prose `a { underline }` rule. */
+	hero?: ReactNode;
+	children?: ReactNode;
 }) {
 	const url = `${SITE.domain}${path}`;
 	return (
@@ -48,9 +51,12 @@ export function ContentPage({
 					{lead}
 				</p>
 			) : null}
-			<div className="mt-8 [&_a]:text-fd-primary [&_a]:underline [&_a]:underline-offset-2 [&_code]:rounded [&_code]:bg-fd-muted [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[0.9em] [&_code]:text-fd-foreground [&_h2]:mt-10 [&_h2]:mb-3 [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:tracking-tight [&_h2]:text-fd-foreground [&_h3]:mt-6 [&_h3]:mb-2 [&_h3]:font-semibold [&_h3]:text-fd-foreground [&_li]:my-1.5 [&_li]:text-fd-muted-foreground [&_ol]:my-4 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:my-4 [&_p]:leading-7 [&_p]:text-fd-muted-foreground [&_table]:my-6 [&_table]:w-full [&_table]:text-sm [&_td]:border-fd-border [&_td]:border-b [&_td]:p-2 [&_td]:text-fd-muted-foreground [&_th]:border-fd-border [&_th]:border-b [&_th]:p-2 [&_th]:text-left [&_th]:font-semibold [&_th]:text-fd-foreground [&_ul]:my-4 [&_ul]:list-disc [&_ul]:pl-6">
-				{children}
-			</div>
+			{hero ? <div className="mt-8">{hero}</div> : null}
+			{children ? (
+				<div className="mt-8 [&_a]:text-fd-primary [&_a]:underline [&_a]:underline-offset-2 [&_code]:rounded [&_code]:bg-fd-muted [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[0.9em] [&_code]:text-fd-foreground [&_h2]:mt-10 [&_h2]:mb-3 [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:tracking-tight [&_h2]:text-fd-foreground [&_h3]:mt-6 [&_h3]:mb-2 [&_h3]:font-semibold [&_h3]:text-fd-foreground [&_li]:my-1.5 [&_li]:text-fd-muted-foreground [&_ol]:my-4 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:my-4 [&_p]:leading-7 [&_p]:text-fd-muted-foreground [&_table]:my-6 [&_table]:w-full [&_table]:text-sm [&_td]:border-fd-border [&_td]:border-b [&_td]:p-2 [&_td]:text-fd-muted-foreground [&_th]:border-fd-border [&_th]:border-b [&_th]:p-2 [&_th]:text-left [&_th]:font-semibold [&_th]:text-fd-foreground [&_ul]:my-4 [&_ul]:list-disc [&_ul]:pl-6">
+					{children}
+				</div>
+			) : null}
 		</main>
 	);
 }
