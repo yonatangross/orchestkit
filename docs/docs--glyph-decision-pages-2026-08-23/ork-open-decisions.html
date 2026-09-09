@@ -232,7 +232,7 @@
 <script>
 /* Answer bar: collects every .decision block into one fixed-width key: value
    summary, keeps Copy disabled until every block has a pick, and falls back to
-   select-and-Cmd+C when the clipboard API is denied. Plain text on purpose:
+   select-and-copy when the clipboard API is denied. Plain text on purpose:
    it is meant to be pasted back into chat and parsed by the agent. */
 (function(){
   var bar = document.querySelector('[data-answerbar]'); if(!bar) return;
@@ -265,7 +265,7 @@
     var fallback = function(){
       var range = document.createRange(); range.selectNodeContents(sum);
       var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
-      note.textContent = 'selected: press Cmd+C (or Ctrl+C)';
+      note.textContent = 'selected, copy it';
     };
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done, fallback);
     else fallback();

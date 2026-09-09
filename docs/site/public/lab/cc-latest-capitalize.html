@@ -405,7 +405,7 @@
     var fallback = function(){
       var range = document.createRange(); range.selectNodeContents(sum);
       var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
-      note.textContent = 'selected: press Cmd+C (or Ctrl+C)';
+      note.textContent = 'selected, copy it';
     };
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done, fallback);
     else fallback();
