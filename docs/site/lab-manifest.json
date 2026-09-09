@@ -2,6 +2,18 @@
   "$comment": "Allowlist for the Lab gallery (docs/showcase/lab). Only entries listed here are copied to public/lab/ and surfaced on the site. `source` is repo-root-relative. Title/description here OVERRIDE what generate-lab-data.mjs extracts from the HTML <head>. Run `node docs/site/scripts/generate-lab-data.mjs` after editing.",
   "entries": [
     {
+      "slug": "community-kinetic-bento",
+      "source": "docs/fix--community-bg-flicker/community-doors.html",
+      "title": "Community doors: mock chat out, kinetic mesh in",
+      "description": "Play the /community rewrite. The mocked WhatsApp thread and three underlined tiles become a cursor-warp Kinetic Grid plus glass bento doors.",
+      "tags": [
+        "docs",
+        "site",
+        "community"
+      ],
+      "date": "2026-09-09"
+    },
+    {
       "slug": "generic-harness-matrix",
       "source": "docs/docs--generic-harness-matrix/capabilities.html",
       "title": "Generic floor, native adapter per harness",

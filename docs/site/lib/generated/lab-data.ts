@@ -43,6 +43,20 @@ export const LAB_ENTRIES: LabEntry[] = [
     "sizeKb": 44
   },
   {
+    "slug": "community-kinetic-bento",
+    "title": "Community doors: mock chat out, kinetic mesh in",
+    "description": "Play the /community rewrite. The mocked WhatsApp thread and three underlined tiles become a cursor-warp Kinetic Grid plus glass bento doors.",
+    "tags": [
+      "docs",
+      "site",
+      "community"
+    ],
+    "date": "2026-09-09",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 14
+  },
+  {
     "slug": "codex-mech-profile",
     "title": "The Codex mech profile: which file codex actually reads",
     "description": "Put the ork-mech profile in three places and read codex 0.153.4's own answer: a hard config-load error for the legacy [profiles.*] table, a silent base-config run for a name that does not exist, and the measured header for the shipped file. Plus the worktree writable-roots line with and without --add-dir.",
