@@ -11,6 +11,7 @@ import {
 import { notFound } from "next/navigation";
 import defaultMdxComponents from "fumadocs-ui/mdx";
 import { SITE } from "@/lib/constants";
+import { docsHtmlCanonical } from "@/lib/docs-canonical";
 import {
   breadcrumbNode,
   organizationNode,
@@ -20,6 +21,7 @@ import {
 import { LazyContextualSkillSidebar } from "@/components/lazy/contextual-skill-sidebar";
 import { LazySkillDependencyGraph } from "@/components/lazy/skill-dep-graph";
 import { LazySkillRecommender } from "@/components/lazy/skill-recommender";
+import { HostMark, HOST_PAGE_ICONS } from "@/components/host-marks";
 import { GeorgeDivider } from "@/components/world/george";
 import { SkillDossier } from "@/components/world/skill-dossier";
 import { SkillFlow } from "@/components/world/skill-flow";
@@ -61,6 +63,7 @@ export default async function Page(props: {
     page.data.lastModified instanceof Date
       ? page.data.lastModified
       : undefined;
+  const hostIcon = HOST_PAGE_ICONS[page.url];
   // Restore Fumadocs' built-in prev/next footer nav: the flux DocsPage `footer`
   // does NOT auto-derive neighbours — they must be passed explicitly. The old
   // `footer={{ children }}` override silently dropped prev/next site-wide.
@@ -148,7 +151,16 @@ export default async function Page(props: {
             </span>
           </div>
         ) : null}
-        <DocsTitle>{page.data.title}</DocsTitle>
+        <DocsTitle>
+          {hostIcon ? (
+            <span className="inline-flex items-center gap-2.5">
+              <HostMark host={hostIcon} className="size-6 shrink-0" />
+              {page.data.title}
+            </span>
+          ) : (
+            page.data.title
+          )}
+        </DocsTitle>
         {/* Skill pages: the dossier below is the description's single home. */}
         {skillSlug ? null : (
           <DocsDescription>{page.data.description}</DocsDescription>
@@ -184,7 +196,7 @@ export async function generateMetadata(props: {
   if (!page) notFound();
 
   const slugPath = params.slug?.join("/") ?? "";
-  const url = `${SITE.domain}/docs/${slugPath}`;
+  const url = docsHtmlCanonical(params.slug ?? []);
   // The Markdown twin of THIS page. Every /docs/* path has one: mdTarget() in
   // middleware.ts rewrites `/docs/<slug>.md` to /api/md/<slug>, and the docs
   // index (`/docs`, empty slug) to /api/md. Built from slugPath rather than

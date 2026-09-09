@@ -66,7 +66,7 @@ describe("ride crawler visibility", () => {
   });
 
   it("keeps load-bearing hero copy in the first stop", () => {
-    const page = read("app/(home)/page.tsx");
+    const page = read("components/world/factory-ride-story.tsx");
     const heroStart = page.indexOf("hero={");
     const cardsStart = page.indexOf("cards={");
     expect(heroStart).toBeGreaterThan(-1);

@@ -20,6 +20,10 @@
 import { SITE } from "@/lib/constants";
 import { DOCS_SEARCH_INDEX } from "@/lib/generated/docs-search-index";
 import {
+	hostAliasBonus,
+	passesShortQueryInfix,
+} from "@/lib/host-aliases";
+import {
 	DOC_TYPE_WEIGHT,
 	docTypeForUrl,
 	titleMatchBonus,
@@ -40,7 +44,8 @@ const SYNONYM_FACTOR = 0.5;
 const FUZZY_FACTOR = 0.6;
 
 /** Score one term against a text: substring hit at full weight, otherwise a
- * fuzzy (distance ≤ 1, prefix-aware) word hit at reduced weight. */
+ * fuzzy (distance ≤ 1, prefix-aware) word hit at reduced weight. Terms shorter
+ * than 4 characters only match whole words (Algolia: no mid-word infix). */
 function termScore(
 	term: string,
 	text: string,
@@ -48,8 +53,11 @@ function termScore(
 	weight: number,
 	fuzzy: boolean,
 ): number {
+	if (term.length < 4) {
+		return textWords.includes(term) ? weight : 0;
+	}
 	if (text.includes(term)) return weight;
-	if (!fuzzy || term.length < 4) return 0;
+	if (!fuzzy) return 0;
 	for (const word of textWords) {
 		if (osaDistance(term, word, 2) <= 1) return weight * FUZZY_FACTOR;
 		// "worktee" ~ "worktreecreate": compare against the word's prefix.
@@ -90,12 +98,20 @@ export function searchDocs(query: string, max = 10): DocHit[] {
 				termScore(term, desc, descWords, DESCRIPTION_BOOST, false) *
 				SYNONYM_FACTOR;
 		}
-		if (score <= 0) continue;
+		const alias = hostAliasBonus(query, page.url);
+		if (score <= 0 && alias === 0) continue;
+		if (
+			score > 0 &&
+			alias === 0 &&
+			!passesShortQueryInfix(query, page.title, page.url)
+		) {
+			continue;
+		}
 
-		// Doc-type weighting, then the exact-title floor on top.
 		score =
 			score * DOC_TYPE_WEIGHT[docTypeForUrl(page.url)] +
-			titleMatchBonus(query, page.title);
+			titleMatchBonus(query, page.title) +
+			alias;
 
 		scored.push({
 			id: page.url,

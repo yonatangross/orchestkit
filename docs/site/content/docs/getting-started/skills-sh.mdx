@@ -1,0 +1,55 @@
+---
+title: skills.sh (Pi, OpenCode, and other clients)
+description: Install OrchestKit skills into Pi, OpenCode, or any skills.sh client. Starter 12, not the whole catalog. Muse Code has its own page.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Card, Cards } from 'fumadocs-ui/components/card';
+import { HostHeading } from '@/components/host-marks';
+import { HostInstall } from '@/components/host-install';
+import { InstallSnippet } from '@/components/install-snippet';
+import { SKILLS_SH_STARTER } from '@/lib/host-installs';
+
+Use skills.sh when the host is not Claude Code, Cursor's `ork` marketplace plugin, Codex's `ork-codex` pack, Pi's shipped `pi` manifest, or [Muse Code](/docs/getting-started/muse). That includes **OpenCode** and other skills.sh clients.
+
+## Starter 12
+
+Click the chip. That copies the starter. Do not install the whole catalog on day one.
+
+<InstallSnippet text={SKILLS_SH_STARTER} host="skills-sh" />
+
+The skill named `implement` is the implement workflow (`/ork:implement` in Claude Code). There is no `ork-implement` on the Claude plugin; Codex uses `$ork-implement` after the [Codex pack](/docs/getting-started/codex) is installed.
+
+Full catalog: `npx skills add yonatangross/orchestkit`. That pulls every SKILL.md the indexer found (hundreds of files). Do not treat that as unique users, and do not install the whole firehose on day one.
+
+The implement workflow on the registry: [`implement`](https://www.skills.sh/yonatangross/orchestkit/implement).
+
+<HostHeading host="pi" id="pi">Pi</HostHeading>
+
+Pi's shipped path is `pi install git:github.com/yonatangross/orchestkit` ([engine guide](/docs/guides/orchestkit-on-pi-codex-cursor)). That is not an `ork-pi` pack. skills.sh below is the fallback if you only want the starter 12 as SKILL.md files.
+
+<HostInstall host="pi" />
+
+`${CLAUDE_PLUGIN_ROOT}` still arrives as literal text in skill bodies Pi loads. Relative same-skill paths are the portable form.
+
+<HostHeading host="muse" id="muse">Muse</HostHeading>
+
+**Muse Code** (Meta) has its own page: [Muse Code](/docs/getting-started/muse). Same skills.sh starter, loaded from `.agents/skills`. No `ork-muse` pack.
+
+<HostInstall host="muse" />
+
+<HostHeading host="opencode" id="opencode">OpenCode</HostHeading>
+
+OpenCode is the same path: skills.sh starter 12, not a separate marketplace plugin.
+
+<HostInstall host="opencode" />
+
+<Callout type="info">
+Claude Code users should install [ork](/docs/getting-started/claude-code). Cursor users should enable **ork** from the marketplace ([Cursor](/docs/getting-started/cursor)). Codex users should install [ork-codex](/docs/getting-started/codex). skills.sh is the remainder.
+</Callout>
+
+<Cards>
+  <Card title="Hosts" href="/docs/getting-started/hosts" description="Full host matrix" />
+  <Card title="Codex" href="/docs/getting-started/codex" description="Native ork-codex pack" />
+  <Card title="Configuration" href="/docs/getting-started/configuration" description="/ork:setup after skills land" />
+</Cards>

@@ -4,6 +4,7 @@
 import { COUNTS, PAGE_SUMMARY, SITE } from "@/lib/constants";
 import { readDocBody } from "@/lib/docs-content";
 import { MARKDOWN_VARY, withFrontmatter } from "@/lib/md-frontmatter";
+import { docsHtmlCanonical } from "@/lib/docs-canonical";
 import { source } from "@/lib/source";
 
 // Markdown-for-Agents target. middleware.ts rewrites requests carrying
@@ -83,7 +84,7 @@ export async function GET(
 		{
 			title: page.data.title,
 			...(page.data.description ? { description: page.data.description } : {}),
-			canonical: `${SITE.domain}/docs/${page.slugs.join("/")}`,
+			canonical: docsHtmlCanonical(page.slugs),
 		},
 		`# ${page.data.title}\n\n${page.data.description ?? ""}\n\n${body ?? ""}\n`,
 	);

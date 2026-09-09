@@ -92,7 +92,7 @@ describe("Markdown alternate is advertised only where a twin exists", () => {
 
 	it("every marketing page keeps its own alternates, so none inherits the link", () => {
 		// Next merges metadata shallowly per top-level key: a page that declares
-		// `alternates` replaces the layout's object entirely. These 13 pages have
+		// `alternates` replaces the layout's object entirely. These marketing pages have
 		// no Markdown twin in mdTarget(), so that replacement is the only thing
 		// keeping a false rel="alternate" off them.
 		const pages = [
@@ -102,8 +102,10 @@ describe("Markdown alternate is advertised only where a twin exists", () => {
 			"best-claude-code-plugins",
 			"claude-agent-sdk-vs-claude-code-plugins",
 			"compare",
+			"changelog",
 			"contact",
 			"developers",
+			"factory-ride",
 			"pricing",
 			"privacy",
 			"status",

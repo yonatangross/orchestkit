@@ -56,15 +56,15 @@ for (const line of lines) {
   //   Keep a Changelog: ## [6.0.16] - 2026-02-16
   //   Release-please:   ## [7.16.0](https://...) (2026-03-20)
   const versionMatch = line.match(
-    /^## \[([^\]]+)\](?:\([^)]*\))?\s*[-–—]?\s*\(?(\d{4}-\d{2}-\d{2})\)?/
+    /^## \[([^\]]+)\](?:\(([^)]*)\))?\s*[-–—]?\s*\(?(\d{4}-\d{2}-\d{2})\)?/
   );
   if (versionMatch) {
     if (current) entries.push(current);
     const version = versionMatch[1];
     current = {
       version,
-      date: versionMatch[2],
-      compareUrl: linkRefs[version] || "",
+      date: versionMatch[3],
+      compareUrl: versionMatch[2] || linkRefs[version] || "",
       sections: [],
     };
     currentSection = null;
@@ -77,7 +77,11 @@ for (const line of lines) {
     const rawType = sectionMatch[1].toLowerCase().trim();
     const type = SECTION_ALIASES[rawType] || rawType;
     if (SECTION_TYPES.has(type)) {
-      currentSection = { type, items: [] };
+      currentSection = {
+        type,
+        heading: sectionMatch[1].trim(),
+        items: [],
+      };
       current.sections.push(currentSection);
     } else {
       currentSection = null;
@@ -110,6 +114,7 @@ export type SectionType = "added" | "fixed" | "changed" | "removed" | "deprecate
 
 export interface ChangelogSection {
   type: SectionType;
+  heading: string;
   items: string[];
 }
 

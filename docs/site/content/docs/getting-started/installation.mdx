@@ -1,199 +1,43 @@
 ---
 title: Installation
-description: Install OrchestKit in Claude Code, Cursor, or any agent via skills.sh.
+description: "Install OrchestKit. Pick a host: Claude Code, Cursor, Codex, Pi, Muse, or skills.sh for OpenCode and other clients."
 ---
 
 import { Card, Cards } from 'fumadocs-ui/components/card';
 import { Callout } from 'fumadocs-ui/components/callout';
 import { LazySetupWizard } from '@/components/lazy';
-import { Count, MinCC } from '@/components/count';
+import { Count } from '@/components/count';
+import { HostMark } from '@/components/host-marks';
+import { HostInstallGrid } from '@/components/host-install';
 
-## Choose a host
+Pick the host you actually use. Claude Code is the full plugin (<Count k="skills" /> skills, <Count k="agents" /> agents, <Count k="hooks" /> hooks). Cursor gets the same `ork` plugin minus Claude hook scripts. Codex gets the portable `ork-codex` pack. Muse Code (Meta) loads skills from `.agents/skills`. Pi installs via the shipped `pi` manifest. OpenCode and other Agent Skills clients start with 12 skills on skills.sh.
 
-| Host | What you get | Command |
-|---|---|---|
-| **Claude Code** (full plugin) | <Count k="skills" /> skills, <Count k="agents" /> agents, <Count k="hooks" /> hooks | `claude install orchestkit/ork` |
-| **Cursor** | Same `ork` plugin minus Claude hook scripts | Marketplace `yonatangross/orchestkit` → enable **ork** → new chat |
-| **Codex** | Six workflow skills plus context7 (`ork-codex`) | `codex plugin add ork-codex@orchestkit-codex` after adding the marketplace |
-| **pi** | Skills via the shipped `pi` manifest | `pi install git:github.com/yonatangross/orchestkit`, see [the engine guide](/docs/guides/orchestkit-on-pi-codex-cursor) |
-| **skills.sh** | Skills only. Start with 12, not the whole catalog | see below |
+Click a chip. That copies the install. Cursor is a marketplace slug, not a fake CLI.
 
-Coming from Superpowers (official Anthropic marketplace)? They are complementary — [OrchestKit vs Superpowers](/docs/getting-started/superpowers).
+<HostInstallGrid />
 
-## From Claude Code Marketplace (Recommended)
+<Cards>
+  <Card title="Claude Code" description="claude install orchestkit/ork, then /ork:setup and /ork:doctor." href="/docs/getting-started/claude-code" icon={<HostMark host="claude" />} />
+  <Card title="Cursor" description="Marketplace yonatangross/orchestkit. Enable ork. Open a new chat." href="/docs/getting-started/cursor" icon={<HostMark host="cursor" />} />
+  <Card title="Codex" description="codex plugin add ork-codex@orchestkit-codex. Then $ork-implement." href="/docs/getting-started/codex" icon={<HostMark host="codex" />} />
+  <Card title="Muse Code" description="Meta's terminal agent. skills.sh into .agents/skills. No ork-muse pack yet." href="/docs/getting-started/muse" icon={<HostMark host="muse" />} />
+  <Card title="skills.sh" description="OpenCode and other clients. Starter 12, not the firehose. Pi has its own install." href="/docs/getting-started/skills-sh" icon={<HostMark host="pi" />} />
+</Cards>
 
-```bash
-claude install orchestkit/ork
-```
+See the [host matrix](/docs/getting-started/hosts) if you are unsure which row you are on. Measured engine notes (pi, Codex, Cursor) live in [OrchestKit on pi, Codex and Cursor](/docs/guides/orchestkit-on-pi-codex-cursor).
 
-This installs all <Count k="skills" /> skills, <Count k="agents" /> agents, and <Count k="hooks" /> hooks.
+Coming from Superpowers (official Anthropic marketplace)? Complementary. [OrchestKit vs Superpowers](/docs/getting-started/superpowers).
 
-Slash-command equivalent:
+## After you install
 
-```bash
-/plugin marketplace add yonatangross/orchestkit
-/plugin install ork
-```
+Then run `/ork:setup`. That is the in-bot wizard (scan, skills, MCP, project knobs). The browser picker below copies a host install command. It is not `/ork:setup --configure`.
 
-## Cursor
+Project settings (protected branches, commit scope, localhost browser, log level, optional webhook) are documented in [Configuration](/docs/getting-started/configuration#project-settings-wizard).
 
-Add the GitHub repo as a Cursor marketplace (`yonatangross/orchestkit`), enable **ork**, then open a **new** chat. That is the same plugin Claude Code installs, not a five-skill fork. Claude hook scripts are not registered in Cursor (`CLAUDE_PLUGIN_ROOT`).
-
-## Codex
-
-```bash
-codex plugin marketplace add yonatangross/orchestkit --ref main --sparse .agents/plugins --sparse plugins/ork-codex
-codex plugin add ork-codex@orchestkit-codex
-```
-
-That installs the six-skill `ork-codex` pack plus context7. For unattended
-mechanical runs, add the shipped profile:
-
-```bash
-plugins/ork-codex/scripts/install-codex-profile.sh ~/.codex
-codex exec --profile ork-mech "<task>" </dev/null
-```
-
-<Callout type="warn">
-`ref main` is a cached snapshot, not a tracker. On the 2026-09-08 audit machine
-`codex plugin list` reported `10.0.0-beta.5` while main was three releases ahead.
-Run `codex plugin update` after an OrchestKit release, then compare
-`codex plugin list | grep ork-codex` against
-`jq -r .version plugins/ork-codex/.codex-plugin/plugin.json`.
-</Callout>
-
-The profile is a file at `~/.codex/ork-mech.config.toml`, never a
-`[profiles.ork-mech]` table inside `config.toml`; codex rejects `--profile` while
-that legacy table exists. Inside a git worktree add
-`--add-dir "$(git rev-parse --path-format=absolute --git-common-dir)"` or the
-first commit fails on `index.lock`. Details and the measurements are in
-[the engine guide](/docs/guides/orchestkit-on-pi-codex-cursor).
-
-## skills.sh starter (any agent)
-
-```bash
-npx skills add yonatangross/orchestkit -s doctor -s setup -s explore -s implement -s verify -s review-pr -s commit -s expect -s assess -s brainstorm -s create-pr -s remember
-```
-
-The implement workflow is [`implement`](https://www.skills.sh/yonatangross/orchestkit/implement). Codex's portable pack uses `$ork-implement` after `codex plugin add ork-codex@orchestkit-codex`. `npx skills add yonatangross/orchestkit` with no `-s` pulls every SKILL.md the indexer found — hundreds of files, not unique users.
-
-## Interactive Setup
+## Interactive install picker
 
 <LazySetupWizard />
 
-## Verify Installation
-
-Run the health check after installing:
-
-```
-/ork:doctor
-```
-
-A healthy report shows the **installed** plugin version (not a docs pin) and loaded counts matching <Count k="skills" /> skills, <Count k="agents" /> agents, and <Count k="hooks" /> hooks:
-
-```
-OrchestKit Health Check
-=======================
-Plugin:     ork <version from `claude plugins`>
-Skills:     loaded (commands + reference)
-Agents:     registered
-Hooks:      active (global / agent / skill-scoped)
-Memory:     Graph ✓  Local ✓  CC Native ✓
-MCP:        context7 ✓  memory ✓  tavily ○
-
-Status: Healthy
-```
-
-`○` means optional and not configured. `✓` means active. `✗` means enabled but misconfigured.
-
-### If You See Errors
-
-| Status | Meaning | Fix |
-|---|---|---|
-| `✗ Memory: Graph ✗` | MCP memory server not responding | Check Node.js >= 18 is installed, restart Claude Code |
-| `✗ Hooks: 0 active` | Hook compilation failed | Run `node --version` (must be >= 18). If OK, reinstall: `claude uninstall ork && claude install orchestkit/ork` |
-| `✗ Skills: 0 loaded` | Plugin not found by Claude Code | Check `claude plugins` shows `ork`. Try closing and reopening Claude Code |
-| `○ tavily ○` | **Not an error** — Tavily is optional | See setup below if you want web research |
-
 <Callout type="info">
-Most issues are fixed by ensuring Node.js >= 18 is installed and restarting Claude Code. If problems persist, run `/ork:doctor --verbose` for detailed diagnostics.
+Claude Code users: after the command lands, `/ork:doctor` is the health check. Other hosts skip Claude-only hook diagnostics.
 </Callout>
-
-## Required: context7 MCP
-
-OrchestKit installs cleanly without it and `/ork:doctor` reports Healthy either way.
-But 22 of the <Count k="agents" /> agents grant `mcp__context7__*` in their frontmatter, and the plugin
-ships no server definition for it: `.mcp.json` is user-owned and project-scoped, so the
-grant refers to a server you supply. Without it, those agents answer from training data
-instead of current library docs, with no error to tell you so.
-
-Add it once, project-scoped in `.mcp.json` or user-scoped in `~/.claude.json`:
-
-```json
-{
-  "mcpServers": {
-    "context7": {
-      "type": "http",
-      "url": "https://mcp.context7.com/mcp"
-    }
-  }
-}
-```
-
-That hosted HTTP entry is the whole free tier: 1,000 requests, public repositories, no
-account. A Context7 Pro subscription ($10 per seat per month) raises it to 5,000
-requests per seat and adds private repo parsing. To use a Pro key, add
-`"headers": { "Authorization": "Bearer ${CONTEXT7_API_KEY}" }` to the entry and export
-`CONTEXT7_API_KEY` (keys start with `ctx7sk-`).
-
-<Callout type="warn">
-A connected context7 is not proof that your key is in use. The server answers
-`tools/list` with HTTP 200 for every auth state, including an unset variable that
-arrives as the literal `${CONTEXT7_API_KEY}`. Only a real query discriminates: a bad key
-returns `Invalid API key. Please check your API key. API keys should start with 'ctx7sk' prefix.`
-Do not add the header until the variable is actually exported: with the variable unset,
-the literal is sent as the token and **every** query fails. It does not fall back to the
-anonymous free tier. The keyless entry above does work as the free tier, so the header
-plus the `export` line ship together or neither ships.
-</Callout>
-
-The stdio transport (`npx -y @upstash/context7-mcp`) still works and is the fallback for
-proxied or air-gapped networks, but it spawns one child process per Claude Code session.
-Details are in the [MCP Servers guide](/docs/foundations/mcp-servers#prerequisite-context7).
-
-## Optional: Web Research (Tavily)
-
-OrchestKit works out of the box with all 3 memory tiers (Graph, Local, CC Native). For enhanced web research, enable the Tavily MCP:
-
-**1. Get a free API key** at [app.tavily.com](https://app.tavily.com) (1,000 credits/month free)
-
-**2. Set the key** in your shell profile (`~/.zshrc` or `~/.bashrc`):
-
-```bash
-export TAVILY_API_KEY="tvly-your-key-here"
-```
-
-**3. Enable the MCP** in `.mcp.json`:
-
-```json
-"tavily": {
-  "command": "sh",
-  "args": ["-c", "TAVILY_API_KEY=${TAVILY_API_KEY} exec npx -y tavily-mcp@latest"],
-  "disabled": false
-}
-```
-
-Without Tavily, web research falls back to WebFetch → agent-browser automatically.
-
-## Requirements
-
-- **Claude Code** >= <MinCC />
-- **Node.js** >= 18 (for hooks)
-- **Git** (for commit/PR workflows)
-
-## Next Steps
-
-<Cards>
-  <Card title="First 10 Minutes" href="/docs/getting-started/first-10-minutes" description="Guided walkthrough of your first session" />
-  <Card title="Configuration" href="/docs/getting-started/configuration" description="Full environment setup" />
-</Cards>

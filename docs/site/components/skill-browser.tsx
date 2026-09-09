@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { Search, X, ChevronRight, ExternalLink, SearchX } from "lucide-react";
 import type { SkillMeta } from "@/lib/generated/types";
 import { SKILLS } from "@/lib/generated/skills-data";
@@ -239,9 +239,22 @@ export function SkillBrowser() {
   // Per-category facet counts. Stable under an active category filter: the
   // orama-browser sources these from a query that excludes the category field
   // from `where`, so selecting one pill doesn't collapse the others' counts.
+  const fallbackCount = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const entry of ALL_SKILLS) {
+      counts.set(entry.category, (counts.get(entry.category) ?? 0) + 1);
+    }
+    return counts;
+  }, []);
+
   const countOf = useCallback(
-    (cat: string) => result.facets.find((f) => f.value === cat)?.count ?? 0,
-    [result.facets],
+    (cat: string) => {
+      const fromOrama = result.facets.find((f) => f.value === cat);
+      if (fromOrama) return fromOrama.count;
+      if (result.facets.length === 0) return fallbackCount.get(cat) ?? 0;
+      return 0;
+    },
+    [result.facets, fallbackCount],
   );
 
   const toggleCategory = useCallback((cat: string) => {

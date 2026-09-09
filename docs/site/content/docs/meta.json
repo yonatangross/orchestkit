@@ -16,8 +16,9 @@
     "cookbook",
     "---[Sparkles]Showcase---",
     "showcase",
+    "---[ScrollText]Release---",
+    "changelog",
     "---[LifeBuoy]Help---",
-    "troubleshooting",
-    "changelog"
+    "troubleshooting"
   ]
 }

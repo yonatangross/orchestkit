@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 
 // Mock next/link
 vi.mock("next/link", () => ({
@@ -11,12 +11,45 @@ vi.mock("lucide-react", () => ({
   ArrowRight: () => <span data-testid="arrow" />,
   BadgeCheck: () => <span data-testid="badge-check" />,
   Ban: () => <span data-testid="ban" />,
+  Check: () => <span data-testid="check" />,
   ChevronDown: () => <span data-testid="chevron-down" />,
+  Copy: () => <span data-testid="copy" />,
+  Search: () => <span data-testid="search" />,
+  X: () => <span data-testid="x" />,
 }));
 
 // Mock internal components
-vi.mock("..//app/(home)/copy-button", () => ({
-  CopyInstallButton: () => <button>Copy</button>,
+vi.mock("../components/library-catalog", () => ({
+  LibraryCatalog: () => (
+    <section>
+      <h2 id="library-heading">The library</h2>
+    </section>
+  ),
+}));
+
+vi.mock("../components/home-search-trigger", () => ({
+  HomeSearchTrigger: () => (
+    <button type="button">Search skills, agents, hooks, docs…</button>
+  ),
+}));
+
+vi.mock("../components/whats-new-strip", () => ({
+  WhatsNewStrip: () => (
+    <section>
+      <h2 id="whats-new-heading">What&apos;s new</h2>
+    </section>
+  ),
+}));
+
+vi.mock("../lib/generated/changelog-data", () => ({
+  CHANGELOG_ENTRIES: [
+    {
+      version: "9.0.0",
+      date: "2026-01-01",
+      compareUrl: "",
+      sections: [{ type: "added", items: ["test change"] }],
+    },
+  ],
 }));
 
 vi.mock("..//components/optimized-thumbnail", () => ({
@@ -31,6 +64,7 @@ vi.mock("..//lib/constants", () => ({
     domain: "https://orchestkit.yonyon.ai",
     github: "https://github.com/yonatangross/orchestkit",
     installCommand: "claude install orchestkit/ork",
+    communityUrl: "/community",
     ccVersion: "2.1.148+",
   },
   COUNTS: { skills: 69, agents: 38, hooks: 96 },
@@ -219,9 +253,9 @@ describe("landing page content", () => {
       expect(levels[i] - levels[i - 1]).toBeLessThanOrEqual(1);
     }
 
-    // The value-prop strip is labelled by a real <h2>, not a <span>.
-    const personasHeading = container.querySelector("#personas-heading");
-    expect(personasHeading?.tagName).toBe("H2");
+    // The library catalog is labelled by a real <h2>, not a <span>.
+    const libraryHeading = container.querySelector("#library-heading");
+    expect(libraryHeading?.tagName).toBe("H2");
   });
 
   it("does NOT contain hardcoded clone counts or unverifiable claims", async () => {
@@ -250,5 +284,41 @@ describe("landing page content", () => {
     expect(text).toMatch(/stars/);
     expect(text).toMatch(/MIT license/);
     expect(text).toMatch(/Claude Code/);
+  });
+
+  it("exposes WhatsApp as an icon to /community, not a platform.yonyon.ai href", async () => {
+    const HomePage = (await import("../app/(home)/page")).default;
+    const result = await HomePage();
+    const { container } = render(result);
+
+    const wa = screen.getByRole("link", { name: /join the whatsapp community/i });
+    expect(wa.getAttribute("href")).toBe("/community");
+    expect(container.innerHTML).not.toMatch(/platform\.yonyon\.ai/i);
+    expect(container.textContent ?? "").not.toMatch(/Join the WhatsApp community/);
+  });
+
+  it("exposes a copyable install command per host", async () => {
+    const HomePage = (await import("../app/(home)/page")).default;
+    const result = await HomePage();
+    render(result);
+
+    const nav = screen.getByRole("navigation", { name: /install by host/i });
+    expect(within(nav).getByRole("button", { name: "Claude Code" })).toBeTruthy();
+    expect(within(nav).getByRole("button", { name: "Cursor" })).toBeTruthy();
+    expect(within(nav).getByRole("button", { name: "Codex" })).toBeTruthy();
+    expect(within(nav).getByRole("button", { name: "Pi" })).toBeTruthy();
+    expect(within(nav).getByRole("button", { name: "Muse Code" })).toBeTruthy();
+    expect(within(nav).getByRole("button", { name: "OpenCode" })).toBeTruthy();
+    expect(
+      within(nav)
+        .getByRole("button", { name: /copy claude install orchestkit\/ork/i })
+        .getAttribute("aria-label"),
+    ).toMatch(/claude install orchestkit\/ork/i);
+    expect(
+      within(nav).getByRole("link", { name: /Claude Code docs/i }).getAttribute("href"),
+    ).toBe("/docs/getting-started/claude-code");
+    expect(
+      screen.getByRole("link", { name: /configure your project/i }).getAttribute("href"),
+    ).toBe("/docs/getting-started/configuration");
   });
 });
