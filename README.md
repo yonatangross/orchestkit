@@ -471,6 +471,12 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.12](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.11...v10.0.0-beta.12)** · 2026-09-09
+
+- **deps:** bump hono from 4.13.0 to 4.13.7 in /src/mcp-server (#4014)
+- **engines:** generic floor Lab and portable skill invoke (#4018)
+- **site:** host-first install wizard and multi-host getting started (#4016)
+
 **[v10.0.0-beta.11](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.10...v10.0.0-beta.11)** · 2026-09-08
 
 - **codex:** ship the ork-mech profile and the plugin cache-lag note (#4012)
@@ -504,15 +510,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **hooks:** PHONE_RE no longer redacts numeric MCP ids (#3894) (#3984)
 - **tests:** Test 4c reads all input, no grep -q SIGPIPE (#3974) (#3982)
 - **glyph:** a page an agent can route a human to (#3901) (#3988)
-
-**[v10.0.0-beta.4](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.3...v10.0.0-beta.4)** · 2026-09-07
-
-- **deps-dev:** bump the vitest group across 1 directory with 2 updates (#3978)
-- **deps-dev:** bump vitest from 4.1.11 to 5.0.0 (#3960)
-- **deps:** bump the npm-minor-patch group across 1 directory with 7 updates (#3965)
-- **deps:** bump the remotion group across 1 directory with 21 updates (#3964)
-- bump anthropics/claude-code-action (#3968)
-- …and 1 more (see [CHANGELOG.md](CHANGELOG.md))
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
