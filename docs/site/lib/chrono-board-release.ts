@@ -58,7 +58,9 @@ export function buildReleaseChronoCards({
     diffHref: latest?.compareUrl || undefined,
   };
 
-  const items = (preview?.items ?? []).map((row, index) => {
+  if (!preview) return [live];
+
+  const items = preview.items.map((row, index) => {
     const parsed = parseChangelogItem(row.item);
     const entry = preview.entry;
     return {

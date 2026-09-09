@@ -63,6 +63,17 @@ describe("buildReleaseChronoCards", () => {
     );
   });
 
+  it("returns only the live card when there are no changelog entries", () => {
+    const cards = buildReleaseChronoCards({
+      entries: [],
+      counts: { skills: 1, agents: 1, hooks: 1 },
+      latestVersion: "10.0.0-beta.12",
+    });
+    expect(cards).toHaveLength(1);
+    expect(cards[0]?.tone).toBe("live");
+    expect(cards[0]?.notesHref).toBe("/changelog");
+  });
+
   it("skips plumbing-only bullets when picking product cards", () => {
     const cards = buildReleaseChronoCards({
       entries: ENTRIES,
