@@ -19,14 +19,14 @@ description: "One-shot pipeline turning a claude.ai/design link into a pull requ
 One command: Claude Design handoff URL → reviewable GitHub PR.
 
 ```bash
-/ork:design-ship https://claude.ai/design/abc123     # From handoff URL
-/ork:design-ship /tmp/handoff-bundle.json            # From local file
+design-ship https://claude.ai/design/abc123     # From handoff URL
+design-ship /tmp/handoff-bundle.json            # From local file
 ```
 
 ## When to use
 You have a Claude Design handoff URL (or file) and want a PR opened against the current branch. No intermediate steps, no manual test generation, no manual PR drafting.
 
-For just-the-import (no tests, no PR), use `/ork:design-import` instead.
+For just-the-import (no tests, no PR), use `design-import` instead.
 
 ## Pipeline
 
@@ -35,26 +35,26 @@ Handoff bundle (URL or file)
   │
   ▼
 ┌──────────────────────────────┐
-│ 1. /ork:design-import         │  Scaffold components, write provenance
+│ 1. design-import         │  Scaffold components, write provenance
 │    (delegates to orchestrator │  Tokens reconciled
 │     for parse + dedup)        │  Components written or reused
 └──────────┬───────────────────┘
            │
            ▼
 ┌──────────────────────────────┐
-│ 2. /ork:cover                 │  Storybook stories per new component
+│ 2. cover                 │  Storybook stories per new component
 │    (Storybook + Playwright)   │  Playwright E2E for new routes/views
 └──────────┬───────────────────┘
            │
            ▼
 ┌──────────────────────────────┐
-│ 3. /ork:expect                │  Diff-aware browser verification
+│ 3. expect                │  Diff-aware browser verification
 │    (CDP + ARIA-tree-first)    │  Screenshots saved for PR body
 └──────────┬───────────────────┘
            │
            ▼
 ┌──────────────────────────────┐
-│ 4. /ork:create-pr             │  PR opened with:
+│ 4. create-pr             │  PR opened with:
 │                               │   - Claude Design URL link
 │                               │   - Before/after screenshots
 │                               │   - Component scaffold list
@@ -80,7 +80,7 @@ if status:
       "question": "Working tree has uncommitted changes. How to proceed?",
       "header": "Pre-flight",
       "options": [
-        {"label": "Commit them first", "description": "Run /ork:commit, then proceed with ship"},
+        {"label": "Commit them first", "description": "Run commit, then proceed with ship"},
         {"label": "Stash and restore", "description": "Stash now, restore after PR opens"},
         {"label": "Include in this PR", "description": "Risky — only if changes are related"},
         {"label": "Cancel", "description": "Abort design-ship"}
@@ -103,13 +103,13 @@ if current_branch in ("main", "master", "dev"):
 
 ## Phase 1 — Import
 
-Delegate to `/ork:design-import` with the bundle argument. Capture its output (the import manifest) — it includes the bundle_id, list of components written, and the provenance file path.
+Delegate to `design-import` with the bundle argument. Capture its output (the import manifest) — it includes the bundle_id, list of components written, and the provenance file path.
 
 If import fails, **stop**. Do NOT proceed to test generation against partially-imported components.
 
 ## Phase 2 — Cover
 
-Run `/ork:cover` scoped to the components written by phase 1:
+Run `cover` scoped to the components written by phase 1:
 
 ```python
 component_paths = [c["path"] for c in import_result["components"] if c["decision"] != "reuse"]
@@ -130,7 +130,7 @@ Agent(
 
 ## Phase 3 — Expect
 
-Run `/ork:expect` to do diff-aware browser verification. This produces the screenshots that go into the PR body:
+Run `expect` to do diff-aware browser verification. This produces the screenshots that go into the PR body:
 
 ```python
 Agent(
@@ -150,7 +150,7 @@ Agent(
 
 ## Phase 4 — Create PR
 
-Use `/ork:create-pr` with a body templated from the bundle and verification results:
+Use `create-pr` with a body templated from the bundle and verification results:
 
 ```python
 pr_body = f"""## Summary
@@ -168,17 +168,17 @@ Bundle ID: `{bundle_id}` · Provenance: `.claude/design-handoffs/{bundle_id}.jso
 - Modified: {len(token_diff['modified'])}
 - Conflicts (resolved): {len(token_diff['conflicts'])}
 
-## Verification (`/ork:expect`)
+## Verification (`expect`)
 {expect_summary}
 
-## Coverage delta (`/ork:cover`)
+## Coverage delta (`cover`)
 {coverage_delta}
 
 ## Screenshots
 {screenshot_table}
 
 ---
-🤖 Opened by `/ork:design-ship` · Closes: (none — link issues manually)
+🤖 Opened by `design-ship` · Closes: (none — link issues manually)
 """
 
 Bash(f"gh pr create --title '{pr_title}' --body @- <<< '{pr_body}' --label claude-design")
@@ -227,5 +227,5 @@ Write(f".claude/design-handoffs/{bundle_id}.json", provenance)
 ## Limitations
 
 - **No auto-merge**: this skill opens the PR; humans review and merge.
-- **No iteration loop**: if the PR review surfaces design changes, you currently re-export from Claude Design and re-run `/ork:design-ship`. The reverse-path (live UI drift → refinement prompt for claude.ai/design) is tracked in M124 — Claude Design Drift Sync (Bet B): #1391 (PR hook), #1393 (`/ork:design-iterate`), #1395 (design-drift-detector agent).
+- **No iteration loop**: if the PR review surfaces design changes, you currently re-export from Claude Design and re-run `design-ship`. The reverse-path (live UI drift → refinement prompt for claude.ai/design) is tracked in M124 — Claude Design Drift Sync (Bet B): #1391 (PR hook), #1393 (`design-iterate`), #1395 (design-drift-detector agent).
 - **Single-bundle scope**: one invocation, one bundle, one PR. Multi-bundle batches are not supported.

@@ -14,13 +14,13 @@ description: "Cross-repo migration swarm — one coordinator + N parallel subage
 > **Swarm Migrate** Cross-repo migration swarm — one coordinator + N parallel subagents (one per target repo) that apply the same transformation, open PRs, wait for CI, and report back to a shared JSON ledger. Coordinator handles topology, conflict auto-rebase, and stop-on-novel-failure. Use when bumping a shared dependency, rolling out a workflow change, or applying a codemod across the org.
 
 
-# /ork:swarm-migrate — Cross-Repo Migration Swarm
+# swarm-migrate — Cross-Repo Migration Swarm
 
 One command, N repos, one coordinator, one ledger.
 
 ## When to use
 
-Use when the same transformation needs to land in **3 or more repos** with the same shape (workflow bump, dependency upgrade, codemod, lint-rule introduction, secret rotation, runbook header). Don't use for one-repo work — that's `/ork:implement`. Don't use for novel exploration — that's `/ork:brainstorm`.
+Use when the same transformation needs to land in **3 or more repos** with the same shape (workflow bump, dependency upgrade, codemod, lint-rule introduction, secret rotation, runbook header). Don't use for one-repo work — that's `implement`. Don't use for novel exploration — that's `brainstorm`.
 
 This skill exists because the 275-session insights showed **25 sessions burned coordinating PR cascades manually** (M164 deploy-migration, M17 yg-mcp-core extraction, @v1 reusable workflow rollout across 14 repos). The pattern was always: pick a repo, branch, apply, push, watch CI, repeat. This automates the repeat.
 
@@ -232,28 +232,28 @@ Completed: 12/14 repos · paused: 2 · duration: 47 min
 
 ## Related Skills
 
-- **Upstream** — `/ork:brainstorm` to design the spec, `/ork:visualize-plan` to ASCII-preview the DAG before dispatch.
-- **Downstream** — `/ork:verify` per repo after merge, `/status` for org-wide sweep, `/ci-debug` if a worker hits a CI red.
-- **Composes with** — `/ork:create-pr` (each worker calls into it), `/ork:github-operations` (bulk-update labels/milestones post-swarm).
+- **Upstream** — `brainstorm` to design the spec, `visualize-plan` to ASCII-preview the DAG before dispatch.
+- **Downstream** — `verify` per repo after merge, `/status` for org-wide sweep, `/ci-debug` if a worker hits a CI red.
+- **Composes with** — `create-pr` (each worker calls into it), `github-operations` (bulk-update labels/milestones post-swarm).
 
 ## What this skill does NOT do
 
 - Does not invent the spec. You write the spec; the skill executes it.
-- Does not perform schema migrations across DBs (use a single-repo skill plus `/ork:database-patterns`).
+- Does not perform schema migrations across DBs (use a single-repo skill plus `database-patterns`).
 - Does not orchestrate **production deploys** — open PRs only; deploy is a separate gate (the platform's deploy-operator).
-- Does not bypass `/ork:create-pr`'s playground-gate rule — each PR body must include a playground reference if the repo enforces it.
+- Does not bypass `create-pr`'s playground-gate rule — each PR body must include a playground reference if the repo enforces it.
 
 ## Example invocation
 
 ```bash
 # Dry-run: build the DAG, verify spec, do NOT push or open PRs
-/ork:swarm-migrate swarm-specs/bump-actions-checkout-v4.yaml --dry-run
+swarm-migrate swarm-specs/bump-actions-checkout-v4.yaml --dry-run
 
 # Live: dispatch up to 4 workers in parallel
-/ork:swarm-migrate swarm-specs/bump-actions-checkout-v4.yaml --max-parallel=4
+swarm-migrate swarm-specs/bump-actions-checkout-v4.yaml --max-parallel=4
 
 # Resume after pause: same command, the ledger remembers
-/ork:swarm-migrate swarm-specs/bump-actions-checkout-v4.yaml
+swarm-migrate swarm-specs/bump-actions-checkout-v4.yaml
 ```
 
 ## Why this exists (one paragraph)

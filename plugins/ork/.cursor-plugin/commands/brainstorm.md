@@ -16,6 +16,8 @@ allowed-tools: [AskUserQuestion, Agent, Read, Grep, Glob, Bash, TaskCreate, Task
 
 # Brainstorming Ideas Into Designs
 
+Host-neutral workflow. Invoke by skill name (`brainstorm`). Claude Code slash routing, YAML hook loaders, and `.claude/chain` live in `skills/brainstorm/references/claude-code.md`.
+
 Transform rough ideas into fully-formed designs through intelligent agent selection and structured exploration.
 
 **Core principle:** Analyze the topic, select relevant agents dynamically, explore alternatives in parallel, present design incrementally.
@@ -379,7 +381,7 @@ Agent(subagent_type="ork:test-generator", name="testability-assessor",
 
 # Worktree cleanup (CC 2.1.72) — for Tier 3+ projects that entered a worktree
 # If EnterWorktree was called during brainstorm (e.g., Plan first → worktree), exit it
-ExitWorktree(action="keep")  # Keep branch for follow-up /ork:implement
+ExitWorktree(action="keep")  # Keep branch for follow-up implement
 ```
 
 > **Fallback:** If team formation fails, load `Read("skills/brainstorm/references/phase-workflow.md")` and use standard Phase 2 Task spawns.

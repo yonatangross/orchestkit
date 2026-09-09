@@ -17,7 +17,7 @@ metadata:
   upstream-packages: ["portless", "emulate", "agent-browser", "tailscale"]
 ---
 
-# /ork:dev — Lab-Stack Boot
+# dev — Lab-Stack Boot
 
 One command boots the four moving parts of a Vercel-Labs-flavored dev loop:
 
@@ -26,20 +26,20 @@ One command boots the four moving parts of a Vercel-Labs-flavored dev loop:
 3. **dev server** → `pnpm dev` / `npm run dev` / `yarn dev` (auto-detected)
 4. **agent-browser** → pre-warmed session named after the branch
 
-State lives in `.claude/state/dev-stack.json`. Teardown via `/ork:dev stop` reads the PIDs and signals SIGTERM in reverse boot order.
+State lives in `.claude/state/dev-stack.json`. Teardown via `dev stop` reads the PIDs and signals SIGTERM in reverse boot order.
 
-> **Paired with `/ork:expect`:** the agent-browser session that `/ork:dev` warms is the same one `/ork:expect` (and the M125 #2 auto-trigger) attach to — no second startup latency on the first UI test.
+> **Paired with `expect`:** the agent-browser session that `dev` warms is the same one `expect` (and the M125 #2 auto-trigger) attach to — no second startup latency on the first UI test.
 
 ## When to invoke
 
 | Situation | Command |
 |---|---|
-| Start work on a new branch | `/ork:dev` |
-| Resume after a session break | `/ork:dev` (idempotent — skips already-live processes) |
-| Tear down before deleting branch | `/ork:dev stop` |
-| Inspect state | `/ork:dev status` |
-| Share preview with stakeholder | `/ork:dev --share` (tailnet) or `/ork:dev --funnel` (public) |
-| Time-boxed live demo | `/ork:dev --live 4` (public funnel, 4-hour expiry) |
+| Start work on a new branch | `dev` |
+| Resume after a session break | `dev` (idempotent — skips already-live processes) |
+| Tear down before deleting branch | `dev stop` |
+| Inspect state | `dev status` |
+| Share preview with stakeholder | `dev --share` (tailnet) or `dev --funnel` (public) |
+| Time-boxed live demo | `dev --live 4` (public funnel, 4-hour expiry) |
 
 > **Resuming a backgrounded dev session (CC 2.1.144+):** Sessions started via `claude --bg` now appear in `/resume` alongside interactive ones, marked `bg` — use `/resume` as the direct recovery path after a crash or session end instead of navigating the agent view.
 >
@@ -54,12 +54,12 @@ State lives in `.claude/state/dev-stack.json`. Teardown via `/ork:dev stop` read
 | `--funnel` | `portless --funnel ...` | **public on the internet** | required |
 | `--live N` | `portless --funnel ...` + N-hour expiry | **public**, tracked in `live-demos.jsonl` | required |
 
-Tailscale is **optional** — required only behind `--share`/`--funnel`/`--live`. Default `/ork:dev` is unchanged for users who don't share.
+Tailscale is **optional** — required only behind `--share`/`--funnel`/`--live`. Default `dev` is unchanged for users who don't share.
 
 When `turbo.json` or `package.json` workspaces is detected (#1562), the boot uses
 **bare `portless`** (zero-config) which auto-discovers each workspace's dev
 script and assigns subdomains via the task graph. State file shows `mode: "monorepo"`;
-list subdomains via `portless list` or `/ork:dev status`.
+list subdomains via `portless list` or `dev status`.
 
 ## Boot sequence
 
@@ -117,15 +117,15 @@ When `--share` / `--funnel` / `--live` is used (M127 #1561 / #1565), `share` bec
 
 ## Auto-surfaced hints (M127)
 
-When `/ork:dev` boots, it inspects `package.json` and emits hints:
+When `dev` boots, it inspects `package.json` and emits hints:
 
 - **`@json-render/*` detected** (#1560) → prints the devtools adapter import line so the inspector panel (Spec / State / Actions / Stream / Catalog / Pick) can be enabled in dev. Tree-shakes from production builds.
-- **`@clerk/*` detected** (#1563) → if `clerk` is in `emulate.config.yaml`, prints the mock login URL (`http://localhost:4012`); otherwise warns to run `/ork:emulate-seed --auto`.
+- **`@clerk/*` detected** (#1563) → if `clerk` is in `emulate.config.yaml`, prints the mock login URL (`http://localhost:4012`); otherwise warns to run `emulate-seed --auto`.
 
 ## Prerequisites + graceful no-op
 
 ```
-$ /ork:dev
+$ dev
 ✓ portless     found
 ✓ agent-browser     found
 ✓ jq     found
@@ -144,7 +144,7 @@ Skipping boot — install missing tools and re-run.
 ## Status + teardown
 
 ```
-$ /ork:dev status
+$ dev status
 ork:dev — feat/m125-lane-b
   ✓ portlessWrapper    portless feat-m125-lane-b pnpm run dev
   ✓ agentBrowser       feat-m125-lane-b
@@ -152,7 +152,7 @@ ork:dev — feat/m125-lane-b
   booted:    2026-04-27T19:36:54Z
   portless:  route registered ✓
 
-$ /ork:dev stop
+$ dev stop
 ork:dev — sending SIGTERM in reverse boot order…
   ✓ agent-browser session "feat-m125-lane-b" closed
   ✓ portless wrapper (pid 86104) + 21 descendant(s) stopped
@@ -161,21 +161,21 @@ Cleared .claude/state/dev-stack.json
 Note: portless proxy daemon left running (shared). Run `portless proxy stop` if you really mean to stop the daemon.
 ```
 
-Stop walks the wrapper's process tree (`pgrep -P` recursively) and SIGTERMs descendants leaves-first because portless doesn't always propagate signals cleanly. The portless proxy daemon itself is shared infrastructure and is **never killed** by `/ork:dev stop`.
+Stop walks the wrapper's process tree (`pgrep -P` recursively) and SIGTERMs descendants leaves-first because portless doesn't always propagate signals cleanly. The portless proxy daemon itself is shared infrastructure and is **never killed** by `dev stop`.
 
 ## Worktree behavior
 
-Each git worktree gets its own subdomain — `feat-foo.localhost` and `feat-bar.localhost` coexist on the same machine. The state file lives under each worktree's `.claude/state/`, so `/ork:dev` from one worktree doesn't see the other's processes.
+Each git worktree gets its own subdomain — `feat-foo.localhost` and `feat-bar.localhost` coexist on the same machine. The state file lives under each worktree's `.claude/state/`, so `dev` from one worktree doesn't see the other's processes.
 
 ## Idempotency
 
-Re-running `/ork:dev` while the stack is already live is a no-op:
+Re-running `dev` while the stack is already live is a no-op:
 
 ```
-$ /ork:dev
+$ dev
 ork:dev — feat/m125-lane-b already running.
   https://feat-m125-lane-b.localhost  (uptime 2h 14m)
-Run /ork:dev stop to tear down, or /ork:dev status for detail.
+Run dev stop to tear down, or dev status for detail.
 ```
 
 Liveness probe: `process.kill(pid, 0)` against each tracked PID. If any are dead, the skill prints which ones and offers to clean up state and reboot.
@@ -189,9 +189,9 @@ agent-browser open "https://feat-m125-lane-b.localhost/dashboard"
 # implicit session = "feat-m125-lane-b" because it's the only one
 ```
 
-`/ork:expect` (M125 #2) reads the dev-stack state file and reuses this same session — no second handshake.
+`expect` (M125 #2) reads the dev-stack state file and reuses this same session — no second handshake.
 
-## Integration with /ork:expect (M125 #2)
+## Integration with expect (M125 #2)
 
 When auto-expect fires after a `.tsx` edit, it:
 
@@ -200,7 +200,7 @@ When auto-expect fires after a `.tsx` edit, it:
 3. Drives agent-browser against `<baseUrl><route>` using the live session.
 4. Records the ARIA snapshot to memory keyed by `(route, parentCommit)` (M125 #6).
 
-If the dev stack isn't live, auto-expect skips silently — `/ork:dev` is the prerequisite, not a hard dep.
+If the dev stack isn't live, auto-expect skips silently — `dev` is the prerequisite, not a hard dep.
 
 ## When NOT to use
 
@@ -217,7 +217,7 @@ If the dev stack isn't live, auto-expect skips silently — `/ork:dev` is the pr
 | `scripts/stop.sh` | SIGTERM in reverse boot order with 5-second SIGKILL fallback. Removes state file last. |
 | `scripts/status.sh` | Pretty status. `--quiet` for liveness-only (exit 0 live, 1 down). Used by boot for idempotency. |
 
-`/ork:dev` invokes `scripts/boot.sh`; `stop` → `stop.sh`; `status` → `status.sh`. The shell scripts are the source of truth.
+`dev` invokes `scripts/boot.sh`; `stop` → `stop.sh`; `status` → `status.sh`. The shell scripts are the source of truth.
 
 ## References
 
@@ -249,7 +249,7 @@ Stops when: all 4 dev-loop services (portless + emulate + dev-server + agent-bro
 
 ## Related skills
 
-- `/ork:expect` — diff-aware browser tests; reuses the agent-browser session this skill warms
-- `/ork:emulate-seed` — generates the emulator config that step 3 consumes
+- `expect` — diff-aware browser tests; reuses the agent-browser session this skill warms
+- `emulate-seed` — generates the emulator config that step 3 consumes
 - `portless` (skill) — underlying tool docs
 - `browser-tools` (skill) — agent-browser command reference

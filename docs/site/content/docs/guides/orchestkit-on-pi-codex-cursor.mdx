@@ -13,6 +13,14 @@ pi 0.85.0, codex-cli 0.153.4 and cursor-agent 2026.09.02 on 2026-09-08. The full
 with the commands and their output, is in the repo at
 [`docs/audits/multi-engine-support-2026-09-08.md`](https://github.com/yonatangross/orchestkit/blob/main/docs/audits/multi-engine-support-2026-09-08.md).
 
+The generic-versus-native cut (what must run everywhere SKILL.md loads, versus
+what stays a native adapter file) is the Lab page
+[Generic floor, native adapter per harness](https://orchestkit.yonyon.ai/lab/generic-harness-matrix.html).
+Dual manifests stay: Agent Plugins `plugin.json` (closed schema), `.claude-plugin/plugin.json`,
+and `.cursor-plugin/plugin.json`. Do not move `agents/` or `hooks/` into a `com.*`
+folder unless a Claude Code version actually loads that directory.
+
+
 ## Support matrix
 
 | Surface | Claude Code | Cursor | Codex | pi |
@@ -35,10 +43,10 @@ everywhere. Hooks are Claude Code only. MCP configuration is a different file on
 since #3940, and all four engines resolve those against the SKILL.md directory.
 
 **Does not port**: hooks (they need `${CLAUDE_PLUGIN_ROOT}` and the Claude Code event
-payload) and agents (only Claude Code and Cursor read the `agents` manifest key). pi delivers
-`${CLAUDE_PLUGIN_ROOT}` as a literal string and Cursor never substitutes it (#3822), so the
-Cursor export strips it at generation time (#3941); pi reads the skill bodies directly and
-still sees the variable in cross-skill and `shared/` paths.
+payload) and agents (only Claude Code and Cursor read the `agents` manifest key). Workflow
+skill bodies now use portable `../skill/` and `../../shared/` paths; YAML hook `command:`
+lines stay Claude-only. Cursor export still strips leftover plugin-root forms at generation
+time (#3941).
 
 **Hidden on pi by design**: 29 of the 107 skills carry `disable-model-invocation: true`.
 pi honours that flag, so those skills never appear in the model's auto-list and are reachable

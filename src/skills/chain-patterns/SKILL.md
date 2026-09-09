@@ -197,13 +197,13 @@ SendMessage(to="api-designer", message="Now implement the schema you designed")
 ```text
 # User types these — skills suggest them in "Next Steps"
 /loop 5m gh pr checks 42                    # Watch CI after push
-/loop 20m /ork:verify authentication        # Periodic quality gate
+/loop 20m verify authentication        # Periodic quality gate
 /loop 10m npm test -- --coverage            # Coverage drift watch
 /loop 1h check deployment health at /api/health  # Post-deploy monitor
 ```
 
 **Key difference from CronCreate:**
-- `/loop` can invoke skills: `/loop 20m /ork:verify` (CronCreate can't)
+- `/loop` can invoke skills: `/loop 20m verify` (CronCreate can't)
 - CC 2.1.196+: a scheduled fire only runs skills Claude may invoke on its own; a skill with `disable-model-invocation: true` arrives as plain text and never executes, so verify the target skill is model-invocable before suggesting it in a loop
 - Both use the same underlying scheduler (50-task limit, 7-day expiry)
 - Skills use `CronCreate` for agent-initiated scheduling
@@ -213,7 +213,7 @@ SendMessage(to="api-designer", message="Now implement the schema you designed")
 - After creating a PR → `/loop 5m gh pr checks {pr_number}`
 - After running tests → `/loop 10m npm test`
 - After deployment → `/loop 1h check health at {endpoint}`
-- After verification → `/loop 30m /ork:verify {scope}`
+- After verification → `/loop 30m verify {scope}`
 
 **Dynamic /loop (self-paced):** omitting the interval (e.g. `/loop gh pr checks 42`) lets the model pace itself via scheduled wakeups. Rules:
 - Never schedule short-interval polling for harness-tracked background work; completion re-invokes automatically.

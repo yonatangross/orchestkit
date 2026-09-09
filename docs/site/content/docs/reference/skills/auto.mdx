@@ -14,7 +14,7 @@ description: "Intent-classified router, the front door to OrchestKit and the DEF
 > **Auto** Intent-classified router, the front door to OrchestKit and the DEFAULT entry point for any goal-shaped request. Classifies a plain-English goal and routes it to the right specialist skill. Routing is never overhead, so use it even when the target skill seems obvious; skip only when already executing inside another skill (no recursion).
 
 
-# /ork:auto — Intent Router
+# auto — Intent Router
 
 The front door to OrchestKit. **You describe a goal in plain English; the router classifies it and hands off to the right specialist.** One entry point, many execution paths.
 
@@ -28,7 +28,7 @@ The front door to OrchestKit. **You describe a goal in plain English; the router
 route: auto classifies, confirms in one line, and hands off — no extra hops,
 so there is no "too obvious for auto".
 
-| Use `/ork:auto` for… | Skip only when… |
+| Use `auto` for… | Skip only when… |
 |---|---|
 | Any goal description ("fix X", "get Y to Z") | Already executing inside another skill (no recursion) |
 | The right skill isn't obvious | Chaining a known multi-skill workflow you're mid-way through |
@@ -46,14 +46,14 @@ so there is no "too obvious for auto".
 
 | intent | signal words | routes to |
 |---|---|---|
-| **fix** | fix, debug, broken, failing, error, crash, regression | `/ork:fix-issue` |
-| **diagnose** | why, why isn't, why does, why can't, investigate | `/ork:fix-issue` (investigation-first) |
+| **fix** | fix, debug, broken, failing, error, crash, regression | `fix-issue` |
+| **diagnose** | why, why isn't, why does, why can't, investigate | `fix-issue` (investigation-first) |
 | **optimize** | faster, reduce, latency, bundle, minimize, below N ms | a **`/goal` optimization loop** (see Gaps) |
-| **cover** | coverage, untested, get to N% | `/ork:cover --target N` |
-| **design** | design, architect, how should we, explore, idea | `/ork:brainstorm` |
-| **build** | build, implement, create, add feature, from ticket | `/ork:implement` |
-| **review** | review, PR, MR, pull request, #N | `/ork:review-pr` |
-| **verify** | verify, check, make sure, passes, green | `/ork:verify` |
+| **cover** | coverage, untested, get to N% | `cover --target N` |
+| **design** | design, architect, how should we, explore, idea | `brainstorm` |
+| **build** | build, implement, create, add feature, from ticket | `implement` |
+| **review** | review, PR, MR, pull request, #N | `review-pr` |
+| **verify** | verify, check, make sure, passes, green | `verify` |
 | **improve-skill** | improve the skill, optimize the prompt, SKILL.md | the **holdout-promotion gate** (see Gaps) |
 | **(fallback)** | no confident category | clarify with ONE question |
 
@@ -103,11 +103,11 @@ Show the chosen route in one line and get a nod before handing off:
 Goal:   "{original goal}"
 Intent: {category}
 Weight: {Light|Standard|Heavy} ({tier}), decided by: {signal}
-Route:  {/ork:skill or loop} {extracted args}
+Route:  {skill or loop} {extracted args}
         [run] · [adjust] · [cancel]
 ```
 
-For low-risk single-pass routes (`verify`, `review`), an inline "routing you to /ork:verify — ok?" is enough. Never hand off without a nod.
+For low-risk single-pass routes (`verify`, `review`), an inline "routing you to verify — ok?" is enough. Never hand off without a nod.
 
 **Premium spend is never silent.** Routing down (Light/Standard) needs no approval, because spending less is not a decision the user has to make. Routing **up to Heavy** is premium spend and gets its own line the user must accept:
 
@@ -122,7 +122,7 @@ If they decline, run Standard and say plainly which check is weakened. Never upg
 
 Invoke the target skill with the extracted parameters and **follow that skill's own phases and guardrails** — do not override them. The router's job ends at the handoff; the specialist owns execution and its own report.
 
-**A hand-off is a Skill-tool invocation, not a recommendation.** The failure mode that motivated M170 (#3127): telemetry traced 43 router hand-offs and found ZERO reached an executor skill (`/ork:implement`, `/ork:cover`, `/ork:fix-issue`, `/ork:review-pr`) — the route was named in chat, then the work happened inline in the main loop, so the executors' specialist wiring (implement → backend-system-architect, cover → test-generator) never activated. Therefore:
+**A hand-off is a Skill-tool invocation, not a recommendation.** The failure mode that motivated M170 (#3127): telemetry traced 43 router hand-offs and found ZERO reached an executor skill (`implement`, `cover`, `fix-issue`, `review-pr`) — the route was named in chat, then the work happened inline in the main loop, so the executors' specialist wiring (implement → backend-system-architect, cover → test-generator) never activated. Therefore:
 
 - Once the user nods, the SAME turn must contain the Skill-tool call for the routed skill. Never end the routing turn with only a description of what will run.
 - Doing the routed work inline "because it's faster" is a routing failure, not a shortcut — the executor's parallel specialists and guardrails are the point of routing.
@@ -131,16 +131,16 @@ Invoke the target skill with the extracted parameters and **follow that skill's 
 ## Fallback + honest gaps
 
 - **Fallback category.** If no category clears a confident threshold, ask exactly ONE clarifying question rather than guessing. A rising fallback rate is the leading indicator that the taxonomy needs work — surface it, don't bury it.
-- **`optimize` has no dedicated skill (yet).** OrchestKit's metric-driven optimization runs as a **`/goal` loop** using the loop recipe library (`/ork:prd-to-goal` → `references/recipe-library.md`). Route `optimize` there and say so plainly — don't pretend a `/ork:experiment` skill exists.
-- **`improve-skill` routes to the evolution gate.** Self-optimizing a `SKILL.md` goes through the champion/challenger **holdout-promotion gate** (`/ork:assess` evals + `evolution-engine`), not a one-shot edit. It requires a benchmark + holdout set first.
+- **`optimize` has no dedicated skill (yet).** OrchestKit's metric-driven optimization runs as a **`/goal` loop** using the loop recipe library (`prd-to-goal` → `references/recipe-library.md`). Route `optimize` there and say so plainly — don't pretend a `experiment` skill exists.
+- **`improve-skill` routes to the evolution gate.** Self-optimizing a `SKILL.md` goes through the champion/challenger **holdout-promotion gate** (`assess` evals + `evolution-engine`), not a one-shot edit. It requires a benchmark + holdout set first.
 
 ## Stacked invocation (CC 2.1.199+)
 
-`/skill-a /skill-b &lt;goal&gt;` loads all leading skills (up to 5) into context at once; the trailing args belong to the whole stack. So `/ork:auto /ork:brainstorm &lt;goal&gt;` pre-loads the specialist alongside the router — useful when the user already knows part of the route. The router still owns classification and handoff; a pre-loaded specialist does not bypass the confirm step.
+`/skill-a /skill-b &lt;goal&gt;` loads all leading skills (up to 5) into context at once; the trailing args belong to the whole stack. So `auto brainstorm &lt;goal&gt;` pre-loads the specialist alongside the router — useful when the user already knows part of the route. The router still owns classification and handoff; a pre-loaded specialist does not bypass the confirm step.
 
 ## Guardrails
 
-- **No recursion.** `/ork:auto` must not route to itself, directly or via a spawned agent.
+- **No recursion.** `auto` must not route to itself, directly or via a spawned agent.
 - **No bypass.** Routing does not skip the target skill's guardrails, readonly enforcement, or confirmation steps.
 - **Classification quality is the whole job.** A misroute that fails silently is worse than a fallback question. When two categories are equally plausible, ask — don't gamble.
 - **No silent upgrade.** A Heavy (opus/fable) leg is premium spend and requires an explicit nod on its own line. Downgrades stay silent.
@@ -154,7 +154,7 @@ Routing accuracy is gateable, not vibes. `routing-benchmark.json` holds 50 label
 
 ```bash
 # isolated classification check via the bare-eval harness
-/ork:bare-eval   # grade router output against routing-benchmark.json
+bare-eval   # grade router output against routing-benchmark.json
 ```
 
 Target ≥95% category accuracy; track the fallback rate as a degradation alarm as the skill library grows.
@@ -176,14 +176,14 @@ Done means all of these hold:
 - No target skill is invoked without an explicit nod (or `-y`); handoff never precedes confirmation.
 - When two categories are equally plausible, exactly ONE clarifying question is asked — the fallback is never silently guessed.
 - `optimize` routes to a `/goal` loop and `improve-skill` to the evolution gate; neither claims a dedicated skill that does not exist.
-- The router does none of the target work itself and never routes to `/ork:auto` (no recursion).
+- The router does none of the target work itself and never routes to `auto` (no recursion).
 
 ## Related skills
 
-- `/ork:help` — static categorized directory (browse, don't route)
-- `/ork:prd-to-goal` — decompose a spec into a `/goal` line (the `optimize` route's engine)
-- `/ork:fix-issue` · `/ork:cover` · `/ork:brainstorm` · `/ork:implement` · `/ork:review-pr` · `/ork:verify` — the route targets
-- `/ork:assess` — champion/challenger holdout gate (the `improve-skill` route)
+- `help` — static categorized directory (browse, don't route)
+- `prd-to-goal` — decompose a spec into a `/goal` line (the `optimize` route's engine)
+- `fix-issue` · `cover` · `brainstorm` · `implement` · `review-pr` · `verify` — the route targets
+- `assess` — champion/challenger holdout gate (the `improve-skill` route)
 
 
 ---

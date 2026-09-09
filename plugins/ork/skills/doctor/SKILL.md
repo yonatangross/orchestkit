@@ -34,6 +34,8 @@ triggers:
 
 # OrchestKit Health Diagnostics
 
+Host-neutral workflow. Invoke by skill name (`doctor`). Claude Code slash routing, YAML hook loaders, and `.claude/chain` live in `references/claude-code.md`.
+
 ## Argument Resolution
 
 ```python
@@ -48,9 +50,9 @@ A full doctor run takes ~20s. Most invocations only need one slice. Ask the user
 
 ```python
 # Skip the prompt when an explicit scope arg or env override is present:
-#   /ork:doctor cc      → skip, use cc-only
-#   /ork:doctor mcp     → skip, use mcp-only
-#   /ork:doctor plugin  → skip, use plugin-only
+#   doctor cc      → skip, use cc-only
+#   doctor mcp     → skip, use mcp-only
+#   doctor plugin  → skip, use plugin-only
 #   ORK_DOCTOR_SCOPE=all (or any of the above) → skip, use the env value
 #
 # Otherwise, ask:
@@ -70,7 +72,7 @@ Skip the prompt entirely when the scope is unambiguous from the invocation. The 
 
 ## Overview
 
-The `/ork:doctor` command performs comprehensive health checks on your OrchestKit installation. It auto-detects installed plugins and validates 16 categories:
+The `doctor` command performs comprehensive health checks on your OrchestKit installation. It auto-detects installed plugins and validates 16 categories:
 
 1. **Installed Plugins** - Detects ork plugin
 2. **Skills Validation** - Frontmatter, references, token budget (dynamic count)
@@ -100,9 +102,9 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 ## Quick Start
 
 ```bash
-/ork:doctor           # Standard health check
-/ork:doctor -v        # Verbose output
-/ork:doctor --json    # Machine-readable for CI
+doctor           # Standard health check
+doctor -v        # Verbose output
+doctor --json    # Machine-readable for CI
 ```
 
 ## CLI Options
@@ -136,12 +138,12 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 
 | Category | What It Checks | Reference |
 |----------|---------------|-----------|
-| **4. Memory** | .claude/memory/ graph integrity + queue depth; **auto-memory MEMORY.md index budget (≤24.4 KB; warns + recommends /ork:dream on re-bloat)** | load `references/memory-health.md` |
+| **4. Memory** | .claude/memory/ graph integrity + queue depth; **auto-memory MEMORY.md index budget (≤24.4 KB; warns + recommends dream on re-bloat)** | load `references/memory-health.md` |
 | **5. Build** | plugins/ sync with src/, manifest counts, orphans | load `rules/diagnostic-checks.md` |
 
 > **Analytics writer liveness (System Health):** the local analytics pipeline has several independent JSONL writers under `~/.claude/analytics/` (skill-usage, agent-usage, hook-timing). A writer can die silently while its siblings stay hot — observed once for four months (skill-usage.jsonl, 2026-03 to 2026-07). The check is a peer comparison: flag any watched file whose last write is ≥48h old while a sibling wrote within 24h (`stat -f '%m %N' ~/.claude/analytics/*.jsonl`). The `lifecycle/analytics-liveness-check` SessionStart hook runs the same comparison continuously.
 >
-> A flagged writer means the write path was dropped from dispatch, so check **both** surfaces — `src/hooks/hooks.json` AND the entries map (`src/hooks/src/entries/*.ts`). A hook present in one but not the other is registered-looking and silently dead: the #959 failure class. `/ork:telemetry-inspect` gives the per-file deep dive, covering the field-level defects this structural check cannot see: constant fields and phantom rows, the two classes fixed in #3034 and #3035 (both closed 2026-07-20). Cite them as prior art, not as open work.
+> A flagged writer means the write path was dropped from dispatch, so check **both** surfaces — `src/hooks/hooks.json` AND the entries map (`src/hooks/src/entries/*.ts`). A hook present in one but not the other is registered-looking and silently dead: the #959 failure class. `telemetry-inspect` gives the per-file deep dive, covering the field-level defects this structural check cannot see: constant fields and phantom rows, the two classes fixed in #3034 and #3035 (both closed 2026-07-20). Cite them as prior art, not as open work.
 >
 > *(Category numbering in this file is inconsistent between the Overview list above and these tables — the Overview numbers 4 as Hook Health, the tables number 4 as Memory. This check belongs to System Health regardless of which numbering a reader follows.)*
 
@@ -166,7 +168,7 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 | **15. Sandbox Posture** | CC Bash-sandbox on/off across all four settings scopes + `/sandbox` nudge (opt-in, Bash-only; info-level). **15b**: bounded read-only query of the macOS unified log for recent `Sandbox` deny events via `scripts/check-sandbox-violations.sh` (warn-level; fail-closed when the log query itself is denied; explicit skip off macOS) | load `references/sandbox-posture.md` |
 | **16. Operator Settings Posture** | Controls a plugin bundle **cannot** carry, so they exist only if the operator wrote them: credential-read `permissions.deny` rules (defence in depth: `pretool/read/credential-read-guard` already covers the `Read` tool), the `sandbox` block incl. `network.deniedDomains` (the egress guard only `ask`s on the upload shape; a plain GET abstains), and `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` (ork's own `agent-teams.ts` gates on it). Since CC 2.1.257 it also reports `permissions.blockReadsOutsideWorkingDirectories` and warns when it is true without `~/.claude` in `additionalDirectories` (the reads ork skills make outside the project would be refused, not prompted). Since #3877 it also names a project-scope `sandbox.enabled: false` that overrides a user-scope `true` (`sandbox_override`, project file:line and user file:line; the project file wins and Bash runs unsandboxed). Since #3835 the audit is a script: `bash ${CLAUDE_SKILL_DIR}/scripts/check-operator-permissions.sh <project_dir> --json` (exit 0 all payload rules enforced, 1 missing with the remedy, 2 could-not-observe); the remedy is setup phase 3.6, consent-gated. Warn-level; prints the JSON to paste | load `references/settings-posture.md` |
 
-> **Why Check 16 exists at all:** `plugins-reference.md:858` says "Only the `agent` and `subagentStatusLine` keys are currently supported" in a plugin's bundled `settings.json`. Everything else ork used to declare there was inert, so the protection it looked like it shipped was never in force. Check 16 is the replacement: detect the gap in a scope CC really reads, then hand the operator the exact JSON. The `ork:configure` skill, section *Operator-Scope Settings*, carries the paste-ready blocks, staged loose-then-strict per #3424; the full JSON is in `${CLAUDE_PLUGIN_ROOT}/skills/configure/references/operator-scope-settings.md`.
+> **Why Check 16 exists at all:** `plugins-reference.md:858` says "Only the `agent` and `subagentStatusLine` keys are currently supported" in a plugin's bundled `settings.json`. Everything else ork used to declare there was inert, so the protection it looked like it shipped was never in force. Check 16 is the replacement: detect the gap in a scope CC really reads, then hand the operator the exact JSON. The `ork:configure` skill, section *Operator-Scope Settings*, carries the paste-ready blocks, staged loose-then-strict per #3424; the full JSON is in `../configure/references/operator-scope-settings.md`.
 
 ### Category 14: Effort/Model Compatibility (CC 2.1.111+)
 
@@ -232,10 +234,10 @@ Every category reports an explicit **pass / warn / fail** status, and every warn
 > After a clean health report, audit the observability pipeline itself:
 >
 > ```
-> /ork:telemetry-inspect
+> telemetry-inspect
 > ```
 >
-> `doctor` validates structure (manifests, hooks, skills, agents); `/ork:telemetry-inspect` validates the *data plane* — every telemetry writer's row count, schema lock, growth trend, and orphaned analytics files that structural checks don't cover.
+> `doctor` validates structure (manifests, hooks, skills, agents); `telemetry-inspect` validates the *data plane* — every telemetry writer's row count, schema lock, growth trend, and orphaned analytics files that structural checks don't cover.
 
 ## Related Skills
 

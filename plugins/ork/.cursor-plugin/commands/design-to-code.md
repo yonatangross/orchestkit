@@ -19,9 +19,9 @@ allowed-tools: [Bash, Read, Write, Edit, Glob, Grep]
 Convert visual designs into production-ready React components using a four-stage pipeline: Extract, Match, Adapt, Render.
 
 ```bash
-/ork:design-to-code screenshot of hero section    # From description
-/ork:design-to-code /tmp/mockup.png               # From screenshot
-/ork:design-to-code https://example.com/pricing    # From URL
+design-to-code screenshot of hero section    # From description
+design-to-code /tmp/mockup.png               # From screenshot
+design-to-code https://example.com/pricing    # From URL
 ```
 
 ## Pipeline Overview
@@ -325,7 +325,7 @@ Done means all of these hold:
 - `storybook-mcp-integration` — Storybook MCP tools: component discovery, testing, previews
 - `component-search` — Search 21st.dev registry standalone
 - `design-context-extract` — Extract design DNA from screenshots
-- `/ork:design-stylecards` — named aesthetic recipes (shadow stacks, glass surfaces, gradients, type scales) for the polish pass on generated components
+- `design-stylecards` — named aesthetic recipes (shadow stacks, glass surfaces, gradients, type scales) for the polish pass on generated components
 - `design-system-tokens` — Token architecture and management
 - `storybook-testing` — CSF3 patterns, Vitest integration, Chromatic TurboSnap
 - `json-render-catalog` — Catalog definition, Zod schemas, defineCatalog patterns

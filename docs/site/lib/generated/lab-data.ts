@@ -29,6 +29,20 @@ export const LAB_ENTRIES: LabEntry[] = [
     "sizeKb": 16
   },
   {
+    "slug": "generic-harness-matrix",
+    "title": "Generic floor, native adapter per harness",
+    "description": "Decision surface for ork as a portable skill package plus optional per-harness extras. Three trees, a contamination count, STATE.mode radios, and a clickable capability matrix. Muse hooks are none. Cursor hooks are camelCase.",
+    "tags": [
+      "docs",
+      "engines",
+      "architecture"
+    ],
+    "date": "2026-09-09",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 44
+  },
+  {
     "slug": "codex-mech-profile",
     "title": "The Codex mech profile: which file codex actually reads",
     "description": "Put the ork-mech profile in three places and read codex 0.153.4's own answer: a hard config-load error for the legacy [profiles.*] table, a silent base-config run for a name that does not exist, and the measured header for the shipped file. Plus the worktree writable-roots line with and without --add-dir.",

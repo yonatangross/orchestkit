@@ -19,9 +19,9 @@ allowed-tools: [Bash, Read, Write, Edit, Glob, Grep]
 Search 21st.dev's registry of production-ready React components. Returns ranked results with code, previews, and install instructions.
 
 ```bash
-/ork:component-search animated pricing table
-/ork:component-search sidebar with collapsible sections
-/ork:component-search dark mode toggle switch
+component-search animated pricing table
+component-search sidebar with collapsible sections
+component-search dark mode toggle switch
 ```
 
 ## How It Works

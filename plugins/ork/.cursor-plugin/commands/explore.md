@@ -16,12 +16,14 @@ allowed-tools: [AskUserQuestion, Read, Write, Grep, Glob, Agent, TaskCreate, Tas
 
 # Codebase Exploration
 
+Host-neutral workflow. Invoke by skill name (`explore`). Claude Code slash routing, YAML hook loaders, and `.claude/chain` live in `skills/explore/references/claude-code.md`.
+
 Multi-angle codebase exploration using 3-5 parallel agents.
 
 ## 🎯 Quick Start
 
 ```bash
-/ork:explore authentication
+explore authentication
 ```
 
 > **Opus 5**: Exploration agents use native adaptive thinking for deeper pattern recognition across large codebases.
@@ -47,7 +49,7 @@ EFFORT = EFFORT or "high"  # default
 | `high` (default) | 4 (full parallel team) | 1–8 | ~6 min |
 | `xhigh` (Opus 5) | 5 (+ uncertainty pass on health scores) | 1–8 + caveats | ~8 min |
 
-**Override gate:** if the user passes `--effort=high` explicitly while `$CLAUDE_EFFORT` is `low`, the flag wins. `/ork:doctor` warns when `xhigh` is requested without Opus 5.
+**Override gate:** if the user passes `--effort=high` explicitly while `$CLAUDE_EFFORT` is `low`, the flag wins. `doctor` warns when `xhigh` is requested without Opus 5.
 
 
 ## STEP 0: Verify User Intent with AskUserQuestion
@@ -256,7 +258,7 @@ node "skills/explore/scripts/render-spec.mjs" .claude/chain/explore-dashboard.js
 
 Pipe the output into the user-facing markdown report (or use it as-is). This guarantees the JSON spec and markdown report stay in sync — a single source of truth.
 
-**Why this matters:** Downstream skills (`/ork:fix-issue`, `/ork:implement`, `/ork:create-pr`) parse `.claude/chain/explore-dashboard.json` directly instead of re-reading 3000-token markdown. Measured: spec ≈ 580 tokens for the same content. Backwards-compatible: old chained workflows that read markdown keep working in `both` mode.
+**Why this matters:** Downstream skills (`fix-issue`, `implement`, `create-pr`) parse `.claude/chain/explore-dashboard.json` directly instead of re-reading 3000-token markdown. Measured: spec ≈ 580 tokens for the same content. Backwards-compatible: old chained workflows that read markdown keep working in `both` mode.
 
 ## Phase 6.5 — Notebook summary (signal-fired, optional)
 
@@ -276,7 +278,7 @@ Auto-skip conditions (all exit 0, all WARN-logged):
 
 Session dir must contain `explore-output.json` (with `dirs_scanned: list[str]`, optional `synthesis: str`, required `notebook_id: str`). Handoff JSON at `<session-dir>/explore-summary.json` records `status` (`fired` / `skipped`) and `summary_path` on success.
 
-Mirrors the `/ork:brainstorm` post-synth podcast pattern from PR #1889. Closes orchestkit#1893.
+Mirrors the `brainstorm` post-synth podcast pattern from PR #1889. Closes orchestkit#1893.
 
 ## Notes for long explorations
 

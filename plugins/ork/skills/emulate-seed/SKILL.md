@@ -48,7 +48,7 @@ Generate and manage seed configs for [emulate](https://github.com/vercel-labs/em
 
 ```bash
 $ bash scripts/auto-discover.sh
-/ork:emulate-seed --auto — scanning /path/to/package.json
+emulate-seed --auto — scanning /path/to/package.json
 
 Detected:
   @octokit/rest  →  github · Any GitHub API client
@@ -65,7 +65,7 @@ $ bash scripts/auto-discover.sh --apply
 
 Multi-emulator deps default to all reasonable providers; the user prunes the YAML afterwards. Unmapped deps are silently skipped — extending coverage is a docs PR (edit `references/dep-to-emulator-map.json`), not a code change.
 
-`/ork:dev` reads the resulting `emulate.config.yaml` at boot — see `src/skills/dev/scripts/boot.sh`.
+`dev` reads the resulting `emulate.config.yaml` at boot — see `src/skills/dev/scripts/boot.sh`.
 
 ## Quick Reference
 

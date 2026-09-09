@@ -30,11 +30,11 @@ effort: low
 ## Quick Reference
 
 ```bash
-/ork:testing-unit          # Unit testing patterns
-/ork:testing-e2e           # End-to-end with Playwright
-/ork:testing-integration   # API and database integration
-/ork:testing-llm           # LLM evaluation patterns
-/ork:testing-perf          # Performance and load testing
+testing-unit          # Unit testing patterns
+testing-e2e           # End-to-end with Playwright
+testing-integration   # API and database integration
+testing-llm           # LLM evaluation patterns
+testing-perf          # Performance and load testing
 ```
 
 ## Related Skills

@@ -26,32 +26,32 @@ Universal demo video creation for any content type.
 ## Quick Start
 
 ```bash
-/ork:demo-producer                    # Interactive mode - asks what to create
-/ork:demo-producer skill explore      # Create demo for a skill
-/ork:demo-producer plugin ork     # Create demo for a plugin
-/ork:demo-producer tutorial "Building a REST API"  # Custom tutorial
-/ork:demo-producer --live 4           # Live preview via /ork:dev --live (4-hour public funnel)
+demo-producer                    # Interactive mode - asks what to create
+demo-producer skill explore      # Create demo for a skill
+demo-producer plugin ork     # Create demo for a plugin
+demo-producer tutorial "Building a REST API"  # Custom tutorial
+demo-producer --live 4           # Live preview via dev --live (4-hour public funnel)
 ```
 
 ## --live mode (M127 #1565)
 
-`--live N` is a thin wrapper around `/ork:dev --live N`: it boots the dev stack
+`--live N` is a thin wrapper around `dev --live N`: it boots the dev stack
 behind `portless --funnel` (publicly exposed via Tailscale Funnel), records an
 expiry of `N` hours into `.claude/state/live-demos.jsonl`, and prints a public
 URL plus `&lt;iframe&gt;` snippet for embedding in customer emails or docs pages.
 
 ```bash
-/ork:demo-producer --live 4
+demo-producer --live 4
 
 # Internally runs:
-/ork:dev --live 4
+dev --live 4
 # → public URL: https://app.your-tailnet.ts.net
 #   iframe: <iframe src="..." />
 #   expires: 2026-05-03T20:00Z
 ```
 
-`/ork:doctor` warns about live demos older than 24 hours so they don't sprawl.
-Tear down with `/ork:dev stop`. Tailscale CLI must be installed (only required
+`doctor` warns about live demos older than 24 hours so they don't sprawl.
+Tear down with `dev stop`. Tailscale CLI must be installed (only required
 behind `--live` — not for static demo recording modes).
 
 ## CRITICAL: Task Management is MANDATORY (CC 2.1.16)
@@ -86,13 +86,13 @@ TaskUpdate(taskId="2", status="completed")    # When done
 
 | Type | Source | Example |
 |------|--------|---------|
-| `skill` | skills/\{name\}/SKILL.md | `/ork:demo-producer skill commit` |
-| `agent` | agents/\{name\}.md | `/ork:demo-producer agent debug-investigator` |
-| `plugin` | plugins/\{name\}/plugin.json | `/ork:demo-producer plugin ork` |
-| `marketplace` | Marketplace install flow | `/ork:demo-producer marketplace ork` |
-| `tutorial` | Custom description | `/ork:demo-producer tutorial "Git workflow"` |
-| `cli` | Any CLI tool | `/ork:demo-producer cli "npm create vite"` |
-| `code` | Code walkthrough | `/ork:demo-producer code src/api/auth.ts` |
+| `skill` | skills/\{name\}/SKILL.md | `demo-producer skill commit` |
+| `agent` | agents/\{name\}.md | `demo-producer agent debug-investigator` |
+| `plugin` | plugins/\{name\}/plugin.json | `demo-producer plugin ork` |
+| `marketplace` | Marketplace install flow | `demo-producer marketplace ork` |
+| `tutorial` | Custom description | `demo-producer tutorial "Git workflow"` |
+| `cli` | Any CLI tool | `demo-producer cli "npm create vite"` |
+| `code` | Code walkthrough | `demo-producer code src/api/auth.ts` |
 
 ## Interactive Flow
 

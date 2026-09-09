@@ -33,7 +33,7 @@ skill's `examples/_featured.md`, so it cannot drift from the skill).
 
 The whole point is speed, so there is no setup phase.
 
-**With no argument, the topic is the current conversation.** Measured over a real 13-prompt session: zero asks supplied a self-contained topic, and the one direct invocation passed nothing at all. `/ork:glyph` on its own means "render where we are right now" — the open work, the decision just reached, the state of the thing being discussed. Render that; do not ask what to draw.
+**With no argument, the topic is the current conversation.** Measured over a real 13-prompt session: zero asks supplied a self-contained topic, and the one direct invocation passed nothing at all. `glyph` on its own means "render where we are right now" — the open work, the decision just reached, the state of the thing being discussed. Render that; do not ask what to draw.
 
 Given a topic (or the conversation, when none is given):
 
@@ -57,7 +57,7 @@ Given a topic (or the conversation, when none is given):
 
 **When NOT to use this skill:** if the deliverable is a multi-section HTML playground, a persisted plan artifact, or anything needing file output, use `visualize-plan` instead. Glyph is the cheap inline path; visualize-plan is the full pipeline.
 
-**Over budget is the same signal.** If the honest rendering needs more than ~12 lines, that is not a bigger chat answer, it is a different deliverable: write the playground or file, then hand the human a URL with `/ork:page-serve <path>` (a port-free `https://<name>.localhost/` route, with a stop) instead of a bare file path or a hand-started `python3 -m http.server`. The old escape hatch fired on artifact TYPE only, so a 40-line inline reply never tripped it.
+**Over budget is the same signal.** If the honest rendering needs more than ~12 lines, that is not a bigger chat answer, it is a different deliverable: write the playground or file, then hand the human a URL with `/page-serve <path>` (a port-free `https://<name>.localhost/` route, with a stop) instead of a bare file path or a hand-started `python3 -m http.server`. The old escape hatch fired on artifact TYPE only, so a 40-line inline reply never tripped it.
 
 
 ## Box-Drawing Character Reference

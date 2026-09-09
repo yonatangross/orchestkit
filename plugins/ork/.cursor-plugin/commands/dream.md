@@ -486,9 +486,9 @@ grep -l -i "<topic-key>" ~/.claude/projects/*/memory/MEMORY.md \
 
 ## When NOT to Use
 
-- To **store** new decisions -- use `/ork:remember`
-- To **search** past decisions -- use `/ork:memory search`
-- To **load** context at session start -- use `/ork:memory load`
+- To **store** new decisions -- use `remember`
+- To **search** past decisions -- use `memory search`
+- To **load** context at session start -- use `memory load`
 - After fewer than 5 sessions -- memory files are unlikely to have accumulated enough staleness
 
 

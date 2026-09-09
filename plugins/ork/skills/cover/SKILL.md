@@ -39,6 +39,8 @@ invocation_hooks:
 
 # Cover — Test Suite Generator
 
+Host-neutral workflow. Invoke by skill name (`cover`). Claude Code slash routing, YAML hook loaders, and `.claude/chain` live in `references/claude-code.md`.
+
 Generate comprehensive test suites for existing code with real-service integration testing and automated failure healing.
 
 > **Note:** If `disableSkillShellExecution` is enabled (CC 2.1.91), the precondition check for vitest/jest won't run. Verify a test runner is installed before proceeding: `npx vitest --version` or `npx jest --version`.
@@ -46,10 +48,10 @@ Generate comprehensive test suites for existing code with real-service integrati
 ## Quick Start
 
 ```bash
-/ork:cover authentication flow
-/ork:cover --model=opus payment processing
-/ork:cover --tier=unit,integration user service
-/ork:cover --real-services checkout pipeline
+cover authentication flow
+cover --model=opus payment processing
+cover --tier=unit,integration user service
+cover --real-services checkout pipeline
 ```
 
 ## Argument Resolution
@@ -272,7 +274,7 @@ Spawn test-generator agents per tier. Launch ALL in ONE message with `run_in_bac
 > applies: every tier agent branches from `origin/<default>`, unpushed local
 > commits are invisible to it, and `tsc` fails with "cannot find module" for
 > code you just wrote. Verify the setting before spawning. Full pattern:
-> `Read("${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/references/worktree-agent-pattern.md")`
+> `Read("../chain-patterns/references/worktree-agent-pattern.md")`
 
 ```python
 # Unit tests agent (worktree-isolated)
@@ -370,7 +372,7 @@ Full report layout (baseline→after table, tests-generated counts, heal iterati
 
 ### PushNotification on Completion (CC 2.1.110+)
 
-Full `/ork:cover` runs (unit + integration + E2E with heal loop) take 15–45 min. After the Phase 6 report is assembled, call `PushNotification(message=f"ork:cover complete — {SCOPE}: {coverage_pct}% coverage · {tests_generated} tests · {heal_loops} heal iters", status="proactive")`. Full rule: `Read("${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/rules/push-notification-on-completion.md")`.
+Full `cover` runs (unit + integration + E2E with heal loop) take 15–45 min. After the Phase 6 report is assembled, call `PushNotification(message=f"ork:cover complete — {SCOPE}: {coverage_pct}% coverage · {tests_generated} tests · {heal_loops} heal iters", status="proactive")`. Full rule: `Read("../chain-patterns/rules/push-notification-on-completion.md")`.
 
 ### Coverage Drift Monitor (CC 2.1.71)
 
@@ -419,7 +421,7 @@ Bash(command="npm test -- --coverage 2>&1", run_in_background=true)
 Monitor(pid=test_task_id)  # Each line → notification
 ```
 
-Full pattern reference (until-condition gates, partial-result salvage, `TaskOutput` vs `Monitor` decision): `Read("${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/references/monitor-patterns.md")`.
+Full pattern reference (until-condition gates, partial-result salvage, `TaskOutput` vs `Monitor` decision): `Read("../chain-patterns/references/monitor-patterns.md")`.
 
 **Partial results (CC 2.1.98):** If a test-generator crashes mid-generation, synthesize what it produced:
 
@@ -452,11 +454,11 @@ Standard chain: `implement → cover → verify → commit`. Use `addBlockedBy` 
 
 ### Verification Gate
 
-Before claiming coverage is complete, apply: `Read("${CLAUDE_PLUGIN_ROOT}/shared/rules/verification-gate.md")`. Run the coverage report fresh. "Should pass" is not evidence.
+Before claiming coverage is complete, apply: `Read("../../shared/rules/verification-gate.md")`. Run the coverage report fresh. "Should pass" is not evidence.
 
 ### Agent Status Protocol
 
-All test-generator agents report using: `Read("${CLAUDE_PLUGIN_ROOT}/shared/status-protocol.md")`. BLOCKED if tests can't be written due to missing interfaces. NEEDS_CONTEXT if test expectations are unclear.
+All test-generator agents report using: `Read("../../shared/status-protocol.md")`. BLOCKED if tests can't be written due to missing interfaces. NEEDS_CONTEXT if test expectations are unclear.
 
 ## Quality Bar
 
@@ -469,7 +471,7 @@ Done means all of these hold:
 
 ## Related Skills
 
-- `ork:implement` — generates tests during implementation (Phase 5); use `/ork:cover` after for deeper coverage
+- `ork:implement` — generates tests during implementation (Phase 5); use `cover` after for deeper coverage
 - `ork:verify` — grades existing tests 0-10; chain: `implement → cover → verify`
 - `testing-unit` / `testing-integration` / `testing-e2e` — knowledge skills loaded by test-generator agents
 - `ork:commit` — commit generated test files

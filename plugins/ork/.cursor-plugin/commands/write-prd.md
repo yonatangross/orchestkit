@@ -125,11 +125,11 @@ TaskUpdate(status="completed")
 After PRD is approved, decompose its acceptance criteria into a runnable goal, then implement:
 
 ```
-/ork:prd-to-goal PRD-{product-slug}.md   # → one copy-pasteable `/goal until …, or stop after N turns` line
-/ork:implement PRD-{product-slug}.md
+prd-to-goal PRD-{product-slug}.md   # → one copy-pasteable `/goal until …, or stop after N turns` line
+implement PRD-{product-slug}.md
 ```
 
-`/ork:prd-to-goal` reduces the Go/No-Go gate + acceptance criteria below into a single AND-joined boolean assertion, so the PRD drives an autonomous `/goal` run rather than a manual read-through.
+`prd-to-goal` reduces the Go/No-Go gate + acceptance criteria below into a single AND-joined boolean assertion, so the PRD drives an autonomous `/goal` run rather than a manual read-through.
 
 ## Related Skills
 

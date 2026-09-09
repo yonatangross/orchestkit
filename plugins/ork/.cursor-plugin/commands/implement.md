@@ -16,14 +16,16 @@ allowed-tools: [SendMessage, AskUserQuestion, Bash, Read, Write, Edit, Grep, Glo
 
 # Implement Feature
 
+Host-neutral workflow. Invoke by skill name (`implement`). Claude Code slash routing, YAML hook loaders, and `.claude/chain` live in `skills/implement/references/claude-code.md`.
+
 Parallel subagent execution for feature implementation with scope control and reflection.
 
 ## Quick Start
 
 ```bash
-/ork:implement user authentication
-/ork:implement --model=opus real-time notifications
-/ork:implement dashboard analytics
+implement user authentication
+implement --model=opus real-time notifications
+implement dashboard analytics
 ```
 
 
@@ -101,14 +103,14 @@ Thresholds influence behavior:
 
 When CC's native task-budget API ships GA, replace the estimate with the real signal; the thresholds and behavior stay the same.
 
-> Load: `Read("skills/chain-patterns/references/checkpoint-resume.md")`
+> Load: `Read("../chain-patterns/references/checkpoint-resume.md")`
 
 
 ## Step -0.5: Assess Verdict Gate
 
-If `.claude/chain/assess-verdict.json` exists with a `feature` matching this run and `verdict == "fail"` (composite < the 5.5 `min_pass` in `skills/assess/rubric.json`, or any dimension below its `min_blocker`), **BLOCK Phase 1**. Present each `blockers[]` entry (dimension, score, reason), then `AskUserQuestion` with plain label+description options (no `preview`):
+If `.claude/chain/assess-verdict.json` exists with a `feature` matching this run and `verdict == "fail"` (composite < the 5.5 `min_pass` in `../assess/rubric.json`, or any dimension below its `min_blocker`), **BLOCK Phase 1**. Present each `blockers[]` entry (dimension, score, reason), then `AskUserQuestion` with plain label+description options (no `preview`):
 
-1. **Fix blockers first (Recommended)** — address the blockers, re-run `/ork:assess`, then return here.
+1. **Fix blockers first (Recommended)** — address the blockers, re-run `assess`, then return here.
 2. **Override and implement** — proceed anyway; record `"assess_gate": "overridden"` in `state.json` and carry the blockers into Phase 1 context.
 
 Missing file or `verdict == "pass"` → no gate; continue to Step 0.
@@ -292,7 +294,7 @@ Agent(subagent_type="ork:test-generator", run_in_background=true, ...)
 # Monitor agent progress via task notifications (CC 2.1.98 partial progress)
 ```
 
-Full pattern reference (when to use vs. `TaskOutput`, until-condition gates, partial-result salvage, anti-patterns): `Read("skills/chain-patterns/references/monitor-patterns.md")`.
+Full pattern reference (when to use vs. `TaskOutput`, until-condition gates, partial-result salvage, anti-patterns): `Read("../chain-patterns/references/monitor-patterns.md")`.
 
 **Partial results (CC 2.1.98):** if a worktree-isolated agent crashes mid-implementation, salvage its partial output — `git diff --name-only` in its worktree, commit what's usable, flag incomplete items — instead of re-spawning; escalate a `BLOCKED` agent to the user. Full salvage logic: the monitor-patterns reference above.
 
@@ -303,7 +305,7 @@ subagent bypass of the worktree-isolation guard was fixed in CC 2.1.154 and
 completed in 2.1.203; ork's floor is >= 2.1.220, so every supported session gets
 real isolation. Full pattern, plus the 2.1.206 caveat that `EnterWorktree`
 now prompts for confirmation on ork's out-of-tree `../<repo>-<task>` convention:
-`Read("skills/chain-patterns/references/worktree-agent-pattern.md")`
+`Read("../chain-patterns/references/worktree-agent-pattern.md")`
 
 *Historical (CC <= 2.1.153 only):* the param thrashed the primary worktree's HEAD
 and cut agents off at ~60 tool uses (Yonatan-HQ/platform#3224). The manual
@@ -353,8 +355,8 @@ Load test matrix, real-service detection, and phase 9 gate: `Read("skills/implem
 
 ## Key Principles
 
-- **Verification gate (terminal, mandatory)** — before declaring ANY task done you MUST `Read("shared/rules/verification-gate.md")` and satisfy EVERY check: every changed file verified, tests green, scope-creep scored. A partial pass is NOT done; "should work now" is not evidence.
-- **Agent status protocol** — all subagents report DONE / DONE_WITH_CONCERNS / BLOCKED / NEEDS_CONTEXT per `Read("shared/status-protocol.md")`
+- **Verification gate (terminal, mandatory)** — before declaring ANY task done you MUST `Read("../../shared/rules/verification-gate.md")` and satisfy EVERY check: every changed file verified, tests green, scope-creep scored. A partial pass is NOT done; "should work now" is not evidence.
+- **Agent status protocol** — all subagents report DONE / DONE_WITH_CONCERNS / BLOCKED / NEEDS_CONTEXT per `Read("../../shared/status-protocol.md")`
 - **Tests are NOT optional** — each task includes its tests, matched to change type (see matrix above)
 - **Parallel when independent** — use `run_in_background: true`, launch all agents in ONE message
 - **Output limits (CC 2.1.77+):** the Opus tier defaults to 64k output tokens (128k upper bound). Generate complete artifacts in a single pass when possible; chunk across turns if output exceeds the limit
@@ -369,25 +371,25 @@ Load test matrix, real-service detection, and phase 9 gate: `Read("skills/implem
 ## Next Steps (suggest to user after implementation)
 
 ```
-/ork:verify {FEATURE}              # Grade the implementation
-/ork:cover {FEATURE}               # Generate test suite
-/ork:commit                        # Commit changes
+verify {FEATURE}              # Grade the implementation
+cover {FEATURE}               # Generate test suite
+commit                        # Commit changes
 /loop 10m npm test                 # Watch tests while iterating
-/loop 30m /ork:verify {FEATURE}    # Periodic quality gate
+/loop 30m verify {FEATURE}    # Periodic quality gate
 ```
 
 ### PushNotification on Completion (CC 2.1.110+)
 
-`/ork:implement` runs commonly take 10–30 min with parallel agents. **At the final synthesis step, after the PR is opened and tests are green, call `PushNotification`** — the user has almost certainly context-switched.
+`implement` runs commonly take 10–30 min with parallel agents. **At the final synthesis step, after the PR is opened and tests are green, call `PushNotification`** — the user has almost certainly context-switched.
 
 ```python
 PushNotification(
-  message=f"ork:implement complete — {FEATURE}: {tests_passing}/{tests_total} tests · PR #{pr_num} opened · ready for /ork:verify",
+  message=f"ork:implement complete — {FEATURE}: {tests_passing}/{tests_total} tests · PR #{pr_num} opened · ready for verify",
   status="proactive"
 )
 ```
 
-Full rule (when to fire, body content limits, graceful fallback for users without Remote Control): load `Read("skills/chain-patterns/rules/push-notification-on-completion.md")`.
+Full rule (when to fire, body content limits, graceful fallback for users without Remote Control): load `Read("../chain-patterns/rules/push-notification-on-completion.md")`.
 
 ## Agent Coordination
 
@@ -434,10 +436,8 @@ After implementation completes, chain to verification:
 ```python
 TaskCreate(subject="Verify implementation", activeForm="Verifying changes")
 TaskUpdate(taskId=verify_id, addBlockedBy=[impl_task_id])
-# Then: /ork:verify {feature}
+# Then: verify {feature}
 ```
-
-> **Session recovery (CC 2.1.108+):** After idle periods or interruptions, use `/recap` to restore conversational context. Combined with `.claude/chain/state.json` checkpoint-resume, this enables full recovery of multi-phase implement sessions. Enabled by default since CC 2.1.110 (even with telemetry disabled).
 
 ## Quality Bar
 
