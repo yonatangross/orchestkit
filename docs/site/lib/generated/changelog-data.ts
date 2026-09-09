@@ -18,6 +18,28 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.12",
+    "date": "2026-09-09",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.11...v10.0.0-beta.12",
+    "sections": [
+      {
+        "type": "changed",
+        "heading": "Miscellaneous",
+        "items": [
+          "**deps:** bump hono from 4.13.0 to 4.13.7 in /src/mcp-server ([#4014](https://github.com/yonatangross/orchestkit/issues/4014)) ([cb6ccc4](https://github.com/yonatangross/orchestkit/commit/cb6ccc488e14daaf0c235103fe1a14f36551a1ef))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Documentation",
+        "items": [
+          "**engines:** generic floor Lab and portable skill invoke ([#4018](https://github.com/yonatangross/orchestkit/issues/4018)) ([4f38cbc](https://github.com/yonatangross/orchestkit/commit/4f38cbcb6f8ca5ac4b67b9546994ef6e2fa0e104))",
+          "**site:** host-first install wizard and multi-host getting started ([#4016](https://github.com/yonatangross/orchestkit/issues/4016)) ([efd9640](https://github.com/yonatangross/orchestkit/commit/efd9640a0b0bdcff3c946194e5dfe313f420ad4b))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.11",
     "date": "2026-09-08",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.10...v10.0.0-beta.11",
