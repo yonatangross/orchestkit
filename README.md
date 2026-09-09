@@ -50,12 +50,13 @@ Measured 2026-09-08 on pi 0.85, Codex CLI and cursor-agent. Details, commands an
 
 | Surface | Claude Code | Cursor | Codex | pi |
 |---|---|---|---|---|
-| Skills (SKILL.md) | all | all, via the `ork` plugin | 6 (`ork-codex` pack) | all via `--skill`, 78 auto-listed |
+| Skills (SKILL.md) | all | all, via the `ork` plugin | 6 (`ork-codex` pack) | all via `pi install`, 78 auto-listed |
 | Agents | all | all | 4 role templates | none |
 | Hooks | all | none | none | none |
+| Rules | repo convention | 14, plugin `rules` key | `AGENTS.md` | none |
 | Commands | `/ork:<skill>` | 36 wrappers | `$ork-<skill>` | `/skill:<name>` |
 | MCP config | `.mcp.json` | `.cursor/mcp.json` | plugin `mcp.json` | `.pi/mcp.json` |
-| Status | shipped | shipped | shipped | not shipped, see [pi](#pi) |
+| Status | shipped | shipped | shipped | shipped |
 
 ### Claude Code
 
@@ -261,6 +262,10 @@ Add the GitHub repo as a Cursor marketplace (Settings → `yonatangross/orchestk
 enable **`ork`**, then **open a new chat**. That is the same plugin Claude Code
 installs, not a five-skill fork.
 
+It also ships 14 rules under the plugin's `rules` key, generated from
+`src/rules/` and `src/shared/rules/`. They are agent-fetched, so a rule costs
+context only when its description matches the task.
+
 Claude hook scripts are not registered for Cursor: they depend on
 `${CLAUDE_PLUGIN_ROOT}` (orchestkit#293, closed). Cursor enforcement for HQ
 repos stays in the consuming project's `.cursor/hooks.json`.
@@ -294,6 +299,60 @@ plugins/ork-codex/scripts/install-codex-roles.sh ~/.codex/agents
 
 It installs `ork_explorer`, `ork_implementer`, `ork_reviewer`, and
 `ork_verifier`; restart Codex before spawning them.
+
+#### Unattended runs: the `ork-mech` profile
+
+For mechanical work (renames, bumps, codemods, sweeps that end in a diff),
+install the shipped profile and run `codex exec` against it:
+
+```bash
+plugins/ork-codex/scripts/install-codex-profile.sh ~/.codex
+codex exec --profile ork-mech "<task>" </dev/null
+```
+
+The profile is a FILE, not a snippet you paste into `config.toml`. Measured on
+codex-cli 0.153.4: `--profile <name>` layers `$CODEX_HOME/<name>.config.toml`
+over the base config, and a legacy `[profiles.<name>]` table left inside
+`config.toml` makes the same flag a hard config-load error. The installer
+refuses to run next to that table, and refuses to overwrite a profile you
+already have.
+
+What it sets, as `codex exec` prints it in its own header:
+
+```
+approval: never
+sandbox: workspace-write [workdir, /tmp, $TMPDIR] (network access enabled)
+reasoning effort: high
+```
+
+It deliberately does not pin a model (pass `-m`) and does not use
+`--dangerously-bypass-approvals-and-sandbox`, which drops the sandbox entirely.
+Two contracts a TOML file cannot express, so they stay on the command line:
+
+- **`</dev/null`.** `codex exec` reads stdin even when a prompt argument is
+  given. An inherited open pipe blocks the run with `Reading additional input
+  from stdin...` and no timeout.
+- **`--add-dir` inside a git worktree.** The writable roots are
+  `[workdir, /tmp, $TMPDIR]`. A linked worktree's git common dir sits outside
+  the workdir, so the first commit dies on `index.lock`. Add it:
+
+  ```bash
+  codex exec --profile ork-mech \
+    --add-dir "$(git rev-parse --path-format=absolute --git-common-dir)" \
+    "<task>" </dev/null
+  ```
+
+#### Keeping the install current
+
+`ref main` in the marketplace source is a cached snapshot, not a tracker. On the
+2026-09-08 audit machine `codex plugin list` showed `10.0.0-beta.5` while main
+was three releases ahead. After an OrchestKit release, update and check:
+
+```bash
+codex plugin update
+codex plugin list | grep ork-codex          # installed version
+jq -r .version plugins/ork-codex/.codex-plugin/plugin.json   # what main ships
+```
 
 #### Documentation lookup (context7)
 
@@ -331,20 +390,31 @@ Two behaviors worth knowing:
 
 ### pi
 
-pi (0.85) reads the same SKILL.md format, but OrchestKit ships no pi manifest
-yet, so `pi install git:github.com/yonatangross/orchestkit` registers nothing.
-Until the adapter lands, point pi at the skills directory of a checkout:
+pi (0.85) reads the same SKILL.md format, and the repo now carries a `pi`
+manifest, so the package installs directly:
 
 ```bash
-pi --skill ./plugins/ork/skills
+pi install git:github.com/yonatangross/orchestkit
 ```
 
-pi's loader picks up every skill; the 29 marked `disable-model-invocation`
-stay reachable only as `/skill:<name>`. Two measured caveats: `--no-builtin-tools`
-hides every skill (pi lists skills only when a file-reading tool is enabled),
-and `pi -p` blocks on an open stdin, so headless runs need `</dev/null`. MCP
-servers for pi come from `.pi/mcp.json` or `.mcp.json` in the project. Full
-detail and the tracking epic:
+That registers every skill. Add `-l` to write `.pi/settings.json` in the
+project instead of your user settings. Pointing pi at a checkout still works
+and needs no install (`pi --skill ./plugins/ork/skills`).
+
+The 29 skills marked `disable-model-invocation` stay reachable only as
+`/skill:<name>`. Two measured caveats: `--no-builtin-tools` hides every skill
+(pi lists skills only when a file-reading tool is enabled), and `pi -p` blocks
+on an open stdin, so headless runs need `</dev/null`.
+
+MCP servers for pi come from `.pi/mcp.json`, then `.mcp.json`, then
+`~/.config/mcp/mcp.json`. Copy the shipped template to get the recommended
+servers with a read-only `includeTools` allowlist per server:
+
+```bash
+cp .pi/mcp.json.example .pi/mcp.json
+```
+
+Full detail and the tracking epic:
 [OrchestKit on pi, Codex and Cursor](https://orchestkit.yonyon.ai/docs/guides/orchestkit-on-pi-codex-cursor).
 
 ---
@@ -401,6 +471,19 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.11](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.10...v10.0.0-beta.11)** · 2026-09-08
+
+- **codex:** ship the ork-mech profile and the plugin cache-lag note (#4012)
+
+**[v10.0.0-beta.10](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.9...v10.0.0-beta.10)** · 2026-09-08
+
+- **cursor:** export rules to .cursor-plugin and rewrite wrapper paths at generation time (#4011)
+- **pi:** ship a pi manifest and a .pi/mcp.json allowlist template (#4009)
+
+**[v10.0.0-beta.9](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.8...v10.0.0-beta.9)** · 2026-09-08
+
+- **engines:** pi, Codex and Cursor guide, matrix and audit (#4006)
+
 **[v10.0.0-beta.8](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.7...v10.0.0-beta.8)** · 2026-09-08
 
 - **deps:** ignore vitest major under /src/hooks (#3996)
@@ -430,20 +513,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **deps:** bump the remotion group across 1 directory with 21 updates (#3964)
 - bump anthropics/claude-code-action (#3968)
 - …and 1 more (see [CHANGELOG.md](CHANGELOG.md))
-
-**[v10.0.0-beta.3](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.2...v10.0.0-beta.3)** · 2026-09-07
-
-- **deps-dev:** bump @types/node (#3958)
-- **deps-dev:** bump the npm-minor-patch group in /src/hooks with 2 updates (#3957)
-
-**[v10.0.0-beta.2](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.1...v10.0.0-beta.2)** · 2026-09-07
-
-- **hooks:** per-tool exemption from MCP PII redaction (#3951) (#3954)
-- **deps-dev:** bump @types/node (#3956)
-
-**[v10.0.0-beta.1](https://github.com/yonatangross/orchestkit/compare/v10.0.0-alpha.86...v10.0.0-beta.1)** · 2026-09-06
-
-- **release:** flip the prerelease train to beta (#3952)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

@@ -1,6 +1,6 @@
 {
   "name": "orchestkit",
-  "version": "10.0.0-beta.8",
+  "version": "10.0.0-beta.11",
   "description": "OrchestKit Claude Plugin - AI-assisted development toolkit",
   "workspaces": [
     "packages/*"
@@ -62,5 +62,11 @@
   "license": "MIT",
   "engines": {
     "node": ">=24 <25"
+  },
+  "pi": {
+    "skills": [
+      "./plugins/ork/skills",
+      "-plugins/ork/skills/CONTRIBUTING-SKILLS.md"
+    ]
   }
 }

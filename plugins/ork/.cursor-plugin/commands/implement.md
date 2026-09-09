@@ -77,7 +77,7 @@ Write(".claude/chain/state.json", JSON.stringify({
 
 ### Batch Size Governance (large refactors)
 
-For implementations touching **>10 files**, enforce max 5 files per agent batch, run tests between batches, commit green batches immediately, stop on red. Override via `--batch-size N`. Full rule: `Read("rules/batch-governance.md")`.
+For implementations touching **>10 files**, enforce max 5 files per agent batch, run tests between batches, commit green batches immediately, stop on red. Override via `--batch-size N`. Full rule: `Read("skills/implement/rules/batch-governance.md")`.
 
 ### Budget Awareness (Opus 5 task budgets, public beta)
 
@@ -101,12 +101,12 @@ Thresholds influence behavior:
 
 When CC's native task-budget API ships GA, replace the estimate with the real signal; the thresholds and behavior stay the same.
 
-> Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/references/checkpoint-resume.md")`
+> Load: `Read("skills/chain-patterns/references/checkpoint-resume.md")`
 
 
 ## Step -0.5: Assess Verdict Gate
 
-If `.claude/chain/assess-verdict.json` exists with a `feature` matching this run and `verdict == "fail"` (composite < the 5.5 `min_pass` in `${CLAUDE_PLUGIN_ROOT}/skills/assess/rubric.json`, or any dimension below its `min_blocker`), **BLOCK Phase 1**. Present each `blockers[]` entry (dimension, score, reason), then `AskUserQuestion` with plain label+description options (no `preview`):
+If `.claude/chain/assess-verdict.json` exists with a `feature` matching this run and `verdict == "fail"` (composite < the 5.5 `min_pass` in `skills/assess/rubric.json`, or any dimension below its `min_blocker`), **BLOCK Phase 1**. Present each `blockers[]` entry (dimension, score, reason), then `AskUserQuestion` with plain label+description options (no `preview`):
 
 1. **Fix blockers first (Recommended)** — address the blockers, re-run `/ork:assess`, then return here.
 2. **Override and implement** — proceed anyway; record `"assess_gate": "overridden"` in `state.json` and carry the blockers into Phase 1 context.
@@ -133,7 +133,7 @@ Read the `/effort` setting to scale implementation depth. The effort-aware conte
 
 Scan codebase signals and classify into tiers 1-6 (Interview through Open Source). Each tier sets an architecture ceiling and determines which phases/agents to use.
 
-Load tier details, workflow mapping, and orchestration mode: `Read("references/tier-classification.md")`
+Load tier details, workflow mapping, and orchestration mode: `Read("skills/implement/references/tier-classification.md")`
 
 ### Worktree Isolation (CC 2.1.49)
 
@@ -183,12 +183,12 @@ If worktree selected:
 3. On completion, merge back: `git checkout {original-branch} && git merge feat-{slug}`
 4. If merge conflicts arise, present diff to user via `AskUserQuestion`
 
-Load worktree details: `Read("references/worktree-isolation-mode.md")`
+Load worktree details: `Read("skills/implement/references/worktree-isolation-mode.md")`
 
 
 ## Step 0b: Blast-Radius Clarification (ask "what" before "how")
 
-Before Phase 1, resolve the unknowns whose answers would **change the architecture**, in blast-radius order — schema/migration → auth → API contract → perf/scale → cosmetics (last). Grep first, then `AskUserQuestion` one at a time (highest first, cap ~5, skip the obvious). Each answer becomes a row in a Decisions table written to `.claude/chain/decisions.json` and the PR body, feeding Phase 4 (Architecture) as constraints. Do NOT start Phase 1 with an unresolved schema/auth question; skip in `low` effort. Full protocol: `Read("references/blast-radius-clarification.md")`.
+Before Phase 1, resolve the unknowns whose answers would **change the architecture**, in blast-radius order — schema/migration → auth → API contract → perf/scale → cosmetics (last). Grep first, then `AskUserQuestion` one at a time (highest first, cap ~5, skip the obvious). Each answer becomes a row in a Decisions table written to `.claude/chain/decisions.json` and the PR body, feeding Phase 4 (Architecture) as constraints. Do NOT start Phase 1 with an unresolved schema/auth question; skip in `low` effort. Full protocol: `Read("skills/implement/references/blast-radius-clarification.md")`.
 
 
 ## Task Management (MANDATORY)
@@ -233,19 +233,19 @@ TaskUpdate(taskId="2", status="completed")    # When done — repeat for each su
 | Phase | Activities | Agents |
 |-------|------------|--------|
 | **1. Discovery** | Research best practices, Context7 docs, break into tasks | — |
-| **2. Micro-Planning** | Detailed plan per task (load `references/micro-planning-guide.md`) | — |
-| **3. Worktree** | Isolate in git worktree for 5+ file features (load `references/worktree-workflow.md`) | — |
+| **2. Micro-Planning** | Detailed plan per task (load `skills/implement/references/micro-planning-guide.md`) | — |
+| **3. Worktree** | Isolate in git worktree for 5+ file features (load `skills/implement/references/worktree-workflow.md`) | — |
 | **4. Architecture** | 4 parallel background agents (+ event-driven-architect when event/CQRS/queue-shaped) | workflow-architect, backend-system-architect, frontend-ui-developer, llm-integrator |
 | **5. Implementation + Tests** | Parallel agents, single-pass artifacts with mandatory tests | backend-system-architect, frontend-ui-developer, llm-integrator, test-generator |
 | **6. Integration Verification** | Code review + real-service integration tests | backend, frontend, code-quality-reviewer, security-auditor |
-| **7. Scope Creep** | Compare planned vs actual (load `references/scope-creep-detection.md`) | workflow-architect |
-| **8. E2E Verification** | Browser + API E2E testing (load `references/e2e-verification.md`) | — |
+| **7. Scope Creep** | Compare planned vs actual (load `skills/implement/references/scope-creep-detection.md`) | workflow-architect |
+| **8. E2E Verification** | Browser + API E2E testing (load `skills/implement/references/e2e-verification.md`) | — |
 | **9. Documentation** | Save decisions to memory graph | — |
 | **10. Reflection** | Lessons learned, estimation accuracy | workflow-architect |
 
-Load agent prompts: `Read("references/agent-phases.md")`
+Load agent prompts: `Read("skills/implement/references/agent-phases.md")`
 
-For Agent Teams mode: `Read("references/agent-teams-phases.md")`
+For Agent Teams mode: `Read("skills/implement/references/agent-teams-phases.md")`
 > **Nested delegation (CC 2.1.172+):** Phase 4-6 specialist agents MAY be instructed to delegate a bounded sub-problem to their own declared sub-agents (e.g. backend-system-architect → database-engineer for schema design) instead of doing everything inline. Keep chains ≤ 3 levels deep; when sub-tasks are independent, flatten to parallel dispatch from this orchestrator. See chain-patterns Pattern 9 (CC 2.1.172+).
 
 ### Phase Handoffs (CC 2.1.71)
@@ -292,7 +292,7 @@ Agent(subagent_type="ork:test-generator", run_in_background=true, ...)
 # Monitor agent progress via task notifications (CC 2.1.98 partial progress)
 ```
 
-Full pattern reference (when to use vs. `TaskOutput`, until-condition gates, partial-result salvage, anti-patterns): `Read("${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/references/monitor-patterns.md")`.
+Full pattern reference (when to use vs. `TaskOutput`, until-condition gates, partial-result salvage, anti-patterns): `Read("skills/chain-patterns/references/monitor-patterns.md")`.
 
 **Partial results (CC 2.1.98):** if a worktree-isolated agent crashes mid-implementation, salvage its partial output — `git diff --name-only` in its worktree, commit what's usable, flag incomplete items — instead of re-spawning; escalate a `BLOCKED` agent to the user. Full salvage logic: the monitor-patterns reference above.
 
@@ -303,12 +303,12 @@ subagent bypass of the worktree-isolation guard was fixed in CC 2.1.154 and
 completed in 2.1.203; ork's floor is >= 2.1.220, so every supported session gets
 real isolation. Full pattern, plus the 2.1.206 caveat that `EnterWorktree`
 now prompts for confirmation on ork's out-of-tree `../<repo>-<task>` convention:
-`Read("${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/references/worktree-agent-pattern.md")`
+`Read("skills/chain-patterns/references/worktree-agent-pattern.md")`
 
 *Historical (CC <= 2.1.153 only):* the param thrashed the primary worktree's HEAD
 and cut agents off at ~60 tool uses (Yonatan-HQ/platform#3224). The manual
 pre-create workaround that fixed it is superseded and kept only as a record:
-`references/manual-worktree-pattern.md`.
+`skills/implement/references/manual-worktree-pattern.md`.
 
 ### Post-Deploy Monitoring (CC 2.1.71)
 
@@ -341,20 +341,20 @@ If working on a GitHub issue, run the Start Work ceremony from `issue-progress-t
 
 ### Feedback Loop
 
-Maintain checkpoints after each task. Load triggers: `Read("references/feedback-loop.md")`
+Maintain checkpoints after each task. Load triggers: `Read("skills/implement/references/feedback-loop.md")`
 
 
 ## Test Requirements Matrix
 
 Phase 5 test-generator MUST produce tests matching the change type. Each change type maps to specific required tests and testing rules.
 
-Load test matrix, real-service detection, and phase 9 gate: `Read("references/test-requirements-matrix.md")`
+Load test matrix, real-service detection, and phase 9 gate: `Read("skills/implement/references/test-requirements-matrix.md")`
 
 
 ## Key Principles
 
-- **Verification gate (terminal, mandatory)** — before declaring ANY task done you MUST `Read("${CLAUDE_PLUGIN_ROOT}/shared/rules/verification-gate.md")` and satisfy EVERY check: every changed file verified, tests green, scope-creep scored. A partial pass is NOT done; "should work now" is not evidence.
-- **Agent status protocol** — all subagents report DONE / DONE_WITH_CONCERNS / BLOCKED / NEEDS_CONTEXT per `Read("${CLAUDE_PLUGIN_ROOT}/shared/status-protocol.md")`
+- **Verification gate (terminal, mandatory)** — before declaring ANY task done you MUST `Read("shared/rules/verification-gate.md")` and satisfy EVERY check: every changed file verified, tests green, scope-creep scored. A partial pass is NOT done; "should work now" is not evidence.
+- **Agent status protocol** — all subagents report DONE / DONE_WITH_CONCERNS / BLOCKED / NEEDS_CONTEXT per `Read("shared/status-protocol.md")`
 - **Tests are NOT optional** — each task includes its tests, matched to change type (see matrix above)
 - **Parallel when independent** — use `run_in_background: true`, launch all agents in ONE message
 - **Output limits (CC 2.1.77+):** the Opus tier defaults to 64k output tokens (128k upper bound). Generate complete artifacts in a single pass when possible; chunk across turns if output exceeds the limit
@@ -387,7 +387,7 @@ PushNotification(
 )
 ```
 
-Full rule (when to fire, body content limits, graceful fallback for users without Remote Control): load `Read("${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/rules/push-notification-on-completion.md")`.
+Full rule (when to fire, body content limits, graceful fallback for users without Remote Control): load `Read("skills/chain-patterns/rules/push-notification-on-completion.md")`.
 
 ## Agent Coordination
 

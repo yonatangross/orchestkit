@@ -48,6 +48,14 @@ const MUST_INCLUDE: Array<[query: string, urls: string[]]> = [
   // that errored. The query has no correct answer to assert against now.
   ["graph memory", ["/docs/memory/graph-memory"]],
   ["changelog", ["/docs/changelog"]],
+  // Engine guide (#4001). "pi" is a two-letter token that also prefixes
+  // "pipeline" and "pii", so the guide places 3rd on the bare query rather than
+  // 1st; the assertion is top-3, which is what the audit measured as missing.
+  ["pi", ["/docs/guides/orchestkit-on-pi-codex-cursor"]],
+  ["pi install", ["/docs/guides/orchestkit-on-pi-codex-cursor"]],
+  // Codex mech profile (#4002). The guide is the only page that carries the
+  // profile mechanics; the installation page carries the short version.
+  ["codex profile", ["/docs/guides/orchestkit-on-pi-codex-cursor"]],
 ];
 
 // ── Looser golden queries: at least one listed URL in the top 3 ─────────────

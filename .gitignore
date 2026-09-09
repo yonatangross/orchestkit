@@ -53,6 +53,9 @@ outputs/
 .env
 .env.local
 .mcp.json
+# The live pi MCP config a user copies from .pi/mcp.json.example. Same reason as
+# .mcp.json above: it is user-owned, project-scoped, and may carry a token.
+.pi/mcp.json
 
 # =============================================================================
 # Runtime artifacts (should never be committed)

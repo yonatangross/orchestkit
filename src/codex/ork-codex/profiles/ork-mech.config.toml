@@ -1,0 +1,42 @@
+# OrchestKit mech lane for Codex.
+#
+# Install:   plugins/ork-codex/scripts/install-codex-profile.sh ~/.codex
+# Run:       codex exec --profile ork-mech "<task>" </dev/null
+#
+# Why a FILE and not a config.toml snippet. Measured on codex-cli 0.153.4
+# (2026-09-08): `--profile <name>` layers $CODEX_HOME/<name>.config.toml over
+# the base user config. A legacy `[profiles.ork-mech]` table inside config.toml
+# is a hard error under that flag:
+#
+#   Error loading config.toml: --profile `ork-mech` cannot be used while
+#   ~/.codex/config.toml contains legacy `profile = "ork-mech"` or
+#   `[profiles.ork-mech]` config; move those settings into
+#   ~/.codex/ork-mech.config.toml and remove the legacy profile selector/table.
+#
+# What `codex exec` prints in its header with this file layered:
+#
+#   approval: never
+#   sandbox: workspace-write [workdir, /tmp, $TMPDIR] (network access enabled)
+#   reasoning effort: high
+#
+# Two contracts this profile cannot express, so they live on the command line:
+#
+#   </dev/null   `codex exec` reads stdin even when a prompt argument is given
+#                ("Reading additional input from stdin..."), so an inherited
+#                open pipe blocks the run forever.
+#   --add-dir    the writable roots are [workdir, /tmp, $TMPDIR]. In a git
+#                worktree the git common dir sits OUTSIDE the workdir, so a
+#                commit dies on index.lock unless you add it:
+#                --add-dir "$(git rev-parse --path-format=absolute --git-common-dir)"
+#
+# Deliberately absent: any model pin (pass -m), and
+# --dangerously-bypass-approvals-and-sandbox, which drops the sandbox entirely.
+# A mech worker doing a rename does not need that, and losing the sandbox is
+# the difference between a bad diff and a bad machine.
+
+approval_policy = "never"
+sandbox_mode = "workspace-write"
+model_reasoning_effort = "high"
+
+[sandbox_workspace_write]
+network_access = true

@@ -44,7 +44,7 @@ CATEGORY = "$ARGUMENTS[0]"  # Optional: build, git, plan, quality, memory, confi
 ```python
 # ${CLAUDE_PLUGIN_ROOT} is set by the plugin runtime and points at the INSTALLED
 # plugin. That is the normal case: a marketplace user has no src/ directory.
-SKILLS_ROOT = "${CLAUDE_PLUGIN_ROOT}/skills"
+SKILLS_ROOT = "skills"
 matches = Grep(pattern="user-invocable:\\s*true", path=SKILLS_ROOT, output_mode="files_with_matches")
 
 # Dogfooding fallback: inside the OrchestKit repo itself the skills live in the
@@ -55,7 +55,7 @@ if not matches:
 ```
 
 If BOTH probes return zero files, say so plainly ("could not locate the OrchestKit
-skills directory, checked `${CLAUDE_PLUGIN_ROOT}/skills` and `src/skills`") and stop.
+skills directory, checked `skills` and `src/skills`") and stop.
 Do NOT substitute a remembered list of skill names. Any such list is stale by
 construction and a confident wrong answer is worse than no answer.
 

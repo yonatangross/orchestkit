@@ -9,7 +9,7 @@ import { Count } from '@/components/count';
 
 OrchestKit is built for Claude Code. Three other engines can load parts of it, and the parts
 differ per engine. This page is measured, not aspirational: every claim was checked against
-pi 0.85.0, Codex CLI 2026.09.02 and cursor-agent 2026.09.02 on 2026-09-08. The full audit,
+pi 0.85.0, codex-cli 0.153.4 and cursor-agent 2026.09.02 on 2026-09-08. The full audit,
 with the commands and their output, is in the repo at
 [`docs/audits/multi-engine-support-2026-09-08.md`](https://github.com/yonatangross/orchestkit/blob/main/docs/audits/multi-engine-support-2026-09-08.md).
 
@@ -21,8 +21,9 @@ with the commands and their output, is in the repo at
 | Agents | <Count k="agents" /> | <Count k="agents" /> | 4 role templates, installed by script | none |
 | Slash commands | `/ork:<skill>` | 36 generated command wrappers | `$ork-<skill>` | `/skill:<name>` |
 | Hooks | <Count k="hooks" /> | none (Cursor has its own `hooks.json`) | none (Codex has its own hooks) | none (pi has extensions) |
+| Rules | repo convention, not a plugin key | 14, `.cursor-plugin/rules/` | `AGENTS.md` | none |
 | MCP config | `.mcp.json` | `.cursor/mcp.json` | plugin `mcp.json` (context7 shipped) | `.pi/mcp.json` and `.mcp.json` |
-| Install status | shipped | shipped (#3748) | shipped (#3265) | **not shipped**, see below |
+| Install status | shipped | shipped (#3748) | shipped (#3265), mech profile (#4002) | shipped (#4001) |
 
 The SKILL.md format is the cross-engine contract. Codex, Cursor and pi all read the
 [Agent Skills](https://agentskills.io) shape, so a skill body written for Claude Code loads
@@ -34,9 +35,10 @@ everywhere. Hooks are Claude Code only. MCP configuration is a different file on
 since #3940, and all four engines resolve those against the SKILL.md directory.
 
 **Does not port**: hooks (they need `${CLAUDE_PLUGIN_ROOT}` and the Claude Code event
-payload), agents (only Claude Code and Cursor read the `agents` manifest key), and any
-`${CLAUDE_PLUGIN_ROOT}` reference that is left in cross-skill or `shared/` paths. pi delivers
-that variable as a literal string, Cursor never substitutes it (#3822, #3941).
+payload) and agents (only Claude Code and Cursor read the `agents` manifest key). pi delivers
+`${CLAUDE_PLUGIN_ROOT}` as a literal string and Cursor never substitutes it (#3822), so the
+Cursor export strips it at generation time (#3941); pi reads the skill bodies directly and
+still sees the variable in cross-skill and `shared/` paths.
 
 **Hidden on pi by design**: 29 of the 107 skills carry `disable-model-invocation: true`.
 pi honours that flag, so those skills never appear in the model's auto-list and are reachable
@@ -45,33 +47,64 @@ read.
 
 ## pi
 
-pi has no shipped adapter yet. Two things are measured and one is derived.
-
-Measured: pointing pi at the skills directory works.
+Shipped since #4001. The package installs directly:
 
 ```bash
-# from a checkout of the repo
-pi --skill ./plugins/ork/skills
+pi install git:github.com/yonatangross/orchestkit
 ```
 
-pi's loader returns all 107 skills with zero diagnostics, the auto-list shows 78, and a
-headless run reported `HAS_IMPLEMENT=yes`. The same directory can be symlinked into
-`.agents/skills` (project) or `~/.agents/skills` (user) and pi picks it up on the next start.
+Add `-l` to write the source into the project's `.pi/settings.json` instead of your user
+settings. Pointing pi at a checkout still works and needs no install
+(`pi --skill ./plugins/ork/skills`), and the same directory can be symlinked into
+`.agents/skills` (project) or `~/.agents/skills` (user).
+
+What makes the install work is five lines in the root `package.json`. pi resolves a git or
+local package through the `pi` key, and falls back to `skills/`, `extensions/`, `prompts/` and
+`themes/` at the package root only when that key is absent. OrchestKit's skills live in
+`plugins/ork/skills`, which matches neither default, so before #4001 an install registered
+zero resources and raised no error:
+
+```json
+"pi": {
+  "skills": [
+    "./plugins/ork/skills",
+    "-plugins/ork/skills/CONTRIBUTING-SKILLS.md"
+  ]
+}
+```
+
+The second entry is a force-exclude. Without it pi registers 108 resources for 107 skills:
+`collectSkillEntries` takes every markdown child of the entry directory, and the extra file
+parses to nothing, so it would sit in `pi list` as a resource that is not a skill.
+
+`tests/plugins/test-pi-plugin.sh` gates this. When pi is installed it runs pi's own
+`collectPackageResources` and `loadSkillsFromDir` against the tree and asserts the count
+matches the repo's SKILL.md set with zero diagnostics; in CI, where pi is absent, it re-derives
+the same resolution from pi's documented rules and says which arm ran.
 
 Measured: **`--no-builtin-tools` hides every skill.** pi appends the skills block only when a
 tool that can read files is enabled. With built-in tools off the model reported `SKILLS=0` at
 1.6k input tokens; with them on it reported 139 skills at 21.7k. This matters for the sweep
-lane below.
-
-Derived from the loader source: `pi install git:github.com/yonatangross/orchestkit` registers
-nothing today. pi resolves a git package through the `pi` key in `package.json`, or falls back
-to `skills/`, `extensions/`, `prompts/` and `themes/` at the package root. OrchestKit has
-neither. The fix is a five-line manifest, tracked in the epic below.
+lane below, and no manifest changes it.
 
 MCP on pi comes from `pi-mcp-adapter`, which reads `.pi/mcp.json`, then `.mcp.json`, then
-`~/.config/mcp/mcp.json`. It does not discover other hosts' configs. A project-level
-`.pi/mcp.json` can add an `includeTools` allowlist per server, which is how a pi session is
-made read-mostly by construction. OrchestKit ships no template for it yet.
+`~/.config/mcp/mcp.json`. It does not discover other hosts' configs. OrchestKit ships no
+`.mcp.json`, so copy the template:
+
+```bash
+cp .pi/mcp.json.example .pi/mcp.json
+```
+
+It defines context7, memory, sequential-thinking and tavily, each with a read-only
+`includeTools` allowlist. That allowlist is fail-closed and applied at metadata-build time, so
+an excluded tool never enters the tool map and is not reachable through the mcp proxy either.
+It is a convenience filter and not a security perimeter: pi ships a `bash` tool and inherits
+the environment that started it, so a session can reach an endpoint directly. What it buys is
+that a cheap model following instructions cannot hit a mutating tool by accident.
+
+One shape difference worth pinning: pi's `ServerEntry` has no `type` field. stdio is
+`command` plus `args`, HTTP is `url`. A Claude Code entry pasted verbatim carries
+`"type": "http"`, which pi ignores.
 
 Two headless contracts, both load-bearing: `pi -p` blocks forever on an open stdin, so close
 it with `</dev/null`; and the session directory is pi's first write, so pass `--no-session` or
@@ -95,9 +128,56 @@ environment variable, never written to `config.toml`), and four role templates i
 script. Codex also reads project `.agents/skills`, `~/.agents/skills` and `AGENTS.md`, so a
 checkout of this repo already contributes its `AGENTS.md`.
 
+### The `ork-mech` profile
+
+Shipped since #4002, for unattended mechanical work:
+
+```bash
+plugins/ork-codex/scripts/install-codex-profile.sh ~/.codex
+codex exec --profile ork-mech "<task>" </dev/null
+```
+
+It is a file, not a `config.toml` snippet, and that distinction is load-bearing. Measured on
+codex-cli 0.153.4: `--profile <name>` layers `$CODEX_HOME/<name>.config.toml` over the base
+user config. A legacy `[profiles.<name>]` table inside `config.toml` turns the same flag into
+a hard config-load error, quoting the file it wants instead. The installer refuses both that
+collision and an overwrite.
+
+The profile sets approval `never`, `workspace-write` with network on, and high reasoning
+effort. `codex exec` prints the resolved shape in its header, which is how each line below was
+measured rather than assumed:
+
+```
+approval: never
+sandbox: workspace-write [workdir, /tmp, $TMPDIR] (network access enabled)
+reasoning effort: high
+```
+
+It pins no model (pass `-m`) and never reaches for
+`--dangerously-bypass-approvals-and-sandbox`, which drops the sandbox rather than widening it.
+A mech worker doing a rename does not need that.
+
+Two contracts live on the command line because a TOML file cannot carry them:
+
+| Contract | Why |
+|---|---|
+| `</dev/null` | `codex exec` reads stdin even with a prompt argument. An inherited open pipe blocks forever on `Reading additional input from stdin...` with no timeout, the same shape as `pi -p`. |
+| `--add-dir "$(git rev-parse --path-format=absolute --git-common-dir)"` | The writable roots are `[workdir, /tmp, $TMPDIR]`. A linked worktree's git common dir is outside the workdir, so the first commit dies on `index.lock`. With the flag the header adds that path to the roots list. |
+
+One silent state worth naming: `--profile` pointing at a file that does not exist is **not**
+an error. Codex proceeds on the base config, so a typo gives you a run with the wrong sandbox
+and no warning. Check the header, not the flag.
+
+### Keeping the Codex install current
+
 Known caveat: the plugin source says `ref main` but the installed copy is cached. On the
 audit machine it showed beta.5 while main was at beta.8. Run `codex plugin update` after a
-release.
+release, then compare the two versions:
+
+```bash
+codex plugin list | grep ork-codex
+jq -r .version plugins/ork-codex/.codex-plugin/plugin.json
+```
 
 Codex has a hooks system with the same event names as Claude Code (`SessionStart`,
 `PreToolUse`, `PostToolUse`, `UserPromptSubmit`), trust-gated per hook. OrchestKit ships
@@ -112,13 +192,74 @@ scripts.
 2. Enable **ork**.
 3. Open a new chat.
 
-What loads: <Count k="skills" /> skills, <Count k="agents" /> agents and 36 command wrappers
-generated from the user-invocable skills into `.cursor-plugin/commands/`. Cursor also reads
-`.cursor/skills`, `.cursor/rules`, `.cursorrules` and `AGENTS.md` from the project.
+What loads: <Count k="skills" /> skills, <Count k="agents" /> agents, 36 command wrappers
+generated from the user-invocable skills into `.cursor-plugin/commands/`, and 14 rules under
+`.cursor-plugin/rules/`. Cursor also reads `.cursor/skills`, `.cursor/rules`, `.cursorrules`
+and `AGENTS.md` from the project, so a repo can add its own on top.
 
-Known defect: the command wrappers still carry paths that only resolve from a skill
-directory or a Claude plugin root (#3941). The skills themselves are fine; the wrappers need
-a generation-time rewrite.
+### Rules
+Re-deriving Cursor's discovery over the built plugin, using the loader rules read out of the
+shipped `cursor-agent` bundle (manifest keys, the `[".md", ".mdc", ".markdown"]` extension list,
+the frontmatter router):
+
+```
+manifest keys: agents, author, commands, description, homepage,
+               keywords, license, name, repository, rules, skills, version
+skills   107
+agents    36
+commands  36
+rules     14   routing: {'agentFetched': 14}
+```
+
+That is a re-derivation, not a live install. Every route to a live install writes state outside
+the repo (`cursor-agent plugin marketplace add` writes to your Cursor account, `--plugin-dir`
+needs an authenticated model turn), so it is named here rather than claimed. The cheapest live
+check is one command:
+
+```bash
+cursor-agent --plugin-dir plugins/ork --mode ask -p 'list the plugin rules and commands you can see'
+```
+
+
+`rules` is a first-class key in Cursor's plugin manifest, alongside `skills`, `agents`,
+`commands` and `hooks`. Claude Code has no equivalent (its rules are a repo convention, not a
+plugin surface), so this key exists only in `.cursor-plugin/plugin.json`:
+
+```json
+"rules": "./.cursor-plugin/rules/"
+```
+
+The build generates one `.mdc` per rule from `src/rules/` (host-neutral engineering rules) and
+`src/shared/rules/` (the rules the skill bodies cite by name: the verification gate,
+anti-sycophancy, adversarial refutation, evidence replay, the chart and playground standards).
+Each carries `name`, `description` and `alwaysApply: false`, which is Cursor's **agent-fetched**
+class: the rule is pulled in when its description matches the task and costs nothing until then.
+Pinning 14 rules globally would be a context tax nobody asked for.
+
+`.claude/rules/` is deliberately not exported. Those rules are scoped by `paths:` to this
+repository's own tree (`src/hooks/**`, `tests/**`, the manifests) and tell an agent how to build
+OrchestKit; a downstream Cursor user has no such tree, so shipping them would inject
+instructions about a codebase that is not theirs.
+
+### Wrapper paths
+
+Fixed in #3941. A command wrapper lives in `.cursor-plugin/commands/`, one directory away from
+the skill whose body it carries, so a same-skill reference could not resolve from there in
+either form it has ever had: `${CLAUDE_PLUGIN_ROOT}/skills/<name>/references/x.md` is a Claude Code
+contract Cursor never substitutes, and bare `references/x.md` resolves against the SKILL.md
+directory, which the wrapper is not in. The build now rewrites both to plugin-relative paths at
+generation time:
+
+| in the skill body | in the Cursor wrapper |
+|---|---|
+| `${CLAUDE_PLUGIN_ROOT}/shared/rules/x.md` | `shared/rules/x.md` |
+| `${CLAUDE_SKILL_DIR}/scripts/x.py` | `skills/<name>/scripts/x.py` |
+| `references/x.md` | `skills/<name>/references/x.md` |
+
+A bare reference is rewritten only when the file really exists under that skill, so prose about
+OrchestKit's own `scripts/build-plugins.sh` is left alone and the rewrite cannot invent a target.
+`tests/plugins/test-cursor-paths.sh` gates all three shapes plus the reverse check that every
+rewritten path resolves to a real file in the plugin.
 
 Cursor's hooks live in `.cursor/hooks.json` (`version: 1`, camelCase events such as
 `sessionStart`). Enforcement for a project stays in that project's file; nothing ships from
@@ -131,7 +272,7 @@ When several engines are available, route by class of work, not by preference.
 | Class | What it is | Engine and guard | Sees OrchestKit skills? |
 |---|---|---|---|
 | **sweep** | read-only: lint names, dry runs, verification, collector fan-outs | pi on a cheap model with `--no-builtin-tools`, MCP reads only | **no**, measured above |
-| **mech** | mechanical writes: renames, bumps, codemods, sweeps with a diff | pi with `--approve`, Codex `--profile mech` (approval never, workspace-write sandbox), or cursor-agent `--force --sandbox enabled` | yes |
+| **mech** | mechanical writes: renames, bumps, codemods, sweeps with a diff | pi with `--approve`, Codex `--profile ork-mech` (approval never, workspace-write sandbox, network on), or cursor-agent `--force --sandbox enabled` | yes |
 | **reason** | judgement: design, review, debugging, anything that needs hooks | Claude Code, attended | yes, plus hooks and agents |
 
 Two consequences. A sweep cannot use OrchestKit until its guard changes from "no tools" to "a

@@ -15,6 +15,38 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "codex-mech-profile",
+    "title": "The Codex mech profile: which file codex actually reads",
+    "description": "Put the ork-mech profile in three places and read codex 0.153.4's own answer: a hard config-load error for the legacy [profiles.*] table, a silent base-config run for a name that does not exist, and the measured header for the shipped file. Plus the worktree writable-roots line with and without --add-dir.",
+    "tags": [
+      "codex",
+      "profile",
+      "sandbox",
+      "engines",
+      "explainer"
+    ],
+    "date": "2026-09-08",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 14
+  },
+  {
+    "slug": "pi-adapter",
+    "title": "The pi adapter: what one package.json key changes",
+    "description": "Flip the pi manifest between no key, a bare directory entry and the shipped force-exclude, and watch pi's own resolver return 0, 108-for-107, then 107 clean. Plus the per-server includeTools allowlist the .pi/mcp.json template ships.",
+    "tags": [
+      "pi",
+      "mcp",
+      "manifest",
+      "engines",
+      "explainer"
+    ],
+    "date": "2026-09-08",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 14
+  },
+  {
     "slug": "multi-engine-support",
     "title": "OrchestKit on pi, Codex and Cursor: what each engine actually loads",
     "description": "Measured support matrix per engine (skills, agents, hooks, commands, MCP), the four-run pi headless probe that shows --no-builtin-tools hides every skill, and the sweep, mech and reason lane model.",
@@ -44,6 +76,20 @@ export const LAB_ENTRIES: LabEntry[] = [
     "featured": false,
     "caseStudy": null,
     "sizeKb": 9
+  },
+  {
+    "slug": "cursor-export-paths",
+    "title": "Paths that open: the Cursor command export",
+    "description": "A command wrapper is a copy of a skill body in a different directory, so every spelling of a same-skill path failed from it: 53 lines of a Claude Code variable Cursor never substitutes, 3 more hidden inside a Python f-string, and 247 bare relative refs that resolve against a directory the wrapper is not in. Pick a spelling to see where it pointed, and set a rule's frontmatter to watch Cursor's router move it between global, file-globbed and agent-fetched.",
+    "tags": [
+      "engines",
+      "measurement",
+      "false-signals"
+    ],
+    "date": "2026-09-08",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 19
   },
   {
     "slug": "glyph-examples-page",

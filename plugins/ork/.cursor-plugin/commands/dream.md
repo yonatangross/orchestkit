@@ -300,7 +300,7 @@ for contradiction in contradiction_pairs:
 
 # 4. Rebuild MEMORY.md index from surviving files
 # NOTE: `rm` above is unrecoverable (memory files are not in git). Prefer the
-# trash-dir move + one-generation index rotation in references/safe-deletes.md.
+# trash-dir move + one-generation index rotation in skills/dream/references/safe-deletes.md.
 ```
 
 ### Rebuild MEMORY.md
@@ -346,13 +346,13 @@ the rebuild answers only the first. The budget pass is a script, so the report i
 runs it. Read-only by default; `--apply` only after the user accepts the moves (batch when > 3):
 
 ```python
-Bash(command=f"node ${{CLAUDE_PLUGIN_ROOT}}/skills/dream/scripts/index-budget.mjs '{memory_dir}' --json")
+Bash(command=f"node skills/dream/scripts/index-budget.mjs '{memory_dir}' --json")
 # bytes vs ceiling (ORK_CONTEXT_FILE_BUDGET_BYTES, else 17,408 B), per-section sizes, long entries,
 # the two-file invariant, and moves proposed BY RULE (oldest first). Add --apply to rotate
 # .MEMORY.md.prev, move the lines to MEMORY-ARCHIVE.md, rewrite the trailer, re-verify (exit 1 on failure).
 ```
 
-Rule, never-move set, exhausted-candidates fallback: `Read("references/index-budget.md")`.
+Rule, never-move set, exhausted-candidates fallback: `Read("skills/dream/references/index-budget.md")`.
 
 
 ## STEP 6: Report

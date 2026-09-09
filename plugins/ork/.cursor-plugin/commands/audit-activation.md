@@ -25,9 +25,9 @@ It answers: "Do my specialized agents get spawned, or does the model default to 
 
 | Category | File | Impact | When to Use |
 |----------|------|--------|-------------|
-| Activation Checks | `rules/activation-checks.md` | HIGH | What to compute per agent |
-| Classification | `rules/activation-status.md` | HIGH | fires / mis-triggered / niche / dead buckets |
-| Output Format | `references/output-format.md` | MEDIUM | Report layout + the spawn-split summary |
+| Activation Checks | `skills/audit-activation/rules/activation-checks.md` | HIGH | What to compute per agent |
+| Classification | `skills/audit-activation/rules/activation-status.md` | HIGH | fires / mis-triggered / niche / dead buckets |
+| Output Format | `skills/audit-activation/references/output-format.md` | MEDIUM | Report layout + the spawn-split summary |
 
 ## CRITICAL: Task Management is MANDATORY (CC 2.1.16)
 
@@ -47,7 +47,7 @@ TaskUpdate(taskId="4", addBlockedBy=["3"])
 1. **Run the script FIRST** — every audit starts by running (or, when execution is impossible, explicitly referencing) the deterministic collector:
 
    ```bash
-   bash "${CLAUDE_SKILL_DIR}/scripts/run-activation-audit.sh" \
+   bash "skills/audit-activation/scripts/run-activation-audit.sh" \
      --telemetry-root /path/to/consumer-project \
      --stop-feed "$HOME/.claude/analytics/agent-usage.jsonl" \
      --days 30 --json
@@ -56,20 +56,20 @@ TaskUpdate(taskId="4", addBlockedBy=["3"])
    It resolves the catalog beside its source or installed script, while every consumer telemetry root is explicit. It reports attempts, starts, and stop-feed completions separately. Never eyeball JSONL by hand when the script exists.
 2. **Inventory** — let the script resolve its own source or installed `agents/` catalog. Do not point it at a consumer project's agent directory.
 3. **Read telemetry** — `.claude/logs/subagent-spawns.jsonl` carries pretool intent and start events. Triangulate it with the restored global `~/.claude/analytics/agent-usage.jsonl` stop feed when available. The streams have no stable common event ID, so never add them together or infer unique spawns.
-4. **Compute** — all checks from `Read("rules/activation-checks.md")`; the Report Contract below lists the mandatory ones.
-5. **Classify** — bucket every agent using the Four Buckets below (full procedure: `Read("rules/activation-status.md")`).
-6. **Render** — output per `Read("references/output-format.md")`, satisfying the Report Contract.
+4. **Compute** — all checks from `Read("skills/audit-activation/rules/activation-checks.md")`; the Report Contract below lists the mandatory ones.
+5. **Classify** — bucket every agent using the Four Buckets below (full procedure: `Read("skills/audit-activation/rules/activation-status.md")`).
+6. **Render** — output per `Read("skills/audit-activation/references/output-format.md")`, satisfying the Report Contract.
 
 ## Report Contract (every audit MUST include all six)
 
-1. **Data-source line (first line of the report)** — name `scripts/run-activation-audit.sh`, every explicit consumer `.claude/logs/subagent-spawns.jsonl` root, the UTC window, and the spawn coverage state (`observed`, `missing`, `empty`, or `partial`). State whether `~/.claude/analytics/agent-usage.jsonl` was supplied as a stop feed. A report that presents numbers without these coverage facts is invalid.
+1. **Data-source line (first line of the report)** — name `skills/audit-activation/scripts/run-activation-audit.sh`, every explicit consumer `.claude/logs/subagent-spawns.jsonl` root, the UTC window, and the spawn coverage state (`observed`, `missing`, `empty`, or `partial`). State whether `~/.claude/analytics/agent-usage.jsonl` was supplied as a stop feed. A report that presents numbers without these coverage facts is invalid.
 2. **Spawn split** — generic (Explore/general-purpose/Plan) vs **ork-catalog** vs other-plugin, as **counts AND percentages** (e.g. "412 generic (74%) / 78 ork-catalog (14%) / 67 other (12%)"). Never percentages alone.
 3. **Concentration** — the **top-5 agents' share of all catalog spawns** as a percentage (e.g. "top-5 = 81% of catalog spawns"), plus the top-5 list with fire counts.
 4. **Observed-zero-start list** — only when spawn coverage is `observed`, enumerate every catalog agent with zero start events in the supplied roots, one per line with its reference count and bucket. This is not an estate-wide or lifetime dormancy claim. Do not render the list when coverage is missing, empty, or partial.
 5. **Window caveat** — state that observed-zero-start names are absent only from the supplied roots and UTC window. They are a routing signal, not proof of zero estate-wide or lifetime use.
 6. **Four-bucket classification table** (below) + **fix recommendations** — wiring changes only (see Hard Rules).
 
-## Classification: the Four Buckets (`rules/activation-status.md`)
+## Classification: the Four Buckets (`skills/audit-activation/rules/activation-status.md`)
 
 Bucket by **reference counts**, never by description quality. For each observed-zero-start agent, count its real spawn references: `grep -rc "subagent_type=ork:<name>" src/skills/` (plus `agent:`/team-map mentions in `src/agents/`). **Show the evidence**: cite that grep command in the report and put each agent's ref-count (with an example source file, e.g. `src/skills/cover/SKILL.md`) in the classification table. The telemetry observation proves only starts in supplied roots; the grep proves wiring. Render classification only when coverage is `observed`.
 
@@ -94,7 +94,7 @@ Bucket by **reference counts**, never by description quality. For each observed-
 ## Example report shape (illustrative numbers — imitate the FORM exactly)
 
 ```markdown
-Data: scripts/run-activation-audit.sh over /consumer/.claude/logs/subagent-spawns.jsonl (window: 2026-05-23T00:00:00Z to 2026-07-14T00:00:00Z; coverage: observed)
+Data: skills/audit-activation/scripts/run-activation-audit.sh over /consumer/.claude/logs/subagent-spawns.jsonl (window: 2026-05-23T00:00:00Z to 2026-07-14T00:00:00Z; coverage: observed)
 Stop feed: ~/.claude/analytics/agent-usage.jsonl supplied separately; it is not joined to starts.
 
 ## Spawn split
@@ -115,7 +115,7 @@ test-generator 8, debug-investigator 5, backend-system-architect 3
 Caveat: observed zero starts are absent only from the supplied telemetry roots and
 window. They are not proof of zero estate-wide or lifetime use.
 
-## Buckets (rules/activation-status.md)
+## Buckets (skills/audit-activation/rules/activation-status.md)
 ACTIVE (14) | MIS-TRIGGERED (3) | NICHE (3) | DEAD (0 — none: every agent has >=1 reference)
 
 ## Fixes (wiring only — never description rewrites)

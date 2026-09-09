@@ -1,7 +1,7 @@
 {
   "name": "ork-codex",
   "host": "codex",
-  "version": "10.0.0-beta.8",
+  "version": "10.0.0-beta.11",
   "description": "Native OrchestKit skills and reusable agent roles for Codex.",
   "source": "src/codex/ork-codex",
   "skills": [
@@ -17,6 +17,9 @@
     "ork_implementer",
     "ork_reviewer",
     "ork_verifier"
+  ],
+  "profiles": [
+    "ork-mech"
   ],
   "mcpServers": {
     "source": "src/codex/ork-codex/mcp.json",

@@ -137,7 +137,11 @@ FILES_WITH_EXT=$(echo "$TRACKED_LIST" | grep -E '\.[^/]+$' || true)
 # hook bundle reads via readFileSync (esbuild can't inline them; see #2008),
 # and hooks/dist ships in git since #2360. Scoped here instead of ALLOWED_REGEX
 # so stray .sql anywhere else in plugins/ still fails.
-UNEXPECTED=$(echo "$FILES_WITH_EXT" | grep -v -E "$ALLOWED_REGEX" | grep -v -E '/hooks/dist/[^/]+\.sql$' | sed '/^$/d' || true)
+# .mdc is allowed ONLY in .cursor-plugin/rules/: it is Cursor's rules extension
+# (its loader accepts .md, .mdc and .markdown there, measured on cursor-agent
+# 2026.09.02). Scoped like .sql above instead of widened into ALLOWED_REGEX, so a
+# stray .mdc anywhere else in plugins/ still fails. #4003
+UNEXPECTED=$(echo "$FILES_WITH_EXT" | grep -v -E "$ALLOWED_REGEX" | grep -v -E '/hooks/dist/[^/]+\.sql$' | grep -v -E '/\.cursor-plugin/rules/[^/]+\.mdc$' | sed '/^$/d' || true)
 
 if [[ -z "$UNEXPECTED" ]]; then
     log_pass "All files have allowlisted extensions"

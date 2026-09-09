@@ -84,30 +84,30 @@ mcp__memory__create_entities(entities=[{
 
 ## The 8-Section PRD Template
 
-Load `Read("references/prd-template.md")` for the full template with all 8 sections (Summary, Contacts, Background, Objective, Market Segments, Value Propositions, Solution, Release), priority levels, and NFR categories.
+Load `Read("skills/write-prd/references/prd-template.md")` for the full template with all 8 sections (Summary, Contacts, Background, Objective, Market Segments, Value Propositions, Solution, Release), priority levels, and NFR categories.
 
 ## User Stories & Acceptance Criteria
 
-Load `Read("references/user-stories-guide.md")` for INVEST criteria, story format, Gherkin acceptance criteria, and Definition of Ready/Done.
+Load `Read("skills/write-prd/references/user-stories-guide.md")` for INVEST criteria, story format, Gherkin acceptance criteria, and Definition of Ready/Done.
 
 ## Value Proposition Canvas
 
-Load `Read("references/value-prop-canvas-guide.md")` for the canvas template and fit check process. Every Value Map item must correspond to a Job, Pain, or Gain.
+Load `Read("skills/write-prd/references/value-prop-canvas-guide.md")` for the canvas template and fit check process. Every Value Map item must correspond to a Job, Pain, or Gain.
 
 ## Go/No-Go Gate Criteria
 
-Load from rules: `Read("rules/strategy-go-no-go.md")` for stage gate criteria and scoring thresholds (Go >= 7.0 | Conditional 5.0-6.9 | No-Go < 5.0).
+Load from rules: `Read("skills/write-prd/rules/strategy-go-no-go.md")` for stage gate criteria and scoring thresholds (Go >= 7.0 | Conditional 5.0-6.9 | No-Go < 5.0).
 
 ## Rules (Load On-Demand)
 
-- [research-requirements-prd.md](rules/research-requirements-prd.md) — INVEST user stories, PRD template, priority levels, DoR/DoD
-- [strategy-value-prop.md](rules/strategy-value-prop.md) — Value proposition canvas, JTBD framework, fit assessment
-- [strategy-go-no-go.md](rules/strategy-go-no-go.md) — Stage gate criteria, scoring, build/buy/partner decision matrix
+- [research-requirements-prd.md](skills/write-prd/rules/research-requirements-prd.md) — INVEST user stories, PRD template, priority levels, DoR/DoD
+- [strategy-value-prop.md](skills/write-prd/rules/strategy-value-prop.md) — Value proposition canvas, JTBD framework, fit assessment
+- [strategy-go-no-go.md](skills/write-prd/rules/strategy-go-no-go.md) — Stage gate criteria, scoring, build/buy/partner decision matrix
 
 ## References
 
-- [output-templates.md](references/output-templates.md) — Structured JSON output schemas for PRD, business case, and strategy artifacts
-- [value-prop-canvas-guide.md](references/value-prop-canvas-guide.md) — Detailed value proposition canvas facilitation guide
+- [output-templates.md](skills/write-prd/references/output-templates.md) — Structured JSON output schemas for PRD, business case, and strategy artifacts
+- [value-prop-canvas-guide.md](skills/write-prd/references/value-prop-canvas-guide.md) — Detailed value proposition canvas facilitation guide
 
 ## Output
 

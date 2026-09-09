@@ -13,7 +13,7 @@ no docs-site search hit ("pi" returns PII masking and pie charts).
 | Engine | Version | Where it lives |
 |---|---|---|
 | pi | 0.85.0 | pnpm global, `@earendil-works/pi-coding-agent` |
-| Codex CLI | 2026.09.02-c22c1a3 (shown by `codex --version`) | `~/.local/bin/codex` |
+| Codex CLI | 0.153.4 (`codex --version` prints `codex-cli 0.153.4`) | `~/.local/bin/codex` |
 | cursor-agent | 2026.09.02-c22c1a3 | `~/.local/share/cursor-agent/versions/2026.09.02-c22c1a3` |
 | Claude Code | floor 2.1.251 | reference host |
 
@@ -136,7 +136,7 @@ Three classes, from the conveyor that dispatches work on this estate:
 | Class | Engine and flags | Reads skills? | Writes? | Cost |
 |---|---|---|---|---|
 | **sweep** | pi, cheap OpenRouter model, `--no-builtin-tools`, MCP reads only | **no** (measured above) | no | local, fractions of a cent |
-| **mech** | pi with `--approve`, or Codex `--profile mech`, or cursor-agent `--force --sandbox enabled` | yes | yes, sandboxed to the workspace plus `--add-dir` for the git common dir | quota-routed |
+| **mech** | pi with `--approve`, or Codex `--profile ork-mech`, or cursor-agent `--force --sandbox enabled` | yes | yes, sandboxed to the workspace plus `--add-dir` for the git common dir | quota-routed |
 | **reason** | Claude Code, attended | yes, plus hooks | yes | Claude quota |
 
 Two headless pi contracts are load-bearing for any of this: `pi -p` blocks forever on an open
@@ -161,3 +161,42 @@ or `--session-dir <writable>`).
 - `grep -c '"pi"' package.json`: 0.
 - docs-site search "pi": no guide in the top 3.
 - `codex plugin list` version equals `plugins/ork-codex/.codex-plugin/plugin.json` version: false.
+
+## Amendment, 2026-09-08 (lane #4002)
+
+Two rows above were re-measured while shipping the Codex mech profile, and one
+of them was wrong.
+
+**Corrected.** The Codex CLI version row read `2026.09.02-c22c1a3`, which is the
+cursor-agent build string. `codex --version` on this workstation prints
+`codex-cli 0.153.4`. Everything else in the Codex rows re-measured unchanged.
+
+**New, and it changes the fix shape.** `--profile <name>` on codex-cli 0.153.4
+does NOT select a `[profiles.<name>]` table in `config.toml`. The flag's own
+type is `CONFIG_PROFILE_V2` and its help reads "Layer `$CODEX_HOME/<name>.config.toml`
+on top of the base user config". A legacy table is a hard error:
+
+```
+$ CODEX_HOME=<isolated> codex exec --strict-config --profile ork-mech "hi"
+Error loading config.toml: --profile `ork-mech` cannot be used while
+<home>/config.toml contains legacy `profile = "ork-mech"` or `[profiles.ork-mech]`
+config; move those settings into <home>/ork-mech.config.toml and remove the
+legacy profile selector/table.
+```
+
+Positive control that the file, not the table, is what gets read: putting
+`sandbox_mode = "bogus-mode"` in `ork-mech.config.toml` fails at
+`ork-mech.config.toml:2:16: unknown variant`.
+
+Three further measurements from the same probes, each run against an isolated
+`CODEX_HOME` with no auth, so every arm ends at HTTP 401 and nothing is billed:
+
+| Probe | Result |
+|---|---|
+| `--profile` naming a file that does not exist | no error. Codex runs on the base config, so a typo silently downgrades the sandbox |
+| `codex exec` with a prompt argument and an inherited open stdin | blocks on `Reading additional input from stdin...`, no timeout. `</dev/null` clears it |
+| writable roots, cwd inside a linked worktree | `sandbox: workspace-write [workdir, /tmp, $TMPDIR]`. With `--add-dir <git common dir>` the header lists that path too, which is the `index.lock` fix |
+
+The shipped artifact is `src/codex/ork-codex/profiles/ork-mech.config.toml`,
+loaded verbatim under `codex exec --strict-config` to produce the header quoted
+in the guide.

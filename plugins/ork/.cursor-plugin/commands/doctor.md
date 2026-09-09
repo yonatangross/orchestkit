@@ -97,20 +97,20 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 
 ## Health Check Categories
 
-> **Detailed check procedures**: Load `Read("rules/diagnostic-checks.md")` for bash commands and validation logic per category.
+> **Detailed check procedures**: Load `Read("skills/doctor/rules/diagnostic-checks.md")` for bash commands and validation logic per category.
 >
-> **MCP-specific checks**: Load `Read("rules/mcp-status-checks.md")` for credential validation and misconfiguration detection.
+> **MCP-specific checks**: Load `Read("skills/doctor/rules/mcp-status-checks.md")` for credential validation and misconfiguration detection.
 >
-> **Output examples**: Load `Read("references/health-check-outputs.md")` for sample output per category.
+> **Output examples**: Load `Read("skills/doctor/references/health-check-outputs.md")` for sample output per category.
 
 ### Categories 0-3: Core Validation
 
 | Category | What It Checks | Reference |
 |----------|---------------|-----------|
-| **0. Installed Plugins** | Auto-detects ork plugin, counts skills/agents | load `rules/diagnostic-checks.md` |
-| **1. Skills** | Frontmatter, context field, token budget, links, **activation-channel reachability** (no orphaned user-invocable skills) | load `references/skills-validation.md` |
-| **2. Agents** | Frontmatter, model, skill refs, tool refs | load `references/agents-validation.md` |
-| **3. Hooks** | hooks.json schema, bundles, async patterns — across all three hook scopes: **global**, **agent-scoped**, and **skill-scoped**. Detects the common hook problems: missing files (registered but not on disk), syntax errors in hooks.json or bundles, permission issues (non-executable scripts), and stale references (entries pointing at renamed/removed handlers) | load `references/hook-validation.md` |
+| **0. Installed Plugins** | Auto-detects ork plugin, counts skills/agents | load `skills/doctor/rules/diagnostic-checks.md` |
+| **1. Skills** | Frontmatter, context field, token budget, links, **activation-channel reachability** (no orphaned user-invocable skills) | load `skills/doctor/references/skills-validation.md` |
+| **2. Agents** | Frontmatter, model, skill refs, tool refs | load `skills/doctor/references/agents-validation.md` |
+| **3. Hooks** | hooks.json schema, bundles, async patterns — across all three hook scopes: **global**, **agent-scoped**, and **skill-scoped**. Detects the common hook problems: missing files (registered but not on disk), syntax errors in hooks.json or bundles, permission issues (non-executable scripts), and stale references (entries pointing at renamed/removed handlers) | load `skills/doctor/references/hook-validation.md` |
 
 > **Activation-channel orphans (repo / pre-release):** a user-invocable skill should be reachable by more than a human typing it — via a chain (another skill references `/ork:<skill>`), a subagent grant (`skills:` in `src/agents/*.md`), or a background trigger. A skill with none is an "island" that silently rots. In a repo checkout, run `npm run test:manifests:channels` (gated in CI via `test:manifests`). Fix an island by wiring any one channel, or add it to `STANDALONE_ALLOWLIST` with a justification.
 
@@ -118,8 +118,8 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 
 | Category | What It Checks | Reference |
 |----------|---------------|-----------|
-| **4. Memory** | .claude/memory/ graph integrity + queue depth; **auto-memory MEMORY.md index budget (≤24.4 KB; warns + recommends /ork:dream on re-bloat)** | load `references/memory-health.md` |
-| **5. Build** | plugins/ sync with src/, manifest counts, orphans | load `rules/diagnostic-checks.md` |
+| **4. Memory** | .claude/memory/ graph integrity + queue depth; **auto-memory MEMORY.md index budget (≤24.4 KB; warns + recommends /ork:dream on re-bloat)** | load `skills/doctor/references/memory-health.md` |
+| **5. Build** | plugins/ sync with src/, manifest counts, orphans | load `skills/doctor/rules/diagnostic-checks.md` |
 
 > **Analytics writer liveness (System Health):** the local analytics pipeline has several independent JSONL writers under `~/.claude/analytics/` (skill-usage, agent-usage, hook-timing). A writer can die silently while its siblings stay hot — observed once for four months (skill-usage.jsonl, 2026-03 to 2026-07). The check is a peer comparison: flag any watched file whose last write is ≥48h old while a sibling wrote within 24h (`stat -f '%m %N' ~/.claude/analytics/*.jsonl`). The `lifecycle/analytics-liveness-check` SessionStart hook runs the same comparison continuously.
 >
@@ -140,15 +140,15 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 
 | Category | What It Checks | Reference |
 |----------|---------------|-----------|
-| **10. CC Version** | Runtime version against minimum required | load `references/version-compatibility.md` |
-| **11. External Deps** | Optional tools (agent-browser, portless) | load `rules/diagnostic-checks.md` |
-| **12. MCP Status** | Enabled/disabled state, credential checks, **HIGH-tier `@latest` pinning warn** | load `rules/mcp-status-checks.md` + `references/mcp-pinning-check.md` |
-| **13. Plugin Validate** | Official CC frontmatter + hooks.json validation (CC >= 2.1.77) | load `rules/diagnostic-checks.md` |
+| **10. CC Version** | Runtime version against minimum required | load `skills/doctor/references/version-compatibility.md` |
+| **11. External Deps** | Optional tools (agent-browser, portless) | load `skills/doctor/rules/diagnostic-checks.md` |
+| **12. MCP Status** | Enabled/disabled state, credential checks, **HIGH-tier `@latest` pinning warn** | load `skills/doctor/rules/mcp-status-checks.md` + `skills/doctor/references/mcp-pinning-check.md` |
+| **13. Plugin Validate** | Official CC frontmatter + hooks.json validation (CC >= 2.1.77) | load `skills/doctor/rules/diagnostic-checks.md` |
 | **14. Effort/Model** | `xhigh` effort configured on a model that provably cannot run it (see below). Defaults to silence | inline |
-| **15. Sandbox Posture** | CC Bash-sandbox on/off across all four settings scopes + `/sandbox` nudge (opt-in, Bash-only; info-level). **15b**: bounded read-only query of the macOS unified log for recent `Sandbox` deny events via `scripts/check-sandbox-violations.sh` (warn-level; fail-closed when the log query itself is denied; explicit skip off macOS) | load `references/sandbox-posture.md` |
-| **16. Operator Settings Posture** | Controls a plugin bundle **cannot** carry, so they exist only if the operator wrote them: credential-read `permissions.deny` rules (defence in depth: `pretool/read/credential-read-guard` already covers the `Read` tool), the `sandbox` block incl. `network.deniedDomains` (the egress guard only `ask`s on the upload shape; a plain GET abstains), and `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` (ork's own `agent-teams.ts` gates on it). Since CC 2.1.257 it also reports `permissions.blockReadsOutsideWorkingDirectories` and warns when it is true without `~/.claude` in `additionalDirectories` (the reads ork skills make outside the project would be refused, not prompted). Since #3877 it also names a project-scope `sandbox.enabled: false` that overrides a user-scope `true` (`sandbox_override`, project file:line and user file:line; the project file wins and Bash runs unsandboxed). Since #3835 the audit is a script: `bash ${CLAUDE_SKILL_DIR}/scripts/check-operator-permissions.sh <project_dir> --json` (exit 0 all payload rules enforced, 1 missing with the remedy, 2 could-not-observe); the remedy is setup phase 3.6, consent-gated. Warn-level; prints the JSON to paste | load `references/settings-posture.md` |
+| **15. Sandbox Posture** | CC Bash-sandbox on/off across all four settings scopes + `/sandbox` nudge (opt-in, Bash-only; info-level). **15b**: bounded read-only query of the macOS unified log for recent `Sandbox` deny events via `skills/doctor/scripts/check-sandbox-violations.sh` (warn-level; fail-closed when the log query itself is denied; explicit skip off macOS) | load `skills/doctor/references/sandbox-posture.md` |
+| **16. Operator Settings Posture** | Controls a plugin bundle **cannot** carry, so they exist only if the operator wrote them: credential-read `permissions.deny` rules (defence in depth: `pretool/read/credential-read-guard` already covers the `Read` tool), the `sandbox` block incl. `network.deniedDomains` (the egress guard only `ask`s on the upload shape; a plain GET abstains), and `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` (ork's own `agent-teams.ts` gates on it). Since CC 2.1.257 it also reports `permissions.blockReadsOutsideWorkingDirectories` and warns when it is true without `~/.claude` in `additionalDirectories` (the reads ork skills make outside the project would be refused, not prompted). Since #3877 it also names a project-scope `sandbox.enabled: false` that overrides a user-scope `true` (`sandbox_override`, project file:line and user file:line; the project file wins and Bash runs unsandboxed). Since #3835 the audit is a script: `bash skills/doctor/scripts/check-operator-permissions.sh <project_dir> --json` (exit 0 all payload rules enforced, 1 missing with the remedy, 2 could-not-observe); the remedy is setup phase 3.6, consent-gated. Warn-level; prints the JSON to paste | load `skills/doctor/references/settings-posture.md` |
 
-> **Why Check 16 exists at all:** `plugins-reference.md:858` says "Only the `agent` and `subagentStatusLine` keys are currently supported" in a plugin's bundled `settings.json`. Everything else ork used to declare there was inert, so the protection it looked like it shipped was never in force. Check 16 is the replacement: detect the gap in a scope CC really reads, then hand the operator the exact JSON. The `ork:configure` skill, section *Operator-Scope Settings*, carries the paste-ready blocks, staged loose-then-strict per #3424; the full JSON is in `${CLAUDE_PLUGIN_ROOT}/skills/configure/references/operator-scope-settings.md`.
+> **Why Check 16 exists at all:** `plugins-reference.md:858` says "Only the `agent` and `subagentStatusLine` keys are currently supported" in a plugin's bundled `settings.json`. Everything else ork used to declare there was inert, so the protection it looked like it shipped was never in force. Check 16 is the replacement: detect the gap in a scope CC really reads, then hand the operator the exact JSON. The `ork:configure` skill, section *Operator-Scope Settings*, carries the paste-ready blocks, staged loose-then-strict per #3424; the full JSON is in `skills/configure/references/operator-scope-settings.md`.
 
 ### Category 14: Effort/Model Compatibility (CC 2.1.111+)
 
@@ -193,11 +193,11 @@ WARNING: effort is set to `xhigh`, but <model-id> matches XHIGH_UNSUPPORTED_PREF
 
 Every category reports an explicit **pass / warn / fail** status, and every warn or fail comes with **specific fix steps** for that failure type (the exact command to run, file to edit, or config to change) — doctor diagnoses AND prescribes, it never just lists problems.
 
-> Load `Read("references/report-format.md")` for ASCII report templates, JSON CI output schema, and exit codes.
+> Load `Read("skills/doctor/references/report-format.md")` for ASCII report templates, JSON CI output schema, and exit codes.
 
 ## Interpreting Results & Troubleshooting
 
-> Load `Read("references/remediation-guide.md")` for the full results interpretation table and troubleshooting steps for common failures (skills validation, build sync, memory).
+> Load `Read("skills/doctor/references/remediation-guide.md")` for the full results interpretation table and troubleshooting steps for common failures (skills validation, build sync, memory).
 
 > **Bisect with `--safe-mode` (CC 2.1.169+):** when doctor findings don't explain a misbehaving session, restart with `claude --safe-mode` (or `CLAUDE_CODE_SAFE_MODE=1`) — it disables ALL customizations (CLAUDE.md, plugins incl. ork, skills, hooks, MCP). If the problem disappears, it's a customization; re-enable halves to isolate. If it persists, it's CC itself — file upstream.
 
@@ -231,18 +231,18 @@ Every category reports an explicit **pass / warn / fail** status, and every warn
 Load on demand with `Read("references/<file>")` or `Read("rules/<file>")`:
 | File | Content |
 |------|---------|
-| `rules/diagnostic-checks.md` | Bash commands and validation logic per category |
-| `rules/mcp-status-checks.md` | Credential validation and misconfiguration detection |
-| `references/remediation-guide.md` | Results interpretation and troubleshooting steps |
-| `references/health-check-outputs.md` | Sample output per category |
-| `references/skills-validation.md` | Skills frontmatter and structure checks |
-| `references/agents-validation.md` | Agents frontmatter and tool ref checks |
-| `references/hook-validation.md` | Hook registration and bundle checks |
-| `references/memory-health.md` | Memory system integrity checks |
-| `references/permission-rules.md` | Permission rule detection |
-| `references/schema-validation.md` | JSON schema compliance |
-| `references/report-format.md` | ASCII report templates and JSON CI output |
-| `references/version-compatibility.md` | CC version and channel validation |
-| `references/mcp-pinning-check.md` | HIGH-tier MCP `@latest` warning logic + tier source-of-truth |
-| `references/sandbox-posture.md` | CC Bash-sandbox on/off detection + `/sandbox` nudge (Check 15) + unified-log violation query (15b) |
-| `references/settings-posture.md` | Operator-scope security posture: what a plugin bundle cannot carry, and how to detect it missing (Check 16) |
+| `skills/doctor/rules/diagnostic-checks.md` | Bash commands and validation logic per category |
+| `skills/doctor/rules/mcp-status-checks.md` | Credential validation and misconfiguration detection |
+| `skills/doctor/references/remediation-guide.md` | Results interpretation and troubleshooting steps |
+| `skills/doctor/references/health-check-outputs.md` | Sample output per category |
+| `skills/doctor/references/skills-validation.md` | Skills frontmatter and structure checks |
+| `skills/doctor/references/agents-validation.md` | Agents frontmatter and tool ref checks |
+| `skills/doctor/references/hook-validation.md` | Hook registration and bundle checks |
+| `skills/doctor/references/memory-health.md` | Memory system integrity checks |
+| `skills/doctor/references/permission-rules.md` | Permission rule detection |
+| `skills/doctor/references/schema-validation.md` | JSON schema compliance |
+| `skills/doctor/references/report-format.md` | ASCII report templates and JSON CI output |
+| `skills/doctor/references/version-compatibility.md` | CC version and channel validation |
+| `skills/doctor/references/mcp-pinning-check.md` | HIGH-tier MCP `@latest` warning logic + tier source-of-truth |
+| `skills/doctor/references/sandbox-posture.md` | CC Bash-sandbox on/off detection + `/sandbox` nudge (Check 15) + unified-log violation query (15b) |
+| `skills/doctor/references/settings-posture.md` | Operator-scope security posture: what a plugin bundle cannot carry, and how to detect it missing (Check 16) |

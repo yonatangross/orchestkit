@@ -1,0 +1,67 @@
+{
+  "$comment": [
+    "OrchestKit MCP template for the pi coding agent. Measured against pi 0.85.0 and",
+    "pi-mcp-adapter 2.32.1 on 2026-09-08.",
+    "",
+    "USE IT: cp .pi/mcp.json.example .pi/mcp.json  (the live copy is gitignored)",
+    "",
+    "PRECEDENCE. The adapter reads .pi/mcp.json, then .mcp.json, then",
+    "~/.config/mcp/mcp.json, highest layer first, and hostConfigDiscovery is off by",
+    "default. OrchestKit ships no .mcp.json, so this file is the only MCP source a pi",
+    "session at the repo root has. That is why every entry below carries its own",
+    "definition and not just an allowlist: a layer can MERGE fields onto a server a",
+    "lower layer defined, it can never conjure one. If you DO keep a .mcp.json, note",
+    "that a null entry here is silently ignored, so withholding a server it defines",
+    "needs an explicit {\"disabled\": true}.",
+    "",
+    "SHAPE. pi's ServerEntry has no \"type\" key: stdio is command+args, HTTP is url.",
+    "A Claude Code entry pasted verbatim with \"type\": \"http\" carries a field pi does",
+    "not read. Keys used below: command, args, env, url, headers, includeTools,",
+    "disabled. $comment / $reason / $allowAll are ours, pi ignores them.",
+    "",
+    "includeTools is a fail-CLOSED allowlist applied at metadata-build time: an",
+    "excluded tool never enters the tool map and is not reachable through the mcp",
+    "proxy either. Omit it to allow every tool the server exposes. Do not reach for",
+    "directTools instead, that is a promotion knob, not a restriction.",
+    "",
+    "THIS IS A CONVENIENCE FILTER, NOT A SECURITY PERIMETER. pi ships a bash tool and",
+    "inherits the environment of whatever started it, so a session can curl an MCP",
+    "endpoint directly and never touch this file. What the file does buy, and it is",
+    "worth having, is that a cheap model following instructions cannot reach a",
+    "mutating tool by accident.",
+    "",
+    "TOOL NAMES. Every name below is from a roster attested in",
+    "tests/agents/mcp-servers.manifest.json. A misspelled name grants nothing and",
+    "fails silently, so change one only against a live tools/list."
+  ],
+
+  "mcpServers": {
+    "context7": {
+      "url": "https://mcp.context7.com/mcp",
+      "includeTools": ["resolve-library-id", "query-docs"],
+      "$reason": "Prerequisite: 22 of 36 ork agents grant mcp__context7__*. These two names are the entire surface on every published version, 2.x through 4.x. Both are reads. Free tier needs no account; for Context7 Pro add \"headers\": {\"Authorization\": \"Bearer ${CONTEXT7_API_KEY}\"} only once that variable is exported, an unexpanded literal is sent as the token and every query fails with no fallback to the free tier."
+    },
+
+    "memory": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-memory"],
+      "includeTools": ["search_nodes", "read_graph", "open_nodes"],
+      "$reason": "Read-only slice of the knowledge graph. Withheld: create_entities, create_relations, add_observations, delete_entities, delete_observations, delete_relations. Drop the includeTools line if the pi lane is meant to WRITE memory (/ork:remember)."
+    },
+
+    "sequential-thinking": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
+      "$allowAll": true,
+      "$reason": "One tool, sequentialthinking. Pure reasoning scratchpad: no filesystem, no network, no state outside the call. Nothing to withhold."
+    },
+
+    "tavily": {
+      "command": "npx",
+      "args": ["-y", "tavily-mcp@latest"],
+      "env": { "TAVILY_API_KEY": "${TAVILY_API_KEY}" },
+      "includeTools": ["tavily_search", "tavily_extract", "tavily_map"],
+      "$reason": "Optional. Every tavily tool is a read, but they egress and bill credits, so the allowlist is about cost, not mutation. Withheld: tavily_crawl and tavily_research, the two that fan out over many pages per call. Remove the whole entry if TAVILY_API_KEY is not set."
+    }
+  }
+}

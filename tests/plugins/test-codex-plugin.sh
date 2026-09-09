@@ -73,7 +73,37 @@ jq -e '
     .source.ref == "main")
 ' "$MARKETPLACE" >/dev/null
 
+# ── The mech profile (#4002) ───────────────────────────────────────────────
+# `codex --profile <name>` layers $CODEX_HOME/<name>.config.toml over the base
+# config (codex-cli 0.153.4). A legacy `[profiles.<name>]` table is a hard
+# config-load error under that flag, so the shipped file is checked for shape,
+# for the sandbox staying on, and for the two contracts a TOML file cannot
+# express (blocking stdin, and the worktree git-common-dir).
+PROFILE="profiles/ork-mech.config.toml"
+python3 "$SCRIPT_DIR/codex/check-profile.py" \
+  "$SOURCE_ROOT/$PROFILE" "$PLUGIN_ROOT/$PROFILE"
+
+# The manifest names what ork-codex ships. A profile added to the tree and not to
+# the manifest, or renamed in one place only, is the two-sources-of-truth drift
+# the count-sync rule exists for.
+python3 "$SCRIPT_DIR/codex/check-manifest-profiles.py" \
+  "$PROJECT_ROOT/manifests/codex/ork-codex.json" "$SOURCE_ROOT/profiles"
+
+# The installer is what turns the shipped file into a usable profile, and its
+# two refusals are the whole point: clobbering an existing profile, and
+# installing next to the legacy table that would make --profile fail later.
+for script in install-codex-roles.sh install-codex-profile.sh; do
+  path="$PLUGIN_ROOT/scripts/$script"
+  [[ -x "$path" ]] || { echo "FAIL: $script is missing or not executable"; exit 1; }
+  bash -n "$path" || { echo "FAIL: $script does not parse"; exit 1; }
+done
+
+grep -q 'refusing to overwrite existing profile' "$PLUGIN_ROOT/scripts/install-codex-profile.sh" \
+  || { echo "FAIL: install-codex-profile.sh lost its overwrite refusal"; exit 1; }
+grep -q 'legacy \[profiles\.' "$PLUGIN_ROOT/scripts/install-codex-profile.sh" \
+  || { echo "FAIL: install-codex-profile.sh lost its legacy-table refusal"; exit 1; }
+
 diff -qr "$SOURCE_ROOT" "$PLUGIN_ROOT" \
   --exclude='plugin.json' >/dev/null
 
-echo "PASS: Codex plugin contract (6 skills, 4 roles, context7 MCP server)"
+echo "PASS: Codex plugin contract (6 skills, 4 roles, context7 MCP server, ork-mech profile)"

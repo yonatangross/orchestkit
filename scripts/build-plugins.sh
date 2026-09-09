@@ -311,6 +311,21 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
         done
     fi
 
+    # Cursor export (#3941, #4003): rewrite every wrapper path to plugin-relative
+    # and emit the rules directory. Runs AFTER the wrappers exist and BEFORE the
+    # Cursor manifest is written below, which conditions its `rules` key on the
+    # directory this step creates.
+    #
+    # Hard-fail, deliberately. A warn-and-continue here ships a Cursor plugin
+    # whose command palette is full of paths nobody can open, and the build still
+    # prints BUILD COMPLETE, the same shape #2360 fixed for stale hook bundles.
+    if [[ -d "$PLUGIN_DIR/.cursor-plugin/commands" ]]; then
+        python3 "$SCRIPT_DIR/_cursor-export.py" "$PLUGIN_DIR" "$SRC_DIR" || {
+            echo -e "${RED}  ERROR: Cursor export failed, aborting (#3941)${NC}"
+            exit 1
+        }
+    fi
+
     # Copy agents
     if [[ "$AGENTS_MODE" == "all" ]]; then
         cp -R "$SRC_DIR/agents" "$PLUGIN_DIR/"
@@ -437,11 +452,22 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
     # Cursor host manifest: same skills/commands/agents, no Claude hooks.
     # Cursor loads .cursor-plugin/plugin.json (or a root Agent Plugins plugin.json).
     # Claude hooks use ${CLAUDE_PLUGIN_ROOT} and must not be registered here.
+    #
+    # `rules` is a first-class key in Cursor's plugin manifest, next to skills,
+    # agents, commands and hooks. Measured 2026-09-08 in cursor-agent
+    # 2026.09.02-c22c1a3 `index.js`: the manifest schema declares
+    # `rules: string | string[]`, and the loader runs
+    # `discoverFromManifestPaths(root, a.rules, false, fc, ...)` with
+    # `fc = [".md", ".mdc", ".markdown"]`. Claude Code's manifest has no such key
+    # (its rules are a repo convention, not a plugin surface), so this stays a
+    # Cursor-only addition rather than a field added to both.
     mkdir -p "$PLUGIN_DIR/.cursor-plugin"
     jq --argjson has_agents "$([[ -d "$PLUGIN_DIR/agents" ]] && echo true || echo false)" \
        --argjson has_commands "$([[ -d "$PLUGIN_DIR/.cursor-plugin/commands" ]] && echo true || echo false)" \
+       --argjson has_rules "$([[ -d "$PLUGIN_DIR/.cursor-plugin/rules" ]] && echo true || echo false)" \
       'del(.workflows, .dependencies) + (if $has_agents then {agents: "./agents/"} else {} end)
-                       + (if $has_commands then {commands: "./.cursor-plugin/commands/"} else {} end)' \
+                       + (if $has_commands then {commands: "./.cursor-plugin/commands/"} else {} end)
+                       + (if $has_rules then {rules: "./.cursor-plugin/rules/"} else {} end)' \
       "$PLUGIN_DIR/.claude-plugin/plugin.json" \
       > "$PLUGIN_DIR/.cursor-plugin/plugin.json"
 

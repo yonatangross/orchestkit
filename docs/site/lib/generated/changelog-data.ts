@@ -17,6 +17,46 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.11",
+    "date": "2026-09-08",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**codex:** ship the ork-mech profile and the plugin cache-lag note ([#4012](https://github.com/yonatangross/orchestkit/issues/4012)) ([bcc122d](https://github.com/yonatangross/orchestkit/commit/bcc122d6dd2ae9caff29cbf16b941ee0f5095dc0))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "10.0.0-beta.10",
+    "date": "2026-09-08",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "items": [
+          "**cursor:** export rules to .cursor-plugin and rewrite wrapper paths at generation time ([#4011](https://github.com/yonatangross/orchestkit/issues/4011)) ([7476d54](https://github.com/yonatangross/orchestkit/commit/7476d54124f550c7a6cf16a4a7c7c422cf59331a))",
+          "**pi:** ship a pi manifest and a .pi/mcp.json allowlist template ([#4009](https://github.com/yonatangross/orchestkit/issues/4009)) ([7b6f278](https://github.com/yonatangross/orchestkit/commit/7b6f2789394b11e136a69a401e25a240422db9bd))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "10.0.0-beta.9",
+    "date": "2026-09-08",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "changed",
+        "items": [
+          "**engines:** pi, Codex and Cursor guide, matrix and audit ([#4006](https://github.com/yonatangross/orchestkit/issues/4006)) ([101922a](https://github.com/yonatangross/orchestkit/commit/101922af3cd0208b39734fa4941f9e301241267d))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.8",
     "date": "2026-09-08",
     "compareUrl": "",

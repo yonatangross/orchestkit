@@ -175,13 +175,13 @@ AskUserQuestion(questions=[
 
 **Global memory writes** route to `~/.claude/memory/<filename>.md` instead of the project-local memory directory. The MEMORY.md index is updated in whichever scope was selected (project- or user-level).
 
-Load entity extraction rules, type assignment, relationship patterns, and graph creation examples: `Read("references/graph-operations.md")`
+Load entity extraction rules, type assignment, relationship patterns, and graph creation examples: `Read("skills/remember/references/graph-operations.md")`
 
 ### 7. Confirm Storage
 
 Display confirmation using the appropriate template (success, anti-pattern, or neutral) showing created entities, relations, and graph stats.
 
-Load output templates and examples: `Read("references/confirmation-templates.md")`
+Load output templates and examples: `Read("skills/remember/references/confirmation-templates.md")`
 
 ## File-Based Memory Updates
 
