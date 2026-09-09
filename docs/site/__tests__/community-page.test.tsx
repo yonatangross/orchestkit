@@ -20,6 +20,8 @@ describe("community page", () => {
 		);
 		expect(screen.getByRole("link", { name: /open discussions/i })).toBeTruthy();
 		expect(screen.getByText(/example of the live room/i)).toBeTruthy();
+		expect(container.textContent ?? "").toMatch(/what's new in ork/i);
+		expect(container.textContent ?? "").toMatch(/orchestkit bot/i);
 		expect(container.textContent ?? "").not.toMatch(/mocked|Mock UI|Community · mock/i);
 		expect(container.textContent ?? "").not.toMatch(/claude install/i);
 	});

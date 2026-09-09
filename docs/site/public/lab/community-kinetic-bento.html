@@ -96,6 +96,8 @@
   .room .msg { max-width: 92%; padding: 6px 8px; border-radius: 10px; font-size: 11px; line-height: 1.4; margin-top: 6px; background: hsl(0 0% 100% / 0.06); border: 1px solid var(--pg-line); }
   .room .msg .who { font-size: 9px; font-weight: 700; color: var(--pg-accent); margin-bottom: 2px; }
   .room .msg.out { margin-inline-start: auto; background: hsl(160 50% 22%); border-color: transparent; }
+  .room .msg.release { border-color: hsl(264 70% 60% / 0.35); background: hsl(264 50% 22%); }
+  .room .msg.release .who { color: hsl(264 80% 78%); }
   .placeholder { color: var(--pg-faint); font-size: 12px; max-width: 130px; text-align: center; }
   .promptbar { display: flex; align-items: center; gap: 14px; padding: 14px 16px; }
   .promptbar .pt { flex: 1; font-family: var(--pg-mono); font-size: 12px; line-height: 1.6; color: hsl(28 16% 80%); }
@@ -151,7 +153,7 @@ const STORY = {
     { kind: "out", who: "", body: "Where did the background animation go?" },
     { kind: "bot", who: "Site", body: "Cosmic CSS dots were static. FlickeringGrid existed and was never wired." },
     { kind: "out", who: "", body: "Think 21st.dev. Those squares are ugly." },
-    { kind: "bot", who: "Ship", body: "Kinetic Grid. Glass doors. A still of the live room — people talking, not install copy." },
+    { kind: "bot", who: "Ship", body: "Kinetic Grid. Glass doors. Humans tick often. The OrchestKit bot drops what's new once a day." },
   ],
   cardAtStep: 6,
   card: {
@@ -160,14 +162,15 @@ const STORY = {
     rows: [
       "WhatsApp · live-room bento",
       "Discussions + Issues · rows",
-      "Example of the live room · still",
-      "No mock labels. No install-script bubbles.",
+      "Example of the live room · animated",
+      "OrchestKit bot · once per demo day",
     ],
   },
   room: [
-    { who: "Yonatan", body: "Welcome in. This is the live room.", out: false },
-    { who: "Noa", body: "SessionStart ran twice. Anyone else?", out: false },
-    { who: "Lea", body: "The thread caught it before the PR.", out: true },
+    { who: "Yonatan", body: "Welcome in 👋 This is the live room.", out: false },
+    { who: "Noa", body: "SessionStart ran twice 👀", out: false },
+    { who: "OrchestKit · Bot", body: "What's new in ork — once a day, not spam.", out: false },
+    { who: "Lea", body: "The thread caught it before the PR 🙌", out: true },
   ],
 };
 
@@ -188,7 +191,7 @@ function render() {
   const reached = state.step >= STORY.cardAtStep;
   const c = STORY.card;
   const room = (STORY.room || []).map((m) =>
-    `<div class="msg${m.out ? " out" : ""}"><div class="who">${esc(m.who)}</div>${esc(m.body)}</div>`
+    `<div class="msg${m.out ? " out" : ""}${m.who.includes("Bot") ? " release" : ""}"><div class="who">${esc(m.who)}</div>${esc(m.body)}</div>`
   ).join("");
   const result = reached
     ? `<div class="room"><div class="rh"><div class="av">OK</div>
@@ -197,7 +200,7 @@ function render() {
        <div class="card"><div class="stripe"></div><div class="kind">${esc(c.kind)}</div>
          <h3>${esc(c.title)}</h3>${c.rows.map(r => `<div class="row">${esc(r)}</div>`).join("")}
          <div class="added">Shipped</div></div>`
-    : `<div class="placeholder">Play to see the doors and the live-room still</div>`;
+    : `<div class="placeholder">Play to see the doors and the live-room ticks</div>`;
 
   stage.innerHTML = `
     <div class="phone"><div class="screen">
@@ -217,7 +220,7 @@ function render() {
 
 function updatePrompt() {
   document.getElementById("promptOut").innerHTML =
-    `Keep the /community glass bento doors. Add a still of the live WhatsApp room (people talking, group identity) in the hero slot. Caption: Example of the live room. No mock labels. No install-script bubbles.`;
+    `Keep the /community glass bento doors. The live-room example ticks: human bubbles arrive often; the OrchestKit bot drops what's new once per demo day. Caption: Example of the live room. No mock labels.`;
 }
 
 function stop() { state.playing = false; clearTimeout(timer); document.getElementById("play").innerHTML = "▶ Play"; }

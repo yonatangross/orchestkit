@@ -45,7 +45,7 @@ export const LAB_ENTRIES: LabEntry[] = [
   {
     "slug": "community-kinetic-bento",
     "title": "Community doors: kinetic mesh, live-room example",
-    "description": "Play the /community rewrite. Glass bento doors stay the join path. A quiet phone preview shows how the WhatsApp group looks as a room.",
+    "description": "Play the /community rewrite. Glass bento doors stay the join path. The WhatsApp-group example ticks: humans often, the OrchestKit bot once a day.",
     "tags": [
       "docs",
       "site",
