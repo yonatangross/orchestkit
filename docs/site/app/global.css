@@ -846,3 +846,23 @@ article blockquote {
   height: 18px;
   border-radius: 4px;
 }
+
+/* Community live-room example — bubble arrive. Gated for reduced motion. */
+@keyframes community-room-pop {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.community-room-pop {
+  animation: community-room-pop var(--duration-normal) var(--ease-out-expo) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .community-room-pop {
+    animation: none;
+  }
+}
