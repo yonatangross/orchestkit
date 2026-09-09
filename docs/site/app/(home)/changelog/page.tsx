@@ -5,8 +5,10 @@ import {
   RecentVersions,
 } from "@/components/changelog-legend";
 import { ChangelogMermaid } from "@/components/changelog-mermaid";
+import { ChronoBoard } from "@/components/ui/chrono-board";
 import { CHANGELOG_ENTRIES } from "@/lib/generated/changelog-data";
 import { howToReadMermaid, recentTimelineMermaid } from "@/lib/changelog-format";
+import { buildVersionChronoCards } from "@/lib/chrono-board-release";
 import { SITE } from "@/lib/constants";
 
 export const metadata: Metadata = {
@@ -63,6 +65,16 @@ export default function ChangelogPage() {
         </p>
         <ChangelogLegend />
         <ChangelogMermaid chart={howToReadMermaid()} />
+        <h2
+          id="release-activity-heading"
+          className="font-mono text-[11px] font-medium uppercase tracking-[0.06em] text-fd-muted-foreground"
+        >
+          Release activity
+        </h2>
+        <ChronoBoard
+          cards={buildVersionChronoCards(CHANGELOG_ENTRIES, 5)}
+          labelledBy="release-activity-heading"
+        />
         <p className="font-mono text-[11px] font-medium uppercase tracking-[0.06em] text-fd-muted-foreground">
           Recent versions
         </p>
