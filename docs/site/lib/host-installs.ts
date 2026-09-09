@@ -1,5 +1,6 @@
 import type { HostId } from "@/components/host-marks";
 import { SITE } from "@/lib/constants";
+import type { LibraryTab } from "@/lib/library-tab";
 
 /** Starter 12. Never the bare `npx skills add yonatangross/orchestkit` firehose. */
 export const SKILLS_SH_STARTER =
@@ -92,6 +93,25 @@ export const HOST_INSTALLS: readonly HostInstallSpec[] = [
 export const HOST_INSTALL_BY_ID: Record<HostId, HostInstallSpec> = Object.fromEntries(
 	HOST_INSTALLS.map((spec) => [spec.id, spec]),
 ) as Record<HostId, HostInstallSpec>;
+
+const HOST_IDS = HOST_INSTALLS.map((spec) => spec.id);
+
+export function parseHostId(
+	value: string | string[] | undefined,
+): HostId {
+	const raw = Array.isArray(value) ? value[0] : value;
+	const id = raw?.trim().toLowerCase();
+	return HOST_IDS.includes(id as HostId) ? (id as HostId) : "claude";
+}
+
+/** Homepage picker URL. Claude is the default, so it stays `/` when the catalog is on skills. */
+export function homeInstallHref(host: HostId, lib: LibraryTab = "skills"): string {
+	const params = new URLSearchParams();
+	if (host !== "claude") params.set("host", host);
+	if (lib !== "skills") params.set("lib", lib);
+	const query = params.toString();
+	return query ? `/?${query}` : "/";
+}
 
 export const SKILLS_SH_HOST_IDS = ["muse", "opencode"] as const;
 

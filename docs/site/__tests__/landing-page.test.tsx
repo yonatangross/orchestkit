@@ -125,7 +125,7 @@ describe("getStarCount", () => {
 
     // Render the page component (async server component)
     const HomePage = (await import("../app/(home)/page")).default;
-    const result = await HomePage();
+    const result = await HomePage({ searchParams: Promise.resolve({}) });
     render(result);
 
     expect(global.fetch).toHaveBeenCalledWith(
@@ -143,7 +143,7 @@ describe("getStarCount", () => {
     });
 
     const HomePage = (await import("../app/(home)/page")).default;
-    const result = await HomePage();
+    const result = await HomePage({ searchParams: Promise.resolve({}) });
     render(result);
 
     // Hero proof strip renders the formatted count and a "stars" label in
@@ -156,7 +156,7 @@ describe("getStarCount", () => {
     global.fetch = vi.fn().mockResolvedValue({ ok: false });
 
     const HomePage = (await import("../app/(home)/page")).default;
-    const result = await HomePage();
+    const result = await HomePage({ searchParams: Promise.resolve({}) });
     render(result);
 
     // When the count is null the link falls back to "Star on GitHub"
@@ -167,7 +167,7 @@ describe("getStarCount", () => {
     global.fetch = vi.fn().mockRejectedValue(new Error("Network error"));
 
     const HomePage = (await import("../app/(home)/page")).default;
-    const result = await HomePage();
+    const result = await HomePage({ searchParams: Promise.resolve({}) });
     render(result);
 
     expect(screen.getByText("Star on GitHub")).toBeTruthy();
@@ -185,7 +185,7 @@ describe("landing page content", () => {
 
   it("shows correct skill/agent/hook counts from constants", async () => {
     const HomePage = (await import("../app/(home)/page")).default;
-    const result = await HomePage();
+    const result = await HomePage({ searchParams: Promise.resolve({}) });
     render(result);
 
     // Hero proof line renders each count in its own span (mock COUNTS:
@@ -208,7 +208,7 @@ describe("landing page content", () => {
 
   it("has Star on GitHub button linking to repo", async () => {
     const HomePage = (await import("../app/(home)/page")).default;
-    const result = await HomePage();
+    const result = await HomePage({ searchParams: Promise.resolve({}) });
     render(result);
 
     // The star link wraps the count/"stars" label. With the API mocked to 86
@@ -224,7 +224,7 @@ describe("landing page content", () => {
 
   it("has stargazers link in social proof section", async () => {
     const HomePage = (await import("../app/(home)/page")).default;
-    const result = await HomePage();
+    const result = await HomePage({ searchParams: Promise.resolve({}) });
     render(result);
 
     const stargazersLink = screen.getByText("stars").closest("a");
@@ -235,7 +235,7 @@ describe("landing page content", () => {
 
   it("has a single H1 and a clean H1→H2→H3 heading outline (no level skips)", async () => {
     const HomePage = (await import("../app/(home)/page")).default;
-    const result = await HomePage();
+    const result = await HomePage({ searchParams: Promise.resolve({}) });
     const { container } = render(result);
 
     // Exactly one H1 (the hero) anchors the document outline.
@@ -260,7 +260,7 @@ describe("landing page content", () => {
 
   it("does NOT contain hardcoded clone counts or unverifiable claims", async () => {
     const HomePage = (await import("../app/(home)/page")).default;
-    const result = await HomePage();
+    const result = await HomePage({ searchParams: Promise.resolve({}) });
     const { container } = render(result);
     const text = container.textContent ?? "";
 
@@ -273,7 +273,7 @@ describe("landing page content", () => {
 
   it("shows only verifiable social proof", async () => {
     const HomePage = (await import("../app/(home)/page")).default;
-    const result = await HomePage();
+    const result = await HomePage({ searchParams: Promise.resolve({}) });
     const { container } = render(result);
     const text = container.textContent ?? "";
 
@@ -288,7 +288,7 @@ describe("landing page content", () => {
 
   it("exposes WhatsApp as an icon to /community, not a platform.yonyon.ai href", async () => {
     const HomePage = (await import("../app/(home)/page")).default;
-    const result = await HomePage();
+    const result = await HomePage({ searchParams: Promise.resolve({}) });
     const { container } = render(result);
 
     const wa = screen.getByRole("link", { name: /join the whatsapp community/i });
@@ -299,16 +299,18 @@ describe("landing page content", () => {
 
   it("exposes a copyable install command per host", async () => {
     const HomePage = (await import("../app/(home)/page")).default;
-    const result = await HomePage();
+    const result = await HomePage({ searchParams: Promise.resolve({}) });
     render(result);
 
     const nav = screen.getByRole("navigation", { name: /install by host/i });
-    expect(within(nav).getByRole("button", { name: "Claude Code" })).toBeTruthy();
-    expect(within(nav).getByRole("button", { name: "Cursor" })).toBeTruthy();
-    expect(within(nav).getByRole("button", { name: "Codex" })).toBeTruthy();
-    expect(within(nav).getByRole("button", { name: "Pi" })).toBeTruthy();
-    expect(within(nav).getByRole("button", { name: "Muse Code" })).toBeTruthy();
-    expect(within(nav).getByRole("button", { name: "OpenCode" })).toBeTruthy();
+    expect(within(nav).getByRole("link", { name: "Claude Code" })).toBeTruthy();
+    expect(within(nav).getByRole("link", { name: "Cursor" }).getAttribute("href")).toBe(
+      "/?host=cursor",
+    );
+    expect(within(nav).getByRole("link", { name: "Codex" })).toBeTruthy();
+    expect(within(nav).getByRole("link", { name: "Pi" })).toBeTruthy();
+    expect(within(nav).getByRole("link", { name: "Muse Code" })).toBeTruthy();
+    expect(within(nav).getByRole("link", { name: "OpenCode" })).toBeTruthy();
     expect(
       within(nav)
         .getByRole("button", { name: /copy claude install orchestkit\/ork/i })

@@ -4,7 +4,9 @@ import {
 	HOST_INSTALLS,
 	SKILLS_SH_STARTER,
 	HOST_INSTALL_BY_ID,
+	homeInstallHref,
 	installCommandsForHost,
+	parseHostId,
 	stackHintCopy,
 	withSkillsShExtras,
 } from "@/lib/host-installs";
@@ -85,5 +87,18 @@ describe("host install commands", () => {
 		expect(muse).toContain("-s python-backend");
 		expect(muse).not.toMatch(/ork-pi|ork-muse/);
 		expect(installCommandsForHost("muse", null)).toEqual([SKILLS_SH_STARTER]);
+	});
+
+	it("parses host query values and ignores junk", () => {
+		expect(parseHostId("cursor")).toBe("cursor");
+		expect(parseHostId(["pi"])).toBe("pi");
+		expect(parseHostId("ork-muse")).toBe("claude");
+		expect(parseHostId(undefined)).toBe("claude");
+	});
+
+	it("omits default Claude from the homepage query", () => {
+		expect(homeInstallHref("claude")).toBe("/");
+		expect(homeInstallHref("cursor")).toBe("/?host=cursor");
+		expect(homeInstallHref("pi", "agents")).toBe("/?host=pi&lib=agents");
 	});
 });

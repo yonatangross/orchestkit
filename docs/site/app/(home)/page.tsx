@@ -8,6 +8,7 @@ import { HomepageStructuredData } from "@/components/structured-data";
 import { GeorgeMark } from "@/components/world/george";
 import { LibraryCatalog } from "@/components/library-catalog";
 import { parseLibraryTab } from "@/lib/library-tab";
+import { parseHostId } from "@/lib/host-installs";
 import { WhatsNewStrip } from "@/components/whats-new-strip";
 import { HomeSearchTrigger } from "@/components/home-search-trigger";
 import { HostInstallPicker } from "@/components/host-install";
@@ -50,12 +51,13 @@ const RECIPES: Recipe[] = [
 export default async function HomePage({
   searchParams,
 }: {
-  searchParams?: Promise<{ lib?: string | string[] }>;
-} = {}) {
+  searchParams: Promise<{ lib?: string | string[]; host?: string | string[] }>;
+}) {
   const stars = await getStarCount();
   const latest = CHANGELOG_ENTRIES[0];
-  const sp = searchParams ? await searchParams : {};
+  const sp = await searchParams;
   const libraryTab = parseLibraryTab(sp.lib);
+  const host = parseHostId(sp.host);
 
   return (
     <main>
@@ -135,7 +137,7 @@ export default async function HomePage({
               <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
             </Link>
           </div>
-          <HostInstallPicker />
+          <HostInstallPicker active={host} libraryTab={libraryTab} />
           <HomeSearchTrigger />
           <div className="mt-4 flex flex-wrap items-center justify-center gap-x-3 gap-y-2 text-[13px] text-fd-muted-foreground">
             <WhatsAppCommunityLink />

@@ -1,14 +1,13 @@
-"use client";
-
-import { useState } from "react";
 import Link from "next/link";
 import { HostMark, type HostId } from "@/components/host-marks";
 import { InstallSnippet } from "@/components/install-snippet";
 import {
 	HOST_INSTALLS,
 	HOST_INSTALL_BY_ID,
+	homeInstallHref,
 	type HostInstallSpec,
 } from "@/lib/host-installs";
+import type { LibraryTab } from "@/lib/library-tab";
 
 function Card({ spec }: { spec: HostInstallSpec }) {
 	return (
@@ -78,12 +77,17 @@ export function HostInstallGrid({ hosts }: { hosts?: HostId[] }) {
 /** Homepage: pick a host, copy its command. Keeps the Install by host nav. */
 export function HostInstallPicker({
 	hosts = ["claude", "cursor", "codex", "muse", "pi", "opencode"],
+	active = "claude",
+	libraryTab = "skills",
 }: {
 	hosts?: HostId[];
+	active?: HostId;
+	libraryTab?: LibraryTab;
 }) {
 	const list = hosts.map((id) => HOST_INSTALL_BY_ID[id]);
-	const [active, setActive] = useState<HostId>(list[0]?.id ?? "claude");
-	const spec = HOST_INSTALL_BY_ID[active];
+	const current =
+		list.find((item) => item.id === active)?.id ?? list[0]?.id ?? "claude";
+	const spec = HOST_INSTALL_BY_ID[current];
 
 	return (
 		<nav
@@ -94,13 +98,12 @@ export function HostInstallPicker({
 				className="flex flex-wrap items-center justify-center gap-2"
 			>
 				{list.map((item) => {
-					const selected = item.id === active;
+					const selected = item.id === current;
 					return (
-						<button
+						<a
 							key={item.id}
-							type="button"
-							aria-pressed={selected}
-							onClick={() => setActive(item.id)}
+							href={homeInstallHref(item.id, libraryTab)}
+							aria-current={selected ? "true" : undefined}
 							className={`inline-flex h-10 items-center gap-2 rounded-lg border px-2.5 font-mono text-[12px] transition-colors ${
 								selected
 									? "border-fd-primary/50 bg-[var(--color-fd-primary-10)] text-fd-foreground"
@@ -109,7 +112,7 @@ export function HostInstallPicker({
 						>
 							<HostMark host={item.id} className="h-4 w-4" />
 							<span>{item.name}</span>
-						</button>
+						</a>
 					);
 				})}
 			</div>
