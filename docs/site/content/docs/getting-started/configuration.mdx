@@ -1,9 +1,32 @@
 ---
 title: Configuration
-description: Environment variables, MCP servers, and memory tier setup.
+description: "/ork:setup project knobs, environment variables, MCP servers, and memory tier setup."
 ---
 
 OrchestKit works out of the box with zero configuration. This page covers optional settings for power users.
+
+## Project settings wizard
+
+The product configuration UI is inside Claude Code (and hosts that load the `setup` skill). It is not a page on this site.
+
+- `/ork:setup` runs the full onboarding (scan, stack, safety, **project config**, permissions, skills, MCPs).
+- `/ork:setup --configure` skips to Phase 3.5 and writes the env block.
+
+The browser install picker on [Installation](/docs/getting-started/installation) only copies `claude install …`. It does not write these knobs.
+
+Writes go to `.claude/settings.json` for a normal project, or `src/settings/ork.settings.json` when you are developing OrchestKit itself.
+
+| Variable | Default | Effect |
+|---|---|---|
+| `ORCHESTKIT_PROTECTED_BRANCHES` | `main,master` | Blocks direct commits and pushes to these branches |
+| `ORCHESTKIT_COMMIT_SCOPE` | `optional` | `optional`, `required`, or `none` |
+| `ORCHESTKIT_AGENT_BROWSER_ALLOW_LOCALHOST` | `1` | Allow `*.localhost` in agent-browser (`0` blocks it) |
+| `ORCHESTKIT_PERF_SNAPSHOT_ENABLED` | `1` | Write session token snapshots |
+| `ORCHESTKIT_LOG_LEVEL` | `warn` | Hook log verbosity (`debug`, `info`, `warn`, `error`) |
+
+Optional webhook: the wizard can save a URL to `.claude/orchestration/config.json`. Events leave the machine only when that URL is set **and** `ORCHESTKIT_HOOK_TOKEN` is exported in the launching shell. Do not put the token in a config file. Skip webhooks unless you run your own collector.
+
+Re-run: `/ork:setup --configure`. Score only: `/ork:setup --score-only`.
 
 ## Environment Variables
 
@@ -110,11 +133,11 @@ Claude Code owns keybindings, and a plugin cannot ship shortcuts that invoke its
 }
 ```
 
-Every value on the right is drawn from a **closed set of built-in `namespace:action` identifiers** — `chat:submit`, `app:toggleTodos`, `scroll:bottom`, and so on. There is no action that runs a slash command, so `"ctrl+k ctrl+c": "/ork:commit"` is not expressible: Claude Code validates the file on load and reports invalid entries in the debug log (`claude --debug`).
+Every value on the right is drawn from a **closed set of built-in `namespace:action` identifiers** (`chat:submit`, `app:toggleTodos`, `scroll:bottom`, and so on). There is no action that runs a slash command, so `"ctrl+k ctrl+c": "/ork:commit"` is not expressible: Claude Code validates the file on load and reports invalid entries in the debug log (`claude --debug`).
 
 Earlier versions of this page advertised 8 `ctrl+k` chords bound to OrchestKit skills, and described `src/settings/ork.settings.json` as the place to customize them. Both were wrong. Claude Code reads only a small set of keys from a plugin `settings.json`, keybindings has never been one of them, and no keybinding of any kind can target a skill. The chords never fired.
 
-The fast path to a skill is typing `/ork:` and letting autocomplete narrow it. Keybindings are still worth setting for Claude Code's own controls — the full context and action tables are in the [Claude Code keybindings docs](https://code.claude.com/docs/en/keybindings).
+The fast path to a skill is typing `/ork:` and letting autocomplete narrow it. Keybindings are still worth setting for Claude Code's own controls. The full context and action tables are in the [Claude Code keybindings docs](https://code.claude.com/docs/en/keybindings).
 
 ## Fullscreen Rendering
 
@@ -160,7 +183,7 @@ Between tasks, the spinner shows OrchestKit tips to help discover features:
 - `/ork:explore` for deep codebase understanding
 - `/ork:assess` rates code quality 0-10
 
-Tips are additive — Claude Code's default tips still appear alongside OrchestKit's.
+Tips are additive. Claude Code's default tips still appear alongside OrchestKit's.
 
 ## Plugin Settings
 
@@ -174,5 +197,5 @@ Run `/ork:configure` to adjust:
 
 ## Next Steps
 
-- **[The 3 Building Blocks](/docs/foundations/skills-agents-hooks)** — Understand the architecture
-- **[Memory System](/docs/memory/overview)** — Deep dive into 3-tier memory
+- **[The 3 Building Blocks](/docs/foundations/skills-agents-hooks)**: Understand the architecture
+- **[Memory System](/docs/memory/overview)**: Deep dive into 3-tier memory

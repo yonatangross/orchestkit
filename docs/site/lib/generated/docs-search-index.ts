@@ -146,14 +146,34 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
     "description": "Skills are knowledge, agents are specialists, hooks are automation. Here's how they work together."
   },
   {
+    "url": "/docs/getting-started/claude-code",
+    "title": "Claude Code",
+    "description": "Install the full OrchestKit ork plugin in Claude Code. Skills, agents, hooks, /ork:doctor, and context7."
+  },
+  {
+    "url": "/docs/getting-started/codex",
+    "title": "Codex",
+    "description": "Install OrchestKit's Codex pack. codex plugin add ork-codex@orchestkit-codex, $ork-implement, Codex roles, and context7."
+  },
+  {
     "url": "/docs/getting-started/configuration",
     "title": "Configuration",
-    "description": "Environment variables, MCP servers, and memory tier setup."
+    "description": "/ork:setup project knobs, environment variables, MCP servers, and memory tier setup."
+  },
+  {
+    "url": "/docs/getting-started/cursor",
+    "title": "Cursor",
+    "description": "Install OrchestKit in Cursor. Same ork plugin as Claude Code, minus Claude hook scripts. Marketplace yonatangross/orchestkit."
   },
   {
     "url": "/docs/getting-started/first-10-minutes",
     "title": "Your First 10 Minutes",
     "description": "From install to your first AI-assisted commit — a guided walkthrough."
+  },
+  {
+    "url": "/docs/getting-started/hosts",
+    "title": "Hosts",
+    "description": "Pick a runtime. Claude Code and Cursor install the full ork plugin. Codex uses ork-codex. Pi uses pi install. Muse Code loads skills from .agents/skills. OpenCode and other skills.sh clients use the starter 12."
   },
   {
     "url": "/docs/getting-started",
@@ -163,12 +183,22 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/getting-started/installation",
     "title": "Installation",
-    "description": "Install OrchestKit in Claude Code, Cursor, or any agent via skills.sh."
+    "description": "Install OrchestKit. Pick a host: Claude Code, Cursor, Codex, Pi, Muse, or skills.sh for OpenCode and other clients."
+  },
+  {
+    "url": "/docs/getting-started/muse",
+    "title": "Muse Code",
+    "description": "Install OrchestKit skills in Meta's Muse Code. Agent Skills via skills.sh and .agents/skills. No native ork-muse plugin pack yet."
   },
   {
     "url": "/docs/getting-started/navigating",
     "title": "Find What You Need",
     "description": "Hub-and-spoke navigation — find the right skills and agents for your role and task."
+  },
+  {
+    "url": "/docs/getting-started/skills-sh",
+    "title": "skills.sh (Pi, OpenCode, and other clients)",
+    "description": "Install OrchestKit skills into Pi, OpenCode, or any skills.sh client. Starter 12, not the whole catalog. Muse Code has its own page."
   },
   {
     "url": "/docs/getting-started/superpowers",
@@ -1218,7 +1248,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/showcase",
     "title": "Showcase",
-    "description": "What OrchestKit produces — pipeline runs and generated visual experiments."
+    "description": "What OrchestKit produces. Pipeline runs and generated visual experiments."
   },
   {
     "url": "/docs/showcase/lab/adoption-waves",

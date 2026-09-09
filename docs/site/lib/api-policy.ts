@@ -50,7 +50,7 @@ export function apiPolicySections(): readonly PolicySection[] {
 				"Its responses carry the RFC 8594 `Deprecation` header from the day of announcement.",
 				`A \`Sunset\` header states the date after which the endpoint may stop responding, **at least ${SUNSET_NOTICE_MONTHS} months** after the deprecation announcement.`,
 				'A `Link` header with `rel="deprecation"` points at migration notes.',
-				`The deprecation is listed in the [changelog](${d}/docs/changelog) and on this page.`,
+				`The deprecation is listed in the [changelog](${d}/changelog) and on this page.`,
 			],
 		},
 		{

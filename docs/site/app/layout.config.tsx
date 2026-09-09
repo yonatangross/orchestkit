@@ -39,9 +39,18 @@ export const baseOptions: BaseLayoutProps = {
       active: "nested-url",
     },
     {
+      text: "Changelog",
+      url: "/changelog",
+      active: "url",
+    },
+    {
       text: "Reference",
       url: "/docs/reference",
       active: "nested-url",
+    },
+    {
+      text: "Community",
+      url: "/community",
     },
   ],
 };

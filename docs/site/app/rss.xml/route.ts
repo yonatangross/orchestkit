@@ -31,7 +31,7 @@ function entryDescription(entry: ChangelogEntry): string {
 export function GET(): Response {
   const items = CHANGELOG_ENTRIES.slice(0, FEED_LIMIT)
     .map((entry) => {
-      const url = `${SITE}/docs/changelog#${entry.version}`;
+      const url = `${SITE}/changelog#${entry.version}`;
       // Changelog dates are YYYY-MM-DD with no time component; noon UTC keeps
       // the date stable in every reader timezone.
       const pubDate = new Date(`${entry.date}T12:00:00Z`).toUTCString();
@@ -52,7 +52,7 @@ export function GET(): Response {
     '<rss version="2.0">',
     "  <channel>",
     "    <title>OrchestKit Releases</title>",
-    `    <link>${SITE}/docs/changelog</link>`,
+    `    <link>${SITE}/changelog</link>`,
     "    <description>Release notes for OrchestKit, the Claude Code plugin.</description>",
     "    <language>en</language>",
     items,

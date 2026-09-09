@@ -191,12 +191,17 @@ export function useOramaCollection<T>(
 
   useEffect(() => {
     let active = true;
-    collection.query(args).then((r) => {
-      if (active) {
-        setResult(r);
-        setReady(true);
-      }
-    });
+    collection
+      .query(args)
+      .then((r) => {
+        if (active) {
+          setResult(r);
+          setReady(true);
+        }
+      })
+      .catch(() => {
+        if (active) setReady(true);
+      });
     return () => {
       active = false;
     };

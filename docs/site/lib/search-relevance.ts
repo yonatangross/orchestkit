@@ -12,6 +12,12 @@
 //   2. Doc-type weighting: guide / concept / cookbook rank ABOVE reference.
 //   3. Exact-title floor: a query that exactly or prefix-matches a page title
 //      overrides type weighting — that page must surface in the top 3.
+//   4. Host alias floor + short-query whole-word matching (lib/host-aliases).
+
+import {
+	hostAliasBonus,
+	passesShortQueryInfix,
+} from "@/lib/host-aliases";
 
 export type DocType =
 	| "guide"
@@ -125,22 +131,28 @@ export const POSITION_WEIGHT = 0.2;
  * times, purely because "reference" carried the lowest type weight.
  *
  * Signals, in order of authority:
- *   1. exact-title floor  — additive 1000/2000, still overrides everything
- *   2. match count        — log2-saturated, so a page cannot win on sheer
+ *   1. host alias floor   — additive 3000 for pi/codex/cursor/muse/…
+ *   2. exact-title floor  — additive 1000/2000, still overrides type weighting
+ *   3. match count        — log2-saturated, so a page cannot win on sheer
  *                           repetition; 1→1.0, 3→2.0, 7→3.0, 15→4.0
- *   3. doc-type           — now SHIFTS instead of SCALES; max swing across
+ *   4. doc-type           — now SHIFTS instead of SCALES; max swing across
  *                           the table (1.35 → 0.8) is 0.275, well under one
  *                           log2 step, so it only separates near-ties
- *   4. incoming position  — Orama's own ordering, finest tiebreak
+ *   5. incoming position  — Orama's own ordering, finest tiebreak
  *
- * Blocks with no `matchCount` score 0 on signal 2, degrading to the old
+ * Blocks with no `matchCount` score 0 on signal 3, degrading to the old
  * position + type behaviour (used by callers that only have page rows).
+ * Queries shorter than 4 characters drop mid-word hits (pipeline, PII)
+ * unless the page is a host alias or the title has the query as a word.
  */
 export function rerankByRelevance<
 	T extends { url: string; title: string; matchCount?: number },
 >(blocks: readonly T[], query: string): T[] {
-	const n = blocks.length;
-	return blocks
+	const kept = blocks.filter((block) =>
+		passesShortQueryInfix(query, block.title, stripOrigin(block.url)),
+	);
+	const n = kept.length;
+	return kept
 		.map((block, i) => {
 			const type = docTypeForUrl(stripOrigin(block.url));
 			const match = Math.log2(1 + (block.matchCount ?? 0)) * MATCH_COUNT_WEIGHT;
@@ -149,7 +161,11 @@ export function rerankByRelevance<
 			return {
 				block,
 				score:
-					match + position + typeShift + titleMatchBonus(query, block.title),
+					match +
+					position +
+					typeShift +
+					titleMatchBonus(query, block.title) +
+					hostAliasBonus(query, stripOrigin(block.url)),
 			};
 		})
 		.sort((a, b) => b.score - a.score)

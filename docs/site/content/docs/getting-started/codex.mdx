@@ -1,0 +1,75 @@
+---
+title: Codex
+description: "Install OrchestKit's Codex pack. codex plugin add ork-codex@orchestkit-codex, $ork-implement, Codex roles, and context7."
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Card, Cards } from 'fumadocs-ui/components/card';
+import { HostInstall } from '@/components/host-install';
+
+Codex uses its own plugin format, skill picker, and standalone role configuration. The Claude Code `ork` plugin is not what Codex loads. Install the portable pack **ork-codex**.
+
+<HostInstall host="codex" />
+
+Restart Codex after installation. Invoke a workflow explicitly with `$ork-brainstorm`, `$ork-explore`, `$ork-implement`, `$ork-assess`, `$ork-verify`, or `$ork-review-pr`. Their narrow descriptions also let Codex select the relevant workflow automatically.
+
+The skill named `implement` on [skills.sh](https://www.skills.sh/yonatangross/orchestkit/implement) is the same workflow. Codex's pack exposes it as `$ork-implement`.
+
+## Roles
+
+The plugin ships roles as templates because Codex loads custom roles from `~/.codex/agents/`, not from a plugin manifest. From an OrchestKit checkout, run this one-time, non-overwriting install:
+
+```bash
+plugins/ork-codex/scripts/install-codex-roles.sh ~/.codex/agents
+```
+
+It installs `ork_explorer`, `ork_implementer`, `ork_reviewer`, and `ork_verifier`. Restart Codex before spawning them.
+
+## context7
+
+The plugin ships a [context7](https://context7.com) MCP server in its own
+manifest (`mcpServers` in `.codex-plugin/plugin.json`, defined in `mcp.json`),
+so installing the plugin registers it. Confirm with `codex mcp get context7`.
+It is scoped to the only two tools context7 exposes, `resolve-library-id` and
+`query-docs`, and it uses the hosted HTTP transport rather than an `npx` stdio
+child, so it costs no extra process per Codex session.
+
+Export a key before starting Codex. The plugin references the variable name
+and never stores the value, so no token is written to `~/.codex/config.toml`:
+
+```bash
+export CONTEXT7_API_KEY_CODEX="<your-context7-api-key>"
+```
+
+Put that in your shell profile so every Codex session inherits it. Get the
+key from your own context7 account and keep the value out of the repository.
+
+<Callout type="warn">
+A server you already define under `[mcp_servers.context7]` in `~/.codex/config.toml` **wins**, and the plugin's definition is ignored entirely (including its tool scoping). That is intentional: your own configuration is never overridden.
+
+Without a valid key the server still connects and still lists its tools. Only a real call fails, with `Invalid API key`. A successful connection is therefore not proof of authentication.
+</Callout>
+
+## Mechanical profile
+
+For unattended runs, add the shipped profile from an OrchestKit checkout:
+
+```bash
+plugins/ork-codex/scripts/install-codex-profile.sh ~/.codex
+codex exec --profile ork-mech "<task>" </dev/null
+```
+
+The profile is a file at `~/.codex/ork-mech.config.toml`, never a `[profiles.ork-mech]` table inside `config.toml`. Codex rejects `--profile` while that legacy table exists. Inside a git worktree add `--add-dir "$(git rev-parse --path-format=absolute --git-common-dir)"` or the first commit fails on `index.lock`.
+
+<Callout type="warn">
+`ref main` is a cached snapshot, not a tracker. Run `codex plugin update` after an OrchestKit release, then compare `codex plugin list | grep ork-codex` against `jq -r .version plugins/ork-codex/.codex-plugin/plugin.json`. Measurements: [OrchestKit on pi, Codex and Cursor](/docs/guides/orchestkit-on-pi-codex-cursor).
+</Callout>
+
+## Skills-only path
+
+Not installing the Codex pack? Pull the [skills.sh starter 12](/docs/getting-started/skills-sh). Do not run `npx skills add yonatangross/orchestkit` with no `-s` on day one.
+
+<Cards>
+  <Card title="Hosts" href="/docs/getting-started/hosts" description="Claude Code, Cursor, Pi, Muse Code" />
+  <Card title="skills.sh" href="/docs/getting-started/skills-sh" description="Pi, OpenCode, and other clients" />
+</Cards>
