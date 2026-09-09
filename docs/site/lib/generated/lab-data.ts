@@ -57,6 +57,20 @@ export const LAB_ENTRIES: LabEntry[] = [
     "sizeKb": 16
   },
   {
+    "slug": "chrono-board-release",
+    "title": "Chrono Board: What's new becomes a release timeline",
+    "description": "Play the 21st.dev Chrono Board on the docs site. What's new is a live catalog card plus product bullets. Changelog gets a five-release activity rail. Notes jumps to the version; Diff opens compare. Reduced-motion keeps the actions usable.",
+    "tags": [
+      "docs",
+      "site",
+      "release"
+    ],
+    "date": "2026-09-09",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 22
+  },
+  {
     "slug": "codex-mech-profile",
     "title": "The Codex mech profile: which file codex actually reads",
     "description": "Put the ork-mech profile in three places and read codex 0.153.4's own answer: a hard config-load error for the legacy [profiles.*] table, a silent base-config run for a name that does not exist, and the measured header for the shipped file. Plus the worktree writable-roots line with and without --add-dir.",

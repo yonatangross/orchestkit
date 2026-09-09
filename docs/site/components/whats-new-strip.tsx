@@ -1,18 +1,18 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { ChronoBoard } from "@/components/ui/chrono-board";
 import { CHANGELOG_ENTRIES } from "@/lib/generated/changelog-data";
-import {
-  TAG_BG,
-  SECTION_LABEL,
-  formatChangelogDate,
-  markdownInline,
-  pickWhatsNewPreview,
-} from "@/lib/changelog-format";
+import { COUNTS, SITE } from "@/lib/constants";
+import { buildReleaseChronoCards } from "@/lib/chrono-board-release";
 
 export function WhatsNewStrip() {
-  const preview = pickWhatsNewPreview(CHANGELOG_ENTRIES, 3);
-  if (!preview) return null;
-  const { entry, items } = preview;
+  const cards = buildReleaseChronoCards({
+    entries: CHANGELOG_ENTRIES,
+    counts: COUNTS,
+    latestVersion: SITE.version,
+    itemLimit: 3,
+  });
+  if (cards.length === 0) return null;
 
   return (
     <section
@@ -42,38 +42,7 @@ export function WhatsNewStrip() {
           </Link>
         </div>
 
-        <div className="rounded-xl border border-fd-border bg-[var(--color-fd-surface-raised)] p-5">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-md bg-[var(--color-fd-primary-20)] px-2 py-0.5 font-mono text-xs font-semibold text-fd-primary">
-              {entry.version}
-            </span>
-            <span className="font-mono text-[11px] text-fd-muted-foreground">
-              {formatChangelogDate(entry.date)}
-            </span>
-            {entry === CHANGELOG_ENTRIES[0] ? (
-              <span className="rounded-sm bg-[var(--color-fd-primary-20)] px-1.5 py-px text-[9px] font-bold uppercase tracking-wider text-fd-primary">
-                Latest
-              </span>
-            ) : null}
-          </div>
-          <ul className="mt-4 space-y-2">
-            {items.map((row, i) => (
-              <li key={i} className="flex items-start gap-2.5">
-                <span
-                  className={`mt-0.5 inline-block shrink-0 rounded-sm px-1.5 py-px text-[10px] font-semibold uppercase tracking-wide ${TAG_BG[row.type]}`}
-                >
-                  {SECTION_LABEL[row.type]}
-                </span>
-                <span
-                  className="text-[13px] leading-[1.55] text-fd-foreground/80"
-                  dangerouslySetInnerHTML={{
-                    __html: markdownInline(row.item.split("\n")[0]),
-                  }}
-                />
-              </li>
-            ))}
-          </ul>
-        </div>
+        <ChronoBoard cards={cards} labelledBy="whats-new-heading" />
       </div>
     </section>
   );
