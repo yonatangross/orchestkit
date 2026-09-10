@@ -4,15 +4,13 @@
 /**
  * Stale Import Detector - PostToolUse/Write hook
  *
+ * After a Write creates a new file (or a previously existing file is gone),
+ * greps the repo for imports of the old path and injects an advisory listing
+ * the stale import sites.
+ *
  * Source: usage analytics #3 friction point — file splits and renames leave
  * stale import paths in tests that cascade-fail on the next run. Existing
  * affected-tests-finder suggests tests to RUN, not stale imports to FIX.
- *
- * Trigger: After a Write tool call creates a NEW file, or after the hook
- * detects that a previously-existing file is gone from disk. We grep the
- * repo for imports that still reference the old path (inferred from the
- * new file's neighbours) and inject a context advisory listing the stale
- * import sites.
  *
  * Behavior is two-tiered:
  *   - HIGH-CONFIDENCE path: when refs >= BLOCK_THRESHOLD_REFS AND at least

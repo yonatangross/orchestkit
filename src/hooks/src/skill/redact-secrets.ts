@@ -1,7 +1,6 @@
 /**
  * Redact Secrets Hook
- * Runs after Bash commands in security-scanning skill
- * Warns if potential secrets detected in output
+ * Warns if potential secrets appear in Write, Edit, or Bash tool output.
  * CC 2.1.7 Compliant
  */
 

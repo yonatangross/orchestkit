@@ -9,23 +9,23 @@ description: "Hooks triggered on PreToolUse events (20 hooks)."
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
-| `node` | `Bash` | 🔇 Silent | — |
-| `node` | `Bash` | 🔇 Silent | — |
-| `node` | `Write\|Edit` | 🔇 Silent | — |
-| `node` | `Write\|Edit` | 🔇 Silent | — |
-| `node` | `Skill` | 🔇 Silent | — |
-| `node` | `Skill` | 🔇 Silent | — |
-| `node` | `mcp__context7__*` | 🔇 Silent | — |
-| `node` | `mcp__context7__*` | 🔇 Silent | — |
-| `node` | `mcp__memory__*` | 🔇 Silent | — |
-| `node` | `mcp__memory__*` | 🔇 Silent | — |
-| `node` | `Agent` | 🔇 Silent | — |
-| `node` | `Agent` | 🔇 Silent | — |
-| `node` | `Read` | 🔇 Silent | — |
-| `node` | `Read` | 🔇 Silent | — |
-| `node` | `AskUserQuestion` | 🔇 Silent | — |
-| `node` | `AskUserQuestion` | 🔇 Silent | — |
-| `node` | `Workflow` | 🔇 Silent | — |
-| `node` | `Workflow` | 🔇 Silent | — |
-| `node` | `CronCreate` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
+| `sync-bash-dispatcher` | `Bash` | Injects | Consolidates 3 Bash PreToolUse hooks into a single dispatcher. |
+| `webhook-forwarder` | `Bash` | Fire-and-forget | Registered for every CC event type in hooks.json (async: true). Delegates to telemetry.emit() which fans out to pluggable sinks (JSONL local + HTTP remote). No-op when no sinks are active. |
+| `sync-write-edit-dispatcher` | `Write\|Edit` | Injects | Consolidates 5 Write\|Edit PreToolUse hooks into a single dispatcher. |
+| `webhook-forwarder` | `Write\|Edit` | Fire-and-forget | Registered for every CC event type in hooks.json (async: true). Delegates to telemetry.emit() which fans out to pluggable sinks (JSONL local + HTTP remote). No-op when no sinks are active. |
+| `skill-tracker` | `Skill` | Fire-and-forget | Logs Skill tool invocations with analytics |
+| `webhook-forwarder` | `Skill` | Fire-and-forget | Registered for every CC event type in hooks.json (async: true). Delegates to telemetry.emit() which fans out to pluggable sinks (JSONL local + HTTP remote). No-op when no sinks are active. |
+| `context7-tracker` | `mcp__context7__*` | Blocks | Tracks context7 library lookups and injects cache state as additionalContext CC 2.1.9 Enhanced |
+| `webhook-forwarder` | `mcp__context7__*` | Fire-and-forget | Registered for every CC event type in hooks.json (async: true). Delegates to telemetry.emit() which fans out to pluggable sinks (JSONL local + HTTP remote). No-op when no sinks are active. |
+| `memory-validator` | `mcp__memory__*` | Blocks | Validates memory operations to prevent accidental data loss |
+| `webhook-forwarder` | `mcp__memory__*` | Fire-and-forget | Registered for every CC event type in hooks.json (async: true). Delegates to telemetry.emit() which fans out to pluggable sinks (JSONL local + HTTP remote). No-op when no sinks are active. |
+| `sync-task-dispatcher` | `Agent` | Injects | Consolidates 3 Task PreToolUse hooks into a single dispatcher. |
+| `webhook-forwarder` | `Agent` | Fire-and-forget | Registered for every CC event type in hooks.json (async: true). Delegates to telemetry.emit() which fans out to pluggable sinks (JSONL local + HTTP remote). No-op when no sinks are active. |
+| `tldr-summary` | `Read` | Injects | Intercepts Read calls on large files (&gt;500 lines or &gt;2000 tokens) and injects a structural summary as additionalContext. Claude sees the summary as a roadmap alongside the full file content. |
+| `webhook-forwarder` | `Read` | Fire-and-forget | Registered for every CC event type in hooks.json (async: true). Delegates to telemetry.emit() which fans out to pluggable sinks (JSONL local + HTTP remote). No-op when no sinks are active. |
+| `headless-responder` | `AskUserQuestion` | Silent | Headless AskUserQuestion Responder (CC 2.1.85) |
+| `webhook-forwarder` | `AskUserQuestion` | Fire-and-forget | Registered for every CC event type in hooks.json (async: true). Delegates to telemetry.emit() which fans out to pluggable sinks (JSONL local + HTTP remote). No-op when no sinks are active. |
+| `workflow-agenttype-advisor` | `Workflow` | Injects | Scans Workflow `script` for agent() call sites and, when none set opts.agentType, injects an advisory with the specialist catalog mapping (mirror of skills/chain-patterns/references/dynamic-workflow-patterns.md §agentType). |
+| `webhook-forwarder` | `Workflow` | Fire-and-forget | Registered for every CC event type in hooks.json (async: true). Delegates to telemetry.emit() which fans out to pluggable sinks (JSONL local + HTTP remote). No-op when no sinks are active. |
+| `webhook-forwarder` | `CronCreate` | Fire-and-forget | Registered for every CC event type in hooks.json (async: true). Delegates to telemetry.emit() which fans out to pluggable sinks (JSONL local + HTTP remote). No-op when no sinks are active. |
+| `webhook-forwarder` | `*` | Fire-and-forget | Registered for every CC event type in hooks.json (async: true). Delegates to telemetry.emit() which fans out to pluggable sinks (JSONL local + HTTP remote). No-op when no sinks are active. |

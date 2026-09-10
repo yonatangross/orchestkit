@@ -5,6 +5,10 @@
  * Unified Prompt Dispatcher — UserPromptSubmit Hook
  * Issue #448: Consolidate UserPromptSubmit hooks to reduce context bloat
  *
+ * Routes UserPromptSubmit through one dispatcher: a once-per-session
+ * handoff injector plus every-turn silent analytics, with a single
+ * additionalContext output.
+ *
  * 5 hooks managed by this dispatcher:
  *
  * Once-per-session (file-based flag tracking):

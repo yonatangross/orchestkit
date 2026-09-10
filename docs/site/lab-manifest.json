@@ -2,6 +2,18 @@
   "$comment": "Allowlist for the Lab gallery (docs/showcase/lab). Only entries listed here are copied to public/lab/ and surfaced on the site. `source` is repo-root-relative. Title/description here OVERRIDE what generate-lab-data.mjs extracts from the HTML <head>. Run `node docs/site/scripts/generate-lab-data.mjs` after editing.",
   "entries": [
     {
+      "slug": "host-library-motion",
+      "source": "docs/feat--docs-library-visual/host-library.html",
+      "title": "Pick a host, the command rewrites",
+      "description": "Play the homepage install picker. Host cards keep ?host= links. The command panel blurs to the new payload. Library tabs slide. Hooks group by lifecycle, not a 32-button grid. Reduced-motion keeps every control usable.",
+      "tags": [
+        "docs",
+        "site",
+        "homepage"
+      ],
+      "date": "2026-09-09"
+    },
+    {
       "slug": "chrono-board-release",
       "source": "docs/feat--docs-chrono-board-release/chrono-board.html",
       "title": "Chrono Board: What's new becomes a release timeline",

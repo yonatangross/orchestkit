@@ -9,5 +9,5 @@ description: "Hooks triggered on PostToolUseFailure events (2 hooks)."
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
-| `node` | `Bash\|Write\|Edit\|Agent` | 🔇 Silent | — |
-| `node` | `Bash\|Write\|Edit\|Agent` | 🔇 Silent | — |
+| `failure-handler` | `Bash\|Write\|Edit\|Agent` | Silent | PostToolUseFailure Handler CC 2.1.25: Error-path hook providing solution suggestions when tools fail |
+| `webhook-forwarder` | `Bash\|Write\|Edit\|Agent` | Fire-and-forget | Registered for every CC event type in hooks.json (async: true). Delegates to telemetry.emit() which fans out to pluggable sinks (JSONL local + HTTP remote). No-op when no sinks are active. |

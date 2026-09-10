@@ -6,6 +6,10 @@ vi.mock("next/link", () => ({
   default: ({ children, href, ...props }: any) => <a href={href} {...props}>{children}</a>,
 }));
 
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ replace: vi.fn(), push: vi.fn() }),
+}));
+
 // Mock lucide-react
 vi.mock("lucide-react", () => ({
   ArrowRight: () => <span data-testid="arrow" />,

@@ -9,5 +9,5 @@ description: "Hooks triggered on TaskCreated events (2 hooks)."
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
+| `sync-task-created-dispatcher` | `*` | Injects | Consolidates 2 TaskCreated hooks + webhook forwarder into a single hooks.json entry. Runs handlers sequentially, merges additionalContext. |
+| `webhook-forwarder` | `*` | Fire-and-forget | Registered for every CC event type in hooks.json (async: true). Delegates to telemetry.emit() which fans out to pluggable sinks (JSONL local + HTTP remote). No-op when no sinks are active. |

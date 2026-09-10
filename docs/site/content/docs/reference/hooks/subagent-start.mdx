@@ -9,6 +9,6 @@ description: "Hooks triggered on SubagentStart events (3 hooks)."
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
+| `agent-view-titler` | `*` | Injects | Derives a short, human-readable title for each subagent at spawn and emits it on `hookSpecificOutput.sessionTitle` so the agent-view row is readable. |
+| `unified-dispatcher` | `*` | Injects | Consolidates 3 SubagentStart hooks into a single process spawn. |
+| `webhook-forwarder` | `*` | Fire-and-forget | Registered for every CC event type in hooks.json (async: true). Delegates to telemetry.emit() which fans out to pluggable sinks (JSONL local + HTTP remote). No-op when no sinks are active. |

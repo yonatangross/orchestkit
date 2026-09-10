@@ -2,12 +2,15 @@
 
 import { useState, useCallback, useMemo } from "react";
 import { Search, X, ChevronRight, ExternalLink, SearchX } from "lucide-react";
+import { motion } from "motion/react";
 import type { SkillMeta } from "@/lib/generated/types";
 import { SKILLS } from "@/lib/generated/skills-data";
 import { CATEGORY_COLORS } from "@/lib/category-colors";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { createCollection, useOramaCollection } from "@/lib/orama-browser";
 import { Highlight } from "@/components/search-highlight";
+import { CategoryMark } from "@/components/category-mark";
+import { cn } from "@/lib/cn";
 
 // ── Category visual metadata ────────────────────────────────
 const SKILL_CATEGORY_META: Record<
@@ -172,9 +175,6 @@ function categorizeSkill(skill: SkillMeta): string {
   return "development"; // Default fallback
 }
 
-// ── Plugin filter type ──────────────────────────────────────
-type PluginFilter = "all" | "ork";
-
 // ── Skill entry with computed category ──────────────────────
 interface SkillEntry {
   key: string;
@@ -220,7 +220,6 @@ const SKILL_COLLECTION = createCollection<SkillEntry>(ALL_SKILLS, {
 export function SkillBrowser() {
   const [search, setSearch] = useState("");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [pluginFilter, setPluginFilter] = useState<PluginFilter>("all");
   const [expandedSkill, setExpandedSkill] = useState<string | null>(null);
 
   // Orama-backed search + faceted filtering (BM25 ranking, 1-char typo
@@ -230,7 +229,6 @@ export function SkillBrowser() {
     term: debouncedSearch,
     where: {
       category: selectedCategories,
-      plugins: pluginFilter === "all" ? [] : [pluginFilter],
     },
   });
   const filtered = result.items;
@@ -266,18 +264,13 @@ export function SkillBrowser() {
   const clearFilters = useCallback(() => {
     setSearch("");
     setSelectedCategories([]);
-    setPluginFilter("all");
   }, []);
 
-  const hasFilters =
-    search !== "" ||
-    selectedCategories.length > 0 ||
-    pluginFilter !== "all";
+  const hasFilters = search !== "" || selectedCategories.length > 0;
 
   return (
     <div className="not-prose">
-      {/* Header row: count + plugin toggle */}
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mb-6">
         <p
           className="text-sm text-fd-muted-foreground"
           role="status"
@@ -295,31 +288,6 @@ export function SkillBrowser() {
             "Loading skills…"
           )}
         </p>
-        <div
-          className="inline-flex rounded-lg border border-fd-border p-0.5"
-          role="group"
-          aria-label="Filter by plugin"
-        >
-          {(["all", "ork"] as const).map((p) => {
-            const active = pluginFilter === p;
-            const label = p === "all" ? "All" : p;
-            return (
-              <button
-                key={p}
-                type="button"
-                onClick={() => setPluginFilter(p)}
-                aria-pressed={active}
-                className={`rounded-md px-3 py-1.5 text-xs font-medium transition-all ${
-                  active
-                    ? "bg-[var(--color-fd-primary-10)] text-fd-primary shadow-sm"
-                    : "text-fd-muted-foreground hover:bg-fd-muted"
-                }`}
-              >
-                {label}
-              </button>
-            );
-          })}
-        </div>
       </div>
 
       {/* Search bar */}
@@ -355,27 +323,26 @@ export function SkillBrowser() {
             const meta = SKILL_CATEGORY_META[cat];
             const active = selectedCategories.includes(cat);
             return (
-              <button
+              <motion.button
                 key={cat}
                 type="button"
+                layout
+                transition={{ duration: 0.18 }}
                 onClick={() => toggleCategory(cat)}
                 aria-pressed={active}
-                className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-all ${
+                className={cn(
+                  "relative inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium [&_svg]:block",
                   active
                     ? `${meta.bg} ${meta.color} border-current shadow-sm`
-                    : "border-fd-border text-fd-muted-foreground hover:border-fd-border hover:bg-fd-muted"
-                }`}
+                    : "border-fd-border text-fd-muted-foreground hover:bg-fd-muted",
+                )}
               >
-                <span
-                  className={`h-2 w-2 shrink-0 rounded-full ${
-                    active ? "opacity-100" : "opacity-60"
-                  } ${meta.dot}`}
-                />
+                <CategoryMark category={cat} className="h-3.5 w-3.5" />
                 {meta.label}
                 <span className="tabular-nums text-fd-muted-foreground/70">
                   {countOf(cat)}
                 </span>
-              </button>
+              </motion.button>
             );
           })}
           {hasFilters && (
@@ -493,6 +460,11 @@ function SkillCard({
         className="flex w-full items-start gap-3 p-4 text-left"
         aria-expanded={expanded}
       >
+        <span
+          className={`mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${catMeta.bg} ${catMeta.color}`}
+        >
+          <CategoryMark category={category} className="h-4 w-4" />
+        </span>
         <div className="min-w-0 flex-1">
           <div className="mb-1 flex flex-wrap items-center gap-2">
             <Highlight
@@ -501,7 +473,7 @@ function SkillCard({
               className="text-sm font-semibold text-fd-foreground"
             />
             <span
-              className={`inline-flex shrink-0 rounded px-1.5 py-0.5 text-[11px] font-medium leading-tight ${catMeta.bg} ${catMeta.color}`}
+              className={`inline-flex shrink-0 items-center rounded px-1.5 py-0.5 text-[11px] font-medium leading-tight ${catMeta.bg} ${catMeta.color}`}
             >
               {catMeta.label}
             </span>

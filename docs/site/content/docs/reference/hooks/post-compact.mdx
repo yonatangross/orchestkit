@@ -9,5 +9,5 @@ description: "Hooks triggered on PostCompact events (2 hooks)."
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
+| `post-compact-recovery` | `*` | Silent | PostCompact Recovery — logs the context carried across compaction CC 2.1.76+: Fires after compaction completes. |
+| `webhook-forwarder` | `*` | Fire-and-forget | Registered for every CC event type in hooks.json (async: true). Delegates to telemetry.emit() which fans out to pluggable sinks (JSONL local + HTTP remote). No-op when no sinks are active. |

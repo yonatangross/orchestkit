@@ -9,5 +9,5 @@ description: "Hooks triggered on FileChanged events (2 hooks)."
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
-| `node` | `CLAUDE.md\|package.json\|.env\|settings.json` | 🔇 Silent | — |
-| `node` | `CLAUDE.md\|package.json\|.env\|settings.json` | 🔇 Silent | — |
+| `file-changed` | `CLAUDE.md\|package.json\|.env\|settings.json` | Silent | CC 2.1.83: Fires when a file in the watchPaths list changes. Injects notification context so the model knows a config/rule changed. |
+| `webhook-forwarder` | `CLAUDE.md\|package.json\|.env\|settings.json` | Fire-and-forget | Registered for every CC event type in hooks.json (async: true). Delegates to telemetry.emit() which fans out to pluggable sinks (JSONL local + HTTP remote). No-op when no sinks are active. |

@@ -18,4 +18,11 @@ describe("library tab", () => {
     expect(libraryTabHref("agents")).toBe("/?lib=agents#library");
     expect(libraryTabHref("hooks")).toBe("/?lib=hooks#library");
   });
+
+  it("preserves a non-default host on the query string", () => {
+    expect(libraryTabHref("skills", "cursor")).toBe("/?host=cursor#library");
+    expect(libraryTabHref("hooks", "cursor")).toBe(
+      "/?host=cursor&lib=hooks#library",
+    );
+  });
 });

@@ -4,15 +4,15 @@
 /**
  * Workflow AgentType Advisor — PreToolUse[Workflow] Hook
  *
+ * Scans Workflow `script` for agent() call sites and, when none set
+ * opts.agentType, injects an advisory with the specialist catalog mapping
+ * (mirror of skills/chain-patterns/references/dynamic-workflow-patterns.md
+ * §agentType).
+ *
  * The single biggest generic-spawn bucket is Workflow-internal: agent() stages
  * default to the generic workflow subagent (3,559/30d spawns, 49% of all
  * traffic in the 2026-07 cross-account audit; M170). The Task-side advisor
  * cannot see these — Workflow spawns never pass through PreToolUse[Task].
- *
- * This hook scans the inline `script` for agent() call sites and, when none
- * of them set opts.agentType, injects an advisory reminding the author of the
- * specialist catalog mapping (mirror of
- * skills/chain-patterns/references/dynamic-workflow-patterns.md §agentType).
  *
  * Advisory ONLY — always continue:true, always permissionDecision:"allow".
  * Mixed/glue stages are legitimately generic, so this never blocks and stays

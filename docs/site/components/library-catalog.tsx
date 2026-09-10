@@ -1,18 +1,26 @@
 "use client";
 
-import { useMemo, useState, type KeyboardEvent } from "react";
+import { startTransition, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Search, X } from "lucide-react";
 import { LazySkillBrowser } from "@/components/lazy";
+import { AnimatedTabs } from "@/components/ui/animated-tabs";
+import { CategoryMark, LibraryMark } from "@/components/category-mark";
+import { SameRouteFade, sameRouteReplace } from "@/components/page-transition";
+import { ChangelogMermaid } from "@/components/changelog-mermaid";
 import { AGENTS } from "@/lib/generated/shared-data";
 import { COUNTS } from "@/lib/constants";
 import { CATEGORY_COLORS } from "@/lib/category-colors";
-import { HOOK_EVENT_PAGES } from "@/lib/hook-events";
+import {
+  groupedHookEvents,
+  HOOK_LIFECYCLE_CHART,
+} from "@/lib/hook-phases";
 import {
   libraryTabHref,
   type LibraryTab,
 } from "@/lib/library-tab";
+import type { HostId } from "@/components/host-marks";
 
 const TABS: { id: LibraryTab; label: string; count: number }[] = [
   { id: "skills", label: "Skills", count: COUNTS.skills },
@@ -20,11 +28,37 @@ const TABS: { id: LibraryTab; label: string; count: number }[] = [
   { id: "hooks", label: "Hooks", count: COUNTS.hooks },
 ];
 
-export function LibraryCatalog({ tab }: { tab: LibraryTab }) {
+export function LibraryCatalog({
+  tab,
+  host = "claude",
+}: {
+  tab: LibraryTab;
+  host?: HostId;
+}) {
   const router = useRouter();
+  const [current, setCurrent] = useState<LibraryTab>(tab);
+  const pendingTabFocus = useRef<LibraryTab | null>(null);
+
+  useEffect(() => {
+    setCurrent(tab);
+  }, [tab]);
+
+  useEffect(() => {
+    const id = pendingTabFocus.current;
+    if (!id) return;
+    pendingTabFocus.current = null;
+    document.getElementById(`library-tab-${id}`)?.focus();
+  }, [current]);
+
+  const select = (id: LibraryTab) => {
+    startTransition(() => {
+      setCurrent(id);
+      router.replace(libraryTabHref(id, host), sameRouteReplace);
+    });
+  };
 
   const onTabKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
-    const i = TABS.findIndex((t) => t.id === tab);
+    const i = TABS.findIndex((t) => t.id === current);
     let next = i;
     if (e.key === "ArrowRight" || e.key === "ArrowDown") {
       next = (i + 1) % TABS.length;
@@ -38,7 +72,9 @@ export function LibraryCatalog({ tab }: { tab: LibraryTab }) {
       return;
     }
     e.preventDefault();
-    router.push(libraryTabHref(TABS[next].id));
+    const nextId = TABS[next].id;
+    pendingTabFocus.current = nextId;
+    select(nextId);
   };
 
   return (
@@ -74,65 +110,40 @@ export function LibraryCatalog({ tab }: { tab: LibraryTab }) {
           </div>
         </div>
 
-        <div
-          role="tablist"
-          aria-label="Library primitives"
+        <AnimatedTabs
+          ariaLabel="Library primitives"
+          layoutId="library-tab-indicator"
+          value={current}
+          onChange={select}
           onKeyDown={onTabKeyDown}
-          className="mb-6 flex flex-wrap gap-1 rounded-lg border border-fd-border p-1"
-        >
-          {TABS.map((t) => {
-            const selected = tab === t.id;
-            return (
-              <a
-                key={t.id}
-                href={libraryTabHref(t.id)}
-                role="tab"
-                aria-selected={selected}
-                tabIndex={selected ? 0 : -1}
-                id={`library-tab-${t.id}`}
-                aria-controls={`library-panel-${t.id}`}
-                className={`inline-flex items-center gap-2 rounded-md px-3.5 py-2 text-sm font-medium transition-colors ${
-                  selected
-                    ? "bg-[var(--color-fd-primary-10)] text-fd-primary"
-                    : "text-fd-muted-foreground hover:text-fd-foreground"
-                }`}
-              >
+          tabs={TABS.map((t) => ({
+            id: t.id,
+            href: libraryTabHref(t.id, host),
+            label: (
+              <>
+                <span className="inline-flex h-5 w-5 items-center justify-center rounded-md bg-fd-muted text-current">
+                  <LibraryMark kind={t.id} className="h-3.5 w-3.5" />
+                </span>
                 {t.label}
                 <span className="font-mono text-[11px] tabular-nums opacity-70">
                   {t.count}
                 </span>
-              </a>
-            );
-          })}
-        </div>
+              </>
+            ),
+          }))}
+        />
 
-        {tab === "skills" ? (
+        <SameRouteFade childKey={current} name="library-panel">
           <div
             role="tabpanel"
-            id="library-panel-skills"
-            aria-labelledby="library-tab-skills"
+            id={`library-panel-${current}`}
+            aria-labelledby={`library-tab-${current}`}
           >
-            <LazySkillBrowser />
+            {current === "skills" ? <LazySkillBrowser /> : null}
+            {current === "agents" ? <AgentsGrid /> : null}
+            {current === "hooks" ? <HooksFlow /> : null}
           </div>
-        ) : null}
-        {tab === "agents" ? (
-          <div
-            role="tabpanel"
-            id="library-panel-agents"
-            aria-labelledby="library-tab-agents"
-          >
-            <AgentsGrid />
-          </div>
-        ) : null}
-        {tab === "hooks" ? (
-          <div
-            role="tabpanel"
-            id="library-panel-hooks"
-            aria-labelledby="library-tab-hooks"
-          >
-            <HooksGrid />
-          </div>
-        ) : null}
+        </SameRouteFade>
       </div>
     </section>
   );
@@ -192,15 +203,22 @@ function AgentsGrid() {
               href={`/docs/reference/agents/${agent.name}`}
               className="group rounded-lg border border-fd-border p-4 transition-colors hover:bg-fd-muted"
             >
-              <div className="mb-2 flex flex-wrap items-center gap-2">
-                <h3 className="text-sm font-semibold text-fd-foreground">
-                  {agent.name}
-                </h3>
+              <div className="mb-2 flex items-start gap-2.5">
                 <span
-                  className={`rounded px-1.5 py-0.5 text-[11px] font-medium ${cat.bg} ${cat.color}`}
+                  className={`mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${cat.bg} ${cat.color}`}
                 >
-                  {agent.category}
+                  <CategoryMark category={agent.category} className="h-4 w-4" />
                 </span>
+                <div className="min-w-0">
+                  <h3 className="text-sm font-semibold text-fd-foreground">
+                    {agent.name}
+                  </h3>
+                  <span
+                    className={`mt-1 inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] font-medium ${cat.bg} ${cat.color}`}
+                  >
+                    {agent.category}
+                  </span>
+                </div>
               </div>
               <p className="text-[13px] leading-[1.5] text-fd-muted-foreground">
                 {agent.description}
@@ -213,28 +231,57 @@ function AgentsGrid() {
   );
 }
 
-function HooksGrid() {
+function HooksFlow() {
+  const groups = groupedHookEvents();
+  const total = groups.reduce((n, group) => n + group.events.length, 0);
+
   return (
     <div>
       <p className="mb-4 text-sm text-fd-muted-foreground">
-        {HOOK_EVENT_PAGES.length} lifecycle events. Open a category for the
-        hooks that fire there.
+        {total} lifecycle events, grouped by when they fire. Open a category
+        for the hooks that run there.
       </p>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {HOOK_EVENT_PAGES.map((event) => (
-          <Link
-            key={event.slug}
-            href={event.href}
-            className="group flex items-center justify-between rounded-lg border border-fd-border px-4 py-3 transition-colors hover:bg-fd-muted"
+      <div className="mb-8 overflow-x-auto rounded-xl border border-fd-border bg-[var(--color-fd-surface-raised)] p-4">
+        <ChangelogMermaid chart={HOOK_LIFECYCLE_CHART} />
+      </div>
+      <div className="grid gap-4 lg:grid-cols-2">
+        {groups.map((group) => (
+          <section
+            key={group.id}
+            aria-labelledby={`hook-phase-${group.id}`}
+            className="rounded-xl border border-fd-border p-4"
           >
-            <span className="font-mono text-sm font-medium text-fd-foreground">
-              {event.label}
-            </span>
-            <ArrowRight
-              className="h-3.5 w-3.5 text-fd-primary opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100"
-              aria-hidden="true"
-            />
-          </Link>
+            <h3
+              id={`hook-phase-${group.id}`}
+              className="text-sm font-semibold text-fd-foreground"
+            >
+              {group.label}
+              <span className="ml-2 font-mono text-[11px] font-medium tabular-nums text-fd-muted-foreground">
+                {group.events.length}
+              </span>
+            </h3>
+            <p className="mt-1 text-[12.5px] leading-5 text-fd-muted-foreground">
+              {group.blurb}
+            </p>
+            <ul className="mt-3 space-y-1">
+              {group.events.map((event) => (
+                <li key={event.slug}>
+                  <Link
+                    href={event.href}
+                    className="group flex items-center justify-between rounded-md px-2 py-1.5 transition-colors hover:bg-fd-muted"
+                  >
+                    <span className="font-mono text-[13px] font-medium text-fd-foreground">
+                      {event.label}
+                    </span>
+                    <ArrowRight
+                      className="h-3.5 w-3.5 text-fd-primary opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100"
+                      aria-hidden="true"
+                    />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
         ))}
       </div>
     </div>
