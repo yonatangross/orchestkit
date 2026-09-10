@@ -87,6 +87,20 @@ export const LAB_ENTRIES: LabEntry[] = [
     "sizeKb": 22
   },
   {
+    "slug": "host-library-motion",
+    "title": "Pick a host, the command rewrites",
+    "description": "Play the homepage install picker. Host cards keep ?host= links. The command panel blurs to the new payload. Library tabs slide. Hooks group by lifecycle, not a 32-button grid. Reduced-motion keeps every control usable.",
+    "tags": [
+      "docs",
+      "site",
+      "homepage"
+    ],
+    "date": "2026-09-09",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 25
+  },
+  {
     "slug": "codex-mech-profile",
     "title": "The Codex mech profile: which file codex actually reads",
     "description": "Put the ork-mech profile in three places and read codex 0.153.4's own answer: a hard config-load error for the legacy [profiles.*] table, a silent base-config run for a name that does not exist, and the measured header for the shipped file. Plus the worktree writable-roots line with and without --add-dir.",

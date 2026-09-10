@@ -9,5 +9,5 @@ description: "Hooks triggered on ConfigChange events (2 hooks)."
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
+| `settings-reload` | `*` | Blocks | ConfigChange Hook: Settings Drift Detector |
+| `webhook-forwarder` | `*` | Fire-and-forget | Registered for every CC event type in hooks.json (async: true). Delegates to telemetry.emit() which fans out to pluggable sinks (JSONL local + HTTP remote). No-op when no sinks are active. |

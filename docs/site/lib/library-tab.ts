@@ -8,6 +8,11 @@ export function parseLibraryTab(
   return "skills";
 }
 
-export function libraryTabHref(id: LibraryTab): string {
-  return id === "skills" ? "/#library" : `/?lib=${id}#library`;
+/** Claude is the default host, so it stays off the query string. */
+export function libraryTabHref(id: LibraryTab, host = "claude"): string {
+  const params = new URLSearchParams();
+  if (host !== "claude") params.set("host", host);
+  if (id !== "skills") params.set("lib", id);
+  const query = params.toString();
+  return query ? `/?${query}#library` : "/#library";
 }

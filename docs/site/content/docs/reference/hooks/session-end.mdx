@@ -9,10 +9,10 @@ description: "Hooks triggered on SessionEnd events (7 hooks)."
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
+| `sync-session-end-dispatcher` | `*` | Blocks | Consolidates 2 synchronous SessionEnd hooks into a single dispatcher. |
+| `session-handoff-generator` | `*` | Silent | Session Handoff Generator — Writes a structured handoff YAML at session end |
+| `usage-summary-reporter` | `*` | Fire-and-forget | Posts OrchestKit-specific session data to HQ API that CC's native HTTP hooks can't provide: hooks_triggered, event_counts, decisions, problems, solutions. |
+| `webhook-forwarder` | `*` | Fire-and-forget | Registered for every CC event type in hooks.json (async: true). Delegates to telemetry.emit() which fans out to pluggable sinks (JSONL local + HTTP remote). No-op when no sinks are active. |
+| `telemetry-sync.mjs` | `*` | Fire-and-forget | — |
+| `goal-budget-guard` | `*` | Fire-and-forget | Cost circuit-breaker for `/goal`. Reads ended `/goal` runs from `.claude/state/goal-history.jsonl` for this session, sums their turn_count and ended_token_estimate, and writes `.claude/state/goal-budget-tripped.json` if either ceiling is breached. |
+| `session-finalizer` | `*` | Fire-and-forget | Marks this session's row as status='completed' and stamps ended_at. This hook deliberately does NOT delete the session row so post-mortem queries still work. (An older comment here described CASCADE on settings_overrides + locks; those tables were dropped in 005, #3353.) |

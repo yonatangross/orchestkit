@@ -696,7 +696,7 @@ def generate_agents(agents_src: str, agents_out: str) -> int:
             lines.append("|------|----------|-------------|")
             for ah in agent_hooks:
                 badge = BEHAVIOR_BADGES.get(ah["behavior"], ah["behavior"])
-                desc = ah["description"] or "\u2014"
+                desc = _ref_table_cell(ah["description"] or "\u2014")
                 lines.append(f"| `{ah['hook']}` | {badge} | {desc} |")
             lines.append("")
 
@@ -751,11 +751,22 @@ def slug_from_category(cat: str) -> str:
     return re.sub(r"([A-Z])", r"-\1", cat).strip("-").lower()
 
 
+def hook_invocation(entry: dict) -> str:
+    """Flatten a hooks.json command entry into one string.
+
+    Current CC entries are `{command: "node", args: [run-hook.mjs, id]}`.
+    Older entries stuffed the whole invocation into `command`.
+    """
+    parts = [str(entry.get("command") or "")]
+    parts.extend(str(a) for a in (entry.get("args") or []))
+    return " ".join(p for p in parts if p).strip()
+
+
 def hook_name_from_command(cmd: str) -> tuple[str, str]:
     """Extract (full_path, short_name) from a run-hook command."""
     for splitter in ["run-hook.mjs ", "run-hook-silent.mjs "]:
         if splitter in cmd:
-            hook_path = cmd.split(splitter)[1].strip()
+            hook_path = cmd.split(splitter)[1].strip().split()[0]
             return hook_path, hook_path.split("/")[-1]
     name = cmd.split("/")[-1] if "/" in cmd else cmd
     return name, name
@@ -770,12 +781,13 @@ def scope_from_path(hook_path: str) -> str:
     return "Global"
 
 
-# Behavior badge labels
+# Behavior labels. No emoji: Fumadocs/GFM turns some glyphs into <img>
+# that 404, and 🔇/🛑/🔥 are outside the visual-style vocabulary.
 BEHAVIOR_BADGES = {
-    "blocks": "\U0001f6d1 Blocks",
-    "injects": "\U0001f4a1 Injects",
-    "silent": "\U0001f507 Silent",
-    "fire-and-forget": "\U0001f525 Fire-and-forget",
+    "blocks": "Blocks",
+    "injects": "Injects",
+    "silent": "Silent",
+    "fire-and-forget": "Fire-and-forget",
 }
 
 
@@ -787,56 +799,97 @@ def _find_hook_ts_file(hooks_src_dir: Path, hook_path: str) -> Path | None:
     return None
 
 
-def _extract_jsdoc_description(source: str) -> str:
-    """Extract the first meaningful description line from a JSDoc comment block.
+def _is_jsdoc_skip_line(line: str) -> bool:
+    """Headers and stamps that are not the hook's description."""
+    if re.match(r"@\w+", line):
+        return True
+    if re.match(r"CC \d[\d.]*\s+Compliant", line):
+        return True
+    if re.match(r"Hook:", line):
+        return True
+    if re.match(r"Version:", line):
+        return True
+    if re.match(r"Issue #\d+", line):
+        return True
+    if re.match(
+        r"(SECURITY|Purpose|Hooks consolidated|NOT consolidated|Created|Consolidated hooks):",
+        line,
+    ):
+        return True
+    return False
 
-    Skips the title line (typically 'Name - HookType Hook') and CC compliance lines.
-    """
+
+def _is_jsdoc_title_line(line: str) -> bool:
+    if re.match(r".+ - .+(Hook|Dispatcher)\b", line, re.IGNORECASE):
+        return True
+    if re.search(r"(Hook|Dispatcher)\b", line, re.IGNORECASE) and (
+        " — " in line or " - " in line
+    ):
+        # "Name — SessionEnd Hook" or "Name — Stop Hook (M140 …)"
+        head = re.split(r"\s+[—-]\s+", line, maxsplit=1)[0]
+        return len(head.split()) <= 8
+    if (
+        re.match(r".+(Hook|Dispatcher)$", line, re.IGNORECASE)
+        and " - " not in line
+        and " — " not in line
+    ):
+        # Bare "Foo Hook" / "Foo Dispatcher" titles only, not prose ending in Hook.
+        return len(line.split()) <= 8
+    return False
+
+
+def _trim_jsdoc_sentence(text: str, max_len: int = 280) -> str:
+    text = re.sub(r"\s+", " ", text).strip()
+    if len(text) <= max_len:
+        return text
+    cut = text[:max_len]
+    period = cut.rfind(". ")
+    if period >= 80:
+        return cut[: period + 1]
+    return cut.rstrip(" ,;:") + "…"
+
+
+def _extract_jsdoc_description(source: str) -> str:
+    """First JSDoc paragraph, joining wrapped lines so tables do not cut mid-sentence."""
     match = re.search(r"/\*\*(.*?)\*/", source, re.DOTALL)
     if not match:
         return ""
 
-    comment_body = match.group(1)
-    lines = [line.strip().lstrip("* ").strip() for line in comment_body.split("\n")]
-    # Filter to non-empty lines
-    lines = [l for l in lines if l]
+    raw_lines = [
+        line.strip().lstrip("* ").strip() for line in match.group(1).split("\n")
+    ]
 
-    for line in lines:
-        # Title line with hook type: "Name - PreToolUse Hook" or "Name - Dispatcher"
-        if re.match(r".+ - .+(Hook|Dispatcher)$", line, re.IGNORECASE):
+    paragraphs: list[list[str]] = []
+    buf: list[str] = []
+    first_content = True
+    for line in raw_lines:
+        if not line or _is_jsdoc_skip_line(line) or line.startswith("- ") or re.match(
+            r"\d+\.", line
+        ):
+            if buf:
+                paragraphs.append(buf)
+                buf = []
+            first_content = False
             continue
-        # Bare title line ending with Hook/Dispatcher (no " - ")
-        if re.match(r".+(Hook|Dispatcher)$", line) and lines.index(line) == 0:
+        if _is_jsdoc_title_line(line):
+            title_desc = re.match(r".+ - (.+)", line)
+            if (
+                first_content
+                and title_desc
+                and not re.search(r"(Hook|Dispatcher)$", title_desc.group(1), re.I)
+            ):
+                buf.append(title_desc.group(1))
+            first_content = False
             continue
-        # Title line with description: "Name - Does something useful"
-        # Extract the part after " - " as the description
-        title_desc = re.match(r".+ - (.+)", line)
-        if title_desc and lines.index(line) == 0:
-            return title_desc.group(1)
-        # Skip CC compliance lines
-        if re.match(r"CC \d", line):
-            continue
-        # Skip Hook: lines
-        if re.match(r"Hook:", line):
-            continue
-        # Skip Version: lines
-        if re.match(r"Version:", line):
-            continue
-        # Skip Issue references: "Issue #235: Hook Architecture Refactor"
-        if re.match(r"Issue #\d+", line):
-            continue
-        # Skip SECURITY: or Purpose: or Hooks consolidated here: style headers
-        if re.match(r"(SECURITY|Purpose|Hooks consolidated|NOT consolidated|Created):", line):
-            continue
-        # Skip list items (sub-hook descriptions in dispatchers)
-        if line.startswith("- "):
-            continue
-        # Skip numbered items
-        if re.match(r"\d+\.", line):
-            continue
-        # Found a real description line
-        return line
+        buf.append(line)
+        first_content = False
+    if buf:
+        paragraphs.append(buf)
 
+    for para in paragraphs:
+        text = _trim_jsdoc_sentence(" ".join(para))
+        if len(text) >= 12:
+            return text
     return ""
 
 
@@ -859,8 +912,12 @@ def _detect_behavior(source: str, command: str) -> str:
     code_only = re.sub(r"/\*\*[\s\S]*?\*/", "", source)  # block comments
     code_only = re.sub(r"//.*$", "", code_only, flags=re.MULTILINE)  # line comments
 
-    # Blocks: has continue: false or outputDeny
-    if re.search(r"continue\s*:\s*false", code_only) or "outputDeny" in code_only:
+    # Blocks: continue:false, PreToolUse deny, or event-agnostic outputBlock
+    if (
+        re.search(r"continue\s*:\s*false", code_only)
+        or "outputDeny" in code_only
+        or "outputBlock" in code_only
+    ):
         return "blocks"
 
     # Injects: produces additionalContext
@@ -920,7 +977,7 @@ def generate_hooks(hooks_json: str, hooks_out: str) -> int:
         for m in matchers:
             matcher_name = m.get("matcher", "*")
             for h in m.get("hooks", []):
-                cmd = h.get("command", "")
+                cmd = hook_invocation(h)
                 hook_path, hook_name = hook_name_from_command(cmd)
                 scope = scope_from_path(hook_path)
 
@@ -930,6 +987,8 @@ def generate_hooks(hooks_json: str, hooks_out: str) -> int:
                 else:
                     behavior = "fire-and-forget" if "run-hook-silent.mjs" in cmd else "silent"
                     meta = {"description": "", "behavior": behavior}
+                if h.get("async") and meta["behavior"] == "silent":
+                    meta["behavior"] = "fire-and-forget"
 
                 rows.append(
                     {
@@ -967,7 +1026,7 @@ def generate_hooks(hooks_json: str, hooks_out: str) -> int:
             lines.append("|------|---------|----------|-------------|")
             for r in rows:
                 badge = BEHAVIOR_BADGES.get(r["behavior"], r["behavior"])
-                desc = r["description"].replace("|", "\\|") if r["description"] else "\u2014"
+                desc = _ref_table_cell(r["description"]) if r["description"] else "\u2014"
                 matcher_escaped = r["matcher"].replace("|", "\\|")
                 lines.append(f"| `{r['name']}` | `{matcher_escaped}` | {badge} | {desc} |")
         else:

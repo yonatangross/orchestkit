@@ -9,5 +9,5 @@ description: "Hooks triggered on PostModelSwitch events (2 hooks)."
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
+| `model-switch-telemetry` | `*` | Fire-and-forget | Observer only. Appends one line per session model change to ~/.claude/analytics/model-switch.jsonl so ork:analytics can answer "how often do sessions move tiers, from where, and what did the re-cache cost", which until 2.1.251 was not observable from a plugin at all. |
+| `webhook-forwarder` | `*` | Fire-and-forget | Registered for every CC event type in hooks.json (async: true). Delegates to telemetry.emit() which fans out to pluggable sinks (JSONL local + HTTP remote). No-op when no sinks are active. |

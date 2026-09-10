@@ -9,5 +9,5 @@ description: "Hooks triggered on ElicitationResult events (2 hooks)."
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
+| `elicitation-result-logger` | `*` | Silent | ElicitationResult Logger — Tracks elicitation outcomes for analytics Fires on the CC `ElicitationResult` event (after the user responds). |
+| `webhook-forwarder` | `*` | Fire-and-forget | Registered for every CC event type in hooks.json (async: true). Delegates to telemetry.emit() which fans out to pluggable sinks (JSONL local + HTTP remote). No-op when no sinks are active. |

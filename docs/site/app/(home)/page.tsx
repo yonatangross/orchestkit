@@ -168,7 +168,7 @@ export default async function HomePage({
         </div>
       </section>
 
-      <LibraryCatalog tab={libraryTab} />
+      <LibraryCatalog tab={libraryTab} host={host} />
       <WhatsNewStrip />
 
       <section aria-labelledby="cookbook-heading" className="border-b border-fd-border" id="cookbook">

@@ -9,8 +9,8 @@ description: "Hooks triggered on UserPromptSubmit events (5 hooks)."
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
+| `unified-dispatcher` | `*` | Silent | Routes UserPromptSubmit through one dispatcher: a once-per-session handoff injector plus every-turn silent analytics, with a single additionalContext output. |
+| `thrash-detector` | `*` | Fire-and-forget | Source: usage analytics — recurring edit→format→revert→re-edit and edit→test-fail→undo→re-edit loops that burn 10+ turns on the same file. Catches the "same-file repeatedly" signal early and suggests a different approach. |
+| `goal-tracker` | `*` | Blocks | Detects `/goal &lt;condition&gt;` invocations in the user prompt and appends a "started" entry to `.claude/state/goal-history.jsonl`. |
+| `worktree-advisory-consumer` | `*` | Silent | Reads pending advisories from `.claude/state/worktree-advisory-*.md`, deletes the files, and injects the concatenated content as `additionalContext` on the next user prompt. |
+| `webhook-forwarder` | `*` | Fire-and-forget | Registered for every CC event type in hooks.json (async: true). Delegates to telemetry.emit() which fans out to pluggable sinks (JSONL local + HTTP remote). No-op when no sinks are active. |

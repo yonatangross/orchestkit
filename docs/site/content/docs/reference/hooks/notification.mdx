@@ -9,6 +9,6 @@ description: "Hooks triggered on Notification events (3 hooks)."
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
+| `desktop` | `*` | Fire-and-forget | Sends rich desktop notifications with context (repo, branch, task). |
+| `sound` | `*` | Fire-and-forget | PRIMARY PATH (#1847): returns the top-level `terminalSequence` hook-output field with a BEL (\u0007). CC emits it to the user's terminal, which rings the terminal bell — zero process spawns, works on macOS + Linux, command hooks only. |
+| `webhook-forwarder` | `*` | Fire-and-forget | Registered for every CC event type in hooks.json (async: true). Delegates to telemetry.emit() which fans out to pluggable sinks (JSONL local + HTTP remote). No-op when no sinks are active. |

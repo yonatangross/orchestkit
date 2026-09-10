@@ -20,3 +20,13 @@ export const HOOK_EVENT_PAGES: HookEventPage[] = hooksMeta.pages
     label: labelFromSlug(slug),
     href: `/docs/reference/hooks/${slug}`,
   }));
+
+/** `/docs/reference/hooks/<event>` — four-column hook tables, not the index. */
+export function isHookEventPage(slugs: readonly string[]): boolean {
+  return (
+    slugs.length === 3 &&
+    slugs[0] === "reference" &&
+    slugs[1] === "hooks" &&
+    HOOK_EVENT_PAGES.some((page) => page.slug === slugs[2])
+  );
+}

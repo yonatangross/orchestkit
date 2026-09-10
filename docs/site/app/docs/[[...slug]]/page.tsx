@@ -26,6 +26,7 @@ import { GeorgeDivider } from "@/components/world/george";
 import { SkillDossier } from "@/components/world/skill-dossier";
 import { SkillFlow } from "@/components/world/skill-flow";
 import { getSectionGlyph } from "@/components/world/station-glyphs";
+import { DocsTable, HookEventTable } from "@/components/hook-event-table";
 import { SKILLS } from "@/lib/generated/skills-data";
 
 /**
@@ -173,6 +174,8 @@ export default async function Page(props: {
         <MDX
           components={{
             ...defaultMdxComponents,
+            table: DocsTable,
+            HookEventTable,
             ContextualSkillSidebar: LazyContextualSkillSidebar,
             SkillDependencyGraph: LazySkillDependencyGraph,
             SkillRecommender: LazySkillRecommender,
