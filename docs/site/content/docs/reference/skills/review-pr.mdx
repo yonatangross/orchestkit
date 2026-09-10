@@ -209,11 +209,13 @@ Relevant skills activated automatically:
 
 ## Phase 3: Parallel Code Review (6 Agents)
 
-> **Fork-eligible (CC 2.1.89 — ~60% cost cut):** the 6 review agents are spawned together
+> **Fork pattern (CC 2.1.89 #1227; explicit since CC 2.1.232; ~60% cost cut):** the 6 review agents are spawned together
 > with no per-agent `model=` override and no worktree isolation, so CC forks them off the
-> lead's cached prefix instead of re-sending it 6×. **Do NOT add `model=` to these Agent()
-> calls or wrap them in `isolation: "worktree"`** — either breaks fork-eligibility. See
-> `chain-patterns/references/fork-pattern.md`.
+> lead's cached prefix instead of re-sending it 6x. Since CC 2.1.232 forking is on by default and
+> `subagent_type: "fork"` selects it explicitly. A fork subagent inherits the full conversation and prompt cache
+> and always runs on the parent model; other types start fresh. The eligibility conditions matter only for ordinary
+> `Agent()` calls. **Do NOT add `model=` to these Agent() calls or wrap them in `isolation: "worktree"`**.
+> Either one breaks fork eligibility on ordinary calls. See `chain-patterns/references/fork-pattern.md`.
 
 ### Project Context Injection
 

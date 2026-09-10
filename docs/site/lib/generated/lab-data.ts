@@ -15,6 +15,20 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "fork-model-post-2-1-232",
+    "title": "Fork model after CC 2.1.232: explicit subagent_type fork",
+    "description": "Issue 3726: explore and review-pr still stated the pre-2.1.232 implicit-only fork model. Play the before and after, then take the one-question quiz on which Agent call forks explicitly.",
+    "tags": [
+      "docs",
+      "skills",
+      "agents"
+    ],
+    "date": "2026-09-10",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 8
+  },
+  {
     "slug": "the-guard-that-guarded-nothing",
     "title": "The guard that guarded nothing",
     "description": "A test swapped the real docs-site manifest to a stub analytics package and never put it back, so running the suite before committing could stage a no-op analytics for a live site. Then the guard written to catch it skipped whenever the tree was dirty, which is the only situation it was needed in.",
