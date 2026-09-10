@@ -15,6 +15,21 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "the-collision-nobody-saw",
+    "title": "The collision nobody saw",
+    "description": "Nine tests wrote to hardcoded /tmp paths. The sandbox denial was the loud half; the fixed filenames were the quiet one, where two concurrent runs share a file and a test can assert on another run's output and pass. Plus the acceptance criterion I wrote for the issue, which was wrong, and the write-shape guard that still flagged a JSON fixture on its first run.",
+    "tags": [
+      "tests",
+      "sandbox",
+      "false-signal",
+      "concurrency"
+    ],
+    "date": "2026-09-10",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 6
+  },
+  {
     "slug": "allowed-tools-rest",
     "title": "PR Playground: allowed-tools baseline cleared",
     "description": "Eight teaching skills describe the work performed by contributors, commands, and pipelines; doctor gains Write for its existing debug-file instruction. All nine remaining direction-table calls are applied and the baseline is empty.",
