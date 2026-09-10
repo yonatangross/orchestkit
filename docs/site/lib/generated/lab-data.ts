@@ -15,6 +15,20 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "fumadocs-vitest-import-resolution",
+    "title": "Why the docs build passed and its tests failed",
+    "description": "Compare Fumadocs versions and import resolvers to reproduce the Docs Site Build test failure and understand the Vitest configuration fix.",
+    "tags": [
+      "vitest",
+      "docs",
+      "esm"
+    ],
+    "date": "2026-09-11",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 4
+  },
+  {
     "slug": "the-guard-that-guarded-nothing",
     "title": "The guard that guarded nothing",
     "description": "A test swapped the real docs-site manifest to a stub analytics package and never put it back, so running the suite before committing could stage a no-op analytics for a live site. Then the guard written to catch it skipped whenever the tree was dirty, which is the only situation it was needed in.",
