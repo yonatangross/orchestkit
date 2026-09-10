@@ -15,6 +15,21 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "five-releases-one-gap",
+    "title": "Five releases, one gap",
+    "description": "Claude Code 2.1.264 to 2.1.268 triaged against OrchestKit. 2.1.264 was never published. 2.1.267 finally makes the effort: frontmatter on all 36 agents take effect, and 2.1.268 starts firing four PermissionRequest hooks that were silently absent in every headless run.",
+    "tags": [
+      "cc-adoption",
+      "hooks",
+      "agents",
+      "docs"
+    ],
+    "date": "2026-09-11",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 17
+  },
+  {
     "slug": "fumadocs-vitest-import-resolution",
     "title": "Why the docs build passed and its tests failed",
     "description": "Compare Fumadocs versions and import resolvers to reproduce the Docs Site Build test failure and understand the Vitest configuration fix.",
