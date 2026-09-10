@@ -339,15 +339,40 @@ test_oversized_prompt_latency() {
     big_text=$(generate_string 60000)
     local input
     input=$(jq -n --arg p "$big_text" '{"prompt":$p,"tool_name":"","session_id":"test","tool_input":{}}')
-    local start_ms end_ms elapsed_ms
+    # RELATIVE budget, not a wall clock (#3522 class, surfaced by #4024).
+    #
+    # The old assertion was a hard `< 500ms`. Most of that number is node
+    # startup for the hook spawn, not the guard's work, so on a loaded machine
+    # it failed for reasons the test does not care about: measured 1662ms,
+    # then FAIL/FAIL/PASS across three consecutive runs on an idle-ish laptop.
+    #
+    # What the test actually wants to know is that the guard SHORT-CIRCUITS an
+    # oversized prompt instead of scanning 60K of it. That is a claim about the
+    # oversized run RELATIVE to a trivial one, and both pay the same startup,
+    # so the ratio cancels machine load entirely.
+    local small_input
+    small_input=$(jq -n '{"prompt":"hello","tool_name":"","session_id":"test","tool_input":{}}')
+    local base_start base_end baseline_ms
+    base_start=$(python3 -c "import time; print(int(time.time()*1000))")
+    run_hook_with_input "prompt/unified-dispatcher" "$small_input" 5 >/dev/null
+    base_end=$(python3 -c "import time; print(int(time.time()*1000))")
+    baseline_ms=$((base_end - base_start))
+
+    local start_ms end_ms elapsed_ms budget_ms
     start_ms=$(python3 -c "import time; print(int(time.time()*1000))")
     run_hook_with_input "prompt/unified-dispatcher" "$input" 5 >/dev/null
     end_ms=$(python3 -c "import time; print(int(time.time()*1000))")
     elapsed_ms=$((end_ms - start_ms))
-    if [[ "$elapsed_ms" -lt 500 ]]; then
-        log_pass "oversized prompt completes in ${elapsed_ms}ms (< 500ms)"
+
+    # 3x the trivial run plus a 150ms floor for timer granularity and jitter.
+    # A guard that genuinely scanned 60K would blow past this; one that bails
+    # early lands within a few ms of the baseline.
+    budget_ms=$((baseline_ms * 3 + 150))
+    if [[ "$elapsed_ms" -lt "$budget_ms" ]]; then
+        log_pass "oversized prompt: ${elapsed_ms}ms vs ${baseline_ms}ms trivial (budget ${budget_ms}ms)"
     else
-        log_fail "oversized prompt completes in ${elapsed_ms}ms (< 500ms)" "Took ${elapsed_ms}ms — guard may not be working"
+        log_fail "oversized prompt: ${elapsed_ms}ms vs ${baseline_ms}ms trivial (budget ${budget_ms}ms)" \
+                 "Guard may be scanning the payload instead of short-circuiting"
     fi
 }
 test_oversized_prompt_latency

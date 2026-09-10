@@ -60,9 +60,21 @@ if [[ -z "${VERSION_SKIP_PATTERN:-}" ]]; then
   echo "FAILED: VERSION_SKIP_PATTERN is empty; scripts/ci/version-skip-pattern.sh must define it"
   exit 1
 fi
+# SKIP THE VERSION GATE, NOT THE HOOK (#4024).
+#
+# This said `exit 0`, which left the whole hook. VERSION_SKIP_PATTERN matches
+# every conventional-commit prefix CONTRIBUTING tells contributors to use, so
+# in practice EVERY feature push ran zero local tests: no unit suite, no
+# security suite, no build, no manifests. The hook printed two lines and the
+# push proceeded, which reads exactly like a hook that passed.
+#
+# That inverted this file's own purpose. The header at the top of this script
+# exists to stop `--no-verify` relocating failures to CI, and this line was
+# doing precisely that, silently, by default, for everyone.
+SKIP_VERSION_GATE=0
 if [[ "$BRANCH" =~ $VERSION_SKIP_PATTERN ]]; then
   echo "  Skipping version check for $BRANCH (release-please or Dependabot owns the version)"
-  exit 0
+  SKIP_VERSION_GATE=1
 fi
 
 # ===== Check if only non-code files changed =====
@@ -71,10 +83,17 @@ CODE_CHANGES=$(echo "$CHANGED_FILES" | grep -vE '\.(md|txt)$|^docs/' || true)
 
 if [[ -z "$CODE_CHANGES" ]]; then
   echo "  ✓ Skipping version check (only docs/config changes)"
-  exit 0
+  SKIP_VERSION_GATE=1
 fi
 
+# Fixed the same way as the branch gate above, and for a sharper reason: this
+# hook runs an mdx-compile guard (tests/unit/test-mdx-compile.sh), which exists
+# because a docs edit can break `next build` deep inside acorn. A docs-only
+# diff is EXACTLY the diff that guard was written for, and `exit 0` here was
+# skipping it for precisely that case.
+
 # ===== Version Check =====
+if [[ "$SKIP_VERSION_GATE" -eq 0 ]]; then
 echo -n "  Checking version bump... "
 
 # Get versions (plugin.json moved to plugins/ork/ in marketplace restructure)
@@ -181,6 +200,10 @@ if [[ $MISMATCH -eq 1 ]]; then
   exit 1
 fi
 echo "OK (all at v$PLUGIN_V)"
+fi  # SKIP_VERSION_GATE
+
+# Everything below this line runs on EVERY push (#4024). It used to be
+# unreachable for any conventionally-named branch.
 
 # Cross-platform timeout function (defined early for use in all checks)
 run_with_timeout() {
@@ -309,10 +332,23 @@ fi
 export _PREPUSH_FAIL_DIR=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")
 trap 'rm -rf "$_PREPUSH_FAIL_DIR"' EXIT
 
+# Dispatch on EXTENSION, not on hope (#4024).
+#
+# The discovery glob below takes `test-*.sh` AND `test-*.mjs`, and this ran
+# every one of them under `bash`. An ESM file under bash is a syntax error:
+# measured, `bash tests/unit/test-import-symbols.mjs` exits 2 while `node` on
+# the same file exits 0. So both .mjs unit tests were guaranteed failures.
+#
+# Nobody ever saw it, because the early exit above meant this runner had never
+# executed. A dead code path is where bugs go to wait.
 _run_test() {
   local test_file="$1"
   if [[ -f "$test_file" ]]; then
-    if ! bash "$test_file" >/dev/null 2>&1; then
+    local runner=bash
+    case "$test_file" in
+      *.mjs|*.js) runner=node ;;
+    esac
+    if ! "$runner" "$test_file" >/dev/null 2>&1; then
       touch "$_PREPUSH_FAIL_DIR/$(basename "$test_file")"
     fi
   else
