@@ -1,7 +1,7 @@
 {
   "name": "ork-codex",
   "host": "codex",
-  "version": "10.0.0-beta.12",
+  "version": "10.0.0-beta.13",
   "description": "Native OrchestKit skills and reusable agent roles for Codex.",
   "source": "src/codex/ork-codex",
   "skills": [
