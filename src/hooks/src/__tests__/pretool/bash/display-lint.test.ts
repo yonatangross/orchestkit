@@ -268,6 +268,34 @@ describe('display-lint', () => {
       expect(isFlagged(displayLint(bash(command), NOOP_CTX))).toBe(true);
     });
 
+    // Reviewer note on #4037. The anti-bypass case above uses a curl|jq stage,
+    // which proves the RULE but not the SHAPE the bypass was recorded in. The
+    // literal recorded string is covered one screen up (the 2026-07-16
+    // regression test), and this pins it inside the plumbing block too, so a
+    // future edit to `isPlumbingStage` cannot pass its own neighbours while
+    // reopening the original hole.
+    test('STILL flags the literal recorded bypass: <clutter> && bash noop.sh', () => {
+      const command = `cd ${P}/a/very/long/project/path/for/the/case/to/exceed/every/threshold/we/set && bash ${P}/noop.sh && echo done && echo verified && echo pushed`;
+      expect(command.length).toBeGreaterThan(200);
+      expect(isFlagged(displayLint(bash(command), NOOP_CTX))).toBe(true);
+    });
+
+    // Reviewer note on #4037, and this one pins a DELIBERATE widening rather
+    // than a fix. `stages.every(isPlumbingStage)` exempts a command made only
+    // of peeks, with no script invocation anywhere in it. That is wider than
+    // #3936 argued, though it is within the letter of its ask, which lists
+    // `cat|tail|head <path>` as an exempt stage shape on its own.
+    //
+    // Kept, because reading several files back IS the same look-at-what-
+    // happened plumbing and rewriting it as a script would be worse. Pinned
+    // here so the next reader knows it was a decision and not an oversight.
+    test('exempts an all-peeks command, deliberately, with no script stage', () => {
+      const command = `cat ${P}/alpha.log; cat ${P}/beta.log; cat ${P}/gamma.log; cat ${P}/delta-and-more.log`;
+      expect(command.length).toBeGreaterThan(200);
+      expect(command).not.toContain('bash ');
+      expect(isFlagged(displayLint(bash(command), NOOP_CTX))).toBe(false);
+    });
+
     test('the exemption never makes a permission decision', () => {
       const command = `bash ${P}/x.sh > ${P}/probe.log 2>&1; tail -1 ${P}/probe.log; rm ${P}/probe.log`;
       expect(madePermissionDecision(displayLint(bash(command), NOOP_CTX))).toBe(false);

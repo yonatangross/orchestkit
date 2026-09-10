@@ -15,6 +15,21 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "two-tests-a-reviewer-asked-for",
+    "title": "Two tests a reviewer asked for",
+    "description": "A follow-up to the display-lint plumbing exemption. One test pins the literal shape the original bypass was recorded in, which the rule covered but the new block did not. The other admits a widening nobody asked for and keeps it on purpose, because an accident and an intention look identical in a diff.",
+    "tags": [
+      "hooks",
+      "display-lint",
+      "tests",
+      "code-review"
+    ],
+    "date": "2026-09-10",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 5
+  },
+  {
     "slug": "pre-grant-not-a-ceiling",
     "title": "A pre-grant, not a ceiling",
     "description": "A report said 33 skills could not carry out their own instructions. The Claude Code docs say allowed-tools grants permission rather than restricting it, so the framing is false and the fix changes shape. What survives the correction, why the honest count is 11 rather than 33, and a ratchet proven to fail in both directions.",
