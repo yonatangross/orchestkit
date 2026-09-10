@@ -10,7 +10,7 @@ author: OrchestKit
 tags: [health-check, diagnostics, validation, permissions, hooks, skills, agents, memory]
 user-invocable: true
 disable-model-invocation: false
-allowed-tools: [Bash, Read, Grep, Glob, AskUserQuestion]
+allowed-tools: [Bash, Read, Grep, Glob, AskUserQuestion, Write]
 skills: [configure]
 complexity: low
 persuasion-type: collaborative

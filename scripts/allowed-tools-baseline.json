@@ -1,14 +1,4 @@
 {
   "$comment": "Skills whose prose instructs a tool their allowed-tools omits (#4008). allowed-tools is a PRE-GRANT, not a ceiling (code.claude.com/docs/en/skills.md): an omitted tool still runs, it just prompts the user mid-procedure, and the Cursor host reads the same field as a hard ceiling. RATCHET: this list only shrinks. Never add a name to silence the gate. Fix the skill instead, per the call recorded in docs/skills-allowed-tools-direction.md, then delete its line here.",
-  "skills": [
-    "agent-orchestration",
-    "ai-ui-generation",
-    "browser-tools",
-    "chain-patterns",
-    "design-system-tokens",
-    "devops-deployment",
-    "doctor",
-    "glyph",
-    "storybook-testing"
-  ]
+  "skills": []
 }

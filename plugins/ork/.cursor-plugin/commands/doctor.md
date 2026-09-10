@@ -7,7 +7,7 @@ effort: low
 context: inherit
 user-invocable: true
 name: doctor
-allowed-tools: [Bash, Read, Grep, Glob, AskUserQuestion]
+allowed-tools: [Bash, Read, Grep, Glob, AskUserQuestion, Write]
 ---
 
 # Auto-generated from skills/doctor/SKILL.md

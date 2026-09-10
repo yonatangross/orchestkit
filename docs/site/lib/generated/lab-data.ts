@@ -15,6 +15,20 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "allowed-tools-rest",
+    "title": "PR Playground: allowed-tools baseline cleared",
+    "description": "Eight teaching skills describe the work performed by contributors, commands, and pipelines; doctor gains Write for its existing debug-file instruction. All nine remaining direction-table calls are applied and the baseline is empty.",
+    "tags": [
+      "skills",
+      "allowed-tools",
+      "validation"
+    ],
+    "date": "2026-09-10",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 6
+  },
+  {
     "slug": "two-tests-a-reviewer-asked-for",
     "title": "Two tests a reviewer asked for",
     "description": "A follow-up to the display-lint plumbing exemption. One test pins the literal shape the original bypass was recorded in, which the rule covered but the new block did not. The other admits a widening nobody asked for and keeps it on purpose, because an accident and an intention look identical in a diff.",

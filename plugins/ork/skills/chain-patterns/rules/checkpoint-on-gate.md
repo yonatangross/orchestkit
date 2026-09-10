@@ -7,7 +7,7 @@ tags: [checkpoint, gate, state]
 
 # Checkpoint on Gate
 
-Update `state.json` before every user gate (AskUserQuestion). User may close the session during a gate.
+A chain updates `state.json` before every user gate (AskUserQuestion). The user may close the session during a gate.
 
 ## Incorrect
 
