@@ -1488,6 +1488,20 @@
         "explainer"
       ],
       "date": "2026-09-08"
+    },
+    {
+      "slug": "audit-gate-timeout",
+      "source": "docs/fix--4015-audit-gate-hygiene/audit-gate-timeout.html",
+      "title": "The audit gate that could not run",
+      "description": "The npm audit gate called GNU timeout unconditionally, so on a stock macOS the shell exited 127 before npm started and all six lockfiles failed with 'produced no usable JSON report'. Before and after transcripts, plus why the one test covering the wrapper shimmed a fake timeout onto PATH and could never see it.",
+      "tags": [
+        "security",
+        "npm-audit",
+        "ci",
+        "macos",
+        "false-signal"
+      ],
+      "date": "2026-09-10"
     }
   ]
 }
