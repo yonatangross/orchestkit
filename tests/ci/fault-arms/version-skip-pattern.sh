@@ -33,9 +33,33 @@ if [[ ! -s "$FIX/step.sh" ]]; then
     exit 0
 fi
 
+# Assert the DECISION, not the hook's exit code (#4024).
+#
+# This used to be `bash pre-push ...; hook_control=$?`, requiring exit 0. That
+# worked only because pre-push:65 exited 0 immediately for any branch matching
+# the pattern, so "exit 0" and "the skip fired" were the same observation.
+#
+# #4024 fixed that early exit: the version gate now stands down while the rest
+# of the hook still runs. So the hook's exit code became the exit code of the
+# ENTIRE local test suite, and requiring 0 from it would make this arm assert
+# "every local test passes inside this CI job" -- which is not what a gate about
+# VERSION_SKIP_PATTERN is for, and is not something a manifest-checking job is
+# provisioned to satisfy. Measured on a release-please-named branch: exit 0
+# locally with all ten phases green, but hook_control=1 in CI with the whole
+# 12-probe file finishing in 11s, far too fast for the suite to have run.
+#
+# So read the skip decision out of the hook's own output. That is exactly what
+# this gate protects, it is stable regardless of what the suite does, and it
+# still goes red if the pattern file stops being honoured.
+SKIP_MARKER='Skipping version check for'
+
 run_hook() {  # $1 = repo root to run in
-    printf 'refs/heads/%s 0000 refs/heads/%s 0000\n' "$RP_BRANCH" "$RP_BRANCH" \
-        | ( cd "$1" && bash bin/git-hooks/pre-push origin https://example.invalid/x.git ) >&2
+    local out
+    out=$(printf 'refs/heads/%s 0000 refs/heads/%s 0000\n' "$RP_BRANCH" "$RP_BRANCH" \
+        | ( cd "$1" && bash bin/git-hooks/pre-push origin https://example.invalid/x.git ) 2>&1)
+    printf '%s\n' "$out" >&2
+    # 0 = the version gate stood down for this branch, which is the contract.
+    printf '%s' "$out" | grep -qF "$SKIP_MARKER"
 }
 run_step() {  # $1 = checkout root to run in
     ( cd "$1" && BRANCH_NAME="$RP_BRANCH" GITHUB_OUTPUT="$FIX/gh-output" bash -eo pipefail "$FIX/step.sh" ) >&2
