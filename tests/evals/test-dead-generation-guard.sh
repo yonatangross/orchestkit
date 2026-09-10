@@ -63,7 +63,7 @@ cat > "$ENVELOPE" <<'JSON'
 JSON
 
 OUT=$(extract_output_text "$ENVELOPE")
-if [[ -z "$(tr -d '[:space:]' <<< "$OUT")" ]]; then
+if [[ -z "$(printf '%s\n' "$OUT" | tr -d '[:space:]')" ]]; then
     log_pass "extractor yields nothing gradeable for an error envelope"
 else
     log_fail "extractor LEAKED the envelope: ${OUT:0:80}"
