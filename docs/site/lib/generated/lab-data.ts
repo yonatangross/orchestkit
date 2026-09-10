@@ -15,6 +15,21 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "the-guard-that-guarded-nothing",
+    "title": "The guard that guarded nothing",
+    "description": "A test swapped the real docs-site manifest to a stub analytics package and never put it back, so running the suite before committing could stage a no-op analytics for a live site. Then the guard written to catch it skipped whenever the tree was dirty, which is the only situation it was needed in.",
+    "tags": [
+      "tests",
+      "false-signal",
+      "git",
+      "developer-experience"
+    ],
+    "date": "2026-09-10",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 6
+  },
+  {
     "slug": "the-grep-that-said-covered",
     "title": "The grep that said covered",
     "description": "Every release PR failed Build until a bot rescued it, twice, because two generated plugin manifests were never stamped. Searching the config finds the path and returns a hit, but it is the source rather than the mirror. Why the invariant is phrased around the drift roster instead of an allowlist, and why the first draft of the checker was too loud to survive.",
