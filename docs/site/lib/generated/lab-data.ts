@@ -15,6 +15,22 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "audit-gate-timeout",
+    "title": "The audit gate that could not run",
+    "description": "The npm audit gate called GNU timeout unconditionally, so on a stock macOS the shell exited 127 before npm started and all six lockfiles failed with 'produced no usable JSON report'. Before and after transcripts, plus why the one test covering the wrapper shimmed a fake timeout onto PATH and could never see it.",
+    "tags": [
+      "security",
+      "npm-audit",
+      "ci",
+      "macos",
+      "false-signal"
+    ],
+    "date": "2026-09-10",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 6
+  },
+  {
     "slug": "host-first-install-copy",
     "title": "Host-first copy: six hosts, six commands",
     "description": "The homepage chips used to be buttons whose onClick never ran if the client tree did not hydrate. They are now /?host= links, so Cursor, Pi, and Muse copy the real command from the server. Play the traps: no cursor CLI, no ork-muse, no ork-pi.",
