@@ -14,7 +14,7 @@ set -euo pipefail
 # it is the same defect class this gate was written to catch.
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 SKILLS_DIR="${1:-$REPO_ROOT/src/skills}"
-REPORT_FILE="${2:-/tmp/skill-permission-audit.md}"
+REPORT_FILE="${2:-${TMPDIR:-/tmp}/skill-permission-audit.md}"
 
 # Refuse to pass vacuously. Either of these means the scan is not measuring what
 # it claims, so fail loudly rather than reporting a clean sheet.

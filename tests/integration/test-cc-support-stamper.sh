@@ -4,6 +4,18 @@
 
 set -euo pipefail
 
+# Per-run private temp dir (#4026).
+#
+# These paths were hardcoded $ORK_TMP/<fixed-name>. Two problems, and the quiet one
+# is worse. The CC sandbox denies writes to /tmp, so the test fails locally with
+# "Operation not permitted". But the filename was also FIXED, so two concurrent
+# runs on one machine wrote and read the same file: a test could assert against
+# another run's output and PASS. $TMPDIR alone fixes only the first; mktemp
+# fixes both.
+ORK_TMP="$(mktemp -d "${TMPDIR:-/tmp}/ork-cctest.XXXXXX")"
+trap 'rm -rf "$ORK_TMP"' EXIT
+
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
@@ -133,11 +145,11 @@ trap restore EXIT
 # ============================================================================
 # Test 1: stamper is idempotent — running on synced state mutates 0 files
 # ============================================================================
-node scripts/stamp-cc-support.mjs > /tmp/stamp-out.txt 2>&1
-if grep -q "no changes needed" /tmp/stamp-out.txt; then
+node scripts/stamp-cc-support.mjs > $ORK_TMP/stamp-out.txt 2>&1
+if grep -q "no changes needed" $ORK_TMP/stamp-out.txt; then
   log_pass "Idempotent on already-synced state"
 else
-  log_fail "Idempotent check" "expected 'no changes needed', got: $(cat /tmp/stamp-out.txt)"
+  log_fail "Idempotent check" "expected 'no changes needed', got: $(cat $ORK_TMP/stamp-out.txt)"
 fi
 
 # ============================================================================
@@ -148,7 +160,7 @@ fi
 jq '.supported_floor = "2.1.999" | .latest_known = "2.2.0"' shared/cc-support.json > shared/cc-support.json.tmp
 mv shared/cc-support.json.tmp shared/cc-support.json
 
-node scripts/stamp-cc-support.mjs > /tmp/stamp-out.txt 2>&1
+node scripts/stamp-cc-support.mjs > $ORK_TMP/stamp-out.txt 2>&1
 
 if grep -qE "Claude Code\*\*:\s*>=\s*2\.1\.999" CLAUDE.md; then
   log_pass "CLAUDE.md picks up new floor"
@@ -180,13 +192,13 @@ fi
 jq '.supported_floor = "invalid-version"' shared/cc-support.json > shared/cc-support.json.tmp
 mv shared/cc-support.json.tmp shared/cc-support.json
 
-if node scripts/stamp-cc-support.mjs > /tmp/stamp-out.txt 2>&1; then
+if node scripts/stamp-cc-support.mjs > $ORK_TMP/stamp-out.txt 2>&1; then
   log_fail "Invalid floor rejection" "stamper exited 0 on invalid floor"
 else
-  if grep -q "invalid supported_floor" /tmp/stamp-out.txt; then
+  if grep -q "invalid supported_floor" $ORK_TMP/stamp-out.txt; then
     log_pass "Invalid floor format rejected with explicit error"
   else
-    log_fail "Invalid floor error message" "expected 'invalid supported_floor', got: $(cat /tmp/stamp-out.txt)"
+    log_fail "Invalid floor error message" "expected 'invalid supported_floor', got: $(cat $ORK_TMP/stamp-out.txt)"
   fi
 fi
 
@@ -202,13 +214,13 @@ echo "$ORIG_DOC" > src/skills/doctor/references/version-compatibility.md
 jq '.supported_floor = "2.1.100"' shared/cc-support.json > shared/cc-support.json.tmp
 mv shared/cc-support.json.tmp shared/cc-support.json
 
-if node scripts/stamp-cc-support.mjs > /tmp/stamp-out.txt 2>&1; then
+if node scripts/stamp-cc-support.mjs > $ORK_TMP/stamp-out.txt 2>&1; then
   log_fail "Monotonic guard" "stamper exited 0 when asked to lower floor $ORIG_FLOOR → 2.1.100"
 else
-  if grep -q "refusing to lower MIN_CC_VERSION" /tmp/stamp-out.txt; then
+  if grep -q "refusing to lower MIN_CC_VERSION" $ORK_TMP/stamp-out.txt; then
     log_pass "Monotonic guard: stamper refuses to lower MIN_CC_VERSION"
   else
-    log_fail "Monotonic guard error message" "expected 'refusing to lower MIN_CC_VERSION', got: $(cat /tmp/stamp-out.txt)"
+    log_fail "Monotonic guard error message" "expected 'refusing to lower MIN_CC_VERSION', got: $(cat $ORK_TMP/stamp-out.txt)"
   fi
 fi
 
@@ -229,13 +241,13 @@ printf "\nexport const MIN_CC_VERSION = '2.1.0';\n" >> src/hooks/src/lib/cc-vers
 # Restore the SoT to match current to avoid confusing the monotonic check.
 echo "$ORIG_SUPPORT" > shared/cc-support.json
 
-if node scripts/stamp-cc-support.mjs > /tmp/stamp-out.txt 2>&1; then
+if node scripts/stamp-cc-support.mjs > $ORK_TMP/stamp-out.txt 2>&1; then
   log_fail "Duplicate assignment guard" "stamper exited 0 with two MIN_CC_VERSION assignments"
 else
-  if grep -qE "(refusing to stamp ambiguously|MIN_CC_VERSION assignments found)" /tmp/stamp-out.txt; then
+  if grep -qE "(refusing to stamp ambiguously|MIN_CC_VERSION assignments found)" $ORK_TMP/stamp-out.txt; then
     log_pass "Duplicate assignment guard: stamper refuses ambiguous source"
   else
-    log_fail "Duplicate assignment message" "expected ambiguity error, got: $(cat /tmp/stamp-out.txt)"
+    log_fail "Duplicate assignment message" "expected ambiguity error, got: $(cat $ORK_TMP/stamp-out.txt)"
   fi
 fi
 
@@ -246,16 +258,16 @@ echo "$ORIG_SUPPORT" > shared/cc-support.json
 # ============================================================================
 # Test 6: missing cc-support.json fails fast
 # ============================================================================
-mv shared/cc-support.json /tmp/cc-support-backup.json
-if node scripts/stamp-cc-support.mjs > /tmp/stamp-out.txt 2>&1; then
-  mv /tmp/cc-support-backup.json shared/cc-support.json
+mv shared/cc-support.json $ORK_TMP/cc-support-backup.json
+if node scripts/stamp-cc-support.mjs > $ORK_TMP/stamp-out.txt 2>&1; then
+  mv $ORK_TMP/cc-support-backup.json shared/cc-support.json
   log_fail "Missing-file rejection" "stamper exited 0 with no source file"
 else
-  mv /tmp/cc-support-backup.json shared/cc-support.json
-  if grep -q "missing" /tmp/stamp-out.txt; then
+  mv $ORK_TMP/cc-support-backup.json shared/cc-support.json
+  if grep -q "missing" $ORK_TMP/stamp-out.txt; then
     log_pass "Missing cc-support.json fails fast with clear message"
   else
-    log_fail "Missing-file message" "expected 'missing', got: $(cat /tmp/stamp-out.txt)"
+    log_fail "Missing-file message" "expected 'missing', got: $(cat $ORK_TMP/stamp-out.txt)"
   fi
 fi
 

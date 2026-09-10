@@ -18,6 +18,18 @@
 # shellcheck disable=SC2016
 set -euo pipefail
 
+# Per-run private temp dir (#4026).
+#
+# These paths were hardcoded $ORK_TMP/<fixed-name>. Two problems, and the quiet one
+# is worse. The CC sandbox denies writes to /tmp, so the test fails locally with
+# "Operation not permitted". But the filename was also FIXED, so two concurrent
+# runs on one machine wrote and read the same file: a test could assert against
+# another run's output and PASS. $TMPDIR alone fixes only the first; mktemp
+# fixes both.
+ORK_TMP="$(mktemp -d "${TMPDIR:-/tmp}/ork-cctest.XXXXXX")"
+trap 'rm -rf "$ORK_TMP"' EXIT
+
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
@@ -85,16 +97,16 @@ BODY_NO_REF=$(printf '%s\n\n%s\n' '**Key:** `foo+2.1.152`' 'no blockquote here')
 # ============================================================================
 : > "$MOCK_LOG"; EXIT=0
 MOCK_NUMS=100 MOCK_BODY="$BODY_NO_MARKER" SLEEP_BETWEEN=0 GH_REPO="acme/orchestkit" \
-  bash "$SCRIPT" >/tmp/bf-1.out 2>&1 || EXIT=$?
-if [ "$EXIT" = "0" ] && [ "$(count_calls "$EDIT_RE")" = "1" ] && grep -q "added Changelog-Ref" /tmp/bf-1.out; then
+  bash "$SCRIPT" >$ORK_TMP/bf-1.out 2>&1 || EXIT=$?
+if [ "$EXIT" = "0" ] && [ "$(count_calls "$EDIT_RE")" = "1" ] && grep -q "added Changelog-Ref" $ORK_TMP/bf-1.out; then
   log_pass "backfills an unmarked issue (1 edit)"
 else
-  log_fail "backfill" "expected exit 0 + 1 edit + 'added' (see /tmp/bf-1.out)"
+  log_fail "backfill" "expected exit 0 + 1 edit + 'added' (see $ORK_TMP/bf-1.out)"
 fi
-if grep -qF "$EXPECTED_HASH" /tmp/bf-1.out; then
+if grep -qF "$EXPECTED_HASH" $ORK_TMP/bf-1.out; then
   log_pass "computed hash matches the filer's sha256_hex (key parity)"
 else
-  log_fail "hash parity" "expected $EXPECTED_HASH in output (see /tmp/bf-1.out)"
+  log_fail "hash parity" "expected $EXPECTED_HASH in output (see $ORK_TMP/bf-1.out)"
 fi
 
 # ============================================================================
@@ -102,11 +114,11 @@ fi
 # ============================================================================
 : > "$MOCK_LOG"; EXIT=0
 MOCK_NUMS=100 MOCK_BODY="$BODY_WITH_MARKER" GH_REPO="acme/orchestkit" \
-  bash "$SCRIPT" >/tmp/bf-2.out 2>&1 || EXIT=$?
-if [ "$EXIT" = "0" ] && [ "$(count_calls "$EDIT_RE")" = "0" ] && grep -q "already-marked=1" /tmp/bf-2.out; then
+  bash "$SCRIPT" >$ORK_TMP/bf-2.out 2>&1 || EXIT=$?
+if [ "$EXIT" = "0" ] && [ "$(count_calls "$EDIT_RE")" = "0" ] && grep -q "already-marked=1" $ORK_TMP/bf-2.out; then
   log_pass "idempotent: already-marked issue skipped (0 edits)"
 else
-  log_fail "idempotent" "expected 0 edits + already-marked=1 (see /tmp/bf-2.out)"
+  log_fail "idempotent" "expected 0 edits + already-marked=1 (see $ORK_TMP/bf-2.out)"
 fi
 
 # ============================================================================
@@ -114,11 +126,11 @@ fi
 # ============================================================================
 : > "$MOCK_LOG"; EXIT=0
 MOCK_NUMS=100 MOCK_BODY="$BODY_NO_REF" GH_REPO="acme/orchestkit" \
-  bash "$SCRIPT" >/tmp/bf-3.out 2>&1 || EXIT=$?
-if [ "$EXIT" = "0" ] && [ "$(count_calls "$EDIT_RE")" = "0" ] && grep -q "no-ref=1" /tmp/bf-3.out; then
+  bash "$SCRIPT" >$ORK_TMP/bf-3.out 2>&1 || EXIT=$?
+if [ "$EXIT" = "0" ] && [ "$(count_calls "$EDIT_RE")" = "0" ] && grep -q "no-ref=1" $ORK_TMP/bf-3.out; then
   log_pass "no '> ref' line → left as-is (0 edits)"
 else
-  log_fail "no-ref" "expected 0 edits + no-ref=1 (see /tmp/bf-3.out)"
+  log_fail "no-ref" "expected 0 edits + no-ref=1 (see $ORK_TMP/bf-3.out)"
 fi
 
 # ============================================================================
@@ -126,11 +138,11 @@ fi
 # ============================================================================
 : > "$MOCK_LOG"; EXIT=0
 DRY_RUN=1 MOCK_NUMS=100 MOCK_BODY="$BODY_NO_MARKER" GH_REPO="acme/orchestkit" \
-  bash "$SCRIPT" >/tmp/bf-4.out 2>&1 || EXIT=$?
-if [ "$EXIT" = "0" ] && [ "$(count_calls "$EDIT_RE")" = "0" ] && grep -q "DRY_RUN: would add" /tmp/bf-4.out; then
+  bash "$SCRIPT" >$ORK_TMP/bf-4.out 2>&1 || EXIT=$?
+if [ "$EXIT" = "0" ] && [ "$(count_calls "$EDIT_RE")" = "0" ] && grep -q "DRY_RUN: would add" $ORK_TMP/bf-4.out; then
   log_pass "DRY_RUN: prints intent, 0 edits"
 else
-  log_fail "DRY_RUN" "expected 0 edits + 'would add' (see /tmp/bf-4.out)"
+  log_fail "DRY_RUN" "expected 0 edits + 'would add' (see $ORK_TMP/bf-4.out)"
 fi
 
 # ============================================================================
@@ -141,11 +153,11 @@ fi
 : > "$MOCK_LOG"; EXIT=0
 BODY_BULLET=$(printf '%s\n\n%s\n\n> - %s\n' '**Auto-filed**' '## Changelog reference' "$REFLINE")
 MOCK_NUMS=100 MOCK_BODY="$BODY_BULLET" SLEEP_BETWEEN=0 GH_REPO="acme/orchestkit" \
-  bash "$SCRIPT" >/tmp/bf-6.out 2>&1 || EXIT=$?
-if [ "$EXIT" = "0" ] && grep -qF "$EXPECTED_HASH" /tmp/bf-6.out; then
+  bash "$SCRIPT" >$ORK_TMP/bf-6.out 2>&1 || EXIT=$?
+if [ "$EXIT" = "0" ] && grep -qF "$EXPECTED_HASH" $ORK_TMP/bf-6.out; then
   log_pass "cross-format parity: '- '-prefixed ref hashes identical to the bare ref"
 else
-  log_fail "cross-format parity" "expected hash $EXPECTED_HASH for bulleted body (see /tmp/bf-6.out)"
+  log_fail "cross-format parity" "expected hash $EXPECTED_HASH for bulleted body (see $ORK_TMP/bf-6.out)"
 fi
 
 echo "========================================================="
