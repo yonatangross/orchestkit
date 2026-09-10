@@ -57,13 +57,15 @@ Agent(
 )
 ```
 
-## Fork Pattern (CC 2.1.89 — #1227)
+## Fork Pattern (CC 2.1.89 #1227; explicit since CC 2.1.232)
 
-These agents are **fork-eligible**: short prompts (<500 words), no custom model, no worktree isolation. CC automatically shares the parent's cached API prefix across all 4 forks, reducing cost by ~60%.
+These agents are **fork-eligible**: short prompts (<500 words), no custom model, no worktree isolation. CC shares the parent's cached API prefix across all 4 forks, reducing cost by ~60%.
+
+Since CC 2.1.232 forking is on by default and `subagent_type: "fork"` selects it explicitly. A fork subagent inherits the full conversation and prompt cache and always runs on the parent model; other types start fresh. The eligibility conditions matter only for ordinary `Agent()` calls.
 
 > See `chain-patterns/references/fork-pattern.md` for full details.
 
-**Do NOT** add `model=` or `isolation="worktree"` to these agents — it breaks cache sharing.
+**Do NOT** add `model=` or `isolation="worktree"` to these agents. Either one breaks cache sharing on ordinary `Agent()` calls.
 
 ## Explorer Roles
 
