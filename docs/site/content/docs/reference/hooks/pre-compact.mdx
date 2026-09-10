@@ -9,7 +9,7 @@ description: "Hooks triggered on PreCompact events (4 hooks)."
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
+| `pre-compact-guard` | `*` | Blocks | PreCompact Guard (CC 2.1.105) |
+| `pre-compact-task-done-prompt` | `*` | Blocks | PreCompact Task-Done Prompt — Issue #1469 (extended by M119 dogfood cluster) |
+| `pre-compact-saver` | `*` | Silent | PreCompact Saver — Compaction-Aware Memory Architecture CC 2.1.25+: Preserves critical context before context compaction. |
+| `webhook-forwarder` | `*` | Fire-and-forget | Registered for every CC event type in hooks.json (async: true). Delegates to telemetry.emit() which fans out to pluggable sinks (JSONL local + HTTP remote). No-op when no sinks are active. |

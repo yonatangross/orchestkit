@@ -9,31 +9,31 @@ description: "Hooks triggered on PostToolUse events (28 hooks)."
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
-| `node` | `Agent` | 🔇 Silent | — |
-| `node` | `Agent` | 🔇 Silent | — |
-| `node` | `mcp__*` | 🔇 Silent | — |
-| `node` | `mcp__*` | 🔇 Silent | — |
-| `node` | `Read\|Bash\|Grep\|Glob` | 🔇 Silent | — |
-| `node` | `Write\|Edit` | 🔇 Silent | — |
-| `node` | `Write\|Edit` | 🔇 Silent | — |
-| `node` | `Write\|Edit` | 🔇 Silent | — |
-| `node` | `Write\|Edit` | 🔇 Silent | — |
-| `node` | `Write\|Edit` | 🔇 Silent | — |
-| `node` | `Write\|Edit` | 🔇 Silent | — |
-| `node` | `Write\|Edit` | 🔇 Silent | — |
-| `node` | `Write\|Edit` | 🔇 Silent | — |
-| `node` | `Write\|Edit` | 🔇 Silent | — |
-| `node` | `Write\|Edit` | 🔇 Silent | — |
-| `node` | `Write\|Edit` | 🔇 Silent | — |
-| `node` | `Bash` | 🔇 Silent | — |
-| `node` | `Bash` | 🔇 Silent | — |
-| `node` | `Bash` | 🔇 Silent | — |
-| `node` | `Bash` | 🔇 Silent | — |
-| `node` | `Agent\|TaskUpdate\|TaskCreate` | 🔇 Silent | — |
-| `node` | `Skill` | 🔇 Silent | — |
-| `node` | `Skill` | 🔇 Silent | — |
-| `node` | `Skill` | 🔇 Silent | — |
-| `node` | `Bash\|Write\|Edit\|Agent\|TaskUpdate\|TaskCreate\|Skill\|NotebookEdit` | 🔇 Silent | — |
-| `node` | `Bash\|Write\|Edit\|Agent\|TaskUpdate\|TaskCreate\|Skill\|NotebookEdit` | 🔇 Silent | — |
-| `node` | `Bash\|Write\|Edit\|Agent\|TaskUpdate\|TaskCreate\|Skill\|NotebookEdit` | 🔇 Silent | — |
-| `node` | `Read\|Grep\|Glob\|WebFetch\|WebSearch` | 🔇 Silent | — |
+| `agent-task-auto-register` | `Agent` | Fire-and-forget | After an Agent tool call succeeds, checks if a task was registered for this agent. If not, auto-registers it in the local task registry and injects a context nudge suggesting the model create a proper TaskCreate for tracking. |
+| `webhook-forwarder` | `Agent` | Fire-and-forget | Registered for every CC event type in hooks.json (async: true). Delegates to telemetry.emit() which fans out to pluggable sinks (JSONL local + HTTP remote). No-op when no sinks are active. |
+| `mcp-output-transform` | `mcp__*` | Silent | Issues: #1240 (PoC) · #2264 (reversible compression) · #2302 (graduation → updatedToolOutput) |
+| `webhook-forwarder` | `mcp__*` | Fire-and-forget | Registered for every CC event type in hooks.json (async: true). Delegates to telemetry.emit() which fans out to pluggable sinks (JSONL local + HTTP remote). No-op when no sinks are active. |
+| `secret-handler` | `Read\|Bash\|Grep\|Glob` | Silent | hookSpecificOutput.updatedToolOutput (extends 2.1.69's MCP-only updatedMCPToolOutput to all tools). |
+| `auto-lint` | `Write\|Edit` | Silent | CC 2.1.90: Safe to modify files in PostToolUse — "File content has changed" race fixed |
+| `ascii-lint` | `Write\|Edit` | Fire-and-forget | ASCII Lint — PostToolUse warn-only linter for fenced ASCII blocks in *.md. Implements 5 rules from designs/ascii-design-system.md §A.3. Severity is locked to `warn` (D3); never blocks an Edit/Write. |
+| `code-comment-glyph-warn` | `Write\|Edit` | Fire-and-forget | Code Comment Glyph Warn — PostToolUse advisory linter. |
+| `ui-change-detector` | `Write\|Edit` | Injects | Watches Edit/Write on UI-shaped files. When detected and the dev stack is live, emits an `additionalContext` nudge prompting the user to run /ork:expect on the affected route. Diff-aware (single route per change), debounced, and skippable per-session. |
+| `redact-secrets` | `Write\|Edit` | Fire-and-forget | Warns if potential secrets appear in Write, Edit, or Bash tool output. |
+| `security-auditor` | `Write\|Edit` | Fire-and-forget | Config Change Security Auditor - Audits Write\|Edit ops targeting .claude/ config files |
+| `stale-import-detector` | `Write\|Edit` | Blocks | After a Write creates a new file (or a previously existing file is gone), greps the repo for imports of the old path and injects an advisory listing the stale import sites. |
+| `debt-marker-tracker` | `Write\|Edit` | Injects | The capture half of the deferred-debt feature (counterpart to the YAGNI gate). When an agent takes a deliberate shortcut it drops an inline marker: |
+| `check-plugins-drift` | `Write\|Edit` | Blocks | M139 issue #1782 (C5 plugins/ drift detector). |
+| `edit-history-tracker` | `Write\|Edit` | Fire-and-forget | Companion to prompt/thrash-detector.ts (#1285). Maintains a rolling JSONL log of recent Write/Edit events so the thrash detector can read the history at UserPromptSubmit time. |
+| `commit-nudge` | `Write\|Edit` | Fire-and-forget | Commit Nudge — Escalating reminders to commit work |
+| `redact-secrets` | `Bash` | Fire-and-forget | Warns if potential secrets appear in Write, Edit, or Bash tool output. |
+| `commit-nudge` | `Bash` | Fire-and-forget | Commit Nudge — Escalating reminders to commit work |
+| `gh-rate-limit-tracker` | `Bash` | Fire-and-forget | GitHub Rate-Limit Tracker |
+| `session-heartbeat-publisher` | `Bash` | Fire-and-forget | Detects structural git/gh operations in the Bash command + output and publishes a distilled JSON state file to ~/.claude/state/orchestkit/&lt;repo&gt;/&lt;session-id&gt;.json |
+| `team-member-start` | `Agent\|TaskUpdate\|TaskCreate` | Fire-and-forget | Links spawned teammates to the team activity log after successful spawn. Only fires for team-scoped spawns (tool_input.team_name present). |
+| `fingerprint-saver` | `Skill` | Fire-and-forget | Expect Fingerprint Auto-Saver (#1191) |
+| `snapshot-recorder` | `Skill` | Fire-and-forget | Expect Snapshot Recorder (M125 #6) |
+| `auto-verify` | `Skill` | Fire-and-forget | Design-Import Auto-Verify (#1386) |
+| `heartbeat` | `Bash\|Write\|Edit\|Agent\|TaskUpdate\|TaskCreate\|Skill\|NotebookEdit` | Fire-and-forget | Updates sessions.last_heartbeat for the current sid on every PostToolUse, rate-limited to once per 5 seconds via a module-level cache. Keeps the DB pressure bounded — even a hot tool-use loop touches at most one row per session every 5s. |
+| `chain-staleness-checker` | `Bash\|Write\|Edit\|Agent\|TaskUpdate\|TaskCreate\|Skill\|NotebookEdit` | Fire-and-forget | Layer 3 of the 4-layer coordination architecture. Watches the project-local chain state file (`.claude/chain/state.json`) for activity. |
+| `metrics-dispatcher` | `Bash\|Write\|Edit\|Agent\|TaskUpdate\|TaskCreate\|Skill\|NotebookEdit` | Injects | Collapses the three async hooks that fire on the PostToolUse catchall matcher into a single subprocess invocation. Same behavior, same files written, same semantics — just one node cold-start per event instead of three. |
+| `context-crossing-warn` | `Read\|Grep\|Glob\|WebFetch\|WebSearch` | Silent | Context-Crossing Warn — Issue #1470 (extended by M119 dogfood cluster) |

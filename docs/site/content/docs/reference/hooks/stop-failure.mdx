@@ -9,5 +9,5 @@ description: "Hooks triggered on StopFailure events (2 hooks)."
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
+| `stop-failure-handler` | `*` | Fire-and-forget | Fires when a turn ends due to an API error (rate limit, auth failure, etc.). Flushes session state and writes an emergency handoff so the next session can resume cleanly. |
+| `webhook-forwarder` | `*` | Fire-and-forget | Registered for every CC event type in hooks.json (async: true). Delegates to telemetry.emit() which fans out to pluggable sinks (JSONL local + HTTP remote). No-op when no sinks are active. |

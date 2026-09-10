@@ -9,5 +9,5 @@ description: "Hooks triggered on InstructionsLoaded events (2 hooks)."
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
+| `instructions-loaded-dispatcher` | `*` | Silent | The real CC InstructionsLoaded event fires ONCE PER FILE with \{ file_path, memory_type, load_reason \}. The previous dispatcher read a fabricated `files_loaded` array (0 handlers ever ran) and returned additionalContext (stripped by bin/output-guard.mjs for this event). |
+| `webhook-forwarder` | `*` | Fire-and-forget | Registered for every CC event type in hooks.json (async: true). Delegates to telemetry.emit() which fans out to pluggable sinks (JSONL local + HTTP remote). No-op when no sinks are active. |

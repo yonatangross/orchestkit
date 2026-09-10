@@ -479,6 +479,72 @@
 }
 
 /* ============================================================
+   VIEW TRANSITIONS — route swaps + same-route catalog/host
+   ============================================================ */
+
+::view-transition {
+  pointer-events: none;
+}
+
+::view-transition-old(.page-exit) {
+  animation: 160ms ease-in both vt-fade reverse, 280ms ease-in-out both vt-rise reverse;
+}
+::view-transition-new(.page-enter) {
+  animation: 220ms ease-out 80ms both vt-fade, 320ms ease-out both vt-rise;
+}
+
+::view-transition-old(.catalog-fade) {
+  animation: 140ms ease-in both vt-fade reverse;
+}
+::view-transition-new(.catalog-fade) {
+  animation: 180ms ease-out both vt-fade;
+}
+
+@keyframes vt-fade {
+  from {
+    filter: blur(6px);
+    opacity: 0;
+  }
+  to {
+    filter: blur(0);
+    opacity: 1;
+  }
+}
+@keyframes vt-rise {
+  from { transform: translateY(10px); }
+  to { transform: translateY(0); }
+}
+
+#nd-nav {
+  view-transition-name: site-header;
+}
+#nd-sidebar {
+  view-transition-name: docs-sidebar;
+}
+::view-transition-group(site-header),
+::view-transition-group(docs-sidebar) {
+  animation: none;
+  z-index: 100;
+}
+::view-transition-old(site-header),
+::view-transition-old(docs-sidebar) {
+  display: none;
+}
+::view-transition-new(site-header),
+::view-transition-new(docs-sidebar) {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
+}
+
+/* ============================================================
    INLINE CODE IN TABLES — Prevent line-breaking at hyphens
    ============================================================ */
 

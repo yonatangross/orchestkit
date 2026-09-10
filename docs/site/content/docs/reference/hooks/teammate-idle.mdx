@@ -9,7 +9,7 @@ description: "Hooks triggered on TeammateIdle events (4 hooks)."
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
+| `progress-reporter` | `*` | Fire-and-forget | TeammateIdle Hook: Progress Reporter |
+| `team-synthesis-trigger` | `*` | Fire-and-forget | Detects when all teammates in a team are idle and suggests synthesis. Reads team config for member list and teammate-activity.jsonl for recent idle events. |
+| `team-quality-gate` | `*` | Fire-and-forget | Aggregates quality signals from idle teammates. Surfaces a warning only if a teammate goes idle without producing meaningful output AND has no recent task completion signal. |
+| `webhook-forwarder` | `*` | Fire-and-forget | Registered for every CC event type in hooks.json (async: true). Delegates to telemetry.emit() which fans out to pluggable sinks (JSONL local + HTTP remote). No-op when no sinks are active. |

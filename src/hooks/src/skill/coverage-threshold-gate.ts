@@ -1,6 +1,6 @@
 /**
  * Coverage Threshold Gate Hook
- * BLOCKING: Coverage must meet threshold after implementation
+ * Blocks Stop when coverage after implementation is below the skill threshold.
  * CC 2.1.7 Compliant
  */
 

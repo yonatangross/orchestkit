@@ -9,9 +9,9 @@ description: "Hooks triggered on SubagentStop events (6 hooks)."
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
+| `feedback-loop` | `*` | Fire-and-forget | — |
+| `sync-subagent-stop-dispatcher` | `*` | Blocks | Consolidates 6 synchronous SubagentStop hooks into a single dispatcher. |
+| `webhook-forwarder` | `*` | Fire-and-forget | Registered for every CC event type in hooks.json (async: true). Delegates to telemetry.emit() which fans out to pluggable sinks (JSONL local + HTTP remote). No-op when no sinks are active. |
+| `watchdog` | `*` | Fire-and-forget | On each agent completion, scans remaining active background agents for timeout. Emits warnings at 5min and critical alerts at 10min. |
+| `subagent-scope-auditor` | `*` | Fire-and-forget | Source: usage analytics #5 friction point — sub-agents modify files outside their declared scope in 3+ sessions (out of 481 Agent calls across 126 sessions). Existing `subagent-validator` validates agent CONFIGURATION at spawn time; this hook validates FILE ACCESS at completion. |
+| `unified-dispatcher` | `*` | Fire-and-forget | Consolidates SubagentStop processing into a single dispatcher AND writes the local activation analytics: agent-usage.jsonl (per-agent activation + usage metrics) and subagent-quality.jsonl (transcript quality scoring). |

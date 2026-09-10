@@ -9,15 +9,15 @@ description: "Hooks triggered on Stop events (12 hooks)."
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
+| `handoff-writer` | `*` | Fire-and-forget | Writes .claude/HANDOFF.md with structured session context on stop. This is the WRITE half of the save/restore loop. The READ half is prompt/handoff-injector.ts (UserPromptSubmit). |
+| `session-summary` | `*` | Injects | Runs at session end. Only fires when session had meaningful work (&gt;=20 tool calls). Builds a graph entity suggestion via additionalContext and nudges /ork:remember for high-activity sessions (&gt;50 tool calls). |
+| `task-completion-check` | `*` | Fire-and-forget | Task Completion Check - Verifies tasks are properly completed before stop |
+| `security-scan-aggregator` | `*` | Fire-and-forget | Runs Stop-time security scans under a machine-wide lock, only on a dirty working tree, with real child-process kill-on-timeout. |
+| `ledger-cleanup` | `*` | Fire-and-forget | Ledger Cleanup — removes stale agent attribution ledgers on session stop. |
+| `coverage-check` | `*` | Fire-and-forget | Runs on Stop for testing skills - checks if coverage threshold is met |
+| `evidence-collector` | `*` | Fire-and-forget | Runs on Stop for evidence-verification skill Collects verification evidence - silent operation |
+| `coverage-threshold-gate` | `*` | Blocks | Blocks Stop when coverage after implementation is below the skill threshold. |
+| `cross-instance-test-validator` | `*` | Blocks | BLOCKING: every implementation file this session wrote must have a test file. |
+| `stop-uncommitted-check.mjs` | `*` | Silent | — |
+| `goal-tracker` | `*` | Fire-and-forget | Closes the most recent open `/goal` entry for this session by appending a second JSONL line with `ended_at`, `ended_token_estimate`, `turn_count`, and an inferred `status: 'converged' \| 'spun' \| 'aborted'`. |
+| `webhook-forwarder` | `*` | Fire-and-forget | Registered for every CC event type in hooks.json (async: true). Delegates to telemetry.emit() which fans out to pluggable sinks (JSONL local + HTTP remote). No-op when no sinks are active. |

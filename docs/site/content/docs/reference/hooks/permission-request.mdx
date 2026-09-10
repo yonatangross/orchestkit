@@ -9,7 +9,7 @@ description: "Hooks triggered on PermissionRequest events (4 hooks)."
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
-| `node` | `Bash` | 🔇 Silent | — |
-| `node` | `Bash` | 🔇 Silent | — |
-| `node` | `Write\|Edit` | 🔇 Silent | — |
-| `node` | `Write\|Edit` | 🔇 Silent | — |
+| `unified-dispatcher` | `Bash` | Silent | Consolidates 2 PermissionRequest hooks for Bash into a single process spawn. |
+| `webhook-forwarder` | `Bash` | Fire-and-forget | Registered for every CC event type in hooks.json (async: true). Delegates to telemetry.emit() which fans out to pluggable sinks (JSONL local + HTTP remote). No-op when no sinks are active. |
+| `auto-approve-project-writes` | `Write\|Edit` | Silent | Auto-Approve Project Writes - Auto-approves writes within project directory |
+| `webhook-forwarder` | `Write\|Edit` | Fire-and-forget | Registered for every CC event type in hooks.json (async: true). Delegates to telemetry.emit() which fans out to pluggable sinks (JSONL local + HTTP remote). No-op when no sinks are active. |

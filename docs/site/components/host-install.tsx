@@ -1,5 +1,11 @@
+"use client";
+
+import { startTransition, useEffect, useState, type MouseEvent } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { motion } from "motion/react";
 import { HostMark, type HostId } from "@/components/host-marks";
+import { SameRouteFade, sameRouteReplace } from "@/components/page-transition";
 import { InstallSnippet } from "@/components/install-snippet";
 import {
 	HOST_INSTALLS,
@@ -8,6 +14,7 @@ import {
 	type HostInstallSpec,
 } from "@/lib/host-installs";
 import type { LibraryTab } from "@/lib/library-tab";
+import { cn } from "@/lib/cn";
 
 function Card({ spec }: { spec: HostInstallSpec }) {
 	return (
@@ -74,6 +81,12 @@ export function HostInstallGrid({ hosts }: { hosts?: HostId[] }) {
 	);
 }
 
+function passThroughClick(e: MouseEvent) {
+	return (
+		e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0
+	);
+}
+
 /** Homepage: pick a host, copy its command. Keeps the Install by host nav. */
 export function HostInstallPicker({
 	hosts = ["claude", "cursor", "codex", "muse", "pi", "opencode"],
@@ -84,19 +97,33 @@ export function HostInstallPicker({
 	active?: HostId;
 	libraryTab?: LibraryTab;
 }) {
+	const router = useRouter();
 	const list = hosts.map((id) => HOST_INSTALL_BY_ID[id]);
-	const current =
+	const resolved =
 		list.find((item) => item.id === active)?.id ?? list[0]?.id ?? "claude";
+	const [current, setCurrent] = useState<HostId>(resolved);
+
+	useEffect(() => {
+		setCurrent(resolved);
+	}, [resolved]);
+
 	const spec = HOST_INSTALL_BY_ID[current];
+
+	const pick = (e: MouseEvent<HTMLAnchorElement>, id: HostId) => {
+		if (passThroughClick(e)) return;
+		e.preventDefault();
+		startTransition(() => {
+			setCurrent(id);
+			router.replace(homeInstallHref(id, libraryTab), sameRouteReplace);
+		});
+	};
 
 	return (
 		<nav
 			aria-label="Install by host"
 			className="mx-auto mt-4 w-full max-w-[640px] text-left"
 		>
-			<div
-				className="flex flex-wrap items-center justify-center gap-2"
-			>
+			<div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
 				{list.map((item) => {
 					const selected = item.id === current;
 					return (
@@ -104,18 +131,46 @@ export function HostInstallPicker({
 							key={item.id}
 							href={homeInstallHref(item.id, libraryTab)}
 							aria-current={selected ? "true" : undefined}
-							className={`inline-flex h-10 items-center gap-2 rounded-lg border px-2.5 font-mono text-[12px] transition-colors ${
+							onClick={(e) => pick(e, item.id)}
+							className={cn(
+								"relative flex flex-col items-start gap-2 rounded-xl border p-3 text-left transition-colors",
 								selected
 									? "border-fd-primary/50 bg-[var(--color-fd-primary-10)] text-fd-foreground"
-									: "border-fd-border bg-[var(--color-fd-surface-raised)] text-fd-muted-foreground hover:border-fd-primary/40 hover:text-fd-foreground"
-							}`}
+									: "border-fd-border bg-[var(--color-fd-surface-raised)] text-fd-muted-foreground hover:border-fd-primary/40 hover:text-fd-foreground",
+							)}
 						>
-							<HostMark host={item.id} className="h-4 w-4" />
-							<span>{item.name}</span>
+							{selected ? (
+								<motion.span
+									layoutId="host-card-ring"
+									className="pointer-events-none absolute inset-0 rounded-xl ring-2 ring-fd-primary/35"
+									transition={{ type: "spring", stiffness: 420, damping: 34 }}
+									aria-hidden="true"
+								/>
+							) : null}
+							<span className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-fd-border bg-fd-background">
+								<HostMark host={item.id} className="h-5 w-5" />
+							</span>
+							<span className="text-[13px] font-semibold text-fd-foreground">
+								{item.name}
+							</span>
+							<span
+								aria-hidden="true"
+								className="line-clamp-2 text-[11px] leading-4 text-fd-muted-foreground"
+							>
+								{item.what}
+							</span>
 						</a>
 					);
 				})}
 			</div>
+			<HostCommandPanel spec={spec} />
+		</nav>
+	);
+}
+
+function HostCommandPanel({ spec }: { spec: HostInstallSpec }) {
+	return (
+		<SameRouteFade childKey={spec.id} name="host-command">
 			<div className="mt-3 space-y-2">
 				<p className="text-center text-[12px] leading-5 text-fd-muted-foreground">
 					{spec.where}
@@ -141,6 +196,6 @@ export function HostInstallPicker({
 					</Link>
 				</p>
 			</div>
-		</nav>
+		</SameRouteFade>
 	);
 }

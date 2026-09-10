@@ -9,24 +9,24 @@ description: "Hooks triggered on SessionStart events (21 hooks)."
 
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
-| `node` | `*` | 🔇 Silent | — |
+| `pattern-sync-pull` | `*` | Fire-and-forget | Pulls global patterns into project on session start |
+| `nudge-outcome-resolver` | `*` | Fire-and-forget | SessionStart Nudge-Outcome Resolver — Issue #1476 |
+| `rules-size-check` | `*` | Fire-and-forget | Claude Code's project-instruction loader globs `.claude/rules/**\/*.md` RECURSIVELY (every file at any depth, not just the top level) and concatenates every match into the &lt;system-reminder&gt; claudeMd content on UserPromptSubmit. Two distinct failure modes follow: |
+| `hook-token-check` | `*` | Fire-and-forget | The `generate-http-hooks` CLI (channel 1, deleted in #3867) used to write 19 type:"http" hook entries into the user's settings.local.json, each carrying `Authorization: Bearer $ORCHESTKIT_HOOK_TOKEN`. |
+| `telemetry-dark-check` | `*` | Fire-and-forget | `bin/telemetry-sync.mjs` posts local telemetry (.claude/telemetry/*.jsonl) to $ORCHESTKIT_HOOK_URL, and only DELETES rotated files after a successful POST. |
+| `analytics-liveness-check` | `*` | Fire-and-forget | The local analytics pipeline fans out to several independent JSONL writers under ~/.claude/analytics/ (skill-usage.jsonl, agent-usage.jsonl, matcher removal, or a refactor that drops one write path leaves the other writers healthy, so nothing looks wrong until an audit reads the… |
+| `session-rules-audit` | `*` | Fire-and-forget | Session Rules Audit — SessionStart (whole-set instruction handlers, #2475) |
+| `ask-fallback-injector` | `*` | Fire-and-forget | When the user sets `ORK_ASK_FALLBACK=text`, the AskUserQuestion picker is treated as unavailable and the model is instructed to fall back to inline text prompts ("reply with 1/2/3/4"). |
+| `cleanup-envelope-corruption` | `*` | Fire-and-forget | Backfill mitigation for the `\{"continue":true,"suppressOutput":true\}` envelope leak (originally #1250, recurring as #1826). |
+| `session-registrar` | `*` | Fire-and-forget | Registers this Claude Code session in the shared SQLite session DB (~/.local/state/orchestkit/sessions.db). Runs sweeps on the way in: |
+| `sweep-stale-worktrees` | `*` | Fire-and-forget | Removes debris that a failed `Agent(isolation: "worktree")` spawn leaves INSIDE the repo and that `git worktree prune` cannot see, because it was never registered with git: |
+| `stray-playground-pages` | `*` | Fire-and-forget | Names untracked, un-ignored playground pages that have been sitting in the working tree for longer than a threshold, so the next session can commit or delete them instead of walking past them. |
+| `session-env-setup` | `*` | Fire-and-forget | Session Environment Setup - Initializes session environment |
+| `stale-team-cleanup` | `*` | Fire-and-forget | — |
+| `stale-cache-cleanup` | `*` | Fire-and-forget | Prunes old plugin cache versions, keeping the current + previous per channel, and never removing a version a live process is still running from. |
+| `plugins-drift-snapshot` | `*` | Fire-and-forget | M139 issue #1782 (C5 plugins/ drift detector). |
+| `type-error-indexer` | `*` | Fire-and-forget | Runs `tsc --noEmit` on SessionStart and caches results so agents know about existing type errors before making edits. Prevents 30-40% of failed edit attempts by surfacing existing errors. |
+| `sync-session-dispatcher` | `*` | Injects | Consolidates 4 synchronous SessionStart hooks into a single dispatcher. |
+| `session-handoff-injector` | `*` | Silent | Session Handoff Injector — Injects previous session context at SessionStart |
+| `webhook-forwarder` | `*` | Fire-and-forget | Registered for every CC event type in hooks.json (async: true). Delegates to telemetry.emit() which fans out to pluggable sinks (JSONL local + HTTP remote). No-op when no sinks are active. |
+| `cc-version-check` | `*` | Fire-and-forget | Fires on SessionStart. Four branches: |

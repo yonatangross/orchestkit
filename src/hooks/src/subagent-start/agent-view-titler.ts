@@ -5,14 +5,14 @@
 /**
  * Agent View Titler — SubagentStart Hook
  *
+ * Derives a short, human-readable title for each subagent at spawn and emits
+ * it on `hookSpecificOutput.sessionTitle` so the agent-view row is readable.
+ *
  * CC 2.1.139 introduced `claude agents` (Research Preview), which lists every
  * active CC session. Without a descriptive title, sessions show up as raw
  * UUIDs — unusable once 5+ background workers are in flight.
  *
- * This hook derives a short, human-readable title for each subagent at spawn
- * time and emits it on `hookSpecificOutput.sessionTitle` so the agent-view
- * row reads as something like:
- *
+ * Example row:
  *   [ork:backend-system-architect] design auth middleware refactor
  *
  * API surface caveat (honest):

@@ -225,26 +225,23 @@ describe("SkillBrowser", () => {
     await expectCount(5);
   });
 
-  it("renders plugin filter group with All, ork buttons", () => {
-    render(<SkillBrowser />);
-    const group = screen.getByRole("group", { name: "Filter by plugin" });
-    expect(group).toBeInTheDocument();
-
-    const allBtn = screen.getByRole("button", { name: "All" });
-    expect(allBtn).toHaveAttribute("aria-pressed", "true");
-  });
-
-  it("filters by plugin when ork button is clicked", async () => {
+  it("combines search + category filters", async () => {
     render(<SkillBrowser />);
     await expectCount(5);
 
-    fireEvent.click(screen.getByRole("button", { name: "ork" }));
+    const fieldset = screen.getByRole("group", { name: /category/i });
+    fireEvent.click(within(fieldset).getByText("Backend"));
 
-    // All five mock skills belong to ork (v7 unified plugin).
-    await expectCount(5);
-    expect(screen.getByText("implement")).toBeInTheDocument();
-    expect(screen.getByText("e2e-testing")).toBeInTheDocument();
-    expect(screen.getByText("fastapi-advanced")).toBeInTheDocument();
+    fireEvent.change(screen.getByPlaceholderText(PLACEHOLDER), {
+      target: { value: "api" },
+    });
+
+    // fastapi-advanced (backend/api tag) should survive.
+    expect(
+      await screen.findByText(
+        (_, el) => el?.textContent === "fastapi-advanced",
+      ),
+    ).toBeInTheDocument();
   });
 
   it("shows Command badge for user-invocable skills", async () => {
@@ -253,6 +250,12 @@ describe("SkillBrowser", () => {
     // implement is userInvocable: true
     const commandBadges = screen.getAllByText("Command");
     expect(commandBadges.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("puts a category mark on each skill card", async () => {
+    render(<SkillBrowser />);
+    const card = await screen.findByRole("button", { name: /implement/i });
+    expect(card.querySelector("svg")).toBeTruthy();
   });
 
   it("expands skill card on click and shows detail panel", async () => {
@@ -325,21 +328,9 @@ describe("SkillBrowser", () => {
     await expectCount(5);
   });
 
-  it("combines search + category + plugin filters", async () => {
+  it("does not render the vestigial All/ork plugin filter", () => {
     render(<SkillBrowser />);
-    await expectCount(5);
-
-    fireEvent.click(screen.getByRole("button", { name: "ork" }));
-
-    fireEvent.change(screen.getByPlaceholderText(PLACEHOLDER), {
-      target: { value: "api" },
-    });
-
-    // fastapi-advanced (ork, backend/api tag) should survive.
-    expect(
-      await screen.findByText(
-        (_, el) => el?.textContent === "fastapi-advanced",
-      ),
-    ).toBeInTheDocument();
+    expect(screen.queryByRole("group", { name: "Filter by plugin" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "ork" })).toBeNull();
   });
 });

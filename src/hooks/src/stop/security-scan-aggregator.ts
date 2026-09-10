@@ -1,6 +1,9 @@
 /**
  * Security Scan Aggregator - Stop Hook
  *
+ * Runs Stop-time security scans under a machine-wide lock, only on a dirty
+ * working tree, with real child-process kill-on-timeout.
+ *
  * Issue #3705: the previous #905 "parallel + timeout" implementation was inert.
  * All five scans were synchronous (execFileSync), runWithTimeout invoked them
  * inside the Promise executor (so Promise.all received already-settled promises
