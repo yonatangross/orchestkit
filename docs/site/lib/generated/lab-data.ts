@@ -15,6 +15,22 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "the-gate-nobody-could-satisfy",
+    "title": "The gate nobody could satisfy",
+    "description": "Every src/hooks Dependabot PR failed the required Build check because a tracked generated mirror sat inside the drift roster and Dependabot never runs a build. Why the two obvious fixes are already rejected in the repo's own code, and the one field whose removal closes the class.",
+    "tags": [
+      "dependabot",
+      "ci",
+      "build",
+      "false-signal",
+      "hooks"
+    ],
+    "date": "2026-09-10",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 8
+  },
+  {
     "slug": "vitest-5-bench-rewrite",
     "title": "vitest 5 moved the benchmark options, and the type checker said so",
     "description": "Migrating src/hooks to vitest 5: bench becomes a test-context fixture, describe.sequential is gone, and the sampling window moves from the registration call to .run(). Plus the two removed config keys the issue did not list, and a TS2883 fix five bare vi.fn() calls wide instead of three return types.",
