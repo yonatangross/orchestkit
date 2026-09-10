@@ -7,6 +7,15 @@
 # request that never completes. Retry only that status and preserve all other
 # npm exit statuses unchanged.
 #
+# GNU timeout is not a given. It ships on the CI runners, it does NOT ship on a
+# stock macOS, and this script used to call it unconditionally: the shell then
+# exited 127 before npm ever ran, and tests/security/test-npm-audit.sh reported
+# that as "npm audit produced no usable JSON report" for all six lockfiles —
+# a missing binary wearing the costume of a registry outage. Every developer
+# push on macOS hit it, because bin/git-hooks/pre-push runs the security suite.
+# So resolve a timeout implementation first (timeout, then gtimeout from
+# coreutils), and fall back to a bash watchdog that reproduces GNU's exit 124.
+#
 # Usage: npm-audit-with-retry.sh [directory] [npm-audit arguments...]
 #
 # Environment:
@@ -49,14 +58,55 @@ if [[ ! -d "$AUDIT_DIRECTORY" ]]; then
   exit 2
 fi
 
+TIMEOUT_BIN=""
+for candidate in timeout gtimeout; do
+  # silent: best-effort — probing for an optional binary, absence IS the answer
+  if command -v "$candidate" >/dev/null 2>&1; then
+    TIMEOUT_BIN="$candidate"
+    break
+  fi
+done
+
+# Run "$@" under a wall-clock bound, reporting GNU timeout's 124 on expiry so
+# the retry decision below reads the same status whichever path ran.
+run_bounded() {
+  if [[ -n "$TIMEOUT_BIN" ]]; then
+    "$TIMEOUT_BIN" --signal=TERM --kill-after=10s "${TIMEOUT_SECONDS}s" "$@"
+    return "$?"
+  fi
+
+  local command_pid watchdog_pid status=0
+  "$@" &
+  command_pid=$!
+  (
+    sleep "$TIMEOUT_SECONDS"
+    # silent: post-cleanup — a finished audit leaves no pid to signal
+    kill -TERM "$command_pid" 2>/dev/null
+    sleep 10
+    # silent: post-cleanup — same, after the kill-after grace period
+    kill -KILL "$command_pid" 2>/dev/null
+  ) &
+  watchdog_pid=$!
+
+  wait "$command_pid" || status=$?
+  # silent: post-cleanup — the watchdog may already have exited on its own
+  kill -TERM "$watchdog_pid" 2>/dev/null || true
+  # silent: post-cleanup — reaping a watchdog we just signalled
+  wait "$watchdog_pid" 2>/dev/null || true
+
+  # 143 is 128+SIGTERM, which here can only be the watchdog firing. Report it
+  # as 124 so a caller cannot tell the fallback from GNU timeout.
+  [[ "$status" -eq 143 ]] && status=124
+  return "$status"
+}
+
 for ((attempt = 1; attempt <= MAX_ATTEMPTS; attempt++)); do
   echo "npm-audit-with-retry: attempt ${attempt}/${MAX_ATTEMPTS} in ${AUDIT_DIRECTORY}" >&2
 
   status=0
   (
     cd "$AUDIT_DIRECTORY"
-    timeout --signal=TERM --kill-after=10s "${TIMEOUT_SECONDS}s" \
-      npm audit "${AUDIT_ARGUMENTS[@]}"
+    run_bounded npm audit "${AUDIT_ARGUMENTS[@]}"
   ) || status=$?
 
   if [[ "$status" -eq 0 ]]; then

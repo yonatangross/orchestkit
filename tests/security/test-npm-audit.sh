@@ -66,6 +66,11 @@ fi
 
 is_allowlisted() {
   local target="$1"
+  # An empty allowlist is the goal state, not an edge case, so say so before
+  # expanding the array: under `set -u` a bare "${ACTIVE_IDS[@]}" on an empty
+  # array is an unbound-variable error in bash < 4.4, which would abort the
+  # gate on the exact day the last exception is retired.
+  [[ "${#ACTIVE_IDS[@]}" -eq 0 ]] && return 1
   # `local` is load-bearing. Bash uses dynamic scoping, so an unscoped loop
   # variable named `id` here reassigns the CALLER's `id` (audit_project declares
   # one). Without it, every failure message printed the last allowlist key

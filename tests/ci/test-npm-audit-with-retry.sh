@@ -91,5 +91,72 @@ else
   fi
 fi
 
+# ─── the wrapper must work where GNU timeout does not exist ──────────
+#
+# Every case above puts a fake `timeout` on PATH, which is exactly why none of
+# them could see that the wrapper called it unconditionally. On a stock macOS
+# there is no `timeout`, so the shell exited 127 before npm ran and the audit
+# gate reported six lockfiles as "produced no usable JSON report" — a missing
+# binary reported as a registry outage. These cases run with a PATH that has
+# neither `timeout` nor `gtimeout`.
+mkdir -p "$tmpdir/nobin"
+for tool in env bash sleep; do
+  ln -sf "$(command -v "$tool")" "$tmpdir/nobin/$tool"
+done
+cp "$tmpdir/bin/npm" "$tmpdir/nobin/npm"
+
+cat > "$tmpdir/nobin/npm-hang" <<'EOF'
+#!/usr/bin/env bash
+# exec, so the pid the watchdog signals is the sleep itself. A bash parent
+# would defer the TERM until its foreground child finished, and the assertion
+# below would measure the stub, not the wrapper.
+exec sleep 30
+EOF
+chmod +x "$tmpdir/nobin/npm-hang"
+
+run_wrapper_without_timeout() {
+  NPM_STUB_ARGS="$tmpdir/args" \
+  NPM_STUB_COUNT="$tmpdir/count" \
+  NPM_AUDIT_TIMEOUT_SECONDS=1 \
+  NPM_AUDIT_MAX_ATTEMPTS="${MAX_ATTEMPTS_OVERRIDE:-3}" \
+  NPM_AUDIT_RETRY_DELAY_SECONDS=0 \
+  PATH="$tmpdir/nobin" \
+    bash "$WRAPPER" "$tmpdir/project" "$@"
+}
+
+# Positive control: assert the isolated PATH really removed both binaries,
+# otherwise the two cases below would silently re-test the shimmed path.
+if PATH="$tmpdir/nobin" command -v timeout >/dev/null 2>&1 ||
+   PATH="$tmpdir/nobin" command -v gtimeout >/dev/null 2>&1; then
+  bad "isolated PATH still exposes a timeout binary — cases below prove nothing"
+else
+  ok "isolated PATH exposes neither timeout nor gtimeout"
+fi
+
+rm -f "$tmpdir/args" "$tmpdir/count"
+if NPM_STUB_FIRST_STATUS=1 NPM_STUB_SECOND_STATUS=0 NPM_STUB_THIRD_STATUS=0 \
+   run_wrapper_without_timeout --audit-level=moderate --package-lock-only --json; then
+  bad "reported success without GNU timeout"
+else
+  if [[ -f "$tmpdir/count" && "$(cat "$tmpdir/count")" == 1 ]]; then
+    ok "runs npm and preserves its status with no timeout binary present"
+  else
+    bad "never reached npm with no timeout binary present"
+  fi
+fi
+
+rm -f "$tmpdir/args" "$tmpdir/count"
+cp "$tmpdir/nobin/npm-hang" "$tmpdir/nobin/npm"
+if MAX_ATTEMPTS_OVERRIDE=1 run_wrapper_without_timeout --audit-level=moderate; then
+  bad "let a hung audit pass without GNU timeout"
+else
+  status=$?
+  if [[ "$status" -eq 124 ]]; then
+    ok "bounds a hung audit and reports GNU timeout's 124 without GNU timeout"
+  else
+    bad "hung audit exited ${status}, expected 124"
+  fi
+fi
+
 echo "${pass} passed, ${fail} failed"
 [[ "$fail" -eq 0 ]]
