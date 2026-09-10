@@ -15,6 +15,21 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "here-string-self-deadlock",
+    "title": "A here-string that writes before anyone is reading",
+    "description": "Bash 5.3 backs a here-string with a pipe and writes the payload before the reader exists; past the pipe capacity the write blocks forever at zero CPU. Toggle bash version, payload size and machine pressure, then see the printf pipe form that drains, used to fix the two grep lines in tests/evals/test-dead-generation-guard.sh.",
+    "tags": [
+      "tests",
+      "bash",
+      "macos",
+      "pipes"
+    ],
+    "date": "2026-09-11",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 9
+  },
+  {
     "slug": "five-releases-one-gap",
     "title": "Five releases, one gap",
     "description": "Claude Code 2.1.264 to 2.1.268 triaged against OrchestKit. 2.1.264 was never published. 2.1.267 finally makes the effort: frontmatter on all 36 agents take effect, and 2.1.268 starts firing four PermissionRequest hooks that were silently absent in every headless run.",

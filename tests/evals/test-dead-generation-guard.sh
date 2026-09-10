@@ -143,12 +143,12 @@ section "4. Both previously-unprotected runners now classify and retry"
 # ---------------------------------------------------------------------------
 for FN in run_with_skill run_baseline; do
     BODY=$(awk "/^${FN}\(\) \{/,/^\}/" "$HARNESS")
-    if grep -q "classify_generation" <<< "$BODY"; then
+    if printf '%s\n' "$BODY" | grep "classify_generation" > /dev/null; then
         log_pass "$FN classifies its generation"
     else
         log_fail "$FN does not classify — a dead run would still be graded"
     fi
-    if grep -q "for attempt in 1 2" <<< "$BODY"; then
+    if printf '%s\n' "$BODY" | grep "for attempt in 1 2" > /dev/null; then
         log_pass "$FN retries a transient dead generation"
     else
         log_fail "$FN has no retry loop"
