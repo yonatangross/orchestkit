@@ -1633,6 +1633,19 @@
         "developer-experience"
       ],
       "date": "2026-09-10"
+    },
+    {
+      "slug": "five-releases-one-gap",
+      "source": "docs/chore--cc-adoption-2-1-268/five-releases-one-gap.html",
+      "title": "Five releases, one gap",
+      "description": "Claude Code 2.1.264 to 2.1.268 triaged against OrchestKit. 2.1.264 was never published. 2.1.267 finally makes the effort: frontmatter on all 36 agents take effect, and 2.1.268 starts firing four PermissionRequest hooks that were silently absent in every headless run.",
+      "tags": [
+        "cc-adoption",
+        "hooks",
+        "agents",
+        "docs"
+      ],
+      "date": "2026-09-11"
     }
   ]
 }
