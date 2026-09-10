@@ -1594,6 +1594,20 @@
         "validation"
       ],
       "date": "2026-09-10"
+    },
+    {
+      "slug": "the-grep-that-said-covered",
+      "source": "docs/fix--4038-extra-files-mirrors/the-grep-that-said-covered.html",
+      "title": "The grep that said covered",
+      "description": "Every release PR failed Build until a bot rescued it, twice, because two generated plugin manifests were never stamped. Searching the config finds the path and returns a hit, but it is the source rather than the mirror. Why the invariant is phrased around the drift roster instead of an allowlist, and why the first draft of the checker was too loud to survive.",
+      "tags": [
+        "release-please",
+        "ci",
+        "false-signal",
+        "build",
+        "tests"
+      ],
+      "date": "2026-09-10"
     }
   ]
 }

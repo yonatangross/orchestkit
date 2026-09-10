@@ -15,6 +15,22 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "the-grep-that-said-covered",
+    "title": "The grep that said covered",
+    "description": "Every release PR failed Build until a bot rescued it, twice, because two generated plugin manifests were never stamped. Searching the config finds the path and returns a hit, but it is the source rather than the mirror. Why the invariant is phrased around the drift roster instead of an allowlist, and why the first draft of the checker was too loud to survive.",
+    "tags": [
+      "release-please",
+      "ci",
+      "false-signal",
+      "build",
+      "tests"
+    ],
+    "date": "2026-09-10",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 8
+  },
+  {
     "slug": "allowed-tools-rest",
     "title": "PR Playground: allowed-tools baseline cleared",
     "description": "Eight teaching skills describe the work performed by contributors, commands, and pipelines; doctor gains Write for its existing debug-file instruction. All nine remaining direction-table calls are applied and the baseline is empty.",
