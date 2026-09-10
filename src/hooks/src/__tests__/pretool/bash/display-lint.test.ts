@@ -230,4 +230,47 @@ describe('display-lint', () => {
   test('passes empty/missing command', () => {
     expect(isFlagged(displayLint(bash(''), NOOP_CTX))).toBe(false);
   });
+
+  // ── #3936: the hook must not nudge the shape it recommends ────────
+  //
+  // Acceptance criteria taken from the issue, both directions. The positive
+  // control is the real 538-char command measured 2026-09-06; the negative
+  // controls are the inline work this hook exists for, so a regression that
+  // simply widens the exemption fails here instead of passing quietly.
+  describe('#3936 script-file plumbing', () => {
+    const P = '/Users/someone/coding/project/.worktrees/lane/scratch';
+
+    test('does not flag run-a-script, read-it-back, delete-it', () => {
+      const command = `bash ${P}/test-station.sh > ${P}/probe.log 2>&1; tail -1 ${P}/probe.log; rm ${P}/probe.log`;
+      // Guard the guard: if this stopped being long and multi-stage it would
+      // pass for the wrong reason and prove nothing.
+      expect(command.length).toBeGreaterThan(200);
+      expect(isFlagged(displayLint(bash(command), NOOP_CTX))).toBe(false);
+    });
+
+    test('does not flag a script piped into a peek, then measured, then cleaned', () => {
+      const command = `bash ${P}/build-and-check-the-entire-project-tree.sh > ${P}/build.log 2>&1 | tail -20; wc -l ${P}/build.log; rm -f ${P}/build.log`;
+      expect(command.length).toBeGreaterThan(200);
+      expect(isFlagged(displayLint(bash(command), NOOP_CTX))).toBe(false);
+    });
+
+    test('STILL flags inline work of comparable length', () => {
+      const command = `for f in ${P}/a.json ${P}/b.json ${P}/c.json; do jq -r '.items[].name' "$f"; done | sort -u | head -5; gh api repos/o/r/issues --jq '.[].number'`;
+      expect(command.length).toBeGreaterThan(200);
+      expect(isFlagged(displayLint(bash(command), NOOP_CTX))).toBe(true);
+    });
+
+    test('STILL flags when one clutter stage hides among plumbing', () => {
+      // The anti-bypass property the original single-stage rule protected: a
+      // command must not launder itself by appending a script invocation.
+      const command = `curl -s https://example.com/a/very/long/endpoint/path/indeed | jq '.data' > ${P}/o.json; tail -3 ${P}/o.json; rm ${P}/o.json`;
+      expect(command.length).toBeGreaterThan(200);
+      expect(isFlagged(displayLint(bash(command), NOOP_CTX))).toBe(true);
+    });
+
+    test('the exemption never makes a permission decision', () => {
+      const command = `bash ${P}/x.sh > ${P}/probe.log 2>&1; tail -1 ${P}/probe.log; rm ${P}/probe.log`;
+      expect(madePermissionDecision(displayLint(bash(command), NOOP_CTX))).toBe(false);
+    });
+  });
 });

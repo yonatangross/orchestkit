@@ -96,6 +96,32 @@ function splitDisplayStages(command: string): string[] {
 const SCRIPT_INVOCATION_RE =
   /^(bash|sh|zsh|python3?|node)\s+(\$\{?[A-Za-z_][A-Za-z0-9_]*\}?\/)?\S*\.(sh|bash|py|mjs|js|ts)\b/;
 
+// Reading a file back: the other half of "run a script, look at its output".
+// Anchored and argument-shaped, so `cat x.log` matches and `cat x | jq ...`
+// does not (the jq lands in its own stage and disqualifies the command).
+const FILE_PEEK_RE = /^(?:cat|tail|head|wc|less|sed\s+-n)\s+(?:-\S+\s+)*\S+\s*$/;
+
+// Cleaning the file up afterwards.
+const FILE_REMOVE_RE = /^rm\s+(?:-[A-Za-z]+\s+)*\S+\s*$/;
+
+/**
+ * Is this stage pure plumbing around a script file: running one, reading one
+ * back, or deleting one?
+ *
+ * This exists because the hook was nudging the exact shape it recommends
+ * (#3936). `bash <path>/x.sh > <path>/out.log 2>&1; tail -1 <path>/out.log; rm
+ * <path>/out.log` is three stages of script-file plumbing and nothing else,
+ * but it tripped the lint at 538 characters, because under `$TMPDIR` on macOS
+ * a single absolute path is 60+ characters before any flag. Length was
+ * measuring path verbosity, not command clutter, and the advice it gave back
+ * ("write the steps to a script and run that") was already followed.
+ */
+function isPlumbingStage(stage: string): boolean {
+  return (
+    SCRIPT_INVOCATION_RE.test(stage) || FILE_PEEK_RE.test(stage) || FILE_REMOVE_RE.test(stage)
+  );
+}
+
 // A real heredoc delimiter starts with a letter, underscore, or quote —
 // `<< 4`, `<<4`, `<< $n` (bash arithmetic shift / bareword) never match,
 // so `console.log(1 << 4)` correctly stays out of the exemption.
@@ -112,11 +138,14 @@ export function displayLint(input: HookInput, ctx: HookContext = NOOP_CTX): Hook
 
   const stages = splitDisplayStages(command);
 
-  // Already invoking a script file — compliant ONLY when the ENTIRE
-  // command is that invocation. Matching "anywhere in the command" let
-  // `<clutter> && bash noop.sh` (the noop need not even exist) bypass the
-  // lint for everything before it — the exact clutter this hook targets.
-  if (stages.length === 1 && SCRIPT_INVOCATION_RE.test(stages[0])) return outputSilentSuccess();
+  // Already following the script-file pattern — compliant only when EVERY
+  // stage is plumbing (run a script, read a file back, delete it). Matching
+  // "anywhere in the command" let `<clutter> && bash noop.sh` (the noop need
+  // not even exist) bypass the lint for everything before it, the exact
+  // clutter this hook targets. Requiring ALL stages keeps that property: one
+  // non-plumbing stage disqualifies the whole command, so the bypass is still
+  // impossible, while the recommended shape stops being nudged (#3936).
+  if (stages.every(isPlumbingStage)) return outputSilentSuccess();
 
   if (stages.length < MIN_STAGES_TO_FLAG) return outputSilentSuccess();
 

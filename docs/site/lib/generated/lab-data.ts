@@ -15,6 +15,21 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "nudging-its-own-advice",
+    "title": "The lint that nudged its own advice",
+    "description": "display-lint told a three-stage script-file command to write itself as a script and run that, which it was already doing. The exemption only fired for a single stage, and under $TMPDIR on macOS length was measuring path verbosity rather than clutter. The fix requires every stage to be plumbing, which keeps the anti-bypass property the old clause protected.",
+    "tags": [
+      "hooks",
+      "display-lint",
+      "false-signal",
+      "developer-experience"
+    ],
+    "date": "2026-09-10",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 7
+  },
+  {
     "slug": "the-gate-nobody-could-satisfy",
     "title": "The gate nobody could satisfy",
     "description": "Every src/hooks Dependabot PR failed the required Build check because a tracked generated mirror sat inside the drift roster and Dependabot never runs a build. Why the two obvious fixes are already rejected in the repo's own code, and the one field whose removal closes the class.",
