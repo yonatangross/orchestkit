@@ -15,6 +15,22 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "pre-grant-not-a-ceiling",
+    "title": "A pre-grant, not a ceiling",
+    "description": "A report said 33 skills could not carry out their own instructions. The Claude Code docs say allowed-tools grants permission rather than restricting it, so the framing is false and the fix changes shape. What survives the correction, why the honest count is 11 rather than 33, and a ratchet proven to fail in both directions.",
+    "tags": [
+      "skills",
+      "allowed-tools",
+      "false-signal",
+      "ratchet",
+      "claude-code"
+    ],
+    "date": "2026-09-10",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 8
+  },
+  {
     "slug": "nudging-its-own-advice",
     "title": "The lint that nudged its own advice",
     "description": "display-lint told a three-stage script-file command to write itself as a script and run that, which it was already doing. The exemption only fired for a single stage, and under $TMPDIR on macOS length was measuring path verbosity rather than clutter. The fix requires every stage to be plumbing, which keeps the anti-bypass property the old clause protected.",

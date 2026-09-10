@@ -115,7 +115,13 @@ context: fork            # Run in isolated subagent
 agent: backend-system-architect  # Which subagent type (requires context: fork)
 disable-model-invocation: true   # Manual-only (/slash-command) — DEFAULT
 disable-model-invocation: false  # CC auto-selects via description matching
-allowed-tools: Read, Grep, Glob  # Restrict tools when active (allowlist — ork convention)
+allowed-tools: Read, Grep, Glob  # PRE-GRANT: skips the approval prompt for these
+                                 # tools during the invoking turn. It does NOT restrict:
+                                 # unlisted tools stay callable under your normal
+                                 # permission settings. (An AGENT's `tools:` IS a ceiling;
+                                 # a skill's `allowed-tools` is not.) The Cursor host does
+                                 # read it as a ceiling, so list what your prose instructs:
+                                 # scripts/allowed-tools-check.mjs gates that (#4008).
 disallowed-tools: Write, Edit    # CC 2.1.152+: denylist alternative. ork standardizes on
                                  # allowed-tools allowlists (strictly tighter than a denylist);
                                  # reach for disallowed-tools only when a skill must inherit the

@@ -48,7 +48,7 @@ npx playwright init-agents --loop=claude
 
 ## Step 4: Create Seed Test
 
-Create `tests/seed.spec.ts` - the planner uses this to understand your setup:
+The planner reads `tests/seed.spec.ts` to understand your setup. A minimal one looks like:
 
 ```typescript
 // tests/seed.spec.ts
@@ -133,7 +133,7 @@ agent-browser screenshot /tmp/screenshot.png
 agent-browser close
 ```
 
-Run `agent-browser --help` for full CLI docs.
+`agent-browser --help` prints the full CLI docs.
 
 ## Next Steps
 

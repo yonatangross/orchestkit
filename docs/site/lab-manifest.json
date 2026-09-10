@@ -1555,6 +1555,20 @@
         "developer-experience"
       ],
       "date": "2026-09-10"
+    },
+    {
+      "slug": "pre-grant-not-a-ceiling",
+      "source": "docs/fix--4008-allowed-tools-ratchet/pre-grant-not-a-ceiling.html",
+      "title": "A pre-grant, not a ceiling",
+      "description": "A report said 33 skills could not carry out their own instructions. The Claude Code docs say allowed-tools grants permission rather than restricting it, so the framing is false and the fix changes shape. What survives the correction, why the honest count is 11 rather than 33, and a ratchet proven to fail in both directions.",
+      "tags": [
+        "skills",
+        "allowed-tools",
+        "false-signal",
+        "ratchet",
+        "claude-code"
+      ],
+      "date": "2026-09-10"
     }
   ]
 }
