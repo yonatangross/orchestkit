@@ -2,6 +2,18 @@
   "$comment": "Allowlist for the Lab gallery (docs/showcase/lab). Only entries listed here are copied to public/lab/ and surfaced on the site. `source` is repo-root-relative. Title/description here OVERRIDE what generate-lab-data.mjs extracts from the HTML <head>. Run `node docs/site/scripts/generate-lab-data.mjs` after editing.",
   "entries": [
     {
+      "slug": "fumadocs-vitest-import-resolution",
+      "source": "docs/fix--4044-docs-site-build/playground.html",
+      "title": "Why the docs build passed and its tests failed",
+      "description": "Compare Fumadocs versions and import resolvers to reproduce the Docs Site Build test failure and understand the Vitest configuration fix.",
+      "tags": [
+        "vitest",
+        "docs",
+        "esm"
+      ],
+      "date": "2026-09-11"
+    },
+    {
       "slug": "host-library-motion",
       "source": "docs/feat--docs-library-visual/host-library.html",
       "title": "Pick a host, the command rewrites",
