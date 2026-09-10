@@ -15,6 +15,21 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "here-string-tr-drain",
+    "title": "Feeding tr before anyone is reading",
+    "description": "The third and last here-string in the dead-generation guard: tr -d '[:space:]' fed by a here-string at line 66. Same self-deadlock mechanism as #3190, converted to the printf pipe form as prevention; the stall never reproduced on bash 3.2.57 here, so this completes the rationale rather than fixing a reproduced hang.",
+    "tags": [
+      "tests",
+      "bash",
+      "macos",
+      "pipes"
+    ],
+    "date": "2026-09-11",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 8
+  },
+  {
     "slug": "here-string-self-deadlock",
     "title": "A here-string that writes before anyone is reading",
     "description": "Bash 5.3 backs a here-string with a pipe and writes the payload before the reader exists; past the pipe capacity the write blocks forever at zero CPU. Toggle bash version, payload size and machine pressure, then see the printf pipe form that drains, used to fix the two grep lines in tests/evals/test-dead-generation-guard.sh.",
