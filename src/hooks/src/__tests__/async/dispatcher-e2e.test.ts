@@ -119,7 +119,13 @@ beforeAll(() => {
 // resulting in exitCode=null. Serial execution within the file caps
 // concurrent node spawns at one-per-worker, which is the right amount
 // of parallelism for spawn-heavy tests. (Fixes #1912 flake.)
-describe.sequential('E2E: run-hook.mjs Pipeline', () => {
+// vitest 5 removed `.sequential`: serial is the default and the modifier only
+// ever existed to cancel an inherited `concurrent`. Nothing here sets one —
+// neither vitest.config.ts nor any enclosing describe — so a plain `describe`
+// keeps the one-spawn-at-a-time behaviour the note above depends on. Do NOT
+// add `.concurrent` to this suite or to vitest.config.ts without re-reading
+// #1912 first.
+describe('E2E: run-hook.mjs Pipeline', () => {
 
   // =========================================================================
   // BUNDLE ROUTING + STDOUT CONTRACT — each dispatcher loads correct bundle,

@@ -56,7 +56,7 @@
  * canary with no regex change is the strongest backtracking signal.
  */
 
-import { bench, describe, beforeAll } from 'vitest';
+import { test, describe, beforeAll } from 'vitest';
 import { secretHandler } from '../posttool/secret-handler.js';
 import { NOOP_CTX } from '../lib/context.js';
 import type { HookInput } from '../types.js';
@@ -97,27 +97,50 @@ beforeAll(() => {
 
 // `time` is total sample-collection window (ms). Warmup gives JIT a chance
 // to inline + shape hot paths so the first few samples aren't outliers.
+//
+// vitest 5 moved these. They are tinybench `BenchOptions`, which the rewritten
+// API takes at RUN time (`.run(opts)`, or as the trailing argument to
+// `bench.compare`), not at registration. The second argument to `bench()` is
+// now `BenchFnOptions`: per-benchmark hooks plus writeResult/perProject. Pass
+// the sampling window there and it type-errors with "no properties in common",
+// which is the good outcome; the bad one would have been a silent default.
 const OPTS = { time: 1000, warmupTime: 500, warmupIterations: 10 } as const;
 
+// The 500KB case needed the longer window in v4 to hold rme under 3%. A
+// compare group shares one run configuration, so the whole group takes the
+// wider window. That is slightly slower and strictly better for the purpose:
+// equal sampling windows are what make the cross-scenario RATIO in the header
+// above trustworthy.
+const COMPARE_OPTS = { ...OPTS, time: 2000 } as const;
+
 describe('secretHandler - payload size scaling', () => {
-  bench('5KB - PAT embedded', () => {
-    secretHandler(makeInput(PAYLOAD_5KB_SECRET), ctx);
-  }, OPTS);
-
-  bench('50KB - PAT embedded', () => {
-    secretHandler(makeInput(PAYLOAD_50KB_SECRET), ctx);
-  }, OPTS);
-
-  bench('500KB - PAT embedded', () => {
-    secretHandler(makeInput(PAYLOAD_500KB_SECRET), ctx);
-  }, { ...OPTS, time: 2000 });
+  // vitest 5 rewrote the benchmark API: `bench` is no longer a top-level
+  // import, it is a test-context fixture reached from inside a `test()`.
+  // The three sizes stay in a single `bench.compare()` so they still print as
+  // one table, which is what makes the ratio readable at a glance.
+  test('payload size scaling', async ({ bench }) => {
+    await bench.compare(
+      bench('5KB - PAT embedded', () => {
+        secretHandler(makeInput(PAYLOAD_5KB_SECRET), ctx);
+      }),
+      bench('50KB - PAT embedded', () => {
+        secretHandler(makeInput(PAYLOAD_50KB_SECRET), ctx);
+      }),
+      bench('500KB - PAT embedded', () => {
+        secretHandler(makeInput(PAYLOAD_500KB_SECRET), ctx);
+      }),
+      COMPARE_OPTS,
+    );
+  });
 });
 
 describe('secretHandler - backtracking guard (no-secret baseline)', () => {
   // The no-secret case is the regression canary: if the scanning regex
   // suddenly takes 10x longer here, the change is paying cost for inputs
   // that have nothing to redact — a classic backtracking smell.
-  bench('50KB - no secret (regex sweep only)', () => {
-    secretHandler(makeInput(PAYLOAD_50KB_NONE), ctx);
-  }, OPTS);
+  test('50KB - no secret (regex sweep only)', async ({ bench }) => {
+    await bench('50KB - no secret (regex sweep only)', () => {
+      secretHandler(makeInput(PAYLOAD_50KB_NONE), ctx);
+    }).run(OPTS);
+  });
 });

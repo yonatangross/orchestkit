@@ -32,7 +32,7 @@ export const SILENT_SUCCESS: HookResult = {
  */
 export function createCommonMock(overrides: Record<string, unknown> = {}) {
   return {
-    logHook: vi.fn(),
+    logHook: vi.fn<(...args: unknown[]) => void>(),
     outputSilentSuccess: vi.fn(() => SILENT_SUCCESS),
     outputAllowWithContext: vi.fn((ctx: string) => ({
       continue: true,
@@ -108,8 +108,8 @@ export function createChildProcessMock(overrides: Record<string, unknown> = {}) 
   return {
     execSync: vi.fn((_cmd: string) => ''),
     execFileSync: vi.fn(() => ''),
-    exec: vi.fn(),
-    spawn: vi.fn(),
+    exec: vi.fn<(...args: unknown[]) => void>(),
+    spawn: vi.fn<(...args: unknown[]) => void>(),
     ...overrides,
   };
 }

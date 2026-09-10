@@ -15,6 +15,22 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "vitest-5-bench-rewrite",
+    "title": "vitest 5 moved the benchmark options, and the type checker said so",
+    "description": "Migrating src/hooks to vitest 5: bench becomes a test-context fixture, describe.sequential is gone, and the sampling window moves from the registration call to .run(). Plus the two removed config keys the issue did not list, and a TS2883 fix five bare vi.fn() calls wide instead of three return types.",
+    "tags": [
+      "vitest",
+      "migration",
+      "benchmarks",
+      "typescript",
+      "hooks"
+    ],
+    "date": "2026-09-10",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 8
+  },
+  {
     "slug": "audit-gate-timeout",
     "title": "The audit gate that could not run",
     "description": "The npm audit gate called GNU timeout unconditionally, so on a stock macOS the shell exited 127 before npm started and all six lockfiles failed with 'produced no usable JSON report'. Before and after transcripts, plus why the one test covering the wrapper shimmed a fake timeout onto PATH and could never see it.",

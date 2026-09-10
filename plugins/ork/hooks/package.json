@@ -15,7 +15,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:property": "vitest run --config vitest.property.config.ts",
-    "bench": "vitest bench --run --config vitest.bench.config.ts",
+    "bench": "vitest bench --run --config vitest.bench.config.ts --reporter=json --outputFile=./bench-results.json",
     "lint:biome": "biome check src/",
     "lint:biome:fix": "biome check --write src/",
     "clean": "rm -rf dist coverage",
@@ -29,11 +29,11 @@
   "devDependencies": {
     "@biomejs/biome": "^2.5.12",
     "@types/node": "^26.4.1",
-    "@vitest/coverage-v8": "^4.1.11",
+    "@vitest/coverage-v8": "^5.0.0",
     "esbuild": "^0.28.2",
     "fast-check": "^4.9.0",
     "typescript": "^7.0.2",
-    "vitest": "^4.0.18"
+    "vitest": "^5.0.0"
   },
   "keywords": [
     "claude-code",
