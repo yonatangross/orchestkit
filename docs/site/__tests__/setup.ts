@@ -7,7 +7,6 @@ import { afterEach } from "vitest";
 import { MotionGlobalConfig } from "motion";
 
 MotionGlobalConfig.skipAnimations = true;
-MotionGlobalConfig.reducedMotion = "never";
 
 Object.defineProperty(window, "matchMedia", {
   writable: true,
