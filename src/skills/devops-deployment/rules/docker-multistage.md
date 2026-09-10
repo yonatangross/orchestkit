@@ -58,7 +58,7 @@ CMD ["node", "dist/main.js"]
 - Use separate stages for dependency installation, building, and runtime
 - Copy only production `node_modules` and compiled artifacts into the final stage
 - Use `-alpine` base images to minimize base layer size
-- Run `npm ci` (not `npm install`) for reproducible, lockfile-exact installs
+- The dependency stage uses `npm ci` (not `npm install`) for reproducible, lockfile-exact installs
 - Clean caches (`npm cache clean --force`) in the same layer as install to avoid bloating layers
 - Always include a `HEALTHCHECK` in the production stage for orchestrator integration
 - Run tests in the builder stage so test failures prevent image creation

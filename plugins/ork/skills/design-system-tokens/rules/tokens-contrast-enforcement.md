@@ -96,7 +96,7 @@ Dark mode:
 
 Process:
 - Every text-role token declares its intended background pair in `$extensions.a11y.pairedBackground`
-- Run `style-dictionary build` as a CI gate — contrast failures block the build
+- The CI gate runs `style-dictionary build`; contrast failures block the build
 - Review the generated contrast table in pull requests alongside visual diffs
 
 Reference: [references/w3c-token-spec.md](../references/w3c-token-spec.md)

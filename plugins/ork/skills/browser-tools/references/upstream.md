@@ -33,7 +33,7 @@ agent-browser skills get vercel-sandbox    # agent-browser inside Vercel Sandbox
 agent-browser skills get agentcore         # AWS Bedrock AgentCore cloud browsers
 ```
 
-Run `agent-browser skills list` to see everything available on the installed version.
+The `agent-browser skills list` command lists everything available on the installed version.
 
 ## Why agent-browser
 

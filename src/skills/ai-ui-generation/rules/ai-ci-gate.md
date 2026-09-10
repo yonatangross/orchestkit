@@ -110,7 +110,7 @@ export default defineConfig({
 
 **Key rules:**
 - AI-generated components go through the exact same CI as hand-written code — no fast lanes
-- Run `tsc --noEmit` before anything else — type errors indicate fundamental issues
+- The CI gate runs `tsc --noEmit` before anything else because type errors indicate fundamental issues
 - Use `--max-warnings 0` for ESLint — AI-generated code often has warnings that hide bugs
 - Test bundle size — AI tools import entire icon libraries instead of individual icons
 - Add Storybook stories for every AI-generated component — they serve as both docs and test targets

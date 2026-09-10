@@ -43,15 +43,15 @@ the doing and carries its own tools; the skill is the briefing.
 |---|---|---|---|---|
 | `configure` | Bash Read Grep Glob AskUserQuestion | `Edit .mcp.json` | **WIDEN** ✅ done | An interactive settings wizard. Changing config is the job, not an aside. Added `Edit`, `Write`. |
 | `testing-e2e` | read-only | `Run agent-browser`, `Create tests/seed.spec.ts` | **NARROW** ✅ done | `context: fork`, `agent: test-generator`. The agent writes tests; the skill teaches Playwright patterns. Both steps reworded as guidance. |
-| `doctor` | Bash Read Grep Glob AskUserQuestion | `Create .claude/hooks/debug.json` | **WIDEN** | Diagnoses and repairs plugin health, and already carries `Bash`. A skill trusted to run commands should not prompt to drop a debug file. Add `Write`. |
-| `glyph` | Read Grep Glob | `Run scripts/validate-tokens.sh`, `Update primitives.json` | **NARROW** | Both hits are in `CONTRIBUTING.md`, addressed to a human contributing to the skill, not steps the skill performs. Reword as contributor instructions. |
-| `chain-patterns` | Read ToolSearch | `Update state.json` | **NARROW** | A patterns skill describing checkpoint mechanics. It documents what a chain does, it does not keep the state file. |
-| `agent-orchestration` | read-only | `Create /backend/app/.../run_scenario.py` | **NARROW** | A reference on orchestration patterns. The path is an illustrative example from a worked scenario, not a file this skill writes. |
-| `ai-ui-generation` | read-only | `Run tsc --noEmit` | **NARROW** | The hit is in `rules/ai-ci-gate.md`, describing what a CI gate should do. Reword as a gate requirement, not a step. |
-| `browser-tools` | read-only | `Run agent-browser skills list` | **NARROW** | The hit is in `references/upstream.md`, documenting the upstream CLI surface. Reword as a description of the command. |
-| `design-system-tokens` | read-only | `Run style-dictionary build` | **NARROW** | A token-architecture reference. It explains the build step; it does not run it. |
-| `devops-deployment` | read-only | `Run npm ci` | **NARROW** | The hit is inside `rules/docker-multistage.md`, describing a Dockerfile stage. Reword to describe the layer. |
-| `storybook-testing` | read-only | `Run vitest` | **NARROW** | An integration-patterns reference. Reword as what the integration does. |
+| `doctor` | Bash Read Grep Glob AskUserQuestion | `Create .claude/hooks/debug.json` | **WIDEN** ✅ done | Diagnoses and repairs plugin health, and already carries `Bash`. A skill trusted to run commands should not prompt to drop a debug file. Added `Write`. |
+| `glyph` | Read Grep Glob | `Run scripts/validate-tokens.sh`, `Update primitives.json` | **NARROW** ✅ done | Both hits are in `CONTRIBUTING.md`, addressed to a human contributing to the skill, not steps the skill performs. Reword as contributor instructions. |
+| `chain-patterns` | Read ToolSearch | `Update state.json` | **NARROW** ✅ done | A patterns skill describing checkpoint mechanics. It documents what a chain does, it does not keep the state file. |
+| `agent-orchestration` | read-only | `Create /backend/app/.../run_scenario.py` | **NARROW** ✅ done | A reference on orchestration patterns. The path is an illustrative example from a worked scenario, not a file this skill writes. |
+| `ai-ui-generation` | read-only | `Run tsc --noEmit` | **NARROW** ✅ done | The hit is in `rules/ai-ci-gate.md`, describing what a CI gate should do. Reword as a gate requirement, not a step. |
+| `browser-tools` | read-only | `Run agent-browser skills list` | **NARROW** ✅ done | The hit is in `references/upstream.md`, documenting the upstream CLI surface. Reword as a description of the command. |
+| `design-system-tokens` | read-only | `Run style-dictionary build` | **NARROW** ✅ done | A token-architecture reference. It explains the build step; it does not run it. |
+| `devops-deployment` | read-only | `Run npm ci` | **NARROW** ✅ done | The hit is inside `rules/docker-multistage.md`, describing a Dockerfile stage. Reword to describe the layer. |
+| `storybook-testing` | read-only | `Run vitest` | **NARROW** ✅ done | An integration-patterns reference. Reword as what the integration does. |
 
 **Nine NARROW, two WIDEN.** That ratio is itself the finding: nearly all of
 these are reference and pattern skills whose prose drifted into the imperative,

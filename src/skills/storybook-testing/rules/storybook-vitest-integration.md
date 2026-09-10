@@ -77,7 +77,7 @@ import '@testing-library/jest-dom/vitest'
 - Add `storybookTest()` to your Vitest config plugins — it auto-discovers `.stories.tsx` files.
 - Stories without `play()` functions still run as smoke tests (render without errors).
 - Use browser mode with Playwright for accurate DOM testing — stories render in a real browser.
-- Run `vitest` to execute both regular tests and story tests in a single command.
+- The `vitest` command executes both regular tests and story tests in a single command.
 - The addon respects `tags` filtering — use `tags: ['!test']` to exclude stories from test runs.
 
 Reference: `references/storybook-ci-strategy.md`

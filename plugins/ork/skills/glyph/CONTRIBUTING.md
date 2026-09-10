@@ -43,11 +43,11 @@ new visual style. Reviewers will reject sets that overlap the existing five.
 1. Same issue process as above, tagged `char-set-proposal`.
 2. State the intent in 1 sentence; map it to scenarios where existing sets
    are wrong (not just suboptimal).
-3. Update `primitives.json` (if new code points needed) AND `tokens.json`
+3. Contributors update `primitives.json` (if new code points needed) AND `tokens.json`
    (the semantic alias).
-4. Update `tokens.schema.json` `properties.sets.required` to include the
+4. Contributors update `tokens.schema.json` `properties.sets.required` to include the
    new name.
-5. Run `scripts/validate-tokens.sh` and `npm run test:ascii`.
+5. Contributors validate with `scripts/validate-tokens.sh` and `npm run test:ascii`.
 6. Bump tokens.json MINOR.
 
 ## Adding a render pattern (`scripts/render-ascii.sh`)
@@ -56,8 +56,8 @@ new visual style. Reviewers will reject sets that overlap the existing five.
 2. Add to the `case "$PATTERN"` dispatch.
 3. Add 5 goldens (one per char-set) under
    `tests/fixtures/ascii/golden/<pattern>-<set>.golden.txt`.
-4. Run `UPDATE_SNAPSHOTS=1 bash tests/unit/test-ascii-snapshots.sh` once,
-   review the diff, commit.
+4. Contributors run `UPDATE_SNAPSHOTS=1 bash tests/unit/test-ascii-snapshots.sh` once,
+   review the diff, and commit.
 5. No version bump needed — patterns are renderer features, not tokens.
 
 ## Adding a lint rule (`src/hooks/src/quality/ascii-lint.ts`)
