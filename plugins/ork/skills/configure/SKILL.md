@@ -9,7 +9,7 @@ version: 1.0.1
 author: OrchestKit
 tags: [configuration, setup, wizard, customization]
 user-invocable: false
-allowed-tools: [Bash, Read, Grep, Glob, AskUserQuestion]
+allowed-tools: [Bash, Read, Grep, Glob, Edit, Write, AskUserQuestion]
 complexity: low
 persuasion-type: collaborative
 effort: low
