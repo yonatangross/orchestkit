@@ -471,6 +471,12 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.13](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.12...v10.0.0-beta.13)** · 2026-09-10
+
+- **hooks:** migrate the src/hooks suite to vitest 5 (#3981) (#4028)
+- **security:** npm audit gate could not run without GNU timeout, misreported as no output (#4015) (#4023)
+- **site:** host picker, library tabs, and readable hook lists (#4022)
+
 **[v10.0.0-beta.12](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.11...v10.0.0-beta.12)** · 2026-09-09
 
 - **deps:** bump hono from 4.13.0 to 4.13.7 in /src/mcp-server (#4014)
@@ -503,13 +509,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.6](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.5...v10.0.0-beta.6)** · 2026-09-08
 
 - **docs:** drop private-plugin specifics from public source (#3990)
-
-**[v10.0.0-beta.5](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.4...v10.0.0-beta.5)** · 2026-09-07
-
-- **skills:** page-serve, hand a human a page at a port-free URL (#3899) (#3987)
-- **hooks:** PHONE_RE no longer redacts numeric MCP ids (#3894) (#3984)
-- **tests:** Test 4c reads all input, no grep -q SIGPIPE (#3974) (#3982)
-- **glyph:** a page an agent can route a human to (#3901) (#3988)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
