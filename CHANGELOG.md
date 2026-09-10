@@ -5,6 +5,19 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.13](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.12...v10.0.0-beta.13) (2026-09-10)
+
+
+### Bug Fixes
+
+* **hooks:** migrate the src/hooks suite to vitest 5 ([#3981](https://github.com/yonatangross/orchestkit/issues/3981)) ([#4028](https://github.com/yonatangross/orchestkit/issues/4028)) ([1c15851](https://github.com/yonatangross/orchestkit/commit/1c1585197c609d1fb824c684442ec64656d641fe))
+* **security:** npm audit gate could not run without GNU timeout, misreported as no output ([#4015](https://github.com/yonatangross/orchestkit/issues/4015)) ([#4023](https://github.com/yonatangross/orchestkit/issues/4023)) ([b37f3db](https://github.com/yonatangross/orchestkit/commit/b37f3db92b84428e27f08d932a34fe16d2400f8b))
+
+
+### Documentation
+
+* **site:** host picker, library tabs, and readable hook lists ([#4022](https://github.com/yonatangross/orchestkit/issues/4022)) ([7e2d8ce](https://github.com/yonatangross/orchestkit/commit/7e2d8cee06bc3e27ba2ed479c32979c966a36976))
+
 ## [10.0.0-beta.12](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.11...v10.0.0-beta.12) (2026-09-09)
 
 
