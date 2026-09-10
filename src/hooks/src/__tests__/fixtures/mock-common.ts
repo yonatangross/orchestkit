@@ -292,8 +292,8 @@ export function mockLog(
   overrides: Partial<Record<string, unknown>> = {},
 ) {
   return {
-    logHook: vi.fn(),
-    logPermissionFeedback: vi.fn(),
+    logHook: vi.fn<(...args: unknown[]) => void>(),
+    logPermissionFeedback: vi.fn<(...args: unknown[]) => void>(),
     outputStderrWarning: vi.fn(() => { throw new Error('outputStderrWarning calls process.exit — do not use in tests'); }) as unknown as (...args: unknown[]) => never,
     writeRulesFile: vi.fn(() => true),
     readHookInput: vi.fn((): HookInput => ({ tool_name: '', session_id: 'test-session-123', tool_input: {} })),

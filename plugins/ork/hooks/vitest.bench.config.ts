@@ -13,12 +13,19 @@ import { resolve } from 'node:path';
  * worker contention on CI — see the design note in
  * `src/__bench__/README.md` for the full rationale.
  *
- * Discovery: `*.bench.ts` is the default `benchmark.include` glob for
- * vitest 4 and is invisible to `vitest run`. Files are picked up only by
- * `vitest bench` (this config) — guaranteeing perf flakiness never gates
- * CI.
+ * Discovery: `*.bench.ts` is the default `benchmark.include` glob and is
+ * invisible to `vitest run`. Files are picked up only by `vitest bench`
+ * (this config) — guaranteeing perf flakiness never gates CI.
  *
  * Invocation: `npm run bench` from `src/hooks/`.
+ *
+ * vitest 5 note: `benchmark.outputJson` and `benchmark.reporters` were both
+ * REMOVED along with the top-level `bench` import. `BenchmarkUserOptions` now
+ * carries only enabled/include/exclude/includeSource/retainSamples/provider/
+ * suppressExportGetterWarnings, so leaving either key here would be a silently
+ * ignored config, not an error. Reporting moved to the CLI in the `bench`
+ * script (`--reporter=json --outputFile=./bench-results.json`), which is what
+ * .github/workflows/bench.yml uploads as an artifact.
  */
 export default defineConfig({
   test: {
@@ -31,10 +38,6 @@ export default defineConfig({
     benchmark: {
       include: ['src/__bench__/**/*.bench.ts'],
       exclude: ['**/node_modules/**', '**/dist/**'],
-      // Tinybench reporter prints hz/p99/rme columns to stdout by default.
-      // JSON output enables baseline comparison in CI when needed.
-      outputJson: './bench-results.json',
-      reporters: ['default'],
     },
   },
 });

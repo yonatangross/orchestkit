@@ -1502,6 +1502,20 @@
         "false-signal"
       ],
       "date": "2026-09-10"
+    },
+    {
+      "slug": "vitest-5-bench-rewrite",
+      "source": "docs/fix--3981-vitest5-hooks/vitest-5-bench-rewrite.html",
+      "title": "vitest 5 moved the benchmark options, and the type checker said so",
+      "description": "Migrating src/hooks to vitest 5: bench becomes a test-context fixture, describe.sequential is gone, and the sampling window moves from the registration call to .run(). Plus the two removed config keys the issue did not list, and a TS2883 fix five bare vi.fn() calls wide instead of three return types.",
+      "tags": [
+        "vitest",
+        "migration",
+        "benchmarks",
+        "typescript",
+        "hooks"
+      ],
+      "date": "2026-09-10"
     }
   ]
 }
