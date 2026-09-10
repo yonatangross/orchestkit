@@ -58,7 +58,35 @@ fi
 if [[ ! -d "$DOCS_SITE/node_modules/@mdx-js/mdx" ]]; then
   echo "  ${YELLOW}⚠${NC} @mdx-js/mdx not in docs/site/node_modules — installing"
   INSTALL_LOG=$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")
-  trap 'rm -f "$INSTALL_LOG"' EXIT
+
+  # RESTORE WHAT WE MUTATE (#4025).
+  #
+  # The stub swap below rewrites the REAL docs/site/package.json and lets npm
+  # rewrite the REAL lockfile beside it, and nothing put them back. A developer
+  # who ran the suite before committing would stage
+  # `"@yonatan-hq/analytics": "file:../stubs/analytics-stub"` without noticing,
+  # which ships a no-op analytics to a live site.
+  #
+  # It is silent: the test passes, prints nothing about the tree, and `git
+  # status` is the only witness. tests/unit/test-stub-fallback.sh:150 already
+  # does this correctly one directory over, in a mktemp sandbox under a trap.
+  # This block cannot use a sandbox (it must install into the real tree for the
+  # compile check that follows), so it takes the other half: back up, and put
+  # them back on EVERY exit path.
+  MANIFEST_BACKUP=$(mktemp "${TMPDIR:-/tmp}/ork-pkg.XXXXXX")
+  LOCKFILE_BACKUP=$(mktemp "${TMPDIR:-/tmp}/ork-lock.XXXXXX")
+  cp "$DOCS_SITE/package.json" "$MANIFEST_BACKUP"
+  cp "$DOCS_SITE/package-lock.json" "$LOCKFILE_BACKUP"
+
+  restore_docs_site_manifests() {
+    # Unconditional: this runs on success, on failure, and on the `exit 1`
+    # paths inside the swap block, which is the point.
+    [[ -s "$MANIFEST_BACKUP" ]] && cp "$MANIFEST_BACKUP" "$DOCS_SITE/package.json"
+    [[ -s "$LOCKFILE_BACKUP" ]] && cp "$LOCKFILE_BACKUP" "$DOCS_SITE/package-lock.json"
+    rm -f "$MANIFEST_BACKUP" "$LOCKFILE_BACKUP"
+    return 0
+  }
+  trap 'restore_docs_site_manifests; rm -f "$INSTALL_LOG"' EXIT
 
   set +e
   (cd "$DOCS_SITE" && npm ci --no-audit --no-fund 2>&1) >"$INSTALL_LOG"

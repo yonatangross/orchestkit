@@ -74,7 +74,18 @@ else
 fi
 echo ""
 
-# Always write baseline snapshot (informational)
+# Baseline snapshot, on request only (#4025).
+#
+# This used to write on EVERY run, into a TRACKED file, stamping a fresh
+# `generated_at` each time. So the suite could not be run without dirtying the
+# tree, `git status` stopped being usable as a pre-commit check, and the churn
+# was pure: nothing anywhere reads this file. It is written by this script and
+# read by nobody.
+#
+# Kept rather than deleted because a snapshot is genuinely useful when you are
+# working on skill size. It just should not happen unasked.
+#   SKILL_TOKENS_WRITE_BASELINE=1 bash tests/skills/structure/test-skill-tokens.sh
+if [[ "${SKILL_TOKENS_WRITE_BASELINE:-0}" == "1" ]]; then
 {
     echo "{"
     echo "  \"generated_at\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\","
@@ -89,6 +100,8 @@ echo ""
     echo "  ]"
     echo "}"
 } > "$BASELINE_FILE"
+  echo "  baseline snapshot written to $BASELINE_FILE"
+fi
 
 if [[ "$ENFORCE" == "1" && ${#offenders[@]} -gt 0 ]]; then
     echo -e "${RED}✗ Enforcement enabled — failing due to bloated skills.${NC}"
