@@ -18,6 +18,28 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.13",
+    "date": "2026-09-10",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.12...v10.0.0-beta.13",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**hooks:** migrate the src/hooks suite to vitest 5 ([#3981](https://github.com/yonatangross/orchestkit/issues/3981)) ([#4028](https://github.com/yonatangross/orchestkit/issues/4028)) ([1c15851](https://github.com/yonatangross/orchestkit/commit/1c1585197c609d1fb824c684442ec64656d641fe))",
+          "**security:** npm audit gate could not run without GNU timeout, misreported as no output ([#4015](https://github.com/yonatangross/orchestkit/issues/4015)) ([#4023](https://github.com/yonatangross/orchestkit/issues/4023)) ([b37f3db](https://github.com/yonatangross/orchestkit/commit/b37f3db92b84428e27f08d932a34fe16d2400f8b))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Documentation",
+        "items": [
+          "**site:** host picker, library tabs, and readable hook lists ([#4022](https://github.com/yonatangross/orchestkit/issues/4022)) ([7e2d8ce](https://github.com/yonatangross/orchestkit/commit/7e2d8cee06bc3e27ba2ed479c32979c966a36976))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.12",
     "date": "2026-09-09",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.11...v10.0.0-beta.12",

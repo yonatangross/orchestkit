@@ -1528,6 +1528,20 @@
         "hooks"
       ],
       "date": "2026-09-10"
+    },
+    {
+      "slug": "the-gate-nobody-could-satisfy",
+      "source": "docs/fix--3971-mirror-devdeps/the-gate-nobody-could-satisfy.html",
+      "title": "The gate nobody could satisfy",
+      "description": "Every src/hooks Dependabot PR failed the required Build check because a tracked generated mirror sat inside the drift roster and Dependabot never runs a build. Why the two obvious fixes are already rejected in the repo's own code, and the one field whose removal closes the class.",
+      "tags": [
+        "dependabot",
+        "ci",
+        "build",
+        "false-signal",
+        "hooks"
+      ],
+      "date": "2026-09-10"
     }
   ]
 }

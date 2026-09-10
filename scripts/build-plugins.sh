@@ -390,6 +390,40 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
             --exclude='package-lock.json' \
             "$SRC_DIR/hooks/" "$PLUGIN_DIR/hooks/"
 
+        # Strip devDependencies from the mirrored manifest (#3971).
+        #
+        # plugins/ork/hooks/package.json is a TRACKED generated file inside
+        # ci.yml's build-drift roster (the roster is `plugins/` minus only
+        # `plugins/ork/hooks/dist`). Dependabot edits src/hooks/package.json and
+        # by design never runs a build, so every bump left the mirror at the old
+        # versions and the required Build check failed. The gate was right and
+        # the automation could not satisfy it, so the whole src/hooks dependabot
+        # lane was unlandable without a human running `npm run build` by hand.
+        #
+        # The duplication was never load-bearing. This manifest has ZERO runtime
+        # dependencies: the plugin ships prebuilt `dist/` plus `bin/run-hook.mjs`,
+        # and every entry under devDependencies (biome, typescript, vitest,
+        # esbuild, fast-check, @types/node) is build-time tooling that nothing
+        # installs from here. Removing the field removes the version strings
+        # that drifted, so a devDep bump now produces NO mirror diff at all.
+        # Nothing is weakened: the drift gate still guards every shipped byte,
+        # including this file's remaining fields.
+        #
+        # Excluding the whole file was the alternative and is wrong: `type`,
+        # `bin` and `engines` are real, and release-please.yml's ALLOWED regex
+        # does not list this path, so a stale mirror is never repaired at
+        # release either. Same reasoning as the `package-lock.json` exclude
+        # above, applied to one field instead of one file.
+        HOOKS_MANIFEST="$PLUGIN_DIR/hooks/package.json"
+        if [[ -f "$HOOKS_MANIFEST" ]]; then
+            STRIPPED=$(jq 'del(.devDependencies)' "$HOOKS_MANIFEST") || {
+                echo -e "    ${RED}Failed to strip devDependencies from hooks manifest${NC}"
+                exit 1
+            }
+            printf '%s\n' "$STRIPPED" > "$HOOKS_MANIFEST"
+            echo -e "    ${GREEN}Stripped devDependencies from hooks/package.json${NC}"
+        fi
+
         # Inject plugin version into stop-uncommitted-check.mjs
         PLUGIN_VERSION=$(jq -r '.version' "$manifest")
         STOP_HOOK="$PLUGIN_DIR/hooks/bin/stop-uncommitted-check.mjs"
