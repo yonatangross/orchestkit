@@ -75,7 +75,7 @@ describe('stray-playground-pages (#3727)', () => {
     const ctx = contextOf(r);
     expect(ctx).toContain('docs/playgrounds/dev/forgotten-explainer.html');
     expect(ctx).toMatch(/untracked, \dh\)/);
-    expect(ctx).toContain('lab-manifest.json');
+    expect(ctx).toContain('lab-manifest/<slug>.json');
   });
 
   it('names an untracked page under a branch-slug dir docs/<type>--<slug>/', () => {

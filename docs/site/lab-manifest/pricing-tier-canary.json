@@ -1,0 +1,12 @@
+{
+  "slug": "pricing-tier-canary",
+  "source": "docs/ci--3878-pricing-tier-canary/index.html",
+  "title": "Where Claude Code keeps its prices, and how the vocab is pinned to them",
+  "description": "CC's model prices live only inside its binary: a pricing_tiers table plus catalog rows naming a tier; the managed modelPricing setting is an override, not a source. A nightly canary reads the binary's own tier table and fails on drift or on a tier the table does not define. Includes the tier table.",
+  "tags": [
+    "cc-adoption",
+    "cost",
+    "ci"
+  ],
+  "date": "2026-09-02"
+}

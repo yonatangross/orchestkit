@@ -84,8 +84,10 @@ fi
 B="$WORK/drift.sh"; extract_step "$WF/ci.yml" "Check for uncommitted build changes" > "$B"
 if assert_body "Check for uncommitted build changes" "$B"; then
     for arm in control fault fault2; do
-        d="$WORK/drift/$arm"; mkdir -p "$d/plugins/ork/hooks/dist" "$d/docs/site/lib/generated"
-        echo r > "$d/README.md"; echo p > "$d/plugin.json"; echo g > "$d/docs/site/lib/generated/x.ts"; echo h > "$d/plugins/ork/hooks/dist/x.mjs"
+        # The fixture mirrors the roster: every positive entry must exist, so a
+        # roster addition (docs/site/public/lab/, #4049) is a fixture addition.
+        d="$WORK/drift/$arm"; mkdir -p "$d/plugins/ork/hooks/dist" "$d/docs/site/lib/generated" "$d/docs/site/public/lab"
+        echo r > "$d/README.md"; echo p > "$d/plugin.json"; echo g > "$d/docs/site/lib/generated/x.ts"; echo h > "$d/plugins/ork/hooks/dist/x.mjs"; echo l > "$d/docs/site/public/lab/x.html"
         git_init "$d"; git -C "$d" add -A; git -C "$d" commit -qm init
     done
     rm -rf "$WORK/drift/fault/docs/site/lib/generated"   # roster path gone, index unchanged? no: make it truly absent from both
@@ -122,13 +124,17 @@ fi
 # -------------------------------------------------- 4. playground published
 B="$WORK/lab.sh"; extract_step "$WF/ci.yml" "Check playground is published to the Lab" > "$B"
 if assert_body "Check playground is published to the Lab" "$B"; then
-    for arm in control fault; do
-        d="$WORK/lab/$arm"; mkdir -p "$d/docs/feat--x" "$d/docs/site"
-        printf '{"entries":[{"source":"docs/feat--x/a.html"}]}' > "$d/docs/site/lab-manifest.json"
+    # One fragment per entry under docs/site/lab-manifest/ (#4049); the step
+    # globs the directory, so the fixture writes a fragment, not the old file.
+    for arm in control fault fault2; do
+        d="$WORK/lab/$arm"; mkdir -p "$d/docs/feat--x" "$d/docs/site/lab-manifest"
+        printf '{"slug":"a","source":"docs/feat--x/a.html"}' > "$d/docs/site/lab-manifest/a.json"
         [[ $arm == control ]] && echo '<p>' > "$d/docs/feat--x/a.html"
+        [[ $arm == fault2 ]] && echo '<p>' > "$d/docs/feat--x/b.html"
     done
     [[ "$(run_step "$B" -e "$WORK/lab/control" HEAD_REF=feat/x RUNNER_TEMP="$WORK/lab")" == "0" ]] && ok "lab-manifest control (page registered) exits 0" || bad "lab-manifest control should exit 0"
     [[ "$(run_step "$B" -e "$WORK/lab/fault" HEAD_REF=feat/x RUNNER_TEMP="$WORK/lab")" != "0" ]] && ok "lab-manifest fault (zero .html) exits non-zero" || bad "lab-manifest fault exited 0 with zero .html"
+    [[ "$(run_step "$B" -e "$WORK/lab/fault2" HEAD_REF=feat/x RUNNER_TEMP="$WORK/lab")" != "0" ]] && ok "lab-manifest fault2 (page with no fragment) exits non-zero" || bad "lab-manifest fault2 exited 0 with an unregistered page"
 fi
 
 # -------------------------------------------------- 5. hooks.json hook paths

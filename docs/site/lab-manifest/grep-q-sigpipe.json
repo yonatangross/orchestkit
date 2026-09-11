@@ -1,0 +1,14 @@
+{
+  "slug": "grep-q-sigpipe",
+  "source": "docs/fix--3974-grep-q-sigpipe/index.html",
+  "title": "grep -q under pipefail: how a true match reads as FAIL",
+  "description": "A CI assertion that a workflow file sources a shared script failed on a file that does source it, then passed on re-run with the same bytes. Toggle pipefail, grep -q versus read-all, and whether the producer is still writing, and watch the pipeline status a bash if actually sees. The one-line fix and the 132 sibling sites left for a follow-up.",
+  "tags": [
+    "ci",
+    "tests",
+    "bash",
+    "flake",
+    "pipefail"
+  ],
+  "date": "2026-09-07"
+}

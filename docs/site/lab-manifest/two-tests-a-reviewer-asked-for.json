@@ -1,0 +1,13 @@
+{
+  "slug": "two-tests-a-reviewer-asked-for",
+  "source": "docs/test--3936-bypass-and-peeks/two-tests-a-reviewer-asked-for.html",
+  "title": "Two tests a reviewer asked for",
+  "description": "A follow-up to the display-lint plumbing exemption. One test pins the literal shape the original bypass was recorded in, which the rule covered but the new block did not. The other admits a widening nobody asked for and keeps it on purpose, because an accident and an intention look identical in a diff.",
+  "tags": [
+    "hooks",
+    "display-lint",
+    "tests",
+    "code-review"
+  ],
+  "date": "2026-09-10"
+}

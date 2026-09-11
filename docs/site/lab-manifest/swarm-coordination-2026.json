@@ -1,0 +1,11 @@
+{
+  "slug": "swarm-coordination-2026",
+  "source": "docs/swarm-coordination-2026.html",
+  "title": "Multi-Agent Coordination — Swarm vs Agents vs Workflow",
+  "description": "State-of-practice explainer comparing coordinator/worker swarms, agent teams, and deterministic workflows, with when-to-use guidance per topology.",
+  "tags": [
+    "multi-agent",
+    "explainer"
+  ],
+  "date": "2026-06-17"
+}

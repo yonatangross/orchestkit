@@ -1,0 +1,12 @@
+{
+  "slug": "chrono-board-release",
+  "source": "docs/feat--docs-chrono-board-release/chrono-board.html",
+  "title": "Chrono Board: What's new becomes a release timeline",
+  "description": "Play the 21st.dev Chrono Board on the docs site. What's new is a live catalog card plus product bullets. Changelog gets a five-release activity rail. Notes jumps to the version; Diff opens compare. Reduced-motion keeps the actions usable.",
+  "tags": [
+    "docs",
+    "site",
+    "release"
+  ],
+  "date": "2026-09-09"
+}

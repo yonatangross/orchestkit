@@ -1,0 +1,12 @@
+{
+  "slug": "vercel-labs-integration",
+  "source": "docs/playgrounds/vercel-labs-integration.html",
+  "title": "Vercel Labs Integration — Staged Plan",
+  "description": "Stage-composable integration plan: pick a stage, see what changes, click idea cards for full detail. Each stage assumes the prior one shipped.",
+  "tags": [
+    "plan",
+    "explorer",
+    "vercel-labs"
+  ],
+  "date": "2026-04-27"
+}

@@ -311,8 +311,10 @@ Add a "Live Preview" section to the PR body:
 > not control, with none of its CSP applied. The plain blob link shows source rather
 > than a rendered page; that is the accepted trade-off for not handing a third party
 > the content. To get a *rendered* first-party page, publish the playground to the
-> Lab instead (`docs/site/lab-manifest.json` + `docs/site/scripts/generate-lab-data.mjs`),
-> which serves it under the site's own `/lab` CSP.
+> Lab instead: add `docs/site/lab-manifest/&lt;slug&gt;.json` (one fragment per entry) and
+> run `npm run build`, which serves it under the site's own `/lab` CSP. On a merge
+> conflict in the generated `lab-data.ts`, take either side and rebuild; never
+> hand-resolve it.
 
 > **Pin the SHA, never the branch.** GitHub deletes the head branch on merge, so a
 > `blob/\{BRANCH\}/` URL returns 404 the moment the PR lands. That silently broke the

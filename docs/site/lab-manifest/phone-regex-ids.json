@@ -1,0 +1,14 @@
+{
+  "slug": "phone-regex-ids",
+  "source": "docs/fix--3894-phone-regex-ids/index.html",
+  "title": "When is a number a phone? The #3894 PHONE_RE fix",
+  "description": "The MCP PII redactor read Chrome tab ids and x-read snowflakes as phone numbers, which made every tab-scoped browser tool uncallable through ork. Both regexes, old and new, run live against real payload shapes; edit the input and watch which one redacts what. The rule the new pattern encodes: a phone needs a separator, a plus, or parentheses; a bare digit run is an id.",
+  "tags": [
+    "hooks",
+    "mcp",
+    "pii",
+    "regex",
+    "claude-in-chrome"
+  ],
+  "date": "2026-09-07"
+}

@@ -1,0 +1,12 @@
+{
+  "slug": "host-first-install-copy",
+  "source": "docs/docs--host-first-install-wizard/host-copy.html",
+  "title": "Host-first copy: six hosts, six commands",
+  "description": "The homepage chips used to be buttons whose onClick never ran if the client tree did not hydrate. They are now /?host= links, so Cursor, Pi, and Muse copy the real command from the server. Play the traps: no cursor CLI, no ork-muse, no ork-pi.",
+  "tags": [
+    "docs",
+    "install",
+    "engines"
+  ],
+  "date": "2026-09-09"
+}

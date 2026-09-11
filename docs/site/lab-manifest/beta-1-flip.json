@@ -1,0 +1,13 @@
+{
+  "slug": "beta-1-flip",
+  "source": "docs/chore--beta-1-flip/index.html",
+  "title": "alpha to beta: which path produces 10.0.0-beta.1",
+  "description": "The v10 train shipped 86 alphas and milestone 164 is empty, so the label moves to beta. A config flip alone yields alpha.87: release-please's bump() ignores prerelease-type whenever the version already carries a label. Toggle the current version, the configured type and a Release-As footer to see which combination actually produces beta.1, and why the footer is the only route from a labelled version to a new label.",
+  "tags": [
+    "release",
+    "release-please",
+    "versioning",
+    "milestone-164"
+  ],
+  "date": "2026-09-06"
+}
