@@ -6,7 +6,7 @@ commit parser and changelog writer. It needs no GitHub token or API calls and
 does not create a release or PR. Install the test dependency outside the repo:
 
 ```sh
-proof_dir=$(mktemp -d)
+proof_dir=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")
 pnpm --dir "$proof_dir" add --save-exact release-please@17.6.0 --ignore-scripts
 RELEASE_PLEASE_ROOT="$proof_dir" node --test --test-concurrency=1 tests/release-please/exclude-paths.test.cjs
 ```
