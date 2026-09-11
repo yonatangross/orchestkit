@@ -471,6 +471,15 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.14](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.13...v10.0.0-beta.14)** · 2026-09-11
+
+- **build:** strip devDependencies from the hooks manifest mirror (#3971) (#4029)
+- **hooks:** display-lint no longer nudges the shape it recommends (#3936) (#4037)
+- **hooks:** remove matcher-group if keys CC never supported (#4062)
+- **release:** stamp the codex and cursor plugin.json mirrors (#4038) (#4046)
+- **skills:** clear remaining allowed-tools exceptions (#4043)
+- …and 9 more (see [CHANGELOG.md](CHANGELOG.md))
+
 **[v10.0.0-beta.13](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.12...v10.0.0-beta.13)** · 2026-09-10
 
 - **hooks:** migrate the src/hooks suite to vitest 5 (#3981) (#4028)
@@ -505,10 +514,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **ci:** report an unreadable version as SKIP, not DRIFT (#3989)
 - **rules:** scope the modules-key ban to shipped hooks.json (#3993)
 - **playground:** treat .claude/rules/ as inert (#3994)
-
-**[v10.0.0-beta.6](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.5...v10.0.0-beta.6)** · 2026-09-08
-
-- **docs:** drop private-plugin specifics from public source (#3990)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
