@@ -1,0 +1,13 @@
+{
+  "slug": "skill-dir-codemod",
+  "source": "docs/fix--3822-skill-dir-codemod/index.html",
+  "title": "Three path forms, one that every client resolves: the #3822 skill-path codemod",
+  "description": "106 OrchestKit skills carried 497 ${CLAUDE_PLUGIN_ROOT} references; pi and every Agent Skills client delivered them to the model as literal text. Pick a client and a path form to see what the model actually receives, then compare the census before and after the codemod that rewrote 424 same-skill references to bare relative paths.",
+  "tags": [
+    "skills",
+    "portability",
+    "codemod",
+    "agent-skills"
+  ],
+  "date": "2026-09-06"
+}

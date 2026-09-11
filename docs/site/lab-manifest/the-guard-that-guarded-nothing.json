@@ -1,0 +1,13 @@
+{
+  "slug": "the-guard-that-guarded-nothing",
+  "source": "docs/fix--4025-mdx-compile-restores-tree/the-guard-that-guarded-nothing.html",
+  "title": "The guard that guarded nothing",
+  "description": "A test swapped the real docs-site manifest to a stub analytics package and never put it back, so running the suite before committing could stage a no-op analytics for a live site. Then the guard written to catch it skipped whenever the tree was dirty, which is the only situation it was needed in.",
+  "tags": [
+    "tests",
+    "false-signal",
+    "git",
+    "developer-experience"
+  ],
+  "date": "2026-09-10"
+}

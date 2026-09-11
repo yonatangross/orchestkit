@@ -1,0 +1,12 @@
+{
+  "slug": "doctor-sandbox-violation-log",
+  "source": "docs/feat--doctor-sandbox-violation-log/index.html",
+  "title": "Reading the macOS sandbox violation log, fail closed",
+  "description": "A doctor check that tails the unified log for Seatbelt denials and refuses to report success when the log itself is unreadable. Includes the measured limits: CC denies without logging, and log show cannot run sandboxed.",
+  "tags": [
+    "doctor",
+    "sandbox",
+    "fail-closed"
+  ],
+  "date": "2026-08-21"
+}

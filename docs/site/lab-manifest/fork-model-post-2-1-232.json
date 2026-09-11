@@ -1,0 +1,12 @@
+{
+  "slug": "fork-model-post-2-1-232",
+  "source": "docs/docs--fork-model-post-2-1-232-3726-c/index.html",
+  "title": "Fork model after CC 2.1.232: explicit subagent_type fork",
+  "description": "Issue 3726: explore and review-pr still stated the pre-2.1.232 implicit-only fork model. Play the before and after, then take the one-question quiz on which Agent call forks explicitly.",
+  "tags": [
+    "docs",
+    "skills",
+    "agents"
+  ],
+  "date": "2026-09-11"
+}

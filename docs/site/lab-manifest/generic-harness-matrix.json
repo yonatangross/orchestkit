@@ -1,0 +1,12 @@
+{
+  "slug": "generic-harness-matrix",
+  "source": "docs/docs--generic-harness-matrix/capabilities.html",
+  "title": "Generic floor, native adapter per harness",
+  "description": "Decision surface for ork as a portable skill package plus optional per-harness extras. Three trees, a contamination count, STATE.mode radios, and a clickable capability matrix. Muse hooks are none. Cursor hooks are camelCase.",
+  "tags": [
+    "docs",
+    "engines",
+    "architecture"
+  ],
+  "date": "2026-09-09"
+}

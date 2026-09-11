@@ -1,0 +1,12 @@
+{
+  "slug": "the-if-key-that-never-was",
+  "source": "docs/fix--4060-hooks-if-keys/the-if-key-that-never-was.html",
+  "title": "The if key that never was",
+  "description": "Move the two group-level if keys to the hook command level to reproduce the CC hooks schema verdict and understand the matcher widening the fix ships.",
+  "tags": [
+    "hooks",
+    "cc",
+    "schema"
+  ],
+  "date": "2026-09-11"
+}

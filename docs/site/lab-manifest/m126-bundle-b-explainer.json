@@ -1,0 +1,11 @@
+{
+  "slug": "m126-bundle-b-explainer",
+  "source": "docs/playgrounds/m126-bundle-b-explainer.html",
+  "title": "M126 Bundle B — ultrareview + Fork Subagents",
+  "description": "Deep-dive explainer for the claude ultrareview subcommand and CLAUDE_CODE_FORK_SUBAGENT adoption bundle.",
+  "tags": [
+    "explainer",
+    "cc-adoption"
+  ],
+  "date": "2026-04-28"
+}

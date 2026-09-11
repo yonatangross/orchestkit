@@ -1,0 +1,12 @@
+{
+  "slug": "astra-activation-event-lens",
+  "source": "docs/fix--astra-installed-activation-audit-3922/activation-events.html",
+  "title": "Activation event lens",
+  "description": "A compact interactive lens for keeping attempted, started, and completed agent events separate while showing why missing telemetry cannot prove dormancy.",
+  "tags": [
+    "agents",
+    "telemetry",
+    "audit"
+  ],
+  "date": "2026-09-05"
+}

@@ -1,0 +1,14 @@
+{
+  "slug": "session-standing-board",
+  "source": "docs/session-standing-board.html",
+  "title": "Session Standing — Decision Board",
+  "description": "Drag-to-triage standing board for session outcomes: mouse, touch, and keyboard reorder, live buckets, and a prioritization prompt composer.",
+  "tags": [
+    "decision-board",
+    "drag-and-drop",
+    "a11y"
+  ],
+  "date": "2026-06-18",
+  "featured": true,
+  "caseStudy": "/docs/showcase/lab/session-standing"
+}

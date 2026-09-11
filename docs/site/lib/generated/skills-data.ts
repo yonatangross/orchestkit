@@ -1254,7 +1254,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "create-pr",
     "description": "Creates GitHub pull requests with pre-flight validation, conventional title formatting, and structured summary generation. Runs parallel checks (tests, lint, type-check, security) before opening. Supports feature, bugfix, refactor, and hotfix PR types with milestone assignment via gh CLI. Invoke only if the operator named it; an everyday `gh pr create` stays plain tooling. Use when opening PRs or submitting code for review.",
     "version": "2.6.0",
-    "sha256": "975bf46350b7bbae8d9f3864937e090a43939b139e9bbaa9d66a83a550318191",
+    "sha256": "b893aa979181a9c38065fbaa6b66de69f4159cdd6a15b577cebc720c07a44ad3",
     "author": "OrchestKit",
     "tags": [
       "git",
@@ -4060,7 +4060,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "review-pr",
     "description": "PR review using parallel specialized agents for code quality, security, testing, architecture, and performance analysis. Synthesizes findings into a review report with conventional comments (praise/issue/suggestion/nitpick) and approve or request-changes verdict. Use when reviewing pull requests, conducting security audits, or validating changes before merge.",
     "version": "1.9.0",
-    "sha256": "d575ec0823aac77b24c76d2a9fba7248ab70924d40e97597cb4b343cb5a9cf5b",
+    "sha256": "476acb660f234de00868a33d923fed1f57a094060e77bd8c8f0f147fcfc6d526",
     "author": "OrchestKit",
     "tags": [
       "code-review",

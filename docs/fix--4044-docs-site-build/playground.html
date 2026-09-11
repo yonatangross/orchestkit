@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Why the docs build passed and its tests failed</title>
+<meta name="description" content="Explore the Fumadocs dependency and resolver combination behind the Docs Site Build failure.">
+<style>
+:root{color-scheme:dark;--pg-bg:oklch(19% .02 255);--pg-panel:oklch(25% .025 255);--pg-fg:oklch(94% .01 255);--pg-muted:oklch(78% .02 255);--pg-accent:oklch(82% .12 165)}
+*{box-sizing:border-box}body{margin:0;background:var(--pg-bg);color:var(--pg-fg);font:18px/1.6 system-ui,sans-serif}main{max-width:850px;margin:4rem auto;padding:1.5rem}h1{font-size:clamp(2rem,5vw,3.3rem);line-height:1.1}p{color:var(--pg-muted)}.controls,article{background:var(--pg-panel);padding:1.5rem;border-radius:16px;margin-block:1.5rem}.controls{display:flex;flex-wrap:wrap;gap:1.5rem}label{display:grid;gap:.5rem;flex:1}select,button{font:inherit;background:var(--pg-bg);color:var(--pg-fg);padding:.6rem;border:1px solid var(--pg-muted);border-radius:8px}button{cursor:pointer}select:focus-visible,button:focus-visible{outline:3px solid var(--pg-accent);outline-offset:3px}code{overflow-wrap:anywhere;color:var(--pg-accent)}#result{font-size:1.6rem;font-weight:700}small{color:var(--pg-muted)}@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+</style>
+</head>
+<body><main>
+<small>DOCS BUILD INVESTIGATION</small>
+<h1>One green build.<br>One red test step.</h1>
+<p>The PR workflow substitutes an analytics stub, then regenerates its lockfile. That allows Fumadocs 16.15.9, whose Next.js imports omit the file extension, into the test environment.</p>
+<div class="controls">
+<label>Fumadocs version<select id="version"><option value="16.15.9">16.15.9 (PR fallback)</option><option value="16.15.8">16.15.8 (committed lockfile)</option></select></label>
+<label>Import resolver<select id="resolver"><option value="node">Node ESM (before fix)</option><option value="vite">Vite (inline Fumadocs)</option><option value="webpack">Next.js webpack build</option></select></label>
+</div>
+<article aria-live="polite"><div id="result"></div><code id="import"></code><p id="explanation"></p></article>
+<p>The fix adds <code>fumadocs-core</code> and <code>fumadocs-ui</code> to Vitest's existing dependency inline list. This lets Vite resolve the same imports accepted by the production build.</p>
+<small>This is an explanatory model, not a live test runner. Locally, the existing agent-surface suite failed before the config change and all 30 assertions passed afterward.</small>
+<p><button id="copy-prompt" type="button">Copy verification command</button> <span id="copied" role="status"></span></p>
+</main>
+<script>
+const version=document.querySelector('#version'),resolver=document.querySelector('#resolver');
+function render(){const extension=version.value==='16.15.8';const fails=!extension&&resolver.value==='node';document.querySelector('#result').textContent=fails?'Suite fails before collecting tests':'Import resolves';document.querySelector('#import').textContent='import { usePathname } from "next/navigation'+(extension?'.js':'')+'";';document.querySelector('#explanation').textContent=fails?'Native Node ESM requires the file extension. The failing suite cannot import the root layout.':'This resolver accepts the import. With Vite inlining enabled, the existing metadata and Markdown contract assertions execute.';}
+version.addEventListener('change',render);resolver.addEventListener('change',render);render();
+document.querySelector('#copy-prompt').addEventListener('click',async()=>{try{await navigator.clipboard.writeText('cd docs/site && pnpm test __tests__/agent-surface-honesty.test.ts');document.querySelector('#copied').textContent='Copied';}catch{document.querySelector('#copied').textContent='Run: cd docs/site && pnpm test __tests__/agent-surface-honesty.test.ts';}});
+</script></body></html>

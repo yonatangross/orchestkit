@@ -1,0 +1,11 @@
+{
+  "slug": "lib-currency-audit",
+  "source": "docs/playgrounds/lib-currency-audit-2026-05-31.html",
+  "title": "Library-Currency Audit — 2026-05-31",
+  "description": "Verifier-corrected audit of library freshness across the toolchain, with severity re-ranks shown transparently.",
+  "tags": [
+    "audit",
+    "dashboard"
+  ],
+  "date": "2026-05-31"
+}

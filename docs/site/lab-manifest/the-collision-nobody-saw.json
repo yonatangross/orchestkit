@@ -1,0 +1,13 @@
+{
+  "slug": "the-collision-nobody-saw",
+  "source": "docs/fix--4026-tmp-writes-use-mktemp/the-collision-nobody-saw.html",
+  "title": "The collision nobody saw",
+  "description": "Nine tests wrote to hardcoded /tmp paths. The sandbox denial was the loud half; the fixed filenames were the quiet one, where two concurrent runs share a file and a test can assert on another run's output and pass. Plus the acceptance criterion I wrote for the issue, which was wrong, and the write-shape guard that still flagged a JSON fixture on its first run.",
+  "tags": [
+    "tests",
+    "sandbox",
+    "false-signal",
+    "concurrency"
+  ],
+  "date": "2026-09-10"
+}

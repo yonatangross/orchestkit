@@ -1,0 +1,14 @@
+{
+  "slug": "multi-engine-support",
+  "source": "docs/feat--multi-engine-support/support-matrix.html",
+  "title": "OrchestKit on pi, Codex and Cursor: what each engine actually loads",
+  "description": "Measured support matrix per engine (skills, agents, hooks, commands, MCP), the four-run pi headless probe that shows --no-builtin-tools hides every skill, and the sweep, mech and reason lane model.",
+  "tags": [
+    "pi",
+    "codex",
+    "cursor",
+    "engines",
+    "explainer"
+  ],
+  "date": "2026-09-08"
+}
