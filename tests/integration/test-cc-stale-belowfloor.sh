@@ -17,6 +17,18 @@
 
 set -euo pipefail
 
+# Per-run private temp dir (#4026).
+#
+# These paths were hardcoded $ORK_TMP/<fixed-name>. Two problems, and the quiet one
+# is worse. The CC sandbox denies writes to /tmp, so the test fails locally with
+# "Operation not permitted". But the filename was also FIXED, so two concurrent
+# runs on one machine wrote and read the same file: a test could assert against
+# another run's output and PASS. $TMPDIR alone fixes only the first; mktemp
+# fixes both.
+ORK_TMP="$(mktemp -d "${TMPDIR:-/tmp}/ork-cctest.XXXXXX")"
+trap 'rm -rf "$ORK_TMP"' EXIT
+
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
@@ -110,13 +122,13 @@ CREATE_RE='^label create cc-stale'
 EXIT=0
 MOCK_LABELS=$'cc-adoption\nbug' MOCK_ISSUES_TSV="$ISSUES" SLEEP_BETWEEN=0 \
   GH_REPO="acme/orchestkit" SUPPORT_FILE="$WORK/cc-support.json" \
-  bash "$SCRIPT" >/tmp/stale-1.out 2>&1 || EXIT=$?
+  bash "$SCRIPT" >$ORK_TMP/stale-1.out 2>&1 || EXIT=$?
 EDITS=$(count_calls "$EDIT_RE")
 COMMENTS=$(count_calls "$COMMENT_RE")
 if [ "$EXIT" = "0" ] && [ "$EDITS" = "1" ]; then
   log_pass "labels exactly 1 below-floor issue (#100 @ 2.1.140 < 2.1.148)"
 else
-  log_fail "below-floor labeling" "expected 1 edit, got $EDITS (exit=$EXIT, see /tmp/stale-1.out)"
+  log_fail "below-floor labeling" "expected 1 edit, got $EDITS (exit=$EXIT, see $ORK_TMP/stale-1.out)"
 fi
 if [ "$COMMENTS" = "1" ]; then
   log_pass "comments the labeled issue once"
@@ -145,15 +157,15 @@ fi
 EXIT=0
 DRY_RUN=1 MOCK_LABELS=$'cc-adoption' MOCK_ISSUES_TSV="$ISSUES" \
   GH_REPO="acme/orchestkit" SUPPORT_FILE="$WORK/cc-support.json" \
-  bash "$SCRIPT" >/tmp/stale-5.out 2>&1 || EXIT=$?
+  bash "$SCRIPT" >$ORK_TMP/stale-5.out 2>&1 || EXIT=$?
 if [ "$EXIT" = "0" ] \
   && [ "$(count_calls "$EDIT_RE")" = "0" ] \
   && [ "$(count_calls "$COMMENT_RE")" = "0" ] \
   && [ "$(count_calls "$CREATE_RE")" = "0" ] \
-  && grep -q "DRY_RUN: would label #100" /tmp/stale-5.out; then
+  && grep -q "DRY_RUN: would label #100" $ORK_TMP/stale-5.out; then
   log_pass "DRY_RUN: prints intent, zero mutations"
 else
-  log_fail "DRY_RUN" "expected 0 mutations + 'would label' (see /tmp/stale-5.out)"
+  log_fail "DRY_RUN" "expected 0 mutations + 'would label' (see $ORK_TMP/stale-5.out)"
 fi
 
 # ============================================================================
@@ -163,11 +175,11 @@ fi
 echo '{}' > "$WORK/no-floor.json"
 EXIT=0
 MOCK_ISSUES_TSV="$ISSUES" GH_REPO="acme/orchestkit" SUPPORT_FILE="$WORK/no-floor.json" \
-  bash "$SCRIPT" >/tmp/stale-6.out 2>&1 || EXIT=$?
-if [ "$EXIT" = "0" ] && grep -q "no supported_floor" /tmp/stale-6.out; then
+  bash "$SCRIPT" >$ORK_TMP/stale-6.out 2>&1 || EXIT=$?
+if [ "$EXIT" = "0" ] && grep -q "no supported_floor" $ORK_TMP/stale-6.out; then
   log_pass "no floor → graceful no-op"
 else
-  log_fail "no-floor" "expected graceful no-op (see /tmp/stale-6.out)"
+  log_fail "no-floor" "expected graceful no-op (see $ORK_TMP/stale-6.out)"
 fi
 
 # ============================================================================
@@ -178,11 +190,11 @@ fi
 EXIT=0
 MOCK_LABEL_LIST_FAIL=1 MOCK_ISSUES_TSV="$ISSUES" \
   GH_REPO="acme/orchestkit" SUPPORT_FILE="$WORK/cc-support.json" \
-  bash "$SCRIPT" >/tmp/stale-7.out 2>&1 || EXIT=$?
-if [ "$EXIT" = "1" ] && grep -qE "gh label list.* failed" /tmp/stale-7.out && [ "$(count_calls "$EDIT_RE")" = "0" ]; then
+  bash "$SCRIPT" >$ORK_TMP/stale-7.out 2>&1 || EXIT=$?
+if [ "$EXIT" = "1" ] && grep -qE "gh label list.* failed" $ORK_TMP/stale-7.out && [ "$(count_calls "$EDIT_RE")" = "0" ]; then
   log_pass "list 403: propagates exit 1 loudly, no cascade to create/edit"
 else
-  log_fail "list-fail resilience" "expected exit 1 + no edits (see /tmp/stale-7.out)"
+  log_fail "list-fail resilience" "expected exit 1 + no edits (see $ORK_TMP/stale-7.out)"
 fi
 
 # ============================================================================
@@ -192,11 +204,11 @@ fi
 EXIT=0
 MOCK_LABELS=$'cc-adoption' MOCK_LABEL_CREATE_EXISTS=1 MOCK_ISSUES_TSV="$ISSUES" SLEEP_BETWEEN=0 \
   GH_REPO="acme/orchestkit" SUPPORT_FILE="$WORK/cc-support.json" \
-  bash "$SCRIPT" >/tmp/stale-8.out 2>&1 || EXIT=$?
-if [ "$EXIT" = "0" ] && grep -qi "already exists (race)" /tmp/stale-8.out && [ "$(count_calls "$EDIT_RE")" = "1" ]; then
+  bash "$SCRIPT" >$ORK_TMP/stale-8.out 2>&1 || EXIT=$?
+if [ "$EXIT" = "0" ] && grep -qi "already exists (race)" $ORK_TMP/stale-8.out && [ "$(count_calls "$EDIT_RE")" = "1" ]; then
   log_pass "create race: tolerated, run continues to label the below-floor issue"
 else
-  log_fail "create-race resilience" "expected exit 0 + race-tolerated + 1 edit (see /tmp/stale-8.out)"
+  log_fail "create-race resilience" "expected exit 0 + race-tolerated + 1 edit (see $ORK_TMP/stale-8.out)"
 fi
 
 # ============================================================================
@@ -208,14 +220,14 @@ fi
 EXIT=0
 MOCK_LABELS=$'cc-adoption' MOCK_ISSUES_TSV="$ISSUES" SLEEP_BETWEEN=0 \
   GH_REPO="acme/orchestkit" SUPPORT_FILE="$WORK/cc-support.json" \
-  bash "$SCRIPT" >/tmp/stale-9.out 2>&1 || EXIT=$?
+  bash "$SCRIPT" >$ORK_TMP/stale-9.out 2>&1 || EXIT=$?
 if [ "$EXIT" = "0" ] \
   && ! grep -qE '^issue edit (104|105) ' "$MOCK_LOG" \
-  && grep -q "category=breaking persists at floor" /tmp/stale-9.out \
-  && grep -q "category=new_perm persists at floor" /tmp/stale-9.out; then
+  && grep -q "category=breaking persists at floor" $ORK_TMP/stale-9.out \
+  && grep -q "category=new_perm persists at floor" $ORK_TMP/stale-9.out; then
   log_pass "category guard: below-floor breaking/new_perm NOT auto-staled (#104/#105)"
 else
-  log_fail "category guard" "expected #104/#105 skipped with guard note (see /tmp/stale-9.out)"
+  log_fail "category guard" "expected #104/#105 skipped with guard note (see $ORK_TMP/stale-9.out)"
 fi
 
 echo "========================================================="

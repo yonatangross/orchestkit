@@ -13,6 +13,18 @@
 
 set -euo pipefail
 
+# Per-run private temp dir (#4026).
+#
+# These paths were hardcoded $ORK_TMP/<fixed-name>. Two problems, and the quiet one
+# is worse. The CC sandbox denies writes to /tmp, so the test fails locally with
+# "Operation not permitted". But the filename was also FIXED, so two concurrent
+# runs on one machine wrote and read the same file: a test could assert against
+# another run's output and PASS. $TMPDIR alone fixes only the first; mktemp
+# fixes both.
+ORK_TMP="$(mktemp -d "${TMPDIR:-/tmp}/ork-cctest.XXXXXX")"
+trap 'rm -rf "$ORK_TMP"' EXIT
+
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
@@ -134,12 +146,12 @@ run_case() {
   MOCK_EXISTING_KEYS="$existing" \
   MOCK_EXISTING_MILESTONE=1 \
   GH_REPO="acme/orchestkit" \
-    bash "$PROJECT_ROOT/scripts/cc-file-adoption-issues.sh" >"/tmp/step3-$name.out" 2>&1 \
+    bash "$PROJECT_ROOT/scripts/cc-file-adoption-issues.sh" >"$ORK_TMP/step3-$name.out" 2>&1 \
     || exit_code=$?
   popd >/dev/null
 
   if [ "$exit_code" != "0" ]; then
-    log_fail "$name: script exit" "expected 0, got $exit_code (see /tmp/step3-$name.out)"
+    log_fail "$name: script exit" "expected 0, got $exit_code (see $ORK_TMP/step3-$name.out)"
     return
   fi
   local actual
@@ -147,7 +159,7 @@ run_case() {
   if [ "$actual" = "$expected" ]; then
     log_pass "$name: $expected issue create call(s)"
   else
-    log_fail "$name" "expected $expected create calls, got $actual (see /tmp/step3-$name.out)"
+    log_fail "$name" "expected $expected create calls, got $actual (see $ORK_TMP/step3-$name.out)"
   fi
 }
 
@@ -168,13 +180,13 @@ echo '{"milestone": "CC 2.1.999 adoption"}' > "$WORK/shared/gh-issue-args.json"
 pushd "$WORK" >/dev/null
 EXIT=0
 GH_REPO="acme/orchestkit" bash "$PROJECT_ROOT/scripts/cc-file-adoption-issues.sh" \
-  > /tmp/step3-empty.out 2>&1 || EXIT=$?
+  > $ORK_TMP/step3-empty.out 2>&1 || EXIT=$?
 popd >/dev/null
 CALLS=$(count_calls "issue|create")
-if [ "$EXIT" = "0" ] && [ "$CALLS" = "0" ] && grep -qF "No gaps to triage" /tmp/step3-empty.out; then
+if [ "$EXIT" = "0" ] && [ "$CALLS" = "0" ] && grep -qF "No gaps to triage" $ORK_TMP/step3-empty.out; then
   log_pass "case 1: empty gaps array → 0 creates + clean exit"
 else
-  log_fail "case 1" "exit=$EXIT, calls=$CALLS, log=$(cat /tmp/step3-empty.out)"
+  log_fail "case 1" "exit=$EXIT, calls=$CALLS, log=$(cat $ORK_TMP/step3-empty.out)"
 fi
 
 # ============================================================================
@@ -284,12 +296,12 @@ echo '{"milestone": "CC 2.1.999 adoption"}' > "$WORK/shared/gh-issue-args.json"
 pushd "$WORK" >/dev/null
 EXIT=0
 env -u GH_REPO bash "$PROJECT_ROOT/scripts/cc-file-adoption-issues.sh" \
-  > /tmp/step3-norepo.out 2>&1 || EXIT=$?
+  > $ORK_TMP/step3-norepo.out 2>&1 || EXIT=$?
 popd >/dev/null
-if [ "$EXIT" != "0" ] && grep -qF "GH_REPO is required" /tmp/step3-norepo.out; then
+if [ "$EXIT" != "0" ] && grep -qF "GH_REPO is required" $ORK_TMP/step3-norepo.out; then
   log_pass "case 9: missing GH_REPO → exit non-zero with clear error"
 else
-  log_fail "case 9: missing GH_REPO" "exit=$EXIT, msg=$(cat /tmp/step3-norepo.out)"
+  log_fail "case 9: missing GH_REPO" "exit=$EXIT, msg=$(cat $ORK_TMP/step3-norepo.out)"
 fi
 
 # ============================================================================
@@ -302,10 +314,10 @@ rm -f "$WORK/shared/gh-issue-args.json"
 pushd "$WORK" >/dev/null
 EXIT=0
 GH_REPO="acme/orchestkit" bash "$PROJECT_ROOT/scripts/cc-file-adoption-issues.sh" \
-  > /tmp/step3-noargs.out 2>&1 || EXIT=$?
+  > $ORK_TMP/step3-noargs.out 2>&1 || EXIT=$?
 popd >/dev/null
 CALLS=$(count_calls "issue|create")
-if [ "$EXIT" = "0" ] && [ "$CALLS" = "0" ] && grep -qF "did not emit milestone" /tmp/step3-noargs.out; then
+if [ "$EXIT" = "0" ] && [ "$CALLS" = "0" ] && grep -qF "did not emit milestone" $ORK_TMP/step3-noargs.out; then
   log_pass "case 10: missing issue-args.json → 0 creates + graceful skip"
 else
   log_fail "case 10" "exit=$EXIT, calls=$CALLS"
@@ -326,14 +338,14 @@ echo '{"milestone": "CC 2.1.999 adoption"}' > "$WORK/shared/gh-issue-args.json"
 pushd "$WORK" >/dev/null
 EXIT=0
 MOCK_EXISTING_MILESTONE=1 GH_REPO="acme/orchestkit" \
-  bash "$PROJECT_ROOT/scripts/cc-file-adoption-issues.sh" > /tmp/step3-stamp.out 2>&1 || EXIT=$?
+  bash "$PROJECT_ROOT/scripts/cc-file-adoption-issues.sh" > $ORK_TMP/step3-stamp.out 2>&1 || EXIT=$?
 popd >/dev/null
 STAMPED=$(jq -r '[.[] | select(.version=="2.1.997" and has("issues_filed_at"))] | length' "$WORK/shared/cc-adoption-gaps.json")
 UNSTAMPED=$(jq -r '[.[] | select(.version=="2.1.996" and (has("issues_filed_at")|not))] | length' "$WORK/shared/cc-adoption-gaps.json")
 if [ "$EXIT" = "0" ] && [ "$STAMPED" = "1" ] && [ "$UNSTAMPED" = "1" ]; then
   log_pass "case 11: filer stamps issues_filed_at on filed entry, leaves parse_failed unstamped"
 else
-  log_fail "case 11: stamp" "exit=$EXIT stamped=$STAMPED unstamped=$UNSTAMPED (see /tmp/step3-stamp.out)"
+  log_fail "case 11: stamp" "exit=$EXIT stamped=$STAMPED unstamped=$UNSTAMPED (see $ORK_TMP/step3-stamp.out)"
 fi
 
 # ============================================================================
@@ -354,7 +366,7 @@ run_gate() {
   GATE_EXIT=0
   ORK_EVIDENCE_GATE=1 EVIDENCE_ROOTS="$evdir" \
   MOCK_EXISTING_MILESTONE=1 GH_REPO="acme/orchestkit" \
-    bash "$PROJECT_ROOT/scripts/cc-file-adoption-issues.sh" >"/tmp/step3-$name.out" 2>&1 \
+    bash "$PROJECT_ROOT/scripts/cc-file-adoption-issues.sh" >"$ORK_TMP/step3-$name.out" 2>&1 \
     || GATE_EXIT=$?
   popd >/dev/null
 }
@@ -376,7 +388,7 @@ D=$(dispo_of "chrome_scroll_polish")
 if [ "$GATE_EXIT" = "0" ] && [ "$CALLS" = "0" ] && [ "$D" = "triaged-noop-no-evidence" ]; then
   log_pass "case 12: above-floor + no evidence → 0 creates, disposition=triaged-noop-no-evidence"
 else
-  log_fail "case 12" "exit=$GATE_EXIT calls=$CALLS dispo='$D' (see /tmp/step3-case12-noop.out)"
+  log_fail "case 12" "exit=$GATE_EXIT calls=$CALLS dispo='$D' (see $ORK_TMP/step3-case12-noop.out)"
 fi
 rm -rf "$EVDIR"
 
@@ -394,7 +406,7 @@ CREATE_LINE=$(grep -F 'issue|create' "$MOCK_LOG" | head -1)
 if [ "$GATE_EXIT" = "0" ] && [ "$CALLS" = "1" ] && [ -z "$D" ]; then
   log_pass "case 13: sub-floor + evidence → filed via recall lane (no disposition stamp)"
 else
-  log_fail "case 13" "exit=$GATE_EXIT calls=$CALLS dispo='$D' (see /tmp/step3-case13-recall.out)"
+  log_fail "case 13" "exit=$GATE_EXIT calls=$CALLS dispo='$D' (see $ORK_TMP/step3-case13-recall.out)"
 fi
 if grep -qF "sub-floor score but codebase evidence" <<< "$CREATE_LINE"; then
   log_pass "case 13: recall-lane note present in issue body"
@@ -413,7 +425,7 @@ D=$(dispo_of "chrome_tab_group")
 if [ "$GATE_EXIT" = "0" ] && [ "$CALLS" = "0" ] && [ "$D" = "unfiled-subfloor" ]; then
   log_pass "case 14: sub-floor + no evidence → 0 creates, disposition=unfiled-subfloor"
 else
-  log_fail "case 14" "exit=$GATE_EXIT calls=$CALLS dispo='$D' (see /tmp/step3-case14-unfiled.out)"
+  log_fail "case 14" "exit=$GATE_EXIT calls=$CALLS dispo='$D' (see $ORK_TMP/step3-case14-unfiled.out)"
 fi
 rm -rf "$EVDIR"
 
@@ -431,15 +443,15 @@ echo '{"milestone": "CC 2.1.999 adoption"}' > "$WORK/shared/gh-issue-args.json"
 pushd "$WORK" >/dev/null
 EXIT=0
 ORK_EVIDENCE_GATE=0 MOCK_EXISTING_MILESTONE=1 GH_REPO="acme/orchestkit" \
-  bash "$PROJECT_ROOT/scripts/cc-file-adoption-issues.sh" > /tmp/step3-cap.out 2>&1 || EXIT=$?
+  bash "$PROJECT_ROOT/scripts/cc-file-adoption-issues.sh" > $ORK_TMP/step3-cap.out 2>&1 || EXIT=$?
 popd >/dev/null
 CAP_BIG=$(jq -r '.[] | select(.version=="2.1.999") | .cap_saturated // false' "$WORK/shared/cc-adoption-gaps.json")
 CAP_SMALL=$(jq -r '.[] | select(.version=="2.1.998") | .cap_saturated // false' "$WORK/shared/cc-adoption-gaps.json")
 if [ "$EXIT" = "0" ] && [ "$CAP_BIG" = "true" ] && [ "$CAP_SMALL" = "false" ] \
-   && grep -qF "exactly 20 features" /tmp/step3-cap.out; then
+   && grep -qF "exactly 20 features" $ORK_TMP/step3-cap.out; then
   log_pass "case 15: cap-saturation stamps cap_saturated on the 20-feature version + warns"
 else
-  log_fail "case 15" "exit=$EXIT cap_big=$CAP_BIG cap_small=$CAP_SMALL (see /tmp/step3-cap.out)"
+  log_fail "case 15" "exit=$EXIT cap_big=$CAP_BIG cap_small=$CAP_SMALL (see $ORK_TMP/step3-cap.out)"
 fi
 
 # ---- Case 16 (#2993): above-floor WITH evidence → still files (gate-on happy) -
@@ -455,7 +467,7 @@ D=$(dispo_of "subagentstop_hook")
 if [ "$GATE_EXIT" = "0" ] && [ "$CALLS" = "1" ] && [ -z "$D" ]; then
   log_pass "case 16: above-floor + evidence (gate on) → filed, no disposition stamp"
 else
-  log_fail "case 16" "exit=$GATE_EXIT calls=$CALLS dispo='$D' (see /tmp/step3-case16-gateon-file.out)"
+  log_fail "case 16" "exit=$GATE_EXIT calls=$CALLS dispo='$D' (see $ORK_TMP/step3-case16-gateon-file.out)"
 fi
 rm -rf "$EVDIR"
 
@@ -479,7 +491,7 @@ run_anchor() {
   ANCHOR_EXIT=0
   ORK_EVIDENCE_GATE=1 GAPS_FILE="$ANCHOR_GAPS" ISSUE_ARGS_FILE="$WORK/anchor-args.json" \
   MOCK_EXISTING_MILESTONE=1 GH_REPO="acme/orchestkit" \
-    bash "$PROJECT_ROOT/scripts/cc-file-adoption-issues.sh" > "/tmp/step3-$name.out" 2>&1 \
+    bash "$PROJECT_ROOT/scripts/cc-file-adoption-issues.sh" > "$ORK_TMP/step3-$name.out" 2>&1 \
     || ANCHOR_EXIT=$?
   popd >/dev/null
 }
@@ -494,7 +506,7 @@ CALLS=$(count_calls "issue|create")
 if [ "$ANCHOR_EXIT" = "0" ] && [ "$CALLS" = "1" ]; then
   log_pass "anchor A: real sessionstart fork-source (score 5) → evidence hit → filed via recall lane"
 else
-  log_fail "anchor A" "exit=$ANCHOR_EXIT calls=$CALLS (see /tmp/step3-anchorA-real-hit.out)"
+  log_fail "anchor A" "exit=$ANCHOR_EXIT calls=$CALLS (see $ORK_TMP/step3-anchorA-real-hit.out)"
 fi
 
 # ---- Anchor B (#2993): a realistic end-user-only changelog line (full
@@ -508,7 +520,7 @@ D=$(jq -r '[.[] | .features[]? | select(.feature_slug=="chrome_scroll_polish") |
 if [ "$ANCHOR_EXIT" = "0" ] && [ "$CALLS" = "0" ] && [ "$D" = "triaged-noop-no-evidence" ]; then
   log_pass "anchor B: end-user chrome_scroll_polish (score 20) → evidence miss → not filed on real tree"
 else
-  log_fail "anchor B" "exit=$ANCHOR_EXIT calls=$CALLS dispo='$D' (see /tmp/step3-anchorB-real-miss.out)"
+  log_fail "anchor B" "exit=$ANCHOR_EXIT calls=$CALLS dispo='$D' (see $ORK_TMP/step3-anchorB-real-miss.out)"
 fi
 
 echo ""
