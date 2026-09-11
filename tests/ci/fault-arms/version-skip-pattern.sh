@@ -59,7 +59,11 @@ run_hook() {  # $1 = repo root to run in
         | ( cd "$1" && bash bin/git-hooks/pre-push origin https://example.invalid/x.git ) 2>&1)
     printf '%s\n' "$out" >&2
     # 0 = the version gate stood down for this branch, which is the contract.
-    printf '%s' "$out" | grep -qF "$SKIP_MARKER"
+    # Here-string, NOT `printf | grep -qF`. grep -q early-exits on the first
+    # match and SIGPIPEs the producer; under `pipefail` that 141 propagates and
+    # flips this arm non-deterministically (#603). Review caught me writing that
+    # bug into the very fix that closes a false-signal issue.
+    grep -qF "$SKIP_MARKER" <<<"$out"
 }
 run_step() {  # $1 = checkout root to run in
     ( cd "$1" && BRANCH_NAME="$RP_BRANCH" GITHUB_OUTPUT="$FIX/gh-output" bash -eo pipefail "$FIX/step.sh" ) >&2
