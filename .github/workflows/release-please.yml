@@ -104,12 +104,13 @@ jobs:
 
       # Keep an open release PR mergeable (#3062).
       #
-      # `.release-please-config.json` sets exclude-paths: ["docs"], so a
-      # docs-only merge is correctly a no-op for the release ("PR #N remained
+      # `.release-please-config.json` excludes prose directories (adr, audits,
+      # catalog-currency-audit), but includes shipped docs/site code (#4066).
+      # Prose-only merges there are a no-op for the release ("PR #N remained
       # the same") and release-please does NOT force-push the release branch.
       # main moves on regardless, so the release PR drifts BEHIND — and main
       # requires up-to-date branches, which silently strands the release until
-      # someone runs update-branch by hand. A run of docs-only merges can hold
+      # someone runs update-branch by hand. A run of excluded prose merges can hold
       # a release indefinitely with nothing surfacing why.
       #
       # Idempotent and self-limiting: it only acts when the PR is actually

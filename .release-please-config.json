@@ -17,7 +17,7 @@
   "bootstrap-sha": "c5fbeca5028a6cb309cef3bb1f2d6cc7c2f2ddfa",
   "packages": {
     ".": {
-      "exclude-paths": ["docs"],
+      "exclude-paths": ["docs/adr", "docs/audits", "docs/catalog-currency-audit"],
       "extra-files": [
         {
           "type": "json",
