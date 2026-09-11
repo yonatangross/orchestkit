@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PR Playground: include shipped site fixes in releases</title>
+<meta name="description" content="Compare the old docs exclusion with explicit prose directories and see why the shipped site fix in #4057 now appears in release notes.">
+<style>
+:root{color-scheme:dark;--bg:#101820;--panel:#1a2934;--text:#edf4f7;--muted:#b5c8d2;--accent:#83e1bc}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:18px/1.6 system-ui,sans-serif}main{max-width:900px;margin:3rem auto;padding:1.5rem}h1{font-size:clamp(2rem,5vw,3.3rem);line-height:1.15}p,small{color:var(--muted)}section{background:var(--panel);padding:1.5rem;border-radius:12px;margin-block:1.5rem}select,button{font:inherit;background:var(--bg);color:var(--text);padding:.6rem;border:1px solid var(--muted);border-radius:6px}select:focus-visible,button:focus-visible{outline:3px solid var(--accent);outline-offset:3px}code{color:var(--accent);overflow-wrap:anywhere}.table{overflow-x:auto}table{width:100%;border-collapse:collapse;text-align:left}th,td{padding:.8rem;border-bottom:1px solid var(--muted)}caption{text-align:left;margin-bottom:1rem;font-weight:700}#entry{white-space:pre-wrap;overflow-wrap:anywhere}a{color:var(--accent)}button{cursor:pointer}
+</style>
+</head>
+<body><main>
+<small>PR Playground / Issue #4066</small>
+<h1>Site fixes belong<br>in release notes.</h1>
+<p>The shipped site lives under <code>docs/site/</code>. Excluding all of <code>docs/</code> hid the Vitest fix in #4057 along with prose-only changes.</p>
+<section>
+<label for="policy">Release exclusion policy </label>
+<select id="policy"><option value="after">After: explicit prose directories</option><option value="before">Before: all docs</option></select>
+<p id="paths"></p>
+<div class="table"><table><caption>One commit, one changed file</caption><thead><tr><th scope="col">Changed path</th><th scope="col">Release notes</th></tr></thead><tbody id="rows"></tbody></table></div>
+</section>
+<section aria-live="polite"><h2>The #4057 regression</h2><p id="entry"></p></section>
+<p>Release-please 17.6.0 matches directory prefixes. It does not expand globs or match individual file names. The three prose-only collections stay excluded; loose <code>docs/*.md</code> files and all shipped site content, including MDX, now remain eligible.</p>
+<p>This is an explanatory model. The accompanying unit test uses the actual release-please filter, parser and changelog writer with the complete #4057 file list, plus a separate site-only case.</p>
+<button id="copy" type="button">Copy test command</button> <span id="status" role="status"></span>
+<p><a href="https://github.com/yonatangross/orchestkit/issues/4066">Issue #4066</a> / <a href="https://github.com/yonatangross/orchestkit/pull/4057">Original fix #4057</a></p>
+</main>
+<script>
+const policies={before:['docs'],after:['docs/adr','docs/audits','docs/catalog-currency-audit']};
+const files=['docs/site/vitest.site.config.ts','docs/site/content/docs/index.mdx','docs/adr/caching-strategy.md','docs/audits/report.md','docs/catalog-currency-audit/GAPS.md','docs/observability.md'];
+const policy=document.querySelector('#policy');
+function render(){const paths=policies[policy.value];document.querySelector('#paths').textContent='exclude-paths: '+JSON.stringify(paths);const rows=document.querySelector('#rows');rows.replaceChildren();for(const file of files){const row=document.createElement('tr');const path=document.createElement('td');const result=document.createElement('td');path.textContent=file;result.textContent=paths.some(p=>file.startsWith(p+'/'))?'Excluded':'Included';row.append(path,result);rows.append(row);}document.querySelector('#entry').textContent=policy.value==='before'?'No entry: every changed file is under docs/.':'Bug Fixes: docs: restore Docs Site Build (ESM imports skip Vite resolution) (#4057)';}
+policy.addEventListener('change',render);render();
+document.querySelector('#copy').addEventListener('click',async()=>{const command='RELEASE_PLEASE_ROOT="$proof_dir" node --test --test-concurrency=1 tests/release-please/exclude-paths.test.cjs';try{await navigator.clipboard.writeText(command);document.querySelector('#status').textContent='Copied. Install the dependency using tests/release-please/README.md first.';}catch{document.querySelector('#status').textContent=command;}});
+</script>
+</body></html>

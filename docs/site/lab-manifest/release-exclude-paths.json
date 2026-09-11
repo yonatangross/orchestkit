@@ -1,0 +1,8 @@
+{
+  "slug": "release-exclude-paths",
+  "source": "docs/fix--4066-release-exclude-paths/playground.html",
+  "title": "PR Playground: include shipped site fixes in releases",
+  "description": "Compare release exclusions and see why #4057 now appears while prose collections stay excluded.",
+  "tags": ["releases", "docs", "regression"],
+  "date": "2026-09-11"
+}
