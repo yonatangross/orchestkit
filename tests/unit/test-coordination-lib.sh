@@ -16,7 +16,7 @@ TESTS_PASSED=0
 TESTS_FAILED=0
 
 # Test temp directory
-TEST_TEMP_DIR="/tmp/coordination-test-$$"
+TEST_TEMP_DIR="${TMPDIR:-/tmp}/coordination-test-$$"
 
 log_pass() {
     echo -e "  ${GREEN}✓${NC} $1"

@@ -1,0 +1,14 @@
+{
+  "slug": "the-hook-that-never-ran",
+  "source": "docs/fix--4024-prepush-runs-tests/the-hook-that-never-ran.html",
+  "title": "The hook that never ran",
+  "description": "pre-push exited 0 for every conventional-commit branch, so every feature push ran zero local tests while printing a validation banner. What was hiding in the dead runner, why the predicted eleven blockers were actually two, and the two self-corrections that found the real bug.",
+  "tags": [
+    "hooks",
+    "git",
+    "false-signal",
+    "ci",
+    "testing"
+  ],
+  "date": "2026-09-10"
+}
