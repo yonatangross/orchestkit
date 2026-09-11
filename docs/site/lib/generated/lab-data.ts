@@ -44,6 +44,20 @@ export const LAB_ENTRIES: LabEntry[] = [
     "sizeKb": 4
   },
   {
+    "slug": "the-if-key-that-never-was",
+    "title": "The if key that never was",
+    "description": "Move the two group-level if keys to the hook command level to reproduce the CC hooks schema verdict and understand the matcher widening the fix ships.",
+    "tags": [
+      "hooks",
+      "cc",
+      "schema"
+    ],
+    "date": "2026-09-11",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 7
+  },
+  {
     "slug": "the-guard-that-guarded-nothing",
     "title": "The guard that guarded nothing",
     "description": "A test swapped the real docs-site manifest to a stub analytics package and never put it back, so running the suite before committing could stage a no-op analytics for a live site. Then the guard written to catch it skipped whenever the tree was dirty, which is the only situation it was needed in.",
