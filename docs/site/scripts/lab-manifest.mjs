@@ -378,6 +378,20 @@ function cli(argv) {
   }
 }
 
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+// Main-module guard. Node resolves the ESM URL through symlinks, argv[1] is
+// whatever the caller typed, so a bare path.resolve() compare misses on any
+// symlinked invocation (macOS /tmp -> /private/tmp): the CLI silently never
+// ran and exited 0 with no output, a fail-open oracle (found in review of
+// #4064). realpath BOTH sides; an unresolvable argv[1] is not us.
+function isMainModule() {
+  if (!process.argv[1]) return false;
+  try {
+    return fs.realpathSync(process.argv[1]) === fs.realpathSync(fileURLToPath(import.meta.url));
+  } catch {
+    return false;
+  }
+}
+
+if (isMainModule()) {
   process.exit(cli(process.argv.slice(2)));
 }

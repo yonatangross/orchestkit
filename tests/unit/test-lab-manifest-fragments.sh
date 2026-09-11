@@ -262,6 +262,29 @@ else
   bad "removed-fragment: regenerate left the tree inconsistent"; cat "$OUT"
 fi
 
+# The CLI must run when invoked through a SYMLINKED path. The main-module
+# guard once compared path.resolve(argv[1]) to the realpath'd module URL, so
+# on macOS (/tmp -> /private/tmp) the CLI never ran and exited 0 with no
+# output: a fail-open oracle (review of #4064). Both arms here go through a
+# symlinked directory; the drifted tree is the removed-fragment shape.
+LINK="$WORK/link"
+ln -s "$REPO_ROOT" "$LINK"
+TOOL_VIA_LINK="$LINK/docs/site/scripts/lab-manifest.mjs"
+rc=0; node "$TOOL_VIA_LINK" --bogus >"$OUT" 2>&1 || rc=$?
+if [[ "$rc" == "2" ]] && grep -Fq "unknown argument: --bogus" "$OUT"; then
+  ok "symlink: --bogus through a symlinked path exits 2 and says so"
+else
+  bad "symlink: --bogus through a symlinked path exited $rc (0 means the CLI never ran)"; cat "$OUT"
+fi
+d="$(fresh symlink-drift)"
+rm "$d/docs/site/lab-manifest/zzz-from-b.json"
+rc=0; node "$TOOL_VIA_LINK" --check --repo "$d" >"$OUT" 2>&1 || rc=$?
+if [[ "$rc" == "1" ]] && grep -Fq 'carries "zzz-from-b" but no fragment' "$OUT"; then
+  ok "symlink: --check through a symlinked path exits 1 and names the drift"
+else
+  bad "symlink: --check through a symlinked path exited $rc without naming zzz-from-b"; cat "$OUT"
+fi
+
 # --check must never write. Snapshot every file (path + bytes) before and after.
 snapshot() { # <repo> -> digest
   node -e '
