@@ -5,6 +5,38 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.14](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.13...v10.0.0-beta.14) (2026-09-11)
+
+
+### Bug Fixes
+
+* **build:** strip devDependencies from the hooks manifest mirror ([#3971](https://github.com/yonatangross/orchestkit/issues/3971)) ([#4029](https://github.com/yonatangross/orchestkit/issues/4029)) ([7a04718](https://github.com/yonatangross/orchestkit/commit/7a0471858ab75b753ef7502d397f0537d5448629))
+* **hooks:** display-lint no longer nudges the shape it recommends ([#3936](https://github.com/yonatangross/orchestkit/issues/3936)) ([#4037](https://github.com/yonatangross/orchestkit/issues/4037)) ([378c6c1](https://github.com/yonatangross/orchestkit/commit/378c6c1e25c42995e68f42079ac1b40a14ed7725))
+* **hooks:** remove matcher-group if keys CC never supported ([#4062](https://github.com/yonatangross/orchestkit/issues/4062)) ([30e1be6](https://github.com/yonatangross/orchestkit/commit/30e1be6d1886220aafba830e1470a33f0cd37b2b))
+* **release:** stamp the codex and cursor plugin.json mirrors ([#4038](https://github.com/yonatangross/orchestkit/issues/4038)) ([#4046](https://github.com/yonatangross/orchestkit/issues/4046)) ([23d4ce3](https://github.com/yonatangross/orchestkit/commit/23d4ce317fcf3d8f98649ef89b93c63b0df35062))
+* **skills:** clear remaining allowed-tools exceptions ([#4043](https://github.com/yonatangross/orchestkit/issues/4043)) ([929fd91](https://github.com/yonatangross/orchestkit/commit/929fd9156f926129bd2db5fbd4bad4059fcc8ada))
+* **skills:** gate allowed-tools against a skill's own prose ([#4040](https://github.com/yonatangross/orchestkit/issues/4040)) ([7508648](https://github.com/yonatangross/orchestkit/commit/750864885abca3355bb127fdbc8b1e0421d6123e)), closes [#4008](https://github.com/yonatangross/orchestkit/issues/4008)
+* **tests:** pipe the remaining here-string in dead-generation guard ([#4061](https://github.com/yonatangross/orchestkit/issues/4061)) ([dc28a58](https://github.com/yonatangross/orchestkit/commit/dc28a58cdb179f464249af3c779a8710f9edadac))
+* **tests:** replace here-strings in dead-generation guard for bash 3.2 ([#4059](https://github.com/yonatangross/orchestkit/issues/4059)) ([4340d1e](https://github.com/yonatangross/orchestkit/commit/4340d1e12d4df09e83a4ba55ac51002618d68eef))
+* **tests:** stop two tests rewriting the working tree ([#4025](https://github.com/yonatangross/orchestkit/issues/4025)) ([#4047](https://github.com/yonatangross/orchestkit/issues/4047)) ([b21b4f6](https://github.com/yonatangross/orchestkit/commit/b21b4f6423fcf4d87871b70ce1251535573907e8))
+
+
+### Miscellaneous
+
+* **deps-dev:** bump @types/web ([#4034](https://github.com/yonatangross/orchestkit/issues/4034)) ([f13dd55](https://github.com/yonatangross/orchestkit/commit/f13dd553df1ff024a05b26a293dc75b6f57af195))
+* **deps:** bump the remotion group ([#4033](https://github.com/yonatangross/orchestkit/issues/4033)) ([982f16a](https://github.com/yonatangross/orchestkit/commit/982f16ab6d6d527321bcbbd6ece2b7ea1c8364e4))
+
+
+### Documentation
+
+* **doctor:** triage CC 2.1.264 to 2.1.268 into the compatibility matrix ([#4058](https://github.com/yonatangross/orchestkit/issues/4058)) ([192dbf8](https://github.com/yonatangross/orchestkit/commit/192dbf88ec62bef2d70665601743161ae41b32a7))
+* sync explore and review-pr to post-2.1.232 fork model ([#4063](https://github.com/yonatangross/orchestkit/issues/4063)) ([e13a9a3](https://github.com/yonatangross/orchestkit/commit/e13a9a37c29cbc3c2880e9ccff12005889f77097))
+
+
+### CI/CD
+
+* bump anthropics/claude-code-action in the github-actions group ([#4035](https://github.com/yonatangross/orchestkit/issues/4035)) ([00c45f7](https://github.com/yonatangross/orchestkit/commit/00c45f77bb1175172074846105d2cf8f04f046f4))
+
 ## [10.0.0-beta.13](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.12...v10.0.0-beta.13) (2026-09-10)
 
 
