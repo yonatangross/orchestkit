@@ -1,0 +1,13 @@
+{
+  "slug": "three-files-one-name",
+  "source": "docs/fix--4050-label-tests-by-path/three-files-one-name.html",
+  "title": "Three files, one name",
+  "description": "Three different tests share the basename test-fault-arms.sh, and the runner labelled every test by basename, so one job log carried three identical entries and a failure summary that named a file without saying which. A first-match grep read green while a different file of the same name was red. One line, twice, plus the assertion that would have proved nothing.",
+  "tags": [
+    "ci",
+    "false-signal",
+    "testing",
+    "triage"
+  ],
+  "date": "2026-09-11"
+}

@@ -9,6 +9,18 @@
 
 set -euo pipefail
 
+# Per-run private temp dir (#4026).
+#
+# These paths were hardcoded $ORK_TMP/<fixed-name>. Two problems, and the quiet one
+# is worse. The CC sandbox denies writes to /tmp, so the test fails locally with
+# "Operation not permitted". But the filename was also FIXED, so two concurrent
+# runs on one machine wrote and read the same file: a test could assert against
+# another run's output and PASS. $TMPDIR alone fixes only the first; mktemp
+# fixes both.
+ORK_TMP="$(mktemp -d "${TMPDIR:-/tmp}/ork-cctest.XXXXXX")"
+trap 'rm -rf "$ORK_TMP"' EXIT
+
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
@@ -78,12 +90,12 @@ done
 # Test 1: fixture with one new version → writes snapshot + gaps + args
 # ============================================================================
 CC_RELEASE_WATCH_FIXTURE=tests/fixtures/cc-changelogs/synthetic.md \
-  node scripts/cc-release-watch.mjs > /tmp/watch-out.txt 2>&1
+  node scripts/cc-release-watch.mjs > $ORK_TMP/watch-out.txt 2>&1
 
 if [ -f shared/cc-snapshots/2.1.251.md ]; then
   log_pass "Snapshot written for new version 2.1.251"
 else
-  log_fail "Snapshot missing" "expected shared/cc-snapshots/2.1.251.md (see /tmp/watch-out.txt)"
+  log_fail "Snapshot missing" "expected shared/cc-snapshots/2.1.251.md (see $ORK_TMP/watch-out.txt)"
 fi
 
 if [ -f shared/cc-snapshots/2.1.251.md ] && grep -qF "EnterWorktree" shared/cc-snapshots/2.1.251.md; then
@@ -134,12 +146,12 @@ fi
 # Test 2: idempotent — re-running with same fixture produces no-op
 # ============================================================================
 CC_RELEASE_WATCH_FIXTURE=tests/fixtures/cc-changelogs/synthetic.md \
-  node scripts/cc-release-watch.mjs > /tmp/watch-out2.txt 2>&1
+  node scripts/cc-release-watch.mjs > $ORK_TMP/watch-out2.txt 2>&1
 
-if grep -qF "nothing new" /tmp/watch-out2.txt; then
+if grep -qF "nothing new" $ORK_TMP/watch-out2.txt; then
   log_pass "Idempotent on second run with same fixture"
 else
-  log_fail "Idempotent check" "expected 'nothing new', got: $(tail -2 /tmp/watch-out2.txt)"
+  log_fail "Idempotent check" "expected 'nothing new', got: $(tail -2 $ORK_TMP/watch-out2.txt)"
 fi
 
 # After Test 1, the 2.1.251 gap entry is un-triaged (empty features) and
@@ -180,7 +192,7 @@ rm -f "shared/cc-snapshots/${RECOVERY_VERSION}.md"
 rm -f shared/cc-adoption-gaps.json shared/gh-issue-args.json
 
 CC_RELEASE_WATCH_FIXTURE=tests/fixtures/cc-changelogs/synthetic.md \
-  node scripts/cc-release-watch.mjs > /tmp/watch-recover.txt 2>&1
+  node scripts/cc-release-watch.mjs > $ORK_TMP/watch-recover.txt 2>&1
 
 if [ -f "shared/cc-snapshots/${RECOVERY_VERSION}.md" ]; then
   log_pass "Recovery: missing equal-version snapshot re-created on next run (${RECOVERY_VERSION})"
@@ -199,7 +211,7 @@ echo "# Claude Code ${RECOVERY_VERSION} (placeholder for test)" > "shared/cc-sna
 rm -f shared/cc-snapshots/2.1.998.md shared/cc-adoption-gaps.json shared/gh-issue-args.json
 
 CC_RELEASE_WATCH_FIXTURE=tests/fixtures/cc-changelogs/double-dash.md \
-  node scripts/cc-release-watch.mjs > /tmp/watch-double-dash.txt 2>&1
+  node scripts/cc-release-watch.mjs > $ORK_TMP/watch-double-dash.txt 2>&1
 
 if [ -f shared/cc-snapshots/2.1.998.md ]; then
   log_pass "Double-dash fixture: snapshot written for 2.1.998"
@@ -250,12 +262,12 @@ rm -f shared/cc-snapshots/2.1.13[345].md shared/cc-adoption-gaps.json shared/gh-
 echo "# Claude Code 2.1.135 (placeholder)" > shared/cc-snapshots/2.1.135.md
 
 CC_RELEASE_WATCH_FIXTURE=tests/fixtures/cc-changelogs/support-latest-ahead.md \
-  node scripts/cc-release-watch.mjs > /tmp/watch-w1b.txt 2>&1
+  node scripts/cc-release-watch.mjs > $ORK_TMP/watch-w1b.txt 2>&1
 
 if [ -f shared/cc-snapshots/2.1.133.md ] && [ -f shared/cc-snapshots/2.1.134.md ]; then
   log_pass "W1b: missing-on-disk versions older than nothing-vs-floor are snapshotted"
 else
-  log_fail "W1b snapshot recovery" "expected 2.1.133.md AND 2.1.134.md to be re-snapshotted (see /tmp/watch-w1b.txt)"
+  log_fail "W1b snapshot recovery" "expected 2.1.133.md AND 2.1.134.md to be re-snapshotted (see $ORK_TMP/watch-w1b.txt)"
 fi
 
 # 2.1.135 was already snapshotted — must remain a no-op for it (W1b filter
@@ -293,7 +305,7 @@ echo "# Claude Code 2.1.135 (placeholder)" > shared/cc-snapshots/2.1.135.md
 echo "# Claude Code 2.1.134 (placeholder)" > shared/cc-snapshots/2.1.134.md
 
 CC_RELEASE_WATCH_FIXTURE=tests/fixtures/cc-changelogs/support-latest-ahead.md \
-  node scripts/cc-release-watch.mjs --reissue-existing 2.1.133 > /tmp/watch-w1c.txt 2>&1
+  node scripts/cc-release-watch.mjs --reissue-existing 2.1.133 > $ORK_TMP/watch-w1c.txt 2>&1
 
 if grep -qF "CUSTOM_BODY_THAT_SHOULD_NOT_BE_OVERWRITTEN" shared/cc-snapshots/2.1.133.md; then
   log_pass "W1c: --reissue-existing keeps existing snapshot body"
@@ -306,7 +318,7 @@ if [ -f shared/cc-adoption-gaps.json ]; then
   if [ "$HAS_133" = "2.1.133" ]; then
     log_pass "W1c: --reissue-existing re-emits gap entry for 2.1.133"
   else
-    log_fail "W1c: gap not re-emitted" "expected 2.1.133, got '$HAS_133' (cat /tmp/watch-w1c.txt)"
+    log_fail "W1c: gap not re-emitted" "expected 2.1.133, got '$HAS_133' (cat $ORK_TMP/watch-w1c.txt)"
   fi
   EMPTY_FEATURES=$(jq -r '.[] | select(.version=="2.1.133") | .features | length' shared/cc-adoption-gaps.json)
   if [ "$EMPTY_FEATURES" = "0" ]; then
@@ -316,7 +328,7 @@ if [ -f shared/cc-adoption-gaps.json ]; then
   fi
 fi
 
-if grep -qF "reissue: " /tmp/watch-w1c.txt; then
+if grep -qF "reissue: " $ORK_TMP/watch-w1c.txt; then
   log_pass "W1c: explicit reissue log emitted"
 else
   log_fail "W1c log" "expected 'reissue:' line in stdout"
@@ -325,7 +337,7 @@ fi
 # Comma-separated form
 rm -f shared/cc-adoption-gaps.json shared/gh-issue-args.json
 CC_RELEASE_WATCH_FIXTURE=tests/fixtures/cc-changelogs/support-latest-ahead.md \
-  node scripts/cc-release-watch.mjs --reissue-existing 2.1.133,2.1.134 > /tmp/watch-w1c2.txt 2>&1
+  node scripts/cc-release-watch.mjs --reissue-existing 2.1.133,2.1.134 > $ORK_TMP/watch-w1c2.txt 2>&1
 
 if [ -f shared/cc-adoption-gaps.json ]; then
   COUNT=$(jq -r '[.[] | select(.version=="2.1.133" or .version=="2.1.134")] | length' shared/cc-adoption-gaps.json)
@@ -343,14 +355,14 @@ rm -f shared/cc-snapshots/2.1.13[345].md shared/cc-adoption-gaps.json shared/gh-
 # Test 8: missing fixture path errors cleanly (exit 1)
 # ============================================================================
 EXIT=0
-CC_RELEASE_WATCH_FIXTURE=/nonexistent/path.md node scripts/cc-release-watch.mjs > /tmp/watch-err.txt 2>&1 || EXIT=$?
+CC_RELEASE_WATCH_FIXTURE=/nonexistent/path.md node scripts/cc-release-watch.mjs > $ORK_TMP/watch-err.txt 2>&1 || EXIT=$?
 if [ "$EXIT" = "0" ]; then
   log_fail "Missing fixture handling" "script returned 0 on missing fixture"
 else
-  if grep -qF "fixture not found" /tmp/watch-err.txt; then
+  if grep -qF "fixture not found" $ORK_TMP/watch-err.txt; then
     log_pass "Missing fixture errors with clear message"
   else
-    log_fail "Missing fixture message" "expected 'fixture not found', got: $(cat /tmp/watch-err.txt)"
+    log_fail "Missing fixture message" "expected 'fixture not found', got: $(cat $ORK_TMP/watch-err.txt)"
   fi
 fi
 
@@ -367,12 +379,12 @@ for v in 2.1.126 2.1.127 2.1.128 2.1.132 2.1.138 2.1.251; do
 done
 echo '[{"version":"2.1.901","parse_failed":true,"features":[],"raw_bullets_count":3}]' > shared/cc-adoption-gaps.json
 CC_RELEASE_WATCH_FIXTURE=tests/fixtures/cc-changelogs/synthetic.md \
-  node scripts/cc-release-watch.mjs > /tmp/watch-carry1.txt 2>&1
+  node scripts/cc-release-watch.mjs > $ORK_TMP/watch-carry1.txt 2>&1
 CARRIED=$(jq -r '[.[] | select(.version=="2.1.901" and .parse_failed==true)] | length' shared/cc-adoption-gaps.json)
 if [ "$CARRIED" = "1" ]; then
   log_pass "carry-forward (nothing-new): parse_failed entry preserved for retry"
 else
-  log_fail "carry-forward (nothing-new)" "expected 2.1.901 preserved, got $CARRIED (see /tmp/watch-carry1.txt)"
+  log_fail "carry-forward (nothing-new)" "expected 2.1.901 preserved, got $CARRIED (see $ORK_TMP/watch-carry1.txt)"
 fi
 
 # ============================================================================
@@ -386,13 +398,13 @@ for v in 2.1.126 2.1.127 2.1.128 2.1.132 2.1.138; do
 done
 echo '[{"version":"2.1.901","parse_failed":true,"features":[],"raw_bullets_count":3}]' > shared/cc-adoption-gaps.json
 CC_RELEASE_WATCH_FIXTURE=tests/fixtures/cc-changelogs/synthetic.md \
-  node scripts/cc-release-watch.mjs > /tmp/watch-carry2.txt 2>&1
+  node scripts/cc-release-watch.mjs > $ORK_TMP/watch-carry2.txt 2>&1
 NEWN=$(jq -r '[.[] | select(.version=="2.1.251")] | length' shared/cc-adoption-gaps.json)
 CARRIED2=$(jq -r '[.[] | select(.version=="2.1.901" and .parse_failed==true)] | length' shared/cc-adoption-gaps.json)
 if [ "$NEWN" = "1" ] && [ "$CARRIED2" = "1" ]; then
   log_pass "carry-forward (new-version): stuck entry rides alongside new 2.1.251"
 else
-  log_fail "carry-forward (new-version)" "expected new 2.1.251 + carried 2.1.901, got new=$NEWN carried=$CARRIED2 (see /tmp/watch-carry2.txt)"
+  log_fail "carry-forward (new-version)" "expected new 2.1.251 + carried 2.1.901, got new=$NEWN carried=$CARRIED2 (see $ORK_TMP/watch-carry2.txt)"
 fi
 rm -rf shared/cc-snapshots/*.md shared/cc-adoption-gaps.json shared/gh-issue-args.json
 
@@ -411,13 +423,13 @@ done
 # 2.1.902: triaged (parse_failed false, one feature), NOT yet filed (no issues_filed_at).
 echo '[{"version":"2.1.902","parse_failed":false,"features":[{"feature_slug":"x","gap_score":20}],"raw_bullets_count":1}]' > shared/cc-adoption-gaps.json
 CC_RELEASE_WATCH_FIXTURE=tests/fixtures/cc-changelogs/synthetic.md \
-  node scripts/cc-release-watch.mjs > /tmp/watch-carry3.txt 2>&1
+  node scripts/cc-release-watch.mjs > $ORK_TMP/watch-carry3.txt 2>&1
 SURVIVED=$(jq -r '[.[] | select(.version=="2.1.902")] | length' shared/cc-adoption-gaps.json)
 FEATS=$(jq -r '[.[] | select(.version=="2.1.902") | .features[]] | length' shared/cc-adoption-gaps.json)
 if [ "$SURVIVED" = "1" ] && [ "$FEATS" = "1" ]; then
   log_pass "carry-forward (triaged-unfiled): un-stamped triaged entry + features survive new version (#2084 regression)"
 else
-  log_fail "carry-forward (triaged-unfiled)" "expected 2.1.902 + 1 feature preserved, got survived=$SURVIVED feats=$FEATS (see /tmp/watch-carry3.txt)"
+  log_fail "carry-forward (triaged-unfiled)" "expected 2.1.902 + 1 feature preserved, got survived=$SURVIVED feats=$FEATS (see $ORK_TMP/watch-carry3.txt)"
 fi
 
 # ============================================================================
@@ -433,12 +445,12 @@ for v in 2.1.126 2.1.127 2.1.128 2.1.132 2.1.138; do
 done
 echo '[{"version":"2.1.903","parse_failed":false,"features":[{"feature_slug":"y","gap_score":20}],"issues_filed_at":"2026-05-29T00:00:00Z","raw_bullets_count":1}]' > shared/cc-adoption-gaps.json
 CC_RELEASE_WATCH_FIXTURE=tests/fixtures/cc-changelogs/synthetic.md \
-  node scripts/cc-release-watch.mjs > /tmp/watch-carry4.txt 2>&1
+  node scripts/cc-release-watch.mjs > $ORK_TMP/watch-carry4.txt 2>&1
 PRUNED=$(jq -r '[.[] | select(.version=="2.1.903")] | length' shared/cc-adoption-gaps.json)
 if [ "$PRUNED" = "0" ]; then
   log_pass "prune-filed: issues_filed_at-stamped entry dropped on new-version run (bounded + no re-file)"
 else
-  log_fail "prune-filed" "expected 2.1.903 pruned, got $PRUNED (see /tmp/watch-carry4.txt)"
+  log_fail "prune-filed" "expected 2.1.903 pruned, got $PRUNED (see $ORK_TMP/watch-carry4.txt)"
 fi
 rm -rf shared/cc-snapshots/*.md shared/cc-adoption-gaps.json shared/gh-issue-args.json
 
@@ -450,16 +462,16 @@ rm -rf shared/cc-snapshots/*.md shared/cc-adoption-gaps.json shared/gh-issue-arg
 rm -rf shared/cc-snapshots/*.md shared/cc-adoption-gaps.json shared/gh-issue-args.json
 mkdir -p shared/cc-snapshots
 LK=$(jq -r '.latest_known // .latest' shared/cc-support.json)
-STALE_FIXTURE=$(mktemp /tmp/cc-stale-fixture.XXXXXX)
+STALE_FIXTURE=$(mktemp $ORK_TMP/cc-stale-fixture.XXXXXX)
 printf '# Changelog\n\n## 9.9.903\n\n- synthetic newest\n\n## 9.9.902\n\n- synthetic\n\n## 9.9.901\n\n- synthetic\n\n## %s\n\n- latest_known anchor\n' "$LK" > "$STALE_FIXTURE"
 GHOUT=$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")
 EXIT=0
 CC_RELEASE_WATCH_FIXTURE="$STALE_FIXTURE" GITHUB_OUTPUT="$GHOUT" \
-  node scripts/cc-release-watch.mjs > /tmp/watch-stale.txt 2>&1 || EXIT=$?
-if [ "$EXIT" = "0" ] && grep -qF "STALE: upstream head 9.9.903 is 3 releases ahead of latest_known $LK" /tmp/watch-stale.txt; then
+  node scripts/cc-release-watch.mjs > $ORK_TMP/watch-stale.txt 2>&1 || EXIT=$?
+if [ "$EXIT" = "0" ] && grep -qF "STALE: upstream head 9.9.903 is 3 releases ahead of latest_known $LK" $ORK_TMP/watch-stale.txt; then
   log_pass "staleness: console STALE line emitted, exit 0 preserved"
 else
-  log_fail "staleness console" "expected STALE line + exit 0, got exit=$EXIT (see /tmp/watch-stale.txt)"
+  log_fail "staleness console" "expected STALE line + exit 0, got exit=$EXIT (see $ORK_TMP/watch-stale.txt)"
 fi
 if grep -qF "stale=true" "$GHOUT" && grep -qF "stale_count=3" "$GHOUT" && grep -qF "stale_latest_known=$LK" "$GHOUT"; then
   log_pass "staleness: GITHUB_OUTPUT signal (stale=true, count=3, latest_known)"
@@ -476,21 +488,21 @@ rm -f "$STALE_FIXTURE" "$GHOUT" shared/cc-snapshots/9.9.90*.md shared/cc-adoptio
 rm -rf shared/cc-snapshots/*.md shared/cc-adoption-gaps.json shared/gh-issue-args.json
 mkdir -p shared/cc-snapshots
 LK=$(jq -r '.latest_known // .latest' shared/cc-support.json)
-STALE_FIXTURE=$(mktemp /tmp/cc-stale-fixture.XXXXXX)
+STALE_FIXTURE=$(mktemp $ORK_TMP/cc-stale-fixture.XXXXXX)
 printf '# Changelog\n\n## 9.9.902\n\n- synthetic newest\n\n## 9.9.901\n\n- synthetic\n\n## %s\n\n- latest_known anchor\n' "$LK" > "$STALE_FIXTURE"
 GHOUT=$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")
 EXIT=0
 CC_RELEASE_WATCH_FIXTURE="$STALE_FIXTURE" GITHUB_OUTPUT="$GHOUT" \
-  node scripts/cc-release-watch.mjs > /tmp/watch-stale2.txt 2>&1 || EXIT=$?
-if [ "$EXIT" = "0" ] && ! grep -qF "stale=true" "$GHOUT" && ! grep -qF "STALE:" /tmp/watch-stale2.txt; then
+  node scripts/cc-release-watch.mjs > $ORK_TMP/watch-stale2.txt 2>&1 || EXIT=$?
+if [ "$EXIT" = "0" ] && ! grep -qF "stale=true" "$GHOUT" && ! grep -qF "STALE:" $ORK_TMP/watch-stale2.txt; then
   log_pass "staleness boundary: exactly 2 ahead does NOT alarm (threshold is >2)"
 else
-  log_fail "staleness boundary" "expected no alarm at exactly 2 ahead, got exit=$EXIT GHOUT=$(cat "$GHOUT") (see /tmp/watch-stale2.txt)"
+  log_fail "staleness boundary" "expected no alarm at exactly 2 ahead, got exit=$EXIT GHOUT=$(cat "$GHOUT") (see $ORK_TMP/watch-stale2.txt)"
 fi
 if [ -f shared/cc-snapshots/9.9.902.md ]; then
   log_pass "staleness boundary: normal snapshotting still happens (9.9.902.md written)"
 else
-  log_fail "staleness boundary snapshot" "expected shared/cc-snapshots/9.9.902.md (see /tmp/watch-stale2.txt)"
+  log_fail "staleness boundary snapshot" "expected shared/cc-snapshots/9.9.902.md (see $ORK_TMP/watch-stale2.txt)"
 fi
 rm -f "$STALE_FIXTURE" "$GHOUT" shared/cc-snapshots/9.9.90*.md shared/cc-adoption-gaps.json shared/gh-issue-args.json
 
@@ -500,16 +512,16 @@ rm -f "$STALE_FIXTURE" "$GHOUT" shared/cc-snapshots/9.9.90*.md shared/cc-adoptio
 # ============================================================================
 rm -rf shared/cc-snapshots/*.md shared/cc-adoption-gaps.json shared/gh-issue-args.json
 mkdir -p shared/cc-snapshots
-STALE_FIXTURE=$(mktemp /tmp/cc-stale-fixture.XXXXXX)
+STALE_FIXTURE=$(mktemp $ORK_TMP/cc-stale-fixture.XXXXXX)
 printf '# Changelog\n\n## 9.9.904\n\n- synthetic newest\n\n## 9.9.903\n\n- synthetic\n\n## 9.9.902\n\n- synthetic\n\n## 9.9.901\n\n- synthetic\n' > "$STALE_FIXTURE"
 GHOUT=$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")
 EXIT=0
 CC_RELEASE_WATCH_FIXTURE="$STALE_FIXTURE" GITHUB_OUTPUT="$GHOUT" \
-  node scripts/cc-release-watch.mjs > /tmp/watch-stale3.txt 2>&1 || EXIT=$?
+  node scripts/cc-release-watch.mjs > $ORK_TMP/watch-stale3.txt 2>&1 || EXIT=$?
 if [ "$EXIT" = "0" ] && grep -qF "stale=true" "$GHOUT" && grep -qF "stale_count=4" "$GHOUT"; then
   log_pass "staleness fail-loud: absent latest_known counts the whole list (stale_count=4)"
 else
-  log_fail "staleness fail-loud" "expected stale=true + stale_count=4, got exit=$EXIT GHOUT=$(cat "$GHOUT") (see /tmp/watch-stale3.txt)"
+  log_fail "staleness fail-loud" "expected stale=true + stale_count=4, got exit=$EXIT GHOUT=$(cat "$GHOUT") (see $ORK_TMP/watch-stale3.txt)"
 fi
 rm -f "$STALE_FIXTURE" "$GHOUT" shared/cc-snapshots/9.9.90*.md shared/cc-adoption-gaps.json shared/gh-issue-args.json
 
@@ -521,16 +533,16 @@ rm -f "$STALE_FIXTURE" "$GHOUT" shared/cc-snapshots/9.9.90*.md shared/cc-adoptio
 # ============================================================================
 rm -rf shared/cc-snapshots/*.md shared/cc-adoption-gaps.json shared/gh-issue-args.json
 mkdir -p shared/cc-snapshots
-GAP_FIXTURE=$(mktemp /tmp/cc-gap-fixture.XXXXXX)
+GAP_FIXTURE=$(mktemp $ORK_TMP/cc-gap-fixture.XXXXXX)
 printf '# Changelog\n\n## 2.1.176\n\n- synthetic newest changelogged\n' > "$GAP_FIXTURE"
 GHOUT=$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")
 EXIT=0
 CC_RELEASE_WATCH_FIXTURE="$GAP_FIXTURE" CC_PUBLISHED_VERSION=2.1.177 GITHUB_OUTPUT="$GHOUT" \
-  node scripts/cc-release-watch.mjs > /tmp/watch-gap.txt 2>&1 || EXIT=$?
-if [ "$EXIT" = "0" ] && grep -qF "published CC 2.1.177 is ahead of the newest changelogged version 2.1.176" /tmp/watch-gap.txt; then
+  node scripts/cc-release-watch.mjs > $ORK_TMP/watch-gap.txt 2>&1 || EXIT=$?
+if [ "$EXIT" = "0" ] && grep -qF "published CC 2.1.177 is ahead of the newest changelogged version 2.1.176" $ORK_TMP/watch-gap.txt; then
   log_pass "binary-gap: NOTE emitted when published 2.1.177 > changelog 2.1.176"
 else
-  log_fail "binary-gap note" "expected the ahead-of-changelog NOTE + exit 0, got exit=$EXIT (see /tmp/watch-gap.txt)"
+  log_fail "binary-gap note" "expected the ahead-of-changelog NOTE + exit 0, got exit=$EXIT (see $ORK_TMP/watch-gap.txt)"
 fi
 if ! grep -qF "stale=true" "$GHOUT"; then
   log_pass "binary-gap: NOTE does NOT emit a stale signal (visibility only, not the alarm)"
@@ -545,15 +557,15 @@ rm -f "$GAP_FIXTURE" "$GHOUT" shared/cc-snapshots/2.1.17*.md shared/cc-adoption-
 # ============================================================================
 rm -rf shared/cc-snapshots/*.md shared/cc-adoption-gaps.json shared/gh-issue-args.json
 mkdir -p shared/cc-snapshots
-GAP_FIXTURE=$(mktemp /tmp/cc-gap-fixture.XXXXXX)
+GAP_FIXTURE=$(mktemp $ORK_TMP/cc-gap-fixture.XXXXXX)
 printf '# Changelog\n\n## 2.1.176\n\n- synthetic newest changelogged\n' > "$GAP_FIXTURE"
 EXIT=0
 CC_RELEASE_WATCH_FIXTURE="$GAP_FIXTURE" CC_PUBLISHED_VERSION=2.1.176 \
-  node scripts/cc-release-watch.mjs > /tmp/watch-gap2.txt 2>&1 || EXIT=$?
-if [ "$EXIT" = "0" ] && ! grep -qF "is ahead of the newest changelogged" /tmp/watch-gap2.txt; then
+  node scripts/cc-release-watch.mjs > $ORK_TMP/watch-gap2.txt 2>&1 || EXIT=$?
+if [ "$EXIT" = "0" ] && ! grep -qF "is ahead of the newest changelogged" $ORK_TMP/watch-gap2.txt; then
   log_pass "binary-gap: silent when published == newest changelogged (caught up)"
 else
-  log_fail "binary-gap boundary" "expected no NOTE when equal, got exit=$EXIT (see /tmp/watch-gap2.txt)"
+  log_fail "binary-gap boundary" "expected no NOTE when equal, got exit=$EXIT (see $ORK_TMP/watch-gap2.txt)"
 fi
 rm -f "$GAP_FIXTURE" shared/cc-snapshots/2.1.17*.md shared/cc-adoption-gaps.json shared/gh-issue-args.json
 
