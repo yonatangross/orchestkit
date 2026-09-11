@@ -1,0 +1,12 @@
+{
+  "slug": "next-navigation-vitest-resolution",
+  "source": "docs/fix--docs-site-next-nav-3931/next-navigation-resolution.html",
+  "title": "One ESM import, two resolvers",
+  "description": "Choose the resolver to see why the docs build accepts analytics 1.2.0 while Vitest needs to inline the package until its upstream build is corrected.",
+  "tags": [
+    "vitest",
+    "esm",
+    "analytics"
+  ],
+  "date": "2026-09-05"
+}

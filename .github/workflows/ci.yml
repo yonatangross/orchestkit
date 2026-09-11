@@ -97,7 +97,11 @@ jobs:
       # enforces the other half: a feature PR must not carry a dist change.
       - name: Check for uncommitted build changes
         run: |
-          GENERATED=(plugins/ ':!plugins/ork/hooks/dist' README.md docs/site/lib/generated/ plugin.json)
+          # docs/site/public/lab/ joined 2026-09-11 (#4049): lab-manifest.mjs now
+          # owns that directory as a pure function of the fragments (it deletes
+          # an orphan copy on rebuild), so a page edited without a rebuild, or a
+          # copy left behind by a removed fragment, is drift like any other.
+          GENERATED=(plugins/ ':!plugins/ork/hooks/dist' README.md docs/site/lib/generated/ docs/site/public/lab/ plugin.json)
           # `git diff` does not error on a pathspec that matches nothing, so a
           # roster entry naming a moved or deleted path contributed nothing and
           # the gate stayed green (gate-fault-arm audit 2026-09-06). Every
@@ -121,6 +125,16 @@ jobs:
       # bundles must equal a fresh build (the step above just built one), the
       # one place they are allowed, and required, to change. Pushes to main are
       # not gated: main's bundles are stale by design between releases.
+      # The Lab aggregate is generated from one fragment per entry
+      # (docs/site/lab-manifest/<slug>.json, #4049). The drift step above
+      # already proves lab-data.ts equals a fresh build; this one is the SET
+      # check the issue asked to keep: every fragment is in lab-data.ts and in
+      # public/lab/, nothing is there without a fragment, and the legacy
+      # single-file manifest has not been resurrected by a stale rebase. It
+      # reads the tree and writes nothing, so it is safe on the merge ref.
+      - name: Check Lab manifest set (#4049)
+        run: node docs/site/scripts/lab-manifest.mjs --check
+
       - name: Check hook bundles are release-owned (#3578)
         if: github.event_name == 'pull_request'
         env:
@@ -440,23 +454,24 @@ jobs:
           set -uo pipefail
           BRANCH_DIR=$(echo "$HEAD_REF" | sed 's|/|--|g')
           DOCS_DIR="docs/${BRANCH_DIR}"
-          MANIFEST="docs/site/lab-manifest.json"
+          MANIFEST="docs/site/lab-manifest"
 
-          if [ ! -f "$MANIFEST" ]; then
-            echo "::error::${MANIFEST} is missing; cannot verify the playground is publishable."
+          if [ ! -d "$MANIFEST" ]; then
+            echo "::error::${MANIFEST}/ is missing; cannot verify the playground is publishable."
             exit 1
           fi
 
           # Every .html in the branch's playground dir must be registered as the
-          # `source` of a manifest entry. Comparing against the manifest rather
-          # than against public/lab keeps the check honest when the generator
-          # has not been run yet: an unregistered page cannot be generated.
+          # `source` of a manifest fragment (one docs/site/lab-manifest/<slug>.json
+          # per entry, #4049). Comparing against the fragments rather than
+          # against public/lab keeps the check honest when the generator has
+          # not been run yet: an unregistered page cannot be generated.
           # Dump every registered source to a file, then compare against the
           # FILE. Keeping python to one line matters: an unindented heredoc
           # inside a `run: |` block terminates the YAML block scalar, which
           # breaks the whole workflow rather than this step.
           SOURCES="${RUNNER_TEMP:-/tmp}/lab-sources.txt"
-          python3 -c "import json;print('\n'.join(e.get('source','') for e in json.load(open('${MANIFEST}')).get('entries',[])))" > "$SOURCES"
+          python3 -c "import json,glob;print('\n'.join(json.load(open(f)).get('source','') for f in sorted(glob.glob('${MANIFEST}/*.json'))))" > "$SOURCES"
           echo "::notice::$(awk 'NF{n++} END{print n+0}' "$SOURCES") entries registered in the Lab manifest"
 
           UNREGISTERED=0
@@ -482,14 +497,14 @@ jobs:
           fi
 
           if [ "$UNREGISTERED" -gt 0 ]; then
-            echo "::error::${UNREGISTERED} playground file(s) are not registered in ${MANIFEST}."
+            echo "::error::${UNREGISTERED} playground file(s) are not registered in ${MANIFEST}/."
             echo "::error::A path in the PR body is not viewable: GitHub does not render"
             echo "::error::repo HTML, and a branch blob link dies when the branch is deleted"
             echo "::error::and again when prune-playgrounds archives the directory off main."
             echo "::error::Fix, two steps:"
-            echo "::error::  1. add an entry to ${MANIFEST} with"
-            echo "::error::     \"source\": \"<the path above>\" plus slug/title/description/tags/date"
-            echo "::error::  2. run: node docs/site/scripts/generate-lab-data.mjs"
+            echo "::error::  1. add ${MANIFEST}/<slug>.json (one entry per file) with"
+            echo "::error::     \"slug\": \"<slug>\", \"source\": \"<the path above>\", title, description, tags, date"
+            echo "::error::  2. run: npm run build (regenerates lab-data.ts and public/lab/)"
             echo "::error::Then link it in the PR body as"
             echo "::error::  https://orchestkit.yonyon.ai/lab/<slug>.html"
             echo "::error::(the .html suffix is required; /lab/<slug> returns 404)"
@@ -518,10 +533,10 @@ jobs:
             echo "::error::of this site's CSP applied. A branch-scoped blob link also dies"
             echo "::error::when the branch is deleted, and again when prune-playgrounds"
             echo "::error::archives the directory off main."
-            echo "::error::To publish a playground for real, add it to"
-            echo "::error::docs/site/lab-manifest.json and run"
-            echo "::error::docs/site/scripts/generate-lab-data.mjs — it lands on our own"
-            echo "::error::origin under the /lab CSP and appears at /docs/showcase/lab."
+            echo "::error::To publish a playground for real, add"
+            echo "::error::docs/site/lab-manifest/<slug>.json and run npm run build."
+            echo "::error::It lands on our own origin under the /lab CSP and appears"
+            echo "::error::at /docs/showcase/lab."
             exit 1
           fi
           echo "::notice::PR body contains playground reference"

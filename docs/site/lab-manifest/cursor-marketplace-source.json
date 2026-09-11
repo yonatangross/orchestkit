@@ -1,0 +1,12 @@
+{
+  "slug": "cursor-marketplace-source",
+  "source": "docs/fix--cursor-marketplace-source/import.html",
+  "title": "Cursor Import Marketplace rejects ./plugins/ork",
+  "description": "hq-ext imported because its source is the repo root. orchestkit listed ./plugins/ork, which Cursor rejects as invalid_argument. Click the string Cursor saw and see the verdict. Enable the plugin id ork after import.",
+  "tags": [
+    "cursor",
+    "plugins",
+    "explainer"
+  ],
+  "date": "2026-08-25"
+}

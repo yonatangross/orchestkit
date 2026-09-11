@@ -61,13 +61,19 @@ function LabCard({ entry }: { entry: LabEntry }) {
   );
 }
 
+// lab-data.ts is sorted by slug so concurrent PRs merge textually (#4049).
+// Newest first is a display concern, so it is applied here, once, at render.
+const byNewest = (a: LabEntry, b: LabEntry) =>
+  a.date === b.date ? a.slug.localeCompare(b.slug) : a.date < b.date ? 1 : -1;
+
 export function LabGallery() {
   const [tag, setTag] = useState<string | null>(null);
+  const ordered = useMemo(() => [...LAB_ENTRIES].sort(byNewest), []);
   const tags = useMemo(
     () => [...new Set(LAB_ENTRIES.flatMap((e) => e.tags))].sort(),
     [],
   );
-  const shown = tag ? LAB_ENTRIES.filter((e) => e.tags.includes(tag)) : LAB_ENTRIES;
+  const shown = tag ? ordered.filter((e) => e.tags.includes(tag)) : ordered;
 
   return (
     <div>

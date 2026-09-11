@@ -157,7 +157,7 @@ function formatReport(pages: StrayPage[]): string {
   ];
   if (pages.length > shown.length) lines.push(`  ...and ${pages.length - shown.length} more`);
   lines.push(
-    'Resolve each one: commit it on a branch (a Lab page also needs a docs/site/lab-manifest.json entry, then `node docs/site/scripts/generate-lab-data.mjs`), or delete it.',
+    'Resolve each one: commit it on a branch (a Lab page also needs a docs/site/lab-manifest/<slug>.json fragment, then `npm run build`), or delete it.',
     'Opt out with ORK_NO_STRAY_PLAYGROUND_CHECK=1; threshold via ORK_STRAY_PLAYGROUND_MIN_AGE_HOURS.',
   );
   return lines.join('\n');

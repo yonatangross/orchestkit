@@ -1,0 +1,12 @@
+{
+  "slug": "ork-cursor-adapter",
+  "source": "docs/feat--ork-cursor-adapter/adapter.html",
+  "title": "OrchestKit for Cursor — the same plugin, not a five-skill fork",
+  "description": "Cursor loads Agent Plugins. The marketplace points at ork, the same plugin Claude Code installs. Claude hooks are omitted because they need CLAUDE_PLUGIN_ROOT. Click install, skills, Task, and the third-party-toggle leak to see what actually loads.",
+  "tags": [
+    "cursor",
+    "plugins",
+    "explainer"
+  ],
+  "date": "2026-08-25"
+}

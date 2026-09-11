@@ -1,0 +1,13 @@
+{
+  "slug": "nudging-its-own-advice",
+  "source": "docs/fix--3936-display-lint-plumbing/nudging-its-own-advice.html",
+  "title": "The lint that nudged its own advice",
+  "description": "display-lint told a three-stage script-file command to write itself as a script and run that, which it was already doing. The exemption only fired for a single stage, and under $TMPDIR on macOS length was measuring path verbosity rather than clutter. The fix requires every stage to be plumbing, which keeps the anti-bypass property the old clause protected.",
+  "tags": [
+    "hooks",
+    "display-lint",
+    "false-signal",
+    "developer-experience"
+  ],
+  "date": "2026-09-10"
+}

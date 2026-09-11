@@ -1,0 +1,12 @@
+{
+  "slug": "two-prs-one-lab",
+  "source": "docs/fix--4049-lab-manifest-conflict-free/two-prs-one-lab.html",
+  "title": "Two PRs, one Lab: why the manifest conflicted and what stops it",
+  "description": "Pick two playground slugs and dates, then watch a three-way merge under the old single manifest, a date-sorted aggregate, and the per-entry fragments that replaced them. See which layout conflicts and what --theirs silently drops.",
+  "tags": [
+    "ci",
+    "git",
+    "docs"
+  ],
+  "date": "2026-09-11"
+}

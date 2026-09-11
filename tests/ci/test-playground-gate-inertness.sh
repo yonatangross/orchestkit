@@ -90,7 +90,7 @@ check "docs/site/app/page.tsx"                 yes "docs-site app code is NOT in
 section "6. Every gated step hangs off ONE decision (no copy-paste drift)"
 # 2 -> 3 (#3745): added "Check playground is published to the Lab", which
 # asserts each HTML file in the branch's playground dir is registered as a
-# `source` in docs/site/lab-manifest.json. The point of this assertion is not
+# `source` in a docs/site/lab-manifest/<slug>.json fragment. The point of this assertion is not
 # the number: it is that every gated step consumes the SAME gate output rather
 # than re-deriving the inertness decision, so raising it in step with the
 # workflow is the intended maintenance, not a weakening.

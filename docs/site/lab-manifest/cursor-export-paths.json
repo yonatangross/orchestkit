@@ -1,0 +1,12 @@
+{
+  "slug": "cursor-export-paths",
+  "source": "docs/feat--ork-adapters-cursor-4003/cursor-export.html",
+  "title": "Paths that open: the Cursor command export",
+  "description": "A command wrapper is a copy of a skill body in a different directory, so every spelling of a same-skill path failed from it: 53 lines of a Claude Code variable Cursor never substitutes, 3 more hidden inside a Python f-string, and 247 bare relative refs that resolve against a directory the wrapper is not in. Pick a spelling to see where it pointed, and set a rule's frontmatter to watch Cursor's router move it between global, file-globbed and agent-fetched.",
+  "tags": [
+    "engines",
+    "measurement",
+    "false-signals"
+  ],
+  "date": "2026-09-08"
+}

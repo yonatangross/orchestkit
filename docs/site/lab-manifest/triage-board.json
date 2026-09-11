@@ -1,0 +1,14 @@
+{
+  "slug": "triage-board",
+  "source": "docs/triage-playground.html",
+  "title": "Issue Triage — 98 Open Issues",
+  "description": "The whole open-issue backlog as one interactive board: drag to triage, milestone breakdowns, and a copy-out execution prompt for the chosen batch.",
+  "tags": [
+    "triage",
+    "decision-board",
+    "github"
+  ],
+  "date": "2026-06-16",
+  "featured": true,
+  "caseStudy": "/docs/showcase/lab/triage-board"
+}

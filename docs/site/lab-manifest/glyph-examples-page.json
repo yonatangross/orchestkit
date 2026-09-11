@@ -1,0 +1,14 @@
+{
+  "slug": "glyph-examples-page",
+  "source": "docs/docs--3901-glyph-examples-page/index.html",
+  "title": "A page an agent can send a human to: the glyph examples block",
+  "description": "The glyph docs page answered 200 but was a 33 KB dump of SKILL.md. Toggle before and after to see what a human routed to the URL now lands on: a curated block first (what it draws, the two picks, three real renders, the exact invocation) at a stable #examples anchor, generated from the skill's own examples/_featured.md. Any skill opts in by adding that one file.",
+  "tags": [
+    "docs",
+    "docs-site",
+    "glyph",
+    "skills",
+    "generator"
+  ],
+  "date": "2026-09-07"
+}

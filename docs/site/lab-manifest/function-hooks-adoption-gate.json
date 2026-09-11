@@ -1,0 +1,12 @@
+{
+  "slug": "function-hooks-adoption-gate",
+  "source": "docs/docs--3917-function-hooks-watch/function-hooks-gate.html",
+  "title": "Observed is not shipped: the Function Hooks adoption gate",
+  "description": "Choose private prototype, upstream closure, or public shipment evidence to see why OrchestKit remains watch-only until a supported Function Hooks contract actually ships.",
+  "tags": [
+    "hooks",
+    "cc-adoption",
+    "policy"
+  ],
+  "date": "2026-09-05"
+}

@@ -1,0 +1,12 @@
+{
+  "slug": "empty-subagent-result",
+  "source": "docs/fix--3739-empty-subagent-result/index.html",
+  "title": "Silence is a failed delegation: 97 of 2,735 subagents finished without a word",
+  "description": "A subagent can finish with status completed and emit no final message, so the parent reads silence as an empty finding rather than a failed delegation. Measured across every subagent transcript on one machine: 97 of 2,735 (3.5%) end with no assistant text, and 81 of those stop the instant a tool returns. Pick the block a transcript ends on and see the verdict plus the exact marker the parent now receives.",
+  "tags": [
+    "hooks",
+    "debugging",
+    "analysis"
+  ],
+  "date": "2026-08-25"
+}

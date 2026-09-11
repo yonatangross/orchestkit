@@ -1,0 +1,11 @@
+{
+  "slug": "platform-adoption-triage-08-01-to-08-27",
+  "source": "docs/docs--platform-triage-2026-08-31/index.html",
+  "title": "Platform Adoption Triage, 08-01 to 08-27",
+  "description": "27 Claude Platform capabilities across 11 snapshots, closing the three platform-watch issues open since 08-21. 21 were already decided in #3641; the 6 that were never triaged are decided here with the measurement behind each: five declines and one doc note. The one code action is an upper bound on the anthropic pin, and the page records the lane's standing shape, that triage is human by construction and that closing the issues cannot cause a re-file.",
+  "tags": [
+    "adoption",
+    "docs"
+  ],
+  "date": "2026-08-31"
+}

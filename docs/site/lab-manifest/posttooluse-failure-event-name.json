@@ -1,0 +1,12 @@
+{
+  "slug": "posttooluse-failure-event-name",
+  "source": "docs/fix--posttooluse-failure-event-name/index.html",
+  "title": "PostToolUseFailure: The Event Name a Shared Helper Stamped Wrong",
+  "description": "Three files, one hardcoded string: hooks.json registers failure-handler on PostToolUseFailure, but its context-bearing exits went through a helper that always stamped PostToolUse. Trace a tool failure through all four exits and watch CC accept or reject each one.",
+  "tags": [
+    "hooks",
+    "debugging",
+    "explainer"
+  ],
+  "date": "2026-08-20"
+}

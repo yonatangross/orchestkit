@@ -1,0 +1,12 @@
+{
+  "slug": "fumadocs-vitest-import-resolution",
+  "source": "docs/fix--4044-docs-site-build/playground.html",
+  "title": "Why the docs build passed and its tests failed",
+  "description": "Compare Fumadocs versions and import resolvers to reproduce the Docs Site Build test failure and understand the Vitest configuration fix.",
+  "tags": [
+    "vitest",
+    "docs",
+    "esm"
+  ],
+  "date": "2026-09-11"
+}
