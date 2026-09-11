@@ -15,6 +15,20 @@ export interface LabEntry {
 
 export const LAB_ENTRIES: LabEntry[] = [
   {
+    "slug": "fork-model-post-2-1-232",
+    "title": "Fork model after CC 2.1.232: explicit subagent_type fork",
+    "description": "Issue 3726: explore and review-pr still stated the pre-2.1.232 implicit-only fork model. Play the before and after, then take the one-question quiz on which Agent call forks explicitly.",
+    "tags": [
+      "docs",
+      "skills",
+      "agents"
+    ],
+    "date": "2026-09-11",
+    "featured": false,
+    "caseStudy": null,
+    "sizeKb": 8
+  },
+  {
     "slug": "here-string-tr-drain",
     "title": "Feeding tr before anyone is reading",
     "description": "The third and last here-string in the dead-generation guard: tr -d '[:space:]' fed by a here-string at line 66. Same self-deadlock mechanism as #3190, converted to the printf pipe form as prevention; the stall never reproduced on bash 3.2.57 here, so this completes the rationale rather than fixing a reproduced hang.",
