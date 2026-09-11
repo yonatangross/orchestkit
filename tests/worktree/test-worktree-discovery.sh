@@ -133,7 +133,7 @@ else
   if [ -z "$CURRENT_BRANCH" ]; then
     info "Not in a git repo — skipping real worktree test"
   else
-    WORKTREE_DIR="$(mktemp -d /tmp/orchestkit-worktree-XXXXXX)"
+    WORKTREE_DIR="$(mktemp -d "${TMPDIR:-/tmp}/orchestkit-worktree-XXXXXX")"
     rmdir "$WORKTREE_DIR"  # git worktree add creates the dir
 
     # Create a detached worktree at the same commit

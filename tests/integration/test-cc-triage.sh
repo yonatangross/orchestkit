@@ -10,6 +10,18 @@
 
 set -euo pipefail
 
+# Per-run private temp dir (#4026).
+#
+# These paths were hardcoded $ORK_TMP/<fixed-name>. Two problems, and the quiet one
+# is worse. The CC sandbox denies writes to /tmp, so the test fails locally with
+# "Operation not permitted". But the filename was also FIXED, so two concurrent
+# runs on one machine wrote and read the same file: a test could assert against
+# another run's output and PASS. $TMPDIR alone fixes only the first; mktemp
+# fixes both.
+ORK_TMP="$(mktemp -d "${TMPDIR:-/tmp}/ork-cctest.XXXXXX")"
+trap 'rm -rf "$ORK_TMP"' EXIT
+
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
@@ -54,7 +66,7 @@ restore() {
     rsync -a "$SNAP_BACKUP_DIR/" shared/cc-snapshots/
   fi
   rm -rf "$SNAP_BACKUP_DIR"
-  rm -f /tmp/cc-triage-fixture-*.txt /tmp/cc-triage-out.txt /tmp/cc-triage-gaps.json
+  rm -f $ORK_TMP/cc-triage-fixture-*.txt $ORK_TMP/cc-triage-out.txt $ORK_TMP/cc-triage-gaps.json
 }
 trap restore EXIT
 
@@ -87,14 +99,14 @@ write_gaps
 # silent: known-noise (unset of an unset var is a no-op, not a real failure)
 unset CLAUDE_CODE_OAUTH_TOKEN || true
 EXIT=0
-node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1 || EXIT=$?
+node scripts/cc-triage.mjs > $ORK_TMP/cc-triage-out.txt 2>&1 || EXIT=$?
 if [ "$EXIT" = "0" ]; then
   log_pass "Missing OAUTH token: exit 0 (graceful no-op)"
 else
   log_fail "Missing OAUTH token" "expected exit 0, got $EXIT"
 fi
 
-if grep -qF "skipping LLM extraction" /tmp/cc-triage-out.txt; then
+if grep -qF "skipping LLM extraction" $ORK_TMP/cc-triage-out.txt; then
   log_pass "Missing OAUTH token: explicit skip message logged"
 else
   log_fail "Missing OAUTH skip message" "no 'skipping LLM extraction' in stdout"
@@ -111,13 +123,13 @@ fi
 # Test 2: malformed JSON from claude → sentinel write (parse_failed: true)
 # ============================================================================
 write_gaps
-FIXTURE=/tmp/cc-triage-fixture-malformed.txt
+FIXTURE=$ORK_TMP/cc-triage-fixture-malformed.txt
 echo 'this is { not valid json [[[ ' > "$FIXTURE"
 
 EXIT=0
 CLAUDE_CODE_OAUTH_TOKEN=fake-token \
 CC_TRIAGE_FIXTURE="$FIXTURE" \
-  node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1 || EXIT=$?
+  node scripts/cc-triage.mjs > $ORK_TMP/cc-triage-out.txt 2>&1 || EXIT=$?
 
 if [ "$EXIT" = "0" ]; then
   log_pass "Malformed JSON: script exits 0 (degrades gracefully)"
@@ -141,7 +153,7 @@ fi
 
 # Two attempts logged before sentinel? (callClaude retries once.)
 # silent: known-noise (grep -c returns 1 when zero matches; we test the count value below)
-ATTEMPT_COUNT=$(grep -c "attempt .* failed" /tmp/cc-triage-out.txt || true)
+ATTEMPT_COUNT=$(grep -c "attempt .* failed" $ORK_TMP/cc-triage-out.txt || true)
 if [ "$ATTEMPT_COUNT" = "2" ]; then
   log_pass "Malformed JSON: both attempts ran (retry budget honored)"
 else
@@ -152,7 +164,7 @@ fi
 # Test 3: valid JSON from claude → features populated, scores normalized
 # ============================================================================
 write_gaps
-FIXTURE=/tmp/cc-triage-fixture-ok.txt
+FIXTURE=$ORK_TMP/cc-triage-fixture-ok.txt
 cat > "$FIXTURE" <<'EOF'
 [
   {"feature_slug": "claude_project_purge", "category": "new_command", "description": "Remove orphan project metadata via CLI", "gap_score": 999, "affected_skills": ["ork:doctor"], "reference_changelog_line": "claude project purge removes orphan project metadata"},
@@ -162,7 +174,7 @@ EOF
 
 CLAUDE_CODE_OAUTH_TOKEN=fake-token \
 CC_TRIAGE_FIXTURE="$FIXTURE" \
-  node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1
+  node scripts/cc-triage.mjs > $ORK_TMP/cc-triage-out.txt 2>&1
 
 FEATURE_COUNT=$(jq '.[0].features | length' shared/cc-adoption-gaps.json)
 if [ "$FEATURE_COUNT" = "2" ]; then
@@ -183,7 +195,7 @@ fi
 # Test 4: feature_slug sanitization — drops injection chars
 # ============================================================================
 write_gaps
-FIXTURE=/tmp/cc-triage-fixture-injection.txt
+FIXTURE=$ORK_TMP/cc-triage-fixture-injection.txt
 cat > "$FIXTURE" <<'EOF'
 [
   {"feature_slug": "x\" OR label:foo", "category": "new_event", "description": "should be sanitized", "gap_score": 10, "affected_skills": [], "reference_changelog_line": "test"},
@@ -193,7 +205,7 @@ EOF
 
 CLAUDE_CODE_OAUTH_TOKEN=fake-token \
 CC_TRIAGE_FIXTURE="$FIXTURE" \
-  node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1
+  node scripts/cc-triage.mjs > $ORK_TMP/cc-triage-out.txt 2>&1
 
 # Both inputs should produce only `[a-z0-9_]` slugs.
 SLUGS=$(jq -r '.[0].features[].feature_slug' shared/cc-adoption-gaps.json | tr '\n' ' ')
@@ -220,10 +232,10 @@ cat > shared/cc-adoption-gaps.json <<'EOF'
 ]
 EOF
 
-FIXTURE=/tmp/cc-triage-fixture-ok.txt
+FIXTURE=$ORK_TMP/cc-triage-fixture-ok.txt
 CLAUDE_CODE_OAUTH_TOKEN=fake-token \
 CC_TRIAGE_FIXTURE="$FIXTURE" \
-  node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1
+  node scripts/cc-triage.mjs > $ORK_TMP/cc-triage-out.txt 2>&1
 
 POST_PARSE_FAILED=$(jq -r '.[0].parse_failed' shared/cc-adoption-gaps.json)
 POST_FEATURE_COUNT=$(jq '.[0].features | length' shared/cc-adoption-gaps.json)
@@ -246,7 +258,7 @@ cat > shared/cc-adoption-gaps.json <<'EOF'
 EOF
 unset CLAUDE_CODE_OAUTH_TOKEN || true
 : > "$GHOUT"
-GITHUB_OUTPUT="$GHOUT" node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1 || true
+GITHUB_OUTPUT="$GHOUT" node scripts/cc-triage.mjs > $ORK_TMP/cc-triage-out.txt 2>&1 || true
 if ! grep -q "parse_failed=true" "$GHOUT"; then
   log_pass "#3720: below_floor sentinel alone does not emit parse_failed"
 else
@@ -259,7 +271,7 @@ cat > shared/cc-adoption-gaps.json <<'EOF'
 ]
 EOF
 : > "$GHOUT"
-GITHUB_OUTPUT="$GHOUT" node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1 || true
+GITHUB_OUTPUT="$GHOUT" node scripts/cc-triage.mjs > $ORK_TMP/cc-triage-out.txt 2>&1 || true
 if grep -q "parse_failed=true" "$GHOUT" && grep -q "parse_failed_versions=2.1.999$" "$GHOUT"; then
   log_pass "#3720: in-window parse_failed emits the signal naming only 2.1.999"
 else
@@ -283,10 +295,10 @@ cat > shared/cc-adoption-gaps.json <<'EOF'
 ]
 EOF
 
-FIXTURE=/tmp/cc-triage-fixture-ok.txt
+FIXTURE=$ORK_TMP/cc-triage-fixture-ok.txt
 CLAUDE_CODE_OAUTH_TOKEN=fake-token \
 CC_TRIAGE_FIXTURE="$FIXTURE" \
-  node scripts/cc-triage.mjs --retry-failed > /tmp/cc-triage-out.txt 2>&1
+  node scripts/cc-triage.mjs --retry-failed > $ORK_TMP/cc-triage-out.txt 2>&1
 
 POST_FAILED=$(jq -r '.[0].parse_failed // "absent"' shared/cc-adoption-gaps.json)
 POST_COUNT=$(jq '.[0].features | length' shared/cc-adoption-gaps.json)
@@ -296,7 +308,7 @@ else
   log_fail "--retry-failed" "parse_failed=$POST_FAILED, features=$POST_COUNT (expected absent, 2)"
 fi
 
-if grep -qF "clearing sentinel on 2.1.999 for retry" /tmp/cc-triage-out.txt; then
+if grep -qF "clearing sentinel on 2.1.999 for retry" $ORK_TMP/cc-triage-out.txt; then
   log_pass "--retry-failed: explicit retry log emitted"
 else
   log_fail "--retry-failed log" "expected 'clearing sentinel on 2.1.999 for retry'"
@@ -318,7 +330,7 @@ EOF
 CLAUDE_CODE_OAUTH_TOKEN=fake-token \
 CC_TRIAGE_FIXTURE="$FIXTURE" \
 RETRY_FAILED=1 \
-  node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1
+  node scripts/cc-triage.mjs > $ORK_TMP/cc-triage-out.txt 2>&1
 
 ENV_POST_COUNT=$(jq '.[0].features | length' shared/cc-adoption-gaps.json)
 if [ "$ENV_POST_COUNT" = "2" ]; then
@@ -340,7 +352,7 @@ FIXTURE=tests/fixtures/cc-changelogs/triage-empty-result.txt
 EXIT=0
 CLAUDE_CODE_OAUTH_TOKEN=fake-token \
 CC_TRIAGE_FIXTURE="$FIXTURE" \
-  node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1 || EXIT=$?
+  node scripts/cc-triage.mjs > $ORK_TMP/cc-triage-out.txt 2>&1 || EXIT=$?
 
 if [ "$EXIT" = "0" ]; then
   log_pass "W1d: empty-array fixture exits 0 (degrades gracefully)"
@@ -355,13 +367,13 @@ else
   log_fail "W1d parse_failed on empty" "expected true, got '$PARSE_FAILED' (this is the M134 root cause)"
 fi
 
-if grep -qF "empty array result" /tmp/cc-triage-out.txt; then
+if grep -qF "empty array result" $ORK_TMP/cc-triage-out.txt; then
   log_pass "W1d: empty-array detection logged with explicit reason"
 else
-  log_fail "W1d log message" "expected 'empty array result' in stderr (cat /tmp/cc-triage-out.txt)"
+  log_fail "W1d log message" "expected 'empty array result' in stderr (cat $ORK_TMP/cc-triage-out.txt)"
 fi
 
-if grep -qF "retry firing" /tmp/cc-triage-out.txt; then
+if grep -qF "retry firing" $ORK_TMP/cc-triage-out.txt; then
   log_pass "W1d: retry-warning emitted on stderr (visible in CI logs)"
 else
   log_fail "W1d retry log" "expected 'retry firing' warning before second attempt"
@@ -403,7 +415,7 @@ EOF
 # A fixture that, if hit, would populate features. We use it to prove the
 # below-floor entry was NOT processed (its features stay empty), while the
 # above-floor entry IS processed.
-FIXTURE=/tmp/cc-triage-fixture-belowfloor.txt
+FIXTURE=$ORK_TMP/cc-triage-fixture-belowfloor.txt
 cat > "$FIXTURE" <<'EOF'
 [
   {"feature_slug": "above_floor_feature", "category": "new_command", "description": "Above-floor entry processed normally", "gap_score": 15, "affected_skills": [], "reference_changelog_line": "test"}
@@ -413,12 +425,12 @@ EOF
 EXIT=0
 CLAUDE_CODE_OAUTH_TOKEN=fake-token \
 CC_TRIAGE_FIXTURE="$FIXTURE" \
-  node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1 || EXIT=$?
+  node scripts/cc-triage.mjs > $ORK_TMP/cc-triage-out.txt 2>&1 || EXIT=$?
 
 if [ "$EXIT" = "0" ]; then
   log_pass "W1h: below-floor + above-floor mixed run exits 0"
 else
-  log_fail "W1h exit" "expected 0, got $EXIT (cat /tmp/cc-triage-out.txt)"
+  log_fail "W1h exit" "expected 0, got $EXIT (cat $ORK_TMP/cc-triage-out.txt)"
 fi
 
 # Below-floor entry: should be marked and have no features.
@@ -445,14 +457,14 @@ else
 fi
 
 # The skip log message should appear on stderr.
-if grep -qF "2.0.59 — below floor" /tmp/cc-triage-out.txt; then
+if grep -qF "2.0.59 — below floor" $ORK_TMP/cc-triage-out.txt; then
   log_pass "W1h: explicit 'below floor, skipping LLM' log emitted"
 else
   log_fail "W1h log message" "expected 'below floor' log on stderr"
 fi
 
 # No 'extracting features from 2.0.59' log should appear (proves no LLM call).
-if grep -qF "extracting features from 2.0.59" /tmp/cc-triage-out.txt; then
+if grep -qF "extracting features from 2.0.59" $ORK_TMP/cc-triage-out.txt; then
   log_fail "W1h LLM call avoidance" "found 'extracting features from 2.0.59' — LLM was called for below-floor version"
 else
   log_pass "W1h: no 'extracting features from 2.0.59' log (LLM call was bypassed)"
@@ -480,8 +492,8 @@ fi
 echo '[]' > shared/cc-adoption-gaps.json
 EXIT=0
 CLAUDE_CODE_OAUTH_TOKEN=fake-token \
-  node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1 || EXIT=$?
-if [ "$EXIT" = "0" ] && grep -q "gaps file empty" /tmp/cc-triage-out.txt; then
+  node scripts/cc-triage.mjs > $ORK_TMP/cc-triage-out.txt 2>&1 || EXIT=$?
+if [ "$EXIT" = "0" ] && grep -q "gaps file empty" $ORK_TMP/cc-triage-out.txt; then
   log_pass "Empty gaps: exit 0 with explicit message"
 else
   log_fail "Empty gaps" "expected exit 0 + 'gaps file empty', got exit=$EXIT"
@@ -518,12 +530,12 @@ EOF
 EXIT=0
 # silent: known-noise (unset of an unset var is a no-op, not a real failure)
 unset CLAUDE_CODE_OAUTH_TOKEN || true
-node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1 || EXIT=$?
+node scripts/cc-triage.mjs > $ORK_TMP/cc-triage-out.txt 2>&1 || EXIT=$?
 
 if [ "$EXIT" = "0" ]; then
   log_pass "skill-gap: runs and exits 0 without a token"
 else
-  log_fail "skill-gap exit" "expected 0, got $EXIT (cat /tmp/cc-triage-out.txt)"
+  log_fail "skill-gap exit" "expected 0, got $EXIT (cat $ORK_TMP/cc-triage-out.txt)"
 fi
 
 if [ -f shared/cc-skill-gaps.json ]; then
@@ -585,10 +597,10 @@ cat > shared/cc-adoption-gaps.json <<'EOF'
   { "version": "2.1.999", "parse_failed": true, "failed_at": "2026-05-24T00:00:00.000Z", "features": [], "raw_bullets_count": 2 }
 ]
 EOF
-TEST_OUTPUT=$(mktemp /tmp/cc-triage-gho-XXXXXX)
+TEST_OUTPUT=$(mktemp $ORK_TMP/cc-triage-gho-XXXXXX)
 # silent: known-noise (unset of an unset var is a no-op, not a real failure)
 unset CLAUDE_CODE_OAUTH_TOKEN || true
-GITHUB_OUTPUT="$TEST_OUTPUT" node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1
+GITHUB_OUTPUT="$TEST_OUTPUT" node scripts/cc-triage.mjs > $ORK_TMP/cc-triage-out.txt 2>&1
 if grep -qF "parse_failed=true" "$TEST_OUTPUT"; then
   log_pass "#1985 signal: parse_failed=true emitted to GITHUB_OUTPUT when gaps contain a sentinel"
 else
@@ -602,8 +614,8 @@ cat > shared/cc-adoption-gaps.json <<'EOF'
   { "version": "2.1.999", "parse_failed": false, "features": [], "raw_bullets_count": 2 }
 ]
 EOF
-TEST_OUTPUT=$(mktemp /tmp/cc-triage-gho-XXXXXX)
-GITHUB_OUTPUT="$TEST_OUTPUT" node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1
+TEST_OUTPUT=$(mktemp $ORK_TMP/cc-triage-gho-XXXXXX)
+GITHUB_OUTPUT="$TEST_OUTPUT" node scripts/cc-triage.mjs > $ORK_TMP/cc-triage-out.txt 2>&1
 if ! grep -qF "parse_failed=true" "$TEST_OUTPUT"; then
   log_pass "#1985 signal: parse_failed NOT emitted when no sentinels exist"
 else
@@ -620,7 +632,7 @@ EOF
 # silent: known-noise (unset of an unset var is a no-op, not a real failure)
 unset GITHUB_OUTPUT || true
 EXIT=0
-node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1 || EXIT=$?
+node scripts/cc-triage.mjs > $ORK_TMP/cc-triage-out.txt 2>&1 || EXIT=$?
 if [ "$EXIT" = "0" ]; then
   log_pass "#1985 signal: no GITHUB_OUTPUT env (local dev) — exit 0, no crash"
 else
@@ -633,18 +645,18 @@ fi
 # token-rotation signal, while still leaving the entry retryable.
 # ============================================================================
 write_gaps
-FIXTURE=/tmp/cc-triage-fixture-401.txt
+FIXTURE=$ORK_TMP/cc-triage-fixture-401.txt
 cat > "$FIXTURE" <<'EOF'
 Failed to authenticate. API Error: 401 {"type":"error","error":{"type":"authentication_error","message":"Invalid bearer token"}}
 EOF
-AUTH_OUT=/tmp/cc-triage-authout.txt
+AUTH_OUT=$ORK_TMP/cc-triage-authout.txt
 : > "$AUTH_OUT"
 EXIT=0
 CLAUDE_CODE_OAUTH_TOKEN=fake-token \
 CC_TRIAGE_FIXTURE="$FIXTURE" \
 CC_TRIAGE_FIXTURE_STATUS=1 \
 GITHUB_OUTPUT="$AUTH_OUT" \
-  node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1 || EXIT=$?
+  node scripts/cc-triage.mjs > $ORK_TMP/cc-triage-out.txt 2>&1 || EXIT=$?
 
 if [ "$EXIT" = "0" ]; then
   log_pass "Auth 401: script exits 0 (degrades gracefully)"
@@ -656,7 +668,7 @@ if grep -qF "auth_failed=true" "$AUTH_OUT"; then
 else
   log_fail "auth_failed signal" "expected auth_failed=true in GITHUB_OUTPUT, got: $(cat "$AUTH_OUT")"
 fi
-if grep -qiF "auth failure detected" /tmp/cc-triage-out.txt; then
+if grep -qiF "auth failure detected" $ORK_TMP/cc-triage-out.txt; then
   log_pass "Auth 401: loud auth-failure log line present"
 else
   log_fail "auth log" "no 'auth failure detected' in stdout"
@@ -675,7 +687,7 @@ rm -f "$AUTH_OUT"
 # duplicate issues can no longer produce two features).
 # ============================================================================
 write_gaps
-FIXTURE=/tmp/cc-triage-fixture-refdup.txt
+FIXTURE=$ORK_TMP/cc-triage-fixture-refdup.txt
 cat > "$FIXTURE" <<'EOF'
 [
   {"feature_slug": "marketplace_remove_scope_flag", "category": "new_command", "description": "d", "gap_score": 15, "affected_skills": [], "reference_changelog_line": "marketplace remove now accepts --scope"},
@@ -684,7 +696,7 @@ cat > "$FIXTURE" <<'EOF'
 EOF
 EXIT=0
 CLAUDE_CODE_OAUTH_TOKEN=fake-token CC_TRIAGE_FIXTURE="$FIXTURE" \
-  node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1 || EXIT=$?
+  node scripts/cc-triage.mjs > $ORK_TMP/cc-triage-out.txt 2>&1 || EXIT=$?
 NFEAT=$(jq -r '.[0].features | length' shared/cc-adoption-gaps.json)
 if [ "$EXIT" = "0" ] && [ "$NFEAT" = "1" ]; then
   log_pass "refline dedup: same changelog line, drifted slugs → 1 feature kept"
@@ -699,7 +711,7 @@ fi
 # Snapshot 2.1.999.md bullet: "`claude project purge` removes orphan project metadata"
 # ============================================================================
 write_gaps
-FIXTURE=/tmp/cc-triage-fixture-snap.txt
+FIXTURE=$ORK_TMP/cc-triage-fixture-snap.txt
 cat > "$FIXTURE" <<'EOF'
 [
   {"feature_slug": "purge_reworded", "category": "new_command", "description": "d", "gap_score": 15, "affected_skills": [], "reference_changelog_line": "removes orphan project metadata via claude project purge"}
@@ -707,7 +719,7 @@ cat > "$FIXTURE" <<'EOF'
 EOF
 EXIT=0
 CLAUDE_CODE_OAUTH_TOKEN=fake-token CC_TRIAGE_FIXTURE="$FIXTURE" \
-  node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1 || EXIT=$?
+  node scripts/cc-triage.mjs > $ORK_TMP/cc-triage-out.txt 2>&1 || EXIT=$?
 SNAPPED=$(jq -r '.[0].features[0].reference_changelog_line' shared/cc-adoption-gaps.json)
 EXPECTED='`claude project purge` removes orphan project metadata'
 if [ "$EXIT" = "0" ] && [ "$SNAPPED" = "$EXPECTED" ]; then
@@ -719,7 +731,7 @@ fi
 # A ref with no plausible snapshot match stays UNCHANGED (bounded fallback — the
 # snap never forces a bad match, preserving today's behaviour for unmatched refs).
 write_gaps
-FIXTURE=/tmp/cc-triage-fixture-nosnap.txt
+FIXTURE=$ORK_TMP/cc-triage-fixture-nosnap.txt
 cat > "$FIXTURE" <<'EOF'
 [
   {"feature_slug": "unrelated_feature", "category": "new_command", "description": "d", "gap_score": 15, "affected_skills": [], "reference_changelog_line": "completely unrelated changelog text about networking timeouts"}
@@ -727,7 +739,7 @@ cat > "$FIXTURE" <<'EOF'
 EOF
 EXIT=0
 CLAUDE_CODE_OAUTH_TOKEN=fake-token CC_TRIAGE_FIXTURE="$FIXTURE" \
-  node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1 || EXIT=$?
+  node scripts/cc-triage.mjs > $ORK_TMP/cc-triage-out.txt 2>&1 || EXIT=$?
 UNSNAPPED=$(jq -r '.[0].features[0].reference_changelog_line' shared/cc-adoption-gaps.json)
 if [ "$EXIT" = "0" ] && [ "$UNSNAPPED" = "completely unrelated changelog text about networking timeouts" ]; then
   log_pass "snap (#2045): below-threshold ref left unchanged (no forced match)"
@@ -757,7 +769,7 @@ cat > shared/cc-adoption-gaps.json <<'EOF'
 EOF
 # A fixture that WOULD populate features if the LLM were called — proves the
 # short-circuit bypassed it.
-FIXTURE=/tmp/cc-triage-fixture-featureless.txt
+FIXTURE=$ORK_TMP/cc-triage-fixture-featureless.txt
 cat > "$FIXTURE" <<'EOF'
 [
   {"feature_slug": "should_not_appear", "category": "new_command", "description": "LLM was wrongly called", "gap_score": 15, "affected_skills": [], "reference_changelog_line": "test"}
@@ -767,12 +779,12 @@ EOF
 EXIT=0
 CLAUDE_CODE_OAUTH_TOKEN=fake-token \
 CC_TRIAGE_FIXTURE="$FIXTURE" \
-  node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1 || EXIT=$?
+  node scripts/cc-triage.mjs > $ORK_TMP/cc-triage-out.txt 2>&1 || EXIT=$?
 
 if [ "$EXIT" = "0" ]; then
   log_pass "#2267: featureless run exits 0"
 else
-  log_fail "#2267 exit" "expected 0, got $EXIT (cat /tmp/cc-triage-out.txt)"
+  log_fail "#2267 exit" "expected 0, got $EXIT (cat $ORK_TMP/cc-triage-out.txt)"
 fi
 
 FL=$(jq -r '.[0].featureless' shared/cc-adoption-gaps.json)
@@ -796,13 +808,13 @@ else
   log_fail "#2267 fixture leak" "expected 0 features, got $FL_FEAT (LLM was called for a featureless snapshot)"
 fi
 
-if grep -qF "extracting features from 2.1.998" /tmp/cc-triage-out.txt; then
+if grep -qF "extracting features from 2.1.998" $ORK_TMP/cc-triage-out.txt; then
   log_fail "#2267 LLM bypass" "found 'extracting features from 2.1.998' — LLM was called for a featureless snapshot"
 else
   log_pass "#2267: no 'extracting features' log (LLM call bypassed)"
 fi
 
-if grep -qF "2.1.998 — featureless snapshot" /tmp/cc-triage-out.txt; then
+if grep -qF "2.1.998 — featureless snapshot" $ORK_TMP/cc-triage-out.txt; then
   log_pass "#2267: explicit 'featureless snapshot, graduating' log emitted"
 else
   log_fail "#2267 log message" "expected 'featureless snapshot' log on stdout"
@@ -832,7 +844,7 @@ EOF
 EXIT=0
 CLAUDE_CODE_OAUTH_TOKEN=fake-token \
 CC_TRIAGE_FIXTURE="$FIXTURE" \
-  node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1 || EXIT=$?
+  node scripts/cc-triage.mjs > $ORK_TMP/cc-triage-out.txt 2>&1 || EXIT=$?
 
 PASSIVE_FL=$(jq -r '.[0].featureless' shared/cc-adoption-gaps.json)
 PASSIVE_PF=$(jq -r '.[0].parse_failed // false' shared/cc-adoption-gaps.json)
@@ -866,7 +878,7 @@ EOF
 EXIT=0
 CLAUDE_CODE_OAUTH_TOKEN=fake-token \
 CC_TRIAGE_FIXTURE="$FIXTURE" \
-  node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1 || EXIT=$?
+  node scripts/cc-triage.mjs > $ORK_TMP/cc-triage-out.txt 2>&1 || EXIT=$?
 
 REWORD_FL=$(jq -r '.[0].featureless' shared/cc-adoption-gaps.json)
 REWORD_PF=$(jq -r '.[0].parse_failed // false' shared/cc-adoption-gaps.json)
@@ -877,8 +889,8 @@ else
 fi
 
 # Prove the LLM was bypassed (deterministic graduation, not an LLM round-trip).
-if grep -qF "extracting features from 2.1.996" /tmp/cc-triage-out.txt; then
-  log_fail "#2568 15c LLM bypass" "LLM was called for a presentational-reword snapshot (cat /tmp/cc-triage-out.txt)"
+if grep -qF "extracting features from 2.1.996" $ORK_TMP/cc-triage-out.txt; then
+  log_fail "#2568 15c LLM bypass" "LLM was called for a presentational-reword snapshot (cat $ORK_TMP/cc-triage-out.txt)"
 else
   log_pass "#2568 15c: reword graduates without an LLM call"
 fi
@@ -900,7 +912,7 @@ EXIT=0
 # the parse_failed skip.
 CLAUDE_CODE_OAUTH_TOKEN=fake-token \
 CC_TRIAGE_FIXTURE="$FIXTURE" \
-  node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1 || EXIT=$?
+  node scripts/cc-triage.mjs > $ORK_TMP/cc-triage-out.txt 2>&1 || EXIT=$?
 
 HEAL_PF=$(jq -r '.[0].parse_failed // "absent"' shared/cc-adoption-gaps.json)
 HEAL_FL=$(jq -r '.[0].featureless' shared/cc-adoption-gaps.json)
@@ -911,7 +923,7 @@ else
   log_fail "#2267 self-heal" "parse_failed=$HEAL_PF featureless=$HEAL_FL failed_at=$HEAL_AT (expected absent/true/absent)"
 fi
 
-rm -f /tmp/cc-triage-fixture-featureless.txt
+rm -f $ORK_TMP/cc-triage-fixture-featureless.txt
 
 # ============================================================================
 # Test 17: #2267 follow-up — featureless reconciliation runs TOKEN-FREE.
@@ -936,12 +948,12 @@ EOF
 EXIT=0
 # Critically: NO CLAUDE_CODE_OAUTH_TOKEN (the cron's real condition).
 unset CLAUDE_CODE_OAUTH_TOKEN || true
-node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1 || EXIT=$?
+node scripts/cc-triage.mjs > $ORK_TMP/cc-triage-out.txt 2>&1 || EXIT=$?
 
 if [ "$EXIT" = "0" ]; then
   log_pass "#2267 token-free: run exits 0 with no token"
 else
-  log_fail "#2267 token-free exit" "expected 0, got $EXIT (cat /tmp/cc-triage-out.txt)"
+  log_fail "#2267 token-free exit" "expected 0, got $EXIT (cat $ORK_TMP/cc-triage-out.txt)"
 fi
 
 TF_PF=$(jq -r '.[0].parse_failed // "absent"' shared/cc-adoption-gaps.json)
@@ -954,10 +966,10 @@ fi
 
 # The no-token path must still log the skip, proving the LLM pass was bypassed
 # while the deterministic pass still ran.
-if grep -qF "skipping LLM extraction" /tmp/cc-triage-out.txt && grep -qF "2.1.997 — featureless snapshot" /tmp/cc-triage-out.txt; then
+if grep -qF "skipping LLM extraction" $ORK_TMP/cc-triage-out.txt && grep -qF "2.1.997 — featureless snapshot" $ORK_TMP/cc-triage-out.txt; then
   log_pass "#2267 token-free: LLM skipped AND deterministic graduation logged"
 else
-  log_fail "#2267 token-free logs" "expected both 'skipping LLM extraction' and 'featureless snapshot' (cat /tmp/cc-triage-out.txt)"
+  log_fail "#2267 token-free logs" "expected both 'skipping LLM extraction' and 'featureless snapshot' (cat $ORK_TMP/cc-triage-out.txt)"
 fi
 
 # ============================================================================
@@ -985,12 +997,12 @@ EOF
 EXIT=0
 # silent: known-noise (unset of an unset var is a no-op)
 unset CLAUDE_CODE_OAUTH_TOKEN || true
-node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1 || EXIT=$?
+node scripts/cc-triage.mjs > $ORK_TMP/cc-triage-out.txt 2>&1 || EXIT=$?
 
 if [ "$EXIT" = "0" ]; then
   log_pass "gate: token-free run exits 0"
 else
-  log_fail "gate exit" "expected 0, got $EXIT (cat /tmp/cc-triage-out.txt)"
+  log_fail "gate exit" "expected 0, got $EXIT (cat $ORK_TMP/cc-triage-out.txt)"
 fi
 
 # No feature dropped — all 5 survive (downgrade/boost never remove).
@@ -1046,7 +1058,7 @@ fi
 
 # IDEMPOTENCY: a second run must not change any score (relevance already set).
 RERUN_EXIT=0
-node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1 || RERUN_EXIT=$?
+node scripts/cc-triage.mjs > $ORK_TMP/cc-triage-out.txt 2>&1 || RERUN_EXIT=$?
 CHROME_SCORE2=$(jq -r '.[0].features[] | select(.feature_slug=="chrome_tab_iso") | .gap_score' shared/cc-adoption-gaps.json)
 RECALL_SCORE2=$(jq -r '.[0].features[] | select(.feature_slug=="recall_attr") | .gap_score' shared/cc-adoption-gaps.json)
 if [ "$RERUN_EXIT" = "0" ] && [ "$CHROME_SCORE2" = "$CHROME_SCORE" ] && [ "$RECALL_SCORE2" = "$RECALL_SCORE" ]; then
@@ -1091,7 +1103,7 @@ cat > shared/cc-adoption-gaps.json <<'EOF'
 EOF
 unset CLAUDE_CODE_OAUTH_TOKEN || true  # silent: known-noise (unset of an unset var is a no-op)
 EXIT=0
-node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1 || EXIT=$?
+node scripts/cc-triage.mjs > $ORK_TMP/cc-triage-out.txt 2>&1 || EXIT=$?
 THIN=$(jq -r '.[0].thin_announcement // empty' shared/cc-adoption-gaps.json)
 PF=$(jq -r '.[0].parse_failed // empty' shared/cc-adoption-gaps.json)
 if [ "$EXIT" = "0" ] && [ "$THIN" = "true" ] && [ -z "$PF" ]; then
@@ -1118,7 +1130,7 @@ cat > shared/cc-adoption-gaps.json <<'EOF'
 EOF
 unset CLAUDE_CODE_OAUTH_TOKEN || true  # silent: known-noise (unset of an unset var is a no-op)
 EXIT=0
-node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1 || EXIT=$?
+node scripts/cc-triage.mjs > $ORK_TMP/cc-triage-out.txt 2>&1 || EXIT=$?
 THIN2=$(jq -r '.[0].thin_announcement // empty' shared/cc-adoption-gaps.json)
 FEATURELESS2=$(jq -r '.[0].featureless // empty' shared/cc-adoption-gaps.json)
 if [ "$EXIT" = "0" ] && [ -z "$THIN2" ] && [ -z "$FEATURELESS2" ]; then
@@ -1137,7 +1149,7 @@ fi
 # inference from the count landing exactly on the cap.
 # ============================================================================
 write_gaps
-FIXTURE=/tmp/cc-triage-fixture-cap.txt
+FIXTURE=$ORK_TMP/cc-triage-fixture-cap.txt
 python3 - "$FIXTURE" <<'PY'
 import json, sys
 # 25 valid, distinct features. Distinct slugs AND refs so neither dedup path
@@ -1155,7 +1167,7 @@ PY
 
 CLAUDE_CODE_OAUTH_TOKEN=fake-token \
 CC_TRIAGE_FIXTURE="$FIXTURE" \
-  node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1
+  node scripts/cc-triage.mjs > $ORK_TMP/cc-triage-out.txt 2>&1
 
 CAP_COUNT=$(jq '.[0].features | length' shared/cc-adoption-gaps.json)
 if [ "$CAP_COUNT" = "20" ]; then
@@ -1172,19 +1184,19 @@ else
 fi
 
 # The whole point of the issue: the drop must be visible in the run output.
-if grep -q "FEATURE CAP dropped 5 of 25" /tmp/cc-triage-out.txt; then
+if grep -q "FEATURE CAP dropped 5 of 25" $ORK_TMP/cc-triage-out.txt; then
   log_pass "#2950 cap: truncation is logged explicitly (5 of 25 dropped)"
 else
-  log_fail "#2950 cap log" "no explicit drop line in output: $(grep -c . /tmp/cc-triage-out.txt) line(s)"
+  log_fail "#2950 cap log" "no explicit drop line in output: $(grep -c . $ORK_TMP/cc-triage-out.txt) line(s)"
 fi
 
 # An UNDER-cap release must NOT claim truncation, or the signal is noise.
 write_gaps
 CLAUDE_CODE_OAUTH_TOKEN=fake-token \
-CC_TRIAGE_FIXTURE=/tmp/cc-triage-fixture-ok.txt \
-  node scripts/cc-triage.mjs > /tmp/cc-triage-out2.txt 2>&1
+CC_TRIAGE_FIXTURE=$ORK_TMP/cc-triage-fixture-ok.txt \
+  node scripts/cc-triage.mjs > $ORK_TMP/cc-triage-out2.txt 2>&1
 UNDER_EXTRACTED=$(jq -r '.[0].features_extracted // "absent"' shared/cc-adoption-gaps.json)
-if [ "$UNDER_EXTRACTED" = "2" ] && ! grep -q "FEATURE CAP dropped" /tmp/cc-triage-out2.txt; then
+if [ "$UNDER_EXTRACTED" = "2" ] && ! grep -q "FEATURE CAP dropped" $ORK_TMP/cc-triage-out2.txt; then
   log_pass "#2950 cap: under-cap run records 2 and does NOT claim truncation"
 else
   log_fail "#2950 under-cap" "features_extracted='$UNDER_EXTRACTED', unexpected cap line present"
@@ -1206,17 +1218,17 @@ fi
 
 # --- positive: ```json fence (the exact shape that froze adoption) ----------
 write_gaps
-FIXTURE=/tmp/cc-triage-fixture-fence-json.txt
+FIXTURE=$ORK_TMP/cc-triage-fixture-fence-json.txt
 {
   echo '```json'
-  cat /tmp/cc-triage-fixture-ok.txt
+  cat $ORK_TMP/cc-triage-fixture-ok.txt
   echo '```'
 } > "$FIXTURE"
 
 EXIT=0
 CLAUDE_CODE_OAUTH_TOKEN=fake-token \
 CC_TRIAGE_FIXTURE="$FIXTURE" \
-  node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1 || EXIT=$?
+  node scripts/cc-triage.mjs > $ORK_TMP/cc-triage-out.txt 2>&1 || EXIT=$?
 
 FENCE_COUNT=$(jq '.[0].features | length' shared/cc-adoption-gaps.json)
 FENCE_FAILED=$(jq -r '.[0].parse_failed' shared/cc-adoption-gaps.json)
@@ -1228,16 +1240,16 @@ fi
 
 # --- positive: bare ``` fence (no language tag) -----------------------------
 write_gaps
-FIXTURE=/tmp/cc-triage-fixture-fence-bare.txt
+FIXTURE=$ORK_TMP/cc-triage-fixture-fence-bare.txt
 {
   echo '```'
-  cat /tmp/cc-triage-fixture-ok.txt
+  cat $ORK_TMP/cc-triage-fixture-ok.txt
   echo '```'
 } > "$FIXTURE"
 
 CLAUDE_CODE_OAUTH_TOKEN=fake-token \
 CC_TRIAGE_FIXTURE="$FIXTURE" \
-  node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1
+  node scripts/cc-triage.mjs > $ORK_TMP/cc-triage-out.txt 2>&1
 
 BARE_COUNT=$(jq '.[0].features | length' shared/cc-adoption-gaps.json)
 if [ "$BARE_COUNT" = "2" ]; then
@@ -1248,18 +1260,18 @@ fi
 
 # --- positive: leading prose + fence + trailing chatter ---------------------
 write_gaps
-FIXTURE=/tmp/cc-triage-fixture-fence-prose.txt
+FIXTURE=$ORK_TMP/cc-triage-fixture-fence-prose.txt
 {
   echo 'Sure! Here are the [notable] features I found:'
   echo '```json'
-  cat /tmp/cc-triage-fixture-ok.txt
+  cat $ORK_TMP/cc-triage-fixture-ok.txt
   echo '```'
   echo 'Hope that helps.'
 } > "$FIXTURE"
 
 CLAUDE_CODE_OAUTH_TOKEN=fake-token \
 CC_TRIAGE_FIXTURE="$FIXTURE" \
-  node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1
+  node scripts/cc-triage.mjs > $ORK_TMP/cc-triage-out.txt 2>&1
 
 PROSE_COUNT=$(jq '.[0].features | length' shared/cc-adoption-gaps.json)
 if [ "$PROSE_COUNT" = "2" ]; then
@@ -1272,7 +1284,7 @@ fi
 
 # --- positive: a `]` inside a JSON string must not truncate the span --------
 write_gaps
-FIXTURE=/tmp/cc-triage-fixture-fence-strbracket.txt
+FIXTURE=$ORK_TMP/cc-triage-fixture-fence-strbracket.txt
 cat > "$FIXTURE" <<'EOF'
 ```json
 [
@@ -1283,7 +1295,7 @@ EOF
 
 CLAUDE_CODE_OAUTH_TOKEN=fake-token \
 CC_TRIAGE_FIXTURE="$FIXTURE" \
-  node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1
+  node scripts/cc-triage.mjs > $ORK_TMP/cc-triage-out.txt 2>&1
 
 STR_SLUG=$(jq -r '.[0].features[0].feature_slug // "absent"' shared/cc-adoption-gaps.json)
 if [ "$STR_SLUG" = "bracket_in_string" ]; then
@@ -1297,27 +1309,27 @@ fi
 # empty-array guard twice. Pre-fix this logged 'parse error' instead, so the
 # reason recorded for the sentinel was wrong as well as the outcome.
 write_gaps
-FIXTURE=/tmp/cc-triage-fixture-fence-empty.txt
+FIXTURE=$ORK_TMP/cc-triage-fixture-fence-empty.txt
 printf '```json\n[]\n```\n' > "$FIXTURE"
 
 EXIT=0
 CLAUDE_CODE_OAUTH_TOKEN=fake-token \
 CC_TRIAGE_FIXTURE="$FIXTURE" \
-  node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1 || EXIT=$?
+  node scripts/cc-triage.mjs > $ORK_TMP/cc-triage-out.txt 2>&1 || EXIT=$?
 
 EMPTY_FAILED=$(jq -r '.[0].parse_failed' shared/cc-adoption-gaps.json)
 # Assert BOTH attempt markers rather than a count: the "retry firing" line
 # embeds lastReason verbatim, so a bare occurrence count is 3, not 2.
 EMPTY_GUARD="empty array result (model emitted [] for a non-empty changelog)"
 if [ "$EMPTY_FAILED" = "true" ] \
-  && grep -qF "$EMPTY_GUARD (attempt 1/2)" /tmp/cc-triage-out.txt \
-  && grep -qF "$EMPTY_GUARD (attempt 2/2)" /tmp/cc-triage-out.txt; then
+  && grep -qF "$EMPTY_GUARD (attempt 1/2)" $ORK_TMP/cc-triage-out.txt \
+  && grep -qF "$EMPTY_GUARD (attempt 2/2)" $ORK_TMP/cc-triage-out.txt; then
   log_pass "fence-parse: fenced [] parses on BOTH attempts, still trips the M134 empty guard"
 else
   log_fail "fence-parse retry path" "parse_failed=$EMPTY_FAILED, expected the empty-array guard on attempt 1/2 AND 2/2"
 fi
 
-if ! grep -q "parse error" /tmp/cc-triage-out.txt; then
+if ! grep -q "parse error" $ORK_TMP/cc-triage-out.txt; then
   log_pass "fence-parse: fenced [] is NOT misreported as a parse error"
 else
   log_fail "fence-parse reason" "fenced [] still logged as 'parse error'"
@@ -1325,15 +1337,15 @@ fi
 
 # --- negative: a fenced OBJECT still fails the array check ------------------
 write_gaps
-FIXTURE=/tmp/cc-triage-fixture-fence-object.txt
+FIXTURE=$ORK_TMP/cc-triage-fixture-fence-object.txt
 printf '```json\n{"feature_slug": "not_an_array"}\n```\n' > "$FIXTURE"
 
 CLAUDE_CODE_OAUTH_TOKEN=fake-token \
 CC_TRIAGE_FIXTURE="$FIXTURE" \
-  node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1
+  node scripts/cc-triage.mjs > $ORK_TMP/cc-triage-out.txt 2>&1
 
 OBJ_FAILED=$(jq -r '.[0].parse_failed' shared/cc-adoption-gaps.json)
-if [ "$OBJ_FAILED" = "true" ] && grep -qF "result is not array" /tmp/cc-triage-out.txt; then
+if [ "$OBJ_FAILED" = "true" ] && grep -qF "result is not array" $ORK_TMP/cc-triage-out.txt; then
   log_pass "fence-parse: fenced OBJECT still fails 'result is not array' + sentinels"
 else
   log_fail "fence-parse object negative" "parse_failed=$OBJ_FAILED, no 'result is not array' in output"
@@ -1341,16 +1353,16 @@ fi
 
 # --- negative: output with no JSON value at all still sentinels -------------
 write_gaps
-FIXTURE=/tmp/cc-triage-fixture-fence-nojson.txt
+FIXTURE=$ORK_TMP/cc-triage-fixture-fence-nojson.txt
 echo 'I could not find any notable features in that changelog.' > "$FIXTURE"
 
 EXIT=0
 CLAUDE_CODE_OAUTH_TOKEN=fake-token \
 CC_TRIAGE_FIXTURE="$FIXTURE" \
-  node scripts/cc-triage.mjs > /tmp/cc-triage-out.txt 2>&1 || EXIT=$?
+  node scripts/cc-triage.mjs > $ORK_TMP/cc-triage-out.txt 2>&1 || EXIT=$?
 
 NOJSON_FAILED=$(jq -r '.[0].parse_failed' shared/cc-adoption-gaps.json)
-if [ "$EXIT" = "0" ] && [ "$NOJSON_FAILED" = "true" ] && grep -qF "no JSON value in model output" /tmp/cc-triage-out.txt; then
+if [ "$EXIT" = "0" ] && [ "$NOJSON_FAILED" = "true" ] && grep -qF "no JSON value in model output" $ORK_TMP/cc-triage-out.txt; then
   log_pass "fence-parse: prose-only output still sentinels with a named reason"
 else
   log_fail "fence-parse no-JSON negative" "exit=$EXIT parse_failed=$NOJSON_FAILED (expected 0/true + named reason)"

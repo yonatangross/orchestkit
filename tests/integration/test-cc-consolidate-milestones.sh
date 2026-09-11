@@ -20,6 +20,18 @@
 
 set -euo pipefail
 
+# Per-run private temp dir (#4026).
+#
+# These paths were hardcoded $ORK_TMP/<fixed-name>. Two problems, and the quiet one
+# is worse. The CC sandbox denies writes to /tmp, so the test fails locally with
+# "Operation not permitted". But the filename was also FIXED, so two concurrent
+# runs on one machine wrote and read the same file: a test could assert against
+# another run's output and PASS. $TMPDIR alone fixes only the first; mktemp
+# fixes both.
+ORK_TMP="$(mktemp -d "${TMPDIR:-/tmp}/ork-cctest.XXXXXX")"
+trap 'rm -rf "$ORK_TMP"' EXIT
+
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
@@ -145,11 +157,11 @@ NO_STRAYS=$(printf '10\tCC adoption\n13\tM146 — CC 2.1.143 hardening')
 : > "$MOCK_LOG"
 EXIT=0
 MOCK_UMBRELLA_NUM=10 MOCK_MILESTONES_TSV="$NO_STRAYS" MOCK_ISSUES="1001 1002" \
-  GH_REPO="acme/orchestkit" bash "$SCRIPT" >/tmp/consol-1.out 2>&1 || EXIT=$?
-if [ "$EXIT" = "0" ] && grep -q "nothing to do" /tmp/consol-1.out; then
+  GH_REPO="acme/orchestkit" bash "$SCRIPT" >$ORK_TMP/consol-1.out 2>&1 || EXIT=$?
+if [ "$EXIT" = "0" ] && grep -q "nothing to do" $ORK_TMP/consol-1.out; then
   log_pass "steady state: exits 0 with 'nothing to do'"
 else
-  log_fail "steady state" "exit=$EXIT (see /tmp/consol-1.out)"
+  log_fail "steady state" "exit=$EXIT (see $ORK_TMP/consol-1.out)"
 fi
 if [ "$(count_calls "$PATCH_ISSUE_RE")" = "0" ] && [ "$(count_calls "$CLOSE_RE")" = "0" ]; then
   log_pass "steady state: zero mutations"
@@ -163,13 +175,13 @@ fi
 : > "$MOCK_LOG"
 EXIT=0
 MOCK_UMBRELLA_NUM=10 MOCK_MILESTONES_TSV="$TWO_STRAYS" MOCK_ISSUES="1001 1002" \
-  SLEEP_BETWEEN=0 GH_REPO="acme/orchestkit" bash "$SCRIPT" >/tmp/consol-2.out 2>&1 || EXIT=$?
+  SLEEP_BETWEEN=0 GH_REPO="acme/orchestkit" bash "$SCRIPT" >$ORK_TMP/consol-2.out 2>&1 || EXIT=$?
 MOVES=$(count_calls "$PATCH_ISSUE_RE")
 CLOSES=$(count_calls "$CLOSE_RE")
 if [ "$EXIT" = "0" ] && [ "$MOVES" = "4" ]; then
   log_pass "sweep: moved 4 issues (2 strays × 2 issues)"
 else
-  log_fail "sweep moves" "expected 4, got $MOVES (exit=$EXIT, see /tmp/consol-2.out)"
+  log_fail "sweep moves" "expected 4, got $MOVES (exit=$EXIT, see $ORK_TMP/consol-2.out)"
 fi
 if [ "$CLOSES" = "2" ]; then
   log_pass "sweep: closed 2 emptied milestones"
@@ -177,7 +189,7 @@ else
   log_fail "sweep closes" "expected 2, got $CLOSES"
 fi
 # The graduated M146 bundle must NOT be swept or closed.
-if ! grep -q "M146" /tmp/consol-2.out; then
+if ! grep -q "M146" $ORK_TMP/consol-2.out; then
   log_pass "sweep: graduated M146 bundle left untouched"
 else
   log_fail "sweep graduation" "M146 bundle should not appear in sweep output"
@@ -189,14 +201,14 @@ fi
 : > "$MOCK_LOG"
 EXIT=0
 DRY_RUN=1 MOCK_UMBRELLA_NUM=10 MOCK_MILESTONES_TSV="$TWO_STRAYS" MOCK_ISSUES="1001 1002" \
-  GH_REPO="acme/orchestkit" bash "$SCRIPT" >/tmp/consol-3.out 2>&1 || EXIT=$?
+  GH_REPO="acme/orchestkit" bash "$SCRIPT" >$ORK_TMP/consol-3.out 2>&1 || EXIT=$?
 if [ "$EXIT" = "0" ] \
   && [ "$(count_calls "$PATCH_ISSUE_RE")" = "0" ] \
   && [ "$(count_calls "$CLOSE_RE")" = "0" ] \
-  && grep -q "DRY_RUN: would move" /tmp/consol-3.out; then
+  && grep -q "DRY_RUN: would move" $ORK_TMP/consol-3.out; then
   log_pass "DRY_RUN: prints intent, performs zero mutations"
 else
-  log_fail "DRY_RUN" "expected 0 mutations + 'would move' notes (see /tmp/consol-3.out)"
+  log_fail "DRY_RUN" "expected 0 mutations + 'would move' notes (see $ORK_TMP/consol-3.out)"
 fi
 
 # ============================================================================
@@ -205,11 +217,11 @@ fi
 : > "$MOCK_LOG"
 EXIT=0
 MOCK_UMBRELLA_NUM="" MOCK_MILESTONES_TSV="$NO_STRAYS" MOCK_ISSUES="" \
-  GH_REPO="acme/orchestkit" bash "$SCRIPT" >/tmp/consol-4.out 2>&1 || EXIT=$?
+  GH_REPO="acme/orchestkit" bash "$SCRIPT" >$ORK_TMP/consol-4.out 2>&1 || EXIT=$?
 if [ "$EXIT" = "0" ] && [ "$(count_calls "$POST_RE")" = "1" ]; then
   log_pass "umbrella missing: created via POST"
 else
-  log_fail "umbrella create" "expected 1 POST, got $(count_calls "$POST_RE") (see /tmp/consol-4.out)"
+  log_fail "umbrella create" "expected 1 POST, got $(count_calls "$POST_RE") (see $ORK_TMP/consol-4.out)"
 fi
 
 # ============================================================================
