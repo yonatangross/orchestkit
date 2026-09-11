@@ -471,6 +471,14 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.15](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.14...v10.0.0-beta.15)** · 2026-09-11
+
+- **ci:** label tests by path so same-named files are distinguishable (#4050) (#4068)
+- **docs:** one Lab manifest fragment per entry, no shared file (#4049) (#4064)
+- **hooks:** pre-push runs its test suite on every branch (#4024) (#4045)
+- **release:** include docs site changes in changelog (#4066) (#4067)
+- **tests:** write temp files under mktemp, not a hardcoded /tmp (#4026) (#4048)
+
 **[v10.0.0-beta.14](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.13...v10.0.0-beta.14)** · 2026-09-11
 
 - **build:** strip devDependencies from the hooks manifest mirror (#3971) (#4029)
@@ -508,12 +516,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.8](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.7...v10.0.0-beta.8)** · 2026-09-08
 
 - **deps:** ignore vitest major under /src/hooks (#3996)
-
-**[v10.0.0-beta.7](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.6...v10.0.0-beta.7)** · 2026-09-08
-
-- **ci:** report an unreadable version as SKIP, not DRIFT (#3989)
-- **rules:** scope the modules-key ban to shipped hooks.json (#3993)
-- **playground:** treat .claude/rules/ as inert (#3994)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
