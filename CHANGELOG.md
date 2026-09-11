@@ -5,6 +5,17 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.15](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.14...v10.0.0-beta.15) (2026-09-11)
+
+
+### Bug Fixes
+
+* **ci:** label tests by path so same-named files are distinguishable ([#4050](https://github.com/yonatangross/orchestkit/issues/4050)) ([#4068](https://github.com/yonatangross/orchestkit/issues/4068)) ([c744c10](https://github.com/yonatangross/orchestkit/commit/c744c10583fbf60f9a3bc99e0383366b2b794d3f))
+* **docs:** one Lab manifest fragment per entry, no shared file ([#4049](https://github.com/yonatangross/orchestkit/issues/4049)) ([#4064](https://github.com/yonatangross/orchestkit/issues/4064)) ([dfbb96d](https://github.com/yonatangross/orchestkit/commit/dfbb96ddb9af8fab2dc6eaad6a34e3ebe49dab73))
+* **hooks:** pre-push runs its test suite on every branch ([#4024](https://github.com/yonatangross/orchestkit/issues/4024)) ([#4045](https://github.com/yonatangross/orchestkit/issues/4045)) ([ca36185](https://github.com/yonatangross/orchestkit/commit/ca3618542424e93aa62558ebdd504fdd59be90ea))
+* **release:** include docs site changes in changelog ([#4066](https://github.com/yonatangross/orchestkit/issues/4066)) ([#4067](https://github.com/yonatangross/orchestkit/issues/4067)) ([a363508](https://github.com/yonatangross/orchestkit/commit/a36350834c40aaac91d7a8600f58c5919827881d))
+* **tests:** write temp files under mktemp, not a hardcoded /tmp ([#4026](https://github.com/yonatangross/orchestkit/issues/4026)) ([#4048](https://github.com/yonatangross/orchestkit/issues/4048)) ([0894f14](https://github.com/yonatangross/orchestkit/commit/0894f14adcc9794a69edc391dae01f270a30cf9b))
+
 ## [10.0.0-beta.14](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.13...v10.0.0-beta.14) (2026-09-11)
 
 
