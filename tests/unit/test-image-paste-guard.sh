@@ -339,15 +339,48 @@ test_oversized_prompt_latency() {
     big_text=$(generate_string 60000)
     local input
     input=$(jq -n --arg p "$big_text" '{"prompt":$p,"tool_name":"","session_id":"test","tool_input":{}}')
-    local start_ms end_ms elapsed_ms
-    start_ms=$(python3 -c "import time; print(int(time.time()*1000))")
+    # SIZE-DELTA bound, not a ratio (#4024, corrected after review).
+    #
+    # This began as a hard `< 500ms`, which failed under load for reasons the
+    # test does not care about. My first fix divided by a baseline run, and that
+    # was WRONG: process startup is ADDITIVE, not multiplicative. With a 100ms
+    # startup-dominated baseline, `baseline * 3 + 150` is a 450ms budget, so a
+    # regression that genuinely scans all 60K in 120ms sails through. That
+    # traded a flaky test for a weak one.
+    #
+    # Startup cancels under SUBTRACTION, not division. Run the same hook twice
+    # in the same regime, once on a tiny prompt and once on the 60K one, and
+    # bound the DIFFERENCE. Identical spawn cost appears in both terms and
+    # disappears from the delta, leaving only work that scales with payload
+    # size, which is exactly what "does the guard short-circuit" means.
+    local small_input
+    small_input=$(jq -n '{"prompt":"hello","tool_name":"","session_id":"test","tool_input":{}}')
+
+    local s0 s1 small_ms b0 b1 big_ms delta_ms delta_budget_ms
+    s0=$(python3 -c "import time; print(int(time.time()*1000))")
+    run_hook_with_input "prompt/unified-dispatcher" "$small_input" 5 >/dev/null
+    s1=$(python3 -c "import time; print(int(time.time()*1000))")
+    small_ms=$((s1 - s0))
+
+    b0=$(python3 -c "import time; print(int(time.time()*1000))")
     run_hook_with_input "prompt/unified-dispatcher" "$input" 5 >/dev/null
-    end_ms=$(python3 -c "import time; print(int(time.time()*1000))")
-    elapsed_ms=$((end_ms - start_ms))
-    if [[ "$elapsed_ms" -lt 500 ]]; then
-        log_pass "oversized prompt completes in ${elapsed_ms}ms (< 500ms)"
+    b1=$(python3 -c "import time; print(int(time.time()*1000))")
+    big_ms=$((b1 - b0))
+
+    delta_ms=$((big_ms - small_ms))
+    # Scheduler jitter between two spawns can make the delta slightly negative;
+    # that is still a short-circuit, so floor it at zero.
+    [[ "$delta_ms" -lt 0 ]] && delta_ms=0
+
+    # 120ms of ADDITIONAL time for 60K more input. A guard that short-circuits
+    # lands within a few ms; one that scans the payload does not. The bound is
+    # about payload work only, so it does not move with machine load.
+    delta_budget_ms=120
+    if [[ "$delta_ms" -lt "$delta_budget_ms" ]]; then
+        log_pass "oversized prompt costs +${delta_ms}ms over trivial (budget +${delta_budget_ms}ms)"
     else
-        log_fail "oversized prompt completes in ${elapsed_ms}ms (< 500ms)" "Took ${elapsed_ms}ms — guard may not be working"
+        log_fail "oversized prompt costs +${delta_ms}ms over trivial (budget +${delta_budget_ms}ms)" \
+                 "60K of extra input should be short-circuited, not scanned"
     fi
 }
 test_oversized_prompt_latency
