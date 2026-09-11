@@ -107,7 +107,22 @@ START_TIME=$(date +%s)
 run_test() {
   local test_file="$1"
   local test_name
-  test_name=$(basename "$test_file")
+  # Label by PATH, not basename (#4050).
+  #
+  # Three different files are named test-fault-arms.sh (tests/ci, tests/manifests,
+  # tests/plugins) and the Manifests & Schemas job runs all three directories. With
+  # a basename label the job log carries three identical `[RUN] test-fault-arms.sh`
+  # lines from three different files with three different gate lists, and the
+  # failure summary below names one of them without saying which.
+  #
+  # That is not cosmetic. Triaging a real review block, a first-match grep on the
+  # job log found the tests/manifests one PASSING in 1s, its gate list did not
+  # contain the failing gate, and the obvious conclusion was that the gate had not
+  # run at all. The actual failure was the tests/ci one, 11s later in the same log.
+  # First-match reads green while a different file of the same name is red.
+  #
+  # The path is already in hand; discarding it is what creates the ambiguity.
+  test_name="$test_file"
 
   echo -e "${BLUE}[RUN]${NC} $test_name"
 
@@ -156,7 +171,9 @@ for test_file in "${TEST_FILES[@]}"; do
     PASSED=$((PASSED + 1))
   else
     FAILED=$((FAILED + 1))
-    FAILED_TESTS+=("$(basename "$test_file")")
+    # Path, not basename: the summary is what a reader sees first, and it has to
+    # say WHICH file failed when several share a name (#4050).
+    FAILED_TESTS+=("$test_file")
   fi
 done
 
