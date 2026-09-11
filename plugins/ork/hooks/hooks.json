@@ -177,7 +177,6 @@
       },
       {
         "matcher": "AskUserQuestion",
-        "if": "AskUserQuestion(*)",
         "hooks": [
           {
             "type": "command",
@@ -631,7 +630,6 @@
     "PermissionRequest": [
       {
         "matcher": "Bash",
-        "if": "Bash(git push*) || Bash(git reset*) || Bash(rm -rf*) || Bash(docker *) || Bash(kubectl *) || Bash(gh pr *) || Bash(gh issue close*) || Bash(npm publish*) || Bash(* && rm -rf *) || Bash(* && git push *) || Bash(* | xargs rm *)",
         "hooks": [
           {
             "type": "command",
