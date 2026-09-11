@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The if key that never was</title>
+<meta name="description" content="Move the two group-level if keys to the hook command level to reproduce the CC hooks schema verdict and understand the matcher widening the fix ships.">
+<style>
+:root{color-scheme:dark;--pg-bg:oklch(19% .02 255);--pg-panel:oklch(25% .025 255);--pg-fg:oklch(94% .01 255);--pg-muted:oklch(78% .02 255);--pg-accent:oklch(82% .12 165);--pg-warn:oklch(78% .14 70);--pg-bad:oklch(70% .16 25)}
+*{box-sizing:border-box}body{margin:0;background:var(--pg-bg);color:var(--pg-fg);font:18px/1.6 system-ui,sans-serif}main{max-width:850px;margin:4rem auto;padding:1.5rem}h1{font-size:clamp(2rem,5vw,3.3rem);line-height:1.1}h2{font-size:1.35rem;margin-top:2.5rem}p{color:var(--pg-muted)}.controls,article{background:var(--pg-panel);padding:1.5rem;border-radius:16px;margin-block:1.5rem}.controls{display:flex;flex-wrap:wrap;gap:1.5rem}label{display:grid;gap:.5rem;flex:1}select,button{font:inherit;background:var(--pg-bg);color:var(--pg-fg);padding:.6rem;border:1px solid var(--pg-muted);border-radius:8px}button{cursor:pointer}select:focus-visible,button:focus-visible{outline:3px solid var(--pg-accent);outline-offset:3px}code{overflow-wrap:anywhere;color:var(--pg-accent)}pre{overflow-x:auto;background:var(--pg-bg);border:1px solid var(--pg-muted);border-radius:10px;padding:1rem;font-size:.85rem;line-height:1.55}pre .del{color:var(--pg-bad)}pre .add{color:var(--pg-add, var(--pg-accent))}#result{font-size:1.5rem;font-weight:700}small{color:var(--pg-muted)}#blast p{color:var(--pg-fg)}#blast .wide{color:var(--pg-warn);font-weight:600}@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+</style>
+</head>
+<body><main>
+<small>HOOKS SCHEMA INVESTIGATION</small>
+<h1>Two if keys.<br>At the wrong level.</h1>
+<p>hooks.json fronted two hooks with an <code>"if"</code> key sitting on the matcher group: <code>PreToolUse[7]</code> (headless gate in front of headless-responder) and <code>PermissionRequest[0]</code> (an 11-rule dangerous-Bash gate in front of the unified-dispatcher). The CC hooks schema admits <code>if</code> on the hook command object only, so the loader reports both as unknown keys and ignores them at every session start.</p>
+
+<h2>The before and after shape</h2>
+<article><pre><code>"PreToolUse": [
+  <span class="del">-   "matcher": "AskUserQuestion",</span>
+  <span class="del">-   "if": "AskUserQuestion(*)",        # group level: unknown to CC, ignored</span>
+  <span class="add">+   "matcher": "AskUserQuestion",      # the group carries matcher + hooks</span>
+      "hooks": [ ... headless-responder, self-gated on headless mode ... ]
+],
+"PermissionRequest": [
+  <span class="del">-   "matcher": "Bash",</span>
+  <span class="del">-   "if": "Bash(git push*) || ... || Bash(* | xargs rm *)",  # 11-rule chain</span>
+  <span class="add">+   "matcher": "Bash",                 # members self-gate dangerous input</span>
+      "hooks": [ ... unified-dispatcher, REJECT_PATTERNS + SECURITY_BLOCKLIST ... ]
+]</code></pre></article>
+
+<div class="controls">
+<label>CC version<select id="version"><option value="2.1.264">2.1.264 (never published)</option><option value="2.1.268">2.1.268 (current)</option></select></label>
+<label>if placement<select id="placement"><option value="group">Group level (before fix)</option><option value="command">Hook command level (documented)</option></select></label>
+<label>Rule shape<select id="rules"><option value="one">Single permission rule</option><option value="chain">11-rule || chain</option></select></label>
+</div>
+<article aria-live="polite"><div id="result"></div><code id="shape-line"></code><p id="explanation"></p></article>
+
+<h2>Why CC ignores them</h2>
+<p>The hooks documentation defines the matcher group as carrying <code>matcher</code> and <code>hooks</code>. The <code>if</code> field is documented on the hook command object, introduced in whats-new 2026-w13, and admits "a single permission rule without logical operators; combining conditions requires separate hook handlers". Nothing in 2.1.264 to 2.1.268 touches the hook schema: 2.1.264 was never published, and the 2.1.268 row's only hook fix makes PermissionRequest hooks fire under <code>-p</code>. The 11-rule chain was unsupportable even at the documented level.</p>
+
+<article id="blast"><h2 style="margin-top:0">Blast radius: the removal widens the matcher</h2>
+<p class="wide">Removing the group keys WIDENS the Bash PermissionRequest matcher to all Bash.</p>
+<p>Had the gate ever worked, the dispatcher would have judged only the 11 dangerous prefixes and every other Bash call would have bypassed the branch entirely: branchless approval, the behaviour the keys never shipped because the loader ignored them. The widening is the point: the auto-approver needs to front every Bash permission request, and the dispatcher's own self-gating (REJECT_PATTERNS, SECURITY_BLOCKLIST, compound-command rejection) is what makes fronting all Bash safe.</p>
+<p>The widening also owns the re-add risk: on a future CC that starts supporting group-level <code>if</code>, re-adding the key would silently narrow the auto-approver back to the dangerous subset, safe commands would fall back to default approval, and every unit test would still pass against a control nobody is subject to. The self-gating of the members is the invariant that survives both directions.</p></article>
+
+<p><button id="copy-prompt" type="button">Copy verification command</button> <span id="copied" role="status"></span></p>
+<small>This is an explanatory model, not a live test runner. Locally, the schema-keys suite failed before the fix and all 6 assertions passed afterward.</small>
+</main>
+<script>
+const version=document.querySelector('#version'),placement=document.querySelector('#placement'),rules=document.querySelector('#rules');
+function render(){
+  const group=placement.value==='group';
+  const chain=rules.value==='chain';
+  const el=document.querySelector('#result'),line=document.querySelector('#shape-line'),ex=document.querySelector('#explanation');
+  if(group){el.textContent='Loader: unknown key(s) "if", ignored';line.textContent='"PreToolUse[7] carries unknown key(s) "if""';ex.textContent=version.value==='2.1.264'?'The loader verdict is identical at every version: the group carries matcher and hooks. 2.1.264 was never published, so there is no version where the key reached the schema.':'The loader reports the group-level key as unknown and ignores it at every session start. Removing it changes nothing the loader shipped.';}
+  else if(!chain){el.textContent='Documented: admitted';line.textContent='"if": "Bash(dangerous-command)"';ex.textContent='At the hook command level a single permission rule is the documented shape. Every key the hooks use today lives there.';}
+  else{el.textContent='Unsupportable: one rule, no operators';line.textContent='"if": "Bash(git push*) || ... || Bash(* | xargs rm *)"';ex.textContent='The documented shape admits a single permission rule without logical operators. An 11-rule chain needs separate hook handlers.';}
+}
+version.addEventListener('change',render);placement.addEventListener('change',render);rules.addEventListener('change',render);render();
+document.querySelector('#copy-prompt').addEventListener('click',async()=>{try{await navigator.clipboard.writeText('bash tests/unit/test-hooks-schema-keys.sh');document.querySelector('#copied').textContent='Copied';}catch{document.querySelector('#copied').textContent='Run: bash tests/unit/test-hooks-schema-keys.sh';}});
+</script></body></html>
