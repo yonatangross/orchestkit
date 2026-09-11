@@ -28,8 +28,19 @@
  *      accounting in hooks.json's description no longer matches reality
  *   5. SELF-CHECK: hooks.json parses to zero dispatch ids (the failure mode
  *      that silently killed the previous version of this script)
+ *   6. SCHEMA KEYS (#4060): a hooks.<Event>[] entry carries a key outside the
+ *      documented CC schema. CC silently ignores unknown keys on a hook entry,
+ *      so a condition placed there is dead: the exact #4060 defect, where two
+ *      matcher-group `if` keys were reported unknown and ignored by CC 2.1.268
+ *      on every session start. Allowlist per the CC hooks docs
+ *      (https://code.claude.com/docs/en/hooks): a matcher group carries
+ *      `matcher` and `hooks` only; the documented `if` field is a per-hook
+ *      command-object field and supports a single permission rule without
+ *      logical operators, so it can never express a group-level condition.
  *
- * Usage: node scripts/validate-registry.mjs
+ * Usage: node scripts/validate-registry.mjs [hooksJsonPath]
+ *   The optional path validates an alternate hooks.json (used by the
+ *   negative-control test to feed a bad fixture through this same validator).
  */
 
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
@@ -59,8 +70,8 @@ function idFromHookObj(hook) {
 }
 
 /** hooks.json → { ids:Set, commandCount:number } */
-function parseHooksJson() {
-  const data = JSON.parse(readFileSync(join(hooksRoot, 'hooks.json'), 'utf-8'));
+function parseHooksJson(hooksJsonPath = join(hooksRoot, 'hooks.json')) {
+  const data = JSON.parse(readFileSync(hooksJsonPath, 'utf-8'));
   const ids = new Set();
   let commandCount = 0;
   for (const groups of Object.values(data.hooks)) {
@@ -73,6 +84,37 @@ function parseHooksJson() {
     }
   }
   return { ids, commandCount, description: data.description || '' };
+}
+
+/**
+ * SCHEMA KEYS (#4060): every hooks.<Event>[] entry (a matcher group) must
+ * carry only documented schema keys. CC silently ignores unknown keys on a
+ * hook entry, so a condition written at group level is dead on arrival: both
+ * #4060 keys sat there and CC 2.1.268 reported them unknown at every startup.
+ * The allowlist matches the CC hooks docs (https://code.claude.com/docs/en/hooks,
+ * section "Matchers"/"Common fields"): a group carries `matcher` and `hooks`;
+ * the documented `if` field lives on the hook command object, never the group,
+ * and admits a single permission rule with no logical operators.
+ */
+const MATCHER_GROUP_KEYS = new Set(['matcher', 'hooks']);
+
+function checkSchemaKeys(data) {
+  const failures = [];
+  for (const [event, groups] of Object.entries(data.hooks || {})) {
+    if (!Array.isArray(groups)) continue;
+    groups.forEach((group, i) => {
+      if (!group || typeof group !== 'object') return;
+      const unknown = Object.keys(group).filter(k => !MATCHER_GROUP_KEYS.has(k));
+      if (unknown.length > 0) {
+        failures.push(
+          `SCHEMA KEYS: hooks.${event}[${i}] carries unknown key(s) ${unknown.map(k => `"${k}"`).join(', ')} ` +
+          `- CC ignores unknown keys on hook entries, so whatever they gate does not apply (#4060). ` +
+          `Allowlist: ${[...MATCHER_GROUP_KEYS].join(', ')}.`,
+        );
+      }
+    });
+  }
+  return failures;
 }
 
 /** entries/*.ts registry maps → Set of registered hook ids */
@@ -158,7 +200,10 @@ function dispatcherFanout(seeds, registered) {
 // ---------------------------------------------------------------------------
 
 function main() {
-  const { ids: directIds, commandCount, description } = parseHooksJson();
+  // Optional alternate hooks.json path: the negative-control test feeds a bad
+  // fixture through this same validator so the check is proven live, not green.
+  const hooksJsonPath = process.argv[2] || join(hooksRoot, 'hooks.json');
+  const { ids: directIds, commandCount, description } = parseHooksJson(hooksJsonPath);
   const registered = parseEntryFiles();
   const agents = parseMarkdownHookRefs(agentFiles());
   const skills = parseMarkdownHookRefs(skillFiles());
@@ -173,6 +218,9 @@ function main() {
   if (registered.size === 0) {
     failures.push('SELF-CHECK: parsed 0 registered ids out of src/entries/*.ts — the parser no longer matches the entries format.');
   }
+
+  // 6. SCHEMA KEYS — unknown keys on a hook entry are silently ignored by CC
+  failures.push(...checkSchemaKeys(JSON.parse(readFileSync(hooksJsonPath, 'utf-8'))));
 
   // Closure
   const seeds = new Set([...directIds, ...agents.ids, ...skills.ids]);
