@@ -212,6 +212,21 @@ run could not start: EPERM: operation not permitted, mkdtemp '/tmp/e-XXXXXX'
 Disabling the Bash tool sandbox for the command does not lift it. Either allow
 writes to `/private/tmp`, or run the suite from a plain terminal.
 
+## CI: two files on purpose
+
+- `.github/workflows/plugin-eval.yml` runs `scripts/validate-eval-cases.mjs` on
+  every `pull_request` touching skills or evals. Offline, deterministic, zero
+  LLM calls.
+- `.github/workflows/plugin-eval-score.yml` runs the real ablation on
+  `workflow_dispatch` only, with `runs`, `max_cost_usd`, and `tag` inputs.
+
+They are separate files because `tests/unit/test-no-llm-in-ci.sh` checks per
+file that nothing carrying an LLM signature can fire automatically, and a
+job-level `if:` does not satisfy it. It caught the single-file version of this
+on the branch's first push. The rule behind it: real LLM calls run locally
+during development, never automatically in CI, because Max-plan OAuth draws on
+the same weekly quota as interactive sessions.
+
 ## What the eval cannot measure
 
 - **Hooks.** All 171 of them. The eval scores the agent's final message and the
