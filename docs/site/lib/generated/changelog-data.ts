@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.18",
+    "date": "2026-09-12",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.17...v10.0.0-beta.18",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**skills:** drain five ASCII density baseline blocks ([#4073](https://github.com/yonatangross/orchestkit/issues/4073)) ([#4077](https://github.com/yonatangross/orchestkit/issues/4077)) ([2774aad](https://github.com/yonatangross/orchestkit/commit/2774aad188a2e620107934b79e3955d8bc45e001))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.17",
     "date": "2026-09-12",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.16...v10.0.0-beta.17",
