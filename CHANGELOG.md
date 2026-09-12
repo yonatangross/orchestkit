@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.18](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.17...v10.0.0-beta.18) (2026-09-12)
+
+
+### Bug Fixes
+
+* **skills:** drain five ASCII density baseline blocks ([#4073](https://github.com/yonatangross/orchestkit/issues/4073)) ([#4077](https://github.com/yonatangross/orchestkit/issues/4077)) ([2774aad](https://github.com/yonatangross/orchestkit/commit/2774aad188a2e620107934b79e3955d8bc45e001))
+
 ## [10.0.0-beta.17](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.16...v10.0.0-beta.17) (2026-09-12)
 
 
