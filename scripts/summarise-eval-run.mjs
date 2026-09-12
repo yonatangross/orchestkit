@@ -59,9 +59,14 @@ L.push("");
 L.push("| Skill | Case | Kind | With | Without | Delta | Cost with | Cost w/o | Turns with | Turns w/o |");
 L.push("|---|---|---|---|---|---|---|---|---|---|");
 
-const fire = [], neg = [];
+const fire = [], neg = [], unmeasured = [];
+const armErrored = (arm) => (arm ?? []).some((r) => r.error);
 for (const c of [...d.cases].sort((a, b) => a.name.localeCompare(b.name))) {
   const a = c.aggregates ?? {};
+  // A run that timed out or hit the turn cap scored 0 by the tool. That is
+  // not a measurement of the answer, so the case is reported but its delta
+  // is treated as absent everywhere below.
+  if (armErrored(c.arms.with) || armErrored(c.arms.without)) { unmeasured.push(c); a.delta = undefined; }
   const w = armStats(c.arms.with), wo = armStats(c.arms.without);
   const kind = isNegative(c.name) ? "negative" : "fire";
   (kind === "fire" ? fire : neg).push(c);
@@ -76,6 +81,12 @@ L.push("");
 L.push(`**Fire-case mean delta ${signed(fireMean)} points** over ${deltas(fire).length} measured fire case(s). Negatives are reported separately and expected at 0: mean ${signed(negMean)} over ${deltas(neg).length}. The tool's own all-case meanDelta is ${signed(d.aggregates.meanDelta)}.`);
 L.push("");
 L.push(`Agent spend ${usd(agentCost)}, judge spend ${usd(judgeCost)}.`);
+
+if (unmeasured.length) {
+  L.push(""); L.push(`### Not measured: ${unmeasured.length} case(s) had an arm that errored`);
+  L.push("A timed-out or turn-capped run scores 0 in the tool's own aggregates. That is a budget or regime artefact, not an answer, so these deltas are excluded from every mean above.");
+  for (const c of unmeasured) for (const [arm, rs] of Object.entries(c.arms)) for (const r of rs) if (r.error) L.push(`- \`${c.name}\` ${arm}: ${r.error} (${r.turns} turns)`);
+}
 
 const regressions = fire.filter((c) => typeof c.aggregates?.delta === "number" && c.aggregates.delta < CASE_FLOOR);
 const contaminated = neg.filter((c) => typeof c.aggregates?.delta === "number" && c.aggregates.delta !== 0);

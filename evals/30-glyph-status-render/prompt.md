@@ -1,7 +1,7 @@
 ---
 tags: [glyph, fire]
-max_turns: 6
-timeout_seconds: 180
+max_turns: 14
+timeout_seconds: 420
 runs: 3
 allowed_tools: [Skill]
 ---
