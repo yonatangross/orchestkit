@@ -1,0 +1,12 @@
+{
+  "slug": "draining-the-density-ratchet",
+  "source": "docs/fix--4073-drain-low-density/index.html",
+  "title": "Draining the Density Ratchet to Zero",
+  "description": "OrchestKit #4072 set an information-density floor of 0.20 under every fenced ASCII block in the skills and carried a shrinking baseline of five allowances. #4073 asks for those blocks to be drained. This PR reworks all five above the floor by tightening the art, never by deleting a block or padding it, and empties the baseline to the schema header alone. Pick any before or after block and watch the exact gate arithmetic run live; drive the allowance simulator through the real drain sequence, then try the two moves the ratchet refuses: raising an allowance back, and planting a fresh low block.",
+  "tags": [
+    "ascii",
+    "ratchet",
+    "skills"
+  ],
+  "date": "2026-09-12"
+}

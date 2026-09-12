@@ -44,13 +44,11 @@ Comprehensive frameworks for CI/CD pipelines, containerization, deployment strat
 ## Pipeline Architecture
 
 ```
-┌─────────────┐   ┌─────────────┐   ┌─────────────┐   ┌─────────────┐
-│    Code     │──>│    Build    │──>│    Test     │──>│   Deploy    │
-│   Commit    │   │   & Lint    │   │   & Scan    │   │  & Release  │
-└─────────────┘   └─────────────┘   └─────────────┘   └─────────────┘
-       │                 │                 │                 │
-       v                 v                 v                 v
-   Triggers         Artifacts          Reports          Monitoring
+┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐
+│ Code     │─>│ Build    │─>│ Test     │─>│ Deploy   │
+│ Commit   │ │ Lint     │ │ Scan     │ │ Release  │
+└──────────┘ └──────────┘ └──────────┘ └──────────┘
+  triggers     artifacts    reports      monitoring
 ```
 
 ## Key Concepts

@@ -1748,7 +1748,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "devops-deployment",
     "description": "Use when setting up CI/CD pipelines, containerizing applications, deploying to Kubernetes, or writing infrastructure as code. DevOps & Deployment covers GitHub Actions, Docker, Helm, and Terraform patterns.",
     "version": "1.0.0",
-    "sha256": "bb38ea967babf70e0d97272d19e592bdc4d7cdbca10645419ad3cb8e3985b686",
+    "sha256": "b1a1abd1131b8798907eebd35426cb089e044df1346832584fe55f064fe37c66",
     "author": "OrchestKit",
     "tags": [
       "devops",
@@ -2432,7 +2432,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "glyph",
     "description": "Render an answer as ASCII art plus semantic emojis inline, right now, with no setup questions. Use for a fast visual take on status, comparisons, trade-offs, architecture, or any ad-hoc 'show me X visually' ask. Not for definitions, conceptual explanations, or one-sentence and one-paragraph asks; those have no shape to draw. For a full multi-artifact plan playground, use visualize-plan instead.",
     "version": "2.0.0",
-    "sha256": "879edb70ff2f5b0ca035e3ac6c61f2aec48cef8c3653936849bc468d18aaf375",
+    "sha256": "660ba7b4879404acc91df7ada2791cee0f9cbcca63c146b0bd3a1993628a626a",
     "author": "OrchestKit",
     "tags": [
       "ascii",
@@ -3085,7 +3085,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "memory-fabric",
     "description": "Knowledge graph orchestration layer with entity extraction, natural language query parsing, deduplication (>85% similarity), and cross-reference boosting. Unifies search results ranked by recency, relevance, and authority. Use when designing memory retrieval, building entity graphs, or optimizing knowledge graph queries.",
     "version": "2.1.0",
-    "sha256": "bd9914626f8fee0623068d3aa02ac332e4b318e7bc69a53577904b6b9c1f83a8",
+    "sha256": "6d815cbdfad040272f56a8ddc1baad1a5616c0c5cc2df3e1c952c255514e88ca",
     "author": "OrchestKit",
     "tags": [
       "memory",
@@ -4384,7 +4384,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "swarm-migrate",
     "description": "Cross-repo migration swarm — one coordinator + N parallel subagents (one per target repo) that apply the same transformation, open PRs, wait for CI, and report back to a shared JSON ledger. Coordinator handles topology, conflict auto-rebase, and stop-on-novel-failure. Use when bumping a shared dependency, rolling out a workflow change, or applying a codemod across the org. Do NOT use for single-repo work — that's /ork:implement.",
     "version": "0.1.0",
-    "sha256": "3b8f9fb50ed991830a5d044d6462418545637a60c5895b50f1d3db4638939665",
+    "sha256": "5fdc11ddc186285c7c37d4294b6598e26fa0cd3d1c464c93010c8dce81c69113",
     "author": "OrchestKit",
     "tags": [
       "migration",
