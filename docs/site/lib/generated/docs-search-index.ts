@@ -813,7 +813,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/commit",
     "title": "Commit",
-    "description": "Creates commits with Conventional Commits format (feat/fix/docs/refactor/test/chore), automatic scope detection, co-author attribution, and pre-commit hook compliance. Validates staged changes, generates descriptive messages focusing on the 'why', and prevents secrets or generated-only files from being committed. Use when the user asks to commit, stage and commit, save progress, or write a commit message, whether or not they name this skill. Do not invoke it for git commits you make incidentally during other work; those stay a bare CLI call."
+    "description": "Creates commits with Conventional Commits format (feat/fix/docs/refactor/test/chore), automatic scope detection, co-author attribution, and pre-commit hook compliance. Validates staged changes, generates descriptive messages focusing on the 'why', and prevents secrets or generated-only files from being committed. Use for requests to commit, stage and commit, save progress, or write a commit message, whether or not they name this skill. Do not invoke it for git commits you make incidentally during other work; those stay a bare CLI call."
   },
   {
     "url": "/docs/reference/skills/competitive-analysis",

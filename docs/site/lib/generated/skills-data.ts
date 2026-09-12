@@ -1018,9 +1018,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "commit": {
     "name": "commit",
-    "description": "Creates commits with Conventional Commits format (feat/fix/docs/refactor/test/chore), automatic scope detection, co-author attribution, and pre-commit hook compliance. Validates staged changes, generates descriptive messages focusing on the 'why', and prevents secrets or generated-only files from being committed. Use when the user asks to commit, stage and commit, save progress, or write a commit message, whether or not they name this skill. Do not invoke it for git commits you make incidentally during other work; those stay a bare CLI call.",
+    "description": "Creates commits with Conventional Commits format (feat/fix/docs/refactor/test/chore), automatic scope detection, co-author attribution, and pre-commit hook compliance. Validates staged changes, generates descriptive messages focusing on the 'why', and prevents secrets or generated-only files from being committed. Use for requests to commit, stage and commit, save progress, or write a commit message, whether or not they name this skill. Do not invoke it for git commits you make incidentally during other work; those stay a bare CLI call.",
     "version": "1.2.0",
-    "sha256": "4bb524985ec9349ecb789248113de9e242a4ac81a8d26892942445f5954e53be",
+    "sha256": "51df04600d9450b6ee5875339c0864146936b933d58d97d42e75e2618543bebf",
     "author": "OrchestKit",
     "tags": [
       "git",
