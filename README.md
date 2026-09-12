@@ -471,6 +471,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.16](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.15...v10.0.0-beta.16)** · 2026-09-12
+
+- **evals:** claude plugin eval suite, calibration, and the fixes it found (#4072)
+
 **[v10.0.0-beta.15](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.14...v10.0.0-beta.15)** · 2026-09-11
 
 - **ci:** label tests by path so same-named files are distinguishable (#4050) (#4068)
@@ -512,10 +516,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.9](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.8...v10.0.0-beta.9)** · 2026-09-08
 
 - **engines:** pi, Codex and Cursor guide, matrix and audit (#4006)
-
-**[v10.0.0-beta.8](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.7...v10.0.0-beta.8)** · 2026-09-08
-
-- **deps:** ignore vitest major under /src/hooks (#3996)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
