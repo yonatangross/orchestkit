@@ -11,6 +11,10 @@ name: Plugin Eval
 # with the operator for their own capacity. Measured 2026-07-28: one 51-skill
 # sweep fired ~904 API calls in a single run and exhausted the cap. Do NOT add
 # a pull_request or schedule trigger to the `score` job.
+#
+# Cost shape of the scored job, so the numbers below are not a guess: each case
+# runs once per arm per `runs`, and EACH llm grader costs 3 judge votes on top
+# of the agent turn. Nine cases at runs=3 is 54 agent runs plus 162 judge calls.
 
 on:
   pull_request:
@@ -25,10 +29,10 @@ on:
         description: "Runs per case per arm"
         default: "3"
       max_cost_usd:
-        description: "Hard cost ceiling; the run aborts and reports partial results if hit"
+        description: "Hard cost ceiling; the run aborts with exit 2 and reports partial results if hit"
         default: "10"
-      case_filter:
-        description: "Optional case name glob, e.g. 2*"
+      tag:
+        description: "Optional tag filter, one of: commit, prd-to-goal, glyph, fire, negative"
         default: ""
 
 permissions: {}
@@ -42,14 +46,14 @@ jobs:
     name: Validate eval cases (offline)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v6.0.3
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v6
         with:
           node-version: "24"
-      # Deterministic. Makes no network calls and no LLM calls, so it is safe
-      # on every PR push. It enforces the floor invariants that make an
-      # ablation number mean something: runs >= 3, at least one outcome grader
-      # per case, at least one should-NOT-fire case, arm: both on the negatives.
+      # Deterministic. No network calls and no LLM calls, so it is safe on every
+      # PR push. It enforces the floor invariants that make an ablation number
+      # mean something: runs >= 3, at least one outcome grader per case, at
+      # least one should-NOT-fire case, arm: both on the negatives.
       - name: Check suite structure
         run: node scripts/validate-eval-cases.mjs evals
 
@@ -57,28 +61,46 @@ jobs:
     name: Scored ablation run (manual only)
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
+    # Max-plan OAuth, not ANTHROPIC_API_KEY: that env is NOT read by `claude -p`
+    # in a fresh HOME (#1857). On fork PRs secrets are absent, so this resolves
+    # to '' and the loud-skip path fires.
+    env:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v6.0.3
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v6
         with:
           node-version: "24"
-      - name: Build plugin
-        run: npm ci && npm run build
-      - name: Run suite with ablation
-        env:
-          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+
+      - name: 'SKIPPED: no Claude auth in this run context'
+        if: env.CLAUDE_CODE_OAUTH_TOKEN == ''
         run: |
-          if [ -z "${CLAUDE_CODE_OAUTH_TOKEN:-}" ]; then
-            echo "::notice::No Claude auth in this run context. Skipping loudly rather than fake-passing."
-            exit 0
-          fi
+          echo "::notice title=Plugin eval SKIPPED — NOT a pass::CLAUDE_CODE_OAUTH_TOKEN is unavailable in this run context (fork PR, or repo secret unset). Nothing was scored."
+          {
+            echo "## Plugin eval SKIPPED (no Claude auth)"
+            echo ""
+            echo "**Nothing was scored. This is a skip, not a pass.**"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Build plugin
+        if: env.CLAUDE_CODE_OAUTH_TOKEN != ''
+        run: npm ci && npm run build
+
+      - name: Run suite with ablation
+        if: env.CLAUDE_CODE_OAUTH_TOKEN != ''
+        run: |
           npm install -g @anthropic-ai/claude-code
           ARGS=(--runs "${{ inputs.runs }}" --max-cost-usd "${{ inputs.max_cost_usd }}")
-          if [ -n "${{ inputs.case_filter }}" ]; then ARGS+=(--case "${{ inputs.case_filter }}"); fi
+          if [ -n "${{ inputs.tag }}" ]; then ARGS+=(--tag "${{ inputs.tag }}"); fi
           bash scripts/run-plugin-eval.sh "${ARGS[@]}"
+
+      - name: Summarise deltas
+        if: always() && env.CLAUDE_CODE_OAUTH_TOKEN != ''
+        run: node scripts/summarise-eval-run.mjs >> "$GITHUB_STEP_SUMMARY" || true
+
       - name: Upload raw reports
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
         with:
           name: plugin-eval-reports
           path: evals/results/

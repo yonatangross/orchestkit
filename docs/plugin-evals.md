@@ -41,8 +41,35 @@ bash scripts/run-plugin-eval.sh --runs 3 --max-cost-usd 10
 bash scripts/run-plugin-eval.sh --case '2*'          # one skill's cases
 ```
 
+Every case is tagged with its skill and with `fire` or `negative`, so a run can
+be scoped without knowing the numeric prefixes:
+
+```bash
+bash scripts/run-plugin-eval.sh --tag commit       # the 3 commit cases
+bash scripts/run-plugin-eval.sh --tag negative     # the 3 should-NOT-fire cases
+```
+
+Both filters were confirmed against a real run's `run.json`, selecting exactly
+three cases each.
+
 Raw reports land in `evals/results/<timestamp>/` as `run.json`, `report.html`,
-and `aggregate-result.json`.
+and `aggregate-result.json`. `scripts/summarise-eval-run.mjs` turns the newest
+one into a markdown delta table, and says so loudly when runs errored or the run
+was partial, so a failed run is never read as a quality verdict.
+
+### What a run costs
+
+Each case runs once per arm per `runs`, and **each `llm` grader costs three judge
+votes** on top of the agent turn, because the judge decides by majority of three.
+Every case here has exactly one `llm` grader, so:
+
+| Mode | Agent runs | Judge calls |
+|---|---|---|
+| Pilot, `--runs 1` | 18 | 54 |
+| Full suite, `--runs 3` | 54 | 162 |
+
+The dollar figure is list-price, but on a Max plan the real cost is weekly quota
+drawn from the same pool as interactive sessions.
 
 Two things the wrapper handles that are easy to get wrong by hand:
 
@@ -63,6 +90,7 @@ Two things the wrapper handles that are easy to get wrong by hand:
 | `allowed_tools` | Tools the run may use. Read-only tools are the default set |
 | `model` | Override the agent model for this case |
 | `runs` | Runs per case per arm, default 3 |
+| `tags` | Labels for `--tag` filtering; a case runs if ANY tag matches |
 
 The body is the user prompt. No absolute paths and no `~/`: cases run in a
 sandbox working directory.

@@ -71,6 +71,7 @@ for (const name of caseDirs) {
       if (!Number.isInteger(runs) || runs < 3) errors.push(`${name}/prompt.md: runs is ${fm.runs}; the floor is 3, single runs are noise`);
       if (!fm.timeout_seconds) warns.push(`${name}/prompt.md: no timeout_seconds; an under-set budget reads as a 0 score`);
       if (!fm.allowed_tools) warns.push(`${name}/prompt.md: no allowed_tools; only the read-only set is available`);
+      if (!fm.tags) warns.push(`${name}/prompt.md: no tags; --tag cannot scope a run to this case's skill`);
     }
     checkNoAbsolutePaths(`${name}/prompt.md`, text);
   }

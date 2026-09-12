@@ -1,4 +1,5 @@
 ---
+tags: [glyph, fire]
 max_turns: 6
 timeout_seconds: 180
 runs: 3
