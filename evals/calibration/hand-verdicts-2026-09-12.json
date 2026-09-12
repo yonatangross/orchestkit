@@ -18,7 +18,7 @@
   },
   "21-prd-to-goal-unfalsifiable": {
     "with":    { "q-names-spec-unfalsifiable": "PASS", "q-no-silent-fabrication": "PASS", "q-concrete-way-forward": "PASS" },
-    "without": { "q-names-spec-unfalsifiable": "PASS", "q-no-silent-fabrication": "PASS", "q-concrete-way-forward": "PASS" }
+    "without": { "q-names-spec-unfalsifiable": "PASS", "q-no-silent-fabrication": "FAIL", "q-concrete-way-forward": "PASS" }
   },
   "22-prd-to-goal-should-not-fire": {
     "with":    { "q-runtime-toggle-vs-redeploy": "PASS", "q-when-kill-switch-wins": "PASS", "q-proportionate-to-ask": "PASS" },
