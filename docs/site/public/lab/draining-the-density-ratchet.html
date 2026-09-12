@@ -1,0 +1,223 @@
+<!-- OrchestKit playground - PR fix/4073-drain-low-density (#4073) - 2026-09-12 -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Draining the density ratchet to zero</title>
+<style>
+  :root { --bg:#0f1115; --panel:#181b22; --line:#2a2f3a; --fg:#e6e6e6; --dim:#9aa3b2;
+          --ok:#4cc38a; --bad:#e5484d; --accent:#6ea8fe; --warn:#e2a336; }
+  * { box-sizing:border-box; }
+  body { margin:0; font:15px/1.55 -apple-system, system-ui, "Segoe UI", sans-serif; background:var(--bg); color:var(--fg); }
+  main { max-width:1000px; margin:0 auto; padding:26px 20px 68px; }
+  h1 { font-size:22px; margin:0 0 6px; }
+  h2 { font-size:15px; margin:28px 0 8px; color:var(--accent); }
+  p { margin:6px 0; color:var(--dim); max-width:82ch; }
+  code { font:12.5px ui-monospace, SFMono-Regular, Menlo, monospace; color:#cbd5e1; }
+  .panel { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:14px; margin-top:10px; }
+  .panel h3 { margin:0 0 10px; font:600 12px ui-monospace,Menlo,monospace; letter-spacing:.05em; text-transform:uppercase; color:var(--dim); }
+  .opts { display:flex; gap:7px; flex-wrap:wrap; margin-bottom:10px; }
+  .opts button { background:#0b0d11; color:var(--dim); border:1px solid var(--line); border-radius:20px;
+        padding:6px 13px; cursor:pointer; font:12px ui-monospace,Menlo,monospace; }
+  .opts button[aria-pressed="true"].before { border-color:var(--bad); color:var(--bad); }
+  .opts button[aria-pressed="true"].after { border-color:var(--ok); color:var(--ok); }
+  textarea { width:100%; min-height:180px; background:#0b0d11; color:#cbd5e1; border:1px solid var(--line);
+        border-radius:8px; padding:11px; font:12.5px/1.5 ui-monospace,Menlo,monospace; white-space:pre; resize:vertical; }
+  .res { margin-top:10px; padding:12px 14px; border-radius:8px; border:1px solid var(--line); }
+  .res .r { font:700 15px ui-monospace,monospace; }
+  .yes { background:rgba(76,195,138,.10); border-color:rgba(76,195,138,.5); }
+  .yes .r { color:var(--ok); }
+  .no { background:rgba(229,72,77,.10); border-color:rgba(229,72,77,.5); }
+  .no .r { color:var(--bad); }
+  .res p { color:var(--fg); margin:6px 0 0; font-size:13.5px; max-width:none; }
+  pre { margin:8px 0 0; padding:11px; background:#0b0d11; border:1px solid var(--line); border-radius:8px;
+        overflow:auto; font:12.5px/1.5 ui-monospace,Menlo,monospace; white-space:pre-wrap; color:#cbd5e1; }
+  table { border-collapse:collapse; width:100%; font-size:13.5px; margin-top:6px; }
+  th,td { text-align:left; padding:7px 9px; border-bottom:1px solid var(--line); }
+  th { color:var(--dim); font:600 11px ui-monospace,monospace; text-transform:uppercase; letter-spacing:.05em; }
+  td.k { font:12px ui-monospace,Menlo,monospace; }
+  td.n { font:12.5px ui-monospace,Menlo,monospace; color:var(--fg); }
+  td.num { font:12.5px ui-monospace,Menlo,monospace; text-align:right; }
+  .ok-cell { color:var(--ok); } .bad-cell { color:var(--bad); } .dim-cell { color:var(--dim); }
+  small.note { display:block; margin-top:9px; color:var(--dim); font-size:12px; }
+  .bar { height:10px; background:#0b0d11; border:1px solid var(--line); border-radius:6px; margin-top:8px; overflow:hidden; position:relative; }
+  .bar .fill { height:100%; background:var(--bad); width:0%; transition:width .25s; }
+  .bar .floor { position:absolute; top:-2px; bottom:-2px; width:2px; background:var(--accent); left:80%; }
+  .bar.pass .fill { background:var(--ok); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Draining the density ratchet to zero</h1>
+  <p>#4072 put an information-density floor of 0.20 under every fenced ASCII block in <code>src/skills/**/SKILL.md</code> and, because five existing blocks sat below it, carried a shrinking baseline of allowances. #4073 asks for those five blocks to be drained. This PR reworks the art of all five and empties the baseline: schema header only, total 0, and the gate still exits 0.</p>
+  <p>Density is <code>info / (info + box + ws)</code> where <code>info</code> counts <code>[A-Za-z0-9→←↑↓]</code>, <code>box</code> counts U+2500-U+257F, and <code>ws</code> counts whitespace. The meter below runs the exact formula from <code>tests/unit/test-ascii-density.sh</code> on any block you paste or pick.</p>
+
+  <h2>Live meter over the five drained blocks</h2>
+  <div class="panel">
+    <h3>Before and after, exact gate arithmetic</h3>
+    <div class="opts" id="chips"></div>
+    <textarea id="block" spellcheck="false"></textarea>
+    <div class="bar" id="bar"><div class="fill" id="fill"></div><div class="floor" title="0.20 floor"></div></div>
+    <div class="res no" id="verdict"><span class="r">pick a block</span><p id="verdict-detail"></p></div>
+    <small class="note">Before chips reproduce the five baseline densities; after chips are the blocks this PR ships. Every number is computed live, not stored.</small>
+  </div>
+
+  <h2>The ratchet itself</h2>
+  <div class="panel">
+    <h3>Baseline allowance simulator (exit codes in real time)</h3>
+    <p style="max-width:none">The baseline started with five allowance rows. Drain a path: the block goes above the floor, the row is lowered (glyph: 2 then 1) or removed, and the gate must stay at exit 0 after every step. Then try the two moves the ratchet refuses.</p>
+    <table>
+      <thead><tr><th>Path</th><th style="text-align:right">allowance</th><th style="text-align:right">low blocks</th><th>state</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <pre id="gate">✓ scanned 25 block(s) · ⚠ 0 below 0.20</pre>
+    <div class="opts" style="margin-top:12px">
+      <button id="raise">raise glyph allowance back to 2</button>
+      <button id="plant">plant a fresh low block</button>
+      <button id="reset">reset to the five-row baseline</button>
+    </div>
+    <small class="note">The two refusal messages are the exact strings the gate prints; the two self-tests added in this PR (<code>tests/unit/test-ascii-density-selftest.sh</code>) pin them in throwaway git fixture repos.</small>
+  </div>
+
+  <h2>What the drain changed</h2>
+  <div class="panel">
+    <table>
+      <thead><tr><th>Block</th><th style="text-align:right">before</th><th style="text-align:right">after</th><th>technique</th></tr></thead>
+      <tbody>
+        <tr><td class="k">devops-deployment</td><td class="num bad-cell">0.167</td><td class="num ok-cell">0.285</td><td class="n">annotations folded to a column footer; gutters 3 to 1 space</td></tr>
+        <tr><td class="k">glyph (architecture)</td><td class="num bad-cell">0.119</td><td class="num ok-cell">0.244</td><td class="n">PostgreSQL link drawn with box connectors, no stray arrow rows</td></tr>
+        <tr><td class="k">glyph (comparison)</td><td class="num bad-cell">0.135</td><td class="num ok-cell">0.229</td><td class="n">one-space gutters, tighter box interiors, same merge shape</td></tr>
+        <tr><td class="k">memory-fabric</td><td class="num bad-cell">0.072</td><td class="num ok-cell">0.239</td><td class="n">outer frame dropped; pipeline chained with ┬/┴, zero blank rows</td></tr>
+        <tr><td class="k">swarm-migrate</td><td class="num bad-cell">0.194</td><td class="num ok-cell">0.312</td><td class="n">left-aligned, no empty gutters; coordinator, workers, ledger kept</td></tr>
+      </tbody>
+    </table>
+    <small class="note">No block was deleted and no label lost: stages, roles, and annotations all survive; only padding did not. Single-set token rule still green on all 25 blocks.</small>
+  </div>
+</main>
+<script>
+(function(){
+  var B=[
+   ["devops before",0,
+"┌─────────────┐   ┌─────────────┐   ┌─────────────┐   ┌─────────────┐\n│    Code     │──>│    Build    │──>│    Test     │──>│   Deploy    │\n│   Commit    │   │   & Lint    │   │   & Scan    │   │  & Release  │\n└─────────────┘   └─────────────┘   └─────────────┘   └─────────────┘\n       │                 │                 │                 │\n       v                 v                 v                 v\n   Triggers         Artifacts          Reports          Monitoring"],
+   ["devops after",1,
+"┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐\n│ Code     │─>│ Build    │─>│ Test     │─>│ Deploy   │\n│ Commit   │ │ Lint     │ │ Scan     │ │ Release  │\n└──────────┘ └──────────┘ └──────────┘ └──────────┘\n  triggers     artifacts    reports      monitoring"],
+   ["glyph before",0,
+"┌──────────────┐      ┌──────────────┐\n│   Frontend   │─────>│   Backend    │\n│   React 19   │      │   FastAPI    │\n└──────────────┘      └───────┬──────┘\n                              │\n                              v\n                      ┌──────────────┐\n                      │  PostgreSQL  │\n                      └──────────────┘"],
+   ["glyph after",1,
+"┌────────┐ ┌────────┐\n│Frontend│─>│Backend │\n│React 19│ │FastAPI │\n└────────┘ └───┬────┘\n           ┌───┴──────┐\n           │PostgreSQL│\n           └──────────┘"],
+   ["glyph cmp before",0,
+"BEFORE                          AFTER\n┌────────────┐                  ┌────────────┐\n│  Monolith  │                  │  Service A │──┐\n│  (all-in-1)│                  └────────────┘  │  ┌──────────┐\n└────────────┘                  ┌────────────┐  ├─>│  Shared  │\n                                │  Service B │──┘  │  Queue   │\n                                └────────────┘     └──────────┘"],
+   ["glyph cmp after",1,
+"BEFORE        AFTER\n┌──────────┐  ┌─────────┐\n│Monolith  │  │Service A│──┐\n│(all-in-1)│  └─────────┘  │ ┌───────┐\n└──────────┘  ┌─────────┐  ├─>│Shared │\n              │Service B│──┘ │Queue  │\n              └─────────┘    └───────┘"],
+   ["memory before",0,
+"┌─────────────────────────────────────────────────────────────┐\n│                    Memory Fabric Layer                      │\n├─────────────────────────────────────────────────────────────┤\n│                                                             │\n│   ┌─────────────┐              ┌─────────────┐              │\n│   │   Query     │              │   Query     │              │\n│   │   Parser    │              │   Executor  │              │\n│   └──────┬──────┘              └──────┬──────┘              │\n│          │                            │                     │\n│          ▼                            ▼                     │\n│   ┌──────────────────────────────────────────────┐          │\n│   │            Graph Query Dispatch              │          │\n│   └──────────────────────┬───────────────────────┘          │\n│                          │                                  │\n│                ┌─────────▼──────────┐                       │\n│                │  mcp__memory__*    │                       │\n│                │  (Knowledge Graph) │                       │\n│                └─────────┬──────────┘                       │\n│                          │                                  │\n│                          ▼                                  │\n│        ┌─────────────────────────────────────────┐          │\n│        │        Result Normalizer                │          │\n│        └─────────────────────┬───────────────────┘          │\n│                              │                              │\n│                              ▼                              │\n│        ┌─────────────────────────────────────────┐          │\n│        │     Deduplication Engine (>85% sim)     │          │\n│        └─────────────────────┬───────────────────┘          │\n│                              │                              │\n│                              ▼                              │\n│        ┌─────────────────────────────────────────┐          │\n│        │  Cross-Reference Booster                │          │\n│        └─────────────────────┬───────────────────┘          │\n│                              │                              │\n│                              ▼                              │\n│        ┌─────────────────────────────────────────┐          │\n│        │  Final Ranking: recency × relevance     │          │\n│        │                 × source_authority      │          │\n│        └─────────────────────────────────────────┘          │\n│                                                             │\n└─────────────────────────────────────────────────────────────┘"],
+   ["memory after",1,
+"Memory Fabric Layer\n┌─────────────┐ ┌──────────────┐\n│Query Parser │ │Query Executor│\n└──────┬──────┘ └──────┬───────┘\n       └───────┬───────┘\n┌──────────────┴─────────────┐\n│Graph Query Dispatch        │\n└──────────────┬─────────────┘\n┌──────────────┴─────────────┐\n│mcp__memory__*              │\n│(Knowledge Graph)           │\n└──────────────┬─────────────┘\n┌──────────────┴─────────────┐\n│Result Normalizer           │\n└──────────────┬─────────────┘\n┌──────────────┴─────────────┐\n│Deduplication Engine        │\n│(>85% sim)                  │\n└──────────────┬─────────────┘\n┌──────────────┴─────────────┐\n│Cross-Reference Booster     │\n└──────────────┬─────────────┘\n┌──────────────┴─────────────┐\n│Final Ranking: recency ×    │\n│relevance × source_authority│\n└────────────────────────────┘"],
+   ["swarm before",0,
+"                    ┌──────────────────────────────────┐\n                    │      COORDINATOR (you)           │\n                    │  reads spec → builds DAG →       │\n                    │  writes .swarm-state.json        │\n                    └────────────┬─────────────────────┘\n                                 │\n              ┌──────────────────┼──────────────────┐\n              ▼                  ▼                  ▼\n        ┌──────────┐       ┌──────────┐       ┌──────────┐\n        │ WORKER A │       │ WORKER B │       │ WORKER C │\n        │ (repo 1) │       │ (repo 2) │       │ (repo 3) │\n        └────┬─────┘       └────┬─────┘       └────┬─────┘\n             │                  │                  │\n             └─────────── isolated worktrees ──────┘\n             │ each: clone branch, transform,\n             │       verify, push, open PR,\n             │       wait for CI, report\n             ▼\n        ┌─────────────────────────────────────────────┐\n        │            .swarm-state.json                │\n        │  rolling ledger of {repo, status,           │\n        │  pr_url, ci_state, last_action_at}          │\n        └─────────────────────────────────────────────┘"],
+   ["swarm after",1,
+"┌────────────────────────────────┐\n│ COORDINATOR (you)              │\n│ reads spec → builds DAG →       │\n│ writes .swarm-state.json       │\n└─────────────────┬──────────────┘\n     ┌────────────┼────────────┐\n┌──────────┐ ┌──────────┐ ┌──────────┐\n│ WORKER A │ │ WORKER B │ │ WORKER C │\n│ (repo 1) │ │ (repo 2) │ │ (repo 3) │\n└────┬─────┘ └────┬─────┘ └────┬─────┘\n     └─────────── isolated worktrees ─────┘\n                  │ each: clone branch, transform,\n                  │ verify, push, open PR, wait for CI, report\n                  ▼\n┌────────────────────────────────┐\n│ .swarm-state.json              │\n│ rolling ledger of {repo,       │\n│ status, pr_url, ci_state,      │\n│ last_action_at}                │\n└────────────────────────────────┘"]
+  ];
+  var ta=document.getElementById("block"), v=document.getElementById("verdict"),
+      vr=v.querySelector(".r"), vd=document.getElementById("verdict-detail"),
+      fill=document.getElementById("fill"), bar=document.getElementById("bar"), chips=document.getElementById("chips");
+  function measure(t){
+    var info=(t.match(/[A-Za-z0-9\u2192\u2190\u2191\u2193]/g)||[]).length;
+    var box=0; for(var i=0;i<t.length;i++){ var c=t.charCodeAt(i); if(c>=0x2500&&c<=0x257F) box++; }
+    var ws=(t.match(/\s/g)||[]).length;
+    return {i:info,b:box,w:ws,t:info+box+ws,d:(info+box+ws? info/(info+box+ws):1)};
+  }
+  function verdict(){
+    var m=measure(ta.value), pass=m.d>=0.20;
+    vr.textContent="density "+m.d.toFixed(3)+"  (info "+m.i+" · box "+m.b+" · ws "+m.w+")  "+(pass?"PASS ≥ 0.20":"FAIL < 0.20");
+    v.className="res "+(pass?"yes":"no");
+    fill.style.width=Math.min(100,m.d*100*2.5)+"%";
+    bar.className="bar"+(pass?" pass":"");
+    vd.textContent=pass?"":"this block would count against the baseline: scan it, then lower or remove its allowance row, never raise one.";
+  }
+  var active=-1;
+  B.forEach(function(b,idx){
+    var btn=document.createElement("button"); btn.textContent=b[0];
+    btn.className=b[1]?"after":"before";
+    btn.addEventListener("click",function(){
+      ta.value=b[2]; active=idx; verdict(); mark();
+    });
+    chips.appendChild(btn);
+  });
+  function mark(){
+    var kids=chips.children;
+    for(var i=0;i<kids.length;i++){ kids[i].setAttribute("aria-pressed",i===active?"true":"false"); }
+  }
+  ta.addEventListener("input",function(){ active=-1; verdict(); mark(); });
+  ta.value=B[6][2]; active=6; verdict(); mark();
+
+  // ratchet simulator
+  var paths=["src/skills/devops-deployment/SKILL.md","src/skills/glyph/SKILL.md",
+             "src/skills/memory-fabric/SKILL.md","src/skills/swarm-migrate/SKILL.md"];
+  var START={}; START[paths[0]]=1; START[paths[1]]=2; START[paths[2]]=1; START[paths[3]]=1;
+  var lows={}; paths.forEach(function(p){ lows[p]=1; });
+  var allowed={}; for(var k in START) allowed[k]=START[k];
+  var planted=false;
+  var rowsEl=document.getElementById("rows"), gateEl=document.getElementById("gate");
+  function esc(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;"); }
+  function run(){
+    var html="";
+    paths.forEach(function(p){
+      var a=allowed[p], cls;
+      if(a===undefined){ cls="dim-cell"; a="row removed"; }
+      html+="<tr><td class='k'>"+esc(p)+"</td><td class='num "+cls+"'>"+a+"</td><td class='num'>"+(lows[p]+(planted&&p===paths[0]?1:0))+"</td><td class='n'>"+(allowed[p]!==undefined?"allowance "+allowed[p]:"drained")+"</td></tr>";
+    });
+    if(planted) html+="<tr><td class='k'>src/skills/demo/SKILL.md</td><td class='num dim-cell'>no row</td><td class='num'>1</td><td class='n'>planted, unregistered</td></tr>";
+    rowsEl.innerHTML=html;
+    // gate verdict, same message shapes as tests/unit/test-ascii-density.sh
+    var total=0; paths.forEach(function(p){ if(allowed[p]!==undefined) total+=allowed[p]; });
+    var observed=0; paths.forEach(function(p){ observed+=lows[p]; });
+    if(planted){
+      if(paths.indexOf("src/skills/demo/SKILL.md")<0){
+        gateEl.textContent="FAILED: new low-density block in src/skills/demo/SKILL.md (1 block(s)); baseline may only shrink\n(exit 1)";
+        return;
+      }
+    }
+    for(var p2 in allowed){
+      if(START[p2]!==undefined && allowed[p2]>START[p2]){
+        gateEl.textContent="FAILED: baseline allowance for "+p2+" is "+allowed[p2]+", reference allows "+START[p2]+"; baseline may only lower\n(exit 1)";
+        return;
+      }
+    }
+    var fails=0; paths.forEach(function(p){ if(lows[p]>0 && (allowed[p]===undefined || allowed[p]<1)) fails++; });
+    if(observed>total){
+      gateEl.textContent="FAILED: total low-density blocks "+observed+" exceeds baseline "+total+"\n(exit 1)";
+      return;
+    }
+    gateEl.textContent="✓ scanned 25 block(s) · ⚠ "+observed+" below 0.20\n(exit 0"+(observed===0&&total===0?" · empty baseline, total 0":")");
+  }
+  function drain(p){
+    if(allowed[p]===undefined) return;
+    if(allowed[p]>1){ allowed[p]=allowed[p]-1; } else { delete allowed[p]; }
+    if(p===paths[1]){ lows[p]=allowed[p]!==undefined?1:0; }
+    else { lows[p]=0; }
+    run();
+  }
+  rowsEl.addEventListener("click",function(e){
+    var tr=e.target.closest("tr"); if(!tr) return;
+    var k=tr.children[0].textContent;
+    if(paths.indexOf(k)>=0 && lows[k]>0) drain(k);
+  });
+  document.getElementById("raise").addEventListener("click",function(){
+    if(allowed[paths[1]]===undefined){ allowed[paths[1]]=2; }
+    else if(allowed[paths[1]]<2){ allowed[paths[1]]++; }
+    run();
+  });
+  document.getElementById("plant").addEventListener("click",function(){ planted=true; run(); });
+  document.getElementById("reset").addEventListener("click",function(){
+    for(var k in START) allowed[k]=START[k];
+    paths.forEach(function(p){ lows[p]=1; });
+    planted=false; run();
+  });
+  run();
+})();
+</script>
+</body>
+</html>
