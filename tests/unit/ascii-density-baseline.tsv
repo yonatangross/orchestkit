@@ -1,0 +1,13 @@
+# ascii-density-baseline/1
+# threshold: 0.20
+# pending drain: #4073
+# observed: src/skills/devops-deployment/SKILL.md:47 density 0.167
+# observed: src/skills/glyph/SKILL.md:105 density 0.119
+# observed: src/skills/glyph/SKILL.md:171 density 0.135
+# observed: src/skills/memory-fabric/SKILL.md:35 density 0.072
+# observed: src/skills/swarm-migrate/SKILL.md:101 density 0.194
+# Ratchet contract: counts may only go down; never raise this baseline to clear a failure.
+src/skills/devops-deployment/SKILL.md	1
+src/skills/glyph/SKILL.md	2
+src/skills/memory-fabric/SKILL.md	1
+src/skills/swarm-migrate/SKILL.md	1
