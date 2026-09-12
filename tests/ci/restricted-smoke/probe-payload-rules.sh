@@ -34,6 +34,11 @@
 #         payload/case-map drift)
 set -uo pipefail
 
+# This probe builds throwaway repositories. Git hooks export repository-locating
+# GIT_* variables; clear them so fixture init cannot write into the caller's repo.
+unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_PREFIX GIT_COMMON_DIR \
+    GIT_OBJECT_DIRECTORY
+
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(cd "$HERE/../../.." && pwd)"
 PAYLOAD="${PROBE_PAYLOAD:-$ROOT/src/skills/setup/references/operator-permissions.json}"

@@ -10,6 +10,11 @@
 
 set -euo pipefail
 
+# This test creates disposable repositories while the pre-push hook may have
+# exported repository-locating GIT_* variables.
+unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_PREFIX GIT_COMMON_DIR \
+    GIT_OBJECT_DIRECTORY
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 
@@ -315,6 +320,209 @@ test_resolve_push_branch() {
     fi
 }
 
+# Test 7: the tail guard rejects repository-local config drift (#4070)
+test_rejects_repo_config_drift() {
+    echo ""
+    echo "Test 7: pre-push rejects repository-local config drift (#4070)"
+
+    local hook="${PROJECT_ROOT}/bin/git-hooks/pre-push"
+    local snapshot_fn guard_fn tmp normal rc=0 tail
+    snapshot_fn=$(sed -n '/^capture_initial_repo_config()/,/^}/p' "$hook")
+    guard_fn=$(sed -n '/^assert_repo_config_unchanged()/,/^}/p' "$hook")
+    if [[ -z "$snapshot_fn" || -z "$guard_fn" ]]; then
+        log_fail "repository-config snapshot or guard is missing"
+        return
+    fi
+
+    tmp=$(mktemp -d "${TMPDIR:-/tmp}/ork-pre-push-bare.XXXXXX")
+    normal="$tmp/normal"
+    git init -q "$normal"
+    git -C "$normal" config user.email initial@example.test
+
+    rc=0
+    ( cd "$normal" && bash -c "$snapshot_fn"$'\n'"$guard_fn"$'\n''capture_initial_repo_config; assert_repo_config_unchanged' ) || rc=$?
+    if [[ $rc -eq 0 ]]; then
+        log_pass "tail guard allows unchanged disposable repository config"
+    else
+        log_fail "tail guard rejected unchanged disposable repository config (rc=$rc)"
+    fi
+
+    rc=0
+    ( cd "$normal" && bash -c "$snapshot_fn"$'\n'"$guard_fn"$'\n''capture_initial_repo_config; git config core.bare true; assert_repo_config_unchanged' ) >/dev/null 2>&1 || rc=$?
+    if [[ $rc -ne 0 ]]; then
+        log_pass "tail guard rejects a disposable repository after core.bare flips"
+    else
+        log_fail "tail guard allowed a disposable repository after core.bare flipped"
+    fi
+    git -C "$normal" config core.bare false
+
+    rc=0
+    ( cd "$normal" && bash -c "$snapshot_fn"$'\n'"$guard_fn"$'\n''capture_initial_repo_config; git config user.email changed@example.test; assert_repo_config_unchanged' ) >/dev/null 2>&1 || rc=$?
+    if [[ $rc -ne 0 ]]; then
+        log_pass "tail guard rejects a changed repo-local user.email"
+    else
+        log_fail "tail guard allowed a changed repo-local user.email"
+    fi
+    git -C "$normal" config user.email initial@example.test
+
+    rc=0
+    ( cd "$normal" && bash -c "$snapshot_fn"$'\n'"$guard_fn"$'\n''capture_initial_repo_config; git config --unset user.email; assert_repo_config_unchanged' ) >/dev/null 2>&1 || rc=$?
+    if [[ $rc -ne 0 ]]; then
+        log_pass "tail guard distinguishes an unset user.email from its initial value"
+    else
+        log_fail "tail guard allowed repo-local user.email to become unset"
+    fi
+
+    rc=0
+    ( cd "$normal" && bash -c "$snapshot_fn"$'\n'"$guard_fn"$'\n''capture_initial_repo_config; git config user.email changed@example.test; assert_repo_config_unchanged' ) >/dev/null 2>&1 || rc=$?
+    if [[ $rc -ne 0 ]]; then
+        log_pass "tail guard distinguishes a set user.email from initially unset"
+    else
+        log_fail "tail guard allowed an initially unset user.email to become set"
+    fi
+
+    tail=$(tail -n 16 "$hook")
+    if [[ "$tail" == *'assert_repo_config_unchanged'* && "$tail" == *'Pre-push validation passed'* ]]; then
+        log_pass "repository-config guard remains wired at the hook tail"
+    else
+        log_fail "repository-config guard is not wired at the hook tail"
+    fi
+    rm -rf "$tmp"
+}
+
+# Test 8: the payload probe clears the inherited Git repository context.
+test_probe_fixture_git_environment_scrub() {
+    echo ""
+    echo "Test 8: payload probe fixture git init clears inherited repository context (#4070)"
+
+    local files=(
+        "tests/ci/restricted-smoke/probe-payload-rules.sh"
+    )
+    local child_script='
+for name in GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_PREFIX GIT_COMMON_DIR GIT_OBJECT_DIRECTORY; do
+    if declare -p "$name" >/dev/null 2>&1; then
+        echo "still set: $name" >&2
+        exit 1
+    fi
+done
+git init -q --bare "$1"
+'
+    local tmp caller file fixture stanza output caller_bare i=0
+
+    tmp=$(mktemp -d "${TMPDIR:-/tmp}/ork-fixture-git-env.XXXXXX")
+    caller="$tmp/caller"
+    git init -q "$caller"
+
+    for file in "${files[@]}"; do
+        # Stop at the command boundary even if a variable is removed. A range
+        # ending at a variable name could accidentally include an eval script.
+        stanza=$(awk '
+            /^unset GIT_DIR / {
+                print
+                while ($0 ~ /\\$/) {
+                    if (getline <= 0) exit
+                    print
+                }
+                exit
+            }
+        ' "$PROJECT_ROOT/$file")
+        if [[ -z "$stanza" ]]; then
+            log_fail "$file has no executable Git-environment scrub stanza"
+            continue
+        fi
+
+        fixture="$tmp/fixture-$i.git"
+        i=$((i + 1))
+        if output=$(env \
+            GIT_DIR="$caller/.git" \
+            GIT_WORK_TREE="$caller" \
+            GIT_INDEX_FILE="$caller/.git/index" \
+            GIT_PREFIX="$caller" \
+            GIT_COMMON_DIR="$caller/.git" \
+            GIT_OBJECT_DIRECTORY="$caller/.git/objects" \
+            /bin/bash -c "$stanza"$'\n'"$child_script" _ "$fixture" 2>&1); then
+            :
+        else
+            log_fail "$file did not clear every injected Git variable -> $output"
+            continue
+        fi
+
+        caller_bare=$(git -C "$caller" config --bool core.bare 2>/dev/null || true)
+        if [[ -d "$fixture" && -f "$fixture/HEAD" && "$caller_bare" == "false" ]]; then
+            log_pass "$file isolates bare fixture init from the disposable caller"
+        else
+            log_fail "$file fixture/caller state is wrong (fixture=$fixture core.bare=${caller_bare:-unset})"
+        fi
+    done
+    rm -rf "$tmp"
+}
+
+# Test 9: hook Vitest must not inherit this hook's repository locators.
+test_vitest_git_environment_scrub() {
+    echo ""
+    echo "Test 9: hook Vitest clears inherited repository context (#4070)"
+
+    local hook="${PROJECT_ROOT}/bin/git-hooks/pre-push"
+    local wrapper command tmp caller fake_bin result hook_log output
+    wrapper=$(awk '
+        /if ! \(cd src\/hooks && env -u GIT_DIR/ {
+            print
+            while ($0 ~ /\\$/) {
+                if (getline <= 0) exit
+                print
+            }
+            exit
+        }
+    ' "$hook")
+    if [[ -z "$wrapper" ]]; then
+        log_fail "could not extract the hook Vitest wrapper"
+        return
+    fi
+    command="${wrapper#*&& }"
+    command="${command%); then}"
+
+    tmp=$(mktemp -d "${TMPDIR:-/tmp}/ork-vitest-git-env.XXXXXX")
+    caller="$tmp/caller"
+    fake_bin="$tmp/bin"
+    result="$tmp/fake-npx-result"
+    hook_log="$tmp/hook.log"
+    mkdir -p "$fake_bin"
+    git init -q "$caller"
+    printf '%s\n' \
+        '#!/bin/bash' \
+        'for name in GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_PREFIX GIT_COMMON_DIR GIT_OBJECT_DIRECTORY; do' \
+        '  if printenv "$name" >/dev/null; then echo "still set: $name" >"$FAKE_NPX_RESULT"; exit 1; fi' \
+        'done' \
+        'if [[ "$*" != "vitest run --reporter=dot" ]]; then echo "args: $*" >"$FAKE_NPX_RESULT"; exit 1; fi' \
+        'echo ok >"$FAKE_NPX_RESULT"' > "$fake_bin/npx"
+    chmod +x "$fake_bin/npx"
+
+    if output=$(cd "$PROJECT_ROOT/src/hooks" && env \
+        PATH="$fake_bin:$PATH" \
+        FAKE_NPX_RESULT="$result" \
+        HOOK_LOG="$hook_log" \
+        GIT_DIR="$caller/.git" \
+        GIT_WORK_TREE="$caller" \
+        GIT_INDEX_FILE="$caller/.git/index" \
+        GIT_PREFIX="$caller" \
+        GIT_COMMON_DIR="$caller/.git" \
+        GIT_OBJECT_DIRECTORY="$caller/.git/objects" \
+        /bin/bash -c "$command" 2>&1); then
+        :
+    else
+        log_fail "hook Vitest wrapper did not isolate fake npx -> $output"
+        rm -rf "$tmp"
+        return
+    fi
+
+    if [[ "$(<"$result")" == "ok" ]]; then
+        log_pass "hook Vitest invokes fake npx with all repository locators unset"
+    else
+        log_fail "hook Vitest wrapper result: $(<"$result")"
+    fi
+    rm -rf "$tmp"
+}
+
 # Main
 main() {
     echo "╔═══════════════════════════════════════════════════════════════╗"
@@ -327,6 +535,9 @@ main() {
     test_skip_regex_parity
     test_bash32_compatibility
     test_resolve_push_branch
+    test_rejects_repo_config_drift
+    test_probe_fixture_git_environment_scrub
+    test_vitest_git_environment_scrub
 
 
     # Summary

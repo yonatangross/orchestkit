@@ -8,6 +8,16 @@ set -uo pipefail
 PROJECT_ROOT="$(git rev-parse --show-toplevel)"
 cd "$PROJECT_ROOT"
 
+capture_initial_repo_config() {
+  INITIAL_REPO_USER_EMAIL_SET=0
+  INITIAL_REPO_USER_EMAIL=""
+  if INITIAL_REPO_USER_EMAIL=$(git config --local --get user.email 2>/dev/null); then
+    INITIAL_REPO_USER_EMAIL_SET=1
+  fi
+}
+
+capture_initial_repo_config
+
 # Resolve the branch actually being PUSHED, not the one checked out (#3290).
 #
 # git feeds pre-push one line per ref on stdin:
@@ -233,6 +243,23 @@ run_with_timeout() {
     # codes with npm on macOS. Run directly — timeout protection is only
     # critical on CI where Linux `timeout` is available.
     "$@"
+  fi
+}
+
+assert_repo_config_unchanged() {
+  if [[ "$(git config --bool core.bare 2>/dev/null || true)" == "true" ]]; then
+    echo "FAILED: core.bare became true during pre-push validation"
+    return 1
+  fi
+
+  local current_email_set=0 current_email=""
+  if current_email=$(git config --local --get user.email 2>/dev/null); then
+    current_email_set=1
+  fi
+  if [[ "$current_email_set" != "$INITIAL_REPO_USER_EMAIL_SET" ||
+        "$current_email" != "$INITIAL_REPO_USER_EMAIL" ]]; then
+    echo "FAILED: repo-local user.email changed during pre-push validation"
+    return 1
   fi
 }
 
@@ -532,7 +559,8 @@ if [[ -n "$HOOK_CHANGES" ]]; then
   echo -n "  Running hook vitest suite... "
   HOOK_LOG="$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")"
   trap 'rm -f "$HOOK_LOG"' EXIT
-  if ! (cd src/hooks && npx vitest run --reporter=dot >"$HOOK_LOG" 2>&1); then
+  if ! (cd src/hooks && env -u GIT_DIR -u GIT_WORK_TREE -u GIT_INDEX_FILE -u GIT_PREFIX \
+      -u GIT_COMMON_DIR -u GIT_OBJECT_DIRECTORY npx vitest run --reporter=dot >"$HOOK_LOG" 2>&1); then
     echo "FAILED"
     echo ""
     echo "╔════════════════════════════════════════════════════════════╗"
@@ -544,6 +572,12 @@ if [[ -n "$HOOK_CHANGES" ]]; then
     exit 1
   fi
   echo "OK"
+fi
+
+# A fixture init that inherits this hook's GIT_* environment can change this
+# checkout's config. Refuse the push if that happened; never repair it here.
+if ! assert_repo_config_unchanged; then
+  exit 1
 fi
 
 echo ""
