@@ -471,6 +471,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.17](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.16...v10.0.0-beta.17)** · 2026-09-12
+
+- **traffic:** weekly snapshot, credit lines, seeding list (#4071) (#4075)
+
 **[v10.0.0-beta.16](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.15...v10.0.0-beta.16)** · 2026-09-12
 
 - **evals:** claude plugin eval suite, calibration, and the fixes it found (#4072)
@@ -512,10 +516,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **cursor:** export rules to .cursor-plugin and rewrite wrapper paths at generation time (#4011)
 - **pi:** ship a pi manifest and a .pi/mcp.json allowlist template (#4009)
-
-**[v10.0.0-beta.9](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.8...v10.0.0-beta.9)** · 2026-09-08
-
-- **engines:** pi, Codex and Cursor guide, matrix and audit (#4006)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
