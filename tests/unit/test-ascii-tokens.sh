@@ -45,12 +45,15 @@ scan_block() {
   fi
 }
 
-# Count Unicode Box-Drawing chars (U+2500-U+257F). python3 always exits 0.
+# Count Unicode Box-Drawing chars (U+2500-U+257F) in pure bash: strip every
+# character outside the range, measure what is left. Zero spawns. This runs
+# once per fenced block (637 across 107 skills); as a python3 spawn it cost
+# 30s direct and minutes through a pyenv shim, which made the pre-push unit
+# phase read as a hang (2026-09-12). Needs a UTF-8 locale, which the
+# ${#chars} / ${chars:$i:1} arithmetic in this file already assumes.
 count_box() {
-  printf '%s' "$1" | python3 -c '
-import sys
-print(sum(1 for c in sys.stdin.read() if 0x2500 <= ord(c) <= 0x257F))
-'
+  local stripped="${1//[^─-╿]/}"
+  printf '%s\n' "${#stripped}"
 }
 
 scan_file() {

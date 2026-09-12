@@ -15,24 +15,37 @@ THRESHOLD="${ASCII_DENSITY_MIN:-0.20}"
 fail=0
 checked=0
 
-# Density via python3 — handles unicode + float math reliably.
+# Resolve the interpreter ONCE, past any version-manager shim (168 ms per
+# spawn through pyenv vs 22 ms direct, measured 2026-09-12). Only density()
+# still spawns python, and only for box-heavy blocks (25 of 637).
+PY3="$(command -v pyenv >/dev/null 2>&1 && pyenv which python3 2>/dev/null || command -v python3)"
+
+# Density: info / (info + box + ws). The block arrives as $1, not on stdin.
+# The old form was `printf block | python3 - <<'EOF'`: the heredoc REPLACED
+# stdin, so sys.stdin.read() returned the empty string, every block scored
+# 1.000, and this gate had never failed anything. A dead gate that reports
+# OK is worse than no gate; see the awk comparison below, which now bites.
 density() {
-  python3 - <<'PYEOF'
+  "$PY3" -c '
 import sys, re
-text = sys.stdin.read()
-info = len(re.findall(r'[A-Za-z0-9→←↑↓]', text))
+text = sys.argv[1]
+info = len(re.findall(r"[A-Za-z0-9→←↑↓]", text))
 boxes = sum(1 for c in text if 0x2500 <= ord(c) <= 0x257F)
 ws = sum(1 for c in text if c.isspace())
 total = info + boxes + ws
 print(f"{(info/total) if total else 1.0:.3f}")
-PYEOF
+' "$1"
 }
 
+# Count Unicode Box-Drawing chars (U+2500-U+257F) in pure bash: strip every
+# character outside the range, measure what is left. Zero spawns. This runs
+# once per fenced block (637 across 107 skills); as a python3 spawn it cost
+# 30s direct and minutes through a pyenv shim, which made the pre-push unit
+# phase read as a hang (2026-09-12). Needs a UTF-8 locale, which the
+# ${#chars} / ${chars:$i:1} arithmetic in this file already assumes.
 count_box() {
-  printf '%s' "$1" | python3 -c '
-import sys
-print(sum(1 for c in sys.stdin.read() if 0x2500 <= ord(c) <= 0x257F))
-'
+  local stripped="${1//[^─-╿]/}"
+  printf '%s\n' "${#stripped}"
 }
 
 scan_file() {
@@ -53,7 +66,7 @@ scan_file() {
           if [ "${box_count:-0}" -ge 3 ]; then
             checked=$((checked + 1))
             local d
-            d=$(printf '%s' "$block" | density)
+            d=$(density "$block")
             if awk -v d="$d" -v t="$THRESHOLD" 'BEGIN{ exit (d < t) ? 0 : 1 }'; then
               printf '⚠ %s:%d density %s < %s\n' "${file#$ROOT/}" "$startline" "$d" "$THRESHOLD"
               fail=$((fail + 1))
