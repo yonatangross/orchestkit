@@ -6,7 +6,7 @@ runs: 3
 allowed_tools: [Skill]
 ---
 
-Write me the conventional commit for this work. Use the commit skill.
+Write me the conventional commit for this work.
 
 Changed files, all under the billing module:
 - `src/billing/invoice.ts`: extracted the VAT calculation into `computeVat()`; no

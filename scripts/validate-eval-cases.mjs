@@ -44,8 +44,11 @@ if (!existsSync(ROOT)) {
   process.exit(1);
 }
 
+// results/ is written by the runner, mocks/ is the MCP stand-in tree, and
+// calibration/ holds hand verdicts and re-judge tables. None is a case.
+const NOT_A_CASE = new Set(["results", "mocks", "calibration"]);
 const caseDirs = readdirSync(ROOT)
-  .filter((n) => n !== "results" && n !== "mocks")
+  .filter((n) => !NOT_A_CASE.has(n))
   .filter((n) => statSync(join(ROOT, n)).isDirectory())
   .sort();
 

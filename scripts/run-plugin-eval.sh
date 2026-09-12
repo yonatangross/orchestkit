@@ -34,7 +34,12 @@ OUT_DIR="$REPO_ROOT/evals/results/$STAMP"
 
 RUNS=1
 MAX_COST=3
-JUDGE_MODEL=sonnet
+# Pinned so a delta describes a known pair. The judge must never be the agent
+# model (self-preference). Judging is ~2% of spend, so the bigger judge is
+# cheap. A sonnet agent can overstate the delta for users on a stronger model;
+# the docs say so. Flip with --model / --judge-model.
+AGENT_MODEL=claude-sonnet-5
+JUDGE_MODEL=claude-opus-5
 EXTRA=()
 
 while [ $# -gt 0 ]; do
@@ -42,6 +47,7 @@ while [ $# -gt 0 ]; do
     --runs) RUNS="$2"; shift 2 ;;
     --max-cost-usd) MAX_COST="$2"; shift 2 ;;
     --judge-model) JUDGE_MODEL="$2"; shift 2 ;;
+    --model) AGENT_MODEL="$2"; shift 2 ;;
     *) EXTRA+=("$1"); shift ;;
   esac
 done
@@ -61,14 +67,19 @@ tar -cf - -C "$SRC_EVALS" --exclude results . | tar -xf - -C "$STAGED"
 mkdir -p "$OUT_DIR"
 echo "cases:   $SRC_EVALS  ->  $STAGED"
 echo "results: $OUT_DIR"
-echo "runs:    $RUNS   ceiling: \$$MAX_COST   judge: $JUDGE_MODEL"
+echo "runs:    $RUNS   ceiling: \$$MAX_COST   agent: $AGENT_MODEL   judge: $JUDGE_MODEL"
 echo
+# The tool's run.json never records the agent model. Write it ourselves.
+printf 'agent_model=%s\njudge_model=%s\nclaude_version=%s\nstarted=%s\n' \
+  "$AGENT_MODEL" "$JUDGE_MODEL" "$(claude --version 2>/dev/null | head -1)" "$STAMP" > "$OUT_DIR/models.txt"
 
 set +e
 claude plugin eval "$PLUGIN_DIR" \
   --ablation with-without \
   --runs "$RUNS" \
+  --model "$AGENT_MODEL" \
   --judge-model "$JUDGE_MODEL" \
+  --threshold 0 \
   --max-cost-usd "$MAX_COST" \
   --no-scaffold \
   --no-publish \
@@ -83,6 +94,10 @@ set -e
 rm -rf "$STAGED"
 
 echo
-echo "exit code: $RC   (1 = a case scored below --threshold, 2 = cost ceiling hit)"
+# --threshold 0 means the tool never fails on absolute score; the gate is the
+# summariser's exit code (delta-based, noise-floor aware, refuses on partial).
+echo "tool exit code: $RC   (2 = cost ceiling hit, partial results)"
+echo
+node "$REPO_ROOT/scripts/summarise-eval-run.mjs" "$REPO_ROOT/evals/results" || RC=$?
 echo "raw report: $OUT_DIR"
 exit $RC

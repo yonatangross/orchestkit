@@ -1,0 +1,27 @@
+{
+  "_note": "Hand verdicts written BEFORE running the offline re-judge, against the 12 agent outputs stored in evals/results/20260912T063433Z/run.json. Case 30's output was not stored (its llm grader was skipped, regex graders keep no evidence). Each value is my own PASS/FAIL for that single-claim grader.",
+  "10-commit-message-from-diff": {
+    "with":    { "q-typed-as-fix": "PASS", "q-subject-imperative-short": "PASS", "q-body-explains-why": "PASS", "q-no-invented-changes": "PASS", "q-no-fabricated-repo-state": "FAIL" },
+    "without": { "q-typed-as-fix": "PASS", "q-subject-imperative-short": "PASS", "q-body-explains-why": "PASS", "q-no-invented-changes": "PASS", "q-no-fabricated-repo-state": "PASS" }
+  },
+  "11-commit-scope-detection": {
+    "with":    { "q-typed-as-refactor": "PASS", "q-states-no-behaviour-change": "PASS", "q-is-a-commit-message": "PASS" },
+    "without": { "q-typed-as-refactor": "PASS", "q-states-no-behaviour-change": "PASS", "q-is-a-commit-message": "PASS" }
+  },
+  "12-commit-should-not-fire": {
+    "with":    { "q-explains-rebase-vs-merge": "PASS", "q-recommends-for-review": "PASS", "q-no-commit-produced": "PASS", "q-proportionate-to-ask": "FAIL" },
+    "without": { "q-explains-rebase-vs-merge": "PASS", "q-recommends-for-review": "PASS", "q-no-commit-produced": "PASS", "q-proportionate-to-ask": "PASS" }
+  },
+  "20-prd-to-goal-basic": {
+    "with":    { "q-assertions-and-joined": "PASS", "q-assertions-shell-checkable": "PASS", "q-covers-all-four-criteria": "PASS" },
+    "without": { "q-assertions-and-joined": "FAIL", "q-assertions-shell-checkable": "FAIL", "q-covers-all-four-criteria": "FAIL" }
+  },
+  "21-prd-to-goal-unfalsifiable": {
+    "with":    { "q-names-spec-unfalsifiable": "PASS", "q-no-silent-fabrication": "PASS", "q-concrete-way-forward": "PASS" },
+    "without": { "q-names-spec-unfalsifiable": "PASS", "q-no-silent-fabrication": "PASS", "q-concrete-way-forward": "PASS" }
+  },
+  "22-prd-to-goal-should-not-fire": {
+    "with":    { "q-runtime-toggle-vs-redeploy": "PASS", "q-when-kill-switch-wins": "PASS", "q-proportionate-to-ask": "PASS" },
+    "without": { "q-runtime-toggle-vs-redeploy": "PASS", "q-when-kill-switch-wins": "PASS", "q-proportionate-to-ask": "PASS" }
+  }
+}

@@ -94,9 +94,12 @@ jobs:
           if [ -n "${{ inputs.tag }}" ]; then ARGS+=(--tag "${{ inputs.tag }}"); fi
           bash scripts/run-plugin-eval.sh "${ARGS[@]}"
 
+      # The runner already prints this and exits with the summariser's gate
+      # (delta-based, noise-floor aware, refuses on partial). This step only
+      # copies it into the job summary. No `|| true`: the gate is the point.
       - name: Summarise deltas
         if: always() && env.CLAUDE_CODE_OAUTH_TOKEN != ''
-        run: node scripts/summarise-eval-run.mjs >> "$GITHUB_STEP_SUMMARY" || true
+        run: node scripts/summarise-eval-run.mjs evals/results >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload raw reports
         if: always()

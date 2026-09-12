@@ -6,7 +6,7 @@ runs: 3
 allowed_tools: [Skill]
 ---
 
-Decompose this spec into a goal line for me.
+Decompose this spec into a `/goal` line I can paste into Claude Code.
 
 Title: Make the settings page better
 Notes from the design review:
