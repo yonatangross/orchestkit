@@ -86,6 +86,37 @@ The ceiling overran slightly, $3.14 against $3. That is documented behaviour:
 the check happens before each run launches, so overrun is bounded by the runs
 in flight.
 
+## Calibration of the rebuilt graders (offline, before any agent spend)
+
+The twelve stored agent outputs were re-judged with `claude-opus-5` against
+the new single-claim graders, with my hand verdicts written first. Cost:
+cents, no agent turns.
+
+| Pass | Scope | Agreement | What the misses were |
+|---|---|---|---|
+| 1 | all 42 claims | 39/42 | three prd-to-goal baselines with no goal line at all; the claims had no subject and the judge graded the prose |
+| 2 | case 20 after rewording | 6/6 | clean |
+| 2 | case 21 after rewording | 5/6 | a claim I had NOT touched flipped PASS to FAIL on the same output |
+| 3 | case 21, binary claim, run twice | 6/6 and 6/6 | stable |
+
+Two things the calibration taught that the pilot could not:
+
+- **Precondition claims.** "Every assertion in the goal line is shell-checkable"
+  is unanswerable when there is no goal line. The judge answered it anyway,
+  about the prose. Every case-20 claim now says: if there is no `/goal until`
+  line, FAIL.
+- **The judge is not deterministic on judgement calls.** `q-no-silent-fabrication`
+  passed the same baseline in pass 1 and failed it in pass 2 with identical
+  wording. So the twelve unanimous verdicts in the pilot were luck. The claim
+  now asks a mechanical question (is every criterion-dependent value a visibly
+  marked placeholder), and held on two consecutive runs.
+
+Final state: 42 of 42 claims agree with hand verdicts. The per-claim scoring
+predicts, on the stored outputs, that case 10 goes negative (the with-arm's
+fabricated "branch main, protected" now fails a claim) and case 12 goes
+negative (style contamination now fails a claim). The re-pilot will say whether
+that holds on fresh runs. Files: `evals/calibration/`.
+
 ## The result that closes an old question
 
 On 2026-08-04 this repo proved that its own eval harness never loaded the

@@ -142,8 +142,10 @@ most of the headline number.
 
 **The judge answers in one word.** Its prompt is: "You are grading the output
 of a coding agent against a criterion. Respond with exactly one word: PASS or
-FAIL." No rationale exists anywhere to read afterwards. Majority-of-three is
-near-deterministic (every verdict in the pilot was unanimous). So:
+FAIL." No rationale exists anywhere to read afterwards. Majority-of-three
+looked deterministic in the pilot (every verdict unanimous), but offline
+re-judging showed a judgement-call claim flip PASS to FAIL on the same output
+between runs. Unanimity is not robustness. So:
 
 1. **One LLM grader per claim.** A rubric that bundles five claims under
    "score against ALL of these" is a conjunction whose failure can never be
@@ -156,20 +158,26 @@ near-deterministic (every verdict in the pilot was unanimous). So:
    from SKILL.md measures "the plugin teaches the syntax". That is real value
    but a different claim from "the plugin does the task better". Keep it
    secondary and pair it with an outcome claim.
-4. **Scope each claim to the artefact.** "Judge the commit message itself;
+4. **State the precondition.** A claim about "the goal line" is unanswerable
+   when there is no goal line; the judge will grade the prose instead. Say what
+   happens when the subject is absent.
+5. **Ask mechanical questions.** "Is every criterion-dependent value a visibly
+   marked placeholder" held on consecutive runs; "does it present invented
+   criteria as the decomposition" flipped.
+6. **Scope each claim to the artefact.** "Judge the commit message itself;
    text around it is not the subject of this criterion." This is scoping, so a
    claim about the subject line is not answered about a caveat.
-5. **Negatives need a proportionality claim.** The ablation loads the whole
+7. **Negatives need a proportionality claim.** The ablation loads the whole
    plugin, including its visual-style rule. A should-not-fire case can score
    higher with the plugin purely because it drew boxes for a prose question.
    The summariser reports negatives outside the headline mean and warns when
    one moves at all.
-6. **Calibrate offline before spending on agents.** Agent turns are 98% of
+8. **Calibrate offline before spending on agents.** Agent turns are 98% of
    spend and every agent output is stored in `run.json` under `evidence`.
    `scripts/rejudge-eval-outputs.mjs` re-scores them against the current
    graders for cents. Write hand verdicts first, then compare. The gate for a
    re-pilot is 100% agreement, or every disagreement named and reworded.
-7. **Gate on delta with a noise floor.** One judge flip on a weight-1 grader in
+9. **Gate on delta with a noise floor.** One judge flip on a weight-1 grader in
    a 1.5-weight case across three runs moves the mean by 0.22, so a per-case
    floor tighter than about -0.34 gates on noise.
 
