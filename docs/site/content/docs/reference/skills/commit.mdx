@@ -1,6 +1,6 @@
 ---
 title: "Commit"
-description: "Creates commits with Conventional Commits format (feat/fix/docs/refactor/test/chore), automatic scope detection, co-author attribution, and pre-commit hook compliance. Validates staged changes, generates descriptive messages focusing on the 'why', and prevents secrets or generated-only files from being committed. Requires an explicit request naming this skill; plain `git commit` during normal work stays a bare CLI call. Use when committing changes or generating commit messages."
+description: "Creates commits with Conventional Commits format (feat/fix/docs/refactor/test/chore), automatic scope detection, co-author attribution, and pre-commit hook compliance. Validates staged changes, generates descriptive messages focusing on the 'why', and prevents secrets or generated-only files from being committed. Use when the user asks to commit, stage and commit, save progress, or write a commit message, whether or not they name this skill. Do not invoke it for git commits you make incidentally during other work; those stay a bare CLI call."
 ---
 
 <span className="badge badge-blue">Command</span> <span className="badge badge-green">low</span>
@@ -11,7 +11,7 @@ description: "Creates commits with Conventional Commits format (feat/fix/docs/re
 
 <ContextualSkillSidebar slug="commit" />
 
-> **Commit** Creates commits with Conventional Commits format (feat/fix/docs/refactor/test/chore), automatic scope detection, co-author attribution, and pre-commit hook compliance. Validates staged changes, generates descriptive messages focusing on the 'why', and prevents secrets or generated-only files from being committed. Requires an explicit request naming this skill; plain `git commit` during normal work stays a bare CLI call.
+> **Commit** Creates commits with Conventional Commits format (feat/fix/docs/refactor/test/chore), automatic scope detection, co-author attribution, and pre-commit hook compliance. Validates staged changes, generates descriptive messages focusing on the 'why', and prevents secrets or generated-only files from being committed. Use when the user asks to commit, stage and commit, save progress, or write a commit message, whether or not they name this skill.
 
 
 # Smart Commit
@@ -68,6 +68,19 @@ AskUserQuestion(questions=[{
 - **Stash first** — `git stash push -k -m "ork:commit autostash"` (keep-index), commit, then `git stash pop` after push success.
 
 ## Workflow
+
+### Phase 0: Confirm there is a repository to act on
+
+Before any guard, run `git rev-parse --is-inside-work-tree`. If it fails, or
+if the Bash tool is not available in this session, say so in one sentence and
+produce the commit message text only. Skip Phases 1 to 3 entirely.
+
+Never print a branch guard, a validation status, or any other repository fact
+you did not observe. Measured with `claude plugin eval` on 2026-09-12: in a
+sandbox with no repository and no Bash, this skill rendered a "pre-commit
+guard" box claiming the branch was `main` and protected. Nothing had been
+checked. A message-only answer that says "I could not verify branch or lint
+state" is correct; an invented guard is a defect.
 
 ### Phase 1: Pre-Commit Safety Check
 

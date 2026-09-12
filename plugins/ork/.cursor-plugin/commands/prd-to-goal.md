@@ -68,7 +68,11 @@ The skill emits exactly ONE line, ready to paste:
 /goal until <assertion_1> AND <assertion_2> AND <assertion_3>, or stop after <N> turns
 ```
 
-No commentary, no markdown wrapper — the user copies the line straight into Claude Code.
+Emit the line first, on its own. A fenced code block around it is fine, since
+the user copies it out. Any notes (assertion ordering, what a grep cannot prove)
+go after the line and stay short. Never emit a second `/goal` line, and never
+emit a goal line at all when the input has no observable acceptance criteria
+(step 1 of the algorithm): say so and point at `write-prd` instead.
 
 ### Optional: rubric emission (`.claude/rubric.json`)
 

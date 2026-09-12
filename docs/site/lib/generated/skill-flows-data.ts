@@ -1754,6 +1754,13 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
             "does": "Default is \"new commit\", but voice-flow needs explicit choice when amend / push / stash is wanted:",
             "out": null,
             "tag": null
+          },
+          {
+            "num": "STEP 0",
+            "label": "Confirm there is a repository to act on",
+            "does": "Before any guard, run git rev-parse --is-inside-work-tree. If it fails, or",
+            "out": null,
+            "tag": null
           }
         ]
       },
