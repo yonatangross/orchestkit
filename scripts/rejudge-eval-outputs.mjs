@@ -7,7 +7,7 @@
 // the Claude Code binary: one criterion, one word back, PASS or FAIL.
 //
 // Usage:
-//   node scripts/rejudge-eval-outputs.mjs <run.json> [hand-verdicts.json] [--judge claude-opus-5] [-j 4]
+//   node scripts/rejudge-eval-outputs.mjs <run.json> [hand-verdicts.json] [--judge claude-opus-5] [-j 4] [--case <prefix>]
 //
 // With a hand-verdicts file (written BEFORE running this), prints an agreement
 // table. The gate for the re-pilot is 100% agreement, or every disagreement
@@ -21,6 +21,7 @@ const runPath = args.find((a) => a.endsWith("run.json"));
 const handPath = args.find((a) => /verdicts.*\.json$/.test(a));
 const judge = args.includes("--judge") ? args[args.indexOf("--judge") + 1] : "claude-opus-5";
 const conc = args.includes("-j") ? Number(args[args.indexOf("-j") + 1]) : 4;
+const caseFilter = args.includes("--case") ? args[args.indexOf("--case") + 1] : null;
 if (!runPath) { console.error("need a run.json path"); process.exit(1); }
 
 const run = JSON.parse(readFileSync(runPath, "utf8"));
@@ -52,6 +53,7 @@ function ask(prompt) {
 
 const jobs = [];
 for (const c of run.cases) for (const arm of ["with", "without"]) {
+  if (caseFilter && !c.name.startsWith(caseFilter)) continue;
   const ev = evidenceOf(c, arm); if (!ev) continue;
   for (const g of llmGraders(c.name)) jobs.push({ case: c.name, arm, grader: g.name, prompt: `${JUDGE_PREAMBLE}\n\nCriterion:\n${g.criterion}\n\nOutput to grade:\n${ev}` });
 }
