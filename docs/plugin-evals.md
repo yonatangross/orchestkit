@@ -71,13 +71,21 @@ Every case here has exactly one `llm` grader, so:
 The dollar figure is list-price, but on a Max plan the real cost is weekly quota
 drawn from the same pool as interactive sessions.
 
-Two things the wrapper handles that are easy to get wrong by hand:
+Four things the wrapper handles that are easy to get wrong by hand:
 
 - **`--no-publish` is mandatory.** The HTML report is published to claude.ai by
   default. Every run this repo makes keeps it local.
-- **`--judge-model sonnet`.** The default judge is haiku, which is too small to
-  grade a rubric reliably. The judge must also not be the agent model, to avoid
-  self-preference.
+- **Both models are pinned and recorded.** Agent `claude-sonnet-5`, judge
+  `claude-opus-5`, flippable with `--model` and `--judge-model`. The tool's
+  `run.json` never records the agent model, so the runner writes `models.txt`
+  beside it. The judge must not be the agent model (self-preference), and
+  judging is about 2% of spend, so the bigger judge costs cents. A sonnet
+  agent can overstate the delta for a user on a stronger model; that is a
+  known limitation, stated here rather than hidden.
+- **`--threshold 0`.** The tool's default threshold is 1.0, which fails any
+  case that is not perfect. The gate here is the summariser's delta logic
+  (below), not absolute score.
+- **The gate refuses partial runs.** A cost-ceiling run is not a measurement.
 
 ## Case format
 
@@ -126,12 +134,51 @@ the number meaningless rather than merely imperfect.
 5. **Tools follow graders.** A grader that implies a side effect only passes if
    the case allows the tool that produces it.
 
+## Writing LLM graders for this suite
+
+These rules come from reading the judge mechanics in the Claude Code binary
+and from the first pilot, where the grader design, not the plugin, produced
+most of the headline number.
+
+**The judge answers in one word.** Its prompt is: "You are grading the output
+of a coding agent against a criterion. Respond with exactly one word: PASS or
+FAIL." No rationale exists anywhere to read afterwards. Majority-of-three is
+near-deterministic (every verdict in the pilot was unanimous). So:
+
+1. **One LLM grader per claim.** A rubric that bundles five claims under
+   "score against ALL of these" is a conjunction whose failure can never be
+   localised. Split it; a failure then names its claim in `run.json`. Judge
+   calls scale with claim count, at about 2% of spend.
+2. **Regex before LLM.** The binary's own note: "llm judges are noisy on long
+   inputs, prefer a regex grader for large artifacts." Presence, count,
+   absence, and shape are regex jobs.
+3. **Spec literals at `weight: 0.5`.** A regex that checks the format string
+   from SKILL.md measures "the plugin teaches the syntax". That is real value
+   but a different claim from "the plugin does the task better". Keep it
+   secondary and pair it with an outcome claim.
+4. **Scope each claim to the artefact.** "Judge the commit message itself;
+   text around it is not the subject of this criterion." This is scoping, so a
+   claim about the subject line is not answered about a caveat.
+5. **Negatives need a proportionality claim.** The ablation loads the whole
+   plugin, including its visual-style rule. A should-not-fire case can score
+   higher with the plugin purely because it drew boxes for a prose question.
+   The summariser reports negatives outside the headline mean and warns when
+   one moves at all.
+6. **Calibrate offline before spending on agents.** Agent turns are 98% of
+   spend and every agent output is stored in `run.json` under `evidence`.
+   `scripts/rejudge-eval-outputs.mjs` re-scores them against the current
+   graders for cents. Write hand verdicts first, then compare. The gate for a
+   re-pilot is 100% agreement, or every disagreement named and reworded.
+7. **Gate on delta with a noise floor.** One judge flip on a weight-1 grader in
+   a 1.5-weight case across three runs moves the mean by 0.22, so a per-case
+   floor tighter than about -0.34 gates on noise.
+
 ## What the suite covers
 
 | Case | Skill | Shape |
 |---|---|---|
-| `10-commit-message-from-diff` | `commit` | Types a security fix correctly and explains the why |
-| `11-commit-scope-detection` | `commit` | Detects the `billing` scope, types a refactor as refactor |
+| `10-commit-message-from-diff` | `commit` | Types a security fix correctly and explains the why. Explicit invocation: the prompt names the skill, so this is delta under invocation |
+| `11-commit-scope-detection` | `commit` | Detects the `billing` scope, types a refactor as refactor. Natural trigger: the prompt does not name the skill, so a 0 delta with no `Skill` call is a triggering finding |
 | `12-commit-should-not-fire` | `commit` | A rebase-vs-merge question must not produce a commit |
 | `20-prd-to-goal-basic` | `prd-to-goal` | One goal line, AND-joined shell-checkable assertions |
 | `21-prd-to-goal-unfalsifiable` | `prd-to-goal` | A spec with no observable criteria must be refused, not faked |
@@ -169,3 +216,14 @@ writes to `/private/tmp`, or run the suite from a plain terminal.
   across a conversation are not represented.
 - **Agents.** A skill with `context: fork` spawns a subagent; the eval sees only
   what comes back.
+- **Single skills.** The ablation is whole-plugin: the with-arm loads all of
+  ork, its CLAUDE.md, every skill, every hook. A delta is "ork versus no ork",
+  never "this skill versus none". A case is scoped to a skill by its prompt,
+  not by what is loaded.
+- **The commit skill under its real regime.** It wants `Bash` and
+  `AskUserQuestion`; neither is granted here, so its phases are skipped and in
+  the pilot the with-arm fabricated repository state ("branch main,
+  protected") with no repository present. A real commit eval needs a
+  `scaffold_script` that seeds a repo with staged changes, run with
+  `--scaffold --allow-tools Bash`. That is a second suite, tracked as a
+  follow-up.

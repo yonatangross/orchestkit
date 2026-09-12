@@ -3,10 +3,55 @@
 First real `claude plugin eval` run against the ork plugin. `--runs 1`,
 `--ablation with-without`, judge sonnet, `--no-publish`, `--max-cost-usd 3`.
 
-**Verdict: the deltas are directionally real, but the suite is NOT ready for a
-full three-run run.** Three of nine graders are miscalibrated, and I would have
-scored them differently by hand. Per the eval command's own authoring gate, that
-means the rubrics need revision before spending more.
+**Verdict, revised after an adversarial re-read: the +39 is a grader
+calibration sample, not a plugin measurement.** Recounted honestly it is about
++17, all from one case, and that delta means "the plugin knows `/goal` syntax".
+Commit shows no measurable value on these prompts. Glyph is unmeasured. The
+suite was rebuilt before any further spend; see "Retraction" below.
+
+## Retraction
+
+My first reading of this run said the LLM rubrics punish prose around the
+deliverable, and that the baseline arm always has more prose. The run's own
+data refutes that, and an adversarial reviewer caught it:
+
+- Case 10's with-arm carried more prose than its baseline (a hallucinated
+  "pre-commit guard" box, a notes list, two caveats) and passed three votes to
+  zero.
+- Case 11's baseline carried the identical "no `commit` skill, `Skill(commit)`
+  returns Unknown skill" preamble and passed three votes to zero.
+
+So prose is not what failed case 10's baseline, and the three narrow rubric
+fixes I committed on that theory were fixes to a guess.
+
+**The real root cause is in the judge.** Its prompt, read from the Claude Code
+binary, is: "You are grading the output of a coding agent against a criterion.
+Respond with exactly one word: PASS or FAIL." No rationale exists to persist,
+so no amount of trace reading can say which claim a bundled rubric failed on.
+All twelve LLM verdicts in this run were unanimous, so majority-of-three was
+one vote billed three times. The fix is structural, one grader per claim, and
+it is what the suite now does.
+
+## What the reviewer found that I had not
+
+- **The ablation is whole-plugin.** The with-arm loads all of ork, including
+  its CLAUDE.md visual-style rule. Case 12, a should-not-fire case asking a
+  conceptual git question, made zero `Skill` calls yet rendered 50 lines with
+  double-line boxes and emoji section headers, and scored 100 against 50. Its
+  +50 is style contamination, a warning, not a win.
+- **Cost asymmetry even when nothing fires.** Case 12 with-arm $0.26 versus
+  baseline $0.09; case 22 $0.23 versus $0.08; both one turn. Context load is a
+  cost the score delta does not show. The summariser now prints it.
+- **Fabricated repository state.** Case 10's with-arm printed "branch main,
+  protected" with no repository present. The commit skill runs here without
+  `Bash` or `AskUserQuestion`, a regime users never see, and it improvised.
+  No grader saw it; there is one now.
+- **Negatives are structurally inflated.** The `tool_used min:0 max:0
+  arm:both` grader is a free 50% in both arms, so a negative's delta is one
+  LLM grader. Negatives are now reported outside the headline mean.
+- **Case 21's prompt was ambiguous in the plugin's favour.** It said only
+  "goal line"; the baseline wrote `## Goal line` and an OKR-style sentence.
+  Case 20 said "goal line I can paste into Claude Code". Fixed to match.
 
 ## What ran
 
@@ -41,6 +86,16 @@ The ceiling overran slightly, $3.14 against $3. That is documented behaviour:
 the check happens before each run launches, so overrun is bounded by the runs
 in flight.
 
+## The result that closes an old question
+
+On 2026-08-04 this repo proved that its own eval harness never loaded the
+skill in its "with skill" arm, so every quality score it ever produced
+measured the base model. That note ended: whether `claude plugin eval` solves
+it "is the next thing to test". It does. Every fire case that ran shows
+`Skill called 1x` in the with-arm and `0x` without, the with-arm outputs are
+visibly skill-shaped, and the baseline enumerated the built-in skill list with
+`commit` absent. That is the most durable finding of this run.
+
 ## The result worth keeping
 
 `21-prd-to-goal-unfalsifiable`, **+100 points**, is the cleanest finding in the
@@ -55,7 +110,12 @@ it is a negative one. A bare model already writes `refactor(billing): ...`
 correctly and already says behaviour is unchanged. The commit skill adds nothing
 measurable on a clean, obvious scope. That is worth knowing.
 
-## The three graders I do not trust
+## The three graders I do not trust (original reading, kept for the record)
+
+The per-grader diagnosis below was written before the retraction above. The
+symptoms were real; the cause I assigned was not. The structural fix (one
+grader per claim) supersedes the three narrow rewrites described here.
+
 
 ### `decomposition-quality` on case 20, FAIL with the plugin
 
