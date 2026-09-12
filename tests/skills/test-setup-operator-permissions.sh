@@ -99,8 +99,11 @@ printf '{\n  "permissions": {},\n  "sandbox": {\n    "enabled": false\n  }\n}\n'
 ORK_SETTINGS_HOME="$H2" bash "$CHECKER" "$PJ" --json > "$T/check-ov.json" || true  # exit 1 expected: H2 carries no deny payload
 node -e '
 const o=JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")); const ov=o.sandbox_override;
-const ok = ov && ov.file===process.argv[2] && ov.line===4 && ov.user_file===process.argv[3] && ov.user_line===3
-  && o.sandbox.enabled==="false" && o.sandbox.source===process.argv[2];
+// mktemp can preserve a doubled slash from TMPDIR; the checker uses path.join.
+const {normalize}=require("node:path");
+const projectFile=normalize(process.argv[2]); const userFile=normalize(process.argv[3]);
+const ok = ov && ov.file===projectFile && ov.line===4 && ov.user_file===userFile && ov.user_line===3
+  && o.sandbox.enabled==="false" && o.sandbox.source===projectFile;
 process.exit(ok?0:1)' "$T/check-ov.json" "$PJ/.claude/settings.local.json" "$H2/.claude/settings.json" \
   && ok "sandbox override names the project file:line and the user file:line" || bad "sandbox override missing or wrong: $(head -c 600 "$T/check-ov.json")"
 ORK_SETTINGS_HOME="$H2" bash "$CHECKER" "$PJ" > "$T/check-ov.txt" || true
