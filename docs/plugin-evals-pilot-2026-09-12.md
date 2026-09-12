@@ -117,6 +117,73 @@ fabricated "branch main, protected" now fails a claim) and case 12 goes
 negative (style contamination now fails a claim). The re-pilot will say whether
 that holds on fresh runs. Files: `evals/calibration/`.
 
+## Re-pilot with the rebuilt suite (same day)
+
+`--runs 1`, agent `claude-sonnet-5`, judge `claude-opus-5`, 9 cases, $3.13
+($2.64 agent, $0.49 judge), complete, not partial. Raw run:
+`evals/results/20260912T072022Z/`. Full per-claim matrix:
+`evals/calibration/repilot-matrix-2026-09-12.md`.
+
+| Skill | Case | With | Without | Delta | Reading |
+|---|---|---|---|---|---|
+| commit | `10-commit-message-from-diff` | 100% | 55% | +45 | baseline wrote no Conventional Commits type at all |
+| commit | `11-commit-scope-detection` | 100% | 100% | 0 | natural phrasing did not fire the skill; bare model already correct |
+| commit | `12-commit-should-not-fire` | 60% | 100% | -40 | a skill fired on a rebase question, and the answer was drawn in boxes |
+| prd-to-goal | `20-prd-to-goal-basic` | 100% | 0% | +100 | baseline did not know `/goal until` even when told to paste into Claude Code |
+| prd-to-goal | `21-prd-to-goal-unfalsifiable` | 100% | 33% | +67 | baseline fabricated a `/goal` line; the plugin refused and offered two routes |
+| prd-to-goal | `22-prd-to-goal-should-not-fire` | 80% | 100% | -20 | no skill fired; the visual-style rule drew boxes for a one-paragraph question |
+| glyph | `30-glyph-status-render` | 78% | errored | not measured | baseline timed out at 8 turns |
+| glyph | `31-glyph-comparison` | 100% | errored | not measured | baseline hit the 6-turn cap |
+| glyph | `32-glyph-should-not-fire` | 100% | 100% | 0 | clean |
+
+Fire-case mean +53 over the four cases that measured. The tool's own
+all-case `meanDelta` of +32 counted the two errored baselines as zeros; the
+summariser now reports such cases as unmeasured.
+
+### What the fresh runs establish
+
+- **Syntax teaching is real, and model-dependent.** Pilot 1's unpinned agent
+  wrote `refactor(billing): ...` without the plugin. Sonnet-5 does not: its
+  baseline subject was "Add SameSite and Secure flags to session cookie", no
+  type, no scope. It also did not know the `/goal until` form even when the
+  prompt said "paste into Claude Code", and on the unfalsifiable spec it
+  emitted a confident `/goal Redesign the settings page: ...` built from
+  invented criteria. The plugin's +45, +100, and +67 are that gap.
+- **The plugin degrades two answers it should have left alone.** Case 22's
+  with-arm made zero `Skill` calls and still rendered the kill-switch answer
+  as three box-framed sections with a bar meter. Case 12 fired some skill on
+  a rebase-versus-merge question and drew a branch diagram. Both are the
+  plugin's CLAUDE.md visual-style rule, not a skill under test. Negatives are
+  now reported outside the headline mean and carry a proportionality claim,
+  and the negative `tool_used` graders now carry `input_match` so the next
+  run names which skill fired.
+- **The commit skill does not fire on natural phrasing.** "Write me the
+  conventional commit for this work" produced one turn and no `Skill` call.
+  Its description says it requires explicit naming; its trigger keywords say
+  otherwise. A follow-up issue, not a grader.
+- **Glyph is still unmeasured, for a reason that matters.** The without-arm
+  is Claude Code with its built-in skills, and the built-in `dataviz` skill
+  fires on "show me this visually", then spends its turns building an HTML
+  chart: case 31's last message was "Now I'll build the HTML comparison". A
+  timed-out baseline is not a bad answer. Glyph cases now get 14 turns and
+  420 seconds so the baseline can finish, and the comparison is honestly
+  "ork's one-shot ASCII skill versus Claude Code's multi-turn HTML skill".
+- **My prediction on case 10 was wrong.** I expected the with-arm to
+  fabricate repository state again. It did not; it said it could not verify
+  branch or lint state. The claim stays because it caught the pilot 1 output.
+
+### Calibration on the fresh outputs
+
+Hand verdicts for all 56 claims on the 16 stored outputs were written before
+re-judging. First pass 55/56; the two claims I had reworded after reading
+(`q-no-invented-changes`, `q-semantic-emoji-only`) both agreed, and case 10
+held at 10/10 on a second run. The single miss was `q-concrete-way-forward`
+on case 21's baseline, a claim I had marked borderline in my own read and
+which the tool's own run and the re-judge scored opposite ways. It is now
+mechanical (does the response name at least one specific action or question
+before a goal line can be trusted). Stability re-run: see
+`evals/calibration/rejudge-repilot-case21-2026-09-12.md`.
+
 ## The result that closes an old question
 
 On 2026-08-04 this repo proved that its own eval harness never loaded the
