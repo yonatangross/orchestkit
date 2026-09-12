@@ -142,7 +142,7 @@
     var btn=document.createElement("button"); btn.textContent=b[0];
     btn.className=b[1]?"after":"before";
     btn.addEventListener("click",function(){
-      ta.value=b[2]; active=idx; verdict(); mark();
+      ta.value=b[2]+"\n"; active=idx; verdict(); mark();
     });
     chips.appendChild(btn);
   });
@@ -151,13 +151,13 @@
     for(var i=0;i<kids.length;i++){ kids[i].setAttribute("aria-pressed",i===active?"true":"false"); }
   }
   ta.addEventListener("input",function(){ active=-1; verdict(); mark(); });
-  ta.value=B[6][2]; active=6; verdict(); mark();
+  ta.value=B[6][2]+"\n"; active=6; verdict(); mark();
 
   // ratchet simulator
   var paths=["src/skills/devops-deployment/SKILL.md","src/skills/glyph/SKILL.md",
              "src/skills/memory-fabric/SKILL.md","src/skills/swarm-migrate/SKILL.md"];
   var START={}; START[paths[0]]=1; START[paths[1]]=2; START[paths[2]]=1; START[paths[3]]=1;
-  var lows={}; paths.forEach(function(p){ lows[p]=1; });
+  var lows={}; paths.forEach(function(p){ lows[p]=START[p]; });
   var allowed={}; for(var k in START) allowed[k]=START[k];
   var planted=false;
   var rowsEl=document.getElementById("rows"), gateEl=document.getElementById("gate");
@@ -181,12 +181,11 @@
       }
     }
     for(var p2 in allowed){
-      if(START[p2]!==undefined && allowed[p2]>START[p2]){
+      if(allowed[p2]>START[p2]){
         gateEl.textContent="FAILED: baseline allowance for "+p2+" is "+allowed[p2]+", reference allows "+START[p2]+"; baseline may only lower\n(exit 1)";
         return;
       }
     }
-    var fails=0; paths.forEach(function(p){ if(lows[p]>0 && (allowed[p]===undefined || allowed[p]<1)) fails++; });
     if(observed>total){
       gateEl.textContent="FAILED: total low-density blocks "+observed+" exceeds baseline "+total+"\n(exit 1)";
       return;
