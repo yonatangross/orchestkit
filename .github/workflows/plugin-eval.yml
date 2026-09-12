@@ -1,0 +1,84 @@
+name: Plugin Eval
+
+# Two tiers, because the scored run costs shared weekly quota.
+#
+#   validate  (pull_request)      structure only, ZERO LLM calls, always runs
+#   score     (workflow_dispatch) the real ablation run, manual only
+#
+# POLICY: real `claude -p` calls run LOCALLY during dev, never automatically in
+# CI. Max-plan OAuth costs $0 in dollars but draws on the SHARED WEEKLY QUOTA,
+# the same pool as interactive sessions, so an automatic run silently competes
+# with the operator for their own capacity. Measured 2026-07-28: one 51-skill
+# sweep fired ~904 API calls in a single run and exhausted the cap. Do NOT add
+# a pull_request or schedule trigger to the `score` job.
+
+on:
+  pull_request:
+    paths:
+      - "src/skills/**"
+      - "evals/**"
+      - "scripts/run-plugin-eval.sh"
+      - "scripts/validate-eval-cases.mjs"
+  workflow_dispatch:
+    inputs:
+      runs:
+        description: "Runs per case per arm"
+        default: "3"
+      max_cost_usd:
+        description: "Hard cost ceiling; the run aborts and reports partial results if hit"
+        default: "10"
+      case_filter:
+        description: "Optional case name glob, e.g. 2*"
+        default: ""
+
+permissions: {}
+
+concurrency:
+  group: plugin-eval-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate eval cases (offline)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      # Deterministic. Makes no network calls and no LLM calls, so it is safe
+      # on every PR push. It enforces the floor invariants that make an
+      # ablation number mean something: runs >= 3, at least one outcome grader
+      # per case, at least one should-NOT-fire case, arm: both on the negatives.
+      - name: Check suite structure
+        run: node scripts/validate-eval-cases.mjs evals
+
+  score:
+    name: Scored ablation run (manual only)
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Build plugin
+        run: npm ci && npm run build
+      - name: Run suite with ablation
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+        run: |
+          if [ -z "${CLAUDE_CODE_OAUTH_TOKEN:-}" ]; then
+            echo "::notice::No Claude auth in this run context. Skipping loudly rather than fake-passing."
+            exit 0
+          fi
+          npm install -g @anthropic-ai/claude-code
+          ARGS=(--runs "${{ inputs.runs }}" --max-cost-usd "${{ inputs.max_cost_usd }}")
+          if [ -n "${{ inputs.case_filter }}" ]; then ARGS+=(--case "${{ inputs.case_filter }}"); fi
+          bash scripts/run-plugin-eval.sh "${ARGS[@]}"
+      - name: Upload raw reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: plugin-eval-reports
+          path: evals/results/

@@ -272,3 +272,9 @@ tests/.tmp/
 # `npm run build --workspace=<pkg>` and by the release workflow; never committed
 # (unlike plugins/*/hooks/dist above, which marketplace installs need prebuilt).
 packages/*/dist/
+
+# claude plugin eval raw reports (kept locally, never committed)
+evals/results/
+
+# worktree-local scratch
+.scratch/
