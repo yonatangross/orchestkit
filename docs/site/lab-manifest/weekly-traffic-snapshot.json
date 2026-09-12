@@ -1,0 +1,12 @@
+{
+  "slug": "weekly-traffic-snapshot",
+  "source": "docs/feat--4071-traffic-snapshot/index.html",
+  "title": "The Week That Outlives the 14-Day Window",
+  "description": "GitHub keeps repository traffic in a rolling 14-day window and then the numbers are gone. OrchestKit #4071 adds a Monday 06:00 UTC workflow that folds the previous full week into one JSONL row and opens a PR carrying it to docs/traffic/snapshots.jsonl, fail-closed: any failed endpoint read or an empty measurement week writes nothing, so an absent week means a failed run, never a zero row. Flip endpoint failures on and watch the run refuse; pick any of the 36 public skills and read its exact credit line; browse the drafts-only seeding list.",
+  "tags": [
+    "traffic",
+    "fail-closed",
+    "workflow"
+  ],
+  "date": "2026-09-12"
+}
