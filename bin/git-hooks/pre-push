@@ -202,6 +202,20 @@ fi
 echo "OK (all at v$PLUGIN_V)"
 fi  # SKIP_VERSION_GATE
 
+# Probe stand-down. tests/ci/fault-arms/version-skip-pattern.sh runs this hook
+# to read the version-gate DECISION above; it does not want the suites below.
+# Without this, that probe ran the entire local pipeline inside the pre-commit
+# lint step, and in a sandboxed worktree the pre-commit hook sat for 5+ minutes
+# on every commit that touched src/hooks or src/skills (measured 2026-09-12:
+# the lint suite passed in 3s standalone and hung only when its stdout+stderr
+# went to /dev/null, the hook's condition; a 25s-alarm bisect of all 19 lint
+# scripts and then of the 12 fault-arm probes isolated this one). Set ONLY by
+# that probe. A real push never has it, so nothing below changes for a push.
+if [[ "${ORK_PRE_PUSH_VERSION_GATE_ONLY:-}" == "1" ]]; then
+  echo "  (ORK_PRE_PUSH_VERSION_GATE_ONLY: version-gate decision recorded, stopping before the suites)"
+  exit 0
+fi
+
 # Everything below this line runs on EVERY push (#4024). It used to be
 # unreachable for any conventionally-named branch.
 
