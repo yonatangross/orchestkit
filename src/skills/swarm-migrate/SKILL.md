@@ -98,29 +98,26 @@ abort_on_novel_failure: true
 ## How it works
 
 ```
-                    ┌──────────────────────────────────┐
-                    │      COORDINATOR (you)           │
-                    │  reads spec → builds DAG →       │
-                    │  writes .swarm-state.json        │
-                    └────────────┬─────────────────────┘
-                                 │
-              ┌──────────────────┼──────────────────┐
-              ▼                  ▼                  ▼
-        ┌──────────┐       ┌──────────┐       ┌──────────┐
-        │ WORKER A │       │ WORKER B │       │ WORKER C │
-        │ (repo 1) │       │ (repo 2) │       │ (repo 3) │
-        └────┬─────┘       └────┬─────┘       └────┬─────┘
-             │                  │                  │
-             └─────────── isolated worktrees ──────┘
-             │ each: clone branch, transform,
-             │       verify, push, open PR,
-             │       wait for CI, report
-             ▼
-        ┌─────────────────────────────────────────────┐
-        │            .swarm-state.json                │
-        │  rolling ledger of {repo, status,           │
-        │  pr_url, ci_state, last_action_at}          │
-        └─────────────────────────────────────────────┘
+┌────────────────────────────────┐
+│ COORDINATOR (you)              │
+│ reads spec → builds DAG →       │
+│ writes .swarm-state.json       │
+└─────────────────┬──────────────┘
+     ┌────────────┼────────────┐
+┌──────────┐ ┌──────────┐ ┌──────────┐
+│ WORKER A │ │ WORKER B │ │ WORKER C │
+│ (repo 1) │ │ (repo 2) │ │ (repo 3) │
+└────┬─────┘ └────┬─────┘ └────┬─────┘
+     └─────────── isolated worktrees ─────┘
+                  │ each: clone branch, transform,
+                  │ verify, push, open PR, wait for CI, report
+                  ▼
+┌────────────────────────────────┐
+│ .swarm-state.json              │
+│ rolling ledger of {repo,       │
+│ status, pr_url, ci_state,      │
+│ last_action_at}                │
+└────────────────────────────────┘
 ```
 
 Each worker is a `Agent` tool invocation (subagent type `git-operations-engineer` for plumbing or `backend-system-architect` for schema-flavored migrations). The coordinator (you, this skill) reads the ledger between waves and decides whether to release downstream waves or pause.

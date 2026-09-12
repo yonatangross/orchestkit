@@ -97,15 +97,13 @@ Closed-set v1 of 11 semantic glyphs (`●○✓✗⚠◆◇▶▷ ↑↓→ ▓�
 ### Architecture Diagrams
 
 ```
-┌──────────────┐      ┌──────────────┐
-│   Frontend   │─────>│   Backend    │
-│   React 19   │      │   FastAPI    │
-└──────────────┘      └───────┬──────┘
-                              │
-                              v
-                      ┌──────────────┐
-                      │  PostgreSQL  │
-                      └──────────────┘
+┌────────┐ ┌────────┐
+│Frontend│─>│Backend │
+│React 19│ │FastAPI │
+└────────┘ └───┬────┘
+           ┌───┴──────┐
+           │PostgreSQL│
+           └──────────┘
 ```
 
 ### File Trees with Annotations
@@ -163,13 +161,13 @@ Frontend ------[Wait]--------[Components]=======[Integration]=+
 ### Comparison Tables
 
 ```
-BEFORE                          AFTER
-┌────────────┐                  ┌────────────┐
-│  Monolith  │                  │  Service A │──┐
-│  (all-in-1)│                  └────────────┘  │  ┌──────────┐
-└────────────┘                  ┌────────────┐  ├─>│  Shared  │
-                                │  Service B │──┘  │  Queue   │
-                                └────────────┘     └──────────┘
+BEFORE        AFTER
+┌──────────┐  ┌─────────┐
+│Monolith  │  │Service A│──┐
+│(all-in-1)│  └─────────┘  │ ┌───────┐
+└──────────┘  ┌─────────┐  ├─>│Shared │
+              │Service B│──┘ │Queue  │
+              └─────────┘    └───────┘
 ```
 
 ### Reversibility Timeline
