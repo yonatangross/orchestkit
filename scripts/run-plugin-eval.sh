@@ -10,7 +10,14 @@
 #      passes --no-publish. Do not remove that flag.
 #   3. Results are written outside plugins/ so a later build does not delete them.
 #
+# Sizing the ceiling, measured on the 2026-09-12 pilot rather than guessed:
+#   a with-plugin run costs $0.31 to $0.54, a baseline run $0.07 to $0.11, and
+#   judging is about 2% of spend. So 9 cases x 1 run x 2 arms is roughly $4, and
+#   9 cases x 3 runs x 2 arms is roughly $13 to $15. The default $3 ceiling will
+#   TRUNCATE a full 9-case pilot; pass --max-cost-usd 6 to let it finish.
+#
 # Usage:
+#   bash scripts/run-plugin-eval.sh --max-cost-usd 6   # pilot: 1 run per case
 #   bash scripts/run-plugin-eval.sh                 # pilot: 1 run per case, $3 ceiling
 #   bash scripts/run-plugin-eval.sh --runs 3 --max-cost-usd 10
 #   bash scripts/run-plugin-eval.sh --case '2*'     # one skill's cases only
