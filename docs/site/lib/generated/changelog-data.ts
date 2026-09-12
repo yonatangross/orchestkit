@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.16",
+    "date": "2026-09-12",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.15...v10.0.0-beta.16",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**evals:** claude plugin eval suite, calibration, and the fixes it found ([#4072](https://github.com/yonatangross/orchestkit/issues/4072)) ([2d39e0a](https://github.com/yonatangross/orchestkit/commit/2d39e0a3fc0a41aa7178066b862c330fe22e79fa))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.15",
     "date": "2026-09-11",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.14...v10.0.0-beta.15",
