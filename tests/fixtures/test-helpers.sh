@@ -987,7 +987,16 @@ except:
 # Usage: random_string $length
 random_string() {
   local length="${1:-16}"
-  LC_ALL=C tr -dc 'a-zA-Z0-9' < /dev/urandom | head -c "$length"
+  # Bounded input, on purpose. The old form was `tr < /dev/urandom | head -c N`:
+  # once head exits, tr's next write gets EPIPE, and that only stops tr when
+  # SIGPIPE is at its default. git runs hooks with SIGPIPE IGNORED, and BSD tr
+  # never checks its write status, so under `git push` this read urandom
+  # forever in a tight loop (state R, 13+ minutes, the only test left alive)
+  # and the pre-push unit phase never returned. By hand it always worked.
+  # Measured 2026-09-12 on four consecutive pushes. Bound the READ instead:
+  # 8x the wanted length is plenty (about 24% of random bytes are in the set)
+  # and tr then terminates on EOF whatever the signal disposition is.
+  head -c "$((length * 8 + 32))" /dev/urandom | LC_ALL=C tr -dc 'a-zA-Z0-9' | head -c "$length"
 }
 
 # Wait for condition with timeout

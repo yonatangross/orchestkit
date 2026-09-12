@@ -1,0 +1,85 @@
+name: Plugin Eval (score)
+
+# Tier 2 of two: the real `claude plugin eval` ablation run. MANUAL ONLY.
+#
+# POLICY: real `claude -p` calls run LOCALLY during dev, never automatically in
+# CI. Max-plan OAuth costs $0 in dollars but draws on the SHARED WEEKLY QUOTA,
+# the same pool as interactive sessions, so an automatic run silently competes
+# with the operator for their own capacity. Measured 2026-07-28: one 51-skill
+# sweep fired ~904 API calls in a single run and exhausted the cap. Do NOT add
+# a pull_request or schedule trigger to this file; tests/unit/test-no-llm-in-ci.sh
+# fails the push if you do. The offline validate tier is plugin-eval.yml.
+#
+# Cost shape, measured 2026-09-12 (sonnet-5 agent, opus-5 judge): a with-plugin
+# run is $0.11 to $0.54, a baseline run $0.05 to $0.20, judging about 15% of
+# spend. Nine cases at runs=1 was $3.13; runs=3 is roughly $10 to $15.
+
+on:
+  workflow_dispatch:
+    inputs:
+      runs:
+        description: "Runs per case per arm"
+        default: "3"
+      max_cost_usd:
+        description: "Hard cost ceiling; the run aborts with exit 2 and reports partial results if hit"
+        default: "15"
+      tag:
+        description: "Optional tag filter, one of: commit, prd-to-goal, glyph, fire, negative"
+        default: ""
+
+permissions: {}
+
+concurrency:
+  group: plugin-eval-score-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  score:
+    name: Scored ablation run (manual only)
+    runs-on: ubuntu-latest
+    # Max-plan OAuth, not ANTHROPIC_API_KEY: that env is NOT read by `claude -p`
+    # in a fresh HOME (#1857). On fork PRs secrets are absent, so this resolves
+    # to '' and the loud-skip path fires.
+    env:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v6.0.3
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v6
+        with:
+          node-version: "24"
+
+      - name: 'SKIPPED: no Claude auth in this run context'
+        if: env.CLAUDE_CODE_OAUTH_TOKEN == ''
+        run: |
+          echo "::notice title=Plugin eval SKIPPED — NOT a pass::CLAUDE_CODE_OAUTH_TOKEN is unavailable in this run context (fork PR, or repo secret unset). Nothing was scored."
+          {
+            echo "## Plugin eval SKIPPED (no Claude auth)"
+            echo ""
+            echo "**Nothing was scored. This is a skip, not a pass.**"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Build plugin
+        if: env.CLAUDE_CODE_OAUTH_TOKEN != ''
+        run: npm ci && npm run build
+
+      - name: Run suite with ablation
+        if: env.CLAUDE_CODE_OAUTH_TOKEN != ''
+        run: |
+          npm install -g @anthropic-ai/claude-code
+          ARGS=(--runs "${{ inputs.runs }}" --max-cost-usd "${{ inputs.max_cost_usd }}")
+          if [ -n "${{ inputs.tag }}" ]; then ARGS+=(--tag "${{ inputs.tag }}"); fi
+          bash scripts/run-plugin-eval.sh "${ARGS[@]}"
+
+      # The runner already prints this and exits with the summariser's gate
+      # (delta-based, noise-floor aware, refuses on partial). This step only
+      # copies it into the job summary. No `|| true`: the gate is the point.
+      - name: Summarise deltas
+        if: always() && env.CLAUDE_CODE_OAUTH_TOKEN != ''
+        run: node scripts/summarise-eval-run.mjs evals/results >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload raw reports
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        with:
+          name: plugin-eval-reports
+          path: evals/results/

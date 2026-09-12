@@ -52,7 +52,7 @@ describe('visual-style-nudge', () => {
   });
 
   it('fires on implicit shape requests (the decay case)', () => {
-    for (const p of ['what is the status of the migration', 'compare these two approaches for me', 'what are my options here', 'explain how the dispatcher works']) {
+    for (const p of ['tell me the status of the migration', 'compare these two approaches for me', 'what are my options here', 'show me the difference between the two dispatchers']) {
       session += 1;
       expect(fired(visualStyleNudge(prompt(p, `s-${session}`)))).toBe(true);
     }
@@ -60,6 +60,35 @@ describe('visual-style-nudge', () => {
 
   it('stays silent on prompts with no shape', () => {
     expect(fired(visualStyleNudge(prompt('rename this variable to userCount')))).toBe(false);
+  });
+
+  it('REGRESSION (plugin eval 2026-09-12): stays silent on prose asks even when a shape word appears', () => {
+    // Both were should-not-fire eval cases that scored LOWER with the plugin
+    // (-40 and -20): the old set fired on `explain`, and the old message said
+    // "not prose paragraphs". A definition or a one-paragraph explanation has
+    // no shape to draw.
+    for (const p of [
+      'In one paragraph, explain what a feature flag kill switch is and when a team should reach for one instead of rolling back a deploy.',
+      'explain how the dispatcher works',
+      'What is the default value of the Retry-After header when a server returns 429? Answer in one sentence.',
+      'summarise the thread for me',
+    ]) {
+      session += 1;
+      expect(fired(visualStyleNudge(prompt(p, `s-${session}`)))).toBe(false);
+    }
+  });
+
+  it('still fires on a genuine comparison ask, but the message now says prose first and one small visual', () => {
+    const r = visualStyleNudge(prompt('Explain the difference between rebasing onto main and merging main into my branch, and say which keeps the PR review history readable.', 'cmp-1'));
+    expect(fired(r)).toBe(true);
+    const c = (r.hookSpecificOutput as { additionalContext?: string }).additionalContext ?? '';
+    expect(c).toMatch(/one or two sentences of prose/);
+    expect(c).toMatch(/at most 12 lines/);
+    expect(c).not.toMatch(/not prose paragraphs/);
+  });
+
+  it('an explicit ask overrides the prose guard', () => {
+    expect(fired(visualStyleNudge(prompt('explain how the dispatcher works, draw it in ascii', 'explicit-over-prose')))).toBe(true);
   });
 
   it('stays silent on very short prompts', () => {

@@ -14,8 +14,9 @@
  * hand. Measured: 6+ manual re-asks in a single session on 2026-07-26.
  *
  * This sub-hook re-anchors the rule when a prompt asks for an answer with
- * SHAPE (status, comparison, options, "explain/show me X"). Advisory context
- * only — never blocks, never rewrites.
+ * SHAPE (status, comparison, options, "show me X"). Advisory context only,
+ * never blocks, never rewrites. It stays silent on prose asks (definitions,
+ * "explain how X works", "in one paragraph"); see PROSE_ASK_RE.
  *
  * Deliberately NOT once-per-session, unlike executor-route-nudge: firing once
  * would reproduce the exact decay this exists to fix. It is throttled by
@@ -60,7 +61,25 @@ const EXPLICIT_ASK_RE =
  * so. These are throttled, because firing on every "status" would be noise.
  */
 const IMPLICIT_SHAPE_RE =
-  /\b(?:status|where do we stand|what'?s next|compare|comparison|trade-?offs?|options|breakdown|summar(?:y|ise|ize)|explain|show me|walk me through)\b/i;
+  /\b(?:status|where do we stand|what'?s next|compare|comparison|versus|vs\.?|difference between|trade-?offs?|options|breakdown|show me)\b/i;
+
+/**
+ * PROSE ask: the user asked for a sentence or a paragraph, or for a
+ * definition or an explanation of how something works. That answer has no
+ * shape, and a nudge here makes it worse, not better.
+ *
+ * Measured with `claude plugin eval` on 2026-09-12 (ablation, sonnet-5): two
+ * should-not-fire cases scored LOWER with the plugin than without it, -40 and
+ * -20, with zero Skill calls in one of them. "Explain the difference between
+ * rebasing and merging" came back as 50 lines of double-line boxes and emoji
+ * headers; "in one paragraph, explain what a kill switch is" came back as
+ * three box-framed sections and a bar meter. The old IMPLICIT set fired on
+ * `explain`, `summarise` and `walk me through`, and the old message said
+ * "not prose paragraphs", which contradicts rule 2 of visual-style.md (prose
+ * first, the visual supports the answer). Both are fixed here.
+ */
+const PROSE_ASK_RE =
+  /\b(?:in (?:one|a single|1) (?:sentence|paragraph|line)|one-liner|briefly|in a few words|explain (?:how|what|why)|define|definition of)\b/i;
 
 /** The user is already routing to a skill — do not second-guess it. */
 const ALREADY_ROUTED_RE = /\/(?:ork|hq-ext):[a-z-]+/i;
@@ -119,6 +138,10 @@ export function visualStyleNudge(
   if (ALREADY_ROUTED_RE.test(prompt)) return outputSilentSuccess();
 
   const explicit = EXPLICIT_ASK_RE.test(prompt);
+  // A prose ask only yields to an EXPLICIT visual request. An implicit shape
+  // word inside "in one paragraph, explain what X is" is not a request for a
+  // diagram; it is the subject of a sentence.
+  if (!explicit && PROSE_ASK_RE.test(prompt)) return outputSilentSuccess();
   if (!explicit && !IMPLICIT_SHAPE_RE.test(prompt)) return outputSilentSuccess();
 
   const ordinal = fireOrdinal(sessionId, explicit);
@@ -132,11 +155,13 @@ export function visualStyleNudge(
   // through the real dispatcher: constant text fired 1/20, the varying text
   // below fires on schedule. Keep this varying.
   return outputPromptContext(
-    `[${HOOK_NAME} #${ordinal}] This answer has shape — render it as ASCII art plus ` +
-      `semantic emojis (boxes, tables, bar meters), not prose paragraphs. Applies to ` +
-      `THIS reply and every later one, not just the first. Full vocabulary and ` +
+    `[${HOOK_NAME} #${ordinal}] This answer has shape. Lead with one or two sentences ` +
+      `of prose that state the point, then ONE small visual (a table, a box, a flow, ` +
+      `or a bar meter) of at most 12 lines and under 40% of the reply, using the ` +
+      `semantic emoji vocabulary only. The visual supports the answer; it is never ` +
+      `the answer. A conceptual explanation or a one-paragraph ask gets no visual. ` +
+      `Applies to this reply and later ones, not just the first. Full vocabulary and ` +
       `palette: the ork:glyph skill, rules/visual-style.md. Sub-agents do not ` +
-      `inherit this rule; ` +
-      `restate it in their prompt if their output reaches the user.`,
+      `inherit this rule; restate it in their prompt if their output reaches the user.`,
   );
 }

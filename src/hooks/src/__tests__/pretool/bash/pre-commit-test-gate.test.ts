@@ -75,6 +75,24 @@ describe('pre-commit-test-gate', () => {
     beforeEach(() => { tmp = mkdtempSync(join(tmpdir(), 'pctg-e2e-')); });
     afterEach(() => { rmSync(tmp, { recursive: true, force: true }); });
 
+    function isolatedGitEnv() {
+      const {
+        GIT_COMMON_DIR,
+        GIT_INDEX_FILE,
+        GIT_PREFIX,
+        GIT_OBJECT_DIRECTORY,
+        ...env
+      } = process.env;
+      return {
+        ...env,
+        HOME: tmp,
+        GIT_CONFIG_GLOBAL: '/dev/null',
+        GIT_CONFIG_SYSTEM: '/dev/null',
+        GIT_DIR: join(tmp, '.git'),
+        GIT_WORK_TREE: tmp,
+      };
+    }
+
     test('silent for non-Bash tools', () => {
       const input = { tool_name: 'Write', session_id: 's', tool_input: { file_path: '/a' } } as never;
       expect(preCommitTestGate(input, { ...NOOP_CTX, projectDir: tmp }).hookSpecificOutput).toBeUndefined();
@@ -108,9 +126,12 @@ describe('pre-commit-test-gate', () => {
       // Session A runs tests…
       recordTestRun(tmp, 'npm test', 'sess-A');
       // …session B commits a staged file: must be advised as if no run happened.
-      execSync('git init -q && git config user.email t@t && git config user.name t', { cwd: tmp });
+      execSync('git init -q && git config user.email t@t && git config user.name t', {
+        cwd: tmp,
+        env: isolatedGitEnv(),
+      });
       writeFileSync(join(tmp, 'f.txt'), 'x');
-      execSync('git add f.txt', { cwd: tmp });
+      execSync('git add f.txt', { cwd: tmp, env: isolatedGitEnv() });
 
       const input = { tool_name: 'Bash', session_id: 'sess-B', tool_input: { command: 'git commit -m x' } } as never;
       const r = preCommitTestGate(input, { ...NOOP_CTX, projectDir: tmp, sessionId: 'sess-B' });
@@ -120,9 +141,12 @@ describe('pre-commit-test-gate', () => {
     });
 
     test('own session\'s fresh test run keeps the commit clean (#2919)', () => {
-      execSync('git init -q && git config user.email t@t && git config user.name t', { cwd: tmp });
+      execSync('git init -q && git config user.email t@t && git config user.name t', {
+        cwd: tmp,
+        env: isolatedGitEnv(),
+      });
       writeFileSync(join(tmp, 'f.txt'), 'x');
-      execSync('git add f.txt', { cwd: tmp });
+      execSync('git add f.txt', { cwd: tmp, env: isolatedGitEnv() });
       // Test run AFTER the file edit, same session → silent gate.
       recordTestRun(tmp, 'npm test', 'sess-A');
 

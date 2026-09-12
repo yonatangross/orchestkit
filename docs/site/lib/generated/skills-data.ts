@@ -1018,9 +1018,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "commit": {
     "name": "commit",
-    "description": "Creates commits with Conventional Commits format (feat/fix/docs/refactor/test/chore), automatic scope detection, co-author attribution, and pre-commit hook compliance. Validates staged changes, generates descriptive messages focusing on the 'why', and prevents secrets or generated-only files from being committed. Requires an explicit request naming this skill; plain `git commit` during normal work stays a bare CLI call. Use when committing changes or generating commit messages.",
+    "description": "Creates commits with Conventional Commits format (feat/fix/docs/refactor/test/chore), automatic scope detection, co-author attribution, and pre-commit hook compliance. Validates staged changes, generates descriptive messages focusing on the 'why', and prevents secrets or generated-only files from being committed. Use for requests to commit, stage and commit, save progress, or write a commit message, whether or not they name this skill. Do not invoke it for git commits you make incidentally during other work; those stay a bare CLI call.",
     "version": "1.2.0",
-    "sha256": "27abc335559578eb941bd883d6920531920b041394a98493d12ae969d2fdd1ca",
+    "sha256": "51df04600d9450b6ee5875339c0864146936b933d58d97d42e75e2618543bebf",
     "author": "OrchestKit",
     "tags": [
       "git",
@@ -2430,9 +2430,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "glyph": {
     "name": "glyph",
-    "description": "Render an answer as ASCII art plus semantic emojis inline, right now, with no setup questions. Use for a fast visual take on status, comparisons, trade-offs, architecture, or any ad-hoc 'show me X visually' ask. For a full multi-artifact plan playground, use visualize-plan instead.",
+    "description": "Render an answer as ASCII art plus semantic emojis inline, right now, with no setup questions. Use for a fast visual take on status, comparisons, trade-offs, architecture, or any ad-hoc 'show me X visually' ask. Not for definitions, conceptual explanations, or one-sentence and one-paragraph asks; those have no shape to draw. For a full multi-artifact plan playground, use visualize-plan instead.",
     "version": "2.0.0",
-    "sha256": "05b81b2dc7372e047bbada4fecfae8cdcce1e5a060b2b803ada32da30ca87537",
+    "sha256": "879edb70ff2f5b0ca035e3ac6c61f2aec48cef8c3653936849bc468d18aaf375",
     "author": "OrchestKit",
     "tags": [
       "ascii",
@@ -3471,7 +3471,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "prd-to-goal",
     "description": "Decomposes a PRD, issue, or spec into a copy-pasteable single `/goal until ..., or stop after N turns` line. Use when running /goal against a spec, to reduce acceptance criteria to AND-joined boolean assertions.",
     "version": "0.1.0",
-    "sha256": "3135f97d466517d00b2a5774d33176cdeafce5f5f832c319768f318f701151ce",
+    "sha256": "b832c87f842f83ba87ec661eee6bb0bb6c64c586984c1eb9ee637ed610d1154b",
     "author": "OrchestKit",
     "tags": [
       "/goal",

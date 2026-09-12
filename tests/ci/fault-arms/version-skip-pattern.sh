@@ -55,8 +55,14 @@ SKIP_MARKER='Skipping version check for'
 
 run_hook() {  # $1 = repo root to run in
     local out
+    # ORK_PRE_PUSH_VERSION_GATE_ONLY=1 stops the hook right after the version
+    # gate decides, which is all this probe reads. Without it the control arm
+    # ran the ENTIRE local pre-push pipeline (unit, security, build, manifests)
+    # inside the pre-commit lint step, and in a sandboxed worktree that hung
+    # every commit touching src/hooks or src/skills for 5+ minutes (2026-09-12,
+    # isolated by a 25s-alarm bisect of 19 lint scripts then 12 probes).
     out=$(printf 'refs/heads/%s 0000 refs/heads/%s 0000\n' "$RP_BRANCH" "$RP_BRANCH" \
-        | ( cd "$1" && bash bin/git-hooks/pre-push origin https://example.invalid/x.git ) 2>&1)
+        | ( cd "$1" && ORK_PRE_PUSH_VERSION_GATE_ONLY=1 bash bin/git-hooks/pre-push origin https://example.invalid/x.git ) 2>&1)
     printf '%s\n' "$out" >&2
     # 0 = the version gate stood down for this branch, which is the contract.
     # Here-string, NOT `printf | grep -qF`. grep -q early-exits on the first

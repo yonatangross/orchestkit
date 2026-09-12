@@ -1,0 +1,47 @@
+name: Plugin Eval (validate)
+
+# Tier 1 of two. This file is the offline structural check and makes ZERO LLM
+# calls, which is why it may carry a pull_request trigger. The scored ablation
+# run lives in plugin-eval-score.yml, workflow_dispatch only; the two are
+# separate files on purpose, because tests/unit/test-no-llm-in-ci.sh checks
+# per FILE that nothing LLM-shaped can fire automatically, and a job-level
+# `if:` does not satisfy it (measured on the first push of this branch).
+
+on:
+  pull_request:
+    paths:
+      - "src/skills/**"
+      - "evals/**"
+      - "scripts/run-plugin-eval.sh"
+      - "scripts/validate-eval-cases.mjs"
+      - "tests/unit/test-ascii-density.sh"
+      - "tests/unit/ascii-density-baseline.tsv"
+      - ".github/workflows/plugin-eval.yml"
+
+permissions: {}
+
+concurrency:
+  group: plugin-eval-validate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate eval cases (offline)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v6.0.3
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v6
+        with:
+          node-version: "24"
+      # Deterministic. No network calls and no LLM calls, so it is safe on every
+      # PR push. It enforces the floor invariants that make an ablation number
+      # mean something: runs >= 3, at least one outcome grader per case, at
+      # least one should-NOT-fire case, arm: both on the negatives.
+      - name: Check suite structure
+        run: node scripts/validate-eval-cases.mjs evals
+      - name: Enforce ASCII density ratchet
+        env:
+          ASCII_DENSITY_BASE_REF: ${{ github.event.pull_request.base.sha }}
+        run: bash tests/unit/test-ascii-density.sh
