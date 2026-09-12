@@ -24,8 +24,13 @@ const signed = (n) => (n > 0 ? `+${Math.round(n * 100)}` : `${Math.round(n * 100
 const skillOf = (name) => (/^1/.test(name) ? "commit" : /^2/.test(name) ? "prd-to-goal" : /^3/.test(name) ? "glyph" : "other");
 
 let agentCost = 0, judgeCost = 0, errored = 0;
+const skipped = new Set();
 for (const c of d.cases) for (const arm of Object.values(c.arms)) for (const r of arm) {
   agentCost += r.costUsd ?? 0; judgeCost += r.judgeCostUsd ?? 0; if (r.error) errored++;
+  // A paid grader skipped at the cost ceiling is recorded as a FAIL, which
+  // drags the score down for a reason that has nothing to do with the answer.
+  // Surface it, or the case reads as a quality failure it never was.
+  if (r.skippedPaidGraders) skipped.add(c.name);
 }
 
 const lines = [];
@@ -34,6 +39,7 @@ lines.push("");
 lines.push(`Claude Code ${d.claudeVersion} · ${d.cases.length} cases · ${d.durationSeconds}s · $${(d.costUsd ?? 0).toFixed(2)}`);
 if (d.partial) lines.push(`\n**PARTIAL RUN.** ${d.partialReason ?? "the run did not finish"}. Treat every number below as incomplete.`);
 if (errored > 0) lines.push(`\n**${errored} run(s) failed to start or errored.** A failed run scores 0, which is not the same as a bad answer. Check the traces before reading the deltas.`);
+if (skipped.size > 0) lines.push(`\n**${skipped.size} case(s) had paid graders SKIPPED at the cost ceiling**, and a skipped grader is recorded as a fail: ${[...skipped].map((n) => `\`${n}\``).join(", ")}. Their scores are an artefact of the budget, not a measurement.`);
 lines.push("");
 lines.push("| Skill | Case | With | Without | Delta |");
 lines.push("|---|---|---|---|---|");
