@@ -117,7 +117,7 @@ else
             fi
 
             # Dry-run the actual rsync with the actual excludes into a temp dir.
-            TMP="$(mktemp -d)"
+            TMP="$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")"
             trap 'rm -rf "$TMP"' EXIT
             printf '%s\n' "$EXCLUDES" > "$TMP/excludes"
             RSYNC_ARGS=()
