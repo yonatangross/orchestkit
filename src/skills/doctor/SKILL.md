@@ -221,6 +221,8 @@ Every category reports an explicit **pass / warn / fail** status, and every warn
 
 > **Bisect with `--safe-mode` (CC 2.1.169+):** when doctor findings don't explain a misbehaving session, restart with `claude --safe-mode` (or `CLAUDE_CODE_SAFE_MODE=1`) — it disables ALL customizations (CLAUDE.md, plugins incl. ork, skills, hooks, MCP). If the problem disappears, it's a customization; re-enable halves to isolate. If it persists, it's CC itself — file upstream.
 
+> **Host load vs session load (macOS):** when doctor findings say the session is healthy but the machine is slow, do not diagnose from `memory_pressure`'s "System-wide memory free percentage": it once read 84% free while 59 of 64 GB was in use and swap stood at 6.9 of 8 GB, and the first culprit named from that number was wrong (the real load was a test suite in another project). Read the evidence before naming anything: `sysctl vm.swapusage` for swap, `vm_stat` for the memory split, and a process tree (e.g. `ps aux | sort -nrk 3 | head`) for who is actually consuming.
+
 ### After you fix an issue
 
 > **CC 2.1.69+**: Run `/reload-plugins` to activate plugin changes in the current session without restarting.

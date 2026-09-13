@@ -1,0 +1,8 @@
+{
+ "slug": "load-diagnosis-zsh-rsync",
+ "source": "docs/docs--load-diagnosis-zsh-rsync/index.html",
+ "title": "Three false signals: free memory, the zsh loop, the silent rsync",
+ "description": "Three diagnosis traps from one operator session and the rule for each: memory_pressure's free percentage read 84% while 59 of 64 GB was in use and swap 6.9 of 8 GB, so diagnose with sysctl vm.swapusage, vm_stat and a process tree before naming a culprit; the Bash tool shell is zsh on macOS and never word-splits $var, so a one-liner loop sent one malformed URL and five minutes of 404s, which loops-in-script-files and the display-lint advisory now say; and macOS openrsync dry-run output is silent without -v and formatted differently from CI GNU rsync, which #4079 proved, so rsync-parsing tests must work on both dialects.",
+ "tags": ["diagnostics", "zsh", "rsync", "hooks", "tests"],
+ "date": "2026-09-13"
+}

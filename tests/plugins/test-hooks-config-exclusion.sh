@@ -36,6 +36,10 @@
 # grep for FILENAMES and strip every banner/summary line by prefix; no
 # dialect-specific format (no --itemize-changes escapes, no openrsync-only
 # fields) is parsed.
+#
+# Any future test that parses rsync output must prove itself on both dialects:
+# macOS dry-run output is silent without -v and the banner wording differs,
+# which #4079 proved on CI GNU rsync.
 # =============================================================================
 
 set -uo pipefail
