@@ -158,6 +158,6 @@ export function displayLint(input: HookInput, ctx: HookContext = NOOP_CTX): Hook
   // permissionDecision:'allow' and skipped the permission prompt as a side
   // effect of a cosmetic lint.
   return outputPreToolAdvisory(
-    `[display-lint] ${command.length} chars across ${stages.length} stages. A script file renders as one short tool card and is safe from line-wrap splitting a flag from its argument: write the steps to <scratchpad>/<task>.sh and run that. (Silence: export ORK_DISPLAY_LINT=0)`,
+    `[display-lint] ${command.length} chars across ${stages.length} stages. A script file renders as one short tool card, is safe from line-wrap splitting a flag from its argument, and gets real bash word splitting (when the Bash tool shell is zsh, the macOS default, an unquoted $var never word-splits, so a loop over $var runs once on the whole string and every iteration gets a malformed argument): write the steps to <scratchpad>/<task>.sh and run that. (Silence: export ORK_DISPLAY_LINT=0)`,
   );
 }
