@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.20](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.19...v10.0.0-beta.20) (2026-09-13)
+
+
+### Documentation
+
+* load diagnosis, zsh word splitting, rsync dialect guidance ([#4081](https://github.com/yonatangross/orchestkit/issues/4081)) ([b449653](https://github.com/yonatangross/orchestkit/commit/b449653f5c154328e2515af27f465b193b134225))
+
 ## [10.0.0-beta.19](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.18...v10.0.0-beta.19) (2026-09-13)
 
 
