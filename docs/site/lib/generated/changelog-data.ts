@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.21",
+    "date": "2026-09-13",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.20...v10.0.0-beta.21",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**pre-push:** load-aware jobs and named hook timeouts ([#4085](https://github.com/yonatangross/orchestkit/issues/4085)) ([#4086](https://github.com/yonatangross/orchestkit/issues/4086)) ([f5408a9](https://github.com/yonatangross/orchestkit/commit/f5408a99ca57ec01f1c5ecb0909903c66fdecc9f))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.20",
     "date": "2026-09-13",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.19...v10.0.0-beta.20",
