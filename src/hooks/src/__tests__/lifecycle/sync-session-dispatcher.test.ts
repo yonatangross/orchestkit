@@ -57,7 +57,13 @@ vi.mock('../../lib/analytics.js', () => ({
   hashProject: vi.fn(() => 'test_hash'),
 }));
 
+vi.mock('../../lib/core-bare-flip.js', async () => {
+  const actual = await vi.importActual<typeof import('../../lib/core-bare-flip.js')>('../../lib/core-bare-flip.js');
+  return { ...actual, findCoreBareFlip: vi.fn(() => null) };
+});
+
 import { syncSessionDispatcher } from '../../lifecycle/sync-session-dispatcher.js';
+import { findCoreBareFlip } from '../../lib/core-bare-flip.js';
 import { analyticsConsentCheck } from '../../lifecycle/analytics-consent-check.js';
 import { prefillGuard } from '../../lifecycle/prefill-guard.js';
 import { mcpHealthCheck } from '../../lifecycle/mcp-health-check.js';
@@ -106,6 +112,55 @@ describe('lifecycle/sync-session-dispatcher', () => {
     vi.mocked(prefillGuard).mockReturnValue({ continue: true, suppressOutput: true });
     vi.mocked(mcpHealthCheck).mockReturnValue({ continue: true, suppressOutput: true });
     vi.mocked(materializeAntipatternRules).mockReturnValue(undefined);
+    vi.mocked(findCoreBareFlip).mockReturnValue(null);
+  });
+
+  // -------------------------------------------------------------------------
+  // core.bare flip (#4070)
+  // -------------------------------------------------------------------------
+
+  describe('core.bare flip warning (#4070)', () => {
+    const flip = { checkout: '/test/project', config: '/test/project/.git/config' };
+    const fix = 'Fix: git config --file /test/project/.git/config core.bare false';
+
+    it('checks the project dir and stays silent when the checkout is healthy', () => {
+      const result = syncSessionDispatcher(createSessionStartInput(), testCtx);
+
+      expect(findCoreBareFlip).toHaveBeenCalledWith('/test/project');
+      expect(result.systemMessage).toBeUndefined();
+    });
+
+    it('warns the user and the model with the repair command', () => {
+      vi.mocked(findCoreBareFlip).mockReturnValue(flip);
+
+      const result = syncSessionDispatcher(createSessionStartInput(), testCtx);
+
+      expect(result.systemMessage).toContain(fix);
+      expect(result.hookSpecificOutput?.additionalContext).toContain(fix);
+    });
+
+    it('keeps plugin_root in additionalContext beside the warning', () => {
+      vi.mocked(findCoreBareFlip).mockReturnValue(flip);
+
+      const result = syncSessionDispatcher(
+        createSessionStartInput({ plugin_root: '/plugins/ork' }),
+        testCtx,
+      );
+
+      expect(result.hookSpecificOutput?.additionalContext).toContain('CLAUDE_PLUGIN_ROOT=/plugins/ork');
+      expect(result.hookSpecificOutput?.additionalContext).toContain(fix);
+    });
+
+    it('still checks on resume, when a mid-day flip is most likely found', () => {
+      vi.mocked(findCoreBareFlip).mockReturnValue(flip);
+
+      const result = syncSessionDispatcher(
+        createSessionStartInput({ source: 'resume' } as Partial<HookInput>),
+        testCtx,
+      );
+
+      expect(result.systemMessage).toContain(fix);
+    });
   });
 
   // -------------------------------------------------------------------------

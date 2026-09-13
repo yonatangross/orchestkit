@@ -37,6 +37,8 @@ import { materializeProfileRules } from '../prompt/profile-injector.js';
 import { NOOP_CTX } from '../lib/context.js';
 // #3789 (CC 2.1.251): resume payloads carry staleness + re-cache cost
 import { readResumeStaleness } from '../lib/session-staleness.js';
+// #4070: a test fixture flipped core.bare=true in a real repo's shared config
+import { coreBareFlipWarning, findCoreBareFlip } from '../lib/core-bare-flip.js';
 
 const HOOK_NAME = 'sync-session-dispatcher';
 
@@ -132,6 +134,17 @@ export function syncSessionDispatcher(input: HookInput, ctx: HookContext = NOOP_
 
   const messages: string[] = [];
 
+  // #4070: core.bare=true in a working checkout makes git refuse to run in the
+  // primary tree, and nothing else names the cause. Checked on every source,
+  // resume included (the flip happens mid-day, under a push), and sent to both
+  // the user and the model so neither spends time guessing. File reads only.
+  const bareFlip = findCoreBareFlip(projectDir);
+  const bareFlipWarning = bareFlip ? coreBareFlipWarning(bareFlip) : '';
+  if (bareFlipWarning) {
+    messages.push(bareFlipWarning);
+    ctx.log(HOOK_NAME, `core.bare flip detected: ${bareFlip?.config}`, 'warn');
+  }
+
   for (const hook of SYNC_HOOKS) {
     if (isLightResume && hook.skipOnResume) {
       ctx.log(HOOK_NAME, `${hook.name}: skipped (source=${source})`);
@@ -182,8 +195,9 @@ export function syncSessionDispatcher(input: HookInput, ctx: HookContext = NOOP_
     result.systemMessage = messages.join('\n');
     ctx.log(HOOK_NAME, `Merged ${messages.length} messages from sync hooks (${Date.now() - startMs}ms)`);
   }
-  if (pluginRootContext) {
-    result.hookSpecificOutput = { hookEventName: 'SessionStart', additionalContext: pluginRootContext };
+  const modelContext = [pluginRootContext, bareFlipWarning].filter(Boolean).join('\n');
+  if (modelContext) {
+    result.hookSpecificOutput = { hookEventName: 'SessionStart', additionalContext: modelContext };
   }
   recordSessionStartPerf(startMs, source, messages.length, input);
   return result;

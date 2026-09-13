@@ -15,7 +15,7 @@ cd "$PROJECT_ROOT"
 # <name> and no GIT_WORK_TREE. Every stage below spawns test fixtures, and a
 # plain `git init` in a temp dir under that env re-initialises the MAIN
 # repository: measured on git 2.54, it writes core.bare=true into the shared
-# .git/config, after which rev-parse fails in every tree and every hook dies.
+# .git/config, after which git refuses to run in the primary checkout.
 # Scrubbing fixture by fixture fixed one writer at a time; this fixes the
 # boundary. git rediscovers the same repository from PROJECT_ROOT, and the
 # locators stay exported only when it would not (a --git-dir push from a tree
