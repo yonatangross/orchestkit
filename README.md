@@ -471,6 +471,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.21](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.20...v10.0.0-beta.21)** · 2026-09-13
+
+- **pre-push:** load-aware jobs and named hook timeouts (#4085) (#4086)
+
 **[v10.0.0-beta.20](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.19...v10.0.0-beta.20)** · 2026-09-13
 
 - load diagnosis, zsh word splitting, rsync dialect guidance (#4081)
@@ -507,12 +511,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **release:** stamp the codex and cursor plugin.json mirrors (#4038) (#4046)
 - **skills:** clear remaining allowed-tools exceptions (#4043)
 - …and 9 more (see [CHANGELOG.md](CHANGELOG.md))
-
-**[v10.0.0-beta.13](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.12...v10.0.0-beta.13)** · 2026-09-10
-
-- **hooks:** migrate the src/hooks suite to vitest 5 (#3981) (#4028)
-- **security:** npm audit gate could not run without GNU timeout, misreported as no output (#4015) (#4023)
-- **site:** host picker, library tabs, and readable hook lists (#4022)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
