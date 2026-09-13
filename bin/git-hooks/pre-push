@@ -8,6 +8,35 @@ set -uo pipefail
 PROJECT_ROOT="$(git rev-parse --show-toplevel)"
 cd "$PROJECT_ROOT"
 
+# Drop the repository locators git exported to this hook, once, before any
+# stage runs (#4070).
+#
+# From a linked worktree git runs this hook with GIT_DIR=<main>/.git/worktrees/
+# <name> and no GIT_WORK_TREE. Every stage below spawns test fixtures, and a
+# plain `git init` in a temp dir under that env re-initialises the MAIN
+# repository: measured on git 2.54, it writes core.bare=true into the shared
+# .git/config, after which rev-parse fails in every tree and every hook dies.
+# Scrubbing fixture by fixture fixed one writer at a time; this fixes the
+# boundary. git rediscovers the same repository from PROJECT_ROOT, and the
+# locators stay exported only when it would not (a --git-dir push from a tree
+# with no .git entry), in which case the tail guard still catches a flip.
+drop_inherited_git_locators() {
+  local located rediscovered
+  located=$(git rev-parse --absolute-git-dir) || return 0
+  if ! rediscovered=$(env -u GIT_DIR -u GIT_WORK_TREE -u GIT_INDEX_FILE -u GIT_PREFIX \
+      -u GIT_COMMON_DIR -u GIT_OBJECT_DIRECTORY git rev-parse --absolute-git-dir); then
+    echo "  WARNING: $PWD does not rediscover $located; keeping GIT_DIR for this push (#4070)"
+    return 0
+  fi
+  if [[ "$(cd "$rediscovered" && pwd -P)" != "$(cd "$located" && pwd -P)" ]]; then
+    echo "  WARNING: $PWD rediscovers $rediscovered, not $located; keeping GIT_DIR (#4070)"
+    return 0
+  fi
+  unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_PREFIX GIT_COMMON_DIR GIT_OBJECT_DIRECTORY
+}
+
+drop_inherited_git_locators
+
 capture_initial_repo_config() {
   INITIAL_REPO_USER_EMAIL_SET=0
   INITIAL_REPO_USER_EMAIL=""
