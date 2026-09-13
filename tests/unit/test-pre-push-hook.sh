@@ -610,6 +610,72 @@ test_stages_do_not_inherit_worktree_git_dir() {
     rm -rf "$tmp"
 }
 
+# Test 11: the scrub keeps GIT_DIR when PROJECT_ROOT does not rediscover the
+# same repository (#4070).
+#
+# The safety branch of drop_inherited_git_locators(): a `git --git-dir=<x> push`
+# run from a directory with no .git entry, or from inside some OTHER
+# repository, must keep the exported locators, else the rest of the hook runs
+# against the wrong repository (or none). Test 10 only exercises the happy
+# path, so a mutant that unsets unconditionally survives it; this pins the
+# branch by asserting the WARNING is printed and GIT_DIR survives the call.
+test_scrub_keeps_locators_without_rediscovery() {
+    echo ""
+    echo "Test 11: scrub keeps GIT_DIR when the cwd does not rediscover the same repository (#4070)"
+
+    local hook="${PROJECT_ROOT}/bin/git-hooks/pre-push"
+    local drop_fn tmp main other nogit probe out rc
+    drop_fn=$(sed -n '/^drop_inherited_git_locators()/,/^}/p' "$hook")
+    if [[ -z "$drop_fn" ]]; then
+        log_fail "pre-push defines no drop_inherited_git_locators()"
+        return
+    fi
+
+    tmp=$(mktemp -d "${TMPDIR:-/tmp}/ork-pre-push-keep-env.XXXXXX")
+    tmp=$(cd "$tmp" && pwd -P)
+    main="$tmp/main"
+    other="$tmp/other"
+    nogit="$tmp/nogit"
+    git init -q "$main"
+    git init -q "$other"
+    mkdir -p "$nogit"
+    # After the scrub: report whether GIT_DIR survived and which repo git sees.
+    probe='drop_inherited_git_locators; if printenv GIT_DIR >/dev/null; then echo "GIT_DIR=$GIT_DIR"; else echo "GIT_DIR=unset"; fi; git rev-parse --absolute-git-dir'
+
+    # Case A: no .git entry anywhere under the cwd. GIT_CEILING_DIRECTORIES
+    # stops rediscovery at $tmp so the result does not depend on where TMPDIR
+    # lives (the hook's env -u list does not touch it).
+    rc=0
+    out=$(cd "$nogit" && env GIT_DIR="$main/.git" GIT_CEILING_DIRECTORIES="$tmp" \
+        /bin/bash -c "$drop_fn"$'\n'"$probe" 2>&1) || rc=$?
+    if [[ $rc -eq 0 && "$out" == *"WARNING: $nogit does not rediscover"*"keeping GIT_DIR"* ]]; then
+        log_pass "no .git entry: scrub prints the WARNING"
+    else
+        log_fail "no .git entry: expected a keeping-GIT_DIR WARNING (rc=$rc): $out"
+    fi
+    if [[ "$out" == *"GIT_DIR=$main/.git"* && "$out" == *"$main/.git" ]]; then
+        log_pass "no .git entry: GIT_DIR is still exported and git still resolves main"
+    else
+        log_fail "no .git entry: GIT_DIR was dropped or git lost main: $out"
+    fi
+
+    # Case B: the cwd is inside a DIFFERENT repository than GIT_DIR names.
+    rc=0
+    out=$(cd "$other" && env GIT_DIR="$main/.git" \
+        /bin/bash -c "$drop_fn"$'\n'"$probe" 2>&1) || rc=$?
+    if [[ $rc -eq 0 && "$out" == *"WARNING: $other rediscovers"*"keeping GIT_DIR"* ]]; then
+        log_pass "other repository: scrub prints the WARNING"
+    else
+        log_fail "other repository: expected a keeping-GIT_DIR WARNING (rc=$rc): $out"
+    fi
+    if [[ "$out" == *"GIT_DIR=$main/.git"* && "$out" == *"$main/.git" ]]; then
+        log_pass "other repository: GIT_DIR is still exported and git still resolves main"
+    else
+        log_fail "other repository: GIT_DIR was dropped or git lost main: $out"
+    fi
+    rm -rf "$tmp"
+}
+
 # Main
 # Test 10: the unit-stage job count is env-overridable and load-aware (#4085)
 #
@@ -689,6 +755,7 @@ main() {
     test_vitest_git_environment_scrub
     test_resolve_pre_push_jobs
     test_stages_do_not_inherit_worktree_git_dir
+    test_scrub_keeps_locators_without_rediscovery
 
     # Summary
     echo ""

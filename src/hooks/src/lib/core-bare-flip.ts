@@ -55,7 +55,7 @@ function readCoreBare(configText: string): boolean {
     }
     if (!inCore) continue;
     const kv = line.match(/^([A-Za-z][A-Za-z0-9-]*)\s*(?:=\s*(.*))?$/);
-    if (!kv || kv[1].toLowerCase() !== 'bare') continue;
+    if (kv?.[1].toLowerCase() !== 'bare') continue;
     // A bare key with no `=` is boolean true in git config.
     const value = kv[2] === undefined ? 'true' : kv[2].replace(/\s*[#;].*$/, '').replace(/^"|"$/g, '');
     bare = TRUE_VALUES.has(value.trim().toLowerCase());
