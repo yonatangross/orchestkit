@@ -2,7 +2,7 @@
   "slug": "hooks-config-exclusion",
   "source": "docs/chore--4030-drop-test-configs/index.html",
   "title": "The shipped plugin carried the tests' tooling, not the tests",
-  "description": "plugins/ork/hooks shipped seven test/build configs — four vitest manifests, two tsconfigs, esbuild.config.mjs — to every install, read by nothing: Claude Code executes prebuilt dist/ bundles via hooks.json, and #3971 had already stripped the devDependencies those configs reference. The fix is seven excludes appended to the existing rsync block, and a two-half ratchet test whose B-side dry-runs the real exclude list (dialect-agnostic across macOS openrsync and CI GNU rsync).",
+  "description": "plugins/ork/hooks shipped seven test/build configs (four vitest manifests, two tsconfigs, esbuild.config.mjs) to every install, read by nothing: Claude Code executes prebuilt dist/ bundles via hooks.json, and #3971 had already stripped the devDependencies those configs reference. The fix is seven excludes appended to the existing rsync block, and a two-half ratchet test whose B-side dry-runs the real exclude list (dialect-agnostic across macOS openrsync and CI GNU rsync).",
   "tags": [
     "packaging",
     "build",

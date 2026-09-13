@@ -372,7 +372,7 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
     fi
 
     # Copy hooks (excluding node_modules; the last seven excludes keep
-    # test/build tooling configs out of the shipped plugin, #4030 — the
+    # test/build tooling configs out of the shipped plugin, #4030. The
     # ratchet is tests/plugins/test-hooks-config-exclusion.sh)
     if [[ "$HOOKS_MODE" == "all" ]]; then
         rsync -a \
