@@ -371,7 +371,9 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
         echo -e "    ${GREEN}Copied settings.json${NC}"
     fi
 
-    # Copy hooks (excluding node_modules)
+    # Copy hooks (excluding node_modules; the last seven excludes keep
+    # test/build tooling configs out of the shipped plugin, #4030 — the
+    # ratchet is tests/plugins/test-hooks-config-exclusion.sh)
     if [[ "$HOOKS_MODE" == "all" ]]; then
         rsync -a \
             --exclude='node_modules' \
@@ -388,6 +390,13 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
             --exclude='IMPROVEMENT-PLAN.md' \
             --exclude='.gitignore' \
             --exclude='package-lock.json' \
+            --exclude='vitest.config.ts' \
+            --exclude='vitest.bench.config.ts' \
+            --exclude='vitest.property.config.ts' \
+            --exclude='vitest.setup.ts' \
+            --exclude='tsconfig.json' \
+            --exclude='tsconfig.test.json' \
+            --exclude='esbuild.config.mjs' \
             "$SRC_DIR/hooks/" "$PLUGIN_DIR/hooks/"
 
         # Strip devDependencies from the mirrored manifest (#3971).
