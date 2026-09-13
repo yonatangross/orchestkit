@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.20",
+    "date": "2026-09-13",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.19...v10.0.0-beta.20",
+    "sections": [
+      {
+        "type": "changed",
+        "heading": "Documentation",
+        "items": [
+          "load diagnosis, zsh word splitting, rsync dialect guidance ([#4081](https://github.com/yonatangross/orchestkit/issues/4081)) ([b449653](https://github.com/yonatangross/orchestkit/commit/b449653f5c154328e2515af27f465b193b134225))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.19",
     "date": "2026-09-13",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.18...v10.0.0-beta.19",

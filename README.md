@@ -471,6 +471,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.20](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.19...v10.0.0-beta.20)** · 2026-09-13
+
+- load diagnosis, zsh word splitting, rsync dialect guidance (#4081)
+
 **[v10.0.0-beta.19](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.18...v10.0.0-beta.19)** · 2026-09-13
 
 - **plugins:** drop test configs from the hooks mirror (#4079)
@@ -509,12 +513,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **hooks:** migrate the src/hooks suite to vitest 5 (#3981) (#4028)
 - **security:** npm audit gate could not run without GNU timeout, misreported as no output (#4015) (#4023)
 - **site:** host picker, library tabs, and readable hook lists (#4022)
-
-**[v10.0.0-beta.12](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.11...v10.0.0-beta.12)** · 2026-09-09
-
-- **deps:** bump hono from 4.13.0 to 4.13.7 in /src/mcp-server (#4014)
-- **engines:** generic floor Lab and portable skill invoke (#4018)
-- **site:** host-first install wizard and multi-host getting started (#4016)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
