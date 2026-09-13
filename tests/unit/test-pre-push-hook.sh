@@ -524,6 +524,68 @@ test_vitest_git_environment_scrub() {
 }
 
 # Main
+# Test 10: the unit-stage job count is env-overridable and load-aware (#4085)
+#
+# MAX_JOBS used to be a bare 8, lowered only to hw.ncpu. Measured 2026-09-13 at
+# 5-minute load 37: eight hook-spawning suites at once on a machine already
+# three times oversubscribed, and files that pass standalone in 11 s took 213 s
+# and blew their own per-hook budgets. resolve_pre_push_jobs takes ncpu and
+# load1 as ARGUMENTS so this test can feed it an absurd load without the real
+# machine's state leaking in. Runs under /bin/bash (3.2), the interpreter the
+# hook's shebang actually gets.
+test_resolve_pre_push_jobs() {
+    log_section "Test 10: resolve_pre_push_jobs honours ORK_PRE_PUSH_JOBS and backs off under load (#4085)"
+
+    local hook="${PROJECT_ROOT}/bin/git-hooks/pre-push"
+    local fn
+    fn=$(sed -n '/^resolve_pre_push_jobs()/,/^}/p' "$hook")
+    if [[ -z "$fn" ]]; then
+        log_fail "resolve_pre_push_jobs() not found in the hook"
+        return
+    fi
+
+    # jobs_case <label> <expected> <ncpu> <load1> [ORK_PRE_PUSH_JOBS]
+    jobs_case() {
+        local label="$1" want="$2" ncpu="$3" load1="$4" override="${5-}"
+        local got
+        if [[ -n "$override" ]]; then
+            got=$(ORK_PRE_PUSH_JOBS="$override" /bin/bash -c "$fn"'; resolve_pre_push_jobs "$1" "$2"' _ "$ncpu" "$load1" 2>/dev/null)
+        else
+            got=$(env -u ORK_PRE_PUSH_JOBS /bin/bash -c "$fn"'; resolve_pre_push_jobs "$1" "$2"' _ "$ncpu" "$load1" 2>/dev/null)
+        fi
+        if [[ "$got" == "$want" ]]; then
+            log_pass "$label -> $got"
+        else
+            log_fail "$label -> got [$got], want [$want]"
+        fi
+    }
+
+    jobs_case "ORK_PRE_PUSH_JOBS=1 wins over an idle 8-core box"        1 8 0    1
+    jobs_case "ORK_PRE_PUSH_JOBS=2 wins over an absurd load"            2 8 999  2
+    jobs_case "absurd load (999) on 8 cores floors at 1"                1 8 999
+    jobs_case "idle 8 cores gives 8"                                    8 8 0
+    jobs_case "idle 16 cores is capped at 8"                            8 16 0
+    jobs_case "idle 4 cores gives 4 (never above ncpu)"                 4 4 0
+    jobs_case "8 cores at load 5.4 rounds down to 3"                    3 8 5.4
+    jobs_case "8 cores at load 5.5 rounds up to 2"                      2 8 5.5
+    jobs_case "unreadable load leaves the cap alone"                    8 8 ""
+    jobs_case "non-numeric ORK_PRE_PUSH_JOBS is ignored, not honoured"  8 8 0    abc
+    jobs_case "ORK_PRE_PUSH_JOBS=0 is ignored (xargs -P 0 is unbounded)" 8 8 0   0
+
+    # The banner must name the count BEFORE the run so a failed stage's log
+    # still shows what parallelism it ran at.
+    if grep -q 'jobs=\${MAX_JOBS}' "$hook"; then
+        log_pass "stage banner prints jobs=\${MAX_JOBS}"
+    else
+        log_fail "stage banner does not print the chosen job count"
+    fi
+    if grep -q 'xargs -P "\$MAX_JOBS"' "$hook"; then
+        log_pass "xargs -P still reads \$MAX_JOBS"
+    else
+        log_fail "xargs -P no longer reads \$MAX_JOBS"
+    fi
+}
+
 main() {
     echo "╔═══════════════════════════════════════════════════════════════╗"
     echo "║            Pre-push Hook Unit Tests                          ║"
@@ -538,6 +600,7 @@ main() {
     test_rejects_repo_config_drift
     test_probe_fixture_git_environment_scrub
     test_vitest_git_environment_scrub
+    test_resolve_pre_push_jobs
 
 
     # Summary

@@ -324,6 +324,29 @@ run_hook() {
   echo "$input" | bash "$full_path" 2>&1
 }
 
+# Per-hook wall-clock budget for the live-hook helpers below (#4085).
+# ORK_HOOK_TIMEOUT overrides it for one run on a loaded machine; the default
+# stays 5 s and is not the knob to loosen.
+ORK_HOOK_BUDGET="${ORK_HOOK_TIMEOUT:-5}"
+
+# Run a command under the budget. Exit 124 means the budget killed it, the
+# same code GNU timeout uses. timeout (Linux), then gtimeout (macOS with
+# coreutils), then a bare run: a macOS box without coreutils has no timeout
+# binary at all (measured 2026-09-13), and a hook that never answers is a hang
+# there rather than a named failure. The stdin-watchdog detection in
+# hook_decision still fires on that box, because it reads the hook's stderr.
+ork_run_with_budget() {
+  local secs="$1"
+  shift
+  if command -v timeout >/dev/null 2>&1; then
+    timeout "$secs" "$@"
+  elif command -v gtimeout >/dev/null 2>&1; then
+    gtimeout "$secs" "$@"
+  else
+    "$@"
+  fi
+}
+
 # Ask a LIVE hook for its permission decision.
 # Usage: decision=$(hook_decision "pretool/bash/dangerous-command-blocker" "$json_input")
 # Echoes: deny | ask | allow
@@ -402,13 +425,35 @@ hook_decision() {
   # exactly the failure the warning exists to announce. Sending it to /dev/null
   # discarded the only signal separating "measured nothing" from "measured and
   # declined to decide".
-  local err_file
+  local err_file rc=0
   err_file=$(mktemp "${TMPDIR:-/tmp}/ork-hook-stderr.XXXXXX")
-  out=$(printf '%s' "$input" | node "$runner" "$hook_key" 2>"$err_file")
+  out=$(printf '%s' "$input" | ork_run_with_budget "$ORK_HOOK_BUDGET" node "$runner" "$hook_key" 2>"$err_file") || rc=$?
+
+  # A hook the budget had to kill produced no verdict. Reporting ERROR with
+  # the cause is what keeps a loaded machine from reading as a regression
+  # (#4085: under pre-push at 1-minute load 37 the matrix suite went 13/17
+  # with every miss logged as "expected deny, got abstain").
+  if (( rc == 124 )); then
+    rm -f "$err_file"
+    echo "ERROR"
+    echo "hook '$hook_key' timed out after ${ORK_HOOK_BUDGET}s (ORK_HOOK_TIMEOUT); no verdict was produced" >&2
+    return 0
+  fi
+
   # mktemp guarantees the file exists, so grep needs no error redirect here —
   # a redirect would re-introduce the very masking this change removes.
+  #
+  # The watchdog case IS a timeout, just a 100 ms one inside the runner. It
+  # used to be logged as a WARNING and then the `abstain` it produces was
+  # returned as the verdict, so an `expect abstain` assertion passed on a hook
+  # that measured nothing and an `expect deny` one failed with the cause two
+  # lines away from the miss. ERROR is the honest answer: it fails BOTH shapes
+  # of assertion and names why.
   if grep -qiE 'measured nothing|0 bytes' "$err_file"; then
-    echo "hook '$hook_key' WARNING: $(tr '\n' ' ' <"$err_file")" >&2
+    echo "ERROR"
+    echo "hook '$hook_key' timed out after 0.1s: run-hook.mjs stdin watchdog fired before the payload was read (machine under load?), so the hook ran on an EMPTY payload and its answer is not a verdict. Hook stderr: $(tr '\n' ' ' <"$err_file")" >&2
+    rm -f "$err_file"
+    return 0
   fi
   rm -f "$err_file"
 

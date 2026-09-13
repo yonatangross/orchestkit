@@ -100,7 +100,10 @@ section "2. A benign command is not denied in any mode"
 for mode in "${MODES[@]}"; do
   # `abstain` is the helper's token for "envelope parsed, no decision". It is
   # deliberately NOT the same as `allow`: conflating the two is how a hook that
-  # never ran reads as a hook that approved. Assert the real one.
+  # never ran reads as a hook that approved. Assert the real one. A hook that
+  # timed out (the budget, or the runner's 100 ms stdin watchdog) answers ERROR
+  # with the cause, never abstain, so this line cannot pass on a hook that
+  # measured nothing (#4085).
   expect_decision abstain "$BLOCKER" "$(bash_payload "$mode" 'ls -la')" \
     "mode=$mode: benign command not denied"
 done

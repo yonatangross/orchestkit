@@ -241,13 +241,35 @@ PROJ="$TMPD/proj"
 mkdir -p "$PROJ"
 SID="sqli-test-session"
 
-# Hook stdout/stderr is discarded on purpose: the verdict this file cares about
-# is what landed in the DB, and a hook that failed to run leaves the row counts
-# below wrong, which is a loud failure rather than a swallowed one.
+# Hook stdout is discarded on purpose: the verdict this file cares about is
+# what landed in the DB. Hook STDERR is not (#4085): run-hook.mjs has a 100 ms
+# stdin watchdog that runs the hook on `{}` when the payload is late, and a
+# hook that ran on `{}` stores no row. Under pre-push at 1-minute load 37 that
+# read as "UNION payload row not stored", i.e. as an injection finding, when
+# the hook had simply timed out. Both timeout shapes are now logged as their
+# own failure, right before the row-count check they would otherwise corrupt.
+#
+# The payload is built BEFORE the pipeline, not inside it. `jq | node` puts an
+# interpreter boot on the producer side of the watchdog's 100 ms race, which
+# is the exact shape #3415 warns about; a printf of a finished string is not.
 fire_skill() { # fire_skill <skill-name>
-  jq -n --arg sid "$SID" --arg pd "$PROJ" --arg s "$1" \
-    '{tool_name:"Skill",session_id:$sid,project_dir:$pd,tool_input:{skill:$s}}' \
-    | HOME="$TMPD" ORK_SESSION_DB="$ORK_SESSION_DB" node "$RUNNER" "$TRACKER" >/dev/null 2>&1
+  local payload err_file rc=0
+  payload=$(jq -n --arg sid "$SID" --arg pd "$PROJ" --arg s "$1" \
+    '{tool_name:"Skill",session_id:$sid,project_dir:$pd,tool_input:{skill:$s}}') || true
+  if [[ -z "$payload" ]]; then
+    log_fail "fire_skill [$1]: payload builder (jq) produced nothing; the hook was not run"
+    return 0
+  fi
+  err_file=$(mktemp "$TMPD/hook-stderr.XXXXXX")
+  printf '%s' "$payload" \
+    | HOME="$TMPD" ORK_SESSION_DB="$ORK_SESSION_DB" \
+      ork_run_with_budget "$ORK_HOOK_BUDGET" node "$RUNNER" "$TRACKER" >/dev/null 2>"$err_file" || rc=$?
+  if (( rc == 124 )); then
+    log_fail "fire_skill [$1]: hook timed out after ${ORK_HOOK_BUDGET}s (ORK_HOOK_TIMEOUT); any missing row below is this timeout, not injection"
+  elif grep -qiE 'measured nothing|0 bytes' "$err_file"; then
+    log_fail "fire_skill [$1]: hook timed out after 0.1s (run-hook.mjs stdin watchdog fired before the payload was read); it ran on an EMPTY payload and stored nothing"
+  fi
+  rm -f "$err_file"
 }
 
 # --disable-warning is scoped to ExperimentalWarning (node:sqlite emits one per
