@@ -60,11 +60,12 @@ run_ts_hook() {
     local error_file="$TEST_TMP/error.txt"
 
     local actual_exit=0
-    # macOS has no `timeout` — use perl alarm as fallback
+    # macOS has no `timeout`; fall through to a bare run. The budget honours
+    # ORK_HOOK_TIMEOUT (#4085); this file's default was and stays 15 s.
     if command -v timeout &>/dev/null; then
-        echo "$input_json" | timeout 15 node "$RUN_HOOK" "$hook_name" > "$output_file" 2> "$error_file" || actual_exit=$?
+        echo "$input_json" | timeout "${ORK_HOOK_TIMEOUT:-15}" node "$RUN_HOOK" "$hook_name" > "$output_file" 2> "$error_file" || actual_exit=$?
     elif command -v gtimeout &>/dev/null; then
-        echo "$input_json" | gtimeout 15 node "$RUN_HOOK" "$hook_name" > "$output_file" 2> "$error_file" || actual_exit=$?
+        echo "$input_json" | gtimeout "${ORK_HOOK_TIMEOUT:-15}" node "$RUN_HOOK" "$hook_name" > "$output_file" 2> "$error_file" || actual_exit=$?
     else
         echo "$input_json" | node "$RUN_HOOK" "$hook_name" > "$output_file" 2> "$error_file" || actual_exit=$?
     fi

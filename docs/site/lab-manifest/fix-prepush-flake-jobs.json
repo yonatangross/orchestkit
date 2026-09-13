@@ -1,0 +1,12 @@
+{
+  "slug": "fix-prepush-flake-jobs",
+  "source": "docs/fix--prepush-flake/pre-push-jobs.html",
+  "title": "pre-push jobs: load-aware parallelism",
+  "description": "Drag ncpu, load1 and ORK_PRE_PUSH_JOBS to see what the pre-push unit stage now picks, the banner it prints, and the three measured flakes from #4085 that the change answers.",
+  "tags": [
+    "pre-push",
+    "git-hooks",
+    "testing"
+  ],
+  "date": "2026-09-14"
+}

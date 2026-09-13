@@ -46,11 +46,17 @@ log_fail() {
     TESTS_FAILED=$((TESTS_FAILED + 1))
 }
 
-# Run a hook with given JSON input and return stdout
+# Run a hook with given JSON input and return stdout.
+#
+# The per-hook budget honours ORK_HOOK_TIMEOUT (#4085). The default stays 5 s:
+# it is a real bound on hook latency, not a knob to loosen. Under pre-push's
+# parallel runner at 1-minute load 37, node did not answer inside 5 s and the
+# timeout produced an empty output that the assertions read as a wrong verdict.
+# Raise the env for one run on a loaded machine; do not raise the default.
 run_hook_with_input() {
     local hook_name="$1"
     local json_input="$2"
-    local timeout_sec="${3:-5}"
+    local timeout_sec="${3:-${ORK_HOOK_TIMEOUT:-5}}"
 
     echo "$json_input" | timeout "${timeout_sec}" node "$RUN_HOOK" "$hook_name" 2>/dev/null || true
 }

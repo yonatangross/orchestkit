@@ -46,6 +46,9 @@ log_section() {
     echo "═══════════════════════════════════════════════════════════════"
 }
 
+# Per-hook budget, env-overridable for loaded machines (#4085). Default 5 s.
+HOOK_TIMEOUT="${ORK_HOOK_TIMEOUT:-5}"
+
 # Run command with optional timeout (cross-platform)
 run_with_timeout() {
     local timeout_sec="$1"
@@ -90,7 +93,7 @@ test_hook_json_output() {
     local exit_code=0
 
     # Run with timeout to prevent hanging (cross-platform)
-    output=$(run_with_timeout 5 bash "$hook_path" 2>/dev/null) || exit_code=$?
+    output=$(run_with_timeout "$HOOK_TIMEOUT" bash "$hook_path" 2>/dev/null) || exit_code=$?
 
     # Clean up
     rm -f "${PROJECT_ROOT}/.claude/.instance_env.test"
@@ -139,7 +142,7 @@ test_hook_without_coordination() {
     export TOOL_INPUT='{"file_path": "/tmp/test.txt"}'
 
     local output
-    output=$(run_with_timeout 5 bash "$hook_path" 2>/dev/null) || true
+    output=$(run_with_timeout "$HOOK_TIMEOUT" bash "$hook_path" 2>/dev/null) || true
 
     # Restore coordination.sh
     if [[ -f "$coord_backup" ]]; then
@@ -174,7 +177,7 @@ test_hook_empty_input() {
     export TOOL_INPUT=""
 
     local output
-    output=$(run_with_timeout 5 bash "$hook_path" 2>/dev/null) || true
+    output=$(run_with_timeout "$HOOK_TIMEOUT" bash "$hook_path" 2>/dev/null) || true
 
     if [[ -z "$output" ]]; then
         log_fail "$hook_name (empty input): Empty output"

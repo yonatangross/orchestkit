@@ -51,11 +51,12 @@ log_fail() {
     TESTS_FAILED=$((TESTS_FAILED + 1))
 }
 
-# Run a hook and return stdout
+# Run a hook and return stdout. Per-hook budget honours ORK_HOOK_TIMEOUT
+# (#4085), default 5 s; see tests/unit/test-image-paste-guard.sh.
 run_hook() {
     local hook_name="$1"
     local json_input="$2"
-    local timeout_sec="${3:-5}"
+    local timeout_sec="${3:-${ORK_HOOK_TIMEOUT:-5}}"
 
     if command -v gtimeout >/dev/null 2>&1; then
         echo "$json_input" | gtimeout "${timeout_sec}" node "$RUN_HOOK" "$hook_name" 2>/dev/null || true

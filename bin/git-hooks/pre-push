@@ -246,6 +246,66 @@ run_with_timeout() {
   fi
 }
 
+# Read the 1-minute load average, or print nothing when it cannot be read.
+#
+# macOS: `sysctl -n vm.loadavg` prints `{ 1.23 4.56 7.89 }`. Linux:
+# /proc/loadavg starts with the same three numbers. `uptime` is the last
+# resort because its format varies ("load average:" vs "load averages:") and
+# because a sandbox that denies the sysctl syscall (measured 2026-09-13 under
+# the CC seatbelt: "Operation not permitted") still lets uptime through.
+read_load1() {
+  local raw=""
+  if [[ -r /proc/loadavg ]]; then
+    raw=$(cut -d' ' -f1 /proc/loadavg 2>/dev/null)
+  elif command -v sysctl &>/dev/null; then
+    raw=$(sysctl -n vm.loadavg 2>/dev/null | tr -d '{}' | awk '{print $1}')
+  fi
+  if [[ -z "$raw" ]] && command -v uptime &>/dev/null; then
+    raw=$(uptime 2>/dev/null | sed -n 's/.*load averages*: *\([0-9][0-9.,]*\).*/\1/p' | tr ',' '.')
+  fi
+  [[ "$raw" =~ ^[0-9]+(\.[0-9]+)?$ ]] && printf '%s' "$raw"
+  # Unreadable is a legitimate answer (empty), never a failing exit status.
+  return 0
+}
+
+# Decide how many unit-test files run at once (#4085).
+# Usage: resolve_pre_push_jobs <ncpu> <load1>   (load1 may be empty)
+#
+# ORK_PRE_PUSH_JOBS wins when set to a positive integer. Otherwise the default
+# is max(1, min(ncpu, 8, ncpu - round(load1))). The old value was a bare 8,
+# lowered only to hw.ncpu, with no load check: measured 2026-09-13 at 5-minute
+# load 37, eight hook-spawning suites started at once on a machine already
+# three times oversubscribed, and files that pass standalone in 11 s took
+# 213 s and blew their own 5 s per-hook budgets. Backing off to what the
+# machine can actually run keeps every gate in place and just stops the
+# runner from being the thing that makes them flake.
+#
+# Pure arithmetic on its two arguments so tests/unit/test-pre-push-hook.sh can
+# feed it a fake ncpu and an absurd load without touching the real machine.
+resolve_pre_push_jobs() {
+  local ncpu="$1" load1="${2:-}" jobs
+  if [[ -n "${ORK_PRE_PUSH_JOBS:-}" ]]; then
+    if [[ "$ORK_PRE_PUSH_JOBS" =~ ^[1-9][0-9]*$ ]]; then
+      printf '%s' "$ORK_PRE_PUSH_JOBS"
+      return 0
+    fi
+    echo "  WARN: ORK_PRE_PUSH_JOBS='$ORK_PRE_PUSH_JOBS' is not a positive integer, ignoring" >&2
+  fi
+  [[ "$ncpu" =~ ^[1-9][0-9]*$ ]] || ncpu=8
+  jobs=$ncpu
+  [[ $jobs -gt 8 ]] && jobs=8
+  if [[ "$load1" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
+    # round(): add 0.5 and truncate. awk, because bash `((` cannot parse a
+    # fractional load.
+    local load_rounded
+    load_rounded=$(awk -v l="$load1" 'BEGIN { printf "%d", l + 0.5 }')
+    local headroom=$((ncpu - load_rounded))
+    [[ $headroom -lt $jobs ]] && jobs=$headroom
+  fi
+  [[ $jobs -lt 1 ]] && jobs=1
+  printf '%s' "$jobs"
+}
+
 assert_repo_config_unchanged() {
   if [[ "$(git config --bool core.bare 2>/dev/null || true)" == "true" ]]; then
     echo "FAILED: core.bare became true during pre-push validation"
@@ -359,8 +419,8 @@ if ((${#CI_UNIT_TESTS[@]} == 0)); then
 fi
 
 
-# Run tests in parallel (~160s sequential → ~75s parallel)
-MAX_JOBS=8
+# Run tests in parallel (~160s sequential at 8 jobs on an idle machine).
+# The job count is load-aware and env-overridable; see resolve_pre_push_jobs.
 if command -v nproc &>/dev/null; then
   CORES=$(nproc)
 elif command -v sysctl &>/dev/null; then
@@ -368,7 +428,11 @@ elif command -v sysctl &>/dev/null; then
 else
   CORES=8
 fi
-[[ $CORES -lt $MAX_JOBS ]] && MAX_JOBS=$CORES
+LOAD1=$(read_load1)
+MAX_JOBS=$(resolve_pre_push_jobs "$CORES" "$LOAD1")
+# The banner names the count BEFORE the run, so a log of a failed stage still
+# shows what parallelism it ran at (the OK line only prints on success).
+echo -n "jobs=${MAX_JOBS} (ncpu=${CORES}, load1=${LOAD1:-unreadable}${ORK_PRE_PUSH_JOBS:+, ORK_PRE_PUSH_JOBS=$ORK_PRE_PUSH_JOBS})... "
 
 export _PREPUSH_FAIL_DIR=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")
 trap 'rm -rf "$_PREPUSH_FAIL_DIR"' EXIT
