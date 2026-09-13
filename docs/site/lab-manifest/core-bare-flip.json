@@ -1,0 +1,12 @@
+{
+  "slug": "core-bare-flip",
+  "source": "docs/fix--4070-core-bare-flip/core-bare-flip.html",
+  "title": "How a test fixture flipped core.bare",
+  "description": "A git init in a temp dir, run by a pre-push stage from a linked worktree, re-initialised the main repository as bare. Toggle where the push runs and whether the hook scrubs GIT_DIR; every outcome was measured on git 2.54.",
+  "tags": [
+    "git",
+    "hooks",
+    "incident"
+  ],
+  "date": "2026-09-13"
+}
