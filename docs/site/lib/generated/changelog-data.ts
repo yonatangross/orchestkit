@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.19",
+    "date": "2026-09-13",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.18...v10.0.0-beta.19",
+    "sections": [
+      {
+        "type": "changed",
+        "heading": "Miscellaneous",
+        "items": [
+          "**plugins:** drop test configs from the hooks mirror ([#4079](https://github.com/yonatangross/orchestkit/issues/4079)) ([94a030d](https://github.com/yonatangross/orchestkit/commit/94a030de1f78f58accf54f36f3b5db038ba5619e))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.18",
     "date": "2026-09-12",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.17...v10.0.0-beta.18",
