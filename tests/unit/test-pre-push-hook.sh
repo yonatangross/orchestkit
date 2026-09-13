@@ -523,6 +523,159 @@ test_vitest_git_environment_scrub() {
     rm -rf "$tmp"
 }
 
+# Test 10: no pre-push stage inherits a linked worktree's GIT_DIR (#4070).
+#
+# git exports GIT_DIR=<main>/.git/worktrees/<name> (and no GIT_WORK_TREE) to a
+# hook run from a linked worktree. A plain `git init` in a temp dir under that
+# env re-initialises the MAIN repository and writes core.bare=true into its
+# config. Test 9 covers the Vitest stage only; this covers every stage, by
+# asserting the hook drops the locators once, before the first stage runs.
+test_stages_do_not_inherit_worktree_git_dir() {
+    echo ""
+    echo "Test 10: no pre-push stage inherits a linked worktree's GIT_DIR (#4070)"
+
+    local hook="${PROJECT_ROOT}/bin/git-hooks/pre-push"
+    local drop_fn tmp main wt hook_git_dir fixture_body bare top rc call_line stage_line
+    drop_fn=$(sed -n '/^drop_inherited_git_locators()/,/^}/p' "$hook")
+
+    tmp=$(mktemp -d "${TMPDIR:-/tmp}/ork-pre-push-wt-env.XXXXXX")
+    tmp=$(cd "$tmp" && pwd -P)
+    main="$tmp/main"
+    wt="$main/.worktrees/wt"
+    git init -q "$main"
+    git -C "$main" -c user.email=t@t -c user.name=t -c commit.gpgsign=false \
+        commit -q --allow-empty -m init
+    git -C "$main" worktree add -q "$wt" -b wt
+    hook_git_dir="$main/.git/worktrees/wt"
+    # What a pre-push stage fixture does: git init in a fresh temp dir.
+    fixture_body='f=$(mktemp -d "$FIXTURE_ROOT/fixture.XXXXXX") && (cd "$f" && git init -q)'
+
+    # Reads main's core.bare straight from its config file; "unset" if absent.
+    main_bare() {
+        local v
+        if v=$(git config --file "$main/.git/config" --get core.bare); then
+            printf '%s' "$v"
+        else
+            printf 'unset'
+        fi
+    }
+
+    # Control: without the scrub, the fixture must flip the main repo. If it
+    # does not, this test no longer reproduces #4070 and proves nothing.
+    rc=0
+    ( cd "$wt" && env GIT_DIR="$hook_git_dir" FIXTURE_ROOT="$tmp" \
+        /bin/bash -c "$fixture_body" ) >/dev/null 2>&1 || rc=$?
+    bare=$(main_bare)
+    if [[ "$bare" == "true" ]]; then
+        log_pass "control: git init under a worktree hook env flips main core.bare"
+    else
+        log_fail "control no longer reproduces #4070 (core.bare=$bare rc=$rc); test is vacuous"
+    fi
+    git config --file "$main/.git/config" core.bare false
+
+    if [[ -z "$drop_fn" ]]; then
+        log_fail "pre-push defines no drop_inherited_git_locators()"
+        rm -rf "$tmp"
+        return
+    fi
+
+    rc=0
+    ( cd "$wt" && env GIT_DIR="$hook_git_dir" FIXTURE_ROOT="$tmp" \
+        /bin/bash -c "$drop_fn"$'\n''drop_inherited_git_locators'$'\n'"$fixture_body" ) >/dev/null 2>&1 || rc=$?
+    bare=$(main_bare)
+    if [[ "$bare" == "false" && $rc -eq 0 ]]; then
+        log_pass "after the scrub, a stage fixture's git init leaves main core.bare=false"
+    else
+        log_fail "after the scrub, main core.bare=$bare (rc=$rc)"
+    fi
+
+    rc=0
+    top=$(cd "$wt" && env GIT_DIR="$hook_git_dir" /bin/bash -c \
+        "$drop_fn"$'\n''drop_inherited_git_locators; if printenv GIT_DIR >/dev/null; then echo still-set; fi; git rev-parse --show-toplevel' 2>&1) || rc=$?
+    if [[ "$top" == "$wt" && $rc -eq 0 ]]; then
+        log_pass "after the scrub, GIT_DIR is gone and git still resolves the worktree"
+    else
+        log_fail "after the scrub (rc=$rc): $top"
+    fi
+
+    # Wiring: called right after cd, before the first validation stage.
+    # awk, not grep: a no-match grep under pipefail aborts this whole file.
+    call_line=$(awk '/^drop_inherited_git_locators$/ { print NR; exit }' "$hook")
+    stage_line=$(awk '/Running TypeScript type check/ { print NR; exit }' "$hook")
+    if [[ -n "$call_line" && -n "$stage_line" && "$call_line" -lt "$stage_line" ]]; then
+        log_pass "scrub is called before the first validation stage"
+    else
+        log_fail "scrub call not wired before the first stage (call=${call_line:-none} stage=${stage_line:-none})"
+    fi
+    rm -rf "$tmp"
+}
+
+# Test 11: the scrub keeps GIT_DIR when PROJECT_ROOT does not rediscover the
+# same repository (#4070).
+#
+# The safety branch of drop_inherited_git_locators(): a `git --git-dir=<x> push`
+# run from a directory with no .git entry, or from inside some OTHER
+# repository, must keep the exported locators, else the rest of the hook runs
+# against the wrong repository (or none). Test 10 only exercises the happy
+# path, so a mutant that unsets unconditionally survives it; this pins the
+# branch by asserting the WARNING is printed and GIT_DIR survives the call.
+test_scrub_keeps_locators_without_rediscovery() {
+    echo ""
+    echo "Test 11: scrub keeps GIT_DIR when the cwd does not rediscover the same repository (#4070)"
+
+    local hook="${PROJECT_ROOT}/bin/git-hooks/pre-push"
+    local drop_fn tmp main other nogit probe out rc
+    drop_fn=$(sed -n '/^drop_inherited_git_locators()/,/^}/p' "$hook")
+    if [[ -z "$drop_fn" ]]; then
+        log_fail "pre-push defines no drop_inherited_git_locators()"
+        return
+    fi
+
+    tmp=$(mktemp -d "${TMPDIR:-/tmp}/ork-pre-push-keep-env.XXXXXX")
+    tmp=$(cd "$tmp" && pwd -P)
+    main="$tmp/main"
+    other="$tmp/other"
+    nogit="$tmp/nogit"
+    git init -q "$main"
+    git init -q "$other"
+    mkdir -p "$nogit"
+    # After the scrub: report whether GIT_DIR survived and which repo git sees.
+    probe='drop_inherited_git_locators; if printenv GIT_DIR >/dev/null; then echo "GIT_DIR=$GIT_DIR"; else echo "GIT_DIR=unset"; fi; git rev-parse --absolute-git-dir'
+
+    # Case A: no .git entry anywhere under the cwd. GIT_CEILING_DIRECTORIES
+    # stops rediscovery at $tmp so the result does not depend on where TMPDIR
+    # lives (the hook's env -u list does not touch it).
+    rc=0
+    out=$(cd "$nogit" && env GIT_DIR="$main/.git" GIT_CEILING_DIRECTORIES="$tmp" \
+        /bin/bash -c "$drop_fn"$'\n'"$probe" 2>&1) || rc=$?
+    if [[ $rc -eq 0 && "$out" == *"WARNING: $nogit does not rediscover"*"keeping GIT_DIR"* ]]; then
+        log_pass "no .git entry: scrub prints the WARNING"
+    else
+        log_fail "no .git entry: expected a keeping-GIT_DIR WARNING (rc=$rc): $out"
+    fi
+    if [[ "$out" == *"GIT_DIR=$main/.git"* && "$out" == *"$main/.git" ]]; then
+        log_pass "no .git entry: GIT_DIR is still exported and git still resolves main"
+    else
+        log_fail "no .git entry: GIT_DIR was dropped or git lost main: $out"
+    fi
+
+    # Case B: the cwd is inside a DIFFERENT repository than GIT_DIR names.
+    rc=0
+    out=$(cd "$other" && env GIT_DIR="$main/.git" \
+        /bin/bash -c "$drop_fn"$'\n'"$probe" 2>&1) || rc=$?
+    if [[ $rc -eq 0 && "$out" == *"WARNING: $other rediscovers"*"keeping GIT_DIR"* ]]; then
+        log_pass "other repository: scrub prints the WARNING"
+    else
+        log_fail "other repository: expected a keeping-GIT_DIR WARNING (rc=$rc): $out"
+    fi
+    if [[ "$out" == *"GIT_DIR=$main/.git"* && "$out" == *"$main/.git" ]]; then
+        log_pass "other repository: GIT_DIR is still exported and git still resolves main"
+    else
+        log_fail "other repository: GIT_DIR was dropped or git lost main: $out"
+    fi
+    rm -rf "$tmp"
+}
+
 # Main
 # Test 10: the unit-stage job count is env-overridable and load-aware (#4085)
 #
@@ -601,7 +754,8 @@ main() {
     test_probe_fixture_git_environment_scrub
     test_vitest_git_environment_scrub
     test_resolve_pre_push_jobs
-
+    test_stages_do_not_inherit_worktree_git_dir
+    test_scrub_keeps_locators_without_rediscovery
 
     # Summary
     echo ""
