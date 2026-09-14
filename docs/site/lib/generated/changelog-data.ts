@@ -18,6 +18,27 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.24",
+    "date": "2026-09-14",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.23...v10.0.0-beta.24",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "resolve the four [#3892](https://github.com/yonatangross/orchestkit/issues/3892) hook and review-pr regressions ([#4108](https://github.com/yonatangross/orchestkit/issues/4108)) ([54784f1](https://github.com/yonatangross/orchestkit/commit/54784f1a2ac536dff67e7bb3ff2bb66571f287a0))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Miscellaneous",
+        "items": [
+          "**deps-dev:** bump fast-check ([#4119](https://github.com/yonatangross/orchestkit/issues/4119)) ([574b9db](https://github.com/yonatangross/orchestkit/commit/574b9db6290c088366316e0debdf8f0e72d0c924))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.23",
     "date": "2026-09-14",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.22...v10.0.0-beta.23",
