@@ -54,8 +54,22 @@ fi
 | `--base "origin/$BASE"` | Compare the branch against the remote base; a worktree's local base branch is often stale or absent |
 | `</dev/null` | A signed-out CLI cannot sit on an interactive prompt |
 
-Never pass `--use-credits`: it bills usage credits once a review exceeds the included
-limit, which turns an advisory step into spend.
+### `--use-credits` and what actually controls spend
+
+Never pass `--use-credits`, but do not read its absence as a spend guarantee. CLI reviews
+follow the same billing path as PR reviews: the assigned user's plan allowance first, then
+the organization's usage-based add-on. What happens past the included limit depends on the
+add-on mode an admin set (docs.coderabbit.ai/management/usage-based-addon, read 2026-09-14):
+
+| Mode | Past the included limit | Does omitting `--use-credits` avoid spend? |
+|---|---|---|
+| Automatic | "CodeRabbit continues every eligible review automatically", and non-trial overages are billed | No. The review runs and bills without the flag |
+| On demand | "Reviews pause at the limit"; each paid review needs explicit authorization, which for the CLI is `coderabbit review --use-credits` | Yes |
+| Off | "Reviews stop when the included limit is reached" | Yes |
+
+So the flag is the authorization step only in On demand mode. If the org runs Automatic,
+this phase can spend credits no matter how the command is written; the control is the
+add-on mode in the CodeRabbit dashboard, not this snippet.
 
 ### Why `perl` and not `timeout`
 
