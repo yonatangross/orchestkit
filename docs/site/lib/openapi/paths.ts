@@ -343,4 +343,118 @@ export const OPENAPI_PATHS = {
 			},
 		},
 	},
+	"/agent/identity": {
+		// Lives outside /api, so the v1 alias server does not apply to it.
+		servers: [{ url: "https://orchestkit.yonyon.ai", description: "Production" }],
+		post: {
+			operationId: "registerAgentIdentity",
+			summary: "Register an optional agent identity (auth.md identity endpoint)",
+			description:
+				'Identity is optional on this API. `{"type":"anonymous"}` returns a service-signed identity assertion (30-day JWT) that carries no scope an anonymous caller lacks. `{"type":"identity_assertion"}` with an assertion this origin issued re-registers and keeps the registration id. `service_auth` is not offered and answers `service_auth_not_enabled`. Errors use the OAuth `error` / `error_description` envelope. Advertised from /.well-known/oauth-authorization-server (agent_auth.identity_endpoint).',
+			tags: ["identity"],
+			requestBody: {
+				required: true,
+				content: {
+					"application/json": {
+						schema: {
+							type: "object",
+							properties: {
+								type: {
+									type: "string",
+									enum: ["anonymous", "identity_assertion", "service_auth"],
+								},
+								assertion_type: {
+									type: "string",
+									examples: ["urn:ietf:params:oauth:token-type:id-jag"],
+								},
+								assertion: { type: "string" },
+							},
+							required: ["type"],
+						},
+					},
+				},
+			},
+			responses: {
+				"201": {
+					description: "Anonymous registration created.",
+					content: {
+						"application/json": {
+							schema: { $ref: "#/components/schemas/AgentRegistration" },
+						},
+					},
+				},
+				"200": {
+					description: "Re-registration with an assertion this origin issued.",
+					content: {
+						"application/json": {
+							schema: { $ref: "#/components/schemas/AgentRegistration" },
+						},
+					},
+				},
+				"400": {
+					description:
+						"Registration error: invalid_request, unsupported_assertion_type, invalid_issuer, invalid_signature, expired, service_auth_not_enabled.",
+					content: {
+						"application/json": {
+							schema: {
+								type: "object",
+								properties: {
+									error: { type: "string" },
+									error_description: { type: "string" },
+								},
+								required: ["error"],
+							},
+						},
+					},
+				},
+				"429": TOO_MANY_REQUESTS_RESPONSE,
+			},
+		},
+		get: {
+			operationId: "getAgentIdentity",
+			summary: "Read the registration behind a presented identity assertion",
+			description:
+				"The one protected endpoint on this origin. With a valid bearer it echoes the registration. Without one it answers 401 with `WWW-Authenticate: Bearer realm=..., resource_metadata=...` (RFC 9728). A bearer this origin did not issue, or one that expired, is 401 with `error=\"invalid_token\"` on this and every other path.",
+			tags: ["identity"],
+			security: [{ agentIdentity: [] }],
+			responses: {
+				"200": {
+					description: "The registration behind the bearer.",
+					content: {
+						"application/json": {
+							schema: {
+								type: "object",
+								properties: {
+									registration_id: { type: "string" },
+									registration_type: { type: "string" },
+									scopes: { type: "array", items: { type: "string" } },
+									issued_at: { type: "string", format: "date-time" },
+									assertion_expires: { type: "string", format: "date-time" },
+									issuer: { type: "string", format: "uri" },
+								},
+								required: ["registration_id", "registration_type", "scopes"],
+							},
+						},
+					},
+				},
+				"401": {
+					description:
+						"No bearer, or a bearer this origin did not issue. Carries WWW-Authenticate with resource_metadata.",
+					headers: {
+						"WWW-Authenticate": {
+							schema: { type: "string" },
+							description:
+								'Bearer realm="OrchestKit Docs API", [error="invalid_token", error_description="..."], resource_metadata="https://orchestkit.yonyon.ai/.well-known/oauth-protected-resource"',
+						},
+					},
+					content: {
+						"application/json": {
+							schema: { $ref: "#/components/schemas/Problem" },
+						},
+					},
+				},
+				"429": TOO_MANY_REQUESTS_RESPONSE,
+			},
+		},
+	},
 } as const;

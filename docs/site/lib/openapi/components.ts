@@ -25,6 +25,18 @@ export const RATE_LIMIT_HEADER_REFS = {
 } as const;
 
 export const OPENAPI_COMPONENTS = {
+	// The one optional credential. Nothing REQUIRES it (no top-level
+	// `security`); only GET /agent/identity lists it, because that endpoint
+	// reads the identity back. See /auth.md.
+	securitySchemes: {
+		agentIdentity: {
+			type: "http",
+			scheme: "bearer",
+			bearerFormat: "JWT",
+			description:
+				"Optional. The identity assertion returned by POST /agent/identity. Grants nothing an anonymous caller lacks; a bearer this origin did not issue is answered 401 with resource_metadata.",
+		},
+	},
 	parameters: {
 		IdempotencyKey: {
 			name: "Idempotency-Key",
@@ -90,6 +102,35 @@ export const OPENAPI_COMPONENTS = {
 		},
 	},
 	schemas: {
+		AgentRegistration: {
+			type: "object",
+			description:
+				"Response of POST /agent/identity. The assertion is the bearer; there is no token endpoint to exchange it at, and no claim ceremony.",
+			properties: {
+				registration_id: { type: "string", examples: ["reg_5nS2v1Y3Hq0m8VbT1bC0zw"] },
+				registration_type: { type: "string", enum: ["anonymous"] },
+				identity_assertion: { type: "string", description: "HS256 JWT, typ oauth-id-jag+jwt." },
+				assertion_type: {
+					type: "string",
+					enum: ["urn:ietf:params:oauth:token-type:id-jag"],
+				},
+				assertion_expires: { type: "string", format: "date-time" },
+				scopes: { type: "array", items: { type: "string" } },
+				pre_claim_scopes: { type: "array", items: { type: "string" } },
+				claim: { type: "null" },
+				token_endpoint: { type: "null" },
+				bearer_method: { type: "string", enum: ["header"] },
+				identity_url: { type: "string", format: "uri" },
+			},
+			required: [
+				"registration_id",
+				"registration_type",
+				"identity_assertion",
+				"assertion_type",
+				"assertion_expires",
+				"scopes",
+			],
+		},
 		SearchResult: {
 			type: "object",
 			description: "A single documentation search hit.",

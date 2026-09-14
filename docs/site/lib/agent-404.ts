@@ -58,16 +58,20 @@ export const SERVED_EXACT: ReadonlySet<string> = new Set([
 	"/mcp",
 	"/mcp.json",
 	"/openapi.json",
+	// The auth.md identity endpoint (app/agent/identity/route.ts). /agent is
+	// not a served prefix, so the exact path has to be listed or middleware
+	// answers it with a JSON 404 before the route ever runs.
+	"/agent/identity",
 	// Specific /.well-known/* paths we actually rewrite to handlers. Listed
-	// individually (not as a prefix) so UNKNOWN well-known probes — e.g.
-	// /.well-known/oauth-authorization-server, which we don't serve (no
-	// authorization server exists) — still get a structured JSON 404 for
-	// agents instead of an HTML page. Kept in sync with next.config.mjs by
-	// agent-404.test.ts.
+	// individually (not as a prefix) so UNKNOWN well-known probes (say
+	// /.well-known/openid-configuration, which we don't serve) still get a
+	// structured JSON 404 for agents instead of an HTML page. Kept in sync
+	// with next.config.mjs by agent-404.test.ts.
 	"/.well-known/ai-catalog.json",
 	"/.well-known/did.json",
 	"/.well-known/agent-skills/index.json",
 	"/.well-known/oauth-protected-resource",
+	"/.well-known/oauth-authorization-server",
 	"/.well-known/http-message-signatures-directory",
 	"/.well-known/api-catalog",
 	"/.well-known/agent-card.json",
