@@ -1,0 +1,13 @@
+{
+  "slug": "configure-split-and-findability",
+  "source": "docs/fix--ora-docs-findability-token-budget/configure-split-and-findability.html",
+  "title": "Configure split and findability by name",
+  "description": "Two ora.ai fixes for the docs site. A budget slider shows why the 130 KB configure reference had to become seven generated pages, and a before/after table shows where the product name now sits in the API, OpenAPI, MCP, llms.txt and sitemap surfaces.",
+  "tags": [
+    "docs-site",
+    "ora",
+    "token-budget",
+    "discoverability"
+  ],
+  "date": "2026-09-14"
+}
