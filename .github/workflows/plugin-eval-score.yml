@@ -44,6 +44,8 @@ jobs:
       CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v6.0.3
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v6
         with:
           node-version: "24"
@@ -64,10 +66,16 @@ jobs:
 
       - name: Run suite with ablation
         if: env.CLAUDE_CODE_OAUTH_TOKEN != ''
+        # Dispatch inputs reach the shell as env vars, never as inline template
+        # expansions, so an input value cannot be interpreted as shell code.
+        env:
+          EVAL_RUNS: ${{ inputs.runs }}
+          EVAL_MAX_COST_USD: ${{ inputs.max_cost_usd }}
+          EVAL_TAG: ${{ inputs.tag }}
         run: |
           npm install -g @anthropic-ai/claude-code
-          ARGS=(--runs "${{ inputs.runs }}" --max-cost-usd "${{ inputs.max_cost_usd }}")
-          if [ -n "${{ inputs.tag }}" ]; then ARGS+=(--tag "${{ inputs.tag }}"); fi
+          ARGS=(--runs "$EVAL_RUNS" --max-cost-usd "$EVAL_MAX_COST_USD")
+          if [ -n "$EVAL_TAG" ]; then ARGS+=(--tag "$EVAL_TAG"); fi
           bash scripts/run-plugin-eval.sh "${ARGS[@]}"
 
       # The runner already prints this and exits with the summariser's gate
