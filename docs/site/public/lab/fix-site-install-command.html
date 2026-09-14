@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>The install command that installed Claude Code</title>
+<meta name="description" content="The site told users to paste a claude install command for the plugin, but claude install installs the Claude Code native build. Compare the old and corrected commands per surface, and see the three new copy and click events.">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #0f0d0c; color: #efe9e4; font: 14px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  header { padding: 20px 24px 8px; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .lede { color: #a89f97; margin: 0; max-width: 760px; }
+  main { display: grid; grid-template-columns: 300px 1fr; gap: 16px; padding: 16px 24px; }
+  @media (max-width: 820px) { main { grid-template-columns: 1fr; } }
+  .panel { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.10); border-radius: 12px; padding: 14px; }
+  .panel h2 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: #a89f97; margin: 0 0 10px; }
+  .group { margin-bottom: 16px; }
+  label.opt { display: flex; gap: 8px; align-items: flex-start; padding: 5px 6px; border-radius: 8px; cursor: pointer; }
+  label.opt:hover { background: rgba(255,255,255,0.06); }
+  .presets { display: flex; flex-wrap: wrap; gap: 6px; }
+  button { font: inherit; color: inherit; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.14); border-radius: 8px; padding: 5px 10px; cursor: pointer; }
+  button:hover { border-color: #8fb3ff; }
+  button.on { background: rgba(143,179,255,0.18); border-color: #8fb3ff; }
+  code, pre, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  @media (max-width: 820px) { .row { grid-template-columns: 1fr; } }
+  .cell { border-radius: 10px; padding: 10px; border: 1px solid rgba(255,255,255,0.10); }
+  .cell.old { background: rgba(255,90,90,0.08); border-color: rgba(255,90,90,0.35); }
+  .cell.new { background: rgba(90,210,140,0.08); border-color: rgba(90,210,140,0.35); }
+  .cell .tag { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: #a89f97; }
+  .cell pre { margin: 6px 0 0; white-space: pre-wrap; word-break: break-word; }
+  .where { color: #a89f97; font-size: 12px; margin: 0 0 4px; }
+  .surface h3 { font-size: 14px; margin: 0 0 2px; }
+  .evidence pre { background: rgba(0,0,0,0.35); padding: 10px; border-radius: 8px; white-space: pre-wrap; margin: 6px 0 0; }
+  table { width: 100%; border-collapse: collapse; }
+  td, th { text-align: left; padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,0.08); vertical-align: top; }
+  th { color: #a89f97; font-weight: 500; font-size: 12px; }
+  .prompt { margin: 0 24px 24px; }
+  .prompt pre { background: rgba(0,0,0,0.35); padding: 12px; border-radius: 8px; white-space: pre-wrap; min-height: 60px; }
+  .muted { color: #a89f97; }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="The install command that installed Claude Code"><meta property="og:description" content="The site told users to paste a claude install command for the plugin, but claude install installs the Claude Code native build. Compare the old and corrected commands per surface, and see the three new copy and click events."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/fix-site-install-command.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="The install command that installed Claude Code"><meta name="twitter:description" content="The site told users to paste a claude install command for the plugin, but claude install installs the Claude Code native build. Compare the old and corrected commands per surface, and see the three new copy and click events."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<header>
+  <h1>The install command that installed Claude Code</h1>
+  <p class="lede">For weeks the site said <code>claude install</code> followed by <code>orchestkit/ork</code>. The help text of <code>claude install</code> says it installs the Claude Code native build, so that paste never installed OrchestKit. Pick surfaces to see what each one said before and says now. Pick events to see what the site now reports on copy and click.</p>
+</header>
+
+<main>
+  <aside class="panel">
+    <div class="group">
+      <h2>Presets</h2>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="group">
+      <h2>Surfaces</h2>
+      <div id="surfaceControls"></div>
+    </div>
+    <div class="group">
+      <h2>New events</h2>
+      <div id="eventControls"></div>
+    </div>
+    <div class="group">
+      <h2>View</h2>
+      <label class="opt"><input type="checkbox" id="showEvidence" checked> <span>Show the CLI evidence</span></label>
+    </div>
+  </aside>
+
+  <section>
+    <div class="panel evidence" id="evidence">
+      <h2>Evidence</h2>
+      <p class="where">Claude Code help text, captured 2026-09-14</p>
+      <pre>claude install [options] [target]
+  Install Claude Code native build. Use [target] to specify version
+
+claude plugin install [options] &lt;plugin&gt;
+  Install a plugin from available marketplaces (use plugin@marketplace for specific marketplace)</pre>
+      <p class="where" style="margin-top:10px">.claude-plugin/marketplace.json declares <code>"name": "orchestkit"</code> with plugin <code>ork</code>, so the shell form is <code>ork@orchestkit</code>.</p>
+    </div>
+    <div style="height:12px"></div>
+    <div class="panel">
+      <h2>Before and after</h2>
+      <div id="surfaces"></div>
+    </div>
+    <div style="height:12px"></div>
+    <div class="panel">
+      <h2>Events</h2>
+      <p class="where">All go through the existing track() chokepoint: first-party beacon first, PostHog mirror second.</p>
+      <table>
+        <thead><tr><th>Event</th><th>Fires when</th><th>Example properties</th></tr></thead>
+        <tbody id="events"></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<div class="prompt">
+  <div class="panel">
+    <h2>Prompt</h2>
+    <pre id="prompt"></pre>
+    <button id="copy">Copy prompt</button> <span id="copied" class="muted"></span>
+  </div>
+</div>
+
+<script>
+const OLD = ["claude", "install", "orchestkit/ork"].join(" ");
+const SHELL = "claude plugin marketplace add yonatangross/orchestkit && claude plugin install ork@orchestkit";
+const SLASH = "/plugin marketplace add yonatangross/orchestkit\n/plugin install ork";
+
+const SURFACES = [
+  { id: "constant", name: "SITE.installCommand", where: "docs/site/lib/constants.ts, feeds the host picker, wizard, about, yonyon, JSON-LD FAQ", before: OLD, after: SHELL },
+  { id: "llms", name: "/llms.txt line 3", where: "docs/site/app/llms.txt/route.ts (also llms-full.txt, pricing.md)", before: "Install with `" + OLD + "`.", after: "Install with `" + SHELL + "`." },
+  { id: "readme", name: "README CLI equivalent", where: "README.md", before: "CLI equivalent: `" + OLD + "`.", after: "CLI equivalent: `" + SHELL + "`." },
+  { id: "docs", name: "Docs pages", where: "choosing-a-plugin, superpowers, FAQ, installation card", before: OLD, after: SLASH },
+  { id: "reinstall", name: "Reinstall row", where: "getting-started/claude-code.mdx, If you see errors", before: "claude uninstall ork && " + OLD, after: "claude plugin uninstall ork && claude plugin install ork@orchestkit" },
+  { id: "cli", name: "orchestkit install (npm CLI)", where: "packages/cli/src/cli-core.ts", before: "Install it from inside Claude Code:\n  " + OLD, after: "Install it from a terminal:\n  " + SHELL + "\nOr inside a Claude Code session:\n  /plugin marketplace add yonatangross/orchestkit\n  /plugin install ork" },
+  { id: "skill", name: "mcp-patterns skill", where: "src/skills/mcp-patterns/SKILL.md and its generated copies", before: "(`" + ["claude", "install", "anthropics/skills"].join(" ") + "`)", after: "(from the `anthropics/skills` marketplace: `/plugin marketplace add anthropics/skills`)" }
+];
+
+const EVENTS = [
+  { id: "setup", name: "setup_copied", when: "The Then run /ork:setup chip is copied. It used to fire install_copied, so every setup copy counted as a second install.", props: '{ host: "claude" }' },
+  { id: "code", name: "code_copied", when: "A docs code block copy button is pressed, on any docs page.", props: '{ path: "/docs/getting-started/claude-code", language: "bash", first_token: "/plugin" }' },
+  { id: "github", name: "github_clicked", when: "The bare repo link is clicked in the shared nav, docs sidebar or footer. Edit on GitHub and stargazers are not counted.", props: '{ location: "nav" }' }
+];
+
+const DEFAULTS = { surfaces: ["constant", "llms", "cli"], events: ["setup", "code", "github"], evidence: true };
+const PRESETS = {
+  "Default": DEFAULTS,
+  "Everything": { surfaces: SURFACES.map(s => s.id), events: EVENTS.map(e => e.id), evidence: true },
+  "Agent surfaces": { surfaces: ["llms", "cli", "skill"], events: [], evidence: true },
+  "Human copy": { surfaces: ["constant", "docs", "readme", "reinstall"], events: ["setup", "code"], evidence: false },
+  "Analytics only": { surfaces: [], events: EVENTS.map(e => e.id), evidence: false }
+};
+
+const state = JSON.parse(JSON.stringify(DEFAULTS));
+
+function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+
+function buildControls() {
+  const sc = document.getElementById("surfaceControls");
+  SURFACES.forEach(s => {
+    const l = document.createElement("label"); l.className = "opt";
+    l.innerHTML = '<input type="checkbox" data-s="' + s.id + '"> <span>' + esc(s.name) + '</span>';
+    sc.appendChild(l);
+  });
+  const ec = document.getElementById("eventControls");
+  EVENTS.forEach(e => {
+    const l = document.createElement("label"); l.className = "opt";
+    l.innerHTML = '<input type="checkbox" data-e="' + e.id + '"> <span class="mono">' + e.name + '</span>';
+    ec.appendChild(l);
+  });
+  const pr = document.getElementById("presets");
+  Object.keys(PRESETS).forEach(name => {
+    const b = document.createElement("button"); b.textContent = name; b.dataset.p = name;
+    b.onclick = () => { Object.assign(state, JSON.parse(JSON.stringify(PRESETS[name]))); syncControls(); updateAll(); };
+    pr.appendChild(b);
+  });
+  document.querySelectorAll("[data-s]").forEach(i => i.onchange = () => { toggle(state.surfaces, i.dataset.s, i.checked); updateAll(); });
+  document.querySelectorAll("[data-e]").forEach(i => i.onchange = () => { toggle(state.events, i.dataset.e, i.checked); updateAll(); });
+  document.getElementById("showEvidence").onchange = e => { state.evidence = e.target.checked; updateAll(); };
+}
+
+function toggle(list, id, on) { const i = list.indexOf(id); if (on && i < 0) list.push(id); if (!on && i >= 0) list.splice(i, 1); }
+
+function syncControls() {
+  document.querySelectorAll("[data-s]").forEach(i => i.checked = state.surfaces.includes(i.dataset.s));
+  document.querySelectorAll("[data-e]").forEach(i => i.checked = state.events.includes(i.dataset.e));
+  document.getElementById("showEvidence").checked = state.evidence;
+}
+
+function renderPreview() {
+  document.getElementById("evidence").style.display = state.evidence ? "" : "none";
+  const out = SURFACES.filter(s => state.surfaces.includes(s.id)).map(s =>
+    '<div class="surface"><h3>' + esc(s.name) + '</h3><p class="where">' + esc(s.where) + '</p>' +
+    '<div class="row"><div class="cell old"><span class="tag">Before</span><pre>' + esc(s.before) + '</pre></div>' +
+    '<div class="cell new"><span class="tag">After</span><pre>' + esc(s.after) + '</pre></div></div></div>'
+  ).join("");
+  document.getElementById("surfaces").innerHTML = out || '<p class="muted">No surfaces selected.</p>';
+  const rows = EVENTS.filter(e => state.events.includes(e.id)).map(e =>
+    '<tr><td class="mono">' + e.name + '</td><td>' + esc(e.when) + '</td><td class="mono">' + esc(e.props) + '</td></tr>'
+  ).join("");
+  document.getElementById("events").innerHTML = rows || '<tr><td colspan="3" class="muted">No events selected.</td></tr>';
+  document.querySelectorAll("[data-p]").forEach(b => {
+    const p = PRESETS[b.dataset.p];
+    const same = JSON.stringify([...p.surfaces].sort()) === JSON.stringify([...state.surfaces].sort()) &&
+      JSON.stringify([...p.events].sort()) === JSON.stringify([...state.events].sort()) && p.evidence === state.evidence;
+    b.classList.toggle("on", same);
+  });
+}
+
+function updatePrompt() {
+  const s = SURFACES.filter(x => state.surfaces.includes(x.id));
+  const e = EVENTS.filter(x => state.events.includes(x.id));
+  const parts = [];
+  if (s.length) {
+    parts.push("On the OrchestKit docs site, confirm these surfaces no longer tell users to run `" + OLD + "` (which installs the Claude Code native build) and instead show the marketplace flow: " +
+      s.map(x => x.name + " (" + x.where + ")").join("; ") + ".");
+    parts.push("The shell form is `" + SHELL + "`; inside a session it is `/plugin marketplace add yonatangross/orchestkit` then `/plugin install ork`.");
+  }
+  if (e.length) {
+    parts.push("Check in PostHog and the first-party analytics that these events arrive with their properties: " +
+      e.map(x => x.name + " " + x.props).join(", ") + ".");
+  }
+  if (!parts.length) parts.push("Select at least one surface or event to build a verification prompt.");
+  document.getElementById("prompt").textContent = parts.join("\n\n");
+}
+
+function updateAll() { renderPreview(); updatePrompt(); }
+
+document.getElementById("copy").onclick = () => {
+  const text = document.getElementById("prompt").textContent;
+  const done = () => { const c = document.getElementById("copied"); c.textContent = "Copied!"; setTimeout(() => c.textContent = "", 1500); };
+  if (navigator.clipboard) navigator.clipboard.writeText(text).then(done, done); else done();
+};
+
+buildControls();
+syncControls();
+updateAll();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
