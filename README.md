@@ -471,6 +471,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.24](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.23...v10.0.0-beta.24)** · 2026-09-14
+
+- resolve the four [#3892](https://github.com/yonatangross/orchestkit/issues/3892) hook and review-pr regressions (#4108)
+- **deps-dev:** bump fast-check (#4119)
+
 **[v10.0.0-beta.23](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.22...v10.0.0-beta.23)** · 2026-09-14
 
 - **create-pr:** run CodeRabbit CLI review before opening the PR (#4117)
@@ -508,10 +513,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.17](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.16...v10.0.0-beta.17)** · 2026-09-12
 
 - **traffic:** weekly snapshot, credit lines, seeding list (#4071) (#4075)
-
-**[v10.0.0-beta.16](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.15...v10.0.0-beta.16)** · 2026-09-12
-
-- **evals:** claude plugin eval suite, calibration, and the fixes it found (#4072)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
