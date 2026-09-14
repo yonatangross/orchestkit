@@ -33,21 +33,20 @@ review-pr feature-branch
 
 ## Argument Resolution
 
-The PR number or branch is passed as the skill argument. Resolve it immediately:
+Resolve the target with the script first, then review exactly that target (#3892):
 
-```python
-PR_NUMBER = "$ARGUMENTS[0]"  # e.g., "123" or "feature-branch"
-
-# If no argument provided, check environment
-if not PR_NUMBER:
-    PR_NUMBER = os.environ.get("ORCHESTKIT_PR_URL", "").split("/")[-1]
-
-# If still empty, detect from current branch
-if not PR_NUMBER:
-    PR_NUMBER = "$(gh pr view --json number -q .number 2>/dev/null)"
+```bash
+TARGET=$(bash "${CLAUDE_SKILL_DIR}/scripts/resolve-target.sh" $ARGUMENTS)  # one JSON object
 ```
 
-Use `PR_NUMBER` consistently in all subsequent commands and agent prompts.
+| `kind` | Comes from | Review source |
+|---|---|---|
+| `pr` | `123`, `#123`, a PR URL, `ORCHESTKIT_PR_URL`, or the current branch's open PR (no argument) | `PR_NUMBER`; the `gh pr view/diff/checks` commands below |
+| `range` | `base...head` or `base..head`, e.g. `origin/main...origin/qa` | `git diff base...head`, `git log base..head`; skip `gh pr checks` and Phase 6 submit |
+| `ref` | a branch or ref that resolves | `gh pr view &lt;ref&gt;`: open PR, treat as `pr`; none, review `&lt;default&gt;...&lt;ref&gt;` as `range` |
+| `ask` | anything else, or no argument and no PR | **STOP** and `AskUserQuestion` for a PR number or ref range |
+
+Never substitute `HEAD`, the current checkout, or its branch for a target the user did not name. On `ask`, stop and ask. State the resolved target in your first line of output, and use `PR_NUMBER` (or the range) consistently in every later command and agent prompt.
 
 ---
 
@@ -626,7 +625,9 @@ task, press `Ctrl+F` twice (foreground/Stop).
 
 # Agent Prompts — Task Tool Mode
 
-Launch SIX specialized reviewers in ONE message with `run_in_background: true`:
+Launch SIX specialized reviewers in ONE message with `run_in_background: false`.
+
+**Why foreground (#3892):** review-pr runs as `context: fork`, and a fork is finished the moment its turn ends. Background reviewers let the fork end its turn with "waiting on the reviewers", so the skill reports `completed` with no verdict and the reviewer results arrive later as stray task-notifications in the parent session. Foreground calls sent in ONE message still run concurrently; the fork simply cannot end its turn until every reviewer has returned. Do not end the turn, and do not start Phase 5 synthesis, while any reviewer is still running.
 
 | Agent | Focus Area |
 |-------|-----------|
@@ -729,7 +730,7 @@ Agent(
   Scope: ONLY review the following changed files:
   ${CHANGED_FILES}
   """,
-  run_in_background=True,
+  run_in_background=False,
   max_turns=25
 )
 Agent(
@@ -756,7 +757,7 @@ Agent(
   Scope: ONLY review the following changed files:
   ${CHANGED_FILES}
   """,
-  run_in_background=True,
+  run_in_background=False,
   max_turns=25
 )
 Agent(
@@ -786,7 +787,7 @@ Agent(
   Scope: ONLY review the following changed files:
   ${CHANGED_FILES}
   """,
-  run_in_background=True,
+  run_in_background=False,
   max_turns=25
 )
 Agent(
@@ -832,7 +833,7 @@ Agent(
   Scope: ONLY review the following changed files:
   ${CHANGED_FILES}
   """,
-  run_in_background=True,
+  run_in_background=False,
   max_turns=25
 )
 Agent(
@@ -861,7 +862,7 @@ Agent(
   Scope: ONLY review the following changed files:
   ${CHANGED_FILES}
   """,
-  run_in_background=True,
+  run_in_background=False,
   max_turns=25
 )
 Agent(
@@ -889,7 +890,7 @@ Agent(
   Scope: ONLY review the following changed files:
   ${CHANGED_FILES}
   """,
-  run_in_background=True,
+  run_in_background=False,
   max_turns=25
 )
 ```
@@ -903,13 +904,21 @@ Agent(subagent_type="ork:security-auditor", prompt="...")
 # Wait again...
 ```
 
-**Correct — Parallel agents:**
+**Incorrect: background agents inside the fork (#3892):**
 ```python
-# All 6 agents in ONE message (fast)
+# The fork ends its turn right after launching, reports "completed" with no
+# verdict, and the reviewer results land later in the PARENT session.
 Agent(subagent_type="ork:code-quality-reviewer", prompt="...", run_in_background=True)
 Agent(subagent_type="ork:security-auditor", prompt="...", run_in_background=True)
-Agent(subagent_type="ork:test-generator", prompt="...", run_in_background=True)
-# All launch simultaneously
+```
+
+**Correct: parallel foreground agents:**
+```python
+# All 6 agents in ONE message: they run concurrently, and the fork's turn
+# cannot end until every one has returned its findings.
+Agent(subagent_type="ork:code-quality-reviewer", prompt="...", run_in_background=False)
+Agent(subagent_type="ork:security-auditor", prompt="...", run_in_background=False)
+Agent(subagent_type="ork:test-generator", prompt="...", run_in_background=False)
 ```
 
 
@@ -934,7 +943,7 @@ Agent(
 
   SUMMARY: End with: "RESULT: [PASS|WARN|FAIL] - [N] LLM issues: [key concern]"
   """,
-  run_in_background=True,
+  run_in_background=False,  # foreground: review-pr is a fork, see agent-prompts-task-tool.md (#3892)
   max_turns=25
 )
 ```
@@ -951,7 +960,7 @@ Agent(subagent_type="ork:security-auditor", ...)
 ```python
 # Detect AI/ML changes, add specialized reviewer
 if pr_contains_llm_code:
-    Agent(subagent_type="ork:llm-integrator", prompt="LLM CODE REVIEW...", run_in_background=True)
+    Agent(subagent_type="ork:llm-integrator", prompt="LLM CODE REVIEW...", run_in_background=False)
 ```
 
 

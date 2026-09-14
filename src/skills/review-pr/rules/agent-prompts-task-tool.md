@@ -7,7 +7,9 @@ tags: task-tool, review, agents
 
 # Agent Prompts — Task Tool Mode
 
-Launch SIX specialized reviewers in ONE message with `run_in_background: true`:
+Launch SIX specialized reviewers in ONE message with `run_in_background: false`.
+
+**Why foreground (#3892):** review-pr runs as `context: fork`, and a fork is finished the moment its turn ends. Background reviewers let the fork end its turn with "waiting on the reviewers", so the skill reports `completed` with no verdict and the reviewer results arrive later as stray task-notifications in the parent session. Foreground calls sent in ONE message still run concurrently; the fork simply cannot end its turn until every reviewer has returned. Do not end the turn, and do not start Phase 5 synthesis, while any reviewer is still running.
 
 | Agent | Focus Area |
 |-------|-----------|
@@ -110,7 +112,7 @@ Agent(
   Scope: ONLY review the following changed files:
   ${CHANGED_FILES}
   """,
-  run_in_background=True,
+  run_in_background=False,
   max_turns=25
 )
 Agent(
@@ -137,7 +139,7 @@ Agent(
   Scope: ONLY review the following changed files:
   ${CHANGED_FILES}
   """,
-  run_in_background=True,
+  run_in_background=False,
   max_turns=25
 )
 Agent(
@@ -167,7 +169,7 @@ Agent(
   Scope: ONLY review the following changed files:
   ${CHANGED_FILES}
   """,
-  run_in_background=True,
+  run_in_background=False,
   max_turns=25
 )
 Agent(
@@ -213,7 +215,7 @@ Agent(
   Scope: ONLY review the following changed files:
   ${CHANGED_FILES}
   """,
-  run_in_background=True,
+  run_in_background=False,
   max_turns=25
 )
 Agent(
@@ -242,7 +244,7 @@ Agent(
   Scope: ONLY review the following changed files:
   ${CHANGED_FILES}
   """,
-  run_in_background=True,
+  run_in_background=False,
   max_turns=25
 )
 Agent(
@@ -270,7 +272,7 @@ Agent(
   Scope: ONLY review the following changed files:
   ${CHANGED_FILES}
   """,
-  run_in_background=True,
+  run_in_background=False,
   max_turns=25
 )
 ```
@@ -284,11 +286,19 @@ Agent(subagent_type="ork:security-auditor", prompt="...")
 # Wait again...
 ```
 
-**Correct — Parallel agents:**
+**Incorrect: background agents inside the fork (#3892):**
 ```python
-# All 6 agents in ONE message (fast)
+# The fork ends its turn right after launching, reports "completed" with no
+# verdict, and the reviewer results land later in the PARENT session.
 Agent(subagent_type="ork:code-quality-reviewer", prompt="...", run_in_background=True)
 Agent(subagent_type="ork:security-auditor", prompt="...", run_in_background=True)
-Agent(subagent_type="ork:test-generator", prompt="...", run_in_background=True)
-# All launch simultaneously
+```
+
+**Correct: parallel foreground agents:**
+```python
+# All 6 agents in ONE message: they run concurrently, and the fork's turn
+# cannot end until every one has returned its findings.
+Agent(subagent_type="ork:code-quality-reviewer", prompt="...", run_in_background=False)
+Agent(subagent_type="ork:security-auditor", prompt="...", run_in_background=False)
+Agent(subagent_type="ork:test-generator", prompt="...", run_in_background=False)
 ```

@@ -11,8 +11,19 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as fs from 'node:fs';
 import { mockCommonBasic } from '../fixtures/mock-common.js';
 
+// A real temp dir, not a hardcoded /tmp/fake-project. That path assumed the
+// suite may write anywhere under /tmp, which fails with EPERM wherever the test
+// runner is confined to its own TMPDIR, and it also let two concurrent runs
+// share one directory. vi.hoisted, so the mock factories below can see it.
+const { PROJECT } = vi.hoisted(() => {
+  const { mkdtempSync } = require('node:fs');
+  const { tmpdir } = require('node:os');
+  const { join } = require('node:path');
+  return { PROJECT: mkdtempSync(join(tmpdir(), 'ork-flow-')) as string };
+});
+
 vi.mock('../../lib/common.js', () => mockCommonBasic({
-  getProjectDir: vi.fn(() => '/tmp/fake-project'),
+  getProjectDir: vi.fn(() => PROJECT),
 }));
 vi.mock('../../lib/analytics-buffer.js', () => ({
   bufferWrite: vi.fn((filePath: string, content: string) => {
@@ -58,7 +69,7 @@ function makeAction(overrides: Partial<ToolAction> = {}): ToolAction {
 beforeEach(() => {
   vi.restoreAllMocks();
   // Re-apply mock return value after restoreAllMocks
-  vi.mocked(getProjectDir).mockReturnValue('/tmp/fake-project');
+  vi.mocked(getProjectDir).mockReturnValue(PROJECT);
 });
 
 // =============================================================================
@@ -279,7 +290,7 @@ describe('loadDecisionFlow', () => {
   });
 
   it('loads and parses existing flow file', () => {
-    const flowPath = '/tmp/fake-project/.claude/memory/flows/test-session.json';
+    const flowPath = `${PROJECT}/.claude/memory/flows/test-session.json`;
     const flow = {
       session_id: 'test-session',
       actions: [],
@@ -287,7 +298,7 @@ describe('loadDecisionFlow', () => {
       last_action_at: '2026-03-29T00:00:00.000Z',
       stats: { total_actions: 0, reads: 0, writes: 0, tests: 0, builds: 0, agent_spawns: 0, success_rate: 0 },
     };
-    fs.mkdirSync('/tmp/fake-project/.claude/memory/flows', { recursive: true });
+    fs.mkdirSync(`${PROJECT}/.claude/memory/flows`, { recursive: true });
     fs.writeFileSync(flowPath, JSON.stringify(flow));
 
     const result = loadDecisionFlow('test-session');
@@ -295,18 +306,18 @@ describe('loadDecisionFlow', () => {
     expect(result!.session_id).toBe('test-session');
 
     // Cleanup
-    fs.rmSync('/tmp/fake-project/.claude/memory/flows', { recursive: true, force: true });
+    fs.rmSync(`${PROJECT}/.claude/memory/flows`, { recursive: true, force: true });
   });
 
   it('returns null and logs warning on malformed JSON', () => {
-    const flowPath = '/tmp/fake-project/.claude/memory/flows/bad-session.json';
-    fs.mkdirSync('/tmp/fake-project/.claude/memory/flows', { recursive: true });
+    const flowPath = `${PROJECT}/.claude/memory/flows/bad-session.json`;
+    fs.mkdirSync(`${PROJECT}/.claude/memory/flows`, { recursive: true });
     fs.writeFileSync(flowPath, 'NOT JSON');
 
     const result = loadDecisionFlow('bad-session');
     expect(result).toBeNull();
 
-    fs.rmSync('/tmp/fake-project/.claude/memory/flows', { recursive: true, force: true });
+    fs.rmSync(`${PROJECT}/.claude/memory/flows`, { recursive: true, force: true });
   });
 });
 
@@ -317,7 +328,7 @@ describe('loadDecisionFlow', () => {
 describe('trackToolAction', () => {
   beforeEach(() => {
     // Ensure clean state
-    try { fs.rmSync('/tmp/fake-project/.claude/memory/flows', { recursive: true, force: true }); } catch {}
+    try { fs.rmSync(`${PROJECT}/.claude/memory/flows`, { recursive: true, force: true }); } catch {}
   });
 
   it('creates a new flow when none exists', () => {
@@ -396,7 +407,7 @@ describe('analyzeDecisionFlow', () => {
 
 describe('completeDecisionFlow', () => {
   beforeEach(() => {
-    try { fs.rmSync('/tmp/fake-project/.claude/memory', { recursive: true, force: true }); } catch {}
+    try { fs.rmSync(`${PROJECT}/.claude/memory`, { recursive: true, force: true }); } catch {}
   });
 
   it('returns false when no flow exists', () => {

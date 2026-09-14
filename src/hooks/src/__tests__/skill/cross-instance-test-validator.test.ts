@@ -49,6 +49,8 @@ const IMPL = 'export function alpha() { return 1; }\nexport function beta() { re
 describe('cross-instance-test-validator (Stop)', () => {
   beforeEach(() => {
     project = mkdtempSync(join(tmpdir(), 'citv-'));
+    // A real project is a git repository; files in no repository are skipped (#3892).
+    mkdirSync(join(project, '.git'));
   });
 
   afterEach(() => {
@@ -238,6 +240,8 @@ describe('cross-instance-test-validator (project scoping, #3844)', () => {
 
   beforeEach(() => {
     project = mkdtempSync(join(tmpdir(), 'citv-'));
+    // A real project is a git repository; files in no repository are skipped (#3892).
+    mkdirSync(join(project, '.git'));
     outside = mkdtempSync(join(tmpdir(), 'citv-outside-'));
   });
 
