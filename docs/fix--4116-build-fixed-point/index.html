@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>One build should be enough | OrchestKit Lab</title>
+  <style>
+    :root { color-scheme: dark; font: 17px/1.6 system-ui, sans-serif; background: #101822; color: #e9eef3; }
+    body { max-width: 820px; margin: auto; padding: 48px 24px; }
+    h1 { font-size: clamp(2rem, 6vw, 3.4rem); line-height: 1.1; }
+    h2 { font-size: 1.25rem; }
+    a { color: #8fd8ff; }
+    .eyebrow { color: #8fd8ff; letter-spacing: .08em; }
+    fieldset, article { border: 1px solid #43566a; border-radius: 12px; padding: 20px; margin: 20px 0; }
+    label { display: block; padding: 6px 0; cursor: pointer; }
+    input { margin-right: 8px; }
+    button { font: inherit; color: #101822; background: #8fd8ff; border: 0; border-radius: 6px; padding: 10px 18px; margin: 0 10px 12px 0; cursor: pointer; }
+    button:disabled { opacity: .5; cursor: default; }
+    :focus-visible { outline: 3px solid #ffd580; outline-offset: 4px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 10px 4px; text-align: left; border-bottom: 1px solid #43566a; }
+    output { display: block; padding-top: 16px; font-weight: 600; }
+    code { color: #ffd580; overflow-wrap: anywhere; }
+    .note { color: #b8c5d1; }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="eyebrow">ORCHESTKIT LAB · GH-4116</p>
+    <h1>One build should be enough.</h1>
+    <p>A search index generated before its reference pages are refreshed keeps yesterday's counts. A second build then changes files that the first build should have finalized.</p>
+    <fieldset>
+      <legend>Choose the build order</legend>
+      <label><input type="radio" name="order" value="fixed" checked>Fixed: generate pages → stamp counts → index</label>
+      <label><input type="radio" name="order" value="old">Previous: index → generate pages → stamp counts</label>
+    </fieldset>
+    <p class="note">Illustrative fixture: source now declares 152 global hook entries; the committed page and index still say 149. Each click runs one build and compares its output with the preceding snapshot.</p>
+    <button id="build" type="button">Run build 1</button>
+    <button id="reset" type="button">Reset</button>
+    <article aria-labelledby="snapshot">
+      <h2 id="snapshot">Build snapshot</h2>
+      <table>
+        <thead><tr><th scope="col">Surface</th><th scope="col">Global hook entries</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Source registry</th><td>152</td></tr>
+          <tr><th scope="row">Reference page</th><td id="page">149</td></tr>
+          <tr><th scope="row">Search index</th><td id="index">149</td></tr>
+        </tbody>
+      </table>
+      <output id="result" aria-live="polite">Ready to build.</output>
+    </article>
+    <h2>The regression check</h2>
+    <p>The CI test runs real documentation generators in the order declared by <code>scripts/build-plugins.sh</code>, in a temporary repository. After committing the first result, it runs them again and requires an empty Git status. Restoring the old order must fail.</p>
+    <p>Docs site data also runs after stamping so its manifest version is current. The interactive model above focuses on the page and search-index dependency.</p>
+    <p><a href="https://github.com/yonatangross/orchestkit/issues/4116">Read GH-4116</a> · <a href="https://orchestkit.yonyon.ai/lab">Explore the Lab</a></p>
+    <noscript><p>With the fixed order, the first build writes 152 to both outputs and the second changes nothing. With the previous order, the first leaves the index at 149 and the second changes it to 152.</p></noscript>
+  </main>
+  <script>
+    const buildButton = document.querySelector('#build');
+    const result = document.querySelector('#result');
+    let state;
+    function reset() {
+      state = { page: 149, index: 149, builds: 0 };
+      document.querySelector('#page').textContent = state.page;
+      document.querySelector('#index').textContent = state.index;
+      result.textContent = 'Ready to build.';
+      buildButton.textContent = 'Run build 1';
+      buildButton.disabled = false;
+    }
+    buildButton.addEventListener('click', () => {
+      const previous = { ...state };
+      const fixed = document.querySelector('input[name="order"]:checked').value === 'fixed';
+      if (!fixed) state.index = state.page;
+      state.page = 152;
+      if (fixed) state.index = state.page;
+      state.builds += 1;
+      document.querySelector('#page').textContent = state.page;
+      document.querySelector('#index').textContent = state.index;
+      const changed = [];
+      if (previous.page !== state.page) changed.push('reference page');
+      if (previous.index !== state.index) changed.push('search index');
+      result.textContent = changed.length
+        ? `Build ${state.builds} changed: ${changed.join(', ')}.${state.builds === 2 ? ' Second-build check FAILS.' : ''}`
+        : `Build ${state.builds}: no changes. Second-build check PASSES.`;
+      buildButton.textContent = state.builds < 2 ? 'Run build 2' : 'Both builds complete';
+      buildButton.disabled = state.builds >= 2;
+    });
+    document.querySelector('#reset').addEventListener('click', reset);
+    document.querySelectorAll('input[name="order"]').forEach(input => input.addEventListener('change', reset));
+    reset();
+  </script>
+</body>
+</html>
