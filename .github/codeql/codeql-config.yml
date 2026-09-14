@@ -1,0 +1,14 @@
+# CodeQL configuration for codeql.yml.
+#
+# docs/<type>--<slug>/ directories are per-PR playground previews. The PR
+# Playground gate (ci.yml playground-check) requires one per branch, they merge
+# to main, and prune-playgrounds.yml archives them later. They are snapshots,
+# not maintained source, so scanning them re-reports every fixed bug forever.
+#
+# Kept scanned on purpose: docs/site/** (including docs/site/public/lab/, the
+# published copies generated from these previews by lab-manifest.mjs), and
+# every docs/ directory whose name has no "--" separator.
+name: OrchestKit CodeQL config
+
+paths-ignore:
+  - "docs/*--*/**"
