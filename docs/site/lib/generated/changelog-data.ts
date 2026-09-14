@@ -18,6 +18,44 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.23",
+    "date": "2026-09-14",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.22...v10.0.0-beta.23",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**create-pr:** run CodeRabbit CLI review before opening the PR ([#4117](https://github.com/yonatangross/orchestkit/issues/4117)) ([34a0456](https://github.com/yonatangross/orchestkit/commit/34a0456b610aea301ec47929de532032ee98d336))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**ci:** track classic.PreToolUse rename in function hooks canary ([#4102](https://github.com/yonatangross/orchestkit/issues/4102)) ([b75194e](https://github.com/yonatangross/orchestkit/commit/b75194e009e95fd5ef8ef41d3119fc0a38f5ee91))",
+          "**create-pr:** clarify CodeRabbit credit spend and fix root tools key ([#4118](https://github.com/yonatangross/orchestkit/issues/4118)) ([46c58a7](https://github.com/yonatangross/orchestkit/commit/46c58a71dc89a8ebd3070d24f44f8b7255c5351c))",
+          "**tests:** report hook timeouts in test-image-paste-guard instead of swallowing them (GH-4087) ([#4111](https://github.com/yonatangross/orchestkit/issues/4111)) ([504040c](https://github.com/yonatangross/orchestkit/commit/504040c3bb7b1942b1e970e3e44e4030e6a9e946))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Miscellaneous",
+        "items": [
+          "**deps:** bump orchestkit-demos npm-minor-patch group with the peer resolution (supersedes GH-4098) ([#4110](https://github.com/yonatangross/orchestkit/issues/4110)) ([b46c17f](https://github.com/yonatangross/orchestkit/commit/b46c17f7031c49e38866e1225756d422df9a8750))",
+          "**deps:** bump the npm-minor-patch group in /docs/site with 2 updates ([#4120](https://github.com/yonatangross/orchestkit/issues/4120)) ([d9143e6](https://github.com/yonatangross/orchestkit/commit/d9143e69c8e9a87046d3fea45024d9e2f4131d13))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Documentation",
+        "items": [
+          "**site:** generate a reference page for every user-invocable skill (GH-3902) ([#4114](https://github.com/yonatangross/orchestkit/issues/4114)) ([8dc4863](https://github.com/yonatangross/orchestkit/commit/8dc4863f13e57d48d0ada86516c163d8683858d2))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.22",
     "date": "2026-09-14",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.21...v10.0.0-beta.22",
