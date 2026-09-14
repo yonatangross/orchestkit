@@ -40,7 +40,11 @@ import { GET as getApiPolicyMd } from "@/app/api-policy.md/route";
 import { GET as getAuthMd } from "@/app/auth.md/route";
 import { GET as getPricingMd } from "@/app/pricing.md/route";
 import { SITE } from "@/lib/constants";
-import { MARKDOWN_VARY } from "@/lib/md-frontmatter";
+import {
+	MARKDOWN_CACHE_CONTROL,
+	MARKDOWN_CDN_CACHE_CONTROL,
+	MARKDOWN_VARY,
+} from "@/lib/md-frontmatter";
 import { MARKDOWN_TWIN_SLUGS } from "@/lib/page-markdown";
 import { middleware } from "@/middleware";
 
@@ -236,6 +240,63 @@ describe("Vary is carried by the response, not just declared in config", () => {
 		// path starts emitting it another way, this expectation flips and someone
 		// should reassess rather than delete it.
 		expect(middleware(req("/", BROWSER))?.headers.get("Vary")).toBeNull();
+	});
+});
+
+// ------------------------------------------- GAP 3: caches that ignore Vary
+//
+// Vary is only worth what the caches in front of the site honour, and several
+// CDNs and corporate proxies key on the URL and drop every token except
+// Accept-Encoding. For a URL with two representations that is the leak: the
+// Markdown fetched for GPTBot gets stored and handed to the next reader.
+//
+// Measured on production 2026-09-14, which is what turned this from theory
+// into a fix: GPTBot on /pricing and /api-policy received Markdown under
+// `vary: rsc, next-router-...` with `cache-control: public, max-age=3600`,
+// because those two handlers set neither Vary nor a private directive. The
+// /api/md and /api/page-md handlers set Vary but were still publicly storable.
+//
+// Vercel's own cache was never the problem and the fix does not rely on it: it
+// keys on the post-middleware destination, so /docs/x (HTML) and /api/md/x
+// (Markdown) are separate entries, both observed HIT at the same moment.
+describe("a negotiated Markdown body is withheld from shared caches", () => {
+	const negotiated: [string, () => Response | Promise<Response>][] = [
+		["/pricing.md", () => getPricingMd()],
+		["/api-policy.md", () => getApiPolicyMd()],
+		["/developers (page-md twin)", () => twin("developers")],
+		["/yonyon (page-md twin)", () => twin("yonyon")],
+	];
+
+	it.each(negotiated)("%s is private to the requesting client", async (_n, get) => {
+		const res = await get();
+		expect(res.headers.get("Cache-Control")).toBe(MARKDOWN_CACHE_CONTROL);
+		expect(res.headers.get("Cache-Control")).toContain("private");
+	});
+
+	it.each(negotiated)("%s keeps its Vercel edge TTL", async (_n, get) => {
+		// `private` alone would also stop Vercel caching, turning every crawler
+		// fetch into a function invocation. Vercel-CDN-Cache-Control has top
+		// priority for Vercel's cache and is consumed rather than forwarded, so
+		// the edge keeps the TTL production already had and no downstream cache
+		// ever sees the directive.
+		const res = await get();
+		expect(res.headers.get("Vercel-CDN-Cache-Control")).toBe(
+			MARKDOWN_CDN_CACHE_CONTROL,
+		);
+	});
+
+	it.each(negotiated)("%s still names both negotiation inputs", async (_n, get) => {
+		const res = await get();
+		expect(res.headers.get("Vary")).toBe(MARKDOWN_VARY);
+	});
+
+	it("/auth.md is NOT made private — it has only one representation", async () => {
+		// The rule is scoped to URLs that can answer two ways. /auth.md is not in
+		// STANDALONE_MD_PAGES, no bare /auth exists, and making single-body URLs
+		// private would drop shared caching for no safety gain.
+		expect(getAuthMd().headers.get("Cache-Control")).toBe(
+			"public, max-age=3600",
+		);
 	});
 });
 

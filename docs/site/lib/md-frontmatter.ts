@@ -65,3 +65,35 @@ export function withFrontmatter(
 // So the config is necessary but not sufficient, and the value has to be set on
 // the response itself.
 export const MARKDOWN_VARY = "Accept, Accept-Encoding, User-Agent";
+
+// Cache directives for a Markdown body served at a URL that ALSO serves HTML.
+//
+// `Vary` alone is only as good as the caches that honour it, and the ones in
+// front of a public docs site are exactly the ones that do not: several CDNs
+// and corporate proxies key on the URL and ignore every Vary token except
+// `Accept-Encoding`. Such a cache stores the Markdown it fetched for GPTBot
+// under `/pricing` and hands it to the next reader, which is the direction of
+// this bug that actually hurts.
+//
+// So the negotiated representation is marked `private`: a shared cache is not
+// allowed to store it at all, while a browser still may (its own cache is
+// single-reader, and it honours Vary anyway). Vercel's edge would obey
+// `private` too, so `Vercel-CDN-Cache-Control` restores the edge TTL we
+// measured in production (x-vercel-cache: HIT, age 108 on /api/md/*). That
+// header is exclusive to Vercel, has top priority for its cache, and is
+// consumed rather than forwarded, so no downstream cache ever sees it.
+//
+// Vercel's own cache is safe without this — it keys on the post-middleware
+// destination, so `/docs/x` (HTML) and `/api/md/x` (Markdown) are separate
+// entries, verified by fetching both and getting a HIT on each. The directive
+// exists for the caches between Vercel and the reader.
+export const MARKDOWN_CACHE_CONTROL = "private, max-age=3600";
+export const MARKDOWN_CDN_CACHE_CONTROL = "public, max-age=3600";
+
+/** Headers every two-representation Markdown response must carry. */
+export const MARKDOWN_NEGOTIATED_HEADERS = {
+	"Content-Type": "text/markdown; charset=utf-8",
+	"Cache-Control": MARKDOWN_CACHE_CONTROL,
+	"Vercel-CDN-Cache-Control": MARKDOWN_CDN_CACHE_CONTROL,
+	Vary: MARKDOWN_VARY,
+} as const;

@@ -4,7 +4,10 @@ import {
 	apiPolicyMarkdown,
 } from "@/lib/api-policy";
 import { SITE } from "@/lib/constants";
-import { withFrontmatter } from "@/lib/md-frontmatter";
+import {
+	MARKDOWN_NEGOTIATED_HEADERS,
+	withFrontmatter,
+} from "@/lib/md-frontmatter";
 
 // /api-policy.md, the Markdown twin of /api-policy. Both render the SAME
 // structure from lib/api-policy.ts, so the crawlable HTML page and the
@@ -27,10 +30,8 @@ export function GET() {
 		apiPolicyMarkdown(),
 	);
 
-	return new Response(md, {
-		headers: {
-			"Content-Type": "text/markdown; charset=utf-8",
-			"Cache-Control": "public, max-age=3600",
-		},
-	});
+	// Same two-representation contract as /pricing.md: middleware rewrites a bare
+	// /api-policy here for Markdown-preferring clients and AI crawlers, so the
+	// response is keyed on Accept + User-Agent and withheld from shared caches.
+	return new Response(md, { headers: MARKDOWN_NEGOTIATED_HEADERS });
 }

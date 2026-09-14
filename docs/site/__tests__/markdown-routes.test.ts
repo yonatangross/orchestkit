@@ -23,6 +23,11 @@ import { GET as getAuthMd } from "@/app/auth.md/route";
 import { GET as getLlmsTxt } from "@/app/llms.txt/route";
 import { isServedPath } from "@/lib/agent-404";
 import { SITE } from "@/lib/constants";
+import {
+	MARKDOWN_CACHE_CONTROL,
+	MARKDOWN_CDN_CACHE_CONTROL,
+	MARKDOWN_VARY,
+} from "@/lib/md-frontmatter";
 
 async function body(res: Response): Promise<string> {
 	return await res.text();
@@ -34,15 +39,35 @@ function linkTargets(md: string): string[] {
 }
 
 describe("markdown route headers contract", () => {
+	// Cache-Control differs by how many representations a URL has, which is why
+	// this is two expectations and not one shared line:
+	//   - /auth.md and /llms.txt answer one body to every client, so a shared
+	//     cache storing them is correct and wanted.
+	//   - /api-policy.md is the Markdown half of /api-policy (middleware rewrites
+	//     the bare path here for Markdown-preferring clients and AI crawlers), so
+	//     it must not be storable by an intermediary that ignores its Vary.
 	it.each([
-		["api-policy.md", getApiPolicy, "text/markdown; charset=utf-8"],
 		["auth.md", getAuthMd, "text/markdown; charset=utf-8"],
 		["llms.txt", getLlmsTxt, "text/plain; charset=utf-8"],
-	] as const)("%s returns 200 with type + cache headers", (_name, get, type) => {
-		const res = get();
+	] as const)(
+		"%s (single representation) returns 200 and is publicly cacheable",
+		(_name, get, type) => {
+			const res = get();
+			expect(res.status).toBe(200);
+			expect(res.headers.get("Content-Type")).toBe(type);
+			expect(res.headers.get("Cache-Control")).toBe("public, max-age=3600");
+		},
+	);
+
+	it("api-policy.md (negotiated twin) is private to the client, cached at the edge", () => {
+		const res = getApiPolicy();
 		expect(res.status).toBe(200);
-		expect(res.headers.get("Content-Type")).toBe(type);
-		expect(res.headers.get("Cache-Control")).toBe("public, max-age=3600");
+		expect(res.headers.get("Content-Type")).toBe("text/markdown; charset=utf-8");
+		expect(res.headers.get("Cache-Control")).toBe(MARKDOWN_CACHE_CONTROL);
+		expect(res.headers.get("Vercel-CDN-Cache-Control")).toBe(
+			MARKDOWN_CDN_CACHE_CONTROL,
+		);
+		expect(res.headers.get("Vary")).toBe(MARKDOWN_VARY);
 	});
 });
 
