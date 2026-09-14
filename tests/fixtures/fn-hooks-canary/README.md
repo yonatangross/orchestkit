@@ -42,6 +42,15 @@ It also wraps `negative/bare-pretooluse.ts` (deliberately not listed in
 `"PreToolUse" is not an event`. That pins the rename from the side a shape-only
 validator cannot fake, so a revert upstream turns the job red too.
 
+Because `classic.PreToolUse` validating is only a shape check, a further upstream
+rename would leave the old string validating. So the script also checks that the
+installed binary still defines the `event:"classic.PreToolUse"` dispatch site. It
+finds the binary the same way `scripts/derive-cc-output-keys.mjs` does: the native
+`versions/<x.y.z>` file, then the npm `bin/claude.exe`. The control marker
+`event:"tool.call"` has to be present too; if it is missing, the result is
+CANNOT OBSERVE, never a pass. Measured on 2026-09-14: one hit on each of 2.1.268,
+2.1.269 and 2.1.270, and zero hits for a renamed `classic.PreToolUseV2`.
+
 ## Two limits, both measured
 
 `claude plugin validate` checks **shape, not membership**: `banana.PreToolUse` and

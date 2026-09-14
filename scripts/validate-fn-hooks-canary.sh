@@ -23,12 +23,22 @@ NEGATIVE_MODULE="$FIXTURE/negative/bare-pretooluse.ts"
 EXPECTED_HOOKS='tool.call{tool=Bash}, classic.PreToolUse{}, session.start{}, engine.create{}, prompt.submit{}'
 EXPECTED_CALLS='$.ui.log'
 
-# The rename is pinned from both sides. `classic.PreToolUse` validating proves
+# The rename is pinned from three sides. `classic.PreToolUse` validating proves
 # little alone, because the validator checks shape and not membership
 # (`banana.PreToolUse` validates too). The bare name being REJECTED is the half
 # that only a real vocabulary change can produce, so a revert upstream turns
 # this red as well.
 EXPECTED_REJECT='"PreToolUse" is not an event'
+
+# Membership pin. Shape validation would keep passing on the old string if
+# upstream renamed `classic.PreToolUse` again, and the runtime loader cannot be
+# driven offline, so the membership evidence is the binary itself: it must carry
+# the dispatch site below. Measured 2026-09-14: exactly 1 hit on 2.1.268, 2.1.269
+# and 2.1.270, and 0 hits for a renamed `event:"classic.PreToolUseV2"`.
+# `event:"tool.call"` is the control: when it is absent too, the lookup found a
+# shim or the wrong file, which is CANNOT OBSERVE and never a pass.
+SITE_MARKER='event:"classic.PreToolUse"'
+CONTROL_MARKER='event:"tool.call"'
 
 if ! command -v claude >/dev/null 2>&1; then
   echo "SKIP: claude CLI not on PATH"
@@ -114,6 +124,56 @@ if [ "$ACTUAL_CALLS" != "$EXPECTED_CALLS" ]; then
   FAILED=1
 fi
 
+# Membership check against the binary. Same two layouts the output-key probe
+# resolves (scripts/derive-cc-output-keys.mjs findBinary): the native installer's
+# versions/<x.y.z> file, keyed to the version the CLI just reported so a stale
+# newer or older file cannot answer for it, then the npm package's bin/claude.exe,
+# which is what a GitHub runner has. CANARY_CC_BINARY overrides both, for tests.
+find_cc_binary() {
+  if [ -n "${CANARY_CC_BINARY:-}" ]; then
+    printf '%s' "$CANARY_CC_BINARY"
+    return 0
+  fi
+  local native="$HOME/.local/share/claude/versions/$CC_VER"
+  if [ -f "$native" ]; then
+    printf '%s' "$native"
+    return 0
+  fi
+  local npm_root
+  npm_root="$(npm root -g 2>/dev/null || true)"
+  if [ -n "$npm_root" ] && [ -f "$npm_root/@anthropic-ai/claude-code/bin/claude.exe" ]; then
+    printf '%s' "$npm_root/@anthropic-ai/claude-code/bin/claude.exe"
+    return 0
+  fi
+  return 1
+}
+
+# grep exit codes are captured, never piped: 0 match, 1 no match, 2 unreadable.
+MEMBERSHIP=""
+if CC_BIN="$(find_cc_binary)"; then
+  set +e
+  LC_ALL=C grep -a -q -F "$CONTROL_MARKER" "$CC_BIN"
+  CONTROL_RC=$?
+  LC_ALL=C grep -a -q -F "$SITE_MARKER" "$CC_BIN"
+  SITE_RC=$?
+  set -e
+  if [ "$CONTROL_RC" -ne 0 ]; then
+    echo "FAIL: CANNOT OBSERVE membership: control marker $CONTROL_MARKER not readable in $CC_BIN (grep rc=$CONTROL_RC)."
+    echo "      The lookup found a shim, the wrong file, or an unreadable path. Nothing was verified."
+    FAILED=1
+  elif [ "$SITE_RC" -ne 0 ]; then
+    echo "FAIL: membership moved: $CC_BIN no longer carries the dispatch site $SITE_MARKER."
+    echo "      classic.PreToolUse still validates (shape only), but the runtime no longer defines it."
+    FAILED=1
+  else
+    MEMBERSHIP="$SITE_MARKER present in $CC_BIN"
+  fi
+else
+  echo "FAIL: CANNOT OBSERVE membership: no CC binary found for $CC_VER."
+  echo "      Looked in: $HOME/.local/share/claude/versions/$CC_VER and \$(npm root -g)/@anthropic-ai/claude-code/bin/claude.exe"
+  FAILED=1
+fi
+
 # Negative pin. The module is not listed in the fixture's hooks.json (the
 # positive run above must stay clean), so wrap it in a throwaway plugin built
 # from the same manifest.
@@ -157,6 +217,7 @@ if [ "$FAILED" -ne 0 ]; then
 fi
 
 echo "PASS: events and capabilities unchanged"
-echo "  hooks:   $ACTUAL_HOOKS"
-echo "  calls:   $ACTUAL_CALLS"
-echo "  rejects: bare PreToolUse ($EXPECTED_REJECT)"
+echo "  hooks:      $ACTUAL_HOOKS"
+echo "  calls:      $ACTUAL_CALLS"
+echo "  membership: $MEMBERSHIP"
+echo "  rejects:    bare PreToolUse ($EXPECTED_REJECT)"
