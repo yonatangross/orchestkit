@@ -658,21 +658,9 @@ fi
 echo ""
 
 # ============================================================================
-# Phase 7: Generate Docs Site Data
+# Phase 7: Generate Lab Gallery Data
 # ============================================================================
-echo -e "${BLUE}[7/10] Generating docs site data...${NC}"
-
-if [[ -f "$SCRIPT_DIR/generate-docs-data.js" ]]; then
-    node "$SCRIPT_DIR/generate-docs-data.js" 2>/dev/null || echo -e "${YELLOW}  generate-docs-data.js failed, skipping${NC}"
-else
-    echo -e "${YELLOW}  generate-docs-data.js not found, skipping${NC}"
-fi
-
-# Lightweight docs search index (keeps NLWeb /ask + MCP searchDocs off the heavy
-# Fumadocs source so the /ask function cold-starts sub-second).
-if [[ -f "$SCRIPT_DIR/gen-docs-search-index.js" ]]; then
-    node "$SCRIPT_DIR/gen-docs-search-index.js" || echo -e "${YELLOW}  gen-docs-search-index.js failed${NC}"
-fi
+echo -e "${BLUE}[7/10] Generating lab gallery data...${NC}"
 
 # Lab gallery + CC-adoption board data (docs/site/lib/generated/lab-data.ts and
 # cc-adoption-data.ts). ci.yml's "Check for uncommitted build changes" step
@@ -813,6 +801,21 @@ echo ""
 echo "Stamping counts and version markers…"
 bash "$(dirname "$0")/stamp-counts.sh"
 node "$(dirname "$0")/stamp-whats-new.mjs"
+
+# Docs site data includes the manifest version, synchronized by stamp-counts.
+if [[ -f "$SCRIPT_DIR/generate-docs-data.js" ]]; then
+    node "$SCRIPT_DIR/generate-docs-data.js" 2>/dev/null || echo -e "${YELLOW}  generate-docs-data.js failed, skipping${NC}"
+else
+    echo -e "${YELLOW}  generate-docs-data.js not found, skipping${NC}"
+fi
+
+# Lightweight docs search index (keeps NLWeb /ask + MCP searchDocs off the heavy
+# Fumadocs source so the /ask function cold-starts sub-second).
+# Read the final MDX, after reference generation and count stamping, so a
+# second build produces no search-index drift (#4116).
+if [[ -f "$SCRIPT_DIR/gen-docs-search-index.js" ]]; then
+    node "$SCRIPT_DIR/gen-docs-search-index.js" || echo -e "${YELLOW}  gen-docs-search-index.js failed${NC}"
+fi
 echo ""
 
 echo -e "${BLUE}[10/10] Build Summary${NC}"
