@@ -1,0 +1,1149 @@
+---
+title: "Brainstorm: References"
+description: "12 references for the Brainstorm skill: Claude Code; Common Pitfalls; Devils Advocate Prompts; Divergent Techniques; Effort Scaling; Evaluation Rubric; Example Session Auth; Example Session Dashboard; Iterative Optimization Mode; Mcp Probe Resume; Phase Workflow; Socratic Questions"
+---
+
+> Part of the [Brainstorm](/docs/reference/skills/brainstorm) skill reference. The main page carries the skill itself; this page holds material that used to sit at the bottom of it.
+
+## References (12)
+
+### Claude Code
+
+# Claude Code adapter: brainstorm
+
+Slash invoke: `/ork:brainstorm`
+
+YAML `hooks:` / `command:` lines in this skill's frontmatter stay Claude-only.
+They use `$\{CLAUDE_PLUGIN_ROOT\}/hooks/bin/run-hook.mjs` and are ignored by pi.
+
+Session chain files live at `.claude/chain/` (state.json, decisions.json, capabilities.json).
+Other hosts should persist equivalent run state in their own session store.
+
+Agent spawn form, when used: `Agent(ork:...)` is Claude Code. Portable body text uses the skill name.
+
+Lines that still mention a Claude-only path in the body:
+
+```
+Host-neutral workflow. Invoke by skill name (`brainstorm`). Claude Code slash routing, YAML hook loaders, and `.claude/chain` live in `references/claude-code.md`.
+> **PostCompact recovery:** Long brainstorm sessions may trigger context compaction. The PostCompact hook re-injects branch and task state. If compaction occurs mid-brainstorm, check `.claude/chain/state.json` for the last completed phase and resume from the next handoff file (see Phase Handoffs table). Reactive compaction (CC 2.1.142+) now sizes the first summarize to the actual overflow, so mid-turn stalls are rare — no need to expect a second pass.
+```
+
+
+### Common Pitfalls
+
+# Common Brainstorming Pitfalls
+
+Avoid these mistakes during brainstorming sessions.
+
+## Pitfall 1: Information Overload
+
+```
+❌ BAD:
+"Before we start, I need to know:
+1. What's your tech stack?
+2. How many users?
+3. What's the budget?
+..."
+
+✅ GOOD:
+"What problem does this solve for your users?"
+[Wait for answer, then ask next question]
+```
+
+**Why:** Asking many questions at once prevents conversation flow.
+
+## Pitfall 2: Single Approach
+
+```
+❌ BAD:
+"Here's the solution: Use Redis for caching..."
+
+✅ GOOD:
+"I see three approaches:
+1. Redis (fast, but adds infrastructure)
+2. In-memory (simple, but doesn't scale)
+3. Database cache (integrated, but slower)
+Which trade-offs matter most?"
+```
+
+**Why:** Single approach suggests you haven't explored alternatives.
+
+## Pitfall 3: Over-Engineering
+
+```
+❌ BAD:
+"Let's use microservices, Kubernetes, Redis, Kafka..."
+
+✅ GOOD:
+"For 100 users/day, a monolith with PostgreSQL is sufficient.
+We can split services later if needed."
+```
+
+**Why:** YAGNI. Start simple, scale when necessary.
+
+## Pitfall 4: Ignoring Existing Code
+
+```
+❌ BAD:
+"Let's rebuild with completely different architecture..."
+
+✅ GOOD:
+[Read existing code first]
+"I see you're using Express + PostgreSQL.
+Let's extend that pattern..."
+```
+
+**Why:** Consistency > novelty. Use existing patterns unless compelling reason to change.
+
+## Pitfall 5: Premature Convergence
+
+```
+❌ BAD:
+[After generating 3 ideas]
+"Option B is clearly best, let's go with that."
+
+✅ GOOD:
+[Generate 10+ ideas first]
+[Fast-check feasibility]
+[Rate systematically]
+"After evaluating all options, Option B scores highest because..."
+```
+
+**Why:** Filtering too early misses potentially better alternatives.
+
+## Pitfall 6: Designing Without Considering Testability
+
+```
+❌ BAD:
+"Beautiful hexagonal architecture with 12 ports and adapters!"
+[Requires 50 mocks to test a single use case]
+
+✅ GOOD:
+"Each module has clear boundaries.
+Unit tests need 0-2 mocks. Integration tests run against
+docker-compose services. E2E covers the 3 critical paths."
+```
+
+**Why:** A design that scores 10/10 on architecture but 2/10 on testability will slow down every future change. Score testability during evaluation (see `evaluation-rubric.md`) and prefer designs with clear testing boundaries.
+
+## Pitfall 7: Skipping Devil's Advocate
+
+```
+❌ BAD:
+"This approach looks great, let's implement it!"
+
+✅ GOOD:
+"Let me challenge this approach:
+- What assumptions are we making?
+- How could this fail?
+- What's the maintenance burden?"
+```
+
+**Why:** Unchallenged ideas often have hidden flaws.
+
+
+### Devils Advocate Prompts
+
+# Devil's Advocate Prompts
+
+Challenge templates for assumption testing. Find hidden flaws before implementation.
+
+## Hidden Assumptions
+
+- "What if the core assumption that [X] is wrong?"
+- "This assumes [dependency] will always be available. What if it fails?"
+- "We're assuming users will [behavior]. What evidence supports this?"
+
+## Failure Modes
+
+- "What if this fails because the data volume exceeds expectations?"
+- "The hidden flaw in this approach is [single point of failure]."
+- "At 10x scale, what breaks first?"
+- "What's the worst-case recovery scenario?"
+
+## Simpler Alternatives
+
+- "Could we solve 80% of this with a much simpler solution?"
+- "What if we just used [existing tool] instead of building this?"
+- "Is this complexity justified by the requirements?"
+
+## Maintenance Burden
+
+- "In 2 years, will anyone understand why this was built this way?"
+- "What technical debt does this create?"
+- "How many dependencies are we adding?"
+
+## Scaling Concerns
+
+- "What happens when [resource] becomes the bottleneck?"
+- "This works for 100 users. Does it work for 100,000?"
+- "What's the migration path when this outgrows itself?"
+
+## Security Holes
+
+- "What's the attack surface we're introducing?"
+- "If an attacker had access to [component], what could they do?"
+- "Are we trusting user input anywhere we shouldn't?"
+
+## Testability Challenges
+
+- "How would you test the critical path without mocking everything?"
+- "What happens when the external dependency is unavailable during testing?"
+- "Show me the integration test — can it run in CI without special infrastructure?"
+- "How many mocks/stubs does a single test need? If more than 3, the design has coupling issues."
+- "Can a new developer write a test for this without reading the entire codebase?"
+
+## Challenge Template
+
+```
+DEVIL'S ADVOCATE for: [idea name]
+
+1. ASSUMPTIONS: What must be true for this to work?
+2. FAILURE: How could this fail catastrophically?
+3. SIMPLER: What's the 10x simpler alternative?
+4. SCALE: What breaks at 10x load?
+5. TESTABILITY: How do you test this? What's the mock surface?
+6. MAINTENANCE: What's the 2-year cost?
+
+Severity: [Critical|High|Medium|Low] per concern
+```
+
+
+### Divergent Techniques
+
+# Divergent Techniques
+
+Generate 10+ ideas without filtering. Quantity over quality in early phases prevents premature convergence.
+
+## Techniques
+
+### SCAMPER
+Modify existing solutions systematically:
+- **S**ubstitute: What can replace a component?
+- **C**ombine: Merge two approaches?
+- **A**dapt: Borrow from another domain?
+- **M**odify: Change scale, shape, or form?
+- **P**ut to other use: Repurpose existing code?
+- **E**liminate: Remove complexity?
+- **R**earrange: Change sequence or flow?
+
+**Use when:** Improving existing features or patterns.
+
+### Mind Mapping
+Radiate from central topic, no filtering:
+1. Write topic in center
+2. Branch primary themes (tech, UX, data, security)
+3. Sub-branch specific ideas per theme
+4. Connect related branches
+
+**Use when:** Exploring unfamiliar problem spaces.
+
+### Reverse Brainstorming
+Ask "How could we make this fail?" then invert:
+1. List ways to guarantee failure
+2. Flip each into success criteria
+3. Generate ideas that achieve those criteria
+
+**Use when:** Risk-heavy decisions, security features.
+
+### Round-Robin
+Each agent contributes sequentially:
+1. Agent A proposes approach
+2. Agent B builds on or pivots from A
+3. Agent C adds new dimension
+4. Repeat until 10+ ideas
+
+**Use when:** Multi-domain topics needing diverse expertise.
+
+## Selection Guide
+
+| Situation | Technique |
+|-----------|-----------|
+| Extending existing system | SCAMPER |
+| Greenfield design | Mind Mapping |
+| Security/reliability focus | Reverse Brainstorming |
+| Cross-functional topic | Round-Robin |
+
+
+### Effort Scaling
+
+# Effort-Aware Phase Scaling
+
+CC 2.1.76 introduced `/effort` levels; `xhigh` was added in CC 2.1.111 (Opus 4.7); since CC 2.1.154 Opus 4.8 defaults to `high` and reserves `xhigh` for the hardest tasks. The effort-aware context budgeting hook (global) detects effort level automatically — adapt the phase plan accordingly.
+
+| Effort Level | Phases Run                                                                                        | Token Budget | Agents |
+|--------------|---------------------------------------------------------------------------------------------------|--------------|--------|
+| **low**      | Phase 0 → Phase 2 (quick ideation) → Phase 5 (light synthesis)                                    | ~50K         | 2 max  |
+| **medium**   | Phase 0 → Phase 2 → Phase 3 → Phase 5 → Phase 6                                                   | ~150K        | 3 max  |
+| **high**     | All 7 phases (default)                                                                            | ~400K        | 3-5    |
+| **xhigh**    | All 7 phases + extra devil's-advocate round in Phase 4 + extra synthesis dimension in Phase 5     | ~550K        | 3-5    |
+
+```python
+# Effort detection — the global hook injects effort level, but also check:
+# If user said "quick brainstorm" or "just ideas" → treat as low effort
+# If user selected "Quick ideation" in Step 0a → treat as low effort regardless of /effort
+```
+
+> **Override:** Explicit user selection in STEP 0a (e.g., "Open exploration") overrides `/effort` downscaling.
+
+
+### Evaluation Rubric
+
+# Evaluation Rubric
+
+Rate each idea 0-10 across seven dimensions with weighted scoring.
+
+## Dimensions
+
+| Dimension | Weight | Description |
+|-----------|--------|-------------|
+| **Impact** | 0.15 | Value delivered to users/business |
+| **Effort** | 0.20 | Implementation complexity (invert: low effort = high score) |
+| **Risk** | 0.15 | Technical/business risk (invert: low risk = high score) |
+| **Alignment** | 0.20 | Fit with existing architecture and patterns |
+| **Testability** | 0.15 | How easily the design can be unit/integration/E2E tested |
+| **Simplicity** | 0.10 | Net complexity change: simplifies or adds? (inspired by autoresearch) |
+| **Innovation** | 0.05 | Novelty and differentiation |
+
+## Scoring Scale
+
+| Score | Label | Criteria |
+|-------|-------|----------|
+| 9-10 | Excellent | Clearly best-in-class |
+| 7-8 | Good | Strong with minor concerns |
+| 5-6 | Adequate | Acceptable, notable trade-offs |
+| 3-4 | Weak | Significant drawbacks |
+| 0-2 | Poor | Fundamental issues |
+
+## Testability Scoring Guide
+
+| Score | Criteria |
+|-------|----------|
+| 9-10 | Pure functions, clear boundaries, all deps injectable, trivial to mock |
+| 7-8 | Mostly testable, minor coupling, mockable with reasonable effort |
+| 5-6 | Testable with effort, some tight coupling or hard-to-mock deps |
+| 3-4 | Hard to test, many external deps, deep coupling, requires real services |
+| 0-2 | Untestable: global state, hidden side effects, no seams for mocking |
+
+## Simplicity Scoring Guide
+
+| Score | Criteria |
+|-------|----------|
+| 9-10 | Removes code/concepts while improving or maintaining the result |
+| 7-8 | Neutral complexity — replaces existing with equivalent simplicity |
+| 5-6 | Adds moderate complexity proportional to value delivered |
+| 3-4 | Adds significant complexity for marginal gain |
+| 0-2 | Adds ugly complexity, new abstractions, new concepts for little benefit |
+
+> "A small improvement that adds ugly complexity is not worth it. Removing something and getting equal or better results is a great outcome — that's a simplification win." — autoresearch design principle
+
+## Composite Formula
+
+```
+composite = impact * 0.15 + (10 - effort) * 0.20 + (10 - risk) * 0.15 + alignment * 0.20 + testability * 0.15 + simplicity * 0.10 + innovation * 0.05
+```
+
+## Devil's Advocate Adjustment
+
+| Finding | Adjustment |
+|---------|------------|
+| 1+ critical concerns | Multiply by 0.70 |
+| 3+ high concerns | Multiply by 0.85 |
+| No critical/high | No adjustment |
+
+## Example
+
+| Idea | Impact | Effort | Risk | Align | Test | Simpl | Innov | Raw | DA | Final |
+|------|--------|--------|------|-------|------|-------|-------|-----|-----|-------|
+| JWT+Redis | 8 | 4 | 3 | 9 | 8 | 6 | 6 | 7.30 | 0 | **7.30** |
+| Session-only | 6 | 2 | 2 | 8 | 9 | 9 | 3 | 7.55 | 0 | **7.55** |
+| Custom tokens | 9 | 8 | 7 | 5 | 3 | 2 | 9 | 4.50 | 1 crit | **3.15** |
+
+Note: Session-only now wins over JWT+Redis because its high Simplicity score (9) rewards removing complexity. This encodes the autoresearch principle: simpler solutions that achieve similar results are preferred.
+
+
+### Example Session Auth
+
+# Example Session: Authentication Storage Design
+
+This complete example demonstrates the brainstorming workflow for designing an authentication storage solution.
+
+## Context
+
+User request: "I need to add authentication to my web app but I'm not sure how to store the auth data."
+
+## Phase 1: Understanding
+
+### Question 1 (Clarification)
+**Using AskUserQuestion tool:**
+
+```
+Question: "Where should the authentication data be stored?"
+Header: "Storage Location"
+Options:
+  - "Session storage"
+    Description: Clears on tab close, more secure, no cross-tab access
+  - "Local storage"
+    Description: Persists across sessions, more convenient, cross-tab access
+  - "Cookies"
+    Description: Works with SSR, compatible with older browsers, sent with requests
+  - "Server-side session"
+    Description: Most secure, requires backend session store, scales with infrastructure
+```
+
+**User selects:** "Cookies" (needs SSR compatibility)
+
+### Question 2 (Constraints)
+**Using AskUserQuestion tool:**
+
+```
+Question: "What's the primary security concern for this application?"
+Header: "Security Level"
+Options:
+  - "Basic protection"
+    Description: Standard security, public-facing app, low-risk data
+  - "Enhanced security"
+    Description: Financial data, user PII, requires CSRF protection
+  - "Maximum security"
+    Description: Healthcare/banking, requires encryption, audit logs
+```
+
+**User selects:** "Enhanced security" (handling user PII)
+
+### Question 3 (Success Criteria)
+**Open-ended:** "What would successful authentication look like for your users?"
+
+**User response:** "Users stay logged in for 7 days, can log out from any device, get notified of new logins"
+
+### Phase 1 Summary
+- **Storage:** Cookies (for SSR compatibility)
+- **Security:** Enhanced (CSRF protection, PII handling)
+- **Requirements:** 7-day sessions, multi-device logout, login notifications
+
+## Phase 2: Exploration
+
+### Proposed Approaches
+
+**Using AskUserQuestion tool:**
+
+```
+Question: "Which authentication architecture should we use?"
+Header: "Auth Architecture"
+Options:
+  - "JWT in httpOnly cookie"
+    Description: Stateless, scales easily, can't revoke tokens early, 7-day expiry matches requirement
+  - "Session ID with Redis"
+    Description: Stateful, instant revocation, requires Redis infrastructure, supports multi-device logout
+  - "JWT + Refresh Token"
+    Description: Balanced, short-lived JWT (15min) + long refresh token, instant revocation of refresh, more complex
+```
+
+**Trade-off Discussion:**
+
+| Approach | Pros | Cons | Complexity |
+|----------|------|------|------------|
+| JWT Only | Simple, stateless, no backend state | Can't revoke before expiry, all-or-nothing | Low |
+| Session+Redis | Instant revocation, multi-device control | Requires Redis, more infrastructure | Medium |
+| JWT+Refresh | Best of both, short-lived access token | More endpoints, token refresh logic | Medium-High |
+
+**User selects:** "Session ID with Redis" (needs instant revocation for multi-device logout)
+
+## Phase 3: Design Presentation
+
+### Section 1: Architecture Overview
+
+**Present:**
+```
+Authentication Flow:
+1. User logs in → Backend validates credentials
+2. Backend creates session in Redis (7-day TTL)
+3. Backend returns httpOnly cookie with session ID
+4. Client sends cookie with each request
+5. Backend validates session ID against Redis
+6. On logout → Delete session from Redis
+
+Session Structure in Redis:
+{
+  "user_id": "123",
+  "created_at": "2024-01-15T10:30:00Z",
+  "device_info": "Chrome/Mac",
+  "last_active": "2024-01-15T10:35:00Z"
+}
+```
+
+**Validate:** "Does this architecture handle your multi-device logout requirement?"
+
+**User feedback:** "Yes, but how do we notify about new logins?"
+
+### Section 2: Multi-Device Management
+
+**Present:**
+```
+Session Management:
+- Store all active sessions per user in Redis set: `user:123:sessions`
+- Each login creates new session, adds to set
+- On login, check if >3 sessions → send email notification
+- Logout from one device → remove that session ID
+- "Logout all devices" → delete entire session set
+
+Notification Logic:
+- On new session creation:
+  1. Check if user has existing sessions
+  2. If yes → trigger notification email/push
+  3. Include: device info, IP, timestamp, "Not you?" link
+```
+
+**Validate:** "Does this notification approach work for your use case?"
+
+**User feedback:** "Perfect, let's proceed"
+
+### Section 3: Security Implementation
+
+**Present:**
+```
+Security Measures:
+1. httpOnly cookies (prevent XSS theft)
+2. Secure flag (HTTPS only)
+3. SameSite=Lax (CSRF protection)
+4. 7-day max age, sliding window on activity
+5. CSRF token in separate header for mutations
+6. Rate limiting on login endpoint (5 attempts/15min)
+
+Cookie Setup:
+Set-Cookie: session_id=abc123;
+  HttpOnly;
+  Secure;
+  SameSite=Lax;
+  Max-Age=604800;
+  Path=/
+```
+
+**Validate:** "Does this meet your enhanced security requirement?"
+
+**User feedback:** "Yes, looks good"
+
+## Final Design Summary
+
+**Storage:** Session ID in httpOnly cookie
+**Backend:** Redis for session storage (7-day TTL)
+**Multi-device:** Session set per user, email notifications
+**Security:** httpOnly + Secure + SameSite + CSRF tokens
+**Logout:** Single-device and all-devices support
+
+## Implementation Notes
+
+- Use Redis with persistence (AOF or RDB)
+- Consider session cleanup job for expired entries
+- Monitor Redis memory usage
+- Log all authentication events for audit
+
+## Key Takeaways
+
+1. **Cookie choice was validated early** (Phase 1) → No rework needed
+2. **Trade-offs were explicit** (Phase 2) → User made informed choice
+3. **Design was validated incrementally** (Phase 3) → Caught notification requirement early
+4. **Security was specific** → Actual cookie configuration provided
+
+This prevented a common pitfall: building JWT auth and realizing multi-device logout is impossible without a backend state store.
+
+
+### Example Session Dashboard
+
+# Example Session: Real-Time Dashboard Design
+
+This complete example demonstrates brainstorming workflow for a real-time analytics dashboard.
+
+## Context
+
+User request: "Build me a real-time dashboard to track user activity on my SaaS app."
+
+## Phase 1: Understanding
+
+### Question 1 (Purpose)
+**Open-ended:** "What specific user activities do you want to track on this dashboard?"
+
+**User response:** "Logins, API calls, errors, active users right now."
+
+### Question 2 (Constraints)
+**Using AskUserQuestion tool:**
+
+```
+Question: "What's your data volume and update frequency?"
+Header: "Scale Requirements"
+Options:
+  - "Low volume"
+    Description: <1000 users, updates every 5-10 seconds acceptable
+  - "Medium volume"
+    Description: 1k-50k users, need 1-2 second updates
+  - "High volume"
+    Description: >50k users, need sub-second updates, streaming data
+```
+
+**User selects:** "Medium volume" (10k users, 2-second updates okay)
+
+### Question 3 (Success Criteria)
+**Open-ended:** "What decisions will you make based on this dashboard?"
+
+**User response:** "Spot issues quickly (error spikes), see if marketing campaigns are working (login spikes), monitor API health."
+
+### Phase 1 Summary
+- **Metrics:** Logins, API calls, errors, active users
+- **Scale:** 10k users, 2-second update frequency
+- **Goal:** Issue detection, campaign tracking, API health monitoring
+
+## Phase 2: Exploration
+
+### Proposed Approaches
+
+**Using AskUserQuestion tool:**
+
+```
+Question: "Which data pipeline architecture should we use?"
+Header: "Pipeline Design"
+Options:
+  - "Database polling"
+    Description: Query DB every 2 seconds, simple setup, may strain DB at scale
+  - "Server-Sent Events (SSE)"
+    Description: Push updates from server, real-time, keeps connections open
+  - "WebSockets with aggregation"
+    Description: Bidirectional real-time, more complex, supports filters
+```
+
+**Trade-off Analysis:**
+
+| Approach | Real-time | Complexity | Scalability | Cost |
+|----------|-----------|------------|-------------|------|
+| DB Polling | 2s delay | Low | Limited (DB strain) | Low |
+| SSE | Instant | Medium | Good (one-way) | Medium |
+| WebSockets | Instant | High | Excellent | High (connection overhead) |
+
+**Additional consideration:** "For 10k users with 2-second updates, SSE is optimal. WebSockets are overkill since you don't need bidirectional communication."
+
+**User selects:** "Server-Sent Events" (fits requirements, reasonable complexity)
+
+## Phase 3: Design Presentation
+
+### Section 1: Data Flow Architecture
+
+**Present:**
+```
+Data Pipeline:
+1. Application events → Message queue (Redis Streams)
+2. Aggregation worker → Process events every 1 second
+3. Aggregate results → Store in Redis cache (2-second TTL)
+4. SSE endpoint → Push aggregated data to dashboard
+5. Dashboard → Render charts with new data
+
+Components:
+- Event Producer: Application server (logs events to Redis Stream)
+- Aggregation Worker: Node.js worker (consumes stream, calculates metrics)
+- Cache Layer: Redis (stores last 60 seconds of aggregated data)
+- SSE Server: Express.js endpoint (/api/dashboard/stream)
+- Frontend: React + Chart.js (renders real-time updates)
+```
+
+**Validate:** "Does this flow make sense for tracking your user activities?"
+
+**User feedback:** "Yes, but what happens if dashboard disconnects?"
+
+### Section 2: Connection Handling
+
+**Present:**
+```
+SSE Connection Management:
+1. On disconnect → Client auto-reconnects with exponential backoff
+2. On reconnect → Server sends last 60s of cached data (catch-up)
+3. Heartbeat every 30s → Keep connection alive
+4. If aggregation worker fails → Fallback to DB polling (degraded mode)
+
+Reconnection Logic:
+- 1st attempt: Immediate
+- 2nd attempt: 1 second delay
+- 3rd attempt: 2 second delay
+- Max delay: 30 seconds
+- Give up after: 5 minutes (show "Reconnecting..." UI)
+
+Catch-up Strategy:
+- Server tracks last event ID per client
+- On reconnect, client sends: Last-Event-ID header
+- Server replays events since that ID (max 60s buffer)
+```
+
+**Validate:** "Does this handle disconnections appropriately?"
+
+**User feedback:** "Great, what about the actual metrics?"
+
+### Section 3: Metrics & Visualization
+
+**Present:**
+```
+Dashboard Metrics (auto-updating every 2s):
+
+1. Active Users (right now)
+   - Metric: Count of unique user_ids in last 5 minutes
+   - Visualization: Large number with sparkline
+   - Alert: Red if drops >50% from baseline
+
+2. Logins (per minute)
+   - Metric: Count of login events in rolling 1-minute window
+   - Visualization: Line chart (last 30 minutes)
+   - Alert: Green spike if >2x baseline (campaign success)
+
+3. API Calls (per second)
+   - Metric: Count of API events per second
+   - Visualization: Area chart (last 10 minutes)
+   - Alert: Yellow if >80% of rate limit
+
+4. Error Rate (percentage)
+   - Metric: (Error count / Total requests) * 100
+   - Visualization: Line chart with threshold markers
+   - Alert: Red if >5%
+
+Data Retention:
+- Real-time view: Last 60 minutes (Redis)
+- Historical: Last 30 days (TimescaleDB)
+- Switch view: Toggle between "Last hour" and "Today"
+```
+
+**Validate:** "Do these metrics and visualizations match what you need?"
+
+**User feedback:** "Perfect, this covers everything"
+
+## Final Design Summary
+
+**Architecture:** Redis Streams → Aggregation Worker → Redis Cache → SSE → React Dashboard
+
+**Metrics:**
+- Active users (5-min window)
+- Logins per minute (30-min chart)
+- API calls per second (10-min chart)
+- Error rate percentage (with alerts)
+
+**Resilience:**
+- Auto-reconnect with backoff
+- 60-second event replay on reconnect
+- Fallback to polling if worker fails
+- Heartbeat keep-alive
+
+**Data Storage:**
+- Real-time: Redis (60 minutes)
+- Historical: TimescaleDB (30 days)
+
+## Implementation Priorities
+
+1. **Phase 1:** Basic SSE endpoint + 4 metrics (2-3 days)
+2. **Phase 2:** Reconnection logic + error handling (1 day)
+3. **Phase 3:** Historical view + TimescaleDB (2 days)
+4. **Phase 4:** Alerting system (optional, 1 day)
+
+## Key Takeaways
+
+1. **Chose SSE over WebSockets** → Simpler, fits requirements (no bidirectional needed)
+2. **Redis Streams for events** → Natural fit for streaming data
+3. **60-second replay buffer** → Handles disconnections gracefully
+4. **Degraded mode fallback** → System stays functional even if worker fails
+5. **Clear alert thresholds** → Makes dashboard actionable, not just informational
+
+## What Was Avoided
+
+- **Mistake 1:** Starting with WebSockets → Would be overengineered
+- **Mistake 2:** Polling database directly → Would strain DB at 10k users
+- **Mistake 3:** No reconnection strategy → Poor user experience on network issues
+- **Mistake 4:** Storing everything in memory → Would lose data on restart
+
+This design validates requirements early and makes explicit trade-offs before implementation.
+
+
+### Iterative Optimization Mode
+
+# Iterative Optimization Mode (autoresearch-style)
+
+Selected when the user picks **"Iterative optimization"** in STEP 0a. Skips Phases 2-6 of the standard brainstorm flow and enters a metric-driven optimization loop that runs until the user interrupts.
+
+**Required:** one command that produces a metric, plus an extraction rule for that metric.
+
+## 1. Ask for metric definition
+
+```python
+AskUserQuestion(questions=[
+  {"question": "What command produces the metric?",
+   "header": "Metric command",
+   "options": [
+     {"label": "npm run benchmark", "description": "Node.js benchmark suite"},
+     {"label": "pytest --tb=short", "description": "Python test suite"},
+     {"label": "lighthouse --output=json", "description": "Web performance score"},
+     {"label": "I'll type my own", "description": "Custom command"}
+   ]},
+  {"question": "How to extract the metric number?",
+   "header": "Metric extraction",
+   "options": [
+     {"label": "grep from stdout", "description": "e.g. grep 'score:' output.log"},
+     {"label": "JSON field", "description": "e.g. jq '.score' result.json"},
+     {"label": "Exit code", "description": "0 = pass, non-zero = fail"},
+     {"label": "I'll specify", "description": "Custom extraction"}
+   ]},
+  {"question": "Direction?",
+   "header": "Optimization direction",
+   "options": [
+     {"label": "Lower is better", "description": "Latency, bundle size, error rate"},
+     {"label": "Higher is better", "description": "Score, throughput, coverage"}
+   ]}
+])
+```
+
+## 2. Establish baseline
+
+```python
+Bash(command="{metric_command} > .claude/experiments/baseline.log 2>&1")
+baseline = extract_metric(".claude/experiments/baseline.log")
+append_to_journal(baseline, "keep", "-", current_commit, "baseline")
+```
+
+## 3. Optimization loop
+
+See `$\{CLAUDE_PLUGIN_ROOT\}/skills/chain-patterns/references/experiment-journal.md` for journal format.
+
+```python
+# LOOP (until user interrupts or trajectory == "stuck" for 5+ iterations):
+#   a. Generate ONE idea (quick ideation, single agent)
+#   b. Implement in worktree: Agent(isolation="worktree", ...)
+#   c. Run metric command in worktree
+#   d. Compare to previous best
+#   e. If improved: merge worktree back, log "keep"
+#   f. If not: discard worktree, log "discard"
+#   g. Check trajectory — if "stuck" for 5+, try radical changes
+#   h. NEVER STOP — continue until user interrupts
+```
+
+
+### Mcp Probe Resume
+
+# MCP Probe + Resume Check
+
+Run this **once at skill start** to detect available MCP servers and resume any prior session that crashed mid-phase.
+
+## Probe MCP servers
+
+```python
+ToolSearch(query="select:mcp__memory__search_nodes")  # CC < 2.1.121 fallback (alwaysLoad in .mcp.json otherwise)
+ToolSearch(query="select:mcp__sequential-thinking__sequentialthinking")
+```
+
+Detailed detection patterns: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/chain-patterns/references/mcp-detection.md")`.
+
+## Store capabilities
+
+```python
+Write(".claude/chain/capabilities.json", {
+  "memory": probe_memory.found,
+  "sequential_thinking": probe_st.found,
+  "skill": "brainstorm",
+  "timestamp": now()
+})
+```
+
+## Resume from prior crash
+
+```python
+state = Read(".claude/chain/state.json")  # may not exist
+if state.skill == "brainstorm" and state.status == "in_progress":
+    # Skip completed phases, resume from state.current_phase
+    last_handoff = Read(f".claude/chain/{state.last_handoff}")
+```
+
+## Phase Handoff Files
+
+Each phase writes a handoff file consumed by the next phase:
+
+| Phase | Handoff File                  | Contents                                       |
+|-------|-------------------------------|------------------------------------------------|
+| 0     | `00-topic-analysis.json`      | Agent list, tier, topic classification         |
+| 1     | `01-memory-context.json`      | Prior patterns, codebase signals               |
+| 2     | `02-divergent-ideas.json`     | 10+ raw ideas                                  |
+| 3     | `03-feasibility.json`         | Filtered viable ideas                          |
+| 4     | `04-evaluation.json`          | Rated + devil's advocate results               |
+| 5     | `05-synthesis.json`           | Top 2-3 approaches, trade-off table            |
+
+
+### Phase Workflow
+
+# Brainstorming Phase Workflow
+
+Detailed instructions for the 7-phase brainstorming process.
+
+## Phase 0: Project Context Discovery & Agent Selection
+
+**Goal:** Detect project tier, then identify topic domain and select relevant agents.
+
+### Step 0: Detect Project Tier
+
+Before analyzing the topic, classify the project into one of 6 tiers (see `scope-appropriate-architecture` skill). This tier becomes the **complexity ceiling** for all ideas generated in later phases.
+
+**Tier impacts on brainstorming:**
+- **Tier 1-2 (Interview/Hackathon):** Skip complex patterns entirely. Ideas should focus on simplicity and directness. Limit to 5 ideas max.
+- **Tier 3 (MVP):** Prefer managed services and monolith patterns. Flag any microservice or event-driven idea as OVERKILL.
+- **Tier 4-5 (Growth/Enterprise):** Full brainstorming with all patterns available.
+- **Tier 6 (Open Source):** Focus on API design, extensibility, and backwards compatibility.
+
+**Include tier context in EVERY agent prompt:**
+```
+PROJECT TIER: {tier_name} (Tier {N})
+COMPLEXITY CEILING: {ceiling_description}
+Do NOT suggest patterns marked OVERKILL for this tier in the scope-appropriate-architecture matrix.
+```
+
+### Step 1: Classify Topic Keywords
+
+| Domain | Keywords to Detect |
+|--------|-------------------|
+| **Backend/API** | api, endpoint, REST, GraphQL, backend, server, route |
+| **Frontend/UI** | UI, component, React, frontend, page, form, dashboard |
+| **Database** | database, schema, query, SQL, PostgreSQL, migration |
+| **Auth/Security** | auth, login, JWT, OAuth, security, permission, role |
+| **AI/LLM** | AI, LLM, RAG, embeddings, prompt, agent, workflow |
+| **Performance** | performance, slow, optimize, cache, speed, latency |
+| **Testing** | test, coverage, quality, e2e, unit, integration |
+| **DevOps/Infra** | deploy, CI/CD, Docker, Kubernetes, infrastructure, terraform, pipeline |
+| **Design/UI System** | design system, tokens, theme, component library, Stitch, Figma, mockup, palette |
+| **Product/Business** | product, strategy, pricing, business model, market, prd, roadmap, competitive, growth |
+| **Event-Driven** | event, event-driven, kafka, stream, pubsub, event-sourcing, cqrs, saga, queue |
+| **Data Pipeline** | data pipeline, etl, batch, ingestion, embeddings pipeline, chunking, vector |
+
+### Step 2: Select Agents
+
+| Detected Domain | Primary Agents | Skills to Read |
+|-----------------|----------------|----------------|
+| Backend/API | `backend-system-architect`, `security-auditor` | api-design-framework |
+| Frontend/UI | `frontend-ui-developer` | design-system-starter |
+| Database | `backend-system-architect` | database-schema-designer |
+| Auth/Security | `security-auditor`, `backend-system-architect` | auth-patterns |
+| AI/LLM | `llm-integrator`, `workflow-architect` | rag-retrieval |
+| Performance | `frontend-performance-engineer` | performance |
+| Design/UI System | `design-context-extractor`, `component-curator`, `frontend-ui-developer` | design-to-code, component-search, design-context-extract |
+| DevOps/Infra | `infrastructure-architect`, `ci-cd-engineer` | devops-deployment |
+| Product/Business | `product-strategist`, `web-research-analyst` | competitive-analysis, user-research, browser-tools |
+| Event-Driven | `event-driven-architect`, `backend-system-architect` | database-patterns |
+| Data Pipeline | `data-pipeline-engineer`, `llm-integrator` | database-patterns |
+
+**Always include:** `workflow-architect` (system design perspective) + `test-generator` (testability assessment)
+
+---
+
+## Phase 1: Memory + Codebase Context
+
+```python
+# Check knowledge graph for past decisions
+mcp__memory__search_nodes(query="{topic}")
+
+# Quick codebase scan (PARALLEL)
+Grep(pattern="{keywords}", output_mode="files_with_matches")
+Glob(pattern="**/*{topic}*")
+```
+
+---
+
+## Phase 2: Divergent Exploration
+
+**CRITICAL:** Generate 10+ ideas WITHOUT filtering. Quantity over quality.
+
+```python
+# Launch ALL agents in ONE message
+Agent(subagent_type="ork:workflow-architect", prompt="...", run_in_background=True)
+Agent(subagent_type="ork:security-auditor", prompt="...", run_in_background=True)
+Agent(subagent_type="ork:backend-system-architect", prompt="...", run_in_background=True)
+```
+
+**Collecting results (CC 2.1.76):** When background agents complete, check for `[PARTIAL RESULT]` tag in the response. Partial results contain usable ideas but may be incomplete — include them in the idea pool but flag them for extra scrutiny in Phase 3. A `maxTurns` stop is also partial since CC 2.1.246 (summary: "stopped at its N-turn limit (partial result; continue it with SendMessage to the task-id)"); continue that agent with `SendMessage` instead of re-spawning it.
+
+**Divergent mindset instruction for agents:**
+```
+PROJECT TIER: {tier_name} (Tier {N})
+COMPLEXITY CEILING: {ceiling_description}
+
+DIVERGENT MODE: Generate as many approaches as possible.
+- Do NOT filter or critique ideas in this phase
+- Include unconventional, "crazy" approaches
+- Target: At least 3-4 distinct approaches
+- CONSTRAINT: Do NOT suggest patterns marked OVERKILL for Tier {N}
+```
+
+---
+
+## Phase 3: Keep / Discard / Crash Gate
+
+Binary viability gate inspired by [autoresearch](https://github.com/karpathy/autoresearch). No scoring — just a fast yes/no/unknown per idea. Save detailed scoring for Phase 4.
+
+**Time budget: 10 seconds per idea.** For each idea from Phase 2, answer ONE question: *"If we built this, would it work?"*
+
+| Status | Criteria | Action |
+|--------|----------|--------|
+| **keep** | Could work with known technology for this tier | → Phase 4 |
+| **discard** | Fundamentally broken, OVERKILL for tier, or duplicates a prior `discard` in experiment journal | → Drop |
+| **crash** | Can't assess — missing information or ambiguous scope | → Flag for user, skip |
+
+**Discard reasons** (tag each discard for experiment journal):
+- `overkill` — exceeds project tier complexity ceiling
+- `infeasible` — requires technology/resources not available
+- `duplicate` — too similar to a previously discarded approach
+- `untestable` — no seam for testing core logic without real services
+
+**Experiment journal check** (if `.claude/experiments/brainstorm-\{topic\}.tsv` exists):
+```python
+# Pre-filter: skip ideas similar to previous 'discard' entries
+prior = Read(f".claude/experiments/brainstorm-{topic_slug}.tsv")
+# If a similar idea was discarded before, auto-discard with reason 'duplicate'
+```
+
+**Output format:**
+```
+Phase 3 Gate Results (N ideas → M survivors)
+  ✓ keep    — JWT + Redis sessions
+  ✓ keep    — Session-only with signed cookies
+  ✗ discard — Custom token protocol (infeasible: reinvents OAuth)
+  ? crash   — Blockchain auth (can't assess without more context)
+```
+
+---
+
+## Phase 4: Evaluation & Rating
+
+See `evaluation-rubric.md` for scoring criteria (7 dimensions including **testability** and **simplicity**).
+See `devils-advocate-prompts.md` for challenge templates (including testing challenges).
+
+### Composite Score Formula
+
+```python
+composite = (
+    impact * 0.15 +
+    (10 - effort) * 0.20 +
+    (10 - risk) * 0.15 +
+    alignment * 0.20 +
+    testability * 0.15 +
+    simplicity * 0.10 +
+    innovation * 0.05
+)
+
+# Devil's advocate adjustment
+if critical_concerns > 0:
+    composite *= 0.7  # 30% penalty
+```
+
+See `evaluation-rubric.md` for the Simplicity scoring guide — scores net complexity change, not implementation difficulty. Removing code for equal results scores 9-10.
+
+---
+
+## Phase 5: Synthesis
+
+1. Filter to top 2-3 approaches
+2. Merge perspectives from all agents
+3. Build comprehensive trade-off table
+4. **Add test strategy per approach** (see below)
+5. Present to user with scores
+
+### Test Strategy Per Approach
+
+For each top approach, include:
+
+| Aspect | Details |
+|--------|---------|
+| **Recommended test types** | Unit, Integration, E2E, Contract, Property-based |
+| **Mock boundaries** | What to mock vs. what to test with real services |
+| **Infrastructure needs** | docker-compose services, testcontainers, test DBs |
+| **Testing rules** | Which testing sub-skill rules apply (e.g., `testing-integration/integration-api`, `testing-e2e/e2e-playwright`) |
+
+This ensures the chosen design comes with a concrete testing plan, not just architecture.
+
+```python
+AskUserQuestion(questions=[{
+  "question": "Which approach fits your needs?",
+  "header": "Design Options",
+  "options": [
+    {"label": "Option A (7.8/10)", "description": "..."},
+    {"label": "Option B (7.5/10)", "description": "..."}
+  ]
+}])
+```
+
+---
+
+## Phase 6: Design Presentation
+
+Present in 200-300 word sections:
+1. Architecture Overview
+2. Component Details
+3. Data Flow
+4. Error Handling
+5. Security Considerations
+6. **Test Plan** (test types, mock boundaries, infrastructure requirements)
+7. Implementation Priorities
+
+After each section: "Does this look right so far?"
+
+**Living plan output (Phase 6.4, optional):** if the user asked for a playground or the synthesis is a
+multi-wave plan, ALSO emit a living plan playground (see SKILL.md Phase 6.4) — waves from Phase 5,
+scores from Phase 4, discards from Phase 3, per-item "done when" evidence. Later sessions update the
+same file's `lpp-state` JSON as work executes; never fork a second file for the same plan.
+
+```python
+# Store decision in memory
+mcp__memory__create_entities(entities=[{
+  "name": "{topic}-design-decision",
+  "entityType": "Decision",
+  "observations": ["Chose {approach} because {rationale}"]
+}])
+```
+
+
+### Socratic Questions
+
+# Socratic Questioning Templates
+
+Use these templates to guide requirements discovery through structured questioning.
+
+## Purpose Discovery
+
+**Goal:** Understand the "why" behind the feature.
+
+- "What problem does this solve for your users?"
+- "What happens if we don't build this?"
+- "How will success be measured?"
+- "Who is the primary user of this feature?"
+- "What's the most important outcome?"
+
+## Constraint Identification
+
+**Goal:** Uncover limitations and requirements.
+
+- "Are there performance requirements? (e.g., must load in &lt; 2s)"
+- "What's the expected scale? (users, data volume, requests/sec)"
+- "Are there compliance requirements? (GDPR, HIPAA, SOC2)"
+- "What's the timeline/budget constraint?"
+- "What existing systems must this integrate with?"
+
+## Trade-Off Exploration
+
+**Goal:** Make implicit preferences explicit.
+
+- "Would you prefer faster development or better performance?"
+- "Is flexibility more important than simplicity?"
+- "Should this be user-friendly or developer-friendly?"
+- "Optimize for: build speed, maintainability, or scalability?"
+- "What's more critical: feature completeness or time-to-market?"
+
+## Alternative Exploration
+
+**Goal:** Ensure consideration of all viable approaches.
+
+- "What if we didn't build this at all? What's the workaround?"
+- "How would [competitor] solve this?"
+- "Could we start with a simpler version? What's the MVP?"
+- "What if we had unlimited time/budget? What would we add?"
+- "What approaches have you already rejected? Why?"
+
+## Questioning Best Practices
+
+1. **One question at a time** - Don't overwhelm with multiple questions
+2. **Wait for answers** - Let conversation flow naturally
+3. **Follow threads** - Ask follow-up questions based on answers
+4. **Summarize understanding** - "So you need X because of Y?"
+
