@@ -6,6 +6,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import type { ReactNode } from "react";
 import { ClientErrorReporter } from "@/components/client-error-reporter";
+import { GitHubClickTracker } from "@/components/github-click-tracker";
 import CustomSearchDialog from "@/components/search-dialog";
 import { WebMcpProvider } from "@/components/webmcp-provider";
 import { WebVitalsReporter } from "@/components/web-vitals-reporter";
@@ -80,6 +81,7 @@ export default function Layout({ children }: { children: ReactNode }) {
 				<HQAnalytics projectId="orchestkit" />
 				<WebVitalsReporter />
 				<ClientErrorReporter />
+				<GitHubClickTracker />
 				<WebMcpProvider />
 			</body>
 		</html>

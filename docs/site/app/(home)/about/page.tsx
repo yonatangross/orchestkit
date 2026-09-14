@@ -67,8 +67,8 @@ export default function AboutPage() {
 
 			<h2>Get started</h2>
 			<p>
-				Install with <code>{SITE.installCommand}</code> inside Claude Code{" "}
-				{SITE.ccVersion}, then read the{" "}
+				Install from a terminal with <code>{SITE.installCommand}</code> (Claude
+				Code {SITE.ccVersion}), then read the{" "}
 				<Link href="/docs/getting-started/installation">installation guide</Link>.
 				See <Link href="/pricing">pricing</Link> (it's free),{" "}
 				<Link href="/compare">how it compares</Link>, or{" "}

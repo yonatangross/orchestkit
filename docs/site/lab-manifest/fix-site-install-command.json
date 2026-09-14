@@ -1,0 +1,12 @@
+{
+  "slug": "fix-site-install-command",
+  "source": "docs/fix--site-install-command/index.html",
+  "title": "The install command that installed Claude Code",
+  "description": "The site told users to paste a claude install command for the plugin, but claude install installs the Claude Code native build. Compare the old and corrected commands per surface, and see the three new copy and click events.",
+  "tags": [
+    "docs",
+    "install",
+    "analytics"
+  ],
+  "date": "2026-09-14"
+}

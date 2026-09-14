@@ -282,7 +282,7 @@ export const HOME_FAQS: Faq[] = [
 	},
 	{
 		question: "How do I install OrchestKit?",
-		answer: `Run \`${SITE.installCommand}\` inside Claude Code ${SITE.ccVersion}. The plugin installs all skills, agents, and hooks in one step.`,
+		answer: `Inside Claude Code ${SITE.ccVersion}, run \`${SITE.installSlashCommands[0]}\` then \`${SITE.installSlashCommands[1]}\`. From a terminal, run \`${SITE.installCommand}\`. The plugin installs all skills, agents, and hooks together.`,
 	},
 	{
 		question: "What is Claude Code?",

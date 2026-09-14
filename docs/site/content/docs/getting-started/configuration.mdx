@@ -12,7 +12,7 @@ The product configuration UI is inside Claude Code (and hosts that load the `set
 - `/ork:setup` runs the full onboarding (scan, stack, safety, **project config**, permissions, skills, MCPs).
 - `/ork:setup --configure` skips to Phase 3.5 and writes the env block.
 
-The browser install picker on [Installation](/docs/getting-started/installation) only copies `claude install …`. It does not write these knobs.
+The browser install picker on [Installation](/docs/getting-started/installation) only copies a host install command (for Claude Code, `claude plugin marketplace add …` and `claude plugin install …`). It does not write these knobs.
 
 Writes go to `.claude/settings.json` for a normal project, or `src/settings/ork.settings.json` when you are developing OrchestKit itself.
 

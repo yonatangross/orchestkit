@@ -2920,7 +2920,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "mcp-patterns",
     "description": "MCP server building, advanced patterns, and security hardening. Use when building MCP servers, implementing tool handlers, choosing a transport, adding OAuth authentication, wiring MCP Apps UI with @mcp-ui, hardening MCP security, or debugging MCP integrations.",
     "version": "3.1.0",
-    "sha256": "84df0996111aa34e8d7182f5834b373d369078a30df4f44620c5ef3e6a6296b5",
+    "sha256": "dd859d10d9a5b0502c725fa0dd49d101da99378d1a6c63e53edc71bf5b6de71e",
     "author": "OrchestKit",
     "tags": [
       "mcp",

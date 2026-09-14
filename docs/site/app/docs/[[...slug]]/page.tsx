@@ -27,6 +27,7 @@ import { SkillDossier } from "@/components/world/skill-dossier";
 import { SkillFlow } from "@/components/world/skill-flow";
 import { getSectionGlyph } from "@/components/world/station-glyphs";
 import { DocsTable, HookEventTable } from "@/components/hook-event-table";
+import { TrackedCodeBlock } from "@/components/tracked-code-block";
 import { SKILLS } from "@/lib/generated/skills-data";
 
 /**
@@ -174,6 +175,7 @@ export default async function Page(props: {
         <MDX
           components={{
             ...defaultMdxComponents,
+            pre: TrackedCodeBlock,
             table: DocsTable,
             HookEventTable,
             ContextualSkillSidebar: LazyContextualSkillSidebar,

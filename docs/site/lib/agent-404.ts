@@ -50,8 +50,12 @@ export const SERVED_EXACT: ReadonlySet<string> = new Set([
 	"/sitemap.xml",
 	"/opengraph-image",
 	"/favicon.svg",
-	// next.config rewrites that land on real handlers.
+	// next.config rewrites that land on real handlers. Middleware runs BEFORE
+	// rewrites, so a rewrite source missing here is answered with a JSON 404 (and
+	// an agent:not-found event) before the rewrite ever fires. /mcp shipped that
+	// way: POST /mcp returned 404 while POST /api/mcp worked.
 	"/ask",
+	"/mcp",
 	"/mcp.json",
 	"/openapi.json",
 	// Specific /.well-known/* paths we actually rewrite to handlers. Listed
