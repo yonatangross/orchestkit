@@ -23,7 +23,7 @@ The portfolio site paid for the obvious shortcut already (portfolio GH-670): a 4
    - `GET /agent/identity` with no bearer: `401` with the same `resource_metadata` hint and no `error` code, since no token was sent. This is the one genuinely protected endpoint.
    - Anonymous `GET /api` stays 200. Anonymous `POST /api/mcp` stays 200. `GET /api/mcp` keeps answering 405 from its handler. No path returns 401 to a caller that sent no credential, except the identity read-back.
 
-4. **The signing key is honest about what it protects.** `AGENT_IDENTITY_SECRET` makes the assertion unforgeable. Without it the key derives from a fixed phrase, and the code says so: forging an assertion is equivalent to registering anonymously, which is open to everyone, so a private key protects nothing today. The override exists so that if a privilege ever attaches to identity, the key can be made private without changing the token format.
+4. **The signing key is honest about what it protects.** `AGENT_IDENTITY_SECRET` makes the assertion unforgeable. The fixed-phrase fallback exists only for local and test use. Production requires the secret: without it, `POST /agent/identity` answers 503 and every bearer is refused. This applies even though identity currently grants no more than anonymous access, so an eventual privilege attaches to a key that was private from the start.
 
 ## Consequences
 

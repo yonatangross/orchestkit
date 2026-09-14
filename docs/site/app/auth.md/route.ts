@@ -103,6 +103,7 @@ export function GET() {
 		"",
 		"1. **Anonymous access.** Send the request. No bearer, cookie, or signature. This is the sole method the documentation, search, `/ask` and MCP endpoints ever need.",
 		`2. **Optional agent identity** (auth.md agentic registration, type \`anonymous\`). \`POST ${IDENTITY_ENDPOINT}\` with \`{"type":"anonymous"}\` returns a service-signed identity assertion (a 30-day JWT, \`typ: oauth-id-jag+jwt\`). Present it as \`Authorization: Bearer <identity_assertion>\` and \`GET ${IDENTITY_ENDPOINT}\` echoes your registration. Re-register before it expires with \`{"type":"identity_assertion","assertion_type":"${IDENTITY_TOKEN_TYPE}","assertion":"<the token>"}\`; the registration id is preserved.`,
+		"",
 		"Identity registration is served only when the deployment holds a private signing key and answers 503 otherwise.",
 		"",
 		"What the identity does NOT do: it grants no scope an anonymous caller lacks (`scopes` in the registration response equals the anonymous scope set), there is no claim ceremony (`claim` is `null`), and there is no token endpoint to exchange the assertion at: the assertion is the bearer. `service_auth` registration is not offered; the endpoint answers `service_auth_not_enabled`.",
