@@ -239,6 +239,13 @@ const config = {
 						// same-origin under /_vercel/, already covered by 'self', so this
 						// allowance is deliberately kept out of the production policy.
 						`script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === "development" ? " 'unsafe-eval' https://va.vercel-scripts.com" : ""}`,
+						// worker-src exists ONLY for PostHog session replay, which runs on
+						// /docs/reference/* (see instrumentation-client.ts). The replay
+						// recorder starts a Web Worker from a blob: URL; with no worker-src
+						// the browser falls back to script-src, which has no blob:, and the
+						// worker is refused. This grants blob: to workers alone. script-src
+						// is untouched, so no blob: or third-party page script can run.
+						"worker-src 'self' blob:",
 						"style-src 'self' 'unsafe-inline'",
 						"img-src 'self' data: https:",
 						"font-src 'self' data:",
