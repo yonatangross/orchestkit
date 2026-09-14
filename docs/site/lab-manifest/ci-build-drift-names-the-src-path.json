@@ -1,0 +1,12 @@
+{
+  "slug": "ci-build-drift-names-the-src-path",
+  "source": "docs/dsp--74298-ci-yml-src-skills-src/ci-build-drift-names-the-src-path.html",
+  "title": "The drift gate named a directory, not the fix",
+  "description": "The build-drift gate printed a roster of directories and left the contributor to guess the source path. Paste a drifted path and see the gate before and after #3507: every drifted file under plugins/ork/skills/ now prints the src/skills/ path it is generated from.",
+  "tags": [
+    "ci",
+    "build-drift",
+    "developer-experience"
+  ],
+  "date": "2026-09-14"
+}

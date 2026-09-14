@@ -1,5 +1,8 @@
 import { COUNTS, PAGE_SUMMARY, SITE } from "@/lib/constants";
-import { withFrontmatter } from "@/lib/md-frontmatter";
+import {
+	MARKDOWN_NEGOTIATED_HEADERS,
+	withFrontmatter,
+} from "@/lib/md-frontmatter";
 
 // /pricing.md — machine-readable pricing so agents can compare costs without
 // scraping the HTML pricing page. Every claim here must also be true of
@@ -64,10 +67,11 @@ export function GET() {
 		body,
 	);
 
-	return new Response(md, {
-		headers: {
-			"Content-Type": "text/markdown; charset=utf-8",
-			"Cache-Control": "public, max-age=3600",
-		},
-	});
+	// Two representations, one resource: middleware rewrites a bare /pricing here
+	// for `Accept: text/markdown` and for a known AI-crawler UA (STANDALONE_MD_PAGES),
+	// so this body answers a URL a browser gets HTML from. Measured on production
+	// 2026-09-14: GPTBot received this Markdown at /pricing under
+	// `vary: rsc, next-router-...` and `public, max-age=3600`, i.e. storable by a
+	// shared cache with no key on either input that chose it.
+	return new Response(md, { headers: MARKDOWN_NEGOTIATED_HEADERS });
 }
