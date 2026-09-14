@@ -1,0 +1,8 @@
+{
+  "slug": "fix-site-config-hardening",
+  "source": "docs/fix--site-config-hardening/index.html",
+  "title": "Markdown variant cache poisoning, before and after",
+  "description": "One URL serves HTML to people and Markdown to agents, which is only safe while every cache honours Vary. Pick a cache and two readers to see which body each one is handed, before and after marking the negotiated response private with a Vercel-only CDN TTL.",
+  "tags": ["site", "caching", "content-negotiation"],
+  "date": "2026-09-14"
+}
