@@ -214,6 +214,25 @@ updates:
       # Remotion ships TS 7 support.
       - dependency-name: "typescript"
         update-types: ["version-update:semver-major"]
+      # react and react-dom are pinned to 19.2.8: @react-three/fiber 9.7.0
+      # (the latest release; pulled in by @react-three/drei and @remotion/three)
+      # peers on react >=19 <19.3, so any react 19.3+ bump fails `npm ci` with
+      # ERESOLVE and blocks the Validate Renderer check (GH-4098, run
+      # 34806536050; resolved in the superseding PR). Without this ignore
+      # Dependabot re-proposes react 19.3.0 every Monday and each group PR
+      # rediscovers the conflict. Revisit when @react-three/fiber ships a
+      # release whose react peer range includes 19.3+.
+      - dependency-name: "react"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+      - dependency-name: "react-dom"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+      # zod is pinned to 4.5.4, the exact version @remotion/zod-types 4.0.522
+      # requires. A newer root zod installs fine but splits zod into two
+      # copies, and Remotion warns of failed renders and unclear errors at
+      # composition time (measured in the GH-4098 superseder). Revisit when
+      # the remotion group moves and @remotion/zod-types accepts a newer zod.
+      - dependency-name: "zod"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
     open-pull-requests-limit: 5
 
   # The root Dockerfile is a published artifact: release.yml builds and pushes it
