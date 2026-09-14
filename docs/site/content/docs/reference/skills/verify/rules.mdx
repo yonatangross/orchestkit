@@ -1,0 +1,149 @@
+---
+title: "Verify: Rules"
+description: "2 rules for the Verify skill: Evidence Collection Patterns; Scoring Rubric"
+---
+
+> Part of the [Verify](/docs/reference/skills/verify) skill reference. The main page carries the skill itself; this page holds material that used to sit at the bottom of it.
+
+## Rules (2)
+
+### Evidence Collection Patterns — HIGH
+
+
+# Evidence Collection Patterns
+
+## Phase 1: Context Gathering
+
+Run these commands in parallel in ONE message:
+
+```bash
+git diff main --stat
+git log main..HEAD --oneline
+git diff main --name-only | sort -u
+```
+
+**Incorrect:**
+```bash
+# Sequential — wastes time, no coverage data
+cd backend && pytest tests/
+cd frontend && npm test
+```
+
+**Correct:**
+```bash
+# Parallel with coverage — run both in ONE message
+cd backend && poetry run pytest tests/ -v --cov=app --cov-report=json
+cd frontend && npm run test -- --coverage
+```
+
+## Phase 3: Parallel Test Execution
+
+Run backend and frontend tests in parallel:
+
+```bash
+# PARALLEL - Backend and frontend
+cd backend && poetry run pytest tests/ -v --cov=app --cov-report=json
+cd frontend && npm run test -- --coverage
+```
+
+## Phase 7: Metrics Tracking
+
+Store verification metrics in memory for trend analysis:
+
+```python
+mcp__memory__create_entities(entities=[{
+  "name": "verification-{date}-{feature}",
+  "entityType": "VerificationMetrics",
+  "observations": [f"composite_score: {score}", ...]
+}])
+```
+
+Query trends: `mcp__memory__search_nodes(query="VerificationMetrics")`
+
+## Phase 2.5: Visual Evidence Collection
+
+Run in parallel with Phase 2 agents. Auto-detects frontend framework and captures screenshots.
+
+**Incorrect:**
+```bash
+# Manual screenshots with no structure
+open http://localhost:3000
+# Take manual screenshot...
+```
+
+**Correct:**
+```python
+# Automated visual capture with AI evaluation
+Agent(
+  subagent_type="general-purpose",
+  prompt="Visual capture: detect framework, start server, screenshot routes via agent-browser, evaluate with Claude vision, generate gallery.html",
+  run_in_background=True
+)
+```
+
+Output structure:
+```
+verification-output/{timestamp}/
+├── screenshots/          (PNGs per route, base64 in gallery)
+├── ai-evaluations/       (JSON per screenshot with score + issues)
+└── gallery.html          (self-contained, open in browser)
+```
+
+## Phase 8.5: Post-Verification Feedback
+
+After report compilation, store verification scores in the memory graph for KPI baseline tracking:
+
+Query trends: `mcp__memory__search_nodes(query="VerificationScores")`
+
+
+### Scoring Rubric — HIGH
+
+
+# Scoring Rubric
+
+## Composite Score
+
+Each agent produces a 0-10 score with decimals for nuance. The composite score is a weighted sum using the weights from [Quality Model](../references/quality-model.md).
+
+## Grade Thresholds
+
+&lt;!-- Canonical source: ../references/quality-model.md — keep in sync --&gt;
+
+| Grade | Score Range | Verdict |
+|-------|-------------|---------|
+| A+ | 9.0-10.0 | EXCELLENT |
+| A | 8.0-8.9 | READY FOR MERGE |
+| B | 7.0-7.9 | READY FOR MERGE |
+| C | 6.0-6.9 | IMPROVEMENTS RECOMMENDED |
+| D | 5.0-5.9 | IMPROVEMENTS RECOMMENDED |
+| F | 0.0-4.9 | BLOCKED |
+
+## Key Decisions
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Scoring scale | 0-10 with decimals | Nuanced, not binary |
+| Improvement priority | Impact / Effort ratio | Do high-value first |
+| Alternative comparison | Optional phase | Only when multiple valid approaches |
+| Metrics persistence | Memory MCP | Track trends over time |
+
+**Incorrect:**
+```
+Security: "looks fine"  → 8/10    # No evidence, subjective
+Performance: "fast enough" → 7/10  # No benchmarks
+```
+
+**Correct:**
+```
+Security: "11/11 injection tests pass, 13 deny patterns, 0 CVEs" → 9/10
+Performance: "p99 latency 142ms (budget: 300ms), 0 N+1 queries" → 8.5/10
+```
+
+## Improvement Suggestions
+
+Each suggestion includes effort (1-5) and impact (1-5) with priority = impact/effort. See [Quality Model](../references/quality-model.md) for scale definitions and quick wins formula.
+
+## Blocking Rules
+
+Verification can be blocked by policy-as-code rules. See [Policy-as-Code](../references/policy-as-code.md) for configuration of composite minimums, dimension minimums, and blocking rules.
+
