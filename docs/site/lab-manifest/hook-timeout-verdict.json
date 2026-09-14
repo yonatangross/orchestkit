@@ -1,0 +1,12 @@
+{
+  "slug": "hook-timeout-verdict",
+  "source": "docs/dsp--74279-dev-null-timeout/hook-timeout-verdict.html",
+  "title": "hook timeouts: named verdicts, not swallowed exits",
+  "description": "Drag the hook latency and the ORK_HOOK_TIMEOUT budget to see how test-image-paste-guard used to read an exit-124 kill as a wrong PASS or FAIL with no cause, and how rc 124 now becomes its own ERROR verdict with a named timeout (#4087).",
+  "tags": [
+    "testing",
+    "git-hooks",
+    "bash"
+  ],
+  "date": "2026-09-14"
+}

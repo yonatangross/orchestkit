@@ -53,12 +53,37 @@ log_fail() {
 # parallel runner at 1-minute load 37, node did not answer inside 5 s and the
 # timeout produced an empty output that the assertions read as a wrong verdict.
 # Raise the env for one run on a loaded machine; do not raise the default.
+#
+# A budget kill is its OWN verdict (#4087, the shape #4086 gave hook_decision).
+# The old `|| true` threw the exit code away, so rc 124 surfaced as empty
+# output that read as a wrong guard verdict (QA, 2026-09-13: 3 cases reported
+# as "normal prompt processes without error ... FAIL" under a 2 s hook with
+# ORK_HOOK_TIMEOUT=1, with no line naming the timeout). On 124 the helper
+# answers ERROR on stdout, which fails every assertion shape in this file (it
+# is neither JSON nor silent success), and names the cause on stderr:
+#   hook '<name>' timed out after Ns (ORK_HOOK_TIMEOUT); no verdict was produced
+# The verdict is echoed rather than log_fail'ed because callers capture this
+# helper's stdout inside $( ): a counter increment there would run in a
+# subshell and never reach the summary. Returning 0 keeps `set -e` out of the
+# way; the caller's assertion decides. Partial output a killed process flushed
+# is likewise not a verdict, so ERROR replaces it. The 100 ms stdin watchdog
+# (#4085's other timeout shape) needs no handling here: this file feeds the
+# hook through a builtin echo, whose bytes are in the pipe before node spawns,
+# so the watchdog has no producer-side boot to race.
 run_hook_with_input() {
     local hook_name="$1"
     local json_input="$2"
     local timeout_sec="${3:-${ORK_HOOK_TIMEOUT:-5}}"
 
-    echo "$json_input" | timeout "${timeout_sec}" node "$RUN_HOOK" "$hook_name" 2>/dev/null || true
+    local out rc=0
+    out=$(echo "$json_input" | timeout "${timeout_sec}" node "$RUN_HOOK" "$hook_name" 2>/dev/null) || rc=$?
+    if (( rc == 124 )); then
+        echo "hook '$hook_name' timed out after ${timeout_sec}s (ORK_HOOK_TIMEOUT); no verdict was produced" >&2
+        echo "ERROR"
+        return 0
+    fi
+    printf '%s' "$out"
+    return 0
 }
 
 # Check if output indicates silent success (continue=true, suppressOutput=true)
@@ -522,6 +547,70 @@ test_dispatcher_uses_shared_lib() {
     fi
 }
 test_dispatcher_uses_shared_lib
+
+# ============================================================================
+# Hook budget: a timeout is its own verdict (GH-4087)
+# ============================================================================
+
+echo ""
+echo -e "  ${CYAN}Hook budget: timeout verdict (GH-4087)${NC}"
+echo ""
+
+# The budget needs a REAL timeout binary. The shims above paper over their
+# absence by running hooks bare, and a hook that never answers would hang this
+# suite forever instead of failing it, so the case below reports SKIP on such
+# a box, the same trade test-hook-decision-timeout.sh makes (#4086).
+# `type -t` answers "file" for a binary on PATH, "function" for the shims.
+have_real_timeout() {
+    [[ "$(type -t timeout 2>/dev/null)" == "file" || "$(type -t gtimeout 2>/dev/null)" == "file" ]]
+}
+
+# Fake a hanging hook: point RUN_HOOK at a script whose event loop never
+# drains and run under a 1 s budget. The helper must answer ERROR with the
+# cause naming the budget, not a guard verdict and not a swallowed empty
+# output (the #4087 defect read those as "normal prompt processes ... FAIL").
+test_hanging_hook_timeout() {
+    if ! have_real_timeout; then
+        log_pass "hanging hook is reported as a timeout (skipped - no timeout binary on this box)"
+        return
+    fi
+    local hang_runner
+    hang_runner=$(mktemp "${TMPDIR:-/tmp}/ork-hang.XXXXXX.mjs")
+    printf 'setInterval(() => {}, 1000);\n' > "$hang_runner"
+    local saved_run_hook="$RUN_HOOK"
+    RUN_HOOK="$hang_runner"
+    local err_file output
+    err_file=$(mktemp "${TMPDIR:-/tmp}/ork-hang-err.XXXXXX")
+    output=$(run_hook_with_input "prompt/unified-dispatcher" '{"prompt":"hello","tool_name":"","session_id":"test","tool_input":{}}' 1 2>"$err_file")
+    RUN_HOOK="$saved_run_hook"
+    rm -f "$hang_runner"
+    if [[ "$output" == "ERROR" ]]; then
+        log_pass "hanging hook answers ERROR, not a guard verdict (got [$output])"
+    else
+        log_fail "hanging hook answers ERROR, not a guard verdict" "Got: $output"
+    fi
+    if grep -qF "timed out after 1s (ORK_HOOK_TIMEOUT)" "$err_file"; then
+        log_pass "stderr names the cause: $(grep -o 'timed out after [0-9]*s[^;]*' "$err_file" | head -1)"
+    else
+        log_fail "stderr names the timeout cause" "Got: $(tr '\n' ' ' <"$err_file")"
+    fi
+    rm -f "$err_file"
+}
+test_hanging_hook_timeout
+
+# And the same payload under a real budget still reaches the REAL hook, so the
+# ERROR path did not leave the helper unable to deliver a normal verdict.
+test_normal_verdict_after_timeout_path() {
+    local input='{"prompt":"hello","tool_name":"","session_id":"test","tool_input":{}}'
+    local output
+    output=$(run_hook_with_input "prompt/unified-dispatcher" "$input" 10)
+    if [[ -n "$output" ]] && echo "$output" | jq -e '.continue' >/dev/null 2>&1; then
+        log_pass "normal verdict still delivered after the ERROR path exists"
+    else
+        log_fail "normal verdict still delivered after the ERROR path exists" "Got: $output"
+    fi
+}
+test_normal_verdict_after_timeout_path
 
 # ============================================================================
 # SUMMARY
