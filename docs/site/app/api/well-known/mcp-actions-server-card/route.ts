@@ -14,7 +14,7 @@ export function GET() {
 	const d = SITE.domain;
 	const card = {
 		name: `${SITE.name} Actions MCP`,
-		description: `Read-only Model Context Protocol server for OrchestKit actions. Plan installations, discover skills, and validate config fragments without executing anything.`,
+		description: `Read-only Model Context Protocol server for OrchestKit actions. Plan installations, discover skills, and run basic checks on JSON object config fragments without executing anything.`,
 		version: SITE.version,
 		serverUrl: `${d}/api/mcp/actions`,
 		url: `${d}/api/mcp/actions`,
@@ -54,7 +54,7 @@ export function GET() {
 			{
 				name: "orchestkit_doctor_check",
 				description:
-					"Validate a pasted configuration fragment against documented schemas. Reads only the input.",
+					"Run basic checks on a pasted JSON object configuration fragment. Does not parse YAML. Reads only the input.",
 				annotations: {
 					readOnlyHint: true,
 					destructiveHint: false,

@@ -229,7 +229,7 @@
 
         <div class="tool">
           <h3>orchestkit_install_plan</h3>
-          <p>Generate install and invocation commands for given skills or goals. Returns a plan; executes nothing.</p>
+          <p>Generate install and invocation commands for user-invocable skills or goals. Returns a plan; executes nothing.</p>
           <div class="annotations">
             <span class="badge read-only">readOnlyHint: true</span>
             <span class="badge">destructiveHint: false</span>
@@ -238,7 +238,7 @@
 
         <div class="tool">
           <h3>orchestkit_doctor_check</h3>
-          <p>Validate a pasted configuration fragment against documented schemas. Reads only the input.</p>
+          <p>Run basic checks on a pasted JSON object configuration fragment. It does not parse YAML and reads only the input.</p>
           <div class="annotations">
             <span class="badge read-only">readOnlyHint: true</span>
             <span class="badge">destructiveHint: false</span>
@@ -311,9 +311,11 @@
 
     document.getElementById('btn-doctor').addEventListener('click', () => {
       const sampleConfig = JSON.stringify({
-        hooks: [
-          { matcher: 'Edit', hooks: ['my-hook.sh'] }
-        ]
+        hooks: {
+          PreToolUse: [
+            { matcher: 'Edit', hooks: [{ type: 'command', command: 'my-hook.sh' }] }
+          ]
+        }
       });
       callTool('orchestkit_doctor_check', { config: sampleConfig, type: 'hooks' });
     });

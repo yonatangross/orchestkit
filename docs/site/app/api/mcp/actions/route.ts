@@ -8,7 +8,7 @@
 //
 // Every tool is read-only by construction. The install_plan tool
 // returns commands to run; it runs nothing. The doctor_check tool
-// validates pasted config fragments against documented schemas; it
+// validates pasted JSON objects against basic documented shapes; it
 // reads only the input.
 //
 // Spec: https://modelcontextprotocol.io/specification (Streamable HTTP)
@@ -31,9 +31,23 @@ function getUserInvocableSkills() {
 	return Object.values(SKILLS).filter((s) => s.userInvocable);
 }
 
-// All skills for filtering in install_plan
-function getAllSkillNames(): string[] {
-	return Object.keys(SKILLS);
+function getSuggestedSkills(goal: string) {
+	const terms = goal.toLowerCase().match(/[a-z0-9]+/g)?.filter((term) => term.length >= 3) ?? [];
+	if (terms.length === 0) return [];
+
+	return getUserInvocableSkills()
+		.map((skill) => {
+			const searchable = `${skill.name} ${skill.description}`.toLowerCase();
+			const score = terms.reduce(
+				(total, term) => total + (searchable.includes(term) ? 1 : 0),
+				0,
+			);
+			return { skill, score };
+		})
+		.filter(({ score }) => score > 0)
+		.sort((a, b) => b.score - a.score || a.skill.name.localeCompare(b.skill.name))
+		.slice(0, 3)
+		.map(({ skill }) => skill);
 }
 
 const TOOLS = [
@@ -94,7 +108,7 @@ const TOOLS = [
 					items: { type: "string" },
 					description:
 						"Optional list of skill names to include. Valid names: " +
-						getAllSkillNames().slice(0, 10).join(", ") +
+						getUserInvocableSkills().slice(0, 10).map((skill) => skill.name).join(", ") +
 						"...",
 				},
 			},
@@ -111,15 +125,28 @@ const TOOLS = [
 				? (args.skills as string[])
 				: [];
 
-			// Validate skill names
-			const validSkills = new Set(getAllSkillNames());
-			const invalid = skillNames.filter((s) => !validSkills.has(s));
-			if (invalid.length > 0) {
+			// A plan must only advertise skills the user can invoke.
+			const knownSkills = new Set(Object.keys(SKILLS));
+			const userInvocableSkills = new Set(getUserInvocableSkills().map((skill) => skill.name));
+			const unknown = skillNames.filter((name) => !knownSkills.has(name));
+			const nonInvocable = skillNames.filter(
+				(name) => knownSkills.has(name) && !userInvocableSkills.has(name),
+			);
+			if (unknown.length > 0 || nonInvocable.length > 0) {
+				const messages: string[] = [];
+				if (unknown.length > 0) {
+					messages.push(`Invalid skill names: ${unknown.join(", ")}.`);
+				}
+				if (nonInvocable.length > 0) {
+					messages.push(
+						`Skills not available for direct invocation: ${nonInvocable.join(", ")}.`,
+					);
+				}
 				return {
 					content: [
 						{
 							type: "text",
-							text: `Invalid skill names: ${invalid.join(", ")}. Run orchestkit_list_skills to discover valid names.`,
+							text: `${messages.join(" ")} Run orchestkit_list_skills to discover user-invocable skills.`,
 						},
 					],
 					isError: true,
@@ -151,10 +178,16 @@ const TOOLS = [
 
 			// Goal-based suggestions
 			if (goal && skillNames.length === 0) {
-				lines.push("## Suggested Skills");
-				lines.push(
-					`Based on your goal "${goal}", explore skills at ${SITE.domain}/docs/reference/skills`,
-				);
+				const suggestions = getSuggestedSkills(goal);
+				if (suggestions.length > 0) {
+					lines.push("## Suggested Skills");
+					lines.push(`Based on your goal "${goal}":`);
+					for (const skill of suggestions) {
+						lines.push(
+							`- **${skill.name}**: ${skill.description.split(".")[0]}. [Docs](${SITE.domain}/docs/reference/skills/${skill.name})`,
+						);
+					}
+				}
 			}
 
 			lines.push(`## Documentation`);
@@ -170,14 +203,14 @@ const TOOLS = [
 	{
 		name: "orchestkit_doctor_check",
 		description:
-			"Validate a PASTED configuration fragment against OrchestKit's documented schemas. Use this to check a hooks block, plugin marketplace entry, or other config snippet BEFORE applying it. This tool READS ONLY the input; it touches no files.",
+			"Validate a PASTED JSON object against basic OrchestKit configuration shapes. Use this to check a hooks block, plugin marketplace entry, skill metadata, or agent metadata BEFORE applying it. This tool does not parse YAML and READS ONLY the input; it touches no files.",
 		inputSchema: {
 			type: "object" as const,
 			properties: {
 				config: {
 					type: "string",
 					description:
-						"The configuration fragment to validate (JSON or YAML string).",
+						"The JSON object configuration fragment to validate.",
 				},
 				type: {
 					type: "string",
@@ -222,21 +255,28 @@ const TOOLS = [
 				};
 			}
 
-			// Parse the config (JSON or basic YAML-like)
+			// This deliberately supports only JSON objects. YAML frontmatter and JSON
+			// scalars have no validation path here, so they must never receive PASS.
 			let parsed: unknown;
 			try {
-				if (config.trim().startsWith("{") || config.trim().startsWith("[")) {
-					parsed = JSON.parse(config);
-				} else {
-					// Basic YAML-like validation - just check structure
-					parsed = config;
-				}
+				parsed = JSON.parse(config);
 			} catch (e) {
 				return {
 					content: [
 						{
 							type: "text",
-							text: `Parse error: ${(e as Error).message}. Provide valid JSON or YAML.`,
+							text: `# Doctor Check: ${type}\n\nStatus: NOT VALIDATED\n\nThis tool validates JSON objects only and did not validate the provided input. ${(e as Error).message}`,
+						},
+					],
+					isError: true,
+				};
+			}
+			if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+				return {
+					content: [
+						{
+							type: "text",
+							text: `# Doctor Check: ${type}\n\nStatus: NOT VALIDATED\n\nThis tool validates JSON objects only and did not validate the provided input.`,
 						},
 					],
 					isError: true,
@@ -247,21 +287,31 @@ const TOOLS = [
 			const findings: string[] = [];
 
 			if (type === "hooks") {
-				if (typeof parsed === "object" && parsed !== null) {
-					const hooks = parsed as Record<string, unknown>;
-					if (!hooks["hooks"] && !hooks["pre-tool-use"] && !hooks["post-tool-use"]) {
-						findings.push("No hooks block found. Expected 'hooks' key with event types.");
+				const hooks = parsed as Record<string, unknown>;
+				const eventHooks = hooks["hooks"];
+				if (
+					typeof eventHooks !== "object" ||
+					eventHooks === null ||
+					Array.isArray(eventHooks)
+				) {
+					findings.push("Expected a 'hooks' object keyed by event name, such as 'PreToolUse'.");
+				} else {
+					const events = Object.entries(eventHooks);
+					if (events.length === 0) {
+						findings.push("No hook event types found in the 'hooks' object.");
 					}
-					if (Array.isArray(hooks["hooks"])) {
-						for (const h of hooks["hooks"]) {
-							if (typeof h === "object" && h !== null) {
-								const hook = h as Record<string, unknown>;
-								if (!hook["matcher"]) {
-									findings.push("Hook missing 'matcher' field.");
-								}
-								if (!hook["hooks"]) {
-									findings.push("Hook missing 'hooks' array.");
-								}
+					for (const [eventName, entries] of events) {
+						if (!Array.isArray(entries)) {
+							findings.push(`Hook event '${eventName}' must contain an array of hook entries.`);
+							continue;
+						}
+						for (const entry of entries) {
+							if (typeof entry !== "object" || entry === null || Array.isArray(entry)) {
+								findings.push(`Hook event '${eventName}' contains a non-object hook entry.`);
+								continue;
+							}
+							if (!Array.isArray((entry as Record<string, unknown>)["hooks"])) {
+								findings.push(`Hook entry in '${eventName}' is missing its 'hooks' array.`);
 							}
 						}
 					}
@@ -313,7 +363,7 @@ const TOOLS = [
 
 			if (findings.length === 0) {
 				resultLines.push("");
-				resultLines.push("No issues found in the provided configuration.");
+				resultLines.push("No issues found by the supported basic JSON-object checks.");
 			} else {
 				resultLines.push("");
 				resultLines.push("## Issues");
@@ -324,7 +374,7 @@ const TOOLS = [
 
 			resultLines.push("");
 			resultLines.push("---");
-			resultLines.push("_This tool validates only the pasted input. It reads no files._");
+			resultLines.push("_This tool validates only pasted JSON objects with basic checks. It reads no files._");
 
 			return {
 				content: [{ type: "text", text: resultLines.join("\n") }],
@@ -381,7 +431,7 @@ async function dispatch(req: RpcRequest): Promise<object | null> {
 					version: SITE.version,
 				},
 				instructions:
-					"Plan OrchestKit installations without executing. Use orchestkit_list_skills to discover skills, orchestkit_install_plan to generate commands, and orchestkit_doctor_check to validate config fragments. All tools are read-only.",
+					"Plan OrchestKit installations without executing. Use orchestkit_list_skills to discover skills, orchestkit_install_plan to generate commands, and orchestkit_doctor_check to run basic checks on JSON object config fragments. All tools are read-only.",
 			});
 		case "ping":
 			return rpcResult(req.id, {});
@@ -402,7 +452,7 @@ async function dispatch(req: RpcRequest): Promise<object | null> {
 			return rpcResult(req.id, tool.run(args));
 		}
 		default:
-			// Notifications carry no id — no reply.
+			// Notifications carry no id, so no reply.
 			if (req.id === undefined || req.id === null) return null;
 			return rpcError(req.id, -32601, `Method not found: ${req.method}`);
 	}

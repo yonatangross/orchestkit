@@ -390,10 +390,12 @@ OrchestKit also publishes a second MCP server: the **OrchestKit Actions MCP** ex
 Three tools:
 
 - `orchestkit_list_skills`: Discover user-invocable skills with names, descriptions, and docs URLs.
-- `orchestkit_install_plan`: Generate install and invocation commands for given skills or goals. Returns a plan; executes nothing.
-- `orchestkit_doctor_check`: Validate a pasted config fragment against documented schemas. Reads only the input.
+- `orchestkit_install_plan`: Generate install and invocation commands for user-invocable skills or goals. Returns a plan; executes nothing.
+- `orchestkit_doctor_check`: Run basic checks on a pasted JSON object config fragment. It does not parse YAML and reads only the input.
 
-All three tools are read-only by construction. The install plan tool returns shell commands to run; it never runs them. The doctor tool validates pasted input against schemas; it touches no files.
+All three tools are read-only by construction. The install plan tool returns shell commands to run for user-invocable skills; it never runs them. The doctor tool performs basic checks on pasted JSON objects; it touches no files.
+
+For hooks, the doctor tool expects a `hooks` object keyed by event name. Each event value must be an array of object entries, and each entry must contain a `hooks` array. It does not validate nested hook command fields.
 
 ## Sandbox and Dry-Run Mode
 

@@ -125,6 +125,48 @@ describe("Product MCP Actions Server", () => {
 			expect(body.result.isError).toBe(true);
 			expect(body.result.content[0].text).toContain("Invalid skill names");
 		});
+
+		it("refuses a known skill that is not user-invocable", async () => {
+			const { POST } = await import("@/app/api/mcp/actions/route");
+			const res = await POST(
+				new Request("https://orchestkit.yonyon.ai/api/mcp/actions", {
+					method: "POST",
+					headers: { "content-type": "application/json" },
+					body: JSON.stringify(
+						rpcRequest("tools/call", {
+							name: "orchestkit_install_plan",
+							arguments: { skills: ["accessibility"] },
+						}),
+					),
+				}),
+			);
+			const body = await res.json();
+			expect(body.result.isError).toBe(true);
+			expect(body.result.content[0].text).toContain(
+				"Skills not available for direct invocation: accessibility",
+			);
+		});
+
+		it("returns matching, documented suggestions for a goal", async () => {
+			const { POST } = await import("@/app/api/mcp/actions/route");
+			const res = await POST(
+				new Request("https://orchestkit.yonyon.ai/api/mcp/actions", {
+					method: "POST",
+					headers: { "content-type": "application/json" },
+					body: JSON.stringify(
+						rpcRequest("tools/call", {
+							name: "orchestkit_install_plan",
+							arguments: { goal: "Debug a failing CI run" },
+						}),
+					),
+				}),
+			);
+			const body = await res.json();
+			const text = body.result.content[0].text;
+			expect(text).toContain("## Suggested Skills");
+			expect(text).toContain("**ci-debug**");
+			expect(text).toContain("/docs/reference/skills/ci-debug");
+		});
 	});
 
 	describe("orchestkit_doctor_check", () => {
@@ -139,9 +181,14 @@ describe("Product MCP Actions Server", () => {
 							name: "orchestkit_doctor_check",
 							arguments: {
 								config: JSON.stringify({
-									hooks: [
-										{ matcher: "Edit", hooks: ["my-hook.sh"] },
-									],
+									hooks: {
+										PreToolUse: [
+											{
+												matcher: "Edit",
+												hooks: [{ type: "command", command: "my-hook.sh" }],
+											},
+										],
+									},
 								}),
 								type: "hooks",
 							},
@@ -152,7 +199,86 @@ describe("Product MCP Actions Server", () => {
 			expect(res.status).toBe(200);
 			const body = await res.json();
 			const text = body.result.content[0].text;
-			expect(text).toContain("Doctor Check");
+			expect(text).toContain("Status: PASS");
+			expect(text).toContain("supported basic JSON-object checks");
+		});
+
+		it("does not report PASS for non-JSON configuration", async () => {
+			const { POST } = await import("@/app/api/mcp/actions/route");
+			const res = await POST(
+				new Request("https://orchestkit.yonyon.ai/api/mcp/actions", {
+					method: "POST",
+					headers: { "content-type": "application/json" },
+					body: JSON.stringify(
+						rpcRequest("tools/call", {
+							name: "orchestkit_doctor_check",
+							arguments: {
+								config: [
+									"---",
+									"name: example",
+									"description: YAML frontmatter",
+									"---",
+								].join("\n"),
+								type: "skill",
+							},
+						}),
+					),
+				}),
+			);
+			const body = await res.json();
+			const text = body.result.content[0].text;
+			expect(body.result.isError).toBe(true);
+			expect(text).toContain("Status: NOT VALIDATED");
+			expect(text).not.toContain("Status: PASS");
+		});
+
+		it("reports malformed entries in event-keyed hooks objects", async () => {
+			const { POST } = await import("@/app/api/mcp/actions/route");
+			const res = await POST(
+				new Request("https://orchestkit.yonyon.ai/api/mcp/actions", {
+					method: "POST",
+					headers: { "content-type": "application/json" },
+					body: JSON.stringify(
+						rpcRequest("tools/call", {
+							name: "orchestkit_doctor_check",
+							arguments: {
+								config: JSON.stringify({
+									hooks: { PreToolUse: { matcher: "Edit", hooks: [] } },
+								}),
+								type: "hooks",
+							},
+						}),
+					),
+				}),
+			);
+			const body = await res.json();
+			const text = body.result.content[0].text;
+			expect(text).toContain("Status: ISSUES FOUND");
+			expect(text).toContain("Hook event 'PreToolUse' must contain an array");
+			expect(text).not.toContain("Status: PASS");
+		});
+
+		it("does not report PASS for JSON values that are not objects", async () => {
+			const { POST } = await import("@/app/api/mcp/actions/route");
+			for (const config of ["null", "[]", "true", "\"skill\""]) {
+				const res = await POST(
+					new Request("https://orchestkit.yonyon.ai/api/mcp/actions", {
+						method: "POST",
+						headers: { "content-type": "application/json" },
+						body: JSON.stringify(
+							rpcRequest("tools/call", {
+								name: "orchestkit_doctor_check",
+								arguments: { config, type: "skill" },
+							}),
+						),
+					}),
+				);
+				const body = await res.json();
+				const text = body.result.content[0].text;
+				expect(body.result.isError).toBe(true);
+				expect(text).toContain("Status: NOT VALIDATED");
+				expect(text).not.toContain("Status: PASS");
+			}
 		});
 
 		it("returns error for missing config", async () => {
