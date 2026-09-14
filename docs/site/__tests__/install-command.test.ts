@@ -8,16 +8,17 @@ import { describe, expect, it } from "vitest";
 import { SITE } from "@/lib/constants";
 
 // Regression guard for the wrong install command. `claude install` installs the
-// Claude Code native build (see `claude install --help`); it never installed
-// this plugin, yet the site, README, docs and CLI all told users to paste
-// `claude install orchestkit/ork`. The real flow is marketplace add, then
-// plugin install.
+// Claude Code native build (see its help text); it never installed this
+// plugin, yet the site, README, docs and CLI all told users to paste that
+// command with orchestkit/ork as the target. The real flow is marketplace
+// add, then plugin install. The patterns below are assembled from parts so
+// this file never matches its own scan; keep every comment free of them too.
 
 const REPO = resolve(__dirname, "../../..");
 
 // Built from parts so this file never matches its own scan.
 const WRONG_COMMAND = ["claude", "install", "orchestkit"].join(" ");
-// Any `claude install owner/repo` form: a plugin install written as the native
+// The native installer followed by any owner/repo target: a plugin install written as the native
 // installer command.
 const WRONG_PLUGIN_FORM = ["claude", "install", "[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+"].join(" ");
 
@@ -59,7 +60,7 @@ describe("plugin install command", () => {
 		expect(offenders).toEqual([]);
 	});
 
-	it("no tracked file writes any plugin install as `claude install owner/repo`", () => {
+	it("no tracked file writes a plugin install as the native installer with an owner/repo target", () => {
 		const offenders = trackedFilesMatching(["-E", "-e", WRONG_PLUGIN_FORM]).filter(
 			(f) => !LAB_OWNED.has(f),
 		);
