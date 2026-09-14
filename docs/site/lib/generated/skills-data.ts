@@ -1253,8 +1253,8 @@ export const SKILLS: Record<string, SkillMeta> = {
   "create-pr": {
     "name": "create-pr",
     "description": "Creates GitHub pull requests with pre-flight validation, conventional title formatting, and structured summary generation. Runs parallel checks (tests, lint, type-check, security) before opening. Supports feature, bugfix, refactor, and hotfix PR types with milestone assignment via gh CLI. Invoke only if the operator named it; an everyday `gh pr create` stays plain tooling. Use when opening PRs or submitting code for review.",
-    "version": "2.6.0",
-    "sha256": "b893aa979181a9c38065fbaa6b66de69f4159cdd6a15b577cebc720c07a44ad3",
+    "version": "2.7.0",
+    "sha256": "057c928cedfd76b88f40fc81940c9eaf3703a961a3402f08f3fc8f9954842933",
     "author": "OrchestKit",
     "tags": [
       "git",
@@ -1288,6 +1288,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "structure": {
       "references": [
         "ci-integration.md",
+        "coderabbit-cli-prereview.md",
         "coderabbit-zero-reviews.md",
         "multi-commit-pr.md",
         "parallel-validation.md",

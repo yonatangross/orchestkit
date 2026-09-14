@@ -194,6 +194,25 @@ If the ledger doesn't exist or is empty, skip this step — create PR normally.
 
 > **CC 2.1.183 — `attribution.sessionUrl`:** Web and Remote Control sessions append a claude.ai session link to the PR body. For public repos where that link should not be exposed, set `attribution.sessionUrl: false` (`/config attribution.sessionUrl=false`) before creating the PR. ork's agent-attribution sections above are independent of this setting.
 
+### Phase 3c: CodeRabbit CLI pre-review (before `gh pr create`)
+
+CodeRabbit PR reviews are rate limited per GitHub identity (Essentials: 5/hour refill under
+30 reviews in 7 days, 1/hour at 60+), and every push to an open PR spends one. The CLI has a
+separate allowance, so review the branch diff locally first. Advisory only, never blocks.
+
+```bash
+CR_BIN=$(command -v coderabbit || true)   # `cr` is also helm chart-releaser: accept it only by --help
+[ -z "$CR_BIN" ] && command -v cr >/dev/null 2>&1 && grep -q CodeRabbit <<<"$(cr --help 2>&1)" && CR_BIN=cr
+CR_OUT=$(mktemp "${TMPDIR:-/tmp}/cr-prereview.XXXXXX")
+[ -n "$CR_BIN" ] && perl -e 'alarm shift; exec @ARGV' 600 \
+  "$CR_BIN" review --agent --base "origin/$BASE" </dev/null > "$CR_OUT" 2>&1 \
+  || echo "CodeRabbit CLI pre-review skipped (not installed, not signed in, timed out, or errored): $CR_OUT"
+```
+
+Fix clear defects in lines this branch changed, commit, re-run Phase 2 local validation, then
+go to Phase 4 without re-running the CLI. Never pass `--use-credits`. Detection, degrade table,
+and triage: `Read("skills/create-pr/references/coderabbit-cli-prereview.md")`.
+
 ### Phase 4: Create PR
 
 Follow `Read("skills/create-pr/rules/pr-title-format.md")` and `Read("skills/create-pr/rules/pr-body-structure.md")`. Use HEREDOC pattern from `Read("skills/create-pr/references/pr-body-templates.md")`.
@@ -347,7 +366,7 @@ CodeRabbit reviews expire unread: on Yonatan-HQ/platform (last 80 PRs, measured 
 23 of the 24 PRs it reviewed merged with every thread still open. This phase reads the threads
 once, refutes each, and closes every one with a stated outcome. Run it after CI is green and
 before `gh pr merge` or arming `--auto`. Skip only when the repo has no `.coderabbit.yaml` or
-the PR is still a draft.
+the PR is still a draft. Defects fixed in Phase 3c never become threads; the harvest still runs.
 
 ```bash
 H="skills/create-pr/scripts/coderabbit-harvest.sh"
@@ -431,6 +450,7 @@ Done means all of these hold:
 - Title uses conventional `type(#issue): ...` format matching the change
 - Body carries Summary, Changes, and Test Plan sections; every closed issue has its own `Closes #N` keyword
 - Pre-flight validation for the chosen PR type passed locally before creation (skipped only for the Quick type)
+- CodeRabbit CLI pre-review ran once before `gh pr create` (Phase 3c), or its one-line skip reason is in the Test Plan
 - Playground HTML exists at docs/{branch-dir}/*.html and the body links it (required for non-bot PRs)
 - `gh pr view --json url` returns the created PR URL
 - Every CodeRabbit thread on the PR is resolved, with a reply naming the fix sha or the dismissal reason (`skills/create-pr/scripts/coderabbit-harvest.sh --unresolved` prints `[]`)
@@ -456,3 +476,4 @@ Load on demand with `Read("references/<file>")`:
 | `skills/create-pr/assets/pr-template.md` | PR template (legacy) |
 | `skills/create-pr/scripts/coderabbit-harvest.sh` | CodeRabbit threads: read (one GraphQL call), `--reply`, `--resolve` |
 | `skills/create-pr/references/coderabbit-zero-reviews.md` | Harvest returned zero: reviewed clean, or never reviewed? |
+| `skills/create-pr/references/coderabbit-cli-prereview.md` | Phase 3c: why the PR review allowance is scarce, CLI command, degrade table, triage |

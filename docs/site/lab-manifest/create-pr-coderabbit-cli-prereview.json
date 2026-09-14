@@ -1,0 +1,11 @@
+{
+  "slug": "create-pr-coderabbit-cli-prereview",
+  "source": "docs/feat--create-pr-coderabbit-cli-prepush/index.html",
+  "title": "Review locally first: the CodeRabbit CLI has its own allowance",
+  "description": "CodeRabbit PR reviews are rate limited per GitHub identity with an adaptive refill that bottoms out at 1 per hour, and every push to an open PR spends one. create-pr now runs the CodeRabbit CLI against the branch diff before gh pr create, on a separate allowance. Slide the usage and push counts, and step through how the phase degrades when the CLI is missing, signed out, or slow.",
+  "tags": [
+    "ci",
+    "explainer"
+  ],
+  "date": "2026-09-14"
+}
