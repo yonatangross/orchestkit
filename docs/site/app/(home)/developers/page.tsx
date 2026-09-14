@@ -15,10 +15,13 @@ import {
 // Everything listed here already exists; this page is the single index that
 // search engines and agents can find for "<brand> developer resources".
 export const metadata: Metadata = {
-	// The name-based query the audit ran ("yonyon developer resources") has to
-	// have something to match: the layout template appends "| OrchestKit", so
-	// spelling the studio name here makes the full title carry BOTH names.
-	title: "Yonyon Developer Resources",
+	// The name-based queries the audits ran ("yonyon developer resources",
+	// "OrchestKit API / OpenAPI / MCP") have to have something to match in the
+	// title itself, not only in the "| OrchestKit" suffix the layout template
+	// appends: an agent that reads og:title or strips the site suffix would
+	// otherwise see no product name at all. So the title leads with the product,
+	// names the surfaces, and keeps the studio name.
+	title: "OrchestKit Developer Resources by Yonyon: API, OpenAPI Spec, MCP Server",
 	description: `OrchestKit by Yonyon developer resources: API docs, OpenAPI spec, MCP server (hosted + Docker), SDK packages on npm and PyPI, auth and API policy.`,
 	alternates: { canonical: `${SITE.domain}/developers` },
 };
