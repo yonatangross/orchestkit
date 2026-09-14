@@ -138,7 +138,9 @@ function parse(){
   const m=header.toLowerCase().match(/critical|major|minor|trivial|nitpick/);
   const t=text.match(/\*\*(.+?)\*\*/);
   const sev=m?m[0]:"unknown";
-  parsed.innerHTML=`header: <span class="dim">${header.replace(/</g,"&lt;")||"(empty)"}</span>\nseverity: <span class="${sev==="critical"||sev==="major"?"bad":sev==="unknown"?"dim":"warn"}">${sev}</span>\ntitle: ${t?t[1].replace(/</g,"&lt;"):'<span class="dim">(no bold line)</span>'}`;
+  // User-typed text goes in via textContent only, never parsed as HTML.
+  const span=(cls,txt)=>{const s=document.createElement("span");s.className=cls;s.textContent=txt;return s;};
+  parsed.replaceChildren("header: ",span("dim",header||"(empty)"),"\nseverity: ",span(sev==="critical"||sev==="major"?"bad":sev==="unknown"?"dim":"warn",sev),"\ntitle: ",t?t[1]:span("dim","(no bold line)"));
 }
 body.addEventListener("input",parse);
 document.querySelectorAll("button[data-sev]").forEach(b=>b.onclick=()=>{const rest=body.value.split("\n").slice(1).join("\n");body.value=b.dataset.sev+"\n"+rest;parse();});
