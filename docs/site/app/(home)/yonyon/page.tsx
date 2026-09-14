@@ -67,8 +67,8 @@ export default function YonyonPage() {
 				OrchestKit bundles {COUNTS.skills} skills, {COUNTS.agents} agents, and{" "}
 				{COUNTS.hooks} lifecycle hooks into one MIT-licensed package — encoding
 				auth, migration, API, and testing patterns with security and quality
-				gates on by default. It installs in one step with{" "}
-				<code>{SITE.installCommand}</code> inside Claude Code {SITE.ccVersion}.
+				gates on by default. It installs from a terminal with{" "}
+				<code>{SITE.installCommand}</code> (Claude Code {SITE.ccVersion}).
 			</p>
 
 			<h2>Developer resources</h2>

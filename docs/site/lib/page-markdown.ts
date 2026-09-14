@@ -68,7 +68,7 @@ function yonyonMarkdown(): string {
 		"",
 		"## The product",
 		"",
-		`${SITE.name} bundles ${COUNTS.skills} skills, ${COUNTS.agents} agents, and ${COUNTS.hooks} lifecycle hooks into one MIT-licensed package. Install it inside Claude Code ${SITE.ccVersion} with \`${SITE.installCommand}\`.`,
+		`${SITE.name} bundles ${COUNTS.skills} skills, ${COUNTS.agents} agents, and ${COUNTS.hooks} lifecycle hooks into one MIT-licensed package. Install it from a terminal (Claude Code ${SITE.ccVersion}) with \`${SITE.installCommand}\`.`,
 		"",
 		"## Developer resources",
 		"",

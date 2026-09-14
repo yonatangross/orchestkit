@@ -67,7 +67,7 @@ Measured 2026-09-08 on pi 0.85, Codex CLI and cursor-agent. Details, commands an
 
 Then `/ork:setup`. The wizard scans the repo, recommends skills, and writes MCP config.
 
-CLI equivalent: `claude install orchestkit/ork`.
+CLI equivalent: `claude plugin marketplace add yonatangross/orchestkit && claude plugin install ork@orchestkit`.
 
 ### Cursor
 

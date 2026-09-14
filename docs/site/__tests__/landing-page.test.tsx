@@ -67,7 +67,12 @@ vi.mock("..//lib/constants", () => ({
     version: "6.3.0",
     domain: "https://orchestkit.yonyon.ai",
     github: "https://github.com/yonatangross/orchestkit",
-    installCommand: "claude install orchestkit/ork",
+    installCommand:
+      "claude plugin marketplace add yonatangross/orchestkit && claude plugin install ork@orchestkit",
+    installSlashCommands: [
+      "/plugin marketplace add yonatangross/orchestkit",
+      "/plugin install ork",
+    ],
     communityUrl: "/community",
     ccVersion: "2.1.148+",
   },
@@ -317,9 +322,11 @@ describe("landing page content", () => {
     expect(within(nav).getByRole("link", { name: "OpenCode" })).toBeTruthy();
     expect(
       within(nav)
-        .getByRole("button", { name: /copy claude install orchestkit\/ork/i })
+        .getByRole("button", {
+          name: /copy claude plugin marketplace add yonatangross\/orchestkit/i,
+        })
         .getAttribute("aria-label"),
-    ).toMatch(/claude install orchestkit\/ork/i);
+    ).toMatch(/claude plugin install ork@orchestkit/i);
     expect(
       within(nav).getByRole("link", { name: /Claude Code docs/i }).getAttribute("href"),
     ).toBe("/docs/getting-started/claude-code");
