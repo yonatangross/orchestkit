@@ -1,0 +1,8 @@
+{
+  "slug": "site-home-hero",
+  "source": "docs/feat--site-home-hero/index.html",
+  "title": "Homepage hero: install command above the fold, static homepage",
+  "description": "Before and after for the homepage: the install command moved from 954px to 437px on mobile, the homepage now renders statically from cache, and POST /mcp returns 200 instead of 404.",
+  "tags": ["docs", "performance", "analytics"],
+  "date": "2026-09-14"
+}
