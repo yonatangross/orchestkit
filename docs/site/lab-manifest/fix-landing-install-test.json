@@ -1,0 +1,12 @@
+{
+  "slug": "fix-landing-install-test",
+  "source": "docs/fix--landing-install-test/index.html",
+  "title": "Two green PRs, one red main",
+  "description": "Main went red on Docs Site Build after two install command PRs each passed their required checks. One added a hero test naming the old install label, the next forbade that string in every tracked file. The fix is one assertion.",
+  "tags": [
+    "docs",
+    "install",
+    "ci"
+  ],
+  "date": "2026-09-14"
+}
