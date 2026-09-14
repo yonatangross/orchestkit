@@ -235,7 +235,31 @@ export function stripLabChrome(html) {
   return html.replace(HEAD_BLOCK_RE, "").replace(CHROME_BLOCK_RE, "");
 }
 
-/** True when the page itself already declares this meta property or name. */
+// HTML comments, and the bodies of raw-text elements, whose content the
+// browser never parses as markup. An unterminated comment runs to the end of
+// the input, as it does in a browser. An unclosed raw-text element is left
+// as is: a page that broken has no reliable boundary to find anyway.
+const INERT_RE = /<!--[\s\S]*?(?:-->|$)|(<(script|style|textarea|title|noscript)\b[^>]*>)([\s\S]*?)(?=<\/\2\s*>)/gi;
+
+/**
+ * Same-length copy of a page with comments and raw-text element bodies blanked
+ * to spaces, tags themselves kept. Every tag search runs on this copy, and the
+ * ORIGINAL string is sliced at the offsets it returns, so a "</head>" inside a
+ * head script, a "</body>" inside a trailing comment, or a meta-shaped string
+ * inside a script can no longer steer the injection (CodeRabbit on #4101).
+ * Length is preserved per UTF-16 code unit, which is what String.slice uses.
+ */
+export function maskInert(html) {
+  return html.replace(INERT_RE, (m, open, _tag, body) =>
+    open === undefined ? m.replace(/[\s\S]/g, " ") : open + body.replace(/[\s\S]/g, " "),
+  );
+}
+
+/**
+ * True when the page itself already declares this meta property or name.
+ * Pass the masked copy, so a tag quoted inside a script or comment does not
+ * suppress the real one.
+ */
 function declaresMeta(html, key) {
   const k = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   return new RegExp(`<meta\\b[^>]*\\b(?:property|name)\\s*=\\s*["']?${k}["'\\s/>]`, "i").test(html);
@@ -304,26 +328,28 @@ function chromeBlock() {
 /**
  * Add the lab chrome to a page. Input is stripped first, so calling this on an
  * already-injected page yields the same bytes. The head block goes before the
- * FIRST </head> and the footer before the LAST </body>: two live pages carry a
- * second "<head" or "</body>" inside a script string, after or before the real
- * one respectively. A page without those tags (valid HTML) gets the head block
- * after its </title> or at the start, and the footer at the end.
+ * first real </head> and the footer before the last real </body>, both found
+ * on the maskInert copy so text inside comments, scripts, styles, textareas,
+ * titles and noscript never counts. A page without those tags (valid HTML)
+ * gets the head block after its </title> or at the start, and the footer at
+ * the end.
  */
 export function injectLabChrome(html, meta) {
   const base = stripLabChrome(html);
-  const head = headBlock(base, meta);
-  let out;
-  const headClose = base.search(/<\/head\s*>/i);
-  if (headClose !== -1) {
-    out = base.slice(0, headClose) + head + base.slice(headClose);
-  } else {
-    const title = base.match(/<\/title\s*>/i);
-    const at = title ? title.index + title[0].length : 0;
-    out = base.slice(0, at) + head + base.slice(at);
+  const masked = maskInert(base);
+  const head = headBlock(masked, meta);
+  let at = masked.search(/<\/head\s*>/i);
+  if (at === -1) {
+    const title = /<\/title\s*>/i.exec(masked);
+    at = title ? title.index + title[0].length : 0;
   }
-  const bodyClose = out.toLowerCase().lastIndexOf("</body");
+  const out = base.slice(0, at) + head + base.slice(at);
   const chrome = chromeBlock();
-  return bodyClose === -1 ? out + chrome : out.slice(0, bodyClose) + chrome + out.slice(bodyClose);
+  const bodyClose = masked.toLowerCase().lastIndexOf("</body");
+  if (bodyClose === -1) return out + chrome;
+  // Offsets come from `masked`, which has no head block, so shift past it.
+  const pos = bodyClose >= at ? bodyClose + head.length : bodyClose;
+  return out.slice(0, pos) + chrome + out.slice(pos);
 }
 
 function renderEntry(entry, html) {

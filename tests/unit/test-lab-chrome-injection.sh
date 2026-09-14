@@ -164,6 +164,17 @@ else
   bad "--check failed without naming the missing chrome"; cat "$OUT"
 fi
 
+# ---------------------------------------------------------------- 7. inert text
+# A "</head>" in a head script, a quoted og:title meta in a script, and a
+# "</body>" in a trailing comment must not steer the injection (CodeRabbit on
+# #4101). The cases live in a helper; its verdicts go to a FILE and are counted.
+node "$SCRIPT_DIR/lab-chrome-inert-cases.mjs" "$TOOL" > "$WORK/inert.txt" 2>&1
+cat "$WORK/inert.txt"
+P="$(awk '/^PASS: /{n++} END{print n+0}' "$WORK/inert.txt")"
+F="$(awk '/^FAIL: /{n++} END{print n+0}' "$WORK/inert.txt")"
+CHECKED=$((CHECKED+P+F)); FAILED=$((FAILED+F))
+if [[ "$P" -eq 0 && "$F" -eq 0 ]]; then bad "inert: helper produced no verdicts"; fi
+
 echo
 echo "lab chrome: $CHECKED checks, $FAILED failed"
 [[ "$FAILED" -eq 0 ]]
