@@ -286,6 +286,7 @@
       "event": "Stop",
       "trip": {
         "files": {
+          ".git/HEAD": "ref: refs/heads/main\n",
           "src/svc.ts": "export function alpha() { return 1; }\nexport function beta() { return 2; }\n",
           ".claude/state/edit-history.jsonl": "{\"t\":1,\"f\":\"src/svc.ts\",\"tool\":\"Write\",\"sid\":\"00000000-0000-4000-8000-000000000000\"}\n"
         },
@@ -296,6 +297,7 @@
       },
       "control": {
         "files": {
+          ".git/HEAD": "ref: refs/heads/main\n",
           "src/svc.ts": "export function alpha() { return 1; }\nexport function beta() { return 2; }\n",
           "src/svc.test.ts": "import { alpha, beta } from './svc';\n",
           ".claude/state/edit-history.jsonl": "{\"t\":1,\"f\":\"src/svc.ts\",\"tool\":\"Write\",\"sid\":\"00000000-0000-4000-8000-000000000000\"}\n"
