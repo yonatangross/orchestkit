@@ -968,7 +968,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/doctor/references/hook-validation",
     "title": "Doctor: Hook Validation",
-    "description": "OrchestKit uses 152 global hook entries across 29 event types, compiled into 11 bundles."
+    "description": "OrchestKit uses 149 global hook entries across 29 event types, compiled into 11 bundles."
   },
   {
     "url": "/docs/reference/skills/doctor/references/mcp-pinning-check",
