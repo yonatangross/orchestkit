@@ -94,20 +94,23 @@ export function GET() {
 		"",
 		"- [Full documentation, one file](/llms-full.txt)",
 		"- [Full page index](/docs/llms.txt)",
-		"- [API surface context](/api/llms.txt)",
-		"- [OpenAPI 3.1 spec — load to discover the API surface for function-calling](/openapi.json) · [YAML](/api/openapi.yaml)",
-		"- [NLWeb /ask — POST a natural-language query; supports SSE streaming](/ask)",
+		// Every developer-surface line below names the product. An agent that
+		// searches this file for "OrchestKit API" / "OrchestKit MCP" has to hit
+		// the line itself, not infer the product from the heading.
+		`- [${SITE.name} API surface context](/api/llms.txt)`,
+		`- [${SITE.name} API reference: OpenAPI 3.1 spec, load it to discover the API surface for function-calling](/openapi.json) · [YAML](/api/openapi.yaml)`,
+		`- [${SITE.name} NLWeb /ask endpoint: POST a natural-language query; supports SSE streaming](/ask)`,
 		"- [Agent skills on skills.sh (official, self-published)](https://www.skills.sh/yonatangross/orchestkit)",
-		"- [Developer resource hub](/developers) · [as Markdown](/developers.md)",
+		`- [${SITE.name} developer resource hub: API docs, OpenAPI spec, MCP server, SDK packages](/developers) · [as Markdown](/developers.md)`,
 		"- [About Yonyon, the studio behind OrchestKit](/yonyon) · [as Markdown](/yonyon.md)",
 		"- [Best Claude Code plugins roundup (maintainer-disclosed)](/best-claude-code-plugins)",
 		"- [Claude Agent SDK vs Claude Code plugins](/claude-agent-sdk-vs-claude-code-plugins)",
-		"- [MCP server](/api/mcp) · [server card](/.well-known/mcp/server-card.json) · [MCP well-known](/.well-known/mcp)",
-		"- [API catalog (RFC 9727)](/.well-known/api-catalog)",
+		`- [${SITE.name} Docs MCP server (Streamable HTTP)](/api/mcp) · [${SITE.name} MCP server card](/.well-known/mcp/server-card.json) · [MCP well-known](/.well-known/mcp)`,
+		`- [${SITE.name} API catalog (RFC 9727)](/.well-known/api-catalog)`,
 		"- [Changelog](/changelog) · [RSS](/rss.xml)",
 		"- [Pricing](/pricing.md)",
 		"- [Authentication](/auth.md)",
-		"- [API versioning, deprecation & sunset policy](/api-policy) · [as Markdown](/api-policy.md)",
+		`- [${SITE.name} API versioning, deprecation & sunset policy](/api-policy) · [as Markdown](/api-policy.md)`,
 		// registry.npmjs.org, not www.npmjs.com: the www host is behind a
 		// Cloudflare bot challenge and answers any non-browser client with a 403
 		// "Just a moment..." interstitial (measured 2026-08-23 with a ClaudeBot
