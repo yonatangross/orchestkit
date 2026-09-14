@@ -1,0 +1,11 @@
+{
+  "slug": "coderabbit-review-followups",
+  "source": "docs/fix--coderabbit-review-followups/index.html",
+  "title": "CodeRabbit follow-ups: what omitting a flag does not guarantee",
+  "description": "Three fixes from CodeRabbit's late review of #4117. Not passing the credits flag avoids spend only when the org's usage-based add-on is On demand or Off, since Automatic bills overages. The linter block moves from a root tools key, which schema v2 rejects, to reviews.tools. The zero-reviews doc records that the app now reviews this repo. Pick a billing mode and toggle the config before and after.",
+  "tags": [
+    "ci",
+    "explainer"
+  ],
+  "date": "2026-09-14"
+}
