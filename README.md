@@ -471,6 +471,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.26](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.25...v10.0.0-beta.26)** · 2026-09-14
+
+- **build:** generate docs data after stamping counts (#4126)
+
 **[v10.0.0-beta.25](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.24...v10.0.0-beta.25)** · 2026-09-14
 
 - **site:** withhold the negotiated Markdown variant from shared caches (#4125)
@@ -510,10 +514,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.19](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.18...v10.0.0-beta.19)** · 2026-09-13
 
 - **plugins:** drop test configs from the hooks mirror (#4079)
-
-**[v10.0.0-beta.18](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.17...v10.0.0-beta.18)** · 2026-09-12
-
-- **skills:** drain five ASCII density baseline blocks (#4073) (#4077)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
