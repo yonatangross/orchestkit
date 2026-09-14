@@ -15,6 +15,22 @@ is either uninstalled on the account that owns it or disabled account-side. Whic
 two it is cannot be settled from a session, only from the settings page, and the ladder
 below is built so that gap stays visible instead of getting rounded off.
 
+The paragraph above is kept as history: it was true on 2026-09-03 and is no longer.
+
+## Current state, 2026-09-14: installed and reviewing
+
+CodeRabbit now reaches yonatangross/orchestkit. On 2026-09-14 `coderabbitai[bot]` posted a
+full review on #4117 (submitted 13:13Z, 2 inline comments), and orchestkit is listed as a
+connected public repository in the yonatangross CodeRabbit org. The installation gap
+diagnosed above was closed account-side; nothing in `.coderabbit.yaml` changed to fix it.
+
+With the app installed, the common cause of a zero on a single PR is no longer the grant.
+It is the per-identity rate limit (docs.coderabbit.ai/management/rate-limits): a PR whose
+review event arrives while the author's allowance is empty gets a `coderabbitai[bot]`
+comment saying "Review limit reached" instead of a review, and the harvest then reads `[]`.
+Check for that comment first. The ladder below still applies when a repo shows no
+CodeRabbit activity at all.
+
 ## Disambiguate before you trust the zero
 
 Run this once per repo. It is cheap and it separates "clean" from "unreachable".
@@ -76,6 +92,7 @@ gh api "/repos/$R/commits/$SHA/check-suites?per_page=100" --jq '.check_suites[].
 
 | Signal | Strength | Meaning | Fix |
 |---|---|---|---|
+| A `coderabbitai[bot]` comment on this PR saying "Review limit reached" | conclusive | Installed; this PR's review event was rate limited for the author's identity | Wait for the allowance to refill, then `@coderabbitai review`; push fewer times per PR |
 | Zero comments unbounded on both endpoints, control non-zero, **and silence after an explicit `@coderabbitai review`** | strong, still not conclusive | Not installed for this owner account, **or** installed and disabled account-side | Settings page decides which; install or re-enable |
 | Zero comments unbounded, but no explicit-trigger probe was run | **inconclusive** | Indistinguishable from a repo disabled in the dashboard or excluded since day one | Run step 4 before concluding |
 | No `coderabbit` check-suite slug, **and** the control repo has one | corroborating | Agrees with the row above; cannot carry the diagnosis alone | Same |
