@@ -384,50 +384,62 @@ test_oversized_prompt_latency() {
     # bound the DIFFERENCE. Identical spawn cost appears in both terms and
     # disappears from the delta, leaving only work that scales with payload
     # size, which is exactly what "does the guard short-circuit" means.
+    # GH-4130 samples three alternating small then big rounds because host
+    # scheduling noise can inflate either side of a single pair. The minimum
+    # delta keeps the least-interfered observation because noise only adds cost.
     local small_input
     small_input=$(jq -n '{"prompt":"hello","tool_name":"","session_id":"test","tool_input":{}}')
 
-    local s0 s1 small_ms b0 b1 big_ms delta_ms delta_budget_ms
-    local small_out big_out
-    s0=$(python3 -c "import time; print(int(time.time()*1000))")
-    small_out=$(run_hook_with_input "prompt/unified-dispatcher" "$small_input" 5)
-    s1=$(python3 -c "import time; print(int(time.time()*1000))")
-    small_ms=$((s1 - s0))
+    local round s0 s1 small_ms b0 b1 big_ms delta_ms delta_budget_ms
+    local small_out big_out minimum_delta_ms
+    local deltas=()
+    for round in 1 2 3; do
+        s0=$(python3 -c "import time; print(int(time.time()*1000))")
+        small_out=$(run_hook_with_input "prompt/unified-dispatcher" "$small_input" 5)
+        s1=$(python3 -c "import time; print(int(time.time()*1000))")
+        small_ms=$((s1 - s0))
 
-    b0=$(python3 -c "import time; print(int(time.time()*1000))")
-    big_out=$(run_hook_with_input "prompt/unified-dispatcher" "$input" 5)
-    b1=$(python3 -c "import time; print(int(time.time()*1000))")
-    big_ms=$((b1 - b0))
+        b0=$(python3 -c "import time; print(int(time.time()*1000))")
+        big_out=$(run_hook_with_input "prompt/unified-dispatcher" "$input" 5)
+        b1=$(python3 -c "import time; print(int(time.time()*1000))")
+        big_ms=$((b1 - b0))
 
-    # A budget kill answers the ERROR token (GH-4087). The old form sent the
-    # helper's stdout to /dev/null, so that verdict never reached an assertion:
-    # with both runs killed the wall-clock delta floors near 0 and this case
-    # logged PASS on a hook that never answered. A timeout here is a FAIL that
-    # names which run timed out, never a skip; the delta below is judged only
-    # when both runs actually answered.
-    if [[ "$small_out" == "ERROR" || "$big_out" == "ERROR" ]]; then
-        local timed_out=""
-        [[ "$small_out" == "ERROR" ]] && timed_out="trivial (small) run"
-        [[ "$big_out" == "ERROR" ]] && timed_out="${timed_out:+${timed_out} and }oversized (big) run"
-        log_fail "oversized prompt latency run hit the hook budget" \
-                 "hook timed out after 5s in the ${timed_out}; no delta is measurable"
-        return
-    fi
+        # A budget kill answers the ERROR token (GH-4087). The old form sent the
+        # helper's stdout to /dev/null, so that verdict never reached an assertion:
+        # with both runs killed the wall-clock delta floors near 0 and this case
+        # logged PASS on a hook that never answered. A timeout here is a FAIL that
+        # names which run timed out, never a skip; the delta below is judged only
+        # when both runs actually answered.
+        if [[ "$small_out" == "ERROR" || "$big_out" == "ERROR" ]]; then
+            local timed_out=""
+            [[ "$small_out" == "ERROR" ]] && timed_out="trivial (small) run"
+            [[ "$big_out" == "ERROR" ]] && timed_out="${timed_out:+${timed_out} and }oversized (big) run"
+            log_fail "oversized prompt latency run hit the hook budget" \
+                     "hook timed out after 5s in the ${timed_out}; no delta is measurable"
+            return
+        fi
 
-    delta_ms=$((big_ms - small_ms))
-    # Scheduler jitter between two spawns can make the delta slightly negative;
-    # that is still a short-circuit, so floor it at zero.
-    [[ "$delta_ms" -lt 0 ]] && delta_ms=0
+        delta_ms=$((big_ms - small_ms))
+        # Scheduler jitter between two spawns can make the delta slightly negative;
+        # that is still a short-circuit, so floor it at zero.
+        [[ "$delta_ms" -lt 0 ]] && delta_ms=0
+        deltas[$((round - 1))]=$delta_ms
+    done
+
+    minimum_delta_ms=${deltas[0]}
+    for delta_ms in "${deltas[@]}"; do
+        [[ "$delta_ms" -lt "$minimum_delta_ms" ]] && minimum_delta_ms=$delta_ms
+    done
 
     # 120ms of ADDITIONAL time for 60K more input. A guard that short-circuits
     # lands within a few ms; one that scans the payload does not. The bound is
     # about payload work only, so it does not move with machine load.
     delta_budget_ms=120
-    if [[ "$delta_ms" -lt "$delta_budget_ms" ]]; then
-        log_pass "oversized prompt costs +${delta_ms}ms over trivial (budget +${delta_budget_ms}ms)"
+    if [[ "$minimum_delta_ms" -lt "$delta_budget_ms" ]]; then
+        log_pass "oversized prompt costs +${minimum_delta_ms}ms over trivial (budget +${delta_budget_ms}ms)"
     else
-        log_fail "oversized prompt costs +${delta_ms}ms over trivial (budget +${delta_budget_ms}ms)" \
-                 "60K of extra input should be short-circuited, not scanned"
+        log_fail "oversized prompt costs +${minimum_delta_ms}ms over trivial (budget +${delta_budget_ms}ms)" \
+                 "60K of extra input should be short-circuited, not scanned; observed deltas: +${deltas[0]}ms, +${deltas[1]}ms, +${deltas[2]}ms"
     fi
 }
 test_oversized_prompt_latency

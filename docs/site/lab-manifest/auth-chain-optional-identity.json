@@ -1,0 +1,12 @@
+{
+  "slug": "auth-chain-optional-identity",
+  "source": "docs/feat--auth-chain-optional-identity/index.html",
+  "title": "Optional identity: where the 401 hint may appear",
+  "description": "Walk the OAuth discovery chain of orchestkit.yonyon.ai hop by hop (auth.md to PRM to AS metadata to the identity endpoint), then pick a request shape and see whether it gets a 401. Anonymous never does; only a rejected bearer or the identity read-back does.",
+  "tags": [
+    "agent-readiness",
+    "auth",
+    "docs-site"
+  ],
+  "date": "2026-09-14"
+}

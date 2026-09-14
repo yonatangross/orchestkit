@@ -107,10 +107,16 @@ const config = {
 			destination: "/api/well-known/mcp-server-card",
 		},
 		{
-			// RFC 9728 Protected Resource Metadata — anonymous-only signal (the
-			// API has no auth; this says so in spec shape instead of a 404).
+			// RFC 9728 Protected Resource Metadata. Identity is optional: this
+			// names the authorization server below and the bearer method.
 			source: "/.well-known/oauth-protected-resource",
 			destination: "/api/well-known/oauth-protected-resource",
+		},
+		{
+			// RFC 8414 Authorization Server Metadata: this origin issues the
+			// anonymous identity assertion at /agent/identity (agent_auth block).
+			source: "/.well-known/oauth-authorization-server",
+			destination: "/api/well-known/oauth-authorization-server",
 		},
 		{
 			// Web Bot Auth key directory (RFC 9421 HTTP Message Signatures) —

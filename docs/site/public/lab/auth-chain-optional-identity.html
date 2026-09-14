@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Optional identity: where the 401 hint may appear</title>
+<meta name="description" content="Walk the OAuth discovery chain of orchestkit.yonyon.ai hop by hop, then pick a request shape and see whether it gets a 401. Anonymous never does.">
+<style>
+  :root { --bg:#0f1115; --fg:#e6e6e6; --muted:#9aa4b2; --ok:#4ade80; --warn:#fbbf24; --bad:#f87171; --line:#2a2f3a; --card:#171a21; --accent:#7dd3fc; }
+  * { box-sizing:border-box; }
+  body { margin:0; font:15px/1.5 ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif; background:var(--bg); color:var(--fg); }
+  main { max-width:960px; margin:0 auto; padding:32px 20px 64px; }
+  h1 { font-size:26px; margin:0 0 6px; }
+  h2 { font-size:18px; margin:32px 0 10px; }
+  p.lead { color:var(--muted); margin:0 0 20px; }
+  .chain { display:flex; flex-wrap:wrap; gap:8px; align-items:stretch; }
+  .hop { flex:1 1 170px; background:var(--card); border:1px solid var(--line); border-radius:8px; padding:12px; cursor:pointer; transition:border-color .15s; }
+  .hop:hover, .hop.active { border-color:var(--accent); }
+  .hop .k { font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
+  .hop .u { font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:12px; word-break:break-all; margin:4px 0; }
+  .hop .s { font-weight:600; }
+  .ok { color:var(--ok); } .warn { color:var(--warn); } .bad { color:var(--bad); }
+  pre { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:12px; overflow:auto; font-size:12.5px; margin:10px 0 0; }
+  .controls { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:8px 0 12px; }
+  label { display:block; font-size:13px; color:var(--muted); margin-bottom:4px; }
+  select { width:100%; background:var(--card); color:var(--fg); border:1px solid var(--line); border-radius:6px; padding:8px; font-size:14px; }
+  .verdict { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:14px; }
+  .verdict .code { font-size:28px; font-weight:700; }
+  table { width:100%; border-collapse:collapse; font-size:13.5px; margin-top:8px; }
+  th, td { text-align:left; padding:7px 8px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { color:var(--muted); font-weight:600; }
+  td code, .verdict code, p code { font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:12.5px; background:#0b0d11; padding:1px 5px; border-radius:4px; }
+  .note { color:var(--muted); font-size:13px; }
+  @media (max-width:640px) { .controls { grid-template-columns:1fr; } }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Optional identity: where the 401 hint may appear"><meta property="og:description" content="Walk the OAuth discovery chain of orchestkit.yonyon.ai hop by hop (auth.md to PRM to AS metadata to the identity endpoint), then pick a request shape and see whether it gets a 401. Anonymous never does; only a rejected bearer or the identity read-back does."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/auth-chain-optional-identity.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Optional identity: where the 401 hint may appear"><meta name="twitter:description" content="Walk the OAuth discovery chain of orchestkit.yonyon.ai hop by hop (auth.md to PRM to AS metadata to the identity endpoint), then pick a request shape and see whether it gets a 401. Anonymous never does; only a rejected bearer or the identity read-back does."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <h1>Optional identity: where the 401 hint may appear</h1>
+  <p class="lead">The OrchestKit docs API is public. This page walks the OAuth discovery chain the site now publishes, one hop at a time, and then lets you pick a request shape to see whether it is answered with a <code>401</code>. Anonymous requests never are; that is the whole decision.</p>
+
+  <h2>1. The chain, hop by hop (click a hop)</h2>
+  <div class="chain" id="chain"></div>
+  <pre id="hopDetail">Click a hop to see what it returns.</pre>
+
+  <h2>2. Pick a request shape</h2>
+  <div class="controls">
+    <div>
+      <label for="path">Path</label>
+      <select id="path">
+        <option value="/api">GET /api</option>
+        <option value="/api/mcp:POST">POST /api/mcp (initialize)</option>
+        <option value="/api/mcp:GET">GET /api/mcp</option>
+        <option value="/api/search">GET /api/search?query=install</option>
+        <option value="/agent/identity:GET">GET /agent/identity</option>
+        <option value="/agent/identity:POST">POST /agent/identity {"type":"anonymous"}</option>
+        <option value="/docs/foundations/overview">GET /docs/foundations/overview</option>
+      </select>
+    </div>
+    <div>
+      <label for="cred">Credential</label>
+      <select id="cred">
+        <option value="none">none (anonymous)</option>
+        <option value="valid">Bearer: assertion this origin issued</option>
+        <option value="expired">Bearer: expired assertion</option>
+        <option value="garbage">Bearer: garbage / foreign token</option>
+        <option value="basic">Basic (another scheme)</option>
+      </select>
+    </div>
+  </div>
+  <div class="verdict" id="verdict"></div>
+
+  <h2>3. The full matrix</h2>
+  <table id="matrix"></table>
+  <p class="note">Source of truth: <code>docs/site/middleware.ts</code> (rejected bearer), <code>docs/site/app/agent/identity/route.ts</code> (the one protected endpoint), pinned by <code>docs/site/__tests__/auth-chain.test.ts</code>. Decision record: <code>docs/adr/optional-agent-identity.md</code>.</p>
+</main>
+<script>
+(function () {
+  var ORIGIN = "https://orchestkit.yonyon.ai";
+  var PRM = ORIGIN + "/.well-known/oauth-protected-resource";
+  var AS = ORIGIN + "/.well-known/oauth-authorization-server";
+  var ID = ORIGIN + "/agent/identity";
+
+  var hops = [
+    { k: "start", u: ORIGIN + "/auth.md", s: "200 text/markdown", cls: "ok",
+      body: "# Authenticating with the OrchestKit API\n> ... Identity is optional ...\n\n## Discover\n- RFC 9728 protected-resource metadata at " + PRM + "\n- RFC 8414 authorization-server metadata at " + AS + "\n\n### When you will see a 401\nOnly in two cases, and never for an anonymous request." },
+    { k: "hop 1: PRM", u: PRM, s: "200 application/json", cls: "ok",
+      body: JSON.stringify({ resource: ORIGIN, authorization_servers: [ORIGIN], scopes_supported: ["docs.read"], bearer_methods_supported: ["header"], resource_name: "OrchestKit Docs API", resource_documentation: ORIGIN + "/auth.md", resource_policy_uri: ORIGIN + "/api-policy.md", authentication_required: false }, null, 2) },
+    { k: "hop 2: AS metadata", u: AS, s: "200 application/json", cls: "ok",
+      body: JSON.stringify({ issuer: ORIGIN, scopes_supported: ["docs.read"], response_types_supported: [], grant_types_supported: [], service_documentation: ORIGIN + "/auth.md", op_policy_uri: ORIGIN + "/api-policy.md", agent_auth: { skill: ORIGIN + "/auth.md", identity_endpoint: ID, identity_types_supported: ["anonymous", "identity_assertion"], identity_assertion: { assertion_types_supported: ["urn:ietf:params:oauth:token-type:id-jag"] } } }, null, 2) + "\n\n// no authorization_endpoint, token_endpoint, claim_endpoint or events_endpoint:\n// none exists, so none is advertised." },
+    { k: "hop 3: identity endpoint", u: ID, s: "OPTIONS 204 / POST 201 / GET 401 without a bearer", cls: "ok",
+      body: "OPTIONS " + ID + "\n  204, Allow: GET, POST, OPTIONS\n\nPOST " + ID + "  {\"type\":\"anonymous\"}\n  201 { registration_id: \"reg_...\", identity_assertion: \"<jwt>\", scopes: [\"docs.read\"], claim: null, token_endpoint: null }\n\nGET " + ID + "  (no bearer)\n  401 WWW-Authenticate: Bearer realm=\"OrchestKit Docs API\", resource_metadata=\"" + PRM + "\"" }
+  ];
+
+  var chain = document.getElementById("chain");
+  var detail = document.getElementById("hopDetail");
+  hops.forEach(function (h, i) {
+    var el = document.createElement("div");
+    el.className = "hop";
+    el.innerHTML = '<div class="k">' + h.k + '</div><div class="u">' + h.u + '</div><div class="s ' + h.cls + '">' + h.s + '</div>';
+    el.addEventListener("click", function () {
+      Array.prototype.forEach.call(chain.children, function (c) { c.classList.remove("active"); });
+      el.classList.add("active");
+      detail.textContent = h.body;
+    });
+    chain.appendChild(el);
+    if (i === 0) el.click();
+  });
+
+  function decide(path, cred) {
+    var protectedRead = path === "/agent/identity:GET";
+    if (cred === "expired" || cred === "garbage") {
+      return { code: 401, cls: "bad", why: "A bearer was presented and it is not one this origin issued, or it has expired. RFC 6750 invalid_token.",
+        headers: 'WWW-Authenticate: Bearer realm="OrchestKit Docs API", error="invalid_token", error_description="...", resource_metadata="' + PRM + '"' };
+    }
+    if (protectedRead && (cred === "none" || cred === "basic")) {
+      return { code: 401, cls: "warn", why: "GET /agent/identity reads an identity back, so it needs one. No error code: no token was sent.",
+        headers: 'WWW-Authenticate: Bearer realm="OrchestKit Docs API", resource_metadata="' + PRM + '"' };
+    }
+    if (path === "/api/mcp:GET") return { code: 405, cls: "warn", why: "The MCP transport is POST only. Unchanged; middleware does not intercept it.", headers: "Allow: POST" };
+    if (path === "/agent/identity:POST") return { code: 201, cls: "ok", why: "Anonymous registration. Returns the identity assertion; scopes equal the anonymous scope set.", headers: "Content-Type: application/json" };
+    if (path === "/agent/identity:GET") return { code: 200, cls: "ok", why: "Echoes the registration behind the presented assertion.", headers: "Content-Type: application/json" };
+    return { code: 200, cls: "ok", why: cred === "valid" ? "A valid assertion passes through and grants nothing extra: same body, same rate-limit headers as anonymous." : "Anonymous is the normal case. No challenge, no hint, nothing changed.", headers: path.indexOf("/docs/") === 0 ? "Content-Type: text/html" : "Content-Type: application/json" };
+  }
+
+  var pathSel = document.getElementById("path");
+  var credSel = document.getElementById("cred");
+  var verdict = document.getElementById("verdict");
+  function render() {
+    var d = decide(pathSel.value, credSel.value);
+    verdict.innerHTML = '<div class="code ' + d.cls + '">' + d.code + '</div><div>' + d.why + '</div><pre>' + d.headers + '</pre>';
+  }
+  pathSel.addEventListener("change", render);
+  credSel.addEventListener("change", render);
+  render();
+
+  var paths = Array.prototype.map.call(pathSel.options, function (o) { return { v: o.value, t: o.textContent }; });
+  var creds = Array.prototype.map.call(credSel.options, function (o) { return { v: o.value, t: o.textContent }; });
+  var table = document.getElementById("matrix");
+  var head = "<tr><th>request</th>" + creds.map(function (c) { return "<th>" + c.t + "</th>"; }).join("") + "</tr>";
+  var rows = paths.map(function (p) {
+    return "<tr><td><code>" + p.t + "</code></td>" + creds.map(function (c) {
+      var d = decide(p.v, c.v);
+      return '<td class="' + d.cls + '">' + d.code + "</td>";
+    }).join("") + "</tr>";
+  }).join("");
+  table.innerHTML = head + rows;
+})();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

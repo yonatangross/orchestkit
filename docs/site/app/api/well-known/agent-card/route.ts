@@ -25,13 +25,22 @@ export function GET() {
 			pushNotifications: false,
 			stateTransitionHistory: false,
 		},
-		// Anonymous, no-auth API: an empty `security` array means no security
-		// scheme is required to call any endpoint (A2A / OpenAPI convention), and
-		// `securitySchemes` is intentionally empty for the same reason. The honest
-		// `identity_type: "anonymous"` marker states this explicitly for agents
-		// that key off it. See /auth.md for the full no-credential walkthrough.
+		// Public API, identity optional: an empty `security` array means no
+		// scheme is REQUIRED to call any endpoint (A2A / OpenAPI convention).
+		// `securitySchemes` names the one optional bearer, the anonymous identity
+		// assertion minted at POST /agent/identity, so an agent that wants a
+		// stable registration id knows how to present it. `identity_type` stays
+		// "anonymous": that is the default every caller gets. See /auth.md.
 		identity_type: "anonymous",
-		securitySchemes: {},
+		securitySchemes: {
+			agentIdentity: {
+				type: "http",
+				scheme: "bearer",
+				bearerFormat: "JWT",
+				description:
+					"Optional. The identity assertion returned by POST /agent/identity (type anonymous). Grants nothing an anonymous caller lacks; a bearer this origin did not issue is answered 401 with resource_metadata.",
+			},
+		},
 		security: [],
 		defaultInputModes: ["text/plain", "application/json"],
 		defaultOutputModes: ["application/json", "text/markdown"],
