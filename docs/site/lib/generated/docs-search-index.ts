@@ -831,6 +831,36 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
     "description": "Interactive wizard for OrchestKit settings: MCP servers, hook permissions, keybindings, and install presets. Use when customizing plugin behavior or managing settings."
   },
   {
+    "url": "/docs/reference/skills/configure/references/cc-version-settings",
+    "title": "Configure: CC Version-Specific Settings",
+    "description": "Configure CC 2.1.7-specific features"
+  },
+  {
+    "url": "/docs/reference/skills/configure/references/http-hooks",
+    "title": "Configure: HTTP Hooks and Streaming Telemetry (CC 2.1.63+)",
+    "description": "OrchestKit used to emit hook events over two channels that POSTed to the same downstream endpoint, so every event was delivered twice"
+  },
+  {
+    "url": "/docs/reference/skills/configure/references/mcp-config",
+    "title": "Configure: MCP Configuration",
+    "description": "MCPs (Model Context Protocol servers) enhance OrchestKit commands but are NOT required."
+  },
+  {
+    "url": "/docs/reference/skills/configure/references/operator-scope-settings",
+    "title": "Configure: Operator-Scope Settings",
+    "description": "Paste-ready JSON for controls a plugin bundle cannot carry."
+  },
+  {
+    "url": "/docs/reference/skills/configure/references/presets",
+    "title": "Configure: Preset Definitions",
+    "description": "Everything enabled - full AI-assisted development."
+  },
+  {
+    "url": "/docs/reference/skills/configure/rules",
+    "title": "Configure: Rules",
+    "description": "2 rules for the Configure skill: Backup existing configuration before making changes to enable safe rollback; Validate configuration after writing to catch malformed JSON and invalid settings"
+  },
+  {
     "url": "/docs/reference/skills/cover",
     "title": "Cover",
     "description": "Generate tests that do not exist yet. Analyzes coverage gaps, then writes and runs new test files across three tiers (unit, integration via testcontainers, Playwright E2E), one test-generator agent per tier, healing failures for up to 3 iterations. Use when code has no tests or when raising coverage after implementation. Do NOT use to grade tests that already exist (use /ork:verify) or to run a suite without writing anything new."
