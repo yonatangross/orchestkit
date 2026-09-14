@@ -65,6 +65,29 @@ has_word() { case " $1 " in *" $2 "*) return 0 ;; esac; return 1; }
 count_words() { set -- $1; echo $#; }
 first_word() { set -- $1; echo "${1:-}"; }
 
+# A PR URL names a repository, and keeping only the number let a URL from a
+# DIFFERENT repo review the same-numbered PR in this checkout. Downstream `gh
+# pr` calls are repo-scoped, so the two paths below are compared and a mismatch
+# asks rather than reviewing the wrong change (the whole point of #3892).
+url_repo_path() { # host/owner/repo of a PR URL, empty when it does not parse
+  printf '%s' "$1" | sed -nE 's|^https?://([^/]+)/([^/]+)/([^/]+)/(pull\|pulls\|merge_requests)/[0-9]+.*$|\1/\2/\3|p'
+}
+local_repo_path() { # host/owner/repo of origin, empty when there is no remote
+  # No origin (a bare dir, a fresh init) is a valid answer, not an error: the
+  # comparison is then skipped rather than blocking a legitimate URL.
+  if ! u=$(git remote get-url origin 2>&1); then return 0; fi
+  [ -n "$u" ] || return 0
+  u=${u%.git}
+  case "$u" in
+    ssh://git@*) u=${u#ssh://git@} ;;
+    git@*) u=${u#git@}; u=${u/://} ;;
+    https://*) u=${u#https://} ;;
+    http://*) u=${u#http://} ;;
+  esac
+  printf '%s' "$u"
+}
+lower_str() { printf '%s' "$1" | tr '[:upper:]' '[:lower:]'; }
+
 pr_numbers=""
 pr_source=""
 ranges=""
@@ -78,6 +101,12 @@ for tok in $*; do
 
   if [[ "$tok" =~ ^https?://[^[:space:]]+/(pull|pulls|merge_requests)/([0-9]+)([/?#].*)?$ ]]; then
     n=${BASH_REMATCH[2]}
+    url_repo=$(url_repo_path "$tok")
+    local_repo=$(local_repo_path)
+    if [[ -n "$url_repo" && -n "$local_repo" ]] &&
+       [[ "$(lower_str "$url_repo")" != "$(lower_str "$local_repo")" ]]; then
+      emit_ask "the URL names $url_repo but this checkout is $local_repo; run review-pr from that repository (reviewing PR $n here would be a different change)"
+    fi
     if ! has_word "$pr_numbers" "$n"; then pr_numbers="$pr_numbers $n"; pr_source=${pr_source:-url}; fi
     continue
   fi

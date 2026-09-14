@@ -121,8 +121,16 @@ export function isHarnessScratchPath(filePath: string): boolean {
 
   const scratchpadAt = dirs.indexOf('scratchpad');
   if (scratchpadAt < 0) return false;
-  if (dirs.slice(0, scratchpadAt).some((s) => s === 'claude' || s.startsWith('claude-'))) return true;
-  const normalized = `/${segs.join('/')}`;
+  // `claude-<uid>` is the CC session dir, so match that shape and not any
+  // directory that merely begins with "claude-": `/work/claude-tools/app/
+  // scratchpad/feature.ts` is a real repository file whose missing tests must
+  // still be reported.
+  if (dirs.slice(0, scratchpadAt).some((s) => s === 'claude' || /^claude-\d+$/.test(s))) return true;
+  // Keep a Windows drive prefix: `C:\...\Temp\x\scratchpad\probe.ts` becomes
+  // `C:/...`, which is what tmpdir() reports. Prepending a slash produced
+  // `/C:/...`, so the prefix test below never matched on Windows.
+  const joined = segs.join('/');
+  const normalized = /^[A-Za-z]:$/.test(segs[0] ?? '') ? joined : `/${joined}`;
   return tempRoots().some((root) => normalized.startsWith(`${root}/`));
 }
 
