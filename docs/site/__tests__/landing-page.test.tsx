@@ -2,8 +2,6 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, within } from "@testing-library/react";
-// Resolves to the vi.mock below, so assertions read the same command the page renders.
-import { SITE } from "../lib/constants";
 
 // Mock next/link
 vi.mock("next/link", () => ({
@@ -327,12 +325,8 @@ describe("landing page content", () => {
 
     const heroInstall = container.querySelector("[data-hero-install]");
     expect(heroInstall).toBeTruthy();
-    // Named from the mocked SITE.installCommand above, so correcting the
-    // command in one place cannot leave this assertion behind (#4104 changed
-    // the mock and left the old name here, which failed every PR that runs
-    // the docs-site tests).
     const copy = within(heroInstall as HTMLElement).getByRole("button", {
-      name: `Copy ${SITE.installCommand} to clipboard`,
+      name: "Copy claude plugin marketplace add yonatangross/orchestkit && claude plugin install ork@orchestkit to clipboard",
     });
     const nav = screen.getByRole("navigation", { name: /install by host/i });
     // The hero command is not the picker's copy, and it comes first in the DOM.
