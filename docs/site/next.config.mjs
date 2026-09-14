@@ -4,6 +4,10 @@ const withMDX = createMDX();
 
 /** @type {import('next').NextConfig} */
 const config = {
+	// `x-powered-by: Next.js` on every response names the framework to anyone
+	// scanning and buys nothing back: no browser, agent or crawler reads it.
+	// Measured on production 2026-09-14, every response carried it.
+	poweredByHeader: false,
 	images: {
 		formats: ["image/avif", "image/webp"],
 		remotePatterns: [

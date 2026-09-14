@@ -3,7 +3,10 @@
 
 import { COUNTS, PAGE_SUMMARY, SITE } from "@/lib/constants";
 import { readDocBody } from "@/lib/docs-content";
-import { MARKDOWN_VARY, withFrontmatter } from "@/lib/md-frontmatter";
+import {
+	MARKDOWN_NEGOTIATED_HEADERS,
+	withFrontmatter,
+} from "@/lib/md-frontmatter";
 import { docsHtmlCanonical } from "@/lib/docs-canonical";
 import { source } from "@/lib/source";
 
@@ -19,12 +22,10 @@ export const dynamic = "force-dynamic";
 // the Accept header, so a CDN must key its cache on it or it will serve the
 // wrong variant (acceptmarkdown.com requirement). `User-Agent` joins it because
 // middleware.ts also rewrites here for a known AI-crawler UA, which makes the
-// UA a second input to which body this URL returns.
-const MD_HEADERS = {
-	"Content-Type": "text/markdown; charset=utf-8",
-	"Cache-Control": "public, max-age=3600",
-	Vary: MARKDOWN_VARY,
-} as const;
+// UA a second input to which body this URL returns. The `private` +
+// `Vercel-CDN-Cache-Control` pair keeps Vary-ignoring intermediaries from
+// storing this body at all; see lib/md-frontmatter.ts for the measurement.
+const MD_HEADERS = MARKDOWN_NEGOTIATED_HEADERS;
 
 function homepageMarkdown(): string {
 	const pages = source.getPages();
