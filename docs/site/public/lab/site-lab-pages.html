@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lab pages: a way back, share cards and page views</title>
+<meta name="description" content="Before and after for the 150 raw Lab pages: footer and og:image counts, the /lab and trailing asterisk redirects, and what the page_view beacon does in each visitor context.">
+<style>
+  :root { --bg:#0d1017; --panel:#151a24; --line:#263041; --fg:#e2e8f0; --dim:#94a3b8; --acc:#a5b4fc; --ok:#4ade80; --bad:#f87171; --warn:#fbbf24; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif; }
+  code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; }
+  header { padding:20px 24px 8px; }
+  h1 { font-size:20px; margin:0 0 4px; }
+  header p { margin:0; color:var(--dim); max-width:80ch; }
+  .wrap { display:grid; grid-template-columns: 300px 1fr; gap:16px; padding:16px 24px; }
+  @media (max-width: 860px) { .wrap { grid-template-columns: 1fr; } }
+  .panel { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:14px 16px; }
+  .panel h2 { font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--dim); margin:0 0 10px; }
+  label { display:block; margin:10px 0 4px; color:var(--dim); font-size:12px; }
+  select { width:100%; background:#0b0e14; color:var(--fg); border:1px solid var(--line); border-radius:6px; padding:6px 8px; font:inherit; }
+  .seg { display:flex; gap:6px; }
+  .seg button, .presets button, .copy { flex:1; background:#0b0e14; color:var(--fg); border:1px solid var(--line); border-radius:6px; padding:6px 8px; font:inherit; cursor:pointer; }
+  .seg button[aria-pressed="true"] { border-color:var(--acc); color:var(--acc); }
+  .presets { display:grid; gap:6px; margin-top:6px; }
+  .presets button { text-align:left; }
+  .grid2 { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+  @media (max-width: 1100px) { .grid2 { grid-template-columns: 1fr; } }
+  .stats { display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; }
+  .stat { background:#0b0e14; border:1px solid var(--line); border-radius:8px; padding:10px; }
+  .stat b { display:block; font-size:22px; }
+  .stat span { color:var(--dim); font-size:12px; }
+  .good { color:var(--ok); } .bad { color:var(--bad); } .warn { color:var(--warn); }
+  .mock { border:1px solid var(--line); border-radius:8px; overflow:hidden; background:#fff; color:#111; }
+  .mock .bar { background:#e5e7eb; color:#374151; padding:6px 10px; font-size:12px; }
+  .mock .body { padding:18px; min-height:120px; }
+  .mock .foot { background:#0d1017; color:#cbd5e1; padding:10px 14px; display:flex; flex-wrap:wrap; justify-content:space-between; gap:6px 16px; font-size:13px; }
+  .mock .foot a { color:#a5b4fc; text-decoration:none; }
+  .mock .foot a.brand { color:#f8fafc; font-weight:700; }
+  .mock .dead { padding:10px 14px; background:#fef2f2; color:#991b1b; font-size:13px; }
+  pre { margin:0; white-space:pre-wrap; word-break:break-word; background:#0b0e14; border:1px solid var(--line); border-radius:8px; padding:10px; }
+  .log div { padding:3px 0; border-bottom:1px dashed var(--line); }
+  .prompt { padding:0 24px 24px; }
+  .prompt .panel { display:flex; gap:12px; align-items:flex-start; }
+  .prompt pre { flex:1; }
+  .copy { flex:0 0 auto; }
+  .note { color:var(--dim); font-size:12px; margin-top:8px; }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:description" content="Before and after for the 150 raw Lab pages: footer and og:image exactly once on every page, the /lab 307 and trailing asterisk 308 redirects, and what the page_view beacon does for a shared link, a docs embed and a local preview."><meta name="twitter:title" content="Lab pages: a way back, share cards and page views"><meta name="twitter:description" content="Before and after for the 150 raw Lab pages: footer and og:image exactly once on every page, the /lab 307 and trailing asterisk 308 redirects, and what the page_view beacon does for a shared link, a docs embed and a local preview."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<header>
+  <h1>Lab pages: a way back, share cards and page views</h1>
+  <p>Visitors from social links land on raw <code>/lab/&lt;slug&gt;.html</code> pages. Toggle before and after, pick who is visiting and which URL they typed, and see what they get. Every number here was measured on this branch (PR #4101), except the 404 for <code>/lab</code> before, which comes from the site audit.</p>
+</header>
+
+<div class="wrap">
+  <aside class="panel" aria-label="Controls">
+    <h2>Controls</h2>
+    <label>State</label>
+    <div class="seg" role="group" aria-label="State">
+      <button type="button" data-era="before">Before</button>
+      <button type="button" data-era="after">After</button>
+    </div>
+    <label for="ctx">Visitor context</label>
+    <select id="ctx">
+      <option value="social">Top level visit (shared link)</option>
+      <option value="embed">Docs page iframe embed</option>
+      <option value="local">Local preview on localhost</option>
+    </select>
+    <label for="url">Requested URL</label>
+    <select id="url">
+      <option value="page">/lab/coderabbit-tone-limit.html</option>
+      <option value="bare">/lab</option>
+      <option value="slash">/lab/</option>
+      <option value="stars">/lab/coderabbit-tone-limit.html**</option>
+      <option value="encoded">/lab/coderabbit-tone-limit.html%2A%2A</option>
+    </select>
+    <h2 style="margin-top:18px">Presets</h2>
+    <div class="presets" id="presets"></div>
+    <p class="note">Measured with next start on the built site, curl for status codes, and a node count over all 150 files in docs/site/public/lab.</p>
+  </aside>
+
+  <main>
+    <div class="panel" style="margin-bottom:16px">
+      <h2>All 150 Lab files</h2>
+      <div class="stats" id="stats"></div>
+    </div>
+    <div class="grid2">
+      <div class="panel">
+        <h2>What the visitor sees</h2>
+        <div id="mock"></div>
+      </div>
+      <div class="panel">
+        <h2>Request, head meta and beacon</h2>
+        <div class="log mono" id="log"></div>
+        <label>Injected share meta</label>
+        <pre class="mono" id="meta"></pre>
+      </div>
+    </div>
+  </main>
+</div>
+
+<section class="prompt">
+  <div class="panel">
+    <pre class="mono" id="prompt" aria-live="polite"></pre>
+    <button type="button" class="copy" id="copy">Copy</button>
+  </div>
+</section>
+
+<script>
+const DEFAULTS = { era: "after", ctx: "social", url: "page" };
+const state = { ...DEFAULTS };
+
+const PRESETS = [
+  { name: "Social visitor, after this PR", s: { era: "after", ctx: "social", url: "page" } },
+  { name: "Social visitor, before", s: { era: "before", ctx: "social", url: "page" } },
+  { name: "Trimmed URL /lab", s: { era: "after", ctx: "social", url: "bare" } },
+  { name: "Bold link with trailing **", s: { era: "after", ctx: "social", url: "stars" } },
+  { name: "Known gap: encoded asterisks", s: { era: "after", ctx: "social", url: "encoded" } },
+  { name: "Docs iframe embed", s: { era: "after", ctx: "embed", url: "page" } },
+];
+
+// Measured facts. Before counts: audit plus node count on origin/main.
+const COUNTS = {
+  before: { files: 150, footer: 0, og: 0, noLinks: 119 },
+  after:  { files: 150, footer: 150, og: 150, noLinks: 0 },
+};
+
+const PATHS = {
+  page: "/lab/coderabbit-tone-limit.html",
+  bare: "/lab",
+  slash: "/lab/",
+  stars: "/lab/coderabbit-tone-limit.html**",
+  encoded: "/lab/coderabbit-tone-limit.html%2A%2A",
+};
+
+function response() {
+  const { era, url } = state;
+  if (url === "page") return { code: 200, final: PATHS.page, served: true };
+  if (url === "bare" || url === "slash") {
+    return era === "after"
+      ? { code: 307, to: "/docs/showcase/lab", final: "/docs/showcase/lab", gallery: true }
+      : { code: 404, source: "audit" };
+  }
+  if (url === "stars") {
+    return era === "after"
+      ? { code: 308, to: PATHS.page, final: PATHS.page, served: true }
+      : { code: 404, source: "not measured before; no route matched" };
+  }
+  return { code: 404, gap: true };
+}
+
+function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+
+function renderStats() {
+  const c = COUNTS[state.era];
+  const cell = (n, label, goodWhenFull) => {
+    const cls = goodWhenFull ? (n === c.files ? "good" : "bad") : (n === 0 ? "good" : "bad");
+    return `<div class="stat"><b class="${cls}">${n}/${c.files}</b><span>${label}</span></div>`;
+  };
+  document.getElementById("stats").innerHTML =
+    cell(c.footer, "footer exactly once", true) +
+    cell(c.og, "og:image exactly once", true) +
+    cell(c.noLinks, "pages with no link anywhere", false);
+}
+
+function renderMock() {
+  const r = response();
+  const el = document.getElementById("mock");
+  const bar = `<div class="bar mono">${esc(r.final || PATHS[state.url])}</div>`;
+  if (r.code === 404) {
+    el.innerHTML = `<div class="mock">${bar}<div class="body"><b>404</b> This page could not be found.</div>` +
+      (r.gap ? `<div class="dead">Known gap: the percent encoded form is not redirected. Browsers keep a literal * unencoded, so real clicks take the 308 path.</div>` : "") +
+      `</div>`;
+    return;
+  }
+  if (r.gallery) {
+    el.innerHTML = `<div class="mock">${bar}<div class="body"><b>Lab gallery</b><br>Every playground as a card, the indexed front door.</div></div>`;
+    return;
+  }
+  const framed = state.ctx === "embed";
+  let foot;
+  if (state.era === "before") {
+    foot = `<div class="dead">No footer. 119 of 150 pages have no link at all: the visitor dead ends.</div>`;
+  } else if (framed) {
+    foot = `<div class="dead" style="background:#eff6ff;color:#1e3a8a">Footer removed by the inline script: the docs page around the iframe already has the site navigation.</div>`;
+  } else {
+    foot = `<div class="foot"><a class="brand" href="#">OrchestKit</a><span><a href="#">Read the docs</a> &nbsp; <a href="#">Install</a> &nbsp; <a href="#">More playgrounds</a> &nbsp; <a href="#">GitHub</a></span></div>`;
+  }
+  el.innerHTML = `<div class="mock">${bar}<div class="body"><b>A second reader, and the 250 characters that silently disable it</b><br>The playground itself, unchanged.</div>${foot}</div>`;
+}
+
+function beacon() {
+  const r = response();
+  if (!r.served) return { text: "no page served, no beacon", cls: "" };
+  if (state.era === "before") return { text: "no analytics of any kind", cls: "bad" };
+  if (state.ctx === "embed") return { text: "skipped: framed, the host docs page already counted the visit", cls: "good" };
+  if (state.ctx === "local") return { text: "skipped: localhost never pollutes the shared project", cls: "good" };
+  return { text: 'sendBeacon POST /api/analytics {project_id:"orchestkit", events:[{name:"page_view", path, referrer, timestamp}]}', cls: "good" };
+}
+
+function renderLog() {
+  const r = response();
+  const lines = [];
+  lines.push(`GET ${esc(PATHS[state.url])}`);
+  if (r.to) lines.push(`<span class="good">${r.code}</span> Location: ${esc(r.to)}`);
+  else lines.push(`<span class="${r.code === 200 ? "good" : "bad"}">${r.code}</span>${r.source ? " (" + esc(r.source) + ")" : ""}${r.gap ? ' <span class="warn">known gap</span>' : ""}`);
+  if (r.to) lines.push(`GET ${esc(r.to)} <span class="good">200</span>`);
+  const b = beacon();
+  lines.push(`beacon: <span class="${b.cls}">${esc(b.text)}</span>`);
+  document.getElementById("log").innerHTML = lines.map((l) => `<div>${l}</div>`).join("");
+
+  const meta = document.getElementById("meta");
+  if (!r.served) meta.textContent = "(no Lab page served)";
+  else if (state.era === "before") meta.textContent = "(none: no og:* or twitter:* tags on any of the 150 pages)";
+  else meta.textContent = [
+    '<meta property="og:title" content="A second reader, and the 250 ...">',
+    '<meta property="og:url" content="https://orchestkit.yonyon.ai/lab/coderabbit-tone-limit.html">',
+    '<meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image">',
+    '<meta name="twitter:card" content="summary_large_image">',
+    "... og:type, og:site_name, og:description, twitter:title/description/image",
+  ].join("\n");
+}
+
+function updatePrompt() {
+  const r = response();
+  const parts = [];
+  const where = PATHS[state.url];
+  if (state.era === "before") {
+    parts.push(`Before PR #4101, a visitor requesting ${where} gets ${r.code === 200 ? "the raw page with no footer, no share card and no page_view" : "a " + r.code}.`);
+    parts.push("Confirm the fix in PR #4101 covers this case and that the Lab check mode keeps it from regressing.");
+  } else {
+    if (r.code === 307) parts.push(`${where} now answers 307 to /docs/showcase/lab. Consider whether it should become a 308 once the gallery location is settled.`);
+    else if (r.code === 308) parts.push(`${where} now answers 308 to the clean page URL, which serves the footer and og:image once.`);
+    else if (r.gap) parts.push(`${where} still returns 404. Add a redirect that also matches the percent encoded asterisks (%2A) after /lab/<slug>.html, and extend the curl evidence in PR #4101.`);
+    else parts.push(`${where} is served with the injected footer and share meta (150/150 pages, exactly once each).`);
+    if (r.served) {
+      if (state.ctx === "embed") parts.push("In the docs iframe embed the footer is removed and no page_view is sent; verify this in a real browser on the preview deployment.");
+      else if (state.ctx === "local") parts.push("On localhost the beacon is skipped.");
+      else if (r.code === 200) parts.push("The top level visit sends one first-party page_view to /api/analytics; verify it appears in the analytics store after deploy.");
+    }
+  }
+  document.getElementById("prompt").textContent = parts.join(" ");
+}
+
+function syncControls() {
+  document.querySelectorAll("[data-era]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.era === state.era)));
+  document.getElementById("ctx").value = state.ctx;
+  document.getElementById("url").value = state.url;
+}
+
+function updateAll() { syncControls(); renderStats(); renderMock(); renderLog(); updatePrompt(); }
+
+document.querySelectorAll("[data-era]").forEach((b) => b.addEventListener("click", () => { state.era = b.dataset.era; updateAll(); }));
+document.getElementById("ctx").addEventListener("change", (e) => { state.ctx = e.target.value; updateAll(); });
+document.getElementById("url").addEventListener("change", (e) => { state.url = e.target.value; updateAll(); });
+const presetBox = document.getElementById("presets");
+PRESETS.forEach((p) => {
+  const b = document.createElement("button");
+  b.type = "button"; b.textContent = p.name;
+  b.addEventListener("click", () => { Object.assign(state, p.s); updateAll(); });
+  presetBox.appendChild(b);
+});
+document.getElementById("copy").addEventListener("click", async (e) => {
+  const btn = e.currentTarget;
+  try {
+    await navigator.clipboard.writeText(document.getElementById("prompt").textContent);
+    btn.textContent = "Copied!";
+  } catch (err) {
+    btn.textContent = "Copy blocked";
+  }
+  setTimeout(() => { btn.textContent = "Copy"; }, 1400);
+});
+updateAll();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
