@@ -112,7 +112,7 @@ export const DB_DIR = join(getHomeDir(), '.local', 'state', 'orchestkit');
 export const DB_PATH = join(DB_DIR, 'sessions.db');
 
 /** Resolve the active DB path. Respects ORK_SESSION_DB env override (tests). */
-function resolveDbPath(): string {
+export function resolveDbPath(): string {
   return process.env.ORK_SESSION_DB || DB_PATH;
 }
 

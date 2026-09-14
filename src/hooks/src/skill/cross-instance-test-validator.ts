@@ -21,14 +21,21 @@
  * sibling `__tests__/` dir, and a MIRRORED tree (`src/__tests__/skill/x.test.ts`
  * for `src/skill/x.ts`, which is how this repo lays out its own hook tests).
  * Without the third the hook would have blocked every ork hook author at Stop.
+ *
+ * #3892: files in harness scratch locations (the CC session scratchpad, Claude
+ * desktop scratch-workspaces, scratchpad dirs under $TMPDIR) and files in no
+ * git repository are skipped. They are throwaway probes, not implementation,
+ * and blocking the turn for them demanded tests nobody would ever commit.
  */
 
 import {
   existsSync,
   mkdirSync,
   readFileSync,
+  realpathSync,
   writeFileSync,
 } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { basename, dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import type { HookInput, HookResult, HookContext } from '../types.js';
 import {
@@ -78,6 +85,83 @@ function uniq(items: string[]): string[] {
 function isUnderProject(filePath: string, projectDir: string): boolean {
   const rel = relative(projectDir, filePath);
   return rel !== '' && !rel.startsWith('..') && !isAbsolute(rel);
+}
+
+function tempRoots(): string[] {
+  const roots = [tmpdir(), '/tmp', '/private/tmp'];
+  try {
+    roots.push(realpathSync(tmpdir()));
+  } catch {
+    // tmpdir() does not exist on disk: the literal roots above still apply
+  }
+  return uniq(roots.map((r) => r.replace(/\\/g, '/').replace(/\/+$/, '')));
+}
+
+/**
+ * Harness scratch locations hold throwaway probes, not implementation (#3892).
+ * The Stop block demanded `test_filter_check.py` for a review sub-agent's probe
+ * in the session scratchpad, and `test_agg.py` for an aggregation script in a
+ * Claude desktop scratch workspace (whose project dir IS the workspace, so the
+ * #3844 project scoping did not exclude it). Matched by path segment, not by a
+ * backtracking regex:
+ *   - `scratchpad/` below a `claude` or `claude-<uid>` dir (CC session scratchpad,
+ *     `/tmp/claude-501/<project>/<session>/scratchpad/`)
+ *   - `Claude/scratch-workspaces/` (Claude desktop app)
+ *   - any `scratchpad/` dir under the OS temp dir ($TMPDIR, /tmp)
+ * Exported for the unit test.
+ */
+export function isHarnessScratchPath(filePath: string): boolean {
+  const segs = filePath.replace(/\\/g, '/').split('/').filter(Boolean);
+  const lower = segs.map((s) => s.toLowerCase());
+  const dirs = lower.slice(0, -1); // the last segment is the file itself
+
+  for (let i = 1; i < dirs.length; i++) {
+    if (dirs[i] === 'scratch-workspaces' && dirs[i - 1] === 'claude') return true;
+  }
+
+  const scratchpadAt = dirs.indexOf('scratchpad');
+  if (scratchpadAt < 0) return false;
+  // `claude-<uid>` is the CC session dir, so match that shape and not any
+  // directory that merely begins with "claude-": `/work/claude-tools/app/
+  // scratchpad/feature.ts` is a real repository file whose missing tests must
+  // still be reported.
+  if (dirs.slice(0, scratchpadAt).some((s) => s === 'claude' || /^claude-\d+$/.test(s))) return true;
+  // Keep a Windows drive prefix: `C:\...\Temp\x\scratchpad\probe.ts` becomes
+  // `C:/...`, which is what tmpdir() reports. Prepending a slash produced
+  // `/C:/...`, so the prefix test below never matched on Windows.
+  const joined = segs.join('/');
+  const normalized = /^[A-Za-z]:$/.test(segs[0] ?? '') ? joined : `/${joined}`;
+  return tempRoots().some((root) => normalized.startsWith(`${root}/`));
+}
+
+/**
+ * True when some ancestor of the file carries a `.git` entry (a directory, or
+ * the file a linked worktree uses). A file in no repository is not a change
+ * anyone will commit, so a Stop-time test demand for it is noise (#3892).
+ * Walks the filesystem instead of spawning git once per file; results are
+ * cached per directory for the invocation.
+ */
+function isInsideGitRepo(filePath: string, cache: Map<string, boolean>): boolean {
+  const visited: string[] = [];
+  let dir = dirname(filePath);
+  let answer = false;
+  for (;;) {
+    const known = cache.get(dir);
+    if (known !== undefined) {
+      answer = known;
+      break;
+    }
+    visited.push(dir);
+    if (existsSync(join(dir, '.git'))) {
+      answer = true;
+      break;
+    }
+    const parent = dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+  for (const v of visited) cache.set(v, answer);
+  return answer;
 }
 
 /**
@@ -325,10 +409,15 @@ export function crossInstanceTestValidator(input: HookInput, ctx: HookContext = 
   const missing: FileFinding[] = [];
   const gaps: FileFinding[] = [];
   let newlyReported = 0;
+  const gitRepoCache = new Map<string, boolean>();
 
   for (const filePath of files) {
     if (reported.has(filePath)) continue;
     if (!isUnderProject(filePath, projectDir)) continue;
+    // #3892: throwaway probes in harness scratch dirs, and files that no git
+    // repository will ever commit, are not implementation code.
+    if (isHarnessScratchPath(filePath)) continue;
+    if (!isInsideGitRepo(filePath, gitRepoCache)) continue;
     if (isTestFile(filePath) || !CODE_FILE_RE.test(filePath)) continue;
     if (!existsSync(filePath)) continue; // written, then deleted
     let content: string;

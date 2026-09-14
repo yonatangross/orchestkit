@@ -1,0 +1,8 @@
+{
+  "slug": "fix-3892-hook-regressions",
+  "source": "docs/fix--3892-hook-regressions/index.html",
+  "title": "Four hook and review-pr regressions from issue 3892",
+  "description": "Before and after for the four bugs an outside user reported: the node:os hook crash on subagent stop, review-pr returning before its reviewers, review-pr reviewing HEAD on a non-PR target, and the test validator flagging scratch files.",
+  "tags": ["hooks", "review-pr", "bugfix"],
+  "date": "2026-09-14"
+}

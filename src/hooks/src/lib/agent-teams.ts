@@ -14,7 +14,7 @@
 
 import { existsSync, readFileSync, readdirSync, statSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
-import { DB_PATH, openDb } from './session-registry.js';
+import { openDb, resolveDbPath } from './session-registry.js';
 
 /**
  * Check if CC Agent Teams is active.
@@ -162,7 +162,11 @@ export function liveSessionTokens(): { ok: boolean; tokens: Set<string> } {
     // vouch for. Report ok with an empty set and let the 24h window decide.
     // Unreadable (below): the answer exists and we failed to get it, which is
     // the only case that justifies refusing to delete anything.
-    if (!existsSync(DB_PATH)) return { ok: true, tokens };
+    // Ask the SAME path openDb() will open. Guarding on the unoverridable
+    // constant meant a test pointing ORK_SESSION_DB at its own file still
+    // probed the developer's real registry, so the suite passed in CI (no
+    // registry) and failed on any machine that runs ork.
+    if (!existsSync(resolveDbPath())) return { ok: true, tokens };
     const db = openDb();
     try {
       const rows = db
