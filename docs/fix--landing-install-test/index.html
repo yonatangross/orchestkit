@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Two green PRs, one red main</title>
+<meta name="description" content="Main went red on Docs Site Build after two install command PRs each passed their required checks. One added a hero test naming the old install label, the next forbade that string in every tracked file. The fix is one assertion.">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #0f0d0c; color: #efe9e4; font: 14px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  header { padding: 20px 24px 8px; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .lede { color: #a89f97; margin: 0; max-width: 760px; }
+  main { padding: 16px 24px 24px; max-width: 880px; }
+  .panel { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.10); border-radius: 12px; padding: 14px; margin-bottom: 14px; }
+  .panel h2 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: #a89f97; margin: 0 0 10px; }
+  .steps { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  button { font: inherit; color: inherit; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.14); border-radius: 8px; padding: 5px 10px; cursor: pointer; }
+  button:hover { border-color: #8fb3ff; }
+  button.on { background: rgba(143,179,255,0.18); border-color: #8fb3ff; }
+  .state { border-radius: 10px; padding: 10px; border: 1px solid rgba(255,255,255,0.10); }
+  .state.red { background: rgba(255,90,90,0.08); border-color: rgba(255,90,90,0.35); }
+  .state.green { background: rgba(90,210,140,0.08); border-color: rgba(90,210,140,0.35); }
+  .state .tag { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: #a89f97; }
+  code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; }
+  pre { background: rgba(0,0,0,0.35); padding: 10px; border-radius: 8px; white-space: pre-wrap; word-break: break-word; margin: 6px 0 0; }
+  ul { margin: 6px 0 0; padding-left: 18px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Two green PRs, one red main</h1>
+  <p class="lede">Each install command PR passed its 18 required checks. Merged in sequence, they left Docs Site Build red on main, because that check is not required and the two PRs added tests that cannot both pass.</p>
+</header>
+<main>
+  <section class="panel">
+    <h2>Step through the chain</h2>
+    <div class="steps" id="steps"></div>
+    <div id="view"></div>
+  </section>
+  <section class="panel">
+    <h2>The fix</h2>
+    <p>One assertion in <code>docs/site/__tests__/landing-page.test.tsx</code> now names the label the hero button renders from <code>SITE.installCommand</code>:</p>
+    <pre>name: "Copy claude plugin marketplace add yonatangross/orchestkit &amp;&amp; claude plugin install ork@orchestkit to clipboard"</pre>
+  </section>
+  <section class="panel">
+    <h2>Lesson</h2>
+    <ul>
+      <li>A serial chain that is green per PR can still break main when a later PR adds a test the earlier one violates and the failing check is not required.</li>
+      <li>After a chain lands, read the non required checks at the new main tip too.</li>
+    </ul>
+  </section>
+</main>
+<script>
+const STEPS = [
+  { key: "4103", label: "#4103 merged", cls: "green", tag: "Docs Site Build: success",
+    text: "Adds the hero install button and a test that finds it by its accessible name, which still carried the old native installer label." },
+  { key: "4104", label: "#4104 merged", cls: "red", tag: "Docs Site Build: failure",
+    text: "Corrects SITE.installCommand and adds install-command.test.ts, which fails if the old native installer string appears in any tracked file. The hero test from #4103 is now an offender, and it can no longer find a button with the old name. Three failures, on a check that is not required, so the merge went through." },
+  { key: "fix", label: "This PR", cls: "green", tag: "Docs Site Build: expected success",
+    text: "The hero assertion names the corrected label, so both tracked file scans find no offenders and the hero test finds its button." }
+];
+let current = "4104";
+function render() {
+  const steps = document.getElementById("steps");
+  steps.innerHTML = "";
+  for (const s of STEPS) {
+    const b = document.createElement("button");
+    b.textContent = s.label;
+    if (s.key === current) b.className = "on";
+    b.onclick = () => { current = s.key; render(); };
+    steps.appendChild(b);
+  }
+  const s = STEPS.find((x) => x.key === current);
+  const view = document.getElementById("view");
+  view.innerHTML = "";
+  const box = document.createElement("div");
+  box.className = "state " + s.cls;
+  const tag = document.createElement("div");
+  tag.className = "tag";
+  tag.textContent = s.tag;
+  const p = document.createElement("p");
+  p.textContent = s.text;
+  box.appendChild(tag);
+  box.appendChild(p);
+  view.appendChild(box);
+}
+render();
+</script>
+</body>
+</html>

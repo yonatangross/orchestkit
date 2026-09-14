@@ -326,7 +326,7 @@ describe("landing page content", () => {
     const heroInstall = container.querySelector("[data-hero-install]");
     expect(heroInstall).toBeTruthy();
     const copy = within(heroInstall as HTMLElement).getByRole("button", {
-      name: "Copy claude install orchestkit/ork to clipboard",
+      name: "Copy claude plugin marketplace add yonatangross/orchestkit && claude plugin install ork@orchestkit to clipboard",
     });
     const nav = screen.getByRole("navigation", { name: /install by host/i });
     // The hero command is not the picker's copy, and it comes first in the DOM.
