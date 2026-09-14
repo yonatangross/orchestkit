@@ -201,10 +201,12 @@ CodeRabbit PR reviews are rate limited per GitHub identity (Essentials: 5/hour r
 separate allowance, so review the branch diff locally first. Advisory only, never blocks.
 
 ```bash
-CR_BIN=$(command -v coderabbit || true)   # or `cr`, only if its --help names CodeRabbit
+CR_BIN=$(command -v coderabbit || true)   # `cr` is also helm chart-releaser: accept it only by --help
+[ -z "$CR_BIN" ] && command -v cr >/dev/null 2>&1 && grep -q CodeRabbit <<<"$(cr --help 2>&1)" && CR_BIN=cr
+CR_OUT=$(mktemp "${TMPDIR:-/tmp}/cr-prereview.XXXXXX")
 [ -n "$CR_BIN" ] && perl -e 'alarm shift; exec @ARGV' 600 \
-  "$CR_BIN" review --agent --base "origin/$BASE" </dev/null > "${TMPDIR:-/tmp}/cr-prereview.txt" 2>&1 \
-  || echo "CodeRabbit CLI pre-review skipped (not installed, not signed in, timed out, or errored)"
+  "$CR_BIN" review --agent --base "origin/$BASE" </dev/null > "$CR_OUT" 2>&1 \
+  || echo "CodeRabbit CLI pre-review skipped (not installed, not signed in, timed out, or errored): $CR_OUT"
 ```
 
 Fix clear defects in lines this branch changed, commit, re-run Phase 2 local validation, then

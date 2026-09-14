@@ -35,7 +35,9 @@ elif command -v cr >/dev/null 2>&1 && grep -q CodeRabbit <<<"$(cr --help 2>&1)";
   CR_BIN=cr
 fi
 
-CR_OUT="${TMPDIR:-/tmp}/cr-prereview.txt"
+# mktemp, never a fixed name: a predictable path in a shared /tmp can be
+# pre-created or symlinked by another local user.
+CR_OUT=$(mktemp "${TMPDIR:-/tmp}/cr-prereview.XXXXXX")
 if [ -z "$CR_BIN" ]; then
   echo "CodeRabbit CLI pre-review skipped: CLI not on PATH"
 elif perl -e 'alarm shift; exec @ARGV' 600 \

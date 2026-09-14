@@ -78,7 +78,7 @@
   pushes.addEventListener("input", srender); srender();
 
   var CASES = [
-    ["ran", "CLI on PATH, signed in", "coderabbit review --agent --base origin/$BASE\n  -> findings in $TMPDIR/cr-prereview.txt\n  -> fix clear defects in changed lines, commit\n  -> re-run Phase 2 local validation\n  -> Phase 4 (no second CLI run)"],
+    ["ran", "CLI on PATH, signed in", "coderabbit review --agent --base origin/$BASE\n  -> findings in a mktemp file under $TMPDIR\n  -> fix clear defects in changed lines, commit\n  -> re-run Phase 2 local validation\n  -> Phase 4 (no second CLI run)"],
     ["missing", "CLI not installed", "command -v coderabbit  -> nothing\n  -> \"CodeRabbit CLI pre-review skipped\"\n  -> Phase 4"],
     ["timeout", "Runs past 10 minutes", "perl -e 'alarm shift; exec @ARGV' 600 ...\n  -> SIGALRM, exit 142\n  -> one-line skip note\n  -> Phase 4"],
     ["error", "Not signed in, or sandboxed", "non-zero exit (coderabbit doctor names the cause)\n  -> one-line skip note\n  -> Phase 4"]
