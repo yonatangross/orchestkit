@@ -471,6 +471,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.25](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.24...v10.0.0-beta.25)** · 2026-09-14
+
+- **site:** withhold the negotiated Markdown variant from shared caches (#4125)
+- name the src/ path when build drift is under plugins/ork/skills (GH-3507) (#4121)
+
 **[v10.0.0-beta.24](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.23...v10.0.0-beta.24)** · 2026-09-14
 
 - resolve the four [#3892](https://github.com/yonatangross/orchestkit/issues/3892) hook and review-pr regressions (#4108)
@@ -509,10 +514,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.18](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.17...v10.0.0-beta.18)** · 2026-09-12
 
 - **skills:** drain five ASCII density baseline blocks (#4073) (#4077)
-
-**[v10.0.0-beta.17](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.16...v10.0.0-beta.17)** · 2026-09-12
-
-- **traffic:** weekly snapshot, credit lines, seeding list (#4071) (#4075)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
