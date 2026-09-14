@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.25](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.24...v10.0.0-beta.25) (2026-09-14)
+
+
+### Bug Fixes
+
+* **site:** withhold the negotiated Markdown variant from shared caches ([#4125](https://github.com/yonatangross/orchestkit/issues/4125)) ([5f8997b](https://github.com/yonatangross/orchestkit/commit/5f8997ba0f954d26cb64a7536f712e5f01337aeb))
+
+
+### CI/CD
+
+* name the src/ path when build drift is under plugins/ork/skills (GH-3507) ([#4121](https://github.com/yonatangross/orchestkit/issues/4121)) ([83300dc](https://github.com/yonatangross/orchestkit/commit/83300dce4daf38a860e1d48935de36671c62e2d9))
+
 ## [10.0.0-beta.24](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.23...v10.0.0-beta.24) (2026-09-14)
 
 
