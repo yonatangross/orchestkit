@@ -213,9 +213,9 @@ CR_OUT=$(mktemp "${TMPDIR:-/tmp}/cr-prereview.XXXXXX")
   || echo "CodeRabbit CLI pre-review skipped (not installed, not signed in, timed out, or errored): $CR_OUT"
 ```
 
-Fix clear defects in lines this branch changed, commit, re-run Phase 2 local validation, then
-go to Phase 4 without re-running the CLI. Never pass `--use-credits`. Detection, degrade table,
-and triage: `Read("references/coderabbit-cli-prereview.md")`.
+Fix clear defects in lines this branch changed, commit, re-run Phase 2 local validation, then go
+to Phase 4 without re-running the CLI. Omitting `--use-credits` avoids spend only when the org's usage-based add-on is On demand or Off; Automatic bills overages.
+Detection, degrade table, billing modes, triage: `Read("references/coderabbit-cli-prereview.md")`.
 
 ### Phase 4: Create PR
 
@@ -943,8 +943,22 @@ fi
 | `--base "origin/$BASE"` | Compare the branch against the remote base; a worktree's local base branch is often stale or absent |
 | `</dev/null` | A signed-out CLI cannot sit on an interactive prompt |
 
-Never pass `--use-credits`: it bills usage credits once a review exceeds the included
-limit, which turns an advisory step into spend.
+### `--use-credits` and what actually controls spend
+
+Never pass `--use-credits`, but do not read its absence as a spend guarantee. CLI reviews
+follow the same billing path as PR reviews: the assigned user's plan allowance first, then
+the organization's usage-based add-on. What happens past the included limit depends on the
+add-on mode an admin set (docs.coderabbit.ai/management/usage-based-addon, read 2026-09-14):
+
+| Mode | Past the included limit | Does omitting `--use-credits` avoid spend? |
+|---|---|---|
+| Automatic | "CodeRabbit continues every eligible review automatically", and non-trial overages are billed | No. The review runs and bills without the flag |
+| On demand | "Reviews pause at the limit"; each paid review needs explicit authorization, which for the CLI is `coderabbit review --use-credits` | Yes |
+| Off | "Reviews stop when the included limit is reached" | Yes |
+
+So the flag is the authorization step only in On demand mode. If the org runs Automatic,
+this phase can spend credits no matter how the command is written; the control is the
+add-on mode in the CodeRabbit dashboard, not this snippet.
 
 ### Why `perl` and not `timeout`
 
@@ -1004,6 +1018,22 @@ never have fixed anything: CodeRabbit is not reaching this repo at all, because 
 is either uninstalled on the account that owns it or disabled account-side. Which of the
 two it is cannot be settled from a session, only from the settings page, and the ladder
 below is built so that gap stays visible instead of getting rounded off.
+
+The paragraph above is kept as history: it was true on 2026-09-03 and is no longer.
+
+## Current state, 2026-09-14: installed and reviewing
+
+CodeRabbit now reaches yonatangross/orchestkit. On 2026-09-14 `coderabbitai[bot]` posted a
+full review on #4117 (submitted 13:13Z, 2 inline comments), and orchestkit is listed as a
+connected public repository in the yonatangross CodeRabbit org. The installation gap
+diagnosed above was closed account-side; nothing in `.coderabbit.yaml` changed to fix it.
+
+With the app installed, the common cause of a zero on a single PR is no longer the grant.
+It is the per-identity rate limit (docs.coderabbit.ai/management/rate-limits): a PR whose
+review event arrives while the author's allowance is empty gets a `coderabbitai[bot]`
+comment saying "Review limit reached" instead of a review, and the harvest then reads `[]`.
+Check for that comment first. The ladder below still applies when a repo shows no
+CodeRabbit activity at all.
 
 ## Disambiguate before you trust the zero
 
@@ -1066,6 +1096,7 @@ gh api "/repos/$R/commits/$SHA/check-suites?per_page=100" --jq '.check_suites[].
 
 | Signal | Strength | Meaning | Fix |
 |---|---|---|---|
+| A `coderabbitai[bot]` comment on this PR saying "Review limit reached" | conclusive | Installed; this PR's review event was rate limited for the author's identity | Wait for the allowance to refill, then `@coderabbitai review`; push fewer times per PR |
 | Zero comments unbounded on both endpoints, control non-zero, **and silence after an explicit `@coderabbitai review`** | strong, still not conclusive | Not installed for this owner account, **or** installed and disabled account-side | Settings page decides which; install or re-enable |
 | Zero comments unbounded, but no explicit-trigger probe was run | **inconclusive** | Indistinguishable from a repo disabled in the dashboard or excluded since day one | Run step 4 before concluding |
 | No `coderabbit` check-suite slug, **and** the control repo has one | corroborating | Agrees with the row above; cannot carry the diagnosis alone | Same |

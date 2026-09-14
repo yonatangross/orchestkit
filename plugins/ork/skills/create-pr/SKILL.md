@@ -227,9 +227,9 @@ CR_OUT=$(mktemp "${TMPDIR:-/tmp}/cr-prereview.XXXXXX")
   || echo "CodeRabbit CLI pre-review skipped (not installed, not signed in, timed out, or errored): $CR_OUT"
 ```
 
-Fix clear defects in lines this branch changed, commit, re-run Phase 2 local validation, then
-go to Phase 4 without re-running the CLI. Never pass `--use-credits`. Detection, degrade table,
-and triage: `Read("references/coderabbit-cli-prereview.md")`.
+Fix clear defects in lines this branch changed, commit, re-run Phase 2 local validation, then go
+to Phase 4 without re-running the CLI. Omitting `--use-credits` avoids spend only when the org's usage-based add-on is On demand or Off; Automatic bills overages.
+Detection, degrade table, billing modes, triage: `Read("references/coderabbit-cli-prereview.md")`.
 
 ### Phase 4: Create PR
 
