@@ -269,6 +269,10 @@ jobs:
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
         with:
           node-version-file: .nvmrc
+          # No dependency cache in a release job: a cache restored here could be
+          # poisoned by any branch run, and the bundles built from it get pushed
+          # to the release PR. npm ci below installs cleanly without it.
+          package-manager-cache: false
 
       - name: Rebuild hook bundles on the release PR
         # justify: best-effort https://github.com/yonatangross/orchestkit/issues/3578
