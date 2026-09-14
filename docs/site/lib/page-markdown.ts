@@ -29,7 +29,7 @@ function absolute(href: string): string {
 	return href.startsWith("http") ? href : `${SITE.domain}${href}`;
 }
 
-const DEVELOPERS_TITLE = `${SITE.name} by Yonyon: developer resources`;
+const DEVELOPERS_TITLE = `${SITE.name} by Yonyon: developer resources (API, OpenAPI spec, MCP server)`;
 const DEVELOPERS_LEAD = `Every developer-facing surface of ${SITE.name}, the free MIT-licensed Claude Code plugin published by the Yonyon software studio. All public, all free, no account required.`;
 
 function developersMarkdown(): string {
