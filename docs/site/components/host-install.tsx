@@ -1,19 +1,22 @@
 "use client";
 
-import { startTransition, useEffect, useState, type MouseEvent } from "react";
+import { startTransition, useState, type MouseEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import { HostMark, type HostId } from "@/components/host-marks";
 import { SameRouteFade, sameRouteReplace } from "@/components/page-transition";
 import { InstallSnippet } from "@/components/install-snippet";
+import { SearchParamsSync } from "@/components/search-params-sync";
 import {
 	HOST_INSTALLS,
 	HOST_INSTALL_BY_ID,
 	homeInstallHref,
+	parseHostId,
 	type HostInstallSpec,
 } from "@/lib/host-installs";
-import type { LibraryTab } from "@/lib/library-tab";
+import { parseLibraryTab, type LibraryTab } from "@/lib/library-tab";
+import { track } from "@/lib/search-beacon";
 import { cn } from "@/lib/cn";
 
 function Card({ spec }: { spec: HostInstallSpec }) {
@@ -87,29 +90,38 @@ function passThroughClick(e: MouseEvent) {
 	);
 }
 
-/** Homepage: pick a host, copy its command. Keeps the Install by host nav. */
+/**
+ * Homepage: pick a host, copy its command. Keeps the Install by host nav.
+ *
+ * The selected host and the catalog tab come from the URL (`?host=`, `?lib=`)
+ * via SearchParamsSync, not from page props, so `/` stays statically rendered.
+ * The prerendered HTML shows the Claude Code default; a deep link switches to
+ * its host right after hydration.
+ */
 export function HostInstallPicker({
 	hosts = ["claude", "cursor", "codex", "muse", "pi", "opencode"],
-	active = "claude",
-	libraryTab = "skills",
 }: {
 	hosts?: HostId[];
-	active?: HostId;
-	libraryTab?: LibraryTab;
 }) {
 	const router = useRouter();
+	const reduceMotion = useReducedMotion();
 	const list = hosts.map((id) => HOST_INSTALL_BY_ID[id]);
-	const resolved =
-		list.find((item) => item.id === active)?.id ?? list[0]?.id ?? "claude";
-	const [current, setCurrent] = useState<HostId>(resolved);
+	const fallback = list[0]?.id ?? "claude";
+	const [current, setCurrent] = useState<HostId>(fallback);
+	const [libraryTab, setLibraryTab] = useState<LibraryTab>("skills");
 
-	useEffect(() => {
-		setCurrent(resolved);
-	}, [resolved]);
+	const syncFromUrl = (params: URLSearchParams) => {
+		const fromUrl = parseHostId(params.get("host") ?? undefined);
+		setCurrent(list.some((item) => item.id === fromUrl) ? fromUrl : fallback);
+		setLibraryTab(parseLibraryTab(params.get("lib") ?? undefined));
+	};
 
 	const spec = HOST_INSTALL_BY_ID[current];
 
 	const pick = (e: MouseEvent<HTMLAnchorElement>, id: HostId) => {
+		// Recorded for every activation, including a modified click that opens
+		// the host in a new tab: the choice is the signal, not how it was opened.
+		track("host_selected", { host: id });
 		if (passThroughClick(e)) return;
 		e.preventDefault();
 		startTransition(() => {
@@ -123,6 +135,7 @@ export function HostInstallPicker({
 			aria-label="Install by host"
 			className="mx-auto mt-4 w-full max-w-[640px] text-left"
 		>
+			<SearchParamsSync onChange={syncFromUrl} />
 			<div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
 				{list.map((item) => {
 					const selected = item.id === current;
@@ -143,7 +156,11 @@ export function HostInstallPicker({
 								<motion.span
 									layoutId="host-card-ring"
 									className="pointer-events-none absolute inset-0 rounded-xl ring-2 ring-fd-primary/35"
-									transition={{ type: "spring", stiffness: 420, damping: 34 }}
+									transition={
+										reduceMotion
+											? { duration: 0 }
+											: { type: "spring", stiffness: 420, damping: 34 }
+									}
 									aria-hidden="true"
 								/>
 							) : null}
