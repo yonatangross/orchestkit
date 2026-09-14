@@ -13,8 +13,13 @@ import {
 } from "./api.js";
 import { type McpTransport, mcpConfig } from "./mcp-config.js";
 
-/** The one supported way to install the plugin. Mirrors SITE.installCommand. */
-export const PLUGIN_INSTALL_COMMAND = "claude install orchestkit/ork";
+/**
+ * The one supported way to install the plugin from a shell. Mirrors
+ * SITE.installCommand. `claude install` installs the Claude Code native build,
+ * not a plugin, so it must never appear here.
+ */
+export const PLUGIN_INSTALL_COMMAND =
+	"claude plugin marketplace add yonatangross/orchestkit && claude plugin install ork@orchestkit";
 
 export const HELP = `orchestkit, CLI for OrchestKit, the Claude Code plugin by Yonyon
 
@@ -134,9 +139,14 @@ export async function run(
 			case "install":
 				return ok(
 					[
-						"OrchestKit is a Claude Code plugin. Install it from inside Claude Code:",
+						"OrchestKit is a Claude Code plugin. Install it from a terminal:",
 						"",
 						`  ${PLUGIN_INSTALL_COMMAND}`,
+						"",
+						"Or inside a Claude Code session:",
+						"",
+						"  /plugin marketplace add yonatangross/orchestkit",
+						"  /plugin install ork",
 						"",
 						"Requires Claude Code. Docs: https://orchestkit.yonyon.ai/docs/getting-started/installation",
 						"",

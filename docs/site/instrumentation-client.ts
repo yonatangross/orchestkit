@@ -14,10 +14,42 @@
 // This is not an ad-blocker nicety here, it is mandatory: next.config.mjs sets
 // `script-src 'self' 'unsafe-inline'` with no external hosts, so a script
 // loaded from *.posthog.com is blocked by CSP before it ever runs.
+//
+// SESSION REPLAY: on for /docs/reference/* only (decision 2026-09-14).
+// Why: skill and hook reference pages bounce at about 100%, and events alone
+// cannot say why. Replay was off before because it needs `worker-src blob:` in
+// the CSP and would have recorded the search dialog verbatim. Both are now
+// handled deliberately:
+//   - CSP: next.config.mjs adds `worker-src 'self' blob:` (workers only;
+//     script-src is unchanged).
+//   - Privacy: every input value is masked, the search dialog is blocked from
+//     the recording (ph-no-capture on its content, plus a text mask on any
+//     dialog as a second line), and network capture keeps no headers, no
+//     bodies and no query strings (the search fetch carries the query there).
+// How it is gated: init keeps replay DISABLED, and lib/replay-gate.ts is the
+// only thing that turns it on, on a full load of a reference page or an App
+// Router navigation into one. Leaving the reference tree stops it before the
+// next page renders. This gate is complete on its own; a URL trigger in the
+// PostHog project can narrow it further but is not relied on.
+// Limits, stated plainly:
+//   - Nothing records until session replay is enabled in the PostHog project
+//     settings. The SDK requires that server side flag as well as this gate.
+//   - Page text on reference pages IS recorded (it is public docs content).
+//   - The gate is per tab. Other tabs on other paths never start recording.
+//   - Entering a reference page starts replay once the URL has committed, so
+//     the recording opens on the reference page, not the page being left.
 
 import posthog from "posthog-js";
+import {
+	createReplayGate,
+	isReplayPath,
+	maskNetworkRequest,
+	pathnameOf,
+} from "@/lib/replay-gate";
 
 const KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY;
+
+const replay = createReplayGate(posthog);
 
 if (KEY) {
 	posthog.init(KEY, {
@@ -29,10 +61,22 @@ if (KEY) {
 		// Pinned defaults bundle, as required by PostHog.
 		defaults: "2026-01-30",
 
-		// Session replay would need `worker-src blob:` in the CSP and would record
-		// the docs search dialog verbatim. Left off until that trade is made
-		// deliberately; matches mandat.
+		// Off by default everywhere. lib/replay-gate.ts turns it on for
+		// /docs/reference/* only (see SESSION REPLAY above). Do not flip this to
+		// false: that would record every path the project settings allow.
 		disable_session_recording: true,
+		session_recording: {
+			// Explicit even though it is the SDK default, so a remote "Privacy and
+			// masking" change cannot unmask inputs (local config wins).
+			maskAllInputs: true,
+			// Second line behind ph-no-capture on the search dialog: if a fumadocs
+			// upgrade ever stops forwarding that className, dialog text is still
+			// masked.
+			maskTextSelector: '.ph-no-capture, [role="dialog"]',
+			recordHeaders: false,
+			recordBody: false,
+			maskCapturedNetworkRequestFn: maskNetworkRequest,
+		},
 
 		// The docs site is fully anonymous — it has no login, so there is never a
 		// distinct id to attach. "always" would mint a billable person row for
@@ -45,10 +89,46 @@ if (KEY) {
 
 		debug: process.env.NODE_ENV === "development",
 	});
+
+	// Full page load (or hard refresh) straight onto a page.
+	replay.sync(window.location.pathname);
 } else if (process.env.NODE_ENV === "development") {
 	// Loud in dev, silent no-op in production: a missing key must never break the
 	// site, but it must also never fail silently on a developer's machine.
 	console.error(
 		"NEXT_PUBLIC_POSTHOG_KEY variable required by PostHog is missing or un-configured, this causes events to be silently missed. This error stops appearing once NEXT_PUBLIC_POSTHOG_KEY is configured",
 	);
+}
+
+// Bumped on every navigation so a slow wait from an earlier one gives up.
+let navigation = 0;
+// Upper bound on waiting for the URL to commit (slow network, cancelled nav).
+const COMMIT_WAIT_MS = 10_000;
+
+/**
+ * App Router navigation hook (Next.js instrumentation-client convention).
+ * Covers link clicks, router.push/replace, and back/forward.
+ */
+export function onRouterTransitionStart(url: string): void {
+	if (!KEY) return;
+	const target = pathnameOf(url, window.location.href);
+	const id = ++navigation;
+
+	// Leaving the reference tree: stop NOW, before the next page renders, so
+	// none of its DOM reaches the recording.
+	if (target === null || !isReplayPath(target)) replay.stop();
+
+	// Then settle against where the browser actually ended up. For a navigation
+	// into a reference page this starts replay only after the URL has committed;
+	// for a cancelled or redirected navigation it corrects course.
+	const deadline = performance.now() + COMMIT_WAIT_MS;
+	const settle = () => {
+		if (id !== navigation) return;
+		if (window.location.pathname === target || performance.now() > deadline) {
+			replay.sync(window.location.pathname);
+			return;
+		}
+		requestAnimationFrame(settle);
+	};
+	requestAnimationFrame(settle);
 }
