@@ -132,8 +132,8 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   },
   {
     "url": "/docs/foundations/mcp-servers",
-    "title": "MCP Servers",
-    "description": "External tool integrations that give agents web search, component registries, design extraction, and more."
+    "title": "OrchestKit MCP Servers",
+    "description": "The MCP servers OrchestKit agents consume (web search, component registries, design extraction) and the OrchestKit Docs MCP server that agents can connect to."
   },
   {
     "url": "/docs/foundations/overview",
