@@ -1,0 +1,8 @@
+{
+  "slug": "site-lab-pages",
+  "source": "docs/fix--site-lab-pages/index.html",
+  "title": "Lab pages: a way back, share cards and page views",
+  "description": "Before and after for the 150 raw Lab pages: footer and og:image exactly once on every page, the /lab 307 and trailing asterisk 308 redirects, and what the page_view beacon does for a shared link, a docs embed and a local preview.",
+  "tags": ["docs", "analytics", "seo"],
+  "date": "2026-09-14"
+}

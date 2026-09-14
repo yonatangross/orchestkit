@@ -10,14 +10,23 @@ import { track } from "@/lib/search-beacon";
  * the whole chip is a real button, and the clipboard payload is the joined
  * lines (not a fake one-liner).
  */
+export type SnippetCopyEvent = "install_copied" | "setup_copied";
+
 export function InstallSnippet({
 	text,
 	prompt = true,
 	host,
+	event = "install_copied",
 }: {
 	text: string | string[];
 	prompt?: boolean;
 	host?: string;
+	/**
+	 * Funnel event fired on copy. The install chip keeps install_copied; the
+	 * "Then run /ork:setup" chip passes setup_copied so a setup copy is never
+	 * counted as a second install.
+	 */
+	event?: SnippetCopyEvent;
 }) {
 	const lines = typeof text === "string" ? [text] : text;
 	const payload = lines.join("\n");
@@ -26,7 +35,7 @@ export function InstallSnippet({
 
 	const copy = () => {
 		navigator.clipboard.writeText(payload).catch(() => {});
-		track("install_copied", host ? { host } : {});
+		track(event, host ? { host } : {});
 		if (timer.current) clearTimeout(timer.current);
 		setCopied(true);
 		timer.current = setTimeout(() => setCopied(false), 2000);

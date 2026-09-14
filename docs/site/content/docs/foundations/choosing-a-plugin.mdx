@@ -9,8 +9,17 @@ import { Count } from '@/components/count';
 
 OrchestKit ships as a single plugin: **ork**.
 
+Inside a Claude Code session:
+
 ```bash
-claude install orchestkit/ork
+/plugin marketplace add yonatangross/orchestkit
+/plugin install ork
+```
+
+Or from a terminal:
+
+```bash
+claude plugin marketplace add yonatangross/orchestkit && claude plugin install ork@orchestkit
 ```
 
 No choices, no configuration required. All <Count k="skills" /> skills, <Count k="agents" /> agents, and <Count k="hooks" /> hooks install together.

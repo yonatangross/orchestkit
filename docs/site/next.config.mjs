@@ -145,6 +145,29 @@ const config = {
 			destination: "/docs/foundations/overview",
 			permanent: false,
 		},
+		// The Lab gallery lives at /docs/showcase/lab; /lab/ itself only serves
+		// the raw public/lab/<slug>.html pages, so the bare path was a 404 for
+		// anyone trimming a shared playground URL. Temporary on purpose: a cached
+		// 308 would outlive a real /lab index if one is ever added.
+		{
+			source: "/lab",
+			destination: "/docs/showcase/lab",
+			permanent: false,
+		},
+		{
+			// skipTrailingSlashRedirect is on, so the slash form needs its own rule.
+			source: "/lab/",
+			destination: "/docs/showcase/lab",
+			permanent: false,
+		},
+		{
+			// A bare URL wrapped in Markdown bold (**https://.../lab/x.html**, as in
+			// the #3746 PR body) keeps its asterisks when a non-GitHub autolinker
+			// turns it into a link, and PostHog recorded /lab/<slug>.html** hits.
+			source: "/lab/:slug([a-z0-9][a-z0-9-]*).html:stars(\\*+)",
+			destination: "/lab/:slug.html",
+			permanent: true,
+		},
 		{
 			// 301 the bare Vercel host onto the canonical brand domain (orchestkit.yonyon.ai).
 			// Preview deployments (orchestkit-<hash>.vercel.app) don't match this exact host,

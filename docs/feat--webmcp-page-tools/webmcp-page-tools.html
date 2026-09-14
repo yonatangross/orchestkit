@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="OrchestKit playground, PR feat/webmcp-page-tools (#4107), 2026-09-14. Real WebMCP tools on every docs page, with server-rendered evidence.">
+<title>Mentioned only, until it was registered</title>
+<style>
+  * { box-sizing:border-box; }
+  body { margin:0; font:15px/1.55 -apple-system, system-ui, "Segoe UI", sans-serif; background:#0f1115; color:#e6e6e6; }
+  main { max-width:1000px; margin:0 auto; padding:26px 20px 68px; }
+  h1 { font-size:22px; margin:0 0 6px; }
+  h2 { font-size:15px; margin:28px 0 8px; color:#6ea8fe; }
+  p { margin:6px 0; color:#9aa3b2; max-width:82ch; }
+  code { font:12.5px ui-monospace, SFMono-Regular, Menlo, monospace; color:#cbd5e1; }
+  .panel { background:#181b22; border:1px solid #2a2f3a; border-radius:10px; padding:14px; margin-top:10px; }
+  .panel h3 { margin:0 0 10px; font:600 12px ui-monospace,Menlo,monospace; letter-spacing:.05em; text-transform:uppercase; color:#9aa3b2; }
+  .opts { display:flex; gap:7px; flex-wrap:wrap; margin-bottom:10px; }
+  .opts button { background:#0b0d11; color:#9aa3b2; border:1px solid #2a2f3a; border-radius:20px;
+        padding:6px 13px; cursor:pointer; font:12px ui-monospace,Menlo,monospace; }
+  .opts button[aria-pressed="true"] { border-color:#6ea8fe; color:#6ea8fe; }
+  .res { margin-top:10px; padding:12px 14px; border-radius:8px; border:1px solid #2a2f3a; }
+  .res .r { font:700 15px ui-monospace,monospace; }
+  .yes { background:rgba(76,195,138,.10); border-color:rgba(76,195,138,.5); }
+  .yes .r { color:#4cc38a; }
+  .no { background:rgba(229,72,77,.10); border-color:rgba(229,72,77,.5); }
+  .no .r { color:#e5484d; }
+  .warn { background:rgba(226,163,54,.10); border-color:rgba(226,163,54,.5); }
+  .warn .r { color:#e2a336; }
+  .res p { color:#e6e6e6; margin:6px 0 0; font-size:13.5px; max-width:none; }
+  pre { margin:8px 0 0; padding:11px; background:#0b0d11; border:1px solid #2a2f3a; border-radius:8px;
+        overflow:auto; font:12.5px/1.5 ui-monospace,Menlo,monospace; white-space:pre-wrap; color:#cbd5e1; }
+  table { border-collapse:collapse; width:100%; font-size:13.5px; margin-top:6px; }
+  th,td { text-align:left; padding:7px 9px; border-bottom:1px solid #2a2f3a; vertical-align:top; }
+  th { color:#9aa3b2; font:600 11px ui-monospace,monospace; text-transform:uppercase; letter-spacing:.05em; }
+  td.k { font:12px ui-monospace,Menlo,monospace; white-space:nowrap; }
+  small.note { display:block; margin-top:9px; color:#9aa3b2; font-size:12px; }
+  input[type=text], select { background:#0b0d11; color:#e6e6e6; border:1px solid #2a2f3a; border-radius:8px;
+        padding:7px 10px; font:12.5px ui-monospace,Menlo,monospace; }
+  input[type=text] { width:260px; }
+  .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .run { background:#6ea8fe; color:#0b0d11; border:0; border-radius:8px; padding:8px 14px; font:600 12.5px ui-monospace,Menlo,monospace; cursor:pointer; }
+  .quote { border-left:3px solid #6ea8fe; padding:8px 12px; margin:8px 0; background:#0b0d11; border-radius:6px; font-size:13.5px; color:#e6e6e6; }
+  .badge { display:inline-block; padding:2px 8px; border-radius:10px; font:600 10.5px ui-monospace,monospace; letter-spacing:.04em; text-transform:uppercase; }
+  .bad { color:#e5484d; background:rgba(229,72,77,.12); }
+  .ok { color:#4cc38a; background:rgba(76,195,138,.12); }
+  .two { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  @media (max-width:760px) { .two { grid-template-columns:1fr; } }
+  details summary { cursor:pointer; color:#9aa3b2; font-size:12.5px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Mentioned only, until it was registered</h1>
+  <p>ora.ai's usability check scored the docs site 0/5 on "webmcp" with the verdict <em>mentioned only, not implemented</em>. The site did register tools, but only through <code>navigator.modelContext.provideContext()</code> inside a client <code>useEffect</code>, and the served HTML carried nothing about them except a sentence of prose. PR #4107 moves registration to <code>document.modelContext.registerTool()</code> first (navigator surfaces as trailing fallbacks), adds a <code>get_page</code> tool, and renders a declarative <code>&lt;form toolname="search_docs"&gt;</code> on the homepage so a crawler that never runs JavaScript still finds a real tool. This page mocks the browser API so you can see what an agent now gets.</p>
+
+  <h2>What a browser exposes decides which surface gets the tools</h2>
+  <p>The helper feature-detects in order and stops at the first surface that exists, so a browser shipping both never sees a tool registered twice. Pick a browser shape and watch where the four tools land:</p>
+  <div class="panel">
+    <div class="opts" id="shapes">
+      <button data-shape="doc" aria-pressed="true">document.modelContext.registerTool</button>
+      <button data-shape="navreg" aria-pressed="false">navigator.modelContext.registerTool only</button>
+      <button data-shape="navprov" aria-pressed="false">navigator.provideContext only (old trial)</button>
+      <button data-shape="none" aria-pressed="false">no WebMCP API</button>
+    </div>
+    <div class="res yes" id="surface"><div class="r"></div><p></p></div>
+    <table>
+      <thead><tr><th>tool</th><th>description</th><th>input schema</th></tr></thead>
+      <tbody id="tools"></tbody>
+    </table>
+    <small class="note">These four objects are the same shape the site registers from <code>docs/site/lib/webmcp-tools.ts</code>: name, description, JSON-schema input, and an execute function backed by an existing route.</small>
+  </div>
+
+  <h2>Call search_docs</h2>
+  <p>The tool's execute function builds one GET against the site's unified search route. Type a query, pick an optional content-type tag, and read the request shape. When this page is served from the docs origin the call actually runs; from a file or another host it stops at the shape.</p>
+  <div class="panel">
+    <div class="row">
+      <input type="text" id="q" value="install" aria-label="query">
+      <select id="tag" aria-label="tag">
+        <option value="">tag: any</option>
+        <option value="docs">docs</option><option value="skill">skill</option><option value="agent">agent</option><option value="hook">hook</option><option value="composition">composition</option>
+      </select>
+      <button class="run" id="run">call search_docs</button>
+    </div>
+    <pre id="shape"></pre>
+    <div class="res warn" id="callres" style="display:none"><div class="r"></div><p></p></div>
+    <pre id="callout" style="display:none"></pre>
+  </div>
+
+  <h2>Before and after: the provider</h2>
+  <p>Before, the whole provider was one call on one surface behind one feature check. After, the component is a shim and the ordering lives in a React-free helper the unit test can drive with a mocked <code>document</code>.</p>
+  <div class="two">
+    <div class="panel">
+      <h3><span class="badge bad">before</span> webmcp-provider.tsx (lines 116 to 122)</h3>
+<pre>useEffect(() =&gt; {
+  const ctx = (navigator as Navigator &amp; { modelContext?: ModelContext })
+    .modelContext;
+  if (!ctx?.provideContext) return;
+  ctx.provideContext({ tools: TOOLS });
+}, []);</pre>
+      <small class="note">No <code>document.modelContext</code>, no <code>registerTool</code>, and nothing in server HTML. A checker reading the current spec shape found no registration; a checker reading raw HTML found a sentence.</small>
+    </div>
+    <div class="panel">
+      <h3><span class="badge ok">after</span> lib/webmcp-tools.ts registerWebMcpTools()</h3>
+<pre>const docCtx = (doc as HasModelContext).modelContext;
+if (typeof docCtx?.registerTool === "function") {
+  for (const tool of tools) docCtx.registerTool(tool);
+  return "document.registerTool";
+}
+const navCtx = (nav as HasModelContext).modelContext;
+if (typeof navCtx?.registerTool === "function") {
+  for (const tool of tools) navCtx.registerTool(tool);
+  return "navigator.registerTool";
+}
+if (typeof navCtx?.provideContext === "function") {
+  navCtx.provideContext({ tools });
+  return "navigator.provideContext";
+}
+return "none";</pre>
+      <small class="note">Mounted once in <code>app/layout.tsx</code>, so every route registers the same set on load. The return value is what the unit test asserts.</small>
+    </div>
+  </div>
+
+  <h2>Crawler evidence: the form in server HTML</h2>
+  <p>This is the exact element captured with <code>curl http://127.0.0.1:4917/</code> against <code>next start</code> of the built site (HTTP 200, 145135 bytes, one match). It is <code>hidden</code> and <code>aria-hidden</code>, so users and screen readers never meet it, but a reader of raw bytes does.</p>
+  <div class="panel">
+<pre>&lt;form toolname="search_docs"
+      tooldescription="Full-text search across ALL OrchestKit content (docs, skills, agents, hooks, compositions) via the unified index. Returns matching results with titles and URLs. Optionally filter by content type with `tag`."
+      hidden="" aria-hidden="true" data-webmcp="declarative"
+      action="/api/search" method="get"&gt;
+  &lt;label for="webmcp-search-query"&gt;Search term&lt;/label&gt;
+  &lt;input id="webmcp-search-query" name="query" type="search" required tabindex="-1"&gt;
+  &lt;button type="submit" tabindex="-1"&gt;Search OrchestKit docs&lt;/button&gt;
+&lt;/form&gt;</pre>
+    <div class="quote">ora's recommendation, verbatim: "Register tools with document.modelContext.registerTool() and use navigator.modelContext only as a trailing compatibility fallback. Declarative forms with toolname and tooldescription provide server-rendered evidence, but remain a preview and should not be your only tool surface." The imperative registration above is the primary surface; this form is the evidence.</div>
+    <small class="note">Not verified on this page: a real Chrome origin-trial build (149 to 156, shipping targeted 157) invoking the registration end to end. The unit test pins the order with a mocked modelContext; the curl pins the HTML.</small>
+  </div>
+</main>
+<script>
+(function () {
+  var TOOLS = [
+    { name: "search_docs",
+      description: "Full-text search across ALL OrchestKit content (docs, skills, agents, hooks, compositions) via the unified index. Returns matching results with titles and URLs. Optionally filter by content type with `tag`.",
+      inputSchema: { type: "object", properties: { query: { type: "string", description: "Search term" }, tag: { type: "string", "enum": ["docs","skill","agent","hook","composition"] } }, required: ["query"] } },
+    { name: "get_page",
+      description: "Fetch one OrchestKit docs page as Markdown by its path, e.g. '/docs/foundations/overview' or 'foundations/overview'. An empty path returns the site index.",
+      inputSchema: { type: "object", properties: { path: { type: "string", description: "Docs page path. Omit or pass '/' for the site index." } } } },
+    { name: "list_skills",
+      description: "List all OrchestKit skills (name + description) from the agent-skills discovery index.",
+      inputSchema: { type: "object", properties: {} } },
+    { name: "get_skill",
+      description: "Fetch a single OrchestKit skill's documentation as Markdown by skill name.",
+      inputSchema: { type: "object", properties: { name: { type: "string", description: "Skill name, e.g. 'assess'" } }, required: ["name"] } }
+  ];
+
+  // Same ordering as docs/site/lib/webmcp-tools.ts, against mock doc/nav objects.
+  function register(doc, nav, tools) {
+    var d = doc.modelContext, n = nav.modelContext;
+    if (d && typeof d.registerTool === "function") { tools.forEach(function (t) { d.registerTool(t); }); return "document.registerTool"; }
+    if (n && typeof n.registerTool === "function") { tools.forEach(function (t) { n.registerTool(t); }); return "navigator.registerTool"; }
+    if (n && typeof n.provideContext === "function") { n.provideContext({ tools: tools }); return "navigator.provideContext"; }
+    return "none";
+  }
+
+  function mockFor(shape) {
+    var registered = [];
+    var reg = function (t) { registered.push(t); };
+    var prov = function (c) { c.tools.forEach(reg); };
+    var doc = {}, nav = {};
+    if (shape === "doc") { doc.modelContext = { registerTool: reg }; nav.modelContext = { registerTool: reg, provideContext: prov }; }
+    if (shape === "navreg") { nav.modelContext = { registerTool: reg }; }
+    if (shape === "navprov") { nav.modelContext = { provideContext: prov }; }
+    return { doc: doc, nav: nav, registered: registered };
+  }
+
+  var EXPLAIN = {
+    "document.registerTool": ["yes", "Preferred surface. Four registerTool calls on document.modelContext; navigator was present but never touched."],
+    "navigator.registerTool": ["yes", "Older trial build. Four registerTool calls on navigator.modelContext."],
+    "navigator.provideContext": ["yes", "Original imperative API. One provideContext call carrying all four tools, the shape the site used before this PR."],
+    "none": ["no", "No WebMCP API. The helper returns \"none\" and registers nothing, which is the no-op path every non-Chrome browser takes today."]
+  };
+
+  function esc(s) { return String(s).replace(/[&<>]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]; }); }
+
+  function renderShape(shape) {
+    var m = mockFor(shape);
+    var surface = register(m.doc, m.nav, TOOLS);
+    var box = document.getElementById("surface");
+    var ex = EXPLAIN[surface];
+    box.className = "res " + ex[0];
+    box.querySelector(".r").textContent = "surface: " + surface + "  (" + m.registered.length + " tools registered)";
+    box.querySelector("p").textContent = ex[1];
+    var rows = m.registered.map(function (t) {
+      return "<tr><td class=\"k\">" + esc(t.name) + "</td><td>" + esc(t.description) + "</td><td><details><summary>schema</summary><pre>" + esc(JSON.stringify(t.inputSchema, null, 2)) + "</pre></details></td></tr>";
+    });
+    document.getElementById("tools").innerHTML = rows.length ? rows.join("") : "<tr><td colspan=\"3\" style=\"color:#9aa3b2\">nothing registered</td></tr>";
+  }
+
+  var shapes = document.getElementById("shapes");
+  shapes.addEventListener("click", function (e) {
+    var b = e.target.closest("button"); if (!b) return;
+    shapes.querySelectorAll("button").forEach(function (x) { x.setAttribute("aria-pressed", x === b ? "true" : "false"); });
+    renderShape(b.getAttribute("data-shape"));
+  });
+  renderShape("doc");
+
+  function requestShape() {
+    var q = document.getElementById("q").value.trim();
+    var tag = document.getElementById("tag").value;
+    var p = new URLSearchParams({ query: q }); if (tag) p.set("tag", tag);
+    var path = "/api/search?" + p.toString();
+    document.getElementById("shape").textContent =
+      "execute({ query: " + JSON.stringify(q) + (tag ? ", tag: " + JSON.stringify(tag) : "") + " })\n" +
+      "  fetch(" + JSON.stringify(path) + ")\n" +
+      "  returns { content: [{ type: \"text\", text: <response body> }] }";
+    return path;
+  }
+  document.getElementById("q").addEventListener("input", requestShape);
+  document.getElementById("tag").addEventListener("change", requestShape);
+  requestShape();
+
+  document.getElementById("run").addEventListener("click", function () {
+    var path = requestShape();
+    var res = document.getElementById("callres"), out = document.getElementById("callout");
+    res.style.display = ""; out.style.display = "none";
+    var q = document.getElementById("q").value.trim();
+    if (!q) { res.className = "res no"; res.querySelector(".r").textContent = "Provide a non-empty query."; res.querySelector("p").textContent = "The tool returns this text instead of calling the route."; return; }
+    if (!/^https?:$/.test(location.protocol)) {
+      res.className = "res warn"; res.querySelector(".r").textContent = "served from " + location.protocol + " so the fetch is skipped";
+      res.querySelector("p").textContent = "Open this page from the docs origin (or run next start) and the same button performs the real GET."; return;
+    }
+    res.className = "res warn"; res.querySelector(".r").textContent = "GET " + path; res.querySelector("p").textContent = "in flight";
+    fetch(path).then(function (r) { return r.text().then(function (t) { return { status: r.status, text: t }; }); })
+      .then(function (r) {
+        res.className = "res " + (r.status === 200 ? "yes" : "no");
+        res.querySelector(".r").textContent = "HTTP " + r.status;
+        res.querySelector("p").textContent = r.status === 200 ? "This body is what the agent receives as content[0].text." : "The tool returns \"Search failed (" + r.status + ").\"";
+        out.style.display = ""; out.textContent = r.text.slice(0, 1500) + (r.text.length > 1500 ? "\n... (truncated)" : "");
+      })
+      .catch(function (err) {
+        res.className = "res no"; res.querySelector(".r").textContent = "fetch failed";
+        res.querySelector("p").textContent = String(err) + ". A host without /api/search (for example GitHub Pages) lands here; the shape above is still the real request.";
+      });
+  });
+})();
+</script>
+</body>
+</html>
