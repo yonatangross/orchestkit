@@ -1,0 +1,8 @@
+{
+  "slug": "build-fixed-point-4116",
+  "source": "docs/fix--4116-build-fixed-point/index.html",
+  "title": "One build should be enough",
+  "description": "Run the old and corrected documentation build orders to see why indexing after reference generation and stamping makes the second build a no-op.",
+  "tags": ["build", "testing", "documentation"],
+  "date": "2026-09-14"
+}
