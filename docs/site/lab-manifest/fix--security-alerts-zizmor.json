@@ -1,0 +1,12 @@
+{
+  "slug": "fix--security-alerts-zizmor",
+  "source": "docs/fix--security-alerts-zizmor/index.html",
+  "title": "Twenty open code scanning alerts, and which ones a fix actually closes",
+  "description": "PR #4100 fixes two high CodeQL XSS alerts at the sink, stops CodeQL scanning 320 committed branch previews, and clears every medium+ zizmor finding (7 to 0). Test the paths-ignore glob against real docs/ paths and see each alert's before and after state.",
+  "tags": [
+    "security",
+    "codeql",
+    "github-actions"
+  ],
+  "date": "2026-09-14"
+}
