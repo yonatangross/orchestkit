@@ -55,6 +55,7 @@ function Card({ spec }: { spec: HostInstallSpec }) {
 						text={spec.then.commands}
 						prompt={spec.then.prompt}
 						host={spec.id}
+						event="setup_copied"
 					/>
 				</div>
 			) : null}
@@ -185,6 +186,7 @@ function HostCommandPanel({ spec }: { spec: HostInstallSpec }) {
 						text={spec.then.commands}
 						prompt={spec.then.prompt}
 						host={spec.id}
+						event="setup_copied"
 					/>
 				) : null}
 				<p className="text-center">
