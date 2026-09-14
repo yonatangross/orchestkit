@@ -116,6 +116,20 @@ jobs:
           if ! git diff --quiet -- "${GENERATED[@]}"; then
             echo "::error::Build drift detected! Run 'npm run build' and commit the changes (${GENERATED[*]})."
             git diff --stat -- "${GENERATED[@]}"
+            # The dominant cause of this failure is editing generated output
+            # instead of its source (#3495: a contributor edited
+            # plugins/ork/skills/api-design/scripts/problem-detail-exceptions.py
+            # and had to be told the src/ path by hand). The roster line above
+            # names directories; this names the fix. For every drifted skill
+            # file, print the source path it is generated from (#3507). The
+            # mapping is mechanical: plugins/ork/skills/<rest> comes from
+            # src/skills/<rest>.
+            git diff --name-only -- "${GENERATED[@]}" | while read -r f; do
+              case "$f" in
+                plugins/ork/skills/*)
+                  echo "::error::Did you edit generated output? Source: src/skills/${f#plugins/ork/skills/}" ;;
+              esac
+            done
             exit 1
           fi
 
