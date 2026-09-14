@@ -67,7 +67,7 @@ Measured 2026-09-08 on pi 0.85, Codex CLI and cursor-agent. Details, commands an
 
 Then `/ork:setup`. The wizard scans the repo, recommends skills, and writes MCP config.
 
-CLI equivalent: `claude install orchestkit/ork`.
+CLI equivalent: `claude plugin marketplace add yonatangross/orchestkit && claude plugin install ork@orchestkit`.
 
 ### Cursor
 
@@ -471,6 +471,15 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.22](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.21...v10.0.0-beta.22)** · 2026-09-14
+
+- **site:** enable PostHog session replay on /docs/reference/* only (#4105)
+- **site:** register WebMCP page tools (search_docs, get_page) with server-rendered evidence (#4107)
+- **site:** static homepage, hero install command, host_selected, /mcp passthrough (#4103)
+- **docs:** give Lab pages a way back to the site, share cards and page views (#4101)
+- **hooks:** stop worktree pre-push fixtures flipping core.bare (#4070) (#4090)
+- …and 10 more (see [CHANGELOG.md](CHANGELOG.md))
+
 **[v10.0.0-beta.21](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.20...v10.0.0-beta.21)** · 2026-09-13
 
 - **pre-push:** load-aware jobs and named hook timeouts (#4085) (#4086)
@@ -502,15 +511,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **hooks:** pre-push runs its test suite on every branch (#4024) (#4045)
 - **release:** include docs site changes in changelog (#4066) (#4067)
 - **tests:** write temp files under mktemp, not a hardcoded /tmp (#4026) (#4048)
-
-**[v10.0.0-beta.14](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.13...v10.0.0-beta.14)** · 2026-09-11
-
-- **build:** strip devDependencies from the hooks manifest mirror (#3971) (#4029)
-- **hooks:** display-lint no longer nudges the shape it recommends (#3936) (#4037)
-- **hooks:** remove matcher-group if keys CC never supported (#4062)
-- **release:** stamp the codex and cursor plugin.json mirrors (#4038) (#4046)
-- **skills:** clear remaining allowed-tools exceptions (#4043)
-- …and 9 more (see [CHANGELOG.md](CHANGELOG.md))
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

@@ -132,8 +132,8 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   },
   {
     "url": "/docs/foundations/mcp-servers",
-    "title": "MCP Servers",
-    "description": "External tool integrations that give agents web search, component registries, design extraction, and more."
+    "title": "OrchestKit MCP Servers",
+    "description": "The MCP servers OrchestKit agents consume (web search, component registries, design extraction) and the OrchestKit Docs MCP server that agents can connect to."
   },
   {
     "url": "/docs/foundations/overview",
@@ -776,9 +776,29 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
     "description": "Run isolated eval and grading calls using CC 2.1.81 --bare mode. Constructs claude -p --bare invocations for skill evaluation, trigger testing, and LLM grading without plugin/hook interference. Use when running eval pipelines, grading skill outputs, benchmarking prompt quality, or testing trigger accuracy in isolation."
   },
   {
+    "url": "/docs/reference/skills/brainstorm/checklists",
+    "title": "Brainstorm: Checklists",
+    "description": "2 checklists for the Brainstorm skill: Brainstorm Completion; Brainstorm Session Checklist"
+  },
+  {
+    "url": "/docs/reference/skills/brainstorm/examples",
+    "title": "Brainstorm: Examples",
+    "description": "1 examples for the Brainstorm skill: Orchestkit Feature Brainstorm"
+  },
+  {
     "url": "/docs/reference/skills/brainstorm",
     "title": "Brainstorm",
     "description": "Design exploration using parallel agents through a 7-phase process: topic analysis, memory context, divergent ideation (10+ ideas), feasibility filtering, evaluation with devil's advocate scoring (0-10 across 7 dimensions), synthesis of top approaches, and trade-off comparison. Supports open exploration, constrained design, comparison, quick ideation, and iterative optimization modes. Use when brainstorming ideas, exploring solutions, or comparing alternatives."
+  },
+  {
+    "url": "/docs/reference/skills/brainstorm/references",
+    "title": "Brainstorm: References",
+    "description": "12 references for the Brainstorm skill: Claude Code; Common Pitfalls; Devils Advocate Prompts; Divergent Techniques; Effort Scaling; Evaluation Rubric; Example Session Auth; Example Session Dashboard; Iterative Optimization Mode; Mcp Probe Resume; Phase Workflow; Socratic Questions"
+  },
+  {
+    "url": "/docs/reference/skills/brainstorm/rules",
+    "title": "Brainstorm: Rules",
+    "description": "4 rules for the Brainstorm skill: Limit parallel brainstorm agents to 5 maximum to avoid diminishing returns and context waste; Flag ideas that exceed current team or infrastructure capacity using tier-based complexity ceilings; Brainstorm must converge to actionable recommendations with clear next steps, not just list ideas; Each idea must have a feasibility score (1-5) before synthesis; flag unfeasible ideas explicitly"
   },
   {
     "url": "/docs/reference/skills/browser-tools",
@@ -829,6 +849,36 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
     "url": "/docs/reference/skills/configure",
     "title": "Configure",
     "description": "Interactive wizard for OrchestKit settings: MCP servers, hook permissions, keybindings, and install presets. Use when customizing plugin behavior or managing settings."
+  },
+  {
+    "url": "/docs/reference/skills/configure/references/cc-version-settings",
+    "title": "Configure: CC Version-Specific Settings",
+    "description": "Configure CC 2.1.7-specific features"
+  },
+  {
+    "url": "/docs/reference/skills/configure/references/http-hooks",
+    "title": "Configure: HTTP Hooks and Streaming Telemetry (CC 2.1.63+)",
+    "description": "OrchestKit used to emit hook events over two channels that POSTed to the same downstream endpoint, so every event was delivered twice"
+  },
+  {
+    "url": "/docs/reference/skills/configure/references/mcp-config",
+    "title": "Configure: MCP Configuration",
+    "description": "MCPs (Model Context Protocol servers) enhance OrchestKit commands but are NOT required."
+  },
+  {
+    "url": "/docs/reference/skills/configure/references/operator-scope-settings",
+    "title": "Configure: Operator-Scope Settings",
+    "description": "Paste-ready JSON for controls a plugin bundle cannot carry."
+  },
+  {
+    "url": "/docs/reference/skills/configure/references/presets",
+    "title": "Configure: Preset Definitions",
+    "description": "Everything enabled - full AI-assisted development."
+  },
+  {
+    "url": "/docs/reference/skills/configure/rules",
+    "title": "Configure: Rules",
+    "description": "2 rules for the Configure skill: Backup existing configuration before making changes to enable safe rollback; Validate configuration after writing to catch malformed JSON and invalid settings"
   },
   {
     "url": "/docs/reference/skills/cover",
@@ -901,6 +951,96 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
     "description": "OrchestKit doctor for health diagnostics across manifest integrity, hook configuration, skill validation, agent frontmatter, MCP server connectivity, CC version compatibility, and permission rules. Reports issues with severity levels and auto-remediation suggestions. Validates component counts, detects orphaned entries, and checks CC version matrix compliance. Use when diagnosing plugin health, troubleshooting configuration issues, or running pre-release checks."
   },
   {
+    "url": "/docs/reference/skills/doctor/references/agents-validation",
+    "title": "Doctor: Agents Validation",
+    "description": "OrchestKit includes 30 specialized agents validated against CC 2.1.69 frontmatter format."
+  },
+  {
+    "url": "/docs/reference/skills/doctor/references/claude-code",
+    "title": "Doctor: Claude Code adapter: doctor",
+    "description": "Slash invoke: /ork:doctor"
+  },
+  {
+    "url": "/docs/reference/skills/doctor/references/health-check-outputs",
+    "title": "Doctor: Health Check Output Examples",
+    "description": "Reference output examples for each /ork:doctor check category."
+  },
+  {
+    "url": "/docs/reference/skills/doctor/references/hook-validation",
+    "title": "Doctor: Hook Validation",
+    "description": "OrchestKit uses 152 global hook entries across 29 event types, compiled into 11 bundles."
+  },
+  {
+    "url": "/docs/reference/skills/doctor/references/mcp-pinning-check",
+    "title": "Doctor: MCP Pinning Check (Category 12 sub-check)",
+    "description": "Warns when .mcp.json resolves HIGH-tier MCP servers to @latest."
+  },
+  {
+    "url": "/docs/reference/skills/doctor/references/memory-health",
+    "title": "Doctor: Memory Health",
+    "description": "OrchestKit uses graph memory for knowledge persistence."
+  },
+  {
+    "url": "/docs/reference/skills/doctor/references/permission-rules",
+    "title": "Doctor: Permission Rules Analysis",
+    "description": "CC 2.1.3 added detection for unreachable permission rules."
+  },
+  {
+    "url": "/docs/reference/skills/doctor/references/remediation-guide",
+    "title": "Doctor: Remediation Guide",
+    "description": "Quick remediation steps for common /ork:doctor findings."
+  },
+  {
+    "url": "/docs/reference/skills/doctor/references/report-format",
+    "title": "Doctor: Doctor Report Format",
+    "description": "Doctor Report Format for the Doctor skill."
+  },
+  {
+    "url": "/docs/reference/skills/doctor/references/sandbox-posture",
+    "title": "Doctor: Check 15: CC Bash-Sandbox Posture",
+    "description": "OS sandbox is opt-in and Bash-only; doctor surfaces whether it's on and nudges it, but a session is healthy without it."
+  },
+  {
+    "url": "/docs/reference/skills/doctor/references/schema-validation",
+    "title": "Doctor: Schema Validation",
+    "description": "OrchestKit uses JSON schemas to validate configuration files."
+  },
+  {
+    "url": "/docs/reference/skills/doctor/references/settings-posture",
+    "title": "Doctor: Check 16: Operator Settings Posture",
+    "description": "a scope Claude Code actually reads."
+  },
+  {
+    "url": "/docs/reference/skills/doctor/references/skills-validation",
+    "title": "Doctor: Skills Validation",
+    "description": "OrchestKit includes 107 skills validated against frontmatter requirements and content standards."
+  },
+  {
+    "url": "/docs/reference/skills/doctor/references/version-compatibility/00-overview",
+    "title": "Doctor: Version Compatibility: Overview",
+    "description": "OrchestKit requires Claude Code >= 2.1.251."
+  },
+  {
+    "url": "/docs/reference/skills/doctor/references/version-compatibility/01-feature-matrix-part-1",
+    "title": "Doctor: Version Compatibility: Feature Matrix (part 1)",
+    "description": "Part 2 of 4 of Version Compatibility for the Doctor skill."
+  },
+  {
+    "url": "/docs/reference/skills/doctor/references/version-compatibility/02-feature-matrix-part-2",
+    "title": "Doctor: Version Compatibility: Feature Matrix (part 2)",
+    "description": "Part 3 of 4 of Version Compatibility for the Doctor skill."
+  },
+  {
+    "url": "/docs/reference/skills/doctor/references/version-compatibility/03-prompt-caching-recommendation",
+    "title": "Doctor: Version Compatibility: Prompt Caching Recommendation",
+    "description": "For API-key, Bedrock, Vertex, or Foundry users running long OrchestKit sessions (brainstorm, implement, cover chains), enable 1-hour prompt caching"
+  },
+  {
+    "url": "/docs/reference/skills/doctor/rules",
+    "title": "Doctor: Rules",
+    "description": "2 rules for the Doctor skill: Diagnostic Checks; MCP Status Checks"
+  },
+  {
     "url": "/docs/reference/skills/documentation-patterns",
     "title": "Documentation Patterns",
     "description": "Technical documentation patterns for READMEs, ADRs, API docs (OpenAPI 3.1), changelogs, and writing style guides. Use when creating project documentation, writing architecture decisions, documenting APIs, or maintaining changelogs."
@@ -971,9 +1111,24 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
     "description": "Implements internationalization (i18n) in React applications. Covers user-facing strings, date/time handling, locale-aware formatting, ICU MessageFormat, and RTL support. Use when building multilingual UIs or formatting dates/currency."
   },
   {
+    "url": "/docs/reference/skills/implement/checklists",
+    "title": "Implement: Checklists",
+    "description": "1 checklists for the Implement skill: Implementation Review"
+  },
+  {
     "url": "/docs/reference/skills/implement",
     "title": "Implement",
     "description": "Full-power feature implementation using parallel subagents for backend, frontend, testing, and security, with worktree isolation and quality verification in one workflow. Chains with /ork:cover for tests and /ork:verify for validation. Use when asked to build, add, create, scaffold, or set up a new feature, endpoint, component, or UI capability. Not for fixing a bug, reviewing, explaining, testing, or comparing existing code."
+  },
+  {
+    "url": "/docs/reference/skills/implement/references",
+    "title": "Implement: References",
+    "description": "19 references for the Implement skill: Agent Phases; Agent Teams Full Stack; Agent Teams Phases; Agent Teams Security Audit; Blast Radius Clarification; Cc Enhancements; Claude Code; E2e Verification; Feedback Loop; Interview Mode; Manual Worktree Pattern; Micro Planning Guide; Orchestration Modes; Scope Creep Detection; Team Worktree Setup; Test Requirements Matrix; Tier Classification; Worktree Isolation Mode; Worktree Workflow"
+  },
+  {
+    "url": "/docs/reference/skills/implement/rules",
+    "title": "Implement: Rules",
+    "description": "6 rules for the Implement skill: Subagents must only modify files within their assigned scope — prevent cross-agent conflicts; Cap changes per agent batch to prevent cascade failures; Commit after each logical milestone — never batch all commits to session end; Block completion if new code has zero test coverage — tests are mandatory for every implementation; Match implementation tier to assessed complexity — never over-engineer a simple task; Always ExitWorktree after implementation — never leave orphaned worktrees"
   },
   {
     "url": "/docs/reference/skills",
@@ -1216,9 +1371,24 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
     "description": "User personas, customer journey maps, interview guides, usability testing, and card sorting. Use when building user understanding, mapping customer experiences, planning user research sessions, or defining Jobs-to-Be-Done."
   },
   {
+    "url": "/docs/reference/skills/verify/checklists",
+    "title": "Verify: Checklists",
+    "description": "1 checklists for the Verify skill: Verification Checklist"
+  },
+  {
     "url": "/docs/reference/skills/verify",
     "title": "Verify",
     "description": "Grade work that already exists and decide whether it can merge. Runs the project's current unit, integration, and E2E suites plus security scanning and type checking, scores every dimension 0-10, and returns a merge verdict with a VERIFIED-vs-CLAIMED evidence manifest. Writes no test files and edits no source. Use when verifying changes are ready to merge. Use /ork:cover instead when the tests still have to be written."
+  },
+  {
+    "url": "/docs/reference/skills/verify/references",
+    "title": "Verify: References",
+    "description": "15 references for the Verify skill: Alternative Comparison; Background task contract: never wait unconditionally; Claude Code; Grading Rubric; Orchestration Mode; Policy As Code; Quality Model; Reachability Proof; Report Template; Streak Gate; Verification Checklist; Verification Manifest; Verification Phases; Versions; Visual Capture"
+  },
+  {
+    "url": "/docs/reference/skills/verify/rules",
+    "title": "Verify: Rules",
+    "description": "2 rules for the Verify skill: Evidence Collection Patterns; Scoring Rubric"
   },
   {
     "url": "/docs/reference/skills/visualize-plan",

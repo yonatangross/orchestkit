@@ -40,7 +40,7 @@ paths:
 
 Patterns for building, composing, and securing Model Context Protocol servers. Based on the **2025-11-25 specification** — the latest stable release maintained by the [Agentic AI Foundation](https://agenticaifoundation.org/) (Linux Foundation), co-founded by Anthropic, Block, and OpenAI.
 
-> **Scaffolding a new server?** Use Anthropic's `mcp-builder` skill (`claude install anthropics/skills`) for project setup and evaluation creation. This skill focuses on **patterns, security, and advanced features** after initial setup.
+> **Scaffolding a new server?** Use Anthropic's `mcp-builder` skill (from the `anthropics/skills` marketplace: `/plugin marketplace add anthropics/skills`) for project setup and evaluation creation. This skill focuses on **patterns, security, and advanced features** after initial setup.
 >
 > **Deploying to Cloudflare?** See the `building-mcp-server-on-cloudflare` skill for Workers-specific deployment patterns.
 

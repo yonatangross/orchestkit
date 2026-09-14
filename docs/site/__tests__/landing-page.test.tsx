@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 
@@ -8,6 +10,7 @@ vi.mock("next/link", () => ({
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace: vi.fn(), push: vi.fn() }),
+  useSearchParams: () => new URLSearchParams(),
 }));
 
 // Mock lucide-react
@@ -67,7 +70,12 @@ vi.mock("..//lib/constants", () => ({
     version: "6.3.0",
     domain: "https://orchestkit.yonyon.ai",
     github: "https://github.com/yonatangross/orchestkit",
-    installCommand: "claude install orchestkit/ork",
+    installCommand:
+      "claude plugin marketplace add yonatangross/orchestkit && claude plugin install ork@orchestkit",
+    installSlashCommands: [
+      "/plugin marketplace add yonatangross/orchestkit",
+      "/plugin install ork",
+    ],
     communityUrl: "/community",
     ccVersion: "2.1.148+",
   },
@@ -129,7 +137,7 @@ describe("getStarCount", () => {
 
     // Render the page component (async server component)
     const HomePage = (await import("../app/(home)/page")).default;
-    const result = await HomePage({ searchParams: Promise.resolve({}) });
+    const result = await HomePage();
     render(result);
 
     expect(global.fetch).toHaveBeenCalledWith(
@@ -147,7 +155,7 @@ describe("getStarCount", () => {
     });
 
     const HomePage = (await import("../app/(home)/page")).default;
-    const result = await HomePage({ searchParams: Promise.resolve({}) });
+    const result = await HomePage();
     render(result);
 
     // Hero proof strip renders the formatted count and a "stars" label in
@@ -160,7 +168,7 @@ describe("getStarCount", () => {
     global.fetch = vi.fn().mockResolvedValue({ ok: false });
 
     const HomePage = (await import("../app/(home)/page")).default;
-    const result = await HomePage({ searchParams: Promise.resolve({}) });
+    const result = await HomePage();
     render(result);
 
     // When the count is null the link falls back to "Star on GitHub"
@@ -171,7 +179,7 @@ describe("getStarCount", () => {
     global.fetch = vi.fn().mockRejectedValue(new Error("Network error"));
 
     const HomePage = (await import("../app/(home)/page")).default;
-    const result = await HomePage({ searchParams: Promise.resolve({}) });
+    const result = await HomePage();
     render(result);
 
     expect(screen.getByText("Star on GitHub")).toBeTruthy();
@@ -189,7 +197,7 @@ describe("landing page content", () => {
 
   it("shows correct skill/agent/hook counts from constants", async () => {
     const HomePage = (await import("../app/(home)/page")).default;
-    const result = await HomePage({ searchParams: Promise.resolve({}) });
+    const result = await HomePage();
     render(result);
 
     // Hero proof line renders each count in its own span (mock COUNTS:
@@ -212,7 +220,7 @@ describe("landing page content", () => {
 
   it("has Star on GitHub button linking to repo", async () => {
     const HomePage = (await import("../app/(home)/page")).default;
-    const result = await HomePage({ searchParams: Promise.resolve({}) });
+    const result = await HomePage();
     render(result);
 
     // The star link wraps the count/"stars" label. With the API mocked to 86
@@ -228,7 +236,7 @@ describe("landing page content", () => {
 
   it("has stargazers link in social proof section", async () => {
     const HomePage = (await import("../app/(home)/page")).default;
-    const result = await HomePage({ searchParams: Promise.resolve({}) });
+    const result = await HomePage();
     render(result);
 
     const stargazersLink = screen.getByText("stars").closest("a");
@@ -239,7 +247,7 @@ describe("landing page content", () => {
 
   it("has a single H1 and a clean H1→H2→H3 heading outline (no level skips)", async () => {
     const HomePage = (await import("../app/(home)/page")).default;
-    const result = await HomePage({ searchParams: Promise.resolve({}) });
+    const result = await HomePage();
     const { container } = render(result);
 
     // Exactly one H1 (the hero) anchors the document outline.
@@ -264,7 +272,7 @@ describe("landing page content", () => {
 
   it("does NOT contain hardcoded clone counts or unverifiable claims", async () => {
     const HomePage = (await import("../app/(home)/page")).default;
-    const result = await HomePage({ searchParams: Promise.resolve({}) });
+    const result = await HomePage();
     const { container } = render(result);
     const text = container.textContent ?? "";
 
@@ -277,7 +285,7 @@ describe("landing page content", () => {
 
   it("shows only verifiable social proof", async () => {
     const HomePage = (await import("../app/(home)/page")).default;
-    const result = await HomePage({ searchParams: Promise.resolve({}) });
+    const result = await HomePage();
     const { container } = render(result);
     const text = container.textContent ?? "";
 
@@ -292,7 +300,7 @@ describe("landing page content", () => {
 
   it("exposes WhatsApp as an icon to /community, not a platform.yonyon.ai href", async () => {
     const HomePage = (await import("../app/(home)/page")).default;
-    const result = await HomePage({ searchParams: Promise.resolve({}) });
+    const result = await HomePage();
     const { container } = render(result);
 
     const wa = screen.getByRole("link", { name: /join the whatsapp community/i });
@@ -301,9 +309,38 @@ describe("landing page content", () => {
     expect(container.textContent ?? "").not.toMatch(/Join the WhatsApp community/);
   });
 
+  it("does not read searchParams, so / can be statically rendered", () => {
+    // Reading the page `searchParams` prop renders / per request
+    // (cache-control: private, no-store, ~3s cold TTFB). Host and catalog
+    // state are read on the client instead.
+    const src = readFileSync(resolve(__dirname, "../app/(home)/page.tsx"), "utf8");
+    const code = src.replace(/\/\/.*$/gm, "");
+    expect(code).not.toMatch(/searchParams/);
+  });
+
+  it("puts one copyable install command in the hero, before the host picker", async () => {
+    const HomePage = (await import("../app/(home)/page")).default;
+    const result = await HomePage();
+    const { container } = render(result);
+
+    const heroInstall = container.querySelector("[data-hero-install]");
+    expect(heroInstall).toBeTruthy();
+    const copy = within(heroInstall as HTMLElement).getByRole("button", {
+      name: "Copy claude plugin marketplace add yonatangross/orchestkit && claude plugin install ork@orchestkit to clipboard",
+    });
+    const nav = screen.getByRole("navigation", { name: /install by host/i });
+    // The hero command is not the picker's copy, and it comes first in the DOM.
+    expect(nav.contains(copy)).toBe(false);
+    expect(
+      copy.compareDocumentPosition(nav) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    // Exactly one hero install command.
+    expect(container.querySelectorAll("[data-hero-install] button").length).toBe(1);
+  });
+
   it("exposes a copyable install command per host", async () => {
     const HomePage = (await import("../app/(home)/page")).default;
-    const result = await HomePage({ searchParams: Promise.resolve({}) });
+    const result = await HomePage();
     render(result);
 
     const nav = screen.getByRole("navigation", { name: /install by host/i });
@@ -317,9 +354,11 @@ describe("landing page content", () => {
     expect(within(nav).getByRole("link", { name: "OpenCode" })).toBeTruthy();
     expect(
       within(nav)
-        .getByRole("button", { name: /copy claude install orchestkit\/ork/i })
+        .getByRole("button", {
+          name: /copy claude plugin marketplace add yonatangross\/orchestkit/i,
+        })
         .getAttribute("aria-label"),
-    ).toMatch(/claude install orchestkit\/ork/i);
+    ).toMatch(/claude plugin install ork@orchestkit/i);
     expect(
       within(nav).getByRole("link", { name: /Claude Code docs/i }).getAttribute("href"),
     ).toBe("/docs/getting-started/claude-code");

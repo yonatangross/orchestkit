@@ -52,7 +52,9 @@ describe("SetupWizard", () => {
 		expect(
 			screen.getByRole("button", { name: /^Claude Code$/ }),
 		).toHaveAttribute("aria-pressed", "true");
-		expect(screen.getByText(/claude install orchestkit\/ork/)).toBeInTheDocument();
+		expect(
+			screen.getByText(/claude plugin marketplace add yonatangross\/orchestkit/),
+		).toBeInTheDocument();
 	});
 
 	it("keeps a Claude default chip and has no lighter-plugin presets", () => {
