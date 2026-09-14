@@ -13,6 +13,7 @@ import { WhatsNewStrip } from "@/components/whats-new-strip";
 import { HomeSearchTrigger } from "@/components/home-search-trigger";
 import { HostInstallPicker } from "@/components/host-install";
 import { WhatsAppCommunityLink } from "@/components/whatsapp-community-link";
+import { WebMcpSearchForm } from "@/components/webmcp-search-form";
 import { CHANGELOG_ENTRIES } from "@/lib/generated/changelog-data";
 
 async function getStarCount(): Promise<number | null> {
@@ -139,6 +140,7 @@ export default async function HomePage({
           </div>
           <HostInstallPicker active={host} libraryTab={libraryTab} />
           <HomeSearchTrigger />
+          <WebMcpSearchForm />
           <div className="mt-4 flex flex-wrap items-center justify-center gap-x-3 gap-y-2 text-[13px] text-fd-muted-foreground">
             <WhatsAppCommunityLink />
             <Link
