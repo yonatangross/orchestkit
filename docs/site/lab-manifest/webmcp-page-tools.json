@@ -1,0 +1,12 @@
+{
+  "slug": "webmcp-page-tools",
+  "source": "docs/feat--webmcp-page-tools/webmcp-page-tools.html",
+  "title": "Mentioned Only, Until It Was Registered",
+  "description": "ora.ai scored the docs site 0/5 on WebMCP with the verdict 'mentioned only, not implemented': tools were registered through navigator.modelContext.provideContext() inside a client useEffect, and the served HTML said nothing about them beyond a sentence of prose. OrchestKit #4107 registers search_docs, get_page, list_skills and get_skill with document.modelContext.registerTool() first (navigator surfaces as trailing fallbacks) and renders a hidden declarative form with toolname and tooldescription on the homepage as crawler evidence. Switch the mocked browser shape and watch which surface the four tools land on, build a search_docs call and read its exact request, compare the provider before and after, and read the form captured from the built page.",
+  "tags": [
+    "webmcp",
+    "docs-site",
+    "agents"
+  ],
+  "date": "2026-09-14"
+}

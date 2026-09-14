@@ -58,10 +58,13 @@ export function AgentReadinessSection() {
 
 				<h3 className="mt-6 font-semibold text-fd-foreground">WebMCP in the browser</h3>
 				<p className="mt-1 leading-7 text-fd-muted-foreground">
-					For in-browser agents, every page registers WebMCP tools via{" "}
-					<code>navigator.modelContext</code>: <code>search_docs</code>, <code>list_skills</code>, and{" "}
-					<code>get_skill</code> — the same capabilities as the remote MCP server, available without
-					leaving the page.
+					For in-browser agents, every page registers WebMCP tools on load via{" "}
+					<code>document.modelContext.registerTool()</code> (with <code>navigator.modelContext</code> as
+					the trailing fallback): <code>search_docs</code>, <code>get_page</code>,{" "}
+					<code>list_skills</code>, and <code>get_skill</code>, the same capabilities as the remote MCP
+					server, available without leaving the page. The homepage also carries a declarative{" "}
+					<code>&lt;form toolname=&quot;search_docs&quot;&gt;</code> so the tool surface is visible in
+					server-rendered HTML.
 				</p>
 
 				<h3 className="mt-6 font-semibold text-fd-foreground">Agent skills directory</h3>

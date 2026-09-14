@@ -338,6 +338,7 @@ export function SetupWizard() {
 										text={spec.then.commands}
 										prompt={spec.then.prompt}
 										host={host}
+										event="setup_copied"
 									/>
 								</div>
 							) : null}

@@ -168,7 +168,14 @@ export default function CustomSearchDialog(props: SharedProps) {
       {...props}
     >
       <SearchDialogOverlay />
-      <SearchDialogContent>
+      <SearchDialogContent
+        // ph-no-capture: PostHog session replay (on /docs/reference/*) replaces
+        // this whole subtree with a placeholder, so the typed query, the result
+        // list, and the zero-results echo of the query are never recorded. It
+        // also opts the dialog out of autocapture; result clicks still reach
+        // PostHog through reportSearchResultClicked's first-party mirror.
+        className="ph-no-capture"
+      >
         <SearchDialogHeader>
           <SearchDialogIcon />
           <SearchDialogInput placeholder="Search docs, skills, agents…" />
