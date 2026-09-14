@@ -75,6 +75,9 @@ export const SERVED_EXACT: ReadonlySet<string> = new Set([
 	"/.well-known/mcp/server-card.json",
 	"/.well-known/mcp.json",
 	"/.well-known/mcp/manifest.json",
+	// Actions MCP server card and discovery paths
+	"/.well-known/mcp/actions-server-card.json",
+	"/.well-known/mcp/actions",
 ]);
 
 // Prefix-served namespaces (their own routing decides 200 vs structured 404).

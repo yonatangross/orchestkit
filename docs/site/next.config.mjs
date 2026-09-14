@@ -93,6 +93,15 @@ const config = {
 			source: "/.well-known/mcp/manifest.json",
 			destination: "/api/well-known/mcp-server-card",
 		},
+		// Actions MCP server card - read-only CLI tools
+		{
+			source: "/.well-known/mcp/actions-server-card.json",
+			destination: "/api/well-known/mcp-actions-server-card",
+		},
+		{
+			source: "/.well-known/mcp/actions",
+			destination: "/api/well-known/mcp-actions-server-card",
+		},
 		{
 			source: "/mcp.json",
 			destination: "/api/well-known/mcp-server-card",

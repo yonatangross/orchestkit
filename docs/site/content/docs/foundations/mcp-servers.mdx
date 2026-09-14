@@ -378,6 +378,29 @@ The servers above are ones OrchestKit *consumes*. OrchestKit also *publishes* on
 
 Two tools: `orchestkit_docs_search` (ranked pages with titles and URLs) and `orchestkit_docs_get` (one page as Markdown by path). The same API is described by the [OrchestKit OpenAPI 3.1 spec](https://orchestkit.yonyon.ai/openapi.json); every developer surface is indexed at the [OrchestKit developer resources hub](/developers).
 
+## OrchestKit Actions MCP Server
+
+OrchestKit also publishes a second MCP server: the **OrchestKit Actions MCP** exposes read-only CLI actions so agents can plan installations without executing anything. This is the product MCP that satisfies ora.ai's multi-surface coverage check.
+
+| Surface | URL |
+|---------|-----|
+| Streamable HTTP endpoint | `https://orchestkit.yonyon.ai/api/mcp/actions` (POST; JSON-RPC 2.0) |
+| Server card | [`/.well-known/mcp/actions-server-card.json`](https://orchestkit.yonyon.ai/.well-known/mcp/actions-server-card.json) |
+
+Three tools:
+
+- `orchestkit_list_skills`: Discover user-invocable skills with names, descriptions, and docs URLs.
+- `orchestkit_install_plan`: Generate install and invocation commands for given skills or goals. Returns a plan; executes nothing.
+- `orchestkit_doctor_check`: Validate a pasted config fragment against documented schemas. Reads only the input.
+
+All three tools are read-only by construction. The install plan tool returns shell commands to run; it never runs them. The doctor tool validates pasted input against schemas; it touches no files.
+
+## Sandbox and Dry-Run Mode
+
+Every tool on the Actions MCP server is read-only. There is no sandbox mode to enable because nothing writes. The documentation states this honestly: no tool can mutate state, so no special `dry_run` flag exists.
+
+If you need to test an installation without affecting your system, run the commands returned by `orchestkit_install_plan` in a disposable environment (a container, a VM, or a fresh git worktree). The MCP server itself cannot execute anything.
+
 ## Next Steps
 
 - **[The 3 Building Blocks](/docs/foundations/skills-agents-hooks)** — Understand agents that consume MCPs
