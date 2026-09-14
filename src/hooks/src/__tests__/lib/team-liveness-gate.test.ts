@@ -22,6 +22,9 @@ const mockRows = vi.hoisted(() => ({ rows: [] as Array<{ sid: string; pid: numbe
 
 vi.mock('../../lib/session-registry.js', () => ({
   DB_PATH: '/nonexistent-but-existsSync-is-mocked/sessions.db',
+  // The gate asks for the RESOLVED path (ORK_SESSION_DB aware), not the
+  // constant, so the stub has to answer that call too.
+  resolveDbPath: () => '/nonexistent-but-existsSync-is-mocked/sessions.db',
   openDb: () => {
     if (mockRows.throws) throw new Error('registry unreadable');
     return {

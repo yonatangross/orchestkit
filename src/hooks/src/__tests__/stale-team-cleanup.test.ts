@@ -24,6 +24,7 @@ import { isStaleTeam, teamStaleness } from '../lib/agent-teams.js';
 const HOURS = 3600_000;
 let home: string;
 let prevHome: string | undefined;
+let prevDb: string | undefined;
 
 function team(name: string): string {
   const p = join(home, '.claude', 'teams', name);
@@ -42,11 +43,20 @@ beforeEach(() => {
   home = mkdtempSync(join(tmpdir(), 'ork-teams-'));
   process.env.HOME = home;
   mkdirSync(join(home, '.claude', 'teams'), { recursive: true });
+  // The liveness gate reads the session registry. Without this override it reads
+  // the DEVELOPER'S real one, so every "DOES delete" case below returned
+  // liveness-unknown on a machine that runs ork while passing in CI, where no
+  // registry exists. Point it at a path inside this fixture: absent means
+  // "nobody to vouch for", which is what these cases assume.
+  prevDb = process.env.ORK_SESSION_DB;
+  process.env.ORK_SESSION_DB = join(home, 'no-sessions.db');
 });
 
 afterEach(() => {
   if (prevHome === undefined) delete process.env.HOME;
   else process.env.HOME = prevHome;
+  if (prevDb === undefined) delete process.env.ORK_SESSION_DB;
+  else process.env.ORK_SESSION_DB = prevDb;
   rmSync(home, { recursive: true, force: true });
 });
 
