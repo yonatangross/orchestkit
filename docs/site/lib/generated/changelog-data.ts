@@ -18,6 +18,58 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.22",
+    "date": "2026-09-14",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.21...v10.0.0-beta.22",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**site:** enable PostHog session replay on /docs/reference/* only ([#4105](https://github.com/yonatangross/orchestkit/issues/4105)) ([6f04509](https://github.com/yonatangross/orchestkit/commit/6f0450951301c0e3000ab4d825f15f5ac24f77b5))",
+          "**site:** register WebMCP page tools (search_docs, get_page) with server-rendered evidence ([#4107](https://github.com/yonatangross/orchestkit/issues/4107)) ([697f304](https://github.com/yonatangross/orchestkit/commit/697f30424b000eddca8731ceff14232dbf1a5705))",
+          "**site:** static homepage, hero install command, host_selected, /mcp passthrough ([#4103](https://github.com/yonatangross/orchestkit/issues/4103)) ([26150a8](https://github.com/yonatangross/orchestkit/commit/26150a8ce9f20f899aaf1d9580e23e89b60515fd))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**docs:** give Lab pages a way back to the site, share cards and page views ([#4101](https://github.com/yonatangross/orchestkit/issues/4101)) ([4e0462b](https://github.com/yonatangross/orchestkit/commit/4e0462baa39993c969ea7ed791b20abfa029f564))",
+          "**hooks:** stop worktree pre-push fixtures flipping core.bare ([#4070](https://github.com/yonatangross/orchestkit/issues/4070)) ([#4090](https://github.com/yonatangross/orchestkit/issues/4090)) ([4c7ff5f](https://github.com/yonatangross/orchestkit/commit/4c7ff5fe6704e6db919da6466c23045f6ece532b))",
+          "**security:** close CodeQL XSS highs, scope previews, clear zizmor ([#4100](https://github.com/yonatangross/orchestkit/issues/4100)) ([a273aa6](https://github.com/yonatangross/orchestkit/commit/a273aa6a426c4c23347481272136035d460a0b08))",
+          "**site:** correct plugin install command and split install analytics ([#4104](https://github.com/yonatangross/orchestkit/issues/4104)) ([1617f79](https://github.com/yonatangross/orchestkit/commit/1617f79f8f69a97f51d54c7d94a514e56aaae5ff))",
+          "**site:** match the hero install test to the corrected install command ([#4112](https://github.com/yonatangross/orchestkit/issues/4112)) ([e622751](https://github.com/yonatangross/orchestkit/commit/e6227519ba1825cd816fff9be5a58ac4af352cd7))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Miscellaneous",
+        "items": [
+          "**deps-dev:** bump @types/node ([#4092](https://github.com/yonatangross/orchestkit/issues/4092)) ([e00925e](https://github.com/yonatangross/orchestkit/commit/e00925e805805c23c1f2209ac8c31377128cc55f))",
+          "**deps-dev:** bump @types/node in the npm-minor-patch group ([#4093](https://github.com/yonatangross/orchestkit/issues/4093)) ([b0ad996](https://github.com/yonatangross/orchestkit/commit/b0ad996ca556be473ea4576de446a0939761d949))",
+          "**deps-dev:** bump the npm-minor-patch group ([#4094](https://github.com/yonatangross/orchestkit/issues/4094)) ([615f5e4](https://github.com/yonatangross/orchestkit/commit/615f5e461bcfabe3f374613b72d7324f74959b5a))",
+          "**deps:** bump the npm-minor-patch group ([#4095](https://github.com/yonatangross/orchestkit/issues/4095)) ([452b9f9](https://github.com/yonatangross/orchestkit/commit/452b9f97cf1d014cc6552b61ac293b55433a2383))",
+          "**deps:** bump the remotion group ([#4097](https://github.com/yonatangross/orchestkit/issues/4097)) ([4840a26](https://github.com/yonatangross/orchestkit/commit/4840a263c0f8cf8da31eae3cc10082ea5e9979c7))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Documentation",
+        "items": [
+          "**site:** split configure reference and make API/MCP pages findable by name (ora.ai) ([#4106](https://github.com/yonatangross/orchestkit/issues/4106)) ([496649f](https://github.com/yonatangross/orchestkit/commit/496649fbd1b65bc0d72cfec019964b1ac392051f))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "CI/CD",
+        "items": [
+          "bump the github-actions group across 1 directory with 5 updates ([#4099](https://github.com/yonatangross/orchestkit/issues/4099)) ([4b538f7](https://github.com/yonatangross/orchestkit/commit/4b538f7854f5b6b6621493fd8ba56ece7ddd9bd2))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.21",
     "date": "2026-09-13",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.20...v10.0.0-beta.21",
