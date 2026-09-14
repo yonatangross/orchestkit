@@ -24,7 +24,9 @@ import { SITE } from "@/lib/constants";
 // Content comes from lib/api-policy.ts, the same source the Markdown twin and
 // the OpenAPI description use.
 export const metadata: Metadata = {
-	title: "API Versioning, Deprecation & Sunset Policy",
+	// Product name in the title itself (not only via the layout's "| OrchestKit"
+	// suffix) so a name-keyed search for "OrchestKit API" lands here.
+	title: `${SITE.name} API Versioning, Deprecation & Sunset Policy`,
 	description: `How the ${SITE.name} by Yonyon docs API is versioned, how deprecations are announced (RFC 8594 Deprecation and Sunset headers), and the ${SUNSET_NOTICE_MONTHS}-month sunset guarantee.`,
 	alternates: { canonical: `${SITE.domain}/api-policy` },
 };
