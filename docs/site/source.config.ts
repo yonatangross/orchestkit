@@ -12,7 +12,11 @@ export const docs = defineDocs({
 export default defineConfig({
   plugins: [lastModified()],
   mdxOptions: {
-    rehypePlugins: [rehypeCode],
+    // addLanguageClass puts `language-<lang>` on each block's <code>, which is
+    // how the docs copy button reports the block language on code_copied.
+    // Options merge over rehypeCodeDefaultOptions, so themes and transformers
+    // are unchanged.
+    rehypePlugins: [[rehypeCode, { addLanguageClass: true }]],
     remarkPlugins: [remarkGfm, remarkNpm],
   },
 });
