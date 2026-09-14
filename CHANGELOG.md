@@ -5,6 +5,31 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.23](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.22...v10.0.0-beta.23) (2026-09-14)
+
+
+### Features
+
+* **create-pr:** run CodeRabbit CLI review before opening the PR ([#4117](https://github.com/yonatangross/orchestkit/issues/4117)) ([34a0456](https://github.com/yonatangross/orchestkit/commit/34a0456b610aea301ec47929de532032ee98d336))
+
+
+### Bug Fixes
+
+* **ci:** track classic.PreToolUse rename in function hooks canary ([#4102](https://github.com/yonatangross/orchestkit/issues/4102)) ([b75194e](https://github.com/yonatangross/orchestkit/commit/b75194e009e95fd5ef8ef41d3119fc0a38f5ee91))
+* **create-pr:** clarify CodeRabbit credit spend and fix root tools key ([#4118](https://github.com/yonatangross/orchestkit/issues/4118)) ([46c58a7](https://github.com/yonatangross/orchestkit/commit/46c58a71dc89a8ebd3070d24f44f8b7255c5351c))
+* **tests:** report hook timeouts in test-image-paste-guard instead of swallowing them (GH-4087) ([#4111](https://github.com/yonatangross/orchestkit/issues/4111)) ([504040c](https://github.com/yonatangross/orchestkit/commit/504040c3bb7b1942b1e970e3e44e4030e6a9e946))
+
+
+### Miscellaneous
+
+* **deps:** bump orchestkit-demos npm-minor-patch group with the peer resolution (supersedes GH-4098) ([#4110](https://github.com/yonatangross/orchestkit/issues/4110)) ([b46c17f](https://github.com/yonatangross/orchestkit/commit/b46c17f7031c49e38866e1225756d422df9a8750))
+* **deps:** bump the npm-minor-patch group in /docs/site with 2 updates ([#4120](https://github.com/yonatangross/orchestkit/issues/4120)) ([d9143e6](https://github.com/yonatangross/orchestkit/commit/d9143e69c8e9a87046d3fea45024d9e2f4131d13))
+
+
+### Documentation
+
+* **site:** generate a reference page for every user-invocable skill (GH-3902) ([#4114](https://github.com/yonatangross/orchestkit/issues/4114)) ([8dc4863](https://github.com/yonatangross/orchestkit/commit/8dc4863f13e57d48d0ada86516c163d8683858d2))
+
 ## [10.0.0-beta.22](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.21...v10.0.0-beta.22) (2026-09-14)
 
 

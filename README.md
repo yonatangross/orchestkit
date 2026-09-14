@@ -471,6 +471,15 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.23](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.22...v10.0.0-beta.23)** · 2026-09-14
+
+- **create-pr:** run CodeRabbit CLI review before opening the PR (#4117)
+- **ci:** track classic.PreToolUse rename in function hooks canary (#4102)
+- **create-pr:** clarify CodeRabbit credit spend and fix root tools key (#4118)
+- **tests:** report hook timeouts in test-image-paste-guard instead of swallowing them (GH-4087) (#4111)
+- **deps:** bump orchestkit-demos npm-minor-patch group with the peer resolution (supersedes GH-4098) (#4110)
+- …and 2 more (see [CHANGELOG.md](CHANGELOG.md))
+
 **[v10.0.0-beta.22](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.21...v10.0.0-beta.22)** · 2026-09-14
 
 - **site:** enable PostHog session replay on /docs/reference/* only (#4105)
@@ -503,14 +512,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.16](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.15...v10.0.0-beta.16)** · 2026-09-12
 
 - **evals:** claude plugin eval suite, calibration, and the fixes it found (#4072)
-
-**[v10.0.0-beta.15](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.14...v10.0.0-beta.15)** · 2026-09-11
-
-- **ci:** label tests by path so same-named files are distinguishable (#4050) (#4068)
-- **docs:** one Lab manifest fragment per entry, no shared file (#4049) (#4064)
-- **hooks:** pre-push runs its test suite on every branch (#4024) (#4045)
-- **release:** include docs site changes in changelog (#4066) (#4067)
-- **tests:** write temp files under mktemp, not a hardcoded /tmp (#4026) (#4048)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
