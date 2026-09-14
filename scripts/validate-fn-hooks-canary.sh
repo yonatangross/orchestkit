@@ -11,10 +11,34 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 FIXTURE="$REPO_ROOT/tests/fixtures/fn-hooks-canary"
+NEGATIVE_MODULE="$FIXTURE/negative/bare-pretooluse.ts"
 
-# Measured on CC 2.1.263, 2026-09-08. Order is the module's registration order.
-EXPECTED_HOOKS='tool.call{tool=Bash}, PreToolUse{}, session.start{}, engine.create{}, prompt.submit{}'
+# Measured on CC 2.1.270, 2026-09-14 (first measured on 2.1.263, 2026-09-08).
+# Order is the module's registration order.
+#
+# What moved between the two: the legacy shell-hook bridge. Through 2.1.263 the
+# validator accepted bare `PreToolUse`; from 2.1.266 it rejects it as "not an
+# event" and the binary dispatches shell PreToolUse hooks through a
+# `classic.PreToolUse` site instead. Everything else is unchanged.
+EXPECTED_HOOKS='tool.call{tool=Bash}, classic.PreToolUse{}, session.start{}, engine.create{}, prompt.submit{}'
 EXPECTED_CALLS='$.ui.log'
+
+# The rename is pinned from three sides. `classic.PreToolUse` validating proves
+# little alone, because the validator checks shape and not membership
+# (`banana.PreToolUse` validates too). The bare name being REJECTED is the half
+# that only a real vocabulary change can produce, so a revert upstream turns
+# this red as well.
+EXPECTED_REJECT='"PreToolUse" is not an event'
+
+# Membership pin. Shape validation would keep passing on the old string if
+# upstream renamed `classic.PreToolUse` again, and the runtime loader cannot be
+# driven offline, so the membership evidence is the binary itself: it must carry
+# the dispatch site below. Measured 2026-09-14: exactly 1 hit on 2.1.268, 2.1.269
+# and 2.1.270, and 0 hits for a renamed `event:"classic.PreToolUseV2"`.
+# `event:"tool.call"` is the control: when it is absent too, the lookup found a
+# shim or the wrong file, which is CANNOT OBSERVE and never a pass.
+SITE_MARKER='event:"classic.PreToolUse"'
+CONTROL_MARKER='event:"tool.call"'
 
 if ! command -v claude >/dev/null 2>&1; then
   echo "SKIP: claude CLI not on PATH"
@@ -25,13 +49,20 @@ if ! claude --version >/dev/null 2>&1; then
   exit 0
 fi
 
-# The event vocabulary this fixture pins lands at 2.1.259, the same release that
+# The function-hooks event vocabulary lands at 2.1.259, the same release that
 # first carries CLAUDE_CODE_ENABLE_FUNCTION_HOOKS. Measured across seven binaries
 # (#3917): at 2.1.251 and 2.1.257 the `modules` key is parsed but `session.start`
-# is "not an event", so an older host fails here for a reason that is not drift.
-# Skip rather than fail, and name the version so the skip is never mistaken for a
-# pass.
-MIN_CC="2.1.259"
+# is "not an event".
+#
+# The floor is 2.1.266, not 2.1.259, because the contract pinned above is the
+# post-rename one. Bracket, from the CC Contract Probe history on @latest: it
+# passed 2026-09-08 07:08Z on 2.1.263 and first failed 2026-09-09 07:08Z on
+# 2.1.266 (npm publish times: 2.1.265 at 09-08 19:05Z, 2.1.266 at 09-08 23:32Z;
+# 2.1.264 was never published). 2.1.265 was never probed, so the floor sits at
+# the first MEASURED rejection. An older host would fail here for a reason that
+# is not drift. Skip rather than fail, and name the version so the skip is never
+# mistaken for a pass.
+MIN_CC="2.1.266"
 CC_RAW="$(claude --version 2>&1)"
 
 # Capture rc around the parse. `grep` exits 1 on no match, and under
@@ -49,7 +80,7 @@ if [ -z "$CC_VER" ]; then
 fi
 LOWEST="$(printf '%s\n%s\n' "$CC_VER" "$MIN_CC" | sort -V | head -1)"
 if [ "$CC_VER" != "$MIN_CC" ] && [ "$LOWEST" = "$CC_VER" ]; then
-  echo "SKIP: CC $CC_VER is below $MIN_CC; the function-hooks event vocabulary is absent"
+  echo "SKIP: CC $CC_VER is below $MIN_CC; the pinned function-hooks contract (classic.PreToolUse) is absent"
   exit 0
 fi
 
@@ -93,6 +124,91 @@ if [ "$ACTUAL_CALLS" != "$EXPECTED_CALLS" ]; then
   FAILED=1
 fi
 
+# Membership check against the binary. Same two layouts the output-key probe
+# resolves (scripts/derive-cc-output-keys.mjs findBinary): the native installer's
+# versions/<x.y.z> file, keyed to the version the CLI just reported so a stale
+# newer or older file cannot answer for it, then the npm package's bin/claude.exe,
+# which is what a GitHub runner has. CANARY_CC_BINARY overrides both, for tests.
+find_cc_binary() {
+  if [ -n "${CANARY_CC_BINARY:-}" ]; then
+    printf '%s' "$CANARY_CC_BINARY"
+    return 0
+  fi
+  local native="$HOME/.local/share/claude/versions/$CC_VER"
+  if [ -f "$native" ]; then
+    printf '%s' "$native"
+    return 0
+  fi
+  local npm_root
+  npm_root="$(npm root -g 2>/dev/null || true)"
+  if [ -n "$npm_root" ] && [ -f "$npm_root/@anthropic-ai/claude-code/bin/claude.exe" ]; then
+    printf '%s' "$npm_root/@anthropic-ai/claude-code/bin/claude.exe"
+    return 0
+  fi
+  return 1
+}
+
+# grep exit codes are captured, never piped: 0 match, 1 no match, 2 unreadable.
+MEMBERSHIP=""
+if CC_BIN="$(find_cc_binary)"; then
+  set +e
+  LC_ALL=C grep -a -q -F "$CONTROL_MARKER" "$CC_BIN"
+  CONTROL_RC=$?
+  LC_ALL=C grep -a -q -F "$SITE_MARKER" "$CC_BIN"
+  SITE_RC=$?
+  set -e
+  if [ "$CONTROL_RC" -ne 0 ]; then
+    echo "FAIL: CANNOT OBSERVE membership: control marker $CONTROL_MARKER not readable in $CC_BIN (grep rc=$CONTROL_RC)."
+    echo "      The lookup found a shim, the wrong file, or an unreadable path. Nothing was verified."
+    FAILED=1
+  elif [ "$SITE_RC" -ne 0 ]; then
+    echo "FAIL: membership moved: $CC_BIN no longer carries the dispatch site $SITE_MARKER."
+    echo "      classic.PreToolUse still validates (shape only), but the runtime no longer defines it."
+    FAILED=1
+  else
+    MEMBERSHIP="$SITE_MARKER present in $CC_BIN"
+  fi
+else
+  echo "FAIL: CANNOT OBSERVE membership: no CC binary found for $CC_VER."
+  echo "      Looked in: $HOME/.local/share/claude/versions/$CC_VER and \$(npm root -g)/@anthropic-ai/claude-code/bin/claude.exe"
+  FAILED=1
+fi
+
+# Negative pin. The module is not listed in the fixture's hooks.json (the
+# positive run above must stay clean), so wrap it in a throwaway plugin built
+# from the same manifest.
+# Templated, never bare: a bare `mktemp` ignores $TMPDIR on macOS (#3564 class,
+# gated by tests/ci/test-no-bare-mktemp.sh).
+NEG_DIR="$(mktemp -d "${TMPDIR:-/tmp}/fn-hooks-canary-neg.XXXXXX")"
+trap 'rm -rf "$NEG_DIR"' EXIT
+mkdir -p "$NEG_DIR/.claude-plugin" "$NEG_DIR/hooks/hooks-handlers"
+cp "$FIXTURE/.claude-plugin/plugin.json" "$NEG_DIR/.claude-plugin/plugin.json"
+cp "$NEGATIVE_MODULE" "$NEG_DIR/hooks/hooks-handlers/bare-pretooluse.ts"
+printf '{"modules":["./hooks-handlers/bare-pretooluse.ts"],"hooks":{}}\n' > "$NEG_DIR/hooks/hooks.json"
+
+set +e
+NEG_OUT="$(claude plugin validate "$NEG_DIR" 2>&1)"
+NEG_RC=$?
+set -e
+
+# `case` rather than `printf | grep -q`: under pipefail an early grep exit can
+# SIGPIPE the printf and turn a real match into a false failure.
+if [ "$NEG_RC" -eq 0 ]; then
+  echo "FAIL: bare PreToolUse validates again; the classic.PreToolUse rename was reverted or widened."
+  printf '%s\n' "$NEG_OUT"
+  FAILED=1
+else
+  case "$NEG_OUT" in
+    *"$EXPECTED_REJECT"*) ;;
+    *)
+      echo "FAIL: bare PreToolUse is rejected, but not for the pinned reason."
+      echo "  expected a message containing: $EXPECTED_REJECT"
+      printf '%s\n' "$NEG_OUT"
+      FAILED=1
+      ;;
+  esac
+fi
+
 if [ "$FAILED" -ne 0 ]; then
   echo
   echo "Upstream changed the Function Hooks contract. Re-read #3917 before"
@@ -101,5 +217,7 @@ if [ "$FAILED" -ne 0 ]; then
 fi
 
 echo "PASS: events and capabilities unchanged"
-echo "  hooks: $ACTUAL_HOOKS"
-echo "  calls: $ACTUAL_CALLS"
+echo "  hooks:      $ACTUAL_HOOKS"
+echo "  calls:      $ACTUAL_CALLS"
+echo "  membership: $MEMBERSHIP"
+echo "  rejects:    bare PreToolUse ($EXPECTED_REJECT)"
