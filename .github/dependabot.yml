@@ -214,6 +214,14 @@ updates:
       # Remotion ships TS 7 support.
       - dependency-name: "typescript"
         update-types: ["version-update:semver-major"]
+      # @react-three/fiber 9.7.0 peers react and react-dom >=19 <19.3; remove this ignore when fiber supports 19.3.
+      - dependency-name: "react"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+      - dependency-name: "react-dom"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+      # zod: @remotion/studio, @remotion/studio-server, @remotion/studio-protocol and @remotion/media 4.0.523 each pin zod 4.5.4 exactly; remove this ignore when remotion drops the exact pin.
+      - dependency-name: "zod"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
     open-pull-requests-limit: 5
 
   # The root Dockerfile is a published artifact: release.yml builds and pushes it

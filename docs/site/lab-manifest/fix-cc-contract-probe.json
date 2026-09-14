@@ -1,0 +1,12 @@
+{
+  "slug": "fix-cc-contract-probe",
+  "source": "docs/fix--cc-contract-probe/index.html",
+  "title": "The canary was right: PreToolUse became classic.PreToolUse",
+  "description": "The CC Contract Probe went red daily from 2026-09-09. Claude Code 2.1.266 and later reject a Function Hooks module that registers bare PreToolUse, and route shell PreToolUse hooks through a classic.PreToolUse dispatch site instead. Replay the probe across versions, with the version bracket and the binary evidence, then see how the fixture now pins the rename from both sides.",
+  "tags": [
+    "cc-adoption",
+    "hooks",
+    "ci"
+  ],
+  "date": "2026-09-14"
+}
