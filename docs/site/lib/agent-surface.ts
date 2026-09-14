@@ -18,7 +18,8 @@ export type AgentSurface =
 	| "md"
 	| "search"
 	| "ask"
-	| "mcp";
+	| "mcp"
+	| "identity";
 
 /**
  * Classify a pathname onto an agent surface, or `null` for everything else
@@ -66,6 +67,9 @@ export function classifyAgentSurface(pathname: string): AgentSurface | null {
 	}
 	if (pathname === "/api/search") return "search";
 	if (pathname === "/ask" || pathname === "/api/ask") return "ask";
+	// The auth.md identity endpoint (optional identity). Counted so "did anyone
+	// register" is answerable, and metered like the rest of the agent surface.
+	if (pathname === "/agent/identity") return "identity";
 	// Deliberately NO `/api/*` catch-all. It used to return "api" for every
 	// remaining route, which swept in /api/analytics — our own first-party sink.
 	// navigator.sendBeacon sends `Accept: */*`, so every search and web-vital

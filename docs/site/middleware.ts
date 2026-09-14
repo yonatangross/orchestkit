@@ -8,6 +8,15 @@ import {
 	shouldJsonError,
 } from "@/lib/agent-404";
 import {
+	bearerFromHeader,
+	challengeDescription,
+	IDENTITY_ENDPOINT,
+	PRM_URL,
+	verifyIdentityAssertion,
+	wwwAuthenticate,
+} from "@/lib/agent-identity";
+import {
+	type AcceptFamily,
 	acceptFamily,
 	classifyAgentSurface,
 	isAiBotFamily,
@@ -82,8 +91,10 @@ function isMeteredSurface(pathname: string): boolean {
 	);
 }
 
-export function middleware(req: NextRequest) {
-	const { pathname, searchParams } = req.nextUrl;
+export function middleware(
+	req: NextRequest,
+): NextResponse | Response | Promise<NextResponse | Response> {
+	const { pathname } = req.nextUrl;
 	const accept = req.headers.get("accept") ?? "";
 	// Bounded property values shared by every branch below. See lib/agent-surface.
 	const audience = {
@@ -121,6 +132,58 @@ export function middleware(req: NextRequest) {
 			{ ...limitHeaders, "Retry-After": String(limit.resetSeconds) },
 		);
 	}
+
+	// 0.5) Optional identity. Anonymous is the normal case and continues
+	// untouched: no bearer, no challenge. A request that DOES present a bearer
+	// is answered 401 with the RFC 9728 discovery hint when the token is not
+	// one this origin issued or has expired (RFC 6750 invalid_token). This is
+	// the only general-path 401 on the site; the other is GET /agent/identity
+	// with no credential, which app/agent/identity/route.ts raises itself
+	// because that endpoint has nothing to return without an identity. An
+	// always-on hint on a site with nothing protected is a lie that scored
+	// once already (portfolio GH-670); docs/adr/optional-agent-identity.md.
+	//
+	// Verification is Web Crypto and therefore async, so this branch is the
+	// one place middleware returns a Promise; every request without a bearer
+	// keeps the synchronous path the existing tests call directly. The PostHog
+	// proxy is skipped: a header on its way to a third party is not addressed
+	// to this resource.
+	const bearer = pathname.startsWith("/ingest/")
+		? null
+		: bearerFromHeader(req.headers.get("authorization"));
+	if (bearer !== null) {
+		return verifyIdentityAssertion(bearer).then((verdict) => {
+			if (verdict.ok) return routeRequest(req, accept, audience, limitHeaders);
+			return problemResponse(
+				{
+					type: `${SITE.domain}/auth.md`,
+					title: "Unauthorized",
+					status: 401,
+					detail: `${challengeDescription(verdict.reason)} Identity is optional on this API: retry without an Authorization header for anonymous access, or register at ${IDENTITY_ENDPOINT}. Discovery: ${PRM_URL}`,
+					instance: pathname,
+				},
+				{
+					...limitHeaders,
+					"WWW-Authenticate": wwwAuthenticate(verdict.reason),
+					"Cache-Control": "no-store",
+				},
+				{ resource_metadata: PRM_URL, identity_endpoint: IDENTITY_ENDPOINT },
+			);
+		});
+	}
+	return routeRequest(req, accept, audience, limitHeaders);
+}
+
+// Everything after the per-request gates: Markdown negotiation, the agent 404
+// and the pass-through. Kept synchronous so the no-bearer path never touches
+// a Promise.
+function routeRequest(
+	req: NextRequest,
+	accept: string,
+	audience: { accept_family: AcceptFamily; ua_family: string; method: string },
+	limitHeaders: Record<string, string>,
+): NextResponse | Response {
+	const { pathname, searchParams } = req.nextUrl;
 
 	// 1) Markdown content negotiation → the Markdown route (only / and /docs/*).
 	//
