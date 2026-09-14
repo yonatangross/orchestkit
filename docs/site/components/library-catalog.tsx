@@ -9,6 +9,7 @@ import { AnimatedTabs } from "@/components/ui/animated-tabs";
 import { CategoryMark, LibraryMark } from "@/components/category-mark";
 import { SameRouteFade, sameRouteReplace } from "@/components/page-transition";
 import { ChangelogMermaid } from "@/components/changelog-mermaid";
+import { SearchParamsSync } from "@/components/search-params-sync";
 import { AGENTS } from "@/lib/generated/shared-data";
 import { COUNTS } from "@/lib/constants";
 import { CATEGORY_COLORS } from "@/lib/category-colors";
@@ -16,8 +17,10 @@ import {
   groupedHookEvents,
   HOOK_LIFECYCLE_CHART,
 } from "@/lib/hook-phases";
+import { parseHostId } from "@/lib/host-installs";
 import {
   libraryTabHref,
+  parseLibraryTab,
   type LibraryTab,
 } from "@/lib/library-tab";
 import type { HostId } from "@/components/host-marks";
@@ -28,20 +31,21 @@ const TABS: { id: LibraryTab; label: string; count: number }[] = [
   { id: "hooks", label: "Hooks", count: COUNTS.hooks },
 ];
 
-export function LibraryCatalog({
-  tab,
-  host = "claude",
-}: {
-  tab: LibraryTab;
-  host?: HostId;
-}) {
+/**
+ * The tab and the host both come from the URL (`?lib=`, `?host=`) through
+ * SearchParamsSync rather than page props, so `/` stays statically rendered.
+ * Prerendered HTML shows Skills; a `?lib=` deep link switches after hydration.
+ */
+export function LibraryCatalog() {
   const router = useRouter();
-  const [current, setCurrent] = useState<LibraryTab>(tab);
+  const [current, setCurrent] = useState<LibraryTab>("skills");
+  const [host, setHost] = useState<HostId>("claude");
   const pendingTabFocus = useRef<LibraryTab | null>(null);
 
-  useEffect(() => {
-    setCurrent(tab);
-  }, [tab]);
+  const syncFromUrl = (params: URLSearchParams) => {
+    setCurrent(parseLibraryTab(params.get("lib") ?? undefined));
+    setHost(parseHostId(params.get("host") ?? undefined));
+  };
 
   useEffect(() => {
     const id = pendingTabFocus.current;
@@ -83,6 +87,7 @@ export function LibraryCatalog({
       aria-labelledby="library-heading"
       className="border-b border-fd-border"
     >
+      <SearchParamsSync onChange={syncFromUrl} />
       <div className="mx-auto max-w-[1200px] px-7 py-[72px]">
         <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
           <div>
