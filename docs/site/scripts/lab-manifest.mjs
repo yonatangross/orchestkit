@@ -22,11 +22,23 @@
  * the only correct conflict resolution on lab-data.ts is: take either side,
  * run `npm run build`, commit. Never hand-merge the generated file.
  *
+ * Lab chrome: every published copy gets the same small head block (Open Graph
+ * and Twitter card meta) and body block (a footer linking back to the site,
+ * plus the first-party page_view beacon). Social traffic lands on these raw
+ * pages, and before this 119 of 150 had no link anywhere, so a reader arriving
+ * from a shared URL had nowhere to go. The blocks sit between fixed markers and
+ * are stripped before being re-added, so the injection is idempotent: a
+ * committed copy used as the fallback source renders to the same bytes. The
+ * author's page under docs/ is never modified, and lab-data.ts sizeKb stays the
+ * size of the author's page.
+ *
  * `--check` is the read-only set oracle CI runs on every PR head:
  *   - every fragment appears in lab-data.ts and has its public/lab copy;
  *   - lab-data.ts and public/lab/ contain nothing no fragment declares;
  *   - lab-data.ts is byte-identical to a fresh render (a stale regenerate
- *     that dropped an entry fails here even if the count still matches).
+ *     that dropped an entry fails here even if the count still matches);
+ *   - every public/lab copy is byte-identical to a fresh render, so a page
+ *     copied in by hand without the lab chrome fails here.
  *
  * Usage:
  *   node docs/site/scripts/lab-manifest.mjs            # generate (build step)
@@ -194,6 +206,126 @@ function readPage(paths, entry, warn) {
   return null;
 }
 
+// ---------- lab chrome ----------
+// Kept in step with docs/site/lib/constants.ts SITE by hand: this generator is
+// plain Node and cannot import the TypeScript module.
+export const SITE_ORIGIN = "https://orchestkit.yonyon.ai";
+const SITE_NAME = "OrchestKit";
+const GITHUB_URL = "https://github.com/yonatangross/orchestkit";
+// The site-wide default share card, app/opengraph-image.tsx.
+export const OG_IMAGE = `${SITE_ORIGIN}/opengraph-image`;
+
+export const HEAD_START = "<!-- ork-lab-head:start -->";
+export const HEAD_END = "<!-- ork-lab-head:end -->";
+export const CHROME_START = "<!-- ork-lab-chrome:start -->";
+export const CHROME_END = "<!-- ork-lab-chrome:end -->";
+const HEAD_BLOCK_RE = /<!-- ork-lab-head:start -->[\s\S]*?<!-- ork-lab-head:end -->/g;
+const CHROME_BLOCK_RE = /<!-- ork-lab-chrome:start -->[\s\S]*?<!-- ork-lab-chrome:end -->/g;
+
+function escAttr(s) {
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+/** Remove any previously injected lab chrome, restoring the author's bytes. */
+export function stripLabChrome(html) {
+  return html.replace(HEAD_BLOCK_RE, "").replace(CHROME_BLOCK_RE, "");
+}
+
+/** True when the page itself already declares this meta property or name. */
+function declaresMeta(html, key) {
+  const k = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`<meta\\b[^>]*\\b(?:property|name)\\s*=\\s*["']?${k}["'\\s/>]`, "i").test(html);
+}
+
+function headBlock(html, meta) {
+  const tags = [
+    ["property", "og:type", "website"],
+    ["property", "og:site_name", SITE_NAME],
+    ["property", "og:title", meta.title],
+    ["property", "og:description", meta.description],
+    ["property", "og:url", meta.url],
+    ["property", "og:image", OG_IMAGE],
+    ["name", "twitter:card", "summary_large_image"],
+    ["name", "twitter:title", meta.title],
+    ["name", "twitter:description", meta.description],
+    ["name", "twitter:image", OG_IMAGE],
+  ]
+    // An author's own tag wins, and an empty description is omitted rather
+    // than published as an empty card line.
+    .filter(([, key, value]) => value && !declaresMeta(html, key))
+    .map(([attr, key, value]) => `<meta ${attr}="${key}" content="${escAttr(value)}">`);
+  return HEAD_START + tags.join("") + HEAD_END;
+}
+
+const LINK_STYLE =
+  "color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0";
+
+// Inline script, allowed by the /lab CSP (script-src 'self' 'unsafe-inline').
+// Inside an iframe (the docs LabEmbed) the footer is removed and no page_view
+// is sent, since the host docs page already counted the visit. A throw while
+// reading window.top means a cross-origin parent, so it counts as framed. The
+// payload matches the site's own first-party tracker (@yonatan-hq/analytics
+// PageViewTracker), posted to the same-origin /api/analytics proxy. Local
+// previews are skipped so they never pollute the shared project. The beacon is
+// fail-open by design: analytics must never break a playground.
+const CHROME_SCRIPT =
+  "(function(){" +
+  'var f=document.getElementById("ork-lab-chrome"),framed;' +
+  "try{framed=window.self!==window.top}catch(e){framed=true}" +
+  "if(framed){if(f)f.remove();return}" +
+  'var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;' +
+  "try{" +
+  'var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});' +
+  'if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}' +
+  'else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}' +
+  "}catch(e){return null}" +
+  "})();";
+
+function chromeBlock() {
+  const footer =
+    '<footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;' +
+    "display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;" +
+    "padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;" +
+    'font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left">' +
+    `<a href="/" style="${LINK_STYLE};color:#f8fafc;font-weight:700">${SITE_NAME}</a>` +
+    '<nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0">' +
+    `<a href="/docs" style="${LINK_STYLE}">Read the docs</a>` +
+    `<a href="/docs/getting-started/installation" style="${LINK_STYLE}">Install</a>` +
+    `<a href="/docs/showcase/lab" style="${LINK_STYLE}">More playgrounds</a>` +
+    `<a href="${GITHUB_URL}" rel="noopener" style="${LINK_STYLE}">GitHub</a>` +
+    "</nav></footer>";
+  return `${CHROME_START}${footer}<script>${CHROME_SCRIPT}</script>${CHROME_END}`;
+}
+
+/**
+ * Add the lab chrome to a page. Input is stripped first, so calling this on an
+ * already-injected page yields the same bytes. The head block goes before the
+ * FIRST </head> and the footer before the LAST </body>: two live pages carry a
+ * second "<head" or "</body>" inside a script string, after or before the real
+ * one respectively. A page without those tags (valid HTML) gets the head block
+ * after its </title> or at the start, and the footer at the end.
+ */
+export function injectLabChrome(html, meta) {
+  const base = stripLabChrome(html);
+  const head = headBlock(base, meta);
+  let out;
+  const headClose = base.search(/<\/head\s*>/i);
+  if (headClose !== -1) {
+    out = base.slice(0, headClose) + head + base.slice(headClose);
+  } else {
+    const title = base.match(/<\/title\s*>/i);
+    const at = title ? title.index + title[0].length : 0;
+    out = base.slice(0, at) + head + base.slice(at);
+  }
+  const bodyClose = out.toLowerCase().lastIndexOf("</body");
+  const chrome = chromeBlock();
+  return bodyClose === -1 ? out + chrome : out.slice(0, bodyClose) + chrome + out.slice(bodyClose);
+}
+
 function renderEntry(entry, html) {
   const title = entry.title ?? html.match(/<title>([^<]*)<\/title>/)?.[1]?.trim() ?? entry.slug;
   const description =
@@ -228,13 +360,24 @@ export function render(paths, { warn = console.warn } = {}) {
   const pages = new Map();
   const missing = [];
   for (const entry of entries) {
-    const html = readPage(paths, entry, warn);
-    if (html === null) {
+    const raw = readPage(paths, entry, warn);
+    if (raw === null) {
       missing.push(`${entry.source} (fragment ${FRAGMENT_DIR}/${entry.slug}.json)`);
       continue;
     }
-    pages.set(entry.slug, html);
-    rendered.push(renderEntry(entry, html));
+    // The author's bytes, whether read from the source or from a committed
+    // copy that already carries the chrome.
+    const html = stripLabChrome(raw);
+    const item = renderEntry(entry, html);
+    pages.set(
+      entry.slug,
+      injectLabChrome(html, {
+        title: item.title,
+        description: item.description,
+        url: `${SITE_ORIGIN}/lab/${entry.slug}.html`,
+      }),
+    );
+    rendered.push(item);
   }
   if (missing.length) {
     throw new ManifestError([
@@ -330,6 +473,15 @@ export function check(paths, opts = {}) {
   }
   for (const slug of published) {
     if (!declared.has(slug)) problems.push(`${PUBLIC_LAB}/${slug}.html has no fragment (orphan); run npm run build`);
+  }
+  // Content, not just membership: a copy dropped in by hand, or one rendered
+  // before the lab chrome existed, is on the set but not on the contract.
+  for (const [slug, html] of out.pages) {
+    if (!pubSet.has(slug)) continue;
+    const current = fs.readFileSync(path.join(paths.publicLab, `${slug}.html`), "utf8");
+    if (current === html) continue;
+    const why = current.includes(CHROME_START) && current.includes(HEAD_START) ? "stale" : "missing the lab chrome";
+    problems.push(`${PUBLIC_LAB}/${slug}.html differs from a fresh render (${why}); run npm run build`);
   }
   return problems;
 }
