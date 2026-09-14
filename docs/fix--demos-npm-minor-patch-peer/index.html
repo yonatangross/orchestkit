@@ -51,13 +51,13 @@ npm error   1 more (@remotion/three)</pre>
 
 <section>
 <h2>Trap one: caret ranges let the remotion family drift apart</h2>
-<p>Regenerating the lockfile with the manifest's mixed caret ranges (<code>^4.0.506</code> and <code>^4.0.522</code>) re-resolved some remotion packages to 4.0.524 while others stayed locked at 4.0.522. Remotion hard-guards against that: the demo unit tests failed with <code>TypeError: Multiple versions of Remotion detected: 4.0.522 and 4.0.524</code> thrown from <code>checkMultipleRemotionVersions</code>, from a nested copy under <code>@remotion/animation-utils/node_modules/remotion</code>.</p>
+<p>Regenerating the lockfile with the manifest's mixed caret ranges (<code>^4.0.506</code> and <code>^4.0.523</code> on today's base) can re-resolve some remotion packages to 4.0.524 while others stay locked lower. Measured live on GH-4098's base, where the lock held 4.0.522: the demo unit tests failed with <code>TypeError: Multiple versions of Remotion detected: 4.0.522 and 4.0.524</code> thrown from <code>checkMultipleRemotionVersions</code>, from a nested copy under <code>@remotion/animation-utils/node_modules/remotion</code>. Same guard, same shape, whatever the base version.</p>
 <table>
 <thead><tr><th>state</th><th>remotion versions in lock</th><th>npm test</th></tr></thead>
 <tbody>
-<tr><td>main (and GH-4098's lock)</td><td class="ok">4.0.522 only</td><td>passes (install is what fails)</td></tr>
-<tr><td>regenerated lock, caret ranges</td><td class="bad">4.0.522 + 4.0.524 (40 packages, split)</td><td class="bad">1 suite fails to import</td></tr>
-<tr><td>all remotion packages exact <code>4.0.522</code></td><td class="ok">4.0.522 only</td><td class="ok">293 passed</td></tr>
+<tr><td>GH-4098's lock (main before #4097)</td><td class="ok">4.0.522 only</td><td>passes (install is what fails)</td></tr>
+<tr><td>regenerated lock on that base, caret ranges (measured)</td><td class="bad">4.0.522 + 4.0.524 (40 packages, split)</td><td class="bad">1 suite fails to import</td></tr>
+<tr><td>all remotion packages exact <code>4.0.523</code> (this PR)</td><td class="ok">4.0.523 only</td><td class="ok">293 passed</td></tr>
 </tbody>
 </table>
 <p>Exact pins make future remotion bumps arrive as one explicit, CI-validated group instead of in-range drift. Same lesson as #3086, one layer down.</p>
@@ -65,7 +65,7 @@ npm error   1 more (@remotion/three)</pre>
 
 <section>
 <h2>Trap two: zod 4.6.2 splits zod in two</h2>
-<p>With the remotion family at 4.0.522, <code>@remotion/zod-types</code> requires zod exactly 4.5.4. The group's zod bump to 4.6.2 installs cleanly and even passes tests, but the tree ends with root zod 4.6.2 plus four nested 4.5.4 copies, and <code>npx remotion compositions</code> prints a block warning of "React context and hooks not working, failed renders and unclear errors". Exit code 0, warning shipped, breakage deferred to a render. Pinned zod to <code>4.5.4</code>: one copy, no warning.</p>
+<p>With the remotion family at 4.0.523, four packages pin zod exactly 4.5.4: <code>@remotion/studio</code>, <code>@remotion/studio-server</code>, <code>@remotion/studio-protocol</code> and <code>@remotion/media</code> (checked on the npm registry at 4.0.523; <code>@remotion/zod-types@4.0.523</code> itself has no zod dependency). The group's zod bump installs cleanly and even passes tests, but the tree ends with root zod above 4.5.4 plus nested 4.5.4 copies, and <code>npx remotion compositions</code> prints a block warning of "React context and hooks not working, failed renders and unclear errors" (measured with the 4.6.2 bump on the 4.0.522 base; the split shape is the same at 4.0.523). Exit code 0, warning shipped, breakage deferred to a render. Pinned zod to <code>4.5.4</code>: one copy, no warning.</p>
 </section>
 
 <section>
@@ -74,8 +74,8 @@ npm error   1 more (@remotion/three)</pre>
 <thead><tr><th>package</th><th>group proposed</th><th>this PR</th><th>why</th></tr></thead>
 <tbody>
 <tr><td><code>react</code>, <code>react-dom</code></td><td class="bad">19.3.0</td><td class="warn">19.2.8 (stays)</td><td>fiber 9.7.0 caps <code>&lt;19.3</code>, no newer fiber exists</td></tr>
-<tr><td>remotion family (21 manifests)</td><td class="bad">caret 506/522 mix</td><td class="ok">exact <code>4.0.522</code></td><td>lockstep; drift trips the multi-version guard</td></tr>
-<tr><td><code>zod</code></td><td class="bad">^4.6.2</td><td class="warn"><code>4.5.4</code> (stays)</td><td><code>@remotion/zod-types</code> requires it exactly; split warns</td></tr>
+<tr><td>remotion family (21 manifests)</td><td class="bad">caret 506/523 mix</td><td class="ok">exact <code>4.0.523</code></td><td>lockstep; drift trips the multi-version guard</td></tr>
+<tr><td><code>zod</code></td><td class="bad">group minor</td><td class="warn"><code>4.5.4</code> (stays)</td><td>studio, studio-server, studio-protocol and media pin it exactly; split warns</td></tr>
 <tr><td><code>three</code></td><td class="ok">^0.186.0</td><td class="ok">kept</td><td>fiber peers <code>&gt;=0.156</code>, drei <code>&gt;=0.159</code></td></tr>
 <tr><td><code>@sanity/client</code>, <code>@types/node</code>, <code>@types/react</code></td><td class="ok">group versions</td><td class="ok">kept</td><td>no peer constraint involved</td></tr>
 </tbody>
@@ -98,7 +98,7 @@ $ assert TPL-ReleaseNotesSquare - present</pre>
   var peers = [
     {name:'@lottiefiles/react-lottie-player@3.6.0', range:'16 - 19', check:function(v){return v>=16 && v<=19;}},
     {name:'@react-three/drei@10.7.8', range:'^19', check:function(v){return v>=19 && v<20;}},
-    {name:'@remotion/animation-utils@4.0.522 (+ bundler, canvas, studio)', range:'>=16.8.0', check:function(v){return v>=16.8;}},
+    {name:'@remotion/animation-utils@4.0.523 (+ bundler, canvas, studio)', range:'>=16.8.0', check:function(v){return v>=16.8;}},
     {name:'@react-three/fiber@9.7.0 (via drei, @remotion/three)', range:'>=19 <19.3', check:function(v){return v>=19 && v<19.3;}}
   ];
   var v1928=document.getElementById('b1928'), v1930=document.getElementById('b1930'), out=document.getElementById('verdict');
