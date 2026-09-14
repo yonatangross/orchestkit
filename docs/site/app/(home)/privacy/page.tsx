@@ -23,6 +23,14 @@ export default function PrivacyPage() {
 				read the documentation.
 			</p>
 			<p>
+				On reference documentation pages under <code>/docs/reference/</code>, the
+				site also records an anonymous session replay (pointer movement, clicks
+				and scrolling) to understand why those pages are abandoned. All form and
+				search input is masked, the search dialog is excluded entirely, and no
+				request headers, bodies or query strings are captured. Nothing is
+				recorded anywhere else on the site.
+			</p>
+			<p>
 				The homepage fetches the public GitHub star count from the GitHub API at
 				request time. No data about you is sent to GitHub in that request beyond
 				what your browser normally includes.
