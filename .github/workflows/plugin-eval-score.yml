@@ -18,10 +18,10 @@ on:
   workflow_dispatch:
     inputs:
       runs:
-        description: "Runs per case per arm"
+        description: "Runs per case per arm, an integer from 1 to 10 (validated before the run)"
         default: "3"
       max_cost_usd:
-        description: "Hard cost ceiling; the run aborts with exit 2 and reports partial results if hit"
+        description: "Hard cost ceiling in USD, greater than 0 and at most 25 (validated before the run); the run aborts with exit 2 and reports partial results if hit"
         default: "15"
       tag:
         description: "Optional tag filter, one of: commit, prd-to-goal, glyph, fire, negative"
@@ -73,6 +73,18 @@ jobs:
           EVAL_MAX_COST_USD: ${{ inputs.max_cost_usd }}
           EVAL_TAG: ${{ inputs.tag }}
         run: |
+          # Bound the dispatch inputs before any spend. scripts/run-plugin-eval.sh
+          # passes them through unchecked, so an unbounded runs or ceiling here
+          # would let one dispatch drain the shared quota (CWE-400).
+          if ! [[ "$EVAL_RUNS" =~ ^[0-9]+$ ]] || [ "$EVAL_RUNS" -lt 1 ] || [ "$EVAL_RUNS" -gt 10 ]; then
+            echo "::error::runs must be an integer from 1 to 10, got '${EVAL_RUNS}'"
+            exit 1
+          fi
+          if ! [[ "$EVAL_MAX_COST_USD" =~ ^[0-9]+(\.[0-9]+)?$ ]] \
+             || ! awk -v c="$EVAL_MAX_COST_USD" 'BEGIN { exit !(c > 0 && c <= 25) }'; then
+            echo "::error::max_cost_usd must be a number greater than 0 and at most 25, got '${EVAL_MAX_COST_USD}'"
+            exit 1
+          fi
           npm install -g @anthropic-ai/claude-code
           ARGS=(--runs "$EVAL_RUNS" --max-cost-usd "$EVAL_MAX_COST_USD")
           if [ -n "$EVAL_TAG" ]; then ARGS+=(--tag "$EVAL_TAG"); fi
