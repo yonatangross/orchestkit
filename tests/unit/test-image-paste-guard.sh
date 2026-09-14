@@ -388,15 +388,31 @@ test_oversized_prompt_latency() {
     small_input=$(jq -n '{"prompt":"hello","tool_name":"","session_id":"test","tool_input":{}}')
 
     local s0 s1 small_ms b0 b1 big_ms delta_ms delta_budget_ms
+    local small_out big_out
     s0=$(python3 -c "import time; print(int(time.time()*1000))")
-    run_hook_with_input "prompt/unified-dispatcher" "$small_input" 5 >/dev/null
+    small_out=$(run_hook_with_input "prompt/unified-dispatcher" "$small_input" 5)
     s1=$(python3 -c "import time; print(int(time.time()*1000))")
     small_ms=$((s1 - s0))
 
     b0=$(python3 -c "import time; print(int(time.time()*1000))")
-    run_hook_with_input "prompt/unified-dispatcher" "$input" 5 >/dev/null
+    big_out=$(run_hook_with_input "prompt/unified-dispatcher" "$input" 5)
     b1=$(python3 -c "import time; print(int(time.time()*1000))")
     big_ms=$((b1 - b0))
+
+    # A budget kill answers the ERROR token (GH-4087). The old form sent the
+    # helper's stdout to /dev/null, so that verdict never reached an assertion:
+    # with both runs killed the wall-clock delta floors near 0 and this case
+    # logged PASS on a hook that never answered. A timeout here is a FAIL that
+    # names which run timed out, never a skip; the delta below is judged only
+    # when both runs actually answered.
+    if [[ "$small_out" == "ERROR" || "$big_out" == "ERROR" ]]; then
+        local timed_out=""
+        [[ "$small_out" == "ERROR" ]] && timed_out="trivial (small) run"
+        [[ "$big_out" == "ERROR" ]] && timed_out="${timed_out:+${timed_out} and }oversized (big) run"
+        log_fail "oversized prompt latency run hit the hook budget" \
+                 "hook timed out after 5s in the ${timed_out}; no delta is measurable"
+        return
+    fi
 
     delta_ms=$((big_ms - small_ms))
     # Scheduler jitter between two spawns can make the delta slightly negative;
