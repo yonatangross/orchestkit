@@ -1,0 +1,12 @@
+{
+  "slug": "replay-only-where-readers-bounce",
+  "source": "docs/feat--site-replay-reference-docs/index.html",
+  "title": "Replay Only Where Readers Bounce",
+  "description": "Skill and hook reference pages bounce at about 100%, so PostHog session replay is turned on for /docs/reference/* and nowhere else. An in-code path gate is the only filter, inputs are masked, the search dialog is blocked from the recording, network capture keeps no headers, bodies or query strings, and the CSP gains worker-src blob: for workers alone. Type a path and toggle each privacy layer to see what a recording would contain.",
+  "tags": [
+    "analytics",
+    "privacy",
+    "csp"
+  ],
+  "date": "2026-09-14"
+}

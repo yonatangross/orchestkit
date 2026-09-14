@@ -320,6 +320,33 @@ def featured_examples(skill_dir: Path) -> str:
     return sanitize_mdx_body(body).strip()
 
 
+def subdir_entry_title(entry: dict) -> str:
+    """Section title for one subdirectory file (rule titles carry their impact)."""
+    sec_title = entry["title"]
+    impact = entry["frontmatter"].get("impact", "")
+    if impact:
+        sec_title = f"{sec_title} — {impact}"
+    return sec_title
+
+
+def format_subdir_entry(entry: dict) -> list[str]:
+    """MDX lines for one subdirectory file: its `###` heading plus sanitized body."""
+    return [
+        f"### {subdir_entry_title(entry)}",
+        "",
+        sanitize_mdx_body(entry["body"]),
+        "",
+    ]
+
+
+def format_subdir_section(subdir_name: str, files: list[dict]) -> list[str]:
+    """MDX lines for one subdirectory: `## Heading (N)` plus every file's section."""
+    lines = ["", "---", "", f"## {title_case(subdir_name)} ({len(files)})", ""]
+    for entry in files:
+        lines.extend(format_subdir_entry(entry))
+    return lines
+
+
 def format_subdir_sections(skill_dir: Path) -> list[str]:
     """Generate MDX details/summary sections for skill subdirectory content."""
     all_lines: list[str] = []
@@ -328,27 +355,298 @@ def format_subdir_sections(skill_dir: Path) -> list[str]:
         files = read_subdirectory_files(skill_dir, subdir_name)
         if not files:
             continue
-        heading = title_case(subdir_name)
-        count = len(files)
-
-        all_lines.append("")
-        all_lines.append("---")
-        all_lines.append("")
-        all_lines.append(f"## {heading} ({count})")
-        all_lines.append("")
-        for entry in files:
-            # Build section title
-            sec_title = entry["title"]
-            impact = entry["frontmatter"].get("impact", "")
-            if impact:
-                sec_title = f"{sec_title} — {impact}"
-
-            all_lines.append(f"### {sec_title}")
-            all_lines.append("")
-            all_lines.append(sanitize_mdx_body(entry["body"]))
-            all_lines.append("")
+        all_lines.extend(format_subdir_section(subdir_name, files))
 
     return all_lines
+
+
+# ---------------------------------------------------------------------------
+# PAGE TOKEN BUDGET (split oversized skill pages)
+# ---------------------------------------------------------------------------
+
+# ora.ai scores every docs page against a 25K-token ceiling (page-token-budget).
+# At roughly 4 chars per token that is ~100 KB, so a skill whose assembled page
+# would cross SPLIT_OVER_BYTES is written as a folder instead of one file:
+#
+#   reference/skills/<slug>/index.mdx        SKILL.md body + links to every part
+#   reference/skills/<slug>/<subdir>.mdx     one subdir (rules, references, ...)
+#   reference/skills/<slug>/<subdir>/<f>.mdx one file, when the subdir alone is
+#                                            over budget
+#   reference/skills/<slug>/<subdir>/<f>/NN-<slug>.mdx
+#                                            `## Heading` chunks of one file
+#                                            that is itself over budget
+#                                            (#3902: doctor's 480-row CC
+#                                            version Feature Matrix is the
+#                                            case that forced this level; a
+#                                            leading table header row is
+#                                            repeated so each chunk still
+#                                            renders as a table)
+#
+# The index keeps the original URL (fumadocs serves <slug>/index.mdx at
+# /docs/reference/skills/<slug>), and every part reuses the `### <title>`
+# heading the flat page carried, so the old anchor ids still resolve on the
+# part page. Opt-in per skill for now: the split changes where the bottom of a
+# page lives, so widen SPLIT_SKILLS deliberately rather than by size alone.
+SPLIT_OVER_BYTES = 90_000
+SPLIT_SKILLS = {"configure", "doctor", "implement", "verify", "brainstorm"}
+
+# The part-page wrapper (frontmatter, part-of note) and the `### <title>`
+# heading add bytes on top of the measured content. Every split decision
+# budgets against SPLIT_OVER_BYTES minus this reserve, so a part page that
+# measures just under the line cannot tip over it after the wrapper lands.
+PART_PAGE_RESERVE = 1_024
+CHUNK_BUDGET = SPLIT_OVER_BYTES - PART_PAGE_RESERVE
+
+
+def first_prose_line(body: str, max_len: int = 160) -> str:
+    """First sentence of the first prose paragraph, for a one-line page summary."""
+    in_fence = False
+    paragraph: list[str] = []
+    for raw in body.splitlines() + [""]:
+        line = raw.strip()
+        if line.startswith("```"):
+            in_fence = not in_fence
+            continue
+        if in_fence:
+            continue
+        if not line:
+            if paragraph:
+                break
+            continue
+        if not paragraph and (line[0] in "#>|-*<[!" or line.startswith("import ")):
+            continue
+        paragraph.append(line)
+    if not paragraph:
+        return ""
+    text = re.sub(r"[*_`]", "", " ".join(paragraph))
+    sentence = re.split(r"(?<=[.!?])\s", text, maxsplit=1)[0].rstrip(":")
+    if len(sentence) > max_len:
+        sentence = sentence[: max_len - 3].rstrip() + "..."
+    return sentence
+
+
+def body_h1(body: str) -> str:
+    """The body's own `# Heading` text, or "" when it has none."""
+    for raw in body.splitlines():
+        if raw.startswith("# "):
+            return raw[2:].strip()
+    return ""
+
+
+def _lines_bytes(lines: list[str]) -> int:
+    return len("\n".join(lines).encode("utf-8"))
+
+
+def _is_table_header(lines: list[str]) -> bool:
+    """True when the list opens with a markdown table header row + separator."""
+    if len(lines) < 2:
+        return False
+    first, second = lines[0].strip(), lines[1].strip()
+    return (
+        first.startswith("|")
+        and first.endswith("|")
+        and second.startswith("|")
+        and set(second) <= set("|-: ")
+    )
+
+
+def _section_table_header(lines: list[str]) -> list[str]:
+    """Header row + separator of the table that opens a `##` section, if any.
+
+    Skips the section's own heading line and blank lines first, so it works on
+    a section list whose first element is the `## Heading` line.
+    """
+    i = 1 if (lines and lines[0].startswith("## ")) else 0
+    while i < len(lines) and not lines[i].strip():
+        i += 1
+    return lines[i : i + 2] if _is_table_header(lines[i:]) else []
+
+
+def heading_slug(text: str) -> str:
+    """Kebab-case slug for use in a chunk page filename."""
+    slug = re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")
+    return slug or "part"
+
+
+def chunk_file_sections(entry: dict) -> list[tuple[str, str, list[str]]]:
+    """Split one subdirectory file that is itself over the page budget (#3902).
+
+    Whole `## Heading` sections are merged greedily under SPLIT_OVER_BYTES. A
+    section that alone is over budget is cut by lines, repeating a leading
+    table header row on every part so the table still renders. Every chunk
+    keeps the `### <file title>` heading the flat page carried, so old anchor
+    ids still resolve on the part page.
+
+    Returns [(page_title, filename_slug, body_lines), ...] in document order.
+    """
+    title = subdir_entry_title(entry)
+    title_lines = [f"### {title}", ""]
+
+    # Sanitize the whole body first (MDX-hostile braces and angle brackets,
+    # unsupported code-fence languages), then cut the sanitized lines into
+    # `## Heading` sections. The heading line rides with its section, any
+    # preamble before the first `##` becomes its own section, and a `## ` line
+    # inside a code fence does not split anything.
+    sections: list[tuple[str, list[str]]] = []
+    cur_head, cur_lines = "", []
+    in_fence = False
+    for line in sanitize_mdx_body(entry["body"]).rstrip("\n").split("\n"):
+        if line.strip().startswith("```"):
+            in_fence = not in_fence
+            cur_lines.append(line)
+            continue
+        if line.startswith("## ") and not in_fence:
+            if cur_head or any(l.strip() for l in cur_lines):
+                sections.append((cur_head, cur_lines))
+                cur_lines = []
+            cur_head = line[3:].strip()
+        cur_lines.append(line)
+    if cur_head or any(l.strip() for l in cur_lines):
+        sections.append((cur_head, cur_lines))
+
+    chunks: list[tuple[str, str, list[str]]] = []
+
+    def push(label: str, slug: str, lines: list[str]) -> None:
+        page_title = f"{title}: {label}" if label else title
+        chunks.append((page_title, slug, title_lines + lines))
+
+    label, slug = "", ""
+    cur_lines: list[str] = []
+    for head, lines in sections:
+        if cur_lines and _lines_bytes(cur_lines) + _lines_bytes(lines) + 1 > CHUNK_BUDGET:
+            push(label, slug, cur_lines)
+            label, slug, cur_lines = "", "", []
+        if _lines_bytes(lines) + 1 > CHUNK_BUDGET:
+            # One section alone is over budget: cut it by lines. Repeat the
+            # section's leading table header (row + separator) on every part
+            # after the first, so each part renders as a table instead of a
+            # broken fragment of headerless rows.
+            header = _section_table_header(lines)
+            part_no, buf = 1, []
+            for line in lines:
+                if buf and _lines_bytes(buf) + len(line.encode("utf-8")) + 1 > CHUNK_BUDGET:
+                    prefix = header if part_no > 1 else []
+                    push(f"{head} (part {part_no})", f"{heading_slug(head)}-part-{part_no}", prefix + buf)
+                    part_no += 1
+                    buf = []
+                buf.append(line)
+            if buf:
+                prefix = header if part_no > 1 else []
+                push(f"{head} (part {part_no})", f"{heading_slug(head)}-part-{part_no}", prefix + buf)
+            label, slug, cur_lines = "", "", []
+            continue
+        cur_lines.extend(lines)
+        if not label:
+            label, slug = head, heading_slug(head)
+    if any(l.strip() for l in cur_lines):
+        push(label, slug, cur_lines)
+    return chunks
+
+
+def write_part_page(
+    out_file: Path, skill_title: str, skill_url: str, page_title: str, blurb: str, lines: list[str]
+) -> None:
+    """Write one companion page of a split skill reference."""
+    page = [
+        "---",
+        f"title: {quote_yaml_value(f'{skill_title}: {page_title}')}",
+        f"description: {quote_yaml_value(blurb)}",
+        "---",
+        "",
+        f"> Part of the [{skill_title}]({skill_url}) skill reference. "
+        "The main page carries the skill itself; this page holds material "
+        "that used to sit at the bottom of it.",
+        "",
+    ]
+    page.extend(lines)
+    out_file.parent.mkdir(parents=True, exist_ok=True)
+    out_file.write_text("\n".join(page), encoding="utf-8")
+
+
+def write_split_skill(
+    out_dir: Path, skill_dir: Path, slug: str, title: str, head_lines: list[str]
+) -> list[Path]:
+    """Write an oversized skill as index + companion pages. Returns written files."""
+    skill_url = f"/docs/reference/skills/{slug}"
+    skill_out = out_dir / slug
+    skill_out.mkdir(parents=True, exist_ok=True)
+    written: list[Path] = []
+    parts: list[tuple[str, str, str]] = []  # (url, label, blurb)
+
+    for subdir_name in SKILL_SUBDIRS:
+        files = read_subdirectory_files(skill_dir, subdir_name)
+        if not files:
+            continue
+        heading = title_case(subdir_name)
+        section_lines = format_subdir_section(subdir_name, files)
+        section_bytes = len("\n".join(section_lines).encode("utf-8"))
+
+        if section_bytes + PART_PAGE_RESERVE <= SPLIT_OVER_BYTES:
+            # Whole subdir fits on one page.
+            titles = "; ".join(e["title"] for e in files)
+            blurb = f"{len(files)} {heading.lower()} for the {title} skill: {titles}"
+            out_file = skill_out / f"{subdir_name}.mdx"
+            write_part_page(out_file, title, skill_url, heading, blurb, section_lines[3:])
+            written.append(out_file)
+            parts.append((f"{skill_url}/{subdir_name}", heading, blurb))
+            continue
+
+        # Subdir alone is over budget: one page per file, and a file that is
+        # itself over budget becomes `## Heading` chunks under <subdir>/<stem>/.
+        for entry in files:
+            stem = Path(entry["filename"]).stem
+            entry_lines = format_subdir_entry(entry)
+            if _lines_bytes(entry_lines) + PART_PAGE_RESERVE <= SPLIT_OVER_BYTES:
+                page_title = body_h1(entry["body"]) or entry["title"]
+                blurb = first_prose_line(entry["body"]) or f"{page_title} for the {title} skill."
+                out_file = skill_out / subdir_name / f"{stem}.mdx"
+                write_part_page(out_file, title, skill_url, page_title, blurb, entry_lines)
+                written.append(out_file)
+                parts.append(
+                    (f"{skill_url}/{subdir_name}/{stem}", f"{heading}: {page_title}", blurb)
+                )
+                continue
+
+            chunk_dir = skill_out / subdir_name / stem
+            chunks = chunk_file_sections(entry)
+            for i, (page_title, chunk_slug, chunk_lines) in enumerate(chunks):
+                blurb = (
+                    first_prose_line("\n".join(chunk_lines))
+                    or f"Part {i + 1} of {len(chunks)} of {entry['title']} for the {title} skill."
+                )
+                out_file = chunk_dir / f"{i:02d}-{chunk_slug}.mdx"
+                write_part_page(out_file, title, skill_url, page_title, blurb, chunk_lines)
+                written.append(out_file)
+                parts.append(
+                    (
+                        f"{skill_url}/{subdir_name}/{stem}/{i:02d}-{chunk_slug}",
+                        f"{heading}: {page_title}",
+                        blurb,
+                    )
+                )
+
+    lines = list(head_lines)
+    lines.extend(
+        [
+            "",
+            "---",
+            "",
+            "## Companion pages",
+            "",
+            f"This reference is split across {len(parts) + 1} pages so each stays "
+            "under the 25K-token page budget. The rules and reference material "
+            "that used to sit at the bottom of this page now live at:",
+            "",
+        ]
+    )
+    for url, label, blurb in parts:
+        lines.append(f"- [{label}]({url}): {blurb}")
+    lines.append("")
+
+    index_file = skill_out / "index.mdx"
+    index_file.write_text("\n".join(lines), encoding="utf-8")
+    written.insert(0, index_file)
+    return written
 
 
 # ---------------------------------------------------------------------------
@@ -469,11 +767,16 @@ def generate_skills(skills_src: str, skills_out: str) -> int:
 
         # Surface subdirectory content (rules, references, checklists, examples)
         subdir_lines = format_subdir_sections(skill_dir)
-        if subdir_lines:
-            lines.extend(subdir_lines)
+        page_bytes = len("\n".join(lines + subdir_lines).encode("utf-8"))
 
-        out_file = out_dir / f"{slug}.mdx"
-        out_file.write_text("\n".join(lines), encoding="utf-8")
+        if slug in SPLIT_SKILLS and page_bytes > SPLIT_OVER_BYTES:
+            # Over the page token budget: folder with index + companion pages.
+            write_split_skill(out_dir, skill_dir, slug, title, lines)
+        else:
+            if subdir_lines:
+                lines.extend(subdir_lines)
+            out_file = out_dir / f"{slug}.mdx"
+            out_file.write_text("\n".join(lines), encoding="utf-8")
 
         # Index row — escape description for markdown table
         safe_desc = description.replace("|", "\\|")
@@ -822,9 +1125,7 @@ def _is_jsdoc_skip_line(line: str) -> bool:
 def _is_jsdoc_title_line(line: str) -> bool:
     if re.match(r".+ - .+(Hook|Dispatcher)\b", line, re.IGNORECASE):
         return True
-    if re.search(r"(Hook|Dispatcher)\b", line, re.IGNORECASE) and (
-        " — " in line or " - " in line
-    ):
+    if re.search(r"(Hook|Dispatcher)\b", line, re.IGNORECASE) and (" — " in line or " - " in line):
         # "Name — SessionEnd Hook" or "Name — Stop Hook (M140 …)"
         head = re.split(r"\s+[—-]\s+", line, maxsplit=1)[0]
         return len(head.split()) <= 8
@@ -855,16 +1156,17 @@ def _extract_jsdoc_description(source: str) -> str:
     if not match:
         return ""
 
-    raw_lines = [
-        line.strip().lstrip("* ").strip() for line in match.group(1).split("\n")
-    ]
+    raw_lines = [line.strip().lstrip("* ").strip() for line in match.group(1).split("\n")]
 
     paragraphs: list[list[str]] = []
     buf: list[str] = []
     first_content = True
     for line in raw_lines:
-        if not line or _is_jsdoc_skip_line(line) or line.startswith("- ") or re.match(
-            r"\d+\.", line
+        if (
+            not line
+            or _is_jsdoc_skip_line(line)
+            or line.startswith("- ")
+            or re.match(r"\d+\.", line)
         ):
             if buf:
                 paragraphs.append(buf)

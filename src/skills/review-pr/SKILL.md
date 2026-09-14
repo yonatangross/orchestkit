@@ -54,21 +54,20 @@ review-pr feature-branch
 
 ## Argument Resolution
 
-The PR number or branch is passed as the skill argument. Resolve it immediately:
+Resolve the target with the script first, then review exactly that target (#3892):
 
-```python
-PR_NUMBER = "$ARGUMENTS[0]"  # e.g., "123" or "feature-branch"
-
-# If no argument provided, check environment
-if not PR_NUMBER:
-    PR_NUMBER = os.environ.get("ORCHESTKIT_PR_URL", "").split("/")[-1]
-
-# If still empty, detect from current branch
-if not PR_NUMBER:
-    PR_NUMBER = "$(gh pr view --json number -q .number 2>/dev/null)"
+```bash
+TARGET=$(bash "${CLAUDE_SKILL_DIR}/scripts/resolve-target.sh" $ARGUMENTS)  # one JSON object
 ```
 
-Use `PR_NUMBER` consistently in all subsequent commands and agent prompts.
+| `kind` | Comes from | Review source |
+|---|---|---|
+| `pr` | `123`, `#123`, a PR URL, `ORCHESTKIT_PR_URL`, or the current branch's open PR (no argument) | `PR_NUMBER`; the `gh pr view/diff/checks` commands below |
+| `range` | `base...head` or `base..head`, e.g. `origin/main...origin/qa` | `git diff base...head`, `git log base..head`; skip `gh pr checks` and Phase 6 submit |
+| `ref` | a branch or ref that resolves | `gh pr view <ref>`: open PR, treat as `pr`; none, review `<default>...<ref>` as `range` |
+| `ask` | anything else, or no argument and no PR | **STOP** and `AskUserQuestion` for a PR number or ref range |
+
+Never substitute `HEAD`, the current checkout, or its branch for a target the user did not name. On `ask`, stop and ask. State the resolved target in your first line of output, and use `PR_NUMBER` (or the range) consistently in every later command and agent prompt.
 
 ---
 

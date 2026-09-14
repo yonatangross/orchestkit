@@ -23,7 +23,7 @@ Agent(
 
   SUMMARY: End with: "RESULT: [PASS|WARN|FAIL] - [N] LLM issues: [key concern]"
   """,
-  run_in_background=True,
+  run_in_background=False,  # foreground: review-pr is a fork, see agent-prompts-task-tool.md (#3892)
   max_turns=25
 )
 ```
@@ -40,5 +40,5 @@ Agent(subagent_type="ork:security-auditor", ...)
 ```python
 # Detect AI/ML changes, add specialized reviewer
 if pr_contains_llm_code:
-    Agent(subagent_type="ork:llm-integrator", prompt="LLM CODE REVIEW...", run_in_background=True)
+    Agent(subagent_type="ork:llm-integrator", prompt="LLM CODE REVIEW...", run_in_background=False)
 ```

@@ -1,6 +1,6 @@
 ---
-title: MCP Servers
-description: External tool integrations that give agents web search, component registries, design extraction, and more.
+title: OrchestKit MCP Servers
+description: The MCP servers OrchestKit agents consume (web search, component registries, design extraction) and the OrchestKit Docs MCP server that agents can connect to.
 ---
 
 MCP (Model Context Protocol) servers extend what OrchestKit agents can do by connecting them to external tools and services. Most are **optional**, and every skill and agent still runs without them, but MCPs add capabilities that can't be replicated with built-in tools alone. One of them, **context7**, is a prerequisite rather than an extra.
@@ -364,6 +364,19 @@ Set `"disabled": true` in `.mcp.json`:
 ## Background Agent Limitation
 
 MCP tools are **not available** in background subagents (`run_in_background: true`). This is a Claude Code platform limitation. If an agent needs MCP tools, run it in the foreground.
+
+## OrchestKit Docs MCP Server
+
+The servers above are ones OrchestKit *consumes*. OrchestKit also *publishes* one: the **OrchestKit Docs MCP** server exposes this documentation to any MCP client, read-only, with no authentication.
+
+| Surface | URL |
+|---------|-----|
+| Streamable HTTP endpoint | `https://orchestkit.yonyon.ai/api/mcp` (POST; JSON-RPC 2.0) |
+| Server card | [`/.well-known/mcp/server-card.json`](https://orchestkit.yonyon.ai/.well-known/mcp/server-card.json) |
+| Local stdio image | `docker run -i --rm ghcr.io/yonatangross/orchestkit-docs-mcp` |
+| Registry entry | `io.github.yonatangross/orchestkit` on [registry.modelcontextprotocol.io](https://registry.modelcontextprotocol.io/v0/servers?search=io.github.yonatangross/orchestkit) |
+
+Two tools: `orchestkit_docs_search` (ranked pages with titles and URLs) and `orchestkit_docs_get` (one page as Markdown by path). The same API is described by the [OrchestKit OpenAPI 3.1 spec](https://orchestkit.yonyon.ai/openapi.json); every developer surface is indexed at the [OrchestKit developer resources hub](/developers).
 
 ## Next Steps
 

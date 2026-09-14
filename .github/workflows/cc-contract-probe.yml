@@ -221,9 +221,9 @@ jobs:
             echo '## Function Hooks module contract'
             echo ''
             if [ "$rc" -eq 0 ] && grep -q '^SKIP:' /tmp/fnhooks.txt; then
-              echo 'SKIP: host CC is older than the function-hooks vocabulary. Nothing was verified.'
+              echo 'SKIP: host CC is older than the pinned function-hooks contract. Nothing was verified.'
             elif [ "$rc" -eq 0 ]; then
-              echo 'OK: registered events and $ capabilities unchanged from the 2.1.263 measurement.'
+              echo 'OK: registered events, $ capabilities and the bare PreToolUse rejection match the 2.1.270 measurement.'
             else
               echo 'DRIFT: the upstream contract moved. Re-read #3917 before updating the expected values, and record what moved.'
             fi

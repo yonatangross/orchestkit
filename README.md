@@ -67,7 +67,7 @@ Measured 2026-09-08 on pi 0.85, Codex CLI and cursor-agent. Details, commands an
 
 Then `/ork:setup`. The wizard scans the repo, recommends skills, and writes MCP config.
 
-CLI equivalent: `claude install orchestkit/ork`.
+CLI equivalent: `claude plugin marketplace add yonatangross/orchestkit && claude plugin install ork@orchestkit`.
 
 ### Cursor
 
@@ -471,6 +471,29 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.24](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.23...v10.0.0-beta.24)** · 2026-09-14
+
+- resolve the four [#3892](https://github.com/yonatangross/orchestkit/issues/3892) hook and review-pr regressions (#4108)
+- **deps-dev:** bump fast-check (#4119)
+
+**[v10.0.0-beta.23](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.22...v10.0.0-beta.23)** · 2026-09-14
+
+- **create-pr:** run CodeRabbit CLI review before opening the PR (#4117)
+- **ci:** track classic.PreToolUse rename in function hooks canary (#4102)
+- **create-pr:** clarify CodeRabbit credit spend and fix root tools key (#4118)
+- **tests:** report hook timeouts in test-image-paste-guard instead of swallowing them (GH-4087) (#4111)
+- **deps:** bump orchestkit-demos npm-minor-patch group with the peer resolution (supersedes GH-4098) (#4110)
+- …and 2 more (see [CHANGELOG.md](CHANGELOG.md))
+
+**[v10.0.0-beta.22](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.21...v10.0.0-beta.22)** · 2026-09-14
+
+- **site:** enable PostHog session replay on /docs/reference/* only (#4105)
+- **site:** register WebMCP page tools (search_docs, get_page) with server-rendered evidence (#4107)
+- **site:** static homepage, hero install command, host_selected, /mcp passthrough (#4103)
+- **docs:** give Lab pages a way back to the site, share cards and page views (#4101)
+- **hooks:** stop worktree pre-push fixtures flipping core.bare (#4070) (#4090)
+- …and 10 more (see [CHANGELOG.md](CHANGELOG.md))
+
 **[v10.0.0-beta.21](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.20...v10.0.0-beta.21)** · 2026-09-13
 
 - **pre-push:** load-aware jobs and named hook timeouts (#4085) (#4086)
@@ -490,27 +513,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.17](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.16...v10.0.0-beta.17)** · 2026-09-12
 
 - **traffic:** weekly snapshot, credit lines, seeding list (#4071) (#4075)
-
-**[v10.0.0-beta.16](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.15...v10.0.0-beta.16)** · 2026-09-12
-
-- **evals:** claude plugin eval suite, calibration, and the fixes it found (#4072)
-
-**[v10.0.0-beta.15](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.14...v10.0.0-beta.15)** · 2026-09-11
-
-- **ci:** label tests by path so same-named files are distinguishable (#4050) (#4068)
-- **docs:** one Lab manifest fragment per entry, no shared file (#4049) (#4064)
-- **hooks:** pre-push runs its test suite on every branch (#4024) (#4045)
-- **release:** include docs site changes in changelog (#4066) (#4067)
-- **tests:** write temp files under mktemp, not a hardcoded /tmp (#4026) (#4048)
-
-**[v10.0.0-beta.14](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.13...v10.0.0-beta.14)** · 2026-09-11
-
-- **build:** strip devDependencies from the hooks manifest mirror (#3971) (#4029)
-- **hooks:** display-lint no longer nudges the shape it recommends (#3936) (#4037)
-- **hooks:** remove matcher-group if keys CC never supported (#4062)
-- **release:** stamp the codex and cursor plugin.json mirrors (#4038) (#4046)
-- **skills:** clear remaining allowed-tools exceptions (#4043)
-- …and 9 more (see [CHANGELOG.md](CHANGELOG.md))
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

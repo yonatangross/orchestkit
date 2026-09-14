@@ -198,6 +198,25 @@ If the ledger doesn't exist or is empty, skip this step — create PR normally.
 
 > **CC 2.1.183 — `attribution.sessionUrl`:** Web and Remote Control sessions append a claude.ai session link to the PR body. For public repos where that link should not be exposed, set `attribution.sessionUrl: false` (`/config attribution.sessionUrl=false`) before creating the PR. ork's agent-attribution sections above are independent of this setting.
 
+### Phase 3c: CodeRabbit CLI pre-review (before `gh pr create`)
+
+CodeRabbit PR reviews are rate limited per GitHub identity (Essentials: 5/hour refill under
+30 reviews in 7 days, 1/hour at 60+), and every push to an open PR spends one. The CLI has a
+separate allowance, so review the branch diff locally first. Advisory only, never blocks.
+
+```bash
+CR_BIN=$(command -v coderabbit || true)   # `cr` is also helm chart-releaser: accept it only by --help
+[ -z "$CR_BIN" ] && command -v cr >/dev/null 2>&1 && grep -q CodeRabbit <<<"$(cr --help 2>&1)" && CR_BIN=cr
+CR_OUT=$(mktemp "${TMPDIR:-/tmp}/cr-prereview.XXXXXX")
+[ -n "$CR_BIN" ] && perl -e 'alarm shift; exec @ARGV' 600 \
+  "$CR_BIN" review --agent --base "origin/$BASE" </dev/null > "$CR_OUT" 2>&1 \
+  || echo "CodeRabbit CLI pre-review skipped (not installed, not signed in, timed out, or errored): $CR_OUT"
+```
+
+Fix clear defects in lines this branch changed, commit, re-run Phase 2 local validation, then go
+to Phase 4 without re-running the CLI. Omitting `--use-credits` avoids spend only when the org's usage-based add-on is On demand or Off; Automatic bills overages.
+Detection, degrade table, billing modes, triage: `Read("references/coderabbit-cli-prereview.md")`.
+
 ### Phase 4: Create PR
 
 Follow `Read("rules/pr-title-format.md")` and `Read("rules/pr-body-structure.md")`. Use HEREDOC pattern from `Read("references/pr-body-templates.md")`.
@@ -353,7 +372,7 @@ CodeRabbit reviews expire unread: on Yonatan-HQ/platform (last 80 PRs, measured 
 23 of the 24 PRs it reviewed merged with every thread still open. This phase reads the threads
 once, refutes each, and closes every one with a stated outcome. Run it after CI is green and
 before `gh pr merge` or arming `--auto`. Skip only when the repo has no `.coderabbit.yaml` or
-the PR is still a draft.
+the PR is still a draft. Defects fixed in Phase 3c never become threads; the harvest still runs.
 
 ```bash
 H="${CLAUDE_SKILL_DIR}/scripts/coderabbit-harvest.sh"
@@ -438,6 +457,7 @@ Done means all of these hold:
 - Title uses conventional `type(#issue): ...` format matching the change
 - Body carries Summary, Changes, and Test Plan sections; every closed issue has its own `Closes #N` keyword
 - Pre-flight validation for the chosen PR type passed locally before creation (skipped only for the Quick type)
+- CodeRabbit CLI pre-review ran once before `gh pr create` (Phase 3c), or its one-line skip reason is in the Test Plan
 - Playground HTML exists at docs/\{branch-dir\}/*.html and the body links it (required for non-bot PRs)
 - `gh pr view --json url` returns the created PR URL
 - Every CodeRabbit thread on the PR is resolved, with a reply naming the fix sha or the dismissal reason (`scripts/coderabbit-harvest.sh --unresolved` prints `[]`)
@@ -463,6 +483,7 @@ Load on demand with `Read("references/&lt;file&gt;")`:
 | `assets/pr-template.md` | PR template (legacy) |
 | `scripts/coderabbit-harvest.sh` | CodeRabbit threads: read (one GraphQL call), `--reply`, `--resolve` |
 | `references/coderabbit-zero-reviews.md` | Harvest returned zero: reviewed clean, or never reviewed? |
+| `references/coderabbit-cli-prereview.md` | Phase 3c: why the PR review allowance is scarce, CLI command, degrade table, triage |
 
 
 ---
@@ -806,7 +827,7 @@ gh pr ready
 
 ---
 
-## References (5)
+## References (6)
 
 ### CI Integration Patterns
 
@@ -864,6 +885,121 @@ gh pr checks
 Using `Closes #N` in the PR body auto-closes the issue when the PR merges to the default branch. This is handled by GitHub, not CI — but only works when merging to `main`/`dev` (the repository's default branch).
 
 
+### Coderabbit Cli Prereview
+
+# CodeRabbit CLI pre-review: find defects before the PR spends its review allowance
+
+Phase 3c of create-pr. Runs the CodeRabbit CLI against the branch diff before
+`gh pr create`. Advisory only: every failure path prints one line and continues.
+
+## Why the PR review allowance is the scarce resource
+
+CodeRabbit PR reviews on the Essentials plan are rate limited per GitHub identity,
+with an adaptive refill that shrinks as usage grows: 0 to 29 reviews in the trailing
+7 days refills 5 reviews per hour, stepping down to 1 per hour at 60 or more
+(docs.coderabbit.ai/management/rate-limits). The limit follows the identity, not the
+repo, so every repo the operator pushes to draws from the same bucket.
+
+Measured 2026-09-14: the operator's identity sat at the 1 per hour floor, and 85% of
+PR review events in the prior 30 days were rate limited. Every push to an open PR is
+a new review event, so a PR that needs three fix pushes spends three, and a
+rate-limited review never arrives, which the harvest phase then reads as a clean zero.
+
+The CLI draws on a separate allowance. Reviewing the branch locally before the PR
+exists finds defects while fixing them is free, so the PR opens cleaner and needs
+fewer follow-up pushes.
+
+## The command
+
+Flags verified against CodeRabbit CLI 0.7.6 (`coderabbit review --help`,
+2026-09-14). The binary installs as `coderabbit`; `cr` is a common symlink.
+
+```bash
+# `cr` is also the name of unrelated tools (helm chart-releaser, for one), so
+# accept it only when its help text identifies CodeRabbit.
+CR_BIN=""
+if command -v coderabbit >/dev/null 2>&1; then
+  CR_BIN=coderabbit
+elif command -v cr >/dev/null 2>&1 && grep -q CodeRabbit <<<"$(cr --help 2>&1)"; then
+  CR_BIN=cr
+fi
+
+# mktemp, never a fixed name: a predictable path in a shared /tmp can be
+# pre-created or symlinked by another local user.
+CR_OUT=$(mktemp "${TMPDIR:-/tmp}/cr-prereview.XXXXXX")
+if [ -z "$CR_BIN" ]; then
+  echo "CodeRabbit CLI pre-review skipped: CLI not on PATH"
+elif perl -e 'alarm shift; exec @ARGV' 600 \
+       "$CR_BIN" review --agent --base "origin/$BASE" </dev/null >"$CR_OUT" 2>&1; then
+  echo "CodeRabbit CLI pre-review finished: $CR_OUT"
+else
+  echo "CodeRabbit CLI pre-review skipped: exit $? (142 means the 10 minute alarm fired), see $CR_OUT"
+fi
+```
+
+| Flag | Why |
+|---|---|
+| `--agent` | Structured findings meant for an agent to read, instead of the plain-text default |
+| `--base "origin/$BASE"` | Compare the branch against the remote base; a worktree's local base branch is often stale or absent |
+| `</dev/null` | A signed-out CLI cannot sit on an interactive prompt |
+
+### `--use-credits` and what actually controls spend
+
+Never pass `--use-credits`, but do not read its absence as a spend guarantee. CLI reviews
+follow the same billing path as PR reviews: the assigned user's plan allowance first, then
+the organization's usage-based add-on. What happens past the included limit depends on the
+add-on mode an admin set (docs.coderabbit.ai/management/usage-based-addon, read 2026-09-14):
+
+| Mode | Past the included limit | Does omitting `--use-credits` avoid spend? |
+|---|---|---|
+| Automatic | "CodeRabbit continues every eligible review automatically", and non-trial overages are billed | No. The review runs and bills without the flag |
+| On demand | "Reviews pause at the limit"; each paid review needs explicit authorization, which for the CLI is `coderabbit review --use-credits` | Yes |
+| Off | "Reviews stop when the included limit is reached" | Yes |
+
+So the flag is the authorization step only in On demand mode. If the org runs Automatic,
+this phase can spend credits no matter how the command is written; the control is the
+add-on mode in the CodeRabbit dashboard, not this snippet.
+
+### Why `perl` and not `timeout`
+
+macOS ships no `timeout` binary (`gtimeout` exists only with coreutils installed).
+`perl` is present on macOS and on mainstream Linux images. `alarm` survives `exec`,
+so the CLI process itself receives SIGALRM and exits 142 (128 + 14). Only the exec'd
+process is signalled; a helper the CLI spawned can outlive it.
+
+## How it degrades
+
+| Condition | What happens |
+|---|---|
+| Neither `coderabbit` nor a CodeRabbit `cr` on PATH | One-line skip note, continue to Phase 4 |
+| Not signed in | Non-zero exit or the alarm fires; one-line note, continue |
+| Review runs past 10 minutes | Alarm fires, exit 142; one-line note, continue |
+| Sandboxed shell blocks the CLI's storage or websocket (`coderabbit doctor` reports it) | Non-zero exit; one-line note, continue |
+
+The signed-out exit code was not measured. The alarm bounds that case either way.
+
+## Acting on findings
+
+1. Read `$CR_OUT`. Treat every finding as a claim, not a verdict.
+2. Fix a finding only when it is a clear defect in lines this branch changed and
+   you can confirm the fix locally (a test, a lint, or reading the code path).
+   Skip style nits, speculative edge cases, and anything outside the diff.
+3. Commit the fixes, then re-run Phase 2 local validation.
+4. Do not re-run the CLI review. One pass per PR: a second run spends CLI
+   allowance, and a fix-then-review loop has no natural stopping point.
+5. Record the outcome in the PR body's Test Plan, for example
+   `CodeRabbit CLI pre-review: 4 findings, 2 fixed, 2 dismissed as nits`, or the
+   one-line skip reason.
+
+## Relationship to the harvest phase
+
+The pre-review is local and happens before the PR exists. The harvest reads
+CodeRabbit's threads on the PR after CI is green. The pre-review does not replace
+the harvest: findings fixed locally simply never become threads, and the harvest
+still runs, because the PR review sees the whole diff with repo configuration the
+local run may not apply.
+
+
 ### Coderabbit Zero Reviews
 
 # CodeRabbit harvest returns zero: reviewed clean, or never reviewed?
@@ -882,6 +1018,22 @@ never have fixed anything: CodeRabbit is not reaching this repo at all, because 
 is either uninstalled on the account that owns it or disabled account-side. Which of the
 two it is cannot be settled from a session, only from the settings page, and the ladder
 below is built so that gap stays visible instead of getting rounded off.
+
+The paragraph above is kept as history: it was true on 2026-09-03 and is no longer.
+
+## Current state, 2026-09-14: installed and reviewing
+
+CodeRabbit now reaches yonatangross/orchestkit. On 2026-09-14 `coderabbitai[bot]` posted a
+full review on #4117 (submitted 13:13Z, 2 inline comments), and orchestkit is listed as a
+connected public repository in the yonatangross CodeRabbit org. The installation gap
+diagnosed above was closed account-side; nothing in `.coderabbit.yaml` changed to fix it.
+
+With the app installed, the common cause of a zero on a single PR is no longer the grant.
+It is the per-identity rate limit (docs.coderabbit.ai/management/rate-limits): a PR whose
+review event arrives while the author's allowance is empty gets a `coderabbitai[bot]`
+comment saying "Review limit reached" instead of a review, and the harvest then reads `[]`.
+Check for that comment first. The ladder below still applies when a repo shows no
+CodeRabbit activity at all.
 
 ## Disambiguate before you trust the zero
 
@@ -944,6 +1096,7 @@ gh api "/repos/$R/commits/$SHA/check-suites?per_page=100" --jq '.check_suites[].
 
 | Signal | Strength | Meaning | Fix |
 |---|---|---|---|
+| A `coderabbitai[bot]` comment on this PR saying "Review limit reached" | conclusive | Installed; this PR's review event was rate limited for the author's identity | Wait for the allowance to refill, then `@coderabbitai review`; push fewer times per PR |
 | Zero comments unbounded on both endpoints, control non-zero, **and silence after an explicit `@coderabbitai review`** | strong, still not conclusive | Not installed for this owner account, **or** installed and disabled account-side | Settings page decides which; install or re-enable |
 | Zero comments unbounded, but no explicit-trigger probe was run | **inconclusive** | Indistinguishable from a repo disabled in the dashboard or excluded since day one | Run step 4 before concluding |
 | No `coderabbit` check-suite slug, **and** the control repo has one | corroborating | Agrees with the row above; cannot carry the diagnosis alone | Same |

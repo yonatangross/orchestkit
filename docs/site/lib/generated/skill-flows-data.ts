@@ -2080,6 +2080,13 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
             "tag": null
           },
           {
+            "num": "3c",
+            "label": "CodeRabbit CLI pre-review",
+            "does": "CodeRabbit PR reviews are rate limited per GitHub identity (Essentials: 5/hour refill under",
+            "out": null,
+            "tag": null
+          },
+          {
             "num": "4",
             "label": "Create PR",
             "does": "Follow Read(\"rules/pr-title-format.md\") and Read(\"rules/pr-body-structure.md\"). Use HEREDOC pattern from Read(\"references/pr-body-templates.md\").",

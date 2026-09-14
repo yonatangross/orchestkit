@@ -14,6 +14,7 @@
 
 import { existsSync, mkdirSync, readFileSync } from 'node:fs';
 import { randomUUID } from 'node:crypto';
+import { hostname } from 'node:os';
 import { atomicWriteSync } from '../lib/atomic-write.js';
 import { bufferWrite } from '../lib/analytics-buffer.js';
 import { dirname } from 'node:path';
@@ -104,7 +105,11 @@ function getFeedbackCategory(agent: string): string {
  * Get instance ID consistently
  */
 function getInstanceId(): string {
-  return process.env.CLAUDE_INSTANCE_ID || `${require('node:os').hostname()}-${process.pid}`;
+  // #3892: this was `require('node:os')`. The hooks ship as ESM bundles, where
+  // esbuild replaces a bare require with a shim that throws "Dynamic require
+  // of node:os is not supported", so every SubagentStop that reached
+  // writeDecision threw and the decision log was never written.
+  return process.env.CLAUDE_INSTANCE_ID || `${hostname()}-${process.pid}`;
 }
 
 function extractFindingsSummary(output: string): string {

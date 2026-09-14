@@ -1,0 +1,13 @@
+{
+  "slug": "one-peer-cap-three-pins",
+  "source": "docs/fix--demos-npm-minor-patch-peer/index.html",
+  "title": "One peer cap, three pins: unblocking the demos dependency group",
+  "description": "GH-4098's npm-minor-patch group for orchestkit-demos failed the Validate Renderer check with an npm ERESOLVE conflict: @react-three/fiber 9.7.0 peers on react >=19 <19.3 and the group bumped react to 19.3.0. Interactive peer checker plus the two hidden traps the lockfile regen exposed: remotion caret ranges drifting to mixed versions, and the zod split that warns of failed renders. Resolution by pinning, with dependabot ignores so the failure does not reopen weekly.",
+  "tags": [
+    "dependencies",
+    "remotion",
+    "peer-conflicts",
+    "dependabot"
+  ],
+  "date": "2026-09-14"
+}

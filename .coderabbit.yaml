@@ -14,6 +14,9 @@
 # rewritten for this stack: TypeScript hooks, shell test harnesses, and
 # markdown skills/agents rather than a Python API.
 #
+# UPDATE 2026-09-14: the app now reviews this repo (coderabbitai[bot] review on
+# #4117 at 13:13Z). The 2026-09-03 diagnosis below is kept as history.
+#
 # THIS FILE IS INERT UNTIL THE APP IS INSTALLED ON THE OWNER ACCOUNT, and its
 # presence is not evidence that anything reads it. Measured 2026-09-03: this
 # config had been on main since 2026-08-25 (#3746) and CodeRabbit had posted
@@ -164,21 +167,23 @@ reviews:
     unit_tests:
       enabled: false
 
-tools:
-  ruff:
-    enabled: false
-  eslint:
-    enabled: false
-  biome:
-    enabled: true
-  shellcheck:
-    enabled: true
-  actionlint:
-    enabled: true
-  semgrep:
-    enabled: false
-  markdownlint:
-    enabled: false
+  # Schema v2 reads linters from reviews.tools. A root-level `tools:` key is
+  # rejected ("Unrecognized key: tools") and every setting in it is ignored.
+  tools:
+    ruff:
+      enabled: false
+    eslint:
+      enabled: false
+    biome:
+      enabled: true
+    shellcheck:
+      enabled: true
+    actionlint:
+      enabled: true
+    semgrep:
+      enabled: false
+    markdownlint:
+      enabled: false
 
 chat:
   art: false

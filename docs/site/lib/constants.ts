@@ -10,7 +10,17 @@ export const SITE = {
   version: orkManifest.version,
   domain: "https://orchestkit.yonyon.ai",
   github: "https://github.com/yonatangross/orchestkit",
-  installCommand: "claude install orchestkit/ork",
+  // Shell one-liner that installs the plugin when pasted into a terminal.
+  // `claude install` is NOT a plugin command (it installs the Claude Code
+  // native build). `orchestkit` is the marketplace name declared in
+  // .claude-plugin/marketplace.json; __tests__/install-command.test.ts pins both.
+  installCommand:
+    "claude plugin marketplace add yonatangross/orchestkit && claude plugin install ork@orchestkit",
+  // The same install as slash commands, typed inside a Claude Code session.
+  installSlashCommands: [
+    "/plugin marketplace add yonatangross/orchestkit",
+    "/plugin install ork",
+  ],
   // Public href is same-origin. /community is the hub. The WhatsApp invite
   // rotates behind yonyon.ai/go/orchestkit. Never a raw wa.me here.
   communityUrl: "/community",

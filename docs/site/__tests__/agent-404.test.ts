@@ -155,6 +155,23 @@ describe("SERVED_EXACT covers the (home) route group", () => {
 		}
 	});
 
+	it("every exact-path rewrite source in next.config is served", () => {
+		// Middleware runs BEFORE rewrites, so a rewrite source that isServedPath()
+		// rejects is answered with a JSON 404 and the rewrite never fires. This is
+		// how POST /mcp 404'd in production while /api/mcp worked. Parameterised
+		// sources (`:path*`) live under a served prefix and are skipped here.
+		const cfg = readFileSync(resolve(__dirname, "../next.config.mjs"), "utf8");
+		const rewrites = cfg.slice(cfg.indexOf("rewrites:"), cfg.indexOf("redirects:"));
+		const sources = [...rewrites.matchAll(/source:\s*"([^"]+)"/g)]
+			.map((m) => m[1])
+			.filter((s) => !s.includes(":"));
+		expect(sources).toContain("/mcp");
+		for (const s of sources) {
+			expect(isServedPath(s), `rewrite source not served: ${s}`).toBe(true);
+			expect(shouldJsonError("POST", s, "application/json"), s).toBe(false);
+		}
+	});
+
 	it("every /.well-known rewrite in next.config is allowlisted", () => {
 		const cfg = readFileSync(resolve(__dirname, "../next.config.mjs"), "utf8");
 		const sources = [...cfg.matchAll(/source:\s*"(\/\.well-known[^"]*)"/g)].map(

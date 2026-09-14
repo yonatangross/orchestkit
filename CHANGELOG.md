@@ -5,6 +5,80 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.24](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.23...v10.0.0-beta.24) (2026-09-14)
+
+
+### Bug Fixes
+
+* resolve the four [#3892](https://github.com/yonatangross/orchestkit/issues/3892) hook and review-pr regressions ([#4108](https://github.com/yonatangross/orchestkit/issues/4108)) ([54784f1](https://github.com/yonatangross/orchestkit/commit/54784f1a2ac536dff67e7bb3ff2bb66571f287a0))
+
+
+### Miscellaneous
+
+* **deps-dev:** bump fast-check ([#4119](https://github.com/yonatangross/orchestkit/issues/4119)) ([574b9db](https://github.com/yonatangross/orchestkit/commit/574b9db6290c088366316e0debdf8f0e72d0c924))
+
+## [10.0.0-beta.23](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.22...v10.0.0-beta.23) (2026-09-14)
+
+
+### Features
+
+* **create-pr:** run CodeRabbit CLI review before opening the PR ([#4117](https://github.com/yonatangross/orchestkit/issues/4117)) ([34a0456](https://github.com/yonatangross/orchestkit/commit/34a0456b610aea301ec47929de532032ee98d336))
+
+
+### Bug Fixes
+
+* **ci:** track classic.PreToolUse rename in function hooks canary ([#4102](https://github.com/yonatangross/orchestkit/issues/4102)) ([b75194e](https://github.com/yonatangross/orchestkit/commit/b75194e009e95fd5ef8ef41d3119fc0a38f5ee91))
+* **create-pr:** clarify CodeRabbit credit spend and fix root tools key ([#4118](https://github.com/yonatangross/orchestkit/issues/4118)) ([46c58a7](https://github.com/yonatangross/orchestkit/commit/46c58a71dc89a8ebd3070d24f44f8b7255c5351c))
+* **tests:** report hook timeouts in test-image-paste-guard instead of swallowing them (GH-4087) ([#4111](https://github.com/yonatangross/orchestkit/issues/4111)) ([504040c](https://github.com/yonatangross/orchestkit/commit/504040c3bb7b1942b1e970e3e44e4030e6a9e946))
+
+
+### Miscellaneous
+
+* **deps:** bump orchestkit-demos npm-minor-patch group with the peer resolution (supersedes GH-4098) ([#4110](https://github.com/yonatangross/orchestkit/issues/4110)) ([b46c17f](https://github.com/yonatangross/orchestkit/commit/b46c17f7031c49e38866e1225756d422df9a8750))
+* **deps:** bump the npm-minor-patch group in /docs/site with 2 updates ([#4120](https://github.com/yonatangross/orchestkit/issues/4120)) ([d9143e6](https://github.com/yonatangross/orchestkit/commit/d9143e69c8e9a87046d3fea45024d9e2f4131d13))
+
+
+### Documentation
+
+* **site:** generate a reference page for every user-invocable skill (GH-3902) ([#4114](https://github.com/yonatangross/orchestkit/issues/4114)) ([8dc4863](https://github.com/yonatangross/orchestkit/commit/8dc4863f13e57d48d0ada86516c163d8683858d2))
+
+## [10.0.0-beta.22](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.21...v10.0.0-beta.22) (2026-09-14)
+
+
+### Features
+
+* **site:** enable PostHog session replay on /docs/reference/* only ([#4105](https://github.com/yonatangross/orchestkit/issues/4105)) ([6f04509](https://github.com/yonatangross/orchestkit/commit/6f0450951301c0e3000ab4d825f15f5ac24f77b5))
+* **site:** register WebMCP page tools (search_docs, get_page) with server-rendered evidence ([#4107](https://github.com/yonatangross/orchestkit/issues/4107)) ([697f304](https://github.com/yonatangross/orchestkit/commit/697f30424b000eddca8731ceff14232dbf1a5705))
+* **site:** static homepage, hero install command, host_selected, /mcp passthrough ([#4103](https://github.com/yonatangross/orchestkit/issues/4103)) ([26150a8](https://github.com/yonatangross/orchestkit/commit/26150a8ce9f20f899aaf1d9580e23e89b60515fd))
+
+
+### Bug Fixes
+
+* **docs:** give Lab pages a way back to the site, share cards and page views ([#4101](https://github.com/yonatangross/orchestkit/issues/4101)) ([4e0462b](https://github.com/yonatangross/orchestkit/commit/4e0462baa39993c969ea7ed791b20abfa029f564))
+* **hooks:** stop worktree pre-push fixtures flipping core.bare ([#4070](https://github.com/yonatangross/orchestkit/issues/4070)) ([#4090](https://github.com/yonatangross/orchestkit/issues/4090)) ([4c7ff5f](https://github.com/yonatangross/orchestkit/commit/4c7ff5fe6704e6db919da6466c23045f6ece532b))
+* **security:** close CodeQL XSS highs, scope previews, clear zizmor ([#4100](https://github.com/yonatangross/orchestkit/issues/4100)) ([a273aa6](https://github.com/yonatangross/orchestkit/commit/a273aa6a426c4c23347481272136035d460a0b08))
+* **site:** correct plugin install command and split install analytics ([#4104](https://github.com/yonatangross/orchestkit/issues/4104)) ([1617f79](https://github.com/yonatangross/orchestkit/commit/1617f79f8f69a97f51d54c7d94a514e56aaae5ff))
+* **site:** match the hero install test to the corrected install command ([#4112](https://github.com/yonatangross/orchestkit/issues/4112)) ([e622751](https://github.com/yonatangross/orchestkit/commit/e6227519ba1825cd816fff9be5a58ac4af352cd7))
+
+
+### Miscellaneous
+
+* **deps-dev:** bump @types/node ([#4092](https://github.com/yonatangross/orchestkit/issues/4092)) ([e00925e](https://github.com/yonatangross/orchestkit/commit/e00925e805805c23c1f2209ac8c31377128cc55f))
+* **deps-dev:** bump @types/node in the npm-minor-patch group ([#4093](https://github.com/yonatangross/orchestkit/issues/4093)) ([b0ad996](https://github.com/yonatangross/orchestkit/commit/b0ad996ca556be473ea4576de446a0939761d949))
+* **deps-dev:** bump the npm-minor-patch group ([#4094](https://github.com/yonatangross/orchestkit/issues/4094)) ([615f5e4](https://github.com/yonatangross/orchestkit/commit/615f5e461bcfabe3f374613b72d7324f74959b5a))
+* **deps:** bump the npm-minor-patch group ([#4095](https://github.com/yonatangross/orchestkit/issues/4095)) ([452b9f9](https://github.com/yonatangross/orchestkit/commit/452b9f97cf1d014cc6552b61ac293b55433a2383))
+* **deps:** bump the remotion group ([#4097](https://github.com/yonatangross/orchestkit/issues/4097)) ([4840a26](https://github.com/yonatangross/orchestkit/commit/4840a263c0f8cf8da31eae3cc10082ea5e9979c7))
+
+
+### Documentation
+
+* **site:** split configure reference and make API/MCP pages findable by name (ora.ai) ([#4106](https://github.com/yonatangross/orchestkit/issues/4106)) ([496649f](https://github.com/yonatangross/orchestkit/commit/496649fbd1b65bc0d72cfec019964b1ac392051f))
+
+
+### CI/CD
+
+* bump the github-actions group across 1 directory with 5 updates ([#4099](https://github.com/yonatangross/orchestkit/issues/4099)) ([4b538f7](https://github.com/yonatangross/orchestkit/commit/4b538f7854f5b6b6621493fd8ba56ece7ddd9bd2))
+
 ## [10.0.0-beta.21](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.20...v10.0.0-beta.21) (2026-09-13)
 
 

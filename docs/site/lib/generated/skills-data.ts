@@ -1253,8 +1253,8 @@ export const SKILLS: Record<string, SkillMeta> = {
   "create-pr": {
     "name": "create-pr",
     "description": "Creates GitHub pull requests with pre-flight validation, conventional title formatting, and structured summary generation. Runs parallel checks (tests, lint, type-check, security) before opening. Supports feature, bugfix, refactor, and hotfix PR types with milestone assignment via gh CLI. Invoke only if the operator named it; an everyday `gh pr create` stays plain tooling. Use when opening PRs or submitting code for review.",
-    "version": "2.6.0",
-    "sha256": "b893aa979181a9c38065fbaa6b66de69f4159cdd6a15b577cebc720c07a44ad3",
+    "version": "2.7.0",
+    "sha256": "38dd37a6307015d768ab5140111d801996a5b151474343fd3a08c64a8da5f6a0",
     "author": "OrchestKit",
     "tags": [
       "git",
@@ -1288,6 +1288,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "structure": {
       "references": [
         "ci-integration.md",
+        "coderabbit-cli-prereview.md",
         "coderabbit-zero-reviews.md",
         "multi-commit-pr.md",
         "parallel-validation.md",
@@ -2920,7 +2921,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "mcp-patterns",
     "description": "MCP server building, advanced patterns, and security hardening. Use when building MCP servers, implementing tool handlers, choosing a transport, adding OAuth authentication, wiring MCP Apps UI with @mcp-ui, hardening MCP security, or debugging MCP integrations.",
     "version": "3.1.0",
-    "sha256": "84df0996111aa34e8d7182f5834b373d369078a30df4f44620c5ef3e6a6296b5",
+    "sha256": "dd859d10d9a5b0502c725fa0dd49d101da99378d1a6c63e53edc71bf5b6de71e",
     "author": "OrchestKit",
     "tags": [
       "mcp",
@@ -4060,7 +4061,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "review-pr",
     "description": "PR review using parallel specialized agents for code quality, security, testing, architecture, and performance analysis. Synthesizes findings into a review report with conventional comments (praise/issue/suggestion/nitpick) and approve or request-changes verdict. Use when reviewing pull requests, conducting security audits, or validating changes before merge.",
     "version": "1.9.0",
-    "sha256": "476acb660f234de00868a33d923fed1f57a094060e77bd8c8f0f147fcfc6d526",
+    "sha256": "f94623660aa9b6d38a648895f33d4a3e65793cad10f2289f9b3beeff2210a41a",
     "author": "OrchestKit",
     "tags": [
       "code-review",
@@ -4113,6 +4114,7 @@ export const SKILLS: Record<string, SkillMeta> = {
         "validation-commands.md"
       ],
       "scripts": [
+        "resolve-target.sh",
         "verdict_writeback.py"
       ]
     },
