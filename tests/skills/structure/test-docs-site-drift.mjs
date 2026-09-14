@@ -108,6 +108,50 @@ const invocable = new Set(
   ),
 );
 
+// --- one generated reference page per user-invocable skill (GH-3902) --------
+// Every skill gets a page from scripts/_build-docs-generate.py: a flat
+// <slug>.mdx, or a split folder whose index.mdx keeps the original URL when
+// the assembled page would cross the 25K-token page budget ora.ai scores
+// against (~90 KB, SPLIT_OVER_BYTES in the generator). A user-invocable skill
+// with no page means a reader who runs /ork:<name> and clicks through finds
+// nothing; a page over budget means the page exists but scores over the
+// ceiling. Both are hard failures, not a ratchet: the generator already
+// splits, so any hit is a generator or wiring regression, not a backlog.
+const SKILLS_REF = join(CONTENT, 'reference', 'skills');
+const PAGE_BUDGET_BYTES = 90_000; // mirrors SPLIT_OVER_BYTES in scripts/_build-docs-generate.py
+
+function listPageFiles(dir) {
+  const out = [];
+  for (const e of readdirSync(dir)) {
+    const p = join(dir, e);
+    if (statSync(p).isDirectory()) out.push(...listPageFiles(p));
+    else out.push(p);
+  }
+  return out;
+}
+
+const missingPages = [];
+const overBudgetPages = [];
+for (const s of invocable) {
+  const flat = join(SKILLS_REF, `${s}.mdx`);
+  if (existsSync(flat)) {
+    if (statSync(flat).size > PAGE_BUDGET_BYTES) {
+      overBudgetPages.push({ rel: relative(ROOT, flat), bytes: statSync(flat).size });
+    }
+    continue;
+  }
+  const folder = join(SKILLS_REF, s);
+  if (existsSync(join(folder, 'index.mdx'))) {
+    for (const f of listPageFiles(folder)) {
+      if (statSync(f).size > PAGE_BUDGET_BYTES) {
+        overBudgetPages.push({ rel: relative(ROOT, f), bytes: statSync(f).size });
+      }
+    }
+    continue;
+  }
+  missingPages.push(s);
+}
+
 // --- references that are absent ON PURPOSE ----------------------------------
 // Every entry needs a reason. If a skill by this name is ever really added,
 // the entry becomes dead weight — remove it then.
@@ -241,16 +285,40 @@ if (ratchetBroken) {
   for (const n of nonInvocable) console.log(`   ${n.rel}:${n.line}  /ork:${n.name}`);
 }
 
-if (deadRefs.length || staleCounts.length || ratchetBroken) {
+if (missingPages.length) {
+  console.log(`\n== USER-INVOCABLE SKILLS WITH NO REFERENCE PAGE (${missingPages.length}) ==`);
+  console.log('   The generator emits one page per skill; a missing page means the');
+  console.log('   docs build did not run or the output was pruned. Re-run');
+  console.log('   scripts/build-docs.sh and commit the result.\n');
+  for (const s of missingPages) console.log(`   /ork:${s} has no reference/skills/${s} page`);
+}
+
+if (overBudgetPages.length) {
+  console.log(`\n== REFERENCE PAGES OVER THE PAGE-TOKEN BUDGET (${overBudgetPages.length}) ==`);
+  console.log(`   User-invocable skill pages must stay under ${PAGE_BUDGET_BYTES} bytes`);
+  console.log('   (~25K tokens, the ceiling ora.ai scores against). The generator');
+  console.log('   splits oversized skills; a hit means a page escaped the split.\n');
+  for (const p of overBudgetPages) console.log(`   ${p.rel}: ${p.bytes} bytes`);
+}
+
+if (
+  deadRefs.length ||
+  staleCounts.length ||
+  ratchetBroken ||
+  missingPages.length ||
+  overBudgetPages.length
+) {
   console.log(
     `\nFAILED: ${deadRefs.length} dead references, ${staleCounts.length} stale totals, ` +
-      `non-invocable ${nonInvocable.length}/${NON_INVOCABLE_BASELINE}`,
+      `non-invocable ${nonInvocable.length}/${NON_INVOCABLE_BASELINE}, ` +
+      `${missingPages.length} missing pages, ${overBudgetPages.length} over budget`,
   );
   process.exit(1);
 }
 
 console.log(
-  `SUCCESS: every /ork: reference resolves and every plugin-wide total matches src/ ` +
+  `SUCCESS: every /ork: reference resolves, every plugin-wide total matches src/, ` +
+    `every user-invocable skill has an in-budget reference page ` +
     `(${KNOWN_ABSENT.size} deliberate absences allowlisted)`,
 );
 process.exit(0);

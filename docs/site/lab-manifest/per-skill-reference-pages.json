@@ -1,0 +1,14 @@
+{
+  "slug": "per-skill-reference-pages",
+  "source": "docs/dsp--74315-per-skill-gh-3902-gh/per-skill-reference-pages.html",
+  "title": "One reference page per user-invocable skill, under budget",
+  "description": "GH-3902: four user-invocable skills (doctor, implement, verify, brainstorm) had generated docs pages over the 25K-token ceiling ora.ai scores, doctor's alone 225 KB. Toggle before and after to see the generator's split mechanism cover all four, including a third level that chunks a single 114 KB reference file by heading with the table header repeated, plus the drift test that now fails on a missing or over-budget user-invocable page.",
+  "tags": [
+    "docs",
+    "docs-site",
+    "generator",
+    "skills",
+    "page-token-budget"
+  ],
+  "date": "2026-09-14"
+}
