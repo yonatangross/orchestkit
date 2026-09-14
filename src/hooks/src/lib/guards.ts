@@ -6,6 +6,7 @@
  * They return `true` to run the hook, `false` to skip it.
  */
 
+import { existsSync } from 'node:fs';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess } from './common.js';
 import { isAgentTeamsActive } from './agent-teams.js';
@@ -272,13 +273,11 @@ export function guardMultiInstance(input: HookInput): GuardResult {
   const projectDir = safeProjectDir(input.project_dir);
   const dbPath = `${projectDir}/.claude/coordination/.claude.db`;
 
-  try {
-    const { existsSync } = require('node:fs');
-    if (existsSync(dbPath)) {
-      return null; // Continue with hook
-    }
-  } catch {
-    // Ignore errors
+  // #3892: this used `require('node:fs')` inside a try. In the ESM bundles that
+  // require is esbuild's throwing shim, so the catch swallowed it and the guard
+  // reported "no coordination DB" unconditionally.
+  if (existsSync(dbPath)) {
+    return null; // Continue with hook
   }
 
   return outputSilentSuccess();
