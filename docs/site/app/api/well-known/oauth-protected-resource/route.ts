@@ -2,29 +2,35 @@
 // Created: 2026-06-11
 
 import { SITE } from "@/lib/constants";
+import { ISSUER, SCOPES } from "@/lib/agent-identity";
 
-// RFC 9728 Protected Resource Metadata — served at
+// RFC 9728 Protected Resource Metadata, served at
 // /.well-known/oauth-protected-resource via a rewrite in next.config.mjs.
 //
-// This API is public and anonymous-only, and this document says so HONESTLY:
-// empty `authorization_servers` (no authorization server exists) and empty
-// `bearer_methods_supported` (no bearer token is ever read) are the
-// spec-shaped way to signal "no credential needed" — strictly more
-// agent-friendly than a 404 an agent must interpret. There is deliberately
-// NO /.well-known/oauth-authorization-server: publishing RFC 8414 metadata
-// for an authorization server that does not exist would be a lie.
+// The API is public: anonymous reads are the normal case and stay 200.
+// Identity is OPTIONAL. This origin issues an anonymous identity assertion at
+// POST /agent/identity and accepts it as a bearer in the Authorization header,
+// so `authorization_servers` names this origin (its RFC 8414 document lives at
+// /.well-known/oauth-authorization-server) and `bearer_methods_supported` says
+// how the bearer travels. `scopes_supported` is the single read scope, which an
+// anonymous caller holds too. The 401 that points here is raised only for a
+// presented bearer that does not verify, or for GET /agent/identity without
+// one; see docs/adr/optional-agent-identity.md.
 export const revalidate = false;
 
 export function GET() {
 	const d = SITE.domain;
 	const metadata = {
 		resource: d,
-		authorization_servers: [],
-		scopes_supported: [],
-		bearer_methods_supported: [],
+		authorization_servers: [ISSUER],
+		scopes_supported: [...SCOPES],
+		bearer_methods_supported: ["header"],
 		resource_name: `${SITE.name} Docs API`,
 		resource_documentation: `${d}/auth.md`,
 		resource_policy_uri: `${d}/api-policy.md`,
+		// Not an RFC 9728 field; a plain statement for agents that read this
+		// before deciding whether to register: they do not have to.
+		authentication_required: false,
 	};
 
 	return new Response(JSON.stringify(metadata, null, 2), {

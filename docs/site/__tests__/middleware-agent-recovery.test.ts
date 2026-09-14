@@ -137,8 +137,8 @@ describe("rate-limit headers on every metered surface", () => {
 		// shape there is (scanners walk the whole registry), and it is exactly the
 		// case where a client most needs to know its remaining budget.
 		const res = middleware(
-			req("/.well-known/oauth-authorization-server", "application/json", freshIp()),
-		);
+			req("/.well-known/openid-configuration", "application/json", freshIp()),
+		) as Response;
 		expect(res?.status).toBe(404);
 		expect(res?.headers.get("ratelimit-limit")).toBe(String(RATE_LIMIT));
 	});

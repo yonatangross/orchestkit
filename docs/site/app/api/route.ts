@@ -13,7 +13,7 @@ export function GET() {
 		{
 			name: `${SITE.name} API`,
 			description:
-				"Public, read-only API over the OrchestKit documentation. No authentication. Errors use the RFC 9457 Problem Details shape, served as application/json.",
+				"Public, read-only API over the OrchestKit documentation. No authentication required; an optional agent identity can be registered at /agent/identity. Errors use the RFC 9457 Problem Details shape, served as application/json.",
 			version: "v1",
 			endpoints: {
 				search: `${d}/api/search?query=...&limit=10`,
@@ -28,6 +28,9 @@ export function GET() {
 				agentCard: `${d}/.well-known/agent-card.json`,
 				llms: `${d}/api/llms.txt`,
 				auth: `${d}/auth.md`,
+				protectedResourceMetadata: `${d}/.well-known/oauth-protected-resource`,
+				authorizationServerMetadata: `${d}/.well-known/oauth-authorization-server`,
+				identity: `${d}/agent/identity`,
 			},
 		},
 		{

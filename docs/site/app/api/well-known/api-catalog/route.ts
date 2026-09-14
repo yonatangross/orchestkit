@@ -60,7 +60,17 @@ export function GET() {
 					{
 						href: `${d}/.well-known/oauth-protected-resource`,
 						type: "application/json",
-						title: "Protected-resource metadata (RFC 9728, anonymous-only)",
+						title: "Protected-resource metadata (RFC 9728, identity optional)",
+					},
+					{
+						href: `${d}/.well-known/oauth-authorization-server`,
+						type: "application/json",
+						title: "Authorization-server metadata (RFC 8414, agent_auth block)",
+					},
+					{
+						href: `${d}/agent/identity`,
+						type: "application/json",
+						title: "Agent identity endpoint (auth.md registration, optional)",
 					},
 					{
 						href: "https://github.com/yonatangross/orchestkit/pkgs/container/orchestkit-docs-mcp",

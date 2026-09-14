@@ -1,6 +1,7 @@
 # OrchestKit Docs — Environment Template (1Password)
 # Usage: op run --env-file=.env.tpl -- <command>
 # All secrets resolved at runtime from 1Password. Safe to commit to git.
+# AGENT_IDENTITY_SECRET is required in production for the agent identity endpoint.
 
 # ── Analytics (#222) ────────────────────────────────────────────
 ANALYTICS_HMAC_SECRET=op://<vault>/<item>/ANALYTICS_HMAC_SECRET
