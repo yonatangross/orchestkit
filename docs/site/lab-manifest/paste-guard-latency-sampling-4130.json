@@ -1,0 +1,8 @@
+{
+  "slug": "paste-guard-latency-sampling-4130",
+  "source": "docs/fix--4130-paste-guard-latency-sampling/index.html",
+  "title": "Sample the paste guard latency",
+  "description": "Compare the old single latency pair with the minimum of three small then big rounds for the paste guard's strict 120ms budget.",
+  "tags": ["testing", "performance", "hooks"],
+  "date": "2026-09-14"
+}
