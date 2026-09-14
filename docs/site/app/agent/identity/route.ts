@@ -28,6 +28,7 @@ import {
 	challengeDescription,
 	IDENTITY_ENDPOINT,
 	IDENTITY_TOKEN_TYPE,
+	identitySigningAvailable,
 	mintIdentityAssertion,
 	PRM_URL,
 	SCOPES,
@@ -121,6 +122,13 @@ export async function GET(req: Request): Promise<Response> {
 }
 
 export async function POST(req: Request): Promise<Response> {
+	if (!identitySigningAvailable()) {
+		return registrationError(
+			503,
+			"identity_unavailable",
+			"Identity registration is unavailable because this deployment has no signing key.",
+		);
+	}
 	let body: { type?: unknown; assertion?: unknown; assertion_type?: unknown };
 	try {
 		body = (await req.json()) as typeof body;

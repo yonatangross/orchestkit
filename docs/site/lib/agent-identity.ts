@@ -77,18 +77,28 @@ function b64urlJson(value: unknown): string {
 	return b64url(enc.encode(JSON.stringify(value)));
 }
 
-// The signing key. Set AGENT_IDENTITY_SECRET in the deployment to make the
-// assertion unforgeable. Without it the key is derived from a fixed phrase,
-// and that is stated rather than hidden: the assertion grants nothing an
-// anonymous caller lacks, so forging one is equivalent to registering
-// anonymously, which is open to everyone. The override exists so that if a
-// privilege ever attaches to identity, the key can be made private without
-// changing the token format.
+// The signing key. Production requires AGENT_IDENTITY_SECRET so the signing
+// key remains private. Non-production uses a fixed fallback phrase for local and
+// test setup only; production refuses both signing and verification without a
+// configured secret, including if a fallback key was cached earlier.
 const FALLBACK_KEY_PHRASE = `${SITE.domain}/agent/identity anonymous registration key v1`;
 
 let keyPromise: Promise<CryptoKey> | null = null;
 
+export class IdentitySigningUnavailableError extends Error {
+	constructor() {
+		super("AGENT_IDENTITY_SECRET is required in production");
+		this.name = "IdentitySigningUnavailableError";
+	}
+}
+
+/** Whether this process can issue and verify identity assertions. */
+export function identitySigningAvailable(): boolean {
+	return process.env.NODE_ENV !== "production" || Boolean(process.env.AGENT_IDENTITY_SECRET);
+}
+
 function signingKey(): Promise<CryptoKey> {
+	if (!identitySigningAvailable()) throw new IdentitySigningUnavailableError();
 	if (!keyPromise) {
 		const material = process.env.AGENT_IDENTITY_SECRET ?? FALLBACK_KEY_PHRASE;
 		keyPromise = crypto.subtle.importKey(
@@ -139,6 +149,9 @@ export async function verifyIdentityAssertion(
 	token: string,
 	now: number = Date.now(),
 ): Promise<VerifyResult> {
+	// Do this before considering the cached key: a process that lost its
+	// production secret must never keep accepting assertions minted before it.
+	if (!identitySigningAvailable()) return { ok: false, reason: "invalid_signature" };
 	const parts = token.split(".");
 	if (parts.length !== 3) return { ok: false, reason: "malformed" };
 	const [h, p, s] = parts;

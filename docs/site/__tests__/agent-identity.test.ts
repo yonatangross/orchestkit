@@ -6,12 +6,17 @@
 // metadata to the identity endpoint, and where the 401 may appear) is walked
 // in auth-chain.test.ts; this file covers the edges that walk never reaches.
 
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+	GET as getIdentity,
+	POST as postIdentity,
+} from "@/app/agent/identity/route";
 import {
 	ASSERTION_TTL_SECONDS,
 	bearerFromHeader,
 	challengeDescription,
 	IDENTITY_ENDPOINT,
+	identitySigningAvailable,
 	ISSUER,
 	JWT_TYP,
 	mintIdentityAssertion,
@@ -26,6 +31,44 @@ import { SITE } from "@/lib/constants";
 function b64(v: unknown): string {
 	return Buffer.from(JSON.stringify(v)).toString("base64url");
 }
+
+function setIdentityEnvironment(nodeEnv: string, secret?: string): void {
+	vi.stubEnv("NODE_ENV", nodeEnv);
+	vi.stubEnv("AGENT_IDENTITY_SECRET", secret);
+	resetSigningKeyForTests();
+}
+
+async function forgeFallbackAssertion(): Promise<string> {
+	const header = b64({ alg: "HS256", typ: JWT_TYP });
+	const payload = b64({
+		iss: ISSUER,
+		aud: ISSUER,
+		sub: "reg_forged",
+		iat: 1,
+		exp: Math.floor(Date.now() / 1000) + 3600,
+		scope: "docs.read",
+		registration_type: "anonymous",
+	});
+	const signingInput = `${header}.${payload}`;
+	const key = await crypto.subtle.importKey(
+		"raw",
+		new TextEncoder().encode(`${ISSUER}/agent/identity anonymous registration key v1`),
+		{ name: "HMAC", hash: "SHA-256" },
+		false,
+		["sign"],
+	);
+	const signature = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(signingInput));
+	return `${signingInput}.${Buffer.from(signature).toString("base64url")}`;
+}
+
+beforeEach(() => {
+	setIdentityEnvironment("test");
+});
+
+afterEach(() => {
+	vi.unstubAllEnvs();
+	resetSigningKeyForTests();
+});
 
 describe("constants agree with the site", () => {
 	it("issuer, PRM and identity endpoint are all on this origin", () => {
@@ -110,18 +153,120 @@ describe("mint and verify", () => {
 });
 
 describe("the signing key", () => {
-	afterEach(() => {
-		delete process.env.AGENT_IDENTITY_SECRET;
-		resetSigningKeyForTests();
-	});
-
 	it("AGENT_IDENTITY_SECRET changes the key, so old assertions stop verifying", async () => {
 		const { token } = await mintIdentityAssertion();
-		process.env.AGENT_IDENTITY_SECRET = "a different key for this test";
+		vi.stubEnv("AGENT_IDENTITY_SECRET", "a different key for this test");
 		resetSigningKeyForTests();
 		expect((await verifyIdentityAssertion(token)).ok).toBe(false);
 		const fresh = await mintIdentityAssertion();
 		expect((await verifyIdentityAssertion(fresh.token)).ok).toBe(true);
+	});
+
+	it("round-trips identity registration with the non-production fallback", async () => {
+		const post = await postIdentity(
+			new Request(IDENTITY_ENDPOINT, {
+				method: "POST",
+				headers: { "content-type": "application/json" },
+				body: JSON.stringify({ type: "anonymous" }),
+			}),
+		);
+		expect(post.status).toBe(201);
+		const registration = (await post.json()) as {
+			registration_id: string;
+			identity_assertion: string;
+		};
+		expect((await verifyIdentityAssertion(registration.identity_assertion)).ok).toBe(true);
+		const get = await getIdentity(
+			new Request(IDENTITY_ENDPOINT, {
+				headers: { authorization: `Bearer ${registration.identity_assertion}` },
+			}),
+		);
+		expect(get.status).toBe(200);
+		expect(((await get.json()) as { registration_id: string }).registration_id).toBe(
+			registration.registration_id,
+		);
+	});
+
+	it("fails closed in production without a configured secret, even with a cached configured key", async () => {
+		const fallback = await mintIdentityAssertion();
+		setIdentityEnvironment("production", "configured production signing secret");
+		const configured = await mintIdentityAssertion();
+		expect((await verifyIdentityAssertion(configured.token)).ok).toBe(true);
+
+		vi.stubEnv("AGENT_IDENTITY_SECRET", undefined);
+		// Do not reset: this verifies the unavailable check wins over a warm key cache.
+		expect(identitySigningAvailable()).toBe(false);
+		await expect(mintIdentityAssertion()).rejects.toMatchObject({
+			name: "IdentitySigningUnavailableError",
+		});
+		expect(await verifyIdentityAssertion(fallback.token)).toEqual({
+			ok: false,
+			reason: "invalid_signature",
+		});
+		expect(await verifyIdentityAssertion(configured.token)).toEqual({
+			ok: false,
+			reason: "invalid_signature",
+		});
+	});
+
+	it.each([
+		["unset", undefined],
+		["empty", ""],
+	])("rejects a fallback-signed bearer and serves POST as 503 in production with a %s secret", async (_name, secret) => {
+		setIdentityEnvironment("production", secret);
+		const forged = await forgeFallbackAssertion();
+		expect(await verifyIdentityAssertion(forged)).toEqual({
+			ok: false,
+			reason: "invalid_signature",
+		});
+
+		const post = await postIdentity(
+			new Request(IDENTITY_ENDPOINT, {
+				method: "POST",
+				headers: { "content-type": "application/json" },
+				body: JSON.stringify({ type: "anonymous" }),
+			}),
+		);
+		expect(post.status).toBe(503);
+		expect((await post.json()) as { error: string }).toMatchObject({
+			error: "identity_unavailable",
+		});
+
+		const get = await getIdentity(
+			new Request(IDENTITY_ENDPOINT, { headers: { authorization: `Bearer ${forged}` } }),
+		);
+		expect(get.status).toBe(401);
+		expect(get.headers.get("www-authenticate")).toContain('error="invalid_token"');
+
+		const noBearer = await getIdentity(new Request(IDENTITY_ENDPOINT));
+		expect(noBearer.status).toBe(401);
+		expect(noBearer.headers.get("www-authenticate")).not.toContain("error=");
+	});
+
+	it("round-trips identity registration with a configured production secret", async () => {
+		setIdentityEnvironment("production", "configured production signing secret");
+		const post = await postIdentity(
+			new Request(IDENTITY_ENDPOINT, {
+				method: "POST",
+				headers: { "content-type": "application/json" },
+				body: JSON.stringify({ type: "anonymous" }),
+			}),
+		);
+		expect(post.status).toBe(201);
+		const registration = (await post.json()) as {
+			registration_id: string;
+			identity_assertion: string;
+		};
+		expect((await verifyIdentityAssertion(registration.identity_assertion)).ok).toBe(true);
+		const get = await getIdentity(
+			new Request(IDENTITY_ENDPOINT, {
+				headers: { authorization: `Bearer ${registration.identity_assertion}` },
+			}),
+		);
+		expect(get.status).toBe(200);
+		expect(((await get.json()) as { registration_id: string }).registration_id).toBe(
+			registration.registration_id,
+		);
 	});
 });
 
