@@ -320,6 +320,33 @@ def featured_examples(skill_dir: Path) -> str:
     return sanitize_mdx_body(body).strip()
 
 
+def subdir_entry_title(entry: dict) -> str:
+    """Section title for one subdirectory file (rule titles carry their impact)."""
+    sec_title = entry["title"]
+    impact = entry["frontmatter"].get("impact", "")
+    if impact:
+        sec_title = f"{sec_title} — {impact}"
+    return sec_title
+
+
+def format_subdir_entry(entry: dict) -> list[str]:
+    """MDX lines for one subdirectory file: its `###` heading plus sanitized body."""
+    return [
+        f"### {subdir_entry_title(entry)}",
+        "",
+        sanitize_mdx_body(entry["body"]),
+        "",
+    ]
+
+
+def format_subdir_section(subdir_name: str, files: list[dict]) -> list[str]:
+    """MDX lines for one subdirectory: `## Heading (N)` plus every file's section."""
+    lines = ["", "---", "", f"## {title_case(subdir_name)} ({len(files)})", ""]
+    for entry in files:
+        lines.extend(format_subdir_entry(entry))
+    return lines
+
+
 def format_subdir_sections(skill_dir: Path) -> list[str]:
     """Generate MDX details/summary sections for skill subdirectory content."""
     all_lines: list[str] = []
@@ -328,27 +355,155 @@ def format_subdir_sections(skill_dir: Path) -> list[str]:
         files = read_subdirectory_files(skill_dir, subdir_name)
         if not files:
             continue
-        heading = title_case(subdir_name)
-        count = len(files)
-
-        all_lines.append("")
-        all_lines.append("---")
-        all_lines.append("")
-        all_lines.append(f"## {heading} ({count})")
-        all_lines.append("")
-        for entry in files:
-            # Build section title
-            sec_title = entry["title"]
-            impact = entry["frontmatter"].get("impact", "")
-            if impact:
-                sec_title = f"{sec_title} — {impact}"
-
-            all_lines.append(f"### {sec_title}")
-            all_lines.append("")
-            all_lines.append(sanitize_mdx_body(entry["body"]))
-            all_lines.append("")
+        all_lines.extend(format_subdir_section(subdir_name, files))
 
     return all_lines
+
+
+# ---------------------------------------------------------------------------
+# PAGE TOKEN BUDGET (split oversized skill pages)
+# ---------------------------------------------------------------------------
+
+# ora.ai scores every docs page against a 25K-token ceiling (page-token-budget).
+# At roughly 4 chars per token that is ~100 KB, so a skill whose assembled page
+# would cross SPLIT_OVER_BYTES is written as a folder instead of one file:
+#
+#   reference/skills/<slug>/index.mdx        SKILL.md body + links to every part
+#   reference/skills/<slug>/<subdir>.mdx     one subdir (rules, references, ...)
+#   reference/skills/<slug>/<subdir>/<f>.mdx one file, when the subdir alone is
+#                                            over budget
+#
+# The index keeps the original URL (fumadocs serves <slug>/index.mdx at
+# /docs/reference/skills/<slug>), and every part reuses the `### <title>`
+# heading the flat page carried, so the old anchor ids still resolve on the
+# part page. Opt-in per skill for now: the split changes where the bottom of a
+# page lives, so widen SPLIT_SKILLS deliberately rather than by size alone.
+SPLIT_OVER_BYTES = 90_000
+SPLIT_SKILLS = {"configure"}
+
+
+def first_prose_line(body: str, max_len: int = 160) -> str:
+    """First sentence of the first prose paragraph, for a one-line page summary."""
+    in_fence = False
+    paragraph: list[str] = []
+    for raw in body.splitlines() + [""]:
+        line = raw.strip()
+        if line.startswith("```"):
+            in_fence = not in_fence
+            continue
+        if in_fence:
+            continue
+        if not line:
+            if paragraph:
+                break
+            continue
+        if not paragraph and (line[0] in "#>|-*<[!" or line.startswith("import ")):
+            continue
+        paragraph.append(line)
+    if not paragraph:
+        return ""
+    text = re.sub(r"[*_`]", "", " ".join(paragraph))
+    sentence = re.split(r"(?<=[.!?])\s", text, maxsplit=1)[0].rstrip(":")
+    if len(sentence) > max_len:
+        sentence = sentence[: max_len - 3].rstrip() + "..."
+    return sentence
+
+
+def body_h1(body: str) -> str:
+    """The body's own `# Heading` text, or "" when it has none."""
+    for raw in body.splitlines():
+        if raw.startswith("# "):
+            return raw[2:].strip()
+    return ""
+
+
+def write_part_page(
+    out_file: Path, skill_title: str, skill_url: str, page_title: str, blurb: str, lines: list[str]
+) -> None:
+    """Write one companion page of a split skill reference."""
+    page = [
+        "---",
+        f"title: {quote_yaml_value(f'{skill_title}: {page_title}')}",
+        f"description: {quote_yaml_value(blurb)}",
+        "---",
+        "",
+        f"> Part of the [{skill_title}]({skill_url}) skill reference. "
+        "The main page carries the skill itself; this page holds material "
+        "that used to sit at the bottom of it.",
+        "",
+    ]
+    page.extend(lines)
+    out_file.parent.mkdir(parents=True, exist_ok=True)
+    out_file.write_text("\n".join(page), encoding="utf-8")
+
+
+def write_split_skill(
+    out_dir: Path, skill_dir: Path, slug: str, title: str, head_lines: list[str]
+) -> list[Path]:
+    """Write an oversized skill as index + companion pages. Returns written files."""
+    skill_url = f"/docs/reference/skills/{slug}"
+    skill_out = out_dir / slug
+    skill_out.mkdir(parents=True, exist_ok=True)
+    written: list[Path] = []
+    parts: list[tuple[str, str, str]] = []  # (url, label, blurb)
+
+    for subdir_name in SKILL_SUBDIRS:
+        files = read_subdirectory_files(skill_dir, subdir_name)
+        if not files:
+            continue
+        heading = title_case(subdir_name)
+        section_lines = format_subdir_section(subdir_name, files)
+        section_bytes = len("\n".join(section_lines).encode("utf-8"))
+
+        if section_bytes <= SPLIT_OVER_BYTES:
+            # Whole subdir fits on one page.
+            titles = "; ".join(e["title"] for e in files)
+            blurb = f"{len(files)} {heading.lower()} for the {title} skill: {titles}"
+            out_file = skill_out / f"{subdir_name}.mdx"
+            write_part_page(out_file, title, skill_url, heading, blurb, section_lines[3:])
+            written.append(out_file)
+            parts.append((f"{skill_url}/{subdir_name}", heading, blurb))
+            continue
+
+        # Subdir alone is over budget: one page per file.
+        for entry in files:
+            stem = Path(entry["filename"]).stem
+            page_title = body_h1(entry["body"]) or entry["title"]
+            blurb = first_prose_line(entry["body"]) or f"{page_title} for the {title} skill."
+            out_file = skill_out / subdir_name / f"{stem}.mdx"
+            write_part_page(
+                out_file,
+                title,
+                skill_url,
+                page_title,
+                blurb,
+                format_subdir_entry(entry),
+            )
+            written.append(out_file)
+            parts.append((f"{skill_url}/{subdir_name}/{stem}", f"{heading}: {page_title}", blurb))
+
+    lines = list(head_lines)
+    lines.extend(
+        [
+            "",
+            "---",
+            "",
+            "## Companion pages",
+            "",
+            f"This reference is split across {len(parts) + 1} pages so each stays "
+            "under the 25K-token page budget. The rules and reference material "
+            "that used to sit at the bottom of this page now live at:",
+            "",
+        ]
+    )
+    for url, label, blurb in parts:
+        lines.append(f"- [{label}]({url}): {blurb}")
+    lines.append("")
+
+    index_file = skill_out / "index.mdx"
+    index_file.write_text("\n".join(lines), encoding="utf-8")
+    written.insert(0, index_file)
+    return written
 
 
 # ---------------------------------------------------------------------------
@@ -469,11 +624,16 @@ def generate_skills(skills_src: str, skills_out: str) -> int:
 
         # Surface subdirectory content (rules, references, checklists, examples)
         subdir_lines = format_subdir_sections(skill_dir)
-        if subdir_lines:
-            lines.extend(subdir_lines)
+        page_bytes = len("\n".join(lines + subdir_lines).encode("utf-8"))
 
-        out_file = out_dir / f"{slug}.mdx"
-        out_file.write_text("\n".join(lines), encoding="utf-8")
+        if slug in SPLIT_SKILLS and page_bytes > SPLIT_OVER_BYTES:
+            # Over the page token budget: folder with index + companion pages.
+            write_split_skill(out_dir, skill_dir, slug, title, lines)
+        else:
+            if subdir_lines:
+                lines.extend(subdir_lines)
+            out_file = out_dir / f"{slug}.mdx"
+            out_file.write_text("\n".join(lines), encoding="utf-8")
 
         # Index row — escape description for markdown table
         safe_desc = description.replace("|", "\\|")
@@ -822,9 +982,7 @@ def _is_jsdoc_skip_line(line: str) -> bool:
 def _is_jsdoc_title_line(line: str) -> bool:
     if re.match(r".+ - .+(Hook|Dispatcher)\b", line, re.IGNORECASE):
         return True
-    if re.search(r"(Hook|Dispatcher)\b", line, re.IGNORECASE) and (
-        " — " in line or " - " in line
-    ):
+    if re.search(r"(Hook|Dispatcher)\b", line, re.IGNORECASE) and (" — " in line or " - " in line):
         # "Name — SessionEnd Hook" or "Name — Stop Hook (M140 …)"
         head = re.split(r"\s+[—-]\s+", line, maxsplit=1)[0]
         return len(head.split()) <= 8
@@ -855,16 +1013,17 @@ def _extract_jsdoc_description(source: str) -> str:
     if not match:
         return ""
 
-    raw_lines = [
-        line.strip().lstrip("* ").strip() for line in match.group(1).split("\n")
-    ]
+    raw_lines = [line.strip().lstrip("* ").strip() for line in match.group(1).split("\n")]
 
     paragraphs: list[list[str]] = []
     buf: list[str] = []
     first_content = True
     for line in raw_lines:
-        if not line or _is_jsdoc_skip_line(line) or line.startswith("- ") or re.match(
-            r"\d+\.", line
+        if (
+            not line
+            or _is_jsdoc_skip_line(line)
+            or line.startswith("- ")
+            or re.match(r"\d+\.", line)
         ):
             if buf:
                 paragraphs.append(buf)
