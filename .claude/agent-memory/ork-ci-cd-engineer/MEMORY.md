@@ -163,6 +163,14 @@ after any `npm update` or `npm ci` resolves against stale state.
   `claude_code_oauth_token` auth it is dead permission. The 2026-07-22 outside-contributor run failed
   on that 401 — an accident, not a control.
 
+## Build-Drift Errors Name the Fix Path, Not the Roster (2026-09-14, #3507)
+
+- The ci.yml step "Check for uncommitted build changes" now prints one extra `::error::` line per drifted file under `plugins/ork/skills/`: `Did you edit generated output? Source: src/skills/${f#plugins/ork/skills/}`. The mapping is a pure prefix strip, no lookup table.
+- Motivation (#3495): an outside contributor edited the generated `plugins/ork/skills/api-design/scripts/problem-detail-exceptions.py` and a human had to supply `src/skills/api-design/scripts/problem-detail-exceptions.py` by hand. A directory list is not a correction.
+- Pattern: when a gate fails on generated output, name the exact source path in the error. Additive hint only: keep the original error, the stat, and the exit code untouched, so existing tooling that parses the gate output sees the same first lines.
+- Scope: only `plugins/ork/skills/*` maps today. `plugins/ork/agents/` has no hint (separate prefix, would need its own decision), and `plugins/ork/hooks/dist/` is excluded from the roster entirely (release-owned, #3578). Verified end-to-end in a throwaway git repo: drift exits 1 with the hint, clean tree exits 0 silently.
+- Gate interplay learned the hard way: `.github/**` is on the playground gate's INERT list, but adding the lab-manifest fragment (`docs/site/lab-manifest/*.json`) plus generated outputs makes the PR non-inert, so the playground was added anyway. Wrong premise in a task brief is cheap to satisfy when the artifact cannot fail the gate.
+
 ## Next Session Tasks
 
 - [ ] Investigate root cause of windows-latest test failures (Coverage? Shell? Path handling?)
