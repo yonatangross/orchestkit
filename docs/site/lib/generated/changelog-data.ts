@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.30",
+    "date": "2026-09-15",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.29...v10.0.0-beta.30",
+    "sections": [
+      {
+        "type": "changed",
+        "heading": "Documentation",
+        "items": [
+          "**cc:** join the 2.1.269 to 2.1.272 rows to the matrix table ([#4142](https://github.com/yonatangross/orchestkit/issues/4142)) ([e025081](https://github.com/yonatangross/orchestkit/commit/e0250819b5b44f7fdcfdce94445c6900959b3e0f))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.29",
     "date": "2026-09-15",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.28...v10.0.0-beta.29",
