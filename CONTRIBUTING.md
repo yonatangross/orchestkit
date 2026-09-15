@@ -77,6 +77,33 @@ or use `Closes #1, #2, #3` on a single line — both forms are recognized.
 This convention prevents the "open issues that are silently done" drift
 class documented in #1554.
 
+## Strict main: required checks and serial merges
+
+`main` is protected with strict status checks. All 18 required contexts must be
+green at the PR's exact head, and that head must contain the current `main`. A
+PR whose base moved reads BEHIND and cannot merge until it is updated.
+
+Merges are therefore serial. After every merge to `main`, every other open PR
+goes BEHIND. Update one PR, wait for its checks, merge it, then update the next.
+
+Update by merging `main` into the branch with GitHub's update-branch button or
+`git merge origin/main`, not by rebasing, so reviewed commits keep their IDs.
+
+Lab pages usually conflict in `docs/site/lib/generated/lab-data.ts`.
+Resolve that conflict by running `node docs/site/scripts/lab-manifest.mjs` and
+committing the regenerated copies. Never resolve generated Lab data by hand.
+
+Build twice before pushing. One `npm run build` is not a fixed point for stamped
+counts. Issue GH-4116 fixed the search index order; confirm a second build and
+an empty `git status` before pushing.
+
+Reviews are tied to a head. A review at an older head still counts only if the
+PR's own files are byte-identical at the new head because the update merge
+touched none of them. Otherwise, ask for a fresh read.
+
+Workflow files under `.github/workflows` and `plugin.json` files are merged by
+the maintainer only.
+
 ## Project Structure
 
 OrchestKit uses a **build system** to assemble modular plugins from source files.
