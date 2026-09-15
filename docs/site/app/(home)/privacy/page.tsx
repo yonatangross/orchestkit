@@ -48,7 +48,15 @@ export default function PrivacyPage() {
 			<p>
 				The site does not use advertising cookies or cross-site trackers. Theme
 				preference may be stored in your browser's local storage purely to
-				remember light or dark mode.
+				remember light or dark mode. Analytics run through PostHog, which also
+				sets a first-party cookie whose name begins with <code>ph_</code> (of
+				the form <code>ph_&lt;project-key&gt;_posthog</code>) holding an
+				anonymous distinct id, a device id, the session id, and the
+				first-visit referrer and landing URL; that data stays with this
+				site's own analytics and is not shared with advertisers. The site does
+				not offer an opt-out or consent prompt for analytics; blocking or
+				clearing cookies that begin with <code>ph_</code> in your browser
+				settings is the only way to decline them.
 			</p>
 
 			<h2>Questions</h2>
