@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Product MCP Sandbox - OrchestKit</title>
+  <meta name="description" content="Interactive playground for the OrchestKit Product MCP server. Test read-only action tools: list skills, plan installs, validate configs.">
+  <meta name="color-scheme" content="light dark">
+  <style>
+    :root {
+      --bg: #0d1017;
+      --fg: #e2e8f0;
+      --muted: #94a3b8;
+      --accent: #a5b4fc;
+      --card: #1a1f2e;
+      --border: #2d3748;
+      --success: #4ade80;
+      --error: #f87171;
+    }
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #f8fafc;
+        --fg: #1e293b;
+        --muted: #64748b;
+        --accent: #6366f1;
+        --card: #ffffff;
+        --border: #e2e8f0;
+        --success: #16a34a;
+        --error: #dc2626;
+      }
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+    header {
+      padding: 24px 32px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    header h1 {
+      font-size: 20px;
+      font-weight: 600;
+    }
+    header a {
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 14px;
+    }
+    main {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 32px;
+    }
+    .intro {
+      margin-bottom: 32px;
+      color: var(--muted);
+      font-size: 15px;
+    }
+    .intro strong {
+      color: var(--fg);
+    }
+    .endpoint {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+    .endpoint h2 {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .endpoint h2 .method {
+      background: var(--accent);
+      color: var(--bg);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .endpoint h2 code {
+      background: var(--border);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+    .endpoint p {
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+    .tool-list {
+      display: grid;
+      gap: 12px;
+    }
+    .tool {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 16px;
+    }
+    .tool h3 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      font-family: ui-monospace, monospace;
+    }
+    .tool p {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .tool .annotations {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .tool .badge {
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: var(--border);
+      color: var(--muted);
+    }
+    .tool .badge.read-only {
+      background: rgba(74, 222, 128, 0.15);
+      color: var(--success);
+    }
+    .sandbox-section {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      margin-top: 32px;
+    }
+    .sandbox-section h2 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+    .btn-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    button {
+      background: var(--accent);
+      color: var(--bg);
+      border: none;
+      padding: 10px 16px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    button:hover { opacity: 0.9; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .output {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 16px;
+      font-family: ui-monospace, monospace;
+      font-size: 13px;
+      white-space: pre-wrap;
+      word-break: break-word;
+      min-height: 120px;
+      max-height: 400px;
+      overflow: auto;
+    }
+    .output.loading { color: var(--muted); }
+    .output.error { color: var(--error); }
+    .output.success { color: var(--success); }
+    footer {
+      text-align: center;
+      padding: 24px;
+      color: var(--muted);
+      font-size: 13px;
+      border-top: 1px solid var(--border);
+      margin-top: 48px;
+    }
+    footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+  </style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Product MCP Sandbox"><meta property="og:description" content="Interactive playground for the OrchestKit Product MCP server. Test read-only action tools: list skills, plan installs, validate configs."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/product-mcp-sandbox.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Product MCP Sandbox"><meta name="twitter:description" content="Interactive playground for the OrchestKit Product MCP server. Test read-only action tools: list skills, plan installs, validate configs."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+  <header>
+    <h1>Product MCP Sandbox</h1>
+    <a href="/docs/showcase/lab">More playgrounds</a>
+  </header>
+
+  <main>
+    <p class="intro">
+      <strong>OrchestKit Actions MCP</strong> is a read-only Model Context Protocol server that exposes non-destructive CLI actions. Use this page to test the three tools: discover skills, plan installs, and validate configs. No installation required.
+    </p>
+
+    <section class="endpoint">
+      <h2>
+        <span class="method">POST</span>
+        <code>/api/mcp/actions</code>
+      </h2>
+      <p>JSON-RPC 2.0 over Streamable HTTP. All tools are read-only by construction.</p>
+
+      <div class="tool-list">
+        <div class="tool">
+          <h3>orchestkit_list_skills</h3>
+          <p>List user-invocable skills with names, descriptions, and documentation URLs.</p>
+          <div class="annotations">
+            <span class="badge read-only">readOnlyHint: true</span>
+            <span class="badge">destructiveHint: false</span>
+          </div>
+        </div>
+
+        <div class="tool">
+          <h3>orchestkit_install_plan</h3>
+          <p>Generate install and invocation commands for user-invocable skills or goals. Returns a plan; executes nothing.</p>
+          <div class="annotations">
+            <span class="badge read-only">readOnlyHint: true</span>
+            <span class="badge">destructiveHint: false</span>
+          </div>
+        </div>
+
+        <div class="tool">
+          <h3>orchestkit_doctor_check</h3>
+          <p>Run basic checks on a pasted JSON object configuration fragment. It does not parse YAML and reads only the input.</p>
+          <div class="annotations">
+            <span class="badge read-only">readOnlyHint: true</span>
+            <span class="badge">destructiveHint: false</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sandbox-section">
+      <h2>Interactive Test</h2>
+      <p class="intro">Click a button to call the corresponding tool against the live endpoint.</p>
+
+      <div class="btn-row">
+        <button id="btn-list">List Skills</button>
+        <button id="btn-plan">Install Plan</button>
+        <button id="btn-doctor">Doctor Check</button>
+      </div>
+
+      <div id="output" class="output loading">Select a tool to test...</div>
+    </section>
+  </main>
+
+  <footer>
+    <a href="/">OrchestKit</a> - <a href="/docs">Docs</a> - <a href="https://github.com/yonatangross/orchestkit">GitHub</a>
+  </footer>
+
+  <script>
+    const output = document.getElementById('output');
+    const ENDPOINT = '/api/mcp/actions';
+
+    async function callTool(name, args = {}) {
+      output.textContent = 'Loading...';
+      output.className = 'output loading';
+
+      const req = {
+        jsonrpc: '2.0',
+        id: Date.now(),
+        method: 'tools/call',
+        params: { name, arguments: args }
+      };
+
+      try {
+        const res = await fetch(ENDPOINT, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify(req)
+        });
+        const body = await res.json();
+        if (body.error) {
+          output.className = 'output error';
+          output.textContent = JSON.stringify(body, null, 2);
+        } else {
+          output.className = 'output success';
+          const text = body.result?.content?.[0]?.text || JSON.stringify(body.result, null, 2);
+          output.textContent = text;
+        }
+      } catch (e) {
+        output.className = 'output error';
+        output.textContent = 'Fetch error: ' + e.message;
+      }
+    }
+
+    document.getElementById('btn-list').addEventListener('click', () => {
+      callTool('orchestkit_list_skills');
+    });
+
+    document.getElementById('btn-plan').addEventListener('click', () => {
+      callTool('orchestkit_install_plan', { goal: 'Set up a new project with Claude Code' });
+    });
+
+    document.getElementById('btn-doctor').addEventListener('click', () => {
+      const sampleConfig = JSON.stringify({
+        hooks: {
+          PreToolUse: [
+            { matcher: 'Edit', hooks: [{ type: 'command', command: 'my-hook.sh' }] }
+          ]
+        }
+      });
+      callTool('orchestkit_doctor_check', { config: sampleConfig, type: 'hooks' });
+    });
+  </script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

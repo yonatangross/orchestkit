@@ -37,6 +37,7 @@ export function classifyAgentSurface(pathname: string): AgentSurface | null {
 		pathname === "/mcp" ||
 		pathname === "/mcp.json" ||
 		pathname === "/api/mcp" ||
+		pathname === "/api/mcp/actions" ||
 		pathname === "/.well-known/mcp" ||
 		pathname.startsWith("/.well-known/mcp/") ||
 		pathname === "/.well-known/mcp.json"

@@ -1,0 +1,9 @@
+{
+  "slug": "product-mcp-sandbox",
+  "source": "docs/feat--product-mcp-sandbox/index.html",
+  "title": "Product MCP Sandbox",
+  "description": "Interactive playground for the OrchestKit Product MCP server. Test read-only action tools: list skills, plan installs, validate configs.",
+  "tags": ["mcp", "playground", "sandbox", "read-only"],
+  "date": "2026-09-14",
+  "featured": false
+}
