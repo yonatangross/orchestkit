@@ -106,12 +106,14 @@ settings is the only way to decline them.</pre>
   var verdict = document.getElementById("verdict");
   var decline = document.getElementById("decline");
 
-  function uuid() {
-    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
-      var r = (Math.random() * 16) | 0;
-      var v = c === "x" ? r : (r & 0x3) | 0x8;
-      return v.toString(16);
-    });
+  // Demo ids only, never secrets. crypto.randomUUID is the standard source
+  // the browser provides; the fixed string keeps the simulation alive where
+  // crypto is unavailable.
+  function newId() {
+    if (window.crypto && typeof window.crypto.randomUUID === "function") {
+      return window.crypto.randomUUID();
+    }
+    return "demo-0000-0000";
   }
 
   function render() {
@@ -151,8 +153,8 @@ settings is the only way to decline them.</pre>
   document.getElementById("load").addEventListener("click", function () {
     window.__labJar = {
       cookie: true,
-      distinctId: "019" + uuid().slice(3),
-      sessionId: String(Math.floor(Date.now() / 1000)) + "-" + uuid(),
+      distinctId: newId(),
+      sessionId: String(Math.floor(Date.now() / 1000)) + "-" + newId(),
       theme: "dark",
     };
     render();
