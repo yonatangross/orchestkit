@@ -18,6 +18,27 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.28",
+    "date": "2026-09-15",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.27...v10.0.0-beta.28",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**release:** retry the mcp-publisher and GHCR token downloads ([#4139](https://github.com/yonatangross/orchestkit/issues/4139)) ([ce96210](https://github.com/yonatangross/orchestkit/commit/ce96210bb52c8c64618196eb38f85752d7426b32))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Documentation",
+        "items": [
+          "**cc:** adopt CC 2.1.269 to 2.1.272, latest_known 2.1.263 to 2.1.272 ([#4138](https://github.com/yonatangross/orchestkit/issues/4138)) ([5312c59](https://github.com/yonatangross/orchestkit/commit/5312c59299c00cbe5ed81cce53153936a9ead507))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.27",
     "date": "2026-09-15",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.26...v10.0.0-beta.27",

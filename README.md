@@ -471,6 +471,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.28](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.27...v10.0.0-beta.28)** · 2026-09-15
+
+- **release:** retry the mcp-publisher and GHCR token downloads (#4139)
+- **cc:** adopt CC 2.1.269 to 2.1.272, latest_known 2.1.263 to 2.1.272 (#4138)
+
 **[v10.0.0-beta.27](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.26...v10.0.0-beta.27)** · 2026-09-15
 
 - product MCP sandbox for orchestkit.yonyon.ai (#4131)
@@ -513,10 +518,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.21](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.20...v10.0.0-beta.21)** · 2026-09-13
 
 - **pre-push:** load-aware jobs and named hook timeouts (#4085) (#4086)
-
-**[v10.0.0-beta.20](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.19...v10.0.0-beta.20)** · 2026-09-13
-
-- load diagnosis, zsh word splitting, rsync dialect guidance (#4081)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
