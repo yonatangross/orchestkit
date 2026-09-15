@@ -471,6 +471,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.29](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.28...v10.0.0-beta.29)** · 2026-09-15
+
+- **site:** close honest ora.ai score holes for discovery and SDKs (#4137)
+
 **[v10.0.0-beta.28](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.27...v10.0.0-beta.28)** · 2026-09-15
 
 - **release:** retry the mcp-publisher and GHCR token downloads (#4139)
@@ -514,10 +518,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **docs:** give Lab pages a way back to the site, share cards and page views (#4101)
 - **hooks:** stop worktree pre-push fixtures flipping core.bare (#4070) (#4090)
 - …and 10 more (see [CHANGELOG.md](CHANGELOG.md))
-
-**[v10.0.0-beta.21](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.20...v10.0.0-beta.21)** · 2026-09-13
-
-- **pre-push:** load-aware jobs and named hook timeouts (#4085) (#4086)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
