@@ -1,0 +1,14 @@
+{
+  "name": "@orchestkit/mod-secrets-veil",
+  "version": "0.0.1",
+  "type": "module",
+  "description": "Claude Code mod that covers secrets in tool results",
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2",
+    "vitest": "^3.0.0"
+  }
+}

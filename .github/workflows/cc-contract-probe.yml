@@ -233,3 +233,31 @@ jobs:
             echo '```'
           } | tee -a "$GITHUB_STEP_SUMMARY"
           exit "$rc"
+
+      # secrets-veil mod footprint validation (#2276). Validates that the mod
+      # registers only the expected events and $ capabilities, and does NOT
+      # call forbidden APIs (process.run, http.fetch, store.*, ui.log).
+      #
+      # Offline. `claude plugin validate` makes no model call and needs no key.
+      - name: secrets-veil mod footprint
+        if: ${{ !cancelled() }}
+        run: |
+          set -uo pipefail
+          rc=0
+          bash scripts/validate-secrets-veil.sh > /tmp/secrets-veil.txt 2>&1 || rc=$?
+          {
+            echo '## secrets-veil mod footprint'
+            echo ''
+            if [ "$rc" -eq 0 ] && grep -q '^SKIP:' /tmp/secrets-veil.txt; then
+              echo 'SKIP: host CC is older than 2.1.266. Nothing was verified.'
+            elif [ "$rc" -eq 0 ]; then
+              echo 'OK: registered events and $ capabilities match the brief.'
+            else
+              echo 'DRIFT: the mod contract moved. Re-read #2276 before updating expected values.'
+            fi
+            echo ''
+            echo '```'
+            cat /tmp/secrets-veil.txt
+            echo '```'
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+          exit "$rc"
