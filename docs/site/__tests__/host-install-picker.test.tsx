@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { HostInstallPicker } from "@/components/host-install";
 import { track } from "@/lib/search-beacon";
 
@@ -110,6 +110,44 @@ describe("HostInstallPicker", () => {
 			scroll: false,
 			transitionTypes: ["catalog"],
 		});
+	});
+
+	it("renders seven host links including Devin", () => {
+		render(<HostInstallPicker />);
+		const nav = screen.getByRole("navigation", { name: /install by host/i });
+		expect(within(nav).getByRole("link", { name: "Devin" })).toBeTruthy();
+		expect(
+			within(nav).getAllByRole("link", { name: /docs/i }).length,
+		).toBeGreaterThanOrEqual(1);
+	});
+
+	it("adopts a ?host=devin deep link and shows its install command", async () => {
+		search = new URLSearchParams("host=devin");
+		render(<HostInstallPicker />);
+		expect(
+			await screen.findByRole("button", {
+				name: /copy devin plugins install https:\/\/github\.com\/yonatangross\/orchestkit/i,
+			}),
+		).toBeTruthy();
+		await waitFor(() =>
+			expect(
+				screen.getByRole("link", { name: "Devin" }).getAttribute("aria-current"),
+			).toBe("true"),
+		);
+	});
+
+	it("moves focus between cards with arrow keys", () => {
+		render(<HostInstallPicker />);
+		const claude = screen.getByRole("link", { name: "Claude Code" });
+		claude.focus();
+		fireEvent.keyDown(claude, { key: "ArrowRight" });
+		expect(document.activeElement).toBe(
+			screen.getByRole("link", { name: "Cursor" }),
+		);
+		fireEvent.keyDown(document.activeElement as Element, { key: "End" });
+		expect(document.activeElement).toBe(
+			screen.getByRole("link", { name: "Devin" }),
+		);
 	});
 
 	it("copies two Codex lines as one clipboard payload", async () => {

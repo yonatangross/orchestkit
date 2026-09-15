@@ -45,6 +45,8 @@ function honesty(host: HostId): string | null {
 			return "Shipped pi manifest (#4001). Command is pi install, not ork-pi. Hooks still do not port.";
 		case "opencode":
 			return "No OpenCode marketplace pack. Same skills.sh starter as Muse.";
+		case "devin":
+			return "Install needs the #plugins/ork fragment. 76 of the skills list today; hooks and rules do not load yet.";
 		default:
 			return null;
 	}

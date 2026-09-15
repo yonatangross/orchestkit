@@ -20,6 +20,7 @@ describe("host install commands", () => {
 			"muse",
 			"pi",
 			"opencode",
+			"devin",
 		]);
 	});
 
@@ -34,6 +35,25 @@ describe("host install commands", () => {
 		expect(joined).not.toMatch(/ork-muse|ork-pi/);
 		expect(HOST_INSTALL_BY_ID.cursor.commands).toEqual(["yonatangross/orchestkit"]);
 		expect(HOST_INSTALL_BY_ID.cursor.prompt).toBe(false);
+	});
+
+	it("installs Devin from the built plugin tree, not the repo root", () => {
+		expect(HOST_INSTALL_BY_ID.devin.commands).toEqual([
+			"devin plugins install https://github.com/yonatangross/orchestkit#plugins/ork",
+		]);
+		expect(HOST_INSTALL_BY_ID.devin.then?.commands).toEqual([
+			"devin plugins info ork",
+		]);
+		// A bare `devin plugins install yonatangross/orchestkit` reads the repo
+		// root and sees no skills (#4146); the fragment is the whole point.
+		expect(HOST_INSTALL_BY_ID.devin.commands[0]).toContain("#plugins/ork");
+	});
+
+	it("keeps Devin off the skills.sh path", () => {
+		expect(installCommandsForHost("devin", "frontend")).toEqual(
+			HOST_INSTALL_BY_ID.devin.commands,
+		);
+		expect(stackHintCopy("devin", "backend")).toMatch(/no -s flags/);
 	});
 
 	it("installs Pi via the shipped pi manifest, not ork-pi", () => {

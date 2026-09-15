@@ -1,6 +1,6 @@
 ---
 title: Hosts
-description: "Pick a runtime. Claude Code and Cursor install the full ork plugin. Codex uses ork-codex. Pi uses pi install. Muse Code loads skills from .agents/skills. OpenCode and other skills.sh clients use the starter 12."
+description: "Pick a runtime. Claude Code and Cursor install the full ork plugin. Codex uses ork-codex. Pi uses pi install. Muse Code loads skills from .agents/skills. OpenCode and other skills.sh clients use the starter 12. Devin installs the plugin from git."
 ---
 
 import { Card, Cards } from 'fumadocs-ui/components/card';
@@ -20,6 +20,7 @@ OrchestKit is a plugin library. The host you use decides how much of it you get.
 | **Pi** | Shipped `pi` manifest. Skills via `pi install`, not an `ork-pi` pack | [engine guide](/docs/guides/orchestkit-on-pi-codex-cursor) |
 | **Muse Code** | Meta's terminal agent. Skills via `.agents/skills`. No `ork-muse` pack yet | [Muse Code](/docs/getting-started/muse) |
 | **OpenCode** | Agent Skills via skills.sh | [skills.sh](/docs/getting-started/skills-sh) |
+| **Devin** | Plugin from git via `#plugins/ork`. 76 skills list; hooks and rules do not load | [Devin](/docs/getting-started/devin) |
 
 <Callout type="info">
 There is no `ork-muse` plugin in this repository. Muse Code stays skills-only. Pi is a real `pi install`, measured in the [engine guide](/docs/guides/orchestkit-on-pi-codex-cursor).
@@ -39,4 +40,5 @@ Coming from Superpowers (official Anthropic marketplace)? Complementary, not a r
   <Card title="Codex" description="ork-codex pack, $ork-implement, and Codex roles." href="/docs/getting-started/codex" icon={<HostMark host="codex" />} />
   <Card title="Muse Code" description="Meta's terminal agent. Skills via skills.sh and .agents/skills." href="/docs/getting-started/muse" icon={<HostMark host="muse" />} />
   <Card title="skills.sh" description="OpenCode and other Agent Skills clients. Pi has pi install." href="/docs/getting-started/skills-sh" icon={<HostMark host="pi" />} />
+  <Card title="Devin" description="CLI and Desktop plugin install from git. Skills load; hooks do not." href="/docs/getting-started/devin" icon={<HostMark host="devin" />} />
 </Cards>

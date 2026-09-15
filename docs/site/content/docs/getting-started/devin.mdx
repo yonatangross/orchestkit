@@ -1,0 +1,48 @@
+---
+title: Devin
+description: "Install the ork plugin in the Devin CLI and Devin Desktop from this repository. Skills load; hooks and rules do not yet."
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Card, Cards } from 'fumadocs-ui/components/card';
+import { Count } from '@/components/count';
+import { HostHeading, HostMark } from '@/components/host-marks';
+import { HostInstall } from '@/components/host-install';
+
+**Devin** is Cognition's coding agent: cloud sessions, the **Devin CLI**, and **Devin Desktop**. It installs plugins from a git source, so OrchestKit is a real plugin here, not a skills-only shim.
+
+## Install
+
+<HostInstall host="devin" />
+
+The `#plugins/ork` fragment is what makes the install work: OrchestKit's skills live in the built plugin tree, and without the fragment Devin indexes the repository root and sees only `AGENTS.md`. The command installs to your personal scope, so the plugin follows you to cloud sessions and your other signed-in devices. Add `--local` to keep it on this machine only.
+
+## What loads today
+
+Measured with Devin CLI 3000.10.27 on ork 10.0.0-beta.30 (`devin plugins info ork`):
+
+| Surface | Status |
+|:-|:-|
+| Skills | 76 of <Count k="skills" /> listed |
+| Agents | In the plugin files; `plugins info` does not report them |
+| Hooks | Not loaded |
+| Rules | Not loaded |
+
+Two honest gaps:
+
+- The skills Devin skips all carry a `triggers:` frontmatter block its parser does not read. Those are mostly the pipeline skills (`implement`, `explore`, `verify` and friends), so the headliners are exactly the ones missing. This is tracked in [orchestkit#4146](https://github.com/yonatangross/orchestkit/issues/4146).
+- OrchestKit's hooks are Claude Code `hooks.json` format. Devin expects `hooks.v1.json` with its own tool names, so hooks stay off until a Devin manifest ships.
+
+<Callout type="warn">
+After installing, run `devin plugins info ork`. If the skill list is empty you installed the repository root; reinstall with the `#plugins/ork` fragment.
+</Callout>
+
+<HostHeading host="devin" id="devin">Devin</HostHeading>
+
+Search for **devin** should land on this page. The word Devin in this heading is the product name for Cognition's agent.
+
+<Cards>
+  <Card title="Hosts" href="/docs/getting-started/hosts" description="Full host matrix" />
+  <Card title="Claude Code" href="/docs/getting-started/claude-code" description="Full ork plugin plus hooks" icon={<HostMark host="claude" />} />
+  <Card title="skills.sh" href="/docs/getting-started/skills-sh" description="OpenCode and other Agent Skills clients" icon={<HostMark host="pi" />} />
+</Cards>
