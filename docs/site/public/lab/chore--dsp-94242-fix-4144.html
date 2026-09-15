@@ -153,11 +153,12 @@ blockquote { margin: 0; padding: .75rem 1rem; background: white; border-left: 4p
     var urlOk = node.url === apex;
     setRule("url", urlOk, "url = " + node.url + (urlOk ? "" : " (conflicts with the apex-declared official website)"));
 
-    var sameAs = node.sameAs || [];
-    var hasApexPage = sameAs.indexOf(apexPage) !== -1;
-    var docsOnlyInUrlSlot = node.mainEntityOfPage === docsPage && sameAs.indexOf(docsPage) === -1;
-    var sameOk = sameAs.indexOf(apex) !== -1 && hasApexPage && docsOnlyInUrlSlot;
-    setRule("sameas", sameOk, "sameAs = [" + sameAs.join(", ") + "], mainEntityOfPage = " + node.mainEntityOfPage);
+    var list = Array.isArray(node.sameAs) ? node.sameAs : [];
+    var hasApex = list.some(function (u) { return u === apex; });
+    var hasApexPage = list.some(function (u) { return u === apexPage; });
+    var docsOnlyInUrlSlot = node.mainEntityOfPage === docsPage && !list.some(function (u) { return u === docsPage; });
+    var sameOk = hasApex && hasApexPage && docsOnlyInUrlSlot;
+    setRule("sameas", sameOk, "sameAs = [" + list.join(", ") + "], mainEntityOfPage = " + node.mainEntityOfPage);
 
     setRule("visible", shown === "after", shown === "after"
       ? "the built /yonyon HTML carries href to " + apexPage + " and to " + apex + " plus the copy line"
