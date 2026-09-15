@@ -471,6 +471,13 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.27](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.26...v10.0.0-beta.27)** · 2026-09-15
+
+- product MCP sandbox for orchestkit.yonyon.ai (#4131)
+- **site:** publish the auth chain with optional agent identity (#4129)
+- **tests:** sample the paste guard latency delta three times (GH-4130) (#4132)
+- document strict main and serial merges (#4134)
+
 **[v10.0.0-beta.26](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.25...v10.0.0-beta.26)** · 2026-09-14
 
 - **build:** generate docs data after stamping counts (#4126)
@@ -510,10 +517,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.20](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.19...v10.0.0-beta.20)** · 2026-09-13
 
 - load diagnosis, zsh word splitting, rsync dialect guidance (#4081)
-
-**[v10.0.0-beta.19](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.18...v10.0.0-beta.19)** · 2026-09-13
-
-- **plugins:** drop test configs from the hooks mirror (#4079)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
