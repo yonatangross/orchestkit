@@ -146,6 +146,7 @@ describe("unknown agent-data paths reach the structured 404", () => {
 		for (const p of ["/auth.md", "/pricing.md", "/api-policy.md", "/llms.txt", "/robots.txt"]) {
 			expect(isServedPath(p)).toBe(true);
 		}
+		expect(isServedPath("/c8f0e2a1b94d4e6f8a7c1d2e3f4a5b6c.txt")).toBe(true);
 	});
 });
 

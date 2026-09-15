@@ -20,14 +20,28 @@ export function AgentReadinessSection() {
 					Every page on this site is agent-readable: append <code>.md</code> to any URL (or send{" "}
 					<code>Accept: text/markdown</code>) for raw Markdown, start from{" "}
 					<a href="/llms.txt" className="text-fd-primary underline underline-offset-2">/llms.txt</a> for
-					the navigation index, or read the{" "}
-					<a href="/api/openapi" className="text-fd-primary underline underline-offset-2">OpenAPI spec</a>{" "}
-					for the full read-only API. No authentication, no account.
+					the navigation index, or follow the named pages below for the OpenAPI spec, MCP server, and
+					SDK packages. No authentication, no account.
 				</p>
 
-				<h3 className="mt-7 font-semibold text-fd-foreground">MCP server</h3>
+				<h3 className="mt-7 font-semibold text-fd-foreground">OrchestKit OpenAPI specification</h3>
 				<p className="mt-1 leading-7 text-fd-muted-foreground">
-					The OrchestKit Docs MCP server speaks Streamable HTTP at{" "}
+					Human page:{" "}
+					<Link href="/openapi" className="text-fd-primary underline underline-offset-2">
+						/openapi
+					</Link>
+					. Machine spec:{" "}
+					<a href="/api/openapi" className="text-fd-primary underline underline-offset-2">OpenAPI spec</a>{" "}
+					at /openapi.json for the full read-only API. No authentication, no account.
+				</p>
+
+				<h3 className="mt-7 font-semibold text-fd-foreground">OrchestKit MCP server</h3>
+				<p className="mt-1 leading-7 text-fd-muted-foreground">
+					Human page:{" "}
+					<Link href="/mcp-server" className="text-fd-primary underline underline-offset-2">
+						/mcp-server
+					</Link>
+					. The OrchestKit MCP server speaks Streamable HTTP at{" "}
 					<code>{SITE.domain}/api/mcp</code> with two read-only tools: documentation search and
 					Markdown page fetch. It is published in the{" "}
 					<a href={MCP_REGISTRY_URL} className="text-fd-primary underline underline-offset-2">
@@ -46,6 +60,16 @@ export function AgentReadinessSection() {
 						/.well-known/mcp/server-card.json
 					</a>
 					.
+				</p>
+
+				<h3 className="mt-6 font-semibold text-fd-foreground">OrchestKit SDK packages</h3>
+				<p className="mt-1 leading-7 text-fd-muted-foreground">
+					Official clients are listed at{" "}
+					<Link href="/sdk" className="text-fd-primary underline underline-offset-2">
+						/sdk
+					</Link>
+					: npm <code>orchestkit</code>, PyPI <code>orchestkit</code>, and Go{" "}
+					<code>github.com/yonatangross/orchestkit/sdk</code>.
 				</p>
 
 				<h3 className="mt-6 font-semibold text-fd-foreground">NLWeb natural-language queries</h3>

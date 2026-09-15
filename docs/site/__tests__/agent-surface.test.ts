@@ -22,6 +22,7 @@ describe("classifyAgentSurface", () => {
 		expect(classifyAgentSurface("/llms.txt")).toBe("llms");
 		expect(classifyAgentSurface("/llms-full.txt")).toBe("llms");
 		expect(classifyAgentSurface("/docs/llms.txt")).toBe("llms");
+		expect(classifyAgentSurface("/developers/llms.txt")).toBe("llms");
 	});
 
 	it("groups MCP discovery documents with the MCP transport", () => {

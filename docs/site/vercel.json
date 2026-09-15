@@ -10,5 +10,6 @@
     "autoJobCancelation": true
   },
   "ignoreCommand": "git diff HEAD^ HEAD --quiet -- .",
-  "installCommand": "bash scripts/vercel-install.sh"
+  "installCommand": "bash scripts/vercel-install.sh",
+  "crons": [{ "path": "/api/indexnow", "schedule": "0 6 * * *" }]
 }

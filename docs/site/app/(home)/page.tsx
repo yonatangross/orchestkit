@@ -164,6 +164,27 @@ export default async function HomePage() {
             >
               Configure your project
             </Link>
+            <span aria-hidden="true">·</span>
+            <Link
+              href="/openapi"
+              className="text-fd-primary underline-offset-2 hover:underline"
+            >
+              OrchestKit OpenAPI specification
+            </Link>
+            <span aria-hidden="true">·</span>
+            <Link
+              href="/mcp-server"
+              className="text-fd-primary underline-offset-2 hover:underline"
+            >
+              OrchestKit MCP server
+            </Link>
+            <span aria-hidden="true">·</span>
+            <Link
+              href="/sdk"
+              className="text-fd-primary underline-offset-2 hover:underline"
+            >
+              OrchestKit SDK packages
+            </Link>
           </div>
 
           <div className="mt-7 flex flex-wrap items-center justify-center font-mono text-[12px] text-fd-muted-foreground">
