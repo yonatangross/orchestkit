@@ -44,8 +44,7 @@ describe("host install commands", () => {
 		expect(HOST_INSTALL_BY_ID.devin.then?.commands).toEqual([
 			"devin plugins info ork",
 		]);
-		// A bare `devin plugins install yonatangross/orchestkit` reads the repo
-		// root and sees no skills (#4146); the fragment is the whole point.
+		// The fragment pins the install to the built plugin tree explicitly.
 		expect(HOST_INSTALL_BY_ID.devin.commands[0]).toContain("#plugins/ork");
 	});
 

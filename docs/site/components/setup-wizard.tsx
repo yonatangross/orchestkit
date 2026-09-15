@@ -46,7 +46,7 @@ function honesty(host: HostId): string | null {
 		case "opencode":
 			return "No OpenCode marketplace pack. Same skills.sh starter as Muse.";
 		case "devin":
-			return "Install needs the #plugins/ork fragment. 76 of the skills list today; hooks and rules do not load yet.";
+			return "76 of the skills list today; hooks and rules do not load yet.";
 		default:
 			return null;
 	}

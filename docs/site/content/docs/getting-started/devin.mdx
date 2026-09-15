@@ -15,7 +15,7 @@ import { HostInstall } from '@/components/host-install';
 
 <HostInstall host="devin" />
 
-The `#plugins/ork` fragment is what makes the install work: OrchestKit's skills live in the built plugin tree, and without the fragment Devin indexes the repository root and sees only `AGENTS.md`. The command installs to your personal scope, so the plugin follows you to cloud sessions and your other signed-in devices. Add `--local` to keep it on this machine only.
+The `#plugins/ork` fragment installs the built plugin tree directly. A bare `devin plugins install yonatangross/orchestkit` resolves the same tree through the repository's `.devin-plugin/plugin.json` (#4148). The command installs to your personal scope, so the plugin follows you to cloud sessions and your other signed-in devices. Add `--local` to keep it on this machine only.
 
 ## What loads today
 
@@ -34,7 +34,7 @@ Two honest gaps:
 - OrchestKit's hooks are Claude Code `hooks.json` format. Devin expects `hooks.v1.json` with its own tool names, so hooks stay off until a Devin manifest ships.
 
 <Callout type="warn">
-After installing, run `devin plugins info ork`. If the skill list is empty you installed the repository root; reinstall with the `#plugins/ork` fragment.
+After installing, run `devin plugins info ork`. If the skill list is empty, reinstall with the `#plugins/ork` fragment shown above.
 </Callout>
 
 <HostHeading host="devin" id="devin">Devin</HostHeading>
