@@ -1,0 +1,8 @@
+{
+  "slug": "cc-272-matrix-table-join",
+  "source": "docs/docs--cc-272-matrix-table-join/index.html",
+  "title": "Doctor matrix table fix",
+  "description": "Before and after rendering of the doctor compatibility matrix, where one blank line had pushed the 2.1.269 to 2.1.272 rows out of the table.",
+  "tags": ["cc-adoption", "docs"],
+  "date": "2026-09-15"
+}
