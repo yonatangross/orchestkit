@@ -1,0 +1,8 @@
+{
+  "slug": "cc-adoption-269-272",
+  "source": "docs/chore--dsp-52341-brief-cc-272-bump-md/adoption.html",
+  "title": "CC 2.1.269 to 2.1.272 adoption",
+  "description": "Four release dispositions, output-style restoration, and the unchanged 2.1.251 support floor. Expand the decisions to see what remains in GH-4135.",
+  "tags": ["cc-adoption", "triage"],
+  "date": "2026-09-15"
+}
