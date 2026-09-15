@@ -233,81 +233,148 @@
   let clientId = "crawler";
   const enabled = Object.fromEntries(state.fixes.map((f) => [f.id, true]));
 
-  function radio(name, id, label, checked, onChange) {
-    const el = document.createElement("label");
-    el.className = "opt";
-    el.innerHTML = `<input type="radio" name="${name}" value="${id}" ${checked ? "checked" : ""}> ${label}`;
-    el.querySelector("input").addEventListener("change", () => onChange(id));
-    return el;
+  function clear(node) {
+    while (node.firstChild) node.removeChild(node.firstChild);
+  }
+
+  function el(tag, props, ...kids) {
+    const node = document.createElement(tag);
+    if (props) {
+      Object.keys(props).forEach((k) => {
+        if (k === "className") node.className = props[k];
+        else if (k === "text") node.textContent = props[k];
+        else if (k === "checked") node.checked = !!props[k];
+        else if (k === "type" || k === "name" || k === "value") node.setAttribute(k, props[k]);
+        else if (k.startsWith("on") && typeof props[k] === "function") {
+          node.addEventListener(k.slice(2).toLowerCase(), props[k]);
+        } else if (props[k] != null) node.setAttribute(k, String(props[k]));
+      });
+    }
+    kids.forEach((kid) => {
+      if (kid == null) return;
+      node.appendChild(typeof kid === "string" ? document.createTextNode(kid) : kid);
+    });
+    return node;
+  }
+
+  function code(text) {
+    return el("code", { text: text });
+  }
+
+  function radio(name, id, labelNode, checked, onChange) {
+    const input = el("input", {
+      type: "radio",
+      name: name,
+      value: id,
+      checked: checked,
+      onChange: () => onChange(id),
+    });
+    return el("label", { className: "opt" }, input, " ", labelNode);
   }
 
   state.paths.forEach((p) => {
-    pathBox.appendChild(radio("path", p.id, `<code>${p.label}</code>`, p.id === pathId, (id) => {
+    pathBox.appendChild(radio("path", p.id, code(p.label), p.id === pathId, (id) => {
       pathId = id; renderPath();
     }));
   });
   state.clients.forEach((c) => {
-    clientBox.appendChild(radio("client", c.id, c.label, c.id === clientId, (id) => {
+    clientBox.appendChild(radio("client", c.id, document.createTextNode(c.label), c.id === clientId, (id) => {
       clientId = id; renderPath();
     }));
   });
 
   state.fixes.forEach((f) => {
-    const el = document.createElement("label");
-    el.className = "opt";
-    el.innerHTML = `<input type="checkbox" checked> <strong>${f.bucket}</strong> : ${f.label} <span class="warn">(+~${f.delta})</span>`;
-    el.querySelector("input").addEventListener("change", (e) => {
-      enabled[f.id] = e.target.checked; renderScore();
+    const input = el("input", {
+      type: "checkbox",
+      checked: true,
+      onChange: (e) => {
+        enabled[f.id] = e.target.checked; renderScore();
+      },
     });
-    fixBox.appendChild(el);
+    const delta = el("span", { className: "warn", text: "(+~" + f.delta + ")" });
+    fixBox.appendChild(
+      el("label", { className: "opt" },
+        input, " ",
+        el("strong", { text: f.bucket }),
+        " : ",
+        document.createTextNode(f.label + " "),
+        delta,
+      ),
+    );
   });
+
+  function setVerdict(node, cls, title, paragraphs) {
+    node.className = "verdict " + cls;
+    clear(node);
+    node.appendChild(el("h3", { text: title }));
+    paragraphs.forEach((parts) => {
+      const p = el("p");
+      parts.forEach((part) => {
+        if (typeof part === "string") p.appendChild(document.createTextNode(part));
+        else p.appendChild(part);
+      });
+      node.appendChild(p);
+    });
+  }
 
   function renderPath() {
     const p = state.paths.find((x) => x.id === pathId);
     const wantsHtml = clientId === "human" || clientId === "crawler";
-    let cls = "ok";
-    let title = "Resolves as expected";
-    let detail = `${p.label} → <span class="mono">${p.dest}</span>`;
 
     if (p.kind === "transport" && wantsHtml) {
-      cls = "warn";
-      title = "Transport, not a page";
-      detail = `A human/crawler hitting <code>/mcp</code> gets the MCP Streamable HTTP endpoint (<code>/api/mcp</code>), not HTML. Use <code>/mcp-server</code> for the crawlable page.`;
-    } else if (p.kind === "html" && clientId === "agent") {
-      cls = "ok";
-      title = "HTML hub; tools stay on transport";
-      detail = `${p.note} Agents that need tools still POST to <code>/api/mcp</code> (or <code>/mcp</code>).`;
-    } else {
-      detail = `${p.note}<br>${detail}`;
+      setVerdict(pathVerdict, "warn", "Transport, not a page", [[
+        "A human/crawler hitting ", code("/mcp"),
+        " gets the MCP Streamable HTTP endpoint (", code("/api/mcp"),
+        "), not HTML. Use ", code("/mcp-server"), " for the crawlable page.",
+      ]]);
+      return;
     }
 
-    pathVerdict.className = `verdict ${cls}`;
-    pathVerdict.innerHTML = `<h3>${title}</h3><p>${detail}</p>`;
+    if (p.kind === "html" && clientId === "agent") {
+      setVerdict(pathVerdict, "ok", "HTML hub; tools stay on transport", [[
+        p.note + " Agents that need tools still POST to ",
+        code("/api/mcp"), " (or ", code("/mcp"), ").",
+      ]]);
+      return;
+    }
+
+    setVerdict(pathVerdict, "ok", "Resolves as expected", [
+      [p.note],
+      [p.label + " → ", el("span", { className: "mono", text: p.dest })],
+    ]);
   }
 
   function renderScore() {
-    chips.innerHTML = "";
+    clear(chips);
     let total = state.baseline;
     let gained = 0;
     state.fixes.forEach((f) => {
       const on = enabled[f.id];
       if (on) { total += f.delta; gained += f.delta; }
-      const chip = document.createElement("span");
-      chip.className = `chip ${on ? "on" : "off"}`;
-      chip.textContent = `${f.bucket}: ${on ? "+" + f.delta : "off"}`;
-      chips.appendChild(chip);
+      chips.appendChild(el("span", {
+        className: "chip " + (on ? "on" : "off"),
+        text: f.bucket + ": " + (on ? "+" + f.delta : "off"),
+      }));
     });
     const capped = Math.min(100, Math.round(total * 10) / 10);
-    bar.style.inlineSize = `${capped}%`;
-    scoreLine.innerHTML = `Projected ≈ <strong>${capped}</strong> / 100 (baseline ${state.baseline} + ~${gained.toFixed(1)}). Re-scan only after prod + PyPI are live.`;
+    bar.style.inlineSize = capped + "%";
+    clear(scoreLine);
+    scoreLine.appendChild(document.createTextNode("Projected ≈ "));
+    scoreLine.appendChild(el("strong", { text: String(capped) }));
+    scoreLine.appendChild(document.createTextNode(
+      " / 100 (baseline " + state.baseline + " + ~" + gained.toFixed(1) +
+      "). Re-scan only after prod + PyPI are live.",
+    ));
 
     const missing = state.fixes.filter((f) => !enabled[f.id]).map((f) => f.bucket);
     if (missing.length === 0) {
-      fixVerdict.className = "verdict ok";
-      fixVerdict.innerHTML = `<h3>All honest holes selected</h3><p>Ship the three HTML pages, the two language SDKs, Wikidata wiring, and IndexNow. Do not invent Wikipedia / ChatGPT / a fake product MCP to chase the last points.</p>`;
+      setVerdict(fixVerdict, "ok", "All honest holes selected", [[
+        "Ship the three HTML pages, the two language SDKs, Wikidata wiring, and IndexNow. Do not invent Wikipedia / ChatGPT / a fake product MCP to chase the last points.",
+      ]]);
     } else {
-      fixVerdict.className = "verdict warn";
-      fixVerdict.innerHTML = `<h3>Incomplete: ${missing.join(", ")} off</h3><p>ora.ai will still see the missing bucket. This PR closes the remaining honest gaps; toggle them back on.</p>`;
+      setVerdict(fixVerdict, "warn", "Incomplete: " + missing.join(", ") + " off", [[
+        "ora.ai will still see the missing bucket. This PR closes the remaining honest gaps; toggle them back on.",
+      ]]);
     }
   }
 
