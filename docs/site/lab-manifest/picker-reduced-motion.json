@@ -1,0 +1,14 @@
+{
+  "slug": "picker-reduced-motion",
+  "source": "docs/chore--dsp-97579-fix-4155/index.html",
+  "title": "Seven AbortErrors that came from a card entrance",
+  "description": "GH-4155: the docs site job passed 763 tests and still failed on seven unhandled AbortError rejections. Mount the host cards here, cancel the WAAPI entrance mid-flight, and watch why a prefers-reduced-motion stub in beforeEach is the whole fix.",
+  "tags": [
+    "testing",
+    "vitest",
+    "happy-dom",
+    "motion",
+    "false-signals"
+  ],
+  "date": "2026-09-15"
+}
