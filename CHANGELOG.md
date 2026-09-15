@@ -5,6 +5,14 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.33](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.32...v10.0.0-beta.33) (2026-09-15)
+
+
+### Bug Fixes
+
+* **docs:** name the PostHog ph_ cookie on the privacy page ([#4152](https://github.com/yonatangross/orchestkit/issues/4152)) ([10bab21](https://github.com/yonatangross/orchestkit/commit/10bab21e0d44989b5269e43135e70b152ebfa911))
+* **site:** crosslink apex Yonyon brand page from /yonyon ([#4154](https://github.com/yonatangross/orchestkit/issues/4154)) ([f59a74f](https://github.com/yonatangross/orchestkit/commit/f59a74fa7be2536036f036aba41cabfb969ac56c))
+
 ## [10.0.0-beta.32](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.31...v10.0.0-beta.32) (2026-09-15)
 
 
