@@ -51,8 +51,9 @@ The site does not use advertising cookies or cross-site trackers.
 Theme preference may be stored in your browser's local storage
 purely to remember light or dark mode. Analytics run through
 PostHog, which also sets a first-party cookie whose name begins
-with ph_ (of the form ph_&lt;project-key&gt;_posthog) holding only an
-anonymous distinct id and a session id; that data stays with this
+with ph_ (of the form ph_&lt;project-key&gt;_posthog) holding an
+anonymous distinct id, a device id, the session id, and the
+first-visit referrer and landing URL; that data stays with this
 site's own analytics and is not shared with advertisers. The site
 does not offer an opt-out or consent prompt for analytics;
 blocking or clearing cookies that begin with ph_ in your browser
@@ -129,7 +130,9 @@ settings is the only way to decline them.</pre>
       cookieRows = cookieRows +
         '<div class="entry"><strong>ph_phc_A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6_posthog</strong>' +
         '<br>distinct_id: ' + state.distinctId +
-        '<br>$sesid (session id): ' + state.sessionId + "</div>";
+        '<br>$device_id: ' + state.deviceId +
+        '<br>$sesid (session id): ' + state.sessionId +
+        '<br>$initial_person_info: ' + state.firstVisit + "</div>";
     }
     if (state.cookie && decline.checked) {
       cookieRows = '<div class="entry bad">ph_phc_..._posthog was refused: the browser blocks it.</div>';
@@ -147,14 +150,16 @@ settings is the only way to decline them.</pre>
 
     verdict.textContent = decline.checked
       ? "Declined: the ph_ cookie never lands, but the analytics requests still fire, so blocking the cookie is a weak lever. The honest fix was the text."
-      : "Loaded: one ph_ cookie (anonymous distinct id plus session id) and the theme preference. The corrected paragraph now names both.";
+      : "Loaded: one ph_ cookie (anonymous distinct id, device id, session id, first-visit referrer and landing URL) and the theme preference. The corrected paragraph now names all of it.";
   }
 
   document.getElementById("load").addEventListener("click", function () {
     window.__labJar = {
       cookie: true,
       distinctId: newId(),
+      deviceId: newId(),
       sessionId: String(Math.floor(Date.now() / 1000)) + "-" + newId(),
+      firstVisit: "referrer: (direct), landing: /docs/foundations/overview",
       theme: "dark",
     };
     render();
