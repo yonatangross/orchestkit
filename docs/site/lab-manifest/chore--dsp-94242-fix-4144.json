@@ -1,0 +1,8 @@
+{
+  "slug": "chore--dsp-94242-fix-4144",
+  "source": "docs/chore--dsp-94242-fix-4144/index.html",
+  "title": "Yonyon brand crosslink: one studio entity, not two",
+  "description": "Before and after JSON-LD for orchestkit.yonyon.ai/yonyon, aligned with the apex brand site yonyon.ai/yonyon so the studio is one Organization, plus a live rule checker.",
+  "tags": ["docs-site", "json-ld", "seo", "brand"],
+  "date": "2026-09-15"
+}

@@ -12,7 +12,7 @@
 // SAME data the HTML pages render from (lib/developer-resources.ts,
 // lib/yonyon-faqs.ts) so the two representations cannot drift.
 
-import { COUNTS, SITE } from "@/lib/constants";
+import { COUNTS, SITE, YONYON } from "@/lib/constants";
 import { withFrontmatter } from "@/lib/md-frontmatter";
 import { DEVELOPER_RESOURCES } from "@/lib/developer-resources";
 import { YONYON_FAQS } from "@/lib/yonyon-faqs";
@@ -65,6 +65,8 @@ function yonyonMarkdown(): string {
 		`# ${YONYON_TITLE}`,
 		"",
 		`> ${YONYON_LEAD}`,
+		"",
+		`The same Yonyon AI studio (not the DJ) also owns the apex brand site: [yonyon.ai](${YONYON.apex}) and the studio page [yonyon.ai/yonyon](${YONYON.apexPage}).`,
 		"",
 		"## The product",
 		"",

@@ -1,4 +1,4 @@
-import { COUNTS, SITE } from "@/lib/constants";
+import { COUNTS, SITE, YONYON } from "@/lib/constants";
 import { SECTION_ORDER, orderedPages } from "@/lib/docs-content";
 
 // /llms.txt — lean navigation index (kept well under the 30,000-char
@@ -62,7 +62,7 @@ export function GET() {
 		"## What it is",
 		"",
 		`${SITE.name} is a plugin for Claude Code (Anthropic's agentic CLI). It packages ${COUNTS.skills} reusable skills, ${COUNTS.agents} specialist agents, and ${COUNTS.hooks} lifecycle hooks — encoding auth/migration/API/testing patterns, security gates, and quality checks so the agent works to your standards out of the box. It is not a hosted service and not an editor assistant.`,
-		`Publisher: ${SITE.name} is built by Yonyon, an independent software studio (${SITE.domain}). The studio name "Yonyon" is unrelated to the musician of the same name; see ${SITE.domain}/yonyon.`,
+		`Publisher: ${SITE.name} is built by Yonyon, an independent software studio (${YONYON.apex}, brand page ${YONYON.apexPage}). The studio name "Yonyon" is unrelated to the musician of the same name; the product and docs live at ${SITE.domain}; see ${SITE.domain}/yonyon.`,
 		"",
 		"## Use cases",
 		"",
