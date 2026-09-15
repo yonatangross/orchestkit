@@ -97,6 +97,7 @@ vi.mock("..//lib/constants", () => ({
     disambiguation:
       "Yonyon here is a software studio (the publisher of OrchestKit) — not the musician of the same name.",
     url: "https://orchestkit.yonyon.ai/yonyon",
+    wikidata: "https://www.wikidata.org/wiki/Q141457913",
   },
   // Added 2026-07-31 alongside the real INTEGRATIONS export (lib/constants.ts):
   // integrationMentionNodes() in structured-data.tsx reads this unconditionally

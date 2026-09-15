@@ -156,5 +156,20 @@ describe("llms.txt advertises the twins", () => {
 		const src = readFileSync(resolve(APP, "llms.txt/route.ts"), "utf8");
 		expect(src).toContain("/developers.md");
 		expect(src).toContain("/yonyon.md");
+		expect(src).toContain("/developers/llms.txt");
+	});
+});
+
+describe("named resource landing pages", () => {
+	it("keeps OrchestKit in the title and H1", () => {
+		for (const [dir, phrase] of [
+			["openapi", "OrchestKit OpenAPI specification"],
+			["mcp-server", "OrchestKit MCP server"],
+			["sdk", "OrchestKit SDK packages"],
+		] as const) {
+			const src = readFileSync(resolve(APP, `(home)/${dir}/page.tsx`), "utf8");
+			expect(src).toContain(`title: "${phrase}"`);
+			expect(src).toContain(`title="${phrase}"`);
+		}
 	});
 });

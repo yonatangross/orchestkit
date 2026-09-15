@@ -89,7 +89,7 @@ jobs:
                 or
                 ((.ruleId == "TokenPermissionsID")
                   and ([.locations[]?.physicalLocation.artifactLocation.uri // ""]
-                    | any(test("\\.github/workflows/(publish-hook-contract-py|publish-hook-contract-npm|labs-version-watch|claude-release-watch|cc-support-window-bump)\\.yml$"))))
+                    | any(test("\\.github/workflows/(publish-hook-contract-py|publish-hook-contract-npm|publish-orchestkit-py|labs-version-watch|claude-release-watch|cc-support-window-bump)\\.yml$"))))
               )
               | not
             )

@@ -82,6 +82,7 @@ export const YONYON = {
     "Yonyon here is a software studio (the publisher of OrchestKit) — not the musician of the same name.",
   // Canonical page we control that resolves the studio brand to this product.
   url: `${SITE.domain}/yonyon`,
+  wikidata: "https://www.wikidata.org/wiki/Q141457913",
 } as const;
 
 // Authoritative external references for the OrchestKit entity. Reused verbatim
@@ -90,7 +91,8 @@ export const YONYON = {
 export const SAME_AS = [
   SITE.github, // GitHub repository
   PERSON.url, // Maintainer GitHub profile
-  "https://www.wikidata.org/wiki/Q140128295", // Wikidata entity
+  "https://www.wikidata.org/wiki/Q140128295", // Wikidata: OrchestKit
+  "https://www.wikidata.org/wiki/Q141457913", // Wikidata: Yonyon studio
   // Official MCP Registry entry (published via mcp-publisher; queryable by name).
   // Provides bi-directional verification between the docs site and the registry.
   "https://registry.modelcontextprotocol.io/v0/servers?search=orchestkit",
@@ -105,6 +107,7 @@ export const SAME_AS = [
   "https://www.skills.sh/yonatangross/orchestkit",
   // PyPI package (the published hook-contract SDK). Links the entity to its
   // real package registry — honest SDK surface (there is no public npm SDK).
+  "https://pypi.org/project/orchestkit/",
   "https://pypi.org/project/orchestkit-hook-contract/",
 ] as const;
 

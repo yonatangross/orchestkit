@@ -1,0 +1,135 @@
+name: Publish orchestkit (PyPI)
+
+on:
+  push:
+    tags:
+      - "orchestkit-py/v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to publish (e.g. orchestkit-py/v0.1.0)"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-orchestkit-py
+  cancel-in-progress: false
+
+jobs:
+  preflight:
+    name: Tag matches pyproject
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      version: ${{ steps.parse.outputs.version }}
+      tag: ${{ steps.parse.outputs.tag }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+          ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/tags/{0}', inputs.tag) || github.ref }}
+      - id: parse
+        shell: bash
+        env:
+          INPUT_TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            TAG_REF="refs/tags/${INPUT_TAG}"
+          else
+            TAG_REF="$GITHUB_REF"
+          fi
+          TAG="${TAG_REF#refs/tags/}"
+          if [[ ! "$TAG" =~ ^orchestkit-py/v[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9.+]+)?$ ]]; then
+            echo "::error::Tag '$TAG' must match orchestkit-py/v<semver>"
+            exit 1
+          fi
+          VERSION="${TAG#orchestkit-py/v}"
+          PY_VERSION=$(grep -E '^version = ' packages/orchestkit-py/pyproject.toml | head -1 | sed -E 's/version = "([^"]+)"/\1/')
+          if [[ "$VERSION" != "$PY_VERSION" ]]; then
+            echo "::error::Tag version $VERSION doesn't match pyproject.toml $PY_VERSION"
+            exit 1
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+  build:
+    name: Build wheel + sdist
+    needs: preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+          ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/tags/{0}', inputs.tag) || github.ref }}
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+        with:
+          python-version: "3.11"
+      - run: python -m pip install --upgrade pip build
+      - working-directory: packages/orchestkit-py
+        run: python -m build --outdir dist/
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        with:
+          name: dist
+          path: packages/orchestkit-py/dist/*
+          retention-days: 7
+
+  test:
+    name: pytest
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+          ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/tags/{0}', inputs.tag) || github.ref }}
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+        with:
+          python-version: "3.11"
+      - working-directory: packages/orchestkit-py
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+          pytest -v --tb=short
+
+  publish-testpypi:
+    name: Publish to TestPyPI
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/project/orchestkit/
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v6.0.0
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33  # v1.13.0
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          skip-existing: true
+
+  publish-pypi:
+    name: Publish to PyPI
+    needs: publish-testpypi
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment:
+      name: pypi
+      url: https://pypi.org/project/orchestkit/
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v6.0.0
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33  # v1.13.0

@@ -16,6 +16,8 @@
 // is safe to answer agents with JSON. Kept in sync with the route tree by
 // agent-404.test.ts, which derives the actual routes from app/ and fails if one
 // is missing here.
+import { INDEXNOW_KEY_PATH } from "./indexnow";
+
 export const SERVED_EXACT: ReadonlySet<string> = new Set([
 	"/",
 	"/about",
@@ -28,7 +30,10 @@ export const SERVED_EXACT: ReadonlySet<string> = new Set([
 	"/factory-ride",
 	"/contact",
 	"/developers",
+	"/mcp-server",
+	"/openapi",
 	"/pricing",
+	"/sdk",
 	"/privacy",
 	"/status",
 	"/terms",
@@ -41,7 +46,9 @@ export const SERVED_EXACT: ReadonlySet<string> = new Set([
 	// Markdown twins of the two name-queried pages (rewritten by middleware to
 	// app/api/page-md; listed so the allowlist reads as the full served surface).
 	"/developers.md",
+	"/developers/llms.txt",
 	"/yonyon.md",
+	INDEXNOW_KEY_PATH,
 	"/llms.txt",
 	"/llms-full.txt",
 	"/rss.xml",
@@ -67,6 +74,7 @@ export const SERVED_EXACT: ReadonlySet<string> = new Set([
 	// /.well-known/openid-configuration, which we don't serve) still get a
 	// structured JSON 404 for agents instead of an HTML page. Kept in sync
 	// with next.config.mjs by agent-404.test.ts.
+	"/.well-known/ard.json",
 	"/.well-known/ai-catalog.json",
 	"/.well-known/did.json",
 	"/.well-known/agent-skills/index.json",
@@ -122,8 +130,8 @@ export function isServedPath(pathname: string): boolean {
 // the docs tell agents to "append .md to any page URL", so an agent following
 // that instruction onto a page without a Markdown twin used to receive the HTML
 // not-found page, the exact scrape-the-markup failure the JSON 404 exists to
-// prevent. public/ contains no .md/.txt files (only images, .html labs and one
-// .json), so nothing static is captured by this.
+// prevent. public/ IndexNow key file is listed in SERVED_EXACT. Other unknown
+// .txt/.md/.json still get a structured 404.
 const AGENT_DATA_EXTENSIONS: ReadonlySet<string> = new Set(["json", "md", "txt"]);
 
 // A request prefers a JSON error unless it is a browser explicitly asking for

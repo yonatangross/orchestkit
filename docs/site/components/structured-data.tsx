@@ -75,8 +75,6 @@ export function organizationNode(): JsonLdNode {
 // subOrganization (the reciprocal parentOrganization edge lives on the org node).
 // disambiguatingDescription separates the studio from the unrelated musician so a
 // "yonyon"-keyed query resolves to this product rather than the name collision.
-// No sameAs yet — the Wikidata entity Q140128295 belongs to OrchestKit, not the
-// studio; a Yonyon-specific external ID is added here once it exists (follow-up).
 export function yonyonOrganizationNode(): JsonLdNode {
 	return {
 		"@type": "Organization",
@@ -86,6 +84,10 @@ export function yonyonOrganizationNode(): JsonLdNode {
 		disambiguatingDescription: YONYON.disambiguation,
 		url: YONYON.url,
 		mainEntityOfPage: YONYON.url,
+		sameAs: [YONYON.wikidata],
+		identifier: [
+			{ "@type": "PropertyValue", propertyID: "Wikidata", value: "Q141457913" },
+		],
 		founder: { "@id": PERSON_ID },
 		subOrganization: { "@id": ORG_ID },
 		address: {

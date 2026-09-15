@@ -101,7 +101,10 @@ export function GET() {
 		`- [${SITE.name} API reference: OpenAPI 3.1 spec, load it to discover the API surface for function-calling](/openapi.json) · [YAML](/api/openapi.yaml)`,
 		`- [${SITE.name} NLWeb /ask endpoint: POST a natural-language query; supports SSE streaming](/ask)`,
 		"- [Agent skills on skills.sh (official, self-published)](https://www.skills.sh/yonatangross/orchestkit)",
-		`- [${SITE.name} developer resource hub: API docs, OpenAPI spec, MCP server, SDK packages](/developers) · [as Markdown](/developers.md)`,
+		`- [${SITE.name} developer resource hub: API docs, OpenAPI spec, MCP server, SDK packages](/developers) · [as Markdown](/developers.md) · [scoped index](/developers/llms.txt)`,
+		`- [${SITE.name} OpenAPI specification](/openapi) · [spec JSON](/openapi.json)`,
+		`- [${SITE.name} MCP server](/mcp-server) · [transport](/api/mcp)`,
+		`- [${SITE.name} SDK packages](/sdk)`,
 		"- [About Yonyon, the studio behind OrchestKit](/yonyon) · [as Markdown](/yonyon.md)",
 		"- [Best Claude Code plugins roundup (maintainer-disclosed)](/best-claude-code-plugins)",
 		"- [Claude Agent SDK vs Claude Code plugins](/claude-agent-sdk-vs-claude-code-plugins)",
@@ -121,8 +124,9 @@ export function GET() {
 		// tags, bin entries) instead of a rendered marketing page. Same package,
 		// same name, reachable URL.
 		"- [CLI: `npx orchestkit` on npm](https://registry.npmjs.org/orchestkit) - install, search, ask, read, mcp, doctor. Zero deps, Node >= 20. Also aliased as `ork`.",
-		"- [Python package: orchestkit-hook-contract on PyPI](https://pypi.org/project/orchestkit-hook-contract/)",
-		"- [npm package: @orchestkit/hook-contract](https://registry.npmjs.org/@orchestkit/hook-contract)",
+		"- [Python package: orchestkit on PyPI](https://pypi.org/project/orchestkit/)",
+		"- [Python schemas: orchestkit-hook-contract on PyPI](https://pypi.org/project/orchestkit-hook-contract/)",
+		"- [Go module: github.com/yonatangross/orchestkit/sdk](https://pkg.go.dev/github.com/yonatangross/orchestkit/sdk)",
 		"- [Docs MCP server image (stdio): ghcr.io/yonatangross/orchestkit-docs-mcp](https://github.com/yonatangross/orchestkit/pkgs/container/orchestkit-docs-mcp)",
 		"",
 	];
