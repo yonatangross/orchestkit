@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.31](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.30...v10.0.0-beta.31) (2026-09-15)
+
+
+### Features
+
+* **devin:** expose OrchestKit skills to Devin plugin install ([#4148](https://github.com/yonatangross/orchestkit/issues/4148)) ([6004e79](https://github.com/yonatangross/orchestkit/commit/6004e79388016fc7ad28dd5414ac86a8f65af88f))
+
 ## [10.0.0-beta.30](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.29...v10.0.0-beta.30) (2026-09-15)
 
 
