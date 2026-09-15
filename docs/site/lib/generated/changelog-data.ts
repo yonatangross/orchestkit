@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.34",
+    "date": "2026-09-15",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.33...v10.0.0-beta.34",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**hooks:** anchor stdin-timeout test write to child readiness ([#4163](https://github.com/yonatangross/orchestkit/issues/4163)) ([8204546](https://github.com/yonatangross/orchestkit/commit/8204546e14935ac48f97d88cd25afce065e8bdb7))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.33",
     "date": "2026-09-15",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.32...v10.0.0-beta.33",
