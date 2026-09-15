@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Host cards: visible in the static HTML</title>
+<meta name="description" content="Playground for the SSR fix on the OrchestKit host picker: useReducedMotion() is null server-side, so a prerendered entrance variant baked opacity 0 into the static HTML. The entrance now starts from a post-mount effect.">
+<style>
+  :root {
+    --bg: #0d1017;
+    --surface: #141926;
+    --border: #2a3244;
+    --fg: #e6eaf2;
+    --muted: #8b94a7;
+    --primary: #a5b4fc;
+    --primary-10: rgba(165, 180, 252, 0.10);
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+    padding: 48px 24px;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; }
+  h1 { font-size: 22px; font-weight: 650; letter-spacing: -0.01em; }
+  .sub { color: var(--muted); margin-top: 8px; font-size: 13.5px; }
+  .toggle { margin-top: 20px; display: flex; gap: 8px; }
+  .toggle button {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--muted);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font: inherit;
+    cursor: pointer;
+  }
+  .toggle button.on { border-color: rgba(165,180,252,.5); background: var(--primary-10); color: var(--fg); }
+  .grid {
+    margin-top: 20px;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+  }
+  @media (max-width: 640px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .card {
+    display: flex; flex-direction: column; align-items: flex-start; gap: 8px;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    color: var(--muted);
+    text-align: left;
+  }
+  .card .icon {
+    display: inline-flex; width: 36px; height: 36px;
+    align-items: center; justify-content: center;
+    border: 1px solid var(--border); border-radius: 8px;
+    background: var(--bg); color: var(--fg);
+  }
+  .card .name { font-size: 13px; font-weight: 600; color: var(--fg); }
+  .card .what { font-size: 11px; line-height: 1.4; }
+  .mode-broken .card { opacity: 0; }
+  .note { margin-top: 16px; font-size: 13px; color: var(--muted); }
+  .note code { color: var(--primary); font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Host cards must exist in the static HTML</h1>
+  <p class="sub">The picker prerenders on <code>/</code>. With <code>initial="initial"</code>, <code>useReducedMotion()</code> returning null on the server meant every card shipped <code>opacity: 0</code> in the HTML: invisible without JS, invisible to crawlers, and a flash for everyone else. The fix renders <code>initial={false}</code> always and starts the entrance keyframes from a post-mount effect.</p>
+
+  <div class="toggle" role="group" aria-label="Simulation mode">
+    <button id="b-broken" type="button">Broken: opacity baked at 0</button>
+    <button id="b-fixed" type="button" class="on">Fixed: cards in the HTML</button>
+  </div>
+
+  <div id="grid" class="grid" aria-label="Hosts">
+    <div class="card"><span class="icon">C</span><span class="name">Claude Code</span><span class="what">Full plugin: skills, agents, hooks.</span></div>
+    <div class="card"><span class="icon">Cu</span><span class="name">Cursor</span><span class="what">Same plugin, minus Claude hooks.</span></div>
+    <div class="card"><span class="icon">Cx</span><span class="name">Codex</span><span class="what">ork-codex pack, 6 skills.</span></div>
+    <div class="card"><span class="icon">M</span><span class="name">Muse Code</span><span class="what">Skills via .agents/skills.</span></div>
+    <div class="card"><span class="icon">P</span><span class="name">Pi</span><span class="what">pi install manifest.</span></div>
+    <div class="card"><span class="icon">O</span><span class="name">OpenCode</span><span class="what">skills.sh starter.</span></div>
+    <div class="card"><span class="icon">D</span><span class="name">Devin</span><span class="what">Git install; 76 of 107 skills list.</span></div>
+  </div>
+
+  <p class="note" id="note">Fixed mode: every card has real opacity in the markup. View source: there is no <code>opacity: 0</code> anywhere on these cards. Broken mode applies it with a class, which is exactly what the prerendered variant did inline.</p>
+</div>
+<script>
+  const grid = document.getElementById('grid');
+  const bBroken = document.getElementById('b-broken');
+  const bFixed = document.getElementById('b-fixed');
+  function setMode(broken) {
+    grid.classList.toggle('mode-broken', broken);
+    bBroken.classList.toggle('on', broken);
+    bFixed.classList.toggle('on', !broken);
+    document.getElementById('note').innerHTML = broken
+      ? 'Broken mode: all 7 cards are in the DOM but at <code>opacity: 0</code>. This is what the static HTML shipped before the fix.'
+      : 'Fixed mode: every card has real opacity in the markup. View source: there is no <code>opacity: 0</code> anywhere on these cards. Broken mode applies it with a class, which is exactly what the prerendered variant did inline.';
+  }
+  bBroken.addEventListener('click', () => setMode(true));
+  bFixed.addEventListener('click', () => setMode(false));
+</script>
+</body>
+</html>

@@ -2,6 +2,7 @@
 
 import {
 	startTransition,
+	useEffect,
 	useRef,
 	useState,
 	type KeyboardEvent,
@@ -112,6 +113,10 @@ function passThroughClick(e: MouseEvent) {
  * the shared layoutId ring plus the snippet swap below. Keyboard: one tab stop
  * on the grid (roving tabindex), arrows move focus, Enter/Space activates.
  * prefers-reduced-motion disables the entrance, lift, and ring spring.
+ *
+ * The entrance runs only after mount: useReducedMotion() is null during SSR,
+ * so a prerendered `initial` would bake opacity 0 into the static HTML. Cards
+ * always render fully styled and the keyframes start on the first effect.
  */
 export function HostInstallPicker({
 	hosts = ["claude", "cursor", "codex", "muse", "pi", "opencode", "devin"],
@@ -125,12 +130,21 @@ export function HostInstallPicker({
 	const [current, setCurrent] = useState<HostId>(fallback);
 	const [libraryTab, setLibraryTab] = useState<LibraryTab>("skills");
 	const [focusIdx, setFocusIdx] = useState(0);
+	const [mounted, setMounted] = useState(false);
 	const gridRef = useRef<HTMLDivElement>(null);
 	const itemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
 
+	useEffect(() => setMounted(true), []);
+
 	const syncFromUrl = (params: URLSearchParams) => {
 		const fromUrl = parseHostId(params.get("host") ?? undefined);
-		setCurrent(list.some((item) => item.id === fromUrl) ? fromUrl : fallback);
+		const resolved = list.some((item) => item.id === fromUrl)
+			? fromUrl
+			: fallback;
+		setCurrent(resolved);
+		// Seed the roving tab stop on the resolved host so the first Tab after
+		// a ?host= deep link lands on that card.
+		setFocusIdx(Math.max(0, list.findIndex((item) => item.id === resolved)));
 		setLibraryTab(parseLibraryTab(params.get("lib") ?? undefined));
 	};
 
@@ -217,29 +231,28 @@ export function HostInstallPicker({
 							tabIndex={index === focusIdx ? 0 : -1}
 							onFocus={() => setFocusIdx(index)}
 							onClick={(e) => pick(e, item.id)}
-							custom={index}
-							initial={reduceMotion ? false : "initial"}
-							animate="animate"
-							variants={{
-								initial: { opacity: 0, scale: 0.8, y: 20 },
-								animate: (i: number) => ({
-									opacity: 1,
-									scale: [0.8, 1.01, 1],
-									y: 0,
-									transition: {
-										duration: 0.5,
-										delay: i * 0.05,
-										type: "spring",
-										stiffness: 500,
-										damping: 25,
-										scale: {
-											type: "tween",
-											duration: 0.5,
-											ease: [0.175, 0.885, 0.32, 1.275],
-										},
-									},
-								}),
-							}}
+							initial={false}
+							animate={
+								mounted && !reduceMotion
+									? {
+											opacity: [0, 1],
+											scale: [0.8, 1.01, 1],
+											y: [20, 0],
+											transition: {
+												duration: 0.5,
+												delay: index * 0.05,
+												type: "spring",
+												stiffness: 500,
+												damping: 25,
+												scale: {
+													type: "tween",
+													duration: 0.5,
+													ease: [0.175, 0.885, 0.32, 1.275],
+												},
+											},
+										}
+									: undefined
+							}
 							whileHover={
 								reduceMotion
 									? undefined
