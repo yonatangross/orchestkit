@@ -531,6 +531,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.33](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.32...v10.0.0-beta.33)** · 2026-09-15
+
+- **docs:** name the PostHog ph_ cookie on the privacy page (#4152)
+- **site:** crosslink apex Yonyon brand page from /yonyon (#4154)
+
 **[v10.0.0-beta.32](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.31...v10.0.0-beta.32)** · 2026-09-15
 
 - **site:** add Devin host card and rebuild picker as animated grid (#4150)
@@ -563,11 +568,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.26](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.25...v10.0.0-beta.26)** · 2026-09-14
 
 - **build:** generate docs data after stamping counts (#4126)
-
-**[v10.0.0-beta.25](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.24...v10.0.0-beta.25)** · 2026-09-14
-
-- **site:** withhold the negotiated Markdown variant from shared caches (#4125)
-- name the src/ path when build drift is under plugins/ork/skills (GH-3507) (#4121)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
