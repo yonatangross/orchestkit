@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.34](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.33...v10.0.0-beta.34) (2026-09-15)
+
+
+### Bug Fixes
+
+* **hooks:** anchor stdin-timeout test write to child readiness ([#4163](https://github.com/yonatangross/orchestkit/issues/4163)) ([8204546](https://github.com/yonatangross/orchestkit/commit/8204546e14935ac48f97d88cd25afce065e8bdb7))
+
 ## [10.0.0-beta.33](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.32...v10.0.0-beta.33) (2026-09-15)
 
 
