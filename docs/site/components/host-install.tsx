@@ -1,6 +1,12 @@
 "use client";
 
-import { startTransition, useState, type MouseEvent } from "react";
+import {
+	startTransition,
+	useRef,
+	useState,
+	type KeyboardEvent,
+	type MouseEvent,
+} from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "motion/react";
@@ -98,9 +104,17 @@ function passThroughClick(e: MouseEvent) {
  * via SearchParamsSync, not from page props, so `/` stays statically rendered.
  * The prerendered HTML shows the Claude Code default; a deep link switches to
  * its host right after hydration.
+ *
+ * Card motion adapted from 21st.dev Animated Card Options (isaiahbjork):
+ * staggered spring entrance with an overshoot settle, hover lift, tap press.
+ * That component fades unchosen cards out, which fits a one-shot onboarding
+ * pick but not a switcher, so here every card stays mounted and selection is
+ * the shared layoutId ring plus the snippet swap below. Keyboard: one tab stop
+ * on the grid (roving tabindex), arrows move focus, Enter/Space activates.
+ * prefers-reduced-motion disables the entrance, lift, and ring spring.
  */
 export function HostInstallPicker({
-	hosts = ["claude", "cursor", "codex", "muse", "pi", "opencode"],
+	hosts = ["claude", "cursor", "codex", "muse", "pi", "opencode", "devin"],
 }: {
 	hosts?: HostId[];
 }) {
@@ -110,6 +124,9 @@ export function HostInstallPicker({
 	const fallback = list[0]?.id ?? "claude";
 	const [current, setCurrent] = useState<HostId>(fallback);
 	const [libraryTab, setLibraryTab] = useState<LibraryTab>("skills");
+	const [focusIdx, setFocusIdx] = useState(0);
+	const gridRef = useRef<HTMLDivElement>(null);
+	const itemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
 
 	const syncFromUrl = (params: URLSearchParams) => {
 		const fromUrl = parseHostId(params.get("host") ?? undefined);
@@ -131,23 +148,114 @@ export function HostInstallPicker({
 		});
 	};
 
+	const gridColumns = () =>
+		gridRef.current
+			? getComputedStyle(gridRef.current).gridTemplateColumns.split(" ")
+				.length
+			: 1;
+
+	const onGridKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+		// Space does not activate an anchor; Enter already does natively.
+		if (e.key === " ") {
+			e.preventDefault();
+			(e.target as HTMLElement).closest("a")?.click();
+			return;
+		}
+		const n = list.length;
+		const cols = Math.max(1, gridColumns());
+		let next: number | null = null;
+		switch (e.key) {
+			case "ArrowRight":
+				next = (focusIdx + 1) % n;
+				break;
+			case "ArrowLeft":
+				next = (focusIdx - 1 + n) % n;
+				break;
+			case "ArrowDown":
+				next = Math.min(focusIdx + cols, n - 1);
+				break;
+			case "ArrowUp":
+				next = Math.max(focusIdx - cols, 0);
+				break;
+			case "Home":
+				next = 0;
+				break;
+			case "End":
+				next = n - 1;
+				break;
+			default:
+				return;
+		}
+		e.preventDefault();
+		setFocusIdx(next);
+		itemRefs.current[next]?.focus();
+	};
+
 	return (
 		<nav
 			aria-label="Install by host"
-			className="mx-auto mt-4 w-full max-w-[640px] text-left"
+			className="mx-auto mt-4 w-full max-w-[720px] text-left"
 		>
 			<SearchParamsSync onChange={syncFromUrl} />
-			<div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-				{list.map((item) => {
+			<div
+				ref={gridRef}
+				role="group"
+				aria-label="Hosts"
+				className="grid grid-cols-2 gap-2 sm:grid-cols-4"
+				onKeyDown={onGridKeyDown}
+			>
+				{list.map((item, index) => {
 					const selected = item.id === current;
 					return (
-						<a
+						<motion.a
 							key={item.id}
+							ref={(el) => {
+								itemRefs.current[index] = el;
+							}}
 							href={homeInstallHref(item.id, libraryTab)}
 							aria-current={selected ? "true" : undefined}
+							tabIndex={index === focusIdx ? 0 : -1}
+							onFocus={() => setFocusIdx(index)}
 							onClick={(e) => pick(e, item.id)}
+							custom={index}
+							initial={reduceMotion ? false : "initial"}
+							animate="animate"
+							variants={{
+								initial: { opacity: 0, scale: 0.8, y: 20 },
+								animate: (i: number) => ({
+									opacity: 1,
+									scale: [0.8, 1.01, 1],
+									y: 0,
+									transition: {
+										duration: 0.5,
+										delay: i * 0.05,
+										type: "spring",
+										stiffness: 500,
+										damping: 25,
+										scale: {
+											type: "tween",
+											duration: 0.5,
+											ease: [0.175, 0.885, 0.32, 1.275],
+										},
+									},
+								}),
+							}}
+							whileHover={
+								reduceMotion
+									? undefined
+									: {
+											scale: 1.03,
+											y: -2,
+											transition: {
+												type: "spring",
+												stiffness: 400,
+												damping: 10,
+											},
+										}
+							}
+							whileTap={reduceMotion ? undefined : { scale: 0.97 }}
 							className={cn(
-								"relative flex flex-col items-start gap-2 rounded-xl border p-3 text-left transition-colors",
+								"relative flex flex-col items-start gap-2 rounded-xl border p-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-ring",
 								selected
 									? "border-fd-primary/50 bg-[var(--color-fd-primary-10)] text-fd-foreground"
 									: "border-fd-border bg-[var(--color-fd-surface-raised)] text-fd-muted-foreground hover:border-fd-primary/40 hover:text-fd-foreground",
@@ -177,7 +285,7 @@ export function HostInstallPicker({
 							>
 								{item.what}
 							</span>
-						</a>
+						</motion.a>
 					);
 				})}
 			</div>

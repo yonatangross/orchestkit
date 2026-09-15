@@ -166,6 +166,11 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
     "description": "Install OrchestKit in Cursor. Same ork plugin as Claude Code, minus Claude hook scripts. Marketplace yonatangross/orchestkit."
   },
   {
+    "url": "/docs/getting-started/devin",
+    "title": "Devin",
+    "description": "Install the ork plugin in the Devin CLI and Devin Desktop from this repository. Skills load; hooks and rules do not yet."
+  },
+  {
     "url": "/docs/getting-started/first-10-minutes",
     "title": "Your First 10 Minutes",
     "description": "From install to your first AI-assisted commit — a guided walkthrough."
@@ -173,7 +178,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/getting-started/hosts",
     "title": "Hosts",
-    "description": "Pick a runtime. Claude Code and Cursor install the full ork plugin. Codex uses ork-codex. Pi uses pi install. Muse Code loads skills from .agents/skills. OpenCode and other skills.sh clients use the starter 12."
+    "description": "Pick a runtime. Claude Code and Cursor install the full ork plugin. Codex uses ork-codex. Pi uses pi install. Muse Code loads skills from .agents/skills. OpenCode and other skills.sh clients use the starter 12. Devin installs the plugin from git."
   },
   {
     "url": "/docs/getting-started",

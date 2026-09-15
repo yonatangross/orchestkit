@@ -88,6 +88,23 @@ export const HOST_INSTALLS: readonly HostInstallSpec[] = [
 		commands: [SKILLS_SH_STARTER],
 		prompt: true,
 	},
+	{
+		id: "devin",
+		name: "Devin",
+		href: "/docs/getting-started/devin",
+		what: "The ork plugin from git. 76 skills list; hooks do not load.",
+		where:
+			"Paste in a terminal with the Devin CLI signed in. The #plugins/ork fragment installs the plugin tree directly; a bare install also resolves it via .devin-plugin.",
+		commands: [
+			"devin plugins install https://github.com/yonatangross/orchestkit#plugins/ork",
+		],
+		prompt: true,
+		then: {
+			label: "Then verify",
+			commands: ["devin plugins info ork"],
+			prompt: true,
+		},
+	},
 ];
 
 export const HOST_INSTALL_BY_ID: Record<HostId, HostInstallSpec> = Object.fromEntries(
@@ -190,6 +207,9 @@ export function stackHintCopy(host: HostId, stack: StackHint | null): string | n
 	}
 	if (host === "codex") {
 		return `ork-codex stays the same pack. ${hint.setupBias} live in the full Claude plugin, not this pack.`;
+	}
+	if (host === "devin") {
+		return "Same git install for every stack. Devin takes no -s flags.";
 	}
 	return `Starter 12 plus ${hint.extras.map((s) => `-s ${s}`).join(" ")}. Still skills.sh. No native pack.`;
 }
