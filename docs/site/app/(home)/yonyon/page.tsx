@@ -98,6 +98,11 @@ export default function YonyonPage() {
 					<a href="/llms-full.txt">llms-full.txt</a> — agent-readable site index.
 				</li>
 				<li>
+					<a href={YONYON.wikidata}>Wikidata (Q141457913)</a>, English label
+					Yonyon. The product item is{" "}
+					<a href="https://www.wikidata.org/wiki/Q140128295">Q140128295</a>.
+				</li>
+				<li>
 					<a href="https://github.com/yonatangross/orchestkit">GitHub</a> — source,
 					issues, and releases.
 				</li>

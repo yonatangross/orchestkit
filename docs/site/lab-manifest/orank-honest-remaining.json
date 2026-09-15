@@ -1,0 +1,14 @@
+{
+  "slug": "orank-honest-remaining",
+  "source": "docs/feat--orank-honest-remaining/index.html",
+  "title": "Honest remaining: discovery pages, SDKs, Wikidata",
+  "description": "Interactive path resolver for /mcp-server vs /mcp transport, plus toggles for the Discovery, Usability, and Bonus ora.ai holes this PR closes without inventing Wikipedia, ChatGPT, or a second product MCP.",
+  "tags": [
+    "docs-site",
+    "discoverability",
+    "sdk",
+    "mcp",
+    "ora"
+  ],
+  "date": "2026-09-15"
+}

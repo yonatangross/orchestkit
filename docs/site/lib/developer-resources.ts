@@ -22,6 +22,21 @@ export type DeveloperResource = {
 
 export const DEVELOPER_RESOURCES: ReadonlyArray<DeveloperResource> = [
 	{
+		title: "OrchestKit OpenAPI specification",
+		desc: "Human page for the OpenAPI 3.1 docs API spec. Machine copy at /openapi.json.",
+		href: "/openapi",
+	},
+	{
+		title: "OrchestKit MCP server",
+		desc: "How to connect the hosted Streamable HTTP server and the Docker stdio image. Transport stays at /api/mcp and /mcp.",
+		href: "/mcp-server",
+	},
+	{
+		title: "OrchestKit SDK packages",
+		desc: "Official clients: npm CLI, PyPI orchestkit, Go module github.com/yonatangross/orchestkit/sdk.",
+		href: "/sdk",
+	},
+	{
 		title: "Documentation",
 		desc: `Install guides, concepts, and reference for all ${COUNTS.skills} skills, ${COUNTS.agents} agents, and ${COUNTS.hooks} hooks.`,
 		href: "/docs/getting-started/installation",
@@ -55,8 +70,8 @@ export const DEVELOPER_RESOURCES: ReadonlyArray<DeveloperResource> = [
 	},
 	{
 		title: "Python package (PyPI)",
-		desc: "orchestkit-hook-contract — typed hook I/O contract for building OrchestKit-compatible tooling in Python.",
-		href: "https://pypi.org/project/orchestkit-hook-contract/",
+		desc: "orchestkit: docs API client. orchestkit-hook-contract: typed hook I/O schemas.",
+		href: "https://pypi.org/project/orchestkit/",
 		external: true,
 	},
 	{

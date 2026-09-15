@@ -110,6 +110,7 @@ describe("llms.txt advertised surfaces", () => {
 
 	it("links the PyPI package and the API policy page", async () => {
 		const txt = await body(getLlmsTxt());
+		expect(txt).toContain("https://pypi.org/project/orchestkit/");
 		expect(txt).toContain("https://pypi.org/project/orchestkit-hook-contract/");
 		expect(txt).toContain("/api-policy.md");
 	});
