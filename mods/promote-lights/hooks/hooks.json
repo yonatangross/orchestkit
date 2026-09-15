@@ -1,0 +1,5 @@
+{
+  "description": "Promote lights - CI status band above the prompt for open promote PRs. Hooks: session.start, turn.complete, command.register, ui.render. Calls: process.run, fs.read, session.repo, clock.every, store.get/set, ui.status, ui.invalidate.",
+  "modules": ["./register.ts"],
+  "hooks": {}
+}
