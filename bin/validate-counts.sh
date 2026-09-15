@@ -122,6 +122,7 @@ HARNESS_MANIFESTS=(
     plugins/ork/.cursor-plugin/plugin.json
     plugins/ork/plugin.json
     plugin.json
+    .devin-plugin/plugin.json
 )
 for required in pyproject.toml manifests/ork.json .claude-plugin/marketplace.json .release-please-manifest.json CLAUDE.md "${HARNESS_MANIFESTS[@]}"; do
     if [[ ! -f "$PROJECT_ROOT/$required" ]]; then
