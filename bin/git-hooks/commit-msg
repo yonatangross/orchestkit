@@ -91,4 +91,72 @@ if [[ $ERRORS -gt 0 ]]; then
     exit 1
 fi
 
+# ───── Check 3: provenance trailer stamp (hq six-key standard) ──────
+# Lane context = HQ_* env or a herdr seat; a plain human commit passes
+# unstamped. In lane context, refuse only when Harness, Seat or Account
+# cannot be resolved; Model/Effort/Session fall back to na / a per-
+# worktree generated id.
+if [[ -n "${HQ_LANE:-}${HQ_ENGINE:-}${HERDR_ENV:-}${CLAUDECODE:-}" ]]; then
+    P_ACCOUNT="${HQ_ACCOUNT:-}"
+    if [[ -z "$P_ACCOUNT" ]]; then
+        P_ACCOUNT=$(jq -r '.oauthAccount.emailAddress // empty' "$HOME/.claude.json" 2>/dev/null)
+    fi
+    [[ -n "$P_ACCOUNT" ]] || P_ACCOUNT=$(gh api user --jq .login 2>/dev/null)
+    [[ -n "$P_ACCOUNT" ]] || P_ACCOUNT=$(git config user.email 2>/dev/null)
+
+    P_HARNESS="${HQ_ENGINE:-}"
+    if [[ -z "$P_HARNESS" ]]; then
+        p=$PPID; i=0
+        while [[ $i -lt 8 && -n "$p" && "$p" != "1" ]]; do
+            c=$(ps -o comm= -p "$p" 2>/dev/null | tr '[:upper:]' '[:lower:]')
+            case "$c" in
+                *claude*) P_HARNESS=cc; break ;;
+                *devin*)  P_HARNESS=devin; break ;;
+                *codex*)  P_HARNESS=codex; break ;;
+                *cursor*) P_HARNESS=cursor; break ;;
+                *gemini*) P_HARNESS=gemini; break ;;
+                *muse*)   P_HARNESS=muse; break ;;
+                pi|*/pi)  P_HARNESS=pi; break ;;
+            esac
+            p=$(ps -o ppid= -p "$p" 2>/dev/null | tr -d ' ')
+            i=$((i + 1))
+        done
+    fi
+    [[ -n "$P_HARNESS" ]] || { [[ -n "${CLAUDECODE:-}" ]] && P_HARNESS=cc; }
+
+    P_MODEL="${HQ_MODEL:-na}"
+    P_EFFORT="${HQ_EFFORT:-na}"
+    P_SEAT="${HQ_LANE:-}"
+    [[ -n "$P_SEAT" ]] || P_SEAT=$(basename "$(git rev-parse --show-toplevel 2>/dev/null)" 2>/dev/null)
+
+    P_SESSION="${HQ_SESSION:-${CLAUDE_SESSION_ID:-${DEVIN_SESSION_ID:-}}}"
+    if [[ -z "$P_SESSION" ]]; then
+        gd=$(git rev-parse --git-dir 2>/dev/null)
+        sf="$gd/hq-session"
+        if [[ -n "$gd" && ! -f "$sf" ]]; then
+            { uuidgen 2>/dev/null || date +%s%N; } | shasum | cut -c1-10 >"$sf" 2>/dev/null
+        fi
+        [[ -f "$sf" ]] && P_SESSION=$(cat "$sf" 2>/dev/null)
+    fi
+    P_SESSION=$(printf '%s' "${P_SESSION:-na}" | cut -c1-12)
+
+    MISSING=""
+    [[ -n "$P_HARNESS" ]] || MISSING="$MISSING Harness"
+    [[ -n "$P_SEAT" ]]    || MISSING="$MISSING Seat"
+    [[ -n "$P_ACCOUNT" ]] || MISSING="$MISSING Account"
+    if [[ -n "$MISSING" ]]; then
+        echo "${RED}✗${NC} provenance: lane context but unresolvable:$MISSING"
+        echo "  fix: export the HQ_* var for each missing key (HQ_ENGINE=cc|pi|codex|devin|cursor|gemini|muse, HQ_LANE=<lane>) and retry"
+        exit 1
+    fi
+    git interpret-trailers --in-place \
+        --if-exists replace --trailer "Account: $P_ACCOUNT" \
+        --if-exists replace --trailer "Harness: $P_HARNESS" \
+        --if-exists replace --trailer "Model: $P_MODEL" \
+        --if-exists replace --trailer "Effort: $P_EFFORT" \
+        --if-exists replace --trailer "Seat: $P_SEAT" \
+        --if-exists replace --trailer "Session: $P_SESSION" \
+        "$COMMIT_MSG_FILE"
+fi
+
 exit 0
