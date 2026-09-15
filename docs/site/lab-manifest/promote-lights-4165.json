@@ -1,0 +1,8 @@
+{
+  "slug": "promote-lights-4165",
+  "source": "docs/site/public/lab/promote-lights-4165.html",
+  "title": "Promote Lights",
+  "description": "See CI check status lights above the prompt while a promote PR is open. One REST page per minute, PR-open only.",
+  "tags": ["ci", "promote", "function-hooks", "mod"],
+  "date": "2026-09-15"
+}
