@@ -18,6 +18,35 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.27",
+    "date": "2026-09-15",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.26...v10.0.0-beta.27",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "product MCP sandbox for orchestkit.yonyon.ai ([#4131](https://github.com/yonatangross/orchestkit/issues/4131)) ([205cea7](https://github.com/yonatangross/orchestkit/commit/205cea7c86d905e1a8522eecd1b91bb6c964fed4))",
+          "**site:** publish the auth chain with optional agent identity ([#4129](https://github.com/yonatangross/orchestkit/issues/4129)) ([e51000b](https://github.com/yonatangross/orchestkit/commit/e51000b612b40b940c9467fd3b69df46c9c9cf11))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**tests:** sample the paste guard latency delta three times (GH-4130) ([#4132](https://github.com/yonatangross/orchestkit/issues/4132)) ([9817ed7](https://github.com/yonatangross/orchestkit/commit/9817ed71292ed2bc5901090eb72b5b5c94937344))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Documentation",
+        "items": [
+          "document strict main and serial merges ([#4134](https://github.com/yonatangross/orchestkit/issues/4134)) ([1a4ec89](https://github.com/yonatangross/orchestkit/commit/1a4ec89ade214d1e4d87663e57415f31e2f859f0))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.26",
     "date": "2026-09-14",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.25...v10.0.0-beta.26",
