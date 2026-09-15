@@ -56,7 +56,7 @@ Measured 2026-09-08 on pi 0.85, Codex CLI and cursor-agent. Details, commands an
 | Rules | repo convention | 14, plugin `rules` key | `AGENTS.md` | none | `AGENTS.md`, always on |
 | Commands | `/ork:<skill>` | 36 wrappers | `$ork-<skill>` | `/skill:<name>` | `/ork:<skill>` |
 | MCP config | `.mcp.json` | `.cursor/mcp.json` | plugin `mcp.json` | `.pi/mcp.json` | `mcp.json` / `.mcp.json` |
-| Status | shipped | shipped | shipped | shipped | PR open, GH-4146 |
+| Status | shipped | shipped | shipped | shipped | skills only, GH-4146 |
 
 ### Claude Code
 
@@ -446,18 +446,22 @@ reaches the same 76 skills plus the plugin's 36 custom subagents, which neither
 path surfaces through `devin plugins info`. That subpath is what this repo's own
 `.claude-plugin/marketplace.json` already points Claude Code at.
 
-Devin's plugin hooks are Claude Code only today. OrchestKit's hooks live at
-`plugins/ork/hooks/hooks.json` (Devin's own plugin format reads a bare
-`hooks.json` at the plugin root instead) and match Claude Code tool names such
-as `Bash` and `Write|Edit` with `${CLAUDE_PLUGIN_ROOT}` expansion. Devin's
+OrchestKit's plugin hooks work under Claude Code only today; none of the 171
+fire under Devin. Two reasons. Location: OrchestKit ships hooks at
+`plugins/ork/hooks/hooks.json`, while Devin's own plugin format reads a bare
+`hooks.json` at the plugin root instead. Shape and tool names: OrchestKit's
+file matches Claude Code tool names such as `Bash` and `Write|Edit` and
+expands `${CLAUDE_PLUGIN_ROOT}` in command args, both Claude Code specific.
+Devin's own
 [hooks.v1.json](https://docs.devin.ai/cli/extensibility/hooks/overview) format
 matches its own tool names instead, `exec`, `write`, `edit` and friends (see
 [lifecycle hooks](https://docs.devin.ai/cli/extensibility/hooks/lifecycle-hooks)),
-so none of the 171 hooks fire under Devin; `devin plugins info` confirms
-`Hooks (none)` even once skills resolve. `PreToolUse` and `PostToolUse` read the
-closest to what OrchestKit's own pretool hooks do, and are the first candidates
-for a future Devin hook manifest once the tool name mapping is written
-deliberately instead of guessed.
+inside the same `{matcher, hooks:[{type, command}]}` event map shape.
+`devin plugins info` confirms `Hooks (none)` even once skills resolve.
+`PreToolUse` and `PostToolUse` read the closest to what OrchestKit's own
+pretool and posttool hooks already do, and are the first candidates for a
+future Devin hook manifest once the tool name mapping is written deliberately
+instead of guessed.
 
 Pin a release instead of tracking `main`: release-please tags every release as
 `v10.0.0-beta.N`. The single argument `devin plugins install <source>` command
