@@ -75,7 +75,7 @@ description: "Part 2 of 4 of Version Compatibility for the Doctor skill."
 | Prompt cache fix | 2.1.72 | Up to 12x token cost reduction via improved caching | Higher token costs from cache misses |
 | Expanded bash auto-approval | 2.1.72 | `lsof`, `pgrep`, `tput`, `ss`, `fd`, `fdfind` auto-approved | Manual approval for system inspection tools |
 | `vscode://anthropic.claude-code/open` | 2.1.72 | URI handler to open CC from VS Code links | No deep-link integration with VS Code |
-| `/output-style` deprecated → `/config` | 2.1.73 | No OrchestKit references to /output-style | None — already using /config |
+| `/output-style` deprecated → `/config` | 2.1.73 | No OrchestKit references to /output-style | None — already using /config. Superseded in 2.1.269: `/output-style [name]` was restored to list and switch output styles. |
 | Skill-file deadlock fix on `git pull` | 2.1.73 | Fixes hang with 89-skill plugin after `git pull` | CC hangs during/after git pull |
 | SessionStart hooks double-fire fix | 2.1.73 | ~15 SessionStart hooks fire exactly once on resume | Hooks fire twice on --resume/--continue |
 | No-op system reminder injection fix | 2.1.73 | ~2K tokens/turn recovered across 99 hooks | Empty system-reminder tags waste context |

@@ -16,6 +16,18 @@ export interface AdoptionWave {
 
 export const ADOPTION_WAVES: AdoptionWave[] = [
   {
+    "version": "2.1.272",
+    "features": [
+      {
+        "slug": "bug_fixes_only_272",
+        "category": "new_attr",
+        "description": "CC 2.1.272 contains only the unenumerated bug fixes and reliability improvements bullet. No named feature requires an ork change.",
+        "gapScore": 0,
+        "affectedSkills": []
+      }
+    ]
+  },
+  {
     "version": "2.1.263",
     "features": [
       {
@@ -3079,10 +3091,10 @@ export const ADOPTION_WAVES: AdoptionWave[] = [
 
 export const CC_SUPPORT = {
   latest: "2.1.251",
-  latestKnown: "2.1.263",
+  latestKnown: "2.1.272",
   supportedFloor: "2.1.251",
   policy: "latest + 3 previous minors",
 } as const;
 
 /** sha256 (first 12 hex) of the two source files above, in that order. */
-export const SOURCE_DIGEST = "0660e0441a69" as const;
+export const SOURCE_DIGEST = "1018aa6fe6e4" as const;

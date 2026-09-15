@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CC 2.1.269 to 2.1.272 adoption</title>
+<meta name="description" content="Four release dispositions and the unchanged Claude Code support floor.">
+<style>
+body { margin: 2rem auto; padding: 0 1rem; max-width: 56rem; font: 1rem/1.6 system-ui, sans-serif; color: #172033; background: #f6f8fc; }
+h1 { line-height: 1.2; }
+table { width: 100%; border-collapse: collapse; background: white; }
+th, td { padding: .8rem; text-align: left; border: 1px solid #b6c2d4; }
+a { color: #174d99; }
+summary { cursor: pointer; font-weight: 600; }
+details { margin: 1rem 0; padding: 1rem; border: 1px solid #b6c2d4; background: white; }
+</style>
+</head>
+<body>
+<main>
+<h1>CC adoption reaches 2.1.272</h1>
+<p>The latest known release advances from <strong>2.1.263 to 2.1.272</strong>.
+The supported floor stays <strong>2.1.251</strong> under the override through November 20, 2026.</p>
+<table>
+<caption>Release dispositions, September 15, 2026</caption>
+<thead><tr><th scope="col">Release</th><th scope="col">Disposition</th><th scope="col">What changed</th></tr></thead>
+<tbody>
+<tr><th scope="row"><a href="https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md#21269">2.1.269</a></th><td>Documented</td><td>Plugin eval, output styles restored, Bash edit diffs, four environment variables and plugin archive permissions.</td></tr>
+<tr><th scope="row"><a href="https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md#21270">2.1.270</a></th><td>Not applicable</td><td>Read-only git permission regression fix.</td></tr>
+<tr><th scope="row"><a href="https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md#21271">2.1.271</a></th><td>Documented</td><td>Agent context controls, auto mode rules, Monitor deadlines, hook feedback and plugin command consent.</td></tr>
+<tr><th scope="row"><a href="https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md#21272">2.1.272</a></th><td>Not applicable</td><td>Unenumerated bug fixes and reliability improvements.</td></tr>
+</tbody>
+</table>
+<details><summary>Why does the floor stay at 2.1.251?</summary>
+<p>This adoption updates release knowledge and documentation. It introduces no hook event or feature that requires a higher minimum. The override keeps the support window at 2.1.251, with drop_after at 2.1.250.</p></details>
+<details><summary>What remains in the tracker?</summary>
+<p><a href="https://github.com/yonatangross/orchestkit/issues/4135">GH-4135</a> retains the agent context design and the inline shell, subagent hand-back and Bash diff probes. Plugin install command consent remains in <a href="https://github.com/yonatangross/orchestkit/issues/4054">GH-4054</a>.</p></details>
+<p>Versions 2.1.264 to 2.1.268 were already triaged in GH-4058. The 2.1.73 output-style history row now records its restoration in 2.1.269.</p>
+</main>
+</body>
+</html>
