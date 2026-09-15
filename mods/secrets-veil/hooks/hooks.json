@@ -1,0 +1,5 @@
+{
+  "description": "secrets-veil hooks: covers secret values in tool output, reveals on hover (Desktop) or via /veil command (terminal).",
+  "modules": ["./register.ts"],
+  "hooks": {}
+}

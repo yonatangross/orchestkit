@@ -1,0 +1,6 @@
+{
+  "name": "secrets-veil",
+  "version": "0.0.1",
+  "description": "Covers secrets in tool results; reveals on Desktop hover, with terminal fallback via /veil command.",
+  "author": { "name": "OrchestKit" }
+}
