@@ -121,6 +121,13 @@ describe("/yonyon.md", () => {
 		expect(md).toContain("https://orchestkit.yonyon.ai/developers");
 		expect(md).toContain("https://orchestkit.yonyon.ai/developers.md");
 	});
+
+	it("cross-links the apex brand site as the same studio, not the DJ (#4144)", () => {
+		expect(md).toContain("](");
+		expect(md).toContain("](https://yonyon.ai/yonyon)");
+		expect(md).toContain("](https://yonyon.ai)");
+		expect(md).toMatch(/not the DJ/i);
+	});
 });
 
 describe("HTML pages keep the names a search engine matches on", () => {
@@ -148,6 +155,12 @@ describe("HTML pages keep the names a search engine matches on", () => {
 		const yonSrc = readFileSync(resolve(APP, "(home)/yonyon/page.tsx"), "utf8");
 		expect(devSrc).toContain("@/lib/developer-resources");
 		expect(yonSrc).toContain("@/lib/yonyon-faqs");
+	});
+
+	it("/yonyon renders the visible apex brand cross-link (#4144)", () => {
+		const yonSrc = readFileSync(resolve(APP, "(home)/yonyon/page.tsx"), "utf8");
+		expect(yonSrc).toContain('href={YONYON.apexPage}');
+		expect(yonSrc).toContain('href={YONYON.apex}');
 	});
 });
 

@@ -13,7 +13,11 @@ const ORG_ID = `${SITE.domain}/#organization`;
 const WEBSITE_ID = `${SITE.domain}/#website`;
 const SOFTWARE_ID = `${SITE.domain}/#software`;
 const PERSON_ID = `${PERSON.url}#person`;
-const YONYON_ORG_ID = `${SITE.domain}/#yonyon`;
+// The Yonyon studio Organization reuses the apex brand site's entity IRI
+// (declared by yonyon.ai itself) instead of minting a docs-subdomain one:
+// referencing the same @id is what makes this a restatement of one entity
+// rather than a second Organization that competes with the apex (#4144).
+const YONYON_ORG_ID = `${YONYON.apex}/#organization`;
 
 const SUMMARY = `OrchestKit is a free, open-source plugin for Claude Code. It bundles ${COUNTS.skills} skills, ${COUNTS.agents} agents, and ${COUNTS.hooks} lifecycle hooks with built-in security patterns and quality gates.`;
 
@@ -75,6 +79,13 @@ export function organizationNode(): JsonLdNode {
 // subOrganization (the reciprocal parentOrganization edge lives on the org node).
 // disambiguatingDescription separates the studio from the unrelated musician so a
 // "yonyon"-keyed query resolves to this product rather than the name collision.
+//
+// Entity alignment (#4144): the official website (url) is the apex studio
+// domain, and the apex brand page + the docs-subdomain /yonyon twin are listed
+// as sameAs, so this node merges with the Organization the apex brand page
+// declares (same @id) instead of declaring a second studio entity. The docs
+// subdomain appears only as this page's own url (mainEntityOfPage), never as
+// the official website.
 export function yonyonOrganizationNode(): JsonLdNode {
 	return {
 		"@type": "Organization",
@@ -82,9 +93,9 @@ export function yonyonOrganizationNode(): JsonLdNode {
 		name: YONYON.name,
 		description: YONYON.description,
 		disambiguatingDescription: YONYON.disambiguation,
-		url: YONYON.url,
+		url: YONYON.apex,
 		mainEntityOfPage: YONYON.url,
-		sameAs: [YONYON.wikidata],
+		sameAs: [YONYON.apex, YONYON.apexPage, YONYON.wikidata],
 		identifier: [
 			{ "@type": "PropertyValue", propertyID: "Wikidata", value: "Q141457913" },
 		],
