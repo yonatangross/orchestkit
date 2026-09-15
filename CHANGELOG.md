@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.32](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.31...v10.0.0-beta.32) (2026-09-15)
+
+
+### Features
+
+* **site:** add Devin host card and rebuild picker as animated grid ([#4150](https://github.com/yonatangross/orchestkit/issues/4150)) ([a910b39](https://github.com/yonatangross/orchestkit/commit/a910b394e96314c5463f6eb22b312db0cc9bed0f))
+
+
+### Bug Fixes
+
+* **site:** render host cards visibly during SSR ([#4153](https://github.com/yonatangross/orchestkit/issues/4153)) ([dbc05e2](https://github.com/yonatangross/orchestkit/commit/dbc05e285c3dcbdbaf0697ed4a86e76eb29d9641))
+
 ## [10.0.0-beta.31](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.30...v10.0.0-beta.31) (2026-09-15)
 
 
