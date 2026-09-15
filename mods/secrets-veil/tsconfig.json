@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "ES2023",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "declaration": true,
+    "outDir": "./dist",
+    "rootDir": ".",
+    "lib": ["ES2023"],
+    "jsx": "react",
+    "jsxFactory": "h",
+    "types": ["node"]
+  },
+  "include": ["src/**/*.ts", "hooks/**/*.ts", "tests/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
+}
