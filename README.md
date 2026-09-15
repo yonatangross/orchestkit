@@ -48,15 +48,15 @@ Pick the host you actually use. Claude Code is the full plugin (skills + agents 
 
 Measured 2026-09-08 on pi 0.85, Codex CLI and cursor-agent. Details, commands and the lane model: [OrchestKit on pi, Codex and Cursor](https://orchestkit.yonyon.ai/docs/guides/orchestkit-on-pi-codex-cursor).
 
-| Surface | Claude Code | Cursor | Codex | pi |
-|---|---|---|---|---|
-| Skills (SKILL.md) | all | all, via the `ork` plugin | 6 (`ork-codex` pack) | all via `pi install`, 78 auto-listed |
-| Agents | all | all | 4 role templates | none |
-| Hooks | all | none | none | none |
-| Rules | repo convention | 14, plugin `rules` key | `AGENTS.md` | none |
-| Commands | `/ork:<skill>` | 36 wrappers | `$ork-<skill>` | `/skill:<name>` |
-| MCP config | `.mcp.json` | `.cursor/mcp.json` | plugin `mcp.json` | `.pi/mcp.json` |
-| Status | shipped | shipped | shipped | shipped |
+| Surface | Claude Code | Cursor | Codex | pi | Devin |
+|---|---|---|---|---|---|
+| Skills (SKILL.md) | all | all, via the `ork` plugin | 6 (`ork-codex` pack) | all via `pi install`, 78 auto-listed | 76 of 107, GH-4146 |
+| Agents | all | all | 4 role templates | none | not reported by `info` |
+| Hooks | all | none | none | none | none |
+| Rules | repo convention | 14, plugin `rules` key | `AGENTS.md` | none | `AGENTS.md`, always on |
+| Commands | `/ork:<skill>` | 36 wrappers | `$ork-<skill>` | `/skill:<name>` | `/ork:<skill>` |
+| MCP config | `.mcp.json` | `.cursor/mcp.json` | plugin `mcp.json` | `.pi/mcp.json` | `mcp.json` / `.mcp.json` |
+| Status | shipped | shipped | shipped | shipped | PR open, GH-4146 |
 
 ### Claude Code
 
@@ -416,6 +416,62 @@ cp .pi/mcp.json.example .pi/mcp.json
 
 Full detail and the tracking epic:
 [OrchestKit on pi, Codex and Cursor](https://orchestkit.yonyon.ai/docs/guides/orchestkit-on-pi-codex-cursor).
+
+### Devin
+
+```bash
+devin plugins install yonatangross/orchestkit
+```
+
+Devin checks a plugin root for a manifest in this order: `.devin-plugin/plugin.json`,
+then `.claude-plugin/plugin.json`, then root `plugin.json`
+([plugins reference](https://docs.devin.ai/cli/extensibility/plugins/overview)).
+The repo root only had the last one, the [Agent Plugins](https://agent-plugins.org)
+manifest, which fixes skills at a root `skills/` directory this repo does not have,
+so a bare install used to list 0 of 107 skills, 0 hooks, and only the `AGENTS.md`
+rule (GH-4146). A root level `.devin-plugin/plugin.json` now maps `skills` to
+`./plugins/ork/skills`, the same built tree Claude Code and Cursor already read.
+
+`devin plugins info ork` lists 76 of 107 skills after that change (measured on
+Devin CLI 3000.10.27). The other 31, `auto`, `verify`, `help`, `brainstorm`, and
+similar router or workflow skills, declare a `triggers:` frontmatter key shaped
+as an object (`keywords`, `examples`, `anti-triggers`). Devin's own `triggers`
+field expects a flat `[user, model]` list, and the shape mismatch drops the
+whole skill instead of warning. Renaming that key touches three other readers
+(`scripts/eval/eval-coverage.sh`, `tests/skills/triggering/test-trigger-keywords.sh`,
+and the `SKILL_ONLY` allowlist in `tests/plugins/test-command-frontmatter-passthrough.sh`),
+so it stays tracked on GH-4146 instead of folded into this fix. Installing the
+subpath directly, `devin plugins install yonatangross/orchestkit#plugins/ork`,
+reaches the same 76 skills plus the plugin's 36 custom subagents, which neither
+path surfaces through `devin plugins info`. That subpath is what this repo's own
+`.claude-plugin/marketplace.json` already points Claude Code at.
+
+Devin's plugin hooks are Claude Code only today. OrchestKit's hooks live at
+`plugins/ork/hooks/hooks.json` (Devin's own plugin format reads a bare
+`hooks.json` at the plugin root instead) and match Claude Code tool names such
+as `Bash` and `Write|Edit` with `${CLAUDE_PLUGIN_ROOT}` expansion. Devin's
+[hooks.v1.json](https://docs.devin.ai/cli/extensibility/hooks/overview) format
+matches its own tool names instead, `exec`, `write`, `edit` and friends (see
+[lifecycle hooks](https://docs.devin.ai/cli/extensibility/hooks/lifecycle-hooks)),
+so none of the 171 hooks fire under Devin; `devin plugins info` confirms
+`Hooks (none)` even once skills resolve. `PreToolUse` and `PostToolUse` read the
+closest to what OrchestKit's own pretool hooks do, and are the first candidates
+for a future Devin hook manifest once the tool name mapping is written
+deliberately instead of guessed.
+
+Pin a release instead of tracking `main`: release-please tags every release as
+`v10.0.0-beta.N`. The single argument `devin plugins install <source>` command
+has no ref pinning syntax of its own; pin through a `requiredPlugins` entry
+(in this repo's own `.devin/config.json`, or a personal, org, or enterprise
+manifest) instead:
+
+```json
+{
+  "requiredPlugins": [
+    { "source": "github", "repo": "yonatangross/orchestkit", "ref": "v10.0.0-beta.30" }
+  ]
+}
+```
 
 ---
 
