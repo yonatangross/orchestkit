@@ -531,6 +531,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.32](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.31...v10.0.0-beta.32)** · 2026-09-15
+
+- **site:** add Devin host card and rebuild picker as animated grid (#4150)
+- **site:** render host cards visibly during SSR (#4153)
+
 **[v10.0.0-beta.31](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.30...v10.0.0-beta.31)** · 2026-09-15
 
 - **devin:** expose OrchestKit skills to Devin plugin install (#4148)
@@ -563,11 +568,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **site:** withhold the negotiated Markdown variant from shared caches (#4125)
 - name the src/ path when build drift is under plugins/ork/skills (GH-3507) (#4121)
-
-**[v10.0.0-beta.24](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.23...v10.0.0-beta.24)** · 2026-09-14
-
-- resolve the four [#3892](https://github.com/yonatangross/orchestkit/issues/3892) hook and review-pr regressions (#4108)
-- **deps-dev:** bump fast-check (#4119)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
