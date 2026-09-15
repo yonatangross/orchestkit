@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.31",
+    "date": "2026-09-15",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.30...v10.0.0-beta.31",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**devin:** expose OrchestKit skills to Devin plugin install ([#4148](https://github.com/yonatangross/orchestkit/issues/4148)) ([6004e79](https://github.com/yonatangross/orchestkit/commit/6004e79388016fc7ad28dd5414ac86a8f65af88f))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.30",
     "date": "2026-09-15",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.29...v10.0.0-beta.30",

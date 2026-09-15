@@ -531,6 +531,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.31](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.30...v10.0.0-beta.31)** · 2026-09-15
+
+- **devin:** expose OrchestKit skills to Devin plugin install (#4148)
+
 **[v10.0.0-beta.30](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.29...v10.0.0-beta.30)** · 2026-09-15
 
 - **cc:** join the 2.1.269 to 2.1.272 rows to the matrix table (#4142)
@@ -564,15 +568,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - resolve the four [#3892](https://github.com/yonatangross/orchestkit/issues/3892) hook and review-pr regressions (#4108)
 - **deps-dev:** bump fast-check (#4119)
-
-**[v10.0.0-beta.23](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.22...v10.0.0-beta.23)** · 2026-09-14
-
-- **create-pr:** run CodeRabbit CLI review before opening the PR (#4117)
-- **ci:** track classic.PreToolUse rename in function hooks canary (#4102)
-- **create-pr:** clarify CodeRabbit credit spend and fix root tools key (#4118)
-- **tests:** report hook timeouts in test-image-paste-guard instead of swallowing them (GH-4087) (#4111)
-- **deps:** bump orchestkit-demos npm-minor-patch group with the peer resolution (supersedes GH-4098) (#4110)
-- …and 2 more (see [CHANGELOG.md](CHANGELOG.md))
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
