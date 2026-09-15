@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.29",
+    "date": "2026-09-15",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.28...v10.0.0-beta.29",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**site:** close honest ora.ai score holes for discovery and SDKs ([#4137](https://github.com/yonatangross/orchestkit/issues/4137)) ([22298e8](https://github.com/yonatangross/orchestkit/commit/22298e86ac6afde79697292bf0d0846b8f23c16b))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.28",
     "date": "2026-09-15",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.27...v10.0.0-beta.28",
