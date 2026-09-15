@@ -471,6 +471,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.30](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.29...v10.0.0-beta.30)** · 2026-09-15
+
+- **cc:** join the 2.1.269 to 2.1.272 rows to the matrix table (#4142)
+
 **[v10.0.0-beta.29](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.28...v10.0.0-beta.29)** · 2026-09-15
 
 - **site:** close honest ora.ai score holes for discovery and SDKs (#4137)
@@ -509,15 +513,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **tests:** report hook timeouts in test-image-paste-guard instead of swallowing them (GH-4087) (#4111)
 - **deps:** bump orchestkit-demos npm-minor-patch group with the peer resolution (supersedes GH-4098) (#4110)
 - …and 2 more (see [CHANGELOG.md](CHANGELOG.md))
-
-**[v10.0.0-beta.22](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.21...v10.0.0-beta.22)** · 2026-09-14
-
-- **site:** enable PostHog session replay on /docs/reference/* only (#4105)
-- **site:** register WebMCP page tools (search_docs, get_page) with server-rendered evidence (#4107)
-- **site:** static homepage, hero install command, host_selected, /mcp passthrough (#4103)
-- **docs:** give Lab pages a way back to the site, share cards and page views (#4101)
-- **hooks:** stop worktree pre-push fixtures flipping core.bare (#4070) (#4090)
-- …and 10 more (see [CHANGELOG.md](CHANGELOG.md))
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
