@@ -23,6 +23,7 @@ import { outputSilentSuccess, getProjectDir } from '../lib/common.js';
 import { getTaskByAgent, updateTaskStatus } from '../lib/task-integration.js';
 import { isAgentTeamsActive } from '../lib/agent-teams.js';
 import { normalizeAgentName } from '../lib/agent-attribution-types.js';
+import { getSubagentResult } from '../lib/subagent-result.js';
 import { NOOP_CTX } from '../lib/context.js';
 
 // -----------------------------------------------------------------------------
@@ -239,7 +240,9 @@ export function feedbackLoop(input: HookInput, _ctx: HookContext = NOOP_CTX): Ho
       'unknown',
   );
   const sessionId = input.session_id; // CC 2.1.9+ guarantees session_id
-  const agentOutput = input.agent_output || input.output || '';
+  // GH-4158: agent_output/output are never sent at SubagentStop (2.1.272);
+  // the result arrives as last_assistant_message.
+  const agentOutput = getSubagentResult(input);
   const error = input.error || '';
 
   logFeedback(`Processing feedback for agent: ${agentType} (session: ${sessionId})`);

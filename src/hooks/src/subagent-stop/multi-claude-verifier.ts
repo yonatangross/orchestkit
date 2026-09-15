@@ -14,6 +14,7 @@ import { writeFileSync, mkdirSync } from 'node:fs';
 import { bufferWrite } from '../lib/analytics-buffer.js';
 import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, getProjectDir } from '../lib/common.js';
+import { getSubagentResult } from '../lib/subagent-result.js';
 import { NOOP_CTX } from '../lib/context.js';
 
 // -----------------------------------------------------------------------------
@@ -113,7 +114,9 @@ export function multiClaudeVerifier(input: HookInput, ctx: HookContext = NOOP_CT
     input.subagent_type ||
     input.agent_type ||
     'unknown';
-  const agentOutput = input.agent_output || input.output || '';
+  // GH-4158: agent_output/output are never sent at SubagentStop (2.1.272);
+  // the result arrives as last_assistant_message.
+  const agentOutput = getSubagentResult(input);
 
   const verificationActions: VerificationAction[] = [];
 

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Where CC hides the subagent result: agent_output is a ghost field</title>
+<meta name="description" content="Four SubagentStop hooks read agent_output, output, summary and result, and CC 2.1.272 sends none of them. The final result arrives as last_assistant_message. Try both payloads and see what each hook reads.">
+<style>
+body { margin: 2rem auto; padding: 0 1rem; max-width: 58rem; font: 1rem/1.6 system-ui, sans-serif; color: #172033; background: #f6f8fc; }
+h1 { line-height: 1.2; }
+h2 { margin-top: 2rem; }
+pre { background: #0f1729; color: #e6edf7; padding: 1rem; overflow-x: auto; font-size: .85rem; border-radius: 8px; }
+pre .key { color: #7ee2b8; }
+pre .ghost { color: #ff8f8f; text-decoration: line-through; }
+button { font: inherit; padding: .4rem .9rem; margin-inline-end: .5rem; border: 1px solid #174d99; background: white; color: #174d99; cursor: pointer; border-radius: 6px; }
+button[aria-pressed="true"] { background: #174d99; color: white; }
+.note { color: #4a5568; }
+.tag { display: inline-block; padding: .1rem .5rem; border-radius: 999px; font-size: .8rem; background: #e2e8f0; color: #334155; margin-inline-end: .3rem; }
+code { font-family: ui-monospace, monospace; }
+table { border-collapse: collapse; width: 100%; background: white; border: 1px solid #b6c2d4; border-radius: 8px; }
+th, td { text-align: left; padding: .45rem .6rem; border-bottom: 1px solid #dde5ef; font-size: .9rem; }
+th { background: #eef2f8; }
+td.read { font-family: ui-monospace, monospace; }
+td.hit { color: #1a7f37; font-weight: 600; }
+td.miss { color: #b42318; }
+.verdict { margin-top: 1rem; padding: .75rem 1rem; background: white; border-left: 4px solid #174d99; }
+.verdict.bad { border-left-color: #b42318; }
+[hidden] { display: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Where CC hides the subagent result: agent_output is a ghost field"><meta property="og:description" content="Four SubagentStop hooks read agent_output, output, summary and result, and CC 2.1.272 sends none of them. The final result arrives as last_assistant_message. Toggle the measured payload against the legacy fixture and watch the old chains read an empty string while the shared reader returns the message."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/chore--dsp-99733-fix-4158.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Where CC hides the subagent result: agent_output is a ghost field"><meta name="twitter:description" content="Four SubagentStop hooks read agent_output, output, summary and result, and CC 2.1.272 sends none of them. The final result arrives as last_assistant_message. Toggle the measured payload against the legacy fixture and watch the old chains read an empty string while the shared reader returns the message."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+<h1>Where CC hides the subagent result</h1>
+<p><span class="tag">subagent-stop</span><span class="tag">GH-4158</span><span class="tag">CC 2.1.272</span></p>
+
+<p>Four SubagentStop hooks in OrchestKit (retry-handler, feedback-loop, multi-claude-verifier, auto-spawn-quality) read the subagent's final result from <code>agent_output</code>, falling back to <code>output</code>, <code>summary</code> and <code>result</code>. Measured live on CC 2.1.272, the SubagentStop payload carries none of those keys. The result arrives as <code>last_assistant_message</code>, with the full transcript alongside at <code>agent_transcript_path</code>. On every real payload the old chains evaluated to the empty string, so outcome detection fell through to success and three of the four hooks analysed nothing at all.</p>
+
+<p>This page embeds the same fallback chain the shared reader <code>getSubagentResult()</code> now runs, so you can feed it either payload and watch what the hooks would read.</p>
+
+<p><button type="button" id="btn-real" aria-pressed="true">Measured 2.1.272 payload</button><button type="button" id="btn-legacy" aria-pressed="false">Legacy fixture (agent_output)</button></p>
+
+<section id="payload-view" aria-label="The selected payload">
+<pre id="payload-pre"></pre>
+<p class="note" id="payload-note"></p>
+</section>
+
+<h2>What each read path returns</h2>
+<table>
+<thead>
+<tr><th scope="col">Call site</th><th scope="col">Old chain</th><th scope="col">Old read</th><th scope="col">New reader</th></tr>
+</thead>
+<tbody id="rows"></tbody>
+</table>
+
+<div class="verdict" id="verdict"></div>
+
+<h2>The reader, verbatim logic</h2>
+<pre>function getSubagentResult(input) {
+  const order = ['last_assistant_message', 'agent_output',
+                 'output', 'summary', 'result'];
+  for (const field of order) {
+    const v = input[field];
+    if (typeof v === 'string' &amp;&amp; v.length &gt; 0) return v;
+  }
+  return '';
+}</pre>
+<p class="note">Empty strings and non-string values are skipped rather than returned, matching the <code>||</code> chains every call site used, so an empty preferred field exposes a non-empty legacy one instead of masking it.</p>
+
+<h2>Why the ghost fields existed at all</h2>
+<p>The legacy names were documented for SubagentStop early on and stuck in every reader written against the docs rather than the wire. This is the same class measured in GH-3034, where 0 of 11,319 real SubagentStop rows carried <code>agent_output</code> or <code>output</code>. Two consumers were adapted then (unified-dispatcher, subagent-quality-gate); the four above were not, and this change routes all six through the one shared reader in <code>src/hooks/src/lib/subagent-result.ts</code>.</p>
+</main>
+<script>
+(function () {
+  'use strict';
+  var payloadReal = {
+    session_id: '9f1d0a4e-2b3c-4d5e-8f90-1a2b3c4d5e6f',
+    transcript_path: '/home/user/.claude/projects/-repo/9f1d0a4e.jsonl',
+    cwd: '/home/user/repo',
+    prompt_id: 'prompt-01J8ZK3M',
+    permission_mode: 'acceptEdits',
+    agent_id: 'a1b2c3d4e5f6789011',
+    agent_type: 'code-quality-reviewer',
+    effort: 'high',
+    hook_event_name: 'SubagentStop',
+    stop_hook_active: false,
+    agent_transcript_path: '/home/user/.claude/projects/-repo/subagents/a1b2c3d4.jsonl',
+    last_assistant_message: 'Quality review complete: 2 issues found (unused import, missing test), both fixed.',
+    background_tasks: [],
+    session_crons: []
+  };
+  var payloadLegacy = {
+    hook_event_name: 'SubagentStop',
+    session_id: '9f1d0a4e-2b3c-4d5e-8f90-1a2b3c4d5e6f',
+    agent_type: 'code-quality-reviewer',
+    agent_output: 'Partial result: 2 of 5 checks incomplete',
+    output: 'Partial result'
+  };
+  var legacyFields = ['agent_output', 'output', 'summary', 'result'];
+  var readerFields = ['last_assistant_message'].concat(legacyFields);
+
+  function getSubagentResult(input) {
+    for (var i = 0; i < readerFields.length; i++) {
+      var v = input[readerFields[i]];
+      if (typeof v === 'string' && v.length > 0) return v;
+    }
+    return '';
+  }
+  function oldChain(input) {
+    var fields = legacyFields;
+    for (var i = 0; i < fields.length; i++) {
+      var v = input[fields[i]];
+      if (typeof v === 'string' && v.length > 0) return v;
+    }
+    return '';
+  }
+
+  var sites = [
+    { hook: 'retry-handler detectOutcome', op: 'agent_output || output' },
+    { hook: 'retry-handler detectTurnLimit', op: 'agent_output ?? output ?? summary ?? result' },
+    { hook: 'feedback-loop', op: 'agent_output || output' },
+    { hook: 'multi-claude-verifier', op: 'agent_output || output' },
+    { hook: 'auto-spawn-quality', op: 'agent_output || output' }
+  ];
+
+  function esc(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function renderPre(payload, note) {
+    var lines = ['{'];
+    var keys = Object.keys(payload);
+    for (var i = 0; i < keys.length; i++) {
+      var k = keys[i];
+      var v = payload[k];
+      var vs = typeof v === 'string' ? '"' + v + '"' : JSON.stringify(v);
+      var cls = legacyFields.indexOf(k) >= 0 ? ' class="ghost"' : (k === 'last_assistant_message' || k === 'agent_transcript_path' ? ' class="key"' : '');
+      lines.push('  <span' + cls + '>"' + k + '": ' + esc(vs) + '</span>' + (i < keys.length - 1 ? ',' : ''));
+    }
+    lines.push('}');
+    document.getElementById('payload-pre').innerHTML = lines.join('\n');
+    document.getElementById('payload-note').textContent = note;
+  }
+
+  function renderRows(payload) {
+    var tbody = document.getElementById('rows');
+    var html = '';
+    var oldVal = oldChain(payload);
+    var newVal = getSubagentResult(payload);
+    for (var i = 0; i < sites.length; i++) {
+      var s = sites[i];
+      html += '<tr><th scope="row">' + esc(s.hook) + '</th><td class="read">' + esc(s.op) + '</td>' +
+        '<td class="' + (oldVal ? 'hit' : 'miss') + '">' + (oldVal ? '"' + esc(oldVal.slice(0, 44)) + '"' : 'empty string') + '</td>' +
+        '<td class="' + (newVal ? 'hit' : 'miss') + '">' + (newVal ? '"' + esc(newVal.slice(0, 44)) + '"' : 'empty string') + '</td></tr>';
+    }
+    var v = document.getElementById('verdict');
+    if (newVal) {
+      v.className = 'verdict' + (oldVal ? '' : ' bad');
+      v.textContent = oldVal
+        ? 'Both chains read the same text here. On the legacy shape the old code worked by luck; the reader only changes priority.'
+        : 'Old chain: empty string on every row. Outcome detection fell through to success, turn-limit detection returned null, and the quality analysers scored nothing. The reader returns the message, ' + String(newVal.length) + ' chars.';
+    } else {
+      v.className = 'verdict bad';
+      v.textContent = 'Nothing to read: the reader returns the empty string, same as the old chain.';
+    }
+    tbody.innerHTML = html;
+  }
+
+  function select(which) {
+    var real = which === 'real';
+    document.getElementById('btn-real').setAttribute('aria-pressed', String(real));
+    document.getElementById('btn-legacy').setAttribute('aria-pressed', String(!real));
+    if (real) {
+      renderPre(payloadReal, 'Key for key the live capture on CC 2.1.272. Struck through: the four legacy names the old chains depended on, absent here. Green: the two fields that carry the result.');
+    } else {
+      renderPre(payloadLegacy, 'The documented shape the hooks were written against. Struck through: fields the old chains read. Older CC builds and test fixtures look like this.');
+    }
+    renderRows(real ? payloadReal : payloadLegacy);
+  }
+
+  document.getElementById('btn-real').addEventListener('click', function () { select('real'); });
+  document.getElementById('btn-legacy').addEventListener('click', function () { select('legacy'); });
+  select('real');
+})();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

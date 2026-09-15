@@ -120,9 +120,13 @@ export interface HookInput {
   agent_id?: string;
   /** Parent agent ID for trace stitching — NOT sent by CC ≤ 2.1.173 at any subagent event (live-verified 2026-06-11); kept for forward-compat with anthropics/claude-code#16424 */
   parent_agent_id?: string;
-  /** Agent output (SubagentStop) */
+  /** LEGACY agent output (SubagentStop). CC never sends it on real payloads:
+   *  0 of 11,319 rows carried it (#3034) and the measured 2.1.272 payload
+   *  omits it (GH-4158). The final result arrives as
+   *  `last_assistant_message`. Kept for old fixtures; read through
+   *  lib/subagent-result.ts getSubagentResult() instead of directly. */
   agent_output?: string;
-  /** Output (alternative field name) */
+  /** LEGACY output (alternative field name, same caveat as agent_output) */
   output?: string;
   /** Error from subagent (SubagentStop/StopFailure) — also the real field
    *  PostToolUseFailure sends for the tool's error message (verified 2.1.228,
@@ -132,7 +136,9 @@ export interface HookInput {
   duration_ms?: number;
   /** Tool result — string from most hooks, object from Skill PostToolUse */
   tool_result?: string | { is_error?: boolean; content?: string };
-  /** Path to subagent's transcript file (SubagentStop, CC 2.1.69) */
+  /** Path to subagent's transcript file (SubagentStop, CC 2.1.69). Part of
+   *  the measured 2.1.272 payload (GH-4158); read it when the message text
+   *  alone is not enough. */
   agent_transcript_path?: string;
 
   // TeammateIdle fields. The 2.1.227 binary builds this payload as
@@ -169,7 +175,9 @@ export interface HookInput {
   notification_type?: string;
 
   // Stop/StopFailure/SubagentStop specific fields (CC 2.1.47, 2.1.78)
-  /** The final assistant message text (Stop and SubagentStop, CC 2.1.47+) */
+  /** The final assistant message text (Stop and SubagentStop, CC 2.1.47+).
+   *  At SubagentStop this is THE field CC sends the result in: present on the
+   *  measured 2.1.272 payload while agent_output/output are not (GH-4158). */
   last_assistant_message?: string;
 
   // StopFailure fields. The 2.1.227 binary builds this payload as
