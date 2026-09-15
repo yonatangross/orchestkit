@@ -1,0 +1,12 @@
+{
+  "slug": "chore--dsp-94230-fix-4109",
+  "source": "docs/chore--dsp-94230-fix-4109/index.html",
+  "title": "The Privacy Page Said Local Storage Only, While the Browser Held a ph_ Cookie",
+  "description": "The privacy page's Cookies and tracking section claimed browser storage was limited to a theme preference, but instrumentation-client.ts loads posthog-js without a persistence override, and posthog-js 1.430.2 defaults to localStorage+cookie, so every visitor also holds a first-party ph_ cookie with an anonymous distinct id, a device id, the session id and the first-visit referrer and landing URL. GH-4109 corrects the paragraph to name the cookie, repeat the no-advertisers promise, and state plainly that the site offers no opt-out. Toggle before and after, read the three sources of truth behind the sentence, and simulate the storage one page view leaves behind.",
+  "tags": [
+    "docs-site",
+    "privacy",
+    "posthog"
+  ],
+  "date": "2026-09-15"
+}

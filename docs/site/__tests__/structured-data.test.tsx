@@ -43,3 +43,34 @@ describe("homepage JSON-LD graph", () => {
 		expect(types).toContain("BreadcrumbList");
 	});
 });
+
+// #4144: the studio entity is canonically declared by the apex brand site
+// (yonyon.ai). The docs subdomain must restate that entity, not mint a second
+// Organization whose official website lives only on orchestkit.yonyon.ai.
+describe("Yonyon studio Organization node", () => {
+	const yonyonOrg = (): Record<string, unknown> | undefined =>
+		homepageGraph().find(
+			(n) => n["@type"] === "Organization" && n.name === "Yonyon",
+		);
+
+	it("reuses the apex entity @id instead of declaring a second Organization", () => {
+		const org = yonyonOrg();
+		expect(org).toBeTruthy();
+		expect(org?.["@id"]).toBe("https://yonyon.ai/#organization");
+	});
+
+	it("points the official website at the apex studio, never only at the docs subdomain", () => {
+		const org = yonyonOrg();
+		expect(org?.url).toBe("https://yonyon.ai");
+		const sameAs = org?.sameAs as string[];
+		expect(sameAs).toContain("https://yonyon.ai");
+		expect(sameAs).toContain("https://yonyon.ai/yonyon");
+	});
+
+	it("keeps the docs-subdomain /yonyon page as the page url only", () => {
+		const org = yonyonOrg();
+		expect(org?.mainEntityOfPage).toBe("https://orchestkit.yonyon.ai/yonyon");
+		const sameAs = org?.sameAs as string[];
+		expect(sameAs).not.toContain("https://orchestkit.yonyon.ai/yonyon");
+	});
+});

@@ -5,6 +5,26 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.33](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.32...v10.0.0-beta.33) (2026-09-15)
+
+
+### Bug Fixes
+
+* **docs:** name the PostHog ph_ cookie on the privacy page ([#4152](https://github.com/yonatangross/orchestkit/issues/4152)) ([10bab21](https://github.com/yonatangross/orchestkit/commit/10bab21e0d44989b5269e43135e70b152ebfa911))
+* **site:** crosslink apex Yonyon brand page from /yonyon ([#4154](https://github.com/yonatangross/orchestkit/issues/4154)) ([f59a74f](https://github.com/yonatangross/orchestkit/commit/f59a74fa7be2536036f036aba41cabfb969ac56c))
+
+## [10.0.0-beta.32](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.31...v10.0.0-beta.32) (2026-09-15)
+
+
+### Features
+
+* **site:** add Devin host card and rebuild picker as animated grid ([#4150](https://github.com/yonatangross/orchestkit/issues/4150)) ([a910b39](https://github.com/yonatangross/orchestkit/commit/a910b394e96314c5463f6eb22b312db0cc9bed0f))
+
+
+### Bug Fixes
+
+* **site:** render host cards visibly during SSR ([#4153](https://github.com/yonatangross/orchestkit/issues/4153)) ([dbc05e2](https://github.com/yonatangross/orchestkit/commit/dbc05e285c3dcbdbaf0697ed4a86e76eb29d9641))
+
 ## [10.0.0-beta.31](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.30...v10.0.0-beta.31) (2026-09-15)
 
 

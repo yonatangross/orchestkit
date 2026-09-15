@@ -80,7 +80,16 @@ export const YONYON = {
   // Plain-language collision note, surfaced as schema.org disambiguatingDescription.
   disambiguation:
     "Yonyon here is a software studio (the publisher of OrchestKit) — not the musician of the same name.",
-  // Canonical page we control that resolves the studio brand to this product.
+  // Apex brand home. The studio's official website is the apex domain, and the
+  // /yonyon page there is the canonical brand page for the studio entity. The
+  // Yonyon Organization JSON-LD reuses the apex entity (url + sameAs point at
+  // the apex; see structured-data.tsx) so the docs subdomain never declares a
+  // second, competing studio Organization (#4144).
+  apex: "https://yonyon.ai",
+  apexPage: "https://yonyon.ai/yonyon",
+  // This site's own /yonyon page: the docs-subdomain twin of the brand page.
+  // Page url (breadcrumb, mainEntityOfPage) or sameAs only, never the
+  // Organization's official website.
   url: `${SITE.domain}/yonyon`,
   wikidata: "https://www.wikidata.org/wiki/Q141457913",
 } as const;

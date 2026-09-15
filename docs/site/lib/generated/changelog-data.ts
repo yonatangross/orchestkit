@@ -18,6 +18,42 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.33",
+    "date": "2026-09-15",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.32...v10.0.0-beta.33",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**docs:** name the PostHog ph_ cookie on the privacy page ([#4152](https://github.com/yonatangross/orchestkit/issues/4152)) ([10bab21](https://github.com/yonatangross/orchestkit/commit/10bab21e0d44989b5269e43135e70b152ebfa911))",
+          "**site:** crosslink apex Yonyon brand page from /yonyon ([#4154](https://github.com/yonatangross/orchestkit/issues/4154)) ([f59a74f](https://github.com/yonatangross/orchestkit/commit/f59a74fa7be2536036f036aba41cabfb969ac56c))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "10.0.0-beta.32",
+    "date": "2026-09-15",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.31...v10.0.0-beta.32",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**site:** add Devin host card and rebuild picker as animated grid ([#4150](https://github.com/yonatangross/orchestkit/issues/4150)) ([a910b39](https://github.com/yonatangross/orchestkit/commit/a910b394e96314c5463f6eb22b312db0cc9bed0f))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**site:** render host cards visibly during SSR ([#4153](https://github.com/yonatangross/orchestkit/issues/4153)) ([dbc05e2](https://github.com/yonatangross/orchestkit/commit/dbc05e285c3dcbdbaf0697ed4a86e76eb29d9641))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.31",
     "date": "2026-09-15",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.30...v10.0.0-beta.31",

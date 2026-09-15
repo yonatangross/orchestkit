@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy page said local storage only, while the browser held a ph_ cookie</title>
+<meta name="description" content="GH-4109: the docs site privacy page claimed storage was limited to a theme preference while posthog-js set a ph_ cookie. See the three sources of truth and the corrected text.">
+<style>
+body { margin: 2rem auto; padding: 0 1rem; max-width: 56rem; font: 1rem/1.6 system-ui, sans-serif; color: #172033; background: #f6f8fc; }
+h1 { line-height: 1.2; }
+h2 { margin-top: 2rem; }
+table { width: 100%; border-collapse: collapse; background: white; margin: .5rem 0 1rem; }
+th, td { padding: .6rem; text-align: left; border: 1px solid #b6c2d4; vertical-align: top; }
+pre { background: #0f1729; color: #e6edf7; padding: 1rem; overflow-x: auto; font-size: .85rem; border-radius: 8px; }
+code { font-family: ui-monospace, monospace; font-size: .9em; }
+button { font: inherit; padding: .4rem .9rem; margin-inline-end: .5rem; border: 1px solid #174d99; background: white; color: #174d99; cursor: pointer; border-radius: 6px; }
+button[aria-pressed="true"] { background: #174d99; color: white; }
+.jar { background: white; border: 1px solid #b6c2d4; border-radius: 8px; padding: .75rem 1rem; margin: .5rem 0 1rem; }
+.jar .entry { font-family: ui-monospace, monospace; font-size: .85rem; padding: .3rem 0; border-bottom: 1px dashed #d7e0ec; }
+.jar .entry:last-child { border-bottom: none; }
+.jar .empty { color: #64748b; font-style: italic; }
+.bad { color: #b42318; }
+.good { color: #067647; }
+.note { color: #4a5568; }
+label.switch { display: inline-flex; gap: .4rem; align-items: center; margin: .5rem 0 1rem; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="The Privacy Page Said Local Storage Only, While the Browser Held a ph_ Cookie"><meta property="og:description" content="The privacy page's Cookies and tracking section claimed browser storage was limited to a theme preference, but instrumentation-client.ts loads posthog-js without a persistence override, and posthog-js 1.430.2 defaults to localStorage+cookie, so every visitor also holds a first-party ph_ cookie with an anonymous distinct id, a device id, the session id and the first-visit referrer and landing URL. GH-4109 corrects the paragraph to name the cookie, repeat the no-advertisers promise, and state plainly that the site offers no opt-out. Toggle before and after, read the three sources of truth behind the sentence, and simulate the storage one page view leaves behind."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/chore--dsp-94230-fix-4109.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="The Privacy Page Said Local Storage Only, While the Browser Held a ph_ Cookie"><meta name="twitter:description" content="The privacy page's Cookies and tracking section claimed browser storage was limited to a theme preference, but instrumentation-client.ts loads posthog-js without a persistence override, and posthog-js 1.430.2 defaults to localStorage+cookie, so every visitor also holds a first-party ph_ cookie with an anonymous distinct id, a device id, the session id and the first-visit referrer and landing URL. GH-4109 corrects the paragraph to name the cookie, repeat the no-advertisers promise, and state plainly that the site offers no opt-out. Toggle before and after, read the three sources of truth behind the sentence, and simulate the storage one page view leaves behind."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+<h1>The privacy page said local storage only, while the browser held a ph_ cookie</h1>
+<p>The docs site privacy page claimed browser storage was limited to a theme preference in local storage. The site loads posthog-js from <code>instrumentation-client.ts</code>, and the init options never set <code>persistence</code>. Measured against the installed posthog-js 1.430.2 build, the SDK default is <code>persistence: "localStorage+cookie"</code>, so every visitor also gets a first-party cookie named <code>ph_&lt;project-key&gt;_posthog</code>. GH-4109 corrects the Cookies and tracking section to name that cookie instead of implying it does not exist.</p>
+
+<p><button type="button" id="tab-before" aria-pressed="true">Before: the claim on the page</button><button type="button" id="tab-after" aria-pressed="false">After: the corrected text</button></p>
+
+<section id="view-before" aria-label="the incorrect cookies claim, as shipped">
+<pre>Cookies and tracking
+
+The site does not use advertising cookies or cross-site
+trackers. Theme preference may be stored in your browser's
+local storage purely to remember light or dark mode.</pre>
+<p class="note bad">Read literally, the paragraph rules out any other browser storage. It was written before the PostHog mirror shipped and was never updated.</p>
+</section>
+
+<section id="view-after" aria-label="the corrected cookies text shipped by this PR" hidden>
+<pre>Cookies and tracking
+
+The site does not use advertising cookies or cross-site trackers.
+Theme preference may be stored in your browser's local storage
+purely to remember light or dark mode. Analytics run through
+PostHog, which also sets a first-party cookie whose name begins
+with ph_ (of the form ph_&lt;project-key&gt;_posthog) holding an
+anonymous distinct id, a device id, the session id, and the
+first-visit referrer and landing URL; that data stays with this
+site's own analytics and is not shared with advertisers. The site
+does not offer an opt-out or consent prompt for analytics;
+blocking or clearing cookies that begin with ph_ in your browser
+settings is the only way to decline them.</pre>
+<p class="note good">Names the cookie, says what it holds, repeats the no advertisers promise, and states plainly that no opt-out control exists. None was invented.</p>
+</section>
+
+<h2>Three sources of truth, checked before writing the sentence</h2>
+<table>
+<tr><th>Source</th><th>What it says</th></tr>
+<tr><td><code>instrumentation-client.ts</code> init options</td><td>Sets <code>api_host</code>, <code>ui_host</code>, <code>defaults</code>, replay masking, <code>person_profiles: "identified_only"</code>, <code>capture_exceptions</code>. No <code>persistence</code> key, so the SDK default applies.</td></tr>
+<tr><td>posthog-js 1.430.2 installed build</td><td>Default config ships <code>persistence: "localStorage+cookie"</code> and <code>respect_dnt: false</code>. The persistence key is <code>"ph_" + (persistence_name || token) + "_posthog"</code>.</td></tr>
+<tr><td>Consent surface on the site</td><td>None. No cookie banner, no toggle, no do-not-track handling anywhere under <code>app/</code>, <code>components/</code> or <code>lib/</code>. The corrected text says so instead of inventing one.</td></tr>
+</table>
+
+<h2>What one page view actually leaves behind</h2>
+<p><button type="button" id="load">Load the docs site (simulated)</button><button type="button" id="clear">Clear browsing data</button></p>
+<label class="switch"><input type="checkbox" id="decline"> Block ph_ cookies in browser settings (the one lever the page names)</label>
+
+<div class="jar">
+<p><strong>Cookies</strong></p>
+<div id="cookies"><p class="empty">nothing yet</p></div>
+</div>
+<div class="jar">
+<p><strong>Local storage</strong></p>
+<div id="localstore"><p class="empty">nothing yet</p></div>
+</div>
+<p id="verdict" class="note"></p>
+<p class="note">Everything on this page is a local simulation; the real ids are random UUIDs minted by the SDK. The distinct id is anonymous because the site has no login and the init sets <code>person_profiles: "identified_only"</code>.</p>
+</main>
+
+<script>
+(function () {
+  var before = document.getElementById("tab-before");
+  var after = document.getElementById("tab-after");
+  var viewBefore = document.getElementById("view-before");
+  var viewAfter = document.getElementById("view-after");
+
+  function show(which) {
+    var isBefore = which === "before";
+    before.setAttribute("aria-pressed", String(isBefore));
+    after.setAttribute("aria-pressed", String(!isBefore));
+    viewBefore.hidden = !isBefore;
+    viewAfter.hidden = isBefore;
+  }
+  before.addEventListener("click", function () { show("before"); });
+  after.addEventListener("click", function () { show("after"); });
+
+  var cookies = document.getElementById("cookies");
+  var localstore = document.getElementById("localstore");
+  var verdict = document.getElementById("verdict");
+  var decline = document.getElementById("decline");
+
+  // Demo ids only, never secrets. crypto.randomUUID is the standard source
+  // the browser provides; the fixed string keeps the simulation alive where
+  // crypto is unavailable.
+  function newId() {
+    if (window.crypto && typeof window.crypto.randomUUID === "function") {
+      return window.crypto.randomUUID();
+    }
+    return "demo-0000-0000";
+  }
+
+  function render() {
+    var state = window.__labJar || null;
+    if (!state) {
+      cookies.innerHTML = '<p class="empty">nothing yet</p>';
+      localstore.innerHTML = '<p class="empty">nothing yet</p>';
+      verdict.textContent = "No page loaded yet: nothing in the jar.";
+      return;
+    }
+    var cookieRows = "";
+    if (state.cookie && !decline.checked) {
+      cookieRows = cookieRows +
+        '<div class="entry"><strong>ph_phc_A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6_posthog</strong>' +
+        '<br>distinct_id: ' + state.distinctId +
+        '<br>$device_id: ' + state.deviceId +
+        '<br>$sesid (session id): ' + state.sessionId +
+        '<br>$initial_person_info: ' + state.firstVisit + "</div>";
+    }
+    if (state.cookie && decline.checked) {
+      cookieRows = '<div class="entry bad">ph_phc_..._posthog was refused: the browser blocks it.</div>';
+    }
+    cookies.innerHTML = cookieRows || '<p class="empty">nothing yet</p>';
+
+    var localRows = "";
+    if (state.cookie && !decline.checked) {
+      localRows = localRows +
+        '<div class="entry">ph_phc_A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6_posthog: same properties, mirrored by the localStorage+cookie default</div>';
+    }
+    localRows = localRows +
+      '<div class="entry">theme: ' + state.theme + " (the only storage the old paragraph admitted to)</div>";
+    localstore.innerHTML = localRows;
+
+    verdict.textContent = decline.checked
+      ? "Declined: the ph_ cookie never lands, but the analytics requests still fire, so blocking the cookie is a weak lever. The honest fix was the text."
+      : "Loaded: one ph_ cookie (anonymous distinct id, device id, session id, first-visit referrer and landing URL) and the theme preference. The corrected paragraph now names all of it.";
+  }
+
+  document.getElementById("load").addEventListener("click", function () {
+    window.__labJar = {
+      cookie: true,
+      distinctId: newId(),
+      deviceId: newId(),
+      sessionId: String(Math.floor(Date.now() / 1000)) + "-" + newId(),
+      firstVisit: "referrer: (direct), landing: /docs/foundations/overview",
+      theme: "dark",
+    };
+    render();
+  });
+  document.getElementById("clear").addEventListener("click", function () {
+    window.__labJar = null;
+    render();
+  });
+  decline.addEventListener("change", render);
+  render();
+})();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

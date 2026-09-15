@@ -1,0 +1,14 @@
+{
+  "slug": "devin-host-card-ssr",
+  "source": "docs/fix--devin-host-card-ssr/index.html",
+  "title": "Host cards: visible in the static HTML",
+  "description": "useReducedMotion() is null during SSR, so the host picker's entrance variant prerendered all seven cards at opacity 0. The fix renders initial=false always and starts the staggered entrance from a post-mount effect. Toggle broken versus fixed to see the difference.",
+  "tags": [
+    "site",
+    "hosts",
+    "ssr",
+    "motion",
+    "a11y"
+  ],
+  "date": "2026-09-15"
+}

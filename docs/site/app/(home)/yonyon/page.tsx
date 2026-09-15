@@ -51,6 +51,13 @@ export default function YonyonPage() {
 				is published at <strong>orchestkit.yonyon.ai</strong>.
 			</p>
 
+			<p>
+				The studio also owns the apex brand site: <a href={YONYON.apex}>yonyon.ai</a>,
+				with the studio page at <a href={YONYON.apexPage}>yonyon.ai/yonyon</a>.
+				Same Yonyon AI studio, not the DJ: one identity, published on both
+				domains.
+			</p>
+
 			<h2>Not the musician</h2>
 			<p>
 				The name “Yonyon” collides with an unrelated DJ and music producer. To be
