@@ -1,0 +1,14 @@
+{
+  "slug": "devin-host-card",
+  "source": "docs/feat--devin-host-card/index.html",
+  "title": "Devin joins the host picker: 7 cards, real motion",
+  "description": "The homepage host picker rebuilt as a 21st.dev-derived animated card grid: staggered spring entrance, roving-tabindex arrow-key navigation, reduced-motion support, and a seventh host. Devin's copy is measured, not aspirational: devin plugins install of the #plugins/ork tree lists 76 of 107 skills today; hooks and rules do not load (orchestkit#4146).",
+  "tags": [
+    "site",
+    "hosts",
+    "devin",
+    "motion",
+    "a11y"
+  ],
+  "date": "2026-09-15"
+}

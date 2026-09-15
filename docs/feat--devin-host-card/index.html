@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Devin joins the host picker: 7 cards, real motion</title>
+<meta name="description" content="Playground for the OrchestKit homepage host picker: a seventh host (Devin) plus a 21st.dev-derived animated card grid with keyboard navigation and reduced-motion support.">
+<style>
+  :root {
+    --bg: #0d1017;
+    --surface: #141926;
+    --border: #2a3244;
+    --fg: #e6eaf2;
+    --muted: #8b94a7;
+    --primary: #a5b4fc;
+    --primary-10: rgba(165, 180, 252, 0.10);
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+    padding: 48px 24px;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; }
+  h1 { font-size: 22px; font-weight: 650; letter-spacing: -0.01em; }
+  .sub { color: var(--muted); margin-top: 8px; font-size: 13.5px; }
+  .grid {
+    margin-top: 28px;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+  }
+  @media (max-width: 640px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .card {
+    position: relative;
+    display: flex; flex-direction: column; align-items: flex-start; gap: 8px;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    color: var(--muted);
+    text-align: left;
+    cursor: pointer;
+    text-decoration: none;
+    opacity: 0;
+  }
+  .card.on { border-color: rgba(165,180,252,.5); background: var(--primary-10); color: var(--fg); }
+  .card:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+  .ring {
+    position: absolute; inset: 0; border-radius: 12px;
+    box-shadow: 0 0 0 2px rgba(165,180,252,.35);
+    pointer-events: none;
+    transition: transform .38s cubic-bezier(.2,.8,.3,1), opacity .2s;
+  }
+  .icon {
+    display: inline-flex; width: 36px; height: 36px;
+    align-items: center; justify-content: center;
+    border: 1px solid var(--border); border-radius: 8px;
+    background: var(--bg); color: var(--fg);
+    font: 700 13px/1 ui-monospace, monospace;
+  }
+  .name { font-size: 13px; font-weight: 600; color: var(--fg); }
+  .what { font-size: 11px; line-height: 16px; color: var(--muted); min-height: 32px; }
+  .panel {
+    margin-top: 14px;
+    border: 1px solid var(--border); border-radius: 8px;
+    background: var(--surface);
+    padding: 10px 12px;
+    font: 12.5px/1.6 ui-monospace, SFMono-Regular, monospace;
+    color: var(--fg);
+    white-space: pre-wrap; word-break: break-all;
+  }
+  .panel .p { color: var(--muted); margin-right: 6px; }
+  .note { margin-top: 10px; font-size: 12px; color: var(--muted); text-align: center; }
+  kbd { border: 1px solid var(--border); border-radius: 4px; padding: 0 5px; font: 11px ui-monospace, monospace; }
+  @media (prefers-reduced-motion: reduce) {
+    .card { transition: none !important; }
+    .ring { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Devin joins the host picker</h1>
+  <p class="sub">
+    Seven hosts, one tab stop. Arrow keys move focus, <kbd>Enter</kbd>/<kbd>Space</kbd> picks,
+    <kbd>Home</kbd>/<kbd>End</kbd> jump. Entrance is a staggered spring with an overshoot settle,
+    adapted from 21st.dev Animated Card Options (isaiahbjork); the selected card keeps the shared
+    ring. Honors prefers-reduced-motion.
+  </p>
+  <div class="grid" id="grid" role="group" aria-label="Hosts"></div>
+  <div class="panel" id="panel" aria-live="polite"></div>
+  <p class="note">Devin card copy is measured, not aspirational: 76 of 107 skills list under Devin today (orchestkit#4146 tracks the rest plus hooks).</p>
+</div>
+<script>
+(function () {
+  var REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var HOSTS = [
+    { id: "claude",   name: "Claude Code", mark: "C",  what: "Full ork plugin: skills, agents, hooks.", cmd: "claude plugin marketplace add yonatangross/orchestkit && claude plugin install ork@orchestkit" },
+    { id: "cursor",   name: "Cursor",      mark: "Cu", what: "Same ork plugin. Hooks not registered.", cmd: "yonatangross/orchestkit" },
+    { id: "codex",    name: "Codex",       mark: "Cx", what: "Portable ork-codex pack.", cmd: "codex plugin marketplace add yonatangross/orchestkit --ref main" },
+    { id: "muse",     name: "Muse Code",   mark: "M",  what: "Skills via .agents/skills.", cmd: "npx skills add yonatangross/orchestkit -s implement" },
+    { id: "pi",       name: "Pi",          mark: "Pi", what: "Shipped pi manifest.", cmd: "pi install git:github.com/yonatangross/orchestkit" },
+    { id: "opencode", name: "OpenCode",    mark: "Oc", what: "Agent Skills via skills.sh.", cmd: "npx skills add yonatangross/orchestkit -s implement" },
+    { id: "devin",    name: "Devin",       mark: "D",  what: "76 skills list; hooks do not load.", cmd: "devin plugins install https://github.com/yonatangross/orchestkit#plugins/ork" }
+  ];
+  var grid = document.getElementById("grid");
+  var panel = document.getElementById("panel");
+  var current = 0, focusIdx = 0, ring = null;
+
+  function cols() {
+    return getComputedStyle(grid).gridTemplateColumns.split(" ").length;
+  }
+
+  HOSTS.forEach(function (h, i) {
+    var a = document.createElement("a");
+    a.className = "card";
+    a.href = "#" + h.id;
+    a.tabIndex = i === 0 ? 0 : -1;
+    a.innerHTML =
+      '<span class="icon">' + h.mark + "</span>" +
+      '<span class="name">' + h.name + "</span>" +
+      '<span class="what">' + h.what + "</span>";
+    a.addEventListener("click", function (e) { e.preventDefault(); select(i); });
+    a.addEventListener("focus", function () { focusIdx = i; });
+    grid.appendChild(a);
+
+    if (REDUCED) {
+      a.style.opacity = "1";
+    } else {
+      a.animate(
+        [{ opacity: 0, transform: "scale(.8) translateY(20px)" },
+         { opacity: 1, transform: "scale(1.01) translateY(0)", offset: .7 },
+         { opacity: 1, transform: "scale(1) translateY(0)" }],
+        { duration: 500, delay: i * 50, easing: "cubic-bezier(.175,.885,.32,1.275)", fill: "forwards" }
+      );
+    }
+  });
+
+  function select(i) {
+    current = i;
+    var cards = grid.children;
+    for (var k = 0; k < cards.length; k++) {
+      cards[k].classList.toggle("on", k === i);
+      cards[k].setAttribute("aria-current", k === i ? "true" : "false");
+    }
+    if (!ring) {
+      ring = document.createElement("span");
+      ring.className = "ring";
+      ring.setAttribute("aria-hidden", "true");
+    }
+    cards[i].appendChild(ring);
+    panel.innerHTML = '<span class="p">$</span>' + HOSTS[i].cmd;
+  }
+
+  grid.addEventListener("keydown", function (e) {
+    var n = HOSTS.length, c = cols(), next = null;
+    if (e.key === " ") { e.preventDefault(); select(focusIdx); return; }
+    if (e.key === "ArrowRight") next = (focusIdx + 1) % n;
+    else if (e.key === "ArrowLeft") next = (focusIdx - 1 + n) % n;
+    else if (e.key === "ArrowDown") next = Math.min(focusIdx + c, n - 1);
+    else if (e.key === "ArrowUp") next = Math.max(focusIdx - c, 0);
+    else if (e.key === "Home") next = 0;
+    else if (e.key === "End") next = n - 1;
+    else return;
+    e.preventDefault();
+    focusIdx = next;
+    for (var k = 0; k < n; k++) grid.children[k].tabIndex = k === next ? 0 : -1;
+    grid.children[next].focus();
+  });
+
+  select(0);
+})();
+</script>
+</body>
+</html>

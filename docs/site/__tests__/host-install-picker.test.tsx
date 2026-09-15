@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { HostInstallPicker } from "@/components/host-install";
 import { track } from "@/lib/search-beacon";
 
@@ -110,6 +110,162 @@ describe("HostInstallPicker", () => {
 			scroll: false,
 			transitionTypes: ["catalog"],
 		});
+	});
+
+	it("renders seven host links including Devin", () => {
+		render(<HostInstallPicker />);
+		const nav = screen.getByRole("navigation", { name: /install by host/i });
+		expect(within(nav).getByRole("link", { name: "Devin" })).toBeTruthy();
+		expect(
+			within(nav).getAllByRole("link", { name: /docs/i }).length,
+		).toBeGreaterThanOrEqual(1);
+	});
+
+	it("adopts a ?host=devin deep link and shows its install command", async () => {
+		search = new URLSearchParams("host=devin");
+		render(<HostInstallPicker />);
+		expect(
+			await screen.findByRole("button", {
+				name: /copy devin plugins install https:\/\/github\.com\/yonatangross\/orchestkit/i,
+			}),
+		).toBeTruthy();
+		await waitFor(() =>
+			expect(
+				screen.getByRole("link", { name: "Devin" }).getAttribute("aria-current"),
+			).toBe("true"),
+		);
+	});
+
+	it("moves focus between cards with arrow keys", () => {
+		render(<HostInstallPicker />);
+		const claude = screen.getByRole("link", { name: "Claude Code" });
+		claude.focus();
+		fireEvent.keyDown(claude, { key: "ArrowRight" });
+		expect(document.activeElement).toBe(
+			screen.getByRole("link", { name: "Cursor" }),
+		);
+		fireEvent.keyDown(document.activeElement as Element, { key: "End" });
+		expect(document.activeElement).toBe(
+			screen.getByRole("link", { name: "Devin" }),
+		);
+		fireEvent.keyDown(document.activeElement as Element, { key: "Home" });
+		expect(document.activeElement).toBe(
+			screen.getByRole("link", { name: "Claude Code" }),
+		);
+	});
+
+	it("wraps ArrowLeft from the first card to the last", () => {
+		render(<HostInstallPicker />);
+		const claude = screen.getByRole("link", { name: "Claude Code" });
+		claude.focus();
+		fireEvent.keyDown(claude, { key: "ArrowLeft" });
+		expect(document.activeElement).toBe(
+			screen.getByRole("link", { name: "Devin" }),
+		);
+	});
+
+	it("moves by grid columns on ArrowDown/ArrowUp and stays put at the edge", () => {
+		const realGetComputedStyle = window.getComputedStyle.bind(window);
+		vi.spyOn(window, "getComputedStyle").mockImplementation(
+			(el: Element, pseudo?: string | null) => {
+				if (
+					el instanceof HTMLElement &&
+					el.getAttribute("aria-label") === "Hosts"
+				) {
+					return {
+						...realGetComputedStyle(el, pseudo),
+						gridTemplateColumns: "1fr 1fr 1fr 1fr",
+					} as CSSStyleDeclaration;
+				}
+				return realGetComputedStyle(el, pseudo);
+			},
+		);
+		render(<HostInstallPicker />);
+		const claude = screen.getByRole("link", { name: "Claude Code" });
+		claude.focus();
+		fireEvent.keyDown(claude, { key: "ArrowDown" });
+		expect(document.activeElement).toBe(
+			screen.getByRole("link", { name: "Pi" }),
+		);
+		fireEvent.keyDown(document.activeElement as Element, { key: "ArrowDown" });
+		expect(document.activeElement).toBe(
+			screen.getByRole("link", { name: "Devin" }),
+		);
+		// No cell below the last card: focus must not move (APG grid).
+		fireEvent.keyDown(document.activeElement as Element, { key: "ArrowDown" });
+		expect(document.activeElement).toBe(
+			screen.getByRole("link", { name: "Devin" }),
+		);
+		fireEvent.keyDown(document.activeElement as Element, { key: "ArrowUp" });
+		expect(document.activeElement).toBe(
+			screen.getByRole("link", { name: "Codex" }),
+		);
+		fireEvent.keyDown(document.activeElement as Element, { key: "Home" });
+		fireEvent.keyDown(document.activeElement as Element, { key: "ArrowUp" });
+		expect(document.activeElement).toBe(
+			screen.getByRole("link", { name: "Claude Code" }),
+		);
+		vi.restoreAllMocks();
+	});
+
+	it("does not intercept Enter and activates the focused card on Space", () => {
+		render(<HostInstallPicker />);
+		const cursor = screen.getByRole("link", { name: "Cursor" });
+		cursor.focus();
+		// Enter is left to the anchor's native activation.
+		expect(fireEvent.keyDown(cursor, { key: "Enter" })).toBe(true);
+		expect(track).not.toHaveBeenCalled();
+		// Space does not activate an anchor natively, so the grid does it.
+		fireEvent.keyDown(cursor, { key: " " });
+		expect(track).toHaveBeenCalledWith("host_selected", { host: "cursor" });
+		expect(replace).toHaveBeenCalledWith("/?host=cursor", {
+			scroll: false,
+			transitionTypes: ["catalog"],
+		});
+	});
+
+	it("seeds the roving tab stop on the deep-linked host", async () => {
+		search = new URLSearchParams("host=devin");
+		render(<HostInstallPicker />);
+		await waitFor(() =>
+			expect(
+				screen.getByRole("link", { name: "Devin" }).getAttribute("tabindex"),
+			).toBe("0"),
+		);
+		expect(
+			screen.getByRole("link", { name: "Claude Code" }).getAttribute("tabindex"),
+		).toBe("-1");
+	});
+
+	it("never prerenders cards at opacity 0 under reduced motion", () => {
+		vi.spyOn(window, "matchMedia").mockImplementation(
+			(query: string) =>
+				({
+					matches: query.includes("reduce"),
+					media: query,
+					onchange: null,
+					addEventListener: vi.fn(),
+					removeEventListener: vi.fn(),
+					addListener: vi.fn(),
+					removeListener: vi.fn(),
+					dispatchEvent: vi.fn(),
+				}) as unknown as MediaQueryList,
+		);
+		render(<HostInstallPicker />);
+		for (const name of [
+			"Claude Code",
+			"Cursor",
+			"Codex",
+			"Muse Code",
+			"Pi",
+			"OpenCode",
+			"Devin",
+		]) {
+			expect(
+				screen.getByRole("link", { name }).style.opacity,
+			).not.toBe("0");
+		}
+		vi.restoreAllMocks();
 	});
 
 	it("copies two Codex lines as one clipboard payload", async () => {

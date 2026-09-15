@@ -19,6 +19,9 @@ export const HOST_ALIASES: Readonly<Record<string, string>> = {
 	skillssh: "/docs/getting-started/skills-sh",
 	"skills-sh": "/docs/getting-started/skills-sh",
 	"skills.sh": "/docs/getting-started/skills-sh",
+	devin: "/docs/getting-started/devin",
+	"devin-cli": "/docs/getting-started/devin",
+	devincli: "/docs/getting-started/devin",
 };
 
 function compactQuery(query: string): string {

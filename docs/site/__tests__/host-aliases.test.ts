@@ -17,6 +17,7 @@ describe("host aliases", () => {
 		expect(hostAliasUrl("muse code")).toBe("/docs/getting-started/muse");
 		expect(hostAliasUrl("musecode")).toBe("/docs/getting-started/muse");
 		expect(hostAliasUrl("skills.sh")).toBe("/docs/getting-started/skills-sh");
+		expect(hostAliasUrl("devin")).toBe("/docs/getting-started/devin");
 	});
 
 	it("maps muse to the Muse Code host page, not a fake plugin pack", () => {

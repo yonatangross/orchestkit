@@ -11,7 +11,7 @@ function Mark({
 }: {
 	href: string;
 	label: string;
-	host: "claude" | "cursor" | "codex" | "muse" | "pi";
+	host: "claude" | "cursor" | "codex" | "muse" | "pi" | "devin";
 }) {
 	return (
 		<Link href={href} aria-label={label} title={label} className={markClass}>
@@ -32,6 +32,7 @@ export function HostIconRow() {
 			<Mark href="/docs/getting-started/codex" label="Codex" host="codex" />
 			<Mark href="/docs/getting-started/skills-sh" label="Pi (skills.sh)" host="pi" />
 			<Mark href="/docs/getting-started/muse" label="Muse Code" host="muse" />
+			<Mark href="/docs/getting-started/devin" label="Devin" host="devin" />
 		</nav>
 	);
 }

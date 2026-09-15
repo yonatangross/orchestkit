@@ -18,6 +18,27 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.32",
+    "date": "2026-09-15",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.31...v10.0.0-beta.32",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**site:** add Devin host card and rebuild picker as animated grid ([#4150](https://github.com/yonatangross/orchestkit/issues/4150)) ([a910b39](https://github.com/yonatangross/orchestkit/commit/a910b394e96314c5463f6eb22b312db0cc9bed0f))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**site:** render host cards visibly during SSR ([#4153](https://github.com/yonatangross/orchestkit/issues/4153)) ([dbc05e2](https://github.com/yonatangross/orchestkit/commit/dbc05e285c3dcbdbaf0697ed4a86e76eb29d9641))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.31",
     "date": "2026-09-15",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.30...v10.0.0-beta.31",

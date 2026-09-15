@@ -144,7 +144,7 @@ export default async function HomePage() {
             </Link>
           </div>
           <p className="mt-2 text-[12.5px] text-fd-muted-foreground">
-            For Claude Code. On Cursor, Codex, Muse Code, Pi or OpenCode? Pick your host below.
+            For Claude Code. On Cursor, Codex, Muse Code, Pi, OpenCode or Devin? Pick your host below.
           </p>
           <HostInstallPicker />
           <HomeSearchTrigger />
