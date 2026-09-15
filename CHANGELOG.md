@@ -5,6 +5,24 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.27](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.26...v10.0.0-beta.27) (2026-09-15)
+
+
+### Features
+
+* product MCP sandbox for orchestkit.yonyon.ai ([#4131](https://github.com/yonatangross/orchestkit/issues/4131)) ([205cea7](https://github.com/yonatangross/orchestkit/commit/205cea7c86d905e1a8522eecd1b91bb6c964fed4))
+* **site:** publish the auth chain with optional agent identity ([#4129](https://github.com/yonatangross/orchestkit/issues/4129)) ([e51000b](https://github.com/yonatangross/orchestkit/commit/e51000b612b40b940c9467fd3b69df46c9c9cf11))
+
+
+### Bug Fixes
+
+* **tests:** sample the paste guard latency delta three times (GH-4130) ([#4132](https://github.com/yonatangross/orchestkit/issues/4132)) ([9817ed7](https://github.com/yonatangross/orchestkit/commit/9817ed71292ed2bc5901090eb72b5b5c94937344))
+
+
+### Documentation
+
+* document strict main and serial merges ([#4134](https://github.com/yonatangross/orchestkit/issues/4134)) ([1a4ec89](https://github.com/yonatangross/orchestkit/commit/1a4ec89ade214d1e4d87663e57415f31e2f859f0))
+
 ## [10.0.0-beta.26](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.25...v10.0.0-beta.26) (2026-09-14)
 
 
