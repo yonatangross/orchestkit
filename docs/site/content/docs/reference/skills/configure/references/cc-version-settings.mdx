@@ -1106,3 +1106,41 @@ frontmatter is a separate mechanism and is unchanged.
 
 **Action for OrchestKit**: none.
 
+## CC 2.1.269 and 2.1.271 Settings
+
+### `bashEditDiffEnabled`, Bash edit diffs
+
+CC 2.1.269 adds a diff of files changed by a Bash command to the Bash tool result when Bash handles file edits. Enable `bashEditDiffEnabled` when the changed file diff should accompany that result.
+
+**Action for OrchestKit**: leave it as an operator choice. ork does not set user configuration.
+
+### `OTEL_METRICS_INCLUDE_REPOSITORY`, repository telemetry attributes
+
+CC 2.1.269 adds `OTEL_METRICS_INCLUDE_REPOSITORY` to tag OpenTelemetry metrics and events with `vcs.*` repository attributes. Commit events also receive `vcs.ref.head.*` when `OTEL_LOG_TOOL_DETAILS` is set.
+
+**Action for OrchestKit**: set this only in the environment that owns the telemetry policy. ork ships no OTEL environment configuration.
+
+### `CLAUDE_CODE_WORKFLOW_MAX_CONCURRENT_AGENTS`, Workflow fan out
+
+CC 2.1.269 adds `CLAUDE_CODE_WORKFLOW_MAX_CONCURRENT_AGENTS` to set a Workflow run's concurrent agent limit within 1 to 256 for inference bound fan outs.
+
+**Action for OrchestKit**: keep the default unless the workflow and provider capacity have been measured for a higher fan out.
+
+### `CLAUDE_CODE_GATEWAY_MODEL_DISCOVERY_TIMEOUT_MS`, gateway discovery timeout
+
+CC 2.1.269 adds `CLAUDE_CODE_GATEWAY_MODEL_DISCOVERY_TIMEOUT_MS` to extend the LLM gateway `/v1/models` discovery timeout from its 3 second default.
+
+**Action for OrchestKit**: use this only for a gateway whose model discovery needs more than 3 seconds. It does not enable model discovery by itself.
+
+### `CLAUDE_CODE_BG_TASKS_REPORT_RUNNING`, background task reporting
+
+CC 2.1.269 fixes remote and headless sessions reporting that they are waiting for input while background agents are still running. Set `CLAUDE_CODE_BG_TASKS_REPORT_RUNNING=0` to restore the earlier behavior.
+
+**Action for OrchestKit**: leave it unset unless a caller depends on the earlier reporting behavior.
+
+### Per-command `allowed_domains` in sandboxed auto mode
+
+CC 2.1.271 adds per-command `allowed_domains` to Bash, PowerShell and Monitor in auto mode with sandboxing. The hosts a command needs are reviewed with that command and opened for it alone; other hosts are refused.
+
+**Action for OrchestKit**: use the per-command domain review for commands with known network hosts. ork does not add host access rules to user settings.
+

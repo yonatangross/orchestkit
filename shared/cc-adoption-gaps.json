@@ -1,5 +1,24 @@
 [
   {
+    "version": "2.1.272",
+    "parse_failed": false,
+    "features": [
+      {
+        "feature_slug": "bug_fixes_only_272",
+        "category": "new_attr",
+        "description": "CC 2.1.272 contains only the unenumerated bug fixes and reliability improvements bullet. No named feature requires an ork change.",
+        "gap_score": 0,
+        "affected_skills": [],
+        "reference_changelog_line": "Bug fixes and reliability improvements",
+        "relevance": "plugin",
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "Matrix and floor triage in GH-4135. No named settings key, hook event, tool or permission change. Feature design and probe work for 2.1.269 and 2.1.271 stays in GH-4135."
+      }
+    ],
+    "raw_bullets_count": 1,
+    "triaged_by": "hand, lane hqd-2c6d367e, 2026-09-15"
+  },
+  {
     "version": "2.1.263",
     "parse_failed": false,
     "features": [
