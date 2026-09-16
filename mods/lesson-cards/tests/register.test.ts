@@ -1,139 +1,256 @@
 /**
- * Unit tests for lesson-cards hook registration.
+ * Unit tests for the shipped hooks module (hooks/register.ts).
+ *
+ * Drives the real register(on, options) export with a captured on() and a
+ * fake $ facade, then invokes the registered hooks directly.
  */
 
-import { describe, test, expect, vi, beforeEach } from 'vitest';
-import type { $, MatchedLesson } from '../src/types.js';
+import { describe, test, expect } from 'vitest';
+import { register } from '../hooks/register.js';
+import type { FsEntry, FileStat, $ } from '../src/types.js';
 
-// We'll test the hook structure without importing the module
-// since it has side effects
+type RegisteredHook = (...args: unknown[]) => unknown;
 
-describe('hook structure', () => {
-  test('required hooks are defined', () => {
-    // These are the hooks that must be exported
-    const requiredHooks = [
-      'session.start',
-      'tool.call',
-      'ui.render',
-      'command.register',
-    ];
-    // This test documents what hooks must be present
-    expect(requiredHooks.length).toBe(4);
-  });
+const PATTERNS = [
+  {
+    id: 'cancelled-check-is-not-pass',
+    severity: 'block',
+    category: 'ci',
+    pattern: 'gh pr checks',
+    message: 'Cancelled CI tiers are not pass. Never trust a green rollup on a moved head.',
+    example_fix: 'Use gh pr view with --json to check mergeStateStatus.',
+  },
+];
 
-  test('tool.call handles Bash tool', () => {
-    // Test that Bash commands are processed
-    const toolNames = ['Bash', 'Edit', 'Write'];
-    expect(toolNames).toContain('Bash');
-  });
+const FLOOR_ALPHA_LESSONS = '## gh-api-pagination\n\n- gh api --paginate for endpoints that return arrays\n';
+const FLOOR_BETA_LESSONS = '## git-safety\n\n- Always verify merge state before trusting green\n';
 
-  test('tool.call handles Edit tool', () => {
-    const toolNames = ['Bash', 'Edit', 'Write'];
-    expect(toolNames).toContain('Edit');
-  });
+interface Fake$Options {
+  noticeThrows?: boolean;
+}
 
-  test('tool.call handles Write tool', () => {
-    const toolNames = ['Bash', 'Edit', 'Write'];
-    expect(toolNames).toContain('Write');
+function makeFake$(options: Fake$Options = {}): { $: $; notices: string[]; invalidateCalls: string[] } {
+  const notices: string[] = [];
+  const invalidateCalls: string[] = [];
+
+  const fake$ = {
+    fs: {
+      list: async (path: string): Promise<FsEntry[] | null> => {
+        if (path.includes('hq-ext')) {
+          return [
+            { name: '1.62.9', isDirectory: true, isFile: false },
+            { name: '1.62.10', isDirectory: true, isFile: false },
+            { name: 'loose-file', isDirectory: false, isFile: true },
+          ];
+        }
+        return [
+          { name: 'floor-alpha', isDirectory: true, isFile: false },
+          { name: 'floor-beta', isDirectory: true, isFile: false },
+          { name: 'notes', isDirectory: true, isFile: false },
+        ];
+      },
+      read: async (path: string): Promise<string | Uint8Array> => {
+        if (path.includes('lesson-patterns.json')) {
+          return JSON.stringify(PATTERNS);
+        }
+        if (path.includes('floor-alpha')) {
+          return FLOOR_ALPHA_LESSONS;
+        }
+        if (path.includes('floor-beta')) {
+          return FLOOR_BETA_LESSONS;
+        }
+        throw new Error(`unexpected read: ${path}`);
+      },
+      stat: async (path: string): Promise<FileStat | null> => {
+        if (path.includes('floor-alpha')) {
+          return { size: 10, mtime: 200, isFile: true, isDirectory: false };
+        }
+        if (path.includes('floor-beta')) {
+          return { size: 10, mtime: 100, isFile: true, isDirectory: false };
+        }
+        return null;
+      },
+    },
+    ui: {
+      notice: async (toolUseId: string, message: string): Promise<void> => {
+        if (options.noticeThrows) {
+          throw new Error('no permission dialog open');
+        }
+        notices.push(`${toolUseId}: ${message}`);
+      },
+      invalidate: async (component: string): Promise<void> => {
+        invalidateCalls.push(component);
+      },
+    },
+  } as unknown as $;
+
+  return { $: fake$, notices, invalidateCalls };
+}
+
+function captureHooks(): Map<string, RegisteredHook> {
+  const hooks = new Map<string, RegisteredHook>();
+  register((event: string, hook: unknown) => {
+    hooks.set(event, hook as RegisteredHook);
+  }, {});
+  return hooks;
+}
+
+function asNext<E>(result: unknown): (ev: E) => Promise<unknown> {
+  return async () => result;
+}
+
+describe('registration', () => {
+  test('registers the four required hooks', () => {
+    const hooks = captureHooks();
+    expect([...hooks.keys()].sort()).toEqual(['command.register', 'session.start', 'tool.call', 'ui.render']);
   });
 });
 
-describe('session.start behavior', () => {
-  test('loads corpus from hq-ext and lessons.md', async () => {
-    // The session.start hook must:
-    // 1. Find newest hq-ext under cache
-    // 2. Load lesson-patterns.json
-    // 3. Load newest three lessons.md files
-    // 4. Store in module-scope state
+describe('session.start', () => {
+  test('tool.call passes through before session.start loads the corpus', async () => {
+    const hooks = captureHooks();
+    const { $ } = makeFake$();
+    const next = asNext<never>({});
+    const result = (await hooks.get('tool.call')!($, { tool: 'Bash', args: { command: 'gh pr checks' } }, next)) as Record<string, unknown>;
+    expect(result).toEqual({});
+  });
 
-    // This is documented behavior
-    expect(true).toBe(true);
+  test('loads patterns and newest three floor lessons', async () => {
+    const hooks = captureHooks();
+    const { $ } = makeFake$();
+    await hooks.get('session.start')!($);
+
+    const next = asNext<never>({});
+    const matched = (await hooks.get('tool.call')!($, { tool: 'Bash', args: { command: 'gh pr view && gh pr checks' } }, next)) as { context?: string[] };
+    expect(matched.context?.[0]).toContain('[lesson:cancelled-check-is-not-pass]');
+
+    const bullet = (await hooks.get('tool.call')!($, { tool: 'Bash', args: { command: 'gh api --paginate repos/o/r/issues' } }, next)) as { context?: string[] };
+    expect(bullet.context?.[0]).toContain('[lesson:gh-api-pagination]');
+  });
+
+  test('clears the match map between sessions', async () => {
+    const hooks = captureHooks();
+    const { $ } = makeFake$();
+
+    await hooks.get('session.start')!($);
+    const next = asNext<never>({});
+    await hooks.get('tool.call')!($, { tool: 'Bash', args: { command: 'gh pr checks' }, tool_use_id: 'seed-1' }, next);
+
+    await hooks.get('session.start')!($);
+    const tree = (await hooks.get('ui.render')!($, { component: 'ToolUse', requestId: 'seed-1' }, asNext<never>({ children: [] }))) as { children: unknown[] };
+    expect(tree.children.length).toBe(0);
   });
 });
 
-describe('tool.call behavior', () => {
-  test('returns context for matched patterns', async () => {
-    // When a pattern matches, the hook must:
-    // 1. Store match in matchMap for ui.render
-    // 2. Return { ...result, context: [message] }
+describe('tool.call', () => {
+  test('returns context for a matched block pattern', async () => {
+    const hooks = captureHooks();
+    const { $ } = makeFake$();
+    await hooks.get('session.start')!($);
 
-    const mockResult = { result: 'success' };
-    const context = ['[lesson:test] Test message'];
-
-    const resultWithContext = { ...mockResult, context };
-    expect(resultWithContext.context).toBeDefined();
-    expect(resultWithContext.context?.length).toBe(1);
+    const next = asNext<never>({ result: 'ok' });
+    const result = (await hooks.get('tool.call')!($, { tool: 'Bash', args: { command: 'gh pr checks' } }, next)) as { result?: string; context?: string[] };
+    expect(result.result).toBe('ok');
+    expect(result.context?.length).toBe(1);
+    expect(result.context?.[0]).toContain('lesson:cancelled-check-is-not-pass');
   });
 
-  test('tries ui.notice during permission dialog', async () => {
-    // The hook tries $.ui.notice(tool_use_id, message)
-    // but only succeeds if a permission dialog is open
+  test('returns the next result unchanged when nothing matches', async () => {
+    const hooks = captureHooks();
+    const { $ } = makeFake$();
+    await hooks.get('session.start')!($);
 
-    expect(true).toBe(true);
+    const next = asNext<never>({ result: 'ok' });
+    const result = (await hooks.get('tool.call')!($, { tool: 'Bash', args: { command: 'echo hello' } }, next)) as Record<string, unknown>;
+    expect(result).toEqual({ result: 'ok' });
+  });
+
+  test('notifies the ui when a dialog is open', async () => {
+    const hooks = captureHooks();
+    const { $, notices } = makeFake$();
+    await hooks.get('session.start')!($);
+
+    await hooks.get('tool.call')!($, { tool: 'Bash', args: { command: 'gh pr checks' }, tool_use_id: 'tu-9' }, asNext<never>({}));
+    expect(notices).toEqual(['tu-9: lesson: cancelled-check-is-not-pass']);
+  });
+
+  test('survives a refused ui.notice', async () => {
+    const hooks = captureHooks();
+    const { $ } = makeFake$({ noticeThrows: true });
+    await hooks.get('session.start')!($);
+
+    const next = asNext<never>({});
+    const result = (await hooks.get('tool.call')!($, { tool: 'Bash', args: { command: 'gh pr checks' } }, next)) as { context?: string[] };
+    expect(result.context?.length).toBe(1);
+  });
+
+  test('matches Write content against patterns via file_path', async () => {
+    const hooks = captureHooks();
+    const { $ } = makeFake$();
+    await hooks.get('session.start')!($);
+
+    // No file_glob or check_patterns on the ci pattern, so Write does not match
+    const next = asNext<never>({});
+    const result = (await hooks.get('tool.call')!($, { tool: 'Write', args: { file_path: 'notes.md', content: 'gh pr checks' } }, next)) as Record<string, unknown>;
+    expect(result).toEqual({});
   });
 });
 
-describe('ui.render behavior', () => {
-  test('appends card for matched requestId', async () => {
-    // When ui.render receives a ToolUse with a requestId in matchMap:
-    // 1. Get the tree from next()
-    // 2. Build a card with buildCard()
-    // 3. Append to tree.children
+describe('ui.render', () => {
+  test('appends a lesson card for a matched requestId', async () => {
+    const hooks = captureHooks();
+    const { $ } = makeFake$();
+    await hooks.get('session.start')!($);
 
-    expect(true).toBe(true);
+    await hooks.get('tool.call')!($, { tool: 'Bash', args: { command: 'gh pr checks' }, tool_use_id: 'tu-1' }, asNext<never>({}));
+
+    const tree = (await hooks.get('ui.render')!($, { component: 'ToolUse', requestId: 'tu-1' }, asNext<never>({ children: [] }))) as { children: Array<{ type: string; props: Record<string, unknown> }> };
+    expect(tree.children.length).toBe(1);
+    expect(tree.children[0].type).toBe('Box');
+    expect(tree.children[0].props.key).toBe('lesson-tu-1');
   });
 
   test('passes through non-ToolUse components', async () => {
-    // When component is not ToolUse, just call next()
+    const hooks = captureHooks();
+    const { $ } = makeFake$();
+    await hooks.get('session.start')!($);
 
-    expect(true).toBe(true);
+    const passthrough = { children: ['keep'] };
+    const tree = await hooks.get('ui.render')!($, { component: 'Tool' }, asNext<never>(passthrough));
+    expect(tree).toBe(passthrough);
+  });
+
+  test('returns the tree unchanged for an unknown requestId', async () => {
+    const hooks = captureHooks();
+    const { $ } = makeFake$();
+    await hooks.get('session.start')!($);
+
+    const passthrough = { children: [] };
+    const tree = (await hooks.get('ui.render')!($, { component: 'ToolUse', requestId: 'tu-unknown' }, asNext<never>(passthrough))) as { children: unknown[] };
+    expect(tree.children.length).toBe(0);
   });
 });
 
-describe('command.register behavior', () => {
-  test('/lessons reloads corpus', async () => {
-    // The /lessons command must:
-    // 1. Call loadCorpus again
-    // 2. Clear matchMap
-    // 3. Call $.ui.invalidate('ui.render')
-    // 4. Return { message: 'Lessons reloaded' }
+describe('command.register', () => {
+  test('/lessons reloads the corpus and invalidates ui.render', async () => {
+    const hooks = captureHooks();
+    const { $, invalidateCalls } = makeFake$();
+    await hooks.get('session.start')!($);
 
-    expect(true).toBe(true);
+    const result = (await hooks.get('command.register')!($, { command: '/lessons' })) as { message?: string };
+    expect(result.message).toBe('Lessons reloaded');
+    expect(invalidateCalls).toEqual(['ui.render']);
+
+    // Corpus still works after the reload
+    const next = asNext<never>({});
+    const matched = (await hooks.get('tool.call')!($, { tool: 'Bash', args: { command: 'gh pr checks' } }, next)) as { context?: string[] };
+    expect(matched.context?.length).toBe(1);
   });
 
-  test('unknown commands return empty object', async () => {
-    // Unknown commands must return {} and not throw
-
-    expect(true).toBe(true);
-  });
-});
-
-describe('state management', () => {
-  test('corpus is module-scope', () => {
-    // The corpus variable must be module-scope so it persists across calls
-    // but is reset on session.start
-
-    expect(true).toBe(true);
-  });
-
-  test('matchMap is module-scope', () => {
-    // The matchMap must be module-scope to share state between tool.call and ui.render
-
-    expect(true).toBe(true);
-  });
-});
-
-describe('error handling', () => {
-  test('ui.notice errors are caught', async () => {
-    // $.ui.notice throws if no permission dialog is open
-    // The hook must catch and ignore
-
-    expect(true).toBe(true);
-  });
-
-  test('ui.invalidate errors are caught', async () => {
-    // $.ui.invalidate may fail, must be caught
-
-    expect(true).toBe(true);
+  test('unknown commands return an empty object', async () => {
+    const hooks = captureHooks();
+    const { $ } = makeFake$();
+    const result = await hooks.get('command.register')!($, { command: '/something-else' });
+    expect(result).toEqual({});
   });
 });

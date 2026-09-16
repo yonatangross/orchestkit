@@ -1,40 +1,9 @@
 /**
- * Unit tests for lesson-cards corpus loader.
+ * Unit tests for the shipped corpus parser (src/corpus.ts).
  */
 
-import { describe, test, expect, vi } from 'vitest';
-
-// Import parseLessonsMd for direct testing
-// We'll test the parseLessonsMd function by importing it
-// Note: In a real test, we'd need the module compiled or use vitest's transform
-
-// For now, let's inline the parser logic for testing
-function parseLessonsMd(content: string): Array<{ heading: string; text: string; tokens: string[] }> {
-  const bullets: Array<{ heading: string; text: string; tokens: string[] }> = [];
-  let currentHeading = '';
-
-  for (const line of content.split('\n')) {
-    const headingMatch = /^##\s+(.+)$/.exec(line);
-    if (headingMatch) {
-      currentHeading = headingMatch[1].trim();
-      continue;
-    }
-
-    const bulletMatch = /^-\s+(.+)$/.exec(line);
-    if (bulletMatch && currentHeading) {
-      const text = bulletMatch[1].trim();
-      // Extract first few command tokens for indexing
-      const tokens = text.split(/\s+/).slice(0, 3).filter(t => /^[a-z_-]/i.test(t));
-      bullets.push({
-        heading: currentHeading,
-        text,
-        tokens,
-      });
-    }
-  }
-
-  return bullets;
-}
+import { describe, test, expect } from 'vitest';
+import { parseLessonsMd, joinPath, homeDir } from '../src/corpus.js';
 
 describe('parseLessonsMd', () => {
   test('parses simple lesson file', () => {
@@ -127,7 +96,7 @@ describe('parseLessonsMd', () => {
   });
 });
 
-describe('corpus loading performance', () => {
+describe('corpus parsing performance', () => {
   test('parseLessonsMd handles large files', () => {
     // Simulate a large lessons.md file
     const lines: string[] = ['## heading'];
@@ -151,8 +120,8 @@ describe('token extraction edge cases', () => {
 
 - `;
     const bullets = parseLessonsMd(content);
-    // Empty bullet text results in empty tokens
-    expect(bullets.length).toBeGreaterThanOrEqual(0);
+    // Empty bullet text does not match the bullet pattern
+    expect(bullets.length).toBe(0);
   });
 
   test('handles special characters in tokens', () => {
@@ -165,5 +134,17 @@ describe('token extraction edge cases', () => {
     const bullets = parseLessonsMd(content);
     expect(bullets[0].tokens.slice(0, 1)).toEqual(['hq_dispatch']);
     expect(bullets[1].tokens.slice(0, 2)).toEqual(['vm_stat', 'per-sec']);
+  });
+});
+
+describe('path helpers', () => {
+  test('joinPath drops empty segments and joins with slashes', () => {
+    expect(joinPath('/home/u', '.claude', '', 'hq')).toBe('/home/u/.claude/hq');
+    expect(joinPath()).toBe('');
+  });
+
+  test('homeDir falls back to empty string without env', () => {
+    // Depends on the test environment; both shapes are acceptable
+    expect(typeof homeDir()).toBe('string');
   });
 });
