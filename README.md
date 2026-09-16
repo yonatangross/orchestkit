@@ -531,6 +531,15 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.34](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.33...v10.0.0-beta.34)** · 2026-09-16
+
+- **mods:** add lesson-cards mod for hint cards on matched patterns (#4169)
+- **ci:** allow .devin-plugin/plugin.json in release rebuild guard (#4178), closes [#4173](https://github.com/yonatangross/orchestkit/issues/4173)
+- **hooks:** anchor stdin-timeout test write to child readiness (#4163)
+- **hooks:** read subagent result from last_assistant_message (GH-4158) (#4168)
+- **lab:** exact URL matches in yonyon crosslink checker (refs [#4144](https://github.com/yonatangross/orchestkit/issues/4144)) (#4161)
+- …and 3 more (see [CHANGELOG.md](CHANGELOG.md))
+
 **[v10.0.0-beta.33](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.32...v10.0.0-beta.33)** · 2026-09-15
 
 - **docs:** name the PostHog ph_ cookie on the privacy page (#4152)
@@ -564,10 +573,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **site:** publish the auth chain with optional agent identity (#4129)
 - **tests:** sample the paste guard latency delta three times (GH-4130) (#4132)
 - document strict main and serial merges (#4134)
-
-**[v10.0.0-beta.26](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.25...v10.0.0-beta.26)** · 2026-09-14
-
-- **build:** generate docs data after stamping counts (#4126)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
