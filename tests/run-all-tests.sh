@@ -142,7 +142,11 @@ trap "rm -f $RESULTS_FILE" EXIT
 # and a file is compliant when git records mode 100755 AND the exec bit is set
 # on disk. Anything else fails the run and names the fix command. Outside a
 # git work tree (tarball checkout) the check degrades to a skip, like the old
-# courtesy chmod's 2>/dev/null. Regression test:
+# courtesy chmod's 2>/dev/null. The 100755 rule is deliberately uniform across
+# every tracked .sh rather than semantic: it also marks sourced libraries
+# executable (.claude/coordination/lib/coordination.sh is sourced from six
+# call sites and never invoked directly, same for feedback-lib.sh and
+# memory-lib.sh). Regression test:
 # tests/ci/test-run-all-tests-no-mutation.sh
 # ---------------------------------------------------------------------------
 if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
