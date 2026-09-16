@@ -531,6 +531,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.43](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.42...v10.0.0-beta.43)** · 2026-09-16
+
+- **ci:** shrink the release rebuild window to the hooks-only set (#4205)
+
 **[v10.0.0-beta.42](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.41...v10.0.0-beta.42)** · 2026-09-16
 
 - **hooks:** output-validator pass warnings are log-only (#4202)
@@ -562,10 +566,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **mods:** add promote-lights mod for CI status monitoring (#4165)
 - **site:** union merge driver for generated lab-data.ts (#4184)
-
-**[v10.0.0-beta.35](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.34...v10.0.0-beta.35)** · 2026-09-16
-
-- **glyph:** cap non-TTY renders at 72 columns (#4179)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
