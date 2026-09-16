@@ -531,6 +531,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.41](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.40...v10.0.0-beta.41)** · 2026-09-16
+
+- **hooks:** read subagent result via shared reader in output-validator (#4199)
+- **tests:** exec-bit preflight enumerates NUL-delimited, quoting off (#4200)
+
 **[v10.0.0-beta.40](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.39...v10.0.0-beta.40)** · 2026-09-16
 
 - **ci:** fail closed the release hook-bundle rebuild step (#4174) (#4198)
@@ -566,11 +571,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **hooks:** read subagent result from last_assistant_message (GH-4158) (#4168)
 - **lab:** exact URL matches in yonyon crosslink checker (refs [#4144](https://github.com/yonatangross/orchestkit/issues/4144)) (#4161)
 - …and 3 more (see [CHANGELOG.md](CHANGELOG.md))
-
-**[v10.0.0-beta.33](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.32...v10.0.0-beta.33)** · 2026-09-15
-
-- **docs:** name the PostHog ph_ cookie on the privacy page (#4152)
-- **site:** crosslink apex Yonyon brand page from /yonyon (#4154)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
