@@ -1,0 +1,8 @@
+{
+  "slug": "extra-files-allowed-coverage",
+  "source": "docs/ci--extra-files-allowed-coverage/index.html",
+  "title": "Seventeen Paths, One Regex",
+  "description": "Every extra-files path in .release-please-config.json must match the ALLOWED regex in release-please.yml, or every release is blocked. Nothing checked it; now one test in tests/ci does, proven able to fail by three mutation proofs.",
+  "tags": ["ci", "release-please", "tests", "gate"],
+  "date": "2026-09-17"
+}
