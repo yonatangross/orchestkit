@@ -10,6 +10,7 @@
 import { writeFileSync, mkdirSync } from 'node:fs';
 import type { HookInput, HookResult , HookContext} from '../types.js';
 import { NOOP_CTX } from '../lib/context.js';
+import { getSubagentResult } from '../lib/subagent-result.js';
 
 // -----------------------------------------------------------------------------
 // Hook Implementation
@@ -19,11 +20,16 @@ export function outputValidator(input: HookInput, ctx: HookContext = NOOP_CTX): 
   const agentName = input.subagent_type || input.agent_type || 'unknown';
   const timestamp = new Date().toISOString();
 
-  // Read agent output. Distinguish "CC never sent the field" from "the agent
-  // returned an empty string" — conflating the two is what made this hook a
-  // kill-switch (#3200). CC delivers neither `agent_output` nor `output` at
-  // SubagentStop: 0 of 11,319 real rows carried either, recorded at
-  // subagent-stop/unified-dispatcher.ts (#3034). Because
+  // Read agent output through the shared reader (GH-4158). CC 2.1.272
+  // delivers the subagent result as `last_assistant_message` and carries
+  // neither `agent_output` nor `output` at SubagentStop (0 of 11,319 real
+  // rows carried either, recorded at subagent-stop/unified-dispatcher.ts,
+  // #3034); the reader falls back to those legacy names for older payloads
+  // and skips empty strings, so a non-empty return is "a string was
+  // delivered" and an absent result stays not delivered.
+  //
+  // Distinguish "CC never sent a result" from "the agent produced text":
+  // conflating the two is what made this hook a kill-switch (#3200). Because
   // sync-subagent-stop-dispatcher short-circuits on `continue: false`, an
   // absent field reported as a validation ERROR silently starved every hook
   // queued behind this one — auto-spawn-quality, multi-claude-verifier,
@@ -31,9 +37,8 @@ export function outputValidator(input: HookInput, ctx: HookContext = NOOP_CTX): 
   // the 6 SYNC_HOOKS, including retry-handler which is functional and not
   // telemetry. Measured consequence: skill-channels.jsonl held 559 rows across
   // 16 files with ZERO `channel:"subagent"` for two months.
-  const rawOutput = input.agent_output ?? input.output;
-  const outputDelivered = typeof rawOutput === 'string';
-  const output = rawOutput ?? '';
+  const output = getSubagentResult(input);
+  const outputDelivered = output.length > 0;
 
   const validationErrors: string[] = [];
   const validationWarnings: string[] = [];

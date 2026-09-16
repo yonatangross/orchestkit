@@ -51,6 +51,24 @@ vi.mock('node:child_process', () => ({
   execFileSync: vi.fn(() => '').mockReturnValue('main\n'),
 }));
 
+// GH-4158: under the shared-reader contract output-validator can no longer
+// block via any payload (the reader skips empty strings, so Check 1 is
+// unreachable through input data). The dispatcher's continue:false
+// short-circuit is still wired, so its test flips this flag to make a mocked
+// validator block and proves the mechanism survives.
+const blockValidator = vi.hoisted(() => ({ active: false }));
+
+vi.mock('../../subagent-stop/output-validator.js', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../subagent-stop/output-validator.js')>();
+  return {
+    ...actual,
+    outputValidator: (...args: Parameters<typeof actual.outputValidator>) =>
+      blockValidator.active
+        ? ({ continue: false as const, systemMessage: 'synthetic block (short-circuit probe)' })
+        : actual.outputValidator(...args),
+  };
+});
+
 // =============================================================================
 // Imports under test (after mocks)
 // =============================================================================
@@ -108,7 +126,10 @@ describe('sync-subagent-stop-dispatcher (#3200 regression)', () => {
     });
 
     test('an absent field is not reported as a very-short-output warning', () => {
-      const input = realCcSubagentStopInput();
+      // Arrange: no result field in any supported name. A DELIVERED short
+      // message does warn now that the hook reads last_assistant_message
+      // (pinned by output-validator.test.ts T1); absent must not.
+      const input = realCcSubagentStopInput({ last_assistant_message: undefined });
 
       const result = outputValidator(input, testCtx);
 
@@ -117,24 +138,32 @@ describe('sync-subagent-stop-dispatcher (#3200 regression)', () => {
   });
 
   describe('the gate still works where it is meaningful', () => {
-    test('an explicitly EMPTY delivered output still fails validation', () => {
-      // Arrange: CC did send the field, and it was empty. That IS an agent
-      // defect and must still block. This is the guard against "fixed" by
-      // simply disabling the check.
+    // GH-4158: the reader skips empty strings, so an explicitly empty legacy
+    // agent_output is indistinguishable from an absent result and must not
+    // block. The empty-result signal belongs to empty-result-detector, which
+    // sits FIRST in SYNC_HOOKS and warns without blocking (#3200 posture).
+    test('an explicitly EMPTY legacy agent_output does not block (reader skips empty strings)', () => {
       const input = realCcSubagentStopInput({ agent_output: '' });
 
       const result = outputValidator(input, testCtx);
 
-      expect(result.continue).toBe(false);
-      expect(result.systemMessage).toContain('failed');
+      expect(result.continue).not.toBe(false);
+      expect(result.systemMessage ?? '').not.toContain('Errors:');
     });
 
     test('the dispatcher DOES short-circuit when a hook legitimately blocks', () => {
-      const input = realCcSubagentStopInput({ agent_output: '' });
+      // Arrange: no payload can make output-validator block anymore (GH-4158),
+      // so the mechanism is probed with a mocked validator that blocks.
+      blockValidator.active = true;
+      try {
+        const input = realCcSubagentStopInput();
 
-      const result = syncSubagentStopDispatcher(input, testCtx);
+        const result = syncSubagentStopDispatcher(input, testCtx);
 
-      expect(result.continue).toBe(false);
+        expect(result.continue).toBe(false);
+      } finally {
+        blockValidator.active = false;
+      }
     });
 
     test('a healthy delivered output passes and does not block', () => {

@@ -81,7 +81,11 @@ describe('output-validator', () => {
   // ---------------------------------------------------------------------------
 
   describe('CC 2.1.7 compliance', () => {
-    test('returns continue: false for empty output (validation failure)', () => {
+    // GH-4158: the shared reader skips empty strings, so an empty legacy
+    // agent_output is indistinguishable from an absent result and must never
+    // block (#3200). The old assertion here (continue: false) was the bug
+    // shape written down.
+    test('treats an empty legacy agent_output as not delivered (no failure)', () => {
       // Arrange
       const input = createSubagentStopInput('');
 
@@ -89,8 +93,8 @@ describe('output-validator', () => {
       const result = outputValidator(input);
 
       // Assert
-      expect(result.continue).toBe(false);
-      expect(result.systemMessage).toContain('failed');
+      expect(result.continue).not.toBe(false);
+      expect(result.systemMessage ?? '').not.toContain('Errors:');
     });
 
     test('returns continue: true for valid output', () => {
@@ -119,16 +123,17 @@ describe('output-validator', () => {
       expect(result.systemMessage).toContain('Warnings');
     });
 
-    test('has hookSpecificOutput for SubagentStop on failure', () => {
+    test('has no failure shape for an empty legacy agent_output', () => {
       // Arrange
       const input = createSubagentStopInput('');
 
       // Act
       const result = outputValidator(input);
 
-      // Assert
-      expect(result.hookSpecificOutput).toBeDefined();
-      expect(result.hookSpecificOutput?.hookEventName).toBe('SubagentStop');
+      // Assert: the SubagentStop failure shape (hookSpecificOutput) is only
+      // for validation errors, and an absent/empty result is not one.
+      expect(result.continue).not.toBe(false);
+      expect(result.hookSpecificOutput).toBeUndefined();
     });
   });
 
@@ -137,7 +142,11 @@ describe('output-validator', () => {
   // ---------------------------------------------------------------------------
 
   describe('check 1: empty output', () => {
-    test('fails validation for empty string', () => {
+    // GH-4158: the reader skips empty strings, so Check 1 can no longer fire
+    // on any payload: a delivered-empty legacy field collapses into
+    // not-delivered, and a non-empty reader return is never empty. Kept as a
+    // guard that empty text never becomes an error.
+    test('does not fail validation for an empty legacy string', () => {
       // Arrange
       const input = createSubagentStopInput('');
 
@@ -145,8 +154,8 @@ describe('output-validator', () => {
       const result = outputValidator(input);
 
       // Assert
-      expect(result.continue).toBe(false);
-      expect(result.systemMessage).toContain('empty output');
+      expect(result.continue).not.toBe(false);
+      expect(result.systemMessage ?? '').not.toContain('empty output');
     });
 
     // #3200: this previously asserted `continue === false` for an ABSENT field.
@@ -192,6 +201,78 @@ describe('output-validator', () => {
 
       // Assert
       expect(result.continue).not.toBe(false);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // GH-4158: the result arrives as last_assistant_message (CC 2.1.272)
+  // ---------------------------------------------------------------------------
+
+  describe('GH-4158: last_assistant_message payloads (CC 2.1.272)', () => {
+    // Key-for-key the SubagentStop shape measured live on CC 2.1.272
+    // (GH-4158; fixture of record: src/__tests__/lib/subagent-result.test.ts,
+    // CC_2_1_272_PAYLOAD): carries last_assistant_message and NO agent_output,
+    // output, summary or result key.
+    function createMeasuredShapeInput(lastAssistantMessage?: string): HookInput {
+      const input: Record<string, unknown> = {
+        session_id: 'test-session-ov-4158',
+        transcript_path: '/tmp/transcript.jsonl',
+        cwd: '/test/project',
+        prompt_id: 'prompt-01J8ZK3M',
+        permission_mode: 'acceptEdits',
+        agent_id: 'a1b2c3d4e5f6789011',
+        agent_type: 'code-quality-reviewer',
+        effort: 'high',
+        hook_event_name: 'SubagentStop',
+        stop_hook_active: false,
+        agent_transcript_path: '/tmp/subagents/a1b2c3d4.jsonl',
+        background_tasks: [],
+        session_crons: [],
+      };
+      if (lastAssistantMessage !== undefined) {
+        input.last_assistant_message = lastAssistantMessage;
+      }
+      return input as unknown as HookInput;
+    }
+
+    test('T1: short last_assistant_message fires the length warning with the real length', () => {
+      // Arrange
+      const input = createMeasuredShapeInput('Done.');
+
+      // Act
+      const result = outputValidator(input);
+
+      // Assert
+      expect(result.continue).toBe(true);
+      expect(result.systemMessage).toContain('very short (5 chars)');
+    });
+
+    test('T2: no result field at all: no error, no length warning, continue not false', () => {
+      // Arrange
+      const input = createMeasuredShapeInput();
+
+      // Act
+      const result = outputValidator(input);
+
+      // Assert
+      expect(result.continue).not.toBe(false);
+      expect(result.systemMessage ?? '').not.toContain('empty output');
+      expect(result.systemMessage ?? '').not.toContain('very short');
+      expect(result.systemMessage ?? '').not.toContain('Errors:');
+    });
+
+    test('T3: legacy agent_output is still read through the shared reader', () => {
+      // Arrange: legacy payload shape, no last_assistant_message.
+      const input = createMeasuredShapeInput() as unknown as Record<string, unknown>;
+      input.agent_output = `${'A'.repeat(60)} completed`;
+
+      // Act
+      const result = outputValidator(input as unknown as HookInput);
+
+      // Assert
+      expect(result.continue).toBe(true);
+      expect(result.systemMessage).toContain('Output length: 70 chars');
+      expect(result.systemMessage ?? '').not.toContain('very short');
     });
   });
 
@@ -389,7 +470,7 @@ describe('output-validator', () => {
       expect(result.systemMessage).toContain('150 chars');
     });
 
-    test('lists errors when present', () => {
+    test('lists no errors when the result was never delivered', () => {
       // Arrange
       const input = createSubagentStopInput('');
 
@@ -397,7 +478,7 @@ describe('output-validator', () => {
       const result = outputValidator(input);
 
       // Assert
-      expect(result.systemMessage).toContain('Errors:');
+      expect(result.systemMessage ?? '').not.toContain('Errors:');
     });
 
     test('lists warnings when present', () => {
@@ -610,7 +691,11 @@ describe('output-validator', () => {
   // ---------------------------------------------------------------------------
 
   describe('validation precedence', () => {
-    test('errors take precedence over warnings', () => {
+    // GH-4158: validation errors can no longer be produced by an absent or
+    // empty result field (the reader skips empty strings), so the old
+    // errors-over-warnings assertion on agent_output: '' asserted the #3200
+    // bug shape. Kept as a guard: an empty legacy field yields a pass.
+    test('empty legacy agent_output yields a pass, never an error', () => {
       // Arrange
       const input = createSubagentStopInput('');
 
@@ -618,9 +703,9 @@ describe('output-validator', () => {
       const result = outputValidator(input);
 
       // Assert
-      expect(result.continue).toBe(false);
-      expect(result.systemMessage).toContain('failed');
-      expect(result.systemMessage).toContain('Errors:');
+      expect(result.continue).not.toBe(false);
+      expect(result.systemMessage).toContain('passed');
+      expect(result.systemMessage ?? '').not.toContain('Errors:');
     });
 
     test('passed status when only warnings', () => {
