@@ -27,7 +27,7 @@ jobs:
   # Single build, shared via artifacts to avoid rebuilding
   # ============================================================================
   build-plugins:
-    name: Build
+    name: Build (CI)
     permissions:
       contents: read
     runs-on: ubuntu-latest

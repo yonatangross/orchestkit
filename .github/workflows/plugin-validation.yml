@@ -23,7 +23,7 @@ jobs:
   # STAGE 0: Build once, share artifacts
   # ============================================================================
   build:
-    name: Build
+    name: Build (Plugin Validation)
     permissions:
       contents: read
     runs-on: ubuntu-latest
