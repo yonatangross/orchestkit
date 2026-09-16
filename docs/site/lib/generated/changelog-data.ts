@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.43",
+    "date": "2026-09-16",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.42...v10.0.0-beta.43",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**ci:** shrink the release rebuild window to the hooks-only set ([#4205](https://github.com/yonatangross/orchestkit/issues/4205)) ([2bd4462](https://github.com/yonatangross/orchestkit/commit/2bd4462d422a90ec4dc2ff45c9fa01c9dd4a4f6b))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.42",
     "date": "2026-09-16",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.41...v10.0.0-beta.42",
