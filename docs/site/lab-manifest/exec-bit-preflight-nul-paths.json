@@ -1,0 +1,8 @@
+{
+  "slug": "exec-bit-preflight-nul-paths",
+  "source": "docs/fix--exec-bit-preflight-nul-paths/index.html",
+  "title": "The Preflight That Skipped What It Could Not Spell",
+  "description": "The exec-bit preflight enumerated tracked .sh files under core.quotePath's default, so a non-ASCII path arrived C-quoted, the -f guard failed on the quoted spelling, and the file was skipped silently: fail open. NUL-delimited enumeration with quoting off detects it.",
+  "tags": ["tests", "bash", "git", "fail-open", "preflight"],
+  "date": "2026-09-16"
+}

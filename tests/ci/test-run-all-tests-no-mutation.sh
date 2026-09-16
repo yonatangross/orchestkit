@@ -22,6 +22,12 @@
 #      and the file is still not executable afterwards (no silent repair);
 #   3. an index mode of 100644 with the disk bit set fails the same way, and
 #      the index is still 100644 afterwards.
+#   4. (#4180) non-compliant fixtures whose names used to break the
+#      enumeration -- an ASCII name, a Hebrew name, and a name with a space,
+#      all tracked at 100644 -- are all reported (3 of 3). With
+#      core.quotePath at its default, ls-files C-quoted the Hebrew path, the
+#      [ -f ] guard failed on the quoted spelling, and the file was skipped
+#      silently: the gate failed open on exactly that input.
 #
 # The fixture has no tests/ci and no scripts/ci, so every --lint category
 # SKIPs, each invocation costs milliseconds, and the exit code carries only
@@ -145,6 +151,40 @@ if [ "$RC3" -ne 0 ] \
 else
     echo "  FAIL: exit=$RC3, index mode=$INDEX_MODE, porcelain lines=$LINES3"
     printf '%s\n' "$OUT3" | tail -8 | sed 's/^/    /'
+    FAILED=1
+fi
+
+# --- 4: non-ASCII and space-named fixtures are enumerated, not skipped -------
+# (#4180) The preflight enumerates NUL-delimited with core.quotePath=false, so
+# a non-ASCII path arrives as its real bytes and the [ -f ] guard sees the
+# real file. This section proves the gate names all three non-compliant
+# fixtures (ascii, Hebrew, name-with-space, each tracked at 100644): with the
+# old quoting enumeration the Hebrew file was silently skipped and only 2 of
+# 3 were reported.
+echo "--- 4: Hebrew and space-named 100644 fixtures: all 3 reported ---"
+# Undo section 3's index-mode mutation so the fixture's only offenders are
+# the three new files and the reported count is exactly 3.
+git_env git -C "$FIXTURE" update-index --chmod=+x tests/run-all-tests.sh
+chmod +x "$FIXTURE/tests/run-all-tests.sh"
+printf '#!/bin/bash\necho ascii-extra\n' > "$FIXTURE/ascii-extra.sh"
+printf '#!/bin/bash\necho hebrew\n' > "$FIXTURE/בדיקה.sh"
+printf '#!/bin/bash\necho spaced\n' > "$FIXTURE/name with space.sh"
+git_env git -C "$FIXTURE" add ascii-extra.sh "בדיקה.sh" "name with space.sh"
+git_env git -C "$FIXTURE" -c user.name=fixture -c user.email=fixture@example.test \
+    commit -qm "fixture: three 100644 fixtures, two with non-trivial names"
+RC4=0
+OUT4="$(run_precommit_path 2>&1)" || RC4=$?
+LINES4="$(porcelain_count)"
+if [ "$RC4" -ne 0 ] \
+   && [[ "$OUT4" == *"Non-executable tracked .sh files: 3"* ]] \
+   && [[ "$OUT4" == *"ascii-extra.sh"* ]] \
+   && [[ "$OUT4" == *"בדיקה.sh"* ]] \
+   && [[ "$OUT4" == *"name with space.sh"* ]] \
+   && [ "$LINES4" -eq 0 ]; then
+    echo "  PASS: exit non-zero, count line says 3, all three names printed"
+else
+    echo "  FAIL: exit=$RC4, porcelain lines=$LINES4"
+    printf '%s\n' "$OUT4" | grep -a "Non-executable\|\.sh" | tail -8 | sed 's/^/    /'
     FAILED=1
 fi
 
