@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.42",
+    "date": "2026-09-16",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.41...v10.0.0-beta.42",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**hooks:** output-validator pass warnings are log-only ([#4202](https://github.com/yonatangross/orchestkit/issues/4202)) ([aaee1b1](https://github.com/yonatangross/orchestkit/commit/aaee1b15a1ec627555f620d8cf1e2d3a0f89145e))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.41",
     "date": "2026-09-16",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.40...v10.0.0-beta.41",
