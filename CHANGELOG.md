@@ -5,6 +5,14 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.41](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.40...v10.0.0-beta.41) (2026-09-16)
+
+
+### Bug Fixes
+
+* **hooks:** read subagent result via shared reader in output-validator ([#4199](https://github.com/yonatangross/orchestkit/issues/4199)) ([40181a0](https://github.com/yonatangross/orchestkit/commit/40181a091ea5bf3151e3df31426a686f128d2a77))
+* **tests:** exec-bit preflight enumerates NUL-delimited, quoting off ([#4200](https://github.com/yonatangross/orchestkit/issues/4200)) ([5ff4038](https://github.com/yonatangross/orchestkit/commit/5ff4038e3904e246641e48e43bcc1386a1f7c36c))
+
 ## [10.0.0-beta.40](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.39...v10.0.0-beta.40) (2026-09-16)
 
 
