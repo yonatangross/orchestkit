@@ -1,0 +1,8 @@
+{
+  "slug": "review-followups-4198-4200-4195",
+  "source": "docs/test--review-followups-4198-4200-4195/index.html",
+  "title": "Reviewer Follow-ups for Three Merged CI Tests",
+  "description": "Reviewer follow-ups for #4198 #4200 #4195: the release rebuild step pinned to no continue-on-error plus three more failure arms, TAB and NEWLINE path fixtures for the exec-bit preflight, and bare-string extra-files entries checked against ALLOWED.",
+  "tags": ["tests", "ci", "review-followups", "fail-closed"],
+  "date": "2026-09-16"
+}
