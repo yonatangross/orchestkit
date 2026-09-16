@@ -132,27 +132,100 @@ describe("isPassing", () => {
 });
 
 describe("matchAndClassify", () => {
-  test("prefers non-skipped run for duplicate names", () => {
+  test("a skipped run next to a success is NOT passing (GH-4177 rule)", () => {
+    // The rule is ANY run under a name that is not success means the name
+    // is not passing, so a skipped run next to a green rerun blocks the
+    // pass. This replaces the old "prefer first non-skipped" behavior,
+    // which read [skipped, success] as green and was order-dependent.
     const required = ["ci"];
-    const runs: CheckRun[] = [
+    const skippedFirst: CheckRun[] = [
       { name: "ci", status: "completed", conclusion: "skipped" },
       { name: "ci", status: "completed", conclusion: "success" },
     ];
-
-    const result = matchAndClassify(required, runs);
-    expect(result).toHaveLength(1);
-    expect(result[0].color).toBe("green");
-  });
-
-  test("uses skipped if no non-skipped available", () => {
-    const required = ["ci"];
-    const runs: CheckRun[] = [
+    const skippedLast: CheckRun[] = [
+      { name: "ci", status: "completed", conclusion: "success" },
       { name: "ci", status: "completed", conclusion: "skipped" },
     ];
 
-    const result = matchAndClassify(required, runs);
-    expect(result).toHaveLength(1);
-    expect(result[0].color).toBe("yellow");
+    expect(matchAndClassify(required, skippedFirst)[0].color).toBe("yellow");
+    expect(matchAndClassify(required, skippedLast)[0].color).toBe("yellow");
+    expect(isPassing(matchAndClassify(required, skippedFirst))).toBe(false);
+    expect(isPassing(matchAndClassify(required, skippedLast))).toBe(false);
+  });
+
+  test("ORDER-INDEPENDENCE: [success, in_progress] and [in_progress, success] both not passing", () => {
+    const required = ["Build"];
+    const successFirst: CheckRun[] = [
+      { name: "Build", status: "completed", conclusion: "success" },
+      { name: "Build", status: "in_progress", conclusion: null },
+    ];
+    const successLast: CheckRun[] = [
+      { name: "Build", status: "in_progress", conclusion: null },
+      { name: "Build", status: "completed", conclusion: "success" },
+    ];
+
+    const first = matchAndClassify(required, successFirst);
+    const last = matchAndClassify(required, successLast);
+    // Same verdict in both orders: ANY non-success run blocks the pass.
+    expect(first[0].color).toBe("yellow");
+    expect(last[0].color).toBe("yellow");
+    expect(isPassing(first)).toBe(false);
+    expect(isPassing(last)).toBe(false);
+  });
+
+  test("ORDER-INDEPENDENCE: [success, failure] and [failure, success] both not passing", () => {
+    const required = ["Build"];
+    const successFirst: CheckRun[] = [
+      { name: "Build", status: "completed", conclusion: "success" },
+      { name: "Build", status: "completed", conclusion: "failure" },
+    ];
+    const successLast: CheckRun[] = [
+      { name: "Build", status: "completed", conclusion: "failure" },
+      { name: "Build", status: "completed", conclusion: "success" },
+    ];
+
+    const first = matchAndClassify(required, successFirst);
+    const last = matchAndClassify(required, successLast);
+    expect(first[0].color).toBe("red");
+    expect(last[0].color).toBe("red");
+    expect(isPassing(first)).toBe(false);
+    expect(isPassing(last)).toBe(false);
+  });
+
+  test("ORDER-INDEPENDENCE: [success, success] is passing", () => {
+    const required = ["Build"];
+    const runs: CheckRun[] = [
+      { name: "Build", status: "completed", conclusion: "success" },
+      { name: "Build", status: "completed", conclusion: "success" },
+    ];
+
+    const lights = matchAndClassify(required, runs);
+    expect(lights[0].color).toBe("green");
+    expect(isPassing(lights)).toBe(true);
+  });
+
+  test("ORDER-INDEPENDENCE: every permutation of a mixed set gives the same verdict", () => {
+    // Three runs under one name: green, pending, failed. All 6 orders
+    // must agree on not-passing, and the representative must be red.
+    const base: CheckRun[] = [
+      { name: "Build", status: "completed", conclusion: "success" },
+      { name: "Build", status: "in_progress", conclusion: null },
+      { name: "Build", status: "completed", conclusion: "failure" },
+    ];
+    const permutations: CheckRun[][] = [
+      base,
+      [base[0], base[2], base[1]],
+      [base[1], base[0], base[2]],
+      [base[1], base[2], base[0]],
+      [base[2], base[0], base[1]],
+      [base[2], base[1], base[0]],
+    ];
+
+    for (const runs of permutations) {
+      const lights = matchAndClassify(["Build"], runs);
+      expect(lights[0].color).toBe("red");
+      expect(isPassing(lights)).toBe(false);
+    }
   });
 
   test("failure first, then green reruns, is red regardless of API order", () => {

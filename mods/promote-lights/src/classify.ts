@@ -100,20 +100,30 @@ export function isPassing(lights: readonly ClassifiedLight[]): boolean {
 /**
  * Given required contexts and check runs, match and classify.
  *
- * Worst case wins per context. Reruns can put several runs under one name
- * at the same sha (GH-4177: three workflows emit a run named Build), so
- * the answer must not depend on API ordering. Any matching run that
- * classifies red (failure, timed_out, action_required, or an unknown
- * conclusion) makes the context red even when a later rerun under the
- * same name is green. A cancelled run keeps its own bucket: it does not
- * force red, but it is a missing verdict and never reads as a pass.
- * Otherwise the first non-skipped run is the representative.
+ * Order-independent worst case wins per context (GH-4177): reruns can put
+ * several runs under one name at the same sha and the API order is not a
+ * contract, so the verdict for a name is computed from the SET of its runs,
+ * never from which run arrived first or last. ANY run under a name that is
+ * not success means that name is NOT passing: a pending, skipped, cancelled,
+ * failed, or unknown run each blocks the pass even when a green rerun sits
+ * next to it. The representative color shown is the worst color present:
+ * red beats cancelled beats yellow beats green. A name with no runs is red
+ * (not run).
  */
 export function matchAndClassify(
   requiredContexts: string[],
   checkRuns: CheckRun[]
 ): ClassifiedLight[] {
   const result: ClassifiedLight[] = [];
+
+  // Severity ranking for the representative color. Higher wins. green is
+  // only shown when every run under the name classified green.
+  const SEVERITY: Record<string, number> = {
+    green: 0,
+    yellow: 1,
+    cancelled: 2,
+    red: 3,
+  };
 
   for (const ctx of requiredContexts) {
     // Find all runs matching this context name
@@ -125,29 +135,17 @@ export function matchAndClassify(
       continue;
     }
 
-    // A red run anywhere in the history of this context at this sha is
-    // red, regardless of a later green rerun.
-    const failed = matching.find((r) => classifyCheckRun(r).color === "red");
-    if (failed) {
-      result.push(classifyCheckRun(failed));
-      continue;
-    }
+    // Classify EVERY run under the name and take the worst color. This is
+    // the order-independent core: sorting the same runs into any order
+    // yields the same worst color, so [success, in_progress] and
+    // [in_progress, success] both read pending, and a green rerun next to
+    // a failure never resuscitates the name.
+    const classified = matching.map((r) => classifyCheckRun(r));
+    const worst = classified.reduce((a, b) =>
+      SEVERITY[b.color] > SEVERITY[a.color] ? b : a
+    );
 
-    // Cancelled keeps its own bucket and is never a verified pass: a
-    // cancellation is a missing verdict, so it surfaces as cancelled even
-    // when a later rerun under the same name is green.
-    const cancelled = matching.find((r) => r.conclusion === "cancelled");
-    if (cancelled) {
-      result.push(classifyCheckRun(cancelled));
-      continue;
-    }
-
-    // Prefer non-skipped, then pick the first one
-    // Script lines 22-23: pick first non-skipped, else skipped
-    const nonSkipped = matching.find((r) => r.conclusion !== "skipped");
-    const run = nonSkipped ?? matching[0];
-
-    result.push(classifyCheckRun(run));
+    result.push(worst);
   }
 
   return result;
