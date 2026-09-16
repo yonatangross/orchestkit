@@ -19,6 +19,8 @@
 #   push fail, head moved    rc 0  ::notice::  (a newer run owns the rebuild)
 #   push fail, head same     rc 1  ::error::   (rebuild genuinely did not land)
 #   already current          rc 0  ::notice::  (dist matches, nothing to push)
+#   push carries --no-verify (text arm; mutation: remove the flag, arm fails)
+#   no root-level full build (text arm; mutation: restore it, arm fails)
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
@@ -69,8 +71,12 @@ echo "gh shim: unexpected call: $*" >&2
 exit 64
 EOF
 
-# npm: ci always succeeds; build writes both dist files with $RRFC_BUILD_CONTENT
-# (set RRFC_BUILD_FAIL=1 to make the build itself fail).
+# npm: ci always succeeds; build writes src/hooks/dist only with
+# $RRFC_BUILD_CONTENT (set RRFC_BUILD_FAIL=1 to make the build itself fail).
+# The plugin copy is NOT pre-written: since #4183 the step produces
+# plugins/ork/hooks/dist by rsyncing src/hooks/dist, and pre-writing it here
+# would hide a broken rsync from every arm below. Paths go through RRFC_ROOT
+# because the step runs the build with cwd=src/hooks.
 cat > "$SHIMS/npm" <<'EOF'
 #!/usr/bin/env bash
 if [ "${1:-}" = "ci" ]; then exit 0; fi
@@ -79,9 +85,8 @@ if [ "${1:-}" = "run" ] && [ "${2:-}" = "build" ]; then
     echo "npm shim: simulated build failure" >&2
     exit 1
   fi
-  mkdir -p src/hooks/dist plugins/ork/hooks/dist
-  printf '%s\n' "$RRFC_BUILD_CONTENT" > src/hooks/dist/a.mjs
-  printf '%s\n' "$RRFC_BUILD_CONTENT" > plugins/ork/hooks/dist/a.mjs
+  mkdir -p "$RRFC_ROOT/src/hooks/dist"
+  printf '%s\n' "$RRFC_BUILD_CONTENT" > "$RRFC_ROOT/src/hooks/dist/a.mjs"
   exit 0
 fi
 echo "npm shim: unexpected call: $*" >&2
@@ -141,7 +146,7 @@ run_arm() {
     local rc=0
     (
         cd "$d/repo" \
-        && env PATH="$SHIMS:$PATH" RRFC_BRANCH="$BRANCH" GH_TOKEN=fake-token \
+        && env PATH="$SHIMS:$PATH" RRFC_BRANCH="$BRANCH" RRFC_ROOT="$d/repo" GH_TOKEN=fake-token \
            GITHUB_REPOSITORY=yonatangross/orchestkit "$@" \
            bash -e "$B" > "$d/step.out" 2>&1
     ) || rc=$?
@@ -199,6 +204,29 @@ if [ "$rc" = "0" ] && grep -q "::notice::Hook bundles already current" "$D/step.
     ok "already current rc=0 ::notice::"
 else
     bad "already current: rc=$rc want 0 with ::notice:: $(tail -2 "$D/step.out")"
+fi
+
+# ------------------------- 6. bot push carries --no-verify (#4183, text arm)
+# The 204s pre-push suite ran inside the bot's push and widened the race
+# window; the step must skip it because the release PR's own CI runs the full
+# suite. Mutation check: delete the flag from the workflow and this arm fails.
+if grep -q 'git push --no-verify' "$B"; then
+    ok "bot dist push carries --no-verify (pre-push hook skipped)"
+else
+    bad "bot dist push lost --no-verify; the pre-push suite would widen the race window again"
+fi
+
+# ------------------------- 7. no root-level full build (#4183, text arm)
+# Every npm run build in the step must be scoped to src/hooks; a root-level
+# full build is the ~65s the step no longer pays for. echo lines are filtered
+# so the failure MESSAGE (which contains the words "npm run build failed") is
+# not a false hit. Mutation check: re-add a root-level build line and this
+# arm fails.
+ROOT_BUILD="$(grep -n 'npm run build' "$B" | grep -v 'echo "::error' | grep -v 'src/hooks' || true)"
+if [ -z "$ROOT_BUILD" ]; then
+    ok "no root-level npm run build in the step (hooks-only build)"
+else
+    bad "step still runs a root-level npm run build: $ROOT_BUILD"
 fi
 
 echo ""
