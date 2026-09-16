@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Preflight That Skipped What It Could Not Spell | OrchestKit Lab</title>
+  <meta name="description" content="The exec-bit preflight enumerated tracked .sh files with git ls-files under core.quotePath's default. A non-ASCII path arrived C-quoted, the -f guard failed on the quoted spelling, and the file was skipped silently: fail open. One NUL-delimited, quoting-off enumeration closes it.">
+  <style>
+    :root { color-scheme: dark; font: 17px/1.6 system-ui, sans-serif; background: #101822; color: #e9eef3; }
+    body { max-width: 820px; margin: auto; padding: 48px 24px; }
+    h1 { font-size: clamp(2rem, 6vw, 3.4rem); line-height: 1.1; }
+    h2 { font-size: 1.25rem; margin-top: 32px; }
+    a { color: #8fd8ff; }
+    .eyebrow { color: #8fd8ff; letter-spacing: .08em; }
+    fieldset, article { border: 1px solid #43566a; border-radius: 12px; padding: 20px; margin: 20px 0; }
+    legend { font-weight: 600; }
+    .before { color: #f87171; }
+    .after { color: #4ade80; }
+    code { background: rgba(255,255,255,.07); border-radius: 4px; padding: 1px 6px; font-size: 14px; }
+    pre { background: #0d1017; border: 1px solid #43566a; border-radius: 8px; padding: 14px; overflow-x: auto; font-size: 13.5px; line-height: 1.5; }
+    .status-line { font-family: monospace; padding: 12px; background: #0d1017; border-radius: 6px; margin-top: 16px; white-space: pre-wrap; }
+    .ok { color: #4ade80; }
+    .bad { color: #f87171; }
+    .note { color: #b8c5d1; }
+    table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+    th, td { border: 1px solid #43566a; padding: 8px 12px; text-align: left; font-size: 15px; }
+    th { background: rgba(255,255,255,.04); }
+    footer { margin-top: 32px; color: #b8c5d1; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="eyebrow">ORCHESTKIT LAB · FIX-EXEC-BIT-PREFLIGHT-NUL-PATHS</p>
+    <h1>The Preflight That Skipped What It Could Not Spell</h1>
+    <p><code>tests/run-all-tests.sh</code> opens with a read-only exec-bit preflight
+    (<a href="https://github.com/yonatangross/orchestkit/issues/4084">#4084</a>): every tracked
+    <code>.sh</code> must be mode 100755 in git and executable on disk, or the run aborts naming
+    the fix. It is fail-closed by design. Issue
+    <a href="https://github.com/yonatangross/orchestkit/issues/4180">#4180</a> found the one input
+    that made it fail open: a non-ASCII path.</p>
+
+    <article aria-labelledby="mech">
+      <h2 id="mech" style="margin-top:0">Mechanism</h2>
+      <p><code>core.quotePath</code> defaults to true, so <code>git ls-files -s</code> printed a
+      Hebrew path C-quoted and octal-escaped. The loop read that quoted spelling into
+      <code>$path</code>, and the guard failed, because no file exists under the quoted name.
+      The loop <code>continue</code>d, and the file was never mode-checked. The landing spot is
+      what made it invisible: the skip happens on the line whose comment says
+      <em>staged deletion</em>, so a silently-missed file was indistinguishable from an
+      intentional skip, both in the code and in the output.</p>
+    </article>
+
+    <fieldset>
+      <legend class="before">Before: quoting enumeration</legend>
+      <pre>while IFS=$'\t' read -r meta path; do
+    [ -f "$path" ] || continue   # staged deletion: no mode to fix
+    ...
+done &lt; &lt;(git ls-files -s -- '*.sh' 2&gt;/dev/null || true)</pre>
+      <p>Inside a temp git repo with <code>ascii.sh</code> and <code>בדיקה.sh</code>,
+      both tracked at 100644, <code>git ls-files -s</code> emitted
+      <code>"\327\221\327\223\327\231\327\247\327\224.sh"</code>. The guard failed on the quoted
+      spelling and the Hebrew file was never reported.</p>
+      <p class="status-line bad">old preflight block on the fixture: detects 1 of 2</p>
+    </fieldset>
+
+    <fieldset>
+      <legend class="after">After: NUL-delimited, quoting off</legend>
+      <pre>while IFS= read -r -d '' entry; do
+    meta="${entry%%$'\t'*}"; path="${entry#*$'\t'}"
+    [ -f "$path" ] || continue   # absent from the worktree: a real absence
+    ...
+done &lt; &lt;(git -c core.quotePath=false ls-files -s -z -- '*.sh' 2&gt;/dev/null || true)</pre>
+      <p>With <code>-z</code>, ls-files emits raw path bytes and never quotes; the explicit
+      <code>core.quotePath=false</code> documents the intent. The skip comment now states what
+      the skip means: the name on disk is genuinely absent (deleted, or a submodule gitlink),
+      not a spelling artifact.</p>
+      <p class="status-line ok">fixed preflight block on the same fixture: detects 2 of 2</p>
+    </fieldset>
+
+    <article aria-labelledby="measure">
+      <h2 id="measure">Measured</h2>
+      <table>
+        <tr><th>Enumeration</th><th>Fixture: ascii + Hebrew, both 100644</th></tr>
+        <tr><td>old (<code>ls-files -s</code>, TAB read)</td><td class="bad">detects 1 of 2</td></tr>
+        <tr><td>fixed (<code>-c core.quotePath=false ls-files -s -z</code>, NUL read)</td><td class="ok">detects 2 of 2</td></tr>
+      </table>
+      <p>The regression test (<code>tests/ci/test-run-all-tests-no-mutation.sh</code>, section 4)
+      tracks three 100644 fixtures: an ASCII name, a Hebrew name, and a name with a space.</p>
+      <table>
+        <tr><th>Enumeration</th><th>Three-fixture section</th></tr>
+        <tr><td>old (mutation)</td><td class="bad">reported 2 of 3, Hebrew file skipped silently</td></tr>
+        <tr><td>fixed</td><td class="ok">reported 3 of 3, every name printed</td></tr>
+      </table>
+      <p class="note">Exposure in this repo today: 0 of 7617 tracked paths are non-ASCII, so
+      nothing was being missed. The fix closes the gate's one fail-open input before the repo
+      ever grows such a path. The space-named file was always detected (a space alone never
+      triggers C-quoting); it is in the fixture to keep that true, pinned by a test.</p>
+    </article>
+  </main>
+  <footer>Part of <a href="https://github.com/yonatangross/orchestkit">OrchestKit</a> ·
+  measured 2026-09-16 · issue <a href="https://github.com/yonatangross/orchestkit/issues/4180">#4180</a></footer>
+</body>
+</html>

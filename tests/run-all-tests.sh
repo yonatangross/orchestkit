@@ -148,18 +148,31 @@ trap "rm -f $RESULTS_FILE" EXIT
 # call sites and never invoked directly, same for feedback-lib.sh and
 # memory-lib.sh). Regression test:
 # tests/ci/test-run-all-tests-no-mutation.sh
+#
+# The enumeration is NUL-delimited with quoting off (#4180). With
+# core.quotePath at its default, `git ls-files -s` printed a non-ASCII path
+# C-quoted and octal-escaped, the [ -f ] guard failed on the quoted spelling
+# (no file exists under that name), and the file was skipped silently on the
+# line whose comment read "staged deletion" -- fail open on exactly the input
+# the gate exists to catch. -z emits raw bytes and never quotes; the explicit
+# core.quotePath=false documents that intent and guards the non-z fallback in
+# future edits.
 # ---------------------------------------------------------------------------
 if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     non_exec_sh=()
-    while IFS=$'\t' read -r meta path; do
+    while IFS= read -r -d '' entry; do
+        meta="${entry%%$'\t'*}"                 # "<mode> <sha> <stage>"
+        path="${entry#*$'\t'}"                  # raw path bytes, never C-quoted
         [ -n "$path" ] || continue
-        [ -f "$path" ] || continue              # staged deletion: no mode to fix
+        # absent from the worktree (deleted, deletion not yet committed, or a
+        # submodule gitlink): a real absence, nothing on disk to mode-check
+        [ -f "$path" ] || continue
         [[ "${meta##* }" == "0" ]] || continue  # a merge lists 3 stages per path
         if [[ "${meta%% *}" != "100755" || ! -x "$path" ]]; then
             non_exec_sh+=("$path")
         fi
     # silent: best-effort (a git failure here yields an empty list and the run proceeds unguarded, matching the old courtesy chmod's degradation)
-    done < <(git ls-files -s -- '*.sh' 2>/dev/null || true)
+    done < <(git -c core.quotePath=false ls-files -s -z -- '*.sh' 2>/dev/null || true)
     if [[ ${#non_exec_sh[@]} -gt 0 ]]; then
         echo -e "${RED}${BOLD}Non-executable tracked .sh files: ${#non_exec_sh[@]}${NC}" >&2
         for f in "${non_exec_sh[@]}"; do
