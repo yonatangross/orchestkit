@@ -19,6 +19,7 @@ import {
   completeAttempt,
 } from '../lib/retry-manager.js';
 import { loadConfig, loadState, updateAgentStatus } from '../lib/orchestration-state.js';
+import { getSubagentResult } from '../lib/subagent-result.js';
 import { updateTaskStatus, getTaskByAgent } from '../lib/task-integration.js';
 import type { AgentOutcome, ExecutionAttempt } from '../lib/orchestration-types.js';
 import { NOOP_CTX } from '../lib/context.js';
@@ -70,8 +71,9 @@ function getTriedAgents(): string[] {
  * window detectOutcome uses.
  */
 export function detectTurnLimit(input: HookInput): string | null {
-  const raw = (input as unknown as Record<string, unknown>);
-  const text = String(raw.agent_output ?? raw.output ?? raw.summary ?? raw.result ?? '').slice(0, 600);
+  // GH-4158: the result lives in last_assistant_message on real 2.1.272
+  // payloads; the legacy names only arrive on old ones.
+  const text = getSubagentResult(input).slice(0, 600);
   const m = /stopped at its (\d+)-turn limit/i.exec(text) || /reached (?:the |its )?(?:maximum|max) (?:number of )?turns?(?: \((\d+)\))?/i.exec(text);
   if (!m) return null;
   return m[1] ?? '?';
@@ -80,7 +82,9 @@ export function detectTurnLimit(input: HookInput): string | null {
 function detectOutcome(input: HookInput): { outcome: AgentOutcome; error?: string } {
   const error = input.error || input.tool_error;
   const exitCode = input.exit_code;
-  const output = input.agent_output || input.output || '';
+  // GH-4158: read through the shared reader; agent_output is never sent by
+  // CC >= 2.1.272, the result arrives as last_assistant_message.
+  const output = getSubagentResult(input);
 
   // Explicit error
   if (error && error !== 'null' && error !== '') {

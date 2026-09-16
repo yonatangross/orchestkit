@@ -34,11 +34,34 @@ Object.defineProperty(navigator, "clipboard", {
 	value: { writeText: vi.fn().mockResolvedValue(undefined) },
 });
 
+// GH-4155: the card entrance starts real WAAPI animations under happy-dom
+// once the component mounts, and the unmount cancel rejects their finished
+// promises with AbortError after the test has moved on. Report reduced
+// motion so the entrance never starts. The stub has to be installed before
+// the first render of the file: motion initializes a module-global ref from
+// matchMedia on the first useReducedMotion() call and never re-reads it.
+// The reduced-motion test below keeps its own explicit stub.
+function reducedMotionMatchMedia(query: string) {
+	return {
+		matches: query.includes("reduce"),
+		media: query,
+		onchange: null,
+		addEventListener: vi.fn(),
+		removeEventListener: vi.fn(),
+		addListener: vi.fn(),
+		removeListener: vi.fn(),
+		dispatchEvent: vi.fn(),
+	} as unknown as MediaQueryList;
+}
+
 describe("HostInstallPicker", () => {
 	beforeEach(() => {
 		search = new URLSearchParams();
 		replace.mockClear();
 		vi.mocked(track).mockClear();
+		vi
+			.spyOn(window, "matchMedia")
+			.mockImplementation(reducedMotionMatchMedia);
 	});
 
 	it("Cursor is a host query link, not a dead button", () => {
