@@ -202,6 +202,7 @@ start_audit() {
 # --package-lock-only note above was written for.
 start_audit "root"           "$PROJECT_ROOT"
 start_audit "docs/site"      "$PROJECT_ROOT/docs/site"
+start_audit "mods/secrets-veil" "$PROJECT_ROOT/mods/secrets-veil"
 start_audit "src/hooks"      "$PROJECT_ROOT/src/hooks"
 start_audit "src/mcp-server" "$PROJECT_ROOT/src/mcp-server"
 start_audit "orchestkit-demos" "$PROJECT_ROOT/orchestkit-demos"

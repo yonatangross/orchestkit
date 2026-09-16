@@ -14,19 +14,19 @@
 // calls: $.env.get, $.ui.invalidate
 // negative: no process.run, no http.fetch, no store.*, no ui.log
 
-import type { Register } from "claude-code";
-
-// Local imports (will be bundled)
-import { buildTable, mask, DEFAULT_PATTERNS } from "./src/mask.ts";
-import { buildOverlayTree, walkAndMask } from "./src/tree.ts";
+import { buildTable, mask, DEFAULT_PATTERNS } from "../src/mask";
+import { walkAndMask } from "../src/tree";
+import type { RenderNode } from "../src/tree";
 import type {
+  MaskSpan,
   MaskTable,
+  Register,
   RevealedState,
   ToolCallEvent,
   ToolCallResult,
   UIRenderEvent,
   DollarAPI,
-} from "./src/types.ts";
+} from "../src/types";
 
 // Module-scope state (per brief)
 let maskTable: MaskTable = { entries: [] };
@@ -38,13 +38,13 @@ let envNames: readonly string[] = [];
 
 export const register: Register = (on) => {
   // session.start: build mask table from env names and patterns
-  on("session.start", {}, async ($: DollarAPI, e, next) => {
+  on("session.start", {}, async ($, e, next) => {
     // Load env names from config (names only, never values)
     try {
       // Dynamic import for JSON config
-      const configModule = await import("./configs/env-names.json", {
-        assert: { type: "json" },
-      });
+      const configModule = (await import("../configs/env-names.json", {
+        with: { type: "json" },
+      })) as { default?: { names?: string[] }; names?: string[] };
       envNames = configModule.default?.names ?? configModule.names ?? [];
     } catch {
       // Config may not exist in fresh install; use empty array
@@ -71,7 +71,7 @@ export const register: Register = (on) => {
   });
 
   // tool.call: mask result before model sees it
-  on("tool.call", {}, async ($: DollarAPI, e: ToolCallEvent, next) => {
+  on("tool.call", {}, async ($, e, next) => {
     const r = await next(e);
 
     // If denied, pass through unchanged
@@ -80,7 +80,7 @@ export const register: Register = (on) => {
     }
 
     // Mask text and result leaves
-    let maskedResult: ToolCallResult = { ...r };
+    const maskedResult: ToolCallResult = { ...r };
 
     // Mask r.text if present
     if (r && "text" in r && typeof r.text === "string") {
@@ -110,7 +110,7 @@ export const register: Register = (on) => {
   });
 
   // ui.render ToolResult: overlay with hover-reveal
-  on("ui.render", { component: "ToolResult" }, async ($: DollarAPI, e: UIRenderEvent, next) => {
+  on("ui.render", { component: "ToolResult" }, async ($, e, next) => {
     const tree = await next(e);
 
     if (!e.requestId) return tree;
@@ -121,13 +121,13 @@ export const register: Register = (on) => {
     if (spans.length === 0) return tree;
 
     // Build overlay tree
-    const overlayTree = walkAndMask(tree, spans);
+    const overlayTree = walkAndMask(tree as RenderNode, spans);
 
     return overlayTree;
   });
 
   // ui.render CommandOutput: overlay with hover-reveal
-  on("ui.render", { component: "CommandOutput" }, async ($: DollarAPI, e: UIRenderEvent, next) => {
+  on("ui.render", { component: "CommandOutput" }, async ($, e, next) => {
     const tree = await next(e);
 
     if (!e.requestId) return tree;
@@ -136,18 +136,18 @@ export const register: Register = (on) => {
 
     if (spans.length === 0) return tree;
 
-    return walkAndMask(tree, spans);
+    return walkAndMask(tree as RenderNode, spans);
   });
 
   // command.register /veil: terminal fallback reveal
-  on("command.register", { command: "/veil" }, async ($: DollarAPI, e, next) => {
+  on("command.register", { command: "/veil" }, async ($, e, next) => {
     // Register the /veil command
     // The actual reveal is handled by ui.press below
     return next(e);
   });
 
   // ui.press: handle reveal button press
-  on("ui.press", {}, async ($: DollarAPI, e, next) => {
+  on("ui.press", {}, async ($, e, next) => {
     const result = await next(e);
 
     // Toggle reveal for requestId

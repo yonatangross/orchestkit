@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.34",
+    "date": "2026-09-16",
+    "compareUrl": "",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**mods:** add secrets-veil mod for secret masking in tool results (#4167)"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.33",
     "date": "2026-09-15",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.32...v10.0.0-beta.33",

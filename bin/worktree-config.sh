@@ -82,6 +82,7 @@ SETTINGS="$REPO_ROOT/.claude/settings.json"
 # generated JSON and the --check diff stay stable.
 SYMLINK_DIRS=(
     "docs/site/node_modules"
+    "mods/secrets-veil/node_modules"
     "node_modules"
     "orchestkit-demos/node_modules"
     "src/hooks/node_modules"

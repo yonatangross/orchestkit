@@ -110,6 +110,38 @@ export interface SessionStartEvent {
 }
 
 /**
- * The next() function signature.
+ * Event filter passed to on() (e.g. { component: "ToolResult" }).
  */
-export type NextFn<E> = (event: E) => Promise<ToolCallResult | void>;
+export type HookMatcher = Record<string, unknown>;
+
+/**
+ * The next() function signature: pass the event down the hook chain
+ * and await the (possibly modified) result.
+ */
+export type NextFn<E, R = unknown> = (event: E) => Promise<R>;
+
+/**
+ * A function-hook handler: receives the $ API, the event and next().
+ */
+export type HookHandler<E, R = unknown> = (
+  api: DollarAPI,
+  event: E,
+  next: NextFn<E, R>
+) => Promise<unknown>;
+
+/**
+ * The on() registrar Claude Code passes to a function-hooks module.
+ * Overloads pin the event type per hook name so handlers get typed events.
+ */
+export interface OnFn {
+  (event: "session.start", matcher: HookMatcher, handler: HookHandler<SessionStartEvent>): void;
+  (event: "tool.call", matcher: HookMatcher, handler: HookHandler<ToolCallEvent, ToolCallResult>): void;
+  (event: "ui.render", matcher: HookMatcher, handler: HookHandler<UIRenderEvent>): void;
+  (event: "command.register", matcher: HookMatcher, handler: HookHandler<CommandRegisterEvent>): void;
+  (event: "ui.press", matcher: HookMatcher, handler: HookHandler<UIPressEvent>): void;
+}
+
+/**
+ * The register() entry point a function-hooks module exports.
+ */
+export type Register = (on: OnFn) => void;
