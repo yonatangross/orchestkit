@@ -216,10 +216,13 @@ jobs:
 
       - name: Install Claude Code CLI
         run: |
-          # Same pin and postinstall workaround as plugin-validation.yml: the
-          # pinned floor (2.1.251, shared/cc-support.json), --ignore-scripts
-          # for supply chain, then install.cjs to fetch the native binary.
-          npm install -g @anthropic-ai/claude-code@2.1.251 --ignore-scripts 2>/dev/null || true
+          # Pinned to the current stable CLI (2.1.273), not the 2.1.251 floor
+          # used by plugin-validation.yml: hooks modules registered on newer
+          # events (session.start) only validate on newer CLIs, and users'
+          # installs auto-update, so the gate should match what runs in
+          # production. --ignore-scripts is the supply-chain mitigation from
+          # plugin-validation.yml; install.cjs fetches the native binary.
+          npm install -g @anthropic-ai/claude-code@2.1.273 --ignore-scripts 2>/dev/null || true
           INSTALL_CJS="$(npm root -g)/@anthropic-ai/claude-code/install.cjs"
           if [ -f "$INSTALL_CJS" ]; then
             node "$INSTALL_CJS" 2>/dev/null || true
