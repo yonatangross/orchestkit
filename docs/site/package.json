@@ -3,11 +3,13 @@
 	"version": "0.1.0",
 	"private": true,
 	"scripts": {
-		"predev": "node ../../scripts/generate-docs-data.js",
+		"predev": "node ../../scripts/generate-docs-data.js && node scripts/lab-manifest.mjs --repo ../..",
 		"dev": "next dev",
+		"prebuild": "node scripts/lab-manifest.mjs --repo ../..",
 		"build": "git fetch --unshallow 2>/dev/null || true; next build --webpack",
 		"start": "next start",
 		"postinstall": "fumadocs-mdx",
+		"pretest": "node scripts/lab-manifest.mjs --repo ../..",
 		"test": "vitest run -c vitest.site.config.ts",
 		"test:watch": "vitest -c vitest.site.config.ts",
 		"test:e2e": "playwright test"

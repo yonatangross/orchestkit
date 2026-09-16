@@ -1,7 +1,0 @@
-# Generated Lab aggregate: one JSON entry per line, sorted by slug, so two
-# branches adding entries touch two different lines and a union merge keeps
-# both sides without a conflict (#4181). Union keeps lines, it never removes
-# them, so a removal can leave a STALE aggregate that only
-#   node docs/site/scripts/lab-manifest.mjs --check
-# catches. That check must stay a required gate.
-docs/site/lib/generated/lab-data.ts merge=union

@@ -89,9 +89,12 @@ goes BEHIND. Update one PR, wait for its checks, merge it, then update the next.
 Update by merging `main` into the branch with GitHub's update-branch button or
 `git merge origin/main`, not by rebasing, so reviewed commits keep their IDs.
 
-Lab pages usually conflict in `docs/site/lib/generated/lab-data.ts`.
-Resolve that conflict by running `node docs/site/scripts/lab-manifest.mjs` and
-committing the regenerated copies. Never resolve generated Lab data by hand.
+Lab data no longer conflicts (#4185): `docs/site/lib/generated/lab-data.ts` is
+not committed. It is regenerated at build, dev and test time from the
+fragments under `docs/site/lab-manifest/<slug>.json`, so a rebase never
+touches it. Commit the fragment and the `public/lab/` copy; never commit the
+aggregate by hand, and run `node docs/site/scripts/lab-manifest.mjs` (or any
+docs/site npm build/dev/test script) if `--check` calls it absent or stale.
 
 Build twice before pushing. One `npm run build` is not a fixed point for stamped
 counts. Issue GH-4116 fixed the search index order; confirm a second build and
