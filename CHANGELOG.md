@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.43](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.42...v10.0.0-beta.43) (2026-09-16)
+
+
+### Bug Fixes
+
+* **ci:** shrink the release rebuild window to the hooks-only set ([#4205](https://github.com/yonatangross/orchestkit/issues/4205)) ([2bd4462](https://github.com/yonatangross/orchestkit/commit/2bd4462d422a90ec4dc2ff45c9fa01c9dd4a4f6b))
+
 ## [10.0.0-beta.42](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.41...v10.0.0-beta.42) (2026-09-16)
 
 
