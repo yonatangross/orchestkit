@@ -208,6 +208,7 @@ start_audit "orchestkit-demos" "$PROJECT_ROOT/orchestkit-demos"
 start_audit "hook-contract/examples/generic-client" \
               "$PROJECT_ROOT/packages/hook-contract/examples/generic-client"
 start_audit "mods/lesson-cards" "$PROJECT_ROOT/mods/lesson-cards"
+start_audit "mods/promote-lights" "$PROJECT_ROOT/mods/promote-lights"
 
 for index in "${!AUDIT_PIDS[@]}"; do
   status=0
