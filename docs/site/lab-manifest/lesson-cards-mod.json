@@ -1,0 +1,13 @@
+{
+  "slug": "lesson-cards-mod",
+  "source": "docs/chore--dsp-2394-mod-lesson-cards/lesson-cards.html",
+  "title": "Lesson Cards Mod",
+  "description": "Interactive demo of the lesson-cards mod for OrchestKit. Shows hint cards when tool calls match known patterns. Pattern matching for Bash/Edit/Write, lessons.md bullet indexing, and UI card rendering.",
+  "tags": [
+    "mod",
+    "lessons",
+    "hints",
+    "cards"
+  ],
+  "date": "2026-09-15"
+}
