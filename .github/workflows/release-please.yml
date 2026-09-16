@@ -346,7 +346,7 @@ jobs:
             echo "::error::npm run build failed on ${BRANCH}; hook bundles not rebuilt."
             exit 1
           fi
-          if ! rsync -a --exclude='*.map' --exclude='*.d.mts' --exclude='*.d.ts' src/hooks/dist/ plugins/ork/hooks/dist/; then
+          if ! rsync -a --checksum --exclude='*.map' --exclude='*.d.mts' --exclude='*.d.ts' src/hooks/dist/ plugins/ork/hooks/dist/; then
             echo "::error::rsync of src/hooks/dist into plugins/ork/hooks/dist failed on ${BRANCH}; hook bundles not rebuilt."
             exit 1
           fi

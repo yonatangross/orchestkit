@@ -321,6 +321,12 @@ fi
 # the tracked plugin files stale) and the excludes must match
 # build-plugins.sh's dist-facing set (*.map, *.d.mts, *.d.ts). Mutation
 # check: drop the source trailing slash and this arm fails.
+#
+# Second round, same arm: same-size contents with IDENTICAL mtimes. rsync's
+# size+mtime quick check calls that up to date without reading the bytes, so
+# only a content comparison (the shipped line carries --checksum) can
+# refresh the plugin copy. Mutation check: remove --checksum and this arm
+# fails too.
 RSYNC_LINE="$(grep 'rsync -a' "$B" | head -1 | sed 's/^if ! //; s/; then$//')"
 if [ -z "$RSYNC_LINE" ]; then
     bad "shipped step carries no rsync line"
@@ -343,6 +349,18 @@ else
         ok "shipped rsync line mirrors contents, excludes map/d.mts, no nested dist"
     else
         bad "shipped rsync line did not mirror contents (stale plugin copy, nested dist, or excluded files copied): $RSYNC_LINE"
+    fi
+
+    # Checksum round: same size (4 bytes), identical mtimes. Only --checksum
+    # can see that the bytes differ.
+    printf 'new\n' > "$D/repo/src/hooks/dist/a.mjs"
+    printf 'old\n' > "$D/repo/plugins/ork/hooks/dist/a.mjs"
+    touch -r "$D/repo/src/hooks/dist/a.mjs" "$D/repo/plugins/ork/hooks/dist/a.mjs"
+    ( cd "$D/repo" && eval "$RSYNC_LINE" ) || true
+    if [ "$(cat "$D/repo/plugins/ork/hooks/dist/a.mjs" 2>/dev/null)" = "new" ]; then
+        ok "shipped rsync line copies same-size same-mtime changes (--checksum)"
+    else
+        bad "shipped rsync line left a same-size same-mtime change uncopied (quick check beat content comparison): $RSYNC_LINE"
     fi
 fi
 
