@@ -208,6 +208,7 @@ start_audit "src/mcp-server" "$PROJECT_ROOT/src/mcp-server"
 start_audit "orchestkit-demos" "$PROJECT_ROOT/orchestkit-demos"
 start_audit "hook-contract/examples/generic-client" \
               "$PROJECT_ROOT/packages/hook-contract/examples/generic-client"
+start_audit "mods/lesson-cards" "$PROJECT_ROOT/mods/lesson-cards"
 
 for index in "${!AUDIT_PIDS[@]}"; do
   status=0

@@ -1,0 +1,8 @@
+{
+  "slug": "chore--dsp-99733-fix-4158",
+  "source": "docs/chore--dsp-99733-fix-4158/index.html",
+  "title": "Where CC hides the subagent result: agent_output is a ghost field",
+  "description": "Four SubagentStop hooks read agent_output, output, summary and result, and CC 2.1.272 sends none of them. The final result arrives as last_assistant_message. Toggle the measured payload against the legacy fixture and watch the old chains read an empty string while the shared reader returns the message.",
+  "tags": ["hooks", "subagent-stop", "cc-272", "field-reads"],
+  "date": "2026-09-15"
+}

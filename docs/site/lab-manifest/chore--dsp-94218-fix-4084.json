@@ -1,0 +1,13 @@
+{
+  "slug": "chore--dsp-94218-fix-4084",
+  "source": "docs/chore--dsp-94218-fix-4084/index.html",
+  "title": "The validator that dirtied the tree it validated",
+  "description": "The pre-commit test runner opened every run with two find -exec chmod +x passes over tests/ and src/hooks, so a tracked script sitting at mode 100644 came out of the run dirty and the mutation rode into an unrelated commit, exactly what dirtied tests/test-ascii-density-ratchet.sh on lane fix-4070 (#4084). The runner now opens with a read-only exec-bit preflight over git ls-files, fails closed with the per-file repair command, and never chmods; seven tracked scripts are fixed to 100755 in the same PR; and tests/ci/test-run-all-tests-no-mutation.sh drives the pre-commit path in a throwaway repo, asserting git status --porcelain stays empty and a stripped bit fails loudly with no silent repair. Flip the tracked mode and the runner version in the page and read the porcelain.",
+  "tags": [
+    "tests",
+    "pre-commit",
+    "git-hygiene",
+    "no-mutation"
+  ],
+  "date": "2026-09-15"
+}

@@ -193,6 +193,66 @@ jobs:
           retention-days: 1
 
   # ============================================================================
+  # STAGE 0b: Mods validation (independent of the plugins build)
+  # Each directory under mods/ is a standalone Claude Code plugin: validate it
+  # with the pinned claude CLI (offline, no key), typecheck its sources, and
+  # run its vitest suite.
+  # ============================================================================
+  mods-validation:
+    name: Mods
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238  # v6
+        with:
+          node-version-file: .nvmrc
+
+      - name: Install Claude Code CLI
+        run: |
+          # Pinned to the current stable CLI (2.1.273), not the 2.1.251 floor
+          # used by plugin-validation.yml: hooks modules registered on newer
+          # events (session.start) only validate on newer CLIs, and users'
+          # installs auto-update, so the gate should match what runs in
+          # production. --ignore-scripts is the supply-chain mitigation from
+          # plugin-validation.yml; install.cjs fetches the native binary.
+          npm install -g @anthropic-ai/claude-code@2.1.273 --ignore-scripts 2>/dev/null || true
+          INSTALL_CJS="$(npm root -g)/@anthropic-ai/claude-code/install.cjs"
+          if [ -f "$INSTALL_CJS" ]; then
+            node "$INSTALL_CJS" 2>/dev/null || true
+          fi
+          command -v claude >/dev/null || { echo "::error::claude CLI not available"; exit 1; }
+
+      - name: Validate, typecheck and test every mod
+        run: |
+          set -uo pipefail
+          status=0
+          for dir in mods/*/; do
+            name="$(basename "$dir")"
+            echo "::group::mod $name"
+            echo "claude plugin validate $dir"
+            claude plugin validate "$dir" || status=1
+            if [ -f "$dir/package.json" ]; then
+              npm ci --prefix "$dir" --no-audit --no-fund || status=1
+              (cd "$dir" && npx tsc --noEmit) || status=1
+              (cd "$dir" && npx vitest run) || status=1
+            else
+              echo "no package.json, skipping typecheck and tests"
+            fi
+            echo "::endgroup::"
+          done
+          if [ "$status" -ne 0 ]; then
+            echo "::error::mod validation failed"
+          fi
+          exit "$status"
+
+  # ============================================================================
   # STAGE 1: Fast Checks (< 30s)
   # ============================================================================
   lint:
@@ -401,7 +461,18 @@ jobs:
           # Scoped to `rules/` deliberately, NOT all of `.claude/`. `.claude/skills/`
           # and `.claude/hooks/` would be real behaviour a reviewer should be able to
           # open, and the fail-closed property below is the thing worth keeping.
-          INERT='^(README\.md|CHANGELOG\.md|CONTRIBUTING\.md|SECURITY\.md|CODE_OF_CONDUCT\.md|LICENSE|\.github/.*|vercel\.json|[^/]*\.toml|docs/[^/]*--[^/]*/.*|docs/playgrounds/.*|docs/audits/.*|\.claude/rules/.*)$'
+          # Generated Lab artifacts are the outputs of
+          # docs/site/scripts/lab-manifest.mjs: for a docs/<slug>/ page it
+          # emits the published copy under docs/site/public/lab/, a manifest
+          # fragment under docs/site/lab-manifest/, and the data module
+          # docs/site/lib/generated/lab-data.ts. The source page is already
+          # inert, so a diff confined to it plus these build products is Lab
+          # maintenance, and demanding a playground for them is a page about
+          # a page. Same circularity a fourth time, hit on #4161, where a fix
+          # to one Lab page plus its generated copy failed with "Missing PR
+          # playground directory" because the copy sat outside the pattern
+          # that exempts its source.
+          INERT='^(README\.md|CHANGELOG\.md|CONTRIBUTING\.md|SECURITY\.md|CODE_OF_CONDUCT\.md|LICENSE|\.github/.*|vercel\.json|[^/]*\.toml|docs/[^/]*--[^/]*/.*|docs/playgrounds/.*|docs/audits/.*|\.claude/rules/.*|docs/site/public/lab/.*|docs/site/lab-manifest/.*|docs/site/lib/generated/lab-data\.ts)$'
 
           FILES=$(gh pr diff "$PR_NUMBER" --name-only 2>/dev/null || true)
           if [ -z "$FILES" ]; then

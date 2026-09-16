@@ -100,6 +100,7 @@ SYMLINK_DIRS=(
 #   tests/evals/scaffolds/typescript-nextjs          eval fixture, no install
 EXEMPT_ROOTS=(
     "docs/stubs/analytics-stub"
+    "mods/lesson-cards"
     "packages/cli"
     "packages/hook-contract"
     "packages/hook-contract/examples/generic-client"

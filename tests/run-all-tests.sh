@@ -127,9 +127,49 @@ WARNINGS_BASELINE="${ORK_WARNINGS_BASELINE:-267}"  # ratcheted 348->267 (#3235):
 
 trap "rm -f $RESULTS_FILE" EXIT
 
-find "$SCRIPT_DIR" -name "*.sh" -exec chmod +x {} \;
-# silent: best-effort — src/hooks may be absent in a sparse checkout; chmod is a courtesy pass
-find "$PROJECT_ROOT/src/hooks" -name "*.sh" -exec chmod +x {} \; 2>/dev/null || true
+# ---------------------------------------------------------------------------
+# Executable-bit preflight (#4084): verify, never mutate.
+#
+# This used to be two `find ... -exec chmod +x {} \;` passes (over tests/, then
+# src/hooks). chmod +x on a tracked .sh whose git mode is 100644 flips the
+# on-disk mode and leaves the tree DIRTY: the validator itself mutated the
+# worktree it was validating, on the commit path. It dirtied
+# tests/test-ascii-density-ratchet.sh for lane fix-4070, whose commit then
+# carried a mode change it never asked for.
+#
+# The replacement is read-only and git-scoped: `git ls-files` names exactly the
+# tracked .sh files (no node_modules, no scratch dirs, no sibling worktrees),
+# and a file is compliant when git records mode 100755 AND the exec bit is set
+# on disk. Anything else fails the run and names the fix command. Outside a
+# git work tree (tarball checkout) the check degrades to a skip, like the old
+# courtesy chmod's 2>/dev/null. The 100755 rule is deliberately uniform across
+# every tracked .sh rather than semantic: it also marks sourced libraries
+# executable (.claude/coordination/lib/coordination.sh is sourced from six
+# call sites and never invoked directly, same for feedback-lib.sh and
+# memory-lib.sh). Regression test:
+# tests/ci/test-run-all-tests-no-mutation.sh
+# ---------------------------------------------------------------------------
+if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    non_exec_sh=()
+    while IFS=$'\t' read -r meta path; do
+        [ -n "$path" ] || continue
+        [ -f "$path" ] || continue              # staged deletion: no mode to fix
+        [[ "${meta##* }" == "0" ]] || continue  # a merge lists 3 stages per path
+        if [[ "${meta%% *}" != "100755" || ! -x "$path" ]]; then
+            non_exec_sh+=("$path")
+        fi
+    # silent: best-effort (a git failure here yields an empty list and the run proceeds unguarded, matching the old courtesy chmod's degradation)
+    done < <(git ls-files -s -- '*.sh' 2>/dev/null || true)
+    if [[ ${#non_exec_sh[@]} -gt 0 ]]; then
+        echo -e "${RED}${BOLD}Non-executable tracked .sh files: ${#non_exec_sh[@]}${NC}" >&2
+        for f in "${non_exec_sh[@]}"; do
+            echo -e "  ${YELLOW}$f${NC}" >&2
+            echo "    fix: chmod +x $f && git add $f" >&2
+        done
+        echo "Run aborted by the exec-bit preflight. This runner modified nothing." >&2
+        exit 1
+    fi
+fi
 
 export CLAUDE_PROJECT_DIR="$PROJECT_ROOT"
 

@@ -654,11 +654,19 @@ if [[ -n "$HOOK_CHANGES" ]]; then
   trap 'rm -f "$HOOK_LOG"' EXIT
   if ! (cd src/hooks && env -u GIT_DIR -u GIT_WORK_TREE -u GIT_INDEX_FILE -u GIT_PREFIX \
       -u GIT_COMMON_DIR -u GIT_OBJECT_DIRECTORY npx vitest run --reporter=dot >"$HOOK_LOG" 2>&1); then
+    # Keep the full log under the repo cache dir (.cache/ is gitignored):
+    # the tail below shows the last 20 lines only, and a failing push should
+    # name every failing test, not just the last few.
+    LOG_KEEP_DIR="$PROJECT_ROOT/.cache/pre-push"
+    mkdir -p "$LOG_KEEP_DIR"
+    LOG_KEEP="$LOG_KEEP_DIR/hooks-vitest.log"
+    cp "$HOOK_LOG" "$LOG_KEEP"
     echo "FAILED"
     echo ""
     echo "╔════════════════════════════════════════════════════════════╗"
     echo "║  Hooks vitest suite failed locally."
     echo "║  CI runs the same suite — fix before push to avoid round-trips."
+    echo "║  Full log kept at: $LOG_KEEP"
     echo "╠════════════════════════════════════════════════════════════╣"
     tail -20 "$HOOK_LOG" | sed 's/^/║  /'
     echo "╚════════════════════════════════════════════════════════════╝"
