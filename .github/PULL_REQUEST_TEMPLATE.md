@@ -61,7 +61,9 @@ If the playground is worth keeping, publish it properly instead: add
 docs/site/lab-manifest/<slug>.json (one fragment per entry, see the README there)
 and run npm run build. It then serves from our own origin under the /lab CSP and
 is listed at /docs/showcase/lab, which is the only rendered, first-party,
-permanent option. On a merge conflict in the generated lab-data.ts: take either
-side, run npm run build, commit. Never hand-resolve the generated file.
+permanent option. The lab-data.ts aggregate is generated at build, dev and
+test time and is not committed, so there is no conflict to resolve on it:
+publish a playground with one fragment under docs/site/lab-manifest/ and run
+npm run build.
 -->
 
