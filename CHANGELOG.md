@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.39](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.38...v10.0.0-beta.39) (2026-09-16)
+
+
+### Features
+
+* **mods:** add secrets-veil mod with pattern and entropy masking ([#4189](https://github.com/yonatangross/orchestkit/issues/4189)) ([20bdf71](https://github.com/yonatangross/orchestkit/commit/20bdf7138ec749cae86176828bc25de444c5711f))
+
 ## [10.0.0-beta.38](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.37...v10.0.0-beta.38) (2026-09-16)
 
 
