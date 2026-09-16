@@ -193,6 +193,63 @@ jobs:
           retention-days: 1
 
   # ============================================================================
+  # STAGE 0b: Mods validation (independent of the plugins build)
+  # Each directory under mods/ is a standalone Claude Code plugin: validate it
+  # with the pinned claude CLI (offline, no key), typecheck its sources, and
+  # run its vitest suite.
+  # ============================================================================
+  mods-validation:
+    name: Mods
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238  # v6
+        with:
+          node-version-file: .nvmrc
+
+      - name: Install Claude Code CLI
+        run: |
+          # Same pin and postinstall workaround as plugin-validation.yml: the
+          # pinned floor (2.1.251, shared/cc-support.json), --ignore-scripts
+          # for supply chain, then install.cjs to fetch the native binary.
+          npm install -g @anthropic-ai/claude-code@2.1.251 --ignore-scripts 2>/dev/null || true
+          INSTALL_CJS="$(npm root -g)/@anthropic-ai/claude-code/install.cjs"
+          if [ -f "$INSTALL_CJS" ]; then
+            node "$INSTALL_CJS" 2>/dev/null || true
+          fi
+          command -v claude >/dev/null || { echo "::error::claude CLI not available"; exit 1; }
+
+      - name: Validate, typecheck and test every mod
+        run: |
+          set -uo pipefail
+          status=0
+          for dir in mods/*/; do
+            name="$(basename "$dir")"
+            echo "::group::mod $name"
+            echo "claude plugin validate $dir"
+            claude plugin validate "$dir" || status=1
+            if [ -f "$dir/package.json" ]; then
+              npm ci --prefix "$dir" --no-audit --no-fund || status=1
+              (cd "$dir" && npx tsc --noEmit) || status=1
+              (cd "$dir" && npx vitest run) || status=1
+            else
+              echo "no package.json, skipping typecheck and tests"
+            fi
+            echo "::endgroup::"
+          done
+          if [ "$status" -ne 0 ]; then
+            echo "::error::mod validation failed"
+          fi
+          exit "$status"
+
+  # ============================================================================
   # STAGE 1: Fast Checks (< 30s)
   # ============================================================================
   lint:
