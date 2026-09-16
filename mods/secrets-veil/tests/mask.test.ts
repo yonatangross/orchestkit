@@ -102,7 +102,7 @@ MIIEpAIBAAKCAQEA...
       expect(result.spans[0].value).toBe("secret123");
     });
 
-    it("handles 1 MB stdout in under 5 ms", () => {
+    it("handles 1 MB stdout in under 5 ms (median of 9)", () => {
       const table = buildTable(["VEIL_TEST_SECRET"], { VEIL_TEST_SECRET: "secretvalue123" }, []);
       // Generate 1 MB text with 3 planted secrets
       const chunk = "x".repeat(1000);
@@ -116,12 +116,24 @@ MIIEpAIBAAKCAQEA...
       parts[900] = "secretvalue123";
       const text = parts.join("\n");
 
-      const start = performance.now();
-      const result = mask(text, table);
-      const elapsed = performance.now() - start;
-
-      expect(result.spans.length).toBe(3);
-      expect(elapsed).toBeLessThan(5); // Budget is 10s, we do 5ms
+      // Honest measurement (HOLD 4189 blocker 2): warm up JIT and caches,
+      // then take the MEDIAN of 9 timed runs. The 5 ms budget is unchanged.
+      for (let i = 0; i < 3; i++) {
+        mask(text, table);
+      }
+      const samples: number[] = [];
+      for (let i = 0; i < 9; i++) {
+        const start = performance.now();
+        const result = mask(text, table);
+        samples.push(performance.now() - start);
+        expect(result.spans.length).toBe(3);
+      }
+      samples.sort((a, b) => a - b);
+      const median = samples[4];
+      console.log(
+        `perf 1MB: median of 9 = ${median.toFixed(3)} ms (budget 5 ms, min ${samples[0].toFixed(3)}, max ${samples[8].toFixed(3)})`
+      );
+      expect(median).toBeLessThan(5); // Budget is 10s, we do 5ms
     });
   });
 

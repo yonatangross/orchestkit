@@ -22,14 +22,24 @@
 //        (the secret falls apart under the 20-char floor and is not masked).
 //   [M3] FIX ROUND: score a run whole on ANY '=' again (drop the mid-run
 //        key=value split): the '?ref=<branch>' corpus line fails.
+//   [M4] HOLD 4189 round-3 proof: split on '-' and '_' unconditionally (the
+//        round-2 rule): R fails (recall collapses on base64url shapes).
+//   [M5] HOLD 4189 round-3 proof: never split on '-' and '_' (the round-1
+//        rule): P fails (the '?ref=<branch>' corpus line masks).
 //
 // FIX ROUND additions:
 //   NEGATIVE: a gh api '?ref=<remote branch>' URL line and three real npm
 //   integrity lines (sha512-<86 base64>== style, public hashes) from THIS
 //   repo's package-lock.json are in the fixture and must mask 0 spans; the
 //   SRI exemption and the mid-run '=' split are also unit-tested below.
-//   POSITIVE: a JWT-shaped eyJ...eyJ...<sig> value and a 43-char base64url
-//   value must still be masked.
+//   POSITIVE: R (below) replaces the two single-sample JWT/base64url
+//   positives: 500 SEEDED random samples per real secret shape, each
+//   embedded in a line of ordinary text, must mask at or above a per-shape
+//   floor. Masked means no 16-character run of the secret survives in the
+//   output. Floors are per shape because short random strings hit an
+//   entropy-threshold ceiling: even the old whole-run rule (6876c107)
+//   reaches only 96.8% on sk_live_24 and 96.1% on alnum-32 (calibrated
+//   independently by the conductor over 2,000 samples per shape).
 
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
@@ -39,6 +49,7 @@ import {
   shannonEntropy,
   wouldMask,
   SRI_VALUE_RE,
+  DEFAULT_PATTERNS,
 } from "../src/mask";
 
 // Deterministic PRNG (mulberry32). A fixed seed family keeps the synthetic
@@ -115,6 +126,9 @@ function synth(spec: Spec): string {
 }
 
 const ENTROPY_TABLE = buildTable([], {}, [], { entropy: true });
+// R uses the full default table: no env names, every default pattern, and
+// the entropy layer armed.
+const DEFAULT_TABLE = buildTable([], {}, DEFAULT_PATTERNS, { entropy: true });
 
 describe("entropy tokenizer rule (HOLD 5696523717)", () => {
   describe("NEGATIVE corpus: tests/fixtures/repo-output.txt", () => {
@@ -183,49 +197,96 @@ describe("entropy tokenizer rule (HOLD 5696523717)", () => {
       expect(result.spans[0].value).toBe(tok);
       expect(result.text).not.toContain(tok);
     });
+  });
 
-    it("masks a synthetic 43-char base64url secret", () => {
-      // base64url alphabet is [A-Za-z0-9-_]; a token with no '-' or '_' stays
-      // one whole run, so this is the strongest coverage case. A value whose
-      // separator splits fall under the 20-char floor is the documented
-      // safe-direction residual of the split rule.
-      const tok = synth({
-        seed: 4,
-        alphabet: `${ALNUM}-_`,
-        len: 43,
-        minEntropy: 4.35,
-        mustAvoid: /[-_]/,
-      });
-      expect(tok.length).toBe(43);
-      const result = mask(`pkce verifier ${tok} end`, ENTROPY_TABLE);
-      expect(result.spans.length).toBe(1);
-      expect(result.spans[0].value).toBe(tok);
-      expect(result.text).not.toContain(tok);
-    });
+  // ---------------------------------------------------------------------
+  // R: seeded recall over 500 samples per real secret shape (HOLD 4189,
+  // fix round 3; replaces the two single-sample JWT/base64url positives).
+  // A sample counts as masked only when NO 16-character substring of the
+  // secret survives anywhere in the masked output.
+  // ---------------------------------------------------------------------
+  describe("R: seeded recall, 500 samples per shape", () => {
+    const B64URL = `${ALNUM}-_`;
+    const N = 500;
 
-    it("masks a synthetic JWT-shaped value (eyJ...eyJ...<sig>)", () => {
-      // JWTs are dot-separated base64url runs; each run here is long and
-      // high-entropy, so all three segments must be masked.
-      let jwt: string | null = null;
-      let parts: string[] = [];
-      for (let seed = 5; seed < 505 && jwt === null; seed++) {
-        const rng = mulberry32(seed);
-        const header = "eyJ" + synthValue(rng, ALNUM, 33);
-        const payload = "eyJ" + synthValue(rng, ALNUM, 40);
-        const sig = synthValue(rng, ALNUM, 43);
-        parts = [header, payload, sig];
-        if (
-          parts.every((p) => shannonEntropy(p) >= 4.35)
-        ) {
-          jwt = parts.join(".");
+    type Shape = { make: (rng: () => number) => string; floor: number; seedBase: number };
+
+    const b64url = (rng: () => number, len: number) => synthValue(rng, B64URL, len);
+
+    const shapes: Record<string, Shape> = {
+      JWT: {
+        seedBase: 101_000,
+        floor: 98,
+        make: (rng) =>
+          [
+            "eyJ" + b64url(rng, 33),
+            "eyJ" + b64url(rng, 40),
+            b64url(rng, 43),
+          ].join("."),
+      },
+      "sk-proj-48": {
+        seedBase: 102_000,
+        floor: 98,
+        make: (rng) => "sk-proj-" + b64url(rng, 48),
+      },
+      sk_live_24: {
+        seedBase: 103_000,
+        floor: 95,
+        make: (rng) => "sk_live_" + synthValue(rng, ALNUM, 24),
+      },
+      "base64url-43": {
+        seedBase: 104_000,
+        floor: 98,
+        make: (rng) => b64url(rng, 43),
+      },
+      "AIza-35": {
+        seedBase: 105_000,
+        floor: 98,
+        make: (rng) => "AIza" + b64url(rng, 35),
+      },
+      "aws-40": {
+        seedBase: 106_000,
+        floor: 98,
+        make: (rng) => synthValue(rng, B64, 40),
+      },
+      "alnum-32": {
+        seedBase: 107_000,
+        floor: 95,
+        make: (rng) => synthValue(rng, ALNUM, 32),
+      },
+    };
+
+    it("masks at or above the per-shape floor over 500 seeded samples each", () => {
+      const summary: string[] = [];
+      const failures: string[] = [];
+      for (const [shape, spec] of Object.entries(shapes)) {
+        let maskedCount = 0;
+        for (let i = 0; i < N; i++) {
+          const rng = mulberry32(spec.seedBase + i);
+          const secret = spec.make(rng);
+          // a line of ordinary text around the value
+          const line = `profile default uses ${secret} for service auth`;
+          const out = mask(line, DEFAULT_TABLE).text;
+          let survives = false;
+          for (let s = 0; s + 16 <= secret.length; s++) {
+            if (out.includes(secret.slice(s, s + 16))) {
+              survives = true;
+              break;
+            }
+          }
+          if (!survives) maskedCount++;
+        }
+        const pct = (100 * maskedCount) / N;
+        summary.push(`${shape}=${pct.toFixed(1)}%`);
+        console.log(
+          `R ${shape}: ${pct.toFixed(1)}% masked (${maskedCount}/${N}), floor ${spec.floor}%`
+        );
+        if (pct < spec.floor) {
+          failures.push(`${shape} ${pct.toFixed(1)}% < floor ${spec.floor}%`);
         }
       }
-      if (jwt === null) throw new Error("no seed produced a JWT-shaped value");
-      const result = mask(`bearer auth ${jwt} end`, ENTROPY_TABLE);
-      expect(result.spans.length).toBe(3);
-      for (const p of parts) {
-        expect(result.text).not.toContain(p);
-      }
+      console.log(`R summary: ${summary.join(" ")}`);
+      expect(failures, `shapes below floor: ${failures.join("; ")}`).toEqual([]);
     });
   });
 

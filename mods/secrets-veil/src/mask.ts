@@ -40,6 +40,43 @@ export const ENTROPY_ALPHABET = "[A-Za-z0-9+/=_-]";
 export const SRI_VALUE_RE = /^sha(?:1|256|384|512)-[A-Za-z0-9+/=]+$/;
 
 /**
+ * Word-likeness of a separator-split segment (HOLD 4189, fix round 3).
+ *
+ * A segment is WORD-LIKE when it is 7 characters or fewer (short pieces
+ * cannot hide a secret on their own), or when it reads like a human word:
+ * letters of a single case (all lower or all upper), digits only, or
+ * lowercase letters mixed with digits with no uppercase (hex, slugs). It is
+ * RANDOM-LOOKING when it is 8+ characters mixing upper and lower case, or
+ * mixing upper case with digits: that is the signature of base64url and
+ * base64 secret bodies, which never appear in paths, branch names or URLs.
+ *
+ * A segment containing any character outside [A-Za-z0-9] is neither and
+ * returns false, so a run holding one keeps its whole-run treatment.
+ */
+export function isWordLikeSegment(seg: string): boolean {
+  if (seg.length === 0) return true; // empty piece from a boundary split
+  if (seg.length <= 7) return true; // short segments are never random
+  let hasUpper = false;
+  let hasLower = false;
+  let hasDigit = false;
+  for (let i = 0; i < seg.length; i++) {
+    const ch = seg[i];
+    if (ch >= "a" && ch <= "z") {
+      hasLower = true;
+    } else if (ch >= "A" && ch <= "Z") {
+      hasUpper = true;
+    } else if (ch >= "0" && ch <= "9") {
+      hasDigit = true;
+    } else {
+      return false;
+    }
+  }
+  if (hasUpper && hasLower) return false; // mixed case, 8+
+  if (hasUpper && hasDigit) return false; // upper case with digits, 8+
+  return true;
+}
+
+/**
  * Shannon entropy of a string, in bits per character, over its empirical
  * character distribution. Empty strings have entropy 0.
  */
@@ -128,6 +165,70 @@ export const DEFAULT_PATTERNS: readonly string[] = [
 ];
 
 /**
+ * Push a span when the value crosses the entropy bar (length floor and
+ * threshold). Shared by the whole-run and per-segment paths; the length
+ * check runs first so short values skip entropy scoring entirely (perf).
+ */
+function pushIfHighEntropy(
+  matches: Array<{ start: number; end: number; value: string; name?: string }>,
+  start: number,
+  value: string,
+  entropy: EntropyConfig
+): void {
+  if (
+    value.length >= entropy.minLength &&
+    shannonEntropy(value) >= entropy.thresholdBitsPerChar
+  ) {
+    matches.push({ start, end: start + value.length, value });
+  }
+}
+
+/**
+ * Score one '='-split piece of a run, from run[pieceStart] to run[pieceEnd].
+ * The piece splits at '/', '-' and '_' only when every resulting segment is
+ * word-like (isWordLikeSegment); otherwise the piece is scored whole. This
+ * is the round-3 rule that restored recall on base64url secret shapes
+ * (HOLD 5697167579) while keeping paths and branch names split.
+ */
+function scorePiece(
+  matches: Array<{ start: number; end: number; value: string; name?: string }>,
+  absStart: number,
+  run: string,
+  pieceStart: number,
+  pieceEnd: number,
+  entropy: EntropyConfig
+): void {
+  const piece = run.slice(pieceStart, pieceEnd);
+  let segStart = -1;
+  for (let i = 0; i <= piece.length; i++) {
+    const ch = i < piece.length ? piece[i] : "/"; // sentinel flushes the tail
+    if (ch === "/" || ch === "-" || ch === "_") {
+      if (segStart !== -1 && !isWordLikeSegment(piece.slice(segStart, i))) {
+        // a random-looking segment: the whole piece stays unsplit
+        pushIfHighEntropy(matches, absStart, piece, entropy);
+        return;
+      }
+      segStart = -1;
+    } else if (segStart === -1) {
+      segStart = i;
+    }
+  }
+  // every segment word-like: score each on its own
+  segStart = -1;
+  for (let i = 0; i <= piece.length; i++) {
+    const ch = i < piece.length ? piece[i] : "/";
+    if (ch === "/" || ch === "-" || ch === "_") {
+      if (segStart !== -1) {
+        pushIfHighEntropy(matches, absStart + segStart, piece.slice(segStart, i), entropy);
+        segStart = -1;
+      }
+    } else if (segStart === -1) {
+      segStart = i;
+    }
+  }
+}
+
+/**
  * Mask secrets in text, returning masked text and spans for UI overlay.
  * Pure function; no I/O. Must complete in under 5 ms for 1 MB input.
  * @param text - text to mask
@@ -212,59 +313,55 @@ export function mask(text: string, table: MaskTable): MaskResult {
 
   // High-entropy token layer (opt-in per table).
   //
-  // Tokenizer rule: a run is scored WHOLE when it contains '+' anywhere, or
-  // '=' only as trailing padding; any other run is first split at the
-  // ordinary separators '/' '-' '_' and at an '=' that is followed by more
-  // characters (a key=value separator), and each segment is scored on its
-  // own. A run matching SRI_VALUE_RE is skipped entirely.
+  // Tokenizer rule (HOLD 4189, fix round 3): a run is scored WHOLE when it
+  // contains '+' anywhere, or '=' only as trailing padding, or when a
+  // separator split would NOT leave every segment word-like; otherwise it
+  // splits and each segment is scored on its own. A run matching
+  // SRI_VALUE_RE is skipped entirely.
   //
   // Why: '+' and '=' padding occur in base64 value runs (an AWS secret
   // access key is 40 chars of [A-Za-z0-9/+], and standard base64 ends in
   // '=') but never in path, branch or URL segments, so they mark a run as a
-  // value rather than a location. '=' BEFORE the end is the opposite: URLs
-  // like ?ref=<branch> put a branch name after '=' (#4189 FIX ROUND), so a
-  // mid-run '=' splits like the other separators. Without the split, a whole
-  // path or branch name is one token that mixes letters, digits and
-  // separators and can cross 4.3 bits/char (#4189 masked 158 lines of git
-  // ls-files output). Without the whole-run carve-out, splitting every '/'
-  // would cut that same secret into pieces under the 20-char floor and
-  // silently skip it. Both directions are proven in
-  // tests/entropy-corpus.test.ts: the repo-output corpus (paths, branches,
-  // URLs, npm integrity lines) must mask 0 spans, and the synthetic base64
-  // and JWT positives must still mask.
+  // value rather than a location. A mid-run '=' is the opposite: URLs like
+  // ?ref=<branch> put a branch name after '=' (#4189 FIX ROUND), so it
+  // always splits like a key=value boundary. Round 2 also split every '-'
+  // and '_' unconditionally, but those characters are ordinary alphabet in
+  // base64url, which is what JWTs, OpenAI project keys, Google keys and
+  // most modern tokens use: the split cut real secrets into segments under
+  // the 20-char floor and recall collapsed (measured in HOLD 5697167579:
+  // JWT 99.6% -> 13.8%, sk-proj- 100 -> 43.4). The character mix now
+  // decides: '-', '_' and '/' split only when every resulting segment is
+  // word-like (paths, branch names, slugs), and a run with any random-
+  // looking segment is scored whole (secrets). Both directions are pinned
+  // in tests/entropy-corpus.test.ts: the repo-output corpus (paths,
+  // branches, URLs, npm integrity lines) must mask 0 spans (mutation M5),
+  // and 500 seeded samples per real secret shape must mask at >= 98%
+  // (>= 95% for the two threshold-limited shapes) (mutation M4).
   const entropy = table.entropy;
   if (entropy) {
     const tokenRe = new RegExp(`${ENTROPY_ALPHABET}{${entropy.minLength},}`, "g");
     let m: RegExpExecArray | null;
     while ((m = tokenRe.exec(maskedText)) !== null) {
-      if (SRI_VALUE_RE.test(m[0])) {
+      const run = m[0];
+      if (SRI_VALUE_RE.test(run)) {
         // public integrity hash, never a secret
         continue;
       }
-      if (/[+]/.test(m[0]) || /^[^=]+=+$/.test(m[0])) {
-        // base64-like run: '+' anywhere, or '=' only as trailing padding
-        if (shannonEntropy(m[0]) >= entropy.thresholdBitsPerChar) {
-          matches.push({
-            start: m.index,
-            end: m.index + m[0].length,
-            value: m[0],
-          });
-        }
+      if (run.indexOf("+") !== -1 || /^[^=]+=+$/.test(run)) {
+        // base64-like run: '+' anywhere, or '=' only as trailing padding;
+        // score it whole
+        pushIfHighEntropy(matches, m.index, run, entropy);
       } else {
-        // ordinary run: split at separators and key=value '=', score each
-        // segment
-        const segRe = /[^/_=-]+/g;
-        let s: RegExpExecArray | null;
-        while ((s = segRe.exec(m[0])) !== null) {
-          if (
-            s[0].length >= entropy.minLength &&
-            shannonEntropy(s[0]) >= entropy.thresholdBitsPerChar
-          ) {
-            matches.push({
-              start: m.index + s.index,
-              end: m.index + s.index + s[0].length,
-              value: s[0],
-            });
+        // ordinary run: a mid-run '=' always splits (key=value, round 2);
+        // each piece then splits at '/', '-', '_' only when every segment
+        // is word-like, else the piece is scored whole
+        let pieceStart = 0;
+        for (let i = 0; i <= run.length; i++) {
+          if (i === run.length || run[i] === "=") {
+            if (i > pieceStart) {
+              scorePiece(matches, m.index + pieceStart, run, pieceStart, i, entropy);
+            }
+            pieceStart = i + 1;
           }
         }
       }
@@ -317,9 +414,10 @@ export function wouldMask(value: string, table: MaskTable): boolean {
     }
   }
   // Same tokenizer rule as mask(): '+' anywhere or '=' as trailing padding
-  // means the value is a base64-like run and is scored whole; otherwise
-  // ordinary separators and a mid-run '=' split it into segments and any
-  // high-entropy segment masks. SRI values are public and never mask.
+  // means the value is a base64-like run and is scored whole. Otherwise a
+  // mid-run '=' always splits (round 2), and each piece splits at '/', '-'
+  // and '_' only when every segment is word-like (round 3), else the piece
+  // is scored whole. SRI values are public and never mask.
   const entropy = table.entropy;
   if (entropy) {
     if (SRI_VALUE_RE.test(value)) {
@@ -331,12 +429,52 @@ export function wouldMask(value: string, table: MaskTable): boolean {
         shannonEntropy(value) >= entropy.thresholdBitsPerChar
       );
     }
-    for (const seg of value.split(/[._=/-]+/)) {
-      if (
-        seg.length >= entropy.minLength &&
-        shannonEntropy(seg) >= entropy.thresholdBitsPerChar
-      ) {
-        return true;
+    let pieceStart = 0;
+    for (let i = 0; i <= value.length; i++) {
+      if (i === value.length || value[i] === "=") {
+        if (i > pieceStart) {
+          const piece = value.slice(pieceStart, i);
+          let segStart = -1;
+          let allWordLike = true;
+          for (let j = 0; j <= piece.length; j++) {
+            const ch = j < piece.length ? piece[j] : "/";
+            if (ch === "/" || ch === "-" || ch === "_") {
+              if (segStart !== -1 && !isWordLikeSegment(piece.slice(segStart, j))) {
+                allWordLike = false;
+                break;
+              }
+              segStart = -1;
+            } else if (segStart === -1) {
+              segStart = j;
+            }
+          }
+          if (allWordLike) {
+            segStart = -1;
+            for (let j = 0; j <= piece.length; j++) {
+              const ch = j < piece.length ? piece[j] : "/";
+              if (ch === "/" || ch === "-" || ch === "_") {
+                if (segStart !== -1) {
+                  const seg = piece.slice(segStart, j);
+                  if (
+                    seg.length >= entropy.minLength &&
+                    shannonEntropy(seg) >= entropy.thresholdBitsPerChar
+                  ) {
+                    return true;
+                  }
+                  segStart = -1;
+                }
+              } else if (segStart === -1) {
+                segStart = j;
+              }
+            }
+          } else if (
+            piece.length >= entropy.minLength &&
+            shannonEntropy(piece) >= entropy.thresholdBitsPerChar
+          ) {
+            return true;
+          }
+        }
+        pieceStart = i + 1;
       }
     }
   }
