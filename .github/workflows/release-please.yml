@@ -275,10 +275,10 @@ jobs:
           package-manager-cache: false
 
       - name: Rebuild hook bundles on the release PR
-        # justify: best-effort https://github.com/yonatangross/orchestkit/issues/3578
-        # ci.yml's release-owned gate is the enforcing half; a failure here
-        # surfaces there as a red required check with the reason.
-        continue-on-error: true
+        # This step fails closed (#4174): a rebuild that did not happen must
+        # not report success. Every hard failure below is an ::error:: + exit 1;
+        # only the benign outcomes (no open PR, non-bot author, bundles already
+        # current, branch moved to a newer head) exit 0 with a notice.
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
@@ -305,8 +305,17 @@ jobs:
               ;;
           esac
 
-          git fetch --quiet origin main "$BRANCH"
-          git checkout --quiet -B "$BRANCH" "origin/${BRANCH}"
+          if ! git fetch --quiet origin main "$BRANCH"; then
+            echo "::error::git fetch of main and ${BRANCH} failed; hook bundles not rebuilt."
+            exit 1
+          fi
+          if ! git checkout --quiet -B "$BRANCH" "origin/${BRANCH}"; then
+            echo "::error::git checkout of ${BRANCH} failed; hook bundles not rebuilt."
+            exit 1
+          fi
+          # The sha this run checked out. If the push later fails, a different
+          # remote head means a newer run owns the rebuild, not this one.
+          CHECKED_SHA="$(git rev-parse HEAD)"
 
           # Only release-owned paths may differ from main before branch code runs.
           # The two plugin.json mirrors are what skill-autobuild regenerates on the
@@ -319,16 +328,22 @@ jobs:
           # silent: known-noise (grep -v returns 1 when every changed path is allowed; that is the pass case)
           OUTSIDE=$(git diff --name-only "origin/main...${BRANCH}" | grep -Ev "$ALLOWED" || true)
           if [ -n "$OUTSIDE" ]; then
-            echo "::warning::Release branch ${BRANCH} differs from main outside release-owned paths; refusing to execute its build:"
+            echo "::error::Release branch ${BRANCH} differs from main outside release-owned paths; refusing to execute its build:"
             printf '%s\n' "$OUTSIDE"
-            exit 0
+            exit 1
           fi
 
-          npm ci
-          (cd src/hooks && npm ci)
+          if ! npm ci; then
+            echo "::error::npm ci (root) failed on ${BRANCH}; hook bundles not rebuilt."
+            exit 1
+          fi
+          if ! (cd src/hooks && npm ci); then
+            echo "::error::npm ci (src/hooks) failed on ${BRANCH}; hook bundles not rebuilt."
+            exit 1
+          fi
           if ! env -u GH_TOKEN npm run build; then
-            echo "::warning::npm run build failed on ${BRANCH}; hook bundles not rebuilt."
-            exit 0
+            echo "::error::npm run build failed on ${BRANCH}; hook bundles not rebuilt."
+            exit 1
           fi
 
           DIST=(src/hooks/dist plugins/ork/hooks/dist)
@@ -345,7 +360,17 @@ jobs:
                "HEAD:${BRANCH}"; then
             echo "::notice::Rebuilt hook bundles on ${BRANCH}."
           else
-            echo "::warning::Could not push the hook bundle rebuild to ${BRANCH}."
+            # A failed push has two meanings: this run lost the race, or the
+            # rebuild genuinely did not land. Read the remote head: if it moved
+            # past the sha this run checked out, a newer run owns the rebuild
+            # and it re-runs on every push to main, so exit 0 with a notice.
+            REMOTE_SHA="$(git ls-remote origin "refs/heads/${BRANCH}" | cut -f1)"
+            if [ -n "$REMOTE_SHA" ] && [ "$REMOTE_SHA" != "$CHECKED_SHA" ]; then
+              echo "::notice::Push of the hook bundle rebuild to ${BRANCH} failed, but the branch head moved from ${CHECKED_SHA} to ${REMOTE_SHA}; the run for the new head owns the rebuild."
+              exit 0
+            fi
+            echo "::error::Could not push the hook bundle rebuild to ${BRANCH} (checked out ${CHECKED_SHA}; remote head ${REMOTE_SHA:-unreadable})."
+            exit 1
           fi
 
   # NOTE: Version sync to manifests, pyproject.toml, and CLAUDE.md is handled
