@@ -18,6 +18,21 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.33",
+    "date": "2026-09-15",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.32...v10.0.0-beta.33",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**docs:** name the PostHog ph_ cookie on the privacy page ([#4152](https://github.com/yonatangross/orchestkit/issues/4152)) ([10bab21](https://github.com/yonatangross/orchestkit/commit/10bab21e0d44989b5269e43135e70b152ebfa911))",
+          "**site:** crosslink apex Yonyon brand page from /yonyon ([#4154](https://github.com/yonatangross/orchestkit/issues/4154)) ([f59a74f](https://github.com/yonatangross/orchestkit/commit/f59a74fa7be2536036f036aba41cabfb969ac56c))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.32",
     "date": "2026-09-15",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.31...v10.0.0-beta.32",
