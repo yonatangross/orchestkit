@@ -1,0 +1,8 @@
+{
+  "slug": "lab-data-stale-text",
+  "source": "docs/docs--lab-data-stale-text/index.html",
+  "title": "No Conflict Left to Resolve",
+  "description": "The PR template and the create-pr skill still told contributors to conflict-resolve lab-data.ts. The aggregate is generated and uncommitted now, so the docs point at the one-fragment flow instead.",
+  "tags": ["docs", "lab", "create-pr", "build"],
+  "date": "2026-09-16"
+}
