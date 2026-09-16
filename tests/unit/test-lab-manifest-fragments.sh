@@ -301,6 +301,52 @@ if check "$d"; then :; fi  # the verdict is not the point here, only the bytes
 after="$(snapshot "$d")"
 if [[ "$before" == "$after" ]]; then ok "readonly: --check wrote nothing"; else bad "readonly: --check modified the tree"; fi
 
+# ---------------------------------------------------------------------
+# Union failure shapes (#4184 review). merge=union keeps both sides'
+# lines, which can produce a WRONG aggregate that still looks like a
+# clean merge. Each shape below must make --check exit NON-ZERO.
+
+# a. adjacent swap: two entries in the wrong order. This is the union
+#    artifact when two branches insert into the same gap and OURS sorts
+#    AFTER theirs (union applies ours-then-theirs).
+d="$(fresh union-swap)"
+add_page "$d" "jjj-early" "2026-09-10"
+add_page "$d" "jjj-late" "2026-09-10"
+if ! gen "$d"; then cat "$OUT"; echo "FAIL: union-swap generate"; exit 1; fi
+node -e '
+  const fs = require("fs");
+  const p = process.argv[1] + "/docs/site/lib/generated/lab-data.ts";
+  const lines = fs.readFileSync(p, "utf8").split("\n");
+  const i = lines.findIndex((l) => l.includes("jjj-early"));
+  [lines[i], lines[i + 1]] = [lines[i + 1], lines[i]];
+  fs.writeFileSync(p, lines.join("\n"));
+' "$d"
+if check "$d"; then bad "swap: unsorted union artifact passes --check"; else ok "swap: unsorted union artifact fails --check"; fi
+
+# b. duplicated line: the same entry appears twice, as union can leave
+#    when both sides carry the same line into a conflicting hunk.
+d="$(fresh union-dup)"
+add_page "$d" "jjj-early" "2026-09-10"
+if ! gen "$d"; then cat "$OUT"; echo "FAIL: union-dup generate"; exit 1; fi
+node -e '
+  const fs = require("fs");
+  const p = process.argv[1] + "/docs/site/lib/generated/lab-data.ts";
+  const lines = fs.readFileSync(p, "utf8").split("\n");
+  const i = lines.findIndex((l) => l.includes("jjj-early"));
+  lines.splice(i, 0, lines[i]);
+  fs.writeFileSync(p, lines.join("\n"));
+' "$d"
+if check "$d"; then bad "dup: duplicated entry line passes --check"; else ok "dup: duplicated entry line fails --check"; fi
+
+# c. stale kept entry: an entry whose fragment was deleted is still
+#    present in the aggregate, exactly what union resurrects when one
+#    branch removes and the other still carries the line.
+d="$(fresh union-stale)"
+add_page "$d" "jjj-early" "2026-09-10"
+if ! gen "$d"; then cat "$OUT"; echo "FAIL: union-stale generate"; exit 1; fi
+rm "$d/docs/site/lab-manifest/jjj-early.json" "$d/docs/site/public/lab/jjj-early.html"
+if check "$d"; then bad "stale: kept entry with deleted fragment passes --check"; else ok "stale: kept entry with deleted fragment fails --check"; fi
+
 echo ""
 echo "Checked: $CHECKED, Failed: $FAILED"
 if [[ "$FAILED" -gt 0 ]]; then

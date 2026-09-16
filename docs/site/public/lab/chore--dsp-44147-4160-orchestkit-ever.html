@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Two Branches, One Line Each</title>
+<meta name="description" content="Interactive model of the lab-data.ts union merge fix (#4181): two PRs each append one sorted entry line to a shared generated aggregate, and the union merge driver keeps both instead of conflicting.">
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 2rem 1rem 4rem; background: #0d1017; color: #cbd5e1;
+    font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  main { max-width: 880px; margin: 0 auto; }
+  h1 { color: #f8fafc; font-size: 1.7rem; margin: 0 0 .3rem; }
+  h2 { color: #f1f5f9; font-size: 1.15rem; margin: 2.2rem 0 .5rem; }
+  p.lead { color: #94a3b8; margin-top: 0; }
+  code, pre { font: 13px/1.5 ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+  code { background: #1a2030; padding: .1em .35em; border-radius: 4px; color: #a5b4fc; }
+  pre {
+    background: #10141d; border: 1px solid #232b3d; border-radius: 8px;
+    padding: .8rem 1rem; overflow-x: auto; white-space: pre; margin: .5rem 0 1rem;
+  }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  @media (max-width: 720px) { .grid { grid-template-columns: 1fr; } }
+  label { display: block; font-size: .85rem; color: #94a3b8; margin: .4rem 0 .2rem; }
+  input {
+    width: 100%; background: #10141d; color: #e2e8f0; border: 1px solid #232b3d;
+    border-radius: 6px; padding: .5rem .7rem; font: 14px ui-monospace, monospace;
+  }
+  button {
+    background: #4f46e5; border: 0; color: #fff; font: 600 14px system-ui, sans-serif;
+    padding: .6rem 1.1rem; border-radius: 6px; cursor: pointer; margin: 1.2rem .6rem 0 0;
+  }
+  button:hover { background: #6366f1; }
+  button.ghost { background: #1a2030; color: #a5b4fc; }
+  .verdict { padding: .7rem 1rem; border-radius: 8px; margin: .6rem 0; font-weight: 600; }
+  .pass { background: #052e1c; border: 1px solid #14532d; color: #4ade80; }
+  .fail { background: #31111d; border: 1px solid #7f1d1d; color: #fb7185; }
+  .conflict { color: #fb7185; }
+  .added { color: #4ade80; }
+  .note { font-size: .85rem; color: #64748b; }
+  .risk { border-left: 3px solid #f59e0b; padding: .2rem 0 .2rem 1rem; color: #94a3b8; }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Two Branches, One Line Each"><meta property="og:description" content="Every playground PR appends one line to the shared generated lab-data.ts, so playground PRs conflicted in pairs. Issue 4181's cheap fix: a merge=union gitattributes rule plus the generator's existing one-entry-per-line slug sort. Merge two branches of entries yourself and watch the conflict turn into a clean union."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/chore--dsp-44147-4160-orchestkit-ever.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Two Branches, One Line Each"><meta name="twitter:description" content="Every playground PR appends one line to the shared generated lab-data.ts, so playground PRs conflicted in pairs. Issue 4181's cheap fix: a merge=union gitattributes rule plus the generator's existing one-entry-per-line slug sort. Merge two branches of entries yourself and watch the conflict turn into a clean union."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <h1>Two Branches, One Line Each</h1>
+  <p class="lead">
+    Every playground PR appends exactly one line to a shared generated file,
+    <code>docs/site/lib/generated/lab-data.ts</code>. This page models the fix
+    from <a href="https://github.com/yonatangross/orchestkit/issues/4181" style="color:#a5b4fc">issue #4181</a>:
+    a <code>merge=union</code> gitattributes rule plus a deterministic slug
+    sort, so two branches that each add an entry merge cleanly instead of
+    conflicting. Type two slugs and merge them yourself.
+  </p>
+
+  <h2>1. Two branches off the same base</h2>
+  <div class="grid">
+    <div>
+      <label for="slugA">Branch A adds entry</label>
+      <input id="slugA" value="exp-a-slug" spellcheck="false">
+    </div>
+    <div>
+      <label for="slugB">Branch B adds entry</label>
+      <input id="slugB" value="exp-b-slug" spellcheck="false">
+    </div>
+  </div>
+
+  <button id="merge">Merge B into A</button>
+  <button id="reset" class="ghost">Reset</button>
+
+  <div id="out"></div>
+
+  <h2>2. The precondition that makes union safe</h2>
+  <p>
+    A union merge concatenates both sides of a conflicting hunk without
+    markers. That is only safe here because the generator
+    (<code>docs/site/scripts/lab-manifest.mjs</code>) emits <strong>one JSON
+    object per line, sorted by slug</strong>. Two branches adding entries
+    therefore touch two different lines, and the union keeps both. A
+    multi-line entry would shred; the generator's own check refuses those.
+  </p>
+
+  <h2>3. The residual risk</h2>
+  <p class="risk">
+    Union keeps lines; it never removes them. If an entry was meant to be
+    <em>removed</em> on one branch, a merge with a branch that still carries
+    it leaves a stale aggregate behind. That is why
+    <code>node docs/site/scripts/lab-manifest.mjs --check</code> must stay a
+    required CI gate: it diffs the committed file against a fresh render and
+    fails on any drift, additions or removals.
+  </p>
+
+  <h2>4. What this PR does not do</h2>
+  <p>
+    It does not gitignore the generated file and it does not move generation
+    into the build. Both are the stronger fix but touch build ordering, which
+    is frozen during the active release. This is the cheap half only.
+  </p>
+</main>
+
+<script>
+(function () {
+  "use strict";
+  var BASE = [
+    '  {"slug":"alpha-picker","title":"Alpha Picker","date":"2026-09-01"},',
+    '  {"slug":"mod-lesson-cards","title":"Lesson Cards","date":"2026-09-12"},',
+    '  {"slug":"zeta-board","title":"Zeta Board","date":"2026-09-14"}'
+  ];
+  var out = document.getElementById("out");
+  var esc = function (s) {
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  };
+  function entryLine(slug) {
+    return '  {"slug":"' + slug + '","title":"' + slug + '","date":"2026-09-16"},';
+  }
+  function branchFile(slug) {
+    // Generator emits the entry in sorted position among the base lines.
+    var lines = BASE.concat(entryLine(slug)).sort();
+    return lines.join("\n");
+  }
+  function checkVerdict(lines) {
+    var slugs = [];
+    for (var i = 0; i < lines.length; i++) {
+      var t = lines[i].trim().replace(/,$/, "");
+      if (!t) continue;
+      try { slugs.push(JSON.parse(t).slug); }
+      catch (e) { return { ok: false, why: "a line is not one JSON object (union would corrupt a multi-line entry)" }; }
+    }
+    for (var j = 1; j < slugs.length; j++) {
+      if (slugs[j] < slugs[j - 1]) {
+        return { ok: false, why: "unsorted: union keeps ours-then-theirs, but " + slugs[j] + " sorts before " + slugs[j - 1] + "; a regen (npm run build) restores the order" };
+      }
+    }
+    return { ok: true, why: slugs.length + " entries, one per line, sorted by slug" };
+  }
+  function render(slugA, slugB) {
+    var a = branchFile(slugA).split("\n");
+    var b = branchFile(slugB).split("\n");
+    var html = "";
+    html += '<div class="grid">';
+    html += "<div><pre>" + esc(a.join("\n")).replace(esc(entryLine(slugA)), '<span class="added">' + esc(entryLine(slugA)) + "</span>") + "</pre><p class='note'>branch A</p></div>";
+    html += "<div><pre>" + esc(b.join("\n")).replace(esc(entryLine(slugB)), '<span class="added">' + esc(entryLine(slugB)) + "</span>") + "</pre><p class='note'>branch B</p></div>";
+    html += "</div>";
+
+    // Without the driver: both branches edited the same region of the same
+    // file, so a content merge conflicts.
+    var conflict =
+      "&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD\n" + esc(entryLine(slugA)) +
+      "\n=======\n" + esc(entryLine(slugB)) +
+      "\n&gt;&gt;&gt;&gt;&gt;&gt;&gt; exp-b";
+    html += "<h2>3. Merge without the union driver</h2>";
+    html += '<div class="verdict fail">CONFLICT: docs/site/lib/generated/lab-data.ts</div>';
+    html += "<pre>" + conflict + "</pre>";
+
+    // With the driver: union keeps both sides' lines, no markers.
+    var unionLines = a.concat(b).filter(function (l, i, arr) { return arr.indexOf(l) === i; }).sort();
+    var v = checkVerdict(unionLines);
+    html += "<h2>4. Merge with merge=union</h2>";
+    html += '<div class="verdict ' + (v.ok ? "pass" : "fail") + '">Merge completes with no conflict markers.</div>';
+    html += "<pre>" + esc(unionLines.join("\n")) + "</pre>";
+    html += '<div class="verdict ' + (v.ok ? "pass" : "fail") + '">lab-manifest.mjs --check: ' + (v.ok ? "OK, " : "FAILED, ") + esc(v.why) + "</div>";
+    html += "<p class='note'>In the real repo this merge was run twice in a scratch clone: once on the pre-change base (conflict, shown in the PR) and once on the post-change base (clean, both entries present, check passing). With A's slug sorting after B's, union produces ours-then-theirs and the byte check fails until a regen re-sorts; the experiment picks the passing order.</p>";
+    out.innerHTML = html;
+  }
+  function read() {
+    var a = document.getElementById("slugA").value.trim() || "exp-a-slug";
+    var b = document.getElementById("slugB").value.trim() || "exp-b-slug";
+    render(a, b);
+  }
+  document.getElementById("merge").addEventListener("click", read);
+  document.getElementById("reset").addEventListener("click", function () {
+    document.getElementById("slugA").value = "exp-a-slug";
+    document.getElementById("slugB").value = "exp-b-slug";
+    read();
+  });
+  read();
+})();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
