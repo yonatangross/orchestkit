@@ -6,28 +6,32 @@
 
 import { describe, test, expect, vi, beforeEach } from "vitest";
 
-// Fake $ object type
+// Fake $ object type. Concrete signatures, not ReturnType<typeof vi.fn>:
+// under vitest 5 the bare Mock type is not directly callable in strict tsc.
 interface Fake$ {
   session: {
-    repo: ReturnType<typeof vi.fn>;
+    repo: () => Promise<{ owner: string; name: string } | null>;
   };
   process: {
-    run: ReturnType<typeof vi.fn>;
+    run: (opts: {
+      argv: string[];
+      init?: Record<string, unknown>;
+    }) => Promise<{ exitCode: number; stdout: string; stderr: string }>;
   };
   fs: {
-    read: ReturnType<typeof vi.fn>;
+    read: (path: string) => Promise<unknown>;
   };
   clock: {
-    every: ReturnType<typeof vi.fn>;
+    every: (ms: number, fn: () => void) => { dispose: () => void };
   };
   store: {
-    get: ReturnType<typeof vi.fn>;
-    set: ReturnType<typeof vi.fn>;
-    delete?: ReturnType<typeof vi.fn>;
+    get: (key: string) => Promise<unknown>;
+    set: (key: string, value: unknown) => Promise<void>;
+    delete: (key: string) => Promise<void>;
   };
   ui: {
-    status: ReturnType<typeof vi.fn>;
-    invalidate: ReturnType<typeof vi.fn>;
+    status: (line: string) => Promise<void>;
+    invalidate: (component: string) => void;
   };
 }
 

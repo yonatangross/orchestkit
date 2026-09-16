@@ -17,11 +17,70 @@
  * - $.ui.invalidate
  */
 
-import type { Register } from "claude-code";
-import { matchAndClassify, isPassing } from "../src/classify.js";
+import { matchAndClassify, isPassing, type ClassifiedLight } from "../src/classify.js";
 import { computeRequiredUnion } from "../src/required.js";
 import { parsePRList, parsePRView, parseCheckRuns } from "../src/gh.js";
 import { buildStatusLine, buildBandContent } from "../src/pane.js";
+
+/**
+ * Minimal $ facade for the calls this module uses, mirroring the
+ * lesson-cards mod: hooks are typed locally so the mod typechecks with
+ * only its own devDependencies installed.
+ */
+type Hook$ = {
+  session: {
+    repo: () => Promise<{ owner: string; name: string } | null>;
+  };
+  process: {
+    run: (opts: {
+      argv: string[];
+      init?: { timeoutMs?: number };
+    }) => Promise<{ exitCode: number; stdout: string; stderr: string }>;
+  };
+  clock: {
+    every: (ms: number, fn: () => void) => { dispose: () => void };
+  };
+  store: {
+    get: (key: string) => Promise<StoredLights | null>;
+    set: (key: string, value: unknown) => Promise<void>;
+    delete: (key: string) => Promise<void>;
+  };
+  ui: {
+    status: (line: string) => Promise<void>;
+    invalidate: (component: string) => void;
+  };
+};
+
+type Matcher = Record<string, unknown>;
+
+type HookEvent = {
+  name?: string;
+  args?: string[];
+  component?: string;
+  [key: string]: unknown;
+};
+
+type NextFn = (ev?: HookEvent) => Promise<Record<string, unknown> | undefined>;
+
+type On = (
+  event: string,
+  matcher: Matcher,
+  handler: ($: Hook$, e: HookEvent, next: NextFn) => unknown
+) => void;
+
+export type Register = (on: On) => void;
+
+/** Shape stored under lights:<owner>/<repo>. */
+type StoredLights = {
+  prNumber?: number;
+  head?: string;
+  lights?: ClassifiedLight[];
+  mergeStateStatus?: string;
+  hold?: boolean;
+  passing?: boolean;
+  error?: string;
+  [key: string]: unknown;
+};
 
 // Module state
 let ticking = false;
@@ -166,7 +225,7 @@ export const register: Register = (on) => {
       command: "lights",
       result: stored
         ? buildStatusLine(
-            stored.prNumber,
+            stored.prNumber ?? 0,
             stored.lights ?? [],
             stored.mergeStateStatus ?? "",
             stored.hold ?? false
@@ -177,7 +236,7 @@ export const register: Register = (on) => {
 };
 
 async function doTick(
-  $: Parameters<Parameters<typeof import("claude-code").Register>[0]>[1][0],
+  $: Hook$,
   owner: string,
   repo: string
 ): Promise<void> {

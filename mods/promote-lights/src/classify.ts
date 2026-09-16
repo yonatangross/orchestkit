@@ -75,7 +75,7 @@ export function classifyCheckRun(run: CheckRun): ClassifiedLight {
  * Returns counts by color.
  */
 export function aggregateLights(
-  lights: ClassifiedLight[]
+  lights: readonly ClassifiedLight[]
 ): { green: number; yellow: number; red: number; cancelled: number } {
   return {
     green: lights.filter((l) => l.color === "green").length,
@@ -87,18 +87,27 @@ export function aggregateLights(
 
 /**
  * Determine if the aggregate status is passing.
- * Cancelled is never pass, missing is never pass.
+ * Only an all-green set passes. Missing (red), pending or in progress
+ * (yellow), skipped (yellow with a skipped conclusion), cancelled, and any
+ * failing run all block the pass. A CI monitor that reports green when it
+ * cannot see is worse than no monitor (GH-4177 class of bug).
  */
-export function isPassing(lights: ClassifiedLight[]): boolean {
+export function isPassing(lights: readonly ClassifiedLight[]): boolean {
   if (lights.length === 0) return false; // total_count: 0 is not-pass
-  return lights.every(
-    (l) => l.color === "green" || l.color === "yellow" // yellow is in-progress, still potentially passing
-  );
+  return lights.every((l) => l.color === "green");
 }
 
 /**
  * Given required contexts and check runs, match and classify.
- * Prefers the first non-skipped run for each context.
+ *
+ * Worst case wins per context. Reruns can put several runs under one name
+ * at the same sha (GH-4177: three workflows emit a run named Build), so
+ * the answer must not depend on API ordering. Any matching run that
+ * classifies red (failure, timed_out, action_required, or an unknown
+ * conclusion) makes the context red even when a later rerun under the
+ * same name is green. A cancelled run keeps its own bucket: it does not
+ * force red, but it is a missing verdict and never reads as a pass.
+ * Otherwise the first non-skipped run is the representative.
  */
 export function matchAndClassify(
   requiredContexts: string[],
@@ -113,6 +122,23 @@ export function matchAndClassify(
     if (matching.length === 0) {
       // Missing - red (not run)
       result.push({ name: ctx, color: "red", conclusion: null });
+      continue;
+    }
+
+    // A red run anywhere in the history of this context at this sha is
+    // red, regardless of a later green rerun.
+    const failed = matching.find((r) => classifyCheckRun(r).color === "red");
+    if (failed) {
+      result.push(classifyCheckRun(failed));
+      continue;
+    }
+
+    // Cancelled keeps its own bucket and is never a verified pass: a
+    // cancellation is a missing verdict, so it surfaces as cancelled even
+    // when a later rerun under the same name is green.
+    const cancelled = matching.find((r) => r.conclusion === "cancelled");
+    if (cancelled) {
+      result.push(classifyCheckRun(cancelled));
       continue;
     }
 

@@ -1,0 +1,18 @@
+{
+  "name": "@orchestkit/mod-promote-lights",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "Shows CI status lights above the prompt while a promote PR (base main) is open. One REST page per minute, PR-open only. Cancelled is not-pass.",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.5",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.0"
+  },
+  "license": "MIT"
+}
