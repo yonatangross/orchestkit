@@ -314,6 +314,38 @@ else
     bad "step still runs a root-level npm run build: $ROOT_BUILD"
 fi
 
+# ------------------------- 8. the shipped rsync line mirrors contents (#4183)
+# Exec arm, no shim: the line is LIFTED from the shipped step and run against
+# a fixture tree. The source MUST carry the trailing slash (rsync copies the
+# directory itself into the target otherwise, nesting dist/dist and leaving
+# the tracked plugin files stale) and the excludes must match
+# build-plugins.sh's dist-facing set (*.map, *.d.mts, *.d.ts). Mutation
+# check: drop the source trailing slash and this arm fails.
+RSYNC_LINE="$(grep 'rsync -a' "$B" | head -1 | sed 's/^if ! //; s/; then$//')"
+if [ -z "$RSYNC_LINE" ]; then
+    bad "shipped step carries no rsync line"
+else
+    D="$WORK/rsyncexec"; mkdir -p "$D/repo/src/hooks/dist" "$D/repo/plugins/ork/hooks/dist"
+    # Distinct sizes and a backdated target model the CI reality: esbuild
+    # writes fresh mtimes, the plugin copy is the committed file from before.
+    # Same-size same-second files would trip rsync's size+mtime quick check
+    # and test the fixture instead of the line.
+    printf 'new-content-longer\n' > "$D/repo/src/hooks/dist/a.mjs"
+    printf 'map\n'  > "$D/repo/src/hooks/dist/a.mjs.map"
+    printf 'dmts\n' > "$D/repo/src/hooks/dist/a.d.mts"
+    printf 'old\n'  > "$D/repo/plugins/ork/hooks/dist/a.mjs"
+    touch -t 202601010000 "$D/repo/plugins/ork/hooks/dist/a.mjs"
+    ( cd "$D/repo" && eval "$RSYNC_LINE" ) || true
+    if [ "$(cat "$D/repo/plugins/ork/hooks/dist/a.mjs" 2>/dev/null)" = "new-content-longer" ] \
+       && [ ! -d "$D/repo/plugins/ork/hooks/dist/dist" ] \
+       && [ ! -e "$D/repo/plugins/ork/hooks/dist/a.mjs.map" ] \
+       && [ ! -e "$D/repo/plugins/ork/hooks/dist/a.d.mts" ]; then
+        ok "shipped rsync line mirrors contents, excludes map/d.mts, no nested dist"
+    else
+        bad "shipped rsync line did not mirror contents (stale plugin copy, nested dist, or excluded files copied): $RSYNC_LINE"
+    fi
+fi
+
 echo ""
 echo "Results: $PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ]
