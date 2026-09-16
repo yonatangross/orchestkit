@@ -243,7 +243,8 @@ jobs:
               (cd "$dir" && npx tsc --noEmit) || status=1
               (cd "$dir" && npx vitest run) || status=1
             else
-              echo "no package.json, skipping typecheck and tests"
+              echo "::error::mod $name has no package.json; every mod must declare its typecheck and test surface (#4182)"
+              status=1
             fi
             echo "::endgroup::"
           done
