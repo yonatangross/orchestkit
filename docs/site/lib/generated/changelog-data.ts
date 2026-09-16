@@ -18,6 +18,28 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.40",
+    "date": "2026-09-16",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.39...v10.0.0-beta.40",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**ci:** fail closed the release hook-bundle rebuild step ([#4174](https://github.com/yonatangross/orchestkit/issues/4174)) ([#4198](https://github.com/yonatangross/orchestkit/issues/4198)) ([b554e17](https://github.com/yonatangross/orchestkit/commit/b554e17dfd5fc1238f0d1dcfe05aad08011361c0))",
+          "**ci:** rename duplicate Build check names ([#4194](https://github.com/yonatangross/orchestkit/issues/4194)) ([4c2a340](https://github.com/yonatangross/orchestkit/commit/4c2a340c952af746d128a15dbea8852f99f087e8))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "CI/CD",
+        "items": [
+          "fail Mods job when a mod lacks a package.json ([#4196](https://github.com/yonatangross/orchestkit/issues/4196)) ([eacac5c](https://github.com/yonatangross/orchestkit/commit/eacac5c33afdf7285a8646b009e9f934c754888c)), closes [#4182](https://github.com/yonatangross/orchestkit/issues/4182)"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.39",
     "date": "2026-09-16",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.38...v10.0.0-beta.39",
