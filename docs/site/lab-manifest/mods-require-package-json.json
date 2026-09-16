@@ -1,0 +1,8 @@
+{
+  "slug": "mods-require-package-json",
+  "source": "docs/ci--mods-require-package-json/index.html",
+  "title": "A Silent Skip in the Mods Job",
+  "description": "The Mods job skipped typecheck and tests for any mod without a package.json and stayed green. Now that case is a hard error naming the mod, and all three mods on main declare their surface.",
+  "tags": ["ci", "mods", "workflow", "validation"],
+  "date": "2026-09-16"
+}

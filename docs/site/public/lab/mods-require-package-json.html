@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>A Silent Skip in the Mods Job | OrchestKit Lab</title>
+  <meta name="description" content="The Mods job skipped typecheck and tests for any mod without a package.json and stayed green. Now that case is a hard error, and the measured set of mods on main all declare their surface.">
+  <style>
+    :root { color-scheme: dark; font: 17px/1.6 system-ui, sans-serif; background: #101822; color: #e9eef3; }
+    body { max-width: 820px; margin: auto; padding: 48px 24px; }
+    h1 { font-size: clamp(2rem, 6vw, 3.4rem); line-height: 1.1; }
+    h2 { font-size: 1.25rem; margin-top: 32px; }
+    a { color: #8fd8ff; }
+    .eyebrow { color: #8fd8ff; letter-spacing: .08em; }
+    fieldset, article { border: 1px solid #43566a; border-radius: 12px; padding: 20px; margin: 20px 0; }
+    legend { font-weight: 600; }
+    .before { color: #f87171; }
+    .after { color: #4ade80; }
+    .quote { border-left: 3px solid #43566a; margin: 12px 0; padding: 4px 16px; font-size: 15px; }
+    .quote.bad { border-left-color: #f87171; }
+    .quote.good { border-left-color: #4ade80; }
+    code { background: rgba(255,255,255,.07); border-radius: 4px; padding: 1px 6px; font-size: 14px; }
+    button { font: inherit; color: #101822; background: #8fd8ff; border: 0; border-radius: 6px; padding: 10px 18px; margin: 0 10px 12px 0; cursor: pointer; }
+    :focus-visible { outline: 3px solid #ffd580; outline-offset: 4px; }
+    .status-line { font-family: monospace; padding: 12px; background: #0d1017; border-radius: 6px; margin-top: 16px; white-space: pre-wrap; }
+    .ok { color: #4ade80; }
+    .bad { color: #f87171; }
+    .note { color: #b8c5d1; }
+    table { border-collapse: collapse; margin: 12px 0; font-size: 15px; }
+    th, td { border: 1px solid #43566a; padding: 6px 14px; text-align: left; }
+    footer { margin-top: 32px; color: #b8c5d1; font-size: 14px; }
+  </style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="A Silent Skip in the Mods Job"><meta property="og:description" content="The Mods job skipped typecheck and tests for any mod without a package.json and stayed green. Now that case is a hard error naming the mod, and all three mods on main declare their surface."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/mods-require-package-json.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="A Silent Skip in the Mods Job"><meta name="twitter:description" content="The Mods job skipped typecheck and tests for any mod without a package.json and stayed green. Now that case is a hard error naming the mod, and all three mods on main declare their surface."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+  <main>
+    <p class="eyebrow">ORCHESTKIT LAB · ISSUE 4182</p>
+    <h1>A Silent Skip in the Mods Job</h1>
+    <p>The Mods job in <code>ci.yml</code> typechecks and tests every directory
+    under <code>mods/</code>. If a mod has no <code>package.json</code>, the
+    else branch only echoed and moved on: zero tests ran and the job stayed
+    green. A mod that forgot its whole test surface would pass CI forever.</p>
+
+    <article aria-labelledby="change">
+      <h2 id="change" class="note">The one-branch change</h2>
+      <div class="quote bad"><span class="before">before:</span> <code>echo "no package.json, skipping typecheck and tests"</code></div>
+      <div class="quote good"><span class="after">after:</span> <code>echo "::error::mod $name has no package.json; every mod must declare its typecheck and test surface (#4182)"</code> plus <code>status=1</code>, so the step fails and the annotation names the offending mod.</div>
+      <p>Nothing else in the workflow changed: two inserted lines, one replaced line.</p>
+    </article>
+
+    <article aria-labelledby="measure">
+      <h2 id="measure" class="note">The measurement</h2>
+      <p>Measured on origin/main before the change. All three mods declare a
+      package.json, so the new error branch fires only on a future mod that
+      forgets its surface, never on the current tree.</p>
+      <table>
+        <tr><th>mod</th><th>package.json</th><th>test files</th></tr>
+        <tr><td>lesson-cards</td><td>yes</td><td>3</td></tr>
+        <tr><td>promote-lights</td><td>yes</td><td>3</td></tr>
+        <tr><td>secrets-veil</td><td>yes</td><td>3</td></tr>
+      </table>
+    </article>
+
+    <fieldset>
+      <legend>Run the extracted step against a fixture tree</legend>
+      <p>The step's run block was extracted verbatim and run with shims for
+      claude, npm and npx. Fixture A is the mods tree as is. Fixture B drops
+      one package.json. The mutation runs the old else branch on fixture B.</p>
+      <button id="run" type="button">Run all three cases</button>
+      <div class="status-line" id="status">waiting: three cases, one expectation each</div>
+    </fieldset>
+
+    <p class="note">The change is CI-only: the else branch of one step in one
+    workflow. No skill, agent, hook or plugin bytes move.</p>
+
+    <p><a href="https://github.com/yonatangross/orchestkit/issues/4182">Issue 4182</a> ·
+    <a href="https://orchestkit.yonyon.ai/lab">Explore the Lab</a></p>
+    <footer>mods-require-package-json · OrchestKit docs site · a missing surface is now an error, not a skip.</footer>
+  </main>
+  <script>
+    (function() {
+      var status = document.getElementById("status");
+      var btn = document.getElementById("run");
+      btn.addEventListener("click", function() {
+        status.innerHTML =
+          "<span class=\"ok\">fixture A, mods tree as is</span> &#8594; rc=0\n" +
+          "<span class=\"bad\">fixture B, promote-lights package.json removed</span> &#8594; rc=1\n" +
+          "::error::mod promote-lights has no package.json; every mod must declare its typecheck and test surface (#4182)\n" +
+          "mutation: old else branch restored, fixture B again &#8594; <span class=\"bad\">rc=0</span>, the silent skip is back";
+        btn.disabled = true;
+      });
+    })();
+  </script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
