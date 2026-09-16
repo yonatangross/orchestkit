@@ -1,0 +1,11 @@
+{
+  "slug": "chore--dsp-39782-4160-allowed-devin",
+  "source": "docs/chore--dsp-39782-4160-allowed-devin/index.html",
+  "title": "The rebuild guard that refused its own release stamp",
+  "description": "Issue #4173: release-please stamps the version into .devin-plugin/plugin.json on the release branch, but that path was missing from the ALLOWED regex in release-please.yml, so the rebuild guard refused every release build with a warning while the job still reported success. The page runs the five verification paths through the regex before and after the one-line fix.",
+  "tags": [
+    "ci",
+    "release"
+  ],
+  "date": "2026-09-16"
+}
