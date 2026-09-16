@@ -1,0 +1,489 @@
+# tests/fixtures/repo-output.txt - NEGATIVE corpus for the entropy layer
+# (HOLD comment 5696523717, blocker 1, extended in the FIX ROUND). The
+# entropy layer must mask 0 spans over every content line; lines starting
+# with '#' are comments.
+#
+# Provenance: every content line below was produced from THIS public
+# repository only (github.com/yonatangross/orchestkit):
+#   1. git branch -r --list 'origin/*'   remote branches of this repo only;
+#      local branches and the fork remote (a different GitHub repository)
+#      are excluded
+#   2. git ls-files | head -400          tracked paths of this repo, listed
+#      from the repository root
+#   3. one statuses URL for commit 5231b333cd544eaf6db866da120a9691f1f3d7e0
+#      on origin/main and one actions run URL from this repo's CI
+#   4. the identifier examples quoted verbatim in HOLD comment 5696523717
+#   5. FIX ROUND: one gh api URL with ?ref= to a real origin remote branch,
+#      and three "integrity" lines copied verbatim from THIS repo's root
+#      package-lock.json (npm publishes these hashes publicly; they are
+#      public values, not secrets)
+# Excluded by construction: output from any other repository, local-only
+# branch names, email addresses, environment variable dumps, and any
+# variable or secret names. Paths, branch names, public hashes and public
+# URLs only.
+# --- remote branches (git branch -r --list 'origin/*')
+  origin/HEAD -> origin/main
+  origin/chore/cc-adoption-2.1.215-218
+  origin/chore/dsp-2289-mod-promote-lights
+  origin/chore/dsp-2394-mod-lesson-cards
+  origin/chore/dsp-2576-ci-inert-lab
+  origin/chore/dsp-37524-fix-4159
+  origin/chore/dsp-39782-4160-allowed-devin
+  origin/chore/dsp-44147-4160-orchestkit-ever
+  origin/chore/dsp-52341-brief-cc-272-bump-md
+  origin/chore/dsp-60150-full-gh-4123-frozen
+  origin/chore/dsp-85789-devin-plugin-4146-read
+  origin/chore/dsp-94218-fix-4084
+  origin/chore/dsp-94230-fix-4109
+  origin/chore/dsp-94242-fix-4144
+  origin/chore/dsp-95695-fix-4136
+  origin/chore/dsp-97579-fix-4155
+  origin/chore/dsp-98708-fix-4144-b
+  origin/chore/dsp-99733-fix-4158
+  origin/chore/preserve-m164-triage
+  origin/docs/cc-272-matrix-table-join
+  origin/docs/fork-model-post-2-1-232-3726
+  origin/docs/lab-data-stale-text
+  origin/docs/upgrade-day-explainer
+  origin/feat/3315-worktree-baseref-include
+  origin/feat/devin-host-card
+  origin/feat/orank-honest-remaining
+  origin/feat/prov-trailers
+  origin/feat/secrets-veil-2276
+  origin/feat/secrets-veil-3
+  origin/fix/4185-lab-data-at-build
+  origin/fix/devin-host-card-ssr
+  origin/main
+  origin/playgrounds-archive
+  origin/release-please--branches--main
+  origin/release-please--branches--main--release-notes
+# --- tracked paths (git ls-files | head -400)
+.agents/plugins/marketplace.json
+.claude-plugin/marketplace.json
+.claude-plugins
+.claude/ORANK-EVIDENCE-2026-08-23.md
+.claude/agent-memory/ork-backend-system-architect/MEMORY.md
+.claude/agent-memory/ork-backend-system-architect/project_ork_debt_extension_drift.md
+.claude/agent-memory/ork-ci-cd-engineer/MEMORY.md
+.claude/agent-memory/ork-code-quality-reviewer/MEMORY.md
+.claude/agent-memory/ork-code-quality-reviewer/docs-site-review-gotchas.md
+.claude/agent-memory/ork-code-quality-reviewer/hook-comparison.md
+.claude/agent-memory/ork-code-quality-reviewer/mcp-registry-oci-package-format.md
+.claude/agent-memory/ork-code-quality-reviewer/review-2041-dedup-migration.md
+.claude/agent-memory/ork-code-quality-reviewer/review-v7-hooks-pr835.md
+.claude/agent-memory/ork-code-quality-reviewer/skill-guard-scope-gaps.md
+.claude/agent-memory/ork-code-quality-reviewer/subagent-hook-input-normalization.md
+.claude/agent-memory/ork-documentation-specialist/MEMORY.md
+.claude/agent-memory/ork-event-driven-architect/MEMORY.md
+.claude/agent-memory/ork-frontend-ui-developer/MEMORY.md
+.claude/agent-memory/ork-genui-architect/MEMORY.md
+.claude/agent-memory/ork-genui-architect/project_execute_strategy_selector_2516.md
+.claude/agent-memory/ork-genui-architect/reference_execution_primitive_tradeoffs.md
+.claude/agent-memory/ork-llm-integrator/MEMORY.md
+.claude/agent-memory/ork-python-performance-engineer/MEMORY.md
+.claude/agent-memory/ork-rapid-ui-designer/MEMORY.md
+.claude/agent-memory/ork-release-engineer/MEMORY.md
+.claude/agent-memory/ork-release-engineer/m117-pr-shape-recommendation.md
+.claude/agent-memory/ork-release-engineer/m117-release-shape-analysis.md
+.claude/agent-memory/ork-release-engineer/prerelease-support.md
+.claude/agent-memory/ork-release-engineer/release-please-configs.md
+.claude/agent-memory/ork-release-engineer/release_notes_player_v2_design.md
+.claude/agent-memory/ork-test-generator/MEMORY.md
+.claude/agent-memory/ork-test-generator/project_eval_framework.md
+.claude/agent-memory/ork-ux-researcher/MEMORY.md
+.claude/agent-memory/ork-workflow-architect/MEMORY.md
+.claude/agent-memory/ork-workflow-architect/project_execution_strategy_selector.md
+.claude/agent-memory/ork-workflow-architect/project_swarm_decomposer_decision.md
+.claude/agent-routing-analysis-feb2026.md
+.claude/audit-allowlist.json
+.claude/config/hooks.json
+.claude/context/identity.json
+.claude/context/knowledge/blockers/current.json
+.claude/context/knowledge/decisions/active.json
+.claude/context/knowledge/index.json
+.claude/context/knowledge/patterns/established.json
+.claude/context/knowledge/patterns/pattern-registry.json
+.claude/context/session/.gitkeep
+.claude/coordination/bin/coord-decisions
+.claude/coordination/bin/coord-lock
+.claude/coordination/bin/coord-status
+.claude/coordination/config.json
+.claude/coordination/examples/conflict-detection-demo.sh
+.claude/coordination/examples/multi-instance-demo.sh
+.claude/coordination/examples/stale-instance-demo.sh
+.claude/coordination/lib/coordination.sh
+.claude/coordination/locks.json
+.claude/coordination/registry.json
+.claude/coordination/schema.sql
+.claude/coordination/schemas/decision-log.schema.json
+.claude/coordination/schemas/file-lock.schema.json
+.claude/coordination/schemas/heartbeat.schema.json
+.claude/coordination/schemas/work-registry.schema.json
+.claude/defaults/config.json
+.claude/defaults/presets/hooks-only.json
+.claude/defaults/presets/lite.json
+.claude/defaults/presets/standard.json
+.claude/docs/release-channels.md
+.claude/instructions/context-initialization.md
+.claude/keybindings.json
+.claude/permissions/profiles/README.md
+.claude/permissions/profiles/enterprise.json
+.claude/permissions/profiles/secure.json
+.claude/permissions/profiles/team.json
+.claude/policies/agent-output-policy.md
+.claude/reap-evidence-2026-08-14.tsv
+.claude/release-sync-config.json
+.claude/rules/agent-authoring.md
+.claude/rules/antipatterns.md
+.claude/rules/ci-workflows.md
+.claude/rules/count-sync.md
+.claude/rules/error_rules.json
+.claude/rules/error_solutions.json
+.claude/rules/eval-golden.md
+.claude/rules/hooks-development.md
+.claude/rules/lab-manifest.md
+.claude/rules/rules-meta.md
+.claude/rules/scripts-conventions.md
+.claude/rules/security-sensitive.md
+.claude/rules/skill-authoring.md
+.claude/rules/test-conventions.md
+.claude/rules/usage-analytics-hardening.md
+.claude/schemas/config.schema.json
+.claude/schemas/consent.schema.json
+.claude/schemas/coordination-registry.schema.json
+.claude/schemas/feedback.schema.json
+.claude/schemas/hook-output.schema.json
+.claude/schemas/marketplace.schema.json
+.claude/schemas/memory-fabric.schema.json
+.claude/schemas/memory.schema.json
+.claude/schemas/skill-evaluation.schema.json
+.claude/schemas/skill-evolution.schema.json
+.claude/scripts/analytics-lib.sh
+.claude/scripts/analytics-sender.sh
+.claude/scripts/analyze_errors.py
+.claude/scripts/config-loader.sh
+.claude/scripts/consent-manager.sh
+.claude/scripts/decision-sync.sh
+.claude/scripts/evolution-engine.sh
+.claude/scripts/feedback-lib.sh
+.claude/scripts/memory-lib.sh
+.claude/scripts/pattern-sync.sh
+.claude/scripts/skill-analyzer.sh
+.claude/scripts/version-manager.sh
+.claude/templates/mcp-disabled.json
+.claude/templates/mcp-enabled.json
+.cmux/README.md
+.cmux/cmux.json
+.coderabbit.yaml
+.cursor-plugin/marketplace.json
+.devin-plugin/plugin.json
+.dockerignore
+.env.example
+.github/CODEOWNERS
+.github/ISSUE_TEMPLATE/bug_report.yml
+.github/ISSUE_TEMPLATE/cc-version-bump.yml
+.github/ISSUE_TEMPLATE/config.yml
+.github/ISSUE_TEMPLATE/feature_request.yml
+.github/PULL_REQUEST_TEMPLATE.md
+.github/SECURITY.md
+.github/action-versions.md
+.github/actions/run-tests/action.yml
+.github/actions/setup/action.yml
+.github/assets/Logo.png
+.github/codeql/codeql-config.yml
+.github/dependabot.yml
+.github/scripts/ensure-system-deps.sh
+.github/scripts/npm-audit-with-retry.sh
+.github/workflows/README.md
+.github/workflows/bench.yml
+.github/workflows/build.yml
+.github/workflows/cc-contract-probe.yml
+.github/workflows/cc-support-window-bump.yml
+.github/workflows/ci-report.yml
+.github/workflows/ci-sentinel.yml
+.github/workflows/ci.yml
+.github/workflows/claude-health.yml
+.github/workflows/claude-release-watch.yml
+.github/workflows/claude-triage.yml
+.github/workflows/codeql.yml
+.github/workflows/contract-parity.yml
+.github/workflows/demos-validate.yml
+.github/workflows/dependabot-automerge.yml
+.github/workflows/docker-smoke.yml
+.github/workflows/docs.yml
+.github/workflows/eval-index-effectiveness.yml
+.github/workflows/eval-routing.yml
+.github/workflows/go-sdk.yml
+.github/workflows/hook-contract-py.yml
+.github/workflows/hook-contract.yml
+.github/workflows/import-symbol-watch.yml
+.github/workflows/labs-version-probe.yml
+.github/workflows/labs-version-watch.yml
+.github/workflows/memory-staleness.yml
+.github/workflows/orchestkit-py.yml
+.github/workflows/plugin-eval-score.yml
+.github/workflows/plugin-eval.yml
+.github/workflows/plugin-validation.yml
+.github/workflows/pr-body-lint.yml
+.github/workflows/property-tests.yml
+.github/workflows/prune-playgrounds.yml
+.github/workflows/publish-hook-contract-npm.yml
+.github/workflows/publish-hook-contract-py.yml
+.github/workflows/publish-orchestkit-py.yml
+.github/workflows/readme-link-audit.yml
+.github/workflows/release-announce.yml
+.github/workflows/release-please-guard.yml
+.github/workflows/release-please.yml
+.github/workflows/release-video.yml
+.github/workflows/release.yml
+.github/workflows/reusable-test-runner.yml
+.github/workflows/scorecard.yml
+.github/workflows/skill-autobuild.yml
+.github/workflows/skill-claims-audit.yml
+.github/workflows/skill-eval.yml
+.github/workflows/traffic-snapshot.yml
+.github/workflows/ultrareview.yml
+.github/workflows/validate-workflows.yml
+.github/workflows/version-check.yml
+.github/workflows/visual-style-lint.yml
+.github/workflows/windows-smoke.yml
+.github/zizmor.yml
+.gitignore
+.gitleaks.toml
+.lsp.json
+.lycheeignore
+.npmrc
+.nvmrc
+.pi/mcp.json.example
+.release-please-config.json
+.release-please-manifest.json
+.verify-shots/01-hero.png
+.verify-shots/02-stop-30pct.png
+.verify-shots/03-stop-55pct.png
+.verify-shots/04-stop-76pct.png
+.verify-shots/05-stop-95pct.png
+.verify-shots/06-skill-verify.png
+.verify-shots/07-reduced-motion.png
+.worktreeinclude
+AGENTS.md
+CHANGELOG.md
+CLAUDE.md
+CODE_OF_CONDUCT.md
+CONTRIBUTING.md
+Dockerfile
+LICENSE
+README.md
+SECURITY.md
+STABILITY.md
+bin/audit-lifecycle.sh
+bin/bump-version.sh
+bin/check-pr-visual-style.sh
+bin/check-skill-invocable.sh
+bin/ci-setup.sh
+bin/claude-dev
+bin/count-components.sh
+bin/count-hooks.sh
+bin/create-release.sh
+bin/git-hooks/commit-msg
+bin/git-hooks/pre-commit
+bin/git-hooks/pre-push
+bin/install-git-hooks.sh
+bin/install-hooks.sh
+bin/migrate-to-plugins.sh
+bin/migrate-to-symlinks.sh
+bin/restructure-plugins.sh
+bin/sync-skills.sh
+bin/validate-counts.sh
+bin/validate-frontmatter.sh
+bin/validate-mdx-counts.sh
+bin/validate-symlinks.sh
+bin/validate-test-case-rules.sh
+bin/validate-visual-style.py
+bin/worktree-config.sh
+bin/worktree-reclaim.sh
+designs/README.md
+designs/ascii-design-system.md
+docs/DEMO_PRODUCTION.md
+docs/adr/caching-strategy.md
+docs/adr/database-selection.md
+docs/adr/optional-agent-identity.md
+docs/audits/cc-adoption-2.1.178-179-backlog-triage-2026-06-18.md
+docs/audits/cc-adoption-2.1.186-triage-2026-06-23.md
+docs/audits/cc-adoption-2.1.198-201-triage-2026-07-05.md
+docs/audits/cc-adoption-2.1.202-triage-2026-07-07.md
+docs/audits/cc-adoption-2.1.203-204-triage-2026-07-08.md
+docs/audits/cc-adoption-2.1.205-206-triage-2026-07-10.md
+docs/audits/cc-adoption-2.1.207-208-triage-2026-07-14.md
+docs/audits/cc-adoption-2.1.209-214-triage-2026-07-18.md
+docs/audits/cc-adoption-2.1.221-241-triage-2026-08-24.md
+docs/audits/cc-adoption-2.1.223-226-triage-2026-08-08.md
+docs/audits/cc-adoption-2.1.231-triage-2026-08-13.md
+docs/audits/cc-adoption-2.1.252-257-triage-2026-09-01.md
+docs/audits/cc-adoption-2.1.258-triage-2026-09-02.md
+docs/audits/cc-adoption-2.1.259-261-triage-2026-09-05.md
+docs/audits/cc-adoption-2.1.262-263-triage-2026-09-06.md
+docs/audits/cc-adoption-2.1.269-272-triage-2026-09-15.md
+docs/audits/codex-alignment-readonly-2026-09-06.md
+docs/audits/deny-surface-inventory-2026-09-09.md
+docs/audits/design-2475-instructions-loaded-rearchitecture.md
+docs/audits/design-2528-skill-mirror-single-source.md
+docs/audits/epic-c-close-state-2026-09-06.md
+docs/audits/forkbomb-gap-accepted-2026-09-01.md
+docs/audits/gate-fault-arm-audit-2026-09-06.md
+docs/audits/hook-divergence-purge-2026-08-31.md
+docs/audits/hooks-security-audit-2026-02-06.md
+docs/audits/multi-engine-support-2026-09-08.md
+docs/audits/platform-adoption-2026-08-01..27-triage-2026-08-31.md
+docs/audits/release-please-version-drift-2026-05-22.md
+docs/audits/skill-metadata-keys-probe-2026-09-06.md
+docs/banner.png
+docs/catalog-currency-audit/GAPS.md
+docs/catalog-currency-audit/GATES.md
+docs/cc-adoption-wave-210-212/index.html
+docs/cc-release-integration-sop.md
+docs/chore--2528-stamp-harness-manifests/index.html
+docs/chore--3324-subagent-spawn-depth/index.html
+docs/chore--3349-engine-field-strict/index.html
+docs/chore--3353-unused-tables-verdict/index.html
+docs/chore--3457-probe-trace-pass/index.html
+docs/chore--3461-delete-dead-agent-hooks/dead-hooks.html
+docs/chore--3578-dist-release-owned/index.html
+docs/chore--3675-plugin-json-pricing/orank-score-anatomy.html
+docs/chore--3835-purge-wave1/index.html
+docs/chore--3835-purge-wave2/index.html
+docs/chore--3835-purge-wave3/index.html
+docs/chore--3835-purge-wave4/index.html
+docs/chore--3867-delete-generate-http-hooks/index.html
+docs/chore--4030-drop-test-configs/index.html
+docs/chore--adopt-cc-257/index.html
+docs/chore--adopt-cc-258/index.html
+docs/chore--agent-routing-2026-09-01/index.html
+docs/chore--beta-1-flip/index.html
+docs/chore--cc-251-snapshot-and-watch/index.html
+docs/chore--cc-257-followups/index.html
+docs/chore--cc-adopt-2.1.222/plan-viz.html
+docs/chore--cc-adopt-2.1.227-229/index.html
+docs/chore--cc-adopt-2.1.231/plan-viz.html
+docs/chore--cc-adoption-2-1-268/five-releases-one-gap.html
+docs/chore--cc-floor-2.1.251/index.html
+docs/chore--cc-latest-known-2.1.241/support-window.html
+docs/chore--cc-latest-known-227/index.html
+docs/chore--cc-triage-223-226/playground.html
+docs/chore--coderabbit-advisory-lane/index.html
+docs/chore--depersonalize-public-docs-hq-refs/route-nudge-regex.html
+docs/chore--drop-stale-2-1-219-gap-row/index.html
+docs/chore--dsp-2289-mod-promote-lights/index.html
+docs/chore--dsp-2394-mod-lesson-cards/lesson-cards.html
+docs/chore--dsp-37524-fix-4159/index.html
+docs/chore--dsp-39782-4160-allowed-devin/index.html
+docs/chore--dsp-44147-4160-orchestkit-ever/index.html
+docs/chore--dsp-52341-brief-cc-272-bump-md/adoption.html
+docs/chore--dsp-85789-devin-plugin-4146-read/index.html
+docs/chore--dsp-94218-fix-4084/index.html
+docs/chore--dsp-94230-fix-4109/index.html
+docs/chore--dsp-94242-fix-4144/index.html
+docs/chore--dsp-95695-fix-4136/index.html
+docs/chore--dsp-97579-fix-4155/index.html
+docs/chore--dsp-99733-fix-4158/index.html
+docs/chore--legacy-debris-sweep/index.html
+docs/chore--opus5-trim-assessment/audit-dimensions.json
+docs/chore--opus5-trim-assessment/before-after-exhibits.md
+docs/chore--opus5-trim-assessment/index.html
+docs/chore--opus5-trim-assessment/plan.md
+docs/chore--opus5-trim-assessment/skill-triage.html
+docs/chore--oss-surface-hygiene/install-matrix.html
+docs/chore--pin-bump-with-bodies/pin-provenance.html
+docs/chore--reap-merged-branches/index.html
+docs/chore--remove-dead-worktree-cli/dead-cli.html
+docs/chore--rescue-untracked-ledgers/rescue.html
+docs/chore--strip-inert-deny-rules/index.html
+docs/chore--untrack-session-state/index.html
+docs/chore--upgrade-sweep-flows/sensor-honesty.html
+docs/chore--v10-frontmatter-node/index.html
+docs/chore--v10-wrapper-probe/playground.html
+docs/chore--worktree-symlink-config/worktree-disk.html
+docs/ci--3848-audits-inert/index.html
+docs/ci--3878-pricing-tier-canary/index.html
+docs/codescan-zizmor-remediation/index.html
+docs/conductor-ledger.md
+docs/coordination-architecture.md
+docs/docs--21st-picker-rationale/why-the-picker.html
+docs/docs--3322-excludedcommands-caveat/index.html
+docs/docs--3725-redact-secrets-paperwork/index.html
+docs/docs--3772-3773-cross-session-messaging/index.html
+docs/docs--3835-divergence-register/index.html
+docs/docs--3850-stale-spotlights/index.html
+docs/docs--3876-cache-ttl-verdict/index.html
+docs/docs--3877-egress-keep-verdict/index.html
+docs/docs--3901-glyph-examples-page/index.html
+docs/docs--3917-function-hooks-watch/function-hooks-gate.html
+docs/docs--74315-per-skill-gh-3902-gh/per-skill-reference-pages.html
+docs/docs--agent-browser-0.34-corrections/index.html
+docs/docs--cc-272-matrix-table-join/index.html
+docs/docs--cc-adoption-2.1.221-223-doc-fixes/stale-claims.html
+docs/docs--community-live-room/community-doors.html
+docs/docs--conductor-session-playground-revive/index.html
+docs/docs--fork-model-post-2-1-232-3726-c/index.html
+docs/docs--generic-harness-matrix/capabilities.html
+docs/docs--glyph-decision-pages-2026-08-23/cc-capability-inventory.html
+docs/docs--glyph-decision-pages-2026-08-23/ork-open-decisions.html
+docs/docs--host-first-install-wizard/host-copy.html
+docs/docs--housekeeping-explainer-2026-08-25/index.html
+docs/docs--load-diagnosis-zsh-rsync/index.html
+docs/docs--next-2026-08-03-playground/whats-next.html
+docs/docs--platform-triage-2026-08-31/index.html
+docs/docs--portless-443-default/portless-url-shape.html
+docs/docs--research-1861-chain-he/index.html
+docs/docs--sandbox-schema-update/sandbox-schema-findings.html
+docs/docs--session-explainer-he/session-explainer.html
+docs/docs--skill-doc-corrections/playground.html
+docs/docs--v10-remaining-playground/index.html
+docs/dsp--74298-ci-yml-src-skills-src/ci-build-drift-names-the-src-path.html
+docs/extending-skills.md
+docs/feat--3309-adopt-cc-settings/index.html
+docs/feat--3322-sandbox-posture/index.html
+docs/feat--3325-autocompactwindow/index.html
+docs/feat--3326-plugin-dependencies/index.html
+docs/feat--3627-platform-watch/index.html
+docs/feat--3628-skills-api/index.html
+docs/feat--3727-stray-playground-pages/index.html
+docs/feat--3741-dream-index-budget/index.html
+docs/feat--3745-playground-must-publish/index.html
+docs/feat--3766-partial-results-continue/index.html
+docs/feat--3774-restricted-smoke-lane/index.html
+docs/feat--3789-model-switch-hooks/index.html
+docs/feat--3835-operator-scope-vehicle/index.html
+docs/feat--3877-doctor-sandbox-override-check/index.html
+docs/feat--3878-managed-model-pricing/index.html
+docs/feat--3899-page-serve/index.html
+docs/feat--4071-traffic-snapshot/index.html
+docs/feat--activation-audit/ACTIVATION-FIX-HANDOFF.md
+# --- URLs carrying a 40-hex sha and a CI run id (this repo only)
+https://api.github.com/repos/yonatangross/orchestkit/statuses/5231b333cd544eaf6db866da120a9691f1f3d7e0
+https://github.com/yonatangross/orchestkit/actions/runs/35088102746
+# --- gh api URL with ?ref= to a remote branch of this repo (FIX ROUND)
+https://api.github.com/repos/yonatangross/orchestkit/commits?ref=chore/dsp-39782-4160-allowed-devin&per_page=30
+# --- npm integrity lines from THIS repo's root package-lock.json (FIX ROUND)
+      "integrity": "sha512-bRISgCIjP20/tbWSPWMEi54QVPRZExkuD9lJL+UIxUKtwVJA8wW1Trb1jMs1RFXo1CBTNZ/5hpC9QvmKWdopKw==",
+      "integrity": "sha512-T7jf+5zgsZHwNJ4lvQ7/aezbyk0nNX+zJVWpmHA7VYsEx7a7qr5Rg5IbtJFqkgze5Y2sruq1RUY8Q837Od7iFw==",
+      "integrity": "sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==",
+# --- exact examples quoted in HOLD comment 5696523717
+origin/chore/dsp-39782-4160-allowed-devin
+fix/4130-paste-guard-latency-sampling
+https://api.github.com/repos/yonatangross/orchestkit/statuses/6876c1070fcb626e50fbedbc1cce8307ff5440c4
+com/repos/yonatangross/orchestkit/statuses/6876c1070fcb626e50fbedbc1cce8307ff5440c4
+com/yonatangross/orchestkit/actions/runs/35088102746
+claude/agent-memory/ork-backend-system-architect/MEMORY
+# --- FIX ROUND B: PascalCase/camelCase ls-files paths (this repo only);
+# the chunk rule keeps these word-like, so the entropy layer must NOT mask
+# them (mutation M6: remove the camelCase allowance and this file fails)
+docs/site/public/thumbnails/CIN-ReviewPR.png
+docs/site/public/thumbnails/CINV-ReviewPR.png
+docs/site/public/thumbnails/HYB-ShowcaseDemo.png
+docs/site/public/thumbnails/SM-ReviewPR.png
+docs/site/public/thumbnails/SQ-SM-ReviewPR.png
+docs/site/public/thumbnails/SQ-TTR-Implement.png
+docs/site/public/thumbnails/TPL-ProgressiveZoom.png
+docs/site/public/thumbnails/TPL-SplitMerge.png
+docs/site/public/thumbnails/V-SM-ReviewPR.png
+orchestkit-demos/src/components/terminal-flow/CTAOverlay.tsx

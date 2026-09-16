@@ -93,6 +93,7 @@ SYMLINK_DIRS=(
 # other, so a new workspace cannot be added silently.
 #   docs/stubs/analytics-stub                        build-time stub, no install
 #   mods/promote-lights                              mod dev workspace, own vitest deps
+#   mods/secrets-veil                                mod dev workspace, own vitest deps
 #   packages/cli                                     published package, not installed here
 #   packages/hook-contract                           published package, not installed here
 #   packages/hook-contract/examples/generic-client   example, no install
@@ -102,6 +103,7 @@ EXEMPT_ROOTS=(
     "docs/stubs/analytics-stub"
     "mods/lesson-cards"
     "mods/promote-lights"
+    "mods/secrets-veil"
     "packages/cli"
     "packages/hook-contract"
     "packages/hook-contract/examples/generic-client"

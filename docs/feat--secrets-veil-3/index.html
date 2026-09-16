@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Secrets Veil: three layers between the tool and the model</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{--bg:#0f1115;--fg:#e6e6e6;--mut:#9aa3ad;--a:#7bd88f;--b:#f2c14e;--r:#e06c75;--v:#8aa2ff;--line:#262b33}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 -apple-system,Segoe UI,Inter,sans-serif}
+main{max-width:920px;margin:0 auto;padding:40px 20px}
+h1{font-size:26px;margin:0 0 6px}h2{font-size:18px;margin:32px 0 10px}
+p.lead{color:var(--mut);margin-top:0}
+.card{border:1px solid var(--line);border-radius:10px;padding:16px;margin:12px 0}
+table{border-collapse:collapse;width:100%;font-size:14px}td,th{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+.ok{color:var(--a)}.no{color:var(--r)}.named{color:var(--b)}.ent{color:var(--v)}
+code{background:#1a1f27;padding:1px 5px;border-radius:4px;font-size:13px}
+textarea,pre{width:100%;box-sizing:border-box;background:#1a1f27;color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:8px;font:13px ui-monospace,Menlo,monospace}
+textarea{min-height:150px}pre{min-height:150px;white-space:pre-wrap}
+select,input{background:#1a1f27;color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:6px 8px;font:13px ui-monospace,Menlo,monospace}
+button{background:#1a2b1f;color:var(--a);border:1px solid var(--a);border-radius:6px;padding:6px 12px;font:13px inherit;cursor:pointer}
+.note{color:var(--mut);font-size:13px}
+ul.layers{margin:8px 0;padding-left:18px;font-size:13px;color:var(--mut)}
+</style></head><body><main>
+<h1>Secrets Veil: three layers between the tool and the model</h1>
+<p class="lead">When a tool prints a secret, the model should never read it. The veil arms at <code>session.start</code> and rewrites every tool result before the model sees it. This page runs the same three layers in your browser: values named by a vendor variable, value shapes, and high-entropy tokens. Everything is synthetic.</p>
+
+<h2>1. Arm a named value</h2>
+<div class="card">
+ <p><label>Vendor variable <select id="name"></select></label>
+ <label> synthetic value <input id="val" size="34" value="veiltest-synthetic-value-42"></label>
+ <button id="arm">arm</button> <span id="armedMsg" class="note"></span></p>
+ <ul id="armed" class="layers"></ul>
+ <p class="note">Values under 8 characters are not kept: the layer refuses to arm on trivia. The mod reads 21 vendor names, one literal call site each, and nothing else. There is no reveal path: what is covered stays covered.</p>
+</div>
+
+<h2>2. Tool output goes in</h2>
+<div class="card">
+ <textarea id="in">$ git log --oneline -1
+0e5b3f2a1c9d8e7b6a5f4c3d2e1f0a9b8c7d6e5f fix: session cache order
+
+$ deploy --token ghp_1234567890abcdef --trace 550e8400-e29b-41d4-a716-446655440000
+wrote /Users/yonatangross/coding/yonatangross/orchestkit/src/hooks/src/session/index.ts
+integrity ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad
+key: sk-ant-api11-XXXXXXXXXXXXXX
+runner token aB3dE6fG9hI2jK5lM8nO1pQ4rS7tU0vW registered</textarea>
+ <p class="note">A 40-char git sha, a 64-char hash, a UUID and a long path must survive untouched: agents read git output constantly. The entropy bar is 4.3 bits per char, and hex can never reach it: 16 symbols cap at log2(16) = 4.0, a UUID at log2(17) = 4.09. That guarantee is counting, not luck.</p>
+</div>
+
+<h2>3. What the model reads</h2>
+<div class="card">
+ <pre id="out"></pre>
+ <table><thead><tr><th>layer</th><th>caught</th><th>where</th></tr></thead><tbody id="report"></tbody></table>
+ <p class="note" id="emptyNote"></p>
+</div>
+
+<script>
+const NAMES = ["ANTHROPIC_API_KEY","OPENAI_API_KEY","GEMINI_API_KEY","GOOGLE_API_KEY","MISTRAL_API_KEY","GROQ_API_KEY","OPENROUTER_API_KEY","HF_TOKEN","GITHUB_TOKEN","GH_TOKEN","GITLAB_TOKEN","NPM_TOKEN","AWS_ACCESS_KEY_ID","AWS_SECRET_ACCESS_KEY","AWS_SESSION_TOKEN","AZURE_OPENAI_API_KEY","STRIPE_SECRET_KEY","SLACK_BOT_TOKEN","VERCEL_TOKEN","CLOUDFLARE_API_TOKEN","OP_SERVICE_ACCOUNT_TOKEN"];
+const PATTERNS = ["sk-ant-","ops_","ghp_","github_pat_","xoxb-","AKIA"];
+const THRESHOLD = 4.3, MINLEN = 20, MINEIGHT = 8;
+const armed = []; // {name, value}
+const sel = document.getElementById('name');
+for (const n of NAMES){const o=document.createElement('option');o.textContent=n;sel.appendChild(o);}
+sel.value = "GITHUB_TOKEN";
+
+function ent(t){if(!t.length)return 0;const f=new Map();for(const c of t)f.set(c,(f.get(c)||0)+1);let h=0;for(const n of f.values()){const p=n/t.length;h-=p*Math.log2(p);}return h;}
+
+function collect(text){
+  const spans=[];
+  for(const a of armed){ if(a.value.length<MINEIGHT) continue;
+    let i=0; while((i=text.indexOf(a.value,i))!==-1){spans.push({s:i,e:i+a.value.length,v:a.value,layer:'named',detail:a.name});i++;}
+  }
+  const tokens=[...text.matchAll(/[A-Za-z0-9+/=_-]+/g)];
+  for(const m of tokens){
+    const tok=m[0];
+    // shape layer: prefix markers, extended to token end
+    for(const p of PATTERNS){ if(tok.startsWith(p)){spans.push({s:m.index,e:m.index+tok.length,v:tok,layer:'shape',detail:'prefix '+p});break;} }
+    // entropy layer
+    if(tok.length>=MINLEN && ent(tok)>=THRESHOLD){spans.push({s:m.index,e:m.index+tok.length,v:tok,layer:'entropy',detail:ent(tok).toFixed(2)+' bits/char'});}
+  }
+  // Bearer: extend to end of token, need 20+ chars after the prefix
+  let bi=0; while((bi=text.indexOf('Bearer ',bi))!==-1){let e=bi+7;while(e<text.length&&!/\s/.test(text[e]))e++;if(e-bi>=27)spans.push({s:bi,e,v:text.slice(bi,e),layer:'shape',detail:'Bearer token'});bi++;}
+  spans.sort((a,b)=>a.s-b.s||b.e-a.e);
+  const kept=[];let last=-1;for(const sp of spans){if(sp.s>=last){kept.push(sp);last=sp.e;}}
+  return kept;
+}
+
+function render(){
+  const text=document.getElementById('in').value;
+  const spans=collect(text);
+  let out='';let pos=0;
+  const rep=document.getElementById('report');rep.innerHTML='';
+  for(const sp of spans){
+    out+=text.slice(pos,sp.s)+'\u2022'.repeat(Math.min(8,sp.e-sp.s));pos=sp.e;
+    const tr=document.createElement('tr');
+    const cls=sp.layer==='named'?'named':(sp.layer==='entropy'?'ent':'ok');
+    tr.innerHTML='<td><span class="'+cls+'">'+sp.layer+'</span></td><td><code>'+sp.v.slice(0,18).replace(/</g,'&lt;')+(sp.v.length>18?'...':'')+'</code></td><td>'+sp.detail+'</td>';
+    rep.appendChild(tr);
+  }
+  out+=text.slice(pos);
+  document.getElementById('out').textContent=out||'(empty)';
+  document.getElementById('emptyNote').textContent=spans.length?'':'Nothing crossed any layer in this text.';
+  const ul=document.getElementById('armed');ul.innerHTML='';
+  for(const a of armed){
+    const li=document.createElement('li');
+    if(a.value.length<MINEIGHT){li.innerHTML='<span class="no">refused</span> '+a.name+' (value under 8 characters, not kept)';}
+    else{li.innerHTML='<span class="named">armed</span> '+a.name+' : <code>'+a.value.replace(/</g,'&lt;')+'</code>';}
+    ul.appendChild(li);
+  }
+}
+document.getElementById('arm').onclick=()=>{
+  const v=document.getElementById('val').value;
+  const existing=armed.find(a=>a.name===sel.value);
+  if(existing)existing.value=v;else armed.push({name:sel.value,value:v});
+  document.getElementById('armedMsg').textContent=v.length<MINEIGHT?'value under 8 characters, refused':'armed '+sel.value;render();
+};
+document.getElementById('in').oninput=render;
+render();
+</script>
+</main></body></html>
