@@ -4,9 +4,14 @@
 
 # Render ASCII patterns from the design system tokens.
 # Usage: scripts/render-ascii.sh <pattern> [--set NAME] [--width N] [--label TEXT] [--values CSV]
-# Patterns: box, progress-bar, sparkline, tree
+# Patterns: box, progress-bar, sparkline, tree, key-value
 # Stubbed (returns 2): swimlane, comparison-table, blast-radius, reversibility-timeline, arrow-flow
 # Sets:     default, emphasis, title, soft, portable
+#
+# key-value reads 5 or more `key|value` rows on stdin (or a built-in sample
+# when stdin is a TTY) and lays them out as a side-by-side key/value board,
+# the layout the glyph skill's pattern library teaches. --width is ignored
+# in the wide layout (see GH-4159: the board ignores its host).
 
 set -euo pipefail
 
@@ -20,13 +25,16 @@ PATTERN=""
 [ $# -gt 0 ] && { PATTERN="$1"; shift; }
 SET="default"
 WIDTH=40
+WIDTH_PASSED=0
+MODE="auto"
 LABEL=""
 VALUES=""
 
 while [ $# -gt 0 ]; do
   case "$1" in
     --set)    SET="$2"; shift 2 ;;
-    --width)  WIDTH="$2"; shift 2 ;;
+    --width)  WIDTH="$2"; WIDTH_PASSED=1; shift 2 ;;
+    --mode)   MODE="$2"; shift 2 ;;
     --label)  LABEL="$2"; shift 2 ;;
     --values) VALUES="$2"; shift 2 ;;
     --help|-h)
@@ -40,10 +48,38 @@ g() { jq -r ".sets.\"$SET\".$1" "$TOKENS"; }
 TL=$(g 'corner.tl'); TR=$(g 'corner.tr')
 BL=$(g 'corner.bl'); BR=$(g 'corner.br')
 H=$(g 'edge.h');     V=$(g 'edge.v')
+TEE_D=$(g 'junction.tee_d'); TEE_U=$(g 'junction.tee_u')
+TEE_R=$(g 'junction.tee_r'); TEE_L=$(g 'junction.tee_l')
+CROSS=$(g 'junction.cross')
 
 repeat() { local s="$1" n="$2" out=""; while [ "$n" -gt 0 ]; do out="$out$s"; n=$((n-1)); done; printf '%s' "$out"; }
 
-pad_right() { local s="$1" w="$2" len; len=${#s}; printf '%s' "$s"; [ "$w" -gt "$len" ] && repeat ' ' "$((w - len))"; }
+pad_right() { local s="$1" w="$2" len; len=${#s}; printf '%s' "$s"; if [ "$w" -gt "$len" ]; then repeat ' ' "$((w - len))"; fi; }
+
+# Characters from the skill's closed status-glyph vocabulary that occupy two
+# terminal cells instead of one. The vocabulary is closed
+# (src/skills/glyph/rules/status-glyph-vocabulary.md), so this list is
+# complete for data that follows the skill. Anything outside it counts as one
+# cell, matching pad_right's character count elsewhere in this script.
+WIDE_GLYPHS='✅❌🚨🎯🔥📜🤖⚡⏸🟢🟡🔴'
+
+# Number of two-cell glyphs in a string.
+glyph_extra() {
+  local s="$1" n=0 i ch
+  for ((i = 0; i < ${#s}; i++)); do
+    ch=${s:i:1}
+    [[ "$WIDE_GLYPHS" == *"$ch"* ]] && n=$((n + 1))
+  done
+  printf '%s' "$n"
+}
+
+# Display width of a string in terminal cells.
+display_width() { local s="$1"; echo $(( ${#s} + $(glyph_extra "$s") )); }
+
+# pad_right against display width, not character count. If-form, not the
+# short-circuit shape: a key that already fits must not make the function
+# return nonzero and abort the caller under set -e.
+pad_right_w() { local s="$1" w="$2" d; d=$(display_width "$s"); printf '%s' "$s"; if [ "$w" -gt "$d" ]; then repeat ' ' "$((w - d))"; fi; }
 
 render_box() {
   local inner=$((WIDTH - 2))
@@ -127,11 +163,131 @@ render_tree() {
   done
 }
 
+# key-value: lays out key|value rows from stdin (or a built-in sample when
+# stdin is a TTY). The host decides the layout, the same read the glyph skill
+# makes of audience and surface:
+#   stdout is a TTY  -> side-by-side key/value board, the layout the skill's
+#                       pattern library teaches for state and ranked data.
+#                       Column widths come from the data; a realistic 5-row
+#                       board lands at 100 to 110 columns (GH-4159).
+#   stdout is a pipe -> one narrow vertical list, every line capped at
+#                       --width (default 72), the non-TTY host case: CI
+#                       logs, chat widgets, VS Code chat, web transcripts.
+# --mode wide|narrow|auto (default auto) forces a layout; --width only
+# applies to the narrow one.
+render_key_value() {
+  local input
+  if [ -t 0 ]; then
+    input='ingest|✅ healthy, 0 retries
+thumbnailer|✅ healthy, 3 retries
+webhook-fanout|🔴 failing, 41 retries, DLQ filling
+reindex|⏸ waiting, scheduled tonight
+api|🟡 degraded, p95 2.1s'
+  else
+    input=$(cat)
+  fi
+
+  keys=() vals=()
+  local raw
+  while IFS= read -r raw; do
+    [ -n "$raw" ] || continue
+    keys+=("${raw%%|*}")
+    vals+=("${raw#*|}")
+  done <<ROWS
+$input
+ROWS
+  local n=${#keys[@]}
+  [ "$n" -gt 0 ] || { echo "key-value: no rows on stdin (one key|value per line)" >&2; exit 1; }
+
+  # key-value caps at 72 columns by default (GH-4159); --width overrides.
+  local kv_width=$WIDTH
+  [ "$WIDTH_PASSED" -eq 1 ] || kv_width=72
+
+  if [ "$MODE" = "wide" ]; then
+    render_kv_wide
+  elif [ "$MODE" = "narrow" ]; then
+    render_kv_narrow "$kv_width"
+  elif [ -t 1 ]; then
+    render_kv_wide
+  else
+    render_kv_narrow "$kv_width"
+  fi
+}
+
+render_kv_wide() {
+  local n=${#keys[@]} kw=0 vw=0 i d
+  for ((i = 0; i < n; i++)); do
+    d=$(display_width "${keys[$i]}"); [ "$d" -gt "$kw" ] && kw=$d
+    d=$(display_width "${vals[$i]}"); [ "$d" -gt "$vw" ] && vw=$d
+  done
+  local inner=$(( kw + 2 + vw + 4 ))
+  local top bottom mid
+  top=$(printf '%s%s%s%s%s' "$TL" "$(repeat "$H" "$inner")" "$TEE_D" "$(repeat "$H" "$inner")" "$TR")
+  mid=$(printf '%s%s%s%s%s' "$TEE_R" "$(repeat "$H" "$inner")" "$CROSS" "$(repeat "$H" "$inner")" "$TEE_L")
+  bottom=$(printf '%s%s%s%s%s' "$BL" "$(repeat "$H" "$inner")" "$TEE_U" "$(repeat "$H" "$inner")" "$BR")
+  [ -n "$LABEL" ] && printf '%s\n' "$LABEL"
+  printf '%s\n' "$top"
+  local half=$(( (n + 1) / 2 ))
+  for ((i = 0; i < half; i++)); do
+    local lk="${keys[$i]}" lv="${vals[$i]}" rk="" rv=""
+    [ $((i + half)) -lt "$n" ] && { rk="${keys[$((i + half))]}"; rv="${vals[$((i + half))]}"; }
+    local left right blank cellw
+    cellw=$(( kw + 2 + vw ))
+    left=$(printf '%s  %s' "$(pad_right_w "$lk" "$kw")" "$(pad_right_w "$lv" "$vw")")
+    if [ -n "$rk" ]; then
+      right=$(printf '%s  %s' "$(pad_right_w "$rk" "$kw")" "$(pad_right_w "$rv" "$vw")")
+    else
+      blank=$(( kw + 2 + vw ))
+      right=$(repeat ' ' "$blank")
+    fi
+    printf '%s  %s  %s  %s  %s\n' "$V" "$left" "$V" "$right" "$V"
+    if [ "$i" -eq 0 ] && [ "$half" -gt 1 ]; then printf '%s\n' "$mid"; fi
+  done
+  printf '%s\n' "$bottom"
+}
+
+# One narrow vertical list, every line capped at $1 display columns: the
+# non-TTY form of the same data (GH-4159 defect 1). Values longer than the
+# budget wrap onto continuation lines under the key column.
+render_kv_narrow() {
+  local cap=$1
+  local n=${#keys[@]} kw=0 i d
+  for ((i = 0; i < n; i++)); do
+    d=$(display_width "${keys[$i]}"); [ "$d" -gt "$kw" ] && kw=$d
+  done
+  local indent=$(( kw + 2 ))
+  local budget=$(( cap - indent ))
+  [ "$budget" -ge 1 ] || { echo "key-value: --width $cap is too small for a $kw-column key" >&2; exit 1; }
+  [ -n "$LABEL" ] && printf '%s\n' "$LABEL"
+  local key chunk rest line w
+  for ((i = 0; i < n; i++)); do
+    key=$(pad_right_w "${keys[$i]}" "$kw")
+    rest="${vals[$i]}"
+    while [ -n "$rest" ]; do
+      line="" w=0
+      while [ -n "$rest" ]; do
+        chunk=${rest:0:1}
+        d=1
+        [[ "$WIDE_GLYPHS" == *"$chunk"* ]] && d=2
+        [ $((w + d)) -le "$budget" ] || break
+        line+="$chunk"; w=$((w + d)); rest=${rest:1}
+      done
+      if [ -z "$line" ] && [ -n "$rest" ]; then
+        # budget 1 with a 2-cell glyph: consume one char or loop forever
+        line=${rest:0:1}; rest=${rest:1}
+      fi
+      printf '%s  %s\n' "$key" "$line"
+      key=$(repeat ' ' "$kw")
+    done
+  done
+}
+
 case "$PATTERN" in
   box)              render_box ;;
   progress-bar)     render_progress_bar ;;
   sparkline)        render_sparkline ;;
   tree)             render_tree ;;
+  key-value)        render_key_value ;;
   swimlane|comparison-table|blast-radius|reversibility-timeline|arrow-flow)
     echo "pattern '$PATTERN' planned for v1.x — not implemented in v1.0.0" >&2
     exit 2 ;;

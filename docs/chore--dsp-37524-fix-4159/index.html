@@ -1,0 +1,74 @@
+<!-- Playground for GH-4159: the glyph key/value render at terminal width vs the 72-column non-TTY cap. -->
+<!-- Both renders are the actual output of scripts/render-ascii.sh key-value on tests/fixtures/ascii/kv-glyph-5row.txt. -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>glyph at terminal width vs the 72-column non-TTY cap</title>
+<meta name="description" content="Issue 4159: a 5-row key/value glyph laid out side by side is 113 columns and wraps into a wall in non-terminal hosts; the same data capped at 72 columns stays one narrow list.">
+<style>
+body { margin: 2rem auto; padding: 0 1rem; max-width: 74rem; font: 1rem/1.6 system-ui, sans-serif; color: #172033; background: #f6f8fc; }
+h1 { line-height: 1.2; }
+h2 { margin-top: 2rem; }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; align-items: start; }
+@media (max-width: 60rem) { .grid { grid-template-columns: 1fr; } }
+figure { margin: 0; background: white; border: 1px solid #b6c2d4; border-radius: 8px; }
+figcaption { padding: .5rem .8rem; border-bottom: 1px solid #b6c2d4; font-size: .9rem; color: #334155; background: #eef2f8; }
+pre { margin: 0; padding: .8rem; overflow-x: auto; font: .85rem/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; }
+code { font-family: ui-monospace, monospace; font-size: .9em; }
+.wrap72 { max-width: 72ch; white-space: pre-wrap; word-break: break-all; }
+.tag { display: inline-block; padding: .1rem .5rem; border-radius: 999px; font-size: .8rem; background: #e2e8f0; color: #334155; margin-inline-end: .3rem; }
+.bad { background: #fde8e8; color: #9b1c1c; }
+.good { background: #def7ec; color: #03543f; }
+.note { color: #4a5568; }
+</style>
+</head>
+<body>
+<main>
+<h1>glyph: terminal width vs the 72-column non-TTY cap</h1>
+<p>Issue 4159. The glyph skill taught side-by-side key/value columns with no host awareness. The board below is the real output for one 5-row status fixture: <strong>113 terminal columns</strong>. In a terminal that is fine. In a host that reflows text (CI logs, chat widgets, VS Code chat, web transcripts, agent desktops) the same bytes wrap at whatever the host gives them, and the wall on the right is what the reader gets.</p>
+
+<h2>Before: one render, two hosts</h2>
+<div class="grid">
+<figure>
+<figcaption><span class="tag">TTY terminal</span> 113 columns, scrolls horizontally, readable</figcaption>
+<pre>┌───────────────────────────────────────────────────────┬───────────────────────────────────────────────────────┐
+│  ingest          ✅ healthy, 0 retries                │  reindex         ⏸ waiting, scheduled tonight        │
+├───────────────────────────────────────────────────────┼───────────────────────────────────────────────────────┤
+│  thumbnailer     ✅ healthy, 3 retries                │  api             🟡 degraded, p95 2.1s                │
+│  webhook-fanout  🔴 failing, 41 retries, DLQ filling  │                                                       │
+└───────────────────────────────────────────────────────┴───────────────────────────────────────────────────────┘</pre>
+</figure>
+<figure>
+<figcaption><span class="tag bad">non-TTY host</span> the same 113-column board wrapped at 72 columns</figcaption>
+<pre class="wrap72">┌───────────────────────────────────────────────────────┬───────────────────────────────────────────────────────┐
+│  ingest          ✅ healthy, 0 retries                │  reindex         ⏸ waiting, scheduled tonight        │
+├───────────────────────────────────────────────────────┼───────────────────────────────────────────────────────┤
+│  thumbnailer     ✅ healthy, 3 retries                │  api             🟡 degraded, p95 2.1s                │
+│  webhook-fanout  🔴 failing, 41 retries, DLQ filling  │                                                       │
+└───────────────────────────────────────────────────────┴───────────────────────────────────────────────────────┘</pre>
+</figure>
+</div>
+<p class="note">The right panel is not a different render: it is the same bytes with wrapping allowed, which is exactly what a non-terminal host does to them. Every box-drawing row folds, the two columns interleave, and the board becomes a wall.</p>
+
+<h2>After: the non-TTY surface caps at 72 columns</h2>
+<figure>
+<figcaption><span class="tag good">non-TTY host</span> one narrow vertical list, 51 columns max, same data</figcaption>
+<pre>ingest          ✅ healthy, 0 retries
+thumbnailer     ✅ healthy, 3 retries
+webhook-fanout  🔴 failing, 41 retries, DLQ filling
+reindex         ⏸ waiting, scheduled tonight
+api             🟡 degraded, p95 2.1s</pre>
+</figure>
+<p>Rule 8 in the skill: read the surface from the environment the same way the skill already infers audience and surface. With a terminal (TTY), render as before. Without one, cap every diagram line at 72 columns and render key/value or comparison data as one narrow table or a vertical list, never side-by-side columns. The 12-line budget is unchanged, and TTY behaviour is unchanged.</p>
+
+<h2>Reproduce</h2>
+<pre>bash scripts/render-ascii.sh key-value --mode wide &lt; tests/fixtures/ascii/kv-glyph-5row.txt        # the 113-column board
+bash scripts/render-ascii.sh key-value --width 72 &lt; tests/fixtures/ascii/kv-glyph-5row.txt | cat   # piped (non-TTY): the narrow list
+bash tests/unit/test-glyph-non-tty-width.sh   # the fixture gate: red at 113 before the fix, green at 51 after</pre>
+<p class="note">Fixture: tests/fixtures/ascii/kv-glyph-5row.txt. Widths counted by tests/fixtures/ascii/display-width-oracle.py (east_asian_width W/F plus the closed status-glyph vocabulary, so emoji count as 2 columns).</p>
+</main>
+</body>
+</html>
