@@ -43,7 +43,7 @@ Given a topic (or the conversation, when none is given):
    | Topic shape | Form |
    |---|---|
    | state / progress / health | status box + bar meters |
-   | A vs B, options, trade-offs | comparison table or side-by-side boxes |
+   | A vs B, options, trade-offs | comparison table or side-by-side boxes (one narrow table in a non-TTY surface) |
    | steps, pipeline, hand-offs | left-to-right flow with `──▶` |
    | containment, layers, layout | nested boxes / tree |
    | ranked list, scores, counts | table + bar meters |
@@ -54,6 +54,7 @@ Given a topic (or the conversation, when none is given):
 5. **Stay inside the budget: ≤ 12 visual lines, and ≤ 40% of the reply.** Block count within that is free — two 5-line blocks are fine, four 10-line blocks are not. This skill renders on request, it does not render without limit (#3558). Full derivation of the numbers is in `rules/visual-style.md`.
 6. **State the point in prose first**, in one or two sentences, then show the visual. The visual supports the answer; it is never the answer. If the reader has to parse a diagram to find out what happened, the reply failed.
 7. **Stay honest.** If a number is unknown, print `?` rather than inventing one. A confident-looking chart built on guesses is worse than prose.
+8. **Match the width to the host.** A render that fits a terminal wraps into a wall in a host that reflows text: CI logs, chat widgets, VS Code chat, web transcripts, agent desktops. Read the surface from the environment the same way you already infer audience and surface: with a terminal (TTY), render as below; without one, cap every diagram line at 72 columns, and render key/value or comparison data as one narrow table or a vertical list, never side-by-side columns. The 12-line budget does not change. Measured failure the rule prevents: a side-by-side key/value board for 5 rows lands at 113 columns, and `scripts/render-ascii.sh key-value` renders the narrow form of the same data (GH-4159).
 
 **When NOT to use this skill:** if the deliverable is a multi-section HTML playground, a persisted plan artifact, or anything needing file output, use `visualize-plan` instead. Glyph is the cheap inline path; visualize-plan is the full pipeline.
 
@@ -195,7 +196,7 @@ Phase 4  [........????????]  IRREVERSIBLE        (drop column)
 | Arrows | `─>`, `──>`, or `│` with `v`/`^` for direction |
 | Alignment | Right-pad labels to match column widths |
 | Annotations | `!!` for risk, `**` for new, `[A/M/D]` for change type |
-| Width | Keep under 80 chars for terminal compatibility |
+| Width | Under 80 chars in a terminal; at most 72 per line in a non-TTY surface, as one narrow table or vertical list (GH-4159) |
 | Nesting | Max 3 levels of box nesting before readability degrades |
 
 

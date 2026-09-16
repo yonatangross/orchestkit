@@ -1,0 +1,8 @@
+{
+  "slug": "chore--dsp-37524-fix-4159",
+  "source": "docs/chore--dsp-37524-fix-4159/index.html",
+  "title": "glyph: terminal width vs the 72-column non-TTY cap",
+  "description": "Issue 4159: the same 5-row key/value status render at terminal width (113 columns, readable, scrolls) and in a non-TTY host (the same bytes wrapped at 72 columns into a wall), then the fix: one narrow vertical list capped at 72 columns, same data, TTY behaviour unchanged.",
+  "tags": ["glyph", "skills", "non-tty", "width-cap", "render"],
+  "date": "2026-09-16"
+}
