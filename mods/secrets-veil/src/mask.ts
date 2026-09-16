@@ -20,8 +20,10 @@ import type { MaskTable, MaskTableEntry, MaskSpan, MaskResult, EntropyConfig } f
  * - Measured on this machine (2026-09-16, 200k samples): a uniform random
  *   32-char token over the 67-symbol veil alphabet has median entropy 4.60
  *   bits/char (5th percentile 4.35), so most random tokens cross 4.3.
- * - Ordinary lowercase words, file paths and camelCase identifiers measured
- *   2.9 to 4.0 bits/char, below the threshold.
+ * - Ordinary lowercase words and camelCase identifiers measured 2.9 to 4.0
+ *   bits/char, below the threshold. Paths, branch names and URLs reach the
+ *   bar only when scored as one mixed-alphabet run, which the tokenizer rule
+ *   in mask() prevents: ordinary separator runs are split before scoring.
  * The residual false negatives (very low diversity random tokens) are the
  * safe direction: the veil misses some tokens rather than masking shas.
  */
@@ -200,18 +202,52 @@ export function mask(text: string, table: MaskTable): MaskResult {
     }
   }
 
-  // High-entropy token layer (opt-in per table)
+  // High-entropy token layer (opt-in per table).
+  //
+  // Tokenizer rule: a run is scored WHOLE when it contains '+' or '='; any
+  // other run is first split at the ordinary separators '/' '-' '_' and each
+  // segment is scored on its own.
+  //
+  // Why: '+' and '=' padding occur in base64 value runs (an AWS secret access
+  // key is 40 chars of [A-Za-z0-9/+], and standard base64 ends in '=') but
+  // never in path, branch or URL segments, so they mark a run as a value
+  // rather than a location. Without the split, a whole path or branch name is
+  // one token that mixes letters, digits and separators and can cross 4.3
+  // bits/char (#4189 masked 158 lines of git ls-files output). Without the
+  // whole-run carve-out, splitting every '/' would cut that same secret into
+  // pieces under the 20-char floor and silently skip it. Both directions are
+  // proven in tests/entropy-corpus.test.ts: the repo-output corpus must mask
+  // 0 spans, and the synthetic base64 positives must still mask.
   const entropy = table.entropy;
   if (entropy) {
     const tokenRe = new RegExp(`${ENTROPY_ALPHABET}{${entropy.minLength},}`, "g");
     let m: RegExpExecArray | null;
     while ((m = tokenRe.exec(maskedText)) !== null) {
-      if (shannonEntropy(m[0]) >= entropy.thresholdBitsPerChar) {
-        matches.push({
-          start: m.index,
-          end: m.index + m[0].length,
-          value: m[0],
-        });
+      if (/[+=]/.test(m[0])) {
+        // base64-like run: score whole
+        if (shannonEntropy(m[0]) >= entropy.thresholdBitsPerChar) {
+          matches.push({
+            start: m.index,
+            end: m.index + m[0].length,
+            value: m[0],
+          });
+        }
+      } else {
+        // ordinary run: split at separators, score each segment
+        const segRe = /[^/_-]+/g;
+        let s: RegExpExecArray | null;
+        while ((s = segRe.exec(m[0])) !== null) {
+          if (
+            s[0].length >= entropy.minLength &&
+            shannonEntropy(s[0]) >= entropy.thresholdBitsPerChar
+          ) {
+            matches.push({
+              start: m.index + s.index,
+              end: m.index + s.index + s[0].length,
+              value: s[0],
+            });
+          }
+        }
       }
     }
   }
@@ -261,13 +297,25 @@ export function wouldMask(value: string, table: MaskTable): boolean {
       return true;
     }
   }
+  // Same tokenizer rule as mask(): '+' or '=' means the value is a
+  // base64-like run and is scored whole; otherwise ordinary separators split
+  // it into segments and any high-entropy segment masks.
   const entropy = table.entropy;
-  if (
-    entropy &&
-    value.length >= entropy.minLength &&
-    shannonEntropy(value) >= entropy.thresholdBitsPerChar
-  ) {
-    return true;
+  if (entropy) {
+    if (/[+=]/.test(value)) {
+      return (
+        value.length >= entropy.minLength &&
+        shannonEntropy(value) >= entropy.thresholdBitsPerChar
+      );
+    }
+    for (const seg of value.split(/[._/-]+/)) {
+      if (
+        seg.length >= entropy.minLength &&
+        shannonEntropy(seg) >= entropy.thresholdBitsPerChar
+      ) {
+        return true;
+      }
+    }
   }
   return false;
 }
