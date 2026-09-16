@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.38",
+    "date": "2026-09-16",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.37...v10.0.0-beta.38",
+    "sections": [
+      {
+        "type": "changed",
+        "heading": "Documentation",
+        "items": [
+          "**create-pr:** drop stale lab-data.ts conflict advice ([#4191](https://github.com/yonatangross/orchestkit/issues/4191)) ([bdcd608](https://github.com/yonatangross/orchestkit/commit/bdcd6081ffbc4a52939b8985ac994a5cc1590858))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.37",
     "date": "2026-09-16",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.36...v10.0.0-beta.37",
