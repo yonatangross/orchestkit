@@ -1,0 +1,8 @@
+{
+  "slug": "distinct-build-check-names",
+  "source": "docs/ci--distinct-build-check-names/index.html",
+  "title": "Three Builds, One Name",
+  "description": "Three workflows each had a check named exactly Build, so the required Build context could be satisfied by a run that never built what failed. The fix renames two of the three jobs; the required Build then resolves to build.yml alone.",
+  "tags": ["ci", "github-actions", "branch-protection", "build"],
+  "date": "2026-09-17"
+}
