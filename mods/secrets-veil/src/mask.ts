@@ -201,6 +201,8 @@ export const DEFAULT_PATTERNS: readonly string[] = [
   "ghp_",
   "github_pat_",
   "xoxb-",
+  "sk_live_",
+  "rk_live_",
   "AKIA",
   "Bearer ",
   "-----BEGIN ",
