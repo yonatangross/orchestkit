@@ -31,7 +31,7 @@ command -v python3 >/dev/null 2>&1 || {
 OUT=$("$RENDER" key-value --width "$CAP" < "$FIXTURE")
 [ -n "$OUT" ] || { echo "✗ renderer produced no output"; exit 1; }
 
-OUT_FILE=$(mktemp)
+OUT_FILE=$(mktemp "${TMPDIR:-/tmp}/ork-glyph-width.XXXXXX")
 trap 'rm -f "$OUT_FILE"' EXIT
 printf '%s\n' "$OUT" > "$OUT_FILE"
 

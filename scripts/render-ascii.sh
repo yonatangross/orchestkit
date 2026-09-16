@@ -52,7 +52,7 @@ CROSS=$(g 'junction.cross')
 
 repeat() { local s="$1" n="$2" out=""; while [ "$n" -gt 0 ]; do out="$out$s"; n=$((n-1)); done; printf '%s' "$out"; }
 
-pad_right() { local s="$1" w="$2" len; len=${#s}; printf '%s' "$s"; [ "$w" -gt "$len" ] && repeat ' ' "$((w - len))"; }
+pad_right() { local s="$1" w="$2" len; len=${#s}; printf '%s' "$s"; if [ "$w" -gt "$len" ]; then repeat ' ' "$((w - len))"; fi; }
 
 # Characters from the skill's closed status-glyph vocabulary that occupy two
 # terminal cells instead of one. The vocabulary is closed
@@ -74,8 +74,10 @@ glyph_extra() {
 # Display width of a string in terminal cells.
 display_width() { local s="$1"; echo $(( ${#s} + $(glyph_extra "$s") )); }
 
-# pad_right against display width, not character count.
-pad_right_w() { local s="$1" w="$2" d; d=$(display_width "$s"); printf '%s' "$s"; [ "$w" -gt "$d" ] && repeat ' ' "$((w - d))"; }
+# pad_right against display width, not character count. If-form, not the
+# short-circuit shape: a key that already fits must not make the function
+# return nonzero and abort the caller under set -e.
+pad_right_w() { local s="$1" w="$2" d; d=$(display_width "$s"); printf '%s' "$s"; if [ "$w" -gt "$d" ]; then repeat ' ' "$((w - d))"; fi; }
 
 render_box() {
   local inner=$((WIDTH - 2))
@@ -159,11 +161,16 @@ render_tree() {
   done
 }
 
-# key-value: a side-by-side key/value board, the layout the glyph skill's
-# pattern library teaches for state and ranked data (SKILL.md, "Pick the form
-# from the shape of the data"). Column widths come from the data, so a
-# realistic 5-row board lands at 100 to 110 columns and ignores --width.
-# That host-blindness is GH-4159 defect 1; the fixture test pins it.
+# key-value: lays out key|value rows from stdin (or a built-in sample when
+# stdin is a TTY). The host decides the layout, the same read the glyph skill
+# makes of audience and surface:
+#   stdout is a TTY  -> side-by-side key/value board, the layout the skill's
+#                       pattern library teaches for state and ranked data.
+#                       Column widths come from the data; a realistic 5-row
+#                       board lands at 100 to 110 columns (GH-4159).
+#   stdout is a pipe -> one narrow vertical list, every line capped at
+#                       --width (default 72), the non-TTY host case: CI
+#                       logs, chat widgets, VS Code chat, web transcripts.
 render_key_value() {
   local input
   if [ -t 0 ]; then
@@ -176,7 +183,8 @@ api|🟡 degraded, p95 2.1s'
     input=$(cat)
   fi
 
-  local keys=() vals=() raw
+  keys=() vals=()
+  local raw
   while IFS= read -r raw; do
     [ -n "$raw" ] || continue
     keys+=("${raw%%|*}")
@@ -187,7 +195,19 @@ ROWS
   local n=${#keys[@]}
   [ "$n" -gt 0 ] || { echo "key-value: no rows on stdin (one key|value per line)" >&2; exit 1; }
 
-  local kw=0 vw=0 i d
+  # key-value caps at 72 columns by default (GH-4159); --width overrides.
+  local kv_width=$WIDTH
+  [ "$WIDTH_PASSED" -eq 1 ] || kv_width=72
+
+  if [ -t 1 ]; then
+    render_kv_wide
+  else
+    render_kv_narrow "$kv_width"
+  fi
+}
+
+render_kv_wide() {
+  local n=${#keys[@]} kw=0 vw=0 i d
   for ((i = 0; i < n; i++)); do
     d=$(display_width "${keys[$i]}"); [ "$d" -gt "$kw" ] && kw=$d
     d=$(display_width "${vals[$i]}"); [ "$d" -gt "$vw" ] && vw=$d
@@ -216,6 +236,42 @@ ROWS
     if [ "$i" -eq 0 ] && [ "$half" -gt 1 ]; then printf '%s\n' "$mid"; fi
   done
   printf '%s\n' "$bottom"
+}
+
+# One narrow vertical list, every line capped at $1 display columns: the
+# non-TTY form of the same data (GH-4159 defect 1). Values longer than the
+# budget wrap onto continuation lines under the key column.
+render_kv_narrow() {
+  local cap=$1
+  local n=${#keys[@]} kw=0 i d
+  for ((i = 0; i < n; i++)); do
+    d=$(display_width "${keys[$i]}"); [ "$d" -gt "$kw" ] && kw=$d
+  done
+  local indent=$(( kw + 2 ))
+  local budget=$(( cap - indent ))
+  [ "$budget" -ge 1 ] || { echo "key-value: --width $cap is too small for a $kw-column key" >&2; exit 1; }
+  [ -n "$LABEL" ] && printf '%s\n' "$LABEL"
+  local key chunk rest line w
+  for ((i = 0; i < n; i++)); do
+    key=$(pad_right_w "${keys[$i]}" "$kw")
+    rest="${vals[$i]}"
+    while [ -n "$rest" ]; do
+      line="" w=0
+      while [ -n "$rest" ]; do
+        chunk=${rest:0:1}
+        d=1
+        [[ "$WIDE_GLYPHS" == *"$chunk"* ]] && d=2
+        [ $((w + d)) -le "$budget" ] || break
+        line+="$chunk"; w=$((w + d)); rest=${rest:1}
+      done
+      if [ -z "$line" ] && [ -n "$rest" ]; then
+        # budget 1 with a 2-cell glyph: consume one char or loop forever
+        line=${rest:0:1}; rest=${rest:1}
+      fi
+      printf '%s  %s\n' "$key" "$line"
+      key=$(repeat ' ' "$kw")
+    done
+  done
 }
 
 case "$PATTERN" in
