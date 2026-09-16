@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The rebuild guard that refused its own release stamp, and the one entry that fixes it</title>
+<meta name="description" content="Issue #4173: release-please stamps the version into .devin-plugin/plugin.json on the release branch, but the rebuild guard in release-please.yml did not list that path in ALLOWED, so every release build refused to run while still reporting success.">
+<style>
+  :root{--bg:#0f1117;--panel:#161922;--edge:#272b38;--ink:#e8eaf2;--dim:#9aa3b8;--ok:#4ade80;--bad:#f87171;--warn:#fbbf24;--accent:#7dd3fc;--mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;}
+  *{box-sizing:border-box} body{margin:0;padding:2.5rem 1.25rem;background:var(--bg);color:var(--ink);font-family:var(--mono);line-height:1.6}
+  main{max-width:64rem;margin-inline:auto} h1{font-size:1.3rem;margin:0 0 .3rem} .sub{color:var(--dim);margin:0 0 2rem;font-size:.85rem}
+  section{background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:1.2rem 1.4rem;margin-block:1.1rem}
+  h2{font-size:.9rem;margin:0 0 .9rem;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
+  table{width:100%;border-collapse:collapse;font-size:.8rem} th,td{text-align:start;padding:.35rem .5rem;border-bottom:1px solid var(--edge);vertical-align:top} th{color:var(--dim);font-weight:600}
+  code{background:#0b0d13;border:1px solid var(--edge);border-radius:5px;padding:0 4px} .ok{color:var(--ok)} .bad{color:var(--bad)} .warn{color:var(--warn)} .dim{color:var(--dim)}
+  .controls{display:flex;gap:.6rem;flex-wrap:wrap;margin:.6rem 0} button{background:#0b0d13;color:var(--ink);border:1px solid var(--edge);border-radius:6px;padding:.4rem .8rem;font-family:inherit;font-size:.8rem;cursor:pointer} button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+  pre{background:#0b0d13;border:1px solid var(--edge);border-radius:8px;padding:.9rem 1rem;font-size:.78rem;overflow:auto;margin:.6rem 0;white-space:pre-wrap;word-break:break-all}
+  input{width:100%;background:#0b0d13;border:1px solid var(--edge);border-radius:6px;color:var(--ink);font-family:inherit;font-size:.85rem;padding:.5rem .7rem}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem} @media (max-width:52rem){.grid{grid-template-columns:1fr}}
+  .card{border:1px solid var(--edge);border-radius:8px;padding:.8rem 1rem;background:#0b0d13}
+  .card h3{margin:0 0 .5rem;font-size:.8rem;color:var(--dim)} p{font-size:.85rem;margin:.4rem 0}
+  .verdict{font-size:.85rem;margin-top:.6rem;padding:.6rem .8rem;border-radius:6px;border:1px solid var(--edge)}
+</style>
+</head>
+<body>
+<main>
+<h1>The rebuild guard that refused its own release stamp, and the one entry that fixes it</h1>
+<p class="sub">Issue <a class="dim" href="https://github.com/yonatangross/orchestkit/issues/4173">#4173</a>. One line in <code>.github/workflows/release-please.yml</code>: add <code>\.devin-plugin/plugin\.json</code> to the ALLOWED alternation. Release PR <a class="dim" href="https://github.com/yonatangross/orchestkit/pull/4166">#4166</a> (10.0.0-beta.34) is blocked on it.</p>
+
+<section>
+<h2>The defect, as a sequence</h2>
+<p>Release-please has an extra-files entry for <code>.devin-plugin/plugin.json</code> (<code>.release-please-config.json</code>, jsonpath <code>$.version</code>), so on the release branch it stamps the new version into that file. That is a legitimate difference from main: main sits at 10.0.0-beta.33, the release branch at 10.0.0-beta.34.</p>
+<p>But the "Rebuild hook bundles on the release PR" step refuses to execute when the release branch differs from main outside the ALLOWED regex, and <code>.devin-plugin/plugin.json</code> was not in it. From release-please run 35062658242 at 06:13:04Z:</p>
+<pre>##[warning]Release branch release-please--branches--main differs from main
+outside release-owned paths; refusing to execute its build:
+.devin-plugin/plugin.json</pre>
+<p>Because the refusal is a <code>::warning</code>, the job still reports success. The hook bundles are never rebuilt, and ci.yml's "Check hook bundles are release-owned" gate then blocks every release PR. Every release, forever, until the entry lands.</p>
+</section>
+
+<section>
+<h2>The regex, before and after</h2>
+<div class="controls" role="group" aria-label="regex version">
+  <button id="btn-old" aria-pressed="false">Before: without the entry</button>
+  <button id="btn-new" aria-pressed="true">After: with the entry</button>
+</div>
+<pre id="regex-view"></pre>
+</section>
+
+<section>
+<h2>Run paths through the live guard</h2>
+<p>Type any path, or press a preset. The table shows what the guard would do with it under each version of the regex.</p>
+<input id="path-input" type="text" spellcheck="false" placeholder=".devin-plugin/plugin.json" aria-label="path to test">
+<div class="controls" role="group" aria-label="preset paths">
+  <button class="preset" data-p=".devin-plugin/plugin.json">release stamp (must pass after)</button>
+  <button class="preset" data-p="CHANGELOG.md">CHANGELOG.md (release owned)</button>
+  <button class="preset" data-p="src/hooks/dist/subagent.mjs">hook bundle (release owned)</button>
+  <button class="preset" data-p="src/hooks/src/subagent-stop/foo.ts">hook source (genuine drift)</button>
+  <button class="preset" data-p="README-notes.md">README-notes.md (genuine drift)</button>
+</div>
+<table>
+  <thead><tr><th>path</th><th>before</th><th>after</th><th>expected</th></tr></thead>
+  <tbody id="preset-rows"></tbody>
+</table>
+<div id="verdict" class="verdict"></div>
+</section>
+
+<section>
+<h2>Why the fix is safe</h2>
+<p>The new entry is a full-path alternation member, <code>\.devin-plugin/plugin\.json</code>, anchored by the same <code>^(...)$</code> as its neighbours, so it cannot swallow nearby paths: <code>README-notes.md</code> still fails against <code>README\.md</code>, and hook sources under <code>src/hooks/src/</code> still fail against <code>src/hooks/dist/.*</code>. The guard keeps catching genuine drift; it only stops catching the version stamp release-please itself writes.</p>
+</section>
+
+<footer class="sub">OrchestKit lab page. Source: <code>docs/chore--dsp-39782-4160-allowed-devin/index.html</code>.</footer>
+</main>
+
+<script>
+const REGEX_OLD = String.raw`^(CHANGELOG\.md|\.release-please-manifest\.json|version\.txt|package\.json|package-lock\.json|\.claude-plugin/marketplace\.json|manifests/ork\.json|plugins/ork/\.claude-plugin/plugin\.json|plugins/ork/plugin\.json|plugin\.json|server\.json|pyproject\.toml|CLAUDE\.md|README\.md|docs/site/lib/generated/(plugins-data|changelog-data)\.ts|plugins/ork/hooks/bin/stop-uncommitted-check\.mjs|plugins/ork-codex/\.codex-plugin/plugin\.json|plugins/ork/\.cursor-plugin/plugin\.json|manifests/codex/ork-codex\.json|src/codex/ork-codex/\.codex-plugin/plugin\.json|src/hooks/dist/.*|plugins/ork/hooks/dist/.*)$`;
+const REGEX_NEW = String.raw`^(CHANGELOG\.md|\.release-please-manifest\.json|version\.txt|package\.json|package-lock\.json|\.claude-plugin/marketplace\.json|manifests/ork\.json|plugins/ork/\.claude-plugin/plugin\.json|plugins/ork/plugin\.json|plugin\.json|\.devin-plugin/plugin\.json|server\.json|pyproject\.toml|CLAUDE\.md|README\.md|docs/site/lib/generated/(plugins-data|changelog-data)\.ts|plugins/ork/hooks/bin/stop-uncommitted-check\.mjs|plugins/ork-codex/\.codex-plugin/plugin\.json|plugins/ork/\.cursor-plugin/plugin\.json|manifests/codex/ork-codex\.json|src/codex/ork-codex/\.codex-plugin/plugin\.json|src/hooks/dist/.*|plugins/ork/hooks/dist/.*)$`;
+const RE_OLD = new RegExp(REGEX_OLD);
+const RE_NEW = new RegExp(REGEX_NEW);
+
+const PRESETS = [
+  ["\.devin-plugin/plugin.json", true],
+  ["CHANGELOG.md", true],
+  ["src/hooks/dist/subagent.mjs", true],
+  ["src/hooks/src/subagent-stop/foo.ts", false],
+  ["README-notes.md", false],
+];
+
+let showing = "new";
+
+function match(re, p) {
+  const m = re.exec(p);
+  return m !== null && m[0] === p;
+}
+
+function tag(v) {
+  return v ? '<span class="ok">matches</span>' : '<span class="bad">refused</span>';
+}
+
+function renderRegex() {
+  const re = showing === "new" ? REGEX_NEW : REGEX_OLD;
+  document.getElementById("regex-view").textContent = "ALLOWED='" + re + "'";
+  document.getElementById("btn-old").setAttribute("aria-pressed", showing === "old");
+  document.getElementById("btn-new").setAttribute("aria-pressed", showing === "new");
+}
+
+function renderPresets() {
+  const tb = document.getElementById("preset-rows");
+  tb.innerHTML = "";
+  for (const [p, want] of PRESETS) {
+    const before = match(RE_OLD, p);
+    const after = match(RE_NEW, p);
+    const correct = after === want;
+    const tr = document.createElement("tr");
+    tr.innerHTML = "<td><code>" + p + "</code></td>"
+      + "<td>" + tag(before) + "</td>"
+      + "<td>" + tag(after) + "</td>"
+      + "<td>" + (want ? "match" : "no match") + (correct ? ' <span class="ok">&#10003;</span>' : ' <span class="bad">&#10007;</span>') + "</td>";
+    tb.appendChild(tr);
+  }
+}
+
+function renderLive() {
+  const p = document.getElementById("path-input").value;
+  const v = document.getElementById("verdict");
+  if (!p) { v.textContent = "Type a path or press a preset to see the guard's verdict."; return; }
+  const before = match(RE_OLD, p);
+  const after = match(RE_NEW, p);
+  let msg;
+  if (!before && after) {
+    msg = '<span class="warn">Newly allowed:</span> the guard refused this path before and rebuilds now that it is in ALLOWED. This is exactly the release stamp case.';
+  } else if (before && after) {
+    msg = '<span class="ok">Allowed both ways:</span> release-owned path, unchanged behaviour.';
+  } else if (!before && !after) {
+    msg = '<span class="bad">Refused both ways:</span> outside release-owned paths under either regex, so genuine drift still blocks the build.';
+  } else {
+    msg = '<span class="bad">Regression:</span> allowed before but refused now, which must never happen.';
+  }
+  v.innerHTML = "<code>" + p.replace(/</g, "&lt;") + "</code><br>before: " + tag(before) + " &middot; after: " + tag(after) + "<br>" + msg;
+}
+
+document.getElementById("btn-old").addEventListener("click", () => { showing = "old"; renderRegex(); });
+document.getElementById("btn-new").addEventListener("click", () => { showing = "new"; renderRegex(); });
+document.querySelectorAll(".preset").forEach(b => b.addEventListener("click", () => {
+  document.getElementById("path-input").value = b.dataset.p;
+  renderLive();
+}));
+document.getElementById("path-input").addEventListener("input", renderLive);
+
+renderRegex();
+renderPresets();
+renderLive();
+</script>
+</body>
+</html>
