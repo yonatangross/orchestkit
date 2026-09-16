@@ -531,6 +531,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.35](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.34...v10.0.0-beta.35)** · 2026-09-16
+
+- **glyph:** cap non-TTY renders at 72 columns (#4179)
+
 **[v10.0.0-beta.34](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.33...v10.0.0-beta.34)** · 2026-09-16
 
 - **mods:** add lesson-cards mod for hint cards on matched patterns (#4169)
@@ -566,13 +570,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **release:** retry the mcp-publisher and GHCR token downloads (#4139)
 - **cc:** adopt CC 2.1.269 to 2.1.272, latest_known 2.1.263 to 2.1.272 (#4138)
-
-**[v10.0.0-beta.27](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.26...v10.0.0-beta.27)** · 2026-09-15
-
-- product MCP sandbox for orchestkit.yonyon.ai (#4131)
-- **site:** publish the auth chain with optional agent identity (#4129)
-- **tests:** sample the paste guard latency delta three times (GH-4130) (#4132)
-- document strict main and serial merges (#4134)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

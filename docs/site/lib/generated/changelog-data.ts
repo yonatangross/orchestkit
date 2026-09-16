@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.35",
+    "date": "2026-09-16",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.34...v10.0.0-beta.35",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**glyph:** cap non-TTY renders at 72 columns ([#4179](https://github.com/yonatangross/orchestkit/issues/4179)) ([988cbeb](https://github.com/yonatangross/orchestkit/commit/988cbeb3d3fddb386aef73a5c11a1f6bcd29cf9f))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.34",
     "date": "2026-09-16",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.33...v10.0.0-beta.34",
