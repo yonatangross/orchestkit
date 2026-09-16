@@ -333,16 +333,21 @@ jobs:
             exit 1
           fi
 
-          if ! npm ci; then
-            echo "::error::npm ci (root) failed on ${BRANCH}; hook bundles not rebuilt."
-            exit 1
-          fi
+          # Minimal command set (#4183, measured 2026-09-16): the src/hooks
+          # build alone (npm ci + esbuild) plus the dist rsync reproduces both
+          # dist dirs byte-identically to the full root build, so the step no
+          # longer pays for the root install (and its npm prepare hooks) or the
+          # full plugin build. The release PR's own CI re-verifies everything.
           if ! (cd src/hooks && npm ci); then
             echo "::error::npm ci (src/hooks) failed on ${BRANCH}; hook bundles not rebuilt."
             exit 1
           fi
-          if ! env -u GH_TOKEN npm run build; then
+          if ! (cd src/hooks && env -u GH_TOKEN npm run build); then
             echo "::error::npm run build failed on ${BRANCH}; hook bundles not rebuilt."
+            exit 1
+          fi
+          if ! rsync -a --checksum --exclude='*.map' --exclude='*.d.mts' --exclude='*.d.ts' src/hooks/dist/ plugins/ork/hooks/dist/; then
+            echo "::error::rsync of src/hooks/dist into plugins/ork/hooks/dist failed on ${BRANCH}; hook bundles not rebuilt."
             exit 1
           fi
 
@@ -355,7 +360,8 @@ jobs:
           git config user.email "orchestkit-release-bot[bot]@users.noreply.github.com"
           git add -- "${DIST[@]}"
           ORK_DIST_COMMIT=1 git commit --quiet -m "chore(dist): rebuild hook bundles for the release (#3578)"
-          if git push --quiet \
+          # Skip the pre-push hook here: the release PR's own CI runs the full suite; running it here widened the race window (#4183).
+          if git push --no-verify --quiet \
                "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" \
                "HEAD:${BRANCH}"; then
             echo "::notice::Rebuilt hook bundles on ${BRANCH}."

@@ -1,0 +1,8 @@
+{
+  "slug": "release-rebuild-shrink-window",
+  "source": "docs/fix--release-rebuild-shrink-window/index.html",
+  "title": "The Release Rebuild Stops Running the Whole Suite",
+  "description": "The release branch bundle rebuild cost 219-272s per run: a full root build the dist does not need (~65s) and a pre-push suite in the bot's own push (~204s) that the release PR's CI runs again. Phase 1 proved the hooks-only build plus the dist rsync byte-identical, so the step now does the minimal set and pushes with --no-verify.",
+  "tags": ["ci", "release", "hooks", "race"],
+  "date": "2026-09-16"
+}

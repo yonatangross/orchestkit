@@ -17,11 +17,14 @@
 #   guard refusal            rc 1  ::error::   (branch differs outside release-owned paths)
 #   build failure            rc 1  ::error::   (npm run build fails)
 #   fetch failure            rc 1  ::error::   (git fetch of main and the branch fails)
-#   root npm ci failure      rc 1  ::error::   (npm ci at the repo root fails)
+#   root npm ci never run    rc 0  rebuilt      (#4183 minimal set: no root install exists)
 #   hooks npm ci failure     rc 1  ::error::   (npm ci inside src/hooks fails)
 #   push fail, head moved    rc 0  ::notice::  (a newer run owns the rebuild)
 #   push fail, head same     rc 1  ::error::   (rebuild genuinely did not land)
 #   already current          rc 0  ::notice::  (dist matches, nothing to push)
+#   rsync mirrors contents   (exec arm: the shipped line, no shim; #4183 fix)
+#   push carries --no-verify (text arm; mutation: remove the flag, arm fails)
+#   no root-level full build (text arm; mutation: restore it, arm fails)
 # Plus one structural arm: the shipped step carries no continue-on-error key
 # at all, so a future edit cannot soften the step back to warn-only without
 # touching this test (#4174).
@@ -103,10 +106,16 @@ echo "gh shim: unexpected call: $*" >&2
 exit 64
 EOF
 
-# npm: ci always succeeds; build writes both dist files with $RRFC_BUILD_CONTENT
-# (set RRFC_BUILD_FAIL=1 to make the build itself fail). RRFC_NPM_CI_FAIL=root
-# fails the root ci only; =hooks fails the ci inside src/hooks only, told
-# apart by the directory the shim runs in.
+# npm: ci always succeeds; build writes src/hooks/dist only with
+# $RRFC_BUILD_CONTENT (set RRFC_BUILD_FAIL=1 to make the build itself fail).
+# The plugin copy is NOT pre-written: since #4183 the step produces
+# plugins/ork/hooks/dist by rsyncing src/hooks/dist, and pre-writing it here
+# would hide a broken rsync from every arm below. Paths go through RRFC_ROOT
+# because the step runs the build with cwd=src/hooks.
+# RRFC_NPM_CI_FAIL=root fails the ci outside src/hooks only; =hooks fails
+# the ci inside src/hooks only, told apart by the directory the shim runs
+# in. With the #4183 minimal set no root ci runs, so =root is a no-op the
+# root arm below asserts stays that way.
 cat > "$SHIMS/npm" <<'EOF'
 #!/usr/bin/env bash
 if [ "${1:-}" = "ci" ]; then
@@ -121,16 +130,17 @@ if [ "${1:-}" = "run" ] && [ "${2:-}" = "build" ]; then
     echo "npm shim: simulated build failure" >&2
     exit 1
   fi
-  mkdir -p src/hooks/dist plugins/ork/hooks/dist
-  printf '%s\n' "$RRFC_BUILD_CONTENT" > src/hooks/dist/a.mjs
-  printf '%s\n' "$RRFC_BUILD_CONTENT" > plugins/ork/hooks/dist/a.mjs
+  mkdir -p "$RRFC_ROOT/src/hooks/dist"
+  printf '%s\n' "$RRFC_BUILD_CONTENT" > "$RRFC_ROOT/src/hooks/dist/a.mjs"
   exit 0
 fi
 echo "npm shim: unexpected call: $*" >&2
 exit 64
 EOF
 
-# git: intercept push, ls-remote and fetch; delegate the rest.
+# git: intercept push, ls-remote and fetch; delegate the rest. RRFC_PUSH_OK
+# makes the push succeed without touching the network, so an arm can assert
+# a full end-to-end rebuild (the real remote URL would need auth).
 cat > "$SHIMS/git" <<EOF
 #!/usr/bin/env bash
 if [ "\${1:-}" = "fetch" ] && [ "\${RRFC_FETCH_FAIL:-0}" = "1" ]; then
@@ -140,6 +150,9 @@ fi
 if [ "\${1:-}" = "push" ] && [ "\${RRFC_PUSH_FAIL:-0}" = "1" ]; then
   echo "git shim: simulated push failure" >&2
   exit 128
+fi
+if [ "\${1:-}" = "push" ] && [ -n "\${RRFC_PUSH_OK:-}" ]; then
+  exit 0
 fi
 if [ "\${1:-}" = "ls-remote" ] && [ -n "\${RRFC_LS_REMOTE_SHA:-}" ]; then
   printf '%s\t%s\n' "\$RRFC_LS_REMOTE_SHA" "\${3:-refs/heads/x}"
@@ -187,7 +200,7 @@ run_arm() {
     local rc=0
     (
         cd "$d/repo" \
-        && env PATH="$SHIMS:$PATH" RRFC_BRANCH="$BRANCH" GH_TOKEN=fake-token \
+        && env PATH="$SHIMS:$PATH" RRFC_BRANCH="$BRANCH" RRFC_ROOT="$d/repo" GH_TOKEN=fake-token \
            GITHUB_REPOSITORY=yonatangross/orchestkit "$@" \
            bash -e "$B" > "$d/step.out" 2>&1
     ) || rc=$?
@@ -228,13 +241,17 @@ else
     bad "fetch failure: rc=$rc want 1 with ::error:: $(tail -2 "$D/step.out")"
 fi
 
-# ---------------------------------------------- root npm ci failure
+# ------------------------------------ root npm ci removed (minimal set)
+# The #4183 minimal set deleted the root npm ci (root has zero runtime
+# dependencies; its npm prepare hooks were part of the widened window), so a
+# ci failure outside src/hooks cannot fire and must not: the arm asserts the
+# step still rebuilds normally with the shim's root-fail branch armed.
 D="$WORK/ciroot"; make_fixture "$D"
-rc=$(run_arm "$D" RRFC_NPM_CI_FAIL=root)
-if [ "$rc" = "1" ] && grep -q "::error::npm ci (root) failed" "$D/step.out"; then
-    ok "root npm ci failure rc=1 ::error::"
+rc=$(run_arm "$D" RRFC_NPM_CI_FAIL=root RRFC_BUILD_CONTENT=b RRFC_PUSH_OK=1)
+if [ "$rc" = "0" ] && grep -q "::notice::Rebuilt hook bundles" "$D/step.out"; then
+    ok "root npm ci never run (minimal set): root-fail branch is a no-op, rebuilt rc=0"
 else
-    bad "root npm ci failure: rc=$rc want 1 with ::error:: $(tail -2 "$D/step.out")"
+    bad "root npm ci arm: rc=$rc want 0 with rebuilt notice $(tail -2 "$D/step.out")"
 fi
 
 # ------------------------------------------- src/hooks npm ci failure
@@ -272,6 +289,79 @@ if [ "$rc" = "0" ] && grep -q "::notice::Hook bundles already current" "$D/step.
     ok "already current rc=0 ::notice::"
 else
     bad "already current: rc=$rc want 0 with ::notice:: $(tail -2 "$D/step.out")"
+fi
+
+# ------------------------- 6. bot push carries --no-verify (#4183, text arm)
+# The 204s pre-push suite ran inside the bot's push and widened the race
+# window; the step must skip it because the release PR's own CI runs the full
+# suite. Mutation check: delete the flag from the workflow and this arm fails.
+if grep -q 'git push --no-verify' "$B"; then
+    ok "bot dist push carries --no-verify (pre-push hook skipped)"
+else
+    bad "bot dist push lost --no-verify; the pre-push suite would widen the race window again"
+fi
+
+# ------------------------- 7. no root-level full build (#4183, text arm)
+# Every npm run build in the step must be scoped to src/hooks; a root-level
+# full build is the ~65s the step no longer pays for. echo lines are filtered
+# so the failure MESSAGE (which contains the words "npm run build failed") is
+# not a false hit. Mutation check: re-add a root-level build line and this
+# arm fails.
+ROOT_BUILD="$(grep -n 'npm run build' "$B" | grep -v 'echo "::error' | grep -v 'src/hooks' || true)"
+if [ -z "$ROOT_BUILD" ]; then
+    ok "no root-level npm run build in the step (hooks-only build)"
+else
+    bad "step still runs a root-level npm run build: $ROOT_BUILD"
+fi
+
+# ------------------------- 8. the shipped rsync line mirrors contents (#4183)
+# Exec arm, no shim: the line is LIFTED from the shipped step and run against
+# a fixture tree. The source MUST carry the trailing slash (rsync copies the
+# directory itself into the target otherwise, nesting dist/dist and leaving
+# the tracked plugin files stale) and the excludes must match
+# build-plugins.sh's dist-facing set (*.map, *.d.mts, *.d.ts). Mutation
+# check: drop the source trailing slash and this arm fails.
+#
+# Second round, same arm: same-size contents with IDENTICAL mtimes. rsync's
+# size+mtime quick check calls that up to date without reading the bytes, so
+# only a content comparison (the shipped line carries --checksum) can
+# refresh the plugin copy. Mutation check: remove --checksum and this arm
+# fails too.
+RSYNC_LINE="$(grep 'rsync -a' "$B" | head -1 | sed 's/^if ! //; s/; then$//')"
+if [ -z "$RSYNC_LINE" ]; then
+    bad "shipped step carries no rsync line"
+else
+    D="$WORK/rsyncexec"; mkdir -p "$D/repo/src/hooks/dist" "$D/repo/plugins/ork/hooks/dist"
+    # Distinct sizes and a backdated target model the CI reality: esbuild
+    # writes fresh mtimes, the plugin copy is the committed file from before.
+    # Same-size same-second files would trip rsync's size+mtime quick check
+    # and test the fixture instead of the line.
+    printf 'new-content-longer\n' > "$D/repo/src/hooks/dist/a.mjs"
+    printf 'map\n'  > "$D/repo/src/hooks/dist/a.mjs.map"
+    printf 'dmts\n' > "$D/repo/src/hooks/dist/a.d.mts"
+    printf 'old\n'  > "$D/repo/plugins/ork/hooks/dist/a.mjs"
+    touch -t 202601010000 "$D/repo/plugins/ork/hooks/dist/a.mjs"
+    ( cd "$D/repo" && eval "$RSYNC_LINE" ) || true
+    if [ "$(cat "$D/repo/plugins/ork/hooks/dist/a.mjs" 2>/dev/null)" = "new-content-longer" ] \
+       && [ ! -d "$D/repo/plugins/ork/hooks/dist/dist" ] \
+       && [ ! -e "$D/repo/plugins/ork/hooks/dist/a.mjs.map" ] \
+       && [ ! -e "$D/repo/plugins/ork/hooks/dist/a.d.mts" ]; then
+        ok "shipped rsync line mirrors contents, excludes map/d.mts, no nested dist"
+    else
+        bad "shipped rsync line did not mirror contents (stale plugin copy, nested dist, or excluded files copied): $RSYNC_LINE"
+    fi
+
+    # Checksum round: same size (4 bytes), identical mtimes. Only --checksum
+    # can see that the bytes differ.
+    printf 'new\n' > "$D/repo/src/hooks/dist/a.mjs"
+    printf 'old\n' > "$D/repo/plugins/ork/hooks/dist/a.mjs"
+    touch -r "$D/repo/src/hooks/dist/a.mjs" "$D/repo/plugins/ork/hooks/dist/a.mjs"
+    ( cd "$D/repo" && eval "$RSYNC_LINE" ) || true
+    if [ "$(cat "$D/repo/plugins/ork/hooks/dist/a.mjs" 2>/dev/null)" = "new" ]; then
+        ok "shipped rsync line copies same-size same-mtime changes (--checksum)"
+    else
+        bad "shipped rsync line left a same-size same-mtime change uncopied (quick check beat content comparison): $RSYNC_LINE"
+    fi
 fi
 
 echo ""
