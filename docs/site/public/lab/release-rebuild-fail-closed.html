@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The rebuild that reported success</title><style>
+:root{--bg:hsl(232 26% 7%);--ink:hsl(220 18% 93%);--muted:hsl(220 14% 64%);--faint:hsl(220 12% 46%);
+--glass:hsl(0 0% 100% / .05);--edge:hsl(0 0% 100% / .18);--accent:hsl(248 84% 68%);--ok:hsl(162 62% 52%);--bad:hsl(354 78% 62%)}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(54rem 36rem at 88% -6%,hsl(248 70% 26% / .38),transparent 62%),var(--bg);
+background-attachment:fixed;color:var(--ink);font:15px/1.65 -apple-system,system-ui,sans-serif}
+.wrap{max-width:900px;margin-inline:auto;padding:48px 24px 80px}
+.eyebrow{display:inline-block;font-size:11.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;
+color:var(--faint);border:1px solid var(--edge);border-radius:999px;background:var(--glass);padding:6px 12px}
+h1{font-size:clamp(24px,3.6vw,34px);font-weight:700;margin:14px 0 10px}h1 span{color:var(--accent)}
+.lede{color:var(--muted);max-width:66ch;margin:0 0 28px}.lede b{color:var(--ink)}
+h2{font-size:17px;margin:28px 0 8px}
+code{font-family:ui-monospace,Menlo,monospace;font-size:12px;background:hsl(0 0% 100% / .07);padding:1px 5px;border-radius:5px}
+table{width:100%;border-collapse:collapse;font-size:13px;border:1px solid var(--edge);border-radius:12px;overflow:hidden;background:var(--glass);margin-top:10px}
+th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--faint);padding:9px 11px;border-bottom:1px solid var(--edge)}
+td{padding:9px 11px;border-bottom:1px solid hsl(0 0% 100% / .06)}tr:last-child td{border-bottom:none}
+.bad{color:var(--bad)}.ok{color:var(--ok)}
+.foot{margin-top:32px;font-size:12px;color:var(--faint);line-height:1.9}
+</style><!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="The rebuild that reported success"><meta property="og:description" content="The release-please hook-bundle rebuild step had continue-on-error:true and exited 0 on every failure, so a rebuild that did not happen reported success. The step now fails closed on every hard failure, with one sanctioned exit 0 for a branch that moved to a newer head."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/release-rebuild-fail-closed.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="The rebuild that reported success"><meta name="twitter:description" content="The release-please hook-bundle rebuild step had continue-on-error:true and exited 0 on every failure, so a rebuild that did not happen reported success. The step now fails closed on every hard failure, with one sanctioned exit 0 for a branch that moved to a newer head."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head><body><div class="wrap">
+<div class="eyebrow">CI FAIL-CLOSED &middot; #4174</div>
+<h1>The rebuild that <span>reported success</span></h1>
+<p class="lede">The <code>Rebuild hook bundles on the release PR</code> step in
+<code>release-please.yml</code> is the one place where main's stale hook bundles get healed
+before a release ships. It had <code>continue-on-error: true</code>, so even its one existing
+<code>exit 1</code> could not fail the job: a rebuild that did not happen reported success.</p>
+
+<h2>Before: every exit path, and what it really did</h2>
+<table>
+<tr><th>Line (origin/main)</th><th>Condition</th><th>Annotation</th><th>Exit</th><th>Effect</th></tr>
+<tr><td>281</td><td>step-level <code>continue-on-error: true</code></td><td>-</td><td>-</td><td class="bad">swallows every exit code below; the job can never go red from this step</td></tr>
+<tr><td>287-288</td><td>gh pr list fails</td><td>::error::</td><td>1</td><td class="bad">exit 1 neutralized by continue-on-error</td></tr>
+<tr><td>293-294</td><td>no open release PR</td><td>::notice::</td><td>0</td><td class="ok">correct: nothing to do</td></tr>
+<tr><td>303-304</td><td>PR author is not the release bot</td><td>::warning::</td><td>0</td><td class="ok">kept exit 0: refusing to build someone else's PR is a policy skip, not a broken rebuild</td></tr>
+<tr><td>327</td><td><code>git fetch</code> fails</td><td>none</td><td>implicit</td><td class="bad">un-guarded; <code>set -uo pipefail</code> has no -e, the step just continues</td></tr>
+<tr><td>328</td><td><code>git checkout</code> fails</td><td>none</td><td>implicit</td><td class="bad">un-guarded; may keep building on the wrong tree</td></tr>
+<tr><td>327-328</td><td><code>npm ci</code> (root, src/hooks) fails</td><td>none</td><td>implicit</td><td class="bad">un-guarded; build runs against missing deps</td></tr>
+<tr><td>329-331</td><td><code>npm run build</code> fails</td><td>::warning::</td><td>0</td><td class="bad">bundles not rebuilt, step green</td></tr>
+<tr><td>336-337</td><td>bundles already current</td><td>::notice::</td><td>0</td><td class="ok">correct: nothing to push</td></tr>
+<tr><td>345-349</td><td>push fails</td><td>::warning::</td><td>0</td><td class="bad">heal did not land, step green</td></tr>
+</table>
+
+<h2>After: fail closed, with one sanctioned exit 0</h2>
+<table>
+<tr><th>Failure</th><th>Annotation</th><th>Exit</th></tr>
+<tr><td>guard refusal (branch differs outside release-owned paths)</td><td>::error::</td><td>1</td></tr>
+<tr><td><code>git fetch</code> / <code>git checkout</code> fail</td><td>::error::</td><td>1</td></tr>
+<tr><td><code>npm ci</code> root / <code>npm ci</code> src-hooks / <code>npm run build</code></td><td>::error:: naming which</td><td>1</td></tr>
+<tr><td>push fails, remote head UNCHANGED</td><td>::error::</td><td>1</td></tr>
+<tr><td>push fails, remote head MOVED (a newer run owns the rebuild)</td><td>::notice::</td><td class="ok">0</td></tr>
+<tr><td>no open PR / already current / non-bot author</td><td>::notice:: / ::warning::</td><td class="ok">0 (unchanged)</td></tr>
+</table>
+<p>The non-bot-author refusal stays exit 0 on purpose: declining to execute a stranger's
+build script is the guard working, not the rebuild failing. The push-failure arm is the one
+genuinely ambiguous case, so the step now records the sha it checked out and re-reads the
+remote head with <code>git ls-remote</code>: a moved head means a newer run owns the rebuild
+(the step re-runs on every push to main), an unchanged head means the heal truly did not land.</p>
+
+<h2>Measured, not asserted</h2>
+<p>The committed harness <code>tests/ci/test-release-rebuild-fail-closed.sh</code> lifts the
+step body LIVE from the workflow YAML (the same pattern as
+<code>tests/ci/test-workflow-step-fault-arms.sh</code>) and runs it against a bare-origin git
+fixture with PATH shims for <code>gh</code>, <code>npm</code> and <code>git push/ls-remote</code>:
+five arms, one line each - guard refusal rc1, build failure rc1, push failure with the branch
+unchanged rc1, push failure with the branch moved rc0 notice, already current rc0.</p>
+
+<div class="foot">Issue #4174 &middot; branch <code>fix/release-rebuild-fail-closed</code> &middot; shellcheck clean, YAML parses, lab-manifest check OK</div>
+</div><!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body></html>

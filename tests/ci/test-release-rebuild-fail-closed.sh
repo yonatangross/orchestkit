@@ -1,0 +1,206 @@
+#!/usr/bin/env bash
+# Test: the release-please.yml "Rebuild hook bundles on the release PR" step
+# fails closed (#4174). The step used to be continue-on-error:true and its
+# failure arms exited 0 with a ::warning::, so a rebuild that did not happen
+# reported success. Every hard failure must now be ::error:: + exit 1; only
+# benign outcomes (no open PR, non-bot author, bundles already current, branch
+# moved to a newer head) exit 0 with a notice.
+#
+# Pattern: tests/ci/test-workflow-step-fault-arms.sh — the step body is lifted
+# LIVE from the workflow YAML by step name, so this test drifts with the
+# shipped step rather than with a pasted copy, and runs under `bash -e` (what
+# GitHub uses when no shell: key is set). The step's externals are replaced by
+# PATH shims: gh (PR lookup), npm (ci + build), git (push and ls-remote only;
+# every other git subcommand delegates to the real binary).
+#
+# Arms (one line each: rc and the annotation that must be present):
+#   guard refusal            rc 1  ::error::   (branch differs outside release-owned paths)
+#   build failure            rc 1  ::error::   (npm run build fails)
+#   push fail, head moved    rc 0  ::notice::  (a newer run owns the rebuild)
+#   push fail, head same     rc 1  ::error::   (rebuild genuinely did not land)
+#   already current          rc 0  ::notice::  (dist matches, nothing to push)
+set -euo pipefail
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+WF="$REPO_ROOT/.github/workflows"
+BRANCH="release-please--v10.0.1"
+
+echo "=== release rebuild fail-closed arms ==="
+echo ""
+
+WORK="$(mktemp -d "${TMPDIR:-/tmp}/ork-rrfc.XXXXXX")"
+trap 'rm -rf "$WORK"' EXIT
+PASS=0; FAIL=0
+ok()  { echo "  PASS: $1"; PASS=$((PASS + 1)); }
+bad() { echo "  FAIL: $1"; FAIL=$((FAIL + 1)); }
+
+# extract_step <yml> <step name> -> prints the dedented `run: |` body.
+extract_step() {
+    awk -v want="$2" '
+        function indent(s,  m) { match(s, /^ */); return RLENGTH }
+        BEGIN { state = 0 }
+        state == 0 && $0 ~ "^ *- name: " {
+            name = $0; sub(/^ *- name: /, "", name); sub(/ *$/, "", name)
+            if (name == want) state = 1
+            next
+        }
+        state == 1 && $0 ~ /^ *run: \|/ { runind = indent($0); state = 2; next }
+        state == 1 && $0 ~ "^ *- name: " { exit }
+        state == 2 {
+            if ($0 ~ /^ *$/) { print ""; next }
+            if (indent($0) <= runind) exit
+            print substr($0, runind + 3)
+        }
+    ' "$1"
+}
+
+# ---- shims ------------------------------------------------------------
+SHIMS="$WORK/shims"; mkdir -p "$SHIMS"
+REAL_GIT="$(command -v git)"
+
+# gh: reports one open release PR authored by the release bot.
+cat > "$SHIMS/gh" <<'EOF'
+#!/usr/bin/env bash
+if [ "$1" = "pr" ] && [ "$2" = "list" ]; then
+  printf '[{"headRefName":"%s","author":{"login":"app/orchestkit-release-bot"},"number":4174}]\n' "$RRFC_BRANCH"
+  exit 0
+fi
+echo "gh shim: unexpected call: $*" >&2
+exit 64
+EOF
+
+# npm: ci always succeeds; build writes both dist files with $RRFC_BUILD_CONTENT
+# (set RRFC_BUILD_FAIL=1 to make the build itself fail).
+cat > "$SHIMS/npm" <<'EOF'
+#!/usr/bin/env bash
+if [ "${1:-}" = "ci" ]; then exit 0; fi
+if [ "${1:-}" = "run" ] && [ "${2:-}" = "build" ]; then
+  if [ "${RRFC_BUILD_FAIL:-0}" = "1" ]; then
+    echo "npm shim: simulated build failure" >&2
+    exit 1
+  fi
+  mkdir -p src/hooks/dist plugins/ork/hooks/dist
+  printf '%s\n' "$RRFC_BUILD_CONTENT" > src/hooks/dist/a.mjs
+  printf '%s\n' "$RRFC_BUILD_CONTENT" > plugins/ork/hooks/dist/a.mjs
+  exit 0
+fi
+echo "npm shim: unexpected call: $*" >&2
+exit 64
+EOF
+
+# git: intercept push and ls-remote; delegate the rest.
+cat > "$SHIMS/git" <<EOF
+#!/usr/bin/env bash
+if [ "\${1:-}" = "push" ] && [ "\${RRFC_PUSH_FAIL:-0}" = "1" ]; then
+  echo "git shim: simulated push failure" >&2
+  exit 128
+fi
+if [ "\${1:-}" = "ls-remote" ] && [ -n "\${RRFC_LS_REMOTE_SHA:-}" ]; then
+  printf '%s\t%s\n' "\$RRFC_LS_REMOTE_SHA" "\${3:-refs/heads/x}"
+  exit 0
+fi
+exec "$REAL_GIT" "\$@"
+EOF
+chmod +x "$SHIMS/gh" "$SHIMS/npm" "$SHIMS/git"
+
+# ---- fixture ----------------------------------------------------------
+# make_fixture <dir> [poison-file]: bare origin + clone; main holds dist files
+# with content "a"; the release branch changes CHANGELOG.md (a release-owned
+# path) and optionally one file OUTSIDE the release-owned allowlist.
+make_fixture() {
+    local d="$1" poison="${2:-}" r
+    git init -q --bare "$d/origin.git"
+    git clone -q "$d/origin.git" "$d/repo" 2>/dev/null || true
+    r="$d/repo"
+    git -C "$r" checkout -qB main   # clone of an empty repo may default to another unborn branch
+    git -C "$r" config user.email t@t
+    git -C "$r" config user.name t
+    git -C "$r" config commit.gpgsign false
+    mkdir -p "$r/src/hooks/dist" "$r/plugins/ork/hooks/dist"
+    printf 'a\n' > "$r/src/hooks/dist/a.mjs"
+    printf 'a\n' > "$r/plugins/ork/hooks/dist/a.mjs"
+    printf 'base\n' > "$r/README.md"
+    git -C "$r" add -A
+    git -C "$r" commit -qm base
+    git -C "$r" push -q origin main
+    git -C "$r" checkout -qb "$BRANCH"
+    printf 'changelog\n' > "$r/CHANGELOG.md"
+    git -C "$r" add CHANGELOG.md
+    if [ -n "$poison" ]; then
+        printf 'evil\n' > "$r/$poison"
+        git -C "$r" add "$poison"
+    fi
+    git -C "$r" commit -qm release
+    git -C "$r" push -q origin "$BRANCH"
+    git -C "$r" checkout -q main
+}
+
+# run_arm <dir> [VAR=value ...] -> rc; output in $1/repo/step.out
+run_arm() {
+    local d="$1"; shift
+    local rc=0
+    (
+        cd "$d/repo" \
+        && env PATH="$SHIMS:$PATH" RRFC_BRANCH="$BRANCH" GH_TOKEN=fake-token \
+           GITHUB_REPOSITORY=yonatangross/orchestkit "$@" \
+           bash -e "$B" > "$d/step.out" 2>&1
+    ) || rc=$?
+    echo "$rc"
+}
+
+B="$WORK/step.sh"
+extract_step "$WF/release-please.yml" "Rebuild hook bundles on the release PR" > "$B"
+if [ ! -s "$B" ]; then
+    echo "  FAIL: could not lift step body (renamed?)"
+    exit 1
+fi
+
+# ---------------------------------------------------- 1. guard refusal
+D="$WORK/guard"; make_fixture "$D" "evil.sh"
+rc=$(run_arm "$D")
+if [ "$rc" = "1" ] && grep -q "::error::" "$D/step.out"; then
+    ok "guard refusal rc=1 ::error::"
+else
+    bad "guard refusal: rc=$rc want 1 with ::error:: $(tail -2 "$D/step.out")"
+fi
+
+# ---------------------------------------------------- 2. build failure
+D="$WORK/buildfail"; make_fixture "$D"
+rc=$(run_arm "$D" RRFC_BUILD_FAIL=1 RRFC_BUILD_CONTENT=b)
+if [ "$rc" = "1" ] && grep -q "::error::npm run build failed" "$D/step.out"; then
+    ok "build failure rc=1 ::error::"
+else
+    bad "build failure: rc=$rc want 1 with ::error:: $(tail -2 "$D/step.out")"
+fi
+
+# --------------------------------- 3. push failure, remote head moved
+D="$WORK/moved"; make_fixture "$D"
+rc=$(run_arm "$D" RRFC_PUSH_FAIL=1 RRFC_BUILD_CONTENT=b RRFC_LS_REMOTE_SHA=0000000000000000000000000000000000000000)
+if [ "$rc" = "0" ] && grep -q "::notice::" "$D/step.out" && grep -q "owns the rebuild" "$D/step.out"; then
+    ok "push failure, branch moved rc=0 ::notice:: (new head owns the rebuild)"
+else
+    bad "push failure moved: rc=$rc want 0 with ::notice:: $(tail -2 "$D/step.out")"
+fi
+
+# -------------------------------- 4. push failure, remote head same
+D="$WORK/samehead"; make_fixture "$D"
+head_sha="$(git -C "$D/repo" rev-parse "origin/$BRANCH")"
+rc=$(run_arm "$D" RRFC_PUSH_FAIL=1 RRFC_BUILD_CONTENT=b RRFC_LS_REMOTE_SHA="$head_sha")
+if [ "$rc" = "1" ] && grep -q "::error::Could not push" "$D/step.out"; then
+    ok "push failure, branch unchanged rc=1 ::error::"
+else
+    bad "push failure unchanged: rc=$rc want 1 with ::error:: $(tail -2 "$D/step.out")"
+fi
+
+# ---------------------------------------------------- 5. already current
+D="$WORK/current"; make_fixture "$D"
+rc=$(run_arm "$D" RRFC_BUILD_CONTENT=a)
+if [ "$rc" = "0" ] && grep -q "::notice::Hook bundles already current" "$D/step.out"; then
+    ok "already current rc=0 ::notice::"
+else
+    bad "already current: rc=$rc want 0 with ::notice:: $(tail -2 "$D/step.out")"
+fi
+
+echo ""
+echo "Results: $PASS passed, $FAIL failed"
+[ "$FAIL" -eq 0 ]

@@ -1,0 +1,8 @@
+{
+  "slug": "release-rebuild-fail-closed",
+  "source": "docs/fix--release-rebuild-fail-closed/index.html",
+  "title": "The rebuild that reported success",
+  "description": "The release-please hook-bundle rebuild step had continue-on-error:true and exited 0 on every failure, so a rebuild that did not happen reported success. The step now fails closed on every hard failure, with one sanctioned exit 0 for a branch that moved to a newer head.",
+  "tags": ["ci", "release", "fail-closed", "hooks"],
+  "date": "2026-09-17"
+}
