@@ -1254,7 +1254,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "create-pr",
     "description": "Creates GitHub pull requests with pre-flight validation, conventional title formatting, and structured summary generation. Runs parallel checks (tests, lint, type-check, security) before opening. Supports feature, bugfix, refactor, and hotfix PR types with milestone assignment via gh CLI. Invoke only if the operator named it; an everyday `gh pr create` stays plain tooling. Use when opening PRs or submitting code for review.",
     "version": "2.7.0",
-    "sha256": "38dd37a6307015d768ab5140111d801996a5b151474343fd3a08c64a8da5f6a0",
+    "sha256": "e3555d345e4235c4bbce5fb8ade2c3ef112ce1a82d3c3c0fd135db0660b0fdec",
     "author": "OrchestKit",
     "tags": [
       "git",

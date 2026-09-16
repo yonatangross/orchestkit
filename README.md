@@ -531,6 +531,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.38](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.37...v10.0.0-beta.38)** · 2026-09-16
+
+- **create-pr:** drop stale lab-data.ts conflict advice (#4191)
+
 **[v10.0.0-beta.37](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.36...v10.0.0-beta.37)** · 2026-09-16
 
 - **site:** generate lab-data.ts at build time instead of committing it (#4188)
@@ -566,10 +570,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.31](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.30...v10.0.0-beta.31)** · 2026-09-15
 
 - **devin:** expose OrchestKit skills to Devin plugin install (#4148)
-
-**[v10.0.0-beta.30](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.29...v10.0.0-beta.30)** · 2026-09-15
-
-- **cc:** join the 2.1.269 to 2.1.272 rows to the matrix table (#4142)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
