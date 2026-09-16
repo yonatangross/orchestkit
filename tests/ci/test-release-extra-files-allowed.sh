@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Test: every extra-files path in .release-please-config.json must match the
-# ALLOWED regex in .github/workflows/release-please.yml (#4176).
+# ALLOWED regex in .github/workflows/release-please.yml (#4176), including
+# entries written as bare strings (a follow-up reviewer found they were
+# skipped silently).
 #
 # Why (the #4173 class): the release-please build step refuses to execute a
 # release branch whose diff from main touches any path outside ALLOWED. The
@@ -35,7 +37,14 @@ extract_paths() {
 import json, sys
 cfg = json.load(open(sys.argv[1]))
 extra = cfg.get("packages", {}).get(".", {}).get("extra-files", [])
-for p in sorted({e["path"] for e in extra if isinstance(e, dict) and "path" in e}):
+paths = set()
+for e in extra:
+    if isinstance(e, dict) and "path" in e:
+        paths.add(e["path"])
+    elif isinstance(e, str):
+        # release-please also accepts a bare string, spelled as a plain path
+        paths.add(e)
+for p in sorted(paths):
     print(p)
 PY
 }
@@ -93,6 +102,43 @@ if [[ -n "$PATHS" && -n "$ALLOWED" ]]; then
             bad "extra-files path '$p' (.release-please-config.json) does not match ALLOWED in .github/workflows/release-please.yml; every release branch touching it would be blocked"
         fi
     done < <(printf '%s\n' "$PATHS")
+fi
+
+# 5. A bare-string entry must be checked like the rest (#4176 follow-up).
+#    The shipped config currently has no bare strings, so prove the
+#    extraction with a scratch config holding one object and one bare
+#    string, both covered by ALLOWED: both must be parsed and matched.
+SCRATCH_DIR="$(mktemp -d "${TMPDIR:-/tmp}/ork-efa.XXXXXX")"
+trap 'rm -rf "$SCRATCH_DIR"' EXIT
+cat > "$SCRATCH_DIR/cfg.json" <<'EOF'
+{
+  "packages": {
+    ".": {
+      "extra-files": [
+        {"type": "generic", "path": "CLAUDE.md"},
+        "README.md"
+      ]
+    }
+  }
+}
+EOF
+SCRATCH_PATHS="$(extract_paths "$SCRATCH_DIR/cfg.json")"
+if [[ "$SCRATCH_PATHS" == *"CLAUDE.md"* ]] && [[ "$SCRATCH_PATHS" == *"README.md"* ]]; then
+    ok "bare-string extra-files entry parsed as a path"
+else
+    bad "bare-string entry missing from extraction, got: $(printf '%s' "$SCRATCH_PATHS" | tr '\n' ' ')"
+fi
+SCRATCH_MATCHED=1
+while IFS= read -r p; do
+    [[ -z "$p" ]] && continue
+    if ! printf '%s' "$p" | grep -E "$ALLOWED" -q; then
+        SCRATCH_MATCHED=0
+    fi
+done < <(printf '%s\n' "$SCRATCH_PATHS")
+if [[ -n "$ALLOWED" ]] && [ "$SCRATCH_MATCHED" -eq 1 ]; then
+    ok "bare-string path matched against ALLOWED like object entries"
+else
+    bad "scratch config path did not match ALLOWED (extraction or engine broken)"
 fi
 
 echo ""

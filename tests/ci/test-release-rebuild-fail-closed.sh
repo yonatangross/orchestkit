@@ -6,7 +6,7 @@
 # benign outcomes (no open PR, non-bot author, bundles already current, branch
 # moved to a newer head) exit 0 with a notice.
 #
-# Pattern: tests/ci/test-workflow-step-fault-arms.sh — the step body is lifted
+# Pattern: tests/ci/test-workflow-step-fault-arms.sh, the step body is lifted
 # LIVE from the workflow YAML by step name, so this test drifts with the
 # shipped step rather than with a pasted copy, and runs under `bash -e` (what
 # GitHub uses when no shell: key is set). The step's externals are replaced by
@@ -16,9 +16,15 @@
 # Arms (one line each: rc and the annotation that must be present):
 #   guard refusal            rc 1  ::error::   (branch differs outside release-owned paths)
 #   build failure            rc 1  ::error::   (npm run build fails)
+#   fetch failure            rc 1  ::error::   (git fetch of main and the branch fails)
+#   root npm ci failure      rc 1  ::error::   (npm ci at the repo root fails)
+#   hooks npm ci failure     rc 1  ::error::   (npm ci inside src/hooks fails)
 #   push fail, head moved    rc 0  ::notice::  (a newer run owns the rebuild)
 #   push fail, head same     rc 1  ::error::   (rebuild genuinely did not land)
 #   already current          rc 0  ::notice::  (dist matches, nothing to push)
+# Plus one structural arm: the shipped step carries no continue-on-error key
+# at all, so a future edit cannot soften the step back to warn-only without
+# touching this test (#4174).
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
@@ -33,6 +39,34 @@ trap 'rm -rf "$WORK"' EXIT
 PASS=0; FAIL=0
 ok()  { echo "  PASS: $1"; PASS=$((PASS + 1)); }
 bad() { echo "  FAIL: $1"; FAIL=$((FAIL + 1)); }
+
+# ------------------------------------------------ 0. no continue-on-error
+# The step's original failure mode was continue-on-error:true, which turned a
+# failed rebuild into a warning nobody reads. Assert the property
+# structurally: parse the shipped YAML and require the step to carry no
+# continue-on-error key, so softening the step back needs a test change too.
+COE="$(python3 - "$WF/release-please.yml" <<'PY'
+import sys, yaml
+wf = yaml.safe_load(open(sys.argv[1]))
+found = None
+for job in (wf.get("jobs") or {}).values():
+    for st in (job.get("steps") or []):
+        if isinstance(st, dict) and st.get("name") == "Rebuild hook bundles on the release PR":
+            found = st
+            break
+if found is None:
+    print("step not found")
+elif "continue-on-error" in found:
+    print("present")
+else:
+    print("absent")
+PY
+)" || COE="parse error"
+if [ "$COE" = "absent" ]; then
+    ok "shipped step carries no continue-on-error key"
+else
+    bad "shipped step continue-on-error: '$COE' (want absent)"
+fi
 
 # extract_step <yml> <step name> -> prints the dedented `run: |` body.
 extract_step() {
@@ -70,10 +104,18 @@ exit 64
 EOF
 
 # npm: ci always succeeds; build writes both dist files with $RRFC_BUILD_CONTENT
-# (set RRFC_BUILD_FAIL=1 to make the build itself fail).
+# (set RRFC_BUILD_FAIL=1 to make the build itself fail). RRFC_NPM_CI_FAIL=root
+# fails the root ci only; =hooks fails the ci inside src/hooks only, told
+# apart by the directory the shim runs in.
 cat > "$SHIMS/npm" <<'EOF'
 #!/usr/bin/env bash
-if [ "${1:-}" = "ci" ]; then exit 0; fi
+if [ "${1:-}" = "ci" ]; then
+  case "${RRFC_NPM_CI_FAIL:-}" in
+    root)  case "$PWD" in */src/hooks) exit 0 ;; *) exit 1 ;; esac ;;
+    hooks) case "$PWD" in */src/hooks) exit 1 ;; *) exit 0 ;; esac ;;
+  esac
+  exit 0
+fi
 if [ "${1:-}" = "run" ] && [ "${2:-}" = "build" ]; then
   if [ "${RRFC_BUILD_FAIL:-0}" = "1" ]; then
     echo "npm shim: simulated build failure" >&2
@@ -88,9 +130,13 @@ echo "npm shim: unexpected call: $*" >&2
 exit 64
 EOF
 
-# git: intercept push and ls-remote; delegate the rest.
+# git: intercept push, ls-remote and fetch; delegate the rest.
 cat > "$SHIMS/git" <<EOF
 #!/usr/bin/env bash
+if [ "\${1:-}" = "fetch" ] && [ "\${RRFC_FETCH_FAIL:-0}" = "1" ]; then
+  echo "git shim: simulated fetch failure" >&2
+  exit 1
+fi
 if [ "\${1:-}" = "push" ] && [ "\${RRFC_PUSH_FAIL:-0}" = "1" ]; then
   echo "git shim: simulated push failure" >&2
   exit 128
@@ -171,6 +217,33 @@ if [ "$rc" = "1" ] && grep -q "::error::npm run build failed" "$D/step.out"; the
     ok "build failure rc=1 ::error::"
 else
     bad "build failure: rc=$rc want 1 with ::error:: $(tail -2 "$D/step.out")"
+fi
+
+# ------------------------------------------------ 2b. fetch failure
+D="$WORK/fetchfail"; make_fixture "$D"
+rc=$(run_arm "$D" RRFC_FETCH_FAIL=1)
+if [ "$rc" = "1" ] && grep -q "::error::git fetch of main and" "$D/step.out"; then
+    ok "fetch failure rc=1 ::error::"
+else
+    bad "fetch failure: rc=$rc want 1 with ::error:: $(tail -2 "$D/step.out")"
+fi
+
+# ---------------------------------------------- root npm ci failure
+D="$WORK/ciroot"; make_fixture "$D"
+rc=$(run_arm "$D" RRFC_NPM_CI_FAIL=root)
+if [ "$rc" = "1" ] && grep -q "::error::npm ci (root) failed" "$D/step.out"; then
+    ok "root npm ci failure rc=1 ::error::"
+else
+    bad "root npm ci failure: rc=$rc want 1 with ::error:: $(tail -2 "$D/step.out")"
+fi
+
+# ------------------------------------------- src/hooks npm ci failure
+D="$WORK/cihooks"; make_fixture "$D"
+rc=$(run_arm "$D" RRFC_NPM_CI_FAIL=hooks)
+if [ "$rc" = "1" ] && grep -q "::error::npm ci (src/hooks) failed" "$D/step.out"; then
+    ok "src/hooks npm ci failure rc=1 ::error::"
+else
+    bad "src/hooks npm ci failure: rc=$rc want 1 with ::error:: $(tail -2 "$D/step.out")"
 fi
 
 # --------------------------------- 3. push failure, remote head moved
