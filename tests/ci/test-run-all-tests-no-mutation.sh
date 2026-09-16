@@ -23,11 +23,15 @@
 #   3. an index mode of 100644 with the disk bit set fails the same way, and
 #      the index is still 100644 afterwards.
 #   4. (#4180) non-compliant fixtures whose names used to break the
-#      enumeration -- an ASCII name, a Hebrew name, and a name with a space,
-#      all tracked at 100644 -- are all reported (3 of 3). With
+#      enumeration (an ASCII name, a Hebrew name, and a name with a space,
+#      all tracked at 100644) are all reported (3 of 3). With
 #      core.quotePath at its default, ls-files C-quoted the Hebrew path, the
 #      [ -f ] guard failed on the quoted spelling, and the file was skipped
 #      silently: the gate failed open on exactly that input.
+#   5. (#4180) a TAB and a NEWLINE inside a .sh path (both tracked at
+#      100644) are reported too (2 of 2): control characters are always
+#      C-quoted in non-z ls-files output, whatever core.quotePath says, so
+#      only the -z enumeration can see their real bytes.
 #
 # The fixture has no tests/ci and no scripts/ci, so every --lint category
 # SKIPs, each invocation costs milliseconds, and the exit code carries only
@@ -185,6 +189,42 @@ if [ "$RC4" -ne 0 ] \
 else
     echo "  FAIL: exit=$RC4, porcelain lines=$LINES4"
     printf '%s\n' "$OUT4" | grep -a "Non-executable\|\.sh" | tail -8 | sed 's/^/    /'
+    FAILED=1
+fi
+
+# --- 5: TAB and NEWLINE path names are enumerated, not skipped ---------------
+# (#4180) Control characters are C-quoted in non-z ls-files output even with
+# core.quotePath=false (quotePath covers only bytes above 0x7f), so a TAB or a
+# NEWLINE inside a .sh path is exactly the input the -z enumeration exists to
+# protect. Both fixtures are tracked at 100644 and must be reported (2 of 2);
+# the old line-based enumeration skipped both.
+echo "--- 5: TAB and NEWLINE 100644 fixtures: both reported ---"
+# Make section 4's three files compliant again (disk bit plus index mode, one
+# commit) so the fixture's only offenders are the two new files and the
+# reported count is exactly 2.
+for f in ascii-extra.sh "בדיקה.sh" "name with space.sh"; do
+    chmod +x "$FIXTURE/$f"
+    git_env git -C "$FIXTURE" update-index --chmod=+x "$f"
+done
+TAB_PATH="$FIXTURE/tab"$'\t'name.sh
+NL_PATH="$FIXTURE/nl"$'\n'name.sh
+printf '#!/bin/bash\necho tabby\n' > "$TAB_PATH"
+printf '#!/bin/bash\necho nl-file\n' > "$NL_PATH"
+git_env git -C "$FIXTURE" add "tab"$'\t'name.sh "nl"$'\n'name.sh
+git_env git -C "$FIXTURE" -c user.name=fixture -c user.email=fixture@example.test \
+    commit -qm "fixture: section 4 files compliant, TAB and NEWLINE fixtures at 100644"
+RC5=0
+OUT5="$(run_precommit_path 2>&1)" || RC5=$?
+LINES5="$(porcelain_count)"
+if [ "$RC5" -ne 0 ] \
+   && [[ "$OUT5" == *"Non-executable tracked .sh files: 2"* ]] \
+   && [[ "$OUT5" == *$'tab\tname.sh'* ]] \
+   && [[ "$OUT5" == *$'nl\nname.sh'* ]] \
+   && [ "$LINES5" -eq 0 ]; then
+    echo "  PASS: exit non-zero, count line says 2, TAB and NEWLINE paths printed raw"
+else
+    echo "  FAIL: exit=$RC5, porcelain lines=$LINES5"
+    printf '%s\n' "$OUT5" | grep -a "Non-executable\|\.sh" | tail -8 | sed 's/^/    /'
     FAILED=1
 fi
 

@@ -153,7 +153,7 @@ trap "rm -f $RESULTS_FILE" EXIT
 # core.quotePath at its default, `git ls-files -s` printed a non-ASCII path
 # C-quoted and octal-escaped, the [ -f ] guard failed on the quoted spelling
 # (no file exists under that name), and the file was skipped silently on the
-# line whose comment read "staged deletion" -- fail open on exactly the input
+# line whose comment read "staged deletion", fail open on exactly the input
 # the gate exists to catch. -z emits raw bytes and never quotes; the explicit
 # core.quotePath=false documents that intent and guards the non-z fallback in
 # future edits.
