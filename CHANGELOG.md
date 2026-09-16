@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.36](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.35...v10.0.0-beta.36) (2026-09-16)
+
+
+### Features
+
+* **mods:** add promote-lights mod for CI status monitoring ([#4165](https://github.com/yonatangross/orchestkit/issues/4165)) ([9974271](https://github.com/yonatangross/orchestkit/commit/99742710cc603d58fab87b23a05fa13597a942ec))
+
+
+### Bug Fixes
+
+* **site:** union merge driver for generated lab-data.ts ([#4184](https://github.com/yonatangross/orchestkit/issues/4184)) ([733dc7f](https://github.com/yonatangross/orchestkit/commit/733dc7f28ee5db430c03fbf44a3a1d2a3b32e0f1))
+
 ## [10.0.0-beta.35](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.34...v10.0.0-beta.35) (2026-09-16)
 
 
