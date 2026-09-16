@@ -40,15 +40,49 @@ export const ENTROPY_ALPHABET = "[A-Za-z0-9+/=_-]";
 export const SRI_VALUE_RE = /^sha(?:1|256|384|512)-[A-Za-z0-9+/=]+$/;
 
 /**
+ * Minimum mean chunk length for a mixed-case segment to count as camelCase
+ * or PascalCase and therefore word-like (FIX ROUND B of HOLD 4189).
+ * Human compound identifiers chunk into 3+ character words (ReviewPR ->
+ * Review,PR mean 4; CTAOverlay -> CTA,Overlay mean 5), while random base64
+ * alternates case every 1 to 2 characters (mean chunk 1 to 2).
+ */
+export const CAMELCASE_MIN_MEAN_CHUNK = 3;
+
+const CAMEL_CHUNK_RE = /[A-Z]+(?![a-z])|[A-Z]?[a-z]+|[0-9]+/g;
+
+/**
+ * Mean chunk length of a camelCase/PascalCase segment, or 0 when the chunk
+ * regex does not tile the segment completely. Chunks are uppercase runs not
+ * followed by lowercase, optional single uppercase plus a lowercase run,
+ * and digit runs: ReviewPR -> Review,PR; CTAOverlay -> CTA,Overlay;
+ * aB3dE6fG -> a,B,3,d,E,6,f,G.
+ */
+export function camelChunkMeanLength(seg: string): number {
+  let covered = 0;
+  let count = 0;
+  for (const m of seg.matchAll(CAMEL_CHUNK_RE)) {
+    covered += m[0].length;
+    count++;
+  }
+  if (count === 0 || covered !== seg.length) return 0;
+  return seg.length / count;
+}
+
+/**
  * Word-likeness of a separator-split segment (HOLD 4189, fix round 3).
  *
  * A segment is WORD-LIKE when it is 7 characters or fewer (short pieces
  * cannot hide a secret on their own), or when it reads like a human word:
- * letters of a single case (all lower or all upper), digits only, or
- * lowercase letters mixed with digits with no uppercase (hex, slugs). It is
- * RANDOM-LOOKING when it is 8+ characters mixing upper and lower case, or
- * mixing upper case with digits: that is the signature of base64url and
- * base64 secret bodies, which never appear in paths, branch names or URLs.
+ * letters of a single case (all lower or all upper), digits only, lowercase
+ * letters mixed with digits with no uppercase (hex, slugs), or a camelCase
+ * or PascalCase compound whose chunks average 3+ characters (FIX ROUND B:
+ * ReviewPR, ShowcaseDemo, CTAOverlay are identifier words, not secret
+ * bodies; masking docs/site/public/thumbnails/CIN-ReviewPR.png and
+ * orchestkit-demos/src/components/terminal-flow/CTAOverlay.tsx was a
+ * precision bug). It is RANDOM-LOOKING when it is 8+ characters mixing
+ * upper and lower case, or mixing upper case with digits, without long
+ * word chunks: that is the signature of base64url and base64 secret
+ * bodies, which never appear in paths, branch names or URLs.
  *
  * A segment containing any character outside [A-Za-z0-9] is neither and
  * returns false, so a run holding one keeps its whole-run treatment.
@@ -71,8 +105,16 @@ export function isWordLikeSegment(seg: string): boolean {
       return false;
     }
   }
-  if (hasUpper && hasLower) return false; // mixed case, 8+
-  if (hasUpper && hasDigit) return false; // upper case with digits, 8+
+  if (hasUpper && hasLower) {
+    // mixed case, 8+: word-like only as a camelCase/PascalCase compound
+    // (FIX ROUND B); random base64 alternates case too often to chunk long
+    return camelChunkMeanLength(seg) >= CAMELCASE_MIN_MEAN_CHUNK;
+  }
+  if (hasUpper && hasDigit) {
+    // upper case with digits, 8+: same chunk test (CTA2024 -> 3.5, word;
+    // Ab3dE6fG -> 1.7, random)
+    return camelChunkMeanLength(seg) >= CAMELCASE_MIN_MEAN_CHUNK;
+  }
   return true;
 }
 

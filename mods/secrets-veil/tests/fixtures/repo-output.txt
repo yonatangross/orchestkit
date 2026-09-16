@@ -474,3 +474,16 @@ https://api.github.com/repos/yonatangross/orchestkit/statuses/6876c1070fcb626e50
 com/repos/yonatangross/orchestkit/statuses/6876c1070fcb626e50fbedbc1cce8307ff5440c4
 com/yonatangross/orchestkit/actions/runs/35088102746
 claude/agent-memory/ork-backend-system-architect/MEMORY
+# --- FIX ROUND B: PascalCase/camelCase ls-files paths (this repo only);
+# the chunk rule keeps these word-like, so the entropy layer must NOT mask
+# them (mutation M6: remove the camelCase allowance and this file fails)
+docs/site/public/thumbnails/CIN-ReviewPR.png
+docs/site/public/thumbnails/CINV-ReviewPR.png
+docs/site/public/thumbnails/HYB-ShowcaseDemo.png
+docs/site/public/thumbnails/SM-ReviewPR.png
+docs/site/public/thumbnails/SQ-SM-ReviewPR.png
+docs/site/public/thumbnails/SQ-TTR-Implement.png
+docs/site/public/thumbnails/TPL-ProgressiveZoom.png
+docs/site/public/thumbnails/TPL-SplitMerge.png
+docs/site/public/thumbnails/V-SM-ReviewPR.png
+orchestkit-demos/src/components/terminal-flow/CTAOverlay.tsx

@@ -26,6 +26,10 @@
 //        round-2 rule): R fails (recall collapses on base64url shapes).
 //   [M5] HOLD 4189 round-3 proof: never split on '-' and '_' (the round-1
 //        rule): P fails (the '?ref=<branch>' corpus line masks).
+//   [M6] FIX ROUND B proof: remove the camelCase/PascalCase chunk allowance
+//        (isWordLikeSegment rejects every mixed-case 8+ segment again): P
+//        fails on docs/site/public/thumbnails/CIN-ReviewPR.png and the
+//        other PascalCase ls-files paths in the FIX ROUND B section.
 //
 // FIX ROUND additions:
 //   NEGATIVE: a gh api '?ref=<remote branch>' URL line and three real npm
