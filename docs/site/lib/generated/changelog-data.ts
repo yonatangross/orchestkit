@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.37",
+    "date": "2026-09-16",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.36...v10.0.0-beta.37",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**site:** generate lab-data.ts at build time instead of committing it ([#4188](https://github.com/yonatangross/orchestkit/issues/4188)) ([0732f0d](https://github.com/yonatangross/orchestkit/commit/0732f0d60de43e9d795d1dab3d08daf72548657d))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.36",
     "date": "2026-09-16",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.35...v10.0.0-beta.36",

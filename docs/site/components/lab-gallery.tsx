@@ -61,8 +61,9 @@ function LabCard({ entry }: { entry: LabEntry }) {
   );
 }
 
-// lab-data.ts is sorted by slug so concurrent PRs merge textually (#4049).
-// Newest first is a display concern, so it is applied here, once, at render.
+// lab-data.ts is generated from the fragments at build time (#4185); slug
+// order below is only a stable tiebreak. Newest first is a display concern,
+// so it is applied here, once, at render.
 const byNewest = (a: LabEntry, b: LabEntry) =>
   a.date === b.date ? a.slug.localeCompare(b.slug) : a.date < b.date ? 1 : -1;
 

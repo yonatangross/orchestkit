@@ -1,0 +1,8 @@
+{
+  "slug": "lab-data-at-build-4185",
+  "source": "docs/fix--4185-lab-data-at-build/index.html",
+  "title": "Lab Data, Generated at Build",
+  "description": "The Lab aggregate is generated at build, dev and test time from one fragment per entry and is never committed, so two playground PRs no longer conflict on one file.",
+  "tags": ["lab", "build", "docs", "merge"],
+  "date": "2026-09-16"
+}
