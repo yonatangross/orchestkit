@@ -1,0 +1,5 @@
+ingest|✅ healthy, 0 retries
+thumbnailer|✅ healthy, 3 retries
+webhook-fanout|🔴 failing, 41 retries, DLQ filling
+reindex|⏸ waiting, scheduled tonight
+api|🟡 degraded, p95 2.1s
