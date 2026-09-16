@@ -90,7 +90,19 @@ export function outputValidator(input: HookInput, ctx: HookContext = NOOP_CTX): 
     systemMessage += ` | Errors: ${validationErrors.join('; ')}`;
   }
 
-  if (validationWarnings.length > 0) {
+  // Operator decision (follow-up to #4199): on a pass, warnings are
+  // log-only. Since #4199 this hook reads the real subagent result, so the
+  // short-output warning (Check 2) and the error-keyword warning (Check 3)
+  // fire on ordinary subagent stops and must not reach the user through
+  // systemMessage. A pass keeps the base message exactly as it was before
+  // #4199 (M4: on a pass the base line was the whole message; warnings never
+  // fired on real payloads then). The failure path is unchanged: warnings
+  // still ride along in systemMessage after the errors there.
+  const warningsForLog = validationErrors.length === 0 && validationWarnings.length > 0
+    ? `Warnings: ${validationWarnings.join('; ')}\n`
+    : '';
+
+  if (validationErrors.length > 0 && validationWarnings.length > 0) {
     systemMessage += ` | Warnings: ${validationWarnings.join('; ')}`;
   }
 
@@ -106,7 +118,7 @@ export function outputValidator(input: HookInput, ctx: HookContext = NOOP_CTX): 
 
   const logContent = `=== OUTPUT VALIDATION ===
 ${systemMessage}
-${lastMsgLength !== null ? `Response quality signal: last_assistant_message length = ${lastMsgLength}\n` : ''}
+${warningsForLog}${lastMsgLength !== null ? `Response quality signal: last_assistant_message length = ${lastMsgLength}\n` : ''}
 === AGENT OUTPUT ===
 ${output}
 `;

@@ -8,6 +8,10 @@
  * - Error patterns (warning)
  * - JSON structure for backend-system-architect (warning)
  *
+ * Operator decision (follow-up to #4199): on a pass, warnings are log-only.
+ * They appear in the log record, never in systemMessage. The failure path
+ * keeps its current behaviour.
+ *
  * CC 2.1.7 Compliant: Returns continue: false only for validation failures
  */
 
@@ -45,6 +49,16 @@ import { createTestContext } from '../fixtures/test-context.js';
 // =============================================================================
 // Test Utilities
 // =============================================================================
+
+/**
+ * The log record the hook writes (the M2 file): the content argument of the
+ * writeFileSync call, read from the mock at the top of this file. The hook
+ * writes exactly one log record per invocation. Undefined if it wrote none.
+ */
+function lastLogRecord(): string | undefined {
+  const calls = vi.mocked(writeFileSync).mock.calls;
+  return calls.length > 0 ? (calls[calls.length - 1][1] as string) : undefined;
+}
 
 /**
  * Create a mock HookInput for SubagentStop events
@@ -110,7 +124,8 @@ describe('output-validator', () => {
       expect(result.suppressOutput).toBe(true);
     });
 
-    test('returns continue: true with warnings (non-blocking)', () => {
+    // Operator decision (follow-up to #4199): pass warnings are log-only.
+    test('returns continue: true with warnings, which are log-only', () => {
       // Arrange
       const shortOutput = 'Short';
       const input = createSubagentStopInput(shortOutput);
@@ -120,7 +135,8 @@ describe('output-validator', () => {
 
       // Assert
       expect(result.continue).toBe(true);
-      expect(result.systemMessage).toContain('Warnings');
+      expect(result.systemMessage ?? '').not.toContain('Warnings');
+      expect(lastLogRecord()).toContain('Warnings: Output seems very short');
     });
 
     test('has no failure shape for an empty legacy agent_output', () => {
@@ -235,16 +251,18 @@ describe('output-validator', () => {
       return input as unknown as HookInput;
     }
 
-    test('T1: short last_assistant_message fires the length warning with the real length', () => {
+    test('T1: short last_assistant_message logs the length warning with the real length', () => {
       // Arrange
       const input = createMeasuredShapeInput('Done.');
 
       // Act
       const result = outputValidator(input);
 
-      // Assert
+      // Assert: the warning is log-only (operator decision, follow-up to
+      // #4199), so the log record carries it and systemMessage does not.
       expect(result.continue).toBe(true);
-      expect(result.systemMessage).toContain('very short (5 chars)');
+      expect(result.systemMessage ?? '').not.toContain('very short');
+      expect(lastLogRecord()).toContain('very short (5 chars)');
     });
 
     test('T2: no result field at all: no error, no length warning, continue not false', () => {
@@ -289,10 +307,10 @@ describe('output-validator', () => {
       // Act
       const result = outputValidator(input);
 
-      // Assert
+      // Assert: log-only (operator decision, follow-up to #4199)
       expect(result.continue).toBe(true);
-      expect(result.systemMessage).toContain('very short');
-      expect(result.systemMessage).toContain('30 chars');
+      expect(result.systemMessage ?? '').not.toContain('very short');
+      expect(lastLogRecord()).toContain('very short (30 chars)');
     });
 
     test('no warning for output >= 50 chars', () => {
@@ -344,9 +362,10 @@ describe('output-validator', () => {
       // Act
       const result = outputValidator(input);
 
-      // Assert
+      // Assert: log-only (operator decision, follow-up to #4199)
       expect(result.continue).toBe(true);
-      expect(result.systemMessage).toContain('error-related keywords');
+      expect(result.systemMessage ?? '').not.toContain('error-related keywords');
+      expect(lastLogRecord()).toContain('error-related keywords');
     });
 
     test('does not warn for normal output', () => {
@@ -376,9 +395,10 @@ describe('output-validator', () => {
       // Act
       const result = outputValidator(input);
 
-      // Assert
+      // Assert: log-only (operator decision, follow-up to #4199)
       expect(result.continue).toBe(true);
-      expect(result.systemMessage).toContain('JSON structure may be malformed');
+      expect(result.systemMessage ?? '').not.toContain('JSON structure may be malformed');
+      expect(lastLogRecord()).toContain('JSON structure may be malformed');
     });
 
     test('no warning for valid JSON', () => {
@@ -481,7 +501,9 @@ describe('output-validator', () => {
       expect(result.systemMessage ?? '').not.toContain('Errors:');
     });
 
-    test('lists warnings when present', () => {
+    // Operator decision (follow-up to #4199): on a pass, the Warnings list
+    // lives only in the log record.
+    test('lists warnings in the log record when present', () => {
       // Arrange
       const input = createSubagentStopInput('Short');
 
@@ -489,10 +511,11 @@ describe('output-validator', () => {
       const result = outputValidator(input);
 
       // Assert
-      expect(result.systemMessage).toContain('Warnings:');
+      expect(result.systemMessage ?? '').not.toContain('Warnings:');
+      expect(lastLogRecord()).toContain('Warnings:');
     });
 
-    test('multiple warnings joined with semicolon', () => {
+    test('multiple warnings joined with semicolon in the log record', () => {
       // Arrange
       const input = createSubagentStopInput('error short');
 
@@ -500,7 +523,8 @@ describe('output-validator', () => {
       const result = outputValidator(input);
 
       // Assert
-      expect(result.systemMessage).toMatch(/very short.*error-related|error-related.*very short/);
+      expect(result.systemMessage ?? '').not.toContain('Warnings:');
+      expect(lastLogRecord()).toMatch(/very short.*error-related|error-related.*very short/);
     });
   });
 
@@ -655,9 +679,10 @@ describe('output-validator', () => {
 
       // Assert
       // Whitespace still has length > 0, so it passes empty check
-      // but will have short length warning
+      // but gets the short length warning, which is log-only
       expect(result.continue).toBe(true);
-      expect(result.systemMessage).toContain('very short');
+      expect(result.systemMessage ?? '').not.toContain('very short');
+      expect(lastLogRecord()).toContain('very short');
     });
 
     test('handles very long output', () => {
@@ -731,10 +756,12 @@ describe('output-validator', () => {
 
       // Assert
       expect(result.continue).toBe(true);
-      // Should have: short, error keyword, and JSON warning
-      expect(result.systemMessage).toContain('very short');
-      expect(result.systemMessage).toContain('error-related');
-      expect(result.systemMessage).toContain('JSON');
+      // Should have: short, error keyword, and JSON warning, all log-only
+      expect(result.systemMessage ?? '').not.toContain('Warnings:');
+      const record = lastLogRecord();
+      expect(record).toContain('very short');
+      expect(record).toContain('error-related');
+      expect(record).toContain('JSON');
     });
   });
 
@@ -769,8 +796,80 @@ describe('output-validator', () => {
       expect(result.continue).toBe(true);
       // Hook always sets suppressOutput: true for passed validation
       expect(result.suppressOutput).toBe(true);
-      // But systemMessage still contains warnings
-      expect(result.systemMessage).toContain('Warnings');
+      // Warnings are log-only (operator decision, follow-up to #4199)
+      expect(result.systemMessage ?? '').not.toContain('Warnings');
+      expect(lastLogRecord()).toContain('Warnings:');
     });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Operator decision, follow-up to #4199: pass warnings are log-only
+  // ---------------------------------------------------------------------------
+
+  describe('pass warnings are log-only (operator decision, follow-up to #4199)', () => {
+    // The measured CC 2.1.272 SubagentStop shape (fixture of record:
+    // CC_2_1_272_PAYLOAD in src/__tests__/lib/subagent-result.test.ts): the
+    // result arrives as last_assistant_message and no other field. Since
+    // #4199 the hook reads it, so the short-output and error-keyword
+    // warnings fire on ordinary stops; the operator decided they are
+    // log-only and never reach the user through systemMessage.
+    function createLogOnlyInput(lastAssistantMessage: string): HookInput {
+      const input: Record<string, unknown> = {
+        session_id: 'test-session-ov-logonly',
+        transcript_path: '/tmp/transcript.jsonl',
+        cwd: '/test/project',
+        prompt_id: 'prompt-01J8ZK3M',
+        permission_mode: 'acceptEdits',
+        agent_id: 'a1b2c3d4e5f6789011',
+        agent_type: 'code-quality-reviewer',
+        effort: 'high',
+        hook_event_name: 'SubagentStop',
+        stop_hook_active: false,
+        agent_transcript_path: '/tmp/subagents/a1b2c3d4.jsonl',
+        background_tasks: [],
+        session_crons: [],
+      };
+      input.last_assistant_message = lastAssistantMessage;
+      return input as unknown as HookInput;
+    }
+
+    test('T-a: short result: continue true, warning in the log record, not in systemMessage', () => {
+      // Arrange: last_assistant_message under 50 chars
+      const input = createLogOnlyInput('Done.');
+
+      // Act
+      const result = outputValidator(input, testCtx);
+
+      // Assert
+      expect(result.continue).toBe(true);
+      expect(result.systemMessage ?? '').not.toContain('very short');
+      expect(result.systemMessage ?? '').not.toContain('Warnings:');
+      const record = lastLogRecord();
+      expect(record).toContain('very short (5 chars)');
+      expect(record).toContain('Warnings:');
+    });
+
+    test('T-b: result containing "failed": keyword warning in the log record, not in systemMessage', () => {
+      // Arrange: 80 chars, over the length threshold, so exactly the
+      // keyword warning fires.
+      const input = createLogOnlyInput(`${'A'.repeat(60)} but one test failed`);
+
+      // Act
+      const result = outputValidator(input, testCtx);
+
+      // Assert
+      expect(result.continue).toBe(true);
+      expect(result.systemMessage ?? '').not.toContain('error-related keywords');
+      expect(result.systemMessage ?? '').not.toContain('Warnings:');
+      expect(lastLogRecord()).toContain('error-related keywords');
+    });
+
+    // T-c (failure path unchanged): nothing reaches it, so there is nothing
+    // to pin. validationErrors is pushed only by Check 1, whose condition
+    // `outputDelivered && !output` is a contradiction: outputDelivered is
+    // defined as output.length > 0, and the shared reader
+    // (getSubagentResult) skips empty strings and non-strings, so no
+    // payload can produce a non-empty validationErrors. Skipped per brief:
+    // "if nothing can, say so and skip".
   });
 });

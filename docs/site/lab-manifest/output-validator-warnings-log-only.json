@@ -1,0 +1,8 @@
+{
+  "slug": "output-validator-warnings-log-only",
+  "source": "docs/fix--output-validator-warnings-log-only/index.html",
+  "title": "Warnings the User Never Sees",
+  "description": "Since #4199 output-validator reads the real subagent result, so its short-output and error-keyword warnings fired on ordinary stops and reached the user through systemMessage. Operator decision: on a pass, warnings are log-only; errors keep their behaviour.",
+  "tags": ["hooks", "subagent-stop", "log-only", "operator-decision"],
+  "date": "2026-09-16"
+}
