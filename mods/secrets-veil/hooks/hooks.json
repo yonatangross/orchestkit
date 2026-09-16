@@ -1,0 +1,5 @@
+{
+  "description": "secrets-veil: masks secret values in tool results before the model reads them. Named vendor variables, value-shape patterns, and high-entropy tokens. No reveal path.",
+  "modules": ["./register.ts"],
+  "hooks": {}
+}

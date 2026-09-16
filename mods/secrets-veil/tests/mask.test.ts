@@ -1,0 +1,214 @@
+// secrets-veil: mask.test.ts - unit tests for masking logic
+// Reused from commit 30720692. The two fake non-vendor variable names now use
+// the VEIL_TEST_ synthetic prefix required by this lane. High-entropy layer
+// tests are new.
+
+import { describe, it, expect } from "vitest";
+import { buildTable, mask, DEFAULT_PATTERNS, wouldMask, shannonEntropy, isHighEntropyToken } from "../src/mask";
+
+describe("mask module", () => {
+  describe("buildTable", () => {
+    it("creates table from env names and patterns", () => {
+      const envNames = ["VEIL_TEST_API_KEY", "VEIL_TEST_FAKE_TOKEN"];
+      const envValues = {
+        VEIL_TEST_API_KEY: "sk-ant-api1234567890",
+        VEIL_TEST_FAKE_TOKEN: "short",
+      };
+      const table = buildTable(envNames, envValues, DEFAULT_PATTERNS);
+
+      // VEIL_TEST_API_KEY should be in (>= 8 chars)
+      expect(table.entries.some((e) => e.type === "env" && e.name === "VEIL_TEST_API_KEY")).toBe(true);
+      // VEIL_TEST_FAKE_TOKEN should NOT be in (too short)
+      expect(table.entries.some((e) => e.type === "env" && e.name === "VEIL_TEST_FAKE_TOKEN")).toBe(false);
+      // Patterns should be in
+      expect(table.entries.some((e) => e.type === "pattern" && e.pattern === "sk-ant-")).toBe(true);
+    });
+
+    it("includes all default patterns", () => {
+      const table = buildTable([], {}, DEFAULT_PATTERNS);
+      expect(table.entries.length).toBe(DEFAULT_PATTERNS.length);
+    });
+
+    it("carries the entropy config only when asked", () => {
+      expect(buildTable([], {}, []).entropy).toBeNull();
+      const armed = buildTable([], {}, [], { entropy: true });
+      expect(armed.entropy).toEqual({ minLength: 20, thresholdBitsPerChar: 4.3 });
+    });
+  });
+
+  describe("mask", () => {
+    it("masks env values >= 8 chars", () => {
+      const table = buildTable(["VEIL_TEST_VAR"], { VEIL_TEST_VAR: "abcdefgh" }, []);
+      const result = mask("value: abcdefgh end", table);
+      expect(result.text).toContain("\u2022".repeat(8));
+      expect(result.spans.length).toBe(1);
+      expect(result.spans[0].value).toBe("abcdefgh");
+    });
+
+    it("does NOT mask values < 8 chars", () => {
+      const table = buildTable(["VEIL_TEST_VAR"], { VEIL_TEST_VAR: "short" }, []);
+      const result = mask("value: short end", table);
+      expect(result.text).toBe("value: short end");
+      expect(result.spans.length).toBe(0);
+    });
+
+    it("masks sk-ant- prefix pattern", () => {
+      const table = buildTable([], {}, ["sk-ant-"]);
+      const result = mask("key: sk-ant-api1234567890abcd", table);
+      expect(result.text).toContain("\u2022".repeat(8));
+      expect(result.spans[0].value).toBe("sk-ant-api1234567890abcd");
+    });
+
+    it("masks ghp_ prefix pattern", () => {
+      const table = buildTable([], {}, ["ghp_"]);
+      const result = mask("token: ghp_1234567890abcdef", table);
+      expect(result.spans.length).toBe(1);
+    });
+
+    it("masks Bearer token (>=20 chars after prefix)", () => {
+      const table = buildTable([], {}, ["Bearer "]);
+      const longToken = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9";
+      const result = mask(`auth: ${longToken}`, table);
+      expect(result.spans.length).toBe(1);
+      expect(result.spans[0].value).toBe(longToken);
+    });
+
+    it("does NOT mask short Bearer tokens (<20 chars)", () => {
+      const table = buildTable([], {}, ["Bearer "]);
+      const result = mask("auth: Bearer short", table);
+      expect(result.spans.length).toBe(0);
+    });
+
+    it("masks -----BEGIN PRIVATE KEY----- blocks", () => {
+      const table = buildTable([], {}, ["-----BEGIN "]);
+      const key = `-----BEGIN RSA PRIVATE KEY-----
+MIIEpAIBAAKCAQEA...
+-----END RSA PRIVATE KEY-----`;
+      const result = mask(key, table);
+      expect(result.spans.length).toBe(1);
+      expect(result.spans[0].value).toBe(key);
+    });
+
+    it("masks isError results", () => {
+      const table = buildTable(["VEIL_TEST_SECRET"], { VEIL_TEST_SECRET: "secretvalue123" }, []);
+      const result = mask("Error: secretvalue123", table);
+      expect(result.spans.length).toBe(1);
+    });
+
+    it("masks value inside longer token", () => {
+      const table = buildTable(["VEIL_TEST_API_KEY"], { VEIL_TEST_API_KEY: "secret123" }, []);
+      const result = mask("prefix-secret123-suffix", table);
+      expect(result.spans.length).toBe(1);
+      expect(result.spans[0].value).toBe("secret123");
+    });
+
+    it("handles 1 MB stdout in under 5 ms", () => {
+      const table = buildTable(["VEIL_TEST_SECRET"], { VEIL_TEST_SECRET: "secretvalue123" }, []);
+      // Generate 1 MB text with 3 planted secrets
+      const chunk = "x".repeat(1000);
+      const parts: string[] = [];
+      for (let i = 0; i < 1000; i++) {
+        parts.push(chunk);
+      }
+      // Plant 3 secrets
+      parts[100] = "secretvalue123";
+      parts[500] = "secretvalue123";
+      parts[900] = "secretvalue123";
+      const text = parts.join("\n");
+
+      const start = performance.now();
+      const result = mask(text, table);
+      const elapsed = performance.now() - start;
+
+      expect(result.spans.length).toBe(3);
+      expect(elapsed).toBeLessThan(5); // Budget is 10s, we do 5ms
+    });
+  });
+
+  describe("entropy layer", () => {
+    // 32 distinct characters, so the entropy is exactly log2(32) = 5.0
+    const HI_ENTROPY = "aB3dE6fG9hI2jK5lM8nO1pQ4rS7tU0vW";
+    const GIT_SHA = "0e5b3f2a1c9d8e7b6a5f4c3d2e1f0a9b8c7d6e5f";
+    const SHA256 = "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad";
+    const UUID = "550e8400-e29b-41d4-a716-446655440000";
+    const LONG_PATH = "/Users/yonatangross/coding/yonatangross/orchestkit/src/hooks/src/session";
+
+    it("computes bits per character", () => {
+      expect(shannonEntropy("")).toBe(0);
+      expect(shannonEntropy("aaaaaaaaaaaaaaaa")).toBe(0);
+      expect(shannonEntropy(HI_ENTROPY)).toBeCloseTo(5.0, 5);
+    });
+
+    it("masks a random 32-char token", () => {
+      const table = buildTable([], {}, [], { entropy: true });
+      const result = mask(`token ${HI_ENTROPY} end`, table);
+      expect(result.text).not.toContain(HI_ENTROPY);
+      expect(result.spans.length).toBe(1);
+      expect(result.spans[0].value).toBe(HI_ENTROPY);
+    });
+
+    it("does NOT mask a 40-char hex git sha", () => {
+      const table = buildTable([], {}, [], { entropy: true });
+      const result = mask(`HEAD is at ${GIT_SHA} now`, table);
+      expect(result.text).toBe(`HEAD is at ${GIT_SHA} now`);
+      expect(result.spans.length).toBe(0);
+    });
+
+    it("does NOT mask a 64-char hex hash", () => {
+      const table = buildTable([], {}, [], { entropy: true });
+      const result = mask(`integrity ${SHA256} ok`, table);
+      expect(result.text).toBe(`integrity ${SHA256} ok`);
+    });
+
+    it("does NOT mask a UUID", () => {
+      const table = buildTable([], {}, [], { entropy: true });
+      const result = mask(`request ${UUID} done`, table);
+      expect(result.text).toBe(`request ${UUID} done`);
+    });
+
+    it("does NOT mask a long file path", () => {
+      const table = buildTable([], {}, [], { entropy: true });
+      const result = mask(`wrote ${LONG_PATH}/index.ts`, table);
+      expect(result.text).toBe(`wrote ${LONG_PATH}/index.ts`);
+    });
+
+    it("does NOT mask a long ordinary word or identifier", () => {
+      const table = buildTable([], {}, [], { entropy: true });
+      const result = mask("calling handleSessionStartEventPayload now", table);
+      expect(result.text).toBe("calling handleSessionStartEventPayload now");
+    });
+
+    it("prefers the longer named or pattern match over the entropy token", () => {
+      const table = buildTable(["VEIL_TEST_VAR"], { VEIL_TEST_VAR: "abcdefgh" }, ["sk-ant-"], { entropy: true });
+      const result = mask("key: sk-ant-api1234567890abcd", table);
+      // The sk-ant- pattern match covers the whole token; one span, not two.
+      expect(result.spans.length).toBe(1);
+      expect(result.spans[0].value).toBe("sk-ant-api1234567890abcd");
+    });
+
+    it("isHighEntropyToken follows the same bar", () => {
+      expect(isHighEntropyToken(HI_ENTROPY)).toBe(true);
+      expect(isHighEntropyToken(GIT_SHA)).toBe(false);
+      expect(isHighEntropyToken("short")).toBe(false);
+      expect(wouldMask(HI_ENTROPY, buildTable([], {}, [], { entropy: true }))).toBe(true);
+      expect(wouldMask(GIT_SHA, buildTable([], {}, [], { entropy: true }))).toBe(false);
+    });
+  });
+
+  describe("wouldMask", () => {
+    it("returns true for matching env value", () => {
+      const table = buildTable(["VEIL_TEST_VAR"], { VEIL_TEST_VAR: "secret123" }, []);
+      expect(wouldMask("secret123", table)).toBe(true);
+    });
+
+    it("returns true for matching pattern", () => {
+      const table = buildTable([], {}, ["sk-ant-"]);
+      expect(wouldMask("sk-ant-abc", table)).toBe(true);
+    });
+
+    it("returns false for non-matching value", () => {
+      const table = buildTable([], {}, []);
+      expect(wouldMask("nothing-special", table)).toBe(false);
+    });
+  });
+});

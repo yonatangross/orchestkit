@@ -1,0 +1,16 @@
+{
+  "name": "@orchestkit/mod-secrets-veil",
+  "version": "0.0.1",
+  "type": "module",
+  "description": "Claude Code mod that masks secret values in tool results before the model reads them",
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.5",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.1"
+  },
+  "license": "MIT"
+}
