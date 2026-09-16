@@ -32,6 +32,14 @@ export const ENTROPY_THRESHOLD = 4.3;
 export const ENTROPY_ALPHABET = "[A-Za-z0-9+/=_-]";
 
 /**
+ * Subresource Integrity value: public in every package-lock.json on the
+ * registry and in this repository, never a secret. A run that is exactly
+ * 'sha1-', 'sha256-', 'sha384-' or 'sha512-' followed by base64 (plus any
+ * padding) is exempt from the entropy layer entirely (FIX ROUND of #4189).
+ */
+export const SRI_VALUE_RE = /^sha(?:1|256|384|512)-[A-Za-z0-9+/=]+$/;
+
+/**
  * Shannon entropy of a string, in bits per character, over its empirical
  * character distribution. Empty strings have entropy 0.
  */
@@ -204,27 +212,37 @@ export function mask(text: string, table: MaskTable): MaskResult {
 
   // High-entropy token layer (opt-in per table).
   //
-  // Tokenizer rule: a run is scored WHOLE when it contains '+' or '='; any
-  // other run is first split at the ordinary separators '/' '-' '_' and each
-  // segment is scored on its own.
+  // Tokenizer rule: a run is scored WHOLE when it contains '+' anywhere, or
+  // '=' only as trailing padding; any other run is first split at the
+  // ordinary separators '/' '-' '_' and at an '=' that is followed by more
+  // characters (a key=value separator), and each segment is scored on its
+  // own. A run matching SRI_VALUE_RE is skipped entirely.
   //
-  // Why: '+' and '=' padding occur in base64 value runs (an AWS secret access
-  // key is 40 chars of [A-Za-z0-9/+], and standard base64 ends in '=') but
-  // never in path, branch or URL segments, so they mark a run as a value
-  // rather than a location. Without the split, a whole path or branch name is
-  // one token that mixes letters, digits and separators and can cross 4.3
-  // bits/char (#4189 masked 158 lines of git ls-files output). Without the
-  // whole-run carve-out, splitting every '/' would cut that same secret into
-  // pieces under the 20-char floor and silently skip it. Both directions are
-  // proven in tests/entropy-corpus.test.ts: the repo-output corpus must mask
-  // 0 spans, and the synthetic base64 positives must still mask.
+  // Why: '+' and '=' padding occur in base64 value runs (an AWS secret
+  // access key is 40 chars of [A-Za-z0-9/+], and standard base64 ends in
+  // '=') but never in path, branch or URL segments, so they mark a run as a
+  // value rather than a location. '=' BEFORE the end is the opposite: URLs
+  // like ?ref=<branch> put a branch name after '=' (#4189 FIX ROUND), so a
+  // mid-run '=' splits like the other separators. Without the split, a whole
+  // path or branch name is one token that mixes letters, digits and
+  // separators and can cross 4.3 bits/char (#4189 masked 158 lines of git
+  // ls-files output). Without the whole-run carve-out, splitting every '/'
+  // would cut that same secret into pieces under the 20-char floor and
+  // silently skip it. Both directions are proven in
+  // tests/entropy-corpus.test.ts: the repo-output corpus (paths, branches,
+  // URLs, npm integrity lines) must mask 0 spans, and the synthetic base64
+  // and JWT positives must still mask.
   const entropy = table.entropy;
   if (entropy) {
     const tokenRe = new RegExp(`${ENTROPY_ALPHABET}{${entropy.minLength},}`, "g");
     let m: RegExpExecArray | null;
     while ((m = tokenRe.exec(maskedText)) !== null) {
-      if (/[+=]/.test(m[0])) {
-        // base64-like run: score whole
+      if (SRI_VALUE_RE.test(m[0])) {
+        // public integrity hash, never a secret
+        continue;
+      }
+      if (/[+]/.test(m[0]) || /^[^=]+=+$/.test(m[0])) {
+        // base64-like run: '+' anywhere, or '=' only as trailing padding
         if (shannonEntropy(m[0]) >= entropy.thresholdBitsPerChar) {
           matches.push({
             start: m.index,
@@ -233,8 +251,9 @@ export function mask(text: string, table: MaskTable): MaskResult {
           });
         }
       } else {
-        // ordinary run: split at separators, score each segment
-        const segRe = /[^/_-]+/g;
+        // ordinary run: split at separators and key=value '=', score each
+        // segment
+        const segRe = /[^/_=-]+/g;
         let s: RegExpExecArray | null;
         while ((s = segRe.exec(m[0])) !== null) {
           if (
@@ -297,18 +316,22 @@ export function wouldMask(value: string, table: MaskTable): boolean {
       return true;
     }
   }
-  // Same tokenizer rule as mask(): '+' or '=' means the value is a
-  // base64-like run and is scored whole; otherwise ordinary separators split
-  // it into segments and any high-entropy segment masks.
+  // Same tokenizer rule as mask(): '+' anywhere or '=' as trailing padding
+  // means the value is a base64-like run and is scored whole; otherwise
+  // ordinary separators and a mid-run '=' split it into segments and any
+  // high-entropy segment masks. SRI values are public and never mask.
   const entropy = table.entropy;
   if (entropy) {
-    if (/[+=]/.test(value)) {
+    if (SRI_VALUE_RE.test(value)) {
+      return false;
+    }
+    if (/[+]/.test(value) || /^[^=]+=+$/.test(value)) {
       return (
         value.length >= entropy.minLength &&
         shannonEntropy(value) >= entropy.thresholdBitsPerChar
       );
     }
-    for (const seg of value.split(/[._/-]+/)) {
+    for (const seg of value.split(/[._=/-]+/)) {
       if (
         seg.length >= entropy.minLength &&
         shannonEntropy(seg) >= entropy.thresholdBitsPerChar

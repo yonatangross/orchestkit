@@ -1,10 +1,10 @@
 # tests/fixtures/repo-output.txt - NEGATIVE corpus for the entropy layer
-# (HOLD comment 5696523717, blocker 1). The entropy layer must mask 0 spans
-# over every content line; lines starting with '#' are comments.
+# (HOLD comment 5696523717, blocker 1, extended in the FIX ROUND). The
+# entropy layer must mask 0 spans over every content line; lines starting
+# with '#' are comments.
 #
 # Provenance: every content line below was produced from THIS public
-# repository only (github.com/yonatangross/orchestkit), on 2026-09-16, at
-# branch feat/secrets-veil-3, head 6876c1070fcb626e50fbedbc1cce8307ff5440c4:
+# repository only (github.com/yonatangross/orchestkit):
 #   1. git branch -r --list 'origin/*'   remote branches of this repo only;
 #      local branches and the fork remote (a different GitHub repository)
 #      are excluded
@@ -13,9 +13,14 @@
 #   3. one statuses URL for commit 5231b333cd544eaf6db866da120a9691f1f3d7e0
 #      on origin/main and one actions run URL from this repo's CI
 #   4. the identifier examples quoted verbatim in HOLD comment 5696523717
+#   5. FIX ROUND: one gh api URL with ?ref= to a real origin remote branch,
+#      and three "integrity" lines copied verbatim from THIS repo's root
+#      package-lock.json (npm publishes these hashes publicly; they are
+#      public values, not secrets)
 # Excluded by construction: output from any other repository, local-only
 # branch names, email addresses, environment variable dumps, and any
-# variable or secret names. Paths and branch names only.
+# variable or secret names. Paths, branch names, public hashes and public
+# URLs only.
 # --- remote branches (git branch -r --list 'origin/*')
   origin/HEAD -> origin/main
   origin/chore/cc-adoption-2.1.215-218
@@ -38,6 +43,7 @@
   origin/chore/preserve-m164-triage
   origin/docs/cc-272-matrix-table-join
   origin/docs/fork-model-post-2-1-232-3726
+  origin/docs/lab-data-stale-text
   origin/docs/upgrade-day-explainer
   origin/feat/3315-worktree-baseref-include
   origin/feat/devin-host-card
@@ -455,6 +461,12 @@ docs/feat--activation-audit/ACTIVATION-FIX-HANDOFF.md
 # --- URLs carrying a 40-hex sha and a CI run id (this repo only)
 https://api.github.com/repos/yonatangross/orchestkit/statuses/5231b333cd544eaf6db866da120a9691f1f3d7e0
 https://github.com/yonatangross/orchestkit/actions/runs/35088102746
+# --- gh api URL with ?ref= to a remote branch of this repo (FIX ROUND)
+https://api.github.com/repos/yonatangross/orchestkit/commits?ref=chore/dsp-39782-4160-allowed-devin&per_page=30
+# --- npm integrity lines from THIS repo's root package-lock.json (FIX ROUND)
+      "integrity": "sha512-bRISgCIjP20/tbWSPWMEi54QVPRZExkuD9lJL+UIxUKtwVJA8wW1Trb1jMs1RFXo1CBTNZ/5hpC9QvmKWdopKw==",
+      "integrity": "sha512-T7jf+5zgsZHwNJ4lvQ7/aezbyk0nNX+zJVWpmHA7VYsEx7a7qr5Rg5IbtJFqkgze5Y2sruq1RUY8Q837Od7iFw==",
+      "integrity": "sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==",
 # --- exact examples quoted in HOLD comment 5696523717
 origin/chore/dsp-39782-4160-allowed-devin
 fix/4130-paste-guard-latency-sampling
