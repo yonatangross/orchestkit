@@ -531,6 +531,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.42](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.41...v10.0.0-beta.42)** · 2026-09-16
+
+- **hooks:** output-validator pass warnings are log-only (#4202)
+
 **[v10.0.0-beta.41](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.40...v10.0.0-beta.41)** · 2026-09-16
 
 - **hooks:** read subagent result via shared reader in output-validator (#4199)
@@ -562,15 +566,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.35](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.34...v10.0.0-beta.35)** · 2026-09-16
 
 - **glyph:** cap non-TTY renders at 72 columns (#4179)
-
-**[v10.0.0-beta.34](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.33...v10.0.0-beta.34)** · 2026-09-16
-
-- **mods:** add lesson-cards mod for hint cards on matched patterns (#4169)
-- **ci:** allow .devin-plugin/plugin.json in release rebuild guard (#4178), closes [#4173](https://github.com/yonatangross/orchestkit/issues/4173)
-- **hooks:** anchor stdin-timeout test write to child readiness (#4163)
-- **hooks:** read subagent result from last_assistant_message (GH-4158) (#4168)
-- **lab:** exact URL matches in yonyon crosslink checker (refs [#4144](https://github.com/yonatangross/orchestkit/issues/4144)) (#4161)
-- …and 3 more (see [CHANGELOG.md](CHANGELOG.md))
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
