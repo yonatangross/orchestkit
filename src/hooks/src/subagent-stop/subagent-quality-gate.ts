@@ -15,6 +15,7 @@ import { atomicWriteSync } from '../lib/atomic-write.js';
 import { join } from 'node:path';
 import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, outputWarning, outputBlock, logHook, getProjectDir } from '../lib/common.js';
+import { getSubagentResult } from '../lib/subagent-result.js';
 import { getMetricsFile } from '../lib/paths.js';
 import { NOOP_CTX } from '../lib/context.js';
 
@@ -183,7 +184,9 @@ export function subagentQualityGate(input: HookInput, ctx: HookContext = NOOP_CT
   const agentId = input.agent_id || '';
   const subagentType = input.subagent_type || '';
   const error = input.error || '';
-  const outputText = input.agent_output || input.output || input.last_assistant_message || '';
+  // GH-4158: shared reader, last_assistant_message first (the field CC
+  // 2.1.272 actually sends), legacy names after it.
+  const outputText = getSubagentResult(input);
 
   ctx.log('subagent-quality-gate', `Quality gate check: ${subagentType} (${agentId})`);
 

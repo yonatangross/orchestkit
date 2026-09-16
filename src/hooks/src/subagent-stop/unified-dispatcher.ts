@@ -24,6 +24,7 @@ import { outputSilentSuccess } from '../lib/common.js';
 import { trackEvent } from '../lib/session-tracker.js';
 import { appendAnalytics, hashProject, getTeamContext } from '../lib/analytics.js';
 import { appendLedgerEntry, resolveAgentContext } from '../lib/agent-attribution.js';
+import { getSubagentResult } from '../lib/subagent-result.js';
 
 // Import individual hook implementations.
 // Removed in #897 (HQ owns these concerns) — the local agent-usage /
@@ -333,8 +334,11 @@ function trackAgentResult(input: HookInput): void {
       : null;
 
     // Extract result quality indicators
-    const output = input.agent_output || input.output || '';
-    const outputLength = typeof output === 'string' ? output.length : 0;
+    // GH-4158: read through the shared reader; on real 2.1.272 payloads only
+    // last_assistant_message carries anything, so has_output/output_length
+    // below are finally populated instead of constant zero.
+    const output = getSubagentResult(input);
+    const outputLength = output.length;
 
     // A phantom never ran — keep it out of the user profile's spawn counts.
     // Guarded separately from the analytics write below: these are independent
@@ -387,7 +391,7 @@ function trackAgentResult(input: HookInput): void {
     // Extract a meaningful summary: prefer last_assistant_message (what the agent concluded),
     // then output (what it returned), then fall back to the prompt snippet
     const lastMsg = input.last_assistant_message || '';
-    const outputStr = typeof output === 'string' ? output : '';
+    const outputStr = output;
     const summarySource = lastMsg.slice(0, 300) || outputStr.slice(0, 300) || promptSummary;
     const cleanSummary = summarySource.replace(/\n/g, ' ').trim() || agentType;
 
