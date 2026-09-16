@@ -26,6 +26,7 @@ PATTERN=""
 SET="default"
 WIDTH=40
 WIDTH_PASSED=0
+MODE="auto"
 LABEL=""
 VALUES=""
 
@@ -33,6 +34,7 @@ while [ $# -gt 0 ]; do
   case "$1" in
     --set)    SET="$2"; shift 2 ;;
     --width)  WIDTH="$2"; WIDTH_PASSED=1; shift 2 ;;
+    --mode)   MODE="$2"; shift 2 ;;
     --label)  LABEL="$2"; shift 2 ;;
     --values) VALUES="$2"; shift 2 ;;
     --help|-h)
@@ -171,6 +173,8 @@ render_tree() {
 #   stdout is a pipe -> one narrow vertical list, every line capped at
 #                       --width (default 72), the non-TTY host case: CI
 #                       logs, chat widgets, VS Code chat, web transcripts.
+# --mode wide|narrow|auto (default auto) forces a layout; --width only
+# applies to the narrow one.
 render_key_value() {
   local input
   if [ -t 0 ]; then
@@ -199,7 +203,11 @@ ROWS
   local kv_width=$WIDTH
   [ "$WIDTH_PASSED" -eq 1 ] || kv_width=72
 
-  if [ -t 1 ]; then
+  if [ "$MODE" = "wide" ]; then
+    render_kv_wide
+  elif [ "$MODE" = "narrow" ]; then
+    render_kv_narrow "$kv_width"
+  elif [ -t 1 ]; then
     render_kv_wide
   else
     render_kv_narrow "$kv_width"
