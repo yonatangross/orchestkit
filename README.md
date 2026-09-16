@@ -531,6 +531,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.39](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.38...v10.0.0-beta.39)** · 2026-09-16
+
+- **mods:** add secrets-veil mod with pattern and entropy masking (#4189)
+
 **[v10.0.0-beta.38](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.37...v10.0.0-beta.38)** · 2026-09-16
 
 - **create-pr:** drop stale lab-data.ts conflict advice (#4191)
@@ -566,10 +570,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **site:** add Devin host card and rebuild picker as animated grid (#4150)
 - **site:** render host cards visibly during SSR (#4153)
-
-**[v10.0.0-beta.31](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.30...v10.0.0-beta.31)** · 2026-09-15
-
-- **devin:** expose OrchestKit skills to Devin plugin install (#4148)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

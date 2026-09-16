@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.39",
+    "date": "2026-09-16",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.38...v10.0.0-beta.39",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**mods:** add secrets-veil mod with pattern and entropy masking ([#4189](https://github.com/yonatangross/orchestkit/issues/4189)) ([20bdf71](https://github.com/yonatangross/orchestkit/commit/20bdf7138ec749cae86176828bc25de444c5711f))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.38",
     "date": "2026-09-16",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.37...v10.0.0-beta.38",
