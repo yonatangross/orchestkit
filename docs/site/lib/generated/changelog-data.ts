@@ -18,6 +18,39 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.34",
+    "date": "2026-09-16",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.33...v10.0.0-beta.34",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**mods:** add lesson-cards mod for hint cards on matched patterns ([#4169](https://github.com/yonatangross/orchestkit/issues/4169)) ([c06d532](https://github.com/yonatangross/orchestkit/commit/c06d532fd61cf9ad55a50ce0d3ebf3ca0eb487fa))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**ci:** allow .devin-plugin/plugin.json in release rebuild guard ([#4178](https://github.com/yonatangross/orchestkit/issues/4178)) ([dbe7064](https://github.com/yonatangross/orchestkit/commit/dbe706431098d11c676f5a1f23d750617f79290d)), closes [#4173](https://github.com/yonatangross/orchestkit/issues/4173)",
+          "**hooks:** anchor stdin-timeout test write to child readiness ([#4163](https://github.com/yonatangross/orchestkit/issues/4163)) ([8204546](https://github.com/yonatangross/orchestkit/commit/8204546e14935ac48f97d88cd25afce065e8bdb7))",
+          "**hooks:** read subagent result from last_assistant_message (GH-4158) ([#4168](https://github.com/yonatangross/orchestkit/issues/4168)) ([9616be0](https://github.com/yonatangross/orchestkit/commit/9616be099dfe4779022d0daa8636ef56700d4cec))",
+          "**lab:** exact URL matches in yonyon crosslink checker (refs [#4144](https://github.com/yonatangross/orchestkit/issues/4144)) ([#4161](https://github.com/yonatangross/orchestkit/issues/4161)) ([1de3f6a](https://github.com/yonatangross/orchestkit/commit/1de3f6a2f1b3b26db8e1f94c8a74a395dd74e647))",
+          "**site:** report reduced motion in host picker tests ([#4170](https://github.com/yonatangross/orchestkit/issues/4170)) ([9d65921](https://github.com/yonatangross/orchestkit/commit/9d65921452dcd802dd3e62e123fa96dfa55596ae))",
+          "stop the pre-commit runner from chmod-mutating tracked scripts ([#4171](https://github.com/yonatangross/orchestkit/issues/4171)) ([8494ef0](https://github.com/yonatangross/orchestkit/commit/8494ef0a8125916e3333040af87dac86e5359f90))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "CI/CD",
+        "items": [
+          "**playground:** treat generated Lab artifacts as inert ([#4164](https://github.com/yonatangross/orchestkit/issues/4164)) ([52d4793](https://github.com/yonatangross/orchestkit/commit/52d479396fb0ff770e375b8d4695fb3b6e05014c))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.33",
     "date": "2026-09-15",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.32...v10.0.0-beta.33",

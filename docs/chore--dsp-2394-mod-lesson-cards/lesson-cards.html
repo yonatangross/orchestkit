@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson Cards Mod - Interactive Demo</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: #0d1117;
+      color: #c9d1d9;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+    h1 { color: #58a6ff; margin-bottom: 1rem; }
+    h2 { color: #8b949e; font-size: 1rem; margin: 1.5rem 0 0.5rem; }
+    .container { max-width: 800px; margin: 0 auto; }
+    .card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      padding: 1rem;
+      margin: 1rem 0;
+    }
+    .card.warn { border-left: 3px solid #d29922; }
+    .card.block { border-left: 3px solid #f85149; }
+    .card-title { font-weight: 600; margin-bottom: 0.5rem; }
+    .card-message { color: #8b949e; font-size: 0.9rem; }
+    .card-fix { color: #7ee787; font-size: 0.85rem; margin-top: 0.5rem; }
+    .command-box {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 4px;
+      padding: 0.75rem;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem;
+      margin: 0.5rem 0;
+      overflow-x: auto;
+    }
+    .terminal { color: #7ee787; }
+    .demo-section {
+      background: #21262d;
+      border-radius: 6px;
+      padding: 1rem;
+      margin: 1rem 0;
+    }
+    .demo-title { font-weight: 600; color: #58a6ff; margin-bottom: 0.75rem; }
+    button {
+      background: #238636;
+      border: none;
+      color: #fff;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      margin: 0.25rem;
+    }
+    button:hover { background: #2ea043; }
+    button.reset { background: #30363d; }
+    button.reset:hover { background: #484f58; }
+    .result { margin-top: 1rem; min-height: 100px; }
+    .badge {
+      display: inline-block;
+      padding: 0.15rem 0.5rem;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-left: 0.5rem;
+    }
+    .badge.warn { background: #d29922; color: #000; }
+    .badge.block { background: #f85149; color: #fff; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Lesson Cards Mod</h1>
+    <p>Interactive demo of the lesson-cards mod for OrchestKit. Shows hint cards when tool calls match known patterns.</p>
+
+    <h2>Example Cards</h2>
+
+    <div class="card block">
+      <div class="card-title">
+        lesson: cancelled-check-is-not-pass
+        <span class="badge block">block</span>
+      </div>
+      <div class="card-message">Cancelled CI tiers are not pass. Never trust a green rollup on a moved head.</div>
+      <div class="card-fix">Fix: Use `gh pr view` with --json to check mergeStateStatus, or rely on merge-on-required.sh</div>
+    </div>
+
+    <div class="card warn">
+      <div class="card-title">
+        lesson: pg-dump-fc-gzip-redundant
+        <span class="badge warn">warn</span>
+      </div>
+      <div class="card-message">pg_dump -Fc output is already compressed; piping to gzip is redundant</div>
+      <div class="card-fix">Fix: Remove the gzip pipe, use -Fc alone</div>
+    </div>
+
+    <h2>Try It</h2>
+
+    <div class="demo-section">
+      <div class="demo-title">Simulate a Bash command:</div>
+      <div class="command-box terminal" id="command-display">$ <span id="current-command">gh pr view && gh pr checks</span></div>
+      <div>
+        <button onclick="setCommand('gh pr view && gh pr checks')">CI Check Pattern</button>
+        <button onclick="setCommand('pg_dump -Fc mydb | gzip > backup.dump.gz')">pg_dump Pattern</button>
+        <button onclick="setCommand('gh api --paginate repos/owner/repo/issues')">API Pagination</button>
+        <button onclick="setCommand('echo hello world')">Safe Command</button>
+        <button class="reset" onclick="clearResult()">Clear</button>
+      </div>
+      <div class="result" id="result"></div>
+    </div>
+
+    <h2>Hook Footprint</h2>
+    <ul>
+      <li><strong>hooks:</strong> session.start{}, tool.call{Bash/Edit/Write}, ui.render{ToolUse}, command.register{}</li>
+      <li><strong>calls:</strong> $.fs.read, $.fs.list, $.fs.stat, $.ui.notice, $.ui.invalidate</li>
+      <li><strong>negative:</strong> no process.run, no http.fetch, no I/O on hot path</li>
+    </ul>
+
+    <h2>How It Works</h2>
+    <ol>
+      <li>At session.start, load lesson-patterns.json from newest hq-ext</li>
+      <li>Also load newest three lessons.md files</li>
+      <li>On tool.call, blank quoted strings/heredoc bodies, then match patterns</li>
+      <li>On match, add context to tool result and card to ui.render</li>
+      <li>Classic guard unchanged - cards are additive during pilot</li>
+    </ol>
+  </div>
+
+  <script>
+    const patterns = [
+      { id: 'cancelled-check-is-not-pass', severity: 'block', pattern: /gh pr checks/i, message: 'Cancelled CI tiers are not pass. Never trust a green rollup on a moved head.', fix: 'Use `gh pr view` with --json to check mergeStateStatus, or rely on merge-on-required.sh' },
+      { id: 'pg-dump-fc-gzip-redundant', severity: 'warn', pattern: /pg_dump.*-Fc.*\|.*gzip/i, message: 'pg_dump -Fc output is already compressed; piping to gzip is redundant', fix: 'Remove the gzip pipe, use -Fc alone' },
+    ];
+
+    const bullets = [
+      { id: 'gh-api-pagination', tokens: ['gh', 'api', '--paginate'], message: 'Use gh api --paginate for endpoints that return arrays' }
+    ];
+
+    function setCommand(cmd) {
+      document.getElementById('current-command').textContent = cmd;
+      simulateMatch(cmd);
+    }
+
+    function simulateMatch(cmd) {
+      const resultEl = document.getElementById('result');
+      resultEl.innerHTML = '';
+
+      // Check patterns
+      let matched = false;
+      for (const p of patterns) {
+        if (p.pattern.test(cmd)) {
+          matched = true;
+          const card = document.createElement('div');
+          card.className = `card ${p.severity}`;
+          card.innerHTML = `
+            <div class="card-title">lesson: ${p.id} <span class="badge ${p.severity}">${p.severity}</span></div>
+            <div class="card-message">${p.message}</div>
+            <div class="card-fix">Fix: ${p.fix}</div>
+          `;
+          resultEl.appendChild(card);
+          break; // Cap at one
+        }
+      }
+
+      // Check bullets if no pattern match
+      if (!matched) {
+        const tokens = cmd.trim().split(/\s+/).slice(0, 3);
+        for (const b of bullets) {
+          let matches = true;
+          for (let i = 0; i < b.tokens.length && i < tokens.length; i++) {
+            if (tokens[i].toLowerCase() !== b.tokens[i].toLowerCase()) {
+              matches = false;
+              break;
+            }
+          }
+          if (matches) {
+            const card = document.createElement('div');
+            card.className = 'card warn';
+            card.innerHTML = `
+              <div class="card-title">lesson: ${b.id} <span class="badge warn">bullet</span></div>
+              <div class="card-message">${b.message}</div>
+            `;
+            resultEl.appendChild(card);
+            break;
+          }
+        }
+      }
+
+      if (!matched && resultEl.children.length === 0) {
+        resultEl.innerHTML = '<div class="card"><div class="card-message">No pattern matched. Command would execute normally.</div></div>';
+      }
+    }
+
+    function clearResult() {
+      document.getElementById('result').innerHTML = '';
+      document.getElementById('current-command').textContent = 'gh pr view && gh pr checks';
+    }
+  </script>
+</body>
+</html>
