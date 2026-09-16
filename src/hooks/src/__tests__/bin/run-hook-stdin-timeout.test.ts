@@ -18,6 +18,9 @@ import { describe, expect, it } from 'vitest';
 const RUN_HOOK = join(__dirname, '../../../bin/run-hook.mjs');
 const HOOK = 'pretool/bash/network-egress-guard'; // #3835: surviving Bash fixture
 const WARNING = /stdin delivered 0 bytes in 100ms/;
+// #4136: test-only wrapper that holds run-hook.mjs back by SLOW_BOOT_MS, so a
+// test can make child startup deterministically slower than its own delay.
+const SLOW_BOOT_RUNNER = join(__dirname, 'slow-boot-runner.mjs');
 
 const PAYLOAD = JSON.stringify({
   hook_event_name: 'PreToolUse',
@@ -27,26 +30,82 @@ const PAYLOAD = JSON.stringify({
   tool_input: { command: 'echo hi' },
 });
 
-/** Spawn run-hook.mjs and write the payload after `delayMs`. Never pipes. */
-function runWithDelay(delayMs: number): Promise<{ stderr: string; code: number | null }> {
+/** Extra spawn options for runWithDelay. */
+type RunOptions = {
+  /** Runner file to spawn; defaults to the real run-hook.mjs. */
+  runner?: string;
+  /** Extra child env, e.g. SLOW_BOOT_MS for the slow-boot wrapper. */
+  env?: Record<string, string>;
+};
+
+/**
+ * Spawn a run-hook process and deliver PAYLOAD via stdin. Never pipes stdout.
+ *
+ * #4136: the delay semantics differ by case, and that is the point.
+ *
+ * delayMs === 0 (the SILENT control) is unchanged: the payload is written on a
+ * 0ms timer measured from spawn. Node boot always costs more than 0ms, so the
+ * payload is buffered in the pipe before run-hook.mjs even opens its 100ms
+ * stdin window, and no warning may fire.
+ *
+ * delayMs > 0 (the WARNS case) does NOT use a timer measured from spawn.
+ * run-hook.mjs opens its 100ms window only after node has booted and the
+ * bundle has loaded, so a spawn-anchored timer races that boot: under host
+ * load the payload could already be sitting in the pipe when the window
+ * opened, and the warning never fired. That is exactly the #4136 flake. The
+ * delay is not raised; it is anchored differently. The child's first stderr
+ * byte is the readiness signal, and in this scenario it IS the #3415 warning,
+ * written synchronously inside the 100ms timeout with stdinClosed already
+ * set, so a payload written after it cannot suppress the very warning it
+ * exists to observe. Writing after the signal also exercises the stdinClosed
+ * guard: the late payload must be discarded silently, not run a second time.
+ */
+function runWithDelay(
+  delayMs: number,
+  opts: RunOptions = {},
+): Promise<{ stderr: string; code: number | null }> {
   return new Promise((resolve) => {
-    const child = spawn('node', [RUN_HOOK, HOOK], {
+    const child = spawn('node', [opts.runner ?? RUN_HOOK, HOOK], {
       stdio: ['pipe', 'pipe', 'pipe'],
-      env: { ...process.env, CLAUDE_PROJECT_DIR: '/tmp' },
+      env: { ...process.env, CLAUDE_PROJECT_DIR: '/tmp', ...opts.env },
     });
     let stderr = '';
     child.stderr.on('data', (c) => {
       stderr += String(c);
     });
     child.stdout.resume();
+    // EPIPE means the child closed its stdin before this parent wrote (e.g.
+    // failBundleLoad exits right after writing its stderr line). Swallowing it
+    // is the same bargain the oversized-payload spawner below strikes.
+    child.stdin.on('error', (e: NodeJS.ErrnoException) => {
+      if (e.code !== 'EPIPE') throw e;
+    });
 
-    const timer = setTimeout(() => {
+    let payloadWritten = false;
+    const writePayload = () => {
+      if (payloadWritten) return;
+      payloadWritten = true;
+      // Never write into an already-exited child: its pipe is gone. The EPIPE
+      // handler above would swallow the error anyway; skipping is exact.
+      if (child.exitCode !== null || child.signalCode !== null) return;
       child.stdin.write(PAYLOAD);
       child.stdin.end();
-    }, delayMs);
+    };
+
+    if (delayMs > 0) {
+      // WARNS: readiness-anchored. Write only after the child has spoken.
+      child.stderr.once('data', writePayload);
+      // If the child exits without ever writing stderr (bundle missing ->
+      // silentExit), close the pipe so nothing leaks; the warning assertion
+      // below then fails, which is the correct outcome.
+      child.on('close', writePayload);
+    } else {
+      // SILENT control, unchanged. #4136: do not retune this arm.
+      const timer = setTimeout(writePayload, delayMs);
+      child.on('close', () => clearTimeout(timer));
+    }
 
     child.on('close', (code) => {
-      clearTimeout(timer);
       resolve({ stderr, code });
     });
   });
@@ -61,6 +120,23 @@ describe('#3415 run-hook.mjs stdin timeout is observable', () => {
     // toContain, not a hand-built RegExp: escaping only `/` is incomplete
     // (CodeQL js/incomplete-sanitization) and unnecessary, since `/` needs no
     // escape in the RegExp constructor. A substring check is what was meant.
+    expect(stderr).toContain(HOOK);
+  }, 15000);
+
+  // #4136 regression probe: child startup SLOWER than the parent delay. The
+  // slow-boot wrapper holds run-hook.mjs back by 250ms, so the runner's 100ms
+  // window opens long after a spawn-anchored 50ms timer would have delivered
+  // the payload. On the pre-#4136 code the payload sat in the pipe before the
+  // window opened and the warning never fired, so this test failed; the
+  // readiness-anchored write cannot, because it waits for the child to speak
+  // before deciding when to write.
+  it('still WARNS when child startup is slower than the delay', async () => {
+    const { stderr } = await runWithDelay(50, {
+      runner: SLOW_BOOT_RUNNER,
+      env: { SLOW_BOOT_MS: '250' },
+    });
+    expect(stderr).toMatch(WARNING);
+    expect(stderr).toMatch(/EMPTY payload/);
     expect(stderr).toContain(HOOK);
   }, 15000);
 

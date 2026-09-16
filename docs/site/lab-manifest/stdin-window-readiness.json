@@ -1,0 +1,12 @@
+{
+  "slug": "stdin-window-readiness",
+  "source": "docs/chore--dsp-95695-fix-4136/index.html",
+  "title": "The Test That Raced Its Own Child's Boot",
+  "description": "The #3415 stdin-timeout test wrote its payload on a 300ms timer measured from spawn, but run-hook.mjs opens its 100ms stdin window only after node boots and the bundle loads. Under host load the payload sat in the pipe before the window opened, the data event cleared the timeout, and the WARNS assertion failed. The fix anchors the write to the child's first stderr byte (the warning itself), adds a slow-boot wrapper regression probe, and keeps the pre-push vitest log on failure.",
+  "tags": [
+    "tests",
+    "hooks",
+    "flakiness"
+  ],
+  "date": "2026-09-15"
+}
