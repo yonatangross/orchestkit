@@ -1,0 +1,8 @@
+{
+  "slug": "output-validator-subagent-result",
+  "source": "docs/fix--output-validator-subagent-result/index.html",
+  "title": "The Validator That Read an Absent Field",
+  "description": "output-validator read input.agent_output at SubagentStop, a field Claude Code never sends. One line now reads through the shared getSubagentResult reader, so the hook validates the real result and the #3200 kill-switch defense survives.",
+  "tags": ["hooks", "subagent-stop", "gh-4158", "bugfix"],
+  "date": "2026-09-16"
+}
