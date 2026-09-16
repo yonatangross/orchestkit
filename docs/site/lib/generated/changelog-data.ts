@@ -18,6 +18,27 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.36",
+    "date": "2026-09-16",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.35...v10.0.0-beta.36",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**mods:** add promote-lights mod for CI status monitoring ([#4165](https://github.com/yonatangross/orchestkit/issues/4165)) ([9974271](https://github.com/yonatangross/orchestkit/commit/99742710cc603d58fab87b23a05fa13597a942ec))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**site:** union merge driver for generated lab-data.ts ([#4184](https://github.com/yonatangross/orchestkit/issues/4184)) ([733dc7f](https://github.com/yonatangross/orchestkit/commit/733dc7f28ee5db430c03fbf44a3a1d2a3b32e0f1))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.35",
     "date": "2026-09-16",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.34...v10.0.0-beta.35",

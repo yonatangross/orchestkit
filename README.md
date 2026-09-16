@@ -531,6 +531,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.36](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.35...v10.0.0-beta.36)** · 2026-09-16
+
+- **mods:** add promote-lights mod for CI status monitoring (#4165)
+- **site:** union merge driver for generated lab-data.ts (#4184)
+
 **[v10.0.0-beta.35](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.34...v10.0.0-beta.35)** · 2026-09-16
 
 - **glyph:** cap non-TTY renders at 72 columns (#4179)
@@ -565,11 +570,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.29](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.28...v10.0.0-beta.29)** · 2026-09-15
 
 - **site:** close honest ora.ai score holes for discovery and SDKs (#4137)
-
-**[v10.0.0-beta.28](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.27...v10.0.0-beta.28)** · 2026-09-15
-
-- **release:** retry the mcp-publisher and GHCR token downloads (#4139)
-- **cc:** adopt CC 2.1.269 to 2.1.272, latest_known 2.1.263 to 2.1.272 (#4138)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
