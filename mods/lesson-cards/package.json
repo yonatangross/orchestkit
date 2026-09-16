@@ -8,6 +8,8 @@
     "test:watch": "vitest"
   },
   "devDependencies": {
+    "@types/node": "^24.13.5",
+    "typescript": "^7.0.2",
     "vitest": "^5.0.0"
   },
   "license": "MIT"
