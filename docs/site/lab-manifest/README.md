@@ -46,8 +46,10 @@ instead of silently publishing an untagged entry.
 1. Commit the page under `docs/<branch-slug>/` (branch `fix/123-x` is
    `docs/fix--123-x/`).
 2. Add `docs/site/lab-manifest/<slug>.json` pointing at it.
-3. Run `npm run build`. It regenerates `docs/site/lib/generated/lab-data.ts`
-   and copies the page to `docs/site/public/lab/<slug>.html`. Commit all three.
+3. Run `npm run build` (or any docs/site npm build/dev/test script). It
+   regenerates `docs/site/lib/generated/lab-data.ts` (not committed, #4185)
+   and copies the page to `docs/site/public/lab/<slug>.html`. Commit the
+   fragment and the `public/lab/` copy.
 4. Link `https://orchestkit.yonyon.ai/lab/<slug>.html` in the PR body.
 
 Removing a playground is the reverse: delete the fragment, run
@@ -57,31 +59,26 @@ Removing a playground is the reverse: delete the fragment, run
 
 `docs/site/lib/generated/lab-data.ts` and `docs/site/public/lab/` are a pure
 function of the fragments plus the page bytes. `npm run build` regenerates
-them, CI rebuilds them on every PR head and fails on any byte of drift, and
-`node docs/site/scripts/lab-manifest.mjs --check` runs the set check on top:
-every fragment is in `lab-data.ts` and in `public/lab/`, nothing is in either
-without a fragment, and the legacy single file has not been resurrected.
+them; the `public/lab/` copies are committed and CI diffs them for drift on
+every PR head, while `lab-data.ts` is gitignored (#4185) and rebuilt by
+docs/site's prebuild/predev/pretest steps and the root build, so a rebase
+cannot conflict on it. `node docs/site/scripts/lab-manifest.mjs --check` runs
+the set check on top: the aggregate exists (an absent file fails, it is never
+treated as empty), every fragment is in `lab-data.ts` and in `public/lab/`,
+nothing is in either without a fragment, and the legacy single file has not
+been resurrected.
 
-`lab-data.ts` is sorted by slug with one entry per line. That is what lets two
-PRs adding two entries merge textually: they change two different lines.
-Newest-first is the gallery's job, applied at render time. Sorting the file by
-date would put every same-day addition into the same gap and conflict again.
+`lab-data.ts` is sorted by slug with one entry per line. Newest-first is the
+gallery's job, applied at render time.
 
-## The merge rule: regenerate, never hand-resolve
+## The aggregate is a build artifact, not a merge product
 
-Two slugs that happen to be adjacent in slug order with no entry between them
-still conflict textually on `lab-data.ts`. When that happens:
-
-```bash
-git checkout --theirs -- docs/site/lib/generated/lab-data.ts   # or --ours; it does not matter
-npm run build
-git add -A && git commit
-```
-
-Either side is fine because the generated file is not the source. The two
-fragments merged clean, so the rebuild produces the complete set. Never edit
-the conflict markers by hand, and never trust a count: the `--check` step in
-CI names any slug that went missing.
+Because `lab-data.ts` is not committed, two PRs adding entries (even slugs
+adjacent in slug order) cannot conflict on it: the fragments and the
+`public/lab/` copies are separate files that merge cleanly, and the next
+build writes the complete aggregate from the merged fragments. There is
+nothing to hand-resolve. If `--check` reports the aggregate absent or stale,
+run the generator; never edit it by hand.
 
 A branch opened before 2026-09-11 that still edits `docs/site/lab-manifest.json`
 fails the build with a message naming this directory. Move its entry into a

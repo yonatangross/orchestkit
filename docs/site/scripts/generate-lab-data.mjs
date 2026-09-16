@@ -6,18 +6,22 @@
  *   - lib/generated/lab-data.ts + public/lab/<slug>.html, from the per-entry
  *     fragments under docs/site/lab-manifest/. That half lives in
  *     ./lab-manifest.mjs (#4049), which also carries the `--check` set oracle
- *     CI runs; this file only calls it.
+ *     CI runs; this file only calls it. lab-data.ts is NOT committed (#4185):
+ *     docs/site's prebuild/predev/pretest steps regenerate it, so there is
+ *     nothing to merge or hand-resolve.
  *   - lib/generated/cc-adoption-data.ts  (from shared/cc-adoption-gaps.json
- *                                         + shared/cc-support.json)
+ *                                         + shared/cc-support.json). This
+ *     one STAYS committed and is diffed by the ci.yml drift gate.
  *
  * Output must be a PURE FUNCTION of tracked inputs. scripts/build-plugins.sh
  * runs this during `npm run build`, and ci.yml diffs lib/generated/ afterwards,
  * so anything that varies per run (HEAD sha, wall-clock date) would fail that
  * gate on every PR rather than only on real drift. See SOURCE_DIGEST below.
  *
- * Convention (matches scripts/generate-docs-data.js): run locally, commit the
- * outputs. Sources under docs/*.html may be gitignored working artifacts —
- * the committed public/lab copies are the published canon.
+ * Convention: the public/lab/ copies are committed (run locally, commit
+ * them); lab-data.ts is not (#4185). Sources under docs/*.html may be
+ * gitignored working artifacts; the committed public/lab copies are the
+ * published canon.
  */
 import { createHash } from "node:crypto";
 import { mergeWaves } from "./merge-adoption-waves.mjs";

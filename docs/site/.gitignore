@@ -8,6 +8,11 @@ out/
 # Fumadocs generated types
 .source/
 
+# Lab gallery aggregate: generated at build/dev/test time from the fragments
+# under lab-manifest/<slug>.json (#4185). Never committed; public/lab/ copies
+# stay committed.
+lib/generated/lab-data.ts
+
 # Turbopack cache
 .turbo/
 
