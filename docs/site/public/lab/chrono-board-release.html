@@ -314,6 +314,7 @@ const state = { step: 0, playing: false, rtl: false, reduce: false };
 let timer = null;
 const stage = document.getElementById("stage");
 const esc = s => String(s).replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+const escapeAttr = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const maxStep = () => STEPS.length - 1;
 
 function cardHtml(card, i, current, flash) {
@@ -322,15 +323,15 @@ function cardHtml(card, i, current, flash) {
   const diffFlash = flash === "diff" && i === current ? " flash" : "";
   return `<div class="card-row">
     <div class="rail" aria-hidden="true"></div>
-    <span class="node ${esc(card.tone)}" aria-hidden="true">${ICONS[card.tone] || ICONS.changed}</span>
-    <article class="event ${cls}"${i === current ? ' aria-current="true"' : ""}>
+    <span class="node ${escapeAttr(card.tone)}" aria-hidden="true">${ICONS[card.tone] || ICONS.changed}</span>
+    <article class="event ${escapeAttr(cls)}"${i === current ? ' aria-current="true"' : ""}>
       <div class="top"><h3>${esc(card.title)}</h3><time>${esc(card.date)}</time></div>
       <p>${esc(card.desc)}</p>
       <div class="foot">
-        <span class="pill ${card.tone === "live" ? "" : card.tone === "added" ? "shipped" : "changed"}">${esc(card.status)}</span>
+        <span class="pill ${escapeAttr(card.tone === "live" ? "" : card.tone === "added" ? "shipped" : "changed")}">${esc(card.status)}</span>
         <div class="acts">
-          <a class="act${notesFlash}" href="${esc(card.notes)}" aria-label="Release notes for ${esc(card.title)}">Notes</a>
-          <a class="act${diffFlash}" href="${esc(card.diff)}" target="_blank" rel="noopener noreferrer" aria-label="Diff for ${esc(card.title)}">Diff</a>
+          <a class="act${escapeAttr(notesFlash)}" href="${escapeAttr(card.notes)}" aria-label="Release notes for ${escapeAttr(card.title)}">Notes</a>
+          <a class="act${escapeAttr(diffFlash)}" href="${escapeAttr(card.diff)}" target="_blank" rel="noopener noreferrer" aria-label="Diff for ${escapeAttr(card.title)}">Diff</a>
         </div>
       </div>
     </article>

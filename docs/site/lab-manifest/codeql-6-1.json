@@ -1,0 +1,11 @@
+{
+  "slug": "codeql-6-1",
+  "source": "docs/fix--codeql-6-1/index.html",
+  "title": "Six CodeQL Alerts, Two Fixes",
+  "description": "Alert 406: announce-release.mjs printed the resolved HQ_API_TOKEN_REFERENCE op:// path on the 401 path, a name-level disclosure into public CI logs. The variable read and the workflow passthrough are removed, and the message names the repository variable and nothing else. Alerts 385 to 389: the lab page escaped only ampersand and angle brackets before interpolating values into HTML attributes; escapeAttr now covers all five attribute-significant characters at every attribute interpolation. Two new tests fail on either regression. The page lets you probe both escapers live.",
+  "tags": [
+    "security",
+    "ci"
+  ],
+  "date": "2026-09-17"
+}

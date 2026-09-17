@@ -61,6 +61,7 @@ declare -A STATIC_ONLY=(
   [test-secret-scanning.sh]="greps the repo for committed secrets; no hook in the loop"
   [test-packaging-leaks.sh]="inspects the built plugin payload on disk"
   [test-public-surface-names.sh]="greps tracked files for deployment-specific 1Password paths and real home directories; no hook in the loop"
+  [test-announce-release-token-ref.sh]="greps announce-release.mjs for the token-reference identifier in output calls; no hook in the loop"
   [test-npm-audit.sh]="shells out to npm audit and reads its JSON"
   [test-npm-audit-coverage.sh]="asserts every workspace is covered by an audit job"
   [test-dependency-confusion.sh]="reads package.json/lockfile registry pins"
