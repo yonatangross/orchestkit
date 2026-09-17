@@ -10,7 +10,7 @@
 # Rules enforced:
 #   1. PR title: zero emoji of any kind (matches "no emoji in PR titles"
 #      from visual-style.md per-surface rules)
-#   2. PR body: only the 12-glyph closed vocabulary allowed; decorative
+#   2. PR body: only the closed status vocabulary allowed; decorative
 #      emoji blocked (closes the LLM echo-chamber risk)
 #
 # Bypass: visual-style-override label (use sparingly).

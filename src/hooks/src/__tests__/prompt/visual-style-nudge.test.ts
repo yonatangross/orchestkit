@@ -82,8 +82,10 @@ describe('visual-style-nudge', () => {
     const r = visualStyleNudge(prompt('Explain the difference between rebasing onto main and merging main into my branch, and say which keeps the PR review history readable.', 'cmp-1'));
     expect(fired(r)).toBe(true);
     const c = (r.hookSpecificOutput as { additionalContext?: string }).additionalContext ?? '';
-    expect(c).toMatch(/one or two sentences of prose/);
-    expect(c).toMatch(/at most 12 lines/);
+    expect(c).toMatch(/one prose line/);
+    expect(c).toMatch(/up to ~50 lines/);
+    expect(c).toMatch(/verdict first/);
+    expect(c).not.toMatch(/12 lines/);
     expect(c).not.toMatch(/not prose paragraphs/);
   });
 

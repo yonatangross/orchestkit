@@ -138,14 +138,15 @@ else
   log_pass "drift: workflow carries no inline vocabulary"
 fi
 
-# Lock the vocabulary size (12 core + 3 risk + 3 ranking + VS16 + ZWJ = 20).
+# Lock the vocabulary size (13 core + 3 risk + 3 ranking + VS16 + ZWJ = 21).
+# 13 = the original 12 plus the v3 caveat glyph (U+2139, 2026-09-17).
 VOCAB_SIZE=$(python3 -c "import importlib.util,sys; \
 spec=importlib.util.spec_from_file_location('v','bin/validate-visual-style.py'); \
 m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m); print(len(m.VOCAB))")
-if [ "$VOCAB_SIZE" = "20" ]; then
-  log_pass "vocab size locked at 20 (changes require updating src/rules/visual-style.md)"
+if [ "$VOCAB_SIZE" = "21" ]; then
+  log_pass "vocab size locked at 21 (changes require updating src/rules/visual-style.md)"
 else
-  log_fail "vocab size" "expected 20, got $VOCAB_SIZE — sync with src/rules/visual-style.md"
+  log_fail "vocab size" "expected 21, got $VOCAB_SIZE; sync with src/rules/visual-style.md"
 fi
 
 # --- shipped-copy guard ------------------------------------------------------

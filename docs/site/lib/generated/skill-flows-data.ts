@@ -3744,6 +3744,13 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           },
           {
             "num": "",
+            "label": "Render anatomy (the v3 reference shape)",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
             "label": "Box-Drawing Character Reference",
             "does": "",
             "out": null,

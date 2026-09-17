@@ -2431,9 +2431,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "glyph": {
     "name": "glyph",
-    "description": "Render an answer as ASCII art plus semantic emojis inline, right now, with no setup questions. Use for a fast visual take on status, comparisons, trade-offs, architecture, or any ad-hoc 'show me X visually' ask. Not for definitions, conceptual explanations, or one-sentence and one-paragraph asks; those have no shape to draw. For a full multi-artifact plan playground, use visualize-plan instead.",
-    "version": "2.0.0",
-    "sha256": "452037250f46d14d8b59d6d1c54109570e707708a384d66b80b5ac86c4331eea",
+    "description": "Render an answer as ASCII art plus semantic emojis inline, right now, with no setup questions: one render per reply, up to about 50 lines, verdict first. Use for any answer with shape: status, inventories, audits, budgets, comparisons, rankings, pipelines, 'what is using X', or any ad-hoc 'show me X visually' ask. Not for definitions, conceptual explanations, or one-sentence and one-paragraph asks; those have no shape to draw. For a full multi-artifact plan playground, use visualize-plan instead.",
+    "version": "3.0.0",
+    "sha256": "3d4976124e0369b3c7fa5e6a5c40f0a5ad5785e443f66eb63f85b0045a6577ab",
     "author": "OrchestKit",
     "tags": [
       "ascii",

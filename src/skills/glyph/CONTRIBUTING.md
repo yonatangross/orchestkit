@@ -35,6 +35,22 @@ for the full design.
 
 Removing or repurposing a glyph = MAJOR bump; see Versioning below.
 
+## Adding an icon (`tokens.json` `icons.*`, v3)
+
+Two lists with different rules, added 2026-09-17 with the v3 render shape:
+
+- `icons.status` (plus `risk`, `ranking`) is **closed**. Every icon pairs
+  with a word. Adding one is the glyph-proposal process above PLUS a matching
+  entry in `bin/validate-visual-style.py` `VOCAB` and the size lock in
+  `tests/integration/test-visual-style-validator.sh` (the PR-body lint reads
+  that set, not this file).
+- `icons.domain` is the row-icon legend (🐳 docker, 📦 package, 🧪 test, ...).
+  Chat and terminal only, one per row, leading column. Additions are a
+  one-line PR here plus the same line in `rules/visual-style.md`; the PR-body
+  validator does NOT admit domain icons, so never add them to `VOCAB`.
+
+Either addition is a MINOR bump of `tokens.json`.
+
 ## Adding a char-set
 
 Threshold is high. A new set must express a distinct **intent**, not a

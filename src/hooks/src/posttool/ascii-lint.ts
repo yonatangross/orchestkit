@@ -106,12 +106,17 @@ function classifySet(text: string): string[] {
     }
     if (matched) found.push(name);
   }
-  // default and soft share edges; if only the shared edge matched, prefer the one whose corners are present
+  // default and soft share edges; if only the shared edge matched, prefer the one whose corners are present.
+  // With NO corners at all (a render made of section rules `────` and bar
+  // meters, the v3 inventory shape) the shared edge is the only evidence, so
+  // it is one set, not two: collapse to default instead of reporting a mix.
   if (found.includes('default') && found.includes('soft')) {
     if (cornerHits.default && !cornerHits.soft) {
       found.splice(found.indexOf('soft'), 1);
     } else if (cornerHits.soft && !cornerHits.default) {
       found.splice(found.indexOf('default'), 1);
+    } else if (!cornerHits.default && !cornerHits.soft) {
+      found.splice(found.indexOf('soft'), 1);
     }
   }
   return found;

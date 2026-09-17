@@ -1,0 +1,11 @@
+{
+  "slug": "glyph-v3-render-shape",
+  "source": "docs/feat--glyph-v3/index.html",
+  "title": "glyph v3: one render, 50 lines, verdict first",
+  "description": "The 12-line chat budget over-corrected. glyph 3.0 draws one render per reply, up to about 50 lines and 76 cells wide, verdict first: header meter, traffic-light sections, icon / label / bar / value / action rows, per-section totals, an arithmetic summary line and caveat lines. Before and after on the same disk question, the eight-part anatomy, the closed status set plus the new domain-icon legend.",
+  "tags": [
+    "skills",
+    "visualization"
+  ],
+  "date": "2026-09-17"
+}

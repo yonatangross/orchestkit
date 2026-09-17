@@ -32,7 +32,7 @@ import unicodedata
 # (tests/unit/visual-style-vocab.test.js) asserts this set matches the rule doc
 # and the workflow, so edits here must be mirrored there.
 VOCAB = {
-    # Core 12
+    # Core 13 (12 + the v3 caveat glyph)
     "✅",  # white check mark
     "❌",  # cross mark
     "⚠",  # warning sign
@@ -45,6 +45,7 @@ VOCAB = {
     "\U0001f4dc",  # scroll
     "\U0001f916",  # robot face
     "⚡",  # high voltage (lightning)
+    "\u2139",  # information source (caveat line under a render, v3 2026-09-17)
     # Risk pair (green / yellow / red circles)
     "\U0001f7e2",
     "\U0001f7e1",
@@ -61,7 +62,7 @@ VOCAB = {
 
 
 # The ASCII Palette from src/rules/visual-style.md is a SEPARATE vocabulary from
-# the Twelve-Glyph emoji list above. The rule sanctions box drawing, dividers,
+# the closed status emoji list above. The rule sanctions box drawing, dividers,
 # arrows and progress blocks for diagrams; the emoji vocabulary does not govern
 # them and must not be used to reject them.
 #
@@ -178,7 +179,7 @@ def main() -> int:
         emit(args.github, "error", f"Violating glyphs: {glyphs}")
         emit(args.github, "error", "Strip the emoji — PR titles are plain ASCII.")
     else:
-        emit(args.github, "error", "PR body contains emoji outside the 12-glyph vocabulary")
+        emit(args.github, "error", "PR body contains emoji outside the closed status vocabulary")
         emit(args.github, "error", f"Violating glyphs: {glyphs}")
         emit(args.github, "error", "Allowed: white-check, red-X, warning, refresh, pause,")
         emit(args.github, "error", "  light-bulb, siren, target, fire, scroll, robot, lightning,")

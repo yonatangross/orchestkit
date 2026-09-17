@@ -55,9 +55,26 @@
           { "type": "string" }
         ]
       }
+    },
+    "icons": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "risk", "ranking", "domain"],
+      "properties": {
+        "_comment": { "type": "string" },
+        "status":  { "$ref": "#/$defs/iconMap" },
+        "risk":    { "$ref": "#/$defs/iconMap" },
+        "ranking": { "$ref": "#/$defs/iconMap" },
+        "domain":  { "$ref": "#/$defs/iconMap" }
+      }
     }
   },
   "$defs": {
+    "iconMap": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": { "type": "string", "minLength": 1, "maxLength": 4 }
+    },
     "charSet": {
       "type": "object",
       "required": ["intent", "corner", "edge"],

@@ -1,6 +1,6 @@
 ---
 title: "Glyph"
-description: "Render an answer as ASCII art plus semantic emojis inline, right now, with no setup questions. Use for a fast visual take on status, comparisons, trade-offs, architecture, or any ad-hoc 'show me X visually' ask. Not for definitions, conceptual explanations, or one-sentence and one-paragraph asks; those have no shape to draw. For a full multi-artifact plan playground, use visualize-plan instead."
+description: "Render an answer as ASCII art plus semantic emojis inline, right now, with no setup questions: one render per reply, up to about 50 lines, verdict first. Use for any answer with shape: status, inventories, audits, budgets, comparisons, rankings, pipelines, 'what is using X', or any ad-hoc 'show me X visually' ask. Not for definitions, conceptual explanations, or one-sentence and one-paragraph asks; those have no shape to draw. For a full multi-artifact plan playground, use visualize-plan instead."
 ---
 
 <span className="badge badge-blue">Command</span> <span className="badge badge-green">low</span>
@@ -11,38 +11,105 @@ description: "Render an answer as ASCII art plus semantic emojis inline, right n
 
 <ContextualSkillSidebar slug="glyph" />
 
-> **Glyph** Render an answer as ASCII art plus semantic emojis inline, right now, with no setup questions. Use for a fast visual take on status, comparisons, trade-offs, architecture, or any ad-hoc 'show me X visually' ask. Not for definitions, conceptual explanations, or one-sentence and one-paragraph asks; those have no shape to draw. For a full multi-artifact plan playground, use visualize-plan instead.
+> **Glyph** Render an answer as ASCII art plus semantic emojis inline, right now, with no setup questions: one render per reply, up to about 50 lines, verdict first. Use for any answer with shape: status, inventories, audits, budgets, comparisons, rankings, pipelines, 'what is using X', or any ad-hoc 'show me X visually' ask.
 
 ## Examples
 
-Glyph draws the answer instead of describing it: a status board, a comparison, a flow, a
-risk meter, in plain box-drawing characters that survive any terminal, with a small fixed
-set of emojis that each mean one thing. It does this inline, right now, with no setup
-questions. If the honest drawing needs more than about twelve lines, it is not a chat
-answer any more and glyph hands off to a page instead.
+Glyph draws the answer instead of describing it: an inventory with sections and totals, a
+status board, a comparison, a flow, in plain box-drawing characters that survive any
+terminal, with a small fixed set of emojis that each mean one thing. It does this inline,
+right now, with no setup questions. One render per reply, up to about 50 lines, 76 cells
+wide, verdict first. If the honest drawing needs more than that, it is not a chat answer
+any more and glyph hands off to a page instead.
 
 ### The two picks it makes for you
 
 | Pick | Options | Default | It escalates when |
 |---|---|---|---|
 | **audience** | operator (dense, internal names allowed) or novice (plain words, an analogy first) | operator | you name a reader who is not you ("for Nir", "explain to the client", "eli5") |
-| **surface** | chat (inline, at most 12 lines) or page (a served HTML explainer) | chat | the drawing needs more than 12 lines, or it has to persist, or you asked for a file |
+| **surface** | chat (inline, one render up to ~50 lines) or page (a served HTML explainer) | chat | the drawing needs more than ~50 lines, or it has to persist, or you asked for a file |
 
 Both picks are announced in one line before the render, so you can override with a word.
 
-### Three real renders
+### The reference render: an inventory
 
-**1. A status board** (`/ork:glyph` with no argument draws where the conversation is):
+`/ork:glyph what is using my disk` on a 460 G Mac. One prose line with the verdict, then
+the render, then what the numbers told me. This is the shape every inventory-like answer
+takes (disk, spend, backlog, dependencies, hooks): header meter, traffic-light sections,
+rows of icon / label / bar / value / action, a total per section, one arithmetic summary
+line, caveat lines for the numbers that lie.
+
+87 G comes back without asking anyone; 39 G more is real work and needs a yes.
+
+```
+🖥️  MACINTOSH HD  ·  /System/Volumes/Data
+[▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░]
+ used 355 G    free 73 G    83 % full · 460 G total
+
+────────────────────────────────────────────────
+🟢 SAFE, pure caches; nothing lost, tools refill them
+────────────────────────────────────────────────
+🐳 Docker dangling images+build cache  ▓▓▓▓░░░  14.5 G  docker prune
+🌐 Chrome caches (Google + Island)     ▓▓░░░░░   8.9 G  browsers refill
+🐍 uv cache  ~/.cache/uv  (unused)     ▓▓░░░░░   6.9 G  uv cache prune
+📦 npm cache  ~/.npm                   ▓▓░░░░░   6.2 G  npm cache clean
+🌐 Playwright + Puppeteer browsers     ▓░░░░░░   2.5 G  re-fetched
+🗂️ JetBrains caches, 3 old PyCharms    ▓░░░░░░   2.2 G  3 old versions
+🐳 Docker installer cache              ▓░░░░░░   2.1 G  old installers
+🗂️ VSCode ShipIt logs + payloads       ▓░░░░░░   1.4 G  update leftovers
+🗑️ Trash + Homebrew cleanup            ▓░░░░░░   0.6 G  brew: 148 MB
+                                       ── 45.3 G
+
+────────────────────────────────────────────────
+🟡 REGENERABLE, safe, but the next run rebuilds or re-downloads
+────────────────────────────────────────────────
+📦 node_modules ×58 repos/worktrees    ▓▓▓░░░░   9.7 G  install again
+🗂️ ~/projects/wellness/.build          ▓▓▓░░░░   8.6 G  one repo's build
+🧠 Chrome on-device model ×2 copies    ▓▓▓░░░░   8.0 G  Chrome profiles
+🐳 ~/.docker/sandboxes VM              ▓▓░░░░░   7.2 G  feature removed
+🧠 Whisper models large-v3 + medium    ▓▓░░░░░   4.3 G  re-download
+🐍 .venv ×13 repos                     ▓░░░░░░   3.6 G  uv sync rebuilds
+                                       ── 41.4 G
+
+────────────────────────────────────────────────
+🔴 ASK FIRST, in use, or yours to judge
+────────────────────────────────────────────────
+📱 iOS simulators, 7 devices iOS 26.1  ▓▓▓▓▓▓▓  21.8 G  booted YESTERDAY
+🧠 Claude Desktop VM rootfs.img        ▓▓▓░░░░   9.5 G  the Claude app
+💾 Docker volumes (2, active)          ▓▓░░░░░   5.1 G  live data
+📥 ~/Downloads                         ▓░░░░░░   3.0 G  many small files
+                                       ── 39.4 G
+
+🟢 safe 45 G + 🟡 regenerable 41 G ≈ 87 G  →  free 73 G → ~159 G
+🔴 39 G more, only with your say-so
+
+ℹ️  Docker.raw shows 432 G but is sparse: 37 G real. Prune shrinks it.
+ℹ️  9 wellness worktrees share one 0.4 G .git; the cost is node_modules.
+```
+
+Three things the numbers told me that are not obvious from the chart:
+
+- **Docker is the biggest single lever**: 93 images, 78 dangling, 227 build-cache entries;
+  Docker's own accounting says 14.5 G reclaimable, and Docker.raw shrinks to match.
+- **The iOS simulators are real work, not cruft**: Xcode is installed and a device booted
+  yesterday. Only worth trimming if you name devices you do not use.
+- **Two things look like caches but are payloads**: the Claude Desktop VM image (9.5 G,
+  part of the app) and the Whisper models (4.3 G, re-downloadable but slow). Both kept
+  out of "safe".
+
+### Two more real renders
+
+**A status board** (`/ork:glyph` with no argument draws where the conversation is):
 
 ```
 ✅ 1 probe      measured, transcript on #3877 (CLOSED)
 ✅ 2 lane 5     #3949 merged c326ca5fe (my #3948 closed as its duplicate)
-🔥 3 beta.1     #3950 alpha.86 is open; beta.1 needs a Release-As footer instead
+🔥 3 beta.1     #3950 alpha.86 is open; beta.1 needs a Release-As footer
 ✅ 4 worktrees  done
 ✅ 5 stashes    done
 ```
 
-**2. A comparison** (`/ork:glyph compare monolith vs services`):
+**A comparison** (`/ork:glyph compare monolith vs services`):
 
 ```
 BEFORE                          AFTER
@@ -54,32 +121,24 @@ BEFORE                          AFTER
                                 └────────────┘     └──────────┘
 ```
 
-**3. A dependency flow with a verdict per node** (`/ork:glyph what blocks the release`):
-
-```
-🔥 1 probe (#3877)  ──→  2 lane 5  ──→  3 beta.1  ──→  milestone CLOSED
-     you, 10 min          agent          1 PR
-
-   4 worktrees: 4 real + 2 strays        independent, your call
-   5 stashes:   7 proven + 2 unproven    independent, your call
-```
-
-All three came from one working night (2026-09-06, milestone 164's close-out); none is a
-mock-up.
+The status board and the flow came from one working night (2026-09-06, milestone 164's
+close-out); the inventory is the 2026-09-17 reference render that set the v3 shape. None
+is a mock-up.
 
 ### The exact invocation
 
 ```bash
-/ork:glyph                       # draw where the conversation is right now
-/ork:glyph <topic>               # draw one thing: a plan, a comparison, a status
-/ork:glyph --eli5 <topic>        # novice audience, and a page if it needs one
-/glyph                           # the front door: same dials, may route to a page
+/ork:glyph                  # draw where the conversation is right now
+/ork:glyph <topic>          # one thing: an inventory, a comparison, a state
+/ork:glyph --eli5 <topic>   # novice audience, and a page if it needs one
+/glyph                      # the front door: same dials, may route to page
 ```
 
-What it will never do: ask you a setup question, use an emoji that is not in its fixed
-semantic set (done, failed, warning, in progress, waiting, idea, hard block, goal, top
-priority, doc, agent, hook, and the three risk colours), or exceed the twelve-line budget
-in chat. Over budget means a different deliverable, and it says so.
+What it will never do: ask you a setup question, use a status emoji that is not in its
+closed set (done, failed, warning, in progress, waiting, idea, hard block, goal, top
+priority, doc, agent, hook, caveat, and the three risk colours), put a domain icon
+anywhere but the leading column of a row, or stack two renders in one reply. Over about
+50 lines means a different deliverable, and it says so.
 
 ### When it is the wrong tool
 
@@ -105,7 +164,7 @@ skill's `examples/_featured.md`, so it cannot drift from the skill).
 
 The whole point is speed, so there is no setup phase.
 
-**With no argument, the topic is the current conversation.** Measured over a real 13-prompt session: zero asks supplied a self-contained topic, and the one direct invocation passed nothing at all. `glyph` on its own means "render where we are right now" — the open work, the decision just reached, the state of the thing being discussed. Render that; do not ask what to draw.
+**With no argument, the topic is the current conversation.** Measured over a real 13-prompt session: zero asks supplied a self-contained topic, and the one direct invocation passed nothing at all. `glyph` on its own means "render where we are right now": the open work, the decision just reached, the state of the thing being discussed. Render that; do not ask what to draw.
 
 Given a topic (or the conversation, when none is given):
 
@@ -114,6 +173,7 @@ Given a topic (or the conversation, when none is given):
 
    | Topic shape | Form |
    |---|---|
+   | inventory, audit, budget, "what is using X" | **inventory render** (`templates/inventory.md`): header meter, traffic-light sections, icon / label / bar / value / action rows, totals, arithmetic summary, caveats |
    | state / progress / health | status box + bar meters |
    | A vs B, options, trade-offs | comparison table or side-by-side boxes (one narrow table in a non-TTY surface) |
    | steps, pipeline, hand-offs | left-to-right flow with `──▶` |
@@ -122,16 +182,59 @@ Given a topic (or the conversation, when none is given):
    | over time | sparkline or milestone track |
 
 3. **Emit inline in the reply.** Never write a file unless the user asked for one. This is a chat answer, not an artifact.
-4. **Use the 12-emoji semantic set and box-drawing vocabulary** defined in `rules/visual-style.md` (shipped with this skill). Semantic, never decorative: an emoji must mean something (✅ pass, ❌ fail, ⚠️ risk, 🔴 blocked).
-5. **Stay inside the budget: ≤ 12 visual lines, and ≤ 40% of the reply.** Block count within that is free — two 5-line blocks are fine, four 10-line blocks are not. This skill renders on request, it does not render without limit (#3558). Full derivation of the numbers is in `rules/visual-style.md`.
-6. **State the point in prose first**, in one or two sentences, then show the visual. The visual supports the answer; it is never the answer. If the reader has to parse a diagram to find out what happened, the reply failed.
+4. **Use the closed status set, the domain-icon legend and the box-drawing vocabulary** defined in `rules/visual-style.md` (shipped with this skill) and `tokens.json` (`icons.*`). Status icons pair with a word (✅ done, ❌ failed, ⚠️ warning, 🔴 high risk, ℹ️ caveat). Domain icons (🐳 docker, 📦 package, 🧪 test, ...) go one per row in the leading column so they scan as a legend; never inside a prose sentence, never in chains.
+5. **Stay inside the budget: ONE render per reply, up to about 50 lines, every line 76 cells or fewer.** Two competing renders in one reply is flooding. Above 50 lines it is a page, not a chat answer. The 2026-08-09 budget (12 lines, 40 percent) over-corrected and was reset by operator word on 2026-09-17; the history is in `rules/visual-style.md`.
+6. **Verdict first, then the render, then what the numbers told me.** One prose line states the point before the render. After the render, two or three bold-led bullets say what is not obvious from the chart. If the reader has to parse the render to find out what happened, the reply failed.
 7. **Stay honest.** If a number is unknown, print `?` rather than inventing one. A confident-looking chart built on guesses is worse than prose.
-8. **Match the width to the host.** A render that fits a terminal wraps into a wall in a host that reflows text: CI logs, chat widgets, VS Code chat, web transcripts, agent desktops. Read the surface from the environment the same way you already infer audience and surface: with a terminal (TTY), render as below; without one, cap every diagram line at 72 columns, and render key/value or comparison data as one narrow table or a vertical list, never side-by-side columns. The 12-line budget does not change. Measured failure the rule prevents: a side-by-side key/value board for 5 rows lands at 113 columns, and `scripts/render-ascii.sh key-value` renders the narrow form of the same data (GH-4159).
+8. **Match the width to the host.** A render that fits a terminal wraps into a wall in a host that reflows text: CI logs, chat widgets, VS Code chat, web transcripts, agent desktops. Read the surface from the environment the same way you already infer audience and surface: with a terminal (TTY), render as below; without one, cap every diagram line at 72 columns, and render key/value or comparison data as one narrow table or a vertical list, never side-by-side columns. The line budget does not change. Measured failure the rule prevents: a side-by-side key/value board for 5 rows lands at 113 columns, and `scripts/render-ascii.sh key-value` renders the narrow form of the same data (GH-4159).
 
 **When NOT to use this skill:** if the deliverable is a multi-section HTML playground, a persisted plan artifact, or anything needing file output, use `visualize-plan` instead. Glyph is the cheap inline path; visualize-plan is the full pipeline.
 
-**Over budget is the same signal.** If the honest rendering needs more than ~12 lines, that is not a bigger chat answer, it is a different deliverable: write the playground or file, then hand the human a URL with `/page-serve &lt;path&gt;` (a port-free `https://&lt;name&gt;.localhost/` route, with a stop) instead of a bare file path or a hand-started `python3 -m http.server`. The old escape hatch fired on artifact TYPE only, so a 40-line inline reply never tripped it.
+**Over budget is the same signal.** If the honest rendering needs more than ~50 lines, that is not a bigger chat answer, it is a different deliverable: write the playground or file, then hand the human a URL with `/page-serve &lt;path&gt;` (a port-free `https://&lt;name&gt;.localhost/` route, with a stop) instead of a bare file path or a hand-started `python3 -m http.server`. Keep a 10-line excerpt in chat next to the URL. The old escape hatch fired on artifact TYPE only, so an over-budget inline reply never tripped it.
 
+
+## Render anatomy (the v3 reference shape)
+
+The shape below is the default for anything inventory-like (disk, spend,
+backlog, dependencies, hooks, "what is using X"). Draw it top to bottom; drop a
+part only when the data has nothing for it. The full template with the
+column widths is `templates/inventory.md`; the worked example is in
+`examples/_featured.md`.
+
+&lt;!-- ascii-lint-disable: density-min --&gt;
+```
+🖥️  MACINTOSH HD  ·  /System/Volumes/Data              header: icon, subject
+[▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░]                                 headline meter
+ used 355 G    free 73 G    83 % full · 460 G total     numbers under it
+────────────────────────────────────────────────        light rule
+🟢 SAFE, pure caches; nothing lost, tools refill them   traffic-light word
+────────────────────────────────────────────────
+🐳 Docker dangling images+build cache  ▓▓▓▓░░░  14.5 G  docker prune
+🌐 Chrome caches (Google + Island)     ▓▓░░░░░   8.9 G  browsers refill
+📦 npm cache  ~/.npm                   ▓▓░░░░░   6.2 G  npm cache clean
+                                       ── 45.3 G        per-section total
+🟢 safe 45 G + 🟡 regenerable 41 G ≈ 87 G  →  free 73 G → ~159 G
+ℹ️  Docker.raw shows 432 G but is sparse: 37 G real.    caveat line
+```
+
+Parts, in order:
+
+1. **Header line**: one domain icon, the subject, `·`, the path or scope.
+2. **Headline meter**: `[▓▓▓░░]` with the numbers printed on the line under it.
+3. **Sections**: opened by a light rule `────` and a traffic-light word
+   (🟢 SAFE, 🟡 REGENERABLE, 🔴 ASK FIRST, or the domain's own words).
+4. **Rows**: icon, label, bar `▓▓▓░░`, value, one-word action, aligned in
+   columns. One domain icon per row, leading column.
+5. **`── total`** line per section, right-aligned under the values.
+6. **Summary line** that shows the arithmetic, so the reader can check it.
+7. **`ℹ️` caveat lines** for the numbers that lie (sparse files, shared
+   caches, double counts). `?` for a number you do not have.
+8. Then prose: two or three bold-led bullets, "what the numbers told me".
+
+The vocabulary is closed. Status icons come from `tokens.json` `icons.status`
+(plus `risk` and `ranking`); row icons from `icons.domain`. Add there, not ad
+hoc. No emoji chains, no emoji in prose sentences, no full-width rules, no
+"★ Insight" blocks, no mermaid in chat, no em or en dashes.
 
 ## Box-Drawing Character Reference
 
@@ -148,7 +251,7 @@ soft:      ╭─╮ │ ╰─╯
 portable:  +-+ | +-+  +-+ + + +
 Arrows:    → ← ↑ ↓ ─> <─ ──> <──
 Blocks:    █ ▓ ░ ▏▎▍▌▋▊▉
-Status:    ● ○ ✓ ✗ ⚠ ◆ ◇ ▶ ▷  ↑↓→ ▓▒░  (closed-set vocab — see rules)
+Status:    ● ○ ✓ ✗ ⚠ ◆ ◇ ▶ ▷  ↑↓→ ▓▒░  (closed-set vocab, see rules)
 ```
 
 ### Set Conventions (D8: intent-driven naming)
@@ -167,7 +270,7 @@ Rename codemod (D8): old `light/heavy/double/rounded/ascii-fallback` → new nam
 
 ### Status Glyph Vocabulary
 
-Closed-set v1 of 11 semantic glyphs (`●○✓✗⚠◆◇▶▷ ↑↓→ ▓▒░`). Single source of truth — see `rules/status-glyph-vocabulary.md`. Add-a-glyph process in `CONTRIBUTING.md`.
+Closed-set v1 of 11 semantic glyphs (`●○✓✗⚠◆◇▶▷ ↑↓→ ▓▒░`). Single source of truth: see `rules/status-glyph-vocabulary.md`. Add-a-glyph process in `CONTRIBUTING.md`.
 
 
 ## Diagram Patterns
@@ -263,12 +366,12 @@ Phase 4  [........????????]  IRREVERSIBLE        (drop column)
 
 | Rule | Description |
 |------|-------------|
-| Font | Always monospace — box-drawing requires fixed-width |
+| Font | Always monospace; box-drawing requires fixed-width |
 | Weight | Standard for normal, Heavy for emphasis, Double for titles |
 | Arrows | `─>`, `──>`, or `│` with `v`/`^` for direction |
 | Alignment | Right-pad labels to match column widths |
 | Annotations | `!!` for risk, `**` for new, `[A/M/D]` for change type |
-| Width | Under 80 chars in a terminal; at most 72 per line in a non-TTY surface, as one narrow table or vertical list (GH-4159) |
+| Width | 76 cells or fewer in a terminal; at most 72 per line in a non-TTY surface, as one narrow table or vertical list (GH-4159) |
 | Nesting | Max 3 levels of box nesting before readability degrades |
 
 
@@ -283,12 +386,13 @@ Phase 4  [........????????]  IRREVERSIBLE        (drop column)
 | Annotated trees | File change manifests, directory structures |
 | Comparison tables | Cross-layer consistency, before/after |
 | Progress bars | Status tracking, completion metrics |
+| Inventory render | Disk, spend, backlog, dependency audits; anything with sections and totals |
 
 ## Related Skills
 
-- `brainstorm` — Design exploration where diagrams communicate ideas
-- `architecture-patterns` — System architecture that benefits from ASCII diagrams
-- `code-review-playbook` — Review comments with inline diagrams
+- `brainstorm`: Design exploration where diagrams communicate ideas
+- `architecture-patterns`: System architecture that benefits from ASCII diagrams
+- `code-review-playbook`: Review comments with inline diagrams
 
 
 ---
@@ -535,131 +639,208 @@ exactly one glyph from the table above per slot:
 ```
 
 
-### Visual Style — ASCII Art and Emoji Usage — MEDIUM
+### Visual Style, glyph renders in chat — MEDIUM
 
 
-# Visual Style
+# Visual Style in Chat (glyph renders, one per reply, up to ~50 lines)
 
-OrchestKit leans into ASCII art and semantic emojis for visual scanability — but only with a fixed vocabulary, only where they earn their keep, and never where they break greppability, byte budgets, or accessibility.
+Reset 2026-09-17 by operator word after seeing a peer's disk-cleanup render:
+"we don't use it enough, ASCII and emoji art in chat in general". This
+supersedes the 2026-08-09 budget (12 lines, 40 percent), which had swung too
+far the other way: replies answered shape-shaped questions in prose and one
+thin table.
 
-## The Twelve-Glyph Vocabulary
+## The three rules
 
-Every emoji must come from this list. No decorative additions. Adding to the list requires a PR.
+1. **An answer with shape gets a render.** Status, inventories, audits,
+   budgets, comparisons, rankings, pipelines, "what is using X", "where do we
+   stand". A single fact, a definition, or a one-line ask gets prose only.
+2. **Verdict first, then the render, then what the numbers told me.** One
+   prose line states the point before the render. After the render, two or
+   three bold-led bullets say what is not obvious from the chart. If the reader
+   has to parse the render to learn the verdict, the reply failed.
+3. **One render, up to about 50 lines, 76 cells wide.** Two competing renders
+   in one reply is flooding. Above 50 lines it is a page: write the HTML or
+   markdown, print the URL or path, keep a 10-line excerpt in chat.
+
+## Anatomy of a render (the reference shape)
+
+&lt;!-- ascii-lint-disable: density-min --&gt;
+```
+🖥️  MACINTOSH HD  ·  /System/Volumes/Data
+[▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░]
+ used 355 G    free 73 G    83 % full · 460 G total
+────────────────────────────────────────────────
+🟢 SAFE, pure caches; nothing lost, tools refill them
+────────────────────────────────────────────────
+🐳 Docker dangling images+build cache  ▓▓▓▓░░░  14.5 G  docker prune
+🌐 Chrome caches (Google + Island)     ▓▓░░░░░   8.9 G  browsers refill
+📦 npm cache  ~/.npm                   ▓▓░░░░░   6.2 G  npm cache clean
+                                       ── 45.3 G
+🟢 safe 45 G + 🟡 regenerable 41 G ≈ 87 G  →  free 73 G → ~159 G
+ℹ️  Docker.raw shows 432 G but is sparse: 37 G real. Prune shrinks it.
+```
+
+Parts, in order: header line with subject; headline meter with the numbers
+printed under it; a light rule and a traffic-light section word; rows aligned
+in columns (icon, label, bar, value, one-word action); a `── total` line per
+section; a summary line that shows the arithmetic; `ℹ️` caveat lines for the
+numbers that lie. Then prose.
+
+## Vocabulary
+
+### The status set (closed)
+
+Every status icon comes from this list and is paired with a word. Adding one
+requires a PR that also updates `bin/validate-visual-style.py`.
 
 | Glyph | Meaning | Use for |
 |-------|---------|---------|
-| ✅ | success / done / pass | completed tasks, passing tests, met criteria |
-| ❌ | failure / blocked / no | failed tests, denied actions, explicit "don't" |
-| ⚠️ | warning / caution | non-fatal issues, edge cases, soft constraints |
-| 🔄 | in-progress / loop | running tasks, retry loops, async work |
-| ⏸ | paused / blocked-by | waiting on dependency or user input |
-| 💡 | hint / suggestion | optional improvements, "consider this" |
-| 🚨 | hard block / critical | security violations, hook denies, must-fix |
-| 🎯 | goal / target | objectives, success criteria, focus |
-| 🔥 | high-leverage / hot | top priority, recommended path |
-| 📜 | docs / skill / spec | references to SKILL.md, documentation |
+| ✅ | done / pass | completed tasks, passing tests, met criteria |
+| ❌ | failed / no | failed tests, denied actions, explicit "don't" |
+| ⚠️ | warning | non-fatal issues, edge cases, soft constraints |
+| 🔄 | in progress | running tasks, retry loops, async work |
+| ⏸ | waiting | blocked on a dependency or user input |
+| 💡 | idea | optional improvements, "consider this" |
+| 🚨 | hard block | security violations, hook denies, must-fix |
+| 🎯 | goal | objectives, success criteria, focus |
+| 🔥 | top priority | recommended path, the one thing to do first |
+| 📜 | doc | references to SKILL.md, documentation |
 | 🤖 | agent | references to subagents |
 | ⚡ | hook | references to hooks, fast/automated paths |
+| ℹ️ | caveat | the line under a render for a number that lies |
 
 Risk and ranking glyphs (always paired, never solo):
 
 - Risk: 🟢 low · 🟡 medium · 🔴 high
 - Ranking: 🥇 1st · 🥈 2nd · 🥉 3rd
 
+### Domain icons (rows)
+
+Row icons for domain objects are encouraged, one per row, leading column, so
+they read as a legend: 🐳 docker, 🌐 browser, 📦 package, 🐍 python,
+🧠 model, 📱 device, 💾 volume, 🗑️ trash, 🗂️ files, 📥 downloads,
+🔑 secret, 🧪 test, 🖥️ host, ☁️ cloud, 📧 mail, 💬 chat. The glyph skill's
+`tokens.json` (`icons.domain`) is the canonical list; add there, not ad hoc.
+Domain icons are chat-only; the PR-body validator does not admit them.
+
+### Glyphs
+
+- Light box drawing ┌─┐ │ └─┘, section rules ────, arrows → ↓ ──▶,
+  bullets • ◦, bar meters ▓▓▓░░ with the value beside the bar, `?` for an
+  unknown number, never an invented one.
+- Never: emoji chains, emoji inside prose sentences, full-width rules across
+  the terminal, "★ Insight" blocks, mermaid in chat, em or en dashes.
+
 ## ASCII Palette
 
-Use these character sets only — keeps rendering predictable across terminals, GitHub, and CI logs.
+Use these character sets only; it keeps rendering predictable across
+terminals, GitHub, and CI logs.
 
 &lt;!-- ascii-lint-disable: single-set --&gt;
 ```
 Box drawing:  ┌─┐ │ ┘─└   (light)
-              ╔═╗ ║ ╝═╚   (heavy — reserve for top-level section headers)
+              ╔═╗ ║ ╝═╚   (heavy, reserve for top-level section headers)
 Dividers:     ───  ═══
 Arrows:       → ↓ ▶ ◀
 Progress:     ▓▓▓░░  ████████░░
 Bullets:      • ◦ ‣
 ```
 
-Do not use: 3D box characters, shaded blocks for decoration, ASCII-art logos, or any character that requires a non-default monospace font.
+Do not use: 3D box characters, shaded blocks for decoration, ASCII-art logos,
+or any character that requires a non-default monospace font.
+
+## Triggering
+
+- The `visual-style-nudge` hook fires on every qualifying prompt. It means "if
+  this answer has shape, render it", not "draw something every turn".
+- `/ork:glyph` is the reference implementation; use it unprompted whenever
+  rule 1 applies.
+- "Where do we stand / what's next" always gets a render plus ranked next
+  steps.
 
 ## Per-Surface Rules
 
-### ✅ Assistant chat output (BUDGETED)
+### ✅ Assistant chat output
 
-A budget, not a licence. This section used to read UNLIMITED and "lean in", which
-is an affirmative permission for a reply that is mostly diagram (#3558).
-
-Two rules:
-
-1. **Spend a line budget, not a block count.** Total visual lines across the
-   whole reply stay **≤ 12**, and must not exceed **40%** of the reply. Within
-   that, block count is free: two 5-line blocks are fine, four 10-line blocks are
-   not. Over budget means it is not a chat answer — write a playground or a file
-   and print the path.
-2. **The visual supports the answer, it is never the answer.** State the point in
-   prose first, in one or two sentences. If the reader has to parse a diagram to
-   find out what happened, the reply failed.
-
-**Why these numbers**, measured rather than asserted. From one 151-reply sample,
-28 of which carried a visual: block length p90 = 13 lines; visual share of reply
-p75 = 43%. The 12-line ceiling sits just under that p90 tail, so it cuts the real
-tail rather than typical use.
-
-A block-COUNT rule was tried first and bound almost nothing: 24 of those 28
-replies already used exactly one block, while the worst reply was 81% visual and
-would have passed it. Volume is the failure mode, not block count.
-
-Standing exception: a "where do we stand / what's next" status answer still gets
-a state summary plus ranked next steps. That is one visual, and it is still
-budgeted.
+The three rules above. One render per reply, up to about 50 lines, 76 cells
+wide, verdict first. A render that fits a terminal wraps into a wall in a host
+that reflows text (CI logs, chat widgets, VS Code chat, web transcripts):
+without a TTY, cap every line at 72 columns and render key/value or comparison
+data as one narrow table or a vertical list, never side-by-side columns.
 
 ### ✅ SKILL.md files
 
-- **Allowed:** H2 emoji prefix from vocabulary (e.g. `## 🎯 When to use`), ASCII diagrams in workflow sections, emoji in table-status columns.
-- **Forbidden:** decorative inline emoji in body prose, emoji-only headings (always pair with text), emoji in code blocks or shell examples.
-- 500-line cap still applies. Diagrams pushing the cap → move to `references/*.md`.
+- **Allowed:** H2 emoji prefix from the status set (e.g. `## 🎯 When to use`),
+  ASCII diagrams in workflow sections, emoji in table-status columns.
+- **Forbidden:** decorative inline emoji in body prose, emoji-only headings
+  (always pair with text), emoji in code blocks or shell examples.
+- 500-line cap still applies. Diagrams pushing the cap move to
+  `references/*.md`.
 
 ### ✅ Agent .md files
 
-- **Allowed:** role emoji in `description:` field, one ASCII "card" block in body showing scope/tools/cost, emoji in capability tables.
-- **Forbidden:** emoji in YAML keys, `name:` field, `tools:` array, or anywhere automation parses structurally.
+- **Allowed:** role emoji in `description:` field, one ASCII "card" block in
+  body showing scope/tools/cost, emoji in capability tables.
+- **Forbidden:** emoji in YAML keys, `name:` field, `tools:` array, or
+  anywhere automation parses structurally.
 
-### 🔥 Hook source (TypeScript) — strongest yes
+### 🔥 Hook source (TypeScript), strongest yes
 
-Hook stdout renders directly in chat. Every hook message should lead with a severity glyph:
+Hook stdout renders directly in chat. Every hook message should lead with a
+severity glyph:
 
 ```
 🚨 BLOCK · ⚠ WARN · 💡 HINT · ⏭ SKIP
 ```
 
-Wrap multi-line deny messages in `┌─ ─┐` boxes so they disambiguate from assistant output.
+Wrap multi-line deny messages in `┌─ ─┐` boxes so they disambiguate from
+assistant output.
 
 ### ✅ README, CHANGELOG, docs/*.md
 
-GitHub renders both natively. Use ASCII architecture diagrams and emoji section headers freely. CHANGELOG entries lead with type emoji: ✨ feat · 🐛 fix · 📝 docs · 🔥 perf · ♻ refactor.
+GitHub renders both natively. Use ASCII architecture diagrams and emoji
+section headers freely. CHANGELOG entries lead with type emoji: ✨ feat ·
+🐛 fix · 📝 docs · 🔥 perf · ♻ refactor.
 
 ### ⚠️ CLAUDE.md (project root + .claude/)
 
-Hard 4800-byte cap enforced by `tests/perf/test-token-overhead.sh`. Box-drawing chars are 3 bytes each — a single 60-char border row costs ~180 bytes.
+Hard 4800-byte cap enforced by `tests/perf/test-token-overhead.sh`.
+Box-drawing chars are 3 bytes each; a single 60-char border row costs ~180
+bytes.
 
 - **Allowed:** one emoji per H2 heading.
-- **Forbidden:** ASCII boxes, multi-line diagrams, decorative dividers. Extract to `docs/&lt;topic&gt;.md` with a one-line pointer.
+- **Forbidden:** ASCII boxes, multi-line diagrams, decorative dividers.
+  Extract to `docs/&lt;topic&gt;.md` with a one-line pointer.
 
 ### ✅ PR bodies
 
-GitHub renders these natively, same as README. ASCII diagrams from the palette above are encouraged — a before/after box or a file tree carries a review point faster than a paragraph. Emoji are limited to the twelve-glyph vocabulary.
+GitHub renders these natively, same as README. ASCII diagrams from the palette
+above are encouraged; a before/after box or a file tree carries a review point
+faster than a paragraph. Emoji are limited to the status set (plus risk and
+ranking); domain icons stay in chat.
 
-Enforced by `bin/validate-visual-style.py --mode body` in the Visual-Style PR Lint check. The palette and the emoji vocabulary are two separate lists: box drawing, dividers, arrows and progress blocks are governed by **ASCII Palette**, everything emoji by **The Twelve-Glyph Vocabulary**. The validator once conflated them (both report Unicode category `So`) and rejected plain box-drawn diagrams; keep the two tables distinct when editing either.
+Enforced by `bin/validate-visual-style.py --mode body` in the Visual-Style PR
+Lint check. The palette and the emoji vocabulary are two separate lists: box
+drawing, dividers, arrows and progress blocks are governed by **ASCII
+Palette**, everything emoji by **The status set**. The validator once conflated
+them (both report Unicode category `So`) and rejected plain box-drawn
+diagrams; keep the two tables distinct when editing either.
 
 ### ❌ Code, commit messages, PR titles
 
-No emoji. No ASCII art. Conventional Commits stays plain (`feat:`, `fix:`, etc.) — the type prefix is already the signal. Code comments stay plain so grep stays useful.
+No emoji. No ASCII art. Conventional Commits stays plain (`feat:`, `fix:`,
+etc.); the type prefix is already the signal. Code comments stay plain so grep
+stays useful.
 
-The PR **title** is the strict surface; the PR **body** is not. `--mode title` rejects every non-ASCII symbol including the palette, which is why a diagram belongs in the body.
+The PR **title** is the strict surface; the PR **body** is not. `--mode title`
+rejects every non-ASCII symbol including the palette, which is why a diagram
+belongs in the body.
 
 ## Greppability Contract
 
-Any emoji-prefixed heading must keep the original text intact so `grep` still works:
+Any emoji-prefixed heading must keep the original text intact so `grep` still
+works:
 
 ```
 ✅ ## 🎯 When to use      → grep "## " finds it, grep "When to use" finds it
@@ -668,13 +849,32 @@ Any emoji-prefixed heading must keep the original text intact so `grep` still wo
 
 ## Accessibility
 
-- Screen readers announce every emoji literally ("check mark", "warning sign"). Don't stack them: one glyph per heading or status, not 🎯🔥✅ chains.
-- Box-drawing characters are pronounced as their Unicode names — use them in visual chunks (diagrams, table borders), not inline with prose.
-- Never convey meaning via emoji alone. Always pair with text: `✅ Passed` not `✅`.
+- Screen readers announce every emoji literally ("check mark", "warning
+  sign"). Don't stack them: one glyph per heading or status, not 🎯🔥✅
+  chains.
+- Box-drawing characters are pronounced as their Unicode names; use them in
+  visual chunks (diagrams, table borders), not inline with prose.
+- Never convey meaning via emoji alone. Always pair with text: `✅ Passed`
+  not `✅`.
 
 ## Echo-Chamber Mitigation
 
-Heavy emoji in OrchestKit's own SKILL.md files trains the model to emoji-bomb every response when those skills are loaded. The vocabulary cap is the mitigation: when Claude sees the same 12 glyphs used consistently with the same semantics across 100+ files, it learns "these glyphs = these meanings" rather than "emoji = always-on style." Drift from the vocabulary defeats the mitigation — reject PRs that add glyphs outside the list.
+Heavy emoji in OrchestKit's own SKILL.md files trains the model to emoji-bomb
+every response when those skills are loaded. The closed status set is the
+mitigation: when Claude sees the same glyphs used consistently with the same
+semantics across 100+ files, it learns "these glyphs = these meanings" rather
+than "emoji = always-on style". Drift from the vocabulary defeats the
+mitigation; reject PRs that add status glyphs outside the list.
+
+## History
+
+- 2026-08-09: "this is mostly flooding me" after five stacked blocks (~60
+  lines) with the point at the bottom. Fix was a 12-line, 40 percent budget.
+- 2026-08-19: measured 151 replies; block length p90 was 13 lines, visual
+  share p75 was 43 percent. The budget bound the tail.
+- 2026-09-17: the budget over-corrected. Rule 2 (verdict first) is what
+  actually prevented the 08-09 failure, so it stays; the line budget rises to
+  ~50 with one render per reply.
 
 
 
