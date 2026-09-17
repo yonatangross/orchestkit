@@ -555,6 +555,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.45](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.44...v10.0.0-beta.45)** · 2026-09-17
+
+- **hooks:** criteria-B for both category paths, Jev cascade at 0.8 (#4211)
+
 **[v10.0.0-beta.44](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.43...v10.0.0-beta.44)** · 2026-09-17
 
 - **hooks:** opt-in shadow session category as a typed Choice (#4208)
@@ -585,10 +589,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.38](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.37...v10.0.0-beta.38)** · 2026-09-16
 
 - **create-pr:** drop stale lab-data.ts conflict advice (#4191)
-
-**[v10.0.0-beta.37](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.36...v10.0.0-beta.37)** · 2026-09-16
-
-- **site:** generate lab-data.ts at build time instead of committing it (#4188)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.45",
+    "date": "2026-09-17",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.44...v10.0.0-beta.45",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**hooks:** criteria-B for both category paths, Jev cascade at 0.8 ([#4211](https://github.com/yonatangross/orchestkit/issues/4211)) ([ff9e99e](https://github.com/yonatangross/orchestkit/commit/ff9e99e953967dc2e3543fb6525d525041860ea7))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.44",
     "date": "2026-09-17",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.43...v10.0.0-beta.44",
