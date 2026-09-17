@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.47](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.46...v10.0.0-beta.47) (2026-09-17)
+
+
+### Miscellaneous
+
+* **security:** genericize op:// paths and home dirs in public files ([#4223](https://github.com/yonatangross/orchestkit/issues/4223)) ([a827671](https://github.com/yonatangross/orchestkit/commit/a8276712bb9707cbdcb9874c13ffb4238f47dbec))
+
+
+### Documentation
+
+* replace U+2014 in sixteen rule titles with colon ([#4221](https://github.com/yonatangross/orchestkit/issues/4221)) ([8effd3d](https://github.com/yonatangross/orchestkit/commit/8effd3d3e79da39175599f09a40d726bcd5f6dfa))
+
 ## [10.0.0-beta.46](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.45...v10.0.0-beta.46) (2026-09-17)
 
 
