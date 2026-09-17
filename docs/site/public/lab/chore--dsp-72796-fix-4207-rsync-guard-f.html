@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rsync guard exit 1 was untested until the PATH shim arm</title>
+<meta name="description" content="Issue #4207: the release rebuild step guards rsync with ::error:: + exit 1, but every existing fail-closed arm left a fail-open mutant (warning + exit 0) green. Toggle real vs mutant guard against a failing rsync shim.">
+<style>
+  :root{--bg:#0f1117;--panel:#161922;--edge:#272b38;--ink:#e8eaf2;--dim:#9aa3b8;--ok:#4ade80;--bad:#f87171;--warn:#fbbf24;--accent:#7dd3fc;--mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;}
+  *{box-sizing:border-box} body{margin:0;padding:2.5rem 1.25rem;background:var(--bg);color:var(--ink);font-family:var(--mono);line-height:1.55}
+  main{max-width:60rem;margin-inline:auto} h1{font-size:1.25rem;margin:0 0 .35rem} .sub{color:var(--dim);margin:0 0 1.8rem;font-size:.85rem}
+  section{background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:1.15rem 1.35rem;margin-block:1rem}
+  h2{font-size:.85rem;margin:0 0 .75rem;color:var(--accent);text-transform:uppercase;letter-spacing:.05em}
+  .controls{display:flex;gap:.55rem;flex-wrap:wrap;margin:.55rem 0}
+  button{background:#0b0d13;color:var(--ink);border:1px solid var(--edge);border-radius:6px;padding:.4rem .85rem;font-family:inherit;font-size:.8rem;cursor:pointer}
+  button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+  pre{background:#0b0d13;border:1px solid var(--edge);border-radius:8px;padding:.85rem 1rem;font-size:.78rem;overflow:auto;white-space:pre-wrap}
+  table{width:100%;border-collapse:collapse;font-size:.8rem} th,td{text-align:start;padding:.4rem .5rem;border-bottom:1px solid var(--edge)} th{color:var(--dim)}
+  .ok{color:var(--ok)} .bad{color:var(--bad)} .warn{color:var(--warn)} .dim{color:var(--dim)}
+  .verdict{margin-top:.7rem;padding:.65rem .8rem;border:1px solid var(--edge);border-radius:6px;font-size:.85rem}
+  code{background:#0b0d13;border:1px solid var(--edge);border-radius:4px;padding:0 4px}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Rsync guard exit 1 was untested until the PATH shim arm"><meta property="og:description" content="Issue #4207: the release rebuild fail-closed suite covered the happy-path rsync line but never made rsync fail, so a warning-plus-exit-0 mutant survived. The page toggles the real guard against that mutant under a failing rsync shim."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/chore--dsp-72796-fix-4207-rsync-guard-f.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Rsync guard exit 1 was untested until the PATH shim arm"><meta name="twitter:description" content="Issue #4207: the release rebuild fail-closed suite covered the happy-path rsync line but never made rsync fail, so a warning-plus-exit-0 mutant survived. The page toggles the real guard against that mutant under a failing rsync shim."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+<h1>Rsync guard exit 1 was untested until the PATH shim arm</h1>
+<p class="sub">Issue <a class="dim" href="https://github.com/yonatangross/orchestkit/issues/4207">#4207</a>. Arms in <code>tests/ci/test-release-rebuild-fail-closed.sh</code> covered the happy-path rsync line, not a failing rsync. The surviving mutant: downgrade the guard to <code>::warning::</code> + <code>exit 0</code>.</p>
+
+<section>
+<h2>Shipped guard vs fail-open mutant</h2>
+<div class="controls" role="group" aria-label="guard shape">
+  <button id="btn-real" aria-pressed="true">Real guard (::error:: + exit 1)</button>
+  <button id="btn-mut" aria-pressed="false">Fail-open mutant (::warning:: + exit 0)</button>
+</div>
+<pre id="guard-view"></pre>
+</section>
+
+<section>
+<h2>Simulate RRFC_RSYNC_FAIL=1 (rsync exits 23)</h2>
+<p class="dim">The new arm puts a PATH shim in front of rsync. Press run to see step rc, annotation, and whether commit/push are reached.</p>
+<div class="controls">
+  <button id="btn-run">Run failing rsync through selected guard</button>
+</div>
+<table>
+  <thead><tr><th>signal</th><th>value</th><th>arm wants</th></tr></thead>
+  <tbody id="rows"></tbody>
+</table>
+<div id="verdict" class="verdict"></div>
+</section>
+
+<section>
+<h2>What the arm pins</h2>
+<ul class="dim" style="font-size:.85rem;padding-left:1.1rem">
+  <li><code>rc=1</code> and <code>::error::rsync of src/hooks/dist...</code></li>
+  <li>No <code>::notice::Rebuilt hook bundles</code></li>
+  <li>Release branch tip unchanged; no <code>.rrfc-git-reached</code> commit/push marker</li>
+</ul>
+</section>
+
+<footer class="sub">OrchestKit lab page. Source: <code>docs/chore--dsp-72796-fix-4207-rsync-guard-f/index.html</code>.</footer>
+</main>
+<script>
+const REAL = `if ! rsync -a --checksum --exclude='*.map' --exclude='*.d.mts' --exclude='*.d.ts' src/hooks/dist/ plugins/ork/hooks/dist/; then
+  echo "::error::rsync of src/hooks/dist into plugins/ork/hooks/dist failed on \${BRANCH}; hook bundles not rebuilt."
+  exit 1
+fi`;
+const MUT = `if ! rsync -a --checksum --exclude='*.map' --exclude='*.d.mts' --exclude='*.d.ts' src/hooks/dist/ plugins/ork/hooks/dist/; then
+  echo "::warning::rsync of src/hooks/dist into plugins/ork/hooks/dist failed on \${BRANCH}; hook bundles not rebuilt."
+  exit 0
+fi`;
+let mode = "real";
+function renderGuard() {
+  document.getElementById("guard-view").textContent = mode === "real" ? REAL : MUT;
+  document.getElementById("btn-real").setAttribute("aria-pressed", mode === "real");
+  document.getElementById("btn-mut").setAttribute("aria-pressed", mode === "mut");
+}
+function simulate() {
+  const real = mode === "real";
+  const rc = real ? 1 : 0;
+  const ann = real ? "::error::rsync of src/hooks/dist into plugins/ork/hooks/dist failed" : "::warning::rsync of src/hooks/dist into plugins/ork/hooks/dist failed";
+  const rebuilt = false;
+  const tipMoved = false;
+  const marker = false;
+  const armPass = real && rc === 1 && ann.startsWith("::error::") && !rebuilt && !tipMoved && !marker;
+  const rows = [
+    ["step rc", String(rc), "1"],
+    ["annotation", ann, "::error::rsync..."],
+    ["rebuilt notice", rebuilt ? "yes" : "no", "no"],
+    ["branch tip moved", tipMoved ? "yes" : "no", "no"],
+    ["commit/push marker", marker ? "yes" : "no", "no"],
+  ];
+  const tb = document.getElementById("rows");
+  tb.innerHTML = "";
+  for (const [a,b,c] of rows) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = "<td>" + a + "</td><td><code>" + b + "</code></td><td class=\"dim\">" + c + "</td>";
+    tb.appendChild(tr);
+  }
+  const v = document.getElementById("verdict");
+  if (armPass) {
+    v.innerHTML = '<span class="ok">Arm PASS</span> against the real guard.';
+  } else {
+    v.innerHTML = '<span class="bad">Arm FAIL</span> against the fail-open mutant (rc=' + rc + ', wants 1 with ::error::).';
+  }
+}
+document.getElementById("btn-real").onclick = () => { mode = "real"; renderGuard(); };
+document.getElementById("btn-mut").onclick = () => { mode = "mut"; renderGuard(); };
+document.getElementById("btn-run").onclick = simulate;
+renderGuard();
+simulate();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
