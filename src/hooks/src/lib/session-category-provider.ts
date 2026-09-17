@@ -2,40 +2,49 @@
 // Created: 2026-09-17
 
 /**
- * Session Category Provider (shadow): an opt-in second classifier for the
- * session work category that session-identity.ts asks a detached haiku
- * `claude -p` process for today.
+ * Session Category Provider: an opt-in second classifier for the session work
+ * category that session-identity.ts asks a detached haiku `claude -p` process
+ * for today.
  *
  * Instead of a whole model process, it asks TypeSafe's Jev model one typed
  * Choice over the SAME closed category set (WORK_CATEGORIES, with the same
- * CATEGORY_DESCRIPTIONS the haiku prompt uses) and gets back a label, the full
+ * CATEGORY_CRITERIA the haiku prompt uses) and gets back a label, the full
  * probability distribution, and a confidence.
  *
- * SHADOW ONLY. Nothing here changes a title, a color, or any hook output:
- * - Off by default. It runs only when ORK_SESSION_CATEGORY_PROVIDER=jev AND the
- *   TypeSafe key variable (ORK_TYPESAFE_API_KEY) is set.
- * - The haiku spawn still runs, and its category still drives the color.
- * - The Jev answer is written next to the haiku output in the session dir and
- *   the pair is logged once per generation, so the two can be compared.
+ * Off by default. It runs only when ORK_SESSION_CATEGORY_PROVIDER is set AND
+ * the TypeSafe key variable (ORK_TYPESAFE_API_KEY) is set. Two opt-in modes:
+ * - `jev`: the cascade. When Jev answers with confidence at or above
+ *   JEV_CONFIDENCE_THRESHOLD its category decides the session color; below
+ *   it, or on any error, haiku's category decides as before. The title and
+ *   emoji always come from haiku. Both outcomes are logged.
+ * - `shadow`: Jev is called and logged beside haiku, and never applied.
+ *
+ * Held-out basis (docs/audits/jev-session-category-heldout-2026-09-17): with
+ * the same criteria the two tie overall (80.0% vs 79.3%), but Jev at
+ * confidence 0.8 and above is 87/93 = 93.5% correct.
  *
  * Everything fails open: no key, a network error, a timeout, a non-2xx, or a
  * malformed body becomes an `ok: false` record. Nothing throws.
  *
  * Latency note: the call is fired without blocking the dispatcher's return,
  * but the hook process stays alive until it settles, so an opted-in session's
- * first prompt can wait up to JEV_TIMEOUT_MS longer. That cost exists only
- * while the provider is set.
+ * first prompt waits for it: 1.1 to 1.7 s measured, JEV_TIMEOUT_MS at most.
+ * That cost exists only while the provider is set.
  */
 
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import {
-  CATEGORY_DESCRIPTIONS,
+  CATEGORY_CRITERIA,
   WORK_CATEGORIES,
   parseWorkCategory,
+  type CategoryCriteria,
   type WorkCategory,
 } from './session-identity.js';
 
-/** Opt-in switch: `jev` enables the shadow call; anything else keeps haiku only. */
+/**
+ * Opt-in switch: `jev` runs the cascade, `shadow` only logs the pair;
+ * anything else keeps haiku only.
+ */
 export const CATEGORY_PROVIDER_ENV = 'ORK_SESSION_CATEGORY_PROVIDER';
 
 /** The TypeSafe key variable the user sets. Never logged, never written. */
@@ -46,8 +55,21 @@ export const JEV_ENDPOINT = 'https://api.typesafe.ai/v1/systemone';
 /** Pinned model id: `jev-latest` moves, and a shadow comparison needs a fixed model. */
 export const JEV_MODEL = 'jev-1.13.0';
 
-/** Abort budget for one call. Kill criterion is p95 above 1,000 ms. */
-export const JEV_TIMEOUT_MS = 1_500;
+/**
+ * Abort budget for one call. The held-out eval's p95 of 399 ms was measured on
+ * a warm keep-alive connection inside one long-lived process. The hook is a
+ * fresh node process per session: measured 2026-09-17, eight cold calls took
+ * 1,092 to 1,714 ms (curl breaks the wire cost down as TCP 230 ms + TLS 250 ms
+ * + server 300 ms; node's fetch adds the rest). 1,500 ms would abort about half
+ * of real sessions, so the budget is 3 s.
+ */
+export const JEV_TIMEOUT_MS = 3_000;
+
+/**
+ * In `jev` mode a Jev answer decides the category only at this confidence or
+ * above; below it haiku decides. Held out: 93.5% correct at or above (87/93), 58% below (33/57).
+ */
+export const JEV_CONFIDENCE_THRESHOLD = 0.8;
 
 /** Question id inside the request; code only, not sent as meaning. */
 export const JEV_QUESTION_ID = 'work_category';
@@ -55,10 +77,11 @@ export const JEV_QUESTION_ID = 'work_category';
 /** Same excerpt length the haiku prompt uses. */
 const PROMPT_EXCERPT_MAX = 600;
 
-export type CategoryProvider = 'haiku' | 'jev';
+export type CategoryProvider = 'haiku' | 'jev' | 'shadow';
 
 export function resolveCategoryProvider(env: NodeJS.ProcessEnv = process.env): CategoryProvider {
-  return (env[CATEGORY_PROVIDER_ENV] || '').trim().toLowerCase() === 'jev' ? 'jev' : 'haiku';
+  const value = (env[CATEGORY_PROVIDER_ENV] || '').trim().toLowerCase();
+  return value === 'jev' || value === 'shadow' ? value : 'haiku';
 }
 
 export function resolveTypesafeKey(env: NodeJS.ProcessEnv = process.env): string | null {
@@ -66,9 +89,9 @@ export function resolveTypesafeKey(env: NodeJS.ProcessEnv = process.env): string
   return key || null;
 }
 
-/** True only when the shadow call should run: provider is jev and a key is present. */
-export function isJevShadowEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
-  return resolveCategoryProvider(env) === 'jev' && resolveTypesafeKey(env) !== null;
+/** True only when the Jev call should run: provider is jev or shadow, and a key is present. */
+export function isJevEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
+  return resolveCategoryProvider(env) !== 'haiku' && resolveTypesafeKey(env) !== null;
 }
 
 export interface JevCategoryRequest {
@@ -76,18 +99,19 @@ export interface JevCategoryRequest {
   model: string;
   questions: Record<
     string,
-    { type: 'choice'; instructions: string; criteria: Record<WorkCategory, string> }
+    { type: 'choice'; instructions: string; criteria: Record<WorkCategory, CategoryCriteria> }
   >;
 }
 
 /**
  * Build the Choice request. The criteria map is generated from WORK_CATEGORIES
- * and CATEGORY_DESCRIPTIONS, so its keys are exactly the haiku category set.
+ * and CATEGORY_CRITERIA, so its keys are exactly the haiku category set and
+ * each value is the same what / not_for / examples object haiku reads.
  */
 export function buildJevCategoryRequest(firstPrompt: string, branch: string): JevCategoryRequest {
   const criteria = Object.fromEntries(
-    WORK_CATEGORIES.map((c) => [c, CATEGORY_DESCRIPTIONS[c]]),
-  ) as Record<WorkCategory, string>;
+    WORK_CATEGORIES.map((c) => [c, CATEGORY_CRITERIA[c]]),
+  ) as Record<WorkCategory, CategoryCriteria>;
   return {
     state: {
       git_branch: branch,
@@ -214,35 +238,100 @@ export const FILE_JEV = 'session-identity.jev.json';
 export const FILE_SHADOW = 'session-identity.shadow.json';
 
 /**
- * Fire the shadow call and write its result to `jevPath`. Returns the promise
- * so tests can await it; the dispatcher does not.
+ * Fire the Jev call and write its result to `jevPath`, then hand the settled
+ * result to `onResult` (the state module applies a decided color there).
+ * Returns the promise so tests can await it; the dispatcher does not.
  */
-export function startJevCategoryShadow(
+export function startJevCategory(
   firstPrompt: string,
   branch: string,
   jevPath: string,
   env: NodeJS.ProcessEnv = process.env,
   fetchImpl?: typeof fetch,
+  onResult?: (result: JevCategoryResult) => void,
 ): Promise<void> | null {
-  if (!isJevShadowEnabled(env)) return null;
+  if (!isJevEnabled(env)) return null;
   const apiKey = resolveTypesafeKey(env) as string;
   return classifyCategoryWithJev({ firstPrompt, branch, apiKey, fetchImpl })
     .then((result) => {
       writeFileSync(jevPath, JSON.stringify({ model: JEV_MODEL, ...result }), 'utf8');
+      onResult?.(result);
     })
     .catch(() => {
-      /* fail open: an unwritable session dir only loses this shadow sample */
+      /* fail open: an unwritable session dir only loses this sample */
     });
+}
+
+/** A Jev answer that is allowed to decide the category: `jev` mode and confident. */
+export interface JevCategoryDecision {
+  category: WorkCategory;
+  confidence: number;
+}
+
+/**
+ * Whether a settled result decides the category. Only in `jev` mode, only an
+ * `ok` answer, only at JEV_CONFIDENCE_THRESHOLD or above. `shadow` mode and
+ * every error path return null, which means haiku decides.
+ */
+export function decideCategory(
+  result: JevCategoryResult | null,
+  env: NodeJS.ProcessEnv = process.env,
+): JevCategoryDecision | null {
+  if (!result?.ok || resolveCategoryProvider(env) !== 'jev') return null;
+  if (result.confidence === null || result.confidence < JEV_CONFIDENCE_THRESHOLD) return null;
+  return { category: result.category, confidence: result.confidence };
+}
+
+/** Read the settled result back from `jevPath`, or null when absent or unreadable. */
+export function readJevResult(jevPath: string): JevCategoryResult | null {
+  try {
+    if (!existsSync(jevPath)) return null;
+    const raw = JSON.parse(readFileSync(jevPath, 'utf8')) as Record<string, unknown>;
+    const latencyMs = typeof raw.latencyMs === 'number' ? raw.latencyMs : 0;
+    if (raw.ok !== true) {
+      return {
+        ok: false,
+        error: typeof raw.error === 'string' ? raw.error : 'unknown',
+        status: typeof raw.status === 'number' ? raw.status : null,
+        latencyMs,
+      };
+    }
+    const category = parseWorkCategory(raw.category);
+    if (!category) return { ok: false, error: 'malformed answer', status: null, latencyMs };
+    return {
+      ok: true,
+      category,
+      confidence: typeof raw.confidence === 'number' ? raw.confidence : null,
+      probabilities: {},
+      latencyMs,
+      inputTokens: typeof raw.inputTokens === 'number' ? raw.inputTokens : null,
+      requestId: typeof raw.requestId === 'string' ? raw.requestId : null,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/** The category decision persisted in `jevPath`, if the answer there qualifies. */
+export function readJevDecision(
+  jevPath: string,
+  env: NodeJS.ProcessEnv = process.env,
+): JevCategoryDecision | null {
+  return decideCategory(readJevResult(jevPath), env);
 }
 
 export interface CategoryShadowRecord {
   ts: string;
-  provider: 'jev';
+  /** The opt-in mode the session ran under. */
+  provider: 'jev' | 'shadow';
   model: string;
   haiku: WorkCategory | null;
   jev: WorkCategory | null;
   agree: boolean | null;
   jev_confidence: number | null;
+  /** Which answer decided the session color: Jev only in `jev` mode at or above the threshold. */
+  decided_by: 'jev' | 'haiku';
+  threshold: number;
   latency_ms: number | null;
   input_tokens: number | null;
   error: string | null;
@@ -252,26 +341,30 @@ export interface CategoryShadowRecord {
  * Pair the haiku category with the Jev answer once both are known (or haiku
  * gave up), write the pair to `shadowPath`, and return it. Returns null while
  * either side is still pending or the pair was already recorded. No prompt
- * text is stored, only labels and timings.
+ * text is stored, only labels, the decision and timings.
  */
 export function recordCategoryShadow(
   jevPath: string,
   shadowPath: string,
   haikuCategory: WorkCategory | null,
   haikuSettled: boolean,
+  env: NodeJS.ProcessEnv = process.env,
 ): CategoryShadowRecord | null {
   try {
     if (existsSync(shadowPath) || !existsSync(jevPath) || !haikuSettled) return null;
     const raw = JSON.parse(readFileSync(jevPath, 'utf8')) as Record<string, unknown>;
     const jev = raw.ok === true ? (parseWorkCategory(raw.category) ?? null) : null;
+    const provider = resolveCategoryProvider(env);
     const record: CategoryShadowRecord = {
       ts: new Date().toISOString(),
-      provider: 'jev',
+      provider: provider === 'shadow' ? 'shadow' : 'jev',
       model: typeof raw.model === 'string' ? raw.model : JEV_MODEL,
       haiku: haikuCategory,
       jev,
       agree: haikuCategory && jev ? haikuCategory === jev : null,
       jev_confidence: typeof raw.confidence === 'number' ? raw.confidence : null,
+      decided_by: readJevDecision(jevPath, env) ? 'jev' : 'haiku',
+      threshold: JEV_CONFIDENCE_THRESHOLD,
       latency_ms: typeof raw.latencyMs === 'number' ? raw.latencyMs : null,
       input_tokens: typeof raw.inputTokens === 'number' ? raw.inputTokens : null,
       error: raw.ok === true ? null : typeof raw.error === 'string' ? raw.error : 'unknown',

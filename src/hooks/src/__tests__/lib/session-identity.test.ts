@@ -161,9 +161,10 @@ describe('buildGeneratorPrompt', () => {
     expect(p).toContain('emoji');
   });
 
-  it('caps the excerpt length', () => {
+  it('caps the excerpt at 600 chars', () => {
     const p = buildGeneratorPrompt('y'.repeat(5000), '');
-    expect(p.length).toBeLessThan(1500);
+    expect(p).toContain(`First prompt: ${'y'.repeat(600)}`);
+    expect(p).not.toContain('y'.repeat(601));
     expect(p).not.toContain('Git branch:');
   });
 

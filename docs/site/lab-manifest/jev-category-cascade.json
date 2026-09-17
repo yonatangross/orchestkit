@@ -1,0 +1,8 @@
+{
+  "slug": "jev-category-cascade",
+  "source": "docs/feat--jev-ork-2/index.html",
+  "title": "Session Category Cascade: Jev at 0.8, haiku below",
+  "description": "The held-out criteria become the category definitions for both classifiers, and the opt-in Jev Choice decides the session color at confidence 0.8 or above, with haiku as the fallback. Both outcomes are logged; latency measured on real cold calls.",
+  "tags": ["hooks", "session-identity", "cascade", "typed-choice"],
+  "date": "2026-09-17"
+}

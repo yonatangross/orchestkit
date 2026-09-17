@@ -218,20 +218,30 @@ yourself, via one of:
 - `ORK_HQ_TELEMETRY_URL`, which points the telemetry HTTP sink at *your own* collector.
 - `ORK_HQ_TELEMETRY_USE_HQ_API=1` together with `HQ_API_URL`, the same sink aimed
   at a self-hosted HQ API.
-- `ORK_SESSION_CATEGORY_PROVIDER=jev` together with the TypeSafe key variable
-  `ORK_TYPESAFE_API_KEY`, a **shadow** session work category. The session-identity
-  hook already asks a local `claude -p --model haiku` process for a title and a
-  category; with both variables set it also asks TypeSafe's Jev model
-  (`api.typesafe.ai`, model pinned to `jev-1.13.0`) one typed Choice over the same
-  eight categories. This is the one exception to the "no hardcoded host" note
-  above, and it is dormant unless both variables are set. What leaves your machine:
-  the git branch name and the first 600 characters of the session's first prompt,
-  sent to a third-party processor under its own data policy. What changes: nothing
-  you see. The title and color still come from haiku; the Jev answer is only
-  stored beside it as `session-identity.jev.json` and the pair (labels, confidence,
-  latency, no prompt text) as `session-identity.shadow.json` in the session data
-  directory, plus one hook log line. Cost of opting in: the first prompt of a
-  session can wait up to 1.5 s longer while the call settles.
+- `ORK_SESSION_CATEGORY_PROVIDER=jev` (or `shadow`) together with the TypeSafe
+  key variable `ORK_TYPESAFE_API_KEY`, a second classifier for the session work
+  category. The session-identity hook already asks a local `claude -p --model haiku`
+  process for a title and a category; with both variables set it also asks
+  TypeSafe's Jev model (`api.typesafe.ai`, model pinned to `jev-1.13.0`) one typed
+  Choice over the same eight categories and the same criteria text. This is the
+  one exception to the "no hardcoded host" note above, and it is dormant unless
+  both variables are set. What leaves your machine: the git branch name and the
+  first 600 characters of the session's first prompt, sent to a third-party
+  processor under its own data policy. What changes in `jev` mode: when Jev
+  answers at confidence 0.8 or above, its category decides the session color
+  (held out on 150 sessions, that band is 93.5% correct);
+  below 0.8, or on any error, haiku's category decides as before. The title and
+  emoji always come from haiku. In `shadow` mode nothing you see changes; Jev is
+  only logged beside haiku. To turn it on locally, in the shell that launches
+  `claude`: `export ORK_TYPESAFE_API_KEY="$(<your secret manager> ...)"` and
+  `export ORK_SESSION_CATEGORY_PROVIDER=jev`. Both outcomes are logged once per
+  session in the hook log, as
+  `category jev: haiku=<cat> jev=<cat> agree=<bool> confidence=<n> decided_by=jev|haiku threshold=0.8 latency_ms=<n>`,
+  and as `session-identity.shadow.json` with the same fields (labels, decision,
+  timing; never prompt text) next to the raw answer `session-identity.jev.json`
+  in the session data directory. Cost of opting in: the first prompt of a session
+  waits for the call to settle, 1.1 to 1.7 s measured from a fresh hook process
+  (the eval's 320 ms was a warm connection), 3 s at most before it gives up.
 
 The sink returns early when the URL or the token is missing, and
 `telemetry-sync.mjs` prints `No ORCHESTKIT_HOOK_URL or TOKEN configured. Nothing

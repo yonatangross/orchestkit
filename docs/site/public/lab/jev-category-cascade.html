@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Session Category Cascade: Jev at 0.8, haiku below | OrchestKit Lab</title>
+  <meta name="description" content="The held-out criteria become the category definitions for both classifiers, and the opt-in Jev Choice now decides the session color when it is confident (0.8 or above), with haiku as the fallback. Both outcomes are logged. Measured on real calls.">
+  <style>
+    :root { color-scheme: dark; font: 17px/1.6 system-ui, sans-serif; background: #101822; color: #e9eef3; }
+    body { max-width: 820px; margin: auto; padding: 48px 24px; }
+    h1 { font-size: clamp(2rem, 6vw, 3.4rem); line-height: 1.1; }
+    h2 { font-size: 1.25rem; margin-top: 32px; }
+    a { color: #8fd8ff; }
+    .eyebrow { color: #8fd8ff; letter-spacing: .08em; }
+    article { border: 1px solid #43566a; border-radius: 12px; padding: 20px; margin: 20px 0; }
+    .warn { color: #fbbf24; }
+    .ok { color: #4ade80; }
+    .bad { color: #f87171; }
+    .quote { border-left: 3px solid #43566a; margin: 12px 0; padding: 4px 16px; font-size: 15px; }
+    code { background: rgba(255,255,255,.07); border-radius: 4px; padding: 1px 6px; font-size: 14px; }
+    table { border-collapse: collapse; width: 100%; font-size: 15px; }
+    td, th { border: 1px solid #43566a; padding: 6px 10px; text-align: left; vertical-align: top; }
+    .flow { font-family: monospace; padding: 12px; background: #0d1017; border-radius: 6px; margin-top: 16px; white-space: pre; overflow-x: auto; font-size: 14px; }
+    .bar { display: inline-block; height: 12px; background: #8fd8ff; border-radius: 3px; vertical-align: middle; }
+    .swatch { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: middle; margin-right: 4px; }
+    footer { margin-top: 32px; color: #b8c5d1; font-size: 14px; }
+  </style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Session Category Cascade: Jev at 0.8, haiku below"><meta property="og:description" content="The held-out criteria become the category definitions for both classifiers, and the opt-in Jev Choice decides the session color at confidence 0.8 or above, with haiku as the fallback. Both outcomes are logged; latency measured on real cold calls."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/jev-category-cascade.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Session Category Cascade: Jev at 0.8, haiku below"><meta name="twitter:description" content="The held-out criteria become the category definitions for both classifiers, and the opt-in Jev Choice decides the session color at confidence 0.8 or above, with haiku as the fallback. Both outcomes are logged; latency measured on real cold calls."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+  <main>
+    <p class="eyebrow">ORCHESTKIT LAB · FEAT--JEV-ORK-2</p>
+    <h1>Session Category Cascade: Jev at 0.8, haiku below</h1>
+    <p>Every session spawns a detached <code>claude -p --model haiku</code> process to name
+    it and pick one of eight work categories, which becomes the session color. Since #4208
+    an opt-in typed Choice to TypeSafe's Jev model ran beside it in shadow. This PR does
+    two things the held-out eval (#4210) justified: it ships the eval's criteria as the
+    category definitions for <strong>both</strong> classifiers, and it turns the shadow
+    into a <strong>cascade</strong>. Jev decides the color when it is confident; haiku
+    decides otherwise; both outcomes are logged.</p>
+
+    <article aria-labelledby="why">
+      <h2 id="why">Why the criteria, and why 0.8</h2>
+      <p>On 150 held-out sessions with the SAME criteria, Jev and haiku tie
+      (80.0% vs 79.3%, McNemar p=1.0). Both beat the old one-phrase descriptions by about
+      14 points: the criteria were the variable, not the model. That is why the criteria
+      ship for both paths. Jev's confidence separates the rows it gets right:</p>
+      <table>
+        <tr><th>Jev confidence</th><th>Rows</th><th>Correct</th></tr>
+        <tr><td>below 0.5</td><td>17</td><td><span class="bar" style="width:35px"></span> 6 (35%)</td></tr>
+        <tr><td>0.5 to below 0.8</td><td>40</td><td><span class="bar" style="width:68px"></span> 27 (68%)</td></tr>
+        <tr><td><strong>0.8 and above</strong></td><td>93</td><td><span class="bar" style="width:94px"></span> <strong>87 (93.5%)</strong></td></tr>
+      </table>
+      <p class="quote">The ninth <code>review</code> option from the eval is folded into
+      <code>testing</code>: 10 of 150 rows, under one point of accuracy for either model,
+      and it keeps eight categories and eight colors. Seven of the eight shipped entries are
+      byte-identical to <code>criteria-B.json</code>; <code>testing</code> is the fold.</p>
+    </article>
+
+    <article aria-labelledby="flow">
+      <h2 id="flow">What runs, and when</h2>
+      <div class="flow">turn 1 ─┬─ hash color (instant)
+         ├─ haiku claude -p (unchanged)   → session-identity.raw, ~6 to 30 s → title + emoji
+         └─ Jev Choice (opt-in, jev mode) → session-identity.jev.json, 1.1 to 1.7 s
+              confidence >= 0.8 → color set NOW from Jev's category, "category decided by jev"
+              confidence <  0.8 → "category left to haiku: jev said X at confidence Y, below 0.8"
+              error / timeout   → "category left to haiku: jev &lt;error&gt;"
+turn N ── haiku lands → title from haiku; color from Jev if it decided, else from haiku
+          → session-identity.shadow.json + one log line with decided_by=jev|haiku</div>
+      <table>
+        <tr><th>Setting</th><th>Behavior</th></tr>
+        <tr><td>nothing set (default)</td><td class="ok">haiku only, no network call, no new files</td></tr>
+        <tr><td><code>ORK_SESSION_CATEGORY_PROVIDER=jev</code> without a key</td><td class="ok">still haiku only</td></tr>
+        <tr><td><code>jev</code> plus <code>ORK_TYPESAFE_API_KEY</code></td><td class="warn">the cascade above; title and emoji always from haiku</td></tr>
+        <tr><td><code>shadow</code> plus <code>ORK_TYPESAFE_API_KEY</code></td><td class="ok">Jev called and logged, never applied (the #4208 behavior)</td></tr>
+      </table>
+      <p class="quote">What leaves the machine when opted in: the branch name and the first
+      600 characters of the first prompt. Model pinned to <code>jev-1.13.0</code>.</p>
+    </article>
+
+    <article aria-labelledby="real">
+      <h2 id="real">Three real sessions through the built bundle</h2>
+      <p>Run outside the sandbox with the Dev key, through <code>run-hook.mjs</code>, three
+      hook turns each. Colors are the transcript's <code>agent-color</code> records.</p>
+      <table>
+        <tr><th>First prompt</th><th>Jev</th><th>Turn 1 color</th><th>haiku (turn 3)</th><th>decided_by</th></tr>
+        <tr><td>fix the login page 404 after sign in</td><td>bugfix, 1.00, 1,079 ms</td><td><span class="swatch" style="background:#f87171"></span>red (Jev)</td><td>bugfix, "Fix login redirect 404"</td><td class="ok">jev, agree</td></tr>
+        <tr><td>research the typesafe vendor and write an adoption plan for the team, no code changes</td><td>docs, 1.00, 1,061 ms</td><td><span class="swatch" style="background:#60a5fa"></span>green (hash) → blue (Jev)</td><td>docs, "TypeSafe vendor adoption plan"</td><td class="ok">jev, agree</td></tr>
+        <tr><td>go</td><td>feature, 0.59, 1,453 ms</td><td><span class="swatch" style="background:#22d3ee"></span>cyan (hash, kept)</td><td>prose, no category</td><td class="warn">haiku (nothing to apply)</td></tr>
+      </table>
+    </article>
+
+    <article aria-labelledby="latency">
+      <h2 id="latency">The number that changed: latency</h2>
+      <p>The eval reported Jev p50 319 ms and p95 399 ms. Those were warm keep-alive calls
+      inside one long-lived process. The hook is a fresh node process per session, so every
+      call pays DNS, TCP and TLS. Measured 2026-09-17, eight cold calls:</p>
+      <div class="flow">node fetch, cold:  1092 1194 1267 1486 1510 1510 1605 1714 ms
+curl, cold:        dns 11 · tcp 239 · tls 482 · first byte 768 ms  (server work ~300 ms)</div>
+      <p>The #4208 abort of 1.5 s would have timed out about half of real sessions and sent
+      them to haiku silently. The budget is now <strong>3 s</strong>. The opted-in cost is
+      therefore "the first prompt waits 1.1 to 1.7 s", not "0.3 s".</p>
+    </article>
+
+    <article aria-labelledby="tests">
+      <h2 id="tests">Evidence</h2>
+      <table>
+        <tr><th>Check</th><th>Result</th></tr>
+        <tr><td>Identity and provider test files (mocked HTTP only)</td><td class="ok">4 files, 85 tests passed (77 before)</td></tr>
+        <tr><td>Contract: Choice criteria equal the haiku block; 8 keys; no <code>review</code>; no dangling <code>not_for</code> pointer</td><td class="ok">pinned</td></tr>
+        <tr><td>Cascade: 0.8 inclusive decides; 0.79, null, error, shadow mode, haiku mode do not</td><td class="ok">pinned</td></tr>
+        <tr><td>Built bundle, provider off</td><td class="ok">no <code>session-identity.jev.json</code>, output unchanged</td></tr>
+        <tr><td>Built bundle, provider on, network denied</td><td class="ok"><code>ok:false</code>, output unchanged, fallback logged</td></tr>
+        <tr><td>Built bundle, provider on, real key</td><td class="ok">the three sessions above</td></tr>
+        <tr><td>typecheck, biome, FH-ready ratchet</td><td class="ok">clean, 0 new offenders</td></tr>
+      </table>
+    </article>
+
+    <footer>Branch <code>feat/jev-ork-2</code>. Turn it on locally with
+    <code>ORK_TYPESAFE_API_KEY</code> from your secret manager and
+    <code>ORK_SESSION_CATEGORY_PROVIDER=jev</code> in the shell that launches <code>claude</code>.</footer>
+  </main>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
