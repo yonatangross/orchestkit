@@ -191,7 +191,7 @@ The holdout-promotion gate grades a **champion** and a **challenger** SKILL.md o
 
 ## Rules (3)
 
-### Use --bare for grading/classification only — MEDIUM
+### Use --bare for grading/classification only: MEDIUM
 
 
 # Use --bare for Grading/Classification Only
@@ -241,7 +241,7 @@ build_claude_flags() {
 The eval pipeline's value comes from testing skills in their real environment. `--bare` is for the grading/classification overhead calls, not the core eval itself.
 
 
-### Never combine --bare with --plugin-dir — HIGH
+### Never combine --bare with --plugin-dir: HIGH
 
 
 # Never Combine --bare with --plugin-dir
@@ -270,7 +270,7 @@ claude -p "$prompt" --bare --max-turns 1 --output-format text
 The `--bare` flag was designed for scripted `-p` calls that don't need the full Claude Code environment. Using it with `--plugin-dir` defeats the purpose and may cause unpredictable behavior since hooks and skill discovery are disabled.
 
 
-### Always check ANTHROPIC_API_KEY before using --bare — HIGH
+### Always check ANTHROPIC_API_KEY before using --bare: HIGH
 
 
 # Always Check ANTHROPIC_API_KEY Before --bare

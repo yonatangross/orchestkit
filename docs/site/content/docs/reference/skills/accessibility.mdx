@@ -172,7 +172,7 @@ Vendor tutorials, API references, and criterion walkthroughs removed in the 2026
 
 ## Rules (10)
 
-### Grep-able anti-patterns detectable via static code analysis without a browser — HIGH
+### Grep-able anti-patterns detectable via static code analysis without a browser: HIGH
 
 
 # Accessibility Anti-Patterns: Static Detection
@@ -295,7 +295,7 @@ button:focus-visible {
 | Autoplay | `jsx-a11y/media-has-caption` |
 
 
-### Build accessible buttons, dialogs, and menus with React Aria keyboard support — HIGH
+### Build accessible buttons, dialogs, and menus with React Aria keyboard support: HIGH
 
 
 # React Aria Components (useButton, useDialog, useMenu)
@@ -480,7 +480,7 @@ return <button {...buttonProps} ref={ref}>Click me</button>;
 ```
 
 
-### Create accessible form controls with React Aria labels and keyboard navigation — HIGH
+### Create accessible form controls with React Aria labels and keyboard navigation: HIGH
 
 
 # React Aria Forms (useComboBox, useTextField, useListBox)
@@ -703,7 +703,7 @@ return (
 ```
 
 
-### Ensure all interactive elements support keyboard navigation with roving tabindex — HIGH
+### Ensure all interactive elements support keyboard navigation with roving tabindex: HIGH
 
 
 # Keyboard Navigation (WCAG 2.1.1, 2.4.3, 2.4.7)
@@ -942,7 +942,7 @@ useEffect(() => inputRef.current?.focus(), []);
 ```
 
 
-### Concrete pass/fail exit criteria for each POUR principle mapped to WCAG 2.2 criteria — CRITICAL
+### Concrete pass/fail exit criteria for each POUR principle mapped to WCAG 2.2 criteria: CRITICAL
 
 
 # POUR Exit Criteria (WCAG 2.2 AA)
@@ -1008,7 +1008,7 @@ Pass/fail thresholds for each principle. Every item must pass before marking a f
 - [ ] All `aria-*` attributes reference existing IDs. No orphaned `aria-labelledby` or `aria-describedby` values. (4.1.2, A)
 
 
-### Meet WCAG 4.5:1 minimum contrast ratio for text and UI component readability — CRITICAL
+### Meet WCAG 4.5:1 minimum contrast ratio for text and UI component readability: CRITICAL
 
 
 # Color Contrast (WCAG 1.4.3, 1.4.11)
@@ -1134,7 +1134,7 @@ Content must reflow without horizontal scrolling at 320px width:
 ```
 
 
-### Prefer native HTML elements over custom ARIA widgets for built-in accessibility — CRITICAL
+### Prefer native HTML elements over custom ARIA widgets for built-in accessibility: CRITICAL
 
 
 # Native HTML First (2026 Best Practice)
@@ -1239,7 +1239,7 @@ Use custom ARIA only when native elements cannot meet the requirement:
 - [ ] ARIA attributes are only used where no native equivalent exists
 
 
-### Use semantic HTML and ARIA attributes for proper screen reader document structure — CRITICAL
+### Use semantic HTML and ARIA attributes for proper screen reader document structure: CRITICAL
 
 
 # Semantic HTML & ARIA (WCAG 1.3.1, 4.1.2)
@@ -1404,7 +1404,7 @@ Always follow h1-h6 order without skipping levels:
 ```
 
 
-### Test accessibility compliance with axe-core automation and manual screen reader verification — CRITICAL
+### Test accessibility compliance with axe-core automation and manual screen reader verification: CRITICAL
 
 
 # Accessibility Testing
@@ -1532,7 +1532,7 @@ test('accessibility - automated', async ({ page }) => {
 ```
 
 
-### Honor all user preferences including motion, color scheme, contrast, and zoom — HIGH
+### Honor all user preferences including motion, color scheme, contrast, and zoom: HIGH
 
 
 # User Preferences (2026 Best Practices)

@@ -336,7 +336,7 @@ See `test-cases.json` for consolidated test cases across all categories.
 
 ## Rules (41)
 
-### Recover interrupted workflow state and debug checkpoint history — HIGH
+### Recover interrupted workflow state and debug checkpoint history: HIGH
 
 
 ## State Recovery and Debugging
@@ -395,7 +395,7 @@ app.update_state(config, previous.values)
 Reference: [LangGraph Persistence](https://langchain-ai.github.io/langgraph/concepts/persistence/)
 
 
-### Configure persistent checkpointer to survive crashes in production workflows — HIGH
+### Configure persistent checkpointer to survive crashes in production workflows: HIGH
 
 
 ## Checkpointer Setup
@@ -437,7 +437,7 @@ with PostgresSaver.from_conn_string("postgresql://...") as checkpointer:
 Reference: [LangGraph Persistence](https://langchain-ai.github.io/langgraph/concepts/persistence/)
 
 
-### Use Store for cross-thread memory instead of per-thread checkpoints — HIGH
+### Use Store for cross-thread memory instead of per-thread checkpoints: HIGH
 
 
 ## Cross-Thread Store Memory
@@ -518,7 +518,7 @@ Thread 1 (chat-001)    Thread 2 (chat-002)
 Reference: [LangGraph Memory](https://langchain-ai.github.io/langgraph/concepts/memory/)
 
 
-### Configure @entrypoint decorator with checkpointer for resumable workflows — MEDIUM
+### Configure @entrypoint decorator with checkpointer for resumable workflows: MEDIUM
 
 
 ## @entrypoint Decorator
@@ -583,7 +583,7 @@ for chunk in approval_workflow.stream(Command(resume=True), config):
 Reference: [LangGraph Functional API](https://langchain-ai.github.io/langgraph/concepts/functional_api/)
 
 
-### Migrate from StateGraph to Functional API while preserving routing flexibility — MEDIUM
+### Migrate from StateGraph to Functional API while preserving routing flexibility: MEDIUM
 
 
 ## StateGraph to Functional API Migration
@@ -708,7 +708,7 @@ def workflow(input: str) -> str:
 Reference: [LangGraph Functional API](https://langchain-ai.github.io/langgraph/concepts/functional_api/)
 
 
-### Use @task decorator correctly and always call .result() on futures — MEDIUM
+### Use @task decorator correctly and always call .result() on futures: MEDIUM
 
 
 ## @task Decorator and Futures
@@ -769,7 +769,7 @@ def batch_workflow(items: list[dict]) -> list[dict]:
 Reference: [LangGraph Functional API](https://langchain-ai.github.io/langgraph/concepts/functional_api/)
 
 
-### Implement approval gate pattern with reject paths to prevent dead-end workflows — MEDIUM
+### Implement approval gate pattern with reject paths to prevent dead-end workflows: MEDIUM
 
 
 ## Approval Gate Pattern
@@ -834,7 +834,7 @@ app = workflow.compile(interrupt_before=["first_review", "final_review"])
 Reference: [LangGraph Human-in-the-Loop](https://langchain-ai.github.io/langgraph/concepts/human_in_the_loop/)
 
 
-### Build iterative feedback loops that refine output across multiple human rounds — MEDIUM
+### Build iterative feedback loops that refine output across multiple human rounds: MEDIUM
 
 
 ## Feedback Loop Pattern
@@ -899,7 +899,7 @@ def get_valid_age(state):
 Reference: [LangGraph Human-in-the-Loop](https://langchain-ai.github.io/langgraph/concepts/human_in_the_loop/)
 
 
-### Use interrupt() for conditional pausing and Command for resuming workflows — MEDIUM
+### Use interrupt() for conditional pausing and Command for resuming workflows: MEDIUM
 
 
 ## Dynamic Interrupt and Resume
@@ -960,7 +960,7 @@ if "__interrupt__" in result:
 Reference: [LangGraph Human-in-the-Loop](https://langchain-ai.github.io/langgraph/concepts/human_in_the_loop/)
 
 
-### Isolate errors in parallel branches to preserve completed results on failure — HIGH
+### Isolate errors in parallel branches to preserve completed results on failure: HIGH
 
 
 ## Error Isolation in Parallel Execution
@@ -1007,7 +1007,7 @@ async def parallel_with_isolation(agents: list, content: str, timeout: int = 30)
 Reference: [LangGraph Parallel Execution](https://langchain-ai.github.io/langgraph/how-tos/map-reduce/)
 
 
-### Use Send API for dynamic fan-out and fan-in parallel branches — HIGH
+### Use Send API for dynamic fan-out and fan-in parallel branches: HIGH
 
 
 ## Fan-Out/Fan-In Pattern
@@ -1064,7 +1064,7 @@ builder.add_edge("generate_joke", END)  # All branches converge automatically
 Reference: [LangGraph Send API](https://langchain-ai.github.io/langgraph/concepts/low_level/#send)
 
 
-### Apply map-reduce with asyncio.gather for independent parallel task processing — HIGH
+### Apply map-reduce with asyncio.gather for independent parallel task processing: HIGH
 
 
 ## Map-Reduce Pattern
@@ -1116,7 +1116,7 @@ async def map_reduce_node(state: State) -> dict:
 Reference: [LangGraph Parallel Execution](https://langchain-ai.github.io/langgraph/how-tos/map-reduce/)
 
 
-### Configure LangGraph Platform for local dev, Docker builds, and cloud deployment — HIGH
+### Configure LangGraph Platform for local dev, Docker builds, and cloud deployment: HIGH
 
 
 ## Platform Deployment
@@ -1225,7 +1225,7 @@ async def authorize(params, user_id: str):
 Reference: [LangGraph Platform](https://langchain-ai.github.io/langgraph/concepts/langgraph_platform/)
 
 
-### Handle concurrent user messages with double-texting strategies — MEDIUM
+### Handle concurrent user messages with double-texting strategies: MEDIUM
 
 
 ## Double Texting
@@ -1328,7 +1328,7 @@ run = await client.runs.create(
 Reference: [Double Texting](https://langchain-ai.github.io/langgraph/concepts/double_texting/)
 
 
-### Use RemoteGraph to invoke deployed LangGraph instances from client code — HIGH
+### Use RemoteGraph to invoke deployed LangGraph instances from client code: HIGH
 
 
 ## RemoteGraph
@@ -1423,7 +1423,7 @@ builder.add_edge("summarize", END)
 Reference: [RemoteGraph](https://langchain-ai.github.io/langgraph/concepts/langgraph_platform/#remotegraph)
 
 
-### Recover exhausted nodes with error_handler= instead of wrapping every node body in try/except — HIGH
+### Recover exhausted nodes with error_handler= instead of wrapping every node body in try/except: HIGH
 
 
 ## Node Error Handlers (1.2+)
@@ -1515,7 +1515,7 @@ Defaults are `initial_interval=0.5`, `backoff_factor=2.0`, `max_interval=128.0`,
 - Re-raise `error.error` for cases the handler does not genuinely recover from
 
 
-### Drain a run with RunControl on shutdown instead of letting SIGTERM kill it mid-superstep — HIGH
+### Drain a run with RunControl on shutdown instead of letting SIGTERM kill it mid-superstep: HIGH
 
 
 ## Cooperative Graceful Shutdown (1.2+)
@@ -1592,7 +1592,7 @@ Pair it with the container's grace period: request the drain on SIGTERM, and siz
 - Drain is not cancellation: use `timeout=` (see `resilience-node-timeouts.md`) to bound a stuck node
 
 
-### Bound every node attempt with timeout= instead of letting a hung call stall the graph forever — CRITICAL
+### Bound every node attempt with timeout= instead of letting a hung call stall the graph forever: CRITICAL
 
 
 ## Per-Node Timeouts (1.2+)
@@ -1686,7 +1686,7 @@ without parsing a message string.
 - Set `run_timeout` above p99 latency, not above the mean, or retries amplify load during a slowdown
 
 
-### Define conditional edge routing with explicit mappings and END fallback — HIGH
+### Define conditional edge routing with explicit mappings and END fallback: HIGH
 
 
 ## Conditional Edge Routing
@@ -1747,7 +1747,7 @@ Diamond:       A → (B, C) → D         (parallel then merge)
 Reference: [LangGraph Conditional Edges](https://langchain-ai.github.io/langgraph/concepts/low_level/#conditional-edges)
 
 
-### Use Command(graph=...) for cross-graph navigation between parent and sibling subgraphs — HIGH
+### Use Command(graph=...) for cross-graph navigation between parent and sibling subgraphs: HIGH
 
 
 ## Cross-Graph Navigation
@@ -1852,7 +1852,7 @@ def researcher_node(state: ResearcherState) -> Command[Literal["writer"]]:
 Reference: [Cross-graph navigation](https://langchain-ai.github.io/langgraph/how-tos/command/#navigate-to-a-node-in-a-parent-graph)
 
 
-### Implement retry loops with max counter to prevent infinite resource consumption — HIGH
+### Implement retry loops with max counter to prevent infinite resource consumption: HIGH
 
 
 ## Prefer the framework's retry primitives (1.2+)
@@ -1935,7 +1935,7 @@ workflow.add_conditional_edges("llm_call", should_retry, {
 Reference: [LangGraph Conditional Edges](https://langchain-ai.github.io/langgraph/concepts/low_level/#conditional-edges)
 
 
-### Route with embedding similarity or Command API instead of conditional edges — HIGH
+### Route with embedding similarity or Command API instead of conditional edges: HIGH
 
 
 ## Semantic & Command Routing
@@ -2008,7 +2008,7 @@ def semantic_router(state) -> str:
 Reference: [LangGraph Command API](https://langchain-ai.github.io/langgraph/concepts/low_level/#command)
 
 
-### Store growing accumulators in a DeltaChannel so checkpoints do not re-serialize the whole value every superstep — HIGH
+### Store growing accumulators in a DeltaChannel so checkpoints do not re-serialize the whole value every superstep: HIGH
 
 
 ## DeltaChannel for Large Accumulators (1.2+, beta)
@@ -2095,7 +2095,7 @@ surrounding contract is not stable: `BaseCheckpointSaver.get_delta_channel_histo
 - Pin `langgraph` tightly while it is beta, and re-read the release notes before a minor bump
 
 
-### Use MessagesState with add_messages reducer to preserve conversation history — CRITICAL
+### Use MessagesState with add_messages reducer to preserve conversation history: CRITICAL
 
 
 ## MessagesState Pattern
@@ -2144,7 +2144,7 @@ def agent_node(state):
 Reference: [LangGraph MessagesState](https://langchain-ai.github.io/langgraph/concepts/low_level/#messagesstate)
 
 
-### Apply Pydantic state validation at boundaries only to minimize runtime overhead — HIGH
+### Apply Pydantic state validation at boundaries only to minimize runtime overhead: HIGH
 
 
 ## Pydantic State Validation
@@ -2193,7 +2193,7 @@ class WorkflowOutput(BaseModel):
 Reference: [LangGraph State Concepts](https://langchain-ai.github.io/langgraph/concepts/low_level/#state)
 
 
-### Define custom Annotated reducers for merge, dedup, and last-value state patterns — HIGH
+### Define custom Annotated reducers for merge, dedup, and last-value state patterns: HIGH
 
 
 ## Custom Annotated Reducers
@@ -2260,7 +2260,7 @@ def agent_node(state: WorkflowState, remaining: RemainingSteps):
 Reference: [LangGraph Reducers](https://langchain-ai.github.io/langgraph/concepts/low_level/#reducers)
 
 
-### Design TypedDict state with Annotated accumulators to prevent silent data loss — CRITICAL
+### Design TypedDict state with Annotated accumulators to prevent silent data loss: CRITICAL
 
 
 ## TypedDict State Pattern
@@ -2334,7 +2334,7 @@ graph = builder.compile(cache=InMemoryCache())
 Reference: [LangGraph State Concepts](https://langchain-ai.github.io/langgraph/concepts/low_level/#state)
 
 
-### Emit custom streaming events to provide client visibility into node progress — MEDIUM
+### Emit custom streaming events to provide client visibility into node progress: MEDIUM
 
 
 ## Custom Event Streaming
@@ -2399,7 +2399,7 @@ async def stream_workflow(request: WorkflowRequest):
 Reference: [LangGraph Streaming](https://langchain-ai.github.io/langgraph/concepts/streaming/)
 
 
-### Choose the right stream mode for efficient real-time UI integration — MEDIUM
+### Choose the right stream mode for efficient real-time UI integration: MEDIUM
 
 
 ## Stream Modes
@@ -2451,7 +2451,7 @@ for namespace, chunk in graph.stream(inputs, subgraphs=True, stream_mode="update
 Reference: [LangGraph Streaming](https://langchain-ai.github.io/langgraph/concepts/streaming/)
 
 
-### Filter LLM token streams by node or tags to avoid cross-node noise — MEDIUM
+### Filter LLM token streams by node or tags to avoid cross-node noise: MEDIUM
 
 
 ## LLM Token Streaming
@@ -2500,7 +2500,7 @@ def call_custom_llm(state):
 Reference: [LangGraph Streaming](https://langchain-ai.github.io/langgraph/concepts/streaming/)
 
 
-### Use streaming v2 format for type-safe real-time output — MEDIUM
+### Use streaming v2 format for type-safe real-time output: MEDIUM
 
 
 ## Streaming v2 Format (LangGraph 1.2+)
@@ -2562,7 +2562,7 @@ assert isinstance(result.value, MyState)  # auto-coerced — not a plain dict
 Reference: [LangGraph Release Notes](https://github.com/langchain-ai/langgraph/releases)
 
 
-### Add subgraph directly as node when parent and child share the same state — MEDIUM
+### Add subgraph directly as node when parent and child share the same state: MEDIUM
 
 
 ## Add Subgraph as Node (Shared State)
@@ -2611,7 +2611,7 @@ parent_builder.add_edge("agent_team", END)
 Reference: [LangGraph Subgraphs](https://langchain-ai.github.io/langgraph/concepts/low_level/#subgraphs)
 
 
-### Invoke subgraph from node with state transformation to prevent schema mismatch — MEDIUM
+### Invoke subgraph from node with state transformation to prevent schema mismatch: MEDIUM
 
 
 ## Invoke Subgraph from Node
@@ -2671,7 +2671,7 @@ parent_builder.add_node("analysis", call_analysis)
 Reference: [LangGraph Subgraphs](https://langchain-ai.github.io/langgraph/concepts/low_level/#subgraphs)
 
 
-### Propagate config through subgraph state mapping for tracing and checkpointing — MEDIUM
+### Propagate config through subgraph state mapping for tracing and checkpointing: MEDIUM
 
 
 ## Subgraph State Mapping
@@ -2736,7 +2736,7 @@ for namespace, chunk in graph.stream(inputs, subgraphs=True, stream_mode="update
 Reference: [LangGraph Subgraphs](https://langchain-ai.github.io/langgraph/concepts/low_level/#subgraphs)
 
 
-### Build supervisor-worker pattern with Command API for coordinated state routing — HIGH
+### Build supervisor-worker pattern with Command API for coordinated state routing: HIGH
 
 
 ## Supervisor-Worker Pattern
@@ -2800,7 +2800,7 @@ app = graph.compile()
 Reference: [LangGraph Supervisor](https://langchain-ai.github.io/langgraph/concepts/multi_agent/#supervisor)
 
 
-### Route supervisor tasks by priority to ensure critical-first execution order — HIGH
+### Route supervisor tasks by priority to ensure critical-first execution order: HIGH
 
 
 ## Priority-Based Supervisor Routing
@@ -2865,7 +2865,7 @@ async def llm_supervisor(state):
 Reference: [LangGraph Supervisor](https://langchain-ai.github.io/langgraph/concepts/multi_agent/#supervisor)
 
 
-### Dispatch agents in round-robin order with completion tracking to avoid repeats — MEDIUM
+### Dispatch agents in round-robin order with completion tracking to avoid repeats: MEDIUM
 
 
 ## Round-Robin Supervisor Dispatch
@@ -2924,7 +2924,7 @@ for name in ALL_AGENTS:
 Reference: [LangGraph Multi-Agent](https://langchain-ai.github.io/langgraph/concepts/multi_agent/)
 
 
-### Bind tools to LLMs correctly with proper tool_choice to ensure invocation — CRITICAL
+### Bind tools to LLMs correctly with proper tool_choice to ensure invocation: CRITICAL
 
 
 ## Tool Binding to LLMs
@@ -2983,7 +2983,7 @@ model.bind_tools(tools, tool_choice="search_database")  # Specific tool
 Reference: [LangGraph Tool Calling](https://langchain-ai.github.io/langgraph/concepts/agentic_concepts/#tool-calling-agent)
 
 
-### Filter tools dynamically by relevance to avoid context overflow from large sets — HIGH
+### Filter tools dynamically by relevance to avoid context overflow from large sets: HIGH
 
 
 ## Dynamic Tool Selection
@@ -3035,7 +3035,7 @@ def agent_with_dynamic_tools(state):
 Reference: [LangGraph Tool Calling](https://langchain-ai.github.io/langgraph/concepts/agentic_concepts/#tool-calling-agent)
 
 
-### Gate dangerous tool execution with interrupt-based human approval before proceeding — CRITICAL
+### Gate dangerous tool execution with interrupt-based human approval before proceeding: CRITICAL
 
 
 ## Tool Interrupt Approval Gates
@@ -3108,7 +3108,7 @@ def long_running_analysis(data: str) -> str:
 Reference: [LangGraph Human-in-the-Loop](https://langchain-ai.github.io/langgraph/concepts/human_in_the_loop/)
 
 
-### Use ToolNode for automatic parallel tool execution with built-in error handling — CRITICAL
+### Use ToolNode for automatic parallel tool execution with built-in error handling: CRITICAL
 
 
 ## ToolNode Execution

@@ -141,7 +141,7 @@ Present results as clean markdown tables. Include counts, percentages, and avera
 
 ## Rules (5)
 
-### Calculate token costs accurately by separating cache reads from regular input pricing — HIGH
+### Calculate token costs accurately by separating cache reads from regular input pricing: HIGH
 
 
 ## Token Cost Calculation
@@ -182,7 +182,7 @@ const savings = withoutCache - cost;
 - Pricing is user-overridable via `~/.claude/orchestkit-pricing.json`; an org's managed `modelPricing` (overrides, then multiplier) wins over both it and the vocab, see `references/cost-estimation.md`
 
 
-### Protect analytics data privacy by hashing identifiers and stripping sensitive fields — CRITICAL
+### Protect analytics data privacy by hashing identifiers and stripping sensitive fields: CRITICAL
 
 
 ## Analytics Data Privacy
@@ -220,7 +220,7 @@ appendAnalytics('agent-usage.jsonl', {
 - The `team` field uses team names (user-chosen), not paths
 
 
-### Stream large analytics files with jq instead of slurping to prevent OOM crashes — HIGH
+### Stream large analytics files with jq instead of slurping to prevent OOM crashes: HIGH
 
 
 ## Large File Streaming
@@ -257,7 +257,7 @@ jq -r 'select(.agent != "unknown") | .agent' ~/.claude/analytics/agent-usage.*.j
 - For date-range queries, filter by `ts` field before aggregating
 
 
-### Design dashboard layouts with shared query keys and grid widgets for performance — HIGH
+### Design dashboard layouts with shared query keys and grid widgets for performance: HIGH
 
 
 ## Dashboard Layout & Widgets
@@ -376,7 +376,7 @@ function useRealtimeMetrics() {
 - Update specific query keys on real-time events, not entire cache
 
 
-### Configure Recharts with ResponsiveContainer and animation control for stable rendering — HIGH
+### Configure Recharts with ResponsiveContainer and animation control for stable rendering: HIGH
 
 
 ## Recharts Chart Components

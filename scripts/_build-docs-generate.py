@@ -325,7 +325,7 @@ def subdir_entry_title(entry: dict) -> str:
     sec_title = entry["title"]
     impact = entry["frontmatter"].get("impact", "")
     if impact:
-        sec_title = f"{sec_title} — {impact}"
+        sec_title = f"{sec_title}: {impact}"
     return sec_title
 
 

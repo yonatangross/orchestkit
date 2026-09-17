@@ -148,7 +148,7 @@ Detection and alerting for silent failures in LLM agents.
 
 ## Rules (5)
 
-### Trace LLM call chains with Langfuse for debugging slow or incorrect responses — HIGH
+### Trace LLM call chains with Langfuse for debugging slow or incorrect responses: HIGH
 
 
 # Langfuse Traces
@@ -367,7 +367,7 @@ async def analyze(content: str):
 ```
 
 
-### Design Grafana dashboards for actionable incident response and capacity planning — CRITICAL
+### Design Grafana dashboards for actionable incident response and capacity planning: CRITICAL
 
 
 # Grafana Dashboards
@@ -468,7 +468,7 @@ histogram_quantile(0.99, rate(http_request_duration_seconds_bucket[5m]))
 ```
 
 
-### Alert on silent failures using statistical baselines and proactive health monitoring — HIGH
+### Alert on silent failures using statistical baselines and proactive health monitoring: HIGH
 
 
 ## Silent Failure Alerting
@@ -530,7 +530,7 @@ class BaselineAnomalyDetector:
 - Combine statistical detection with proactive quality checks
 
 
-### Detect silent quality degradation in agent outputs that pass basic error checks — HIGH
+### Detect silent quality degradation in agent outputs that pass basic error checks: HIGH
 
 
 ## Silent Quality Degradation Detection
@@ -605,7 +605,7 @@ class LoopDetector:
 - Not-empty and no-error are insufficient quality checks
 
 
-### Detect when agents silently skip expected tool calls and produce incorrect results — CRITICAL
+### Detect when agents silently skip expected tool calls and produce incorrect results: CRITICAL
 
 
 ## Silent Tool Skipping Detection

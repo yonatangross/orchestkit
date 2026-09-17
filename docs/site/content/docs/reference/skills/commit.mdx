@@ -254,7 +254,7 @@ Load on demand with `Read("references/&lt;file&gt;")`:
 
 ## Rules (9)
 
-### Create atomic commits that bundle one logical change for safe revert and bisect — CRITICAL
+### Create atomic commits that bundle one logical change for safe revert and bisect: CRITICAL
 
 
 ## Atomic Commit Rules
@@ -373,7 +373,7 @@ git commit -m "chore: Update webpack for tree shaking"
 - Never mix feature work with unrelated refactoring
 
 
-### Configure branch protection rules to prevent direct commits to protected branches — CRITICAL
+### Configure branch protection rules to prevent direct commits to protected branches: CRITICAL
 
 
 ## Branch Protection Rules
@@ -426,7 +426,7 @@ gh pr create --base main
 - Delete feature branches after merge
 
 
-### Split large mixed commits into focused, reviewable units with clean boundaries — HIGH
+### Split large mixed commits into focused, reviewable units with clean boundaries: HIGH
 
 
 ## Commit Splitting Strategies
@@ -556,7 +556,7 @@ git commit -m "chore: Update webpack config"
 - Each commit should pass tests independently
 
 
-### Format commit messages with conventional commit prefixes for automated changelogs — HIGH
+### Format commit messages with conventional commit prefixes for automated changelogs: HIGH
 
 
 ## Conventional Commit Format
@@ -669,7 +669,7 @@ EOF
 - Breaking changes must use `!` or `BREAKING CHANGE:` footer
 
 
-### Keep git history clean by squashing WIP commits and fixups before merge — HIGH
+### Keep git history clean by squashing WIP commits and fixups before merge: HIGH
 
 
 ## History Hygiene Rules
@@ -729,7 +729,7 @@ abc1234 feat(#123): Add user validation with edge case handling
 - Never rewrite published history (commits others have pulled)
 
 
-### Include issue references in commits to maintain traceability to GitHub issues — HIGH
+### Include issue references in commits to maintain traceability to GitHub issues: HIGH
 
 
 ## Issue Reference Required
@@ -799,7 +799,7 @@ Fixes #42"
 This is a soft rule enforced by the `issue-reference-checker` hook, which nudges the developer to add the reference. The commit will not be blocked if the reference is missing.
 
 
-### Choose the right merge strategy for clean, bisectable commit history — HIGH
+### Choose the right merge strategy for clean, bisectable commit history: HIGH
 
 
 ## Merge Strategy Rules
@@ -859,7 +859,7 @@ git push --force-with-lease
 - Test after every conflict resolution
 
 
-### Rebase dependent PRs systematically after base branch changes to prevent conflicts — HIGH
+### Rebase dependent PRs systematically after base branch changes to prevent conflicts: HIGH
 
 
 ## Stacked PR Rebase Management
@@ -904,7 +904,7 @@ git push --force-with-lease
 - After a base PR merges, retarget the next PR to `main` via `gh pr edit`
 
 
-### Split large features into small, reviewable, independently mergeable stacked PRs — HIGH
+### Split large features into small, reviewable, independently mergeable stacked PRs: HIGH
 
 
 ## Stacked PR Workflow

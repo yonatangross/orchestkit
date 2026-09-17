@@ -7,7 +7,7 @@ description: "2 rules for the Doctor skill: Diagnostic Checks; MCP Status Checks
 
 ## Rules (2)
 
-### Diagnostic Checks — CRITICAL
+### Diagnostic Checks: CRITICAL
 
 
 # Diagnostic Check Procedures
@@ -267,7 +267,7 @@ CC 2.1.126 added `claude project purge [path]` — deletes all CC state (transcr
 **Why not parse `~/.claude/projects/` directly:** the directory naming is a lossy collapse of the original path (`/` and `.` both become `-`). A naive `sed 's|-|/|g'` decode produces ambiguous results — `~/.claude/projects/Users-me-my-project` could be `/Users/me/my-project`, `/Users/me/my/project`, `/Users/me/my.project`, or other combinations. The dry-run output above is the canonical source.
 
 
-### MCP Status Checks — HIGH
+### MCP Status Checks: HIGH
 
 
 # MCP Status Checks

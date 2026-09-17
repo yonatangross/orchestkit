@@ -209,7 +209,7 @@ request_counts = {}  # Lost on restart, not shared across instances
 
 ## Rules (11)
 
-### Configure edge caching with CDN invalidation, TTL, and stale-while-revalidate strategies — HIGH
+### Configure edge caching with CDN invalidation, TTL, and stale-while-revalidate strategies: HIGH
 
 
 ## Edge Caching & CDN Patterns
@@ -300,7 +300,7 @@ Vary: Cookie, Authorization
 - Never cache authenticated/personalized responses without `Vary` or `private`
 
 
-### Deploy edge workers with V8 isolate runtime constraints and fallback handling — HIGH
+### Deploy edge workers with V8 isolate runtime constraints and fallback handling: HIGH
 
 
 ## Edge Workers & Runtime
@@ -377,7 +377,7 @@ export function middleware(request: NextRequest) {
 - Use Durable Objects for strong consistency when needed
 
 
-### Guarantee at-least-once delivery using transactional outbox and event messaging patterns — HIGH
+### Guarantee at-least-once delivery using transactional outbox and event messaging patterns: HIGH
 
 
 ## Event Messaging & Outbox
@@ -476,7 +476,7 @@ async def handle_event(event: Event, db: AsyncSession):
 - Use dead letter queues (DLQ) for messages that fail after max retries
 
 
-### Implement event sourcing with CQRS for full audit trails and temporal queries — HIGH
+### Implement event sourcing with CQRS for full audit trails and temporal queries: HIGH
 
 
 ## Event Sourcing & CQRS
@@ -581,7 +581,7 @@ class BalanceProjection:
 - Never delete events — use compensating events instead
 
 
-### Generate deterministic idempotency keys using Stripe-style headers for safe retries — HIGH
+### Generate deterministic idempotency keys using Stripe-style headers for safe retries: HIGH
 
 
 # Idempotency Key Generation & Stripe-Style Header
@@ -725,7 +725,7 @@ await post("/api/orders", headers={"Idempotency-Key": key}, data=order)
 ```
 
 
-### Validate lock ownership with fencing tokens and TTL to prevent data corruption — CRITICAL
+### Validate lock ownership with fencing tokens and TTL to prevent data corruption: CRITICAL
 
 
 # Lock Safety: Fencing Tokens, TTL & Heartbeat
@@ -854,7 +854,7 @@ result = await redis.eval(RELEASE_SCRIPT, keys=[f"lock:{resource_id}"], args=[ow
 ```
 
 
-### Implement sliding window rate limiting with Redis sorted sets to prevent boundary spikes — HIGH
+### Implement sliding window rate limiting with Redis sorted sets to prevent boundary spikes: HIGH
 
 
 # Sliding Window Rate Limiting
@@ -964,7 +964,7 @@ if count < 100:
 ```
 
 
-### Implement token bucket rate limiting with atomic Redis operations and burst capacity — HIGH
+### Implement token bucket rate limiting with atomic Redis operations and burst capacity: HIGH
 
 
 # Token Bucket Rate Limiting
@@ -1081,7 +1081,7 @@ const result = await redis.eval(TOKEN_BUCKET_SCRIPT,
 ```
 
 
-### Isolate failures with bulkhead partitioning and tier-based resource capacity limits — CRITICAL
+### Isolate failures with bulkhead partitioning and tier-based resource capacity limits: CRITICAL
 
 
 # Bulkhead Pattern
@@ -1209,7 +1209,7 @@ async def fetch_data():
 ```
 
 
-### Prevent cascade failures with circuit breaker thresholds and recovery probe patterns — CRITICAL
+### Prevent cascade failures with circuit breaker thresholds and recovery probe patterns: CRITICAL
 
 
 # Circuit Breaker Pattern
@@ -1352,7 +1352,7 @@ async def call_payment_api():
 ```
 
 
-### Implement exponential backoff with jitter to prevent thundering herd on retries — CRITICAL
+### Implement exponential backoff with jitter to prevent thundering herd on retries: CRITICAL
 
 
 # Retry with Exponential Backoff

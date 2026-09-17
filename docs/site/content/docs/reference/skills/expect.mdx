@@ -390,7 +390,7 @@ Load on demand with `Read("references/&lt;file&gt;")`:
 
 ## Rules (5)
 
-### Artifact storage conventions for reports, screenshots, and fingerprints — MEDIUM
+### Artifact storage conventions for reports, screenshots, and fingerprints: MEDIUM
 
 
 ## Artifact Storage
@@ -432,7 +432,7 @@ All expect artifacts live under `.expect/` with a consistent directory structure
 - Fingerprints, reports, and screenshots are gitignored (ephemeral)
 
 
-### Scope test runs to changed code only — HIGH
+### Scope test runs to changed code only: HIGH
 
 
 ## Diff Scope Boundaries
@@ -462,7 +462,7 @@ pages_to_test = routed  # ["/", "/dashboard"] — only pages using Button
 - Respect `ignore_patterns` from config — skip test files, docs, lockfiles
 
 
-### When to invalidate fingerprints and force re-run — HIGH
+### When to invalidate fingerprints and force re-run: HIGH
 
 
 ## Fingerprint Invalidation
@@ -498,7 +498,7 @@ INVALIDATION_TRIGGERS = [
 - `.expect/fingerprints.json` should be in `.gitignore`
 
 
-### Sequential browser testing — no parallel page visits — CRITICAL
+### Sequential browser testing — no parallel page visits: CRITICAL
 
 
 ## No Parallel Browsers
@@ -532,7 +532,7 @@ Navigate between them sequentially. Do not open multiple tabs.""")
 - Never spawn parallel browser agents for the same base_url
 
 
-### Timeout and retry conventions for browser test execution — CRITICAL
+### Timeout and retry conventions for browser test execution: CRITICAL
 
 
 ## Timeout and Retry

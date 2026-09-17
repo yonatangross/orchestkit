@@ -252,7 +252,7 @@ See `test-cases.json` for 13 test cases across all categories.
 
 ## Rules (14)
 
-### Design agent-facing error responses with RFC 9457 + operational extensions for deterministic AI agent control flow — HIGH
+### Design agent-facing error responses with RFC 9457 + operational extensions for deterministic AI agent control flow: HIGH
 
 
 ## Agent-Facing Error Responses
@@ -475,7 +475,7 @@ return JSONResponse(
 - Agents should send `Accept: application/problem+json, */*` to signal structured error preference
 
 
-### Keep OpenAPI specifications complete and up-to-date as the API provider-consumer contract — HIGH
+### Keep OpenAPI specifications complete and up-to-date as the API provider-consumer contract: HIGH
 
 
 ## OpenAPI Specifications
@@ -674,7 +674,7 @@ async def get_analysis(id: Annotated[str, Path(description="Analysis UUID")]) ->
 - Generate per-version documentation when versioning
 
 
-### Model REST resources with proper nesting and filters to minimize client round-trips — HIGH
+### Model REST resources with proper nesting and filters to minimize client round-trips: HIGH
 
 
 ## Resource Modeling
@@ -820,7 +820,7 @@ GET /api/v1/analyses/abc-123/artifacts
 - Provide field selection for bandwidth optimization
 
 
-### Follow REST conventions for naming, HTTP methods, and status codes consistently — HIGH
+### Follow REST conventions for naming, HTTP methods, and status codes consistently: HIGH
 
 
 ## REST API Conventions
@@ -925,7 +925,7 @@ GET /users/123/orders
 - Use cursor-based pagination for large datasets
 
 
-### GraphQL Schema Patterns and FastAPI Integration — HIGH
+### GraphQL Schema Patterns and FastAPI Integration: HIGH
 
 
 ## GraphQL Schema Patterns and FastAPI Integration
@@ -1007,7 +1007,7 @@ Key decisions:
 - Context getter for dependency injection
 
 
-### Design type-safe GraphQL schemas with Strawberry to prevent N+1 query problems — HIGH
+### Design type-safe GraphQL schemas with Strawberry to prevent N+1 query problems: HIGH
 
 
 ## Strawberry GraphQL Schema Design
@@ -1100,7 +1100,7 @@ Key decisions:
 - Do NOT use when: Simple CRUD (use REST), internal microservices (use gRPC)
 
 
-### Define and implement gRPC services with compile-time type safety for microservices — HIGH
+### Define and implement gRPC services with compile-time type safety for microservices: HIGH
 
 
 ## gRPC Service Definition and Implementation
@@ -1189,7 +1189,7 @@ Key decisions:
 - Do NOT use when: Public APIs (use REST/GraphQL), simple CRUD, no HTTP/2
 
 
-### Implement gRPC streaming patterns and interceptors for real-time data and observability — HIGH
+### Implement gRPC streaming patterns and interceptors for real-time data and observability: HIGH
 
 
 ## gRPC Streaming and Interceptors
@@ -1266,7 +1266,7 @@ Key decisions:
 - Never skip deadline/timeout on client calls
 
 
-### Integrate messaging platforms securely with webhook validation and delivery guarantees — HIGH
+### Integrate messaging platforms securely with webhook validation and delivery guarantees: HIGH
 
 
 # Messaging Platform Integrations
@@ -1343,7 +1343,7 @@ function verifyTelegramWebhook(req: Request): boolean {
 - `references/webhook-security.md` — Signature verification patterns per platform
 
 
-### Configure Payload CMS 3.0 collections and access control patterns for Next.js — HIGH
+### Configure Payload CMS 3.0 collections and access control patterns for Next.js: HIGH
 
 
 # Payload CMS 3.0 Patterns
@@ -1413,7 +1413,7 @@ export const Posts: CollectionConfig = {
 - Collection design (field types, relationships, blocks, validation) and access control (RBAC, field-level, multi-tenant) are first-party documented: https://payloadcms.com/docs
 
 
-### Stream server-sent events with auto-reconnect for LLM responses and notifications — HIGH
+### Stream server-sent events with auto-reconnect for LLM responses and notifications: HIGH
 
 
 ## Server-Sent Events (SSE) Streaming
@@ -1519,7 +1519,7 @@ Key decisions:
 - Exponential backoff for reconnection (1s to 30s)
 
 
-### Implement WebSocket bidirectional streaming with async generator cleanup for resource safety — HIGH
+### Implement WebSocket bidirectional streaming with async generator cleanup for resource safety: HIGH
 
 
 ## WebSocket and Async Generator Patterns
@@ -1602,7 +1602,7 @@ Key decisions:
 - Monitor buffer sizes, pause production when consumer is slow
 
 
-### Implement header-based API versioning with clean URLs and content negotiation — HIGH
+### Implement header-based API versioning with clean URLs and content negotiation: HIGH
 
 
 ## Header-Based Versioning
@@ -1731,7 +1731,7 @@ async def get_version(
 - Always document which versions are supported
 
 
-### Implement URL path versioning for public APIs without routing conflicts or code duplication — HIGH
+### Implement URL path versioning for public APIs without routing conflicts or code duplication: HIGH
 
 
 ## URL Path Versioning

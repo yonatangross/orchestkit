@@ -292,7 +292,7 @@ Load on demand with `Read("references/&lt;file&gt;")`:
 
 ## Rules (5)
 
-### Never overwrite existing CLAUDE.md without user confirmation — HIGH
+### Never overwrite existing CLAUDE.md without user confirmation: HIGH
 
 
 ## Existing Config Preservation
@@ -351,7 +351,7 @@ if int(line_count) > 200 and not existing_rules:
 - On `--rescan`, re-read existing config files fresh rather than relying on cached state from a previous run
 
 
-### Validate MCP server URLs are reachable before configuring — MEDIUM
+### Validate MCP server URLs are reachable before configuring: MEDIUM
 
 
 ## MCP Server Verification
@@ -491,7 +491,7 @@ Present context7 as required rather than optional, and state the consequence of 
 those 22 agents keep working and answer from training data, with no error raised.
 
 
-### Warn if chosen preset conflicts with existing .claude/ configuration — HIGH
+### Warn if chosen preset conflicts with existing .claude/ configuration: HIGH
 
 
 ## Preset Conflict Detection
@@ -554,7 +554,7 @@ if conflicts:
 - Log which files were modified and what was preserved for the improvement plan
 
 
-### Verify detected stack matches actual project files before applying presets — HIGH
+### Verify detected stack matches actual project files before applying presets: HIGH
 
 
 ## Stack Detection Validation
@@ -603,7 +603,7 @@ elif scan.get("next.config.js"):
 - If zero high-confidence items are detected, prompt the user to manually specify their stack before proceeding to Phase 4
 
 
-### Require explicit opt-in before enabling any telemetry or analytics — HIGH
+### Require explicit opt-in before enabling any telemetry or analytics: HIGH
 
 
 ## Telemetry Consent Gate
