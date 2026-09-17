@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.44",
+    "date": "2026-09-17",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.43...v10.0.0-beta.44",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**hooks:** opt-in shadow session category as a typed Choice ([#4208](https://github.com/yonatangross/orchestkit/issues/4208)) ([b1769c7](https://github.com/yonatangross/orchestkit/commit/b1769c7af4e3253604128a13bf36d33159ebab37))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.43",
     "date": "2026-09-16",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.42...v10.0.0-beta.43",
