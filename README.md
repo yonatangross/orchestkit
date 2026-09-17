@@ -555,6 +555,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.46](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.45...v10.0.0-beta.46)** · 2026-09-17
+
+- **glyph:** v3 render shape, 50-line budget, domain icons, inventory template (#4212)
+
 **[v10.0.0-beta.45](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.44...v10.0.0-beta.45)** · 2026-09-17
 
 - **hooks:** criteria-B for both category paths, Jev cascade at 0.8 (#4211)
@@ -585,10 +589,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.39](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.38...v10.0.0-beta.39)** · 2026-09-16
 
 - **mods:** add secrets-veil mod with pattern and entropy masking (#4189)
-
-**[v10.0.0-beta.38](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.37...v10.0.0-beta.38)** · 2026-09-16
-
-- **create-pr:** drop stale lab-data.ts conflict advice (#4191)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

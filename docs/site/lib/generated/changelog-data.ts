@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.46",
+    "date": "2026-09-17",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.45...v10.0.0-beta.46",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**glyph:** v3 render shape, 50-line budget, domain icons, inventory template ([#4212](https://github.com/yonatangross/orchestkit/issues/4212)) ([7b973fc](https://github.com/yonatangross/orchestkit/commit/7b973fc442fcd5476fe6a8af9ea3f0fd94155cb1))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.45",
     "date": "2026-09-17",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.44...v10.0.0-beta.45",
