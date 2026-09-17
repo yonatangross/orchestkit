@@ -180,7 +180,7 @@ describe("entropy masking through the shipped register", () => {
   const GIT_SHA = "0e5b3f2a1c9d8e7b6a5f4c3d2e1f0a9b8c7d6e5f";
   const SHA256 = "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad";
   const UUID = "550e8400-e29b-41d4-a716-446655440000";
-  const LONG_PATH = "/Users/yonatangross/coding/yonatangross/orchestkit/src/hooks/src/session";
+  const LONG_PATH = "/Users/me/coding/yonatangross/orchestkit/src/hooks/src/session";
 
   test("e: masks a high-entropy token", async () => {
     const hooks = captureHooks();

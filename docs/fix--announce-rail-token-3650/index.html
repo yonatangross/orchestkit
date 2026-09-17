@@ -83,7 +83,7 @@
     <h2>Operator recovery path</h2>
     <p>For a rejected token, rotate the canonical 1Password item through the estate chokepoint, validate the result, then update only the GitHub repository secret.</p>
     <pre>HQ_API_TOKEN="$(~/.claude/hooks/op-read.sh --cache 3600 \
-  op://Platform/API-Static-Token/credential)"
+  op://<vault>/<item>/credential)"
 op_read_status=$?
 if [[ "$op_read_status" -ne 0 || -z "$HQ_API_TOKEN" ]]; then exit 1; fi
 printf '%s' "$HQ_API_TOKEN" | gh secret set HQ_API_TOKEN --repo yonatangross/orchestkit
@@ -101,7 +101,7 @@ unset HQ_API_TOKEN</pre>
     missing: {
       steps: [["bad","credential preflight","missing secret"],["dim","platform compose","not called"],["dim","live announce","blocked"],["dim","human review","no drafts"]],
       title:"Stopped before any platform request.",
-      body:"The workflow names HQ_API_TOKEN and op://Platform/API-Static-Token/credential so the rotation target is actionable."
+      body:"The workflow names HQ_API_TOKEN and op://<vault>/<item>/credential so the rotation target is actionable."
     },
     retired: {
       steps: [["bad","credential preflight","401 rejected"],["bad","platform compose","authentication failed"],["dim","live announce","blocked"],["dim","human review","no drafts"]],

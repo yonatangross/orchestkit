@@ -12,7 +12,7 @@ PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
 ANNOUNCE="$PROJECT_ROOT/scripts/announce-release.mjs"
 WORKFLOW="$PROJECT_ROOT/.github/workflows/release-announce.yml"
 README="$PROJECT_ROOT/.github/workflows/README.md"
-TOKEN_REFERENCE="op://Platform/API-Static-Token/credential"
+TOKEN_REFERENCE="op://<vault>/<item>/credential"
 FIXTURE_DIR="$(mktemp -d "${TMPDIR:-/tmp}/ork-announce.XXXXXX")"
 trap 'rm -rf "$FIXTURE_DIR"' EXIT
 

@@ -207,8 +207,8 @@
 ## References
 
 **Files**:
-- `/Users/yonatangross/coding/orchestkit/src/agents/` - Agent source files
-- `/Users/yonatangross/coding/orchestkit/manifests/ork.json` - Plugin manifest
+- `/Users/me/coding/orchestkit/src/agents/` - Agent source files
+- `/Users/me/coding/orchestkit/manifests/ork.json` - Plugin manifest
 
 **Analysis Files**:
 - Cost calculation Python script (in `/tmp/agent_analysis.py`)

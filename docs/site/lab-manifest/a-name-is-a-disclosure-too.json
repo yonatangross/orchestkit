@@ -1,0 +1,11 @@
+{
+  "slug": "a-name-is-a-disclosure-too",
+  "source": "docs/chore--genericize-op-refs/index.html",
+  "title": "A Name Is a Disclosure Too",
+  "description": "Secret scanners match values, so a 1Password vault and item path or a real home directory in a public repo passes gitleaks and the content scanner and still tells a reader where to aim. This change scrubs one real op:// reference from six files and the operator home path from fifteen, moves the announce script's rotation target to a repository variable, and adds a static security test that fails on any reintroduced real name. The page lets you try a line against the same rules the test runs.",
+  "tags": [
+    "security",
+    "ci"
+  ],
+  "date": "2026-09-17"
+}

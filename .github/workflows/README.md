@@ -10,12 +10,12 @@ Manual dispatches with `dry_run: true` remain fully local and skip the preflight
 ## Rotate `HQ_API_TOKEN`
 
 If the preflight reports an authentication failure, rotate
-`op://Platform/API-Static-Token/credential`. Read the replacement once through
+`op://<vault>/<item>/credential`. Read the replacement once through
 the estate chokepoint with a bounded cache, then update the repository secret:
 
 ```bash
 HQ_API_TOKEN="$(~/.claude/hooks/op-read.sh --cache 3600 \
-  op://Platform/API-Static-Token/credential)"
+  op://<vault>/<item>/credential)"
 op_read_status=$?
 if [[ "$op_read_status" -ne 0 ]]; then
   echo "Failed to read the replacement token through op-read.sh" >&2

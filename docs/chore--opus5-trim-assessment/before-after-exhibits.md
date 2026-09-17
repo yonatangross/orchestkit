@@ -1,6 +1,6 @@
 # BEFORE / AFTER Exhibit Set — OrchestKit Trim Proposal
 
-All BEFORE text is verbatim from HEAD at `/Users/yonatangross/coding/yonatangross/orchestkit`. Char counts measured with `python3 len()` over the exact cited line range (trailing newline stripped).
+All BEFORE text is verbatim from HEAD at `/Users/me/coding/yonatangross/orchestkit`. Char counts measured with `python3 len()` over the exact cited line range (trailing newline stripped).
 
 ```
 #  SURFACE                                   BEFORE   AFTER    CUT     LOADED
@@ -18,7 +18,7 @@ All BEFORE text is verbatim from HEAD at `/Users/yonatangross/coding/yonatangros
 
 ## 1. Hobbling RULE rewritten from ban-voice to judgement-voice
 
-**File:** `/Users/yonatangross/coding/yonatangross/orchestkit/CLAUDE.md:62-72`
+**File:** `/Users/me/coding/yonatangross/orchestkit/CLAUDE.md:62-72`
 **499 chars -> 375 chars (-24.8%)**
 
 ### BEFORE (verbatim)
@@ -65,7 +65,7 @@ operator gains from watching progress.
 
 ## 2. Bloated SKILL section (from the #1 most-invoked skill)
 
-**File:** `/Users/yonatangross/coding/yonatangross/orchestkit/src/skills/assess/SKILL.md:163-199`
+**File:** `/Users/me/coding/yonatangross/orchestkit/src/skills/assess/SKILL.md:163-199`
 `assess` = 64 telemetry invocations, the most-used ork skill.
 **1,813 chars -> 252 chars (-86.1%)**
 
@@ -129,7 +129,7 @@ scores, so do not chain those with `addBlockedBy` just to look tidy.
 
 ## 3. AGENT persona padding cut to a lean Opus-5-era agent
 
-**File:** `/Users/yonatangross/coding/yonatangross/orchestkit/src/agents/monitoring-engineer.md:60-87`
+**File:** `/Users/me/coding/yonatangross/orchestkit/src/agents/monitoring-engineer.md:60-87`
 **1,616 chars -> 348 chars (-78.5%)**
 
 ### BEFORE (verbatim)
@@ -191,7 +191,7 @@ up. This agent's `mcpServers` is `[tavily]`; context7 is not wired to it.
 
 ## 4. Bloated frontmatter DESCRIPTION tightened, routing accuracy kept
 
-**File:** `/Users/yonatangross/coding/yonatangross/orchestkit/src/skills/cover/SKILL.md:5`
+**File:** `/Users/me/coding/yonatangross/orchestkit/src/skills/cover/SKILL.md:5`
 This is always-loaded index text (`cover` has `disable-model-invocation` unset, so it occupies a per-session index slot).
 **596 chars -> 309 chars (-48.2%)**
 
@@ -222,7 +222,7 @@ These matter because `cover` and `verify` are a measured router collision (TF-ID
 
 ## 5. Pre-Opus-5 anachronism removed
 
-**File:** `/Users/yonatangross/coding/yonatangross/orchestkit/src/skills/doctor/SKILL.md:166-185`
+**File:** `/Users/me/coding/yonatangross/orchestkit/src/skills/doctor/SKILL.md:166-185`
 **1,112 chars -> 796 chars (-28.4%)**
 
 Note on category: a tree-wide grep for `YOU MUST` across `src/skills/` and `src/agents/` returns **0 hits**, and CoT incantations ("think step by step", "take a deep breath") return 5 hits, all of which are documentation *about* prompting, not instructions *to* the model. The CoT/YOU-MUST inflation thesis does not hold in this repo. The anachronism that *is* real is model-generation pinning, and this is its worst instance: a check that fires a **false failure on Opus 5 and prescribes a downgrade**.
