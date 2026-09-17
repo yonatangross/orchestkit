@@ -53,10 +53,9 @@ const {
 } = process.env;
 
 // The 1Password reference for the platform token is deployment-specific and
-// never committed to this public repo. Supply it through the
-// HQ_API_TOKEN_REFERENCE repository variable so the 401 message names the
-// real rotation target; the placeholder keeps the message readable without it.
-const HQ_API_TOKEN_REFERENCE = process.env.HQ_API_TOKEN_REFERENCE || "op://<vault>/<item>/credential";
+// is never resolved, logged, or printed here: this repo is public and CI logs
+// are too. The 401 message names the repository variable that holds the
+// rotation target and nothing else.
 const REQUEST_TIMEOUT_MS = 10_000;
 
 function die(msg) {
@@ -124,7 +123,8 @@ const haveCreds = Boolean(HQ_API_URL && HQ_API_TOKEN);
 if (preflight && !haveCreds) {
   die(
     "credential preflight requires HQ_API_URL and HQ_API_TOKEN. " +
-      `Rotate ${HQ_API_TOKEN_REFERENCE} and update the repository HQ_API_TOKEN secret.`,
+      "Rotate the platform token named by the HQ_API_TOKEN_REFERENCE repository variable " +
+      "and update the repository HQ_API_TOKEN secret.",
   );
 }
 
@@ -165,9 +165,12 @@ if (!res.ok) {
   // not a broken release. Surface the error clearly.
   summary(`### ⚠️ Release announce failed (${res.status})\n\`\`\`\n${text.slice(0, 800)}\n\`\`\``);
   if (res.status === 401) {
+    // Never print the token reference value: it names a vault and an item, and
+    // CI logs for this repo are public. The repository variable name is all a
+    // reader needs to find the rotation target.
     die(
-      `HQ_API_TOKEN was rejected. Rotate ${HQ_API_TOKEN_REFERENCE} and update ` +
-        `the repository HQ_API_TOKEN secret. Platform response: ${text.slice(0, 500)}`,
+      "HQ_API_TOKEN was rejected. Rotate the platform token named by the HQ_API_TOKEN_REFERENCE repository variable " +
+        "and update the repository HQ_API_TOKEN secret.",
     );
   }
   die(`platform returned ${res.status}: ${text.slice(0, 500)}`);

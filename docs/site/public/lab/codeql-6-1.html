@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Six CodeQL alerts, two fixes</title>
+<style>
+  :root{--bg:#0f1216;--panel:#161b22;--line:#2a313b;--ink:#e6e9ee;--muted:#9aa4b2;--red:#ef5350;--yel:#f2c14e;--grn:#4caf82;--acc:#8ab4f8}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:900px;margin:0 auto;padding:28px 16px 64px}
+  h1{font-size:1.8rem;margin:0 0 8px}
+  .lede{color:var(--muted);max-width:66ch;margin:0 0 20px}
+  .kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:0 0 28px}
+  .kpi div{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+  .kpi b{display:block;font:700 1.6rem/1.1 ui-monospace,Menlo,monospace}
+  .kpi span{color:var(--muted);font-size:.85rem}
+  .beat{margin-top:32px;padding-top:16px;border-top:1px solid var(--line)}
+  .beat h2{font-size:1.25rem;margin:0 0 6px}
+  .beat p{max-width:70ch;margin:0 0 12px}
+  .pair{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .box{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
+  .box h3{margin:0 0 8px;font-size:.9rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+  .box.bad{border-color:#5a2320}.box.good{border-color:#1f4d36}
+  pre{margin:0;font:.85rem/1.5 ui-monospace,Menlo,monospace;white-space:pre-wrap;overflow-wrap:anywhere}
+  .bad pre{color:#ef8a87}.good pre{color:#8ad0a8}
+  code{font:.9em ui-monospace,Menlo,monospace;background:#1d232c;padding:1px 5px;border-radius:4px}
+  label{display:block;margin:6px 0;color:var(--muted);font-size:.9rem}
+  .try input[type=text]{width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:#0b0e12;color:var(--ink);font:.95rem ui-monospace,Menlo,monospace}
+  .out{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+  .out div{background:#1b2129;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:.9rem;word-break:break-all}
+  .out b{display:block;color:var(--acc);margin-bottom:4px}
+  .out .bad b{color:var(--red)}.out .good b{color:var(--grn)}
+  footer{margin-top:40px;color:var(--muted);font-size:.85rem}
+  @media (max-width:640px){.kpi{grid-template-columns:1fr 1fr}.pair,.out{grid-template-columns:1fr}}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Six CodeQL Alerts, Two Fixes"><meta property="og:description" content="Alert 406: announce-release.mjs printed the resolved HQ_API_TOKEN_REFERENCE op:// path on the 401 path, a name-level disclosure into public CI logs. The variable read and the workflow passthrough are removed, and the message names the repository variable and nothing else. Alerts 385 to 389: the lab page escaped only ampersand and angle brackets before interpolating values into HTML attributes; escapeAttr now covers all five attribute-significant characters at every attribute interpolation. Two new tests fail on either regression. The page lets you probe both escapers live."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/codeql-6-1.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Six CodeQL Alerts, Two Fixes"><meta name="twitter:description" content="Alert 406: announce-release.mjs printed the resolved HQ_API_TOKEN_REFERENCE op:// path on the 401 path, a name-level disclosure into public CI logs. The variable read and the workflow passthrough are removed, and the message names the repository variable and nothing else. Alerts 385 to 389: the lab page escaped only ampersand and angle brackets before interpolating values into HTML attributes; escapeAttr now covers all five attribute-significant characters at every attribute interpolation. Two new tests fail on either regression. The page lets you probe both escapers live."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<div class="wrap">
+  <h1>Six CodeQL alerts, two fixes</h1>
+  <p class="lede">One 401 message printed a secret-adjacent name into public CI logs, and a lab page escaped only half the characters that matter inside an HTML attribute. Both are root fixes: the leak source is deleted, not redacted, and every attribute interpolation now uses one helper.</p>
+
+  <div class="kpi">
+    <div><b>6</b><span>open alerts on main</span></div>
+    <div><b>2</b><span>root causes, one PR</span></div>
+    <div><b>0</b><span>secret values involved</span></div>
+    <div><b>2</b><span>new tests that fail on regression</span></div>
+  </div>
+
+  <section class="beat">
+    <h2>Alert 406: a name is a disclosure</h2>
+    <p><code>announce-release.mjs</code> read <code>HQ_API_TOKEN_REFERENCE</code>, an <code>op://</code> path naming a vault and an item, and printed it on the 401 path. Value scanners never fire on a name, but the name still tells a reader where to aim. The fix removes the variable read and the workflow passthrough entirely; the message now names the repository variable and nothing else.</p>
+    <div class="pair">
+      <div class="box bad"><h3>before</h3><pre>die(`HQ_API_TOKEN was rejected.
+  Rotate ${HQ_API_TOKEN_REFERENCE}
+  and update the repository
+  HQ_API_TOKEN secret.
+  Platform response: ${text}`);</pre></div>
+      <div class="box good"><h3>after</h3><pre>die("HQ_API_TOKEN was rejected.
+  Rotate the platform token named
+  by the HQ_API_TOKEN_REFERENCE
+  repository variable and update
+  the repository HQ_API_TOKEN
+  secret.");</pre></div>
+    </div>
+    <p style="margin-top:12px">A static test in <code>tests/security/</code> greps every console, summary and output call for the identifier outside the one allowed naming phrase, and fails if it comes back.</p>
+  </section>
+
+  <section class="beat">
+    <h2>Alerts 385 to 389: half an escaper</h2>
+    <p>The lab page ran card values through <code>esc()</code> before dropping them into <code>href</code>, <code>class</code> and <code>aria-label</code>. It covered <code>&amp; &lt; &gt;</code> only, so a quote inside a value could close the attribute early. <code>escapeAttr</code> covers all five attribute-significant characters and is applied at every attribute interpolation.</p>
+    <div class="pair">
+      <div class="box bad"><h3>before</h3><pre>href="${esc(card.diff)}"
+aria-label="Diff for ${esc(card.title)}"</pre></div>
+      <div class="box good"><h3>after</h3><pre>href="${escapeAttr(card.diff)}"
+aria-label="Diff for ${escapeAttr(card.title)}"</pre></div>
+    </div>
+    <div class="try" style="margin-top:14px">
+      <label for="probe">Try it: type a value and watch both escapers</label>
+      <input type="text" id="probe" value='a" onclick="alert(1)'>
+      <div class="out">
+        <div class="bad"><b>esc() output</b><span id="outEsc"></span></div>
+        <div class="good"><b>escapeAttr() output</b><span id="outAttr"></span></div>
+      </div>
+      <p id="verdict" style="font:600 .9rem ui-monospace,Menlo,monospace;margin-top:8px"></p>
+    </div>
+  </section>
+
+  <footer>Probe runs the same two functions the page ships: esc for text nodes, escapeAttr for attributes. A node test in tests/unit runs the helper on a fixed probe string.</footer>
+</div>
+<script>
+const esc = s => String(s).replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+const escapeAttr = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const probe = document.getElementById("probe");
+const outEsc = document.getElementById("outEsc");
+const outAttr = document.getElementById("outAttr");
+const verdict = document.getElementById("verdict");
+function show() {
+  const v = probe.value;
+  outEsc.textContent = esc(v);
+  outAttr.textContent = escapeAttr(v);
+  const breaks = /["']/.test(v);
+  verdict.textContent = breaks
+    ? "esc() leaves a quote intact: it would close the attribute early. escapeAttr() neutralises it."
+    : "No quote in this value: both outputs are safe here. Add a quote to see the gap.";
+  verdict.style.color = breaks ? "var(--red)" : "var(--muted)";
+}
+probe.addEventListener("input", show);
+show();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

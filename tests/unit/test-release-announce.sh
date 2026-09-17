@@ -93,10 +93,11 @@ if ANNOUNCE_FETCH_CAPTURE="$CAPTURE" ANNOUNCE_FETCH_STATUS=401 \
   HQ_API_URL="https://platform.example.invalid" HQ_API_TOKEN="retired-token" \
   PREFLIGHT=true node --import "$PRELOAD" "$ANNOUNCE" > /dev/null 2>"$REJECTED_ERR"; then
   fail "preflight accepted a rejected HQ_API_TOKEN"
-elif [[ "$(<"$REJECTED_ERR")" == *"$TOKEN_REFERENCE"* ]]; then
-  pass "rejected token fails loudly with the exact rotation reference"
+elif [[ "$(<"$REJECTED_ERR")" == *"named by the HQ_API_TOKEN_REFERENCE repository variable"* ]] && \
+     [[ "$(<"$REJECTED_ERR")" != *"op://"* ]]; then
+  pass "rejected token names the repository variable, never the reference value"
 else
-  fail "rejected token error omitted the rotation reference: $(<"$REJECTED_ERR")"
+  fail "rejected token error must name the variable and print no op:// path: $(<"$REJECTED_ERR")"
 fi
 
 MISSING_ERR="$FIXTURE_DIR/missing-token.err"
@@ -104,10 +105,11 @@ if RELEASE_VERSION="10.0.0-alpha.45" RELEASE_URL="https://example.invalid/r" \
   HQ_API_URL="https://platform.example.invalid" PREFLIGHT=true node "$ANNOUNCE" \
   > /dev/null 2>"$MISSING_ERR"; then
   fail "preflight accepted a missing HQ_API_TOKEN"
-elif [[ "$(<"$MISSING_ERR")" == *"$TOKEN_REFERENCE"* ]]; then
-  pass "missing token fails loudly with the exact rotation reference"
+elif [[ "$(<"$MISSING_ERR")" == *"named by the HQ_API_TOKEN_REFERENCE repository variable"* ]] && \
+     [[ "$(<"$MISSING_ERR")" != *"op://"* ]]; then
+  pass "missing token names the repository variable, never the reference value"
 else
-  fail "missing token error omitted the rotation reference: $(<"$MISSING_ERR")"
+  fail "missing token error must name the variable and print no op:// path: $(<"$MISSING_ERR")"
 fi
 
 if grep -Fq 'credential_preflight' "$WORKFLOW" && \
