@@ -2118,7 +2118,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "expect",
     "description": "Diff-aware AI browser testing — reads the git diff, maps changes to affected pages via the route map, generates a targeted test plan, and executes it via agent-browser (Rust daemon + CDP, ARIA-tree-first) with pass/fail reporting. Use when testing UI changes, verifying PRs before merge, or running regression checks on changed components.",
     "version": "1.1.0",
-    "sha256": "d1692830de88b12270aceb3177b035435ae745d854923c849010a0fe6f8c9bf7",
+    "sha256": "d3746c79cd1b1df416dbbab8f9d62c26a3efdebdc39e24ffdbc0a79b5df40e1e",
     "author": "OrchestKit",
     "tags": [
       "testing",
@@ -2165,6 +2165,7 @@ export const SKILLS: Record<string, SkillMeta> = {
         "execution.md",
         "fingerprint.md",
         "human-review.md",
+        "jev-shadow.md",
         "report.md",
         "research.md",
         "route-map.md",
@@ -2178,6 +2179,8 @@ export const SKILLS: Record<string, SkillMeta> = {
         "diff-scan.sh",
         "fingerprint.sh",
         "init.sh",
+        "jev-shadow.sh",
+        "jev_shadow.py",
         "report.sh",
         "route-map.sh"
       ]

@@ -1,0 +1,13 @@
+- banner
+  - link "Home" [ref=e1]
+  - link "Pricing" [ref=e2]
+- main
+  - heading "Welcome back"
+  - textbox "Email" [ref=e4]
+  - textbox "Password" [ref=e5]
+  - checkbox "Remember me" [ref=e6]
+  - button "Sign in" [ref=e3]
+  - button "Create account" [ref=e7]
+- contentinfo
+  - link "Privacy" [ref=e8]
+UNRELATED_PAGE_TEXT_7x9q

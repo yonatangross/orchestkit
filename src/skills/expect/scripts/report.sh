@@ -6,6 +6,8 @@ set -euo pipefail
 # Protocol: STEP_START|id|title, STEP_DONE|id|summary, ASSERTION_FAILED|id|reason, RUN_COMPLETED|result|summary
 #           ROUTE|url           — current route under test (echoed verbatim into output)
 #           ARIA|<json|text>    — capped ARIA snapshot (echoed verbatim, max 8KB)
+#           JEV_SHADOW|id|<json> : shadow-only Jev pick beside the model pick
+#                                  (passed through verbatim + folded into the JSON report)
 # ROUTE/ARIA are passed through unchanged so PostToolUse hooks
 # (posttool/expect/snapshot-recorder, M125 #6) can match on them in tool_output.
 
@@ -29,7 +31,7 @@ else
 fi
 
 # ── State ──────────────────────────────────────────────────
-declare -A TITLES STATUS DETAIL
+declare -A TITLES STATUS DETAIL JEV
 ORDER=(); PASSED=0; FAILED=0; RUN_RESULT=""; RUN_SUMMARY=""
 
 # ── Read protocol from stdin ───────────────────────────────
@@ -68,6 +70,12 @@ while IFS= read -r line; do
       # Always emitted on stdout so they survive into the Skill's tool_output.
       printf '%s|%s\n' "${cmd}" "${f1}"
       ;;
+    JEV_SHADOW)
+      # Shadow-only Jev log line (references/jev-shadow.md). Passed through
+      # like ROUTE/ARIA and also folded into the JSON report beside the step.
+      JEV["${f1}"]="${f2}"
+      printf '%s|%s|%s\n' "${cmd}" "${f1}" "${f2}"
+      ;;
   esac
 done
 
@@ -86,11 +94,21 @@ build_json() {
   for id in "${ORDER[@]}"; do
     input+="${id}"$'\t'"${TITLES[${id}]:-}"$'\t'"${STATUS[${id}]:-pending}"$'\t'"${DETAIL[${id}]:-}"$'\n'
   done
+  for sid in "${!JEV[@]}"; do
+    input+="JEV"$'\t'"${sid}"$'\t'"${JEV[${sid}]}"$'\n'
+  done
   echo "${input}" | python3 -c "
 import sys, json
 steps = []
+jev_rows = []
 for line in sys.stdin.read().strip().split('\n'):
     if not line.strip(): continue
+    if line.startswith('JEV\t'):
+        jparts = line.split('\t', 2)
+        if len(jparts) == 3:
+            try: jev_rows.append((jparts[1], json.loads(jparts[2])))
+            except Exception: pass
+        continue
     parts = line.split('\t', 3)
     if len(parts) < 4: continue
     sid, title, status, detail = parts
@@ -98,8 +116,17 @@ for line in sys.stdin.read().strip().split('\n'):
     if status == 'passed': step['summary'] = detail
     elif status == 'failed': step['error'] = detail; step['category'] = 'app-bug'
     steps.append(step)
-print(json.dumps({'timestamp': '${ts}', 'steps': steps, 'passed': ${PASSED},
-  'failed': ${FAILED}, 'result': '${RUN_RESULT}', 'summary': '${RUN_SUMMARY}'}, indent=2))
+report = {'timestamp': '${ts}', 'steps': steps, 'passed': ${PASSED},
+  'failed': ${FAILED}, 'result': '${RUN_RESULT}', 'summary': '${RUN_SUMMARY}'}
+if jev_rows:
+    by_id = {s['id']: s for s in steps}
+    agreed = disagreed = 0
+    for sid, rec in jev_rows:
+        if sid in by_id: by_id[sid]['jev_shadow'] = rec
+        if rec.get('agree') is True: agreed += 1
+        elif rec.get('agree') is False: disagreed += 1
+    report['jev_shadow'] = {'recorded': len(jev_rows), 'agreed': agreed, 'disagreed': disagreed}
+print(json.dumps(report, indent=2))
 "
 }
 

@@ -1,0 +1,28 @@
+{
+  "model": "jev-1.13.0",
+  "answers": {
+    "next_action": {
+      "type": "choice",
+      "choice": "click:@e3",
+      "probabilities": {
+        "click:@e1": 0.01,
+        "click:@e2": 0.01,
+        "fill:@e4": 0.02,
+        "fill:@e5": 0.01,
+        "click:@e6": 0.01,
+        "click:@e3": 0.9,
+        "click:@e7": 0.02,
+        "click:@e8": 0.005,
+        "done": 0.01,
+        "wait": 0.003,
+        "scroll": 0.001,
+        "press_enter": 0.001
+      },
+      "confidence": 0.88
+    },
+    "goal_reached": {"type": "noul", "noul": 0.08},
+    "page_changed_as_expected": {"type": "noul", "noul": 0.93},
+    "blocked": {"type": "noul", "noul": 0.04}
+  },
+  "usage": {"input_tokens": 210, "output_tokens": 40}
+}

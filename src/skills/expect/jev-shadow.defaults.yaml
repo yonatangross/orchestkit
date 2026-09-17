@@ -1,0 +1,25 @@
+# Bundled fallback for the Jev shadow step (references/jev-shadow.md).
+# .expect/config.yaml `jev_shadow:` overrides this whole section.
+# Values live here, not in code: scripts/jev_shadow.py refuses to run
+# without a resolved config.
+jev_shadow:
+  # POST target for the single per-step evaluation request.
+  endpoint: "https://api.typesafe.ai/v1/systemone"
+  # Pinned model id. `jev-latest` moves; a shadow comparison needs a fixed
+  # model so agreement rates stay comparable across runs.
+  model: "jev-1.13.0"
+  # Max interactive elements sent per request (ref + role + name only).
+  element_cap: 60
+  # Max chars kept per accessible name after redaction.
+  name_max_chars: 80
+  # Max chars kept for step_goal and last_verify after redaction.
+  context_max_chars: 300
+  # Abort budget for the one request per step.
+  latency_budget_ms: 400
+  thresholds:
+    # Choice confidence below this marks the pick low_confidence in the log.
+    low_confidence: 0.5
+    # A noul at or above its threshold raises the matching flag in the record.
+    goal_reached: 0.7
+    page_changed_as_expected: 0.7
+    blocked: 0.7
