@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.44](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.43...v10.0.0-beta.44) (2026-09-17)
+
+
+### Features
+
+* **hooks:** opt-in shadow session category as a typed Choice ([#4208](https://github.com/yonatangross/orchestkit/issues/4208)) ([b1769c7](https://github.com/yonatangross/orchestkit/commit/b1769c7af4e3253604128a13bf36d33159ebab37))
+
 ## [10.0.0-beta.43](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.42...v10.0.0-beta.43) (2026-09-16)
 
 
