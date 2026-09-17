@@ -2,18 +2,20 @@
 // Created: 2026-09-17
 
 /**
- * Tests for the opt-in session category shadow provider.
+ * Tests for the opt-in session category provider (Jev cascade and shadow).
  *
  * HTTP is always a mocked fetch; no test reaches the network.
  *
  * Validates:
  * - contract: the Choice criteria set is exactly WORK_CATEGORIES, in order,
- *   with the same descriptions the haiku prompt uses
- * - the haiku prompt sentence is byte-identical to the pre-shadow text
- * - opt-in gating (provider value AND key both required)
+ *   with the same what / not_for / examples objects the haiku prompt embeds
+ * - the criteria are the held-out criteria-B shape: eight options, no
+ *   `review` key, and no `not_for` pointer at a category outside the set
+ * - opt-in gating (provider value AND key both required; `jev` and `shadow`)
  * - request shape: endpoint, bearer header, pinned model, excerpt cap
  * - answer parsing and every fail-open path (non-2xx, malformed, throw, timeout)
- * - the shadow pair record: written once, labels only, no prompt text
+ * - the decision rule: `jev` mode, ok, confidence at or above 0.8, else haiku
+ * - the pair record: written once, labels and decision only, no prompt text
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
@@ -21,24 +23,29 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
 import {
-  CATEGORY_DESCRIPTIONS,
+  CATEGORY_CRITERIA,
   WORK_CATEGORIES,
   buildGeneratorPrompt,
+  formatCategoryCriteria,
   parseIdentityCategory,
 } from '../../lib/session-identity.js';
 import {
   CATEGORY_PROVIDER_ENV,
+  JEV_CONFIDENCE_THRESHOLD,
   JEV_ENDPOINT,
   JEV_MODEL,
   JEV_QUESTION_ID,
   TYPESAFE_KEY_ENV,
   buildJevCategoryRequest,
   classifyCategoryWithJev,
-  isJevShadowEnabled,
+  decideCategory,
+  isJevEnabled,
   parseJevCategoryAnswer,
+  readJevDecision,
   recordCategoryShadow,
   resolveCategoryProvider,
-  startJevCategoryShadow,
+  startJevCategory,
+  type JevCategoryResult,
 } from '../../lib/session-category-provider.js';
 
 const KEY = 'test-key-not-real';
@@ -75,25 +82,53 @@ describe('category set contract', () => {
     expect(Object.keys(criteria)).toEqual([...WORK_CATEGORIES]);
   });
 
-  it('the Choice descriptions are the same descriptions the haiku prompt uses', () => {
+  it('the Choice criteria are the same what / not_for / examples objects the haiku prompt embeds', () => {
     const req = buildJevCategoryRequest('x', '');
     const prompt = buildGeneratorPrompt('x', '');
-    for (const c of WORK_CATEGORIES) {
-      expect(req.questions[JEV_QUESTION_ID].criteria[c]).toBe(CATEGORY_DESCRIPTIONS[c]);
-      expect(prompt).toContain(`${c} (${CATEGORY_DESCRIPTIONS[c]})`);
-    }
-    expect(Object.keys(CATEGORY_DESCRIPTIONS)).toEqual([...WORK_CATEGORIES]);
+    expect(req.questions[JEV_QUESTION_ID].criteria).toEqual(CATEGORY_CRITERIA);
+    expect(prompt).toContain(formatCategoryCriteria());
+    expect(formatCategoryCriteria()).toBe(JSON.stringify(CATEGORY_CRITERIA, null, 1));
+    expect(Object.keys(CATEGORY_CRITERIA)).toEqual([...WORK_CATEGORIES]);
   });
 
-  it('adds no extra option (no "other"), so the two label spaces are identical', () => {
+  it('adds no extra option (no "other", no "review"), so the two label spaces are identical', () => {
     const req = buildJevCategoryRequest('x', '');
     expect(Object.keys(req.questions[JEV_QUESTION_ID].criteria)).toHaveLength(WORK_CATEGORIES.length);
+    expect(WORK_CATEGORIES).toHaveLength(8);
+    expect(WORK_CATEGORIES as readonly string[]).not.toContain('review');
   });
 
-  it('keeps the haiku category sentence byte-identical to the pre-shadow prompt', () => {
-    expect(buildGeneratorPrompt('x', '')).toContain(
-      'Choose the SINGLE category that best fits the work: bugfix (fixing a bug or incident), feature (new capability), docs (documentation or research), refactor (restructuring with no behavior change), infra (CI, build, deploy, tooling), perf (performance), design (UI, UX, visual), testing (tests or QA).',
+  it('every criterion is complete and review is folded into testing', () => {
+    for (const c of WORK_CATEGORIES) {
+      const entry = CATEGORY_CRITERIA[c];
+      expect(entry.what.length).toBeGreaterThan(20);
+      expect(entry.not_for.length).toBeGreaterThan(10);
+      expect(entry.examples.length).toBeGreaterThanOrEqual(2);
+    }
+    expect(CATEGORY_CRITERIA.testing.what).toMatch(/reviewing a pull request/i);
+    expect(CATEGORY_CRITERIA.testing.examples).toContain('review PR 123 and give a verdict');
+  });
+
+  it('no not_for pointer names a category outside the set (the fold left no dangling "(review)")', () => {
+    for (const c of WORK_CATEGORIES) {
+      const pointers = CATEGORY_CRITERIA[c].not_for.match(/\(([^)]+)\)/g) ?? [];
+      for (const group of pointers) {
+        for (const name of group.slice(1, -1).split(',')) {
+          expect(WORK_CATEGORIES as readonly string[]).toContain(name.trim());
+        }
+      }
+    }
+  });
+
+  it('the haiku prompt asks the held-out question and keeps the output shape', () => {
+    const prompt = buildGeneratorPrompt('x', 'feat/y');
+    expect(prompt).toContain(
+      'Which SINGLE category best fits the coding work this session is about to do, judging from the first prompt and the git branch?',
     );
+    expect(prompt).toContain('Categories, each with what it is, what it is not for, and examples:');
+    expect(prompt).toContain(`"category":"<one of: ${WORK_CATEGORIES.join(', ')}>"`);
+    expect(prompt).toContain('Git branch: feat/y');
+    expect(prompt).toContain('First prompt: x');
   });
 });
 
@@ -116,19 +151,50 @@ describe('opt-in gating', () => {
     expect(resolveCategoryProvider({ [CATEGORY_PROVIDER_ENV]: 'haiku' })).toBe('haiku');
     expect(resolveCategoryProvider({ [CATEGORY_PROVIDER_ENV]: 'openai' })).toBe('haiku');
     expect(resolveCategoryProvider({ [CATEGORY_PROVIDER_ENV]: ' JEV ' })).toBe('jev');
+    expect(resolveCategoryProvider({ [CATEGORY_PROVIDER_ENV]: 'Shadow' })).toBe('shadow');
   });
 
   it('needs BOTH the provider and a non-empty key', () => {
-    expect(isJevShadowEnabled({ [CATEGORY_PROVIDER_ENV]: 'jev' })).toBe(false);
-    expect(isJevShadowEnabled({ [CATEGORY_PROVIDER_ENV]: 'jev', [TYPESAFE_KEY_ENV]: '  ' })).toBe(false);
-    expect(isJevShadowEnabled({ [TYPESAFE_KEY_ENV]: KEY })).toBe(false);
-    expect(isJevShadowEnabled({ [CATEGORY_PROVIDER_ENV]: 'jev', [TYPESAFE_KEY_ENV]: KEY })).toBe(true);
+    expect(isJevEnabled({ [CATEGORY_PROVIDER_ENV]: 'jev' })).toBe(false);
+    expect(isJevEnabled({ [CATEGORY_PROVIDER_ENV]: 'jev', [TYPESAFE_KEY_ENV]: '  ' })).toBe(false);
+    expect(isJevEnabled({ [TYPESAFE_KEY_ENV]: KEY })).toBe(false);
+    expect(isJevEnabled({ [CATEGORY_PROVIDER_ENV]: 'jev', [TYPESAFE_KEY_ENV]: KEY })).toBe(true);
+    expect(isJevEnabled({ [CATEGORY_PROVIDER_ENV]: 'shadow', [TYPESAFE_KEY_ENV]: KEY })).toBe(true);
   });
 
-  it('startJevCategoryShadow makes no call when disabled', () => {
+  it('startJevCategory makes no call when disabled', () => {
     const fetchImpl = mockFetch(200, answerBody('bugfix'));
-    expect(startJevCategoryShadow('p', 'b', '/nonexistent/x.json', {}, fetchImpl)).toBeNull();
+    expect(startJevCategory('p', 'b', '/nonexistent/x.json', {}, fetchImpl)).toBeNull();
     expect(fetchImpl).not.toHaveBeenCalled();
+  });
+});
+
+describe('decideCategory (the cascade rule)', () => {
+  const JEV = { [CATEGORY_PROVIDER_ENV]: 'jev', [TYPESAFE_KEY_ENV]: KEY };
+  const SHADOW = { [CATEGORY_PROVIDER_ENV]: 'shadow', [TYPESAFE_KEY_ENV]: KEY };
+  const ok = (confidence: number | null): JevCategoryResult => ({
+    ok: true,
+    category: 'docs',
+    confidence,
+    probabilities: {},
+    latencyMs: 300,
+    inputTokens: 1300,
+    requestId: null,
+  });
+
+  it('pins the threshold at 0.8, inclusive', () => {
+    expect(JEV_CONFIDENCE_THRESHOLD).toBe(0.8);
+    expect(decideCategory(ok(0.8), JEV)).toEqual({ category: 'docs', confidence: 0.8 });
+    expect(decideCategory(ok(0.95), JEV)).toEqual({ category: 'docs', confidence: 0.95 });
+    expect(decideCategory(ok(0.79), JEV)).toBeNull();
+    expect(decideCategory(ok(null), JEV)).toBeNull();
+  });
+
+  it('never decides in shadow mode, in haiku mode, or on an error', () => {
+    expect(decideCategory(ok(0.99), SHADOW)).toBeNull();
+    expect(decideCategory(ok(0.99), {})).toBeNull();
+    expect(decideCategory({ ok: false, error: 'timeout', status: null, latencyMs: 1500 }, JEV)).toBeNull();
+    expect(decideCategory(null, JEV)).toBeNull();
   });
 });
 
@@ -252,48 +318,83 @@ describe('shadow files', () => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  it('startJevCategoryShadow writes the result without the key or the prompt', async () => {
-    const env = { [CATEGORY_PROVIDER_ENV]: 'jev', [TYPESAFE_KEY_ENV]: KEY };
+  const JEV = { [CATEGORY_PROVIDER_ENV]: 'jev', [TYPESAFE_KEY_ENV]: KEY };
+  const SHADOW = { [CATEGORY_PROVIDER_ENV]: 'shadow', [TYPESAFE_KEY_ENV]: KEY };
+
+  it('startJevCategory writes the result without the key or the prompt, then hands it to onResult', async () => {
     const secretPrompt = 'private prompt text that must not be stored';
-    await startJevCategoryShadow(secretPrompt, 'feat/x', jevPath, env, mockFetch(200, answerBody('feature')));
+    const seen: JevCategoryResult[] = [];
+    await startJevCategory(secretPrompt, 'feat/x', jevPath, JEV, mockFetch(200, answerBody('feature')), (r) =>
+      seen.push(r),
+    );
     const written = fs.readFileSync(jevPath, 'utf8');
     expect(JSON.parse(written)).toMatchObject({ ok: true, category: 'feature', model: JEV_MODEL });
     expect(written).not.toContain(KEY);
     expect(written).not.toContain(secretPrompt);
+    expect(seen).toHaveLength(1);
+    expect(seen[0]).toMatchObject({ ok: true, category: 'feature', confidence: 0.82 });
   });
 
-  it('records the pair once haiku settles, and only once', () => {
+  it('readJevDecision reads the settled file back through the same rule', async () => {
+    await startJevCategory('p', 'b', jevPath, JEV, mockFetch(200, answerBody('feature')));
+    expect(readJevDecision(jevPath, JEV)).toEqual({ category: 'feature', confidence: 0.82 });
+    expect(readJevDecision(jevPath, SHADOW)).toBeNull();
+    expect(readJevDecision(path.join(tmpDir, 'missing.json'), JEV)).toBeNull();
+    fs.writeFileSync(jevPath, '{not json', 'utf8');
+    expect(readJevDecision(jevPath, JEV)).toBeNull();
+  });
+
+  it('records the pair once haiku settles, and only once, with decided_by=jev when confident', () => {
     fs.writeFileSync(
       jevPath,
       JSON.stringify({ ok: true, model: JEV_MODEL, category: 'docs', confidence: 0.9, latencyMs: 210, inputTokens: 400 }),
     );
-    expect(recordCategoryShadow(jevPath, shadowPath, null, false)).toBeNull();
-    const record = recordCategoryShadow(jevPath, shadowPath, 'infra', true);
+    expect(recordCategoryShadow(jevPath, shadowPath, null, false, JEV)).toBeNull();
+    const record = recordCategoryShadow(jevPath, shadowPath, 'infra', true, JEV);
     expect(record).toMatchObject({
       provider: 'jev',
       haiku: 'infra',
       jev: 'docs',
       agree: false,
       jev_confidence: 0.9,
+      decided_by: 'jev',
+      threshold: 0.8,
       latency_ms: 210,
       input_tokens: 400,
       error: null,
     });
-    expect(recordCategoryShadow(jevPath, shadowPath, 'infra', true)).toBeNull();
+    expect(recordCategoryShadow(jevPath, shadowPath, 'infra', true, JEV)).toBeNull();
   });
 
-  it('records a failed Jev call with its error and agree=null', () => {
+  it('records decided_by=haiku below the threshold and in shadow mode', () => {
+    fs.writeFileSync(jevPath, JSON.stringify({ ok: true, model: JEV_MODEL, category: 'docs', confidence: 0.6, latencyMs: 210 }));
+    expect(recordCategoryShadow(jevPath, shadowPath, 'infra', true, JEV)).toMatchObject({
+      provider: 'jev',
+      decided_by: 'haiku',
+      jev_confidence: 0.6,
+    });
+    fs.rmSync(shadowPath);
+    fs.writeFileSync(jevPath, JSON.stringify({ ok: true, model: JEV_MODEL, category: 'docs', confidence: 0.99, latencyMs: 210 }));
+    expect(recordCategoryShadow(jevPath, shadowPath, 'infra', true, SHADOW)).toMatchObject({
+      provider: 'shadow',
+      decided_by: 'haiku',
+      jev_confidence: 0.99,
+    });
+  });
+
+  it('records a failed Jev call with its error, agree=null and decided_by=haiku', () => {
     fs.writeFileSync(jevPath, JSON.stringify({ ok: false, error: 'timeout', status: null, latencyMs: 1500 }));
-    expect(recordCategoryShadow(jevPath, shadowPath, 'bugfix', true)).toMatchObject({
+    expect(recordCategoryShadow(jevPath, shadowPath, 'bugfix', true, JEV)).toMatchObject({
       haiku: 'bugfix',
       jev: null,
       agree: null,
+      decided_by: 'haiku',
       error: 'timeout',
     });
   });
 
   it('does nothing while the Jev result has not landed', () => {
-    expect(recordCategoryShadow(jevPath, shadowPath, 'bugfix', true)).toBeNull();
+    expect(recordCategoryShadow(jevPath, shadowPath, 'bugfix', true, JEV)).toBeNull();
     expect(fs.existsSync(shadowPath)).toBe(false);
   });
 });

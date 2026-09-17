@@ -38,6 +38,7 @@ import { dirname, join } from 'node:path';
 import { homedir } from 'node:os';
 import type { HookContext, HookInput } from '../types.js';
 import {
+  CATEGORY_COLOR,
   CHILD_ENV_MARKER,
   hashColor,
   parseIdentityCategory,
@@ -51,8 +52,12 @@ import {
 import {
   FILE_JEV,
   FILE_SHADOW,
+  JEV_CONFIDENCE_THRESHOLD,
+  decideCategory,
+  readJevDecision,
   recordCategoryShadow,
-  startJevCategoryShadow,
+  startJevCategory,
+  type JevCategoryResult,
 } from './session-category-provider.js';
 
 /** Env kill-switch. Set ORK_SESSION_IDENTITY=0 to disable entirely. */
@@ -176,24 +181,32 @@ export function manageSessionIdentity(
 
     // 1. Identity already parsed → ensure color upgrade applied, return title.
     if (existsSync(parsedPath)) {
-      const identity = parseIdentityOutput(readFileSync(parsedPath, 'utf8'));
-      if (!identity) return null;
+      const parsed = parseIdentityOutput(readFileSync(parsedPath, 'utf8'));
+      if (!parsed) return null;
+      const identity = withDecidedColor(parsed, jevPath);
       applyColorOnce(input, projectDir, identity.color, colorAppliedPath, ctx);
       logCategoryShadow(jevPath, shadowPath, rawPath, true, ctx);
       return titleWithColor(identity);
     }
 
     if (existsSync(tombstonePath)) {
+      applyJevColorIfDecided(input, projectDir, jevPath, colorAppliedPath, ctx);
       logCategoryShadow(jevPath, shadowPath, null, true, ctx);
       return null;
     }
 
     // 2. Generator spawned earlier → try to harvest its output.
     if (existsSync(spawnedPath)) {
-      if (!existsSync(rawPath)) return null;
+      if (!existsSync(rawPath)) {
+        // Haiku is still running; a confident Jev answer can color the
+        // session now instead of waiting for the slower process.
+        applyJevColorIfDecided(input, projectDir, jevPath, colorAppliedPath, ctx);
+        return null;
+      }
       const raw = readFileSync(rawPath, 'utf8');
-      const identity = parseIdentityOutput(raw);
-      if (identity) {
+      const parsed = parseIdentityOutput(raw);
+      if (parsed) {
+        const identity = withDecidedColor(parsed, jevPath);
         writeFileSync(parsedPath, JSON.stringify(identity), 'utf8');
         applyColorOnce(input, projectDir, identity.color, colorAppliedPath, ctx);
         ctx.log('session-identity', `haiku identity ready: "${identity.title}" (${identity.color})`);
@@ -217,10 +230,16 @@ export function manageSessionIdentity(
     if (!existsSync(sessionDir)) mkdirSync(sessionDir, { recursive: true });
     const fallback = hashColor(input.session_id);
     applyColorOnce(input, projectDir, fallback, colorAppliedPath, ctx);
-    // Opt-in category shadow (ORK_SESSION_CATEGORY_PROVIDER=jev plus a key):
-    // a typed Choice over the same category set, written beside the haiku
-    // output and never used for the title or color. No-op when unset.
-    if (input.prompt) startJevCategoryShadow(input.prompt, ctx.branch || '', jevPath);
+    // Opt-in category provider (ORK_SESSION_CATEGORY_PROVIDER plus a key): a
+    // typed Choice over the same category set, written beside the haiku
+    // output. In `jev` mode a confident answer colors the session as soon as
+    // it settles (the hook process stays alive for it); in `shadow` mode it is
+    // only logged. No-op when unset.
+    if (input.prompt) {
+      startJevCategory(input.prompt, ctx.branch || '', jevPath, process.env, undefined, (result) =>
+        onJevSettled(result, input, projectDir, colorAppliedPath, ctx),
+      );
+    }
     if (input.prompt && spawnIdentityGenerator(input.prompt, ctx.branch || '', rawPath, projectDir, ctx)) {
       writeFileSync(spawnedPath, new Date().toISOString(), 'utf8');
       // RC1 (opt-in): block briefly so the title can land on THIS turn.
@@ -332,10 +351,61 @@ function logCategoryShadow(
   if (!record) return;
   ctx.log(
     'session-identity',
-    `category shadow: haiku=${record.haiku ?? 'none'} jev=${record.jev ?? 'none'} agree=${record.agree} ` +
-      `confidence=${record.jev_confidence ?? 'n/a'} latency_ms=${record.latency_ms ?? 'n/a'}` +
+    `category ${record.provider}: haiku=${record.haiku ?? 'none'} jev=${record.jev ?? 'none'} agree=${record.agree} ` +
+      `confidence=${record.jev_confidence ?? 'n/a'} decided_by=${record.decided_by} threshold=${record.threshold} ` +
+      `latency_ms=${record.latency_ms ?? 'n/a'}` +
       (record.error ? ` error=${record.error}` : ''),
   );
+}
+
+/**
+ * The identity with the color a confident Jev answer decided, when `jev` mode
+ * produced one; otherwise haiku's own color. Title and emoji are untouched.
+ */
+function withDecidedColor(identity: SessionIdentity, jevPath: string): SessionIdentity {
+  const decision = readJevDecision(jevPath);
+  return decision ? { ...identity, color: CATEGORY_COLOR[decision.category] } : identity;
+}
+
+/** Turn-1 settle callback: in `jev` mode a confident answer colors the session right away. */
+function onJevSettled(
+  result: JevCategoryResult,
+  input: HookInput,
+  projectDir: string | undefined,
+  colorAppliedPath: string,
+  ctx: HookContext,
+): void {
+  try {
+    const decision = decideCategory(result);
+    if (decision) {
+      applyColorOnce(input, projectDir, CATEGORY_COLOR[decision.category], colorAppliedPath, ctx);
+      ctx.log(
+        'session-identity',
+        `category decided by jev: ${decision.category} (confidence ${decision.confidence} >= ${JEV_CONFIDENCE_THRESHOLD})`,
+      );
+    } else if (result.ok) {
+      ctx.log(
+        'session-identity',
+        `category left to haiku: jev said ${result.category} at confidence ${result.confidence ?? 'n/a'}, below ${JEV_CONFIDENCE_THRESHOLD}`,
+      );
+    } else {
+      ctx.log('session-identity', `category left to haiku: jev ${result.error}`, 'warn');
+    }
+  } catch {
+    /* fail open */
+  }
+}
+
+/** Apply the Jev-decided color from the settled file, if there is one. Idempotent. */
+function applyJevColorIfDecided(
+  input: HookInput,
+  projectDir: string | undefined,
+  jevPath: string,
+  colorAppliedPath: string,
+  ctx: HookContext,
+): void {
+  const decision = readJevDecision(jevPath);
+  if (decision) applyColorOnce(input, projectDir, CATEGORY_COLOR[decision.category], colorAppliedPath, ctx);
 }
 
 function writeMeta(metaPath: string, meta: IdentityMeta): void {
@@ -375,8 +445,9 @@ function inlineHarvest(
     while (Date.now() < deadline) {
       sleepSync(INLINE_WAIT_POLL_MS);
       if (!existsSync(rawPath)) continue;
-      const identity: SessionIdentity | null = parseIdentityOutput(readFileSync(rawPath, 'utf8'));
-      if (!identity) continue;
+      const parsed: SessionIdentity | null = parseIdentityOutput(readFileSync(rawPath, 'utf8'));
+      if (!parsed) continue;
+      const identity = withDecidedColor(parsed, join(dirname(rawPath), FILE_JEV));
       writeFileSync(parsedPath, JSON.stringify(identity), 'utf8');
       applyColorOnce(input, projectDir, identity.color, colorAppliedPath, ctx);
       ctx.log('session-identity', `haiku identity ready (inline): "${identity.title}" (${identity.color})`);

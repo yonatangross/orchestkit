@@ -12,6 +12,9 @@
  * - resolveTranscriptPath prefers the envelope's transcript_path
  * - manageSessionIdentity: kill switch, child guard, turn-1 hash color +
  *   spawn, harvest of generator output, color upgrade, tombstone on junk
+ * - the opt-in category provider: `shadow` logs and never applies; `jev`
+ *   colors the session from a confident answer on turn 1, falls back to
+ *   haiku below the threshold or on error, and logs both outcomes
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
@@ -210,20 +213,25 @@ describe('manageSessionIdentity', () => {
   });
 });
 
-describe('manageSessionIdentity category shadow (opt-in)', () => {
-  // No usable emoji, so the title carries the red color glyph of the haiku category.
+describe('manageSessionIdentity category provider (opt-in)', () => {
+  // No usable emoji, so the title carries the color glyph of the decided category.
   const RAW = '{"title":"Fix login redirect","category":"bugfix","emoji":"none"}';
   const jevFile = () => path.join(sessionDir, 'session-identity.jev.json');
   const shadowFile = () => path.join(sessionDir, 'session-identity.shadow.json');
 
-  function answer(choice: string) {
+  function answer(choice: string, confidence = 0.9) {
     return new Response(
       JSON.stringify({
-        answers: { work_category: { type: 'choice', choice, confidence: 0.9, probabilities: { [choice]: 0.9 } } },
+        answers: { work_category: { type: 'choice', choice, confidence, probabilities: { [choice]: confidence } } },
         usage: { input_tokens: 300 },
       }),
       { status: 200, headers: { 'content-type': 'application/json' } },
     );
+  }
+
+  function loggingCtx(): HookContext & { lines: string[] } {
+    const lines: string[] = [];
+    return { ...ctx, lines, log: (_hook: string, msg: string) => void lines.push(msg) };
   }
 
   afterEach(() => {
@@ -249,10 +257,10 @@ describe('manageSessionIdentity category shadow (opt-in)', () => {
     expect(fs.existsSync(jevFile())).toBe(false);
   });
 
-  it('provider set: haiku still spawns and still decides the title and color; the pair is logged once', async () => {
+  it('shadow mode: haiku still spawns and still decides the title and color; the pair is logged once', async () => {
     const fetchSpy = vi.fn(async () => answer('docs'));
     vi.stubGlobal('fetch', fetchSpy);
-    process.env.ORK_SESSION_CATEGORY_PROVIDER = 'jev';
+    process.env.ORK_SESSION_CATEGORY_PROVIDER = 'shadow';
     process.env.ORK_TYPESAFE_API_KEY = 'test-key-not-real';
 
     expect(manageSessionIdentity(makeInput(), ctx, sessionDir, tmpDir)).toBeNull();
@@ -260,6 +268,8 @@ describe('manageSessionIdentity category shadow (opt-in)', () => {
     expect(fetchSpy).toHaveBeenCalledOnce();
     await flush();
     expect(fs.existsSync(jevFile())).toBe(true);
+    // A confident Jev answer in shadow mode never touches the color.
+    expect(transcriptColorRecords().at(-1)?.agentColor).toBe(hashColor(SESSION_ID));
 
     fs.writeFileSync(path.join(sessionDir, 'session-identity.raw'), RAW, 'utf8');
     const title = manageSessionIdentity(makeInput(), ctx, sessionDir, tmpDir);
@@ -268,7 +278,14 @@ describe('manageSessionIdentity category shadow (opt-in)', () => {
     expect(transcriptColorRecords().at(-1)?.agentColor).toBe('red');
 
     const shadow = JSON.parse(fs.readFileSync(shadowFile(), 'utf8'));
-    expect(shadow).toMatchObject({ haiku: 'bugfix', jev: 'docs', agree: false, error: null });
+    expect(shadow).toMatchObject({
+      provider: 'shadow',
+      haiku: 'bugfix',
+      jev: 'docs',
+      agree: false,
+      decided_by: 'haiku',
+      error: null,
+    });
     expect(JSON.stringify(shadow)).not.toContain('fix the login redirect bug');
 
     const before = fs.readFileSync(shadowFile(), 'utf8');
@@ -277,19 +294,88 @@ describe('manageSessionIdentity category shadow (opt-in)', () => {
     expect(fetchSpy).toHaveBeenCalledOnce();
   });
 
-  it('provider set but the call fails: title and color are unchanged and the error is logged', async () => {
+  it('jev mode, confident: Jev colors the session on turn 1, haiku keeps the title, both are logged', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => answer('docs', 0.91)));
+    process.env.ORK_SESSION_CATEGORY_PROVIDER = 'jev';
+    process.env.ORK_TYPESAFE_API_KEY = 'test-key-not-real';
+    const log = loggingCtx();
+
+    expect(manageSessionIdentity(makeInput(), log, sessionDir, tmpDir)).toBeNull();
+    await flush();
+    await new Promise((r) => setTimeout(r, 10));
+    // Jev settled (~300 ms in production) before haiku (~6 s): the color is
+    // already docs/blue, upgraded from the hash color, before any title exists.
+    expect(transcriptColorRecords().at(-1)?.agentColor).toBe('blue');
+    expect(log.lines).toContainEqual(expect.stringContaining('category decided by jev: docs (confidence 0.91 >= 0.8)'));
+
+    // A turn where haiku is still running keeps the Jev color (idempotent).
+    expect(manageSessionIdentity(makeInput(), log, sessionDir, tmpDir)).toBeNull();
+    expect(transcriptColorRecords().filter((r) => r.agentColor === 'blue')).toHaveLength(1);
+
+    fs.writeFileSync(path.join(sessionDir, 'session-identity.raw'), RAW, 'utf8');
+    const title = manageSessionIdentity(makeInput(), log, sessionDir, tmpDir);
+    // Haiku said bugfix (red) but Jev decided docs (blue): title from haiku, glyph and color from Jev.
+    expect(title).toBe(`${colorEmoji('blue')} Fix login redirect`);
+    expect(transcriptColorRecords().at(-1)?.agentColor).toBe('blue');
+    expect(transcriptColorRecords().some((r) => r.agentColor === 'red')).toBe(false);
+    // The stored identity carries the decided color, so later turns agree.
+    expect(JSON.parse(fs.readFileSync(path.join(sessionDir, 'session-identity.json'), 'utf8')).color).toBe('blue');
+    expect(manageSessionIdentity(makeInput(), log, sessionDir, tmpDir)).toBe(`${colorEmoji('blue')} Fix login redirect`);
+
+    expect(JSON.parse(fs.readFileSync(shadowFile(), 'utf8'))).toMatchObject({
+      provider: 'jev',
+      haiku: 'bugfix',
+      jev: 'docs',
+      agree: false,
+      jev_confidence: 0.91,
+      decided_by: 'jev',
+      threshold: 0.8,
+    });
+    expect(log.lines).toContainEqual(expect.stringContaining('decided_by=jev threshold=0.8'));
+  });
+
+  it('jev mode, below the threshold: haiku decides the color and the fallback is logged', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => answer('docs', 0.62)));
+    process.env.ORK_SESSION_CATEGORY_PROVIDER = 'jev';
+    process.env.ORK_TYPESAFE_API_KEY = 'test-key-not-real';
+    const log = loggingCtx();
+
+    manageSessionIdentity(makeInput(), log, sessionDir, tmpDir);
+    await flush();
+    await new Promise((r) => setTimeout(r, 10));
+    expect(transcriptColorRecords().at(-1)?.agentColor).toBe(hashColor(SESSION_ID));
+    expect(log.lines).toContainEqual(expect.stringContaining('category left to haiku: jev said docs at confidence 0.62, below 0.8'));
+
+    fs.writeFileSync(path.join(sessionDir, 'session-identity.raw'), RAW, 'utf8');
+    expect(manageSessionIdentity(makeInput(), log, sessionDir, tmpDir)).toBe(`${colorEmoji('red')} Fix login redirect`);
+    expect(transcriptColorRecords().at(-1)?.agentColor).toBe('red');
+    expect(JSON.parse(fs.readFileSync(shadowFile(), 'utf8'))).toMatchObject({
+      provider: 'jev',
+      jev: 'docs',
+      jev_confidence: 0.62,
+      decided_by: 'haiku',
+    });
+    expect(log.lines).toContainEqual(expect.stringContaining('decided_by=haiku threshold=0.8'));
+  });
+
+  it('jev mode but the call fails: title and color come from haiku and the error is logged', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => new Response('{}', { status: 500 })));
     process.env.ORK_SESSION_CATEGORY_PROVIDER = 'jev';
     process.env.ORK_TYPESAFE_API_KEY = 'test-key-not-real';
+    const log = loggingCtx();
 
-    manageSessionIdentity(makeInput(), ctx, sessionDir, tmpDir);
+    manageSessionIdentity(makeInput(), log, sessionDir, tmpDir);
     await flush();
+    await new Promise((r) => setTimeout(r, 10));
+    expect(log.lines).toContainEqual(expect.stringContaining('category left to haiku: jev http 500'));
     fs.writeFileSync(path.join(sessionDir, 'session-identity.raw'), RAW, 'utf8');
-    expect(manageSessionIdentity(makeInput(), ctx, sessionDir, tmpDir)).toBe(`${colorEmoji('red')} Fix login redirect`);
+    expect(manageSessionIdentity(makeInput(), log, sessionDir, tmpDir)).toBe(`${colorEmoji('red')} Fix login redirect`);
+    expect(transcriptColorRecords().at(-1)?.agentColor).toBe('red');
     expect(JSON.parse(fs.readFileSync(shadowFile(), 'utf8'))).toMatchObject({
       haiku: 'bugfix',
       jev: null,
       agree: null,
+      decided_by: 'haiku',
       error: 'http 500',
     });
   });
