@@ -1,5 +1,5 @@
 ---
-title: "shadcn/ui v4 Style System — 6 Styles + Preset Codes"
+title: "shadcn/ui v4 Style System: 6 Styles + Preset Codes"
 impact: "HIGH"
 impactDescription: "Using wrong class names for the project's shadcn style produces visually inconsistent components that don't match the design system"
 tags: [shadcn, styles, v4, preset, luma, vega, nova, maia, lyra, mira, sera, rhea]

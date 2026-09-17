@@ -1,13 +1,13 @@
 ---
 title: "Implement: Rules"
-description: "6 rules for the Implement skill: Subagents must only modify files within their assigned scope — prevent cross-agent conflicts; Cap changes per agent batch to prevent cascade failures; Commit after each logical milestone — never batch all commits to session end; Block completion if new code has zero test coverage — tests are mandatory for every implementation; Match implementation tier to assessed complexity — never over-engineer a simple task; Always ExitWorktree after implementation — never leave orphaned worktrees"
+description: "6 rules for the Implement skill: Subagents must only modify files within their assigned scope: prevent cross-agent conflicts; Cap changes per agent batch to prevent cascade failures; Commit after each logical milestone: never batch all commits to session end; Block completion if new code has zero test coverage: tests are mandatory for every implementation; Match implementation tier to assessed complexity: never over-engineer a simple task; Always ExitWorktree after implementation: never leave orphaned worktrees"
 ---
 
 > Part of the [Implement](/docs/reference/skills/implement) skill reference. The main page carries the skill itself; this page holds material that used to sit at the bottom of it.
 
 ## Rules (6)
 
-### Subagents must only modify files within their assigned scope — prevent cross-agent conflicts: HIGH
+### Subagents must only modify files within their assigned scope: prevent cross-agent conflicts: HIGH
 
 
 ## Agent Scope Containment
@@ -160,7 +160,7 @@ for batch in chunks(files, size=5):
 `/ork:implement --batch-size 3 migrate all repositories to RepositoryBase` overrides the default when a particularly risky operation warrants smaller steps.
 
 
-### Commit after each logical milestone — never batch all commits to session end: HIGH
+### Commit after each logical milestone: never batch all commits to session end: HIGH
 
 
 ## Commit After Milestone
@@ -237,7 +237,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 - Handoff JSON files (`.claude/chain/*.json`) should be committed alongside code
 
 
-### Block completion if new code has zero test coverage — tests are mandatory for every implementation: HIGH
+### Block completion if new code has zero test coverage: tests are mandatory for every implementation: HIGH
 
 
 ## Test Coverage Requirement
@@ -316,7 +316,7 @@ Always reference the Test Requirements Matrix from SKILL.md when spawning test-g
 - Include test file paths in the `05-implementation.json` handoff
 
 
-### Match implementation tier to assessed complexity — never over-engineer a simple task: HIGH
+### Match implementation tier to assessed complexity: never over-engineer a simple task: HIGH
 
 
 ## Tier Validation
@@ -377,7 +377,7 @@ Agent(subagent_type="ork:backend-system-architect",
 - Tier upgrades require explicit user confirmation via `AskUserQuestion`
 
 
-### Always ExitWorktree after implementation — never leave orphaned worktrees: HIGH
+### Always ExitWorktree after implementation: never leave orphaned worktrees: HIGH
 
 
 ## Worktree Cleanup
