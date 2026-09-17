@@ -18,6 +18,27 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.47",
+    "date": "2026-09-17",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.46...v10.0.0-beta.47",
+    "sections": [
+      {
+        "type": "changed",
+        "heading": "Miscellaneous",
+        "items": [
+          "**security:** genericize op:// paths and home dirs in public files ([#4223](https://github.com/yonatangross/orchestkit/issues/4223)) ([a827671](https://github.com/yonatangross/orchestkit/commit/a8276712bb9707cbdcb9874c13ffb4238f47dbec))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Documentation",
+        "items": [
+          "replace U+2014 in sixteen rule titles with colon ([#4221](https://github.com/yonatangross/orchestkit/issues/4221)) ([8effd3d](https://github.com/yonatangross/orchestkit/commit/8effd3d3e79da39175599f09a40d726bcd5f6dfa))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.46",
     "date": "2026-09-17",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.45...v10.0.0-beta.46",
