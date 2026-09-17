@@ -15,4 +15,4 @@ Dark GitHub-inspired theme with CSS variables:
 
 ## OrchestKit Data (v7.0.0 confirmed)
 - 38 agents, 17 user-invocable skills, 52 internal skills, 96 hooks
-- All playground files live at `/Users/yonatangross/coding/orchestkit/playground/`
+- All playground files live at `/Users/me/coding/orchestkit/playground/`

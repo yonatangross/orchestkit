@@ -52,7 +52,11 @@ const {
   GITHUB_STEP_SUMMARY,
 } = process.env;
 
-const HQ_API_TOKEN_REFERENCE = "op://Platform/API-Static-Token/credential";
+// The 1Password reference for the platform token is deployment-specific and
+// never committed to this public repo. Supply it through the
+// HQ_API_TOKEN_REFERENCE repository variable so the 401 message names the
+// real rotation target; the placeholder keeps the message readable without it.
+const HQ_API_TOKEN_REFERENCE = process.env.HQ_API_TOKEN_REFERENCE || "op://<vault>/<item>/credential";
 const REQUEST_TIMEOUT_MS = 10_000;
 
 function die(msg) {

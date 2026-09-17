@@ -1,6 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
-const repo = '/Users/yonatangross/coding/yonatangross/orchestkit';
+const repo = '/Users/me/coding/yonatangross/orchestkit';
 const ORIG_COMMIT = 'd8acb7dba'; // commit BEFORE the WIP description rewrite (original terse descriptions)
 const NUM = parseInt(process.argv[2] || '3', 10);
 

@@ -156,6 +156,7 @@ jobs:
           ANNOUNCE_ACCOUNT: yonyon2ai
           HQ_API_URL: ${{ secrets.HQ_API_URL }}
           HQ_API_TOKEN: ${{ secrets.HQ_API_TOKEN }}
+          HQ_API_TOKEN_REFERENCE: ${{ vars.HQ_API_TOKEN_REFERENCE }}
           PREFLIGHT: "true"
         run: node scripts/announce-release.mjs
 
@@ -176,5 +177,6 @@ jobs:
           ANNOUNCE_ACCOUNT: yonyon2ai
           HQ_API_URL: ${{ secrets.HQ_API_URL }}
           HQ_API_TOKEN: ${{ secrets.HQ_API_TOKEN }}
+          HQ_API_TOKEN_REFERENCE: ${{ vars.HQ_API_TOKEN_REFERENCE }}
           DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
         run: node scripts/announce-release.mjs

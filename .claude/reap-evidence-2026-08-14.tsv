@@ -38,18 +38,18 @@ release/v10	7f923fdb393ebb4bea9e2083f5883032c38bbf9a	none	2026-08-08T10:16:40+03
 worktree-agent-a33f997425ac3ec07	bccfff90990bfedeef87e645fbfe0f084ceda57d	none	2026-08-09T19:30:25+03:00	none
 worktree-agent-a7ad4ec8f65765c4b	44d17ced401128a8c37eaa9e3284bf4ea18a9aba	none	2026-08-09T21:32:56+03:00	none
 wt/refspec	bdc5b42c81cf938cc39084394757b9b866da8ee7	none	2026-08-09T11:51:38+03:00	none
-worktree:/Users/yonatangross/coding/yonatangross/orchestkit[main]	874307f349fd80dd1973bae7b53727d30b0da136	none	2026-08-14T10:15:09+03:00	none
-worktree:/Users/yonatangross/coding/yonatangross/orchestkit/.claude/worktrees/agent-a7ad4ec8f65765c4b[worktree-agent-a7ad4ec8f65765c4b]	44d17ced401128a8c37eaa9e3284bf4ea18a9aba	none	2026-08-09T21:32:56+03:00	none
-worktree:/Users/yonatangross/coding/yonatangross/orchestkit/.worktrees/agent-a5ff63718f566517e[feat/3315-worktree-baseref-include]	a4ef85b781bd000c38ba8ce26d7586c16bd9aafe	none	2026-08-13T13:48:05+03:00	none
-worktree:/Users/yonatangross/coding/yonatangross/orchestkit/.worktrees/dep3379[dep3379-local]	72b44f5240781203ddb179fc4716f3b6752009bf	none	2026-08-10T07:52:15+03:00	none
-worktree:/Users/yonatangross/coding/yonatangross/orchestkit/.worktrees/dep3381[dep3381-local]	40fb383e02561cdaa6424db9624aceebf97c5fbf	none	2026-08-10T08:30:56+03:00	none
-worktree:/Users/yonatangross/coding/yonatangross/orchestkit/.worktrees/elicit-hdr[fix/elicit-header-leftover]	27cc01e4bfc767cc6df86a74fb20af66da944678	3485	2026-08-14T09:14:38+03:00	MERGED
-worktree:/Users/yonatangross/coding/yonatangross/orchestkit/.worktrees/gitvalidator-msg[fix/git-validator-stale-message]	fe3ded0a214c5ef09d35bd131efa9e31d5b908bc	none	2026-08-12T11:17:08+03:00	none
-worktree:/Users/yonatangross/coding/yonatangross/orchestkit/.worktrees/gitvalidator-refspec[fix/3455-push-refspec]	b6769c0c6c81be7dcf4c8da02779fbbf4470cf21	3475	2026-08-13T15:05:28+03:00	MERGED
-worktree:/Users/yonatangross/coding/yonatangross/orchestkit/.worktrees/node-version-source[fix/node-version-source-of-truth]	ece98fde86007bf4dbf05e3860fe4dd70351c4e5	3473	2026-08-13T13:38:10+03:00	MERGED
-worktree:/Users/yonatangross/coding/yonatangross/orchestkit/.worktrees/playground-durable[labs-sync]	31ba69131b34d24fe3525bdd896ebed94d457bf0	none	2026-07-25T20:06:31+03:00	none
-worktree:/Users/yonatangross/coding/yonatangross/orchestkit/.worktrees/reap-merged[chore/reap-merged-branches]	04ea99f64a0fb56b5f781fd1521a2ef46ac92e1b	none	2026-08-14T13:55:24+03:00	none
-worktree:/Users/yonatangross/coding/yonatangross/orchestkit/.worktrees/verify3263[chore/bump-dompurify-lockfile]	e0edf17d0d5bc523d1375cc0e139b5cbcd5306d8	none	2026-08-07T16:13:14+03:00	none
+worktree:/Users/me/coding/yonatangross/orchestkit[main]	874307f349fd80dd1973bae7b53727d30b0da136	none	2026-08-14T10:15:09+03:00	none
+worktree:/Users/me/coding/yonatangross/orchestkit/.claude/worktrees/agent-a7ad4ec8f65765c4b[worktree-agent-a7ad4ec8f65765c4b]	44d17ced401128a8c37eaa9e3284bf4ea18a9aba	none	2026-08-09T21:32:56+03:00	none
+worktree:/Users/me/coding/yonatangross/orchestkit/.worktrees/agent-a5ff63718f566517e[feat/3315-worktree-baseref-include]	a4ef85b781bd000c38ba8ce26d7586c16bd9aafe	none	2026-08-13T13:48:05+03:00	none
+worktree:/Users/me/coding/yonatangross/orchestkit/.worktrees/dep3379[dep3379-local]	72b44f5240781203ddb179fc4716f3b6752009bf	none	2026-08-10T07:52:15+03:00	none
+worktree:/Users/me/coding/yonatangross/orchestkit/.worktrees/dep3381[dep3381-local]	40fb383e02561cdaa6424db9624aceebf97c5fbf	none	2026-08-10T08:30:56+03:00	none
+worktree:/Users/me/coding/yonatangross/orchestkit/.worktrees/elicit-hdr[fix/elicit-header-leftover]	27cc01e4bfc767cc6df86a74fb20af66da944678	3485	2026-08-14T09:14:38+03:00	MERGED
+worktree:/Users/me/coding/yonatangross/orchestkit/.worktrees/gitvalidator-msg[fix/git-validator-stale-message]	fe3ded0a214c5ef09d35bd131efa9e31d5b908bc	none	2026-08-12T11:17:08+03:00	none
+worktree:/Users/me/coding/yonatangross/orchestkit/.worktrees/gitvalidator-refspec[fix/3455-push-refspec]	b6769c0c6c81be7dcf4c8da02779fbbf4470cf21	3475	2026-08-13T15:05:28+03:00	MERGED
+worktree:/Users/me/coding/yonatangross/orchestkit/.worktrees/node-version-source[fix/node-version-source-of-truth]	ece98fde86007bf4dbf05e3860fe4dd70351c4e5	3473	2026-08-13T13:38:10+03:00	MERGED
+worktree:/Users/me/coding/yonatangross/orchestkit/.worktrees/playground-durable[labs-sync]	31ba69131b34d24fe3525bdd896ebed94d457bf0	none	2026-07-25T20:06:31+03:00	none
+worktree:/Users/me/coding/yonatangross/orchestkit/.worktrees/reap-merged[chore/reap-merged-branches]	04ea99f64a0fb56b5f781fd1521a2ef46ac92e1b	none	2026-08-14T13:55:24+03:00	none
+worktree:/Users/me/coding/yonatangross/orchestkit/.worktrees/verify3263[chore/bump-dompurify-lockfile]	e0edf17d0d5bc523d1375cc0e139b5cbcd5306d8	none	2026-08-07T16:13:14+03:00	none
 # S8 remote cc-snapshot refs, captured 2026-08-14 before remote deletion.
 # Recovery: git push origin <oid>:refs/heads/<name>
 chore/cc-snapshot-26630839195	62f6c69842db7fbca08e1569f3a10c7dd0676acf	2082	2026-05-29T10:01:09Z	CLOSED

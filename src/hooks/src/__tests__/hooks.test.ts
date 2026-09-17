@@ -617,7 +617,7 @@ describe('lifecycle/session-env-setup', () => {
   test('initializes session metrics', () => {
     const input = createHookInput({
       session_id: 'test-session-123',
-      project_dir: '/Users/yonatangross/coding/projects/orchestkit',
+      project_dir: '/Users/me/coding/projects/orchestkit',
     });
     const result = sessionEnvSetup(input);
 
@@ -631,7 +631,7 @@ describe('lifecycle/session-env-setup', () => {
 
     const input = createHookInput({
       session_id: 'test-session-456',
-      project_dir: '/Users/yonatangross/coding/projects/orchestkit',
+      project_dir: '/Users/me/coding/projects/orchestkit',
     });
     const result = sessionEnvSetup(input);
 
@@ -649,7 +649,7 @@ describe('lifecycle/session-env-setup', () => {
   test('extracts agent_type from hook input', () => {
     const input = createHookInput({
       session_id: 'test-session-789',
-      project_dir: '/Users/yonatangross/coding/projects/orchestkit',
+      project_dir: '/Users/me/coding/projects/orchestkit',
       agent_type: 'frontend-architect',
     });
     const result = sessionEnvSetup(input);

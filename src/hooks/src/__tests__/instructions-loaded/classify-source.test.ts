@@ -16,7 +16,7 @@ describe('classifySource', () => {
     });
 
     test('classifies CLAUDE.md in subdirectory as project', () => {
-      expect(classifySource('/Users/yonatangross/coding/orchestkit/CLAUDE.md')).toBe('project');
+      expect(classifySource('/Users/me/coding/orchestkit/CLAUDE.md')).toBe('project');
     });
 
     test('does not classify CLAUDE.md inside .claude/ as project', () => {
@@ -35,7 +35,7 @@ describe('classifySource', () => {
     });
 
     test('classifies nested .claude/rules/ path as rules', () => {
-      expect(classifySource('/Users/yonatangross/coding/orchestkit/.claude/rules/hooks-development.md')).toBe('rules');
+      expect(classifySource('/Users/me/coding/orchestkit/.claude/rules/hooks-development.md')).toBe('rules');
     });
 
     test('classifies claude/rules/ (no leading dot) as rules', () => {

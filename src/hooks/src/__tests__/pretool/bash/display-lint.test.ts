@@ -38,7 +38,7 @@ function madePermissionDecision(r: { hookSpecificOutput?: unknown }): boolean {
 
 // A real offender captured from a live session transcript (2026-07-16).
 const REAL_OFFENDER =
-  "cd /Users/yonatangross/coding/yonatangross/orchestkit-2919/src/hooks/src && sed -n '1,40p' lib/env.ts && echo === && grep -n 'export function|STATE_FILE|function isDevStackLive|function readDevStackState' lib/dev-stack-state.ts | head -10";
+  "cd /Users/me/coding/yonatangross/orchestkit-2919/src/hooks/src && sed -n '1,40p' lib/env.ts && echo === && grep -n 'export function|STATE_FILE|function isDevStackLive|function readDevStackState' lib/dev-stack-state.ts | head -10";
 
 describe('display-lint', () => {
   let savedEnv: string | undefined;
@@ -209,7 +209,7 @@ describe('display-lint', () => {
     });
 
     test('passes `gh issue edit --title` with a long quoted title', () => {
-      const cmd = `cd /Users/yonatangross/coding/yonatan-hq/hq-ext-ccwave && gh issue edit 688 --title "cc-adoption: verify shipped .claude/rules still load (2.1.211 nested_rules_precedence); confirm the loader honors depth | ordering across nested dirs"`;
+      const cmd = `cd /Users/me/coding/yonatan-hq/hq-ext-ccwave && gh issue edit 688 --title "cc-adoption: verify shipped .claude/rules still load (2.1.211 nested_rules_precedence); confirm the loader honors depth | ordering across nested dirs"`;
       expect(cmd.length).toBeGreaterThan(200);
       expect(isFlagged(displayLint(bash(cmd), NOOP_CTX))).toBe(false);
     });

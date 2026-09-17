@@ -241,7 +241,7 @@ name is a form field and is independent of the directory name.
 **H2. `.mcp.json` ships a 1Password reference to the operator's private vault.**
 
 ```
-"tavily": { "args": ["-c", "TAVILY_API_KEY=$(op read 'op://Platform/Tavily-API-Key/credential') exec npx -y tavily-mcp@0.2.20"] }
+"tavily": { "args": ["-c", "TAVILY_API_KEY=$(op read 'op://<vault>/<item>/credential') exec npx -y tavily-mcp@0.2.20"] }
 ```
 
 Not an exfiltration finding: the credential is read locally and passed to Tavily's
