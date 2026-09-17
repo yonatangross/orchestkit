@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.48](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.47...v10.0.0-beta.48) (2026-09-17)
+
+
+### Bug Fixes
+
+* **security:** stop logging token reference, escape lab attributes fully ([#4226](https://github.com/yonatangross/orchestkit/issues/4226)) ([fd42932](https://github.com/yonatangross/orchestkit/commit/fd429323d6f72f133b5f3a014298573cf495586e))
+
 ## [10.0.0-beta.47](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.46...v10.0.0-beta.47) (2026-09-17)
 
 

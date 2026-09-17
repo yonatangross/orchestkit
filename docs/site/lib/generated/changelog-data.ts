@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.48",
+    "date": "2026-09-17",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.47...v10.0.0-beta.48",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**security:** stop logging token reference, escape lab attributes fully ([#4226](https://github.com/yonatangross/orchestkit/issues/4226)) ([fd42932](https://github.com/yonatangross/orchestkit/commit/fd429323d6f72f133b5f3a014298573cf495586e))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.47",
     "date": "2026-09-17",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.46...v10.0.0-beta.47",
