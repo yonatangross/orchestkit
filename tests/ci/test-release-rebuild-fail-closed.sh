@@ -11,7 +11,8 @@
 # shipped step rather than with a pasted copy, and runs under `bash -e` (what
 # GitHub uses when no shell: key is set). The step's externals are replaced by
 # PATH shims: gh (PR lookup), npm (ci + build), git (push and ls-remote only;
-# every other git subcommand delegates to the real binary).
+# every other git subcommand delegates to the real binary), rsync (partial
+# transfer when RRFC_RSYNC_FAIL=1).
 #
 # Arms (one line each: rc and the annotation that must be present):
 #   guard refusal            rc 1  ::error::   (branch differs outside release-owned paths)
@@ -23,6 +24,7 @@
 #   push fail, head same     rc 1  ::error::   (rebuild genuinely did not land)
 #   already current          rc 0  ::notice::  (dist matches, nothing to push)
 #   rsync mirrors contents   (exec arm: the shipped line, no shim; #4183 fix)
+#   rsync failure            rc 1  ::error::   (rsync of src/hooks/dist fails; #4207)
 #   push carries --no-verify (text arm; mutation: remove the flag, arm fails)
 #   no root-level full build (text arm; mutation: restore it, arm fails)
 # Plus one structural arm: the shipped step carries no continue-on-error key
@@ -94,6 +96,7 @@ extract_step() {
 # ---- shims ------------------------------------------------------------
 SHIMS="$WORK/shims"; mkdir -p "$SHIMS"
 REAL_GIT="$(command -v git)"
+REAL_RSYNC="$(command -v rsync)"
 
 # gh: reports one open release PR authored by the release bot.
 cat > "$SHIMS/gh" <<'EOF'
@@ -158,9 +161,24 @@ if [ "\${1:-}" = "ls-remote" ] && [ -n "\${RRFC_LS_REMOTE_SHA:-}" ]; then
   printf '%s\t%s\n' "\$RRFC_LS_REMOTE_SHA" "\${3:-refs/heads/x}"
   exit 0
 fi
+# Record post-rsync git mutations so the rsync-failure arm can prove the
+# step never reached commit or push (#4207).
+if [ "\${1:-}" = "commit" ] || [ "\${1:-}" = "push" ]; then
+  printf '%s\n' "\$1" >> "\${RRFC_ROOT}/.rrfc-git-reached"
+fi
 exec "$REAL_GIT" "\$@"
 EOF
-chmod +x "$SHIMS/gh" "$SHIMS/npm" "$SHIMS/git"
+
+# rsync: RRFC_RSYNC_FAIL=1 simulates a partial transfer (exit 23).
+cat > "$SHIMS/rsync" <<EOF
+#!/usr/bin/env bash
+if [ "\${RRFC_RSYNC_FAIL:-0}" = "1" ]; then
+  echo "rsync shim: simulated partial transfer failure" >&2
+  exit 23
+fi
+exec "$REAL_RSYNC" "\$@"
+EOF
+chmod +x "$SHIMS/gh" "$SHIMS/npm" "$SHIMS/git" "$SHIMS/rsync"
 
 # ---- fixture ----------------------------------------------------------
 # make_fixture <dir> [poison-file]: bare origin + clone; main holds dist files
@@ -169,6 +187,7 @@ chmod +x "$SHIMS/gh" "$SHIMS/npm" "$SHIMS/git"
 make_fixture() {
     local d="$1" poison="${2:-}" r
     git init -q --bare "$d/origin.git"
+    # silent: known-noise empty bare clone may warn on unborn HEAD; fixture re-inits below
     git clone -q "$d/origin.git" "$d/repo" 2>/dev/null || true
     r="$d/repo"
     git -C "$r" checkout -qB main   # clone of an empty repo may default to another unborn branch
@@ -342,6 +361,7 @@ else
     printf 'old\n'  > "$D/repo/plugins/ork/hooks/dist/a.mjs"
     touch -t 202601010000 "$D/repo/plugins/ork/hooks/dist/a.mjs"
     ( cd "$D/repo" && eval "$RSYNC_LINE" ) || true
+    # silent: known-noise missing target is the assertion failure path below
     if [ "$(cat "$D/repo/plugins/ork/hooks/dist/a.mjs" 2>/dev/null)" = "new-content-longer" ] \
        && [ ! -d "$D/repo/plugins/ork/hooks/dist/dist" ] \
        && [ ! -e "$D/repo/plugins/ork/hooks/dist/a.mjs.map" ] \
@@ -357,11 +377,37 @@ else
     printf 'old\n' > "$D/repo/plugins/ork/hooks/dist/a.mjs"
     touch -r "$D/repo/src/hooks/dist/a.mjs" "$D/repo/plugins/ork/hooks/dist/a.mjs"
     ( cd "$D/repo" && eval "$RSYNC_LINE" ) || true
+    # silent: known-noise missing target is the assertion failure path below
     if [ "$(cat "$D/repo/plugins/ork/hooks/dist/a.mjs" 2>/dev/null)" = "new" ]; then
         ok "shipped rsync line copies same-size same-mtime changes (--checksum)"
     else
         bad "shipped rsync line left a same-size same-mtime change uncopied (quick check beat content comparison): $RSYNC_LINE"
     fi
+fi
+
+# ------------------------- 9. rsync failure fail-closed (#4207)
+# Exec arm 8 proves the rsync *line*; this arm proves the shipped *guard*:
+# non-zero rsync must be ::error:: + exit 1, and must not reach git commit
+# or git push on a stale plugins/ork/hooks/dist copy. RRFC_RSYNC_FAIL arms
+# the PATH shim (exit 23). RRFC_BUILD_CONTENT=b ensures src/hooks/dist
+# differs from the fixture plugin copy so a soft-continue mutant would still
+# have a dirty tree waiting for commit. Mutation check: downgrade the guard
+# to ::warning:: + exit 0 and this arm fails (rc and ::error::).
+D="$WORK/rsyncfail"; make_fixture "$D"
+# Tip of the release branch before the step; a commit would advance it.
+# Do not compare HEAD: the step checks out BRANCH from main, which moves HEAD
+# even when rsync fails closed.
+branch_before="$(git -C "$D/repo" rev-parse "$BRANCH")"
+rc=$(run_arm "$D" RRFC_RSYNC_FAIL=1 RRFC_BUILD_CONTENT=b)
+branch_after="$(git -C "$D/repo" rev-parse "$BRANCH")"
+if [ "$rc" = "1" ] \
+   && grep -q "::error::rsync of src/hooks/dist into plugins/ork/hooks/dist failed" "$D/step.out" \
+   && ! grep -q "::notice::Rebuilt hook bundles" "$D/step.out" \
+   && [ "$branch_before" = "$branch_after" ] \
+   && [ ! -e "$D/repo/.rrfc-git-reached" ]; then
+    ok "rsync failure rc=1 ::error::, no commit/push (#4207)"
+else
+    bad "rsync failure: rc=$rc tip_moved=$([ "$branch_before" != "$branch_after" ] && echo y || echo n) marker=$([ -e "$D/repo/.rrfc-git-reached" ] && echo y || echo n) $(tail -5 "$D/step.out")"
 fi
 
 echo ""

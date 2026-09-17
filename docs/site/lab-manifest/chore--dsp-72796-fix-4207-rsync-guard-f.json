@@ -1,0 +1,8 @@
+{
+  "slug": "chore--dsp-72796-fix-4207-rsync-guard-f",
+  "source": "docs/chore--dsp-72796-fix-4207-rsync-guard-f/index.html",
+  "title": "Rsync guard exit 1 was untested until the PATH shim arm",
+  "description": "Issue #4207: the release rebuild fail-closed suite covered the happy-path rsync line but never made rsync fail, so a warning-plus-exit-0 mutant survived. The page toggles the real guard against that mutant under a failing rsync shim.",
+  "tags": ["ci", "release", "fail-closed", "rsync"],
+  "date": "2026-09-17"
+}
