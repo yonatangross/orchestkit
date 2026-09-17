@@ -218,6 +218,20 @@ yourself, via one of:
 - `ORK_HQ_TELEMETRY_URL`, which points the telemetry HTTP sink at *your own* collector.
 - `ORK_HQ_TELEMETRY_USE_HQ_API=1` together with `HQ_API_URL`, the same sink aimed
   at a self-hosted HQ API.
+- `ORK_SESSION_CATEGORY_PROVIDER=jev` together with the TypeSafe key variable
+  `ORK_TYPESAFE_API_KEY`, a **shadow** session work category. The session-identity
+  hook already asks a local `claude -p --model haiku` process for a title and a
+  category; with both variables set it also asks TypeSafe's Jev model
+  (`api.typesafe.ai`, model pinned to `jev-1.13.0`) one typed Choice over the same
+  eight categories. This is the one exception to the "no hardcoded host" note
+  above, and it is dormant unless both variables are set. What leaves your machine:
+  the git branch name and the first 600 characters of the session's first prompt,
+  sent to a third-party processor under its own data policy. What changes: nothing
+  you see. The title and color still come from haiku; the Jev answer is only
+  stored beside it as `session-identity.jev.json` and the pair (labels, confidence,
+  latency, no prompt text) as `session-identity.shadow.json` in the session data
+  directory, plus one hook log line. Cost of opting in: the first prompt of a
+  session can wait up to 1.5 s longer while the call settles.
 
 The sink returns early when the URL or the token is missing, and
 `telemetry-sync.mjs` prints `No ORCHESTKIT_HOOK_URL or TOKEN configured. Nothing

@@ -1,0 +1,8 @@
+{
+  "slug": "jev-session-category",
+  "source": "docs/feat--jev-session-category/index.html",
+  "title": "Session Category as a Typed Choice, in Shadow",
+  "description": "An opt-in shadow for the session work category: haiku still decides the title and color, while a typed Choice over the same eight categories is logged beside it for comparison.",
+  "tags": ["hooks", "session-identity", "shadow", "typed-choice"],
+  "date": "2026-09-17"
+}

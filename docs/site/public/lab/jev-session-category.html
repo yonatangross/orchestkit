@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Session Category as a Typed Choice, in Shadow | OrchestKit Lab</title>
+  <meta name="description" content="An opt-in shadow for the session work category: the haiku process still decides the title and color, while a typed Choice over the same eight categories is logged beside it so the two can be compared before anything changes.">
+  <style>
+    :root { color-scheme: dark; font: 17px/1.6 system-ui, sans-serif; background: #101822; color: #e9eef3; }
+    body { max-width: 820px; margin: auto; padding: 48px 24px; }
+    h1 { font-size: clamp(2rem, 6vw, 3.4rem); line-height: 1.1; }
+    h2 { font-size: 1.25rem; margin-top: 32px; }
+    a { color: #8fd8ff; }
+    .eyebrow { color: #8fd8ff; letter-spacing: .08em; }
+    article { border: 1px solid #43566a; border-radius: 12px; padding: 20px; margin: 20px 0; }
+    .warn { color: #fbbf24; }
+    .ok { color: #4ade80; }
+    .bad { color: #f87171; }
+    .quote { border-left: 3px solid #43566a; margin: 12px 0; padding: 4px 16px; font-size: 15px; }
+    code { background: rgba(255,255,255,.07); border-radius: 4px; padding: 1px 6px; font-size: 14px; }
+    table { border-collapse: collapse; width: 100%; font-size: 15px; }
+    td, th { border: 1px solid #43566a; padding: 6px 10px; text-align: left; }
+    .flow { font-family: monospace; padding: 12px; background: #0d1017; border-radius: 6px; margin-top: 16px; white-space: pre; overflow-x: auto; font-size: 14px; }
+    .bar { display: inline-block; height: 12px; background: #8fd8ff; border-radius: 3px; vertical-align: middle; }
+    footer { margin-top: 32px; color: #b8c5d1; font-size: 14px; }
+  </style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Session Category as a Typed Choice, in Shadow"><meta property="og:description" content="An opt-in shadow for the session work category: haiku still decides the title and color, while a typed Choice over the same eight categories is logged beside it for comparison."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/jev-session-category.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Session Category as a Typed Choice, in Shadow"><meta name="twitter:description" content="An opt-in shadow for the session work category: haiku still decides the title and color, while a typed Choice over the same eight categories is logged beside it for comparison."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+  <main>
+    <p class="eyebrow">ORCHESTKIT LAB · FEAT--JEV-SESSION-CATEGORY</p>
+    <h1>Session Category as a Typed Choice, in Shadow</h1>
+    <p>Every session spawns a detached <code>claude -p --model haiku</code> process to
+    name it and pick one of eight work categories, which becomes the session color.
+    This PR adds an <strong>opt-in shadow</strong>: the same category question asked as
+    one typed Choice to TypeSafe's Jev model. Nothing you see changes. Haiku still
+    decides the title and the color; the Jev answer is only stored beside it.</p>
+
+    <article aria-labelledby="flow">
+      <h2 id="flow">What runs, and when</h2>
+      <div class="flow">turn 1 ─┬─ haiku claude -p (unchanged)  → session-identity.raw → title + color
+         └─ Jev Choice (only if opted in) → session-identity.jev.json
+turn N ── both known → session-identity.shadow.json + one hook log line
+          (labels, confidence, latency, tokens; never prompt text)</div>
+      <table>
+        <tr><th>Setting</th><th>Behavior</th></tr>
+        <tr><td>nothing set (default)</td><td class="ok">haiku only, no network call, no new files</td></tr>
+        <tr><td><code>ORK_SESSION_CATEGORY_PROVIDER=jev</code> only</td><td class="ok">still haiku only (no key, no call)</td></tr>
+        <tr><td>provider <code>jev</code> plus the TypeSafe key variable <code>ORK_TYPESAFE_API_KEY</code></td><td class="warn">haiku as before, plus one Choice call with a 1.5 s abort; the pair is logged</td></tr>
+      </table>
+      <p class="quote">What leaves the machine when opted in: the branch name and the first 600
+      characters of the first prompt, sent to a third-party processor. Model pinned to
+      <code>jev-1.13.0</code>, because <code>jev-latest</code> moves.</p>
+    </article>
+
+    <article aria-labelledby="contract">
+      <h2 id="contract">One category set, enforced</h2>
+      <p>The eight category descriptions now live in one map,
+      <code>CATEGORY_DESCRIPTIONS</code>. The haiku prompt sentence and the Choice
+      <code>criteria</code> are both generated from it. Contract tests pin that the Choice
+      keys equal <code>WORK_CATEGORIES</code> in order, that no <code>other</code> option
+      was added, and that the haiku sentence is byte-identical to the text before this PR.</p>
+    </article>
+
+    <article aria-labelledby="eval">
+      <h2 id="eval">Eval: 80 recent sessions</h2>
+      <p>80 recent sessions with a stored haiku category, labelled blind by a separate
+      model read of the branch and first prompt (it never saw the haiku label).</p>
+      <table>
+        <tr><th>Classifier</th><th>All 80</th><th>38 labels marked sure</th></tr>
+        <tr><td>haiku (today)</td><td><span class="bar" style="width:115px"></span> 46/80 = 57.5%</td><td><span class="bar" style="width:142px"></span> 27/38 = 71.1%</td></tr>
+        <tr><td>Jev Choice</td><td class="warn">not run yet</td><td class="warn">not run yet</td></tr>
+      </table>
+      <p><span class="warn">Pending:</span> the offline Jev pass needs the API key, which
+      the build environment could not reach. The labeller marked 42 of 80 sessions unsure:
+      many first prompts are "read this brief and execute it", which says little about the
+      work. Treat the "sure" column as the signal.</p>
+      <p><strong>Kill criterion</strong> (fixed before the run): stop if Jev's agreement with
+      the hand labels is more than 5 points below haiku's, or its p95 latency is above
+      1,000 ms.</p>
+    </article>
+
+    <article aria-labelledby="tests">
+      <h2 id="tests">Evidence</h2>
+      <table>
+        <tr><th>Check</th><th>Result</th></tr>
+        <tr><td>Identity and provider test files (mocked HTTP only)</td><td class="ok">4 files, 77 tests passed</td></tr>
+        <tr><td>Built bundle, provider off</td><td class="ok">no <code>session-identity.jev.json</code>, output unchanged</td></tr>
+        <tr><td>Built bundle, provider on, network unreachable</td><td class="ok">fail-open record <code>ok:false</code>, output unchanged</td></tr>
+        <tr><td>typecheck, biome, FH-ready ratchet, security tests</td><td class="ok">clean, 0 new FH offenders, 20/20</td></tr>
+      </table>
+    </article>
+
+    <footer>Branch <code>feat/jev-session-category</code>. Shadow only: no title, color or hook
+    output depends on the Jev answer.</footer>
+  </main>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
