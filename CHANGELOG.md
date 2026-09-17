@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.46](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.45...v10.0.0-beta.46) (2026-09-17)
+
+
+### Features
+
+* **glyph:** v3 render shape, 50-line budget, domain icons, inventory template ([#4212](https://github.com/yonatangross/orchestkit/issues/4212)) ([7b973fc](https://github.com/yonatangross/orchestkit/commit/7b973fc442fcd5476fe6a8af9ea3f0fd94155cb1))
+
 ## [10.0.0-beta.45](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.44...v10.0.0-beta.45) (2026-09-17)
 
 
