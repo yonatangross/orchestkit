@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>#4214: rule titles, colon not U+2014</title>
+<meta name="description" content="Toggle a rule title between U+2014 and a colon and watch the generated docs heading and search-index snippet update. Sixteen titles needed the source fix after #4212 changed the generator joiner.">
+<style>
+body { margin: 2rem auto; padding: 0 1rem; max-width: 52rem; font: 1rem/1.55 system-ui, sans-serif; color: #172033; background: #f4f6fa; }
+h1 { line-height: 1.2; font-size: 1.45rem; }
+.tag { display: inline-block; padding: .1rem .5rem; border-radius: 999px; font-size: .8rem; background: #e2e8f0; color: #334155; margin-inline-end: .3rem; }
+button { font: inherit; padding: .45rem .9rem; margin: .25rem .35rem .25rem 0; border: 1px solid #174d99; background: #fff; color: #174d99; cursor: pointer; border-radius: 6px; }
+button[aria-pressed="true"] { background: #174d99; color: #fff; }
+.panel { background: #fff; border: 1px solid #c5d0e0; border-radius: 8px; padding: 1rem; margin: 1rem 0; }
+pre { background: #0f1729; color: #e6edf7; padding: .9rem; overflow-x: auto; font-size: .85rem; border-radius: 8px; }
+.bad { color: #b42318; font-weight: 600; }
+.ok { color: #1a7f37; font-weight: 600; }
+.note { color: #4a5568; font-size: .92rem; }
+code { font-family: ui-monospace, monospace; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="#4214: rule titles, colon not U+2014"><meta property="og:description" content="Toggle a rule title between U+2014 and a colon and watch the generated docs heading and search-index snippet update. Sixteen titles needed the source fix after #4212 changed the generator joiner."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/chore--dsp-55665-fix-4214-rule-title-da.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="#4214: rule titles, colon not U+2014"><meta name="twitter:description" content="Toggle a rule title between U+2014 and a colon and watch the generated docs heading and search-index snippet update. Sixteen titles needed the source fix after #4212 changed the generator joiner."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+<h1>Rule titles: colon, not U+2014</h1>
+<p><span class="tag">GH-4214</span><span class="tag">docs</span><span class="tag">visual-style</span></p>
+<p>After #4212 the docs generator joins a rule heading as <code>title: IMPACT</code>. Sixteen rule files still embedded U+2014 inside <code>title:</code>, so the generated pages and the search index kept shipping the forbidden character. Toggle the joiner below and watch both surfaces update.</p>
+
+<p>
+  <button type="button" id="btn-em" aria-pressed="true">Broken: U+2014 in title</button>
+  <button type="button" id="btn-colon" aria-pressed="false">Fixed: colon in title</button>
+</p>
+
+<section class="panel" aria-label="Frontmatter">
+<h2>Rule frontmatter</h2>
+<pre id="fm"></pre>
+</section>
+
+<section class="panel" aria-label="Generated heading">
+<h2>Generated docs heading</h2>
+<pre id="heading"></pre>
+<p class="note" id="heading-note"></p>
+</section>
+
+<section class="panel" aria-label="Search index">
+<h2>Docs search-index snippet</h2>
+<pre id="search"></pre>
+<p class="note" id="search-note"></p>
+</section>
+
+<p class="note">Acceptance for #4214: zero U+2014 / U+2013 on <code>title:</code> lines under <code>src/skills/*/rules/</code>, and zero U+2014 in the sixteen rules' generated <code>###</code> headings. Plugin copies and <code>docs-search-index.ts</code> must match after <code>npm run build</code>.</p>
+</main>
+<script>
+(function () {
+  'use strict';
+  var titleBroken = 'Commit after each logical milestone \u2014 never batch all commits to session end';
+  var titleFixed = 'Commit after each logical milestone: never batch all commits to session end';
+  var impact = 'HIGH';
+  var btnEm = document.getElementById('btn-em');
+  var btnColon = document.getElementById('btn-colon');
+  var fm = document.getElementById('fm');
+  var heading = document.getElementById('heading');
+  var headingNote = document.getElementById('heading-note');
+  var search = document.getElementById('search');
+  var searchNote = document.getElementById('search-note');
+
+  function render(mode) {
+    var title = mode === 'em' ? titleBroken : titleFixed;
+    var hasEm = title.indexOf('\u2014') !== -1;
+    btnEm.setAttribute('aria-pressed', mode === 'em' ? 'true' : 'false');
+    btnColon.setAttribute('aria-pressed', mode === 'colon' ? 'true' : 'false');
+    fm.textContent = '---\ntitle: ' + title + '\nimpact: ' + impact + '\n---';
+    heading.textContent = '### ' + title + ': ' + impact;
+    headingNote.innerHTML = hasEm
+      ? '<span class="bad">FAIL</span> generated heading still carries U+2014'
+      : '<span class="ok">PASS</span> generated heading is ASCII-clean';
+    search.textContent = JSON.stringify({
+      url: '/docs/reference/skills/implement/rules',
+      title: 'Implement: Rules',
+      description: '6 rules for the Implement skill: ' + title + '; ...'
+    }, null, 2);
+    searchNote.innerHTML = hasEm
+      ? '<span class="bad">FAIL</span> search index description still carries U+2014'
+      : '<span class="ok">PASS</span> search index description matches the colon title';
+  }
+
+  btnEm.addEventListener('click', function () { render('em'); });
+  btnColon.addEventListener('click', function () { render('colon'); });
+  render('em');
+})();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

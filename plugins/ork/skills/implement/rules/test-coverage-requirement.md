@@ -1,5 +1,5 @@
 ---
-title: Block completion if new code has zero test coverage — tests are mandatory for every implementation
+title: Block completion if new code has zero test coverage: tests are mandatory for every implementation
 impact: HIGH
 impactDescription: "Shipping code with 0% test coverage means regressions go undetected; the Phase 9 gate exists but agents skip it when not enforced per-task"
 tags: [testing, coverage, gate, phase-5, phase-9, quality]

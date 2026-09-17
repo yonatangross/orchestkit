@@ -1,5 +1,5 @@
 ---
-title: Funnel Analysis — Mapping, Measuring, and Fixing Conversion Drop-offs
+title: Funnel Analysis: Mapping, Measuring, and Fixing Conversion Drop-offs
 impact: HIGH
 impactDescription: "Without structured funnel analysis, teams optimize the wrong steps and miss that a single high-drop stage is killing overall conversion."
 tags: funnel, conversion, drop-off, micro-conversion, segmentation, optimization

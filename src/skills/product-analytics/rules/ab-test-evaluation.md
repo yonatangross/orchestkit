@@ -1,5 +1,5 @@
 ---
-title: A/B Test Evaluation — From Hypothesis to Ship Decision
+title: A/B Test Evaluation: From Hypothesis to Ship Decision
 impact: HIGH
 impactDescription: "Without structured evaluation, teams ship inconclusive experiments or make decisions on p-hacking and gut feel, wasting eng cycles and misleading roadmaps."
 tags: ab-test, statistical-significance, hypothesis, sample-size, experiment, p-value

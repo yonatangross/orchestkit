@@ -1,5 +1,5 @@
 ---
-title: Subagents must only modify files within their assigned scope — prevent cross-agent conflicts
+title: Subagents must only modify files within their assigned scope: prevent cross-agent conflicts
 impact: HIGH
 impactDescription: "When parallel agents modify overlapping files, one agent's writes silently overwrite another's — causing lost implementation work and merge conflicts"
 tags: [agents, scope, parallel, containment, isolation, conflicts]

@@ -1,5 +1,5 @@
 ---
-title: Verify what you install, not just what you wrote — lockfile integrity, provenance, and dependency confusion
+title: Verify what you install, not just what you wrote: lockfile integrity, provenance, and dependency confusion
 impact: CRITICAL
 impactDescription: "Software Supply Chain Failures is A03 in OWASP Top 10:2025. Scanning your own code and auditing CVEs does not detect a compromised release, a typosquatted name, or an internal package shadowed from a public registry"
 tags: supply-chain, sbom, slsa, sigstore, provenance, lockfile, dependency-confusion, typosquatting, npm, pip, attestation, owasp-a03-2025

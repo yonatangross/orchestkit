@@ -1,5 +1,5 @@
 ---
-title: Commit after each logical milestone — never batch all commits to session end
+title: Commit after each logical milestone: never batch all commits to session end
 impact: HIGH
 impactDescription: "Rate limits or crashes can kill a session at any time; uncommitted work across multiple phases is irrecoverably lost"
 tags: [git, commit, milestone, resilience, rate-limit, session]

@@ -1,5 +1,5 @@
 ---
-title: Cohort Retention Analysis — Measuring Habit Formation and Feature Adoption
+title: Cohort Retention Analysis: Measuring Habit Formation and Feature Adoption
 impact: HIGH
 impactDescription: "Without cohort analysis, teams mistake raw DAU growth for product health and miss early signs of churn that destroy long-term retention curves."
 tags: cohort, retention, day-n-retention, feature-adoption, engagement, churn

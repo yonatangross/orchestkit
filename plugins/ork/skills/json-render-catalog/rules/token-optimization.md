@@ -1,5 +1,5 @@
 ---
-title: "Token Optimization — YAML Mode"
+title: "Token Optimization: YAML Mode"
 impact: "MEDIUM"
 impactDescription: "Using JSON for all specs wastes ~30% tokens on syntax characters (braces, quotes, commas) that YAML eliminates"
 tags: [json-render, yaml, tokens, optimization, streaming, cost]

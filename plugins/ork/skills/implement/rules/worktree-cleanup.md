@@ -1,5 +1,5 @@
 ---
-title: Always ExitWorktree after implementation — never leave orphaned worktrees
+title: Always ExitWorktree after implementation: never leave orphaned worktrees
 impact: HIGH
 impactDescription: "Orphaned worktrees consume disk space, cause git lock conflicts, and confuse subsequent sessions that detect stale branches"
 tags: [worktree, git, cleanup, exit, isolation]

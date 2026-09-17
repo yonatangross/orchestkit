@@ -1,0 +1,8 @@
+{
+  "slug": "chore--dsp-55665-fix-4214-rule-title-da",
+  "source": "docs/chore--dsp-55665-fix-4214-rule-title-da/index.html",
+  "title": "#4214: rule titles, colon not U+2014",
+  "description": "Toggle a rule title between U+2014 and a colon and watch the generated docs heading and search-index snippet update. Sixteen titles needed the source fix after #4212 changed the generator joiner.",
+  "tags": ["docs", "rules", "visual-style", "gh-4214"],
+  "date": "2026-09-17"
+}

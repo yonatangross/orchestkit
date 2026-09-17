@@ -1,5 +1,5 @@
 ---
-title: Agent Prompts — Agent Teams Mode
+title: Agent Prompts: Agent Teams Mode
 impact: HIGH
 impactDescription: "Orchestrates multi-agent review teams with cross-referencing between specialized reviewers"
 tags: agent-teams, review, orchestration

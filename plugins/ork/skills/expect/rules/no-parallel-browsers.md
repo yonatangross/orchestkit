@@ -1,5 +1,5 @@
 ---
-title: Sequential browser testing — no parallel page visits
+title: Sequential browser testing: no parallel page visits
 impact: CRITICAL
 impactDescription: "Parallel browser sessions cause port conflicts, shared state corruption, and flaky test results"
 tags: execution, browser, concurrency, safety

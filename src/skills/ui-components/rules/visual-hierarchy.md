@@ -1,5 +1,5 @@
 ---
-title: Design visual hierarchy using weight, contrast, and spatial relationships — not color alone
+title: Design visual hierarchy using weight, contrast, and spatial relationships: not color alone
 impact: HIGH
 impactDescription: "Clear visual hierarchy reduces cognitive load and guides users to the right action without confusion"
 tags: visual-hierarchy, layout, buttons, spacing, proximity, eye-tracking, accessibility
