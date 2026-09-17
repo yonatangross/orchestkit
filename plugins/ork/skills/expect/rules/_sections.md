@@ -1,5 +1,5 @@
 ---
-title: "Expect Skill Rules — Table of Contents"
+title: "Expect Skill Rules: Table of Contents"
 ---
 
 # Rules Index

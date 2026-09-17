@@ -1133,7 +1133,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/implement/rules",
     "title": "Implement: Rules",
-    "description": "6 rules for the Implement skill: Subagents must only modify files within their assigned scope — prevent cross-agent conflicts; Cap changes per agent batch to prevent cascade failures; Commit after each logical milestone — never batch all commits to session end; Block completion if new code has zero test coverage — tests are mandatory for every implementation; Match implementation tier to assessed complexity — never over-engineer a simple task; Always ExitWorktree after implementation — never leave orphaned worktrees"
+    "description": "6 rules for the Implement skill: Subagents must only modify files within their assigned scope: prevent cross-agent conflicts; Cap changes per agent batch to prevent cascade failures; Commit after each logical milestone: never batch all commits to session end; Block completion if new code has zero test coverage: tests are mandatory for every implementation; Match implementation tier to assessed complexity: never over-engineer a simple task; Always ExitWorktree after implementation: never leave orphaned worktrees"
   },
   {
     "url": "/docs/reference/skills",

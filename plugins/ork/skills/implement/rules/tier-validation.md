@@ -1,5 +1,5 @@
 ---
-title: Match implementation tier to assessed complexity — never over-engineer a simple task
+title: Match implementation tier to assessed complexity: never over-engineer a simple task
 impact: HIGH
 impactDescription: "Using Growth/Enterprise patterns (DI, hexagonal, message queues) on an Interview or Hackathon project wastes tokens and produces unnecessarily complex code"
 tags: [tier, complexity, scope, architecture, over-engineering]
