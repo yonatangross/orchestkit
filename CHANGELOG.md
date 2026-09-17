@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.45](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.44...v10.0.0-beta.45) (2026-09-17)
+
+
+### Features
+
+* **hooks:** criteria-B for both category paths, Jev cascade at 0.8 ([#4211](https://github.com/yonatangross/orchestkit/issues/4211)) ([ff9e99e](https://github.com/yonatangross/orchestkit/commit/ff9e99e953967dc2e3543fb6525d525041860ea7))
+
 ## [10.0.0-beta.44](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.43...v10.0.0-beta.44) (2026-09-17)
 
 
