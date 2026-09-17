@@ -555,6 +555,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.47](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.46...v10.0.0-beta.47)** · 2026-09-17
+
+- **security:** genericize op:// paths and home dirs in public files (#4223)
+- replace U+2014 in sixteen rule titles with colon (#4221)
+
 **[v10.0.0-beta.46](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.45...v10.0.0-beta.46)** · 2026-09-17
 
 - **glyph:** v3 render shape, 50-line budget, domain icons, inventory template (#4212)
@@ -585,10 +590,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **ci:** fail closed the release hook-bundle rebuild step (#4174) (#4198)
 - **ci:** rename duplicate Build check names (#4194)
 - fail Mods job when a mod lacks a package.json (#4196), closes [#4182](https://github.com/yonatangross/orchestkit/issues/4182)
-
-**[v10.0.0-beta.39](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.38...v10.0.0-beta.39)** · 2026-09-16
-
-- **mods:** add secrets-veil mod with pattern and entropy masking (#4189)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
