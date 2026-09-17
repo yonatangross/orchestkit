@@ -145,6 +145,22 @@ export const WORK_CATEGORIES = [
 
 export type WorkCategory = (typeof WORK_CATEGORIES)[number];
 
+/**
+ * One description per category. Single source for BOTH classifiers: the haiku
+ * prompt sentence below and the opt-in typed Choice in
+ * session-category-provider.ts, so the two can never drift to different sets.
+ */
+export const CATEGORY_DESCRIPTIONS: Record<WorkCategory, string> = {
+  bugfix: 'fixing a bug or incident',
+  feature: 'new capability',
+  docs: 'documentation or research',
+  refactor: 'restructuring with no behavior change',
+  infra: 'CI, build, deploy, tooling',
+  perf: 'performance',
+  design: 'UI, UX, visual',
+  testing: 'tests or QA',
+};
+
 /** Deterministic category → session color. */
 export const CATEGORY_COLOR: Record<WorkCategory, SessionColor> = {
   bugfix: 'red',
@@ -210,7 +226,7 @@ export function buildGeneratorPrompt(firstPrompt: string, branch: string, langua
   return [
     'You name coding sessions. Given the first user prompt of a session, output STRICT JSON only — no prose, no code fences:',
     `{"title":"<3-6 word topic title>","category":"<one of: ${WORK_CATEGORIES.join(', ')}>","emoji":"<one emoji>"}`,
-    'Choose the SINGLE category that best fits the work: bugfix (fixing a bug or incident), feature (new capability), docs (documentation or research), refactor (restructuring with no behavior change), infra (CI, build, deploy, tooling), perf (performance), design (UI, UX, visual), testing (tests or QA).',
+    `Choose the SINGLE category that best fits the work: ${WORK_CATEGORIES.map((c) => `${c} (${CATEGORY_DESCRIPTIONS[c]})`).join(', ')}.`,
     'For emoji, pick ONE emoji that best represents the specific work (e.g. a lock for auth, a bug for a fix, a credit card for payments, a rocket for a release, a test tube for tests). Exactly one emoji character.',
     language && language.toLowerCase() !== 'en' ? `Write the title in this language: ${language}` : '',
     branch ? `Git branch: ${branch}` : '',
@@ -317,10 +333,34 @@ export function parseIdentityOutput(raw: string): SessionIdentity | null {
  * round-tripped `.json` stores `{title,color}`, and a model that ignored the
  * category instruction may still emit a color. Returns null if neither resolves.
  */
+/**
+ * The work category from the generator's raw stdout, or undefined when it gave
+ * none from the closed set. Read-only helper for the opt-in category shadow;
+ * the title and color still come from parseIdentityOutput alone.
+ */
+export function parseIdentityCategory(raw: string): WorkCategory | undefined {
+  const start = raw.indexOf('{');
+  const end = raw.lastIndexOf('}');
+  if (start < 0 || end <= start) return undefined;
+  try {
+    const parsed: unknown = JSON.parse(raw.slice(start, end + 1));
+    if (typeof parsed !== 'object' || parsed === null) return undefined;
+    return parseWorkCategory((parsed as Record<string, unknown>).category);
+  } catch {
+    return undefined;
+  }
+}
+
+/** A value from the closed category set, or undefined for anything else. */
+export function parseWorkCategory(value: unknown): WorkCategory | undefined {
+  const category = typeof value === 'string' ? value.toLowerCase().trim() : '';
+  return (WORK_CATEGORIES as readonly string[]).includes(category) ? (category as WorkCategory) : undefined;
+}
+
 function resolveIdentityColor(obj: Record<string, unknown>): SessionColor | null {
-  const category = typeof obj.category === 'string' ? obj.category.toLowerCase().trim() : '';
-  if ((WORK_CATEGORIES as readonly string[]).includes(category)) {
-    return CATEGORY_COLOR[category as WorkCategory];
+  const category = parseWorkCategory(obj.category);
+  if (category) {
+    return CATEGORY_COLOR[category];
   }
   const color = typeof obj.color === 'string' ? obj.color.toLowerCase().trim() : '';
   if ((SESSION_COLOR_PALETTE as readonly string[]).includes(color)) {

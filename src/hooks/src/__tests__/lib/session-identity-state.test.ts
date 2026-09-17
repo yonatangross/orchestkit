@@ -209,3 +209,88 @@ describe('manageSessionIdentity', () => {
     expect(fs.existsSync(path.join(sessionDir, 'session-identity.failed'))).toBe(false);
   });
 });
+
+describe('manageSessionIdentity category shadow (opt-in)', () => {
+  // No usable emoji, so the title carries the red color glyph of the haiku category.
+  const RAW = '{"title":"Fix login redirect","category":"bugfix","emoji":"none"}';
+  const jevFile = () => path.join(sessionDir, 'session-identity.jev.json');
+  const shadowFile = () => path.join(sessionDir, 'session-identity.shadow.json');
+
+  function answer(choice: string) {
+    return new Response(
+      JSON.stringify({
+        answers: { work_category: { type: 'choice', choice, confidence: 0.9, probabilities: { [choice]: 0.9 } } },
+        usage: { input_tokens: 300 },
+      }),
+      { status: 200, headers: { 'content-type': 'application/json' } },
+    );
+  }
+
+  afterEach(() => {
+    delete process.env.ORK_SESSION_CATEGORY_PROVIDER;
+    delete process.env.ORK_TYPESAFE_API_KEY;
+    vi.unstubAllGlobals();
+  });
+
+  async function flush(): Promise<void> {
+    for (let i = 0; i < 20 && !fs.existsSync(jevFile()); i++) {
+      await new Promise((r) => setTimeout(r, 5));
+    }
+  }
+
+  it('default (provider unset): no network call and no shadow files', async () => {
+    const fetchSpy = vi.fn(async () => answer('docs'));
+    vi.stubGlobal('fetch', fetchSpy);
+    process.env.ORK_TYPESAFE_API_KEY = 'test-key-not-real';
+    manageSessionIdentity(makeInput(), ctx, sessionDir, tmpDir);
+    await new Promise((r) => setTimeout(r, 20));
+    expect(fetchSpy).not.toHaveBeenCalled();
+    expect(spawnIdentityGenerator).toHaveBeenCalledOnce();
+    expect(fs.existsSync(jevFile())).toBe(false);
+  });
+
+  it('provider set: haiku still spawns and still decides the title and color; the pair is logged once', async () => {
+    const fetchSpy = vi.fn(async () => answer('docs'));
+    vi.stubGlobal('fetch', fetchSpy);
+    process.env.ORK_SESSION_CATEGORY_PROVIDER = 'jev';
+    process.env.ORK_TYPESAFE_API_KEY = 'test-key-not-real';
+
+    expect(manageSessionIdentity(makeInput(), ctx, sessionDir, tmpDir)).toBeNull();
+    expect(spawnIdentityGenerator).toHaveBeenCalledOnce();
+    expect(fetchSpy).toHaveBeenCalledOnce();
+    await flush();
+    expect(fs.existsSync(jevFile())).toBe(true);
+
+    fs.writeFileSync(path.join(sessionDir, 'session-identity.raw'), RAW, 'utf8');
+    const title = manageSessionIdentity(makeInput(), ctx, sessionDir, tmpDir);
+    // Haiku said bugfix (red); Jev said docs (blue). The displayed identity is haiku's.
+    expect(title).toBe(`${colorEmoji('red')} Fix login redirect`);
+    expect(transcriptColorRecords().at(-1)?.agentColor).toBe('red');
+
+    const shadow = JSON.parse(fs.readFileSync(shadowFile(), 'utf8'));
+    expect(shadow).toMatchObject({ haiku: 'bugfix', jev: 'docs', agree: false, error: null });
+    expect(JSON.stringify(shadow)).not.toContain('fix the login redirect bug');
+
+    const before = fs.readFileSync(shadowFile(), 'utf8');
+    manageSessionIdentity(makeInput(), ctx, sessionDir, tmpDir);
+    expect(fs.readFileSync(shadowFile(), 'utf8')).toBe(before);
+    expect(fetchSpy).toHaveBeenCalledOnce();
+  });
+
+  it('provider set but the call fails: title and color are unchanged and the error is logged', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('{}', { status: 500 })));
+    process.env.ORK_SESSION_CATEGORY_PROVIDER = 'jev';
+    process.env.ORK_TYPESAFE_API_KEY = 'test-key-not-real';
+
+    manageSessionIdentity(makeInput(), ctx, sessionDir, tmpDir);
+    await flush();
+    fs.writeFileSync(path.join(sessionDir, 'session-identity.raw'), RAW, 'utf8');
+    expect(manageSessionIdentity(makeInput(), ctx, sessionDir, tmpDir)).toBe(`${colorEmoji('red')} Fix login redirect`);
+    expect(JSON.parse(fs.readFileSync(shadowFile(), 'utf8'))).toMatchObject({
+      haiku: 'bugfix',
+      jev: null,
+      agree: null,
+      error: 'http 500',
+    });
+  });
+});

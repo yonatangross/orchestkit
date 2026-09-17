@@ -34,18 +34,26 @@ import {
   statSync,
   writeFileSync,
 } from 'node:fs';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { homedir } from 'node:os';
 import type { HookContext, HookInput } from '../types.js';
 import {
   CHILD_ENV_MARKER,
   hashColor,
+  parseIdentityCategory,
   parseIdentityOutput,
   spawnIdentityGenerator,
   titleWithColor,
   type SessionColor,
   type SessionIdentity,
+  type WorkCategory,
 } from './session-identity.js';
+import {
+  FILE_JEV,
+  FILE_SHADOW,
+  recordCategoryShadow,
+  startJevCategoryShadow,
+} from './session-category-provider.js';
 
 /** Env kill-switch. Set ORK_SESSION_IDENTITY=0 to disable entirely. */
 const ENV_KILL_SWITCH = 'ORK_SESSION_IDENTITY';
@@ -147,6 +155,8 @@ export function manageSessionIdentity(
     const spawnedPath = join(sessionDir, FILE_SPAWNED);
     const colorAppliedPath = join(sessionDir, FILE_COLOR_APPLIED);
     const tombstonePath = join(sessionDir, FILE_TOMBSTONE);
+    const jevPath = join(sessionDir, FILE_JEV);
+    const shadowPath = join(sessionDir, FILE_SHADOW);
 
     // 0. Regeneration: has the session's direction changed since the title was
     //    generated? If so, drop the cached identity so the flow below re-spawns
@@ -154,7 +164,7 @@ export function manageSessionIdentity(
     //    file (color stays stable for the session). The regenerated title still
     //    passes through the dispatcher's /rename guard, so a manual rename wins.
     if (shouldRegenerateIdentity(sessionDir, ctx.branch || '')) {
-      for (const p of [parsedPath, rawPath, spawnedPath, tombstonePath]) {
+      for (const p of [parsedPath, rawPath, spawnedPath, tombstonePath, jevPath, shadowPath]) {
         try {
           if (existsSync(p)) rmSync(p);
         } catch {
@@ -169,10 +179,14 @@ export function manageSessionIdentity(
       const identity = parseIdentityOutput(readFileSync(parsedPath, 'utf8'));
       if (!identity) return null;
       applyColorOnce(input, projectDir, identity.color, colorAppliedPath, ctx);
+      logCategoryShadow(jevPath, shadowPath, rawPath, true, ctx);
       return titleWithColor(identity);
     }
 
-    if (existsSync(tombstonePath)) return null;
+    if (existsSync(tombstonePath)) {
+      logCategoryShadow(jevPath, shadowPath, null, true, ctx);
+      return null;
+    }
 
     // 2. Generator spawned earlier → try to harvest its output.
     if (existsSync(spawnedPath)) {
@@ -183,6 +197,7 @@ export function manageSessionIdentity(
         writeFileSync(parsedPath, JSON.stringify(identity), 'utf8');
         applyColorOnce(input, projectDir, identity.color, colorAppliedPath, ctx);
         ctx.log('session-identity', `haiku identity ready: "${identity.title}" (${identity.color})`);
+        logCategoryShadow(jevPath, shadowPath, rawPath, true, ctx);
         return titleWithColor(identity);
       }
       // Unparseable + stale → stop checking every turn.
@@ -202,6 +217,10 @@ export function manageSessionIdentity(
     if (!existsSync(sessionDir)) mkdirSync(sessionDir, { recursive: true });
     const fallback = hashColor(input.session_id);
     applyColorOnce(input, projectDir, fallback, colorAppliedPath, ctx);
+    // Opt-in category shadow (ORK_SESSION_CATEGORY_PROVIDER=jev plus a key):
+    // a typed Choice over the same category set, written beside the haiku
+    // output and never used for the title or color. No-op when unset.
+    if (input.prompt) startJevCategoryShadow(input.prompt, ctx.branch || '', jevPath);
     if (input.prompt && spawnIdentityGenerator(input.prompt, ctx.branch || '', rawPath, projectDir, ctx)) {
       writeFileSync(spawnedPath, new Date().toISOString(), 'utf8');
       // RC1 (opt-in): block briefly so the title can land on THIS turn.
@@ -287,6 +306,38 @@ function shouldRegenerateIdentity(sessionDir: string, liveBranch: string): boole
   }
 }
 
+/**
+ * Log the haiku vs Jev category pair once per generation (shadow only). The
+ * record goes to the session dir and the hook log; it carries labels and
+ * timings, never prompt text. A no-op unless the opt-in shadow wrote a result.
+ * `haikuRawPath` null means haiku gave up (tombstone): the pair logs haiku=null.
+ */
+function logCategoryShadow(
+  jevPath: string,
+  shadowPath: string,
+  haikuRawPath: string | null,
+  haikuSettled: boolean,
+  ctx: HookContext,
+): void {
+  if (!existsSync(jevPath) || existsSync(shadowPath)) return;
+  let haikuCategory: WorkCategory | null = null;
+  try {
+    if (haikuRawPath && existsSync(haikuRawPath)) {
+      haikuCategory = parseIdentityCategory(readFileSync(haikuRawPath, 'utf8')) ?? null;
+    }
+  } catch {
+    /* unreadable raw: log the pair with haiku=null */
+  }
+  const record = recordCategoryShadow(jevPath, shadowPath, haikuCategory, haikuSettled);
+  if (!record) return;
+  ctx.log(
+    'session-identity',
+    `category shadow: haiku=${record.haiku ?? 'none'} jev=${record.jev ?? 'none'} agree=${record.agree} ` +
+      `confidence=${record.jev_confidence ?? 'n/a'} latency_ms=${record.latency_ms ?? 'n/a'}` +
+      (record.error ? ` error=${record.error}` : ''),
+  );
+}
+
 function writeMeta(metaPath: string, meta: IdentityMeta): void {
   try {
     writeFileSync(metaPath, JSON.stringify(meta), 'utf8');
@@ -329,6 +380,7 @@ function inlineHarvest(
       writeFileSync(parsedPath, JSON.stringify(identity), 'utf8');
       applyColorOnce(input, projectDir, identity.color, colorAppliedPath, ctx);
       ctx.log('session-identity', `haiku identity ready (inline): "${identity.title}" (${identity.color})`);
+      logCategoryShadow(join(dirname(rawPath), FILE_JEV), join(dirname(rawPath), FILE_SHADOW), rawPath, true, ctx);
       return titleWithColor(identity);
     }
   } catch {
