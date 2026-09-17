@@ -350,7 +350,7 @@ Upstream: https://docs.voyageai.com/docs/embeddings
 
 ## Rules (30)
 
-### Route queries to the best retrieval strategy using adaptive selection per query type — MEDIUM
+### Route queries to the best retrieval strategy using adaptive selection per query type: MEDIUM
 
 
 ## Adaptive Retrieval
@@ -424,7 +424,7 @@ async def adaptive_search(question: str) -> list[dict]:
 - Routing adds ~200ms overhead — use heuristics for fast-path decisions
 
 
-### Apply corrective RAG with quality assurance and web fallback for self-correction — HIGH
+### Apply corrective RAG with quality assurance and web fallback for self-correction: HIGH
 
 
 ## Corrective RAG (CRAG)
@@ -502,7 +502,7 @@ def route_after_grading(state: RAGState) -> str:
 - No fallback path = workflow hangs on bad queries
 
 
-### Build knowledge graph RAG for multi-hop reasoning over entity-rich domains — MEDIUM
+### Build knowledge graph RAG for multi-hop reasoning over entity-rich domains: MEDIUM
 
 
 ## Knowledge Graph RAG (GraphRAG)
@@ -547,7 +547,7 @@ async def graph_rag_search(query: str) -> list[dict]:
 - Neo4j or similar graph DB for production knowledge graphs
 
 
-### Grade document relevance with Self-RAG to prevent context contamination from irrelevant results — HIGH
+### Grade document relevance with Self-RAG to prevent context contamination from irrelevant results: HIGH
 
 
 ## Self-RAG — Document Grading
@@ -628,7 +628,7 @@ def grade_documents(state: RAGState) -> dict:
 - Self-RAG lets the LLM decide when to retrieve — adaptive by design
 
 
-### Combine contextual embeddings with BM25 hybrid search for maximum retrieval coverage — HIGH
+### Combine contextual embeddings with BM25 hybrid search for maximum retrieval coverage: HIGH
 
 
 ## Contextual Retrieval — Hybrid BM25+Vector
@@ -700,7 +700,7 @@ def search(query: str, query_embedding: np.ndarray, top_k: int = 20) -> list[tup
 - Adding reranking on top takes failure rate from 1.9% to 1.3%
 
 
-### Build complete contextual retrieval pipeline integrating context generation, embedding, and hybrid search — MEDIUM
+### Build complete contextual retrieval pipeline integrating context generation, embedding, and hybrid search: MEDIUM
 
 
 ## Contextual Retrieval — Complete Pipeline
@@ -789,7 +789,7 @@ def add_document(self, doc_id: str, text: str, chunk_size: int = 512):
 - Prompt caching reduces cost by ~90% when processing many chunks from same document
 
 
-### Prepend situational context to chunks before embedding to reduce retrieval failures — HIGH
+### Prepend situational context to chunks before embedding to reduce retrieval failures: HIGH
 
 
 ## Contextual Retrieval — Context Prepending
@@ -879,7 +879,7 @@ def contextualize_chunk(document: str, chunk: str) -> str:
 - Use prompt caching (ephemeral) for 90% cost reduction when processing many chunks from same doc
 
 
-### Construct basic RAG pipeline with proper context assembly and citation tracking — CRITICAL
+### Construct basic RAG pipeline with proper context assembly and citation tracking: CRITICAL
 
 
 ## Basic RAG Pattern
@@ -966,7 +966,7 @@ async def rag_with_citations(question: str) -> dict:
 - Return sources alongside answers for transparency
 
 
-### Manage context window size with sufficiency checks to balance relevance and cost — HIGH
+### Manage context window size with sufficiency checks to balance relevance and cost: HIGH
 
 
 ## Context Window Management
@@ -1052,7 +1052,7 @@ async def rag_with_sufficiency(question: str, top_k: int = 5) -> str:
 - Abstain when confidence > 0.7 and context is insufficient
 
 
-### Combine semantic and keyword search with reciprocal rank fusion for best coverage — HIGH
+### Combine semantic and keyword search with reciprocal rank fusion for best coverage: HIGH
 
 
 ## Hybrid Search (Semantic + Keyword)
@@ -1128,7 +1128,7 @@ def reciprocal_rank_fusion(semantic_results: list, keyword_results: list, k: int
 - Normalize scores before combining if not using RRF
 
 
-### Compose retrieval pipeline stages in correct order to avoid redundant processing — MEDIUM
+### Compose retrieval pipeline stages in correct order to avoid redundant processing: MEDIUM
 
 
 ## Pipeline Composition
@@ -1224,7 +1224,7 @@ async def query(self, question: str, top_k: int = 10) -> list[dict]:
 - Each stage is optional — start simple, add stages as needed
 
 
-### Implement production embedding pipelines with batching, caching, and cost optimization — MEDIUM
+### Implement production embedding pipelines with batching, caching, and cost optimization: MEDIUM
 
 
 ## Advanced Embedding Patterns
@@ -1328,7 +1328,7 @@ async def batch_embed(texts: list[str], batch_size: int = 100) -> list[list[floa
 - Rate limit: 0.1s delay between batches as courtesy to API providers
 
 
-### Choose chunking strategies carefully since chunk boundaries determine retrieval quality — HIGH
+### Choose chunking strategies carefully since chunk boundaries determine retrieval quality: HIGH
 
 
 ## Chunking Strategies
@@ -1421,7 +1421,7 @@ def chunk_by_sentences(text: str, chunk_size: int = 512, overlap: int = 75) -> l
 - Not chunking long documents is a common mistake — context gets lost in embeddings
 
 
-### Select embedding models and dimensions correctly to ensure index compatibility and quality — HIGH
+### Select embedding models and dimensions correctly to ensure index compatibility and quality: HIGH
 
 
 ## Embedding Models & API
@@ -1514,7 +1514,7 @@ similarity = cosine_similarity(query_embedding, docs_embeddings[0])
 - Most models return normalized vectors (cosine = dot product)
 
 
-### Configure HyDE fallback strategy to avoid latency degradation from slow generation — MEDIUM
+### Configure HyDE fallback strategy to avoid latency degradation from slow generation: MEDIUM
 
 
 ## HyDE Fallback Strategy
@@ -1573,7 +1573,7 @@ async def hyde_with_fallback(query: str, timeout: float = 3.0) -> list[float]:
 - Log fallback events to monitor HyDE generation reliability
 
 
-### Bridge query-document vocabulary mismatch with hypothetical document embeddings via HyDE — HIGH
+### Bridge query-document vocabulary mismatch with hypothetical document embeddings via HyDE: HIGH
 
 
 ## HyDE Generation
@@ -1673,7 +1673,7 @@ async def generate_hyde(query: str) -> HyDEResult:
 - Adds ~500ms latency — always implement with timeout fallback
 
 
-### Generate separate HyDE documents per concept for multi-topic vocabulary bridging — MEDIUM
+### Generate separate HyDE documents per concept for multi-topic vocabulary bridging: MEDIUM
 
 
 ## Per-Concept HyDE
@@ -1735,7 +1735,7 @@ async def batch_hyde(concepts: list[str]) -> list[HyDEResult]:
 - Combine with query decomposition for best results on complex queries
 
 
-### Chunk multimodal documents to preserve relationships between text, images, and tables — MEDIUM
+### Chunk multimodal documents to preserve relationships between text, images, and tables: MEDIUM
 
 
 ## Multimodal Document Chunking
@@ -1828,7 +1828,7 @@ def chunk_multimodal_document(pdf_path: str) -> list[Chunk]:
 - Always store image paths alongside embeddings for result display
 
 
-### Use multimodal embedding models for cross-modal search across text and images — HIGH
+### Use multimodal embedding models for cross-modal search across text and images: HIGH
 
 
 ## Multimodal Embeddings
@@ -1912,7 +1912,7 @@ def embed_image(image_path: str) -> list[float]:
 - Always embed both images AND captions for maximum coverage
 
 
-### Build unified multimodal RAG pipeline that merges cross-modal results with deduplication — MEDIUM
+### Build unified multimodal RAG pipeline that merges cross-modal results with deduplication: MEDIUM
 
 
 ## Multimodal RAG Pipeline
@@ -2007,7 +2007,7 @@ async def retrieve(self, query: str, query_image: str = None, top_k: int = 10) -
 - Missing image URL storage is a common mistake — always store paths for display
 
 
-### Implement PGVector hybrid search with FULL OUTER JOIN and RRF fusion ranking — HIGH
+### Implement PGVector hybrid search with FULL OUTER JOIN and RRF fusion ranking: HIGH
 
 
 ## PGVector Hybrid Search (SQL)
@@ -2112,7 +2112,7 @@ async def hybrid_search(query: str, query_embedding: list[float], top_k: int = 1
 - `plainto_tsquery` for user queries (handles multi-word safely)
 
 
-### Choose correct PGVector index type to avoid 17x slower queries in production — HIGH
+### Choose correct PGVector index type to avoid 17x slower queries in production: HIGH
 
 
 ## PGVector Index Strategies
@@ -2213,7 +2213,7 @@ LIMIT 10;
 - `binary_quantize` + rerank: 3072-dim at very large scale where even halfvec HNSW is too big; expect a recall hit unless you rerank the shortlist exactly
 
 
-### Filter PGVector results by metadata and boost scores for improved retrieval relevance — MEDIUM
+### Filter PGVector results by metadata and boost scores for improved retrieval relevance: MEDIUM
 
 
 ## PGVector Metadata Filtering & Patterns
@@ -2282,7 +2282,7 @@ filtered = [r for r in results if (1 - r.vector_distance) >= 0.75][:10]
 - Choose Redis 8 for: sub-5ms latency, caching layer, simpler deployment
 
 
-### Design PGVector schema with pre-computed tsvector columns and proper index configuration — HIGH
+### Design PGVector schema with pre-computed tsvector columns and proper index configuration: HIGH
 
 
 ## PGVector Database Schema
@@ -2357,7 +2357,7 @@ SELECT * FROM chunks WHERE content_tsvector @@ plainto_tsquery('search query');
 - Include content_type for filtered search (code, text, table)
 
 
-### Decompose complex multi-topic queries with parallel retrieval and RRF fusion — HIGH
+### Decompose complex multi-topic queries with parallel retrieval and RRF fusion: HIGH
 
 
 ## Query Decomposition + RRF Fusion
@@ -2440,7 +2440,7 @@ async def decomposed_search(query: str, top_k: int = 10) -> list[dict]:
 - Set timeout with fallback to original query if decomposition fails
 
 
-### Detect multi-concept queries with heuristic fast-path to avoid unnecessary LLM decomposition — MEDIUM
+### Detect multi-concept queries with heuristic fast-path to avoid unnecessary LLM decomposition: MEDIUM
 
 
 ## Multi-Concept Query Detection
@@ -2504,7 +2504,7 @@ def is_multi_concept_heuristic(query: str) -> bool:
 - This is the fast path — always check before calling the LLM decomposer
 
 
-### Combine query decomposition with HyDE for comprehensive vocabulary-bridged retrieval coverage — MEDIUM
+### Combine query decomposition with HyDE for comprehensive vocabulary-bridged retrieval coverage: MEDIUM
 
 
 ## Decomposition + HyDE Combo
@@ -2580,7 +2580,7 @@ async def decomposed_hyde_search(query: str, top_k: int = 10) -> list[dict]:
 - This is the most expensive retrieval path — use only when simpler methods fail
 
 
-### Combine base, LLM, and recency scores for robust multi-signal reranking — MEDIUM
+### Combine base, LLM, and recency scores for robust multi-signal reranking: MEDIUM
 
 
 ## Combined Scoring & Reranking Service
@@ -2663,7 +2663,7 @@ async def rerank(query: str, documents: list[dict], top_k: int = 10) -> list[dic
 - Store score components for debugging and tuning
 
 
-### Rerank results with cross-encoder models for accurate query-document relevance scoring — HIGH
+### Rerank results with cross-encoder models for accurate query-document relevance scoring: HIGH
 
 
 ## Cross-Encoder Reranking
@@ -2724,7 +2724,7 @@ async def search_with_reranking(query: str) -> list[dict]:
 - Truncate document content to 200-400 chars for reranking efficiency
 
 
-### Use LLM reranking for domain-adaptive scoring without deploying a dedicated model — MEDIUM
+### Use LLM reranking for domain-adaptive scoring without deploying a dedicated model: MEDIUM
 
 
 ## LLM Reranking

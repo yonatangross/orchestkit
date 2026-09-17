@@ -155,13 +155,17 @@ export function visualStyleNudge(
   // through the real dispatcher: constant text fired 1/20, the varying text
   // below fires on schedule. Keep this varying.
   return outputPromptContext(
-    `[${HOOK_NAME} #${ordinal}] This answer has shape. Lead with one or two sentences ` +
-      `of prose that state the point, then ONE small visual (a table, a box, a flow, ` +
-      `or a bar meter) of at most 12 lines and under 40% of the reply, using the ` +
-      `semantic emoji vocabulary only. The visual supports the answer; it is never ` +
-      `the answer. A conceptual explanation or a one-paragraph ask gets no visual. ` +
-      `Applies to this reply and later ones, not just the first. Full vocabulary and ` +
-      `palette: the ork:glyph skill, rules/visual-style.md. Sub-agents do not ` +
-      `inherit this rule; restate it in their prompt if their output reaches the user.`,
+    `[${HOOK_NAME} #${ordinal}] If this answer has shape, render it: one render, ` +
+      `up to ~50 lines and 76 cells wide, verdict first. Lead with one prose line ` +
+      `that states the point, then the render (header and headline meter, sections ` +
+      `opened by a light rule and a traffic-light word, rows as icon / label / bar / ` +
+      `value / action, a total line per section, one arithmetic summary line, ` +
+      `info caveat lines), then two or three bold-led bullets on what the numbers ` +
+      `told you. Status icons come from the closed semantic set; one domain icon ` +
+      `per row in the leading column. A definition, a single fact or a one-line ask ` +
+      `gets no render; over 50 lines is a page, not a chat answer. Applies to this ` +
+      `reply and later ones. Full vocabulary and anatomy: the ork:glyph skill, ` +
+      `rules/visual-style.md. Sub-agents do not inherit this rule; restate it in ` +
+      `their prompt if their output reaches the user.`,
   );
 }

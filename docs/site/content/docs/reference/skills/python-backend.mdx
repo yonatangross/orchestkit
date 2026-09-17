@@ -200,7 +200,7 @@ Topics removed in the 2026-07-31 wrap-plus-delta thinning. Consult the first-par
 
 ## Rules (12)
 
-### Handle asyncio cancellation correctly for proper TaskGroup and timeout behavior — HIGH
+### Handle asyncio cancellation correctly for proper TaskGroup and timeout behavior: HIGH
 
 
 # Cancellation Handling
@@ -263,7 +263,7 @@ async def proper_task():
 ```
 
 
-### Use semaphores and sync bridges to prevent resource exhaustion and event loop blocking — HIGH
+### Use semaphores and sync bridges to prevent resource exhaustion and event loop blocking: HIGH
 
 
 # Structured Concurrency Patterns
@@ -341,7 +341,7 @@ async def fetch_all(urls: list[str], max_concurrent: int = 10):
 ```
 
 
-### Apply TaskGroup for structured concurrency with automatic cancellation on failure — HIGH
+### Apply TaskGroup for structured concurrency with automatic cancellation on failure: HIGH
 
 
 # TaskGroup & Timeout Patterns
@@ -427,7 +427,7 @@ async with asyncio.TaskGroup() as tg:
 ```
 
 
-### Configure FastAPI lifespan management to prevent resource leaks during startup and shutdown — HIGH
+### Configure FastAPI lifespan management to prevent resource leaks during startup and shutdown: HIGH
 
 
 # FastAPI Lifespan & Health
@@ -553,7 +553,7 @@ app = FastAPI(lifespan=lifespan)
 ```
 
 
-### Design FastAPI dependency injection for testable and maintainable application architecture — HIGH
+### Design FastAPI dependency injection for testable and maintainable application architecture: HIGH
 
 
 # FastAPI Dependency Injection
@@ -676,7 +676,7 @@ async def create_analysis(
 ```
 
 
-### Order FastAPI middleware correctly since it affects every request in the application — HIGH
+### Order FastAPI middleware correctly since it affects every request in the application: HIGH
 
 
 # FastAPI Middleware Patterns
@@ -775,7 +775,7 @@ app.add_middleware(RequestIDMiddleware)  # Runs first, sets request_id
 ```
 
 
-### Configure database connection pools correctly to prevent connection exhaustion under load — MEDIUM
+### Configure database connection pools correctly to prevent connection exhaustion under load: MEDIUM
 
 
 # Database Connection Pooling
@@ -857,7 +857,7 @@ async def get_users(request: Request):
 ```
 
 
-### Reuse HTTP sessions with connection pooling to prevent churn and improve throughput — MEDIUM
+### Reuse HTTP sessions with connection pooling to prevent churn and improve throughput: MEDIUM
 
 
 # HTTP Connection Pooling
@@ -941,7 +941,7 @@ async def fetch_data(request: Request):
 ```
 
 
-### Monitor connection pools to prevent silent exhaustion and stale connection errors — MEDIUM
+### Monitor connection pools to prevent silent exhaustion and stale connection errors: MEDIUM
 
 
 # Pool Monitoring & Tuning
@@ -1037,7 +1037,7 @@ async def collect_metrics(pool):
 ```
 
 
-### Implement repository pattern and bulk operations for maintainable SQLAlchemy data access — HIGH
+### Implement repository pattern and bulk operations for maintainable SQLAlchemy data access: HIGH
 
 
 # Repository & Bulk Operations
@@ -1132,7 +1132,7 @@ async def create_users(db: AsyncSession, users_data: list[dict]):
 ```
 
 
-### Configure eager loading for SQLAlchemy relationships to prevent N+1 query performance problems — HIGH
+### Configure eager loading for SQLAlchemy relationships to prevent N+1 query performance problems: HIGH
 
 
 # Relationships & Eager Loading
@@ -1217,7 +1217,7 @@ for user in users.scalars():
 ```
 
 
-### Configure SQLAlchemy sessions and engines correctly to prevent connection leaks and lazy load errors — HIGH
+### Configure SQLAlchemy sessions and engines correctly to prevent connection leaks and lazy load errors: HIGH
 
 
 # SQLAlchemy Sessions & Models

@@ -206,7 +206,7 @@ Load: `Read("references/capability-details.md")` for full keyword index and prob
 
 ## Rules (6)
 
-### Protect CI/CD branches from direct pushes to enforce code review and audit trails — HIGH
+### Protect CI/CD branches from direct pushes to enforce code review and audit trails: HIGH
 
 
 ## CI/CD: Branch Protection
@@ -271,7 +271,7 @@ dev branch:
 Reference: https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches for the full ruleset surface.
 
 
-### Cache CI/CD pipeline dependencies to avoid re-downloading and save minutes per run — HIGH
+### Cache CI/CD pipeline dependencies to avoid re-downloading and save minutes per run: HIGH
 
 
 ## CI/CD: Pipeline Caching
@@ -338,7 +338,7 @@ steps:
 Reference: https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows for `actions/cache` mechanics; `references/ork-delta.md` for the house CI feedback budget.
 
 
-### Run database migrations safely during deployment to prevent downtime and data loss — CRITICAL
+### Run database migrations safely during deployment to prevent downtime and data loss: CRITICAL
 
 
 ## DevOps: Database Migrations
@@ -411,7 +411,7 @@ ALTER TABLE users ALTER COLUMN email SET NOT NULL;
 Reference: https://alembic.sqlalchemy.org/en/latest/tutorial.html for revision/upgrade/downgrade mechanics; `ork:database-patterns` for the Python migration workflow.
 
 
-### Secure Docker layers by running as non-root and excluding secrets from image builds — CRITICAL
+### Secure Docker layers by running as non-root and excluding secrets from image builds: CRITICAL
 
 
 ## Docker: Layer Security
@@ -484,7 +484,7 @@ tests/
 Reference: `references/docker-patterns.md` (lines 52-85)
 
 
-### Use Docker multi-stage builds to exclude dev dependencies and reduce image size by 4-5x — HIGH
+### Use Docker multi-stage builds to exclude dev dependencies and reduce image size by 4-5x: HIGH
 
 
 ## Docker: Multi-Stage Builds
@@ -547,7 +547,7 @@ CMD ["node", "dist/main.js"]
 Reference: `references/docker-patterns.md` (lines 7-50)
 
 
-### Configure Railway PaaS deployment with correct Nixpacks, environment, and railway.json settings — HIGH
+### Configure Railway PaaS deployment with correct Nixpacks, environment, and railway.json settings: HIGH
 
 
 # Railway Deployment Patterns

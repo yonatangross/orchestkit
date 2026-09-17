@@ -210,7 +210,7 @@ House thresholds these must enforce: `references/ork-delta.md`.
 
 ## Rules (6)
 
-### Follow the full curation pipeline when adding entries to the golden dataset — HIGH
+### Follow the full curation pipeline when adding entries to the golden dataset: HIGH
 
 
 ## Add to Golden Dataset Workflow
@@ -295,7 +295,7 @@ quality_score = (
 - Minimum requirements: 2+ domain tags, 3+ test queries per document
 
 
-### Use multi-agent annotation for consistent and thorough curation quality decisions — HIGH
+### Use multi-agent annotation for consistent and thorough curation quality decisions: HIGH
 
 
 ## Multi-Agent Annotation
@@ -502,7 +502,7 @@ results = await gather_task_results([quality_task, difficulty_task, domain_task,
 - Log all scores to Langfuse for audit trail
 
 
-### Apply systematic collection criteria to maintain consistent golden dataset quality — HIGH
+### Apply systematic collection criteria to maintain consistent golden dataset quality: HIGH
 
 
 ## Content Collection
@@ -605,7 +605,7 @@ analysis = Analysis(
 - Track provenance for full audit trail
 
 
-### Choose the right backup strategy and URL contract for golden dataset storage — HIGH
+### Choose the right backup strategy and URL contract for golden dataset storage: HIGH
 
 
 ## Storage Patterns
@@ -748,7 +748,7 @@ await session.commit()
 - SQL dumps for local snapshots only, not version control
 
 
-### Version golden datasets for reproducible evaluation across environments and recovery — HIGH
+### Version golden datasets for reproducible evaluation across environments and recovery: HIGH
 
 
 ## Dataset Versioning
@@ -895,7 +895,7 @@ chunk.embedding = embedding  # Fresh with current model
 - Test restore procedures in staging before production
 
 
-### Run regression tests and enforce difficulty distribution to maintain evaluation reliability — CRITICAL
+### Run regression tests and enforce difficulty distribution to maintain evaluation reliability: CRITICAL
 
 
 ## Regression Testing

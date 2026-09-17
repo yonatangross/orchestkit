@@ -182,7 +182,7 @@ response = client.messages.create(
 
 ## Rules (9)
 
-### Select the right audio model architecture to avoid unnecessary pipeline latency — MEDIUM
+### Select the right audio model architecture to avoid unnecessary pipeline latency: MEDIUM
 
 
 ## Audio Model Selection
@@ -266,7 +266,7 @@ async with model.connect(config=config) as session:
 - For phone agents, &lt;1s time-to-first-audio is the quality threshold
 
 
-### Configure speech-to-text with the right provider and model for accuracy and cost — HIGH
+### Configure speech-to-text with the right provider and model for accuracy and cost: HIGH
 
 
 ## Audio Speech-to-Text
@@ -353,7 +353,7 @@ transcript = aai.Transcriber().transcribe(audio_url, config=config)
 - Always specify language when known — improves accuracy significantly
 
 
-### Configure text-to-speech voice selection and style prompts for natural-sounding output — MEDIUM
+### Configure text-to-speech voice selection and style prompts for natural-sounding output: MEDIUM
 
 
 ## Audio Text-to-Speech
@@ -430,7 +430,7 @@ config = live.LiveConnectConfig(
 - Test with real users — perceived quality varies by use case and language
 
 
-### Select the right video generation model by use case, cost, and output quality — HIGH
+### Select the right video generation model by use case, cost, and output quality: HIGH
 
 
 ## Video Generation Model Selection
@@ -497,7 +497,7 @@ result = openai.videos.generate(
 - Video generation is async — always implement polling or callback patterns for task status
 
 
-### Use async task polling and provider-specific SDKs for reliable video generation — HIGH
+### Use async task polling and provider-specific SDKs for reliable video generation: HIGH
 
 
 ## Video Generation API Patterns
@@ -617,7 +617,7 @@ response = requests.post(
 - Validate image URLs are publicly accessible before passing to image-to-video endpoints
 
 
-### Use multi-shot storyboarding and character elements for consistent multi-scene video — HIGH
+### Use multi-shot storyboarding and character elements for consistent multi-scene video: HIGH
 
 
 ## Multi-Shot Storyboarding & Character Consistency
@@ -712,7 +712,7 @@ response = requests.post(
 - Voice IDs are optional — get them from the Kling create-voice endpoint first
 
 
-### Process documents with vision models using page ranges to avoid context overflow — HIGH
+### Process documents with vision models using page ranges to avoid context overflow: HIGH
 
 
 ## Vision Document Understanding
@@ -774,7 +774,7 @@ response = client.chat.completions.create(
 | Large PDF threshold | >10 pages |
 
 
-### Encode images correctly with content array structure to prevent silent vision failures — HIGH
+### Encode images correctly with content array structure to prevent silent vision failures: HIGH
 
 
 ## Vision Image Analysis
@@ -875,7 +875,7 @@ response = model.generate_content([
 - Claude uses `media_type`, OpenAI uses `mime` in the data URI
 
 
-### Select the right vision model to balance cost against task complexity requirements — MEDIUM
+### Select the right vision model to balance cost against task complexity requirements: MEDIUM
 
 
 ## Vision Model Selection

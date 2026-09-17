@@ -271,7 +271,7 @@ async def test_create_user(client: AsyncClient):
 
 ## Rules (8)
 
-### Stateful API Testing with emulate — HIGH
+### Stateful API Testing with emulate: HIGH
 
 
 # Stateful API Testing with emulate
@@ -359,7 +359,7 @@ expect(pr.data.state).toBe('closed'); // Real state machine, not faked
 - `testing-e2e` — E2E tests can also use emulate backends
 
 
-### Validate API contract correctness and error handling through HTTP-level integration tests — HIGH
+### Validate API contract correctness and error handling through HTTP-level integration tests: HIGH
 
 
 # API Integration Testing
@@ -496,7 +496,7 @@ test('returns structured 429 with retry signal', async () => {
 ```
 
 
-### Test React components with providers and user interactions for realistic integration coverage — HIGH
+### Test React components with providers and user interactions for realistic integration coverage: HIGH
 
 
 # React Component Integration Testing
@@ -551,7 +551,7 @@ test('form submits and shows success', async () => {
 ```
 
 
-### Ensure database layer correctness through isolated integration tests with fresh state — HIGH
+### Ensure database layer correctness through isolated integration tests with fresh state: HIGH
 
 
 # Database Integration Testing
@@ -615,7 +615,7 @@ def db_session():
 ```
 
 
-### Test Zod validation schemas to prevent invalid data from passing API boundaries — HIGH
+### Test Zod validation schemas to prevent invalid data from passing API boundaries: HIGH
 
 
 ## Zod Schema Validation Testing
@@ -694,7 +694,7 @@ Key principles:
 - Reuse schemas (don't create inline in hot paths)
 
 
-### Ensure API contract compatibility between consumers and providers using Pact testing — MEDIUM
+### Ensure API contract compatibility between consumers and providers using Pact testing: MEDIUM
 
 
 # Contract Testing with Pact
@@ -778,7 +778,7 @@ pact-broker can-i-deploy \
 ```
 
 
-### Validate complex state transitions and invariants through Hypothesis RuleBasedStateMachine tests — MEDIUM
+### Validate complex state transitions and invariants through Hypothesis RuleBasedStateMachine tests: MEDIUM
 
 
 # Stateful Testing
@@ -864,7 +864,7 @@ class CartStateMachine(RuleBasedStateMachine):
 ```
 
 
-### Require evidence verification and discover edge cases through property-based testing with Hypothesis — MEDIUM
+### Require evidence verification and discover edge cases through property-based testing with Hypothesis: MEDIUM
 
 
 ## Evidence Verification for Task Completion

@@ -326,7 +326,7 @@ Real production before/after evidence (cache hierarchy, cost math): `examples/or
 
 ## Rules (23)
 
-### Configure HTTP and LLM prompt caching with correct breakpoint ordering for maximum savings — HIGH
+### Configure HTTP and LLM prompt caching with correct breakpoint ordering for maximum savings: HIGH
 
 
 ## HTTP & Prompt Caching
@@ -401,7 +401,7 @@ async def get_profile(response: Response):
 - Never cache error responses or authentication tokens
 
 
-### Implement Redis cache-aside pattern with TTL and stampede prevention for backend caching — HIGH
+### Implement Redis cache-aside pattern with TTL and stampede prevention for backend caching: HIGH
 
 
 ## Redis & Backend Caching
@@ -480,7 +480,7 @@ async def on_user_updated(event: UserUpdatedEvent, cache: CacheAside):
 - Never use cache as primary storage (data loss risk)
 
 
-### Prevent Cumulative Layout Shift that causes content jumping and hurts search rankings — CRITICAL
+### Prevent Cumulative Layout Shift that causes content jumping and hurts search rankings: CRITICAL
 
 
 # CLS Prevention
@@ -578,7 +578,7 @@ Prevent Cumulative Layout Shift for the 2026 threshold of &lt;= 0.08.
 7. Target **&lt;= 0.08** for 2026 thresholds
 
 
-### Advanced INP optimization with scheduler.yield and third-party script management — CRITICAL
+### Advanced INP optimization with scheduler.yield and third-party script management: CRITICAL
 
 
 # Advanced INP Optimization
@@ -712,7 +712,7 @@ function handleAccordionToggle(panel: HTMLElement) {
 6. Target **&lt;= 150ms** INP for 2026 thresholds
 
 
-### Optimize Interaction to Next Paint to ensure responsive button clicks and interactions — CRITICAL
+### Optimize Interaction to Next Paint to ensure responsive button clicks and interactions: CRITICAL
 
 
 # INP Optimization
@@ -817,7 +817,7 @@ function SearchResults() {
 6. Target **&lt;= 150ms** for 2026 thresholds
 
 
-### Optimize Largest Contentful Paint to improve search rankings and perceived page speed — CRITICAL
+### Optimize Largest Contentful Paint to improve search rankings and perceived page speed: CRITICAL
 
 
 # LCP Optimization
@@ -913,7 +913,7 @@ useEffect(() => { fetchData().then(setData); }, []);
 6. Target **&lt;= 2.0s** for 2026 thresholds
 
 
-### Serve AVIF and WebP formats for 30-50% smaller files than JPEG at equivalent quality — HIGH
+### Serve AVIF and WebP formats for 30-50% smaller files than JPEG at equivalent quality: HIGH
 
 
 # Modern Image Formats
@@ -990,7 +990,7 @@ higher quality for small thumbnails (already small files).
 - **Automate** format conversion in the build pipeline, not manually
 
 
-### Serve appropriately sized responsive images per viewport to avoid oversized mobile downloads — HIGH
+### Serve appropriately sized responsive images per viewport to avoid oversized mobile downloads: HIGH
 
 
 # Responsive Images
@@ -1095,7 +1095,7 @@ function imgixUrl(src: string, width: number, quality = 80) {
 - **Set** explicit `width` and `height` to prevent CLS
 
 
-### Quantize models to reduce size 2-4x with minimal quality loss for fewer GPUs — MEDIUM
+### Quantize models to reduce size 2-4x with minimal quality loss for fewer GPUs: MEDIUM
 
 
 # Model Quantization
@@ -1192,7 +1192,7 @@ docker run --gpus all \
 - **Pre-quantized** models (e.g., TheBloke) save quantization time
 
 
-### Apply speculative decoding to generate draft tokens in parallel and reduce inference latency — MEDIUM
+### Apply speculative decoding to generate draft tokens in parallel and reduce inference latency: MEDIUM
 
 
 # Speculative Decoding
@@ -1295,7 +1295,7 @@ docker run --gpus '"device=0"' \
 - **Output quality** is identical to non-speculative decoding (mathematically guaranteed)
 
 
-### Deploy vLLM with PagedAttention and continuous batching for 2-4x higher inference throughput — MEDIUM
+### Deploy vLLM with PagedAttention and continuous batching for 2-4x higher inference throughput: MEDIUM
 
 
 # vLLM Deployment
@@ -1386,7 +1386,7 @@ docker run --gpus '"device=0"' \
 - **Set** `--max-model-len` to the actual max you need (lower = more concurrent requests)
 
 
-### Defer component loading with React.lazy to reduce initial bundle size and improve TTI — HIGH
+### Defer component loading with React.lazy to reduce initial bundle size and improve TTI: HIGH
 
 
 # Lazy Component Loading
@@ -1486,7 +1486,7 @@ function App() {
 - **Group** related lazy components under a single Suspense boundary
 
 
-### Prefetch resources before user needs them to make navigation feel instant — HIGH
+### Prefetch resources before user needs them to make navigation feel instant: HIGH
 
 
 # Prefetch Strategies
@@ -1599,7 +1599,7 @@ function NavLink({ to, children }) {
 - **Import on interaction** for rarely-used heavy features
 
 
-### Split code at route boundaries so users only download code for the visited page — HIGH
+### Split code at route boundaries so users only download code for the visited page: HIGH
 
 
 # Route-Based Code Splitting
@@ -1697,7 +1697,7 @@ const router = createBrowserRouter([
 - **Group** vendor libraries into shared chunks to avoid duplication
 
 
-### Profile Python backends with py-spy to find CPU hotspots and memory leaks in production — MEDIUM
+### Profile Python backends with py-spy to find CPU hotspots and memory leaks in production: MEDIUM
 
 
 # Python Backend Profiling
@@ -1791,7 +1791,7 @@ py-spy record -o profile.svg --pid 12345 --duration 30
 - **Focus** on the top 3-5 hotspots by cumulative time
 
 
-### Analyze bundles to reveal bloated dependencies and missed tree-shaking that inflate load times — MEDIUM
+### Analyze bundles to reveal bloated dependencies and missed tree-shaking that inflate load times: MEDIUM
 
 
 # Bundle Analysis
@@ -1892,7 +1892,7 @@ const sorted = items.toSorted((a, b) => a.name.localeCompare(b.name));
 - **Replace** large dependencies with native APIs when possible
 
 
-### Profile React components with DevTools to identify unnecessary re-renders and their causes — MEDIUM
+### Profile React components with DevTools to identify unnecessary re-renders and their causes: MEDIUM
 
 
 # React DevTools Profiler
@@ -1986,7 +1986,7 @@ const callback = useCallback(() => {}, []);
 - **Ignore** gray (not rendered) components in the flamegraph
 
 
-### Apply TanStack Query optimistic updates for instant UI feedback with automatic rollback — HIGH
+### Apply TanStack Query optimistic updates for instant UI feedback with automatic rollback: HIGH
 
 
 ## TanStack Query Optimistic Updates
@@ -2094,7 +2094,7 @@ function PendingTodos() {
 - Selective invalidation: `queryKey: ['todos', id]` not `queryClient.invalidateQueries()` (invalidates everything)
 
 
-### Prefetch TanStack queries on hover or in route loaders for instant page transitions — HIGH
+### Prefetch TanStack queries on hover or in route loaders for instant page transitions: HIGH
 
 
 ## TanStack Query Prefetching
@@ -2182,7 +2182,7 @@ const queryClient = new QueryClient({
 - `isPending` (v5) replaces `isLoading` for initial load state
 
 
-### Let React Compiler auto-memoize components, values, callbacks, and JSX automatically — HIGH
+### Let React Compiler auto-memoize components, values, callbacks, and JSX automatically: HIGH
 
 
 # React Compiler
@@ -2253,7 +2253,7 @@ function Component({ data }) {
 5. **Profile** before adding any manual optimization
 
 
-### Use manual useMemo and useCallback escape hatches when React Compiler cannot optimize — HIGH
+### Use manual useMemo and useCallback escape hatches when React Compiler cannot optimize: HIGH
 
 
 # Manual Memoization Escape Hatches
@@ -2349,7 +2349,7 @@ function App() {
 5. **Split** context into state and dispatch providers
 
 
-### Virtualize long lists to render only visible items for smooth scrolling performance — HIGH
+### Virtualize long lists to render only visible items for smooth scrolling performance: HIGH
 
 
 # List Virtualization
@@ -2470,7 +2470,7 @@ function VirtualList({ items }) {
 5. **Position** items with `transform: translateY()` (avoids layout recalculation)
 
 
-### Sustainability UX patterns for reducing digital carbon footprint — MEDIUM
+### Sustainability UX patterns for reducing digital carbon footprint: MEDIUM
 
 
 # Sustainability UX

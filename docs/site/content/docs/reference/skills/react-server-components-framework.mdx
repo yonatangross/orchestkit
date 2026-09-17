@@ -255,7 +255,7 @@ Load full capability details: `Read("references/capability-details.md")`
 
 ## Rules (5)
 
-### Scope RSC cache keys properly to prevent leaking user-specific data across requests — CRITICAL
+### Scope RSC cache keys properly to prevent leaking user-specific data across requests: CRITICAL
 
 
 ## RSC: Cache Safety
@@ -319,7 +319,7 @@ async function Cached({ value }: { value: string }) {
 Reference: first-party `next-cache-components` / `vercel:next-cache-components` skill (constraints, pitfalls); house scars: `references/ork-delta.md`
 
 
-### Minimize RSC client boundaries to avoid shipping unnecessary JavaScript to the browser — CRITICAL
+### Minimize RSC client boundaries to avoid shipping unnecessary JavaScript to the browser: CRITICAL
 
 
 ## RSC: Client Boundaries
@@ -394,7 +394,7 @@ export function ProductFilters() {
 Reference: first-party `next-best-practices` / `vercel:nextjs` skill (RSC boundaries, composition)
 
 
-### Use correct React 19 component types instead of deprecated React.FC patterns — MEDIUM
+### Use correct React 19 component types instead of deprecated React.FC patterns: MEDIUM
 
 
 ## RSC: Component Types
@@ -470,7 +470,7 @@ const inputRef = useRef<HTMLInputElement>(null)
 Reference: `references/ork-delta.md` (React.FC and forwardRef ban, house standard); react.dev React 19 upgrade guide
 
 
-### Prevent RSC hydration mismatches that cause visual flicker and degraded performance — HIGH
+### Prevent RSC hydration mismatches that cause visual flicker and degraded performance: HIGH
 
 
 ## RSC: Hydration
@@ -544,7 +544,7 @@ function ScreenWidth() {
 Reference: first-party `next-best-practices` / `vercel:nextjs` skill (hydration); react.dev hydration-mismatch docs
 
 
-### Pass only serializable props across the RSC server-client boundary to avoid runtime errors — CRITICAL
+### Pass only serializable props across the RSC server-client boundary to avoid runtime errors: CRITICAL
 
 
 ## RSC: Serialization

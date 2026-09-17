@@ -7,7 +7,7 @@ description: "4 rules for the Brainstorm skill: Limit parallel brainstorm agents
 
 ## Rules (4)
 
-### Limit parallel brainstorm agents to 5 maximum to avoid diminishing returns and context waste — MEDIUM
+### Limit parallel brainstorm agents to 5 maximum to avoid diminishing returns and context waste: MEDIUM
 
 
 # Agent Count Limit
@@ -84,7 +84,7 @@ for agent in selected:
 - Agent Teams mode has a stricter effective limit of 4-5 due to higher per-agent token cost from cross-agent communication
 
 
-### Flag ideas that exceed current team or infrastructure capacity using tier-based complexity ceilings — HIGH
+### Flag ideas that exceed current team or infrastructure capacity using tier-based complexity ceilings: HIGH
 
 
 # Complexity Ceiling
@@ -161,7 +161,7 @@ The user can explicitly override the ceiling by saying things like "I want enter
 3. Include a "Simplified alternative" alongside each ceiling-exceeding recommendation
 
 
-### Brainstorm must converge to actionable recommendations with clear next steps, not just list ideas — HIGH
+### Brainstorm must converge to actionable recommendations with clear next steps, not just list ideas: HIGH
 
 
 # Convergence Requirement
@@ -242,7 +242,7 @@ Write(".claude/chain/05-synthesis.json", {
 ```
 
 
-### Each idea must have a feasibility score (1-5) before synthesis; flag unfeasible ideas explicitly — HIGH
+### Each idea must have a feasibility score (1-5) before synthesis; flag unfeasible ideas explicitly: HIGH
 
 
 # Feasibility Filter

@@ -281,7 +281,7 @@ git add *.har                                  # NEVER commit HAR captures
 
 ## Rules (6)
 
-### Secure browser automation credentials to prevent token leaks and account compromise — CRITICAL
+### Secure browser automation credentials to prevent token leaks and account compromise: CRITICAL
 
 
 ## Browser: Auth Security
@@ -402,7 +402,7 @@ agent-browser --confirm-interactive open https://admin.example.com
 Reference: login flows, the auth vault and state files are upstream, see the `agent-browser` skill. Our delta: `references/ork-delta.md`.
 
 
-### Use browser debug and recording tools safely to avoid leaking sensitive data in traces — HIGH
+### Use browser debug and recording tools safely to avoid leaking sensitive data in traces: HIGH
 
 
 ## Browser: Debug & Recording
@@ -516,7 +516,7 @@ agent-browser clipboard paste  # Paste clipboard contents
 Reference: trace, record and profiler commands are upstream, see the `agent-browser` skill. Our delta: `references/ork-delta.md` (capture output is credential bearing).
 
 
-### Scope mobile browser testing to verified devices and emulation profiles — HIGH
+### Scope mobile browser testing to verified devices and emulation profiles: HIGH
 
 
 ## Browser: Mobile Testing
@@ -582,7 +582,7 @@ done
 Reference: device emulation and iOS Simulator commands are upstream, see the `agent-browser` skill. Our delta: `references/ork-delta.md`.
 
 
-### Use Portless named URLs instead of raw port numbers for local dev — HIGH
+### Use Portless named URLs instead of raw port numbers for local dev: HIGH
 
 
 ## Browser: Portless Local Dev URLs
@@ -658,7 +658,7 @@ portless get app  # → https://app.localhost
 - Install Portless globally: `npm i -g portless`
 
 
-### Throttle browser requests to avoid 429 blocks, IP bans, and unreliable results — HIGH
+### Throttle browser requests to avoid 429 blocks, IP bans, and unreliable results: HIGH
 
 
 ## Browser: Rate Limiting
@@ -764,7 +764,7 @@ agent-browser network requests --clear    # Reset tracked request log
 Reference: `references/ork-delta.md` (the rate-limit budget is per hostname and shared machine-wide).
 
 
-### Respect robots.txt and terms of service to avoid legal issues and IP bans — CRITICAL
+### Respect robots.txt and terms of service to avoid legal issues and IP bans: CRITICAL
 
 
 ## Browser: Scraping Ethics

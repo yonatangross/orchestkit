@@ -226,7 +226,7 @@ and scars. Our delta on all of it is in `references/ork-delta.md`.
 
 ## Rules (20)
 
-### Handle parallel function calls with careful strict mode coordination to reduce latency — HIGH
+### Handle parallel function calls with careful strict mode coordination to reduce latency: HIGH
 
 
 # Parallel Tool Calls
@@ -319,7 +319,7 @@ results = await asyncio.gather(*[safe_execute(tc) for tc in response.tool_calls]
 ```
 
 
-### Define tool schemas with strict mode to prevent hallucinated parameters and ensure reliability — CRITICAL
+### Define tool schemas with strict mode to prevent hallucinated parameters and ensure reliability: CRITICAL
 
 
 # Tool Definition (Strict Mode)
@@ -416,7 +416,7 @@ tools = [{
 ```
 
 
-### Function Calling: Validation & Execution Loop — CRITICAL
+### Function Calling: Validation & Execution Loop: CRITICAL
 
 
 # Tool Validation & Execution Loop
@@ -562,7 +562,7 @@ async def run_tools(user_message: str, max_iterations: int = 10):
 ```
 
 
-### Apply context caching and budget allocation to reduce token costs by 60-80 percent — HIGH
+### Apply context caching and budget allocation to reduce token costs by 60-80 percent: HIGH
 
 
 ## Context Caching and Budget Scaling
@@ -624,7 +624,7 @@ Key principles:
 - Test compression with probes (>90% pass rate), not ROUGE/BLEU similarity metrics
 
 
-### Manage context windows to avoid wasting 80 percent of token budget on irrelevant content — HIGH
+### Manage context windows to avoid wasting 80 percent of token budget on irrelevant content: HIGH
 
 
 ## Context Window Management
@@ -683,7 +683,7 @@ Key principles:
 - Optimize for tokens-per-task, not tokens-per-request
 
 
-### LLM Evaluation Benchmarks and Quality Gates — HIGH
+### LLM Evaluation Benchmarks and Quality Gates: HIGH
 
 
 ## LLM Evaluation Benchmarks and Quality Gates
@@ -757,7 +757,7 @@ Key principles:
 - Track evaluation scores over time for regression detection
 
 
-### Define LLM evaluation metrics to detect quality regressions before they reach production — HIGH
+### Define LLM evaluation metrics to detect quality regressions before they reach production: HIGH
 
 
 ## LLM Evaluation Metrics
@@ -821,7 +821,7 @@ Key decisions:
 - Sample size: 50+ for reliable metrics
 
 
-### Tune GPU settings and provider factory patterns for maximum local inference performance — HIGH
+### Tune GPU settings and provider factory patterns for maximum local inference performance: HIGH
 
 
 # GPU Optimization & Provider Factory
@@ -957,7 +957,7 @@ llm = get_llm_provider(task_type="coding")
 | Cloud fallback | Provider factory pattern |
 
 
-### Select the right local model for task and hardware to avoid OOM and maximize quality — HIGH
+### Select the right local model for task and hardware to avoid OOM and maximize quality: HIGH
 
 
 # Model Selection Guide
@@ -1050,7 +1050,7 @@ llm = ChatOllama(model=model)
 ```
 
 
-### Set up Ollama for local LLM inference to reduce costs and enable offline development — HIGH
+### Set up Ollama for local LLM inference to reduce costs and enable offline development: HIGH
 
 
 # Ollama Setup & LangChain Integration
@@ -1185,7 +1185,7 @@ response = await llm.ainvoke("Task 2")  # Instant (model still loaded)
 ```
 
 
-### Design effective prompts to improve LLM accuracy on complex reasoning tasks — HIGH
+### Design effective prompts to improve LLM accuracy on complex reasoning tasks: HIGH
 
 
 ## Prompt Design Patterns
@@ -1264,7 +1264,7 @@ Key decisions:
 - Always use CoT for math/logic tasks
 
 
-### Optimize prompts for token efficiency, accuracy, and cost through systematic techniques — HIGH
+### Optimize prompts for token efficiency, accuracy, and cost through systematic techniques: HIGH
 
 
 ## Prompt Optimization
@@ -1398,7 +1398,7 @@ Key decisions:
 - Cache identical prompts to avoid redundant calls
 
 
-### Implement ReAct pattern for tool-using agents with structured thought-action-observation loops — HIGH
+### Implement ReAct pattern for tool-using agents with structured thought-action-observation loops: HIGH
 
 
 ## ReAct Pattern for Tool-Using Agents
@@ -1492,7 +1492,7 @@ Key decisions:
 - Prefer simple tool calling for single-tool, deterministic tasks
 
 
-### Test and version prompts systematically to prevent silent production regressions — HIGH
+### Test and version prompts systematically to prevent silent production regressions: HIGH
 
 
 ## Prompt Testing and Optimization
@@ -1575,7 +1575,7 @@ Key decisions:
 - Self-consistency: 5 paths for hard reasoning problems
 
 
-### Apply backpressure in LLM streams to prevent memory exhaustion from slow consumers — MEDIUM
+### Apply backpressure in LLM streams to prevent memory exhaustion from slow consumers: MEDIUM
 
 
 # Backpressure & Stream Cancellation
@@ -1694,7 +1694,7 @@ async def stream_tokens(prompt: str):
 ```
 
 
-### Stream LLM responses via SSE endpoints to reduce time-to-first-byte and improve responsiveness — HIGH
+### Stream LLM responses via SSE endpoints to reduce time-to-first-byte and improve responsiveness: HIGH
 
 
 # SSE Streaming Endpoints
@@ -1812,7 +1812,7 @@ async def stream_chat(prompt: str):
 ```
 
 
-### Accumulate tool call chunks carefully when handling structured output within LLM streams — HIGH
+### Accumulate tool call chunks carefully when handling structured output within LLM streams: HIGH
 
 
 # Streaming with Tool Calls & Structured Data
@@ -1928,7 +1928,7 @@ for tc in collected_tool_calls:
 ```
 
 
-### Prepare high-quality training datasets since data quality determines fine-tuning success — HIGH
+### Prepare high-quality training datasets since data quality determines fine-tuning success: HIGH
 
 
 # Dataset Preparation & Synthetic Data
@@ -2006,7 +2006,7 @@ async def generate_dataset(topic: str, num: int = 1000):
 ```
 
 
-### Align models with DPO and evaluate thoroughly before deploying fine-tuned versions — HIGH
+### Align models with DPO and evaluate thoroughly before deploying fine-tuned versions: HIGH
 
 
 # DPO Alignment & Evaluation
@@ -2158,7 +2158,7 @@ if eval_results["mean_score"] >= 7.5:  # Quality threshold
 ```
 
 
-### Configure LoRA and QLoRA to fine-tune large models on consumer hardware efficiently — HIGH
+### Configure LoRA and QLoRA to fine-tune large models on consumer hardware efficiently: HIGH
 
 
 # LoRA/QLoRA Fine-Tuning

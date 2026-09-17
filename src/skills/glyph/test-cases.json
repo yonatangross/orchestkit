@@ -1,6 +1,6 @@
 {
   "skill": "glyph",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "testCases": [
     {
       "id": "basic-no-argument-render-current-state",
@@ -10,7 +10,7 @@
         "Renders the state of the CURRENT conversation, since no topic was supplied",
         "Does not ask which topic or format to use before rendering",
         "Emits the visual inline in the reply rather than writing a file",
-        "Leads with the visual and keeps prose to what the diagram cannot carry"
+        "States the verdict in one prose line first, then one render, then two or three bold-led bullets on what the numbers told it"
       ]
     },
     {
@@ -32,6 +32,18 @@
         "Renders the options as a comparison table rather than prose paragraphs",
         "States a single recommendation instead of leaving an open menu",
         "Separates what is verified from what is inferred"
+      ]
+    },
+    {
+      "id": "inventory-render-shape",
+      "rule": "",
+      "query": "what is using my disk? show me what I can clean up",
+      "expectedBehavior": [
+        "Renders ONE inventory: header line with a domain icon and the subject, a headline meter with the numbers under it, sections opened by a light rule and a traffic-light word",
+        "Rows align in columns: one domain icon in the leading column, label, bar meter, value, one-word action; every section closes with a total line",
+        "Ends the render with an arithmetic summary line the reader can check and an info caveat line for any number that lies",
+        "Stays within about 50 lines and 76 cells per line; prints ? for an unknown value instead of inventing one",
+        "Puts the verdict in one prose line before the render and two or three bold-led bullets after it"
       ]
     },
     {
@@ -105,7 +117,7 @@
       "expectedBehavior": [
         "Resolves audience to novice because the reader is not the operator",
         "Keeps internal names (branch names, service names, check names) out of the visual labels",
-        "Stays inline (chat) when the honest rendering fits in 12 visual lines, otherwise escalates to a page and says so"
+        "Stays inline (chat) when the honest rendering fits in one render of about 50 lines, otherwise escalates to a page and says so"
       ]
     },
     {

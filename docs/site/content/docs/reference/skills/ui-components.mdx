@@ -228,7 +228,7 @@ Cognitive-science-grounded UI/UX principles with specific numeric thresholds for
 
 ## Rules (15)
 
-### Build a color system with OKLCH, 9-shade scales, and semantic categories — HIGH
+### Build a color system with OKLCH, 9-shade scales, and semantic categories: HIGH
 
 
 ## Color System Architecture
@@ -310,7 +310,7 @@ background: #808080;
 | Max contrast | Body text `neutral-900` on `neutral-50` — not pure black on white |
 
 
-### Use CSS Cascade Layers for predictable style precedence without specificity wars — HIGH
+### Use CSS Cascade Layers for predictable style precedence without specificity wars: HIGH
 
 
 # CSS Cascade Layers (`@layer`)
@@ -391,7 +391,7 @@ Styles outside any `@layer` always beat layered styles. Use this sparingly for t
 Reference: [MDN @layer](https://developer.mozilla.org/en-US/docs/Web/CSS/@layer)
 
 
-### Structure scalable component libraries using atomic design and composition patterns — HIGH
+### Structure scalable component libraries using atomic design and composition patterns: HIGH
 
 
 ## Design System Component Architecture
@@ -483,7 +483,7 @@ const buttonVariants = cva(
 | Class merging | Always use cn() for Tailwind conflicts |
 
 
-### Use 8px grid spacing scale for consistent component and layout spacing — MEDIUM
+### Use 8px grid spacing scale for consistent component and layout spacing: MEDIUM
 
 
 ## 8px Grid Spacing System
@@ -561,7 +561,7 @@ Key decisions:
 - Scale spacing with viewport using responsive utilities (`gap-4 md:gap-6 lg:gap-8`)
 
 
-### Define all interactive component states with consistent visual feedback patterns — HIGH
+### Define all interactive component states with consistent visual feedback patterns: HIGH
 
 
 ## Interactive Component States
@@ -687,7 +687,7 @@ Key decisions:
 - Test all states in Storybook with a dedicated "States" story per component
 
 
-### Define consistent design tokens to enable global theme changes without visual drift — HIGH
+### Define consistent design tokens to enable global theme changes without visual drift: HIGH
 
 
 ## Design System Token Architecture
@@ -764,7 +764,7 @@ const tokens = {
 | Dark mode | Tailwind `@theme` with CSS variables |
 
 
-### Apply consistent typography scale with semantic size roles for readable hierarchies — MEDIUM
+### Apply consistent typography scale with semantic size roles for readable hierarchies: MEDIUM
 
 
 ## Typography Scale
@@ -853,7 +853,7 @@ Key decisions:
 - Line height decreases as font size increases
 
 
-### Design intentional empty states with clear structure, actionable CTAs, and skeleton-first loading — HIGH
+### Design intentional empty states with clear structure, actionable CTAs, and skeleton-first loading: HIGH
 
 
 ## Empty State Patterns
@@ -957,7 +957,7 @@ function EmptyProjects() {
 | Cause-specific | Different empty states for first-time, no-results, error, permissions |
 
 
-### Build performant forms with React Hook Form v7 controlled renders and validation — HIGH
+### Build performant forms with React Hook Form v7 controlled renders and validation: HIGH
 
 
 ## React Hook Form Patterns
@@ -1077,7 +1077,7 @@ import { Controller } from 'react-hook-form';
 - Use `aria-invalid` and `role="alert"` for accessibility
 
 
-### Validate forms with Zod type-safe schemas on both client and server sides — HIGH
+### Validate forms with Zod type-safe schemas on both client and server sides: HIGH
 
 
 ## Zod Validation & Server Actions
@@ -1198,7 +1198,7 @@ const paymentSchema = z.discriminatedUnion('method', [
 - Custom error messages in every `.email()`, `.min()`, `.refine()` call
 
 
-### shadcn/ui v4 Style System — 6 Styles + Preset Codes — HIGH
+### shadcn/ui v4 Style System — 6 Styles + Preset Codes: HIGH
 
 
 ## shadcn/ui v4 Style System
@@ -1286,7 +1286,7 @@ const styleName = style.split('-').pop() // "luma", "nova", etc.
 Configure visually at [ui.shadcn.com/create](https://ui.shadcn.com/create). Old `"new-york"` and `"default"` are superseded by Vega.
 
 
-### Storybook CSF3 stories with play() interaction tests and Chromatic visual regression — HIGH
+### Storybook CSF3 stories with play() interaction tests and Chromatic visual regression: HIGH
 
 
 # Storybook Component Documentation (2026)
@@ -1400,7 +1400,7 @@ export const AddItem: Story = {
 Reference: [Storybook Docs](https://storybook.js.org/docs)
 
 
-### Tailwind v4 CSS-first configuration and native container queries — HIGH
+### Tailwind v4 CSS-first configuration and native container queries: HIGH
 
 
 # Tailwind v4 Patterns (2026)
@@ -1523,7 +1523,7 @@ module.exports = {
 Reference: [Tailwind CSS v4 Docs](https://tailwindcss.com/docs)
 
 
-### Apply numeric typography thresholds for line length, line height, and font scale — HIGH
+### Apply numeric typography thresholds for line length, line height, and font scale: HIGH
 
 
 ## Typography Thresholds
@@ -1607,7 +1607,7 @@ Reference: [Tailwind CSS v4 Docs](https://tailwindcss.com/docs)
 | UI font | Sans-serif for UI chrome; proportional serif optional for long-form |
 
 
-### Design visual hierarchy using weight, contrast, and spatial relationships — not color alone — HIGH
+### Design visual hierarchy using weight, contrast, and spatial relationships — not color alone: HIGH
 
 
 ## Visual Hierarchy & Layout

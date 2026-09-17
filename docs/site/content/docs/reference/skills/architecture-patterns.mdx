@@ -259,7 +259,7 @@ Long-form tutorials on these topics were removed from this skill (2026-07-31 wra
 
 ## Rules (13)
 
-### Apply dependency injection to ensure testable code and prevent tight coupling between layers — HIGH
+### Apply dependency injection to ensure testable code and prevent tight coupling between layers: HIGH
 
 
 # Dependency Injection
@@ -330,7 +330,7 @@ async def get_user(
 ```
 
 
-### Separate backend layers to prevent coupling between HTTP, business logic, and data access — HIGH
+### Separate backend layers to prevent coupling between HTTP, business logic, and data access: HIGH
 
 
 # Backend Layer Separation
@@ -403,7 +403,7 @@ async def create_user(
 ```
 
 
-### Follow consistent file naming conventions and exception patterns for discoverable code — HIGH
+### Follow consistent file naming conventions and exception patterns for discoverable code: HIGH
 
 
 # File Naming & Exceptions
@@ -455,7 +455,7 @@ async function getUser(db: AsyncSession, userId: number) {
 ```
 
 
-### Apply SOLID principles and dependency inversion for maintainable testable abstractions — HIGH
+### Apply SOLID principles and dependency inversion for maintainable testable abstractions: HIGH
 
 
 # SOLID Principles in Python
@@ -545,7 +545,7 @@ class AnalysisService:
 ```
 
 
-### Decouple domain logic from infrastructure with hexagonal architecture for testability — HIGH
+### Decouple domain logic from infrastructure with hexagonal architecture for testability: HIGH
 
 
 # Hexagonal Architecture (Ports & Adapters)
@@ -625,7 +625,7 @@ class AnalysisService:
 ```
 
 
-### Model complex domains with DDD tactical patterns using clear boundaries and rich logic — HIGH
+### Model complex domains with DDD tactical patterns using clear boundaries and rich logic: HIGH
 
 
 # DDD Tactical Patterns
@@ -713,7 +713,7 @@ analysis_type.depth = 5  // FrozenInstanceError
 ```
 
 
-### Choose the right ORM, auth, and error handling per tier to avoid unnecessary abstraction — HIGH
+### Choose the right ORM, auth, and error handling per tier to avoid unnecessary abstraction: HIGH
 
 
 ## Right-Sizing Decision Guide
@@ -788,7 +788,7 @@ supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 - Add abstractions only when pain appears, not preemptively
 
 
-### Select the correct architecture sizing tier to avoid over-engineering or missing foundations — HIGH
+### Select the correct architecture sizing tier to avoid over-engineering or missing foundations: HIGH
 
 
 ## Architecture Sizing Tiers
@@ -873,7 +873,7 @@ def list_todos():
 - User can override detected tier explicitly — respect manual overrides
 
 
-### Enforce unidirectional imports to prevent circular dependencies and maintain clean architecture — HIGH
+### Enforce unidirectional imports to prevent circular dependencies and maintain clean architecture: HIGH
 
 
 # Import Direction & Conventions
@@ -944,7 +944,7 @@ import { useAuth } from '@/hooks/useAuth';
 ```
 
 
-### Organize folders consistently to reduce cognitive load and improve codebase navigability — HIGH
+### Organize folders consistently to reduce cognitive load and improve codebase navigability: HIGH
 
 
 # Folder Organization
@@ -1023,7 +1023,7 @@ src/features/dashboard/charts/LineChart.tsx
 ```
 
 
-### Structure tests with Arrange-Act-Assert pattern for reliable and maintainable test suites — MEDIUM
+### Structure tests with Arrange-Act-Assert pattern for reliable and maintainable test suites: MEDIUM
 
 
 # AAA Pattern & Test Isolation
@@ -1116,7 +1116,7 @@ test('should apply 10% discount for orders over $100', () => {
 ```
 
 
-### Set coverage thresholds to ensure critical code paths are tested before deployment — MEDIUM
+### Set coverage thresholds to ensure critical code paths are tested before deployment: MEDIUM
 
 
 # Coverage & Fixtures
@@ -1190,7 +1190,7 @@ def db_session():
 ```
 
 
-### Name tests descriptively so they serve as documentation and aid debugging — MEDIUM
+### Name tests descriptively so they serve as documentation and aid debugging: MEDIUM
 
 
 # Test Naming Conventions
@@ -1378,7 +1378,7 @@ Why: House decision from test-standards-enforcer (enforcer consolidation; PR unt
 Upstream: skill ork:testing-unit; pytest good practices, https://docs.pytest.org/en/stable/explanation/goodpractices.html
 
 
-### Project Structure: Import Direction & Component Location — HIGH
+### Project Structure: Import Direction & Component Location: HIGH
 
 
 # Import Direction & Component Location
@@ -1543,7 +1543,7 @@ Component should receive data as props, not fetch it directly:
 - **Testing**: Cannot test components in isolation with circular deps
 
 
-### Test Standards: Naming Conventions — MEDIUM
+### Test Standards: Naming Conventions: MEDIUM
 
 
 # Test Naming Conventions
