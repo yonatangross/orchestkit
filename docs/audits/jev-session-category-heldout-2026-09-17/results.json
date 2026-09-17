@@ -1,0 +1,183 @@
+{
+  "rows": {
+    "heldout": 150,
+    "sure": 129,
+    "unsure": 21,
+    "overlap_with_tuning_80": 0,
+    "errors": {
+      "jev_B": 0,
+      "haiku_B": 1
+    }
+  },
+  "hand_dist": {
+    "docs": 32,
+    "infra": 62,
+    "review": 10,
+    "feature": 5,
+    "refactor": 5,
+    "bugfix": 24,
+    "perf": 3,
+    "testing": 8,
+    "design": 1
+  },
+  "accuracy": {
+    "haiku_today": {
+      "all_9cat": {
+        "correct": 98,
+        "n": 150,
+        "pct": 65.3
+      },
+      "sure_9cat": {
+        "correct": 85,
+        "n": 129,
+        "pct": 65.9
+      },
+      "all_8cat_review_as_testing": {
+        "correct": 101,
+        "n": 150,
+        "pct": 67.3
+      }
+    },
+    "haiku_B": {
+      "all_9cat": {
+        "correct": 119,
+        "n": 150,
+        "pct": 79.3
+      },
+      "sure_9cat": {
+        "correct": 107,
+        "n": 129,
+        "pct": 82.9
+      },
+      "all_8cat_review_as_testing": {
+        "correct": 120,
+        "n": 150,
+        "pct": 80.0
+      }
+    },
+    "jev_B": {
+      "all_9cat": {
+        "correct": 120,
+        "n": 150,
+        "pct": 80.0
+      },
+      "sure_9cat": {
+        "correct": 109,
+        "n": 129,
+        "pct": 84.5
+      },
+      "all_8cat_review_as_testing": {
+        "correct": 121,
+        "n": 150,
+        "pct": 80.7
+      }
+    }
+  },
+  "mcnemar": {
+    "jev_B_vs_haiku_B": {
+      "a_only_right": 11,
+      "b_only_right": 10,
+      "p": 1.0
+    },
+    "jev_B_vs_haiku_today": {
+      "a_only_right": 40,
+      "b_only_right": 18,
+      "p": 0.0054
+    }
+  },
+  "kill_criterion": {
+    "gap_points_jev_minus_haiku_B": 0.7,
+    "jev_p95_ms": 399,
+    "killed": false
+  },
+  "jev_confidence_buckets": [
+    {
+      "range": "[0,0.5]",
+      "n": 17,
+      "correct": 6
+    },
+    {
+      "range": "[0.5,0.8]",
+      "n": 40,
+      "correct": 27
+    },
+    {
+      "range": "[0.8,1]",
+      "n": 93,
+      "correct": 87
+    }
+  ],
+  "latency_ms": {
+    "jev_B": {
+      "p50": 319,
+      "p95": 399
+    },
+    "haiku_B": {
+      "p50": 15535,
+      "p95": 23177
+    }
+  },
+  "input_tokens_mean": {
+    "jev_B": 1341,
+    "haiku_B": 45073
+  },
+  "haiku_B_list_cost_usd": 7.966,
+  "review_option": {
+    "hand_rows": 10,
+    "jev_picks": 15,
+    "jev_correct": 10,
+    "haiku_B_picks": 14,
+    "haiku_B_correct": 9
+  },
+  "cascade_jev_conf_ge_0_8_else_haiku_B": {
+    "correct": 121,
+    "n": 150,
+    "haiku_calls_needed": 57
+  },
+  "top_misses": {
+    "jev_B": [
+      [
+        "bugfix->infra",
+        6
+      ],
+      [
+        "docs->feature",
+        5
+      ],
+      [
+        "testing->infra",
+        4
+      ],
+      [
+        "docs->infra",
+        3
+      ],
+      [
+        "feature->bugfix",
+        2
+      ]
+    ],
+    "haiku_B": [
+      [
+        "infra->bugfix",
+        4
+      ],
+      [
+        "testing->infra",
+        4
+      ],
+      [
+        "infra->docs",
+        3
+      ],
+      [
+        "docs->infra",
+        3
+      ],
+      [
+        "infra->review",
+        3
+      ]
+    ]
+  }
+}

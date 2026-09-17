@@ -1,0 +1,76 @@
+{
+  "bugfix": {
+    "what": "Fixing broken product behavior: a bug, a crash, a regression, an incident, wrong output.",
+    "not_for": "Fixing CI, build, release or tooling problems (infra). Writing about a bug without changing code (docs).",
+    "examples": [
+      "the login page 404s after sign in, fix it",
+      "the hook crashes on empty input"
+    ]
+  },
+  "feature": {
+    "what": "Adding a new capability: a new command, endpoint, skill, option, integration or screen.",
+    "not_for": "Changing CI or tooling (infra). Restructuring existing code without new behavior (refactor).",
+    "examples": [
+      "add an opt-in provider for the session category",
+      "build a new export endpoint"
+    ]
+  },
+  "docs": {
+    "what": "Writing or updating documentation, research, analysis, plans, reports, digests, status summaries, or answering a question without shipping code.",
+    "not_for": "User interface or visual work (design). Code changes (bugfix, feature, refactor).",
+    "examples": [
+      "research this vendor and write an adoption plan",
+      "write the daily digest",
+      "explain how the auth flow works"
+    ]
+  },
+  "refactor": {
+    "what": "Restructuring or cleaning up existing code with no behavior change: renames, splitting files, removing dead code.",
+    "not_for": "Anything that changes behavior (bugfix, feature).",
+    "examples": [
+      "split this 900 line module into three files",
+      "remove the dead compatibility shims"
+    ]
+  },
+  "infra": {
+    "what": "CI pipelines, builds, releases, deploys, dependency bumps, dev tooling, git and merge operations, and coordinating or dispatching other agent sessions.",
+    "not_for": "Product bugs surfaced by CI (bugfix). Writing tests (testing).",
+    "examples": [
+      "fix the failing release workflow",
+      "bump the node version across repos",
+      "run the merge train and dispatch lanes"
+    ]
+  },
+  "perf": {
+    "what": "Making something faster or cheaper: latency, memory, bundle size, token or compute cost.",
+    "not_for": "Fixing incorrect behavior (bugfix).",
+    "examples": [
+      "cut hook startup time",
+      "reduce the bundle size"
+    ]
+  },
+  "design": {
+    "what": "User interface, UX and visual styling: layouts, pages, components, colors, how something looks to a person.",
+    "not_for": "Software architecture or system design documents (docs). Restructuring code (refactor).",
+    "examples": [
+      "restyle the settings page",
+      "fix the RTL layout of the dashboard"
+    ]
+  },
+  "testing": {
+    "what": "Writing, running or fixing tests, QA passes, verifying that a change works.",
+    "not_for": "Reviewing someone else's pull request (review). Fixing the product code a test exposed (bugfix).",
+    "examples": [
+      "add unit tests for the parser",
+      "QA the checkout flow"
+    ]
+  },
+  "review": {
+    "what": "Reviewing a pull request or another agent's change and giving a verdict such as land or hold.",
+    "not_for": "Writing tests yourself (testing). Fixing the code under review (bugfix).",
+    "examples": [
+      "review PR 123 and give a verdict",
+      "reviewer lane for the open orchestkit PRs"
+    ]
+  }
+}
