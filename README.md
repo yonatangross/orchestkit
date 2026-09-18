@@ -555,6 +555,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.49](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.48...v10.0.0-beta.49)** · 2026-09-18
+
+- **expect:** opt-in Jev shadow pick per step (ORK_EXPECT_JEV_SHADOW) (#4228)
+
 **[v10.0.0-beta.48](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.47...v10.0.0-beta.48)** · 2026-09-17
 
 - **security:** stop logging token reference, escape lab attributes fully (#4226)
@@ -583,11 +587,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.42](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.41...v10.0.0-beta.42)** · 2026-09-16
 
 - **hooks:** output-validator pass warnings are log-only (#4202)
-
-**[v10.0.0-beta.41](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.40...v10.0.0-beta.41)** · 2026-09-16
-
-- **hooks:** read subagent result via shared reader in output-validator (#4199)
-- **tests:** exec-bit preflight enumerates NUL-delimited, quoting off (#4200)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

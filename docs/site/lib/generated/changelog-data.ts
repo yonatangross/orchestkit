@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.49",
+    "date": "2026-09-18",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.48...v10.0.0-beta.49",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**expect:** opt-in Jev shadow pick per step (ORK_EXPECT_JEV_SHADOW) ([#4228](https://github.com/yonatangross/orchestkit/issues/4228)) ([c2f52bf](https://github.com/yonatangross/orchestkit/commit/c2f52bfcfcf11cc4bdbca66d1438122799a1e1c7))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.48",
     "date": "2026-09-17",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.47...v10.0.0-beta.48",
