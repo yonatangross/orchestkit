@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # tests/unit/test-expect-jev-shadow.sh
 #
-# Covers the opt-in Jev shadow step of /ork:expect
+# Covers the opt-in Jev step judge of /ork:expect
 # (src/skills/expect/scripts/jev-shadow.sh + jev_shadow.py,
 # references/jev-shadow.md).
 #
@@ -15,6 +15,12 @@
 #                            page text beyond names neither
 #   6. element cap        -> comes from the skill config, not a constant
 #   7. report.sh          -> JEV_SHADOW folds into the JSON report
+#   8. act mode           -> executed_action is the Jev pick, path=jev
+#   9. act fallbacks      -> every failure path returns the incumbent pick
+#  10. shadow unchanged   -> ORK_EXPECT_JEV=shadow keeps the shadow record
+#  11. mode off           -> ORK_EXPECT_JEV unset/0 emits nothing
+#  12. act-mode egress    -> same payload hygiene under act
+#  13. run summary        -> JEV_RUN line + JSON steps/picks/fallbacks/rate
 #
 # tests/fixtures/expect/mock_jev.py stands in for the Jev endpoint;
 # nothing here touches the real network.
@@ -35,16 +41,23 @@ bad() { echo "  ${RED}FAIL${NC} $1"; FAIL=$((FAIL + 1)); }
 TMP="$(mktemp -d "${TMPDIR:-/tmp}/jev-shadow-test.XXXXXX")"
 REQ_LOG="$TMP/requests.log"
 RESP_FILE="$TMP/response.json"
+STATUS_FILE="$TMP/status.txt"
+DELAY_FILE="$TMP/delay.txt"
 MOCK_PID=""
 cleanup() { [[ -n "$MOCK_PID" ]] && kill "$MOCK_PID" 2>/dev/null || true; rm -rf "$TMP"; }
 trap cleanup EXIT
 
 cp "$FIX/jev-response-agree.json" "$RESP_FILE"
+echo 200 > "$STATUS_FILE"; echo 0 > "$DELAY_FILE"
 
 PORT="$(python3 -c "import socket; s=socket.socket(); s.bind(('127.0.0.1',0)); print(s.getsockname()[1]); s.close()")"
+DEADPORT="$(python3 -c "import socket; s=socket.socket(); s.bind(('127.0.0.1',0)); print(s.getsockname()[1]); s.close()")"
 ENDPOINT="http://127.0.0.1:$PORT/v1/systemone"
+DEAD_ENDPOINT="http://127.0.0.1:$DEADPORT/v1/systemone"
 
-MOCK_LOG="$REQ_LOG" MOCK_RESPONSE="$RESP_FILE" python3 "$FIX/mock_jev.py" "$PORT" &
+MOCK_LOG="$REQ_LOG" MOCK_RESPONSE="$RESP_FILE" \
+MOCK_STATUS_FILE="$STATUS_FILE" MOCK_DELAY_FILE="$DELAY_FILE" \
+python3 "$FIX/mock_jev.py" "$PORT" &
 MOCK_PID=$!
 
 READY=0
@@ -69,13 +82,13 @@ run_shadow() {
 }
 
 # ── 1/2: flag off = no output, zero requests ─────────────────
-OUT="$(env -u ORK_EXPECT_JEV_SHADOW ORK_TYPESAFE_API_KEY=test-key \
+OUT="$(env -u ORK_EXPECT_JEV -u ORK_EXPECT_JEV_SHADOW ORK_TYPESAFE_API_KEY=test-key \
        ORK_EXPECT_JEV_ENDPOINT="$ENDPOINT" bash "$SH" \
        --step-id x --goal g --last-verify v --model-action 'click @e3' \
        --snapshot-file "$FIX/aria-login.txt")"
 [[ -z "$OUT" ]] && ok "flag unset: no output" || bad "flag unset produced output: $OUT"
 
-OUT="$(env ORK_EXPECT_JEV_SHADOW=0 ORK_TYPESAFE_API_KEY=test-key \
+OUT="$(env -u ORK_EXPECT_JEV ORK_EXPECT_JEV_SHADOW=0 ORK_TYPESAFE_API_KEY=test-key \
        ORK_EXPECT_JEV_ENDPOINT="$ENDPOINT" bash "$SH" \
        --step-id x --goal g --last-verify v --model-action 'click @e3' \
        --snapshot-file "$FIX/aria-login.txt")"
@@ -210,6 +223,195 @@ print('OK' if all(checks) else 'FAIL ' + repr(checks))
 " <<< "$(printf '%s' "$REPORT_OUT" | sed -n '/^{/,$p')")"
 [[ "$VERDICT" == "OK" ]] && ok "JSON report: per-step jev_shadow + run summary" \
   || bad "report json: $VERDICT"
+
+# ── 8: act mode -> executed_action is the Jev pick ───────────
+run_jev() {  # extra args passed through to jev-shadow.sh
+  ORK_EXPECT_JEV=act ORK_TYPESAFE_API_KEY=test-key \
+  ORK_EXPECT_JEV_ENDPOINT="${JEV_ENDPOINT:-$ENDPOINT}" \
+  bash "$SH" --step-id act-1 --goal "Click the Sign in button" \
+    --last-verify "Page loaded, login form visible" \
+    --model-action "click @e3" \
+    --snapshot-file "$FIX/aria-login.txt" "$@"
+}
+
+cp "$FIX/jev-response-disagree.json" "$RESP_FILE"
+LINE="$(run_jev)"
+REC="$(printf '%s' "$LINE" | cut -d'|' -f3-)"
+VERDICT="$(python3 -c "
+import json, sys
+r = json.loads(sys.argv[1])
+checks = [
+    r.get('mode') == 'act',
+    r.get('path') == 'jev',
+    r.get('executed_action') == 'click:@e7',
+    r.get('jev_action') == 'click:@e7',
+    r.get('model_action_key') == 'click:@e3',
+    r.get('agree') is False,
+]
+print('OK' if all(checks) else 'FAIL ' + repr(checks) + ' ' + json.dumps(r)[:400])
+" "$REC")"
+[[ "$VERDICT" == "OK" ]] && ok "act: executed_action is the Jev pick (click:@e7, not the incumbent)" \
+  || bad "act pick: $VERDICT"
+
+LINE="$(ORK_EXPECT_JEV=1 ORK_TYPESAFE_API_KEY=test-key \
+  ORK_EXPECT_JEV_ENDPOINT="$ENDPOINT" bash "$SH" --step-id act-2 \
+  --goal g --last-verify v --model-action 'click @e3' \
+  --snapshot-file "$FIX/aria-login.txt")"
+[[ "$(printf '%s' "$LINE" | cut -d'|' -f3- | python3 -c 'import json,sys; print(json.loads(sys.stdin.read()).get("path"))')" == "jev" ]] \
+  && ok "ORK_EXPECT_JEV=1 selects act" || bad "=1 did not act: $LINE"
+
+# ── 9: every fallback returns the incumbent pick ─────────────
+expect_fallback() {  # $1=reason-substring $2=label ; record on stdin
+  python3 -c "
+import json, sys
+r = json.loads(sys.stdin.read())
+want = sys.argv[1]
+checks = [
+    r.get('mode') == 'act',
+    (r.get('path') or '').startswith('fallback'),
+    want in (r.get('path') or ''),
+    r.get('executed_action') == 'click:@e3',
+]
+print('OK' if all(checks) else 'FAIL ' + repr(checks) + ' ' + json.dumps(r)[:300])
+" "$1" <<< "$(printf '%s' "$LINE" | cut -d'|' -f3-)" > "$TMP/fb.out" 2>&1 || true
+  if grep -q '^OK' "$TMP/fb.out"; then ok "$2"; else bad "$2: $(cat "$TMP/fb.out")"; fi
+}
+
+LINE="$(env -u ORK_TYPESAFE_API_KEY ORK_EXPECT_JEV=act \
+  ORK_EXPECT_JEV_ENDPOINT="$ENDPOINT" bash "$SH" --step-id fb-1 \
+  --goal g --last-verify v --model-action 'click @e3' \
+  --snapshot-file "$FIX/aria-login.txt")"
+expect_fallback no_api_key "fallback no_api_key -> incumbent"
+
+LINE="$(JEV_ENDPOINT="$DEAD_ENDPOINT" run_jev)"
+expect_fallback unreachable_or_timeout "fallback unreachable (dead endpoint) -> incumbent"
+
+echo 1.5 > "$DELAY_FILE"
+LINE="$(run_jev)"
+echo 0 > "$DELAY_FILE"
+expect_fallback unreachable_or_timeout "fallback timeout (delay > budget) -> incumbent"
+
+echo 500 > "$STATUS_FILE"
+LINE="$(run_jev)"
+echo 200 > "$STATUS_FILE"
+expect_fallback http_500 "fallback http 500 -> incumbent"
+
+printf '{"answers":{}}' > "$RESP_FILE"
+LINE="$(run_jev)"
+expect_fallback empty_answer "fallback empty_answer -> incumbent"
+
+printf '{"answers":{"next_action":{"type":"choice","choice":"bogus_action","confidence":0.9}}}' > "$RESP_FILE"
+LINE="$(run_jev)"
+expect_fallback malformed_answer "fallback malformed_answer -> incumbent"
+
+cp "$FIX/jev-response-lowconf.json" "$RESP_FILE"
+LINE="$(run_jev)"
+expect_fallback low_confidence "fallback low_confidence (0.3 < floor 0.5) -> incumbent"
+VERDICT="$(python3 -c "
+import json, sys
+r = json.loads(sys.argv[1])
+checks = [
+    r.get('jev_action') == 'click:@e3',
+    r.get('jev_confidence') == 0.3,
+    r.get('agree') is True,
+]
+print('OK' if all(checks) else 'FAIL ' + repr(checks) + ' ' + json.dumps(r)[:300])
+" "$(printf '%s' "$LINE" | cut -d'|' -f3-)")"
+[[ "$VERDICT" == "OK" ]] && ok "low_confidence fallback still logs the full Jev answer" \
+  || bad "lowconf log: $VERDICT"
+
+# ── 10: shadow mode keeps today's record shape ───────────────
+cp "$FIX/jev-response-agree.json" "$RESP_FILE"
+LINE="$(ORK_EXPECT_JEV=shadow ORK_TYPESAFE_API_KEY=test-key \
+  ORK_EXPECT_JEV_ENDPOINT="$ENDPOINT" bash "$SH" --step-id sh-1 \
+  --goal g --last-verify v --model-action 'click @e3' \
+  --snapshot-file "$FIX/aria-login.txt")"
+VERDICT="$(python3 -c "
+import json, sys
+r = json.loads(sys.argv[1])
+checks = [
+    'executed_action' not in r,
+    'path' not in r,
+    'mode' not in r,
+    r.get('jev_action') == 'click:@e3',
+    r.get('agree') is True,
+]
+print('OK' if all(checks) else 'FAIL ' + repr(checks) + ' ' + json.dumps(r)[:300])
+" "$(printf '%s' "$LINE" | cut -d'|' -f3-)")"
+[[ "$VERDICT" == "OK" ]] && ok "shadow: record unchanged, no act fields" \
+  || bad "shadow record: $VERDICT"
+
+# ── 11: ORK_EXPECT_JEV unset / 0 stays off ───────────────────
+OUT="$(env -u ORK_EXPECT_JEV -u ORK_EXPECT_JEV_SHADOW ORK_TYPESAFE_API_KEY=test-key \
+  ORK_EXPECT_JEV_ENDPOINT="$ENDPOINT" bash "$SH" --step-id m-1 \
+  --goal g --last-verify v --model-action 'click @e3' \
+  --snapshot-file "$FIX/aria-login.txt")"
+[[ -z "$OUT" ]] && ok "ORK_EXPECT_JEV unset: no output" || bad "unset produced output: $OUT"
+
+OUT="$(env -u ORK_EXPECT_JEV_SHADOW ORK_EXPECT_JEV=0 ORK_TYPESAFE_API_KEY=test-key \
+  ORK_EXPECT_JEV_ENDPOINT="$ENDPOINT" bash "$SH" --step-id m-2 \
+  --goal g --last-verify v --model-action 'click @e3' \
+  --snapshot-file "$FIX/aria-login.txt")"
+[[ -z "$OUT" ]] && ok "ORK_EXPECT_JEV=0: no output" || bad "=0 produced output: $OUT"
+
+# ── 12: act-mode egress is the same bounded payload ──────────
+cp "$FIX/jev-response-agree.json" "$RESP_FILE"
+: > "$REQ_LOG"
+ORK_EXPECT_JEV=act ORK_TYPESAFE_API_KEY=test-key \
+ORK_EXPECT_JEV_ENDPOINT="$ENDPOINT" \
+bash "$SH" --step-id sec-2 --goal "Continue" --last-verify "form shown" \
+  --model-action "click @e3" --snapshot-file "$FIX/aria-secret.txt" >/dev/null
+BODY="$(tail -1 "$REQ_LOG")"
+LEAK=0
+for planted in PLANTED_TOKEN_9f8e7d6c5b PLANTED_COOKIE_a1b2c3d4e5 PLANTED_BEARER_z9y8x7w6v5 \
+               PLANTED_ESCTOKEN_c1d2e3f4 PLANTED_ESCBEARER_x9y8z7 'cookie\\u003d' 'Bearer\\u0020' \
+               UNRELATED_PAGE_TEXT_7x9q; do
+  [[ "$BODY" == *"$planted"* ]] && LEAK=1
+done
+[[ "$LEAK" == "0" ]] && ok "act: no secret value or non-name page text in the payload (both encodings)" \
+  || bad "act-mode leak: $BODY"
+SHAPE="$(python3 -c "
+import json, sys
+b = json.loads(sys.stdin.read())
+skeys = sorted(b['state'].keys())
+ekeys = sorted({k for e in b['state']['interactive_elements'] for k in e})
+print(skeys, ekeys)
+" <<< "$BODY")"
+[[ "$SHAPE" == "['interactive_elements', 'last_verify', 'step_goal'] ['name', 'ref', 'role']" ]] \
+  && ok "act: payload carries only step_goal, last_verify and ref/role/name triples" \
+  || bad "act payload shape: $SHAPE"
+
+# ── 13: per-run JEV_RUN summary line + JSON fields ───────────
+REPORT_OUT="$(printf '%s\n' \
+  'STEP_START|s1|t1' \
+  'JEV_SHADOW|s1|{"step_id":"s1","mode":"act","path":"jev","executed_action":"click:@e3","jev_action":"click:@e3","model_action_key":"click:@e3","agree":true,"latency_ms":90,"error":null}' \
+  'STEP_DONE|s1|ok' \
+  'STEP_START|s2|t2' \
+  'JEV_SHADOW|s2|{"step_id":"s2","mode":"act","path":"jev","executed_action":"click:@e7","jev_action":"click:@e7","model_action_key":"click:@e3","agree":false,"latency_ms":95,"error":null}' \
+  'STEP_DONE|s2|ok' \
+  'STEP_START|s3|t3' \
+  'JEV_SHADOW|s3|{"step_id":"s3","mode":"act","path":"fallback:no_api_key","executed_action":"click:@e3","model_action_key":"click:@e3","agree":null,"error":"no_api_key"}' \
+  'STEP_DONE|s3|ok' \
+  'RUN_COMPLETED|passed|3 passed' \
+  | bash "$REPORT_SH" --json)"
+[[ "$REPORT_OUT" == *"JEV_RUN|steps=3|picks=2|fallbacks=1|agree_rate=50.0%"* ]] \
+  && ok "JEV_RUN summary line: steps, picks, fallbacks, agree rate" \
+  || bad "no JEV_RUN line: $REPORT_OUT"
+VERDICT="$(python3 -c "
+import json, sys
+doc = json.loads(sys.stdin.read())
+s = doc['jev_shadow']
+checks = [
+    s['steps'] == 3, s['picks_taken'] == 2, s['fallbacks'] == 1,
+    s['agree_rate'] == '50.0%',
+    s['recorded'] == 3, s['agreed'] == 1, s['disagreed'] == 1,
+    doc['steps'][1]['jev_shadow']['executed_action'] == 'click:@e7',
+    doc['steps'][2]['jev_shadow']['path'] == 'fallback:no_api_key',
+]
+print('OK' if all(checks) else 'FAIL ' + repr(checks))
+" <<< "$(printf '%s' "$REPORT_OUT" | sed -n '/^{/,$p')")"
+[[ "$VERDICT" == "OK" ]] && ok "JSON report: act fields + run totals (picks/fallbacks/rate)" \
+  || bad "summary json: $VERDICT"
 
 echo ""
 echo "=========================================="

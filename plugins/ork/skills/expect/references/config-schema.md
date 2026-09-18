@@ -54,8 +54,11 @@ reports:
   keep_last: 10         # Number of reports to retain
   screenshots: on_fail  # always | on_fail | never
 
-# Jev shadow (SHADOW ONLY, see references/jev-shadow.md)
-# Runs one Jev request per step when ORK_EXPECT_JEV_SHADOW is truthy.
+# Jev step judge (see references/jev-shadow.md)
+# Runs one Jev request per step when ORK_EXPECT_JEV selects a mode:
+# `shadow` logs beside the agent pick, `1`/`act` runs the Jev pick with a
+# fail-closed fallback to the agent pick. Unset or falsey is off;
+# ORK_EXPECT_JEV_SHADOW truthy still selects shadow.
 # Every key below has a shipped fallback in the skill's
 # jev-shadow.defaults.yaml; set this section to override it wholesale.
 jev_shadow:
@@ -65,6 +68,7 @@ jev_shadow:
   name_max_chars: 80        # per-name truncation after redaction
   context_max_chars: 300    # per-field truncation for goal and last verify
   latency_budget_ms: 400    # abort budget for the one request per step
+  act_confidence_floor: 0.5 # act mode: Choice confidence below this falls back
   thresholds:
     low_confidence: 0.5     # Choice confidence below this flags the pick
     goal_reached: 0.7       # noul >= threshold raises the matching flag

@@ -94,7 +94,10 @@ For each page in the test plan, follow this exact sequence:
    For each step in the plan:
      a. Output: STEP_START|{id}|{title}
      b. Decide the action from the latest `snapshot -i` (click, fill, assert)
-     c. JEV SHADOW (only when ORK_EXPECT_JEV_SHADOW is truthy):
+     c. JEV STEP (only when ORK_EXPECT_JEV or ORK_EXPECT_JEV_SHADOW selects a mode):
+        - Modes: unset/falsey = off. ORK_EXPECT_JEV=shadow (or legacy
+          ORK_EXPECT_JEV_SHADOW truthy) = log-only shadow. ORK_EXPECT_JEV=1
+          or =act = the Jev pick drives the step.
         - Save the snapshot you already read: `agent-browser snapshot -i > .expect/jev-snap.txt`
         - Run:
           bash ${CLAUDE_PLUGIN_ROOT}/skills/expect/scripts/jev-shadow.sh \
@@ -103,7 +106,14 @@ For each page in the test plan, follow this exact sequence:
             --model-action "{the exact action you are about to run}" \
             --snapshot-file .expect/jev-snap.txt
         - Emit its stdout verbatim (one JEV_SHADOW|... line, or nothing)
-        - NEVER act on the Jev pick. Shadow only: it logs, it does not drive.
+        - shadow mode: NEVER act on the Jev pick. It logs, it does not drive.
+        - act mode: read `executed_action` from the record and run THAT:
+          `verb:@eN` maps to `agent-browser <verb> @eN` (fill/select still
+          take the value you intended); meta verbs map as `done` = take no
+          element action, `wait` = `agent-browser wait`, `scroll` =
+          `agent-browser scroll down`, `press_enter` = `agent-browser press Enter`.
+          When `path` starts with "fallback", `executed_action` is your own
+          pick, so the step degrades to today's behaviour; the record says why.
      d. Perform the action (click, fill, assert)
      e. Verify the expected outcome
      f. Output: STEP_DONE|{id}|{summary}
@@ -151,7 +161,7 @@ Format: `EVENT|payload`. Seven events: `STEP_START`, `STEP_DONE`, `ASSERTION_FAI
 
 - **`ROUTE|&lt;path&gt;`** — emit ONCE per route, BEFORE the first STEP_START on that route. The path is the route component (e.g. `/dashboard`, `/login`, `/`), not the full URL.
 - **`ARIA|&lt;json-or-text&gt;`** — emit ONCE per route, AFTER the last STEP_DONE / ASSERTION_FAILED on that route. Capture from `agent-browser snapshot --json` output, then strip newlines (`tr -d '\n'`) and cap at 8KB. If the snapshot exceeds 8KB, emit only the first 8KB — the snapshot recorder caps anyway.
-- **`JEV_SHADOW|&lt;step-id&gt;|&lt;one-line-json&gt;`** : emit ONLY the stdout of `scripts/jev-shadow.sh`, verbatim, right after the step's shadow call and before its STEP_DONE. Never hand-build the line, and never emit it when `ORK_EXPECT_JEV_SHADOW` is unset (the script emits nothing then anyway). It logs the Jev pick with probabilities beside your pick plus per-step agreement; it never changes what you execute.
+- **`JEV_SHADOW|&lt;step-id&gt;|&lt;one-line-json&gt;`** : emit ONLY the stdout of `scripts/jev-shadow.sh`, verbatim, right after the step's Jev call and before its STEP_DONE. Never hand-build the line, and never emit it when `ORK_EXPECT_JEV` and `ORK_EXPECT_JEV_SHADOW` are both unset (the script emits nothing then anyway). In shadow mode it logs the Jev pick with probabilities beside your pick plus per-step agreement. In act mode the same record additionally carries `path` and `executed_action`, and `executed_action` is what you run.
 - For multi-route runs, emit `ROUTE|...` and `ARIA|...` per route. The hook persists each separately under `.claude/state/expect-snapshots/&lt;route-slug&gt;/&lt;parent-commit&gt;.json`.
 
 ### Why these tags exist
