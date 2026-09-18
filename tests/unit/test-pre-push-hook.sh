@@ -493,7 +493,7 @@ test_vitest_git_environment_scrub() {
         'for name in GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_PREFIX GIT_COMMON_DIR GIT_OBJECT_DIRECTORY; do' \
         '  if printenv "$name" >/dev/null; then echo "still set: $name" >"$FAKE_NPX_RESULT"; exit 1; fi' \
         'done' \
-        'if [[ "$*" != "vitest run --reporter=dot" ]]; then echo "args: $*" >"$FAKE_NPX_RESULT"; exit 1; fi' \
+        'if [[ "$*" != "vitest run --reporter=dot --maxWorkers=$MAX_JOBS" ]]; then echo "args: $*" >"$FAKE_NPX_RESULT"; exit 1; fi' \
         'echo ok >"$FAKE_NPX_RESULT"' > "$fake_bin/npx"
     chmod +x "$fake_bin/npx"
 
@@ -501,6 +501,7 @@ test_vitest_git_environment_scrub() {
         PATH="$fake_bin:$PATH" \
         FAKE_NPX_RESULT="$result" \
         HOOK_LOG="$hook_log" \
+        MAX_JOBS=4 \
         GIT_DIR="$caller/.git" \
         GIT_WORK_TREE="$caller" \
         GIT_INDEX_FILE="$caller/.git/index" \

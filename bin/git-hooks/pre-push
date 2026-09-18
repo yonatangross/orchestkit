@@ -275,39 +275,54 @@ run_with_timeout() {
   fi
 }
 
-# Read the 1-minute load average, or print nothing when it cannot be read.
+# Second number of an uptime load tail: the 5-minute average.
+# "82.44 124.65 117.59" and "0.52, 0.58, 0.59" both yield the middle field.
+# Decimal commas become dots after the separator ", " is turned into a space.
+load5_from_uptime_tail() {
+  local line raw
+  line=$(printf '%s' "$1" | sed 's/, / /g; s/,/./g')
+  raw=$(printf '%s' "$line" | awk '{print $2}')
+  [[ "$raw" =~ ^[0-9]+(\.[0-9]+)?$ ]] && printf '%s' "$raw"
+  return 0
+}
+
+# Read the 5-minute load average once, or print nothing when it cannot be read.
 #
-# macOS: `sysctl -n vm.loadavg` prints `{ 1.23 4.56 7.89 }`. Linux:
-# /proc/loadavg starts with the same three numbers. `uptime` is the last
-# resort because its format varies ("load average:" vs "load averages:") and
-# because a sandbox that denies the sysctl syscall (measured 2026-09-13 under
-# the CC seatbelt: "Operation not permitted") still lets uptime through.
-read_load1() {
-  local raw=""
+# The 1-minute figure dips inside a single push, so two stages could see two
+# policies. The sustained reading is the middle number: /proc/loadavg field 2,
+# sysctl vm.loadavg field 2, uptime's second load number.
+#
+# macOS: `sysctl -n vm.loadavg` prints `{ 1.23 4.56 7.89 }`. `uptime` is the
+# last resort because its format varies ("load average:" vs "load averages:")
+# and because a sandbox that denies the sysctl syscall (measured 2026-09-13
+# under the CC seatbelt: "Operation not permitted") still lets uptime through.
+read_sustained_load() {
+  local raw="" tail=""
   if [[ -r /proc/loadavg ]]; then
-    raw=$(cut -d' ' -f1 /proc/loadavg 2>/dev/null)
+    raw=$(cut -d' ' -f2 /proc/loadavg 2>/dev/null)
   elif command -v sysctl &>/dev/null; then
-    raw=$(sysctl -n vm.loadavg 2>/dev/null | tr -d '{}' | awk '{print $1}')
+    raw=$(sysctl -n vm.loadavg 2>/dev/null | tr -d '{}' | awk '{print $2}')
   fi
   if [[ -z "$raw" ]] && command -v uptime &>/dev/null; then
-    raw=$(uptime 2>/dev/null | sed -n 's/.*load averages*: *\([0-9][0-9.,]*\).*/\1/p' | tr ',' '.')
+    tail=$(uptime 2>/dev/null | sed -n 's/.*load averages*: *//p')
+    raw=$(load5_from_uptime_tail "$tail")
   fi
   [[ "$raw" =~ ^[0-9]+(\.[0-9]+)?$ ]] && printf '%s' "$raw"
   # Unreadable is a legitimate answer (empty), never a failing exit status.
   return 0
 }
 
-# Decide how many unit-test files run at once (#4085).
-# Usage: resolve_pre_push_jobs <ncpu> <load1>   (load1 may be empty)
+# Decide how many jobs a stage may run at once (#4085, #4238).
+# Usage: resolve_pre_push_jobs <ncpu> <load>   (load may be empty)
 #
 # ORK_PRE_PUSH_JOBS wins when set to a positive integer. Otherwise the default
-# is max(1, min(ncpu, 8, ncpu - round(load1))). The old value was a bare 8,
-# lowered only to hw.ncpu, with no load check: measured 2026-09-13 at 5-minute
-# load 37, eight hook-spawning suites started at once on a machine already
-# three times oversubscribed, and files that pass standalone in 11 s took
-# 213 s and blew their own 5 s per-hook budgets. Backing off to what the
-# machine can actually run keeps every gate in place and just stops the
-# runner from being the thing that makes them flake.
+# is max(1, min(ncpu, 8, ncpu - round(load))). The caller passes the 5-minute
+# load, read once. The old value was a bare 8, lowered only to hw.ncpu, with
+# no load check: measured 2026-09-13 at 5-minute load 37, eight hook-spawning
+# suites started at once on a machine already three times oversubscribed, and
+# files that pass standalone in 11 s took 213 s and blew their own 5 s per-hook
+# budgets. Backing off to what the machine can actually run keeps every gate
+# in place and just stops the runner from being the thing that makes them flake.
 #
 # Pure arithmetic on its two arguments so tests/unit/test-pre-push-hook.sh can
 # feed it a fake ncpu and an absurd load without touching the real machine.
@@ -333,6 +348,114 @@ resolve_pre_push_jobs() {
   fi
   [[ $jobs -lt 1 ]] && jobs=1
   printf '%s' "$jobs"
+}
+
+# One notice, byte-identical, for every stage that receives MAX_JOBS.
+# Printed only when load floored the count at 1. An explicit ORK_PRE_PUSH_JOBS
+# and a 1-core box are not load, so they stay quiet.
+PRE_PUSH_LOAD_NOTICE=""
+refresh_pre_push_load_notice() {
+  PRE_PUSH_LOAD_NOTICE=""
+  [[ -n "${ORK_PRE_PUSH_JOBS:-}" ]] && return 0
+  [[ "${MAX_JOBS:-}" == "1" ]] || return 0
+  local idle
+  idle=$(resolve_pre_push_jobs "$CORES" "")
+  [[ "$idle" == "1" ]] && return 0
+  PRE_PUSH_LOAD_NOTICE="pre-push: sustained load ${LOAD5}, jobs=1"
+}
+
+print_pre_push_load_notice() {
+  [[ -n "$PRE_PUSH_LOAD_NOTICE" ]] && printf '%s\n' "$PRE_PUSH_LOAD_NOTICE"
+}
+
+# Read ncpu and the 5-minute load once. Args are the fixture's fake reading:
+# plan_pre_push_jobs <ncpu> <load5>. No args: read this machine.
+plan_pre_push_jobs() {
+  if [[ $# -ge 1 ]]; then
+    CORES="$1"
+    LOAD5="${2-}"
+  else
+    if command -v nproc &>/dev/null; then
+      CORES=$(nproc)
+    elif command -v sysctl &>/dev/null; then
+      CORES=$(sysctl -n hw.ncpu 2>/dev/null || echo 8)
+    else
+      CORES=8
+    fi
+    LOAD5=$(read_sustained_load)
+  fi
+  MAX_JOBS=$(resolve_pre_push_jobs "$CORES" "$LOAD5")
+  refresh_pre_push_load_notice
+}
+
+# One reading for every stage below. A spike during this push must not pick
+# a different width per stage.
+plan_pre_push_jobs
+
+# Unit files. The notice is its own line so it is not glued to the jobs banner.
+run_unit_tests_parallel() {
+  if [[ -n "$PRE_PUSH_LOAD_NOTICE" ]]; then
+    printf '\n%s\n' "$PRE_PUSH_LOAD_NOTICE"
+  fi
+  printf '%s\n' "${CI_UNIT_TESTS[@]}" | xargs -P "$MAX_JOBS" -I {} bash -c '_run_test "$1"' _ {}
+}
+
+# Security runner. tests/security/run-security-tests.sh has no parallelism
+# knob: it walks test-*.sh in one for-loop. jobs=1 is that serial walk. A
+# wider count is not passed in, because there is no flag to pass, so the
+# invocation stays the script alone either way.
+run_security_stage() {
+  print_pre_push_load_notice
+  echo -n "  Running security tests... "
+  if [[ "${ORK_PRE_PUSH_PATH_STUBS:-}" == "1" ]]; then
+    if ! ORK_PRE_PUSH_STAGE_JOBS="$MAX_JOBS" run-security-tests.sh; then
+      echo "FAILED"
+      return 1
+    fi
+    echo "OK"
+    return 0
+  fi
+  if [[ -x "tests/security/run-security-tests.sh" ]]; then
+    if ! ORK_PRE_PUSH_STAGE_JOBS="$MAX_JOBS" ./tests/security/run-security-tests.sh >/dev/null 2>&1; then
+      echo "FAILED"
+      echo ""
+      echo "╔════════════════════════════════════════════════════════════╗"
+      echo "║  Security tests failed!"
+      echo "╠════════════════════════════════════════════════════════════╣"
+      echo "║  Run: ./tests/security/run-security-tests.sh"
+      echo "╚════════════════════════════════════════════════════════════╝"
+      exit 1
+    fi
+    echo "OK"
+  else
+    echo "SKIP (not found)"
+  fi
+}
+
+# Hooks vitest. Same MAX_JOBS as the unit stage, via --maxWorkers (vitest 5).
+run_hooks_vitest_stage() {
+  print_pre_push_load_notice
+  echo -n "  Running hook vitest suite... "
+  HOOK_LOG="$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")"
+  if ! (cd src/hooks && env -u GIT_DIR -u GIT_WORK_TREE -u GIT_INDEX_FILE -u GIT_PREFIX \
+      -u GIT_COMMON_DIR -u GIT_OBJECT_DIRECTORY npx vitest run --reporter=dot --maxWorkers="$MAX_JOBS" >"$HOOK_LOG" 2>&1); then
+    LOG_KEEP_DIR="$PROJECT_ROOT/.cache/pre-push"
+    mkdir -p "$LOG_KEEP_DIR"
+    LOG_KEEP="$LOG_KEEP_DIR/hooks-vitest.log"
+    cp "$HOOK_LOG" "$LOG_KEEP"
+    echo "FAILED"
+    echo ""
+    echo "╔════════════════════════════════════════════════════════════╗"
+    echo "║  Hooks vitest suite failed locally."
+    echo "║  CI runs the same suite. Fix before push to avoid round-trips."
+    echo "║  Full log kept at: $LOG_KEEP"
+    echo "╠════════════════════════════════════════════════════════════╣"
+    tail -20 "$HOOK_LOG" | sed 's/^/║  /'
+    echo "╚════════════════════════════════════════════════════════════╝"
+    exit 1
+  fi
+  rm -f "$HOOK_LOG"
+  echo "OK"
 }
 
 assert_repo_config_unchanged() {
@@ -448,20 +571,10 @@ if ((${#CI_UNIT_TESTS[@]} == 0)); then
 fi
 
 
-# Run tests in parallel (~160s sequential at 8 jobs on an idle machine).
-# The job count is load-aware and env-overridable; see resolve_pre_push_jobs.
-if command -v nproc &>/dev/null; then
-  CORES=$(nproc)
-elif command -v sysctl &>/dev/null; then
-  CORES=$(sysctl -n hw.ncpu 2>/dev/null || echo 8)
-else
-  CORES=8
-fi
-LOAD1=$(read_load1)
-MAX_JOBS=$(resolve_pre_push_jobs "$CORES" "$LOAD1")
+# The job count was resolved once, from the 5-minute load, before any stage.
 # The banner names the count BEFORE the run, so a log of a failed stage still
 # shows what parallelism it ran at (the OK line only prints on success).
-echo -n "jobs=${MAX_JOBS} (ncpu=${CORES}, load1=${LOAD1:-unreadable}${ORK_PRE_PUSH_JOBS:+, ORK_PRE_PUSH_JOBS=$ORK_PRE_PUSH_JOBS})... "
+echo -n "jobs=${MAX_JOBS} (ncpu=${CORES}, load5=${LOAD5:-unreadable}${ORK_PRE_PUSH_JOBS:+, ORK_PRE_PUSH_JOBS=$ORK_PRE_PUSH_JOBS})... "
 
 export _PREPUSH_FAIL_DIR=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")
 trap 'rm -rf "$_PREPUSH_FAIL_DIR"' EXIT
@@ -497,7 +610,7 @@ _run_test() {
 }
 export -f _run_test
 
-printf '%s\n' "${CI_UNIT_TESTS[@]}" | xargs -P "$MAX_JOBS" -I {} bash -c '_run_test "$1"' _ {}
+run_unit_tests_parallel
 
 FAILURES=()
 for f in "$_PREPUSH_FAIL_DIR"/*; do
@@ -520,23 +633,7 @@ fi
 echo "OK (${#CI_UNIT_TESTS[@]} tests, ${MAX_JOBS} parallel)"
 
 # ===== Security Tests =====
-echo -n "  Running security tests... "
-
-if [[ -x "tests/security/run-security-tests.sh" ]]; then
-  if ! ./tests/security/run-security-tests.sh >/dev/null 2>&1; then
-    echo "FAILED"
-    echo ""
-    echo "╔════════════════════════════════════════════════════════════╗"
-    echo "║  Security tests failed!"
-    echo "╠════════════════════════════════════════════════════════════╣"
-    echo "║  Run: ./tests/security/run-security-tests.sh"
-    echo "╚════════════════════════════════════════════════════════════╝"
-    exit 1
-  fi
-  echo "OK"
-else
-  echo "SKIP (not found)"
-fi
+run_security_stage
 
 # ===== MDX Compile Guard (#1401 — catches nested-fence + other mdx bugs) =====
 echo -n "  Running mdx-compile guard... "
@@ -649,30 +746,7 @@ fi
 # suite locally catches these BEFORE push instead of after a failed CI run.
 HOOK_CHANGES=$(echo "$CHANGED_FILES" | grep -E '^src/hooks/' || true)
 if [[ -n "$HOOK_CHANGES" ]]; then
-  echo -n "  Running hook vitest suite... "
-  HOOK_LOG="$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")"
-  trap 'rm -f "$HOOK_LOG"' EXIT
-  if ! (cd src/hooks && env -u GIT_DIR -u GIT_WORK_TREE -u GIT_INDEX_FILE -u GIT_PREFIX \
-      -u GIT_COMMON_DIR -u GIT_OBJECT_DIRECTORY npx vitest run --reporter=dot >"$HOOK_LOG" 2>&1); then
-    # Keep the full log under the repo cache dir (.cache/ is gitignored):
-    # the tail below shows the last 20 lines only, and a failing push should
-    # name every failing test, not just the last few.
-    LOG_KEEP_DIR="$PROJECT_ROOT/.cache/pre-push"
-    mkdir -p "$LOG_KEEP_DIR"
-    LOG_KEEP="$LOG_KEEP_DIR/hooks-vitest.log"
-    cp "$HOOK_LOG" "$LOG_KEEP"
-    echo "FAILED"
-    echo ""
-    echo "╔════════════════════════════════════════════════════════════╗"
-    echo "║  Hooks vitest suite failed locally."
-    echo "║  CI runs the same suite — fix before push to avoid round-trips."
-    echo "║  Full log kept at: $LOG_KEEP"
-    echo "╠════════════════════════════════════════════════════════════╣"
-    tail -20 "$HOOK_LOG" | sed 's/^/║  /'
-    echo "╚════════════════════════════════════════════════════════════╝"
-    exit 1
-  fi
-  echo "OK"
+  run_hooks_vitest_stage
 fi
 
 # A fixture init that inherits this hook's GIT_* environment can change this
