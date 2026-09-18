@@ -5,6 +5,14 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.51](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.50...v10.0.0-beta.51) (2026-09-18)
+
+
+### Bug Fixes
+
+* **expect:** pass agent result and summary to report.py on stdin, never as source ([#4234](https://github.com/yonatangross/orchestkit/issues/4234)) ([6466d0e](https://github.com/yonatangross/orchestkit/commit/6466d0e533ce88e3ad017c9d446d0fc363fb3923))
+* **hooks:** read last_assistant_message at SubagentStop, agent_output is never sent ([#4232](https://github.com/yonatangross/orchestkit/issues/4232)) ([355d167](https://github.com/yonatangross/orchestkit/commit/355d16719cbae7f5048bdf0413e8eb597672cc90))
+
 ## [10.0.0-beta.50](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.49...v10.0.0-beta.50) (2026-09-18)
 
 
