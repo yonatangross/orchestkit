@@ -1,0 +1,11 @@
+{
+  "$comment": "Defaults for the Jev routing seam (lib/route-judgment.ts). Env overrides: ORK_ROUTE_JEV (off|shadow|steer), ORK_ROUTE_JEV_FLOOR, ORK_ROUTE_JEV_DAILY_TOKENS, ORK_ROUTE_JEV_ENDPOINT, ORK_ROUTE_JEV_TIMEOUT_MS. The model is pinned; jev-latest moves and a recorded comparison needs a fixed model.",
+  "endpoint": "https://api.typesafe.ai/v1/systemone",
+  "model": "jev-1.13.0",
+  "floor": 0.5,
+  "timeout_ms": 3000,
+  "max_prompt_chars": 1500,
+  "max_repo_chars": 40,
+  "daily_tokens": 2000000,
+  "trip_hours": 24
+}
