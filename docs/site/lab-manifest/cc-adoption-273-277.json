@@ -1,0 +1,8 @@
+{
+  "slug": "cc-adoption-273-277",
+  "source": "docs/chore--cc-adoption-2-1-277/agents-md-wave.html",
+  "title": "CC 2.1.273 to 2.1.277 adoption",
+  "description": "Five release dispositions, the built-in agents-md module verified by a codeword canary, and the unchanged 2.1.251 support floor.",
+  "tags": ["cc-adoption", "triage"],
+  "date": "2026-09-18"
+}
