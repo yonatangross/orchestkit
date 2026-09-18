@@ -80,6 +80,7 @@ export function detectTurnLimit(input: HookInput): string | null {
 }
 
 function detectOutcome(input: HookInput): { outcome: AgentOutcome; error?: string } {
+  // GH-4158: the measured 2.1.272 SubagentStop payload carries no error, tool_error or exit_code; kept for legacy shapes only.
   const error = input.error || input.tool_error;
   const exitCode = input.exit_code;
   // GH-4158: read through the shared reader; agent_output is never sent by

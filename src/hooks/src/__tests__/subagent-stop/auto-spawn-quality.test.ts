@@ -686,4 +686,27 @@ describe('auto-spawn-quality', () => {
       expect(result.systemMessage).toContain('security-auditor');
     });
   });
+
+  // ===========================================================================
+  // GH-4158: the result arrives as last_assistant_message (CC 2.1.272)
+  // ===========================================================================
+
+  describe('GH-4158: reads the result from last_assistant_message', () => {
+    test('queues security-auditor from sensitive-file keywords in last_assistant_message with no agent_output key', () => {
+      // Arrange: the measured 2.1.272 SubagentStop payload has no agent_output
+      // key. Before GH-4158 the hook saw an empty result and matched no
+      // auto-spawn rule.
+      const input = createSubagentStopInput('frontend-ui-developer');
+      delete input.agent_output;
+      input.last_assistant_message =
+        'Rotated the credentials store and added .env loading for the auth flow.';
+
+      // Act
+      const result = autoSpawnQuality(input, testCtx);
+
+      // Assert
+      expect(result.systemMessage).toContain('Auto-spawn queued');
+      expect(result.systemMessage).toContain('security-auditor');
+    });
+  });
 });

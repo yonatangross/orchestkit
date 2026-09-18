@@ -854,4 +854,30 @@ describe('retry-handler', () => {
       );
     });
   });
+
+  // ===========================================================================
+  // GH-4158: the result arrives as last_assistant_message (CC 2.1.272)
+  // ===========================================================================
+
+  describe('GH-4158: reads the result from last_assistant_message', () => {
+    test('tags a maxTurns partial from last_assistant_message with no agent_output key', () => {
+      // Arrange: the measured 2.1.272 SubagentStop payload carries the final
+      // result in last_assistant_message and has no agent_output key. Before
+      // GH-4158 the hook read agent_output, saw an empty string, classified
+      // the stop as success and emitted no context at all.
+      const input = createSubagentStopInput();
+      delete input.agent_output;
+      input.last_assistant_message =
+        'Agent ork:code-quality-reviewer stopped at its 25-turn limit (partial result; continue it with SendMessage to the task-id). ' +
+        'Reviewed 6 of 9 files so far; findings below.';
+
+      // Act
+      const result = retryHandler(input, testCtx);
+
+      // Assert
+      expect(result.continue).toBe(true);
+      expect(result.hookSpecificOutput?.additionalContext).toContain('[PARTIAL RESULT]');
+      expect(result.hookSpecificOutput?.additionalContext).toContain('25-turn limit');
+    });
+  });
 });

@@ -732,4 +732,26 @@ describe('multi-claude-verifier', () => {
       expect(result.systemMessage).toContain(';');
     });
   });
+
+  // ===========================================================================
+  // GH-4158: the result arrives as last_assistant_message (CC 2.1.272)
+  // ===========================================================================
+
+  describe('GH-4158: reads the result from last_assistant_message', () => {
+    test('triggers security-auditor from auth keywords in last_assistant_message with no agent_output key', () => {
+      // Arrange: the measured 2.1.272 SubagentStop payload has no agent_output
+      // key. Before GH-4158 the hook matched its rules against an empty
+      // string and spawned nothing.
+      const input = createSubagentStopInput('frontend-ui-developer');
+      delete input.agent_output;
+      input.last_assistant_message =
+        'Built the login form with client-side validation and an auth submit handler.';
+
+      // Act
+      const result = multiClaudeVerifier(input, testCtx);
+
+      // Assert
+      expect(result.systemMessage).toContain('security-auditor');
+    });
+  });
 });
