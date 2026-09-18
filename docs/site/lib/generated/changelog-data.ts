@@ -18,6 +18,21 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.51",
+    "date": "2026-09-18",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.50...v10.0.0-beta.51",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**expect:** pass agent result and summary to report.py on stdin, never as source ([#4234](https://github.com/yonatangross/orchestkit/issues/4234)) ([6466d0e](https://github.com/yonatangross/orchestkit/commit/6466d0e533ce88e3ad017c9d446d0fc363fb3923))",
+          "**hooks:** read last_assistant_message at SubagentStop, agent_output is never sent ([#4232](https://github.com/yonatangross/orchestkit/issues/4232)) ([355d167](https://github.com/yonatangross/orchestkit/commit/355d16719cbae7f5048bdf0413e8eb597672cc90))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.50",
     "date": "2026-09-18",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.49...v10.0.0-beta.50",
