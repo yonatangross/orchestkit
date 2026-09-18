@@ -740,6 +740,118 @@ test_resolve_pre_push_jobs() {
     fi
 }
 
+# Test 12: one sustained-load job count reaches unit, security, and vitest (#4238).
+#
+# The three runners are stubs on PATH. No real suite runs. The 5-minute load
+# is an argument, the same way Test 10 feeds resolve_pre_push_jobs, so the
+# machine's own load cannot leak in.
+test_shared_load_backoff_fixture() {
+    log_section "Test 12: every stage receives one 5-minute load back-off (#4238)"
+
+    local hook="${PROJECT_ROOT}/bin/git-hooks/pre-push"
+    local tmp bin stub_log fns out count notice
+    tmp=$(mktemp -d "${TMPDIR:-/tmp}/ork-pre-push-backoff.XXXXXX")
+    bin="$tmp/bin"
+    stub_log="$tmp/stub.log"
+    mkdir -p "$bin"
+
+    fns=$(sed -n '/^load5_from_uptime_tail()/,/^}/p' "$hook")
+    fns+=$'\n'"$(sed -n '/^resolve_pre_push_jobs()/,/^}/p' "$hook")"
+    fns+=$'\n'"$(sed -n '/^refresh_pre_push_load_notice()/,/^}/p' "$hook")"
+    fns+=$'\n'"$(sed -n '/^print_pre_push_load_notice()/,/^}/p' "$hook")"
+    fns+=$'\n'"$(sed -n '/^plan_pre_push_jobs()/,/^}/p' "$hook")"
+    fns+=$'\n'"$(sed -n '/^run_unit_tests_parallel()/,/^}/p' "$hook")"
+    fns+=$'\n'"$(sed -n '/^run_security_stage()/,/^}/p' "$hook")"
+    fns+=$'\n'"$(sed -n '/^run_hooks_vitest_stage()/,/^}/p' "$hook")"
+    printf '%s\n' "$fns" > "$tmp/fns.sh"
+
+    if [[ -z "$fns" || "$fns" != *'run_hooks_vitest_stage()'* ]]; then
+        log_fail "could not extract the three stage runners from the hook"
+        rm -rf "$tmp"
+        return
+    fi
+
+    printf '%s\n' \
+        '#!/bin/bash' \
+        'printf "XARGS %s\n" "$*" >> "$STUB_LOG"' \
+        'cat >/dev/null' \
+        'exit 0' > "$bin/xargs"
+    printf '%s\n' \
+        '#!/bin/bash' \
+        'printf "SECURITY jobs=%s args=%s\n" "${ORK_PRE_PUSH_STAGE_JOBS:-unset}" "$*" >> "$STUB_LOG"' \
+        'exit 0' > "$bin/run-security-tests.sh"
+    printf '%s\n' \
+        '#!/bin/bash' \
+        'printf "NPX %s\n" "$*" >> "$STUB_LOG"' \
+        'exit 0' > "$bin/npx"
+    chmod +x "$bin/xargs" "$bin/run-security-tests.sh" "$bin/npx"
+
+    local second
+    second=$(/bin/bash -c 'source "$1"; load5_from_uptime_tail "$2"' _ "$tmp/fns.sh" "1.25 80.5 9.0")
+    if [[ "$second" == "80.5" ]]; then
+        log_pass "uptime tail uses the 5-minute field (80.5), not the 1-minute dip (1.25)"
+    else
+        log_fail "uptime tail returned [$second], want 80.5"
+    fi
+    second=$(/bin/bash -c 'source "$1"; load5_from_uptime_tail "$2"' _ "$tmp/fns.sh" "0.10, 80.50, 9.00")
+    if [[ "$second" == "80.50" ]]; then
+        log_pass "comma-separated uptime tail still yields the middle field"
+    else
+        log_fail "comma uptime tail returned [$second], want 80.50"
+    fi
+
+    # run_case <ncpu> <load5>
+    run_case() {
+        : > "$stub_log"
+        out=$(cd "$PROJECT_ROOT" && env -u ORK_PRE_PUSH_JOBS \
+            PATH="$bin:$PATH" \
+            STUB_LOG="$stub_log" \
+            ORK_PRE_PUSH_PATH_STUBS=1 \
+            /bin/bash -c '
+                set -u
+                source "$1"
+                CI_UNIT_TESTS=(fixture-unit.sh)
+                plan_pre_push_jobs "$2" "$3"
+                run_unit_tests_parallel
+                run_security_stage
+                run_hooks_vitest_stage
+            ' _ "$tmp/fns.sh" "$1" "$2")
+    }
+
+    notice="pre-push: sustained load 80, jobs=1"
+    run_case 16 80
+    count=$(printf '%s\n' "$out" | grep -F -c "$notice" || true)
+    if [[ "$count" -eq 3 ]]; then
+        log_pass "load 80 on 16 cores: the shared notice is printed by all 3 stages"
+    else
+        log_fail "load 80 notice count=$count (want 3). output: $out"
+    fi
+    if grep -F -q -- '-P 1 ' "$stub_log" \
+        && grep -F -q 'SECURITY jobs=1 args=' "$stub_log" \
+        && grep -F -q -- '--maxWorkers=1' "$stub_log"; then
+        log_pass "load 80 on 16 cores: unit, security, and vitest all receive jobs=1"
+    else
+        log_fail "load 80 stub log did not show jobs=1: $(cat "$stub_log")"
+    fi
+
+    run_case 16 0
+    count=$(printf '%s\n' "$out" | grep -F -c "pre-push: sustained load" || true)
+    if [[ "$count" -eq 0 ]]; then
+        log_pass "idle 16-core box prints no load notice"
+    else
+        log_fail "idle box printed a load notice: $out"
+    fi
+    if grep -F -q -- '-P 8 ' "$stub_log" \
+        && grep -F -q 'SECURITY jobs=8 args=' "$stub_log" \
+        && grep -F -q -- '--maxWorkers=8' "$stub_log"; then
+        log_pass "idle 16-core box keeps the old cap of 8 on every stage"
+    else
+        log_fail "idle stub log was not the cap of 8: $(cat "$stub_log")"
+    fi
+
+    rm -rf "$tmp"
+}
+
 main() {
     echo "╔═══════════════════════════════════════════════════════════════╗"
     echo "║            Pre-push Hook Unit Tests                          ║"
@@ -755,6 +867,7 @@ main() {
     test_probe_fixture_git_environment_scrub
     test_vitest_git_environment_scrub
     test_resolve_pre_push_jobs
+    test_shared_load_backoff_fixture
     test_stages_do_not_inherit_worktree_git_dir
     test_scrub_keeps_locators_without_rediscovery
 
