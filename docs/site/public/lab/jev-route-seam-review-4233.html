@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Jev routing seam, review follow-ups (#4233)</title>
+<style>
+  :root { color-scheme: light dark; --ink: #0b0b0b; --muted: #52514e; --line: #d9d8d3; --bg: #fcfcfb; --ok: #008300; --warn: #c98500; --card: #ffffff; }
+  @media (prefers-color-scheme: dark) { :root { --ink: #ffffff; --muted: #c3c2b7; --line: #3a3a38; --bg: #1a1a19; --ok: #4cbf4c; --warn: #eda100; --card: #232322; } }
+  body { margin: 0; padding: 2rem 1rem 4rem; background: var(--bg); color: var(--ink); font: 15px/1.5 system-ui, sans-serif; }
+  main { max-width: 860px; margin: 0 auto; }
+  h1 { font-size: 1.5rem; margin: 0 0 .25rem; }
+  .lede { color: var(--muted); margin: 0 0 1.5rem; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  th, td { text-align: left; padding: .5rem .6rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; }
+  code { font: 12.5px ui-monospace, monospace; }
+  .tag { display: inline-block; font: 600 11px/1 ui-monospace, monospace; letter-spacing: .05em; padding: 3px 7px; border-radius: 4px; border: 1px solid currentColor; }
+  .ok { color: var(--ok); } .warn { color: var(--warn); }
+  details { margin-top: 1.5rem; border: 1px solid var(--line); border-radius: 8px; padding: .75rem 1rem; background: var(--card); }
+  summary { cursor: pointer; font-weight: 600; }
+  pre { overflow-x: auto; font: 12.5px/1.45 ui-monospace, monospace; padding: .75rem; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); }
+  .filter { margin: 1rem 0; display: flex; gap: .5rem; flex-wrap: wrap; }
+  .filter button { font: inherit; padding: .3rem .7rem; border: 1px solid var(--line); border-radius: 6px; background: var(--card); color: var(--ink); cursor: pointer; }
+  .filter button[aria-pressed="true"] { border-color: var(--ink); }
+  a { color: inherit; }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Jev routing seam, review follow-ups"><meta property="og:description" content="The review ledger for the seam: the reviewer HOLD on account tokens, the CodeQL no-op, four CodeRabbit fixes and the one declined finding, with a filter by source and why the commits missed the #4237 merge."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/jev-route-seam-review-4233.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Jev routing seam, review follow-ups"><meta name="twitter:description" content="The review ledger for the seam: the reviewer HOLD on account tokens, the CodeQL no-op, four CodeRabbit fixes and the one declined finding, with a filter by source and why the commits missed the #4237 merge."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <h1>Jev routing seam, review follow-ups</h1>
+  <p class="lede">The three commits that were ready on #4237 when it merged but had not reached origin. The seam explorer itself is unchanged and lives at <a href="../feat--4233-jev-route-seam/index.html"><code>docs/feat--4233-jev-route-seam/index.html</code></a>; this page is the review ledger.</p>
+  <div class="filter" role="group" aria-label="filter by source">
+    <button type="button" data-src="all" aria-pressed="true">all</button>
+    <button type="button" data-src="reviewer" aria-pressed="false">reviewer HOLD</button>
+    <button type="button" data-src="codeql" aria-pressed="false">CodeQL</button>
+    <button type="button" data-src="coderabbit" aria-pressed="false">CodeRabbit</button>
+  </div>
+  <table id="ledger">
+    <thead><tr><th>source</th><th>finding</th><th>what changed</th><th>where</th><th>state</th></tr></thead>
+    <tbody>
+      <tr data-src="reviewer"><td>reviewer HOLD</td><td>three gold rows carried short operator account nicknames in pasted status text (public repo)</td><td>tokens replaced by [ACCOUNT], 0 left by regex</td><td><code>scripts/eval/jev-route-cases.jsonl</code></td><td><span class="tag ok">fixed</span></td></tr>
+      <tr data-src="codeql"><td>CodeQL</td><td>replacement of a substring with itself in the floor key</td><td>the no-op replace removed from both playground copies</td><td><code>docs/feat--4233-jev-route-seam/index.html</code>, <code>docs/site/public/lab/jev-route-seam-4233.html</code></td><td><span class="tag ok">fixed</span></td></tr>
+      <tr data-src="coderabbit"><td>CodeRabbit</td><td>regex agreement divided by every scored row, including unmapped ones</td><td>denominator is the mapped rows; the log line says so</td><td><code>scripts/eval/route-check.mjs</code></td><td><span class="tag ok">fixed</span></td></tr>
+      <tr data-src="coderabbit"><td>CodeRabbit</td><td>a partial replay could overwrite route-baseline-jev.json</td><td>refuses unless every case has a verdict or --allow-partial is passed, exit 1 otherwise</td><td><code>scripts/eval/route-check.mjs</code></td><td><span class="tag ok">fixed</span></td></tr>
+      <tr data-src="coderabbit"><td>CodeRabbit</td><td>the steer nudge named the Skill tool for agent targets too</td><td>Agent targets say "spawn it via the Agent tool"; docs list both shapes; a test asserts it</td><td><code>src/hooks/src/prompt/executor-route-nudge.ts</code>, docs auto.mdx</td><td><span class="tag ok">fixed</span></td></tr>
+      <tr data-src="coderabbit"><td>CodeRabbit</td><td>an unreadable registry file read as MARKETPLACE_MISSING</td><td>REGISTRY_UNREADABLE verdict, could not observe; two fixtures; plugins/ork mirror synced</td><td><code>src/skills/doctor/scripts/check-peer-skill.py</code></td><td><span class="tag ok">fixed</span></td></tr>
+      <tr data-src="coderabbit"><td>CodeRabbit</td><td>replay joins ignore the client redaction profile</td><td>schema change, out of scope here</td><td>issue #4239</td><td><span class="tag warn">declined</span></td></tr>
+    </tbody>
+  </table>
+  <details open>
+    <summary>Why these missed the merge</summary>
+    <p>The local pre-push hook ran its vitest and security stages at full width regardless of host load and rejected three pushes on timeouts and a flaky assertion while the machine sat at load 80 to 160 (#4238). #4241 gave every stage the load back-off; this branch sits on it, and its push went through with jobs=1 at load 124.</p>
+  </details>
+  <details>
+    <summary>The seam log line, unchanged</summary>
+    <pre>route jev: intent=dev_fix conf=0.86 top3=dev_fix:0.87,ops_deploy:0.13,ops_deps:0.00 worktree=0.85 browser=0.26 mutation=2.0 operator=0.24 floor=0.50 decided_by=table latency_ms=772 input_tokens=1320 redacted=0</pre>
+  </details>
+</main>
+<script>
+  const buttons = document.querySelectorAll('.filter button');
+  const rows = document.querySelectorAll('#ledger tbody tr');
+  buttons.forEach((b) => b.addEventListener('click', () => {
+    buttons.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    const src = b.dataset.src;
+    rows.forEach((r) => { r.hidden = src !== 'all' && r.dataset.src !== src; });
+  }));
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
