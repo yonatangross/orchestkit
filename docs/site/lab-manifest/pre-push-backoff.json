@@ -1,0 +1,12 @@
+{
+  "slug": "pre-push-backoff",
+  "source": "docs/fix--4238-pre-push-backoff/pre-push-backoff.html",
+  "title": "One Load Back-off for Every Pre-push Stage",
+  "description": "The pre-push hook used to back the unit stage off under load and leave hooks vitest and the security suite at full width. Drag the 5-minute load and watch the same job count land on all three stages. At jobs 1 the security runner stays serial, because it has no parallelism flag.",
+  "tags": [
+    "pre-push",
+    "hooks",
+    "load"
+  ],
+  "date": "2026-09-18"
+}
