@@ -254,6 +254,7 @@ export function autoSpawnQuality(input: HookInput, _ctx: HookContext = NOOP_CTX)
   // GH-4158: agent_output/output are never sent at SubagentStop (2.1.272);
   // the result arrives as last_assistant_message.
   const agentOutput = getSubagentResult(input);
+  // GH-4158: the measured 2.1.272 SubagentStop payload carries no error field; kept for legacy shapes only.
   const error = input.error || '';
 
   logSpawn(`Checking auto-spawn conditions for agent: ${agentType} (session: ${sessionId})`);

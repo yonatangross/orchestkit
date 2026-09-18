@@ -708,4 +708,33 @@ describe('feedback-loop', () => {
       expect(logEntry).toBeDefined();
     });
   });
+
+  // ===========================================================================
+  // GH-4158: the result arrives as last_assistant_message (CC 2.1.272)
+  // ===========================================================================
+
+  describe('GH-4158: reads the result from last_assistant_message', () => {
+    test('logs the findings summary from last_assistant_message with no agent_output key', () => {
+      // Arrange: the measured 2.1.272 SubagentStop payload has no agent_output
+      // key. Before GH-4158 the hook analysed an empty string and logged an
+      // empty findings summary.
+      const input = createSubagentStopInput('backend-system-architect');
+      delete input.agent_output;
+      input.last_assistant_message =
+        'Designed the payments API: JWT auth on /charges, idempotency keys, per-tenant rate limits.';
+
+      // Act
+      feedbackLoop(input, testCtx);
+
+      // Assert
+      const calls = vi.mocked(writeFileSync).mock.calls;
+      const decisionLogCall = calls.find(([path]) =>
+        (path as string).includes('decision-log.json')
+      );
+      expect(decisionLogCall).toBeDefined();
+      const decision = JSON.parse(decisionLogCall![1] as string).decisions[0];
+      expect(decision.description).toBe(input.last_assistant_message);
+      expect(decision.status).toBe('completed');
+    });
+  });
 });

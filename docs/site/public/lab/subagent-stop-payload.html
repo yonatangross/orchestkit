@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="OrchestKit playground, PR feat/ork-4158 (#4232), 2026-09-18. The SubagentStop result arrives as last_assistant_message; four hooks used to read a key the payload never carried.">
+<title>The result was in last_assistant_message all along</title>
+<style>
+  * { box-sizing:border-box; }
+  body { margin:0; font:15px/1.55 -apple-system, system-ui, "Segoe UI", sans-serif; background:#0f1115; color:#e6e6e6; }
+  main { max-width:1000px; margin:0 auto; padding:26px 20px 68px; }
+  h1 { font-size:22px; margin:0 0 6px; }
+  h2 { font-size:15px; margin:28px 0 8px; color:#6ea8fe; }
+  p { margin:6px 0; color:#9aa3b2; max-width:82ch; }
+  code { font:12.5px ui-monospace, SFMono-Regular, Menlo, monospace; color:#cbd5e1; }
+  .panel { background:#181b22; border:1px solid #2a2f3a; border-radius:10px; padding:14px; margin-top:10px; }
+  .panel h3 { margin:0 0 10px; font:600 12px ui-monospace,Menlo,monospace; letter-spacing:.05em; text-transform:uppercase; color:#9aa3b2; }
+  .opts { display:flex; gap:7px; flex-wrap:wrap; margin-bottom:10px; }
+  .opts button { background:#0b0d11; color:#9aa3b2; border:1px solid #2a2f3a; border-radius:20px;
+        padding:6px 13px; cursor:pointer; font:12px ui-monospace,Menlo,monospace; }
+  .opts button[aria-pressed="true"] { border-color:#6ea8fe; color:#6ea8fe; }
+  .res { margin-top:10px; padding:12px 14px; border-radius:8px; border:1px solid #2a2f3a; }
+  .res .r { font:700 14px ui-monospace,monospace; overflow-wrap:anywhere; }
+  .yes { background:rgba(76,195,138,.10); border-color:rgba(76,195,138,.5); }
+  .yes .r { color:#4cc38a; }
+  .no { background:rgba(229,72,77,.10); border-color:rgba(229,72,77,.5); }
+  .no .r { color:#e5484d; }
+  .res p { color:#e6e6e6; margin:6px 0 0; font-size:13.5px; max-width:none; }
+  pre { margin:8px 0 0; padding:11px; background:#0b0d11; border:1px solid #2a2f3a; border-radius:8px;
+        overflow:auto; font:12.5px/1.5 ui-monospace,Menlo,monospace; white-space:pre-wrap; color:#cbd5e1; }
+  table { border-collapse:collapse; width:100%; font-size:13.5px; margin-top:6px; }
+  th,td { text-align:left; padding:7px 9px; border-bottom:1px solid #2a2f3a; vertical-align:top; }
+  th { color:#9aa3b2; font:600 11px ui-monospace,monospace; text-transform:uppercase; letter-spacing:.05em; }
+  td.k { font:12px ui-monospace,Menlo,monospace; white-space:nowrap; }
+  small.note { display:block; margin-top:9px; color:#9aa3b2; font-size:12px; }
+  .badge { display:inline-block; padding:2px 8px; border-radius:10px; font:600 10.5px ui-monospace,monospace; letter-spacing:.04em; text-transform:uppercase; }
+  .bad { color:#e5484d; background:rgba(229,72,77,.12); }
+  .ok { color:#4cc38a; background:rgba(76,195,138,.12); }
+  .two { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px; }
+  .chips { display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; }
+  .chip { font:11.5px ui-monospace,Menlo,monospace; padding:3px 9px; border-radius:12px; border:1px solid #2a2f3a; color:#9aa3b2; background:#0b0d11; }
+  .chip.hit { border-color:rgba(76,195,138,.6); color:#4cc38a; }
+  .chip.miss { border-color:rgba(229,72,77,.45); color:#e5484d; }
+  @media (max-width:760px) { .two { grid-template-columns:1fr; } }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="The Result Was in last_assistant_message All Along"><meta property="og:description" content="Measured live on Claude Code 2.1.272 (GH-4158): the SubagentStop payload carries no agent_output, output, summary or result; the subagent's final message arrives as last_assistant_message. The four SubagentStop consumers (retry-handler, feedback-loop, multi-claude-verifier, auto-spawn-quality) chained the legacy names, so on every real payload they analysed an empty string: retry suggestions, tried-agent history and the security auto-spawn rules all matched nothing. PR #4232 completes #4158 with the shared reader getSubagentResult(), which prefers last_assistant_message and falls back to the legacy names, plus one regression test per hook feeding a realistic payload with no agent_output key. Toggle the payload between the measured key and the legacy key and watch each hook go from an empty read to the message, while the reader's fallback order keeps legacy fixtures working."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/subagent-stop-payload.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="The Result Was in last_assistant_message All Along"><meta name="twitter:description" content="Measured live on Claude Code 2.1.272 (GH-4158): the SubagentStop payload carries no agent_output, output, summary or result; the subagent's final message arrives as last_assistant_message. The four SubagentStop consumers (retry-handler, feedback-loop, multi-claude-verifier, auto-spawn-quality) chained the legacy names, so on every real payload they analysed an empty string: retry suggestions, tried-agent history and the security auto-spawn rules all matched nothing. PR #4232 completes #4158 with the shared reader getSubagentResult(), which prefers last_assistant_message and falls back to the legacy names, plus one regression test per hook feeding a realistic payload with no agent_output key. Toggle the payload between the measured key and the legacy key and watch each hook go from an empty read to the message, while the reader's fallback order keeps legacy fixtures working."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <h1>The result was in last_assistant_message all along</h1>
+  <p>Measured live on Claude Code 2.1.272 (GH-4158): the SubagentStop payload carries <em>no</em> <code>agent_output</code>, <code>output</code>, <code>summary</code> or <code>result</code>. The subagent's final message arrives as <code>last_assistant_message</code>. The four SubagentStop consumers chained the legacy names instead, so on every real payload they analysed an empty string: retry suggestions, tried-agent history and the security auto-spawn rules all matched nothing. PR #4232 completes the fix with the shared reader <code>getSubagentResult()</code> wired through all consumers, plus one regression test per hook. Toggle the payload between the measured shape and the legacy shape and watch what each hook sees.</p>
+
+  <h2>Two shapes of the same payload</h2>
+  <p>The key list is the measured one, in order. Green marks the key that carries the result; red marks a key a hook reads but the payload does not carry.</p>
+  <div class="panel">
+    <div class="opts" id="shapes">
+      <button data-shape="real" aria-pressed="true">CC 2.1.272: last_assistant_message</button>
+      <button data-shape="legacy" aria-pressed="false">legacy: agent_output</button>
+    </div>
+    <div class="res" id="verdict"><div class="r"></div><p></p></div>
+    <div class="chips" id="keys"></div>
+    <small class="note" id="absent"></small>
+  </div>
+
+  <h2>The shared reader</h2>
+  <p>Every consumer goes through <code>getSubagentResult()</code> in <code>src/hooks/src/lib/subagent-result.ts</code>. It prefers <code>last_assistant_message</code>, falls back to the legacy names, then returns <code>''</code>. Empty strings and non-strings are skipped, so an empty preferred field never masks a non-empty legacy one.</p>
+  <div class="panel">
+    <table>
+      <thead><tr><th>candidate, in read order</th><th>present in this payload?</th><th>returned?</th></tr></thead>
+      <tbody id="cands"></tbody>
+    </table>
+    <div class="res yes" id="readerret" style="display:none"><div class="r"></div><p></p></div>
+    <small class="note">Both shapes return the message; that is the point of the fallback order. Older payloads and hand-written test fixtures keep working, while the real 2.1.272 payload finally reads as non-empty.</small>
+  </div>
+
+  <h2>What each hook saw</h2>
+  <p>Four hooks, one example result each, taken from the regression tests. Before the fix the read was the chained legacy expression; after the fix it is the shared reader. Switch the payload above and the before column flips between empty and the message, while the after column keeps acting in both.</p>
+  <div id="hooks"></div>
+
+  <h2>The proof</h2>
+  <p>One test per hook, all feeding a realistic 2.1.272 payload with <code>delete input.agent_output</code> and the result set only on <code>last_assistant_message</code>: retry-handler asserts <code>continue: true</code> with a <code>[PARTIAL RESULT]</code> 25-turn-limit tag; feedback-loop asserts the completed decision written to <code>decision-log.json</code>; multi-claude-verifier and auto-spawn-quality assert the <code>security-auditor</code> rule firing. The reader itself is pinned by <code>__tests__/lib/subagent-result.test.ts</code>, and the reads the payload does not carry (<code>error</code>, <code>exit_code</code>) now carry comments naming the measured key list, so nobody invents a substitute field.</p>
+</main>
+<script>
+(function () {
+  var KEYS = ["session_id","transcript_path","cwd","prompt_id","permission_mode","agent_id","agent_type","effort","hook_event_name","stop_hook_active","agent_transcript_path","last_assistant_message","background_tasks","session_crons"];
+  var CANDIDATES = ["last_assistant_message","agent_output","output","summary","result"];
+
+  var SHAPES = {
+    real: {
+      resultKey: "last_assistant_message",
+      verdict: ["no", "The measured payload has no agent_output key. A hook chaining the legacy names read '' and acted on nothing, while the actual result sat unread in last_assistant_message."],
+      absent: "Also absent from the measured payload: agent_output, output, summary, result, error, exit_code. Measured live on CC 2.1.272, 2026-09-15."
+    },
+    legacy: {
+      resultKey: "agent_output",
+      verdict: ["yes", "The legacy payload carried the result as agent_output, the historically documented name. The old chained read found it, which is why the bug hid: every fixture and older build still worked."],
+      absent: "No last_assistant_message here: that key arrived with the newer CC builds."
+    }
+  };
+
+  function keysFor(shape) {
+    return KEYS.map(function (k) {
+      if (shape === "real") return k === "last_assistant_message" ? [k, "hit"] : [k, ""];
+      return k === "agent_output" ? [k, "hit"] : [k, ""];
+    });
+  }
+
+  var HOOKS = [
+    { name: "retry-handler",
+      msg: "Agent ork:code-quality-reviewer stopped at its 25-turn limit (partial result; continue it with SendMessage to the task-id). Reviewed 6 of 9 files so far; findings below.",
+      inert: "Classified the stop as success and emitted no context at all: no continuation guidance, no partial tag.",
+      acted: "Tagged the same [PARTIAL RESULT] continuation. Legacy payloads never regressed.",
+      after: "continue: true, additionalContext opens with [PARTIAL RESULT] and carries the 25-turn limit continuation guidance." },
+    { name: "feedback-loop",
+      msg: "Designed the payments API: JWT auth on /charges, idempotency keys, per-tenant rate limits.",
+      inert: "Analysed an empty string and logged an empty findings summary.",
+      acted: "Logged the same completed decision. Legacy payloads never regressed.",
+      after: "Writes a completed decision to decision-log.json: description equals the message, status completed." },
+    { name: "multi-claude-verifier",
+      msg: "Built the login form with client-side validation and an auth submit handler.",
+      inert: "Matched no rule against the empty string and spawned nothing.",
+      acted: "Queued the same security-auditor verifier. Legacy payloads never regressed.",
+      after: "systemMessage queues the security-auditor verifier: the auth keyword rule matches the message." },
+    { name: "auto-spawn-quality",
+      msg: "Rotated the credentials store and added .env loading for the auth flow.",
+      inert: "Matched no auto-spawn rule against the empty string and queued nothing.",
+      acted: "Queued the same security-auditor spawn. Legacy payloads never regressed.",
+      after: "systemMessage reports Auto-spawn queued: security-auditor, via the sensitive-file keyword rule." }
+  ];
+
+  function esc(s) { return String(s).replace(/[&<>]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]; }); }
+  function $(id) { return document.getElementById(id); }
+
+  function render(shape) {
+    var s = SHAPES[shape];
+    var verdict = $("verdict");
+    verdict.className = "res " + s.verdict[0];
+    verdict.querySelector(".r").textContent = s.verdict[0] === "no" ? "the legacy read returns ''" : "the legacy read returns the message";
+    verdict.querySelector("p").textContent = s.verdict[1];
+
+    $("keys").innerHTML = keysFor(shape).map(function (kv) {
+      return '<span class="chip ' + kv[1] + '">' + esc(kv[0]) + "</span>";
+    }).join("");
+    $("absent").textContent = s.absent;
+
+    var returned = null;
+    $("cands").innerHTML = CANDIDATES.map(function (c) {
+      var present = c === s.resultKey;
+      if (present && returned === null) returned = c;
+      var cell = present ? '<span class="chip hit">present</span>' : '<span class="chip miss">absent</span>';
+      var ret = (present && returned === c) ? '<span class="chip hit">returned</span>' : "";
+      return "<tr><td class=\"k\">" + esc(c) + "</td><td>" + cell + "</td><td>" + ret + "</td></tr>";
+    }).join("");
+    var box = $("readerret");
+    box.style.display = "";
+    box.querySelector(".r").textContent = "getSubagentResult(input) \u2192 the subagent's final message";
+    box.querySelector("p").textContent = "Returned from " + returned + (shape === "legacy"
+      ? " (candidate 1 is absent here, so the reader skipped it and fell back)."
+      : " (the payload's real result key, read directly).");
+
+    $("hooks").innerHTML = HOOKS.map(function (h) {
+      var beforeVal = shape === "real" ? "'' (empty)" : "the message";
+      var beforeOut = shape === "real" ? h.inert : h.acted;
+      var beforeCls = shape === "real" ? "no" : "yes";
+      return '<div class="two">' +
+        '<div class="panel"><h3><span class="badge bad">before the fix</span> ' + esc(h.name) + "</h3>" +
+        "<pre>input.agent_output || input.output || input.summary || input.result</pre>" +
+        '<div class="res ' + beforeCls + '"><div class="r">saw: ' + esc(beforeVal) + "</div><p>" + esc(beforeOut) + "</p></div></div>" +
+        '<div class="panel"><h3><span class="badge ok">after</span> ' + esc(h.name) + "</h3>" +
+        "<pre>getSubagentResult(input)</pre>" +
+        '<div class="res yes"><div class="r">saw: "' + esc(h.msg) + '"</div><p>' + esc(h.after) + "</p></div>" +
+        '<small class="note">Result key: ' + esc(s.resultKey) + ".</small></div>" +
+        "</div>";
+    }).join("");
+  }
+
+  var shapes = $("shapes");
+  shapes.addEventListener("click", function (e) {
+    var b = e.target.closest("button");
+    if (!b) return;
+    shapes.querySelectorAll("button").forEach(function (x) { x.setAttribute("aria-pressed", "false"); });
+    b.setAttribute("aria-pressed", "true");
+    render(b.dataset.shape);
+  });
+
+  render("real");
+})();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
