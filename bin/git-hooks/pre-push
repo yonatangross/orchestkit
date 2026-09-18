@@ -283,12 +283,14 @@ STAGE_LOG=""
 run_captured() {
   local log rc
   log=$(mktemp "${TMPDIR:-/tmp}/ork-pre-push.XXXXXX")
-  if "$@" >"$log" 2>&1; then
+  # Status on the same line as the stage. A later $? (after if, or after a
+  # pipeline) is not the stage's status: with no else, a failed if reports 0.
+  "$@" >"$log" 2>&1; rc=$?
+  if [[ "$rc" -eq 0 ]]; then
     rm -f "$log"
     STAGE_LOG=""
     return 0
   fi
-  rc=$?
   STAGE_LOG="$log"
   return "$rc"
 }
@@ -431,6 +433,7 @@ run_unit_tests_parallel() {
 # wider count is not passed in, because there is no flag to pass, so the
 # invocation stays the script alone either way.
 run_security_stage() {
+  local stage_rc
   print_pre_push_load_notice
   echo -n "  Running security tests... "
   if [[ "${ORK_PRE_PUSH_PATH_STUBS:-}" == "1" ]]; then
@@ -442,7 +445,8 @@ run_security_stage() {
     return 0
   fi
   if [[ -x "tests/security/run-security-tests.sh" ]]; then
-    if ! ORK_PRE_PUSH_STAGE_JOBS="$MAX_JOBS" run_captured ./tests/security/run-security-tests.sh; then
+    ORK_PRE_PUSH_STAGE_JOBS="$MAX_JOBS" run_captured ./tests/security/run-security-tests.sh; stage_rc=$?
+    if [[ "$stage_rc" -ne 0 ]]; then
       echo "FAILED"
       echo ""
       echo "╔════════════════════════════════════════════════════════════╗"
@@ -451,7 +455,7 @@ run_security_stage() {
       echo "║  Run: ./tests/security/run-security-tests.sh"
       print_kept_stage_log
       echo "╚════════════════════════════════════════════════════════════╝"
-      exit 1
+      exit "$stage_rc"
     fi
     echo "OK"
   else
@@ -506,7 +510,8 @@ assert_repo_config_unchanged() {
 echo -n "  Running TypeScript type check... "
 
 if [[ -f "src/hooks/tsconfig.json" ]]; then
-  if ! run_captured run_with_timeout 120 npx tsc --noEmit -p src/hooks/tsconfig.json; then
+  run_captured run_with_timeout 120 npx tsc --noEmit -p src/hooks/tsconfig.json; stage_rc=$?
+  if [[ "$stage_rc" -ne 0 ]]; then
     echo "FAILED"
     echo ""
     echo "╔════════════════════════════════════════════════════════════╗"
@@ -515,7 +520,7 @@ if [[ -f "src/hooks/tsconfig.json" ]]; then
     echo "║  Run: cd src/hooks && npx tsc --noEmit"
     print_kept_stage_log
     echo "╚════════════════════════════════════════════════════════════╝"
-    exit 1
+    exit "$stage_rc"
   fi
   echo "OK"
 else
@@ -525,7 +530,8 @@ fi
 # ===== Build Verification =====
 echo -n "  Verifying build... "
 
-if ! run_captured run_with_timeout 300 npm run build; then
+run_captured run_with_timeout 300 npm run build; stage_rc=$?
+if [[ "$stage_rc" -ne 0 ]]; then
   echo "FAILED"
   echo ""
   echo "╔════════════════════════════════════════════════════════════╗"
@@ -534,7 +540,7 @@ if ! run_captured run_with_timeout 300 npm run build; then
   echo "║  Run: npm run build"
   print_kept_stage_log
   echo "╚════════════════════════════════════════════════════════════╝"
-  exit 1
+  exit "$stage_rc"
 fi
 echo "OK"
 
@@ -542,7 +548,8 @@ echo "OK"
 echo -n "  Verifying imports... "
 
 if [[ -f "scripts/verify-imports.js" ]]; then
-  if ! run_captured run_with_timeout 60 node scripts/verify-imports.js; then
+  run_captured run_with_timeout 60 node scripts/verify-imports.js; stage_rc=$?
+  if [[ "$stage_rc" -ne 0 ]]; then
     echo "FAILED"
     echo ""
     echo "╔════════════════════════════════════════════════════════════╗"
@@ -551,7 +558,7 @@ if [[ -f "scripts/verify-imports.js" ]]; then
     echo "║  Run: node scripts/verify-imports.js"
     print_kept_stage_log
     echo "╚════════════════════════════════════════════════════════════╝"
-    exit 1
+    exit "$stage_rc"
   fi
   echo "OK"
 else
@@ -686,7 +693,8 @@ run_security_stage
 echo -n "  Running mdx-compile guard... "
 
 if [[ -x "tests/unit/test-mdx-compile.sh" ]]; then
-  if ! run_captured run_with_timeout 120 ./tests/unit/test-mdx-compile.sh; then
+  run_captured run_with_timeout 120 ./tests/unit/test-mdx-compile.sh; stage_rc=$?
+  if [[ "$stage_rc" -ne 0 ]]; then
     echo "FAILED"
     echo ""
     echo "╔════════════════════════════════════════════════════════════╗"
@@ -696,7 +704,7 @@ if [[ -x "tests/unit/test-mdx-compile.sh" ]]; then
     echo "║  Fix likely needs a 4-backtick outer fence in a SKILL.md"
     print_kept_stage_log
     echo "╚════════════════════════════════════════════════════════════╝"
-    exit 1
+    exit "$stage_rc"
   fi
   echo "OK"
 else
@@ -706,7 +714,8 @@ fi
 # ===== Agent frontmatter validation =====
 echo -n "  Validating agent frontmatter... "
 
-if ! run_captured run_with_timeout 60 bash tests/agents/test-agent-frontmatter.sh; then
+run_captured run_with_timeout 60 bash tests/agents/test-agent-frontmatter.sh; stage_rc=$?
+if [[ "$stage_rc" -ne 0 ]]; then
   echo "FAILED"
   echo ""
   echo "╔════════════════════════════════════════════════════════════╗"
@@ -715,14 +724,15 @@ if ! run_captured run_with_timeout 60 bash tests/agents/test-agent-frontmatter.s
   echo "║  Run: npm run test:agents"
   print_kept_stage_log
   echo "╚════════════════════════════════════════════════════════════╝"
-  exit 1
+  exit "$stage_rc"
 fi
 echo "OK"
 
 # ===== Skill structure validation =====
 echo -n "  Validating skill structure... "
 
-if ! run_captured run_with_timeout 180 bash tests/skills/structure/test-skill-md.sh; then
+run_captured run_with_timeout 180 bash tests/skills/structure/test-skill-md.sh; stage_rc=$?
+if [[ "$stage_rc" -ne 0 ]]; then
   echo "FAILED"
   echo ""
   echo "╔════════════════════════════════════════════════════════════╗"
@@ -731,7 +741,7 @@ if ! run_captured run_with_timeout 180 bash tests/skills/structure/test-skill-md
   echo "║  Run: npm run test:skills"
   print_kept_stage_log
   echo "╚════════════════════════════════════════════════════════════╝"
-  exit 1
+  exit "$stage_rc"
 fi
 echo "OK"
 
@@ -739,11 +749,13 @@ echo "OK"
 echo -n "  Checking manifests... "
 
 MANIFEST_FAILED=0
+stage_rc=0
 for check in tests/manifests/test-skill-uniqueness.sh \
              tests/manifests/test-manifest-dependencies.sh \
              tests/manifests/test-plugin-orphan-skills.sh; do
   if [[ -f "$check" ]]; then
-    if ! run_captured run_with_timeout 30 bash "$check"; then
+    run_captured run_with_timeout 30 bash "$check"; stage_rc=$?
+    if [[ "$stage_rc" -ne 0 ]]; then
       MANIFEST_FAILED=1
       break
     fi
@@ -759,7 +771,7 @@ if [[ $MANIFEST_FAILED -eq 1 ]]; then
   echo "║  Run: npm run test:manifests"
   print_kept_stage_log
   echo "╚════════════════════════════════════════════════════════════╝"
-  exit 1
+  exit "$stage_rc"
 fi
 echo "OK"
 

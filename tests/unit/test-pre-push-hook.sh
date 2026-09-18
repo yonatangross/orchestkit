@@ -852,6 +852,35 @@ test_shared_load_backoff_fixture() {
     rm -rf "$tmp"
 }
 
+# A captured stage that exits 7 must make the hook exit 7.
+# Reading $? after the if reports 0, so the gate used to pass.
+test_captured_stage_exit_status() {
+    log_section "Test: captured stage exit status is the hook exit status"
+
+    local tmp bin hook rc out kept
+    tmp=$(mktemp -d "${TMPDIR:-/tmp}/ork-pre-push-rc.XXXXXX")
+    bin="$tmp/bin"
+    mkdir -p "$bin"
+    printf '%s\n' '#!/bin/bash' 'exit 7' > "$bin/npx"
+    chmod +x "$bin/npx"
+    hook="${PROJECT_ROOT}/bin/git-hooks/pre-push"
+
+    rc=0
+    out=$(PATH="$bin:$PATH" /bin/bash "$hook" origin "https://example.invalid/repo.git" \
+        <<<'refs/heads/chore/exit-status 0000000000000000000000000000000000000000 refs/heads/chore/exit-status 0000000000000000000000000000000000000000') || rc=$?
+
+    if [[ "$rc" -eq 7 ]]; then
+        log_pass "stubbed stage exit 7 is the hook exit status"
+    else
+        log_fail "hook exited $rc, want 7. output: $out"
+    fi
+    kept=$(printf '%s\n' "$out" | sed -n 's/.*Full log kept at: //p')
+    if [[ -n "$kept" ]]; then
+        rm -f "$kept"
+    fi
+    rm -rf "$tmp"
+}
+
 main() {
     echo "╔═══════════════════════════════════════════════════════════════╗"
     echo "║            Pre-push Hook Unit Tests                          ║"
@@ -868,6 +897,7 @@ main() {
     test_vitest_git_environment_scrub
     test_resolve_pre_push_jobs
     test_shared_load_backoff_fixture
+    test_captured_stage_exit_status
     test_stages_do_not_inherit_worktree_git_dir
     test_scrub_keeps_locators_without_rediscovery
 
