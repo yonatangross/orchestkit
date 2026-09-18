@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.55",
+    "date": "2026-09-18",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.54...v10.0.0-beta.55",
+    "sections": [
+      {
+        "type": "changed",
+        "heading": "Documentation",
+        "items": [
+          "**doctor:** extend the CC version matrix through 2.1.277 ([#4247](https://github.com/yonatangross/orchestkit/issues/4247)) ([68ed58e](https://github.com/yonatangross/orchestkit/commit/68ed58ec2e1e941028430cbe4611b9413e028d6e))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.54",
     "date": "2026-09-18",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.53...v10.0.0-beta.54",
