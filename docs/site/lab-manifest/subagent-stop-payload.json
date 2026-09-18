@@ -1,0 +1,12 @@
+{
+  "slug": "subagent-stop-payload",
+  "source": "docs/feat--ork-4158/subagent-stop-payload.html",
+  "title": "The Result Was in last_assistant_message All Along",
+  "description": "Measured live on Claude Code 2.1.272 (GH-4158): the SubagentStop payload carries no agent_output, output, summary or result; the subagent's final message arrives as last_assistant_message. The four SubagentStop consumers (retry-handler, feedback-loop, multi-claude-verifier, auto-spawn-quality) chained the legacy names, so on every real payload they analysed an empty string: retry suggestions, tried-agent history and the security auto-spawn rules all matched nothing. PR #4232 completes #4158 with the shared reader getSubagentResult(), which prefers last_assistant_message and falls back to the legacy names, plus one regression test per hook feeding a realistic payload with no agent_output key. Toggle the payload between the measured key and the legacy key and watch each hook go from an empty read to the message, while the reader's fallback order keeps legacy fixtures working.",
+  "tags": [
+    "hooks",
+    "subagent-stop",
+    "claude-code"
+  ],
+  "date": "2026-09-18"
+}
