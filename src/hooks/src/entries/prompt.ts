@@ -84,3 +84,9 @@ export function listHooks(): string[] {
 
 // Phase 4: HookContext DI
 export { buildContext } from '../lib/context.js';
+
+// #4233: the Jev routing seam, exported so scripts/eval/route-check.mjs --jev
+// and scripts/eval/jev-route-score.mjs can replay through the shipped bundle.
+export * from '../lib/route-classes.js';
+export * from '../lib/route-judgment.js';
+export { executorRouteNudge } from '../prompt/executor-route-nudge.js';

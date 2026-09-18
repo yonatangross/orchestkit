@@ -177,6 +177,15 @@ else
   echo "agent-browser: NOT INSTALLED (optional — install via vercel-labs/agent-browser ≥ 0.26)"
 fi
 
+# Peer skills from other marketplaces (#4233): the TypeSafe agent skill that the
+# Jev routing seam (ORK_ROUTE_JEV) and the session category provider build on.
+# Local files only (known_marketplaces.json, installed_plugins.json, the
+# marketplace clone's manifest); no network. Five named verdicts, exit 1 when
+# a fix applies, and the fix text is the vendor's own install or update command:
+#   claude plugin marketplace add typesafe-ai/skills && claude plugin install typesafe@typesafe-ai
+#   claude plugin marketplace update typesafe-ai && claude plugin update typesafe@typesafe-ai
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/doctor/scripts/check-peer-skill.py" --plugin typesafe@typesafe-ai || true
+
 # portless: stable named localhost URLs for local dev
 #   which portless 2>/dev/null && portless list 2>/dev/null
 #   If missing: RECOMMEND "npm i -g portless" for stable local dev URLs

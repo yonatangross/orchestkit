@@ -84,7 +84,7 @@ The `doctor` command performs comprehensive health checks on your OrchestKit ins
 8. **Context Budget** - Monitors token usage against budget
 9. **Memory System** - Graph memory health
 10. **Claude Code Version** - Validates CC >= 2.1.220 (supported floor). Everything the old "recommends 2.1.154+" note gated (`xhigh` effort, `/ultrareview`, stream-json `plugin_errors`) is floor-guaranteed now, so there is nothing left to recommend
-11. **External Dependencies** - Checks optional tool availability (agent-browser)
+11. **External Dependencies** - Checks optional tool availability (agent-browser), plus one line per peer skill installed from another marketplace: `typesafe@typesafe-ai` installed version against the marketplace's, via `scripts/check-peer-skill.py` (missing marketplace and missing plugin are separate verdicts, the vendor's update commands are the fix text; #4233)
 12. **MCP Status** - Active vs disabled vs misconfigured, API key presence for paid MCPs. CC 2.1.110: detects duplicate definitions across config scopes. Sub-check warns when HIGH-tier servers resolve to `@latest` in `.mcp.json` (closes #1462)
 13. **Plugin Validate** - Runs `claude plugin validate` for official CC frontmatter + hooks.json validation (CC >= 2.1.77)
 14. **Effort/Model Compatibility** - Warns only when `xhigh` effort is configured AND the active model is provably unable to run it. Silent otherwise, because the fallback itself is silent
