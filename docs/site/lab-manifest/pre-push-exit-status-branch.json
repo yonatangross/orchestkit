@@ -1,0 +1,11 @@
+{
+  "slug": "pre-push-exit-status-branch",
+  "source": "docs/chore--dsp-53097-4241-follow-up-pr/pre-push-exit-status.html",
+  "title": "Captured Stage Exit Status",
+  "description": "The same stage exit table, filed where the branch playground gate looks. The published Lab page is pre-push-exit-status.",
+  "tags": [
+    "pre-push",
+    "hooks"
+  ],
+  "date": "2026-09-18"
+}
