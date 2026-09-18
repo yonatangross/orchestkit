@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.50](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.49...v10.0.0-beta.50) (2026-09-18)
+
+
+### Features
+
+* **expect:** Jev act mode for the step pick (ORK_EXPECT_JEV) ([#4230](https://github.com/yonatangross/orchestkit/issues/4230)) ([c5668f7](https://github.com/yonatangross/orchestkit/commit/c5668f7b8748b54c5f4efb2544cb3c4573efa066))
+
 ## [10.0.0-beta.49](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.48...v10.0.0-beta.49) (2026-09-18)
 
 
