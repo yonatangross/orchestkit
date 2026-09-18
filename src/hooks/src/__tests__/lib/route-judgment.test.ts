@@ -174,7 +174,7 @@ describe('redactor', () => {
     ['akia', 'AKIAABCDEFGHIJKLMNOP', '[SECRET]', 'AKIA'],
     ['apik', 'apikabcdefghijklmnopqrstuvwxyz', '[SECRET]', 'apik'],
     ['ops', 'ops_abcdefghijklmnopqrstuvwxyz0123', '[SECRET]', 'ops_'],
-    ['op ref', 'read op://Platform/TypeSafe-API-Key-Dev/credential now', '[SECRET]', 'op://'],
+    ['op ref', 'read op://<vault>/<item>/credential now', '[SECRET]', 'op://'],
     ['hex40', 'commit 0123456789abcdef0123456789abcdef01234567 broke it', '[SECRET]', '0123456789abcdef'],
     ['email', 'mail yonatan.gross+x@example.co.il today', '[EMAIL]', '@'],
     ['phone 05x', 'call 052-123-4567 now', '[PHONE]', '4567'],
