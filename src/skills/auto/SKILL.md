@@ -9,7 +9,7 @@ version: 1.0.0
 author: OrchestKit
 tags: [router, intent, orchestration, discovery, meta, front-door]
 user-invocable: true
-allowed-tools: [AskUserQuestion, Read, Grep, Glob, Skill, Task]
+allowed-tools: [AskUserQuestion, Read, Grep, Glob, Skill, Agent]
 complexity: medium
 persuasion-type: collaborative
 model: sonnet

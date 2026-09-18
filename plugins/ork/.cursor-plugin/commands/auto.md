@@ -5,7 +5,7 @@ model: sonnet
 context: inherit
 user-invocable: true
 name: auto
-allowed-tools: [AskUserQuestion, Read, Grep, Glob, Skill, Task]
+allowed-tools: [AskUserQuestion, Read, Grep, Glob, Skill, Agent]
 ---
 
 # Auto-generated from skills/auto/SKILL.md
