@@ -103,10 +103,21 @@ For each page in the test plan, follow this exact sequence:
 3. EXECUTE STEPS
    For each step in the plan:
      a. Output: STEP_START|{id}|{title}
-     b. Perform the action (click, fill, assert)
-     c. Verify the expected outcome
-     d. Output: STEP_DONE|{id}|{summary}
-     e. On failure: screenshot, output ASSERTION_FAILED|{id}|{reason}
+     b. Decide the action from the latest `snapshot -i` (click, fill, assert)
+     c. JEV SHADOW (only when ORK_EXPECT_JEV_SHADOW is truthy):
+        - Save the snapshot you already read: `agent-browser snapshot -i > .expect/jev-snap.txt`
+        - Run:
+          bash ${CLAUDE_PLUGIN_ROOT}/skills/expect/scripts/jev-shadow.sh \
+            --step-id {id} --goal "{title}" \
+            --last-verify "{last STEP_DONE/ASSERTION_FAILED summary, or 'none'}" \
+            --model-action "{the exact action you are about to run}" \
+            --snapshot-file .expect/jev-snap.txt
+        - Emit its stdout verbatim (one JEV_SHADOW|... line, or nothing)
+        - NEVER act on the Jev pick. Shadow only: it logs, it does not drive.
+     d. Perform the action (click, fill, assert)
+     e. Verify the expected outcome
+     f. Output: STEP_DONE|{id}|{summary}
+     g. On failure: screenshot, output ASSERTION_FAILED|{id}|{reason}
 
 4. NEXT PAGE (navigate to next URL in plan)
 ```
@@ -144,12 +155,13 @@ ARIA|<one-line capped JSON of agent-browser snapshot, max 8KB>   # ← required 
 RUN_COMPLETED|failed|3 passed, 1 failed — dashboard shows session expired after login
 ```
 
-Format: `EVENT|payload`. Six events: `STEP_START`, `STEP_DONE`, `ASSERTION_FAILED`, `RUN_COMPLETED`, `ROUTE`, `ARIA`.
+Format: `EVENT|payload`. Seven events: `STEP_START`, `STEP_DONE`, `ASSERTION_FAILED`, `RUN_COMPLETED`, `ROUTE`, `ARIA`, `JEV_SHADOW`.
 
 ### ROUTE / ARIA emission rules
 
 - **`ROUTE|<path>`** — emit ONCE per route, BEFORE the first STEP_START on that route. The path is the route component (e.g. `/dashboard`, `/login`, `/`), not the full URL.
 - **`ARIA|<json-or-text>`** — emit ONCE per route, AFTER the last STEP_DONE / ASSERTION_FAILED on that route. Capture from `agent-browser snapshot --json` output, then strip newlines (`tr -d '\n'`) and cap at 8KB. If the snapshot exceeds 8KB, emit only the first 8KB — the snapshot recorder caps anyway.
+- **`JEV_SHADOW|<step-id>|<one-line-json>`** : emit ONLY the stdout of `scripts/jev-shadow.sh`, verbatim, right after the step's shadow call and before its STEP_DONE. Never hand-build the line, and never emit it when `ORK_EXPECT_JEV_SHADOW` is unset (the script emits nothing then anyway). It logs the Jev pick with probabilities beside your pick plus per-step agreement; it never changes what you execute.
 - For multi-route runs, emit `ROUTE|...` and `ARIA|...` per route. The hook persists each separately under `.claude/state/expect-snapshots/<route-slug>/<parent-commit>.json`.
 
 ### Why these tags exist
@@ -223,6 +235,6 @@ Read the specific file before advising. Do NOT rely on training data.
 |IMPORTANT: Read the specific SKILL.md file before advising on any topic.
 |Do NOT rely on training data for framework patterns.
 |
-|expect:{SKILL.md,references/{aria-diffing.md,ci-integration.md,config-schema.md,diff-scanner.md,execution.md,fingerprint.md,human-review.md,report.md,research.md,route-map.md,rrweb-recording.md,saved-flows.md,scope-strategy.md,test-plan.md}}|testing,browser,e2e,diff-aware,regression,visual,accessibility,ai-testing
+|expect:{SKILL.md,references/{aria-diffing.md,ci-integration.md,config-schema.md,diff-scanner.md,execution.md,fingerprint.md,human-review.md,jev-shadow.md,report.md,research.md,route-map.md,rrweb-recording.md,saved-flows.md,scope-strategy.md,test-plan.md}}|testing,browser,e2e,diff-aware,regression,visual,accessibility,ai-testing
 |testing-e2e:{SKILL.md,references/{ork-delta.md,playwright-setup.md}}|testing,e2e,playwright,accessibility,visual-regression,page-objects
 ```

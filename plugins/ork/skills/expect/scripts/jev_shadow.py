@@ -1,0 +1,382 @@
+#!/usr/bin/env python3
+"""Jev shadow for /ork:expect. SHADOW ONLY.
+
+Sends ONE Jev request per expect step: a Choice over the bounded set of
+legal next actions (element verbs derived from the interactive ARIA
+snapshot plus fixed meta moves) and three loopback-verify Nouls
+(goal_reached, page_changed_as_expected, blocked). Emits one
+JEV_SHADOW|<step>|<json> line for report.sh. Never acts on the answer;
+every failure is a logged error record, never a nonzero exit.
+
+Payload hygiene: only ref id, role, and accessible name leave the machine
+per element, capped by config, names truncated, and every outbound string
+passes the secret redactor. No page text beyond accessible names is sent.
+"""
+
+import argparse
+import json
+import os
+import re
+import socket
+import sys
+import time
+import urllib.error
+import urllib.request
+
+SKILL_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DEFAULTS_FILE = os.path.join(SKILL_DIR, "jev-shadow.defaults.yaml")
+ENV_FLAG = "ORK_EXPECT_JEV_SHADOW"
+ENV_KEY = "ORK_TYPESAFE_API_KEY"
+ENV_ENDPOINT = "ORK_EXPECT_JEV_ENDPOINT"
+ENV_CONFIG = "ORK_EXPECT_CONFIG"
+
+TRUTHY = {"1", "true", "yes", "on"}
+
+# Verbs a role can legally take in agent-browser terms.
+CLICK_ROLES = {
+    "button", "link", "menuitem", "menuitemcheckbox", "menuitemradio",
+    "tab", "checkbox", "radio", "switch", "option", "treeitem", "listitem",
+}
+FILL_ROLES = {"textbox", "searchbox", "spinbutton"}
+SELECT_ROLES = {"combobox", "listbox"}
+
+META_ACTIONS = {
+    "done": "The step goal is already met; take no element action",
+    "wait": "The page is still settling; wait before acting",
+    "scroll": "The needed element is likely off-screen; scroll to reveal it",
+    "press_enter": "Submit or confirm the focused control via the Enter key",
+}
+
+# Outbound strings pass every pattern; each match is replaced in place.
+SECRET_PATTERNS = [
+    re.compile(r"(?i)bearer\s+[A-Za-z0-9._~+/=\-]{6,}"),
+    re.compile(
+        r"(?i)\b(?:token|secret|passwd|password|api[-_]?key|apikey|"
+        r"session|cookie|credential|auth)s?\s*[:=]\s*[^\s;,]{4,}"
+    ),
+    re.compile(r"eyJ[A-Za-z0-9_\-]{8,}\.[A-Za-z0-9_\-]{8,}\.[A-Za-z0-9_\-]{4,}"),
+    re.compile(r"\b(?:ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9_]{16,}"),
+    re.compile(r"\bgithub_pat_[A-Za-z0-9_]{20,}"),
+    re.compile(r"\bsk-[A-Za-z0-9_\-]{16,}"),
+    re.compile(r"\bxox[baprs]-[A-Za-z0-9\-]{8,}"),
+    re.compile(r"\bAKIA[0-9A-Z]{16}\b"),
+    re.compile(r"\b[A-Fa-f0-9]{40,}\b"),
+]
+
+SNAP_LINE = re.compile(r'^\s*-?\s*([A-Za-z][\w-]*)\s+"([^"]*)"(?:\s+\[ref=(e\d+)\])?')
+
+JSON_ESCAPE = re.compile(r"\\(?:u[0-9a-fA-F]{4}|[\"\\/bfnrt])")
+
+
+def truthy(value):
+    return str(value or "").strip().lower() in TRUTHY
+
+
+def unescape_json(text):
+    """Decode JSON-style escapes carried verbatim in input (\\uXXXX, \\/,
+    \\", \\\\, \b \f \n \r \t). Secret scanning runs on the decoded form so a
+    token smuggled as `token\\u003d<value>` is caught the same as `token=<value>`."""
+    def repl(m):
+        try:
+            return json.loads('"%s"' % m.group(0))
+        except ValueError:
+            return m.group(0)
+    return JSON_ESCAPE.sub(repl, text)
+
+
+def sanitize(text, max_chars):
+    """Decode JSON escapes, redact secret-looking spans, collapse whitespace,
+    truncate. Redaction happens on BOTH encodings' behalf: patterns run on
+    the decoded string, so raw and JSON-escaped secrets are caught alike."""
+    if not isinstance(text, str):
+        return ""
+    out = unescape_json(text)
+    for pattern in SECRET_PATTERNS:
+        out = pattern.sub("[redacted]", out)
+    out = re.sub(r"\s+", " ", out).strip()
+    return out[:max_chars]
+
+
+def load_yaml(path):
+    try:
+        import yaml
+    except ImportError:
+        return None
+    try:
+        with open(path, "r", encoding="utf-8") as fh:
+            return yaml.safe_load(fh) or {}
+    except OSError:
+        return None
+
+
+def resolve_config(cli_path):
+    """jev_shadow section: --config > $ORK_EXPECT_CONFIG > .expect/config.yaml
+    > bundled defaults file. Values never come from code constants."""
+    for path in (cli_path, os.environ.get(ENV_CONFIG), ".expect/config.yaml"):
+        if path:
+            cfg = load_yaml(path)
+            if cfg is not None and isinstance(cfg.get("jev_shadow"), dict):
+                return cfg["jev_shadow"]
+    defaults = load_yaml(DEFAULTS_FILE)
+    if defaults and isinstance(defaults.get("jev_shadow"), dict):
+        return defaults["jev_shadow"]
+    return None
+
+
+def parse_snapshot_text(raw):
+    """Pull (ref, role, name) triples out of `snapshot -i` text output."""
+    elements = []
+    for line in raw.splitlines():
+        m = SNAP_LINE.match(line)
+        if m and m.group(3):
+            elements.append({"ref": m.group(3), "role": m.group(1), "name": m.group(2)})
+    return elements
+
+
+def walk_json(node, out):
+    if isinstance(node, dict):
+        role = node.get("role")
+        name = node.get("name")
+        ref = node.get("ref") or node.get("id")
+        if isinstance(ref, str) and isinstance(role, str):
+            ref = ref.lstrip("@")
+            out.append({"ref": ref, "role": role, "name": name if isinstance(name, str) else ""})
+        for value in node.values():
+            walk_json(value, out)
+    elif isinstance(node, list):
+        for item in node:
+            walk_json(item, out)
+
+
+def load_elements(path, cap, name_max):
+    """Elements from a recorded `agent-browser snapshot -i` file (text or
+    --json). Only ref, role, name are kept; anything else never leaves."""
+    try:
+        with open(path, "r", encoding="utf-8", errors="replace") as fh:
+            raw = fh.read()
+    except (OSError, TypeError):
+        return []
+    elements = []
+    stripped = raw.lstrip()
+    if stripped.startswith("{") or stripped.startswith("["):
+        try:
+            walk_json(json.loads(raw), elements)
+        except (ValueError, RecursionError):
+            elements = []
+    if not elements:
+        elements = parse_snapshot_text(raw)
+    return [
+        {"ref": e["ref"], "role": e["role"], "name": sanitize(e["name"], name_max)}
+        for e in elements[:cap]
+    ]
+
+
+def build_candidates(elements):
+    """Bounded action set: legal verbs per interactive element + meta moves."""
+    candidates = {}
+    for e in elements:
+        ref = e["ref"]
+        desc = '%s "%s"' % (e["role"], e["name"]) if e["name"] else e["role"]
+        if e["role"] in CLICK_ROLES:
+            candidates["click:@%s" % ref] = desc
+        if e["role"] in FILL_ROLES:
+            candidates["fill:@%s" % ref] = desc
+        if e["role"] in SELECT_ROLES:
+            candidates["select:@%s" % ref] = desc
+    candidates.update(META_ACTIONS)
+    return candidates
+
+
+def normalize_model_action(raw, elements, candidates):
+    """Map the agent's picked action text onto a candidate key, or None."""
+    if not raw:
+        return None
+    text = raw.strip()
+    m = re.match(r"(?i)^(click|fill|select|check|uncheck|press|drag|upload)\s+@?e(\d+)", text)
+    if m:
+        key = "%s:@e%s" % (m.group(1).lower(), m.group(2))
+        return key if key in candidates else key
+    verb = text.split(None, 1)[0].lower() if text else ""
+    if verb in META_ACTIONS:
+        return verb
+    m = re.match(r'(?i)^(click|fill|select)\s+"([^"]+)"', text)
+    if m:
+        want_verb, want_name = m.group(1).lower(), m.group(2)
+        for e in elements:
+            if e["name"] == want_name:
+                key = "%s:@%s" % (want_verb, e["ref"])
+                return key if key in candidates else key
+    if re.match(r"(?i)^press\s+enter\b", text):
+        return "press_enter"
+    if verb in ("press", "navigate"):
+        return verb
+    return None
+
+
+def build_request(goal, last_verify, elements, candidates, model):
+    return {
+        "state": {
+            "step_goal": goal,
+            "last_verify": last_verify,
+            "interactive_elements": elements,
+        },
+        "model": model,
+        "questions": {
+            "next_action": {
+                "type": "choice",
+                "instructions": (
+                    "A browser-testing agent must make exactly one move toward `step_goal`. "
+                    "Which single legal action is the best next move? Candidates are the "
+                    "interactive elements of the current page plus the fixed meta moves."
+                ),
+                "criteria": candidates,
+            },
+            "goal_reached": {
+                "type": "noul",
+                "instructions": "Is `step_goal` already satisfied on the current page, so no further action is needed?",
+                "criteria": {
+                    "true": "The goal is visibly met by the current page state",
+                    "false": "Further interaction is still needed",
+                },
+            },
+            "page_changed_as_expected": {
+                "type": "noul",
+                "instructions": "Did the page respond to the previous step the way `last_verify` describes?",
+                "criteria": {
+                    "true": "The observed state matches the expected outcome",
+                    "false": "The page did not change as expected, or `last_verify` reports a failure",
+                },
+            },
+            "blocked": {
+                "type": "noul",
+                "instructions": "Is progress blocked by a modal dialog, a login or signup wall, a captcha, or a permission prompt?",
+                "criteria": {
+                    "true": "A blocking element stands between the agent and the goal",
+                    "false": "Nothing blocks the next action",
+                },
+            },
+        },
+    }
+
+
+def post_jev(endpoint, api_key, payload, timeout_s):
+    req = urllib.request.Request(
+        endpoint,
+        data=json.dumps(payload).encode("utf-8"),
+        headers={
+            "Authorization": "Bearer %s" % api_key,
+            "Content-Type": "application/json",
+        },
+        method="POST",
+    )
+    with urllib.request.urlopen(req, timeout=timeout_s) as resp:
+        return json.loads(resp.read().decode("utf-8"))
+
+
+def emit(step_id, record):
+    line = json.dumps(record, separators=(",", ":"), ensure_ascii=True)
+    line = re.sub(r"[|\t\n\r]", " ", line)
+    print("JEV_SHADOW|%s|%s" % (step_id or "-", line))
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--step-id", default="-")
+    parser.add_argument("--goal", default="")
+    parser.add_argument("--last-verify", default="")
+    parser.add_argument("--model-action", default="")
+    parser.add_argument("--snapshot-file", default=None)
+    parser.add_argument("--config", default=None)
+    args = parser.parse_args()
+
+    if not truthy(os.environ.get(ENV_FLAG)):
+        return 0
+
+    cfg = resolve_config(args.config)
+    if cfg is None:
+        emit(args.step_id, {"step_id": args.step_id, "error": "no jev_shadow config", "agree": None})
+        return 0
+
+    element_cap = int(cfg.get("element_cap", 0) or 0)
+    name_max = int(cfg.get("name_max_chars", 0) or 0)
+    context_max = int(cfg.get("context_max_chars", 0) or 0)
+    budget_ms = int(cfg.get("latency_budget_ms", 0) or 0)
+    model = str(cfg.get("model", ""))
+    endpoint = os.environ.get(ENV_ENDPOINT) or str(cfg.get("endpoint", ""))
+    thresholds = cfg.get("thresholds") or {}
+
+    if element_cap <= 0 or name_max <= 0 or context_max <= 0 or budget_ms <= 0 or not model or not endpoint:
+        emit(args.step_id, {"step_id": args.step_id, "error": "incomplete jev_shadow config", "agree": None})
+        return 0
+
+    goal = sanitize(args.goal, context_max)
+    last_verify = sanitize(args.last_verify, context_max)
+    elements = load_elements(args.snapshot_file, element_cap, name_max)
+    candidates = build_candidates(elements)
+    model_key = normalize_model_action(args.model_action, elements, candidates)
+
+    base = {
+        "step_id": args.step_id,
+        "model_action": args.model_action,
+        "model_action_key": model_key,
+        "model": model,
+        "latency_budget_ms": budget_ms,
+    }
+
+    api_key = (os.environ.get(ENV_KEY) or "").strip()
+    if not api_key:
+        emit(args.step_id, {**base, "error": "no_api_key", "agree": None})
+        return 0
+
+    started = time.monotonic()
+    try:
+        body = post_jev(endpoint, api_key, build_request(goal, last_verify, elements, candidates, model), budget_ms / 1000.0)
+    except urllib.error.HTTPError as exc:
+        emit(args.step_id, {**base, "error": "http %d" % exc.code, "agree": None, "latency_ms": int((time.monotonic() - started) * 1000)})
+        return 0
+    except (urllib.error.URLError, socket.timeout, TimeoutError):
+        emit(args.step_id, {**base, "error": "unreachable_or_timeout", "agree": None, "latency_ms": int((time.monotonic() - started) * 1000)})
+        return 0
+    except (ValueError, OSError):
+        emit(args.step_id, {**base, "error": "request_failed", "agree": None, "latency_ms": int((time.monotonic() - started) * 1000)})
+        return 0
+    latency_ms = int((time.monotonic() - started) * 1000)
+
+    answers = body.get("answers") if isinstance(body, dict) else None
+    choice_answer = (answers or {}).get("next_action") or {}
+    jev_action = choice_answer.get("choice")
+    if jev_action not in candidates:
+        emit(args.step_id, {**base, "error": "malformed_answer", "agree": None, "latency_ms": latency_ms})
+        return 0
+
+    nouls = {}
+    for qid in ("goal_reached", "page_changed_as_expected", "blocked"):
+        val = ((answers or {}).get(qid) or {}).get("noul")
+        nouls[qid] = val if isinstance(val, (int, float)) else None
+
+    flags = {"low_confidence": None}
+    conf = choice_answer.get("confidence")
+    low_thr = thresholds.get("low_confidence")
+    if isinstance(conf, (int, float)) and isinstance(low_thr, (int, float)):
+        flags["low_confidence"] = conf < low_thr
+    for qid in nouls:
+        thr = thresholds.get(qid)
+        flags[qid] = (nouls[qid] >= thr) if isinstance(nouls[qid], (int, float)) and isinstance(thr, (int, float)) else None
+
+    emit(args.step_id, {
+        **base,
+        "jev_action": jev_action,
+        "jev_action_probability": (choice_answer.get("probabilities") or {}).get(jev_action),
+        "jev_confidence": conf if isinstance(conf, (int, float)) else None,
+        "probabilities": choice_answer.get("probabilities") or {},
+        "nouls": nouls,
+        "flags": flags,
+        "agree": (model_key == jev_action) if model_key else False,
+        "latency_ms": latency_ms,
+        "error": None,
+    })
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

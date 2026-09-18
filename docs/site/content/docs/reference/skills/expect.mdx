@@ -334,6 +334,10 @@ After a passing run, the `posttool/expect/snapshot-recorder` hook persists the c
 
 For the snapshot recorder to fire, the expect run output must contain `RUN_COMPLETED|passed`, `ROUTE|&lt;route&gt;`, and `ARIA|&lt;json-summary&gt;` tags. The agent-browser-driven flow already emits these.
 
+## Jev shadow (opt-in, shadow only)
+
+When `ORK_EXPECT_JEV_SHADOW` is truthy, each executed step additionally emits a `JEV_SHADOW|&lt;id&gt;|&lt;json&gt;` line: one Jev request judges the step (a Choice over the bounded legal-action set built from the interactive ARIA elements, plus three verify Nouls) and the report logs the Jev pick with probabilities beside the agent's pick and their agreement. It never drives the browser. Off by default; off means zero network. Tunables live in `.expect/config.yaml` `jev_shadow:`. Load: `Read("references/jev-shadow.md")`
+
 
 ## When NOT to Use
 
@@ -381,6 +385,7 @@ Load on demand with `Read("references/&lt;file&gt;")`:
 | `human-review.md` | AskUserQuestion plan review gate |
 | `ci-integration.md` | GitHub Actions workflow + pre-push hooks |
 | `research.md` | millionco/expect architecture analysis |
+| `jev-shadow.md` | Opt-in Jev shadow pick per step: bounded-action Choice + verify Nouls, logged only |
 
 
 **Version:** 1.0.0 (March 2026) — Initial scaffold, M99 milestone
@@ -577,7 +582,7 @@ except ElementNotFound:
 
 ---
 
-## References (14)
+## References (15)
 
 ### Aria Diffing
 
@@ -816,6 +821,23 @@ reports:
   storage: .expect/reports/
   keep_last: 10         # Number of reports to retain
   screenshots: on_fail  # always | on_fail | never
+
+# Jev shadow (SHADOW ONLY, see references/jev-shadow.md)
+# Runs one Jev request per step when ORK_EXPECT_JEV_SHADOW is truthy.
+# Every key below has a shipped fallback in the skill's
+# jev-shadow.defaults.yaml; set this section to override it wholesale.
+jev_shadow:
+  endpoint: "https://api.typesafe.ai/v1/systemone"
+  model: "jev-1.13.0"       # pinned: a shadow comparison needs a fixed model
+  element_cap: 60           # max interactive elements per request (ref+role+name)
+  name_max_chars: 80        # per-name truncation after redaction
+  context_max_chars: 300    # per-field truncation for goal and last verify
+  latency_budget_ms: 400    # abort budget for the one request per step
+  thresholds:
+    low_confidence: 0.5     # Choice confidence below this flags the pick
+    goal_reached: 0.7       # noul >= threshold raises the matching flag
+    page_changed_as_expected: 0.7
+    blocked: 0.7
 
 # Files to ignore in diff scanning
 ignore_patterns:
@@ -1168,6 +1190,132 @@ Executing test plan...
   ◌ /dashboard — running step 2/4...
   ○ /settings — pending
 ```
+
+
+### Jev Shadow
+
+# Jev Shadow for /ork:expect
+
+One logged-only Jev judgment per expect step. Shadow only: it never
+changes what the expect-agent executes.
+
+## Shape
+
+Same pattern the browser-use/Jev integrations use, rebuilt on our own
+stack (agent-browser ARIA refs, no third-party driver):
+
+```
+step goal + last verify + interactive elements
+        |
+        v
+ONE Jev request (POST /v1/systemone)
+  questions:
+    next_action              Choice over the bounded legal-action set
+    goal_reached             Noul   (loopback verify)
+    page_changed_as_expected Noul   (loopback verify)
+    blocked                  Noul   (dialog / login wall / captcha)
+        |
+        v
+JEV_SHADOW|<step-id>|<json>  ->  report.sh  ->  run report (per step + totals)
+```
+
+The bounded action set is derived, not freeform: `click`/`fill`/`select`
+per interactive element (role-dependent, keyed `verb:@eN` on the same
+`@eN` refs agent-browser uses) plus the fixed meta moves `done`, `wait`,
+`scroll`, `press_enter`. Jev cannot pick an action the stack cannot take.
+
+## Gate
+
+Runs only when `ORK_EXPECT_JEV_SHADOW` is truthy (`1|true|yes|on`).
+Default off, and off means off: `scripts/jev-shadow.sh` exits before
+python or the network are touched. The API key comes from
+`ORK_TYPESAFE_API_KEY`; with no key the step logs `error: no_api_key`
+and no request is made.
+
+## What leaves while it is on (egress)
+
+Per enabled step, exactly one HTTPS POST to the configured endpoint
+carrying `state` = the step goal, the last verify result, and up to
+`element_cap` interactive elements as `\{ref, role, name\}` triples. Only
+the fields the four questions need leave; the only ids are the snapshot's
+ephemeral `@eN` refs (positional, per-capture, not real identifiers, so
+nothing is worth hashing). No page text beyond accessible names, no
+cookies, no tokens: every outbound string passes a secret redactor
+(`[redacted]`) and a length cap before the request is built. The guard
+runs on the decoded form, so a secret smuggled raw (`token=&lt;v&gt;`) or
+JSON-escaped (`token\u003d&lt;v&gt;`) is caught the same. Question text and
+option descriptions are static strings built locally.
+
+## Tunables
+
+All in `.expect/config.yaml` under `jev_shadow:` (see
+references/config-schema.md), falling back to the shipped
+`jev-shadow.defaults.yaml`. The script refuses to run with no resolved
+config; nothing is a code constant.
+
+| Key | Meaning |
+|-----|---------|
+| `element_cap` | Max interactive elements per request (default 60) |
+| `name_max_chars` | Per-name truncation after redaction |
+| `context_max_chars` | Per-field truncation for goal / last verify |
+| `latency_budget_ms` | Abort budget for the one request (default 400) |
+| `model` | Pinned Jev model id |
+| `endpoint` | POST target (`ORK_EXPECT_JEV_ENDPOINT` overrides, for mocks) |
+| `thresholds.low_confidence` | Choice confidence below this flags the pick |
+| `thresholds.\{goal_reached,page_changed_as_expected,blocked\}` | Noul at or above raises the flag |
+
+## The record
+
+```json
+{
+  "step_id": "login-2",
+  "model_action": "click @e15",
+  "model_action_key": "click:@e15",
+  "jev_action": "click:@e15",
+  "jev_action_probability": 0.81,
+  "jev_confidence": 0.79,
+  "probabilities": {"click:@e15": 0.81, "done": 0.05, "...": 0.0},
+  "nouls": {"goal_reached": 0.12, "page_changed_as_expected": 0.9, "blocked": 0.03},
+  "flags": {"low_confidence": false, "goal_reached": false,
+            "page_changed_as_expected": true, "blocked": false},
+  "agree": true,
+  "latency_ms": 210,
+  "latency_budget_ms": 400,
+  "model": "jev-1.13.0",
+  "error": null
+}
+```
+
+`model_action_key` is the agent's pick normalized onto the candidate
+keyspace: `click @e15` maps direct, `click "Sign in"` resolves the
+accessible name to its ref. Actions outside the keyspace (`press Tab`,
+`navigate`, `drag`) log their raw text with `agree: false`; they are
+visible in the report but not comparable.
+
+`report.sh` folds each record into the step's `jev_shadow` field and
+adds a run-level `jev_shadow: \{recorded, agreed, disagreed\}` summary.
+Failures (`http N`, `unreachable_or_timeout`, `malformed_answer`,
+`no_api_key`, `no jev_shadow config`) land as error records with
+`agree: null`. The script always exits 0: a dead shadow must never
+fail a run.
+
+## Invocation (expect-agent, per step)
+
+After picking the action for a step and before executing it:
+
+```bash
+bash $CLAUDE_PLUGIN_ROOT/skills/expect/scripts/jev-shadow.sh \
+  --step-id login-2 \
+  --goal "Submit the login form" \
+  --last-verify "Fields filled with test credentials" \
+  --model-action "click @e15" \
+  --snapshot-file .expect/jev-snap.txt
+```
+
+`--snapshot-file` is the `agent-browser snapshot -i` output the agent
+already captured (text or `--json` form; only ref/role/name are read).
+`--config` or `ORK_EXPECT_CONFIG` points at an alternate config file;
+`.expect/config.yaml` is used when present.
 
 
 ### Report

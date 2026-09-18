@@ -62,6 +62,14 @@ framework: "${FRAMEWORK}"  # auto-detected
 # Route map overrides (auto-detected routes merged with these)
 route_map: {}
 
+# Jev shadow: one logged-only Jev pick per step when ORK_EXPECT_JEV_SHADOW
+# is truthy. Uncomment to override the shipped defaults; every key has a
+# fallback in the skill's jev-shadow.defaults.yaml.
+# jev_shadow:
+#   element_cap: 60
+#   latency_budget_ms: 400
+#   thresholds: { low_confidence: 0.5, goal_reached: 0.7, page_changed_as_expected: 0.7, blocked: 0.7 }
+
 # Patterns to ignore in diff scan
 ignore_patterns:
   - "*.lock"

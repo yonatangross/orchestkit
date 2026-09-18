@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A Jev shadow over every expect step</title>
+<style>
+  :root{--bg:#0f1216;--panel:#161b22;--line:#2a313b;--ink:#e6e9ee;--muted:#9aa4b2;--red:#ef5350;--yel:#f2c14e;--grn:#4caf82;--acc:#8ab4f8}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:900px;margin:0 auto;padding:28px 16px 64px}
+  h1{font-size:1.8rem;margin:0 0 8px}
+  .lede{color:var(--muted);max-width:66ch;margin:0 0 20px}
+  .kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:0 0 28px}
+  .kpi div{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+  .kpi b{display:block;font:700 1.6rem/1.1 ui-monospace,Menlo,monospace}
+  .kpi span{color:var(--muted);font-size:.85rem}
+  .beat{margin-top:32px;padding-top:16px;border-top:1px solid var(--line)}
+  .beat h2{font-size:1.25rem;margin:0 0 6px}
+  .beat p{max-width:70ch;margin:0 0 12px}
+  .box{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
+  .box h3{margin:0 0 8px;font-size:.9rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+  pre{margin:0;font:.85rem/1.5 ui-monospace,Menlo,monospace;white-space:pre-wrap;overflow-wrap:anywhere}
+  code{font:.9em ui-monospace,Menlo,monospace;background:#1d232c;padding:1px 5px;border-radius:4px}
+  .pair{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  label{display:block;margin:6px 0;color:var(--muted);font-size:.9rem}
+  select{padding:6px 10px;border-radius:8px;border:1px solid var(--line);background:#0b0e12;color:var(--ink);font:.9rem ui-monospace,Menlo,monospace}
+  .flagrow{display:flex;align-items:center;gap:10px;margin:14px 0}
+  .flagrow code{font-size:.9rem}
+  .switch{position:relative;width:44px;height:24px;flex:0 0 auto}
+  .switch input{opacity:0;width:0;height:0}
+  .track{position:absolute;inset:0;background:#2a313b;border-radius:24px;transition:.15s;cursor:pointer}
+  .track:before{content:"";position:absolute;width:18px;height:18px;left:3px;top:3px;background:#9aa4b2;border-radius:50%;transition:.15s}
+  .switch input:checked + .track{background:#1f4d36}
+  .switch input:checked + .track:before{transform:translateX(20px);background:var(--grn)}
+  .off{color:var(--muted);font: .95rem/1.5 ui-monospace,Menlo,monospace;border:1px dashed var(--line);border-radius:10px;padding:14px}
+  .els{width:100%;border-collapse:collapse;font:.85rem/1.5 ui-monospace,Menlo,monospace}
+  .els td,.els th{padding:4px 8px;border-bottom:1px solid var(--line);text-align:left}
+  .els th{color:var(--muted);font-weight:600}
+  .pick{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#1b2129}
+  .pick b{font:700 1.05rem ui-monospace,Menlo,monospace;color:var(--acc)}
+  .pick.jev b{color:var(--yel)}
+  .pick span{display:block;color:var(--muted);font-size:.8rem;margin-bottom:4px}
+  .agree{display:inline-block;margin-top:10px;padding:3px 10px;border-radius:999px;font:700 .85rem ui-monospace,Menlo,monospace}
+  .agree.y{background:#1f4d36;color:#8ad0a8}
+  .agree.n{background:#5a2320;color:#ef8a87}
+  .bar-row{display:grid;grid-template-columns:150px 1fr 52px;gap:8px;align-items:center;font:.8rem ui-monospace,Menlo,monospace;margin:3px 0}
+  .bar-row .lab{color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .bar-row .lab.sel{color:var(--yel);font-weight:700}
+  .bar{height:10px;background:#1b2129;border-radius:5px;overflow:hidden}
+  .bar i{display:block;height:100%;background:var(--acc)}
+  .bar-row.sel .bar i{background:var(--yel)}
+  .bar-row .pct{text-align:right;color:var(--muted)}
+  .noul{display:grid;grid-template-columns:190px 1fr 90px;gap:8px;align-items:center;font:.8rem ui-monospace,Menlo,monospace;margin:4px 0}
+  .noul .lab{color:var(--muted)}
+  .gauge{height:10px;background:#1b2129;border-radius:5px;position:relative;overflow:hidden}
+  .gauge i{display:block;height:100%;background:var(--acc)}
+  .gauge b{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--yel);left:70%}
+  .chip{font:700 .75rem ui-monospace,Menlo,monospace;padding:2px 8px;border-radius:999px;text-align:right}
+  .chip.on{background:#5a2320;color:#ef8a87}
+  .chip.off{background:#1b2129;color:var(--muted)}
+  .wire{background:#0b0e12;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:.78rem/1.5 ui-monospace,Menlo,monospace;white-space:pre-wrap;overflow-wrap:anywhere;color:#8ad0a8}
+  ul.tight{margin:8px 0;padding-left:20px;color:var(--muted)}
+  ul.tight li{margin:3px 0}
+  footer{margin-top:40px;color:var(--muted);font-size:.85rem}
+  @media (max-width:640px){.kpi{grid-template-columns:1fr 1fr}.pair{grid-template-columns:1fr}.bar-row{grid-template-columns:110px 1fr 46px}.noul{grid-template-columns:130px 1fr 76px}}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="A Jev Shadow Over Every Expect Step"><meta property="og:description" content="The expect agent already picks a browser action per step from the accessibility tree; this adds a second, typed opinion behind ORK_EXPECT_JEV_SHADOW (default off). One request per enabled step asks a Choice over the bounded legal-action set plus three Nouls (goal reached, page changed as expected, blocked), and the report logs the Jev pick beside the model pick with per-step agreement. The shadow pick is never executed. The page simulates both scenarios live: flag off is a true no-op, flag on shows the picks, probabilities, noul flags, and the JEV_SHADOW report line."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/jev-browser-step-1.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="A Jev Shadow Over Every Expect Step"><meta name="twitter:description" content="The expect agent already picks a browser action per step from the accessibility tree; this adds a second, typed opinion behind ORK_EXPECT_JEV_SHADOW (default off). One request per enabled step asks a Choice over the bounded legal-action set plus three Nouls (goal reached, page changed as expected, blocked), and the report logs the Jev pick beside the model pick with per-step agreement. The shadow pick is never executed. The page simulates both scenarios live: flag off is a true no-op, flag on shows the picks, probabilities, noul flags, and the JEV_SHADOW report line."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<div class="wrap">
+  <h1>A Jev shadow over every expect step</h1>
+  <p class="lede">The expect agent already picks a browser action per step from the accessibility tree. This adds a second, typed opinion: one Jev request judges the same step, and the report logs whether the two picks agree. Shadow only, off by default, and the shadow pick never drives the browser.</p>
+
+  <div class="kpi">
+    <div><b>1</b><span>request per enabled step</span></div>
+    <div><b>4</b><span>questions: 1 Choice + 3 Nouls</span></div>
+    <div><b>60</b><span>element cap, from config</span></div>
+    <div><b>0</b><span>shadow picks executed</span></div>
+  </div>
+
+  <section class="beat">
+    <h2>Try it: the flag is the whole story</h2>
+    <p>Flip <code>ORK_EXPECT_JEV_SHADOW</code> and watch the step. Off is a true no-op: the step runs exactly as before, zero requests leave, zero report lines appear. On adds one bounded judgment beside the model pick.</p>
+    <div class="flagrow">
+      <label class="switch"><input type="checkbox" id="flag"><span class="track"></span></label>
+      <code>ORK_EXPECT_JEV_SHADOW</code>
+      <select id="scenario">
+        <option value="agree">scenario: unambiguous goal (agree)</option>
+        <option value="disagree">scenario: disagreement + blocked flag</option>
+      </select>
+    </div>
+    <div id="offPanel" class="off">flag off -&gt; jev-shadow.sh exits before python or the network. no request, no JEV_SHADOW line, the model action is the only action.</div>
+    <div id="onPanel" style="display:none">
+      <div class="box" style="margin-bottom:12px">
+        <h3>step context (what the request sees)</h3>
+        <pre id="ctx"></pre>
+        <table class="els"><thead><tr><th>ref</th><th>role</th><th>name</th></tr></thead><tbody id="els"></tbody></table>
+      </div>
+      <div class="pair" style="margin-bottom:12px">
+        <div class="pick"><span>model pick (executed)</span><b id="modelPick"></b></div>
+        <div class="pick jev"><span>jev pick (logged only)</span><b id="jevPick"></b></div>
+      </div>
+      <div><span id="agreeBadge" class="agree"></span> <span id="conf" style="color:var(--muted);font:.85rem ui-monospace,Menlo,monospace"></span></div>
+      <div class="pair" style="margin-top:12px">
+        <div class="box"><h3>choice probabilities</h3><div id="probs"></div></div>
+        <div class="box"><h3>noul judgments (threshold .70)</h3><div id="nouls"></div></div>
+      </div>
+      <p style="margin-top:14px;color:var(--muted)">Emitted to the report stream, folded into the JSON report per step:</p>
+      <div class="wire" id="wire"></div>
+    </div>
+  </section>
+
+  <section class="beat">
+    <h2>What leaves while the flag is on</h2>
+    <p>One HTTPS POST per step to the configured endpoint, carrying only the fields the four questions need:</p>
+    <ul class="tight">
+      <li>the step goal and the last verify result, each redacted and truncated;</li>
+      <li>up to 60 interactive elements as ref / role / accessible-name triples.</li>
+    </ul>
+    <p>Never sent: page text beyond accessible names, cookies, tokens, URLs, the model pick string, any full message body or command line. Outbound strings are JSON-escape-decoded before the secret patterns run, so a planted token is caught in raw and escaped encodings alike.</p>
+  </section>
+
+  <section class="beat">
+    <h2>Shadow means shadow</h2>
+    <p>The model action remains the action the agent executes. The Jev pick lands in the report beside it with the full probability distribution, the three noul flags, per-step agreement, and latency against the 400 ms budget. It is a measurement, not a driver.</p>
+  </section>
+
+  <footer>Canned responses mirror the test fixtures (tests/fixtures/expect). The real path is scripts/jev-shadow.sh -&gt; jev_shadow.py, covered by tests/unit/test-expect-jev-shadow.sh.</footer>
+</div>
+<script>
+const STEP = {
+  id: "step-3",
+  goal: "Click the Sign in button",
+  lastVerify: "Page loaded, login form visible",
+  modelAction: "click @e3",
+  modelKey: "click:@e3",
+  elements: [
+    {ref:"e1", role:"link", name:"Home"},
+    {ref:"e2", role:"link", name:"Pricing"},
+    {ref:"e4", role:"textbox", name:"Email"},
+    {ref:"e5", role:"textbox", name:"Password"},
+    {ref:"e6", role:"checkbox", name:"Remember me"},
+    {ref:"e3", role:"button", name:"Sign in"},
+    {ref:"e7", role:"button", name:"Create account"},
+    {ref:"e8", role:"link", name:"Privacy"}
+  ]
+};
+const SCENARIOS = {
+  agree: {jev:"click:@e3", conf:0.88, lat:87, probs:{"click:@e1":0.01,"click:@e2":0.01,"fill:@e4":0.02,"fill:@e5":0.01,"click:@e6":0.01,"click:@e3":0.9,"click:@e7":0.02,"click:@e8":0.005,"done":0.01,"wait":0.003,"scroll":0.001,"press_enter":0.001}, nouls:{goal_reached:0.08,page_changed_as_expected:0.93,blocked:0.04}},
+  disagree: {jev:"click:@e7", conf:0.66, lat:93, probs:{"click:@e1":0.01,"click:@e2":0.01,"fill:@e4":0.02,"fill:@e5":0.01,"click:@e6":0.01,"click:@e3":0.2,"click:@e7":0.7,"click:@e8":0.01,"done":0.01,"wait":0.01,"scroll":0.01,"press_enter":0.005}, nouls:{goal_reached:0.1,page_changed_as_expected:0.55,blocked:0.8}}
+};
+const NOUL_THR = 0.7, LOW_CONF_THR = 0.5, BUDGET = 400;
+const $ = id => document.getElementById(id);
+function renderOn() {
+  const s = SCENARIOS[$("scenario").value];
+  $("ctx").textContent = "goal: " + STEP.goal + "\nlast_verify: " + STEP.lastVerify;
+  $("els").innerHTML = STEP.elements.map(e =>
+    "<tr><td>@" + e.ref + "</td><td>" + e.role + "</td><td>" + e.name + "</td></tr>").join("");
+  $("modelPick").textContent = STEP.modelAction;
+  $("jevPick").textContent = s.jev;
+  const agree = STEP.modelKey === s.jev;
+  const badge = $("agreeBadge");
+  badge.textContent = agree ? "agree = true" : "agree = false";
+  badge.className = "agree " + (agree ? "y" : "n");
+  $("conf").textContent = "confidence " + s.conf + " | latency " + s.lat + " ms / " + BUDGET + " ms budget";
+  const order = Object.keys(s.probs).sort((a,b) => s.probs[b] - s.probs[a]);
+  $("probs").innerHTML = order.map(k => {
+    const p = s.probs[k], sel = k === s.jev;
+    return '<div class="bar-row' + (sel ? " sel" : "") + '"><span class="lab' + (sel ? " sel" : "") + '">' + k + '</span><span class="bar"><i style="width:' + Math.max(1, p*100) + '%"></i></span><span class="pct">' + p.toFixed(3) + "</span></div>";
+  }).join("");
+  $("nouls").innerHTML = Object.keys(s.nouls).map(k => {
+    const v = s.nouls[k], on = v >= NOUL_THR;
+    return '<div class="noul"><span class="lab">' + k + '</span><span class="gauge"><i style="width:' + v*100 + '%"></i><b></b></span><span class="chip ' + (on ? "on" : "off") + '">' + v.toFixed(2) + (on ? " flag" : "") + "</span></div>";
+  }).join("");
+  const rec = {step_id:STEP.id, model_action:STEP.modelAction, model_action_key:STEP.modelKey, model:"jev-1.13.0", latency_budget_ms:BUDGET,
+    jev_action:s.jev, jev_action_probability:s.probs[s.jev], jev_confidence:s.conf, probabilities:s.probs,
+    nouls:s.nouls, flags:{low_confidence: s.conf < LOW_CONF_THR, goal_reached: s.nouls.goal_reached >= NOUL_THR, page_changed_as_expected: s.nouls.page_changed_as_expected >= NOUL_THR, blocked: s.nouls.blocked >= NOUL_THR},
+    agree:agree, latency_ms:s.lat, error:null};
+  $("wire").textContent = "JEV_SHADOW|" + STEP.id + "|" + JSON.stringify(rec);
+}
+function render() {
+  const on = $("flag").checked;
+  $("offPanel").style.display = on ? "none" : "";
+  $("onPanel").style.display = on ? "" : "none";
+  if (on) renderOn();
+}
+$("flag").addEventListener("change", render);
+$("scenario").addEventListener("change", renderOn);
+render();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

@@ -334,6 +334,10 @@ After a passing run, the `posttool/expect/snapshot-recorder` hook persists the c
 
 For the snapshot recorder to fire, the expect run output must contain `RUN_COMPLETED|passed`, `ROUTE|<route>`, and `ARIA|<json-summary>` tags. The agent-browser-driven flow already emits these.
 
+## Jev shadow (opt-in, shadow only)
+
+When `ORK_EXPECT_JEV_SHADOW` is truthy, each executed step additionally emits a `JEV_SHADOW|<id>|<json>` line: one Jev request judges the step (a Choice over the bounded legal-action set built from the interactive ARIA elements, plus three verify Nouls) and the report logs the Jev pick with probabilities beside the agent's pick and their agreement. It never drives the browser. Off by default; off means zero network. Tunables live in `.expect/config.yaml` `jev_shadow:`. Load: `Read("skills/expect/references/jev-shadow.md")`
+
 
 ## When NOT to Use
 
@@ -381,6 +385,7 @@ Load on demand with `Read("references/<file>")`:
 | `human-review.md` | AskUserQuestion plan review gate |
 | `ci-integration.md` | GitHub Actions workflow + pre-push hooks |
 | `research.md` | millionco/expect architecture analysis |
+| `jev-shadow.md` | Opt-in Jev shadow pick per step: bounded-action Choice + verify Nouls, logged only |
 
 
 **Version:** 1.0.0 (March 2026) — Initial scaffold, M99 milestone

@@ -1,0 +1,12 @@
+jev_shadow:
+  endpoint: "http://127.0.0.1:1/unused"
+  model: "jev-test-cap"
+  element_cap: 3
+  name_max_chars: 80
+  context_max_chars: 300
+  latency_budget_ms: 400
+  thresholds:
+    low_confidence: 0.5
+    goal_reached: 0.7
+    page_changed_as_expected: 0.7
+    blocked: 0.7

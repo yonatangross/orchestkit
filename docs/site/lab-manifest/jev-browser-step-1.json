@@ -1,0 +1,12 @@
+{
+  "slug": "jev-browser-step-1",
+  "source": "docs/feat--jev-browser-step-1/index.html",
+  "title": "A Jev Shadow Over Every Expect Step",
+  "description": "The expect agent already picks a browser action per step from the accessibility tree; this adds a second, typed opinion behind ORK_EXPECT_JEV_SHADOW (default off). One request per enabled step asks a Choice over the bounded legal-action set plus three Nouls (goal reached, page changed as expected, blocked), and the report logs the Jev pick beside the model pick with per-step agreement. The shadow pick is never executed. The page simulates both scenarios live: flag off is a true no-op, flag on shows the picks, probabilities, noul flags, and the JEV_SHADOW report line.",
+  "tags": [
+    "expect",
+    "browser-testing",
+    "shadow"
+  ],
+  "date": "2026-09-17"
+}
