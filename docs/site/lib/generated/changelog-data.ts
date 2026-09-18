@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.52",
+    "date": "2026-09-18",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.51...v10.0.0-beta.52",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**hooks:** Jev routing seam for ork:auto behind ORK_ROUTE_JEV ([#4233](https://github.com/yonatangross/orchestkit/issues/4233)) ([#4237](https://github.com/yonatangross/orchestkit/issues/4237)) ([ef91b52](https://github.com/yonatangross/orchestkit/commit/ef91b521b95b986bc1c20a9ef39a59fea0b4937e))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.51",
     "date": "2026-09-18",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.50...v10.0.0-beta.51",

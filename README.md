@@ -585,6 +585,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.52](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.51...v10.0.0-beta.52)** · 2026-09-18
+
+- **hooks:** Jev routing seam for ork:auto behind ORK_ROUTE_JEV (#4233) (#4237)
+
 **[v10.0.0-beta.51](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.50...v10.0.0-beta.51)** · 2026-09-18
 
 - **expect:** pass agent result and summary to report.py on stdin, never as source (#4234)
@@ -614,10 +618,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.45](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.44...v10.0.0-beta.45)** · 2026-09-17
 
 - **hooks:** criteria-B for both category paths, Jev cascade at 0.8 (#4211)
-
-**[v10.0.0-beta.44](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.43...v10.0.0-beta.44)** · 2026-09-17
-
-- **hooks:** opt-in shadow session category as a typed Choice (#4208)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
