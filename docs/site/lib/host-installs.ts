@@ -105,6 +105,20 @@ export const HOST_INSTALLS: readonly HostInstallSpec[] = [
 			prompt: true,
 		},
 	},
+	{
+		id: "agy",
+		name: "Antigravity",
+		href: "/docs/getting-started/agy",
+		what: "Agent Skills via .agents/skills. No hooks, no MCP config.",
+		where: "Paste in the repo. agy reads the workspace .agents/skills.",
+		commands: [SKILLS_SH_STARTER],
+		prompt: true,
+		then: {
+			label: "Then verify",
+			commands: ['agy -p "/skills" --add-dir "$PWD"'],
+			prompt: true,
+		},
+	},
 ];
 
 export const HOST_INSTALL_BY_ID: Record<HostId, HostInstallSpec> = Object.fromEntries(
@@ -130,7 +144,7 @@ export function homeInstallHref(host: HostId, lib: LibraryTab = "skills"): strin
 	return query ? `/?${query}` : "/";
 }
 
-export const SKILLS_SH_HOST_IDS = ["muse", "opencode"] as const;
+export const SKILLS_SH_HOST_IDS = ["muse", "opencode", "agy"] as const;
 
 export type StackHint = "backend" | "frontend" | "fullstack" | "python";
 

@@ -1,0 +1,14 @@
+{
+  "slug": "agy-host-support",
+  "source": "docs/feat--4235-agy-host/agy-host-support.html",
+  "title": "Antigravity joins the host picker: a measured support matrix",
+  "description": "OrchestKit #4235 audited agy 1.2.6 against every OrchestKit surface: workspace .agents/skills, the skills.sh global dir, plugin bundles, hooks in both schemas, MCP in both configs, slash commands, and rules. Each cell in the matrix is clickable and shows the exact command and output behind the verdict, alongside the skills.sh install line the host card ships, the eight-card picker, the unattended lane dry-run, and the five honest gaps the audit measured.",
+  "tags": [
+    "hosts",
+    "antigravity",
+    "agy",
+    "skills-sh",
+    "support-matrix"
+  ],
+  "date": "2026-09-18"
+}

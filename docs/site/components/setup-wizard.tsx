@@ -47,6 +47,8 @@ function honesty(host: HostId): string | null {
 			return "No OpenCode marketplace pack. Same skills.sh starter as Muse.";
 		case "devin":
 			return "76 of the skills list today; hooks and rules do not load yet.";
+		case "agy":
+			return "Skills via workspace .agents/skills. Hooks and MCP config are a different contract.";
 		default:
 			return null;
 	}
@@ -207,7 +209,7 @@ export function SetupWizard() {
 								Does not pick another plugin. Claude and Cursor keep the
 								same install. Codex keeps ork-codex. Pi keeps{" "}
 								<code className="font-mono text-[11px]">pi install</code>.
-								Muse and OpenCode may add extra{" "}
+								Muse, OpenCode, and Antigravity may add extra{" "}
 								<code className="font-mono text-[11px]">-s</code> flags
 								to the starter 12.
 								</p>

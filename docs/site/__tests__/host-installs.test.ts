@@ -21,6 +21,7 @@ describe("host install commands", () => {
 			"pi",
 			"opencode",
 			"devin",
+			"agy",
 		]);
 	});
 
@@ -53,6 +54,14 @@ describe("host install commands", () => {
 			HOST_INSTALL_BY_ID.devin.commands,
 		);
 		expect(stackHintCopy("devin", "backend")).toMatch(/no -s flags/);
+	});
+
+	it("installs Antigravity via the shared skills.sh path, not an ork-agy pack", () => {
+		expect(HOST_INSTALL_BY_ID.agy.commands).toEqual([SKILLS_SH_STARTER]);
+		expect(HOST_INSTALL_BY_ID.agy.then?.commands).toEqual([
+			'agy -p "/skills" --add-dir "$PWD"',
+		]);
+		expect(HOST_INSTALL_BY_ID.agy.commands[0]).not.toMatch(/ork-agy/);
 	});
 
 	it("installs Pi via the shipped pi manifest, not ork-pi", () => {

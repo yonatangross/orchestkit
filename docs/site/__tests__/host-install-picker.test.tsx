@@ -135,10 +135,13 @@ describe("HostInstallPicker", () => {
 		});
 	});
 
-	it("renders seven host links including Devin", () => {
+	it("renders eight host links including Devin and Antigravity", () => {
 		render(<HostInstallPicker />);
 		const nav = screen.getByRole("navigation", { name: /install by host/i });
 		expect(within(nav).getByRole("link", { name: "Devin" })).toBeTruthy();
+		expect(
+			within(nav).getByRole("link", { name: "Antigravity" }),
+		).toBeTruthy();
 		expect(
 			within(nav).getAllByRole("link", { name: /docs/i }).length,
 		).toBeGreaterThanOrEqual(1);
@@ -159,6 +162,28 @@ describe("HostInstallPicker", () => {
 		);
 	});
 
+	it("adopts a ?host=agy deep link and shows its install command", async () => {
+		search = new URLSearchParams("host=agy");
+		render(<HostInstallPicker />);
+		expect(
+			await screen.findByRole("button", {
+				name: /copy npx skills add yonatangross\/orchestkit/i,
+			}),
+		).toBeTruthy();
+		expect(
+			screen.getByRole("link", { name: /Antigravity docs/i }).getAttribute(
+				"href",
+			),
+		).toBe("/docs/getting-started/agy");
+		await waitFor(() =>
+			expect(
+				screen
+					.getByRole("link", { name: "Antigravity" })
+					.getAttribute("aria-current"),
+			).toBe("true"),
+		);
+	});
+
 	it("moves focus between cards with arrow keys", () => {
 		render(<HostInstallPicker />);
 		const claude = screen.getByRole("link", { name: "Claude Code" });
@@ -169,7 +194,7 @@ describe("HostInstallPicker", () => {
 		);
 		fireEvent.keyDown(document.activeElement as Element, { key: "End" });
 		expect(document.activeElement).toBe(
-			screen.getByRole("link", { name: "Devin" }),
+			screen.getByRole("link", { name: "Antigravity" }),
 		);
 		fireEvent.keyDown(document.activeElement as Element, { key: "Home" });
 		expect(document.activeElement).toBe(
@@ -183,7 +208,7 @@ describe("HostInstallPicker", () => {
 		claude.focus();
 		fireEvent.keyDown(claude, { key: "ArrowLeft" });
 		expect(document.activeElement).toBe(
-			screen.getByRole("link", { name: "Devin" }),
+			screen.getByRole("link", { name: "Antigravity" }),
 		);
 	});
 
@@ -212,16 +237,16 @@ describe("HostInstallPicker", () => {
 		);
 		fireEvent.keyDown(document.activeElement as Element, { key: "ArrowDown" });
 		expect(document.activeElement).toBe(
-			screen.getByRole("link", { name: "Devin" }),
+			screen.getByRole("link", { name: "Antigravity" }),
 		);
 		// No cell below the last card: focus must not move (APG grid).
 		fireEvent.keyDown(document.activeElement as Element, { key: "ArrowDown" });
 		expect(document.activeElement).toBe(
-			screen.getByRole("link", { name: "Devin" }),
+			screen.getByRole("link", { name: "Antigravity" }),
 		);
 		fireEvent.keyDown(document.activeElement as Element, { key: "ArrowUp" });
 		expect(document.activeElement).toBe(
-			screen.getByRole("link", { name: "Codex" }),
+			screen.getByRole("link", { name: "Muse Code" }),
 		);
 		fireEvent.keyDown(document.activeElement as Element, { key: "Home" });
 		fireEvent.keyDown(document.activeElement as Element, { key: "ArrowUp" });
@@ -283,6 +308,7 @@ describe("HostInstallPicker", () => {
 			"Pi",
 			"OpenCode",
 			"Devin",
+			"Antigravity",
 		]) {
 			expect(
 				screen.getByRole("link", { name }).style.opacity,

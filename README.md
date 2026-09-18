@@ -46,17 +46,17 @@ Pick the host you actually use. Claude Code is the full plugin (skills + agents 
 
 #### Host support matrix
 
-Measured 2026-09-08 on pi 0.85, Codex CLI and cursor-agent. Details, commands and the lane model: [OrchestKit on pi, Codex and Cursor](https://orchestkit.yonyon.ai/docs/guides/orchestkit-on-pi-codex-cursor).
+Measured 2026-09-08 on pi 0.85, Codex CLI and cursor-agent. Details, commands and the lane model: [OrchestKit on pi, Codex and Cursor](https://orchestkit.yonyon.ai/docs/guides/orchestkit-on-pi-codex-cursor). Antigravity measured 2026-09-18 on agy 1.2.6; full evidence in `docs/audits/agy-host-support-2026-09-18.md`.
 
-| Surface | Claude Code | Cursor | Codex | pi | Devin |
-|---|---|---|---|---|---|
-| Skills (SKILL.md) | all | all, via the `ork` plugin | 6 (`ork-codex` pack) | all via `pi install`, 78 auto-listed | 76 of 107, GH-4146 |
-| Agents | all | all | 4 role templates | none | not reported by `info` |
-| Hooks | all | none | none | none | none |
-| Rules | repo convention | 14, plugin `rules` key | `AGENTS.md` | none | `AGENTS.md`, always on |
-| Commands | `/ork:<skill>` | 36 wrappers | `$ork-<skill>` | `/skill:<name>` | `/ork:<skill>` |
-| MCP config | `.mcp.json` | `.cursor/mcp.json` | plugin `mcp.json` | `.pi/mcp.json` | `mcp.json` / `.mcp.json` |
-| Status | shipped | shipped | shipped | shipped | skills only, GH-4146 |
+| Surface | Claude Code | Cursor | Codex | pi | Devin | Antigravity |
+|---|---|---|---|---|---|---|
+| Skills (SKILL.md) | all | all, via the `ork` plugin | 6 (`ork-codex` pack) | all via `pi install`, 78 auto-listed | 76 of 107, GH-4146 | all via workspace `.agents/skills` (skills.sh); `ork:<name>` via `agy plugin install` |
+| Agents | all | all | 4 role templates | none | not reported by `info` | 36 via `agy plugin install` (validated); none via `.agents/skills` |
+| Hooks | all | none | none | none | none | none of ork's; agy `hooks.json` is a different schema |
+| Rules | repo convention | 14, plugin `rules` key | `AGENTS.md` | none | `AGENTS.md`, always on | `AGENTS.md`, per-directory |
+| Commands | `/ork:<skill>` | 36 wrappers | `$ork-<skill>` | `/skill:<name>` | `/ork:<skill>` | `/<skill-name>`; `ork:<skill>` via plugin install |
+| MCP config | `.mcp.json` | `.cursor/mcp.json` | plugin `mcp.json` | `.pi/mcp.json` | `mcp.json` / `.mcp.json` | `~/.gemini/config/mcp_config.json` or plugin `mcp_config.json`; repo `.mcp.json` not read |
+| Status | shipped | shipped | shipped | shipped | skills only, GH-4146 | skills only, measured agy 1.2.6 |
 
 ### Claude Code
 
@@ -530,6 +530,35 @@ manifest) instead:
   ]
 }
 ```
+
+### Antigravity
+
+```bash
+npx skills add yonatangross/orchestkit -s doctor -s setup -s explore -s implement -s verify -s review-pr -s commit -s expect -s assess -s brainstorm -s create-pr -s remember
+```
+
+Antigravity (`agy`, Google's agentic CLI) reads Agent Skills from a workspace
+`.agents/skills` directory, so the shared skills.sh line above is the install
+path and Antigravity is already in that installer's universal target list
+(measured on agy 1.2.6; full evidence in
+`docs/audits/agy-host-support-2026-09-18.md`). Verify from the repo root with
+`agy -p "/skills" --add-dir "$PWD"`: print mode only registers a workspace from
+an absolute `--add-dir`, while the interactive TUI takes the launch directory
+as the workspace and needs no flag.
+
+Two honest gaps. `npx skills add -g` lands in `~/.agents/skills`, which agy
+does not read; user scope lives at `~/.gemini/config/skills` (or
+`~/.gemini/skills`). And none of ork's 171 hooks port: agy's `hooks.json` uses
+its own event names and payload shape, and `agy plugin validate plugins/ork`
+reports hooks skipped because ork keeps them at `hooks/hooks.json`, not the
+plugin-root `hooks.json` agy looks for.
+
+A fuller install exists but needs a local checkout:
+`agy plugin validate <checkout>/plugins/ork` reports `skills: 108 processed`,
+`agents: 36 processed`, and `agy plugin install <checkout>/plugins/ork` copies
+them into `~/.gemini/config/plugins/ork/` namespaced `ork:<name>`, which matches
+the `/ork:<skill>` spelling. Plugin-bundled `mcp_config.json` also works
+(marker-verified end to end), but a repo-level `.mcp.json` is never read.
 
 ---
 

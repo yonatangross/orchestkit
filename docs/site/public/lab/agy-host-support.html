@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Antigravity joins the host picker: a measured support matrix</title>
+<meta name="description" content="Playground for OrchestKit #4235: agy 1.2.6 audited against every OrchestKit surface. Click a cell to read the exact command and output that produced the verdict.">
+<style>
+  :root {
+    --bg: #0d1017;
+    --surface: #141926;
+    --border: #2a3244;
+    --fg: #e6eaf2;
+    --muted: #8b94a7;
+    --primary: #a5b4fc;
+    --primary-10: rgba(165, 180, 252, 0.10);
+    --ok: #6ee7b7;
+    --ok-10: rgba(110, 231, 183, 0.10);
+    --no: #fca5a5;
+    --no-10: rgba(252, 165, 165, 0.08);
+    --warn: #fcd34d;
+    --warn-10: rgba(252, 211, 77, 0.08);
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+    padding: 48px 24px;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  h1 { font-size: 22px; font-weight: 650; letter-spacing: -0.01em; }
+  h2 { font-size: 15px; font-weight: 650; margin-top: 36px; letter-spacing: -0.005em; }
+  .sub { color: var(--muted); margin-top: 8px; font-size: 13.5px; }
+  .sub code, .cell code, .gap code { font: 11.5px ui-monospace, SFMono-Regular, monospace; color: var(--primary); }
+
+  .legend { display: flex; gap: 14px; margin-top: 18px; font-size: 12px; color: var(--muted); }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .dot { width: 9px; height: 9px; border-radius: 3px; display: inline-block; }
+  .dot.ok { background: var(--ok); }
+  .dot.no { background: var(--no); }
+  .dot.derived { background: var(--warn); }
+
+  table.matrix { width: 100%; margin-top: 12px; border-collapse: collapse; font-size: 12.5px; }
+  .matrix th, .matrix td { border: 1px solid var(--border); padding: 8px 10px; text-align: left; vertical-align: top; }
+  .matrix th { background: var(--surface); color: var(--muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; }
+  .matrix td.surface { color: var(--fg); font-weight: 600; white-space: nowrap; }
+  .matrix td.surface .path { display: block; font-weight: 400; font-size: 11px; color: var(--muted); font-family: ui-monospace, monospace; margin-top: 2px; }
+
+  .cell { cursor: pointer; border-radius: 6px; padding: 3px 8px; display: inline-block; font-weight: 600; font-size: 11.5px; border: 1px solid transparent; }
+  .cell.ok { color: var(--ok); background: var(--ok-10); }
+  .cell.no { color: var(--no); background: var(--no-10); }
+  .cell.derived { color: var(--warn); background: var(--warn-10); }
+  .cell:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+  td.sel { outline: 2px solid var(--primary); outline-offset: -2px; }
+  .matrix td button { all: unset; cursor: pointer; }
+  .matrix td button:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; border-radius: 4px; }
+  .why { display: block; margin-top: 4px; font-size: 11px; color: var(--muted); font-weight: 400; }
+
+  .panel {
+    margin-top: 14px;
+    border: 1px solid var(--border); border-radius: 8px;
+    background: var(--surface);
+    padding: 12px 14px;
+    font: 12.5px/1.65 ui-monospace, SFMono-Regular, monospace;
+    color: var(--fg);
+    white-space: pre-wrap; word-break: break-word;
+  }
+  .panel .lbl { color: var(--muted); }
+  .panel .ok { color: var(--ok); }
+  .panel .no { color: var(--no); }
+
+  .cards { margin-top: 14px; display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 8px; }
+  @media (max-width: 640px) { .cards { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+  .host {
+    display: flex; flex-direction: column; align-items: flex-start; gap: 8px;
+    padding: 12px; border: 1px solid var(--border); border-radius: 12px;
+    background: var(--surface); color: var(--muted); text-align: left;
+    cursor: pointer; text-decoration: none;
+  }
+  .host.on { border-color: rgba(165,180,252,.5); background: var(--primary-10); color: var(--fg); }
+  .host:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+  .host .icon { display: inline-flex; width: 36px; height: 36px; align-items: center; justify-content: center; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--fg); }
+  .host .icon svg { width: 20px; height: 20px; }
+  .host .name { font-size: 13px; font-weight: 600; color: var(--fg); }
+  .host .what { font-size: 11px; line-height: 16px; color: var(--muted); min-height: 32px; }
+
+  .cmd { margin-top: 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); padding: 10px 12px; font: 12.5px/1.6 ui-monospace, SFMono-Regular, monospace; white-space: pre-wrap; word-break: break-all; position: relative; }
+  .cmd .p { color: var(--muted); margin-right: 6px; }
+  .cmd .copy { position: absolute; top: 6px; right: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--muted); border-radius: 6px; font: 11px system-ui; padding: 3px 8px; cursor: pointer; }
+  .cmd .copy:hover { color: var(--fg); }
+
+  .gap { margin-top: 10px; border-left: 3px solid var(--warn); padding: 6px 12px; font-size: 13px; color: var(--muted); }
+  .gap b { color: var(--fg); font-weight: 600; }
+
+  .foot { margin-top: 40px; font-size: 12px; color: var(--muted); }
+  .foot a { color: var(--primary); text-decoration: none; }
+  .foot a:hover { text-decoration: underline; }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Antigravity joins the host picker: a measured support matrix"><meta property="og:description" content="OrchestKit #4235 audited agy 1.2.6 against every OrchestKit surface: workspace .agents/skills, the skills.sh global dir, plugin bundles, hooks in both schemas, MCP in both configs, slash commands, and rules. Each cell in the matrix is clickable and shows the exact command and output behind the verdict, alongside the skills.sh install line the host card ships, the eight-card picker, the unattended lane dry-run, and the five honest gaps the audit measured."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/agy-host-support.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Antigravity joins the host picker: a measured support matrix"><meta name="twitter:description" content="OrchestKit #4235 audited agy 1.2.6 against every OrchestKit surface: workspace .agents/skills, the skills.sh global dir, plugin bundles, hooks in both schemas, MCP in both configs, slash commands, and rules. Each cell in the matrix is clickable and shows the exact command and output behind the verdict, alongside the skills.sh install line the host card ships, the eight-card picker, the unattended lane dry-run, and the five honest gaps the audit measured."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<div class="wrap">
+  <h1>Antigravity joins the host picker</h1>
+  <p class="sub">
+    OrchestKit #4235 audited <code>agy 1.2.6</code> against every OrchestKit surface on 2026-09-18:
+    a marker skill, a marker hook, and a real marker MCP server, each observed loaded or not.
+    Every verdict below is a row in <code>docs/audits/agy-host-support-2026-09-18.md</code>.
+    Click a cell to read the exact command and output behind it.
+  </p>
+
+  <div class="legend">
+    <span><i class="dot ok"></i> loads (measured)</span>
+    <span><i class="dot no"></i> does not load (measured)</span>
+    <span><i class="dot derived"></i> derived from bundled docs</span>
+  </div>
+
+  <table class="matrix" aria-label="Antigravity support matrix">
+    <thead>
+      <tr><th style="width:34%">Surface</th><th>Verdict</th><th>Evidence</th></tr>
+    </thead>
+    <tbody id="matrix"></tbody>
+  </table>
+
+  <div class="panel" id="evidence" role="status" aria-live="polite">Pick a cell to see the measurement.</div>
+
+  <h2>The install the card ships</h2>
+  <p class="sub">Project scope: agy reads <code>&lt;workspace&gt;/.agents/skills</code>, the same convention Muse Code and OpenCode ride, so the shared skills.sh starter is the line. No <code>ork-agy</code> pack.</p>
+  <div class="cmd"><button class="copy" data-copy="install">copy</button><span class="p">$</span>npx skills add yonatangross/orchestkit -s doctor -s setup -s explore -s implement -s verify -s review-pr -s commit -s expect -s assess -s brainstorm -s create-pr -s remember</div>
+  <p class="sub" style="margin-top:10px">Then verify from the repo root. Print mode needs an <em>absolute</em> <code>--add-dir</code>; bare cwd and <code>--add-dir .</code> both miss the workspace (measured).</p>
+  <div class="cmd"><button class="copy" data-copy="verify">copy</button><span class="p">$</span>agy -p "/skills" --add-dir "$PWD"</div>
+
+  <h2>The picker, now eight hosts</h2>
+  <div class="cards" id="cards" role="group" aria-label="Hosts"></div>
+  <div class="cmd" id="hostcmd"><span class="p">$</span>npx skills add yonatangross/orchestkit -s doctor -s setup -s explore -s implement -s verify -s review-pr -s commit -s expect -s assess -s brainstorm -s create-pr -s remember</div>
+
+  <h2>Unattended lane shape (dry-run, no quota spent)</h2>
+  <p class="sub">One dispatch through <code>hq_dispatch.py --kind gemini --class mech --dry-run</code> with a marker prompt. The kind routes to the agy binary; the prompt goes over the agent socket, no TTY.</p>
+  <div class="panel"><span class="lbl">route:</span> forced to gemini
+<span class="lbl">autonomy:</span> gemini mech to --sandbox --dangerously-skip-permissions
+<span class="lbl">model:</span> gemini mech -&gt; gemini-3.8-flash-medium
+<span class="lbl">plan:</span> agent start audit-marker-45021 --kind agy --pane &lt;w:p1&gt; -- --sandbox --dangerously-skip-permissions --model gemini-3.8-flash-medium
+<span class="lbl">plan:</span> agent prompt audit-marker-45021 'audit-marker: reply with AGY_LANE_OK'
+<span class="lbl">note:</span> dry-run only, per the issue. A real run would spend the capped agy quota.</div>
+
+  <h2>Honest gaps</h2>
+  <div class="gap"><b>1.</b> <code>skills add -g</code> lands in <code>~/.agents/skills</code>, which agy never reads. Global agy skills live under <code>~/.gemini/config/skills</code> or <code>~/.gemini/skills</code>.</div>
+  <div class="gap"><b>2.</b> Print mode registers a workspace from an absolute <code>--add-dir</code> only. The TUI uses the launch directory, so the interactive lane needs no flag.</div>
+  <div class="gap"><b>3.</b> None of ork's 171 hooks port: agy <code>hooks.json</code> is a different schema (its own event names, camelCase payloads), and <code>agy plugin validate plugins/ork</code> reports hooks skipped.</div>
+  <div class="gap"><b>4.</b> Repo <code>.mcp.json</code> is never read. Shipping a server means a plugin <code>mcp_config.json</code>, which was marker-verified end to end.</div>
+  <div class="gap"><b>5.</b> ork's <code>.cursor-plugin/commands/*.md</code> wrappers do not load. Invoke skills as <code>/&lt;skill-name&gt;</code>, or <code>ork:&lt;name&gt;</code> after a plugin install.</div>
+
+  <p class="foot">
+    Evidence: <a href="https://github.com/yonatangross/orchestkit/blob/feat/4235-agy-host/docs/audits/agy-host-support-2026-09-18.md">docs/audits/agy-host-support-2026-09-18.md</a>
+    · Issue <a href="https://github.com/yonatangross/orchestkit/issues/4235">#4235</a>
+    · Host page <a href="https://orchestkit.yonyon.ai/docs/getting-started/agy">/docs/getting-started/agy</a>
+  </p>
+</div>
+
+<script>
+const ROWS = [
+  {
+    surface: "Workspace skills",
+    path: "<workspace>/.agents/skills/<name>/SKILL.md",
+    verdict: "ok",
+    label: "LOADS",
+    why: "the pack answer",
+    cmd: 'agy -p "/skills" --add-dir /tmp/agy-probe',
+    out: "marker skill ork-agy-marker listed by name + description. skills.sh wrote the same dir for the real install: npx skills add yonatangross/orchestkit -s doctor -> ./.agents/skills/doctor, listed by /skills."
+  },
+  {
+    surface: "Shared skill dirs",
+    path: "<workspace>/.agents/skills.json entries[].path",
+    verdict: "ok",
+    label: "LOADS",
+    why: "two-line JSON pointer",
+    cmd: ".agents/skills.json -> /tmp/agy-shared/skills/ork-agy-shared",
+    out: "marker at the referenced path listed by /skills. A repo can point at a shared skill directory with two lines of JSON."
+  },
+  {
+    surface: "User skills",
+    path: "~/.gemini/config/skills, ~/.gemini/skills",
+    verdict: "ok",
+    label: "LOADS",
+    why: "both user roots",
+    cmd: 'agy -p "/skills" with ork-agy-marker-user and ork-agy-gemini-marker planted',
+    out: "both markers listed. These are agy's real user scope, not ~/.agents/skills."
+  },
+  {
+    surface: "skills.sh global dir",
+    path: "~/.agents/skills",
+    verdict: "no",
+    label: "DOES NOT LOAD",
+    why: "silent global-install trap",
+    cmd: 'npx skills add -g yonatangross/orchestkit -s doctor -> ~/.agents/skills/doctor; agy -p "/skills"',
+    out: "0 doctor rows. The installer supports Antigravity as a universal target but -g lands somewhere agy never looks."
+  },
+  {
+    surface: "Plugin bundle",
+    path: "<plugin>/{skills,agents,commands,mcp_config.json}",
+    verdict: "ok",
+    label: "LOADS",
+    why: "namespaced ork:<name>",
+    cmd: "agy plugin validate plugins/ork; marker plugin under .agents/plugins/",
+    out: "plugins/ork: skills 108 processed, agents 36 processed, hooks skipped (ork keeps them at hooks/hooks.json, not the plugin-root hooks.json agy wants). Marker plugin: skill, agent, command (converted to a skill) and mcp server all loaded, namespaced marker-plugin:<name>."
+  },
+  {
+    surface: "Hooks, agy schema",
+    path: "<workspace>/.agents/hooks.json",
+    verdict: "ok",
+    label: "LOADS + FIRES",
+    why: "but it is agy's contract",
+    cmd: 'marker PreInvocation hook writing hook-fired.txt; agy -p "/hooks"; agy -p "Reply with exactly: OK"',
+    out: "listed by /hooks AND fired on a real print run (timestamp in the file). Schema: {hookName: {EventName: [handlers]}}, events PreToolUse/PostToolUse/PreInvocation/PostInvocation/Stop, camelCase stdin, {decision} stdout."
+  },
+  {
+    surface: "Hooks, ork schema",
+    path: "plugins/ork/hooks/hooks.json + dist/",
+    verdict: "no",
+    label: "DOES NOT PORT",
+    why: "wrong file, wrong schema",
+    cmd: "agy plugin validate plugins/ork",
+    out: "hooks: skipped (not found). Even moved to the plugin root, CC's {event: [{matcher, hooks}]} shape and ${CLAUDE_PLUGIN_ROOT} commands are a different contract; a copy registers names containing no event keys."
+  },
+  {
+    surface: "MCP, global",
+    path: "~/.gemini/config/mcp_config.json",
+    verdict: "ok",
+    label: "LOADS",
+    why: "agy mcp list sees it",
+    cmd: "planted ork-agy-marker-mcp stdio server; agy mcp list",
+    out: "ork-agy-marker-mcp stdio enabled /bin/cat (removed after the check)."
+  },
+  {
+    surface: "MCP, plugin",
+    path: "<plugin>/mcp_config.json",
+    verdict: "ok",
+    label: "LOADS + ROUTES",
+    why: "server spawned, tool called",
+    cmd: 'real stdio marker server (tools/list -> marker_ping) in .agents/plugins/marker-plugin/; agy -p "Call the tool named marker_ping ..."',
+    out: "AGY_MCP_MARKER_PONG. The plugin mcp_config.json route is the measured way to ship a server."
+  },
+  {
+    surface: "MCP, repo file",
+    path: ".mcp.json",
+    verdict: "no",
+    label: "DOES NOT LOAD",
+    why: "not a discovery root",
+    cmd: "agy mcp list with a repo .mcp.json present",
+    out: "never enumerated. Plugin mcp_config.json is the route."
+  },
+  {
+    surface: "Slash commands",
+    path: "/<skill-name> expansion",
+    verdict: "ok",
+    label: "LOADS",
+    why: "skill name is the command",
+    cmd: 'agy -p "/ork-agy-marker" --add-dir /tmp/agy-probe',
+    out: "model replied AGY_MARKER_OK (body expanded client side). Plugin commands/*.md convert to skills, invoked as /<plugin>:<name>. ork's .cursor-plugin/commands wrappers do not load."
+  },
+  {
+    surface: "Rules",
+    path: "AGENTS.md, GEMINI.md",
+    verdict: "derived",
+    label: "DERIVED",
+    why: "bundled docs, not marker-tested",
+    cmd: "agy-customizations bundled docs",
+    out: "discovered per directory from cwd up to repo root, deduplicated; plugin rules/ merge when the plugin is enabled."
+  }
+];
+
+const HOSTS = [
+  { id: "claude", name: "Claude Code", mark: "C", what: "Full ork plugin plus hooks.", cmd: "/plugin marketplace add yonatangross/orchestkit then /plugin install ork" },
+  { id: "cursor", name: "Cursor", mark: "Cu", what: "Same ork plugin from the marketplace.", cmd: "yonatangross/orchestkit" },
+  { id: "codex", name: "Codex", mark: "Cx", what: "ork-codex portable pack.", cmd: "codex plugin add ork-codex@orchestkit-codex" },
+  { id: "muse", name: "Muse Code", mark: "M", what: "Skills via .agents/skills.", cmd: "npx skills add yonatangross/orchestkit -s <starter>" },
+  { id: "pi", name: "Pi", mark: "P", what: "Shipped pi manifest.", cmd: "pi install git:github.com/yonatangross/orchestkit" },
+  { id: "opencode", name: "OpenCode", mark: "O", what: "Agent Skills via skills.sh.", cmd: "npx skills add yonatangross/orchestkit -s <starter>" },
+  { id: "devin", name: "Devin", mark: "D", what: "Plugin from git. 76 skills list; hooks do not load.", cmd: "devin plugins install https://github.com/yonatangross/orchestkit#plugins/ork" },
+  { id: "agy", name: "Antigravity", mark: "agy", what: "Agent Skills via .agents/skills. No hooks, no MCP config.", cmd: 'npx skills add yonatangross/orchestkit -s <starter>; then agy -p "/skills" --add-dir "$PWD"' }
+];
+
+const matrix = document.getElementById("matrix");
+const evidence = document.getElementById("evidence");
+const CLS = { ok: "ok", no: "no", derived: "derived" };
+
+ROWS.forEach((r, i) => {
+  const tr = document.createElement("tr");
+  const tdS = document.createElement("td");
+  tdS.className = "surface";
+  tdS.textContent = r.surface;
+  const path = document.createElement("span");
+  path.className = "path";
+  path.textContent = r.path;
+  tdS.appendChild(path);
+
+  const tdV = document.createElement("td");
+  const btn = document.createElement("button");
+  btn.setAttribute("aria-label", "Show evidence for " + r.surface);
+  const cell = document.createElement("span");
+  cell.className = "cell " + CLS[r.verdict];
+  cell.textContent = r.label;
+  btn.appendChild(cell);
+  const why = document.createElement("span");
+  why.className = "why";
+  why.textContent = r.why;
+  tdV.appendChild(btn);
+  tdV.appendChild(why);
+
+  const tdE = document.createElement("td");
+  tdE.style.color = "var(--muted)";
+  tdE.style.fontSize = "12px";
+  tdE.textContent = r.cmd;
+
+  btn.addEventListener("click", () => select(i, tdV));
+  btn.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); select(i, tdV); }
+  });
+
+  tr.appendChild(tdS); tr.appendChild(tdV); tr.appendChild(tdE);
+  matrix.appendChild(tr);
+});
+
+function select(i, td) {
+  document.querySelectorAll(".matrix td").forEach((c) => c.classList.remove("sel"));
+  td.classList.add("sel");
+  const r = ROWS[i];
+  const cls = r.verdict === "ok" ? "ok" : "no";
+  evidence.innerHTML =
+    '<span class="lbl">surface:</span> ' + esc(r.surface) + "  (" + esc(r.path) + ")\n" +
+    '<span class="lbl">verdict:</span> <span class="' + cls + '">' + esc(r.label) + "</span>\n" +
+    '<span class="lbl">command:</span> ' + esc(r.cmd) + "\n" +
+    '<span class="lbl">output:</span>  ' + esc(r.out);
+}
+function esc(s) {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+const cards = document.getElementById("cards");
+const hostcmd = document.getElementById("hostcmd");
+HOSTS.forEach((h, i) => {
+  const a = document.createElement("a");
+  a.className = "host" + (h.id === "agy" ? " on" : "");
+  a.href = "#";
+  a.setAttribute("aria-label", h.name);
+  a.innerHTML =
+    '<span class="icon">' + (h.id === "agy"
+      ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4l7 16"/><path d="M12 4L5 20"/><path d="M8.2 14h7.6"/></svg>'
+      : esc(h.mark)) + "</span>" +
+    '<span class="name">' + esc(h.name) + "</span>" +
+    '<span class="what">' + esc(h.what) + "</span>";
+  a.addEventListener("click", (e) => {
+    e.preventDefault();
+    document.querySelectorAll(".host").forEach((c) => c.classList.remove("on"));
+    a.classList.add("on");
+    hostcmd.innerHTML = '<span class="p">$</span>' + esc(h.cmd);
+  });
+  cards.appendChild(a);
+});
+
+document.querySelectorAll(".copy").forEach((b) => {
+  b.addEventListener("click", () => {
+    const text = b.parentElement.textContent.replace(/^copy/, "").replace(/^\$\s*/, "").trim();
+    navigator.clipboard && navigator.clipboard.writeText(text);
+    b.textContent = "copied";
+    setTimeout(() => (b.textContent = "copy"), 1200);
+  });
+});
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
