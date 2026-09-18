@@ -7,11 +7,11 @@
 | Situation | Use |
 |---|---|
 | Background build/test/long script | `Monitor` — stream progress live |
-| Finished task, need its final output | `TaskOutput(task_id)` — one-shot read (no block=true needed) |
+| Finished task, need its final output | `Read` the task's output file (CC 2.1.277 removed `TaskOutput`; on older versions `TaskOutput(task_id)`, no block=true) |
 | Gate entry on matching stdout line | `Monitor` + `until-condition` loop |
 | Very short command (<5s) | `Bash(command="...")` foreground — not worth the overhead |
 
-Monitor is NOT a replacement for `TaskOutput` on finished tasks. They answer different questions: *"what is this process doing right now?"* vs *"what did that task produce?"*.
+Monitor is NOT a replacement for the final output read on finished tasks. They answer different questions: *"what is this process doing right now?"* vs *"what did that task produce?"*. On CC 2.1.277+ the final read is `Read` on the task's output file; `TaskOutput` was removed (it had been deprecated since 2.1.83).
 
 ## Pattern 1 — Streaming test execution
 
@@ -72,21 +72,21 @@ if "[PARTIAL RESULT]" in agent_result.output:
 
 ## Anti-patterns
 
-### Polling `TaskOutput` in a loop
+### Polling a task's output in a loop
 
 ```python
 # BAD — polls every N seconds, burns tokens on unchanged output
 while True:
-    out = TaskOutput(task_id)
+    out = Read(path=task_output_file)  # or TaskOutput(task_id) below 2.1.277
     if "PASS" in out or "FAIL" in out: break
     time.sleep(5)
 ```
 
 The `sleep` is blocked by OrchestKit's sleep-guard hook, and the pattern wastes cache on identical reads. Use `Monitor` instead.
 
-### `TaskOutput(block=true)` — deprecated
+### `TaskOutput`: removed in CC 2.1.277
 
-CC 2.1.98 deprecated the `block=true` variant. Any skill that still documents it is stale; convert to `Monitor`. Current OrchestKit skills contain zero `block=true` call sites (verified 2026-04-24).
+CC 2.1.98 deprecated the `block=true` variant, 2.1.83 deprecated the tool, and 2.1.277 removed it outright; `taskOutputMaxChars` and `TASK_MAX_OUTPUT_LENGTH` are now inert. On 2.1.277+ the one-shot final read is `Read` on the background task's output file. Any skill that still documents `block=true` is stale; convert to `Monitor`. Current OrchestKit skills contain zero `block=true` call sites (verified 2026-04-24).
 
 ### Monitor for one-shot commands
 
@@ -100,7 +100,7 @@ Foreground `Bash` is simpler and faster for short commands.
 
 ## Graceful fallback
 
-`Monitor` requires CC ≥ 2.1.98. The version matrix in `src/hooks/src/lib/cc-version-matrix.ts` gates it. Skills that reference `Monitor` should not silently fail on older clients — either (a) the MIN_CC_VERSION guard (currently 2.1.117) makes fallback moot, or (b) document the `TaskOutput(task_id)` final-read path as the fallback in the skill itself.
+`Monitor` requires CC ≥ 2.1.98. The version matrix in `src/hooks/src/lib/cc-version-matrix.ts` gates it. Skills that reference `Monitor` should not silently fail on older clients: either (a) the MIN_CC_VERSION guard (currently 2.1.117) makes fallback moot, or (b) document the final-read path for the client version in the skill itself (`Read` on the task output file on 2.1.277+, `TaskOutput(task_id)` below it).
 
 ## Related
 

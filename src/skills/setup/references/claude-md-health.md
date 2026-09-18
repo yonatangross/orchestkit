@@ -4,6 +4,8 @@
 
 Phase 7b of the setup wizard — after the improvement plan, check if the user's CLAUDE.md could benefit from modular structure.
 
+On CC 2.1.277+, AGENTS.md is the instruction file Claude reads when no CLAUDE.md exists on the walk, so apply the analysis to whichever file is present.
+
 ## Analysis Steps
 
 ```python

@@ -171,7 +171,7 @@ Generate prioritized, **runnable** recommendations in P0/P1/P2 tiers. See `readi
 
 ## Phase 7b: CLAUDE.md Health Check
 
-After the improvement plan, check if the user's CLAUDE.md could benefit from CC 2.1.59+ modular structure.
+After the improvement plan, check if the user's CLAUDE.md could benefit from CC 2.1.59+ modular structure. On CC 2.1.277+, AGENTS.md fills this role in a project with no CLAUDE.md, so run the same check against whichever instruction file the project uses.
 
 Load details: `Read("references/claude-md-health.md")` for analysis steps, thresholds, @import syntax, and `.claude/rules/` path-scoped rules.
 

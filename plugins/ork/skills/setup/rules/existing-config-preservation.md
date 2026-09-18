@@ -7,7 +7,7 @@ tags: claude-md, preservation, safety, phase-3, phase-7b
 
 ## Existing Config Preservation
 
-The setup wizard must treat existing `CLAUDE.md` and `.claude/rules/*.md` files as user-owned content that must never be overwritten or modified without explicit consent.
+The setup wizard must treat existing `CLAUDE.md` and `.claude/rules/*.md` files as user-owned content that must never be overwritten or modified without explicit consent. On CC 2.1.277+, `AGENTS.md` can serve as the project's instruction file when no `CLAUDE.md` exists, and the same protection applies to it.
 
 ## Problem
 

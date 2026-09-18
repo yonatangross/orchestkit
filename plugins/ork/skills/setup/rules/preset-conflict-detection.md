@@ -58,7 +58,7 @@ if conflicts:
 ```
 
 **Key rules:**
-- Always read existing `.claude/settings.json`, `.mcp.json`, and `CLAUDE.md` before applying a preset
+- Always read existing `.claude/settings.json`, `.mcp.json`, and `CLAUDE.md` before applying a preset; on CC 2.1.277+, also read `AGENTS.md` when no `CLAUDE.md` exists, since it can carry the project's instructions
 - Never overwrite `deny` patterns -- these are security-critical and must be preserved
 - Present a diff-style summary of what will change before writing any files
 - Default to merge strategy: keep user customizations, add preset additions

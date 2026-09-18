@@ -1,5 +1,393 @@
 [
   {
+    "version": "2.1.273",
+    "parse_failed": false,
+    "features": [
+      {
+        "feature_slug": "permission_checker_unanalyzable_bash_273",
+        "category": "breaking",
+        "description": "Bash commands the permission checker cannot fully analyze no longer skip the prompt under permissions.blockReadsOutsideWorkingDirectories, and a subshell can no longer hide a dangerous rm in bypass mode.",
+        "gap_score": 45,
+        "affected_skills": [
+          "security-patterns"
+        ],
+        "reference_changelog_line": "Fixed Bash commands the permission checker cannot fully analyze skipping the prompt under `permissions.blockReadsOutsideWorkingDirectories`, and a subshell hiding a dangerous `rm` in bypass mode",
+        "relevance": "end-user",
+        "disposition": "upside",
+        "ork_disposition_note": "Two silent-bypass classes on the exact key ork documents (adopted in the 2.1.252-257 wave) close without an ork change. Free."
+      },
+      {
+        "feature_slug": "deny_rules_unanalyzable_bash_revert",
+        "category": "breaking",
+        "description": "The 2.1.268 change that checked Read and Edit deny rules on unanalyzable Bash lines (eval, env -C) is reverted; such commands prompt again instead of being denied.",
+        "gap_score": 20,
+        "affected_skills": [
+          "security-patterns"
+        ],
+        "reference_changelog_line": "Reverted a 2.1.268 change that checked Read and Edit deny rules on Bash lines the permission checker can't analyze (`eval`, `env -C`); commands like `time -p make build` prompt again instead of being denied",
+        "relevance": "end-user",
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "Narrows a change recorded in the 2.1.268 matrix row one release later. Recorded so a future reader does not over-credit the 2.1.268 deny-rule coverage."
+      },
+      {
+        "feature_slug": "subagent_result_lost_missing_usage",
+        "category": "breaking",
+        "description": "Sub-agents and background agents are no longer reported as failed with their result never delivered when the final streamed reply omitted token usage or a model id.",
+        "gap_score": 40,
+        "affected_skills": [
+          "implement",
+          "cover",
+          "verify"
+        ],
+        "reference_changelog_line": "Fixed sub-agents and background agents being reported as failed, with their result never delivered, when the final streamed reply omitted token usage or carried no model id",
+        "relevance": "plugin-author",
+        "disposition": "upside",
+        "ork_disposition_note": "ork's subagent-stop family consumes subagent results; a silently dropped result read as a failed agent. Free fix, no ork change."
+      },
+      {
+        "feature_slug": "scheduled_tasks_copied_worktree_session",
+        "category": "breaking",
+        "description": "Saved scheduled tasks no longer run in the wrong session after .claude/scheduled_tasks.json is copied into another folder such as a new worktree.",
+        "gap_score": 35,
+        "affected_skills": [],
+        "reference_changelog_line": "Fixed saved scheduled tasks running in the wrong session after `.claude/scheduled_tasks.json` was copied into another folder, such as a new worktree",
+        "relevance": "plugin-author",
+        "disposition": "upside",
+        "ork_disposition_note": "ork's .worktrees/<task> convention copies a full checkout including .claude/, so this was a live wrong-session hazard on every fresh worktree. Free fix."
+      },
+      {
+        "feature_slug": "long_session_hook_progress_perf",
+        "category": "new_attr",
+        "description": "Hook progress and sub-agent activity no longer re-process the whole conversation on every update in long sessions.",
+        "gap_score": 30,
+        "affected_skills": [],
+        "reference_changelog_line": "Improved responsiveness in long sessions: hook progress and sub-agent activity no longer re-process the whole conversation on every update",
+        "relevance": "plugin-author",
+        "disposition": "upside",
+        "ork_disposition_note": "ork registers 152 classic hooks, the heaviest hook surface in the estate, so every long ork session paid this reprocessing cost. Free perf win."
+      },
+      {
+        "feature_slug": "gateway_hint_headers",
+        "category": "new_attr",
+        "description": "CLAUDE_CODE_GATEWAY_HINT_HEADERS=1 sends five x-claude-code-* request headers for LLM gateways.",
+        "gap_score": 5,
+        "affected_skills": [],
+        "reference_changelog_line": "Added `x-claude-code-request-class`, `x-claude-code-agent-type`, `x-claude-code-prev-tool-durations`, `x-claude-code-compaction` and `x-claude-code-context-compacted` request headers for LLM gateways; opt in with `CLAUDE_CODE_GATEWAY_HINT_HEADERS=1`",
+        "relevance": "end-user",
+        "disposition": "triaged-noop-cc-native",
+        "ork_disposition_note": "Zero gateway keys across src/, manifests/ and shared/. Operator setting only."
+      }
+    ],
+    "raw_bullets_count": 64,
+    "triaged_by": "hand, lane cc-adoption-277, 2026-09-18"
+  },
+  {
+    "version": "2.1.274",
+    "parse_failed": false,
+    "features": [
+      {
+        "feature_slug": "mcp_transport_fixes_274",
+        "category": "breaking",
+        "description": "http MCP servers that only speak legacy HTTP+SSE no longer fail on a 4xx first answer, Streamable HTTP calls honor a per-server timeout past the old 5 minute cap, and list-changed notifications without listChanged now refresh prompts and resources.",
+        "gap_score": 45,
+        "affected_skills": [
+          "mcp-patterns",
+          "configure"
+        ],
+        "reference_changelog_line": "Fixed MCP servers configured as `http` that only speak legacy HTTP+SSE failing to connect when they answer the first request with 422 or another 4xx error",
+        "relevance": "plugin-author",
+        "disposition": "upside",
+        "ork_disposition_note": "Three transport-level fixes on the surface ork's mcp-config docs cover. Free."
+      },
+      {
+        "feature_slug": "worktree_isolation_nested_expansion_refused",
+        "category": "breaking",
+        "description": "Worktree-isolated sessions now refuse Bash commands carrying certain nested shell expansions that were previously accepted.",
+        "gap_score": 40,
+        "affected_skills": [
+          "implement",
+          "verify",
+          "cover"
+        ],
+        "reference_changelog_line": "Fixed worktree-isolated sessions accepting Bash commands with certain nested shell expansions; these are now refused",
+        "relevance": "plugin-author",
+        "disposition": "upside",
+        "ork_disposition_note": "Closes a containment escape on the 25 isolation:worktree agents. The mirror-image of the 2.1.260 fix that un-broke legitimate loops; this one removes acceptance that should never have been granted."
+      },
+      {
+        "feature_slug": "claude_code_mcp_startup_wait_ms",
+        "category": "new_attr",
+        "description": "CLAUDE_CODE_MCP_STARTUP_WAIT_MS bounds how long the first non-interactive turn waits for connecting MCP servers; 0 skips the wait.",
+        "gap_score": 35,
+        "affected_skills": [
+          "ci-sentinel",
+          "bare-eval"
+        ],
+        "reference_changelog_line": "Added `CLAUDE_CODE_MCP_STARTUP_WAIT_MS` to bound how long the first non-interactive turn waits for connecting MCP servers (`0` = don't wait)",
+        "relevance": "plugin-author",
+        "disposition": "deferred-S",
+        "ork_disposition_note": "Direct knob for ork's headless harnesses that pair -p with outer timeouts. Deferred because a plugin cannot ship env defaults and the floor cannot assume it."
+      },
+      {
+        "feature_slug": "stop_hook_repeat_block_label",
+        "category": "new_attr",
+        "description": "Stop prompt hooks no longer re-send their whole prompt on every block; repeat blocks name the condition in a 500-character label.",
+        "gap_score": 25,
+        "affected_skills": [],
+        "reference_changelog_line": "Fixed Stop prompt hooks re-sending their whole prompt on every block in a conversation; repeat blocks now name the condition with a 500-character label",
+        "relevance": "plugin-author",
+        "disposition": "upside",
+        "ork_disposition_note": "ork registers 8 Stop hooks, all async and non-blocking, so ork never paid this cost; it matters for operator-added blocking Stop hooks on top of ork."
+      },
+      {
+        "feature_slug": "mcp_v2_client_negotiation_default",
+        "category": "breaking",
+        "description": "Bedrock, Vertex, Foundry and telemetry-disabled installs move to the v2 MCP client and MCP 2026-07-28 negotiation by default; MCP_SDK_GENERATION=v1 or MCP_PROTOCOL_NEGOTIATION=legacy opt out.",
+        "gap_score": 30,
+        "affected_skills": [
+          "mcp-patterns"
+        ],
+        "reference_changelog_line": "Changed Bedrock, Vertex, Foundry and telemetry-disabled installs to use the v2 MCP client and MCP 2026-07-28 negotiation with direct HTTP servers by default, as other installs already do (opt out: `MCP_SDK_GENERATION=v1` or `MCP_PROTOCOL_NEGOTIATION=legacy`)",
+        "relevance": "end-user",
+        "disposition": "upside",
+        "ork_disposition_note": "Protocol-level change on the MCP surface. ork's first-party install already ran v2; this aligns the remaining install classes. Worth knowing when a Foundry MCP server misbehaves only on one install class."
+      },
+      {
+        "feature_slug": "mcp_config_var_secret_display_fix",
+        "category": "breaking",
+        "description": "MCP connection errors and the MCP login tool description no longer display secrets resolved from ${VAR} placeholders in MCP configs.",
+        "gap_score": 35,
+        "affected_skills": [
+          "mcp-patterns",
+          "security-patterns"
+        ],
+        "reference_changelog_line": "Fixed MCP connection errors and the MCP login tool's description showing secrets resolved from `${VAR}` placeholders in MCP configs",
+        "relevance": "end-user",
+        "disposition": "upside",
+        "ork_disposition_note": "A credential-display fix on the config shape ork recommends (${VAR} placeholders rather than literals). Free."
+      }
+    ],
+    "raw_bullets_count": 108,
+    "triaged_by": "hand, lane cc-adoption-277, 2026-09-18"
+  },
+  {
+    "version": "2.1.275",
+    "parse_failed": false,
+    "features": [
+      {
+        "feature_slug": "claude_ai_skills_plugins_sync",
+        "category": "new_attr",
+        "description": "Skills and plugins enabled on a claude.ai account now sync into terminal sessions signed in with it, with syncClaudeAiSkills:false and syncClaudeAiPlugins:false opt-outs.",
+        "gap_score": 40,
+        "affected_skills": [
+          "configure"
+        ],
+        "reference_changelog_line": "Added syncing of the skills and plugins enabled on your claude.ai account to terminal sessions signed in with it; opt out with `syncClaudeAiSkills: false` or `syncClaudeAiPlugins: false`",
+        "relevance": "end-user",
+        "disposition": "deferred-S",
+        "ork_disposition_note": "A new distribution channel beside the marketplace: account-level plugins can now shadow or duplicate the repo-installed ork. Worth a configure note; deferred because the operator-facing text belongs with the other sync settings, not this lane."
+      },
+      {
+        "feature_slug": "marketplace_url_credential_leak_fix",
+        "category": "breaking",
+        "description": "Plugin messages, logs and claude plugin marketplace list no longer display a password or token stored in a git, ssh or marketplace URL.",
+        "gap_score": 40,
+        "affected_skills": [
+          "security-patterns"
+        ],
+        "reference_changelog_line": "Fixed plugin and marketplace messages, logs and `claude plugin marketplace list` showing a password or token stored in a git, ssh or marketplace URL",
+        "relevance": "end-user",
+        "disposition": "upside",
+        "ork_disposition_note": "Credential-display fix on the marketplace surface ork itself is published through. Free."
+      },
+      {
+        "feature_slug": "npm_source_plugins_ignore_scripts",
+        "category": "breaking",
+        "description": "Plugins installed from an npm source are fetched with npm pack --ignore-scripts and integrity-verified, so a package's install scripts no longer run.",
+        "gap_score": 30,
+        "affected_skills": [
+          "security-patterns"
+        ],
+        "reference_changelog_line": "Changed plugins installed from an npm source to be fetched with `npm pack --ignore-scripts` and integrity-verified, so a package's install scripts no longer run",
+        "relevance": "end-user",
+        "disposition": "upside",
+        "ork_disposition_note": "Supply-chain hardening on a distribution channel ork could adopt later; today ork ships via git marketplace and archive, not npm. Free hardening either way."
+      },
+      {
+        "feature_slug": "plugin_reload_preview_clobber_fix",
+        "category": "breaking",
+        "description": "Plugin reload previews no longer replace a running session's extracted plugin files when the plugin was loaded from a --plugin-dir or --plugin-url archive.",
+        "gap_score": 35,
+        "affected_skills": [
+          "dev"
+        ],
+        "reference_changelog_line": "Fixed plugin reload previews replacing a running session's extracted plugin files when the plugin was loaded from a `--plugin-dir` or `--plugin-url` archive",
+        "relevance": "plugin-author",
+        "disposition": "upside",
+        "ork_disposition_note": "Hits ork's own dev loop, which loads the plugin via --plugin-dir. A preview silently clobbering the live extraction read as a broken local build. Free fix."
+      },
+      {
+        "feature_slug": "subagentstop_matcher_empty_agent_type_fix",
+        "category": "breaking",
+        "description": "SubagentStop hooks with a specific matcher no longer fire for every stopping subagent whose agent type is empty.",
+        "gap_score": 20,
+        "affected_skills": [],
+        "reference_changelog_line": "Fixed `SubagentStop` hooks with a specific `matcher` firing for every stopping subagent whose agent type was empty",
+        "relevance": "plugin-author",
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "Verified no-op for ork: the single SubagentStop block in src/hooks/hooks.json carries no matcher and 6 hooks, so they already fired for every subagent by design."
+      },
+      {
+        "feature_slug": "fork_skill_subagent_text_dropped_fix",
+        "category": "breaking",
+        "description": "--forward-subagent-text stream-json and SDK output no longer drops messages of subagents spawned by a context:fork skill or of nested forked skills.",
+        "gap_score": 25,
+        "affected_skills": [
+          "chain-patterns"
+        ],
+        "reference_changelog_line": "Fixed `--forward-subagent-text` stream-json and SDK output dropping the messages of subagents spawned by a `context: fork` skill, and of forked skills invoked by a subagent or another forked skill",
+        "relevance": "plugin-author",
+        "disposition": "upside",
+        "ork_disposition_note": "ork documents the context:fork spawn pattern in chain-patterns/references/fork-pattern.md; lost messages read as silent subagents. Free fix."
+      }
+    ],
+    "raw_bullets_count": 96,
+    "triaged_by": "hand, lane cc-adoption-277, 2026-09-18"
+  },
+  {
+    "version": "2.1.276",
+    "parse_failed": false,
+    "features": [
+      {
+        "feature_slug": "advisor_tag_400_base_url_regression",
+        "category": "breaking",
+        "description": "Every request failed with 400 Input tag 'advisor_20260301' when ANTHROPIC_BASE_URL pointed at a proxy or gateway; fixed as a 2.1.275 regression.",
+        "gap_score": 35,
+        "affected_skills": [
+          "monitoring-observability",
+          "llm-integration"
+        ],
+        "reference_changelog_line": "Fixed every request failing with `400 ... Input tag 'advisor_20260301'` when `ANTHROPIC_BASE_URL` points at a proxy or gateway (2.1.275 regression)",
+        "relevance": "end-user",
+        "disposition": "upside",
+        "ork_disposition_note": "ork ships no ANTHROPIC_BASE_URL itself but documents proxied setups (dev-agent-lens LiteLLM, model-selection gateway note). On exactly 2.1.275 those documented setups fail every request; 2.1.276 restores them. Conditional no-op, no ork change."
+      }
+    ],
+    "raw_bullets_count": 1,
+    "triaged_by": "hand, lane cc-adoption-277, 2026-09-18"
+  },
+  {
+    "version": "2.1.277",
+    "parse_failed": false,
+    "features": [
+      {
+        "feature_slug": "agents_md_builtin_instruction_files",
+        "category": "new_attr",
+        "description": "AGENTS.md support is live with no flag: in a project with no CLAUDE.md, .claude/CLAUDE.md or CLAUDE.local.md on the filesystem-root-to-cwd walk, Claude Code reads AGENTS.md instead, and CLAUDE.md wins when both exist. The built-in agents-md module offers four instructionFiles values (claude-md, claude-md-or-agents-md default, claude-md-and-agents-md, managed-only) under /config 'Project instructions'.",
+        "gap_score": 55,
+        "affected_skills": [
+          "setup"
+        ],
+        "reference_changelog_line": "Added AGENTS.md support: in a project with no CLAUDE.md, Claude Code reads AGENTS.md instead; change it under \"Project instructions\" in `/config` (not yet on Bedrock, Vertex or Foundry)",
+        "relevance": "end-user",
+        "disposition": "adopted-doc",
+        "ork_disposition_note": "Verified on this box 2026-09-18 with the codeword probe checked in as tests/canary/agents-md-fallback.sh: AGENTS.md-only repo answers its codeword; a repo with both files answers the CLAUDE.md word; the flag CLAUDE_CODE_ENABLE_FUNCTION_HOOKS is not needed for the builtin. Setup docs gained the fallback sentence; the instructionFiles decision (AGENTS.md-as-source vs CLAUDE.md-as-source) stays with the operator."
+      },
+      {
+        "feature_slug": "function_hooks_engine_surface",
+        "category": "new_attr",
+        "description": "The function-hooks engine exposes five hook tiers (prepend, user, append, builtin, core), 92 events (38 lifecycle plus 54 $ ops) and 33 classic.<HookEvent> events mirroring hooks.json names; CLAUDE_CODE_ENABLE_FUNCTION_HOOKS gates user modules, not builtins. claude plugin test does not exist on 2.1.277.",
+        "gap_score": 50,
+        "affected_skills": [],
+        "reference_changelog_line": "Upstream types/claude-code.d.ts (measured on the 2.1.277 binary 2026-09-18); claude plugin help on this box lists no test subcommand",
+        "relevance": "plugin-author",
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "Recorded in the matrix row; no CHANGELOG bullet names the engine. ork ships 3 unwired mods (lesson-cards, secrets-veil, promote-lights) and its vitest harness stays the only runnable mod-test path since claude plugin test is absent on 2.1.277."
+      },
+      {
+        "feature_slug": "taskoutput_tool_removed",
+        "category": "breaking",
+        "description": "The deprecated TaskOutput tool is removed; Claude reads a background task's output file with Read instead, and taskOutputMaxChars plus TASK_MAX_OUTPUT_LENGTH are inert.",
+        "gap_score": 45,
+        "affected_skills": [
+          "chain-patterns",
+          "verify",
+          "implement"
+        ],
+        "reference_changelog_line": "Removed the deprecated TaskOutput tool; Claude reads a background task's output file with Read instead, and the `taskOutputMaxChars` setting and `TASK_MAX_OUTPUT_LENGTH` no longer have any effect",
+        "relevance": "plugin-author",
+        "disposition": "adopted-doc",
+        "ork_disposition_note": "chain-patterns/references/monitor-patterns.md recommended TaskOutput for final reads; the decision table now records the 2.1.277 removal and the Read replacement."
+      },
+      {
+        "feature_slug": "worktree_project_skills_untracked_fix",
+        "category": "breaking",
+        "description": "Project skills from the main repository now load in --worktree sessions even when .claude/skills is untracked.",
+        "gap_score": 40,
+        "affected_skills": [],
+        "reference_changelog_line": "Fixed project skills from the main repository not loading in `--worktree` sessions when `.claude/skills` is untracked",
+        "relevance": "plugin-author",
+        "disposition": "upside",
+        "ork_disposition_note": "The exact gap ork's .worktrees/<task> convention hits: a worktree's .claude/skills is untracked until first commit, so project skills silently vanished there. Free fix."
+      },
+      {
+        "feature_slug": "excluded_commands_compound_glob_fix",
+        "category": "breaking",
+        "description": "A sandbox.excludedCommands glob no longer exempts an entire compound Bash command when only one part matched; every part must now match.",
+        "gap_score": 40,
+        "affected_skills": [
+          "security-patterns"
+        ],
+        "reference_changelog_line": "Fixed a `sandbox.excludedCommands` glob exempting an entire compound Bash command from the sandbox when only one part matched; every part must now match",
+        "relevance": "end-user",
+        "disposition": "upside",
+        "ork_disposition_note": "A sandbox-escape class on the surface doctor's sandbox-posture reference documents. Free."
+      },
+      {
+        "feature_slug": "subagent_result_header_marking",
+        "category": "new_attr",
+        "description": "Subagent results now reach the main agent under a header marking them as subagent output, so a result cannot pass as the session's own instructions.",
+        "gap_score": 35,
+        "affected_skills": [
+          "implement",
+          "verify",
+          "cover"
+        ],
+        "reference_changelog_line": "Changed subagent results to reach the main agent under a header marking them as subagent output, with the result indented, so text in a subagent's result cannot pass as the session's own instructions",
+        "relevance": "plugin-author",
+        "disposition": "upside",
+        "ork_disposition_note": "Hardens the channel ork's subagent-stop output validators already watch: an injected instruction inside a result is now visibly framed. Free."
+      },
+      {
+        "feature_slug": "sessionstart_clear_prompt_cache_fix",
+        "category": "breaking",
+        "description": "Sessions continued after /clear no longer lose part of their first message when a SessionStart hook prints output, which had caused a full prompt-cache miss.",
+        "gap_score": 30,
+        "affected_skills": [],
+        "reference_changelog_line": "Fixed sessions continued after `/clear` (restart, `--continue`, `--resume`) missing part of their first message when a SessionStart hook printed output, causing a full prompt-cache miss",
+        "relevance": "plugin-author",
+        "disposition": "upside",
+        "ork_disposition_note": "ork registers SessionStart hooks that print context; every /clear continuation paid a full cache miss. Free fix."
+      },
+      {
+        "feature_slug": "claude_p_internal_error_exit_fix",
+        "category": "breaking",
+        "description": "claude -p and Agent SDK sessions that could hang with no result after an internal error now report the error and exit with code 1.",
+        "gap_score": 30,
+        "affected_skills": [
+          "ci-sentinel",
+          "bare-eval"
+        ],
+        "reference_changelog_line": "Fixed `claude -p` and Agent SDK sessions that could hang with no result after an internal error; they now report the error and exit with code 1",
+        "relevance": "plugin-author",
+        "disposition": "upside",
+        "ork_disposition_note": "ork's headless harnesses used to rely on outer timeouts for this hang; now the process fails fast with a real error. Free fix."
+      }
+    ],
+    "raw_bullets_count": 87,
+    "triaged_by": "hand, lane cc-adoption-277, 2026-09-18"
+  },
+  {
     "version": "2.1.272",
     "parse_failed": false,
     "features": [

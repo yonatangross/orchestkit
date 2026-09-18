@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Five releases, one builtin</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;padding-block:3rem;padding-inline:1.5rem;
+       font-family:"SF Pro Text",-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,system-ui,sans-serif;
+       color:hsl(220 18% 93%);background:hsl(232 26% 7%);line-height:1.6}
+  main{max-inline-size:52rem;margin-inline:auto}
+  h1{font-size:1.6rem;line-height:1.2;margin-block-end:.3rem;letter-spacing:-.02em}
+  .sub{color:hsl(220 12% 64%);margin-block-start:0;font-size:.95rem}
+  .meta{color:hsl(220 10% 46%);font-size:.8rem;
+        font-family:"SF Mono","JetBrains Mono",ui-monospace,Menlo,monospace;
+        margin-block-start:.4rem}
+
+  .rail{display:flex;gap:.5rem;flex-wrap:wrap;margin-block:2rem 1rem}
+  .chip{appearance:none;cursor:pointer;font:inherit;font-size:.82rem;
+        padding:.4rem .85rem;border-radius:999px;color:hsl(220 12% 64%);
+        background:hsl(0 0% 100% / .05);border:1px solid hsl(0 0% 100% / .10);
+        transition:color 200ms cubic-bezier(.2,.8,.25,1),
+                   border-color 200ms cubic-bezier(.2,.8,.25,1),
+                   background 200ms cubic-bezier(.2,.8,.25,1)}
+  .chip:hover{color:hsl(220 18% 93%);border-color:hsl(0 0% 100% / .18)}
+  .chip[aria-pressed="true"]{color:hsl(220 18% 93%);border-color:hsl(248 84% 68%);
+        background:hsl(248 84% 68% / .16)}
+  .chip:focus-visible{outline:2px solid hsl(248 84% 68%);outline-offset:2px}
+
+  .grid{display:grid;gap:.75rem;margin-block-start:1rem}
+  .card{border:1px solid hsl(0 0% 100% / .10);border-radius:16px;
+        background:hsl(0 0% 100% / .05);overflow:hidden;
+        transition:border-color 200ms cubic-bezier(.2,.8,.25,1),
+                   opacity 200ms cubic-bezier(.2,.8,.25,1)}
+  .card[hidden]{display:none}
+  .card:has(> details[open]){border-color:hsl(0 0% 100% / .18)}
+  summary{cursor:pointer;list-style:none;padding:1rem 1.15rem;display:flex;
+          align-items:baseline;gap:.75rem;flex-wrap:wrap}
+  summary::-webkit-details-marker{display:none}
+  summary:focus-visible{outline:2px solid hsl(248 84% 68%);outline-offset:-2px}
+  .ver{font-family:"SF Mono","JetBrains Mono",ui-monospace,Menlo,monospace;
+       font-size:.95rem;color:hsl(220 18% 93%);font-weight:600}
+  .head{color:hsl(220 12% 64%);font-size:.9rem;flex:1 1 14rem}
+  .dot{inline-size:.5rem;block-size:.5rem;border-radius:50%;flex:none;align-self:center}
+  .s-adopt .dot{background:hsl(160 68% 45%)}
+  .s-not  .dot{background:hsl(38 95% 60%)}
+  .s-cond .dot{background:hsl(345 76% 63%)}
+  .tag{font-family:"SF Mono","JetBrains Mono",ui-monospace,Menlo,monospace;
+       font-size:.7rem;letter-spacing:.04em;text-transform:uppercase;
+       padding:.15rem .5rem;border-radius:6px;
+       border:1px solid hsl(0 0% 100% / .10);color:hsl(220 10% 46%)}
+  .s-adopt .tag{color:hsl(160 68% 45%);border-color:hsl(160 68% 45% / .4)}
+  .s-not   .tag{color:hsl(38 95% 60%);border-color:hsl(38 95% 60% / .4)}
+  .s-cond  .tag{color:hsl(345 76% 63%);border-color:hsl(345 76% 63% / .4)}
+
+  .body{padding:0 1.15rem 1.15rem;border-block-start:1px solid hsl(0 0% 100% / .10);
+        padding-block-start:1rem}
+  .body h3{font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;
+           color:hsl(220 10% 46%);margin-block:1rem .4rem}
+  .body h3:first-child{margin-block-start:0}
+  .body ul{margin:0;padding-inline-start:1.1rem}
+  .body li{margin-block-end:.35rem;font-size:.9rem;color:hsl(220 12% 64%)}
+  .body li strong{color:hsl(220 18% 93%);font-weight:600}
+  code{font-family:"SF Mono","JetBrains Mono",ui-monospace,Menlo,monospace;
+       font-size:.85em;background:hsl(0 0% 100% / .07);
+       padding:.1rem .35rem;border-radius:5px}
+  a{color:hsl(248 84% 68%)}
+  .none{color:hsl(220 10% 46%);font-size:.9rem;font-style:italic}
+
+  .measured{margin-block-start:2.5rem;border:1px solid hsl(0 0% 100% / .10);
+            border-radius:16px;padding:1.25rem 1.4rem;
+            background:hsl(0 0% 100% / .05)}
+  .measured h2{font-size:.8rem;text-transform:uppercase;letter-spacing:.06em;
+               color:hsl(220 10% 46%);margin-block:0 .9rem}
+  .nums{display:grid;grid-template-columns:repeat(auto-fit,minmax(9rem,1fr));gap:1rem}
+  .num b{display:block;
+         font-family:"SF Mono","JetBrains Mono",ui-monospace,Menlo,monospace;
+         font-size:1.45rem;color:hsl(220 18% 93%);line-height:1.1}
+  .num span{font-size:.78rem;color:hsl(220 10% 46%)}
+  .bar{block-size:.35rem;border-radius:999px;background:hsl(0 0% 100% / .08);
+       margin-block-start:.4rem;overflow:hidden}
+  .bar i{display:block;block-size:100%;background:hsl(248 84% 68%);
+         transition:inline-size 600ms cubic-bezier(.2,.8,.25,1)}
+  .probe{font-family:"SF Mono","JetBrains Mono",ui-monospace,Menlo,monospace;
+         font-size:.78rem;color:hsl(160 68% 45%);margin-block:1rem 0;
+         white-space:pre-wrap;word-break:break-all}
+
+  footer{margin-block-start:2.5rem;color:hsl(220 10% 46%);font-size:.8rem;
+         border-block-start:1px solid hsl(0 0% 100% / .10);padding-block-start:1rem}
+  @media (prefers-reduced-motion: reduce){*{transition-duration:1ms !important}}
+</style>
+</head>
+<body>
+<main>
+  <h1>Five releases, one builtin</h1>
+  <p class="sub">Claude Code 2.1.273 to 2.1.277, triaged against the OrchestKit repo. The headline is 2.1.277: AGENTS.md support ships as a built-in module with no flag, verified on this machine by a codeword canary. The support floor stays 2.1.251.</p>
+  <p class="meta">measured 2026-09-18 &middot; branch chore/cc-adoption-2-1-277 &middot; latest_known 2.1.277 &middot; floor 2.1.251</p>
+
+  <div class="rail" role="group" aria-label="Filter releases by OrchestKit status">
+    <button class="chip" aria-pressed="true" data-filter="all">All 5</button>
+    <button class="chip" aria-pressed="false" data-filter="adopt">Doc adoption</button>
+    <button class="chip" aria-pressed="false" data-filter="not">Free upside</button>
+    <button class="chip" aria-pressed="false" data-filter="cond">Conditional</button>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <section class="measured">
+    <h2>What the verdicts were measured against</h2>
+    <div class="nums" id="nums"></div>
+    <p class="probe">VERIFIED agents-md-fallback: AGENTS.md-only repo answered its codeword CANARY-AGENTS-128588118
+VERIFIED claude-md-wins: repo with both files answered the CLAUDE.md codeword CANARY-CLAUDE-512636836</p>
+  </section>
+
+  <footer>
+    Sources cited per release in the compatibility matrix at
+    <code>src/skills/doctor/references/version-compatibility.md</code>.
+    Canary: <code>tests/canary/agents-md-fallback.sh</code>.
+    Upstream: <a href="https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md">anthropics/claude-code CHANGELOG</a>.
+  </footer>
+</main>
+
+<script>
+const RELEASES = [
+  {
+    v: "2.1.273",
+    status: "not",
+    tag: "free upside",
+    head: "permission checker and subagent-result fixes",
+    intro: [
+      "<code>CLAUDE_CODE_GATEWAY_HINT_HEADERS=1</code> sends five <code>x-claude-code-*</code> request headers for LLM gateways. Zero gateway keys across <code>src/</code>, <code>manifests/</code> and <code>shared/</code>, so not applicable here.",
+      "Hook progress and sub-agent activity no longer re-process the whole conversation on every update in long sessions. ork registers 152 classic hooks, the heaviest hook surface in the estate, so every long session paid this."
+    ],
+    breaking: [
+      "Bash commands the permission checker cannot fully analyze no longer skip the prompt under <code>permissions.blockReadsOutsideWorkingDirectories</code>, and a subshell can no longer hide a dangerous <code>rm</code> in bypass mode.",
+      "Part of the 2.1.268 change is reverted: Read and Edit deny rules no longer checked on unanalyzable Bash lines (<code>eval</code>, <code>env -C</code>); such commands prompt again."
+    ],
+    ork: [
+      "Sub-agents and background agents are no longer reported as failed, with their result never delivered, when the final streamed reply omitted token usage or a model id. ork's subagent-stop family consumes those results.",
+      "Saved scheduled tasks no longer run in the wrong session after <code>.claude/scheduled_tasks.json</code> is copied into a new worktree. ork's <code>.worktrees/&lt;task&gt;</code> convention copies a full checkout including <code>.claude/</code>, so this was a live hazard on every fresh worktree."
+    ]
+  },
+  {
+    v: "2.1.274",
+    status: "not",
+    tag: "free upside",
+    head: "MCP transport fixes plus a headless wait knob",
+    intro: [
+      "<code>CLAUDE_CODE_MCP_STARTUP_WAIT_MS</code> bounds how long the first non-interactive turn waits for connecting MCP servers; <code>0</code> skips the wait. A direct knob for ork's <code>claude -p</code> harnesses, deferred because a plugin cannot ship env defaults.",
+      "Bedrock, Vertex, Foundry and telemetry-disabled installs move to the v2 MCP client and MCP 2026-07-28 negotiation by default (<code>MCP_SDK_GENERATION=v1</code> or <code>MCP_PROTOCOL_NEGOTIATION=legacy</code> opt out)."
+    ],
+    breaking: [
+      "http MCP servers that only speak legacy HTTP+SSE no longer fail on a 4xx first answer; Streamable HTTP calls honor a per-server timeout past the old 5 minute cap; list-changed notifications without <code>listChanged</code> now refresh prompts and resources.",
+      "Worktree-isolated sessions now refuse Bash commands carrying certain nested shell expansions that were previously accepted. The mirror image of the 2.1.260 fix: acceptance that should never have been granted, removed."
+    ],
+    ork: [
+      "Stop prompt hooks no longer re-send their whole prompt on every block; repeat blocks name the condition in a 500-character label. ork's 8 Stop hooks are all async and non-blocking, so the win lands on operator-added hooks.",
+      "MCP connection errors and the MCP login tool no longer display secrets resolved from <code>${VAR}</code> placeholders, the config shape ork recommends.",
+      "A <code>$schema</code> key in hooks.json no longer trips a notice. Verified no-op: ork ships no <code>$schema</code> key."
+    ]
+  },
+  {
+    v: "2.1.275",
+    status: "not",
+    tag: "free upside",
+    head: "claude.ai sync arrives, credentials stop leaking",
+    intro: [
+      "Skills and plugins enabled on a claude.ai account now sync into terminal sessions signed in with it; <code>syncClaudeAiSkills: false</code> and <code>syncClaudeAiPlugins: false</code> opt out. A new distribution channel beside the marketplace: account-level plugins can now shadow the repo-installed ork.",
+      "<code>/plugin install &lt;plugin&gt; --marketplace &lt;source&gt;</code> offers to add the marketplace before installing."
+    ],
+    breaking: [
+      "Plugin and marketplace messages, logs and <code>claude plugin marketplace list</code> no longer show a password or token stored in a git, ssh or marketplace URL.",
+      "Plugins installed from an npm source are fetched with <code>npm pack --ignore-scripts</code> and integrity-verified, so a package's install scripts no longer run."
+    ],
+    ork: [
+      "Plugin reload previews no longer replace a running session's extracted plugin files for <code>--plugin-dir</code> or <code>--plugin-url</code> loads. That is ork's own dev loop; a preview silently clobbering the live extraction read as a broken build.",
+      "<code>SubagentStop</code> hooks with a specific matcher no longer fire for every stopping subagent whose agent type was empty. Verified no-op: ork's one SubagentStop block carries no matcher.",
+      "<code>--forward-subagent-text</code> no longer drops messages of subagents spawned by a <code>context: fork</code> skill, the pattern chain-patterns documents."
+    ]
+  },
+  {
+    v: "2.1.276",
+    status: "cond",
+    tag: "conditional",
+    head: "one bullet, the ANTHROPIC_BASE_URL regression",
+    intro: [],
+    breaking: [
+      "Every request failed with <code>400 Input tag 'advisor_20260301'</code> when <code>ANTHROPIC_BASE_URL</code> pointed at a proxy or gateway. A 2.1.275 regression, fixed."
+    ],
+    ork: [
+      "<strong>Conditional no-op.</strong> ork ships no <code>ANTHROPIC_BASE_URL</code> itself but documents proxied setups (the LiteLLM lens in dev-agent-lens, the gateway note in model-selection). On exactly 2.1.275 those documented setups fail every request; 2.1.276 restores them."
+    ]
+  },
+  {
+    v: "2.1.277",
+    status: "adopt",
+    tag: "doc adoption",
+    head: "AGENTS.md goes builtin, TaskOutput is removed",
+    intro: [
+      "<strong>AGENTS.md support, live with no flag.</strong> In a project with no <code>CLAUDE.md</code>, <code>.claude/CLAUDE.md</code> or <code>CLAUDE.local.md</code> on the filesystem-root-to-cwd walk, Claude Code reads <code>AGENTS.md</code> instead; CLAUDE.md wins when both exist.",
+      "The behavior is the built-in <code>agents-md</code> module. Four <code>instructionFiles</code> values: <code>claude-md</code>, <code>claude-md-or-agents-md</code> (the default), <code>claude-md-and-agents-md</code>, <code>managed-only</code>. Set under Project instructions in <code>/config</code>. Not yet on Bedrock, Vertex or Foundry.",
+      "<code>CLAUDE_GATEWAY_PROXY_IS_EGRESS_BOUNDARY=1</code> and <code>headers:</code> on gateway upstreams."
+    ],
+    breaking: [
+      "The deprecated <code>TaskOutput</code> tool is removed: Claude reads a background task's output file with <code>Read</code>, and <code>taskOutputMaxChars</code> plus <code>TASK_MAX_OUTPUT_LENGTH</code> are inert. Recorded against monitor-patterns.md, which recommended it for final reads.",
+      "A <code>sandbox.excludedCommands</code> glob no longer exempts a whole compound Bash command when only one part matched; every part must now match."
+    ],
+    ork: [
+      "<strong>The engine behind the module.</strong> Five hook tiers (<code>prepend</code>, <code>user</code>, <code>append</code>, <code>builtin</code>, <code>core</code>), 92 events (38 lifecycle plus 54 <code>$</code> ops) and 33 <code>classic.*</code> events mirroring hooks.json names. <code>CLAUDE_CODE_ENABLE_FUNCTION_HOOKS</code> gates user modules, not the builtin.",
+      "<strong><code>claude plugin test</code> does not exist on 2.1.277.</strong> The plugin help lists details, disable, enable, eval, help, init, install, list, marketplace, prune, tag, uninstall, update and validate only, so ork's vitest harness stays the only runnable mod-test path.",
+      "Project skills from the main repository now load in <code>--worktree</code> sessions even when <code>.claude/skills</code> is untracked: the exact gap every fresh ork worktree hit.",
+      "Subagent results now reach the main agent under a header marking them as subagent output, so a result cannot pass as the session's own instructions.",
+      "Sessions continued after <code>/clear</code> no longer lose part of their first message when a SessionStart hook prints output, which had caused a full prompt-cache miss.",
+      "<code>claude -p</code> and Agent SDK sessions that could hang with no result after an internal error now report it and exit 1: ork's headless harnesses no longer rely on outer timeouts for that hang."
+    ]
+  }
+];
+
+const MEASURED = [
+  { n: "2 / 2", label: "canary arms VERIFIED", pct: 100 },
+  { n: "4", label: "instructionFiles values", pct: 40 },
+  { n: "5", label: "hook tiers", pct: 50 },
+  { n: "92 + 33", label: "engine + classic events", pct: 90 },
+  { n: "13", label: "plugin subcommands, no test", pct: 65 },
+  { n: "356", label: "changelog bullets triaged", pct: 100 },
+  { n: "2.1.251", label: "support floor, unchanged", pct: 100 },
+  { n: "0", label: "ork code changes", pct: 0 }
+];
+
+const grid = document.getElementById("grid");
+grid.innerHTML = RELEASES.map((r) => {
+  const sec = (title, items) => items.length
+    ? `<h3>${title}</h3><ul>${items.map(x => `<li>${x}</li>`).join("")}</ul>`
+    : `<h3>${title}</h3><p class="none">Nothing in this release.</p>`;
+  return `
+  <article class="card s-${r.status}" data-status="${r.status}">
+    <details>
+      <summary>
+        <span class="dot"></span>
+        <span class="ver">${r.v}</span>
+        <span class="head">${r.head}</span>
+        <span class="tag">${r.tag}</span>
+      </summary>
+      <div class="body">
+        ${sec("Introduced", r.intro)}
+        ${sec("Breaking", r.breaking)}
+        ${sec("OrchestKit surface", r.ork)}
+      </div>
+    </details>
+  </article>`;
+}).join("");
+
+document.getElementById("nums").innerHTML = MEASURED.map(m => `
+  <div class="num">
+    <b>${m.n}</b>
+    <span>${m.label}</span>
+    <div class="bar"><i style="inline-size:${m.pct}%"></i></div>
+  </div>`).join("");
+
+const chips = [...document.querySelectorAll(".chip")];
+chips.forEach(chip => chip.addEventListener("click", () => {
+  chips.forEach(c => c.setAttribute("aria-pressed", String(c === chip)));
+  const want = chip.dataset.filter;
+  document.querySelectorAll(".card").forEach(card => {
+    card.hidden = want !== "all" && card.dataset.status !== want;
+  });
+}));
+</script>
+</body>
+</html>

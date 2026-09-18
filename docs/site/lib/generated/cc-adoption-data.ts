@@ -16,6 +16,271 @@ export interface AdoptionWave {
 
 export const ADOPTION_WAVES: AdoptionWave[] = [
   {
+    "version": "2.1.277",
+    "features": [
+      {
+        "slug": "agents_md_builtin_instruction_files",
+        "category": "new_attr",
+        "description": "AGENTS.md support is live with no flag: in a project with no CLAUDE.md, .claude/CLAUDE.md or CLAUDE.local.md on the filesystem-root-to-cwd walk, Claude Code reads AGENTS.md instead, and CLAUDE.md wins when both exist. The built-in agents-md module offers four instructionFiles values (claude-md, claude-md-or-agents-md default, claude-md-and-agents-md, managed-only) under /config 'Project instructions'.",
+        "gapScore": 55,
+        "affectedSkills": [
+          "setup"
+        ]
+      },
+      {
+        "slug": "function_hooks_engine_surface",
+        "category": "new_attr",
+        "description": "The function-hooks engine exposes five hook tiers (prepend, user, append, builtin, core), 92 events (38 lifecycle plus 54 $ ops) and 33 classic.<HookEvent> events mirroring hooks.json names; CLAUDE_CODE_ENABLE_FUNCTION_HOOKS gates user modules, not builtins. claude plugin test does not exist on 2.1.277.",
+        "gapScore": 50,
+        "affectedSkills": []
+      },
+      {
+        "slug": "taskoutput_tool_removed",
+        "category": "breaking",
+        "description": "The deprecated TaskOutput tool is removed; Claude reads a background task's output file with Read instead, and taskOutputMaxChars plus TASK_MAX_OUTPUT_LENGTH are inert.",
+        "gapScore": 45,
+        "affectedSkills": [
+          "chain-patterns",
+          "verify",
+          "implement"
+        ]
+      },
+      {
+        "slug": "worktree_project_skills_untracked_fix",
+        "category": "breaking",
+        "description": "Project skills from the main repository now load in --worktree sessions even when .claude/skills is untracked.",
+        "gapScore": 40,
+        "affectedSkills": []
+      },
+      {
+        "slug": "excluded_commands_compound_glob_fix",
+        "category": "breaking",
+        "description": "A sandbox.excludedCommands glob no longer exempts an entire compound Bash command when only one part matched; every part must now match.",
+        "gapScore": 40,
+        "affectedSkills": [
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "subagent_result_header_marking",
+        "category": "new_attr",
+        "description": "Subagent results now reach the main agent under a header marking them as subagent output, so a result cannot pass as the session's own instructions.",
+        "gapScore": 35,
+        "affectedSkills": [
+          "implement",
+          "verify",
+          "cover"
+        ]
+      },
+      {
+        "slug": "sessionstart_clear_prompt_cache_fix",
+        "category": "breaking",
+        "description": "Sessions continued after /clear no longer lose part of their first message when a SessionStart hook prints output, which had caused a full prompt-cache miss.",
+        "gapScore": 30,
+        "affectedSkills": []
+      },
+      {
+        "slug": "claude_p_internal_error_exit_fix",
+        "category": "breaking",
+        "description": "claude -p and Agent SDK sessions that could hang with no result after an internal error now report the error and exit with code 1.",
+        "gapScore": 30,
+        "affectedSkills": [
+          "ci-sentinel",
+          "bare-eval"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "2.1.276",
+    "features": [
+      {
+        "slug": "advisor_tag_400_base_url_regression",
+        "category": "breaking",
+        "description": "Every request failed with 400 Input tag 'advisor_20260301' when ANTHROPIC_BASE_URL pointed at a proxy or gateway; fixed as a 2.1.275 regression.",
+        "gapScore": 35,
+        "affectedSkills": [
+          "monitoring-observability",
+          "llm-integration"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "2.1.275",
+    "features": [
+      {
+        "slug": "claude_ai_skills_plugins_sync",
+        "category": "new_attr",
+        "description": "Skills and plugins enabled on a claude.ai account now sync into terminal sessions signed in with it, with syncClaudeAiSkills:false and syncClaudeAiPlugins:false opt-outs.",
+        "gapScore": 40,
+        "affectedSkills": [
+          "configure"
+        ]
+      },
+      {
+        "slug": "marketplace_url_credential_leak_fix",
+        "category": "breaking",
+        "description": "Plugin messages, logs and claude plugin marketplace list no longer display a password or token stored in a git, ssh or marketplace URL.",
+        "gapScore": 40,
+        "affectedSkills": [
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "npm_source_plugins_ignore_scripts",
+        "category": "breaking",
+        "description": "Plugins installed from an npm source are fetched with npm pack --ignore-scripts and integrity-verified, so a package's install scripts no longer run.",
+        "gapScore": 30,
+        "affectedSkills": [
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "plugin_reload_preview_clobber_fix",
+        "category": "breaking",
+        "description": "Plugin reload previews no longer replace a running session's extracted plugin files when the plugin was loaded from a --plugin-dir or --plugin-url archive.",
+        "gapScore": 35,
+        "affectedSkills": [
+          "dev"
+        ]
+      },
+      {
+        "slug": "subagentstop_matcher_empty_agent_type_fix",
+        "category": "breaking",
+        "description": "SubagentStop hooks with a specific matcher no longer fire for every stopping subagent whose agent type is empty.",
+        "gapScore": 20,
+        "affectedSkills": []
+      },
+      {
+        "slug": "fork_skill_subagent_text_dropped_fix",
+        "category": "breaking",
+        "description": "--forward-subagent-text stream-json and SDK output no longer drops messages of subagents spawned by a context:fork skill or of nested forked skills.",
+        "gapScore": 25,
+        "affectedSkills": [
+          "chain-patterns"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "2.1.274",
+    "features": [
+      {
+        "slug": "mcp_transport_fixes_274",
+        "category": "breaking",
+        "description": "http MCP servers that only speak legacy HTTP+SSE no longer fail on a 4xx first answer, Streamable HTTP calls honor a per-server timeout past the old 5 minute cap, and list-changed notifications without listChanged now refresh prompts and resources.",
+        "gapScore": 45,
+        "affectedSkills": [
+          "mcp-patterns",
+          "configure"
+        ]
+      },
+      {
+        "slug": "worktree_isolation_nested_expansion_refused",
+        "category": "breaking",
+        "description": "Worktree-isolated sessions now refuse Bash commands carrying certain nested shell expansions that were previously accepted.",
+        "gapScore": 40,
+        "affectedSkills": [
+          "implement",
+          "verify",
+          "cover"
+        ]
+      },
+      {
+        "slug": "claude_code_mcp_startup_wait_ms",
+        "category": "new_attr",
+        "description": "CLAUDE_CODE_MCP_STARTUP_WAIT_MS bounds how long the first non-interactive turn waits for connecting MCP servers; 0 skips the wait.",
+        "gapScore": 35,
+        "affectedSkills": [
+          "ci-sentinel",
+          "bare-eval"
+        ]
+      },
+      {
+        "slug": "stop_hook_repeat_block_label",
+        "category": "new_attr",
+        "description": "Stop prompt hooks no longer re-send their whole prompt on every block; repeat blocks name the condition in a 500-character label.",
+        "gapScore": 25,
+        "affectedSkills": []
+      },
+      {
+        "slug": "mcp_v2_client_negotiation_default",
+        "category": "breaking",
+        "description": "Bedrock, Vertex, Foundry and telemetry-disabled installs move to the v2 MCP client and MCP 2026-07-28 negotiation by default; MCP_SDK_GENERATION=v1 or MCP_PROTOCOL_NEGOTIATION=legacy opt out.",
+        "gapScore": 30,
+        "affectedSkills": [
+          "mcp-patterns"
+        ]
+      },
+      {
+        "slug": "mcp_config_var_secret_display_fix",
+        "category": "breaking",
+        "description": "MCP connection errors and the MCP login tool description no longer display secrets resolved from ${VAR} placeholders in MCP configs.",
+        "gapScore": 35,
+        "affectedSkills": [
+          "mcp-patterns",
+          "security-patterns"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "2.1.273",
+    "features": [
+      {
+        "slug": "permission_checker_unanalyzable_bash_273",
+        "category": "breaking",
+        "description": "Bash commands the permission checker cannot fully analyze no longer skip the prompt under permissions.blockReadsOutsideWorkingDirectories, and a subshell can no longer hide a dangerous rm in bypass mode.",
+        "gapScore": 45,
+        "affectedSkills": [
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "deny_rules_unanalyzable_bash_revert",
+        "category": "breaking",
+        "description": "The 2.1.268 change that checked Read and Edit deny rules on unanalyzable Bash lines (eval, env -C) is reverted; such commands prompt again instead of being denied.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "subagent_result_lost_missing_usage",
+        "category": "breaking",
+        "description": "Sub-agents and background agents are no longer reported as failed with their result never delivered when the final streamed reply omitted token usage or a model id.",
+        "gapScore": 40,
+        "affectedSkills": [
+          "implement",
+          "cover",
+          "verify"
+        ]
+      },
+      {
+        "slug": "scheduled_tasks_copied_worktree_session",
+        "category": "breaking",
+        "description": "Saved scheduled tasks no longer run in the wrong session after .claude/scheduled_tasks.json is copied into another folder such as a new worktree.",
+        "gapScore": 35,
+        "affectedSkills": []
+      },
+      {
+        "slug": "long_session_hook_progress_perf",
+        "category": "new_attr",
+        "description": "Hook progress and sub-agent activity no longer re-process the whole conversation on every update in long sessions.",
+        "gapScore": 30,
+        "affectedSkills": []
+      },
+      {
+        "slug": "gateway_hint_headers",
+        "category": "new_attr",
+        "description": "CLAUDE_CODE_GATEWAY_HINT_HEADERS=1 sends five x-claude-code-* request headers for LLM gateways.",
+        "gapScore": 5,
+        "affectedSkills": []
+      }
+    ]
+  },
+  {
     "version": "2.1.272",
     "features": [
       {
@@ -3091,10 +3356,10 @@ export const ADOPTION_WAVES: AdoptionWave[] = [
 
 export const CC_SUPPORT = {
   latest: "2.1.251",
-  latestKnown: "2.1.272",
+  latestKnown: "2.1.277",
   supportedFloor: "2.1.251",
   policy: "latest + 3 previous minors",
 } as const;
 
 /** sha256 (first 12 hex) of the two source files above, in that order. */
-export const SOURCE_DIGEST = "1018aa6fe6e4" as const;
+export const SOURCE_DIGEST = "df4175966dc5" as const;
