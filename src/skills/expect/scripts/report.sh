@@ -92,7 +92,9 @@ fi
 [[ "${JSON_MODE}" == "false" ]] && printf "\n${D}  %d passed, %d failed${N}\n" "${PASSED}" "${FAILED}"
 
 # ── Jev run summary line (one per run, only when Jev judged steps) ──
-if [[ "${#JEV[@]}" -gt 0 ]]; then
+# ${#JEV[@]} alone errors under set -u on an empty assoc array; the + form
+# expands to nothing instead. (#4219)
+if [[ -n "${JEV[@]+"${JEV[@]}"}" ]]; then
   for sid in "${!JEV[@]}"; do
     printf '%s\n' "${JEV[${sid}]}"
   done | python3 -c "
@@ -116,8 +118,9 @@ print('JEV_RUN|steps=%d|picks=%d|fallbacks=%d|agree_rate=%s' % (steps, picks, fa
 fi
 
 # ── Build JSON via python (safe escaping) ──────────────────
+# All run data reaches Python as data (env vars + REPORT_ROWS), never as
+# source: a hostile RUN_COMPLETED line cannot break out into code. (#4219)
 build_json() {
-  local ts; ts=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
   local input=""
   for id in "${ORDER[@]}"; do
     input+="${id}"$'\t'"${TITLES[${id}]:-}"$'\t'"${STATUS[${id}]:-pending}"$'\t'"${DETAIL[${id}]:-}"$'\n'
@@ -125,11 +128,15 @@ build_json() {
   for sid in "${!JEV[@]}"; do
     input+="JEV"$'\t'"${sid}"$'\t'"${JEV[${sid}]}"$'\n'
   done
-  echo "${input}" | python3 -c "
-import sys, json
+  REPORT_TS="$(date -u +"%Y-%m-%dT%H:%M:%SZ")" \
+  REPORT_PASSED="${PASSED}" REPORT_FAILED="${FAILED}" \
+  REPORT_RESULT="${RUN_RESULT}" REPORT_SUMMARY="${RUN_SUMMARY}" \
+  REPORT_ROWS="${input}" \
+  python3 - <<'PY'
+import json, os
 steps = []
 jev_rows = []
-for line in sys.stdin.read().strip().split('\n'):
+for line in os.environ['REPORT_ROWS'].strip().split('\n'):
     if not line.strip(): continue
     if line.startswith('JEV\t'):
         jparts = line.split('\t', 2)
@@ -144,8 +151,11 @@ for line in sys.stdin.read().strip().split('\n'):
     if status == 'passed': step['summary'] = detail
     elif status == 'failed': step['error'] = detail; step['category'] = 'app-bug'
     steps.append(step)
-report = {'timestamp': '${ts}', 'steps': steps, 'passed': ${PASSED},
-  'failed': ${FAILED}, 'result': '${RUN_RESULT}', 'summary': '${RUN_SUMMARY}'}
+report = {'timestamp': os.environ['REPORT_TS'], 'steps': steps,
+  'passed': int(os.environ['REPORT_PASSED']),
+  'failed': int(os.environ['REPORT_FAILED']),
+  'result': os.environ['REPORT_RESULT'],
+  'summary': os.environ['REPORT_SUMMARY']}
 if jev_rows:
     by_id = {s['id']: s for s in steps}
     agreed = disagreed = picks = fallbacks = 0
@@ -162,7 +172,7 @@ if jev_rows:
         'steps': len(jev_rows), 'picks_taken': picks, 'fallbacks': fallbacks,
         'agree_rate': ('%.1f%%' % (100.0 * agreed / denom)) if denom else None}
 print(json.dumps(report, indent=2))
-"
+PY
 }
 
 # ── JSON output / save ─────────────────────────────────────

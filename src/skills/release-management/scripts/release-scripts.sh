@@ -340,14 +340,21 @@ release_workflow() {
 update_version_files() {
   local version="$1"
 
+  # $version reaches node -e source and sed expressions below; only semver
+  # characters may pass, otherwise a crafted version becomes code. (#4219)
+  if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$ ]]; then
+    echo "Invalid version: $version (expected semver, e.g. 1.2.3 or 1.2.3-beta.1)" >&2
+    return 1
+  fi
+
   # package.json
   if [[ -f "package.json" ]]; then
     echo "Updating package.json..."
     # Use node if available, otherwise sed
     if command -v node >/dev/null; then
-      node -e "
+      PKG_VERSION="$version" node -e "
         const pkg = require('./package.json');
-        pkg.version = '$version';
+        pkg.version = process.env.PKG_VERSION;
         require('fs').writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
       "
     else

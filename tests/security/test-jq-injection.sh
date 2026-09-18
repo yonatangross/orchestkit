@@ -209,10 +209,12 @@ worktree_prunes() {
   done < <(git -C "$REPO_ROOT" worktree list --porcelain 2>/dev/null \
            | awk '/^worktree /{print $2}')
   # Backstop for UNregistered debris git will not list (aborted `worktree add`,
-  # the case lifecycle/sweep-stale-worktrees cleans up). Only emitted when the
+  # the case lifecycle/sweep-stale-worktrees cleans up, and .lane-cache clones
+  # left by the conductor's lane runner: stale copies of this same repo whose
+  # allowlisted hits all mismatch on path prefix). Only emitted when the
   # literal is not an ancestor of the scanned tree.
   local lit
-  for lit in "$REPO_ROOT/.worktrees" "$REPO_ROOT/.claude/worktrees"; do
+  for lit in "$REPO_ROOT/.worktrees" "$REPO_ROOT/.claude/worktrees" "$REPO_ROOT/.lane-cache"; do
     case "$me" in "$lit"/*) continue ;; esac
     printf -- '-not\n-path\n%s/*\n' "$lit"
   done

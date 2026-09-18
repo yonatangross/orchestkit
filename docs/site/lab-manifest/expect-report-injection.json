@@ -1,0 +1,12 @@
+{
+  "slug": "expect-report-injection",
+  "source": "docs/fix--4219-expect-report-injection/expect-report-injection.html",
+  "title": "Agent stdout is data, not Python source",
+  "description": "Audit finding AF-4 (#4219): expect/scripts/report.sh spliced RUN_RESULT and RUN_SUMMARY, parsed from browser-agent stdout that a hostile page can steer, into a python3 -c program, so a crafted RUN_COMPLETED line executed as Python. The fix sends every run field through environment variables into a quoted-heredoc program. Feed a breakout payload and compare what the old splice did with it against what the env channel does, then see the same data-not-source treatment applied to the five sibling script injections.",
+  "tags": [
+    "security",
+    "expect",
+    "shell"
+  ],
+  "date": "2026-09-18"
+}
