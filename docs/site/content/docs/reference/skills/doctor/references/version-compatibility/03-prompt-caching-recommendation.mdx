@@ -82,6 +82,23 @@ claude --version  # Returns e.g. "2.1.47"
 | >= 2.1.110 | Full | /tui fullscreen rendering, PushNotification tool for long sessions, /focus command (replaces Ctrl+O), Bash max timeout enforced, Write user-edit signal, session recap default-on (no env var needed), --resume resurrects scheduled tasks, /doctor MCP duplicate warning, Remote Control commands (/autocompact, /context, /exit, /reload-plugins), SDK TRACEPARENT/TRACESTATE auto-propagation |
 | >= 2.1.251 | **Minimum (current floor)** | **OrchestKit's supported floor. Anything below is unsupported. `shared/cc-support.json` is the single source of truth; this row mirrors it.** |
 
+## Host Support Levels
+
+Non-CC hosts. Each row is a measured verdict doctor can name; evidence lives in
+the dated audits under `docs/audits/` (`multi-engine-support-2026-09-08.md` for
+pi, Codex and Cursor; `agy-host-support-2026-09-18.md` for agy 1.2.6).
+
+| Host | Support level | Loads | Does not load | Evidence |
+|------|---------------|-------|---------------|----------|
+| Claude Code | Full | skills, agents, hooks, `.mcp.json`, `CLAUDE.md` | | shipped |
+| Cursor | Full minus hooks | skills, agents, plugin `rules` | Claude hook scripts | shipped |
+| Codex | Portable pack | `ork-codex` skills + role templates, `$ork-&lt;skill&gt;` | hooks | `multi-engine-support-2026-09-08.md` |
+| pi | Skills via manifest | `pi install` skills, `AGENTS.md` | hooks | `multi-engine-support-2026-09-08.md` |
+| Muse Code | Skills via `.agents/skills` | skills.sh starter SKILL.md | hooks (`.muse/hooks.json` is its own) | host page |
+| OpenCode | Skills via `.agents/skills` | skills.sh starter SKILL.md | hooks | `multi-engine-support-2026-09-08.md` |
+| Devin | Skills via git plugin | 76 of 107 skills, `AGENTS.md` | hooks (`hooks.v1.json` contract), rules | GH-4146, host page |
+| Antigravity (`agy`) | Skills via workspace `.agents/skills` | workspace `.agents/skills`, `.agents/skills.json` entries, plugin `skills/`+`agents/`+`commands/` (commands convert to skills, `ork:&lt;name&gt;` namespace via `agy plugin install`), workspace `.agents/hooks.json` in agy's own schema, global + plugin `mcp_config.json`, `AGENTS.md` per directory | `~/.agents/skills` (the skills.sh `-g` target), repo `.mcp.json`, ork's CC-schema `hooks/hooks.json`, `.cursor-plugin/commands/*.md` wrappers | `agy-host-support-2026-09-18.md` (agy 1.2.6, marker-verified) |
+
 ## Doctor Check Implementation
 
 The doctor skill validates CC version in category 10:

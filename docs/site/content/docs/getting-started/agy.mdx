@@ -1,0 +1,63 @@
+---
+title: Antigravity
+description: "Install OrchestKit skills in Google's Antigravity (agy). Agent Skills via skills.sh and workspace .agents/skills. No ork-agy pack; hooks and MCP config are a different contract."
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Card, Cards } from 'fumadocs-ui/components/card';
+import { HostHeading, HostMark } from '@/components/host-marks';
+import { HostInstall } from '@/components/host-install';
+
+**Antigravity** (`agy`) is Google's agentic CLI. OrchestKit treats it as a host. This page is that host, not a fake plugin pack.
+
+There is no `ork-agy` pack in this repository. agy discovers [Agent Skills](https://agentskills.io) from a workspace `.agents/skills` directory, which is the same convention Muse Code and OpenCode use, so `npx skills add` is the install path. Every load claim below comes from the measured audit at `docs/audits/agy-host-support-2026-09-18.md` (agy 1.2.6).
+
+## Install skills
+
+Starter 12 (not the whole catalog). Click the chip to copy.
+
+<HostInstall host="agy" />
+
+`npx skills add` writes SKILL.md trees under `.agents/skills`, and Antigravity is in skills.sh's universal target list. Start `agy` in the repo and the skills appear in `/skills`.
+
+The verify command uses an absolute `--add-dir` on purpose: in print mode, agy registers a workspace from `--add-dir <absolute path>` only. Bare `cwd` and a relative `--add-dir .` both miss `.agents/skills`. Inside the interactive TUI the launch directory is the workspace, so no flag is needed there.
+
+## What loads today
+
+Measured with agy 1.2.6 (`agy -p "/skills"`, `agy -p "/agents"`, `agy plugin validate`, marker fixtures under a scratch workspace):
+
+| Surface | Status |
+|:-|:-|
+| Workspace `.agents/skills/<name>/SKILL.md` | Loads |
+| `.agents/skills.json` `entries[].path` (shared dirs) | Loads |
+| Plugin `skills/` + `agents/` + `commands/` (as `.agents/plugins/<name>/`) | Loads; commands convert to skills, namespaced `<plugin>:<name>` |
+| Workspace `.agents/hooks.json` | Loads, but it is agy's hook schema, not Claude Code's |
+| Plugin `mcp_config.json` | Loads; the server spawns and tools route |
+| `~/.gemini/config/skills` and `~/.gemini/skills` | Load (user scope) |
+| `~/.agents/skills` (skills.sh `-g` target) | Does not load |
+| Repo `.mcp.json` | Does not load |
+| ork `hooks/hooks.json` + `dist/` | Does not port: agy wants `<plugin>/hooks.json` in its own event schema |
+| ork `.cursor-plugin/commands/*.md` wrappers | Does not load; invoke as `/<skill-name>` |
+
+Two honest gaps:
+
+- `skills add -g` lands in `~/.agents/skills`, which agy never reads. Use the project install line, or copy the directory into `~/.gemini/config/skills` if you want the skills in every workspace.
+- OrchestKit's hooks are Claude Code `hooks.json` format. agy's `hooks.json` uses its own event names and camelCase payloads, so none of ork's hook surface ports as files.
+
+<Callout type="warn">
+After installing, run `agy -p "/skills" --add-dir "$PWD"` from the repo root. Expect the starter skills listed by name; if the list is empty, check that `--add-dir` is an absolute path.
+</Callout>
+
+## The fuller install
+
+`agy plugin validate plugins/ork` on a local checkout reports `skills: 108 processed`, `agents: 36 processed` (hooks and MCP report skipped: ork's plugin layout keeps them where agy does not look). `agy plugin install <checkout>/plugins/ork` copies them into `~/.gemini/config/plugins/ork/` and namespaces every skill `ork:<name>`, which matches the `/ork:<skill>` spelling. It needs a local clone, so it is a power path, not the one-liner.
+
+<HostHeading host="agy" id="agy">Antigravity</HostHeading>
+
+Search for **agy** or **antigravity** should land on this page. The word Antigravity in this heading is the product name for Google's agentic CLI.
+
+<Cards>
+  <Card title="Hosts" href="/docs/getting-started/hosts" description="Full host matrix" />
+  <Card title="skills.sh" href="/docs/getting-started/skills-sh" description="OpenCode and other Agent Skills clients" icon={<HostMark host="pi" />} />
+  <Card title="Claude Code" href="/docs/getting-started/claude-code" description="Full ork plugin plus hooks" icon={<HostMark host="claude" />} />
+</Cards>

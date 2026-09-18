@@ -18,6 +18,9 @@ describe("host aliases", () => {
 		expect(hostAliasUrl("musecode")).toBe("/docs/getting-started/muse");
 		expect(hostAliasUrl("skills.sh")).toBe("/docs/getting-started/skills-sh");
 		expect(hostAliasUrl("devin")).toBe("/docs/getting-started/devin");
+		expect(hostAliasUrl("agy")).toBe("/docs/getting-started/agy");
+		expect(hostAliasUrl("antigravity")).toBe("/docs/getting-started/agy");
+		expect(hostAliasUrl("antigravity cli")).toBe("/docs/getting-started/agy");
 	});
 
 	it("maps muse to the Muse Code host page, not a fake plugin pack", () => {

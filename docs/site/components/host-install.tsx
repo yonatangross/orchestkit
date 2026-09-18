@@ -119,7 +119,7 @@ function passThroughClick(e: MouseEvent) {
  * always render fully styled and the keyframes start on the first effect.
  */
 export function HostInstallPicker({
-	hosts = ["claude", "cursor", "codex", "muse", "pi", "opencode", "devin"],
+	hosts = ["claude", "cursor", "codex", "muse", "pi", "opencode", "devin", "agy"],
 }: {
 	hosts?: HostId[];
 }) {

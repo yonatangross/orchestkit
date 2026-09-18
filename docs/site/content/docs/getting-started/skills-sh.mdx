@@ -10,7 +10,7 @@ import { HostInstall } from '@/components/host-install';
 import { InstallSnippet } from '@/components/install-snippet';
 import { SKILLS_SH_STARTER } from '@/lib/host-installs';
 
-Use skills.sh when the host is not Claude Code, Cursor's `ork` marketplace plugin, Codex's `ork-codex` pack, Pi's shipped `pi` manifest, or [Muse Code](/docs/getting-started/muse). That includes **OpenCode** and other skills.sh clients.
+Use skills.sh when the host is not Claude Code, Cursor's `ork` marketplace plugin, Codex's `ork-codex` pack, Pi's shipped `pi` manifest, or [Muse Code](/docs/getting-started/muse). That includes **OpenCode**, **Antigravity**, and other skills.sh clients.
 
 ## Starter 12
 
@@ -43,6 +43,12 @@ Pi's shipped path is `pi install git:github.com/yonatangross/orchestkit` ([engin
 OpenCode is the same path: skills.sh starter 12, not a separate marketplace plugin.
 
 <HostInstall host="opencode" />
+
+<HostHeading host="agy" id="agy">Antigravity</HostHeading>
+
+**Antigravity** (`agy`, Google) has its own page: [Antigravity](/docs/getting-started/agy). Same skills.sh starter, loaded from workspace `.agents/skills`. One caveat: `skills add -g` lands in `~/.agents/skills`, which agy does not read.
+
+<HostInstall host="agy" />
 
 <Callout type="info">
 Claude Code users should install [ork](/docs/getting-started/claude-code). Cursor users should enable **ork** from the marketplace ([Cursor](/docs/getting-started/cursor)). Codex users should install [ork-codex](/docs/getting-started/codex). skills.sh is the remainder.

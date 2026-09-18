@@ -146,6 +146,11 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
     "description": "Skills are knowledge, agents are specialists, hooks are automation. Here's how they work together."
   },
   {
+    "url": "/docs/getting-started/agy",
+    "title": "Antigravity",
+    "description": "Install OrchestKit skills in Google's Antigravity (agy). Agent Skills via skills.sh and workspace .agents/skills. No ork-agy pack; hooks and MCP config are a different contract."
+  },
+  {
     "url": "/docs/getting-started/claude-code",
     "title": "Claude Code",
     "description": "Install the full OrchestKit ork plugin in Claude Code. Skills, agents, hooks, /ork:doctor, and context7."
@@ -178,7 +183,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/getting-started/hosts",
     "title": "Hosts",
-    "description": "Pick a runtime. Claude Code and Cursor install the full ork plugin. Codex uses ork-codex. Pi uses pi install. Muse Code loads skills from .agents/skills. OpenCode and other skills.sh clients use the starter 12. Devin installs the plugin from git."
+    "description": "Pick a runtime. Claude Code and Cursor install the full ork plugin. Codex uses ork-codex. Pi uses pi install. Muse Code loads skills from .agents/skills. OpenCode and other skills.sh clients use the starter 12. Devin installs the plugin from git. Antigravity reads workspace .agents/skills."
   },
   {
     "url": "/docs/getting-started",
@@ -188,7 +193,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/getting-started/installation",
     "title": "Installation",
-    "description": "Install OrchestKit. Pick a host: Claude Code, Cursor, Codex, Pi, Muse, or skills.sh for OpenCode and other clients."
+    "description": "Install OrchestKit. Pick a host: Claude Code, Cursor, Codex, Pi, Muse, Antigravity, or skills.sh for OpenCode and other clients."
   },
   {
     "url": "/docs/getting-started/muse",

@@ -22,6 +22,10 @@ export const HOST_ALIASES: Readonly<Record<string, string>> = {
 	devin: "/docs/getting-started/devin",
 	"devin-cli": "/docs/getting-started/devin",
 	devincli: "/docs/getting-started/devin",
+	agy: "/docs/getting-started/agy",
+	antigravity: "/docs/getting-started/agy",
+	"antigravity-cli": "/docs/getting-started/agy",
+	antigravitycli: "/docs/getting-started/agy",
 };
 
 function compactQuery(query: string): string {
