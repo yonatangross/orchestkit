@@ -824,7 +824,8 @@ test_shared_load_backoff_fixture() {
 
     notice="pre-push: sustained load 80, jobs=1"
     run_case 16 80
-    count=$(printf '%s\n' "$out" | grep -F -c "$notice" || true)
+    count=$(printf '%s\n' "$out" | awk -v needle="$notice" \
+        'index($0, needle) { count++ } END { print count + 0 }')
     if [[ "$count" -eq 3 ]]; then
         log_pass "load 80 on 16 cores: the shared notice is printed by all 3 stages"
     else
@@ -839,7 +840,8 @@ test_shared_load_backoff_fixture() {
     fi
 
     run_case 16 0
-    count=$(printf '%s\n' "$out" | grep -F -c "pre-push: sustained load" || true)
+    count=$(printf '%s\n' "$out" | awk \
+        '/pre-push: sustained load/ { count++ } END { print count + 0 }')
     if [[ "$count" -eq 0 ]]; then
         log_pass "idle 16-core box prints no load notice"
     else
