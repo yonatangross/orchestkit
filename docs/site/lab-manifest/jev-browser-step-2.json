@@ -1,0 +1,12 @@
+{
+  "slug": "jev-browser-step-2",
+  "source": "docs/feat--jev-browser-step-2/index.html",
+  "title": "Jev Act Mode: the Pick That Drives the Step",
+  "description": "The expect Jev judge gains a third mode. ORK_EXPECT_JEV=1|act lets the Jev pick drive the step instead of the incumbent heuristic, while =shadow keeps the log-only behaviour and unset stays off. Every failure path (missing key, unreachable or timed-out endpoint, HTTP error, empty or malformed answer, confidence under the act_confidence_floor) falls back to the agent's own pick, and the per-step record says which path ran. A JEV_RUN summary line ends the run with steps, picks taken, fallbacks, and agreement rate. The page simulates all three modes and four scenarios live, including an HTTP-500 fallback.",
+  "tags": [
+    "expect",
+    "browser-testing",
+    "act-mode"
+  ],
+  "date": "2026-09-18"
+}

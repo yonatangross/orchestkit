@@ -6,8 +6,11 @@ set -euo pipefail
 # Protocol: STEP_START|id|title, STEP_DONE|id|summary, ASSERTION_FAILED|id|reason, RUN_COMPLETED|result|summary
 #           ROUTE|url           — current route under test (echoed verbatim into output)
 #           ARIA|<json|text>    — capped ARIA snapshot (echoed verbatim, max 8KB)
-#           JEV_SHADOW|id|<json> : shadow-only Jev pick beside the model pick
-#                                  (passed through verbatim + folded into the JSON report)
+#           JEV_SHADOW|id|<json> : Jev pick beside the model pick (shadow or act
+#                                  mode; passed through verbatim + folded into
+#                                  the JSON report). When any JEV_SHADOW record
+#                                  exists the script also prints one summary
+#                                  line: JEV_RUN|steps=N|picks=N|fallbacks=N|agree_rate=R
 # ROUTE/ARIA are passed through unchanged so PostToolUse hooks
 # (posttool/expect/snapshot-recorder, M125 #6) can match on them in tool_output.
 
@@ -71,8 +74,9 @@ while IFS= read -r line; do
       printf '%s|%s\n' "${cmd}" "${f1}"
       ;;
     JEV_SHADOW)
-      # Shadow-only Jev log line (references/jev-shadow.md). Passed through
-      # like ROUTE/ARIA and also folded into the JSON report beside the step.
+      # Jev log line (references/jev-shadow.md; shadow or act mode). Passed
+      # through like ROUTE/ARIA and also folded into the JSON report beside
+      # the step.
       JEV["${f1}"]="${f2}"
       printf '%s|%s|%s\n' "${cmd}" "${f1}" "${f2}"
       ;;
@@ -86,6 +90,30 @@ if [[ -z "${RUN_RESULT}" ]]; then
 fi
 
 [[ "${JSON_MODE}" == "false" ]] && printf "\n${D}  %d passed, %d failed${N}\n" "${PASSED}" "${FAILED}"
+
+# ── Jev run summary line (one per run, only when Jev judged steps) ──
+if [[ "${#JEV[@]}" -gt 0 ]]; then
+  for sid in "${!JEV[@]}"; do
+    printf '%s\n' "${JEV[${sid}]}"
+  done | python3 -c "
+import sys, json
+steps = picks = fallbacks = agreed = disagreed = 0
+for line in sys.stdin:
+    line = line.strip()
+    if not line: continue
+    try: rec = json.loads(line)
+    except Exception: continue
+    steps += 1
+    path = rec.get('path') or ''
+    if path == 'jev': picks += 1
+    elif path.startswith('fallback'): fallbacks += 1
+    if rec.get('agree') is True: agreed += 1
+    elif rec.get('agree') is False: disagreed += 1
+denom = agreed + disagreed
+rate = ('%.1f%%' % (100.0 * agreed / denom)) if denom else 'n/a'
+print('JEV_RUN|steps=%d|picks=%d|fallbacks=%d|agree_rate=%s' % (steps, picks, fallbacks, rate))
+"
+fi
 
 # ── Build JSON via python (safe escaping) ──────────────────
 build_json() {
@@ -120,12 +148,19 @@ report = {'timestamp': '${ts}', 'steps': steps, 'passed': ${PASSED},
   'failed': ${FAILED}, 'result': '${RUN_RESULT}', 'summary': '${RUN_SUMMARY}'}
 if jev_rows:
     by_id = {s['id']: s for s in steps}
-    agreed = disagreed = 0
+    agreed = disagreed = picks = fallbacks = 0
     for sid, rec in jev_rows:
         if sid in by_id: by_id[sid]['jev_shadow'] = rec
+        path = rec.get('path') or ''
+        if path == 'jev': picks += 1
+        elif path.startswith('fallback'): fallbacks += 1
         if rec.get('agree') is True: agreed += 1
         elif rec.get('agree') is False: disagreed += 1
-    report['jev_shadow'] = {'recorded': len(jev_rows), 'agreed': agreed, 'disagreed': disagreed}
+    denom = agreed + disagreed
+    report['jev_shadow'] = {
+        'recorded': len(jev_rows), 'agreed': agreed, 'disagreed': disagreed,
+        'steps': len(jev_rows), 'picks_taken': picks, 'fallbacks': fallbacks,
+        'agree_rate': ('%.1f%%' % (100.0 * agreed / denom)) if denom else None}
 print(json.dumps(report, indent=2))
 "
 }

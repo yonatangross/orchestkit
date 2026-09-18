@@ -16,6 +16,10 @@ jev_shadow:
   context_max_chars: 300
   # Abort budget for the one request per step.
   latency_budget_ms: 400
+  # Act mode only (ORK_EXPECT_JEV=1|act): a Choice confidence below this
+  # floor falls back to the agent's own pick. Same scale as
+  # thresholds.low_confidence, which only marks the record flag.
+  act_confidence_floor: 0.5
   thresholds:
     # Choice confidence below this marks the pick low_confidence in the log.
     low_confidence: 0.5

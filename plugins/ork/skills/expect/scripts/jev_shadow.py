@@ -1,12 +1,20 @@
 #!/usr/bin/env python3
-"""Jev shadow for /ork:expect. SHADOW ONLY.
+"""Jev step judge for /ork:expect. Three modes off ORK_EXPECT_JEV:
+
+  unset / falsey : off, the script exits before python or the network
+  shadow         : log-only second opinion (legacy ORK_EXPECT_JEV_SHADOW
+                   truthy maps here too)
+  1 | act        : the Jev pick becomes the step's chosen action, with a
+                   fail-closed fallback to the agent's own pick
 
 Sends ONE Jev request per expect step: a Choice over the bounded set of
 legal next actions (element verbs derived from the interactive ARIA
 snapshot plus fixed meta moves) and three loopback-verify Nouls
 (goal_reached, page_changed_as_expected, blocked). Emits one
-JEV_SHADOW|<step>|<json> line for report.sh. Never acts on the answer;
-every failure is a logged error record, never a nonzero exit.
+JEV_SHADOW|<step>|<json> line for report.sh. In act mode the record also
+carries `path` ("jev" or "fallback:<reason>") and `executed_action`, the
+action the agent runs. Every failure is a logged record, never a nonzero
+exit, and in act mode every failure falls back to the incumbent pick.
 
 Payload hygiene: only ref id, role, and accessible name leave the machine
 per element, capped by config, names truncated, and every outbound string
@@ -26,6 +34,7 @@ import urllib.request
 SKILL_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DEFAULTS_FILE = os.path.join(SKILL_DIR, "jev-shadow.defaults.yaml")
 ENV_FLAG = "ORK_EXPECT_JEV_SHADOW"
+ENV_MODE = "ORK_EXPECT_JEV"
 ENV_KEY = "ORK_TYPESAFE_API_KEY"
 ENV_ENDPOINT = "ORK_EXPECT_JEV_ENDPOINT"
 ENV_CONFIG = "ORK_EXPECT_CONFIG"
@@ -70,6 +79,21 @@ JSON_ESCAPE = re.compile(r"\\(?:u[0-9a-fA-F]{4}|[\"\\/bfnrt])")
 
 def truthy(value):
     return str(value or "").strip().lower() in TRUTHY
+
+
+def resolve_mode():
+    """off | shadow | act, from ORK_EXPECT_JEV. `shadow` selects log-only;
+    `act` (and the truthy words, incl. `1`) executes the Jev pick. Any other
+    set value is off. With ORK_EXPECT_JEV unset the legacy
+    ORK_EXPECT_JEV_SHADOW flag still selects shadow."""
+    raw = (os.environ.get(ENV_MODE) or "").strip().lower()
+    if raw in TRUTHY or raw == "act":
+        return "act"
+    if raw == "shadow":
+        return "shadow"
+    if raw:
+        return "off"
+    return "shadow" if truthy(os.environ.get(ENV_FLAG)) else "off"
 
 
 def unescape_json(text):
@@ -289,12 +313,21 @@ def main():
     parser.add_argument("--config", default=None)
     args = parser.parse_args()
 
-    if not truthy(os.environ.get(ENV_FLAG)):
+    mode = resolve_mode()
+    if mode == "off":
         return 0
+
+    def finish(record, path=None, action=None):
+        if mode == "act":
+            record["mode"] = "act"
+            record["path"] = path
+            record["executed_action"] = action
+        emit(args.step_id, record)
 
     cfg = resolve_config(args.config)
     if cfg is None:
-        emit(args.step_id, {"step_id": args.step_id, "error": "no jev_shadow config", "agree": None})
+        finish({"step_id": args.step_id, "error": "no jev_shadow config", "agree": None},
+               "fallback:no_config", args.model_action)
         return 0
 
     element_cap = int(cfg.get("element_cap", 0) or 0)
@@ -304,9 +337,11 @@ def main():
     model = str(cfg.get("model", ""))
     endpoint = os.environ.get(ENV_ENDPOINT) or str(cfg.get("endpoint", ""))
     thresholds = cfg.get("thresholds") or {}
+    conf_floor = cfg.get("act_confidence_floor")
 
     if element_cap <= 0 or name_max <= 0 or context_max <= 0 or budget_ms <= 0 or not model or not endpoint:
-        emit(args.step_id, {"step_id": args.step_id, "error": "incomplete jev_shadow config", "agree": None})
+        finish({"step_id": args.step_id, "error": "incomplete jev_shadow config", "agree": None},
+               "fallback:incomplete_config", args.model_action)
         return 0
 
     goal = sanitize(args.goal, context_max)
@@ -314,6 +349,7 @@ def main():
     elements = load_elements(args.snapshot_file, element_cap, name_max)
     candidates = build_candidates(elements)
     model_key = normalize_model_action(args.model_action, elements, candidates)
+    incumbent = model_key or args.model_action
 
     base = {
         "step_id": args.step_id,
@@ -325,20 +361,24 @@ def main():
 
     api_key = (os.environ.get(ENV_KEY) or "").strip()
     if not api_key:
-        emit(args.step_id, {**base, "error": "no_api_key", "agree": None})
+        finish({**base, "error": "no_api_key", "agree": None},
+               "fallback:no_api_key", incumbent)
         return 0
 
     started = time.monotonic()
     try:
         body = post_jev(endpoint, api_key, build_request(goal, last_verify, elements, candidates, model), budget_ms / 1000.0)
     except urllib.error.HTTPError as exc:
-        emit(args.step_id, {**base, "error": "http %d" % exc.code, "agree": None, "latency_ms": int((time.monotonic() - started) * 1000)})
+        finish({**base, "error": "http %d" % exc.code, "agree": None, "latency_ms": int((time.monotonic() - started) * 1000)},
+               "fallback:http_%d" % exc.code, incumbent)
         return 0
     except (urllib.error.URLError, socket.timeout, TimeoutError):
-        emit(args.step_id, {**base, "error": "unreachable_or_timeout", "agree": None, "latency_ms": int((time.monotonic() - started) * 1000)})
+        finish({**base, "error": "unreachable_or_timeout", "agree": None, "latency_ms": int((time.monotonic() - started) * 1000)},
+               "fallback:unreachable_or_timeout", incumbent)
         return 0
     except (ValueError, OSError):
-        emit(args.step_id, {**base, "error": "request_failed", "agree": None, "latency_ms": int((time.monotonic() - started) * 1000)})
+        finish({**base, "error": "request_failed", "agree": None, "latency_ms": int((time.monotonic() - started) * 1000)},
+               "fallback:request_failed", incumbent)
         return 0
     latency_ms = int((time.monotonic() - started) * 1000)
 
@@ -346,7 +386,12 @@ def main():
     choice_answer = (answers or {}).get("next_action") or {}
     jev_action = choice_answer.get("choice")
     if jev_action not in candidates:
-        emit(args.step_id, {**base, "error": "malformed_answer", "agree": None, "latency_ms": latency_ms})
+        if mode == "act" and not answers:
+            reason = "empty_answer"
+        else:
+            reason = "malformed_answer"
+        finish({**base, "error": reason, "agree": None, "latency_ms": latency_ms},
+               "fallback:" + reason, incumbent)
         return 0
 
     nouls = {}
@@ -363,7 +408,14 @@ def main():
         thr = thresholds.get(qid)
         flags[qid] = (nouls[qid] >= thr) if isinstance(nouls[qid], (int, float)) and isinstance(thr, (int, float)) else None
 
-    emit(args.step_id, {
+    below_floor = (
+        isinstance(conf, (int, float))
+        and isinstance(conf_floor, (int, float))
+        and conf < conf_floor
+    )
+    take_jev = mode == "act" and not below_floor
+
+    finish({
         **base,
         "jev_action": jev_action,
         "jev_action_probability": (choice_answer.get("probabilities") or {}).get(jev_action),
@@ -374,7 +426,8 @@ def main():
         "agree": (model_key == jev_action) if model_key else False,
         "latency_ms": latency_ms,
         "error": None,
-    })
+    }, "jev" if take_jev else "fallback:low_confidence",
+       jev_action if take_jev else incumbent)
     return 0
 
 

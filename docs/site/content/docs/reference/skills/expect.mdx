@@ -334,9 +334,9 @@ After a passing run, the `posttool/expect/snapshot-recorder` hook persists the c
 
 For the snapshot recorder to fire, the expect run output must contain `RUN_COMPLETED|passed`, `ROUTE|&lt;route&gt;`, and `ARIA|&lt;json-summary&gt;` tags. The agent-browser-driven flow already emits these.
 
-## Jev shadow (opt-in, shadow only)
+## Jev step judge (opt-in, three modes)
 
-When `ORK_EXPECT_JEV_SHADOW` is truthy, each executed step additionally emits a `JEV_SHADOW|&lt;id&gt;|&lt;json&gt;` line: one Jev request judges the step (a Choice over the bounded legal-action set built from the interactive ARIA elements, plus three verify Nouls) and the report logs the Jev pick with probabilities beside the agent's pick and their agreement. It never drives the browser. Off by default; off means zero network. Tunables live in `.expect/config.yaml` `jev_shadow:`. Load: `Read("references/jev-shadow.md")`
+`ORK_EXPECT_JEV` selects the mode. Unset or falsey is off, and off means zero network. `shadow` (also selected by a truthy `ORK_EXPECT_JEV_SHADOW` for compatibility) logs one Jev request per step beside the agent's pick: a Choice over the bounded legal-action set built from the interactive ARIA elements, plus three verify Nouls, with probabilities and per-step agreement in the report. `1` or `act` lets the Jev pick drive the step instead, failing closed to the agent's own pick on any error, timeout, empty or malformed answer, or a confidence below `act_confidence_floor`. Tunables live in `.expect/config.yaml` `jev_shadow:`. Load: `Read("references/jev-shadow.md")`
 
 
 ## When NOT to Use
@@ -385,7 +385,7 @@ Load on demand with `Read("references/&lt;file&gt;")`:
 | `human-review.md` | AskUserQuestion plan review gate |
 | `ci-integration.md` | GitHub Actions workflow + pre-push hooks |
 | `research.md` | millionco/expect architecture analysis |
-| `jev-shadow.md` | Opt-in Jev shadow pick per step: bounded-action Choice + verify Nouls, logged only |
+| `jev-shadow.md` | Opt-in Jev step judge per step: bounded-action Choice + verify Nouls; shadow logs, act drives with fail-closed fallback |
 
 
 **Version:** 1.0.0 (March 2026) — Initial scaffold, M99 milestone
@@ -822,8 +822,11 @@ reports:
   keep_last: 10         # Number of reports to retain
   screenshots: on_fail  # always | on_fail | never
 
-# Jev shadow (SHADOW ONLY, see references/jev-shadow.md)
-# Runs one Jev request per step when ORK_EXPECT_JEV_SHADOW is truthy.
+# Jev step judge (see references/jev-shadow.md)
+# Runs one Jev request per step when ORK_EXPECT_JEV selects a mode:
+# `shadow` logs beside the agent pick, `1`/`act` runs the Jev pick with a
+# fail-closed fallback to the agent pick. Unset or falsey is off;
+# ORK_EXPECT_JEV_SHADOW truthy still selects shadow.
 # Every key below has a shipped fallback in the skill's
 # jev-shadow.defaults.yaml; set this section to override it wholesale.
 jev_shadow:
@@ -833,6 +836,7 @@ jev_shadow:
   name_max_chars: 80        # per-name truncation after redaction
   context_max_chars: 300    # per-field truncation for goal and last verify
   latency_budget_ms: 400    # abort budget for the one request per step
+  act_confidence_floor: 0.5 # act mode: Choice confidence below this falls back
   thresholds:
     low_confidence: 0.5     # Choice confidence below this flags the pick
     goal_reached: 0.7       # noul >= threshold raises the matching flag
@@ -1194,10 +1198,16 @@ Executing test plan...
 
 ### Jev Shadow
 
-# Jev Shadow for /ork:expect
+# Jev Step Judge for /ork:expect
 
-One logged-only Jev judgment per expect step. Shadow only: it never
-changes what the expect-agent executes.
+One Jev judgment per expect step, in one of three modes selected by
+`ORK_EXPECT_JEV`: unset or falsey is off (the script exits before python
+or the network); `shadow` logs a second opinion beside the agent's pick
+and never drives the browser; `1` or `act` lets the Jev pick drive the
+step, failing closed to the agent's own pick on any error, timeout, empty
+or malformed answer, or a confidence below `act_confidence_floor`. The
+legacy `ORK_EXPECT_JEV_SHADOW` flag, truthy with `ORK_EXPECT_JEV` unset,
+still selects `shadow`.
 
 ## Shape
 
@@ -1226,11 +1236,13 @@ per interactive element (role-dependent, keyed `verb:@eN` on the same
 
 ## Gate
 
-Runs only when `ORK_EXPECT_JEV_SHADOW` is truthy (`1|true|yes|on`).
-Default off, and off means off: `scripts/jev-shadow.sh` exits before
-python or the network are touched. The API key comes from
-`ORK_TYPESAFE_API_KEY`; with no key the step logs `error: no_api_key`
-and no request is made.
+`ORK_EXPECT_JEV` selects the mode: `shadow` for log-only, `1`/`act` (or
+any truthy word) to execute the Jev pick. Any other set value, or unset
+with `ORK_EXPECT_JEV_SHADOW` unset or falsey, is off, and off means off:
+`scripts/jev-shadow.sh` exits before python or the network are touched.
+The API key comes from `ORK_TYPESAFE_API_KEY`; with no key the step logs
+`error: no_api_key` and no request is made (in act mode the record falls
+back to the agent's pick).
 
 ## What leaves while it is on (egress)
 
@@ -1259,6 +1271,7 @@ config; nothing is a code constant.
 | `name_max_chars` | Per-name truncation after redaction |
 | `context_max_chars` | Per-field truncation for goal / last verify |
 | `latency_budget_ms` | Abort budget for the one request (default 400) |
+| `act_confidence_floor` | Act mode only: Choice confidence below this falls back to the agent's pick (default 0.5) |
 | `model` | Pinned Jev model id |
 | `endpoint` | POST target (`ORK_EXPECT_JEV_ENDPOINT` overrides, for mocks) |
 | `thresholds.low_confidence` | Choice confidence below this flags the pick |
@@ -1292,12 +1305,23 @@ accessible name to its ref. Actions outside the keyspace (`press Tab`,
 `navigate`, `drag`) log their raw text with `agree: false`; they are
 visible in the report but not comparable.
 
-`report.sh` folds each record into the step's `jev_shadow` field and
-adds a run-level `jev_shadow: \{recorded, agreed, disagreed\}` summary.
-Failures (`http N`, `unreachable_or_timeout`, `malformed_answer`,
-`no_api_key`, `no jev_shadow config`) land as error records with
-`agree: null`. The script always exits 0: a dead shadow must never
-fail a run.
+`report.sh` folds each record into the step's `jev_shadow` field, adds a
+run-level `jev_shadow: \{recorded, agreed, disagreed, steps, picks_taken,
+fallbacks, agree_rate\}` summary to the JSON report, and prints one
+`JEV_RUN|steps=N|picks=N|fallbacks=N|agree_rate=R` line at the end of the
+run. Failures (`http N`, `unreachable_or_timeout`, `malformed_answer`,
+`empty_answer`, `no_api_key`, `no jev_shadow config`) land as error
+records with `agree: null`. The script always exits 0: a dead Jev lane
+must never fail a run.
+
+In act mode every record additionally carries `mode: "act"`, `path`, and
+`executed_action`. `path` is `"jev"` when the Jev pick ran and
+`"fallback:&lt;reason&gt;"` when the agent's own pick ran instead
+(`fallback:low_confidence` still logs the full Jev answer; the floor
+rejected it, not the network). `executed_action` is the canonical
+candidate key (`verb:@eN` or a meta verb) the agent translates back to an
+agent-browser command; on fallback it is the agent's normalized pick, or
+its raw action text when the pick sits outside the keyspace.
 
 ## Invocation (expect-agent, per step)
 
