@@ -27,6 +27,7 @@ skill is no longer marked `experimental:` in its frontmatter.
 
 | Feature | Min CC Version | OrchestKit Usage | Degradation if Missing |
 |---------|---------------|-----------------|----------------------|
+| Peer skill `typesafe@typesafe-ai` (marketplace `typesafe-ai/skills`) | 2.1.251 (plugin marketplaces) | The TypeSafe agent skill behind the Jev routing seam (`ORK_ROUTE_JEV`, #4233) and the session category provider. Doctor category 11 reports installed vs marketplace version via `scripts/check-peer-skill.py`; drift shows up here next to CC drift | Both Jev lanes keep working (they call the API directly), but the skill's cookbooks and any newer request shapes are stale until `claude plugin marketplace update typesafe-ai && claude plugin update typesafe@typesafe-ai` |
 | `subagent_type` in SubagentStart | 2.1.7 | Agent type detection in all SubagentStart hooks | Hooks fall back to prompt scanning (removed in v6.0) |
 | `session_id` guaranteed | 2.1.9 | Session tracking in all hooks | Session-scoped features fail |
 | Hook `continue` field | 2.1.7 | All hook responses | Hooks silently ignored |
