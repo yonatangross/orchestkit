@@ -275,6 +275,32 @@ run_with_timeout() {
   fi
 }
 
+# Capture a stage's stdout and stderr under ${TMPDIR:-/tmp}.
+# Success deletes the file. Failure leaves it and records the path in STAGE_LOG.
+# A stage must not redirect to /dev/null: that is how the security failure
+# hid its only red assertion (#4238).
+STAGE_LOG=""
+run_captured() {
+  local log rc
+  log=$(mktemp "${TMPDIR:-/tmp}/ork-pre-push.XXXXXX")
+  if "$@" >"$log" 2>&1; then
+    rm -f "$log"
+    STAGE_LOG=""
+    return 0
+  fi
+  rc=$?
+  STAGE_LOG="$log"
+  return "$rc"
+}
+
+print_kept_stage_log() {
+  if [[ -z "${STAGE_LOG:-}" || ! -f "$STAGE_LOG" ]]; then
+    return 0
+  fi
+  echo "║  Full log kept at: $STAGE_LOG"
+  tail -20 "$STAGE_LOG" | sed 's/^/║  /'
+}
+
 # Second number of an uptime load tail: the 5-minute average.
 # "82.44 124.65 117.59" and "0.52, 0.58, 0.59" both yield the middle field.
 # Decimal commas become dots after the separator ", " is turned into a space.
@@ -416,13 +442,14 @@ run_security_stage() {
     return 0
   fi
   if [[ -x "tests/security/run-security-tests.sh" ]]; then
-    if ! ORK_PRE_PUSH_STAGE_JOBS="$MAX_JOBS" ./tests/security/run-security-tests.sh >/dev/null 2>&1; then
+    if ! ORK_PRE_PUSH_STAGE_JOBS="$MAX_JOBS" run_captured ./tests/security/run-security-tests.sh; then
       echo "FAILED"
       echo ""
       echo "╔════════════════════════════════════════════════════════════╗"
       echo "║  Security tests failed!"
       echo "╠════════════════════════════════════════════════════════════╣"
       echo "║  Run: ./tests/security/run-security-tests.sh"
+      print_kept_stage_log
       echo "╚════════════════════════════════════════════════════════════╝"
       exit 1
     fi
@@ -479,13 +506,14 @@ assert_repo_config_unchanged() {
 echo -n "  Running TypeScript type check... "
 
 if [[ -f "src/hooks/tsconfig.json" ]]; then
-  if ! run_with_timeout 120 npx tsc --noEmit -p src/hooks/tsconfig.json >/dev/null 2>&1; then
+  if ! run_captured run_with_timeout 120 npx tsc --noEmit -p src/hooks/tsconfig.json; then
     echo "FAILED"
     echo ""
     echo "╔════════════════════════════════════════════════════════════╗"
     echo "║  TypeScript validation failed!"
     echo "╠════════════════════════════════════════════════════════════╣"
     echo "║  Run: cd src/hooks && npx tsc --noEmit"
+    print_kept_stage_log
     echo "╚════════════════════════════════════════════════════════════╝"
     exit 1
   fi
@@ -497,13 +525,14 @@ fi
 # ===== Build Verification =====
 echo -n "  Verifying build... "
 
-if ! run_with_timeout 300 npm run build >/dev/null 2>&1; then
+if ! run_captured run_with_timeout 300 npm run build; then
   echo "FAILED"
   echo ""
   echo "╔════════════════════════════════════════════════════════════╗"
   echo "║  Build failed!"
   echo "╠════════════════════════════════════════════════════════════╣"
   echo "║  Run: npm run build"
+  print_kept_stage_log
   echo "╚════════════════════════════════════════════════════════════╝"
   exit 1
 fi
@@ -513,13 +542,14 @@ echo "OK"
 echo -n "  Verifying imports... "
 
 if [[ -f "scripts/verify-imports.js" ]]; then
-  if ! run_with_timeout 60 node scripts/verify-imports.js >/dev/null 2>&1; then
+  if ! run_captured run_with_timeout 60 node scripts/verify-imports.js; then
     echo "FAILED"
     echo ""
     echo "╔════════════════════════════════════════════════════════════╗"
     echo "║  Import verification failed!"
     echo "╠════════════════════════════════════════════════════════════╣"
     echo "║  Run: node scripts/verify-imports.js"
+    print_kept_stage_log
     echo "╚════════════════════════════════════════════════════════════╝"
     exit 1
   fi
@@ -595,8 +625,16 @@ _run_test() {
     case "$test_file" in
       *.mjs|*.js) runner=node ;;
     esac
-    if ! "$runner" "$test_file" >/dev/null 2>&1; then
+    local log kept
+    log=$(mktemp "${TMPDIR:-/tmp}/ork-pre-push.XXXXXX")
+    if ! "$runner" "$test_file" >"$log" 2>&1; then
+      kept="${TMPDIR:-/tmp}/ork-pre-push-unit-$(basename "$test_file").log"
+      cp "$log" "$kept"
+      rm -f "$log"
+      printf '%s\n' "$kept" > "$_PREPUSH_FAIL_DIR/$(basename "$test_file").logpath"
       touch "$_PREPUSH_FAIL_DIR/$(basename "$test_file")"
+    else
+      rm -f "$log"
     fi
   else
     # A missing file used to be skipped in silence, so the summary counted it
@@ -614,13 +652,22 @@ run_unit_tests_parallel
 
 FAILURES=()
 for f in "$_PREPUSH_FAIL_DIR"/*; do
-  [[ -e "$f" ]] && FAILURES+=("$(basename "$f")")
+  [[ -e "$f" ]] || continue
+  [[ "$f" == *.logpath ]] && continue
+  FAILURES+=("$(basename "$f")")
 done
 
 if [[ ${#FAILURES[@]} -gt 0 ]]; then
   echo "FAILED"
   for f in "${FAILURES[@]}"; do
     echo "    FAIL: $f"
+    if [[ -f "$_PREPUSH_FAIL_DIR/${f}.logpath" ]]; then
+      kept=$(cat "$_PREPUSH_FAIL_DIR/${f}.logpath")
+      echo "    full log kept at: $kept"
+      if [[ -f "$kept" ]]; then
+        tail -20 "$kept" | sed 's/^/    | /'
+      fi
+    fi
   done
   echo ""
   echo "╔════════════════════════════════════════════════════════════╗"
@@ -639,7 +686,7 @@ run_security_stage
 echo -n "  Running mdx-compile guard... "
 
 if [[ -x "tests/unit/test-mdx-compile.sh" ]]; then
-  if ! run_with_timeout 120 ./tests/unit/test-mdx-compile.sh >/dev/null 2>&1; then
+  if ! run_captured run_with_timeout 120 ./tests/unit/test-mdx-compile.sh; then
     echo "FAILED"
     echo ""
     echo "╔════════════════════════════════════════════════════════════╗"
@@ -647,6 +694,7 @@ if [[ -x "tests/unit/test-mdx-compile.sh" ]]; then
     echo "╠════════════════════════════════════════════════════════════╣"
     echo "║  Run: npm run test:mdx"
     echo "║  Fix likely needs a 4-backtick outer fence in a SKILL.md"
+    print_kept_stage_log
     echo "╚════════════════════════════════════════════════════════════╝"
     exit 1
   fi
@@ -658,13 +706,14 @@ fi
 # ===== Agent frontmatter validation =====
 echo -n "  Validating agent frontmatter... "
 
-if ! run_with_timeout 60 bash tests/agents/test-agent-frontmatter.sh >/dev/null 2>&1; then
+if ! run_captured run_with_timeout 60 bash tests/agents/test-agent-frontmatter.sh; then
   echo "FAILED"
   echo ""
   echo "╔════════════════════════════════════════════════════════════╗"
   echo "║  Agent frontmatter validation failed!"
   echo "╠════════════════════════════════════════════════════════════╣"
   echo "║  Run: npm run test:agents"
+  print_kept_stage_log
   echo "╚════════════════════════════════════════════════════════════╝"
   exit 1
 fi
@@ -673,13 +722,14 @@ echo "OK"
 # ===== Skill structure validation =====
 echo -n "  Validating skill structure... "
 
-if ! run_with_timeout 180 bash tests/skills/structure/test-skill-md.sh >/dev/null 2>&1; then
+if ! run_captured run_with_timeout 180 bash tests/skills/structure/test-skill-md.sh; then
   echo "FAILED"
   echo ""
   echo "╔════════════════════════════════════════════════════════════╗"
   echo "║  Skill structure validation failed!"
   echo "╠════════════════════════════════════════════════════════════╣"
   echo "║  Run: npm run test:skills"
+  print_kept_stage_log
   echo "╚════════════════════════════════════════════════════════════╝"
   exit 1
 fi
@@ -693,7 +743,7 @@ for check in tests/manifests/test-skill-uniqueness.sh \
              tests/manifests/test-manifest-dependencies.sh \
              tests/manifests/test-plugin-orphan-skills.sh; do
   if [[ -f "$check" ]]; then
-    if ! run_with_timeout 30 bash "$check" >/dev/null 2>&1; then
+    if ! run_captured run_with_timeout 30 bash "$check"; then
       MANIFEST_FAILED=1
       break
     fi
@@ -707,6 +757,7 @@ if [[ $MANIFEST_FAILED -eq 1 ]]; then
   echo "║  Manifest consistency failed!"
   echo "╠════════════════════════════════════════════════════════════╣"
   echo "║  Run: npm run test:manifests"
+  print_kept_stage_log
   echo "╚════════════════════════════════════════════════════════════╝"
   exit 1
 fi
