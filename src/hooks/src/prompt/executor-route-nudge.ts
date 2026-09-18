@@ -172,10 +172,14 @@ export function executorRouteNudge(
   // agrees, and hands off through the Skill tool; the seam is a prior.
   if (verdict?.decided_by === 'jev' && verdict.target && verdict.intent) {
     const conf = verdict.conf === null ? 'na' : verdict.conf.toFixed(2);
+    const handoff =
+      verdict.target.kind === 'agent'
+        ? 'spawn it via the Agent tool with that subagent_type'
+        : 'invoke the executor via the Skill tool';
     return outputPromptContext(
       `[${HOOK_NAME}] route: ${verdict.intent} -> ${formatRouteTarget(verdict.target)} (conf ${conf}). ` +
-        'Treat this as the prior for /ork:auto step 1, say whether you agree, and invoke the executor ' +
-        'via the Skill tool rather than building inline. One-time reminder this session (#4233).',
+        `Treat this as the prior for /ork:auto step 1, say whether you agree, and ${handoff} ` +
+        'rather than building inline. One-time reminder this session (#4233).',
     );
   }
 

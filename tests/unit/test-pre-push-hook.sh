@@ -760,10 +760,15 @@ test_shared_load_backoff_fixture() {
     fns+=$'\n'"$(sed -n '/^refresh_pre_push_load_notice()/,/^}/p' "$hook")"
     fns+=$'\n'"$(sed -n '/^print_pre_push_load_notice()/,/^}/p' "$hook")"
     fns+=$'\n'"$(sed -n '/^plan_pre_push_jobs()/,/^}/p' "$hook")"
+    fns+=$'\n'"$(sed -n '/^run_captured()/,/^}/p' "$hook")"
     fns+=$'\n'"$(sed -n '/^run_unit_tests_parallel()/,/^}/p' "$hook")"
     fns+=$'\n'"$(sed -n '/^run_security_stage()/,/^}/p' "$hook")"
     fns+=$'\n'"$(sed -n '/^run_hooks_vitest_stage()/,/^}/p' "$hook")"
     printf '%s\n' "$fns" > "$tmp/fns.sh"
+    # This extracted copy calls the logging stub by path. The hook does not
+    # grow a PATH switch to make that possible.
+    sed "s#\\./tests/security/run-security-tests.sh#${bin}/run-security-tests.sh#" "$tmp/fns.sh" > "$tmp/fns.stub.sh"
+    mv "$tmp/fns.stub.sh" "$tmp/fns.sh"
 
     if [[ -z "$fns" || "$fns" != *'run_hooks_vitest_stage()'* ]]; then
         log_fail "could not extract the three stage runners from the hook"
@@ -806,7 +811,6 @@ test_shared_load_backoff_fixture() {
         out=$(cd "$PROJECT_ROOT" && env -u ORK_PRE_PUSH_JOBS \
             PATH="$bin:$PATH" \
             STUB_LOG="$stub_log" \
-            ORK_PRE_PUSH_PATH_STUBS=1 \
             /bin/bash -c '
                 set -u
                 source "$1"
@@ -820,7 +824,8 @@ test_shared_load_backoff_fixture() {
 
     notice="pre-push: sustained load 80, jobs=1"
     run_case 16 80
-    count=$(printf '%s\n' "$out" | grep -F -c "$notice" || true)
+    count=$(printf '%s\n' "$out" | awk -v needle="$notice" \
+        'index($0, needle) { count++ } END { print count + 0 }')
     if [[ "$count" -eq 3 ]]; then
         log_pass "load 80 on 16 cores: the shared notice is printed by all 3 stages"
     else
@@ -835,7 +840,8 @@ test_shared_load_backoff_fixture() {
     fi
 
     run_case 16 0
-    count=$(printf '%s\n' "$out" | grep -F -c "pre-push: sustained load" || true)
+    count=$(printf '%s\n' "$out" | awk \
+        '/pre-push: sustained load/ { count++ } END { print count + 0 }')
     if [[ "$count" -eq 0 ]]; then
         log_pass "idle 16-core box prints no load notice"
     else
@@ -849,6 +855,74 @@ test_shared_load_backoff_fixture() {
         log_fail "idle stub log was not the cap of 8: $(cat "$stub_log")"
     fi
 
+    rm -rf "$tmp"
+}
+
+# A captured stage that exits 7 must make the hook exit 7.
+# Reading $? after the if reports 0, so the gate used to pass.
+test_captured_stage_exit_status() {
+    log_section "Test: captured stage exit status is the hook exit status"
+
+    local tmp bin hook rc out kept
+    tmp=$(mktemp -d "${TMPDIR:-/tmp}/ork-pre-push-rc.XXXXXX")
+    bin="$tmp/bin"
+    mkdir -p "$bin"
+    printf '%s\n' '#!/bin/bash' 'exit 7' > "$bin/npx"
+    chmod +x "$bin/npx"
+    hook="${PROJECT_ROOT}/bin/git-hooks/pre-push"
+
+    rc=0
+    out=$(PATH="$bin:$PATH" /bin/bash "$hook" origin "https://example.invalid/repo.git" \
+        <<<'refs/heads/chore/exit-status 0000000000000000000000000000000000000000 refs/heads/chore/exit-status 0000000000000000000000000000000000000000') || rc=$?
+
+    if [[ "$rc" -eq 7 ]]; then
+        log_pass "stubbed stage exit 7 is the hook exit status"
+    else
+        log_fail "hook exited $rc, want 7. output: $out"
+    fi
+    kept=$(printf '%s\n' "$out" | sed -n 's/.*Full log kept at: //p')
+    if [[ -n "$kept" ]]; then
+        rm -f "$kept"
+    fi
+    rm -rf "$tmp"
+}
+
+# A PATH-resolved run-security-tests.sh must not satisfy the security stage,
+# even when ORK_PRE_PUSH_PATH_STUBS=1. The checkout script is the only runner.
+test_security_stage_rejects_path_stub() {
+    log_section "Test: PATH cannot satisfy the security stage"
+
+    local hook tmp bin marker fns out
+    hook="${PROJECT_ROOT}/bin/git-hooks/pre-push"
+    tmp=$(mktemp -d "${TMPDIR:-/tmp}/ork-pre-push-path.XXXXXX")
+    bin="$tmp/bin"
+    marker="$tmp/marker"
+    mkdir -p "$bin"
+    printf '%s\n' '#!/bin/bash' "printf '%s\n' PATH_STUB > '$marker'" 'exit 0' > "$bin/run-security-tests.sh"
+    chmod +x "$bin/run-security-tests.sh"
+
+    fns=$(sed -n '/^print_pre_push_load_notice()/,/^}/p' "$hook")
+    fns+=$'\n'"$(sed -n '/^run_security_stage()/,/^}/p' "$hook")"
+    printf '%s\n' "$fns" > "$tmp/fns.sh"
+
+    out=$(cd "$tmp" && PATH="$bin:$PATH" ORK_PRE_PUSH_PATH_STUBS=1 /bin/bash -c '
+        set -u
+        PRE_PUSH_LOAD_NOTICE=""
+        MAX_JOBS=4
+        source "$1"
+        run_security_stage
+    ' _ "$tmp/fns.sh")
+
+    if [[ -f "$marker" ]]; then
+        log_fail "PATH stub ran and could satisfy the security stage. output: $out"
+    else
+        log_pass "PATH stub was not executed"
+    fi
+    if printf '%s\n' "$out" | grep -F -q 'SKIP (not found)'; then
+        log_pass "missing checkout script is a skip, not a PATH success"
+    else
+        log_fail "expected SKIP (not found), got: $out"
+    fi
     rm -rf "$tmp"
 }
 
@@ -868,6 +942,8 @@ main() {
     test_vitest_git_environment_scrub
     test_resolve_pre_push_jobs
     test_shared_load_backoff_fixture
+    test_captured_stage_exit_status
+    test_security_stage_rejects_path_stub
     test_stages_do_not_inherit_worktree_git_dir
     test_scrub_keeps_locators_without_rediscovery
 

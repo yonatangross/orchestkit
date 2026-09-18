@@ -18,6 +18,28 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.54",
+    "date": "2026-09-18",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.53...v10.0.0-beta.54",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**hosts:** first-class Antigravity host support ([#4235](https://github.com/yonatangross/orchestkit/issues/4235)) ([#4243](https://github.com/yonatangross/orchestkit/issues/4243)) ([65cbee8](https://github.com/yonatangross/orchestkit/commit/65cbee8083dd5e7ba915129e8af5b8e2564df4bc))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**hooks:** address CodeRabbit on [#4241](https://github.com/yonatangross/orchestkit/issues/4241) ([#4246](https://github.com/yonatangross/orchestkit/issues/4246)) ([4b2ea20](https://github.com/yonatangross/orchestkit/commit/4b2ea203c564f0feb9ae585116886c7228ca759a))",
+          "seam review follow-ups that missed the [#4237](https://github.com/yonatangross/orchestkit/issues/4237) merge ([#4233](https://github.com/yonatangross/orchestkit/issues/4233)) ([#4245](https://github.com/yonatangross/orchestkit/issues/4245)) ([114782d](https://github.com/yonatangross/orchestkit/commit/114782d1d7d684d55ff9241b98d2a31ff2d107f2))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.53",
     "date": "2026-09-18",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.52...v10.0.0-beta.53",

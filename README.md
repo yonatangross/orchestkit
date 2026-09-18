@@ -614,6 +614,12 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.54](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.53...v10.0.0-beta.54)** · 2026-09-18
+
+- **hosts:** first-class Antigravity host support (#4235) (#4243)
+- **hooks:** address CodeRabbit on [#4241](https://github.com/yonatangross/orchestkit/issues/4241) (#4246)
+- seam review follow-ups that missed the [#4237](https://github.com/yonatangross/orchestkit/issues/4237) merge (#4233) (#4245)
+
 **[v10.0.0-beta.53](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.52...v10.0.0-beta.53)** · 2026-09-18
 
 - **hooks:** pre-push applies one load back-off to every stage and keeps the security log (#4238) (#4241)
@@ -643,10 +649,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **security:** genericize op:// paths and home dirs in public files (#4223)
 - replace U+2014 in sixteen rule titles with colon (#4221)
-
-**[v10.0.0-beta.46](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.45...v10.0.0-beta.46)** · 2026-09-17
-
-- **glyph:** v3 render shape, 50-line budget, domain icons, inventory template (#4212)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

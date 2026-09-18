@@ -177,7 +177,7 @@
 
   var mode = 'off';
   var floorEl = document.getElementById('floor');
-  function key(v){ return (Math.round(v*10)/10).toFixed(1).replace(/\.0$/,'.0'); }
+  function key(v){ return (Math.round(v*10)/10).toFixed(1); }
   function render(){
     var f = parseFloat(floorEl.value);
     var k = Math.round(f*10)/10;
