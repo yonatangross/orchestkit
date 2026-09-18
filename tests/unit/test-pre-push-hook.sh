@@ -760,10 +760,15 @@ test_shared_load_backoff_fixture() {
     fns+=$'\n'"$(sed -n '/^refresh_pre_push_load_notice()/,/^}/p' "$hook")"
     fns+=$'\n'"$(sed -n '/^print_pre_push_load_notice()/,/^}/p' "$hook")"
     fns+=$'\n'"$(sed -n '/^plan_pre_push_jobs()/,/^}/p' "$hook")"
+    fns+=$'\n'"$(sed -n '/^run_captured()/,/^}/p' "$hook")"
     fns+=$'\n'"$(sed -n '/^run_unit_tests_parallel()/,/^}/p' "$hook")"
     fns+=$'\n'"$(sed -n '/^run_security_stage()/,/^}/p' "$hook")"
     fns+=$'\n'"$(sed -n '/^run_hooks_vitest_stage()/,/^}/p' "$hook")"
     printf '%s\n' "$fns" > "$tmp/fns.sh"
+    # This extracted copy calls the logging stub by path. The hook does not
+    # grow a PATH switch to make that possible.
+    sed "s#\\./tests/security/run-security-tests.sh#${bin}/run-security-tests.sh#" "$tmp/fns.sh" > "$tmp/fns.stub.sh"
+    mv "$tmp/fns.stub.sh" "$tmp/fns.sh"
 
     if [[ -z "$fns" || "$fns" != *'run_hooks_vitest_stage()'* ]]; then
         log_fail "could not extract the three stage runners from the hook"
@@ -806,7 +811,6 @@ test_shared_load_backoff_fixture() {
         out=$(cd "$PROJECT_ROOT" && env -u ORK_PRE_PUSH_JOBS \
             PATH="$bin:$PATH" \
             STUB_LOG="$stub_log" \
-            ORK_PRE_PUSH_PATH_STUBS=1 \
             /bin/bash -c '
                 set -u
                 source "$1"
@@ -881,6 +885,45 @@ test_captured_stage_exit_status() {
     rm -rf "$tmp"
 }
 
+# A PATH-resolved run-security-tests.sh must not satisfy the security stage,
+# even when ORK_PRE_PUSH_PATH_STUBS=1. The checkout script is the only runner.
+test_security_stage_rejects_path_stub() {
+    log_section "Test: PATH cannot satisfy the security stage"
+
+    local hook tmp bin marker fns out
+    hook="${PROJECT_ROOT}/bin/git-hooks/pre-push"
+    tmp=$(mktemp -d "${TMPDIR:-/tmp}/ork-pre-push-path.XXXXXX")
+    bin="$tmp/bin"
+    marker="$tmp/marker"
+    mkdir -p "$bin"
+    printf '%s\n' '#!/bin/bash' "printf '%s\n' PATH_STUB > '$marker'" 'exit 0' > "$bin/run-security-tests.sh"
+    chmod +x "$bin/run-security-tests.sh"
+
+    fns=$(sed -n '/^print_pre_push_load_notice()/,/^}/p' "$hook")
+    fns+=$'\n'"$(sed -n '/^run_security_stage()/,/^}/p' "$hook")"
+    printf '%s\n' "$fns" > "$tmp/fns.sh"
+
+    out=$(cd "$tmp" && PATH="$bin:$PATH" ORK_PRE_PUSH_PATH_STUBS=1 /bin/bash -c '
+        set -u
+        PRE_PUSH_LOAD_NOTICE=""
+        MAX_JOBS=4
+        source "$1"
+        run_security_stage
+    ' _ "$tmp/fns.sh")
+
+    if [[ -f "$marker" ]]; then
+        log_fail "PATH stub ran and could satisfy the security stage. output: $out"
+    else
+        log_pass "PATH stub was not executed"
+    fi
+    if printf '%s\n' "$out" | grep -F -q 'SKIP (not found)'; then
+        log_pass "missing checkout script is a skip, not a PATH success"
+    else
+        log_fail "expected SKIP (not found), got: $out"
+    fi
+    rm -rf "$tmp"
+}
+
 main() {
     echo "╔═══════════════════════════════════════════════════════════════╗"
     echo "║            Pre-push Hook Unit Tests                          ║"
@@ -898,6 +941,7 @@ main() {
     test_resolve_pre_push_jobs
     test_shared_load_backoff_fixture
     test_captured_stage_exit_status
+    test_security_stage_rejects_path_stub
     test_stages_do_not_inherit_worktree_git_dir
     test_scrub_keeps_locators_without_rediscovery
 

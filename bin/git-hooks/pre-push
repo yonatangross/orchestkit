@@ -432,18 +432,12 @@ run_unit_tests_parallel() {
 # knob: it walks test-*.sh in one for-loop. jobs=1 is that serial walk. A
 # wider count is not passed in, because there is no flag to pass, so the
 # invocation stays the script alone either way.
+# Always the checkout script. A PATH entry named run-security-tests.sh must
+# not be able to report this stage OK.
 run_security_stage() {
   local stage_rc
   print_pre_push_load_notice
   echo -n "  Running security tests... "
-  if [[ "${ORK_PRE_PUSH_PATH_STUBS:-}" == "1" ]]; then
-    if ! ORK_PRE_PUSH_STAGE_JOBS="$MAX_JOBS" run-security-tests.sh; then
-      echo "FAILED"
-      return 1
-    fi
-    echo "OK"
-    return 0
-  fi
   if [[ -x "tests/security/run-security-tests.sh" ]]; then
     ORK_PRE_PUSH_STAGE_JOBS="$MAX_JOBS" run_captured ./tests/security/run-security-tests.sh; stage_rc=$?
     if [[ "$stage_rc" -ne 0 ]]; then
