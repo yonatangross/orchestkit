@@ -15,6 +15,7 @@ Usage: check-peer-skill.py [--plugin NAME@MARKETPLACE] [--plugins-dir PATH] [--j
 
 Verdicts (one line, or one JSON object with --json):
   MARKETPLACE_MISSING  the marketplace was never added
+  REGISTRY_UNREADABLE  a registry file exists but cannot be read or parsed (could not observe)
   PLUGIN_MISSING       marketplace present, plugin not installed
   UPDATE_AVAILABLE     installed version differs from the marketplace version
   UP_TO_DATE           versions match
@@ -34,13 +35,20 @@ DEFAULT_PLUGIN = "typesafe@typesafe-ai"
 OK_VERDICTS = {"UP_TO_DATE", "VERSION_UNKNOWN"}
 
 
+class RegistryUnreadable(Exception):
+    """The registry file exists but cannot be read or parsed."""
+
+
 def load(path: str) -> dict:
+    """Return the registry dict; {} when absent; raise when present but unreadable."""
+    if not os.path.exists(path):
+        return {}
     try:
         with open(path, encoding="utf-8") as fh:
             data = json.load(fh)
-        return data if isinstance(data, dict) else {}
-    except (OSError, ValueError):
-        return {}
+    except (OSError, ValueError) as exc:
+        raise RegistryUnreadable(f"{path}: {exc}") from exc
+    return data if isinstance(data, dict) else {}
 
 
 def installed_version(installed_file: str, ref: str) -> str:
@@ -77,8 +85,6 @@ def published_version(market_entry: dict, plugin: str) -> str:
 
 def resolve(plugins_dir: str, ref: str) -> dict:
     plugin, market = ref.split("@", 1)
-    markets = load(os.path.join(plugins_dir, "known_marketplaces.json"))
-    entry = markets.get(market)
     result = {
         "plugin": ref,
         "verdict": "",
@@ -87,6 +93,14 @@ def resolve(plugins_dir: str, ref: str) -> dict:
         "detail": None,
         "fix": None,
     }
+    try:
+        markets = load(os.path.join(plugins_dir, "known_marketplaces.json"))
+    except RegistryUnreadable as exc:
+        result["verdict"] = "REGISTRY_UNREADABLE"
+        result["detail"] = str(exc)
+        result["fix"] = "repair or remove the unreadable registry file, then rerun"
+        return result
+    entry = markets.get(market)
     if not isinstance(entry, dict):
         result["verdict"] = "MARKETPLACE_MISSING"
         result["detail"] = f"marketplace {market} not in known_marketplaces.json"
@@ -94,7 +108,13 @@ def resolve(plugins_dir: str, ref: str) -> dict:
             f"claude plugin marketplace add {market}/skills && claude plugin install {ref}"
         )
         return result
-    installed = installed_version(os.path.join(plugins_dir, "installed_plugins.json"), ref)
+    try:
+        installed = installed_version(os.path.join(plugins_dir, "installed_plugins.json"), ref)
+    except RegistryUnreadable as exc:
+        result["verdict"] = "REGISTRY_UNREADABLE"
+        result["detail"] = str(exc)
+        result["fix"] = "repair or remove the unreadable registry file, then rerun"
+        return result
     if not installed:
         result["verdict"] = "PLUGIN_MISSING"
         result["detail"] = f"plugin {plugin} not in installed_plugins.json"
@@ -125,6 +145,8 @@ def render(r: dict) -> str:
         return f"{ref}: UPDATE AVAILABLE ({r['installed']} installed, {r['published']} in marketplace). Fix: {r['fix']}"
     if v == "PLUGIN_MISSING":
         return f"{ref}: PLUGIN MISSING ({r['detail']}). Fix: {r['fix']}"
+    if v == "REGISTRY_UNREADABLE":
+        return f"{ref}: REGISTRY UNREADABLE, could not observe ({r['detail']}). Fix: {r['fix']}"
     return f"{ref}: MARKETPLACE MISSING ({r['detail']}). Fix: {r['fix']}"
 
 

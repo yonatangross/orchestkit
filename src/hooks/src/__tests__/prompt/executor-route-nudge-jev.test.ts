@@ -193,5 +193,7 @@ describe('executor-route-nudge with the Jev seam', () => {
     });
     const out = contextOf(executorRouteNudge(input('build me a summary of how other teams handle retry budgets'), ctxWithLog().ctx, d));
     expect(out).toContain('route: research -> Agent(Explore) (conf 0.77)');
+    expect(out).toContain('spawn it via the Agent tool');
+    expect(out).not.toContain('via the Skill tool');
   });
 });

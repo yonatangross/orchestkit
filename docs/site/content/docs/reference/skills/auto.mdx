@@ -95,7 +95,7 @@ Apply the disambiguation rules (most specific wins; explicit verb beats inferred
 
 Then classify **weight in the same pass**, naming the signal that decided it: *"touches auth and models an attacker → Heavy."* Intent first, weight second; a weight call never rewrites the intent you just committed to.
 
-**A `route:` line is a prior, not a verdict.** When the prompt context carries one line of the shape `route: &lt;class&gt; -> /ork:&lt;skill&gt; (conf 0.xx)`, it came from the Jev routing seam (`ORK_ROUTE_JEV=steer`, off by default, #4233): one typed judgment of the capability class, taken before you read this table. Treat it as the prior for this step, state in one sentence whether you agree and why, and then classify as above. Your reasoning still decides; a confident prior you disagree with is worth a sentence, never a silent override in either direction. The confirm step and the Skill-tool hand-off below are unchanged.
+**A `route:` line is a prior, not a verdict.** When the prompt context carries one line of the shape `route: &lt;class&gt; -> /ork:&lt;skill&gt; (conf 0.xx)` or `route: &lt;class&gt; -> Agent(&lt;name&gt;) (conf 0.xx)`, it came from the Jev routing seam (`ORK_ROUTE_JEV=steer`, off by default, #4233): one typed judgment of the capability class, taken before you read this table. Treat it as the prior for this step, state in one sentence whether you agree and why, and then classify as above. Your reasoning still decides; a confident prior you disagree with is worth a sentence, never a silent override in either direction. The confirm step is unchanged; the hand-off tool follows the target: a `/ork:` skill goes through the Skill tool, an `Agent(...)` target through the Agent tool.
 
 ### 2. Confirm (low ceremony)
 
