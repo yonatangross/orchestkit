@@ -27,6 +27,12 @@ fi
 
 stop_one() {
   local name="$1" f="${STATE_DIR}/$1.json" pid rc
+  # Same label check serve.sh applies before writing the state file; without it
+  # a name like ../../x turns the rm below into a path traversal. (#4219)
+  if ! [[ "$name" =~ ^[a-z0-9]([a-z0-9-]*[a-z0-9])?$ ]]; then
+    printf 'stop.sh: name "%s" is not a valid subdomain label (a-z, 0-9, hyphens)\n' "$name" >&2
+    return 1
+  fi
   if [[ ! -f "$f" ]]; then
     printf 'stop.sh: no state for "%s" (nothing to stop)\n' "$name" >&2
     return 0

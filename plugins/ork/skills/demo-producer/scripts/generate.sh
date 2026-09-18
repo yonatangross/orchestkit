@@ -744,6 +744,10 @@ generate_cli_script() {
     local command="$1"
     local name=$(normalize_name "$command" | cut -c1-30)
     local output_script="${OUTPUT_DIR}/scripts/demo-${name}.sh"
+    # %q makes the command a self-quoting shell word: it lands in the generated
+    # script as literal text and can never break out of type_text. (#4219)
+    local escaped_command
+    escaped_command=$(printf '%q' "$command")
 
     cat > "$output_script" << SCRIPT_HEADER
 #!/usr/bin/env bash
@@ -771,7 +775,7 @@ main() {
     echo
 
     echo -n -e "\${GREEN}>\${RESET} "
-    type_text "${command}"
+    type_text ${escaped_command}
     sleep 0.5
 
     echo

@@ -32,6 +32,10 @@ case "$TARGET" in
     ;;
   commit)
     if [[ -n "$COMMIT_HASH" ]]; then
+      if [[ ! "$COMMIT_HASH" =~ ^[0-9a-f]{7,40}$ ]]; then
+        echo "Invalid commit hash: $COMMIT_HASH" >&2
+        exit 1
+      fi
       DIFF_ARGS="${COMMIT_HASH}^..${COMMIT_HASH}"
     else
       DIFF_ARGS="HEAD~1..HEAD"
@@ -44,7 +48,7 @@ case "$TARGET" in
 esac
 
 # ── Level 1: Changed files with status ─────────────────────
-FILES_RAW=$(git diff ${DIFF_ARGS} --name-only --diff-filter=AMDRC 2>/dev/null || true)
+FILES_RAW=$(git diff ${DIFF_ARGS:+"$DIFF_ARGS"} --name-only --diff-filter=AMDRC 2>/dev/null || true)
 
 if [[ -z "$FILES_RAW" ]]; then
   echo '{"target":"'"$TARGET"'","files":[],"stats":[],"preview":"","context":[],"summary":{"total":0}}'
@@ -65,7 +69,7 @@ while IFS= read -r file; do
   fi
 
   # Get status from diff-filter
-  STATUS=$(git diff ${DIFF_ARGS} --name-status --diff-filter=AMDRC 2>/dev/null | grep -F "$file" | cut -f1 | head -1 || echo "M")
+  STATUS=$(git diff ${DIFF_ARGS:+"$DIFF_ARGS"} --name-status --diff-filter=AMDRC 2>/dev/null | grep -F "$file" | cut -f1 | head -1 || echo "M")
   case "$STATUS" in
     A) STATUS_LABEL="added" ;;
     D) STATUS_LABEL="deleted" ;;
@@ -119,7 +123,7 @@ while IFS=$'\t' read -r added removed file; do
   fi
   STATS_JSON+='{"path":"'"$file"'","added":'"$added"',"removed":'"$removed"',"magnitude":'"$MAGNITUDE"'}'
   STAT_ENTRIES=$((STAT_ENTRIES + 1))
-done < <(git diff ${DIFF_ARGS} --numstat 2>/dev/null || true)
+done < <(git diff ${DIFF_ARGS:+"$DIFF_ARGS"} --numstat 2>/dev/null || true)
 STATS_JSON+="]"
 
 # ── Level 3: Diff preview (truncated to MAX_PREVIEW_CHARS) ──
@@ -134,7 +138,7 @@ for s in sorted_stats[:${MAX_FILES}]:
 
 PREVIEW=""
 for file in $TOP_FILES; do
-  CHUNK=$(git diff ${DIFF_ARGS} -- "$file" 2>/dev/null | head -80 || true)
+  CHUNK=$(git diff ${DIFF_ARGS:+"$DIFF_ARGS"} -- "$file" 2>/dev/null | head -80 || true)
   if [[ -n "$CHUNK" ]]; then
     PREVIEW+="--- $file ---"$'\n'"$CHUNK"$'\n\n'
   fi

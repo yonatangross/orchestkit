@@ -65,12 +65,12 @@ find_importing_pages() {
 config_lookup() {
   [[ -f ".expect/config.yaml" ]] || return 0
   python3 -c "
-import yaml, fnmatch
+import yaml, fnmatch, sys
 cfg = yaml.safe_load(open('.expect/config.yaml')) or {}
 for pat, urls in (cfg.get('route_map') or {}).items():
-    if fnmatch.fnmatch('$1', pat):
+    if fnmatch.fnmatch(sys.argv[1], pat):
         for u in (urls if isinstance(urls, list) else [urls]): print(u)
-" 2>/dev/null || true
+" "$1" 2>/dev/null || true
 }
 
 declare -A ROUTES
