@@ -585,6 +585,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.53](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.52...v10.0.0-beta.53)** · 2026-09-18
+
+- **hooks:** pre-push applies one load back-off to every stage and keeps the security log (#4238) (#4241)
+
 **[v10.0.0-beta.52](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.51...v10.0.0-beta.52)** · 2026-09-18
 
 - **hooks:** Jev routing seam for ork:auto behind ORK_ROUTE_JEV (#4233) (#4237)
@@ -614,10 +618,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.46](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.45...v10.0.0-beta.46)** · 2026-09-17
 
 - **glyph:** v3 render shape, 50-line budget, domain icons, inventory template (#4212)
-
-**[v10.0.0-beta.45](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.44...v10.0.0-beta.45)** · 2026-09-17
-
-- **hooks:** criteria-B for both category paths, Jev cascade at 0.8 (#4211)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

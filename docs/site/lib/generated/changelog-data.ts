@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.53",
+    "date": "2026-09-18",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.52...v10.0.0-beta.53",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**hooks:** pre-push applies one load back-off to every stage and keeps the security log ([#4238](https://github.com/yonatangross/orchestkit/issues/4238)) ([#4241](https://github.com/yonatangross/orchestkit/issues/4241)) ([961349b](https://github.com/yonatangross/orchestkit/commit/961349b91b65b9ad9aef2fc43a135f6b3f435b29))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.52",
     "date": "2026-09-18",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.51...v10.0.0-beta.52",
