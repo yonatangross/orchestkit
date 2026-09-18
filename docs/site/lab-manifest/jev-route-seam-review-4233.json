@@ -1,0 +1,12 @@
+{
+  "slug": "jev-route-seam-review-4233",
+  "source": "docs/fix--4233-seam-review-followup/index.html",
+  "title": "Jev routing seam, review follow-ups",
+  "description": "The review ledger for the seam: the reviewer HOLD on account tokens, the CodeQL no-op, four CodeRabbit fixes and the one declined finding, with a filter by source and why the commits missed the #4237 merge.",
+  "tags": [
+    "routing",
+    "jev",
+    "review"
+  ],
+  "date": "2026-09-18"
+}

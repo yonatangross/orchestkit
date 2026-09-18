@@ -146,6 +146,34 @@ out="$(python3 "$CHECK" --plugins-dir "$D" --plugin nope 2>&1)" && rc=$? || rc=$
 assert_exit "usage error exit 2" 2 "$rc"
 
 # -----------------------------------------------------------------------------
+echo "Test 6: an invalid known_marketplaces.json is REGISTRY UNREADABLE, never MARKETPLACE MISSING"
+D="$TMP/t6"; mkdir -p "$D"
+printf '{not json' > "$D/known_marketplaces.json"
+write_installed "$D" ""
+out="$(python3 "$CHECK" --plugins-dir "$D" 2>&1)" && rc=$? || rc=$?
+assert_exit "exit 1" 1 "$rc"
+assert_contains "verdict" "REGISTRY UNREADABLE" "$out"
+if [[ "$out" == *"MARKETPLACE MISSING"* ]]; then
+    echo "  FAIL invalid registry must not read as a missing marketplace"; FAIL=$((FAIL + 1))
+else
+    echo "  ok  invalid registry is not a missing marketplace"; PASS=$((PASS + 1))
+fi
+
+# -----------------------------------------------------------------------------
+echo "Test 7: an unreadable installed_plugins.json is REGISTRY UNREADABLE, never PLUGIN MISSING"
+D="$TMP/t7"; mkdir -p "$D/clone"
+write_markets "$D" "$D/clone"
+printf '{"version":2,"plugins":' > "$D/installed_plugins.json"
+out="$(python3 "$CHECK" --plugins-dir "$D" 2>&1)" && rc=$? || rc=$?
+assert_exit "exit 1" 1 "$rc"
+assert_contains "verdict" "REGISTRY UNREADABLE" "$out"
+if [[ "$out" == *"PLUGIN MISSING"* ]]; then
+    echo "  FAIL unreadable installed registry must not read as a missing plugin"; FAIL=$((FAIL + 1))
+else
+    echo "  ok  unreadable installed registry is not a missing plugin"; PASS=$((PASS + 1))
+fi
+
+# -----------------------------------------------------------------------------
 echo ""
 echo "peer-skill check: $PASS passed, $FAIL failed"
 [[ "$FAIL" -eq 0 ]]

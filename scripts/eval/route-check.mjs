@@ -292,7 +292,7 @@ async function runJevReplay() {
       if (jevCategory === c.category) categoryCorrect += 1;
     }
     if (jevRoute === c.route) routeAgree += 1;
-    if (jevCategory === regex) regexAgree += 1;
+    if (jevCategory !== null && jevCategory === regex) regexAgree += 1;
     if (typeof v.latency_ms === 'number') latencies.push(v.latency_ms);
     if (typeof v.input_tokens === 'number') tokens += v.input_tokens;
     rows.push({
@@ -319,7 +319,7 @@ async function runJevReplay() {
   log(`Cases with verdict: ${scored}/${bench.cases.length}`);
   log(`Category accuracy : ${categoryCorrect}/${mapped} = ${pct(categoryCorrect, mapped)} (cases whose class maps to a benchmark category)`);
   log(`Route agreement   : ${routeAgree}/${scored} = ${pct(routeAgree, scored)} (executor the class maps to vs the case's route)`);
-  log(`Agrees with regex : ${regexAgree}/${scored} = ${pct(regexAgree, scored)}`);
+  log(`Agrees with regex : ${regexAgree}/${mapped} = ${pct(regexAgree, mapped)} (mapped cases only)`);
   if (latencies.length) log(`Latency           : p50 ${q(0.5)} ms, p95 ${q(0.95)} ms`);
   if (tokens) log(`Cost              : ${tokens} input tokens, USD ${((tokens * JEV_USD_PER_M_INPUT) / 1e6 / scored * 1000).toFixed(4)} per 1,000 cases`);
   log('');
@@ -339,7 +339,7 @@ async function runJevReplay() {
     category_accuracy: mapped ? categoryCorrect / mapped : null,
     category_mapped: mapped,
     route_agreement: scored ? routeAgree / scored : null,
-    regex_agreement: scored ? regexAgree / scored : null,
+    regex_agreement: mapped ? regexAgree / mapped : null,
     latency_ms_p50: q(0.5),
     latency_ms_p95: q(0.95),
     input_tokens_total: tokens,
@@ -347,6 +347,13 @@ async function runJevReplay() {
     generated_at: new Date().toISOString().slice(0, 10),
     rows,
   };
+  if (scored < bench.cases.length && !process.argv.includes('--allow-partial')) {
+    log('');
+    log(`Jev baseline NOT written: ${scored}/${bench.cases.length} cases had a verdict. `
+      + 'A partial replay must not replace the baseline; pass --allow-partial to override.');
+    process.exitCode = 1;
+    return;
+  }
   writeFileSync(JEV_BASELINE_PATH, `${JSON.stringify(baseline, null, 2)}\n`);
   log('');
   log(`Jev baseline written -> ${JEV_BASELINE_PATH}`);
