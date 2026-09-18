@@ -555,6 +555,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.50](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.49...v10.0.0-beta.50)** · 2026-09-18
+
+- **expect:** Jev act mode for the step pick (ORK_EXPECT_JEV) (#4230)
+
 **[v10.0.0-beta.49](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.48...v10.0.0-beta.49)** · 2026-09-18
 
 - **expect:** opt-in Jev shadow pick per step (ORK_EXPECT_JEV_SHADOW) (#4228)
@@ -583,10 +587,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.43](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.42...v10.0.0-beta.43)** · 2026-09-16
 
 - **ci:** shrink the release rebuild window to the hooks-only set (#4205)
-
-**[v10.0.0-beta.42](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.41...v10.0.0-beta.42)** · 2026-09-16
-
-- **hooks:** output-validator pass warnings are log-only (#4202)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

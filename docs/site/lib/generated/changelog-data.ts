@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.50",
+    "date": "2026-09-18",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.49...v10.0.0-beta.50",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**expect:** Jev act mode for the step pick (ORK_EXPECT_JEV) ([#4230](https://github.com/yonatangross/orchestkit/issues/4230)) ([c5668f7](https://github.com/yonatangross/orchestkit/commit/c5668f7b8748b54c5f4efb2544cb3c4573efa066))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.49",
     "date": "2026-09-18",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.48...v10.0.0-beta.49",
