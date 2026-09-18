@@ -555,6 +555,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.51](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.50...v10.0.0-beta.51)** · 2026-09-18
+
+- **expect:** pass agent result and summary to report.py on stdin, never as source (#4234)
+- **hooks:** read last_assistant_message at SubagentStop, agent_output is never sent (#4232)
+
 **[v10.0.0-beta.50](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.49...v10.0.0-beta.50)** · 2026-09-18
 
 - **expect:** Jev act mode for the step pick (ORK_EXPECT_JEV) (#4230)
@@ -583,10 +588,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.44](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.43...v10.0.0-beta.44)** · 2026-09-17
 
 - **hooks:** opt-in shadow session category as a typed Choice (#4208)
-
-**[v10.0.0-beta.43](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.42...v10.0.0-beta.43)** · 2026-09-16
-
-- **ci:** shrink the release rebuild window to the hooks-only set (#4205)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
