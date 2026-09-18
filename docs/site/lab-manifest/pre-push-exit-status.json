@@ -1,6 +1,6 @@
 {
   "slug": "pre-push-exit-status",
-  "source": "docs/fix--4241-coderabbit/pre-push-exit-status.html",
+  "source": "docs/chore--dsp-53097-4241-follow-up-pr/pre-push-exit-status.html",
   "title": "Captured Stage Exit Status",
   "description": "The pre-push hook used to report success when a captured stage failed, because it read the status after the if. Type a stage exit code and compare the hook exit before the fix with the hook exit after it.",
   "tags": [
