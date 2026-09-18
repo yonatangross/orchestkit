@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.52](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.51...v10.0.0-beta.52) (2026-09-18)
+
+
+### Features
+
+* **hooks:** Jev routing seam for ork:auto behind ORK_ROUTE_JEV ([#4233](https://github.com/yonatangross/orchestkit/issues/4233)) ([#4237](https://github.com/yonatangross/orchestkit/issues/4237)) ([ef91b52](https://github.com/yonatangross/orchestkit/commit/ef91b521b95b986bc1c20a9ef39a59fea0b4937e))
+
 ## [10.0.0-beta.51](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.50...v10.0.0-beta.51) (2026-09-18)
 
 

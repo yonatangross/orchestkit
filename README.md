@@ -242,6 +242,36 @@ yourself, via one of:
   in the session data directory. Cost of opting in: the first prompt of a session
   waits for the call to settle, 1.1 to 1.7 s measured from a fresh hook process
   (the eval's 320 ms was a warm connection), 3 s at most before it gives up.
+- `ORK_ROUTE_JEV=shadow` (or `steer`) together with `ORK_TYPESAFE_API_KEY`, the
+  Jev routing seam for `/ork:auto` (#4233). Off by default. When set, every
+  build-shaped prompt (the same test the once-per-session executor reminder
+  uses: an imperative build or fix verb, 40 characters or more, no explicit
+  `/plugin:skill`) is sent to the same TypeSafe endpoint and model as one typed
+  Choice over nineteen route classes plus four side judgments (needs a worktree,
+  needs a browser, mutation risk, needs the operator). What leaves your machine:
+  the first 1,500 characters of the prompt after a redactor has replaced
+  secrets, emails, Israeli phone numbers, nine digit ids, `op://` references and
+  the names of directories under `clients/` with `[SECRET]`, `[EMAIL]`,
+  `[PHONE]` and `[CLIENT]`, plus the repository basename. The serialized request
+  is scanned again before it leaves; anything that survives redaction refuses
+  the call. In `shadow` mode nothing you see changes; the verdict is logged. In
+  `steer` mode, at confidence `ORK_ROUTE_JEV_FLOOR` (default 0.5) or above, the
+  one-line executor reminder names the executor the class maps to
+  (`route: dev_fix -> /ork:fix-issue (conf 0.83)`); the model still reads the
+  `/ork:auto` table and says whether it agrees. Fallbacks are fail open: no key,
+  timeout, non-2xx, malformed answer, below the floor, or the daily token budget
+  (`ORK_ROUTE_JEV_DAILY_TOKENS`, default 2,000,000) spent all mean the existing
+  path runs untouched; a 402 or 429 switches the seam off for 24 hours. One log
+  line per prompt,
+  `route jev: intent=<class> conf=<n> top3=<a:p,b:p,c:p> worktree=<n> browser=<n> mutation=<n> operator=<n> floor=<n> decided_by=jev|table|off|budget|egress latency_ms=<n> input_tokens=<n> redacted=<n>`,
+  and one record per prompt in `jev-route.jsonl` next to
+  `session-identity.jev.json` (labels, timings and a sha256 of the redacted
+  text; never prompt text). Offline replay: `node scripts/eval/route-check.mjs --jev`
+  and `node scripts/eval/jev-route-score.mjs`. The vendor's agent skill is a
+  peer plugin installed from its own marketplace, never a copied directory:
+  `claude plugin marketplace add typesafe-ai/skills` then
+  `claude plugin install typesafe@typesafe-ai`; `/ork:doctor` reports the
+  installed version against the marketplace and prints the update commands.
 
 The sink returns early when the URL or the token is missing, and
 `telemetry-sync.mjs` prints `No ORCHESTKIT_HOOK_URL or TOKEN configured. Nothing
@@ -555,6 +585,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.52](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.51...v10.0.0-beta.52)** · 2026-09-18
+
+- **hooks:** Jev routing seam for ork:auto behind ORK_ROUTE_JEV (#4233) (#4237)
+
 **[v10.0.0-beta.51](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.50...v10.0.0-beta.51)** · 2026-09-18
 
 - **expect:** pass agent result and summary to report.py on stdin, never as source (#4234)
@@ -584,10 +618,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.45](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.44...v10.0.0-beta.45)** · 2026-09-17
 
 - **hooks:** criteria-B for both category paths, Jev cascade at 0.8 (#4211)
-
-**[v10.0.0-beta.44](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.43...v10.0.0-beta.44)** · 2026-09-17
-
-- **hooks:** opt-in shadow session category as a typed Choice (#4208)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

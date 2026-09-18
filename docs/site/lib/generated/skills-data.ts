@@ -620,7 +620,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "auto",
     "description": "Intent-classified router, the front door to OrchestKit and the DEFAULT entry point for any goal-shaped request. Classifies a plain-English goal and routes it to the right specialist skill. Routing is never overhead, so use it even when the target skill seems obvious; skip only when already executing inside another skill (no recursion). Triggers on: auto, do this, figure out, just make, I want, help me, fix, build, improve, any goal description.",
     "version": "1.0.0",
-    "sha256": "c58d0a04fdc6d52c4ea5bc7705fd24896424fbf2af83d702d36fcb585ae453c6",
+    "sha256": "885192af5be2a77916bf494876cc9e2226cae8c9fd1fb0884cd1e7fce3d18863",
     "author": "OrchestKit",
     "tags": [
       "router",
@@ -1865,7 +1865,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "doctor",
     "description": "OrchestKit doctor for health diagnostics across manifest integrity, hook configuration, skill validation, agent frontmatter, MCP server connectivity, CC version compatibility, and permission rules. Reports issues with severity levels and auto-remediation suggestions. Validates component counts, detects orphaned entries, and checks CC version matrix compliance. Use when diagnosing plugin health, troubleshooting configuration issues, or running pre-release checks.",
     "version": "3.3.0",
-    "sha256": "da18c2e8fe7627a288bec4847750b80278ef0873f56aae004d771dbf37cc5c0c",
+    "sha256": "ae9bdabdaf2e7c63cee55c67be779332c62e9de5445978f446ccb0a572b3c1fc",
     "author": "OrchestKit",
     "tags": [
       "health-check",
@@ -1913,6 +1913,7 @@ export const SKILLS: Record<string, SkillMeta> = {
         "check-mcp-pinning.sh",
         "check-operator-permissions.cjs",
         "check-operator-permissions.sh",
+        "check-peer-skill.py",
         "check-plugin-health.sh",
         "check-sandbox-violations.sh"
       ]

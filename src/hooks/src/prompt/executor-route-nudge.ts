@@ -28,9 +28,38 @@ import type { HookContext, HookInput, HookResult } from '../types.js';
 import { outputPromptContext, outputSilentSuccess } from '../lib/common.js';
 import { NOOP_CTX } from '../lib/context.js';
 import { getSessionStorageDir } from '../lib/paths.js';
+import { formatRouteTarget } from '../lib/route-classes.js';
+import {
+  formatRouteLogLine,
+  resolveRouteMode,
+  routeJudgment,
+  routeJudgmentSync,
+  type RouteJudgmentOptions,
+  type RouteVerdict,
+} from '../lib/route-judgment.js';
 import { safeIdentifier } from '../lib/safe-fs.js';
 
 const HOOK_NAME = 'executor-route-nudge';
+
+/**
+ * The Jev routing seam (#4233), injected so the handler owns no transport.
+ * `judgeAsync` is the shadow path (fire and forget; the hook process stays
+ * alive until it settles, as the session category lane does). `judgeSync` is
+ * the steer path, which needs the verdict before this synchronous handler
+ * returns. `track` lets a test await the shadow promise.
+ */
+export interface RouteSeamDeps {
+  env: NodeJS.ProcessEnv;
+  judgeAsync: (opts: RouteJudgmentOptions) => Promise<RouteVerdict>;
+  judgeSync: (opts: RouteJudgmentOptions) => RouteVerdict;
+  track?: (settled: Promise<void>) => void;
+}
+
+const DEFAULT_ROUTE_DEPS: RouteSeamDeps = {
+  env: process.env,
+  judgeAsync: routeJudgment,
+  judgeSync: routeJudgmentSync,
+};
 
 /** Prompts shorter than this are commands/answers, not goal statements. */
 const MIN_GOAL_LENGTH = 40;
@@ -64,9 +93,48 @@ function flagPath(sessionId: string): string {
   return join(getSessionStorageDir(), `${safe}-executor-nudge.flag`);
 }
 
+/**
+ * Run the seam for one build-shaped prompt. `off` returns null and touches
+ * nothing. `shadow` fires the async call and returns null; the log line lands
+ * when it settles. `steer` blocks on the child call and returns the verdict
+ * so the nudge below can name the executor. Every failure inside the seam is
+ * already a verdict, so nothing here can throw into the dispatcher.
+ */
+function consultRouteSeam(
+  input: HookInput,
+  ctx: HookContext,
+  deps: RouteSeamDeps,
+  prompt: string,
+  sessionId: string,
+): RouteVerdict | null {
+  const mode = resolveRouteMode(deps.env);
+  if (mode === 'off') return null;
+  const opts: RouteJudgmentOptions = {
+    prompt,
+    sessionId: safeIdentifier(sessionId, 'invalid'),
+    projectDir: input.project_dir || ctx.projectDir,
+    env: deps.env,
+    log: (message, level) => ctx.log(HOOK_NAME, message, level),
+  };
+  if (mode === 'shadow') {
+    const settled = deps
+      .judgeAsync(opts)
+      .then((verdict) => ctx.log(HOOK_NAME, formatRouteLogLine(verdict)))
+      .catch(() => {
+        /* the seam never rejects; belt and braces */
+      });
+    deps.track?.(settled);
+    return null;
+  }
+  const verdict = deps.judgeSync(opts);
+  ctx.log(HOOK_NAME, formatRouteLogLine(verdict));
+  return verdict;
+}
+
 export function executorRouteNudge(
   input: HookInput,
-  _ctx: HookContext = NOOP_CTX,
+  ctx: HookContext = NOOP_CTX,
+  deps: RouteSeamDeps = DEFAULT_ROUTE_DEPS,
 ): HookResult {
   const prompt = typeof input.prompt === 'string' ? input.prompt : '';
   const sessionId = input.session_id || 'unknown-session';
@@ -74,6 +142,14 @@ export function executorRouteNudge(
   if (prompt.length < MIN_GOAL_LENGTH) return outputSilentSuccess();
   if (!BUILD_VERB_RE.test(prompt.trim())) return outputSilentSuccess();
   if (ALREADY_ROUTED_RE.test(prompt)) return outputSilentSuccess();
+
+  // #4233: the Jev routing seam, one record per build-shaped prompt. With the
+  // flag unset this is a no-op and everything below is unchanged.
+  const verdict = consultRouteSeam(input, ctx, deps, prompt, sessionId);
+  // A steered class the ork executors do not own (the ops classes belong to
+  // the hq-ext front door; continuation and ambiguous are never steered)
+  // produces no nudge at all, and leaves the once-per-session flag alone.
+  if (verdict?.decided_by === 'jev' && !verdict.target) return outputSilentSuccess();
 
   // Once per session: a standing reminder would be noise, one is signal.
   const flag = flagPath(sessionId);
@@ -89,6 +165,18 @@ export function executorRouteNudge(
     // Flag I/O failure (including EEXIST from the wx race guard above):
     // prefer silence over risking a nudge every turn.
     return outputSilentSuccess();
+  }
+
+  // Steer at or above the floor: the one line names the executor the class
+  // maps to. The model still reads the ork:auto table, states whether it
+  // agrees, and hands off through the Skill tool; the seam is a prior.
+  if (verdict?.decided_by === 'jev' && verdict.target && verdict.intent) {
+    const conf = verdict.conf === null ? 'na' : verdict.conf.toFixed(2);
+    return outputPromptContext(
+      `[${HOOK_NAME}] route: ${verdict.intent} -> ${formatRouteTarget(verdict.target)} (conf ${conf}). ` +
+        'Treat this as the prior for /ork:auto step 1, say whether you agree, and invoke the executor ' +
+        'via the Skill tool rather than building inline. One-time reminder this session (#4233).',
+    );
   }
 
   return outputPromptContext(
