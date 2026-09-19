@@ -74,6 +74,18 @@ const WEBHOOK_ENVS = [
   'ORCHESTKIT_HOOK_TOKEN',
 ] as const;
 
+// Captured before any test deletes them, so afterEach can put the process back.
+const savedWebhookEnv: Record<string, string | undefined> = {};
+for (const key of WEBHOOK_ENVS) savedWebhookEnv[key] = process.env[key];
+
+function restoreWebhookEnv(): void {
+  for (const key of WEBHOOK_ENVS) {
+    const prior = savedWebhookEnv[key];
+    if (prior === undefined) delete process.env[key];
+    else process.env[key] = prior;
+  }
+}
+
 describe('Sink Registry', () => {
   beforeEach(() => {
     _resetSinksForTesting();
@@ -83,7 +95,7 @@ describe('Sink Registry', () => {
   });
 
   afterEach(() => {
-    for (const key of WEBHOOK_ENVS) delete process.env[key];
+    restoreWebhookEnv();
     try { rmSync(testDir, { recursive: true, force: true }); } catch {}
   });
 
