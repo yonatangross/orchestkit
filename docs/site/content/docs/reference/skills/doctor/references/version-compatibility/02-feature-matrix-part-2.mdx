@@ -1,6 +1,6 @@
 ---
 title: "Doctor: Version Compatibility: Feature Matrix (part 2)"
-description: "Part 3 of 4 of Version Compatibility for the Doctor skill."
+description: "Reading: on this account a user-tier hooks module (mods/lesson-cards via --plugin-dir) does NOT load with CLAUDECODEENABLEFUNCTIONHOOKS unset; the debug log..."
 ---
 
 > Part of the [Doctor](/docs/reference/skills/doctor) skill reference. The main page carries the skill itself; this page holds material that used to sit at the bottom of it.
@@ -41,3 +41,14 @@ description: "Part 3 of 4 of Version Compatibility for the Doctor skill."
 | `2.1.270` release | 2.1.270 | **Status: not applicable.** [CHANGELOG 2.1.270](https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md#21270). Fixes a 2.1.269 regression where read only git commands in Bash unexpectedly asked for permission after a session had run for a while | Read only git commands can prompt unexpectedly on 2.1.269 |
 | `2.1.271` release | 2.1.271 | **Status: no ork code change; design items tracked in GH-4135.** [CHANGELOG 2.1.271](https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md#21271). **Added:** `omitClaudeMd` agent frontmatter and agents JSON let custom and plugin subagents run without user, project or local CLAUDE.md files while managed policy files still load. In auto mode, a skill or slash command inline shell command follows default mode permission rules rather than the classifier, and an undecided command becomes a reviewed tool call. A subagent now returns through a dedicated hand back call reviewed by the safety classifier. Monitor watches always have a deadline, at most 30 minutes or 10 in a single prompt run, replacing the no timeout `persistent` option; ork has 0 references. The release notes say a hook spinner reports elapsed time while a SessionStart, UserPromptSubmit, PreToolUse or SessionEnd hook runs, and Esc cancels a prompt waiting on a SessionStart hook. The plugin install and update accept command flag accepts the SHA256 from previous JSON output and folds into GH-4054 | Agent instruction isolation, inline shell permission behavior, classifier reviewed hand backs, deadline bound Monitor watches and hook wait feedback unavailable |
 | `2.1.272` release | 2.1.272 | **Status: not applicable.** [CHANGELOG 2.1.272](https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md#21272). Bug fixes and reliability improvements only | No named adoption surface |
+
+**Function hook probes, 2026-09-19** (`claude --version` reports `2.1.277 (Claude Code)`; repeatable end to end via `tests/probes/function-hooks-probe.sh`, four `claude -p` calls with `--model haiku --no-session-persistence`, verdicts grepped out of each run's `--debug-file` log):
+
+```
+REFUTED R1-unset user-tier hooks modules not loaded; rollout flag off from the default (a cold GrowthBook cache, no payload yet)
+VERIFIED R1-set lesson-cards loaded (tier user); 2 settle lines logged
+REFUTED R3-main tool.list hook loaded tier user but never dispatched; Read still offered (model YES)
+REFUTED R3-subagent subagent still offered Read and tool.list never dispatched; SUBAGENT:YES
+```
+
+Reading: on this account a user-tier hooks module (`mods/lesson-cards` via `--plugin-dir`) does NOT load with `CLAUDE_CODE_ENABLE_FUNCTION_HOOKS` unset; the debug log names the decider, a cold GrowthBook cache falling back to the compiled default of false, matching the `env ?? GrowthBook ?? false` gate in §2 of the 2026-09-18 cc-mods brief. With the env var set to `1` the same module loads at `tier user` and its `session.start` and `tool.call` hooks dispatch. And `tool.list` is not consulted when the offered tool set is built for either the main loop or an Explore subagent in a `-p` run (zero `tool.list` dispatches in both runs, `Read` still offered in both), so the §6 subtractive-scoping claim does not hold for model-facing tool lists on this build; `tool.describe` (245 settles) is the per-tool surface that actually ran.

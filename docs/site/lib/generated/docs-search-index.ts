@@ -1038,7 +1038,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/doctor/references/version-compatibility/02-feature-matrix-part-2",
     "title": "Doctor: Version Compatibility: Feature Matrix (part 2)",
-    "description": "Part 3 of 4 of Version Compatibility for the Doctor skill."
+    "description": "Reading: on this account a user-tier hooks module (mods/lesson-cards via --plugin-dir) does NOT load with CLAUDECODEENABLEFUNCTIONHOOKS unset; the debug log..."
   },
   {
     "url": "/docs/reference/skills/doctor/references/version-compatibility/03-prompt-caching-recommendation",
