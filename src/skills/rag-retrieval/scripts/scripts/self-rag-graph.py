@@ -155,9 +155,7 @@ class SelfRAGConfig:
 # =============================================================================
 
 
-def create_retrieval_decider(llm: LLM) -> Runnable:
-    """Create chain to decide if retrieval is needed."""
-    system = """Decide if external document retrieval would help answer this query.
+RETRIEVAL_DECIDER_SYSTEM_PROMPT = """Decide if external document retrieval would help answer this query.
 
 Retrieve when:
 - Query asks about specific facts, data, or recent events
@@ -169,12 +167,7 @@ Don't retrieve when:
 - Query is a simple greeting or clarification
 - Query asks for your opinion or creative content"""
 
-    return llm.with_structured_output(RetrievalDecision)
-
-
-def create_document_grader(llm: LLM) -> Runnable:
-    """Create chain to grade document relevance."""
-    system = """Grade if this document is relevant to answering the query.
+DOCUMENT_GRADER_SYSTEM_PROMPT = """Grade if this document is relevant to answering the query.
 
 A document is relevant if it:
 - Contains information that directly helps answer the query
@@ -183,12 +176,7 @@ A document is relevant if it:
 
 Be strict - only mark relevant if genuinely helpful."""
 
-    return llm.with_structured_output(DocumentGrade)
-
-
-def create_support_verifier(llm: LLM) -> Runnable:
-    """Create chain to verify generation is supported."""
-    system = """Verify if the generated answer is supported by the provided documents.
+SUPPORT_VERIFIER_SYSTEM_PROMPT = """Verify if the generated answer is supported by the provided documents.
 
 - fully: All claims in the answer are directly supported by documents
 - partially: Some claims supported, some are reasonable inferences
@@ -196,12 +184,7 @@ def create_support_verifier(llm: LLM) -> Runnable:
 
 List any unsupported claims found."""
 
-    return llm.with_structured_output(SupportVerification)
-
-
-def create_query_rewriter(llm: LLM) -> Runnable:
-    """Create chain to rewrite queries."""
-    system = """Rewrite this query to improve document retrieval.
+QUERY_REWRITER_SYSTEM_PROMPT = """Rewrite this query to improve document retrieval.
 
 Consider:
 - Adding specific terms mentioned in failed retrievals
@@ -209,6 +192,24 @@ Consider:
 - Breaking down compound questions
 - Adding context that might help"""
 
+
+def create_retrieval_decider(llm: LLM) -> Runnable:
+    """Create chain to decide if retrieval is needed."""
+    return llm.with_structured_output(RetrievalDecision)
+
+
+def create_document_grader(llm: LLM) -> Runnable:
+    """Create chain to grade document relevance."""
+    return llm.with_structured_output(DocumentGrade)
+
+
+def create_support_verifier(llm: LLM) -> Runnable:
+    """Create chain to verify generation is supported."""
+    return llm.with_structured_output(SupportVerification)
+
+
+def create_query_rewriter(llm: LLM) -> Runnable:
+    """Create chain to rewrite queries."""
     return llm.with_structured_output(RewrittenQuery)
 
 

@@ -6,12 +6,15 @@ SQLAlchemy 2.0 async implementation with UUIDv7 support.
 """
 
 from abc import abstractmethod
+from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
 from typing import Protocol, TypeVar
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import String, select
+from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.ext.asyncio import AsyncSession
-
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 # =============================================================================
 # Domain Entity (import from your domain layer)
@@ -81,10 +84,6 @@ class MyEntityRepository(Protocol):
 # =============================================================================
 # SQLAlchemy Model (Infrastructure Layer)
 # =============================================================================
-
-from sqlalchemy import String
-from sqlalchemy.dialects.postgresql import UUID as PGUUID
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
 class Base(DeclarativeBase):
@@ -244,14 +243,12 @@ class UnitOfWork:
 
 
 # Context manager for UoW
-from contextlib import asynccontextmanager
-from typing import AsyncGenerator
 
 
 @asynccontextmanager
 async def unit_of_work(
     session_factory,
-) -> AsyncGenerator[UnitOfWork, None]:
+) -> AsyncGenerator[UnitOfWork]:
     """Create unit of work with automatic commit/rollback."""
     async with session_factory() as session:
         uow = UnitOfWork(session)

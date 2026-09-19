@@ -319,7 +319,7 @@ def validate_quantized_model(model_path: str, test_prompts: list[str] | None = N
         outputs = llm.generate(test_prompts, sampling_params)
 
         print("\nValidation outputs:")
-        for prompt, output in zip(test_prompts, outputs):
+        for prompt, output in zip(test_prompts, outputs, strict=True):
             print(f"\nPrompt: {prompt}")
             print(f"Output: {output.outputs[0].text[:200]}...")
 
@@ -504,14 +504,12 @@ Examples:
         return 1
 
     # Optional validation
-    if args.validate:
-        if not validate_quantized_model(output_path):
-            print("WARNING: Model validation failed, but quantization completed")
+    if args.validate and not validate_quantized_model(output_path):
+        print("WARNING: Model validation failed, but quantization completed")
 
     # Optional comparison
-    if args.compare:
-        if not compare_models(args.model, output_path):
-            print("WARNING: Model comparison failed")
+    if args.compare and not compare_models(args.model, output_path):
+        print("WARNING: Model comparison failed")
 
     print(f"\nQuantized model saved to: {output_path}")
     print("\nUsage with vLLM:")
