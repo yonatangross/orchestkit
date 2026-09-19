@@ -126,6 +126,7 @@ describe('WorktreeCreate envelope handling', () => {
       },
     };
     const out = sanitizeOutput(result, 'WorktreeCreate') as {
+      continue?: boolean;
       hookSpecificOutput?: { hookEventName?: string; worktreePath?: string };
     };
     expect(out.hookSpecificOutput).toBeUndefined();
