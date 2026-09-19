@@ -1,0 +1,8 @@
+{
+  "slug": "jev-outcome-labels",
+  "source": "docs/feat--jev-outcome-labels/index.html",
+  "title": "Weak Labels Need an Evidence Chain",
+  "description": "A preset-only review explainer for conservative Jev executor outcome labels: unknown without prompt identity, wrong for one unambiguous alternate, correct only with a completed stop and matching execution.",
+  "tags": ["jev", "evaluation", "labels", "review"],
+  "date": "2026-09-19"
+}
