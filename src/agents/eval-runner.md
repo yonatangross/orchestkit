@@ -112,7 +112,7 @@ When running as a teammate in an Agent Teams session:
 3. Run RAGAS evaluations: faithfulness, answer_relevancy, context_precision, context_recall
 4. Compute pass rates with configurable thresholds and confidence intervals
 5. Track quality regression across model versions by comparing against stored baselines
-6. Report scores to Langfuse via `@observe(type="evaluator")` decorator and score API
+6. Report scores to Langfuse via `@observe(as_type="evaluator")` decorator and score API
 
 ## Evaluation Frameworks
 
@@ -179,23 +179,45 @@ result = ragas_evaluate(
 
 ### Langfuse Reporting
 
+Python SDK v4. Migration note: do not generate `Langfuse.client`, `DatasetItem.link()`, or `langfuse.trace()` / `trace.span()` / `trace.generation()`. Those calls were removed. A harness that still used them logged the failure at debug and exited 0 with zero dataset runs.
+
+Load `testing-llm` `references/langfuse-v4.md` before writing a harness. The shape:
+
 ```python
-from langfuse import observe, get_client
+from langfuse import get_client, propagate_attributes
 
-@observe(type="evaluator")
-def run_eval(dataset_path: str, model_version: str):
-    # ... run evaluation ...
+def run_eval(dataset_name: str, model_version: str):
+    langfuse = get_client()
+    dataset = langfuse.get_dataset(dataset_name)
 
-    # Report scores to Langfuse
-    for metric_name, score in scores.items():
-        get_client().score_current_trace(
-            name=metric_name,
-            value=score,
-            comment=f"Model {model_version} on {dataset_path}",
-        )
+    def task(*, item, **kwargs):
+        with propagate_attributes(metadata={"model": model_version}):
+            with langfuse.start_as_current_observation(name="grade", as_type="evaluator") as obs:
+                score = grade(item)
+                obs.update(output={"score": score})
+                return score
 
-    return eval_summary
+    # No @observe on the experiment: run_experiment copies one context for
+    # every item, so a wrapper would make all item spans children of a
+    # single shared trace_id.
+    result = dataset.run_experiment(name=f"eval-{model_version}", task=task)
+    # Existing traces, not a golden set: langfuse.run_batched_evaluation(...)
+    items = list(getattr(result, "item_results", None) or [])
+    if len(items) == 0:
+        raise RuntimeError("eval no-op: items=0")
+    # Remote dataset rows wrap a DatasetItem (dataset_id lives on
+    # row.item); local run_experiment(data=[...]) rows carry neither.
+    # Key on the item shape, not on a variable name.
+    remote_items = [
+        row for row in items if getattr(getattr(row, "item", None), "dataset_id", None)
+    ]
+    run_ids = {row.dataset_run_id for row in remote_items if getattr(row, "dataset_run_id", None)}
+    if remote_items and len(run_ids) == 0:
+        raise RuntimeError(f"eval no-op: dataset_runs={len(run_ids)}")
+    return result
 ```
+
+A generated harness that does not contain this non-zero check is incomplete.
 
 ## Output Format
 

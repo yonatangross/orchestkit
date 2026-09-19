@@ -334,7 +334,7 @@ process.on("beforeExit", async () => {
 ## Best Practices
 
 1. **Use `from langfuse import observe, get_client`** — NOT `from langfuse.decorators`
-2. **Let `@observe()` auto-create traces** — no explicit `langfuse.trace()` needed
+2. Migration note: v4 removed `langfuse.trace()`. Let `@observe()` auto-create traces.
 3. **Name spans descriptively** (e.g., "retrieval", "generation")
 4. **Use `as_type=` parameter** (v4) for Agent Graph rendering
 5. **Add metadata** for debugging (chunk counts, model params)
