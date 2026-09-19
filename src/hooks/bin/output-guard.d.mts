@@ -17,6 +17,9 @@
  *
  * @param result - The raw return value from the hook function.
  * @param firingEvent - The hook_event that triggered execution.
+ * @param emptyPayload - stdin delivered no payload (#3415 watchdog, stdin
+ *   error, unparseable body): the hook ran on `{}` and any verdict it
+ *   produced is noise — hookSpecificOutput is dropped regardless of event.
  * @returns The sanitized result — always a plain object safe for JSON.stringify.
  */
-export function sanitizeOutput(result: unknown, firingEvent: string): unknown;
+export function sanitizeOutput(result: unknown, firingEvent: string, emptyPayload?: boolean): unknown;

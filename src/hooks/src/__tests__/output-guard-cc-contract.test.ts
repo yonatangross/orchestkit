@@ -111,19 +111,13 @@ describe('the guard still strips where CC does NOT read', () => {
   });
 });
 
-describe('WorktreeCreate is DEFERRED, not fixed', () => {
-  // CC documents hookSpecificOutput.worktreePath for WorktreeCreate's
-  // http/callback form, so the guard should not strip its hookEventName.
-  //
-  // Allow-listing it here is only safe alongside a mismatched-label rule, and
-  // that rule broke 9 security tests by turning "expected deny" into "got
-  // abstain" — lib/output.ts hardcodes hookEventName:'PreToolUse' in
-  // outputDeny/outputAsk/outputDefer, so a PermissionRequest hook legitimately
-  // emits a mismatched label. Both were reverted together.
-  //
-  // This test pins the CURRENT behaviour so the deferral is visible rather
-  // than forgotten. Flip it when the builders learn their firing event.
-  it('still strips hookEventName on WorktreeCreate (known gap)', () => {
+describe('WorktreeCreate envelope handling', () => {
+  // CC's envelope validator hard-requires hookEventName inside every
+  // hookSpecificOutput. Stripping just the field while keeping worktreePath
+  // emitted `{"hookSpecificOutput":{"worktreePath":...}}` — the exact
+  // malformed shape this guard exists to prevent. On an event that does not
+  // consume hookSpecificOutput the whole object is dropped instead.
+  it('drops hookSpecificOutput entirely on WorktreeCreate', () => {
     const result = {
       continue: true,
       hookSpecificOutput: {
@@ -132,10 +126,177 @@ describe('WorktreeCreate is DEFERRED, not fixed', () => {
       },
     };
     const out = sanitizeOutput(result, 'WorktreeCreate') as {
+      continue?: boolean;
       hookSpecificOutput?: { hookEventName?: string; worktreePath?: string };
     };
-    expect(out.hookSpecificOutput?.hookEventName).toBeUndefined();
-    expect(out.hookSpecificOutput?.worktreePath).toBe('/tmp/wt');
+    expect(out.hookSpecificOutput).toBeUndefined();
+    expect(out.continue).toBe(true);
+  });
+});
+
+describe('never emits hookSpecificOutput without hookEventName', () => {
+  // Reproduces the production failure: the stdin-read race (#3415) delivered
+  // 0 bytes, hook_event normalized to 'unknown', and the old Rule 1 stripped
+  // hookEventName while leaving updatedInput — CC rejected the envelope with
+  // "hookSpecificOutput is missing required field hookEventName". Observed
+  // verbatim in session transcripts as
+  // {"continue":true,"suppressOutput":true,"hookSpecificOutput":{"updatedInput":{"command":"","timeout":120000}}}.
+  it('drops the whole envelope when the hook ran on an empty payload (stdin race)', () => {
+    const result = {
+      continue: true,
+      suppressOutput: true,
+      hookSpecificOutput: {
+        hookEventName: 'PreToolUse',
+        updatedInput: { command: '', timeout: 120000 },
+      },
+    };
+    const out = sanitizeOutput(result, 'unknown', true) as {
+      hookSpecificOutput?: unknown;
+      continue?: boolean;
+    };
+    expect(out.hookSpecificOutput).toBeUndefined();
+    expect(out.continue).toBe(true);
+  });
+
+  // 'unknown' means the payload lacked the event field — not that the firing
+  // event rejects hookSpecificOutput. The security suite fires hooks with
+  // real payloads and no hook_event_name; dropping a self-describing deny
+  // there turned "expected deny" into "got abstain". CC routes on the
+  // declared hookEventName, so a well-formed envelope is emitted intact.
+  it('keeps a self-describing envelope when the event is unidentifiable', () => {
+    const result = {
+      continue: false,
+      stopReason: 'denied',
+      hookSpecificOutput: {
+        hookEventName: 'PreToolUse',
+        permissionDecision: 'deny',
+        permissionDecisionReason: 'denied',
+      },
+    };
+    const out = sanitizeOutput(result, 'unknown') as {
+      hookSpecificOutput?: { hookEventName?: string; permissionDecision?: string };
+      continue?: boolean;
+    };
+    expect(out.hookSpecificOutput?.hookEventName).toBe('PreToolUse');
+    expect(out.hookSpecificOutput?.permissionDecision).toBe('deny');
+    expect(out.continue).toBe(false);
+  });
+
+  it('drops a garbage-labeled envelope even when the event is unidentifiable', () => {
+    const result = {
+      continue: true,
+      hookSpecificOutput: { hookEventName: 'NotARealEvent', additionalContext: 'x' },
+    };
+    const out = sanitizeOutput(result, 'unknown') as {
+      hookSpecificOutput?: unknown;
+    };
+    expect(out.hookSpecificOutput).toBeUndefined();
+  });
+
+  it('drops a bare envelope on an unknown event (no hookEventName to salvage)', () => {
+    const result = {
+      continue: true,
+      hookSpecificOutput: { updatedInput: { command: 'ls', timeout: 120000 } },
+    };
+    const out = sanitizeOutput(result, 'unknown') as {
+      hookSpecificOutput?: unknown;
+    };
+    expect(out.hookSpecificOutput).toBeUndefined();
+  });
+
+  // Rule 2 on an unidentifiable firing event judges additionalContext by the
+  // DECLARED hookEventName — the event CC will route on. A self-describing
+  // PermissionRequest envelope must not smuggle additionalContext past a
+  // missing event field; the same envelope declaring PreToolUse (which does
+  // consume additionalContext) keeps it.
+  it('strips additionalContext on unknown when the declared event does not consume it', () => {
+    const result = {
+      continue: true,
+      hookSpecificOutput: {
+        hookEventName: 'PermissionRequest',
+        permissionDecision: 'ask',
+        additionalContext: 'leaked text',
+      },
+    };
+    const out = sanitizeOutput(result, 'unknown') as {
+      hookSpecificOutput?: { hookEventName?: string; additionalContext?: unknown };
+    };
+    expect(out.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+    expect(out.hookSpecificOutput?.additionalContext).toBeUndefined();
+  });
+
+  it('keeps additionalContext on unknown when the declared event consumes it', () => {
+    const result = {
+      continue: true,
+      hookSpecificOutput: {
+        hookEventName: 'PreToolUse',
+        additionalContext: 'advisory text',
+      },
+    };
+    const out = sanitizeOutput(result, 'unknown') as {
+      hookSpecificOutput?: { hookEventName?: string; additionalContext?: string };
+    };
+    expect(out.hookSpecificOutput?.additionalContext).toBe('advisory text');
+  });
+
+  it('repairs a bare envelope on a consuming event by injecting the firing event', () => {
+    const result = {
+      continue: true,
+      hookSpecificOutput: { additionalContext: 'advisory text' },
+    };
+    const out = sanitizeOutput(result, 'PreToolUse') as {
+      hookSpecificOutput?: { hookEventName?: string; additionalContext?: string };
+    };
+    expect(out.hookSpecificOutput?.hookEventName).toBe('PreToolUse');
+    expect(out.hookSpecificOutput?.additionalContext).toBe('advisory text');
+  });
+
+  // Sweep every firing event the guard knows about (plus the unknown/empty
+  // cases the stdin race produces) against the canonical result shapes, and
+  // assert the invariant directly: any hookSpecificOutput that leaves the
+  // guard carries hookEventName.
+  it.each([
+    ...EVENTS_WITH_HOOK_EVENT_NAME,
+    'WorktreeCreate',
+    'CwdChanged',
+    'Notification',
+    'unknown',
+    '',
+  ])('invariant holds on firing event %s', (event) => {
+    const shapes = [
+      withContext('PreToolUse'),
+      {
+        continue: true,
+        suppressOutput: true,
+        hookSpecificOutput: {
+          hookEventName: 'PreToolUse',
+          permissionDecision: 'deny',
+          permissionDecisionReason: 'nope',
+        },
+      },
+      {
+        continue: true,
+        suppressOutput: true,
+        hookSpecificOutput: {
+          hookEventName: 'PreToolUse',
+          updatedInput: { command: 'git status', timeout: 120000 },
+        },
+      },
+      { continue: true, hookSpecificOutput: { additionalContext: 'bare' } },
+      { continue: true, hookSpecificOutput: { updatedInput: { command: 'x' } } },
+      { continue: true, hookSpecificOutput: { worktreePath: '/tmp/wt' } },
+    ];
+    for (const result of shapes) {
+      const out = sanitizeOutput(result, event) as {
+        hookSpecificOutput?: { hookEventName?: unknown };
+      };
+      if (out.hookSpecificOutput !== undefined) {
+        expect(
+          out.hookSpecificOutput.hookEventName,
+          `emitted hookSpecificOutput without hookEventName on ${event}: ${JSON.stringify(out)}`
+        ).toBeDefined();
+      }
+    }
   });
 });
 

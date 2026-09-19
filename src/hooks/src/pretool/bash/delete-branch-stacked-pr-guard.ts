@@ -122,6 +122,7 @@ export function deleteBranchStackedPRGuard(
   return {
     continue: true,
     hookSpecificOutput: {
+      hookEventName: 'PreToolUse',
       additionalContext:
         `[delete-branch-stacked-pr-guard] About to merge with \`--delete-branch\` ` +
         `on \`${headBranch}\`, but ${dependents.length} open PR(s) target it as base:\n` +

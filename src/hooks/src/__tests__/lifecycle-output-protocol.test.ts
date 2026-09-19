@@ -334,7 +334,7 @@ describe('sanitizeOutput (dispatcher output guard)', () => {
     const result = sanitizeOutput(input, 'WorktreeCreate') as Record<string, unknown>;
     expect(result.hookSpecificOutput).toBeUndefined();
     expect(stderrSpy).toHaveBeenCalledWith(
-      expect.stringContaining('stripped hookEventName=UserPromptSubmit from WorktreeCreate')
+      expect.stringContaining('dropped hookSpecificOutput (hookEventName=UserPromptSubmit) from WorktreeCreate')
     );
   });
 
@@ -350,7 +350,7 @@ describe('sanitizeOutput (dispatcher output guard)', () => {
     const result = sanitizeOutput(input, 'WorktreeRemove') as Record<string, unknown>;
     expect(result.hookSpecificOutput).toBeUndefined();
     expect(stderrSpy).toHaveBeenCalledWith(
-      expect.stringContaining('stripped hookEventName=UserPromptSubmit from WorktreeRemove')
+      expect.stringContaining('dropped hookSpecificOutput (hookEventName=UserPromptSubmit) from WorktreeRemove')
     );
   });
 
@@ -442,34 +442,34 @@ describe('sanitizeOutput — non-object inputs (defense-in-depth)', () => {
 
   it('coerces malformed array hookSpecificOutput into empty object (no leak through stdout)', () => {
     // Defensive: hookSpecificOutput is malformed (array, not object). Guard's
-    // shallow-clone converts {...[]} → {}. Empty object remains (no keys to
-    // strip → mutated=false → not deleted), which is harmless: CC ignores
-    // empty hookSpecificOutput. The important property is that the array is
+    // shallow-clone converts {...[]} → {}. The emptied object then fails the
+    // hookEventName invariant and is dropped, which is harmless: CC ignores a
+    // missing hookSpecificOutput. The important property is that the array is
     // NOT leaked as-is through stdout, which would confuse CC's parser.
     const input = { continue: true, hookSpecificOutput: [] as unknown };
     const result = sanitizeOutput(input, 'WorktreeCreate') as Record<string, unknown>;
     expect(result.continue).toBe(true);
     expect(Array.isArray(result.hookSpecificOutput)).toBe(false);
-    expect(result.hookSpecificOutput).toEqual({});
+    expect(result.hookSpecificOutput).toBeUndefined();
   });
 });
 
 describe('sanitizeOutput — selective stripping (only the offending field is removed)', () => {
   beforeEach(() => { stderrSpy.mockClear(); });
 
-  it('strips additionalContext but keeps hookSpecificOutput when other fields remain', () => {
-    // Worktree* events: additionalContext stripped, worktreePath should survive
+  it('drops the whole hookSpecificOutput on WorktreeCreate without a piecemeal strip', () => {
+    // Worktree* events don't consume hookSpecificOutput at all, so the
+    // envelope is dropped wholesale — CC's validator hard-requires
+    // hookEventName, and a worktreePath-only remainder would be the exact
+    // malformed shape this guard exists to prevent.
     const input = {
       continue: true,
       hookSpecificOutput: { worktreePath: '/some/wt', additionalContext: 'leaked text' },
     };
     const result = sanitizeOutput(input, 'WorktreeCreate') as Record<string, unknown>;
-    const hso = result.hookSpecificOutput as Record<string, unknown>;
-    expect(hso).toBeDefined();
-    expect(hso.worktreePath).toBe('/some/wt');
-    expect(hso.additionalContext).toBeUndefined();
+    expect(result.hookSpecificOutput).toBeUndefined();
     expect(stderrSpy).toHaveBeenCalledWith(
-      expect.stringContaining('stripped additionalContext from WorktreeCreate')
+      expect.stringContaining('dropped hookSpecificOutput')
     );
   });
 
@@ -550,7 +550,7 @@ describe('sanitizeOutput — all sanitize-target lifecycle events', () => {
       expect(result.hookSpecificOutput, `${event} must have empty/dropped hookSpecificOutput`).toBeUndefined();
       expect(result.continue).toBe(true);
       expect(stderrSpy).toHaveBeenCalledWith(
-        expect.stringMatching(new RegExp(`stripped hookEventName=UserPromptSubmit from ${event}`)),
+        expect.stringMatching(new RegExp(`dropped hookSpecificOutput \\(hookEventName=UserPromptSubmit\\) from ${event}`)),
       );
     });
   }
