@@ -1780,6 +1780,12 @@ agent-browser wait --load networkidle
 agent-browser screenshot --full verification-output/{timestamp}/screenshots/{idx}-{slug}.png
 ```
 
+**Re-running verify with no code change (0.38+):** add `--if-changed --threshold 0.01`
+to the same command. When a route's rendered output matches the prior capture at
+that path, agent-browser skips the re-encode and the JSON response omits the image
+path, which keeps a repeat run's evidence collection token-light. On a route that
+did change, the flag has no effect beyond a normal capture.
+
 ### Auth-Protected Routes
 
 If `verification-config.yaml` specifies auth:

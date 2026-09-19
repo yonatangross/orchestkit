@@ -47,6 +47,14 @@ Execute all browser automation via `agent-browser` CLI:
 | `screenshot --annotate` | Labeled screenshot for debugging | `agent-browser screenshot --annotate` |
 | `eval &lt;js&gt;` | Run JavaScript in page | `agent-browser eval "document.title"` |
 | `wait --load networkidle` | Wait for page to settle | `agent-browser wait --load networkidle` |
+| `snapshot --delta` (0.38+) | Cheap re-check after an in-page action | `agent-browser snapshot --delta` |
+
+If `open`'s output advertises WebMCP tools for the page (0.36+), that is
+informational only here: keep driving the plan through ARIA `snapshot`/
+`click`/`fill` as usual. Do not invoke `webmcp invoke` mid-plan; the Jev
+step judge's bounded action set (see the `expect` skill's
+`references/jev-shadow.md`) only knows ARIA-ref verbs and the fixed meta
+moves, and an action outside that keyspace cannot be scored or replayed.
 
 Chain commands with `&&`:
 ```bash
@@ -186,7 +194,10 @@ Error occurs
 │
 ├── Element not found after snapshot?
 │   ├── First attempt?
-│   │   └── ACTION: Wait 2s, re-snapshot, retry ONCE
+│   │   └── ACTION: Wait 2s, re-snapshot with `snapshot --delta` (0.38+;
+│   │       persistent refs mean the elements you already have stay valid
+│   │       across an in-page change, so the delta call returns only what
+│   │       actually moved), retry ONCE
 │   └── Second attempt?
 │       └── CATEGORY: selector-drift
 │           ACTION: Log missing element, continue to next step

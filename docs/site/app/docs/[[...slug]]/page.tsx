@@ -29,6 +29,8 @@ import { getSectionGlyph } from "@/components/world/station-glyphs";
 import { DocsTable, HookEventTable } from "@/components/hook-event-table";
 import { TrackedCodeBlock } from "@/components/tracked-code-block";
 import { SKILLS } from "@/lib/generated/skills-data";
+import { RelatedPages } from "@/components/related-pages";
+import { getRelatedPages } from "@/lib/related-pages";
 
 /**
  * A skill reference page is /docs/reference/skills/<name> where <name>
@@ -87,6 +89,14 @@ export default async function Page(props: {
     skillMeta?.skills && skillMeta.skills.length > 0
       ? skillMeta.skills.join(", ")
       : undefined;
+
+  // Build-time "Related" block on skill/agent/hook reference pages:
+  // deterministic scorer over the link graph (lib/related-pages), optional
+  // Jev re-rank behind ORK_SITE_JEV_RERANK. Empty for non-reference pages.
+  const related = await getRelatedPages({
+    url: page.url,
+    title: page.data.title,
+  });
 
   // A single self-contained @graph per page rather than techArticleNode's
   // bare {"@id": ...} references to Organization/Person nodes emitted only on
@@ -185,6 +195,7 @@ export default async function Page(props: {
         />
         <GeorgeDivider />
       </DocsBody>
+      <RelatedPages items={related} />
     </DocsPage>
   );
 }

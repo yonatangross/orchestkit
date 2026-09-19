@@ -11,9 +11,16 @@ for path in "$SOURCE_ROOT" "$PLUGIN_ROOT" "$MARKETPLACE"; do
   [[ -e "$path" ]] || { echo "FAIL: missing $path"; exit 1; }
 done
 
-expected_skills=(ork-brainstorm ork-explore ork-assess ork-verify ork-review-pr ork-implement)
+expected_skills=(ork-brainstorm ork-explore ork-assess ork-verify ork-review-pr ork-implement ork-glyph)
+# The built manifest discovers a directory, not an array of skill names.
+# Resolve that path so the presence check proves the skill is exported.
+skills_path="$(jq -er '.skills | select(type == "string")' "$PLUGIN_ROOT/.codex-plugin/plugin.json")"
+jq -e '.skills | index("ork-glyph") != null' \
+  "$PROJECT_ROOT/manifests/codex/ork-codex.json" >/dev/null || {
+  echo "FAIL: Codex source manifest does not declare ork-glyph"; exit 1;
+}
 for skill in "${expected_skills[@]}"; do
-  skill_file="$PLUGIN_ROOT/skills/$skill/SKILL.md"
+  skill_file="$PLUGIN_ROOT/$skills_path/$skill/SKILL.md"
   [[ -f "$skill_file" ]] || { echo "FAIL: missing $skill"; exit 1; }
   sed -n '1,8p' "$skill_file" | grep -qx -- "name: $skill" || {
     echo "FAIL: $skill has no matching skill name"; exit 1;
@@ -106,4 +113,4 @@ grep -q 'legacy \[profiles\.' "$PLUGIN_ROOT/scripts/install-codex-profile.sh" \
 diff -qr "$SOURCE_ROOT" "$PLUGIN_ROOT" \
   --exclude='plugin.json' >/dev/null
 
-echo "PASS: Codex plugin contract (6 skills, 4 roles, context7 MCP server, ork-mech profile)"
+echo "PASS: Codex plugin contract (7 skills, 4 roles, context7 MCP server, ork-mech profile)"
