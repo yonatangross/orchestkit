@@ -5,6 +5,32 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.58](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.57...v10.0.0-beta.58) (2026-09-19)
+
+
+### Features
+
+* **doctor:** check per-agent memory dirs for orphans and stale notes ([#4263](https://github.com/yonatangross/orchestkit/issues/4263)) ([e01f577](https://github.com/yonatangross/orchestkit/commit/e01f577fe1bc2c50183d648ae85eb535e7556782))
+
+
+### Bug Fixes
+
+* **ci:** restore py311 compatibility for shipped skill scripts ([#4275](https://github.com/yonatangross/orchestkit/issues/4275)) ([76f6923](https://github.com/yonatangross/orchestkit/commit/76f692335d9fd13e633410e4be317fd448bf020b))
+* **glyph:** render once instead of handing off to ork:glyph ([#4261](https://github.com/yonatangross/orchestkit/issues/4261)) ([7e63c45](https://github.com/yonatangross/orchestkit/commit/7e63c45f345bcf77b52e8e0ad2ee3a7619be9959))
+* **hooks:** close auto-approve bypass via substitution and redirects ([#4264](https://github.com/yonatangross/orchestkit/issues/4264)) ([4a246c6](https://github.com/yonatangross/orchestkit/commit/4a246c63c0eb7532d78013421f77aa9ac2415742))
+
+
+### Documentation
+
+* **contributing:** add a first pull request example ([#4269](https://github.com/yonatangross/orchestkit/issues/4269)) ([a58c4b0](https://github.com/yonatangross/orchestkit/commit/a58c4b02065dc1959b4490009241ee4b198523da))
+* **seo:** internal link-graph audit for the docs site ([#4251](https://github.com/yonatangross/orchestkit/issues/4251)) ([3dd24c1](https://github.com/yonatangross/orchestkit/commit/3dd24c1ae6f521bcc7bb2cc183ebc75c188b570c))
+
+
+### CI/CD
+
+* compile-check and ruff-lint the 51 skill scripts ([#4265](https://github.com/yonatangross/orchestkit/issues/4265)) ([9390c8d](https://github.com/yonatangross/orchestkit/commit/9390c8d6dd7fa5e401660b52acb9322f86630c5c)), closes [#3500](https://github.com/yonatangross/orchestkit/issues/3500)
+* **pre-commit:** block plugins/skills edits missing the src counterpart ([#4266](https://github.com/yonatangross/orchestkit/issues/4266)) ([0e93be5](https://github.com/yonatangross/orchestkit/commit/0e93be56e1cf6eee10a72fb738ddd96cc957134d)), closes [#3499](https://github.com/yonatangross/orchestkit/issues/3499)
+
 ## [10.0.0-beta.57](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.56...v10.0.0-beta.57) (2026-09-19)
 
 

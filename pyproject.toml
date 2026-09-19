@@ -1,6 +1,6 @@
 [project]
 name = "orchestkit"
-version = "10.0.0-beta.57" # x-release-please-version
+version = "10.0.0-beta.58" # x-release-please-version
 description = "OrchestKit Complete - AI-assisted development toolkit for Claude Code with 107 skills, 36 agents, and 171 hooks"
 requires-python = ">=3.11"
 readme = "README.md"
@@ -34,7 +34,12 @@ templates = [
 ]
 
 [tool.ruff]
-target-version = "py313"
+# Every package declares requires-python >=3.11, so the lint target is the
+# same floor. Under py313 the UP rules treated PEP 695 generics
+# (`def f[T: BaseModel]`, Python 3.12+) as the legal modern form, and #4265's
+# lint pass rewrote one into a >=3.11 codebase. At py311 the UP046/UP047
+# family can never emit syntax the declared floor cannot parse.
+target-version = "py311"
 line-length = 100
 exclude = [
     ".git",
@@ -53,7 +58,6 @@ ignore = [
     "E501",  # Line too long (templates may have long lines for clarity)
     "B008",  # Function call in default argument (FastAPI Depends pattern is intentional)
 ]
-
 [tool.ruff.format]
 quote-style = "double"
 

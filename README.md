@@ -614,6 +614,15 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.58](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.57...v10.0.0-beta.58)** · 2026-09-19
+
+- **doctor:** check per-agent memory dirs for orphans and stale notes (#4263)
+- **ci:** restore py311 compatibility for shipped skill scripts (#4275)
+- **glyph:** render once instead of handing off to ork:glyph (#4261)
+- **hooks:** close auto-approve bypass via substitution and redirects (#4264)
+- **contributing:** add a first pull request example (#4269)
+- …and 3 more (see [CHANGELOG.md](CHANGELOG.md))
+
 **[v10.0.0-beta.57](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.56...v10.0.0-beta.57)** · 2026-09-19
 
 - **ci:** name both causes when hook bundles differ (#4256)
@@ -646,10 +655,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **expect:** pass agent result and summary to report.py on stdin, never as source (#4234)
 - **hooks:** read last_assistant_message at SubagentStop, agent_output is never sent (#4232)
-
-**[v10.0.0-beta.50](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.49...v10.0.0-beta.50)** · 2026-09-18
-
-- **expect:** Jev act mode for the step pick (ORK_EXPECT_JEV) (#4230)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
