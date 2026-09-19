@@ -4129,7 +4129,8 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Upstream coverage (do not restate)",
       "Decision Tree",
       "Local Dev URLs",
-      "New in 2026-04 to 2026-09 (agent-browser 0.23 to 0.36.0)",
+      "New in 2026-04 to 2026-09 (agent-browser 0.23 to 0.38.1)",
+      "WebMCP commands (0.36 to 0.38)",
       "What's New (v0.17 → v0.22.2)",
       "Safety Guardrails (6 rules; URL policy is the sandbox's job)",
       "Security Rules (in rules/)",
@@ -5852,6 +5853,13 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Related Skills",
       "References",
       "Companion pages"
+    ]
+  },
+  {
+    "url": "/docs/reference/skills/doctor/references/agent-memory-dir",
+    "title": "Doctor: Per-agent memory directory",
+    "headings": [
+      "Agent Memory Dir"
     ]
   },
   {
@@ -12221,6 +12229,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Format Dispatch",
       "Capability probe (run once, before the front-door question)",
       "Dispatch table",
+      "Mermaid inside tabs",
       "Living-plan update mode",
       "The plan brief (shared interchange, v1)",
       "ASCII floor rule",

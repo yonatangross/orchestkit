@@ -36,10 +36,18 @@ function walk(dir) {
 /** Strip inline markdown/MDX from a heading line: links keep their text,
  * code/emphasis markers and JSX tags are removed. */
 function cleanHeading(text) {
-	return text
+	let out = text
 		.replace(/!\[[^\]]*\]\([^)]*\)/g, "")
-		.replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
-		.replace(/<[^>]+>/g, "")
+		.replace(/\[([^\]]*)\]\([^)]*\)/g, "$1");
+	// Tags are stripped to a fixpoint: one /<[^>]+>/ pass can re-expose a tag
+	// on nested input (<<em>x</em>> -> <em>x</em>), the exact incomplete-
+	// sanitization shape; a lone "<" left without a closing ">" is dropped next.
+	let prev;
+	do {
+		prev = out;
+		out = out.replace(/<[^>]+>/g, "");
+	} while (out !== prev);
+	return out
 		.replace(/</g, "")
 		.replace(/[`*_~]/g, "")
 		.replace(/\s+#+\s*$/, "")
