@@ -18,6 +18,27 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.56",
+    "date": "2026-09-19",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.55...v10.0.0-beta.56",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**playground:** render mermaid when a tab opens ([#4252](https://github.com/yonatangross/orchestkit/issues/4252)) ([6b1a5a0](https://github.com/yonatangross/orchestkit/commit/6b1a5a0aea8753118f1de7b3be0fb450a15e25cf))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Miscellaneous",
+        "items": [
+          "**ruff:** re-anchor skill example excludes ([#4254](https://github.com/yonatangross/orchestkit/issues/4254)) ([5cf6718](https://github.com/yonatangross/orchestkit/commit/5cf6718f533c277a873816de31e0a2571df7028d))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.55",
     "date": "2026-09-18",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.54...v10.0.0-beta.55",
