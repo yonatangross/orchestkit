@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Jev shadow foundation · local journal simulator</title>
+  <style>
+    :root { color-scheme: dark; --bg:#10151d; --panel:#18222e; --edge:#38506a; --ink:#e8f0f8; --muted:#9dafc2; --ok:#58d39b; --warn:#f3bb58; }
+    * { box-sizing:border-box } body { margin:0; padding:2rem 1rem 4rem; background:var(--bg); color:var(--ink); font:16px/1.5 system-ui,sans-serif }
+    main { max-width:900px; margin:auto } h1 { margin:0 } .sub { color:var(--muted) } section { margin-top:1rem; padding:1rem; background:var(--panel); border:1px solid var(--edge); border-radius:12px }
+    label { display:block; margin:.6rem 0 .2rem; font-weight:600 } input,select,button { font:inherit } input,select { width:100%; padding:.45rem; color:var(--ink); background:#0e151e; border:1px solid var(--edge); border-radius:6px }
+    button { margin-top:1rem; padding:.5rem .8rem; border:1px solid var(--edge); border-radius:6px; background:#24364a; color:var(--ink); cursor:pointer } button[aria-pressed="true"] { border-color:var(--ok); color:var(--ok) }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:.8rem } pre { white-space:pre-wrap; overflow:auto; padding:.8rem; border-radius:8px; background:#0b1017; border:1px solid var(--edge) } .ok { color:var(--ok) } .warn { color:var(--warn) } code { background:#0b1017; padding:.1rem .3rem; border-radius:4px }
+  </style>
+</head>
+<body>
+<main>
+  <p class="sub">ORCHESTKIT LAB · SYNTHETIC, LOCAL-ONLY DEMO</p>
+  <h1>Jev shadow foundation</h1>
+  <p class="sub">This page simulates a passive JSONL observation. It performs no network request, writes no file, and never represents live traffic.</p>
+  <section>
+    <div class="grid">
+      <div><label for="namespace">Namespace</label><input id="namespace" value="demo-host"></div>
+      <div><label for="harness">Harness</label><select id="harness"><option>codex</option><option>agy</option><option>gemini</option><option>grok</option></select></div>
+      <div><label for="session">Session</label><input id="session" value="synthetic-session"></div>
+    </div>
+    <button id="root" aria-pressed="false">JEV_SHADOW_ROOT disabled</button>
+    <button id="emit">Simulate passive event</button>
+    <p id="status" class="warn">Disabled: no journal path and no observation.</p>
+  </section>
+  <section>
+    <h2>Journal placement and immutable runtime pin</h2>
+    <pre id="path"></pre>
+    <p class="sub">Runtime SHA-256: <code id="pin">11fa78c62a73f3b13ee2d82e256abf9ba5c0c5c04b086aab0f7ea94c46b08521</code>. A real adapter checks this before importing the local runtime.</p>
+  </section>
+  <section>
+    <h2>Illustrative fields (not a contract fixture)</h2>
+    <pre id="row">No event emitted.</pre>
+    <p class="sub">The null prompt ID is deliberate: opaque hook input is not a prompt identity. This display is illustrative only; emitted records are validated by the pinned local runtime.</p>
+  </section>
+</main>
+<script>
+  const byId = id => document.getElementById(id);
+  const root = byId('root'), status = byId('status'), path = byId('path'), row = byId('row');
+  const segment = value => /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/.test(value) ? value : null;
+  function renderPath() {
+    const ns = segment(byId('namespace').value), harness = segment(byId('harness').value), session = byId('session').value;
+    if (!ns || !harness) {
+      path.textContent = 'No path: a real sink rejects an invalid namespace or harness segment.';
+      return false;
+    }
+    path.textContent = root.getAttribute('aria-pressed') === 'true'
+      ? 'Schematic (not an exact runtime path): JEV_SHADOW_ROOT / ' + ns + ' / ' + harness + ' / ' + session + ' / journal.jsonl'
+      : 'No path: JEV_SHADOW_ROOT is unset.';
+    return true;
+  }
+  root.onclick = () => { const on = root.getAttribute('aria-pressed') !== 'true'; root.setAttribute('aria-pressed', on); root.textContent = on ? 'JEV_SHADOW_ROOT enabled' : 'JEV_SHADOW_ROOT disabled'; status.textContent = on ? 'Enabled only in this synthetic display; a real sink requires an explicit absolute root.' : 'Disabled: no journal path and no observation.'; status.className = on ? 'ok' : 'warn'; renderPath(); };
+  byId('emit').onclick = () => {
+    if (root.getAttribute('aria-pressed') !== 'true') return;
+    if (!renderPath()) {
+      status.textContent = 'Rejected: the real sink would not substitute an invalid namespace or harness segment.';
+      status.className = 'warn';
+      return;
+    }
+    const event = { observation: 'synthetic only', namespace: byId('namespace').value, harness_context: byId('harness').value, session_context: byId('session').value, prompt_id: null, prompt_id_reason: 'native_prompt_id_unproved', incumbent: 'unobserved', selected: 'unknown', runtime_pin: byId('pin').textContent };
+    row.textContent = JSON.stringify(event, null, 2);
+  };
+  ['namespace','harness','session'].forEach(id => byId(id).oninput = renderPath); renderPath();
+</script>
+</body>
+</html>
