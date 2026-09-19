@@ -156,7 +156,11 @@ gh issue list --state open --json number,title,labels,milestone
       navigator.clipboard.writeText(text).catch(function () {});
     }
     document.execCommand("copy");
+    fb.hidden = true;
   });
+  function escapeHtml(s) {
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
   refresh();
 })();
 </script>
