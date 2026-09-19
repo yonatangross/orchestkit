@@ -614,6 +614,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.62](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.61...v10.0.0-beta.62)** · 2026-09-19
+
+- **hooks:** gate session-identity generator to one spawn per session (#4270)
+- **jev:** share TypeSafe key lookup (#4268)
+
 **[v10.0.0-beta.61](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.60...v10.0.0-beta.61)** · 2026-09-19
 
 - **manifest:** wire webhook URL/token through userConfig (#4273)
@@ -654,12 +659,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.55](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.54...v10.0.0-beta.55)** · 2026-09-18
 
 - **doctor:** extend the CC version matrix through 2.1.277 (#4247)
-
-**[v10.0.0-beta.54](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.53...v10.0.0-beta.54)** · 2026-09-18
-
-- **hosts:** first-class Antigravity host support (#4235) (#4243)
-- **hooks:** address CodeRabbit on [#4241](https://github.com/yonatangross/orchestkit/issues/4241) (#4246)
-- seam review follow-ups that missed the [#4237](https://github.com/yonatangross/orchestkit/issues/4237) merge (#4233) (#4245)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
