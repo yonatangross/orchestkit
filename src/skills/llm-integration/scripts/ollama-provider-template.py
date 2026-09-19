@@ -18,9 +18,10 @@ Issue #606: CI Cost Reduction via Local Models
 
 from __future__ import annotations
 
+import contextlib
 import os
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Any
 
@@ -36,7 +37,7 @@ if TYPE_CHECKING:
 # =============================================================================
 
 
-class TaskType(str, Enum):
+class TaskType(StrEnum):
     """Task types for model selection."""
 
     REASONING = "reasoning"
@@ -377,17 +378,15 @@ async def prewarm_models() -> None:
 
     async with httpx.AsyncClient() as client:
         # Warm embedding model
-        try:
+        with contextlib.suppress(httpx.HTTPError):
             await client.post(
                 f"{config.host}/api/embeddings",
                 json={"model": config.model_embed, "prompt": "warmup"},
                 timeout=60.0,
             )
-        except httpx.HTTPError:
-            pass
 
         # Warm reasoning model (minimal generation)
-        try:
+        with contextlib.suppress(httpx.HTTPError):
             await client.post(
                 f"{config.host}/api/chat",
                 json={
@@ -397,8 +396,6 @@ async def prewarm_models() -> None:
                 },
                 timeout=120.0,
             )
-        except httpx.HTTPError:
-            pass
 
 
 def get_available_models() -> list[str]:

@@ -81,8 +81,8 @@ def build_speculative_config(config: ServerConfig) -> dict | None:
 def check_vllm_installed() -> bool:
     """Check if vLLM is installed and CUDA is available."""
     try:
-        import vllm
         import torch
+        import vllm
         if not torch.cuda.is_available():
             print("ERROR: CUDA is not available. vLLM requires GPU support.")
             return False
@@ -90,7 +90,7 @@ def check_vllm_installed() -> bool:
         print(f"CUDA devices: {torch.cuda.device_count()}")
         return True
     except ImportError as e:
-        print(f"ERROR: vLLM is not installed. Install with: pip install vllm")
+        print("ERROR: vLLM is not installed. Install with: pip install vllm")
         print(f"Details: {e}")
         return False
 
@@ -208,6 +208,7 @@ def run_openai_server(config: ServerConfig):
 def benchmark_engine(config: ServerConfig, num_prompts: int = 10):
     """Benchmark the engine configuration."""
     import time
+
     from vllm import SamplingParams
 
     print(f"Benchmarking with {num_prompts} prompts...")
@@ -232,7 +233,7 @@ def benchmark_engine(config: ServerConfig, num_prompts: int = 10):
     total_tokens = sum(len(o.outputs[0].token_ids) for o in outputs)
     throughput = total_tokens / elapsed
 
-    print(f"\nBenchmark Results:")
+    print("\nBenchmark Results:")
     print(f"  Prompts: {num_prompts}")
     print(f"  Total tokens: {total_tokens}")
     print(f"  Time: {elapsed:.2f}s")
@@ -261,7 +262,7 @@ def main():
     args = parser.parse_args()
     config = ServerConfig()
 
-    print(f"Configuration:")
+    print("Configuration:")
     print(f"  Model: {config.model_name}")
     print(f"  Tensor Parallel: {config.tensor_parallel_size}")
     print(f"  Max Context: {config.max_model_len}")

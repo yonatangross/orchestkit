@@ -13,7 +13,6 @@ import json
 import logging
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional
 
 import torch
 from datasets import Dataset, load_dataset
@@ -138,12 +137,12 @@ def load_preference_data(path: str) -> Dataset:
 
     if path.suffix == ".jsonl":
         data = []
-        with open(path) as f:
+        with path.open() as f:
             for line in f:
                 data.append(json.loads(line))
         return Dataset.from_list(data)
     elif path.suffix == ".json":
-        with open(path) as f:
+        with path.open() as f:
             data = json.load(f)
         return Dataset.from_list(data)
     else:
@@ -248,7 +247,7 @@ def train_dpo(
     model: AutoModelForCausalLM,
     tokenizer: AutoTokenizer,
     train_dataset: Dataset,
-    eval_dataset: Optional[Dataset],
+    eval_dataset: Dataset | None,
     dpo_args: DPOArguments,
     data_args: DataArguments,
     use_lora: bool,
@@ -287,7 +286,7 @@ def train_dpo(
         # Saving
         save_strategy=dpo_args.save_strategy,
         save_total_limit=2,
-        load_best_model_at_end=True if eval_dataset else False,
+        load_best_model_at_end=bool(eval_dataset),
 
         # Reproducibility
         seed=42,
