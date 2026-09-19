@@ -1,0 +1,21 @@
+# Per-agent memory directory
+
+`memory:` in agent frontmatter writes `.claude/agent-memory/<agent>/MEMORY.md`.
+Category 4's graph check and the auto-memory index do not look here.
+Run `scripts/check-agent-memory.sh`.
+
+| Check | Fires when |
+|---|---|
+| Orphan | directory name matches no `name:` in the agents directory |
+| Stale | `MEMORY.md` is older than `--stale-days` (default 30) and the activity file says that agent ran after the write. No activity file, no stale finding. An idle agent is not stale. |
+| Size | `MEMORY.md` is at or over 150 lines. Spawn injection keeps about the first 200 lines and drops the rest with no error. |
+| Secret | a token-shaped string, a private-key header, `password=`, an email, or an SSN-shaped number under the tree |
+
+```bash
+bash scripts/check-agent-memory.sh \
+  --memory-root .claude/agent-memory \
+  --agents-dir src/agents \
+  --activity-file /path/to/agent-epoch.tsv
+```
+
+Activity rows are `name<TAB>unix-epoch`. Exit 0 is clean. Exit 1 prints `ORPHAN`, `STALE`, `SIZE`, or `SECRET` lines. Pass `--now` in tests so the clock is fixed.
