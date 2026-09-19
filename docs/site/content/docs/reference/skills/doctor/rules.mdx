@@ -103,6 +103,17 @@ Read `.claude/memory/decisions.jsonl` directly to validate JSONL integrity (each
 
 See [Memory Health](../references/memory-health.md) for details.
 
+Per-agent `memory:` dirs are a separate check. Load `references/agent-memory-dir.md` and run:
+
+```bash
+bash src/skills/doctor/scripts/check-agent-memory.sh \
+  --memory-root .claude/agent-memory \
+  --agents-dir src/agents
+```
+
+Pass `--activity-file` (name, tab, unix epoch) only when you know the agent ran. Without it, staleness is skipped so an idle agent is not reported stale.
+
+
 ---
 
 ## 5. Build System

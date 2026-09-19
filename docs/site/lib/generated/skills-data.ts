@@ -774,8 +774,8 @@ export const SKILLS: Record<string, SkillMeta> = {
   "browser-tools": {
     "name": "browser-tools",
     "description": "Security wrapper over the upstream agent-browser skill, adding URL blocklisting, rate limiting, robots.txt enforcement, and scraping guardrails. Use when automating browser workflows that need safety limits.",
-    "version": "6.0.0",
-    "sha256": "469eb1307b0293850da218691a694e50147c20def27ab37921afeb248f21b118",
+    "version": "6.1.0",
+    "sha256": "d080e889a5c3c7c97aff1f8ed61e27ae5c2918c493409de13f885903759e15b1",
     "author": "OrchestKit",
     "tags": [
       "browser",
@@ -1865,7 +1865,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "doctor",
     "description": "OrchestKit doctor for health diagnostics across manifest integrity, hook configuration, skill validation, agent frontmatter, MCP server connectivity, CC version compatibility, and permission rules. Reports issues with severity levels and auto-remediation suggestions. Validates component counts, detects orphaned entries, and checks CC version matrix compliance. Use when diagnosing plugin health, troubleshooting configuration issues, or running pre-release checks.",
     "version": "3.3.0",
-    "sha256": "ae9bdabdaf2e7c63cee55c67be779332c62e9de5445978f446ccb0a572b3c1fc",
+    "sha256": "bb9ea042d0146ca89a4777f450aa09c092fd577098b6c23ea7d62160b045d96f",
     "author": "OrchestKit",
     "tags": [
       "health-check",
@@ -1894,6 +1894,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "complexity": "low",
     "structure": {
       "references": [
+        "agent-memory-dir.md",
         "agents-validation.md",
         "claude-code.md",
         "health-check-outputs.md",
@@ -1910,6 +1911,7 @@ export const SKILLS: Record<string, SkillMeta> = {
         "version-compatibility.md"
       ],
       "scripts": [
+        "check-agent-memory.sh",
         "check-mcp-pinning.sh",
         "check-operator-permissions.cjs",
         "check-operator-permissions.sh",
@@ -2118,8 +2120,8 @@ export const SKILLS: Record<string, SkillMeta> = {
   "expect": {
     "name": "expect",
     "description": "Diff-aware AI browser testing — reads the git diff, maps changes to affected pages via the route map, generates a targeted test plan, and executes it via agent-browser (Rust daemon + CDP, ARIA-tree-first) with pass/fail reporting. Use when testing UI changes, verifying PRs before merge, or running regression checks on changed components.",
-    "version": "1.1.0",
-    "sha256": "8ee767f1d7f255df916ac2e5533d80345a43be64b4c727a23fd55b393505c435",
+    "version": "1.2.0",
+    "sha256": "dc2c156269b6b37d10d6cd0ee91ec9e0100eafb0da817caf5956555cc242eaf8",
     "author": "OrchestKit",
     "tags": [
       "testing",

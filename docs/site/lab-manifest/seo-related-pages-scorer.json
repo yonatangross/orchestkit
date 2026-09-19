@@ -1,0 +1,13 @@
+{
+  "slug": "seo-related-pages-scorer",
+  "source": "docs/feat--seo-related-pages/index.html",
+  "title": "The Related Pages Scorer, in the Open",
+  "description": "The build-time Related block on skill, agent and hook reference pages is scored deterministically: same category +4, shared tag +2 capped at 3, mutual content reference +3, and a guarded +2 for orphan targets from the link-graph audit. Pick a source page and watch every candidate's score decompose.",
+  "tags": [
+    "seo",
+    "docs-site",
+    "related-pages",
+    "jev"
+  ],
+  "date": "2026-09-19"
+}

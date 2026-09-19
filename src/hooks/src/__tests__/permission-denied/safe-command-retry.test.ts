@@ -64,9 +64,6 @@ describe('safe-command-retry', () => {
       'find . -name "*.ts"',
       'which node',
       'type python',
-      'env',
-      'printenv',
-      'printenv PATH',
 
       // Package manager read-only
       'npm list',
@@ -145,6 +142,18 @@ describe('safe-command-retry', () => {
       'rm -rf /tmp/data',
       'rm file.txt',
       'chmod 777 /etc/passwd',
+      // HR-1 (#4216): env dumps and credential-path reads never auto-retry.
+      'env',
+      'printenv',
+      'printenv PATH',
+      'cat ~/.ssh/id_rsa',
+      'cat ~/.aws/credentials',
+      'find . -exec rm {} +',
+      'find . -execdir rm {} +',
+      // Credential-path reject is keyed on the path, not the reader.
+      'fmt ~/.ssh/id_rsa',
+      'pr ~/.aws/credentials',
+      'tsort ~/.netrc',
     ];
 
     test.each(rejectCommands)('does not retry rejected: %s', (command) => {

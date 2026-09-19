@@ -105,14 +105,20 @@ if assert_body "Check hook bundles are release-owned (#3578)" "$B"; then
         d="$WORK/bundles/$arm"; mkdir -p "$d/src/hooks/dist" "$d/plugins/ork/hooks/dist"
         echo a > "$d/src/hooks/dist/a.mjs"; echo a > "$d/plugins/ork/hooks/dist/a.mjs"; echo r > "$d/README.md"
         git_init "$d"; git -C "$d" add -A; git -C "$d" commit -qm base
+        # The step now fetches origin/$BASE_REF for the CURRENT base tip
+        # instead of diffing the frozen base.sha, so the fixture publishes the
+        # base commit as main on a bare remote the fetch can resolve.
+        r="$WORK/bundles/$arm-remote.git"; git init -q --bare "$r"
+        git -C "$d" remote add origin "$r"
+        git -C "$d" push -q origin HEAD:main
         echo r2 > "$d/README.md"
         [[ $arm == fault2 ]] && echo b > "$d/src/hooks/dist/a.mjs"
         git -C "$d" add -A; git -C "$d" commit -qm feature
     done
     rm -rf "$WORK/bundles/fault/src/hooks/dist" "$WORK/bundles/fault/plugins/ork/hooks/dist"
     for arm in control fault fault2; do
-        d="$WORK/bundles/$arm"; base=$(git -C "$d" rev-parse HEAD~1)
-        rc=$(run_step "$B" "-u" "$d" HEAD_REF=feat/x BASE_SHA="$base")
+        d="$WORK/bundles/$arm"
+        rc=$(run_step "$B" "-u" "$d" HEAD_REF=feat/x BASE_REF=main)
         case $arm in
             control) [[ "$rc" == "0" ]] && ok "hook-bundles control (dist untouched) exits 0" || bad "hook-bundles control exited $rc" ;;
             fault)   [[ "$rc" != "0" ]] && ok "hook-bundles fault (DIST dirs missing) exits non-zero" || bad "hook-bundles fault exited 0 with DIST dirs missing" ;;
@@ -183,7 +189,17 @@ if assert_body "Fail if PR touches governed files" "$B"; then
     printf 'README.md\n' > "$WORK/rpg-tmp/changed.txt"
     [[ "$(run_step "$B" -e "$d" BASE_REF=main)" == "0" ]] && ok "governed control (README only) exits 0" || bad "governed control should exit 0: $(tail -2 "$B.out")"
     printf 'CHANGELOG.md\n' > "$WORK/rpg-tmp/changed.txt"
+    # The inherited-from-main exception (#4277 shape, applied to the guard)
+    # skips a governed path whose committed content equals the current base
+    # tip, so control2's fixture must be an AUTHORED change: CHANGELOG.md
+    # committed on top of the ref origin/main still points at.
+    echo bump > "$d/CHANGELOG.md"; git -C "$d" add -A; git -C "$d" commit -qm "authored changelog"
     [[ "$(run_step "$B" -e "$d" BASE_REF=main)" != "0" ]] && ok "governed control2 (CHANGELOG.md touched) exits non-zero" || bad "governed control2 exited 0 on a governed file"
+    # And the exception itself: listed in changed.txt but byte-identical to
+    # the current base tip is inherited via merge, not authored.
+    git -C "$d" update-ref refs/remotes/origin/main HEAD
+    [[ "$(run_step "$B" -e "$d" BASE_REF=main)" == "0" ]] && ok "governed inherited (matches base tip) exits 0" || bad "governed inherited should exit 0: $(tail -2 "$B.out")"
+    git -C "$d" update-ref refs/remotes/origin/main HEAD~1
     : > "$WORK/rpg-tmp/changed.txt"
     [[ "$(run_step "$B" -e "$d" BASE_REF=main)" != "0" ]] && ok "governed fault (empty changed list) exits non-zero" || bad "governed fault exited 0 on an empty changed-file list"
 fi

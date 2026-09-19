@@ -49,12 +49,13 @@ const SAFE_PATTERNS: RegExp[] = [
   /^head\s/,
   /^tail\s/,
   /^wc\s/,
-  // SEC: find with -exec uses ; which triggers isCompoundCommand -> manual review
+  // SEC (#4216 HR-1): find with -exec/-execdir runs arbitrary commands and is
+  // rejected by REJECT_PATTERNS; -delete/-fprint*/-fls/-ok likewise.
   /^find\s/,
   /^which\s/,
   /^type\s/,
-  /^env$/,
-  /^printenv/,
+  // SEC (#4216 HR-1): env/printenv dump the whole environment — including
+  // exported secrets — under a "read-only" auto-approve. Not on the list.
 
   // POSIX utilities — safe: read-only text/numeric processing (CC 2.1.71 expanded allowlist)
   // SEC: pipes/redirects are compound commands, rejected before pattern matching

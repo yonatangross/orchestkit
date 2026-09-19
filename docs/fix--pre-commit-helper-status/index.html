@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Release bundle guard: helper failures</title>
+<style>:root{color-scheme:dark}body{margin:0;background:#101916;color:#eef6f0;font:18px/1.6 system-ui}main{max-width:760px;margin:auto;padding:40px 24px}section{padding:24px;border:1px solid #496451;border-radius:14px;margin:24px 0}select{font:inherit;padding:10px;max-width:100%}output{display:block;font-weight:bold;margin-top:20px;color:#9ce5b5}code{background:#26382d;padding:3px 6px}p{color:#c1d0c5}a{color:#9ce5b5}</style></head>
+<body><main><h1>A silent helper failure must block the commit.</h1><p>The release-bundle guard must check both its helper's exit status and its list of forbidden paths. Empty output alone cannot prove success.</p>
+<section><label for="case">Illustrative helper result</label><br><select id="case"><option value="clean">Exit 0, no forbidden paths</option><option value="paths">Exit 0, forbidden bundle path</option><option value="missing">Exit 127, helper missing, no output</option><option value="error">Exit 2, helper error, no output</option></select><output id="verdict" aria-live="polite"></output><p id="detail"></p></section>
+<p>This is a decision-table demonstration, not a live Git hook invocation. Other pre-commit checks can still block a commit that passes this guard.</p>
+<section><h2>Delivery checks</h2><ul><li>Reproduce empty-output helper failure.</li><li>Capture nonzero helper status and increment the hook error count.</li><li>Exercise the real hook in isolated fixtures.</li><li>Remove the fix and prove the regression test fails.</li><li>Review before requesting LAND.</li></ul></section>
+<script>
+const cases={clean:['Guard passes','The helper succeeded and found no forbidden bundles.'],paths:['Commit blocked','The helper succeeded but reported a release-owned bundle.'],missing:['Commit blocked','Exit 127 is an execution failure, even when stdout is empty.'],error:['Commit blocked','Any nonzero helper status fails the guard.']};
+function render(){const [verdict,detail]=cases[document.getElementById('case').value];document.getElementById('verdict').textContent=verdict;document.getElementById('detail').textContent=detail;}
+document.getElementById('case').addEventListener('change',render);render();
+</script></main></body></html>

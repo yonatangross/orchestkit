@@ -46,8 +46,7 @@ const RETRY_SAFE_PATTERNS: RegExp[] = [
   /^find\s/,
   /^which\s/,
   /^type\s/,
-  /^env$/,
-  /^printenv/,
+  // SEC (#4216 HR-1): env/printenv dump exported secrets — never auto-retry.
 
   // Package manager read-only
   /^npm (list|ls|outdated|audit)\b/,
