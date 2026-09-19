@@ -93,6 +93,44 @@ describe("GET /api/search/suggest", () => {
 		expect(body.estCostUsd).toBeCloseTo(0.00021, 6);
 	});
 
+	it("mode=llm is ignored in production even with flag and key set", async () => {
+		vi.stubEnv("NODE_ENV", "production");
+		vi.stubEnv("ORK_SITE_JEV_RERANK", "1");
+		vi.stubEnv("OPENAI_API_KEY", "test-key");
+		vi.stubEnv("TYPESAFE_API_KEY", "");
+		const fetchSpy = vi.fn();
+		vi.stubGlobal("fetch", fetchSpy);
+		const res = await GET(req("/api/search/suggest?query=hook&mode=llm"));
+		const body = (await res.json()) as { rankedBy: string; mode: string };
+		expect(body.mode).toBe("jev");
+		expect(body.rankedBy).toBe("deterministic");
+		expect(fetchSpy).not.toHaveBeenCalled();
+	});
+
+	it("mode=llm + order with a duplicate url -> deterministic fallback", async () => {
+		vi.stubEnv("ORK_SITE_JEV_RERANK", "1");
+		vi.stubEnv("OPENAI_API_KEY", "test-key");
+		const base = suggestCompletions("hook", SEARCH_SUGGEST_INDEX, 10);
+		// One url repeated, one omitted: length still matches, so a bare
+		// length check would accept it and silently drop a suggestion.
+		const duped = base.map((s) => s.url);
+		duped[duped.length - 1] = duped[0];
+		vi.stubGlobal(
+			"fetch",
+			vi.fn(async () => ({
+				ok: true,
+				json: async () => ({
+					choices: [
+						{ message: { content: JSON.stringify({ order: duped }) } },
+					],
+				}),
+			})),
+		);
+		const res = await GET(req("/api/search/suggest?query=hook&mode=llm"));
+		const body = (await res.json()) as { rankedBy: string };
+		expect(body.rankedBy).toBe("deterministic");
+	});
+
 	it("mode=llm + no OPENAI_API_KEY -> deterministic, zero network", async () => {
 		vi.stubEnv("ORK_SITE_JEV_RERANK", "1");
 		vi.stubEnv("OPENAI_API_KEY", "");

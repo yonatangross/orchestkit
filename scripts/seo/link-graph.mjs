@@ -80,9 +80,25 @@ const MD_LINK_RE = /(?<!!)\[[^\]\n]*\]\(\s*<?([^)\s>]+)>?[^)]*\)/g;
 const JSX_HREF_RE =
 	/\bhref\s*=\s*(?:\{\s*["'`]([^"'`]+)["'`]\s*\}|["'`]([^"'`]+)["'`])/g;
 
+// Fenced code blocks (``` or ~~~, to the matching fence run or EOF) and
+// inline `code` spans are not prose: regex or import examples inside them can
+// carry [x](y) or href= text that is not a real link. In the 2026-09-19 audit
+// they produced 26 of the 159 broken rows and 33 of the 44 non-docs rows.
+// The closing fence must be the SAME run (\2): this corpus uses ```` fences
+// precisely to hold nested ``` examples, which a loose `{3,}` closer would
+// terminate early and re-expose as prose.
+const FENCED_BLOCK_RE =
+	/(^|\n)[ \t]*(`{3,}|~{3,})[^\n]*\n[\s\S]*?(?:\n[ \t]*\2[ \t]*(?=\n|$)|$)/g;
+const INLINE_CODE_RE = /`[^`\n]*`/g;
+
+function stripCode(body) {
+	return body.replace(FENCED_BLOCK_RE, "\n").replace(INLINE_CODE_RE, "");
+}
+
 function* rawHrefs(body) {
-	for (const m of body.matchAll(MD_LINK_RE)) yield m[1];
-	for (const m of body.matchAll(JSX_HREF_RE)) yield m[1] ?? m[2];
+	const prose = stripCode(body);
+	for (const m of prose.matchAll(MD_LINK_RE)) yield m[1];
+	for (const m of prose.matchAll(JSX_HREF_RE)) yield m[1] ?? m[2];
 }
 
 function isExternal(href) {

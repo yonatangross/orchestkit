@@ -4,28 +4,12 @@
     "to": "/docs/skills/design-to-code"
   },
   {
-    "from": "/docs/hooks/architecture",
-    "to": "/docs/hooks/input"
-  },
-  {
     "from": "/docs/hooks/spotlights/pattern-consistency-enforcer",
     "to": "/docs/hooks/reference/pretool-write-edit"
   },
   {
     "from": "/docs/reference/hooks/spotlights/pattern-consistency-enforcer",
     "to": "/docs/hooks/reference/pretool-write-edit"
-  },
-  {
-    "from": "/docs/reference/skills/agent-orchestration",
-    "to": "/docs/reference/skills/*action.args"
-  },
-  {
-    "from": "/docs/reference/skills/agent-orchestration",
-    "to": "/docs/reference/skills/task,"
-  },
-  {
-    "from": "/docs/reference/skills/agent-orchestration",
-    "to": "/docs/reference/skills/task,"
   },
   {
     "from": "/docs/reference/skills/ai-ui-generation",
@@ -62,34 +46,6 @@
   {
     "from": "/docs/reference/skills/architecture-decision-record",
     "to": "/docs/reference/skills/rules/interrogation-security.md"
-  },
-  {
-    "from": "/docs/reference/skills/architecture-decision-record",
-    "to": "/docs/reference/migration/api-v1-to-v2.md"
-  },
-  {
-    "from": "/docs/reference/skills/architecture-decision-record",
-    "to": "/docs/reference/skills/adr-0015-graphql-gateway.md"
-  },
-  {
-    "from": "/docs/reference/skills/architecture-decision-record",
-    "to": "/docs/reference/skills/adr-0002-postgresql.md"
-  },
-  {
-    "from": "/docs/reference/skills/architecture-decision-record",
-    "to": "/docs/reference/skills/adr-0003-api-versioning.md"
-  },
-  {
-    "from": "/docs/reference/skills/architecture-decision-record",
-    "to": "/docs/reference/skills/adr-0010-nosql-migration.md"
-  },
-  {
-    "from": "/docs/reference/skills/architecture-decision-record",
-    "to": "/docs/reference/skills/adr-0015-graphql-gateway.md"
-  },
-  {
-    "from": "/docs/reference/skills/architecture-decision-record",
-    "to": "/docs/reference/docs/adr/adr-0015-graphql-gateway.md"
   },
   {
     "from": "/docs/reference/skills/architecture-decision-record",
@@ -204,32 +160,8 @@
     "to": "/docs/reference/skills/references/version-compatibility.md"
   },
   {
-    "from": "/docs/reference/skills/documentation-patterns",
-    "to": "/docs/reference/skills/CONTRIBUTING.md"
-  },
-  {
-    "from": "/docs/reference/skills/documentation-patterns",
-    "to": "/docs/reference/skills/LICENSE"
-  },
-  {
-    "from": "/docs/reference/skills/dream",
-    "to": "/docs/reference/skills/filename.md"
-  },
-  {
-    "from": "/docs/reference/skills/dream",
-    "to": "/docs/reference/skills/file.md"
-  },
-  {
     "from": "/docs/reference/skills/emulate-seed",
     "to": "/docs/agents/emulate-engineer.md"
-  },
-  {
-    "from": "/docs/reference/skills/expect",
-    "to": "/docs/reference/skills/[^\"\\']+"
-  },
-  {
-    "from": "/docs/reference/skills/expect",
-    "to": "/docs/reference/skills/ or "
   },
   {
     "from": "/docs/reference/skills/explore",
@@ -238,10 +170,6 @@
   {
     "from": "/docs/reference/skills/explore",
     "to": "/docs/reference/references/code-health-rubric.md"
-  },
-  {
-    "from": "/docs/reference/skills/explore",
-    "to": "/docs/reference/references/dependency-analysis.md"
   },
   {
     "from": "/docs/reference/skills/explore",
@@ -360,14 +288,6 @@
     "to": "/docs/reference/skills/references/keyboard-interaction-matrix.md"
   },
   {
-    "from": "/docs/reference/skills/interaction-patterns",
-    "to": "/docs"
-  },
-  {
-    "from": "/docs/reference/skills/interaction-patterns",
-    "to": "/docs"
-  },
-  {
     "from": "/docs/reference/skills/issue-progress-tracking",
     "to": "/docs/reference/skills/rules/start-work-ceremony.md"
   },
@@ -376,24 +296,12 @@
     "to": "/docs/reference/skills/rules/small-commits.md"
   },
   {
-    "from": "/docs/reference/skills/llm-integration",
-    "to": "/docs/reference/skills/json.loads(action_input"
-  },
-  {
     "from": "/docs/reference/skills/market-sizing",
     "to": "/docs/reference/skills/rules/market-tam-sam-som.md"
   },
   {
     "from": "/docs/reference/skills/market-sizing",
     "to": "/docs/reference/skills/references/tam-sam-som-guide.md"
-  },
-  {
-    "from": "/docs/reference/skills/mcp-patterns",
-    "to": "/docs/reference/skills/result.data"
-  },
-  {
-    "from": "/docs/reference/skills/mcp-patterns",
-    "to": "/docs/reference/skills/input_data"
   },
   {
     "from": "/docs/reference/skills/memory",
@@ -592,10 +500,6 @@
     "to": "/docs/reference/skills/verify/report-template.md"
   },
   {
-    "from": "/docs/reference/skills/verify/references",
-    "to": "/docs/reference/skills/verify/[^\\\"']+"
-  },
-  {
     "from": "/docs/reference/skills/verify/rules",
     "to": "/docs/reference/skills/references/quality-model.md"
   },
@@ -606,14 +510,6 @@
   {
     "from": "/docs/reference/skills/verify/rules",
     "to": "/docs/reference/skills/references/policy-as-code.md"
-  },
-  {
-    "from": "/docs/reference/skills/vite-advanced",
-    "to": "/docs/reference/skills/react|react-dom|scheduler"
-  },
-  {
-    "from": "/docs/reference/skills/vite-advanced",
-    "to": "/docs/reference/skills/react-router|react-router-dom"
   },
   {
     "from": "/docs/reference/skills/write-prd",

@@ -60,7 +60,15 @@ export async function GET(req: Request) {
 	}
 
 	const modeParam = url.searchParams.get("mode");
-	const mode = modeParam === "off" || modeParam === "llm" ? modeParam : "jev";
+	// mode=llm is a dev A/B baseline, not a public dial: left reachable it lets
+	// any caller drive a paid OpenAI call per request (the rate limit bounds
+	// the cost but does not close the surface). In production the param is
+	// ignored and resolves to jev; the dev toggle still works outside it.
+	const mode =
+		modeParam === "off" ||
+		(modeParam === "llm" && process.env.NODE_ENV !== "production")
+			? modeParam
+			: "jev";
 
 	const base = suggestCompletions(query, SEARCH_SUGGEST_INDEX, 10);
 	let items = base;

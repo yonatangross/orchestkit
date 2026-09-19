@@ -268,9 +268,18 @@ export async function llmSuggestOrder(
 	if (!Array.isArray(order)) return null;
 
 	const byUrl = new Map(suggestions.map((s) => [s.url, s]));
-	const out = order
-		.map((u) => (typeof u === "string" ? byUrl.get(u) : undefined))
-		.filter((s): s is Suggestion => Boolean(s));
+	// The model's order must be a permutation of the input. A bare length check
+	// accepts one url repeated twice while another is omitted, dropping a
+	// suggestion and duplicating another; track seen urls to reject that.
+	const seen = new Set<string>();
+	const out: Suggestion[] = [];
+	for (const u of order) {
+		if (typeof u !== "string" || seen.has(u)) return null;
+		const s = byUrl.get(u);
+		if (!s) return null;
+		seen.add(u);
+		out.push(s);
+	}
 	if (out.length !== suggestions.length) return null; // partial rank = malformed
 
 	const usage = payload.usage;

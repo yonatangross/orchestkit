@@ -47,7 +47,6 @@ import {
   percentile,
   recordSuggestSample,
 } from "@/lib/suggest-metrics";
-import { jevRerankEnabled } from "@/lib/jev-rerank";
 import { SearchZeroResults } from "@/components/search-zero-results";
 
 const FACETS: { value: string; name: string }[] = [
@@ -62,10 +61,15 @@ const SUGGEST_DEBOUNCE_MS = 200;
 const LISTBOX_ID = "ork-search-listbox";
 
 // Typeahead runs fully client-side over the generated title/heading index.
-// The optional server re-rank is gated by the SAME flag the route checks;
-// baked in at build time via next.config env passthrough, so flag-off
+// The optional server re-rank is gated by the SAME flag the route checks,
+// baked in at build time via the next.config env passthrough, so flag-off
 // operation never touches the network beyond the existing /api/search call.
-const JEV_SUGGEST_ENABLED = jevRerankEnabled();
+// It must be a DIRECT process.env read: Next only inlines process.env.NAME
+// into the client bundle, so reading through jevRerankEnabled() would
+// evaluate to undefined in the browser and leave the feature dead.
+const JEV_SUGGEST_ENABLED = ["1", "true", "yes", "on"].includes(
+  String(process.env.ORK_SITE_JEV_RERANK ?? "").toLowerCase(),
+);
 
 // Dev-only A/B toggle + metrics footer (the Jev launcher demo proof format).
 // Never rendered in production builds; the rerank itself also stays behind
