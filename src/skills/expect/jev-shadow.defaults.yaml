@@ -23,14 +23,20 @@ jev_shadow:
   # every observed raw-pick error sat at conf <= 0.40 and every pick
   # >= 0.45 was correct, so 0.5 defers the whole error band.
   act_confidence_floor: 0.5
+  # Raised floor for list fields (checkboxes). The sealed split showed
+  # list-membership errors riding at conf 0.60-0.77, inside the 0.5 gate;
+  # 0.7 defers the middle band to the incumbent while clear picks still
+  # decide. Checkbox decisions also carry a consistency gate: the list
+  # answer and the final-state answer must agree or the field defers.
+  act_list_confidence_floor: 0.7
   # Form path (requires --task-doc): max form-field questions added to the
-  # per-step request (value Choice for fillable elements, final-state
-  # Choice for checkboxes).
+  # per-step request (value Choice for fillable elements; checkboxes emit
+  # two questions, a list-membership Choice plus a final-state Choice).
   field_cap: 12
   # Max chars kept for --task-doc after redaction.
   doc_max_chars: 1200
   # Prompt version stamped on every record as `prompt_id`.
-  prompt_id: "jev-shadow-v2"
+  prompt_id: "jev-shadow-v4"
   thresholds:
     # Choice confidence below this marks the pick low_confidence in the log.
     low_confidence: 0.5
