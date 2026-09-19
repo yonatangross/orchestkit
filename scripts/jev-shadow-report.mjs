@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /** Offline shadow review. Agreement is not accuracy; correctness needs labels. */
 import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { createHash } from 'node:crypto';
 
 const probability = (v) => typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= 1 ? v : null;
 const pick = (v) => typeof v === 'string' && v.length > 0 ? v : null;
@@ -61,9 +61,17 @@ function adjudication(row, seam, label) {
 }
 
 export function normalize(row, source, label = {}) {
-  if (!row || typeof row !== 'object') return null;
+  if (!row || typeof row !== 'object' || row.phase === 'invoked') return null;
   let seam, jev, incumbent, confidence, floor, mode;
-  if ('intent' in row && 'conf' in row) {
+  const canonicalRow = ['route', 'category', 'expect'].includes(row.seam) && 'jev_pick' in row;
+  if (row.phase === 'handoff' && pick(row.router) && pick(row.handoff_to)) {
+    seam = 'route'; jev = null; incumbent = null; confidence = null; floor = null;
+    mode = row.mode ?? 'telemetry';
+  } else if (canonicalRow) {
+    seam = row.seam; jev = pick(row.jev_pick); incumbent = pick(row.incumbent_pick);
+    confidence = probability(row.jev_confidence); floor = probability(row.floor);
+    mode = row.mode ?? row.flag ?? row.provider;
+  } else if ('intent' in row && 'conf' in row) {
     seam = 'route'; jev = pick(row.intent); incumbent = pick(row.incumbent_intent);
     confidence = probability(row.conf); floor = probability(row.floor); mode = row.flag;
   } else if ('haiku' in row && 'jev' in row) {
@@ -76,11 +84,15 @@ export function normalize(row, source, label = {}) {
   const labelResult = adjudication(row, seam, label);
   incumbent = labelResult.incumbent ?? incumbent;
   const correct = labelResult.correct;
-  const paired = jev !== null && incumbent !== null;
+  const paired = jev !== null && incumbent !== null && (!canonicalRow || typeof row.agree === 'boolean' || labelResult.incumbent !== null);
   const above = confidence !== null && floor !== null && confidence >= floor;
+  const agree = paired ? (canonicalRow && labelResult.incumbent === null ? row.agree : jev === incumbent) : null;
   return { source, seam, jev, incumbent, confidence, floor, mode, correct, ...labelResult,
-    error: pick(row.error), paired, agree: paired ? jev === incumbent : null,
-    highDisagreement: paired && above && jev !== incumbent,
+    sessionId: pick(row.session_id), promptId: pick(row.prompt_id),
+    router: pick(row.router), handoffTo: pick(row.handoff_to),
+    decisionId: pick(row.decision_id), phase: pick(row.phase), decidedBy: pick(row.decided_by),
+    error: pick(row.error), paired, agree,
+    highDisagreement: agree === false && above,
     below: confidence !== null && floor !== null && confidence < floor,
     falseHigh: correct !== null && jev !== null && above && jev !== correct,
     labeledHigh: correct !== null && jev !== null && above };
@@ -136,11 +148,36 @@ export function readRows(paths, labels = new Map()) {
       } catch { malformed++; }
     });
   }
-  return { rows, malformed, ignored, invalidLabels, labelMismatches };
+  // A shared runtime session + prompt identifies one decision across routers
+  // and files. Historical rows without both IDs retain file-local revision keys.
+  const decisions = new Map();
+  const retained = [];
+  let superseded = 0;
+  for (const row of rows) {
+    if (row.seam !== 'route') { retained.push(row); continue; }
+    const key = row.sessionId && row.promptId
+      ? JSON.stringify(['prompt', row.sessionId, row.promptId])
+      : row.decisionId ? JSON.stringify(['legacy', row.source.replace(/:\d+$/, ''), row.decisionId]) : null;
+    if (key === null) { retained.push(row); continue; }
+    const group = decisions.get(key) ?? [];
+    group.push(row);
+    decisions.set(key, group);
+  }
+  for (const group of decisions.values()) {
+    superseded += group.length - 1;
+    const targets = new Set(group.map((row) => row.handoffTo).filter(Boolean));
+    const candidates = group.filter((row) => !row.handoffTo && (!targets.size || targets.has(row.router)));
+    const chosen = candidates.find((row) => row.phase === 'paired') ?? candidates[0];
+    // A handoff is not a terminal comparison. Until its target records a row,
+    // retain one unpaired prompt rather than count the upstream pick as final.
+    retained.push(chosen ?? { ...group[0], paired: false, agree: null,
+      highDisagreement: false, falseHigh: false, labeledHigh: false });
+  }
+  return { rows: retained, malformed, ignored, invalidLabels, labelMismatches, superseded };
 }
 
 export function main(args) {
-  let labels = new Map(), allModes = false;
+  let labels = new Map(), allModes = false, confidentWrong = false;
   const paths = [];
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--labels') {
@@ -155,13 +192,24 @@ export function main(args) {
       labels = new Map(entries);
       if (labels.size !== entries.length) throw new Error('Duplicate label source');
     } else if (args[i] === '--all-modes') allModes = true;
+    else if (args[i] === '--confident-wrong') confidentWrong = true;
     else if (args[i].startsWith('--')) throw new Error(`Unknown option: ${args[i]}`);
     else paths.push(args[i]);
   }
   if (!paths.length) throw new Error('Usage: node scripts/jev-shadow-report.mjs [--labels labels.jsonl] [--all-modes] FILE_OR_DIRECTORY ...');
   const input = readRows(paths, labels);
   const rows = allModes ? input.rows : input.rows.filter((r) => r.mode === 'shadow');
-  console.log(`Jev ${allModes ? 'all-mode' : 'shadow'} report: ${rows.length} rows; malformed=${input.malformed}; ignored=${input.ignored}; invalid_labels=${input.invalidLabels}; label_mismatches=${input.labelMismatches}; excluded_modes=${input.rows.length - rows.length}`);
+  if (confidentWrong) {
+    for (const r of rows.filter((r) => r.highDisagreement)) {
+      console.log(JSON.stringify({ seam: r.seam, source: r.source, session_id: r.sessionId,
+        prompt_id: r.promptId, router: r.router, handoff_to: r.handoffTo, jev_pick: r.jev,
+        jev_confidence: r.confidence, incumbent_pick: r.incumbent, agree: r.agree,
+        floor: r.floor, decided_by: r.decidedBy, bucket: 'confident-wrong', outcome_label: r.correct,
+        review_status: r.correct === null ? 'awaiting_adjudication' : 'labeled' }));
+    }
+    return;
+  }
+  console.log(`Jev ${allModes ? 'all-mode' : 'shadow'} report: ${rows.length} rows; malformed=${input.malformed}; ignored=${input.ignored}; invalid_labels=${input.invalidLabels}; label_mismatches=${input.labelMismatches}; excluded_modes=${input.rows.length - rows.length}; superseded=${input.superseded}`);
   console.log('Agreement is not accuracy. High-confidence disagreements need outcome labels before promotion.');
   for (const s of summarize(rows)) {
     console.log(`\n${s.seam}: rows=${s.rows} paired=${s.paired} unpaired=${s.rows - s.paired} agreement=${s.agreements}/${s.paired} (${share(s.agreements, s.paired)})`);
