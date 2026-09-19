@@ -609,8 +609,9 @@ describe('log line', () => {
     };
     expect(formatRouteLogLine({ ...v, conf: 0.795, floor: 0.805 })).toContain('jev_confidence=0.795');
     expect(formatRouteLogLine({ ...v, conf: 0.795, floor: 0.805 })).toContain('floor=0.805');
+    expect(formatRouteLogLine({ ...v, session_id: 'session-a', prompt_id: 'shared-prompt' })).toContain('router=ork:auto session_id="session-a" prompt_id="shared-prompt"');
     expect(formatRouteLogLine(v)).toBe(
-      'route jev: jev_pick=skill:ork:fix-issue jev_confidence=0.83 incumbent_pick=none incumbent_pick_reason=model_route_not_run_at_prompt_submit agree=null top3=dev_fix:0.71,dev_build:0.12,research:0.08 worktree=0.91 browser=0.05 mutation=1.2 operator=0.12 floor=0.5 decided_by=jev latency_ms=801 input_tokens=812 redacted=2',
+      'route jev: jev_pick=skill:ork:fix-issue jev_confidence=0.83 incumbent_pick=none incumbent_pick_reason=model_route_not_run_at_prompt_submit agree=null top3=dev_fix:0.71,dev_build:0.12,research:0.08 worktree=0.91 browser=0.05 mutation=1.2 operator=0.12 floor=0.5 decided_by=jev router=ork:auto session_id=null prompt_id=null latency_ms=801 input_tokens=812 redacted=2',
     );
   });
 });

@@ -606,6 +606,7 @@ export function postRouteRequestSync(
 export type DecidedBy = 'jev' | 'table' | 'off' | 'budget' | 'egress';
 
 export interface RouteVerdict {
+  session_id?: string;
   prompt_id?: string;
   incumbent_pick?: string | null;
   tool_use_id?: string | null;
@@ -651,6 +652,7 @@ export interface RouteJudgmentOptions {
 }
 
 interface Prepared {
+  sessionId: string;
   promptId?: string;
   incumbentIntent: RouteIntent | null;
   config: RouteConfig;
@@ -705,7 +707,7 @@ function prepare(opts: RouteJudgmentOptions): { verdict: RouteVerdict } | { prep
   }
 
   const early = (decidedBy: DecidedBy, error: string): { verdict: RouteVerdict } => {
-    const verdict = baseVerdict(config, decidedBy, { prompt_id: opts.promptId, error, incumbent_intent: opts.incumbentIntent ?? null });
+    const verdict = baseVerdict(config, decidedBy, { session_id: opts.sessionId, prompt_id: opts.promptId, error, incumbent_intent: opts.incumbentIntent ?? null });
     if (record) appendRouteRecord(sessionDir, verdict, at);
     return { verdict };
   };
@@ -730,6 +732,7 @@ function prepare(opts: RouteJudgmentOptions): { verdict: RouteVerdict } | { prep
   const leak = egressScan(built.request, clientPattern);
   if (leak) {
     const verdict = baseVerdict(config, 'egress', {
+      session_id: opts.sessionId,
       prompt_id: opts.promptId,
       error: `egress ${leak}`,
       redacted: built.redacted,
@@ -738,13 +741,14 @@ function prepare(opts: RouteJudgmentOptions): { verdict: RouteVerdict } | { prep
     if (record) appendRouteRecord(sessionDir, verdict, at);
     return { verdict };
   }
-  return { prepared: { promptId: opts.promptId, incumbentIntent: opts.incumbentIntent ?? null, config, env, apiKey, built, sessionDir, dataDir, now, log, record } };
+  return { prepared: { sessionId: opts.sessionId, promptId: opts.promptId, incumbentIntent: opts.incumbentIntent ?? null, config, env, apiKey, built, sessionDir, dataDir, now, log, record } };
 }
 
 /** Parse, floor, budget, record. */
 function settle(p: Prepared, result: TransportResult): RouteVerdict {
   const at = p.now();
   const common: Partial<RouteVerdict> = {
+    session_id: p.sessionId,
     prompt_id: p.promptId,
     incumbent_intent: p.incumbentIntent,
     latency_ms: Math.round(result.latencyMs),
@@ -810,6 +814,9 @@ export function routeJudgmentSync(opts: RouteJudgmentOptions): RouteVerdict {
 
 export interface RouteRecord {
   seam: 'route';
+  session_id: string | null;
+  router: 'ork:auto';
+  handoff_to: null;
   prompt_id: string | null;
   decision_id: string | null;
   incumbent_model: string | null;
@@ -853,6 +860,9 @@ export function toRouteRecord(v: RouteVerdict, now: number): RouteRecord {
   const belowFloor = v.conf === null ? null : v.conf < v.floor;
   return {
     seam: 'route',
+    session_id: v.session_id ?? null,
+    router: 'ork:auto',
+    handoff_to: null,
     prompt_id: v.prompt_id ?? null,
     decision_id: v.prompt_id ? sha256(v.prompt_id) : null,
     incumbent_model: v.incumbent_model ?? null,
@@ -931,7 +941,7 @@ export function observeRouteExecutor(input: HookInput): void {
   let pick: string;
   if (input.tool_name === 'Skill' && typeof input.tool_input?.skill === 'string') {
     const name = input.tool_input.skill.replace(/^\//, '');
-    if (name === 'ork:auto' || name === 'auto') return;
+    if (name === 'ork:auto' || name === 'hq-ext:auto' || name === 'auto') return;
     pick = `skill:${name}`;
   } else if (input.tool_name === 'Agent' && typeof input.tool_input?.subagent_type === 'string') {
     pick = `agent:${input.tool_input.subagent_type}`;
@@ -1006,6 +1016,7 @@ export function formatRouteLogLine(v: RouteVerdict): string {
     `incumbent_pick_reason=${incumbentReason} agree=${agree} top3=${top3 || 'none'} ` +
     `worktree=${f2(v.worktree)} browser=${f2(v.browser)} mutation=${v.mutation === null ? 'na' : v.mutation.toFixed(1)} ` +
     `operator=${f2(v.operator)} floor=${v.floor} decided_by=${v.decided_by} ` +
+    `router=ork:auto session_id=${JSON.stringify(v.session_id ?? null)} prompt_id=${JSON.stringify(v.prompt_id ?? null)} ` +
     `latency_ms=${v.latency_ms} input_tokens=${v.input_tokens ?? 0} redacted=${v.redacted}`
   );
 }

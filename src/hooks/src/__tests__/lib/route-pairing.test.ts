@@ -28,7 +28,7 @@ vi.mock('../../posttool/context-crossing-warn.js', () => ({ contextCrossingWarn:
 let projectDir: string;
 const env = { ORK_ROUTE_JEV: 'shadow', ORK_TYPESAFE_API_KEY: 'test-only' };
 const body = { answers: { intent: { choice: 'dev_fix', confidence: 0.95, probabilities: { dev_fix: 0.95 } } } };
-const keys = ['jev_pick', 'jev_confidence', 'incumbent_pick', 'agree', 'floor', 'decided_by'];
+const keys = ['session_id', 'prompt_id', 'router', 'handoff_to', 'jev_pick', 'jev_confidence', 'incumbent_pick', 'agree', 'floor', 'decided_by'];
 beforeEach(() => { projectDir = mkdtempSync(join(tmpdir(), 'route-pairing-')); vi.stubEnv('CLAUDE_PLUGIN_DATA', ''); });
 afterEach(() => { vi.unstubAllEnvs(); rmSync(projectDir, { recursive: true, force: true }); });
 function judge(promptId: string, fetchImpl: typeof fetch = vi.fn(async () => new Response(JSON.stringify(body))) as typeof fetch, sessionId = 'session-a') {
@@ -93,6 +93,20 @@ describe('route prompt correlation through registered PreToolUse and Stop hooks'
     expect(rows().filter(row => row.phase === 'paired')).toEqual([expect.objectContaining({ prompt_id: 'prompt-b', incumbent_pick: 'skill:ork:verify' })]);
     expect(rows('session-b')).toHaveLength(1);
     expect(rows('session-b')[0].incumbent_pick).toBeNull();
+  });
+  it('preserves the runtime prompt through HQ auto and Ork auto to the final executor', async () => {
+    await judge('shared-hq-ork-prompt');
+    await observe('shared-hq-ork-prompt', '/hq-ext:auto');
+    await observe('shared-hq-ork-prompt', 'ork:auto');
+    expect(rows()).toHaveLength(1);
+    await observe('shared-hq-ork-prompt', 'ork:fix-issue');
+    const records = rows();
+    contract(records);
+    expect(records).toHaveLength(2);
+    for (const row of records) expect(row).toMatchObject({
+      session_id: 'session-a', prompt_id: 'shared-hq-ork-prompt', router: 'ork:auto', handoff_to: null,
+    });
+    expect(records[1]).toMatchObject({ incumbent_pick: 'skill:ork:fix-issue', agree: true, phase: 'paired' });
   });
   it('records actual Agent name and explicit model without guessing an intent', async () => {
     await judge('agent-prompt');
