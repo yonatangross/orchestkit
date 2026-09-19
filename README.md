@@ -614,6 +614,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.57](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.56...v10.0.0-beta.57)** · 2026-09-19
+
+- **ci:** name both causes when hook bundles differ (#4256)
+- **release:** retry the GHCR manifest preflight (#4257)
+
 **[v10.0.0-beta.56](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.55...v10.0.0-beta.56)** · 2026-09-19
 
 - **playground:** render mermaid when a tab opens (#4252)
@@ -645,10 +650,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.50](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.49...v10.0.0-beta.50)** · 2026-09-18
 
 - **expect:** Jev act mode for the step pick (ORK_EXPECT_JEV) (#4230)
-
-**[v10.0.0-beta.49](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.48...v10.0.0-beta.49)** · 2026-09-18
-
-- **expect:** opt-in Jev shadow pick per step (ORK_EXPECT_JEV_SHADOW) (#4228)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

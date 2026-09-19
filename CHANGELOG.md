@@ -5,6 +5,14 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.57](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.56...v10.0.0-beta.57) (2026-09-19)
+
+
+### Bug Fixes
+
+* **ci:** name both causes when hook bundles differ ([#4256](https://github.com/yonatangross/orchestkit/issues/4256)) ([9425d85](https://github.com/yonatangross/orchestkit/commit/9425d851f52d0f2442b8bf9d83dfe04d4b3bc2ad))
+* **release:** retry the GHCR manifest preflight ([#4257](https://github.com/yonatangross/orchestkit/issues/4257)) ([aa959ff](https://github.com/yonatangross/orchestkit/commit/aa959ffdb50e2d1e39cc0f1d8669fc649611a2fa))
+
 ## [10.0.0-beta.56](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.55...v10.0.0-beta.56) (2026-09-19)
 
 
