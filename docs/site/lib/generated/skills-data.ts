@@ -4245,7 +4245,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "setup",
     "description": "Personalized 7-phase onboarding wizard that scans the codebase, detects tech stack, recommends skills and MCP servers, and generates an improvement plan with readiness score. Includes safety checks and project-scoped configuration. Use when setting up OrchestKit for a new project or rescanning after major changes.",
     "version": "2.1.0",
-    "sha256": "9518c9711d02e5e9ff7f7ac5871863e8bbdf4d5d78d5ebf6cfe936a5b07c8bb1",
+    "sha256": "69b7cf7d44e9017c3726986cca08ee36cb4cb797f50fb12caa4a755bcf2bbf70",
     "author": "OrchestKit",
     "tags": [
       "onboarding",

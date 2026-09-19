@@ -152,7 +152,7 @@ Generate prioritized, **runnable** recommendations in P0/P1/P2 tiers. See `readi
 
 ## Phase 7b: CLAUDE.md Health Check
 
-After the improvement plan, check if the user's CLAUDE.md could benefit from CC 2.1.59+ modular structure.
+After the improvement plan, check if the user's CLAUDE.md could benefit from CC 2.1.59+ modular structure. On CC 2.1.277+, AGENTS.md fills this role in a project with no CLAUDE.md, so run the same check against whichever instruction file the project uses.
 
 Load details: `Read("references/claude-md-health.md")` for analysis steps, thresholds, @import syntax, and `.claude/rules/` path-scoped rules.
 
@@ -297,7 +297,7 @@ Load on demand with `Read("references/&lt;file&gt;")`:
 
 ## Existing Config Preservation
 
-The setup wizard must treat existing `CLAUDE.md` and `.claude/rules/*.md` files as user-owned content that must never be overwritten or modified without explicit consent.
+The setup wizard must treat existing `CLAUDE.md` and `.claude/rules/*.md` files as user-owned content that must never be overwritten or modified without explicit consent. On CC 2.1.277+, `AGENTS.md` can serve as the project's instruction file when no `CLAUDE.md` exists, and the same protection applies to it.
 
 ## Problem
 
@@ -547,7 +547,7 @@ if conflicts:
 ```
 
 **Key rules:**
-- Always read existing `.claude/settings.json`, `.mcp.json`, and `CLAUDE.md` before applying a preset
+- Always read existing `.claude/settings.json`, `.mcp.json`, and `CLAUDE.md` before applying a preset; on CC 2.1.277+, also read `AGENTS.md` when no `CLAUDE.md` exists, since it can carry the project's instructions
 - Never overwrite `deny` patterns -- these are security-critical and must be preserved
 - Present a diff-style summary of what will change before writing any files
 - Default to merge strategy: keep user customizations, add preset additions
@@ -690,6 +690,8 @@ if user_choice != "Skip":
 ## When to Run
 
 Phase 7b of the setup wizard — after the improvement plan, check if the user's CLAUDE.md could benefit from modular structure.
+
+On CC 2.1.277+, AGENTS.md is the instruction file Claude reads when no CLAUDE.md exists on the walk, so apply the analysis to whichever file is present.
 
 ## Analysis Steps
 

@@ -1,7 +1,7 @@
 {
   "$schema": "./cc-support.schema.json",
   "latest": "2.1.251",
-  "latest_known": "2.1.272",
+  "latest_known": "2.1.277",
   "supported_floor": "2.1.251",
   "drop_after": "2.1.250",
   "policy": "latest + 3 previous minors",
