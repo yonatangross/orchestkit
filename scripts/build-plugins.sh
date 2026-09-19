@@ -295,18 +295,14 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
     # (eval-coverage, trigger/coverage tests, command passthrough) reads the
     # source under src/skills/, which stays untouched. The transform deletes
     # the `triggers:` line plus its indented block children, inside the
-    # frontmatter fence only.
+    # frontmatter fence only. The awk lives in scripts/lib/ so the Build drift
+    # test normalizes the src side with the identical rules.
     if [[ -d "$PLUGIN_DIR/skills" ]]; then
         for skill_md in "$PLUGIN_DIR/skills"/*/SKILL.md; do
             [[ -f "$skill_md" ]] || continue
             grep -q '^triggers:' "$skill_md" || continue
-            awk '
-                NR==1 && $0=="---" { infm=1 }
-                infm && NR>1 && $0=="---" { infm=0 }
-                infm && /^triggers:/ { drop=1; next }
-                infm && drop && /^[ \t]/ { next }
-                { drop=0; print }
-            ' "$skill_md" > "$skill_md.tmp" && mv "$skill_md.tmp" "$skill_md"
+            awk -f "$PROJECT_ROOT/scripts/lib/strip-skill-triggers.awk" \
+                "$skill_md" > "$skill_md.tmp" && mv "$skill_md.tmp" "$skill_md"
         done
     fi
 
