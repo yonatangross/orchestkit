@@ -57,13 +57,24 @@ function cleanHeading(text) {
 /** ATX headings (h2-h6; h1 duplicates the page title) outside fenced code. */
 function headingsOf(body) {
 	const out = [];
-	let inFence = false;
+	let fence = null; // { ch, len } while inside a ``` or ~~~ block
 	for (const line of body.split("\n")) {
-		if (/^\s*```/.test(line)) {
-			inFence = !inFence;
+		if (fence === null) {
+			const open = /^[ \t]*(`{3,}|~{3,})/.exec(line);
+			if (open) {
+				fence = { ch: open[1][0], len: open[1].length };
+				continue;
+			}
+		} else {
+			const trimmed = line.trim();
+			if (
+				trimmed.length >= fence.len &&
+				trimmed.split("").every((c) => c === fence.ch)
+			) {
+				fence = null;
+			}
 			continue;
 		}
-		if (inFence) continue;
 		const m = /^(#{2,6})\s+(.+)$/.exec(line);
 		if (!m) continue;
 		const text = cleanHeading(m[2]);

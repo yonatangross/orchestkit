@@ -4,10 +4,10 @@ Built by `scripts/seo/link-graph.mjs` from `docs/site/content`.
 
 ## Totals
 
-- Pages: **313**
-- Internal links (deduped edges, self-links excluded): **790**
+- Pages: **314**
+- Internal links (deduped edges, self-links excluded): **792**
 - Orphan pages (0 inbound): **32**
-- Broken in-scope links (/docs target with no page): **133**
+- Broken in-scope links (/docs target with no page): **134**
 - Links to non-docs site paths (not counted): **11**
 
 ## Orphan pages
@@ -54,7 +54,7 @@ Built by `scripts/seo/link-graph.mjs` from `docs/site/content`.
 | `/docs/skills/by-category/workflows` Workflows Skills | 36 | 0 |
 | `/docs/reference/hooks` Hooks Reference | 32 | 1 |
 | `/docs/skills/by-category/frontend` Frontend Skills | 26 | 0 |
-| `/docs/reference/skills/doctor` Doctor | 18 | 20 |
+| `/docs/reference/skills/doctor` Doctor | 19 | 21 |
 | `/docs/skills/by-category/testing` Testing Skills | 17 | 0 |
 | `/docs/reference/agents/frontend-ui-developer` Frontend Ui Developer | 13 | 2 |
 | `/docs/skills/by-category/ai-llm` AI & LLM Skills | 13 | 0 |
@@ -125,6 +125,7 @@ Built by `scripts/seo/link-graph.mjs` from `docs/site/content`.
 - `/docs/reference/skills/emulate-seed` -> `/docs/agents/emulate-engineer.md`
 - `/docs/reference/skills/explore` -> `/docs/reference/skills/exploration-agents.md`
 - `/docs/reference/skills/explore` -> `/docs/reference/references/code-health-rubric.md`
+- `/docs/reference/skills/explore` -> `/docs/reference/references/dependency-analysis.md`
 - `/docs/reference/skills/explore` -> `/docs/reference/references/findability-patterns.md`
 - `/docs/reference/skills/figma-design-handoff` -> `/docs/reference/skills/references/figma-to-code-workflow.md`
 - `/docs/reference/skills/figma-design-handoff` -> `/docs/reference/skills/references/design-dev-communication.md`

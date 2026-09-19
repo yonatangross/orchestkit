@@ -111,6 +111,16 @@ withContentDir((dir, write) => {
     [{ from: '/docs', to: '/docs/after' }]);
 });
 
+withContentDir((dir, write) => {
+  write(
+    'index.mdx',
+    '---\ntitle: Home\n---\n\n# Home\n\n```\ncode\n````\n\n[After](/docs/after)\n',
+  );
+  const { broken } = buildLinkGraph({ contentDir: dir });
+  check('prose links after a longer closing fence are still read', broken,
+    [{ from: '/docs', to: '/docs/after' }]);
+});
+
 // --- report ------------------------------------------------------------------
 console.log(`  passed: ${passed}`);
 console.log(`  failed: ${failures.length}\n`);

@@ -102,6 +102,7 @@ function ActiveDescendantSync({
     } else {
       input.removeAttribute("aria-activedescendant");
     }
+    return () => input.removeAttribute("aria-activedescendant");
   }, [active, inputRef]);
   return null;
 }

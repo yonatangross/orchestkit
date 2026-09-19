@@ -173,6 +173,10 @@
   },
   {
     "from": "/docs/reference/skills/explore",
+    "to": "/docs/reference/references/dependency-analysis.md"
+  },
+  {
+    "from": "/docs/reference/skills/explore",
     "to": "/docs/reference/references/findability-patterns.md"
   },
   {

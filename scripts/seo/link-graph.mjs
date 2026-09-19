@@ -84,15 +84,37 @@ const JSX_HREF_RE =
 // inline `code` spans are not prose: regex or import examples inside them can
 // carry [x](y) or href= text that is not a real link. In the 2026-09-19 audit
 // they produced 26 of the 159 broken rows and 33 of the 44 non-docs rows.
-// The closing fence must be the SAME run (\2): this corpus uses ```` fences
-// precisely to hold nested ``` examples, which a loose `{3,}` closer would
-// terminate early and re-expose as prose.
-const FENCED_BLOCK_RE =
-	/(^|\n)[ \t]*(`{3,}|~{3,})[^\n]*\n[\s\S]*?(?:\n[ \t]*\2[ \t]*(?=\n|$)|$)/g;
+// The closing fence must be the same marker char with length >= the opener:
+// this corpus uses ```` fences precisely to hold nested ``` examples, which a
+// loose `{3,}` closer would terminate early, while a same-char closer longer
+// than the opener is valid per CommonMark.
 const INLINE_CODE_RE = /`[^`\n]*`/g;
+const FENCE_OPEN_RE = /^[ \t]*(`{3,}|~{3,})/;
 
 function stripCode(body) {
-	return body.replace(FENCED_BLOCK_RE, "\n").replace(INLINE_CODE_RE, "");
+	const out = [];
+	let fence = null; // { ch, len } while inside a block
+	for (const line of body.split("\n")) {
+		if (fence === null) {
+			const open = FENCE_OPEN_RE.exec(line);
+			if (open) {
+				fence = { ch: open[1][0], len: open[1].length };
+				out.push("");
+				continue;
+			}
+			out.push(line);
+			continue;
+		}
+		const trimmed = line.trim();
+		if (
+			trimmed.length >= fence.len &&
+			trimmed.split("").every((c) => c === fence.ch)
+		) {
+			fence = null;
+		}
+		out.push("");
+	}
+	return out.join("\n").replace(INLINE_CODE_RE, "");
 }
 
 function* rawHrefs(body) {

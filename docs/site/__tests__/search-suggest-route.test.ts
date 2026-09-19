@@ -65,6 +65,7 @@ describe("GET /api/search/suggest", () => {
 	});
 
 	it("mode=llm + OPENAI_API_KEY -> llm rerank with measured cost", async () => {
+		vi.stubEnv("NODE_ENV", "development");
 		vi.stubEnv("ORK_SITE_JEV_RERANK", "1");
 		vi.stubEnv("OPENAI_API_KEY", "test-key");
 		const base = suggestCompletions("hook", SEARCH_SUGGEST_INDEX, 10);
@@ -107,7 +108,22 @@ describe("GET /api/search/suggest", () => {
 		expect(fetchSpy).not.toHaveBeenCalled();
 	});
 
+	it("mode=llm is ignored under a nonstandard NODE_ENV (test)", async () => {
+		// NODE_ENV unset or nonstandard must not reach the LLM path; vitest runs
+		// with NODE_ENV=test, so no stub reproduces the nonstandard case.
+		vi.stubEnv("ORK_SITE_JEV_RERANK", "1");
+		vi.stubEnv("OPENAI_API_KEY", "test-key");
+		const fetchSpy = vi.fn();
+		vi.stubGlobal("fetch", fetchSpy);
+		const res = await GET(req("/api/search/suggest?query=hook&mode=llm"));
+		const body = (await res.json()) as { rankedBy: string; mode: string };
+		expect(body.mode).toBe("jev");
+		expect(body.rankedBy).toBe("deterministic");
+		expect(fetchSpy).not.toHaveBeenCalled();
+	});
+
 	it("mode=llm + order with a duplicate url -> deterministic fallback", async () => {
+		vi.stubEnv("NODE_ENV", "development");
 		vi.stubEnv("ORK_SITE_JEV_RERANK", "1");
 		vi.stubEnv("OPENAI_API_KEY", "test-key");
 		const base = suggestCompletions("hook", SEARCH_SUGGEST_INDEX, 10);
@@ -132,6 +148,7 @@ describe("GET /api/search/suggest", () => {
 	});
 
 	it("mode=llm + no OPENAI_API_KEY -> deterministic, zero network", async () => {
+		vi.stubEnv("NODE_ENV", "development");
 		vi.stubEnv("ORK_SITE_JEV_RERANK", "1");
 		vi.stubEnv("OPENAI_API_KEY", "");
 		const fetchSpy = vi.fn();
@@ -143,6 +160,7 @@ describe("GET /api/search/suggest", () => {
 	});
 
 	it("mode=llm + malformed LLM answer -> deterministic fallback", async () => {
+		vi.stubEnv("NODE_ENV", "development");
 		vi.stubEnv("ORK_SITE_JEV_RERANK", "1");
 		vi.stubEnv("OPENAI_API_KEY", "test-key");
 		vi.stubGlobal(
