@@ -30,9 +30,10 @@
   "userConfig": {
     "webhookUrl": {
       "type": "string",
+      "sensitive": false,
       "description": "Webhook endpoint URL for usage reports and notifications"
     },
-    "webhookToken": {
+    "hookToken": {
       "type": "string",
       "sensitive": true,
       "description": "Authentication token for webhook endpoint (stored in keychain)"

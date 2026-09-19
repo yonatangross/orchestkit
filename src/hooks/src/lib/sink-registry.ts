@@ -20,7 +20,7 @@ import { join } from 'node:path';
 import { registerSink } from './telemetry.js';
 import { JsonlSink } from './jsonl-sink.js';
 import { HttpSink } from './http-sink.js';
-import { getWebhookUrl } from './orchestration-state.js';
+import { getWebhookUrl, getHookToken } from './orchestration-state.js';
 import { getProjectDir } from './paths.js';
 import { logHook } from './common.js';
 
@@ -123,9 +123,9 @@ export function registerAllSinks(): void {
   // 1. Built-in: JSONL (always-on local safety net)
   registerSink(new JsonlSink());
 
-  // 2. Built-in: HTTP (if URL + token are configured via env/config)
+  // 2. Built-in: HTTP (if URL + token are configured via userConfig/env/config)
   const hookUrl = getWebhookUrl();
-  const hookToken = process.env.ORCHESTKIT_HOOK_TOKEN;
+  const hookToken = getHookToken();
   if (hookUrl && hookToken) {
     registerSink(new HttpSink());
   }

@@ -114,8 +114,10 @@ async function postBatch(url, token, lines) {
 
 async function main() {
   const dryRun = process.argv.includes('--dry-run');
-  const hookUrl = process.env.ORCHESTKIT_HOOK_URL;
-  const hookToken = process.env.ORCHESTKIT_HOOK_TOKEN;
+  // Resolved config (#1270): manifest userConfig (CLAUDE_PLUGIN_OPTION_*) with
+  // the ORCHESTKIT_HOOK_* env vars as fallback for existing installs.
+  const hookUrl = process.env.CLAUDE_PLUGIN_OPTION_WEBHOOKURL || process.env.ORCHESTKIT_HOOK_URL;
+  const hookToken = process.env.CLAUDE_PLUGIN_OPTION_HOOKTOKEN || process.env.ORCHESTKIT_HOOK_TOKEN;
 
   if (!hookUrl || !hookToken) {
     console.log('[telemetry-sync] No ORCHESTKIT_HOOK_URL or TOKEN configured. Nothing to sync.');

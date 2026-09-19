@@ -469,6 +469,7 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
         --argjson has_skills "$([[ -d "$PLUGIN_DIR/skills" ]] && echo true || echo false)" \
         --argjson has_workflows "$([[ -d "$PLUGIN_DIR/workflows" ]] && echo true || echo false)" \
         --argjson deps "$(jq -c '.dependencies // null' "$manifest")" \
+        --argjson ucfg "$(jq -c '.userConfig // null' "$manifest")" \
         '{
           name: $name,
           version: $version,
@@ -489,6 +490,11 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
         # refuses to enable/disable when unsatisfied, which the retired Phase 5
         # check only approximated by looking for a sibling manifest file.
         + if $deps != null then {dependencies: $deps} else {} end
+        # #1270: pass manifest.userConfig through verbatim — CC injects each
+        # key into hook processes as CLAUDE_PLUGIN_OPTION_<KEY> (sensitive
+        # values are keychain-backed). Without this the block in
+        # manifests/ork.json was dead config that never reached the install.
+        + if $ucfg != null then {userConfig: $ucfg} else {} end
         + if $has_workflows then {workflows: "./workflows/"} else {} end' \
         > "$PLUGIN_DIR/.claude-plugin/plugin.json"
 
@@ -508,7 +514,7 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
     jq --argjson has_agents "$([[ -d "$PLUGIN_DIR/agents" ]] && echo true || echo false)" \
        --argjson has_commands "$([[ -d "$PLUGIN_DIR/.cursor-plugin/commands" ]] && echo true || echo false)" \
        --argjson has_rules "$([[ -d "$PLUGIN_DIR/.cursor-plugin/rules" ]] && echo true || echo false)" \
-      'del(.workflows, .dependencies) + (if $has_agents then {agents: "./agents/"} else {} end)
+      'del(.workflows, .dependencies, .userConfig) + (if $has_agents then {agents: "./agents/"} else {} end)
                        + (if $has_commands then {commands: "./.cursor-plugin/commands/"} else {} end)
                        + (if $has_rules then {rules: "./.cursor-plugin/rules/"} else {} end)' \
       "$PLUGIN_DIR/.claude-plugin/plugin.json" \

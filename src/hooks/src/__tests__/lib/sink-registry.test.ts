@@ -28,8 +28,17 @@ vi.mock('../../lib/paths.js', async (importOriginal) => {
   };
 });
 
+// Mirror the real resolution order (#1270): manifest userConfig
+// (CLAUDE_PLUGIN_OPTION_*) first, ORCHESTKIT_HOOK_* env vars as fallback.
 vi.mock('../../lib/orchestration-state.js', () => ({
-  getWebhookUrl: () => undefined,
+  getWebhookUrl: () =>
+    process.env.CLAUDE_PLUGIN_OPTION_WEBHOOKURL ||
+    process.env.ORCHESTKIT_HOOK_URL ||
+    undefined,
+  getHookToken: () =>
+    process.env.CLAUDE_PLUGIN_OPTION_HOOKTOKEN ||
+    process.env.ORCHESTKIT_HOOK_TOKEN ||
+    undefined,
 }));
 
 vi.mock('../../lib/crypto.js', () => ({
@@ -58,11 +67,23 @@ function writeSettingsLocalJson(content: object): void {
   writeFileSync(join(claudeDir, 'settings.local.json'), JSON.stringify(content), 'utf8');
 }
 
+const WEBHOOK_ENVS = [
+  'CLAUDE_PLUGIN_OPTION_WEBHOOKURL',
+  'CLAUDE_PLUGIN_OPTION_HOOKTOKEN',
+  'ORCHESTKIT_HOOK_URL',
+  'ORCHESTKIT_HOOK_TOKEN',
+] as const;
+
 describe('Sink Registry', () => {
   beforeEach(() => {
     _resetSinksForTesting();
     logMessages = [];
     mkdirSync(testDir, { recursive: true });
+    for (const key of WEBHOOK_ENVS) delete process.env[key];
+  });
+
+  afterEach(() => {
+    for (const key of WEBHOOK_ENVS) delete process.env[key];
   });
 
   afterEach(() => {
@@ -209,6 +230,27 @@ describe('Sink Registry', () => {
     it('does not register HTTP sink when URL is not configured', () => {
       registerAllSinks();
       // Only JSONL should be registered (webhook URL is mocked to undefined)
+      expect(sinkCount()).toBe(1);
+    });
+
+    it('registers the built-in HTTP sink from manifest userConfig (CLAUDE_PLUGIN_OPTION_*)', () => {
+      process.env.CLAUDE_PLUGIN_OPTION_WEBHOOKURL = 'https://hooks.example.com';
+      process.env.CLAUDE_PLUGIN_OPTION_HOOKTOKEN = 'uc-token-not-real';
+      registerAllSinks();
+      // JSONL + built-in HTTP sink
+      expect(sinkCount()).toBe(2);
+    });
+
+    it('falls back to ORCHESTKIT_HOOK_* env vars when userConfig is absent', () => {
+      process.env.ORCHESTKIT_HOOK_URL = 'https://hooks.example.com';
+      process.env.ORCHESTKIT_HOOK_TOKEN = 'env-token-not-real';
+      registerAllSinks();
+      expect(sinkCount()).toBe(2);
+    });
+
+    it('does not register the built-in HTTP sink when only the URL is configured', () => {
+      process.env.CLAUDE_PLUGIN_OPTION_WEBHOOKURL = 'https://hooks.example.com';
+      registerAllSinks();
       expect(sinkCount()).toBe(1);
     });
 

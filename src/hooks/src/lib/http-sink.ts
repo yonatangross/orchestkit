@@ -19,7 +19,7 @@ import { join, dirname } from 'node:path';
 import type { TelemetrySink, TelemetryEvent } from './telemetry.js';
 import { signPayload } from './crypto.js';
 import { logHook } from './common.js';
-import { getWebhookUrl } from './orchestration-state.js';
+import { getWebhookUrl, getHookToken } from './orchestration-state.js';
 import { getPluginDataDir, getProjectDir } from './paths.js';
 
 const HOOK_NAME = 'http-sink';
@@ -198,7 +198,7 @@ export class HttpSink implements TelemetrySink {
 
   /**
    * @param options - Optional overrides for URL + token (for plugin/user sinks).
-   *   If omitted, reads from env vars (built-in sink behavior).
+   *   If omitted, reads resolved userConfig/env config (built-in sink behavior).
    */
   constructor(options?: { name?: string; url?: string; token?: string }) {
     this.name = options?.name ?? 'http';
@@ -208,7 +208,7 @@ export class HttpSink implements TelemetrySink {
 
   addEvent(event: TelemetryEvent): void {
     const hookUrl = this.configUrl ?? getWebhookUrl();
-    const hookToken = this.configToken ?? process.env.ORCHESTKIT_HOOK_TOKEN;
+    const hookToken = this.configToken ?? getHookToken();
 
     if (!hookUrl || !hookToken) return;
 

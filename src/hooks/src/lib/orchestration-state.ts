@@ -311,12 +311,33 @@ export function saveConfig(config: Partial<OrchestrationConfig>): void {
 }
 
 /**
- * Resolve webhook URL: config.webhookUrl first, ORCHESTKIT_HOOK_URL env var fallback.
- * Returns undefined if neither is set.
+ * Resolve webhook URL: config.webhookUrl first, then the manifest userConfig
+ * value (CC injects userConfig options into hook processes as
+ * CLAUDE_PLUGIN_OPTION_<KEY>, key uppercased), then the ORCHESTKIT_HOOK_URL
+ * env var for existing installs. Returns undefined if none is set.
  */
 export function getWebhookUrl(): string | undefined {
   const config = loadConfig();
-  return config.webhookUrl || process.env.ORCHESTKIT_HOOK_URL || undefined;
+  return (
+    config.webhookUrl ||
+    process.env.CLAUDE_PLUGIN_OPTION_WEBHOOKURL ||
+    process.env.ORCHESTKIT_HOOK_URL ||
+    undefined
+  );
+}
+
+/**
+ * Resolve the webhook auth token: manifest userConfig `hookToken`
+ * (keychain-backed, surfaced as CLAUDE_PLUGIN_OPTION_HOOKTOKEN) first, then
+ * the ORCHESTKIT_HOOK_TOKEN env var for existing installs.
+ * Returns undefined if neither is set.
+ */
+export function getHookToken(): string | undefined {
+  return (
+    process.env.CLAUDE_PLUGIN_OPTION_HOOKTOKEN ||
+    process.env.ORCHESTKIT_HOOK_TOKEN ||
+    undefined
+  );
 }
 
 // -----------------------------------------------------------------------------
