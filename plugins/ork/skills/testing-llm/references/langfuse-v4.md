@@ -42,13 +42,16 @@ A harness that swallows the old API and reports success is worse than a red run.
 items = list(getattr(result, "item_results", None) or [])
 if len(items) == 0:
     raise RuntimeError("eval no-op: items=0")
-# Remote dataset rows are DatasetItems (they carry dataset_id) and the run
-# records a dataset_run_id; local run_experiment(data=[...]) rows carry
-# neither. Key on the item shape, not on whether a variable named `dataset`
-# exists: get_dataset raises rather than returning None, a local-only
-# harness has no such variable at all, and a dataset fetched only to build
-# the data= list would false-fail a good run.
-remote_items = [row for row in items if getattr(row, "dataset_id", None)]
+# Remote dataset rows wrap a DatasetItem (dataset_id lives on row.item);
+# the run also records a dataset_run_id on the row. Local
+# run_experiment(data=[...]) rows carry neither. Key on the item shape,
+# not on whether a variable named `dataset` exists: get_dataset raises
+# rather than returning None, a local-only harness has no such variable
+# at all, and a dataset fetched only to build the data= list would
+# false-fail a good run.
+remote_items = [
+    row for row in items if getattr(getattr(row, "item", None), "dataset_id", None)
+]
 run_ids = {row.dataset_run_id for row in remote_items if getattr(row, "dataset_run_id", None)}
 if remote_items and len(run_ids) == 0:
     raise RuntimeError(f"eval no-op: dataset_runs={len(run_ids)}")

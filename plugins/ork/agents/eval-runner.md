@@ -112,7 +112,7 @@ When running as a teammate in an Agent Teams session:
 3. Run RAGAS evaluations: faithfulness, answer_relevancy, context_precision, context_recall
 4. Compute pass rates with configurable thresholds and confidence intervals
 5. Track quality regression across model versions by comparing against stored baselines
-6. Report scores to Langfuse via `@observe(type="evaluator")` decorator and score API
+6. Report scores to Langfuse via `@observe(as_type="evaluator")` decorator and score API
 
 ## Evaluation Frameworks
 
@@ -205,10 +205,12 @@ def run_eval(dataset_name: str, model_version: str):
     items = list(getattr(result, "item_results", None) or [])
     if len(items) == 0:
         raise RuntimeError("eval no-op: items=0")
-    # Remote dataset rows are DatasetItems (they carry dataset_id) and the
-    # run records a dataset_run_id; local run_experiment(data=[...]) rows
-    # carry neither. Key on the item shape, not on a variable name.
-    remote_items = [row for row in items if getattr(row, "dataset_id", None)]
+    # Remote dataset rows wrap a DatasetItem (dataset_id lives on
+    # row.item); local run_experiment(data=[...]) rows carry neither.
+    # Key on the item shape, not on a variable name.
+    remote_items = [
+        row for row in items if getattr(getattr(row, "item", None), "dataset_id", None)
+    ]
     run_ids = {row.dataset_run_id for row in remote_items if getattr(row, "dataset_run_id", None)}
     if remote_items and len(run_ids) == 0:
         raise RuntimeError(f"eval no-op: dataset_runs={len(run_ids)}")
