@@ -614,6 +614,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.56](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.55...v10.0.0-beta.56)** · 2026-09-19
+
+- **playground:** render mermaid when a tab opens (#4252)
+- **ruff:** re-anchor skill example excludes (#4254)
+
 **[v10.0.0-beta.55](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.54...v10.0.0-beta.55)** · 2026-09-18
 
 - **doctor:** extend the CC version matrix through 2.1.277 (#4247)
@@ -644,10 +649,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.49](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.48...v10.0.0-beta.49)** · 2026-09-18
 
 - **expect:** opt-in Jev shadow pick per step (ORK_EXPECT_JEV_SHADOW) (#4228)
-
-**[v10.0.0-beta.48](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.47...v10.0.0-beta.48)** · 2026-09-17
-
-- **security:** stop logging token reference, escape lab attributes fully (#4226)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

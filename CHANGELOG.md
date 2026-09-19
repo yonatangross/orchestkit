@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.56](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.55...v10.0.0-beta.56) (2026-09-19)
+
+
+### Bug Fixes
+
+* **playground:** render mermaid when a tab opens ([#4252](https://github.com/yonatangross/orchestkit/issues/4252)) ([6b1a5a0](https://github.com/yonatangross/orchestkit/commit/6b1a5a0aea8753118f1de7b3be0fb450a15e25cf))
+
+
+### Miscellaneous
+
+* **ruff:** re-anchor skill example excludes ([#4254](https://github.com/yonatangross/orchestkit/issues/4254)) ([5cf6718](https://github.com/yonatangross/orchestkit/commit/5cf6718f533c277a873816de31e0a2571df7028d))
+
 ## [10.0.0-beta.55](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.54...v10.0.0-beta.55) (2026-09-18)
 
 
