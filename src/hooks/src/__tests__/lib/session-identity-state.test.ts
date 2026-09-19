@@ -253,6 +253,24 @@ describe('manageSessionIdentity', () => {
     expect(manageSessionIdentity(makeInput(), ctx, sessionDir, tmpDir)).toBeNull();
     expect(fs.existsSync(path.join(sessionDir, 'session-identity.failed'))).toBe(false);
   });
+
+  it('#4248: a corrupt rate-cap file really resets the window, not just logs', () => {
+    const rateFile = process.env.ORK_SESSION_IDENTITY_RATE_FILE as string;
+    fs.writeFileSync(rateFile, '{not json at all', 'utf8');
+    process.env.ORK_SESSION_IDENTITY_RATE_MAX = '1';
+
+    // Corrupt state must not block the spawn AND must be replaced by a fresh
+    // window — otherwise every later call fails open on the same torn bytes.
+    manageSessionIdentity(makeInput(), ctx, sessionDir, tmpDir);
+    expect(spawnIdentityGenerator).toHaveBeenCalledOnce();
+    const rewritten = JSON.parse(fs.readFileSync(rateFile, 'utf8')) as number[];
+    expect(Array.isArray(rewritten)).toBe(true);
+    expect(rewritten).toHaveLength(1);
+    // ...and the cap now applies normally: a second session is refused.
+    const dirB = path.join(tmpDir, 'sess-b');
+    manageSessionIdentity(makeInput({ session_id: 'sess-b' }), ctx, dirB, tmpDir);
+    expect(spawnIdentityGenerator).toHaveBeenCalledOnce();
+  });
 });
 
 describe('manageSessionIdentity category provider (opt-in)', () => {
