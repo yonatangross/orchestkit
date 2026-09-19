@@ -184,6 +184,24 @@ if [[ "${ORK_DIST_COMMIT:-0}" != "1" ]]; then
   fi
 fi
 
+# ===== 10. Generated-skill drift (plugins/ without src/) =====
+# plugins/ is generated output: an edit staged under plugins/ork/skills/
+# without the matching src/skills/ file is overwritten by the next build, and
+# today only the CI drift gate catches it — after the contributor has pushed
+# (#3495, #3499). Pure path comparison over the staged list; no build.
+# grep -q against a here-string, never a pipe: -q early-exits and would
+# SIGPIPE the producer, flipping this test under pipefail (#603).
+if grep -qE '^plugins/ork/skills/' <<< "$STAGED_FILES"; then
+  echo -n "  Checking plugins/ edits carry src/ counterparts... "
+  if ! GUARD_OUT=$(echo "$STAGED_FILES" | bash bin/git-hooks/plugins-src-guard.sh 2>&1); then
+    echo "FAILED"
+    echo "$GUARD_OUT" | sed 's/^/    /'
+    ERRORS=$((ERRORS + 1))
+  else
+    echo "OK"
+  fi
+fi
+
 # ===== Summary =====
 if [[ $ERRORS -gt 0 ]]; then
   echo ""
