@@ -10,6 +10,12 @@ its SHA-256 in `manifests/codex/ork-codex.json`; its hook verifies that same
 hash before importing it. Other adapters must pin this runtime artifact, not
 reimplement the schema or sink.
 
+The tracked runtime is deliberately available to CI builds that do not install
+TypeScript. After changing `src/runtime.ts`, regenerate it with
+`npm run --workspace=@orchestkit/jev-shadow build && cp packages/jev-shadow/dist/esm/runtime.js src/codex/ork-codex/runtime/jev-shadow-runtime.mjs`,
+then update the manifest SHA-256. The package test rejects any source/runtime
+drift.
+
 Journals are stored as `<root>/<namespace>/<harness>/session-<sha256>/journal.jsonl`.
 Namespace and harness segments are validated, session values are hashed for the
 path, symlinks are rejected, and an exclusive lock serializes appends. Exact

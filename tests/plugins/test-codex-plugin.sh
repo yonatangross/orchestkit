@@ -112,7 +112,6 @@ grep -q 'legacy \[profiles\.' "$PLUGIN_ROOT/scripts/install-codex-profile.sh" \
 
 diff -qr "$SOURCE_ROOT" "$PLUGIN_ROOT" \
   --exclude='plugin.json' \
-  --exclude='runtime' \
   --exclude='jev-shadow-runtime.integrity.json' >/dev/null
 
 jq -e '
@@ -127,6 +126,8 @@ jq -e '
 test -f "$PLUGIN_ROOT/runtime/jev-shadow-runtime.mjs" || { echo "FAIL: missing Jev runtime"; exit 1; }
 test -f "$PLUGIN_ROOT/hooks/jev-shadow-runtime.integrity.json" || { echo "FAIL: missing Jev runtime integrity"; exit 1; }
 runtime_hash="$(shasum -a 256 "$PLUGIN_ROOT/runtime/jev-shadow-runtime.mjs" | awk '{print $1}')"
+source_runtime_hash="$(shasum -a 256 "$SOURCE_ROOT/runtime/jev-shadow-runtime.mjs" | awk '{print $1}')"
+[[ "$source_runtime_hash" == "$runtime_hash" ]] || { echo "FAIL: source and generated Jev runtimes differ"; exit 1; }
 jq -e --arg hash "$runtime_hash" '.runtime_sha256 == $hash' \
   "$PLUGIN_ROOT/hooks/jev-shadow-runtime.integrity.json" >/dev/null || {
   echo "FAIL: Jev runtime integrity does not pin the built bytes"; exit 1;

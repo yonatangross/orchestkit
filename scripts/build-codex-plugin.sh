@@ -7,7 +7,6 @@ SOURCE_DIR="$PROJECT_ROOT/src/codex/ork-codex"
 OUTPUT_DIR="$PROJECT_ROOT/plugins/ork-codex"
 PACKAGE_JSON="$PROJECT_ROOT/package.json"
 CODEX_MANIFEST="$PROJECT_ROOT/manifests/codex/ork-codex.json"
-JEV_PACKAGE="@orchestkit/jev-shadow"
 
 if [[ ! -f "$SOURCE_DIR/.codex-plugin/plugin.json" ]]; then
   echo "Codex plugin source is missing its manifest: $SOURCE_DIR" >&2
@@ -27,10 +26,11 @@ fi
 cp -R "$SOURCE_DIR" "$OUTPUT_DIR"
 
 # The passive hook is a manual configuration fragment, never an installer. Its
-# runtime is one generated, dependency-free module; the committed manifest pins
-# the exact bytes so future harness adapters can consume the same artifact.
-npm run --workspace="$JEV_PACKAGE" build --silent
-JEV_RUNTIME="$PROJECT_ROOT/packages/jev-shadow/dist/esm/runtime.js"
+# runtime is a tracked, dependency-free module; the committed manifest pins
+# the exact bytes so bare CI can assemble plugins without installing TypeScript.
+# Package tests compile packages/jev-shadow/src/runtime.ts and prove it remains
+# byte-identical to this artifact before a source change can land.
+JEV_RUNTIME="$SOURCE_DIR/runtime/jev-shadow-runtime.mjs"
 JEV_HASH="$(shasum -a 256 "$JEV_RUNTIME" | awk '{print $1}')"
 EXPECTED_JEV_HASH="$(jq -r '.jevShadow.runtime_sha256 // empty' "$CODEX_MANIFEST")"
 if [[ -z "$EXPECTED_JEV_HASH" || "$EXPECTED_JEV_HASH" == "PENDING_BUILD_HASH" ]]; then
