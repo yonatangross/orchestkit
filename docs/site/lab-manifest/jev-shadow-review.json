@@ -1,0 +1,8 @@
+{
+  "slug": "jev-shadow-review",
+  "source": "docs/feat--jev-reply-audit/audit.html",
+  "title": "Jev Shadow Review",
+  "description": "Explore synthetic confidence and outcome labels to distinguish high-confidence disagreements, confirmed wrong decisions, low-confidence fallbacks and missing incumbent capture.",
+  "tags": ["jev", "evaluation", "routing"],
+  "date": "2026-09-19"
+}
