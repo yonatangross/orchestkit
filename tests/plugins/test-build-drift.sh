@@ -72,6 +72,15 @@ for src_skill in "$PROJECT_ROOT"/src/skills/*/SKILL.md; do
 done
 echo "   Skills checked."
 
+# The built tree must never carry the object-shaped triggers key: Devin's
+# plugin loader silently drops the whole skill when it sees it (#4147).
+# Deleting the strip step from scripts/build-plugins.sh turns this red.
+while IFS= read -r t; do
+    [[ -n "$t" ]] || continue
+    DRIFTED=$((DRIFTED + 1))
+    DRIFTED_FILES+=("TRIGGERS: ${t#$PROJECT_ROOT/} still carries the triggers key (#4147)")
+done < <(grep -rl '^triggers:' "$PLUGIN_DIR/skills" --include='SKILL.md' 2>/dev/null || true)
+
 # --- B. Agent content drift ---------------------------------------------------
 # NOTE: Build script appends a "Skill Index" section to agents in plugins/.
 # So we compare only the original content (up to the appended section).

@@ -301,8 +301,13 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
         for skill_md in "$PLUGIN_DIR/skills"/*/SKILL.md; do
             [[ -f "$skill_md" ]] || continue
             grep -q '^triggers:' "$skill_md" || continue
-            awk -f "$PROJECT_ROOT/scripts/lib/strip-skill-triggers.awk" \
-                "$skill_md" > "$skill_md.tmp" && mv "$skill_md.tmp" "$skill_md"
+            if ! awk -f "$PROJECT_ROOT/scripts/lib/strip-skill-triggers.awk" \
+                "$skill_md" > "$skill_md.tmp"; then
+                rm -f "$skill_md.tmp"
+                echo -e "    ${RED}Failed to strip triggers from $skill_md${NC}"
+                exit 1
+            fi
+            mv "$skill_md.tmp" "$skill_md"
         done
     fi
 

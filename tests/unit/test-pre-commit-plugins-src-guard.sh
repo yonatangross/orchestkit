@@ -12,7 +12,7 @@
 # The guard is a pure path comparison, so the fixture is just lines on stdin —
 # no disposable git repo needed.
 #
-# Test Count: 6
+# Test Count: 10
 # ============================================================================
 
 set -euo pipefail
@@ -123,6 +123,30 @@ if [[ $GUARD_RC -eq 0 ]]; then
     log_pass "manifest input exempts regenerated output"
 else
     log_fail "manifest input: rc=$GUARD_RC (want 0), output: $GUARD_OUT"
+fi
+
+# 8. A generator helper under scripts/lib/ also exempts regenerated output
+# (the triggers strip itself lives there).
+GUARD_RC=0
+GUARD_OUT=$(printf '%s\n' \
+    'scripts/lib/strip-skill-triggers.awk' \
+    'plugins/ork/skills/auto/SKILL.md' | bash "$GUARD") || GUARD_RC=$?
+if [[ $GUARD_RC -eq 0 ]]; then
+    log_pass "scripts/lib input exempts regenerated output"
+else
+    log_fail "scripts/lib input: rc=$GUARD_RC (want 0), output: $GUARD_OUT"
+fi
+
+# 9. A plugins/-only edit is still blocked when the staged list contains a
+# non-generator path outside scripts/ and manifests/.
+GUARD_RC=0
+GUARD_OUT=$(printf '%s\n' \
+    'README.md' \
+    'plugins/ork/skills/auto/SKILL.md' | bash "$GUARD") || GUARD_RC=$?
+if [[ $GUARD_RC -eq 1 ]]; then
+    log_pass "non-generator path does not exempt plugins/-only edit"
+else
+    log_fail "non-generator path: rc=$GUARD_RC (want 1), output: $GUARD_OUT"
 fi
 
 echo ""
