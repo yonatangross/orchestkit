@@ -40,6 +40,7 @@ function cleanHeading(text) {
 		.replace(/!\[[^\]]*\]\([^)]*\)/g, "")
 		.replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
 		.replace(/<[^>]+>/g, "")
+		.replace(/</g, "")
 		.replace(/[`*_~]/g, "")
 		.replace(/\s+#+\s*$/, "")
 		.trim();
