@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.62](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.61...v10.0.0-beta.62) (2026-09-19)
+
+
+### Bug Fixes
+
+* **hooks:** gate session-identity generator to one spawn per session ([#4270](https://github.com/yonatangross/orchestkit/issues/4270)) ([3622749](https://github.com/yonatangross/orchestkit/commit/36227490bf2755047e12488b1e65221817b44ddc))
+
+
+### Code Refactoring
+
+* **jev:** share TypeSafe key lookup ([#4268](https://github.com/yonatangross/orchestkit/issues/4268)) ([6a969c7](https://github.com/yonatangross/orchestkit/commit/6a969c7d004e30c119adb92cdd8a7586dcf4bd01))
+
 ## [10.0.0-beta.61](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.60...v10.0.0-beta.61) (2026-09-19)
 
 
