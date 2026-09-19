@@ -111,6 +111,58 @@ grep -q 'legacy \[profiles\.' "$PLUGIN_ROOT/scripts/install-codex-profile.sh" \
   || { echo "FAIL: install-codex-profile.sh lost its legacy-table refusal"; exit 1; }
 
 diff -qr "$SOURCE_ROOT" "$PLUGIN_ROOT" \
-  --exclude='plugin.json' >/dev/null
+  --exclude='plugin.json' \
+  --exclude='jev-shadow-runtime.integrity.json' >/dev/null
+
+jq -e '
+  .jevShadow.mode == "disabled-by-default" and
+  .jevShadow.runtime == "plugins/ork-codex/runtime/jev-shadow-runtime.mjs" and
+  (.jevShadow.runtime_sha256 | test("^[a-f0-9]{64}$")) and
+  .jevShadow.activation == "manual-explicit-JEV_SHADOW_ROOT-only"
+' "$PROJECT_ROOT/manifests/codex/ork-codex.json" >/dev/null || {
+  echo "FAIL: Codex Jev shadow manifest contract is wrong"; exit 1;
+}
+
+test -f "$PLUGIN_ROOT/runtime/jev-shadow-runtime.mjs" || { echo "FAIL: missing Jev runtime"; exit 1; }
+test -f "$PLUGIN_ROOT/hooks/jev-shadow-runtime.integrity.json" || { echo "FAIL: missing Jev runtime integrity"; exit 1; }
+runtime_hash="$(shasum -a 256 "$PLUGIN_ROOT/runtime/jev-shadow-runtime.mjs" | awk '{print $1}')"
+source_runtime_hash="$(shasum -a 256 "$SOURCE_ROOT/runtime/jev-shadow-runtime.mjs" | awk '{print $1}')"
+[[ "$source_runtime_hash" == "$runtime_hash" ]] || { echo "FAIL: source and generated Jev runtimes differ"; exit 1; }
+jq -e --arg hash "$runtime_hash" '.runtime_sha256 == $hash' \
+  "$PLUGIN_ROOT/hooks/jev-shadow-runtime.integrity.json" >/dev/null || {
+  echo "FAIL: Jev runtime integrity does not pin the built bytes"; exit 1;
+}
+jq -e --arg hash "$runtime_hash" '.jevShadow.runtime_sha256 == $hash' \
+  "$PROJECT_ROOT/manifests/codex/ork-codex.json" >/dev/null || {
+  echo "FAIL: Jev runtime bytes do not match the manifest pin"; exit 1;
+}
+
+# This uses the generated adapter exactly as a Codex command hook would. The
+# fragment remains unwired until an operator copies it into Codex settings.
+fixture_base="/tmp/sc33/jev-foundation-fixtures"
+mkdir -p "$fixture_base"
+fixture_base="$(cd "$fixture_base" && pwd -P)"
+fixture_root="$(mktemp -d "$fixture_base/codex-hook.XXXXXX")"
+trap 'rm -rf "$fixture_root"' EXIT
+for event in SessionStart UserPromptSubmit PreToolUse PostToolUse; do
+  payload='{}'
+  [[ "$event" == "SessionStart" ]] && payload='{"session_id":"fixture-session"}'
+  hook_stdout="$(printf '%s' "$payload" | JEV_SHADOW_ROOT="$fixture_root" JEV_SHADOW_NAMESPACE="fixture_host" \
+    node "$PLUGIN_ROOT/hooks/jev-shadow-hook.mjs" "$event")"
+  [[ -z "$hook_stdout" ]] || { echo "FAIL: Jev hook emitted non-neutral stdout for $event"; exit 1; }
+done
+mapfile -t journals < <(find "$fixture_root" -name journal.jsonl -type f -print)
+[[ ${#journals[@]} -eq 2 ]] || { echo "FAIL: Jev hook did not separate known and unknown sessions"; exit 1; }
+all_rows="$(mktemp "$fixture_base/codex-hook-rows.XXXXXX")"
+trap 'rm -rf "$fixture_root" "$all_rows"' EXIT
+cat "${journals[@]}" > "$all_rows"
+jq -s '
+  ["schema_version","namespace","producer","seam","mode","decision_id","phase","harness","session_id","prompt_id","router","jev_pick","jev_confidence","incumbent_pick","agree","floor","decided_by","unknown_reason"] as $keys |
+  length == 4 and
+  ([.[].seam] | sort) == ["codex-passive:PostToolUse","codex-passive:PreToolUse","codex-passive:SessionStart","codex-passive:UserPromptSubmit"] and
+  ([.[] | select(.session_id == "fixture-session")] | length) == 1 and
+  all(.[]; (. as $row | .prompt_id == null and .incumbent_pick.status == "unobserved" and (. | has("tool_input") | not) and (. | has("tool_response") | not)
+    and all($keys[]; . as $key | $row | has($key))))
+' "$all_rows" >/dev/null || { echo "FAIL: Jev hook fixture leaked or lost its contract"; exit 1; }
 
 echo "PASS: Codex plugin contract (7 skills, 4 roles, context7 MCP server, ork-mech profile)"
