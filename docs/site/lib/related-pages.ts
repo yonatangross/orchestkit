@@ -28,6 +28,13 @@ import { SKILLS } from "@/lib/generated/skills-data";
 import { AGENTS } from "@/lib/generated/agents-data";
 import { HOOK_PHASES } from "@/lib/hook-phases";
 import { RELATED_GRAPH, type RelatedGraphData } from "@/lib/generated/related-graph";
+import {
+	jevChoiceOrder,
+	jevRerankEnabled,
+	type JevRerankDeps,
+} from "@/lib/jev-rerank";
+
+export { jevRerankEnabled };
 
 export type RefKind = "skill" | "agent" | "hook";
 export type RelatedItem = { url: string; title: string };
@@ -41,8 +48,6 @@ export type RelatedCandidate = {
 	inbound: number;
 };
 
-const JEV_ENDPOINT = "https://api.typesafe.ai/v1/systemone";
-const JEV_TIMEOUT_MS = 3000;
 const JEV_CANDIDATE_LIMIT = 8;
 
 const WEIGHTS = {
@@ -195,82 +200,30 @@ export function deterministicRelated(
 }
 
 // ---------------------------------------------------------------------------
-// Jev re-rank (flag-gated).
+// Jev re-rank (flag-gated). Shared seam lives in lib/jev-rerank.
 // ---------------------------------------------------------------------------
 
-export function jevRerankEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
-	return ["1", "true", "yes", "on"].includes(
-		String(env.ORK_SITE_JEV_RERANK ?? "").toLowerCase(),
-	);
-}
-
-type JevDeps = {
-	fetchImpl?: typeof fetch;
-	apiKey?: string;
-	timeoutMs?: number;
-};
-
 /**
- * One System One request: a Choice question whose options are the candidate
- * URLs; the returned probability distribution reorders the whole shortlist.
- * Returns null on ANY failure so the caller keeps the deterministic order.
+ * One System One request reorders the candidate shortlist. Returns null on
+ * ANY failure so the caller keeps the deterministic order.
  */
 export async function jevRerankOrder(
 	page: { url: string; title: string },
 	candidates: readonly RelatedItem[],
-	deps: JevDeps = {},
+	deps: JevRerankDeps = {},
 ): Promise<string[] | null> {
-	const fetchImpl = deps.fetchImpl ?? fetch;
-	const apiKey = deps.apiKey ?? process.env.TYPESAFE_API_KEY;
-	if (!apiKey) return null;
-	const timeoutMs = deps.timeoutMs ?? JEV_TIMEOUT_MS;
-
-	const body = {
-		state: {
-			currentPage: { url: page.url, title: page.title },
-			candidates: candidates.map((c) => ({ url: c.url, title: c.title })),
+	return jevChoiceOrder(
+		{
+			instructions:
+				"Which candidate docs page is most useful to a reader who just finished the current page?",
+			context: { currentPage: { url: page.url, title: page.title } },
+			candidates: candidates.map((c) => ({
+				key: c.url,
+				label: `${c.title} (${c.url})`,
+			})),
 		},
-		model: "jev-latest",
-		questions: {
-			pick: {
-				type: "choice",
-				instructions:
-					"Which candidate docs page is most useful to a reader who just finished the current page?",
-				criteria: Object.fromEntries(
-					candidates.map((c) => [c.url, `${c.title} (${c.url})`]),
-				),
-			},
-		},
-	};
-
-	let json: unknown;
-	try {
-		const res = await fetchImpl(JEV_ENDPOINT, {
-			method: "POST",
-			headers: {
-				Authorization: `Bearer ${apiKey}`,
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify(body),
-			signal: AbortSignal.timeout(timeoutMs),
-		});
-		if (!res.ok) return null;
-		json = await res.json();
-	} catch {
-		return null;
-	}
-
-	const answer = (json as { answers?: { pick?: unknown } })?.answers?.pick;
-	const probs = (answer as { type?: string; probabilities?: Record<string, unknown> })
-		?.probabilities;
-	if ((answer as { type?: string })?.type !== "choice" || !probs || typeof probs !== "object") {
-		return null;
-	}
-	const order = candidates
-		.map((c) => ({ url: c.url, p: probs[c.url] }))
-		.filter((x): x is { url: string; p: number } => typeof x.p === "number");
-	if (order.length !== candidates.length) return null; // missing options = malformed
-	return order.sort((a, b) => b.p - a.p).map((x) => x.url);
+		deps,
+	);
 }
 
 /**

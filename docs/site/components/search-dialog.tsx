@@ -23,6 +23,7 @@ import {
   SearchDialogList,
   SearchDialogListItem,
   SearchDialogOverlay,
+  useSearchList,
   type SharedProps,
 } from "fumadocs-ui/components/dialog/search";
 import {
@@ -36,6 +37,12 @@ import {
   reportZeroResultQuery,
 } from "@/lib/search-beacon";
 import { stripOrigin } from "@/lib/search-relevance";
+import {
+  suggestCompletions,
+  type SuggestEntry,
+  type Suggestion,
+} from "@/lib/search-autocomplete";
+import { jevRerankEnabled } from "@/lib/jev-rerank";
 import { SearchZeroResults } from "@/components/search-zero-results";
 
 const FACETS: { value: string; name: string }[] = [
@@ -46,6 +53,37 @@ const FACETS: { value: string; name: string }[] = [
 ];
 
 const BEACON_DEBOUNCE_MS = 1500;
+const SUGGEST_DEBOUNCE_MS = 200;
+const LISTBOX_ID = "ork-search-listbox";
+
+// Typeahead runs fully client-side over the generated title/heading index.
+// The optional server re-rank is gated by the SAME flag the route checks;
+// baked in at build time via next.config env passthrough, so flag-off
+// operation never touches the network beyond the existing /api/search call.
+const JEV_SUGGEST_ENABLED = jevRerankEnabled();
+
+/**
+ * Sets aria-activedescendant on the combobox input to the active option's DOM
+ * id. Must render inside SearchDialogList (it reads fumadocs' ListContext),
+ * so it is mounted inside the first Item render.
+ */
+function ActiveDescendantSync({
+  inputRef,
+}: {
+  inputRef: React.RefObject<HTMLInputElement | null>;
+}) {
+  const { active } = useSearchList();
+  useEffect(() => {
+    const input = inputRef.current;
+    if (!input) return;
+    if (active) {
+      input.setAttribute("aria-activedescendant", `ork-search-item-${active}`);
+    } else {
+      input.removeAttribute("aria-activedescendant");
+    }
+  }, [active, inputRef]);
+  return null;
+}
 
 export default function CustomSearchDialog(props: SharedProps) {
   const [tag, setTag] = useState<string | undefined>(undefined);
@@ -78,6 +116,105 @@ export default function CustomSearchDialog(props: SharedProps) {
   }, [query.data]);
 
   const display = useMemo(() => (rows ? buildDisplayList(rows) : null), [rows]);
+
+  // ── Typeahead ─────────────────────────────────────────────────────────
+  // Deterministic suggestions from the generated title/heading index. The
+  // index is lazy-loaded on the first real keystroke so it stays out of the
+  // layout bundle (same pattern as the zero-result rescue list).
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const [suggestEntries, setSuggestEntries] = useState<
+    readonly SuggestEntry[] | null
+  >(null);
+  const [serverSuggestions, setServerSuggestions] = useState<{
+    query: string;
+    items: Suggestion[];
+  } | null>(null);
+
+  useEffect(() => {
+    if (suggestEntries || search.trim().length < 2) return;
+    let alive = true;
+    import("@/lib/generated/search-suggest-index")
+      .then(({ SEARCH_SUGGEST_INDEX }) => {
+        if (alive) setSuggestEntries(SEARCH_SUGGEST_INDEX);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [search, suggestEntries]);
+
+  const localSuggestions = useMemo(
+    () => (suggestEntries ? suggestCompletions(search, suggestEntries, 10) : []),
+    [search, suggestEntries],
+  );
+
+  // Optional Jev re-rank of the deterministic top 10 via /api/search/suggest.
+  // Skipped entirely when the flag was off at build time; any failure keeps
+  // the local deterministic order.
+  useEffect(() => {
+    if (!JEV_SUGGEST_ENABLED) return;
+    const q = search.trim();
+    if (q.length < 2 || localSuggestions.length === 0) {
+      setServerSuggestions(null);
+      return;
+    }
+    let alive = true;
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(
+          `/api/search/suggest?query=${encodeURIComponent(q)}`,
+        );
+        const json = res.ok ? ((await res.json()) as { items?: Suggestion[] }) : null;
+        if (alive && Array.isArray(json?.items)) {
+          setServerSuggestions({ query: q, items: json.items });
+        }
+      } catch {
+        // deterministic order stands
+      }
+    }, SUGGEST_DEBOUNCE_MS);
+    return () => {
+      alive = false;
+      clearTimeout(timer);
+    };
+  }, [search, localSuggestions.length]);
+
+  const suggestions =
+    serverSuggestions && serverSuggestions.query === search.trim()
+      ? serverSuggestions.items
+      : localSuggestions;
+
+  // Suggestions become ordinary list items at the top of the flat array, so
+  // fumadocs' arrow-key + Enter navigation covers them for free. Suggestions
+  // whose page already leads the results are dropped (no visual dupes).
+  const listItems = useMemo(() => {
+    const resultItems = display?.items ?? [];
+    const resultPageUrls = new Set(
+      resultItems.filter((i) => i.type === "page").map((i) => i.url),
+    );
+    const suggestItems = suggestions
+      .filter((s) => !resultPageUrls.has(s.url.split("#")[0]))
+      .map(
+        (s): SortedResult => ({
+          id: `suggest:${s.url}`,
+          type: s.via === "heading" ? "heading" : "page",
+          url: s.url,
+          content: s.label,
+          ...(s.via === "heading" ? { breadcrumbs: [s.title] } : {}),
+        }),
+      );
+    return [...suggestItems, ...resultItems];
+  }, [suggestions, display]);
+
+  const headerById = useMemo(() => {
+    const headers = { ...(display?.headerById ?? {}) };
+    const first = listItems[0];
+    if (first && first.id.startsWith("suggest:")) {
+      headers[first.id] = "Suggestions";
+    }
+    return headers;
+  }, [display, listItems]);
+
+  const itemsForList = listItems.length > 0 ? listItems : (display?.items ?? null);
 
   // Client-side fallback timing for search:performed's duration_ms. The
   // server measures its own Server-Timing header around the actual Orama
@@ -150,8 +287,10 @@ export default function CustomSearchDialog(props: SharedProps) {
       // dialog, which is why the beacon must be sendBeacon/keepalive.
       onSelect={(item) => {
         // "action" items are fumadocs' own commands, not search results, and
-        // carry no url.
-        if (item.type === "action") return;
+        // carry no url. Typeahead picks are skipped too: they are not ranked
+        // results, so counting them would corrupt the position data the click
+        // beacon exists to feed.
+        if (item.type === "action" || item.id.startsWith("suggest:")) return;
         const items = display?.items ?? [];
         const position = items.findIndex((i) => i.id === item.id);
         // Unreachable by construction (the list is built from `display`), but a
@@ -178,7 +317,14 @@ export default function CustomSearchDialog(props: SharedProps) {
       >
         <SearchDialogHeader>
           <SearchDialogIcon />
-          <SearchDialogInput placeholder="Search docs, skills, agents…" />
+          <SearchDialogInput
+            ref={inputRef}
+            placeholder="Search docs, skills, agents…"
+            role="combobox"
+            aria-autocomplete="list"
+            aria-expanded={listItems.length > 0}
+            aria-controls={LISTBOX_ID}
+          />
           <SearchDialogClose />
         </SearchDialogHeader>
         <div
@@ -203,15 +349,25 @@ export default function CustomSearchDialog(props: SharedProps) {
           })}
         </div>
         <SearchDialogList
-          items={display?.items ?? null}
+          id={LISTBOX_ID}
+          role="listbox"
+          items={itemsForList}
           Item={({ item, onClick }) => (
             <>
-              {display?.headerById[item.id] !== undefined && (
+              {item.id === listItems[0]?.id && (
+                <ActiveDescendantSync inputRef={inputRef} />
+              )}
+              {headerById[item.id] !== undefined && (
                 <div className="px-2.5 pt-3 pb-1 text-xs font-medium text-fd-muted-foreground first:pt-1.5">
-                  {display.headerById[item.id]}
+                  {headerById[item.id]}
                 </div>
               )}
-              <SearchDialogListItem item={item} onClick={onClick} />
+              <SearchDialogListItem
+                item={item}
+                onClick={onClick}
+                id={`ork-search-item-${item.id}`}
+                role="option"
+              />
             </>
           )}
           Empty={() =>
