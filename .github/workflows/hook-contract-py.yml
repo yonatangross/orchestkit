@@ -21,6 +21,11 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  # Supersede PR runs; other events never cancel an in-progress run.
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' || github.event_name == 'pull_request_target' }}
+
 jobs:
   build:
     name: codegen-check · mypy · pytest · build

@@ -13,6 +13,11 @@ permissions: {}
 env:
   CLAUDE_PROJECT_DIR: ${{ github.workspace }}
 
+concurrency:
+  # Supersede PR runs; other events never cancel an in-progress run.
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' || github.event_name == 'pull_request_target' }}
+
 jobs:
   # ============================================================================
   # Build all plugins from manifests
