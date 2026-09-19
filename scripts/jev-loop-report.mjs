@@ -4,7 +4,7 @@ import { readFileSync, realpathSync, statSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { createHash } from 'node:crypto';
-import { normalize } from './jev-shadow-report.mjs';
+import { normalize, validateLegacyShadow } from './jev-shadow-report.mjs';
 
 const string = (v) => typeof v === 'string' && v.length > 0 ? v : null;
 const probability = (v) => typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= 1 ? v : null;
@@ -26,13 +26,7 @@ function project(raw, source, spec) {
   const incumbent = n?.incumbent ?? (generic ? string(raw.incumbent_pick) : null);
   const agree = n ? n.agree : generic && jev && incumbent && typeof raw.agree === 'boolean' ? raw.agree : null;
   const missing = contract.filter((k) => !(k in raw));
-  const contract_errors = 'jev_pick' in raw ? missing.map((k) => `missing:${k}`) : [];
-  if ('jev_pick' in raw && raw.incumbent_pick === null && !string(raw.incumbent_pick_reason)) {
-    contract_errors.push('null_incumbent_without_reason');
-  }
-  if ('jev_pick' in raw && typeof raw.incumbent_pick === 'object' && raw.agree !== null) {
-    contract_errors.push('non_choice_incumbent_requires_null_agree');
-  }
+  const contract_errors = validateLegacyShadow(raw);
   return { harness: spec.harness, namespace: spec.namespace, producer: spec.producer,
     source, decision_sha256: decisionHash(raw), seam: n?.seam ?? raw.seam ?? `aux:${auxiliary}`,
     session_id: string(raw.session_id), prompt_id: string(raw.prompt_id), router: string(raw.router),

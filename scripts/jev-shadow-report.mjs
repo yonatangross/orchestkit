@@ -8,6 +8,53 @@ const probability = (v) => typeof v === 'number' && Number.isFinite(v) && v >= 0
 const pick = (v) => typeof v === 'string' && v.length > 0 ? v : null;
 const share = (n, d) => d ? `${(100 * n / d).toFixed(1)}%` : 'n/a';
 
+/**
+ * Validate a row that claims the six-field shadow contract. Historical rows
+ * without `jev_pick` remain readable through normalize(). Structured
+ * incumbent failures are allowed, but never compared as choices.
+ */
+export function validateLegacyShadow(row) {
+  if (!row || typeof row !== 'object' || Array.isArray(row) || !('jev_pick' in row)) return [];
+  const errors = [];
+  const required = ['jev_pick', 'jev_confidence', 'incumbent_pick', 'agree', 'floor', 'decided_by'];
+  for (const key of required) if (!(key in row)) errors.push(`missing:${key}`);
+  if (!('jev_pick' in row)) return errors;
+
+  const validChoice = (value) => value === null || pick(value) !== null;
+  const validProbability = (value) => probability(value) !== null || value === null;
+  const unknownReason = row.unknown_reason && typeof row.unknown_reason === 'object' && !Array.isArray(row.unknown_reason)
+    ? row.unknown_reason : null;
+  const hasUnknownReason = (key) => unknownReason !== null && pick(unknownReason[key]) !== null;
+  if (!validChoice(row.jev_pick)) errors.push('invalid:jev_pick');
+  if (row.jev_pick === null && row.schema_version === 1 && !hasUnknownReason('jev_pick')) errors.push('null_jev_without_reason');
+  if (!validProbability(row.jev_confidence)) errors.push('invalid:jev_confidence');
+  if (row.jev_confidence === null && row.schema_version === 1 && !hasUnknownReason('jev_confidence')) errors.push('null_confidence_without_reason');
+  if (!validProbability(row.floor) || (row.floor === null && !(row.schema_version === 1 && hasUnknownReason('floor')))) errors.push('invalid:floor');
+  if (typeof row.decided_by !== 'string' || row.decided_by.length === 0) errors.push('invalid:decided_by');
+  if (typeof row.agree !== 'boolean' && row.agree !== null) errors.push('invalid:agree');
+
+  const incumbentIsChoice = pick(row.incumbent_pick) !== null;
+  const incumbentIsStructured = row.incumbent_pick !== null
+    && typeof row.incumbent_pick === 'object' && !Array.isArray(row.incumbent_pick);
+  if (!incumbentIsChoice && !incumbentIsStructured && row.incumbent_pick !== null) {
+    errors.push('invalid:incumbent_pick');
+  }
+  if (row.incumbent_pick === null && !pick(row.incumbent_pick_reason) && !hasUnknownReason('incumbent_pick')) {
+    errors.push('null_incumbent_without_reason');
+  }
+  if (!incumbentIsChoice && row.agree !== null) {
+    errors.push('non_choice_incumbent_requires_null_agree');
+  }
+  if (pick(row.jev_pick) === null && row.agree !== null) {
+    errors.push('non_choice_jev_requires_null_agree');
+  }
+  if (pick(row.jev_pick) !== null && incumbentIsChoice) {
+    const expected = row.jev_pick === row.incumbent_pick;
+    if (row.agree !== expected) errors.push('inconsistent:agree');
+  }
+  return errors;
+}
+
 export function normalize(row, source, label = {}) {
   if (!row || typeof row !== 'object' || row.phase === 'invoked') return null;
   let seam, jev, incumbent, confidence, floor, mode;

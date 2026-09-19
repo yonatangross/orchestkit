@@ -633,7 +633,10 @@ export interface RouteVerdict {
 }
 
 export interface RouteJudgmentOptions {
-  /** Shared CC correlation token, never derived from timestamps. */
+  /**
+   * Shared runtime correlation token, never derived from timestamps. Required
+   * for live recording. Offline evaluators set `record: false` and may omit it.
+   */
   promptId?: string;
   /** Supply only an independently observed incumbent classification. */
   incumbentIntent?: RouteIntent;
@@ -698,6 +701,18 @@ function prepare(opts: RouteJudgmentOptions): { verdict: RouteVerdict } | { prep
   const sessionDir = routeSessionDir(opts.sessionId, opts.projectDir, env);
   const dataDir = routeDataDir(opts.projectDir, env);
   const at = now();
+  const hasPromptId = typeof opts.promptId === 'string' && opts.promptId.trim().length > 0;
+
+  // A live request without its runtime token cannot be joined to the router
+  // that made the eventual executor choice. Do not infer or persist a row in
+  // that case. Replay tooling remains explicitly offline with record:false.
+  if (record && config.mode !== 'off' && !hasPromptId) {
+    return { verdict: baseVerdict(config, 'table', {
+      session_id: opts.sessionId,
+      error: 'missing prompt_id',
+      incumbent_intent: opts.incumbentIntent ?? null,
+    }) };
+  }
   const openingTurn = !existsSync(sessionDir);
   if (record && config.mode !== 'off' && opts.promptId) {
     try {

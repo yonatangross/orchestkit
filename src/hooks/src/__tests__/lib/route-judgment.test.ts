@@ -22,7 +22,7 @@
 
 import { spawn } from 'node:child_process';
 import { createServer, type Server } from 'node:http';
-import { mkdtempSync, readFileSync, rmSync, statSync, writeFileSync, mkdirSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -283,10 +283,31 @@ describe('request and answer', () => {
 });
 
 describe('routeJudgment (async, shadow)', () => {
+  it('does not infer or persist without a live prompt identity', async () => {
+    const fetchImpl = mockFetch(200, answerBody('dev_fix'));
+    const verdict = await routeJudgment({
+      prompt: 'fix it now please', sessionId: SESSION, projectDir, env: envFor('shadow'), fetchImpl,
+    });
+    expect(verdict).toMatchObject({ decided_by: 'table', error: 'missing prompt_id' });
+    expect(fetchImpl).not.toHaveBeenCalled();
+    expect(existsSync(join(routeSessionDir(SESSION, projectDir, {}), FILE_ROUTE_RECORDS))).toBe(false);
+  });
+
+  it('keeps identity-free replay explicitly offline', async () => {
+    const fetchImpl = mockFetch(200, answerBody('dev_fix'));
+    const verdict = await routeJudgment({
+      prompt: 'fix it now please', sessionId: SESSION, projectDir, env: envFor('shadow'), record: false, fetchImpl,
+    });
+    expect(verdict.intent).toBe('dev_fix');
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+    expect(existsSync(join(routeSessionDir(SESSION, projectDir, {}), FILE_ROUTE_RECORDS))).toBe(false);
+  });
+
   it('records and returns table in shadow mode, no prompt text on disk, file mode 0600', async () => {
     const fetchImpl = mockFetch(200, answerBody('dev_fix'));
     const verdict = await routeJudgment({
       prompt: 'fix the flaky retry for yonatan@example.com',
+      promptId: 'route-test-prompt',
       sessionId: SESSION,
       projectDir,
       env: envFor('shadow'),
@@ -305,6 +326,7 @@ describe('routeJudgment (async, shadow)', () => {
     expect(raw).not.toContain('example.com');
     expect(statSync(file).mode & 0o777).toBe(0o600);
     const rec = JSON.parse(raw.trim());
+    expect(rec.prompt_id).toBe('route-test-prompt');
     expect(rec.input_sha256).toBe(sha256('fix the flaky retry for [EMAIL]'));
     expect(rec.decided_by).toBe('table');
     expect(rec.flag).toBe('shadow');
@@ -319,7 +341,7 @@ describe('routeJudgment (async, shadow)', () => {
 
   it('is off with the flag unset and calls nothing', async () => {
     const fetchImpl = mockFetch(200, answerBody('dev_fix'));
-    const verdict = await routeJudgment({ prompt: 'fix it now please', sessionId: SESSION, projectDir, env: {}, fetchImpl });
+    const verdict = await routeJudgment({ prompt: 'fix it now please', promptId: 'route-test-prompt', sessionId: SESSION, projectDir, env: {}, fetchImpl });
     expect(verdict.decided_by).toBe('off');
     expect(fetchImpl).not.toHaveBeenCalled();
   });
@@ -328,6 +350,7 @@ describe('routeJudgment (async, shadow)', () => {
     const fetchImpl = mockFetch(200, answerBody('dev_fix'));
     const verdict = await routeJudgment({
       prompt: 'fix it now please',
+      promptId: 'route-test-prompt',
       sessionId: SESSION,
       projectDir,
       env: { ORK_ROUTE_JEV: 'steer' },
@@ -344,6 +367,7 @@ describe('routeJudgment (async, shadow)', () => {
     const fetchImpl = mockFetch(200, answerBody('dev_fix'));
     const verdict = await routeJudgment({
       prompt: 'fix eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9. now',
+      promptId: 'route-test-prompt',
       sessionId: SESSION,
       projectDir,
       env: envFor('steer'),
@@ -362,7 +386,7 @@ describe('routeJudgment (async, shadow)', () => {
     const fetchImpl = vi.fn(async () => {
       throw new TypeError('fetch failed');
     }) as unknown as typeof fetch;
-    const verdict = await routeJudgment({ prompt: 'fix it now please', sessionId: SESSION, projectDir, env: envFor('steer'), fetchImpl });
+    const verdict = await routeJudgment({ prompt: 'fix it now please', promptId: 'route-test-prompt', sessionId: SESSION, projectDir, env: envFor('steer'), fetchImpl });
     expect(verdict.decided_by).toBe('table');
     expect(verdict.error).toBe('TypeError');
     expect(verdict.intent).toBeNull();
@@ -377,6 +401,7 @@ describe('routeJudgment (async, shadow)', () => {
     ) as unknown as typeof fetch;
     const verdict = await routeJudgment({
       prompt: 'fix it now please',
+      promptId: 'route-test-prompt',
       sessionId: SESSION,
       projectDir,
       env: envFor('steer', { ORK_ROUTE_JEV_TIMEOUT_MS: '20' }),
@@ -388,7 +413,7 @@ describe('routeJudgment (async, shadow)', () => {
 
   it('a malformed body is table', async () => {
     const fetchImpl = mockFetch(200, { answers: { intent: { choice: 'nope' } } });
-    const verdict = await routeJudgment({ prompt: 'fix it now please', sessionId: SESSION, projectDir, env: envFor('steer'), fetchImpl });
+    const verdict = await routeJudgment({ prompt: 'fix it now please', promptId: 'route-test-prompt', sessionId: SESSION, projectDir, env: envFor('steer'), fetchImpl });
     expect(verdict.decided_by).toBe('table');
     expect(verdict.error).toBe('malformed answer');
   });
@@ -396,6 +421,7 @@ describe('routeJudgment (async, shadow)', () => {
   it('steer above the floor decides by jev; below the floor by the table', async () => {
     const above = await routeJudgment({
       prompt: 'fix it now please',
+      promptId: 'route-test-prompt',
       sessionId: SESSION,
       projectDir,
       env: envFor('steer'),
@@ -405,6 +431,7 @@ describe('routeJudgment (async, shadow)', () => {
     expect(above.target).toEqual({ kind: 'skill', name: 'implement' });
     const below = await routeJudgment({
       prompt: 'fix it now please',
+      promptId: 'route-test-prompt',
       sessionId: SESSION,
       projectDir,
       env: envFor('steer'),
@@ -414,6 +441,7 @@ describe('routeJudgment (async, shadow)', () => {
     expect(below.intent).toBe('dev_build');
     const raised = await routeJudgment({
       prompt: 'fix it now please',
+      promptId: 'route-test-prompt',
       sessionId: SESSION,
       projectDir,
       env: envFor('steer', { ORK_ROUTE_JEV_FLOOR: '0.9' }),
@@ -429,13 +457,13 @@ describe('balance guard', () => {
     const dataDir = routeDataDir(projectDir, {});
     const env = envFor('shadow', { ORK_ROUTE_JEV_DAILY_TOKENS: '1000' });
     const first = mockFetch(200, answerBody('dev_fix'));
-    await routeJudgment({ prompt: 'fix it now please', sessionId: SESSION, projectDir, env, fetchImpl: first });
+    await routeJudgment({ prompt: 'fix it now please', promptId: 'route-test-prompt', sessionId: SESSION, projectDir, env, fetchImpl: first });
     expect(JSON.parse(readFileSync(join(dataDir, FILE_ROUTE_BUDGET), 'utf8')).tokens).toBe(812);
     const second = mockFetch(200, answerBody('dev_fix'));
-    await routeJudgment({ prompt: 'fix it now please', sessionId: SESSION, projectDir, env, fetchImpl: second });
+    await routeJudgment({ prompt: 'fix it now please', promptId: 'route-test-prompt', sessionId: SESSION, projectDir, env, fetchImpl: second });
     expect(JSON.parse(readFileSync(join(dataDir, FILE_ROUTE_BUDGET), 'utf8')).tokens).toBe(1624);
     const third = mockFetch(200, answerBody('dev_fix'));
-    const verdict = await routeJudgment({ prompt: 'fix it now please', sessionId: SESSION, projectDir, env, fetchImpl: third });
+    const verdict = await routeJudgment({ prompt: 'fix it now please', promptId: 'route-test-prompt', sessionId: SESSION, projectDir, env, fetchImpl: third });
     expect(verdict.decided_by).toBe('budget');
     expect(verdict.error).toBe('daily tokens');
     expect(third).not.toHaveBeenCalled();
@@ -447,6 +475,7 @@ describe('balance guard', () => {
     writeFileSync(join(dataDir, FILE_ROUTE_BUDGET), JSON.stringify({ day: '2020-01-01', tokens: 999999999 }));
     const verdictPromise = routeJudgment({
       prompt: 'fix it now please',
+      promptId: 'route-test-prompt',
       sessionId: SESSION,
       projectDir,
       env: envFor('shadow'),
@@ -460,6 +489,7 @@ describe('balance guard', () => {
     const log = vi.fn();
     const tripped = await routeJudgment({
       prompt: 'fix it now please',
+      promptId: 'route-test-prompt',
       sessionId: SESSION,
       projectDir,
       env: envFor('steer'),
@@ -472,13 +502,14 @@ describe('balance guard', () => {
     const marker = JSON.parse(readFileSync(join(dataDir, FILE_ROUTE_TRIPPED), 'utf8'));
     expect(marker.status).toBe(402);
     const next = mockFetch(200, answerBody('dev_fix'));
-    const after = await routeJudgment({ prompt: 'fix it now please', sessionId: SESSION, projectDir, env: envFor('steer'), fetchImpl: next });
+    const after = await routeJudgment({ prompt: 'fix it now please', promptId: 'route-test-prompt', sessionId: SESSION, projectDir, env: envFor('steer'), fetchImpl: next });
     expect(after.decided_by).toBe('budget');
     expect(after.error).toBe('tripped');
     expect(next).not.toHaveBeenCalled();
     // 25 hours later the trip has expired
     const later = await routeJudgment({
       prompt: 'fix it now please',
+      promptId: 'route-test-prompt',
       sessionId: SESSION,
       projectDir,
       env: envFor('steer'),
@@ -524,6 +555,7 @@ describe('synchronous child transport (steer)', () => {
   it('routeJudgmentSync steers through the injected spawn', () => {
     const verdict = routeJudgmentSync({
       prompt: 'fix it now please',
+      promptId: 'route-test-prompt',
       sessionId: SESSION,
       projectDir,
       env: envFor('steer'),
@@ -626,14 +658,14 @@ describe('reply audit: synchronous fail-open and paired evidence', () => {
     ['below floor', JSON.stringify({ status: 200, text: JSON.stringify(answerBody('dev_fix', 0.49)) })],
     ['out of range', JSON.stringify({ status: 200, text: JSON.stringify(answerBody('dev_fix', 2)) })],
   ])('keeps the incumbent for %s in the actual steer entry point', (_name, stdout) => {
-    const v = routeJudgmentSync({ prompt: 'fix it now please', sessionId: SESSION, projectDir,
+    const v = routeJudgmentSync({ prompt: 'fix it now please', promptId: 'route-test-prompt', sessionId: SESSION, projectDir,
       env: envFor('steer'), spawnImpl: () => ({ status: 0, stdout }) });
     expect(v.decided_by).toBe('table');
   });
 
   it('logs a missing key without spawning', () => {
     const spawnImpl = vi.fn();
-    const v = routeJudgmentSync({ prompt: 'fix it now please', sessionId: SESSION, projectDir,
+    const v = routeJudgmentSync({ prompt: 'fix it now please', promptId: 'route-test-prompt', sessionId: SESSION, projectDir,
       env: { ORK_ROUTE_JEV: 'steer' }, spawnImpl });
     expect(v.decided_by).toBe('table');
     expect(spawnImpl).not.toHaveBeenCalled();
@@ -648,7 +680,7 @@ describe('reply audit: synchronous fail-open and paired evidence', () => {
     ['dev_fix', 0.9, true, false, false],
     [undefined, 0.9, null, null, false],
   ] as const)('records both picks without inventing an incumbent (%s, %s)', async (incumbentIntent, confidence, agree, high, below) => {
-    await routeJudgment({ prompt: 'fix it now please', sessionId: SESSION, projectDir, incumbentIntent,
+    await routeJudgment({ prompt: 'fix it now please', promptId: 'route-test-prompt', sessionId: SESSION, projectDir, incumbentIntent,
       env: envFor('shadow'), fetchImpl: mockFetch(200, answerBody('dev_fix', confidence)) });
     const row = JSON.parse(readFileSync(join(routeSessionDir(SESSION, projectDir, {}), FILE_ROUTE_RECORDS), 'utf8'));
     expect(row).toMatchObject({ intent: 'dev_fix', incumbent_intent: incumbentIntent ?? null,
@@ -657,11 +689,11 @@ describe('reply audit: synchronous fail-open and paired evidence', () => {
 
   it('writes the canonical route contract on successful and failed rows', async () => {
     const success = await routeJudgment({
-      prompt: 'fix it now please', sessionId: SESSION, projectDir, incumbentIntent: 'dev_build',
+      prompt: 'fix it now please', promptId: 'route-test-prompt', sessionId: SESSION, projectDir, incumbentIntent: 'dev_build',
       env: envFor('shadow'), fetchImpl: mockFetch(200, answerBody('dev_fix', 0.9)),
     });
     const failed = routeJudgmentSync({
-      prompt: 'fix it now please', sessionId: 'route-contract-error', projectDir,
+      prompt: 'fix it now please', promptId: 'route-contract-error-prompt', sessionId: 'route-contract-error', projectDir,
       env: { ORK_ROUTE_JEV: 'steer' }, spawnImpl: vi.fn(),
     });
     const keys = ['jev_pick', 'jev_confidence', 'incumbent_pick', 'incumbent_pick_reason', 'agree', 'floor', 'decided_by'];
