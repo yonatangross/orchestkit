@@ -1,5 +1,5 @@
 import { execFile } from 'node:child_process';
-import { chmod, mkdtemp, mkdir, readFile, symlink, writeFile } from 'node:fs/promises';
+import { chmod, mkdtemp, mkdir, readFile, realpath, symlink, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { promisify } from 'node:util';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -10,8 +10,13 @@ const exec = promisify(execFile);
 const roots: string[] = [];
 afterEach(async () => { await Promise.all(roots.splice(0).map(async (root) => (await import('node:fs/promises')).rm(root, { recursive: true, force: true }))); });
 
-const fixtureBase = '/private/tmp/sc33/jev-foundation-fixtures';
-const root = async () => { await mkdir(fixtureBase, { recursive: true }); const value = await mkdtemp(join(fixtureBase, 'jev-shadow-')); roots.push(value); return value; };
+const fixtureBase = '/tmp/sc33/jev-foundation-fixtures';
+const root = async () => {
+  await mkdir(fixtureBase, { recursive: true });
+  const value = await mkdtemp(join(await realpath(fixtureBase), 'jev-shadow-'));
+  roots.push(value);
+  return value;
+};
 const row = (extra: Record<string, unknown> = {}) => ({
   schema_version: 1, namespace: 'host_a', producer: 'ork-codex', seam: 'codex-passive', mode: 'shadow',
   decision_id: 'decision-a', phase: 'unobserved', harness: 'codex', session_id: 'session-a', prompt_id: null,

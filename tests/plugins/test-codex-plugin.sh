@@ -138,8 +138,9 @@ jq -e --arg hash "$runtime_hash" '.jevShadow.runtime_sha256 == $hash' \
 
 # This uses the generated adapter exactly as a Codex command hook would. The
 # fragment remains unwired until an operator copies it into Codex settings.
-fixture_base="/private/tmp/sc33/jev-foundation-fixtures"
+fixture_base="/tmp/sc33/jev-foundation-fixtures"
 mkdir -p "$fixture_base"
+fixture_base="$(cd "$fixture_base" && pwd -P)"
 fixture_root="$(mktemp -d "$fixture_base/codex-hook.XXXXXX")"
 trap 'rm -rf "$fixture_root"' EXIT
 for event in SessionStart UserPromptSubmit PreToolUse PostToolUse; do
