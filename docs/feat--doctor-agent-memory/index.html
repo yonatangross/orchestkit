@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>doctor: agent-memory checks</title>
+<style>
+  body { margin:0; font:16px/1.5 ui-sans-serif, system-ui, sans-serif; background:#111; color:#eee; }
+  main { max-width:720px; margin:0 auto; padding:28px 18px 64px; }
+  button { margin:4px; padding:8px 12px; border-radius:8px; border:1px solid #444; background:#1c1c1c; color:#eee; cursor:pointer; }
+  button[aria-pressed="true"] { border-color:#3ddc97; color:#3ddc97; }
+  pre { background:#0c0c0c; border:1px solid #333; border-radius:10px; padding:12px; white-space:pre-wrap; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Agent-memory health</h1>
+  <p>Issue 3131. Four checks on <code>.claude/agent-memory/&lt;agent&gt;/MEMORY.md</code>. Pick a fixture.</p>
+  <div>
+    <button type="button" data-k="clean" aria-pressed="true">clean</button>
+    <button type="button" data-k="orphan" aria-pressed="false">orphan</button>
+    <button type="button" data-k="stale" aria-pressed="false">stale</button>
+    <button type="button" data-k="size" aria-pressed="false">size</button>
+    <button type="button" data-k="secret" aria-pressed="false">secret</button>
+  </div>
+  <pre id="out"></pre>
+</main>
+<script>
+var lines = {
+  clean: "OK agent-memory: no orphan, stale, size, or secret findings",
+  orphan: "ORPHAN ghost: no matching agent",
+  stale: "STALE scribe/MEMORY.md: untouched 40d and the agent ran after that write",
+  size: "SIZE scribe/MEMORY.md: 160 lines (warn at 150; injection drops past about 200)",
+  secret: "SECRET scribe/MEMORY.md: token or PII pattern"
+};
+var out = document.getElementById("out");
+function show(key) {
+  document.querySelectorAll("button").forEach(function (b) {
+    b.setAttribute("aria-pressed", String(b.getAttribute("data-k") === key));
+  });
+  out.textContent = lines[key];
+}
+document.querySelectorAll("button").forEach(function (b) {
+  b.addEventListener("click", function () { show(b.getAttribute("data-k")); });
+});
+show("clean");
+</script>
+</body>
+</html>

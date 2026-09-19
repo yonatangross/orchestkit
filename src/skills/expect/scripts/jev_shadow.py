@@ -26,14 +26,14 @@ import json
 import math
 import os
 import re
-import socket
 import sys
 import time
 import urllib.error
 import urllib.request
+from pathlib import Path
 
-SKILL_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DEFAULTS_FILE = os.path.join(SKILL_DIR, "jev-shadow.defaults.yaml")
+SKILL_DIR = Path(__file__).resolve().parent.parent
+DEFAULTS_FILE = SKILL_DIR / "jev-shadow.defaults.yaml"
 ENV_FLAG = "ORK_EXPECT_JEV_SHADOW"
 ENV_MODE = "ORK_EXPECT_JEV"
 ENV_KEY = "ORK_TYPESAFE_API_KEY"
@@ -126,7 +126,7 @@ def unescape_json(text):
     token smuggled as `token\\u003d<value>` is caught the same as `token=<value>`."""
     def repl(m):
         try:
-            return json.loads('"%s"' % m.group(0))
+            return json.loads(f'"{m.group(0)}"')
         except ValueError:
             return m.group(0)
     return JSON_ESCAPE.sub(repl, text)
@@ -151,7 +151,7 @@ def load_yaml(path):
     except ImportError:
         return None
     try:
-        with open(path, "r", encoding="utf-8") as fh:
+        with Path(path).open(encoding="utf-8") as fh:
             return yaml.safe_load(fh) or {}
     except OSError:
         return None
@@ -200,7 +200,7 @@ def load_elements(path, cap, name_max):
     """Elements from a recorded `agent-browser snapshot -i` file (text or
     --json). Only ref, role, name are kept; anything else never leaves."""
     try:
-        with open(path, "r", encoding="utf-8", errors="replace") as fh:
+        with Path(path).open(encoding="utf-8", errors="replace") as fh:
             raw = fh.read()
     except (OSError, TypeError):
         return []
@@ -224,13 +224,13 @@ def build_candidates(elements):
     candidates = {}
     for e in elements:
         ref = e["ref"]
-        desc = '%s "%s"' % (e["role"], e["name"]) if e["name"] else e["role"]
+        desc = f'{e["role"]} "{e["name"]}"' if e["name"] else e["role"]
         if e["role"] in CLICK_ROLES:
-            candidates["click:@%s" % ref] = desc
+            candidates[f"click:@{ref}"] = desc
         if e["role"] in FILL_ROLES:
-            candidates["fill:@%s" % ref] = desc
+            candidates[f"fill:@{ref}"] = desc
         if e["role"] in SELECT_ROLES:
-            candidates["select:@%s" % ref] = desc
+            candidates[f"select:@{ref}"] = desc
     candidates.update(META_ACTIONS)
     return candidates
 
@@ -242,7 +242,7 @@ def normalize_model_action(raw, elements, candidates):
     text = raw.strip()
     m = re.match(r"(?i)^(click|fill|select|check|uncheck|press|drag|upload)\s+@?e(\d+)", text)
     if m:
-        key = "%s:@e%s" % (m.group(1).lower(), m.group(2))
+        key = f"{m.group(1).lower()}:@e{m.group(2)}"
         return key if key in candidates else key
     verb = text.split(None, 1)[0].lower() if text else ""
     if verb in META_ACTIONS:
@@ -252,7 +252,7 @@ def normalize_model_action(raw, elements, candidates):
         want_verb, want_name = m.group(1).lower(), m.group(2)
         for e in elements:
             if e["name"] == want_name:
-                key = "%s:@%s" % (want_verb, e["ref"])
+                key = f"{want_verb}:@{e['ref']}"
                 return key if key in candidates else key
     if re.match(r"(?i)^press\s+enter\b", text):
         return "press_enter"
@@ -312,7 +312,7 @@ def post_jev(endpoint, api_key, payload, timeout_s):
         endpoint,
         data=json.dumps(payload).encode("utf-8"),
         headers={
-            "Authorization": "Bearer %s" % api_key,
+            "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
         },
         method="POST",
@@ -377,7 +377,7 @@ def parse_jev_answers(body, candidates):
 def emit(step_id, record):
     line = json.dumps(record, separators=(",", ":"), ensure_ascii=True)
     line = re.sub(r"[|\t\n\r]", " ", line)
-    print("JEV_SHADOW|%s|%s" % (step_id or "-", line))
+    print(f"JEV_SHADOW|{step_id or '-'}|{line}")
 
 
 def main():
@@ -461,10 +461,10 @@ def main():
     try:
         body = post_jev(endpoint, api_key, build_request(goal, last_verify, elements, candidates, model), budget_ms / 1000.0)
     except urllib.error.HTTPError as exc:
-        finish({**base, "error": "http %d" % exc.code, "agree": None, "latency_ms": int((time.monotonic() - started) * 1000)},
-               "fallback:http_%d" % exc.code, incumbent)
+        finish({**base, "error": f"http {exc.code}", "agree": None, "latency_ms": int((time.monotonic() - started) * 1000)},
+               f"fallback:http_{exc.code}", incumbent)
         return 0
-    except (urllib.error.URLError, socket.timeout, TimeoutError):
+    except (urllib.error.URLError, TimeoutError):
         finish({**base, "error": "unreachable_or_timeout", "agree": None, "latency_ms": int((time.monotonic() - started) * 1000)},
                "fallback:unreachable_or_timeout", incumbent)
         return 0

@@ -268,16 +268,10 @@ def create_rate_limit_dependency(
 
     async def rate_limit_dependency(request: Request):
         # Get key (default: IP address)
-        if get_key:
-            key = get_key(request)
-        else:
-            key = request.client.host if request.client else "unknown"
+        key = get_key(request) if get_key else request.client.host if request.client else "unknown"
 
         # Get tier (default: anonymous)
-        if get_tier:
-            tier = get_tier(request)
-        else:
-            tier = RateLimitTier.ANONYMOUS
+        tier = get_tier(request) if get_tier else RateLimitTier.ANONYMOUS
 
         # Check rate limit
         result = await limiter.check(key, tier, cost)

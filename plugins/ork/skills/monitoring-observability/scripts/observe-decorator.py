@@ -5,7 +5,7 @@ This template shows common patterns for using the @observe decorator
 to automatically trace async functions with nested operations.
 """
 
-from langfuse import observe, get_client
+from langfuse import get_client, observe
 
 
 @observe(as_type="span")  # Automatic tracing for top-level function

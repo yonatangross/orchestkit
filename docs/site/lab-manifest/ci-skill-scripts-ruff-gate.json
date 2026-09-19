@@ -1,0 +1,8 @@
+{
+  "slug": "ci-skill-scripts-ruff-gate",
+  "source": "docs/ci--skill-scripts-ruff-gate/index.html",
+  "title": "51 skill scripts get a real syntax + lint gate",
+  "description": "Issue #3500: src/skills ships 51 Python scripts with zero CI coverage. A new lint-job step runs compileall and ruff check src/skills; the page toggles a broken script to show the gate fail.",
+  "tags": ["ci", "python", "ruff", "skills"],
+  "date": "2026-09-19"
+}

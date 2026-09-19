@@ -320,6 +320,16 @@ jobs:
       - name: FH-ready handler policy
         run: cd src/hooks && node scripts/fh-ready-check.mjs
 
+      # The 51 Python scripts shipped under src/skills/**/scripts/ had zero CI
+      # coverage: hook-contract-py.yml and orchestkit-py.yml lint only their own
+      # packages. compileall catches syntax errors; ruff runs under the repo
+      # pyproject.toml config (target py313, templates/examples excluded).
+      - name: Python skill scripts (compileall + ruff)
+        run: |
+          python3 -m compileall -q src/skills
+          python3 -m pip install --quiet "ruff>=0.8.0"
+          ruff check src/skills
+
   # ============================================================================
   # STAGE 1b: Dependency Security Audit (BLOCKING)
   # ============================================================================

@@ -28,6 +28,8 @@ skill's `skills/glyph/examples/_featured.md`, so it cannot drift from the skill)
 
 The whole point is speed, so there is no setup phase.
 
+**Already loaded means render, not hand off.** `glyph` and `ork:glyph` are one skill: this file. If the host already invoked either name, draw the answer here. Do not call the Skill tool for `glyph`, `/glyph`, or `/ork:glyph`. A second invocation loads this file again and re-runs the planning step. The 2026-09-15 Devin transcript showed "Invoked skill glyph" then "Invoked skill ork:glyph", one render stacked on another. Whether that re-entry is also why the Thoughts text repeated is not verified here; do not re-enter either way. The front door does not delegate.
+
 **With no argument, the topic is the current conversation.** Measured over a real 13-prompt session: zero asks supplied a self-contained topic, and the one direct invocation passed nothing at all. `glyph` on its own means "render where we are right now": the open work, the decision just reached, the state of the thing being discussed. Render that; do not ask what to draw.
 
 Given a topic (or the conversation, when none is given):
