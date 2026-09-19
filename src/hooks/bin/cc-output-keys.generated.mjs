@@ -26,6 +26,18 @@ export const CC_VERSION = '2.1.251';
  * envelope ("missing required field hookEventName") and drops the decision.
  */
 export const EVENTS_WITH_HOOK_EVENT_NAME = new Set([
+  // CC 2.1.278 binary: the hook docs string for Elicitation specifies
+  // hookSpecificOutput.action; MessageDisplay's specifies
+  // hookSpecificOutput.displayContent; WorktreeCreate's specifies
+  // hookSpecificOutput.worktreePath ("WorktreeCreate hook failed: hook
+  // succeeded but returned no worktree path"). All three were declared in
+  // spec/cc-output-keys.spec.yml events_with_hook_specific_output but missing
+  // here — the --check gate only arbitrates EVENTS_WITH_ADDITIONAL_CONTEXT,
+  // so this set drifted unchecked (#4285 second-read). run-hook.mjs reads
+  // hookSpecificOutput.worktreePath for the worktree events; dropping the
+  // envelope made that path unrepresentable.
+  'Elicitation',
+  'MessageDisplay',
   'PermissionDenied',
   'PermissionRequest',
   'PostCompact',
@@ -44,6 +56,7 @@ export const EVENTS_WITH_HOOK_EVENT_NAME = new Set([
   'SubagentStart',
   'SubagentStop',
   'UserPromptSubmit',
+  'WorktreeCreate',
 ]);
 
 /**

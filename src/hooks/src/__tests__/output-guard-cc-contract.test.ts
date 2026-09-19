@@ -112,12 +112,13 @@ describe('the guard still strips where CC does NOT read', () => {
 });
 
 describe('WorktreeCreate envelope handling', () => {
-  // CC's envelope validator hard-requires hookEventName inside every
-  // hookSpecificOutput. Stripping just the field while keeping worktreePath
-  // emitted `{"hookSpecificOutput":{"worktreePath":...}}` — the exact
-  // malformed shape this guard exists to prevent. On an event that does not
-  // consume hookSpecificOutput the whole object is dropped instead.
-  it('drops hookSpecificOutput entirely on WorktreeCreate', () => {
+  // The spec (events_with_hook_specific_output) and the CC binary's own hook
+  // docs ("returned no worktree path ... hookSpecificOutput.worktreePath")
+  // both name WorktreeCreate as a hookSpecificOutput consumer, and
+  // run-hook.mjs reads worktreePath out of the envelope for worktree events.
+  // An earlier generated-set drift dropped these envelopes; the guard must
+  // keep them (and inject the honest label when a bare result lacks it).
+  it('preserves a worktreePath envelope on WorktreeCreate', () => {
     const result = {
       continue: true,
       hookSpecificOutput: {
@@ -129,8 +130,21 @@ describe('WorktreeCreate envelope handling', () => {
       continue?: boolean;
       hookSpecificOutput?: { hookEventName?: string; worktreePath?: string };
     };
-    expect(out.hookSpecificOutput).toBeUndefined();
+    expect(out.hookSpecificOutput?.hookEventName).toBe('WorktreeCreate');
+    expect(out.hookSpecificOutput?.worktreePath).toBe('/tmp/wt');
     expect(out.continue).toBe(true);
+  });
+
+  it('injects hookEventName into a bare worktreePath result on WorktreeCreate', () => {
+    const result = {
+      continue: true,
+      hookSpecificOutput: { worktreePath: '/tmp/wt' },
+    };
+    const out = sanitizeOutput(result, 'WorktreeCreate') as {
+      hookSpecificOutput?: { hookEventName?: string; worktreePath?: string };
+    };
+    expect(out.hookSpecificOutput?.hookEventName).toBe('WorktreeCreate');
+    expect(out.hookSpecificOutput?.worktreePath).toBe('/tmp/wt');
   });
 });
 
@@ -251,6 +265,38 @@ describe('never emits hookSpecificOutput without hookEventName', () => {
     expect(out.hookSpecificOutput?.additionalContext).toBe('advisory text');
   });
 
+  // Rule 0 injects hookEventName before Rule 2 strips additionalContext, so an
+  // envelope whose ONLY content was context on a non-consuming event used to
+  // leave {hookEventName: X} — a named but content-free envelope (#4285
+  // second-read LOW). The guard now drops it: the label alone carries no
+  // decision for CC to act on.
+  it.each(['PermissionDenied', 'PermissionRequest', 'PostCompact', 'PreModelSwitch', 'SubagentStart'])(
+    'drops a name-only envelope left behind on %s (additionalContext was the only content)',
+    (event) => {
+      const result = {
+        continue: true,
+        hookSpecificOutput: { additionalContext: 'dead context' },
+      };
+      const out = sanitizeOutput(result, event) as {
+        hookSpecificOutput?: unknown;
+        continue?: boolean;
+      };
+      expect(out.hookSpecificOutput).toBeUndefined();
+      expect(out.continue).toBe(true);
+    }
+  );
+
+  it('drops a name-only envelope a hook emitted directly', () => {
+    const result = {
+      continue: true,
+      hookSpecificOutput: { hookEventName: 'PreToolUse' },
+    };
+    const out = sanitizeOutput(result, 'PreToolUse') as {
+      hookSpecificOutput?: unknown;
+    };
+    expect(out.hookSpecificOutput).toBeUndefined();
+  });
+
   // Sweep every firing event the guard knows about (plus the unknown/empty
   // cases the stdin race produces) against the canonical result shapes, and
   // assert the invariant directly: any hookSpecificOutput that leaves the
@@ -318,6 +364,18 @@ describe('the generated contract is internally coherent', () => {
       expect(
         (EVENTS_WITH_ADDITIONAL_CONTEXT as Set<string>).has(event),
         `${event} is documented by the CC binary and must be allow-listed`
+      ).toBe(true);
+    }
+  });
+
+  it('carries every event the spec declares under events_with_hook_specific_output', () => {
+    // The generated set once dropped WorktreeCreate/MessageDisplay/Elicitation
+    // even though the spec and the CC binary document their hookSpecificOutput
+    // keys — nothing gated this list, so it drifted (#4285 second-read).
+    for (const event of ['WorktreeCreate', 'MessageDisplay', 'Elicitation']) {
+      expect(
+        (EVENTS_WITH_HOOK_EVENT_NAME as Set<string>).has(event),
+        `${event} is declared by spec/cc-output-keys.spec.yml and must be allow-listed`
       ).toBe(true);
     }
   });

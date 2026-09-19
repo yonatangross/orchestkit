@@ -457,20 +457,21 @@ describe('sanitizeOutput — non-object inputs (defense-in-depth)', () => {
 describe('sanitizeOutput — selective stripping (only the offending field is removed)', () => {
   beforeEach(() => { stderrSpy.mockClear(); });
 
-  it('drops the whole hookSpecificOutput on WorktreeCreate without a piecemeal strip', () => {
-    // Worktree* events don't consume hookSpecificOutput at all, so the
-    // envelope is dropped wholesale — CC's validator hard-requires
-    // hookEventName, and a worktreePath-only remainder would be the exact
-    // malformed shape this guard exists to prevent.
+  it('keeps worktreePath on WorktreeCreate — the event consumes hookSpecificOutput', () => {
+    // spec/cc-output-keys.spec.yml and the CC binary's hook docs both name
+    // WorktreeCreate a hookSpecificOutput consumer (worktreePath), and
+    // run-hook.mjs reads it out of the envelope. The guard injects the
+    // honest firing-event label and still strips the additionalContext the
+    // event does not consume — worktreePath itself must survive.
     const input = {
       continue: true,
       hookSpecificOutput: { worktreePath: '/some/wt', additionalContext: 'leaked text' },
     };
     const result = sanitizeOutput(input, 'WorktreeCreate') as Record<string, unknown>;
-    expect(result.hookSpecificOutput).toBeUndefined();
-    expect(stderrSpy).toHaveBeenCalledWith(
-      expect.stringContaining('dropped hookSpecificOutput')
-    );
+    const hso = result.hookSpecificOutput as Record<string, unknown>;
+    expect(hso?.hookEventName).toBe('WorktreeCreate');
+    expect(hso?.worktreePath).toBe('/some/wt');
+    expect(hso?.additionalContext).toBeUndefined();
   });
 
   it('drops empty hookSpecificOutput entirely after stripping all keys', () => {
@@ -521,8 +522,14 @@ describe('sanitizeOutput — all sanitize-target lifecycle events', () => {
   // guard even though additionalContext no longer does. That is a different
   // shape than this loop's "strip the whole envelope" assertion. See the
   // dedicated PostCompact block below instead.
+  //
+  // WorktreeCreate and Elicitation are NOT here either — both consume
+  // hookSpecificOutput per the spec and the CC binary's hook docs
+  // (worktreePath / action), so they were restored to
+  // EVENTS_WITH_HOOK_EVENT_NAME (#4285 second-read). A UserPromptSubmit-
+  // labeled envelope fired on them now dies on the name-only drop instead
+  // of the non-consumer rule — same outcome, honest mechanism.
   const SANITIZE_EVENTS = [
-    'WorktreeCreate',
     'WorktreeRemove',
     'CwdChanged',
     'FileChanged',
@@ -533,7 +540,6 @@ describe('sanitizeOutput — all sanitize-target lifecycle events', () => {
     'StopFailure',
     'SessionEnd',
     'PreCompact',
-    'Elicitation',
   ];
 
   for (const event of SANITIZE_EVENTS) {
@@ -563,9 +569,10 @@ describe('sanitizeOutput — PostCompact additionalContext removed, hookEventNam
   // hookSpecificOutput event per CC's docs table) but was removed from
   // EVENTS_WITH_ADDITIONAL_CONTEXT — traced against the shipped 2.1.228
   // binary and found to lack the additionalContext executor marker every
-  // real consumer carries (see spec/cc-output-keys.spec.yml). So a matching
-  // hookEventName survives while additionalContext alone is stripped.
-  it('strips additionalContext but keeps a matching hookEventName', () => {
+  // real consumer carries (see spec/cc-output-keys.spec.yml). Stripping the
+  // context leaves a name-only envelope, which the content-free rule then
+  // drops (#4285 second-read): a bare label carries no decision for CC.
+  it('strips additionalContext, then drops the name-only remainder', () => {
     const input = {
       continue: true,
       suppressOutput: true,
@@ -575,9 +582,7 @@ describe('sanitizeOutput — PostCompact additionalContext removed, hookEventNam
       },
     };
     const result = sanitizeOutput(input, 'PostCompact') as Record<string, unknown>;
-    const hso = result.hookSpecificOutput as Record<string, unknown>;
-    expect(hso.hookEventName).toBe('PostCompact');
-    expect(hso.additionalContext).toBeUndefined();
+    expect(result.hookSpecificOutput).toBeUndefined();
     expect(stderrSpy).toHaveBeenCalledWith(
       expect.stringMatching(/stripped additionalContext from PostCompact response/),
     );

@@ -202,5 +202,25 @@ export function sanitizeOutput(result, firingEvent, emptyPayload = false) {
     delete sanitized.hookSpecificOutput;
   }
 
+  // --- Content-free envelope: a label with no decision carries nothing ---
+  // Rule 0 injects hookEventName BEFORE Rule 2 strips unsupported keys, so an
+  // envelope whose only content was additionalContext on a non-consuming
+  // event ends up as {hookEventName: X} — passes the invariant above but
+  // communicates nothing to CC. A hook could also emit that shape directly.
+  // Either way the name-only object is dropped; the outer envelope
+  // (continue, systemMessage) still stands.
+  const remainingKeys = Object.keys(sanitized.hookSpecificOutput ?? {});
+  if (
+    sanitized.hookSpecificOutput !== undefined &&
+    remainingKeys.length > 0 &&
+    remainingKeys.every((k) => k === 'hookEventName')
+  ) {
+    process.stderr.write(
+      `[orchestkit] WARN: dropped hookSpecificOutput (hookEventName=${emittedName})` +
+      ` from ${firingEvent} response — label without content after stripping\n`
+    );
+    delete sanitized.hookSpecificOutput;
+  }
+
   return sanitized;
 }
