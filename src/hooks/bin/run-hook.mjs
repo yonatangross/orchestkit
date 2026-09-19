@@ -91,6 +91,12 @@ function isValidPath(s) {
 }
 
 function normalizeInput(input) {
+  // Whether stdin actually delivered a payload. This function backfills
+  // tool_input/session_id/hook_event below, so by return time the object is
+  // never keyless — capture emptiness at entry. emitHookResult hands it to
+  // output-guard: a verdict computed on no input (the #3415 watchdog, a
+  // stdin error, an unparseable body) is noise and never reaches CC.
+  const emptyPayload = Object.keys(input).length === 0;
   if (!input.tool_input && input.toolInput) {
     input.tool_input = input.toolInput;
   }
@@ -159,6 +165,7 @@ function normalizeInput(input) {
       }
     }
   }
+  input.__orkEmptyPayload = emptyPayload;
   return input;
 }
 
@@ -726,7 +733,7 @@ const WORKTREE_PATH_EVENTS = new Set(['WorktreeCreate', 'WorktreeRemove']);
  * every non-blocking result, which would otherwise be joined verbatim into the
  * summary prompt.
  */
-function emitHookResult(result, firingEvent, hookType) {
+function emitHookResult(result, firingEvent, hookType, emptyPayload = false) {
   if (WORKTREE_PATH_EVENTS.has(firingEvent)) {
     const worktreePath = result?.hookSpecificOutput?.worktreePath;
     if (!worktreePath) {
@@ -740,7 +747,7 @@ function emitHookResult(result, firingEvent, hookType) {
   if (firingEvent === 'PreCompact' && result?.decision !== 'block') {
     return; // empty stdout — never feed the summarizer an envelope
   }
-  console.log(JSON.stringify(sanitizeOutput(result, firingEvent)));
+  console.log(JSON.stringify(sanitizeOutput(result, firingEvent, emptyPayload)));
 }
 
 /**
@@ -759,6 +766,7 @@ async function runHook(parsedInput) {
       { continue: true, suppressOutput: true },
       parsedInput.hook_event || '',
       parsedInput.type,
+      parsedInput.__orkEmptyPayload === true,
     );
     return;
   }
@@ -792,7 +800,7 @@ async function runHook(parsedInput) {
     /** t3: after hook function executed */
     t3 = process.hrtime.bigint();
     const firingEvent = parsedInput.hook_event || '';
-    emitHookResult(result, firingEvent, parsedInput.type);
+    emitHookResult(result, firingEvent, parsedInput.type, parsedInput.__orkEmptyPayload === true);
     if (REWAKE && result && result.continue === false) {
       const reason = String(result.stopReason || 'blocked without a reason').trim();
       process.stderr.write(`[${hookName}] ${reason}\n`);
@@ -810,7 +818,7 @@ async function runHook(parsedInput) {
     emitHookResult({
       continue: true,
       systemMessage: `Hook error (${hookName}): ${err.message}`,
-    }, firingEvent, parsedInput?.type);
+    }, firingEvent, parsedInput?.type, parsedInput?.__orkEmptyPayload === true);
   } finally {
     // Track hook execution (Issue #245)
     const durationMs = Date.now() - startTime;
