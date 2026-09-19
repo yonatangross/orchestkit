@@ -19,13 +19,6 @@ persuasion-type: guidance
 model: sonnet
 metadata:
   category: workflow-automation
-triggers:
-  keywords: [sentinel, "self-healing ci", "auto-classify failures", "watch open PRs"]
-  examples:
-    - "install the CI sentinel in this repo"
-    - "show me sentinel status for the platform repo"
-    - "disable the sentinel — it's commenting too much"
-  anti-triggers: [fix this CI, debug this run]
 paths:
   - ".github/workflows/ci-sentinel.yml"
   - ".sentinel/**"

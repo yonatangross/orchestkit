@@ -46,14 +46,40 @@ echo ""
 PLUGIN_DIR="$PROJECT_ROOT/plugins/ork"
 
 # --- A. Skill content drift (SKILL.md) ---------------------------------------
+# NOTE: the build strips the object-shaped `triggers` frontmatter block from
+# the installed copy (#4147), so a built file is drift-free when it equals the
+# src file verbatim OR the src file normalized through the same awk — the
+# same pattern as section B, which skips the build-appended Skill Index tail
+# on agents. Verbatim is checked first: awk emits a trailing newline that a
+# newline-less src copy would otherwise fail on.
 echo "A. Checking skill content drift..."
 for src_skill in "$PROJECT_ROOT"/src/skills/*/SKILL.md; do
     [[ -f "$src_skill" ]] || continue
     skill_name=$(basename "$(dirname "$src_skill")")
     SKILLS_COMPARED=$((${SKILLS_COMPARED:-0} + 1))
-    check_file "$src_skill" "$PLUGIN_DIR/skills/$skill_name/SKILL.md"
+    dest_skill="$PLUGIN_DIR/skills/$skill_name/SKILL.md"
+    CHECKED=$((CHECKED + 1))
+    if [[ ! -f "$dest_skill" ]]; then
+        DRIFTED=$((DRIFTED + 1))
+        DRIFTED_FILES+=("MISSING: ${src_skill#$PROJECT_ROOT/} -> ${dest_skill#$PROJECT_ROOT/}")
+    elif ! diff -q "$src_skill" "$dest_skill" >/dev/null 2>&1 \
+        && ! diff -q \
+            <(awk -f "$PROJECT_ROOT/scripts/lib/strip-skill-triggers.awk" "$src_skill") \
+            "$dest_skill" >/dev/null 2>&1; then
+        DRIFTED=$((DRIFTED + 1))
+        DRIFTED_FILES+=("CHANGED: ${src_skill#$PROJECT_ROOT/} != ${dest_skill#$PROJECT_ROOT/}")
+    fi
 done
 echo "   Skills checked."
+
+# The built tree must never carry the object-shaped triggers key: Devin's
+# plugin loader silently drops the whole skill when it sees it (#4147).
+# Deleting the strip step from scripts/build-plugins.sh turns this red.
+while IFS= read -r t; do
+    [[ -n "$t" ]] || continue
+    DRIFTED=$((DRIFTED + 1))
+    DRIFTED_FILES+=("TRIGGERS: ${t#$PROJECT_ROOT/} still carries the triggers key (#4147)")
+done < <(grep -rl '^triggers:' "$PLUGIN_DIR/skills" --include='SKILL.md' 2>/dev/null || true)
 
 # --- B. Agent content drift ---------------------------------------------------
 # NOTE: Build script appends a "Skill Index" section to agents in plugins/.

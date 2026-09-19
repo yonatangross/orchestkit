@@ -19,13 +19,6 @@ persuasion-type: guidance
 model: sonnet
 metadata:
   category: workflow-automation
-triggers:
-  keywords: [swarm, "across repos", "all repos", "every repo", "fan out", "cross-repo", migration, rollout, codemod, "bump everywhere", cascade]
-  examples:
-    - "swarm-migrate bump @actions/checkout v4 across all 14 repos"
-    - "swarm-migrate apply this codemod to every TypeScript repo"
-    - "swarm-migrate roll out the @v1 reusable workflow to all platform repos"
-  anti-triggers: [single repo, this repo, current branch]
 paths:
   - ".swarm-state.json"
   - "swarm-specs/**/*.yaml"

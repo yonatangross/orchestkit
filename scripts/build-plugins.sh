@@ -289,6 +289,28 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
         find "$PLUGIN_DIR/skills" -type d -name evals -prune -exec rm -rf {} +
     fi
 
+    # Drop the object-shaped `triggers` frontmatter key from the BUILT copy
+    # only. Devin's plugin loader silently drops any skill whose SKILL.md
+    # carries it (31 of 107 at last count, #4147). Every consumer of the key
+    # (eval-coverage, trigger/coverage tests, command passthrough) reads the
+    # source under src/skills/, which stays untouched. The transform deletes
+    # the `triggers:` line plus its indented block children, inside the
+    # frontmatter fence only. The awk lives in scripts/lib/ so the Build drift
+    # test normalizes the src side with the identical rules.
+    if [[ -d "$PLUGIN_DIR/skills" ]]; then
+        for skill_md in "$PLUGIN_DIR/skills"/*/SKILL.md; do
+            [[ -f "$skill_md" ]] || continue
+            grep -q '^triggers:' "$skill_md" || continue
+            if ! awk -f "$PROJECT_ROOT/scripts/lib/strip-skill-triggers.awk" \
+                "$skill_md" > "$skill_md.tmp"; then
+                rm -f "$skill_md.tmp"
+                echo -e "    ${RED}Failed to strip triggers from $skill_md${NC}"
+                exit 1
+            fi
+            mv "$skill_md.tmp" "$skill_md"
+        done
+    fi
+
     # Generate command wrappers from user-invocable skills, FOR THE CURSOR HOST ONLY.
     # Claude Code surfaces user-invocable skills as /ork:<name> natively (measured
     # 2026-08-29 on 2.1.251: `/ork:glyph hello` expands to <command-name> in the

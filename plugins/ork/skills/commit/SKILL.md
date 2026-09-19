@@ -22,13 +22,6 @@ hooks:
       once: true
 metadata:
   category: workflow-automation
-triggers:
-  keywords: [commit, comit, "commit message", "stage and commit", "save progress", "save my progress", "wrap it up", "conventional commit"]
-  examples:
-    - "commit my changes"
-    - "create a conventional commit for these files"
-    - "stage and commit the new tests"
-  anti-triggers: [push, pr, "pull request", review, rebase, merge]
 invocation_hooks:
   - "git rev-parse --is-inside-work-tree >/dev/null 2>&1 || echo 'Warning: not inside a git repository'"
 ---

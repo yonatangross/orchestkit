@@ -20,13 +20,6 @@ model: sonnet
 metadata:
   category: workflow-automation
   origin: "/insights audit 2026-05-11 — recurring CI-debug pattern across 12 sessions in 3 weeks"
-triggers:
-  keywords: ["ci failure", "build red", "actions failed", "workflow failed", "PR check failed", "CI broken"]
-  examples:
-    - "PR #1842 build is red, what happened?"
-    - "/ci-debug 822"
-    - "/ci-debug https://github.com/owner/repo/actions/runs/12345"
-  anti-triggers: ["what's failing across the org", "test broke in my code"]
 paths:
   - ".github/workflows/**/*.yml"
 ---
