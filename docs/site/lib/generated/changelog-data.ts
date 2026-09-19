@@ -18,6 +18,21 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.60",
+    "date": "2026-09-19",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.59...v10.0.0-beta.60",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**browser:** adopt agent-browser 0.38.1 (delta snapshots, if-changed shots, persistent refs, 30 fps, WebMCP) ([#4260](https://github.com/yonatangross/orchestkit/issues/4260)) ([6e23e38](https://github.com/yonatangross/orchestkit/commit/6e23e38c2c22304d64c3933c00bc83f08972e19d))",
+          "**site:** generated Related block on reference pages ([#4253](https://github.com/yonatangross/orchestkit/issues/4253)) ([9b6b576](https://github.com/yonatangross/orchestkit/commit/9b6b576f180c47336f0fceeff847fa968bafb610))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.59",
     "date": "2026-09-19",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.58...v10.0.0-beta.59",
