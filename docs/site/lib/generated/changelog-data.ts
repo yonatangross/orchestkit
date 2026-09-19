@@ -18,6 +18,21 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.57",
+    "date": "2026-09-19",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.56...v10.0.0-beta.57",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**ci:** name both causes when hook bundles differ ([#4256](https://github.com/yonatangross/orchestkit/issues/4256)) ([9425d85](https://github.com/yonatangross/orchestkit/commit/9425d851f52d0f2442b8bf9d83dfe04d4b3bc2ad))",
+          "**release:** retry the GHCR manifest preflight ([#4257](https://github.com/yonatangross/orchestkit/issues/4257)) ([aa959ff](https://github.com/yonatangross/orchestkit/commit/aa959ffdb50e2d1e39cc0f1d8669fc649611a2fa))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.56",
     "date": "2026-09-19",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.55...v10.0.0-beta.56",
