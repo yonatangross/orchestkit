@@ -41,9 +41,10 @@ exclude = [
     ".claude",
     "node_modules",
     "__pycache__",
-    # Templates are educational examples - prioritize clarity over strict linting
-    "skills/*/templates",
-    "skills/*/examples",
+    # Educational examples: prioritize clarity over strict linting.
+    # Not root-anchored. The trees are src/skills/ and plugins/ork/skills/.
+    "**/skills/*/templates",
+    "**/skills/*/examples",
 ]
 
 [tool.ruff.lint]
