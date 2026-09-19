@@ -63,9 +63,10 @@ export function elicitationGuard(input: HookInput, ctx: HookContext = NOOP_CTX):
       'warn'
     );
     // outputBlock → { continue:false, stopReason }: survives sanitizeOutput and
-    // halts before the secret-bearing form is processed. (Elicitation is not in
-    // the hookEventName allowlist, so the documented action:"decline" shape would
-    // have its hookEventName stripped — continue:false is the robust block here.)
+    // halts before the secret-bearing form is processed. (Elicitation IS in the
+    // hookEventName allowlist — restored in #4285 — so the documented
+    // action:"decline" shape would now pass the guard, but continue:false stays
+    // the robust block: it works even when the form payload is malformed.)
     return outputBlock(
       `Blocked: MCP server "${server}" attempted to collect "${secretField}" via an ` +
       `elicitation form. Secrets must not be entered into form fields exposed to the LLM context.`
