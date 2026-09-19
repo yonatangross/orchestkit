@@ -1,4 +1,5 @@
 import { execFile } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { chmod, mkdtemp, mkdir, readFile, realpath, symlink, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { promisify } from 'node:util';
@@ -60,6 +61,12 @@ describe('Jev shadow contract', () => {
     expect(Object.keys(schema.properties).sort()).toEqual(JEV_SHADOW_CONTRACT_KEYS);
     expect(schema.properties.harness.enum).toEqual(JEV_SHADOW_CONTRACT_ARTIFACT.harnesses);
     expect(schema.properties.mode.const).toBe('shadow');
+  });
+
+  it('keeps the tracked Codex runtime artifact byte-identical to compiled source', async () => {
+    const compiled = await readFile(new URL('../dist/esm/runtime.js', import.meta.url));
+    const tracked = await readFile(new URL('../../../src/codex/ork-codex/runtime/jev-shadow-runtime.mjs', import.meta.url));
+    expect(createHash('sha256').update(tracked).digest('hex')).toBe(createHash('sha256').update(compiled).digest('hex'));
   });
 
   it('does zero filesystem work and no network work while root is absent', async () => {
