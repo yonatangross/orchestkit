@@ -7,7 +7,8 @@
  * Covers shouldRegenerateIdentity's contract via manageSessionIdentity's
  * observable effect on the state files:
  * - first turn seeds the meta baseline, does NOT regenerate
- * - branch change invalidates the cached identity (respawn)
+ * - branch change invalidates the cached identity (title dropped; since #4248
+ *   the spawned marker survives, so the generator never re-runs)
  * - same branch, no env → no regenerate (cached title stays)
  * - ORK_SESSION_IDENTITY_REFRESH_TURNS drives a turns-based refresh
  * - color file is NEVER deleted on regenerate (color stays stable)
@@ -66,10 +67,13 @@ beforeEach(() => {
   // a transcript so resolveTranscriptPath + color append have a target
   writeFileSync(join(dir, 'transcript.jsonl'), '', 'utf8');
   delete process.env.ORK_SESSION_IDENTITY_REFRESH_TURNS;
+  // Isolate the per-host rate-cap file (#4248).
+  process.env.ORK_SESSION_IDENTITY_RATE_FILE = join(dir, 'rate-spawns.json');
 });
 
 afterEach(() => {
   rmSync(dir, { recursive: true, force: true });
+  delete process.env.ORK_SESSION_IDENTITY_RATE_FILE;
   vi.clearAllMocks();
 });
 
@@ -96,8 +100,10 @@ describe('session-title regeneration', () => {
     seedGeneratedIdentity('feat/a', 3);
     // now on a different branch
     manageSessionIdentity(inputFor('new work'), ctxFor('feat/b'), dir, '/proj');
-    // parsed identity was dropped (will respawn), meta baseline moved to feat/b
+    // parsed identity was dropped (title falls back to branch), meta baseline
+    // moved to feat/b; the spawned marker survives so no respawn (#4248)
     expect(existsSync(join(dir, PARSED))).toBe(false);
+    expect(existsSync(join(dir, SPAWNED))).toBe(true);
     const meta = JSON.parse(readFileSync(join(dir, META), 'utf8'));
     expect(meta.branch).toBe('feat/b');
   });
