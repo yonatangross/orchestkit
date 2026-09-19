@@ -75,7 +75,7 @@ describe('Async Hooks Registry', () => {
       }
     });
 
-    it('should have exactly 8 async hooks', () => {
+    it('should have the expected async hook count', () => {
       const allHooks: Hook[] = [];
       for (const eventGroups of Object.values(hooksConfig.hooks)) {
         for (const group of eventGroups) {
@@ -183,7 +183,8 @@ describe('Async Hooks Registry', () => {
       // 106 -> 109: #3789 (CC 2.1.251) — async PostModelSwitch telemetry + webhook forwarders on both new events; the PreModelSwitch consent gate is sync
       // 109 -> 110: #3727 — lifecycle/stray-playground-pages (SessionStart, async)
       // 110 -> 109: #3353 — pretool/settings-override-resolver deleted (table dropped in 005)
-      expect(asyncHooks.length, 'Should have exactly 109 async hooks').toBe(109);
+      // 109 -> 108: Jev pairing observes Skill selection synchronously.
+      expect(asyncHooks.length, 'Should have exactly 108 async hooks').toBe(108);
     });
 
     it('should NOT have async: true for blocking hooks', () => {
