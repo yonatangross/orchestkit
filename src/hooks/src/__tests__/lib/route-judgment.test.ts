@@ -611,3 +611,47 @@ describe('log line', () => {
     );
   });
 });
+
+describe('reply audit: synchronous fail-open and paired evidence', () => {
+  it.each([
+    ['timeout', JSON.stringify({ error: 'timeout' })],
+    ['non-2xx', JSON.stringify({ status: 503, text: '{}' })],
+    ['malformed body', JSON.stringify({ status: 200, text: '{' })],
+    ['malformed answer', JSON.stringify({ status: 200, text: '{"answers":[]}' })],
+    ['null child', 'null'],
+    ['below floor', JSON.stringify({ status: 200, text: JSON.stringify(answerBody('dev_fix', 0.49)) })],
+    ['out of range', JSON.stringify({ status: 200, text: JSON.stringify(answerBody('dev_fix', 2)) })],
+  ])('keeps the incumbent for %s in the actual steer entry point', (_name, stdout) => {
+    const v = routeJudgmentSync({ prompt: 'fix it now please', sessionId: SESSION, projectDir,
+      env: envFor('steer'), spawnImpl: () => ({ status: 0, stdout }) });
+    expect(v.decided_by).toBe('table');
+  });
+
+  it('logs a missing key without spawning', () => {
+    const spawnImpl = vi.fn();
+    const v = routeJudgmentSync({ prompt: 'fix it now please', sessionId: SESSION, projectDir,
+      env: { ORK_ROUTE_JEV: 'steer' }, spawnImpl });
+    expect(v.decided_by).toBe('table');
+    expect(spawnImpl).not.toHaveBeenCalled();
+    const row = JSON.parse(readFileSync(join(routeSessionDir(SESSION, projectDir, {}), FILE_ROUTE_RECORDS), 'utf8'));
+    expect(row.error).toBe('no key');
+    expect(row.agree).toBeNull();
+  });
+
+  it.each([
+    ['dev_build', 0.9, false, true, false],
+    ['dev_build', 0.2, false, false, true],
+    ['dev_fix', 0.9, true, false, false],
+    [undefined, 0.9, null, null, false],
+  ] as const)('records both picks without inventing an incumbent (%s, %s)', async (incumbentIntent, confidence, agree, high, below) => {
+    await routeJudgment({ prompt: 'fix it now please', sessionId: SESSION, projectDir, incumbentIntent,
+      env: envFor('shadow'), fetchImpl: mockFetch(200, answerBody('dev_fix', confidence)) });
+    const row = JSON.parse(readFileSync(join(routeSessionDir(SESSION, projectDir, {}), FILE_ROUTE_RECORDS), 'utf8'));
+    expect(row).toMatchObject({ intent: 'dev_fix', incumbent_intent: incumbentIntent ?? null,
+      conf: confidence, floor: 0.5, agree, high_confidence_disagreement: high, below_floor: below });
+  });
+
+  it.each(['2', '-1', 'Infinity', 'NaN'])('rejects an invalid floor %s', (floor) => {
+    expect(resolveRouteConfig({ ORK_ROUTE_JEV_FLOOR: floor }).floor).toBe(0.5);
+  });
+});
