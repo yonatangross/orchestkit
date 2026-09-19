@@ -15,10 +15,21 @@
 # Exit 0 when every plugins/ork/skills/ path has its src/skills/ counterpart
 # staged (or none are staged at all). Exit 1 otherwise, printing each
 # offender and the exact src/ path to edit instead.
+#
+# Exception: a staged generator input (scripts/build-plugins.sh or anything
+# under manifests/) means the plugins/ diff is plausibly REGENERATED output,
+# not a hand edit — generator changes legitimately alter built files with no
+# src/skills/ counterpart (hit for real on #4147, which dropped a frontmatter
+# key in the build and could not commit its own rebuild). The CI Build drift
+# gate still diffs a real build, so a bundled hand edit is not invisible.
 
 set -uo pipefail
 
 list=$(cat)
+
+if grep -qx 'scripts/build-plugins.sh' <<< "$list" || grep -q '^manifests/' <<< "$list"; then
+  exit 0
+fi
 
 mismatch=0
 while IFS= read -r f; do

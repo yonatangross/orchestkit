@@ -103,6 +103,28 @@ else
     log_fail "empty input: rc=$GUARD_RC (want 0), output: $GUARD_OUT"
 fi
 
+# 7. A staged generator input means the plugins/ diff is regenerated output,
+# not a hand edit (#4147 could not commit its own rebuild otherwise).
+GUARD_RC=0
+GUARD_OUT=$(printf '%s\n' \
+    'scripts/build-plugins.sh' \
+    'plugins/ork/skills/auto/SKILL.md' | bash "$GUARD") || GUARD_RC=$?
+if [[ $GUARD_RC -eq 0 ]]; then
+    log_pass "build-script input exempts regenerated output"
+else
+    log_fail "build-script input: rc=$GUARD_RC (want 0), output: $GUARD_OUT"
+fi
+
+GUARD_RC=0
+GUARD_OUT=$(printf '%s\n' \
+    'manifests/ork.json' \
+    'plugins/ork/skills/auto/SKILL.md' | bash "$GUARD") || GUARD_RC=$?
+if [[ $GUARD_RC -eq 0 ]]; then
+    log_pass "manifest input exempts regenerated output"
+else
+    log_fail "manifest input: rc=$GUARD_RC (want 0), output: $GUARD_OUT"
+fi
+
 echo ""
 echo "Passed: $TESTS_PASSED  Failed: $TESTS_FAILED"
 [[ $TESTS_FAILED -gt 0 ]] && exit 1
