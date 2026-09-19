@@ -242,9 +242,8 @@ class CircuitBreaker:
 
     def _check_state_transition(self) -> None:
         """Check if state should transition based on time."""
-        if self._state == CircuitState.OPEN:
-            if self._should_attempt_recovery():
-                self._transition_to(CircuitState.HALF_OPEN)
+        if self._state == CircuitState.OPEN and self._should_attempt_recovery():
+            self._transition_to(CircuitState.HALF_OPEN)
 
     def _should_attempt_recovery(self) -> bool:
         """Check if enough time has passed to attempt recovery."""

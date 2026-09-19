@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>glyph: one render, 72 columns</title>
+<style>
+  :root { color-scheme: dark; --bg:#12141a; --ink:#e8e6e3; --muted:#9a968f; --line:#2c313c; --ok:#3ddc97; --bad:#ff6b6b; }
+  * { box-sizing: border-box; }
+  body { margin:0; font:16px/1.5 ui-sans-serif, system-ui, sans-serif; background:var(--bg); color:var(--ink); }
+  main { max-width:880px; margin:0 auto; padding:32px 20px 80px; }
+  h1 { font-size:28px; margin:0 0 8px; }
+  p { color:var(--muted); }
+  .row { display:flex; gap:8px; flex-wrap:wrap; margin:16px 0; }
+  button { background:#1c2030; color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:8px 12px; cursor:pointer; }
+  button[aria-pressed="true"] { border-color:var(--ok); color:var(--ok); }
+  pre { background:#0c0e14; border:1px solid var(--line); border-radius:10px; padding:14px; overflow:auto; font:13px/1.45 ui-monospace, monospace; white-space:pre; }
+  .bad { border-color:var(--bad); }
+  .ok { border-color:var(--ok); }
+  .note { font-size:14px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>One glyph, not two</h1>
+  <p>Issue 4159. A non-terminal host (Devin desktop, about 700px) cannot hold a 100-column board. The same skill must not load twice.</p>
+  <div class="row" role="group" aria-label="Host">
+    <button type="button" id="tty" aria-pressed="false">Terminal (TTY)</button>
+    <button type="button" id="chat" aria-pressed="true">Devin / chat (non-TTY)</button>
+  </div>
+  <pre id="board" class="ok"></pre>
+  <p class="note" id="width"></p>
+  <h2>Invocation</h2>
+  <div class="row">
+    <button type="button" id="once" aria-pressed="true">Single render</button>
+    <button type="button" id="twice" aria-pressed="false">Double invoke (bug)</button>
+  </div>
+  <pre id="invokes" class="ok"></pre>
+</main>
+<script>
+const WIDE = [
+  "deal          pending review",
+  "feat #5       stacked on main",
+  "stack         three open PRs",
+  "core          hooks untouched",
+  "lane          glyph + doctor",
+].join("\n");
+const NARROW = [
+  "deal    pending review",
+  "feat    #5 stacked",
+  "stack   3 open PRs",
+  "core    hooks idle",
+  "lane    glyph, doctor",
+].join("\n");
+const board = document.getElementById("board");
+const width = document.getElementById("width");
+const invokes = document.getElementById("invokes");
+function host(nonTty) {
+  document.getElementById("tty").setAttribute("aria-pressed", String(!nonTty));
+  document.getElementById("chat").setAttribute("aria-pressed", String(nonTty));
+  board.textContent = nonTty ? NARROW : WIDE;
+  board.className = nonTty ? "ok" : "bad";
+  const longest = (nonTty ? NARROW : WIDE).split("\n").reduce((m, l) => Math.max(m, l.length), 0);
+  width.textContent = nonTty
+    ? "Non-TTY cap: longest line is " + longest + " columns (limit 72). Vertical list, not side-by-side."
+    : "TTY board is wider on purpose. The same bytes in a 700px chat pane are the defect.";
+}
+function invoke(single) {
+  document.getElementById("once").setAttribute("aria-pressed", String(single));
+  document.getElementById("twice").setAttribute("aria-pressed", String(!single));
+  invokes.className = single ? "ok" : "bad";
+  invokes.textContent = single
+    ? "Invoked skill glyph\n(render here; do not call ork:glyph)"
+    : "Invoked skill glyph\nInvoked skill ork:glyph\n(second load re-enters planning)";
+}
+document.getElementById("tty").onclick = () => host(false);
+document.getElementById("chat").onclick = () => host(true);
+document.getElementById("once").onclick = () => invoke(true);
+document.getElementById("twice").onclick = () => invoke(false);
+host(true);
+invoke(true);
+</script>
+</body>
+</html>

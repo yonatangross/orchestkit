@@ -1,0 +1,638 @@
+[
+  {
+    "from": "/docs/cookbook/claude-design-handoff",
+    "to": "/docs/skills/design-to-code"
+  },
+  {
+    "from": "/docs/hooks/architecture",
+    "to": "/docs/hooks/input"
+  },
+  {
+    "from": "/docs/hooks/spotlights/pattern-consistency-enforcer",
+    "to": "/docs/hooks/reference/pretool-write-edit"
+  },
+  {
+    "from": "/docs/reference/hooks/spotlights/pattern-consistency-enforcer",
+    "to": "/docs/hooks/reference/pretool-write-edit"
+  },
+  {
+    "from": "/docs/reference/skills/agent-orchestration",
+    "to": "/docs/reference/skills/*action.args"
+  },
+  {
+    "from": "/docs/reference/skills/agent-orchestration",
+    "to": "/docs/reference/skills/task,"
+  },
+  {
+    "from": "/docs/reference/skills/agent-orchestration",
+    "to": "/docs/reference/skills/task,"
+  },
+  {
+    "from": "/docs/reference/skills/ai-ui-generation",
+    "to": "/docs/reference/skills/references/ai-ui-tool-comparison.md"
+  },
+  {
+    "from": "/docs/reference/skills/ai-ui-generation",
+    "to": "/docs/reference/skills/references/prompt-templates-library.md"
+  },
+  {
+    "from": "/docs/reference/skills/ai-ui-generation",
+    "to": "/docs/reference/skills/references/ai-ui-failure-modes.md"
+  },
+  {
+    "from": "/docs/reference/skills/animation-motion-design",
+    "to": "/docs/reference/skills/references/motion-vs-view-transitions.md"
+  },
+  {
+    "from": "/docs/reference/skills/animation-motion-design",
+    "to": "/docs/reference/skills/references/animation-presets-library.md"
+  },
+  {
+    "from": "/docs/reference/skills/animation-motion-design",
+    "to": "/docs/reference/skills/references/micro-interactions-catalog.md"
+  },
+  {
+    "from": "/docs/reference/skills/architecture-decision-record",
+    "to": "/docs/reference/skills/rules/interrogation-scalability.md"
+  },
+  {
+    "from": "/docs/reference/skills/architecture-decision-record",
+    "to": "/docs/reference/skills/rules/interrogation-reliability.md"
+  },
+  {
+    "from": "/docs/reference/skills/architecture-decision-record",
+    "to": "/docs/reference/skills/rules/interrogation-security.md"
+  },
+  {
+    "from": "/docs/reference/skills/architecture-decision-record",
+    "to": "/docs/reference/migration/api-v1-to-v2.md"
+  },
+  {
+    "from": "/docs/reference/skills/architecture-decision-record",
+    "to": "/docs/reference/skills/adr-0015-graphql-gateway.md"
+  },
+  {
+    "from": "/docs/reference/skills/architecture-decision-record",
+    "to": "/docs/reference/skills/adr-0002-postgresql.md"
+  },
+  {
+    "from": "/docs/reference/skills/architecture-decision-record",
+    "to": "/docs/reference/skills/adr-0003-api-versioning.md"
+  },
+  {
+    "from": "/docs/reference/skills/architecture-decision-record",
+    "to": "/docs/reference/skills/adr-0010-nosql-migration.md"
+  },
+  {
+    "from": "/docs/reference/skills/architecture-decision-record",
+    "to": "/docs/reference/skills/adr-0015-graphql-gateway.md"
+  },
+  {
+    "from": "/docs/reference/skills/architecture-decision-record",
+    "to": "/docs/reference/docs/adr/adr-0015-graphql-gateway.md"
+  },
+  {
+    "from": "/docs/reference/skills/architecture-decision-record",
+    "to": "/docs/reference/skills/internal-wiki/benchmarks"
+  },
+  {
+    "from": "/docs/reference/skills/assess",
+    "to": "/docs/reference/skills/agent-teams-mode.md"
+  },
+  {
+    "from": "/docs/reference/skills/assess",
+    "to": "/docs/reference/skills/scope-discovery.md"
+  },
+  {
+    "from": "/docs/reference/skills/assess",
+    "to": "/docs/reference/skills/alternative-analysis.md"
+  },
+  {
+    "from": "/docs/reference/skills/assess",
+    "to": "/docs/reference/skills/improvement-prioritization.md"
+  },
+  {
+    "from": "/docs/reference/skills/assess",
+    "to": "/docs/reference/skills/scoring-rubric.md"
+  },
+  {
+    "from": "/docs/reference/skills/browser-tools",
+    "to": "/docs/reference/skills/references/issue-taxonomy.md"
+  },
+  {
+    "from": "/docs/reference/skills/browser-tools",
+    "to": "/docs/reference/skills/references/issue-taxonomy.md"
+  },
+  {
+    "from": "/docs/reference/skills/browser-tools",
+    "to": "/docs/reference/skills/templates/dogfood-report-template.md"
+  },
+  {
+    "from": "/docs/reference/skills/business-case",
+    "to": "/docs/reference/skills/rules/business-cost-benefit.md"
+  },
+  {
+    "from": "/docs/reference/skills/business-case",
+    "to": "/docs/reference/skills/rules/business-roi.md"
+  },
+  {
+    "from": "/docs/reference/skills/business-case",
+    "to": "/docs/reference/skills/rules/business-cost-benefit.md"
+  },
+  {
+    "from": "/docs/reference/skills/business-case",
+    "to": "/docs/reference/skills/references/roi-calculation-guide.md"
+  },
+  {
+    "from": "/docs/reference/skills/business-case",
+    "to": "/docs/reference/skills/references/build-buy-partner-decision.md"
+  },
+  {
+    "from": "/docs/reference/skills/competitive-analysis",
+    "to": "/docs/reference/skills/rules/market-competitive.md"
+  },
+  {
+    "from": "/docs/reference/skills/competitive-analysis",
+    "to": "/docs/reference/skills/references/competitive-analysis-guide.md"
+  },
+  {
+    "from": "/docs/reference/skills/design-system-tokens",
+    "to": "/docs/reference/skills/references/w3c-token-spec.md"
+  },
+  {
+    "from": "/docs/reference/skills/design-system-tokens",
+    "to": "/docs/reference/skills/references/style-dictionary-config.md"
+  },
+  {
+    "from": "/docs/reference/skills/design-system-tokens",
+    "to": "/docs/reference/skills/references/token-naming-conventions.md"
+  },
+  {
+    "from": "/docs/reference/skills/design-system-tokens",
+    "to": "/docs/reference/references/w3c-token-spec.md"
+  },
+  {
+    "from": "/docs/reference/skills/design-system-tokens",
+    "to": "/docs/reference/references/w3c-token-spec.md"
+  },
+  {
+    "from": "/docs/reference/skills/design-system-tokens",
+    "to": "/docs/reference/references/token-naming-conventions.md"
+  },
+  {
+    "from": "/docs/reference/skills/design-system-tokens",
+    "to": "/docs/reference/references/style-dictionary-config.md"
+  },
+  {
+    "from": "/docs/reference/skills/design-system-tokens",
+    "to": "/docs/reference/references/w3c-token-spec.md"
+  },
+  {
+    "from": "/docs/reference/skills/design-system-tokens",
+    "to": "/docs/reference/references/token-naming-conventions.md"
+  },
+  {
+    "from": "/docs/reference/skills/design-system-tokens",
+    "to": "/docs/reference/references/token-naming-conventions.md"
+  },
+  {
+    "from": "/docs/reference/skills/doctor/rules",
+    "to": "/docs/reference/skills/references/memory-health.md"
+  },
+  {
+    "from": "/docs/reference/skills/doctor/rules",
+    "to": "/docs/reference/skills/references/version-compatibility.md"
+  },
+  {
+    "from": "/docs/reference/skills/documentation-patterns",
+    "to": "/docs/reference/skills/CONTRIBUTING.md"
+  },
+  {
+    "from": "/docs/reference/skills/documentation-patterns",
+    "to": "/docs/reference/skills/LICENSE"
+  },
+  {
+    "from": "/docs/reference/skills/dream",
+    "to": "/docs/reference/skills/filename.md"
+  },
+  {
+    "from": "/docs/reference/skills/dream",
+    "to": "/docs/reference/skills/file.md"
+  },
+  {
+    "from": "/docs/reference/skills/emulate-seed",
+    "to": "/docs/agents/emulate-engineer.md"
+  },
+  {
+    "from": "/docs/reference/skills/expect",
+    "to": "/docs/reference/skills/[^\"\\']+"
+  },
+  {
+    "from": "/docs/reference/skills/expect",
+    "to": "/docs/reference/skills/ or "
+  },
+  {
+    "from": "/docs/reference/skills/explore",
+    "to": "/docs/reference/skills/exploration-agents.md"
+  },
+  {
+    "from": "/docs/reference/skills/explore",
+    "to": "/docs/reference/references/code-health-rubric.md"
+  },
+  {
+    "from": "/docs/reference/skills/explore",
+    "to": "/docs/reference/references/dependency-analysis.md"
+  },
+  {
+    "from": "/docs/reference/skills/explore",
+    "to": "/docs/reference/references/findability-patterns.md"
+  },
+  {
+    "from": "/docs/reference/skills/figma-design-handoff",
+    "to": "/docs/reference/skills/references/figma-to-code-workflow.md"
+  },
+  {
+    "from": "/docs/reference/skills/figma-design-handoff",
+    "to": "/docs/reference/skills/references/design-dev-communication.md"
+  },
+  {
+    "from": "/docs/reference/skills/figma-design-handoff",
+    "to": "/docs/reference/skills/references/applitools-figma-plugin.md"
+  },
+  {
+    "from": "/docs/reference/skills/fix-issue",
+    "to": "/docs/reference/skills/similar-issue-search.md"
+  },
+  {
+    "from": "/docs/reference/skills/fix-issue",
+    "to": "/docs/reference/skills/hypothesis-rca.md"
+  },
+  {
+    "from": "/docs/reference/skills/fix-issue",
+    "to": "/docs/reference/skills/agent-teams-rca.md"
+  },
+  {
+    "from": "/docs/reference/skills/fix-issue",
+    "to": "/docs/reference/skills/prevention-patterns.md"
+  },
+  {
+    "from": "/docs/reference/skills/github-operations",
+    "to": "/docs/reference/skills/ork-delta.md"
+  },
+  {
+    "from": "/docs/reference/skills/github-operations",
+    "to": "/docs/reference/skills/cli-vs-api-identifiers.md"
+  },
+  {
+    "from": "/docs/reference/skills/github-operations",
+    "to": "/docs/reference/skills/ork-delta.md"
+  },
+  {
+    "from": "/docs/reference/skills/github-operations",
+    "to": "/docs/reference/skills/cli-vs-api-identifiers.md"
+  },
+  {
+    "from": "/docs/reference/skills/github-operations",
+    "to": "/docs/reference/skills/ork-delta.md"
+  },
+  {
+    "from": "/docs/reference/skills/github-operations",
+    "to": "/docs/reference/skills/cli-vs-api-identifiers.md"
+  },
+  {
+    "from": "/docs/reference/skills/github-operations",
+    "to": "/docs/reference/references/ork-delta.md"
+  },
+  {
+    "from": "/docs/reference/skills/github-operations",
+    "to": "/docs/reference/references/issue-management.md"
+  },
+  {
+    "from": "/docs/reference/skills/github-operations",
+    "to": "/docs/reference/references/milestone-api.md"
+  },
+  {
+    "from": "/docs/reference/skills/github-operations",
+    "to": "/docs/reference/references/graphql-api.md"
+  },
+  {
+    "from": "/docs/reference/skills/github-operations",
+    "to": "/docs/reference/references/pr-workflows.md"
+  },
+  {
+    "from": "/docs/reference/skills/implement/references",
+    "to": "/docs/reference/skills/implement/agent-teams-full-stack.md"
+  },
+  {
+    "from": "/docs/reference/skills/implement/references",
+    "to": "/docs/reference/skills/implement/team-worktree-setup.md"
+  },
+  {
+    "from": "/docs/reference/skills/implement/references",
+    "to": "/docs/reference/skills/implement/scope-creep-detection.md"
+  },
+  {
+    "from": "/docs/reference/skills/implement/references",
+    "to": "/docs/reference/skills/implement/team-worktree-setup.md"
+  },
+  {
+    "from": "/docs/reference/skills/implement/references",
+    "to": "/docs/reference/skills/implement/agent-teams-full-stack.md"
+  },
+  {
+    "from": "/docs/reference/skills/implement/references",
+    "to": "/docs/reference/skills/implement/team-worktree-setup.md"
+  },
+  {
+    "from": "/docs/reference/skills/implement/references",
+    "to": "/docs/reference/skills/implement/worktree-workflow.md"
+  },
+  {
+    "from": "/docs/reference/skills/interaction-patterns",
+    "to": "/docs/reference/skills/references/loading-states-decision-tree.md"
+  },
+  {
+    "from": "/docs/reference/skills/interaction-patterns",
+    "to": "/docs/reference/skills/references/interaction-pattern-catalog.md"
+  },
+  {
+    "from": "/docs/reference/skills/interaction-patterns",
+    "to": "/docs/reference/skills/references/keyboard-interaction-matrix.md"
+  },
+  {
+    "from": "/docs/reference/skills/interaction-patterns",
+    "to": "/docs"
+  },
+  {
+    "from": "/docs/reference/skills/interaction-patterns",
+    "to": "/docs"
+  },
+  {
+    "from": "/docs/reference/skills/issue-progress-tracking",
+    "to": "/docs/reference/skills/rules/start-work-ceremony.md"
+  },
+  {
+    "from": "/docs/reference/skills/issue-progress-tracking",
+    "to": "/docs/reference/skills/rules/small-commits.md"
+  },
+  {
+    "from": "/docs/reference/skills/llm-integration",
+    "to": "/docs/reference/skills/json.loads(action_input"
+  },
+  {
+    "from": "/docs/reference/skills/market-sizing",
+    "to": "/docs/reference/skills/rules/market-tam-sam-som.md"
+  },
+  {
+    "from": "/docs/reference/skills/market-sizing",
+    "to": "/docs/reference/skills/references/tam-sam-som-guide.md"
+  },
+  {
+    "from": "/docs/reference/skills/mcp-patterns",
+    "to": "/docs/reference/skills/result.data"
+  },
+  {
+    "from": "/docs/reference/skills/mcp-patterns",
+    "to": "/docs/reference/skills/input_data"
+  },
+  {
+    "from": "/docs/reference/skills/memory",
+    "to": "/docs/reference/skills/mermaid-patterns.md"
+  },
+  {
+    "from": "/docs/reference/skills/monitoring-observability",
+    "to": "/docs/QUALITY_INITIATIVE_FIXES.md"
+  },
+  {
+    "from": "/docs/reference/skills/okr-design",
+    "to": "/docs/reference/skills/references/okr-workshop-guide.md"
+  },
+  {
+    "from": "/docs/reference/skills/okr-design",
+    "to": "/docs/reference/skills/rules/metrics-okr.md"
+  },
+  {
+    "from": "/docs/reference/skills/okr-design",
+    "to": "/docs/reference/skills/rules/metrics-kpi-trees.md"
+  },
+  {
+    "from": "/docs/reference/skills/okr-design",
+    "to": "/docs/reference/skills/rules/metrics-leading-lagging.md"
+  },
+  {
+    "from": "/docs/reference/skills/okr-design",
+    "to": "/docs/reference/skills/rules/metrics-instrumentation.md"
+  },
+  {
+    "from": "/docs/reference/skills/okr-design",
+    "to": "/docs/reference/skills/rules/metrics-experiment-design.md"
+  },
+  {
+    "from": "/docs/reference/skills/performance",
+    "to": "/docs/QUALITY_INITIATIVE_FIXES.md"
+  },
+  {
+    "from": "/docs/reference/skills/portless",
+    "to": "/docs/examples/google-oauth"
+  },
+  {
+    "from": "/docs/reference/skills/prioritization",
+    "to": "/docs/reference/skills/rules/prioritize-rice.md"
+  },
+  {
+    "from": "/docs/reference/skills/prioritization",
+    "to": "/docs/reference/skills/rules/prioritize-wsjf.md"
+  },
+  {
+    "from": "/docs/reference/skills/prioritization",
+    "to": "/docs/reference/skills/references/wsjf-guide.md"
+  },
+  {
+    "from": "/docs/reference/skills/prioritization",
+    "to": "/docs/reference/skills/rules/prioritize-opportunity-cost.md"
+  },
+  {
+    "from": "/docs/reference/skills/prioritization",
+    "to": "/docs/reference/skills/references/rice-scoring-guide.md"
+  },
+  {
+    "from": "/docs/reference/skills/review-pr",
+    "to": "/docs/reference/skills/rules/agent-prompts-task-tool.md"
+  },
+  {
+    "from": "/docs/reference/skills/review-pr",
+    "to": "/docs/reference/skills/rules/agent-prompts-agent-teams.md"
+  },
+  {
+    "from": "/docs/reference/skills/review-pr",
+    "to": "/docs/reference/skills/rules/ai-code-review-agent.md"
+  },
+  {
+    "from": "/docs/reference/skills/review-pr",
+    "to": "/docs/reference/skills/rules/ai-code-review-agent.md"
+  },
+  {
+    "from": "/docs/reference/skills/review-pr",
+    "to": "/docs/reference/skills/agent-prompts-task-tool.md"
+  },
+  {
+    "from": "/docs/reference/skills/review-pr",
+    "to": "/docs/reference/skills/cross-model-output.schema.json"
+  },
+  {
+    "from": "/docs/reference/skills/task-dependency-patterns",
+    "to": "/docs/reference/references/multi-agent-coordination.md"
+  },
+  {
+    "from": "/docs/reference/skills/task-dependency-patterns",
+    "to": "/docs/reference/references/status-workflow.md"
+  },
+  {
+    "from": "/docs/reference/skills/task-dependency-patterns",
+    "to": "/docs/reference/references/dependency-tracking.md"
+  },
+  {
+    "from": "/docs/reference/skills/testing-integration",
+    "to": "/docs/agents/emulate-engineer.md"
+  },
+  {
+    "from": "/docs/reference/skills/ui-components",
+    "to": "/docs/reference/skills/references/ork-delta.md"
+  },
+  {
+    "from": "/docs/reference/skills/ui-components",
+    "to": "/docs/reference/skills/references/ork-delta.md"
+  },
+  {
+    "from": "/docs/reference/skills/ui-components",
+    "to": "/docs/reference/skills/references/ork-delta.md"
+  },
+  {
+    "from": "/docs/reference/skills/ui-components",
+    "to": "/docs/reference/skills/references/ork-delta.md"
+  },
+  {
+    "from": "/docs/reference/skills/ui-components",
+    "to": "/docs/reference/skills/scripts"
+  },
+  {
+    "from": "/docs/reference/skills/ui-components",
+    "to": "/docs/reference/skills/references/ork-delta.md"
+  },
+  {
+    "from": "/docs/reference/skills/user-research",
+    "to": "/docs/reference/skills/rules/research-personas.md"
+  },
+  {
+    "from": "/docs/reference/skills/user-research",
+    "to": "/docs/reference/skills/rules/research-journey-mapping.md"
+  },
+  {
+    "from": "/docs/reference/skills/user-research",
+    "to": "/docs/reference/skills/rules/research-user-interviews.md"
+  },
+  {
+    "from": "/docs/reference/skills/user-research",
+    "to": "/docs/reference/skills/references/interview-guide-template.md"
+  },
+  {
+    "from": "/docs/reference/skills/user-research",
+    "to": "/docs/reference/skills/references/journey-map-workshop.md"
+  },
+  {
+    "from": "/docs/reference/skills/user-research",
+    "to": "/docs/reference/skills/references/user-story-workshop-guide.md"
+  },
+  {
+    "from": "/docs/reference/skills/verify/references",
+    "to": "/docs/reference/skills/verify/quality-model.md"
+  },
+  {
+    "from": "/docs/reference/skills/verify/references",
+    "to": "/docs/reference/skills/verify/verification-manifest.md"
+  },
+  {
+    "from": "/docs/reference/skills/verify/references",
+    "to": "/docs/reference/shared/rules/verification-gate.md"
+  },
+  {
+    "from": "/docs/reference/skills/verify/references",
+    "to": "/docs/reference/shared/rules/anti-sycophancy.md"
+  },
+  {
+    "from": "/docs/reference/skills/verify/references",
+    "to": "/docs/reference/skills/verify/quality-model.md"
+  },
+  {
+    "from": "/docs/reference/skills/verify/references",
+    "to": "/docs/reference/skills/verify/grading-rubric.md"
+  },
+  {
+    "from": "/docs/reference/skills/verify/references",
+    "to": "/docs/reference/skills/verify/visual-capture.md"
+  },
+  {
+    "from": "/docs/reference/skills/verify/references",
+    "to": "/docs/reference/skills/verify/quality-model.md"
+  },
+  {
+    "from": "/docs/reference/skills/verify/references",
+    "to": "/docs/reference/skills/verify/grading-rubric.md"
+  },
+  {
+    "from": "/docs/reference/skills/verify/references",
+    "to": "/docs/reference/skills/verify/quality-model.md"
+  },
+  {
+    "from": "/docs/reference/skills/verify/references",
+    "to": "/docs/reference/skills/verify/alternative-comparison.md"
+  },
+  {
+    "from": "/docs/reference/skills/verify/references",
+    "to": "/docs/reference/skills/verify/report-template.md"
+  },
+  {
+    "from": "/docs/reference/skills/verify/references",
+    "to": "/docs/reference/skills/verify/[^\\\"']+"
+  },
+  {
+    "from": "/docs/reference/skills/verify/rules",
+    "to": "/docs/reference/skills/references/quality-model.md"
+  },
+  {
+    "from": "/docs/reference/skills/verify/rules",
+    "to": "/docs/reference/skills/references/quality-model.md"
+  },
+  {
+    "from": "/docs/reference/skills/verify/rules",
+    "to": "/docs/reference/skills/references/policy-as-code.md"
+  },
+  {
+    "from": "/docs/reference/skills/vite-advanced",
+    "to": "/docs/reference/skills/react|react-dom|scheduler"
+  },
+  {
+    "from": "/docs/reference/skills/vite-advanced",
+    "to": "/docs/reference/skills/react-router|react-router-dom"
+  },
+  {
+    "from": "/docs/reference/skills/write-prd",
+    "to": "/docs/reference/skills/rules/research-requirements-prd.md"
+  },
+  {
+    "from": "/docs/reference/skills/write-prd",
+    "to": "/docs/reference/skills/rules/strategy-value-prop.md"
+  },
+  {
+    "from": "/docs/reference/skills/write-prd",
+    "to": "/docs/reference/skills/rules/strategy-go-no-go.md"
+  },
+  {
+    "from": "/docs/reference/skills/write-prd",
+    "to": "/docs/reference/skills/references/output-templates.md"
+  },
+  {
+    "from": "/docs/reference/skills/write-prd",
+    "to": "/docs/reference/skills/references/value-prop-canvas-guide.md"
+  }
+]

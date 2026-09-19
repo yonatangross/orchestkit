@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>51 skill scripts get a real syntax + lint gate</title>
+<meta name="description" content="Issue #3500: src/skills ships 51 Python scripts with zero CI coverage. A new lint-job step runs compileall and ruff check src/skills. Toggle a broken script to see the gate fail.">
+<style>
+  :root{--bg:#0f1117;--panel:#161922;--edge:#272b38;--ink:#e8eaf2;--dim:#9aa3b8;--ok:#4ade80;--bad:#f87171;--warn:#fbbf24;--accent:#7dd3fc;--mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;}
+  *{box-sizing:border-box} body{margin:0;padding:2.5rem 1.25rem;background:var(--bg);color:var(--ink);font-family:var(--mono);line-height:1.55}
+  main{max-width:60rem;margin-inline:auto} h1{font-size:1.25rem;margin:0 0 .35rem} .sub{color:var(--dim);margin:0 0 1.8rem;font-size:.85rem}
+  section{background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:1.15rem 1.35rem;margin-block:1rem}
+  h2{font-size:.85rem;margin:0 0 .75rem;color:var(--accent);text-transform:uppercase;letter-spacing:.05em}
+  .controls{display:flex;gap:.55rem;flex-wrap:wrap;margin:.55rem 0}
+  button{background:#0b0d13;color:var(--ink);border:1px solid var(--edge);border-radius:6px;padding:.4rem .85rem;font-family:inherit;font-size:.8rem;cursor:pointer}
+  button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+  pre{background:#0b0d13;border:1px solid var(--edge);border-radius:8px;padding:.85rem 1rem;font-size:.78rem;overflow:auto;white-space:pre-wrap}
+  table{width:100%;border-collapse:collapse;font-size:.8rem} th,td{text-align:start;padding:.4rem .5rem;border-bottom:1px solid var(--edge)} th{color:var(--dim)}
+  .ok{color:var(--ok)} .bad{color:var(--bad)} .warn{color:var(--warn)} .dim{color:var(--dim)}
+  .verdict{margin-top:.7rem;padding:.65rem .8rem;border:1px solid var(--edge);border-radius:6px;font-size:.85rem}
+  code{background:#0b0d13;border:1px solid var(--edge);border-radius:4px;padding:0 4px}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="51 skill scripts get a real syntax + lint gate"><meta property="og:description" content="Issue #3500: src/skills ships 51 Python scripts with zero CI coverage. A new lint-job step runs compileall and ruff check src/skills; the page toggles a broken script to show the gate fail."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/ci-skill-scripts-ruff-gate.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="51 skill scripts get a real syntax + lint gate"><meta name="twitter:description" content="Issue #3500: src/skills ships 51 Python scripts with zero CI coverage. A new lint-job step runs compileall and ruff check src/skills; the page toggles a broken script to show the gate fail."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+<h1>51 skill scripts get a real syntax + lint gate</h1>
+<p class="sub">Issue <a class="dim" href="https://github.com/yonatangross/orchestkit/issues/3500">#3500</a>. <code>src/skills/**/scripts/</code> ships 51 Python scripts; the only Python CI jobs cover the hook-contract and orchestkit-py packages, never these. The new step lives in ci.yml's lint job.</p>
+
+<section>
+<h2>The new CI step</h2>
+<pre>python3 -m compileall -q src/skills
+python3 -m pip install --quiet "ruff&gt;=0.8.0"
+ruff check src/skills</pre>
+<p class="dim">compileall catches syntax errors. ruff runs under the repo <code>pyproject.toml</code> (target py313; <code>**/skills/*/templates</code> and <code>**/skills/*/examples</code> excluded).</p>
+</section>
+
+<section>
+<h2>What had to be fixed for a green gate</h2>
+<table>
+  <thead><tr><th>rule</th><th>count</th><th>example fix</th></tr></thead>
+  <tbody>
+    <tr><td>UP017</td><td>13</td><td class="dim"><code>timezone.utc</code> → <code>datetime.UTC</code></td></tr>
+    <tr><td>UP031</td><td>11</td><td class="dim"><code>"%s" % x</code> → f-string</td></tr>
+    <tr><td>PTH1xx</td><td>15</td><td class="dim"><code>open(p)</code> → <code>Path(p).open()</code></td></tr>
+    <tr><td>I001 / F4xx</td><td>17</td><td class="dim">import sort, unused imports/vars</td></tr>
+    <tr><td>UP042 / UP047</td><td>4</td><td class="dim"><code>str,Enum</code> → <code>StrEnum</code>, PEP-695 generics</td></tr>
+    <tr><td>E402 / SIM / B9xx</td><td>15</td><td class="dim">import order, ternaries, <code>raise ... from</code>, <code>zip(strict=)</code></td></tr>
+  </tbody>
+</table>
+<p class="dim">Six dead <code>system = """…"""</code> prompt strings in rag-retrieval templates became module-level <code>*_SYSTEM_PROMPT</code> constants instead of being deleted.</p>
+</section>
+
+<section>
+<h2>Prove the gate bites</h2>
+<p class="dim">The step was verified by appending a syntax error to a real script. Pick the tree state, then run the simulated gate.</p>
+<div class="controls" role="group" aria-label="tree state">
+  <button id="btn-clean" aria-pressed="true">Tree as committed</button>
+  <button id="btn-broken" aria-pressed="false">+ <code>def broken(:</code> in staleness_lib.py</button>
+</div>
+<div class="controls">
+  <button id="btn-run">Run gate</button>
+</div>
+<pre id="out">$ python3 -m compileall -q src/skills && ruff check src/skills</pre>
+<div id="verdict" class="verdict"></div>
+</section>
+
+<footer class="sub">OrchestKit lab page. Source: <code>docs/ci--skill-scripts-ruff-gate/index.html</code>.</footer>
+</main>
+<script>
+const btns = {clean: document.getElementById('btn-clean'), broken: document.getElementById('btn-broken')};
+let state = 'clean';
+for (const k of Object.keys(btns)) btns[k].onclick = () => { state = k; for (const j of Object.keys(btns)) btns[j].setAttribute('aria-pressed', j === k); };
+const out = document.getElementById('out'), verdict = document.getElementById('verdict');
+document.getElementById('btn-run').onclick = () => {
+  if (state === 'clean') {
+    out.textContent = '$ python3 -m compileall -q src/skills && ruff check src/skills\nAll checks passed!\nexit 0';
+    verdict.innerHTML = '<span class="ok">PASS</span> <span class="dim">- 51 scripts compile and lint clean; the step merges.</span>';
+  } else {
+    out.textContent = '$ python3 -m compileall -q src/skills && ruff check src/skills\n*** Error compiling \'src/skills/memory/scripts/staleness_lib.py\'...\n  File "staleness_lib.py", line 202\n    def broken(:\n               ^\nSyntaxError: invalid syntax\nexit 1';
+    verdict.innerHTML = '<span class="bad">FAIL</span> <span class="dim">- measured live: compileall exited 1 and ruff reported 2 errors on the same file.</span>';
+  }
+};
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

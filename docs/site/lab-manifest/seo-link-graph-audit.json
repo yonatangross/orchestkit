@@ -1,0 +1,13 @@
+{
+  "slug": "seo-link-graph-audit",
+  "source": "docs/feat--seo-link-graph/index.html",
+  "title": "The Docs Link Graph, Measured",
+  "description": "Before generating internal links we measured the graph: 313 mdx pages, 790 deduplicated internal edges, 32 orphan pages with zero inbound links, 159 broken /docs targets kept in evidence rather than dropped. Filter and sort the orphan and top-outbound tables yourself.",
+  "tags": [
+    "seo",
+    "docs-site",
+    "link-graph",
+    "audit"
+  ],
+  "date": "2026-09-19"
+}
