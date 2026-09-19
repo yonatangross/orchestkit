@@ -80,9 +80,47 @@ const MD_LINK_RE = /(?<!!)\[[^\]\n]*\]\(\s*<?([^)\s>]+)>?[^)]*\)/g;
 const JSX_HREF_RE =
 	/\bhref\s*=\s*(?:\{\s*["'`]([^"'`]+)["'`]\s*\}|["'`]([^"'`]+)["'`])/g;
 
+// Fenced code blocks (``` or ~~~, to the matching fence run or EOF) and
+// inline `code` spans are not prose: regex or import examples inside them can
+// carry [x](y) or href= text that is not a real link. In the 2026-09-19 audit
+// they produced 26 of the 159 broken rows and 33 of the 44 non-docs rows.
+// The closing fence must be the same marker char with length >= the opener:
+// this corpus uses ```` fences precisely to hold nested ``` examples, which a
+// loose `{3,}` closer would terminate early, while a same-char closer longer
+// than the opener is valid per CommonMark.
+const INLINE_CODE_RE = /`[^`\n]*`/g;
+const FENCE_OPEN_RE = /^[ \t]*(`{3,}|~{3,})/;
+
+function stripCode(body) {
+	const out = [];
+	let fence = null; // { ch, len } while inside a block
+	for (const line of body.split("\n")) {
+		if (fence === null) {
+			const open = FENCE_OPEN_RE.exec(line);
+			if (open) {
+				fence = { ch: open[1][0], len: open[1].length };
+				out.push("");
+				continue;
+			}
+			out.push(line);
+			continue;
+		}
+		const trimmed = line.trim();
+		if (
+			trimmed.length >= fence.len &&
+			trimmed.split("").every((c) => c === fence.ch)
+		) {
+			fence = null;
+		}
+		out.push("");
+	}
+	return out.join("\n").replace(INLINE_CODE_RE, "");
+}
+
 function* rawHrefs(body) {
-	for (const m of body.matchAll(MD_LINK_RE)) yield m[1];
-	for (const m of body.matchAll(JSX_HREF_RE)) yield m[1] ?? m[2];
+	const prose = stripCode(body);
+	for (const m of prose.matchAll(MD_LINK_RE)) yield m[1];
+	for (const m of prose.matchAll(JSX_HREF_RE)) yield m[1] ?? m[2];
 }
 
 function isExternal(href) {
