@@ -1,7 +1,7 @@
 [project]
 name = "orchestkit"
 version = "10.0.0-beta.57" # x-release-please-version
-description = "OrchestKit Complete - AI-assisted development toolkit for Claude Code with 107 skills, 36 agents, and 171 hooks"
+description = "OrchestKit Complete - AI-assisted development toolkit for Claude Code with 108 skills, 36 agents, and 171 hooks"
 requires-python = ">=3.11"
 readme = "README.md"
 license = {text = "MIT"}
@@ -47,13 +47,20 @@ exclude = [
     "**/skills/*/examples",
 ]
 
+# src/skills scripts must run on the declared requires-python floor (>=3.11),
+# not the py313 the rest of the repo targets. Under py313 the UP rules treat
+# PEP 695 generics (`def f[T: BaseModel]`, Python 3.12+) as a legal rewrite,
+# which is how #4265 shipped one into a >=3.11 codebase. Scoped to py311, the
+# UP046/UP047 family can never suggest that rewrite again.
+[tool.ruff.per-file-target-version]
+"src/skills/**" = "py311"
+
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM", "PTH"]
 ignore = [
     "E501",  # Line too long (templates may have long lines for clarity)
     "B008",  # Function call in default argument (FastAPI Depends pattern is intentional)
 ]
-
 [tool.ruff.format]
 quote-style = "double"
 

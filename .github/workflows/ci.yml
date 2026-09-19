@@ -323,10 +323,22 @@ jobs:
       # The 51 Python scripts shipped under src/skills/**/scripts/ had zero CI
       # coverage: hook-contract-py.yml and orchestkit-py.yml lint only their own
       # packages. compileall catches syntax errors; ruff runs under the repo
-      # pyproject.toml config (target py313, templates/examples excluded).
+      # pyproject.toml config, where per-file-target-version pins src/skills
+      # to py311 (the declared requires-python floor) so UP rules can never
+      # again rewrite a TypeVar into PEP 695 generics, which is how #4265
+      # shipped `def call_llm[T: BaseModel]` into a >=3.11 codebase.
+      # The runner's python3 accepts PEP 695 at compile time, so the byte-level
+      # gate needs a real 3.11 interpreter: PATH first, then the
+      # hostedtoolcache layout GitHub images use.
       - name: Python skill scripts (compileall + ruff)
         run: |
           python3 -m compileall -q src/skills
+          PY311="$(command -v python3.11 || ls -d /opt/hostedtoolcache/Python/3.11*/x64/bin/python3 2>/dev/null | head -1 || true)"
+          if [ -n "$PY311" ]; then
+            "$PY311" -m compileall -q src/skills
+          else
+            echo "::notice::no python3.11 on this runner; 3.11 compileall gate skipped"
+          fi
           python3 -m pip install --quiet "ruff>=0.8.0"
           ruff check src/skills
 

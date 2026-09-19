@@ -10,9 +10,12 @@ Copy and adapt for OrchestKit workflows.
 import re
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from typing import TypeVar
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel
+
+T = TypeVar("T", bound=BaseModel)
 
 # ============================================================
 # PLACEHOLDER DEFINITIONS (Replace in your implementation)
@@ -207,7 +210,7 @@ Provide your analysis:
     return prompt
 
 
-async def call_llm[T: BaseModel](prompt: str, schema: type[T]) -> T:
+async def call_llm(prompt: str, schema: type[T]) -> T:
     """
     Phase 2: Call LLM with audited prompt
     """
