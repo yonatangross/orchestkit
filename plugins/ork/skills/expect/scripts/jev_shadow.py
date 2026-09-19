@@ -61,7 +61,7 @@ META_ACTIONS = {
 # Choice for fill-capable elements, a final-state Choice for checkboxes.
 CHECKBOX_ROLES = {"checkbox", "menuitemcheckbox", "switch"}
 
-PROMPT_ID = "jev-shadow-v3"
+PROMPT_ID = "jev-shadow-v4"
 
 # Outbound strings pass every pattern; each match is replaced in place.
 SECRET_PATTERNS = [
@@ -265,9 +265,10 @@ def doc_candidates(doc, cap=48):
 def field_questions(elements, cands, field_cap):
     """Per-field decisions for the form path: which document value a
     fillable element should hold, and the final state of each checkbox.
-    Checkbox options use final-state semantics: keep/do/build/add lists
-    mean check, drop/remove/skip/not-do lists mean uncheck, and only a
-    field the document does not address at all is left as it is."""
+    Checkboxes get two questions: `list::` locates the item's document
+    list (keep/do vs drop/skip vs unlisted) and `field::` asks the final
+    state; the decision derives from the list answer and the state answer
+    cross-checks it."""
     qs = {}
     n = 0
     for e in elements:
@@ -275,15 +276,29 @@ def field_questions(elements, cands, field_cap):
             break
         ref, role, name = e["ref"], e["role"], e["name"] or "(unlabeled)"
         if role in CHECKBOX_ROLES:
+            # Two-step list question (match-then-map): the `list::` answer
+            # locates the item's document list and drives the decision; the
+            # `field::` state answer only cross-checks it. Disagreement is
+            # recorded and forces the field to defer.
+            qs[f"list::{ref}"] = {
+                "type": "choice",
+                "instructions": (
+                    f"Find the item '{name}' in `task_doc`. Which list or "
+                    "section names this exact item?"),
+                "criteria": {
+                    "do": "a keep / do / build / add / verified-done list names it",
+                    "drop": "a drop / remove / skip / hold / revert / not-do list names it",
+                    "none": "the document does not name this item anywhere",
+                },
+            }
             qs[f"field::{ref}"] = {
                 "type": "choice",
                 "instructions": (
-                    f"Find the item '{name}' in `task_doc` and apply its "
-                    "directive. A checked box means the item stays on the "
-                    "active list. What should this checkbox end up as?"),
+                    f"Item '{name}': a checked box means the item stays on "
+                    "the active list. What should this checkbox end up as?"),
                 "criteria": {
-                    "check": "the document lists this item under things to keep, do, build, or add",
-                    "uncheck": "the document lists this item under things to drop, remove, skip, or not do",
+                    "check": "the document wants this item active",
+                    "uncheck": "the document wants this item inactive",
                     "skip": "the document does not address this item at all; leave the box exactly as it is",
                 },
             }
@@ -491,6 +506,7 @@ def main():
     endpoint = os.environ.get(ENV_ENDPOINT) or cfg.get("endpoint")
     thresholds = cfg.get("thresholds")
     conf_floor = cfg.get("act_confidence_floor")
+    list_floor = cfg.get("act_list_confidence_floor")
     field_cap = int(cfg.get("field_cap", 0) or 0)
     doc_max = int(cfg.get("doc_max_chars", 0) or 0)
     prompt_id = args.prompt_id or str(cfg.get("prompt_id", "")) or PROMPT_ID
@@ -586,9 +602,16 @@ def main():
     take_jev = mode == "act" and below_floor is False
 
     # Per-field form decisions: a field is decided by Jev only when its own
-    # confidence clears the same floor; below it the incumbent (the agent's
+    # confidence clears the floor; below it the incumbent (the agent's
     # own pick for that field) stands. Fill values resolve through the
-    # candidate list; checkbox answers map to check/uncheck/skip.
+    # candidate list; checkbox decisions derive from the list-membership
+    # answer (match-then-map), cross-checked against the state answer, and
+    # list fields gate on the raised act_list_confidence_floor.
+    list_answers = {}
+    for qid, ans in (answers or {}).items():
+        if qid.startswith("list::"):
+            list_answers[qid.split("::", 1)[1]] = ans
+
     field_decisions = {}
     executed_action = jev_action if take_jev else incumbent
     answers = body["answers"]
@@ -599,20 +622,42 @@ def main():
         el = next((e for e in elements if e["ref"] == ref), None)
         fconf = ans.get("confidence")
         fchoice = ans.get("choice")
+        is_list_field = bool(el and el["role"] in CHECKBOX_ROLES)
+        eff_floor = list_floor if is_list_field else conf_floor
+        if not isinstance(eff_floor, (int, float)):
+            eff_floor = conf_floor
         fdec = {"jev_pick": fchoice,
                 "jev_confidence": fconf if isinstance(fconf, (int, float)) else None,
-                "floor": conf_floor,
+                "floor": eff_floor,
                 "decided_by": "incumbent"}
-        if (isinstance(fconf, (int, float)) and isinstance(conf_floor, (int, float))
-                and fconf >= conf_floor):
+        if is_list_field:
+            la = list_answers.get(ref) or {}
+            lch = la.get("choice")
+            lconf = la.get("confidence")
+            derived = {"do": "check", "drop": "uncheck", "none": "skip"}.get(lch)
+            fdec["list_pick"] = lch
+            fdec["list_conf"] = lconf if isinstance(lconf, (int, float)) else None
+            if derived is not None:
+                if derived != (fchoice if fchoice in ("check", "uncheck", "skip") else "skip"):
+                    fdec["inconsistent"] = True
+                    fdec["jev_confidence"] = 0.0
+                else:
+                    confs = [c for c in (lconf, fconf) if isinstance(c, (int, float))]
+                    fdec["jev_confidence"] = min(confs) if confs else None
+        eff_conf = fdec["jev_confidence"]
+        if (isinstance(eff_conf, (int, float)) and isinstance(eff_floor, (int, float))
+                and eff_conf >= eff_floor):
             fdec["decided_by"] = "jev"
             if el and el["role"] in FILL_ROLES | SELECT_ROLES:
                 if fchoice and fchoice != "none" and fchoice.startswith("c"):
                     i = int(fchoice[1:])
                     if cands and i < len(cands):
                         fdec["value"] = cands[i]
-            elif el and el["role"] in CHECKBOX_ROLES:
-                fdec["target"] = fchoice if fchoice in ("check", "uncheck", "skip") else "skip"
+            elif is_list_field:
+                if derived is not None:
+                    fdec["target"] = derived
+                else:
+                    fdec["target"] = fchoice if fchoice in ("check", "uncheck", "skip") else "skip"
         field_decisions[ref] = fdec
         # If this field is the step's executed target, carry Jev's decision
         # into the action the agent runs.

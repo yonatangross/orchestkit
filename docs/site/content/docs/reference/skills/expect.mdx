@@ -1293,6 +1293,7 @@ config; nothing is a code constant.
 | `context_max_chars` | Per-field truncation for goal / last verify |
 | `latency_budget_ms` | Abort budget for the one request (default 400) |
 | `act_confidence_floor` | Act mode only: Choice confidence below this falls back to the agent's pick (default 0.5) |
+| `act_list_confidence_floor` | Raised floor for list fields (checkboxes); the two-step list answer and the state answer must agree and clear this floor or the field defers (default 0.7) |
 | `model` | Pinned Jev model id |
 | `endpoint` | POST target (`ORK_EXPECT_JEV_ENDPOINT` overrides, for mocks) |
 | `thresholds.low_confidence` | Choice confidence below this flags the pick |
@@ -1353,21 +1354,26 @@ with `--prompt-id`), and `session_id` (`--session-id`, else
 
 ## Form path (`--task-doc`)
 
-When `--task-doc` carries the step's task document, the request adds one
-`field::&lt;ref&gt;` question per form element (up to `field_cap`): a value
-Choice over candidates extracted from the document for textbox/searchbox/
-spinbutton/combobox/listbox elements, and a final-state Choice
-(check/uncheck/skip) for checkbox-family elements. The checkbox options
-use final-state semantics (items listed under keep/do/build/add mean
-check; items listed under drop/remove/skip/not-do mean uncheck; only a
-field the document does not address at all is left as it is). Per-field
-answers land in `field_decisions` keyed by
-ref, each with `jev_pick`, `jev_confidence`, `floor`, `decided_by`, and
-the resolved `value` or `target` when Jev decided. In act mode, when the
-step's executed action targets a decided field, `executed_action` carries
-the decision through: `fill:@eN="value"`, `check:@eN`, `uncheck:@eN`, or
-`done` when Jev's target is skip. A field Jev answers below the floor
-keeps `decided_by: "incumbent"` and the agent's own handling stands.
+When `--task-doc` carries the step's task document, the request adds
+field questions per form element (up to `field_cap`): a value Choice over
+candidates extracted from the document for textbox/searchbox/spinbutton/
+combobox/listbox elements, and two questions per checkbox-family element:
+`list::&lt;ref&gt;` asks which document list names the item (keep/do/build/add
+vs drop/remove/skip/hold/not-do vs unlisted) and `field::&lt;ref&gt;` asks the
+final state (check/uncheck/skip). The decision is match-then-map: the
+list answer derives the target (do=check, drop=uncheck, none=skip), the
+state answer cross-checks it, and disagreement marks the field
+`inconsistent` and forces deferral. List fields gate on the raised
+`act_list_confidence_floor` (default 0.7); other fields use
+`act_confidence_floor`. Per-field answers land in `field_decisions` keyed
+by ref, each with `jev_pick`, `jev_confidence` (the weaker of the two
+answers for list fields), `list_pick`, `list_conf`, `floor`,
+`decided_by`, and the resolved `value` or `target` when Jev decided. In
+act mode, when the step's executed action targets a decided field,
+`executed_action` carries the decision through: `fill:@eN="value"`,
+`check:@eN`, `uncheck:@eN`, or `done` when Jev's target is skip. A field
+Jev answers below the floor keeps `decided_by: "incumbent"` and the
+agent's own handling stands.
 
 ## Invocation (expect-agent, per step)
 
