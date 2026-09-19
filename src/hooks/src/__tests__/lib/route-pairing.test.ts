@@ -49,8 +49,10 @@ function rows(sessionId = 'session-a'): RouteRecord[] {
 }
 function contract(records: RouteRecord[]) {
   for (const row of records) expect(Object.keys(row)).toEqual(expect.arrayContaining(keys));
-  for (const row of records) expect(row.prompt_id).toEqual(expect.any(String));
-  for (const row of records) expect(row.prompt_id.length).toBeGreaterThan(0);
+  for (const row of records) {
+    expect(row.prompt_id).toEqual(expect.any(String));
+    expect(typeof row.prompt_id === 'string' && row.prompt_id.length > 0).toBe(true);
+  }
 }
 
 describe('route prompt correlation through registered PreToolUse and Stop hooks', () => {
