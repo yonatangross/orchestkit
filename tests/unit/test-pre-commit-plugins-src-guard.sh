@@ -12,7 +12,7 @@
 # The guard is a pure path comparison, so the fixture is just lines on stdin —
 # no disposable git repo needed.
 #
-# Test Count: 10
+# Test Count: 11
 # ============================================================================
 
 set -euo pipefail
@@ -147,6 +147,19 @@ if [[ $GUARD_RC -eq 1 ]]; then
     log_pass "non-generator path does not exempt plugins/-only edit"
 else
     log_fail "non-generator path: rc=$GUARD_RC (want 1), output: $GUARD_OUT"
+fi
+
+# 10. A non-generator scripts/ path does NOT exempt: scripts/eval/,
+# scripts/seed-*.sh and friends produce no plugins/ output, so a
+# plugins/-only edit beside them is still a hand edit in generated output.
+GUARD_RC=0
+GUARD_OUT=$(printf '%s\n' \
+    'scripts/eval/foo.sh' \
+    'plugins/ork/skills/auto/SKILL.md' | bash "$GUARD") || GUARD_RC=$?
+if [[ $GUARD_RC -eq 1 ]] && grep -Fq 'plugins/ork/skills/auto/SKILL.md' <<< "$GUARD_OUT"; then
+    log_pass "non-generator scripts/ path does not exempt plugins/-only edit"
+else
+    log_fail "non-generator scripts/ path: rc=$GUARD_RC (want 1), output: $GUARD_OUT"
 fi
 
 echo ""

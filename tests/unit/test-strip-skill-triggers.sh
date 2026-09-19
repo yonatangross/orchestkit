@@ -11,7 +11,7 @@
 # cannot silently stop stripping (Devin's loader drops the skill) or start
 # eating body content.
 #
-# Test Count: 8
+# Test Count: 9
 # ============================================================================
 
 set -euo pipefail
@@ -165,6 +165,20 @@ next: 1
 ---
 EOF
 assert_transform "inline triggers: {} dropped" "$WORK/in8.md" "$WORK/want8.md"
+
+# 9. An opening fence with no closing delimiter is malformed frontmatter:
+# the input must come out verbatim, including a body-level triggers: block.
+cat > "$WORK/in9.md" <<'EOF'
+---
+name: auto
+triggers:
+  keywords: [a]
+# prose, no closing fence
+triggers:
+  body-level text that must survive
+EOF
+cp "$WORK/in9.md" "$WORK/want9.md"
+assert_transform "unterminated frontmatter emitted verbatim" "$WORK/in9.md" "$WORK/want9.md"
 
 echo ""
 echo "Passed: $TESTS_PASSED  Failed: $TESTS_FAILED"
