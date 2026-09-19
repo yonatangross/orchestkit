@@ -60,7 +60,8 @@ function headingsOf(body) {
 	let fence = null; // { ch, len } while inside a ``` or ~~~ block
 	for (const line of body.split("\n")) {
 		if (fence === null) {
-			const open = /^[ \t]*(`{3,}|~{3,})/.exec(line);
+			// 0-3 leading spaces only: 4+ is indented code, not a fence opener.
+			const open = /^ {0,3}(`{3,}|~{3,})/.exec(line);
 			if (open) {
 				fence = { ch: open[1][0], len: open[1].length };
 				continue;

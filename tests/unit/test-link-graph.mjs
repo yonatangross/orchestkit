@@ -121,6 +121,17 @@ withContentDir((dir, write) => {
     [{ from: '/docs', to: '/docs/after' }]);
 });
 
+withContentDir((dir, write) => {
+  write(
+    'index.mdx',
+    '---\ntitle: Home\n---\n\n# Home\n\nUse ``[Example](/docs/false)`` literally.\n',
+  );
+  const { pages, broken } = buildLinkGraph({ contentDir: dir });
+  check('multi-backtick inline span contributes no link',
+    [pages.get('/docs')?.outbound, broken],
+    [0, []]);
+});
+
 // --- report ------------------------------------------------------------------
 console.log(`  passed: ${passed}`);
 console.log(`  failed: ${failures.length}\n`);

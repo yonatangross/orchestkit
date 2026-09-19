@@ -108,7 +108,10 @@ export async function GET(req: Request) {
 		{
 			headers: {
 				...rateLimitHeaders(rate),
-				"Cache-Control": "public, max-age=300",
+				// private: the body is cacheable but the response also carries
+				// client-specific RateLimit-* state, which a shared cache must
+				// not serve to a different client.
+				"Cache-Control": "private, max-age=300",
 				Vary: "Accept",
 			},
 		},

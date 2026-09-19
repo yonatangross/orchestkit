@@ -88,8 +88,12 @@ const JSX_HREF_RE =
 // this corpus uses ```` fences precisely to hold nested ``` examples, which a
 // loose `{3,}` closer would terminate early, while a same-char closer longer
 // than the opener is valid per CommonMark.
-const INLINE_CODE_RE = /`[^`\n]*`/g;
-const FENCE_OPEN_RE = /^[ \t]*(`{3,}|~{3,})/;
+// Inline code spans: a run of N backticks closes on a run of the SAME N (\1),
+// so ``[x](y)`` (multi-backtick spans holding literal `[` examples) is removed
+// along with `code`. Fences: at most 3 leading spaces (4+ is indented code,
+// not a fence, per CommonMark).
+const INLINE_CODE_RE = /(`+)[^`\n]*?\1/g;
+const FENCE_OPEN_RE = /^ {0,3}(`{3,}|~{3,})/;
 
 function stripCode(body) {
 	const out = [];
