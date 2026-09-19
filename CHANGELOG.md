@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.63](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.62...v10.0.0-beta.63) (2026-09-19)
+
+
+### Bug Fixes
+
+* **eval:** document Langfuse Python SDK v4 and fail zero-item runs ([#4272](https://github.com/yonatangross/orchestkit/issues/4272)) ([5239ca1](https://github.com/yonatangross/orchestkit/commit/5239ca129d79f901a785d7dfe301016fb104dc7f))
+
 ## [10.0.0-beta.62](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.61...v10.0.0-beta.62) (2026-09-19)
 
 
