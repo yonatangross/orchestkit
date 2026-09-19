@@ -35,6 +35,11 @@ let mockWebhookUrl: string | undefined = 'https://hq.example.com/api/hooks';
 
 vi.mock('../../lib/orchestration-state.js', () => ({
   getWebhookUrl: () => mockWebhookUrl,
+  // Mirror the real resolution (#1270): userConfig option env, env fallback.
+  getHookToken: () =>
+    process.env.CLAUDE_PLUGIN_OPTION_HOOKTOKEN ||
+    process.env.ORCHESTKIT_HOOK_TOKEN ||
+    undefined,
 }));
 
 vi.mock('../../lib/paths.js', async (importOriginal) => {
