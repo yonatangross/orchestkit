@@ -197,8 +197,16 @@ jobs:
           # free. HEAD here is the merge ref (base tip + head), so merge-base
           # resolves to the tip itself; on a head-only checkout it resolves to
           # the fork point, which is still the right comparison.
-          git fetch --quiet origin "$BASE_REF"
-          BASE=$(git merge-base "origin/$BASE_REF" HEAD)
+          # This job's checkout is fetch-depth: 1, so the clone is shallow:
+          # unshallow or merge-base exits 1 silently with no common ancestor
+          # (fail-open-by-accident on every PR). FETCH_HEAD names the fetched
+          # base tip even when the shallow fetchspec maps no origin/<base> ref.
+          if [[ "$(git rev-parse --is-shallow-repository)" == true ]]; then
+            git fetch --quiet --unshallow origin "$BASE_REF"
+          else
+            git fetch --quiet origin "$BASE_REF"
+          fi
+          BASE=$(git merge-base FETCH_HEAD HEAD)
           CHANGED=$(git diff --name-only "$BASE" HEAD -- "${DIST[@]}")
           # Inherited, not authored (the #4277 pre-commit exception, applied to
           # CI): a dist path whose committed content equals the current base
@@ -206,7 +214,7 @@ jobs:
           AUTHORED=()
           while IFS= read -r f; do
             [[ -z "$f" ]] && continue
-            git diff --quiet "origin/$BASE_REF" HEAD -- "$f" && continue
+            git diff --quiet FETCH_HEAD HEAD -- "$f" && continue
             AUTHORED+=("$f")
           done <<< "$CHANGED"
           if [[ ${#AUTHORED[@]} -gt 0 ]]; then
