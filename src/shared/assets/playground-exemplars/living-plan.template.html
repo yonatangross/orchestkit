@@ -1,4 +1,19 @@
 <!DOCTYPE html>
+<!--
+  MERMAID IN TABS: never startOnLoad:true inside a tabbed or collapsible layout; render on activate instead.
+  Hidden panels have a zero-size box, so mermaid cannot lay them out on page load, and showing the panel later does not re-render.
+  mermaid.initialize({ startOnLoad: false, theme: 'dark' });
+  const _drawn = new WeakSet();
+  async function draw(panel) {
+    if (!panel) return;
+    const nodes = [...panel.querySelectorAll('.mermaid')].filter((n) => !_drawn.has(n));
+    if (!nodes.length) return;
+    nodes.forEach((n) => _drawn.add(n));
+    try { await mermaid.run({ nodes }); } catch (e) { console.error('mermaid render failed', e); }
+  }
+  Call draw(panel) when a tab or details first becomes visible, and once on load for the panel that is already shown.
+  Full note: skills/visualize-plan/references/format-dispatch.md
+-->
 <html lang="en">
 <!--
   LIVING PLAN template (LPP v2.1) — a plan playground that tracks its own execution.

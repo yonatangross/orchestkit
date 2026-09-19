@@ -1243,6 +1243,31 @@ Hide unavailable options from the AskUserQuestion list and add a one-line instal
 > card routes to an ork strategy (single/workflow/nested/teams/swarm) over the full 36-agent registry and
 > emits a **plan-only** invocation. Seeding recipe + strategy→tooling map: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/visualize-plan/references/decision-router.md")`.
 
+## Mermaid inside tabs
+
+Never `startOnLoad: true` inside a tabbed or collapsible layout; render on activate instead.
+
+`mermaid.initialize(\{ startOnLoad: true \})` renders every `.mermaid` node once, on page load. A tab or `<details>` that starts hidden has a zero-size layout box, so mermaid cannot measure it. The diagram stays broken after the panel is shown, because showing it does not re-render. This is a layout-timing failure, not a syntax one.
+
+```js
+mermaid.initialize({ startOnLoad: false, theme: 'dark' });
+const _drawn = new WeakSet();
+async function draw(panel) {
+  if (!panel) return;
+  const nodes = [...panel.querySelectorAll('.mermaid')].filter((n) => !_drawn.has(n));
+  if (!nodes.length) return;
+  nodes.forEach((n) => _drawn.add(n));
+  try { await mermaid.run({ nodes }); } catch (e) { console.error('mermaid render failed', e); }
+}
+function tab(el) {
+  /* toggle active/show on the matching panel, then: */
+  draw(document.querySelector('.panel[data-p="' + el.dataset.t + '"]'));
+}
+window.addEventListener('load', () => draw(document.querySelector('.panel.show')));
+```
+
+The `WeakSet` guards against double-processing a panel that is shown more than once. Call `draw` for the panel that is visible on load, and again the first time each hidden panel becomes visible. The same rule covers `<details>`: draw inside the `toggle` handler when `open` becomes true, not at `startOnLoad`.
+
 ## Living-plan update mode
 
 A plan that executes over multiple sessions/waves is a **living plan**: one plan = ONE html file that

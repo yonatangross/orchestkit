@@ -1,0 +1,8 @@
+{
+  "slug": "mermaid-tabs",
+  "source": "docs/fix--mermaid-render-on-tab-activate/mermaid-tabs.html",
+  "title": "Mermaid renders when the tab opens",
+  "description": "Hidden tabs start at zero size, so mermaid must render on activate, not on page load. A WeakSet keeps a second visit from drawing the same panel twice.",
+  "tags": ["playground", "mermaid", "tabs"],
+  "date": "2026-09-19"
+}

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mermaid renders when the tab opens</title>
+<meta name="description" content="Hidden tabs start at zero size, so mermaid must render on activate, not on page load.">
+<style>
+  :root {
+    --pg-bg: hsl(232 26% 7%);
+    --pg-ink: hsl(220 18% 93%);
+    --pg-muted: hsl(220 12% 64%);
+    --pg-glass: hsl(0 0% 100% / .05);
+    --pg-glass-edge: hsl(0 0% 100% / .18);
+    --pg-accent: hsl(248 84% 68%);
+    --pg-r-md: 12px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--pg-bg);
+    color: var(--pg-ink);
+    font: 16px/1.5 ui-sans-serif, system-ui, sans-serif;
+    padding: 24px;
+  }
+  h1 { font-size: 1.4rem; margin: 0 0 8px; }
+  p.rule { color: var(--pg-muted); max-width: 62ch; }
+  .tabs { display: flex; gap: 8px; margin: 16px 0; flex-wrap: wrap; }
+  .tabs button {
+    background: var(--pg-glass);
+    color: var(--pg-ink);
+    border: 1px solid var(--pg-glass-edge);
+    border-radius: var(--pg-r-md);
+    padding: 8px 16px;
+    cursor: pointer;
+  }
+  .tabs button[aria-selected="true"] {
+    background: var(--pg-accent);
+    color: hsl(232 26% 7%);
+    border-color: transparent;
+  }
+  .panel { display: none; padding: 16px; border: 1px solid var(--pg-glass-edge); border-radius: var(--pg-r-md); background: var(--pg-glass); }
+  .panel.show { display: block; }
+  .status { margin-top: 12px; color: var(--pg-muted); font-size: 0.9rem; }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<h1>Mermaid renders when the tab opens</h1>
+<p class="rule">Never startOnLoad:true inside a tabbed or collapsible layout. Render on activate. Tabs 2 to 4 start hidden. Their diagrams are drawn the first time you open them, and a second visit does not draw them again.</p>
+<div class="tabs" role="tablist">
+  <button type="button" role="tab" data-t="one" aria-selected="true">Tab 1</button>
+  <button type="button" role="tab" data-t="two" aria-selected="false">Tab 2</button>
+  <button type="button" role="tab" data-t="three" aria-selected="false">Tab 3</button>
+  <button type="button" role="tab" data-t="four" aria-selected="false">Tab 4</button>
+</div>
+<section class="panel show" data-p="one" role="tabpanel">
+  <p>Visible on load. This diagram is drawn once, at load.</p>
+  <pre class="mermaid">flowchart LR
+  A[Page load] --> B[Visible panel]</pre>
+</section>
+<section class="panel" data-p="two" role="tabpanel">
+  <p>Started hidden. Drawn on first activate.</p>
+  <pre class="mermaid">flowchart LR
+  H[Hidden tab] --> Z[Zero size box]
+  Z --> X[startOnLoad fails]</pre>
+</section>
+<section class="panel" data-p="three" role="tabpanel">
+  <p>Same rule, second hidden panel.</p>
+  <pre class="mermaid">flowchart LR
+  S[startOnLoad false] --> R[render on activate]</pre>
+</section>
+<section class="panel" data-p="four" role="tabpanel" dir="rtl">
+  <p>RTL panel. Layout still needs a real box before mermaid measures it.</p>
+  <pre class="mermaid">flowchart RL
+  A[פעיל] --> B[נמדד]</pre>
+</section>
+<p class="status" id="status">waiting</p>
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11.12.2/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({ startOnLoad: false, theme: 'dark' });
+  const _drawn = new WeakSet();
+  const counts = new Map();
+  async function draw(panel) {
+    if (!panel) return;
+    const nodes = [...panel.querySelectorAll('.mermaid')].filter((n) => !_drawn.has(n));
+    if (!nodes.length) return;
+    nodes.forEach((n) => _drawn.add(n));
+    counts.set(panel.dataset.p, (counts.get(panel.dataset.p) || 0) + nodes.length);
+    try { await mermaid.run({ nodes }); } catch (e) { console.error('mermaid render failed', e); }
+    report();
+  }
+  function report() {
+    const parts = ['one', 'two', 'three', 'four'].map((id) => {
+      const panel = document.querySelector('.panel[data-p="' + id + '"]');
+      const svg = panel.querySelectorAll('svg').length;
+      const draws = counts.get(id) || 0;
+      return id + ': svg=' + svg + ' draws=' + draws;
+    });
+    document.getElementById('status').textContent = parts.join(' | ');
+  }
+  function tab(el) {
+    document.querySelectorAll('.tabs button').forEach((b) => b.setAttribute('aria-selected', 'false'));
+    document.querySelectorAll('.panel').forEach((p) => p.classList.remove('show'));
+    el.setAttribute('aria-selected', 'true');
+    const panel = document.querySelector('.panel[data-p="' + el.dataset.t + '"]');
+    panel.classList.add('show');
+    draw(panel);
+  }
+  document.querySelectorAll('.tabs button').forEach((b) => b.addEventListener('click', () => tab(b)));
+  window.addEventListener('load', () => {
+    draw(document.querySelector('.panel.show'));
+    report();
+  });
+</script>
+</body>
+</html>
