@@ -52,10 +52,10 @@ import {
 import {
   FILE_JEV,
   FILE_SHADOW,
-  JEV_CONFIDENCE_THRESHOLD,
   decideCategory,
   readJevDecision,
   recordCategoryShadow,
+  resolveCategoryJevFloor,
   startJevCategory,
   type JevCategoryResult,
 } from './session-category-provider.js';
@@ -378,15 +378,17 @@ function onJevSettled(
   try {
     const decision = decideCategory(result);
     if (decision) {
+      const floor = resolveCategoryJevFloor();
       applyColorOnce(input, projectDir, CATEGORY_COLOR[decision.category], colorAppliedPath, ctx);
       ctx.log(
         'session-identity',
-        `category decided by jev: ${decision.category} (confidence ${decision.confidence} >= ${JEV_CONFIDENCE_THRESHOLD})`,
+        `category decided by jev: ${decision.category} (confidence ${decision.confidence} >= ${floor})`,
       );
     } else if (result.ok) {
+      const floor = resolveCategoryJevFloor();
       ctx.log(
         'session-identity',
-        `category left to haiku: jev said ${result.category} at confidence ${result.confidence ?? 'n/a'}, below ${JEV_CONFIDENCE_THRESHOLD}`,
+        `category left to haiku: jev said ${result.category} at confidence ${result.confidence ?? 'n/a'}, below ${floor}`,
       );
     } else {
       ctx.log('session-identity', `category left to haiku: jev ${result.error}`, 'warn');

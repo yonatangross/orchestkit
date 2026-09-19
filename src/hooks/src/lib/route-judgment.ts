@@ -95,7 +95,10 @@ export function resolveRouteMode(env: NodeJS.ProcessEnv = process.env): RouteMod
 export function resolveRouteConfig(env: NodeJS.ProcessEnv = process.env): RouteConfig {
   return {
     mode: resolveRouteMode(env),
-    floor: numberEnv(env, ROUTE_FLOOR_ENV, defaults.floor),
+    floor: (() => {
+      const value = numberEnv(env, ROUTE_FLOOR_ENV, defaults.floor);
+      return value <= 1 ? value : defaults.floor;
+    })(),
     timeoutMs: numberEnv(env, ROUTE_TIMEOUT_ENV, defaults.timeout_ms),
     endpoint: (env[ROUTE_ENDPOINT_ENV] || '').trim() || defaults.endpoint,
     model: defaults.model,
@@ -348,6 +351,11 @@ function num(v: unknown): number | null {
   return null;
 }
 
+/** A routing gate accepts only a JSON number in the closed probability range. */
+function probability(v: unknown): number | null {
+  return typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= 1 ? v : null;
+}
+
 function noul(answer: unknown): number | null {
   if (typeof answer !== 'object' || answer === null) return null;
   const a = answer as Record<string, unknown>;
@@ -389,7 +397,7 @@ export function parseRouteAnswer(body: unknown): RouteAnswer | null {
     typeof usage === 'object' && usage !== null ? num((usage as Record<string, unknown>).input_tokens) : null;
   return {
     intent,
-    confidence: num(ia.confidence),
+    confidence: probability(ia.confidence),
     probabilities,
     worktree: noul(all.needs_worktree),
     browser: noul(all.needs_browser),
@@ -576,6 +584,9 @@ export function postRouteRequestSync(
   } catch {
     return { ok: false, error: 'malformed child reply', status: null, latencyMs };
   }
+  if (!reply || typeof reply !== 'object' || Array.isArray(reply)) {
+    return { ok: false, error: 'malformed child reply', status: null, latencyMs };
+  }
   if (typeof reply.error === 'string') return { ok: false, error: reply.error, status: null, latencyMs };
   const status = num(reply.status) ?? 0;
   if (status < 200 || status >= 300) return { ok: false, error: `http ${status}`, status, latencyMs };
@@ -593,6 +604,8 @@ export function postRouteRequestSync(
 export type DecidedBy = 'jev' | 'table' | 'off' | 'budget' | 'egress';
 
 export interface RouteVerdict {
+  /** Actual observed incumbent pick, never inferred from decided_by. */
+  incumbent_intent?: RouteIntent | null;
   decided_by: DecidedBy;
   intent: RouteIntent | null;
   conf: number | null;
@@ -613,6 +626,8 @@ export interface RouteVerdict {
 }
 
 export interface RouteJudgmentOptions {
+  /** Supply only an independently observed incumbent classification. */
+  incumbentIntent?: RouteIntent;
   prompt: string;
   sessionId: string;
   projectDir: string;
@@ -628,6 +643,7 @@ export interface RouteJudgmentOptions {
 }
 
 interface Prepared {
+  incumbentIntent: RouteIntent | null;
   config: RouteConfig;
   env: NodeJS.ProcessEnv;
   apiKey: string;
@@ -672,14 +688,19 @@ function prepare(opts: RouteJudgmentOptions): { verdict: RouteVerdict } | { prep
   const dataDir = routeDataDir(opts.projectDir, env);
   const at = now();
 
+  const early = (decidedBy: DecidedBy, error: string): { verdict: RouteVerdict } => {
+    const verdict = baseVerdict(config, decidedBy, { error, incumbent_intent: opts.incumbentIntent ?? null });
+    if (record) appendRouteRecord(sessionDir, verdict, at);
+    return { verdict };
+  };
   if (config.mode === 'off') return { verdict: baseVerdict(config, 'off') };
   const apiKey = resolveTypesafeKey(env);
-  if (!apiKey) return { verdict: baseVerdict(config, 'table', { error: 'no key' }) };
+  if (!apiKey) return early('table', 'no key');
   if (isTripped(dataDir, at, config.tripHours)) {
-    return { verdict: baseVerdict(config, 'budget', { error: 'tripped' }) };
+    return early('budget', 'tripped');
   }
   if (readBudgetTokens(dataDir, at) >= config.dailyTokens) {
-    return { verdict: baseVerdict(config, 'budget', { error: 'daily tokens' }) };
+    return early('budget', 'daily tokens');
   }
 
   const clientNames = opts.clientNames ?? readClientDirNames(opts.projectDir);
@@ -700,13 +721,14 @@ function prepare(opts: RouteJudgmentOptions): { verdict: RouteVerdict } | { prep
     if (record) appendRouteRecord(sessionDir, verdict, at);
     return { verdict };
   }
-  return { prepared: { config, env, apiKey, built, sessionDir, dataDir, now, log, record } };
+  return { prepared: { incumbentIntent: opts.incumbentIntent ?? null, config, env, apiKey, built, sessionDir, dataDir, now, log, record } };
 }
 
 /** Parse, floor, budget, record. */
 function settle(p: Prepared, result: TransportResult): RouteVerdict {
   const at = p.now();
   const common: Partial<RouteVerdict> = {
+    incumbent_intent: p.incumbentIntent,
     latency_ms: Math.round(result.latencyMs),
     redacted: p.built.redacted,
     input_sha256: p.built.inputSha256,
@@ -769,6 +791,12 @@ export function routeJudgmentSync(opts: RouteJudgmentOptions): RouteVerdict {
 // ---------------------------------------------------------------------------
 
 export interface RouteRecord {
+  seam: 'route';
+  incumbent_intent: RouteIntent | null;
+  agree: boolean | null;
+  below_floor: boolean | null;
+  high_confidence_disagreement: boolean | null;
+  error: string | null;
   ts: string;
   input_sha256: string | null;
   intent: RouteIntent | null;
@@ -787,7 +815,16 @@ export interface RouteRecord {
 }
 
 export function toRouteRecord(v: RouteVerdict, now: number): RouteRecord {
+  const incumbent = v.incumbent_intent ?? null;
+  const agree = incumbent && v.intent ? incumbent === v.intent : null;
+  const belowFloor = v.conf === null ? null : v.conf < v.floor;
   return {
+    seam: 'route',
+    incumbent_intent: incumbent,
+    agree,
+    below_floor: belowFloor,
+    high_confidence_disagreement: agree === null || belowFloor === null ? null : !agree && !belowFloor,
+    error: v.error,
     ts: new Date(now).toISOString(),
     input_sha256: v.input_sha256,
     intent: v.intent,
