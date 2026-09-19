@@ -10,7 +10,8 @@
     "ork-assess",
     "ork-verify",
     "ork-review-pr",
-    "ork-implement"
+    "ork-implement",
+    "ork-glyph"
   ],
   "roles": [
     "ork_explorer",
