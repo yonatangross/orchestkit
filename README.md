@@ -614,6 +614,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.63](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.62...v10.0.0-beta.63)** · 2026-09-19
+
+- **eval:** document Langfuse Python SDK v4 and fail zero-item runs (#4272)
+
 **[v10.0.0-beta.62](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.61...v10.0.0-beta.62)** · 2026-09-19
 
 - **hooks:** gate session-identity generator to one spawn per session (#4270)
@@ -655,10 +659,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **playground:** render mermaid when a tab opens (#4252)
 - **ruff:** re-anchor skill example excludes (#4254)
-
-**[v10.0.0-beta.55](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.54...v10.0.0-beta.55)** · 2026-09-18
-
-- **doctor:** extend the CC version matrix through 2.1.277 (#4247)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

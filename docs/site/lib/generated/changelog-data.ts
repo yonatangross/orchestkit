@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.63",
+    "date": "2026-09-19",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.62...v10.0.0-beta.63",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**eval:** document Langfuse Python SDK v4 and fail zero-item runs ([#4272](https://github.com/yonatangross/orchestkit/issues/4272)) ([5239ca1](https://github.com/yonatangross/orchestkit/commit/5239ca129d79f901a785d7dfe301016fb104dc7f))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.62",
     "date": "2026-09-19",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.61...v10.0.0-beta.62",
