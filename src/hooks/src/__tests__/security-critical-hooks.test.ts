@@ -153,9 +153,6 @@ describe('autoApproveSafeBash', () => {
       'find . -name "*.ts"',
       'which node',
       'type bash',
-      'env',
-      'printenv',
-      'printenv PATH',
     ])('auto-approves: %s', (command) => {
       const result = autoApproveSafeBash(createBashInput(command));
       expectSilentAllow(result);

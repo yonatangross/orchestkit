@@ -1,0 +1,8 @@
+{
+  "slug": "ci-pre-commit-plugins-src-guard",
+  "source": "docs/ci--pre-commit-plugins-src-guard/index.html",
+  "title": "plugins/-only edits now fail at commit time, not in CI",
+  "description": "Issue #3499: a pre-commit check compares staged plugins/ork/skills paths against their src/skills counterparts and prints the src/ file to edit, catching generated-output edits before push instead of in the CI drift gate.",
+  "tags": ["ci", "pre-commit", "git-hooks", "generated-output"],
+  "date": "2026-09-19"
+}
