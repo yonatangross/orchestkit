@@ -2,8 +2,8 @@
   "mode": "split",
   "bundles": {
     "permission": {
-      "size": 29259,
-      "sizeKB": "28.57",
+      "size": 29222,
+      "sizeKB": "28.54",
       "exports": 70
     },
     "pretool": {
@@ -57,8 +57,8 @@
       "exports": 70
     }
   },
-  "totalSize": 673701,
-  "totalSizeKB": "657.91",
+  "totalSize": 673664,
+  "totalSizeKB": "657.88",
   "inputs": 117,
   "avgBundleSizeKB": "59.81"
 }

@@ -614,6 +614,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.59](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.58...v10.0.0-beta.59)** · 2026-09-19
+
+- **codex:** add glyph skill adapter and export coverage (#4277)
+- **hooks:** key credential-path reject on the path, not the reader (#4279)
+
 **[v10.0.0-beta.58](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.57...v10.0.0-beta.58)** · 2026-09-19
 
 - **doctor:** check per-agent memory dirs for orphans and stale notes (#4263)
@@ -650,11 +655,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.52](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.51...v10.0.0-beta.52)** · 2026-09-18
 
 - **hooks:** Jev routing seam for ork:auto behind ORK_ROUTE_JEV (#4233) (#4237)
-
-**[v10.0.0-beta.51](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.50...v10.0.0-beta.51)** · 2026-09-18
-
-- **expect:** pass agent result and summary to report.py on stdin, never as source (#4234)
-- **hooks:** read last_assistant_message at SubagentStop, agent_output is never sent (#4232)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

@@ -18,6 +18,27 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.59",
+    "date": "2026-09-19",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.58...v10.0.0-beta.59",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**codex:** add glyph skill adapter and export coverage ([#4277](https://github.com/yonatangross/orchestkit/issues/4277)) ([ab8d756](https://github.com/yonatangross/orchestkit/commit/ab8d756644d10688493d244faf3aa738c076c326))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**hooks:** key credential-path reject on the path, not the reader ([#4279](https://github.com/yonatangross/orchestkit/issues/4279)) ([d8f0742](https://github.com/yonatangross/orchestkit/commit/d8f07420a4c93f1cb13852185f280b756aac3974))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.58",
     "date": "2026-09-19",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.57...v10.0.0-beta.58",
