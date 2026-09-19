@@ -614,6 +614,14 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.61](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.60...v10.0.0-beta.61)** · 2026-09-19
+
+- **manifest:** wire webhook URL/token through userConfig (#4273)
+- **build:** drop object-shaped triggers from built SKILL.md (#4276)
+- **ci:** compare hook-bundle guard against current base tip (#4283)
+- **git:** reject release bundle helper failures (#4287)
+- **jev:** validate confidence and expose shadow disagreements (#4271)
+
 **[v10.0.0-beta.60](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.59...v10.0.0-beta.60)** · 2026-09-19
 
 - **browser:** adopt agent-browser 0.38.1 (delta snapshots, if-changed shots, persistent refs, 30 fps, WebMCP) (#4260)
@@ -652,10 +660,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **hosts:** first-class Antigravity host support (#4235) (#4243)
 - **hooks:** address CodeRabbit on [#4241](https://github.com/yonatangross/orchestkit/issues/4241) (#4246)
 - seam review follow-ups that missed the [#4237](https://github.com/yonatangross/orchestkit/issues/4237) merge (#4233) (#4245)
-
-**[v10.0.0-beta.53](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.52...v10.0.0-beta.53)** · 2026-09-18
-
-- **hooks:** pre-push applies one load back-off to every stage and keeps the security log (#4238) (#4241)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
