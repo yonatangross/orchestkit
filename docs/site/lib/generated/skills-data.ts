@@ -1865,7 +1865,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "doctor",
     "description": "OrchestKit doctor for health diagnostics across manifest integrity, hook configuration, skill validation, agent frontmatter, MCP server connectivity, CC version compatibility, and permission rules. Reports issues with severity levels and auto-remediation suggestions. Validates component counts, detects orphaned entries, and checks CC version matrix compliance. Use when diagnosing plugin health, troubleshooting configuration issues, or running pre-release checks.",
     "version": "3.3.0",
-    "sha256": "ae9bdabdaf2e7c63cee55c67be779332c62e9de5445978f446ccb0a572b3c1fc",
+    "sha256": "bb9ea042d0146ca89a4777f450aa09c092fd577098b6c23ea7d62160b045d96f",
     "author": "OrchestKit",
     "tags": [
       "health-check",
@@ -1894,6 +1894,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "complexity": "low",
     "structure": {
       "references": [
+        "agent-memory-dir.md",
         "agents-validation.md",
         "claude-code.md",
         "health-check-outputs.md",
@@ -1910,6 +1911,7 @@ export const SKILLS: Record<string, SkillMeta> = {
         "version-compatibility.md"
       ],
       "scripts": [
+        "check-agent-memory.sh",
         "check-mcp-pinning.sh",
         "check-operator-permissions.cjs",
         "check-operator-permissions.sh",
@@ -2437,7 +2439,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "glyph",
     "description": "Render an answer as ASCII art plus semantic emojis inline, right now, with no setup questions: one render per reply, up to about 50 lines, verdict first. Use for any answer with shape: status, inventories, audits, budgets, comparisons, rankings, pipelines, 'what is using X', or any ad-hoc 'show me X visually' ask. Not for definitions, conceptual explanations, or one-sentence and one-paragraph asks; those have no shape to draw. For a full multi-artifact plan playground, use visualize-plan instead.",
     "version": "3.0.0",
-    "sha256": "404f0e22aa6a641dfe5becdeafb7279ac492f7b481cb78b4bd2f1fa0086492dc",
+    "sha256": "74d6307059d15ff7211c732b4a3134d03c567b2bec621a5659e823a8ddc790a2",
     "author": "OrchestKit",
     "tags": [
       "ascii",

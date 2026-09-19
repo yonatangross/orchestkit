@@ -12,7 +12,7 @@ Production-ready FastAPI application with:
 import uuid
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from functools import lru_cache
 
 import redis.asyncio as redis
@@ -175,7 +175,7 @@ async def lifespan(app: FastAPI):
     logger.info("redis_connected")
 
     # Startup time
-    app.state.started_at = datetime.now(timezone.utc)
+    app.state.started_at = datetime.now(UTC)
     logger.info("application_started")
 
     yield
@@ -320,7 +320,7 @@ async def health_check(request: Request):
             "status": "healthy" if all_healthy else "unhealthy",
             "checks": checks,
             "uptime_seconds": (
-                datetime.now(timezone.utc) - request.app.state.started_at
+                datetime.now(UTC) - request.app.state.started_at
             ).total_seconds(),
         },
     )
@@ -367,7 +367,7 @@ async def create_item(
         id=str(uuid.uuid4()),
         name=item.name,
         description=item.description,
-        created_at=datetime.now(timezone.utc),
+        created_at=datetime.now(UTC),
     )
 
     # Cache the item

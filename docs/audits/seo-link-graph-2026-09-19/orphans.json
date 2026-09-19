@@ -1,0 +1,130 @@
+[
+  {
+    "url": "/docs/agents",
+    "title": "Agents"
+  },
+  {
+    "url": "/docs/analytics",
+    "title": "Analytics Dashboard"
+  },
+  {
+    "url": "/docs/cookbook",
+    "title": "Cookbook"
+  },
+  {
+    "url": "/docs/cookbook/claude-design-handoff",
+    "title": "Claude Design → PR"
+  },
+  {
+    "url": "/docs/cookbook/task-management",
+    "title": "Task Management Patterns"
+  },
+  {
+    "url": "/docs/foundations",
+    "title": "Foundations"
+  },
+  {
+    "url": "/docs/getting-started",
+    "title": "Getting Started"
+  },
+  {
+    "url": "/docs/guides",
+    "title": "Guides"
+  },
+  {
+    "url": "/docs/hooks",
+    "title": "Hooks"
+  },
+  {
+    "url": "/docs/hooks/spotlights/memory-validator",
+    "title": "Memory Validator"
+  },
+  {
+    "url": "/docs/hooks/spotlights/pattern-consistency-enforcer",
+    "title": "Pattern Consistency Enforcer"
+  },
+  {
+    "url": "/docs/memory",
+    "title": "Memory"
+  },
+  {
+    "url": "/docs/reference",
+    "title": "Reference"
+  },
+  {
+    "url": "/docs/reference/hooks/spotlights/memory-validator",
+    "title": "Memory Validator"
+  },
+  {
+    "url": "/docs/reference/hooks/spotlights/pattern-consistency-enforcer",
+    "title": "Pattern Consistency Enforcer"
+  },
+  {
+    "url": "/docs/reference/hooks/spotlights/stop-pipeline",
+    "title": "Stop Pipeline"
+  },
+  {
+    "url": "/docs/reference/hooks/spotlights/unified-advisory-dispatcher",
+    "title": "Unified Advisory Dispatcher"
+  },
+  {
+    "url": "/docs/reference/hooks/spotlights/unified-dispatchers",
+    "title": "Unified Dispatchers"
+  },
+  {
+    "url": "/docs/showcase",
+    "title": "Showcase"
+  },
+  {
+    "url": "/docs/showcase/lab/adoption-waves",
+    "title": "Case study: CC Adoption Wave Explorer"
+  },
+  {
+    "url": "/docs/showcase/lab/session-standing",
+    "title": "Case study: Session Standing Board"
+  },
+  {
+    "url": "/docs/showcase/lab/triage-board",
+    "title": "Case study: Issue Triage Board"
+  },
+  {
+    "url": "/docs/skills",
+    "title": "Skills"
+  },
+  {
+    "url": "/docs/skills/by-category/ai-llm",
+    "title": "AI & LLM Skills"
+  },
+  {
+    "url": "/docs/skills/by-category/backend",
+    "title": "Backend Skills"
+  },
+  {
+    "url": "/docs/skills/by-category/devops",
+    "title": "DevOps Skills"
+  },
+  {
+    "url": "/docs/skills/by-category/frontend",
+    "title": "Frontend Skills"
+  },
+  {
+    "url": "/docs/skills/by-category/product",
+    "title": "Product Skills"
+  },
+  {
+    "url": "/docs/skills/by-category/security",
+    "title": "Security Skills"
+  },
+  {
+    "url": "/docs/skills/by-category/testing",
+    "title": "Testing Skills"
+  },
+  {
+    "url": "/docs/skills/by-category/workflows",
+    "title": "Workflows Skills"
+  },
+  {
+    "url": "/docs/troubleshooting",
+    "title": "Troubleshooting"
+  }
+]

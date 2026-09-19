@@ -131,7 +131,7 @@ is a mock-up.
 /ork:glyph                  # draw where the conversation is right now
 /ork:glyph <topic>          # one thing: an inventory, a comparison, a state
 /ork:glyph --eli5 <topic>   # novice audience, and a page if it needs one
-/glyph                      # the front door: same dials, may route to page
+/glyph                      # same skill as /ork:glyph; renders here, does not hand off
 ```
 
 What it will never do: ask you a setup question, use a status emoji that is not in its
@@ -163,6 +163,8 @@ the two picks, three real renders, the exact invocation; generated from this
 skill's `examples/_featured.md`, so it cannot drift from the skill).
 
 The whole point is speed, so there is no setup phase.
+
+**Already loaded means render, not hand off.** `glyph` and `ork:glyph` are one skill: this file. If the host already invoked either name, draw the answer here. Do not call the Skill tool for `glyph`, `/glyph`, or `/ork:glyph`. A second invocation loads this file again and re-runs the planning step. The 2026-09-15 Devin transcript showed "Invoked skill glyph" then "Invoked skill ork:glyph", one render stacked on another. Whether that re-entry is also why the Thoughts text repeated is not verified here; do not re-enter either way. The front door does not delegate.
 
 **With no argument, the topic is the current conversation.** Measured over a real 13-prompt session: zero asks supplied a self-contained topic, and the one direct invocation passed nothing at all. `glyph` on its own means "render where we are right now": the open work, the decision just reached, the state of the thing being discussed. Render that; do not ask what to draw.
 
@@ -759,7 +761,9 @@ or any character that requires a non-default monospace font.
 - The `visual-style-nudge` hook fires on every qualifying prompt. It means "if
   this answer has shape, render it", not "draw something every turn".
 - `/ork:glyph` is the reference implementation; use it unprompted whenever
-  rule 1 applies.
+  rule 1 applies. `glyph` and `ork:glyph` are that same skill. If either name
+  is already loaded, render in place and do not invoke the other: a second
+  invocation re-enters this file instead of drawing (GH-4159).
 - "Where do we stand / what's next" always gets a render plus ranked next
   steps.
 

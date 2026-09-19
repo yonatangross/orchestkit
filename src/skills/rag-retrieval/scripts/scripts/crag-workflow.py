@@ -26,7 +26,7 @@ from __future__ import annotations
 import logging
 import operator
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 from typing import Annotated, Protocol
 
 from langchain_core.documents import Document
@@ -67,7 +67,7 @@ class LLM(Protocol):
 # =============================================================================
 
 
-class DocumentRelevance(str, Enum):
+class DocumentRelevance(StrEnum):
     """Document relevance categories for CRAG."""
 
     CORRECT = "correct"  # Highly relevant, can answer query
@@ -96,7 +96,7 @@ class RewrittenQuery(BaseModel):
     rationale: str = Field(description="Why this rewrite should help")
 
 
-class RetrievalAction(str, Enum):
+class RetrievalAction(StrEnum):
     """Actions based on grading results."""
 
     GENERATE = "generate"  # Have enough relevant docs
@@ -214,9 +214,7 @@ class WebSearcher:
 # =============================================================================
 
 
-def create_document_grader(llm: LLM) -> Runnable:
-    """Create CRAG document grader."""
-    system = """Grade this document's relevance to the query using CRAG criteria.
+DOCUMENT_GRADER_SYSTEM_PROMPT = """Grade this document's relevance to the query using CRAG criteria.
 
 Grading categories:
 - CORRECT: Document directly answers or strongly supports the query. Contains specific facts, data, or explanations that address the question.
@@ -226,12 +224,7 @@ Grading categories:
 Be strict with CORRECT - only use when document genuinely helps answer the query.
 Extract key facts if the document is CORRECT or AMBIGUOUS."""
 
-    return llm.with_structured_output(GradingResult)
-
-
-def create_query_rewriter(llm: LLM) -> Runnable:
-    """Create query rewriter for failed retrievals."""
-    system = """Rewrite this query to improve document retrieval.
+QUERY_REWRITER_SYSTEM_PROMPT = """Rewrite this query to improve document retrieval.
 
 The previous retrieval returned ambiguous or irrelevant documents.
 Consider:
@@ -242,6 +235,14 @@ Consider:
 
 Provide search terms that should be prioritized."""
 
+
+def create_document_grader(llm: LLM) -> Runnable:
+    """Create CRAG document grader."""
+    return llm.with_structured_output(GradingResult)
+
+
+def create_query_rewriter(llm: LLM) -> Runnable:
+    """Create query rewriter for failed retrievals."""
     return llm.with_structured_output(RewrittenQuery)
 
 
