@@ -150,6 +150,10 @@ describe('safe-command-retry', () => {
       'cat ~/.aws/credentials',
       'find . -exec rm {} +',
       'find . -execdir rm {} +',
+      // Credential-path reject is keyed on the path, not the reader.
+      'fmt ~/.ssh/id_rsa',
+      'pr ~/.aws/credentials',
+      'tsort ~/.netrc',
     ];
 
     test.each(rejectCommands)('does not retry rejected: %s', (command) => {
