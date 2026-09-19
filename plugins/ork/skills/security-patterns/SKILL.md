@@ -319,7 +319,7 @@ artifact.user_id = llm_output["user_id"]           # Trusting LLM-generated IDs
 
 # PII
 logger.info(f"User email: {user.email}")           # Raw PII in logs
-langfuse.trace(input=raw_prompt)                   # Unmasked observability data
+get_client().start_observation(name="llm", input=raw_prompt)  # Unmasked observability data
 ```
 
 ## Detailed Documentation

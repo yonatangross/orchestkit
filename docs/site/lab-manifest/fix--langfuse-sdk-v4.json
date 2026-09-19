@@ -1,0 +1,12 @@
+{
+  "slug": "fix--langfuse-sdk-v4",
+  "source": "docs/fix--langfuse-sdk-v4/index.html",
+  "title": "Langfuse SDK v4: fail a zero-item eval",
+  "description": "Issue 2971: eval harnesses use dataset.run_experiment and fail when the run processed zero items or recorded zero dataset runs.",
+  "tags": [
+    "langfuse",
+    "eval",
+    "testing-llm"
+  ],
+  "date": "2026-09-19"
+}

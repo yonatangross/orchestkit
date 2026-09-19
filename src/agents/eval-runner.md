@@ -179,23 +179,35 @@ result = ragas_evaluate(
 
 ### Langfuse Reporting
 
+Python SDK v4. Migration note: do not generate `Langfuse.client`, `DatasetItem.link()`, or `langfuse.trace()` / `trace.span()` / `trace.generation()`. Those calls were removed. A harness that still used them logged the failure at debug and exited 0 with zero dataset runs.
+
+Load `testing-llm` `references/langfuse-v4.md` before writing a harness. The shape:
+
 ```python
-from langfuse import observe, get_client
+from langfuse import get_client, observe, propagate_attributes
 
-@observe(type="evaluator")
-def run_eval(dataset_path: str, model_version: str):
-    # ... run evaluation ...
+@observe(name="eval-run")
+def run_eval(dataset_name: str, model_version: str):
+    langfuse = get_client()
+    dataset = langfuse.get_dataset(dataset_name)
 
-    # Report scores to Langfuse
-    for metric_name, score in scores.items():
-        get_client().score_current_trace(
-            name=metric_name,
-            value=score,
-            comment=f"Model {model_version} on {dataset_path}",
-        )
+    def task(*, item, **kwargs):
+        with propagate_attributes(metadata={"model": model_version}):
+            with langfuse.start_observation(name="grade", as_type="evaluator") as obs:
+                score = grade(item)
+                obs.update(output={"score": score})
+                return score
 
-    return eval_summary
+    result = dataset.run_experiment(name=f"eval-{model_version}", task=task)
+    # Existing traces, not a golden set: langfuse.run_batched_evaluation(...)
+    items = list(getattr(result, "item_results", None) or [])
+    run_ids = {row.dataset_run_id for row in items if getattr(row, "dataset_run_id", None)}
+    if len(items) == 0 or len(run_ids) == 0:
+        raise RuntimeError(f"eval no-op: items={len(items)} dataset_runs={len(run_ids)}")
+    return result
 ```
+
+A generated harness that does not contain this non-zero check is incomplete.
 
 ## Output Format
 

@@ -305,7 +305,7 @@ artifact.user_id = llm_output["user_id"]           # Trusting LLM-generated IDs
 
 # PII
 logger.info(f"User email: {user.email}")           # Raw PII in logs
-langfuse.trace(input=raw_prompt)                   # Unmasked observability data
+get_client().start_observation(name="llm", input=raw_prompt)  # Unmasked observability data
 ```
 
 ## Detailed Documentation
@@ -1295,28 +1295,18 @@ logger.audit(
 ## Integration with Langfuse
 
 ```python
-from langfuse import Langfuse
+from langfuse import get_client, propagate_attributes
 
-langfuse = Langfuse()
+langfuse = get_client()
 
-# Create trace for observability
-trace = langfuse.trace(
-    name="analysis",
-    user_id=str(ctx.user_id),  # Langfuse supports user tracking
+# Migration note: v4 removed langfuse.trace() and trace.generation().
+with propagate_attributes(
+    user_id=str(ctx.user_id),
     session_id=ctx.session_id,
-    metadata={
-        "tenant_id": str(ctx.tenant_id),
-        "request_id": ctx.request_id,
-    },
-)
-
-# Log LLM call
-generation = trace.generation(
-    name="content_analysis",
-    model="gpt-4",
-    input=prompt,  # Langfuse handles securely
-    output=response,
-)
+    metadata={"tenant_id": str(ctx.tenant_id), "request_id": ctx.request_id},
+):
+    with langfuse.start_observation(name="content_analysis", as_type="generation", model="gpt-4") as obs:
+        obs.update(input=prompt, output=response)
 ```
 
 ## Compliance Considerations

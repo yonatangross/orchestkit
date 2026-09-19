@@ -4171,7 +4171,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "security-patterns",
     "description": "Security patterns for authentication, defense-in-depth, input validation, OWASP Top 10, LLM safety, and PII masking. Use when implementing auth flows, security layers, input sanitization, vulnerability prevention, prompt injection defense, or data redaction.",
     "version": "2.0.0",
-    "sha256": "1ece05e5ea62a34930851af08928bb10372637a9188b28f2b8603bb2c8ad2915",
+    "sha256": "01eb2b29ed97e24ce1031c2b41477cc95441bfe1ce6c0254b3bf8ee68d8ce1a5",
     "author": "OrchestKit",
     "tags": [
       "security",
@@ -4622,7 +4622,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "testing-llm",
     "description": "LLM and AI testing patterns — mock responses, evaluation with DeepEval/RAGAS, structured output validation, and agentic test patterns (generator, healer, planner). Use when testing AI features, validating LLM outputs, or building evaluation pipelines.",
     "version": "2.1.0",
-    "sha256": "001e87ede3892258eae8fb64e5d26c58f5168bfd5e06a1f0366a3809bbadaed4",
+    "sha256": "8edd3cd805a97ae46ce08e9702049df9f682fb8dd5fedaefbe3d8527fa7953d5",
     "author": "OrchestKit",
     "tags": [
       "testing",
@@ -4648,6 +4648,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "structure": {
       "references": [
         "healer-agent.md",
+        "langfuse-v4.md",
         "ork-delta.md"
       ],
       "checklists": [
