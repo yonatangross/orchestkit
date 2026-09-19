@@ -10,7 +10,19 @@ It reads route JSONL, category `session-identity.shadow.json` snapshots, and exp
 
 The report prints agreement, confidence bands, high-confidence disagreements, below-floor fallbacks, errors, and top disagreement examples for each seam. A high-confidence disagreement meets the effective floor inclusively and has two observed picks. The output gives its share of all rows and of high-confidence paired rows, making missing coverage visible.
 
-The route hook runs before the model chooses an executor. `decided_by=table` only means Jev did not steer. It is not the model's observed pick. Such records have `incumbent_intent=null` and remain unpaired. The route API can record an independently observed `incumbentIntent`; production hook calls currently have no such observation. To review existing route logs, record labels in a separate JSONL file using the absolute source path and one-based line printed by the report:
+Export every review candidate as JSONL, grouped by its `seam` field:
+
+```sh
+node scripts/jev-shadow-report.mjs --confident-wrong /path/to/sessions .expect/jev-shadow.jsonl
+```
+
+The `confident-wrong` bucket uses `agree=false AND jev_confidence >= floor` exactly. It marks unlabeled rows `awaiting_adjudication`; this bucket name does not assert that the incumbent was correct. Explicit unknown comparisons stay out of the bucket. The six canonical fields are `jev_pick`, `jev_confidence`, `incumbent_pick`, `agree`, `floor`, and `decided_by`. Historical rows remain readable through the legacy schema adapters.
+
+A settled category classifier with no valid result has a structured `incumbent_pick` outcome: `{"status":"no_valid_result","choice":null,"reason":"incumbent_classifier_failed"}`. This is a failure outcome, not a category label. Its agreement remains null and it is excluded from comparisons. A literal null is reserved for an incumbent that has not run.
+
+Expect appends each active invocation to `.expect/jev-shadow.jsonl`, including errors, before emitting stdout. This does not depend on `report.sh --save`. Override the journal with `--log-file` or `ORK_EXPECT_JEV_LOG`. New journals use mode 0600. Failed writes emit a stderr diagnostic while preserving the action fallback. An unmatched incumbent action is retained verbatim with agreement unknown. Shadow callers must supply either `--model-action` or `--incumbent-not-run REASON`; act callers must supply the actual fallback action. An invalid or unavailable configured floor is null, so the row cannot enter the confidence bucket.
+
+The route prompt hook runs before the model chooses an executor. It records a pending revision, then synchronous PreToolUse observes the requested Skill or Agent selection using the same session and `prompt_id`. The completed pair uses executor targets such as `skill:ork:fix-issue` or `agent:Explore`; legacy intent fields remain for old consumers. The Agent model argument, when supplied, is recorded separately. Stop records `no_executor` for a completed prompt with no requested executor. PostToolUse retries persistence without changing the selected route. A missing correlation ID stays unpaired with a reason. The report prefers the paired revision for each exact `decision_id` within its source file and counts superseded rows separately. It never joins by timestamp or latest row. To review historical route logs, record labels in a separate JSONL file using the absolute source path and one-based line printed by the report:
 
 ```json
 {"source":"/path/to/jev-route.jsonl:1","incumbent":"dev_fix","correct":"dev_review"}
@@ -20,7 +32,7 @@ The route hook runs before the model chooses an executor. `decided_by=table` onl
 node scripts/jev-shadow-report.mjs --labels labels.jsonl /path/to/jev-route.jsonl
 ```
 
-Use canonical route intent IDs for route labels. `incumbent` means the model's observed classification; `correct` requires adjudication against the task outcome. Both are optional independently. A disagreement is a review queue, not proof Jev was wrong. Labeled false-high decisions are reported separately. Never infer the incumbent from Jev's pick or a build-verb heuristic. Legacy expect records without the effective floor remain `unknown_floor`; rerun shadow collection instead of assigning today's floor to old data.
+Use the recorded pick vocabulary for labels: executor targets for new paired route records, intent IDs for historical route records. `incumbent` means the model's observed classification; `correct` requires adjudication against the task outcome. Both are optional independently. A disagreement is a review queue, not proof Jev was wrong. Labeled false-high decisions are reported separately. Never infer the incumbent from Jev's pick or a build-verb heuristic. Legacy expect records without the effective floor remain `unknown_floor`; rerun shadow collection instead of assigning today's floor to old data.
 
 Floors are per seam:
 

@@ -448,6 +448,38 @@ describe('shadow files', () => {
     });
   });
 
+  it('writes the canonical category contract for successful and failed classifiers', () => {
+    fs.writeFileSync(
+      jevPath,
+      JSON.stringify({ ok: true, model: JEV_MODEL, category: 'docs', confidence: 0.9, latencyMs: 210 }),
+    );
+    const success = recordCategoryShadow(jevPath, shadowPath, 'infra', true, JEV);
+    expect(JSON.parse(fs.readFileSync(shadowPath, 'utf8'))).toEqual(success);
+    expect(success).toEqual(expect.objectContaining({
+      jev_pick: 'docs',
+      jev_confidence: 0.9,
+      incumbent_pick: 'infra',
+      incumbent_pick_reason: null,
+      agree: false,
+      floor: 0.8,
+      decided_by: 'jev',
+    }));
+
+    fs.rmSync(shadowPath);
+    fs.writeFileSync(jevPath, JSON.stringify({ ok: false, error: 'timeout', status: null, latencyMs: 1500 }));
+    const failed = recordCategoryShadow(jevPath, shadowPath, null, true, JEV);
+    expect(JSON.parse(fs.readFileSync(shadowPath, 'utf8'))).toEqual(failed);
+    expect(failed).toEqual(expect.objectContaining({
+      jev_pick: null,
+      jev_confidence: null,
+      incumbent_pick: { status: 'no_valid_result', choice: null, reason: 'incumbent_classifier_failed' },
+      incumbent_pick_reason: 'incumbent_classifier_failed',
+      agree: null,
+      floor: 0.8,
+      decided_by: 'haiku',
+    }));
+  });
+
   it('does nothing while the Jev result has not landed', () => {
     expect(recordCategoryShadow(jevPath, shadowPath, 'bugfix', true, JEV)).toBeNull();
     expect(fs.existsSync(shadowPath)).toBe(false);

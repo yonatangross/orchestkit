@@ -11,7 +11,12 @@ const share = (n, d) => d ? `${(100 * n / d).toFixed(1)}%` : 'n/a';
 export function normalize(row, source, label = {}) {
   if (!row || typeof row !== 'object') return null;
   let seam, jev, incumbent, confidence, floor, mode;
-  if ('intent' in row && 'conf' in row) {
+  const canonical = ['route', 'category', 'expect'].includes(row.seam) && 'jev_pick' in row;
+  if (canonical) {
+    seam = row.seam; jev = pick(row.jev_pick); incumbent = pick(row.incumbent_pick);
+    confidence = probability(row.jev_confidence); floor = probability(row.floor);
+    mode = row.mode ?? row.flag ?? row.provider;
+  } else if ('intent' in row && 'conf' in row) {
     seam = 'route'; jev = pick(row.intent); incumbent = pick(row.incumbent_intent);
     confidence = probability(row.conf); floor = probability(row.floor); mode = row.flag;
   } else if ('haiku' in row && 'jev' in row) {
@@ -23,11 +28,13 @@ export function normalize(row, source, label = {}) {
   } else return null;
   incumbent = pick(label.incumbent) ?? incumbent;
   const correct = pick(label.correct);
-  const paired = jev !== null && incumbent !== null;
+  const paired = jev !== null && incumbent !== null && (!canonical || typeof row.agree === 'boolean' || pick(label.incumbent) !== null);
+  const agree = paired ? (canonical && !pick(label.incumbent) ? row.agree : jev === incumbent) : null;
   const above = confidence !== null && floor !== null && confidence >= floor;
   return { source, seam, jev, incumbent, confidence, floor, mode, correct,
-    error: pick(row.error), paired, agree: paired ? jev === incumbent : null,
-    highDisagreement: paired && above && jev !== incumbent,
+    decisionId: pick(row.decision_id), phase: pick(row.phase), decidedBy: pick(row.decided_by),
+    error: pick(row.error), paired, agree,
+    highDisagreement: agree === false && above,
     below: confidence !== null && floor !== null && confidence < floor,
     falseHigh: correct !== null && jev !== null && above && jev !== correct,
     labeledHigh: correct !== null && jev !== null && above };
@@ -79,11 +86,28 @@ export function readRows(paths, labels = new Map()) {
       } catch { malformed++; }
     });
   }
-  return { rows, malformed, ignored };
+  // Pending and paired rows are revisions of the same prompt decision. Use
+  // the exact producer ID within its source file, never a timestamp join.
+  const decisions = new Map();
+  const retained = [];
+  let superseded = 0;
+  for (const row of rows) {
+    if (row.seam !== 'route' || !row.decisionId) { retained.push(row); continue; }
+    const key = `${row.source.replace(/:\d+$/, '')}:${row.decisionId}`;
+    const index = decisions.get(key);
+    if (index === undefined) {
+      decisions.set(key, retained.length);
+      retained.push(row);
+    } else {
+      superseded++;
+      if (retained[index].phase !== 'paired' && row.phase === 'paired') retained[index] = row;
+    }
+  }
+  return { rows: retained, malformed, ignored, superseded };
 }
 
 export function main(args) {
-  let labels = new Map(), allModes = false;
+  let labels = new Map(), allModes = false, confidentWrong = false;
   const paths = [];
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--labels') {
@@ -95,13 +119,23 @@ export function main(args) {
         return [row.source, row];
       }));
     } else if (args[i] === '--all-modes') allModes = true;
+    else if (args[i] === '--confident-wrong') confidentWrong = true;
     else if (args[i].startsWith('--')) throw new Error(`Unknown option: ${args[i]}`);
     else paths.push(args[i]);
   }
   if (!paths.length) throw new Error('Usage: node scripts/jev-shadow-report.mjs [--labels labels.jsonl] [--all-modes] FILE_OR_DIRECTORY ...');
   const input = readRows(paths, labels);
   const rows = allModes ? input.rows : input.rows.filter((r) => r.mode === 'shadow');
-  console.log(`Jev ${allModes ? 'all-mode' : 'shadow'} report: ${rows.length} rows; malformed=${input.malformed}; ignored=${input.ignored}; excluded_modes=${input.rows.length - rows.length}`);
+  if (confidentWrong) {
+    for (const r of rows.filter((r) => r.highDisagreement)) {
+      console.log(JSON.stringify({ seam: r.seam, source: r.source, jev_pick: r.jev,
+        jev_confidence: r.confidence, incumbent_pick: r.incumbent, agree: r.agree,
+        floor: r.floor, decided_by: r.decidedBy, bucket: 'confident-wrong', outcome_label: r.correct,
+        review_status: r.correct === null ? 'awaiting_adjudication' : 'labeled' }));
+    }
+    return;
+  }
+  console.log(`Jev ${allModes ? 'all-mode' : 'shadow'} report: ${rows.length} rows; malformed=${input.malformed}; ignored=${input.ignored}; excluded_modes=${input.rows.length - rows.length}; superseded=${input.superseded}`);
   console.log('Agreement is not accuracy. High-confidence disagreements need outcome labels before promotion.');
   for (const s of summarize(rows)) {
     console.log(`\n${s.seam}: rows=${s.rows} paired=${s.paired} unpaired=${s.rows - s.paired} agreement=${s.agreements}/${s.paired} (${share(s.agreements, s.paired)})`);

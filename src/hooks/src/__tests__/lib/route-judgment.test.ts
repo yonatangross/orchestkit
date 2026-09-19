@@ -54,6 +54,7 @@ import {
   routeJudgmentSync,
   routeSessionDir,
   sha256,
+  toRouteRecord,
   unescapeJson,
   type RouteVerdict,
 } from '../../lib/route-judgment.js';
@@ -606,8 +607,10 @@ describe('log line', () => {
       target: { kind: 'skill', name: 'fix-issue' },
       error: null,
     };
+    expect(formatRouteLogLine({ ...v, conf: 0.795, floor: 0.805 })).toContain('jev_confidence=0.795');
+    expect(formatRouteLogLine({ ...v, conf: 0.795, floor: 0.805 })).toContain('floor=0.805');
     expect(formatRouteLogLine(v)).toBe(
-      'route jev: intent=dev_fix conf=0.83 top3=dev_fix:0.71,dev_build:0.12,research:0.08 worktree=0.91 browser=0.05 mutation=1.2 operator=0.12 floor=0.50 decided_by=jev latency_ms=801 input_tokens=812 redacted=2',
+      'route jev: jev_pick=skill:ork:fix-issue jev_confidence=0.83 incumbent_pick=none incumbent_pick_reason=model_route_not_run_at_prompt_submit agree=null top3=dev_fix:0.71,dev_build:0.12,research:0.08 worktree=0.91 browser=0.05 mutation=1.2 operator=0.12 floor=0.5 decided_by=jev latency_ms=801 input_tokens=812 redacted=2',
     );
   });
 });
@@ -649,6 +652,28 @@ describe('reply audit: synchronous fail-open and paired evidence', () => {
     const row = JSON.parse(readFileSync(join(routeSessionDir(SESSION, projectDir, {}), FILE_ROUTE_RECORDS), 'utf8'));
     expect(row).toMatchObject({ intent: 'dev_fix', incumbent_intent: incumbentIntent ?? null,
       conf: confidence, floor: 0.5, agree, high_confidence_disagreement: high, below_floor: below });
+  });
+
+  it('writes the canonical route contract on successful and failed rows', async () => {
+    const success = await routeJudgment({
+      prompt: 'fix it now please', sessionId: SESSION, projectDir, incumbentIntent: 'dev_build',
+      env: envFor('shadow'), fetchImpl: mockFetch(200, answerBody('dev_fix', 0.9)),
+    });
+    const failed = routeJudgmentSync({
+      prompt: 'fix it now please', sessionId: 'route-contract-error', projectDir,
+      env: { ORK_ROUTE_JEV: 'steer' }, spawnImpl: vi.fn(),
+    });
+    const keys = ['jev_pick', 'jev_confidence', 'incumbent_pick', 'incumbent_pick_reason', 'agree', 'floor', 'decided_by'];
+    for (const row of [toRouteRecord(success, 0), toRouteRecord(failed, 0)]) {
+      expect(Object.keys(row)).toEqual(expect.arrayContaining(keys));
+    }
+    expect(toRouteRecord(success, 0)).toMatchObject({
+      jev_pick: 'skill:ork:fix-issue', jev_confidence: 0.9, incumbent_pick: 'skill:ork:implement', incumbent_pick_reason: null, agree: false,
+    });
+    expect(toRouteRecord(failed, 0)).toMatchObject({
+      jev_pick: null, jev_confidence: null, incumbent_pick: null,
+      incumbent_pick_reason: 'model_route_not_run_at_prompt_submit', agree: null,
+    });
   });
 
   it.each(['2', '-1', 'Infinity', 'NaN'])('rejects an invalid floor %s', (floor) => {

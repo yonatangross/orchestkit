@@ -11,6 +11,7 @@
  * Graph-first replacement for memory-capture.ts — no local file writes.
  */
 
+import { observeRouteCompletion } from '../lib/route-judgment.js';
 import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess } from '../lib/common.js';
 import { getTotalTools } from '../lib/metrics.js';
@@ -39,6 +40,7 @@ function todayISO(): string {
  * Only fires when session had meaningful work (>=20 tool calls).
  */
 export function sessionSummary(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
+  observeRouteCompletion(input);
   ctx.log('session-summary', 'Stop hook — checking session for graph capture');
 
   const totalTools = getTotalTools();

@@ -351,8 +351,9 @@ function logCategoryShadow(
   if (!record) return;
   ctx.log(
     'session-identity',
-    `category ${record.provider}: haiku=${record.haiku ?? 'none'} jev=${record.jev ?? 'none'} agree=${record.agree} ` +
-      `confidence=${record.jev_confidence ?? 'n/a'} decided_by=${record.decided_by} threshold=${record.threshold} ` +
+    `category ${record.provider}: jev_pick=${record.jev_pick ?? 'none'} jev_confidence=${record.jev_confidence ?? 'n/a'} ` +
+      `incumbent_pick=${JSON.stringify(record.incumbent_pick)} incumbent_pick_reason=${record.incumbent_pick_reason ?? 'none'} ` +
+      `agree=${record.agree} floor=${record.floor} decided_by=${record.decided_by} ` +
       `latency_ms=${record.latency_ms ?? 'n/a'}` +
       (record.error ? ` error=${record.error}` : ''),
   );

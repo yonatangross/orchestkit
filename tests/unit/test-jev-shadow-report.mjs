@@ -40,5 +40,35 @@ try {
   assert.match(output, /category: rows=1 paired=1/);
   assert.match(output, /labeled false-high=1\/1/);
   assert.match(output, /share_high_paired=100.0%/);
+  const canonical = join(dir, 'canonical.jsonl');
+  const cases = ['route', 'expect', 'category'].flatMap((seam) => [
+    { seam, mode: 'shadow', jev_pick: 'a', incumbent_pick: 'b', agree: false, jev_confidence: 0.8, floor: 0.8 },
+    { seam, mode: 'shadow', jev_pick: 'a', incumbent_pick: 'b', agree: false, jev_confidence: 0.79, floor: 0.8 },
+    { seam, mode: 'shadow', jev_pick: 'a', incumbent_pick: 'a', agree: true, jev_confidence: 0.9, floor: 0.8 },
+    { seam, mode: 'shadow', jev_pick: 'a', incumbent_pick: 'unparsed', agree: null, jev_confidence: 0.9, floor: 0.8 },
+  ]);
+  writeFileSync(canonical, cases.map((row) => JSON.stringify(row)).join('\n'));
+  assert.equal(normalize(cases[3], 'unparsed').paired, false);
+  const queue = execFileSync(process.execPath, ['scripts/jev-shadow-report.mjs', '--confident-wrong', canonical], { encoding: 'utf8' }).trim().split('\n').map(JSON.parse);
+  assert.deepEqual(queue.map((row) => row.seam), ['route', 'expect', 'category']);
+  for (const row of queue) {
+    assert.equal(row.agree, false);
+    assert.equal(row.jev_confidence, row.floor);
+    assert.equal(row.review_status, 'awaiting_adjudication');
+    assert.equal(row.outcome_label, null);
+    assert.ok('decided_by' in row);
+  }
+  const revisions = join(dir, 'revisions.jsonl');
+  const pending = { ...cases[0], incumbent_pick: null, agree: null, decision_id: 'prompt-a', phase: 'pending' };
+  const paired = { ...cases[0], decision_id: 'prompt-a', phase: 'paired' };
+  writeFileSync(revisions, [pending, paired, pending, paired, { ...paired, decision_id: 'prompt-b' }].map(JSON.stringify).join('\n'));
+  const deduped = readRows([revisions]);
+  assert.equal(deduped.rows.length, 2);
+  assert.equal(deduped.superseded, 3);
+  assert.equal(deduped.rows[0].source, `${revisions}:2`);
+  assert.ok(deduped.rows.every((row) => row.phase === 'paired' && row.agree === false));
+  const otherSession = join(dir, 'other-session.jsonl');
+  writeFileSync(otherSession, JSON.stringify(paired));
+  assert.equal(readRows([revisions, otherSession]).rows.length, 3);
 } finally { rmSync(dir, { recursive: true, force: true }); }
 console.log('PASS: Jev shadow report counts, confidence bands, labels, legacy unknowns, malformed rows and CLI');

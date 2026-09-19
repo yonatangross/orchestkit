@@ -38,9 +38,13 @@ import {
   mkdirSync,
   readdirSync,
   readFileSync,
+  linkSync,
+  unlinkSync,
   writeFileSync,
 } from 'node:fs';
 import { basename, join } from 'node:path';
+import type { HookInput } from '../types.js';
+import { safeIdentifier } from './safe-fs.js';
 import defaults from './route-judgment.defaults.json';
 import { getSessionStorageDir } from './paths.js';
 import {
@@ -602,6 +606,10 @@ export function postRouteRequestSync(
 export type DecidedBy = 'jev' | 'table' | 'off' | 'budget' | 'egress';
 
 export interface RouteVerdict {
+  prompt_id?: string;
+  incumbent_pick?: string | null;
+  tool_use_id?: string | null;
+  incumbent_model?: string;
   /** Actual observed incumbent pick, never inferred from decided_by. */
   incumbent_intent?: RouteIntent | null;
   decided_by: DecidedBy;
@@ -624,6 +632,8 @@ export interface RouteVerdict {
 }
 
 export interface RouteJudgmentOptions {
+  /** Shared CC correlation token, never derived from timestamps. */
+  promptId?: string;
   /** Supply only an independently observed incumbent classification. */
   incumbentIntent?: RouteIntent;
   prompt: string;
@@ -641,6 +651,7 @@ export interface RouteJudgmentOptions {
 }
 
 interface Prepared {
+  promptId?: string;
   incumbentIntent: RouteIntent | null;
   config: RouteConfig;
   env: NodeJS.ProcessEnv;
@@ -685,9 +696,16 @@ function prepare(opts: RouteJudgmentOptions): { verdict: RouteVerdict } | { prep
   const sessionDir = routeSessionDir(opts.sessionId, opts.projectDir, env);
   const dataDir = routeDataDir(opts.projectDir, env);
   const at = now();
+  const openingTurn = !existsSync(sessionDir);
+  if (record && config.mode !== 'off' && opts.promptId) {
+    try {
+      mkdirSync(sessionDir, { recursive: true });
+      publishOnce(`${correlationStem(sessionDir, opts.promptId)}.active`, { promptId: opts.promptId });
+    } catch { /* fail open */ }
+  }
 
   const early = (decidedBy: DecidedBy, error: string): { verdict: RouteVerdict } => {
-    const verdict = baseVerdict(config, decidedBy, { error, incumbent_intent: opts.incumbentIntent ?? null });
+    const verdict = baseVerdict(config, decidedBy, { prompt_id: opts.promptId, error, incumbent_intent: opts.incumbentIntent ?? null });
     if (record) appendRouteRecord(sessionDir, verdict, at);
     return { verdict };
   };
@@ -704,7 +722,7 @@ function prepare(opts: RouteJudgmentOptions): { verdict: RouteVerdict } | { prep
   const clientNames = opts.clientNames ?? readClientDirNames(opts.projectDir);
   const clientPattern = buildClientPattern(clientTokensFromNames(clientNames));
   const built = buildRouteRequest(opts.prompt, {
-    openingTurn: !existsSync(sessionDir),
+    openingTurn,
     repo: basename(opts.projectDir || ''),
     config,
     clientPattern,
@@ -712,6 +730,7 @@ function prepare(opts: RouteJudgmentOptions): { verdict: RouteVerdict } | { prep
   const leak = egressScan(built.request, clientPattern);
   if (leak) {
     const verdict = baseVerdict(config, 'egress', {
+      prompt_id: opts.promptId,
       error: `egress ${leak}`,
       redacted: built.redacted,
       input_sha256: built.inputSha256,
@@ -719,13 +738,14 @@ function prepare(opts: RouteJudgmentOptions): { verdict: RouteVerdict } | { prep
     if (record) appendRouteRecord(sessionDir, verdict, at);
     return { verdict };
   }
-  return { prepared: { incumbentIntent: opts.incumbentIntent ?? null, config, env, apiKey, built, sessionDir, dataDir, now, log, record } };
+  return { prepared: { promptId: opts.promptId, incumbentIntent: opts.incumbentIntent ?? null, config, env, apiKey, built, sessionDir, dataDir, now, log, record } };
 }
 
 /** Parse, floor, budget, record. */
 function settle(p: Prepared, result: TransportResult): RouteVerdict {
   const at = p.now();
   const common: Partial<RouteVerdict> = {
+    prompt_id: p.promptId,
     incumbent_intent: p.incumbentIntent,
     latency_ms: Math.round(result.latencyMs),
     redacted: p.built.redacted,
@@ -790,6 +810,20 @@ export function routeJudgmentSync(opts: RouteJudgmentOptions): RouteVerdict {
 
 export interface RouteRecord {
   seam: 'route';
+  prompt_id: string | null;
+  decision_id: string | null;
+  incumbent_model: string | null;
+  phase: 'pending' | 'paired';
+  tool_use_id: string | null;
+  /** Canonical Jev pick. `intent` remains for existing report consumers. */
+  jev_pick: string | null;
+  /** Canonical Jev confidence. `conf` remains for existing report consumers. */
+  jev_confidence: number | null;
+  /** Observed incumbent pick, never a classification inferred by this seam. */
+  incumbent_pick: string | null;
+  /** Why no incumbent pick is available for this record, otherwise null. */
+  incumbent_pick_reason: 'model_route_not_run_at_prompt_submit' | null;
+  /** Legacy name retained for existing report consumers. */
   incumbent_intent: RouteIntent | null;
   agree: boolean | null;
   below_floor: boolean | null;
@@ -813,12 +847,23 @@ export interface RouteRecord {
 }
 
 export function toRouteRecord(v: RouteVerdict, now: number): RouteRecord {
-  const incumbent = v.incumbent_intent ?? null;
-  const agree = incumbent && v.intent ? incumbent === v.intent : null;
+  const jevPick = routePick(v.intent);
+  const incumbent = v.incumbent_pick ?? routePick(v.incumbent_intent ?? null);
+  const agree = incumbent && jevPick ? incumbent === jevPick : null;
   const belowFloor = v.conf === null ? null : v.conf < v.floor;
   return {
     seam: 'route',
-    incumbent_intent: incumbent,
+    prompt_id: v.prompt_id ?? null,
+    decision_id: v.prompt_id ? sha256(v.prompt_id) : null,
+    incumbent_model: v.incumbent_model ?? null,
+    phase: incumbent === null ? 'pending' : 'paired',
+    tool_use_id: v.tool_use_id ?? null,
+    jev_pick: jevPick,
+    jev_confidence: v.conf,
+    incumbent_pick: incumbent,
+    // Pending prompt observations are completed by the PostToolUse observer.
+    incumbent_pick_reason: incumbent === null ? 'model_route_not_run_at_prompt_submit' : null,
+    incumbent_intent: v.incumbent_intent ?? null,
     agree,
     below_floor: belowFloor,
     high_confidence_disagreement: agree === null || belowFloor === null ? null : !agree && !belowFloor,
@@ -841,10 +886,103 @@ export function toRouteRecord(v: RouteVerdict, now: number): RouteRecord {
   };
 }
 
+/** Compare executor names, avoiding a fabricated inverse intent classification. */
+function routePick(intent: RouteIntent | null): string | null {
+  if (!intent) return null;
+  const target = ROUTE_CLASS_TO_EXECUTOR[intent];
+  return target ? `${target.kind}:${target.kind === 'skill' ? 'ork:' : ''}${target.name}` : 'no_executor';
+}
+
+function correlationStem(sessionDir: string, promptId: string): string {
+  return join(sessionDir, `jev-route-${sha256(promptId)}`);
+}
+
+/** Publish a complete immutable JSON file atomically; concurrent readers never see a prefix. */
+function publishOnce(path: string, value: unknown): void {
+  const temporary = `${path}.${process.pid}.${Math.random().toString(16).slice(2)}.tmp`;
+  try {
+    writeFileSync(temporary, JSON.stringify(value), { mode: 0o600 });
+    try { linkSync(temporary, path); } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error;
+    }
+  } finally {
+    try { unlinkSync(temporary); } catch { /* fail open */ }
+  }
+}
+
+/** Both writers call after publishing: the second publication always sees both. */
+function completeRoutePair(sessionDir: string, stem: string): boolean {
+  if (!existsSync(`${stem}.jev.json`) || !existsSync(`${stem}.executor.json`)) return false;
+  const { verdict, now } = JSON.parse(readFileSync(`${stem}.jev.json`, 'utf8')) as { verdict: RouteVerdict; now: number };
+  const observed = JSON.parse(readFileSync(`${stem}.executor.json`, 'utf8')) as { pick: string; toolUseId: string | null; model?: string };
+  const paired = toRouteRecord({ ...verdict, incumbent_pick: observed.pick, tool_use_id: observed.toolUseId, incumbent_model: observed.model }, now);
+  // Append before marking completion: an interrupted/failed append remains
+  // retryable. Concurrent completions can append duplicates, which consumers
+  // collapse by session + decision_id with paired rows superseding pending.
+  if (existsSync(`${stem}.paired`)) return true;
+  appendFileSync(join(sessionDir, FILE_ROUTE_RECORDS), `${JSON.stringify(paired)}\n`, { mode: 0o600 });
+  publishOnce(`${stem}.paired`, { decision_id: paired.decision_id });
+  return true;
+}
+
+/** Record the model's requested executor before dispatch, including blocked/failed attempts. */
+export function observeRouteExecutor(input: HookInput): void {
+  if (!input.prompt_id || !input.session_id || input.agent_id) return;
+  let pick: string;
+  if (input.tool_name === 'Skill' && typeof input.tool_input?.skill === 'string') {
+    const name = input.tool_input.skill.replace(/^\//, '');
+    if (name === 'ork:auto' || name === 'auto') return;
+    pick = `skill:${name}`;
+  } else if (input.tool_name === 'Agent' && typeof input.tool_input?.subagent_type === 'string') {
+    pick = `agent:${input.tool_input.subagent_type}`;
+  } else return;
+  persistRouteObservation(input, { pick, toolUseId: input.tool_use_id ?? null, model: typeof input.tool_input.model === 'string' ? input.tool_input.model : undefined });
+}
+
+/** Stop proves a completed response chose no executor, rather than leaving a false pending row. */
+export function observeRouteCompletion(input: HookInput): void {
+  if (!input.prompt_id || !input.session_id || input.agent_id) return;
+  persistRouteObservation(input, { pick: 'no_executor', toolUseId: null });
+}
+
+function persistRouteObservation(input: HookInput, observation: { pick: string; toolUseId: string | null; model?: string }): void {
+  try {
+    const sessionDir = routeSessionDir(safeIdentifier(input.session_id, 'invalid'), input.project_dir || process.cwd());
+    const stem = correlationStem(sessionDir, input.prompt_id!);
+    if (!existsSync(`${stem}.active`)) return;
+    publishOnce(`${stem}.executor.json`, observation);
+    completeRoutePair(sessionDir, stem);
+  } catch { /* observational telemetry must never fail the tool */ }
+}
+
+/** PostToolUse can retry a failed append, but never infer the first choice from completion order. */
+export function retryRoutePair(input: HookInput): void {
+  if (!input.prompt_id || !input.session_id || input.agent_id) return;
+  try {
+    const sessionDir = routeSessionDir(safeIdentifier(input.session_id, 'invalid'), input.project_dir || process.cwd());
+    completeRoutePair(sessionDir, correlationStem(sessionDir, input.prompt_id));
+  } catch { /* fail open */ }
+}
+
 /** Append one record, mode 0600, no prompt text. An unwritable dir only loses the sample. */
 export function appendRouteRecord(sessionDir: string, verdict: RouteVerdict, now: number): void {
   try {
     mkdirSync(sessionDir, { recursive: true });
+    if (verdict.prompt_id) {
+      const stem = correlationStem(sessionDir, verdict.prompt_id);
+      if (existsSync(`${stem}.executor.json`)) {
+        const observed = JSON.parse(readFileSync(`${stem}.executor.json`, 'utf8')) as { pick: string; toolUseId: string | null; model?: string };
+        // The caller logs this same verdict after settle. Preserve an executor
+        // already observed while the asynchronous Jev request was in flight.
+        verdict.incumbent_pick = observed.pick;
+        verdict.tool_use_id = observed.toolUseId;
+        verdict.incumbent_model = observed.model;
+      }
+      publishOnce(`${stem}.jev.json`, { verdict, now });
+      if (completeRoutePair(sessionDir, stem)) return;
+      // Prompt-time observation only. The first real executor produces the
+      // authoritative paired row, even if this request settled first.
+    }
     appendFileSync(join(sessionDir, FILE_ROUTE_RECORDS), `${JSON.stringify(toRouteRecord(verdict, now))}\n`, {
       encoding: 'utf8',
       mode: 0o600,
@@ -859,10 +997,15 @@ const f2 = (n: number | null): string => (n === null ? 'na' : n.toFixed(2));
 /** The one hook log line, same shape in both plugins. */
 export function formatRouteLogLine(v: RouteVerdict): string {
   const top3 = v.top3.map(([k, p]) => `${k}:${p.toFixed(2)}`).join(',');
+  const jevPick = routePick(v.intent);
+  const incumbent = v.incumbent_pick ?? routePick(v.incumbent_intent ?? null);
+  const agree = incumbent && jevPick ? incumbent === jevPick : null;
+  const incumbentReason = incumbent === null ? 'model_route_not_run_at_prompt_submit' : 'none';
   return (
-    `route jev: intent=${v.intent ?? 'none'} conf=${f2(v.conf)} top3=${top3 || 'none'} ` +
+    `route jev: jev_pick=${jevPick ?? 'none'} jev_confidence=${v.conf ?? 'null'} incumbent_pick=${incumbent ?? 'none'} ` +
+    `incumbent_pick_reason=${incumbentReason} agree=${agree} top3=${top3 || 'none'} ` +
     `worktree=${f2(v.worktree)} browser=${f2(v.browser)} mutation=${v.mutation === null ? 'na' : v.mutation.toFixed(1)} ` +
-    `operator=${f2(v.operator)} floor=${f2(v.floor)} decided_by=${v.decided_by} ` +
+    `operator=${f2(v.operator)} floor=${v.floor} decided_by=${v.decided_by} ` +
     `latency_ms=${v.latency_ms} input_tokens=${v.input_tokens ?? 0} redacted=${v.redacted}`
   );
 }
