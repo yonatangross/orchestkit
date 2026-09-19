@@ -32,6 +32,7 @@
  * That cost exists only while the provider is set.
  */
 
+import { resolveTypesafeKey } from './jev-key.js';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import {
   CATEGORY_CRITERIA,
@@ -47,8 +48,7 @@ import {
  */
 export const CATEGORY_PROVIDER_ENV = 'ORK_SESSION_CATEGORY_PROVIDER';
 
-/** The TypeSafe key variable the user sets. Never logged, never written. */
-export const TYPESAFE_KEY_ENV = 'ORK_TYPESAFE_API_KEY';
+export { TYPESAFE_KEY_ENV, resolveTypesafeKey } from './jev-key.js';
 
 export const JEV_ENDPOINT = 'https://api.typesafe.ai/v1/systemone';
 
@@ -88,11 +88,6 @@ export type CategoryProvider = 'haiku' | 'jev' | 'shadow';
 export function resolveCategoryProvider(env: NodeJS.ProcessEnv = process.env): CategoryProvider {
   const value = (env[CATEGORY_PROVIDER_ENV] || '').trim().toLowerCase();
   return value === 'jev' || value === 'shadow' ? value : 'haiku';
-}
-
-export function resolveTypesafeKey(env: NodeJS.ProcessEnv = process.env): string | null {
-  const key = (env[TYPESAFE_KEY_ENV] || '').trim();
-  return key || null;
 }
 
 /** Resolve the category seam's confidence floor, accepting only the [0, 1] range. */
