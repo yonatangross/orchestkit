@@ -120,7 +120,7 @@ doctor --json    # Machine-readable for CI
 
 | Category | What It Checks | Reference |
 |----------|---------------|-----------|
-| **4. Memory** | .claude/memory/ graph integrity + queue depth; **auto-memory MEMORY.md index budget (≤24.4 KB; warns + recommends dream on re-bloat)** | load `skills/doctor/references/memory-health.md` |
+| **4. Memory** | .claude/memory/ graph integrity + queue depth; auto-memory MEMORY.md index budget; per-agent `.claude/agent-memory/NAME/MEMORY.md` (orphans, staleness, 150-line warn, secret/PII) | load `skills/doctor/references/memory-health.md` and `skills/doctor/references/agent-memory-dir.md` |
 | **5. Build** | plugins/ sync with src/, manifest counts, orphans | load `skills/doctor/rules/diagnostic-checks.md` |
 
 > **Analytics writer liveness (System Health):** the local analytics pipeline has several independent JSONL writers under `~/.claude/analytics/` (skill-usage, agent-usage, hook-timing). A writer can die silently while its siblings stay hot — observed once for four months (skill-usage.jsonl, 2026-03 to 2026-07). The check is a peer comparison: flag any watched file whose last write is ≥48h old while a sibling wrote within 24h (`stat -f '%m %N' ~/.claude/analytics/*.jsonl`). The `lifecycle/analytics-liveness-check` SessionStart hook runs the same comparison continuously.
@@ -243,6 +243,7 @@ Load on demand with `Read("references/<file>")` or `Read("rules/<file>")`:
 | `skills/doctor/references/agents-validation.md` | Agents frontmatter and tool ref checks |
 | `skills/doctor/references/hook-validation.md` | Hook registration and bundle checks |
 | `skills/doctor/references/memory-health.md` | Memory system integrity checks |
+| `skills/doctor/references/agent-memory-dir.md` | Per-agent agent-memory dir: orphans, staleness, 150-line warn, secrets |
 | `skills/doctor/references/permission-rules.md` | Permission rule detection |
 | `skills/doctor/references/schema-validation.md` | JSON schema compliance |
 | `skills/doctor/references/report-format.md` | ASCII report templates and JSON CI output |
