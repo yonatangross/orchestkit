@@ -16,7 +16,7 @@ def score_item(item):
             return 1
 ```
 
-`start_observation` returns a span object, not a context manager — putting it inside `with` raises `AttributeError: __enter__`. The `with` form is `start_as_current_observation`. Prefer `@observe` when the function boundary is the span.
+`start_observation` returns a span object, not a context manager — putting it inside `with` raises `TypeError` ("does not support the context manager protocol" on 3.11+). The `with` form is `start_as_current_observation`. Prefer `@observe` when the function boundary is the span — but never around `run_experiment` itself: it copies one context for every item, so all item spans would share a single trace_id.
 
 ## Dataset run
 
@@ -42,11 +42,15 @@ A harness that swallows the old API and reports success is worse than a red run.
 items = list(getattr(result, "item_results", None) or [])
 if len(items) == 0:
     raise RuntimeError("eval no-op: items=0")
-# dataset.run_experiment records a dataset_run_id per item; a local
-# run_experiment(data=[...]) never does, so asserting it unconditionally
-# fails every local run. Only remote dataset runs carry the id.
-run_ids = {row.dataset_run_id for row in items if getattr(row, "dataset_run_id", None)}
-if dataset is not None and len(run_ids) == 0:
+# Remote dataset rows are DatasetItems (they carry dataset_id) and the run
+# records a dataset_run_id; local run_experiment(data=[...]) rows carry
+# neither. Key on the item shape, not on whether a variable named `dataset`
+# exists: get_dataset raises rather than returning None, a local-only
+# harness has no such variable at all, and a dataset fetched only to build
+# the data= list would false-fail a good run.
+remote_items = [row for row in items if getattr(row, "dataset_id", None)]
+run_ids = {row.dataset_run_id for row in remote_items if getattr(row, "dataset_run_id", None)}
+if remote_items and len(run_ids) == 0:
     raise RuntimeError(f"eval no-op: dataset_runs={len(run_ids)}")
 ```
 

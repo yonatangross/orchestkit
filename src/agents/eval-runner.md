@@ -184,9 +184,8 @@ Python SDK v4. Migration note: do not generate `Langfuse.client`, `DatasetItem.l
 Load `testing-llm` `references/langfuse-v4.md` before writing a harness. The shape:
 
 ```python
-from langfuse import get_client, observe, propagate_attributes
+from langfuse import get_client, propagate_attributes
 
-@observe(name="eval-run")
 def run_eval(dataset_name: str, model_version: str):
     langfuse = get_client()
     dataset = langfuse.get_dataset(dataset_name)
@@ -198,15 +197,20 @@ def run_eval(dataset_name: str, model_version: str):
                 obs.update(output={"score": score})
                 return score
 
+    # No @observe on the experiment: run_experiment copies one context for
+    # every item, so a wrapper would make all item spans children of a
+    # single shared trace_id.
     result = dataset.run_experiment(name=f"eval-{model_version}", task=task)
     # Existing traces, not a golden set: langfuse.run_batched_evaluation(...)
     items = list(getattr(result, "item_results", None) or [])
     if len(items) == 0:
         raise RuntimeError("eval no-op: items=0")
-    # dataset.run_experiment records a dataset_run_id per item; a local
-    # run_experiment(data=[...]) never does, so only remote runs assert this.
-    run_ids = {row.dataset_run_id for row in items if getattr(row, "dataset_run_id", None)}
-    if dataset is not None and len(run_ids) == 0:
+    # Remote dataset rows are DatasetItems (they carry dataset_id) and the
+    # run records a dataset_run_id; local run_experiment(data=[...]) rows
+    # carry neither. Key on the item shape, not on a variable name.
+    remote_items = [row for row in items if getattr(row, "dataset_id", None)]
+    run_ids = {row.dataset_run_id for row in remote_items if getattr(row, "dataset_run_id", None)}
+    if remote_items and len(run_ids) == 0:
         raise RuntimeError(f"eval no-op: dataset_runs={len(run_ids)}")
     return result
 ```

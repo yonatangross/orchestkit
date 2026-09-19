@@ -37,7 +37,7 @@ done
 while IFS= read -r hit; do
   [[ -n "$hit" ]] || continue
   bad "start_observation used as a context manager: $hit"
-done < <(grep -RInE 'with [A-Za-z_][A-Za-z0-9_.]*\.start_observation\(' src/skills src/agents --include='*.md' || true)
+done < <(grep -RInE 'with [^ ]*\.start_observation\(' src/skills src/agents --include='*.md' || true)
 
 while IFS= read -r hit; do
   [[ -n "$hit" ]] || continue
@@ -48,6 +48,14 @@ while IFS= read -r hit; do
   [[ -n "$hit" ]] || continue
   bad "unconditional dataset_runs guard fires on local data= runs: $hit"
 done < <(grep -RInE 'len\(items\) == 0 or len\(run_ids\) == 0' src/skills src/agents --include='*.md' || true)
+
+# `dataset is not None` is a wrong remote-run proxy: get_dataset raises
+# rather than returning None (always true), a local-only harness NameErrors,
+# and a dataset fetched just to build data=[...] false-fails a good run.
+while IFS= read -r hit; do
+  [[ -n "$hit" ]] || continue
+  bad "variable-name proxy for remote dataset runs: $hit"
+done < <(grep -RInE 'dataset is not None' src/skills src/agents --include='*.md' || true)
 
 grep -q 'run_batched_evaluation' "$HARNESS" || bad "langfuse-v4.md missing run_batched_evaluation"
 grep -q 'start_as_current_observation' "$HARNESS" || bad "langfuse-v4.md missing start_as_current_observation"
