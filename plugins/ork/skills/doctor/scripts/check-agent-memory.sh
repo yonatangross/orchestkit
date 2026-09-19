@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Agent-memory directory health for /ork:doctor.
 #
-# The memory: frontmatter feature writes .claude/agent-memory/<agent>/MEMORY.md.
+# The memory: frontmatter feature writes .claude/agent-memory/NAME/MEMORY.md.
 # Category 4 already checks the MCP graph and the auto-memory index. This script
 # checks the per-agent directory those two miss.
 #

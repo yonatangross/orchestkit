@@ -1,6 +1,6 @@
 # Per-agent memory directory
 
-`memory:` in agent frontmatter writes `.claude/agent-memory/<agent>/MEMORY.md`.
+`memory:` in agent frontmatter writes `.claude/agent-memory/NAME/MEMORY.md`.
 Category 4's graph check and the auto-memory index do not look here.
 Run `scripts/check-agent-memory.sh`.
 

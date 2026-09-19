@@ -963,7 +963,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/doctor/references/agent-memory-dir",
     "title": "Doctor: Per-agent memory directory",
-    "description": "memory: in agent frontmatter writes .claude/agent-memory/<agent>/MEMORY.md."
+    "description": "memory: in agent frontmatter writes .claude/agent-memory/NAME/MEMORY.md."
   },
   {
     "url": "/docs/reference/skills/doctor/references/agents-validation",
