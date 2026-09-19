@@ -38,14 +38,14 @@
 <body>
 <main>
   <h1>Open issue triage</h1>
-  <p class="lede">One snapshot. Replace the EXAMPLE rows from <code>gh issue list --state open --json number,title,labels,milestone</code>. Do not change the section order.</p>
+  <p class="lede">EXAMPLE page. Replace every EXAMPLE value. Issues come from <code>gh issue list --state open --json number,title,labels,milestone</code>. The open-PRs tile is not in that list. It comes from <code>gh pr list --state open --json number</code>, or <code>?</code> if that command was not run. Do not change the section order.</p>
 
   <div class="kpis" id="kpis">
-    <div class="kpi"><b data-k="open">37</b><span>open issues</span></div>
-    <div class="kpi"><b data-k="prs">4</b><span>open PRs</span></div>
-    <div class="kpi"><b data-k="p1">3</b><span>P1</span></div>
-    <div class="kpi"><b data-k="p2">8</b><span>P2</span></div>
-    <div class="kpi"><b data-k="lanes">8</b><span>lanes</span></div>
+    <div class="kpi"><b data-k="open">EXAMPLE</b><span>open issues</span></div>
+    <div class="kpi"><b data-k="prs">EXAMPLE</b><span>open PRs (gh pr list)</span></div>
+    <div class="kpi"><b data-k="p1">EXAMPLE</b><span>P1</span></div>
+    <div class="kpi"><b data-k="p2">EXAMPLE</b><span>P2</span></div>
+    <div class="kpi"><b data-k="lanes">EXAMPLE</b><span>lanes</span></div>
   </div>
   <p class="verdict" id="verdict">EXAMPLE verdict: bugs and blocked-externally are the only lanes a human must touch this wave.</p>
 
@@ -54,7 +54,7 @@
     <article class="lane" data-lane="bugs">
       <h3>bugs</h3>
       <ul>
-        <li>#4159 squeezed glyph <code class="route">ork:glyph</code></li>
+        <li>EXAMPLE #0000 squeezed glyph <code class="route">ork:glyph</code></li>
       </ul>
     </article>
     <article class="lane" data-lane="quick-wins">
@@ -105,13 +105,13 @@
   <section class="decide" id="decide">
     <h2>DECIDE</h2>
     <p>Pick one wave. Consequences sit beside the option. Follow-ups are issue numbers to keep attached, or leave them off.</p>
-    <label class="opt"><input type="radio" name="wave" value="bugs"> 1. bugs. Next session fixes the squeezed render. Cost: no triage of the other lanes.</label>
+    <label class="opt"><input type="radio" name="wave" value="bugs"> 1. bugs. EXAMPLE consequence: the next session takes this lane only. Cost: the other lanes wait.</label>
     <label class="opt"><input type="radio" name="wave" value="quick-wins"> 2. quick wins. Clears small items. Cost: P1 bugs wait.</label>
     <label class="opt"><input type="radio" name="wave" value="blocked-externally"> 3. blocked externally. Writes the ask to the outside owner. Cost: no code moves.</label>
     <p>Follow-ups (optional):</p>
-    <label class="opt"><input type="checkbox" name="followup" value="4159"> 4159</label>
-    <label class="opt"><input type="checkbox" name="followup" value="4162"> 4162</label>
-    <label class="opt"><input type="checkbox" name="followup" value="3131"> 3131</label>
+    <label class="opt"><input type="checkbox" name="followup" value="0001"> EXAMPLE 0001</label>
+    <label class="opt"><input type="checkbox" name="followup" value="0002"> EXAMPLE 0002</label>
+    <label class="opt"><input type="checkbox" name="followup" value="0003"> EXAMPLE 0003</label>
   </section>
 
   <details>
@@ -137,7 +137,7 @@ gh issue list --state open --json number,title,labels,milestone
       function (el) { return el.value; }
     );
     if (!wave) return "";
-    return "wave=" + wave.value + " followups=" + (ups.length ? ups.join(",") : "0");
+    return "wave=" + wave.value + " followups=" + ups.join(",");
   }
   function refresh() {
     var text = line();
