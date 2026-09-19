@@ -87,7 +87,9 @@ else
   log_pass "tracked-file scan measured $TRACKED_N files"
 fi
 
-OP_HITS="$(tracked | tr '\n' '\0' | xargs -0 grep -HnoE "$OP_PATTERN" 2>/dev/null | classify_op_hits || true)"
+# `--` terminates grep's option list: a tracked filename like `--exclude=*`
+# must be scanned as a file, not swallowed as an option.
+OP_HITS="$(tracked | tr '\n' '\0' | xargs -0 grep -HnoE -- "$OP_PATTERN" 2>/dev/null | classify_op_hits || true)"
 
 if [[ -z "$OP_HITS" ]]; then
   log_pass "no op:// path with a real vault and item name in tracked files"
@@ -125,7 +127,7 @@ op://your/my/example
 op://<vault>/credential</code>
 EOF
 
-BAD_HITS="$(grep -HnoE "$OP_PATTERN" "$FIX_BAD" 2>/dev/null | classify_op_hits || true)"
+BAD_HITS="$(grep -HnoE -- "$OP_PATTERN" "$FIX_BAD" 2>/dev/null | classify_op_hits || true)"
 BAD_N="$(printf '%s\n' "$BAD_HITS" | grep -c ': op://' || true)"
 if [[ "$BAD_N" -eq 5 ]]; then
   log_pass "must-fail fixture: all 5 real-name paths flagged"
@@ -134,7 +136,7 @@ else
   printf '%s\n' "$BAD_HITS" | sed 's/^/      /'
 fi
 
-OK_HITS="$(grep -HnoE "$OP_PATTERN" "$FIX_OK" 2>/dev/null | classify_op_hits || true)"
+OK_HITS="$(grep -HnoE -- "$OP_PATTERN" "$FIX_OK" 2>/dev/null | classify_op_hits || true)"
 if [[ -z "$OK_HITS" ]]; then
   log_pass "must-pass fixture: all placeholder and markup forms skipped"
 else
@@ -145,7 +147,7 @@ fi
 log_section "Public surface: real home directories"
 
 # /Users/<name> where <name> is not a documentation stand-in.
-HOME_HITS="$(tracked | tr '\n' '\0' | xargs -0 grep -noE '/Users/[A-Za-z0-9_.-]+' 2>/dev/null \
+HOME_HITS="$(tracked | tr '\n' '\0' | xargs -0 grep -noE -- '/Users/[A-Za-z0-9_.-]+' 2>/dev/null \
   | awk -F: '{
       split($0, a, "/Users/"); name = a[2];
       if (name ~ /^(me|foo|john|jane|test|testuser|dev|someone|probe|alice|bob|you|op|env|user|username|example|name|secret-user|yo|\.\.\.)$/) next;
