@@ -30,6 +30,7 @@ jobs:
     name: Build (CI)
     permissions:
       contents: read
+      actions: read
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -154,6 +155,7 @@ jobs:
         env:
           HEAD_REF: ${{ github.head_ref }}
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -uo pipefail
           DIST=(src/hooks/dist plugins/ork/hooks/dist)
@@ -168,7 +170,21 @@ jobs:
           done
           if [[ "$HEAD_REF" == release-please--* ]]; then
             if ! git diff --quiet -- "${DIST[@]}"; then
-              echo "::error::Release branch carries stale hook bundles. release-please.yml's rebuild step has not landed on this head yet; it re-runs on every push to main, so re-check after the next run or dispatch release-please.yml."
+              # Observed fact only. A diff here is either a rebuild that has
+              # not landed yet, or a rebuild the release-owned-bundle guard
+              # refused. Re-running this job, or dispatching release-please,
+              # is the remedy for exactly one of those, and this step cannot
+              # tell which. Link the latest run so the reader checks.
+              RP_URL=""
+              if command -v gh >/dev/null 2>&1; then
+                RP_URL="$(gh run list --workflow=release-please.yml --limit 1 --json url --jq '.[0].url' 2>/dev/null || true)"
+              fi
+              if [[ -z "${RP_URL}" ]]; then
+                RP_URL="https://github.com/${GITHUB_REPOSITORY:-yonatangross/orchestkit}/actions/workflows/release-please.yml"
+              fi
+              echo "::error::A fresh build of the hook bundles differs from what is committed."
+              echo "::error::Two causes fit that diff: the release-please rebuild has not run on this head yet, or the rebuild was refused by the release-owned-bundle guard. This step cannot tell which."
+              echo "::error::Latest release-please run: ${RP_URL}"
               git diff --stat -- "${DIST[@]}"
               exit 1
             fi
