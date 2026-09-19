@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.59](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.58...v10.0.0-beta.59) (2026-09-19)
+
+
+### Features
+
+* **codex:** add glyph skill adapter and export coverage ([#4277](https://github.com/yonatangross/orchestkit/issues/4277)) ([ab8d756](https://github.com/yonatangross/orchestkit/commit/ab8d756644d10688493d244faf3aa738c076c326))
+
+
+### Bug Fixes
+
+* **hooks:** key credential-path reject on the path, not the reader ([#4279](https://github.com/yonatangross/orchestkit/issues/4279)) ([d8f0742](https://github.com/yonatangross/orchestkit/commit/d8f07420a4c93f1cb13852185f280b756aac3974))
+
 ## [10.0.0-beta.58](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.57...v10.0.0-beta.58) (2026-09-19)
 
 
