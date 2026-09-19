@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Function hook probes R1 and R3, measured on CC 2.1.277</title><style>
+:root{--bg:hsl(232 26% 7%);--ink:hsl(220 18% 93%);--muted:hsl(220 14% 64%);--faint:hsl(220 12% 46%);
+--glass:hsl(0 0% 100% / .05);--edge:hsl(0 0% 100% / .18);--accent:hsl(248 84% 68%);--ok:hsl(162 62% 52%);--bad:hsl(354 78% 62%);--warn:hsl(38 92% 62%)}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(54rem 36rem at 88% -6%,hsl(248 70% 26% / .38),transparent 62%),var(--bg);
+background-attachment:fixed;color:var(--ink);font:15px/1.65 -apple-system,system-ui,sans-serif}
+.wrap{max-width:920px;margin-inline:auto;padding:48px 24px 80px}
+.eyebrow{display:inline-block;font-size:11.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;
+color:var(--faint);border:1px solid var(--edge);border-radius:999px;background:var(--glass);padding:6px 12px}
+h1{font-size:clamp(24px,3.6vw,34px);font-weight:700;margin:14px 0 10px}h1 span{color:var(--accent)}
+.lede{color:var(--muted);max-width:68ch;margin:0 0 24px}.lede b{color:var(--ink)}
+h2{font-size:17px;margin:30px 0 8px}
+.card{border:1px solid var(--edge);border-radius:14px;background:var(--glass);padding:16px 18px;margin-top:12px}
+.card h3{margin:0 0 6px;font-size:14.5px}.card p{margin:0 0 8px;font-size:13.5px;color:var(--muted)}
+.card p:last-child{margin-bottom:0}
+code{font-family:ui-monospace,Menlo,monospace;font-size:12px;background:hsl(0 0% 100% / .07);padding:1px 5px;border-radius:5px}
+pre{background:hsl(232 30% 4% / .6);border:1px solid var(--edge);border-radius:12px;padding:12px;overflow-x:auto;font-size:12.5px;color:var(--muted);font-family:ui-monospace,Menlo,monospace;line-height:1.6}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.warn{color:var(--warn)}.faint{color:var(--faint)}
+.verdict{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--edge);border-radius:12px;background:var(--glass);padding:12px 14px;margin-top:10px}
+.pill{flex:none;font-size:10.5px;font-weight:700;letter-spacing:.06em;border-radius:999px;padding:3px 10px;margin-top:2px}
+.pill.v{background:hsl(162 62% 52% / .16);color:var(--ok)}
+.pill.r{background:hsl(354 78% 62% / .16);color:var(--bad)}
+.verdict div{flex:1}.verdict .q{font-size:13px;font-weight:700}.verdict .e{font-size:12.5px;color:var(--muted);font-family:ui-monospace,Menlo,monospace}
+table{width:100%;border-collapse:collapse;font-size:13px;border:1px solid var(--edge);border-radius:12px;overflow:hidden;background:var(--glass);margin-top:10px}
+th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--faint);padding:9px 11px;border-bottom:1px solid var(--edge)}
+td{padding:9px 11px;border-bottom:1px solid hsl(0 0% 100% / .06);vertical-align:top}tr:last-child td{border-bottom:none}
+.foot{margin-top:32px;font-size:12px;color:var(--faint);line-height:1.9}
+</style><!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Function hook probes R1 and R3, settled by the engine's own debug log"><meta property="og:description" content="Two open questions from the 2026-09-18 cc-mods adoption brief, turned into a repeatable probe script and run once on CC 2.1.277. R1: a user-tier hooks module does not load with CLAUDE_CODE_ENABLE_FUNCTION_HOOKS unset on this account (cold GrowthBook cache, default false), and loads at tier user with it set. R3: a tool.list answer changes nothing for either loop; the event never dispatches in a -p run, for the main loop or an Explore subagent."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/function-hook-probes.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Function hook probes R1 and R3, settled by the engine's own debug log"><meta name="twitter:description" content="Two open questions from the 2026-09-18 cc-mods adoption brief, turned into a repeatable probe script and run once on CC 2.1.277. R1: a user-tier hooks module does not load with CLAUDE_CODE_ENABLE_FUNCTION_HOOKS unset on this account (cold GrowthBook cache, default false), and loads at tier user with it set. R3: a tool.list answer changes nothing for either loop; the event never dispatches in a -p run, for the main loop or an Explore subagent."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head><body><div class="wrap">
+<div class="eyebrow">chore/function-hook-probes &middot; playground &middot; 2026-09-19</div>
+<h1>R1 and R3, settled <span>by the engine's own debug log.</span></h1>
+<p class="lede">The 2026-09-18 cc-mods adoption brief left two function-hook questions open:
+does a <b>user-tier</b> hooks module load with <code>CLAUDE_CODE_ENABLE_FUNCTION_HOOKS</code> unset (R1),
+and does a <code>tool.list</code> answer change what a <b>subagent</b> is offered (R3).
+<code>tests/probes/function-hooks-probe.sh</code> turns both into a repeatable probe: four
+<code>claude -p</code> calls on <code>--model haiku --no-session-persistence</code>, verdicts grepped out of
+each run's <code>--debug-file</code>. Measured below on <code>claude --version</code> = <b>2.1.277</b>.</p>
+
+<h2>The four lines the script printed</h2>
+<div class="verdict"><span class="pill r">REFUTED</span><div>
+  <div class="q">R1-unset</div>
+  <div class="e">user-tier hooks modules not loaded; rollout flag off from the default (a cold GrowthBook cache, no payload yet)</div>
+</div></div>
+<div class="verdict"><span class="pill v">VERIFIED</span><div>
+  <div class="q">R1-set</div>
+  <div class="e">lesson-cards loaded (tier user); 2 settle lines logged</div>
+</div></div>
+<div class="verdict"><span class="pill r">REFUTED</span><div>
+  <div class="q">R3-main</div>
+  <div class="e">tool.list hook loaded tier user but never dispatched; Read still offered (model YES)</div>
+</div></div>
+<div class="verdict"><span class="pill r">REFUTED</span><div>
+  <div class="q">R3-subagent</div>
+  <div class="e">subagent still offered Read and tool.list never dispatched; SUBAGENT:YES</div>
+</div></div>
+
+<h2>What the engine actually did</h2>
+<div class="card"><h3>R1: the gate is per account and per cache state, not per binary</h3>
+<p>The flag check is <code>env ?? GrowthBook ?? false</code>. With the variable truly unset
+(<code>env -u</code>; an empty assignment is itself an override), this account's debug log reads
+<i>installed plugins' hooks modules not loaded: rollout flag (tengu_plugin_hooks_modules) is off,
+from the default (a cold GrowthBook cache, no payload yet)</i>. The same run with the variable
+set to <code>1</code> loads <code>lesson-cards@inline</code> at <code>tier user</code> and logs
+<code>session.start</code> and <code>tool.call</code> settles. Built-in plugins load regardless either way.</p></div>
+<div class="card"><h3>R3: tool.list is not in the offered-set path at all</h3>
+<p>A one-file probe mod (<code>tests/probes/tool-list-mod</code>) answers <code>tool.list</code> with
+<code>Read</code> filtered out and writes one marker file per dispatch. Across both runs the debug log
+shows <b>zero</b> <code>tool.list</code> settles and zero markers: the main loop's offered tools and the
+Explore subagent's are built without consulting it. What did run for tool offering:
+<code>tool.describe</code> (245 settles), <code>command.describe</code> (600), <code>agent.offer</code>,
+and one <code>agent.spawn</code> when the subagent launched. So on this build a tool.list answer
+changes neither list; the brief's subtractive-scoping row needs a different event.</p></div>
+
+<h2>The commands</h2>
+<pre># R1, flag truly unset (an empty assignment is itself an override)
+env -u CLAUDE_CODE_ENABLE_FUNCTION_HOOKS claude --plugin-dir mods/lesson-cards \
+  -p "run: echo hi" --model haiku --no-session-persistence --debug-file dbg.log
+
+# R1, flag forced on
+CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1 claude --plugin-dir mods/lesson-cards \
+  -p "run: echo hi" --model haiku --no-session-persistence --debug-file dbg.log
+
+# R3, probe mod loaded; main loop, then a run that spawns Explore
+CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1 claude --plugin-dir tests/probes/tool-list-mod \
+  -p "&lt;ask: is a tool named Read in your list?&gt;" --model haiku \
+  --no-session-persistence --debug-file dbg.log</pre>
+
+<h2>Reproduce</h2>
+<pre>./tests/probes/function-hooks-probe.sh   # prints the four lines, cleans its temp dir, exits 0</pre>
+<p class="foot">Evidence lives in each run's <code>--debug-file</code>: <code>hooks module &lt;name&gt; loaded (..., tier user); events: ...</code>
+for loads, <code>hooks module &lt;name&gt; &lt;event&gt; settled in &lt;ms&gt;</code> per dispatch, and the rollout-flag
+line naming the deciding source when the gate is off. INCONCLUSIVE is reserved for an empty or errored call.</p>
+</div><!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body></html>
