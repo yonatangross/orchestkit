@@ -84,9 +84,6 @@ describe('Sink Registry', () => {
 
   afterEach(() => {
     for (const key of WEBHOOK_ENVS) delete process.env[key];
-  });
-
-  afterEach(() => {
     try { rmSync(testDir, { recursive: true, force: true }); } catch {}
   });
 
