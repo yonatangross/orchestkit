@@ -33,7 +33,9 @@ Agent(
 | `open <url>` | Navigate to page | `open http://localhost:3000/login` |
 | `snapshot` | Full ARIA accessibility tree | Capture page structure |
 | `snapshot -i` | Interactive elements only | Find clickable/fillable elements |
+| `snapshot --delta` (0.38+) | Full tree once, `unchanged` or a compact diff after | Cheap re-check after an in-page action, no navigation |
 | `screenshot` | Capture viewport | Auto on failure |
+| `screenshot --if-changed` (0.38+) | Skip re-encoding an unchanged capture | Repeated evidence shots of the same route across a run |
 | `screenshot --annotate` | Labeled screenshot | Vision fallback for complex UIs |
 | `click @ref` | Click by ARIA ref | `click @e15` (from snapshot refs) |
 | `fill @ref <text>` | Type into input | `fill @e8 "test@example.com"` |
@@ -74,15 +76,33 @@ Step fails
 
 ## ARIA Snapshot Diffing Integration
 
+Two different comparisons need two different tools. Within one page visit
+(no navigation between the two captures), agent-browser 0.38+ already
+computes the structural diff natively, so use it instead of hand-rolling
+one:
+
 ```python
-# Before test steps
-pre_snapshot = agent_browser("snapshot")
+# Before test steps: establish the delta baseline for this page visit
+pre_snapshot = agent_browser("snapshot --delta --full")
 
-# After test steps
-post_snapshot = agent_browser("snapshot")
+# After test steps: same page, no navigation in between
+post_snapshot = agent_browser("snapshot --delta")
+# post_snapshot is "unchanged", or a compact structural change (added/removed
+# nodes, changed names/roles, an exact ref/tree-change splice). Read it
+# directly, no local diffing needed.
+```
 
-# Diff (see aria-diffing.md)
-diff = compute_aria_diff(pre_snapshot, post_snapshot)
+Across separate runs (baseline saved to `.expect/snapshots/{page-slug}.json`
+on a prior run, compared against today's fresh capture after a fresh
+navigation), `--delta` does not apply, since its baseline resets per session
+and per navigation. Use the persisted-file comparison instead (see
+`aria-diffing.md`):
+
+```python
+# Cross-run comparison: fresh navigation, so take a full snapshot and diff
+# it against the saved baseline file, not against --delta's in-session state.
+current_snapshot = agent_browser("snapshot")
+diff = compute_aria_diff(load_saved_baseline(page), current_snapshot)
 if diff.change_score > config.aria_snapshots.diff_threshold:
     report.add_aria_diff(page, diff)
 ```

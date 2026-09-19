@@ -1,0 +1,8 @@
+{
+  "slug": "fix--pep695-skill-scripts-py311",
+  "source": "docs/fix--pep695-skill-scripts-py311/index.html",
+  "title": "PEP 695 generics vs requires-python 3.11",
+  "description": "#4265's ruff pass under target-version py313 rewrote a TypeVar into PEP 695 syntax in a >=3.11 codebase. The fix: TypeVar back, per-file-target-version py311 for src/skills, and a python3.11 compileall gate in CI.",
+  "tags": ["ci", "python", "ruff", "release-blocker"],
+  "date": "2026-09-19"
+}

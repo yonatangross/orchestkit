@@ -356,5 +356,23 @@ export function isCompoundCommand(cmd: string): boolean {
 
   // Check the normalized form for compound operators
   const normalized = normalizeSingle(cmd);
-  return /(?:&&|\|\||[|;])/.test(normalized);
+  if (/(?:&&|\|\||[|;])/.test(normalized)) return true;
+
+  // HR-1 (#4216): command/process substitution and redirects are compound too.
+  // A prefix allowlist cannot see the substituted payload or the file a
+  // redirect writes, so `echo "$(curl x)"` and `echo x > f` must not pass.
+  // normalizeSingle strips quote structure, so expand escapes on the raw
+  // command and blank quoted regions before scanning.
+  const expanded = expandOctalEscapes(expandHexEscapes(cmd));
+
+  // Command/process substitution executes inside DOUBLE quotes, so blank
+  // single-quoted regions only. Escaped forms (\$( \` <( >() are literal in
+  // bash but still route to manual review — the safe direction.
+  const substitutionProbe = stripBackslashEscapes(expanded.replace(/'[^']*'/g, "''"));
+  if (/\$\(|`|<\(|>\(/.test(substitutionProbe)) return true;
+
+  // Redirects are inert inside EITHER quote type — blank both, then any
+  // remaining < or > is a real operator (>, >>, <, <<, <<<, >&2, <(...).
+  const redirectProbe = stripBackslashEscapes(blankQuotedContent(expanded));
+  return /[<>]/.test(redirectProbe);
 }

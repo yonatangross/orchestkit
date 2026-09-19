@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Agent-browser 0.38.1 workflow playground</title>
+<style>
+:root{color-scheme:dark;--bg:#101916;--panel:#192620;--ink:#edf5ef;--muted:#b3c6b9;--accent:#8be0ae;--line:#40564a}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.6 system-ui,sans-serif}main{max-width:960px;margin:auto;padding:40px 24px}h1{font-size:clamp(28px,5vw,44px);line-height:1.2;margin:12px 0}h2{font-size:22px}p{max-width:74ch}.eyebrow{color:var(--accent);letter-spacing:.08em;text-transform:uppercase;font-size:13px}header p,.note{color:var(--muted)}section{margin-top:24px;padding:24px;border:1px solid var(--line);border-radius:16px;background:var(--panel)}fieldset{border:0;padding:0;margin:16px 0}legend{font-weight:700;margin-bottom:8px}label{display:block;margin:8px 0;cursor:pointer}input{accent-color:var(--accent);margin-inline-end:10px}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:var(--bg);padding:18px;border-radius:10px;font-size:14px}button{font:inherit;cursor:pointer;background:var(--accent);color:var(--bg);padding:10px 18px;border:0;border-radius:8px}button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid #ffd58b;outline-offset:4px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}.grid section{margin-top:0}a{color:var(--accent)}.badge{color:var(--accent);font-weight:700}@media(max-width:680px){.grid{grid-template-columns:1fr}main{padding:24px 16px}section{padding:18px}}
+</style>
+</head>
+<body>
+<main>
+<header><span class="eyebrow">OrchestKit / PR #4260</span><h1>Capture what changed.<br>Keep the context you need.</h1><p>Explore how the agent-browser 0.38.1 adoption changes an expect or verify workflow. This is an illustrative command planner, not a live browser session or a benchmark.</p></header>
+<section aria-labelledby="planner-title">
+<h2 id="planner-title">Choose the next observation</h2>
+<fieldset><legend>What happened since the last snapshot?</legend>
+<label><input type="radio" name="visit" value="same" checked> An action on the same page</label>
+<label><input type="radio" name="visit" value="navigation"> A new navigation or session</label>
+<label><input type="radio" name="visit" value="jev"> Jev needs the complete action candidate set</label>
+</fieldset>
+<label><input id="changed" type="checkbox" checked> The page changed after the action</label>
+<p class="badge" id="mode"></p>
+<pre id="commands" aria-label="Illustrative commands"></pre>
+<p id="result" role="status" aria-live="polite"></p>
+<button id="copy" type="button">Copy commands</button>
+<p id="copy-status" role="status"></p>
+</section>
+<div class="grid" style="margin-top:24px">
+<section><h2>Repeat evidence captures</h2><p>For repeated captures of the same route, verify can avoid re-encoding an unchanged image.</p><pre>agent-browser screenshot --if-changed</pre><p class="note">Use the documented threshold option when tuning change sensitivity. This page does not simulate image comparison.</p></section>
+<section><h2>Make a repro easier to scan</h2><p>Recording defaults to 30 fps. A contact sheet summarizes distinct visual changes; cursor capture can make pointer actions easier to follow.</p><pre>agent-browser record start /tmp/repro.webm --contact-sheet
+agent-browser click @e5
+agent-browser record stop</pre><p class="note">The ref is illustrative. Use a ref from your actual snapshot.</p></section>
+</div>
+<section><h2>Boundaries that still matter</h2><ul><li>Delta state resets with navigation or a new session. Cross-run comparison still uses saved snapshots.</li><li>Jev keeps full interactive snapshots: an <code>unchanged</code> delta does not contain its action candidates.</li><li><code>auth login my-app --no-navigate</code> supports login on the page you already opened.</li><li>WebMCP is documented, but invocation is not added to the Jev-scored action set.</li></ul><p class="note">These examples explain the PR's documented adoption. They do not establish successful browser execution in this environment.</p><a href="https://github.com/yonatangross/orchestkit/pull/4260">Read the implementation and verification notes</a></section>
+</main>
+<script>
+const commands = document.getElementById('commands');
+function render() {
+  const visit = document.querySelector('input[name="visit"]:checked').value;
+  const changed = document.getElementById('changed');
+  changed.disabled = visit !== 'same';
+  let mode, command, result;
+  if (visit === 'same') {
+    mode = 'Within one page visit: delta snapshots';
+    command = 'agent-browser snapshot --delta --full\n# Perform an action without navigating\nagent-browser snapshot --delta';
+    result = changed.checked ? 'Illustrative result: a compact structural diff describing the changed nodes.' : 'Illustrative result: unchanged. The previous baseline still supplies context.';
+  } else if (visit === 'navigation') {
+    mode = 'New visit: establish a fresh baseline';
+    command = 'agent-browser snapshot --delta --full';
+    result = 'A new navigation resets delta state. For cross-run comparison, capture a full snapshot and compare it with a persisted baseline.';
+  } else {
+    mode = 'Jev step judge: full candidate set';
+    command = 'agent-browser snapshot -i';
+    result = 'Keep the full interactive-element list for every judged step. Do not substitute a delta response for the candidate set.';
+  }
+  document.getElementById('mode').textContent = mode;
+  commands.textContent = command;
+  document.getElementById('result').textContent = result;
+  document.getElementById('copy-status').textContent = '';
+}
+document.querySelectorAll('input').forEach(input => input.addEventListener('change', render));
+document.getElementById('copy').addEventListener('click', async () => {
+  try {
+    await navigator.clipboard.writeText(commands.textContent);
+    document.getElementById('copy-status').textContent = 'Commands copied.';
+  } catch {
+    document.getElementById('copy-status').textContent = 'Select the commands above and copy them manually.';
+  }
+});
+render();
+</script>
+</body>
+</html>

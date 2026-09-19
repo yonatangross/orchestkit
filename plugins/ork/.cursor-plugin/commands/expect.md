@@ -219,20 +219,21 @@ Load: `Read("skills/expect/references/test-plan.md")`
 
 ### agent-browser Quick Primer
 
-> Floor is `>= 0.31.1` (0.27.1 is documented broken on prod pages); current tested release is **0.36.0** (see `upstream-version-tested`). Commands below hold across this range. 0.30+ adds `agent-browser read` (agent-readable text extraction) and the `--restore` / `--namespace` session-restore workflow for stable, isolated browser state across agent runs. 0.33.0 adds `agent-browser a11y [url]`, an embedded axe-core audit (WCAG tag filtering, selector scoping, iframe-aware text/JSON output) available as both a CLI command and an MCP tool. 0.34.0 adds persistent session-to-tab binding for shared Chrome sessions, with `--pin-tab` making the binding strict so an externally closed tab yields a stable `tab_gone` error. 0.35.0 adds `--ca-cert <path>` for a trusted local CA behind an SSL-inspecting proxy (Linux-only; the targeted alternative to `--ignore-https-errors`). 0.35.1 changes behaviour the Diff row below relies on: `diff snapshot` now resets ref numbering per diff and invalidates refs across navigations, so refs captured before a navigation must be re-read rather than reused.
+> Floor is `>= 0.31.1` (0.27.1 is documented broken on prod pages); current tested release is **0.38.1** (see `upstream-version-tested`). Commands below hold across this range. 0.30+ adds `agent-browser read` (agent-readable text extraction) and the `--restore` / `--namespace` session-restore workflow for stable, isolated browser state across agent runs. 0.33.0 adds `agent-browser a11y [url]`, an embedded axe-core audit (WCAG tag filtering, selector scoping, iframe-aware text/JSON output) available as both a CLI command and an MCP tool. 0.34.0 adds persistent session-to-tab binding for shared Chrome sessions, with `--pin-tab` making the binding strict so an externally closed tab yields a stable `tab_gone` error. 0.35.0 adds `--ca-cert <path>` for a trusted local CA behind an SSL-inspecting proxy (Linux-only; the targeted alternative to `--ignore-https-errors`). 0.35.1 changes behaviour the Diff row below relies on: `diff snapshot` now resets ref numbering per diff and invalidates refs across navigations, so refs captured before a navigation must be re-read rather than reused. 0.36.0 adds experimental WebMCP tool discovery (`webmcp list/invoke/result/cancel`, brief untrusted catalog summaries on `open`). 0.37.0 makes `record` capture the active page at 30 fps and inherits session setup into new tabs. 0.38.0 adds `snapshot --delta` (full baseline, then `unchanged` or a compact structural change), `screenshot --if-changed --threshold`, persistent refs that survive same-document DOM changes, `--human` / `--input-mode` pointer realism, and `auth login --no-navigate`. Full command surface: `references/upstream.md` and `agent-browser skills get core --full`.
 
 
 | Area | Command | Notes |
 |------|---------|-------|
 | Snapshot | `agent-browser snapshot -i` | ARIA tree w/ `@eN` refs. `-C`/`--cursor` was removed in 0.22 |
+| Snapshot delta *(0.38+)* | `agent-browser snapshot --delta` | Full tree once, then `unchanged` or a compact structural diff; refs persist across same-document changes |
 | Semantic locator | `agent-browser find role button click --name "Continue"` | Grammar: `find <locator> <value> [action]`; stable alternative to `@eN` refs |
-| Interaction | `fill @e1 "..."`, `click @e2`, `press Enter`, `drag @e1 @e2`, `upload @e1 file.pdf` | All take ARIA refs |
+| Interaction | `fill @e1 "..."`, `click @e2`, `press Enter`, `drag @e1 @e2`, `upload @e1 file.pdf` | All take ARIA refs. Add `--human` for a curved approach instead of an instant jump |
 | Waits | `wait --load networkidle`, `wait --text "Success"`, `wait --fn "window.ready"` | Event-driven, never sleep-based |
 | Network | `network route "*analytics*" --abort`, `network route "https://api/*" --body '{...}'` | Intercept + stub |
 | State | `state save/load auth.json`, `--session-name <name>` | Persist auth across runs |
 | Vault | `vault store github_pat`, `vault load github_pat` | Encrypted credential store |
-| Diff | `diff snapshot`, `diff screenshot --baseline /tmp/x.png` | ARIA + pixel diffing |
-| Capture | `screenshot --annotate`, `pdf`, `record start/stop` | Evidence artifacts |
+| Diff | `diff snapshot`, `diff screenshot --baseline /tmp/x.png` | ARIA + pixel diffing across separate runs; prefer `snapshot --delta` for within-run before/after on the same page |
+| Capture | `screenshot --annotate`, `screenshot --if-changed --threshold <n>` *(0.38+)*, `pdf`, `record start/stop --fps <n>` | `--if-changed` skips re-encoding an unchanged screenshot; `record` defaults to 30 fps (0.37+) |
 | Dashboard | `agent-browser dashboard start` *(0.25+)* | Browser-side runtime inspector on :4848 |
 
 ### Run the test plan

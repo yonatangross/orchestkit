@@ -156,3 +156,10 @@ bash $CLAUDE_PLUGIN_ROOT/skills/expect/scripts/jev-shadow.sh \
 already captured (text or `--json` form; only ref/role/name are read).
 `--config` or `ORK_EXPECT_CONFIG` points at an alternate config file;
 `.expect/config.yaml` is used when present.
+
+Deliberately NOT `snapshot --delta` (0.38+): the bounded legal-action set
+needs the full list of interactive elements on every step, and a delta call
+answers `unchanged` whenever the page has not moved, which would starve Jev
+of candidates on exactly the steps where nothing visibly changed. Use
+`snapshot -i` here even though `--delta` is the better choice for the
+retry loop in `expect-agent.md`.
