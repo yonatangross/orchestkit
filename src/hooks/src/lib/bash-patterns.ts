@@ -24,17 +24,27 @@ export const REJECT_PATTERNS: RegExp[] = [
   /^git\s+clean/,
   /^rm\s/,
   /^chmod\s/,
-  // find(1) with destructive / file-writing actions. -exec uses `;` (caught
-  // by isCompoundCommand), but -delete, -fprint*, -fls, and -ok are
+  // find(1) with destructive / file-writing / command-running actions.
+  // -exec ... \; has a `;` (caught by isCompoundCommand), but `-exec ... +`
+  // and -execdir have none, and -delete, -fprint*, -fls, -ok are
   // single-token flags that bypass the compound check:
   //   -delete       — unlinks matches
   //   -fprint*      — writes matches to arbitrary file (fprint/fprint0/fprintf)
   //   -fls          — writes ls-style listing to arbitrary file
   //   -ok           — interactive confirm (no stdin in hook context → hangs)
+  //   -exec/-execdir — runs an arbitrary command per match (#4216 HR-1:
+  //                    `find . -exec rm {} +` auto-approved under /^find\s/)
   // Not blocked: -print, -print0, -printf (stdout-only; exfil via pipe is
   // caught by isCompoundCommand). CC 2.1.113 stopped auto-approving these
   // under Bash(find:*); we mirror it.
-  /^find\b[^\n]*?\s-(delete|fprint[0-9a-z]*|fls|ok)\b/,
+  /^find\b[^\n]*?\s-(delete|fprint[0-9a-z]*|fls|ok|exec|execdir)\b/,
+
+  // Credential-path reads (#4216 HR-1): secret material must never
+  // auto-approve under a read-only prefix — `cat ~/.ssh/id_rsa` was allowed.
+  // Covers the usual secret stores; anything matching drops to a real prompt.
+  // envrc sits next to env (direnv dumps exports), master.passwd is the macOS
+  // shadow, and gh/hosts.yml holds the gh CLI OAuth tokens.
+  /^(?:cat|head|tail|less|more)\b[^\n]*?(?:\/etc\/(?:shadow|gshadow|sudoers|master\.passwd)|\.(?:ssh|aws|gnupg|kube|docker|netrc|git-credentials|npmrc|pypirc|env|envrc|credentials?)\b|id_(?:rsa|ed25519|ecdsa|dsa)\b|\.(?:pem|key|p12|pfx|keystore)\b|\.config\/gh\/hosts\.yml\b)/,
 ];
 
 // Note: For compound command detection, use isCompoundCommand() from

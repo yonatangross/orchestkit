@@ -194,6 +194,50 @@ describe('isCompoundCommand', () => {
   test('returns false for empty string', () => {
     expect(isCompoundCommand('')).toBe(false);
   });
+
+  // HR-1 (#4216): substitution and redirects are compound — a prefix
+  // allowlist cannot see the executed payload or the written file.
+  test('returns true for command substitution $(...)', () => {
+    expect(isCompoundCommand('echo $(whoami)')).toBe(true);
+  });
+
+  test('returns true for command substitution inside double quotes', () => {
+    // Bash still expands inside "" — the hole the audit probed.
+    expect(isCompoundCommand('echo "$(whoami)"')).toBe(true);
+  });
+
+  test('returns true for backtick substitution', () => {
+    expect(isCompoundCommand('echo `whoami`')).toBe(true);
+  });
+
+  test('returns true for backticks inside double quotes', () => {
+    // Same hole as "$( )": bash expands `...` inside "" too.
+    expect(isCompoundCommand('echo "`id`"')).toBe(true);
+  });
+
+  test('returns false for substitution-looking text inside single quotes', () => {
+    expect(isCompoundCommand("echo '$(whoami)'")).toBe(false);
+  });
+
+  test('returns true for process substitution <( ) and >( )', () => {
+    expect(isCompoundCommand('cat <(ls)')).toBe(true);
+    expect(isCompoundCommand('tee >(wc -l)')).toBe(true);
+  });
+
+  test('returns true for output redirect', () => {
+    expect(isCompoundCommand('echo hi > /tmp/out.txt')).toBe(true);
+    expect(isCompoundCommand('echo hi >> /tmp/out.txt')).toBe(true);
+  });
+
+  test('returns true for input redirect and stderr redirect', () => {
+    expect(isCompoundCommand('cat < /etc/passwd')).toBe(true);
+    expect(isCompoundCommand('ls 2>&1')).toBe(true);
+  });
+
+  test('returns false for redirect chars inside quotes', () => {
+    expect(isCompoundCommand('echo "a > b"')).toBe(false);
+    expect(isCompoundCommand("echo 'a > b'")).toBe(false);
+  });
 });
 
 // ---------------------------------------------------------------------------
