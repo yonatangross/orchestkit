@@ -296,3 +296,105 @@ describe('run-hook.mjs emits exactly one envelope on stdout', () => {
     expect(parses).toBe(true);
   }, 15000);
 });
+
+// ---------------------------------------------------------------------------
+// The malformed-envelope CONSEQUENCE of the same race (sc34).
+//
+// When the watchdog fires, runHook runs on normalizeInput({}) — the hook
+// measured nothing. default-timeout-setter still emits an updatedInput for
+// it. Before the output-guard fix, that reached stdout as
+//   {"continue":true,"suppressOutput":true,
+//    "hookSpecificOutput":{"updatedInput":{"command":"","timeout":120000}}}
+// — the guard stripped hookEventName ('unknown' is not allow-listed) and
+// kept the body, which is the exact envelope CC rejects with "hookSpecificOutput
+// is missing required field hookEventName". The empty-payload rule now drops
+// the envelope wholesale; a verdict computed on no input is noise.
+// ---------------------------------------------------------------------------
+
+const TIMEOUT_HOOK = 'pretool/bash/default-timeout-setter'; // emits updatedInput even on {}
+
+/**
+ * Spawn HOOK, hold stdin silent past the 100ms watchdog, then deliver the
+ * payload. Anchored on the warning itself — the same readiness signal
+ * runWithDelay uses — so the write provably lands AFTER the hook already ran
+ * on the empty payload (stdinClosed is set; the write is discarded).
+ */
+function runWatchdogRepro(hookKey: string): Promise<{ stdout: string; stderr: string }> {
+  return new Promise((resolve) => {
+    const child = spawn('node', [RUN_HOOK, hookKey], {
+      stdio: ['pipe', 'pipe', 'pipe'],
+      env: { ...process.env, CLAUDE_PROJECT_DIR: '/tmp' },
+    });
+    let stdout = '';
+    let stderr = '';
+    child.stdout.on('data', (c) => {
+      stdout += String(c);
+    });
+    child.stderr.on('data', (c) => {
+      stderr += String(c);
+      if (WARNING.test(stderr)) {
+        child.stdin.write(PAYLOAD);
+        child.stdin.end();
+      }
+    });
+    child.stdin.on('error', () => {
+      /* EPIPE if the child already exited — expected */
+    });
+    child.on('close', () => resolve({ stdout, stderr }));
+  });
+}
+
+/** Spawn HOOK and deliver PAYLOAD immediately — the in-time control. */
+function runInTime(hookKey: string): Promise<{ stdout: string; stderr: string }> {
+  return new Promise((resolve) => {
+    const child = spawn('node', [RUN_HOOK, hookKey], {
+      stdio: ['pipe', 'pipe', 'pipe'],
+      env: { ...process.env, CLAUDE_PROJECT_DIR: '/tmp' },
+    });
+    let stdout = '';
+    let stderr = '';
+    child.stdout.on('data', (c) => {
+      stdout += String(c);
+    });
+    child.stderr.on('data', (c) => {
+      stderr += String(c);
+    });
+    child.stdin.on('error', () => {
+      /* EPIPE if the child already exited */
+    });
+    child.stdin.write(PAYLOAD);
+    child.stdin.end();
+    child.on('close', () => resolve({ stdout, stderr }));
+  });
+}
+
+describe('the watchdog path never emits a nameless hookSpecificOutput', () => {
+  // Positive control: FAILS on the pre-fix code, where stdout carried
+  // hookSpecificOutput.updatedInput with the hookEventName stripped off.
+  it('drops the noise verdict when the hook ran on an empty payload', async () => {
+    const { stdout, stderr } = await runWatchdogRepro(TIMEOUT_HOOK);
+    // The race actually happened — otherwise the assertion below measured
+    // the in-time path and proved nothing (paired-probe discipline).
+    expect(stderr).toMatch(WARNING);
+    const envelope = JSON.parse(stdout.trim()) as {
+      hookSpecificOutput?: { hookEventName?: unknown; updatedInput?: unknown };
+    };
+    expect(envelope.hookSpecificOutput).toBeUndefined();
+  }, 15000);
+
+  // Negative control: the same hook with a real payload keeps its
+  // self-describing envelope — the drop is scoped to empty payloads, not a
+  // blanket suppression of updatedInput.
+  it('keeps the labeled updatedInput when a real payload arrives in time', async () => {
+    const { stdout, stderr } = await runInTime(TIMEOUT_HOOK);
+    expect(stderr).not.toMatch(WARNING);
+    const envelope = JSON.parse(stdout.trim()) as {
+      hookSpecificOutput?: {
+        hookEventName?: string;
+        updatedInput?: { command?: string; timeout?: number };
+      };
+    };
+    expect(envelope.hookSpecificOutput?.hookEventName).toBe('PreToolUse');
+    expect(envelope.hookSpecificOutput?.updatedInput?.timeout).toBe(120000);
+  }, 15000);
+});
