@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>plugins/-only edits now fail at commit time, not in CI</title>
+<meta name="description" content="Issue #3499: the CI drift gate was the only thing catching an edit made in plugins/ without the matching src/ change, so contributors learned after pushing. A pre-commit check compares staged paths and prints the src/ file to edit.">
+<style>
+  :root{--bg:#0f1117;--panel:#161922;--edge:#272b38;--ink:#e8eaf2;--dim:#9aa3b8;--ok:#4ade80;--bad:#f87171;--warn:#fbbf24;--accent:#7dd3fc;--mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;}
+  *{box-sizing:border-box} body{margin:0;padding:2.5rem 1.25rem;background:var(--bg);color:var(--ink);font-family:var(--mono);line-height:1.55}
+  main{max-width:60rem;margin-inline:auto} h1{font-size:1.25rem;margin:0 0 .35rem} .sub{color:var(--dim);margin:0 0 1.8rem;font-size:.85rem}
+  section{background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:1.15rem 1.35rem;margin-block:1rem}
+  h2{font-size:.85rem;margin:0 0 .75rem;color:var(--accent);text-transform:uppercase;letter-spacing:.05em}
+  .controls{display:flex;gap:.55rem;flex-wrap:wrap;margin:.55rem 0}
+  button{background:#0b0d13;color:var(--ink);border:1px solid var(--edge);border-radius:6px;padding:.4rem .85rem;font-family:inherit;font-size:.8rem;cursor:pointer}
+  button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+  label{display:flex;align-items:center;gap:.4rem;font-size:.8rem;color:var(--dim)}
+  pre{background:#0b0d13;border:1px solid var(--edge);border-radius:8px;padding:.85rem 1rem;font-size:.78rem;overflow:auto;white-space:pre-wrap}
+  .ok{color:var(--ok)} .bad{color:var(--bad)} .dim{color:var(--dim)}
+  .verdict{margin-top:.7rem;padding:.65rem .8rem;border:1px solid var(--edge);border-radius:6px;font-size:.85rem}
+  code{background:#0b0d13;border:1px solid var(--edge);border-radius:4px;padding:0 4px}
+</style>
+</head>
+<body>
+<main>
+<h1>plugins/-only edits now fail at commit time, not in CI</h1>
+<p class="sub">Issue <a class="dim" href="https://github.com/yonatangross/orchestkit/issues/3499">#3499</a>. <code>plugins/</code> is generated from <code>src/</code> by <code>npm run build</code>. Editing it directly used to surface only in the CI drift gate, after the push — hit for real on #3495. The new section 10 in <code>bin/git-hooks/pre-commit</code> pipes the staged list through <code>bin/git-hooks/plugins-src-guard.sh</code>: pure path comparison, no build, milliseconds.</p>
+
+<section>
+<h2>Simulate a staged set</h2>
+<p class="dim">Toggle staged files, then run the guard.</p>
+<div class="controls" role="group" aria-label="staged files">
+  <label><input type="checkbox" id="f-gen" checked> <code>plugins/ork/skills/api-design/scripts/problem-detail-exceptions.py</code></label>
+  <label><input type="checkbox" id="f-src"> <code>src/skills/api-design/scripts/problem-detail-exceptions.py</code></label>
+  <label><input type="checkbox" id="f-agent"> <code>plugins/ork/agents/code-quality-reviewer.md</code></label>
+</div>
+<div class="controls">
+  <button id="btn-run">Run guard</button>
+</div>
+<pre id="out"></pre>
+<div id="verdict" class="verdict"></div>
+</section>
+
+<section>
+<h2>Scope, deliberately narrow</h2>
+<ul class="dim" style="font-size:.85rem;padding-left:1.1rem">
+  <li>Only <code>plugins/ork/skills/&lt;s&gt;/&lt;f&gt;</code> pairs with <code>src/skills/&lt;s&gt;/&lt;f&gt;</code>; other generated paths are not covered by this gate.</li>
+  <li>Additive to the CI drift gate, which still diffs the whole <code>plugins/</code> tree after a real build.</li>
+  <li>Fixture tests live in <code>tests/unit/test-pre-commit-plugins-src-guard.sh</code> (6 cases).</li>
+</ul>
+</section>
+
+<footer class="sub">OrchestKit lab page. Source: <code>docs/ci--pre-commit-plugins-src-guard/index.html</code>.</footer>
+</main>
+<script>
+const gen = document.getElementById('f-gen'), src = document.getElementById('f-src'), agent = document.getElementById('f-agent');
+const out = document.getElementById('out'), verdict = document.getElementById('verdict');
+document.getElementById('btn-run').onclick = () => {
+  const genPath = 'plugins/ork/skills/api-design/scripts/problem-detail-exceptions.py';
+  const srcPath = 'src/skills/api-design/scripts/problem-detail-exceptions.py';
+  const staged = [];
+  if (gen.checked) staged.push(genPath);
+  if (src.checked) staged.push(srcPath);
+  if (agent.checked) staged.push('plugins/ork/agents/code-quality-reviewer.md');
+  let text = '$ git diff --cached --name-only | plugins-src-guard.sh\n' + (staged.join('\n') || '(empty)') + '\n\n';
+  if (gen.checked && !src.checked) {
+    text += 'Generated output staged without its src/ counterpart (plugins/ is built from src/):\n  ' + genPath + '\n    -> edit and stage ' + srcPath + ' instead\nexit 1';
+    verdict.innerHTML = '<span class="bad">BLOCKED</span> <span class="dim">- commit refused, contributor is told the exact src/ path.</span>';
+  } else {
+    text += 'exit 0';
+    verdict.innerHTML = '<span class="ok">ALLOWED</span> <span class="dim">- every staged plugins/ork/skills path has its src counterpart (or none are staged).</span>';
+  }
+  out.textContent = text;
+};
+</script>
+</body>
+</html>
