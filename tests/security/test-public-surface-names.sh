@@ -11,17 +11,22 @@
 # that is not a documented placeholder.
 #
 # Allowed:
-#   - op://<vault>/<item>/...   where BOTH segments read as placeholders
-#     (starts with "<", "$", "{", or is one of VAULT, vault, your, my, example)
-#     or the item segment is an explicitly generic word (Item, name, credential,
-#     key, secret, password, token, entry, login). A placeholder vault does NOT
-#     excuse a real item name: op://<vault>/SomeRealItemName/credential is a
-#     disclosure and MUST fail this guard (mutation fixture: staging a file
-#     containing that path makes this test exit 1).
+#   - op://<vault>/<item>/...   where BOTH segments read as placeholders.
+#     Placeholder-shaped means a structural form (<...>, &lt;...&gt;, $VAR,
+#     {...}) or an EXACT generic word (VAULT, vault, your, my, example, ITEM,
+#     item). The word list is exact-match: a real name that merely starts
+#     with a listed word (MyProdDatabase, itemsvc-prod) is NOT a
+#     placeholder. The item segment may instead be one of the documented
+#     generic words (item, name, credential, key, secret, password, token,
+#     entry, login), matched case-insensitively. A placeholder vault does
+#     NOT excuse a real item name: op://<vault>/SomeRealItemName/credential
+#     is a disclosure and MUST fail this guard; the "must-fail fixture"
+#     self-test below proves it does (mutation note: reverting line 64's
+#     "&&" to "||" turns that self-test red).
 #   - /Users/<name> where <name> is a documentation stand-in (me, foo, john,
 #     test, dev, someone, probe, alice, bob, you, testuser, op, env, ...)
 #
-# Test Count: 2
+# Test Count: 5
 # Priority: HIGH
 # Reference: audit 2026-09-17 finding SC-2 (docs/security/audit-2026-09-17.md)
 
@@ -54,22 +59,87 @@ log_section "Public surface: deployment-specific 1Password paths"
 # op://<vault>/<item>/... A hit is skipped only when the vault segment is
 # placeholder-shaped AND the item segment is placeholder-shaped or a generic
 # word. #4224: skipping when EITHER segment was a placeholder let a real item
-# name ride behind <vault>.
-OP_HITS="$(tracked | tr '\n' '\0' | xargs -0 grep -noE 'op://[^/ "'"'"'` )]+/[^/ "'"'"'` )]+' 2>/dev/null \
-  | awk -F: '{
-      split($0, a, "op://"); path = a[2]; n = split(path, seg, "/"); v = seg[1]; i = seg[2];
-      ph = "^(<|&lt;|\\$|\\{|VAULT|vault|Vault|your|Your|my|My|example|Example|ITEM|item)";
-      gi = "^(Item|name|credential|key|secret|password|token|entry|login)$";
-      if (v == "<") next;
-      if (v ~ ph && (i ~ ph || i ~ gi)) next;
+# name ride behind <vault>. The word alternatives are exact-match, not
+# prefix: <vault>/MyProdDatabase is a disclosure, not a placeholder.
+OP_PATTERN='op://[^/ "'"'"'` )]+/[^/ "'"'"'` )]+'
+
+classify_op_hits() {
+  awk -F: '{
+      split($0, a, "op://"); path = a[2]; split(path, seg, "/"); v = seg[1]; i = seg[2];
+      # Bare closing-tag fragment: <code>op://</code> scans as v="<",
+      # i="code>". Skip only when the item is itself a closing tag; a real
+      # name after the tag (op://</code>RealItem/...) must still fire.
+      if (v == "<" && i ~ /^[A-Za-z][A-Za-z0-9]*>$/) next;
+      # Trim a markup tail so item</code> classifies as "item".
+      sub(/[<>]+$/, "", v); sub(/[<>]+$/, "", i);
+      ps = "^(<[^>]*|&lt;[^&<]*(&gt;)?|\\$[A-Za-z_][A-Za-z0-9_]*|\\{[^}]*\\}?)$";
+      pw = "^(VAULT|vault|Vault|your|Your|my|My|example|Example|ITEM|item)$";
+      gi = "^(item|name|credential|key|secret|password|token|entry|login)$";
+      if ((v ~ ps || v ~ pw) && (i ~ ps || i ~ pw || tolower(i) ~ gi)) next;
       print $1 ":" $2 ": op://" v "/" i
-    }' || true)"
+    }'
+}
+
+TRACKED_N="$(tracked | wc -l | tr -d ' ')"
+if [[ "$TRACKED_N" -lt 100 ]]; then
+  log_fail "tracked-file scan measured only $TRACKED_N files (expected >100; refusing to trust an empty scan)"
+else
+  log_pass "tracked-file scan measured $TRACKED_N files"
+fi
+
+OP_HITS="$(tracked | tr '\n' '\0' | xargs -0 grep -HnoE "$OP_PATTERN" 2>/dev/null | classify_op_hits || true)"
 
 if [[ -z "$OP_HITS" ]]; then
   log_pass "no op:// path with a real vault and item name in tracked files"
 else
   log_fail "op:// paths with real vault or item names (use op://<vault>/<item>/...):"
   echo "$OP_HITS" | head -20 | sed 's/^/      /'
+fi
+
+log_section "Self-test: the tightened rule fires on real names and spares placeholders"
+
+# Positive control: every line here MUST be flagged by the same grep+awk
+# pipeline the tracked-file scan uses. If the skip rule is ever loosened
+# back to "either segment", this goes red.
+FIX_BAD="$(mktemp "${TMPDIR:-/tmp}/ork-opnames-bad.XXXXXX")"
+FIX_OK="$(mktemp "${TMPDIR:-/tmp}/ork-opnames-ok.XXXXXX")"
+trap 'rm -f "$FIX_BAD" "$FIX_OK"' EXIT
+cat > "$FIX_BAD" <<'EOF'
+op://<vault>/SomeRealItemName/credential
+op://<vault>/MyProdDatabase/password
+op://<vault>/itemsvc-prod/token
+op://</code>RealVault/RealItem/secret
+op://realvault/<item>/credential
+EOF
+cat > "$FIX_OK" <<'EOF'
+op://<vault>/<item>/<field>
+op://&lt;vault&gt;/&lt;item&gt;/&lt;field&gt;
+op://$VAULT/$ITEM/credential
+op://{vault}/{item}/field
+op://VAULT/ITEM/name
+op://vault/item/secret
+op://<vault>/credential/key
+op://your/my/example
+<code>op://</code>
+<code>op://vault/item</code>
+op://<vault>/credential</code>
+EOF
+
+BAD_HITS="$(grep -HnoE "$OP_PATTERN" "$FIX_BAD" 2>/dev/null | classify_op_hits || true)"
+BAD_N="$(printf '%s\n' "$BAD_HITS" | grep -c ': op://' || true)"
+if [[ "$BAD_N" -eq 5 ]]; then
+  log_pass "must-fail fixture: all 5 real-name paths flagged"
+else
+  log_fail "must-fail fixture: expected 5 flagged paths, got $BAD_N:"
+  printf '%s\n' "$BAD_HITS" | sed 's/^/      /'
+fi
+
+OK_HITS="$(grep -HnoE "$OP_PATTERN" "$FIX_OK" 2>/dev/null | classify_op_hits || true)"
+if [[ -z "$OK_HITS" ]]; then
+  log_pass "must-pass fixture: all placeholder and markup forms skipped"
+else
+  log_fail "must-pass fixture: placeholder paths wrongly flagged:"
+  printf '%s\n' "$OK_HITS" | sed 's/^/      /'
 fi
 
 log_section "Public surface: real home directories"

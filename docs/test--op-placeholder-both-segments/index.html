@@ -35,21 +35,24 @@
 
 <section>
 <h2>What had to change in the tree</h2>
-<p class="dim" style="font-size:.85rem">Real item names were riding behind placeholder vaults in tracked files. They were genericized to <code>&lt;item&gt;</code>/<code>&lt;field&gt;</code> at the source and regenerated: the configure skill's MCP reference (src, plugins, docs-site mdx), the <code>.claude/templates/mcp-*.json</code> Tavily examples, <code>packages/hook-contract-py/RELEASING.md</code> (PyPI item), <code>src/hooks/README.md</code> (orchestkit item) and one hook test fixture. A literal placeholder vault could not previously reach the item check at all because <code>&lt;</code> was excluded from segment characters; the segment class now admits angle brackets so the test's documented negative fixture (placeholder vault, real-shaped item) is genuinely scannable and fails the guard.</p>
+<p class="dim" style="font-size:.85rem">Real item names were riding behind placeholder vaults in tracked files. They were genericized to <code>&lt;item&gt;</code>/<code>&lt;field&gt;</code> at the source and regenerated: the configure skill's MCP reference (src, plugins, docs-site mdx), the <code>.claude/templates/mcp-*.json</code> Tavily examples, <code>packages/hook-contract-py/RELEASING.md</code> (PyPI item), <code>src/hooks/README.md</code> (orchestkit item) and one hook test fixture. A literal placeholder vault could not previously reach the item check at all because <code>&lt;</code> was excluded from segment characters; the segment class now admits angle brackets. The word list is exact-match, so a real item that merely starts with a listed word fails too. The negative case (placeholder vault, real-shaped item) is proven by a must-fail fixture inside the guard script itself: it feeds five real-name paths through the same grep+awk pipeline and asserts all five are flagged.</p>
 </section>
 
 <footer class="sub">OrchestKit lab page. Source: <code>docs/test--op-placeholder-both-segments/index.html</code>.</footer>
 </main>
 <script>
 const probe = document.getElementById('probe'), echo = document.getElementById('echo'), verdict = document.getElementById('verdict');
-const ph = /^(<|&lt;|\$|\{|VAULT|vault|Vault|your|Your|my|My|example|Example|ITEM|item)/;
-const gi = /^(Item|name|credential|key|secret|password|token|entry|login)$/;
+const ps = /^(<[^>]*|&lt;[^&<]*(&gt;)?|\$[A-Za-z_][A-Za-z0-9_]*|\{[^}]*\}?)$/;
+const pw = /^(VAULT|vault|Vault|your|Your|my|My|example|Example|ITEM|item)$/;
+const gi = /^(item|name|credential|key|secret|password|token|entry|login)$/i;
+const tag = /^[A-Za-z][A-Za-z0-9]*>$/;
 function classify(s){
   const m = s.match(/op:\/\/([^/ "'`)]+)\/([^/ "'`)]+)/);
   if(!m) return ['not an op://vault/item path','dim'];
   const v = m[1], i = m[2];
-  if(v === '<') return ['skip - markup fragment','dim'];
-  if(ph.test(v) && (ph.test(i) || gi.test(i))) return ['skip - placeholder pair','ok'];
+  if(v === '<' && tag.test(i)) return ['skip - markup fragment','dim'];
+  const vt = v.replace(/[<>]+$/,''), it = i.replace(/[<>]+$/,'');
+  if((ps.test(vt) || pw.test(vt)) && (ps.test(it) || pw.test(it) || gi.test(it))) return ['skip - placeholder pair','ok'];
   return ['FAIL - discloses a name','bad'];
 }
 function run(){ echo.textContent = probe.value; const [t,c] = classify(probe.value); verdict.innerHTML = '<span class="'+c+'">'+t+'</span>'; }

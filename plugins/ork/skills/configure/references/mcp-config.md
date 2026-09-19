@@ -280,7 +280,7 @@ When `TAVILY_API_KEY` is set and the Tavily MCP is enabled, agents gain access t
 
 > **Note:** Claude Code's MCP `env` block only resolves `${ENV_VAR}` syntax, not `op://` references directly. Use the `sh -c "TAVILY_API_KEY=$(op read '...') exec npx ..."` wrapper pattern to read from 1Password at startup.
 
-> **`<vault>` placeholder:** replace the `<vault>` segment above with your 1Password vault name. For individual accounts the default vault is named `Private`; for team/org accounts use your vault name (e.g. `op://YourTeam/<item>/<field>`).
+> **`<vault>` placeholder:** replace the `<vault>` segment above with your 1Password vault name. For individual accounts the default vault is named `Private`; for team/org accounts use your vault name (e.g. `op://<vault>/<item>/<field>`).
 
 **Option B: Remote MCP (hosted, no npx)**
 
