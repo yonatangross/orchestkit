@@ -42,6 +42,11 @@ import {
   type SuggestEntry,
   type Suggestion,
 } from "@/lib/search-autocomplete";
+import {
+  createSuggestStats,
+  percentile,
+  recordSuggestSample,
+} from "@/lib/suggest-metrics";
 import { jevRerankEnabled } from "@/lib/jev-rerank";
 import { SearchZeroResults } from "@/components/search-zero-results";
 
@@ -61,6 +66,18 @@ const LISTBOX_ID = "ork-search-listbox";
 // baked in at build time via next.config env passthrough, so flag-off
 // operation never touches the network beyond the existing /api/search call.
 const JEV_SUGGEST_ENABLED = jevRerankEnabled();
+
+// Dev-only A/B toggle + metrics footer (the Jev launcher demo proof format).
+// Never rendered in production builds; the rerank itself also stays behind
+// the flag, which is off in production.
+const SUGGEST_DEV_TOOLS =
+  JEV_SUGGEST_ENABLED && process.env.NODE_ENV !== "production";
+const SUGGEST_MODES = [
+  { value: "jev", name: "Jev" },
+  { value: "off", name: "Jev off" },
+  { value: "llm", name: "LLM" },
+] as const;
+type SuggestMode = (typeof SUGGEST_MODES)[number]["value"];
 
 /**
  * Sets aria-activedescendant on the combobox input to the active option's DOM
@@ -127,8 +144,11 @@ export default function CustomSearchDialog(props: SharedProps) {
   >(null);
   const [serverSuggestions, setServerSuggestions] = useState<{
     query: string;
+    mode: SuggestMode;
     items: Suggestion[];
   } | null>(null);
+  const [suggestMode, setSuggestMode] = useState<SuggestMode>("jev");
+  const [suggestStats, setSuggestStats] = useState(createSuggestStats);
 
   useEffect(() => {
     if (suggestEntries || search.trim().length < 2) return;
@@ -148,11 +168,15 @@ export default function CustomSearchDialog(props: SharedProps) {
     [search, suggestEntries],
   );
 
-  // Optional Jev re-rank of the deterministic top 10 via /api/search/suggest.
-  // Skipped entirely when the flag was off at build time; any failure keeps
-  // the local deterministic order.
+  // Optional re-rank of the deterministic top 10 via /api/search/suggest.
+  // Skipped entirely when the flag was off at build time or the dev toggle is
+  // on "Jev off"; any failure keeps the local deterministic order. Latency is
+  // measured client-side (full round trip) for the dev metrics footer.
   useEffect(() => {
-    if (!JEV_SUGGEST_ENABLED) return;
+    if (!JEV_SUGGEST_ENABLED || suggestMode === "off") {
+      setServerSuggestions(null);
+      return;
+    }
     const q = search.trim();
     if (q.length < 2 || localSuggestions.length === 0) {
       setServerSuggestions(null);
@@ -160,15 +184,34 @@ export default function CustomSearchDialog(props: SharedProps) {
     }
     let alive = true;
     const timer = setTimeout(async () => {
+      const startedAt = performance.now();
       try {
         const res = await fetch(
-          `/api/search/suggest?query=${encodeURIComponent(q)}`,
+          `/api/search/suggest?query=${encodeURIComponent(q)}&mode=${suggestMode}`,
         );
-        const json = res.ok ? ((await res.json()) as { items?: Suggestion[] }) : null;
-        if (alive && Array.isArray(json?.items)) {
-          setServerSuggestions({ query: q, items: json.items });
+        const json = res.ok
+          ? ((await res.json()) as {
+              items?: Suggestion[];
+              estCostUsd?: number;
+            })
+          : null;
+        if (!alive) return;
+        setSuggestStats((s) =>
+          recordSuggestSample(
+            s,
+            Math.round(performance.now() - startedAt),
+            json?.estCostUsd ?? 0,
+          ),
+        );
+        if (Array.isArray(json?.items)) {
+          setServerSuggestions({ query: q, mode: suggestMode, items: json.items });
         }
       } catch {
+        if (alive) {
+          setSuggestStats((s) =>
+            recordSuggestSample(s, Math.round(performance.now() - startedAt), 0),
+          );
+        }
         // deterministic order stands
       }
     }, SUGGEST_DEBOUNCE_MS);
@@ -176,10 +219,12 @@ export default function CustomSearchDialog(props: SharedProps) {
       alive = false;
       clearTimeout(timer);
     };
-  }, [search, localSuggestions.length]);
+  }, [search, localSuggestions.length, suggestMode]);
 
   const suggestions =
-    serverSuggestions && serverSuggestions.query === search.trim()
+    serverSuggestions &&
+    serverSuggestions.query === search.trim() &&
+    serverSuggestions.mode === suggestMode
       ? serverSuggestions.items
       : localSuggestions;
 
@@ -383,6 +428,29 @@ export default function CustomSearchDialog(props: SharedProps) {
             )
           }
         />
+        {SUGGEST_DEV_TOOLS && (
+          <div className="flex flex-wrap items-center gap-1 border-t px-2.5 py-1.5 text-xs text-fd-muted-foreground">
+            <span className="font-medium">suggest rerank:</span>
+            {SUGGEST_MODES.map((m) => (
+              <button
+                key={m.value}
+                type="button"
+                data-active={suggestMode === m.value}
+                aria-pressed={suggestMode === m.value}
+                onClick={() => setSuggestMode(m.value)}
+                className="rounded-md border px-1.5 py-0.5 font-medium transition-colors hover:text-fd-accent-foreground data-[active=true]:bg-fd-accent data-[active=true]:text-fd-accent-foreground"
+              >
+                {m.name}
+              </button>
+            ))}
+            <span className="ml-auto tabular-nums">
+              p50 {Math.round(percentile(suggestStats.latencies, 50))}ms · p95{" "}
+              {Math.round(percentile(suggestStats.latencies, 95))}ms ·{" "}
+              {suggestStats.requests} req · ~$
+              {suggestStats.costUsd.toFixed(4)}
+            </span>
+          </div>
+        )}
       </SearchDialogContent>
     </SearchDialog>
   );

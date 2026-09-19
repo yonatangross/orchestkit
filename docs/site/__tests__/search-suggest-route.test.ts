@@ -28,11 +28,97 @@ describe("GET /api/search/suggest", () => {
 		const body = (await res.json()) as {
 			items: { url: string; title: string }[];
 			rankedBy: string;
+			ms: number;
+			estCostUsd: number;
 		};
 		expect(body.rankedBy).toBe("deterministic");
 		expect(body.items.length).toBeGreaterThan(0);
 		expect(body.items[0].url).toContain("/docs/");
+		expect(typeof body.ms).toBe("number");
+		expect(body.estCostUsd).toBe(0);
 		expect(fetchSpy).not.toHaveBeenCalled();
+	});
+
+	it("mode=off keeps deterministic order even with flag and keys set", async () => {
+		vi.stubEnv("ORK_SITE_JEV_RERANK", "1");
+		vi.stubEnv("TYPESAFE_API_KEY", "test-key");
+		vi.stubEnv("OPENAI_API_KEY", "test-key");
+		const fetchSpy = vi.fn();
+		vi.stubGlobal("fetch", fetchSpy);
+		const res = await GET(req("/api/search/suggest?query=hook&mode=off"));
+		const body = (await res.json()) as { rankedBy: string; mode: string };
+		expect(body.mode).toBe("off");
+		expect(body.rankedBy).toBe("deterministic");
+		expect(fetchSpy).not.toHaveBeenCalled();
+	});
+
+	it("flag off ignores mode param entirely", async () => {
+		vi.stubEnv("ORK_SITE_JEV_RERANK", "");
+		vi.stubEnv("TYPESAFE_API_KEY", "test-key");
+		vi.stubEnv("OPENAI_API_KEY", "test-key");
+		const fetchSpy = vi.fn();
+		vi.stubGlobal("fetch", fetchSpy);
+		const res = await GET(req("/api/search/suggest?query=hook&mode=llm"));
+		const body = (await res.json()) as { rankedBy: string };
+		expect(body.rankedBy).toBe("deterministic");
+		expect(fetchSpy).not.toHaveBeenCalled();
+	});
+
+	it("mode=llm + OPENAI_API_KEY -> llm rerank with measured cost", async () => {
+		vi.stubEnv("ORK_SITE_JEV_RERANK", "1");
+		vi.stubEnv("OPENAI_API_KEY", "test-key");
+		const base = suggestCompletions("hook", SEARCH_SUGGEST_INDEX, 10);
+		const reversed = [...base].reverse().map((s) => s.url);
+		vi.stubGlobal(
+			"fetch",
+			vi.fn(async () => ({
+				ok: true,
+				json: async () => ({
+					choices: [
+						{ message: { content: JSON.stringify({ order: reversed }) } },
+					],
+					usage: { prompt_tokens: 1000, completion_tokens: 100 },
+				}),
+			})),
+		);
+		const res = await GET(req("/api/search/suggest?query=hook&mode=llm"));
+		const body = (await res.json()) as {
+			items: { url: string }[];
+			rankedBy: string;
+			estCostUsd: number;
+		};
+		expect(body.rankedBy).toBe("llm");
+		expect(body.items.map((i) => i.url)).toEqual(reversed);
+		// 1000 in * $0.15/M + 100 out * $0.60/M = 0.00021
+		expect(body.estCostUsd).toBeCloseTo(0.00021, 6);
+	});
+
+	it("mode=llm + no OPENAI_API_KEY -> deterministic, zero network", async () => {
+		vi.stubEnv("ORK_SITE_JEV_RERANK", "1");
+		vi.stubEnv("OPENAI_API_KEY", "");
+		const fetchSpy = vi.fn();
+		vi.stubGlobal("fetch", fetchSpy);
+		const res = await GET(req("/api/search/suggest?query=hook&mode=llm"));
+		const body = (await res.json()) as { rankedBy: string };
+		expect(body.rankedBy).toBe("deterministic");
+		expect(fetchSpy).not.toHaveBeenCalled();
+	});
+
+	it("mode=llm + malformed LLM answer -> deterministic fallback", async () => {
+		vi.stubEnv("ORK_SITE_JEV_RERANK", "1");
+		vi.stubEnv("OPENAI_API_KEY", "test-key");
+		vi.stubGlobal(
+			"fetch",
+			vi.fn(async () => ({
+				ok: true,
+				json: async () => ({
+					choices: [{ message: { content: "not json at all" } }],
+				}),
+			})),
+		);
+		const res = await GET(req("/api/search/suggest?query=hook&mode=llm"));
+		const body = (await res.json()) as { rankedBy: string };
+		expect(body.rankedBy).toBe("deterministic");
 	});
 
 	it("flag on + key + healthy Jev -> reranked order", async () => {

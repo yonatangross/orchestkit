@@ -6,10 +6,14 @@
 // (lib/generated/search-suggest-index, lib/search-autocomplete).
 //
 // When ORK_SITE_JEV_RERANK is truthy and TYPESAFE_API_KEY is set, one TypeSafe
-// System One request reorders the top 10; every failure mode falls back to
-// the deterministic order. With the flag off the search dialog computes
-// suggestions locally and never calls this route, so the feature costs zero
-// network calls beyond the existing /api/search.
+// System One request reorders the top 10 within a 150 ms per-keystroke budget;
+// every failure mode falls back to the deterministic order. With the flag off
+// the search dialog computes suggestions locally and never calls this route,
+// so the feature costs zero network calls beyond the existing /api/search.
+//
+// ?mode=off|jev|llm powers the dev-only A/B toggle: "off" skips the rerank,
+// "llm" reranks through a raw chat model (OPENAI_API_KEY, only if present) as
+// the honest cost/latency baseline. The flag still gates all of it.
 
 import { problemResponse } from "@/lib/problem";
 import { checkRateLimit, rateLimitHeaders } from "@/lib/rate-limit";
@@ -17,8 +21,14 @@ import { SEARCH_SUGGEST_INDEX } from "@/lib/generated/search-suggest-index";
 import {
 	suggestCompletions,
 	jevSuggestOrder,
+	llmSuggestOrder,
 } from "@/lib/search-autocomplete";
 import { jevRerankEnabled } from "@/lib/jev-rerank";
+
+const SUGGEST_JEV_BUDGET_MS = 150;
+// Flat per-request estimate for a System One call; labeled "estimated" because
+// it feeds only the dev metrics footer, not billing.
+const JEV_EST_USD_PER_REQUEST = 0.0001;
 
 export async function GET(req: Request) {
 	const rate = checkRateLimit(req, "search-suggest");
@@ -49,20 +59,43 @@ export async function GET(req: Request) {
 		);
 	}
 
+	const modeParam = url.searchParams.get("mode");
+	const mode = modeParam === "off" || modeParam === "llm" ? modeParam : "jev";
+
 	const base = suggestCompletions(query, SEARCH_SUGGEST_INDEX, 10);
 	let items = base;
-	let rankedBy: "deterministic" | "jev" = "deterministic";
+	let rankedBy: "deterministic" | "jev" | "llm" = "deterministic";
+	let estCostUsd = 0;
+	const startedAt = performance.now();
 
-	if (jevRerankEnabled()) {
-		const reranked = await jevSuggestOrder(query, base);
-		if (reranked) {
-			items = reranked;
-			rankedBy = "jev";
+	if (jevRerankEnabled() && mode !== "off") {
+		if (mode === "llm") {
+			const reranked = await llmSuggestOrder(query, base);
+			if (reranked) {
+				items = reranked.items;
+				rankedBy = "llm";
+				estCostUsd = reranked.costUsd;
+			}
+		} else {
+			const reranked = await jevSuggestOrder(query, base, {
+				timeoutMs: SUGGEST_JEV_BUDGET_MS,
+			});
+			if (reranked) {
+				items = reranked;
+				rankedBy = "jev";
+				estCostUsd = JEV_EST_USD_PER_REQUEST;
+			}
 		}
 	}
 
 	return Response.json(
-		{ items, rankedBy },
+		{
+			items,
+			rankedBy,
+			mode,
+			ms: Math.round(performance.now() - startedAt),
+			estCostUsd,
+		},
 		{
 			headers: {
 				...rateLimitHeaders(rate),

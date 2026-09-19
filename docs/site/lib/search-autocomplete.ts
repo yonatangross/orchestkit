@@ -185,3 +185,100 @@ export async function jevSuggestOrder(
 		.filter((s): s is Suggestion => Boolean(s));
 	return out.length === suggestions.length ? out : null;
 }
+
+// ---------------------------------------------------------------------------
+// Raw LLM re-rank baseline (dev toggle only). The honest contrast to Jev: a
+// general chat model is slower and bills per token, which is exactly what the
+// metrics footer exists to show. Key comes from OPENAI_API_KEY only, same
+// discipline as TYPESAFE_API_KEY; every failure returns null.
+// ---------------------------------------------------------------------------
+
+export const LLM_RERANK_ENDPOINT =
+	"https://api.openai.com/v1/chat/completions";
+export const LLM_RERANK_MODEL = "gpt-4o-mini";
+export const LLM_TIMEOUT_MS = 3000;
+// gpt-4o-mini list pricing, used only for the dev footer's estimated cost.
+const LLM_USD_PER_INPUT_TOKEN = 0.15 / 1_000_000;
+const LLM_USD_PER_OUTPUT_TOKEN = 0.6 / 1_000_000;
+const LLM_FALLBACK_COST_USD = 0.0002;
+
+export async function llmSuggestOrder(
+	query: string,
+	suggestions: readonly Suggestion[],
+	deps: {
+		fetchImpl?: typeof fetch;
+		apiKey?: string;
+		timeoutMs?: number;
+	} = {},
+): Promise<{ items: Suggestion[]; costUsd: number } | null> {
+	const fetchImpl = deps.fetchImpl ?? fetch;
+	const apiKey = deps.apiKey ?? process.env.OPENAI_API_KEY;
+	if (!apiKey) return null;
+
+	const body = {
+		model: LLM_RERANK_MODEL,
+		temperature: 0,
+		response_format: { type: "json_object" },
+		messages: [
+			{
+				role: "system",
+				content:
+					"You rank documentation pages for a search-as-you-type prefix. " +
+					'Reply with only JSON: {"order": [<url>, ...]} listing every given url, best first.',
+			},
+			{
+				role: "user",
+				content: JSON.stringify({
+					query,
+					candidates: suggestions.map((s) => ({ url: s.url, label: s.label })),
+				}),
+			},
+		],
+	};
+
+	let json: unknown;
+	try {
+		const res = await fetchImpl(LLM_RERANK_ENDPOINT, {
+			method: "POST",
+			headers: {
+				Authorization: `Bearer ${apiKey}`,
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify(body),
+			signal: AbortSignal.timeout(deps.timeoutMs ?? LLM_TIMEOUT_MS),
+		});
+		if (!res.ok) return null;
+		json = await res.json();
+	} catch {
+		return null;
+	}
+
+	const payload = json as {
+		choices?: { message?: { content?: unknown } }[];
+		usage?: { prompt_tokens?: unknown; completion_tokens?: unknown };
+	};
+	const content = payload?.choices?.[0]?.message?.content;
+	if (typeof content !== "string") return null;
+	let order: unknown;
+	try {
+		order = (JSON.parse(content) as { order?: unknown }).order;
+	} catch {
+		return null;
+	}
+	if (!Array.isArray(order)) return null;
+
+	const byUrl = new Map(suggestions.map((s) => [s.url, s]));
+	const out = order
+		.map((u) => (typeof u === "string" ? byUrl.get(u) : undefined))
+		.filter((s): s is Suggestion => Boolean(s));
+	if (out.length !== suggestions.length) return null; // partial rank = malformed
+
+	const usage = payload.usage;
+	const costUsd =
+		typeof usage?.prompt_tokens === "number" &&
+		typeof usage?.completion_tokens === "number"
+			? usage.prompt_tokens * LLM_USD_PER_INPUT_TOKEN +
+				usage.completion_tokens * LLM_USD_PER_OUTPUT_TOKEN
+			: LLM_FALLBACK_COST_USD;
+	return { items: out, costUsd };
+}
