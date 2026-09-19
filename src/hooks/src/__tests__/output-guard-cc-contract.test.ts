@@ -204,6 +204,41 @@ describe('never emits hookSpecificOutput without hookEventName', () => {
     expect(out.hookSpecificOutput).toBeUndefined();
   });
 
+  // Rule 2 on an unidentifiable firing event judges additionalContext by the
+  // DECLARED hookEventName — the event CC will route on. A self-describing
+  // PermissionRequest envelope must not smuggle additionalContext past a
+  // missing event field; the same envelope declaring PreToolUse (which does
+  // consume additionalContext) keeps it.
+  it('strips additionalContext on unknown when the declared event does not consume it', () => {
+    const result = {
+      continue: true,
+      hookSpecificOutput: {
+        hookEventName: 'PermissionRequest',
+        permissionDecision: 'ask',
+        additionalContext: 'leaked text',
+      },
+    };
+    const out = sanitizeOutput(result, 'unknown') as {
+      hookSpecificOutput?: { hookEventName?: string; additionalContext?: unknown };
+    };
+    expect(out.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+    expect(out.hookSpecificOutput?.additionalContext).toBeUndefined();
+  });
+
+  it('keeps additionalContext on unknown when the declared event consumes it', () => {
+    const result = {
+      continue: true,
+      hookSpecificOutput: {
+        hookEventName: 'PreToolUse',
+        additionalContext: 'advisory text',
+      },
+    };
+    const out = sanitizeOutput(result, 'unknown') as {
+      hookSpecificOutput?: { hookEventName?: string; additionalContext?: string };
+    };
+    expect(out.hookSpecificOutput?.additionalContext).toBe('advisory text');
+  });
+
   it('repairs a bare envelope on a consuming event by injecting the firing event', () => {
     const result = {
       continue: true,

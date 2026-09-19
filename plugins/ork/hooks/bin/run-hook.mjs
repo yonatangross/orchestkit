@@ -165,7 +165,20 @@ function normalizeInput(input) {
       }
     }
   }
-  input.__orkEmptyPayload = emptyPayload;
+  // Non-enumerable: hooks see this object — stop-failure-handler logs
+  // Object.keys(input) on unknown reasons, subagent-stop/unified-dispatcher
+  // logs the key list at debug, and any JSON.stringify/spread of the input
+  // would carry the marker out of the runner. An enumerable internal field
+  // leaks into every hook's input view; a non-enumerable one stays readable
+  // (emitHookResult reads it directly) but invisible to enumeration.
+  // Redefining also defeats a spoofed __orkEmptyPayload in the payload itself:
+  // a non-empty input always lands here with emptyPayload === false.
+  Object.defineProperty(input, '__orkEmptyPayload', {
+    value: emptyPayload,
+    enumerable: false,
+    writable: true,
+    configurable: true,
+  });
   return input;
 }
 

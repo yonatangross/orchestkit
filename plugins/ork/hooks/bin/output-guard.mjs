@@ -163,8 +163,13 @@ export function sanitizeOutput(result, firingEvent, emptyPayload = false) {
   }
 
   // --- Rule 2: Strip additionalContext on events that don't consume it ---
+  // On an unidentifiable firing event, judge consumption by the declared
+  // hookEventName — that is the event CC will route on, so an envelope that
+  // labels itself PermissionRequest cannot smuggle additionalContext past a
+  // 'unknown' firing event just because the firing event could not be read.
   if (sanitized.hookSpecificOutput?.additionalContext !== undefined) {
-    if (!unidentified && !EVENTS_WITH_ADDITIONAL_CONTEXT.has(firingEvent)) {
+    const contextEvent = unidentified ? declared : firingEvent;
+    if (!EVENTS_WITH_ADDITIONAL_CONTEXT.has(contextEvent)) {
       process.stderr.write(
         `[orchestkit] WARN: stripped additionalContext from ${firingEvent} response` +
         ` — CC does not read additionalContext for this event type (see #1794)\n`

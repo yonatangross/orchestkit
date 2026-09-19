@@ -2,6 +2,8 @@
 // Created: 2026-08-11
 
 import { spawn } from 'node:child_process';
+import { mkdtempSync, readFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
@@ -396,5 +398,55 @@ describe('the watchdog path never emits a nameless hookSpecificOutput', () => {
     };
     expect(envelope.hookSpecificOutput?.hookEventName).toBe('PreToolUse');
     expect(envelope.hookSpecificOutput?.updatedInput?.timeout).toBe(120000);
+  }, 15000);
+});
+
+// ---------------------------------------------------------------------------
+// The internal __orkEmptyPayload marker must not leak into hook input.
+//
+// normalizeInput marks the normalized payload so output-guard can drop
+// verdicts computed on an empty stdin. When it was an ordinary enumerable
+// assignment, every hook received it in its input view — stop-failure-handler
+// logs Object.keys(input) verbatim on an unknown Stop reason, so the marker
+// landed in hooks.log. It is now defined non-enumerable: still readable by
+// run-hook.mjs, invisible to Object.keys / JSON.stringify / spread.
+// ---------------------------------------------------------------------------
+
+describe('the __orkEmptyPayload marker stays internal', () => {
+  it('does not appear in the input keys a hook enumerates', async () => {
+    const projectDir = mkdtempSync(join(tmpdir(), 'ork-log-'));
+    const code = await new Promise<number | null>((resolve) => {
+      const child = spawn('node', [RUN_HOOK, 'stop/stop-failure-handler'], {
+        stdio: ['pipe', 'pipe', 'pipe'],
+        env: {
+          ...process.env,
+          CLAUDE_PROJECT_DIR: projectDir,
+          // getLogDir() prefers ~/.claude/logs/ork when CLAUDE_PLUGIN_ROOT is
+          // set; clearing it keeps hooks.log inside the temp project dir.
+          CLAUDE_PLUGIN_ROOT: '',
+        },
+      });
+      child.stdout.resume();
+      child.stderr.resume();
+      child.stdin.on('error', () => {
+        /* EPIPE if the child already exited */
+      });
+      child.stdin.write(
+        JSON.stringify({
+          hook_event_name: 'Stop',
+          session_id: '00000000-0000-4000-8000-000000000000',
+          cwd: projectDir,
+          // No error/reason fields: the handler resolves 'unknown' and logs
+          // the enumerated input keys — the leak channel under test.
+        }),
+      );
+      child.stdin.end();
+      child.on('close', resolve);
+    });
+    expect(code).toBe(0);
+    const log = readFileSync(join(projectDir, '.claude', 'logs', 'hooks.log'), 'utf8');
+    // The probe actually fired — an absent marker asserts nothing otherwise.
+    expect(log).toContain('available keys');
+    expect(log).not.toContain('__orkEmptyPayload');
   }, 15000);
 });
