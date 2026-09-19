@@ -39,12 +39,16 @@ export const REJECT_PATTERNS: RegExp[] = [
   // under Bash(find:*); we mirror it.
   /^find\b[^\n]*?\s-(delete|fprint[0-9a-z]*|fls|ok|exec|execdir)\b/,
 
-  // Credential-path reads (#4216 HR-1): secret material must never
-  // auto-approve under a read-only prefix — `cat ~/.ssh/id_rsa` was allowed.
-  // Covers the usual secret stores; anything matching drops to a real prompt.
-  // envrc sits next to env (direnv dumps exports), master.passwd is the macOS
-  // shadow, and gh/hosts.yml holds the gh CLI OAuth tokens.
-  /^(?:cat|head|tail|less|more)\b[^\n]*?(?:\/etc\/(?:shadow|gshadow|sudoers|master\.passwd)|\.(?:ssh|aws|gnupg|kube|docker|netrc|git-credentials|npmrc|pypirc|env|envrc|credentials?)\b|id_(?:rsa|ed25519|ecdsa|dsa)\b|\.(?:pem|key|p12|pfx|keystore)\b|\.config\/gh\/hosts\.yml\b)/,
+  // Credential-path arguments (#4216 HR-1): secret material must never
+  // auto-approve under a read-only prefix. Keying on the reader left the
+  // door open: `fmt ~/.ssh/id_rsa`, `pr ~/.aws/credentials`, `comm` and
+  // `tsort` were measured auto-approved alongside `cat`. Key on the PATH
+  // instead, so any command whose arguments name a secret store drops to
+  // a real prompt whatever the executable.
+  // Covers the usual secret stores; envrc sits next to env (direnv dumps
+  // exports), master.passwd is the macOS shadow, and gh/hosts.yml holds
+  // the gh CLI OAuth tokens.
+  /(?:\/etc\/(?:shadow|gshadow|sudoers|master\.passwd)|\.(?:ssh|aws|gnupg|kube|docker|netrc|git-credentials|npmrc|pypirc|env|envrc|credentials?)\b|id_(?:rsa|ed25519|ecdsa|dsa)\b|\.(?:pem|key|p12|pfx|keystore)\b|\.config\/gh\/hosts\.yml\b)/,
 ];
 
 // Note: For compound command detection, use isCompoundCommand() from
