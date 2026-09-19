@@ -142,7 +142,7 @@ Edit `.mcp.json` and set `"disabled": true` or `false` for each MCP:
     },
     "tavily": {
       "command": "sh",
-      "args": ["-c", "TAVILY_API_KEY=$(op read 'op://<vault>/Tavily API Key/API Key') exec npx -y tavily-mcp@latest"],
+      "args": ["-c", "TAVILY_API_KEY=$(op read 'op://<vault>/<item>/<field>') exec npx -y tavily-mcp@latest"],
       "disabled": false
     },
     "21st-dev-magic": {
@@ -280,7 +280,7 @@ When `TAVILY_API_KEY` is set and the Tavily MCP is enabled, agents gain access t
 
 > **Note:** Claude Code's MCP `env` block only resolves `${ENV_VAR}` syntax, not `op://` references directly. Use the `sh -c "TAVILY_API_KEY=$(op read '...') exec npx ..."` wrapper pattern to read from 1Password at startup.
 
-> **`<vault>` placeholder:** replace the `<vault>` segment above with your 1Password vault name. For individual accounts the default vault is named `Private`; for team/org accounts use your vault name (e.g. `op://YourTeam/Tavily API Key/API Key`).
+> **`<vault>` placeholder:** replace the `<vault>` segment above with your 1Password vault name. For individual accounts the default vault is named `Private`; for team/org accounts use your vault name (e.g. `op://YourTeam/<item>/<field>`).
 
 **Option B: Remote MCP (hosted, no npx)**
 
@@ -305,7 +305,7 @@ Agents fall back to WebFetch (Haiku-summarized) → agent-browser (full headless
 | context7 | None |
 | sequential-thinking | None |
 | memory | None (creates `.claude/memory/` automatically) |
-| tavily | 1Password: `op read 'op://<vault>/Tavily API Key/API Key'` (free: https://app.tavily.com) |
+| tavily | 1Password: `op read 'op://<vault>/<item>/<field>'` (free: https://app.tavily.com) |
 | notebooklm-mcp | `uv tool install notebooklm-mcp-cli` + `nlm login` + `nlm setup add claude-code` |
 | stitch | API key from [stitch.withgoogle.com/settings](https://stitch.withgoogle.com/settings). Add via: `claude mcp add stitch --transport http https://stitch.googleapis.com/mcp --header "X-Goog-Api-Key: YOUR-KEY" -s user` |
 | 21st-dev-magic | API key from https://21st.dev (free tier available). Set `TWENTYFIRST_DEV_API_KEY` env var |

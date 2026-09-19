@@ -11,8 +11,13 @@
 # that is not a documented placeholder.
 #
 # Allowed:
-#   - op://<vault>/<item>/...   and any vault or item that reads as a placeholder
+#   - op://<vault>/<item>/...   where BOTH segments read as placeholders
 #     (starts with "<", "$", "{", or is one of VAULT, vault, your, my, example)
+#     or the item segment is an explicitly generic word (Item, name, credential,
+#     key, secret, password, token, entry, login). A placeholder vault does NOT
+#     excuse a real item name: op://<vault>/SomeRealItemName/credential is a
+#     disclosure and MUST fail this guard (mutation fixture: staging a file
+#     containing that path makes this test exit 1).
 #   - /Users/<name> where <name> is a documentation stand-in (me, foo, john,
 #     test, dev, someone, probe, alice, bob, you, testuser, op, env, ...)
 #
@@ -46,12 +51,17 @@ tracked() {
 
 log_section "Public surface: deployment-specific 1Password paths"
 
-# op://<vault>/<item>/... where neither segment is placeholder-shaped.
-OP_HITS="$(tracked | tr '\n' '\0' | xargs -0 grep -noE 'op://[^/ "'"'"'<>`)]+/[^/ "'"'"'<>`)]+' 2>/dev/null \
+# op://<vault>/<item>/... A hit is skipped only when the vault segment is
+# placeholder-shaped AND the item segment is placeholder-shaped or a generic
+# word. #4224: skipping when EITHER segment was a placeholder let a real item
+# name ride behind <vault>.
+OP_HITS="$(tracked | tr '\n' '\0' | xargs -0 grep -noE 'op://[^/ "'"'"'` )]+/[^/ "'"'"'` )]+' 2>/dev/null \
   | awk -F: '{
       split($0, a, "op://"); path = a[2]; n = split(path, seg, "/"); v = seg[1]; i = seg[2];
       ph = "^(<|&lt;|\\$|\\{|VAULT|vault|Vault|your|Your|my|My|example|Example|ITEM|item)";
-      if (v ~ ph || i ~ ph) next;
+      gi = "^(Item|name|credential|key|secret|password|token|entry|login)$";
+      if (v == "<") next;
+      if (v ~ ph && (i ~ ph || i ~ gi)) next;
       print $1 ":" $2 ": op://" v "/" i
     }' || true)"
 

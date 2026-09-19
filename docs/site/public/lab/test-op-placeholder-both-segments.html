@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Both op:// segments must now be placeholders</title>
+<meta name="description" content="Issue #4224: the public-surface names guard skipped any op:// hit where EITHER segment looked like a placeholder, so a placeholder vault could hide a real item name. The guard now requires the vault to be placeholder-shaped and the item to be placeholder-shaped or a documented generic word.">
+<style>
+  :root{--bg:#0f1117;--panel:#161922;--edge:#272b38;--ink:#e8eaf2;--dim:#9aa3b8;--ok:#4ade80;--bad:#f87171;--accent:#7dd3fc;--mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;}
+  *{box-sizing:border-box} body{margin:0;padding:2.5rem 1.25rem;background:var(--bg);color:var(--ink);font-family:var(--mono);line-height:1.55}
+  main{max-width:60rem;margin-inline:auto} h1{font-size:1.25rem;margin:0 0 .35rem} .sub{color:var(--dim);margin:0 0 1.8rem;font-size:.85rem}
+  section{background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:1.15rem 1.35rem;margin-block:1rem}
+  h2{font-size:.85rem;margin:0 0 .75rem;color:var(--accent);text-transform:uppercase;letter-spacing:.05em}
+  input[type=text]{width:100%;background:#0b0d13;border:1px solid var(--edge);border-radius:6px;color:var(--ink);font-family:inherit;font-size:.85rem;padding:.55rem .7rem}
+  table{width:100%;border-collapse:collapse;font-size:.8rem} td,th{padding:.4rem .5rem;border-bottom:1px solid var(--edge);text-align:left}
+  th{color:var(--dim);font-weight:normal;text-transform:uppercase;font-size:.7rem;letter-spacing:.05em}
+  .ok{color:var(--ok)} .bad{color:var(--bad)} .dim{color:var(--dim)}
+  code{background:#0b0d13;border:1px solid var(--edge);border-radius:4px;padding:0 4px}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Both op:// segments must now be placeholders"><meta property="og:description" content="Issue #4224: the public-surface names guard now requires a placeholder vault AND a placeholder or generic item, so a real item name behind &lt;vault&gt; fails. Real item names in tracked docs were genericized and the negative fixture is scannable."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/test-op-placeholder-both-segments.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Both op:// segments must now be placeholders"><meta name="twitter:description" content="Issue #4224: the public-surface names guard now requires a placeholder vault AND a placeholder or generic item, so a real item name behind &lt;vault&gt; fails. Real item names in tracked docs were genericized and the negative fixture is scannable."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+<h1>Both op:// segments must now be placeholders</h1>
+<p class="sub">Issue <a class="dim" href="https://github.com/yonatangross/orchestkit/issues/4224">#4224</a>. <code>tests/security/test-public-surface-names.sh</code> greps tracked files for <code>op://vault/item</code> paths. The old rule skipped a hit when <em>either</em> segment read as a placeholder, so a <code>&lt;vault&gt;</code> vault could hide a real item name even though the name itself is a disclosure. The guard now requires the vault segment to be placeholder-shaped <em>and</em> the item segment to be placeholder-shaped or one of the documented generic words (Item, name, credential, key, secret, password, token, entry, login).</p>
+
+<section>
+<h2>Try it</h2>
+<p class="dim">Type an op:// path; the classifier applies the new rule.</p>
+<input type="text" id="probe" aria-label="op path">
+<table style="margin-top:.8rem">
+  <tr><th>path</th><th>verdict</th></tr>
+  <tr><td><code id="echo"></code></td><td id="verdict"></td></tr>
+</table>
+</section>
+
+<section>
+<h2>What had to change in the tree</h2>
+<p class="dim" style="font-size:.85rem">Real item names were riding behind placeholder vaults in tracked files. They were genericized to <code>&lt;item&gt;</code>/<code>&lt;field&gt;</code> at the source and regenerated: the configure skill's MCP reference (src, plugins, docs-site mdx), the <code>.claude/templates/mcp-*.json</code> Tavily examples, <code>packages/hook-contract-py/RELEASING.md</code> (PyPI item), <code>src/hooks/README.md</code> (orchestkit item) and one hook test fixture. A literal placeholder vault could not previously reach the item check at all because <code>&lt;</code> was excluded from segment characters; the segment class now admits angle brackets so the test's documented negative fixture (placeholder vault, real-shaped item) is genuinely scannable and fails the guard.</p>
+</section>
+
+<footer class="sub">OrchestKit lab page. Source: <code>docs/test--op-placeholder-both-segments/index.html</code>.</footer>
+</main>
+<script>
+const probe = document.getElementById('probe'), echo = document.getElementById('echo'), verdict = document.getElementById('verdict');
+const ph = /^(<|&lt;|\$|\{|VAULT|vault|Vault|your|Your|my|My|example|Example|ITEM|item)/;
+const gi = /^(Item|name|credential|key|secret|password|token|entry|login)$/;
+function classify(s){
+  const m = s.match(/op:\/\/([^/ "'`)]+)\/([^/ "'`)]+)/);
+  if(!m) return ['not an op://vault/item path','dim'];
+  const v = m[1], i = m[2];
+  if(v === '<') return ['skip - markup fragment','dim'];
+  if(ph.test(v) && (ph.test(i) || gi.test(i))) return ['skip - placeholder pair','ok'];
+  return ['FAIL - discloses a name','bad'];
+}
+function run(){ echo.textContent = probe.value; const [t,c] = classify(probe.value); verdict.innerHTML = '<span class="'+c+'">'+t+'</span>'; }
+probe.addEventListener('input', run);
+probe.value = ['op://','<vault','>','/Some','RealItem','Name/credential'].join('');
+run();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
