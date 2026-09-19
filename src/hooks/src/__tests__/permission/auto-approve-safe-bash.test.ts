@@ -235,6 +235,16 @@ describe('auto-approve-safe-bash', () => {
       'tail ~/.git-credentials',
       'cat ~/.config/gh/hosts.yml',
       'cat /etc/master.passwd',
+      // HR-1 followup: the reject keys on the PATH, not the reader. fmt, pr,
+      // comm and tsort all print files and were measured auto-approved.
+      'fmt ~/.ssh/id_rsa',
+      'pr ~/.aws/credentials',
+      'comm ~/.kube/config ~/.bashrc',
+      'tsort ~/.netrc',
+      // Same holds for non-reader commands that name a secret path.
+      'cp ~/.ssh/id_rsa /tmp/staging/',
+      'wc -l .envrc',
+      'test -f ~/.aws/credentials',
     ];
 
     test.each(dangerousCommands)('requires manual approval: %s', (command) => {
