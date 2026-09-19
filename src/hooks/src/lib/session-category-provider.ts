@@ -349,8 +349,8 @@ export interface CategoryShadowRecord {
   jev: WorkCategory | null;
   agree: boolean | null;
   jev_confidence: number | null;
-  /** True when both classifiers named different categories and Jev met this seam's floor. */
-  high_confidence_disagreement: boolean;
+  /** Null until both picks and Jev confidence are available; otherwise whether Jev cleared this seam's floor and disagreed. */
+  high_confidence_disagreement: boolean | null;
   /** Null when Jev supplied no valid confidence; otherwise whether it missed this seam's floor. */
   below_floor: boolean | null;
   /** Which answer decided the session color: Jev only in `jev` mode at or above the threshold. */
@@ -390,7 +390,9 @@ export function recordCategoryShadow(
       agree: haikuCategory && jev ? haikuCategory === jev : null,
       jev_confidence: confidence,
       high_confidence_disagreement:
-        haikuCategory !== null && jev !== null && confidence !== null && confidence >= threshold && haikuCategory !== jev,
+        haikuCategory === null || jev === null || confidence === null
+          ? null
+          : confidence >= threshold && haikuCategory !== jev,
       below_floor: jev !== null && confidence !== null ? confidence < threshold : null,
       decided_by: readJevDecision(jevPath, env) ? 'jev' : 'haiku',
       threshold,

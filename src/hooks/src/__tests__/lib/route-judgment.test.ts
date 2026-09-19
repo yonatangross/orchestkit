@@ -60,7 +60,7 @@ import {
 
 const KEY = 'test-key-not-real';
 
-function answerBody(intent: string, confidence = 0.83, extra: Record<string, unknown> = {}) {
+function answerBody(intent: string, confidence: unknown = 0.83, extra: Record<string, unknown> = {}) {
   return {
     model: ROUTE_MODEL,
     answers: {
@@ -613,18 +613,29 @@ describe('log line', () => {
 });
 
 describe('reply audit: synchronous fail-open and paired evidence', () => {
+  const invalidConfidenceReply = (confidence: unknown) => {
+    const body = answerBody('dev_fix');
+    body.answers.intent.confidence = confidence;
+    return JSON.stringify({ status: 200, text: JSON.stringify(body) });
+  };
+
   it.each([
-    ['timeout', JSON.stringify({ error: 'timeout' })],
-    ['non-2xx', JSON.stringify({ status: 503, text: '{}' })],
-    ['malformed body', JSON.stringify({ status: 200, text: '{' })],
-    ['malformed answer', JSON.stringify({ status: 200, text: '{"answers":[]}' })],
-    ['null child', 'null'],
-    ['below floor', JSON.stringify({ status: 200, text: JSON.stringify(answerBody('dev_fix', 0.49)) })],
-    ['out of range', JSON.stringify({ status: 200, text: JSON.stringify(answerBody('dev_fix', 2)) })],
-  ])('keeps the incumbent for %s in the actual steer entry point', (_name, stdout) => {
+    ['timeout', JSON.stringify({ error: 'timeout' }), null],
+    ['non-2xx', JSON.stringify({ status: 503, text: '{}' }), null],
+    ['malformed body', JSON.stringify({ status: 200, text: '{' }), null],
+    ['malformed answer', JSON.stringify({ status: 200, text: '{"answers":[]}' }), null],
+    ['null child', 'null', null],
+    ['below floor', JSON.stringify({ status: 200, text: JSON.stringify(answerBody('dev_fix', 0.49)) }), 0.49],
+    ['out of range', JSON.stringify({ status: 200, text: JSON.stringify(answerBody('dev_fix', 2)) }), null],
+    ['missing confidence', invalidConfidenceReply(undefined), null],
+    ['null confidence', invalidConfidenceReply(null), null],
+    ['boolean confidence', invalidConfidenceReply(true), null],
+    ['string confidence', invalidConfidenceReply('0.9'), null],
+  ])('keeps the incumbent for %s in the actual steer entry point', (_name, stdout, expectedConfidence) => {
     const v = routeJudgmentSync({ prompt: 'fix it now please', sessionId: SESSION, projectDir,
       env: envFor('steer'), spawnImpl: () => ({ status: 0, stdout }) });
     expect(v.decided_by).toBe('table');
+    expect(v.conf).toBe(expectedConfidence);
   });
 
   it('logs a missing key without spawning', () => {

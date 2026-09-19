@@ -351,6 +351,11 @@ function num(v: unknown): number | null {
   return null;
 }
 
+/** A routing gate accepts only a JSON number in the closed probability range. */
+function probability(v: unknown): number | null {
+  return typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= 1 ? v : null;
+}
+
 function noul(answer: unknown): number | null {
   if (typeof answer !== 'object' || answer === null) return null;
   const a = answer as Record<string, unknown>;
@@ -392,10 +397,7 @@ export function parseRouteAnswer(body: unknown): RouteAnswer | null {
     typeof usage === 'object' && usage !== null ? num((usage as Record<string, unknown>).input_tokens) : null;
   return {
     intent,
-    confidence: (() => {
-      const value = num(ia.confidence);
-      return value !== null && value >= 0 && value <= 1 ? value : null;
-    })(),
+    confidence: probability(ia.confidence),
     probabilities,
     worktree: noul(all.needs_worktree),
     browser: noul(all.needs_browser),
