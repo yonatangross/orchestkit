@@ -57,6 +57,12 @@ META_ACTIONS = {
     "press_enter": "Submit or confirm the focused control via the Enter key",
 }
 
+# Roles whose form-field decision Jev can take over in act mode: a value
+# Choice for fill-capable elements, a final-state Choice for checkboxes.
+CHECKBOX_ROLES = {"checkbox", "menuitemcheckbox", "switch"}
+
+PROMPT_ID = "jev-shadow-v3"
+
 # Outbound strings pass every pattern; each match is replaced in place.
 SECRET_PATTERNS = [
     re.compile(r"(?i)bearer\s+[A-Za-z0-9._~+/=\-]{6,}"),
@@ -235,6 +241,67 @@ def build_candidates(elements):
     return candidates
 
 
+def doc_candidates(doc, cap=48):
+    """Deterministic candidate values for fill fields, extracted from the
+    task document only: RHS of 'Label: value' lines, comma parts, numbers.
+    Jev selects among these; it never generates free text for a field."""
+    cands, seen = [], set()
+    for line in doc.splitlines():
+        if ":" not in line:
+            continue
+        rhs = line.split(":", 1)[1].strip()
+        for v in [rhs, *rhs.split(",")]:
+            v = v.strip()
+            if v and v not in seen and len(v) <= 120:
+                seen.add(v)
+                cands.append(v)
+        for num in re.findall(r"\d[\d.]*", rhs):
+            if num not in seen:
+                seen.add(num)
+                cands.append(num)
+    return cands[:cap]
+
+
+def field_questions(elements, cands, field_cap):
+    """Per-field decisions for the form path: which document value a
+    fillable element should hold, and the final state of each checkbox.
+    Checkbox options use final-state semantics: keep/do/build/add lists
+    mean check, drop/remove/skip/not-do lists mean uncheck, and only a
+    field the document does not address at all is left as it is."""
+    qs = {}
+    n = 0
+    for e in elements:
+        if n >= field_cap:
+            break
+        ref, role, name = e["ref"], e["role"], e["name"] or "(unlabeled)"
+        if role in CHECKBOX_ROLES:
+            qs[f"field::{ref}"] = {
+                "type": "choice",
+                "instructions": (
+                    f"Find the item '{name}' in `task_doc` and apply its "
+                    "directive. A checked box means the item stays on the "
+                    "active list. What should this checkbox end up as?"),
+                "criteria": {
+                    "check": "the document lists this item under things to keep, do, build, or add",
+                    "uncheck": "the document lists this item under things to drop, remove, skip, or not do",
+                    "skip": "the document does not address this item at all; leave the box exactly as it is",
+                },
+            }
+            n += 1
+        elif role in FILL_ROLES | SELECT_ROLES:
+            crit = {f"c{i}": v for i, v in enumerate(cands)}
+            crit["none"] = "the document gives no value for this field"
+            qs[f"field::{ref}"] = {
+                "type": "choice",
+                "instructions": (
+                    f"Which `task_doc` value belongs in the field '{name}' "
+                    f"({role})?"),
+                "criteria": crit,
+            }
+            n += 1
+    return qs
+
+
 def normalize_model_action(raw, elements, candidates):
     """Map the agent's picked action text onto a candidate key, or None."""
     if not raw:
@@ -261,15 +328,9 @@ def normalize_model_action(raw, elements, candidates):
     return None
 
 
-def build_request(goal, last_verify, elements, candidates, model):
-    return {
-        "state": {
-            "step_goal": goal,
-            "last_verify": last_verify,
-            "interactive_elements": elements,
-        },
-        "model": model,
-        "questions": {
+def build_request(goal, last_verify, elements, candidates, model,
+                  task_doc=None, cands=None, field_cap=0):
+    questions = {
             "next_action": {
                 "type": "choice",
                 "instructions": (
@@ -303,8 +364,17 @@ def build_request(goal, last_verify, elements, candidates, model):
                     "false": "Nothing blocks the next action",
                 },
             },
-        },
     }
+    if task_doc and cands and field_cap > 0:
+        questions.update(field_questions(elements, cands, field_cap))
+    state = {
+        "step_goal": goal,
+        "last_verify": last_verify,
+        "interactive_elements": elements,
+    }
+    if task_doc:
+        state["task_doc"] = task_doc
+    return {"state": state, "model": model, "questions": questions}
 
 
 def post_jev(endpoint, api_key, payload, timeout_s):
@@ -388,6 +458,12 @@ def main():
     parser.add_argument("--model-action", default="")
     parser.add_argument("--snapshot-file", default=None)
     parser.add_argument("--config", default=None)
+    parser.add_argument("--task-doc", default=None,
+                        help="form task document; enables per-field value/state decisions")
+    parser.add_argument("--session-id", default=None,
+                        help="browser session id for the decision record")
+    parser.add_argument("--prompt-id", default=None,
+                        help="override the prompt identifier in the record")
     args = parser.parse_args()
 
     mode = resolve_mode()
@@ -415,6 +491,10 @@ def main():
     endpoint = os.environ.get(ENV_ENDPOINT) or cfg.get("endpoint")
     thresholds = cfg.get("thresholds")
     conf_floor = cfg.get("act_confidence_floor")
+    field_cap = int(cfg.get("field_cap", 0) or 0)
+    doc_max = int(cfg.get("doc_max_chars", 0) or 0)
+    prompt_id = args.prompt_id or str(cfg.get("prompt_id", "")) or PROMPT_ID
+    session_id = args.session_id or os.environ.get("ORK_EXPECT_SESSION") or os.environ.get("AB_SESSION")
 
     if (
         element_cap is None
@@ -438,8 +518,10 @@ def main():
 
     goal = sanitize(args.goal, context_max)
     last_verify = sanitize(args.last_verify, context_max)
+    task_doc = sanitize(args.task_doc, doc_max) if args.task_doc and doc_max > 0 else None
     elements = load_elements(args.snapshot_file, element_cap, name_max)
     candidates = build_candidates(elements)
+    cands = doc_candidates(task_doc) if task_doc else None
     model_key = normalize_model_action(args.model_action, elements, candidates)
     incumbent = model_key or args.model_action
 
@@ -449,6 +531,10 @@ def main():
         "model_action_key": model_key,
         "model": model,
         "latency_budget_ms": budget_ms,
+        "prompt_id": prompt_id,
+        "session_id": session_id,
+        "floor": conf_floor,
+        "incumbent_pick": incumbent,
     }
 
     api_key = (os.environ.get(ENV_KEY) or "").strip()
@@ -459,7 +545,8 @@ def main():
 
     started = time.monotonic()
     try:
-        body = post_jev(endpoint, api_key, build_request(goal, last_verify, elements, candidates, model), budget_ms / 1000.0)
+        body = post_jev(endpoint, api_key, build_request(goal, last_verify, elements, candidates, model,
+                                                       task_doc=task_doc, cands=cands, field_cap=field_cap), budget_ms / 1000.0)
     except urllib.error.HTTPError as exc:
         finish({**base, "error": f"http {exc.code}", "agree": None, "latency_ms": int((time.monotonic() - started) * 1000)},
                f"fallback:http_{exc.code}", incumbent)
@@ -498,11 +585,53 @@ def main():
         high_confidence_disagreement = not below_floor and agree is False
     take_jev = mode == "act" and below_floor is False
 
+    # Per-field form decisions: a field is decided by Jev only when its own
+    # confidence clears the same floor; below it the incumbent (the agent's
+    # own pick for that field) stands. Fill values resolve through the
+    # candidate list; checkbox answers map to check/uncheck/skip.
+    field_decisions = {}
+    executed_action = jev_action if take_jev else incumbent
+    answers = body["answers"]
+    for qid, ans in answers.items():
+        if not qid.startswith("field::") or not isinstance(ans, dict):
+            continue
+        ref = qid.split("::", 1)[1]
+        el = next((e for e in elements if e["ref"] == ref), None)
+        fconf = ans.get("confidence")
+        fchoice = ans.get("choice")
+        fdec = {"jev_pick": fchoice,
+                "jev_confidence": fconf if isinstance(fconf, (int, float)) else None,
+                "floor": conf_floor,
+                "decided_by": "incumbent"}
+        if (isinstance(fconf, (int, float)) and isinstance(conf_floor, (int, float))
+                and fconf >= conf_floor):
+            fdec["decided_by"] = "jev"
+            if el and el["role"] in FILL_ROLES | SELECT_ROLES:
+                if fchoice and fchoice != "none" and fchoice.startswith("c"):
+                    i = int(fchoice[1:])
+                    if cands and i < len(cands):
+                        fdec["value"] = cands[i]
+            elif el and el["role"] in CHECKBOX_ROLES:
+                fdec["target"] = fchoice if fchoice in ("check", "uncheck", "skip") else "skip"
+        field_decisions[ref] = fdec
+        # If this field is the step's executed target, carry Jev's decision
+        # into the action the agent runs.
+        if take_jev and fdec["decided_by"] == "jev":
+            if jev_action == f"fill:@{ref}" and fdec.get("value") is not None:
+                executed_action = f'fill:@{ref}={json.dumps(fdec["value"], ensure_ascii=False)}'
+            elif jev_action == f"click:@{ref}" and fdec.get("target") in ("check", "uncheck"):
+                executed_action = f'{fdec["target"]}:@{ref}'
+            elif jev_action == f"click:@{ref}" and fdec.get("target") == "skip":
+                executed_action = "done"
+
     finish({
         **base,
         "jev_action": jev_action,
+        "jev_pick": jev_action,
         "jev_action_probability": probabilities[jev_action],
         "jev_confidence": conf,
+        "decided_by": "jev" if take_jev else "incumbent",
+        "field_decisions": field_decisions or None,
         "nouls": nouls,
         "flags": flags,
         "agree": agree,
@@ -513,7 +642,7 @@ def main():
         "latency_ms": latency_ms,
         "error": None,
     }, "jev" if take_jev else "fallback:low_confidence",
-       jev_action if take_jev else incumbent)
+       executed_action)
     return 0
 
 

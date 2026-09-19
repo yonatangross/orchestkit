@@ -1344,6 +1344,31 @@ candidate key (`verb:@eN` or a meta verb) the agent translates back to an
 agent-browser command; on fallback it is the agent's normalized pick, or
 its raw action text when the pick sits outside the keyspace.
 
+Every record also carries the decision provenance fields: `jev_pick`,
+`jev_confidence`, `incumbent_pick` (the agent's normalized pick),
+`agree`, `floor` (the resolved `act_confidence_floor`), `decided_by`
+(`"jev"` or `"incumbent"`), `prompt_id` (config `prompt_id`, override
+with `--prompt-id`), and `session_id` (`--session-id`, else
+`ORK_EXPECT_SESSION`, else `AB_SESSION`).
+
+## Form path (`--task-doc`)
+
+When `--task-doc` carries the step's task document, the request adds one
+`field::&lt;ref&gt;` question per form element (up to `field_cap`): a value
+Choice over candidates extracted from the document for textbox/searchbox/
+spinbutton/combobox/listbox elements, and a final-state Choice
+(check/uncheck/skip) for checkbox-family elements. The checkbox options
+use final-state semantics (items listed under keep/do/build/add mean
+check; items listed under drop/remove/skip/not-do mean uncheck; only a
+field the document does not address at all is left as it is). Per-field
+answers land in `field_decisions` keyed by
+ref, each with `jev_pick`, `jev_confidence`, `floor`, `decided_by`, and
+the resolved `value` or `target` when Jev decided. In act mode, when the
+step's executed action targets a decided field, `executed_action` carries
+the decision through: `fill:@eN="value"`, `check:@eN`, `uncheck:@eN`, or
+`done` when Jev's target is skip. A field Jev answers below the floor
+keeps `decided_by: "incumbent"` and the agent's own handling stands.
+
 ## Invocation (expect-agent, per step)
 
 After picking the action for a step and before executing it:

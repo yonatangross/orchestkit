@@ -18,8 +18,19 @@ jev_shadow:
   latency_budget_ms: 400
   # Act mode only (ORK_EXPECT_JEV=1|act): a Choice confidence below this
   # floor falls back to the agent's own pick. Same scale as
-  # thresholds.low_confidence, which only marks the record flag.
+  # thresholds.low_confidence, which only marks the record flag. Tuned on
+  # the form-bench calibration split (r01/r04/r06/r07, formfill-v2-neg):
+  # every observed raw-pick error sat at conf <= 0.40 and every pick
+  # >= 0.45 was correct, so 0.5 defers the whole error band.
   act_confidence_floor: 0.5
+  # Form path (requires --task-doc): max form-field questions added to the
+  # per-step request (value Choice for fillable elements, final-state
+  # Choice for checkboxes).
+  field_cap: 12
+  # Max chars kept for --task-doc after redaction.
+  doc_max_chars: 1200
+  # Prompt version stamped on every record as `prompt_id`.
+  prompt_id: "jev-shadow-v2"
   thresholds:
     # Choice confidence below this marks the pick low_confidence in the log.
     low_confidence: 0.5
