@@ -18,6 +18,30 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.61",
+    "date": "2026-09-19",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.60...v10.0.0-beta.61",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**manifest:** wire webhook URL/token through userConfig ([#4273](https://github.com/yonatangross/orchestkit/issues/4273)) ([788fdcd](https://github.com/yonatangross/orchestkit/commit/788fdcd6ea2598848a579a06b82be7298ee5730c))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**build:** drop object-shaped triggers from built SKILL.md ([#4276](https://github.com/yonatangross/orchestkit/issues/4276)) ([526873c](https://github.com/yonatangross/orchestkit/commit/526873c133b14ebc45ae6c38b53320e7bd6cb819))",
+          "**ci:** compare hook-bundle guard against current base tip ([#4283](https://github.com/yonatangross/orchestkit/issues/4283)) ([bc35750](https://github.com/yonatangross/orchestkit/commit/bc357505d70ed96f0801e7d83efa39556db90167))",
+          "**git:** reject release bundle helper failures ([#4287](https://github.com/yonatangross/orchestkit/issues/4287)) ([7ac8bc9](https://github.com/yonatangross/orchestkit/commit/7ac8bc974359ca520e4b325c30046599c796c536))",
+          "**jev:** validate confidence and expose shadow disagreements ([#4271](https://github.com/yonatangross/orchestkit/issues/4271)) ([66e2ccc](https://github.com/yonatangross/orchestkit/commit/66e2ccc7ebcc5cf16be26eb7ca97ae4a3a94afb5))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.60",
     "date": "2026-09-19",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.59...v10.0.0-beta.60",
