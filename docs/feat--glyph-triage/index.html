@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Triage</title>
+<style>
+  :root { --bg:#f7f6f3; --ink:#1c1917; --muted:#57534e; --line:#e7e5e4; --card:#fff; --accent:#1d4ed8; --warn:#b45309; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.5 ui-sans-serif, system-ui, sans-serif; }
+  main { max-width:920px; margin:0 auto; padding:28px 20px 120px; }
+  h1 { margin:0 0 6px; font-size:28px; }
+  .lede { color:var(--muted); margin:0 0 18px; }
+  .kpis { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; }
+  @media (max-width:720px) { .kpis { grid-template-columns:1fr 1fr; } }
+  .kpi { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 12px; }
+  .kpi b { display:block; font-size:22px; }
+  .kpi span { color:var(--muted); font-size:12px; letter-spacing:.04em; text-transform:uppercase; }
+  .verdict { margin:14px 0 22px; padding:10px 12px; background:#eef2ff; border-radius:10px; }
+  section { margin:22px 0; }
+  h2 { font-size:18px; margin:0 0 8px; }
+  .lane { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 12px; margin:8px 0; }
+  .lane h3 { margin:0 0 6px; font-size:15px; }
+  ul { margin:0; padding-left:18px; }
+  code.route { font:13px/1 ui-monospace, monospace; background:#f5f5f4; padding:1px 6px; border-radius:4px; direction:ltr; unicode-bidi:isolate; }
+  table { width:100%; border-collapse:collapse; background:var(--card); }
+  th, td { border:1px solid var(--line); padding:8px; text-align:left; vertical-align:top; font-size:14px; direction:ltr; }
+  .decide { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:12px; direction:ltr; }
+  .opt { display:block; margin:8px 0; }
+  .bar { position:sticky; bottom:0; background:#111827; color:#f9fafb; padding:12px 16px; display:flex; gap:12px; align-items:center; justify-content:space-between; }
+  .bar code { color:#f9fafb; direction:ltr; unicode-bidi:isolate; }
+  button { background:#2563eb; color:#fff; border:0; border-radius:8px; padding:8px 12px; cursor:pointer; }
+  button:disabled { background:#6b7280; cursor:not-allowed; }
+  details { margin-top:16px; }
+  pre { white-space:pre-wrap; direction:ltr; font:12px/1.4 ui-monospace, monospace; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Open issue triage</h1>
+  <p class="lede">One snapshot. Replace the EXAMPLE rows from <code>gh issue list --state open --json number,title,labels,milestone</code>. Do not change the section order.</p>
+
+  <div class="kpis" id="kpis">
+    <div class="kpi"><b data-k="open">37</b><span>open issues</span></div>
+    <div class="kpi"><b data-k="prs">4</b><span>open PRs</span></div>
+    <div class="kpi"><b data-k="p1">3</b><span>P1</span></div>
+    <div class="kpi"><b data-k="p2">8</b><span>P2</span></div>
+    <div class="kpi"><b data-k="lanes">8</b><span>lanes</span></div>
+  </div>
+  <p class="verdict" id="verdict">EXAMPLE verdict: bugs and blocked-externally are the only lanes a human must touch this wave.</p>
+
+  <section id="lanes">
+    <h2>Lanes</h2>
+    <article class="lane" data-lane="bugs">
+      <h3>bugs</h3>
+      <ul>
+        <li>#4159 squeezed glyph <code class="route">ork:glyph</code></li>
+      </ul>
+    </article>
+    <article class="lane" data-lane="quick-wins">
+      <h3>quick wins</h3>
+      <ul><li>#0000 EXAMPLE one-file fix <code class="route">devin</code></li></ul>
+    </article>
+    <article class="lane" data-lane="epic-orbit">
+      <h3>epic orbit</h3>
+      <ul><li>#0000 EXAMPLE child of an epic <code class="route">ork:workflow-architect</code></li></ul>
+    </article>
+    <article class="lane" data-lane="tech-debt">
+      <h3>tech debt</h3>
+      <ul><li>#0000 EXAMPLE cleanup <code class="route">devin</code></li></ul>
+    </article>
+    <article class="lane" data-lane="ux-a11y">
+      <h3>UX / a11y</h3>
+      <ul><li>#0000 EXAMPLE keyboard gap <code class="route">21st-dev</code></li></ul>
+    </article>
+    <article class="lane" data-lane="content-seo">
+      <h3>content / SEO</h3>
+      <ul><li>#0000 EXAMPLE title rewrite <code class="route">hq-ext</code></li></ul>
+    </article>
+    <article class="lane" data-lane="brand">
+      <h3>brand</h3>
+      <ul><li>#0000 EXAMPLE visual token <code class="route">21st-dev</code></li></ul>
+    </article>
+    <article class="lane" data-lane="blocked-externally">
+      <h3>blocked externally</h3>
+      <ul><li>#0000 EXAMPLE waiting on a vendor <code class="route">external</code></li></ul>
+    </article>
+  </section>
+
+  <section>
+    <h2>Capability map</h2>
+    <table>
+      <thead><tr><th>Surface</th><th>Owns</th><th>Does not own</th></tr></thead>
+      <tbody>
+        <tr><td><code class="route">devin</code></td><td>inline repo edits</td><td>ops tools, deploys</td></tr>
+        <tr><td><code class="route">ork:*</code></td><td>named agent in this plugin</td><td>production mutation</td></tr>
+        <tr><td><code class="route">hq-ext</code></td><td>ops tools (issues, deploys, comms)</td><td>product UI generation</td></tr>
+        <tr><td><code class="route">21st-dev</code></td><td>UI generation</td><td>issue routing</td></tr>
+        <tr><td><code class="route">human</code></td><td>a decision no agent can make</td><td>mechanical edits</td></tr>
+        <tr><td><code class="route">external</code></td><td>blocked on someone outside</td><td>any local move</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="decide" id="decide">
+    <h2>DECIDE</h2>
+    <p>Pick one wave. Consequences sit beside the option. Follow-ups are issue numbers to keep attached, or leave them off.</p>
+    <label class="opt"><input type="radio" name="wave" value="bugs"> 1. bugs. Next session fixes the squeezed render. Cost: no triage of the other lanes.</label>
+    <label class="opt"><input type="radio" name="wave" value="quick-wins"> 2. quick wins. Clears small items. Cost: P1 bugs wait.</label>
+    <label class="opt"><input type="radio" name="wave" value="blocked-externally"> 3. blocked externally. Writes the ask to the outside owner. Cost: no code moves.</label>
+    <p>Follow-ups (optional):</p>
+    <label class="opt"><input type="checkbox" name="followup" value="4159"> 4159</label>
+    <label class="opt"><input type="checkbox" name="followup" value="4162"> 4162</label>
+    <label class="opt"><input type="checkbox" name="followup" value="3131"> 3131</label>
+  </section>
+
+  <details>
+    <summary>Raw evidence (the snapshot this page was built from)</summary>
+    <pre id="raw">EXAMPLE
+gh issue list --state open --json number,title,labels,milestone
+[]</pre>
+  </details>
+</main>
+<div class="bar" dir="ltr">
+  <code id="pick">wave= followups=</code>
+  <button type="button" id="copy" disabled>Copy pick</button>
+</div>
+<textarea id="fallback" hidden></textarea>
+<script>
+(function () {
+  var pick = document.getElementById("pick");
+  var copy = document.getElementById("copy");
+  function line() {
+    var wave = document.querySelector("input[name=wave]:checked");
+    var ups = Array.prototype.map.call(
+      document.querySelectorAll("input[name=followup]:checked"),
+      function (el) { return el.value; }
+    );
+    if (!wave) return "";
+    return "wave=" + wave.value + " followups=" + (ups.length ? ups.join(",") : "0");
+  }
+  function refresh() {
+    var text = line();
+    pick.textContent = text || "wave= followups=";
+    copy.disabled = !text;
+  }
+  document.getElementById("decide").addEventListener("change", refresh);
+  copy.addEventListener("click", function () {
+    var text = line();
+    var fb = document.getElementById("fallback");
+    fb.hidden = false;
+    fb.value = text;
+    fb.focus();
+    fb.select();
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).catch(function () {});
+    }
+    document.execCommand("copy");
+  });
+  refresh();
+})();
+</script>
+</body>
+</html>
