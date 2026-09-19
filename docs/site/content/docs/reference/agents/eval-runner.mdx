@@ -166,7 +166,7 @@ def run_eval(dataset_name: str, model_version: str):
 
     def task(*, item, **kwargs):
         with propagate_attributes(metadata={"model": model_version}):
-            with langfuse.start_observation(name="grade", as_type="evaluator") as obs:
+            with langfuse.start_as_current_observation(name="grade", as_type="evaluator") as obs:
                 score = grade(item)
                 obs.update(output={"score": score})
                 return score
@@ -174,9 +174,13 @@ def run_eval(dataset_name: str, model_version: str):
     result = dataset.run_experiment(name=f"eval-{model_version}", task=task)
     # Existing traces, not a golden set: langfuse.run_batched_evaluation(...)
     items = list(getattr(result, "item_results", None) or [])
+    if len(items) == 0:
+        raise RuntimeError("eval no-op: items=0")
+    # dataset.run_experiment records a dataset_run_id per item; a local
+    # run_experiment(data=[...]) never does, so only remote runs assert this.
     run_ids = {row.dataset_run_id for row in items if getattr(row, "dataset_run_id", None)}
-    if len(items) == 0 or len(run_ids) == 0:
-        raise RuntimeError(f"eval no-op: items={len(items)} dataset_runs={len(run_ids)}")
+    if dataset is not None and len(run_ids) == 0:
+        raise RuntimeError(f"eval no-op: dataset_runs={len(run_ids)}")
     return result
 ```
 

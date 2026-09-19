@@ -218,7 +218,7 @@ with propagate_attributes(
     session_id=ctx.session_id,
     metadata={"tenant_id": str(ctx.tenant_id), "request_id": ctx.request_id},
 ):
-    with langfuse.start_observation(name="content_analysis", as_type="generation", model="gpt-4") as obs:
+    with langfuse.start_as_current_observation(name="content_analysis", as_type="generation", model="gpt-4") as obs:
         obs.update(input=prompt, output=response)
 ```
 
