@@ -11,16 +11,6 @@ complexity: low
 context: inherit
 agent: release-engineer
 persuasion-type: collaborative
-triggers:
-  keywords: [release-sync, sync release, update notebooklm, sync kb, push release content]
-  examples:
-    - "sync the latest release to notebooklm"
-    - "update the knowledge base with v7.27.0 changes"
-    - "push release notes to notebooklm and hq"
-  anti-triggers:
-    - "create a release"
-    - "tag a version"
-    - "bump version"
 ---
 
 # Release Content Sync

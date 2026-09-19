@@ -24,13 +24,6 @@ skills:
   - design-system-tokens
 metadata:
   category: document-asset-creation
-triggers:
-  keywords: ["stylecard", "beautiful shadows", "glassmorphism", "glass card", "border gradient", "mesh gradient", "elevation recipe", "make it look polished"]
-  examples:
-    - "give the cards a polished layered shadow"
-    - "apply a glass surface treatment to this panel"
-    - "add a subtle border gradient like Linear"
-  anti-triggers: [extract, screenshot, audit, tokens-from-source]
 ---
 
 # Design Stylecards
