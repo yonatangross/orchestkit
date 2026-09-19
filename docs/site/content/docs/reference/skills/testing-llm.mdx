@@ -24,6 +24,7 @@ Patterns and tools for testing LLM integrations, evaluating AI output quality, m
 | **Rules** | `rules/llm-mocking.md` | Mock LLM responses, VCR.py recording, custom request matchers |
 | **Reference** | `references/ork-delta.md` | House rules the vendor docs do not carry: GEval and RAGAS API corrections, threshold direction, cassette path, golden-dataset and latency budgets |
 | **Reference** | `references/healer-agent.md` | Auto-fixes failing tests (selectors, waits, dynamic content) |
+| **Reference** | `references/langfuse-v4.md` | Langfuse Python SDK v4 tracing and dataset runs, plus the non-zero throughput assertion |
 | **Checklist** | `checklists/llm-test-checklist.md` | Complete LLM testing checklist (setup, coverage, CI/CD) |
 
 ## Upstream coverage (do not restate)
@@ -493,7 +494,7 @@ def vcr_config():
 
 ---
 
-## References (2)
+## References (3)
 
 ### Healer Agent
 
@@ -570,6 +571,70 @@ Healer can't fix:
 - Auth/permission issues
 
 These require manual intervention.
+
+
+### Langfuse V4
+
+# Langfuse Python SDK v4 for eval harnesses
+
+Verified against `langfuse-python` `main` (`start_observation`, `run_experiment`, `run_batched_evaluation`). Migration note: v4 removed `Langfuse.client`, `DatasetItem.link()`, and the v2/v3 `langfuse.trace()` / `trace.generation()` / `trace.span()` builders. Failures from those calls were logged at debug and a harness could exit 0 after processing nothing. Do not generate the removed calls except inside a migration note.
+
+## Trace
+
+```python
+from langfuse import get_client, observe, propagate_attributes
+
+@observe(name="eval-item")
+def score_item(item):
+    langfuse = get_client()
+    with propagate_attributes(metadata={"dataset_item": item.id}):
+        with langfuse.start_as_current_observation(name="grade", as_type="evaluator") as obs:
+            obs.update(output={"score": 1})
+            return 1
+```
+
+`start_observation` returns a span object, not a context manager — putting it inside `with` raises `TypeError` ("does not support the context manager protocol" on 3.11+). The `with` form is `start_as_current_observation`. Prefer `@observe` when the function boundary is the span — but never around `run_experiment` itself: it copies one context for every item, so all item spans would share a single trace_id.
+
+## Dataset run
+
+```python
+langfuse = get_client()
+dataset = langfuse.get_dataset("golden")
+
+def task(*, item, **kwargs):
+    return score_item(item)
+
+result = dataset.run_experiment(name="golden-v4", task=task)
+```
+
+Local items, no remote dataset: `langfuse.run_experiment(name="...", data=[...], task=task)` — the kwarg is `data`, not `dataset`.
+
+Existing traces, not a dataset: `langfuse.run_batched_evaluation(scope="traces", mapper=to_inputs, evaluators=[...])`. That reader still talks to the platform v3 traces API. Do not use it as a substitute for `dataset.run_experiment` on a golden set.
+
+## Throughput assertion (required)
+
+A harness that swallows the old API and reports success is worse than a red run. After `run_experiment`, always fail on zero processed items; a remote `dataset.run_experiment` must also have recorded a dataset run:
+
+```python
+items = list(getattr(result, "item_results", None) or [])
+if len(items) == 0:
+    raise RuntimeError("eval no-op: items=0")
+# Remote dataset rows wrap a DatasetItem (dataset_id lives on row.item);
+# the run also records a dataset_run_id on the row. Local
+# run_experiment(data=[...]) rows carry neither. Key on the item shape,
+# not on whether a variable named `dataset` exists: get_dataset raises
+# rather than returning None, a local-only harness has no such variable
+# at all, and a dataset fetched only to build the data= list would
+# false-fail a good run.
+remote_items = [
+    row for row in items if getattr(getattr(row, "item", None), "dataset_id", None)
+]
+run_ids = {row.dataset_run_id for row in remote_items if getattr(row, "dataset_run_id", None)}
+if remote_items and len(run_ids) == 0:
+    raise RuntimeError(f"eval no-op: dataset_runs={len(run_ids)}")
+```
+
+Same bar for `run_batched_evaluation`: the returned processed count must be greater than zero. Zero items is a failed harness, not a quiet pass.
 
 
 ### Ork Delta

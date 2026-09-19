@@ -34,11 +34,10 @@ compiled = prompt.compile(
     issue="billing question"
 )
 
-# Track via trace metadata for A/B comparison
-trace = langfuse.trace(
-    name="support-query",
-    metadata={"prompt_version": prompt.version, "variant": "A"},
-)
+# Track via propagated attributes. Migration note: v4 removed langfuse.trace().
+from langfuse import propagate_attributes
+with propagate_attributes(metadata={"prompt_version": prompt.version, "variant": "A"}):
+    run_support(compiled)
 ```
 
 **Correct -- DSPy 3.1.0 automatic prompt optimization:**
