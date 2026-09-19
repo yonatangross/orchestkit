@@ -39,6 +39,7 @@ ok()  { echo "  ${GREEN}PASS${NC} $1"; PASS=$((PASS + 1)); }
 bad() { echo "  ${RED}FAIL${NC} $1"; FAIL=$((FAIL + 1)); }
 
 TMP="$(mktemp -d "${TMPDIR:-/tmp}/jev-shadow-test.XXXXXX")"
+export ORK_EXPECT_JEV_LOG="$TMP/journal.jsonl"
 REQ_LOG="$TMP/requests.log"
 RESP_FILE="$TMP/response.json"
 STATUS_FILE="$TMP/status.txt"
@@ -115,6 +116,10 @@ checks = [
     r.get('jev_action') == 'click:@e3',
     r.get('model_action_key') == 'click:@e3',
     r.get('agree') is True,
+    r.get('mode') == 'shadow',
+    r.get('floor') == 0.5,
+    r.get('below_floor') is False,
+    r.get('high_confidence_disagreement') is False,
     isinstance(r.get('latency_ms'), int) and r['latency_ms'] < 400,
     r.get('latency_budget_ms') == 400,
     set(r.get('nouls', {})) == want_nouls,
@@ -158,6 +163,8 @@ checks = [
     r.get('jev_action') == 'click:@e7',
     r.get('model_action_key') == 'click:@e3',
     r.get('agree') is False,
+    r.get('below_floor') is False,
+    r.get('high_confidence_disagreement') is True,
     r.get('nouls', {}).get('blocked') == 0.8,
     r.get('flags', {}).get('blocked') is True,
 ]
@@ -320,7 +327,78 @@ print('OK' if all(checks) else 'FAIL ' + repr(checks) + ' ' + json.dumps(r)[:300
 [[ "$VERDICT" == "OK" ]] && ok "low_confidence fallback still logs the full Jev answer" \
   || bad "lowconf log: $VERDICT"
 
-# ── 10: shadow mode keeps today's record shape ───────────────
+# Invalid confidence and nested API shapes are never eligible to steer. Python's
+# JSON parser accepts NaN, and bool is a subclass of int, so both need explicit
+# rejection rather than a plain numeric comparison against the confidence floor.
+invalid_response() {  # $1=label $2=response body
+  printf '%s' "$2" > "$RESP_FILE"
+  LINE="$(run_jev)"
+  expect_fallback malformed_answer "$1 -> incumbent"
+}
+
+VALID_NOULS='"goal_reached":{"noul":0.1},"page_changed_as_expected":{"noul":0.8},"blocked":{"noul":0.1}'
+invalid_response "fallback missing confidence" \
+  "{\"answers\":{\"next_action\":{\"choice\":\"click:@e3\",\"probabilities\":{\"click:@e3\":0.9}},$VALID_NOULS}}"
+invalid_response "fallback NaN confidence" \
+  "{\"answers\":{\"next_action\":{\"choice\":\"click:@e3\",\"confidence\":NaN,\"probabilities\":{\"click:@e3\":0.9}},$VALID_NOULS}}"
+invalid_response "fallback boolean confidence" \
+  "{\"answers\":{\"next_action\":{\"choice\":\"click:@e3\",\"confidence\":true,\"probabilities\":{\"click:@e3\":0.9}},$VALID_NOULS}}"
+invalid_response "fallback out-of-range confidence" \
+  "{\"answers\":{\"next_action\":{\"choice\":\"click:@e3\",\"confidence\":1.1,\"probabilities\":{\"click:@e3\":0.9}},$VALID_NOULS}}"
+invalid_response "fallback list answers" '{"answers":[]}'
+invalid_response "fallback list choice answer" \
+  "{\"answers\":{\"next_action\":[],$VALID_NOULS}}"
+invalid_response "fallback list probabilities" \
+  "{\"answers\":{\"next_action\":{\"choice\":\"click:@e3\",\"confidence\":0.9,\"probabilities\":[]},$VALID_NOULS}}"
+invalid_response "fallback list noul answer" \
+  '{"answers":{"next_action":{"choice":"click:@e3","confidence":0.9,"probabilities":{"click:@e3":0.9}},"goal_reached":[],"page_changed_as_expected":{"noul":0.8},"blocked":{"noul":0.1}}}'
+
+for INVALID_FLOOR in 1.1 .nan true; do
+  printf '%s\n' \
+    'jev_shadow:' \
+    '  endpoint: "https://invalid.example/v1/systemone"' \
+    '  model: "jev-test"' \
+    '  element_cap: 3' \
+    '  name_max_chars: 80' \
+    '  context_max_chars: 300' \
+    '  latency_budget_ms: 400' \
+    "  act_confidence_floor: $INVALID_FLOOR" \
+    '  thresholds:' \
+    '    low_confidence: 0.5' \
+    '    goal_reached: 0.7' \
+    '    page_changed_as_expected: 0.7' \
+    '    blocked: 0.7' > "$TMP/invalid-floor.yaml"
+  LINE="$(run_jev --config "$TMP/invalid-floor.yaml")"
+  VERDICT="$(python3 -c "
+import json, sys
+r = json.loads(sys.stdin.read())
+checks = [
+    r.get('mode') == 'act',
+    r.get('path') == 'fallback:invalid_config',
+    r.get('executed_action') == 'click @e3',
+    r.get('error') == 'invalid jev_shadow config',
+]
+print('OK' if all(checks) else 'FAIL ' + repr(checks) + ' ' + json.dumps(r)[:300])
+" <<< "$(printf '%s' "$LINE" | cut -d'|' -f3-)")"
+  [[ "$VERDICT" == "OK" ]] && ok "invalid config floor $INVALID_FLOOR -> raw incumbent" \
+    || bad "invalid config floor $INVALID_FLOOR: $VERDICT"
+done
+
+cp "$FIX/jev-response-disagree.json" "$RESP_FILE"
+LINE="$(ORK_EXPECT_JEV=shadow ORK_TYPESAFE_API_KEY=test-key \
+  ORK_EXPECT_JEV_ENDPOINT="$ENDPOINT" bash "$SH" --step-id unknown-incumbent \
+  --goal g --last-verify v --model-action 'unrecognized command' \
+  --snapshot-file "$FIX/aria-login.txt")"
+VERDICT="$(python3 -c "
+import json, sys
+r = json.loads(sys.argv[1])
+checks = [r.get('agree') is None, r.get('high_confidence_disagreement') is None]
+print('OK' if all(checks) else 'FAIL ' + repr(checks) + ' ' + json.dumps(r)[:300])
+" "$(printf '%s' "$LINE" | cut -d'|' -f3-)")"
+[[ "$VERDICT" == "OK" ]] && ok "unknown incumbent: agreement and disagreement bucket stay unknown" \
+  || bad "unknown incumbent: $VERDICT"
+
+# ── 10: shadow mode logs its explicit routing fields ──────────
 cp "$FIX/jev-response-agree.json" "$RESP_FILE"
 LINE="$(ORK_EXPECT_JEV=shadow ORK_TYPESAFE_API_KEY=test-key \
   ORK_EXPECT_JEV_ENDPOINT="$ENDPOINT" bash "$SH" --step-id sh-1 \
@@ -332,13 +410,13 @@ r = json.loads(sys.argv[1])
 checks = [
     'executed_action' not in r,
     'path' not in r,
-    'mode' not in r,
+    r.get('mode') == 'shadow',
     r.get('jev_action') == 'click:@e3',
     r.get('agree') is True,
 ]
 print('OK' if all(checks) else 'FAIL ' + repr(checks) + ' ' + json.dumps(r)[:300])
 " "$(printf '%s' "$LINE" | cut -d'|' -f3-)")"
-[[ "$VERDICT" == "OK" ]] && ok "shadow: record unchanged, no act fields" \
+[[ "$VERDICT" == "OK" ]] && ok "shadow: mode recorded and no act fields" \
   || bad "shadow record: $VERDICT"
 
 # ── 11: ORK_EXPECT_JEV unset / 0 stays off ───────────────────

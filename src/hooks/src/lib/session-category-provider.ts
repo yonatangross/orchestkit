@@ -14,7 +14,7 @@
  * Off by default. It runs only when ORK_SESSION_CATEGORY_PROVIDER is set AND
  * the TypeSafe key variable (ORK_TYPESAFE_API_KEY) is set. Two opt-in modes:
  * - `jev`: the cascade. When Jev answers with confidence at or above
- *   JEV_CONFIDENCE_THRESHOLD its category decides the session color; below
+ *   its configured category floor, 0.8 by default, its category decides the session color; below
  *   it, or on any error, haiku's category decides as before. The title and
  *   emoji always come from haiku. Both outcomes are logged.
  * - `shadow`: Jev is called and logged beside haiku, and never applied.
@@ -66,10 +66,16 @@ export const JEV_MODEL = 'jev-1.13.0';
 export const JEV_TIMEOUT_MS = 3_000;
 
 /**
- * In `jev` mode a Jev answer decides the category only at this confidence or
- * above; below it haiku decides. Held out: 93.5% correct at or above (87/93), 58% below (33/57).
+ * Default category floor. It remains the held-out threshold unless an operator
+ * sets a valid per-seam override. Held out: 93.5% correct at or above (87/93), 58% below (33/57).
  */
 export const JEV_CONFIDENCE_THRESHOLD = 0.8;
+
+/**
+ * Optional per-seam confidence floor. Invalid values deliberately fall back to
+ * the held-out default so an environment typo cannot make Jev more permissive.
+ */
+export const CATEGORY_JEV_FLOOR_ENV = 'ORK_SESSION_CATEGORY_JEV_FLOOR';
 
 /** Question id inside the request; code only, not sent as meaning. */
 export const JEV_QUESTION_ID = 'work_category';
@@ -87,6 +93,19 @@ export function resolveCategoryProvider(env: NodeJS.ProcessEnv = process.env): C
 export function resolveTypesafeKey(env: NodeJS.ProcessEnv = process.env): string | null {
   const key = (env[TYPESAFE_KEY_ENV] || '').trim();
   return key || null;
+}
+
+/** Resolve the category seam's confidence floor, accepting only the [0, 1] range. */
+export function resolveCategoryJevFloor(env: NodeJS.ProcessEnv = process.env): number {
+  const raw = (env[CATEGORY_JEV_FLOOR_ENV] || '').trim();
+  if (!raw) return JEV_CONFIDENCE_THRESHOLD;
+  const floor = Number(raw);
+  return Number.isFinite(floor) && floor >= 0 && floor <= 1 ? floor : JEV_CONFIDENCE_THRESHOLD;
+}
+
+/** Jev probabilities are meaningful only inside the closed probability range. */
+function isValidConfidence(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 1;
 }
 
 /** True only when the Jev call should run: provider is jev or shadow, and a key is present. */
@@ -166,7 +185,7 @@ export function parseJevCategoryAnswer(body: unknown): {
       if (key && typeof v === 'number' && Number.isFinite(v)) probabilities[key] = v;
     }
   }
-  const confidence = typeof a.confidence === 'number' && Number.isFinite(a.confidence) ? a.confidence : null;
+  const confidence = isValidConfidence(a.confidence) ? a.confidence : null;
   const usage = (body as Record<string, unknown>).usage;
   const tokens =
     typeof usage === 'object' && usage !== null
@@ -270,7 +289,7 @@ export interface JevCategoryDecision {
 
 /**
  * Whether a settled result decides the category. Only in `jev` mode, only an
- * `ok` answer, only at JEV_CONFIDENCE_THRESHOLD or above. `shadow` mode and
+ * `ok` answer, only at its configured confidence floor or above. `shadow` mode and
  * every error path return null, which means haiku decides.
  */
 export function decideCategory(
@@ -278,7 +297,8 @@ export function decideCategory(
   env: NodeJS.ProcessEnv = process.env,
 ): JevCategoryDecision | null {
   if (!result?.ok || resolveCategoryProvider(env) !== 'jev') return null;
-  if (result.confidence === null || result.confidence < JEV_CONFIDENCE_THRESHOLD) return null;
+  const floor = resolveCategoryJevFloor(env);
+  if (!isValidConfidence(result.confidence) || result.confidence < floor) return null;
   return { category: result.category, confidence: result.confidence };
 }
 
@@ -301,7 +321,7 @@ export function readJevResult(jevPath: string): JevCategoryResult | null {
     return {
       ok: true,
       category,
-      confidence: typeof raw.confidence === 'number' ? raw.confidence : null,
+      confidence: isValidConfidence(raw.confidence) ? raw.confidence : null,
       probabilities: {},
       latencyMs,
       inputTokens: typeof raw.inputTokens === 'number' ? raw.inputTokens : null,
@@ -321,16 +341,33 @@ export function readJevDecision(
 }
 
 export interface CategoryShadowRecord {
+  seam: 'category';
   ts: string;
   /** The opt-in mode the session ran under. */
   provider: 'jev' | 'shadow';
   model: string;
+  /** Canonical Jev pick. `jev` remains for existing report consumers. */
+  jev_pick: WorkCategory | null;
+  /** Canonical incumbent pick. `haiku` remains for existing report consumers. */
+  incumbent_pick: WorkCategory | { status: 'no_valid_result'; choice: null; reason: 'incumbent_classifier_failed' };
+  /**
+   * Explains a missing incumbent label. The category writer runs only after
+   * Haiku settled, so a missing label here is a classifier failure, not a
+   * pending observation.
+   */
+  incumbent_pick_reason: 'incumbent_classifier_failed' | null;
   haiku: WorkCategory | null;
   jev: WorkCategory | null;
   agree: boolean | null;
   jev_confidence: number | null;
+  /** True when both classifiers named different categories and Jev met this seam's floor. */
+  high_confidence_disagreement: boolean;
+  /** Null when Jev supplied no valid confidence; otherwise whether it missed this seam's floor. */
+  below_floor: boolean | null;
   /** Which answer decided the session color: Jev only in `jev` mode at or above the threshold. */
   decided_by: 'jev' | 'haiku';
+  /** Canonical confidence floor. `threshold` remains for existing report consumers. */
+  floor: number;
   threshold: number;
   latency_ms: number | null;
   input_tokens: number | null;
@@ -355,16 +392,26 @@ export function recordCategoryShadow(
     const raw = JSON.parse(readFileSync(jevPath, 'utf8')) as Record<string, unknown>;
     const jev = raw.ok === true ? (parseWorkCategory(raw.category) ?? null) : null;
     const provider = resolveCategoryProvider(env);
+    const threshold = resolveCategoryJevFloor(env);
+    const confidence = raw.ok === true && isValidConfidence(raw.confidence) ? raw.confidence : null;
     const record: CategoryShadowRecord = {
+      seam: 'category',
       ts: new Date().toISOString(),
       provider: provider === 'shadow' ? 'shadow' : 'jev',
       model: typeof raw.model === 'string' ? raw.model : JEV_MODEL,
+      jev_pick: jev,
+      incumbent_pick: haikuCategory ?? { status: 'no_valid_result', choice: null, reason: 'incumbent_classifier_failed' },
+      incumbent_pick_reason: haikuCategory === null ? 'incumbent_classifier_failed' : null,
       haiku: haikuCategory,
       jev,
       agree: haikuCategory && jev ? haikuCategory === jev : null,
-      jev_confidence: typeof raw.confidence === 'number' ? raw.confidence : null,
+      jev_confidence: confidence,
+      high_confidence_disagreement:
+        haikuCategory !== null && jev !== null && confidence !== null && confidence >= threshold && haikuCategory !== jev,
+      below_floor: jev !== null && confidence !== null ? confidence < threshold : null,
       decided_by: readJevDecision(jevPath, env) ? 'jev' : 'haiku',
-      threshold: JEV_CONFIDENCE_THRESHOLD,
+      floor: threshold,
+      threshold,
       latency_ms: typeof raw.latencyMs === 'number' ? raw.latencyMs : null,
       input_tokens: typeof raw.inputTokens === 'number' ? raw.inputTokens : null,
       error: raw.ok === true ? null : typeof raw.error === 'string' ? raw.error : 'unknown',

@@ -30,6 +30,7 @@ import {
   parseIdentityCategory,
 } from '../../lib/session-identity.js';
 import {
+  CATEGORY_JEV_FLOOR_ENV,
   CATEGORY_PROVIDER_ENV,
   JEV_CONFIDENCE_THRESHOLD,
   JEV_ENDPOINT,
@@ -43,6 +44,8 @@ import {
   parseJevCategoryAnswer,
   readJevDecision,
   recordCategoryShadow,
+  readJevResult,
+  resolveCategoryJevFloor,
   resolveCategoryProvider,
   startJevCategory,
   type JevCategoryResult,
@@ -165,6 +168,7 @@ describe('opt-in gating', () => {
   it('startJevCategory makes no call when disabled', () => {
     const fetchImpl = mockFetch(200, answerBody('bugfix'));
     expect(startJevCategory('p', 'b', '/nonexistent/x.json', {}, fetchImpl)).toBeNull();
+    expect(startJevCategory('p', 'b', '/nonexistent/x.json', { [CATEGORY_PROVIDER_ENV]: 'jev' }, fetchImpl)).toBeNull();
     expect(fetchImpl).not.toHaveBeenCalled();
   });
 });
@@ -182,12 +186,27 @@ describe('decideCategory (the cascade rule)', () => {
     requestId: null,
   });
 
-  it('pins the threshold at 0.8, inclusive', () => {
+  it('uses the default 0.8 threshold, inclusively', () => {
     expect(JEV_CONFIDENCE_THRESHOLD).toBe(0.8);
     expect(decideCategory(ok(0.8), JEV)).toEqual({ category: 'docs', confidence: 0.8 });
     expect(decideCategory(ok(0.95), JEV)).toEqual({ category: 'docs', confidence: 0.95 });
     expect(decideCategory(ok(0.79), JEV)).toBeNull();
     expect(decideCategory(ok(null), JEV)).toBeNull();
+  });
+
+  it('uses a valid per-seam floor and rejects invalid floor and confidence values', () => {
+    expect(resolveCategoryJevFloor()).toBe(0.8);
+    expect(resolveCategoryJevFloor({ [CATEGORY_JEV_FLOOR_ENV]: '0' })).toBe(0);
+    expect(resolveCategoryJevFloor({ [CATEGORY_JEV_FLOOR_ENV]: '1' })).toBe(1);
+    for (const value of ['-0.01', '1.01', 'NaN', 'Infinity', '']) {
+      expect(resolveCategoryJevFloor({ [CATEGORY_JEV_FLOOR_ENV]: value })).toBe(0.8);
+    }
+    const floor090 = { ...JEV, [CATEGORY_JEV_FLOOR_ENV]: '0.9' };
+    expect(decideCategory(ok(0.89), floor090)).toBeNull();
+    expect(decideCategory(ok(0.9), floor090)).toEqual({ category: 'docs', confidence: 0.9 });
+    expect(decideCategory(ok(Number.NaN), JEV)).toBeNull();
+    expect(decideCategory(ok(-0.01), JEV)).toBeNull();
+    expect(decideCategory(ok(1.01), JEV)).toBeNull();
   });
 
   it('never decides in shadow mode, in haiku mode, or on an error', () => {
@@ -226,6 +245,12 @@ describe('parseJevCategoryAnswer', () => {
     expect(parseJevCategoryAnswer(null)).toBeNull();
     expect(parseJevCategoryAnswer({ answers: {} })).toBeNull();
     expect(parseJevCategoryAnswer({ answers: { [JEV_QUESTION_ID]: 'bugfix' } })).toBeNull();
+  });
+
+  it('treats non-finite and out-of-range confidence as unavailable', () => {
+    for (const confidence of [Number.NaN, Number.POSITIVE_INFINITY, -0.01, 1.01]) {
+      expect(parseJevCategoryAnswer(answerBody('docs', { confidence }))?.confidence).toBeNull();
+    }
   });
 });
 
@@ -344,6 +369,18 @@ describe('shadow files', () => {
     expect(readJevDecision(jevPath, JEV)).toBeNull();
   });
 
+  it('fails open for malformed and out-of-range persisted confidences', () => {
+    fs.writeFileSync(
+      jevPath,
+      JSON.stringify({ ok: true, model: JEV_MODEL, category: 'docs', confidence: 1.01, latencyMs: 210 }),
+    );
+    expect(readJevResult(jevPath)).toMatchObject({ ok: true, confidence: null });
+    expect(readJevDecision(jevPath, JEV)).toBeNull();
+    fs.writeFileSync(jevPath, '{"ok":true,"category":"docs","confidence":NaN}', 'utf8');
+    expect(readJevResult(jevPath)).toBeNull();
+    expect(readJevDecision(jevPath, JEV)).toBeNull();
+  });
+
   it('records the pair once haiku settles, and only once, with decided_by=jev when confident', () => {
     fs.writeFileSync(
       jevPath,
@@ -357,6 +394,8 @@ describe('shadow files', () => {
       jev: 'docs',
       agree: false,
       jev_confidence: 0.9,
+      high_confidence_disagreement: true,
+      below_floor: false,
       decided_by: 'jev',
       threshold: 0.8,
       latency_ms: 210,
@@ -372,6 +411,8 @@ describe('shadow files', () => {
       provider: 'jev',
       decided_by: 'haiku',
       jev_confidence: 0.6,
+      high_confidence_disagreement: false,
+      below_floor: true,
     });
     fs.rmSync(shadowPath);
     fs.writeFileSync(jevPath, JSON.stringify({ ok: true, model: JEV_MODEL, category: 'docs', confidence: 0.99, latencyMs: 210 }));
@@ -379,6 +420,20 @@ describe('shadow files', () => {
       provider: 'shadow',
       decided_by: 'haiku',
       jev_confidence: 0.99,
+    });
+  });
+
+  it('derives high-confidence disagreement and below-floor from the effective per-seam floor', () => {
+    fs.writeFileSync(
+      jevPath,
+      JSON.stringify({ ok: true, model: JEV_MODEL, category: 'docs', confidence: 0.9, latencyMs: 210 }),
+    );
+    const floor095 = { ...JEV, [CATEGORY_JEV_FLOOR_ENV]: '0.95' };
+    expect(recordCategoryShadow(jevPath, shadowPath, 'infra', true, floor095)).toMatchObject({
+      threshold: 0.95,
+      high_confidence_disagreement: false,
+      below_floor: true,
+      decided_by: 'haiku',
     });
   });
 
@@ -391,6 +446,38 @@ describe('shadow files', () => {
       decided_by: 'haiku',
       error: 'timeout',
     });
+  });
+
+  it('writes the canonical category contract for successful and failed classifiers', () => {
+    fs.writeFileSync(
+      jevPath,
+      JSON.stringify({ ok: true, model: JEV_MODEL, category: 'docs', confidence: 0.9, latencyMs: 210 }),
+    );
+    const success = recordCategoryShadow(jevPath, shadowPath, 'infra', true, JEV);
+    expect(JSON.parse(fs.readFileSync(shadowPath, 'utf8'))).toEqual(success);
+    expect(success).toEqual(expect.objectContaining({
+      jev_pick: 'docs',
+      jev_confidence: 0.9,
+      incumbent_pick: 'infra',
+      incumbent_pick_reason: null,
+      agree: false,
+      floor: 0.8,
+      decided_by: 'jev',
+    }));
+
+    fs.rmSync(shadowPath);
+    fs.writeFileSync(jevPath, JSON.stringify({ ok: false, error: 'timeout', status: null, latencyMs: 1500 }));
+    const failed = recordCategoryShadow(jevPath, shadowPath, null, true, JEV);
+    expect(JSON.parse(fs.readFileSync(shadowPath, 'utf8'))).toEqual(failed);
+    expect(failed).toEqual(expect.objectContaining({
+      jev_pick: null,
+      jev_confidence: null,
+      incumbent_pick: { status: 'no_valid_result', choice: null, reason: 'incumbent_classifier_failed' },
+      incumbent_pick_reason: 'incumbent_classifier_failed',
+      agree: null,
+      floor: 0.8,
+      decided_by: 'haiku',
+    }));
   });
 
   it('does nothing while the Jev result has not landed', () => {

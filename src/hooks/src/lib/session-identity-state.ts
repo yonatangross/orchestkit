@@ -52,10 +52,10 @@ import {
 import {
   FILE_JEV,
   FILE_SHADOW,
-  JEV_CONFIDENCE_THRESHOLD,
   decideCategory,
   readJevDecision,
   recordCategoryShadow,
+  resolveCategoryJevFloor,
   startJevCategory,
   type JevCategoryResult,
 } from './session-category-provider.js';
@@ -351,8 +351,9 @@ function logCategoryShadow(
   if (!record) return;
   ctx.log(
     'session-identity',
-    `category ${record.provider}: haiku=${record.haiku ?? 'none'} jev=${record.jev ?? 'none'} agree=${record.agree} ` +
-      `confidence=${record.jev_confidence ?? 'n/a'} decided_by=${record.decided_by} threshold=${record.threshold} ` +
+    `category ${record.provider}: jev_pick=${record.jev_pick ?? 'none'} jev_confidence=${record.jev_confidence ?? 'n/a'} ` +
+      `incumbent_pick=${JSON.stringify(record.incumbent_pick)} incumbent_pick_reason=${record.incumbent_pick_reason ?? 'none'} ` +
+      `agree=${record.agree} floor=${record.floor} decided_by=${record.decided_by} ` +
       `latency_ms=${record.latency_ms ?? 'n/a'}` +
       (record.error ? ` error=${record.error}` : ''),
   );
@@ -378,15 +379,17 @@ function onJevSettled(
   try {
     const decision = decideCategory(result);
     if (decision) {
+      const floor = resolveCategoryJevFloor();
       applyColorOnce(input, projectDir, CATEGORY_COLOR[decision.category], colorAppliedPath, ctx);
       ctx.log(
         'session-identity',
-        `category decided by jev: ${decision.category} (confidence ${decision.confidence} >= ${JEV_CONFIDENCE_THRESHOLD})`,
+        `category decided by jev: ${decision.category} (confidence ${decision.confidence} >= ${floor})`,
       );
     } else if (result.ok) {
+      const floor = resolveCategoryJevFloor();
       ctx.log(
         'session-identity',
-        `category left to haiku: jev said ${result.category} at confidence ${result.confidence ?? 'n/a'}, below ${JEV_CONFIDENCE_THRESHOLD}`,
+        `category left to haiku: jev said ${result.category} at confidence ${result.confidence ?? 'n/a'}, below ${floor}`,
       );
     } else {
       ctx.log('session-identity', `category left to haiku: jev ${result.error}`, 'warn');
