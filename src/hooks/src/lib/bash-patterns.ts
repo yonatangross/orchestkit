@@ -42,7 +42,9 @@ export const REJECT_PATTERNS: RegExp[] = [
   // Credential-path reads (#4216 HR-1): secret material must never
   // auto-approve under a read-only prefix — `cat ~/.ssh/id_rsa` was allowed.
   // Covers the usual secret stores; anything matching drops to a real prompt.
-  /^(?:cat|head|tail|less|more)\b[^\n]*?(?:\/etc\/(?:shadow|gshadow|sudoers)|\.(?:ssh|aws|gnupg|kube|docker|netrc|git-credentials|npmrc|pypirc|env|credentials?)\b|id_(?:rsa|ed25519|ecdsa|dsa)\b|\.(?:pem|key|p12|pfx|keystore)\b)/,
+  // envrc sits next to env (direnv dumps exports), master.passwd is the macOS
+  // shadow, and gh/hosts.yml holds the gh CLI OAuth tokens.
+  /^(?:cat|head|tail|less|more)\b[^\n]*?(?:\/etc\/(?:shadow|gshadow|sudoers|master\.passwd)|\.(?:ssh|aws|gnupg|kube|docker|netrc|git-credentials|npmrc|pypirc|env|envrc|credentials?)\b|id_(?:rsa|ed25519|ecdsa|dsa)\b|\.(?:pem|key|p12|pfx|keystore)\b|\.config\/gh\/hosts\.yml\b)/,
 ];
 
 // Note: For compound command detection, use isCompoundCommand() from

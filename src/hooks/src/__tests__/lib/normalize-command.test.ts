@@ -210,6 +210,11 @@ describe('isCompoundCommand', () => {
     expect(isCompoundCommand('echo `whoami`')).toBe(true);
   });
 
+  test('returns true for backticks inside double quotes', () => {
+    // Same hole as "$( )": bash expands `...` inside "" too.
+    expect(isCompoundCommand('echo "`id`"')).toBe(true);
+  });
+
   test('returns false for substitution-looking text inside single quotes', () => {
     expect(isCompoundCommand("echo '$(whoami)'")).toBe(false);
   });

@@ -229,9 +229,12 @@ describe('auto-approve-safe-bash', () => {
       'cat ~/.ssh/id_rsa',
       'cat ~/.aws/credentials',
       'cat .env',
+      'cat .envrc',
       'cat ~/.netrc',
       'head -5 ~/.kube/config',
       'tail ~/.git-credentials',
+      'cat ~/.config/gh/hosts.yml',
+      'cat /etc/master.passwd',
     ];
 
     test.each(dangerousCommands)('requires manual approval: %s', (command) => {
