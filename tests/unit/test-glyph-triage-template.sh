@@ -254,7 +254,10 @@ PY
   local chrome_pid=$!
   local loaded=0
   local _
-  for _ in 1 2 3 4 5 6 7 8 9 10 11 12; do
+  # The first launch pays a cold start: 9.2s measured on a GitHub runner
+  # against a 12s ceiling, which made this gate a coin flip (node 20 red,
+  # node 22 green, same commit). Budget well above the cold start.
+  for _ in $(seq 60); do
     if grep -q '</html>' "$out/dom.html" 2>/dev/null; then
       loaded=1
       break
@@ -265,12 +268,13 @@ PY
   kill "$chrome_pid" >/dev/null 2>&1 || true
   wait "$chrome_pid" 2>/dev/null || true
 
+  # A browser that rendered nothing cannot arbitrate ANY case. Counting it
+  # as a pass let every negative mutation self-certify: with a stub browser
+  # that writes no DOM, the tree with escapeHtml REMOVED still exited 0.
   if [[ "$loaded" != 1 ]]; then
-    if [[ "$expect" == "fail" ]]; then
-      echo "  ✓ mode=$mode failed closed (no DOM)"
-      return 0
-    fi
-    fail "mode=$mode expected pass, Chrome produced no DOM"
+    echo "  --- chrome stderr (mode=$mode) ---" >&2
+    tail -20 "$out/chrome.err" >&2 || true
+    fail "mode=$mode produced no DOM, so no mutation case can be judged"
   fi
 
   if [[ "$expect" == "pass" ]]; then
