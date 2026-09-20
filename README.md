@@ -614,6 +614,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.67](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.66...v10.0.0-beta.67)** · 2026-09-20
+
+- **expect:** jev live per-field decisions in form steps (#4284)
+
 **[v10.0.0-beta.66](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.65...v10.0.0-beta.66)** · 2026-09-20
 
 - **glyph:** add a triage page template with a parsable DECIDE pick (#4267)
@@ -650,11 +654,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **browser:** adopt agent-browser 0.38.1 (delta snapshots, if-changed shots, persistent refs, 30 fps, WebMCP) (#4260)
 - **site:** generated Related block on reference pages (#4253)
-
-**[v10.0.0-beta.59](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.58...v10.0.0-beta.59)** · 2026-09-19
-
-- **codex:** add glyph skill adapter and export coverage (#4277)
-- **hooks:** key credential-path reject on the path, not the reader (#4279)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
