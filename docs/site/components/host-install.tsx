@@ -23,6 +23,7 @@ import {
 	type HostInstallSpec,
 } from "@/lib/host-installs";
 import { parseLibraryTab, type LibraryTab } from "@/lib/library-tab";
+import { SITE } from "@/lib/constants";
 import { track } from "@/lib/search-beacon";
 import { cn } from "@/lib/cn";
 
@@ -307,18 +308,41 @@ export function HostInstallPicker({
 	);
 }
 
+/**
+ * True when this host's install lines are byte-identical to the command the
+ * hero already shows above the fold.
+ *
+ * Compared as STRINGS, never by host id: the point is "the reader can already
+ * see this exact command", which is a property of the text and not of which
+ * host happens to be selected. A copy change on either side ends the match on
+ * its own, and a second host that adopts the same command inherits the rule.
+ */
+function matchesHeroCommand(spec: HostInstallSpec): boolean {
+	return spec.commands.join("\n") === SITE.installCommand;
+}
+
 function HostCommandPanel({ spec }: { spec: HostInstallSpec }) {
+	// The hero keeps the command above the fold, so the picker must not print
+	// it a second time on the same screen. The follow-up line below is not a
+	// repeat, it is genuinely extra, so it stays.
+	const sameAsHero = matchesHeroCommand(spec);
 	return (
 		<SameRouteFade childKey={spec.id} name="host-command">
 			<div className="mt-3 space-y-2">
 				<p className="text-center text-[12px] leading-5 text-fd-muted-foreground">
 					{spec.where}
 				</p>
-				<InstallSnippet
-					text={spec.commands}
-					prompt={spec.prompt}
-					host={spec.id}
-				/>
+				{sameAsHero ? (
+					<p className="text-center text-[12px] leading-5 text-fd-muted-foreground">
+						Same command as above.
+					</p>
+				) : (
+					<InstallSnippet
+						text={spec.commands}
+						prompt={spec.prompt}
+						host={spec.id}
+					/>
+				)}
 				{spec.then ? (
 					<InstallSnippet
 						text={spec.then.commands}

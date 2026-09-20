@@ -5,6 +5,30 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.65](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.64...v10.0.0-beta.65) (2026-09-20)
+
+
+### Features
+
+* **jev:** add conservative weak outcome sidecars ([#4281](https://github.com/yonatangross/orchestkit/issues/4281)) ([b8cb918](https://github.com/yonatangross/orchestkit/commit/b8cb918b10c9e110d35df0447e106681c4566fc6))
+
+
+### Bug Fixes
+
+* **docs-site:** stop the picker repeating the hero install command ([#4293](https://github.com/yonatangross/orchestkit/issues/4293)) ([f3f9c97](https://github.com/yonatangross/orchestkit/commit/f3f9c97997bd69ae7d1a3ebaee5c1e513d831367))
+
+## [10.0.0-beta.64](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.63...v10.0.0-beta.64) (2026-09-20)
+
+
+### Features
+
+* **site:** search autocomplete suggestions in docs search ([#4258](https://github.com/yonatangross/orchestkit/issues/4258)) ([a9cc587](https://github.com/yonatangross/orchestkit/commit/a9cc587fbfa0746985db4c8280d462e497b66184))
+
+
+### Bug Fixes
+
+* **hooks:** never emit hookSpecificOutput without hookEventName ([#4285](https://github.com/yonatangross/orchestkit/issues/4285)) ([8d568b6](https://github.com/yonatangross/orchestkit/commit/8d568b6f11dcf6083893c43bef75802927492d50))
+
 ## [10.0.0-beta.63](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.62...v10.0.0-beta.63) (2026-09-19)
 
 
