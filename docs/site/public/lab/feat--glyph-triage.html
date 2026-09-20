@@ -126,6 +126,7 @@ gh issue list --state open --json number,title,labels,milestone
   <button type="button" id="copy" disabled>Copy pick</button>
 </div>
 <textarea id="fallback" hidden></textarea>
+<textarea id="snapshot" hidden>{"items":[{"lane":"bugs","title":"EXAMPLE #0000 squeezed glyph","route":"ork:glyph"},{"lane":"quick-wins","title":"#0000 EXAMPLE one-file fix","route":"devin"},{"lane":"epic-orbit","title":"#0000 EXAMPLE child of an epic","route":"ork:workflow-architect"},{"lane":"tech-debt","title":"#0000 EXAMPLE cleanup","route":"devin"},{"lane":"ux-a11y","title":"#0000 EXAMPLE keyboard gap","route":"21st-dev"},{"lane":"content-seo","title":"#0000 EXAMPLE title rewrite","route":"hq-ext"},{"lane":"brand","title":"#0000 EXAMPLE visual token","route":"21st-dev"},{"lane":"blocked-externally","title":"#0000 EXAMPLE waiting on a vendor","route":"external"}],"raw":"EXAMPLE\ngh issue list --state open --json number,title,labels,milestone\n[]"}</textarea>
 <script>
 (function () {
   var pick = document.getElementById("pick");
@@ -159,8 +160,30 @@ gh issue list --state open --json number,title,labels,milestone
     fb.hidden = true;
   });
   function escapeHtml(s) {
-    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    return String(s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
   }
+  function renderSnapshot() {
+    var data = JSON.parse(document.getElementById("snapshot").value);
+    var cleared = {};
+    data.items.forEach(function (item) {
+      var ul = document.querySelector('[data-lane="' + item.lane + '"] ul');
+      if (!ul) return;
+      if (!cleared[item.lane]) {
+        ul.innerHTML = "";
+        cleared[item.lane] = true;
+      }
+      var li = document.createElement("li");
+      li.innerHTML = escapeHtml(item.title) + ' <code class="route">' + escapeHtml(item.route) + "</code>";
+      ul.appendChild(li);
+    });
+    document.getElementById("raw").innerHTML = escapeHtml(data.raw);
+  }
+  renderSnapshot();
   refresh();
 })();
 </script>
