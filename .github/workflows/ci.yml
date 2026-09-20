@@ -717,6 +717,14 @@ jobs:
           node-version: ${{ matrix.node-version }}
           build-plugins: 'false'
 
+      # The built-plugins artifact covers plugins/ only, so workspace dist/
+      # output does not exist here. scripts/jev-loop-report.mjs imports
+      # packages/jev-shadow/dist/esm/runtime.js, which made its unit test
+      # fail with ERR_MODULE_NOT_FOUND on both node versions.
+      - name: Build workspace packages
+        shell: bash
+        run: npm run --workspace=@orchestkit/jev-shadow build --if-present
+
       - name: Run unit tests
         shell: bash
         run: |
