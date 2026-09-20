@@ -614,6 +614,16 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.65](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.64...v10.0.0-beta.65)** · 2026-09-20
+
+- **jev:** add conservative weak outcome sidecars (#4281)
+- **docs-site:** stop the picker repeating the hero install command (#4293)
+
+**[v10.0.0-beta.64](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.63...v10.0.0-beta.64)** · 2026-09-20
+
+- **site:** search autocomplete suggestions in docs search (#4258)
+- **hooks:** never emit hookSpecificOutput without hookEventName (#4285)
+
 **[v10.0.0-beta.63](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.62...v10.0.0-beta.63)** · 2026-09-19
 
 - **eval:** document Langfuse Python SDK v4 and fail zero-item runs (#4272)
@@ -649,16 +659,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **hooks:** close auto-approve bypass via substitution and redirects (#4264)
 - **contributing:** add a first pull request example (#4269)
 - …and 3 more (see [CHANGELOG.md](CHANGELOG.md))
-
-**[v10.0.0-beta.57](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.56...v10.0.0-beta.57)** · 2026-09-19
-
-- **ci:** name both causes when hook bundles differ (#4256)
-- **release:** retry the GHCR manifest preflight (#4257)
-
-**[v10.0.0-beta.56](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.55...v10.0.0-beta.56)** · 2026-09-19
-
-- **playground:** render mermaid when a tab opens (#4252)
-- **ruff:** re-anchor skill example excludes (#4254)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
