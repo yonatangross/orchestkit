@@ -1,0 +1,13 @@
+{
+  "slug": "home-install-picker-dedupe",
+  "source": "docs/fix--home-duplicate-install/index.html",
+  "title": "The Picker No Longer Repeats the Hero",
+  "description": "The homepage printed the same install command twice: once above the fold and again in the host picker, whose default host is byte-identical. Now a matching command renders 'Same command as above.' while the /ork:setup follow-up stays. Toggle before/after and switch hosts to see it.",
+  "tags": [
+    "docs-site",
+    "homepage",
+    "ux",
+    "fix"
+  ],
+  "date": "2026-09-20"
+}
