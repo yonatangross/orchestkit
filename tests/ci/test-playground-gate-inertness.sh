@@ -29,23 +29,50 @@ echo "=========================================="
 echo "  PR Playground gate — path-based decision"
 echo "=========================================="
 
-# Lift the INERT pattern out of the workflow so this tests the SHIPPED regex
-# rather than a copy that can drift away from it.
-INERT=$(grep -m1 "^          INERT=" "$WORKFLOW" | sed "s/^          INERT='//; s/'$//")
+# The decision lives in one script. This runs THAT script, not a copy of
+# the regex, so a drift in the exemption fails here.
+DECISION="$PROJECT_ROOT/scripts/ci/playground-gate-decision.sh"
 
-section "1. The pattern is still sourced from the workflow"
-if [ -n "$INERT" ]; then
-  log_pass "extracted INERT pattern from ci.yml"
+section "1. The decision is the script the workflow calls"
+if [ -f "$DECISION" ]; then
+  log_pass "playground gate decision script exists"
 else
-  log_fail "could not extract INERT from ci.yml — was the variable renamed?"
+  log_fail "missing $DECISION"
   echo "  Passed: ${PASS}  Failed: ${FAIL}"
   exit 1
 fi
+if grep -q 'scripts/ci/playground-gate-decision.sh' "$WORKFLOW"; then
+  log_pass "workflow step calls the decision script"
+else
+  log_fail "ci.yml does not call scripts/ci/playground-gate-decision.sh"
+fi
+if grep -q 'dependabot/|release-please|renovate/|chore/cc-snapshot-|ci/' "$DECISION"; then
+  log_pass "automated branch prefix list unchanged"
+else
+  log_fail "automated branch prefix list drifted"
+fi
+if grep -q 'automated branch' "$DECISION"; then
+  log_pass "automated branch wording kept"
+else
+  log_fail "automated branch wording was rewritten"
+fi
 
-# Mirrors the shipped shell exactly, here-string included: "every changed file
-# is inert" => skip. See the workflow comment on why this is NOT a pipe.
+# Defaults are a human feature branch. Branch and author skips are asserted
+# on their own so they cannot leak into the path cases.
+decide() {
+  local files="$1"
+  local ref="${2:-feat/human-fix}"
+  local author="${3:-octocat}"
+  local fork="${4:-false}"
+  env -u GITHUB_OUTPUT -u PR_NUMBER \
+    HEAD_REF="$ref" PR_AUTHOR="$author" IS_FORK="$fork" \
+    bash "$DECISION" <<< "$files"
+}
+
 requires_playground() {
-  if grep -qvE "$INERT" <<< "$1"; then echo "yes"; else echo "no"; fi
+  local out
+  out=$(decide "$1")
+  if grep -q '^required=true$' <<< "$out"; then echo "yes"; else echo "no"; fi
 }
 
 check() { # files expected label
@@ -59,6 +86,7 @@ check() { # files expected label
 
 section "2. Docs-only PRs are exempt (the #3193 case)"
 check "README.md"                              no  "a one-line README badge"
+check $'README.md\n'                           no  "a docs path with a trailing blank line"
 check $'README.md\nCONTRIBUTING.md'            no  "two docs files"
 check "LICENSE"                                no  "license only"
 check ".github/workflows/ci.yml"               no  "workflow config only"
@@ -66,13 +94,15 @@ check "vercel.json"                            no  "deploy config only"
 check "pyproject.toml"                         no  "root toml only"
 check "docs/audits/x-triage-2026-08-31.md"     no  "a dated audit record only"
 check $'docs/audits/a.md\npyproject.toml'      no  "an audit record plus a root toml (the #3845 diff)"
+sep=-
+sep="${sep}${sep}"
+check "docs/feat${sep}slug/index.html"        no  "a lab directory only"
 
 section "3. Anything user-facing still REQUIRES a playground"
 check "src/skills/glyph/SKILL.md"           yes "a skill change"
 check "src/hooks/src/prompt/foo.ts"            yes "a hook change"
 check "src/agents/explore.md"                  yes "an agent change"
 check "docs/site/components/world/x.tsx"       yes "docs-site component"
-check "tests/evals/scripts/run-skill-eval.sh"  yes "eval harness change"
 check "manifests/ork.json"                     yes "manifest change"
 # The exemption is for the RECORD, never for what the record is about: an audit
 # file riding along with a source change must still require a playground, or
@@ -86,6 +116,7 @@ check $'.github/workflows/ci.yml\ntests/x.sh'    yes "config + a test"
 section "5. Fail-closed on unknown paths"
 check "some/brand/new/surface.ts"              yes "a path the list predates"
 check "docs/site/app/page.tsx"                 yes "docs-site app code is NOT inert"
+check ""                                       yes "an empty diff fails closed"
 
 section "6. Every gated step hangs off ONE decision (no copy-paste drift)"
 # 2 -> 3 (#3745): added "Check playground is published to the Lab", which
@@ -112,10 +143,45 @@ fi
 section "7. The decision must not be a SIGPIPE race"
 # grep -q early-exits, SIGPIPEs the producer, and under pipefail that 141
 # propagates and flips the `if` — fail-OPEN in a required gate (#603).
-if grep -qE 'printf .*\| *grep -qv' "$WORKFLOW"; then
+if grep -qE 'printf .*\| *grep -q' "$WORKFLOW" || grep -qE 'printf .*\| *grep -q' "$DECISION"; then
   log_fail "gate pipes into grep -q — reintroduces the pipefail/SIGPIPE race"
 else
   log_pass "gate uses a here-string, no producer to SIGPIPE"
+fi
+
+section "8. A test-only diff does not require a playground (#4301)"
+TEST_ONLY_MSG="test-only diff, no playground required"
+assert_msg() { # files expected_message label
+  local out got
+  out=$(decide "$1")
+  got=$(sed -n 's/^message=//p' <<< "$out")
+  if [ "$got" = "$2" ]; then
+    log_pass "$3"
+  else
+    log_fail "$3 → got '$got', want '$2'"
+  fi
+}
+check "src/hooks/src/__tests__/foo.test.ts" no "one colocated test file"
+check "src/hooks/src/foo.spec.ts"            no "a spec file"
+check "tests/ci/test-playground-gate-inertness.sh" no "a tests/ script"
+check $'tests/a.sh\n'                          no  "a test path with a trailing blank line"
+check "tests/evals/scripts/run-skill-eval.sh"  no "eval harness under tests/ only"
+check $'tests/evals/scripts/run-skill-eval.sh\nsrc/skills/glyph/SKILL.md' yes "eval harness plus a skill"
+check $'tests/a.sh\nsrc/hooks/src/__tests__/foo.test.ts' no "two test paths"
+assert_msg "tests/ci/test-playground-gate-inertness.sh" "$TEST_ONLY_MSG" "notice is exactly the test-only message"
+check $'README.md\ntests/a.sh' yes "docs plus a test is not test-only"
+check $'.github/workflows/ci.yml\ntests/x.sh' yes "config plus a test still requires a playground"
+src_on_ci=$(decide "src/skills/glyph/SKILL.md" "ci/hand-reopened" "octocat" "false")
+if grep -q '^required=false$' <<< "$src_on_ci" && grep -q 'automated branch' <<< "$src_on_ci"; then
+  log_pass "ci/ prefix still skips, and still says automated branch"
+else
+  log_fail "ci/ prefix skip drifted: $src_on_ci"
+fi
+bot_out=$(decide "src/skills/glyph/SKILL.md" "feat/human-fix" "dependabot[bot]" "false")
+if grep -q '^required=false$' <<< "$bot_out" && grep -q 'bot PR' <<< "$bot_out"; then
+  log_pass "bot author skip unchanged"
+else
+  log_fail "bot author skip drifted: $bot_out"
 fi
 
 echo
