@@ -607,14 +607,14 @@ def main():
     # candidate list; checkbox decisions derive from the list-membership
     # answer (match-then-map), cross-checked against the state answer, and
     # list fields gate on the raised act_list_confidence_floor.
+    answers = body["answers"]
     list_answers = {}
-    for qid, ans in (answers or {}).items():
-        if qid.startswith("list::"):
+    for qid, ans in answers.items():
+        if qid.startswith("list::") and isinstance(ans, dict):
             list_answers[qid.split("::", 1)[1]] = ans
 
     field_decisions = {}
     executed_action = jev_action if take_jev else incumbent
-    answers = body["answers"]
     for qid, ans in answers.items():
         if not qid.startswith("field::") or not isinstance(ans, dict):
             continue
