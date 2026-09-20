@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.68",
+    "date": "2026-09-20",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.67...v10.0.0-beta.68",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**jev:** add shared shadow foundation and passive Codex adapter ([#4286](https://github.com/yonatangross/orchestkit/issues/4286)) ([a70f076](https://github.com/yonatangross/orchestkit/commit/a70f076872a9dba20d32f3894dc2277bc7a1f181))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.67",
     "date": "2026-09-20",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.66...v10.0.0-beta.67",

@@ -294,6 +294,13 @@ describe('manageSessionIdentity category provider (opt-in)', () => {
     return { ...ctx, lines, log: (_hook: string, msg: string) => void lines.push(msg) };
   }
 
+  // Clear BEFORE each case too: a shell with Jev shadow vars exported made
+  // the first "provider unset" case inherit ORK_SESSION_CATEGORY_PROVIDER
+  // and fail 3 of 3 locally while passing under env -u.
+  beforeEach(() => {
+    delete process.env.ORK_SESSION_CATEGORY_PROVIDER;
+    delete process.env.ORK_TYPESAFE_API_KEY;
+  });
   afterEach(() => {
     delete process.env.ORK_SESSION_CATEGORY_PROVIDER;
     delete process.env.ORK_TYPESAFE_API_KEY;
