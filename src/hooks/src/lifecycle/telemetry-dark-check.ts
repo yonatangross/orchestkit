@@ -33,6 +33,7 @@ import { existsSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import type { HookInput, HookResult, HookContext } from '../types.js';
 import { outputSilentSuccess } from '../lib/common.js';
+import { getWebhookUrl, getHookToken } from '../lib/orchestration-state.js';
 import { NOOP_CTX } from '../lib/context.js';
 
 const HOOK_NAME = 'lifecycle/telemetry-dark-check';
@@ -116,8 +117,10 @@ export function telemetryDarkCheck(
 ): HookResult {
   if (process.env[OPT_OUT_ENV_VAR] === '1') return outputSilentSuccess();
 
-  const token = process.env[TOKEN_ENV_VAR];
-  const url = process.env[URL_ENV_VAR];
+  // Resolved config: manifest userConfig (CLAUDE_PLUGIN_OPTION_*) with the
+  // ORCHESTKIT_HOOK_* env vars as fallback, same as the sync path (#1270).
+  const token = getHookToken();
+  const url = getWebhookUrl();
 
   // Only the partial-config misconfig: intent-to-sync (token) but no URL.
   // Neither-set (default local-only) and both-set (healthy) stay silent.

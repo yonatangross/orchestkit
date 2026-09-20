@@ -961,6 +961,11 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
     "description": "OrchestKit doctor for health diagnostics across manifest integrity, hook configuration, skill validation, agent frontmatter, MCP server connectivity, CC version compatibility, and permission rules. Reports issues with severity levels and auto-remediation suggestions. Validates component counts, detects orphaned entries, and checks CC version matrix compliance. Use when diagnosing plugin health, troubleshooting configuration issues, or running pre-release checks."
   },
   {
+    "url": "/docs/reference/skills/doctor/references/agent-memory-dir",
+    "title": "Doctor: Per-agent memory directory",
+    "description": "memory: in agent frontmatter writes .claude/agent-memory/NAME/MEMORY.md."
+  },
+  {
     "url": "/docs/reference/skills/doctor/references/agents-validation",
     "title": "Doctor: Agents Validation",
     "description": "OrchestKit includes 30 specialized agents validated against CC 2.1.69 frontmatter format."

@@ -11,15 +11,15 @@ Features:
 """
 
 import json
-import os
 from typing import Any
 
 import structlog
-from agents import Agent, Runner, handoff, tool, trace
-from agents.exceptions import InputGuardrailException, OutputGuardrailException
+from agents.exceptions import InputGuardrailException
 from agents.extensions.handoff_prompt import RECOMMENDED_PROMPT_PREFIX
 from agents.guardrails import InputGuardrail, OutputGuardrail
-from langfuse import observe, get_client
+from langfuse import get_client, observe
+
+from agents import Agent, Runner, handoff, tool, trace
 
 logger = structlog.get_logger()
 
@@ -122,7 +122,7 @@ class PIIDetectionGuardrail(InputGuardrail):
             if pattern in input_lower:
                 logger.warning("PII detected in input", pattern=pattern)
                 raise InputGuardrailException(
-                    f"Potential PII detected. Please remove sensitive information."
+                    "Potential PII detected. Please remove sensitive information."
                 )
         return input_text
 
@@ -433,7 +433,6 @@ class ConversationManager:
 
 async def main():
     """Example usage of the multi-agent support system."""
-    import asyncio
 
     # Single message
     result = await run_support_workflow(

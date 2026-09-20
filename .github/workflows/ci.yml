@@ -30,6 +30,7 @@ jobs:
     name: Build (CI)
     permissions:
       contents: read
+      actions: read
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -153,7 +154,8 @@ jobs:
         if: github.event_name == 'pull_request'
         env:
           HEAD_REF: ${{ github.head_ref }}
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          BASE_REF: ${{ github.base_ref }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -uo pipefail
           DIST=(src/hooks/dist plugins/ork/hooks/dist)
@@ -168,19 +170,57 @@ jobs:
           done
           if [[ "$HEAD_REF" == release-please--* ]]; then
             if ! git diff --quiet -- "${DIST[@]}"; then
-              echo "::error::Release branch carries stale hook bundles. release-please.yml's rebuild step has not landed on this head yet; it re-runs on every push to main, so re-check after the next run or dispatch release-please.yml."
+              # Observed fact only. A diff here is either a rebuild that has
+              # not landed yet, or a rebuild the release-owned-bundle guard
+              # refused. Re-running this job, or dispatching release-please,
+              # is the remedy for exactly one of those, and this step cannot
+              # tell which. Link the latest run so the reader checks.
+              RP_URL=""
+              if command -v gh >/dev/null 2>&1; then
+                RP_URL="$(gh run list --workflow=release-please.yml --limit 1 --json url --jq '.[0].url' 2>/dev/null || true)"
+              fi
+              if [[ -z "${RP_URL}" ]]; then
+                RP_URL="https://github.com/${GITHUB_REPOSITORY:-yonatangross/orchestkit}/actions/workflows/release-please.yml"
+              fi
+              echo "::error::A fresh build of the hook bundles differs from what is committed."
+              echo "::error::Two causes fit that diff: the release-please rebuild has not run on this head yet, or the rebuild was refused by the release-owned-bundle guard. This step cannot tell which."
+              echo "::error::Latest release-please run: ${RP_URL}"
               git diff --stat -- "${DIST[@]}"
               exit 1
             fi
             echo "Release branch: hook bundles match a fresh build."
             exit 0
           fi
-          git fetch --quiet --depth=1 origin "$BASE_SHA"
-          CHANGED=$(git diff --name-only "$BASE_SHA" HEAD -- "${DIST[@]}")
-          if [[ -n "$CHANGED" ]]; then
-            echo "::error::This PR changes hook bundles, which are release-owned (#3578). Keep the local build for tests, but restore the committed copies and commit only src/:"
-            echo "::error::  git checkout ${BASE_SHA} -- ${DIST[*]} && git commit -m 'chore: drop release-owned hook bundles from PR'"
-            echo "$CHANGED"
+          # Compare against the CURRENT base tip, not the event's frozen
+          # base.sha: a bundle rebuild landing on main after the PR opened
+          # showed as "the PR changed dist" and red-ed every open hooks PR for
+          # free. HEAD here is the merge ref (base tip + head), so merge-base
+          # resolves to the tip itself; on a head-only checkout it resolves to
+          # the fork point, which is still the right comparison.
+          # This job's checkout is fetch-depth: 1, so the clone is shallow:
+          # unshallow or merge-base exits 1 silently with no common ancestor
+          # (fail-open-by-accident on every PR). FETCH_HEAD names the fetched
+          # base tip even when the shallow fetchspec maps no origin/<base> ref.
+          if [[ "$(git rev-parse --is-shallow-repository)" == true ]]; then
+            git fetch --quiet --unshallow origin "$BASE_REF"
+          else
+            git fetch --quiet origin "$BASE_REF"
+          fi
+          BASE=$(git merge-base FETCH_HEAD HEAD)
+          CHANGED=$(git diff --name-only "$BASE" HEAD -- "${DIST[@]}")
+          # Inherited, not authored (the #4277 pre-commit exception, applied to
+          # CI): a dist path whose committed content equals the current base
+          # tip is main's own bundle content, not a feature edit.
+          AUTHORED=()
+          while IFS= read -r f; do
+            [[ -z "$f" ]] && continue
+            git diff --quiet FETCH_HEAD HEAD -- "$f" && continue
+            AUTHORED+=("$f")
+          done <<< "$CHANGED"
+          if [[ ${#AUTHORED[@]} -gt 0 ]]; then
+            echo "::error::This PR changes hook bundles, which are release-owned (#3578). Rebase on or merge origin/$BASE_REF and push so the PR picks up the current bundles."
+            echo "::error::If the diff persists, restore the release-owned copies: git checkout origin/$BASE_REF -- ${DIST[*]} && git commit -m 'chore: drop release-owned hook bundles from PR'"
+            printf '%s\n' "${AUTHORED[@]}"
             exit 1
           fi
           echo "Feature PR: hook bundles untouched."
@@ -303,6 +343,23 @@ jobs:
       # src/hooks/scripts/fh-ready-baseline.json only shrinks.
       - name: FH-ready handler policy
         run: cd src/hooks && node scripts/fh-ready-check.mjs
+
+      # The 51 Python scripts shipped under src/skills/**/scripts/ had zero CI
+      # coverage: hook-contract-py.yml and orchestkit-py.yml lint only their own
+      # packages. compileall catches syntax errors; ruff runs under the repo
+      # pyproject.toml config (templates/examples excluded).
+      # The interpreter is pinned to the declared requires-python floor (3.11),
+      # not the runner default: the runner's python3 accepts PEP 695 generics
+      # at compile time, which is exactly how #4265 shipped
+      # `def call_llm[T: BaseModel]` into a >=3.11 codebase.
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+        with:
+          python-version: "3.11"
+      - name: Python skill scripts (compileall + ruff)
+        run: |
+          python -m compileall -q src/skills
+          python -m pip install --quiet "ruff>=0.8.0"
+          ruff check src/skills
 
   # ============================================================================
   # STAGE 1b: Dependency Security Audit (BLOCKING)

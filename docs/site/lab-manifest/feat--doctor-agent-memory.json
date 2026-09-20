@@ -1,0 +1,8 @@
+{
+  "slug": "feat--doctor-agent-memory",
+  "source": "docs/feat--doctor-agent-memory/index.html",
+  "title": "doctor: agent-memory directory checks",
+  "description": "Issue 3131: orphan dirs, staleness only when the agent ran, a 150-line warning before the 200-line injection cap, and a secret backstop.",
+  "tags": ["doctor", "memory", "agents"],
+  "date": "2026-09-19"
+}

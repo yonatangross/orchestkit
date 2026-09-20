@@ -1,0 +1,8 @@
+{
+  "slug": "fix--4216-auto-approve-compound",
+  "source": "docs/fix--4216-auto-approve-compound/index.html",
+  "title": "auto-approve: substitution and redirect bypass, closed",
+  "description": "Issue 4216: echo \"$(x)\" and redirects auto-approved under a prefix allowlist because only && || ; | counted as compound. Compare the before and after decision paths.",
+  "tags": ["hooks", "security", "auto-approve"],
+  "date": "2026-09-19"
+}

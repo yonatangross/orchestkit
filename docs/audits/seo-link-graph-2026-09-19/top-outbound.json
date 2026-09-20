@@ -1,0 +1,182 @@
+[
+  {
+    "url": "/docs/reference/skills",
+    "title": "Skills Reference",
+    "outbound": 107,
+    "inbound": 3
+  },
+  {
+    "url": "/docs/reference/agents",
+    "title": "Agents Reference",
+    "outbound": 36,
+    "inbound": 1
+  },
+  {
+    "url": "/docs/skills/by-category/workflows",
+    "title": "Workflows Skills",
+    "outbound": 36,
+    "inbound": 0
+  },
+  {
+    "url": "/docs/reference/hooks",
+    "title": "Hooks Reference",
+    "outbound": 32,
+    "inbound": 1
+  },
+  {
+    "url": "/docs/skills/by-category/frontend",
+    "title": "Frontend Skills",
+    "outbound": 26,
+    "inbound": 0
+  },
+  {
+    "url": "/docs/reference/skills/doctor",
+    "title": "Doctor",
+    "outbound": 19,
+    "inbound": 21
+  },
+  {
+    "url": "/docs/skills/by-category/testing",
+    "title": "Testing Skills",
+    "outbound": 17,
+    "inbound": 0
+  },
+  {
+    "url": "/docs/reference/agents/frontend-ui-developer",
+    "title": "Frontend Ui Developer",
+    "outbound": 13,
+    "inbound": 2
+  },
+  {
+    "url": "/docs/skills/by-category/ai-llm",
+    "title": "AI & LLM Skills",
+    "outbound": 13,
+    "inbound": 0
+  },
+  {
+    "url": "/docs/skills/by-category/backend",
+    "title": "Backend Skills",
+    "outbound": 13,
+    "inbound": 0
+  },
+  {
+    "url": "/docs/cookbook",
+    "title": "Cookbook",
+    "outbound": 12,
+    "inbound": 0
+  },
+  {
+    "url": "/docs/skills/by-category/product",
+    "title": "Product Skills",
+    "outbound": 12,
+    "inbound": 0
+  },
+  {
+    "url": "/docs/skills/by-category/devops",
+    "title": "DevOps Skills",
+    "outbound": 11,
+    "inbound": 0
+  },
+  {
+    "url": "/docs/getting-started/installation",
+    "title": "Installation",
+    "outbound": 10,
+    "inbound": 5
+  },
+  {
+    "url": "/docs/reference/agents/backend-system-architect",
+    "title": "Backend System Architect",
+    "outbound": 10,
+    "inbound": 2
+  },
+  {
+    "url": "/docs/skills/by-category/security",
+    "title": "Security Skills",
+    "outbound": 10,
+    "inbound": 0
+  },
+  {
+    "url": "/docs/getting-started/hosts",
+    "title": "Hosts",
+    "outbound": 9,
+    "inbound": 9
+  },
+  {
+    "url": "/docs/reference/agents/design-system-architect",
+    "title": "Design System Architect",
+    "outbound": 9,
+    "inbound": 2
+  },
+  {
+    "url": "/docs/reference/agents/test-generator",
+    "title": "Test Generator",
+    "outbound": 9,
+    "inbound": 2
+  },
+  {
+    "url": "/docs/getting-started/skills-sh",
+    "title": "skills.sh (Pi, OpenCode, and other clients)",
+    "outbound": 8,
+    "inbound": 7
+  },
+  {
+    "url": "/docs/reference/agents/code-quality-reviewer",
+    "title": "Code Quality Reviewer",
+    "outbound": 8,
+    "inbound": 2
+  },
+  {
+    "url": "/docs/reference/agents/claude-design-orchestrator",
+    "title": "Claude Design Orchestrator",
+    "outbound": 7,
+    "inbound": 1
+  },
+  {
+    "url": "/docs/reference/agents/python-performance-engineer",
+    "title": "Python Performance Engineer",
+    "outbound": 7,
+    "inbound": 2
+  },
+  {
+    "url": "/docs/guides",
+    "title": "Guides",
+    "outbound": 6,
+    "inbound": 0
+  },
+  {
+    "url": "/docs/hooks",
+    "title": "Hooks",
+    "outbound": 6,
+    "inbound": 0
+  },
+  {
+    "url": "/docs/reference/agents/ci-cd-engineer",
+    "title": "Ci Cd Engineer",
+    "outbound": 6,
+    "inbound": 2
+  },
+  {
+    "url": "/docs/reference/agents/monitoring-engineer",
+    "title": "Monitoring Engineer",
+    "outbound": 6,
+    "inbound": 2
+  },
+  {
+    "url": "/docs/reference/agents/system-design-reviewer",
+    "title": "System Design Reviewer",
+    "outbound": 6,
+    "inbound": 1
+  },
+  {
+    "url": "/docs/reference/skills/configure",
+    "title": "Configure",
+    "outbound": 6,
+    "inbound": 7
+  },
+  {
+    "url": "/docs/skills",
+    "title": "Skills",
+    "outbound": 6,
+    "inbound": 0
+  }
+]

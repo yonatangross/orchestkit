@@ -24,13 +24,6 @@ hooks:
 metadata:
   category: workflow-automation
   mcp-server: memory, context7
-triggers:
-  keywords: [fix, debug, "bug report", broken, "500 errors", investigate, resolve, regression, "track down", "figure out why", "issue #"]
-  examples:
-    - "fix issue #234"
-    - "there's a bug where users can't reset their passwords"
-    - "something's causing 500 errors on the /api/users endpoint"
-  anti-triggers: [implement, build, create, explore, review, brainstorm]
 paths: ["src/**/*.{ts,tsx,js,jsx}", "package.json", "CLAUDE.md"]
 ---
 

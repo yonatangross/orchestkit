@@ -18,6 +18,176 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.63",
+    "date": "2026-09-19",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.62...v10.0.0-beta.63",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**eval:** document Langfuse Python SDK v4 and fail zero-item runs ([#4272](https://github.com/yonatangross/orchestkit/issues/4272)) ([5239ca1](https://github.com/yonatangross/orchestkit/commit/5239ca129d79f901a785d7dfe301016fb104dc7f))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "10.0.0-beta.62",
+    "date": "2026-09-19",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.61...v10.0.0-beta.62",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**hooks:** gate session-identity generator to one spawn per session ([#4270](https://github.com/yonatangross/orchestkit/issues/4270)) ([3622749](https://github.com/yonatangross/orchestkit/commit/36227490bf2755047e12488b1e65221817b44ddc))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Code Refactoring",
+        "items": [
+          "**jev:** share TypeSafe key lookup ([#4268](https://github.com/yonatangross/orchestkit/issues/4268)) ([6a969c7](https://github.com/yonatangross/orchestkit/commit/6a969c7d004e30c119adb92cdd8a7586dcf4bd01))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "10.0.0-beta.61",
+    "date": "2026-09-19",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.60...v10.0.0-beta.61",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**manifest:** wire webhook URL/token through userConfig ([#4273](https://github.com/yonatangross/orchestkit/issues/4273)) ([788fdcd](https://github.com/yonatangross/orchestkit/commit/788fdcd6ea2598848a579a06b82be7298ee5730c))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**build:** drop object-shaped triggers from built SKILL.md ([#4276](https://github.com/yonatangross/orchestkit/issues/4276)) ([526873c](https://github.com/yonatangross/orchestkit/commit/526873c133b14ebc45ae6c38b53320e7bd6cb819))",
+          "**ci:** compare hook-bundle guard against current base tip ([#4283](https://github.com/yonatangross/orchestkit/issues/4283)) ([bc35750](https://github.com/yonatangross/orchestkit/commit/bc357505d70ed96f0801e7d83efa39556db90167))",
+          "**git:** reject release bundle helper failures ([#4287](https://github.com/yonatangross/orchestkit/issues/4287)) ([7ac8bc9](https://github.com/yonatangross/orchestkit/commit/7ac8bc974359ca520e4b325c30046599c796c536))",
+          "**jev:** validate confidence and expose shadow disagreements ([#4271](https://github.com/yonatangross/orchestkit/issues/4271)) ([66e2ccc](https://github.com/yonatangross/orchestkit/commit/66e2ccc7ebcc5cf16be26eb7ca97ae4a3a94afb5))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "10.0.0-beta.60",
+    "date": "2026-09-19",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.59...v10.0.0-beta.60",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**browser:** adopt agent-browser 0.38.1 (delta snapshots, if-changed shots, persistent refs, 30 fps, WebMCP) ([#4260](https://github.com/yonatangross/orchestkit/issues/4260)) ([6e23e38](https://github.com/yonatangross/orchestkit/commit/6e23e38c2c22304d64c3933c00bc83f08972e19d))",
+          "**site:** generated Related block on reference pages ([#4253](https://github.com/yonatangross/orchestkit/issues/4253)) ([9b6b576](https://github.com/yonatangross/orchestkit/commit/9b6b576f180c47336f0fceeff847fa968bafb610))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "10.0.0-beta.59",
+    "date": "2026-09-19",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.58...v10.0.0-beta.59",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**codex:** add glyph skill adapter and export coverage ([#4277](https://github.com/yonatangross/orchestkit/issues/4277)) ([ab8d756](https://github.com/yonatangross/orchestkit/commit/ab8d756644d10688493d244faf3aa738c076c326))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**hooks:** key credential-path reject on the path, not the reader ([#4279](https://github.com/yonatangross/orchestkit/issues/4279)) ([d8f0742](https://github.com/yonatangross/orchestkit/commit/d8f07420a4c93f1cb13852185f280b756aac3974))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "10.0.0-beta.58",
+    "date": "2026-09-19",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.57...v10.0.0-beta.58",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**doctor:** check per-agent memory dirs for orphans and stale notes ([#4263](https://github.com/yonatangross/orchestkit/issues/4263)) ([e01f577](https://github.com/yonatangross/orchestkit/commit/e01f577fe1bc2c50183d648ae85eb535e7556782))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**ci:** restore py311 compatibility for shipped skill scripts ([#4275](https://github.com/yonatangross/orchestkit/issues/4275)) ([76f6923](https://github.com/yonatangross/orchestkit/commit/76f692335d9fd13e633410e4be317fd448bf020b))",
+          "**glyph:** render once instead of handing off to ork:glyph ([#4261](https://github.com/yonatangross/orchestkit/issues/4261)) ([7e63c45](https://github.com/yonatangross/orchestkit/commit/7e63c45f345bcf77b52e8e0ad2ee3a7619be9959))",
+          "**hooks:** close auto-approve bypass via substitution and redirects ([#4264](https://github.com/yonatangross/orchestkit/issues/4264)) ([4a246c6](https://github.com/yonatangross/orchestkit/commit/4a246c63c0eb7532d78013421f77aa9ac2415742))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Documentation",
+        "items": [
+          "**contributing:** add a first pull request example ([#4269](https://github.com/yonatangross/orchestkit/issues/4269)) ([a58c4b0](https://github.com/yonatangross/orchestkit/commit/a58c4b02065dc1959b4490009241ee4b198523da))",
+          "**seo:** internal link-graph audit for the docs site ([#4251](https://github.com/yonatangross/orchestkit/issues/4251)) ([3dd24c1](https://github.com/yonatangross/orchestkit/commit/3dd24c1ae6f521bcc7bb2cc183ebc75c188b570c))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "CI/CD",
+        "items": [
+          "compile-check and ruff-lint the 51 skill scripts ([#4265](https://github.com/yonatangross/orchestkit/issues/4265)) ([9390c8d](https://github.com/yonatangross/orchestkit/commit/9390c8d6dd7fa5e401660b52acb9322f86630c5c)), closes [#3500](https://github.com/yonatangross/orchestkit/issues/3500)",
+          "**pre-commit:** block plugins/skills edits missing the src counterpart ([#4266](https://github.com/yonatangross/orchestkit/issues/4266)) ([0e93be5](https://github.com/yonatangross/orchestkit/commit/0e93be56e1cf6eee10a72fb738ddd96cc957134d)), closes [#3499](https://github.com/yonatangross/orchestkit/issues/3499)"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "10.0.0-beta.57",
+    "date": "2026-09-19",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.56...v10.0.0-beta.57",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**ci:** name both causes when hook bundles differ ([#4256](https://github.com/yonatangross/orchestkit/issues/4256)) ([9425d85](https://github.com/yonatangross/orchestkit/commit/9425d851f52d0f2442b8bf9d83dfe04d4b3bc2ad))",
+          "**release:** retry the GHCR manifest preflight ([#4257](https://github.com/yonatangross/orchestkit/issues/4257)) ([aa959ff](https://github.com/yonatangross/orchestkit/commit/aa959ffdb50e2d1e39cc0f1d8669fc649611a2fa))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "10.0.0-beta.56",
+    "date": "2026-09-19",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.55...v10.0.0-beta.56",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**playground:** render mermaid when a tab opens ([#4252](https://github.com/yonatangross/orchestkit/issues/4252)) ([6b1a5a0](https://github.com/yonatangross/orchestkit/commit/6b1a5a0aea8753118f1de7b3be0fb450a15e25cf))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Miscellaneous",
+        "items": [
+          "**ruff:** re-anchor skill example excludes ([#4254](https://github.com/yonatangross/orchestkit/issues/4254)) ([5cf6718](https://github.com/yonatangross/orchestkit/commit/5cf6718f533c277a873816de31e0a2571df7028d))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.55",
     "date": "2026-09-18",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.54...v10.0.0-beta.55",

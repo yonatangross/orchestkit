@@ -119,7 +119,7 @@ is a mock-up.
 /ork:glyph                  # draw where the conversation is right now
 /ork:glyph <topic>          # one thing: an inventory, a comparison, a state
 /ork:glyph --eli5 <topic>   # novice audience, and a page if it needs one
-/glyph                      # the front door: same dials, may route to page
+/glyph                      # same skill as /ork:glyph; renders here, does not hand off
 ```
 
 What it will never do: ask you a setup question, use a status emoji that is not in its

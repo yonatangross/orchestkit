@@ -1,0 +1,12 @@
+{
+  "slug": "fix--output-guard-hookeventname-invariant",
+  "source": "docs/fix--output-guard-hookeventname-invariant/index.html",
+  "title": "The guard that shipped the shape it exists to prevent",
+  "description": "How an empty stdin read turned ork's own output guard into the source of 'hookSpecificOutput is missing required field hookEventName', why stripping just the label was guaranteed to fail CC validation, and how the fix splits 'unknown' into empty-payload (drop) versus self-describing (keep) so security verdicts stop reading as abstains.",
+  "tags": [
+    "hooks",
+    "output-guard",
+    "cc-contract"
+  ],
+  "date": "2026-09-19"
+}

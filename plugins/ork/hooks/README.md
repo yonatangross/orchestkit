@@ -731,7 +731,7 @@ If `$ORCHESTKIT_HOOK_TOKEN` is unset in the shell that launches Claude Code, the
 1. Pick a token:           your receiving server expects a bearer string.
 2. Export it in the shell: export ORCHESTKIT_HOOK_TOKEN=<token>
 3. Persist it:             echo 'export ORCHESTKIT_HOOK_TOKEN=...' >> ~/.zshrc
-   - OR 1Password ref:     op read 'op://<vault>/orchestkit/hook-token'
+   - OR 1Password ref:     op read 'op://<vault>/<item>/hook-token'
 4. Save the endpoint:      .claude/orchestration/config.json -> { "webhookUrl": "<url>" }
 5. Restart the CC session  so the sink registers with the new config.
 ```

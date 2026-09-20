@@ -33,14 +33,6 @@ skills:
 metadata:
   category: document-asset-creation
   mcp-server: stitch
-triggers:
-  keywords: ["extract design", "design tokens", "color palette", "typography", "design dna", "visual identity", "design system from", "screen recording", "motion spec", "analyze this video"]
-  examples:
-    - "extract the design tokens from this screenshot"
-    - "what colors and fonts does this app use"
-    - "create a design system from this live URL"
-    - "analyze the animations in this screen recording"
-  anti-triggers: [implement, build, component, explore, brainstorm]
 ---
 
 # Design Context Extract

@@ -266,6 +266,7 @@ export function worktreeMergeVerifier(input: HookInput, ctx: HookContext = NOOP_
   return {
     continue: true,
     hookSpecificOutput: {
+      hookEventName: 'PreToolUse',
       additionalContext:
         `[worktree-merge-verifier] Worktree at \`${worktreePath}\` is on branch \`${branch}\` with ` +
         `${unmerged} commit(s) not in \`${base}\`, and its diff is not already contained in \`${base}\`. ` +

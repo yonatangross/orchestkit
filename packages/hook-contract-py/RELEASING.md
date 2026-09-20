@@ -6,7 +6,7 @@ Tag-driven release flow. Tags matching `hook-contract-py/v<version>` trigger `.g
 
 | Registry | Username | Credential stored in |
 |---|---|---|
-| https://pypi.org | `<your-pypi-username>` | 1Password: `op://<vault>/PyPI` (tag: `pypi,orchestkit,trusted-publisher`) |
+| https://pypi.org | `<your-pypi-username>` | 1Password: `op://<vault>/<item>` (tag: `pypi,orchestkit,trusted-publisher`) |
 | https://test.pypi.org | `<your-pypi-username>` (register if not yet) | Same 1Password entry |
 
 <!-- Real account handle + vault path are intentionally NOT committed to this public repo (recon hardening). The maintainer's actual values live in 1Password; substitute your own when following this runbook. PyPI project ownership is already visible on pypi.org, so no functional detail is lost. -->

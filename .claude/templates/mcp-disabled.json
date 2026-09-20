@@ -29,7 +29,7 @@
       "command": "sh",
       "args": [
         "-c",
-        "TAVILY_API_KEY=$(op read 'op://<vault>/Tavily API Key/API Key') exec npx -y tavily-mcp@latest"
+        "TAVILY_API_KEY=$(op read 'op://<vault>/<item>/<field>') exec npx -y tavily-mcp@latest"
       ],
       "description": "Web search, extract, crawl, and deep research (requires API key)",
       "disabled": true

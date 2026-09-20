@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>One Jev Key Lookup | OrchestKit Lab</title>
+  <meta name="description" content="A local, preset-only explainer for the shared Jev TypeSafe API key lookup.">
+  <style>
+    :root { --pg-bg: hsl(217 42% 8%); --pg-ink: hsl(210 34% 93%); --pg-muted: hsl(211 24% 82%); --pg-card: hsl(213 46% 12%); --pg-edge: hsl(210 33% 28%); --pg-action: hsl(211 46% 19%); --pg-focus: hsl(153 66% 73%); --pg-result: hsl(156 48% 83%); color-scheme: dark; font: 16px/1.55 system-ui, sans-serif; background: var(--pg-bg); color: var(--pg-ink); }
+    body { max-width: 900px; margin: 0 auto; padding: 44px 22px 72px; }
+    h1 { font-size: clamp(2rem, 6vw, 3.4rem); line-height: 1.05; letter-spacing: -.04em; }
+    h2 { margin-top: 2rem; font-size: 1.25rem; }
+    p, li { color: var(--pg-muted); }
+    code { background: hsl(215 40% 15%); border-radius: .3rem; padding: .08rem .35rem; color: hsl(280 76% 82%); }
+    .eyebrow { color: var(--pg-focus); font-size: .8rem; font-weight: 700; letter-spacing: .11em; }
+    .card { margin: 1.25rem 0; padding: 1.2rem; border: 1px solid var(--pg-edge); border-radius: .9rem; background: var(--pg-card); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: .8rem; }
+    button { min-height: 44px; padding: .6rem .8rem; border: 1px solid var(--pg-edge); border-radius: .55rem; background: var(--pg-action); color: var(--pg-ink); cursor: pointer; font: inherit; text-align: left; }
+    button:hover, button:focus-visible { outline: 3px solid var(--pg-focus); outline-offset: 2px; background: hsl(211 47% 25%); }
+    button[aria-pressed="true"] { border-color: var(--pg-focus); background: hsl(153 49% 19%); }
+    output { display: block; min-height: 5.5rem; margin-top: 1rem; padding: 1rem; border-radius: .6rem; background: hsl(214 51% 7%); color: var(--pg-result); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; white-space: pre-wrap; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    th, td { padding: .7rem; border-bottom: 1px solid var(--pg-edge); text-align: left; vertical-align: top; }
+    th { color: hsl(211 28% 75%); font-size: .82rem; text-transform: uppercase; letter-spacing: .06em; }
+    .note { color: hsl(211 21% 70%); font-size: .9rem; }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; } }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="eyebrow">ORCHESTKIT LAB · REFACTOR JEV KEY LOOKUP</p>
+    <h1>One lookup, identical answers</h1>
+    <p>The route judgment and session category seams used to carry the same TypeSafe key lookup. This refactor moves that exact lookup into <code>jev-key.ts</code> and keeps both legacy exports. It changes no request, fallback, cache, or configuration behavior.</p>
+
+    <section class="card" aria-labelledby="try-title">
+      <h2 id="try-title">Try the preset lookup cases</h2>
+      <p>These buttons use dummy values held in this page. They never read your environment, call a service, or retain a selected value after the page reloads.</p>
+      <div class="grid" role="group" aria-label="Preset key lookup cases">
+        <button type="button" data-case="present" aria-pressed="true">Present: <code>demo-key</code></button>
+        <button type="button" data-case="padded" aria-pressed="false">Padded: <code>  demo-key  </code></button>
+        <button type="button" data-case="blank" aria-pressed="false">Blank: spaces only</button>
+        <button type="button" data-case="missing" aria-pressed="false">Absent: no value</button>
+      </div>
+      <output id="result" aria-live="polite"></output>
+      <p class="note">The model below mirrors <code>(value || '').trim() || null</code>. It intentionally does not show a credential field.</p>
+    </section>
+
+    <section class="card" aria-labelledby="contract-title">
+      <h2 id="contract-title">What the shared module promises</h2>
+      <table>
+        <thead><tr><th>Input</th><th>Shared lookup</th><th>Why it matters</th></tr></thead>
+        <tbody>
+          <tr><td>nonempty dummy value</td><td>returns its trimmed text</td><td>Both seams still send the same header when opted in.</td></tr>
+          <tr><td>spaces only</td><td>returns <code>null</code></td><td>Both seams take their existing fail open path.</td></tr>
+          <tr><td>missing value</td><td>returns <code>null</code></td><td>No call starts and no key is persisted.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="card" aria-labelledby="imports-title">
+      <h2 id="imports-title">Legacy imports still resolve</h2>
+      <p>The shared module owns <code>TYPESAFE_KEY_ENV</code> and <code>resolveTypesafeKey</code>. Both route judgment and session category re-export those names, so existing callers keep their import surface.</p>
+      <div class="grid" role="group" aria-label="Import surface views">
+        <button type="button" data-view="shared">Shared module</button>
+        <button type="button" data-view="route">Route judgment re-export</button>
+        <button type="button" data-view="category">Session category re-export</button>
+      </div>
+      <output id="imports" aria-live="polite">Choose an import surface to inspect its unchanged contract.</output>
+      <button type="button" id="copy-prompt">Copy the import contract</button>
+    </section>
+
+    <section class="card" aria-labelledby="evidence-title">
+      <h2 id="evidence-title">Evidence</h2>
+      <ul>
+        <li>Focused tests cover shared exports, trimming, missing values, route judgment, and session category behavior.</li>
+        <li>Mutation checks broke trimming and missing-value handling, observed the assertions fail, then restored the guarded code.</li>
+        <li>The refactor has no cache writes and no network behavior. Those decisions remain inside the consuming seams.</li>
+      </ul>
+    </section>
+  </main>
+  <script>
+    (function () {
+      "use strict";
+      var values = { present: "demo-key", padded: "  demo-key  ", blank: "   ", missing: undefined };
+      var result = document.getElementById("result");
+      var importResult = document.getElementById("imports");
+      var copyButton = document.getElementById("copy-prompt");
+      var cases = document.querySelectorAll("[data-case]");
+      var views = document.querySelectorAll("[data-view]");
+
+      function lookup(value) { return (value || "").trim() || null; }
+      function renderCase(name) {
+        var answer = lookup(values[name]);
+        cases.forEach(function (button) { button.setAttribute("aria-pressed", String(button.dataset.case === name)); });
+        result.textContent = "preset: " + name + "\nshared result: " + (answer === null ? "null" : JSON.stringify(answer)) + "\nnetwork: none\ncache: none";
+      }
+      function renderImport(name) {
+        var labels = {
+          shared: "jev-key.ts exports TYPESAFE_KEY_ENV and resolveTypesafeKey",
+          route: "route-judgment.ts re-exports the shared names",
+          category: "session-category-provider.ts re-exports the shared names"
+        };
+        importResult.textContent = labels[name] + "\ncontract: identical trim and absent-value result";
+      }
+      cases.forEach(function (button) { button.addEventListener("click", function () { renderCase(button.dataset.case); }); });
+      views.forEach(function (button) { button.addEventListener("click", function () { renderImport(button.dataset.view); }); });
+      copyButton.addEventListener("click", function () {
+        var text = "Shared Jev lookup: trim a present TypeSafe key, return null for blank or absent values, and preserve route and category exports.";
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(function () { importResult.textContent = "Copied the import contract.\n" + text; }, function () { importResult.textContent = text; });
+        } else {
+          importResult.textContent = text;
+        }
+      });
+      renderCase("present");
+    }());
+  </script>
+</body>
+</html>

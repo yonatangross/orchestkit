@@ -76,6 +76,7 @@ export const SELF_LIMITED_ROUTES: readonly string[] = [
 	"/api/jobs",
 	"/api/md/batch",
 	"/api/search",
+	"/api/search/suggest",
 ];
 
 // Paths middleware must never rate-limit or decorate: our own first-party

@@ -1,0 +1,5061 @@
+{
+  "date": "2026-09-19",
+  "pageCount": 314,
+  "edgeCount": 792,
+  "pages": {
+    "/docs/agents": {
+      "title": "Agents",
+      "file": "agents/index.mdx",
+      "inbound": 0,
+      "outbound": 4
+    },
+    "/docs/agents/choosing-an-agent": {
+      "title": "Choosing an Agent",
+      "file": "agents/choosing-an-agent.mdx",
+      "inbound": 3,
+      "outbound": 2
+    },
+    "/docs/agents/multi-agent-patterns": {
+      "title": "Multi-Agent Patterns",
+      "file": "agents/multi-agent-patterns.mdx",
+      "inbound": 4,
+      "outbound": 2
+    },
+    "/docs/agents/overview": {
+      "title": "Agents Overview",
+      "file": "agents/overview.mdx",
+      "inbound": 3,
+      "outbound": 3
+    },
+    "/docs/agents/writing-agents": {
+      "title": "Writing Agents",
+      "file": "agents/writing-agents.mdx",
+      "inbound": 5,
+      "outbound": 3
+    },
+    "/docs/analytics": {
+      "title": "Analytics Dashboard",
+      "file": "analytics/index.mdx",
+      "inbound": 0,
+      "outbound": 0
+    },
+    "/docs/changelog": {
+      "title": "Changelog",
+      "file": "changelog/index.mdx",
+      "inbound": 1,
+      "outbound": 0
+    },
+    "/docs/cookbook": {
+      "title": "Cookbook",
+      "file": "cookbook/index.mdx",
+      "inbound": 0,
+      "outbound": 12
+    },
+    "/docs/cookbook/claude-design-handoff": {
+      "title": "Claude Design → PR",
+      "file": "cookbook/claude-design-handoff.mdx",
+      "inbound": 0,
+      "outbound": 2
+    },
+    "/docs/cookbook/create-demo-video": {
+      "title": "Create a Demo Video",
+      "file": "cookbook/create-demo-video.mdx",
+      "inbound": 1,
+      "outbound": 3
+    },
+    "/docs/cookbook/fix-github-issue": {
+      "title": "Fix a GitHub Issue",
+      "file": "cookbook/fix-github-issue.mdx",
+      "inbound": 3,
+      "outbound": 0
+    },
+    "/docs/cookbook/implement-feature": {
+      "title": "Implement a Feature",
+      "file": "cookbook/implement-feature.mdx",
+      "inbound": 8,
+      "outbound": 0
+    },
+    "/docs/cookbook/review-pr": {
+      "title": "Review a Pull Request",
+      "file": "cookbook/review-pr.mdx",
+      "inbound": 5,
+      "outbound": 0
+    },
+    "/docs/cookbook/roles/ai-engineer": {
+      "title": "AI Engineer",
+      "file": "cookbook/roles/ai-engineer.mdx",
+      "inbound": 1,
+      "outbound": 2
+    },
+    "/docs/cookbook/roles/backend-developer": {
+      "title": "Backend Developer",
+      "file": "cookbook/roles/backend-developer.mdx",
+      "inbound": 1,
+      "outbound": 2
+    },
+    "/docs/cookbook/roles/devops-engineer": {
+      "title": "DevOps Engineer",
+      "file": "cookbook/roles/devops-engineer.mdx",
+      "inbound": 1,
+      "outbound": 2
+    },
+    "/docs/cookbook/roles/frontend-developer": {
+      "title": "Frontend Developer",
+      "file": "cookbook/roles/frontend-developer.mdx",
+      "inbound": 1,
+      "outbound": 2
+    },
+    "/docs/cookbook/roles/security-engineer": {
+      "title": "Security Engineer",
+      "file": "cookbook/roles/security-engineer.mdx",
+      "inbound": 1,
+      "outbound": 2
+    },
+    "/docs/cookbook/roles/tech-lead": {
+      "title": "Tech Lead",
+      "file": "cookbook/roles/tech-lead.mdx",
+      "inbound": 1,
+      "outbound": 2
+    },
+    "/docs/cookbook/security-audit": {
+      "title": "Run a Security Audit",
+      "file": "cookbook/security-audit.mdx",
+      "inbound": 7,
+      "outbound": 4
+    },
+    "/docs/cookbook/setup-memory": {
+      "title": "Set Up Cross-Session Memory",
+      "file": "cookbook/setup-memory.mdx",
+      "inbound": 5,
+      "outbound": 3
+    },
+    "/docs/cookbook/task-management": {
+      "title": "Task Management Patterns",
+      "file": "cookbook/task-management.mdx",
+      "inbound": 0,
+      "outbound": 1
+    },
+    "/docs/foundations": {
+      "title": "Foundations",
+      "file": "foundations/index.mdx",
+      "inbound": 0,
+      "outbound": 5
+    },
+    "/docs/foundations/agent-attribution": {
+      "title": "Agent Attribution",
+      "file": "foundations/agent-attribution.mdx",
+      "inbound": 1,
+      "outbound": 0
+    },
+    "/docs/foundations/choosing-a-plugin": {
+      "title": "Plugin Architecture",
+      "file": "foundations/choosing-a-plugin.mdx",
+      "inbound": 3,
+      "outbound": 2
+    },
+    "/docs/foundations/mcp-servers": {
+      "title": "OrchestKit MCP Servers",
+      "file": "foundations/mcp-servers.mdx",
+      "inbound": 3,
+      "outbound": 3
+    },
+    "/docs/foundations/overview": {
+      "title": "What is OrchestKit?",
+      "file": "foundations/overview.mdx",
+      "inbound": 1,
+      "outbound": 3
+    },
+    "/docs/foundations/skills-agents-hooks": {
+      "title": "The 3 Building Blocks",
+      "file": "foundations/skills-agents-hooks.mdx",
+      "inbound": 5,
+      "outbound": 2
+    },
+    "/docs/getting-started": {
+      "title": "Getting Started",
+      "file": "getting-started/index.mdx",
+      "inbound": 0,
+      "outbound": 5
+    },
+    "/docs/getting-started/agy": {
+      "title": "Antigravity",
+      "file": "getting-started/agy.mdx",
+      "inbound": 3,
+      "outbound": 3
+    },
+    "/docs/getting-started/claude-code": {
+      "title": "Claude Code",
+      "file": "getting-started/claude-code.mdx",
+      "inbound": 7,
+      "outbound": 4
+    },
+    "/docs/getting-started/codex": {
+      "title": "Codex",
+      "file": "getting-started/codex.mdx",
+      "inbound": 3,
+      "outbound": 3
+    },
+    "/docs/getting-started/configuration": {
+      "title": "Configuration",
+      "file": "getting-started/configuration.mdx",
+      "inbound": 11,
+      "outbound": 4
+    },
+    "/docs/getting-started/cursor": {
+      "title": "Cursor",
+      "file": "getting-started/cursor.mdx",
+      "inbound": 3,
+      "outbound": 4
+    },
+    "/docs/getting-started/devin": {
+      "title": "Devin",
+      "file": "getting-started/devin.mdx",
+      "inbound": 1,
+      "outbound": 3
+    },
+    "/docs/getting-started/first-10-minutes": {
+      "title": "Your First 10 Minutes",
+      "file": "getting-started/first-10-minutes.mdx",
+      "inbound": 4,
+      "outbound": 3
+    },
+    "/docs/getting-started/hosts": {
+      "title": "Hosts",
+      "file": "getting-started/hosts.mdx",
+      "inbound": 9,
+      "outbound": 9
+    },
+    "/docs/getting-started/installation": {
+      "title": "Installation",
+      "file": "getting-started/installation.mdx",
+      "inbound": 5,
+      "outbound": 10
+    },
+    "/docs/getting-started/muse": {
+      "title": "Muse Code",
+      "file": "getting-started/muse.mdx",
+      "inbound": 3,
+      "outbound": 3
+    },
+    "/docs/getting-started/navigating": {
+      "title": "Find What You Need",
+      "file": "getting-started/navigating.mdx",
+      "inbound": 2,
+      "outbound": 2
+    },
+    "/docs/getting-started/skills-sh": {
+      "title": "skills.sh (Pi, OpenCode, and other clients)",
+      "file": "getting-started/skills-sh.mdx",
+      "inbound": 7,
+      "outbound": 8
+    },
+    "/docs/getting-started/superpowers": {
+      "title": "OrchestKit vs Superpowers",
+      "file": "getting-started/superpowers.mdx",
+      "inbound": 2,
+      "outbound": 0
+    },
+    "/docs/guides": {
+      "title": "Guides",
+      "file": "guides/index.mdx",
+      "inbound": 0,
+      "outbound": 6
+    },
+    "/docs/guides/ask-fallback": {
+      "title": "AskUserQuestion picker fallback (ORK_ASK_FALLBACK=text)",
+      "file": "guides/ask-fallback.mdx",
+      "inbound": 1,
+      "outbound": 0
+    },
+    "/docs/guides/cc-adoption": {
+      "title": "How we adopt every Claude Code release",
+      "file": "guides/cc-adoption.mdx",
+      "inbound": 3,
+      "outbound": 1
+    },
+    "/docs/guides/claude-fable-5": {
+      "title": "Claude Fable 5 with OrchestKit",
+      "file": "guides/claude-fable-5.mdx",
+      "inbound": 1,
+      "outbound": 0
+    },
+    "/docs/guides/orchestkit-on-pi-codex-cursor": {
+      "title": "OrchestKit on pi, Codex and Cursor",
+      "file": "guides/orchestkit-on-pi-codex-cursor.mdx",
+      "inbound": 5,
+      "outbound": 0
+    },
+    "/docs/guides/orchestkit-with-nextjs": {
+      "title": "Using OrchestKit with Next.js",
+      "file": "guides/orchestkit-with-nextjs.mdx",
+      "inbound": 1,
+      "outbound": 2
+    },
+    "/docs/guides/orchestkit-with-python-fastapi": {
+      "title": "Using OrchestKit with Python and FastAPI",
+      "file": "guides/orchestkit-with-python-fastapi.mdx",
+      "inbound": 1,
+      "outbound": 1
+    },
+    "/docs/hooks": {
+      "title": "Hooks",
+      "file": "hooks/index.mdx",
+      "inbound": 0,
+      "outbound": 6
+    },
+    "/docs/hooks/architecture": {
+      "title": "Hook Architecture",
+      "file": "hooks/architecture.mdx",
+      "inbound": 1,
+      "outbound": 5
+    },
+    "/docs/hooks/lifecycle-hooks": {
+      "title": "Session Start to Stop",
+      "file": "hooks/lifecycle-hooks.mdx",
+      "inbound": 3,
+      "outbound": 0
+    },
+    "/docs/hooks/memory-hooks": {
+      "title": "Memory Bridge and Context Injection",
+      "file": "hooks/memory-hooks.mdx",
+      "inbound": 3,
+      "outbound": 0
+    },
+    "/docs/hooks/overview": {
+      "title": "171 Hooks: What Fires When",
+      "file": "hooks/overview.mdx",
+      "inbound": 3,
+      "outbound": 4
+    },
+    "/docs/hooks/safety-hooks": {
+      "title": "Security Gates and File Guards",
+      "file": "hooks/safety-hooks.mdx",
+      "inbound": 4,
+      "outbound": 0
+    },
+    "/docs/hooks/spotlights/memory-validator": {
+      "title": "Memory Validator",
+      "file": "hooks/spotlights/memory-validator.mdx",
+      "inbound": 0,
+      "outbound": 0
+    },
+    "/docs/hooks/spotlights/pattern-consistency-enforcer": {
+      "title": "Pattern Consistency Enforcer",
+      "file": "hooks/spotlights/pattern-consistency-enforcer.mdx",
+      "inbound": 0,
+      "outbound": 0
+    },
+    "/docs/hooks/spotlights/stop-pipeline": {
+      "title": "Stop Pipeline",
+      "file": "hooks/spotlights/stop-pipeline.mdx",
+      "inbound": 2,
+      "outbound": 1
+    },
+    "/docs/hooks/spotlights/unified-advisory-dispatcher": {
+      "title": "Unified Advisory Dispatcher",
+      "file": "hooks/spotlights/unified-advisory-dispatcher.mdx",
+      "inbound": 2,
+      "outbound": 1
+    },
+    "/docs/hooks/spotlights/unified-dispatchers": {
+      "title": "Unified Dispatchers",
+      "file": "hooks/spotlights/unified-dispatchers.mdx",
+      "inbound": 4,
+      "outbound": 2
+    },
+    "/docs/hooks/writing-hooks": {
+      "title": "Create Your Own Hook",
+      "file": "hooks/writing-hooks.mdx",
+      "inbound": 3,
+      "outbound": 0
+    },
+    "/docs/memory": {
+      "title": "Memory",
+      "file": "memory/index.mdx",
+      "inbound": 0,
+      "outbound": 4
+    },
+    "/docs/memory/graph-memory": {
+      "title": "Graph Memory (Primary)",
+      "file": "memory/graph-memory.mdx",
+      "inbound": 4,
+      "outbound": 3
+    },
+    "/docs/memory/local-memory": {
+      "title": "Local Session Persistence",
+      "file": "memory/local-memory.mdx",
+      "inbound": 3,
+      "outbound": 2
+    },
+    "/docs/memory/native-cc-memory": {
+      "title": "Auto-Sync to MEMORY.md",
+      "file": "memory/native-cc-memory.mdx",
+      "inbound": 2,
+      "outbound": 3
+    },
+    "/docs/memory/overview": {
+      "title": "3-Tier Memory Architecture",
+      "file": "memory/overview.mdx",
+      "inbound": 7,
+      "outbound": 4
+    },
+    "/docs/reference": {
+      "title": "Reference",
+      "file": "reference/index.mdx",
+      "inbound": 0,
+      "outbound": 3
+    },
+    "/docs/reference/agents": {
+      "title": "Agents Reference",
+      "file": "reference/agents/index.mdx",
+      "inbound": 1,
+      "outbound": 36
+    },
+    "/docs/reference/agents/accessibility-specialist": {
+      "title": "Accessibility Specialist",
+      "file": "reference/agents/accessibility-specialist.mdx",
+      "inbound": 2,
+      "outbound": 3
+    },
+    "/docs/reference/agents/ai-safety-auditor": {
+      "title": "Ai Safety Auditor",
+      "file": "reference/agents/ai-safety-auditor.mdx",
+      "inbound": 2,
+      "outbound": 3
+    },
+    "/docs/reference/agents/backend-system-architect": {
+      "title": "Backend System Architect",
+      "file": "reference/agents/backend-system-architect.mdx",
+      "inbound": 2,
+      "outbound": 10
+    },
+    "/docs/reference/agents/ci-cd-engineer": {
+      "title": "Ci Cd Engineer",
+      "file": "reference/agents/ci-cd-engineer.mdx",
+      "inbound": 2,
+      "outbound": 6
+    },
+    "/docs/reference/agents/claude-design-orchestrator": {
+      "title": "Claude Design Orchestrator",
+      "file": "reference/agents/claude-design-orchestrator.mdx",
+      "inbound": 1,
+      "outbound": 7
+    },
+    "/docs/reference/agents/code-quality-reviewer": {
+      "title": "Code Quality Reviewer",
+      "file": "reference/agents/code-quality-reviewer.mdx",
+      "inbound": 2,
+      "outbound": 8
+    },
+    "/docs/reference/agents/component-curator": {
+      "title": "Component Curator",
+      "file": "reference/agents/component-curator.mdx",
+      "inbound": 2,
+      "outbound": 5
+    },
+    "/docs/reference/agents/data-pipeline-engineer": {
+      "title": "Data Pipeline Engineer",
+      "file": "reference/agents/data-pipeline-engineer.mdx",
+      "inbound": 1,
+      "outbound": 5
+    },
+    "/docs/reference/agents/database-engineer": {
+      "title": "Database Engineer",
+      "file": "reference/agents/database-engineer.mdx",
+      "inbound": 2,
+      "outbound": 5
+    },
+    "/docs/reference/agents/debug-investigator": {
+      "title": "Debug Investigator",
+      "file": "reference/agents/debug-investigator.mdx",
+      "inbound": 1,
+      "outbound": 4
+    },
+    "/docs/reference/agents/demo-producer": {
+      "title": "Demo Producer",
+      "file": "reference/agents/demo-producer.mdx",
+      "inbound": 1,
+      "outbound": 3
+    },
+    "/docs/reference/agents/deployment-manager": {
+      "title": "Deployment Manager",
+      "file": "reference/agents/deployment-manager.mdx",
+      "inbound": 2,
+      "outbound": 4
+    },
+    "/docs/reference/agents/design-context-extractor": {
+      "title": "Design Context Extractor",
+      "file": "reference/agents/design-context-extractor.mdx",
+      "inbound": 1,
+      "outbound": 4
+    },
+    "/docs/reference/agents/design-system-architect": {
+      "title": "Design System Architect",
+      "file": "reference/agents/design-system-architect.mdx",
+      "inbound": 2,
+      "outbound": 9
+    },
+    "/docs/reference/agents/emulate-engineer": {
+      "title": "Emulate Engineer",
+      "file": "reference/agents/emulate-engineer.mdx",
+      "inbound": 1,
+      "outbound": 5
+    },
+    "/docs/reference/agents/eval-runner": {
+      "title": "Eval Runner",
+      "file": "reference/agents/eval-runner.mdx",
+      "inbound": 1,
+      "outbound": 4
+    },
+    "/docs/reference/agents/event-driven-architect": {
+      "title": "Event Driven Architect",
+      "file": "reference/agents/event-driven-architect.mdx",
+      "inbound": 2,
+      "outbound": 4
+    },
+    "/docs/reference/agents/expect-agent": {
+      "title": "Expect Agent",
+      "file": "reference/agents/expect-agent.mdx",
+      "inbound": 1,
+      "outbound": 2
+    },
+    "/docs/reference/agents/frontend-performance-engineer": {
+      "title": "Frontend Performance Engineer",
+      "file": "reference/agents/frontend-performance-engineer.mdx",
+      "inbound": 2,
+      "outbound": 3
+    },
+    "/docs/reference/agents/frontend-ui-developer": {
+      "title": "Frontend Ui Developer",
+      "file": "reference/agents/frontend-ui-developer.mdx",
+      "inbound": 2,
+      "outbound": 13
+    },
+    "/docs/reference/agents/genui-architect": {
+      "title": "Genui Architect",
+      "file": "reference/agents/genui-architect.mdx",
+      "inbound": 1,
+      "outbound": 4
+    },
+    "/docs/reference/agents/git-operations-engineer": {
+      "title": "Git Operations Engineer",
+      "file": "reference/agents/git-operations-engineer.mdx",
+      "inbound": 1,
+      "outbound": 4
+    },
+    "/docs/reference/agents/infrastructure-architect": {
+      "title": "Infrastructure Architect",
+      "file": "reference/agents/infrastructure-architect.mdx",
+      "inbound": 2,
+      "outbound": 4
+    },
+    "/docs/reference/agents/llm-integrator": {
+      "title": "Llm Integrator",
+      "file": "reference/agents/llm-integrator.mdx",
+      "inbound": 2,
+      "outbound": 5
+    },
+    "/docs/reference/agents/market-intelligence": {
+      "title": "Market Intelligence",
+      "file": "reference/agents/market-intelligence.mdx",
+      "inbound": 2,
+      "outbound": 3
+    },
+    "/docs/reference/agents/monitoring-engineer": {
+      "title": "Monitoring Engineer",
+      "file": "reference/agents/monitoring-engineer.mdx",
+      "inbound": 2,
+      "outbound": 6
+    },
+    "/docs/reference/agents/multimodal-specialist": {
+      "title": "Multimodal Specialist",
+      "file": "reference/agents/multimodal-specialist.mdx",
+      "inbound": 2,
+      "outbound": 3
+    },
+    "/docs/reference/agents/product-strategist": {
+      "title": "Product Strategist",
+      "file": "reference/agents/product-strategist.mdx",
+      "inbound": 2,
+      "outbound": 5
+    },
+    "/docs/reference/agents/python-performance-engineer": {
+      "title": "Python Performance Engineer",
+      "file": "reference/agents/python-performance-engineer.mdx",
+      "inbound": 2,
+      "outbound": 7
+    },
+    "/docs/reference/agents/release-engineer": {
+      "title": "Release Engineer",
+      "file": "reference/agents/release-engineer.mdx",
+      "inbound": 1,
+      "outbound": 4
+    },
+    "/docs/reference/agents/security-auditor": {
+      "title": "Security Auditor",
+      "file": "reference/agents/security-auditor.mdx",
+      "inbound": 2,
+      "outbound": 3
+    },
+    "/docs/reference/agents/security-layer-auditor": {
+      "title": "Security Layer Auditor",
+      "file": "reference/agents/security-layer-auditor.mdx",
+      "inbound": 2,
+      "outbound": 3
+    },
+    "/docs/reference/agents/system-design-reviewer": {
+      "title": "System Design Reviewer",
+      "file": "reference/agents/system-design-reviewer.mdx",
+      "inbound": 1,
+      "outbound": 6
+    },
+    "/docs/reference/agents/test-generator": {
+      "title": "Test Generator",
+      "file": "reference/agents/test-generator.mdx",
+      "inbound": 2,
+      "outbound": 9
+    },
+    "/docs/reference/agents/web-research-analyst": {
+      "title": "Web Research Analyst",
+      "file": "reference/agents/web-research-analyst.mdx",
+      "inbound": 1,
+      "outbound": 3
+    },
+    "/docs/reference/agents/workflow-architect": {
+      "title": "Workflow Architect",
+      "file": "reference/agents/workflow-architect.mdx",
+      "inbound": 1,
+      "outbound": 2
+    },
+    "/docs/reference/hooks": {
+      "title": "Hooks Reference",
+      "file": "reference/hooks/index.mdx",
+      "inbound": 1,
+      "outbound": 32
+    },
+    "/docs/reference/hooks/config-change": {
+      "title": "ConfigChange",
+      "file": "reference/hooks/config-change.mdx",
+      "inbound": 1,
+      "outbound": 0
+    },
+    "/docs/reference/hooks/cwd-changed": {
+      "title": "CwdChanged",
+      "file": "reference/hooks/cwd-changed.mdx",
+      "inbound": 1,
+      "outbound": 0
+    },
+    "/docs/reference/hooks/directory-added": {
+      "title": "DirectoryAdded",
+      "file": "reference/hooks/directory-added.mdx",
+      "inbound": 1,
+      "outbound": 0
+    },
+    "/docs/reference/hooks/elicitation": {
+      "title": "Elicitation",
+      "file": "reference/hooks/elicitation.mdx",
+      "inbound": 1,
+      "outbound": 0
+    },
+    "/docs/reference/hooks/elicitation-result": {
+      "title": "ElicitationResult",
+      "file": "reference/hooks/elicitation-result.mdx",
+      "inbound": 1,
+      "outbound": 0
+    },
+    "/docs/reference/hooks/file-changed": {
+      "title": "FileChanged",
+      "file": "reference/hooks/file-changed.mdx",
+      "inbound": 1,
+      "outbound": 0
+    },
+    "/docs/reference/hooks/instructions-loaded": {
+      "title": "InstructionsLoaded",
+      "file": "reference/hooks/instructions-loaded.mdx",
+      "inbound": 1,
+      "outbound": 0
+    },
+    "/docs/reference/hooks/message-display": {
+      "title": "MessageDisplay",
+      "file": "reference/hooks/message-display.mdx",
+      "inbound": 1,
+      "outbound": 0
+    },
+    "/docs/reference/hooks/notification": {
+      "title": "Notification",
+      "file": "reference/hooks/notification.mdx",
+      "inbound": 1,
+      "outbound": 0
+    },
+    "/docs/reference/hooks/permission-denied": {
+      "title": "PermissionDenied",
+      "file": "reference/hooks/permission-denied.mdx",
+      "inbound": 1,
+      "outbound": 0
+    },
+    "/docs/reference/hooks/permission-request": {
+      "title": "PermissionRequest",
+      "file": "reference/hooks/permission-request.mdx",
+      "inbound": 1,
+      "outbound": 0
+    },
+    "/docs/reference/hooks/post-compact": {
+      "title": "PostCompact",
+      "file": "reference/hooks/post-compact.mdx",
+      "inbound": 1,
+      "outbound": 0
+    },
+    "/docs/reference/hooks/post-model-switch": {
+      "title": "PostModelSwitch",
+      "file": "reference/hooks/post-model-switch.mdx",
+      "inbound": 1,
+      "outbound": 0
+    },
+    "/docs/reference/hooks/post-tool-batch": {
+      "title": "PostToolBatch",
+      "file": "reference/hooks/post-tool-batch.mdx",
+      "inbound": 1,
+      "outbound": 0
+    },
+    "/docs/reference/hooks/post-tool-use": {
+      "title": "PostToolUse",
+      "file": "reference/hooks/post-tool-use.mdx",
+      "inbound": 1,
+      "outbound": 0
+    },
+    "/docs/reference/hooks/post-tool-use-failure": {
+      "title": "PostToolUseFailure",
+      "file": "reference/hooks/post-tool-use-failure.mdx",
+      "inbound": 1,
+      "outbound": 0
+    },
+    "/docs/reference/hooks/pre-compact": {
+      "title": "PreCompact",
+      "file": "reference/hooks/pre-compact.mdx",
+      "inbound": 1,
+      "outbound": 0
+    },
+    "/docs/reference/hooks/pre-model-switch": {
+      "title": "PreModelSwitch",
+      "file": "reference/hooks/pre-model-switch.mdx",
+      "inbound": 1,
+      "outbound": 0
+    },
+    "/docs/reference/hooks/pre-tool-use": {
+      "title": "PreToolUse",
+      "file": "reference/hooks/pre-tool-use.mdx",
+      "inbound": 1,
+      "outbound": 0
+    },
+    "/docs/reference/hooks/session-end": {
+      "title": "SessionEnd",
+      "file": "reference/hooks/session-end.mdx",
+      "inbound": 1,
+      "outbound": 0
+    },
+    "/docs/reference/hooks/session-start": {
+      "title": "SessionStart",
+      "file": "reference/hooks/session-start.mdx",
+      "inbound": 1,
+      "outbound": 0
+    },
+    "/docs/reference/hooks/setup": {
+      "title": "Setup",
+      "file": "reference/hooks/setup.mdx",
+      "inbound": 1,
+      "outbound": 0
+    },
+    "/docs/reference/hooks/spotlights/memory-validator": {
+      "title": "Memory Validator",
+      "file": "reference/hooks/spotlights/memory-validator.mdx",
+      "inbound": 0,
+      "outbound": 0
+    },
+    "/docs/reference/hooks/spotlights/pattern-consistency-enforcer": {
+      "title": "Pattern Consistency Enforcer",
+      "file": "reference/hooks/spotlights/pattern-consistency-enforcer.mdx",
+      "inbound": 0,
+      "outbound": 0
+    },
+    "/docs/reference/hooks/spotlights/stop-pipeline": {
+      "title": "Stop Pipeline",
+      "file": "reference/hooks/spotlights/stop-pipeline.mdx",
+      "inbound": 0,
+      "outbound": 1
+    },
+    "/docs/reference/hooks/spotlights/unified-advisory-dispatcher": {
+      "title": "Unified Advisory Dispatcher",
+      "file": "reference/hooks/spotlights/unified-advisory-dispatcher.mdx",
+      "inbound": 0,
+      "outbound": 1
+    },
+    "/docs/reference/hooks/spotlights/unified-dispatchers": {
+      "title": "Unified Dispatchers",
+      "file": "reference/hooks/spotlights/unified-dispatchers.mdx",
+      "inbound": 0,
+      "outbound": 2
+    },
+    "/docs/reference/hooks/stop": {
+      "title": "Stop",
+      "file": "reference/hooks/stop.mdx",
+      "inbound": 1,
+      "outbound": 0
+    },
+    "/docs/reference/hooks/stop-failure": {
+      "title": "StopFailure",
+      "file": "reference/hooks/stop-failure.mdx",
+      "inbound": 1,
+      "outbound": 0
+    },
+    "/docs/reference/hooks/subagent-start": {
+      "title": "SubagentStart",
+      "file": "reference/hooks/subagent-start.mdx",
+      "inbound": 1,
+      "outbound": 0
+    },
+    "/docs/reference/hooks/subagent-stop": {
+      "title": "SubagentStop",
+      "file": "reference/hooks/subagent-stop.mdx",
+      "inbound": 1,
+      "outbound": 0
+    },
+    "/docs/reference/hooks/task-completed": {
+      "title": "TaskCompleted",
+      "file": "reference/hooks/task-completed.mdx",
+      "inbound": 1,
+      "outbound": 0
+    },
+    "/docs/reference/hooks/task-created": {
+      "title": "TaskCreated",
+      "file": "reference/hooks/task-created.mdx",
+      "inbound": 1,
+      "outbound": 0
+    },
+    "/docs/reference/hooks/teammate-idle": {
+      "title": "TeammateIdle",
+      "file": "reference/hooks/teammate-idle.mdx",
+      "inbound": 1,
+      "outbound": 0
+    },
+    "/docs/reference/hooks/user-prompt-expansion": {
+      "title": "UserPromptExpansion",
+      "file": "reference/hooks/user-prompt-expansion.mdx",
+      "inbound": 1,
+      "outbound": 0
+    },
+    "/docs/reference/hooks/user-prompt-submit": {
+      "title": "UserPromptSubmit",
+      "file": "reference/hooks/user-prompt-submit.mdx",
+      "inbound": 1,
+      "outbound": 0
+    },
+    "/docs/reference/hooks/worktree-remove": {
+      "title": "WorktreeRemove",
+      "file": "reference/hooks/worktree-remove.mdx",
+      "inbound": 1,
+      "outbound": 0
+    },
+    "/docs/reference/skills": {
+      "title": "Skills Reference",
+      "file": "reference/skills/index.mdx",
+      "inbound": 3,
+      "outbound": 107
+    },
+    "/docs/reference/skills/accessibility": {
+      "title": "Accessibility",
+      "file": "reference/skills/accessibility.mdx",
+      "inbound": 2,
+      "outbound": 0
+    },
+    "/docs/reference/skills/agent-orchestration": {
+      "title": "Agent Orchestration",
+      "file": "reference/skills/agent-orchestration.mdx",
+      "inbound": 1,
+      "outbound": 0
+    },
+    "/docs/reference/skills/ai-ui-generation": {
+      "title": "Ai Ui Generation",
+      "file": "reference/skills/ai-ui-generation.mdx",
+      "inbound": 2,
+      "outbound": 0
+    },
+    "/docs/reference/skills/analytics": {
+      "title": "Analytics",
+      "file": "reference/skills/analytics.mdx",
+      "inbound": 1,
+      "outbound": 0
+    },
+    "/docs/reference/skills/animation-motion-design": {
+      "title": "Animation Motion Design",
+      "file": "reference/skills/animation-motion-design.mdx",
+      "inbound": 2,
+      "outbound": 0
+    },
+    "/docs/reference/skills/api-design": {
+      "title": "Api Design",
+      "file": "reference/skills/api-design.mdx",
+      "inbound": 6,
+      "outbound": 0
+    },
+    "/docs/reference/skills/architecture-decision-record": {
+      "title": "Architecture Decision Record",
+      "file": "reference/skills/architecture-decision-record.mdx",
+      "inbound": 5,
+      "outbound": 0
+    },
+    "/docs/reference/skills/architecture-patterns": {
+      "title": "Architecture Patterns",
+      "file": "reference/skills/architecture-patterns.mdx",
+      "inbound": 6,
+      "outbound": 0
+    },
+    "/docs/reference/skills/assess": {
+      "title": "Assess",
+      "file": "reference/skills/assess.mdx",
+      "inbound": 2,
+      "outbound": 0
+    },
+    "/docs/reference/skills/async-jobs": {
+      "title": "Async Jobs",
+      "file": "reference/skills/async-jobs.mdx",
+      "inbound": 2,
+      "outbound": 0
+    },
+    "/docs/reference/skills/audit-activation": {
+      "title": "Audit Activation",
+      "file": "reference/skills/audit-activation.mdx",
+      "inbound": 3,
+      "outbound": 0
+    },
+    "/docs/reference/skills/audit-full": {
+      "title": "Audit Full",
+      "file": "reference/skills/audit-full.mdx",
+      "inbound": 2,
+      "outbound": 0
+    },
+    "/docs/reference/skills/auto": {
+      "title": "Auto",
+      "file": "reference/skills/auto.mdx",
+      "inbound": 2,
+      "outbound": 0
+    },
+    "/docs/reference/skills/bare-eval": {
+      "title": "Bare Eval",
+      "file": "reference/skills/bare-eval.mdx",
+      "inbound": 2,
+      "outbound": 0
+    },
+    "/docs/reference/skills/brainstorm": {
+      "title": "Brainstorm",
+      "file": "reference/skills/brainstorm/index.mdx",
+      "inbound": 6,
+      "outbound": 4
+    },
+    "/docs/reference/skills/brainstorm/checklists": {
+      "title": "Brainstorm: Checklists",
+      "file": "reference/skills/brainstorm/checklists.mdx",
+      "inbound": 1,
+      "outbound": 1
+    },
+    "/docs/reference/skills/brainstorm/examples": {
+      "title": "Brainstorm: Examples",
+      "file": "reference/skills/brainstorm/examples.mdx",
+      "inbound": 1,
+      "outbound": 1
+    },
+    "/docs/reference/skills/brainstorm/references": {
+      "title": "Brainstorm: References",
+      "file": "reference/skills/brainstorm/references.mdx",
+      "inbound": 1,
+      "outbound": 1
+    },
+    "/docs/reference/skills/brainstorm/rules": {
+      "title": "Brainstorm: Rules",
+      "file": "reference/skills/brainstorm/rules.mdx",
+      "inbound": 1,
+      "outbound": 1
+    },
+    "/docs/reference/skills/browser-tools": {
+      "title": "Browser Tools",
+      "file": "reference/skills/browser-tools.mdx",
+      "inbound": 5,
+      "outbound": 0
+    },
+    "/docs/reference/skills/business-case": {
+      "title": "Business Case",
+      "file": "reference/skills/business-case.mdx",
+      "inbound": 2,
+      "outbound": 0
+    },
+    "/docs/reference/skills/chain-patterns": {
+      "title": "Chain Patterns",
+      "file": "reference/skills/chain-patterns.mdx",
+      "inbound": 2,
+      "outbound": 0
+    },
+    "/docs/reference/skills/ci-debug": {
+      "title": "Ci Debug",
+      "file": "reference/skills/ci-debug.mdx",
+      "inbound": 3,
+      "outbound": 0
+    },
+    "/docs/reference/skills/ci-sentinel": {
+      "title": "Ci Sentinel",
+      "file": "reference/skills/ci-sentinel.mdx",
+      "inbound": 3,
+      "outbound": 0
+    },
+    "/docs/reference/skills/code-review-playbook": {
+      "title": "Code Review Playbook",
+      "file": "reference/skills/code-review-playbook.mdx",
+      "inbound": 5,
+      "outbound": 0
+    },
+    "/docs/reference/skills/commit": {
+      "title": "Commit",
+      "file": "reference/skills/commit.mdx",
+      "inbound": 2,
+      "outbound": 0
+    },
+    "/docs/reference/skills/competitive-analysis": {
+      "title": "Competitive Analysis",
+      "file": "reference/skills/competitive-analysis.mdx",
+      "inbound": 2,
+      "outbound": 0
+    },
+    "/docs/reference/skills/component-search": {
+      "title": "Component Search",
+      "file": "reference/skills/component-search.mdx",
+      "inbound": 8,
+      "outbound": 0
+    },
+    "/docs/reference/skills/configure": {
+      "title": "Configure",
+      "file": "reference/skills/configure/index.mdx",
+      "inbound": 7,
+      "outbound": 6
+    },
+    "/docs/reference/skills/configure/references/cc-version-settings": {
+      "title": "Configure: CC Version-Specific Settings",
+      "file": "reference/skills/configure/references/cc-version-settings.mdx",
+      "inbound": 1,
+      "outbound": 1
+    },
+    "/docs/reference/skills/configure/references/http-hooks": {
+      "title": "Configure: HTTP Hooks and Streaming Telemetry (CC 2.1.63+)",
+      "file": "reference/skills/configure/references/http-hooks.mdx",
+      "inbound": 1,
+      "outbound": 1
+    },
+    "/docs/reference/skills/configure/references/mcp-config": {
+      "title": "Configure: MCP Configuration",
+      "file": "reference/skills/configure/references/mcp-config.mdx",
+      "inbound": 1,
+      "outbound": 1
+    },
+    "/docs/reference/skills/configure/references/operator-scope-settings": {
+      "title": "Configure: Operator-Scope Settings",
+      "file": "reference/skills/configure/references/operator-scope-settings.mdx",
+      "inbound": 1,
+      "outbound": 1
+    },
+    "/docs/reference/skills/configure/references/presets": {
+      "title": "Configure: Preset Definitions",
+      "file": "reference/skills/configure/references/presets.mdx",
+      "inbound": 1,
+      "outbound": 1
+    },
+    "/docs/reference/skills/configure/rules": {
+      "title": "Configure: Rules",
+      "file": "reference/skills/configure/rules.mdx",
+      "inbound": 1,
+      "outbound": 1
+    },
+    "/docs/reference/skills/cover": {
+      "title": "Cover",
+      "file": "reference/skills/cover.mdx",
+      "inbound": 3,
+      "outbound": 0
+    },
+    "/docs/reference/skills/create-pr": {
+      "title": "Create Pr",
+      "file": "reference/skills/create-pr.mdx",
+      "inbound": 2,
+      "outbound": 0
+    },
+    "/docs/reference/skills/database-patterns": {
+      "title": "Database Patterns",
+      "file": "reference/skills/database-patterns.mdx",
+      "inbound": 5,
+      "outbound": 0
+    },
+    "/docs/reference/skills/demo-producer": {
+      "title": "Demo Producer",
+      "file": "reference/skills/demo-producer.mdx",
+      "inbound": 2,
+      "outbound": 0
+    },
+    "/docs/reference/skills/design-context-extract": {
+      "title": "Design Context Extract",
+      "file": "reference/skills/design-context-extract.mdx",
+      "inbound": 8,
+      "outbound": 0
+    },
+    "/docs/reference/skills/design-import": {
+      "title": "Design Import",
+      "file": "reference/skills/design-import.mdx",
+      "inbound": 3,
+      "outbound": 0
+    },
+    "/docs/reference/skills/design-ship": {
+      "title": "Design Ship",
+      "file": "reference/skills/design-ship.mdx",
+      "inbound": 3,
+      "outbound": 0
+    },
+    "/docs/reference/skills/design-stylecards": {
+      "title": "Design Stylecards",
+      "file": "reference/skills/design-stylecards.mdx",
+      "inbound": 3,
+      "outbound": 0
+    },
+    "/docs/reference/skills/design-system-tokens": {
+      "title": "Design System Tokens",
+      "file": "reference/skills/design-system-tokens.mdx",
+      "inbound": 6,
+      "outbound": 0
+    },
+    "/docs/reference/skills/design-to-code": {
+      "title": "Design To Code",
+      "file": "reference/skills/design-to-code.mdx",
+      "inbound": 5,
+      "outbound": 0
+    },
+    "/docs/reference/skills/dev": {
+      "title": "Dev",
+      "file": "reference/skills/dev.mdx",
+      "inbound": 3,
+      "outbound": 0
+    },
+    "/docs/reference/skills/devops-deployment": {
+      "title": "Devops Deployment",
+      "file": "reference/skills/devops-deployment.mdx",
+      "inbound": 6,
+      "outbound": 0
+    },
+    "/docs/reference/skills/distributed-systems": {
+      "title": "Distributed Systems",
+      "file": "reference/skills/distributed-systems.mdx",
+      "inbound": 2,
+      "outbound": 0
+    },
+    "/docs/reference/skills/doctor": {
+      "title": "Doctor",
+      "file": "reference/skills/doctor/index.mdx",
+      "inbound": 21,
+      "outbound": 19
+    },
+    "/docs/reference/skills/doctor/references/agent-memory-dir": {
+      "title": "Doctor: Per-agent memory directory",
+      "file": "reference/skills/doctor/references/agent-memory-dir.mdx",
+      "inbound": 1,
+      "outbound": 1
+    },
+    "/docs/reference/skills/doctor/references/agents-validation": {
+      "title": "Doctor: Agents Validation",
+      "file": "reference/skills/doctor/references/agents-validation.mdx",
+      "inbound": 1,
+      "outbound": 1
+    },
+    "/docs/reference/skills/doctor/references/claude-code": {
+      "title": "Doctor: Claude Code adapter: doctor",
+      "file": "reference/skills/doctor/references/claude-code.mdx",
+      "inbound": 1,
+      "outbound": 1
+    },
+    "/docs/reference/skills/doctor/references/health-check-outputs": {
+      "title": "Doctor: Health Check Output Examples",
+      "file": "reference/skills/doctor/references/health-check-outputs.mdx",
+      "inbound": 1,
+      "outbound": 1
+    },
+    "/docs/reference/skills/doctor/references/hook-validation": {
+      "title": "Doctor: Hook Validation",
+      "file": "reference/skills/doctor/references/hook-validation.mdx",
+      "inbound": 1,
+      "outbound": 1
+    },
+    "/docs/reference/skills/doctor/references/mcp-pinning-check": {
+      "title": "Doctor: MCP Pinning Check (Category 12 sub-check)",
+      "file": "reference/skills/doctor/references/mcp-pinning-check.mdx",
+      "inbound": 1,
+      "outbound": 1
+    },
+    "/docs/reference/skills/doctor/references/memory-health": {
+      "title": "Doctor: Memory Health",
+      "file": "reference/skills/doctor/references/memory-health.mdx",
+      "inbound": 1,
+      "outbound": 1
+    },
+    "/docs/reference/skills/doctor/references/permission-rules": {
+      "title": "Doctor: Permission Rules Analysis",
+      "file": "reference/skills/doctor/references/permission-rules.mdx",
+      "inbound": 1,
+      "outbound": 1
+    },
+    "/docs/reference/skills/doctor/references/remediation-guide": {
+      "title": "Doctor: Remediation Guide",
+      "file": "reference/skills/doctor/references/remediation-guide.mdx",
+      "inbound": 1,
+      "outbound": 1
+    },
+    "/docs/reference/skills/doctor/references/report-format": {
+      "title": "Doctor: Doctor Report Format",
+      "file": "reference/skills/doctor/references/report-format.mdx",
+      "inbound": 1,
+      "outbound": 1
+    },
+    "/docs/reference/skills/doctor/references/sandbox-posture": {
+      "title": "Doctor: Check 15: CC Bash-Sandbox Posture",
+      "file": "reference/skills/doctor/references/sandbox-posture.mdx",
+      "inbound": 1,
+      "outbound": 1
+    },
+    "/docs/reference/skills/doctor/references/schema-validation": {
+      "title": "Doctor: Schema Validation",
+      "file": "reference/skills/doctor/references/schema-validation.mdx",
+      "inbound": 1,
+      "outbound": 1
+    },
+    "/docs/reference/skills/doctor/references/settings-posture": {
+      "title": "Doctor: Check 16: Operator Settings Posture",
+      "file": "reference/skills/doctor/references/settings-posture.mdx",
+      "inbound": 1,
+      "outbound": 1
+    },
+    "/docs/reference/skills/doctor/references/skills-validation": {
+      "title": "Doctor: Skills Validation",
+      "file": "reference/skills/doctor/references/skills-validation.mdx",
+      "inbound": 1,
+      "outbound": 1
+    },
+    "/docs/reference/skills/doctor/references/version-compatibility/00-overview": {
+      "title": "Doctor: Version Compatibility: Overview",
+      "file": "reference/skills/doctor/references/version-compatibility/00-overview.mdx",
+      "inbound": 1,
+      "outbound": 1
+    },
+    "/docs/reference/skills/doctor/references/version-compatibility/01-feature-matrix-part-1": {
+      "title": "Doctor: Version Compatibility: Feature Matrix (part 1)",
+      "file": "reference/skills/doctor/references/version-compatibility/01-feature-matrix-part-1.mdx",
+      "inbound": 1,
+      "outbound": 1
+    },
+    "/docs/reference/skills/doctor/references/version-compatibility/02-feature-matrix-part-2": {
+      "title": "Doctor: Version Compatibility: Feature Matrix (part 2)",
+      "file": "reference/skills/doctor/references/version-compatibility/02-feature-matrix-part-2.mdx",
+      "inbound": 1,
+      "outbound": 1
+    },
+    "/docs/reference/skills/doctor/references/version-compatibility/03-prompt-caching-recommendation": {
+      "title": "Doctor: Version Compatibility: Prompt Caching Recommendation",
+      "file": "reference/skills/doctor/references/version-compatibility/03-prompt-caching-recommendation.mdx",
+      "inbound": 1,
+      "outbound": 1
+    },
+    "/docs/reference/skills/doctor/rules": {
+      "title": "Doctor: Rules",
+      "file": "reference/skills/doctor/rules.mdx",
+      "inbound": 1,
+      "outbound": 1
+    },
+    "/docs/reference/skills/documentation-patterns": {
+      "title": "Documentation Patterns",
+      "file": "reference/skills/documentation-patterns.mdx",
+      "inbound": 1,
+      "outbound": 0
+    },
+    "/docs/reference/skills/domain-driven-design": {
+      "title": "Domain Driven Design",
+      "file": "reference/skills/domain-driven-design.mdx",
+      "inbound": 2,
+      "outbound": 0
+    },
+    "/docs/reference/skills/dream": {
+      "title": "Dream",
+      "file": "reference/skills/dream.mdx",
+      "inbound": 2,
+      "outbound": 0
+    },
+    "/docs/reference/skills/emulate-seed": {
+      "title": "Emulate Seed",
+      "file": "reference/skills/emulate-seed.mdx",
+      "inbound": 3,
+      "outbound": 0
+    },
+    "/docs/reference/skills/errors": {
+      "title": "Errors",
+      "file": "reference/skills/errors.mdx",
+      "inbound": 2,
+      "outbound": 0
+    },
+    "/docs/reference/skills/expect": {
+      "title": "Expect",
+      "file": "reference/skills/expect.mdx",
+      "inbound": 4,
+      "outbound": 0
+    },
+    "/docs/reference/skills/explore": {
+      "title": "Explore",
+      "file": "reference/skills/explore.mdx",
+      "inbound": 2,
+      "outbound": 0
+    },
+    "/docs/reference/skills/figma-design-handoff": {
+      "title": "Figma Design Handoff",
+      "file": "reference/skills/figma-design-handoff.mdx",
+      "inbound": 2,
+      "outbound": 0
+    },
+    "/docs/reference/skills/fix-issue": {
+      "title": "Fix Issue",
+      "file": "reference/skills/fix-issue.mdx",
+      "inbound": 3,
+      "outbound": 0
+    },
+    "/docs/reference/skills/github-operations": {
+      "title": "Github Operations",
+      "file": "reference/skills/github-operations.mdx",
+      "inbound": 7,
+      "outbound": 0
+    },
+    "/docs/reference/skills/glyph": {
+      "title": "Glyph",
+      "file": "reference/skills/glyph.mdx",
+      "inbound": 2,
+      "outbound": 0
+    },
+    "/docs/reference/skills/golden-dataset": {
+      "title": "Golden Dataset",
+      "file": "reference/skills/golden-dataset.mdx",
+      "inbound": 1,
+      "outbound": 0
+    },
+    "/docs/reference/skills/help": {
+      "title": "Help",
+      "file": "reference/skills/help.mdx",
+      "inbound": 2,
+      "outbound": 0
+    },
+    "/docs/reference/skills/i18n-date-patterns": {
+      "title": "I18n Date Patterns",
+      "file": "reference/skills/i18n-date-patterns.mdx",
+      "inbound": 2,
+      "outbound": 0
+    },
+    "/docs/reference/skills/implement": {
+      "title": "Implement",
+      "file": "reference/skills/implement/index.mdx",
+      "inbound": 5,
+      "outbound": 3
+    },
+    "/docs/reference/skills/implement/checklists": {
+      "title": "Implement: Checklists",
+      "file": "reference/skills/implement/checklists.mdx",
+      "inbound": 1,
+      "outbound": 1
+    },
+    "/docs/reference/skills/implement/references": {
+      "title": "Implement: References",
+      "file": "reference/skills/implement/references.mdx",
+      "inbound": 1,
+      "outbound": 1
+    },
+    "/docs/reference/skills/implement/rules": {
+      "title": "Implement: Rules",
+      "file": "reference/skills/implement/rules.mdx",
+      "inbound": 1,
+      "outbound": 1
+    },
+    "/docs/reference/skills/interaction-patterns": {
+      "title": "Interaction Patterns",
+      "file": "reference/skills/interaction-patterns.mdx",
+      "inbound": 2,
+      "outbound": 0
+    },
+    "/docs/reference/skills/issue-progress-tracking": {
+      "title": "Issue Progress Tracking",
+      "file": "reference/skills/issue-progress-tracking.mdx",
+      "inbound": 1,
+      "outbound": 0
+    },
+    "/docs/reference/skills/json-render-catalog": {
+      "title": "Json Render Catalog",
+      "file": "reference/skills/json-render-catalog.mdx",
+      "inbound": 3,
+      "outbound": 0
+    },
+    "/docs/reference/skills/langgraph": {
+      "title": "Langgraph",
+      "file": "reference/skills/langgraph.mdx",
+      "inbound": 3,
+      "outbound": 0
+    },
+    "/docs/reference/skills/llm-integration": {
+      "title": "Llm Integration",
+      "file": "reference/skills/llm-integration.mdx",
+      "inbound": 2,
+      "outbound": 0
+    },
+    "/docs/reference/skills/market-sizing": {
+      "title": "Market Sizing",
+      "file": "reference/skills/market-sizing.mdx",
+      "inbound": 2,
+      "outbound": 0
+    },
+    "/docs/reference/skills/mcp-patterns": {
+      "title": "Mcp Patterns",
+      "file": "reference/skills/mcp-patterns.mdx",
+      "inbound": 3,
+      "outbound": 0
+    },
+    "/docs/reference/skills/mcp-visual-output": {
+      "title": "Mcp Visual Output",
+      "file": "reference/skills/mcp-visual-output.mdx",
+      "inbound": 3,
+      "outbound": 0
+    },
+    "/docs/reference/skills/memory": {
+      "title": "Memory",
+      "file": "reference/skills/memory.mdx",
+      "inbound": 35,
+      "outbound": 0
+    },
+    "/docs/reference/skills/memory-fabric": {
+      "title": "Memory Fabric",
+      "file": "reference/skills/memory-fabric.mdx",
+      "inbound": 1,
+      "outbound": 0
+    },
+    "/docs/reference/skills/monitoring-observability": {
+      "title": "Monitoring Observability",
+      "file": "reference/skills/monitoring-observability.mdx",
+      "inbound": 2,
+      "outbound": 0
+    },
+    "/docs/reference/skills/multi-surface-render": {
+      "title": "Multi Surface Render",
+      "file": "reference/skills/multi-surface-render.mdx",
+      "inbound": 3,
+      "outbound": 0
+    },
+    "/docs/reference/skills/multimodal-llm": {
+      "title": "Multimodal Llm",
+      "file": "reference/skills/multimodal-llm.mdx",
+      "inbound": 2,
+      "outbound": 0
+    },
+    "/docs/reference/skills/okr-design": {
+      "title": "Okr Design",
+      "file": "reference/skills/okr-design.mdx",
+      "inbound": 2,
+      "outbound": 0
+    },
+    "/docs/reference/skills/page-serve": {
+      "title": "Page Serve",
+      "file": "reference/skills/page-serve.mdx",
+      "inbound": 2,
+      "outbound": 0
+    },
+    "/docs/reference/skills/paired-probe": {
+      "title": "Paired Probe",
+      "file": "reference/skills/paired-probe.mdx",
+      "inbound": 1,
+      "outbound": 0
+    },
+    "/docs/reference/skills/performance": {
+      "title": "Performance",
+      "file": "reference/skills/performance.mdx",
+      "inbound": 12,
+      "outbound": 0
+    },
+    "/docs/reference/skills/portless": {
+      "title": "Portless",
+      "file": "reference/skills/portless.mdx",
+      "inbound": 2,
+      "outbound": 0
+    },
+    "/docs/reference/skills/prd-to-goal": {
+      "title": "Prd To Goal",
+      "file": "reference/skills/prd-to-goal.mdx",
+      "inbound": 4,
+      "outbound": 0
+    },
+    "/docs/reference/skills/prioritization": {
+      "title": "Prioritization",
+      "file": "reference/skills/prioritization.mdx",
+      "inbound": 2,
+      "outbound": 0
+    },
+    "/docs/reference/skills/product-analytics": {
+      "title": "Product Analytics",
+      "file": "reference/skills/product-analytics.mdx",
+      "inbound": 2,
+      "outbound": 0
+    },
+    "/docs/reference/skills/product-frameworks": {
+      "title": "Product Frameworks",
+      "file": "reference/skills/product-frameworks.mdx",
+      "inbound": 2,
+      "outbound": 0
+    },
+    "/docs/reference/skills/python-backend": {
+      "title": "Python Backend",
+      "file": "reference/skills/python-backend.mdx",
+      "inbound": 6,
+      "outbound": 0
+    },
+    "/docs/reference/skills/quality-gates": {
+      "title": "Quality Gates",
+      "file": "reference/skills/quality-gates.mdx",
+      "inbound": 3,
+      "outbound": 0
+    },
+    "/docs/reference/skills/rag-retrieval": {
+      "title": "Rag Retrieval",
+      "file": "reference/skills/rag-retrieval.mdx",
+      "inbound": 2,
+      "outbound": 0
+    },
+    "/docs/reference/skills/react-server-components-framework": {
+      "title": "React Server Components Framework",
+      "file": "reference/skills/react-server-components-framework.mdx",
+      "inbound": 4,
+      "outbound": 0
+    },
+    "/docs/reference/skills/release-management": {
+      "title": "Release Management",
+      "file": "reference/skills/release-management.mdx",
+      "inbound": 1,
+      "outbound": 0
+    },
+    "/docs/reference/skills/release-sync": {
+      "title": "Release Sync",
+      "file": "reference/skills/release-sync.mdx",
+      "inbound": 3,
+      "outbound": 0
+    },
+    "/docs/reference/skills/remember": {
+      "title": "Remember",
+      "file": "reference/skills/remember.mdx",
+      "inbound": 35,
+      "outbound": 0
+    },
+    "/docs/reference/skills/responsive-patterns": {
+      "title": "Responsive Patterns",
+      "file": "reference/skills/responsive-patterns.mdx",
+      "inbound": 2,
+      "outbound": 0
+    },
+    "/docs/reference/skills/review-pr": {
+      "title": "Review Pr",
+      "file": "reference/skills/review-pr.mdx",
+      "inbound": 4,
+      "outbound": 0
+    },
+    "/docs/reference/skills/scope-appropriate-architecture": {
+      "title": "Scope Appropriate Architecture",
+      "file": "reference/skills/scope-appropriate-architecture.mdx",
+      "inbound": 2,
+      "outbound": 0
+    },
+    "/docs/reference/skills/security-patterns": {
+      "title": "Security Patterns",
+      "file": "reference/skills/security-patterns.mdx",
+      "inbound": 11,
+      "outbound": 0
+    },
+    "/docs/reference/skills/setup": {
+      "title": "Setup",
+      "file": "reference/skills/setup.mdx",
+      "inbound": 3,
+      "outbound": 0
+    },
+    "/docs/reference/skills/storybook-mcp-integration": {
+      "title": "Storybook Mcp Integration",
+      "file": "reference/skills/storybook-mcp-integration.mdx",
+      "inbound": 6,
+      "outbound": 0
+    },
+    "/docs/reference/skills/storybook-testing": {
+      "title": "Storybook Testing",
+      "file": "reference/skills/storybook-testing.mdx",
+      "inbound": 3,
+      "outbound": 0
+    },
+    "/docs/reference/skills/swarm-migrate": {
+      "title": "Swarm Migrate",
+      "file": "reference/skills/swarm-migrate.mdx",
+      "inbound": 2,
+      "outbound": 0
+    },
+    "/docs/reference/skills/task-dependency-patterns": {
+      "title": "Task Dependency Patterns",
+      "file": "reference/skills/task-dependency-patterns.mdx",
+      "inbound": 1,
+      "outbound": 0
+    },
+    "/docs/reference/skills/telemetry-inspect": {
+      "title": "Telemetry Inspect",
+      "file": "reference/skills/telemetry-inspect.mdx",
+      "inbound": 4,
+      "outbound": 0
+    },
+    "/docs/reference/skills/testing-e2e": {
+      "title": "Testing E2e",
+      "file": "reference/skills/testing-e2e.mdx",
+      "inbound": 8,
+      "outbound": 0
+    },
+    "/docs/reference/skills/testing-integration": {
+      "title": "Testing Integration",
+      "file": "reference/skills/testing-integration.mdx",
+      "inbound": 7,
+      "outbound": 0
+    },
+    "/docs/reference/skills/testing-llm": {
+      "title": "Testing Llm",
+      "file": "reference/skills/testing-llm.mdx",
+      "inbound": 5,
+      "outbound": 0
+    },
+    "/docs/reference/skills/testing-patterns": {
+      "title": "Testing Patterns",
+      "file": "reference/skills/testing-patterns.mdx",
+      "inbound": 2,
+      "outbound": 0
+    },
+    "/docs/reference/skills/testing-perf": {
+      "title": "Testing Perf",
+      "file": "reference/skills/testing-perf.mdx",
+      "inbound": 5,
+      "outbound": 0
+    },
+    "/docs/reference/skills/testing-unit": {
+      "title": "Testing Unit",
+      "file": "reference/skills/testing-unit.mdx",
+      "inbound": 8,
+      "outbound": 0
+    },
+    "/docs/reference/skills/ui-components": {
+      "title": "Ui Components",
+      "file": "reference/skills/ui-components.mdx",
+      "inbound": 2,
+      "outbound": 0
+    },
+    "/docs/reference/skills/user-research": {
+      "title": "User Research",
+      "file": "reference/skills/user-research.mdx",
+      "inbound": 2,
+      "outbound": 0
+    },
+    "/docs/reference/skills/verify": {
+      "title": "Verify",
+      "file": "reference/skills/verify/index.mdx",
+      "inbound": 6,
+      "outbound": 3
+    },
+    "/docs/reference/skills/verify/checklists": {
+      "title": "Verify: Checklists",
+      "file": "reference/skills/verify/checklists.mdx",
+      "inbound": 1,
+      "outbound": 1
+    },
+    "/docs/reference/skills/verify/references": {
+      "title": "Verify: References",
+      "file": "reference/skills/verify/references.mdx",
+      "inbound": 1,
+      "outbound": 1
+    },
+    "/docs/reference/skills/verify/rules": {
+      "title": "Verify: Rules",
+      "file": "reference/skills/verify/rules.mdx",
+      "inbound": 1,
+      "outbound": 1
+    },
+    "/docs/reference/skills/visualize-plan": {
+      "title": "Visualize Plan",
+      "file": "reference/skills/visualize-plan.mdx",
+      "inbound": 3,
+      "outbound": 0
+    },
+    "/docs/reference/skills/vite-advanced": {
+      "title": "Vite Advanced",
+      "file": "reference/skills/vite-advanced.mdx",
+      "inbound": 2,
+      "outbound": 0
+    },
+    "/docs/reference/skills/web-research-workflow": {
+      "title": "Web Research Workflow",
+      "file": "reference/skills/web-research-workflow.mdx",
+      "inbound": 2,
+      "outbound": 0
+    },
+    "/docs/reference/skills/write-prd": {
+      "title": "Write Prd",
+      "file": "reference/skills/write-prd.mdx",
+      "inbound": 4,
+      "outbound": 0
+    },
+    "/docs/reference/skills/zustand-patterns": {
+      "title": "Zustand Patterns",
+      "file": "reference/skills/zustand-patterns.mdx",
+      "inbound": 2,
+      "outbound": 0
+    },
+    "/docs/showcase": {
+      "title": "Showcase",
+      "file": "showcase/index.mdx",
+      "inbound": 0,
+      "outbound": 2
+    },
+    "/docs/showcase/lab": {
+      "title": "The Lab",
+      "file": "showcase/lab/index.mdx",
+      "inbound": 2,
+      "outbound": 1
+    },
+    "/docs/showcase/lab/adoption-waves": {
+      "title": "Case study: CC Adoption Wave Explorer",
+      "file": "showcase/lab/adoption-waves.mdx",
+      "inbound": 0,
+      "outbound": 1
+    },
+    "/docs/showcase/lab/session-standing": {
+      "title": "Case study: Session Standing Board",
+      "file": "showcase/lab/session-standing.mdx",
+      "inbound": 0,
+      "outbound": 0
+    },
+    "/docs/showcase/lab/triage-board": {
+      "title": "Case study: Issue Triage Board",
+      "file": "showcase/lab/triage-board.mdx",
+      "inbound": 0,
+      "outbound": 0
+    },
+    "/docs/showcase/pipeline": {
+      "title": "Pipeline Gallery",
+      "file": "showcase/pipeline.mdx",
+      "inbound": 1,
+      "outbound": 0
+    },
+    "/docs/skills": {
+      "title": "Skills",
+      "file": "skills/index.mdx",
+      "inbound": 0,
+      "outbound": 6
+    },
+    "/docs/skills/by-category/ai-llm": {
+      "title": "AI & LLM Skills",
+      "file": "skills/by-category/ai-llm.mdx",
+      "inbound": 0,
+      "outbound": 13
+    },
+    "/docs/skills/by-category/backend": {
+      "title": "Backend Skills",
+      "file": "skills/by-category/backend.mdx",
+      "inbound": 0,
+      "outbound": 13
+    },
+    "/docs/skills/by-category/devops": {
+      "title": "DevOps Skills",
+      "file": "skills/by-category/devops.mdx",
+      "inbound": 0,
+      "outbound": 11
+    },
+    "/docs/skills/by-category/frontend": {
+      "title": "Frontend Skills",
+      "file": "skills/by-category/frontend.mdx",
+      "inbound": 0,
+      "outbound": 26
+    },
+    "/docs/skills/by-category/product": {
+      "title": "Product Skills",
+      "file": "skills/by-category/product.mdx",
+      "inbound": 0,
+      "outbound": 12
+    },
+    "/docs/skills/by-category/security": {
+      "title": "Security Skills",
+      "file": "skills/by-category/security.mdx",
+      "inbound": 0,
+      "outbound": 10
+    },
+    "/docs/skills/by-category/testing": {
+      "title": "Testing Skills",
+      "file": "skills/by-category/testing.mdx",
+      "inbound": 0,
+      "outbound": 17
+    },
+    "/docs/skills/by-category/workflows": {
+      "title": "Workflows Skills",
+      "file": "skills/by-category/workflows.mdx",
+      "inbound": 0,
+      "outbound": 36
+    },
+    "/docs/skills/command-skills": {
+      "title": "18 Commands You Can Invoke",
+      "file": "skills/command-skills.mdx",
+      "inbound": 10,
+      "outbound": 3
+    },
+    "/docs/skills/dependency-graph": {
+      "title": "Skill Dependency Graph",
+      "file": "skills/dependency-graph.mdx",
+      "inbound": 1,
+      "outbound": 0
+    },
+    "/docs/skills/overview": {
+      "title": "How Skills Work",
+      "file": "skills/overview.mdx",
+      "inbound": 4,
+      "outbound": 4
+    },
+    "/docs/skills/reference-skills": {
+      "title": "Reference Skills",
+      "file": "skills/reference-skills.mdx",
+      "inbound": 5,
+      "outbound": 3
+    },
+    "/docs/skills/skill-composition": {
+      "title": "Composing Skills Into Workflows",
+      "file": "skills/skill-composition.mdx",
+      "inbound": 4,
+      "outbound": 3
+    },
+    "/docs/skills/spotlights/commit": {
+      "title": "/ork:commit",
+      "file": "skills/spotlights/commit.mdx",
+      "inbound": 4,
+      "outbound": 3
+    },
+    "/docs/skills/spotlights/implement": {
+      "title": "/ork:implement",
+      "file": "skills/spotlights/implement.mdx",
+      "inbound": 3,
+      "outbound": 5
+    },
+    "/docs/skills/spotlights/memory": {
+      "title": "/ork:memory",
+      "file": "skills/spotlights/memory.mdx",
+      "inbound": 1,
+      "outbound": 5
+    },
+    "/docs/skills/spotlights/review-pr": {
+      "title": "/ork:review-pr",
+      "file": "skills/spotlights/review-pr.mdx",
+      "inbound": 3,
+      "outbound": 4
+    },
+    "/docs/skills/spotlights/verify": {
+      "title": "/ork:verify",
+      "file": "skills/spotlights/verify.mdx",
+      "inbound": 4,
+      "outbound": 4
+    },
+    "/docs/skills/writing-skills": {
+      "title": "Create Your Own SKILL.md",
+      "file": "skills/writing-skills.mdx",
+      "inbound": 5,
+      "outbound": 3
+    },
+    "/docs/troubleshooting": {
+      "title": "Troubleshooting",
+      "file": "troubleshooting/index.mdx",
+      "inbound": 0,
+      "outbound": 2
+    },
+    "/docs/troubleshooting/faq": {
+      "title": "FAQ",
+      "file": "troubleshooting/faq.mdx",
+      "inbound": 1,
+      "outbound": 3
+    },
+    "/docs/troubleshooting/hook-debugging": {
+      "title": "Hook Debugging",
+      "file": "troubleshooting/hook-debugging.mdx",
+      "inbound": 1,
+      "outbound": 0
+    }
+  },
+  "edges": [
+    {
+      "from": "/docs/agents",
+      "to": "/docs/agents/choosing-an-agent"
+    },
+    {
+      "from": "/docs/agents",
+      "to": "/docs/agents/multi-agent-patterns"
+    },
+    {
+      "from": "/docs/agents",
+      "to": "/docs/agents/overview"
+    },
+    {
+      "from": "/docs/agents",
+      "to": "/docs/agents/writing-agents"
+    },
+    {
+      "from": "/docs/agents/choosing-an-agent",
+      "to": "/docs/agents/multi-agent-patterns"
+    },
+    {
+      "from": "/docs/agents/choosing-an-agent",
+      "to": "/docs/agents/writing-agents"
+    },
+    {
+      "from": "/docs/agents/multi-agent-patterns",
+      "to": "/docs/agents/overview"
+    },
+    {
+      "from": "/docs/agents/multi-agent-patterns",
+      "to": "/docs/agents/writing-agents"
+    },
+    {
+      "from": "/docs/agents/overview",
+      "to": "/docs/agents/choosing-an-agent"
+    },
+    {
+      "from": "/docs/agents/overview",
+      "to": "/docs/agents/multi-agent-patterns"
+    },
+    {
+      "from": "/docs/agents/overview",
+      "to": "/docs/agents/writing-agents"
+    },
+    {
+      "from": "/docs/agents/writing-agents",
+      "to": "/docs/agents/choosing-an-agent"
+    },
+    {
+      "from": "/docs/agents/writing-agents",
+      "to": "/docs/agents/multi-agent-patterns"
+    },
+    {
+      "from": "/docs/agents/writing-agents",
+      "to": "/docs/agents/overview"
+    },
+    {
+      "from": "/docs/cookbook",
+      "to": "/docs/cookbook/create-demo-video"
+    },
+    {
+      "from": "/docs/cookbook",
+      "to": "/docs/cookbook/fix-github-issue"
+    },
+    {
+      "from": "/docs/cookbook",
+      "to": "/docs/cookbook/implement-feature"
+    },
+    {
+      "from": "/docs/cookbook",
+      "to": "/docs/cookbook/review-pr"
+    },
+    {
+      "from": "/docs/cookbook",
+      "to": "/docs/cookbook/roles/ai-engineer"
+    },
+    {
+      "from": "/docs/cookbook",
+      "to": "/docs/cookbook/roles/backend-developer"
+    },
+    {
+      "from": "/docs/cookbook",
+      "to": "/docs/cookbook/roles/devops-engineer"
+    },
+    {
+      "from": "/docs/cookbook",
+      "to": "/docs/cookbook/roles/frontend-developer"
+    },
+    {
+      "from": "/docs/cookbook",
+      "to": "/docs/cookbook/roles/security-engineer"
+    },
+    {
+      "from": "/docs/cookbook",
+      "to": "/docs/cookbook/roles/tech-lead"
+    },
+    {
+      "from": "/docs/cookbook",
+      "to": "/docs/cookbook/security-audit"
+    },
+    {
+      "from": "/docs/cookbook",
+      "to": "/docs/cookbook/setup-memory"
+    },
+    {
+      "from": "/docs/cookbook/claude-design-handoff",
+      "to": "/docs/cookbook/implement-feature"
+    },
+    {
+      "from": "/docs/cookbook/claude-design-handoff",
+      "to": "/docs/cookbook/review-pr"
+    },
+    {
+      "from": "/docs/cookbook/create-demo-video",
+      "to": "/docs/cookbook/security-audit"
+    },
+    {
+      "from": "/docs/cookbook/create-demo-video",
+      "to": "/docs/foundations/skills-agents-hooks"
+    },
+    {
+      "from": "/docs/cookbook/create-demo-video",
+      "to": "/docs/getting-started/configuration"
+    },
+    {
+      "from": "/docs/cookbook/roles/ai-engineer",
+      "to": "/docs/cookbook/implement-feature"
+    },
+    {
+      "from": "/docs/cookbook/roles/ai-engineer",
+      "to": "/docs/cookbook/setup-memory"
+    },
+    {
+      "from": "/docs/cookbook/roles/backend-developer",
+      "to": "/docs/cookbook/implement-feature"
+    },
+    {
+      "from": "/docs/cookbook/roles/backend-developer",
+      "to": "/docs/cookbook/security-audit"
+    },
+    {
+      "from": "/docs/cookbook/roles/devops-engineer",
+      "to": "/docs/cookbook/fix-github-issue"
+    },
+    {
+      "from": "/docs/cookbook/roles/devops-engineer",
+      "to": "/docs/cookbook/security-audit"
+    },
+    {
+      "from": "/docs/cookbook/roles/frontend-developer",
+      "to": "/docs/cookbook/implement-feature"
+    },
+    {
+      "from": "/docs/cookbook/roles/frontend-developer",
+      "to": "/docs/cookbook/review-pr"
+    },
+    {
+      "from": "/docs/cookbook/roles/security-engineer",
+      "to": "/docs/cookbook/fix-github-issue"
+    },
+    {
+      "from": "/docs/cookbook/roles/security-engineer",
+      "to": "/docs/cookbook/security-audit"
+    },
+    {
+      "from": "/docs/cookbook/roles/tech-lead",
+      "to": "/docs/cookbook/review-pr"
+    },
+    {
+      "from": "/docs/cookbook/roles/tech-lead",
+      "to": "/docs/cookbook/security-audit"
+    },
+    {
+      "from": "/docs/cookbook/security-audit",
+      "to": "/docs/cookbook/implement-feature"
+    },
+    {
+      "from": "/docs/cookbook/security-audit",
+      "to": "/docs/cookbook/review-pr"
+    },
+    {
+      "from": "/docs/cookbook/security-audit",
+      "to": "/docs/getting-started/configuration"
+    },
+    {
+      "from": "/docs/cookbook/security-audit",
+      "to": "/docs/hooks/overview"
+    },
+    {
+      "from": "/docs/cookbook/setup-memory",
+      "to": "/docs/cookbook/security-audit"
+    },
+    {
+      "from": "/docs/cookbook/setup-memory",
+      "to": "/docs/getting-started/configuration"
+    },
+    {
+      "from": "/docs/cookbook/setup-memory",
+      "to": "/docs/memory/overview"
+    },
+    {
+      "from": "/docs/cookbook/task-management",
+      "to": "/docs/cookbook/implement-feature"
+    },
+    {
+      "from": "/docs/foundations",
+      "to": "/docs/foundations/agent-attribution"
+    },
+    {
+      "from": "/docs/foundations",
+      "to": "/docs/foundations/choosing-a-plugin"
+    },
+    {
+      "from": "/docs/foundations",
+      "to": "/docs/foundations/mcp-servers"
+    },
+    {
+      "from": "/docs/foundations",
+      "to": "/docs/foundations/overview"
+    },
+    {
+      "from": "/docs/foundations",
+      "to": "/docs/foundations/skills-agents-hooks"
+    },
+    {
+      "from": "/docs/foundations/choosing-a-plugin",
+      "to": "/docs/getting-started/first-10-minutes"
+    },
+    {
+      "from": "/docs/foundations/choosing-a-plugin",
+      "to": "/docs/getting-started/installation"
+    },
+    {
+      "from": "/docs/foundations/mcp-servers",
+      "to": "/docs/foundations/choosing-a-plugin"
+    },
+    {
+      "from": "/docs/foundations/mcp-servers",
+      "to": "/docs/foundations/skills-agents-hooks"
+    },
+    {
+      "from": "/docs/foundations/mcp-servers",
+      "to": "/docs/getting-started/configuration"
+    },
+    {
+      "from": "/docs/foundations/overview",
+      "to": "/docs/foundations/skills-agents-hooks"
+    },
+    {
+      "from": "/docs/foundations/overview",
+      "to": "/docs/getting-started/first-10-minutes"
+    },
+    {
+      "from": "/docs/foundations/overview",
+      "to": "/docs/getting-started/installation"
+    },
+    {
+      "from": "/docs/foundations/skills-agents-hooks",
+      "to": "/docs/foundations/choosing-a-plugin"
+    },
+    {
+      "from": "/docs/foundations/skills-agents-hooks",
+      "to": "/docs/getting-started/installation"
+    },
+    {
+      "from": "/docs/getting-started",
+      "to": "/docs/getting-started/configuration"
+    },
+    {
+      "from": "/docs/getting-started",
+      "to": "/docs/getting-started/first-10-minutes"
+    },
+    {
+      "from": "/docs/getting-started",
+      "to": "/docs/getting-started/hosts"
+    },
+    {
+      "from": "/docs/getting-started",
+      "to": "/docs/getting-started/installation"
+    },
+    {
+      "from": "/docs/getting-started",
+      "to": "/docs/getting-started/navigating"
+    },
+    {
+      "from": "/docs/getting-started/agy",
+      "to": "/docs/getting-started/claude-code"
+    },
+    {
+      "from": "/docs/getting-started/agy",
+      "to": "/docs/getting-started/hosts"
+    },
+    {
+      "from": "/docs/getting-started/agy",
+      "to": "/docs/getting-started/skills-sh"
+    },
+    {
+      "from": "/docs/getting-started/claude-code",
+      "to": "/docs/foundations/mcp-servers"
+    },
+    {
+      "from": "/docs/getting-started/claude-code",
+      "to": "/docs/getting-started/configuration"
+    },
+    {
+      "from": "/docs/getting-started/claude-code",
+      "to": "/docs/getting-started/first-10-minutes"
+    },
+    {
+      "from": "/docs/getting-started/claude-code",
+      "to": "/docs/getting-started/hosts"
+    },
+    {
+      "from": "/docs/getting-started/codex",
+      "to": "/docs/getting-started/hosts"
+    },
+    {
+      "from": "/docs/getting-started/codex",
+      "to": "/docs/getting-started/skills-sh"
+    },
+    {
+      "from": "/docs/getting-started/codex",
+      "to": "/docs/guides/orchestkit-on-pi-codex-cursor"
+    },
+    {
+      "from": "/docs/getting-started/configuration",
+      "to": "/docs/foundations/mcp-servers"
+    },
+    {
+      "from": "/docs/getting-started/configuration",
+      "to": "/docs/foundations/skills-agents-hooks"
+    },
+    {
+      "from": "/docs/getting-started/configuration",
+      "to": "/docs/getting-started/installation"
+    },
+    {
+      "from": "/docs/getting-started/configuration",
+      "to": "/docs/memory/overview"
+    },
+    {
+      "from": "/docs/getting-started/cursor",
+      "to": "/docs/getting-started/claude-code"
+    },
+    {
+      "from": "/docs/getting-started/cursor",
+      "to": "/docs/getting-started/configuration"
+    },
+    {
+      "from": "/docs/getting-started/cursor",
+      "to": "/docs/getting-started/hosts"
+    },
+    {
+      "from": "/docs/getting-started/cursor",
+      "to": "/docs/getting-started/skills-sh"
+    },
+    {
+      "from": "/docs/getting-started/devin",
+      "to": "/docs/getting-started/claude-code"
+    },
+    {
+      "from": "/docs/getting-started/devin",
+      "to": "/docs/getting-started/hosts"
+    },
+    {
+      "from": "/docs/getting-started/devin",
+      "to": "/docs/getting-started/skills-sh"
+    },
+    {
+      "from": "/docs/getting-started/first-10-minutes",
+      "to": "/docs/cookbook/implement-feature"
+    },
+    {
+      "from": "/docs/getting-started/first-10-minutes",
+      "to": "/docs/getting-started/configuration"
+    },
+    {
+      "from": "/docs/getting-started/first-10-minutes",
+      "to": "/docs/getting-started/navigating"
+    },
+    {
+      "from": "/docs/getting-started/hosts",
+      "to": "/docs/getting-started/agy"
+    },
+    {
+      "from": "/docs/getting-started/hosts",
+      "to": "/docs/getting-started/claude-code"
+    },
+    {
+      "from": "/docs/getting-started/hosts",
+      "to": "/docs/getting-started/codex"
+    },
+    {
+      "from": "/docs/getting-started/hosts",
+      "to": "/docs/getting-started/cursor"
+    },
+    {
+      "from": "/docs/getting-started/hosts",
+      "to": "/docs/getting-started/devin"
+    },
+    {
+      "from": "/docs/getting-started/hosts",
+      "to": "/docs/getting-started/muse"
+    },
+    {
+      "from": "/docs/getting-started/hosts",
+      "to": "/docs/getting-started/skills-sh"
+    },
+    {
+      "from": "/docs/getting-started/hosts",
+      "to": "/docs/getting-started/superpowers"
+    },
+    {
+      "from": "/docs/getting-started/hosts",
+      "to": "/docs/guides/orchestkit-on-pi-codex-cursor"
+    },
+    {
+      "from": "/docs/getting-started/installation",
+      "to": "/docs/getting-started/agy"
+    },
+    {
+      "from": "/docs/getting-started/installation",
+      "to": "/docs/getting-started/claude-code"
+    },
+    {
+      "from": "/docs/getting-started/installation",
+      "to": "/docs/getting-started/codex"
+    },
+    {
+      "from": "/docs/getting-started/installation",
+      "to": "/docs/getting-started/configuration"
+    },
+    {
+      "from": "/docs/getting-started/installation",
+      "to": "/docs/getting-started/cursor"
+    },
+    {
+      "from": "/docs/getting-started/installation",
+      "to": "/docs/getting-started/hosts"
+    },
+    {
+      "from": "/docs/getting-started/installation",
+      "to": "/docs/getting-started/muse"
+    },
+    {
+      "from": "/docs/getting-started/installation",
+      "to": "/docs/getting-started/skills-sh"
+    },
+    {
+      "from": "/docs/getting-started/installation",
+      "to": "/docs/getting-started/superpowers"
+    },
+    {
+      "from": "/docs/getting-started/installation",
+      "to": "/docs/guides/orchestkit-on-pi-codex-cursor"
+    },
+    {
+      "from": "/docs/getting-started/muse",
+      "to": "/docs/getting-started/claude-code"
+    },
+    {
+      "from": "/docs/getting-started/muse",
+      "to": "/docs/getting-started/hosts"
+    },
+    {
+      "from": "/docs/getting-started/muse",
+      "to": "/docs/getting-started/skills-sh"
+    },
+    {
+      "from": "/docs/getting-started/navigating",
+      "to": "/docs/getting-started/configuration"
+    },
+    {
+      "from": "/docs/getting-started/navigating",
+      "to": "/docs/skills/overview"
+    },
+    {
+      "from": "/docs/getting-started/skills-sh",
+      "to": "/docs/getting-started/agy"
+    },
+    {
+      "from": "/docs/getting-started/skills-sh",
+      "to": "/docs/getting-started/claude-code"
+    },
+    {
+      "from": "/docs/getting-started/skills-sh",
+      "to": "/docs/getting-started/codex"
+    },
+    {
+      "from": "/docs/getting-started/skills-sh",
+      "to": "/docs/getting-started/configuration"
+    },
+    {
+      "from": "/docs/getting-started/skills-sh",
+      "to": "/docs/getting-started/cursor"
+    },
+    {
+      "from": "/docs/getting-started/skills-sh",
+      "to": "/docs/getting-started/hosts"
+    },
+    {
+      "from": "/docs/getting-started/skills-sh",
+      "to": "/docs/getting-started/muse"
+    },
+    {
+      "from": "/docs/getting-started/skills-sh",
+      "to": "/docs/guides/orchestkit-on-pi-codex-cursor"
+    },
+    {
+      "from": "/docs/guides",
+      "to": "/docs/guides/ask-fallback"
+    },
+    {
+      "from": "/docs/guides",
+      "to": "/docs/guides/cc-adoption"
+    },
+    {
+      "from": "/docs/guides",
+      "to": "/docs/guides/claude-fable-5"
+    },
+    {
+      "from": "/docs/guides",
+      "to": "/docs/guides/orchestkit-on-pi-codex-cursor"
+    },
+    {
+      "from": "/docs/guides",
+      "to": "/docs/guides/orchestkit-with-nextjs"
+    },
+    {
+      "from": "/docs/guides",
+      "to": "/docs/guides/orchestkit-with-python-fastapi"
+    },
+    {
+      "from": "/docs/guides/cc-adoption",
+      "to": "/docs/showcase/lab"
+    },
+    {
+      "from": "/docs/guides/orchestkit-with-nextjs",
+      "to": "/docs/changelog"
+    },
+    {
+      "from": "/docs/guides/orchestkit-with-nextjs",
+      "to": "/docs/reference/skills"
+    },
+    {
+      "from": "/docs/guides/orchestkit-with-python-fastapi",
+      "to": "/docs/reference/skills"
+    },
+    {
+      "from": "/docs/hooks",
+      "to": "/docs/hooks/architecture"
+    },
+    {
+      "from": "/docs/hooks",
+      "to": "/docs/hooks/lifecycle-hooks"
+    },
+    {
+      "from": "/docs/hooks",
+      "to": "/docs/hooks/memory-hooks"
+    },
+    {
+      "from": "/docs/hooks",
+      "to": "/docs/hooks/overview"
+    },
+    {
+      "from": "/docs/hooks",
+      "to": "/docs/hooks/safety-hooks"
+    },
+    {
+      "from": "/docs/hooks",
+      "to": "/docs/hooks/writing-hooks"
+    },
+    {
+      "from": "/docs/hooks/architecture",
+      "to": "/docs/hooks/lifecycle-hooks"
+    },
+    {
+      "from": "/docs/hooks/architecture",
+      "to": "/docs/hooks/memory-hooks"
+    },
+    {
+      "from": "/docs/hooks/architecture",
+      "to": "/docs/hooks/overview"
+    },
+    {
+      "from": "/docs/hooks/architecture",
+      "to": "/docs/hooks/safety-hooks"
+    },
+    {
+      "from": "/docs/hooks/architecture",
+      "to": "/docs/hooks/writing-hooks"
+    },
+    {
+      "from": "/docs/hooks/overview",
+      "to": "/docs/hooks/lifecycle-hooks"
+    },
+    {
+      "from": "/docs/hooks/overview",
+      "to": "/docs/hooks/memory-hooks"
+    },
+    {
+      "from": "/docs/hooks/overview",
+      "to": "/docs/hooks/safety-hooks"
+    },
+    {
+      "from": "/docs/hooks/overview",
+      "to": "/docs/hooks/writing-hooks"
+    },
+    {
+      "from": "/docs/hooks/spotlights/stop-pipeline",
+      "to": "/docs/hooks/spotlights/unified-dispatchers"
+    },
+    {
+      "from": "/docs/hooks/spotlights/unified-advisory-dispatcher",
+      "to": "/docs/hooks/spotlights/unified-dispatchers"
+    },
+    {
+      "from": "/docs/hooks/spotlights/unified-dispatchers",
+      "to": "/docs/hooks/spotlights/stop-pipeline"
+    },
+    {
+      "from": "/docs/hooks/spotlights/unified-dispatchers",
+      "to": "/docs/hooks/spotlights/unified-advisory-dispatcher"
+    },
+    {
+      "from": "/docs/memory",
+      "to": "/docs/memory/graph-memory"
+    },
+    {
+      "from": "/docs/memory",
+      "to": "/docs/memory/local-memory"
+    },
+    {
+      "from": "/docs/memory",
+      "to": "/docs/memory/native-cc-memory"
+    },
+    {
+      "from": "/docs/memory",
+      "to": "/docs/memory/overview"
+    },
+    {
+      "from": "/docs/memory/graph-memory",
+      "to": "/docs/cookbook/setup-memory"
+    },
+    {
+      "from": "/docs/memory/graph-memory",
+      "to": "/docs/memory/local-memory"
+    },
+    {
+      "from": "/docs/memory/graph-memory",
+      "to": "/docs/memory/overview"
+    },
+    {
+      "from": "/docs/memory/local-memory",
+      "to": "/docs/memory/graph-memory"
+    },
+    {
+      "from": "/docs/memory/local-memory",
+      "to": "/docs/memory/overview"
+    },
+    {
+      "from": "/docs/memory/native-cc-memory",
+      "to": "/docs/cookbook/setup-memory"
+    },
+    {
+      "from": "/docs/memory/native-cc-memory",
+      "to": "/docs/memory/graph-memory"
+    },
+    {
+      "from": "/docs/memory/native-cc-memory",
+      "to": "/docs/memory/overview"
+    },
+    {
+      "from": "/docs/memory/overview",
+      "to": "/docs/cookbook/setup-memory"
+    },
+    {
+      "from": "/docs/memory/overview",
+      "to": "/docs/memory/graph-memory"
+    },
+    {
+      "from": "/docs/memory/overview",
+      "to": "/docs/memory/local-memory"
+    },
+    {
+      "from": "/docs/memory/overview",
+      "to": "/docs/memory/native-cc-memory"
+    },
+    {
+      "from": "/docs/reference",
+      "to": "/docs/reference/agents"
+    },
+    {
+      "from": "/docs/reference",
+      "to": "/docs/reference/hooks"
+    },
+    {
+      "from": "/docs/reference",
+      "to": "/docs/reference/skills"
+    },
+    {
+      "from": "/docs/reference/agents",
+      "to": "/docs/reference/agents/accessibility-specialist"
+    },
+    {
+      "from": "/docs/reference/agents",
+      "to": "/docs/reference/agents/ai-safety-auditor"
+    },
+    {
+      "from": "/docs/reference/agents",
+      "to": "/docs/reference/agents/backend-system-architect"
+    },
+    {
+      "from": "/docs/reference/agents",
+      "to": "/docs/reference/agents/ci-cd-engineer"
+    },
+    {
+      "from": "/docs/reference/agents",
+      "to": "/docs/reference/agents/claude-design-orchestrator"
+    },
+    {
+      "from": "/docs/reference/agents",
+      "to": "/docs/reference/agents/code-quality-reviewer"
+    },
+    {
+      "from": "/docs/reference/agents",
+      "to": "/docs/reference/agents/component-curator"
+    },
+    {
+      "from": "/docs/reference/agents",
+      "to": "/docs/reference/agents/data-pipeline-engineer"
+    },
+    {
+      "from": "/docs/reference/agents",
+      "to": "/docs/reference/agents/database-engineer"
+    },
+    {
+      "from": "/docs/reference/agents",
+      "to": "/docs/reference/agents/debug-investigator"
+    },
+    {
+      "from": "/docs/reference/agents",
+      "to": "/docs/reference/agents/demo-producer"
+    },
+    {
+      "from": "/docs/reference/agents",
+      "to": "/docs/reference/agents/deployment-manager"
+    },
+    {
+      "from": "/docs/reference/agents",
+      "to": "/docs/reference/agents/design-context-extractor"
+    },
+    {
+      "from": "/docs/reference/agents",
+      "to": "/docs/reference/agents/design-system-architect"
+    },
+    {
+      "from": "/docs/reference/agents",
+      "to": "/docs/reference/agents/emulate-engineer"
+    },
+    {
+      "from": "/docs/reference/agents",
+      "to": "/docs/reference/agents/eval-runner"
+    },
+    {
+      "from": "/docs/reference/agents",
+      "to": "/docs/reference/agents/event-driven-architect"
+    },
+    {
+      "from": "/docs/reference/agents",
+      "to": "/docs/reference/agents/expect-agent"
+    },
+    {
+      "from": "/docs/reference/agents",
+      "to": "/docs/reference/agents/frontend-performance-engineer"
+    },
+    {
+      "from": "/docs/reference/agents",
+      "to": "/docs/reference/agents/frontend-ui-developer"
+    },
+    {
+      "from": "/docs/reference/agents",
+      "to": "/docs/reference/agents/genui-architect"
+    },
+    {
+      "from": "/docs/reference/agents",
+      "to": "/docs/reference/agents/git-operations-engineer"
+    },
+    {
+      "from": "/docs/reference/agents",
+      "to": "/docs/reference/agents/infrastructure-architect"
+    },
+    {
+      "from": "/docs/reference/agents",
+      "to": "/docs/reference/agents/llm-integrator"
+    },
+    {
+      "from": "/docs/reference/agents",
+      "to": "/docs/reference/agents/market-intelligence"
+    },
+    {
+      "from": "/docs/reference/agents",
+      "to": "/docs/reference/agents/monitoring-engineer"
+    },
+    {
+      "from": "/docs/reference/agents",
+      "to": "/docs/reference/agents/multimodal-specialist"
+    },
+    {
+      "from": "/docs/reference/agents",
+      "to": "/docs/reference/agents/product-strategist"
+    },
+    {
+      "from": "/docs/reference/agents",
+      "to": "/docs/reference/agents/python-performance-engineer"
+    },
+    {
+      "from": "/docs/reference/agents",
+      "to": "/docs/reference/agents/release-engineer"
+    },
+    {
+      "from": "/docs/reference/agents",
+      "to": "/docs/reference/agents/security-auditor"
+    },
+    {
+      "from": "/docs/reference/agents",
+      "to": "/docs/reference/agents/security-layer-auditor"
+    },
+    {
+      "from": "/docs/reference/agents",
+      "to": "/docs/reference/agents/system-design-reviewer"
+    },
+    {
+      "from": "/docs/reference/agents",
+      "to": "/docs/reference/agents/test-generator"
+    },
+    {
+      "from": "/docs/reference/agents",
+      "to": "/docs/reference/agents/web-research-analyst"
+    },
+    {
+      "from": "/docs/reference/agents",
+      "to": "/docs/reference/agents/workflow-architect"
+    },
+    {
+      "from": "/docs/reference/agents/accessibility-specialist",
+      "to": "/docs/reference/skills/memory"
+    },
+    {
+      "from": "/docs/reference/agents/accessibility-specialist",
+      "to": "/docs/reference/skills/remember"
+    },
+    {
+      "from": "/docs/reference/agents/accessibility-specialist",
+      "to": "/docs/reference/skills/testing-e2e"
+    },
+    {
+      "from": "/docs/reference/agents/ai-safety-auditor",
+      "to": "/docs/reference/skills/memory"
+    },
+    {
+      "from": "/docs/reference/agents/ai-safety-auditor",
+      "to": "/docs/reference/skills/remember"
+    },
+    {
+      "from": "/docs/reference/agents/ai-safety-auditor",
+      "to": "/docs/reference/skills/security-patterns"
+    },
+    {
+      "from": "/docs/reference/agents/backend-system-architect",
+      "to": "/docs/reference/skills/api-design"
+    },
+    {
+      "from": "/docs/reference/agents/backend-system-architect",
+      "to": "/docs/reference/skills/architecture-decision-record"
+    },
+    {
+      "from": "/docs/reference/agents/backend-system-architect",
+      "to": "/docs/reference/skills/architecture-patterns"
+    },
+    {
+      "from": "/docs/reference/agents/backend-system-architect",
+      "to": "/docs/reference/skills/database-patterns"
+    },
+    {
+      "from": "/docs/reference/agents/backend-system-architect",
+      "to": "/docs/reference/skills/memory"
+    },
+    {
+      "from": "/docs/reference/agents/backend-system-architect",
+      "to": "/docs/reference/skills/performance"
+    },
+    {
+      "from": "/docs/reference/agents/backend-system-architect",
+      "to": "/docs/reference/skills/python-backend"
+    },
+    {
+      "from": "/docs/reference/agents/backend-system-architect",
+      "to": "/docs/reference/skills/remember"
+    },
+    {
+      "from": "/docs/reference/agents/backend-system-architect",
+      "to": "/docs/reference/skills/scope-appropriate-architecture"
+    },
+    {
+      "from": "/docs/reference/agents/backend-system-architect",
+      "to": "/docs/reference/skills/security-patterns"
+    },
+    {
+      "from": "/docs/reference/agents/ci-cd-engineer",
+      "to": "/docs/reference/skills/code-review-playbook"
+    },
+    {
+      "from": "/docs/reference/agents/ci-cd-engineer",
+      "to": "/docs/reference/skills/devops-deployment"
+    },
+    {
+      "from": "/docs/reference/agents/ci-cd-engineer",
+      "to": "/docs/reference/skills/github-operations"
+    },
+    {
+      "from": "/docs/reference/agents/ci-cd-engineer",
+      "to": "/docs/reference/skills/memory"
+    },
+    {
+      "from": "/docs/reference/agents/ci-cd-engineer",
+      "to": "/docs/reference/skills/remember"
+    },
+    {
+      "from": "/docs/reference/agents/ci-cd-engineer",
+      "to": "/docs/reference/skills/security-patterns"
+    },
+    {
+      "from": "/docs/reference/agents/claude-design-orchestrator",
+      "to": "/docs/reference/skills/component-search"
+    },
+    {
+      "from": "/docs/reference/agents/claude-design-orchestrator",
+      "to": "/docs/reference/skills/design-context-extract"
+    },
+    {
+      "from": "/docs/reference/agents/claude-design-orchestrator",
+      "to": "/docs/reference/skills/design-import"
+    },
+    {
+      "from": "/docs/reference/agents/claude-design-orchestrator",
+      "to": "/docs/reference/skills/design-ship"
+    },
+    {
+      "from": "/docs/reference/agents/claude-design-orchestrator",
+      "to": "/docs/reference/skills/design-to-code"
+    },
+    {
+      "from": "/docs/reference/agents/claude-design-orchestrator",
+      "to": "/docs/reference/skills/memory"
+    },
+    {
+      "from": "/docs/reference/agents/claude-design-orchestrator",
+      "to": "/docs/reference/skills/remember"
+    },
+    {
+      "from": "/docs/reference/agents/code-quality-reviewer",
+      "to": "/docs/reference/skills/architecture-patterns"
+    },
+    {
+      "from": "/docs/reference/agents/code-quality-reviewer",
+      "to": "/docs/reference/skills/code-review-playbook"
+    },
+    {
+      "from": "/docs/reference/agents/code-quality-reviewer",
+      "to": "/docs/reference/skills/memory"
+    },
+    {
+      "from": "/docs/reference/agents/code-quality-reviewer",
+      "to": "/docs/reference/skills/quality-gates"
+    },
+    {
+      "from": "/docs/reference/agents/code-quality-reviewer",
+      "to": "/docs/reference/skills/remember"
+    },
+    {
+      "from": "/docs/reference/agents/code-quality-reviewer",
+      "to": "/docs/reference/skills/security-patterns"
+    },
+    {
+      "from": "/docs/reference/agents/code-quality-reviewer",
+      "to": "/docs/reference/skills/testing-integration"
+    },
+    {
+      "from": "/docs/reference/agents/code-quality-reviewer",
+      "to": "/docs/reference/skills/testing-unit"
+    },
+    {
+      "from": "/docs/reference/agents/component-curator",
+      "to": "/docs/reference/skills/component-search"
+    },
+    {
+      "from": "/docs/reference/agents/component-curator",
+      "to": "/docs/reference/skills/design-system-tokens"
+    },
+    {
+      "from": "/docs/reference/agents/component-curator",
+      "to": "/docs/reference/skills/memory"
+    },
+    {
+      "from": "/docs/reference/agents/component-curator",
+      "to": "/docs/reference/skills/remember"
+    },
+    {
+      "from": "/docs/reference/agents/component-curator",
+      "to": "/docs/reference/skills/storybook-mcp-integration"
+    },
+    {
+      "from": "/docs/reference/agents/data-pipeline-engineer",
+      "to": "/docs/reference/skills/browser-tools"
+    },
+    {
+      "from": "/docs/reference/agents/data-pipeline-engineer",
+      "to": "/docs/reference/skills/devops-deployment"
+    },
+    {
+      "from": "/docs/reference/agents/data-pipeline-engineer",
+      "to": "/docs/reference/skills/memory"
+    },
+    {
+      "from": "/docs/reference/agents/data-pipeline-engineer",
+      "to": "/docs/reference/skills/performance"
+    },
+    {
+      "from": "/docs/reference/agents/data-pipeline-engineer",
+      "to": "/docs/reference/skills/remember"
+    },
+    {
+      "from": "/docs/reference/agents/database-engineer",
+      "to": "/docs/reference/skills/database-patterns"
+    },
+    {
+      "from": "/docs/reference/agents/database-engineer",
+      "to": "/docs/reference/skills/memory"
+    },
+    {
+      "from": "/docs/reference/agents/database-engineer",
+      "to": "/docs/reference/skills/performance"
+    },
+    {
+      "from": "/docs/reference/agents/database-engineer",
+      "to": "/docs/reference/skills/python-backend"
+    },
+    {
+      "from": "/docs/reference/agents/database-engineer",
+      "to": "/docs/reference/skills/remember"
+    },
+    {
+      "from": "/docs/reference/agents/debug-investigator",
+      "to": "/docs/reference/skills/errors"
+    },
+    {
+      "from": "/docs/reference/agents/debug-investigator",
+      "to": "/docs/reference/skills/fix-issue"
+    },
+    {
+      "from": "/docs/reference/agents/debug-investigator",
+      "to": "/docs/reference/skills/memory"
+    },
+    {
+      "from": "/docs/reference/agents/debug-investigator",
+      "to": "/docs/reference/skills/remember"
+    },
+    {
+      "from": "/docs/reference/agents/demo-producer",
+      "to": "/docs/reference/skills/demo-producer"
+    },
+    {
+      "from": "/docs/reference/agents/demo-producer",
+      "to": "/docs/reference/skills/memory"
+    },
+    {
+      "from": "/docs/reference/agents/demo-producer",
+      "to": "/docs/reference/skills/remember"
+    },
+    {
+      "from": "/docs/reference/agents/deployment-manager",
+      "to": "/docs/reference/skills/devops-deployment"
+    },
+    {
+      "from": "/docs/reference/agents/deployment-manager",
+      "to": "/docs/reference/skills/github-operations"
+    },
+    {
+      "from": "/docs/reference/agents/deployment-manager",
+      "to": "/docs/reference/skills/memory"
+    },
+    {
+      "from": "/docs/reference/agents/deployment-manager",
+      "to": "/docs/reference/skills/remember"
+    },
+    {
+      "from": "/docs/reference/agents/design-context-extractor",
+      "to": "/docs/reference/skills/design-context-extract"
+    },
+    {
+      "from": "/docs/reference/agents/design-context-extractor",
+      "to": "/docs/reference/skills/design-system-tokens"
+    },
+    {
+      "from": "/docs/reference/agents/design-context-extractor",
+      "to": "/docs/reference/skills/memory"
+    },
+    {
+      "from": "/docs/reference/agents/design-context-extractor",
+      "to": "/docs/reference/skills/remember"
+    },
+    {
+      "from": "/docs/reference/agents/design-system-architect",
+      "to": "/docs/reference/skills/component-search"
+    },
+    {
+      "from": "/docs/reference/agents/design-system-architect",
+      "to": "/docs/reference/skills/design-context-extract"
+    },
+    {
+      "from": "/docs/reference/agents/design-system-architect",
+      "to": "/docs/reference/skills/design-system-tokens"
+    },
+    {
+      "from": "/docs/reference/agents/design-system-architect",
+      "to": "/docs/reference/skills/memory"
+    },
+    {
+      "from": "/docs/reference/agents/design-system-architect",
+      "to": "/docs/reference/skills/performance"
+    },
+    {
+      "from": "/docs/reference/agents/design-system-architect",
+      "to": "/docs/reference/skills/remember"
+    },
+    {
+      "from": "/docs/reference/agents/design-system-architect",
+      "to": "/docs/reference/skills/storybook-mcp-integration"
+    },
+    {
+      "from": "/docs/reference/agents/design-system-architect",
+      "to": "/docs/reference/skills/testing-e2e"
+    },
+    {
+      "from": "/docs/reference/agents/design-system-architect",
+      "to": "/docs/reference/skills/testing-unit"
+    },
+    {
+      "from": "/docs/reference/agents/emulate-engineer",
+      "to": "/docs/reference/skills/dev"
+    },
+    {
+      "from": "/docs/reference/agents/emulate-engineer",
+      "to": "/docs/reference/skills/emulate-seed"
+    },
+    {
+      "from": "/docs/reference/agents/emulate-engineer",
+      "to": "/docs/reference/skills/testing-e2e"
+    },
+    {
+      "from": "/docs/reference/agents/emulate-engineer",
+      "to": "/docs/reference/skills/testing-integration"
+    },
+    {
+      "from": "/docs/reference/agents/emulate-engineer",
+      "to": "/docs/reference/skills/testing-unit"
+    },
+    {
+      "from": "/docs/reference/agents/eval-runner",
+      "to": "/docs/reference/skills/memory"
+    },
+    {
+      "from": "/docs/reference/agents/eval-runner",
+      "to": "/docs/reference/skills/remember"
+    },
+    {
+      "from": "/docs/reference/agents/eval-runner",
+      "to": "/docs/reference/skills/testing-integration"
+    },
+    {
+      "from": "/docs/reference/agents/eval-runner",
+      "to": "/docs/reference/skills/testing-llm"
+    },
+    {
+      "from": "/docs/reference/agents/event-driven-architect",
+      "to": "/docs/reference/skills/api-design"
+    },
+    {
+      "from": "/docs/reference/agents/event-driven-architect",
+      "to": "/docs/reference/skills/memory"
+    },
+    {
+      "from": "/docs/reference/agents/event-driven-architect",
+      "to": "/docs/reference/skills/python-backend"
+    },
+    {
+      "from": "/docs/reference/agents/event-driven-architect",
+      "to": "/docs/reference/skills/remember"
+    },
+    {
+      "from": "/docs/reference/agents/expect-agent",
+      "to": "/docs/reference/skills/expect"
+    },
+    {
+      "from": "/docs/reference/agents/expect-agent",
+      "to": "/docs/reference/skills/testing-e2e"
+    },
+    {
+      "from": "/docs/reference/agents/frontend-performance-engineer",
+      "to": "/docs/reference/skills/memory"
+    },
+    {
+      "from": "/docs/reference/agents/frontend-performance-engineer",
+      "to": "/docs/reference/skills/performance"
+    },
+    {
+      "from": "/docs/reference/agents/frontend-performance-engineer",
+      "to": "/docs/reference/skills/remember"
+    },
+    {
+      "from": "/docs/reference/agents/frontend-ui-developer",
+      "to": "/docs/reference/skills/architecture-patterns"
+    },
+    {
+      "from": "/docs/reference/agents/frontend-ui-developer",
+      "to": "/docs/reference/skills/code-review-playbook"
+    },
+    {
+      "from": "/docs/reference/agents/frontend-ui-developer",
+      "to": "/docs/reference/skills/component-search"
+    },
+    {
+      "from": "/docs/reference/agents/frontend-ui-developer",
+      "to": "/docs/reference/skills/design-context-extract"
+    },
+    {
+      "from": "/docs/reference/agents/frontend-ui-developer",
+      "to": "/docs/reference/skills/design-system-tokens"
+    },
+    {
+      "from": "/docs/reference/agents/frontend-ui-developer",
+      "to": "/docs/reference/skills/design-to-code"
+    },
+    {
+      "from": "/docs/reference/agents/frontend-ui-developer",
+      "to": "/docs/reference/skills/memory"
+    },
+    {
+      "from": "/docs/reference/agents/frontend-ui-developer",
+      "to": "/docs/reference/skills/performance"
+    },
+    {
+      "from": "/docs/reference/agents/frontend-ui-developer",
+      "to": "/docs/reference/skills/react-server-components-framework"
+    },
+    {
+      "from": "/docs/reference/agents/frontend-ui-developer",
+      "to": "/docs/reference/skills/remember"
+    },
+    {
+      "from": "/docs/reference/agents/frontend-ui-developer",
+      "to": "/docs/reference/skills/storybook-mcp-integration"
+    },
+    {
+      "from": "/docs/reference/agents/frontend-ui-developer",
+      "to": "/docs/reference/skills/testing-e2e"
+    },
+    {
+      "from": "/docs/reference/agents/frontend-ui-developer",
+      "to": "/docs/reference/skills/testing-unit"
+    },
+    {
+      "from": "/docs/reference/agents/genui-architect",
+      "to": "/docs/reference/skills/component-search"
+    },
+    {
+      "from": "/docs/reference/agents/genui-architect",
+      "to": "/docs/reference/skills/json-render-catalog"
+    },
+    {
+      "from": "/docs/reference/agents/genui-architect",
+      "to": "/docs/reference/skills/mcp-visual-output"
+    },
+    {
+      "from": "/docs/reference/agents/genui-architect",
+      "to": "/docs/reference/skills/multi-surface-render"
+    },
+    {
+      "from": "/docs/reference/agents/git-operations-engineer",
+      "to": "/docs/reference/skills/architecture-decision-record"
+    },
+    {
+      "from": "/docs/reference/agents/git-operations-engineer",
+      "to": "/docs/reference/skills/github-operations"
+    },
+    {
+      "from": "/docs/reference/agents/git-operations-engineer",
+      "to": "/docs/reference/skills/memory"
+    },
+    {
+      "from": "/docs/reference/agents/git-operations-engineer",
+      "to": "/docs/reference/skills/remember"
+    },
+    {
+      "from": "/docs/reference/agents/infrastructure-architect",
+      "to": "/docs/reference/skills/devops-deployment"
+    },
+    {
+      "from": "/docs/reference/agents/infrastructure-architect",
+      "to": "/docs/reference/skills/memory"
+    },
+    {
+      "from": "/docs/reference/agents/infrastructure-architect",
+      "to": "/docs/reference/skills/remember"
+    },
+    {
+      "from": "/docs/reference/agents/infrastructure-architect",
+      "to": "/docs/reference/skills/security-patterns"
+    },
+    {
+      "from": "/docs/reference/agents/llm-integrator",
+      "to": "/docs/reference/skills/api-design"
+    },
+    {
+      "from": "/docs/reference/agents/llm-integrator",
+      "to": "/docs/reference/skills/memory"
+    },
+    {
+      "from": "/docs/reference/agents/llm-integrator",
+      "to": "/docs/reference/skills/performance"
+    },
+    {
+      "from": "/docs/reference/agents/llm-integrator",
+      "to": "/docs/reference/skills/remember"
+    },
+    {
+      "from": "/docs/reference/agents/llm-integrator",
+      "to": "/docs/reference/skills/security-patterns"
+    },
+    {
+      "from": "/docs/reference/agents/market-intelligence",
+      "to": "/docs/reference/skills/github-operations"
+    },
+    {
+      "from": "/docs/reference/agents/market-intelligence",
+      "to": "/docs/reference/skills/memory"
+    },
+    {
+      "from": "/docs/reference/agents/market-intelligence",
+      "to": "/docs/reference/skills/remember"
+    },
+    {
+      "from": "/docs/reference/agents/monitoring-engineer",
+      "to": "/docs/reference/skills/memory"
+    },
+    {
+      "from": "/docs/reference/agents/monitoring-engineer",
+      "to": "/docs/reference/skills/performance"
+    },
+    {
+      "from": "/docs/reference/agents/monitoring-engineer",
+      "to": "/docs/reference/skills/remember"
+    },
+    {
+      "from": "/docs/reference/agents/monitoring-engineer",
+      "to": "/docs/reference/skills/telemetry-inspect"
+    },
+    {
+      "from": "/docs/reference/agents/monitoring-engineer",
+      "to": "/docs/reference/skills/testing-integration"
+    },
+    {
+      "from": "/docs/reference/agents/monitoring-engineer",
+      "to": "/docs/reference/skills/testing-perf"
+    },
+    {
+      "from": "/docs/reference/agents/multimodal-specialist",
+      "to": "/docs/reference/skills/api-design"
+    },
+    {
+      "from": "/docs/reference/agents/multimodal-specialist",
+      "to": "/docs/reference/skills/memory"
+    },
+    {
+      "from": "/docs/reference/agents/multimodal-specialist",
+      "to": "/docs/reference/skills/remember"
+    },
+    {
+      "from": "/docs/reference/agents/product-strategist",
+      "to": "/docs/reference/skills/github-operations"
+    },
+    {
+      "from": "/docs/reference/agents/product-strategist",
+      "to": "/docs/reference/skills/memory"
+    },
+    {
+      "from": "/docs/reference/agents/product-strategist",
+      "to": "/docs/reference/skills/prd-to-goal"
+    },
+    {
+      "from": "/docs/reference/agents/product-strategist",
+      "to": "/docs/reference/skills/remember"
+    },
+    {
+      "from": "/docs/reference/agents/product-strategist",
+      "to": "/docs/reference/skills/write-prd"
+    },
+    {
+      "from": "/docs/reference/agents/python-performance-engineer",
+      "to": "/docs/reference/skills/database-patterns"
+    },
+    {
+      "from": "/docs/reference/agents/python-performance-engineer",
+      "to": "/docs/reference/skills/memory"
+    },
+    {
+      "from": "/docs/reference/agents/python-performance-engineer",
+      "to": "/docs/reference/skills/performance"
+    },
+    {
+      "from": "/docs/reference/agents/python-performance-engineer",
+      "to": "/docs/reference/skills/python-backend"
+    },
+    {
+      "from": "/docs/reference/agents/python-performance-engineer",
+      "to": "/docs/reference/skills/remember"
+    },
+    {
+      "from": "/docs/reference/agents/python-performance-engineer",
+      "to": "/docs/reference/skills/testing-perf"
+    },
+    {
+      "from": "/docs/reference/agents/python-performance-engineer",
+      "to": "/docs/reference/skills/testing-unit"
+    },
+    {
+      "from": "/docs/reference/agents/release-engineer",
+      "to": "/docs/reference/skills/github-operations"
+    },
+    {
+      "from": "/docs/reference/agents/release-engineer",
+      "to": "/docs/reference/skills/memory"
+    },
+    {
+      "from": "/docs/reference/agents/release-engineer",
+      "to": "/docs/reference/skills/release-sync"
+    },
+    {
+      "from": "/docs/reference/agents/release-engineer",
+      "to": "/docs/reference/skills/remember"
+    },
+    {
+      "from": "/docs/reference/agents/security-auditor",
+      "to": "/docs/reference/skills/memory"
+    },
+    {
+      "from": "/docs/reference/agents/security-auditor",
+      "to": "/docs/reference/skills/remember"
+    },
+    {
+      "from": "/docs/reference/agents/security-auditor",
+      "to": "/docs/reference/skills/security-patterns"
+    },
+    {
+      "from": "/docs/reference/agents/security-layer-auditor",
+      "to": "/docs/reference/skills/memory"
+    },
+    {
+      "from": "/docs/reference/agents/security-layer-auditor",
+      "to": "/docs/reference/skills/remember"
+    },
+    {
+      "from": "/docs/reference/agents/security-layer-auditor",
+      "to": "/docs/reference/skills/security-patterns"
+    },
+    {
+      "from": "/docs/reference/agents/system-design-reviewer",
+      "to": "/docs/reference/skills/architecture-decision-record"
+    },
+    {
+      "from": "/docs/reference/agents/system-design-reviewer",
+      "to": "/docs/reference/skills/memory"
+    },
+    {
+      "from": "/docs/reference/agents/system-design-reviewer",
+      "to": "/docs/reference/skills/performance"
+    },
+    {
+      "from": "/docs/reference/agents/system-design-reviewer",
+      "to": "/docs/reference/skills/remember"
+    },
+    {
+      "from": "/docs/reference/agents/system-design-reviewer",
+      "to": "/docs/reference/skills/security-patterns"
+    },
+    {
+      "from": "/docs/reference/agents/system-design-reviewer",
+      "to": "/docs/reference/skills/visualize-plan"
+    },
+    {
+      "from": "/docs/reference/agents/test-generator",
+      "to": "/docs/reference/skills/architecture-patterns"
+    },
+    {
+      "from": "/docs/reference/agents/test-generator",
+      "to": "/docs/reference/skills/browser-tools"
+    },
+    {
+      "from": "/docs/reference/agents/test-generator",
+      "to": "/docs/reference/skills/memory"
+    },
+    {
+      "from": "/docs/reference/agents/test-generator",
+      "to": "/docs/reference/skills/remember"
+    },
+    {
+      "from": "/docs/reference/agents/test-generator",
+      "to": "/docs/reference/skills/testing-e2e"
+    },
+    {
+      "from": "/docs/reference/agents/test-generator",
+      "to": "/docs/reference/skills/testing-integration"
+    },
+    {
+      "from": "/docs/reference/agents/test-generator",
+      "to": "/docs/reference/skills/testing-llm"
+    },
+    {
+      "from": "/docs/reference/agents/test-generator",
+      "to": "/docs/reference/skills/testing-perf"
+    },
+    {
+      "from": "/docs/reference/agents/test-generator",
+      "to": "/docs/reference/skills/testing-unit"
+    },
+    {
+      "from": "/docs/reference/agents/web-research-analyst",
+      "to": "/docs/reference/skills/browser-tools"
+    },
+    {
+      "from": "/docs/reference/agents/web-research-analyst",
+      "to": "/docs/reference/skills/memory"
+    },
+    {
+      "from": "/docs/reference/agents/web-research-analyst",
+      "to": "/docs/reference/skills/remember"
+    },
+    {
+      "from": "/docs/reference/agents/workflow-architect",
+      "to": "/docs/reference/skills/memory"
+    },
+    {
+      "from": "/docs/reference/agents/workflow-architect",
+      "to": "/docs/reference/skills/remember"
+    },
+    {
+      "from": "/docs/reference/hooks",
+      "to": "/docs/reference/hooks/config-change"
+    },
+    {
+      "from": "/docs/reference/hooks",
+      "to": "/docs/reference/hooks/cwd-changed"
+    },
+    {
+      "from": "/docs/reference/hooks",
+      "to": "/docs/reference/hooks/directory-added"
+    },
+    {
+      "from": "/docs/reference/hooks",
+      "to": "/docs/reference/hooks/elicitation"
+    },
+    {
+      "from": "/docs/reference/hooks",
+      "to": "/docs/reference/hooks/elicitation-result"
+    },
+    {
+      "from": "/docs/reference/hooks",
+      "to": "/docs/reference/hooks/file-changed"
+    },
+    {
+      "from": "/docs/reference/hooks",
+      "to": "/docs/reference/hooks/instructions-loaded"
+    },
+    {
+      "from": "/docs/reference/hooks",
+      "to": "/docs/reference/hooks/message-display"
+    },
+    {
+      "from": "/docs/reference/hooks",
+      "to": "/docs/reference/hooks/notification"
+    },
+    {
+      "from": "/docs/reference/hooks",
+      "to": "/docs/reference/hooks/permission-denied"
+    },
+    {
+      "from": "/docs/reference/hooks",
+      "to": "/docs/reference/hooks/permission-request"
+    },
+    {
+      "from": "/docs/reference/hooks",
+      "to": "/docs/reference/hooks/post-compact"
+    },
+    {
+      "from": "/docs/reference/hooks",
+      "to": "/docs/reference/hooks/post-model-switch"
+    },
+    {
+      "from": "/docs/reference/hooks",
+      "to": "/docs/reference/hooks/post-tool-batch"
+    },
+    {
+      "from": "/docs/reference/hooks",
+      "to": "/docs/reference/hooks/post-tool-use"
+    },
+    {
+      "from": "/docs/reference/hooks",
+      "to": "/docs/reference/hooks/post-tool-use-failure"
+    },
+    {
+      "from": "/docs/reference/hooks",
+      "to": "/docs/reference/hooks/pre-compact"
+    },
+    {
+      "from": "/docs/reference/hooks",
+      "to": "/docs/reference/hooks/pre-model-switch"
+    },
+    {
+      "from": "/docs/reference/hooks",
+      "to": "/docs/reference/hooks/pre-tool-use"
+    },
+    {
+      "from": "/docs/reference/hooks",
+      "to": "/docs/reference/hooks/session-end"
+    },
+    {
+      "from": "/docs/reference/hooks",
+      "to": "/docs/reference/hooks/session-start"
+    },
+    {
+      "from": "/docs/reference/hooks",
+      "to": "/docs/reference/hooks/setup"
+    },
+    {
+      "from": "/docs/reference/hooks",
+      "to": "/docs/reference/hooks/stop"
+    },
+    {
+      "from": "/docs/reference/hooks",
+      "to": "/docs/reference/hooks/stop-failure"
+    },
+    {
+      "from": "/docs/reference/hooks",
+      "to": "/docs/reference/hooks/subagent-start"
+    },
+    {
+      "from": "/docs/reference/hooks",
+      "to": "/docs/reference/hooks/subagent-stop"
+    },
+    {
+      "from": "/docs/reference/hooks",
+      "to": "/docs/reference/hooks/task-completed"
+    },
+    {
+      "from": "/docs/reference/hooks",
+      "to": "/docs/reference/hooks/task-created"
+    },
+    {
+      "from": "/docs/reference/hooks",
+      "to": "/docs/reference/hooks/teammate-idle"
+    },
+    {
+      "from": "/docs/reference/hooks",
+      "to": "/docs/reference/hooks/user-prompt-expansion"
+    },
+    {
+      "from": "/docs/reference/hooks",
+      "to": "/docs/reference/hooks/user-prompt-submit"
+    },
+    {
+      "from": "/docs/reference/hooks",
+      "to": "/docs/reference/hooks/worktree-remove"
+    },
+    {
+      "from": "/docs/reference/hooks/spotlights/stop-pipeline",
+      "to": "/docs/hooks/spotlights/unified-dispatchers"
+    },
+    {
+      "from": "/docs/reference/hooks/spotlights/unified-advisory-dispatcher",
+      "to": "/docs/hooks/spotlights/unified-dispatchers"
+    },
+    {
+      "from": "/docs/reference/hooks/spotlights/unified-dispatchers",
+      "to": "/docs/hooks/spotlights/stop-pipeline"
+    },
+    {
+      "from": "/docs/reference/hooks/spotlights/unified-dispatchers",
+      "to": "/docs/hooks/spotlights/unified-advisory-dispatcher"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/accessibility"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/agent-orchestration"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/ai-ui-generation"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/analytics"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/animation-motion-design"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/api-design"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/architecture-decision-record"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/architecture-patterns"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/assess"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/async-jobs"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/audit-activation"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/audit-full"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/auto"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/bare-eval"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/brainstorm"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/browser-tools"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/business-case"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/chain-patterns"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/ci-debug"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/ci-sentinel"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/code-review-playbook"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/commit"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/competitive-analysis"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/component-search"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/configure"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/cover"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/create-pr"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/database-patterns"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/demo-producer"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/design-context-extract"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/design-import"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/design-ship"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/design-stylecards"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/design-system-tokens"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/design-to-code"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/dev"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/devops-deployment"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/distributed-systems"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/doctor"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/documentation-patterns"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/domain-driven-design"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/dream"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/emulate-seed"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/errors"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/expect"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/explore"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/figma-design-handoff"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/fix-issue"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/github-operations"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/glyph"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/golden-dataset"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/help"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/i18n-date-patterns"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/implement"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/interaction-patterns"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/issue-progress-tracking"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/json-render-catalog"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/langgraph"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/llm-integration"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/market-sizing"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/mcp-patterns"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/mcp-visual-output"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/memory"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/memory-fabric"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/monitoring-observability"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/multi-surface-render"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/multimodal-llm"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/okr-design"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/page-serve"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/paired-probe"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/performance"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/portless"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/prd-to-goal"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/prioritization"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/product-analytics"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/product-frameworks"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/python-backend"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/quality-gates"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/rag-retrieval"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/react-server-components-framework"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/release-management"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/release-sync"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/remember"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/responsive-patterns"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/review-pr"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/scope-appropriate-architecture"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/security-patterns"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/setup"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/storybook-mcp-integration"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/storybook-testing"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/swarm-migrate"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/task-dependency-patterns"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/telemetry-inspect"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/testing-e2e"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/testing-integration"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/testing-llm"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/testing-patterns"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/testing-perf"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/testing-unit"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/ui-components"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/user-research"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/verify"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/visualize-plan"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/vite-advanced"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/web-research-workflow"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/write-prd"
+    },
+    {
+      "from": "/docs/reference/skills",
+      "to": "/docs/reference/skills/zustand-patterns"
+    },
+    {
+      "from": "/docs/reference/skills/brainstorm",
+      "to": "/docs/reference/skills/brainstorm/checklists"
+    },
+    {
+      "from": "/docs/reference/skills/brainstorm",
+      "to": "/docs/reference/skills/brainstorm/examples"
+    },
+    {
+      "from": "/docs/reference/skills/brainstorm",
+      "to": "/docs/reference/skills/brainstorm/references"
+    },
+    {
+      "from": "/docs/reference/skills/brainstorm",
+      "to": "/docs/reference/skills/brainstorm/rules"
+    },
+    {
+      "from": "/docs/reference/skills/brainstorm/checklists",
+      "to": "/docs/reference/skills/brainstorm"
+    },
+    {
+      "from": "/docs/reference/skills/brainstorm/examples",
+      "to": "/docs/reference/skills/brainstorm"
+    },
+    {
+      "from": "/docs/reference/skills/brainstorm/references",
+      "to": "/docs/reference/skills/brainstorm"
+    },
+    {
+      "from": "/docs/reference/skills/brainstorm/rules",
+      "to": "/docs/reference/skills/brainstorm"
+    },
+    {
+      "from": "/docs/reference/skills/configure",
+      "to": "/docs/reference/skills/configure/references/cc-version-settings"
+    },
+    {
+      "from": "/docs/reference/skills/configure",
+      "to": "/docs/reference/skills/configure/references/http-hooks"
+    },
+    {
+      "from": "/docs/reference/skills/configure",
+      "to": "/docs/reference/skills/configure/references/mcp-config"
+    },
+    {
+      "from": "/docs/reference/skills/configure",
+      "to": "/docs/reference/skills/configure/references/operator-scope-settings"
+    },
+    {
+      "from": "/docs/reference/skills/configure",
+      "to": "/docs/reference/skills/configure/references/presets"
+    },
+    {
+      "from": "/docs/reference/skills/configure",
+      "to": "/docs/reference/skills/configure/rules"
+    },
+    {
+      "from": "/docs/reference/skills/configure/references/cc-version-settings",
+      "to": "/docs/reference/skills/configure"
+    },
+    {
+      "from": "/docs/reference/skills/configure/references/http-hooks",
+      "to": "/docs/reference/skills/configure"
+    },
+    {
+      "from": "/docs/reference/skills/configure/references/mcp-config",
+      "to": "/docs/reference/skills/configure"
+    },
+    {
+      "from": "/docs/reference/skills/configure/references/operator-scope-settings",
+      "to": "/docs/reference/skills/configure"
+    },
+    {
+      "from": "/docs/reference/skills/configure/references/presets",
+      "to": "/docs/reference/skills/configure"
+    },
+    {
+      "from": "/docs/reference/skills/configure/rules",
+      "to": "/docs/reference/skills/configure"
+    },
+    {
+      "from": "/docs/reference/skills/doctor",
+      "to": "/docs/reference/skills/doctor/references/agent-memory-dir"
+    },
+    {
+      "from": "/docs/reference/skills/doctor",
+      "to": "/docs/reference/skills/doctor/references/agents-validation"
+    },
+    {
+      "from": "/docs/reference/skills/doctor",
+      "to": "/docs/reference/skills/doctor/references/claude-code"
+    },
+    {
+      "from": "/docs/reference/skills/doctor",
+      "to": "/docs/reference/skills/doctor/references/health-check-outputs"
+    },
+    {
+      "from": "/docs/reference/skills/doctor",
+      "to": "/docs/reference/skills/doctor/references/hook-validation"
+    },
+    {
+      "from": "/docs/reference/skills/doctor",
+      "to": "/docs/reference/skills/doctor/references/mcp-pinning-check"
+    },
+    {
+      "from": "/docs/reference/skills/doctor",
+      "to": "/docs/reference/skills/doctor/references/memory-health"
+    },
+    {
+      "from": "/docs/reference/skills/doctor",
+      "to": "/docs/reference/skills/doctor/references/permission-rules"
+    },
+    {
+      "from": "/docs/reference/skills/doctor",
+      "to": "/docs/reference/skills/doctor/references/remediation-guide"
+    },
+    {
+      "from": "/docs/reference/skills/doctor",
+      "to": "/docs/reference/skills/doctor/references/report-format"
+    },
+    {
+      "from": "/docs/reference/skills/doctor",
+      "to": "/docs/reference/skills/doctor/references/sandbox-posture"
+    },
+    {
+      "from": "/docs/reference/skills/doctor",
+      "to": "/docs/reference/skills/doctor/references/schema-validation"
+    },
+    {
+      "from": "/docs/reference/skills/doctor",
+      "to": "/docs/reference/skills/doctor/references/settings-posture"
+    },
+    {
+      "from": "/docs/reference/skills/doctor",
+      "to": "/docs/reference/skills/doctor/references/skills-validation"
+    },
+    {
+      "from": "/docs/reference/skills/doctor",
+      "to": "/docs/reference/skills/doctor/references/version-compatibility/00-overview"
+    },
+    {
+      "from": "/docs/reference/skills/doctor",
+      "to": "/docs/reference/skills/doctor/references/version-compatibility/01-feature-matrix-part-1"
+    },
+    {
+      "from": "/docs/reference/skills/doctor",
+      "to": "/docs/reference/skills/doctor/references/version-compatibility/02-feature-matrix-part-2"
+    },
+    {
+      "from": "/docs/reference/skills/doctor",
+      "to": "/docs/reference/skills/doctor/references/version-compatibility/03-prompt-caching-recommendation"
+    },
+    {
+      "from": "/docs/reference/skills/doctor",
+      "to": "/docs/reference/skills/doctor/rules"
+    },
+    {
+      "from": "/docs/reference/skills/doctor/references/agent-memory-dir",
+      "to": "/docs/reference/skills/doctor"
+    },
+    {
+      "from": "/docs/reference/skills/doctor/references/agents-validation",
+      "to": "/docs/reference/skills/doctor"
+    },
+    {
+      "from": "/docs/reference/skills/doctor/references/claude-code",
+      "to": "/docs/reference/skills/doctor"
+    },
+    {
+      "from": "/docs/reference/skills/doctor/references/health-check-outputs",
+      "to": "/docs/reference/skills/doctor"
+    },
+    {
+      "from": "/docs/reference/skills/doctor/references/hook-validation",
+      "to": "/docs/reference/skills/doctor"
+    },
+    {
+      "from": "/docs/reference/skills/doctor/references/mcp-pinning-check",
+      "to": "/docs/reference/skills/doctor"
+    },
+    {
+      "from": "/docs/reference/skills/doctor/references/memory-health",
+      "to": "/docs/reference/skills/doctor"
+    },
+    {
+      "from": "/docs/reference/skills/doctor/references/permission-rules",
+      "to": "/docs/reference/skills/doctor"
+    },
+    {
+      "from": "/docs/reference/skills/doctor/references/remediation-guide",
+      "to": "/docs/reference/skills/doctor"
+    },
+    {
+      "from": "/docs/reference/skills/doctor/references/report-format",
+      "to": "/docs/reference/skills/doctor"
+    },
+    {
+      "from": "/docs/reference/skills/doctor/references/sandbox-posture",
+      "to": "/docs/reference/skills/doctor"
+    },
+    {
+      "from": "/docs/reference/skills/doctor/references/schema-validation",
+      "to": "/docs/reference/skills/doctor"
+    },
+    {
+      "from": "/docs/reference/skills/doctor/references/settings-posture",
+      "to": "/docs/reference/skills/doctor"
+    },
+    {
+      "from": "/docs/reference/skills/doctor/references/skills-validation",
+      "to": "/docs/reference/skills/doctor"
+    },
+    {
+      "from": "/docs/reference/skills/doctor/references/version-compatibility/00-overview",
+      "to": "/docs/reference/skills/doctor"
+    },
+    {
+      "from": "/docs/reference/skills/doctor/references/version-compatibility/01-feature-matrix-part-1",
+      "to": "/docs/reference/skills/doctor"
+    },
+    {
+      "from": "/docs/reference/skills/doctor/references/version-compatibility/02-feature-matrix-part-2",
+      "to": "/docs/reference/skills/doctor"
+    },
+    {
+      "from": "/docs/reference/skills/doctor/references/version-compatibility/03-prompt-caching-recommendation",
+      "to": "/docs/reference/skills/doctor"
+    },
+    {
+      "from": "/docs/reference/skills/doctor/rules",
+      "to": "/docs/reference/skills/doctor"
+    },
+    {
+      "from": "/docs/reference/skills/implement",
+      "to": "/docs/reference/skills/implement/checklists"
+    },
+    {
+      "from": "/docs/reference/skills/implement",
+      "to": "/docs/reference/skills/implement/references"
+    },
+    {
+      "from": "/docs/reference/skills/implement",
+      "to": "/docs/reference/skills/implement/rules"
+    },
+    {
+      "from": "/docs/reference/skills/implement/checklists",
+      "to": "/docs/reference/skills/implement"
+    },
+    {
+      "from": "/docs/reference/skills/implement/references",
+      "to": "/docs/reference/skills/implement"
+    },
+    {
+      "from": "/docs/reference/skills/implement/rules",
+      "to": "/docs/reference/skills/implement"
+    },
+    {
+      "from": "/docs/reference/skills/verify",
+      "to": "/docs/reference/skills/verify/checklists"
+    },
+    {
+      "from": "/docs/reference/skills/verify",
+      "to": "/docs/reference/skills/verify/references"
+    },
+    {
+      "from": "/docs/reference/skills/verify",
+      "to": "/docs/reference/skills/verify/rules"
+    },
+    {
+      "from": "/docs/reference/skills/verify/checklists",
+      "to": "/docs/reference/skills/verify"
+    },
+    {
+      "from": "/docs/reference/skills/verify/references",
+      "to": "/docs/reference/skills/verify"
+    },
+    {
+      "from": "/docs/reference/skills/verify/rules",
+      "to": "/docs/reference/skills/verify"
+    },
+    {
+      "from": "/docs/showcase",
+      "to": "/docs/showcase/lab"
+    },
+    {
+      "from": "/docs/showcase",
+      "to": "/docs/showcase/pipeline"
+    },
+    {
+      "from": "/docs/showcase/lab",
+      "to": "/docs/guides/cc-adoption"
+    },
+    {
+      "from": "/docs/showcase/lab/adoption-waves",
+      "to": "/docs/guides/cc-adoption"
+    },
+    {
+      "from": "/docs/skills",
+      "to": "/docs/skills/command-skills"
+    },
+    {
+      "from": "/docs/skills",
+      "to": "/docs/skills/dependency-graph"
+    },
+    {
+      "from": "/docs/skills",
+      "to": "/docs/skills/overview"
+    },
+    {
+      "from": "/docs/skills",
+      "to": "/docs/skills/reference-skills"
+    },
+    {
+      "from": "/docs/skills",
+      "to": "/docs/skills/skill-composition"
+    },
+    {
+      "from": "/docs/skills",
+      "to": "/docs/skills/writing-skills"
+    },
+    {
+      "from": "/docs/skills/by-category/ai-llm",
+      "to": "/docs/reference/agents/llm-integrator"
+    },
+    {
+      "from": "/docs/skills/by-category/ai-llm",
+      "to": "/docs/reference/agents/multimodal-specialist"
+    },
+    {
+      "from": "/docs/skills/by-category/ai-llm",
+      "to": "/docs/reference/skills/chain-patterns"
+    },
+    {
+      "from": "/docs/skills/by-category/ai-llm",
+      "to": "/docs/reference/skills/langgraph"
+    },
+    {
+      "from": "/docs/skills/by-category/ai-llm",
+      "to": "/docs/reference/skills/llm-integration"
+    },
+    {
+      "from": "/docs/skills/by-category/ai-llm",
+      "to": "/docs/reference/skills/mcp-patterns"
+    },
+    {
+      "from": "/docs/skills/by-category/ai-llm",
+      "to": "/docs/reference/skills/mcp-visual-output"
+    },
+    {
+      "from": "/docs/skills/by-category/ai-llm",
+      "to": "/docs/reference/skills/multimodal-llm"
+    },
+    {
+      "from": "/docs/skills/by-category/ai-llm",
+      "to": "/docs/reference/skills/rag-retrieval"
+    },
+    {
+      "from": "/docs/skills/by-category/ai-llm",
+      "to": "/docs/reference/skills/react-server-components-framework"
+    },
+    {
+      "from": "/docs/skills/by-category/ai-llm",
+      "to": "/docs/reference/skills/setup"
+    },
+    {
+      "from": "/docs/skills/by-category/ai-llm",
+      "to": "/docs/reference/skills/storybook-mcp-integration"
+    },
+    {
+      "from": "/docs/skills/by-category/ai-llm",
+      "to": "/docs/reference/skills/testing-llm"
+    },
+    {
+      "from": "/docs/skills/by-category/backend",
+      "to": "/docs/reference/agents/backend-system-architect"
+    },
+    {
+      "from": "/docs/skills/by-category/backend",
+      "to": "/docs/reference/agents/database-engineer"
+    },
+    {
+      "from": "/docs/skills/by-category/backend",
+      "to": "/docs/reference/agents/event-driven-architect"
+    },
+    {
+      "from": "/docs/skills/by-category/backend",
+      "to": "/docs/reference/agents/python-performance-engineer"
+    },
+    {
+      "from": "/docs/skills/by-category/backend",
+      "to": "/docs/reference/skills/api-design"
+    },
+    {
+      "from": "/docs/skills/by-category/backend",
+      "to": "/docs/reference/skills/architecture-decision-record"
+    },
+    {
+      "from": "/docs/skills/by-category/backend",
+      "to": "/docs/reference/skills/architecture-patterns"
+    },
+    {
+      "from": "/docs/skills/by-category/backend",
+      "to": "/docs/reference/skills/async-jobs"
+    },
+    {
+      "from": "/docs/skills/by-category/backend",
+      "to": "/docs/reference/skills/database-patterns"
+    },
+    {
+      "from": "/docs/skills/by-category/backend",
+      "to": "/docs/reference/skills/distributed-systems"
+    },
+    {
+      "from": "/docs/skills/by-category/backend",
+      "to": "/docs/reference/skills/domain-driven-design"
+    },
+    {
+      "from": "/docs/skills/by-category/backend",
+      "to": "/docs/reference/skills/langgraph"
+    },
+    {
+      "from": "/docs/skills/by-category/backend",
+      "to": "/docs/reference/skills/python-backend"
+    },
+    {
+      "from": "/docs/skills/by-category/devops",
+      "to": "/docs/reference/agents/ci-cd-engineer"
+    },
+    {
+      "from": "/docs/skills/by-category/devops",
+      "to": "/docs/reference/agents/deployment-manager"
+    },
+    {
+      "from": "/docs/skills/by-category/devops",
+      "to": "/docs/reference/agents/infrastructure-architect"
+    },
+    {
+      "from": "/docs/skills/by-category/devops",
+      "to": "/docs/reference/agents/monitoring-engineer"
+    },
+    {
+      "from": "/docs/skills/by-category/devops",
+      "to": "/docs/reference/skills/ci-debug"
+    },
+    {
+      "from": "/docs/skills/by-category/devops",
+      "to": "/docs/reference/skills/ci-sentinel"
+    },
+    {
+      "from": "/docs/skills/by-category/devops",
+      "to": "/docs/reference/skills/devops-deployment"
+    },
+    {
+      "from": "/docs/skills/by-category/devops",
+      "to": "/docs/reference/skills/monitoring-observability"
+    },
+    {
+      "from": "/docs/skills/by-category/devops",
+      "to": "/docs/reference/skills/portless"
+    },
+    {
+      "from": "/docs/skills/by-category/devops",
+      "to": "/docs/reference/skills/telemetry-inspect"
+    },
+    {
+      "from": "/docs/skills/by-category/devops",
+      "to": "/docs/reference/skills/web-research-workflow"
+    },
+    {
+      "from": "/docs/skills/by-category/frontend",
+      "to": "/docs/reference/agents/accessibility-specialist"
+    },
+    {
+      "from": "/docs/skills/by-category/frontend",
+      "to": "/docs/reference/agents/component-curator"
+    },
+    {
+      "from": "/docs/skills/by-category/frontend",
+      "to": "/docs/reference/agents/design-system-architect"
+    },
+    {
+      "from": "/docs/skills/by-category/frontend",
+      "to": "/docs/reference/agents/frontend-performance-engineer"
+    },
+    {
+      "from": "/docs/skills/by-category/frontend",
+      "to": "/docs/reference/agents/frontend-ui-developer"
+    },
+    {
+      "from": "/docs/skills/by-category/frontend",
+      "to": "/docs/reference/skills/accessibility"
+    },
+    {
+      "from": "/docs/skills/by-category/frontend",
+      "to": "/docs/reference/skills/ai-ui-generation"
+    },
+    {
+      "from": "/docs/skills/by-category/frontend",
+      "to": "/docs/reference/skills/animation-motion-design"
+    },
+    {
+      "from": "/docs/skills/by-category/frontend",
+      "to": "/docs/reference/skills/component-search"
+    },
+    {
+      "from": "/docs/skills/by-category/frontend",
+      "to": "/docs/reference/skills/design-context-extract"
+    },
+    {
+      "from": "/docs/skills/by-category/frontend",
+      "to": "/docs/reference/skills/design-stylecards"
+    },
+    {
+      "from": "/docs/skills/by-category/frontend",
+      "to": "/docs/reference/skills/design-system-tokens"
+    },
+    {
+      "from": "/docs/skills/by-category/frontend",
+      "to": "/docs/reference/skills/design-to-code"
+    },
+    {
+      "from": "/docs/skills/by-category/frontend",
+      "to": "/docs/reference/skills/figma-design-handoff"
+    },
+    {
+      "from": "/docs/skills/by-category/frontend",
+      "to": "/docs/reference/skills/i18n-date-patterns"
+    },
+    {
+      "from": "/docs/skills/by-category/frontend",
+      "to": "/docs/reference/skills/interaction-patterns"
+    },
+    {
+      "from": "/docs/skills/by-category/frontend",
+      "to": "/docs/reference/skills/json-render-catalog"
+    },
+    {
+      "from": "/docs/skills/by-category/frontend",
+      "to": "/docs/reference/skills/multi-surface-render"
+    },
+    {
+      "from": "/docs/skills/by-category/frontend",
+      "to": "/docs/reference/skills/performance"
+    },
+    {
+      "from": "/docs/skills/by-category/frontend",
+      "to": "/docs/reference/skills/react-server-components-framework"
+    },
+    {
+      "from": "/docs/skills/by-category/frontend",
+      "to": "/docs/reference/skills/responsive-patterns"
+    },
+    {
+      "from": "/docs/skills/by-category/frontend",
+      "to": "/docs/reference/skills/storybook-mcp-integration"
+    },
+    {
+      "from": "/docs/skills/by-category/frontend",
+      "to": "/docs/reference/skills/storybook-testing"
+    },
+    {
+      "from": "/docs/skills/by-category/frontend",
+      "to": "/docs/reference/skills/ui-components"
+    },
+    {
+      "from": "/docs/skills/by-category/frontend",
+      "to": "/docs/reference/skills/vite-advanced"
+    },
+    {
+      "from": "/docs/skills/by-category/frontend",
+      "to": "/docs/reference/skills/zustand-patterns"
+    },
+    {
+      "from": "/docs/skills/by-category/product",
+      "to": "/docs/reference/agents/market-intelligence"
+    },
+    {
+      "from": "/docs/skills/by-category/product",
+      "to": "/docs/reference/agents/product-strategist"
+    },
+    {
+      "from": "/docs/skills/by-category/product",
+      "to": "/docs/reference/skills/business-case"
+    },
+    {
+      "from": "/docs/skills/by-category/product",
+      "to": "/docs/reference/skills/competitive-analysis"
+    },
+    {
+      "from": "/docs/skills/by-category/product",
+      "to": "/docs/reference/skills/market-sizing"
+    },
+    {
+      "from": "/docs/skills/by-category/product",
+      "to": "/docs/reference/skills/okr-design"
+    },
+    {
+      "from": "/docs/skills/by-category/product",
+      "to": "/docs/reference/skills/prd-to-goal"
+    },
+    {
+      "from": "/docs/skills/by-category/product",
+      "to": "/docs/reference/skills/prioritization"
+    },
+    {
+      "from": "/docs/skills/by-category/product",
+      "to": "/docs/reference/skills/product-analytics"
+    },
+    {
+      "from": "/docs/skills/by-category/product",
+      "to": "/docs/reference/skills/product-frameworks"
+    },
+    {
+      "from": "/docs/skills/by-category/product",
+      "to": "/docs/reference/skills/user-research"
+    },
+    {
+      "from": "/docs/skills/by-category/product",
+      "to": "/docs/reference/skills/write-prd"
+    },
+    {
+      "from": "/docs/skills/by-category/security",
+      "to": "/docs/reference/agents/ai-safety-auditor"
+    },
+    {
+      "from": "/docs/skills/by-category/security",
+      "to": "/docs/reference/agents/security-auditor"
+    },
+    {
+      "from": "/docs/skills/by-category/security",
+      "to": "/docs/reference/agents/security-layer-auditor"
+    },
+    {
+      "from": "/docs/skills/by-category/security",
+      "to": "/docs/reference/skills/audit-activation"
+    },
+    {
+      "from": "/docs/skills/by-category/security",
+      "to": "/docs/reference/skills/audit-full"
+    },
+    {
+      "from": "/docs/skills/by-category/security",
+      "to": "/docs/reference/skills/browser-tools"
+    },
+    {
+      "from": "/docs/skills/by-category/security",
+      "to": "/docs/reference/skills/design-context-extract"
+    },
+    {
+      "from": "/docs/skills/by-category/security",
+      "to": "/docs/reference/skills/mcp-patterns"
+    },
+    {
+      "from": "/docs/skills/by-category/security",
+      "to": "/docs/reference/skills/review-pr"
+    },
+    {
+      "from": "/docs/skills/by-category/security",
+      "to": "/docs/reference/skills/security-patterns"
+    },
+    {
+      "from": "/docs/skills/by-category/testing",
+      "to": "/docs/reference/agents/code-quality-reviewer"
+    },
+    {
+      "from": "/docs/skills/by-category/testing",
+      "to": "/docs/reference/agents/test-generator"
+    },
+    {
+      "from": "/docs/skills/by-category/testing",
+      "to": "/docs/reference/skills/bare-eval"
+    },
+    {
+      "from": "/docs/skills/by-category/testing",
+      "to": "/docs/reference/skills/code-review-playbook"
+    },
+    {
+      "from": "/docs/skills/by-category/testing",
+      "to": "/docs/reference/skills/cover"
+    },
+    {
+      "from": "/docs/skills/by-category/testing",
+      "to": "/docs/reference/skills/emulate-seed"
+    },
+    {
+      "from": "/docs/skills/by-category/testing",
+      "to": "/docs/reference/skills/expect"
+    },
+    {
+      "from": "/docs/skills/by-category/testing",
+      "to": "/docs/reference/skills/quality-gates"
+    },
+    {
+      "from": "/docs/skills/by-category/testing",
+      "to": "/docs/reference/skills/review-pr"
+    },
+    {
+      "from": "/docs/skills/by-category/testing",
+      "to": "/docs/reference/skills/storybook-testing"
+    },
+    {
+      "from": "/docs/skills/by-category/testing",
+      "to": "/docs/reference/skills/testing-e2e"
+    },
+    {
+      "from": "/docs/skills/by-category/testing",
+      "to": "/docs/reference/skills/testing-integration"
+    },
+    {
+      "from": "/docs/skills/by-category/testing",
+      "to": "/docs/reference/skills/testing-llm"
+    },
+    {
+      "from": "/docs/skills/by-category/testing",
+      "to": "/docs/reference/skills/testing-patterns"
+    },
+    {
+      "from": "/docs/skills/by-category/testing",
+      "to": "/docs/reference/skills/testing-perf"
+    },
+    {
+      "from": "/docs/skills/by-category/testing",
+      "to": "/docs/reference/skills/testing-unit"
+    },
+    {
+      "from": "/docs/skills/by-category/testing",
+      "to": "/docs/reference/skills/verify"
+    },
+    {
+      "from": "/docs/skills/by-category/workflows",
+      "to": "/docs/reference/skills/assess"
+    },
+    {
+      "from": "/docs/skills/by-category/workflows",
+      "to": "/docs/reference/skills/audit-activation"
+    },
+    {
+      "from": "/docs/skills/by-category/workflows",
+      "to": "/docs/reference/skills/auto"
+    },
+    {
+      "from": "/docs/skills/by-category/workflows",
+      "to": "/docs/reference/skills/brainstorm"
+    },
+    {
+      "from": "/docs/skills/by-category/workflows",
+      "to": "/docs/reference/skills/ci-debug"
+    },
+    {
+      "from": "/docs/skills/by-category/workflows",
+      "to": "/docs/reference/skills/ci-sentinel"
+    },
+    {
+      "from": "/docs/skills/by-category/workflows",
+      "to": "/docs/reference/skills/commit"
+    },
+    {
+      "from": "/docs/skills/by-category/workflows",
+      "to": "/docs/reference/skills/component-search"
+    },
+    {
+      "from": "/docs/skills/by-category/workflows",
+      "to": "/docs/reference/skills/cover"
+    },
+    {
+      "from": "/docs/skills/by-category/workflows",
+      "to": "/docs/reference/skills/create-pr"
+    },
+    {
+      "from": "/docs/skills/by-category/workflows",
+      "to": "/docs/reference/skills/design-context-extract"
+    },
+    {
+      "from": "/docs/skills/by-category/workflows",
+      "to": "/docs/reference/skills/design-import"
+    },
+    {
+      "from": "/docs/skills/by-category/workflows",
+      "to": "/docs/reference/skills/design-ship"
+    },
+    {
+      "from": "/docs/skills/by-category/workflows",
+      "to": "/docs/reference/skills/design-stylecards"
+    },
+    {
+      "from": "/docs/skills/by-category/workflows",
+      "to": "/docs/reference/skills/design-to-code"
+    },
+    {
+      "from": "/docs/skills/by-category/workflows",
+      "to": "/docs/reference/skills/dev"
+    },
+    {
+      "from": "/docs/skills/by-category/workflows",
+      "to": "/docs/reference/skills/doctor"
+    },
+    {
+      "from": "/docs/skills/by-category/workflows",
+      "to": "/docs/reference/skills/dream"
+    },
+    {
+      "from": "/docs/skills/by-category/workflows",
+      "to": "/docs/reference/skills/expect"
+    },
+    {
+      "from": "/docs/skills/by-category/workflows",
+      "to": "/docs/reference/skills/explore"
+    },
+    {
+      "from": "/docs/skills/by-category/workflows",
+      "to": "/docs/reference/skills/fix-issue"
+    },
+    {
+      "from": "/docs/skills/by-category/workflows",
+      "to": "/docs/reference/skills/glyph"
+    },
+    {
+      "from": "/docs/skills/by-category/workflows",
+      "to": "/docs/reference/skills/help"
+    },
+    {
+      "from": "/docs/skills/by-category/workflows",
+      "to": "/docs/reference/skills/implement"
+    },
+    {
+      "from": "/docs/skills/by-category/workflows",
+      "to": "/docs/reference/skills/memory"
+    },
+    {
+      "from": "/docs/skills/by-category/workflows",
+      "to": "/docs/reference/skills/page-serve"
+    },
+    {
+      "from": "/docs/skills/by-category/workflows",
+      "to": "/docs/reference/skills/prd-to-goal"
+    },
+    {
+      "from": "/docs/skills/by-category/workflows",
+      "to": "/docs/reference/skills/release-sync"
+    },
+    {
+      "from": "/docs/skills/by-category/workflows",
+      "to": "/docs/reference/skills/remember"
+    },
+    {
+      "from": "/docs/skills/by-category/workflows",
+      "to": "/docs/reference/skills/review-pr"
+    },
+    {
+      "from": "/docs/skills/by-category/workflows",
+      "to": "/docs/reference/skills/setup"
+    },
+    {
+      "from": "/docs/skills/by-category/workflows",
+      "to": "/docs/reference/skills/swarm-migrate"
+    },
+    {
+      "from": "/docs/skills/by-category/workflows",
+      "to": "/docs/reference/skills/telemetry-inspect"
+    },
+    {
+      "from": "/docs/skills/by-category/workflows",
+      "to": "/docs/reference/skills/verify"
+    },
+    {
+      "from": "/docs/skills/by-category/workflows",
+      "to": "/docs/reference/skills/visualize-plan"
+    },
+    {
+      "from": "/docs/skills/by-category/workflows",
+      "to": "/docs/reference/skills/write-prd"
+    },
+    {
+      "from": "/docs/skills/command-skills",
+      "to": "/docs/skills/overview"
+    },
+    {
+      "from": "/docs/skills/command-skills",
+      "to": "/docs/skills/reference-skills"
+    },
+    {
+      "from": "/docs/skills/command-skills",
+      "to": "/docs/skills/skill-composition"
+    },
+    {
+      "from": "/docs/skills/overview",
+      "to": "/docs/skills/command-skills"
+    },
+    {
+      "from": "/docs/skills/overview",
+      "to": "/docs/skills/reference-skills"
+    },
+    {
+      "from": "/docs/skills/overview",
+      "to": "/docs/skills/skill-composition"
+    },
+    {
+      "from": "/docs/skills/overview",
+      "to": "/docs/skills/writing-skills"
+    },
+    {
+      "from": "/docs/skills/reference-skills",
+      "to": "/docs/skills/command-skills"
+    },
+    {
+      "from": "/docs/skills/reference-skills",
+      "to": "/docs/skills/skill-composition"
+    },
+    {
+      "from": "/docs/skills/reference-skills",
+      "to": "/docs/skills/writing-skills"
+    },
+    {
+      "from": "/docs/skills/skill-composition",
+      "to": "/docs/skills/command-skills"
+    },
+    {
+      "from": "/docs/skills/skill-composition",
+      "to": "/docs/skills/reference-skills"
+    },
+    {
+      "from": "/docs/skills/skill-composition",
+      "to": "/docs/skills/writing-skills"
+    },
+    {
+      "from": "/docs/skills/spotlights/commit",
+      "to": "/docs/skills/command-skills"
+    },
+    {
+      "from": "/docs/skills/spotlights/commit",
+      "to": "/docs/skills/spotlights/review-pr"
+    },
+    {
+      "from": "/docs/skills/spotlights/commit",
+      "to": "/docs/skills/spotlights/verify"
+    },
+    {
+      "from": "/docs/skills/spotlights/implement",
+      "to": "/docs/skills/command-skills"
+    },
+    {
+      "from": "/docs/skills/spotlights/implement",
+      "to": "/docs/skills/spotlights/commit"
+    },
+    {
+      "from": "/docs/skills/spotlights/implement",
+      "to": "/docs/skills/spotlights/memory"
+    },
+    {
+      "from": "/docs/skills/spotlights/implement",
+      "to": "/docs/skills/spotlights/review-pr"
+    },
+    {
+      "from": "/docs/skills/spotlights/implement",
+      "to": "/docs/skills/spotlights/verify"
+    },
+    {
+      "from": "/docs/skills/spotlights/memory",
+      "to": "/docs/memory/overview"
+    },
+    {
+      "from": "/docs/skills/spotlights/memory",
+      "to": "/docs/skills/command-skills"
+    },
+    {
+      "from": "/docs/skills/spotlights/memory",
+      "to": "/docs/skills/spotlights/commit"
+    },
+    {
+      "from": "/docs/skills/spotlights/memory",
+      "to": "/docs/skills/spotlights/implement"
+    },
+    {
+      "from": "/docs/skills/spotlights/memory",
+      "to": "/docs/skills/spotlights/verify"
+    },
+    {
+      "from": "/docs/skills/spotlights/review-pr",
+      "to": "/docs/skills/command-skills"
+    },
+    {
+      "from": "/docs/skills/spotlights/review-pr",
+      "to": "/docs/skills/spotlights/commit"
+    },
+    {
+      "from": "/docs/skills/spotlights/review-pr",
+      "to": "/docs/skills/spotlights/implement"
+    },
+    {
+      "from": "/docs/skills/spotlights/review-pr",
+      "to": "/docs/skills/spotlights/verify"
+    },
+    {
+      "from": "/docs/skills/spotlights/verify",
+      "to": "/docs/skills/command-skills"
+    },
+    {
+      "from": "/docs/skills/spotlights/verify",
+      "to": "/docs/skills/spotlights/commit"
+    },
+    {
+      "from": "/docs/skills/spotlights/verify",
+      "to": "/docs/skills/spotlights/implement"
+    },
+    {
+      "from": "/docs/skills/spotlights/verify",
+      "to": "/docs/skills/spotlights/review-pr"
+    },
+    {
+      "from": "/docs/skills/writing-skills",
+      "to": "/docs/skills/command-skills"
+    },
+    {
+      "from": "/docs/skills/writing-skills",
+      "to": "/docs/skills/overview"
+    },
+    {
+      "from": "/docs/skills/writing-skills",
+      "to": "/docs/skills/reference-skills"
+    },
+    {
+      "from": "/docs/troubleshooting",
+      "to": "/docs/troubleshooting/faq"
+    },
+    {
+      "from": "/docs/troubleshooting",
+      "to": "/docs/troubleshooting/hook-debugging"
+    },
+    {
+      "from": "/docs/troubleshooting/faq",
+      "to": "/docs/agents/writing-agents"
+    },
+    {
+      "from": "/docs/troubleshooting/faq",
+      "to": "/docs/hooks/safety-hooks"
+    },
+    {
+      "from": "/docs/troubleshooting/faq",
+      "to": "/docs/skills/writing-skills"
+    }
+  ]
+}

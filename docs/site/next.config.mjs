@@ -8,6 +8,12 @@ const config = {
 	// scanning and buys nothing back: no browser, agent or crawler reads it.
 	// Measured on production 2026-09-14, every response carried it.
 	poweredByHeader: false,
+	// Build-time flag passthrough so the client bundle can gate the optional
+	// Jev suggestion re-rank without a server round-trip to discover it. The
+	// value is a boolean flag, never a secret; TYPESAFE_API_KEY stays server-side.
+	env: {
+		ORK_SITE_JEV_RERANK: process.env.ORK_SITE_JEV_RERANK ?? "",
+	},
 	images: {
 		formats: ["image/avif", "image/webp"],
 		remotePatterns: [

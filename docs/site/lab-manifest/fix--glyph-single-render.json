@@ -1,0 +1,8 @@
+{
+  "slug": "fix--glyph-single-render",
+  "source": "docs/fix--glyph-single-render/index.html",
+  "title": "glyph: one render, 72 columns off a TTY",
+  "description": "Issue 4159: glyph and ork:glyph are the same skill, so the front door renders instead of handing off. A non-TTY host shows a vertical list at 72 columns.",
+  "tags": ["glyph", "skills", "non-tty"],
+  "date": "2026-09-19"
+}

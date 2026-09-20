@@ -375,8 +375,14 @@ jobs:
           IDENTIFIER="$(jq -r '.packages[0].identifier // empty' server.json)"
           [ -z "$IDENTIFIER" ] && exit 0
           REPO_PATH="${IDENTIFIER#ghcr.io/}"; REPO_PATH="${REPO_PATH%%:*}"
-          TOKEN="$(curl -fsSL --retry 5 --retry-delay 5 --connect-timeout 20 "https://ghcr.io/token?scope=repository:${REPO_PATH}:pull" | jq -r .token)"
-          if ! curl -fsSL -o /dev/null \
+          TOKEN="$(curl -fsSL --retry 5 --retry-delay 5 --connect-timeout 20 "https://ghcr.io/token?scope=repository:${REPO_PATH}:pull" | jq -r .token)" || TOKEN=""
+          # jq prints the string "null" when the body has no token. Either shape
+          # means the fetch failed. Do not fall through to the pullability error.
+          if [ -z "$TOKEN" ] || [ "$TOKEN" = "null" ]; then
+            echo "::error::GHCR token fetch failed"
+            exit 1
+          fi
+          if ! curl -fsSL --retry 5 --retry-delay 5 --connect-timeout 20 -o /dev/null \
                -H "Authorization: Bearer $TOKEN" \
                -H "Accept: application/vnd.oci.image.index.v1+json, application/vnd.docker.distribution.manifest.list.v2+json, application/vnd.docker.distribution.manifest.v2+json" \
                "https://ghcr.io/v2/${REPO_PATH}/manifests/${VERSION}"; then

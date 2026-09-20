@@ -60,7 +60,7 @@ import {
 
 const KEY = 'test-key-not-real';
 
-function answerBody(intent: string, confidence = 0.83, extra: Record<string, unknown> = {}) {
+function answerBody(intent: string, confidence: unknown = 0.83, extra: Record<string, unknown> = {}) {
   return {
     model: ROUTE_MODEL,
     answers: {
@@ -609,5 +609,60 @@ describe('log line', () => {
     expect(formatRouteLogLine(v)).toBe(
       'route jev: intent=dev_fix conf=0.83 top3=dev_fix:0.71,dev_build:0.12,research:0.08 worktree=0.91 browser=0.05 mutation=1.2 operator=0.12 floor=0.50 decided_by=jev latency_ms=801 input_tokens=812 redacted=2',
     );
+  });
+});
+
+describe('reply audit: synchronous fail-open and paired evidence', () => {
+  const invalidConfidenceReply = (confidence: unknown) => {
+    const body = answerBody('dev_fix');
+    body.answers.intent.confidence = confidence;
+    return JSON.stringify({ status: 200, text: JSON.stringify(body) });
+  };
+
+  it.each([
+    ['timeout', JSON.stringify({ error: 'timeout' }), null],
+    ['non-2xx', JSON.stringify({ status: 503, text: '{}' }), null],
+    ['malformed body', JSON.stringify({ status: 200, text: '{' }), null],
+    ['malformed answer', JSON.stringify({ status: 200, text: '{"answers":[]}' }), null],
+    ['null child', 'null', null],
+    ['below floor', JSON.stringify({ status: 200, text: JSON.stringify(answerBody('dev_fix', 0.49)) }), 0.49],
+    ['out of range', JSON.stringify({ status: 200, text: JSON.stringify(answerBody('dev_fix', 2)) }), null],
+    ['missing confidence', invalidConfidenceReply(undefined), null],
+    ['null confidence', invalidConfidenceReply(null), null],
+    ['boolean confidence', invalidConfidenceReply(true), null],
+    ['string confidence', invalidConfidenceReply('0.9'), null],
+  ])('keeps the incumbent for %s in the actual steer entry point', (_name, stdout, expectedConfidence) => {
+    const v = routeJudgmentSync({ prompt: 'fix it now please', sessionId: SESSION, projectDir,
+      env: envFor('steer'), spawnImpl: () => ({ status: 0, stdout }) });
+    expect(v.decided_by).toBe('table');
+    expect(v.conf).toBe(expectedConfidence);
+  });
+
+  it('logs a missing key without spawning', () => {
+    const spawnImpl = vi.fn();
+    const v = routeJudgmentSync({ prompt: 'fix it now please', sessionId: SESSION, projectDir,
+      env: { ORK_ROUTE_JEV: 'steer' }, spawnImpl });
+    expect(v.decided_by).toBe('table');
+    expect(spawnImpl).not.toHaveBeenCalled();
+    const row = JSON.parse(readFileSync(join(routeSessionDir(SESSION, projectDir, {}), FILE_ROUTE_RECORDS), 'utf8'));
+    expect(row.error).toBe('no key');
+    expect(row.agree).toBeNull();
+  });
+
+  it.each([
+    ['dev_build', 0.9, false, true, false],
+    ['dev_build', 0.2, false, false, true],
+    ['dev_fix', 0.9, true, false, false],
+    [undefined, 0.9, null, null, false],
+  ] as const)('records both picks without inventing an incumbent (%s, %s)', async (incumbentIntent, confidence, agree, high, below) => {
+    await routeJudgment({ prompt: 'fix it now please', sessionId: SESSION, projectDir, incumbentIntent,
+      env: envFor('shadow'), fetchImpl: mockFetch(200, answerBody('dev_fix', confidence)) });
+    const row = JSON.parse(readFileSync(join(routeSessionDir(SESSION, projectDir, {}), FILE_ROUTE_RECORDS), 'utf8'));
+    expect(row).toMatchObject({ intent: 'dev_fix', incumbent_intent: incumbentIntent ?? null,
+      conf: confidence, floor: 0.5, agree, high_confidence_disagreement: high, below_floor: below });
+  });
+
+  it.each(['2', '-1', 'Infinity', 'NaN'])('rejects an invalid floor %s', (floor) => {
+    expect(resolveRouteConfig({ ORK_ROUTE_JEV_FLOOR: floor }).floor).toBe(0.5);
   });
 });

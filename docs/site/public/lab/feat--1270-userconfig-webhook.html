@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>userConfig webhook resolution</title>
+<style>
+  :root {
+    --bg: #0f1115; --panel: #171a21; --ink: #e6e6e6; --muted: #9aa3b2;
+    --ok: #6fd18b; --bad: #f07178; --line: #2a2f3a; --accent: #7db4f0;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--ink); }
+  main { max-width: 720px; margin: 0 auto; padding: 32px 20px 64px; }
+  h1 { font-size: 1.4rem; margin: 0 0 6px; }
+  p.lead { color: var(--muted); margin: 0 0 20px; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; margin-top: 16px; }
+  fieldset { border: 1px solid var(--line); border-radius: 8px; margin: 0 0 12px; padding: 10px 14px; }
+  legend { color: var(--muted); font-size: 0.85rem; font-weight: 600; padding: 0 6px; }
+  label.inline { display: inline-flex; align-items: center; gap: 6px; margin: 0 18px 4px 0; }
+  code { color: var(--accent); font-size: 0.85em; }
+  table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+  th, td { text-align: left; padding: 8px; border-bottom: 1px solid var(--line); }
+  th { color: var(--muted); font-weight: 600; font-size: 0.85rem; }
+  td.src { color: var(--ok); font-weight: 700; }
+  td.none { color: var(--bad); font-weight: 700; }
+  .note { color: var(--muted); font-size: 0.9rem; margin: 12px 0 0; }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="userConfig webhook resolution order"><meta property="og:description" content="Issue 1270: webhook URL and hook token now resolve from manifest userConfig (CLAUDE_PLUGIN_OPTION_*) with the legacy ORCHESTKIT_HOOK_* env vars as fallback. Toggle the sources and see which value each layer resolves."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/feat--1270-userconfig-webhook.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="userConfig webhook resolution order"><meta name="twitter:description" content="Issue 1270: webhook URL and hook token now resolve from manifest userConfig (CLAUDE_PLUGIN_OPTION_*) with the legacy ORCHESTKIT_HOOK_* env vars as fallback. Toggle the sources and see which value each layer resolves."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <h1>Webhook config resolution order</h1>
+  <p class="lead">
+    The plugin manifest now declares <code>userConfig</code> entries for
+    <code>webhookUrl</code> and a sensitive <code>hookToken</code>, which Claude
+    Code injects into hook processes as <code>CLAUDE_PLUGIN_OPTION_*</code> env
+    vars. Toggle which sources are populated and see which value the hooks
+    resolve, before and after the change.
+  </p>
+
+  <section class="panel">
+    <fieldset>
+      <legend>webhookUrl</legend>
+      <label class="inline"><input id="urlOpt" type="checkbox" checked> userConfig set (<code>CLAUDE_PLUGIN_OPTION_WEBHOOKURL</code>)</label>
+      <label class="inline"><input id="urlEnv" type="checkbox" checked> legacy env set (<code>ORCHESTKIT_HOOK_URL</code>)</label>
+    </fieldset>
+    <fieldset>
+      <legend>hookToken</legend>
+      <label class="inline"><input id="tokOpt" type="checkbox" checked> userConfig set (<code>CLAUDE_PLUGIN_OPTION_HOOKTOKEN</code>)</label>
+      <label class="inline"><input id="tokEnv" type="checkbox"> legacy env set (<code>ORCHESTKIT_HOOK_TOKEN</code>)</label>
+    </fieldset>
+    <table>
+      <thead>
+        <tr><th>value</th><th>resolved from (before)</th><th>resolved from (after)</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>webhook URL</td>
+          <td id="urlBefore"></td>
+          <td id="urlAfter"></td>
+        </tr>
+        <tr>
+          <td>hook token</td>
+          <td id="tokBefore"></td>
+          <td id="tokAfter"></td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="note" id="note"></p>
+  </section>
+</main>
+<script>
+(function () {
+  var urlOpt = document.getElementById("urlOpt");
+  var urlEnv = document.getElementById("urlEnv");
+  var tokOpt = document.getElementById("tokOpt");
+  var tokEnv = document.getElementById("tokEnv");
+  var urlBefore = document.getElementById("urlBefore");
+  var urlAfter = document.getElementById("urlAfter");
+  var tokBefore = document.getElementById("tokBefore");
+  var tokAfter = document.getElementById("tokAfter");
+  var note = document.getElementById("note");
+
+  function cell(el, source) {
+    el.textContent = source || "unset";
+    el.className = source ? "src" : "none";
+  }
+
+  function render() {
+    // Before: only the legacy ORCHESTKIT_HOOK_* env vars were read.
+    cell(urlBefore, urlEnv.checked ? "ORCHESTKIT_HOOK_URL" : null);
+    cell(tokBefore, tokEnv.checked ? "ORCHESTKIT_HOOK_TOKEN" : null);
+    // After: CLAUDE_PLUGIN_OPTION_* wins, legacy env is the fallback.
+    cell(urlAfter, urlOpt.checked ? "userConfig (webhookUrl)" : (urlEnv.checked ? "ORCHESTKIT_HOOK_URL" : null));
+    cell(tokAfter, tokOpt.checked ? "userConfig (hookToken, keychain)" : (tokEnv.checked ? "ORCHESTKIT_HOOK_TOKEN" : null));
+
+    if (urlOpt.checked && urlEnv.checked) {
+      note.textContent = "Both set: the configured value wins. Existing installs that only export the legacy env vars keep working unchanged.";
+    } else if (!urlOpt.checked && urlEnv.checked) {
+      note.textContent = "Fallback path: no userConfig, so the legacy env var still supplies the value. Non-breaking for existing installs.";
+    } else if (urlOpt.checked && !urlEnv.checked) {
+      note.textContent = "The new path on its own: userConfig alone is enough, and the token value is stored in the OS keychain by Claude Code.";
+    } else {
+      note.textContent = "Nothing configured: the webhook resolves to unset and the sinks stay disabled, same as before.";
+    }
+  }
+
+  [urlOpt, urlEnv, tokOpt, tokEnv].forEach(function (el) {
+    el.addEventListener("change", render);
+  });
+  render();
+})();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
