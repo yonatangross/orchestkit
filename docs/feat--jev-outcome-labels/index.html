@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Weak Labels Need an Evidence Chain | OrchestKit Lab</title>
+  <meta name="description" content="A synthetic interactive explainer for conservative Jev executor outcome labels.">
+  <style>
+    :root { --pg-bg: hsl(224 38% 8%); --pg-ink: hsl(213 40% 94%); --pg-muted: hsl(214 22% 76%); --pg-card: hsl(221 35% 13%); --pg-edge: hsl(216 29% 31%); --pg-accent: hsl(170 66% 69%); --pg-action: hsl(216 48% 21%); --pg-result: hsl(157 61% 84%); color-scheme: dark; background: var(--pg-bg); color: var(--pg-ink); font: 16px/1.55 system-ui, sans-serif; }
+    body { max-width: 920px; margin: 0 auto; padding: 44px 22px 72px; }
+    h1 { font-size: clamp(2.1rem, 7vw, 4rem); line-height: 1.02; letter-spacing: -.045em; }
+    h2 { margin-top: 2.2rem; font-size: 1.25rem; }
+    p, li { color: var(--pg-muted); }
+    code { padding: .08rem .35rem; border-radius: .3rem; background: hsl(217 35% 18%); color: hsl(278 74% 83%); }
+    .eyebrow { color: var(--pg-accent); font-size: .78rem; font-weight: 700; letter-spacing: .12em; }
+    .card { margin-top: 1.25rem; padding: 1.25rem; border: 1px solid var(--pg-edge); border-radius: 1rem; background: var(--pg-card); }
+    .choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: .75rem; }
+    button { min-height: 48px; padding: .7rem .85rem; border: 1px solid var(--pg-edge); border-radius: .65rem; background: var(--pg-action); color: var(--pg-ink); cursor: pointer; font: inherit; text-align: left; }
+    button:hover, button:focus-visible { outline: 3px solid var(--pg-accent); outline-offset: 2px; background: hsl(216 48% 27%); }
+    button[aria-pressed="true"] { border-color: var(--pg-accent); background: hsl(164 43% 20%); }
+    output { display: block; min-height: 7rem; margin-top: 1rem; padding: 1rem; border-radius: .7rem; background: hsl(225 43% 7%); color: var(--pg-result); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; white-space: pre-wrap; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    th, td { padding: .7rem; border-bottom: 1px solid var(--pg-edge); text-align: left; vertical-align: top; }
+    th { color: hsl(213 26% 75%); font-size: .8rem; letter-spacing: .06em; text-transform: uppercase; }
+    .note { font-size: .9rem; color: hsl(214 18% 68%); }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; scroll-behavior: auto !important; transition: none !important; } }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="eyebrow">ORCHESTKIT LAB · JEV OUTCOME LABELS</p>
+    <h1>A weak label needs an evidence chain</h1>
+    <p>Jev can recommend an executor in shadow mode. This review aid labels that recommendation only when structured events prove a relationship. A label is not a replacement executor choice and never changes a routed session.</p>
+
+    <section class="card" aria-labelledby="try-title">
+      <h2 id="try-title">Try synthetic evidence cases</h2>
+      <p>Each case is a fixed example inside this page. No log, identifier, key, network request, or browser storage is read.</p>
+      <div class="choices" role="group" aria-label="Synthetic weak label cases">
+        <button type="button" data-case="missing" aria-pressed="true">Missing prompt identity</button>
+        <button type="button" data-case="alternate" aria-pressed="false">One alternate executor</button>
+        <button type="button" data-case="complete" aria-pressed="false">Completed stop plus execution</button>
+        <button type="button" data-case="bare" aria-pressed="false">Bare stop event</button>
+      </div>
+      <output id="result" aria-live="polite"></output>
+      <p class="note">The examples show a weak outcome only. They do not expose or infer a corrected pick.</p>
+    </section>
+
+    <section class="card" aria-labelledby="rules-title">
+      <h2 id="rules-title">The conservative rules</h2>
+      <table>
+        <thead><tr><th>Evidence</th><th>Result</th><th>Reason</th></tr></thead>
+        <tbody>
+          <tr><td>Missing prompt identity</td><td><code>unknown</code></td><td>Session reuse is not enough to join a signal.</td></tr>
+          <tr><td>One exact primary handoff to another executor</td><td><code>weak wrong</code></td><td>An unambiguous alternate contradicts the Jev executor.</td></tr>
+          <tr><td>Clean completed stop plus matching primary execution</td><td><code>weak correct</code></td><td>Both the outcome and the executed handoff are explicit.</td></tr>
+          <tr><td>Bare stop or end turn</td><td><code>unknown</code></td><td>Completion flags alone do not prove which executor ran.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="card" aria-labelledby="separate-title">
+      <h2 id="separate-title">Confirmed labels stay separate</h2>
+      <p>A human reviewed outcome belongs in a separate confirmed-label store. Weak signals can sort a review queue, but cannot overwrite a confirmed outcome or manufacture a corrected recommendation.</p>
+      <button type="button" id="copy-prompt">Copy the review rule</button>
+      <output id="copy-result" aria-live="polite">Select the copy button to copy a short review rule.</output>
+    </section>
+  </main>
+  <script>
+    (function () {
+      "use strict";
+      var cases = {
+        missing: "outcome: unknown\nsignal: missing_prompt_id\nwhy: no cross prompt inference",
+        alternate: "outcome: wrong\nsignal: alternate_executor\nwhy: one exact primary handoff differs",
+        complete: "outcome: correct\nsignal: clean_completion\nwhy: clean stop and matching execution agree",
+        bare: "outcome: unknown\nsignal: no_matching_signal\nwhy: stop has no corroborated execution"
+      };
+      var result = document.getElementById("result");
+      var copyResult = document.getElementById("copy-result");
+      var buttons = document.querySelectorAll("[data-case]");
+      function render(name) {
+        buttons.forEach(function (button) { button.setAttribute("aria-pressed", String(button.dataset.case === name)); });
+        result.textContent = cases[name] + "\nsource: synthetic page preset";
+      }
+      buttons.forEach(function (button) { button.addEventListener("click", function () { render(button.dataset.case); }); });
+      document.getElementById("copy-prompt").addEventListener("click", function () {
+        var text = "Weak labels require explicit prompt, executor, completion, and repository evidence. Confirmed labels remain separate.";
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(function () { copyResult.textContent = "Copied review rule.\n" + text; }, function () { copyResult.textContent = text; });
+        } else { copyResult.textContent = text; }
+      });
+      render("missing");
+    }());
+  </script>
+</body>
+</html>
