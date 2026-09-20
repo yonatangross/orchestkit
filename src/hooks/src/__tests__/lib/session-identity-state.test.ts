@@ -65,6 +65,15 @@ beforeEach(() => {
   delete process.env.ORK_SESSION_IDENTITY;
   delete process.env.ORK_SESSION_IDENTITY_CHILD;
   delete process.env.ORK_SESSION_IDENTITY_WAIT_MS;
+  delete process.env.ORK_SESSION_IDENTITY_RATE_MAX;
+  delete process.env.ORK_SESSION_IDENTITY_RATE_WINDOW_MS;
+  // Isolate the per-host rate-cap file so tests can't consume each other's
+  // spawn budget through the shared tmpdir default.
+  process.env.ORK_SESSION_IDENTITY_RATE_FILE = path.join(tmpDir, 'rate-spawns.json');
+});
+
+afterEach(() => {
+  delete process.env.ORK_SESSION_IDENTITY_RATE_FILE;
 });
 
 afterEach(() => {
@@ -132,6 +141,39 @@ describe('manageSessionIdentity', () => {
     manageSessionIdentity(makeInput(), ctx, sessionDir, tmpDir);
     manageSessionIdentity(makeInput(), ctx, sessionDir, tmpDir);
     expect(spawnIdentityGenerator).toHaveBeenCalledOnce();
+  });
+
+  it('#4248: the spawned marker survives a branch change — no respawn', () => {
+    manageSessionIdentity(makeInput(), ctx, sessionDir, tmpDir);
+    const otherBranch: HookContext = { ...ctx, branch: 'feat/other-work' };
+    manageSessionIdentity(makeInput(), otherBranch, sessionDir, tmpDir);
+    expect(spawnIdentityGenerator).toHaveBeenCalledOnce();
+    expect(fs.existsSync(path.join(sessionDir, 'session-identity.spawned'))).toBe(true);
+  });
+
+  it('#4248: marker written before spawn — a failed spawn never retries', () => {
+    vi.mocked(spawnIdentityGenerator).mockReturnValue(false);
+    manageSessionIdentity(makeInput(), ctx, sessionDir, tmpDir);
+    expect(fs.existsSync(path.join(sessionDir, 'session-identity.spawned'))).toBe(true);
+    expect(fs.existsSync(path.join(sessionDir, 'session-identity.failed'))).toBe(true);
+    manageSessionIdentity(makeInput(), ctx, sessionDir, tmpDir);
+    expect(spawnIdentityGenerator).toHaveBeenCalledOnce();
+  });
+
+  it('#4248: per-host cap refuses the N+1th spawn across sessions and logs it', () => {
+    process.env.ORK_SESSION_IDENTITY_RATE_MAX = '1';
+    const lines: string[] = [];
+    const logCtx: HookContext = { ...ctx, log: (_h: string, m: string) => void lines.push(m) };
+    const dirA = path.join(tmpDir, 'sess-a');
+    const dirB = path.join(tmpDir, 'sess-b');
+
+    manageSessionIdentity(makeInput(), logCtx, dirA, tmpDir);
+    manageSessionIdentity(makeInput({ session_id: 'sess-b' }), logCtx, dirB, tmpDir);
+
+    expect(spawnIdentityGenerator).toHaveBeenCalledOnce();
+    expect(lines.some((l) => l.includes('rate-capped'))).toBe(true);
+    // The refused session keeps no marker, so it can title once the window slides.
+    expect(fs.existsSync(path.join(dirB, 'session-identity.spawned'))).toBe(false);
   });
 
   it('harvests generator output: returns title and upgrades the color', () => {
@@ -210,6 +252,24 @@ describe('manageSessionIdentity', () => {
     fs.writeFileSync(path.join(sessionDir, 'session-identity.raw'), '', 'utf8');
     expect(manageSessionIdentity(makeInput(), ctx, sessionDir, tmpDir)).toBeNull();
     expect(fs.existsSync(path.join(sessionDir, 'session-identity.failed'))).toBe(false);
+  });
+
+  it('#4248: a corrupt rate-cap file really resets the window, not just logs', () => {
+    const rateFile = process.env.ORK_SESSION_IDENTITY_RATE_FILE as string;
+    fs.writeFileSync(rateFile, '{not json at all', 'utf8');
+    process.env.ORK_SESSION_IDENTITY_RATE_MAX = '1';
+
+    // Corrupt state must not block the spawn AND must be replaced by a fresh
+    // window — otherwise every later call fails open on the same torn bytes.
+    manageSessionIdentity(makeInput(), ctx, sessionDir, tmpDir);
+    expect(spawnIdentityGenerator).toHaveBeenCalledOnce();
+    const rewritten = JSON.parse(fs.readFileSync(rateFile, 'utf8')) as number[];
+    expect(Array.isArray(rewritten)).toBe(true);
+    expect(rewritten).toHaveLength(1);
+    // ...and the cap now applies normally: a second session is refused.
+    const dirB = path.join(tmpDir, 'sess-b');
+    manageSessionIdentity(makeInput({ session_id: 'sess-b' }), ctx, dirB, tmpDir);
+    expect(spawnIdentityGenerator).toHaveBeenCalledOnce();
   });
 });
 

@@ -30,6 +30,7 @@
  * @see https://github.com/yonatangross/orchestkit/issues/4233
  */
 
+import { TYPESAFE_KEY_ENV, resolveTypesafeKey } from './jev-key.js';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import {
@@ -64,8 +65,7 @@ export const ROUTE_FLOOR_ENV = 'ORK_ROUTE_JEV_FLOOR';
 export const ROUTE_DAILY_TOKENS_ENV = 'ORK_ROUTE_JEV_DAILY_TOKENS';
 export const ROUTE_ENDPOINT_ENV = 'ORK_ROUTE_JEV_ENDPOINT';
 export const ROUTE_TIMEOUT_ENV = 'ORK_ROUTE_JEV_TIMEOUT_MS';
-/** The one key variable, shared with the other two Jev lanes. Never logged, never written. */
-export const TYPESAFE_KEY_ENV = 'ORK_TYPESAFE_API_KEY';
+export { TYPESAFE_KEY_ENV, resolveTypesafeKey } from './jev-key.js';
 
 export const ROUTE_MODEL = defaults.model;
 export const ROUTE_ENDPOINT = defaults.endpoint;
@@ -111,11 +111,6 @@ export function resolveRouteConfig(env: NodeJS.ProcessEnv = process.env): RouteC
     dailyTokens: numberEnv(env, ROUTE_DAILY_TOKENS_ENV, defaults.daily_tokens),
     tripHours: defaults.trip_hours,
   };
-}
-
-export function resolveTypesafeKey(env: NodeJS.ProcessEnv = process.env): string | null {
-  const key = (env[TYPESAFE_KEY_ENV] || '').trim();
-  return key || null;
 }
 
 // ---------------------------------------------------------------------------
@@ -355,6 +350,11 @@ function num(v: unknown): number | null {
   return null;
 }
 
+/** A routing gate accepts only a JSON number in the closed probability range. */
+function probability(v: unknown): number | null {
+  return typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= 1 ? v : null;
+}
+
 function noul(answer: unknown): number | null {
   if (typeof answer !== 'object' || answer === null) return null;
   const a = answer as Record<string, unknown>;
@@ -396,10 +396,7 @@ export function parseRouteAnswer(body: unknown): RouteAnswer | null {
     typeof usage === 'object' && usage !== null ? num((usage as Record<string, unknown>).input_tokens) : null;
   return {
     intent,
-    confidence: (() => {
-      const value = num(ia.confidence);
-      return value !== null && value >= 0 && value <= 1 ? value : null;
-    })(),
+    confidence: probability(ia.confidence),
     probabilities,
     worktree: noul(all.needs_worktree),
     browser: noul(all.needs_browser),

@@ -22,14 +22,6 @@ metadata:
   milestone: M99
   upstream-package: agent-browser
   upstream-version-tested: "0.38.1"
-triggers:
-  keywords: [expect, "test my changes", "browser test", "diff test", "test what I changed", "test the UI", "visual regression", "check my changes"]
-  examples:
-    - "test my changes before I push"
-    - "expect — run browser tests on what I changed"
-    - "test the login flow after my auth refactor"
-    - "run visual regression on the dashboard"
-  anti-triggers: [cover, "unit test", "generate tests", verify, implement, "npm test"]
 paths: [".expect/**", "**/*.test.{ts,tsx}", "agent-browser.json"]
 invocation_hooks:
   - "command -v agent-browser >/dev/null 2>&1 || echo 'Warning: agent-browser not installed — run npm install -g agent-browser'"

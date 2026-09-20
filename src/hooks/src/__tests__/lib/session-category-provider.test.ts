@@ -209,6 +209,16 @@ describe('decideCategory (the cascade rule)', () => {
     expect(decideCategory(ok(1.01), JEV)).toBeNull();
   });
 
+  it.each([
+    ['missing', undefined],
+    ['null', null],
+    ['boolean', true],
+    ['string', '0.82'],
+  ])('never decides a live result with %s confidence', (_name, confidence) => {
+    const malformed = { ...ok(0.99), confidence } as unknown as JevCategoryResult;
+    expect(decideCategory(malformed, JEV)).toBeNull();
+  });
+
   it('never decides in shadow mode, in haiku mode, or on an error', () => {
     expect(decideCategory(ok(0.99), SHADOW)).toBeNull();
     expect(decideCategory(ok(0.99), {})).toBeNull();
@@ -247,8 +257,8 @@ describe('parseJevCategoryAnswer', () => {
     expect(parseJevCategoryAnswer({ answers: { [JEV_QUESTION_ID]: 'bugfix' } })).toBeNull();
   });
 
-  it('treats non-finite and out-of-range confidence as unavailable', () => {
-    for (const confidence of [Number.NaN, Number.POSITIVE_INFINITY, -0.01, 1.01]) {
+  it('treats non-numeric, non-finite and out-of-range confidence as unavailable', () => {
+    for (const confidence of [undefined, null, true, '0.82', Number.NaN, Number.POSITIVE_INFINITY, -0.01, 1.01]) {
       expect(parseJevCategoryAnswer(answerBody('docs', { confidence }))?.confidence).toBeNull();
     }
   });
@@ -369,13 +379,23 @@ describe('shadow files', () => {
     expect(readJevDecision(jevPath, JEV)).toBeNull();
   });
 
-  it('fails open for malformed and out-of-range persisted confidences', () => {
-    fs.writeFileSync(
-      jevPath,
-      JSON.stringify({ ok: true, model: JEV_MODEL, category: 'docs', confidence: 1.01, latencyMs: 210 }),
-    );
-    expect(readJevResult(jevPath)).toMatchObject({ ok: true, confidence: null });
+  it.each([
+    ['missing', undefined],
+    ['null', null],
+    ['boolean', true],
+    ['string', '0.82'],
+    ['out of range', 1.01],
+  ])('fails open through persisted category gate for %s confidence', (_name, confidence) => {
+    const record: Record<string, unknown> = { ok: true, model: JEV_MODEL, category: 'docs', latencyMs: 210 };
+    if (confidence !== undefined) record.confidence = confidence;
+    fs.writeFileSync(jevPath, JSON.stringify(record));
+    const persisted = readJevResult(jevPath);
+    expect(persisted).toMatchObject({ ok: true, confidence: null });
+    expect(decideCategory(persisted, JEV)).toBeNull();
     expect(readJevDecision(jevPath, JEV)).toBeNull();
+  });
+
+  it('fails open for malformed persisted JSON', () => {
     fs.writeFileSync(jevPath, '{"ok":true,"category":"docs","confidence":NaN}', 'utf8');
     expect(readJevResult(jevPath)).toBeNull();
     expect(readJevDecision(jevPath, JEV)).toBeNull();
@@ -423,6 +443,17 @@ describe('shadow files', () => {
     });
   });
 
+  it('records high-confidence disagreement as unknown when haiku is unavailable', () => {
+    fs.writeFileSync(jevPath, JSON.stringify({ ok: true, model: JEV_MODEL, category: 'docs', confidence: 0.99, latencyMs: 210 }));
+    expect(recordCategoryShadow(jevPath, shadowPath, null, true, JEV)).toMatchObject({
+      haiku: null,
+      jev: 'docs',
+      agree: null,
+      high_confidence_disagreement: null,
+      below_floor: false,
+    });
+  });
+
   it('derives high-confidence disagreement and below-floor from the effective per-seam floor', () => {
     fs.writeFileSync(
       jevPath,
@@ -443,6 +474,7 @@ describe('shadow files', () => {
       haiku: 'bugfix',
       jev: null,
       agree: null,
+      high_confidence_disagreement: null,
       decided_by: 'haiku',
       error: 'timeout',
     });

@@ -39,13 +39,6 @@ skills:
 metadata:
   category: workflow-automation
   mcp-server: stitch, 21st-dev-magic, storybook-mcp
-triggers:
-  keywords: ["import claude design", "design handoff", "handoff bundle", "claude.ai/design", "design-import"]
-  examples:
-    - "import this Claude Design handoff: https://claude.ai/design/abc123"
-    - "scaffold the components from this bundle"
-    - "design-import /tmp/handoff.json"
-  anti-triggers: [export, brainstorm, extract design tokens]
 paths:
   - "src/components/**/*.{tsx,css}"
   - ".claude/design-handoffs/**"

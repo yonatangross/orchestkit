@@ -12,7 +12,7 @@
 # The guard is a pure path comparison, so the fixture is just lines on stdin —
 # no disposable git repo needed.
 #
-# Test Count: 6
+# Test Count: 11
 # ============================================================================
 
 set -euo pipefail
@@ -101,6 +101,65 @@ if [[ $GUARD_RC -eq 0 ]]; then
     log_pass "empty input allowed"
 else
     log_fail "empty input: rc=$GUARD_RC (want 0), output: $GUARD_OUT"
+fi
+
+# 7. A staged generator input means the plugins/ diff is regenerated output,
+# not a hand edit (#4147 could not commit its own rebuild otherwise).
+GUARD_RC=0
+GUARD_OUT=$(printf '%s\n' \
+    'scripts/build-plugins.sh' \
+    'plugins/ork/skills/auto/SKILL.md' | bash "$GUARD") || GUARD_RC=$?
+if [[ $GUARD_RC -eq 0 ]]; then
+    log_pass "build-script input exempts regenerated output"
+else
+    log_fail "build-script input: rc=$GUARD_RC (want 0), output: $GUARD_OUT"
+fi
+
+GUARD_RC=0
+GUARD_OUT=$(printf '%s\n' \
+    'manifests/ork.json' \
+    'plugins/ork/skills/auto/SKILL.md' | bash "$GUARD") || GUARD_RC=$?
+if [[ $GUARD_RC -eq 0 ]]; then
+    log_pass "manifest input exempts regenerated output"
+else
+    log_fail "manifest input: rc=$GUARD_RC (want 0), output: $GUARD_OUT"
+fi
+
+# 8. A generator helper under scripts/lib/ also exempts regenerated output
+# (the triggers strip itself lives there).
+GUARD_RC=0
+GUARD_OUT=$(printf '%s\n' \
+    'scripts/lib/strip-skill-triggers.awk' \
+    'plugins/ork/skills/auto/SKILL.md' | bash "$GUARD") || GUARD_RC=$?
+if [[ $GUARD_RC -eq 0 ]]; then
+    log_pass "scripts/lib input exempts regenerated output"
+else
+    log_fail "scripts/lib input: rc=$GUARD_RC (want 0), output: $GUARD_OUT"
+fi
+
+# 9. A plugins/-only edit is still blocked when the staged list contains a
+# non-generator path outside scripts/ and manifests/.
+GUARD_RC=0
+GUARD_OUT=$(printf '%s\n' \
+    'README.md' \
+    'plugins/ork/skills/auto/SKILL.md' | bash "$GUARD") || GUARD_RC=$?
+if [[ $GUARD_RC -eq 1 ]]; then
+    log_pass "non-generator path does not exempt plugins/-only edit"
+else
+    log_fail "non-generator path: rc=$GUARD_RC (want 1), output: $GUARD_OUT"
+fi
+
+# 10. A non-generator scripts/ path does NOT exempt: scripts/eval/,
+# scripts/seed-*.sh and friends produce no plugins/ output, so a
+# plugins/-only edit beside them is still a hand edit in generated output.
+GUARD_RC=0
+GUARD_OUT=$(printf '%s\n' \
+    'scripts/eval/foo.sh' \
+    'plugins/ork/skills/auto/SKILL.md' | bash "$GUARD") || GUARD_RC=$?
+if [[ $GUARD_RC -eq 1 ]] && grep -Fq 'plugins/ork/skills/auto/SKILL.md' <<< "$GUARD_OUT"; then
+    log_pass "non-generator scripts/ path does not exempt plugins/-only edit"
+else
+    log_fail "non-generator scripts/ path: rc=$GUARD_RC (want 1), output: $GUARD_OUT"
 fi
 
 echo ""

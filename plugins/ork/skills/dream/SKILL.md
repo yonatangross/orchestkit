@@ -14,13 +14,6 @@ context: inherit
 persuasion-type: collaborative
 effort: low
 model: sonnet
-triggers:
-  keywords: [dream, consolidate, "clean memory", "prune memory", "memory cleanup", "stale memories", "merge memories", "memory maintenance", "tidy memory", "stale memory entries", "memory files", "prune memories"]
-  examples:
-    - "consolidate my memory files"
-    - "clean up stale memory entries"
-    - "run dream to prune old memories"
-  anti-triggers: [remember, save, store, search, recall, "load context", implement, explore]
 ---
 
 # Dream - Memory Consolidation

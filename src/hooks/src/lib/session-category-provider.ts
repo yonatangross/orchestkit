@@ -32,6 +32,7 @@
  * That cost exists only while the provider is set.
  */
 
+import { resolveTypesafeKey } from './jev-key.js';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import {
   CATEGORY_CRITERIA,
@@ -47,8 +48,7 @@ import {
  */
 export const CATEGORY_PROVIDER_ENV = 'ORK_SESSION_CATEGORY_PROVIDER';
 
-/** The TypeSafe key variable the user sets. Never logged, never written. */
-export const TYPESAFE_KEY_ENV = 'ORK_TYPESAFE_API_KEY';
+export { TYPESAFE_KEY_ENV, resolveTypesafeKey } from './jev-key.js';
 
 export const JEV_ENDPOINT = 'https://api.typesafe.ai/v1/systemone';
 
@@ -88,11 +88,6 @@ export type CategoryProvider = 'haiku' | 'jev' | 'shadow';
 export function resolveCategoryProvider(env: NodeJS.ProcessEnv = process.env): CategoryProvider {
   const value = (env[CATEGORY_PROVIDER_ENV] || '').trim().toLowerCase();
   return value === 'jev' || value === 'shadow' ? value : 'haiku';
-}
-
-export function resolveTypesafeKey(env: NodeJS.ProcessEnv = process.env): string | null {
-  const key = (env[TYPESAFE_KEY_ENV] || '').trim();
-  return key || null;
 }
 
 /** Resolve the category seam's confidence floor, accepting only the [0, 1] range. */
@@ -360,8 +355,8 @@ export interface CategoryShadowRecord {
   jev: WorkCategory | null;
   agree: boolean | null;
   jev_confidence: number | null;
-  /** True when both classifiers named different categories and Jev met this seam's floor. */
-  high_confidence_disagreement: boolean;
+  /** Null until both picks and Jev confidence are available; otherwise whether Jev cleared this seam's floor and disagreed. */
+  high_confidence_disagreement: boolean | null;
   /** Null when Jev supplied no valid confidence; otherwise whether it missed this seam's floor. */
   below_floor: boolean | null;
   /** Which answer decided the session color: Jev only in `jev` mode at or above the threshold. */
@@ -407,7 +402,9 @@ export function recordCategoryShadow(
       agree: haikuCategory && jev ? haikuCategory === jev : null,
       jev_confidence: confidence,
       high_confidence_disagreement:
-        haikuCategory !== null && jev !== null && confidence !== null && confidence >= threshold && haikuCategory !== jev,
+        haikuCategory === null || jev === null || confidence === null
+          ? null
+          : confidence >= threshold && haikuCategory !== jev,
       below_floor: jev !== null && confidence !== null ? confidence < threshold : null,
       decided_by: readJevDecision(jevPath, env) ? 'jev' : 'haiku',
       floor: threshold,

@@ -23,13 +23,6 @@ hooks:
       once: true
 metadata:
   category: document-asset-creation
-triggers:
-  keywords: [doctor, diagnose, "health check", healthy, "hooks configured", "skills showing", "plugin setup", "something broken", troubleshoot, "installation is"]
-  examples:
-    - "run orchestkit doctor"
-    - "are my hooks configured correctly"
-    - "something feels broken with ork"
-  anti-triggers: [help, setup, configure, explore, implement]
 ---
 
 # OrchestKit Health Diagnostics

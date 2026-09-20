@@ -31,13 +31,6 @@ hooks:
 metadata:
   category: workflow-automation
   mcp-server: memory, context7
-triggers:
-  keywords: [implement, implment, build, create, add, make, scaffold, "set up", "file upload", "dark mode", "rate limiting"]
-  examples:
-    - "build a user authentication system with JWT"
-    - "add dark mode support to the dashboard"
-    - "implement the payment webhook handler"
-  anti-triggers: [fix, debug, review, explore, test, assess, brainstorm]
 paths:
   - "src/**/*.{ts,tsx,js,jsx}"
   - "package.json"

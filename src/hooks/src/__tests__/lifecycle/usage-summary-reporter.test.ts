@@ -26,6 +26,13 @@ vi.mock('../../lib/token-tracker.js', () => ({
 
 vi.mock('../../lib/orchestration-state.js', () => ({
   getWebhookUrl: vi.fn(),
+  // Mirror the real resolution (#1270): userConfig option env, env fallback.
+  getHookToken: vi.fn(
+    () =>
+      process.env.CLAUDE_PLUGIN_OPTION_HOOKTOKEN ||
+      process.env.ORCHESTKIT_HOOK_TOKEN ||
+      undefined,
+  ),
 }));
 
 vi.mock('../../lib/session-tracker.js', () => ({

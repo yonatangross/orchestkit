@@ -39,6 +39,7 @@ Patterns and tools for testing LLM integrations, evaluating AI output quality, m
 | **Rules** | `rules/llm-mocking.md` | Mock LLM responses, VCR.py recording, custom request matchers |
 | **Reference** | `references/ork-delta.md` | House rules the vendor docs do not carry: GEval and RAGAS API corrections, threshold direction, cassette path, golden-dataset and latency budgets |
 | **Reference** | `references/healer-agent.md` | Auto-fixes failing tests (selectors, waits, dynamic content) |
+| **Reference** | `references/langfuse-v4.md` | Langfuse Python SDK v4 tracing and dataset runs, plus the non-zero throughput assertion |
 | **Checklist** | `checklists/llm-test-checklist.md` | Complete LLM testing checklist (setup, coverage, CI/CD) |
 
 ## Upstream coverage (do not restate)

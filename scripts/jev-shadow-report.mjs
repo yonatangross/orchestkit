@@ -3,10 +3,62 @@
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { createHash } from 'node:crypto';
 
 const probability = (v) => typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= 1 ? v : null;
 const pick = (v) => typeof v === 'string' && v.length > 0 ? v : null;
 const share = (n, d) => d ? `${(100 * n / d).toFixed(1)}%` : 'n/a';
+
+const ROUTE_LABELS = new Set([
+  'dev_fix', 'dev_build', 'dev_review', 'dev_verify', 'dev_design',
+  'ops_brief', 'ops_comms', 'ops_client', 'ops_deploy', 'ops_content',
+  'ops_commerce', 'ops_observability', 'ops_deps', 'ops_security_infra',
+  'research', 'visual', 'session_admin', 'continuation', 'ambiguous',
+]);
+const CATEGORY_LABELS = new Set(['bugfix', 'feature', 'docs', 'refactor', 'infra', 'perf', 'design', 'testing']);
+// src/skills/expect/scripts/jev_shadow.py: META_ACTIONS plus build_candidates().
+const EXPECT_ACTION = /^(?:done|wait|scroll|press_enter|(?:click|fill|select):@e\d+)$/;
+const SHA256 = /^[a-f0-9]{64}$/;
+
+/** Recursively sort object keys. Arrays retain their recorded order. */
+export const canonical = (value) => Array.isArray(value) ? value.map(canonical)
+  : value && typeof value === 'object'
+    ? Object.fromEntries(Object.keys(value).sort().map((key) => [key, canonical(value[key])]))
+    : value;
+
+/** Immutable label binding: SHA-256 of the complete raw log row after canonical key ordering. */
+export const decisionSha256 = (row) => createHash('sha256').update(JSON.stringify(canonical(row))).digest('hex');
+
+function validLabelValue(seam, value) {
+  if (!pick(value)) return false;
+  if (seam === 'route') return ROUTE_LABELS.has(value);
+  if (seam === 'category') return CATEGORY_LABELS.has(value);
+  return EXPECT_ACTION.test(value);
+}
+
+function adjudication(row, seam, label) {
+  const decisionHash = decisionSha256(row);
+  if (label === undefined || label === null || (typeof label === 'object' && !Array.isArray(label) && Object.keys(label).length === 0)) {
+    return { decisionHash, incumbent: null, correct: null, labelMismatch: false, invalidLabel: false };
+  }
+  if (typeof label !== 'object' || Array.isArray(label) || Object.hasOwn(label, 'kind') ||
+      !SHA256.test(label.decision_sha256) ||
+      (!Object.hasOwn(label, 'incumbent') && !Object.hasOwn(label, 'correct')) ||
+      (Object.hasOwn(label, 'incumbent') && !validLabelValue(seam, label.incumbent)) ||
+      (Object.hasOwn(label, 'correct') && !validLabelValue(seam, label.correct))) {
+    return { decisionHash, incumbent: null, correct: null, labelMismatch: false, invalidLabel: true };
+  }
+  if (label.decision_sha256 !== decisionHash) {
+    return { decisionHash, incumbent: null, correct: null, labelMismatch: true, invalidLabel: false };
+  }
+  return {
+    decisionHash,
+    incumbent: pick(label.incumbent),
+    correct: pick(label.correct),
+    labelMismatch: false,
+    invalidLabel: false,
+  };
+}
 
 /**
  * Validate a row that claims the six-field shadow contract. Historical rows
@@ -58,11 +110,11 @@ export function validateLegacyShadow(row) {
 export function normalize(row, source, label = {}) {
   if (!row || typeof row !== 'object' || row.phase === 'invoked') return null;
   let seam, jev, incumbent, confidence, floor, mode;
-  const canonical = ['route', 'category', 'expect'].includes(row.seam) && 'jev_pick' in row;
+  const canonicalRow = ['route', 'category', 'expect'].includes(row.seam) && 'jev_pick' in row;
   if (row.phase === 'handoff' && pick(row.router) && pick(row.handoff_to)) {
     seam = 'route'; jev = null; incumbent = null; confidence = null; floor = null;
     mode = row.mode ?? 'telemetry';
-  } else if (canonical) {
+  } else if (canonicalRow) {
     seam = row.seam; jev = pick(row.jev_pick); incumbent = pick(row.incumbent_pick);
     confidence = probability(row.jev_confidence); floor = probability(row.floor);
     mode = row.mode ?? row.flag ?? row.provider;
@@ -76,12 +128,13 @@ export function normalize(row, source, label = {}) {
     seam = 'expect'; jev = pick(row.jev_action); incumbent = pick(row.model_action_key);
     confidence = probability(row.jev_confidence); floor = probability(row.floor); mode = row.mode ?? 'shadow';
   } else return null;
-  incumbent = pick(label.incumbent) ?? incumbent;
-  const correct = pick(label.correct);
-  const paired = jev !== null && incumbent !== null && (!canonical || typeof row.agree === 'boolean' || pick(label.incumbent) !== null);
-  const agree = paired ? (canonical && !pick(label.incumbent) ? row.agree : jev === incumbent) : null;
+  const labelResult = adjudication(row, seam, label);
+  incumbent = labelResult.incumbent ?? incumbent;
+  const correct = labelResult.correct;
+  const paired = jev !== null && incumbent !== null && (!canonicalRow || typeof row.agree === 'boolean' || labelResult.incumbent !== null);
+  const agree = paired ? (canonicalRow && labelResult.incumbent === null ? row.agree : jev === incumbent) : null;
   const above = confidence !== null && floor !== null && confidence >= floor;
-  return { source, seam, jev, incumbent, confidence, floor, mode, correct,
+  return { source, seam, jev, ...labelResult, incumbent, confidence, floor, mode, correct,
     sessionId: pick(row.session_id), promptId: pick(row.prompt_id),
     router: pick(row.router), handoffTo: pick(row.handoff_to),
     decisionId: pick(row.decision_id), phase: pick(row.phase), decidedBy: pick(row.decided_by),
@@ -123,7 +176,7 @@ function files(path) {
 
 export function readRows(paths, labels = new Map()) {
   const rows = [];
-  let malformed = 0, ignored = 0;
+  let malformed = 0, ignored = 0, invalidLabels = 0, labelMismatches = 0;
   for (const file of new Set(paths.flatMap(files))) {
     const text = readFileSync(file, 'utf8');
     // Category snapshots are a single JSON object, optionally pretty printed.
@@ -134,7 +187,11 @@ export function readRows(paths, labels = new Map()) {
       try {
         const json = line.startsWith('JEV_SHADOW|') ? line.slice(line.indexOf('|', 11) + 1) : line;
         const row = normalize(JSON.parse(json), source, labels.get(source));
-        if (row) rows.push(row); else ignored++;
+        if (row) {
+          rows.push(row);
+          if (row.invalidLabel) invalidLabels++;
+          if (row.labelMismatch) labelMismatches++;
+        } else ignored++;
       } catch { malformed++; }
     });
   }
@@ -163,7 +220,7 @@ export function readRows(paths, labels = new Map()) {
     retained.push(chosen ?? { ...group[0], paired: false, agree: null,
       highDisagreement: false, falseHigh: false, labeledHigh: false });
   }
-  return { rows: retained, malformed, ignored, superseded };
+  return { rows: retained, malformed, ignored, superseded, invalidLabels, labelMismatches };
 }
 
 export function main(args) {
@@ -173,11 +230,14 @@ export function main(args) {
     if (args[i] === '--labels') {
       const path = args[++i];
       if (!path) throw new Error('Missing labels file');
-      labels = new Map(readFileSync(path, 'utf8').split('\n').filter((s) => s.trim()).map((s) => {
+      const entries = readFileSync(path, 'utf8').split('\n').filter((s) => s.trim()).map((s) => {
         const row = JSON.parse(s);
-        if (!pick(row.source) || (!pick(row.incumbent) && !pick(row.correct))) throw new Error('Invalid label');
+        if (!pick(row.source) || Object.hasOwn(row, 'kind') || !SHA256.test(row.decision_sha256) ||
+            (!Object.hasOwn(row, 'incumbent') && !Object.hasOwn(row, 'correct'))) throw new Error('Invalid adjudicated label');
         return [row.source, row];
-      }));
+      });
+      labels = new Map(entries);
+      if (labels.size !== entries.length) throw new Error('Duplicate label source');
     } else if (args[i] === '--all-modes') allModes = true;
     else if (args[i] === '--confident-wrong') confidentWrong = true;
     else if (args[i].startsWith('--')) throw new Error(`Unknown option: ${args[i]}`);
@@ -196,7 +256,7 @@ export function main(args) {
     }
     return;
   }
-  console.log(`Jev ${allModes ? 'all-mode' : 'shadow'} report: ${rows.length} rows; malformed=${input.malformed}; ignored=${input.ignored}; excluded_modes=${input.rows.length - rows.length}; superseded=${input.superseded}`);
+  console.log(`Jev ${allModes ? 'all-mode' : 'shadow'} report: ${rows.length} rows; malformed=${input.malformed}; ignored=${input.ignored}; invalid_labels=${input.invalidLabels}; label_mismatches=${input.labelMismatches}; excluded_modes=${input.rows.length - rows.length}; superseded=${input.superseded}`);
   console.log('Agreement is not accuracy. High-confidence disagreements need outcome labels before promotion.');
   for (const s of summarize(rows)) {
     console.log(`\n${s.seam}: rows=${s.rows} paired=${s.paired} unpaired=${s.rows - s.paired} agreement=${s.agreements}/${s.paired} (${share(s.agreements, s.paired)})`);

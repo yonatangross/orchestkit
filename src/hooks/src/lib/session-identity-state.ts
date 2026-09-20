@@ -23,6 +23,19 @@
  * Everything fails open: a dead `claude` binary, auth failure, malformed
  * JSON, or unwritable transcript only means the session keeps its branch
  * title and hash color.
+ *
+ * #4248 (one spawn per session, ever): the generator ran 38-43 detached
+ * `claude -p` calls per hour on a 10-desk floor because every trigger that
+ * cleared the state files re-armed the spawn — branch flips on shared
+ * working trees chief among them. The spawned marker is now written BEFORE
+ * the spawn and is never deleted, so a session titles at most once and a
+ * failed spawn never retries. Nothing ever clears the generated state
+ * either: the old branch/turns regeneration trigger deleted the cached
+ * title while the permanent spawned marker blocked any respawn, so the
+ * session silently fell back to its branch title for good. A per-host
+ * sliding-window cap (ORK_SESSION_IDENTITY_RATE_MAX per
+ * ORK_SESSION_IDENTITY_RATE_WINDOW_MS, shared via CLAUDE_PLUGIN_DATA or
+ * tmpdir) backstops a regression of the once-per-session gate.
  */
 
 import {
@@ -30,7 +43,7 @@ import {
   existsSync,
   mkdirSync,
   readFileSync,
-  rmSync,
+  renameSync,
   statSync,
   writeFileSync,
 } from 'node:fs';
@@ -59,6 +72,7 @@ import {
   startJevCategory,
   type JevCategoryResult,
 } from './session-category-provider.js';
+import { getPluginDataDir, getTempDir } from './paths.js';
 
 /** Env kill-switch. Set ORK_SESSION_IDENTITY=0 to disable entirely. */
 const ENV_KILL_SWITCH = 'ORK_SESSION_IDENTITY';
@@ -85,19 +99,6 @@ const FILE_PARSED = 'session-identity.json';
 const FILE_SPAWNED = 'session-identity.spawned';
 const FILE_COLOR_APPLIED = 'session-identity.color';
 const FILE_TOMBSTONE = 'session-identity.failed';
-/** Regeneration baseline: the branch the current title was generated on, plus a
- *  per-prompt turn counter, so we can detect a direction change. */
-const FILE_META = 'session-identity.meta';
-
-/**
- * Turns-based refresh (opt-in). Set ORK_SESSION_IDENTITY_REFRESH_TURNS=<n> to
- * regenerate the topic every <n> prompts even without a branch change — catches
- * a long single-branch session whose work drifts across topics. Default unset =
- * off (branch change is the only always-on trigger). A regenerate re-runs the
- * detached haiku generator; it never blocks, and the new title still flows
- * through the dispatcher's /rename guard, so an explicit /rename always wins.
- */
-const ENV_REFRESH_TURNS = 'ORK_SESSION_IDENTITY_REFRESH_TURNS';
 
 /**
  * Resolve the session transcript path. Prefer the envelope's transcript_path;
@@ -137,6 +138,80 @@ export function appendAgentColorRecord(
   }
 }
 
+/** Per-host sliding-window cap on generator spawns (#4248 backstop). */
+const ENV_RATE_MAX = 'ORK_SESSION_IDENTITY_RATE_MAX';
+const ENV_RATE_WINDOW_MS = 'ORK_SESSION_IDENTITY_RATE_WINDOW_MS';
+/** 5 per 10 min caps the floor at 30 spawns/hour, below the 38-43/hour
+ *  storm #4248 measured; the old 10/10min (60/hour) barely touched it. */
+const DEFAULT_RATE_MAX = 5;
+const DEFAULT_RATE_WINDOW_MS = 10 * 60_000;
+
+/** Timestamps file, shared across sessions/projects on the host. */
+function rateLimitPath(): string {
+  // Env override mirrors CLAUDE_METRICS_FILE: lets tests isolate the file.
+  return (
+    process.env.ORK_SESSION_IDENTITY_RATE_FILE ||
+    join(getPluginDataDir() || getTempDir(), 'session-identity-spawns.json')
+  );
+}
+
+/**
+ * Atomically replace `file` with `content` via write-temp-then-rename. The
+ * UserPromptSubmit hooks of every desk on the floor can run this write at
+ * the same time; a non-atomic truncate+write can interleave two writers and
+ * leave torn JSON that every later read would fail open on.
+ */
+function atomicWrite(file: string, content: string): void {
+  const tmp = `${file}.${process.pid}.tmp`;
+  writeFileSync(tmp, content, 'utf8');
+  renameSync(tmp, file);
+}
+
+/**
+ * Returns true when a generator spawn may proceed, recording the attempt in a
+ * host-wide sliding window (default 5 per 10 min, both env-overridable).
+ * ORK_SESSION_IDENTITY_RATE_MAX<=0 disables the cap. Fails open: unreadable or
+ * corrupt state resets the window rather than blocking titling.
+ */
+function allowGeneratorSpawn(ctx: HookContext): boolean {
+  const max = Number(process.env[ENV_RATE_MAX] ?? DEFAULT_RATE_MAX);
+  if (!Number.isFinite(max) || max <= 0) return true;
+  const windowEnv = Number(process.env[ENV_RATE_WINDOW_MS] ?? DEFAULT_RATE_WINDOW_MS);
+  const windowMs = Number.isFinite(windowEnv) && windowEnv > 0 ? windowEnv : DEFAULT_RATE_WINDOW_MS;
+  const file = rateLimitPath();
+  try {
+    let stamps: number[] = [];
+    if (existsSync(file)) {
+      try {
+        const parsed: unknown = JSON.parse(readFileSync(file, 'utf8'));
+        if (Array.isArray(parsed)) stamps = parsed.filter((t): t is number => typeof t === 'number');
+      } catch {
+        // Corrupt state really does reset the window: drop every stamp and
+        // let the write below replace the unreadable bytes, or the same torn
+        // file would fail open on every later call.
+        stamps = [];
+      }
+    }
+    const now = Date.now();
+    stamps = stamps.filter((t) => now - t < windowMs);
+    if (stamps.length >= max) {
+      ctx.log(
+        'session-identity',
+        `generator spawn rate-capped (${stamps.length}/${max} in ${Math.round(windowMs / 60_000)}min window), session keeps branch title`,
+        'warn',
+      );
+      return false;
+    }
+    stamps.push(now);
+    mkdirSync(dirname(file), { recursive: true });
+    atomicWrite(file, JSON.stringify(stamps));
+    return true;
+  } catch (error) {
+    ctx.log('session-identity', `rate-cap check failed open: ${error}`, 'warn');
+    return true;
+  }
+}
+
 /**
  * Drive the identity lifecycle for this turn. Returns the AI title once it's
  * available (the dispatcher merges it into sessionTitle), else null.
@@ -163,23 +238,10 @@ export function manageSessionIdentity(
     const jevPath = join(sessionDir, FILE_JEV);
     const shadowPath = join(sessionDir, FILE_SHADOW);
 
-    // 0. Regeneration: has the session's direction changed since the title was
-    //    generated? If so, drop the cached identity so the flow below re-spawns
-    //    the generator with the current branch + prompt. Never touches the color
-    //    file (color stays stable for the session). The regenerated title still
-    //    passes through the dispatcher's /rename guard, so a manual rename wins.
-    if (shouldRegenerateIdentity(sessionDir, ctx.branch || '')) {
-      for (const p of [parsedPath, rawPath, spawnedPath, tombstonePath, jevPath, shadowPath]) {
-        try {
-          if (existsSync(p)) rmSync(p);
-        } catch {
-          /* fail open — a leftover file just delays regeneration one turn */
-        }
-      }
-      ctx.log('session-identity', `direction changed → regenerating title (branch=${ctx.branch})`);
-    }
-
     // 1. Identity already parsed → ensure color upgrade applied, return title.
+    //    Nothing ever deletes it: the generator runs at most once per session
+    //    (#4248), so a "stale" title is the best title this session can have —
+    //    dropping it only forfeits it to the branch fallback for good.
     if (existsSync(parsedPath)) {
       const parsed = parseIdentityOutput(readFileSync(parsedPath, 'utf8'));
       if (!parsed) return null;
@@ -240,8 +302,23 @@ export function manageSessionIdentity(
         onJevSettled(result, input, projectDir, colorAppliedPath, ctx),
       );
     }
-    if (input.prompt && spawnIdentityGenerator(input.prompt, ctx.branch || '', rawPath, projectDir, ctx)) {
+    // #4248: the marker is written BEFORE the spawn and is never deleted —
+    // a session titles at most once, and a failed spawn never retries (the
+    // retry loop was itself a respawn source). The per-host rate cap is a
+    // backstop; when it trips the marker stays unwritten so the session can
+    // still title on a later turn once the window slides.
+    if (input.prompt && allowGeneratorSpawn(ctx)) {
       writeFileSync(spawnedPath, new Date().toISOString(), 'utf8');
+      if (!spawnIdentityGenerator(input.prompt, ctx.branch || '', rawPath, projectDir, ctx)) {
+        // Launch itself failed (claude missing, fd exhaustion): tombstone so
+        // later turns stop waiting on raw output that can never arrive.
+        try {
+          writeFileSync(tombstonePath, 'generator spawn failed', 'utf8');
+        } catch {
+          /* fail open */
+        }
+        return null;
+      }
       // RC1 (opt-in): block briefly so the title can land on THIS turn.
       const inline = inlineHarvest(rawPath, parsedPath, colorAppliedPath, input, projectDir, ctx);
       if (inline) return inline;
@@ -250,78 +327,6 @@ export function manageSessionIdentity(
   } catch (error) {
     ctx.log('session-identity', `failed open: ${error}`, 'warn');
     return null;
-  }
-}
-
-interface IdentityMeta {
-  /** branch the current title was generated on */
-  branch: string;
-  /** total prompts seen this session (incremented every call) */
-  turns: number;
-  /** turns value at the last generation, for the turns-based refresh */
-  genTurn: number;
-}
-
-/**
- * Decide whether to regenerate the session title, and advance the per-session
- * meta baseline. Called once per prompt BEFORE the cached-identity short-circuit.
- *
- * Triggers (either fires):
- *   - branch changed since the title was generated (always on) — a new branch is
- *     a new piece of work. Ignores the 'unknown'/empty git fallback so a
- *     momentarily-unavailable branch never forces a spurious regenerate.
- *   - ORK_SESSION_IDENTITY_REFRESH_TURNS=n set and n prompts elapsed since the
- *     last generation (opt-in) — catches topic drift on a long single-branch
- *     session.
- *
- * Fail-open: any I/O error returns false (keep the current title). The meta file
- * is best-effort; a missing baseline just seeds from the current turn.
- */
-function shouldRegenerateIdentity(sessionDir: string, liveBranch: string): boolean {
-  try {
-    const metaPath = join(sessionDir, FILE_META);
-    let meta: IdentityMeta | null = null;
-    if (existsSync(metaPath)) {
-      try {
-        meta = JSON.parse(readFileSync(metaPath, 'utf8')) as IdentityMeta;
-      } catch {
-        meta = null; // corrupt → reseed below
-      }
-    }
-
-    const branch = (liveBranch || '').trim();
-    const branchKnown = branch !== '' && branch !== 'unknown';
-
-    // First time (or corrupt meta): seed the baseline, never regenerate now.
-    if (!meta || typeof meta.turns !== 'number') {
-      writeMeta(metaPath, { branch: branchKnown ? branch : '', turns: 1, genTurn: 1 });
-      return false;
-    }
-
-    const turns = meta.turns + 1;
-    let regen = false;
-
-    // Branch change (only when both old and new are real branches).
-    if (branchKnown && meta.branch && meta.branch !== '' && branch !== meta.branch) {
-      regen = true;
-    }
-
-    // Turns-based refresh (opt-in).
-    const refreshTurns = Number(process.env[ENV_REFRESH_TURNS] ?? '0');
-    if (!regen && Number.isFinite(refreshTurns) && refreshTurns > 0) {
-      if (turns - meta.genTurn >= refreshTurns) regen = true;
-    }
-
-    writeMeta(metaPath, {
-      // Adopt the live branch as the new baseline once it's known; otherwise keep
-      // the old one so a transient 'unknown' doesn't reset branch tracking.
-      branch: branchKnown ? branch : meta.branch,
-      turns,
-      genTurn: regen ? turns : meta.genTurn,
-    });
-    return regen;
-  } catch {
-    return false; // fail-open: keep the current title
   }
 }
 
@@ -409,14 +414,6 @@ function applyJevColorIfDecided(
 ): void {
   const decision = readJevDecision(jevPath);
   if (decision) applyColorOnce(input, projectDir, CATEGORY_COLOR[decision.category], colorAppliedPath, ctx);
-}
-
-function writeMeta(metaPath: string, meta: IdentityMeta): void {
-  try {
-    writeFileSync(metaPath, JSON.stringify(meta), 'utf8');
-  } catch {
-    /* best-effort — a missing baseline just reseeds next turn */
-  }
 }
 
 /**

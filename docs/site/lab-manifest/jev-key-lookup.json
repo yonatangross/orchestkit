@@ -1,0 +1,8 @@
+{
+  "slug": "jev-key-lookup",
+  "source": "docs/refactor--jev-key-lookup/key-lookup.html",
+  "title": "One Jev Key Lookup, Identical Results",
+  "description": "A preset-only interactive explanation of the shared TypeSafe key lookup: trim present values, return null for blanks or absence, preserve legacy exports, and add no cache or network behavior.",
+  "tags": ["jev", "refactor", "hooks", "typesafe"],
+  "date": "2026-09-19"
+}

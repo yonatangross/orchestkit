@@ -289,6 +289,28 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
         find "$PLUGIN_DIR/skills" -type d -name evals -prune -exec rm -rf {} +
     fi
 
+    # Drop the object-shaped `triggers` frontmatter key from the BUILT copy
+    # only. Devin's plugin loader silently drops any skill whose SKILL.md
+    # carries it (31 of 107 at last count, #4147). Every consumer of the key
+    # (eval-coverage, trigger/coverage tests, command passthrough) reads the
+    # source under src/skills/, which stays untouched. The transform deletes
+    # the `triggers:` line plus its indented block children, inside the
+    # frontmatter fence only. The awk lives in scripts/lib/ so the Build drift
+    # test normalizes the src side with the identical rules.
+    if [[ -d "$PLUGIN_DIR/skills" ]]; then
+        for skill_md in "$PLUGIN_DIR/skills"/*/SKILL.md; do
+            [[ -f "$skill_md" ]] || continue
+            grep -q '^triggers:' "$skill_md" || continue
+            if ! awk -f "$PROJECT_ROOT/scripts/lib/strip-skill-triggers.awk" \
+                "$skill_md" > "$skill_md.tmp"; then
+                rm -f "$skill_md.tmp"
+                echo -e "    ${RED}Failed to strip triggers from $skill_md${NC}"
+                exit 1
+            fi
+            mv "$skill_md.tmp" "$skill_md"
+        done
+    fi
+
     # Generate command wrappers from user-invocable skills, FOR THE CURSOR HOST ONLY.
     # Claude Code surfaces user-invocable skills as /ork:<name> natively (measured
     # 2026-08-29 on 2.1.251: `/ork:glyph hello` expands to <command-name> in the
@@ -469,6 +491,7 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
         --argjson has_skills "$([[ -d "$PLUGIN_DIR/skills" ]] && echo true || echo false)" \
         --argjson has_workflows "$([[ -d "$PLUGIN_DIR/workflows" ]] && echo true || echo false)" \
         --argjson deps "$(jq -c '.dependencies // null' "$manifest")" \
+        --argjson ucfg "$(jq -c '.userConfig // null' "$manifest")" \
         '{
           name: $name,
           version: $version,
@@ -489,6 +512,11 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
         # refuses to enable/disable when unsatisfied, which the retired Phase 5
         # check only approximated by looking for a sibling manifest file.
         + if $deps != null then {dependencies: $deps} else {} end
+        # #1270: pass manifest.userConfig through verbatim — CC injects each
+        # key into hook processes as CLAUDE_PLUGIN_OPTION_<KEY> (sensitive
+        # values are keychain-backed). Without this the block in
+        # manifests/ork.json was dead config that never reached the install.
+        + if $ucfg != null then {userConfig: $ucfg} else {} end
         + if $has_workflows then {workflows: "./workflows/"} else {} end' \
         > "$PLUGIN_DIR/.claude-plugin/plugin.json"
 
@@ -508,7 +536,7 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
     jq --argjson has_agents "$([[ -d "$PLUGIN_DIR/agents" ]] && echo true || echo false)" \
        --argjson has_commands "$([[ -d "$PLUGIN_DIR/.cursor-plugin/commands" ]] && echo true || echo false)" \
        --argjson has_rules "$([[ -d "$PLUGIN_DIR/.cursor-plugin/rules" ]] && echo true || echo false)" \
-      'del(.workflows, .dependencies) + (if $has_agents then {agents: "./agents/"} else {} end)
+      'del(.workflows, .dependencies, .userConfig) + (if $has_agents then {agents: "./agents/"} else {} end)
                        + (if $has_commands then {commands: "./.cursor-plugin/commands/"} else {} end)
                        + (if $has_rules then {rules: "./.cursor-plugin/rules/"} else {} end)' \
       "$PLUGIN_DIR/.claude-plugin/plugin.json" \

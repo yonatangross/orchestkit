@@ -37,13 +37,6 @@ skills:
   - memory
 metadata:
   category: workflow-automation
-triggers:
-  keywords: ["design ship", "design to pr", "ship claude design", "handoff to pr", "design-ship"]
-  examples:
-    - "ship this Claude Design handoff: https://claude.ai/design/abc123"
-    - "design URL in, PR out"
-    - "design-ship /tmp/handoff.json"
-  anti-triggers: [import only, scaffold only, brainstorm]
 paths:
   - "src/components/**/*.{tsx,css}"
   - "**/*.stories.{ts,tsx}"

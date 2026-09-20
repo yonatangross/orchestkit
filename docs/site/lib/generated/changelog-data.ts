@@ -18,6 +18,80 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.63",
+    "date": "2026-09-19",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.62...v10.0.0-beta.63",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**eval:** document Langfuse Python SDK v4 and fail zero-item runs ([#4272](https://github.com/yonatangross/orchestkit/issues/4272)) ([5239ca1](https://github.com/yonatangross/orchestkit/commit/5239ca129d79f901a785d7dfe301016fb104dc7f))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "10.0.0-beta.62",
+    "date": "2026-09-19",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.61...v10.0.0-beta.62",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**hooks:** gate session-identity generator to one spawn per session ([#4270](https://github.com/yonatangross/orchestkit/issues/4270)) ([3622749](https://github.com/yonatangross/orchestkit/commit/36227490bf2755047e12488b1e65221817b44ddc))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Code Refactoring",
+        "items": [
+          "**jev:** share TypeSafe key lookup ([#4268](https://github.com/yonatangross/orchestkit/issues/4268)) ([6a969c7](https://github.com/yonatangross/orchestkit/commit/6a969c7d004e30c119adb92cdd8a7586dcf4bd01))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "10.0.0-beta.61",
+    "date": "2026-09-19",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.60...v10.0.0-beta.61",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**manifest:** wire webhook URL/token through userConfig ([#4273](https://github.com/yonatangross/orchestkit/issues/4273)) ([788fdcd](https://github.com/yonatangross/orchestkit/commit/788fdcd6ea2598848a579a06b82be7298ee5730c))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**build:** drop object-shaped triggers from built SKILL.md ([#4276](https://github.com/yonatangross/orchestkit/issues/4276)) ([526873c](https://github.com/yonatangross/orchestkit/commit/526873c133b14ebc45ae6c38b53320e7bd6cb819))",
+          "**ci:** compare hook-bundle guard against current base tip ([#4283](https://github.com/yonatangross/orchestkit/issues/4283)) ([bc35750](https://github.com/yonatangross/orchestkit/commit/bc357505d70ed96f0801e7d83efa39556db90167))",
+          "**git:** reject release bundle helper failures ([#4287](https://github.com/yonatangross/orchestkit/issues/4287)) ([7ac8bc9](https://github.com/yonatangross/orchestkit/commit/7ac8bc974359ca520e4b325c30046599c796c536))",
+          "**jev:** validate confidence and expose shadow disagreements ([#4271](https://github.com/yonatangross/orchestkit/issues/4271)) ([66e2ccc](https://github.com/yonatangross/orchestkit/commit/66e2ccc7ebcc5cf16be26eb7ca97ae4a3a94afb5))"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "10.0.0-beta.60",
+    "date": "2026-09-19",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.59...v10.0.0-beta.60",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**browser:** adopt agent-browser 0.38.1 (delta snapshots, if-changed shots, persistent refs, 30 fps, WebMCP) ([#4260](https://github.com/yonatangross/orchestkit/issues/4260)) ([6e23e38](https://github.com/yonatangross/orchestkit/commit/6e23e38c2c22304d64c3933c00bc83f08972e19d))",
+          "**site:** generated Related block on reference pages ([#4253](https://github.com/yonatangross/orchestkit/issues/4253)) ([9b6b576](https://github.com/yonatangross/orchestkit/commit/9b6b576f180c47336f0fceeff847fa968bafb610))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.59",
     "date": "2026-09-19",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.58...v10.0.0-beta.59",

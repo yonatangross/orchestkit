@@ -154,7 +154,7 @@ jobs:
         if: github.event_name == 'pull_request'
         env:
           HEAD_REF: ${{ github.head_ref }}
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          BASE_REF: ${{ github.base_ref }}
           GH_TOKEN: ${{ github.token }}
         run: |
           set -uo pipefail
@@ -191,12 +191,36 @@ jobs:
             echo "Release branch: hook bundles match a fresh build."
             exit 0
           fi
-          git fetch --quiet --depth=1 origin "$BASE_SHA"
-          CHANGED=$(git diff --name-only "$BASE_SHA" HEAD -- "${DIST[@]}")
-          if [[ -n "$CHANGED" ]]; then
-            echo "::error::This PR changes hook bundles, which are release-owned (#3578). Keep the local build for tests, but restore the committed copies and commit only src/:"
-            echo "::error::  git checkout ${BASE_SHA} -- ${DIST[*]} && git commit -m 'chore: drop release-owned hook bundles from PR'"
-            echo "$CHANGED"
+          # Compare against the CURRENT base tip, not the event's frozen
+          # base.sha: a bundle rebuild landing on main after the PR opened
+          # showed as "the PR changed dist" and red-ed every open hooks PR for
+          # free. HEAD here is the merge ref (base tip + head), so merge-base
+          # resolves to the tip itself; on a head-only checkout it resolves to
+          # the fork point, which is still the right comparison.
+          # This job's checkout is fetch-depth: 1, so the clone is shallow:
+          # unshallow or merge-base exits 1 silently with no common ancestor
+          # (fail-open-by-accident on every PR). FETCH_HEAD names the fetched
+          # base tip even when the shallow fetchspec maps no origin/<base> ref.
+          if [[ "$(git rev-parse --is-shallow-repository)" == true ]]; then
+            git fetch --quiet --unshallow origin "$BASE_REF"
+          else
+            git fetch --quiet origin "$BASE_REF"
+          fi
+          BASE=$(git merge-base FETCH_HEAD HEAD)
+          CHANGED=$(git diff --name-only "$BASE" HEAD -- "${DIST[@]}")
+          # Inherited, not authored (the #4277 pre-commit exception, applied to
+          # CI): a dist path whose committed content equals the current base
+          # tip is main's own bundle content, not a feature edit.
+          AUTHORED=()
+          while IFS= read -r f; do
+            [[ -z "$f" ]] && continue
+            git diff --quiet FETCH_HEAD HEAD -- "$f" && continue
+            AUTHORED+=("$f")
+          done <<< "$CHANGED"
+          if [[ ${#AUTHORED[@]} -gt 0 ]]; then
+            echo "::error::This PR changes hook bundles, which are release-owned (#3578). Rebase on or merge origin/$BASE_REF and push so the PR picks up the current bundles."
+            echo "::error::If the diff persists, restore the release-owned copies: git checkout origin/$BASE_REF -- ${DIST[*]} && git commit -m 'chore: drop release-owned hook bundles from PR'"
+            printf '%s\n' "${AUTHORED[@]}"
             exit 1
           fi
           echo "Feature PR: hook bundles untouched."
