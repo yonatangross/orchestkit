@@ -18,6 +18,27 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.65",
+    "date": "2026-09-20",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.64...v10.0.0-beta.65",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**jev:** add conservative weak outcome sidecars ([#4281](https://github.com/yonatangross/orchestkit/issues/4281)) ([b8cb918](https://github.com/yonatangross/orchestkit/commit/b8cb918b10c9e110d35df0447e106681c4566fc6))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**docs-site:** stop the picker repeating the hero install command ([#4293](https://github.com/yonatangross/orchestkit/issues/4293)) ([f3f9c97](https://github.com/yonatangross/orchestkit/commit/f3f9c97997bd69ae7d1a3ebaee5c1e513d831367))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.64",
     "date": "2026-09-20",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.63...v10.0.0-beta.64",
