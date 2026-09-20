@@ -126,7 +126,7 @@ gh issue list --state open --json number,title,labels,milestone
   <button type="button" id="copy" disabled>Copy pick</button>
 </div>
 <textarea id="fallback" hidden></textarea>
-<textarea id="snapshot" hidden>{"items":[{"lane":"bugs","title":"EXAMPLE #0000 squeezed glyph","route":"ork:glyph"},{"lane":"quick-wins","title":"#0000 EXAMPLE one-file fix","route":"devin"},{"lane":"epic-orbit","title":"#0000 EXAMPLE child of an epic","route":"ork:workflow-architect"},{"lane":"tech-debt","title":"#0000 EXAMPLE cleanup","route":"devin"},{"lane":"ux-a11y","title":"#0000 EXAMPLE keyboard gap","route":"21st-dev"},{"lane":"content-seo","title":"#0000 EXAMPLE title rewrite","route":"hq-ext"},{"lane":"brand","title":"#0000 EXAMPLE visual token","route":"21st-dev"},{"lane":"blocked-externally","title":"#0000 EXAMPLE waiting on a vendor","route":"external"}],"raw":"EXAMPLE\ngh issue list --state open --json number,title,labels,milestone\n[]"}</textarea>
+<textarea id="snapshot" hidden>eyJpdGVtcyI6W3sibGFuZSI6ImJ1Z3MiLCJ0aXRsZSI6IkVYQU1QTEUgIzAwMDAgc3F1ZWV6ZWQgZ2x5cGgiLCJyb3V0ZSI6Im9yazpnbHlwaCJ9LHsibGFuZSI6InF1aWNrLXdpbnMiLCJ0aXRsZSI6IiMwMDAwIEVYQU1QTEUgb25lLWZpbGUgZml4Iiwicm91dGUiOiJkZXZpbiJ9LHsibGFuZSI6ImVwaWMtb3JiaXQiLCJ0aXRsZSI6IiMwMDAwIEVYQU1QTEUgY2hpbGQgb2YgYW4gZXBpYyIsInJvdXRlIjoib3JrOndvcmtmbG93LWFyY2hpdGVjdCJ9LHsibGFuZSI6InRlY2gtZGVidCIsInRpdGxlIjoiIzAwMDAgRVhBTVBMRSBjbGVhbnVwIiwicm91dGUiOiJkZXZpbiJ9LHsibGFuZSI6InV4LWExMXkiLCJ0aXRsZSI6IiMwMDAwIEVYQU1QTEUga2V5Ym9hcmQgZ2FwIiwicm91dGUiOiIyMXN0LWRldiJ9LHsibGFuZSI6ImNvbnRlbnQtc2VvIiwidGl0bGUiOiIjMDAwMCBFWEFNUExFIHRpdGxlIHJld3JpdGUiLCJyb3V0ZSI6ImhxLWV4dCJ9LHsibGFuZSI6ImJyYW5kIiwidGl0bGUiOiIjMDAwMCBFWEFNUExFIHZpc3VhbCB0b2tlbiIsInJvdXRlIjoiMjFzdC1kZXYifSx7ImxhbmUiOiJibG9ja2VkLWV4dGVybmFsbHkiLCJ0aXRsZSI6IiMwMDAwIEVYQU1QTEUgd2FpdGluZyBvbiBhIHZlbmRvciIsInJvdXRlIjoiZXh0ZXJuYWwifV0sInJhdyI6IkVYQU1QTEVcbmdoIGlzc3VlIGxpc3QgLS1zdGF0ZSBvcGVuIC0tanNvbiBudW1iZXIsdGl0bGUsbGFiZWxzLG1pbGVzdG9uZVxuW10ifQ==</textarea>
 <script>
 (function () {
   var pick = document.getElementById("pick");
@@ -167,21 +167,31 @@ gh issue list --state open --json number,title,labels,milestone
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#39;");
   }
+  function clearLanes() {
+    Array.prototype.forEach.call(
+      document.querySelectorAll("[data-lane] ul"),
+      function (ul) { ul.innerHTML = ""; }
+    );
+    document.getElementById("raw").textContent = "?";
+  }
   function renderSnapshot() {
-    var data = JSON.parse(document.getElementById("snapshot").value);
-    var cleared = {};
-    data.items.forEach(function (item) {
+    clearLanes();
+    var data;
+    try {
+      data = JSON.parse(atob(document.getElementById("snapshot").value.trim()));
+    } catch (err) {
+      document.getElementById("verdict").textContent = "? snapshot could not be read";
+      document.getElementById("raw").textContent = "?";
+      return;
+    }
+    (data.items || []).forEach(function (item) {
       var ul = document.querySelector('[data-lane="' + item.lane + '"] ul');
       if (!ul) return;
-      if (!cleared[item.lane]) {
-        ul.innerHTML = "";
-        cleared[item.lane] = true;
-      }
       var li = document.createElement("li");
       li.innerHTML = escapeHtml(item.title) + ' <code class="route">' + escapeHtml(item.route) + "</code>";
       ul.appendChild(li);
     });
-    document.getElementById("raw").innerHTML = escapeHtml(data.raw);
+    document.getElementById("raw").innerHTML = escapeHtml(data.raw || "?");
   }
   renderSnapshot();
   refresh();
