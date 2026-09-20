@@ -18,6 +18,27 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.66",
+    "date": "2026-09-20",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.65...v10.0.0-beta.66",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**glyph:** add a triage page template with a parsable DECIDE pick ([#4267](https://github.com/yonatangross/orchestkit/issues/4267)) ([8cd716c](https://github.com/yonatangross/orchestkit/commit/8cd716c3f3287c7178202a0102c5498b1721c906))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**jev:** persist paired shadow decisions across local seams ([#4278](https://github.com/yonatangross/orchestkit/issues/4278)) ([549f38d](https://github.com/yonatangross/orchestkit/commit/549f38d81db031e5308375734cff5745a5232eb4))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.65",
     "date": "2026-09-20",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.64...v10.0.0-beta.65",

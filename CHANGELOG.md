@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.66](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.65...v10.0.0-beta.66) (2026-09-20)
+
+
+### Features
+
+* **glyph:** add a triage page template with a parsable DECIDE pick ([#4267](https://github.com/yonatangross/orchestkit/issues/4267)) ([8cd716c](https://github.com/yonatangross/orchestkit/commit/8cd716c3f3287c7178202a0102c5498b1721c906))
+
+
+### Bug Fixes
+
+* **jev:** persist paired shadow decisions across local seams ([#4278](https://github.com/yonatangross/orchestkit/issues/4278)) ([549f38d](https://github.com/yonatangross/orchestkit/commit/549f38d81db031e5308375734cff5745a5232eb4))
+
 ## [10.0.0-beta.65](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.64...v10.0.0-beta.65) (2026-09-20)
 
 
