@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.69",
+    "date": "2026-09-20",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.68...v10.0.0-beta.69",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**ci:** skip the playground gate on test-only diffs ([#4303](https://github.com/yonatangross/orchestkit/issues/4303)) ([fea779f](https://github.com/yonatangross/orchestkit/commit/fea779f5f656dfc88aa92cb513bbb9a6dc7342d1))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.68",
     "date": "2026-09-20",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.67...v10.0.0-beta.68",

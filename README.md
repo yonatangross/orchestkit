@@ -614,6 +614,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.69](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.68...v10.0.0-beta.69)** · 2026-09-20
+
+- **ci:** skip the playground gate on test-only diffs (#4303)
+
 **[v10.0.0-beta.68](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.67...v10.0.0-beta.68)** · 2026-09-20
 
 - **jev:** add shared shadow foundation and passive Codex adapter (#4286)
@@ -645,14 +649,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **hooks:** gate session-identity generator to one spawn per session (#4270)
 - **jev:** share TypeSafe key lookup (#4268)
-
-**[v10.0.0-beta.61](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.60...v10.0.0-beta.61)** · 2026-09-19
-
-- **manifest:** wire webhook URL/token through userConfig (#4273)
-- **build:** drop object-shaped triggers from built SKILL.md (#4276)
-- **ci:** compare hook-bundle guard against current base tip (#4283)
-- **git:** reject release bundle helper failures (#4287)
-- **jev:** validate confidence and expose shadow disagreements (#4271)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

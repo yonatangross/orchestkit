@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Test only diffs skip the playground</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 2rem 1.25rem;
+    font-family: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    background: hsl(232 26% 7%);
+    color: hsl(220 18% 93%);
+    line-height: 1.5;
+  }
+  main { max-width: 40rem; margin: 0 auto; }
+  h1 { font-size: 1.4rem; margin: 0 0 0.4rem; }
+  p.lead { color: hsl(220 12% 64%); margin: 0 0 1.2rem; }
+  .row { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
+  button {
+    font: inherit;
+    color: hsl(220 18% 93%);
+    background: hsl(0 0% 100% / 0.06);
+    border: 1px solid hsl(0 0% 100% / 0.16);
+    border-radius: 999px;
+    padding: 0.4rem 0.8rem;
+    cursor: pointer;
+  }
+  button[aria-pressed="true"] { background: hsl(248 84% 68%); color: hsl(232 26% 7%); }
+  .verdict {
+    padding: 1rem;
+    border-radius: 12px;
+    background: hsl(0 0% 100% / 0.05);
+    border: 1px solid hsl(0 0% 100% / 0.12);
+  }
+  .verdict strong { display: block; margin-bottom: 0.3rem; }
+  .ok { color: hsl(160 68% 45%); }
+  .need { color: hsl(38 95% 60%); }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none; animation: none; }
+  }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Test only diffs skip the playground"><meta property="og:description" content="The PR playground gate reports success when every changed file is a test file, and still requires a playground when source rides along. The automated branch prefix list is unchanged."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/test-only-diff-playground.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Test only diffs skip the playground"><meta name="twitter:description" content="The PR playground gate reports success when every changed file is a test file, and still requires a playground when source rides along. The automated branch prefix list is unchanged."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <h1>Test only diffs skip the playground</h1>
+  <p class="lead">Pick a diff. The gate answers the same way CI does: a playground is required only when some changed path is not a test file.</p>
+  <div class="row" role="group" aria-label="Sample diffs">
+    <button type="button" data-case="tests" aria-pressed="true">tests only</button>
+    <button type="button" data-case="mixed" aria-pressed="false">tests plus source</button>
+    <button type="button" data-case="bot" aria-pressed="false">automated branch</button>
+  </div>
+  <div class="verdict" id="verdict" aria-live="polite"></div>
+  <p style="margin-top:1rem">
+    <button type="button" id="copy">Copy the rule</button>
+  </p>
+</main>
+<script>
+  var cases = {
+    tests: { ok: true, text: "test-only diff, no playground required" },
+    mixed: { ok: false, text: "Playground required (PR touches user-facing paths)" },
+    bot: { ok: true, text: "Skipping playground check for automated branch" }
+  };
+  var verdict = document.getElementById("verdict");
+  function show(key) {
+    var item = cases[key];
+    verdict.innerHTML = "<strong class=\"" + (item.ok ? "ok" : "need") + "\">" +
+      (item.ok ? "Skip" : "Require") + "</strong>" + item.text;
+    document.querySelectorAll("[data-case]").forEach(function (btn) {
+      btn.setAttribute("aria-pressed", btn.getAttribute("data-case") === key ? "true" : "false");
+    });
+  }
+  document.querySelectorAll("[data-case]").forEach(function (btn) {
+    btn.addEventListener("click", function () { show(btn.getAttribute("data-case")); });
+  });
+  document.getElementById("copy").addEventListener("click", function () {
+    var rule = "When every changed file is a test file, the playground gate reports success: test-only diff, no playground required.";
+    if (navigator.clipboard) navigator.clipboard.writeText(rule);
+  });
+  show("tests");
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
