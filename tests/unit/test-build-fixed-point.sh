@@ -50,9 +50,10 @@ git -C "$REPO_ROOT" archive --format=tar HEAD -- \
   docs/site/content/docs/foundations/overview.mdx \
   | tar -xf - -C "$FIXTURE"
 git -C "$FIXTURE" init --quiet
+git -C "$FIXTURE" config commit.gpgsign false
 git -C "$FIXTURE" add --all
 git -C "$FIXTURE" -c user.name='Fixed Point Test' \
-  -c user.email='fixed-point@example.invalid' commit --quiet -m 'test: fixture source'
+  -c user.email='fixed-point@example.invalid' -c commit.gpgsign=false commit --quiet -m 'test: fixture source'
 
 # The archive intentionally starts at HEAD so it is a clean Git baseline.
 # Overlay the script under test so local runs exercise an uncommitted build-order fix too.
@@ -182,7 +183,7 @@ grep -Fq "$CANONICAL_OVERVIEW_DESCRIPTION" \
 # production build must leave this exact tree untouched.
 git -C "$FIXTURE" add --all
 git -C "$FIXTURE" -c user.name='Fixed Point Test' \
-  -c user.email='fixed-point@example.invalid' commit --quiet -m 'test: fixture baseline'
+  -c user.email='fixed-point@example.invalid' -c commit.gpgsign=false commit --quiet -m 'test: fixture baseline'
 
 echo "Running second production docs sequence..."
 run_production_docs_steps

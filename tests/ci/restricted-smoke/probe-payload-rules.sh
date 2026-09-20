@@ -85,7 +85,8 @@ setup_git_repo() {
   git init -q -b "$2" "$1"
   git init -q --bare "$1.origin"
   ( cd "$1" \
-    && git -c user.email=p@p -c user.name=p commit -q --allow-empty -m seed \
+    && git config commit.gpgsign false \
+    && git -c user.email=p@p -c user.name=p -c commit.gpgsign=false commit -q --allow-empty -m seed \
     && git remote add origin "$1.origin" ) >/dev/null 2>&1
 }
 git_pushed() { git -C "$1.origin" rev-parse --verify "refs/heads/$2" >/dev/null 2>&1; }

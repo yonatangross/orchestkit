@@ -10,6 +10,7 @@ cd "$fixture"
 git init -q
 git config user.email fixture@example.invalid
 git config user.name Fixture
+git config commit.gpgsign false
 mkdir -p src/hooks/dist plugins/ork/hooks/dist
 printf old > src/hooks/dist/bundle.mjs
 printf old > plugins/ork/hooks/dist/bundle.mjs
@@ -68,6 +69,7 @@ cd "$hook_fixture"
 git init -q
 git config user.email fixture@example.invalid
 git config user.name Fixture
+git config commit.gpgsign false
 printf fixture > docs/example.txt
 git add docs/example.txt
 
