@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { HostInstallPicker } from "@/components/host-install";
+import { SITE } from "@/lib/constants";
 import { track } from "@/lib/search-beacon";
 
 vi.mock("next/link", () => ({
@@ -315,6 +316,32 @@ describe("HostInstallPicker", () => {
 			).not.toBe("0");
 		}
 		vi.restoreAllMocks();
+	});
+
+	it("does not repeat the hero command, and keeps the /ork:setup follow-up", () => {
+		render(<HostInstallPicker />);
+		// Claude Code is the default pick and its command is byte-identical to
+		// the hero's, so the panel says so in real text instead of printing it.
+		expect(
+			screen.queryByRole("button", {
+				name: new RegExp(`copy ${SITE.installCommand}`, "i"),
+			}),
+		).toBeNull();
+		expect(screen.getByText(/same command as above/i)).toBeTruthy();
+		expect(
+			screen.getByRole("button", { name: /^copy \/ork:setup to clipboard$/i }),
+		).toBeTruthy();
+	});
+
+	it("still renders a copyable command for a host that differs from the hero", async () => {
+		search = new URLSearchParams("host=cursor");
+		render(<HostInstallPicker />);
+		expect(
+			await screen.findByRole("button", {
+				name: /copy yonatangross\/orchestkit to clipboard/i,
+			}),
+		).toBeTruthy();
+		expect(screen.queryByText(/same command as above/i)).toBeNull();
 	});
 
 	it("copies two Codex lines as one clipboard payload", async () => {
