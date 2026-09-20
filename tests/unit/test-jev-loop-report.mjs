@@ -44,21 +44,22 @@ try {
   assert.equal(result.rows[2].jev_confidence, null);
   assert.equal(result.confident_wrong.length, 0);
   assert.deepEqual(result.rows[0].missing_contract, ['jev_pick', 'jev_confidence', 'incumbent_pick', 'agree', 'decided_by']);
+  const canonical = { schema_version: 1, namespace: 'host-a', producer: 'ork', harness: 'claude-code', decision_id: 'invalid',
+    unknown_reason: { incumbent_pick: 'not_run' } };
   const cases = write('cases.jsonl', [
     row({ prompt_id: 'below', jev_confidence: 0.89 }), row({ prompt_id: 'agree', agree: true }),
     row({ prompt_id: 'unknown', agree: null }), row({ prompt_id: 'mode', mode: 'act' }),
     row({ prompt_id: 'bad', jev_confidence: '0.99' }), row({ prompt_id: 'floor', floor: null }),
     row({ prompt_id: 'inconsistent', jev_pick: 'fix', incumbent_pick: 'fix', agree: false }),
     row({ prompt_id: 'failed', incumbent_pick: { status: 'failed', reason: 'timeout' }, agree: null }),
-    row({ schema_version: 1, prompt_id: 'handoff', phase: 'handoff', jev_pick: null, jev_confidence: null,
-      incumbent_pick: null, agree: null, floor: null, decided_by: 'unknown',
+    row({ ...canonical, decision_id: 'handoff', prompt_id: 'handoff', phase: 'handoff', jev_pick: null, jev_confidence: null,
+      incumbent_pick: null, incumbent_pick_reason: 'not_run', agree: null, floor: null, decided_by: 'unknown',
       unknown_reason: { jev_pick: 'not_run', jev_confidence: 'not_run', incumbent_pick: 'not_run', floor: 'not_frozen' } }),
     { haiku: 'fix', jev: 'feature', jev_confidence: 0.8, threshold: 0.8, provider: 'shadow' },
     row({ seam: 'inbox', prompt_id: null }), row({ seam: 'expect', prompt_id: null })]);
   result = collect(manifest([source([cases])]));
   assert.deepEqual(result.confident_wrong.map((r) => r.seam), ['category', 'inbox', 'expect']);
   assert.equal(result.complete, false);
-  assert.equal(result.invalid_contracts, 5);
   assert.deepEqual(result.rows.find((r) => r.prompt_id === 'bad').contract_errors, ['invalid:jev_confidence']);
   assert.deepEqual(result.rows.find((r) => r.prompt_id === 'inconsistent').contract_errors, ['inconsistent:agree']);
   assert.deepEqual(result.rows.find((r) => r.prompt_id === 'handoff').contract_errors, []);
@@ -68,13 +69,32 @@ try {
   result = collect(manifest([source([flagOnly])]));
   assert.equal(result.rows[0].mode, 'shadow');
   assert.equal(result.confident_wrong.length, 1);
-  const invalid = write('invalid.jsonl', [row({ incumbent_pick: null, agree: null }),
+  const legacyInvalid = write('legacy-invalid.jsonl', [row({ incumbent_pick: null, agree: null }),
     row({ incumbent_pick: { status: 'failed' }, agree: false })]);
-  result = collect(manifest([source([invalid])]));
-  assert.equal(result.complete, false);
+  result = collect(manifest([source([legacyInvalid])]));
   assert.equal(result.invalid_contracts, 2);
   assert.deepEqual(result.rows[0].contract_errors, ['null_incumbent_without_reason']);
   assert.deepEqual(result.rows[1].contract_errors, ['non_choice_incumbent_requires_null_agree']);
+  const invalid = write('invalid.jsonl', [row({ ...canonical, incumbent_pick: null, agree: null }),
+    row({ ...canonical, incumbent_pick: { status: 'failed' }, agree: false })]);
+  result = collect(manifest([source([invalid])]));
+  assert.equal(result.complete, false);
+  assert.equal(result.invalid_contracts, 2);
+  assert.deepEqual(result.rows[0].contract_errors, ['incumbent_pick_reason:missing']);
+  assert.deepEqual(result.rows[1].contract_errors, ['incumbent_pick:invalid', 'agree:requires_independent_choices']);
+  assert.equal(result.confident_wrong.length, 0);
+  const v1 = row({ schema_version: 1, namespace: 'host-a', producer: 'ork', harness: 'agy', decision_id: 'agy-unknown',
+    phase: 'unobserved', jev_pick: null, jev_confidence: null, incumbent_pick: { status: 'unobserved', choice: null, reason: 'unproved' },
+    agree: null, floor: null, decided_by: 'unknown', incumbent_origin: 'unobserved', selected_pick: null, selected_by: 'unknown',
+    unknown_reason: { jev_pick: 'zero_credit_no_inference', jev_confidence: 'zero_credit_no_inference', floor: 'no_floor' } });
+  const agy = write('agy.jsonl', [v1]);
+  result = collect(manifest([source([agy], { harness: 'agy' })]));
+  assert.deepEqual(result.rows[0].unknown_reason, v1.unknown_reason);
+  assert.equal(result.rows[0].incumbent_origin, 'unobserved');
+  assert.throws(() => collect(manifest([source([agy], { harness: 'gemini' })])), /Conflicting row provenance/);
+  const fixture = write('fixture.jsonl', [row({ ...canonical, decision_id: 'fixture-only', harness: 'claude-code' })]);
+  result = collect(manifest([source([fixture], { fixture_only: true })]));
+  assert.equal(result.fixture_rows.length, 1);
   assert.equal(result.confident_wrong.length, 0);
   const alias = join(dir, 'alias.jsonl'); symlinkSync(terminal, alias);
   assert.equal(collect(manifest([source([terminal, alias])])).rows.length, 2);

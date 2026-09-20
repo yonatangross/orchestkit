@@ -5,6 +5,10 @@ import { dirname, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { createHash } from 'node:crypto';
 import { normalize, validateLegacyShadow } from './jev-shadow-report.mjs';
+// The checked-in, dependency-free runtime is the shipped artifact (the codex
+// hook byte-pins it). packages/jev-shadow is its typed source and test bed;
+// importing tsc output here needed a build the unit job never runs.
+import { validateJevShadow } from '../src/codex/ork-codex/runtime/jev-shadow-runtime.mjs';
 
 const string = (v) => typeof v === 'string' && v.length > 0 ? v : null;
 const probability = (v) => typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= 1 ? v : null;
@@ -12,32 +16,44 @@ const canonical = (v) => Array.isArray(v) ? v.map(canonical) : v && typeof v ===
   ? Object.fromEntries(Object.keys(v).sort().map((k) => [k, canonical(v[k])])) : v;
 export const decisionHash = (row) => createHash('sha256').update(JSON.stringify(canonical(row))).digest('hex');
 const digest = (bytes) => createHash('sha256').update(bytes).digest('hex');
-const contract = ['jev_pick', 'jev_confidence', 'incumbent_pick', 'agree', 'floor', 'decided_by'];
-const harnesses = new Set(['claude-code', 'codex', 'cursor', 'devin', 'pi', 'platform']);
+const contract = ['schema_version', 'namespace', 'producer', 'seam', 'mode', 'decision_id', 'phase', 'harness',
+  'session_id', 'prompt_id', 'router', 'jev_pick', 'jev_confidence', 'incumbent_pick', 'agree', 'floor', 'decided_by', 'unknown_reason'];
+const legacyContract = ['jev_pick', 'jev_confidence', 'incumbent_pick', 'agree', 'floor', 'decided_by'];
+const harnesses = new Set(['claude-code', 'codex', 'cursor', 'devin', 'pi', 'agy', 'gemini', 'grok', 'platform']);
+const canonicalOutcome = (value) => value && typeof value === 'object' && !Array.isArray(value)
+  && ['failed', 'unobserved'].includes(value.status) && value.choice === null && string(value.reason)
+  && Object.keys(value).every((key) => ['status', 'choice', 'reason'].includes(key));
+const unknownReasons = (value) => value && typeof value === 'object' && !Array.isArray(value)
+  && Object.values(value).every(string) ? value : null;
+const genericRow = (value) => !!value && typeof value === 'object' && value.schema_version === 1 && string(value.seam) && 'jev_pick' in value;
 
 function project(raw, source, spec) {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw) || raw.phase === 'invoked') return null;
   const n = normalize(raw, source);
   // Auxiliary Noul answers intentionally have no Choice confidence adapter.
   const auxiliary = string(raw.surface);
+  const canonicalRecord = genericRow(raw);
   const generic = string(raw.seam) && 'jev_pick' in raw;
   if (!n && !auxiliary && !generic) return null;
-  const jev = n?.jev ?? (generic ? string(raw.jev_pick) : null);
-  const incumbent = n?.incumbent ?? (generic ? string(raw.incumbent_pick) : null);
-  const agree = n ? n.agree : generic && jev && incumbent && typeof raw.agree === 'boolean' ? raw.agree : null;
-  const missing = contract.filter((k) => !(k in raw));
-  const contract_errors = validateLegacyShadow(raw);
+  const jev = generic ? string(raw.jev_pick) : n?.jev ?? null;
+  const incumbent = generic ? string(raw.incumbent_pick) : n?.incumbent ?? null;
+  const agree = generic ? (typeof raw.agree === 'boolean' ? raw.agree : null) : n?.agree ?? null;
+  const missing = (canonicalRecord ? contract : legacyContract).filter((k) => !(k in raw));
+  const contract_errors = canonicalRecord ? [...validateJevShadow(raw)] : validateLegacyShadow(raw);
+  const reasons = unknownReasons(raw.unknown_reason);
   return { harness: spec.harness, namespace: spec.namespace, producer: spec.producer,
-    source, decision_sha256: decisionHash(raw), seam: n?.seam ?? raw.seam ?? `aux:${auxiliary}`,
+    source, decision_sha256: decisionHash(raw), seam: generic ? raw.seam : n?.seam ?? raw.seam ?? `aux:${auxiliary}`,
     session_id: string(raw.session_id), prompt_id: string(raw.prompt_id), router: string(raw.router),
     handoff_to: string(raw.handoff_to), decision_id: string(raw.decision_id), phase: string(raw.phase),
-    mode: n?.mode ?? raw.mode ?? raw.flag ?? null, jev_pick: jev,
-    jev_confidence: n ? n.confidence : generic ? probability(raw.jev_confidence) : null,
+    mode: generic ? raw.mode ?? raw.flag ?? null : n?.mode ?? raw.mode ?? raw.flag ?? null, jev_pick: jev,
+    jev_confidence: generic ? probability(raw.jev_confidence) : n ? n.confidence : null,
     incumbent_pick: incumbent ?? (raw.incumbent_pick && typeof raw.incumbent_pick === 'object'
       ? raw.incumbent_pick : null),
     incumbent_pick_reason: string(raw.incumbent_pick_reason), agree,
-    floor: n ? n.floor : generic ? probability(raw.floor) : null,
-    decided_by: string(raw.decided_by), missing_contract: missing, contract_errors,
+    floor: generic ? probability(raw.floor) : n ? n.floor : null,
+    decided_by: string(raw.decided_by), unknown_reason: reasons,
+    selected_pick: string(raw.selected_pick), selected_by: string(raw.selected_by), incumbent_origin: string(raw.incumbent_origin),
+    fixture_only: spec.fixture_only === true, missing_contract: missing, contract_errors,
     join_status: 'unjoined', outcome_label: null, review_status: 'awaiting_adjudication' };
 }
 
@@ -76,7 +92,8 @@ export function collect(manifest, base = process.cwd()) {
   let malformed = 0, ignored = 0;
   for (const spec of manifest.sources) {
     if (!harnesses.has(spec.harness) || !string(spec.namespace) || !string(spec.producer)
-      || !string(spec.seam) || !Array.isArray(spec.files) || spec.files.some((p) => !string(p))) {
+      || !string(spec.seam) || !Array.isArray(spec.files) || spec.files.some((p) => !string(p))
+      || (spec.fixture_only !== undefined && typeof spec.fixture_only !== 'boolean')) {
       throw new Error('Each source requires harness, namespace, producer, seam, and explicit files');
     }
     const start = rows.length;
@@ -102,27 +119,30 @@ export function collect(manifest, base = process.cwd()) {
         const row = project(raw, `${file}:${index + 1}`, spec);
         if (row) {
           if (spec.seam !== '*' && row.seam !== spec.seam) throw new Error(`Unexpected seam at ${row.source}`);
+          if (genericRow(raw) && (raw.namespace !== spec.namespace || raw.harness !== spec.harness || raw.producer !== spec.producer)) {
+            throw new Error(`Conflicting row provenance: ${row.source}`);
+          }
           rows.push(row);
         } else ignored++;
       });
     }
     inventory.push({ harness: spec.harness, namespace: spec.namespace, producer: spec.producer,
-      seam: spec.seam, observed_rows: rows.length - start, files_declared: spec.files.length });
+      seam: spec.seam, observed_rows: rows.length - start, files_declared: spec.files.length, fixture_only: spec.fixture_only === true });
   }
   const decisions = join(rows);
-  const confident_wrong = decisions.filter((r) => !r.contract_errors.length && r.mode === 'shadow' && r.agree === false
+  const confident_wrong = decisions.filter((r) => !r.fixture_only && !r.contract_errors.length && r.mode === 'shadow' && r.agree === false
     && r.jev_confidence !== null && r.floor !== null && r.jev_confidence >= r.floor)
     .map((r) => ({ ...r, bucket: 'confident-wrong' }));
   const summary = [...new Set(decisions.map((r) => JSON.stringify([r.harness, r.seam])))].map((key) => {
     const [harness, seam] = JSON.parse(key), samples = decisions.filter((r) => r.harness === harness && r.seam === seam);
-    return { harness, seam, decisions: samples.length, paired: samples.filter((r) => typeof r.agree === 'boolean').length,
+    return { harness, seam, decisions: samples.length, paired: samples.filter((r) => !r.fixture_only && typeof r.agree === 'boolean').length,
       missing_identity: samples.filter((r) => !r.prompt_id || !r.session_id).length,
       confident_wrong: confident_wrong.filter((r) => r.harness === harness && r.seam === seam).length };
   });
   const invalid_contracts = rows.filter((r) => r.contract_errors.length).length;
   return { version: 1, typesafe_credits: 0, complete: malformed === 0 && invalid_contracts === 0, malformed, ignored, invalid_contracts,
     warning: 'Agreement is not accuracy. No rows does not prove a harness is unwired. Inputs are explicit local snapshots.',
-    inventory, files, summary, rows, decisions, confident_wrong };
+    inventory, files, summary, rows, decisions, fixture_rows: rows.filter((row) => row.fixture_only), confident_wrong };
 }
 
 export function main(args) {

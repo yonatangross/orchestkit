@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.67",
+    "date": "2026-09-20",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.66...v10.0.0-beta.67",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**expect:** jev live per-field decisions in form steps ([#4284](https://github.com/yonatangross/orchestkit/issues/4284)) ([145521b](https://github.com/yonatangross/orchestkit/commit/145521b11961fb1ecbe8e05cac4a300f381db686))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.66",
     "date": "2026-09-20",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.65...v10.0.0-beta.66",

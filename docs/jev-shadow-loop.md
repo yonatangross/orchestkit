@@ -23,8 +23,9 @@ Never list the same file as traffic from multiple harnesses.
 }
 ```
 
-Supported harness names are `claude-code`, `codex`, `cursor`, `devin`, `pi`, and
-`platform`. Producer is provenance, not an inferred router. Use `seam: "*"` for
+Supported harness names are `claude-code`, `codex`, `cursor`, `devin`, `pi`, `agy`,
+`gemini`, `grok`, and `platform`; unknown IDs are rejected. Producer is provenance,
+not an inferred router. Use `seam: "*"` for
 mixed files. Sources without files are visible inventory gaps, not proof of absent
 wiring. Each file must be at most 64 MiB; rotate or snapshot larger logs first.
 Missing, unreadable, conflicting-provenance, and wrong-seam inputs fail the command.

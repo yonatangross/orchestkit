@@ -1,0 +1,28 @@
+{
+  "name": "@orchestkit/jev-shadow",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Offline-only Jev shadow contract and JSONL emitter.",
+  "type": "module",
+  "main": "./dist/esm/index.js",
+  "types": "./dist/esm/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/esm/index.d.ts",
+      "import": "./dist/esm/index.js"
+    },
+    "./runtime": "./dist/esm/runtime.js"
+  },
+  "files": ["dist", "src", "README.md"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "npm run build && vitest run"
+  },
+  "engines": { "node": ">=24 <25" },
+  "devDependencies": {
+    "@types/node": "^26.5.1",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.0"
+  }
+}
