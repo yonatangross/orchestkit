@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.70",
+    "date": "2026-09-20",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.69...v10.0.0-beta.70",
+    "sections": [
+      {
+        "type": "changed",
+        "heading": "Miscellaneous",
+        "items": [
+          "**cc:** raise the CC support floor 2.1.251 to 2.1.277 ([#4305](https://github.com/yonatangross/orchestkit/issues/4305)) ([02cb935](https://github.com/yonatangross/orchestkit/commit/02cb9352d9d729cd2f6148e6355e19b588309e95))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.69",
     "date": "2026-09-20",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.68...v10.0.0-beta.69",
