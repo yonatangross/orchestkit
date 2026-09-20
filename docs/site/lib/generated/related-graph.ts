@@ -775,7 +775,11 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/skills/doctor": {
       "title": "Doctor",
-      "inbound": 20
+      "inbound": 21
+    },
+    "/docs/reference/skills/doctor/references/agent-memory-dir": {
+      "title": "Doctor: Per-agent memory directory",
+      "inbound": 1
     },
     "/docs/reference/skills/doctor/references/agents-validation": {
       "title": "Doctor: Agents Validation",
@@ -2112,6 +2116,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     "/docs/reference/skills/devops-deployment": [],
     "/docs/reference/skills/distributed-systems": [],
     "/docs/reference/skills/doctor": [
+      "/docs/reference/skills/doctor/references/agent-memory-dir",
       "/docs/reference/skills/doctor/references/agents-validation",
       "/docs/reference/skills/doctor/references/claude-code",
       "/docs/reference/skills/doctor/references/health-check-outputs",
@@ -2130,6 +2135,9 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/reference/skills/doctor/references/version-compatibility/02-feature-matrix-part-2",
       "/docs/reference/skills/doctor/references/version-compatibility/03-prompt-caching-recommendation",
       "/docs/reference/skills/doctor/rules"
+    ],
+    "/docs/reference/skills/doctor/references/agent-memory-dir": [
+      "/docs/reference/skills/doctor"
     ],
     "/docs/reference/skills/doctor/references/agents-validation": [
       "/docs/reference/skills/doctor"
