@@ -34,10 +34,10 @@ assert.equal(
   decisionSha256({ a: [{ c: 3, d: 4 }], b: { x: 1, y: 2 } }),
 );
 const replaced = route({ intent: 'dev_build' });
-const stale = normalize(replaced, 'rewritten:1', labelFor(route(), { incumbent: 'dev_fix', correct: 'dev_fix' }));
-assert.equal(stale.labelMismatch, true);
-assert.equal(stale.correct, null);
-assert.equal(stale.falseHigh, false);
+const staleLabel = normalize(replaced, 'rewritten:1', labelFor(route(), { incumbent: 'dev_fix', correct: 'dev_fix' }));
+assert.equal(staleLabel.labelMismatch, true);
+assert.equal(staleLabel.correct, null);
+assert.equal(staleLabel.falseHigh, false);
 const invalidRoute = normalize(high, 'invalid-route', labelFor(high, { correct: 'dev_fxi' }));
 assert.equal(invalidRoute.invalidLabel, true);
 assert.equal(invalidRoute.correct, null);
@@ -48,10 +48,28 @@ assert.equal(normalize(category, 'invalid-category', labelFor(category, { correc
 const expectRow = { step_id: 's', jev_action: 'click:@e2', model_action_key: 'click:@e1', jev_confidence: 0.95, floor: 0.5 };
 assert.equal(normalize(expectRow, 'expect', labelFor(expectRow, { correct: 'click:@e2' })).invalidLabel, false);
 assert.equal(normalize(expectRow, 'invalid-expect', labelFor(expectRow, { correct: 'press:@e1' })).invalidLabel, true);
-const weak = normalize(high, 'weak', { kind: 'weak', ...labelFor(high, { correct: 'dev_build' }) });
-assert.equal(weak.invalidLabel, true);
-assert.equal(weak.correct, null);
+const invalidWeak = normalize(high, 'weak', { kind: 'weak', ...labelFor(high, { correct: 'dev_build' }) });
+assert.equal(invalidWeak.invalidLabel, true);
+assert.equal(invalidWeak.correct, null);
+assert.equal(invalidWeak.falseHigh, false);
+const weak = normalize(route(), 'weak', { kind: 'weak', outcome: 'wrong', signal: 'operator_redirect', decision_sha256: normalize(route(), 'weak').decisionHash, correct: 'dev_build', incumbent: 'dev_build' });
+assert.equal(weak.correct, null, 'weak corrected picks are not adjudication');
+assert.equal(weak.incumbent, null, 'weak labels cannot manufacture incumbent agreement');
 assert.equal(weak.falseHigh, false);
+assert.equal(weak.labeledHigh, false);
+assert.equal(summarize([weak])[0].weakHighWrong, 1);
+assert.equal(summarize([normalize(route({ conf: 0.8 }), 'boundary', { kind: 'weak', outcome: 'wrong', signal: 'alternate_executor', decision_sha256: normalize(route({ conf: 0.8 }), 'boundary').decisionHash })])[0].weakHighWrong, 1);
+const staleWeak = normalize(route({ prompt_id: 'new' }), 'weak', { kind: 'weak', outcome: 'wrong', signal: 'alternate_executor', decision_sha256: normalize(route({ prompt_id: 'old' }), 'weak').decisionHash });
+assert.equal(staleWeak.weak, 'unknown', 'rotated source lines cannot reuse another prompt outcome');
+assert.equal(summarize([staleWeak])[0].weakMismatches, 1);
+assert.equal(summarize([staleWeak])[0].weakHighWrong, 0);
+for (const changed of [{ ts: 'new' }, { input_hash: 'new' }, { error: 'timeout' }, { nested: { request: ['new'] } }]) {
+  const original = route({ ts: 'old', input_hash: 'old', nested: { request: ['old'] } });
+  const label = { kind: 'weak', outcome: 'correct', signal: 'clean_completion', decision_sha256: normalize(original, 'same').decisionHash };
+  assert.equal(normalize({ ...original, ...changed }, 'same', label).weak, 'unknown', 'every raw decision field must be fingerprinted');
+  const reordered = Object.fromEntries(Object.entries(original).reverse());
+  assert.equal(normalize(reordered, 'same', label).weak, 'correct', 'key order is not a new decision');
+}
 const dir = mkdtempSync(join(tmpdir(), 'jev-report-'));
 try {
   const file = join(dir, 'samples.jsonl');
@@ -143,5 +161,16 @@ try {
     () => execFileSync(process.execPath, ['scripts/jev-shadow-report.mjs', '--labels', weakLabels, file], { encoding: 'utf8', stdio: 'pipe' }),
     /Invalid adjudicated label/,
   );
+  writeFileSync(labels, JSON.stringify({ source: `${file}:1`, kind: 'weak', outcome: 'unknown', signal: 'missing_prompt_id' }));
+  const weakOutput = execFileSync(process.execPath, ['scripts/jev-shadow-report.mjs', '--labels', labels, file], { encoding: 'utf8' });
+  assert.match(weakOutput, /weak outcomes: correct=0 wrong=0 unknown=1/);
+  assert.match(weakOutput, /labeled false-high=0\/0/);
+  writeFileSync(labels, JSON.stringify({ source: `${file}:1`, kind: 'weak', outcome: 'maybe', correct: 'dev_fix', signal: 'guess' }));
+  assert.throws(() => execFileSync(process.execPath, ['scripts/jev-shadow-report.mjs', '--labels', labels, file], { stdio: 'pipe' }), /Command failed/);
+  writeFileSync(labels, [
+    { source: `${file}:1`, ...labelFor(loggedRoute, { correct: 'dev_fix' }) },
+    { source: `${file}:1`, kind: 'weak', outcome: 'wrong', signal: 'alternate_executor' },
+  ].map(JSON.stringify).join('\n'));
+  assert.throws(() => execFileSync(process.execPath, ['scripts/jev-shadow-report.mjs', '--labels', labels, file], { stdio: 'pipe' }), /Duplicate label source/);
 } finally { rmSync(dir, { recursive: true, force: true }); }
 console.log('PASS: Jev shadow report counts, confidence bands, labels, legacy unknowns, malformed rows and CLI');

@@ -36,9 +36,18 @@ function validLabelValue(seam, value) {
   return EXPECT_ACTION.test(value);
 }
 
+const isWeakShape = (label) => typeof label === 'object' && label !== null && !Array.isArray(label) &&
+  label.kind === 'weak' && ['correct', 'wrong', 'unknown'].includes(label.outcome) && pick(label.signal);
+
 function adjudication(row, seam, label) {
   const decisionHash = decisionSha256(row);
   if (label === undefined || label === null || (typeof label === 'object' && !Array.isArray(label) && Object.keys(label).length === 0)) {
+    return { decisionHash, incumbent: null, correct: null, labelMismatch: false, invalidLabel: false };
+  }
+  // Valid weak sidecars are a separate evidence class: no adjudicated
+  // fields, no invalidLabel. Malformed weak labels fall through to
+  // invalidLabel like any other kind-tagged record.
+  if (isWeakShape(label)) {
     return { decisionHash, incumbent: null, correct: null, labelMismatch: false, invalidLabel: false };
   }
   if (typeof label !== 'object' || Array.isArray(label) || Object.hasOwn(label, 'kind') ||
@@ -130,12 +139,17 @@ export function normalize(row, source, label = {}) {
   } else return null;
   const labelResult = adjudication(row, seam, label);
   incumbent = labelResult.incumbent ?? incumbent;
+  const identity = { sessionId: pick(row.session_id), promptId: pick(row.prompt_id),
+    jevExecutor: pick(row.jev_executor), producer: pick(row.producer) };
+  // Weak outcome proxies must never enter adjudicated precision counts.
+  const weakMismatch = isWeakShape(label) && label.decision_sha256 !== labelResult.decisionHash;
+  const weak = isWeakShape(label) ? (weakMismatch ? 'unknown' : label.outcome) : null;
   const correct = labelResult.correct;
   const paired = jev !== null && incumbent !== null && (!canonicalRow || typeof row.agree === 'boolean' || labelResult.incumbent !== null);
   const agree = paired ? (canonicalRow && labelResult.incumbent === null ? row.agree : jev === incumbent) : null;
   const above = confidence !== null && floor !== null && confidence >= floor;
-  return { source, seam, jev, ...labelResult, incumbent, confidence, floor, mode, correct,
-    sessionId: pick(row.session_id), promptId: pick(row.prompt_id),
+  return { source, seam, jev, ...identity, weakMismatch, ...labelResult,
+    incumbent, confidence, floor, mode, correct, weak,
     router: pick(row.router), handoffTo: pick(row.handoff_to),
     decisionId: pick(row.decision_id), phase: pick(row.phase), decidedBy: pick(row.decided_by),
     error: pick(row.error), paired, agree,
@@ -155,6 +169,9 @@ export function summarize(rows) {
       belowFloor: count((r) => r.below), errors: count((r) => r.error !== null),
       labeledHigh: count((r) => r.labeledHigh), falseHigh: count((r) => r.falseHigh),
       unknownFloor: count((r) => r.floor === null),
+      weak: Object.fromEntries(['correct', 'wrong', 'unknown'].map((value) => [value, count((r) => r.weak === value)])),
+      weakHighWrong: count((r) => r.weak === 'wrong' && r.confidence !== null && r.floor !== null && r.confidence >= r.floor),
+      weakMismatches: count((r) => r.weakMismatch),
       bands: [[0, 0.5], [0.5, 0.8], [0.8, 0.9], [0.9, 1]].map(([lo, hi]) => {
         const band = samples.filter((r) => r.confidence !== null && r.confidence >= lo && (hi === 1 ? r.confidence <= hi : r.confidence < hi));
         return { band: `[${lo},${hi}${hi === 1 ? ']' : ')'}`, rows: band.length,
@@ -197,24 +214,31 @@ export function readRows(paths, labels = new Map()) {
   }
   // A shared runtime session + prompt identifies one decision across routers
   // and files. Historical rows without both IDs retain file-local revision keys.
+  const groupKey = (row) => row.sessionId && row.promptId
+    ? JSON.stringify(['prompt', row.sessionId, row.promptId])
+    : row.decisionId ? JSON.stringify(['legacy', row.source.replace(/:\d+$/, ''), row.decisionId]) : null;
   const decisions = new Map();
-  const retained = [];
-  let superseded = 0;
   for (const row of rows) {
-    if (row.seam !== 'route') { retained.push(row); continue; }
-    const key = row.sessionId && row.promptId
-      ? JSON.stringify(['prompt', row.sessionId, row.promptId])
-      : row.decisionId ? JSON.stringify(['legacy', row.source.replace(/:\d+$/, ''), row.decisionId]) : null;
-    if (key === null) { retained.push(row); continue; }
+    if (row.seam !== 'route') continue;
+    const key = groupKey(row);
+    if (key === null) continue;
     const group = decisions.get(key) ?? [];
     group.push(row);
     decisions.set(key, group);
   }
-  for (const group of decisions.values()) {
+  const retained = [];
+  const emitted = new Set();
+  let superseded = 0;
+  for (const row of rows) {
+    const key = row.seam === 'route' ? groupKey(row) : null;
+    if (key === null) { retained.push(row); continue; }
+    if (emitted.has(key)) continue;
+    emitted.add(key);
+    const group = decisions.get(key);
     superseded += group.length - 1;
-    const targets = new Set(group.map((row) => row.handoffTo).filter(Boolean));
-    const candidates = group.filter((row) => !row.handoffTo && (!targets.size || targets.has(row.router)));
-    const chosen = candidates.find((row) => row.phase === 'paired') ?? candidates[0];
+    const targets = new Set(group.map((r) => r.handoffTo).filter(Boolean));
+    const candidates = group.filter((r) => !r.handoffTo && (!targets.size || targets.has(r.router)));
+    const chosen = candidates.find((r) => r.phase === 'paired') ?? candidates[0];
     // A handoff is not a terminal comparison. Until its target records a row,
     // retain one unpaired prompt rather than count the upstream pick as final.
     retained.push(chosen ?? { ...group[0], paired: false, agree: null,
@@ -232,12 +256,14 @@ export function main(args) {
       if (!path) throw new Error('Missing labels file');
       const entries = readFileSync(path, 'utf8').split('\n').filter((s) => s.trim()).map((s) => {
         const row = JSON.parse(s);
-        if (!pick(row.source) || Object.hasOwn(row, 'kind') || !SHA256.test(row.decision_sha256) ||
-            (!Object.hasOwn(row, 'incumbent') && !Object.hasOwn(row, 'correct'))) throw new Error('Invalid adjudicated label');
+        const validWeak = row.kind === 'weak' && ['correct', 'wrong', 'unknown'].includes(row.outcome) && pick(row.signal);
+        const validAdjudicated = !Object.hasOwn(row, 'kind') && SHA256.test(row.decision_sha256) &&
+          (Object.hasOwn(row, 'incumbent') || Object.hasOwn(row, 'correct'));
+        if (!pick(row.source) || !(row.kind === 'weak' ? validWeak : validAdjudicated)) throw new Error('Invalid adjudicated label');
         return [row.source, row];
       });
       labels = new Map(entries);
-      if (labels.size !== entries.length) throw new Error('Duplicate label source');
+      if (labels.size !== entries.length) throw new Error('Duplicate label source; adjudicated and weak sidecars must be reported separately');
     } else if (args[i] === '--all-modes') allModes = true;
     else if (args[i] === '--confident-wrong') confidentWrong = true;
     else if (args[i].startsWith('--')) throw new Error(`Unknown option: ${args[i]}`);
@@ -262,6 +288,8 @@ export function main(args) {
     console.log(`\n${s.seam}: rows=${s.rows} paired=${s.paired} unpaired=${s.rows - s.paired} agreement=${s.agreements}/${s.paired} (${share(s.agreements, s.paired)})`);
     console.log(`  high-confidence disagreements=${s.highDisagreements}; share_all=${share(s.highDisagreements, s.rows)}; share_high_paired=${share(s.highDisagreements, s.highPaired)}; below_floor=${s.belowFloor}; errors=${s.errors}; unknown_floor=${s.unknownFloor}`);
     console.log(`  labeled false-high=${s.falseHigh}/${s.labeledHigh} (${share(s.falseHigh, s.labeledHigh)})`);
+    console.log(`  weak outcomes: correct=${s.weak.correct} wrong=${s.weak.wrong} unknown=${s.weak.unknown}; above-floor wrong=${s.weakHighWrong} (proxies, excluded from adjudicated precision)`);
+    if (s.weakMismatches) console.log(`  weak snapshot mismatches=${s.weakMismatches} (treated as unknown)`);
     for (const b of s.bands) console.log(`  confidence ${b.band}: rows=${b.rows} agreement=${b.agreements}/${b.paired} (${share(b.agreements, b.paired)})`);
     for (const r of s.examples) console.log(`  disagreement ${JSON.stringify({ source: r.source, incumbent: r.incumbent, jev: r.jev, confidence: r.confidence, floor: r.floor, correct: r.correct })}`);
     for (const r of s.fallbacks) console.log(`  fallback ${JSON.stringify({ source: r.source, incumbent: r.incumbent, jev: r.jev, confidence: r.confidence, floor: r.floor, error: r.error })}`);

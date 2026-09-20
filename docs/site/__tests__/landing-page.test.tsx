@@ -353,13 +353,20 @@ describe("landing page content", () => {
     expect(within(nav).getByRole("link", { name: "Pi" })).toBeTruthy();
     expect(within(nav).getByRole("link", { name: "Muse Code" })).toBeTruthy();
     expect(within(nav).getByRole("link", { name: "OpenCode" })).toBeTruthy();
+    // The hero already shows this exact command above the fold, so the picker
+    // states that in real text instead of printing the same string twice.
     expect(
-      within(nav)
-        .getByRole("button", {
-          name: /copy claude plugin marketplace add yonatangross\/orchestkit/i,
-        })
-        .getAttribute("aria-label"),
-    ).toMatch(/claude plugin install ork@orchestkit/i);
+      within(nav).queryByRole("button", {
+        name: /copy claude plugin marketplace add yonatangross\/orchestkit/i,
+      }),
+    ).toBeNull();
+    expect(within(nav).getByText(/same command as above/i)).toBeTruthy();
+    // The /ork:setup follow-up is genuinely extra, so it stays copyable.
+    expect(
+      within(nav).getByRole("button", {
+        name: /^copy \/ork:setup to clipboard$/i,
+      }),
+    ).toBeTruthy();
     expect(
       within(nav).getByRole("link", { name: /Claude Code docs/i }).getAttribute("href"),
     ).toBe("/docs/getting-started/claude-code");
