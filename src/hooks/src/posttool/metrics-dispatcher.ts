@@ -31,6 +31,7 @@
 
 import type { HookInput, HookResult, HookContext } from '../types.js';
 import { outputSilentSuccess } from '../lib/common.js';
+import { retryRoutePair } from '../lib/route-judgment.js';
 import { NOOP_CTX } from '../lib/context.js';
 
 // Lazy imports keep the metrics-dispatcher module small when loaded —
@@ -67,6 +68,7 @@ export async function metricsDispatcher(
   input: HookInput,
   ctx: HookContext = NOOP_CTX,
 ): Promise<HookResult> {
+  retryRoutePair(input);
   const results = await Promise.allSettled(
     DISPATCHER_HANDLERS.map(async ({ name, fn }) => {
       try {

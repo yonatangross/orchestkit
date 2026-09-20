@@ -69,10 +69,65 @@ function adjudication(row, seam, label) {
   };
 }
 
+/**
+ * Validate a row that claims the six-field shadow contract. Historical rows
+ * without `jev_pick` remain readable through normalize(). Structured
+ * incumbent failures are allowed, but never compared as choices.
+ */
+export function validateLegacyShadow(row) {
+  if (!row || typeof row !== 'object' || Array.isArray(row) || !('jev_pick' in row)) return [];
+  const errors = [];
+  const required = ['jev_pick', 'jev_confidence', 'incumbent_pick', 'agree', 'floor', 'decided_by'];
+  for (const key of required) if (!(key in row)) errors.push(`missing:${key}`);
+  if (!('jev_pick' in row)) return errors;
+
+  const validChoice = (value) => value === null || pick(value) !== null;
+  const validProbability = (value) => probability(value) !== null || value === null;
+  const unknownReason = row.unknown_reason && typeof row.unknown_reason === 'object' && !Array.isArray(row.unknown_reason)
+    ? row.unknown_reason : null;
+  const hasUnknownReason = (key) => unknownReason !== null && pick(unknownReason[key]) !== null;
+  if (!validChoice(row.jev_pick)) errors.push('invalid:jev_pick');
+  if (row.jev_pick === null && row.schema_version === 1 && !hasUnknownReason('jev_pick')) errors.push('null_jev_without_reason');
+  if (!validProbability(row.jev_confidence)) errors.push('invalid:jev_confidence');
+  if (row.jev_confidence === null && row.schema_version === 1 && !hasUnknownReason('jev_confidence')) errors.push('null_confidence_without_reason');
+  if (!validProbability(row.floor) || (row.floor === null && !(row.schema_version === 1 && hasUnknownReason('floor')))) errors.push('invalid:floor');
+  if (typeof row.decided_by !== 'string' || row.decided_by.length === 0) errors.push('invalid:decided_by');
+  if (typeof row.agree !== 'boolean' && row.agree !== null) errors.push('invalid:agree');
+
+  const incumbentIsChoice = pick(row.incumbent_pick) !== null;
+  const incumbentIsStructured = row.incumbent_pick !== null
+    && typeof row.incumbent_pick === 'object' && !Array.isArray(row.incumbent_pick);
+  if (!incumbentIsChoice && !incumbentIsStructured && row.incumbent_pick !== null) {
+    errors.push('invalid:incumbent_pick');
+  }
+  if (row.incumbent_pick === null && !pick(row.incumbent_pick_reason) && !hasUnknownReason('incumbent_pick')) {
+    errors.push('null_incumbent_without_reason');
+  }
+  if (!incumbentIsChoice && row.agree !== null) {
+    errors.push('non_choice_incumbent_requires_null_agree');
+  }
+  if (pick(row.jev_pick) === null && row.agree !== null) {
+    errors.push('non_choice_jev_requires_null_agree');
+  }
+  if (pick(row.jev_pick) !== null && incumbentIsChoice) {
+    const expected = row.jev_pick === row.incumbent_pick;
+    if (row.agree !== expected) errors.push('inconsistent:agree');
+  }
+  return errors;
+}
+
 export function normalize(row, source, label = {}) {
-  if (!row || typeof row !== 'object') return null;
+  if (!row || typeof row !== 'object' || row.phase === 'invoked') return null;
   let seam, jev, incumbent, confidence, floor, mode;
-  if ('intent' in row && 'conf' in row) {
+  const canonicalRow = ['route', 'category', 'expect'].includes(row.seam) && 'jev_pick' in row;
+  if (row.phase === 'handoff' && pick(row.router) && pick(row.handoff_to)) {
+    seam = 'route'; jev = null; incumbent = null; confidence = null; floor = null;
+    mode = row.mode ?? 'telemetry';
+  } else if (canonicalRow) {
+    seam = row.seam; jev = pick(row.jev_pick); incumbent = pick(row.incumbent_pick);
+    confidence = probability(row.jev_confidence); floor = probability(row.floor);
+    mode = row.mode ?? row.flag ?? row.provider;
+  } else if ('intent' in row && 'conf' in row) {
     seam = 'route'; jev = pick(row.intent); incumbent = pick(row.incumbent_intent);
     confidence = probability(row.conf); floor = probability(row.floor); mode = row.flag;
   } else if ('haiku' in row && 'jev' in row) {
@@ -90,12 +145,15 @@ export function normalize(row, source, label = {}) {
   const weakMismatch = isWeakShape(label) && label.decision_sha256 !== labelResult.decisionHash;
   const weak = isWeakShape(label) ? (weakMismatch ? 'unknown' : label.outcome) : null;
   const correct = labelResult.correct;
-  const paired = jev !== null && incumbent !== null;
+  const paired = jev !== null && incumbent !== null && (!canonicalRow || typeof row.agree === 'boolean' || labelResult.incumbent !== null);
+  const agree = paired ? (canonicalRow && labelResult.incumbent === null ? row.agree : jev === incumbent) : null;
   const above = confidence !== null && floor !== null && confidence >= floor;
-  return { source, seam, jev, incumbent, confidence, floor, mode, correct, weak,
-    ...identity, weakMismatch, ...labelResult,
-    error: pick(row.error), paired, agree: paired ? jev === incumbent : null,
-    highDisagreement: paired && above && jev !== incumbent,
+  return { source, seam, jev, ...identity, weakMismatch, ...labelResult,
+    incumbent, confidence, floor, mode, correct, weak,
+    router: pick(row.router), handoffTo: pick(row.handoff_to),
+    decisionId: pick(row.decision_id), phase: pick(row.phase), decidedBy: pick(row.decided_by),
+    error: pick(row.error), paired, agree,
+    highDisagreement: agree === false && above,
     below: confidence !== null && floor !== null && confidence < floor,
     falseHigh: correct !== null && jev !== null && above && jev !== correct,
     labeledHigh: correct !== null && jev !== null && above };
@@ -154,11 +212,43 @@ export function readRows(paths, labels = new Map()) {
       } catch { malformed++; }
     });
   }
-  return { rows, malformed, ignored, invalidLabels, labelMismatches };
+  // A shared runtime session + prompt identifies one decision across routers
+  // and files. Historical rows without both IDs retain file-local revision keys.
+  const groupKey = (row) => row.sessionId && row.promptId
+    ? JSON.stringify(['prompt', row.sessionId, row.promptId])
+    : row.decisionId ? JSON.stringify(['legacy', row.source.replace(/:\d+$/, ''), row.decisionId]) : null;
+  const decisions = new Map();
+  for (const row of rows) {
+    if (row.seam !== 'route') continue;
+    const key = groupKey(row);
+    if (key === null) continue;
+    const group = decisions.get(key) ?? [];
+    group.push(row);
+    decisions.set(key, group);
+  }
+  const retained = [];
+  const emitted = new Set();
+  let superseded = 0;
+  for (const row of rows) {
+    const key = row.seam === 'route' ? groupKey(row) : null;
+    if (key === null) { retained.push(row); continue; }
+    if (emitted.has(key)) continue;
+    emitted.add(key);
+    const group = decisions.get(key);
+    superseded += group.length - 1;
+    const targets = new Set(group.map((r) => r.handoffTo).filter(Boolean));
+    const candidates = group.filter((r) => !r.handoffTo && (!targets.size || targets.has(r.router)));
+    const chosen = candidates.find((r) => r.phase === 'paired') ?? candidates[0];
+    // A handoff is not a terminal comparison. Until its target records a row,
+    // retain one unpaired prompt rather than count the upstream pick as final.
+    retained.push(chosen ?? { ...group[0], paired: false, agree: null,
+      highDisagreement: false, falseHigh: false, labeledHigh: false });
+  }
+  return { rows: retained, malformed, ignored, superseded, invalidLabels, labelMismatches };
 }
 
 export function main(args) {
-  let labels = new Map(), allModes = false;
+  let labels = new Map(), allModes = false, confidentWrong = false;
   const paths = [];
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--labels') {
@@ -175,13 +265,24 @@ export function main(args) {
       labels = new Map(entries);
       if (labels.size !== entries.length) throw new Error('Duplicate label source; adjudicated and weak sidecars must be reported separately');
     } else if (args[i] === '--all-modes') allModes = true;
+    else if (args[i] === '--confident-wrong') confidentWrong = true;
     else if (args[i].startsWith('--')) throw new Error(`Unknown option: ${args[i]}`);
     else paths.push(args[i]);
   }
   if (!paths.length) throw new Error('Usage: node scripts/jev-shadow-report.mjs [--labels labels.jsonl] [--all-modes] FILE_OR_DIRECTORY ...');
   const input = readRows(paths, labels);
   const rows = allModes ? input.rows : input.rows.filter((r) => r.mode === 'shadow');
-  console.log(`Jev ${allModes ? 'all-mode' : 'shadow'} report: ${rows.length} rows; malformed=${input.malformed}; ignored=${input.ignored}; invalid_labels=${input.invalidLabels}; label_mismatches=${input.labelMismatches}; excluded_modes=${input.rows.length - rows.length}`);
+  if (confidentWrong) {
+    for (const r of rows.filter((r) => r.highDisagreement)) {
+      console.log(JSON.stringify({ seam: r.seam, source: r.source, session_id: r.sessionId,
+        prompt_id: r.promptId, router: r.router, handoff_to: r.handoffTo, jev_pick: r.jev,
+        jev_confidence: r.confidence, incumbent_pick: r.incumbent, agree: r.agree,
+        floor: r.floor, decided_by: r.decidedBy, bucket: 'confident-wrong', outcome_label: r.correct,
+        review_status: r.correct === null ? 'awaiting_adjudication' : 'labeled' }));
+    }
+    return;
+  }
+  console.log(`Jev ${allModes ? 'all-mode' : 'shadow'} report: ${rows.length} rows; malformed=${input.malformed}; ignored=${input.ignored}; invalid_labels=${input.invalidLabels}; label_mismatches=${input.labelMismatches}; excluded_modes=${input.rows.length - rows.length}; superseded=${input.superseded}`);
   console.log('Agreement is not accuracy. High-confidence disagreements need outcome labels before promotion.');
   for (const s of summarize(rows)) {
     console.log(`\n${s.seam}: rows=${s.rows} paired=${s.paired} unpaired=${s.rows - s.paired} agreement=${s.agreements}/${s.paired} (${share(s.agreements, s.paired)})`);

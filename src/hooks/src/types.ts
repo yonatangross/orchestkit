@@ -51,6 +51,8 @@ export type HookEvent =
  * Hook input envelope from Claude Code (sent via stdin as JSON)
  */
 export interface HookInput {
+  /** CC shared base: same UUID from UserPromptSubmit through subsequent tool events. */
+  prompt_id?: string;
   /** The hook event type */
   hook_event?: HookEvent;
   /** The tool being invoked */

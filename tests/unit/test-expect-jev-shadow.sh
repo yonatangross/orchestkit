@@ -39,6 +39,7 @@ ok()  { echo "  ${GREEN}PASS${NC} $1"; PASS=$((PASS + 1)); }
 bad() { echo "  ${RED}FAIL${NC} $1"; FAIL=$((FAIL + 1)); }
 
 TMP="$(mktemp -d "${TMPDIR:-/tmp}/jev-shadow-test.XXXXXX")"
+export ORK_EXPECT_JEV_LOG="$TMP/journal.jsonl"
 REQ_LOG="$TMP/requests.log"
 RESP_FILE="$TMP/response.json"
 STATUS_FILE="$TMP/status.txt"

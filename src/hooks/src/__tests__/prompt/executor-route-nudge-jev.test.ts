@@ -53,7 +53,7 @@ function verdict(partial: Partial<RouteVerdict>): RouteVerdict {
 let seq = 0;
 function input(prompt = BUILD_PROMPT): HookInput {
   seq += 1;
-  return { tool_name: '', session_id: `jev-nudge-${seq}`, prompt, project_dir: '/tmp/proj' } as HookInput;
+  return { tool_name: '', session_id: `jev-nudge-${seq}`, prompt_id: `prompt-${seq}`, prompt, project_dir: '/tmp/proj' } as HookInput;
 }
 
 function contextOf(result: ReturnType<typeof executorRouteNudge>): string {
@@ -124,11 +124,12 @@ describe('executor-route-nudge with the Jev seam', () => {
     expect(d.judgeSync).not.toHaveBeenCalled();
     const opts = (d.judgeAsync as ReturnType<typeof vi.fn>).mock.calls[0][0];
     expect(opts.prompt).toBe(BUILD_PROMPT);
+    expect(opts.promptId).toBe(`prompt-${seq}`);
     expect(opts.projectDir).toBe('/tmp/proj');
     await Promise.all(d.settled);
     expect(log).toHaveBeenCalledWith(
       'executor-route-nudge',
-      expect.stringMatching(/^route jev: intent=dev_fix conf=0\.83 .*decided_by=table .*redacted=0$/),
+      expect.stringMatching(/^route jev: jev_pick=skill:ork:fix-issue jev_confidence=0\.83 .*agree=null .*floor=0\.5 decided_by=table .*redacted=0$/),
     );
   });
 

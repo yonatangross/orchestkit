@@ -80,6 +80,22 @@ config; nothing is a code constant.
 
 ## The record
 
+Every active invocation appends its row to `.expect/jev-shadow.jsonl` before
+emitting stdout. This journal does not depend on `report.sh --save`.
+Use `--log-file` or `ORK_EXPECT_JEV_LOG` to choose another journal. New files
+use mode 0600; write failures surface on stderr without changing the fallback.
+All rows include `jev_pick`, `jev_confidence`, `incumbent_pick`, `agree`,
+`floor`, and `decided_by`, including configuration and transport failures.
+Pass the actual choice with `--model-action`. If the incumbent truly did not
+run, shadow mode accepts `--incumbent-not-run REASON` instead. Missing evidence
+is rejected before writing; act mode always requires an incumbent fallback.
+An unrecognized supplied action stays recorded with unknown agreement.
+
+Export the review bucket with
+`node scripts/jev-shadow-report.mjs --confident-wrong .expect/jev-shadow.jsonl`.
+Its predicate is `agree=false AND jev_confidence >= floor`. The result is a
+candidate for adjudication, not an assertion that the incumbent was correct.
+
 ```json
 {
   "step_id": "login-2",
@@ -112,7 +128,7 @@ fallbacks, agree_rate}` summary to the JSON report, and prints one
 `JEV_RUN|steps=N|picks=N|fallbacks=N|agree_rate=R` line at the end of the
 run. Failures (`http N`, `unreachable_or_timeout`, `malformed_answer`,
 `empty_answer`, `no_api_key`, `no jev_shadow config`) land as error
-records with `agree: null`. The script always exits 0: a dead Jev lane
+records with `agree: null`. With valid CLI arguments, the script exits 0: a dead Jev lane
 must never fail a run.
 
 In act mode every record additionally carries `mode: "act"`, `path`, and
