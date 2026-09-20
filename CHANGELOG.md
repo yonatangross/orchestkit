@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.67](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.66...v10.0.0-beta.67) (2026-09-20)
+
+
+### Features
+
+* **expect:** jev live per-field decisions in form steps ([#4284](https://github.com/yonatangross/orchestkit/issues/4284)) ([145521b](https://github.com/yonatangross/orchestkit/commit/145521b11961fb1ecbe8e05cac4a300f381db686))
+
 ## [10.0.0-beta.66](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.65...v10.0.0-beta.66) (2026-09-20)
 
 
