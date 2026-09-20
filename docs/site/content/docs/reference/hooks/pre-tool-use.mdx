@@ -13,7 +13,7 @@ description: "Hooks triggered on PreToolUse events (20 hooks)."
 | `webhook-forwarder` | `Bash` | Fire-and-forget | Registered for every CC event type in hooks.json (async: true). Delegates to telemetry.emit() which fans out to pluggable sinks (JSONL local + HTTP remote). No-op when no sinks are active. |
 | `sync-write-edit-dispatcher` | `Write\|Edit` | Injects | Consolidates 5 Write\|Edit PreToolUse hooks into a single dispatcher. |
 | `webhook-forwarder` | `Write\|Edit` | Fire-and-forget | Registered for every CC event type in hooks.json (async: true). Delegates to telemetry.emit() which fans out to pluggable sinks (JSONL local + HTTP remote). No-op when no sinks are active. |
-| `skill-tracker` | `Skill` | Fire-and-forget | Logs Skill tool invocations with analytics |
+| `skill-tracker` | `Skill` | Silent | Logs Skill tool invocations with analytics |
 | `webhook-forwarder` | `Skill` | Fire-and-forget | Registered for every CC event type in hooks.json (async: true). Delegates to telemetry.emit() which fans out to pluggable sinks (JSONL local + HTTP remote). No-op when no sinks are active. |
 | `context7-tracker` | `mcp__context7__*` | Blocks | Tracks context7 library lookups and injects cache state as additionalContext CC 2.1.9 Enhanced |
 | `webhook-forwarder` | `mcp__context7__*` | Fire-and-forget | Registered for every CC event type in hooks.json (async: true). Delegates to telemetry.emit() which fans out to pluggable sinks (JSONL local + HTTP remote). No-op when no sinks are active. |

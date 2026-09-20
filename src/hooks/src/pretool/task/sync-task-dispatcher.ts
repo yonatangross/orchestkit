@@ -16,6 +16,7 @@
  * CC 2.1.9 Compliant: Single PreToolUse dispatcher with merged additionalContext
  */
 
+import { observeRouteExecutor } from '../../lib/route-judgment.js';
 import type { HookInput, HookResult , HookContext} from '../../types.js';
 import { outputSilentSuccess, extractContext } from '../../lib/common.js';
 
@@ -79,6 +80,7 @@ const TASK_HOOKS: TaskHookConfig[] = [
  * On pass: merge additionalContext from all hooks.
  */
 export function syncTaskDispatcher(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
+  observeRouteExecutor(input);
   const contextParts: string[] = [];
 
   for (const hook of TASK_HOOKS) {

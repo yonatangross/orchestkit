@@ -318,6 +318,7 @@ describe('manageSessionIdentity category provider (opt-in)', () => {
   });
 
   it('shadow mode: haiku still spawns and still decides the title and color; the pair is logged once', async () => {
+    const log = loggingCtx();
     const fetchSpy = vi.fn(async () => answer('docs'));
     vi.stubGlobal('fetch', fetchSpy);
     process.env.ORK_SESSION_CATEGORY_PROVIDER = 'shadow';
@@ -332,7 +333,7 @@ describe('manageSessionIdentity category provider (opt-in)', () => {
     expect(transcriptColorRecords().at(-1)?.agentColor).toBe(hashColor(SESSION_ID));
 
     fs.writeFileSync(path.join(sessionDir, 'session-identity.raw'), RAW, 'utf8');
-    const title = manageSessionIdentity(makeInput(), ctx, sessionDir, tmpDir);
+    const title = manageSessionIdentity(makeInput(), log, sessionDir, tmpDir);
     // Haiku said bugfix (red); Jev said docs (blue). The displayed identity is haiku's.
     expect(title).toBe(`${colorEmoji('red')} Fix login redirect`);
     expect(transcriptColorRecords().at(-1)?.agentColor).toBe('red');
@@ -347,6 +348,11 @@ describe('manageSessionIdentity category provider (opt-in)', () => {
       error: null,
     });
     expect(JSON.stringify(shadow)).not.toContain('fix the login redirect bug');
+    const event = log.lines.find((line) => line.startsWith('category shadow:'));
+    expect(event).toBeDefined();
+    for (const key of ['jev_pick', 'jev_confidence', 'incumbent_pick', 'agree', 'floor', 'decided_by']) {
+      expect(event).toContain(`${key}=`);
+    }
 
     const before = fs.readFileSync(shadowFile(), 'utf8');
     manageSessionIdentity(makeInput(), ctx, sessionDir, tmpDir);
@@ -391,7 +397,7 @@ describe('manageSessionIdentity category provider (opt-in)', () => {
       decided_by: 'jev',
       threshold: 0.8,
     });
-    expect(log.lines).toContainEqual(expect.stringContaining('decided_by=jev threshold=0.8'));
+    expect(log.lines).toContainEqual(expect.stringContaining('floor=0.8 decided_by=jev'));
   });
 
   it('jev mode, below the threshold: haiku decides the color and the fallback is logged', async () => {
@@ -415,7 +421,7 @@ describe('manageSessionIdentity category provider (opt-in)', () => {
       jev_confidence: 0.62,
       decided_by: 'haiku',
     });
-    expect(log.lines).toContainEqual(expect.stringContaining('decided_by=haiku threshold=0.8'));
+    expect(log.lines).toContainEqual(expect.stringContaining('floor=0.8 decided_by=haiku'));
   });
 
   it('jev mode but the call fails: title and color come from haiku and the error is logged', async () => {

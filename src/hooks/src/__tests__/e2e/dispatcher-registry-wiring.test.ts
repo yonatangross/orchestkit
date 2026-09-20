@@ -292,7 +292,7 @@ describe('Dispatcher Registry Wiring E2E', () => {
   });
 
   describe('Native Async Hook Configuration (Issue #653)', () => {
-    it('should have exactly 5 async hooks', () => {
+    it('should have the expected async hook count', () => {
       // After #897 slimming: 5 async hooks (lifecycle, posttool, stop, subagent-stop, notification)
       const allHooks: Hook[] = [];
       for (const eventGroups of Object.values(hooksConfig.hooks)) {
@@ -371,7 +371,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
       // 106 -> 109: #3789 (CC 2.1.251) — async PostModelSwitch telemetry + webhook forwarders on both new events; the PreModelSwitch consent gate is sync
       // 109 -> 110: #3727 — lifecycle/stray-playground-pages (SessionStart, async)
       // 110 -> 109: #3353 — pretool/settings-override-resolver deleted (table dropped in 005)
-      expect(asyncHooks.length, 'Should have exactly 109 async hooks').toBe(109);
+      // 109 -> 108: Jev pairing observes Skill selection synchronously.
+      expect(asyncHooks.length, 'Should have exactly 108 async hooks').toBe(108);
     });
 
     // v7.30.0: Notification dispatcher flattened — 2 individual async hooks (#1264)
@@ -517,7 +518,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
       // 106 -> 109: #3789 (CC 2.1.251) — async PostModelSwitch telemetry + webhook forwarders on both new events; the PreModelSwitch consent gate is sync
       // 109 -> 110: #3727 — lifecycle/stray-playground-pages (SessionStart, async)
       // 110 -> 109: #3353 — pretool/settings-override-resolver deleted (table dropped in 005)
-      expect(asyncCount).toBe(109);
+      // 109 -> 108: Jev pairing observes Skill selection synchronously.
+      expect(asyncCount).toBe(108);
     });
 
     it('should have hooks for all critical security operations', () => {
