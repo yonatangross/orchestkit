@@ -92,9 +92,10 @@ mkdir -p "$FIXTURE/tests"
 cp "$RUNNER" "$FIXTURE/tests/run-all-tests.sh"
 chmod 755 "$FIXTURE/tests/run-all-tests.sh"
 git_env git -C "$FIXTURE" init -q
+git_env git -C "$FIXTURE" config commit.gpgsign false
 git_env git -C "$FIXTURE" add tests/run-all-tests.sh
 git_env git -C "$FIXTURE" -c user.name=fixture -c user.email=fixture@example.test \
-    commit -qm "fixture: copy of tests/run-all-tests.sh"
+    -c commit.gpgsign=false commit -qm "fixture: copy of tests/run-all-tests.sh"
 
 # The invocation bin/git-hooks/pre-commit step 7 makes, from the fixture root
 # so the runner's git calls resolve to the fixture repo, never to ours.
@@ -175,7 +176,7 @@ printf '#!/bin/bash\necho hebrew\n' > "$FIXTURE/בדיקה.sh"
 printf '#!/bin/bash\necho spaced\n' > "$FIXTURE/name with space.sh"
 git_env git -C "$FIXTURE" add ascii-extra.sh "בדיקה.sh" "name with space.sh"
 git_env git -C "$FIXTURE" -c user.name=fixture -c user.email=fixture@example.test \
-    commit -qm "fixture: three 100644 fixtures, two with non-trivial names"
+    -c commit.gpgsign=false commit -qm "fixture: three 100644 fixtures, two with non-trivial names"
 RC4=0
 OUT4="$(run_precommit_path 2>&1)" || RC4=$?
 LINES4="$(porcelain_count)"
@@ -212,7 +213,7 @@ printf '#!/bin/bash\necho tabby\n' > "$TAB_PATH"
 printf '#!/bin/bash\necho nl-file\n' > "$NL_PATH"
 git_env git -C "$FIXTURE" add "tab"$'\t'name.sh "nl"$'\n'name.sh
 git_env git -C "$FIXTURE" -c user.name=fixture -c user.email=fixture@example.test \
-    commit -qm "fixture: section 4 files compliant, TAB and NEWLINE fixtures at 100644"
+    -c commit.gpgsign=false commit -qm "fixture: section 4 files compliant, TAB and NEWLINE fixtures at 100644"
 RC5=0
 OUT5="$(run_precommit_path 2>&1)" || RC5=$?
 LINES5="$(porcelain_count)"
