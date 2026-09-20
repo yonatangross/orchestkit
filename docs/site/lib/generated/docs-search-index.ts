@@ -1033,7 +1033,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/doctor/references/version-compatibility/00-overview",
     "title": "Doctor: Version Compatibility: Overview",
-    "description": "OrchestKit requires Claude Code >= 2.1.251."
+    "description": "OrchestKit requires Claude Code >= 2.1.277."
   },
   {
     "url": "/docs/reference/skills/doctor/references/version-compatibility/01-feature-matrix-part-1",

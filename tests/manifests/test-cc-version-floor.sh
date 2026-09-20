@@ -81,9 +81,9 @@ fi
 # file: scripts/stamp-cc-support.mjs writes "OrchestKit requires Claude Code
 # >= X.Y.Z." instead. The no-match branch then logged a PASS, so the check
 # reported green while reading no version at all. It sat that way across the
-# floor moving 2.1.220 to 2.1.251, which is how the floor-table row and three
+# floor moving 2.1.220 to 2.1.277, which is how the floor-table row and three
 # doctor examples were left asserting 2.1.220 while cc-support.json said
-# 2.1.251. A check whose absent-marker branch passes cannot fail in the way it
+# 2.1.277. A check whose absent-marker branch passes cannot fail in the way it
 # exists to fail, so both the marker and that branch are fixed here.
 DOCTOR_MD="$PROJECT_ROOT/src/skills/doctor/references/version-compatibility.md"
 if [[ ! -f "$DOCTOR_MD" ]]; then
