@@ -1,7 +1,7 @@
 ---
 name: configure
 license: MIT
-compatibility: "Claude Code 2.1.251+."
+compatibility: "Claude Code 2.1.277+."
 description: "Interactive wizard for OrchestKit settings: MCP servers, hook permissions, keybindings, and install presets. Use when customizing plugin behavior or managing settings."
 argument-hint: "[preset-name]"
 context: inherit
