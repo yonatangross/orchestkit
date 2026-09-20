@@ -579,7 +579,6 @@ def main():
         "prompt_id": prompt_id,
         "session_id": session_id,
         "floor": conf_floor,
-        "incumbent_pick": incumbent,
     }
 
     api_key = (os.environ.get(ENV_KEY) or "").strip()
