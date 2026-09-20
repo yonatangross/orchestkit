@@ -4,11 +4,11 @@ Built by `scripts/seo/link-graph.mjs` from `docs/site/content`.
 
 ## Totals
 
-- Pages: **313**
-- Internal links (deduped edges, self-links excluded): **790**
+- Pages: **314**
+- Internal links (deduped edges, self-links excluded): **792**
 - Orphan pages (0 inbound): **32**
-- Broken in-scope links (/docs target with no page): **159**
-- Links to non-docs site paths (not counted): **44**
+- Broken in-scope links (/docs target with no page): **134**
+- Links to non-docs site paths (not counted): **11**
 
 ## Orphan pages
 
@@ -54,7 +54,7 @@ Built by `scripts/seo/link-graph.mjs` from `docs/site/content`.
 | `/docs/skills/by-category/workflows` Workflows Skills | 36 | 0 |
 | `/docs/reference/hooks` Hooks Reference | 32 | 1 |
 | `/docs/skills/by-category/frontend` Frontend Skills | 26 | 0 |
-| `/docs/reference/skills/doctor` Doctor | 18 | 20 |
+| `/docs/reference/skills/doctor` Doctor | 19 | 21 |
 | `/docs/skills/by-category/testing` Testing Skills | 17 | 0 |
 | `/docs/reference/agents/frontend-ui-developer` Frontend Ui Developer | 13 | 2 |
 | `/docs/skills/by-category/ai-llm` AI & LLM Skills | 13 | 0 |
@@ -83,12 +83,8 @@ Built by `scripts/seo/link-graph.mjs` from `docs/site/content`.
 ## Broken in-scope links
 
 - `/docs/cookbook/claude-design-handoff` -> `/docs/skills/design-to-code`
-- `/docs/hooks/architecture` -> `/docs/hooks/input`
 - `/docs/hooks/spotlights/pattern-consistency-enforcer` -> `/docs/hooks/reference/pretool-write-edit`
 - `/docs/reference/hooks/spotlights/pattern-consistency-enforcer` -> `/docs/hooks/reference/pretool-write-edit`
-- `/docs/reference/skills/agent-orchestration` -> `/docs/reference/skills/*action.args`
-- `/docs/reference/skills/agent-orchestration` -> `/docs/reference/skills/task,`
-- `/docs/reference/skills/agent-orchestration` -> `/docs/reference/skills/task,`
 - `/docs/reference/skills/ai-ui-generation` -> `/docs/reference/skills/references/ai-ui-tool-comparison.md`
 - `/docs/reference/skills/ai-ui-generation` -> `/docs/reference/skills/references/prompt-templates-library.md`
 - `/docs/reference/skills/ai-ui-generation` -> `/docs/reference/skills/references/ai-ui-failure-modes.md`
@@ -98,13 +94,6 @@ Built by `scripts/seo/link-graph.mjs` from `docs/site/content`.
 - `/docs/reference/skills/architecture-decision-record` -> `/docs/reference/skills/rules/interrogation-scalability.md`
 - `/docs/reference/skills/architecture-decision-record` -> `/docs/reference/skills/rules/interrogation-reliability.md`
 - `/docs/reference/skills/architecture-decision-record` -> `/docs/reference/skills/rules/interrogation-security.md`
-- `/docs/reference/skills/architecture-decision-record` -> `/docs/reference/migration/api-v1-to-v2.md`
-- `/docs/reference/skills/architecture-decision-record` -> `/docs/reference/skills/adr-0015-graphql-gateway.md`
-- `/docs/reference/skills/architecture-decision-record` -> `/docs/reference/skills/adr-0002-postgresql.md`
-- `/docs/reference/skills/architecture-decision-record` -> `/docs/reference/skills/adr-0003-api-versioning.md`
-- `/docs/reference/skills/architecture-decision-record` -> `/docs/reference/skills/adr-0010-nosql-migration.md`
-- `/docs/reference/skills/architecture-decision-record` -> `/docs/reference/skills/adr-0015-graphql-gateway.md`
-- `/docs/reference/skills/architecture-decision-record` -> `/docs/reference/docs/adr/adr-0015-graphql-gateway.md`
 - `/docs/reference/skills/architecture-decision-record` -> `/docs/reference/skills/internal-wiki/benchmarks`
 - `/docs/reference/skills/assess` -> `/docs/reference/skills/agent-teams-mode.md`
 - `/docs/reference/skills/assess` -> `/docs/reference/skills/scope-discovery.md`
@@ -133,13 +122,7 @@ Built by `scripts/seo/link-graph.mjs` from `docs/site/content`.
 - `/docs/reference/skills/design-system-tokens` -> `/docs/reference/references/token-naming-conventions.md`
 - `/docs/reference/skills/doctor/rules` -> `/docs/reference/skills/references/memory-health.md`
 - `/docs/reference/skills/doctor/rules` -> `/docs/reference/skills/references/version-compatibility.md`
-- `/docs/reference/skills/documentation-patterns` -> `/docs/reference/skills/CONTRIBUTING.md`
-- `/docs/reference/skills/documentation-patterns` -> `/docs/reference/skills/LICENSE`
-- `/docs/reference/skills/dream` -> `/docs/reference/skills/filename.md`
-- `/docs/reference/skills/dream` -> `/docs/reference/skills/file.md`
 - `/docs/reference/skills/emulate-seed` -> `/docs/agents/emulate-engineer.md`
-- `/docs/reference/skills/expect` -> `/docs/reference/skills/[^"\']+`
-- `/docs/reference/skills/expect` -> `/docs/reference/skills/ or `
 - `/docs/reference/skills/explore` -> `/docs/reference/skills/exploration-agents.md`
 - `/docs/reference/skills/explore` -> `/docs/reference/references/code-health-rubric.md`
 - `/docs/reference/skills/explore` -> `/docs/reference/references/dependency-analysis.md`
@@ -172,15 +155,10 @@ Built by `scripts/seo/link-graph.mjs` from `docs/site/content`.
 - `/docs/reference/skills/interaction-patterns` -> `/docs/reference/skills/references/loading-states-decision-tree.md`
 - `/docs/reference/skills/interaction-patterns` -> `/docs/reference/skills/references/interaction-pattern-catalog.md`
 - `/docs/reference/skills/interaction-patterns` -> `/docs/reference/skills/references/keyboard-interaction-matrix.md`
-- `/docs/reference/skills/interaction-patterns` -> `/docs`
-- `/docs/reference/skills/interaction-patterns` -> `/docs`
 - `/docs/reference/skills/issue-progress-tracking` -> `/docs/reference/skills/rules/start-work-ceremony.md`
 - `/docs/reference/skills/issue-progress-tracking` -> `/docs/reference/skills/rules/small-commits.md`
-- `/docs/reference/skills/llm-integration` -> `/docs/reference/skills/json.loads(action_input`
 - `/docs/reference/skills/market-sizing` -> `/docs/reference/skills/rules/market-tam-sam-som.md`
 - `/docs/reference/skills/market-sizing` -> `/docs/reference/skills/references/tam-sam-som-guide.md`
-- `/docs/reference/skills/mcp-patterns` -> `/docs/reference/skills/result.data`
-- `/docs/reference/skills/mcp-patterns` -> `/docs/reference/skills/input_data`
 - `/docs/reference/skills/memory` -> `/docs/reference/skills/mermaid-patterns.md`
 - `/docs/reference/skills/monitoring-observability` -> `/docs/QUALITY_INITIATIVE_FIXES.md`
 - `/docs/reference/skills/okr-design` -> `/docs/reference/skills/references/okr-workshop-guide.md`
@@ -230,12 +208,9 @@ Built by `scripts/seo/link-graph.mjs` from `docs/site/content`.
 - `/docs/reference/skills/verify/references` -> `/docs/reference/skills/verify/quality-model.md`
 - `/docs/reference/skills/verify/references` -> `/docs/reference/skills/verify/alternative-comparison.md`
 - `/docs/reference/skills/verify/references` -> `/docs/reference/skills/verify/report-template.md`
-- `/docs/reference/skills/verify/references` -> `/docs/reference/skills/verify/[^\"']+`
 - `/docs/reference/skills/verify/rules` -> `/docs/reference/skills/references/quality-model.md`
 - `/docs/reference/skills/verify/rules` -> `/docs/reference/skills/references/quality-model.md`
 - `/docs/reference/skills/verify/rules` -> `/docs/reference/skills/references/policy-as-code.md`
-- `/docs/reference/skills/vite-advanced` -> `/docs/reference/skills/react|react-dom|scheduler`
-- `/docs/reference/skills/vite-advanced` -> `/docs/reference/skills/react-router|react-router-dom`
 - `/docs/reference/skills/write-prd` -> `/docs/reference/skills/rules/research-requirements-prd.md`
 - `/docs/reference/skills/write-prd` -> `/docs/reference/skills/rules/strategy-value-prop.md`
 - `/docs/reference/skills/write-prd` -> `/docs/reference/skills/rules/strategy-go-no-go.md`

@@ -15,13 +15,6 @@ allowed-tools: [Read, Write, Bash, Grep, Agent]
 metadata:
   category: planning
   milestone: M140
-triggers:
-  keywords: ["prd to goal", "goal from prd", "convert prd to goal", "/goal from issue", "decompose acceptance criteria"]
-  examples:
-    - "turn this PRD into a /goal line"
-    - "what should my /goal until clause be for issue #1792"
-    - "decompose this spec into observable assertions"
-  anti-triggers: [implement, fix, commit, refactor, push]
 ---
 
 # prd-to-goal — PRD → /goal Decomposition

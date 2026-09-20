@@ -25,13 +25,6 @@ hooks:
 metadata:
   category: workflow-automation
   mcp-server: memory, context7
-triggers:
-  keywords: [cover, "generate tests", "test suite", "test coverage", "write tests for", "add tests", "need tests"]
-  examples:
-    - "generate tests for the authentication service"
-    - "cover the payment module with unit and integration tests"
-    - "I just finished implementing checkout, now write tests"
-  anti-triggers: [verify, run tests, npm test, fix, implement, review]
 paths: ["src/**/*.test.{ts,tsx,js}", "**/.coveragerc", "vitest.config.*", "jest.config.*"]
 invocation_hooks:
   - "command -v vitest >/dev/null 2>&1 || command -v jest >/dev/null 2>&1 || echo 'Warning: no test runner found — run npm install first'"

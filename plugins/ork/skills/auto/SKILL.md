@@ -15,14 +15,6 @@ persuasion-type: collaborative
 model: sonnet
 metadata:
   category: workflow-automation
-triggers:
-  keywords: [auto, "do this", "figure out", "just make", "get it to", "i want", "help me with", "not sure which", "what should i", "can you make"]
-  examples:
-    - "get coverage above 90%"
-    - "why isn't the build green"
-    - "just make the login page work"
-    - "I want the API faster"
-  anti-triggers: ["/ork:help", "list skills", "what skills exist"]
 ---
 
 # auto — Intent Router

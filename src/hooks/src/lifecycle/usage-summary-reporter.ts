@@ -6,7 +6,7 @@
  * problems, solutions.
  *
  * Fire-and-forget: always returns silent success regardless of POST outcome.
- * No-op when webhook URL or ORCHESTKIT_HOOK_TOKEN are missing.
+ * No-op when webhook URL or hook token are missing (userConfig or env).
  *
  * Depends on files written during the session (JSONL events, token state,
  * orchestration config). These must survive session-cleanup — currently safe
@@ -20,7 +20,7 @@ import { join } from 'node:path';
 import type { HookInput, HookResult , HookContext} from '../types.js';
 import { getProjectDir, outputSilentSuccess } from '../lib/common.js';
 import { getTokenState } from '../lib/token-tracker.js';
-import { getWebhookUrl } from '../lib/orchestration-state.js';
+import { getWebhookUrl, getHookToken } from '../lib/orchestration-state.js';
 import { generateSessionSummary } from '../lib/session-tracker.js';
 import { signPayload as signPayloadFn } from '../lib/crypto.js';
 import { flushAll } from '../lib/telemetry.js';
@@ -53,7 +53,7 @@ export function getProjectSlug(input?: HookInput): string {
 
 export async function usageSummaryReporter(input: HookInput, ctx: HookContext = NOOP_CTX): Promise<HookResult> {
   const hookUrl = getWebhookUrl();
-  const hookToken = process.env.ORCHESTKIT_HOOK_TOKEN;
+  const hookToken = getHookToken();
 
   if (!hookUrl || !hookToken) {
     ctx.log(HOOK_NAME, 'No webhookUrl/TOKEN configured, skipping');

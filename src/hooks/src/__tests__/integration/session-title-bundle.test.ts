@@ -57,10 +57,14 @@ describe('integration — sessionTitle delta-detect (built bundle)', () => {
     }
     dispatch = fn as DispatchFn;
     tmpProj = mkdtempSync(join(tmpdir(), 'rename-fix-integration-'));
+    // Isolate the per-host session-identity rate-cap file (#4248) so this file
+    // can't consume the spawn budget other tests rely on.
+    process.env.ORK_SESSION_IDENTITY_RATE_FILE = join(tmpProj, 'rate-spawns.json');
   });
 
   afterEach(() => {
     if (tmpProj) rmSync(tmpProj, { recursive: true, force: true });
+    delete process.env.ORK_SESSION_IDENTITY_RATE_FILE;
     for (const [k, v] of Object.entries(savedEnv)) {
       if (v === undefined) delete process.env[k];
       else process.env[k] = v;

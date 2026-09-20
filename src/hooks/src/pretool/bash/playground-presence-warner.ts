@@ -130,6 +130,7 @@ export function playgroundPresenceWarner(input: HookInput, ctx: HookContext = NO
   return {
     continue: true,
     hookSpecificOutput: {
+      hookEventName: 'PreToolUse',
       additionalContext:
         `[playground-presence-warner] Branch \`${branch}\` has no playground at ` +
         `\`docs/${slug}/\`. The CI \`playground-check\` job will reject this PR ` +

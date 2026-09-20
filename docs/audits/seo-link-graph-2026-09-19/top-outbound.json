@@ -32,8 +32,8 @@
   {
     "url": "/docs/reference/skills/doctor",
     "title": "Doctor",
-    "outbound": 18,
-    "inbound": 20
+    "outbound": 19,
+    "inbound": 21
   },
   {
     "url": "/docs/skills/by-category/testing",

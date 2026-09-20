@@ -41,6 +41,73 @@ useful signal in itself.
 5. **Test your changes** thoroughly
 6. **Submit a Pull Request** to the `main` branch
 
+### Your first pull request
+
+For a small first change, add a documentation scope example to the commit
+reference. Starting in your cloned fork, create a branch and install dependencies:
+
+```bash
+git checkout -b docs/commit-scope-example
+npm install
+```
+
+Find the source file, even if you first saw the reference under `plugins/`:
+
+```bash
+git ls-files 'src/*' | grep 'commit/references/conventional-commits.md'
+# src/skills/commit/references/conventional-commits.md
+```
+
+Open that `src/` file in your editor. Under **Scope Examples**, add this line:
+
+```markdown
+- `docs(commit): clarify scope examples`
+```
+
+Regenerate the plugin mirror, review the diff, and stage both copies:
+
+```bash
+npm run build
+npm run build # Confirm the build has settled, as described below.
+git diff
+git add src/skills/commit/references/conventional-commits.md \
+  plugins/ork/skills/commit/references/conventional-commits.md
+git status --short
+```
+
+For this change, the status should show both files staged (`M` in the first
+column), with no unstaged changes:
+
+```text
+M  plugins/ork/skills/commit/references/conventional-commits.md
+M  src/skills/commit/references/conventional-commits.md
+```
+
+Run the checks, then commit with a conventional-commit title under 72 characters,
+push to your fork, and open a PR to `main` using the GitHub CLI:
+
+```bash
+npm test
+npm run test:security
+git commit -m "docs(commit): add a scope example"
+git push -u origin docs/commit-scope-example
+gh pr create --repo yonatangross/orchestkit --base main --web
+```
+
+In the PR form, describe the change and checks you ran. If it resolves an issue,
+include `Closes #NNN` with the real issue number.
+
+Four common traps:
+
+- **Editing `plugins/` instead of `src/`:** `plugins/` is generated; the next
+  build overwrites hand edits. Edit the source and commit its regenerated mirror.
+- **Skipping `npm run build`:** CI checks that source and generated output agree.
+  Rebuild before staging, even for a one-line source documentation change.
+- **A commit title over 72 characters:** the local `commit-msg` hook rejects it
+  before the commit completes. Keep the title short and put details in the body.
+- **Skipping `npm install` in a fresh worktree:** `git worktree add` does not copy
+  `node_modules`. Run `npm install` inside each new worktree before building.
+
 ### If you are contributing from a fork
 
 Your CI will not start on its own. Every required check will sit at

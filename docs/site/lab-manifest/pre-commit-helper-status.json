@@ -1,0 +1,8 @@
+{
+  "slug": "pre-commit-helper-status",
+  "source": "docs/fix--pre-commit-helper-status/index.html",
+  "title": "Release bundle guard: helper failures",
+  "description": "Explore why a helper failure must block a commit even when its output is empty.",
+  "tags": ["git", "testing", "hooks"],
+  "date": "2026-09-19"
+}

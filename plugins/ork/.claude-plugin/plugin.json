@@ -1,6 +1,6 @@
 {
   "name": "ork",
-  "version": "10.0.0-beta.57",
+  "version": "10.0.0-beta.63",
   "description": "The Complete AI Development Toolkit — 107 skills, 36 agents, 171 hooks for full-stack development.",
   "author": {
     "name": "Yonatan Gross",
@@ -20,5 +20,31 @@
     "multi-agent"
   ],
   "skills": "./skills/",
+  "userConfig": {
+    "webhookUrl": {
+      "type": "string",
+      "sensitive": false,
+      "description": "Webhook endpoint URL for usage reports and notifications",
+      "title": "Webhook URL"
+    },
+    "hookToken": {
+      "type": "string",
+      "sensitive": true,
+      "description": "Authentication token for webhook endpoint (stored in keychain)",
+      "title": "Webhook token"
+    },
+    "evalApiKey": {
+      "type": "string",
+      "sensitive": true,
+      "description": "Anthropic API key for skill evaluation pipeline (stored in keychain)",
+      "title": "Eval API key"
+    },
+    "notebookLmToken": {
+      "type": "string",
+      "sensitive": true,
+      "description": "NotebookLM auth token for /ork:release-sync (stored in keychain)",
+      "title": "NotebookLM token"
+    }
+  },
   "workflows": "./workflows/"
 }

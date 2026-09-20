@@ -1,7 +1,7 @@
 {
   "name": "ork-codex",
   "host": "codex",
-  "version": "10.0.0-beta.57",
+  "version": "10.0.0-beta.63",
   "description": "Native OrchestKit skills and reusable agent roles for Codex.",
   "source": "src/codex/ork-codex",
   "skills": [
@@ -10,7 +10,8 @@
     "ork-assess",
     "ork-verify",
     "ork-review-pr",
-    "ork-implement"
+    "ork-implement",
+    "ork-glyph"
   ],
   "roles": [
     "ork_explorer",

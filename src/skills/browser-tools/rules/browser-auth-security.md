@@ -100,6 +100,15 @@ agent-browser --confirm-interactive open https://admin.example.com
 # Terminal will prompt for confirmation on each action
 ```
 
+```bash
+# Stateful auth vault login (v0.38): fill a login page you already staged
+# (cookies, headers, a pre-navigated origin) instead of always navigating
+# fresh. agent-browser checks the current page's origin against the saved
+# profile's URL before filling, so this fails closed on a mismatched origin.
+agent-browser open https://app.example.com/login
+agent-browser auth login my-app --no-navigate
+```
+
 **Key rules:**
 - Never hardcode passwords, API keys, or tokens in scripts -- always use environment variables
 - Never log, echo, or print auth tokens, cookies, or session data to stdout/stderr
@@ -120,5 +129,7 @@ agent-browser --confirm-interactive open https://admin.example.com
 - **v0.18+**: `KERNEL_API_KEY` is now optional (was required) — remove if not using external credential injection
 - **v0.21+**: HAR captures contain auth tokens — never commit `.har` files, add to `.gitignore`
 - **v0.17+**: auth cookies now persist on browser close — clear cookies explicitly if you need a fresh session
+
+- Use `auth login <name> --no-navigate` (v0.38) when the page you want filled is already open (a redirect from an OAuth-adjacent flow, a pre-staged session); it verifies origin before filling instead of blindly navigating over your staged state.
 
 Reference: login flows, the auth vault and state files are upstream, see the `agent-browser` skill. Our delta: `references/ork-delta.md`.

@@ -18,8 +18,11 @@ const TOKEN_VAR = 'ORCHESTKIT_HOOK_TOKEN';
 const OPT_OUT = 'ORK_NO_TELEMETRY_DARK_WARN';
 const PLUGIN_DATA = 'CLAUDE_PLUGIN_DATA';
 const PROJECT_DIR = 'CLAUDE_PROJECT_DIR';
+// userConfig option envs (#1270) — cleared so ambient values can't leak in.
+const OPT_URL_VAR = 'CLAUDE_PLUGIN_OPTION_WEBHOOKURL';
+const OPT_TOKEN_VAR = 'CLAUDE_PLUGIN_OPTION_HOOKTOKEN';
 
-const SAVED = [URL_VAR, TOKEN_VAR, OPT_OUT, PLUGIN_DATA, PROJECT_DIR] as const;
+const SAVED = [URL_VAR, TOKEN_VAR, OPT_URL_VAR, OPT_TOKEN_VAR, OPT_OUT, PLUGIN_DATA, PROJECT_DIR] as const;
 
 describe('lifecycle/telemetry-dark-check (#2590)', () => {
   let tmp: string;

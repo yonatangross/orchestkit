@@ -774,8 +774,8 @@ export const SKILLS: Record<string, SkillMeta> = {
   "browser-tools": {
     "name": "browser-tools",
     "description": "Security wrapper over the upstream agent-browser skill, adding URL blocklisting, rate limiting, robots.txt enforcement, and scraping guardrails. Use when automating browser workflows that need safety limits.",
-    "version": "6.0.0",
-    "sha256": "469eb1307b0293850da218691a694e50147c20def27ab37921afeb248f21b118",
+    "version": "6.1.0",
+    "sha256": "d080e889a5c3c7c97aff1f8ed61e27ae5c2918c493409de13f885903759e15b1",
     "author": "OrchestKit",
     "tags": [
       "browser",
@@ -2120,8 +2120,8 @@ export const SKILLS: Record<string, SkillMeta> = {
   "expect": {
     "name": "expect",
     "description": "Diff-aware AI browser testing — reads the git diff, maps changes to affected pages via the route map, generates a targeted test plan, and executes it via agent-browser (Rust daemon + CDP, ARIA-tree-first) with pass/fail reporting. Use when testing UI changes, verifying PRs before merge, or running regression checks on changed components.",
-    "version": "1.1.0",
-    "sha256": "8ee767f1d7f255df916ac2e5533d80345a43be64b4c727a23fd55b393505c435",
+    "version": "1.2.0",
+    "sha256": "dc2c156269b6b37d10d6cd0ee91ec9e0100eafb0da817caf5956555cc242eaf8",
     "author": "OrchestKit",
     "tags": [
       "testing",
@@ -4173,7 +4173,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "security-patterns",
     "description": "Security patterns for authentication, defense-in-depth, input validation, OWASP Top 10, LLM safety, and PII masking. Use when implementing auth flows, security layers, input sanitization, vulnerability prevention, prompt injection defense, or data redaction.",
     "version": "2.0.0",
-    "sha256": "1ece05e5ea62a34930851af08928bb10372637a9188b28f2b8603bb2c8ad2915",
+    "sha256": "01eb2b29ed97e24ce1031c2b41477cc95441bfe1ce6c0254b3bf8ee68d8ce1a5",
     "author": "OrchestKit",
     "tags": [
       "security",
@@ -4624,7 +4624,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "testing-llm",
     "description": "LLM and AI testing patterns — mock responses, evaluation with DeepEval/RAGAS, structured output validation, and agentic test patterns (generator, healer, planner). Use when testing AI features, validating LLM outputs, or building evaluation pipelines.",
     "version": "2.1.0",
-    "sha256": "001e87ede3892258eae8fb64e5d26c58f5168bfd5e06a1f0366a3809bbadaed4",
+    "sha256": "8edd3cd805a97ae46ce08e9702049df9f682fb8dd5fedaefbe3d8527fa7953d5",
     "author": "OrchestKit",
     "tags": [
       "testing",
@@ -4650,6 +4650,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "structure": {
       "references": [
         "healer-agent.md",
+        "langfuse-v4.md",
         "ork-delta.md"
       ],
       "checklists": [

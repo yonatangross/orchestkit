@@ -23,6 +23,7 @@ passes the secret redactor. No page text beyond accessible names is sent.
 
 import argparse
 import json
+import math
 import os
 import re
 import sys
@@ -79,6 +80,29 @@ JSON_ESCAPE = re.compile(r"\\(?:u[0-9a-fA-F]{4}|[\"\\/bfnrt])")
 
 def truthy(value):
     return str(value or "").strip().lower() in TRUTHY
+
+
+def valid_probability(value):
+    """True only for a JSON-number probability on the closed unit interval.
+
+    Python considers bool an int and its JSON decoder accepts NaN, neither of
+    which is a useful confidence for an action gate.
+    """
+    return (
+        isinstance(value, (int, float))
+        and not isinstance(value, bool)
+        and math.isfinite(value)
+        and 0.0 <= value <= 1.0
+    )
+
+
+def positive_config_int(value):
+    """A positive whole-number configuration value, without bool coercion."""
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    if not math.isfinite(value) or value <= 0 or int(value) != value:
+        return None
+    return int(value)
 
 
 def resolve_mode():
@@ -297,6 +321,59 @@ def post_jev(endpoint, api_key, payload, timeout_s):
         return json.loads(resp.read().decode("utf-8"))
 
 
+def parse_jev_answers(body, candidates):
+    """Validate Jev's nested response before it can affect an act-mode step.
+
+    An API response is untrusted input. Requiring the requested Choice, its
+    probability map, and all requested Nouls keeps malformed nested values
+    from either raising here or silently turning into a steering decision.
+    """
+    if not isinstance(body, dict):
+        return None, "malformed_answer"
+    answers = body.get("answers")
+    if not isinstance(answers, dict):
+        return None, "malformed_answer"
+    if not answers:
+        return None, "empty_answer"
+
+    choice_answer = answers.get("next_action")
+    if not isinstance(choice_answer, dict):
+        return None, "malformed_answer"
+    jev_action = choice_answer.get("choice")
+    confidence = choice_answer.get("confidence")
+    probabilities = choice_answer.get("probabilities")
+    if (
+        not isinstance(jev_action, str)
+        or jev_action not in candidates
+        or not valid_probability(confidence)
+        or not isinstance(probabilities, dict)
+        or not probabilities
+        or jev_action not in probabilities
+    ):
+        return None, "malformed_answer"
+    if any(
+        not isinstance(action, str)
+        or action not in candidates
+        or not valid_probability(probability)
+        for action, probability in probabilities.items()
+    ):
+        return None, "malformed_answer"
+
+    nouls = {}
+    for qid in ("goal_reached", "page_changed_as_expected", "blocked"):
+        answer = answers.get(qid)
+        if not isinstance(answer, dict) or not valid_probability(answer.get("noul")):
+            return None, "malformed_answer"
+        nouls[qid] = answer["noul"]
+
+    return {
+        "jev_action": jev_action,
+        "confidence": confidence,
+        "probabilities": probabilities,
+        "nouls": nouls,
+    }, None
+
+
 def emit(step_id, record):
     line = json.dumps(record, separators=(",", ":"), ensure_ascii=True)
     line = re.sub(r"[|\t\n\r]", " ", line)
@@ -318,8 +395,8 @@ def main():
         return 0
 
     def finish(record, path=None, action=None):
+        record["mode"] = mode
         if mode == "act":
-            record["mode"] = "act"
             record["path"] = path
             record["executed_action"] = action
         emit(args.step_id, record)
@@ -330,18 +407,33 @@ def main():
                "fallback:no_config", args.model_action)
         return 0
 
-    element_cap = int(cfg.get("element_cap", 0) or 0)
-    name_max = int(cfg.get("name_max_chars", 0) or 0)
-    context_max = int(cfg.get("context_max_chars", 0) or 0)
-    budget_ms = int(cfg.get("latency_budget_ms", 0) or 0)
-    model = str(cfg.get("model", ""))
-    endpoint = os.environ.get(ENV_ENDPOINT) or str(cfg.get("endpoint", ""))
-    thresholds = cfg.get("thresholds") or {}
+    element_cap = positive_config_int(cfg.get("element_cap"))
+    name_max = positive_config_int(cfg.get("name_max_chars"))
+    context_max = positive_config_int(cfg.get("context_max_chars"))
+    budget_ms = positive_config_int(cfg.get("latency_budget_ms"))
+    model = cfg.get("model")
+    endpoint = os.environ.get(ENV_ENDPOINT) or cfg.get("endpoint")
+    thresholds = cfg.get("thresholds")
     conf_floor = cfg.get("act_confidence_floor")
 
-    if element_cap <= 0 or name_max <= 0 or context_max <= 0 or budget_ms <= 0 or not model or not endpoint:
-        finish({"step_id": args.step_id, "error": "incomplete jev_shadow config", "agree": None},
-               "fallback:incomplete_config", args.model_action)
+    if (
+        element_cap is None
+        or name_max is None
+        or context_max is None
+        or budget_ms is None
+        or not isinstance(model, str)
+        or not model.strip()
+        or not isinstance(endpoint, str)
+        or not endpoint.strip()
+        or not isinstance(thresholds, dict)
+        or (mode == "act" and not valid_probability(conf_floor))
+        or any(
+            not valid_probability(thresholds.get(qid))
+            for qid in ("low_confidence", "goal_reached", "page_changed_as_expected", "blocked")
+        )
+    ):
+        finish({"step_id": args.step_id, "error": "invalid jev_shadow config", "agree": None},
+               "fallback:invalid_config", args.model_action)
         return 0
 
     goal = sanitize(args.goal, context_max)
@@ -382,45 +474,42 @@ def main():
         return 0
     latency_ms = int((time.monotonic() - started) * 1000)
 
-    answers = body.get("answers") if isinstance(body, dict) else None
-    choice_answer = (answers or {}).get("next_action") or {}
-    jev_action = choice_answer.get("choice")
-    if jev_action not in candidates:
-        reason = "empty_answer" if mode == "act" and not answers else "malformed_answer"
+    parsed, reason = parse_jev_answers(body, candidates)
+    if parsed is None:
         finish({**base, "error": reason, "agree": None, "latency_ms": latency_ms},
                "fallback:" + reason, incumbent)
         return 0
 
-    nouls = {}
-    for qid in ("goal_reached", "page_changed_as_expected", "blocked"):
-        val = ((answers or {}).get(qid) or {}).get("noul")
-        nouls[qid] = val if isinstance(val, (int, float)) else None
-
+    jev_action = parsed["jev_action"]
+    conf = parsed["confidence"]
+    probabilities = parsed["probabilities"]
+    nouls = parsed["nouls"]
     flags = {"low_confidence": None}
-    conf = choice_answer.get("confidence")
     low_thr = thresholds.get("low_confidence")
-    if isinstance(conf, (int, float)) and isinstance(low_thr, (int, float)):
-        flags["low_confidence"] = conf < low_thr
+    flags["low_confidence"] = conf < low_thr
     for qid in nouls:
         thr = thresholds.get(qid)
-        flags[qid] = (nouls[qid] >= thr) if isinstance(nouls[qid], (int, float)) and isinstance(thr, (int, float)) else None
+        flags[qid] = nouls[qid] >= thr
 
-    below_floor = (
-        isinstance(conf, (int, float))
-        and isinstance(conf_floor, (int, float))
-        and conf < conf_floor
-    )
-    take_jev = mode == "act" and not below_floor
+    below_floor = conf < conf_floor if valid_probability(conf_floor) else None
+    agree = model_key == jev_action if model_key else None
+    high_confidence_disagreement = None
+    if below_floor is not None and agree is not None:
+        high_confidence_disagreement = not below_floor and agree is False
+    take_jev = mode == "act" and below_floor is False
 
     finish({
         **base,
         "jev_action": jev_action,
-        "jev_action_probability": (choice_answer.get("probabilities") or {}).get(jev_action),
-        "jev_confidence": conf if isinstance(conf, (int, float)) else None,
-        "probabilities": choice_answer.get("probabilities") or {},
+        "jev_action_probability": probabilities[jev_action],
+        "jev_confidence": conf,
         "nouls": nouls,
         "flags": flags,
-        "agree": (model_key == jev_action) if model_key else False,
+        "agree": agree,
+        "floor": conf_floor,
+        "below_floor": below_floor,
+        "high_confidence_disagreement": high_confidence_disagreement,
+        "probabilities": probabilities,
         "latency_ms": latency_ms,
         "error": None,
     }, "jev" if take_jev else "fallback:low_confidence",

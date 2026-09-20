@@ -1,0 +1,8 @@
+{
+  "slug": "fix--bundle-guard-merge-base",
+  "source": "docs/fix--bundle-guard-merge-base/index.html",
+  "title": "bundle guard: frozen base.sha vs current base tip",
+  "description": "The release-owned hook-bundle guard diffed the event's frozen base.sha, so a main bundle rebuild red-ed every open PR and its remedy reverted the newer bundles. Now it diffs merge-base(origin/base) and skips dist inherited from main.",
+  "tags": ["ci", "hooks", "guard"],
+  "date": "2026-09-19"
+}
