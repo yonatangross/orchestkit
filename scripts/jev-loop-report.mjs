@@ -4,8 +4,11 @@ import { readFileSync, realpathSync, statSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { createHash } from 'node:crypto';
-import { normalize } from './jev-shadow-report.mjs';
-import { validateJevShadow } from '../packages/jev-shadow/dist/esm/runtime.js';
+import { normalize, validateLegacyShadow } from './jev-shadow-report.mjs';
+// The checked-in, dependency-free runtime is the shipped artifact (the codex
+// hook byte-pins it). packages/jev-shadow is its typed source and test bed;
+// importing tsc output here needed a build the unit job never runs.
+import { validateJevShadow } from '../src/codex/ork-codex/runtime/jev-shadow-runtime.mjs';
 
 const string = (v) => typeof v === 'string' && v.length > 0 ? v : null;
 const probability = (v) => typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= 1 ? v : null;
@@ -36,13 +39,13 @@ function project(raw, source, spec) {
   const incumbent = generic ? string(raw.incumbent_pick) : n?.incumbent ?? null;
   const agree = generic ? (typeof raw.agree === 'boolean' ? raw.agree : null) : n?.agree ?? null;
   const missing = (canonicalRecord ? contract : legacyContract).filter((k) => !(k in raw));
-  const contract_errors = canonicalRecord ? [...validateJevShadow(raw)] : (generic ? missing.map((k) => `missing:${k}`) : []);
+  const contract_errors = canonicalRecord ? [...validateJevShadow(raw)] : validateLegacyShadow(raw);
   const reasons = unknownReasons(raw.unknown_reason);
   return { harness: spec.harness, namespace: spec.namespace, producer: spec.producer,
     source, decision_sha256: decisionHash(raw), seam: generic ? raw.seam : n?.seam ?? raw.seam ?? `aux:${auxiliary}`,
     session_id: string(raw.session_id), prompt_id: string(raw.prompt_id), router: string(raw.router),
     handoff_to: string(raw.handoff_to), decision_id: string(raw.decision_id), phase: string(raw.phase),
-    mode: generic ? raw.mode : n?.mode ?? raw.mode ?? raw.flag ?? null, jev_pick: jev,
+    mode: generic ? raw.mode ?? raw.flag ?? null : n?.mode ?? raw.mode ?? raw.flag ?? null, jev_pick: jev,
     jev_confidence: generic ? probability(raw.jev_confidence) : n ? n.confidence : null,
     incumbent_pick: incumbent ?? (raw.incumbent_pick && typeof raw.incumbent_pick === 'object'
       ? raw.incumbent_pick : null),

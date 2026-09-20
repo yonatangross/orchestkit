@@ -8,6 +8,7 @@
  * - Enables context efficiency optimization
  */
 
+import { observeRouteExecutor } from '../../lib/route-judgment.js';
 import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputSilentSuccess,
@@ -56,6 +57,7 @@ function appendSafe(file: string, content: string): void {
  * Skill tracker - logs skill invocations with analytics
  */
 export function skillTracker(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
+  observeRouteExecutor(input);
   const skillName = (input.tool_input.skill as string) || '';
   const skillArgs = (input.tool_input.args as string) || '';
   const projectDir = input.project_dir || (ctx.projectDir);

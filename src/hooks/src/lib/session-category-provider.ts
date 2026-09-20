@@ -336,10 +336,21 @@ export function readJevDecision(
 }
 
 export interface CategoryShadowRecord {
+  seam: 'category';
   ts: string;
   /** The opt-in mode the session ran under. */
   provider: 'jev' | 'shadow';
   model: string;
+  /** Canonical Jev pick. `jev` remains for existing report consumers. */
+  jev_pick: WorkCategory | null;
+  /** Canonical incumbent pick. `haiku` remains for existing report consumers. */
+  incumbent_pick: WorkCategory | { status: 'no_valid_result'; choice: null; reason: 'incumbent_classifier_failed' };
+  /**
+   * Explains a missing incumbent label. The category writer runs only after
+   * Haiku settled, so a missing label here is a classifier failure, not a
+   * pending observation.
+   */
+  incumbent_pick_reason: 'incumbent_classifier_failed' | null;
   haiku: WorkCategory | null;
   jev: WorkCategory | null;
   agree: boolean | null;
@@ -350,6 +361,8 @@ export interface CategoryShadowRecord {
   below_floor: boolean | null;
   /** Which answer decided the session color: Jev only in `jev` mode at or above the threshold. */
   decided_by: 'jev' | 'haiku';
+  /** Canonical confidence floor. `threshold` remains for existing report consumers. */
+  floor: number;
   threshold: number;
   latency_ms: number | null;
   input_tokens: number | null;
@@ -377,9 +390,13 @@ export function recordCategoryShadow(
     const threshold = resolveCategoryJevFloor(env);
     const confidence = raw.ok === true && isValidConfidence(raw.confidence) ? raw.confidence : null;
     const record: CategoryShadowRecord = {
+      seam: 'category',
       ts: new Date().toISOString(),
       provider: provider === 'shadow' ? 'shadow' : 'jev',
       model: typeof raw.model === 'string' ? raw.model : JEV_MODEL,
+      jev_pick: jev,
+      incumbent_pick: haikuCategory ?? { status: 'no_valid_result', choice: null, reason: 'incumbent_classifier_failed' },
+      incumbent_pick_reason: haikuCategory === null ? 'incumbent_classifier_failed' : null,
       haiku: haikuCategory,
       jev,
       agree: haikuCategory && jev ? haikuCategory === jev : null,
@@ -390,6 +407,7 @@ export function recordCategoryShadow(
           : confidence >= threshold && haikuCategory !== jev,
       below_floor: jev !== null && confidence !== null ? confidence < threshold : null,
       decided_by: readJevDecision(jevPath, env) ? 'jev' : 'haiku',
+      floor: threshold,
       threshold,
       latency_ms: typeof raw.latencyMs === 'number' ? raw.latencyMs : null,
       input_tokens: typeof raw.inputTokens === 'number' ? raw.inputTokens : null,

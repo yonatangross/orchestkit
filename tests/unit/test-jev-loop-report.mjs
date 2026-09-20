@@ -44,19 +44,37 @@ try {
   assert.equal(result.rows[2].jev_confidence, null);
   assert.equal(result.confident_wrong.length, 0);
   assert.deepEqual(result.rows[0].missing_contract, ['jev_pick', 'jev_confidence', 'incumbent_pick', 'agree', 'decided_by']);
+  const canonical = { schema_version: 1, namespace: 'host-a', producer: 'ork', harness: 'claude-code', decision_id: 'invalid',
+    unknown_reason: { incumbent_pick: 'not_run' } };
   const cases = write('cases.jsonl', [
     row({ prompt_id: 'below', jev_confidence: 0.89 }), row({ prompt_id: 'agree', agree: true }),
     row({ prompt_id: 'unknown', agree: null }), row({ prompt_id: 'mode', mode: 'act' }),
     row({ prompt_id: 'bad', jev_confidence: '0.99' }), row({ prompt_id: 'floor', floor: null }),
+    row({ prompt_id: 'inconsistent', jev_pick: 'fix', incumbent_pick: 'fix', agree: false }),
     row({ prompt_id: 'failed', incumbent_pick: { status: 'failed', reason: 'timeout' }, agree: null }),
+    row({ ...canonical, decision_id: 'handoff', prompt_id: 'handoff', phase: 'handoff', jev_pick: null, jev_confidence: null,
+      incumbent_pick: null, incumbent_pick_reason: 'not_run', agree: null, floor: null, decided_by: 'unknown',
+      unknown_reason: { jev_pick: 'not_run', jev_confidence: 'not_run', incumbent_pick: 'not_run', floor: 'not_frozen' } }),
     { haiku: 'fix', jev: 'feature', jev_confidence: 0.8, threshold: 0.8, provider: 'shadow' },
     row({ seam: 'inbox', prompt_id: null }), row({ seam: 'expect', prompt_id: null })]);
   result = collect(manifest([source([cases])]));
   assert.deepEqual(result.confident_wrong.map((r) => r.seam), ['category', 'inbox', 'expect']);
-  assert.deepEqual(result.rows[6].incumbent_pick, { status: 'failed', reason: 'timeout' });
-  assert.equal(result.rows[6].agree, null);
-  const canonical = { schema_version: 1, namespace: 'host-a', producer: 'ork', harness: 'claude-code', decision_id: 'invalid',
-    unknown_reason: { incumbent_pick: 'not_run' } };
+  assert.equal(result.complete, false);
+  assert.deepEqual(result.rows.find((r) => r.prompt_id === 'bad').contract_errors, ['invalid:jev_confidence']);
+  assert.deepEqual(result.rows.find((r) => r.prompt_id === 'inconsistent').contract_errors, ['inconsistent:agree']);
+  assert.deepEqual(result.rows.find((r) => r.prompt_id === 'handoff').contract_errors, []);
+  assert.deepEqual(result.rows.find((r) => r.prompt_id === 'failed').incumbent_pick, { status: 'failed', reason: 'timeout' });
+  assert.equal(result.rows.find((r) => r.prompt_id === 'failed').agree, null);
+  const flagOnly = write('flag-only.jsonl', [row({ prompt_id: 'legacy-flag', mode: undefined, flag: 'shadow' })]);
+  result = collect(manifest([source([flagOnly])]));
+  assert.equal(result.rows[0].mode, 'shadow');
+  assert.equal(result.confident_wrong.length, 1);
+  const legacyInvalid = write('legacy-invalid.jsonl', [row({ incumbent_pick: null, agree: null }),
+    row({ incumbent_pick: { status: 'failed' }, agree: false })]);
+  result = collect(manifest([source([legacyInvalid])]));
+  assert.equal(result.invalid_contracts, 2);
+  assert.deepEqual(result.rows[0].contract_errors, ['null_incumbent_without_reason']);
+  assert.deepEqual(result.rows[1].contract_errors, ['non_choice_incumbent_requires_null_agree']);
   const invalid = write('invalid.jsonl', [row({ ...canonical, incumbent_pick: null, agree: null }),
     row({ ...canonical, incumbent_pick: { status: 'failed' }, agree: false })]);
   result = collect(manifest([source([invalid])]));

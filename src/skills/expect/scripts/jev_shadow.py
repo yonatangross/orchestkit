@@ -374,9 +374,18 @@ def parse_jev_answers(body, candidates):
     }, None
 
 
-def emit(step_id, record):
+def emit(step_id, record, log_file):
     line = json.dumps(record, separators=(",", ":"), ensure_ascii=True)
     line = re.sub(r"[|\t\n\r]", " ", line)
+    try:
+        destination = Path(log_file)
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        fd = os.open(destination, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o600)
+        with os.fdopen(fd, "a", encoding="utf-8") as journal:
+            journal.write(line + "\n")
+    except OSError as exc:
+        # Preserve the action fallback and surface lost persistence separately.
+        print(f"Jev shadow journal write failed: {type(exc).__name__}", file=sys.stderr)
     print(f"JEV_SHADOW|{step_id or '-'}|{line}")
 
 
@@ -385,21 +394,40 @@ def main():
     parser.add_argument("--step-id", default="-")
     parser.add_argument("--goal", default="")
     parser.add_argument("--last-verify", default="")
-    parser.add_argument("--model-action", default="")
+    incumbent_args = parser.add_mutually_exclusive_group()
+    incumbent_args.add_argument("--model-action", default="")
+    incumbent_args.add_argument("--incumbent-not-run", metavar="REASON")
     parser.add_argument("--snapshot-file", default=None)
     parser.add_argument("--config", default=None)
+    parser.add_argument("--log-file", default=os.environ.get("ORK_EXPECT_JEV_LOG") or ".expect/jev-shadow.jsonl")
     args = parser.parse_args()
 
     mode = resolve_mode()
     if mode == "off":
         return 0
+    if not args.model_action.strip() and not (args.incumbent_not_run or "").strip():
+        parser.error("active Jev logging requires --model-action or --incumbent-not-run REASON")
+    if mode == "act" and args.incumbent_not_run:
+        parser.error("act mode requires --model-action for its fallback")
+
+    conf_floor = None
 
     def finish(record, path=None, action=None):
+        incumbent_pick = record.get("incumbent_pick") or args.model_action or None
+        record.update({
+            "seam": "expect",
+            "jev_pick": record.get("jev_action"),
+            "jev_confidence": record.get("jev_confidence"),
+            "incumbent_pick": incumbent_pick,
+            "incumbent_pick_reason": None if incumbent_pick is not None else args.incumbent_not_run,
+            "floor": conf_floor if valid_probability(conf_floor) else None,
+            "decided_by": "jev" if mode == "act" and path == "jev" else "incumbent" if incumbent_pick is not None else "none",
+        })
         record["mode"] = mode
         if mode == "act":
             record["path"] = path
             record["executed_action"] = action
-        emit(args.step_id, record)
+        emit(args.step_id, record, args.log_file)
 
     cfg = resolve_config(args.config)
     if cfg is None:
@@ -441,12 +469,13 @@ def main():
     elements = load_elements(args.snapshot_file, element_cap, name_max)
     candidates = build_candidates(elements)
     model_key = normalize_model_action(args.model_action, elements, candidates)
-    incumbent = model_key or args.model_action
+    incumbent = model_key if model_key in candidates else args.model_action
 
     base = {
         "step_id": args.step_id,
         "model_action": args.model_action,
         "model_action_key": model_key,
+        "incumbent_pick": incumbent or None,
         "model": model,
         "latency_budget_ms": budget_ms,
     }
@@ -492,7 +521,7 @@ def main():
         flags[qid] = nouls[qid] >= thr
 
     below_floor = conf < conf_floor if valid_probability(conf_floor) else None
-    agree = model_key == jev_action if model_key else None
+    agree = model_key == jev_action if model_key in candidates else None
     high_confidence_disagreement = None
     if below_floor is not None and agree is not None:
         high_confidence_disagreement = not below_floor and agree is False
