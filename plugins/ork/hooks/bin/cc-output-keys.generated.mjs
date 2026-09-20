@@ -18,7 +18,7 @@
 // existed.
 
 /** CC version this contract was derived from. */
-export const CC_VERSION = '2.1.251';
+export const CC_VERSION = '2.1.278';
 
 /**
  * Events on which CC reads hookSpecificOutput at all.
