@@ -18,6 +18,27 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.64",
+    "date": "2026-09-20",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.63...v10.0.0-beta.64",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**site:** search autocomplete suggestions in docs search ([#4258](https://github.com/yonatangross/orchestkit/issues/4258)) ([a9cc587](https://github.com/yonatangross/orchestkit/commit/a9cc587fbfa0746985db4c8280d462e497b66184))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**hooks:** never emit hookSpecificOutput without hookEventName ([#4285](https://github.com/yonatangross/orchestkit/issues/4285)) ([8d568b6](https://github.com/yonatangross/orchestkit/commit/8d568b6f11dcf6083893c43bef75802927492d50))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.63",
     "date": "2026-09-19",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.62...v10.0.0-beta.63",

@@ -1,0 +1,13 @@
+{
+  "slug": "function-hook-probes",
+  "source": "docs/chore--function-hook-probes/function-hook-probes.html",
+  "title": "Function hook probes R1 and R3, settled by the engine's own debug log",
+  "description": "Two open questions from the 2026-09-18 cc-mods adoption brief, turned into a repeatable probe script and run once on CC 2.1.277. R1: a user-tier hooks module does not load with CLAUDE_CODE_ENABLE_FUNCTION_HOOKS unset on this account (cold GrowthBook cache, default false), and loads at tier user with it set. R3: a tool.list answer changes nothing for either loop; the event never dispatches in a -p run, for the main loop or an Explore subagent.",
+  "tags": [
+    "claude-code",
+    "hooks",
+    "mods",
+    "probes"
+  ],
+  "date": "2026-09-19"
+}
