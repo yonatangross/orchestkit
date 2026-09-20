@@ -1,0 +1,8 @@
+{
+  "slug": "jev-foundation",
+  "source": "docs/feat--jev-foundation/index.html",
+  "title": "Jev shadow foundation: a local journal, never an activation",
+  "description": "Interact with a synthetic local-only passive observation: explicit root state, namespace/harness/session journal separation, unknown prompt reasons, and the pinned runtime artifact.",
+  "tags": ["jev", "codex", "hooks", "observability"],
+  "date": "2026-09-19"
+}

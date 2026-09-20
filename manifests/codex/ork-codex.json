@@ -36,5 +36,13 @@
         ]
       }
     ]
+  },
+  "jevShadow": {
+    "mode": "disabled-by-default",
+    "contract": "packages/jev-shadow/fixtures/jev-allharness-contract.schema.json",
+    "runtime": "plugins/ork-codex/runtime/jev-shadow-runtime.mjs",
+    "runtime_sha256": "11fa78c62a73f3b13ee2d82e256abf9ba5c0c5c04b086aab0f7ea94c46b08521",
+    "hookFragment": "src/codex/ork-codex/hooks/hooks.json",
+    "activation": "manual-explicit-JEV_SHADOW_ROOT-only"
   }
 }
