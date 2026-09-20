@@ -167,29 +167,36 @@ export function readRows(paths, labels = new Map()) {
   }
   // A shared runtime session + prompt identifies one decision across routers
   // and files. Historical rows without both IDs retain file-local revision keys.
+  // Output order must match input order: jev-shadow-label.mjs emits one
+  // sidecar per row and its callers index by position and by source:LINE.
+  // Collecting the survivors in a second pass appended every route row after
+  // the others and silently rotated that mapping.
   const decisions = new Map();
-  const retained = [];
+  const slots = [];
   let superseded = 0;
   for (const row of rows) {
-    if (row.seam !== 'route') { retained.push(row); continue; }
+    if (row.seam !== 'route') { slots.push({ row }); continue; }
     const key = row.sessionId && row.promptId
       ? JSON.stringify(['prompt', row.sessionId, row.promptId])
       : row.decisionId ? JSON.stringify(['legacy', row.source.replace(/:\d+$/, ''), row.decisionId]) : null;
-    if (key === null) { retained.push(row); continue; }
-    const group = decisions.get(key) ?? [];
-    group.push(row);
-    decisions.set(key, group);
+    if (key === null) { slots.push({ row }); continue; }
+    const group = decisions.get(key);
+    if (group) { group.push(row); continue; }
+    decisions.set(key, [row]);
+    slots.push({ key });
   }
-  for (const group of decisions.values()) {
+  const survivor = new Map();
+  for (const [key, group] of decisions) {
     superseded += group.length - 1;
     const targets = new Set(group.map((row) => row.handoffTo).filter(Boolean));
     const candidates = group.filter((row) => !row.handoffTo && (!targets.size || targets.has(row.router)));
     const chosen = candidates.find((row) => row.phase === 'paired') ?? candidates[0];
     // A handoff is not a terminal comparison. Until its target records a row,
     // retain one unpaired prompt rather than count the upstream pick as final.
-    retained.push(chosen ?? { ...group[0], paired: false, agree: null,
+    survivor.set(key, chosen ?? { ...group[0], paired: false, agree: null,
       highDisagreement: false, falseHigh: false, labeledHigh: false });
   }
+  const retained = slots.map((slot) => slot.key === undefined ? slot.row : survivor.get(slot.key));
   return { rows: retained, malformed, ignored, invalidLabels, labelMismatches, superseded };
 }
 
