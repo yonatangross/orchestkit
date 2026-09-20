@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Release bundles inherited unchanged from main must not block merge commits.
+# Release bundles inherited from main (merge or plain tip restore) must pass.
 set -euo pipefail
 unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_PREFIX GIT_COMMON_DIR GIT_OBJECT_DIRECTORY
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -31,7 +31,12 @@ check() {
   [[ "$actual" == "$expected" ]] || { echo "FAIL: $label"; exit 1; }
   echo "PASS: $label"
 }
-check "$paths" 'ordinary feature bundle edits rejected'
+# #4300: restore commit with no MERGE_HEAD must pass when index equals origin/main.
+check '' 'plain restore matching origin/main tip allowed'
+printf feature > src/hooks/dist/bundle.mjs
+git add src/hooks/dist/bundle.mjs
+check 'src/hooks/dist/bundle.mjs' 'authored dist change refused without MERGE_HEAD'
+git read-tree "$release"
 printf '%s\n' "$release" > .git/MERGE_HEAD
 check '' 'unchanged incoming main bundles allowed'
 printf feature > src/hooks/dist/bundle.mjs
@@ -39,8 +44,12 @@ git add src/hooks/dist/bundle.mjs
 check 'src/hooks/dist/bundle.mjs' 'feature modification during merge rejected'
 git read-tree "$release"
 printf '%s\n' "$base" > .git/MERGE_HEAD
-check "$paths" 'index must match incoming parent'
+printf other > src/hooks/dist/bundle.mjs
+printf other > plugins/ork/hooks/dist/bundle.mjs
+git add src/hooks/dist/bundle.mjs plugins/ork/hooks/dist/bundle.mjs
+check "$paths" 'index must match incoming parent or origin/main tip'
 printf '%s\n' "$release" > .git/MERGE_HEAD
+git read-tree "$release"
 git update-ref refs/remotes/origin/main "$base"
 check "$paths" 'non-main merge bundles rejected'
 [[ -z "$(printf 'docs/example.html\n' | bash "$GUARD")" ]]
@@ -101,4 +110,4 @@ grep -Fq 'Hook bundles are release-owned' "$hook_fixture/pre-commit.out"
 grep -Fq 'src/hooks/dist/bundle.mjs' "$hook_fixture/pre-commit.out"
 echo 'PASS: successful helper output rejects forbidden bundles'
 
-echo 'Passed: 10  Failed: 0'
+echo 'Passed: 11  Failed: 0'
