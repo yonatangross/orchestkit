@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.64](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.63...v10.0.0-beta.64) (2026-09-20)
+
+
+### Features
+
+* **site:** search autocomplete suggestions in docs search ([#4258](https://github.com/yonatangross/orchestkit/issues/4258)) ([a9cc587](https://github.com/yonatangross/orchestkit/commit/a9cc587fbfa0746985db4c8280d462e497b66184))
+
+
+### Bug Fixes
+
+* **hooks:** never emit hookSpecificOutput without hookEventName ([#4285](https://github.com/yonatangross/orchestkit/issues/4285)) ([8d568b6](https://github.com/yonatangross/orchestkit/commit/8d568b6f11dcf6083893c43bef75802927492d50))
+
 ## [10.0.0-beta.63](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.62...v10.0.0-beta.63) (2026-09-19)
 
 
