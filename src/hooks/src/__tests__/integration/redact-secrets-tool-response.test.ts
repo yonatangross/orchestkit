@@ -42,7 +42,7 @@ const HOOK_NAME = 'skill/redact-secrets';
 const TOKEN = 'glpat-1234567890abcdefghijklmnop';
 
 /** CC-shaped PostToolUse payload: hook_event_name + tool_response, no legacy aliases. */
-function ccShapedPayload(toolResponse: string): string {
+function ccShapedPayload(toolResponse: string | Record<string, unknown>): string {
   return JSON.stringify({
     hook_event_name: 'PostToolUse',
     tool_name: 'Bash',
@@ -50,6 +50,11 @@ function ccShapedPayload(toolResponse: string): string {
     tool_input: { command: 'gitlab-ci printenv' },
     tool_response: toolResponse,
   });
+}
+
+/** Real Bash PostToolUse shape measured on Claude Code (#4217). */
+function bashObjectResponse(stdout: string, stderr = ''): Record<string, unknown> {
+  return { stdout, stderr, interrupted: false };
 }
 
 let stderrSpy: ReturnType<typeof vi.spyOn> | undefined;
@@ -71,15 +76,15 @@ afterEach(() => {
   }
 });
 
-describe('redact-secrets through the built skill.mjs bundle (#3725)', () => {
-  it('flags a glpat token that arrives via tool_response through run-hook.mjs', () => {
+describe('redact-secrets through the built skill.mjs bundle (#3725, #4217)', () => {
+  it('flags a glpat token in object-shaped Bash tool_response through run-hook.mjs', () => {
     if (!existsSync(DIST_BUNDLE)) {
-      console.warn(`[integration] Skipping — built bundle not found at ${DIST_BUNDLE}`);
+      console.warn(`[integration] Skipping - built bundle not found at ${DIST_BUNDLE}`);
       return;
     }
 
     const r = spawnSync('node', [RUN_HOOK, HOOK_NAME], {
-      input: ccShapedPayload(`GITLAB_TOKEN=${TOKEN} done`),
+      input: ccShapedPayload(bashObjectResponse(`GITLAB_TOKEN=${TOKEN} done`)),
       env: { ...process.env, CLAUDE_PROJECT_DIR: scratchDir },
       encoding: 'utf8',
       timeout: 20_000,
@@ -93,18 +98,38 @@ describe('redact-secrets through the built skill.mjs bundle (#3725)', () => {
     expect(parsed.continue).toBe(true);
 
     // The load-bearing assertion: the layer actually SAW the production
-    // payload. Windows cannot get here until the dispatcher's dist import
-    // works on win32 (see file docstring) — the in-process tier covers it.
+    // Bash object shape. Windows cannot get here until the dispatcher's dist
+    // import works on win32 (see file docstring); the in-process tier covers it.
     if (process.platform !== 'win32') {
       expect(String(r.stderr)).toContain('::warning::Potential API key detected in output - verify redaction');
     }
   });
 
-  it('stays silent on a clean tool_response through run-hook.mjs', () => {
+  it('flags a glpat token that arrives as a string tool_response through run-hook.mjs', () => {
+    if (!existsSync(DIST_BUNDLE)) {
+      console.warn(`[integration] Skipping - built bundle not found at ${DIST_BUNDLE}`);
+      return;
+    }
+
+    const r = spawnSync('node', [RUN_HOOK, HOOK_NAME], {
+      input: ccShapedPayload(`GITLAB_TOKEN=${TOKEN} done`),
+      env: { ...process.env, CLAUDE_PROJECT_DIR: scratchDir },
+      encoding: 'utf8',
+      timeout: 20_000,
+    });
+
+    expect(r.status, `stderr: ${String(r.stderr).slice(0, 300)}`).toBe(0);
+    expect(String(r.stdout)).not.toContain(TOKEN);
+    if (process.platform !== 'win32') {
+      expect(String(r.stderr)).toContain('::warning::Potential API key detected in output - verify redaction');
+    }
+  });
+
+  it('stays silent on a clean object-shaped tool_response through run-hook.mjs', () => {
     if (!existsSync(DIST_BUNDLE)) return;
 
     const r = spawnSync('node', [RUN_HOOK, HOOK_NAME], {
-      input: ccShapedPayload('build finished, all tests passed'),
+      input: ccShapedPayload(bashObjectResponse('build finished, all tests passed')),
       env: { ...process.env, CLAUDE_PROJECT_DIR: scratchDir },
       encoding: 'utf8',
       timeout: 20_000,
@@ -114,7 +139,7 @@ describe('redact-secrets through the built skill.mjs bundle (#3725)', () => {
     expect(String(r.stderr)).not.toContain('::warning::');
   });
 
-  it('detects the token when the built bundle is driven in-process', async () => {
+  it('detects the token when the built bundle is driven in-process with Bash object shape', async () => {
     if (!existsSync(DIST_BUNDLE)) return;
 
     const bundle = await import(pathToFileURL(DIST_BUNDLE).href);
@@ -129,7 +154,7 @@ describe('redact-secrets through the built skill.mjs bundle (#3725)', () => {
       tool_name: 'Bash',
       session_id: '3725-redact-secrets',
       tool_input: { command: 'gitlab-ci printenv' },
-      tool_response: `GITLAB_TOKEN=${TOKEN} done`,
+      tool_response: bashObjectResponse(`GITLAB_TOKEN=${TOKEN} done`),
     });
 
     expect(stderrSpy).toHaveBeenCalledWith(
