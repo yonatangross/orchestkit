@@ -5,6 +5,27 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.71](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.70...v10.0.0-beta.71) (2026-09-21)
+
+
+### Bug Fixes
+
+* **hooks:** allow tip-equal dist restores without MERGE_HEAD ([#4308](https://github.com/yonatangross/orchestkit/issues/4308)) ([4aaaf17](https://github.com/yonatangross/orchestkit/commit/4aaaf172b5103c47cca0cae35a288f0bbbc79d01))
+
+
+### Miscellaneous
+
+* **deps-dev:** bump @types/node ([#4312](https://github.com/yonatangross/orchestkit/issues/4312)) ([06f1792](https://github.com/yonatangross/orchestkit/commit/06f179222d073f249e87a855a6872ebbf53788ff))
+* **deps-dev:** bump the npm-minor-patch group ([#4317](https://github.com/yonatangross/orchestkit/issues/4317)) ([2d8dff8](https://github.com/yonatangross/orchestkit/commit/2d8dff8aa0e63d784d9b0db75f6862872516dbc1))
+* **deps-dev:** bump the npm-minor-patch group across 1 directory with 2 updates ([#4315](https://github.com/yonatangross/orchestkit/issues/4315)) ([871dfa2](https://github.com/yonatangross/orchestkit/commit/871dfa2fc9e95224788b095ab7096e685f0c5065))
+* **deps-dev:** bump the vitest group ([#4320](https://github.com/yonatangross/orchestkit/issues/4320)) ([8b3ce70](https://github.com/yonatangross/orchestkit/commit/8b3ce7009110762aae4546ffe3bd433255a62d5b))
+* **deps-dev:** bump the vitest group across 1 directory with 2 updates ([#4314](https://github.com/yonatangross/orchestkit/issues/4314)) ([737aa81](https://github.com/yonatangross/orchestkit/commit/737aa81c372df164db01b58515d2ffed7b60af7d))
+* **deps-dev:** bump vitest from 5.0.0 to 5.0.1 in the vitest group ([#4313](https://github.com/yonatangross/orchestkit/issues/4313)) ([3b354d1](https://github.com/yonatangross/orchestkit/commit/3b354d127aca690256c52ee7152f5c461be6f108))
+* **deps-dev:** bump vitest in /docs/site in the vitest group ([#4316](https://github.com/yonatangross/orchestkit/issues/4316)) ([36c7b06](https://github.com/yonatangross/orchestkit/commit/36c7b06a6320e8de972acebf085a2db73af2660d))
+* **deps:** bump the npm-minor-patch group ([#4318](https://github.com/yonatangross/orchestkit/issues/4318)) ([e132c60](https://github.com/yonatangross/orchestkit/commit/e132c60c42fd2faabd8d7f128ff3854064694e0f))
+* **deps:** bump the npm-minor-patch group across 1 directory with 6 updates ([#4321](https://github.com/yonatangross/orchestkit/issues/4321)) ([2999add](https://github.com/yonatangross/orchestkit/commit/2999addcbc36c79ffe93f33dadefa356ff96849e))
+* **deps:** bump the remotion group ([#4319](https://github.com/yonatangross/orchestkit/issues/4319)) ([5fa63e5](https://github.com/yonatangross/orchestkit/commit/5fa63e5afdb4bbc3979fde4498371f8b1259670a))
+
 ## [10.0.0-beta.70](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.69...v10.0.0-beta.70) (2026-09-20)
 
 
