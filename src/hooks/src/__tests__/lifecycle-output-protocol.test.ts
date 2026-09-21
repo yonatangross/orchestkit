@@ -529,14 +529,15 @@ describe('sanitizeOutput — all sanitize-target lifecycle events', () => {
   // EVENTS_WITH_HOOK_EVENT_NAME (#4285 second-read). A UserPromptSubmit-
   // labeled envelope fired on them now dies on the name-only drop instead
   // of the non-consumer rule — same outcome, honest mechanism.
+  //
+  // CwdChanged, FileChanged, Notification moved out (#4291): the CC 2.1.278
+  // output-schema union declares hookEventName:R for each; the guard must
+  // emit their envelopes. See the allow-listed block below.
   const SANITIZE_EVENTS = [
     'WorktreeRemove',
-    'CwdChanged',
-    'FileChanged',
     'ConfigChange',
     'InstructionsLoaded',
     'TaskCreated',
-    'Notification',
     'StopFailure',
     'SessionEnd',
     'PreCompact',
@@ -622,6 +623,68 @@ describe('sanitizeOutput — SessionStart allow-listed (#1234 audit fix)', () =>
     // tighter check than the original guard contract. Deferred as a separate
     // hardening — see #1234 audit follow-up.
   }
+});
+
+describe('sanitizeOutput — #4291 schema events keep their envelopes', () => {
+  beforeEach(() => { stderrSpy.mockClear(); });
+
+  it('preserves watchPaths on CwdChanged (UNVERIFIED key, envelope previously dropped)', () => {
+    const input = {
+      continue: true,
+      hookSpecificOutput: {
+        hookEventName: 'CwdChanged',
+        watchPaths: ['/tmp/project'],
+      },
+    };
+    const result = sanitizeOutput(input, 'CwdChanged') as Record<string, unknown>;
+    const hso = result.hookSpecificOutput as Record<string, unknown>;
+    expect(hso.hookEventName).toBe('CwdChanged');
+    expect(hso.watchPaths).toEqual(['/tmp/project']);
+  });
+
+  it('preserves watchPaths on FileChanged', () => {
+    const input = {
+      continue: true,
+      hookSpecificOutput: {
+        hookEventName: 'FileChanged',
+        watchPaths: ['/tmp/file.ts'],
+      },
+    };
+    const result = sanitizeOutput(input, 'FileChanged') as Record<string, unknown>;
+    const hso = result.hookSpecificOutput as Record<string, unknown>;
+    expect(hso.hookEventName).toBe('FileChanged');
+    expect(hso.watchPaths).toEqual(['/tmp/file.ts']);
+  });
+
+  it('preserves additionalContext on Notification', () => {
+    const input = {
+      continue: true,
+      hookSpecificOutput: {
+        hookEventName: 'Notification',
+        additionalContext: 'toast context',
+      },
+    };
+    const result = sanitizeOutput(input, 'Notification') as Record<string, unknown>;
+    const hso = result.hookSpecificOutput as Record<string, unknown>;
+    expect(hso.hookEventName).toBe('Notification');
+    expect(hso.additionalContext).toBe('toast context');
+  });
+
+  it('preserves action on ElicitationResult', () => {
+    const input = {
+      continue: true,
+      hookSpecificOutput: {
+        hookEventName: 'ElicitationResult',
+        action: 'accept',
+        content: 'ok',
+      },
+    };
+    const result = sanitizeOutput(input, 'ElicitationResult') as Record<string, unknown>;
+    const hso = result.hookSpecificOutput as Record<string, unknown>;
+    expect(hso.hookEventName).toBe('ElicitationResult');
+    expect(hso.action).toBe('accept');
+    expect(hso.content).toBe('ok');
+  });
 });
 
 describe('sanitizeOutput — error-path inputs (run-hook.mjs catch branch)', () => {

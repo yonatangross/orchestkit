@@ -14,9 +14,12 @@ FIX="$H/fixtures/verify-cc-keys"
 # The binary is a fixture, not the installed CC. ci.yml does not install CC,
 # and a control arm that depends on whatever binary the host happens to pin is
 # the exact "passed with nothing to compare" shape this arm exists to rule
-# out. The fake names every event the generated allow-list asserts, in the
-# prose form the script greps for, so the binary comparison is satisfied and
-# only the spec input varies between arms.
+# out. The fake names every event the generated allow-lists assert, in the
+# prose / R("...") forms the script greps for, so the binary comparison is
+# satisfied and only the spec input varies between arms.
+#
+# #4291: also emit hookEventName:R("...") for EVENTS_WITH_HOOK_EVENT_NAME, or
+# the new arbitration arm fails the control (empty extract = CANNOT OBSERVE).
 
 rm -rf "$FIX"
 mkdir -p "$FIX/tree/scripts" "$FIX/tree/src/hooks/bin" "$FIX/tree/spec" "$FIX/bin" "$FIX/home"
@@ -30,6 +33,10 @@ cp "$REPO/spec/cc-output-keys.spec.yml" "$FIX/tree/spec/"
       import(process.argv[1]).then((m) => {
         for (const e of m.EVENTS_WITH_ADDITIONAL_CONTEXT)
           console.log(`Hook-specific output for the ${e} event. additionalContext is non-error feedback delivered to the model.`);
+        if (m.EVENTS_WITH_ADDITIONAL_CONTEXT.has("PostToolBatch"))
+          console.log("Return additionalContext via hookSpecificOutput to inject context once for the whole batch.");
+        for (const e of m.EVENTS_WITH_HOOK_EVENT_NAME)
+          console.log(`hookEventName:R("${e}")`);
       });
     ' "$FIX/tree/src/hooks/bin/cc-output-keys.generated.mjs"
 } > "$FIX/bin/claude"

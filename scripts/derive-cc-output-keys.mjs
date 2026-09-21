@@ -17,26 +17,32 @@
  *
  * MODES
  *
- *   node scripts/derive-cc-output-keys.mjs           print what the binary says
- *   node scripts/derive-cc-output-keys.mjs --check   fail if the generated
- *                                                    module contradicts it
+ *   node scripts/derive-cc-output-keys.mjs            print what the binary says
+ *   node scripts/derive-cc-output-keys.mjs --check    fail if the generated
+ *                                                     module contradicts it
  *
- * The --check gate is BIDIRECTIONAL (#3418). It used to be missing-only:
+ * The check-mode gate is BIDIRECTIONAL (#3418). It used to be missing-only:
  *
  *   binaryEvents.filter(e => !allowed.has(e))
  *
  * which fails when the binary names an event the allow-list LACKS, but is
  * structurally silent when the allow-list asserts an event the binary does
- * not name — 6 of the 9 EVENTS_WITH_ADDITIONAL_CONTEXT entries were exactly
+ * not name. 6 of the 9 EVENTS_WITH_ADDITIONAL_CONTEXT entries were exactly
  * that, uncorroborated in either direction, and one of them (PostCompact) had
  * independent evidence of being wrong. The gate now also fails on THAT
  * direction, with one escape hatch: an allow-list entry can be listed in
  * ADDITIONAL_CONTEXT_REVIEWED_EXCEPTIONS (cc-output-keys.generated.mjs) if it
- * was settled by trace-and-observe evidence instead of binary prose — see
+ * was settled by trace-and-observe evidence instead of binary prose. See
  * that Set's doc comment and spec/cc-output-keys.spec.yml's
  * additionalContext.reviewed_exceptions for the bar an exception must clear.
- * An uncorroborated entry with no reviewed exception fails --check; this is
+ * An uncorroborated entry with no reviewed exception fails check mode; this is
  * deliberate, not a bug to route around by adding more exceptions.
+ *
+ * The same bidirectional arbitration applies to EVENTS_WITH_HOOK_EVENT_NAME
+ * (#4291). Truth is the hookEventName:R("Event") literals in the binary's
+ * output-schema union (22 variants on CC 2.1.278). Escape hatch:
+ * HOOK_EVENT_NAME_REVIEWED_EXCEPTIONS, for entries settled without a matching
+ * R("...") literal (PostCompact: input schema only, no output variant).
  *
  * WHERE IT RUNS
  *
@@ -169,6 +175,19 @@ function additionalContextEventsFrom(strings) {
 }
 
 /**
+ * Events whose hookSpecificOutput schema declares hookEventName:R("X").
+ * Measured on CC 2.1.278: 22 variants. This is the closed set the guard's
+ * EVENTS_WITH_HOOK_EVENT_NAME must track (#4291). Presence proves the parser
+ * ACCEPTS the envelope; it does not prove runtime delivery of every key.
+ */
+function hookEventNameEventsFrom(strings) {
+  const found = new Set();
+  const re = /hookEventName:R\("([A-Za-z]+)"\)/g;
+  for (const m of strings.matchAll(re)) found.add(m[1]);
+  return found;
+}
+
+/**
  * The generated module is hand-mirrored from the spec (its header says so),
  * so a --check that never opens the spec can report OK with the spec emptied
  * or deleted. Measured 2026-09-06 (tests/ci/fault-arms/verify-cc-keys.sh):
@@ -227,92 +246,149 @@ async function main() {
     process.exit(EXIT_CANNOT_OBSERVE);
   }
 
-  const binaryEvents = additionalContextEventsFrom(strings);
-  console.log(`CC ${bin.version} — events the binary NAMES as additionalContext consumers:`);
-  for (const e of [...binaryEvents].sort()) console.log(`  ${e}`);
+  const binaryAdditionalContext = additionalContextEventsFrom(strings);
+  const binaryHookEventName = hookEventNameEventsFrom(strings);
+
+  // Same vacuous-pass bar for the hookEventName schema extract (#4291): an
+  // empty set has an empty difference against any allow-list subset.
+  if (check && binaryHookEventName.size === 0) {
+    console.error('CANNOT OBSERVE: binary yielded no hookEventName:R("...") literals.');
+    console.error('  Refusing to report EVENTS_WITH_HOOK_EVENT_NAME arbitration from nothing.');
+    process.exit(EXIT_CANNOT_OBSERVE);
+  }
+
+  console.log(`CC ${bin.version} - events the binary NAMES as additionalContext consumers:`);
+  for (const e of [...binaryAdditionalContext].sort()) console.log(`  ${e}`);
+  console.log(`CC ${bin.version} - events with hookEventName:R("...") in the output schema:`);
+  for (const e of [...binaryHookEventName].sort()) console.log(`  ${e}`);
 
   if (!check) {
-    console.log('\n(run with --check to compare against the generated module)');
+    console.log('\n(run with check mode to compare against the generated module)');
     process.exit(EXIT_OK);
   }
 
   // Import the module and read the ACTUAL Set. An earlier version of this check
   // grepped the file text for `'Stop'`, which matched inside a comment and
-  // inside KEY_EVENTS — so it reported OK against a deliberately broken
+  // inside KEY_EVENTS, so it reported OK against a deliberately broken
   // allow-list. A gate that cannot fail is not a gate.
   let generated;
   try {
     generated = await import(pathToFileURL(GENERATED).href + `?t=${process.hrtime.bigint()}`);
   } catch (err) {
-    console.error(`CANNOT OBSERVE: failed to import ${GENERATED} — ${err.message}`);
+    console.error(`CANNOT OBSERVE: failed to import ${GENERATED} - ${err.message}`);
     process.exit(EXIT_CANNOT_OBSERVE);
   }
 
-  const allowed = generated.EVENTS_WITH_ADDITIONAL_CONTEXT;
-  if (!(allowed instanceof Set) || allowed.size === 0) {
-    console.error('CANNOT OBSERVE: EVENTS_WITH_ADDITIONAL_CONTEXT is not a non-empty Set.');
+  const acDrift = arbitrateSet({
+    label: 'EVENTS_WITH_ADDITIONAL_CONTEXT',
+    key: 'additionalContext',
+    allowed: generated.EVENTS_WITH_ADDITIONAL_CONTEXT,
+    binaryEvents: binaryAdditionalContext,
+    reviewedExceptions:
+      generated.ADDITIONAL_CONTEXT_REVIEWED_EXCEPTIONS instanceof Set
+        ? generated.ADDITIONAL_CONTEXT_REVIEWED_EXCEPTIONS
+        : new Set(),
+    missingHint: 'The guard would STRIP valid output on those events.',
+    unreviewedHint:
+      'Either settle the event by trace-and-observe evidence and add it to\n' +
+      'ADDITIONAL_CONTEXT_REVIEWED_EXCEPTIONS (mirroring spec/cc-output-keys.spec.yml\n' +
+      'additionalContext.reviewed_exceptions with the evidence), or remove the\n' +
+      'entry from EVENTS_WITH_ADDITIONAL_CONTEXT if it is not actually supported.',
+    reviewedLogHint:
+      'CONFIRMED by trace-and-observe, not binary prose (reviewed exception,\n' +
+      'see spec/cc-output-keys.spec.yml additionalContext.reviewed_exceptions):',
+  });
+
+  const henDrift = arbitrateSet({
+    label: 'EVENTS_WITH_HOOK_EVENT_NAME',
+    key: 'hookEventName',
+    allowed: generated.EVENTS_WITH_HOOK_EVENT_NAME,
+    binaryEvents: binaryHookEventName,
+    reviewedExceptions:
+      generated.HOOK_EVENT_NAME_REVIEWED_EXCEPTIONS instanceof Set
+        ? generated.HOOK_EVENT_NAME_REVIEWED_EXCEPTIONS
+        : new Set(),
+    missingHint:
+      'The guard would DROP the whole hookSpecificOutput envelope on those events.',
+    unreviewedHint:
+      'Either settle the event (binary R("...") miss with independent evidence) and\n' +
+      'add it to HOOK_EVENT_NAME_REVIEWED_EXCEPTIONS (mirroring\n' +
+      'spec/cc-output-keys.spec.yml events_with_hook_specific_output reviewed_exceptions),\n' +
+      'or remove the entry from EVENTS_WITH_HOOK_EVENT_NAME if it is not supported.',
+    reviewedLogHint:
+      'CONFIRMED without a matching hookEventName:R("...") literal (reviewed exception,\n' +
+      'see spec/cc-output-keys.spec.yml events_with_hook_specific_output.reviewed_exceptions):',
+  });
+
+  if (acDrift.cannotObserve || henDrift.cannotObserve) {
     process.exit(EXIT_CANNOT_OBSERVE);
   }
-
-  // Optional: absent on an older generated module is CANNOT-OBSERVE for the
-  // reviewed-exception check specifically, not a reason to skip it — treat
-  // missing as "no exceptions reviewed yet" rather than crashing.
-  const reviewedExceptions =
-    generated.ADDITIONAL_CONTEXT_REVIEWED_EXCEPTIONS instanceof Set
-      ? generated.ADDITIONAL_CONTEXT_REVIEWED_EXCEPTIONS
-      : new Set();
-
-  const missing = [...binaryEvents].filter((e) => !allowed.has(e));
-
-  if (missing.length > 0) {
-    console.error('\nDRIFT: the binary documents these as additionalContext consumers,');
-    console.error('but they are absent from the generated allow-list:');
-    for (const e of missing) console.error(`  ${e}`);
-    console.error('\nThe guard would STRIP valid output on those events.');
-    console.error('Update spec/cc-output-keys.spec.yml and regenerate.');
+  if (acDrift.missing || henDrift.missing) {
     process.exit(EXIT_DRIFT);
   }
+  if (acDrift.unreviewed || henDrift.unreviewed) {
+    process.exit(EXIT_UNREVIEWED);
+  }
 
-  // BIDIRECTIONAL (#3418): the check above is missing-only, which was silent
-  // in the OTHER direction — an allow-list entry the binary does not
-  // corroborate used to pass without a trace. Measured 2026-08-11: 9 asserted,
-  // 3 corroborated, 6 resting on a generic field-list line that names no
-  // event, one of which (PostCompact) has independent evidence of being wrong
-  // (#3321, additionalContext emitted and ignored). Four of the six were then
-  // settled empirically by trace-and-observe (issue #3418 comment thread) and
-  // moved into ADDITIONAL_CONTEXT_REVIEWED_EXCEPTIONS. An uncorroborated entry
-  // is now DRIFT unless it is in that reviewed set — pruning on binary-prose
-  // absence alone would repeat #3386 in the other direction, so the escape
-  // hatch requires the SAME evidence standard the missing-only check itself
-  // would apply, not a blanket exemption.
+  console.log('\nOK: EVENTS_WITH_ADDITIONAL_CONTEXT and EVENTS_WITH_HOOK_EVENT_NAME both');
+  console.log('match the binary (every binary event present; every uncorroborated entry reviewed).');
+  process.exit(EXIT_OK);
+}
+
+/**
+ * Bidirectional arbitration of one generated Set against binary-derived events.
+ * Prints DRIFT lines naming each drifting event and the key under arbitration.
+ * Returns flags; caller exits with the highest-severity code across sets.
+ */
+function arbitrateSet({
+  label,
+  key,
+  allowed,
+  binaryEvents,
+  reviewedExceptions,
+  missingHint,
+  unreviewedHint,
+  reviewedLogHint,
+}) {
+  if (!(allowed instanceof Set) || allowed.size === 0) {
+    console.error(`CANNOT OBSERVE: ${label} is not a non-empty Set.`);
+    return { cannotObserve: true };
+  }
+
+  const missing = [...binaryEvents].filter((e) => !allowed.has(e)).sort();
+  if (missing.length > 0) {
+    console.error(`\nDRIFT [${label} / key=${key}]: binary has these events, generated set does not:`);
+    for (const e of missing) console.error(`  ${e}`);
+    console.error(`\n${missingHint}`);
+    console.error('Update spec/cc-output-keys.spec.yml and regenerate.');
+  }
+
   const uncorroborated = [...allowed].filter((e) => !binaryEvents.has(e)).sort();
   const reviewed = uncorroborated.filter((e) => reviewedExceptions.has(e));
   const unreviewed = uncorroborated.filter((e) => !reviewedExceptions.has(e));
 
   console.log(
-    `\nallow-list: ${allowed.size} asserted / ${allowed.size - uncorroborated.length} corroborated by the binary / ${reviewed.length} reviewed exception / ${unreviewed.length} unreviewed`,
+    `\n${label}: ${allowed.size} asserted / ${allowed.size - uncorroborated.length} corroborated by the binary / ${reviewed.length} reviewed exception / ${unreviewed.length} unreviewed`,
   );
 
   if (reviewed.length > 0) {
-    console.log('\nCONFIRMED by trace-and-observe, not binary prose (reviewed exception,');
-    console.log('see spec/cc-output-keys.spec.yml additionalContext.reviewed_exceptions):');
+    console.log(`\n${reviewedLogHint}`);
     for (const e of reviewed) console.log(`  ${e}`);
   }
 
   if (unreviewed.length > 0) {
-    console.error('\nDRIFT: no binary string names these events as additionalContext');
-    console.error('consumers, and they carry no reviewed exception (#3418):');
+    console.error(
+      `\nDRIFT [${label} / key=${key}]: generated set has these events, binary does not,` +
+        ' and they carry no reviewed exception:',
+    );
     for (const e of unreviewed) console.error(`  ${e}`);
-    console.error('\nEither settle the event by trace-and-observe evidence and add it to');
-    console.error('ADDITIONAL_CONTEXT_REVIEWED_EXCEPTIONS (mirroring spec/cc-output-keys.spec.yml');
-    console.error('additionalContext.reviewed_exceptions with the evidence), or remove the');
-    console.error('entry from EVENTS_WITH_ADDITIONAL_CONTEXT if it is not actually supported.');
-    process.exit(EXIT_UNREVIEWED);
+    console.error(`\n${unreviewedHint}`);
   }
 
-  console.log('\nOK: every event the binary names is present in the generated allow-list,');
-  console.log('and every uncorroborated entry carries a reviewed exception.');
-  process.exit(EXIT_OK);
+  return {
+    missing: missing.length > 0,
+    unreviewed: unreviewed.length > 0,
+  };
 }
 
 main();

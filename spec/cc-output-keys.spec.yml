@@ -32,24 +32,45 @@ derived_at: "2026-08-08"
 # ("hookSpecificOutput is missing required field \"hookEventName\"") and drops
 # the decision silently.
 events_with_hook_specific_output:
-  - PreToolUse
+  # Closed set from CC 2.1.278 hookEventName:R("...") output-schema union (#4291).
+  - CwdChanged
+  - Elicitation
+  - ElicitationResult
+  - FileChanged
+  - MessageDisplay
+  - Notification
+  - PermissionDenied
+  - PermissionRequest
+  - PostModelSwitch
+  - PostToolBatch
   - PostToolUse
   - PostToolUseFailure
-  - PermissionRequest
-  - PermissionDenied
-  - UserPromptSubmit
+  - PreModelSwitch
+  - PreToolUse
+  - SessionStart
+  - Setup
+  - Stop
   - SubagentStart
   - SubagentStop
-  - SessionStart
-  - PostCompact
-  - Stop
-  - PostToolBatch
+  - UserPromptExpansion
+  - UserPromptSubmit
   - WorktreeCreate
-  - MessageDisplay
-  - Elicitation
-  # CC 2.1.251 (#3789): PreModelSwitch reads permissionDecision like PreToolUse;
-  # payload measured 2026-08-29 with a stdin-dumping hook, see lib/session-staleness.ts
-  - PreModelSwitch
+  # Reviewed exception (no matching R("...") in the output union; input schema
+  # and executePostCompactHooks exist). Keep prior guard behaviour; do not
+  # treat the missing R("...") as proof of absence (#4291 ambiguity).
+  - PostCompact
+
+# Mirror HOOK_EVENT_NAME_REVIEWED_EXCEPTIONS in the generated module.
+# Sibling key (not nested under the list): a sequence cannot carry a mapping.
+events_with_hook_specific_output_reviewed_exceptions:
+  - event: PostCompact
+    evidence: |
+      Input schema carries hook_event_name:R("PostCompact") and
+      executePostCompactHooks. Output-schema union has no
+      hookEventName:R("PostCompact") among the 22 variants on 2.1.278.
+      Removing the allow-list entry would be a guess; leaving it
+      unreviewed would fail the reverse arbitration arm.
+    source: "issue #4291, binary measure on CC 2.1.278"
 
 # Per-key contract. `events` is the closed set of events on which CC reads the
 # key. `evidence` quotes the binary verbatim.
@@ -70,6 +91,12 @@ keys:
       - Stop
       - SubagentStop
       - PostToolBatch
+      # CC 2.1.278 output-schema union (#4291): each variant declares
+      # additionalContext. Prose extract does not name them; reviewed below.
+      - Notification
+      - Setup
+      - PostModelSwitch
+      - UserPromptExpansion
     evidence: |
       "- `additionalContext` - Text injected into model context"
       "Hook-specific output for the Stop event. additionalContext is non-error
@@ -153,6 +180,30 @@ keys:
           PermissionRequest's block (additionalContext NOT documented for it)
           has no `hook_additional_context` token anywhere nearby.
         source: "issue #3457 follow-up (this probe), 2026-08-12"
+      - event: Notification
+        evidence: |
+          CC 2.1.278 output-schema union declares
+          hookEventName:R("Notification") with additionalContext on the same
+          variant. Parser accepts the shape; guard previously dropped the
+          whole envelope (#4291).
+        source: "issue #4291, binary measure on CC 2.1.278"
+      - event: Setup
+        evidence: |
+          CC 2.1.278 output-schema union declares hookEventName:R("Setup")
+          with additionalContext on the same variant.
+        source: "issue #4291, binary measure on CC 2.1.278"
+      - event: PostModelSwitch
+        evidence: |
+          CC 2.1.278 output-schema union declares
+          hookEventName:R("PostModelSwitch") with additionalContext on the
+          same variant.
+        source: "issue #4291, binary measure on CC 2.1.278"
+      - event: UserPromptExpansion
+        evidence: |
+          CC 2.1.278 output-schema union declares
+          hookEventName:R("UserPromptExpansion") with additionalContext and
+          suppressOriginalPrompt on the same variant.
+        source: "issue #4291, binary measure on CC 2.1.278"
     # Deliberately NOT an allow-list entry — settled UNSUPPORTED, not merely
     # unreviewed:
     #   PostCompact   #3321's original finding, confirmed by the same binary
@@ -236,10 +287,11 @@ keys:
        the delta on screen."
 
   action:
-    events: [Elicitation]
+    events: [Elicitation, ElicitationResult]
     evidence: |
       "Output JSON with hookSpecificOutput containing action (accept/decline/
        cancel) and optional content."
+      # ElicitationResult: same action/content keys on CC 2.1.278 schema (#4291).
 
 # Top-level envelope keys, outside hookSpecificOutput. CC enumerates these in
 # one place, so they are not per-event.
