@@ -41,7 +41,7 @@
     "@remotion/transitions": "4.0.526",
     "@remotion/zod-types": "4.0.526",
     "@rive-app/react-canvas": "^4.34.3",
-    "dotenv": "^17.4.2",
+    "dotenv": "^18.0.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "remotion": "4.0.526",
