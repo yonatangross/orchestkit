@@ -30,19 +30,32 @@ const src = readFileSync(join(root, "docs/site/components/host-marks.tsx"), "utf
 const FG = "#e5e8f0";
 const SIZE = 128;
 
+// The file is parsed once into plain maps, so no pattern is ever built from a
+// host name (a RegExp from argv is a regex-injection sink; CodeQL js/regex-injection).
+const FILL_PATHS = new Map(
+  [...src.matchAll(/\n\t(\w+): '([^']+)'/g)].map(([, host, d]) => [host, d]),
+);
+const COMPONENT_FOR_HOST = new Map(
+  [...src.matchAll(/host === "(\w+)"\) return <(\w+)/g)].map(([, host, name]) => [host, name]),
+);
+const COMPONENT_SVG = new Map(
+  [...src.matchAll(/function (\w+)\(\{ className \}[\s\S]*?(<svg[\s\S]*?<\/svg>)/g)].map(
+    ([, name, svg]) => [name, svg],
+  ),
+);
+
 function fillPath(host) {
-  const m = src.match(new RegExp(`\\n\\t${host}: '([^']+)'`));
-  return m && `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${FG}"><path d="${m[1]}"/></svg>`;
+  const d = FILL_PATHS.get(host);
+  return d && `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${FG}"><path d="${d}"/></svg>`;
 }
 
-// Hosts drawn by a custom component: find it via the HostMark dispatch line,
-// then turn that component's JSX <svg> into plain SVG.
+// Hosts the site draws with a custom component: follow the HostMark dispatch to
+// the component, then turn its JSX <svg> into plain SVG.
 function componentSvg(host) {
-  const disp = src.match(new RegExp(`host === "${host}"\\) return <(\\w+)`));
-  if (!disp) return null;
-  const body = src.match(new RegExp(`function ${disp[1]}\\b[\\s\\S]*?(<svg[\\s\\S]*?</svg>)`));
-  if (!body) return null;
-  return body[1]
+  const name = COMPONENT_FOR_HOST.get(host);
+  const svg = name && COMPONENT_SVG.get(name);
+  if (!svg) return null;
+  return svg
     .replace(/\s*className=\{className\}/, "")
     .replace(/\s*aria-hidden="true"/, "")
     .replace(/<svg/, '<svg xmlns="http://www.w3.org/2000/svg"')
