@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.72](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.71...v10.0.0-beta.72) (2026-09-21)
+
+
+### Bug Fixes
+
+* **test:** separate a Chrome launch failure from an empty render ([#4324](https://github.com/yonatangross/orchestkit/issues/4324)) ([02cfe98](https://github.com/yonatangross/orchestkit/commit/02cfe98f28b16632d72cbdc453b7c9e8c9adb78b)), closes [#4296](https://github.com/yonatangross/orchestkit/issues/4296)
+
 ## [10.0.0-beta.71](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.70...v10.0.0-beta.71) (2026-09-21)
 
 
