@@ -36,3 +36,15 @@ def test_translucent_overlay_blends_instead_of_replacing():
     px = img.getpixel((5, 5))
     assert isinstance(px, tuple)
     assert 20 < px[0] < 60 and px[3] == 255
+
+
+def test_site_layout_carries_the_stat_words_and_one_number_colour(tmp_path, monkeypatch):
+    import json
+
+    monkeypatch.setattr(card, "SITE_ASSETS", str(tmp_path))
+    card.write_site_assets(Image.new("RGB", (2048, 1152), brand.BG))
+    layout = json.loads((tmp_path / "card-layout.json").read_text())
+    assert layout["words"] == ["skills", "agents", "hooks"]
+    assert set(layout["colors"]) == {"number", "word", "divider"}
+    row = layout["statRow"]
+    assert row["y"] + row["height"] < brand.SAFE_BOTTOM

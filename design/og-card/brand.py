@@ -20,7 +20,6 @@ MUTED = (175, 180, 193)
 DIM = (140, 146, 163)
 INDIGO = (69, 124, 253)
 VIOLET = (153, 130, 248)
-AMBER = (221, 176, 73)
 
 # Every host the docs ship an install path for, in card order. Marks come from
 # docs/site/components/host-marks.tsx or marks/ (see marks/SOURCES.md).
@@ -34,6 +33,19 @@ HOSTS = [
     ("opencode", "OpenCode"),
     ("pi", "Pi"),
 ]
+
+
+def tagline() -> str:
+    """"For Claude Code and N more agents", with N counted from HOSTS, the same
+    list the logo row renders, so adding or removing a host updates both."""
+    lead, _ = HOSTS[0]
+    if lead != "claude":
+        sys.exit(f"HOSTS must start with claude for the tagline, got {lead!r}")
+    return f"For Claude Code and {len(HOSTS) - 1} more agents"
+
+
+# Words beside the counts, matching the home page stats row (app/(home)/page.tsx).
+STAT_WORDS = {"skills": "skills", "agents": "agents", "hooks": "hooks"}
 
 
 def skill_count() -> int:

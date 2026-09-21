@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Build the OrchestKit link card (1200x630): conductor art, frosted panel with
-wordmark, one line, the skills / subagents / hooks counts and the eight host
-marks. Counts are read from the repo at build time (brand.totals).
+wordmark, the tagline (brand.tagline, derived from the host list), the skills /
+agents / hooks counts (brand.totals, read from the repo) and a "Works with" row
+of the eight host marks.
 
 Renders at 2x and downsamples. Marks are sized by ink weight so blocky marks
 (OpenCode, Pi) and thin ones (Claude, Codex) read as one row. Nothing is drawn
@@ -24,7 +25,6 @@ W, H = b.W * S, b.H * S
 LEFT = 80 * S
 SAFE = b.SAFE_BOTTOM * S
 HAIR = (255, 255, 255, 34)
-LINE = "The toolkit for any coding agent"
 
 
 def fnt(name: str, px: int):
@@ -84,12 +84,12 @@ def draw_stats(img: Image.Image, d: ImageDraw.ImageDraw, box: dict[str, int], co
     docs/site/app/opengraph-image.tsx draws the same row live from TOTALS."""
     x, y, inner_w, stat_h = box["x"], box["y"], box["width"], box["height"]
     fnum, fword = fnt("Geist-Bold.ttf", 44), fnt("Geist-Medium.ttf", 24)
-    stats = [(counts["skills"], "skills"), (counts["agents"], "subagents"), (counts["hooks"], "hooks")]
+    stats = [(counts[k], b.STAT_WORDS[k]) for k in ("skills", "agents", "hooks")]
     widths = [d.textlength(str(n), font=fnum) + 8 * S + d.textlength(w, font=fword) for n, w in stats]
     gap = (inner_w - sum(widths)) / 2
     base_y, sx = y + 40 * S, x
     for i, ((n, word), w) in enumerate(zip(stats, widths)):
-        d.text((sx, base_y), str(n), font=fnum, fill=b.AMBER if i == 0 else b.FG, anchor="ls")
+        d.text((sx, base_y), str(n), font=fnum, fill=b.FG, anchor="ls")
         d.text((sx + d.textlength(str(n), font=fnum) + 8 * S, base_y), word, font=fword, fill=b.MUTED, anchor="ls")
         if i < len(stats) - 1:
             lx = sx + w + gap / 2
@@ -100,11 +100,10 @@ def draw_stats(img: Image.Image, d: ImageDraw.ImageDraw, box: dict[str, int], co
 def panel(img: Image.Image, counts: dict[str, int] | None) -> dict[str, int]:
     """Draw the panel. counts=None leaves the stat row empty for the site to fill.
     Returns the stat row box in 2x pixels."""
-    pad, box = 40 * S, 32 * S
-    cell = 74 * S
-    inner_w = len(b.HOSTS) * cell - 12 * S
+    pad, box = 40 * S, 34 * S
+    inner_w = 580 * S
     stat_h = 50 * S
-    panel_h = pad + (4 + 24 + 88 + 18 + 28 + 30) * S + stat_h + (28 + 1 + 24) * S + box + (10 + 14) * S + pad
+    panel_h = pad + (4 + 24 + 88 + 18 + 28 + 30) * S + stat_h + (28 + 1 + 24) * S + box + pad
     x0, y0 = LEFT - pad, (SAFE - panel_h) // 2
     region = (x0, y0, x0 + inner_w + 2 * pad, y0 + panel_h)
 
@@ -125,7 +124,7 @@ def panel(img: Image.Image, counts: dict[str, int] | None) -> dict[str, int]:
     y += (4 + 24) * S
     d.text((x - 4 * S, y), "OrchestKit", font=fnt("Geist-Bold.ttf", 88), fill=b.FG, anchor="lt")
     y += (88 + 18) * S
-    d.text((x, y), LINE, font=fnt("Geist-Medium.ttf", 28), fill=b.MUTED, anchor="lt")
+    d.text((x, y), b.tagline(), font=fnt("Geist-Medium.ttf", 28), fill=b.MUTED, anchor="lt")
     y += (28 + 30) * S
 
     stat_box = {"x": x, "y": y, "width": inner_w, "height": stat_h}
@@ -134,12 +133,15 @@ def panel(img: Image.Image, counts: dict[str, int] | None) -> dict[str, int]:
     y += stat_h + 28 * S
 
     overlay(img, lambda o: o.line([(x, y), (x + inner_w, y)], fill=HAIR, width=S))
+    # "Works with" frames the row as compatibility, not partnership. No name
+    # labels: at 500 px feed width they shrink to about 6 px.
     y += (1 + 24) * S + box // 2
-    flabel = fnt("Geist-Medium.ttf", 14)
-    for i, (host, label) in enumerate(b.HOSTS):
-        cx = x + cell / 2 - 6 * S + i * cell
-        put(img, mark(host, box), cx, y)
-        d.text((cx, y + box // 2 + 10 * S), label, font=flabel, fill=b.DIM, anchor="mt")
+    fcap = fnt("Geist-Medium.ttf", 18)
+    d.text((x, y), "Works with", font=fcap, fill=b.DIM, anchor="lm")
+    start = x + d.textlength("Works with", font=fcap) + 26 * S + box / 2
+    step = (x + inner_w - box / 2 - start) / (len(b.HOSTS) - 1)
+    for i, (host, _) in enumerate(b.HOSTS):
+        put(img, mark(host, box), start + i * step, y)
     return stat_box
 
 
@@ -173,8 +175,8 @@ def write_site_assets(art: Image.Image) -> None:
         "wordSize": 24,
         "wordGap": 8,
         "baseline": 40,
+        "words": [b.STAT_WORDS[k] for k in ("skills", "agents", "hooks")],
         "colors": {
-            "first": hexcolor(b.AMBER),
             "number": hexcolor(b.FG),
             "word": hexcolor(b.MUTED),
             "divider": "rgba(255, 255, 255, 0.13)",

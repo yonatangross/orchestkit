@@ -3,13 +3,14 @@ import { join } from "node:path";
 import { ImageResponse } from "next/og";
 import { SITE, COUNTS } from "@/lib/constants";
 
-// The art, frosted panel, wordmark and host marks are baked into card-bg.png
-// by design/og-card/card.py --site. Only the counts row is drawn here, so the
-// numbers always match TOTALS at build time. card-layout.json says where.
+// The art, frosted panel, wordmark, tagline and "Works with" host row are baked
+// into card-bg.png by design/og-card/card.py --site. Only the counts row is
+// drawn here, so the numbers always match TOTALS at build time. card-layout.json
+// says where, and carries the words so the card and the generator share them.
 import layout from "@/assets/og/card-layout.json";
 
 export const size = { width: 1200, height: 630 };
-export const alt = `${SITE.name}: ${COUNTS.skills} skills, ${COUNTS.agents} subagents and ${COUNTS.hooks} hooks for any coding agent`;
+export const alt = `${SITE.name}: ${COUNTS.skills} skills, ${COUNTS.agents} agents and ${COUNTS.hooks} hooks, for Claude Code and more coding agents`;
 export const contentType = "image/png";
 
 const asset = (name: string) => readFile(join(process.cwd(), "assets", "og", name));
@@ -20,12 +21,8 @@ export default async function OGImage() {
 		asset("Geist-Bold.ttf"),
 		asset("Geist-Medium.ttf"),
 	]);
-	const { statRow, numberSize, wordSize, wordGap, baseline, colors } = layout;
-	const stats = [
-		[COUNTS.skills, "skills"],
-		[COUNTS.agents, "subagents"],
-		[COUNTS.hooks, "hooks"],
-	] as const;
+	const { statRow, numberSize, wordSize, wordGap, baseline, words, colors } = layout;
+	const stats = [COUNTS.skills, COUNTS.agents, COUNTS.hooks].map((n, i) => [n, words[i]] as const);
 
 	return new ImageResponse(
 		(
@@ -66,7 +63,7 @@ export default async function OGImage() {
 										fontWeight: 700,
 										fontSize: numberSize,
 										lineHeight: 1,
-										color: i === 0 ? colors.first : colors.number,
+										color: colors.number,
 									}}
 								>
 									{n}

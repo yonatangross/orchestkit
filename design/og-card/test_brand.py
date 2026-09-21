@@ -54,3 +54,25 @@ def test_every_host_has_a_mark_source():
     for host, _ in brand.HOSTS:
         vendored = os.path.exists(os.path.join(brand.HERE, "marks", f"{host}.svg"))
         assert vendored or f"\t{host}: '" in marks, host
+
+
+def test_tagline_counts_hosts_after_claude_code(monkeypatch):
+    assert brand.tagline() == f"For Claude Code and {len(brand.HOSTS) - 1} more agents"
+    monkeypatch.setattr(brand, "HOSTS", brand.HOSTS + [("zed", "Zed")])
+    assert brand.tagline() == f"For Claude Code and {len(brand.HOSTS) - 1} more agents"
+
+
+def test_tagline_refuses_a_list_that_does_not_lead_with_claude(monkeypatch):
+    monkeypatch.setattr(brand, "HOSTS", list(reversed(brand.HOSTS)))
+    with pytest.raises(SystemExit):
+        brand.tagline()
+
+
+def test_stat_words_match_the_home_page_stats_row():
+    home = open(os.path.join(brand.ROOT, "docs", "site", "app", "(home)", "page.tsx")).read()
+    for key, word in brand.STAT_WORDS.items():
+        assert f"{{COUNTS.{key}}} {word}" in home, word
+
+
+def test_warning_amber_is_not_a_card_token():
+    assert not hasattr(brand, "AMBER")
