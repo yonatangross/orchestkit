@@ -1,0 +1,12 @@
+{
+  "slug": "the-rebase-that-replays-a-squash",
+  "source": "docs/fix--stacked-pr-rebase-rule/index.html",
+  "title": "The rebase that replays a squash",
+  "description": "Step through a two layer stack as the parent squash merges, and watch the old advice conflict on every commit the squash already contains.",
+  "tags": [
+    "stacked-prs",
+    "git",
+    "skills"
+  ],
+  "date": "2026-09-22"
+}
