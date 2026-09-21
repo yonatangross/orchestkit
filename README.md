@@ -614,6 +614,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.72](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.71...v10.0.0-beta.72)** · 2026-09-21
+
+- **test:** separate a Chrome launch failure from an empty render (#4324), closes [#4296](https://github.com/yonatangross/orchestkit/issues/4296)
+
 **[v10.0.0-beta.71](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.70...v10.0.0-beta.71)** · 2026-09-21
 
 - **hooks:** allow tip-equal dist restores without MERGE_HEAD (#4308)
@@ -648,11 +652,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **jev:** add conservative weak outcome sidecars (#4281)
 - **docs-site:** stop the picker repeating the hero install command (#4293)
-
-**[v10.0.0-beta.64](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.63...v10.0.0-beta.64)** · 2026-09-20
-
-- **site:** search autocomplete suggestions in docs search (#4258)
-- **hooks:** never emit hookSpecificOutput without hookEventName (#4285)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
