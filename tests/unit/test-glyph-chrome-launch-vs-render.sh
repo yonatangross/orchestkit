@@ -45,7 +45,12 @@ echo "[9001:0920/101112.131600:ERROR:chrome/browser/process_singleton_posix.cc:1
 exit 1
 STUB
 
-chmod +x "$WORK/clean-null" "$WORK/no-launch"
+# Exits non-zero with an EMPTY stderr. This is the silent-renderer case the
+# launch_failure_reason guard exists for: no signature is present, so the run
+# must take the hard no-DOM failure, never the launch-failure skip.
+printf '#!/bin/sh\nexit 1\n' > "$WORK/silent-fail"
+
+chmod +x "$WORK/clean-null" "$WORK/no-launch" "$WORK/silent-fail"
 
 # Run the gate with a pinned browser, recording status and transcript.
 # Stderr is folded in because the verdict lines go there. Trailing args are
@@ -130,5 +135,21 @@ grep -q 'LAUNCH_FAILURE_SIGNATURES' "$GATE" \
 grep -q 'launch_failure_reason' "$GATE" \
   || fail "the gate no longer classifies launch failures from stderr"
 ok "classification is by stderr signature, not by absent output"
+
+# 6. The behavioural half of proof 5, run outside CI where a launch failure
+#    would be skippable: a non-zero exit with an EMPTY stderr must fall
+#    through to the hard no-DOM failure. If a future edit let
+#    launch_failure_reason succeed on an empty file, this stub would exit 0
+#    with a SKIP line and the identifier greps above would still pass.
+run_gate silent-fail silent-fail "$GATE" -u CI
+[[ "$(status silent-fail)" != 0 ]] \
+  || fail "a silent non-zero exit did not fail"
+said silent-fail 'produced no DOM, so no mutation case can be judged' \
+  || fail "a silent non-zero exit did not take the no-DOM failure"
+unsaid silent-fail 'ENVIRONMENT UNAVAILABLE' \
+  || fail "a silent non-zero exit was classified as a launch failure"
+unsaid silent-fail 'SKIP:' \
+  || fail "a silent non-zero exit was skipped instead of failed"
+ok "silent non-zero exit: hard no-DOM fail, never a launch-failure skip"
 
 echo "✓ $PASS launch-vs-render proofs hold"

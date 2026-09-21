@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>#4326: the silent-renderer guard, proven by behaviour</title><style>
+body{margin:0;background:radial-gradient(54rem 36rem at 88% -6%,hsl(248 70% 26% / .38),transparent 62%),hsl(232 26% 7%);background-attachment:fixed;color:hsl(220 18% 93%);font:15px/1.65 -apple-system,system-ui,sans-serif}
+.wrap{max-width:900px;margin-inline:auto;padding:48px 24px 80px}
+.eyebrow{display:inline-block;font-size:11.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:hsl(220 12% 46%);border:1px solid hsl(0 0% 100% / .18);border-radius:999px;background:hsl(0 0% 100% / .05);padding:6px 12px}
+h1{font-size:clamp(24px,3.6vw,34px);font-weight:700;margin:14px 0 10px}h1 span{color:hsl(248 84% 68%)}
+.lede{color:hsl(220 14% 64%);max-width:66ch;margin:0 0 28px}.lede b{color:hsl(220 18% 93%)}
+h2{font-size:17px;margin:28px 0 8px}
+.card{border:1px solid hsl(0 0% 100% / .18);border-radius:14px;background:hsl(0 0% 100% / .05);padding:16px 18px;margin-top:12px}
+.card h3{margin:0 0 6px;font-size:14.5px}.card p{margin:0 0 8px;font-size:13.5px;color:hsl(220 14% 64%)}
+.card p:last-child{margin-bottom:0}
+code{font-family:ui-monospace,Menlo,monospace;font-size:12px;background:hsl(0 0% 100% / .07);padding:1px 5px;border-radius:5px}
+pre{background:hsl(232 30% 4% / .6);border:1px solid hsl(0 0% 100% / .18);border-radius:12px;padding:12px;overflow-x:auto;font-size:12px;color:hsl(220 14% 64%);font-family:ui-monospace,Menlo,monospace;line-height:1.55}
+.ok{color:hsl(162 62% 52%)}.bad{color:hsl(354 78% 62%)}.warn{color:hsl(38 92% 62%)}.faint{color:hsl(220 12% 46%)}
+.foot{margin-top:32px;font-size:12px;color:hsl(220 12% 46%);line-height:1.9}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.btn{cursor:pointer;font-size:12.5px;font-weight:600;padding:8px 14px;border-radius:999px;border:1px solid hsl(0 0% 100% / .18);background:hsl(0 0% 100% / .05);color:hsl(220 14% 64%)}
+.btn.active{color:hsl(220 18% 93%);border-color:hsl(248 84% 68%);background:hsl(248 84% 68% / .14)}
+.verdict{margin-top:14px;border:1px solid hsl(0 0% 100% / .18);border-radius:12px;padding:12px 14px;font-size:13.5px}
+.verdict b{display:block;font-size:14px;margin-bottom:4px}
+</style><!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="A Silent Crash Is Not a Missing Browser"><meta property="og:description" content="The glyph triage gate tells a browser that never launched from one that rendered nothing by stderr signature, never by absent output. Proof 5 only grepped for the guard's identifiers; proof 6 runs a non-zero-exit, empty-stderr stub under -u CI and asserts the hard no-DOM failure. Also on board: every stale '# v6' comment on the setup-node v7.0.0 pin, rewritten to '# v7.0.0'."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/silent-renderer-guard.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="A Silent Crash Is Not a Missing Browser"><meta name="twitter:description" content="The glyph triage gate tells a browser that never launched from one that rendered nothing by stderr signature, never by absent output. Proof 5 only grepped for the guard's identifiers; proof 6 runs a non-zero-exit, empty-stderr stub under -u CI and asserts the hard no-DOM failure. Also on board: every stale '# v6' comment on the setup-node v7.0.0 pin, rewritten to '# v7.0.0'."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head><body><div class="wrap">
+<div class="eyebrow">#4326 &middot; playground &middot; 2026-09-21</div>
+<h1>A silent crash is not <span>a missing browser.</span></h1>
+<p class="lede">The glyph triage gate separates a browser that <b>never launched</b> (environment
+verdict, skippable outside CI) from one that <b>started and rendered nothing</b> (hard failure).
+Both leave an empty <code>dom.html</code>, so the classifier keys on a stderr signature, never on
+absent output. The guard line is <code>[[ -s "$err" ]] || return 1</code> inside
+<code>launch_failure_reason</code>: an empty stderr cannot be a launch failure. Proof 5 only grepped
+for the identifiers, so an edit that made the function succeed on an empty file would have stayed
+green. Proof 6 runs the stub for real.</p>
+
+<h2>Try it: the classifier, live</h2>
+<div class="card">
+<h3>Pick a stub behaviour, get the gate's verdict</h3>
+<p>Each button is a fake <code>ORK_GLYPH_CHROME</code>. The verdict below is exactly what the gate
+prints: <code>SKIP:</code> + exit 0 outside CI only when stderr carries a launch-failure signature.</p>
+<div class="row">
+  <button class="btn" data-case="clean">exit 0, silent</button>
+  <button class="btn active" data-case="silent">exit 1, silent (the new stub)</button>
+  <button class="btn" data-case="launch">exit 1, launch-failure stderr</button>
+  <button class="btn" data-case="hang">starts, renders nothing</button>
+</div>
+<div class="verdict" id="verdict"></div>
+</div>
+
+<h2>What the new proof asserts</h2>
+<pre>printf '#!/bin/sh\nexit 1\n' &gt; "$WORK/silent-fail"   <span class="faint"># non-zero, EMPTY stderr</span>
+
+run_gate silent-fail silent-fail "$GATE" -u CI          <span class="faint"># outside CI, where a skip would live</span>
+status != 0                        <span class="ok">hard fail</span>
+'produced no DOM' present          <span class="ok">case (a), the right failure</span>
+no 'ENVIRONMENT UNAVAILABLE'       <span class="ok">never classified as a launch failure</span>
+no 'SKIP:'                         <span class="ok">never skippable, even outside CI</span></pre>
+
+<div class="card">
+<h3>The mutation check that proves the teeth</h3>
+<p>Change the guard to <code>[[ -s "$err" ]] || { echo "silent"; return 0; }</code> and proof 6 goes red
+(<span class="bad">a silent non-zero exit did not fail</span>) while proofs 1 to 5, including the identifier
+greps, stay green. That gap is the whole issue.</p>
+</div>
+
+<h2>Riding along: the v6 comment</h2>
+<p class="lede" style="margin-bottom:0"><code>actions/setup-node@8207627...</code> is the v7.0.0 pin, but
+29 trailing comments across 21 workflow files still said <code># v6</code>. Dependabot bumps the SHA and
+keeps the comment, so the label drifted at the v4 to v7 bump in #3010 and again at the 6.2.0 to 7.0.0
+bump in #4323. This PR rewrites them all to <code># v7.0.0</code>, the convention the newer files
+already use. The only real v6 pin left (<code>6044e13b...</code> in <code>.github/actions/setup</code>)
+keeps its comment, because it is correct.</p>
+
+<div class="foot">
+Files: <code>tests/unit/test-glyph-chrome-launch-vs-render.sh</code>, 21 files under <code>.github/workflows/</code><br>
+Verified: 6/6 proofs green; mutation arm red; pre-push gate 89 tests OK.
+</div>
+</div>
+<script>
+const CASES = {
+  clean:  { title: 'hard FAIL: produced no DOM', cls: 'bad', body: 'Exit 0 with no output is case (a). It is the #4296 repro: a quiet browser once certified the XSS defence. No SKIP, no ENVIRONMENT UNAVAILABLE, in CI or out.' },
+  silent: { title: 'hard FAIL: produced no DOM', cls: 'bad', body: 'Exit 1 with an EMPTY stderr. launch_failure_reason returns 1 on the empty file before it ever looks for signatures, so the run falls through to the no-DOM failure. The guard this PR now proves by behaviour.' },
+  launch: { title: 'SKIP: Chrome failed to launch', cls: 'warn', body: 'Exit 1 with a known signature on stderr (sandbox_extension_issue_file_to_process, ProcessSingleton, and friends). Outside CI: SKIP + exit 0. Under CI=true: hard fail, because the CI image has a working Chrome.' },
+  hang:   { title: 'hard FAIL: produced no DOM', cls: 'bad', body: 'Started but never wrote </html>. No clean exit, no signature, so it is case (a): the suite measured nothing and says so.' },
+};
+const v = document.getElementById('verdict');
+function show(k) {
+  const c = CASES[k];
+  v.innerHTML = '<b class="' + c.cls + '">' + c.title + '</b>' + c.body;
+  document.querySelectorAll('.btn').forEach(b => b.classList.toggle('active', b.dataset.case === k));
+}
+document.querySelectorAll('.btn').forEach(b => b.addEventListener('click', () => show(b.dataset.case)));
+show('silent');
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body></html>

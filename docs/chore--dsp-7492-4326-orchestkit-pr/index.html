@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>#4326: the silent-renderer guard, proven by behaviour</title><style>
+body{margin:0;background:radial-gradient(54rem 36rem at 88% -6%,hsl(248 70% 26% / .38),transparent 62%),hsl(232 26% 7%);background-attachment:fixed;color:hsl(220 18% 93%);font:15px/1.65 -apple-system,system-ui,sans-serif}
+.wrap{max-width:900px;margin-inline:auto;padding:48px 24px 80px}
+.eyebrow{display:inline-block;font-size:11.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:hsl(220 12% 46%);border:1px solid hsl(0 0% 100% / .18);border-radius:999px;background:hsl(0 0% 100% / .05);padding:6px 12px}
+h1{font-size:clamp(24px,3.6vw,34px);font-weight:700;margin:14px 0 10px}h1 span{color:hsl(248 84% 68%)}
+.lede{color:hsl(220 14% 64%);max-width:66ch;margin:0 0 28px}.lede b{color:hsl(220 18% 93%)}
+h2{font-size:17px;margin:28px 0 8px}
+.card{border:1px solid hsl(0 0% 100% / .18);border-radius:14px;background:hsl(0 0% 100% / .05);padding:16px 18px;margin-top:12px}
+.card h3{margin:0 0 6px;font-size:14.5px}.card p{margin:0 0 8px;font-size:13.5px;color:hsl(220 14% 64%)}
+.card p:last-child{margin-bottom:0}
+code{font-family:ui-monospace,Menlo,monospace;font-size:12px;background:hsl(0 0% 100% / .07);padding:1px 5px;border-radius:5px}
+pre{background:hsl(232 30% 4% / .6);border:1px solid hsl(0 0% 100% / .18);border-radius:12px;padding:12px;overflow-x:auto;font-size:12px;color:hsl(220 14% 64%);font-family:ui-monospace,Menlo,monospace;line-height:1.55}
+.ok{color:hsl(162 62% 52%)}.bad{color:hsl(354 78% 62%)}.warn{color:hsl(38 92% 62%)}.faint{color:hsl(220 12% 46%)}
+.foot{margin-top:32px;font-size:12px;color:hsl(220 12% 46%);line-height:1.9}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.btn{cursor:pointer;font-size:12.5px;font-weight:600;padding:8px 14px;border-radius:999px;border:1px solid hsl(0 0% 100% / .18);background:hsl(0 0% 100% / .05);color:hsl(220 14% 64%)}
+.btn.active{color:hsl(220 18% 93%);border-color:hsl(248 84% 68%);background:hsl(248 84% 68% / .14)}
+.verdict{margin-top:14px;border:1px solid hsl(0 0% 100% / .18);border-radius:12px;padding:12px 14px;font-size:13.5px}
+.verdict b{display:block;font-size:14px;margin-bottom:4px}
+</style></head><body><div class="wrap">
+<div class="eyebrow">#4326 &middot; playground &middot; 2026-09-21</div>
+<h1>A silent crash is not <span>a missing browser.</span></h1>
+<p class="lede">The glyph triage gate separates a browser that <b>never launched</b> (environment
+verdict, skippable outside CI) from one that <b>started and rendered nothing</b> (hard failure).
+Both leave an empty <code>dom.html</code>, so the classifier keys on a stderr signature, never on
+absent output. The guard line is <code>[[ -s "$err" ]] || return 1</code> inside
+<code>launch_failure_reason</code>: an empty stderr cannot be a launch failure. Proof 5 only grepped
+for the identifiers, so an edit that made the function succeed on an empty file would have stayed
+green. Proof 6 runs the stub for real.</p>
+
+<h2>Try it: the classifier, live</h2>
+<div class="card">
+<h3>Pick a stub behaviour, get the gate's verdict</h3>
+<p>Each button is a fake <code>ORK_GLYPH_CHROME</code>. The verdict below is exactly what the gate
+prints: <code>SKIP:</code> + exit 0 outside CI only when stderr carries a launch-failure signature.</p>
+<div class="row">
+  <button class="btn" data-case="clean">exit 0, silent</button>
+  <button class="btn active" data-case="silent">exit 1, silent (the new stub)</button>
+  <button class="btn" data-case="launch">exit 1, launch-failure stderr</button>
+  <button class="btn" data-case="hang">starts, renders nothing</button>
+</div>
+<div class="verdict" id="verdict"></div>
+</div>
+
+<h2>What the new proof asserts</h2>
+<pre>printf '#!/bin/sh\nexit 1\n' &gt; "$WORK/silent-fail"   <span class="faint"># non-zero, EMPTY stderr</span>
+
+run_gate silent-fail silent-fail "$GATE" -u CI          <span class="faint"># outside CI, where a skip would live</span>
+status != 0                        <span class="ok">hard fail</span>
+'produced no DOM' present          <span class="ok">case (a), the right failure</span>
+no 'ENVIRONMENT UNAVAILABLE'       <span class="ok">never classified as a launch failure</span>
+no 'SKIP:'                         <span class="ok">never skippable, even outside CI</span></pre>
+
+<div class="card">
+<h3>The mutation check that proves the teeth</h3>
+<p>Change the guard to <code>[[ -s "$err" ]] || { echo "silent"; return 0; }</code> and proof 6 goes red
+(<span class="bad">a silent non-zero exit did not fail</span>) while proofs 1 to 5, including the identifier
+greps, stay green. That gap is the whole issue.</p>
+</div>
+
+<h2>Riding along: the v6 comment</h2>
+<p class="lede" style="margin-bottom:0"><code>actions/setup-node@8207627...</code> is the v7.0.0 pin, but
+29 trailing comments across 21 workflow files still said <code># v6</code>. Dependabot bumps the SHA and
+keeps the comment, so the label drifted at the v4 to v7 bump in #3010 and again at the 6.2.0 to 7.0.0
+bump in #4323. This PR rewrites them all to <code># v7.0.0</code>, the convention the newer files
+already use. The only real v6 pin left (<code>6044e13b...</code> in <code>.github/actions/setup</code>)
+keeps its comment, because it is correct.</p>
+
+<div class="foot">
+Files: <code>tests/unit/test-glyph-chrome-launch-vs-render.sh</code>, 21 files under <code>.github/workflows/</code><br>
+Verified: 6/6 proofs green; mutation arm red; pre-push gate 89 tests OK.
+</div>
+</div>
+<script>
+const CASES = {
+  clean:  { title: 'hard FAIL: produced no DOM', cls: 'bad', body: 'Exit 0 with no output is case (a). It is the #4296 repro: a quiet browser once certified the XSS defence. No SKIP, no ENVIRONMENT UNAVAILABLE, in CI or out.' },
+  silent: { title: 'hard FAIL: produced no DOM', cls: 'bad', body: 'Exit 1 with an EMPTY stderr. launch_failure_reason returns 1 on the empty file before it ever looks for signatures, so the run falls through to the no-DOM failure. The guard this PR now proves by behaviour.' },
+  launch: { title: 'SKIP: Chrome failed to launch', cls: 'warn', body: 'Exit 1 with a known signature on stderr (sandbox_extension_issue_file_to_process, ProcessSingleton, and friends). Outside CI: SKIP + exit 0. Under CI=true: hard fail, because the CI image has a working Chrome.' },
+  hang:   { title: 'hard FAIL: produced no DOM', cls: 'bad', body: 'Started but never wrote </html>. No clean exit, no signature, so it is case (a): the suite measured nothing and says so.' },
+};
+const v = document.getElementById('verdict');
+function show(k) {
+  const c = CASES[k];
+  v.innerHTML = '<b class="' + c.cls + '">' + c.title + '</b>' + c.body;
+  document.querySelectorAll('.btn').forEach(b => b.classList.toggle('active', b.dataset.case === k));
+}
+document.querySelectorAll('.btn').forEach(b => b.addEventListener('click', () => show(b.dataset.case)));
+show('silent');
+</script>
+</body></html>
