@@ -55,8 +55,14 @@ grep -q 'atob(' "$LAB" || fail "lab copy does not decode the base64 snapshot"
 grep -q 'escapeHtml(data.raw' "$LAB" || fail "lab copy does not escape the raw dump"
 grep -q 'fb.hidden = true' "$LAB" || fail "lab copy leaves the clipboard textarea visible"
 
-CHROME=""
-for candidate in \
+# A pinnable browser, so the two no-DOM outcomes below are provable with
+# stubs: one that exits clean and writes nothing (the #4296 vacuous pass),
+# one that reproduces a launch-failure stderr. Nothing in CI sets this.
+CHROME="${ORK_GLYPH_CHROME:-}"
+if [[ -n "$CHROME" && ! -x "$CHROME" ]]; then
+  fail "ORK_GLYPH_CHROME is set to a path that is not executable: $CHROME"
+fi
+for candidate in "$CHROME" \
   "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
   "/Applications/Chromium.app/Contents/MacOS/Chromium" \
   "$(command -v google-chrome 2>/dev/null || true)" \
@@ -72,6 +78,53 @@ done
 
 WORK="$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")"
 trap 'rm -rf "$WORK"' EXIT
+
+# A Chrome that never got off the ground leaves exactly what a Chrome that
+# started and rendered nothing leaves: an empty dom.html. Absence of output
+# can therefore never classify the run, so only these literal stderr lines
+# do. A silent non-zero exit is deliberately NOT one of them: that is the
+# stub from #4296 whose empty output used to certify the XSS defence.
+LAUNCH_FAILURE_SIGNATURES=(
+  'sandbox_extension_issue_file_to_process failed'
+  'Failed to create a ProcessSingleton'
+  'Failed to bind()'
+  'SingletonSocket'
+  'Failed to launch browser process'
+  'error while loading shared libraries'
+  'cannot open display'
+)
+
+# Echo the first stderr line carrying a launch-failure signature, else return 1.
+launch_failure_reason() {
+  local err="$1" sig
+  [[ -s "$err" ]] || return 1
+  for sig in "${LAUNCH_FAILURE_SIGNATURES[@]}"; do
+    if grep -F -m1 -e "$sig" "$err"; then
+      return 0
+    fi
+  done
+  return 1
+}
+
+# Case (b): the browser never started, so the suite measured nothing.
+# In CI that is a hard failure, never a skip: the CI image has a working
+# Chrome, so a launch failure there means this gate quietly stopped running.
+# Outside CI it takes the repo's script-level skip convention for unit tests
+# (tests/unit/test-graph-utils.sh, tests/skills/structure/test-python-symbols.sh):
+# a "SKIP: <reason>" line and exit 0. It never prints a tick.
+environment_unavailable() {
+  local mode="$1" rc="$2" reason="$3" err="$4"
+  echo "" >&2
+  echo "  ENVIRONMENT UNAVAILABLE: Chrome failed to LAUNCH (mode=$mode, exit=$rc)" >&2
+  echo "  launch failure: $reason" >&2
+  echo "  captured chrome stderr (mode=$mode):" >&2
+  tail -20 "$err" >&2 || true
+  if [[ -n "${CI:-}" ]]; then
+    fail "CI has a working Chrome, so a launch failure is a regression, not a skip"
+  fi
+  echo "SKIP: Chrome failed to launch, so no triage mutation case was judged"
+  exit 0
+}
 
 assert_pass() {
   python3 - "$1" << 'PY'
@@ -253,17 +306,34 @@ PY
     --dump-dom "file://$out/planted.html" >"$out/dom.html" 2>"$out/chrome.err" &
   local chrome_pid=$!
   local loaded=0
+  local exited=0
+  local chrome_rc=0
   local _
   # The first launch pays a cold start: 9.2s measured on a GitHub runner
   # against a 12s ceiling, which made this gate a coin flip (node 20 red,
   # node 22 green, same commit). Budget well above the cold start.
+  #
+  # The loop also watches for the process leaving on its own, because that
+  # is the only way to learn its exit status: a Chrome that dumps the DOM
+  # and then refuses to exit has to be killed below, which destroys it.
   for _ in $(seq 60); do
     if grep -q '</html>' "$out/dom.html" 2>/dev/null; then
       loaded=1
       break
     fi
+    if ! kill -0 "$chrome_pid" 2>/dev/null; then
+      exited=1
+      break
+    fi
     sleep 1
   done
+  if [[ "$exited" == 1 ]]; then
+    wait "$chrome_pid" 2>/dev/null || chrome_rc=$?
+    # It may have flushed the DOM in the same instant it exited.
+    if grep -q '</html>' "$out/dom.html" 2>/dev/null; then
+      loaded=1
+    fi
+  fi
   pkill -f "$out/profile" >/dev/null 2>&1 || true
   kill "$chrome_pid" >/dev/null 2>&1 || true
   wait "$chrome_pid" 2>/dev/null || true
@@ -271,7 +341,19 @@ PY
   # A browser that rendered nothing cannot arbitrate ANY case. Counting it
   # as a pass let every negative mutation self-certify: with a stub browser
   # that writes no DOM, the tree with escapeHtml REMOVED still exited 0.
+  #
+  # Two different things produce an empty dom.html, and they get different
+  # verdicts. Case (b), a browser that never started, is separated out first
+  # and only on positive evidence: its own non-zero exit plus a known
+  # launch-failure stderr line. Everything else, including a clean exit with
+  # no output and a browser that started and hung, is case (a) and fails.
   if [[ "$loaded" != 1 ]]; then
+    if [[ "$exited" == 1 && "$chrome_rc" != 0 ]]; then
+      local reason
+      if reason="$(launch_failure_reason "$out/chrome.err")"; then
+        environment_unavailable "$mode" "$chrome_rc" "$reason" "$out/chrome.err"
+      fi
+    fi
     echo "  --- chrome stderr (mode=$mode) ---" >&2
     tail -20 "$out/chrome.err" >&2 || true
     fail "mode=$mode produced no DOM, so no mutation case can be judged"
