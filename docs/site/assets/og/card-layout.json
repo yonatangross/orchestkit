@@ -1,0 +1,18 @@
+{
+  "statRow": {
+    "x": 80.0,
+    "y": 284.0,
+    "width": 580.0,
+    "height": 50.0
+  },
+  "numberSize": 44,
+  "wordSize": 24,
+  "wordGap": 8,
+  "baseline": 40,
+  "colors": {
+    "first": "#ddb049",
+    "number": "#e5e8f0",
+    "word": "#afb4c1",
+    "divider": "rgba(255, 255, 255, 0.13)"
+  }
+}
