@@ -21,7 +21,7 @@
  * `ORK_DISABLE_DELETE_BRANCH_GUARD=1`.
  */
 
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import type { HookInput, HookResult, HookContext } from '../../types.js';
 import { outputSilentSuccess, getField } from '../../lib/common.js';
 import { NOOP_CTX } from '../../lib/context.js';
@@ -44,6 +44,36 @@ interface PRSummary {
 }
 
 /**
+ * Run a command with an ARGUMENT ARRAY and no shell. Returns trimmed stdout,
+ * or null on any failure, since this hook is advisory and must never throw.
+ *
+ * Every subprocess in this file goes through here. `git check-ref-format`
+ * rejects spaces, not shell metacharacters, so `evil;touch /tmp/x` is a legal
+ * branch name that a fork PR can carry, and both the PR ref (read off the
+ * command line) and the head branch name (read from `gh pr view`) used to be
+ * interpolated into a shell string. Never reintroduce a template literal here:
+ * the same shape was a confirmed RCE in worktree-merge-verifier (#3365).
+ */
+function run(
+  projectDir: string,
+  file: string,
+  args: string[],
+  timeout = 5000,
+): string | null {
+  try {
+    const out = execFileSync(file, args, {
+      cwd: projectDir,
+      encoding: 'utf8',
+      timeout,
+      stdio: ['ignore', 'pipe', 'ignore'],
+    });
+    return String(out ?? '').trim() || null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Resolve the PR being merged → its headRefName (= the branch about to be
  * deleted). If no PR ref on the command line, gh uses the current branch.
  */
@@ -53,40 +83,26 @@ function resolveHeadBranch(projectDir: string, command: string): string | null {
 
   // No-arg merge → current branch is the head
   if (!ref || ref.startsWith('--')) {
-    try {
-      return execSync('git branch --show-current', {
-        cwd: projectDir,
-        encoding: 'utf8',
-        timeout: 1000,
-        stdio: ['pipe', 'pipe', 'ignore'],
-      }).trim() || null;
-    } catch {
-      return null;
-    }
+    return run(projectDir, 'git', ['branch', '--show-current'], 1000);
   }
 
   // PR number or URL → ask gh for the headRefName
-  try {
-    const out = execSync(
-      `gh pr view ${ref} --json headRefName -q .headRefName`,
-      { cwd: projectDir, encoding: 'utf8', timeout: 5000, stdio: ['pipe', 'pipe', 'ignore'] },
-    ).trim();
-    return out || null;
-  } catch {
-    return null;
-  }
+  return run(projectDir, 'gh', ['pr', 'view', ref, '--json', 'headRefName', '-q', '.headRefName']);
 }
 
 /**
  * Find open PRs whose base is the branch about to be deleted.
  */
 function findDependentPRs(projectDir: string, headBranch: string): PRSummary[] {
+  const out = run(projectDir, 'gh', [
+    'pr', 'list',
+    '--base', headBranch,
+    '--state', 'open',
+    '--json', 'number,title',
+    '--limit', '20',
+  ]);
+  if (!out) return [];
   try {
-    const out = execSync(
-      `gh pr list --base ${headBranch} --state open --json number,title --limit 20`,
-      { cwd: projectDir, encoding: 'utf8', timeout: 5000, stdio: ['pipe', 'pipe', 'ignore'] },
-    ).trim();
-    if (!out) return [];
     const parsed = JSON.parse(out);
     return Array.isArray(parsed) ? parsed : [];
   } catch {

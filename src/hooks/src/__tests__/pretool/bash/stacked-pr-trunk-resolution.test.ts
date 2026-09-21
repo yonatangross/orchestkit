@@ -24,7 +24,8 @@
 
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, rmSync, writeFileSync, chmodSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync, chmodSync, existsSync } from 'node:fs';
+import { randomUUID } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { resolveBase } from '../../../pretool/bash/worktree-merge-verifier.js';
@@ -74,6 +75,8 @@ beforeAll(() => {
 
   // Stub gh: `gh pr view ...` names the branch about to be deleted,
   // `gh pr list ...` reports one open PR stacked on it.
+  // The head branch it reports is settable, so the injection suite below can
+  // hand the guard a hostile branch name over the same path.
   binDir = mkdtempSync(join(tmpdir(), 'ork-trunk-bin-'));
   const gh = join(binDir, 'gh');
   writeFileSync(
@@ -81,7 +84,7 @@ beforeAll(() => {
     [
       '#!/bin/sh',
       'case "$2" in',
-      '  view) echo "feat/layer-1" ;;',
+      '  view) printf \'%s\\n\' "${ORK_TEST_HEAD_BRANCH:-feat/layer-1}" ;;',
       '  list) echo \'[{"number":42,"title":"feat: layer 2"}]\' ;;',
       '  *) exit 1 ;;',
       'esac',
@@ -164,5 +167,59 @@ describe('delete-branch-stacked-pr-guard advises the real trunk', () => {
     const text = advice(noSymref);
     expect(text).toContain('git remote set-head origin -a');
     expect(text).not.toContain('--base main');
+  });
+});
+
+/**
+ * A branch name is attacker controlled. `git check-ref-format` rejects spaces,
+ * not shell metacharacters, so `evil;touch /tmp/x` is a legal branch name and a
+ * fork PR can carry one. This guard reads that name from `gh pr view` and then
+ * passes it to a second command; if that command goes through a shell, the
+ * name executes on the operator's machine the moment the guard fires.
+ *
+ * Same class as the RCE reproduced in worktree-merge-verifier on 2026-08-13,
+ * which is why that file's header forbids template literals around git calls.
+ * Driven end to end through the stub `gh`, asserting BOTH that the guard still
+ * reports correctly AND that the side effect never happened.
+ */
+describe('delete-branch-stacked-pr-guard does not put branch names in a shell', () => {
+  let marker: string;
+  let evilBranch: string;
+  let priorHeadBranch: string | undefined;
+
+  beforeAll(() => {
+    marker = join(tmpdir(), `ork-pwned-${randomUUID()}`);
+    // Trailing `#` comments out the rest of the interpolated command line, so
+    // under a shell the injected `touch` runs with exactly one argument.
+    evilBranch = `evil;touch ${marker} #`;
+    priorHeadBranch = process.env.ORK_TEST_HEAD_BRANCH;
+    process.env.ORK_TEST_HEAD_BRANCH = evilBranch;
+  });
+
+  afterAll(() => {
+    if (priorHeadBranch === undefined) delete process.env.ORK_TEST_HEAD_BRANCH;
+    else process.env.ORK_TEST_HEAD_BRANCH = priorHeadBranch;
+    rmSync(marker, { force: true });
+  });
+
+  function run(): string {
+    const input = {
+      tool_name: 'Bash',
+      session_id: 's',
+      tool_input: { command: 'gh pr merge 41 --squash --delete-branch' },
+    } as never;
+    const r = deleteBranchStackedPRGuard(input, { ...NOOP_CTX, projectDir: devTrunk });
+    return r.hookSpecificOutput?.additionalContext ?? '';
+  }
+
+  it('never executes a command embedded in the head branch name', () => {
+    run();
+    expect(existsSync(marker)).toBe(false);
+  });
+
+  it('still reports the dependent PR, treating the name as opaque text', () => {
+    const text = run();
+    expect(text).toContain('#42');
+    expect(text).toContain(evilBranch);
   });
 });
