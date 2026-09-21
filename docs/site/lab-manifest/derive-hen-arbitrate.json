@@ -1,0 +1,12 @@
+{
+  "slug": "derive-hen-arbitrate",
+  "source": "docs/fix--4291-arbitrate-hook-event-name/index.html",
+  "title": "A check that passed while one set drifted",
+  "description": "derive-cc-output-keys check mode only arbitrated EVENTS_WITH_ADDITIONAL_CONTEXT; EVENTS_WITH_HOOK_EVENT_NAME drifted unchecked while the gate exited 0. Plant clean vs missing vs reverse drift and see both arms of the #4291 arbitration.",
+  "tags": [
+    "hooks",
+    "cc-contract",
+    "derive"
+  ],
+  "date": "2026-09-21"
+}
