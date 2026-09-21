@@ -12,11 +12,35 @@
 export const JEV_ENDPOINT = "https://api.typesafe.ai/v1/systemone";
 export const JEV_TIMEOUT_MS = 3000;
 
-/** ORK_SITE_JEV_RERANK truthy values: "1" | "true" | "yes" | "on". */
-export function jevRerankEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
-	return ["1", "true", "yes", "on"].includes(
-		String(env.ORK_SITE_JEV_RERANK ?? "").toLowerCase(),
+/** Flag truthy values shared by both gates: "1" | "true" | "yes" | "on". */
+export const FLAG_TRUTHY = ["1", "true", "yes", "on"] as const;
+
+export function isFlagOn(raw: string | undefined): boolean {
+	return (FLAG_TRUTHY as readonly string[]).includes(
+		String(raw ?? "").toLowerCase(),
 	);
+}
+
+/**
+ * Gates the related-pages re-rank ONLY (lib/related-pages.ts). It fires once
+ * per docs page render, so it is a different cost and latency shape from the
+ * typeahead and keeps its own switch.
+ */
+export function jevRerankEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
+	return isFlagOn(env.ORK_SITE_JEV_RERANK);
+}
+
+/**
+ * Gates the search typeahead re-rank ONLY (app/api/search/suggest +
+ * components/search-dialog). Split from ORK_SITE_JEV_RERANK so the two
+ * surfaces can be turned on independently: prod measurement 2026-09-21 showed
+ * one shared flag switching on a per-keystroke call and a per-page-render call
+ * at the same time.
+ */
+export function jevSuggestEnabled(
+	env: NodeJS.ProcessEnv = process.env,
+): boolean {
+	return isFlagOn(env.ORK_SITE_JEV_SUGGEST);
 }
 
 export type JevRerankDeps = {
