@@ -14,9 +14,14 @@ FIX="$H/fixtures/verify-cc-keys"
 # The binary is a fixture, not the installed CC. ci.yml does not install CC,
 # and a control arm that depends on whatever binary the host happens to pin is
 # the exact "passed with nothing to compare" shape this arm exists to rule
-# out. The fake names every event the generated allow-list asserts, in the
-# prose form the script greps for, so the binary comparison is satisfied and
-# only the spec input varies between arms.
+# out. The fake names every event the generated allow-lists assert, in the
+# prose / R("...") forms the script greps for, so the binary comparison is
+# satisfied and only the spec input varies between arms.
+#
+# #4291: emit hookEventName:R("...") for EVENTS_WITH_HOOK_EVENT_NAME members
+# that are NOT in HOOK_EVENT_NAME_REVIEWED_EXCEPTIONS. Emitting R for reviewed
+# exceptions (PostCompact) made that Set vacuous: emptying it still exited 0
+# under the fixture while the real binary has no R("PostCompact").
 
 rm -rf "$FIX"
 mkdir -p "$FIX/tree/scripts" "$FIX/tree/src/hooks/bin" "$FIX/tree/spec" "$FIX/bin" "$FIX/home"
@@ -28,8 +33,23 @@ cp "$REPO/spec/cc-output-keys.spec.yml" "$FIX/tree/spec/"
     echo "hookSpecificOutput fixture binary for tests/ci/fault-arms/verify-cc-keys.sh"
     node -e '
       import(process.argv[1]).then((m) => {
-        for (const e of m.EVENTS_WITH_ADDITIONAL_CONTEXT)
+        const acSchema =
+          m.ADDITIONAL_CONTEXT_SCHEMA_ACCEPTED instanceof Set
+            ? m.ADDITIONAL_CONTEXT_SCHEMA_ACCEPTED
+            : new Set();
+        for (const e of m.EVENTS_WITH_ADDITIONAL_CONTEXT) {
+          if (acSchema.has(e)) continue;
           console.log(`Hook-specific output for the ${e} event. additionalContext is non-error feedback delivered to the model.`);
+        }
+        if (m.EVENTS_WITH_ADDITIONAL_CONTEXT.has("PostToolBatch"))
+          console.log("Return additionalContext via hookSpecificOutput to inject context once for the whole batch.");
+        const henReviewed =
+          m.HOOK_EVENT_NAME_REVIEWED_EXCEPTIONS instanceof Set
+            ? m.HOOK_EVENT_NAME_REVIEWED_EXCEPTIONS
+            : new Set();
+        for (const e of m.EVENTS_WITH_HOOK_EVENT_NAME) {
+          if (!henReviewed.has(e)) console.log(`hookEventName:R("${e}")`);
+        }
       });
     ' "$FIX/tree/src/hooks/bin/cc-output-keys.generated.mjs"
 } > "$FIX/bin/claude"

@@ -24,39 +24,53 @@ export const CC_VERSION = '2.1.278';
  * Events on which CC reads hookSpecificOutput at all.
  * Emitting hookEventName outside this set is inert: CC's validator rejects the
  * envelope ("missing required field hookEventName") and drops the decision.
+ *
+ * Closed set = hookEventName:R("X") literals in the shipped binary's output
+ * schema union (22 on CC 2.1.278), plus HOOK_EVENT_NAME_REVIEWED_EXCEPTIONS.
+ * The derive script's check mode arbitrates this Set bidirectionally (#4291).
  */
 export const EVENTS_WITH_HOOK_EVENT_NAME = new Set([
-  // CC 2.1.278 binary: the hook docs string for Elicitation specifies
-  // hookSpecificOutput.action; MessageDisplay's specifies
-  // hookSpecificOutput.displayContent; WorktreeCreate's specifies
-  // hookSpecificOutput.worktreePath ("WorktreeCreate hook failed: hook
-  // succeeded but returned no worktree path"). All three were declared in
-  // spec/cc-output-keys.spec.yml events_with_hook_specific_output but missing
-  // here — the --check gate only arbitrates EVENTS_WITH_ADDITIONAL_CONTEXT,
-  // so this set drifted unchecked (#4285 second-read). run-hook.mjs reads
-  // hookSpecificOutput.worktreePath for the worktree events; dropping the
-  // envelope made that path unrepresentable.
+  // CC 2.1.278 output-schema union (hookEventName:R("...")):
+  'CwdChanged',
   'Elicitation',
+  'ElicitationResult',
+  'FileChanged',
   'MessageDisplay',
+  'Notification',
   'PermissionDenied',
   'PermissionRequest',
-  'PostCompact',
+  'PostModelSwitch',
   'PostToolBatch',
   'PostToolUse',
   'PostToolUseFailure',
-  // CC 2.1.251 (#3789): the binary's hook registry says PreModelSwitch reads
-  // "JSON permissionDecision allow/deny/ask as for PreToolUse". Verified by
-  // trace-and-observe on 2026-08-29: with the name absent here the guard
-  // stripped hookEventName, CC reported "missing required field" and the
-  // switch to Fable PROCEEDED; with it present the ask is honored.
   'PreModelSwitch',
   'PreToolUse',
   'SessionStart',
+  'Setup',
   'Stop',
   'SubagentStart',
   'SubagentStop',
+  'UserPromptExpansion',
   'UserPromptSubmit',
   'WorktreeCreate',
+  // Reviewed exception: see HOOK_EVENT_NAME_REVIEWED_EXCEPTIONS.
+  'PostCompact',
+]);
+
+/**
+ * hookEventName events the binary's R("...") extract does NOT name, but the
+ * derive script's check mode treats as PROVEN rather than DRIFT.
+ *
+ * PostCompact (#4291): the input schema carries hook_event_name:R("PostCompact")
+ * and executePostCompactHooks, but the output-schema union has no matching
+ * hookEventName:R("PostCompact") variant. Removing it would be a guess that
+ * the pattern is complete; keeping it without a reviewed exception would fail
+ * the reverse arm. Membership here keeps the prior guard behaviour
+ * (envelope allowed; additionalContext still stripped per #3457) while naming
+ * the ambiguity. Do not add further exceptions on documentation absence alone.
+ */
+export const HOOK_EVENT_NAME_REVIEWED_EXCEPTIONS = new Set([
+  'PostCompact',
 ]);
 
 /**
@@ -65,32 +79,44 @@ export const EVENTS_WITH_HOOK_EVENT_NAME = new Set([
  * Stop, SubagentStop and PostToolBatch were MISSING from the hand-typed list
  * this replaces. CC documents all three verbatim; see the spec's evidence
  * block. Six ork hooks were emitting into the void because of it.
+ *
+ * Notification, Setup, PostModelSwitch and UserPromptExpansion were added from
+ * the CC 2.1.278 output-schema union (#4291): each declares additionalContext
+ * in its hookSpecificOutput variant. Without them the guard drops the whole
+ * envelope (EVENTS_WITH_HOOK_EVENT_NAME miss) or strips the key after the name
+ * list is fixed. They live in ADDITIONAL_CONTEXT_SCHEMA_ACCEPTED (schema
+ * accept only), not in the trace-and-observe reviewed list.
  */
 export const EVENTS_WITH_ADDITIONAL_CONTEXT = new Set([
+  'Notification',
+  'PostModelSwitch',
   'PostToolBatch',
   'PostToolUse',
   'PostToolUseFailure',
   'PreToolUse',
   'SessionStart',
+  'Setup',
   'Stop',
   'SubagentStop',
+  'UserPromptExpansion',
   'UserPromptSubmit',
 ]);
 
 /**
  * additionalContext events the binary's prose does NOT name, but the
- * derive script's --check gate treats as PROVEN rather than DRIFT.
+ * derive script's check mode treats as PROVEN rather than DRIFT.
  *
  * The gate is bidirectional (#3418): an EVENTS_WITH_ADDITIONAL_CONTEXT entry
- * uncorroborated by the binary now fails --check UNLESS it is listed here.
- * Membership requires the same trace-and-observe evidence the missing-only
- * check itself would demand — emitting hook -> output builder ->
- * hookSpecificOutput.additionalContext with a matching hookEventName ->
- * observed arriving in the model's context — recorded in
+ * uncorroborated by the binary now fails check mode UNLESS it is listed here
+ * or in ADDITIONAL_CONTEXT_SCHEMA_ACCEPTED.
+ * Membership here requires trace-and-observe evidence — emitting hook ->
+ * output builder -> hookSpecificOutput.additionalContext with a matching
+ * hookEventName -> observed arriving in the model's context — recorded in
  * spec/cc-output-keys.spec.yml's additionalContext.reviewed_exceptions, with
- * a citation. Do NOT add an event here on documentation-prose absence alone;
- * that is the exact unproven-assertion shape this gate exists to catch, and
- * a blanket "except everything uncorroborated" defeats the gate entirely.
+ * a citation. Do NOT add an event here on documentation-prose absence alone
+ * or on schema shape alone; that is the exact unproven-assertion shape this
+ * gate exists to catch. Schema-only membership belongs in
+ * ADDITIONAL_CONTEXT_SCHEMA_ACCEPTED (#4291 HOLD).
  *
  * PostToolUseFailure was settled 2026-08-12 (issue #3457 follow-up): a live
  * firing could not be forced (it requires a genuine tool-execution exception
@@ -120,6 +146,22 @@ export const ADDITIONAL_CONTEXT_REVIEWED_EXCEPTIONS = new Set([
 ]);
 
 /**
+ * additionalContext events the binary's prose does NOT name, exempt from
+ * reverse-arm DRIFT because the output-schema union declares the key on that
+ * event's hookSpecificOutput variant (#4291).
+ *
+ * This is NOT trace-and-observe. Check mode prints these under
+ * "ACCEPTED BY SCHEMA (runtime delivery unproven)". Do not move an event here
+ * into ADDITIONAL_CONTEXT_REVIEWED_EXCEPTIONS without a live delivery proof.
+ */
+export const ADDITIONAL_CONTEXT_SCHEMA_ACCEPTED = new Set([
+  'Notification',
+  'Setup',
+  'PostModelSwitch',
+  'UserPromptExpansion',
+]);
+
+/**
  * Per-key event allow-lists for the keys beyond hookEventName/additionalContext.
  * A key absent from this map is not guarded — that is a coverage gap, not a
  * permission. Track additions in the spec, never here.
@@ -133,7 +175,7 @@ export const KEY_EVENTS = new Map([
   ['updatedToolOutput', new Set(['PostToolUse', 'PostToolUseFailure'])],
   ['updatedMCPToolOutput', new Set(['PostToolUse'])],
   ['displayContent', new Set(['MessageDisplay'])],
-  ['action', new Set(['Elicitation'])],
+  ['action', new Set(['Elicitation', 'ElicitationResult'])],
 ]);
 
 /**
