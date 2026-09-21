@@ -33,8 +33,14 @@ cp "$REPO/spec/cc-output-keys.spec.yml" "$FIX/tree/spec/"
     echo "hookSpecificOutput fixture binary for tests/ci/fault-arms/verify-cc-keys.sh"
     node -e '
       import(process.argv[1]).then((m) => {
-        for (const e of m.EVENTS_WITH_ADDITIONAL_CONTEXT)
+        const acSchema =
+          m.ADDITIONAL_CONTEXT_SCHEMA_ACCEPTED instanceof Set
+            ? m.ADDITIONAL_CONTEXT_SCHEMA_ACCEPTED
+            : new Set();
+        for (const e of m.EVENTS_WITH_ADDITIONAL_CONTEXT) {
+          if (acSchema.has(e)) continue;
           console.log(`Hook-specific output for the ${e} event. additionalContext is non-error feedback delivered to the model.`);
+        }
         if (m.EVENTS_WITH_ADDITIONAL_CONTEXT.has("PostToolBatch"))
           console.log("Return additionalContext via hookSpecificOutput to inject context once for the whole batch.");
         const henReviewed =

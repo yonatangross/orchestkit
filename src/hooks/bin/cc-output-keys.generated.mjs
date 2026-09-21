@@ -84,7 +84,8 @@ export const HOOK_EVENT_NAME_REVIEWED_EXCEPTIONS = new Set([
  * the CC 2.1.278 output-schema union (#4291): each declares additionalContext
  * in its hookSpecificOutput variant. Without them the guard drops the whole
  * envelope (EVENTS_WITH_HOOK_EVENT_NAME miss) or strips the key after the name
- * list is fixed. They are reviewed exceptions (schema accept, not prose named).
+ * list is fixed. They live in ADDITIONAL_CONTEXT_SCHEMA_ACCEPTED (schema
+ * accept only), not in the trace-and-observe reviewed list.
  */
 export const EVENTS_WITH_ADDITIONAL_CONTEXT = new Set([
   'Notification',
@@ -103,18 +104,19 @@ export const EVENTS_WITH_ADDITIONAL_CONTEXT = new Set([
 
 /**
  * additionalContext events the binary's prose does NOT name, but the
- * derive script's --check gate treats as PROVEN rather than DRIFT.
+ * derive script's check mode treats as PROVEN rather than DRIFT.
  *
  * The gate is bidirectional (#3418): an EVENTS_WITH_ADDITIONAL_CONTEXT entry
- * uncorroborated by the binary now fails --check UNLESS it is listed here.
- * Membership requires the same trace-and-observe evidence the missing-only
- * check itself would demand — emitting hook -> output builder ->
- * hookSpecificOutput.additionalContext with a matching hookEventName ->
- * observed arriving in the model's context — recorded in
+ * uncorroborated by the binary now fails check mode UNLESS it is listed here
+ * or in ADDITIONAL_CONTEXT_SCHEMA_ACCEPTED.
+ * Membership here requires trace-and-observe evidence — emitting hook ->
+ * output builder -> hookSpecificOutput.additionalContext with a matching
+ * hookEventName -> observed arriving in the model's context — recorded in
  * spec/cc-output-keys.spec.yml's additionalContext.reviewed_exceptions, with
- * a citation. Do NOT add an event here on documentation-prose absence alone;
- * that is the exact unproven-assertion shape this gate exists to catch, and
- * a blanket "except everything uncorroborated" defeats the gate entirely.
+ * a citation. Do NOT add an event here on documentation-prose absence alone
+ * or on schema shape alone; that is the exact unproven-assertion shape this
+ * gate exists to catch. Schema-only membership belongs in
+ * ADDITIONAL_CONTEXT_SCHEMA_ACCEPTED (#4291 HOLD).
  *
  * PostToolUseFailure was settled 2026-08-12 (issue #3457 follow-up): a live
  * firing could not be forced (it requires a genuine tool-execution exception
@@ -125,12 +127,6 @@ export const EVENTS_WITH_ADDITIONAL_CONTEXT = new Set([
  * negative control (PermissionRequest, no additionalContext support) carries
  * no such marker anywhere nearby. See spec/cc-output-keys.spec.yml for the
  * full trace.
- *
- * Notification, Setup, PostModelSwitch, UserPromptExpansion (#4291): settled
- * by the binary's output-schema union (hookEventName:R + additionalContext on
- * the same variant), not by prose. Parser ACCEPTS the shape; runtime delivery
- * is not yet trace-and-observe proven. Listed so the guard stops dropping the
- * envelope / stripping the key on ignorance (the direction that broke Stop).
  *
  * PostCompact is deliberately ABSENT — not merely unreviewed, but REMOVED
  * from EVENTS_WITH_ADDITIONAL_CONTEXT entirely. The same binary trace used to
@@ -147,6 +143,18 @@ export const ADDITIONAL_CONTEXT_REVIEWED_EXCEPTIONS = new Set([
   'SessionStart',
   'PostToolUse',
   'PostToolUseFailure',
+]);
+
+/**
+ * additionalContext events the binary's prose does NOT name, exempt from
+ * reverse-arm DRIFT because the output-schema union declares the key on that
+ * event's hookSpecificOutput variant (#4291).
+ *
+ * This is NOT trace-and-observe. Check mode prints these under
+ * "ACCEPTED BY SCHEMA (runtime delivery unproven)". Do not move an event here
+ * into ADDITIONAL_CONTEXT_REVIEWED_EXCEPTIONS without a live delivery proof.
+ */
+export const ADDITIONAL_CONTEXT_SCHEMA_ACCEPTED = new Set([
   'Notification',
   'Setup',
   'PostModelSwitch',

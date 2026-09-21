@@ -24,6 +24,12 @@ export declare const EVENTS_WITH_ADDITIONAL_CONTEXT: Set<string>;
 /** additionalContext events kept without binary-prose corroboration. */
 export declare const ADDITIONAL_CONTEXT_REVIEWED_EXCEPTIONS: Set<string>;
 
+/**
+ * additionalContext events kept on schema-shape only (runtime delivery
+ * unproven). Distinct from ADDITIONAL_CONTEXT_REVIEWED_EXCEPTIONS.
+ */
+export declare const ADDITIONAL_CONTEXT_SCHEMA_ACCEPTED: Set<string>;
+
 /** Per-key event allow-lists beyond hookEventName / additionalContext. */
 export declare const KEY_EVENTS: Map<string, Set<string>>;
 

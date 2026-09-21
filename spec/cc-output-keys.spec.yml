@@ -92,7 +92,8 @@ keys:
       - SubagentStop
       - PostToolBatch
       # CC 2.1.278 output-schema union (#4291): each variant declares
-      # additionalContext. Prose extract does not name them; reviewed below.
+      # additionalContext. Prose extract does not name them; see
+      # schema_accepted (NOT reviewed_exceptions — schema shape only).
       - Notification
       - Setup
       - PostModelSwitch
@@ -180,6 +181,14 @@ keys:
           PermissionRequest's block (additionalContext NOT documented for it)
           has no `hook_additional_context` token anywhere nearby.
         source: "issue #3457 follow-up (this probe), 2026-08-12"
+    schema_accepted:
+      # #4291 HOLD: binary output-schema union declares additionalContext on
+      # these events. Parser ACCEPTS the shape. Runtime delivery to the model
+      # is NOT trace-and-observe proven. Mirror in
+      # ADDITIONAL_CONTEXT_SCHEMA_ACCEPTED. Check mode prints them under
+      # "ACCEPTED BY SCHEMA (runtime delivery unproven)", never under the
+      # trace-and-observe heading. Do not move an entry into
+      # reviewed_exceptions without a live delivery proof.
       - event: Notification
         evidence: |
           CC 2.1.278 output-schema union declares

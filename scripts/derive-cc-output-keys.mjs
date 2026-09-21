@@ -288,15 +288,21 @@ async function main() {
       generated.ADDITIONAL_CONTEXT_REVIEWED_EXCEPTIONS instanceof Set
         ? generated.ADDITIONAL_CONTEXT_REVIEWED_EXCEPTIONS
         : new Set(),
+    schemaAccepted:
+      generated.ADDITIONAL_CONTEXT_SCHEMA_ACCEPTED instanceof Set
+        ? generated.ADDITIONAL_CONTEXT_SCHEMA_ACCEPTED
+        : new Set(),
     missingHint: 'The guard would STRIP valid output on those events.',
     unreviewedHint:
-      'Either settle the event by trace-and-observe evidence and add it to\n' +
-      'ADDITIONAL_CONTEXT_REVIEWED_EXCEPTIONS (mirroring spec/cc-output-keys.spec.yml\n' +
-      'additionalContext.reviewed_exceptions with the evidence), or remove the\n' +
+      'Either settle by trace-and-observe and add to ADDITIONAL_CONTEXT_REVIEWED_EXCEPTIONS,\n' +
+      'or (schema shape only) add to ADDITIONAL_CONTEXT_SCHEMA_ACCEPTED, or remove the\n' +
       'entry from EVENTS_WITH_ADDITIONAL_CONTEXT if it is not actually supported.',
     reviewedLogHint:
       'CONFIRMED by trace-and-observe, not binary prose (reviewed exception,\n' +
       'see spec/cc-output-keys.spec.yml additionalContext.reviewed_exceptions):',
+    schemaAcceptedLogHint:
+      'ACCEPTED BY SCHEMA (binary output schema declares additionalContext;\n' +
+      'runtime delivery unproven; see additionalContext.schema_accepted):',
   });
 
   const henDrift = arbitrateSet({
@@ -339,6 +345,10 @@ async function main() {
  * Bidirectional arbitration of one generated Set against binary-derived events.
  * Prints DRIFT lines naming each drifting event and the key under arbitration.
  * Returns flags; caller exits with the highest-severity code across sets.
+ *
+ * Escape hatches (disjoint by convention):
+ *   reviewedExceptions  — trace-and-observe (or equivalent) proof
+ *   schemaAccepted      — binary output schema declares the key; NOT traced
  */
 function arbitrateSet({
   label,
@@ -346,9 +356,11 @@ function arbitrateSet({
   allowed,
   binaryEvents,
   reviewedExceptions,
+  schemaAccepted = new Set(),
   missingHint,
   unreviewedHint,
   reviewedLogHint,
+  schemaAcceptedLogHint,
 }) {
   if (!(allowed instanceof Set) || allowed.size === 0) {
     console.error(`CANNOT OBSERVE: ${label} is not a non-empty Set.`);
@@ -365,10 +377,15 @@ function arbitrateSet({
 
   const uncorroborated = [...allowed].filter((e) => !binaryEvents.has(e)).sort();
   const reviewed = uncorroborated.filter((e) => reviewedExceptions.has(e));
-  const unreviewed = uncorroborated.filter((e) => !reviewedExceptions.has(e));
+  const schemaOk = uncorroborated.filter(
+    (e) => !reviewedExceptions.has(e) && schemaAccepted.has(e),
+  );
+  const unreviewed = uncorroborated.filter(
+    (e) => !reviewedExceptions.has(e) && !schemaAccepted.has(e),
+  );
 
   console.log(
-    `\n${label}: ${allowed.size} asserted / ${allowed.size - uncorroborated.length} corroborated by the binary / ${reviewed.length} reviewed exception / ${unreviewed.length} unreviewed`,
+    `\n${label}: ${allowed.size} asserted / ${allowed.size - uncorroborated.length} corroborated by the binary / ${reviewed.length} reviewed exception / ${schemaOk.length} schema-accepted / ${unreviewed.length} unreviewed`,
   );
 
   if (reviewed.length > 0) {
@@ -376,10 +393,26 @@ function arbitrateSet({
     for (const e of reviewed) console.log(`  ${e}`);
   }
 
+  if (schemaOk.length > 0 && schemaAcceptedLogHint) {
+    console.log(`\n${schemaAcceptedLogHint}`);
+    for (const e of schemaOk) console.log(`  ${e}`);
+  }
+
+  // Stale escape hatch: listed as exception but the binary now corroborates it.
+  const staleReviewed = [...reviewedExceptions]
+    .filter((e) => binaryEvents.has(e))
+    .sort();
+  if (staleReviewed.length > 0) {
+    console.log(
+      `\nSTALE [${label} / key=${key}]: reviewed exception now corroborated by the binary; remove from the exception set:`,
+    );
+    for (const e of staleReviewed) console.log(`  ${e}`);
+  }
+
   if (unreviewed.length > 0) {
     console.error(
       `\nDRIFT [${label} / key=${key}]: generated set has these events, binary does not,` +
-        ' and they carry no reviewed exception:',
+        ' and they carry no reviewed exception or schema-accepted entry:',
     );
     for (const e of unreviewed) console.error(`  ${e}`);
     console.error(`\n${unreviewedHint}`);

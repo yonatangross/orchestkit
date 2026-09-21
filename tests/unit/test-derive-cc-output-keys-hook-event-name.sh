@@ -36,7 +36,14 @@ write_fixture_binary() {
     echo "hookSpecificOutput fixture binary: ${label}"
     node -e '
       import(process.argv[1]).then((m) => {
+        const acSchema =
+          m.ADDITIONAL_CONTEXT_SCHEMA_ACCEPTED instanceof Set
+            ? m.ADDITIONAL_CONTEXT_SCHEMA_ACCEPTED
+            : new Set();
         for (const e of m.EVENTS_WITH_ADDITIONAL_CONTEXT) {
+          // Skip schema-accepted: no prose in the real binary either. Emitting
+          // prose here would corroborate them and hide the SCHEMA_ACCEPTED path.
+          if (acSchema.has(e)) continue;
           console.log(`Hook-specific output for the ${e} event. additionalContext is non-error feedback delivered to the model.`);
         }
         if (m.EVENTS_WITH_ADDITIONAL_CONTEXT.has("PostToolBatch")) {
