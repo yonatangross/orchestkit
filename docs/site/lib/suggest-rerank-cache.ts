@@ -17,10 +17,15 @@ export type CachedOrder = readonly string[];
 export const SUGGEST_CACHE_MAX_ENTRIES = 256;
 export const SUGGEST_CACHE_TTL_MS = 10 * 60 * 1000;
 
-/** Collapses the prefixes that produce an identical deterministic shortlist:
- * casing and interior whitespace never change suggestCompletions' output. */
+/**
+ * Collapses the prefixes that produce an identical deterministic shortlist.
+ * Only trim and case qualify: suggestCompletions trims and lowercases before
+ * scoring. Interior whitespace does NOT, because scoreEntry matches the raw
+ * query against the title with startsWith/includes, so "mcp  server" scores
+ * differently from "mcp server" and must not share a cache entry.
+ */
 export function normalizeSuggestQuery(query: string): string {
-	return query.trim().toLowerCase().replace(/\s+/g, " ");
+	return query.trim().toLowerCase();
 }
 
 export function suggestCacheKey(mode: string, query: string): string {

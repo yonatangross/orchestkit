@@ -204,32 +204,47 @@ export default function CustomSearchDialog(props: SharedProps) {
       try {
         const res = await fetch(
           `/api/search/suggest?query=${encodeURIComponent(q)}&mode=${suggestMode}`,
+          // The route answers `private, max-age=300`, so the browser would
+          // replay a stored body whose `attempted: true, estCostUsd` describes
+          // a call that did not happen, and the footer would bill it twice.
+          // Repeat prefixes are served by the route's own order cache instead.
+          { cache: "no-store" },
         );
         const json = res.ok
           ? ((await res.json()) as {
               items?: Suggestion[];
               estCostUsd?: number;
+              fellBack?: boolean;
+              cached?: boolean;
             })
           : null;
+        // Recorded BEFORE the staleness check: the request was sent and, per
+        // the route's accounting, billed. With a 450 ms pause against Jev's
+        // 760 ms p50 the stale answer is the common case, so skipping it here
+        // would re-hide exactly the spend the route now reports.
+        setSuggestStats((s) =>
+          recordSuggestSample(s, Math.round(performance.now() - startedAt), {
+            costUsd: json?.estCostUsd ?? 0,
+            fellBack: json ? json.fellBack === true : true,
+            cached: json?.cached === true,
+          }),
+        );
         // The query moved on while this was in flight: drop the answer rather
         // than reorder the list under someone who has kept typing.
         if (!alive) return;
-        setSuggestStats((s) =>
-          recordSuggestSample(
-            s,
-            Math.round(performance.now() - startedAt),
-            json?.estCostUsd ?? 0,
-          ),
-        );
         if (Array.isArray(json?.items)) {
           setServerSuggestions({ query: q, mode: suggestMode, items: json.items });
         }
       } catch {
-        if (alive) {
-          setSuggestStats((s) =>
-            recordSuggestSample(s, Math.round(performance.now() - startedAt), 0),
-          );
-        }
+        // A network failure is still an attempt; the server-side cost is
+        // unknowable from here, so count the request and leave cost at 0.
+        setSuggestStats((s) =>
+          recordSuggestSample(s, Math.round(performance.now() - startedAt), {
+            costUsd: 0,
+            fellBack: true,
+            cached: false,
+          }),
+        );
         // deterministic order stands
       }
     }, SUGGEST_PAUSE_MS);
@@ -467,7 +482,8 @@ export default function CustomSearchDialog(props: SharedProps) {
             <span className="ml-auto tabular-nums">
               p50 {Math.round(percentile(suggestStats.latencies, 50))}ms · p95{" "}
               {Math.round(percentile(suggestStats.latencies, 95))}ms ·{" "}
-              {suggestStats.requests} req · ~$
+              {suggestStats.requests} req · {suggestStats.fallbacks} fallback ·{" "}
+              {suggestStats.cacheHits} cached · ~$
               {suggestStats.costUsd.toFixed(4)}
             </span>
           </div>

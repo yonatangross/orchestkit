@@ -450,6 +450,60 @@ describe("GET /api/search/suggest: order cache", () => {
 	});
 });
 
+describe("GET /api/search/suggest: nothing to rerank", () => {
+	it("sends no call for a query with no deterministic matches", async () => {
+		// This endpoint is public and rate-limited at the IP, not gated by the
+		// dialog's own >= 2 char rule. Without a candidate check it would POST
+		// an empty candidate list, hold the invocation for the full 1000 ms,
+		// bill for it, and cache the empty answer over real entries.
+		vi.stubEnv("ORK_SITE_JEV_SUGGEST", "1");
+		vi.stubEnv("TYPESAFE_API_KEY", "test-key");
+		const fetchSpy = vi.fn();
+		vi.stubGlobal("fetch", fetchSpy);
+		const res = await GET(
+			req("/api/search/suggest?query=zzzzqqqqnotathingatall"),
+		);
+		const body = (await res.json()) as {
+			items: unknown[];
+			attempted: boolean;
+			cached: boolean;
+			fellBack: boolean;
+			rankedBy: string;
+			estCostUsd: number;
+		};
+		expect(body.items).toEqual([]);
+		expect(body.attempted).toBe(false);
+		expect(body.cached).toBe(false);
+		expect(body.fellBack).toBe(false);
+		expect(body.rankedBy).toBe("deterministic");
+		expect(body.estCostUsd).toBe(0);
+		expect(fetchSpy).not.toHaveBeenCalled();
+	});
+
+	it("sends no call when only one page matches", async () => {
+		vi.stubEnv("ORK_SITE_JEV_SUGGEST", "1");
+		vi.stubEnv("TYPESAFE_API_KEY", "test-key");
+		const single = SEARCH_SUGGEST_INDEX.map((e) => e.title).find(
+			(t) => suggestCompletions(t, SEARCH_SUGGEST_INDEX, 10).length === 1,
+		);
+		expect(single).toBeTruthy();
+		const fetchSpy = vi.fn();
+		vi.stubGlobal("fetch", fetchSpy);
+		const res = await GET(
+			req(`/api/search/suggest?query=${encodeURIComponent(single as string)}`),
+		);
+		const body = (await res.json()) as {
+			items: unknown[];
+			attempted: boolean;
+			estCostUsd: number;
+		};
+		expect(body.items).toHaveLength(1);
+		expect(body.attempted).toBe(false);
+		expect(body.estCostUsd).toBe(0);
+		expect(fetchSpy).not.toHaveBeenCalled();
+	});
+});
+
 describe("GET /api/search/suggest: honest reporting", () => {
 	it("reports a timeout fallback and still bills the attempt", async () => {
 		// Prod 2026-09-21: 72/72 calls aborted, and every response claimed $0.

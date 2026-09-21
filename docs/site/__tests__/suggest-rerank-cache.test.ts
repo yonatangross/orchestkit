@@ -8,12 +8,19 @@ import {
 describe("normalizeSuggestQuery", () => {
 	it("collapses the prefixes that produce the same shortlist", () => {
 		expect(normalizeSuggestQuery("  MCP  ")).toBe("mcp");
-		expect(normalizeSuggestQuery("Hook   Debugging")).toBe("hook debugging");
 		expect(normalizeSuggestQuery("mcp")).toBe(normalizeSuggestQuery("MCP"));
 	});
 
 	it("keeps genuinely different prefixes apart", () => {
 		expect(normalizeSuggestQuery("mcp")).not.toBe(normalizeSuggestQuery("mc"));
+	});
+
+	it("keeps interior whitespace, which changes the deterministic shortlist", () => {
+		// suggestCompletions matches the raw query with startsWith/includes, so
+		// a doubled space demotes a whole-title match to token-prefix scoring.
+		expect(normalizeSuggestQuery("mcp  server")).not.toBe(
+			normalizeSuggestQuery("mcp server"),
+		);
 	});
 });
 

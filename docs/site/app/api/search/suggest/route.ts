@@ -102,7 +102,14 @@ export async function GET(req: Request) {
 	let fellBack = false;
 	const startedAt = performance.now();
 
-	if (jevSuggestEnabled() && mode !== "off") {
+	// A shortlist of 0 or 1 has exactly one ordering, so there is nothing to
+	// buy. Without this the route POSTs an empty candidate list for junk
+	// queries, holds the invocation for the full budget, bills for it, and
+	// caches the empty answer, which also churns real entries out of the LRU.
+	// The dialog never sends those queries, but this endpoint is public.
+	const rerankable = base.length >= 2;
+
+	if (jevSuggestEnabled() && mode !== "off" && rerankable) {
 		const cacheKey = suggestCacheKey(mode, query);
 		const cachedOrder = suggestOrderCache.get(cacheKey);
 		const fromCache = cachedOrder

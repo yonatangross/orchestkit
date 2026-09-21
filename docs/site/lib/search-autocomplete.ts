@@ -193,6 +193,9 @@ export async function jevSuggestOrder(
 		timeoutMs?: number;
 	} = {},
 ): Promise<Suggestion[] | null> {
+	// Nothing to reorder, and an empty candidate list would still cost a full
+	// round trip: jevChoiceOrder answers [] rather than null for zero options.
+	if (suggestions.length < 2) return null;
 	const { jevChoiceOrder } = await import("@/lib/jev-rerank");
 	const order = await jevChoiceOrder(
 		{

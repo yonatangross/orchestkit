@@ -26,10 +26,12 @@ describe("percentile", () => {
 });
 
 describe("recordSuggestSample", () => {
+	const ranked = { costUsd: 0.0001, fellBack: false, cached: false };
+
 	it("accumulates latency, count and cost", () => {
 		let stats = createSuggestStats();
-		stats = recordSuggestSample(stats, 40, 0.0001);
-		stats = recordSuggestSample(stats, 60, 0.0002);
+		stats = recordSuggestSample(stats, 40, ranked);
+		stats = recordSuggestSample(stats, 60, { ...ranked, costUsd: 0.0002 });
 		expect(stats.latencies).toEqual([40, 60]);
 		expect(stats.requests).toBe(2);
 		expect(stats.costUsd).toBeCloseTo(0.0003, 6);
@@ -37,8 +39,36 @@ describe("recordSuggestSample", () => {
 
 	it("returns a new object rather than mutating", () => {
 		const stats = createSuggestStats();
-		const next = recordSuggestSample(stats, 10, 0);
+		const next = recordSuggestSample(stats, 10, { ...ranked, costUsd: 0 });
 		expect(stats.requests).toBe(0);
 		expect(next.requests).toBe(1);
+	});
+
+	it("counts fallbacks separately from requests", () => {
+		// The footer must distinguish "Jev agreed with the deterministic order"
+		// from "Jev never answered"; request count alone cannot.
+		let stats = createSuggestStats();
+		stats = recordSuggestSample(stats, 40, ranked);
+		stats = recordSuggestSample(stats, 1000, {
+			costUsd: 0.0001,
+			fellBack: true,
+			cached: false,
+		});
+		expect(stats.requests).toBe(2);
+		expect(stats.fallbacks).toBe(1);
+		// A fallback still cost money: that is the whole point of the field.
+		expect(stats.costUsd).toBeCloseTo(0.0002, 6);
+	});
+
+	it("counts cache hits, which are free", () => {
+		let stats = createSuggestStats();
+		stats = recordSuggestSample(stats, 8, {
+			costUsd: 0,
+			fellBack: false,
+			cached: true,
+		});
+		expect(stats.cacheHits).toBe(1);
+		expect(stats.fallbacks).toBe(0);
+		expect(stats.costUsd).toBe(0);
 	});
 });
