@@ -43,6 +43,11 @@ import {
   type Suggestion,
 } from "@/lib/search-autocomplete";
 import {
+  SUGGEST_PAUSE_MS,
+  resolveSuggestions,
+  type ServerSuggestOrder,
+} from "@/lib/suggest-rerank-client";
+import {
   createSuggestStats,
   percentile,
   recordSuggestSample,
@@ -57,23 +62,23 @@ const FACETS: { value: string; name: string }[] = [
 ];
 
 const BEACON_DEBOUNCE_MS = 1500;
-const SUGGEST_DEBOUNCE_MS = 200;
 const LISTBOX_ID = "ork-search-listbox";
 
 // Typeahead runs fully client-side over the generated title/heading index.
-// The optional server re-rank is gated by the SAME flag the route checks,
-// baked in at build time via the next.config env passthrough, so flag-off
-// operation never touches the network beyond the existing /api/search call.
+// The optional server re-rank is gated by ORK_SITE_JEV_SUGGEST, the same flag
+// the route checks, baked in at build time via the next.config env
+// passthrough, so flag-off operation never touches the network beyond the
+// existing /api/search call. ORK_SITE_JEV_RERANK is a different switch and
+// covers related-pages only.
 // It must be a DIRECT process.env read: Next only inlines process.env.NAME
-// into the client bundle, so reading through jevRerankEnabled() would
+// into the client bundle, so reading through jevSuggestEnabled() would
 // evaluate to undefined in the browser and leave the feature dead.
 const JEV_SUGGEST_ENABLED = ["1", "true", "yes", "on"].includes(
-  String(process.env.ORK_SITE_JEV_RERANK ?? "").toLowerCase(),
+  String(process.env.ORK_SITE_JEV_SUGGEST ?? "").toLowerCase(),
 );
 
 // Dev-only A/B toggle + metrics footer (the Jev launcher demo proof format).
-// Never rendered in production builds; the rerank itself also stays behind
-// the flag, which is off in production.
+// Never rendered in production builds.
 const SUGGEST_DEV_TOOLS =
   JEV_SUGGEST_ENABLED && process.env.NODE_ENV !== "production";
 const SUGGEST_MODES = [
@@ -147,11 +152,8 @@ export default function CustomSearchDialog(props: SharedProps) {
   const [suggestEntries, setSuggestEntries] = useState<
     readonly SuggestEntry[] | null
   >(null);
-  const [serverSuggestions, setServerSuggestions] = useState<{
-    query: string;
-    mode: SuggestMode;
-    items: Suggestion[];
-  } | null>(null);
+  const [serverSuggestions, setServerSuggestions] =
+    useState<ServerSuggestOrder | null>(null);
   const [suggestMode, setSuggestMode] = useState<SuggestMode>("jev");
   const [suggestStats, setSuggestStats] = useState(createSuggestStats);
 
@@ -173,10 +175,19 @@ export default function CustomSearchDialog(props: SharedProps) {
     [search, suggestEntries],
   );
 
-  // Optional re-rank of the deterministic top 10 via /api/search/suggest.
-  // Skipped entirely when the flag was off at build time or the dev toggle is
-  // on "Jev off"; any failure keeps the local deterministic order. Latency is
-  // measured client-side (full round trip) for the dev metrics footer.
+  // Background re-rank of the deterministic top 10 via /api/search/suggest.
+  // NOTHING on screen waits for this: localSuggestions is already rendered
+  // when the request goes out, and the answer is applied only if the query
+  // has not moved on (resolveSuggestions). Skipped entirely when the flag was
+  // off at build time or the dev toggle is on "Jev off"; any failure keeps the
+  // local deterministic order.
+  //
+  // Fired on a typing PAUSE, not on every keystroke. Prod 2026-09-21 issued
+  // one call per 200 ms debounce and discarded all 72 of them; raw Jev p50 is
+  // 760.5 ms, so a mid-word call is answering a prefix the user has already
+  // left. SUGGEST_PAUSE_MS collapses a typed word into one call.
+  //
+  // Latency is measured client-side (full round trip) for the dev footer.
   useEffect(() => {
     if (!JEV_SUGGEST_ENABLED || suggestMode === "off") {
       setServerSuggestions(null);
@@ -193,45 +204,65 @@ export default function CustomSearchDialog(props: SharedProps) {
       try {
         const res = await fetch(
           `/api/search/suggest?query=${encodeURIComponent(q)}&mode=${suggestMode}`,
+          // The route answers `private, max-age=300`, so the browser would
+          // replay a stored body whose `attempted: true, estCostUsd` describes
+          // a call that did not happen, and the footer would bill it twice.
+          // Repeat prefixes are served by the route's own order cache instead.
+          { cache: "no-store" },
         );
         const json = res.ok
           ? ((await res.json()) as {
               items?: Suggestion[];
               estCostUsd?: number;
+              fellBack?: boolean;
+              cached?: boolean;
             })
           : null;
-        if (!alive) return;
+        // Recorded BEFORE the staleness check: the request was sent and, per
+        // the route's accounting, billed. With a 450 ms pause against Jev's
+        // 760 ms p50 the stale answer is the common case, so skipping it here
+        // would re-hide exactly the spend the route now reports.
         setSuggestStats((s) =>
-          recordSuggestSample(
-            s,
-            Math.round(performance.now() - startedAt),
-            json?.estCostUsd ?? 0,
-          ),
+          recordSuggestSample(s, Math.round(performance.now() - startedAt), {
+            costUsd: json?.estCostUsd ?? 0,
+            fellBack: json ? json.fellBack === true : true,
+            cached: json?.cached === true,
+          }),
         );
+        // The query moved on while this was in flight: drop the answer rather
+        // than reorder the list under someone who has kept typing.
+        if (!alive) return;
         if (Array.isArray(json?.items)) {
           setServerSuggestions({ query: q, mode: suggestMode, items: json.items });
         }
       } catch {
-        if (alive) {
-          setSuggestStats((s) =>
-            recordSuggestSample(s, Math.round(performance.now() - startedAt), 0),
-          );
-        }
+        // A network failure is still an attempt; the server-side cost is
+        // unknowable from here, so count the request and leave cost at 0.
+        setSuggestStats((s) =>
+          recordSuggestSample(s, Math.round(performance.now() - startedAt), {
+            costUsd: 0,
+            fellBack: true,
+            cached: false,
+          }),
+        );
         // deterministic order stands
       }
-    }, SUGGEST_DEBOUNCE_MS);
+    }, SUGGEST_PAUSE_MS);
     return () => {
       alive = false;
       clearTimeout(timer);
     };
   }, [search, localSuggestions.length, suggestMode]);
 
-  const suggestions =
-    serverSuggestions &&
-    serverSuggestions.query === search.trim() &&
-    serverSuggestions.mode === suggestMode
-      ? serverSuggestions.items
-      : localSuggestions;
+  // Second half of the stale-query guard: `alive` covers an answer that lands
+  // after the effect re-runs, this covers one already in state when the user
+  // types again, before the new request has returned.
+  const suggestions = resolveSuggestions(
+    localSuggestions,
+    serverSuggestions,
+    search,
+    suggestMode,
+  );
 
   // Suggestions become ordinary list items at the top of the flat array, so
   // fumadocs' arrow-key + Enter navigation covers them for free. Suggestions
@@ -451,7 +482,8 @@ export default function CustomSearchDialog(props: SharedProps) {
             <span className="ml-auto tabular-nums">
               p50 {Math.round(percentile(suggestStats.latencies, 50))}ms · p95{" "}
               {Math.round(percentile(suggestStats.latencies, 95))}ms ·{" "}
-              {suggestStats.requests} req · ~$
+              {suggestStats.requests} req · {suggestStats.fallbacks} fallback ·{" "}
+              {suggestStats.cacheHits} cached · ~$
               {suggestStats.costUsd.toFixed(4)}
             </span>
           </div>

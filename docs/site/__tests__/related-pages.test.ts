@@ -4,11 +4,13 @@ import {
 	scoreCandidate,
 	jevRerankOrder,
 	jevRerankEnabled,
+	getRelatedPages,
 	candidatePool,
 	refKindOf,
 	type RelatedCandidate,
 	type RelatedItem,
 } from "@/lib/related-pages";
+import { jevSuggestEnabled } from "@/lib/jev-rerank";
 import type { RelatedGraphData } from "@/lib/generated/related-graph";
 
 // ── Synthetic graph fixtures ────────────────────────────────────────────────
@@ -115,6 +117,52 @@ describe("jevRerankEnabled", () => {
 		expect(jevRerankEnabled({ ORK_SITE_JEV_RERANK: "1" } as NodeJS.ProcessEnv)).toBe(true);
 		expect(jevRerankEnabled({ ORK_SITE_JEV_RERANK: "true" } as NodeJS.ProcessEnv)).toBe(true);
 		expect(jevRerankEnabled({ ORK_SITE_JEV_RERANK: "0" } as NodeJS.ProcessEnv)).toBe(false);
+	});
+
+	it("ignores the search-only flag, so related-pages keeps its own switch", () => {
+		expect(
+			jevRerankEnabled({ ORK_SITE_JEV_SUGGEST: "1" } as NodeJS.ProcessEnv),
+		).toBe(false);
+	});
+});
+
+describe("jevSuggestEnabled", () => {
+	it("is off by default and on for truthy values", () => {
+		expect(jevSuggestEnabled({} as NodeJS.ProcessEnv)).toBe(false);
+		expect(jevSuggestEnabled({ ORK_SITE_JEV_SUGGEST: "1" } as NodeJS.ProcessEnv)).toBe(true);
+		expect(jevSuggestEnabled({ ORK_SITE_JEV_SUGGEST: "on" } as NodeJS.ProcessEnv)).toBe(true);
+		expect(jevSuggestEnabled({ ORK_SITE_JEV_SUGGEST: "0" } as NodeJS.ProcessEnv)).toBe(false);
+	});
+
+	it("ignores the related-pages flag", () => {
+		expect(
+			jevSuggestEnabled({ ORK_SITE_JEV_RERANK: "1" } as NodeJS.ProcessEnv),
+		).toBe(false);
+	});
+});
+
+describe("getRelatedPages under the search-only flag", () => {
+	it("stays deterministic and makes no call when only ORK_SITE_JEV_SUGGEST is on", async () => {
+		const pool = candidatePool();
+		expect(pool.length).toBeGreaterThan(0);
+		const page = { url: pool[0].url, title: pool[0].title };
+		const fetchSpy = vi.fn();
+
+		const withSuggestFlag = await getRelatedPages(page, {
+			env: {
+				ORK_SITE_JEV_SUGGEST: "1",
+				TYPESAFE_API_KEY: "test-key",
+			} as NodeJS.ProcessEnv,
+			fetchImpl: fetchSpy as unknown as typeof fetch,
+		});
+		const bothFlagsOff = await getRelatedPages(page, {
+			env: {} as NodeJS.ProcessEnv,
+		});
+
+		expect(withSuggestFlag.map((c) => c.url)).toEqual(
+			bothFlagsOff.map((c) => c.url),
+		);
+		expect(fetchSpy).not.toHaveBeenCalled();
 	});
 });
 

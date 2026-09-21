@@ -12,21 +12,41 @@ export type SuggestStats = {
 	requests: number;
 	/** Sum of server-reported estCostUsd across completed requests. */
 	costUsd: number;
+	/** Requests the server answered with the deterministic order. A footer
+	 * showing only latency and cost cannot tell "Jev agreed" from "Jev never
+	 * answered", which is what hid 72/72 timeouts in production. */
+	fallbacks: number;
+	/** Requests the server answered from its per-query order cache. */
+	cacheHits: number;
+};
+
+export type SuggestSample = {
+	costUsd: number;
+	fellBack: boolean;
+	cached: boolean;
 };
 
 export function createSuggestStats(): SuggestStats {
-	return { latencies: [], requests: 0, costUsd: 0 };
+	return {
+		latencies: [],
+		requests: 0,
+		costUsd: 0,
+		fallbacks: 0,
+		cacheHits: 0,
+	};
 }
 
 export function recordSuggestSample(
 	stats: SuggestStats,
 	ms: number,
-	costUsd: number,
+	sample: SuggestSample,
 ): SuggestStats {
 	return {
 		latencies: [...stats.latencies, ms],
 		requests: stats.requests + 1,
-		costUsd: stats.costUsd + costUsd,
+		costUsd: stats.costUsd + sample.costUsd,
+		fallbacks: stats.fallbacks + (sample.fellBack ? 1 : 0),
+		cacheHits: stats.cacheHits + (sample.cached ? 1 : 0),
 	};
 }
 

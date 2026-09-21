@@ -5,11 +5,16 @@
 // completions over the generated page title/heading index
 // (lib/generated/search-suggest-index, lib/search-autocomplete).
 //
-// When ORK_SITE_JEV_RERANK is truthy and TYPESAFE_API_KEY is set, one TypeSafe
-// System One request reorders the top 10 within a 150 ms per-keystroke budget;
-// every failure mode falls back to the deterministic order. With the flag off
-// the search dialog computes suggestions locally and never calls this route,
-// so the feature costs zero network calls beyond the existing /api/search.
+// When ORK_SITE_JEV_SUGGEST is truthy and TYPESAFE_API_KEY is set, one
+// TypeSafe System One request reorders the top 10; every failure mode falls
+// back to the deterministic order. With the flag off the search dialog
+// computes suggestions locally and never calls this route, so the feature
+// costs zero network calls beyond the existing /api/search.
+//
+// This route is NOT on the keystroke path. The dialog shows its deterministic
+// order at once and calls here only after a typing pause, then applies the
+// answer only if the query is still current. That is what lets the budget be
+// a second instead of a fifth of one.
 //
 // ?mode=off|jev|llm powers the dev-only A/B toggle: "off" skips the rerank,
 // "llm" reranks through a raw chat model (OPENAI_API_KEY, only if present) as
@@ -22,13 +27,27 @@ import {
 	suggestCompletions,
 	jevSuggestOrder,
 	llmSuggestOrder,
+	applySuggestOrder,
 } from "@/lib/search-autocomplete";
-import { jevRerankEnabled } from "@/lib/jev-rerank";
+import { jevSuggestEnabled } from "@/lib/jev-rerank";
+import { suggestCacheKey, suggestOrderCache } from "@/lib/suggest-rerank-cache";
 
-const SUGGEST_JEV_BUDGET_MS = 150;
+// Measured on production 2026-09-21 (36 real queries, prod's exact payload,
+// no abort): raw Jev p50 760.5 ms, p90 807.8, p95 825.6, min 708.7, max 863.9.
+// Calls finishing inside a budget: 0/36 at 150 ms, 0/36 at 500 ms, 11/36 at
+// 750 ms, 36/36 at 1000 ms. The previous 150 ms keystroke budget therefore
+// ranked 0 of 72 production calls while still adding ~152 ms to client p50
+// (504.7 ms with Jev on vs 352.2 ms off). 1000 ms is the first budget that
+// actually returns an answer, and it is affordable only because this request
+// is off the keystroke path: nothing on screen waits for it.
+const SUGGEST_JEV_BUDGET_MS = 1000;
 // Flat per-request estimate for a System One call; labeled "estimated" because
-// it feeds only the dev metrics footer, not billing.
+// it feeds only the dev metrics footer, not billing. Charged on ATTEMPT: an
+// aborted call was still sent and is still processed upstream, so billing it
+// only on success reported $0 for all 72 production calls.
 const JEV_EST_USD_PER_REQUEST = 0.0001;
+// Same discipline for the dev-only LLM baseline: a failed attempt is not free.
+const LLM_EST_USD_PER_ATTEMPT = 0.0002;
 
 export async function GET(req: Request) {
 	const rate = checkRateLimit(req, "search-suggest");
@@ -75,24 +94,70 @@ export async function GET(req: Request) {
 	let items = base;
 	let rankedBy: "deterministic" | "jev" | "llm" = "deterministic";
 	let estCostUsd = 0;
+	// Honest reporting fields. `rankedBy: "deterministic"` alone cannot tell
+	// "Jev agreed with the deterministic order" from "Jev never answered",
+	// which is exactly what hid the 72/72 production timeouts.
+	let attempted = false;
+	let cached = false;
+	let fellBack = false;
 	const startedAt = performance.now();
 
-	if (jevRerankEnabled() && mode !== "off") {
-		if (mode === "llm") {
+	// A shortlist of 0 or 1 has exactly one ordering, so there is nothing to
+	// buy. Without this the route POSTs an empty candidate list for junk
+	// queries, holds the invocation for the full budget, bills for it, and
+	// caches the empty answer, which also churns real entries out of the LRU.
+	// The dialog never sends those queries, but this endpoint is public.
+	const rerankable = base.length >= 2;
+
+	if (jevSuggestEnabled() && mode !== "off" && rerankable) {
+		const cacheKey = suggestCacheKey(mode, query);
+		const cachedOrder = suggestOrderCache.get(cacheKey);
+		const fromCache = cachedOrder
+			? applySuggestOrder(base, cachedOrder)
+			: null;
+
+		// An unset key is the state production was in for a day: the flag reads
+		// on, nothing is sent, and the answer is indistinguishable from a
+		// re-ranked one. Report it as a fallback with no attempt and no cost.
+		const apiKey =
+			mode === "llm" ? process.env.OPENAI_API_KEY : process.env.TYPESAFE_API_KEY;
+
+		if (fromCache) {
+			items = fromCache;
+			rankedBy = mode === "llm" ? "llm" : "jev";
+			cached = true;
+		} else if (!apiKey) {
+			fellBack = true;
+		} else if (mode === "llm") {
+			attempted = true;
+			estCostUsd = LLM_EST_USD_PER_ATTEMPT;
 			const reranked = await llmSuggestOrder(query, base);
 			if (reranked) {
 				items = reranked.items;
 				rankedBy = "llm";
 				estCostUsd = reranked.costUsd;
+				suggestOrderCache.set(
+					cacheKey,
+					reranked.items.map((s) => s.url),
+				);
+			} else {
+				fellBack = true;
 			}
 		} else {
+			attempted = true;
+			estCostUsd = JEV_EST_USD_PER_REQUEST;
 			const reranked = await jevSuggestOrder(query, base, {
 				timeoutMs: SUGGEST_JEV_BUDGET_MS,
 			});
 			if (reranked) {
 				items = reranked;
 				rankedBy = "jev";
-				estCostUsd = JEV_EST_USD_PER_REQUEST;
+				suggestOrderCache.set(
+					cacheKey,
+					reranked.map((s) => s.url),
+				);
+			} else {
+				fellBack = true;
 			}
 		}
 	}
@@ -104,6 +169,14 @@ export async function GET(req: Request) {
 			mode,
 			ms: Math.round(performance.now() - startedAt),
 			estCostUsd,
+			/** A re-rank call was sent upstream (and is billable). */
+			attempted,
+			/** Served from the per-query order cache; no upstream call. */
+			cached,
+			/** A call was sent and its answer was unusable; `items` is the
+			 * deterministic order. */
+			fellBack,
+			budgetMs: SUGGEST_JEV_BUDGET_MS,
 		},
 		{
 			headers: {

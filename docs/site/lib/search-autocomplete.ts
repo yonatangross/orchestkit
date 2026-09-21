@@ -8,9 +8,11 @@
 // stable title/url tiebreak. No network, no randomness, no state.
 //
 // Optional Jev re-rank of the top 10 lives in app/api/search/suggest (server
-// side, behind ORK_SITE_JEV_RERANK + TYPESAFE_API_KEY via lib/jev-rerank);
+// side, behind ORK_SITE_JEV_SUGGEST + TYPESAFE_API_KEY via lib/jev-rerank);
 // the client only calls it when the flag was on at build time, so flag-off
-// operation stays fully local.
+// operation stays fully local. The re-rank never blocks the dialog: this
+// deterministic order renders first and is replaced only if Jev answers while
+// the same query is still on screen.
 
 import { osaDistance } from "@/lib/search-suggest";
 
@@ -155,9 +157,32 @@ export function suggestCompletions(
 // ---------------------------------------------------------------------------
 
 /**
+ * Reorders `suggestions` to match `order` (a list of urls). Returns null
+ * unless `order` is a permutation of the shortlist, so a stale cached order or
+ * a partial model answer falls back instead of dropping a suggestion.
+ */
+export function applySuggestOrder(
+	suggestions: readonly Suggestion[],
+	order: readonly string[],
+): Suggestion[] | null {
+	if (order.length !== suggestions.length) return null;
+	const byUrl = new Map(suggestions.map((s) => [s.url, s]));
+	const seen = new Set<string>();
+	const out: Suggestion[] = [];
+	for (const url of order) {
+		if (seen.has(url)) return null;
+		const s = byUrl.get(url);
+		if (!s) return null;
+		seen.add(url);
+		out.push(s);
+	}
+	return out;
+}
+
+/**
  * One System One Choice request over the deterministic top-10; returns the
  * same suggestions in Jev order, or null on any failure. Runs only inside
- * app/api/search/suggest when ORK_SITE_JEV_RERANK + TYPESAFE_API_KEY are set.
+ * app/api/search/suggest when ORK_SITE_JEV_SUGGEST + TYPESAFE_API_KEY are set.
  */
 export async function jevSuggestOrder(
 	query: string,
@@ -168,6 +193,9 @@ export async function jevSuggestOrder(
 		timeoutMs?: number;
 	} = {},
 ): Promise<Suggestion[] | null> {
+	// Nothing to reorder, and an empty candidate list would still cost a full
+	// round trip: jevChoiceOrder answers [] rather than null for zero options.
+	if (suggestions.length < 2) return null;
 	const { jevChoiceOrder } = await import("@/lib/jev-rerank");
 	const order = await jevChoiceOrder(
 		{
@@ -179,11 +207,7 @@ export async function jevSuggestOrder(
 		deps,
 	);
 	if (!order) return null;
-	const byUrl = new Map(suggestions.map((s) => [s.url, s]));
-	const out = order
-		.map((u) => byUrl.get(u))
-		.filter((s): s is Suggestion => Boolean(s));
-	return out.length === suggestions.length ? out : null;
+	return applySuggestOrder(suggestions, order);
 }
 
 // ---------------------------------------------------------------------------

@@ -9,10 +9,14 @@ const config = {
 	// Measured on production 2026-09-14, every response carried it.
 	poweredByHeader: false,
 	// Build-time flag passthrough so the client bundle can gate the optional
-	// Jev suggestion re-rank without a server round-trip to discover it. The
-	// value is a boolean flag, never a secret; TYPESAFE_API_KEY stays server-side.
+	// Jev re-ranks without a server round-trip to discover them. Both values are
+	// boolean flags, never secrets; TYPESAFE_API_KEY stays server-side.
+	// ORK_SITE_JEV_SUGGEST gates the search typeahead, ORK_SITE_JEV_RERANK gates
+	// related-pages; they are separate because the typeahead calls per keystroke
+	// pause and related-pages calls per page render.
 	env: {
 		ORK_SITE_JEV_RERANK: process.env.ORK_SITE_JEV_RERANK ?? "",
+		ORK_SITE_JEV_SUGGEST: process.env.ORK_SITE_JEV_SUGGEST ?? "",
 	},
 	images: {
 		formats: ["image/avif", "image/webp"],
