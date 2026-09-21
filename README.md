@@ -614,6 +614,15 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.71](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.70...v10.0.0-beta.71)** · 2026-09-21
+
+- **hooks:** allow tip-equal dist restores without MERGE_HEAD (#4308)
+- **deps-dev:** bump @types/node (#4312)
+- **deps-dev:** bump the npm-minor-patch group (#4317)
+- **deps-dev:** bump the npm-minor-patch group across 1 directory with 2 updates (#4315)
+- **deps-dev:** bump the vitest group (#4320)
+- …and 6 more (see [CHANGELOG.md](CHANGELOG.md))
+
 **[v10.0.0-beta.70](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.69...v10.0.0-beta.70)** · 2026-09-20
 
 - **cc:** raise the CC support floor 2.1.251 to 2.1.277 (#4305)
@@ -644,10 +653,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **site:** search autocomplete suggestions in docs search (#4258)
 - **hooks:** never emit hookSpecificOutput without hookEventName (#4285)
-
-**[v10.0.0-beta.63](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.62...v10.0.0-beta.63)** · 2026-09-19
-
-- **eval:** document Langfuse Python SDK v4 and fail zero-item runs (#4272)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
