@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.72",
+    "date": "2026-09-21",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.71...v10.0.0-beta.72",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**test:** separate a Chrome launch failure from an empty render ([#4324](https://github.com/yonatangross/orchestkit/issues/4324)) ([02cfe98](https://github.com/yonatangross/orchestkit/commit/02cfe98f28b16632d72cbdc453b7c9e8c9adb78b)), closes [#4296](https://github.com/yonatangross/orchestkit/issues/4296)"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.71",
     "date": "2026-09-21",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.70...v10.0.0-beta.71",
