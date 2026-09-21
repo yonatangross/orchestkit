@@ -5,6 +5,23 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.73](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.72...v10.0.0-beta.73) (2026-09-21)
+
+
+### Features
+
+* **site:** make Jev search typeahead rerank non-blocking behind its own flag ([#4325](https://github.com/yonatangross/orchestkit/issues/4325)) ([0c62edb](https://github.com/yonatangross/orchestkit/commit/0c62edb41c931dd2f1903acb37ba27b1c071e94e))
+
+
+### Miscellaneous
+
+* **deps:** bump dotenv from 17.4.2 to 18.0.0 in /orchestkit-demos ([#4322](https://github.com/yonatangross/orchestkit/issues/4322)) ([892efaf](https://github.com/yonatangross/orchestkit/commit/892efaf4947c9e1bbafc9cfa4f4e24220e44e850))
+
+
+### CI/CD
+
+* bump the github-actions group with 7 updates ([#4323](https://github.com/yonatangross/orchestkit/issues/4323)) ([f10dbf7](https://github.com/yonatangross/orchestkit/commit/f10dbf75a434d6bbb5ef85aee67c2c593e2e92ff))
+
 ## [10.0.0-beta.72](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.71...v10.0.0-beta.72) (2026-09-21)
 
 

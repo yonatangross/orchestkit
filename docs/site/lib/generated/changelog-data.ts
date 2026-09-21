@@ -18,6 +18,34 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.73",
+    "date": "2026-09-21",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.72...v10.0.0-beta.73",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**site:** make Jev search typeahead rerank non-blocking behind its own flag ([#4325](https://github.com/yonatangross/orchestkit/issues/4325)) ([0c62edb](https://github.com/yonatangross/orchestkit/commit/0c62edb41c931dd2f1903acb37ba27b1c071e94e))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Miscellaneous",
+        "items": [
+          "**deps:** bump dotenv from 17.4.2 to 18.0.0 in /orchestkit-demos ([#4322](https://github.com/yonatangross/orchestkit/issues/4322)) ([892efaf](https://github.com/yonatangross/orchestkit/commit/892efaf4947c9e1bbafc9cfa4f4e24220e44e850))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "CI/CD",
+        "items": [
+          "bump the github-actions group with 7 updates ([#4323](https://github.com/yonatangross/orchestkit/issues/4323)) ([f10dbf7](https://github.com/yonatangross/orchestkit/commit/f10dbf75a434d6bbb5ef85aee67c2c593e2e92ff))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.72",
     "date": "2026-09-21",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.71...v10.0.0-beta.72",
