@@ -1,14 +1,14 @@
 {
   "slug": "jev-search-nonblocking",
   "source": "docs/feat--site-jev-search-nonblocking/index.html",
-  "title": "Jev Typeahead Rerank, Off the Keystroke Path",
-  "description": "Measured on production: with a 150 ms per-keystroke budget, 0 of 72 Jev calls were ranked and each still added about 152 ms. Given room to finish, Jev puts the right page first 12/12 against the deterministic 10/12. Type in the box and flip between the old blocking design and the new one: deterministic suggestions paint at once, the call goes out on a 450 ms pause with a 1000 ms budget, and any answer whose query you already typed past is discarded.",
+  "title": "Typeahead Suggestions That Never Wait on the Network",
+  "description": "The search dialog builds its suggestions locally and paints them as soon as you type. An optional server request can supply a different order for the same shortlist, but it never blocks: it goes out after a typing pause, it is applied only if the same query is still on screen, and a late answer for a query you have typed past is discarded. Orders are cached per query, and the whole path sits behind a flag that is off by default. Type in the box to watch the timing and the staleness rule.",
   "tags": [
     "docs-site",
     "search",
-    "jev",
+    "autocomplete",
     "latency",
-    "autocomplete"
+    "caching"
   ],
   "date": "2026-09-21"
 }

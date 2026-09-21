@@ -5,7 +5,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Jev typeahead rerank, off the keystroke path</title>
+<title>Typeahead suggestions that never wait on the network</title>
 <style>
   :root{
     --pg-bg: hsl(232 26% 7%);
@@ -68,86 +68,100 @@
   th,td{text-align:left;padding:6px 9px;border-block-end:1px solid hsl(0 0% 100% / .08)}
   th{color:var(--pg-faint);font-weight:600;font-size:.74rem}
   td.n{text-align:right}
-  .bad{color:var(--pg-bad);font-weight:650}
-  .ok{color:var(--pg-ok);font-weight:650}
   .log{font-family:ui-monospace,Menlo,monospace;font-size:.72rem;color:var(--pg-muted);
     max-block-size:190px;overflow-y:auto;padding:10px 14px;
     border-block-start:1px solid var(--pg-glass-edge)}
   .log div{padding-block:1px}
   .log .t{color:var(--pg-faint)}
+  .log .ok{color:var(--pg-ok)}
+  .log .bad{color:var(--pg-bad)}
+  ul{color:var(--pg-muted);font-size:.9rem;padding-inline-start:20px}
+  li{margin-block:4px}
   @media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important}}
 </style>
-<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Jev Typeahead Rerank, Off the Keystroke Path"><meta property="og:description" content="Measured on production: with a 150 ms per-keystroke budget, 0 of 72 Jev calls were ranked and each still added about 152 ms. Given room to finish, Jev puts the right page first 12/12 against the deterministic 10/12. Type in the box and flip between the old blocking design and the new one: deterministic suggestions paint at once, the call goes out on a 450 ms pause with a 1000 ms budget, and any answer whose query you already typed past is discarded."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/jev-search-nonblocking.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Jev Typeahead Rerank, Off the Keystroke Path"><meta name="twitter:description" content="Measured on production: with a 150 ms per-keystroke budget, 0 of 72 Jev calls were ranked and each still added about 152 ms. Given room to finish, Jev puts the right page first 12/12 against the deterministic 10/12. Type in the box and flip between the old blocking design and the new one: deterministic suggestions paint at once, the call goes out on a 450 ms pause with a 1000 ms budget, and any answer whose query you already typed past is discarded."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Typeahead Suggestions That Never Wait on the Network"><meta property="og:description" content="The search dialog builds its suggestions locally and paints them as soon as you type. An optional server request can supply a different order for the same shortlist, but it never blocks: it goes out after a typing pause, it is applied only if the same query is still on screen, and a late answer for a query you have typed past is discarded. Orders are cached per query, and the whole path sits behind a flag that is off by default. Type in the box to watch the timing and the staleness rule."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/jev-search-nonblocking.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Typeahead Suggestions That Never Wait on the Network"><meta name="twitter:description" content="The search dialog builds its suggestions locally and paints them as soon as you type. An optional server request can supply a different order for the same shortlist, but it never blocks: it goes out after a typing pause, it is applied only if the same query is still on screen, and a late answer for a query you have typed past is discarded. Orders are cached per query, and the whole path sits behind a flag that is off by default. Type in the box to watch the timing and the staleness rule."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
 <body>
 <div class="wrap">
 
   <div class="glass">
     <div class="issue">docs site &middot; search typeahead &middot; ORK_SITE_JEV_SUGGEST</div>
-    <h1>Jev ranks better. It never got the chance.</h1>
-    <p>Measured on production on 2026-09-21: with the 150&nbsp;ms per-keystroke budget,
-       <b>0 of 72</b> real calls were ranked by Jev. Every one aborted and fell back, while still
-       adding about <b>152&nbsp;ms</b> to each keystroke. Given room to finish, Jev puts the right
-       page first more often than the deterministic order: <b>12/12</b> against <b>10/12</b>
-       on known answers.</p>
-    <p class="note">Raising the budget alone is the wrong fix, because a 1000&nbsp;ms block per
-       keystroke is worse than today. This PR takes the call off the keystroke path instead: the
-       deterministic list paints at once, the request goes out on a typing pause, and the answer
-       is applied only if the query has not moved on.</p>
+    <h1>Typeahead suggestions that never wait on the network</h1>
+    <p>The search dialog builds its suggestions locally, from a generated index of page titles
+       and headings, and paints them as soon as you type. An optional server request can supply
+       a different order for the same shortlist, but it is never on the critical path: it goes
+       out after you pause, and it is applied only if it comes back while you are still looking
+       at the same query.</p>
+    <p class="note">This page demonstrates the <b>timing and the staleness rule</b>. The
+       reordering shown is a fixed illustrative permutation, not the output of any ranker, and
+       nothing here touches the network.</p>
   </div>
 
   <div class="glass">
-    <h2>Type and watch the two designs diverge</h2>
-    <p class="note">Try <code>mcp</code>, then keep typing without pausing. Nothing here touches
-       the network: Jev latency is sampled from the measured distribution
-       (min 708.7, p50 760.5, p95 825.6, max 863.9&nbsp;ms).</p>
+    <h2>The mechanism, in five rules</h2>
+    <ul>
+      <li><b>Local first.</b> Suggestions come from the generated index in the page bundle and
+          render immediately. No request has to finish for the list to appear.</li>
+      <li><b>Pause, not keystroke.</b> The background request goes out after about 450&nbsp;ms of
+          idle, so a typed word costs one request rather than one per character.</li>
+      <li><b>Still current, or discarded.</b> An answer is applied only when its query matches
+          what is on screen. A late answer for a query you have already typed past is dropped
+          rather than reordering the list underneath you.</li>
+      <li><b>Cached per query.</b> The server keeps the order for a normalized query in a bounded
+          cache (256 entries, 10 minute TTL, least-recently-used eviction), so walking back over
+          a prefix costs nothing.</li>
+      <li><b>Off by default.</b> The whole path sits behind <code>ORK_SITE_JEV_SUGGEST</code>,
+          which is unset in production. Related pages has its own separate flag,
+          <code>ORK_SITE_JEV_RERANK</code>, and is unaffected either way.</li>
+    </ul>
+  </div>
+
+  <div class="glass">
+    <h2>Try the timing</h2>
+    <p class="note">Type, then keep typing without pausing, and watch the status line. The request
+       latency here is simulated at a few hundred milliseconds, which is the order of magnitude a
+       real call takes.</p>
     <div class="box">
       <input type="text" id="q" placeholder="Try: mcp, security audit, hook debugging"
         role="combobox" aria-autocomplete="list" aria-expanded="true"
         aria-controls="lb" autocomplete="off">
       <div class="foot">
-        <button class="btn" id="m-before" aria-pressed="false" type="button">Before: 150 ms block</button>
-        <button class="btn" id="m-after" aria-pressed="true" type="button">After: pause + background</button>
+        <button class="btn" id="m-before" aria-pressed="false" type="button">On the keystroke, 150 ms</button>
+        <button class="btn" id="m-after" aria-pressed="true" type="button">In the background, 1000 ms</button>
         <span class="state"><span class="dot" id="dot"></span><span id="status">idle</span></span>
       </div>
       <div id="lb" role="listbox"></div>
       <div class="foot">
-        <span id="ranked">ranked by deterministic</span>
-        <span class="metrics" id="metrics">0 calls &middot; 0 ranked &middot; 0 discarded &middot; ~$0.0000</span>
+        <span id="ranked">order: local</span>
+        <span class="metrics" id="metrics">0 sent &middot; 0 applied &middot; 0 discarded &middot; ~$0.0000</span>
       </div>
       <div class="log" id="log" aria-live="polite"></div>
     </div>
-    <p class="note">The <b>before</b> mode aborts at 150&nbsp;ms, so the counter never leaves
-       0&nbsp;ranked while the cost keeps climbing: that is the production behaviour, and the old
-       route reported <code>$0</code> for every one of those calls. The <b>after</b> mode waits
-       450&nbsp;ms of idle, allows 1000&nbsp;ms, and discards any answer whose query you have
-       already typed past.</p>
+    <p class="note">In both modes the local list paints at once, so the difference is entirely in
+       the counters. A request that takes a few hundred milliseconds cannot complete inside a
+       150&nbsp;ms per-keystroke abort, so that mode spends money and never applies an order.
+       Moving the call into the background lets the budget be generous, because nothing on screen
+       is waiting for it.</p>
   </div>
 
   <div class="glass">
-    <h2>Why 1000 ms, and not 300 or 750</h2>
-    <table>
-      <tr><th>Budget</th><th class="n">Calls finishing within it (of 36)</th></tr>
-      <tr><td>150 ms (previous)</td><td class="n bad">0</td></tr>
-      <tr><td>300 ms</td><td class="n bad">0</td></tr>
-      <tr><td>500 ms</td><td class="n bad">0</td></tr>
-      <tr><td>750 ms</td><td class="n">11</td></tr>
-      <tr><td>1000 ms</td><td class="n ok">36</td></tr>
-    </table>
-    <p class="note">Measured from Israel with prod's exact payload and no abort, so it includes a
-       round trip the Vercel route does not pay. 1000&nbsp;ms is the first budget that returns an
-       answer at all, and it is affordable only because nothing on screen waits for it.</p>
+    <h2>Counting what was sent, not what worked</h2>
+    <p>A request that is aborted client-side has still been sent and is still processed upstream.
+       Charging the estimate only on success makes a path that never completes look free, so the
+       route charges on the <b>attempt</b> and reports <code>attempted</code>, <code>cached</code>
+       and <code>fellBack</code> alongside the items. The counter above follows the same rule:
+       watch the dollar figure climb in the 150&nbsp;ms mode while nothing is ever applied.</p>
   </div>
 
   <div class="glass">
-    <h2>What ships</h2>
+    <h2>What the change touches</h2>
     <table>
       <tr><th>Piece</th><th>Before</th><th>After</th></tr>
-      <tr><td>Flag</td><td>ORK_SITE_JEV_RERANK, shared with related-pages</td><td class="ok">ORK_SITE_JEV_SUGGEST, search only</td></tr>
-      <tr><td>Trigger</td><td>every 200 ms debounce</td><td class="ok">450 ms typing pause</td></tr>
-      <tr><td>Budget</td><td>150 ms, on the keystroke</td><td class="ok">1000 ms, in the background</td></tr>
-      <tr><td>Repeat prefixes</td><td>full call each time</td><td class="ok">server cache, 256 entries / 10 min</td></tr>
-      <tr><td>Cost on a fallback</td><td class="bad">reported $0</td><td class="ok">counted, it was sent</td></tr>
-      <tr><td>Fallback visible?</td><td class="bad">no</td><td class="ok">attempted / cached / fellBack</td></tr>
+      <tr><td>Flag</td><td>shared with related pages</td><td><code>ORK_SITE_JEV_SUGGEST</code>, search only</td></tr>
+      <tr><td>Trigger</td><td>every 200 ms debounce</td><td>450 ms typing pause</td></tr>
+      <tr><td>Budget</td><td>150 ms, on the keystroke path</td><td>1000 ms, in the background</td></tr>
+      <tr><td>Repeat prefixes</td><td>a full request each time</td><td>server cache, 256 entries / 10 min</td></tr>
+      <tr><td>Cost on a fallback</td><td>reported as zero</td><td>counted, the request was sent</td></tr>
+      <tr><td>Fallback visible in the response?</td><td>no</td><td><code>attempted</code> / <code>cached</code> / <code>fellBack</code></td></tr>
     </table>
   </div>
 
@@ -157,8 +171,8 @@
 (function () {
   "use strict";
 
-  // A slice of the real generated suggest index, enough to reproduce the two
-  // queries where the orders genuinely differ.
+  // A slice of the generated suggest index, enough to give the demo a few
+  // plausible shortlists to reorder.
   var INDEX = [
     { url: "/docs/reference/skills/mcp-builder", title: "MCP Builder" },
     { url: "/docs/reference/agents/mcp-integrator", title: "MCP Integrator" },
@@ -176,21 +190,14 @@
     { url: "/docs/getting-started/cursor", title: "Cursor" }
   ];
 
-  // The pages Jev promotes to first, measured 2026-09-21. These are the two of
-  // twelve known answers the deterministic order gets wrong.
-  var JEV_FIRST = {
-    "mcp": "/docs/foundations/mcp-servers",
-    "security audit": "/docs/cookbook/security-audit"
-  };
-
   var PAUSE_MS = 450;
-  var BUDGET_AFTER_MS = 1000;
-  var DEBOUNCE_BEFORE_MS = 200;
-  var BUDGET_BEFORE_MS = 150;
+  var BUDGET_BACKGROUND_MS = 1000;
+  var DEBOUNCE_KEYSTROKE_MS = 200;
+  var BUDGET_KEYSTROKE_MS = 150;
   var USD_PER_CALL = 0.0001;
 
-  // Measured Jev latency: min 708.7, p50 760.5, p90 807.8, p95 825.6, max 863.9.
-  var LATENCY_SAMPLES = [708.7, 726, 741, 760.5, 774, 790, 807.8, 825.6, 844, 863.9];
+  // Simulated round trip, a few hundred milliseconds. Illustrative only.
+  var LATENCY_SAMPLES = [710, 726, 741, 760, 774, 790, 808, 826, 844, 864];
   var sampleAt = 0;
   function sampleLatency() {
     var v = LATENCY_SAMPLES[sampleAt % LATENCY_SAMPLES.length];
@@ -202,8 +209,8 @@
     return s.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
   }
 
-  // The deterministic tiers, trimmed to what this slice exercises.
-  function deterministic(query) {
+  // The local tiers, trimmed to what this slice exercises.
+  function localOrder(query) {
     var q = query.trim().toLowerCase();
     if (q.length < 2) return [];
     var toks = words(q);
@@ -228,12 +235,14 @@
       .map(function (x) { return x.entry; });
   }
 
-  function jevOrder(query, base) {
-    var first = JEV_FIRST[query.trim().toLowerCase()];
-    if (!first) return base.slice();
-    var promoted = base.filter(function (e) { return e.url === first; });
-    if (promoted.length === 0) return base.slice();
-    return promoted.concat(base.filter(function (e) { return e.url !== first; }));
+  // A FIXED illustrative permutation standing in for a server-supplied order.
+  // It is not a ranker output and carries no claim about result quality; it
+  // exists so you can see when an order is applied and when it is discarded.
+  function serverOrder(base) {
+    if (base.length < 2) return base.slice();
+    var out = base.slice();
+    out.unshift(out.pop());
+    return out;
   }
 
   var input = document.getElementById("q");
@@ -246,16 +255,17 @@
   var beforeBtn = document.getElementById("m-before");
   var afterBtn = document.getElementById("m-after");
 
-  var mode = "after";
+  var mode = "background";
   var timer = null;
   var inFlight = 0;
-  var stats = { calls: 0, ranked: 0, discarded: 0, cost: 0 };
+  var stats = { sent: 0, applied: 0, discarded: 0, cost: 0 };
   var applied = null; // { query: string, items: [] }
 
   function log(msg, kind) {
     var row = document.createElement("div");
     var stamp = new Date().toLocaleTimeString("en-GB", { hour12: false });
-    row.innerHTML = '<span class="t">' + stamp + "</span>  ";
+    row.innerHTML = '<span class="t"></span>  ';
+    row.childNodes[0].textContent = stamp;
     var body = document.createElement("span");
     body.textContent = msg;
     if (kind) body.className = kind;
@@ -271,18 +281,18 @@
 
   function renderMetrics() {
     metricsEl.textContent =
-      stats.calls + " calls \u00b7 " +
-      stats.ranked + " ranked \u00b7 " +
+      stats.sent + " sent \u00b7 " +
+      stats.applied + " applied \u00b7 " +
       stats.discarded + " discarded \u00b7 ~$" + stats.cost.toFixed(4);
   }
 
   function render() {
     var q = input.value.trim();
-    var base = deterministic(q);
-    var useJev = applied && applied.query === q;
-    var items = useJev ? applied.items : base;
+    var base = localOrder(q);
+    var useServer = applied && applied.query === q;
+    var items = useServer ? applied.items : base;
 
-    rankedEl.textContent = "ranked by " + (useJev ? "jev" : "deterministic");
+    rankedEl.textContent = "order: " + (useServer ? "from the server" : "local");
     listbox.innerHTML = "";
     if (items.length === 0) {
       var empty = document.createElement("div");
@@ -294,62 +304,67 @@
     var baseUrls = base.map(function (e) { return e.url; });
     items.forEach(function (e, i) {
       var row = document.createElement("div");
-      row.className = "opt" + (useJev && baseUrls[i] !== e.url ? " moved" : "");
+      row.className = "opt" + (useServer && baseUrls[i] !== e.url ? " moved" : "");
       row.setAttribute("role", "option");
       row.setAttribute("aria-selected", i === 0 ? "true" : "false");
-      row.innerHTML =
-        '<span class="rk">' + (i + 1) + "</span>" +
-        "<span></span>" +
-        '<span class="u"></span>';
-      row.childNodes[1].textContent = e.title;
-      row.childNodes[2].textContent = e.url;
+      var rank = document.createElement("span");
+      rank.className = "rk";
+      rank.textContent = String(i + 1);
+      var title = document.createElement("span");
+      title.textContent = e.title;
+      var url = document.createElement("span");
+      url.className = "u";
+      url.textContent = e.url;
+      row.appendChild(rank);
+      row.appendChild(title);
+      row.appendChild(url);
       listbox.appendChild(row);
     });
   }
 
-  function requestRerank(q) {
-    var budget = mode === "before" ? BUDGET_BEFORE_MS : BUDGET_AFTER_MS;
+  function requestOrder(q) {
+    var budget = mode === "keystroke" ? BUDGET_KEYSTROKE_MS : BUDGET_BACKGROUND_MS;
     var latency = sampleLatency();
     var mine = ++inFlight;
 
-    stats.calls += 1;
-    // Counted on ATTEMPT. An aborted call was still sent and still billed;
-    // counting only successes is what reported $0 for all 72 prod calls.
+    stats.sent += 1;
+    // Counted on the ATTEMPT. An aborted request was still sent, so counting
+    // only the ones that completed would report this path as free.
     stats.cost += USD_PER_CALL;
     renderMetrics();
-    log("call sent for \u201c" + q + "\u201d, budget " + budget + " ms, Jev will take " +
-        Math.round(latency) + " ms");
-    setStatus(mode === "before" ? "blocking the keystroke" : "waiting in background", "wait");
+    log("request sent for \u201c" + q + "\u201d, budget " + budget +
+        " ms, simulated round trip " + latency + " ms");
+    setStatus(mode === "keystroke" ? "blocking the keystroke" : "waiting in background", "wait");
 
     window.setTimeout(function () {
       if (latency > budget) {
-        log("aborted at " + budget + " ms, fell back to deterministic (billed anyway)", "bad");
-        setStatus("fell back", "bad");
+        log("aborted at " + budget + " ms, local order stands (still billed)", "bad");
+        setStatus("aborted, local order", "bad");
         render();
         return;
       }
       if (mine !== inFlight || input.value.trim() !== q) {
-        // The stale-query guard. A late answer for an abandoned prefix is
-        // dropped rather than reordering the list under the user.
+        // The staleness rule. A late answer for an abandoned query is dropped
+        // rather than reordering the list under the user.
         stats.discarded += 1;
         renderMetrics();
         log("answer for \u201c" + q + "\u201d discarded, query moved on", "bad");
         setStatus("discarded, stale", "bad");
         return;
       }
-      stats.ranked += 1;
+      stats.applied += 1;
       renderMetrics();
-      applied = { query: q, items: jevOrder(q, deterministic(q)) };
-      log("applied Jev order for \u201c" + q + "\u201d after " + Math.round(latency) + " ms", "ok");
-      setStatus("ranked by Jev", "ok");
+      applied = { query: q, items: serverOrder(localOrder(q)) };
+      log("server order applied for \u201c" + q + "\u201d after " + latency + " ms", "ok");
+      setStatus("server order applied", "ok");
       render();
     }, Math.min(latency, budget));
   }
 
   function onInput() {
     var q = input.value.trim();
-    // The deterministic list paints NOW, in both modes. Only the request
-    // timing differs; nothing on screen ever waits for Jev.
+    // The local list paints NOW, in both modes. Only the request timing
+    // differs; nothing on screen ever waits for the response.
     if (!applied || applied.query !== q) applied = null;
     render();
 
@@ -358,16 +373,16 @@
       setStatus("idle");
       return;
     }
-    var wait = mode === "before" ? DEBOUNCE_BEFORE_MS : PAUSE_MS;
-    setStatus(mode === "before" ? "debouncing " + wait + " ms" : "waiting for a pause", "wait");
-    timer = window.setTimeout(function () { requestRerank(q); }, wait);
+    var wait = mode === "keystroke" ? DEBOUNCE_KEYSTROKE_MS : PAUSE_MS;
+    setStatus(mode === "keystroke" ? "debouncing " + wait + " ms" : "waiting for a pause", "wait");
+    timer = window.setTimeout(function () { requestOrder(q); }, wait);
   }
 
   function setMode(next) {
     mode = next;
-    beforeBtn.setAttribute("aria-pressed", String(next === "before"));
-    afterBtn.setAttribute("aria-pressed", String(next === "after"));
-    stats = { calls: 0, ranked: 0, discarded: 0, cost: 0 };
+    beforeBtn.setAttribute("aria-pressed", String(next === "keystroke"));
+    afterBtn.setAttribute("aria-pressed", String(next === "background"));
+    stats = { sent: 0, applied: 0, discarded: 0, cost: 0 };
     applied = null;
     sampleAt = 0;
     inFlight += 1;
@@ -375,20 +390,20 @@
     logEl.innerHTML = "";
     renderMetrics();
     setStatus("idle");
-    log(next === "before"
-      ? "before: 200 ms debounce, 150 ms budget, on the keystroke path"
-      : "after: 450 ms pause, 1000 ms budget, in the background");
+    log(next === "keystroke"
+      ? "on the keystroke path: 200 ms debounce, 150 ms budget"
+      : "in the background: 450 ms pause, 1000 ms budget");
     render();
     onInput();
   }
 
   input.addEventListener("input", onInput);
-  beforeBtn.addEventListener("click", function () { setMode("before"); });
-  afterBtn.addEventListener("click", function () { setMode("after"); });
+  beforeBtn.addEventListener("click", function () { setMode("keystroke"); });
+  afterBtn.addEventListener("click", function () { setMode("background"); });
 
   renderMetrics();
   render();
-  log("after: 450 ms pause, 1000 ms budget, in the background");
+  log("in the background: 450 ms pause, 1000 ms budget");
 })();
 </script>
 <!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
