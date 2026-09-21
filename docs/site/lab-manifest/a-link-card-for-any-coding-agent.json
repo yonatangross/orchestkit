@@ -2,7 +2,7 @@
   "slug": "a-link-card-for-any-coding-agent",
   "source": "docs/feat--og-card-any-agent/index.html",
   "title": "A link card for any coding agent",
-  "description": "The OrchestKit link card before and after, at full size and at the 500 px X feed size: the old card read as Claude Code only with unreadable numbers; the new one names skills, subagents and hooks, shows the eight supported hosts, and draws the counts live from the repo on every build.",
+  "description": "The OrchestKit link card before and after, at full size and at the 500 px X feed size: the old card read as Claude Code only with unreadable numbers; the new one says Claude Code and 7 more agents, labels every count, shows the eight supported hosts, and draws the counts live from the repo on every build.",
   "tags": ["site", "brand", "og"],
   "date": "2026-09-22"
 }
