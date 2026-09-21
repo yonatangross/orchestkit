@@ -1,0 +1,14 @@
+{
+  "slug": "jev-search-nonblocking",
+  "source": "docs/feat--site-jev-search-nonblocking/index.html",
+  "title": "Jev Typeahead Rerank, Off the Keystroke Path",
+  "description": "Measured on production: with a 150 ms per-keystroke budget, 0 of 72 Jev calls were ranked and each still added about 152 ms. Given room to finish, Jev puts the right page first 12/12 against the deterministic 10/12. Type in the box and flip between the old blocking design and the new one: deterministic suggestions paint at once, the call goes out on a 450 ms pause with a 1000 ms budget, and any answer whose query you already typed past is discarded.",
+  "tags": [
+    "docs-site",
+    "search",
+    "jev",
+    "latency",
+    "autocomplete"
+  ],
+  "date": "2026-09-21"
+}
