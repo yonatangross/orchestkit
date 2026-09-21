@@ -354,6 +354,40 @@
       }
     },
     {
+      "id": "redact-secrets-bash-object-shape",
+      "hook": "skill/redact-secrets",
+      "event": "PostToolUse",
+      "note": "#4217 part 1: real Bash tool_response is {stdout, stderr, interrupted}. Hook returns silent always; warnings go to stderr (covered by unit/integration). This probe proves the object path does not throw.",
+      "trip": {
+        "payload": {
+          "tool_name": "Bash",
+          "tool_input": {
+            "command": "printenv"
+          },
+          "tool_response": {
+            "stdout": "GITLAB_TOKEN=glpat-1234567890abcdefghijklmnop",
+            "stderr": "",
+            "interrupted": false
+          }
+        },
+        "expect": "silent"
+      },
+      "control": {
+        "payload": {
+          "tool_name": "Bash",
+          "tool_input": {
+            "command": "echo ok"
+          },
+          "tool_response": {
+            "stdout": "ok",
+            "stderr": "",
+            "interrupted": false
+          }
+        },
+        "expect": "silent"
+      }
+    },
+    {
       "id": "context-file-budget-guard-bypass",
       "hook": "pretool/write-edit/sync-write-edit-dispatcher",
       "event": "PreToolUse",

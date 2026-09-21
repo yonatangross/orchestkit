@@ -1,6 +1,6 @@
 /**
- * Integration test (#3725): the redact-secrets layer must react to the field
- * CC actually sends on PostToolUse.
+ * Integration test (#3725, #4217): the redact-secrets layer must react to the
+ * field CC actually sends on PostToolUse.
  *
  * The unit suite stayed green while the layer was dead in production because
  * every test fed it `tool_result` — the legacy alias — while CC sends
@@ -22,19 +22,26 @@
  *    via file:// URL and its registered `skill/redact-secrets` hook driven
  *    with the same payload. Cross-platform; asserts detection itself.
  *
- * Skips automatically when the built bundle isn't present.
+ * #3578: feature PRs do not commit hooks/dist. beforeAll rebuilds src/hooks
+ * and mirrors skill.mjs into plugins/ so object-shape fixtures exercise THIS
+ * PR's source rather than main's last release bundle (the CI failure mode
+ * for #4217 part 1).
+ *
+ * Skips automatically when the built bundle isn't present after rebuild.
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeAll, beforeEach, afterEach } from 'vitest';
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, rmSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { copyFileSync, existsSync, mkdirSync, rmSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { tmpdir } from 'node:os';
 
 const REPO_ROOT = resolve(__dirname, '..', '..', '..', '..', '..');
+const HOOKS_PKG = join(REPO_ROOT, 'src', 'hooks');
 const PLUGIN_HOOKS = join(REPO_ROOT, 'plugins', 'ork', 'hooks');
 const RUN_HOOK = join(PLUGIN_HOOKS, 'bin', 'run-hook.mjs');
+const SRC_BUNDLE = join(HOOKS_PKG, 'dist', 'skill.mjs');
 const DIST_BUNDLE = join(PLUGIN_HOOKS, 'dist', 'skill.mjs');
 const HOOK_NAME = 'skill/redact-secrets';
 
@@ -42,7 +49,7 @@ const HOOK_NAME = 'skill/redact-secrets';
 const TOKEN = 'glpat-1234567890abcdefghijklmnop';
 
 /** CC-shaped PostToolUse payload: hook_event_name + tool_response, no legacy aliases. */
-function ccShapedPayload(toolResponse: string): string {
+function ccShapedPayload(toolResponse: string | Record<string, unknown>): string {
   return JSON.stringify({
     hook_event_name: 'PostToolUse',
     tool_name: 'Bash',
@@ -52,8 +59,36 @@ function ccShapedPayload(toolResponse: string): string {
   });
 }
 
+/** Real Bash PostToolUse shape measured on Claude Code (#4217). */
+function bashObjectResponse(stdout: string, stderr = ''): Record<string, unknown> {
+  return { stdout, stderr, interrupted: false };
+}
+
 let stderrSpy: ReturnType<typeof vi.spyOn> | undefined;
 let scratchDir: string;
+
+beforeAll(() => {
+  // #3578: feature PRs never commit hooks/dist. Rebuild so object-shaped
+  // fixtures see the PR source, not the stale release bundle on disk.
+  const build = spawnSync('npm', ['run', 'build'], {
+    cwd: HOOKS_PKG,
+    encoding: 'utf8',
+    timeout: 120_000,
+    env: process.env,
+  });
+  if (build.status !== 0) {
+    console.warn(
+      `[integration] hooks build failed (status=${build.status}): ${String(build.stderr).slice(0, 400)}`,
+    );
+    return;
+  }
+  if (!existsSync(SRC_BUNDLE)) {
+    console.warn(`[integration] hooks build produced no ${SRC_BUNDLE}`);
+    return;
+  }
+  mkdirSync(dirname(DIST_BUNDLE), { recursive: true });
+  copyFileSync(SRC_BUNDLE, DIST_BUNDLE);
+}, 120_000);
 
 beforeEach(() => {
   // Fresh project dir per run so the dispatcher's session-event tracking
@@ -71,15 +106,15 @@ afterEach(() => {
   }
 });
 
-describe('redact-secrets through the built skill.mjs bundle (#3725)', () => {
-  it('flags a glpat token that arrives via tool_response through run-hook.mjs', () => {
+describe('redact-secrets through the built skill.mjs bundle (#3725, #4217)', () => {
+  it('flags a glpat token in object-shaped Bash tool_response through run-hook.mjs', () => {
     if (!existsSync(DIST_BUNDLE)) {
-      console.warn(`[integration] Skipping — built bundle not found at ${DIST_BUNDLE}`);
+      console.warn(`[integration] Skipping - built bundle not found at ${DIST_BUNDLE}`);
       return;
     }
 
     const r = spawnSync('node', [RUN_HOOK, HOOK_NAME], {
-      input: ccShapedPayload(`GITLAB_TOKEN=${TOKEN} done`),
+      input: ccShapedPayload(bashObjectResponse(`GITLAB_TOKEN=${TOKEN} done`)),
       env: { ...process.env, CLAUDE_PROJECT_DIR: scratchDir },
       encoding: 'utf8',
       timeout: 20_000,
@@ -93,18 +128,38 @@ describe('redact-secrets through the built skill.mjs bundle (#3725)', () => {
     expect(parsed.continue).toBe(true);
 
     // The load-bearing assertion: the layer actually SAW the production
-    // payload. Windows cannot get here until the dispatcher's dist import
-    // works on win32 (see file docstring) — the in-process tier covers it.
+    // Bash object shape. Windows cannot get here until the dispatcher's dist
+    // import works on win32 (see file docstring); the in-process tier covers it.
     if (process.platform !== 'win32') {
       expect(String(r.stderr)).toContain('::warning::Potential API key detected in output - verify redaction');
     }
   });
 
-  it('stays silent on a clean tool_response through run-hook.mjs', () => {
+  it('flags a glpat token that arrives as a string tool_response through run-hook.mjs', () => {
+    if (!existsSync(DIST_BUNDLE)) {
+      console.warn(`[integration] Skipping - built bundle not found at ${DIST_BUNDLE}`);
+      return;
+    }
+
+    const r = spawnSync('node', [RUN_HOOK, HOOK_NAME], {
+      input: ccShapedPayload(`GITLAB_TOKEN=${TOKEN} done`),
+      env: { ...process.env, CLAUDE_PROJECT_DIR: scratchDir },
+      encoding: 'utf8',
+      timeout: 20_000,
+    });
+
+    expect(r.status, `stderr: ${String(r.stderr).slice(0, 300)}`).toBe(0);
+    expect(String(r.stdout)).not.toContain(TOKEN);
+    if (process.platform !== 'win32') {
+      expect(String(r.stderr)).toContain('::warning::Potential API key detected in output - verify redaction');
+    }
+  });
+
+  it('stays silent on a clean object-shaped tool_response through run-hook.mjs', () => {
     if (!existsSync(DIST_BUNDLE)) return;
 
     const r = spawnSync('node', [RUN_HOOK, HOOK_NAME], {
-      input: ccShapedPayload('build finished, all tests passed'),
+      input: ccShapedPayload(bashObjectResponse('build finished, all tests passed')),
       env: { ...process.env, CLAUDE_PROJECT_DIR: scratchDir },
       encoding: 'utf8',
       timeout: 20_000,
@@ -114,7 +169,7 @@ describe('redact-secrets through the built skill.mjs bundle (#3725)', () => {
     expect(String(r.stderr)).not.toContain('::warning::');
   });
 
-  it('detects the token when the built bundle is driven in-process', async () => {
+  it('detects the token when the built bundle is driven in-process with Bash object shape', async () => {
     if (!existsSync(DIST_BUNDLE)) return;
 
     const bundle = await import(pathToFileURL(DIST_BUNDLE).href);
@@ -129,7 +184,7 @@ describe('redact-secrets through the built skill.mjs bundle (#3725)', () => {
       tool_name: 'Bash',
       session_id: '3725-redact-secrets',
       tool_input: { command: 'gitlab-ci printenv' },
-      tool_response: `GITLAB_TOKEN=${TOKEN} done`,
+      tool_response: bashObjectResponse(`GITLAB_TOKEN=${TOKEN} done`),
     });
 
     expect(stderrSpy).toHaveBeenCalledWith(
