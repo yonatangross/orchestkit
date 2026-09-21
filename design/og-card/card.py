@@ -28,6 +28,7 @@ HAIR = (255, 255, 255, 34)
 
 
 def fnt(name: str, px: int):
+    """Load a Geist face at `px` logical pixels, scaled for the 2x canvas."""
     return b.font(name, px * S)
 
 
@@ -50,6 +51,7 @@ def mark(name: str, box: int) -> Image.Image:
 
 
 def put(canvas: Image.Image, im: Image.Image, cx: float, cy: float) -> None:
+    """Composite `im` on `canvas` centred on (cx, cy)."""
     canvas.alpha_composite(im, (round(cx - im.width / 2), round(cy - im.height / 2)))
 
 
@@ -146,6 +148,7 @@ def panel(img: Image.Image, counts: dict[str, int] | None) -> dict[str, int]:
 
 
 def render(art: Image.Image, counts: dict[str, int] | None) -> Image.Image:
+    """The finished 1200x630 card: backdrop, panel, downsampled from 2x."""
     img = backdrop(art)
     panel(img, counts)
     return img.convert("RGB").resize((b.W, b.H), Image.Resampling.LANCZOS)
@@ -155,6 +158,7 @@ SITE_ASSETS = os.path.join(b.ROOT, "docs", "site", "assets", "og")
 
 
 def hexcolor(rgb: tuple[int, int, int]) -> str:
+    """An (r, g, b) brand token as the #rrggbb string the site reads."""
     return "#%02x%02x%02x" % rgb
 
 
@@ -189,6 +193,7 @@ def write_site_assets(art: Image.Image) -> None:
 
 
 def main() -> None:
+    """CLI: write out/og-card.png, or the site assets with --site."""
     ap = argparse.ArgumentParser()
     ap.add_argument("--art", default=None, help="art plate; default is the newest art/A-<n>.png")
     ap.add_argument("--out", default=os.path.join(b.HERE, "out", "og-card.png"))

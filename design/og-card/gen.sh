@@ -3,8 +3,9 @@
 # Created: 2026-09-21
 
 # Generate one Higgsfield art plate for concept A, B or C and download it at once.
-# Hard caps: 9 generations total, 3 per concept. Every call is logged to the
-# ledger before it runs, so a crashed call still counts against the cap.
+# Hard caps: 9 generations total, 3 per concept, reserved atomically by
+# reserve.py. The reservation is written before the call runs, so a crashed
+# call still counts against the cap.
 # Usage: design/og-card/gen.sh A
 set -euo pipefail
 cd "$(dirname "$0")"
@@ -16,14 +17,11 @@ touch "$LEDGER"
 C="${1:?concept letter A, B or C}"
 case "$C" in A|B|C) ;; *) echo "concept must be A, B or C" >&2; exit 2 ;; esac
 
-TOTAL=$(awk 'NF' "$LEDGER" | wc -l | tr -d ' ')
-PER=$(awk -v c="$C" '$2==c' "$LEDGER" | wc -l | tr -d ' ')
-[ "$TOTAL" -lt 9 ] || { echo "CAP: 9 generations already spent" >&2; exit 3; }
-[ "$PER" -lt 3 ] || { echo "CAP: concept $C already has 3 generations" >&2; exit 3; }
-N=$((PER + 1))
+# Count and append under one lock, so two runs started together cannot both
+# pass the same cap check and spend a paid generation (exit 3 = cap spent).
+N=$(python3 reserve.py "$LEDGER" "$C") || exit 3
 
 PROMPT=$(python3 -c 'import json,sys;p=json.load(open("prompts.json"));print(p[sys.argv[1]]["prompt"]+" "+p["_shared"])' "$C")
-printf '%s\t%s\t%s\tsubmitted\n' "$(date -u +%FT%TZ)" "$C" "$N" >> "$LEDGER"
 
 OUT="$ROOT/.lane-cache/hf-$C-$N.json"
 higgsfield generate create gpt_image_2 --prompt "$PROMPT" \

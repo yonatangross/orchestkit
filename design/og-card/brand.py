@@ -49,6 +49,7 @@ STAT_WORDS = {"skills": "skills", "agents": "agents", "hooks": "hooks"}
 
 
 def skill_count() -> int:
+    """Number of skills in the repo, counted from src/skills/*/SKILL.md."""
     n = len(glob.glob(os.path.join(ROOT, "src", "skills", "*", "SKILL.md")))
     if n == 0:
         sys.exit("no src/skills/*/SKILL.md found; refusing to print a zero")
@@ -56,6 +57,8 @@ def skill_count() -> int:
 
 
 def agent_count() -> int:
+    """Number of agents in the repo, counting src/agents/*.md the way
+    scripts/generate-docs-data.js does (README/INDEX/CONTRIBUTING excluded)."""
     skip = {"README.md", "INDEX.md", "CONTRIBUTING.md"}
     agents = os.path.join(ROOT, "src", "agents")
     return len([f for f in os.listdir(agents) if f.endswith(".md") and f not in skip])
@@ -83,10 +86,12 @@ def totals() -> dict[str, int]:
 
 
 def font(name: str, size: int) -> ImageFont.FreeTypeFont:
+    """Load a vendored Geist face from fonts/ at `size` px."""
     return ImageFont.truetype(os.path.join(HERE, "fonts", name), size)
 
 
 def cover(img: Image.Image, w: int = W, h: int = H) -> Image.Image:
+    """Scale `img` to fill w by h and centre-crop the overflow."""
     img = img.convert("RGB")
     s = max(w / img.width, h / img.height)
     img = img.resize((round(img.width * s), round(img.height * s)), Image.Resampling.LANCZOS)
@@ -96,11 +101,13 @@ def cover(img: Image.Image, w: int = W, h: int = H) -> Image.Image:
 
 
 def plate_index(p: str) -> int:
+    """The trailing number in an art plate path, 0 when it has none."""
     m = re.search(r"-(\d+)\.png$", p)
     return int(m.group(1)) if m else 0
 
 
 def newest_plate(concept: str) -> str:
+    """Path of the highest-numbered art plate for `concept`."""
     plates = sorted(glob.glob(os.path.join(HERE, "art", f"{concept}-[0-9].png")), key=plate_index)
     if not plates:
         sys.exit(f"no art/{concept}-<n>.png yet; run gen.sh {concept} first")

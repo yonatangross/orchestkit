@@ -1,8 +1,10 @@
 # Link card (Open Graph / X)
 
 The card at `https://orchestkit.yonyon.ai/opengraph-image`: Higgsfield conductor
-art, a frosted panel with the wordmark, "The toolkit for any coding agent", the
-skills / subagents / hooks counts, and the eight hosts OrchestKit installs into.
+art, a frosted panel with the wordmark, the tagline `brand.tagline()` builds
+("For Claude Code and N more agents", N from the host list), the counts named by
+`brand.STAT_WORDS` (skills / agents / hooks), and a "Works with" row of the eight
+hosts OrchestKit installs into.
 
 ## How it is built
 
