@@ -18,8 +18,10 @@ FIX="$H/fixtures/verify-cc-keys"
 # prose / R("...") forms the script greps for, so the binary comparison is
 # satisfied and only the spec input varies between arms.
 #
-# #4291: also emit hookEventName:R("...") for EVENTS_WITH_HOOK_EVENT_NAME, or
-# the new arbitration arm fails the control (empty extract = CANNOT OBSERVE).
+# #4291: emit hookEventName:R("...") for EVENTS_WITH_HOOK_EVENT_NAME members
+# that are NOT in HOOK_EVENT_NAME_REVIEWED_EXCEPTIONS. Emitting R for reviewed
+# exceptions (PostCompact) made that Set vacuous: emptying it still exited 0
+# under the fixture while the real binary has no R("PostCompact").
 
 rm -rf "$FIX"
 mkdir -p "$FIX/tree/scripts" "$FIX/tree/src/hooks/bin" "$FIX/tree/spec" "$FIX/bin" "$FIX/home"
@@ -35,8 +37,13 @@ cp "$REPO/spec/cc-output-keys.spec.yml" "$FIX/tree/spec/"
           console.log(`Hook-specific output for the ${e} event. additionalContext is non-error feedback delivered to the model.`);
         if (m.EVENTS_WITH_ADDITIONAL_CONTEXT.has("PostToolBatch"))
           console.log("Return additionalContext via hookSpecificOutput to inject context once for the whole batch.");
-        for (const e of m.EVENTS_WITH_HOOK_EVENT_NAME)
-          console.log(`hookEventName:R("${e}")`);
+        const henReviewed =
+          m.HOOK_EVENT_NAME_REVIEWED_EXCEPTIONS instanceof Set
+            ? m.HOOK_EVENT_NAME_REVIEWED_EXCEPTIONS
+            : new Set();
+        for (const e of m.EVENTS_WITH_HOOK_EVENT_NAME) {
+          if (!henReviewed.has(e)) console.log(`hookEventName:R("${e}")`);
+        }
       });
     ' "$FIX/tree/src/hooks/bin/cc-output-keys.generated.mjs"
 } > "$FIX/bin/claude"
