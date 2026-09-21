@@ -614,6 +614,12 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.73](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.72...v10.0.0-beta.73)** · 2026-09-21
+
+- **site:** make Jev search typeahead rerank non-blocking behind its own flag (#4325)
+- **deps:** bump dotenv from 17.4.2 to 18.0.0 in /orchestkit-demos (#4322)
+- bump the github-actions group with 7 updates (#4323)
+
 **[v10.0.0-beta.72](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.71...v10.0.0-beta.72)** · 2026-09-21
 
 - **test:** separate a Chrome launch failure from an empty render (#4324), closes [#4296](https://github.com/yonatangross/orchestkit/issues/4296)
@@ -647,11 +653,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **glyph:** add a triage page template with a parsable DECIDE pick (#4267)
 - **jev:** persist paired shadow decisions across local seams (#4278)
-
-**[v10.0.0-beta.65](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.64...v10.0.0-beta.65)** · 2026-09-20
-
-- **jev:** add conservative weak outcome sidecars (#4281)
-- **docs-site:** stop the picker repeating the hero install command (#4293)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
