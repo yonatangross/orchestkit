@@ -1,7 +1,7 @@
 // Rasterize the site's own host marks (docs/site/components/host-marks.tsx) to
 // PNGs for compose.py. Reads the component source so the card and the site
 // never drift. Usage: node design/og-card/host_icons.mjs claude cursor codex muse opencode pi agy devin
-import { existsSync, readFileSync, mkdirSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -73,8 +73,25 @@ function vendoredSvg(host) {
   return svg;
 }
 
+// Allowlist of host keys, derived from the three real sources of marks. argv is
+// checked against it before it reaches a file path or a lookup, so an unknown or
+// crafted argument fails loudly instead of being interpolated anywhere.
+const KNOWN_HOSTS = new Set([
+  ...FILL_PATHS.keys(),
+  ...COMPONENT_FOR_HOST.keys(),
+  ...readdirSync(join(here, "marks"))
+    .filter((f) => f.endsWith(".svg"))
+    .map((f) => f.slice(0, -4)),
+]);
+
 const hosts = process.argv.slice(2);
 if (!hosts.length) throw new Error("name at least one host id");
+const unknown = hosts.filter((h) => !KNOWN_HOSTS.has(h));
+if (unknown.length) {
+  throw new Error(
+    `unknown host id(s): ${unknown.join(", ")}\nknown: ${[...KNOWN_HOSTS].sort().join(", ")}`,
+  );
+}
 const out = join(here, "icons");
 mkdirSync(out, { recursive: true });
 for (const h of hosts) {
