@@ -1,6 +1,6 @@
 /**
- * Integration test (#3725): the redact-secrets layer must react to the field
- * CC actually sends on PostToolUse.
+ * Integration test (#3725, #4217): the redact-secrets layer must react to the
+ * field CC actually sends on PostToolUse.
  *
  * The unit suite stayed green while the layer was dead in production because
  * every test fed it `tool_result` — the legacy alias — while CC sends
@@ -22,19 +22,26 @@
  *    via file:// URL and its registered `skill/redact-secrets` hook driven
  *    with the same payload. Cross-platform; asserts detection itself.
  *
- * Skips automatically when the built bundle isn't present.
+ * #3578: feature PRs do not commit hooks/dist. beforeAll rebuilds src/hooks
+ * and mirrors skill.mjs into plugins/ so object-shape fixtures exercise THIS
+ * PR's source rather than main's last release bundle (the CI failure mode
+ * for #4217 part 1).
+ *
+ * Skips automatically when the built bundle isn't present after rebuild.
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeAll, beforeEach, afterEach } from 'vitest';
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, rmSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { copyFileSync, existsSync, mkdirSync, rmSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { tmpdir } from 'node:os';
 
 const REPO_ROOT = resolve(__dirname, '..', '..', '..', '..', '..');
+const HOOKS_PKG = join(REPO_ROOT, 'src', 'hooks');
 const PLUGIN_HOOKS = join(REPO_ROOT, 'plugins', 'ork', 'hooks');
 const RUN_HOOK = join(PLUGIN_HOOKS, 'bin', 'run-hook.mjs');
+const SRC_BUNDLE = join(HOOKS_PKG, 'dist', 'skill.mjs');
 const DIST_BUNDLE = join(PLUGIN_HOOKS, 'dist', 'skill.mjs');
 const HOOK_NAME = 'skill/redact-secrets';
 
@@ -59,6 +66,29 @@ function bashObjectResponse(stdout: string, stderr = ''): Record<string, unknown
 
 let stderrSpy: ReturnType<typeof vi.spyOn> | undefined;
 let scratchDir: string;
+
+beforeAll(() => {
+  // #3578: feature PRs never commit hooks/dist. Rebuild so object-shaped
+  // fixtures see the PR source, not the stale release bundle on disk.
+  const build = spawnSync('npm', ['run', 'build'], {
+    cwd: HOOKS_PKG,
+    encoding: 'utf8',
+    timeout: 120_000,
+    env: process.env,
+  });
+  if (build.status !== 0) {
+    console.warn(
+      `[integration] hooks build failed (status=${build.status}): ${String(build.stderr).slice(0, 400)}`,
+    );
+    return;
+  }
+  if (!existsSync(SRC_BUNDLE)) {
+    console.warn(`[integration] hooks build produced no ${SRC_BUNDLE}`);
+    return;
+  }
+  mkdirSync(dirname(DIST_BUNDLE), { recursive: true });
+  copyFileSync(SRC_BUNDLE, DIST_BUNDLE);
+}, 120_000);
 
 beforeEach(() => {
   // Fresh project dir per run so the dispatcher's session-event tracking
