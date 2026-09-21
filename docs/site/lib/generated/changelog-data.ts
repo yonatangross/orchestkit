@@ -18,6 +18,21 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.74",
+    "date": "2026-09-21",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.73...v10.0.0-beta.74",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**hooks:** redact-secrets scans object-shaped Bash tool_response ([#4330](https://github.com/yonatangross/orchestkit/issues/4330)) ([fc249a1](https://github.com/yonatangross/orchestkit/commit/fc249a1d98547ad26fb4d256da65ca111bd702fe))",
+          "**scripts:** derive-cc-output-keys --check arbitrates EVENTS_WITH_HOOK_EVENT_NAME ([#4331](https://github.com/yonatangross/orchestkit/issues/4331)) ([f8340e9](https://github.com/yonatangross/orchestkit/commit/f8340e92ae83ef03486cfa86225cd182c5d4a278))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.73",
     "date": "2026-09-21",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.72...v10.0.0-beta.73",

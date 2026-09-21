@@ -614,6 +614,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.74](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.73...v10.0.0-beta.74)** · 2026-09-21
+
+- **hooks:** redact-secrets scans object-shaped Bash tool_response (#4330)
+- **scripts:** derive-cc-output-keys --check arbitrates EVENTS_WITH_HOOK_EVENT_NAME (#4331)
+
 **[v10.0.0-beta.73](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.72...v10.0.0-beta.73)** · 2026-09-21
 
 - **site:** make Jev search typeahead rerank non-blocking behind its own flag (#4325)
@@ -648,11 +653,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.67](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.66...v10.0.0-beta.67)** · 2026-09-20
 
 - **expect:** jev live per-field decisions in form steps (#4284)
-
-**[v10.0.0-beta.66](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.65...v10.0.0-beta.66)** · 2026-09-20
-
-- **glyph:** add a triage page template with a parsable DECIDE pick (#4267)
-- **jev:** persist paired shadow decisions across local seams (#4278)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
