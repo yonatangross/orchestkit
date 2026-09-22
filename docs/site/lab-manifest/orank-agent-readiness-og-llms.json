@@ -1,0 +1,8 @@
+{
+  "slug": "orank-agent-readiness-og-llms",
+  "source": "docs/chore--dsp-94657-4347-agent-readiness/index.html",
+  "title": "Orank agent-readiness (OG, llms.txt, /docs lands)",
+  "description": "Interactive before/after for homepage og:type+og:image, dead pkg.go.dev link replacement, and /docs/mcp + /docs/sdk discoverability.",
+  "tags": ["orank", "docs-site", "og", "llms.txt", "agent-readiness"],
+  "date": "2026-09-22"
+}
