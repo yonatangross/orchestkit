@@ -45,17 +45,18 @@ export const metadata: Metadata = {
 		// worse for an agent than no link at all.
 		types: { "text/markdown": `${SITE.domain}/index.md` },
 	},
+	// Do not set openGraph/twitter title or description here. Next merges those
+	// objects shallowly, so a fixed root title would override every child page
+	// that only sets `title` (about, pricing, community, ...). Homepage social
+	// copy is set on app/(home)/page.tsx; other pages inherit from their own
+	// title + description.
 	openGraph: {
 		siteName: SITE.name,
 		type: "website",
 		url: SITE.domain,
-		title: SITE_TITLE,
-		description: PAGE_SUMMARY.site,
 	},
 	twitter: {
 		card: "summary_large_image",
-		title: SITE_TITLE,
-		description: PAGE_SUMMARY.site,
 	},
 	metadataBase: new URL(SITE.domain),
 };
