@@ -141,4 +141,4 @@ agent-browser close
 2. **Generator**: "Generate tests from checkout spec" -> creates `tests/checkout.spec.ts`
 3. **Healer**: Automatically fixes tests when selectors break
 
-See `references/planner-agent.md` for detailed workflow.
+See `rules/e2e-ai-agents.md` for detailed workflow.
