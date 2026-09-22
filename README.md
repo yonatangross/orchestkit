@@ -614,6 +614,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.75](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.74...v10.0.0-beta.75)** · 2026-09-22
+
+- **site:** new link card with live skills, agents and hooks counts (#4335)
+- **hooks:** stacked-PR guards read the trunk from origin/HEAD (#4336)
+
 **[v10.0.0-beta.74](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.73...v10.0.0-beta.74)** · 2026-09-21
 
 - **hooks:** redact-secrets scans object-shaped Bash tool_response (#4330)
@@ -649,10 +654,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.68](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.67...v10.0.0-beta.68)** · 2026-09-20
 
 - **jev:** add shared shadow foundation and passive Codex adapter (#4286)
-
-**[v10.0.0-beta.67](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.66...v10.0.0-beta.67)** · 2026-09-20
-
-- **expect:** jev live per-field decisions in form steps (#4284)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
