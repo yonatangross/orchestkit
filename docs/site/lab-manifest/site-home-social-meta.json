@@ -1,0 +1,8 @@
+{
+  "slug": "site-home-social-meta",
+  "source": "docs/fix--site-home-social-meta/index.html",
+  "title": "Homepage-only social meta",
+  "description": "Toggle before and after for root openGraph.title inheritance: after the fix, /about keeps its own og:title while / still uses the card tagline.",
+  "tags": ["site", "seo", "og"],
+  "date": "2026-09-22"
+}
