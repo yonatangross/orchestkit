@@ -110,7 +110,15 @@ export function mockCommonBasic(
     outputSilentAllow: vi.fn((): HookResult => ({
       continue: true,
       suppressOutput: true,
-      hookSpecificOutput: { permissionDecision: 'allow' },
+      hookSpecificOutput: { hookEventName: 'PreToolUse', permissionDecision: 'allow' },
+    })),
+    outputPermissionRequestAllow: vi.fn((): HookResult => ({
+      continue: true,
+      suppressOutput: true,
+      hookSpecificOutput: {
+        hookEventName: 'PermissionRequest',
+        decision: { behavior: 'allow' },
+      },
     })),
     outputBlock: vi.fn((reason: string): HookResult => ({
       continue: false,

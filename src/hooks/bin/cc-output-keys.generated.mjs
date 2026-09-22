@@ -167,8 +167,11 @@ export const ADDITIONAL_CONTEXT_SCHEMA_ACCEPTED = new Set([
  * permission. Track additions in the spec, never here.
  */
 export const KEY_EVENTS = new Map([
-  ['permissionDecision', new Set(['PreToolUse', 'PermissionRequest', 'PreModelSwitch'])],
-  ['permissionDecisionReason', new Set(['PreToolUse', 'PermissionRequest', 'PreModelSwitch'])],
+  // PermissionRequest removed from permissionDecision* (F11 / SC47): that
+  // event answers with nested decision.behavior, not permissionDecision.
+  ['permissionDecision', new Set(['PreToolUse', 'PreModelSwitch'])],
+  ['permissionDecisionReason', new Set(['PreToolUse', 'PreModelSwitch'])],
+  ['decision', new Set(['PermissionRequest'])],
   ['retry', new Set(['PermissionDenied'])],
   ['worktreePath', new Set(['WorktreeCreate'])],
   ['updatedInput', new Set(['PreToolUse'])],

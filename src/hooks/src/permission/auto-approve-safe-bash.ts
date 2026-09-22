@@ -6,7 +6,7 @@
 
 import type { HookInput, HookResult , HookContext} from '../types.js';
 import {
-  outputSilentAllow,
+  outputPermissionRequestAllow,
   outputSilentSuccess,
 } from '../lib/common.js';
 import { isCompoundCommand, normalizeSingle } from '../lib/normalize-command.js';
@@ -116,7 +116,7 @@ export function autoApproveSafeBash(input: HookInput, ctx: HookContext = NOOP_CT
     if (pattern.test(normalized)) {
       ctx.log('auto-approve-safe-bash', `Auto-approved: matches safe pattern ${pattern}`);
       ctx.logPermission('allow', `Matches safe pattern: ${pattern}`, input);
-      return outputSilentAllow();
+      return outputPermissionRequestAllow();
     }
   }
 

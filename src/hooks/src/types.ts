@@ -371,15 +371,39 @@ export interface ToolInput {
 }
 
 /**
+ * PermissionRequest decision object (CC hook reference, "PermissionRequest
+ * decision control").
+ *
+ * PermissionRequest does NOT answer with `permissionDecision` — that key is
+ * PreToolUse/PreModelSwitch only. The documented shape is a nested `decision`
+ * object whose `behavior` grants or refuses the request, and CC states plainly
+ * that "Only the `decision` object can grant or deny the request."
+ */
+export interface PermissionRequestDecision {
+  /** 'allow' grants the permission, 'deny' refuses it */
+  behavior: 'allow' | 'deny';
+  /** allow only: replaces the ENTIRE tool input object before execution */
+  updatedInput?: Record<string, unknown>;
+  /** allow only: permission update entries to apply (addRules, setMode, ...) */
+  updatedPermissions?: Array<Record<string, unknown>>;
+  /** deny only: tells Claude why the permission was refused */
+  message?: string;
+  /** deny only: stops Claude when true */
+  interrupt?: boolean;
+}
+
+/**
  * Hook-specific output for CC 2.1.9
  */
 export interface HookSpecificOutput {
   /** Hook event name for context */
   hookEventName?: 'PreToolUse' | 'PostToolUse' | 'PostToolUseFailure' | 'PermissionRequest' | 'PermissionDenied' | 'UserPromptSubmit' | 'SubagentStart' | 'SubagentStop' | 'SessionStart' | 'PostCompact' | 'PreModelSwitch';
-  /** Permission decision (PermissionRequest/PreToolUse hooks, CC 2.1.69: added 'ask', CC 2.1.89: added 'defer'; CC 2.1.251: PreModelSwitch answers allow/deny/ask the same way) */
+  /** Permission decision (PreToolUse hooks, CC 2.1.69: added 'ask', CC 2.1.89: added 'defer'; CC 2.1.251: PreModelSwitch answers allow/deny/ask the same way). NOT read on PermissionRequest — use `decision` there. */
   permissionDecision?: 'allow' | 'deny' | 'ask' | 'defer';
   /** Reason for permission decision */
   permissionDecisionReason?: string;
+  /** Allow/deny verdict for PermissionRequest hooks (see PermissionRequestDecision) */
+  decision?: PermissionRequestDecision;
   /** Additional context injected before tool execution (CC 2.1.9) */
   additionalContext?: string;
   /** Modified tool input (CC 2.1.25: canonical way to modify tool inputs) */

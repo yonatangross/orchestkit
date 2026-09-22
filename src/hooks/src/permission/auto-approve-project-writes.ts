@@ -6,7 +6,7 @@
 
 import type { HookInput, HookResult , HookContext} from '../types.js';
 import {
-  outputSilentAllow,
+  outputPermissionRequestAllow,
   outputSilentSuccess,
 } from '../lib/common.js';
 import { isInsideDir, hasExcludedDir, resolveRealPath } from '../lib/path-containment.js';
@@ -49,7 +49,7 @@ export function autoApproveProjectWrites(input: HookInput, ctx: HookContext = NO
     const label = rootDir === projectDir ? 'project directory' : `added dir ${rootDir}`;
     ctx.log('auto-approve-project-writes', `Auto-approved: within ${label}`);
     ctx.logPermission('allow', `In-project write: ${filePath}`, input);
-    return outputSilentAllow();
+    return outputPermissionRequestAllow();
   }
 
   // Outside all known directories - let user decide

@@ -14,6 +14,7 @@ import { sessionEnvSetup } from '../lifecycle/session-env-setup.js';
 import {
   outputSilentSuccess,
   outputSilentAllow,
+  outputPermissionRequestAllow,
   outputBlock,
   outputDeny,
   outputAsk,
@@ -98,7 +99,9 @@ describe('permission/auto-approve-safe-bash', () => {
 
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
 
     test('auto-approves git log', () => {
@@ -106,7 +109,9 @@ describe('permission/auto-approve-safe-bash', () => {
       const result = autoApproveSafeBash(input);
 
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
 
     test('auto-approves git diff', () => {
@@ -114,7 +119,9 @@ describe('permission/auto-approve-safe-bash', () => {
       const result = autoApproveSafeBash(input);
 
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
 
     test('auto-approves git checkout', () => {
@@ -122,7 +129,9 @@ describe('permission/auto-approve-safe-bash', () => {
       const result = autoApproveSafeBash(input);
 
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
   });
 
@@ -132,7 +141,9 @@ describe('permission/auto-approve-safe-bash', () => {
       const result = autoApproveSafeBash(input);
 
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
 
     test('auto-approves poetry run', () => {
@@ -140,7 +151,9 @@ describe('permission/auto-approve-safe-bash', () => {
       const result = autoApproveSafeBash(input);
 
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
 
     test('auto-approves yarn test', () => {
@@ -148,7 +161,9 @@ describe('permission/auto-approve-safe-bash', () => {
       const result = autoApproveSafeBash(input);
 
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
   });
 
@@ -158,7 +173,9 @@ describe('permission/auto-approve-safe-bash', () => {
       const result = autoApproveSafeBash(input);
 
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
 
     test('auto-approves docker logs', () => {
@@ -166,7 +183,9 @@ describe('permission/auto-approve-safe-bash', () => {
       const result = autoApproveSafeBash(input);
 
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
   });
 
@@ -176,7 +195,9 @@ describe('permission/auto-approve-safe-bash', () => {
       const result = autoApproveSafeBash(input);
 
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
 
     test('auto-approves ruff check', () => {
@@ -184,7 +205,9 @@ describe('permission/auto-approve-safe-bash', () => {
       const result = autoApproveSafeBash(input);
 
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
   });
 
@@ -262,6 +285,7 @@ describe('lib/common.ts', () => {
   describe('#1910 hookSpecificOutput envelope invariant', () => {
     const cases: Array<[string, ReturnType<typeof outputSilentAllow>]> = [
       ['outputSilentAllow', outputSilentAllow()],
+      ['outputPermissionRequestAllow', outputPermissionRequestAllow()],
       ['outputWithContext', outputWithContext('ctx')],
       ['outputAllowWithContext', outputAllowWithContext('ctx')],
       ['outputDeny', outputDeny('reason')],
@@ -272,6 +296,20 @@ describe('lib/common.ts', () => {
       if (result.hookSpecificOutput) {
         expect(result.hookSpecificOutput.hookEventName).toBeTruthy();
       }
+    });
+
+    test('outputPermissionRequestAllow uses PermissionRequest decision shape', () => {
+      const result = outputPermissionRequestAllow();
+      expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
+    });
+
+    test('outputSilentAllow stays PreToolUse permissionDecision', () => {
+      const result = outputSilentAllow();
+      expect(result.hookSpecificOutput?.hookEventName).toBe('PreToolUse');
+      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(result.hookSpecificOutput?.decision).toBeUndefined();
     });
 
     test('outputBlock emits no hookSpecificOutput (event-agnostic hard block)', () => {

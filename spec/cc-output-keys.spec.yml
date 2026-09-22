@@ -236,16 +236,27 @@ keys:
     #                 it (issue #3457 follow-up, 2026-08-12).
 
   permissionDecision:
-    events: [PreToolUse, PermissionRequest, PreModelSwitch]
+    # PermissionRequest is NOT listed: that event reads nested decision.behavior
+    # (see `decision` key below). A PreToolUse permissionDecision on
+    # PermissionRequest is inert (F11 / SC47).
+    events: [PreToolUse, PreModelSwitch]
     evidence: |
       "- `decision` - \"block\" for PostToolUse/Stop/UserPromptSubmit hooks
        (deprecated for PreToolUse, use hookSpecificOutput.permissionDecision
        instead)"
 
   permissionDecisionReason:
-    events: [PreToolUse, PermissionRequest, PreModelSwitch]
+    events: [PreToolUse, PreModelSwitch]
     evidence: |
       Documented alongside permissionDecision in the PreToolUse field list.
+
+  decision:
+    events: [PermissionRequest]
+    evidence: |
+      PermissionRequest decision control (CC hooks reference):
+      hookSpecificOutput.hookEventName PermissionRequest with
+      decision.behavior allow or deny. "Only the `decision` object can grant
+      or deny the request."
 
   retry:
     events: [PermissionDenied]

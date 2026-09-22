@@ -12,7 +12,7 @@
 import type { HookInput, HookResult , HookContext} from '../types.js';
 import {
   outputSilentSuccess,
-  outputSilentAllow,
+  outputPermissionRequestAllow,
   getPluginRoot,
 } from '../lib/common.js';
 import { isCompoundCommand, normalizeSingle } from '../lib/normalize-command.js';
@@ -152,7 +152,7 @@ export function learningTracker(input: HookInput, ctx: HookContext = NOOP_CTX): 
     if (shouldAutoApprove(command)) {
       ctx.log('learning-tracker', 'Command matches learned auto-approve pattern');
       ctx.logPermission('allow', 'Learned pattern match', input);
-      return outputSilentAllow();
+      return outputPermissionRequestAllow();
     }
   }
 
