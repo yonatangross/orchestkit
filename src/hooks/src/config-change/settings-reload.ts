@@ -18,9 +18,8 @@ import { safeProjectDir } from '../lib/paths.js';
 import { safeMkdirSync } from '../lib/safe-fs.js';
 import { NOOP_CTX } from '../lib/context.js';
 
-/** Dangerous patterns that should BLOCK the change */
+/** Credential-key patterns that should BLOCK the change (raw content scan). */
 const BLOCK_PATTERNS = [
-  { pattern: /--no-verify/, label: 'hook-bypass: --no-verify in config' },
   { pattern: /"(API_KEY|SECRET_KEY|AUTH_TOKEN|DB_PASSWORD|PRIVATE_KEY)"\s*:/i, label: 'secret-exposure: credential key in config' },
 ];
 
@@ -33,9 +32,56 @@ const WARN_PATTERNS = [
   { pattern: /"hooks"\s*:\s*\{\s*\}/, label: 'hooks-removed: all hooks cleared' },
 ];
 
+const NO_VERIFY_RE = /--no-verify/;
+const HOOK_BYPASS_LABEL = 'hook-bypass: --no-verify in config';
+
 interface DriftResult {
   blocks: string[];
   warnings: string[];
+}
+
+/** True when a string grants the git hook bypass flag. */
+function hasNoVerify(value: string): boolean {
+  return NO_VERIFY_RE.test(value);
+}
+
+/**
+ * Walk hook trees and return true if any `command` string grants --no-verify.
+ * Does not match deny/ask rules or free-text notes (SC47 F3).
+ */
+function hooksGrantNoVerify(node: unknown): boolean {
+  if (node == null) return false;
+  if (Array.isArray(node)) return node.some(hooksGrantNoVerify);
+  if (typeof node !== 'object') return false;
+
+  const obj = node as Record<string, unknown>;
+  if (typeof obj.command === 'string' && hasNoVerify(obj.command)) return true;
+  return Object.values(obj).some(hooksGrantNoVerify);
+}
+
+/**
+ * Structured --no-verify check: only locations that *grant* the bypass count.
+ * permissions.deny / permissions.ask / unrelated keys are ignored (SC47 F3).
+ */
+function grantsNoVerifyBypass(settings: Record<string, unknown>): boolean {
+  const permissions = settings.permissions;
+  if (permissions && typeof permissions === 'object') {
+    const allow = (permissions as Record<string, unknown>).allow;
+    if (Array.isArray(allow) && allow.some((e) => typeof e === 'string' && hasNoVerify(e))) {
+      return true;
+    }
+  }
+
+  if (settings.hooks != null && hooksGrantNoVerify(settings.hooks)) return true;
+
+  const env = settings.env;
+  if (env && typeof env === 'object') {
+    for (const value of Object.values(env as Record<string, unknown>)) {
+      if (typeof value === 'string' && hasNoVerify(value)) return true;
+    }
+  }
+
+  return false;
 }
 
 /**
@@ -51,6 +97,18 @@ function scanConfigFile(filePath: string): DriftResult {
     content = readFileSync(filePath, 'utf8');
   } catch {
     return result;
+  }
+
+  // SC47 F3: never raw-regex --no-verify over the whole file — deny/ask rules
+  // that forbid the flag would false-positive and block every reload.
+  try {
+    const parsed: unknown = JSON.parse(content);
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)
+        && grantsNoVerifyBypass(parsed as Record<string, unknown>)) {
+      result.blocks.push(HOOK_BYPASS_LABEL);
+    }
+  } catch {
+    // Non-JSON settings: skip structured bypass check (no whole-file fallback).
   }
 
   for (const { pattern, label } of BLOCK_PATTERNS) {
@@ -170,27 +228,38 @@ export function settingsReload(input: HookInput, ctx: HookContext = NOOP_CTX): H
   // Sync debug mode with CC's /debug toggle (CC 2.1.71)
   syncDebugMode();
 
-  // CC `config_source`: a hook's block/warn is meaningless for `policy_settings`
-  // (managed policy always takes effect — CC ignores the block) and `skills`
-  // (not a settings file). Audit + silent-success for those. (#1264 Phase 3:
-  // the hook previously ignored config_source and rescanned both files every fire.)
-  const configSource = input.config_source;
+  // CC documents ConfigChange layer as `source` (not `config_source`):
+  // https://docs.claude.com/en/docs/claude-code/hooks#configchange-input
+  // A hook's block/warn is meaningless for `policy_settings` (managed policy
+  // always takes effect — CC ignores the block) and `skills` (not a settings
+  // file). Audit + silent-success for those. (#1264 Phase 3)
+  // `config_source` is a legacy invented alias — still accepted as fallback.
+  const configSource = (typeof input.source === 'string' ? input.source : undefined)
+    ?? input.config_source;
   if (configSource === 'policy_settings' || configSource === 'skills') {
     writeAuditEntry(projectDir, { session: sessionId, action: 'skip', details: [configSource] });
     return outputSilentSuccess();
   }
 
   try {
-    // Scan both project and user settings
     const projectSettings = join(projectDir, '.claude', 'settings.json');
     const userSettings = join(process.env.HOME || '', '.claude', 'settings.json');
 
-    const projectResult = scanConfigFile(projectSettings);
-    const userResult = scanConfigFile(userSettings);
-    const hooksFindings = checkHooksIntegrity(projectDir);
+    // CC sends optional `file_path` for the specific file that changed. When
+    // present, scan only that file — do not re-block on an untouched sibling.
+    const changedPath = typeof input.file_path === 'string' && input.file_path.length > 0
+      ? input.file_path
+      : undefined;
+    const filesToScan = changedPath ? [changedPath] : [projectSettings, userSettings];
 
-    const allBlocks = [...projectResult.blocks, ...userResult.blocks];
-    const allWarnings = [...projectResult.warnings, ...userResult.warnings, ...hooksFindings];
+    const scanned = filesToScan.map(scanConfigFile);
+    const allBlocks = scanned.flatMap((r) => r.blocks);
+    const pathWarnings = scanned.flatMap((r) => r.warnings);
+
+    const checkIntegrity = !changedPath || changedPath === projectSettings;
+    const hooksFindings = checkIntegrity ? checkHooksIntegrity(projectDir) : [];
+
+    const allWarnings = [...pathWarnings, ...hooksFindings];
 
     // BLOCK: dangerous patterns found
     if (allBlocks.length > 0) {

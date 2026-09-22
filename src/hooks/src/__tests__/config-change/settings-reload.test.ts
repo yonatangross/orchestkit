@@ -74,6 +74,15 @@ const PROJECT_SETTINGS = '/test/project/.claude/settings.json';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const USER_SETTINGS = `${globalThis.process?.env?.HOME || '/tmp'}/.claude/settings.json`;
 
+/** A settings file whose hook command grants the git bypass flag. */
+const BYPASS_IN_HOOK_COMMAND = JSON.stringify({
+  hooks: {
+    PreToolUse: [
+      { matcher: 'Bash', hooks: [{ type: 'command', command: 'git commit --no-verify' }] },
+    ],
+  },
+});
+
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
@@ -120,14 +129,14 @@ describe('config-change/settings-reload (drift detector)', () => {
     });
 
     it('skips policy_settings and skills (block is moot — CC ignores it / not a settings file)', () => {
-      // A would-BLOCK pattern present, but config_source short-circuits before scan.
+      // A would-BLOCK pattern present, but `source` short-circuits before scan.
       mockFiles[PROJECT_SETTINGS] = JSON.stringify({ permissions: { allow: ['Bash(--no-verify)'] } });
 
-      const policy = settingsReload(createInput({ config_source: 'policy_settings' }), testCtx);
+      const policy = settingsReload(createInput({ source: 'policy_settings' }), testCtx);
       expect(policy.continue).toBe(true);
       expect(outputBlock).not.toHaveBeenCalled();
 
-      const skills = settingsReload(createInput({ config_source: 'skills' }), testCtx);
+      const skills = settingsReload(createInput({ source: 'skills' }), testCtx);
       expect(skills.continue).toBe(true);
       expect(outputBlock).not.toHaveBeenCalled();
       expect(outputSilentSuccess).toHaveBeenCalled();
@@ -139,8 +148,8 @@ describe('config-change/settings-reload (drift detector)', () => {
   // -------------------------------------------------------------------------
 
   describe('dangerous patterns (block)', () => {
-    it('blocks when --no-verify found in project settings', () => {
-      mockFiles[PROJECT_SETTINGS] = '{"scripts": {"pre-commit": "git commit --no-verify"}}';
+    it('blocks when a hook command in project settings grants the bypass flag', () => {
+      mockFiles[PROJECT_SETTINGS] = BYPASS_IN_HOOK_COMMAND;
 
       const result = settingsReload(createInput(), testCtx);
 
@@ -167,7 +176,7 @@ describe('config-change/settings-reload (drift detector)', () => {
     });
 
     it('logs permission feedback as deny on block', () => {
-      mockFiles[PROJECT_SETTINGS] = '{"scripts": {"hook": "--no-verify"}}';
+      mockFiles[PROJECT_SETTINGS] = BYPASS_IN_HOOK_COMMAND;
 
       settingsReload(createInput(), testCtx);
 
@@ -175,6 +184,131 @@ describe('config-change/settings-reload (drift detector)', () => {
         'deny',
         expect.stringContaining('blocked'),
       );
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // Where the bypass flag counts (SC47 F3)
+  // -------------------------------------------------------------------------
+
+  describe('bypass flag is matched only where settings grant it (SC47 F3)', () => {
+    it('does NOT block when a deny rule forbids the bypass flag', () => {
+      mockFiles[PROJECT_SETTINGS] = JSON.stringify({
+        permissions: {
+          allow: ['Read'],
+          deny: ['Bash(git commit --no-verify:*)', 'Bash(git push --no-verify:*)'],
+        },
+      });
+
+      const result = settingsReload(createInput(), testCtx);
+
+      expect(result.continue).toBe(true);
+      expect(outputBlock).not.toHaveBeenCalled();
+    });
+
+    it('does NOT block when an ask rule names the bypass flag', () => {
+      mockFiles[PROJECT_SETTINGS] = JSON.stringify({
+        permissions: { ask: ['Bash(git commit --no-verify:*)'] },
+      });
+
+      const result = settingsReload(createInput(), testCtx);
+
+      expect(result.continue).toBe(true);
+      expect(outputBlock).not.toHaveBeenCalled();
+    });
+
+    it('blocks when an allow rule grants the bypass flag', () => {
+      mockFiles[PROJECT_SETTINGS] = JSON.stringify({
+        permissions: { allow: ['Bash(git commit --no-verify:*)'] },
+      });
+
+      const result = settingsReload(createInput(), testCtx);
+
+      expect(result.continue).toBe(false);
+      expect(outputBlock).toHaveBeenCalledWith(expect.stringContaining('hook-bypass'));
+    });
+
+    it('blocks when a hook command runs the bypass flag', () => {
+      mockFiles[PROJECT_SETTINGS] = BYPASS_IN_HOOK_COMMAND;
+
+      const result = settingsReload(createInput(), testCtx);
+
+      expect(result.continue).toBe(false);
+      expect(outputBlock).toHaveBeenCalledWith(expect.stringContaining('hook-bypass'));
+    });
+
+    it('blocks when an env value carries the bypass flag', () => {
+      mockFiles[PROJECT_SETTINGS] = JSON.stringify({
+        env: { GIT_COMMIT_ARGS: '--no-verify' },
+      });
+
+      const result = settingsReload(createInput(), testCtx);
+
+      expect(result.continue).toBe(false);
+      expect(outputBlock).toHaveBeenCalledWith(expect.stringContaining('hook-bypass'));
+    });
+
+    it('does NOT block on the flag in an unrelated key', () => {
+      mockFiles[PROJECT_SETTINGS] = JSON.stringify({
+        notes: 'never run git commit --no-verify in this repo',
+      });
+
+      const result = settingsReload(createInput(), testCtx);
+
+      expect(result.continue).toBe(true);
+      expect(outputBlock).not.toHaveBeenCalled();
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // Payload fields: `source` (documented) and `file_path` (SC47 F3)
+  // -------------------------------------------------------------------------
+
+  describe('ConfigChange payload fields (SC47 F3)', () => {
+    // CC documents the layer as `source`:
+    // https://docs.claude.com/en/docs/claude-code/hooks#configchange-input
+    it.each(['source', 'config_source'])('honours the skip layers under %s', (field) => {
+      mockFiles[PROJECT_SETTINGS] = JSON.stringify({
+        permissions: { allow: ['Bash(git commit --no-verify:*)'] },
+      });
+
+      for (const layer of ['policy_settings', 'skills']) {
+        vi.clearAllMocks();
+        const result = settingsReload(createInput({ [field]: layer }), testCtx);
+
+        expect(result.continue).toBe(true);
+        expect(outputBlock).not.toHaveBeenCalled();
+        expect(outputSilentSuccess).toHaveBeenCalled();
+      }
+    });
+
+    it('scans only the file named by file_path', () => {
+      mockFiles[USER_SETTINGS] = JSON.stringify({
+        permissions: { allow: ['Bash(git commit --no-verify:*)'] },
+      });
+      mockFiles[PROJECT_SETTINGS] = JSON.stringify({ permissions: { allow: ['Read'] } });
+
+      const result = settingsReload(
+        createInput({ file_path: PROJECT_SETTINGS, source: 'project_settings' }),
+        testCtx,
+      );
+
+      expect(result.continue).toBe(true);
+      expect(outputBlock).not.toHaveBeenCalled();
+    });
+
+    it('still blocks when file_path names the offending file', () => {
+      mockFiles[USER_SETTINGS] = JSON.stringify({
+        permissions: { allow: ['Bash(git commit --no-verify:*)'] },
+      });
+
+      const result = settingsReload(
+        createInput({ file_path: USER_SETTINGS, source: 'user_settings' }),
+        testCtx,
+      );
+
+      expect(result.continue).toBe(false);
+      expect(outputBlock).toHaveBeenCalledWith(expect.stringContaining('hook-bypass'));
     });
   });
 
@@ -269,7 +403,10 @@ describe('config-change/settings-reload (drift detector)', () => {
 
   describe('priority', () => {
     it('blocks even when warnings also present', () => {
-      mockFiles[PROJECT_SETTINGS] = '{"permissionMode": "dontAsk", "scripts": "--no-verify"}';
+      mockFiles[PROJECT_SETTINGS] = JSON.stringify({
+        permissionMode: 'dontAsk',
+        permissions: { allow: ['Bash(git commit --no-verify:*)'] },
+      });
 
       const result = settingsReload(createInput(), testCtx);
 
@@ -309,7 +446,7 @@ describe('config-change/settings-reload (drift detector)', () => {
 
   describe('audit trail (#978)', () => {
     it('writes JSONL audit entry on block', () => {
-      mockFiles[PROJECT_SETTINGS] = '{"scripts": {"hook": "--no-verify"}}';
+      mockFiles[PROJECT_SETTINGS] = BYPASS_IN_HOOK_COMMAND;
 
       settingsReload(createInput(), testCtx);
 
