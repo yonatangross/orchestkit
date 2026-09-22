@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dead agent: under context inherit | OrchestKit Lab</title>
+  <meta name="description" content="F26: nine skills set agent: with context: inherit, so the agent binding never ran. Fix deletes agent:, keeps inherit, and lints agent: requires fork.">
+  <style>
+    :root { color-scheme: dark; font: 17px/1.55 system-ui, sans-serif; background: #101822; color: #e9eef3; }
+    body { max-width: 760px; margin: auto; padding: 40px 20px; }
+    h1 { font-size: clamp(1.8rem, 5vw, 2.6rem); line-height: 1.15; margin: 0 0 12px; }
+    h2 { font-size: 1.1rem; margin: 28px 0 10px; color: #b8c5d1; }
+    a { color: #8fd8ff; }
+    .eyebrow { color: #8fd8ff; letter-spacing: .08em; font-size: 13px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; }
+    @media (max-width: 640px) { .row { grid-template-columns: 1fr; } }
+    article { border: 1px solid #43566a; border-radius: 10px; padding: 16px; }
+    .before { border-color: #7f1d1d; }
+    .after { border-color: #166534; }
+    code { background: rgba(255,255,255,.07); border-radius: 4px; padding: 1px 5px; font-size: 14px; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 8px; }
+    th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid #2a3a4a; vertical-align: top; }
+    th { color: #8fd8ff; font-weight: 600; }
+    .proof { font-family: ui-monospace, monospace; font-size: 13px; background: #0d1017; padding: 12px; border-radius: 8px; white-space: pre-wrap; }
+    footer { margin-top: 28px; color: #b8c5d1; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="eyebrow">ORCHESTKIT LAB · F26 · PR #4358</p>
+    <h1>Dead <code>agent:</code> under <code>context: inherit</code></h1>
+    <p>Claude Code only binds skill frontmatter <code>agent:</code> when
+    <code>context: fork</code>. Nine skills shipped both <code>agent:</code>
+    and <code>context: inherit</code> — the named agent never ran.</p>
+
+    <div class="row">
+      <article class="before">
+        <h2>Broken</h2>
+        <p><code>agent: release-engineer</code><br>
+        <code>context: inherit</code></p>
+        <p>Binding is dead. Body often meant “pair with” or “delegate to”,
+        not “run as”.</p>
+      </article>
+      <article class="after">
+        <h2>Fixed</h2>
+        <p>Delete <code>agent:</code>, keep <code>inherit</code>.</p>
+        <p>Lint: <code>agent:</code> requires <code>context: fork</code>
+        (Test 3b in <code>test-skill-md.sh</code>).</p>
+      </article>
+    </div>
+
+    <h2>Nine skills (all delete agent:)</h2>
+    <table>
+      <thead><tr><th>Skill</th><th>Was agent:</th><th>Why not fork</th></tr></thead>
+      <tbody>
+        <tr><td>release-sync</td><td>release-engineer</td><td>interactive sync / AskUserQuestion</td></tr>
+        <tr><td>code-review-playbook</td><td>code-quality-reviewer</td><td>playbook; multi-agent is review-pr</td></tr>
+        <tr><td>documentation-patterns</td><td>release-engineer</td><td>reference only</td></tr>
+        <tr><td>emulate-seed</td><td>emulate-engineer</td><td>body says spawn the pair</td></tr>
+        <tr><td>errors</td><td>debug-investigator</td><td>delegates TO agent</td></tr>
+        <tr><td>i18n-date-patterns</td><td>frontend-ui-developer</td><td>Integration = consumers</td></tr>
+        <tr><td>json-render-catalog</td><td>genui-architect</td><td>catalog reference</td></tr>
+        <tr><td>web-research-workflow</td><td>web-research-analyst</td><td>“Primary user” of skill</td></tr>
+        <tr><td>zustand-patterns</td><td>frontend-ui-developer</td><td>reference skill</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Proof</h2>
+    <div class="proof">origin/main repro: 9 skills with agent: + context: inherit
+after: 0 dead bindings; Test 3b PASS
+bodies untouched (ork-adopt lane); frontmatter only
+PR: https://github.com/yonatangross/orchestkit/pull/4358</div>
+
+    <p><a href="https://github.com/yonatangross/orchestkit/pull/4358">PR 4358</a> ·
+    <a href="https://orchestkit.yonyon.ai/lab">Explore the Lab</a></p>
+    <footer>fix--sc47-f26-skill-agent-context · OrchestKit docs site</footer>
+  </main>
+</body>
+</html>
