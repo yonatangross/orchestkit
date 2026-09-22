@@ -101,8 +101,10 @@ test.describe("View transition abort guard", () => {
 			if (visibilityDesc) {
 				Object.defineProperty(document, "visibilityState", visibilityDesc);
 			} else {
-				delete (document as Document & { visibilityState?: string })
-					.visibilityState;
+				Reflect.deleteProperty(
+					document as Document & { visibilityState?: string },
+					"visibilityState",
+				);
 			}
 			document.dispatchEvent(new Event("visibilitychange"));
 
