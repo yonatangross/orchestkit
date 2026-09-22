@@ -79,10 +79,10 @@ const F = [
   ["implement","every planned file is written, the new and existing tests pass, the scope-creep check found nothing unplanned, and E2E verification ran"],
   ["cover","every generated test runs, the suite is green or each remaining failure is reported with its heal-loop classification, and the coverage report is written"],
   ["verify","every selected dimension has a score backed by a command you ran this session, and the report separates VERIFIED from CLAIMED"],
-  ["review-pr","every agent's findings are checked against the diff, the validation checks ran, and the review lists only problems you would block the merge for"],
+  ["review-pr","every agent's findings are checked against the diff, the validation checks ran, and the review is posted as conventional comments with an approve or request-changes verdict, each blocking issue carrying file, line and why"],
   ["fix-issue","the root cause is confirmed by a failing test that now passes, the full suite is green, and the PR links the issue"],
   ["brainstorm","the top approaches are scored on all seven dimensions and the trade-offs are presented for the user to choose"],
-  ["swarm-migrate","every repo is merged, skipped with a reason, or paused with its novel failure logged, and the final report is written"],
+  ["swarm-migrate","every repo has a PR open and green (never merged by the swarm), or is skipped with a reason, or paused with its novel failure logged, and the final report is written"],
 ];
 document.getElementById('fin').innerHTML = F.map(([s,d]) => `<tr><td><code>/ork:${s}</code></td><td>Done means: ${d}.</td></tr>`).join('');
 </script>

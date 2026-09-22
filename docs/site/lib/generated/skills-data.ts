@@ -4068,7 +4068,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "review-pr",
     "description": "PR review using parallel specialized agents for code quality, security, testing, architecture, and performance analysis. Synthesizes findings into a review report with conventional comments (praise/issue/suggestion/nitpick) and approve or request-changes verdict. Use when reviewing pull requests, conducting security audits, or validating changes before merge.",
     "version": "1.9.0",
-    "sha256": "259a664be4d1a97f933b1827632705b55fd930de3d4663d6d20e8e5c747b3e91",
+    "sha256": "a5f6355fa50155882c248ccd362046f405d8edef7be4f4a6e2e4401318d947c0",
     "author": "OrchestKit",
     "tags": [
       "code-review",
@@ -4393,7 +4393,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "swarm-migrate",
     "description": "Cross-repo migration swarm — one coordinator + N parallel subagents (one per target repo) that apply the same transformation, open PRs, wait for CI, and report back to a shared JSON ledger. Coordinator handles topology, conflict auto-rebase, and stop-on-novel-failure. Use when bumping a shared dependency, rolling out a workflow change, or applying a codemod across the org. Do NOT use for single-repo work — that's /ork:implement.",
     "version": "0.1.0",
-    "sha256": "4e542f68a2d354effbef948919fd23cad43e4b6e5d2e745e0746853ebe41239b",
+    "sha256": "395643f25c80ed2a1bf1068a44c5d6a5d7af45351e4ec5d651a8bb16448321a9",
     "author": "OrchestKit",
     "tags": [
       "migration",
