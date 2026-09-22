@@ -38,6 +38,14 @@ tools:
   # WebSearch. Read-only surface; resolve the library ID first, then query.
   - mcp__context7__resolve-library-id
   - mcp__context7__query-docs
+  # mcpServers storybook-mcp is metadata only (F12).
+  # Full storybook-mcp surface (dev + docs + testing) from storybook-mcp-integration.
+  - mcp__storybook-mcp__get-storybook-story-instructions
+  - mcp__storybook-mcp__preview-stories
+  - mcp__storybook-mcp__list-all-documentation
+  - mcp__storybook-mcp__get-documentation
+  - mcp__storybook-mcp__get-documentation-for-story
+  - mcp__storybook-mcp__run-story-tests
 skills:
   - react-server-components-framework
   - testing-unit

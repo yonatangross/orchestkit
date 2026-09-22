@@ -1,0 +1,8 @@
+{
+  "slug": "f12-declared-mcp-needs-grant",
+  "source": "docs/fix--sc47-f12-agent-mcp-tool-grants/index.html",
+  "title": "F12: declared MCP servers need tools grants",
+  "description": "Four agents declared stitch or storybook-mcp but granted none of their tools. Frontmatter tools grants fix the silent fallback.",
+  "tags": ["agents", "mcp", "stitch", "storybook", "f12", "sc47"],
+  "date": "2026-09-22"
+}

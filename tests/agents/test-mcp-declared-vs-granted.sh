@@ -11,12 +11,12 @@
 #
 # Two assertions, over every src/agents/*.md and src/skills/**/*.md:
 #
-#   (a) Every agent declaring a non-empty mcpServers entry for a server that
-#       IS configured in .mcp.json must grant at least one matching
-#       `mcp__<server>__*` tool in its tools: list. Servers NOT configured
-#       (stitch, storybook-mcp) are exempt: granting tools for an
-#       unconfigured server achieves nothing, and those declarations need a
-#       separate configure-or-drop decision.
+#   (a) Every agent declaring a non-empty mcpServers entry must grant at
+#       least one matching `mcp__<server>__*` tool in its tools: list.
+#       This includes servers that are not in this repo's .mcp.json
+#       (stitch, storybook-mcp): mcpServers is still metadata only, and
+#       without a tools: grant the forked agent cannot call them even when
+#       the operator has added the server at user scope (F12 / #3461).
 #
 #   (b) Every `mcp__<server>__<tool>` token in agents/skills markdown must
 #       name a tool the server actually exposes. Four context7 spellings in
@@ -143,19 +143,27 @@ canonical_tools() {
   node -e '
     const fs = require("fs");
     const m = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
-    const s = m.configured[process.argv[2]];
+    const name = process.argv[2];
+    const s = (m.configured && m.configured[name]) || (m.unconfigured && m.unconfigured[name]);
     if (!s || !Array.isArray(s.tools)) { process.stdout.write(""); process.exit(0); }
     process.stdout.write(s.tools.join(" "));
   ' "$MANIFEST" "$1"
 }
 
 # Servers that have a verified roster, so (b) has something to check them against.
+# Includes unconfigured servers (stitch, storybook-mcp) when they carry a tools list:
+# agents may grant those tools for user-scoped servers (F12).
 SERVERS_WITH_ROSTER="$(node -e '
   const fs = require("fs");
   const m = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
-  process.stdout.write(
-    Object.keys(m.configured).filter(k => Array.isArray(m.configured[k].tools)).join(" ")
-  );
+  const names = new Set();
+  for (const bucket of ["configured", "unconfigured"]) {
+    const obj = m[bucket] || {};
+    for (const [k, v] of Object.entries(obj)) {
+      if (Array.isArray(v.tools)) names.add(k);
+    }
+  }
+  process.stdout.write([...names].join(" "));
 ' "$MANIFEST")"
 
 # ---------------------------------------------------------------------------
@@ -195,10 +203,6 @@ for agent_file in "$AGENTS_DIR"/*.md; do
 
   while IFS='|' read -r srv state; do
     [ -z "$srv" ] && continue
-    case " $CONFIGURED_SERVERS " in
-      *" $srv "*) : ;;  # configured: check the grant below
-      *) continue ;;    # unconfigured: exempt (configure-or-drop is separate)
-    esac
     if [ "$state" = "UNGRANTED" ]; then
       echo -e "${RED}FAIL${NC} [$name]: declares mcpServers [$srv] but grants no mcp__${srv}__* tool" >&2
       FAIL=1
@@ -243,7 +247,7 @@ for srv in $SERVERS_WITH_ROSTER; do
 done
 
 if [ "$FAIL" -eq 0 ]; then
-  echo -e "${GREEN}PASS${NC}: every declared configured mcpServer is granted, every mcp tool name is real."
+  echo -e "${GREEN}PASS${NC}: every declared mcpServer is granted, every mcp tool name is real."
   exit 0
 else
   echo "FAIL: declared-but-uncallable MCP surface detected (#3461). Fix the issues above." >&2

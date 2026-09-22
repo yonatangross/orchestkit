@@ -35,6 +35,11 @@ tools:
   # WebSearch. Read-only surface; resolve the library ID first, then query.
   - mcp__context7__resolve-library-id
   - mcp__context7__query-docs
+  # mcpServers storybook-mcp is metadata only (F12).
+  # Docs toolset only (storybook-mcp-integration Toolset Selection).
+  - mcp__storybook-mcp__list-all-documentation
+  - mcp__storybook-mcp__get-documentation
+  - mcp__storybook-mcp__get-documentation-for-story
 skills:
   - component-search
   - storybook-mcp-integration
