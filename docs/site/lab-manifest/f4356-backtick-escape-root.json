@@ -1,0 +1,8 @@
+{
+  "slug": "f4356-backtick-escape-root",
+  "source": "docs/fix--4356-backtick-escape-root/index.html",
+  "title": "#4356: reject backtick paths that escape the skill root",
+  "description": "Follow-up on merged PR #4356. The testing-e2e backtick structure test now fails when a resolved path leaves src/skills/testing-e2e via ../.",
+  "tags": ["skills", "testing-e2e", "structure-tests", "security"],
+  "date": "2026-09-22"
+}
