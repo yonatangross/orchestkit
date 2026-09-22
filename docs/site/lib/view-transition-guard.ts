@@ -140,7 +140,12 @@ export function installViewTransitionGuard(
 
 		active = transition;
 		swallowBenignReady(transition);
-		void transition.finished.finally(() => clearIf(transition));
+		// Clear active on settle without finally(): finally() re-rejects and
+		// would fire a second unhandledrejection when the update callback fails.
+		void transition.finished.then(
+			() => clearIf(transition),
+			() => clearIf(transition),
+		);
 		return transition;
 	}) as StartViewTransition;
 
