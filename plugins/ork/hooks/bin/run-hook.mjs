@@ -28,12 +28,21 @@ const __dirname = dirname(__filename);
  * release-owned file and raced the ~20 test files reading those bundles in
  * parallel. The override is ignored unless the directory exists, and it is not
  * a new trust boundary: anything that can set this variable on the Claude Code
- * process can already put its own `node` on PATH.
+ * process can already put its own `node` on PATH. When it is active, warn on
+ * stderr (same shape as the #3415 stdin warning) so a stale export cannot
+ * silently redirect every hook, including security hooks, to a temp bundle.
  */
 const distOverride = process.env.ORK_HOOKS_DIST_DIR;
-const distDir = distOverride && existsSync(distOverride)
+const distOverrideActive = Boolean(distOverride && existsSync(distOverride));
+const distDir = distOverrideActive
   ? distOverride
   : join(__dirname, '..', 'dist');
+if (distOverrideActive) {
+  process.stderr.write(
+    `[orchestkit] WARNING: ORK_HOOKS_DIST_DIR overrides hook bundles to "${distOverride}" (#4334). ` +
+      `Unset it unless you intend to load every hook (including security hooks) from that directory.\n`,
+  );
+}
 
 /** Resolved plugin root — two levels up from hooks/bin/ */
 const pluginRoot = join(__dirname, '..', '..');

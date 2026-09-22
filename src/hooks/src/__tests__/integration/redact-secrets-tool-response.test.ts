@@ -190,6 +190,40 @@ describe('redact-secrets through the built skill.mjs bundle (#3725, #4217)', () 
 
     expect(r.status).toBe(0);
     expect(String(r.stderr)).not.toContain('::warning::');
+    // #4334: the override is not silent. A stale export would otherwise
+    // redirect every hook (including security hooks) with no signal.
+    expect(String(r.stderr)).toContain(`ORK_HOOKS_DIST_DIR overrides hook bundles to "${distDir}"`);
+  });
+
+  it('warns on stderr when ORK_HOOKS_DIST_DIR is active (#4334)', () => {
+    if (!bundle) return;
+
+    const r = spawnSync('node', [RUN_HOOK, HOOK_NAME], {
+      input: ccShapedPayload(bashObjectResponse('noop')),
+      env: dispatcherEnv(),
+      encoding: 'utf8',
+      timeout: 20_000,
+    });
+
+    expect(r.status).toBe(0);
+    expect(String(r.stderr)).toContain(
+      `[orchestkit] WARNING: ORK_HOOKS_DIST_DIR overrides hook bundles to "${distDir}" (#4334)`,
+    );
+  });
+
+  it('ignores ORK_HOOKS_DIST_DIR when the directory does not exist (#4334)', () => {
+    if (!bundle) return;
+
+    const missing = join(tmpdir(), `ork-hooks-dist-missing-${process.pid}-${Date.now()}`);
+    const r = spawnSync('node', [RUN_HOOK, HOOK_NAME], {
+      input: ccShapedPayload(bashObjectResponse('noop')),
+      env: { ...process.env, CLAUDE_PROJECT_DIR: scratchDir, ORK_HOOKS_DIST_DIR: missing },
+      encoding: 'utf8',
+      timeout: 20_000,
+    });
+
+    expect(r.status).toBe(0);
+    expect(String(r.stderr)).not.toContain('ORK_HOOKS_DIST_DIR overrides');
   });
 
   it('detects the token when the built bundle is driven in-process with Bash object shape', async () => {

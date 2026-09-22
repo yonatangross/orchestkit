@@ -491,6 +491,42 @@ fi
 rm -rf "$SANDBOX"
 
 # =============================================================================
+echo ""
+echo "10. ORK_HOOKS_DIST_DIR override warning (#4334)"
+echo "-----------------------------------------------"
+
+# Active override must announce itself: a stale export would otherwise redirect
+# every hook (including security hooks) to a temp bundle with no signal.
+DIST_TMP=$(mktemp -d "${TMPDIR:-/tmp}/ork-dist-4334.XXXXXX")
+# Point at the real shipped dist contents so the hook can still load.
+cp -R "$PROJECT_ROOT/plugins/ork/hooks/dist/." "$DIST_TMP/" 2>/dev/null || true
+run_hook "skill/redact-secrets" \
+  '{"hook_event_name":"PostToolUse","tool_name":"Bash","tool_response":"clean"}' \
+  "CLAUDE_PROJECT_DIR=$PROJECT_ROOT" "ORK_HOOKS_DIST_DIR=$DIST_TMP"
+if echo "$LAST_STDERR" | grep -Fq "ORK_HOOKS_DIST_DIR overrides hook bundles to \"$DIST_TMP\""; then
+  pass "active ORK_HOOKS_DIST_DIR writes a stderr warning naming the directory"
+else
+  fail "active ORK_HOOKS_DIST_DIR stayed silent (stderr=$LAST_STDERR)"
+fi
+rm -rf "$DIST_TMP"
+
+# Missing directory: keep the existsSync fallback, stay quiet, use shipped dist.
+MISSING="/tmp/ork-dist-4334-does-not-exist-$$"
+run_hook "skill/redact-secrets" \
+  '{"hook_event_name":"PostToolUse","tool_name":"Bash","tool_response":"clean"}' \
+  "CLAUDE_PROJECT_DIR=$PROJECT_ROOT" "ORK_HOOKS_DIST_DIR=$MISSING"
+if echo "$LAST_STDERR" | grep -Fq "ORK_HOOKS_DIST_DIR overrides"; then
+  fail "missing ORK_HOOKS_DIST_DIR still warned (should ignore via existsSync)"
+else
+  pass "missing ORK_HOOKS_DIST_DIR is ignored (existsSync fallback, no warning)"
+fi
+if [[ $LAST_EXIT -eq 0 ]]; then
+  pass "missing ORK_HOOKS_DIST_DIR still exits 0 via shipped dist"
+else
+  fail "missing ORK_HOOKS_DIST_DIR broke dispatch (exit=$LAST_EXIT)"
+fi
+
+# =============================================================================
 # Summary
 echo ""
 echo "================================="
