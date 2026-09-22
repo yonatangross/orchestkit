@@ -46,6 +46,11 @@ import {
 	maskNetworkRequest,
 	pathnameOf,
 } from "@/lib/replay-gate";
+import { installViewTransitionGuard } from "@/lib/view-transition-guard";
+
+// Before PostHog (or React) can observe VT abort rejections: serialize
+// startViewTransition and swallow only the benign abort class.
+installViewTransitionGuard();
 
 const KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY;
 
