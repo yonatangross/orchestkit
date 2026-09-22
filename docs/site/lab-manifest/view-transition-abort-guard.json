@@ -1,0 +1,12 @@
+{
+  "slug": "view-transition-abort-guard",
+  "source": "docs/fix--site-guard-view-transitions-01a0a900/view-transition-abort-guard.html",
+  "title": "View transition abort guard",
+  "description": "Toggle the docs-site startViewTransition guard and fire overlap, resize, and hide aborts. Unguarded surfaces PostHog noise; guarded swallows only the VT abort class.",
+  "tags": [
+    "docs",
+    "site",
+    "view-transitions"
+  ],
+  "date": "2026-09-22"
+}

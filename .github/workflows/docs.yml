@@ -80,7 +80,7 @@ jobs:
       contents: read
     needs: validate
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
@@ -159,3 +159,17 @@ jobs:
       - name: Run docs-site tests
         working-directory: docs/site
         run: npm test
+
+      # View-transition abort guard e2e (PostHog 01a0a900 / PR #4353).
+      # Spec lived under docs/site/e2e but no workflow ran Playwright, so CI
+      # never exercised overlapping startViewTransition / resize / hide.
+      - name: Install Playwright Chromium
+        working-directory: docs/site
+        run: npx playwright install --with-deps chromium
+      - name: Run view-transition abort e2e
+        working-directory: docs/site
+        # Only chromium-desktop: devices['iPhone 14'] defaults to WebKit, and
+        # this job installs Chromium only.
+        run: npx playwright test e2e/view-transitions-abort.spec.ts --project=chromium-desktop
+        env:
+          CI: true
