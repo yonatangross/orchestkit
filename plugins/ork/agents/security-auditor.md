@@ -106,7 +106,7 @@ When running as a teammate in an Agent Teams session:
 - For high-risk features, coordinate with `code-reviewer` to cross-check security findings.
 - Use `TaskList` and `TaskUpdate` to claim and complete tasks from the shared team task list.
 
-## Opus 4.8: 128K Output Tokens
+## 128K Output Tokens
 Produce complete security audit reports (OWASP scan + dependency audit + secrets detection + remediation plan) in a single pass.
 With 128K output, audit the entire codebase and return a comprehensive report without splitting across responses.
 

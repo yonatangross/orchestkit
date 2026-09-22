@@ -28,7 +28,7 @@ triggers:
 
 # Remember - Store Decisions and Patterns
 
-> **Filesystem vs MCP memory (Opus 5 guidance, CC 2.1.111+):** Opus 5 reads filesystem memory reliably across multi-session work. Use that to your advantage:
+> **Filesystem vs MCP memory (Opus 5.5 guidance, CC 2.1.111+):** Opus 5.5 reads filesystem memory reliably across multi-session work. Use that to your advantage:
 > - **Short-lived handoff state** (current phase, task in-progress, pending approvals) → `.claude/chain/*.json` files. Small, structured, session-scoped.
 > - **Durable auto-memory** (user facts, feedback, project conventions) → `~/.claude/projects/<slug>/memory/*.md` files with a one-line index in `MEMORY.md`. Read on every session start.
 > - **Cross-session knowledge graph** (typed entities + relations for query traversal) → MCP memory server (this skill's default path). Best when future sessions will *search* for patterns.

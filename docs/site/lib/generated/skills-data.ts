@@ -556,7 +556,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "audit-full",
     "description": "Single-pass codebase analysis leveraging a 1M-token context window for comprehensive security scanning, architecture review, and dependency auditing. Loads entire codebases for cross-file pattern detection and generates structured audit reports with severity-ranked findings. Use when you need whole-project analysis before releases or security reviews.",
     "version": "1.2.0",
-    "sha256": "901dbdb5235b7980a31484f0d074cece1761f38ef0a725fba9294b574297f016",
+    "sha256": "2ae4707dc02f7c4b8e6a45fedb42e39e63f6d946a477aea3d7f155222cb0669c",
     "author": "OrchestKit",
     "tags": [
       "security",
@@ -1147,7 +1147,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "configure",
     "description": "Interactive wizard for OrchestKit settings: MCP servers, hook permissions, keybindings, and install presets. Use when customizing plugin behavior or managing settings.",
     "version": "1.0.1",
-    "sha256": "0f0aa7138bd05afacd9dfedf92973e2dd3f099f3831fe850b9cdbd3daabee6b3",
+    "sha256": "bba17e85408c0919849f8364fa25e234bd5376505b61537578e67529522a3455",
     "author": "OrchestKit",
     "tags": [
       "configuration",
@@ -1420,7 +1420,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "design-context-extract",
     "description": "Extract design DNA from app screenshots, live URLs, or screen recordings using Google Stitch — color palettes, typography, spacing tokens, component patterns, and motion specs as design-tokens.json or Tailwind config. Use when the user points to a screenshot, URL, or video and asks to extract or audit the design, analyze animations or scroll behavior, or keep new pages matching an established visual identity.",
     "version": "1.0.1",
-    "sha256": "7eb1712077a7ca3c534180693e0317898782e597b3ada4be99a1e72fbf0e465e",
+    "sha256": "ae734f1c31b82894730335a685dbbe8c4901e408ecd9558e17792061eee41905",
     "author": "OrchestKit",
     "tags": [
       "design-context",
@@ -1653,7 +1653,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "design-to-code",
     "description": "Mockup-to-component pipeline using Google Stitch, 21st.dev, and Storybook MCP. Accepts a screenshot, a description, or a URL and produces production-ready React components, checking existing Storybook components before generating anything new. Use when implementing UI from a mockup or screenshot. To call the MCP tool surface on its own, with no design to convert, use storybook-mcp-integration.",
     "version": "1.0.1",
-    "sha256": "c880a2067e8f42151b5e6519330bcbc335b7adef6db83dc81f7127fb6dc10c96",
+    "sha256": "76b454d194df595a0a75d60f562e4054d3f0c77b920d236bd73099a51a29981e",
     "author": "OrchestKit",
     "tags": [
       "design-to-code",
@@ -2200,7 +2200,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "explore",
     "description": "Multi-angle codebase exploration spawning 3-5 parallel agents for code structure, data flow, architecture patterns, and health assessment. Generates ASCII visualizations, import graphs, and design pattern detection with cross-session memory storage. Use when exploring a repo, discovering architecture, onboarding to a new codebase, or analyzing design patterns.",
     "version": "2.6.0",
-    "sha256": "f4d61e5c70a71c64ecf0abc3584003399b30952e0bb4b1813ddd86e98c7df0f2",
+    "sha256": "1d5e77778b867e70cbf1f8297a2ae79120757c440cde9961db48484209c3ea55",
     "author": "OrchestKit",
     "tags": [
       "exploration",
@@ -2305,7 +2305,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "fix-issue",
     "description": "Fixes GitHub issues using parallel analysis agents for root cause investigation, code exploration, and regression detection. Reads issue context from gh CLI, searches codebase and memory for related patterns, generates a fix with tests, and links the resolution back to the issue via PR. Includes prevention analysis to avoid recurrence. Use when debugging errors, resolving regressions, fixing bugs, or triaging issues.",
     "version": "2.6.0",
-    "sha256": "653df504c366297e7afeb6dc944f94d11c07c7d03d64091c04eed8c5c5f87fb7",
+    "sha256": "00c42d9b5e3ee7a2de943a7a4403597ecd25e1c80cbabd8ad35c2270110c4d87",
     "author": "OrchestKit",
     "tags": [
       "issue",
@@ -2596,7 +2596,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "implement",
     "description": "Full-power feature implementation using parallel subagents for backend, frontend, testing, and security, with worktree isolation and quality verification in one workflow. Chains with /ork:cover for tests and /ork:verify for validation. Use when asked to build, add, create, scaffold, or set up a new feature, endpoint, component, or UI capability. Not for fixing a bug, reviewing, explaining, testing, or comparing existing code.",
     "version": "2.8.0",
-    "sha256": "a505b56d6e510fa976a1aadb3706caf6cd8bfbd1af0d3e6b60935c7e390de031",
+    "sha256": "74e67b419a14273d8a2183752a8a59dcb686882455878a51027ed159816ca60e",
     "author": "OrchestKit",
     "tags": [
       "implementation",
@@ -3009,7 +3009,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "memory",
     "description": "Unified read-side memory operations including knowledge graph search, session context loading, decision timeline viewing, and Mermaid graph visualization. Subcommands: search, load, history, viz, status. Complements /ork:remember (write-side). Use when searching past decisions, loading context, or visualizing the knowledge graph.",
     "version": "2.0.1",
-    "sha256": "743289b80d163dee0eb63c9c86c8506f81bfa8c2fb46ca0fcc355f05c60817dc",
+    "sha256": "178a78229c51577771de50c177eeda9c7b87acaeae5d66da8bc0e39292a23031",
     "author": "OrchestKit",
     "tags": [
       "memory",
@@ -3226,7 +3226,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "multimodal-llm",
     "description": "Vision, audio, video generation, and multimodal LLM integration patterns. Use when processing images, transcribing audio, generating speech, generating AI video (Kling v3, Sora 2, Veo 3.1 std/lite/fast, Runway Gen-4.5 via `gen4_turbo`), or building multimodal AI pipelines.",
     "version": "2.1.1",
-    "sha256": "8e2864bcb0a40d061a37cafaa9cd10b74eb37864daf4e3f98f67d0406be3d982",
+    "sha256": "81bb5b8061ecd15dea864709059cc4e95eb9dc398a23076e591921dad025de29",
     "author": "OrchestKit",
     "tags": [
       "vision",
@@ -3938,7 +3938,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "remember",
     "description": "Stores decisions, patterns, and outcomes in the MCP memory knowledge graph as entities with typed observations and relations. Supports recording architectural decisions, anti-patterns, tool preferences, workflow outcomes, and project conventions that persist across sessions. Use when saving patterns, remembering outcomes, recording decisions, or building institutional knowledge.",
     "version": "3.0.1",
-    "sha256": "28c6cce0f81540a204fbeb5dbad2c8674aabac7be0fb947312b6f6c94c54d41a",
+    "sha256": "c4162b168191ccf5d35ebc55e7fe09ba885245fdebb89dcd9f01f0ac0ed0614e",
     "author": "OrchestKit",
     "tags": [
       "memory",
@@ -4068,7 +4068,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "review-pr",
     "description": "PR review using parallel specialized agents for code quality, security, testing, architecture, and performance analysis. Synthesizes findings into a review report with conventional comments (praise/issue/suggestion/nitpick) and approve or request-changes verdict. Use when reviewing pull requests, conducting security audits, or validating changes before merge.",
     "version": "1.9.0",
-    "sha256": "b87de362044f65783bf8955f3e9d49c588d8b85420b6609086566de7cb62851e",
+    "sha256": "73e1f21aa96186535486527b85f02c646c715cf0d6ca035ad040451a4659eb41",
     "author": "OrchestKit",
     "tags": [
       "code-review",
@@ -4892,7 +4892,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "verify",
     "description": "Grade work that already exists and decide whether it can merge. Runs the project's current unit, integration, and E2E suites plus security scanning and type checking, scores every dimension 0-10, and returns a merge verdict with a VERIFIED-vs-CLAIMED evidence manifest. Writes no test files and edits no source. Use when verifying changes are ready to merge. Use /ork:cover instead when the tests still have to be written.",
     "version": "4.7.0",
-    "sha256": "fbf07911a4a575cf288bbe38b7174b9bcc400aea84157534bdeb88b61b8b4055",
+    "sha256": "cf23756dd843b0f81cc7f38f231645623aeb03e56db3bf854a2c7d5e21a88bdd",
     "author": "OrchestKit",
     "tags": [
       "verification",

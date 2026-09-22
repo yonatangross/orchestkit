@@ -88,6 +88,8 @@ describe('cost-estimator vocab canaries (#2338)', () => {
   // ratio it bends; the other stays on the convention.
   const CACHE_RATIO_EXCEPTIONS: Record<string, { read?: number; write?: number }> = {
     'claude-fable-5-1': { read: 0.025 },
+    // CC 2.1.280 CHANGELOG: $4 input with $0.20/Mtok cache reads, a 0.05x read.
+    'claude-opus-5-5': { read: 0.05 },
     'gemini-3.8-flash': { write: 1.0 },
   };
 
@@ -116,12 +118,29 @@ describe('cost-estimator vocab canaries (#2338)', () => {
     expect(calculateCost('fable', MTOK).total).toBeCloseTo(60.0, 5); // $10 + $50, unchanged from Fable 5
   });
 
-  it('resolves `opus` alias to claude-opus-5 (alias table cannot silently flip)', () => {
-    // Advanced claude-opus-4-8 -> claude-opus-5 on 2026-07-25 (CC 2.1.219 made
-    // Opus 5 the default Opus). The per-MTok total is unchanged because both
-    // price at $5/$25, so this assertion is the only thing that catches the flip.
-    expect(resolveModelKey('opus')).toBe('claude-opus-5');
-    expect(calculateCost('opus', MTOK).total).toBeCloseTo(30.0, 5); // $5 + $25
+  it('resolves `opus` alias to claude-opus-5-5 (alias table cannot silently flip)', () => {
+    // Advanced claude-opus-4-8 -> claude-opus-5 on 2026-07-25 (CC 2.1.219), then
+    // claude-opus-5 -> claude-opus-5-5 on 2026-09-22 (CC 2.1.280 made Opus 5.5
+    // the default Opus at $4/$20).
+    expect(resolveModelKey('opus')).toBe('claude-opus-5-5');
+    expect(calculateCost('opus', MTOK).total).toBeCloseTo(24.0, 5); // $4 + $20
+  });
+
+  it('prices claude-opus-5-5 at $4/$20 per MTok (cache 0.2/5.0)', () => {
+    expect(getCostConfig().models['claude-opus-5-5']).toEqual({
+      input_per_mtok: 4.0,
+      output_per_mtok: 20.0,
+      cache_read_per_mtok: 0.2,
+      cache_write_per_mtok: 5.0,
+    });
+  });
+
+  it('never prices claude-opus-5-5 at a neighbour row (hyphenated remainder is a new product)', () => {
+    // Before the row existed, '-5' after 'claude-opus-5' was (correctly) not a
+    // session label, so Opus 5.5 fell to the claude-sonnet-5 fallback at $2/$10.
+    expect(getPricing('claude-opus-5-5').input_per_mtok).toBe(4.0);
+    expect(getPricing('claude-opus-5-5[1m]').output_per_mtok).toBe(20.0);
+    expect(getPricing('claude-opus-5').input_per_mtok).toBe(5.0);
   });
 
   it('prices claude-opus-5 at $5/$25 per MTok (cache 0.5/6.25)', () => {
@@ -172,6 +191,8 @@ describe('cost-estimator vocab canaries (#2338)', () => {
     // caught. Do not relax the family tier to absorb a divergence.
     const OFF_TIER: Record<string, number> = {
       'claude-sonnet-5': 2.0,
+      // Opus 5.5 launched below the $5 Opus line at $4/$20 (CC 2.1.280).
+      'claude-opus-5-5': 4.0,
     };
     for (const id of modelsVocab.fullIds) {
       const family = Object.keys(TIER).find(f => id.includes(f));

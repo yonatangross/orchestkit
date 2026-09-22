@@ -81,9 +81,9 @@ Write(".claude/chain/state.json", JSON.stringify({
 
 For implementations touching **>10 files**, enforce max 5 files per agent batch, run tests between batches, commit green batches immediately, stop on red. Override via `--batch-size N`. Full rule: `Read("skills/implement/rules/batch-governance.md")`.
 
-### Budget Awareness (Opus 5 task budgets, public beta)
+### Budget Awareness (Opus 5.5 task budgets, public beta)
 
-Opus 5 exposes per-task token budgets. Until the CC side is GA, OrchestKit tracks an advisory `budget_remaining_pct` in `state.json` so long runs self-throttle. Update after each phase:
+Opus 5.5 exposes per-task token budgets. Until the CC side is GA, OrchestKit tracks an advisory `budget_remaining_pct` in `state.json` so long runs self-throttle. Update after each phase:
 
 ```python
 # At end of every phase, estimate remaining budget:

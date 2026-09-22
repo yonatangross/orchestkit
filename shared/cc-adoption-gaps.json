@@ -1,5 +1,121 @@
 [
   {
+    "version": "2.1.280",
+    "parse_failed": false,
+    "features": [
+      {
+        "feature_slug": "opus_5_5_default_model",
+        "category": "new_attr",
+        "description": "claude-opus-5-5 is the default Opus model: 1M context, $4/$20 per MTok, cache reads $0.20/MTok.",
+        "gap_score": 5,
+        "affected_skills": [
+          "multimodal-llm",
+          "audit-full",
+          "verify",
+          "doctor",
+          "analytics"
+        ],
+        "reference_changelog_line": "Added Claude Opus 5.5 (`claude-opus-5-5`), now the default Opus model — 1M context, $4/$20 per Mtok with $0.20/Mtok cache reads",
+        "relevance": "plugin",
+        "disposition": "adopted-in-pr",
+        "ork_disposition_note": "models.vocab.json: opus alias -> claude-opus-5-5, fullIds + pricing (cache write 5.00 at the vocab's 1.25x ratio). Without the row cost-estimator billed Opus 5.5 at the claude-sonnet-5 fallback. tests/ci/claude-model-ids.txt gains claude-opus-5-5 (and the missing claude-opus-5). model-recency-scan.py date-snapshot exemption fixed so the gate sees claude-opus-5 as superseded; 24 live Opus 5 claims retargeted."
+      },
+      {
+        "feature_slug": "max_mcp_description_length",
+        "category": "new_env",
+        "description": "CLAUDE_CODE_MAX_MCP_DESCRIPTION_LENGTH changes the 2,048-character cap on MCP tool descriptions and server instructions.",
+        "gap_score": 10,
+        "affected_skills": [
+          "configure",
+          "mcp-patterns"
+        ],
+        "reference_changelog_line": "Added `CLAUDE_CODE_MAX_MCP_DESCRIPTION_LENGTH` to change the 2,048-character cap on MCP tool descriptions and server instructions for every MCP server in the session",
+        "relevance": "plugin",
+        "disposition": "adopted-in-pr",
+        "ork_disposition_note": "Named in CONTRIBUTING-SKILLS.md (the fixed-2KB claim) and configure/references/cc-version-settings.md. Keep the default."
+      },
+      {
+        "feature_slug": "hook_execution_complete_output_sizes",
+        "category": "new_attr",
+        "description": "hook_execution_complete OTel event carries hook output sizes and the oversized-output count.",
+        "gap_score": 15,
+        "affected_skills": [
+          "analytics"
+        ],
+        "reference_changelog_line": "Added hook output sizes and the number of oversized outputs saved to a file to the `hook_execution_complete` OpenTelemetry event",
+        "relevance": "end-user",
+        "disposition": "deferred-S",
+        "ork_disposition_note": "ork ships no OTel config; worth reading when measuring ork's hook output volume. Upstream monitoring doc does not yet list the attributes (claude-code-guide, 404)."
+      },
+      {
+        "feature_slug": "permission_request_agent_hooks_removed",
+        "category": "breaking",
+        "description": "PermissionRequest no longer runs agent-type hooks; shows an error pointing to command or http hooks.",
+        "gap_score": 0,
+        "affected_skills": [
+          "doctor"
+        ],
+        "reference_changelog_line": "Changed `PermissionRequest` hooks: an agent-type hook no longer runs there, since its answer could never allow or deny the request; it now shows an error pointing to command or http hooks",
+        "relevance": "plugin",
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "All four PermissionRequest hooks in src/hooks/hooks.json are type command (verified)."
+      },
+      {
+        "feature_slug": "effort_new_model_default",
+        "category": "changed_default",
+        "description": "A pre-per-model saved effort no longer applies to newly released models such as Opus 5.5; Opus 4.7/4.8 and Fable 5 stop holding launch-default effort over settings.",
+        "gap_score": 10,
+        "affected_skills": [
+          "audit-full",
+          "verify",
+          "configure"
+        ],
+        "reference_changelog_line": "Changed an effort level saved before `/effort` became per-model to no longer apply to newly released models such as Opus 5.5; they start at their default until you pick a level",
+        "relevance": "plugin",
+        "disposition": "adopted-in-pr",
+        "ork_disposition_note": "audit-full and verify now say to pass high or xhigh (Opus 5.5 API default is medium per the claude-api skill). Frontmatter effort stays tracked in GH-4052."
+      },
+      {
+        "feature_slug": "reserved_marketplace_name_refused",
+        "category": "breaking",
+        "description": "Marketplaces imitating a reserved name are refused or stop loading.",
+        "gap_score": 0,
+        "affected_skills": [],
+        "reference_changelog_line": "Changed plugin marketplaces whose name imitates a reserved marketplace name to be refused when added, and to stop loading if one was already added",
+        "relevance": "plugin",
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "ork's marketplace name is `orchestkit`."
+      },
+      {
+        "feature_slug": "fork_subagent_resume_cache",
+        "category": "fix",
+        "description": "Resumed fork subagents re-send their first tool list, keeping prompt caching.",
+        "gap_score": 15,
+        "affected_skills": [
+          "chain-patterns"
+        ],
+        "reference_changelog_line": "Fixed resumed fork subagents rebuilding their tool list instead of re-sending the one they first used, which broke prompt caching for that agent",
+        "relevance": "plugin",
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "Benefits the context: fork pattern with no ork change."
+      },
+      {
+        "feature_slug": "symlink_write_judgement",
+        "category": "fix",
+        "description": "Writes through a symlink are judged where they land.",
+        "gap_score": 15,
+        "affected_skills": [
+          "security-patterns"
+        ],
+        "reference_changelog_line": "Fixed writes through a symlinked path being judged by their in-tree spelling: the prompt names where the write lands, and `acceptEdits`, allow rules and auto mode no longer approve one landing outside",
+        "relevance": "end-user",
+        "disposition": "triaged-noop",
+        "ork_disposition_note": "Closes a class security-patterns documents; no ork change."
+      }
+    ],
+    "raw_bullets_count": 114
+  },
+  {
     "version": "2.1.265",
     "parse_failed": false,
     "features": [],
@@ -46,7 +162,33 @@
   {
     "version": "2.1.278",
     "parse_failed": false,
-    "features": [],
+    "features": [
+      {
+        "feature_slug": "auto_mode_server_classifier_default",
+        "category": "changed_default",
+        "description": "Auto mode on Claude API, Enterprise, Bedrock, Vertex, Foundry and gateways defaults to the server-side classifier; CLAUDE_CODE_AUTO_MODE_SERVER=0 opts out.",
+        "gap_score": 5,
+        "affected_skills": [
+          "configure",
+          "doctor"
+        ],
+        "reference_changelog_line": "Changed auto mode for Claude API and Enterprise users, and on Bedrock, Vertex, Foundry and gateways, to default to the server-side classifier, which does not charge for classifier overhead (`CLAUDE_CODE_AUTO_MODE_SERVER=0` opts out on Bedrock, Vertex, Foundry and gateways); warns on billed fallback. See https://code.claude.com/docs/en/auto-mode-classifier-billing",
+        "relevance": "end-user",
+        "disposition": "adopted-in-pr",
+        "ork_disposition_note": "Recorded in configure/references/cc-version-settings.md and the doctor matrix 2.1.278 row; reverses the 2.1.273 note. ork sets neither value."
+      },
+      {
+        "feature_slug": "status_auto_mode_server_row",
+        "category": "ui",
+        "description": "/status shows an Auto mode server row.",
+        "gap_score": 0,
+        "affected_skills": [],
+        "reference_changelog_line": "Added an `Auto mode server` row to `/status` showing whether this session's auto mode classifier runs on the server",
+        "relevance": "end-user",
+        "disposition": "not-applicable",
+        "ork_disposition_note": "CC UI only."
+      }
+    ],
     "raw_bullets_count": 2
   },
   {

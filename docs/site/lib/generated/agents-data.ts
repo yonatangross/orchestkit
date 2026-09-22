@@ -797,7 +797,7 @@ export const AGENTS: Agent[] = [
   {
     "id": "multimodal-specialist",
     "name": "Multimodal Specialist",
-    "description": "Vision, audio, image and video generation, and multimodal processing specialist. Integrates Claude Opus 4.8, GPT-5, Gemini 2.5/3, GPT Image 2, Nano Banana Pro, Kling 3.0, Sora 2 and Veo 3.1 for analysis, generation, transcription and multimodal RAG.",
+    "description": "Vision, audio, image and video generation, and multimodal processing specialist. Integrates Claude Opus 5.5, GPT-5, Gemini 2.5/3, GPT Image 2, Nano Banana Pro, Kling 3.0, Sora 2 and Veo 3.1 for analysis, generation, transcription and multimodal RAG.",
     "category": "ai",
     "model": "sonnet",
     "taskTypes": [
