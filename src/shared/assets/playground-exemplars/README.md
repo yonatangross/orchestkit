@@ -9,8 +9,7 @@ copyable starting points enforced by
 
 | File | Archetype | Persona | Use it when… |
 |---|---|---|---|
-| `homeos-arieh.html` | User-story player | warm-glass | …you want to see the bar. Designed by **Arieh**; committed verbatim — study, don't edit. |
-| `user-story-player.template.html` | User-story player | warm-glass | …the playground demonstrates a **feature or flow** (message→card, action→result). Swap `STORY`. |
+| `user-story-player.template.html` | User-story player | warm-glass | …you want to see the bar (canonical gold standard), or the playground demonstrates a **feature or flow** (message→card, action→result). Swap `STORY`. |
 | `decision-board.template.html` | Decision board | cool-glass | …the playground is for **prioritization / management** via drag-and-drop. Swap `ITEMS`. |
 | `release-notes-player.template.html` | User-story player (recipe) | cool-glass | …the playground is **release / changelog / "what's new" notes**, played as a flow. Swap `RELEASE`. Route adoption / verdict views to a dashboard, not here (§0). |
 | `decision-router.template.html` | Decision board (router) | cool-glass | …the board is a backlog to **prioritize and route to execution** — each card → an ork strategy (single/workflow/nested/teams/swarm) + a plan-only invocation. Swap `CARDS`. Used by `visualize-plan`. |
