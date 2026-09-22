@@ -99,8 +99,8 @@ function scanConfigFile(filePath: string): DriftResult {
     return result;
   }
 
-  // SC47 F3: never raw-regex --no-verify over the whole file — deny/ask rules
-  // that forbid the flag would false-positive and block every reload.
+  // SC47 F3: never raw-regex --no-verify over the whole file (deny/ask rules
+  // that forbid the flag would false-positive and block every reload).
   try {
     const parsed: unknown = JSON.parse(content);
     if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)
@@ -231,9 +231,9 @@ export function settingsReload(input: HookInput, ctx: HookContext = NOOP_CTX): H
   // CC documents ConfigChange layer as `source` (not `config_source`):
   // https://docs.claude.com/en/docs/claude-code/hooks#configchange-input
   // A hook's block/warn is meaningless for `policy_settings` (managed policy
-  // always takes effect — CC ignores the block) and `skills` (not a settings
+  // always takes effect; CC ignores the block) and `skills` (not a settings
   // file). Audit + silent-success for those. (#1264 Phase 3)
-  // `config_source` is a legacy invented alias — still accepted as fallback.
+  // `config_source` is a legacy invented alias (still accepted as fallback).
   const configSource = (typeof input.source === 'string' ? input.source : undefined)
     ?? input.config_source;
   if (configSource === 'policy_settings' || configSource === 'skills') {
@@ -246,7 +246,7 @@ export function settingsReload(input: HookInput, ctx: HookContext = NOOP_CTX): H
     const userSettings = join(process.env.HOME || '', '.claude', 'settings.json');
 
     // CC sends optional `file_path` for the specific file that changed. When
-    // present, scan only that file — do not re-block on an untouched sibling.
+    // present, scan only that file (do not re-block on an untouched sibling).
     const changedPath = typeof input.file_path === 'string' && input.file_path.length > 0
       ? input.file_path
       : undefined;
