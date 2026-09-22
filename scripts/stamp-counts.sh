@@ -99,7 +99,7 @@ stamp_marketplace_json() {
   if [[ ! -f "$file" ]]; then return; fi
 
   # Stamp top-level .description and the TRACKING entry (source.ref == "main")
-  # only — never a pinned channel. Whole-file sed used to rewrite the stable
+  # only, never a pinned channel. Whole-file sed used to rewrite the stable
   # 'ork' entry's counts too (F25 / sc47): same class of bug as the version
   # stamper's old `.plugins[0]` before #3340. Falls back to plugins[0] for a
   # single-entry layout with no tracking ref.
@@ -404,7 +404,7 @@ if [[ "${1:-}" == "--check" ]]; then
     rm "$TMP"
   done
 
-  # Check marketplace.json — same writer as the stamp path (tracking entry only)
+  # Check marketplace.json (same writer as the stamp path, tracking entry only)
   MKT="$PROJECT_ROOT/.claude-plugin/marketplace.json"
   if [[ -f "$MKT" ]]; then
     TMP=$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")

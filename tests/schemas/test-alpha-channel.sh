@@ -102,7 +102,7 @@ if [[ "$stable_idx" != "none" ]]; then
 
     # Description must advertise what the pinned tag ships, not live beta counts.
     # stamp-counts.sh used to whole-file-sed the plugin descriptions and rewrote
-    # this entry with main's skill/hook totals (F25). Read the tag itself — do
+    # this entry with main's skill/hook totals (F25). Read the tag itself. Do
     # not hardcode the numbers.
     #
     # CI checkouts commonly omit tags (shallow / fetch-tags:false). A bare
@@ -110,7 +110,7 @@ if [[ "$stable_idx" != "none" ]]; then
     # Fetch the pin ref explicitly; only then compare descriptions.
     if [[ -n "$stable_ref" && "$stable_ref" != "main" && "$stable_ref" != "HEAD" ]]; then
         if [[ ! "$stable_ref" =~ ^v[0-9]+\.[0-9]+\.[0-9]+([.+-][A-Za-z0-9.+-]+)*$ ]]; then
-            bad "pin ref '$stable_ref' is not a safe tag name — refusing to fetch"
+            bad "pin ref '$stable_ref' is not a safe tag name (refusing to fetch)"
         else
             pin_ready=0
             if git -C "$ROOT_DIR" rev-parse --verify --quiet "refs/tags/${stable_ref}" >/dev/null 2>&1; then
