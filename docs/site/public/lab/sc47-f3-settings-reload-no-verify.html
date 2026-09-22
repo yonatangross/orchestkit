@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SC47 F3 settings-reload --no-verify false positives</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0f0b1a;--surface:#1a1428;--border:#3d2e5c;--text:#e8e0f0;--muted:#9b8eb8;--accent:#a855f7;--ok:#22c55e;--bad:#ef4444;--mono:ui-monospace,Menlo,monospace}
+body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);padding:24px;max-width:920px;margin:0 auto}
+h1{color:var(--accent);font-size:20px;margin-bottom:8px}
+.meta{color:var(--muted);font-size:13px;margin-bottom:20px;max-width:70ch}
+section{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px}
+h2{font-size:14px;margin-bottom:10px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:8px;border-bottom:1px solid rgba(255,255,255,.06);vertical-align:top}
+th{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+code{font-family:var(--mono);font-size:12px;background:rgba(255,255,255,.05);padding:2px 6px;border-radius:4px}
+.ok{color:var(--ok)}.bad{color:var(--bad)}
+label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+textarea{width:100%;min-height:110px;background:#0a0712;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:10px;font-family:var(--mono);font-size:12px}
+.verdict{margin-top:10px;font-size:13px;padding:10px;border-radius:8px;border:1px solid var(--border)}
+.btn{margin-top:8px;background:var(--accent);color:#fff;border:0;border-radius:8px;padding:8px 12px;font-size:13px;cursor:pointer}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="SC47 F3: settings-reload --no-verify false positives"><meta property="og:description" content="ConfigChange settings-reload used to raw-regex --no-verify over the whole settings file, so permissions.deny and permissions.ask rules that forbid the flag blocked every reload. Try a JSON snippet and compare whole-file regex vs structured grant scan."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/sc47-f3-settings-reload-no-verify.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="SC47 F3: settings-reload --no-verify false positives"><meta name="twitter:description" content="ConfigChange settings-reload used to raw-regex --no-verify over the whole settings file, so permissions.deny and permissions.ask rules that forbid the flag blocked every reload. Try a JSON snippet and compare whole-file regex vs structured grant scan."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<header>
+  <h1>ConfigChange blocked protective deny rules</h1>
+  <p class="meta">SC47 F3: <code>settings-reload</code> used to raw-regex <code>/--no-verify/</code> over the whole settings file. A <code>permissions.deny</code> rule that forbids the flag looked like the offense and blocked every reload.</p>
+</header>
+
+<section>
+  <h2>Where the flag counts now</h2>
+  <table>
+    <thead><tr><th>location</th><th>before</th><th>after</th></tr></thead>
+    <tbody>
+      <tr><td><code>permissions.deny</code> naming <code>--no-verify</code></td><td class="bad">block</td><td class="ok">allow</td></tr>
+      <tr><td><code>permissions.ask</code> naming <code>--no-verify</code></td><td class="bad">block</td><td class="ok">allow</td></tr>
+      <tr><td><code>permissions.allow</code> granting <code>--no-verify</code></td><td class="bad">block</td><td class="bad">block</td></tr>
+      <tr><td>hook <code>command</code> running <code>--no-verify</code></td><td class="bad">block</td><td class="bad">block</td></tr>
+      <tr><td><code>env</code> value carrying <code>--no-verify</code></td><td class="bad">block</td><td class="bad">block</td></tr>
+      <tr><td>unrelated key / notes text</td><td class="bad">block</td><td class="ok">allow</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>Payload fields (CC docs)</h2>
+  <p class="meta" style="margin:0">ConfigChange input uses <code>source</code> and optional <code>file_path</code>. OrchestKit kept reading invented <code>config_source</code>; the hook now prefers <code>source</code> and falls back to the alias.</p>
+</section>
+
+<section>
+  <h2>Try a settings JSON snippet</h2>
+  <label for="snip">Paste a settings fragment (must be JSON object)</label>
+  <textarea id="snip">{
+{
+  "permissions": {
+    "allow": ["Read"],
+    "deny": ["Bash(git commit --no-verify:*)"]
+  }
+}
+</textarea>
+  <button class="btn" type="button" id="run">Classify</button>
+  <div class="verdict" id="out">Press Classify.</div>
+</section>
+
+<script>
+const NO_VERIFY = /--no-verify/;
+function hooksGrant(node) {
+  if (node == null) return false;
+  if (Array.isArray(node)) return node.some(hooksGrant);
+  if (typeof node !== 'object') return false;
+  if (typeof node.command === 'string' && NO_VERIFY.test(node.command)) return true;
+  return Object.values(node).some(hooksGrant);
+}
+function grants(settings) {
+  const perms = settings.permissions;
+  if (perms && Array.isArray(perms.allow) && perms.allow.some(e => typeof e === 'string' && NO_VERIFY.test(e))) return true;
+  if (settings.hooks != null && hooksGrant(settings.hooks)) return true;
+  const env = settings.env;
+  if (env && typeof env === 'object') {
+    for (const v of Object.values(env)) if (typeof v === 'string' && NO_VERIFY.test(v)) return true;
+  }
+  return false;
+}
+function classify(raw) {
+  let parsed;
+  try { parsed = JSON.parse(raw); } catch { return { ok: false, msg: 'Not valid JSON.' }; }
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return { ok: false, msg: 'Root must be a JSON object.' };
+  const wouldBlockOld = NO_VERIFY.test(raw);
+  const wouldBlockNew = grants(parsed);
+  return {
+    ok: true,
+    msg: 'Whole-file regex (old): ' + (wouldBlockOld ? 'BLOCK' : 'allow') +
+      ' | Structured grant scan (new): ' + (wouldBlockNew ? 'BLOCK' : 'allow')
+  };
+}
+document.getElementById('run').addEventListener('click', () => {
+  const r = classify(document.getElementById('snip').value);
+  const el = document.getElementById('out');
+  el.textContent = r.msg;
+  el.className = 'verdict ' + (r.ok ? '' : 'bad');
+});
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

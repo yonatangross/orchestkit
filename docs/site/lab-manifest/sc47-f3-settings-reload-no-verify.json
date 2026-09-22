@@ -1,0 +1,12 @@
+{
+  "slug": "sc47-f3-settings-reload-no-verify",
+  "source": "docs/fix--sc47-f3-settings-reload-no-verify/index.html",
+  "title": "SC47 F3: settings-reload --no-verify false positives",
+  "description": "ConfigChange settings-reload used to raw-regex --no-verify over the whole settings file, so permissions.deny and permissions.ask rules that forbid the flag blocked every reload. Try a JSON snippet and compare whole-file regex vs structured grant scan.",
+  "tags": [
+    "hooks",
+    "debugging",
+    "explainer"
+  ],
+  "date": "2026-09-22"
+}
