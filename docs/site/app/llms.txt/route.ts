@@ -103,8 +103,10 @@ export function GET() {
 		"- [Agent skills on skills.sh (official, self-published)](https://www.skills.sh/yonatangross/orchestkit)",
 		`- [${SITE.name} developer resource hub: API docs, OpenAPI spec, MCP server, SDK packages](/developers) · [as Markdown](/developers.md) · [scoped index](/developers/llms.txt)`,
 		`- [${SITE.name} OpenAPI specification](/openapi) · [spec JSON](/openapi.json)`,
-		`- [${SITE.name} MCP server](/mcp-server) · [transport](/api/mcp)`,
-		`- [${SITE.name} SDK packages](/sdk)`,
+		`- [${SITE.name} MCP server](/docs/mcp) · [transport](/api/mcp)`,
+		`- [${SITE.name} SDK packages](/docs/sdk)`,
+		`- [${SITE.name} llms.txt navigation index](/llms.txt)`,
+		`- [${SITE.name} llms-full.txt full docs dump](/llms-full.txt)`,
 		"- [About Yonyon, the studio behind OrchestKit](/yonyon) · [as Markdown](/yonyon.md)",
 		"- [Best Claude Code plugins roundup (maintainer-disclosed)](/best-claude-code-plugins)",
 		"- [Claude Agent SDK vs Claude Code plugins](/claude-agent-sdk-vs-claude-code-plugins)",
@@ -126,7 +128,10 @@ export function GET() {
 		"- [CLI: `npx orchestkit` on npm](https://registry.npmjs.org/orchestkit) - install, search, ask, read, mcp, doctor. Zero deps, Node >= 20. Also aliased as `ork`.",
 		"- [Python package: orchestkit on PyPI](https://pypi.org/project/orchestkit/)",
 		"- [Python schemas: orchestkit-hook-contract on PyPI](https://pypi.org/project/orchestkit-hook-contract/)",
-		"- [Go module: github.com/yonatangross/orchestkit/sdk](https://pkg.go.dev/github.com/yonatangross/orchestkit/sdk)",
+		// pkg.go.dev/github.com/yonatangross/orchestkit/sdk returns 404 (module
+		// path is real in-repo; proxy has no versions yet). Link the GitHub tree
+		// that answers 200 instead of a dead docs page.
+		"- [Go module source: github.com/yonatangross/orchestkit/sdk](https://github.com/yonatangross/orchestkit/tree/main/sdk)",
 		"- [Docs MCP server image (stdio): ghcr.io/yonatangross/orchestkit-docs-mcp](https://github.com/yonatangross/orchestkit/pkgs/container/orchestkit-docs-mcp)",
 		"",
 	];

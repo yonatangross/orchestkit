@@ -29,12 +29,12 @@ export const DEVELOPER_RESOURCES: ReadonlyArray<DeveloperResource> = [
 	{
 		title: "OrchestKit MCP server",
 		desc: "How to connect the hosted Streamable HTTP server and the Docker stdio image. Transport stays at /api/mcp and /mcp.",
-		href: "/mcp-server",
+		href: "/docs/mcp",
 	},
 	{
 		title: "OrchestKit SDK packages",
 		desc: "Official clients: npm CLI, PyPI orchestkit, Go module github.com/yonatangross/orchestkit/sdk.",
-		href: "/sdk",
+		href: "/docs/sdk",
 	},
 	{
 		title: "Documentation",

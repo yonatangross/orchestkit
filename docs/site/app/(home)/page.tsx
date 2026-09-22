@@ -18,6 +18,9 @@ import { CHANGELOG_ENTRIES } from "@/lib/generated/changelog-data";
 
 // Homepage-only social fields. Kept off the root layout so marketing pages that
 // only set `title` do not inherit this og/twitter title and description.
+// og:type and og:image live here too (not in app/layout.tsx): Next merges
+// openGraph shallowly, and a child object without those keys dropped them from
+// the built homepage even when the file-based opengraph-image route returned 200.
 export const metadata: Metadata = {
 	title: {
 		absolute: SITE_TITLE,
@@ -27,10 +30,20 @@ export const metadata: Metadata = {
 		title: SITE_TITLE,
 		description: PAGE_SUMMARY.site,
 		url: SITE.domain,
+		type: "website",
+		images: [
+			{
+				url: "/opengraph-image",
+				width: 1200,
+				height: 630,
+				alt: SITE_TITLE,
+			},
+		],
 	},
 	twitter: {
 		title: SITE_TITLE,
 		description: PAGE_SUMMARY.site,
+		images: ["/opengraph-image"],
 	},
 };
 
@@ -192,14 +205,14 @@ export default async function HomePage() {
             </Link>
             <span aria-hidden="true">·</span>
             <Link
-              href="/mcp-server"
+              href="/docs/mcp"
               className="text-fd-primary underline-offset-2 hover:underline"
             >
               OrchestKit MCP server
             </Link>
             <span aria-hidden="true">·</span>
             <Link
-              href="/sdk"
+              href="/docs/sdk"
               className="text-fd-primary underline-offset-2 hover:underline"
             >
               OrchestKit SDK packages

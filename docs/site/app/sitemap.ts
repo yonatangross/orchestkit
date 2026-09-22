@@ -13,6 +13,9 @@ const MACHINE_SURFACES = [
   "/.well-known/mcp/server-card.json",
   "/.well-known/api-catalog",
   "/llms.txt",
+  "/llms-full.txt",
+  "/docs/mcp",
+  "/docs/sdk",
 ] as const;
 
 export default function sitemap(): MetadataRoute.Sitemap {

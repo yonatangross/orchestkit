@@ -8,8 +8,8 @@ export const INDEXNOW_KEY_PATH = `/${INDEXNOW_KEY}.txt`;
 export const INDEXNOW_URLS = [
 	`${SITE.domain}/developers`,
 	`${SITE.domain}/openapi`,
-	`${SITE.domain}/mcp-server`,
-	`${SITE.domain}/sdk`,
+	`${SITE.domain}/docs/mcp`,
+	`${SITE.domain}/docs/sdk`,
 ] as const;
 
 export function indexNowPayload(): {
