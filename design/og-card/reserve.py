@@ -35,9 +35,14 @@ def reserve(ledger: str, concept: str, total_cap: int = 9, per_cap: int = 3) -> 
         total = len(rows)
         per = len([r for r in rows if len(r) > 1 and r[1] == concept])
         if total >= total_cap:
-            sys.exit(f"CAP: {total_cap} generations already spent")
+            print(f"CAP: {total_cap} generations already spent", file=sys.stderr)
+            raise SystemExit(3)
         if per >= per_cap:
-            sys.exit(f"CAP: concept {concept} already has {per_cap} generations")
+            print(
+                f"CAP: concept {concept} already has {per_cap} generations",
+                file=sys.stderr,
+            )
+            raise SystemExit(3)
         index = per + 1
         stamp = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
         f.write(f"{stamp}\t{concept}\t{index}\tsubmitted\n")

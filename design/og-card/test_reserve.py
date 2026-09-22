@@ -20,8 +20,9 @@ def test_per_concept_cap_stops_the_fourth(tmp_path):
     ledger = str(tmp_path / "ledger.tsv")
     for _ in range(3):
         reserve.reserve(ledger, "A")
-    with pytest.raises(SystemExit):
+    with pytest.raises(SystemExit) as exc:
         reserve.reserve(ledger, "A")
+    assert exc.value.code == 3
     assert len(open(ledger).read().splitlines()) == 3
 
 
@@ -30,8 +31,9 @@ def test_total_cap_stops_a_fresh_concept(tmp_path):
     for concept in ("A", "B", "C"):
         for _ in range(3):
             reserve.reserve(ledger, concept)
-    with pytest.raises(SystemExit):
+    with pytest.raises(SystemExit) as exc:
         reserve.reserve(ledger, "A", 9, 4)
+    assert exc.value.code == 3
     assert len(open(ledger).read().splitlines()) == 9
 
 
@@ -52,3 +54,32 @@ def test_parallel_runs_cannot_overshoot_the_cap(tmp_path):
     granted = sorted(out for code, out in done if code == 0)
     assert granted == ["1", "2", "3"], done
     assert len(open(ledger).read().splitlines()) == 3
+
+
+def test_cli_cap_reached_exits_3(tmp_path):
+    """Subprocess: ledger already at per-concept cap must exit status 3."""
+    ledger = str(tmp_path / "ledger.tsv")
+    script = os.path.join(os.path.dirname(__file__), "reserve.py")
+    for _ in range(3):
+        reserve.reserve(ledger, "A")
+    result = subprocess.run(
+        [sys.executable, script, ledger, "A", "9", "3"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 3, (result.returncode, result.stderr)
+    assert "CAP:" in result.stderr
+    assert len(open(ledger).read().splitlines()) == 3
+
+
+def test_cli_usage_error_exits_1():
+    """Subprocess: missing args must still exit status 1 (not 3)."""
+    script = os.path.join(os.path.dirname(__file__), "reserve.py")
+    result = subprocess.run(
+        [sys.executable, script],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 1, (result.returncode, result.stderr, result.stdout)
