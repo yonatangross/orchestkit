@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="F25: marketplace count stamper rewrote the pinned stable ork entry with beta counts. Fixed by selecting source.ref == main only.">
+<title>Stable ork count stamp no longer rewrites the pin</title>
+<style>
+  :root{--bg:#0f1219;--ink:#e8eaef;--muted:#9aa3b2;--ok:#3ecf8e;--bad:#f07178;--card:#161b26;--edge:#2a3344}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,sans-serif;padding:28px 20px 64px}
+  .wrap{max-width:720px;margin:0 auto}
+  h1{font-size:1.35rem;margin-bottom:8px}
+  h2{font-size:1rem;margin:22px 0 8px}
+  p,li{color:var(--muted)}
+  .card{background:var(--card);border:1px solid var(--edge);border-radius:12px;padding:18px 20px;margin-top:14px}
+  code,pre{font-family:ui-monospace,Menlo,monospace;font-size:.82rem}
+  pre{background:#0a0d13;border:1px solid var(--edge);border-radius:8px;padding:12px;overflow-x:auto;margin-top:10px;white-space:pre-wrap}
+  .ok{color:var(--ok)} .bad{color:var(--bad)}
+  ul{padding-left:1.2rem;margin-top:8px}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Stable ork count stamp no longer rewrites the pin"><meta property="og:description" content="F25: marketplace count stamper rewrote the pinned stable ork entry with beta counts. Fixed by selecting source.ref == main only."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/stable-ork-count-stamp.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Stable ork count stamp no longer rewrites the pin"><meta name="twitter:description" content="F25: marketplace count stamper rewrote the pinned stable ork entry with beta counts. Fixed by selecting source.ref == main only."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <p style="color:#8b9cff;font-weight:600;font-size:.85rem">F25 / sc47 / PR #4355</p>
+    <h1>Stable <code>ork</code> count stamp no longer rewrites the pin</h1>
+    <p>The marketplace count stamper rewrote the pinned stable <code>ork</code> description with live beta totals. Installers browsing the stable channel saw counts the tag does not ship.</p>
+  </div>
+
+  <div class="card">
+    <h2>What was broken</h2>
+    <pre><span class="bad">origin/main  plugins[0] ork@v9.8.0</span>
+  "107 skills ... 171 lifecycle hooks"   &lt;- beta counts
+
+<span class="ok">tag v9.8.0    plugin.json / marketplace</span>
+  "105 skills ... 218 lifecycle hooks"   &lt;- what the pin ships</pre>
+    <p style="margin-top:10px"><code>stamp_marketplace_json</code> ran whole-file <code>sed /g</code>. Only the pinned entry matched the plugin phrases, so it was the one rewritten. The version stamper already used <code>select(.source.ref == "main")</code> (#3340); the description stamper did not.</p>
+  </div>
+
+  <div class="card">
+    <h2>What changed</h2>
+    <ul>
+      <li><code>stamp_marketplace_json</code> stamps top-level description + tracking entry only (<code>source.ref == "main"</code>).</li>
+      <li>Stable description restored to the tag text (105 / 36 / 35 / 218).</li>
+      <li>Channel test asserts pin description equals <code>git show &lt;pin-ref&gt;:...</code>, fetching the tag when CI has none.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>Proof (revert)</h2>
+    <p>With the fixed description, the old whole-file sed rewrites stable to beta counts; the new selective stamp leaves it alone:</p>
+    <pre>BEFORE pin:  105 skills / 218 lifecycle hooks
+OLD sed:     107 skills / 171 lifecycle hooks   <span class="bad">clobbers pin</span>
+NEW stamp:   105 skills / 218 lifecycle hooks   <span class="ok">pin intact</span>
+
+channel test: pin description == git show v9.8.0:...marketplace.json
+  -&gt; fails under the old sed, passes under the new stamp</pre>
+  </div>
+</div>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
