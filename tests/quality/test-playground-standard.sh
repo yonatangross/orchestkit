@@ -169,12 +169,6 @@ fail=0
 echo
 echo "${YELLOW}1. Exemplars (BLOCKING — these are the templates)${NC}"
 # ---------------------------------------------------------------------------
-# homeos-arieh.html is the ONE exemption, and it is documented rather than silent:
-# the README pins it as "Designed by Arieh; committed verbatim — study, don't edit".
-# It is the AESTHETIC bar and predates the --pg-* token system. Rewriting it to pass
-# a lint would destroy the thing it exists to demonstrate. Its findings still print,
-# as INFO, so the exemption never turns into an invisible hole.
-VERBATIM_EXEMPT="homeos-arieh.html"
 
 exemplar_violations=0
 exemplar_count=0
@@ -190,17 +184,9 @@ fi
 for f in "${exemplars[@]}"; do
     name="$(basename "$f")"
     findings="$(printf '%s\n' "$exemplar_findings" | awk -F'|' -v p="$f" '$1==p {print $2 "|" $3}')"
-    exempt=0
-    [[ "$name" == "$VERBATIM_EXEMPT" ]] && exempt=1
 
     if [[ -z "$findings" ]]; then
         echo "  ${GREEN}✓${NC} $name"
-    elif (( exempt == 1 )); then
-        echo "  ${BLUE}i${NC} $name ${BLUE}(verbatim reference — exempt, see README)${NC}"
-        while IFS='|' read -r rule msg; do
-            [[ -n "$rule" ]] || continue
-            echo "      ${BLUE}${rule}${NC}  ${msg}"
-        done < <(printf '%s\n' "$findings")
     else
         echo "  ${RED}✗${NC} $name"
         while IFS='|' read -r rule msg; do
