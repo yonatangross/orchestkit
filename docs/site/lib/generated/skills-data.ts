@@ -2181,6 +2181,7 @@ export const SKILLS: Record<string, SkillMeta> = {
         "test-plan.md"
       ],
       "scripts": [
+        "__pycache__",
         "coverage-context.sh",
         "diff-scan.sh",
         "fingerprint.sh",

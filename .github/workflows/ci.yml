@@ -102,7 +102,11 @@ jobs:
           # owns that directory as a pure function of the fragments (it deletes
           # an orphan copy on rebuild), so a page edited without a rebuild, or a
           # copy left behind by a removed fragment, is drift like any other.
-          GENERATED=(plugins/ ':!plugins/ork/hooks/dist' README.md docs/site/lib/generated/ docs/site/public/lab/ plugin.json)
+          # stop-uncommitted-check.mjs is release-please whole-file extra-files
+          # (x-release-please-version). Feature PRs edit src/hooks/bin/ only;
+          # build-plugins.sh rsyncs it into plugins/ and would trip this gate.
+          # Same exemption class as hooks/dist (#3578): release owns the ship copy.
+          GENERATED=(plugins/ ':!plugins/ork/hooks/dist' ':!plugins/ork/hooks/bin/stop-uncommitted-check.mjs' README.md docs/site/lib/generated/ docs/site/public/lab/ plugin.json)
           # `git diff` does not error on a pathspec that matches nothing, so a
           # roster entry naming a moved or deleted path contributed nothing and
           # the gate stayed green (gate-fault-arm audit 2026-09-06). Every
