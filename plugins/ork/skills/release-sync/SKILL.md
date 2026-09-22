@@ -9,7 +9,6 @@ user-invocable: true
 argument-hint: "[version]"
 complexity: low
 context: inherit
-agent: release-engineer
 persuasion-type: collaborative
 ---
 

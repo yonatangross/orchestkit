@@ -7,7 +7,6 @@ version: 2.0.0
 author: OrchestKit
 tags: [code-review, quality, collaboration, best-practices]
 context: inherit
-agent: code-quality-reviewer
 user-invocable: false
 hooks:
   PostToolUse:

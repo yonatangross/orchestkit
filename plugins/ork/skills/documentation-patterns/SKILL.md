@@ -9,7 +9,6 @@ author: OrchestKit
 user-invocable: false
 disable-model-invocation: true
 context: inherit
-agent: release-engineer
 complexity: low
 persuasion-type: reference
 effort: low
