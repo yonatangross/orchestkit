@@ -1,0 +1,12 @@
+{
+  "slug": "reserve-exit-3-on-cap",
+  "source": "docs/fix--4339-reserve-exit-3/index.html",
+  "title": "reserve.py: cap spent must exit 3, not 1",
+  "description": "sys.exit(string) always exits 1. Cap exhaustion must raise SystemExit(3) so callers can tell it apart from a crash or bad usage.",
+  "tags": [
+    "design",
+    "og-card",
+    "exit-codes"
+  ],
+  "date": "2026-09-22"
+}
