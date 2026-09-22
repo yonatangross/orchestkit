@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.78](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.77...v10.0.0-beta.78) (2026-09-22)
+
+
+### Bug Fixes
+
+* **site:** scope social meta to the homepage ([#4343](https://github.com/yonatangross/orchestkit/issues/4343) follow-up) ([#4347](https://github.com/yonatangross/orchestkit/issues/4347)) ([6291420](https://github.com/yonatangross/orchestkit/commit/6291420e4f92168e9af1037cb4c47c5ec0888b5b))
+
+
+### Miscellaneous
+
+* **playground:** drop the homeos-arieh exemplar ([#4348](https://github.com/yonatangross/orchestkit/issues/4348)) ([104752c](https://github.com/yonatangross/orchestkit/commit/104752c70921912870f95e6ff8d909aed6818fc9))
+
 ## [10.0.0-beta.77](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.76...v10.0.0-beta.77) (2026-09-22)
 
 

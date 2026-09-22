@@ -614,6 +614,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.78](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.77...v10.0.0-beta.78)** · 2026-09-22
+
+- **site:** scope social meta to the homepage ([#4343](https://github.com/yonatangross/orchestkit/issues/4343) follow-up) (#4347)
+- **playground:** drop the homeos-arieh exemplar (#4348)
+
 **[v10.0.0-beta.77](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.76...v10.0.0-beta.77)** · 2026-09-22
 
 - **site:** align title and social meta with the OG card (#4343)
@@ -652,10 +657,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **deps-dev:** bump the npm-minor-patch group across 1 directory with 2 updates (#4315)
 - **deps-dev:** bump the vitest group (#4320)
 - …and 6 more (see [CHANGELOG.md](CHANGELOG.md))
-
-**[v10.0.0-beta.70](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.69...v10.0.0-beta.70)** · 2026-09-20
-
-- **cc:** raise the CC support floor 2.1.251 to 2.1.277 (#4305)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

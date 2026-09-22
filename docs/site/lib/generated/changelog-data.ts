@@ -18,6 +18,27 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.78",
+    "date": "2026-09-22",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.77...v10.0.0-beta.78",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**site:** scope social meta to the homepage ([#4343](https://github.com/yonatangross/orchestkit/issues/4343) follow-up) ([#4347](https://github.com/yonatangross/orchestkit/issues/4347)) ([6291420](https://github.com/yonatangross/orchestkit/commit/6291420e4f92168e9af1037cb4c47c5ec0888b5b))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Miscellaneous",
+        "items": [
+          "**playground:** drop the homeos-arieh exemplar ([#4348](https://github.com/yonatangross/orchestkit/issues/4348)) ([104752c](https://github.com/yonatangross/orchestkit/commit/104752c70921912870f95e6ff8d909aed6818fc9))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.77",
     "date": "2026-09-22",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.76...v10.0.0-beta.77",
