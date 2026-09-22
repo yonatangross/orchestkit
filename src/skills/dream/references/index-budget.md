@@ -27,7 +27,7 @@ every link target present with exact-case name, exactly one trailer line.
 
 ## The demotion rule
 
-Class is the link target's filename prefix. `##` section headers are a report
+Class is the link target's filename prefix (`project_handoff_` before `project_`). `##` section headers are a report
 hint only; `## Policy` still gates the never-move set.
 
 | class | prefix | rule |
