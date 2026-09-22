@@ -18,6 +18,30 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.79",
+    "date": "2026-09-22",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.78...v10.0.0-beta.79",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**cc:** adopt CC 2.1.278 and 2.1.280, Opus 5.5 as the default Opus ([#4357](https://github.com/yonatangross/orchestkit/issues/4357)) ([606a574](https://github.com/yonatangross/orchestkit/commit/606a57434b48034999e8ec181fc4b714875e2ce8))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**design:** reserve.py exits 3 on generation-cap exhaustion ([#4359](https://github.com/yonatangross/orchestkit/issues/4359)) ([0c9e678](https://github.com/yonatangross/orchestkit/commit/0c9e6785f80c8ebdfdae20eec569abb00cb46d78))",
+          "**release:** stop marketplace count stamp from rewriting stable ork ([#4355](https://github.com/yonatangross/orchestkit/issues/4355)) ([32e93a8](https://github.com/yonatangross/orchestkit/commit/32e93a863b27962e208fd8ce4e7a1a7431a0e549))",
+          "**site:** close orank OG, llms.txt, and /docs landing gaps ([#4354](https://github.com/yonatangross/orchestkit/issues/4354)) ([2488c3f](https://github.com/yonatangross/orchestkit/commit/2488c3f06855a5ad5ac9ec892a1835b679583b91))",
+          "**testing-e2e:** repoint dead planner-agent reference (F27) ([#4356](https://github.com/yonatangross/orchestkit/issues/4356)) ([e79f6ce](https://github.com/yonatangross/orchestkit/commit/e79f6ceb36909f1dc0e334b84acf1f99d82e5c0d))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.78",
     "date": "2026-09-22",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.77...v10.0.0-beta.78",

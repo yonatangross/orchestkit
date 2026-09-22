@@ -614,6 +614,14 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.79](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.78...v10.0.0-beta.79)** · 2026-09-22
+
+- **cc:** adopt CC 2.1.278 and 2.1.280, Opus 5.5 as the default Opus (#4357)
+- **design:** reserve.py exits 3 on generation-cap exhaustion (#4359)
+- **release:** stop marketplace count stamp from rewriting stable ork (#4355)
+- **site:** close orank OG, llms.txt, and /docs landing gaps (#4354)
+- **testing-e2e:** repoint dead planner-agent reference (F27) (#4356)
+
 **[v10.0.0-beta.78](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.77...v10.0.0-beta.78)** · 2026-09-22
 
 - **site:** scope social meta to the homepage ([#4343](https://github.com/yonatangross/orchestkit/issues/4343) follow-up) (#4347)
@@ -648,15 +656,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.72](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.71...v10.0.0-beta.72)** · 2026-09-21
 
 - **test:** separate a Chrome launch failure from an empty render (#4324), closes [#4296](https://github.com/yonatangross/orchestkit/issues/4296)
-
-**[v10.0.0-beta.71](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.70...v10.0.0-beta.71)** · 2026-09-21
-
-- **hooks:** allow tip-equal dist restores without MERGE_HEAD (#4308)
-- **deps-dev:** bump @types/node (#4312)
-- **deps-dev:** bump the npm-minor-patch group (#4317)
-- **deps-dev:** bump the npm-minor-patch group across 1 directory with 2 updates (#4315)
-- **deps-dev:** bump the vitest group (#4320)
-- …and 6 more (see [CHANGELOG.md](CHANGELOG.md))
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
