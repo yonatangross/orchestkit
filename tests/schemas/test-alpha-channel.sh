@@ -99,6 +99,25 @@ if [[ "$stable_idx" != "none" ]]; then
     else
         bad "'ork' version '$stable_ver' does not match its pin '$stable_ref' (expected ref v$stable_ver)"
     fi
+
+    # Description must advertise what the pinned tag ships, not live beta counts.
+    # stamp-counts.sh used to whole-file-sed the plugin descriptions and rewrote
+    # this entry with main's skill/hook totals (F25). Read the tag itself — do
+    # not hardcode the numbers.
+    if [[ -n "$stable_ref" && "$stable_ref" != "main" && "$stable_ref" != "HEAD" ]]; then
+        tag_desc=$(git -C "$ROOT_DIR" show "${stable_ref}:.claude-plugin/marketplace.json" 2>/dev/null \
+            | jq -r '[.plugins[] | select(.name == "ork")][0].description // .plugins[0].description // empty')
+        stable_desc=$(jq -r --argjson i "$stable_idx" '.plugins[$i].description // ""' "$MARKETPLACE")
+        if [[ -z "$tag_desc" ]]; then
+            bad "could not read marketplace description at $stable_ref"
+        elif [[ "$stable_desc" == "$tag_desc" ]]; then
+            ok "'ork' description matches $stable_ref (not live beta counts)"
+        else
+            bad "'ork' description disagrees with $stable_ref"
+            echo "      pinned:  $stable_desc"
+            echo "      at tag:  $tag_desc"
+        fi
+    fi
 fi
 
 echo ""
