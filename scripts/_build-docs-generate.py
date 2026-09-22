@@ -1658,6 +1658,12 @@ def generate_categories(skills_src: str, categories_out: str) -> int:
                 type_label = "Command" if s["user_invocable"] else "Reference"
                 cplx = s["complexity"] or "-"
                 safe_desc = s["description"].replace("|", "\\|")
+                # House rule: no em/en dashes in generated docs text.
+                safe_desc = (
+                    safe_desc.replace("\u2014", ",")
+                    .replace("\u2013", ",")
+                    .replace(" ,", ",")
+                )
                 # Truncate long descriptions for the table
                 if len(safe_desc) > 120:
                     safe_desc = safe_desc[:117] + "..."
