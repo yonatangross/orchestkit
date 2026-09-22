@@ -10,7 +10,7 @@ import { GitHubClickTracker } from "@/components/github-click-tracker";
 import CustomSearchDialog from "@/components/search-dialog";
 import { WebMcpProvider } from "@/components/webmcp-provider";
 import { WebVitalsReporter } from "@/components/web-vitals-reporter";
-import { BANNER_TEXT, PAGE_SUMMARY, SITE } from "@/lib/constants";
+import { BANNER_TEXT, PAGE_SUMMARY, SITE, SITE_TITLE } from "@/lib/constants";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-geist" });
 const geistMono = Geist_Mono({
@@ -21,9 +21,8 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
 	title: {
 		template: `%s | ${SITE.name}`,
-		// "by Yonyon" ties the studio brand to the product for name-based search
-		// queries — the word appeared nowhere as text on the site before this.
-		default: `${SITE.name} by Yonyon — AI Development Toolkit for Claude Code`,
+		// Matches the OG card tagline so <title>, og:title and twitter:title agree.
+		default: SITE_TITLE,
 	},
 	description: PAGE_SUMMARY.site,
 	icons: { icon: "/favicon.svg" },
@@ -50,9 +49,13 @@ export const metadata: Metadata = {
 		siteName: SITE.name,
 		type: "website",
 		url: SITE.domain,
+		title: SITE_TITLE,
+		description: PAGE_SUMMARY.site,
 	},
 	twitter: {
 		card: "summary_large_image",
+		title: SITE_TITLE,
+		description: PAGE_SUMMARY.site,
 	},
 	metadataBase: new URL(SITE.domain),
 };
