@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="F23/F24: age-cap session events.jsonl dirs at 14d; Stop uncommitted check uses execFileSync with --no-optional-locks and a timeout.">
+<title>Hook runtime cost: session event retention + Stop git spawn</title>
+<style>
+  :root{--bg:#0f1219;--ink:#e8eaef;--muted:#9aa3b2;--ok:#3ecf8e;--bad:#f07178;--card:#161b26;--edge:#2a3344;--accent:#8b9cff}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,sans-serif;padding:28px 20px 64px}
+  .wrap{max-width:720px;margin:0 auto}
+  h1{font-size:1.35rem;margin-bottom:8px}
+  h2{font-size:1rem;margin:22px 0 8px}
+  p,li{color:var(--muted)}
+  .card{background:var(--card);border:1px solid var(--edge);border-radius:12px;padding:18px 20px;margin-top:14px}
+  code,pre{font-family:ui-monospace,Menlo,monospace;font-size:.82rem}
+  pre{background:#0a0d13;border:1px solid var(--edge);border-radius:8px;padding:12px;overflow-x:auto;margin-top:10px;white-space:pre-wrap}
+  .ok{color:var(--ok)} .bad{color:var(--bad)} .tag{color:var(--accent);font-weight:600;font-size:.85rem}
+  ul{padding-left:1.2rem;margin-top:8px}
+  button{margin-top:12px;padding:8px 14px;border-radius:8px;border:1px solid var(--edge);background:#1c2433;color:var(--ink);cursor:pointer}
+  button:hover{border-color:var(--accent)}
+  #out{margin-top:12px}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Hook runtime cost: session event retention + Stop git spawn"><meta property="og:description" content="F23/F24: age-cap session events.jsonl dirs at 14d; Stop uncommitted check uses execFileSync with --no-optional-locks and a timeout."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/hook-runtime-session-cost.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Hook runtime cost: session event retention + Stop git spawn"><meta name="twitter:description" content="F23/F24: age-cap session events.jsonl dirs at 14d; Stop uncommitted check uses execFileSync with --no-optional-locks and a timeout."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <p class="tag">F23 + F24 / sc47 / hook runtime cost</p>
+    <h1>Session event retention + Stop git spawn</h1>
+    <p>Two LOW findings in one PR. Kept the prior worker's F23 age-cap; finished F24 on <code>stop-uncommitted-check.mjs</code>.</p>
+  </div>
+
+  <div class="card">
+    <h2>F23 — why keep <code>events.jsonl</code></h2>
+    <pre><span class="bad">hook-timing.jsonl</span>  { ts, hook, duration_ms, ok, verdict, pid }
+<span class="ok">events.jsonl</span>       { event_id, event_type, identity.session_id+user_id, payload }
+
+Readers: loadSessionEvents → generateSessionSummary
+  (usage-summary-reporter, lib/user-profile)</pre>
+    <p style="margin-top:10px">Not the same row → retention, not drop. <code>session-cleanup</code> now deletes session dirs whose <code>events.jsonl</code> mtime is older than 14 days (both project-local and <code>CLAUDE_PLUGIN_DATA</code> roots). Exact session-id match; never the ending session; missing log → skip.</p>
+  </div>
+
+  <div class="card">
+    <h2>F24 — Stop git cost</h2>
+    <pre><span class="bad">before</span>  execSync('git rev-parse …') + execSync('git status --porcelain')
+<span class="ok">after</span>   execFileSync('git', ['--no-optional-locks','status','--porcelain'], { timeout: 5000 })
+
+hooks.json: stays SYNC (no async) — systemMessage must land on this Stop
+not -uno — untracked remains part of the warning</pre>
+  </div>
+
+  <div class="card">
+    <h2>Interactive: age-cap decision</h2>
+    <p>Pick a session dir shape and see whether SessionEnd would evict it.</p>
+    <label style="display:block;margin-top:10px;color:var(--muted)">events.jsonl age (days)
+      <input id="age" type="number" value="15" min="0" style="display:block;margin-top:4px;width:100%;padding:8px;border-radius:8px;border:1px solid var(--edge);background:#0a0d13;color:var(--ink)">
+    </label>
+    <label style="display:block;margin-top:10px;color:var(--muted)">
+      <input id="ending" type="checkbox"> this is the ending session id
+    </label>
+    <label style="display:block;margin-top:10px;color:var(--muted)">
+      <input id="hasLog" type="checkbox" checked> events.jsonl present + readable
+    </label>
+    <button type="button" id="go">Decide</button>
+    <pre id="out"></pre>
+  </div>
+</div>
+<script>
+const out = document.getElementById('out');
+document.getElementById('go').addEventListener('click', () => {
+  const age = Number(document.getElementById('age').value);
+  const ending = document.getElementById('ending').checked;
+  const hasLog = document.getElementById('hasLog').checked;
+  let verdict, reason;
+  if (ending) { verdict = 'KEEP'; reason = 'never evict the session that is ending'; }
+  else if (!hasLog) { verdict = 'KEEP'; reason = 'no events.jsonl clock → leave counter/turn state alone'; }
+  else if (age > 14) { verdict = 'EVICT'; reason = 'events.jsonl mtime older than 14 days'; }
+  else { verdict = 'KEEP'; reason = 'events.jsonl still within 14-day TTL'; }
+  const cls = verdict === 'EVICT' ? 'bad' : 'ok';
+  out.innerHTML = '<span class="' + cls + '">' + verdict + '</span> — ' + reason;
+});
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

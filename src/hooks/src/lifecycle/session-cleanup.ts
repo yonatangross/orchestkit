@@ -3,7 +3,7 @@
  * Hook: SessionEnd
  */
 
-import { existsSync, mkdirSync, readdirSync, unlinkSync, copyFileSync, statSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, unlinkSync, copyFileSync, statSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
 import { stateRootDir } from '../lib/session-state.js';
@@ -11,7 +11,7 @@ import type { HookInput, HookResult , HookContext} from '../types.js';
 import { logHook, outputSilentSuccess } from '../lib/common.js';
 import { cleanupTeam } from '../lib/agent-teams.js';
 import { appendAnalytics, hashProject, getTeamContext } from '../lib/analytics.js';
-import { getMetricsFile } from '../lib/paths.js';
+import { getMetricsFile, getPluginDataDir } from '../lib/paths.js';
 import { getTotalTools } from '../lib/metrics.js';
 import { NOOP_CTX } from '../lib/context.js';
 import { gcHeadroom } from '../lib/headroom-store.js';
@@ -114,6 +114,64 @@ function cleanupRotatedLogs(logDir: string): void {
   }
 }
 
+/** Session event logs untouched for this long are evicted at SessionEnd. */
+const SESSION_EVENTS_TTL_MS = 14 * 24 * 60 * 60 * 1000;
+
+/** Same shape the two writers validate before building a path (SEC-001/SEC-002). */
+const SESSION_ID_PATTERN = /^[a-zA-Z0-9_-]{1,128}$/;
+
+/**
+ * Evict session directories whose events.jsonl has not been written in 14 days.
+ *
+ * `bin/run-hook.mjs` appends one row per hook invocation to
+ * `<root>/<session_id>/events.jsonl`, and until now nothing removed the
+ * directory, so the tree grew for the life of the checkout.
+ *
+ * Retention rather than dropping the writer, because hook-timing.jsonl is not
+ * the same row: it carries a project hash (`pid`) and no session or user id,
+ * and events.jsonl is read back by `loadSessionEvents()` →
+ * `generateSessionSummary()`, which `usage-summary-reporter` and
+ * `lib/user-profile` both consume.
+ *
+ * Both roots are swept because the two writers disagree: session-tracker.ts
+ * honours CLAUDE_PLUGIN_DATA, while run-hook.mjs always writes project-local.
+ */
+function sweepStaleSessionDirs(projectDir: string, sessionId: string | undefined, ctx: HookContext): void {
+  const roots = new Set<string>([join(projectDir, '.claude', 'memory', 'sessions')]);
+  const pluginData = getPluginDataDir();
+  if (pluginData) roots.add(join(pluginData, 'sessions'));
+
+  const cutoff = Date.now() - SESSION_EVENTS_TTL_MS;
+  let removed = 0;
+
+  for (const root of roots) {
+    let entries;
+    try {
+      entries = readdirSync(root, { withFileTypes: true });
+    } catch {
+      continue; // root absent on this machine
+    }
+
+    for (const entry of entries) {
+      if (!entry.isDirectory()) continue;
+      if (!SESSION_ID_PATTERN.test(entry.name)) continue;
+      if (entry.name === sessionId) continue; // never evict the session that is ending
+      const dir = join(root, entry.name);
+      try {
+        // A directory with no events.jsonl is left alone: the age cap has no
+        // clock to read there, and those dirs hold only counter/turn state.
+        if (statSync(join(dir, 'events.jsonl')).mtimeMs >= cutoff) continue;
+        rmSync(dir, { recursive: true, force: true });
+        removed++;
+      } catch { /* per-directory — a missing or unreadable log is not a failure */ }
+    }
+  }
+
+  if (removed > 0) {
+    ctx.log('session-cleanup', `Evicted ${removed} session dir(s) idle for over 14 days`);
+  }
+}
+
 /**
  * Session cleanup hook
  */
@@ -133,6 +191,11 @@ export function sessionCleanup(input: HookInput, ctx: HookContext = NOOP_CTX): H
 
   // Clean up old rotated log files (keep last 5)
   cleanupRotatedLogs(logDir);
+
+  // Age-cap the per-session event logs (14d). Best-effort — never block cleanup.
+  try {
+    sweepStaleSessionDirs(projectDir, input.session_id, ctx);
+  } catch { /* never block cleanup on the sweep */ }
 
   // Clean up debug mode flag and failure count (reset for next session)
   const home = homedir();

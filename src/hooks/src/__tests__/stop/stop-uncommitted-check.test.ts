@@ -10,7 +10,7 @@
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { execFileSync, execSync } from 'node:child_process';
-import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 
@@ -198,5 +198,40 @@ describe('stop-uncommitted-check.mjs output', () => {
 
     const output = runHook(tmpDir);
     expect(output.systemMessage!.length).toBeLessThan(100);
+  });
+
+  /**
+   * F24: one git spawn with --no-optional-locks; no separate rev-parse probe.
+   * Stub git on PATH so we assert argv without depending on real porcelain.
+   */
+  it('invokes git once with --no-optional-locks status --porcelain (F24)', () => {
+    const binDir = mkdtempSync(join(tmpdir(), 'fake-git-'));
+    const logPath = join(binDir, 'argv.log');
+    const fakeGit = join(binDir, 'git');
+    // POSIX sh stub — records argv and emits empty porcelain (clean tree).
+    writeFileSync(
+      fakeGit,
+      `#!/bin/sh\nprintf '%s\\n' "$*" >> "${logPath}"\nexit 0\n`,
+      { mode: 0o755 }
+    );
+
+    const result = execFileSync('node', [SCRIPT_PATH], {
+      cwd: tmpDir,
+      encoding: 'utf-8',
+      env: {
+        ...process.env,
+        PATH: `${binDir}:${process.env.PATH ?? ''}`,
+        CLAUDE_PROJECT_DIR: tmpDir,
+      },
+      input: JSON.stringify({}),
+      timeout: 5000,
+    });
+    expect(JSON.parse(result.trim())).toEqual({ continue: true, suppressOutput: true });
+
+    const lines = readFileSync(logPath, 'utf-8').trim().split('\n').filter(Boolean);
+    expect(lines).toHaveLength(1);
+    expect(lines[0]).toBe('--no-optional-locks status --porcelain');
+
+    rmSync(binDir, { recursive: true, force: true });
   });
 });
