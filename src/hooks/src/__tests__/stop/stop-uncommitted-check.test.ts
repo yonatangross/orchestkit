@@ -2,7 +2,7 @@
 // Created: 2026-04-06
 
 /**
- * Tests for stop-uncommitted-check.mjs — standalone command hook
+ * Tests for stop-uncommitted-check.mjs - standalone command hook
  *
  * Spawns the script as a subprocess with controlled git states and asserts
  * on the JSON stdout output (systemMessage text, continue, suppressOutput).
@@ -32,7 +32,7 @@ describe('stop-uncommitted-check.mjs output', () => {
   let tmpDir: string;
 
   /**
-   * Isolated git env — prevents gitdir walk-up to the parent worktree
+   * Isolated git env - prevents gitdir walk-up to the parent worktree
    * when this test runs from inside an existing checkout (CI, dev,
    * pre-push hook). Without these, `git config user.name "Test"` writes
    * to the parent's .git/config and commits land on the parent's branch
@@ -184,7 +184,7 @@ describe('stop-uncommitted-check.mjs output', () => {
     writeFileSync(join(tmpDir, 'file.txt'), 'v3');
 
     const output = runHook(tmpDir);
-    // MM counts as both staged AND modified — correct UX
+    // MM counts as both staged AND modified - correct UX
     expect(output.systemMessage).toContain('1 staged');
     expect(output.systemMessage).toContain('1 modified');
     expect(output.systemMessage).toContain('uncommitted');
@@ -208,7 +208,7 @@ describe('stop-uncommitted-check.mjs output', () => {
     const binDir = mkdtempSync(join(tmpdir(), 'fake-git-'));
     const logPath = join(binDir, 'argv.log');
     const fakeGit = join(binDir, 'git');
-    // POSIX sh stub — records argv and emits empty porcelain (clean tree).
+    // POSIX sh stub - records argv and emits empty porcelain (clean tree).
     writeFileSync(
       fakeGit,
       `#!/bin/sh\nprintf '%s\\n' "$*" >> "${logPath}"\nexit 0\n`,

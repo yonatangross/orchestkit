@@ -163,7 +163,7 @@ function sweepStaleSessionDirs(projectDir: string, sessionId: string | undefined
         if (statSync(join(dir, 'events.jsonl')).mtimeMs >= cutoff) continue;
         rmSync(dir, { recursive: true, force: true });
         removed++;
-      } catch { /* per-directory — a missing or unreadable log is not a failure */ }
+      } catch { /* per-directory - a missing or unreadable log is not a failure */ }
     }
   }
 
@@ -192,7 +192,7 @@ export function sessionCleanup(input: HookInput, ctx: HookContext = NOOP_CTX): H
   // Clean up old rotated log files (keep last 5)
   cleanupRotatedLogs(logDir);
 
-  // Age-cap the per-session event logs (14d). Best-effort — never block cleanup.
+  // Age-cap the per-session event logs (14d). Best-effort - never block cleanup.
   try {
     sweepStaleSessionDirs(projectDir, input.session_id, ctx);
   } catch { /* never block cleanup on the sweep */ }
@@ -204,7 +204,7 @@ export function sessionCleanup(input: HookInput, ctx: HookContext = NOOP_CTX): H
   try { if (existsSync(debugFlagPath)) unlinkSync(debugFlagPath); } catch { /* ok */ }
   try { if (existsSync(failureCountPath)) unlinkSync(failureCountPath); } catch { /* ok */ }
 
-  // #2264: evict expired reversible-compression stashes (TTL 7d). Best-effort —
+  // #2264: evict expired reversible-compression stashes (TTL 7d). Best-effort -
   // gcHeadroom swallows a missing dir + per-file errors, so a removed stash only
   // degrades a stale pointer to today's head+tail behaviour, never a crash.
   try {
@@ -216,7 +216,7 @@ export function sessionCleanup(input: HookInput, ctx: HookContext = NOOP_CTX): H
 
   // #2561: evict stale team-spawn ledgers (TTL 6h). The fan-out gate writes one
   // small session-scoped counter per session under state/team-spawns/; sweep old
-  // ones so they don't accumulate. Best-effort — never block cleanup.
+  // ones so they don't accumulate. Best-effort - never block cleanup.
   try {
     const spawnDir = join(stateRootDir(), 'team-spawns');
     if (existsSync(spawnDir)) {

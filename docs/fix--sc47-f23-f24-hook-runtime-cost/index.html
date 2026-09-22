@@ -32,7 +32,7 @@
   </div>
 
   <div class="card">
-    <h2>F23 — why keep <code>events.jsonl</code></h2>
+    <h2>F23 - why keep <code>events.jsonl</code></h2>
     <pre><span class="bad">hook-timing.jsonl</span>  { ts, hook, duration_ms, ok, verdict, pid }
 <span class="ok">events.jsonl</span>       { event_id, event_type, identity.session_id+user_id, payload }
 
@@ -42,12 +42,12 @@ Readers: loadSessionEvents → generateSessionSummary
   </div>
 
   <div class="card">
-    <h2>F24 — Stop git cost</h2>
+    <h2>F24 - Stop git cost</h2>
     <pre><span class="bad">before</span>  execSync('git rev-parse …') + execSync('git status --porcelain')
 <span class="ok">after</span>   execFileSync('git', ['--no-optional-locks','status','--porcelain'], { timeout: 5000 })
 
-hooks.json: stays SYNC (no async) — systemMessage must land on this Stop
-not -uno — untracked remains part of the warning</pre>
+hooks.json: stays SYNC (no async) - systemMessage must land on this Stop
+not -uno - untracked remains part of the warning</pre>
   </div>
 
   <div class="card">
@@ -78,7 +78,7 @@ document.getElementById('go').addEventListener('click', () => {
   else if (age > 14) { verdict = 'EVICT'; reason = 'events.jsonl mtime older than 14 days'; }
   else { verdict = 'KEEP'; reason = 'events.jsonl still within 14-day TTL'; }
   const cls = verdict === 'EVICT' ? 'bad' : 'ok';
-  out.innerHTML = '<span class="' + cls + '">' + verdict + '</span> — ' + reason;
+  out.innerHTML = '<span class="' + cls + '">' + verdict + '</span> - ' + reason;
 });
 </script>
 </body>
