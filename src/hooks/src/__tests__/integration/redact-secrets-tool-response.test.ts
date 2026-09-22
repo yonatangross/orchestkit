@@ -71,8 +71,9 @@ function bashObjectResponse(stdout: string, stderr = ''): Record<string, unknown
 let stderrSpy: ReturnType<typeof vi.spyOn> | undefined;
 let scratchDir: string;
 
-/** Temp build output for this file only. Empty until beforeAll succeeds. */
+/** Temp build output for this file only. Cleared in afterAll even if build fails. */
 let distDir = '';
+/** Path to skill.mjs inside distDir. Empty until beforeAll succeeds. */
 let bundle = '';
 
 /** Env the spawned dispatcher needs to load the temp bundle (#4334). */
@@ -96,13 +97,11 @@ beforeAll(() => {
     console.warn(
       `[integration] hooks build failed (status=${build.status}): ${String(build.stderr).slice(0, 400)}`,
     );
-    distDir = '';
     return;
   }
   const built = join(distDir, 'skill.mjs');
   if (!existsSync(built)) {
     console.warn(`[integration] hooks build produced no ${built}`);
-    distDir = '';
     return;
   }
   bundle = built;
