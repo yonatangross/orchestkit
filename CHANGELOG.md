@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.75](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.74...v10.0.0-beta.75) (2026-09-22)
+
+
+### Features
+
+* **site:** new link card with live skills, agents and hooks counts ([#4335](https://github.com/yonatangross/orchestkit/issues/4335)) ([8908e53](https://github.com/yonatangross/orchestkit/commit/8908e5335aa5106b6c799a9d22228fdcd6cf7f13))
+
+
+### Bug Fixes
+
+* **hooks:** stacked-PR guards read the trunk from origin/HEAD ([#4336](https://github.com/yonatangross/orchestkit/issues/4336)) ([5e822b0](https://github.com/yonatangross/orchestkit/commit/5e822b0cb8b71e3470b2c7545043e974ff6ec010))
+
 ## [10.0.0-beta.74](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.73...v10.0.0-beta.74) (2026-09-21)
 
 
