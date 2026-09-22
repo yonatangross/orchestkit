@@ -7,25 +7,15 @@
  *
  * This deterministic command hook runs `git status --porcelain` and warns
  * via systemMessage if uncommitted changes exist. Does not block session exit.
- *
- * F24 (sc47): use execFileSync with argv + timeout + --no-optional-locks so a
- * hung/slow git cannot pin the Stop event loop, and so concurrent sessions
- * don't contend on the index lock. Kept SYNC in hooks.json (no `async: true`):
- * an async Stop hook's systemMessage only lands on a next turn that may never
- * exist after Stop. Deliberately NOT `-uno`: untracked files are part of the
- * warning contract (tests + UX).
  */
 
-import { execFileSync } from 'node:child_process';
+import { execSync } from 'node:child_process';
 
 // Injected by build-plugins.sh at build time from manifests/ork.json
 const PLUGIN_VERSION = '10.0.0-beta.80'; // x-release-please-version
 
-/** Silent success - tells CC to continue without showing output. */
+/** Silent success — tells CC to continue without showing output. */
 const SILENT_OK = JSON.stringify({ continue: true, suppressOutput: true });
-
-/** Bound the Stop-path git spawn; matches security-scan-aggregator's status probe. */
-const GIT_TIMEOUT_MS = 5000;
 
 async function main() {
   // Drain stdin (required by hook protocol)
@@ -41,20 +31,18 @@ async function main() {
     : process.cwd();
 
   try {
-    // One spawn: status fails outside a git work tree, so a separate rev-parse
-    // probe was pure Stop-path cost. --no-optional-locks avoids index.lock
-    // waits when another session is mid-commit.
-    const raw = execFileSync(
-      'git',
-      ['--no-optional-locks', 'status', '--porcelain'],
-      {
-        cwd: projectDir,
-        encoding: 'utf-8',
-        stdio: ['pipe', 'pipe', 'pipe'],
-        timeout: GIT_TIMEOUT_MS,
-        windowsHide: true,
-      }
-    );
+    // Check if we're in a git repo
+    execSync('git rev-parse --is-inside-work-tree', {
+      cwd: projectDir,
+      stdio: ['pipe', 'pipe', 'pipe'],
+    });
+
+    // Check for uncommitted changes (staged + unstaged + untracked)
+    const raw = execSync('git status --porcelain', {
+      cwd: projectDir,
+      encoding: 'utf-8',
+      stdio: ['pipe', 'pipe', 'pipe'],
+    });
 
     // Split into lines preserving leading spaces (significant in porcelain format)
     const lines = raw.split('\n').filter((l) => l.length > 0);
@@ -72,14 +60,14 @@ async function main() {
       console.log(
         JSON.stringify({
           continue: true,
-          systemMessage: `[ork@${PLUGIN_VERSION}] ${parts.join(', ')} uncommitted - do not act on these.`,
+          systemMessage: `[ork@${PLUGIN_VERSION}] ${parts.join(', ')} uncommitted — do not act on these.`,
         })
       );
     } else {
       console.log(SILENT_OK);
     }
   } catch {
-    // Not a git repo, git unavailable, or timed out - skip silently
+    // Not a git repo or git not available — skip silently
     console.log(SILENT_OK);
   }
 }
