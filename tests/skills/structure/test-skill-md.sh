@@ -330,7 +330,7 @@ for skill_dir in "$SKILLS_DIR"/*/; do
         skill_name=$(basename "$skill_dir")
         skill_file="$skill_dir/SKILL.md"
         frontmatter=$(extract_frontmatter "$skill_file")
-        # Missing keys make grep exit 1 under pipefail — tolerate empty.
+        # Missing keys make grep exit 1 under pipefail. Tolerate empty.
         agent_field=$(get_frontmatter_field "$frontmatter" "agent" || true)
         context_field=$(get_frontmatter_field "$frontmatter" "context" || true)
 
