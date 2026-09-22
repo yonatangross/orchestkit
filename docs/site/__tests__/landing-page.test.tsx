@@ -80,6 +80,12 @@ vi.mock("..//lib/constants", () => ({
     ccVersion: "2.1.148+",
   },
   COUNTS: { skills: 69, agents: 38, hooks: 96 },
+  SITE_TITLE: "OrchestKit: for Claude Code and 7 more agents",
+  PAGE_SUMMARY: {
+    site: "69 skills, 38 agents and 96 hooks, for Claude Code and more coding agents. Stop explaining your stack. Start shipping.",
+    pricing:
+      "OrchestKit is free and open source under the MIT license. No paid tiers, no usage limits, no account required.",
+  },
   PERSON: { name: "Yonatan Gross", url: "https://github.com/yonatangross" },
   ORG: {
     legalName: "OrchestKit",
