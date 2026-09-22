@@ -47,7 +47,7 @@ fix-issue 123
 fix-issue 456
 ```
 
-> **Opus 5**: Root cause analysis uses native adaptive thinking. Dynamic token budgets scale with context window for thorough investigation.
+> **Opus 5.5**: Root cause analysis uses native adaptive thinking. Dynamic token budgets scale with context window for thorough investigation.
 
 > **CC ≥ 2.1.119 multi-host note (M122):** Issue fetching works against GitHub, GitLab, Bitbucket, and GitHub Enterprise. The argument is either a numeric ID (use the configured default remote's host) or a full URL (parsed via `parsePrUrl`/`parseIssueUrl` from `src/hooks/src/lib/pr-host-parser.ts`). Branch on the detected host family for the right CLI: `gh issue view` (GitHub/GHE), `glab issue view` (GitLab), `bb issue view` (Bitbucket). Reference: `src/skills/chain-patterns/references/pr-from-platform.md`.
 

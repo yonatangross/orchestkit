@@ -1134,3 +1134,35 @@ CC 2.1.269 fixes remote and headless sessions reporting that they are waiting fo
 CC 2.1.271 adds per-command `allowed_domains` to Bash, PowerShell and Monitor in auto mode with sandboxing. The hosts a command needs are reviewed with that command and opened for it alone; other hosts are refused.
 
 **Action for OrchestKit**: use the per-command domain review for commands with known network hosts. ork does not add host access rules to user settings.
+
+## CC 2.1.278 and 2.1.280 Settings
+
+### `CLAUDE_CODE_AUTO_MODE_SERVER`, server-side classifier by default (2.1.278)
+
+CC 2.1.278 moves auto mode for Claude API and Enterprise users, and on Bedrock, Vertex, Foundry and
+gateways, to the server-side classifier by default, which does not charge for classifier overhead.
+`CLAUDE_CODE_AUTO_MODE_SERVER=0` opts out on Bedrock, Vertex, Foundry and gateways, and CC warns when
+it falls back to the billed local classifier. `/status` gains an `Auto mode server` row. This reverses
+the 2.1.273 note, where the local classifier was the default and `=1` restored the server-side one.
+Upstream doc: https://code.claude.com/docs/en/auto-mode-classifier-billing
+
+**Action for OrchestKit**: none. ork sets neither variable; leave it to the operator who owns billing.
+
+### `CLAUDE_CODE_MAX_MCP_DESCRIPTION_LENGTH`, MCP description cap (2.1.280)
+
+CC 2.1.280 adds `CLAUDE_CODE_MAX_MCP_DESCRIPTION_LENGTH` to change the 2,048-character cap on MCP
+tool descriptions and server instructions for every MCP server in the session.
+
+**Action for OrchestKit**: keep the default. The cap exists so verbose servers cannot flood context;
+raise it only for a server whose truncated description was measured to break tool selection.
+
+### Effort on newly released models (2.1.280)
+
+An effort level saved before `/effort` became per-model no longer applies to newly released models
+such as Opus 5.5; they start at their own default until a level is picked. Opus 5.5's own default is
+`medium`, one level below Opus 5's `high`. Separately, Opus 4.7, Opus 4.8 and Fable 5 stop holding
+their launch-default effort over `-p`, the Agent SDK, a project, managed or `--settings`
+`effortLevel`, or a per-model level.
+
+**Action for OrchestKit**: skills that expect deep work (audit-full, verify) now say to pass `high`
+or `xhigh` explicitly. Skill-level `effort:` frontmatter is tracked separately in GH-4052.

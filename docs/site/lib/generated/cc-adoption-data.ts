@@ -16,8 +16,108 @@ export interface AdoptionWave {
 
 export const ADOPTION_WAVES: AdoptionWave[] = [
   {
+    "version": "2.1.280",
+    "features": [
+      {
+        "slug": "opus_5_5_default_model",
+        "category": "new_attr",
+        "description": "claude-opus-5-5 is the default Opus model: 1M context, $4/$20 per MTok, cache reads $0.20/MTok.",
+        "gapScore": 5,
+        "affectedSkills": [
+          "multimodal-llm",
+          "audit-full",
+          "verify",
+          "doctor",
+          "analytics"
+        ]
+      },
+      {
+        "slug": "max_mcp_description_length",
+        "category": "new_env",
+        "description": "CLAUDE_CODE_MAX_MCP_DESCRIPTION_LENGTH changes the 2,048-character cap on MCP tool descriptions and server instructions.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "configure",
+          "mcp-patterns"
+        ]
+      },
+      {
+        "slug": "hook_execution_complete_output_sizes",
+        "category": "new_attr",
+        "description": "hook_execution_complete OTel event carries hook output sizes and the oversized-output count.",
+        "gapScore": 15,
+        "affectedSkills": [
+          "analytics"
+        ]
+      },
+      {
+        "slug": "permission_request_agent_hooks_removed",
+        "category": "breaking",
+        "description": "PermissionRequest no longer runs agent-type hooks; shows an error pointing to command or http hooks.",
+        "gapScore": 0,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "effort_new_model_default",
+        "category": "changed_default",
+        "description": "A pre-per-model saved effort no longer applies to newly released models such as Opus 5.5; Opus 4.7/4.8 and Fable 5 stop holding launch-default effort over settings.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "audit-full",
+          "verify",
+          "configure"
+        ]
+      },
+      {
+        "slug": "reserved_marketplace_name_refused",
+        "category": "breaking",
+        "description": "Marketplaces imitating a reserved name are refused or stop loading.",
+        "gapScore": 0,
+        "affectedSkills": []
+      },
+      {
+        "slug": "fork_subagent_resume_cache",
+        "category": "fix",
+        "description": "Resumed fork subagents re-send their first tool list, keeping prompt caching.",
+        "gapScore": 15,
+        "affectedSkills": [
+          "chain-patterns"
+        ]
+      },
+      {
+        "slug": "symlink_write_judgement",
+        "category": "fix",
+        "description": "Writes through a symlink are judged where they land.",
+        "gapScore": 15,
+        "affectedSkills": [
+          "security-patterns"
+        ]
+      }
+    ]
+  },
+  {
     "version": "2.1.278",
-    "features": []
+    "features": [
+      {
+        "slug": "auto_mode_server_classifier_default",
+        "category": "changed_default",
+        "description": "Auto mode on Claude API, Enterprise, Bedrock, Vertex, Foundry and gateways defaults to the server-side classifier; CLAUDE_CODE_AUTO_MODE_SERVER=0 opts out.",
+        "gapScore": 5,
+        "affectedSkills": [
+          "configure",
+          "doctor"
+        ]
+      },
+      {
+        "slug": "status_auto_mode_server_row",
+        "category": "ui",
+        "description": "/status shows an Auto mode server row.",
+        "gapScore": 0,
+        "affectedSkills": []
+      }
+    ]
   },
   {
     "version": "2.1.277",
@@ -3388,10 +3488,10 @@ export const ADOPTION_WAVES: AdoptionWave[] = [
 
 export const CC_SUPPORT = {
   latest: "2.1.277",
-  latestKnown: "2.1.277",
+  latestKnown: "2.1.280",
   supportedFloor: "2.1.277",
   policy: "latest + 3 previous minors",
 } as const;
 
 /** sha256 (first 12 hex) of the two source files above, in that order. */
-export const SOURCE_DIGEST = "46cb6300afe7" as const;
+export const SOURCE_DIGEST = "c1cc23488d22" as const;

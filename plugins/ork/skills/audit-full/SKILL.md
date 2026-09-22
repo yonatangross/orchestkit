@@ -22,7 +22,7 @@ metadata:
 
 # Full-Codebase Audit
 
-Single-pass whole-project analysis leveraging Opus 5's extended context window. Loads entire codebases (~50K LOC) into context for cross-file vulnerability detection, architecture review, and dependency analysis.
+Single-pass whole-project analysis leveraging Opus 5.5's extended context window. Loads entire codebases (~50K LOC) into context for cross-file vulnerability detection, architecture review, and dependency analysis.
 
 ## Quick Start
 
@@ -33,7 +33,7 @@ audit-full architecture             # Architecture review
 audit-full dependencies             # Dependency audit
 ```
 
-> **Opus 5**: Uses `complexity: max` for extended thinking across entire codebases. 1M context (default and maximum on Opus 5) enables cross-file reasoning that chunked approaches miss. Effort defaults to `high`; bump to `xhigh` for one additional cross-file pattern sweep on the hardest codebases.
+> **Opus 5.5**: Uses `complexity: max` for extended thinking across entire codebases. 1M context (default and maximum on Opus 5.5) enables cross-file reasoning that chunked approaches miss. Set effort explicitly: Opus 5.5's own default is `medium` (one level below Opus 5's `high`), and CC 2.1.280+ starts a newly released model at its default rather than an older saved `/effort` level. Run audits at `high`; use `xhigh` for one additional cross-file pattern sweep on the hardest codebases.
 
 > **1M Context Required:** If `CLAUDE_CODE_DISABLE_1M_CONTEXT` is set, audit-full cannot perform full-codebase analysis. Check: `echo $CLAUDE_CODE_DISABLE_1M_CONTEXT` — if non-empty, either unset it (`unset CLAUDE_CODE_DISABLE_1M_CONTEXT`) or use `verify` for chunked analysis instead.
 

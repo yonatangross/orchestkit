@@ -48,7 +48,7 @@ review-pr 123
 review-pr feature-branch
 ```
 
-> **Opus 5**: Parallel agents use native adaptive thinking for deeper analysis. Complexity-aware routing matches agent model to review difficulty.
+> **Opus 5.5**: Parallel agents use native adaptive thinking for deeper analysis. Complexity-aware routing matches agent model to review difficulty.
 
 ---
 

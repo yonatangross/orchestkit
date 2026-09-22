@@ -1,0 +1,8 @@
+{
+  "slug": "cc-adoption-278-280",
+  "source": "docs/feat--ork-adopt/cc-280-opus-5-5.html",
+  "title": "CC 2.1.278 and 2.1.280 adoption, Opus 5.5",
+  "description": "Opus 5.5 becomes the default Opus: a cost calculator against the Sonnet fallback ork billed before, the recency-gate blind spot, and the adopt/defer table.",
+  "tags": ["cc-adoption", "triage", "models"],
+  "date": "2026-09-22"
+}

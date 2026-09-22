@@ -495,7 +495,7 @@ Prompt caching works by prefix matching: static system prompt, then tools, then 
 
 5. **Don't add MCP servers mid-session.** MCP tools are part of the cached prefix. Adding a server invalidates the cache for the entire conversation.
 
-6. **MCP tool descriptions are capped at 2KB** (CC 2.1.84+). OpenAPI-generated MCP servers with verbose descriptions will be truncated. Keep tool descriptions concise. Local MCP config wins over claude.ai connectors when both define the same server.
+6. **MCP tool descriptions are capped at 2KB** (CC 2.1.84+; the 2,048-character default is adjustable per session with `CLAUDE_CODE_MAX_MCP_DESCRIPTION_LENGTH` since CC 2.1.280). OpenAPI-generated MCP servers with verbose descriptions will be truncated. Keep tool descriptions concise. Local MCP config wins over claude.ai connectors when both define the same server.
 
 7. **Prefer `additionalContext` in messages over system prompt changes.** Hooks and skills should inject dynamic information via `<system-reminder>` tags in user messages, never by modifying the system prompt.
 

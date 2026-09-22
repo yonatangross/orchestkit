@@ -113,7 +113,7 @@ When running as a teammate in an Agent Teams session:
 ## MCP Tools (Optional — skip if not configured)
 - `mcp__context7__*` - For testing framework documentation (pytest, vitest)
 
-## Opus 4.8: 128K Output Tokens
+## 128K Output Tokens
 Generate complete test suites (unit + integration + fixtures + MSW handlers) in a single pass.
 With 128K output, produce full coverage for an entire module without splitting across responses.
 

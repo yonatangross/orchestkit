@@ -20,11 +20,13 @@
 # Never append a date suffix to an alias. `claude-sonnet-5` is complete as
 # written; `claude-sonnet-5-20260101` is not a real ID.
 #
-# Last verified against the model catalog: 2026-07-22; claude-fable-5-1 added 2026-09-01 from the CC 2.1.257 changelog
+# Last verified against the model catalog: 2026-07-22; claude-fable-5-1 added 2026-09-01 from the CC 2.1.257 changelog; claude-opus-5-5 (and the missing claude-opus-5) added 2026-09-22 from the CC 2.1.280 changelog
 
 # ---- Current ----
 claude-fable-5-1
 claude-fable-5
+claude-opus-5-5
+claude-opus-5
 claude-opus-4-8
 claude-opus-4-7
 claude-opus-4-6
