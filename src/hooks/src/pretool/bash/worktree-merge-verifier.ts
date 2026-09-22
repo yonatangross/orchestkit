@@ -28,6 +28,7 @@ import { basename } from 'node:path';
 import type { HookInput, HookResult, HookContext } from '../../types.js';
 import { outputSilentSuccess, getField } from '../../lib/common.js';
 import { NOOP_CTX } from '../../lib/context.js';
+import { resolveTrunkBranch, TRUNK_FALLBACKS } from '../../lib/git-trunk.js';
 
 const HOOK_NAME = 'pretool/bash/worktree-merge-verifier';
 
@@ -90,9 +91,19 @@ function gitRevParse(projectDir: string, ref: string): string | null {
  *
  * Returns null when nothing resolves, so "could not measure" stays distinct
  * from "measured zero" instead of guessing at the literal string 'main'.
+ *
+ * The candidate ORDER is the repo's own trunk from `origin/HEAD` first. The
+ * old list led with 'main' unconditionally, so a repo whose trunk is `develop`
+ * or `dev` while `main` lingers as a release branch was measured against the
+ * wrong branch: every commit on the trunk since that release counts as
+ * unmerged, which is the same false "you will lose work" #3569 removed.
+ * Fallbacks are tried only after the trunk, and only when it fails to resolve.
  */
 export function resolveBase(projectDir: string): string | null {
-  const candidates = ['main', 'master', 'develop'];
+  const trunk = resolveTrunkBranch(projectDir);
+  const candidates = trunk
+    ? [trunk, ...TRUNK_FALLBACKS.filter(b => b !== trunk)]
+    : [...TRUNK_FALLBACKS];
   for (const b of candidates) {
     if (gitRevParse(projectDir, `origin/${b}`)) return `origin/${b}`;
   }

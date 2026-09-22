@@ -8,7 +8,10 @@
  * the head branch after squash-merge. If any other open PR has THAT
  * branch as its `baseRefName`, GitHub silently auto-closes it — and the
  * closed PR cannot be reopened or retargeted via API. Recovery requires
- * rebasing onto main locally and opening a fresh PR.
+ * rebasing onto the repo's trunk locally and opening a fresh PR. The trunk
+ * comes from `origin/HEAD`, never from a hardcoded name: this advice used to
+ * say `main` in every repo, which is wrong wherever the trunk is `dev` or
+ * `develop`.
  *
  * This hook fires on `gh pr merge ... --delete-branch` (and the squash
  * variants), queries `gh pr list --base <head-branch>` for any open
@@ -18,10 +21,11 @@
  * `ORK_DISABLE_DELETE_BRANCH_GUARD=1`.
  */
 
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import type { HookInput, HookResult, HookContext } from '../../types.js';
 import { outputSilentSuccess, getField } from '../../lib/common.js';
 import { NOOP_CTX } from '../../lib/context.js';
+import { resolveTrunkBranch } from '../../lib/git-trunk.js';
 
 const HOOK_NAME = 'pretool/bash/delete-branch-stacked-pr-guard';
 
@@ -40,6 +44,36 @@ interface PRSummary {
 }
 
 /**
+ * Run a command with an ARGUMENT ARRAY and no shell. Returns trimmed stdout,
+ * or null on any failure, since this hook is advisory and must never throw.
+ *
+ * Every subprocess in this file goes through here. `git check-ref-format`
+ * rejects spaces, not shell metacharacters, so `evil;touch /tmp/x` is a legal
+ * branch name that a fork PR can carry, and both the PR ref (read off the
+ * command line) and the head branch name (read from `gh pr view`) used to be
+ * interpolated into a shell string. Never reintroduce a template literal here:
+ * the same shape was a confirmed RCE in worktree-merge-verifier (#3365).
+ */
+function run(
+  projectDir: string,
+  file: string,
+  args: string[],
+  timeout = 5000,
+): string | null {
+  try {
+    const out = execFileSync(file, args, {
+      cwd: projectDir,
+      encoding: 'utf8',
+      timeout,
+      stdio: ['ignore', 'pipe', 'ignore'],
+    });
+    return String(out ?? '').trim() || null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Resolve the PR being merged → its headRefName (= the branch about to be
  * deleted). If no PR ref on the command line, gh uses the current branch.
  */
@@ -49,40 +83,26 @@ function resolveHeadBranch(projectDir: string, command: string): string | null {
 
   // No-arg merge → current branch is the head
   if (!ref || ref.startsWith('--')) {
-    try {
-      return execSync('git branch --show-current', {
-        cwd: projectDir,
-        encoding: 'utf8',
-        timeout: 1000,
-        stdio: ['pipe', 'pipe', 'ignore'],
-      }).trim() || null;
-    } catch {
-      return null;
-    }
+    return run(projectDir, 'git', ['branch', '--show-current'], 1000);
   }
 
   // PR number or URL → ask gh for the headRefName
-  try {
-    const out = execSync(
-      `gh pr view ${ref} --json headRefName -q .headRefName`,
-      { cwd: projectDir, encoding: 'utf8', timeout: 5000, stdio: ['pipe', 'pipe', 'ignore'] },
-    ).trim();
-    return out || null;
-  } catch {
-    return null;
-  }
+  return run(projectDir, 'gh', ['pr', 'view', ref, '--json', 'headRefName', '-q', '.headRefName']);
 }
 
 /**
  * Find open PRs whose base is the branch about to be deleted.
  */
 function findDependentPRs(projectDir: string, headBranch: string): PRSummary[] {
+  const out = run(projectDir, 'gh', [
+    'pr', 'list',
+    '--base', headBranch,
+    '--state', 'open',
+    '--json', 'number,title',
+    '--limit', '20',
+  ]);
+  if (!out) return [];
   try {
-    const out = execSync(
-      `gh pr list --base ${headBranch} --state open --json number,title --limit 20`,
-      { cwd: projectDir, encoding: 'utf8', timeout: 5000, stdio: ['pipe', 'pipe', 'ignore'] },
-    ).trim();
-    if (!out) return [];
     const parsed = JSON.parse(out);
     return Array.isArray(parsed) ? parsed : [];
   } catch {
@@ -119,6 +139,17 @@ export function deleteBranchStackedPRGuard(
     .map(pr => `  - #${pr.number} ${pr.title}`)
     .join('\n');
 
+  const trunk = resolveTrunkBranch(projectDir);
+  const trunkAdvice = trunk
+    ? `Retarget each one first (\`gh pr edit <N> --base ${trunk}\`), then rebase it off the ` +
+      `squashed parent:\n` +
+      `  git rebase --onto origin/${trunk} <parent-tip> <dependent-branch>\n` +
+      `  git push --force-with-lease=<dependent-branch>:<its-current-remote-sha> origin <dependent-branch>\n`
+    : `The trunk is unknown here because \`origin/HEAD\` is unset: run ` +
+      `\`git remote set-head origin -a\`, then retarget each one to that branch and rebase it ` +
+      `off the squashed parent with \`git rebase --onto origin/<trunk> <parent-tip> ` +
+      `<dependent-branch>\` and a \`--force-with-lease=<dependent-branch>:<its-current-remote-sha>\` push.\n`;
+
   return {
     continue: true,
     hookSpecificOutput: {
@@ -128,9 +159,15 @@ export function deleteBranchStackedPRGuard(
         `on \`${headBranch}\`, but ${dependents.length} open PR(s) target it as base:\n` +
         `${list}\n` +
         `Deleting the branch will auto-CLOSE these PRs and they CANNOT be reopened or ` +
-        `retargeted via API. Recovery requires \`git rebase origin/main\` + force-push + ` +
-        `\`gh pr create\`. Either retarget them first (\`gh pr edit <N> --base main\`) or ` +
-        `drop \`--delete-branch\` from this command. ` +
+        `retargeted via API. ` +
+        `Record the tip you are about to squash FIRST: \`git rev-parse origin/${headBranch}\`. ` +
+        `Once the branch is deleted that sha survives only as the merged PR's headRefOid, and ` +
+        `it is the \`<parent-tip>\` below. ` +
+        `A squash merge puts the parent's changes on the trunk as ONE new commit, so a plain ` +
+        `\`git rebase <trunk>\` replays commits the trunk already contains and conflicts on ` +
+        `every one; the \`--onto\` form drops them instead.\n` +
+        trunkAdvice +
+        `Or drop \`--delete-branch\` from this command. ` +
         `(Advisory — merge not blocked. Opt out with ORK_DISABLE_DELETE_BRANCH_GUARD=1.)`,
     },
   };

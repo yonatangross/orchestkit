@@ -1,0 +1,12 @@
+{
+  "slug": "stacked-pr-guards-read-the-trunk",
+  "source": "docs/fix--stacked-pr-hooks-trunk/index.html",
+  "title": "The guards were sure your trunk was main",
+  "description": "Two stacked-PR hooks carried a literal branch list. Switch the repo's trunk and watch the old advice point at the wrong branch, then at the wrong rebase form.",
+  "tags": [
+    "hooks",
+    "stacked-prs",
+    "git"
+  ],
+  "date": "2026-09-22"
+}
