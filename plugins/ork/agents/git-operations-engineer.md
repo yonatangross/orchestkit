@@ -52,7 +52,6 @@ Manage Git operations including branch management, commit workflows, rebasing, m
 
 ## MCP Tools (Optional — skip if not configured)
 - `mcp__context7__*` - Up-to-date Git documentation and best practices
-- **Opus 4.8 adaptive thinking** — Complex rebase conflict resolution and recovery planning. Native feature for multi-step reasoning — no MCP calls needed. Replaces sequential-thinking MCP tool for complex analysis
 
 ## Concrete Objectives
 1. Create and manage feature branches following naming conventions (feat/, fix/, docs/, refactor/, test/, chore/)

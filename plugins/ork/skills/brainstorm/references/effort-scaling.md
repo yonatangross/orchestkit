@@ -1,6 +1,6 @@
 # Effort-Aware Phase Scaling
 
-CC 2.1.76 introduced `/effort` levels; `xhigh` was added in CC 2.1.111 (Opus 4.7); since CC 2.1.154 Opus 4.8 defaults to `high` and reserves `xhigh` for the hardest tasks. The effort-aware context budgeting hook (global) detects effort level automatically — adapt the phase plan accordingly.
+CC 2.1.76 introduced `/effort` levels; `xhigh` was added in CC 2.1.111. Each model starts at its own default: Opus 5.5 (the `opus` alias) defaults to `medium`, so set `high` or `xhigh` explicitly for a full brainstorm. The effort-aware context budgeting hook (global) detects effort level automatically; adapt the phase plan accordingly.
 
 | Effort Level | Phases Run                                                                                        | Token Budget | Agents |
 |--------------|---------------------------------------------------------------------------------------------------|--------------|--------|

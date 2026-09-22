@@ -64,10 +64,10 @@ The tiers are the ones already declared in `src/agents/*.md` frontmatter. There 
 
 | tier | count | representative agents |
 |---|---|---|
-| `haiku` | 7 | git-operations-engineer, release-engineer, deployment-manager, monitoring-engineer, eval-runner, data-pipeline-engineer, market-intelligence |
-| `sonnet` | 10 | debug-investigator, database-engineer, frontend-performance-engineer, accessibility-specialist, web-research-analyst, llm-integrator |
-| `opus` | 6 | security-auditor, security-layer-auditor, ai-safety-auditor, system-design-reviewer, event-driven-architect, workflow-architect |
-| `inherit` | 13 | test-generator, code-quality-reviewer, backend-system-architect, ci-cd-engineer, infrastructure-architect (these adopt the caller's model) |
+| `haiku` | 3 | eval-runner, emulate-engineer, release-engineer |
+| `sonnet` | 23 | debug-investigator, database-engineer, test-generator, ci-cd-engineer, git-operations-engineer, llm-integrator |
+| `opus` | 6 | security-auditor, security-layer-auditor, ai-safety-auditor, system-design-reviewer, code-quality-reviewer, workflow-architect |
+| `inherit` | 4 | backend-system-architect, frontend-ui-developer, infrastructure-architect, product-strategist (these adopt the caller's model) |
 
 ### The rubric (one pass, decidable)
 
@@ -136,7 +136,7 @@ Rules that keep the two composed rather than duplicated:
 Tier is bound **statically to agent identity** in each agent's frontmatter, and the spawn happens downstream in whichever skill the router handed off to. The router therefore has exactly two levers, and neither is a model override:
 
 1. **Selection**: which skill and which agent gets the work (choosing `eval-runner` over a sonnet agent is a real tier decision).
-2. **The caller's model**: the 13 `inherit` agents (36% of the catalog) adopt it, so the weight the router hands off at propagates to that bloc.
+2. **The caller's model**: the 4 `inherit` agents (11% of the catalog) adopt it, so the weight the router hands off at propagates to that bloc.
 
 Everything else is a documented hint carried into the handoff. Per the no-bypass guardrail, the router does not override a target skill's own agent selection.
 

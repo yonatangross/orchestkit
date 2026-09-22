@@ -299,23 +299,18 @@ If `--dry-run` flag is present, skip all writes. Output the full report (Step 6)
 ### Live Mode
 
 ```python
-# 1. Delete FULLY_STALE files
-for stale in fully_stale_files:
-    Bash(command=f"rm '{stale['path']}'")
+# Move, never rm: memory files are not in git (see references/safe-deletes.md)
+trash = f"{memory_dir}/.trash/{date.today().isoformat()}"
+Bash(command=f"mkdir -p '{trash}'")
 
-# 2. Delete DUPLICATE files (keep newer)
-for dup in duplicate_pairs:
-    older = dup["older"]
-    Bash(command=f"rm '{older['path']}'")
+# 1. FULLY_STALE files, 2. DUPLICATE (older), 3. CONTRADICTED (older)
+to_remove = [s["path"] for s in fully_stale_files]
+to_remove += [d["older"]["path"] for d in duplicate_pairs]
+to_remove += [c["older"]["path"] for c in contradiction_pairs]
+for path in to_remove:
+    Bash(command=f"mv '{path}' '{trash}/'")
 
-# 3. Delete CONTRADICTED files (keep newer)
-for contradiction in contradiction_pairs:
-    older = contradiction["older"]
-    Bash(command=f"rm '{older['path']}'")
-
-# 4. Rebuild MEMORY.md index from surviving files
-# NOTE: `rm` above is unrecoverable (memory files are not in git). Prefer the
-# trash-dir move + one-generation index rotation in references/safe-deletes.md.
+# 4. Rebuild MEMORY.md index from surviving files (exclude .trash/ from the walk)
 ```
 
 ### Rebuild MEMORY.md

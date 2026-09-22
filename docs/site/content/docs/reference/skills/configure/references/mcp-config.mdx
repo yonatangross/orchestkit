@@ -96,7 +96,7 @@ mcpServers: [tavily]
 - **`mcpServers: [tavily]`** → agent ONLY sees tavily tools
 - **`mcpServers: []`** → agent sees NO MCP tools
 
-OrchestKit agents declare `mcpServers` explicitly to avoid inheriting unnecessary tool definitions into their smaller context windows (Sonnet: 128K vs Opus: 200K).
+OrchestKit agents declare `mcpServers` explicitly to avoid inheriting unnecessary tool definitions into their context windows (every schema the parent loads costs each subagent context).
 
 ## Background Agent Limitation
 
@@ -124,7 +124,7 @@ With 4 MCPs (~4.2K tokens = 2.1% of 200K), schemas load upfront. This is accepta
 
 **Tighten the threshold:** Set `ENABLE_TOOL_SEARCH=auto:5` in your shell profile to defer at 5% instead of 10%.
 
-**Note:** MCPSearch requires Sonnet 4+ or Opus 4+ — Haiku agents cannot use it and always get full schema overhead. OrchestKit's 2 Haiku agents (ci-cd-engineer, release-engineer) use `mcpServers` scoping to minimize their MCP exposure.
+**Note:** MCPSearch requires Sonnet 4+ or Opus 4+; Haiku agents cannot use it and always get full schema overhead. OrchestKit's 3 Haiku agents (emulate-engineer, eval-runner, release-engineer) use `mcpServers` scoping to minimize their MCP exposure.
 
 ## Enabling/Disabling MCPs
 

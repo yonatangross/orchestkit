@@ -37,7 +37,7 @@ audit-full dependencies             # Dependency audit
 
 > **1M Context Required:** If `CLAUDE_CODE_DISABLE_1M_CONTEXT` is set, audit-full cannot perform full-codebase analysis. Check: `echo $CLAUDE_CODE_DISABLE_1M_CONTEXT` — if non-empty, either unset it (`unset CLAUDE_CODE_DISABLE_1M_CONTEXT`) or use `verify` for chunked analysis instead.
 
-> **Effort (CC 2.1.111+):** `xhigh` adds a second pass that re-reads cross-module boundaries specifically looking for patterns the first pass normalized over. The Opus tier has defaulted to `high` since CC 2.1.154 and reserves `xhigh` for the hardest codebases. Silently falls back to `high` on other models; `doctor` warns on mismatch.
+> **Effort (CC 2.1.111+):** `xhigh` adds a second pass that re-reads cross-module boundaries specifically looking for patterns the first pass normalized over. Reserve `xhigh` for the hardest codebases (see the Opus 5.5 note above for the default). Silently falls back to `high` on other models; `doctor` warns on mismatch.
 
 > **Switching to Opus (CC 2.1.144+):** `/model` now affects the current session only — pick Opus for this audit without it persisting. Press `d` in the picker only if you want it as the default for new sessions too.
 

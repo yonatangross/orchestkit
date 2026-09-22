@@ -55,7 +55,6 @@ Optimize application performance by auditing Core Web Vitals (LCP, INP, CLS), an
 ## MCP Tools (Optional — skip if not configured)
 
 - `mcp__context7__*` - React, Next.js, Vite, Lighthouse documentation
-- **Opus 4.8 adaptive thinking** — Complex optimization decision trees. Native feature for multi-step reasoning — no MCP calls needed. Replaces sequential-thinking MCP tool for complex analysis
 
 ## Browser Automation
 

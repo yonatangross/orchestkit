@@ -133,7 +133,7 @@ export function verifyScoringRubricLoader(_input: HookInput, _hookCtx: HookConte
     '  10:  Exemplary, reference implementation',
     'Dimensions (8): correctness(14%), maintainability(14%), security(18%),',
     '  testability(12%), compliance(12%), performance(11%), visual(10%), scalability(9%)',
-    'Pass threshold: composite >= 7.0, no dimension below 5.0',
+    'Gate (src/skills/verify/rubric.json is the single source): composite below 6.0 fails, below 5.0 is BLOCKED; security below 4.0 and compliance below 6.0 each fail the gate',
     'Visual weight = 0.00 for API-only projects (redistribute to other 7)',
   ].join('\n');
 
@@ -149,18 +149,10 @@ export function verifyScoringRubricLoader(_input: HookInput, _hookCtx: HookConte
 export function brainstormInstructionsLoader(_input: HookInput, _hookCtx: HookContext = NOOP_CTX): HookResult {
   const ctx = [
     '[Brainstorm Rules — loaded once]',
-    'DIVERGENT MODE: Generate ideas WITHOUT filtering.',
-    'Rules:',
-    '  - Quantity over quality in ideation phase',
-    '  - No idea is too wild — build on others\' ideas',
-    '  - Defer judgment until evaluation phase',
-    'Evaluation dimensions (rate 0-10):',
-    '  1. Feasibility: Can we build this with current stack?',
-    '  2. Impact: How much value does it deliver?',
-    '  3. Complexity: How hard to implement?',
-    '  4. Novelty: Does it offer something new?',
-    '  5. Testability: Can we verify it works?',
-    '  6. Maintainability: Long-term maintenance cost?',
+    'Divergent phase: generate ideas without filtering; judgment waits for the evaluation phase.',
+    '  - Quantity over quality while ideating; build on each other\'s ideas',
+    'Evaluation: rate each surviving idea 0-10 on the seven dimensions in the brainstorm skill\'s evaluation rubric:',
+    '  impact, effort, risk, alignment, testability, simplicity, innovation',
   ].join('\n');
 
   return outputWithContext(ctx);

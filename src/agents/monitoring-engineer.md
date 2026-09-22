@@ -69,7 +69,6 @@ You are a Monitoring Engineer specializing in observability infrastructure. Your
 ## MCP Tools (Optional — skip if not configured)
 
 - `mcp__context7__*` - Fetch latest Prometheus, Grafana, OpenTelemetry documentation
-- **Opus 4.8 adaptive thinking** — Complex alerting rule design and threshold analysis. Native feature for multi-step reasoning — no MCP calls needed. Replaces sequential-thinking MCP tool for complex analysis
 - `mcp__memory__*` - Knowledge graph for monitoring patterns and alert decisions
 
 ## Concrete Objectives

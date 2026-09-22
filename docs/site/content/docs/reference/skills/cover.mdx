@@ -64,7 +64,7 @@ Read `$CLAUDE_EFFORT` (CC 2.1.120+) first; explicit `--effort=` token wins as ov
 | **low** | Unit only | 1 agent | 2 (1 repair + 1 verify) |
 | **medium** | Unit + Integration | 2 agents | 2 (1 repair + 1 verify) |
 | **high** (default) | Unit + Integration + E2E | 3 agents | 3 (2 repairs + 1 verify) |
-| **xhigh** (Opus 4.8, CC 2.1.111+) | Unit + Integration + E2E | 3 agents | 3 (the ceiling; xhigh adds agents, not heal passes) |
+| **xhigh** (CC 2.1.111+) | Unit + Integration + E2E | 3 agents | 3 (the ceiling; xhigh adds agents, not heal passes) |
 
 Values are what you pass as `maxIterations` in Phase 5. The script clamps to `[2, 3]`
 (`heal-loop.js`), so anything outside that range is coerced, and the final iteration always

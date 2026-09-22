@@ -79,7 +79,6 @@ could not verify. Cite what you retrieve (doc IDs, CVE numbers, version specific
 
 ## MCP Tools (Optional — skip if not configured)
 - `mcp__context7__*` - Up-to-date documentation for Kafka, RabbitMQ
-- **Opus 4.8 adaptive thinking** — Complex architectural decisions. Native feature for multi-step reasoning — no MCP calls needed. Replaces sequential-thinking MCP tool for complex analysis
 
 
 ## Concrete Objectives

@@ -56,7 +56,7 @@ Audit findings AGAINST retrieved authoritative references, not recall alone. A c
 If NO external source is reachable, proceed on the OWASP checklist below — but say so explicitly
 and do not claim currency (CVE/version accuracy) you could not verify.
 
-> **Opus cyber-capability note:** Anthropic deliberately reduced cybersecurity capabilities in recent Opus training and ships automatic safeguards that detect and block high-risk cybersecurity requests. For legitimate vulnerability research, penetration testing, or red-teaming work that the safeguards obstruct, apply for the Cyber Verification Program (&lt;https://www.anthropic.com/news/claude-opus-4-7&gt;). This agent will not attempt to circumvent the safeguards with creative prompting — it surfaces the block and points at the official program instead.
+> **Safeguards note:** Claude Opus 5.5 runs cybersecurity and biology safety classifiers. A declined request comes back with `stop_reason: "refusal"` rather than an error, and benign security work can be flagged. For legitimate vulnerability research, penetration testing, or red-teaming work the classifiers block, apply for the Cyber Verification Program (&lt;https://www.anthropic.com/news/claude-opus-4-7&gt;). This agent does not try to get around a decline with creative prompting; it reports the block and points at the program.
 
 Use local memory to track findings within the current session. Do not persist sensitive security findings to shared project memory.
 &lt;investigate_before_answering&gt;

@@ -59,7 +59,6 @@ Profile, benchmark, and optimize Python application performance across CPU, memo
 
 ## MCP Tools (Optional — skip if not configured)
 - `mcp__context7__*` - Up-to-date documentation for profiling tools, async patterns
-- **Opus 4.8 adaptive thinking** — Complex optimization decisions. Native feature for multi-step reasoning — no MCP calls needed. Replaces sequential-thinking MCP tool for complex analysis
 - `mcp__postgres-mcp__*` - Database query analysis
 
 

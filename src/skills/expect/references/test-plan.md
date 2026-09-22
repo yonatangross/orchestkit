@@ -50,16 +50,16 @@ SECTION 4: AGENT-BROWSER TOOL DOCS
 ═══════════════════════════════════════════════════════════════
 
 Available commands (use via agent-browser skill):
+- open <url>: Go to URL
 - snapshot: Capture current page accessibility tree
 - click <selector>: Click an element
 - fill <selector> <value>: Type into an input
 - select <selector> <option>: Select dropdown option
 - screenshot [filename]: Take screenshot (auto on failure)
-- eval <js>: Run JavaScript in page context
-- navigate <url>: Go to URL
-- wait <ms>: Wait for specified milliseconds
-- assert_text <text>: Assert text is visible on page
-- assert_url <pattern>: Assert current URL matches pattern
+- eval <js>: Run JavaScript in page context; assert page text or URL by returning a check from here
+- wait <selector>: Wait for an element to appear (prefer this over a fixed delay)
+- wait --url <pattern>: Wait for the URL to match
+- wait --load networkidle: Wait for the page to settle
 
 ═══════════════════════════════════════════════════════════════
 SECTION 5: INTERACTION PATTERN

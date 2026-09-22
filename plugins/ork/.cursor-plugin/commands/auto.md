@@ -61,7 +61,7 @@ Full per-category parameter extraction + edge cases: `skills/auto/references/rou
 
 Intent picks **who** does the work. Weight picks **how expensive that worker should be**. A route is `{intent} @ {weight}`. Weight never changes the intent and never replaces it. The taxonomy above and the 7 disambiguation rules are untouched by it.
 
-Tiers are the ones already declared in `src/agents/*.md` frontmatter (`haiku` 7 · `sonnet` 10 · `opus` 6 · `inherit` 13). No parallel taxonomy.
+Tiers are the ones already declared in `src/agents/*.md` frontmatter (`haiku` 3 · `sonnet` 23 · `opus` 6 · `inherit` 4). No parallel taxonomy.
 
 | weight | tier | the task is… |
 |---|---|---|
@@ -146,7 +146,7 @@ Invoke the target skill with the extracted parameters and **follow that skill's 
 - **No silent upgrade.** A Heavy (opus/fable) leg is premium spend and requires an explicit nod on its own line. Downgrades stay silent.
 - **The cap is not the router's to move.** Never read, set, or suggest raising `ORK_TEAM_OPUS_MAX`. That is the user's budget.
 - **A gate denial is not a re-route trigger.** If `team-size-gate` denies a spawn, do NOT relabel a Heavy leg as Standard to slip under the cap. Report the denial and let the user decide.
-- **Weight is a hint, not an override.** The router cannot change an agent's declared `model:`. It selects skills and agents, and sets the caller's model that the 13 `inherit` agents adopt. It never overrides a target skill's own agent selection.
+- **Weight is a hint, not an override.** The router cannot change an agent's declared `model:`. It selects skills and agents, and sets the caller's model that the 4 `inherit` agents adopt. It never overrides a target skill's own agent selection.
 
 ## Validation
 
