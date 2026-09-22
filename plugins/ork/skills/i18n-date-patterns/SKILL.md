@@ -6,7 +6,7 @@ description: Implements internationalization (i18n) in React applications. Cover
 context: inherit
 version: 1.2.0
 author: Yonatan Gross
-tags: [i18n, internationalization, dayjs, dates, react-i18next, localization, rtl, useTranslation, useFormatting, ICU, Trans]
+tags: [i18n, internationalization, dayjs, dates, react-i18next, localization, rtl, useTranslation, useFormatting, ICU, Trans, react]
 user-invocable: false
 disable-model-invocation: true
 complexity: low

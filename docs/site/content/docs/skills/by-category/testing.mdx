@@ -5,15 +5,22 @@ description: "Unit, integration, E2E, performance, and LLM testing patterns."
 
 # Testing Skills
 
-**14 skills** for unit, integration, e2e, performance, and llm testing patterns.
+**21 skills** for unit, integration, e2e, performance, and llm testing patterns.
 
 | Skill | Type | Complexity | Description |
 |-------|------|------------|-------------|
+| [Assess](/docs/reference/skills/assess) | Command | high | Assesses and rates quality 0-10 across multiple dimensions (correctness, maintainability, security, performance, test... |
 | [Bare Eval](/docs/reference/skills/bare-eval) | Reference | medium | Run isolated eval and grading calls using CC 2.1.81 --bare mode. Constructs claude -p --bare invocations for skill ev... |
+| [Code Review Playbook](/docs/reference/skills/code-review-playbook) | Reference | low | Structured review processes, conventional comments, language-specific checklists, and feedback templates. Use when re... |
 | [Cover](/docs/reference/skills/cover) | Command | high | Generate tests that do not exist yet. Analyzes coverage gaps, then writes and runs new test files across three tiers ... |
+| [Create Pr](/docs/reference/skills/create-pr) | Command | medium | Creates GitHub pull requests with pre-flight validation, conventional title formatting, and structured summary genera... |
 | [Emulate Seed](/docs/reference/skills/emulate-seed) | Reference | medium | Generate emulate seed configs for stateful API emulation. Wraps Vercel's emulate tool for GitHub, Vercel, Google OAut... |
+| [Errors](/docs/reference/skills/errors) | Reference | low | Error pattern analysis and troubleshooting for Claude Code sessions. Categorizes errors (network, auth, model, tool, ... |
 | [Expect](/docs/reference/skills/expect) | Command | high | Diff-aware AI browser testing — reads the git diff, maps changes to affected pages via the route map, generates a tar... |
+| [Golden Dataset](/docs/reference/skills/golden-dataset) | Reference | medium | Golden dataset lifecycle patterns for curation, versioning, quality validation, and CI integration. Use when building... |
+| [Paired Probe](/docs/reference/skills/paired-probe) | Reference | low | Refuse a verdict a probe did not earn. Runs a check where the fault IS present and where it is NOT, and blocks the an... |
 | [Quality Gates](/docs/reference/skills/quality-gates) | Reference | max | Use when assessing task complexity, before starting complex tasks, when stuck after multiple attempts, or reviewing c... |
+| [Rag Retrieval](/docs/reference/skills/rag-retrieval) | Reference | high | Retrieval-Augmented Generation patterns for grounded LLM responses. Use when building RAG pipelines, embedding docume... |
 | [Review Pr](/docs/reference/skills/review-pr) | Command | medium | PR review using parallel specialized agents for code quality, security, testing, architecture, and performance analys... |
 | [Storybook Testing](/docs/reference/skills/storybook-testing) | Reference | medium | Storybook 10 testing patterns with Vitest integration, ESM-only distribution, CSF3 typesafe factories, play() interac... |
 | [Testing E2e](/docs/reference/skills/testing-e2e) | Reference | medium | End-to-end testing patterns with Playwright — page objects, AI agent testing, visual regression, accessibility testin... |
@@ -27,4 +34,5 @@ description: "Unit, integration, E2E, performance, and LLM testing patterns."
 ## Related Agents
 
 - [Code Quality Reviewer](/docs/reference/agents/code-quality-reviewer)
+- [Data Pipeline Engineer](/docs/reference/agents/data-pipeline-engineer)
 - [Test Generator](/docs/reference/agents/test-generator)
