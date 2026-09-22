@@ -1,8 +1,9 @@
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
+import type { Metadata } from "next";
 import { StarLink } from "./star-link";
-import { SITE, COUNTS } from "@/lib/constants";
+import { COUNTS, PAGE_SUMMARY, SITE, SITE_TITLE } from "@/lib/constants";
 import { AgentReadinessSection } from "@/components/agent-readiness-section";
 import { HomepageStructuredData } from "@/components/structured-data";
 import { GeorgeMark } from "@/components/world/george";
@@ -14,6 +15,24 @@ import { HostInstallPicker } from "@/components/host-install";
 import { WhatsAppCommunityLink } from "@/components/whatsapp-community-link";
 import { WebMcpSearchForm } from "@/components/webmcp-search-form";
 import { CHANGELOG_ENTRIES } from "@/lib/generated/changelog-data";
+
+// Homepage-only social fields. Kept off the root layout so marketing pages that
+// only set `title` do not inherit this og/twitter title and description.
+export const metadata: Metadata = {
+	title: {
+		absolute: SITE_TITLE,
+	},
+	description: PAGE_SUMMARY.site,
+	openGraph: {
+		title: SITE_TITLE,
+		description: PAGE_SUMMARY.site,
+		url: SITE.domain,
+	},
+	twitter: {
+		title: SITE_TITLE,
+		description: PAGE_SUMMARY.site,
+	},
+};
 
 async function getStarCount(): Promise<number | null> {
   try {
