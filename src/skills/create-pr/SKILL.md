@@ -68,6 +68,24 @@ BASE=${BASE:-main}   # ref missing (fresh/shallow clone)? run: git remote set-he
 
 Every `$BASE` below refers to this value.
 
+### Stacked on another open PR
+
+When the work depends on an open PR ("a PR that depends on PR #50"), that PR's head branch is
+the base, not `$BASE`:
+
+```bash
+PARENT=50
+PARENT_BRANCH=$(gh pr view "$PARENT" --json headRefName -q .headRefName)
+git fetch origin && git rebase "origin/$PARENT_BRANCH"   # pre-flight: sync with the parent
+gh pr create --base "$PARENT_BRANCH" --title "$TYPE(#$ISSUE): ... [2/3]" \
+  --body "Stacked on #$PARENT. Do not merge into the parent branch."
+```
+
+Phase 1's guard still applies: never open from `main` or `dev`, never with a dirty tree. Record
+`git rev-parse "origin/$PARENT_BRANCH"` in the body; after the parent is squash-merged that sha
+is the upstream argument that `git rebase --onto "origin/$BASE" <that-sha> <branch>` needs, and
+the branch itself is gone. Squash recovery, depth cap, draft trap: `Read("references/stacked-pr.md")`.
+
 ---
 
 ## STEP 0: Verify User Intent
