@@ -35,9 +35,21 @@ export const COUNTS = {
   commands: TOTALS.commands,
 } as const;
 
-// Matches the baked OG card tagline ("for Claude Code and 7 more agents").
-// The host count is the eight HostId values minus Claude Code itself.
-export const SITE_TITLE = `${SITE.name}: for Claude Code and 7 more agents`;
+// Same ids and order as design/og-card/brand.py HOSTS (claude first). The OG
+// card tagline counts len(HOSTS) - 1; SITE_TITLE uses this list so both stay
+// in lockstep when a host is added or removed.
+export const SITE_HOSTS = [
+  "claude",
+  "cursor",
+  "codex",
+  "muse",
+  "agy",
+  "devin",
+  "opencode",
+  "pi",
+] as const;
+
+export const SITE_TITLE = `${SITE.name}: for Claude Code and ${SITE_HOSTS.length - 1} more agents`;
 
 // One-sentence summaries shared by an HTML page and its Markdown twin. Each is
 // already that page's `metadata.description`; hoisting it here is what lets the
