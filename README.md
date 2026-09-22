@@ -614,6 +614,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.77](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.76...v10.0.0-beta.77)** · 2026-09-22
+
+- **site:** align title and social meta with the OG card (#4343)
+
 **[v10.0.0-beta.76](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.75...v10.0.0-beta.76)** · 2026-09-22
 
 - **dream:** classify index budget moves by filename prefix (#4342)
@@ -652,10 +656,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.70](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.69...v10.0.0-beta.70)** · 2026-09-20
 
 - **cc:** raise the CC support floor 2.1.251 to 2.1.277 (#4305)
-
-**[v10.0.0-beta.69](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.68...v10.0.0-beta.69)** · 2026-09-20
-
-- **ci:** skip the playground gate on test-only diffs (#4303)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
