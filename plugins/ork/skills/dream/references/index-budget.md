@@ -27,11 +27,15 @@ every link target present with exact-case name, exactly one trailer line.
 
 ## The demotion rule
 
-| class | rule |
-|---|---|
-| `## Handoffs` | older than `--handoff-days` (date from `project_handoff_YYYY_MM_DD`, else file mtime) |
-| `## Feedback`, `## Project` | file mtime older than `--entry-days` |
-| never | `hub_*`, anything under `## Policy`, `user_*`, anything modified within 7 days |
+Class is the link target's filename prefix. `##` section headers are a report
+hint only; `## Policy` still gates the never-move set.
+
+| class | prefix | rule |
+|---|---|---|
+| handoff | `project_handoff_*` | older than `--handoff-days` (date from `project_handoff_YYYY_MM_DD`, else file mtime) |
+| feedback | `feedback_*` | file mtime older than `--entry-days` |
+| project | `project_*`, `reference_*` | file mtime older than `--entry-days` |
+| never | `hub_*`, `user_*`, anything under `## Policy`, anything modified within 7 days | |
 
 Oldest first within each class, handoffs first, until the projected size (including the
 rewritten trailer) fits the ceiling. If the candidates are exhausted and the index is still over,

@@ -23,10 +23,12 @@
  * .MEMORY.md.prev first, performs the moves, re-verifies, and exits 1 if the
  * invariant fails. Nothing is ever deleted.
  *
- * Demotion rule (binds every author equally):
- *   - "## Handoffs" entries older than --handoff-days (date from the filename
+ * Demotion rule (binds every author equally). Class comes from the link target
+ * FILENAME PREFIX; ## section headers are a report hint only (Policy still
+ * gates the never-move set):
+ *   - project_handoff_* older than --handoff-days (date from the filename
  *     project_handoff_YYYY_MM_DD, else file mtime)
- *   - "## Feedback" and "## Project" entries whose file mtime is older than --entry-days
+ *   - feedback_*, project_*, reference_* whose file mtime is older than --entry-days
  *   - never: hub_* files, anything under "## Policy", user_* files, anything modified
  *     within 7 days
  *   Oldest first within each class, handoffs first, until the projected size <= ceiling.
@@ -121,6 +123,14 @@ function mtimeAgeMs(dir, file, now) {
   try { return now - statSync(join(dir, file)).mtimeMs; } catch { return 0; }
 }
 
+/** Class from filename prefix. project_handoff_ before project_. null = not demotable. */
+function entryClass(file) {
+  if (file.startsWith('project_handoff_')) return 'handoff';
+  if (file.startsWith('feedback_')) return 'feedback';
+  if (file.startsWith('project_') || file.startsWith('reference_')) return 'project';
+  return null;
+}
+
 const mainText = readFileSync(MAIN, 'utf8');
 const archiveText = existsSync(ARCHIVE) ? readFileSync(ARCHIVE, 'utf8') : '';
 const main = parseIndex(mainText);
@@ -166,13 +176,16 @@ function neverMove(e, dir) {
   return false;
 }
 const handoffs = main.entries
-  .filter((e) => e.section === 'Handoffs' && !neverMove(e, opts.dir))
-  .map((e) => ({ e, age: ageMs(opts.dir, e.file, now) }))
+  .filter((e) => entryClass(e.file) === 'handoff' && !neverMove(e, opts.dir))
+  .map((e) => ({ e, age: ageMs(opts.dir, e.file, now), cls: 'handoff' }))
   .filter((x) => x.age > opts.handoffDays * DAY_MS)
   .sort((a, b) => b.age - a.age);
 const aged = main.entries
-  .filter((e) => (e.section === 'Feedback' || e.section === 'Project') && !neverMove(e, opts.dir))
-  .map((e) => ({ e, age: mtimeAgeMs(opts.dir, e.file, now) }))
+  .filter((e) => {
+    const c = entryClass(e.file);
+    return (c === 'feedback' || c === 'project') && !neverMove(e, opts.dir);
+  })
+  .map((e) => ({ e, age: mtimeAgeMs(opts.dir, e.file, now), cls: entryClass(e.file) }))
   .filter((x) => x.age > opts.entryDays * DAY_MS)
   .sort((a, b) => b.age - a.age);
 
@@ -188,9 +201,15 @@ function withTrailer(movedCount, removedBytes) {
 }
 const proposed = [];
 let removed = 0;
-for (const { e, age } of [...handoffs, ...aged]) {
+for (const { e, age, cls } of [...handoffs, ...aged]) {
   if (withTrailer(proposed.length, removed) <= opts.ceiling) break;
-  proposed.push({ file: e.file, section: e.section, age_days: Math.floor(age / DAY_MS), bytes: e.bytes });
+  proposed.push({
+    file: e.file,
+    class: cls,
+    section: e.section,
+    age_days: Math.floor(age / DAY_MS),
+    bytes: e.bytes,
+  });
   removed += e.bytes;
 }
 let projected = withTrailer(proposed.length, removed);
@@ -269,7 +288,7 @@ if (opts.json) {
   lines.push(`invariant: files=${invariant.files} main=${invariant.indexed_main} archive=${invariant.indexed_archive} missing=${invariant.missing.length} duplicated=${invariant.duplicated.length} dead_links=${invariant.dead_links.length} trailer_ok=${invariant.trailer_count_ok}`);
   if (proposed.length) {
     lines.push(`proposed moves (${proposed.length}) to MEMORY-ARCHIVE.md, projected ${projected} B:`);
-    for (const p of proposed) lines.push(`  ${p.section.padEnd(9)} ${String(p.age_days).padStart(4)}d ${p.file}`);
+    for (const p of proposed) lines.push(`  ${p.class.padEnd(9)} ${String(p.age_days).padStart(4)}d ${p.file}`);
     if (exhausted) lines.push('  candidates exhausted and still over the ceiling: fall back to hook trimming, then warn');
   } else {
     lines.push(bytes <= opts.ceiling ? 'within budget: no moves proposed' : 'over budget but no rule-eligible candidates: fall back to hook trimming, then warn');

@@ -8,8 +8,9 @@
 # Pins: an over-budget index proposes moves that are all rule-eligible (never
 # hub_/user_/Policy/fresh); an under-budget index proposes none; a dry run
 # leaves both index files byte-identical; --apply keeps the two-file 1:1
-# invariant, a single trailer, and lands under the ceiling; and dream's
-# SKILL.md no longer carries the stale "200 lines" rule.
+# invariant, a single trailer, and lands under the ceiling; a header-less
+# index still classifies by filename prefix; and dream's SKILL.md no longer
+# carries the stale "200 lines" rule.
 
 set -euo pipefail
 
@@ -89,8 +90,8 @@ MOVES=$(jsonq "$TMP/over.json" 'r.proposed_moves.length')
 check "over-budget index proposes at least one move ($MOVES)" '[[ "$MOVES" -ge 1 ]]'
 BADMOVES=$(jsonq "$TMP/over.json" 'r.proposed_moves.filter(m=>/^(hub_|user_)/.test(m.file)||m.section==="Policy").length')
 check "no hub_/user_/Policy entry is ever proposed" '[[ "$BADMOVES" -eq 0 ]]'
-FIRST=$(jsonq "$TMP/over.json" 'r.proposed_moves[0].section')
-check "handoffs are proposed before feedback/project" '[[ "$FIRST" == "Handoffs" ]]'
+FIRST=$(jsonq "$TMP/over.json" 'r.proposed_moves[0].class')
+check "handoffs are proposed before feedback/project" '[[ "$FIRST" == "handoff" ]]'
 INV=$(jsonq "$TMP/over.json" 'r.invariant.ok')
 check "fixture invariant holds before any move" '[[ "$INV" == "true" ]]'
 
@@ -134,7 +135,56 @@ check ".MEMORY.md.prev rotated" '[[ -f "$TMP/apply/.MEMORY.md.prev" ]]'
 check "archive created with a dated section" 'grep -q "^## Moved from MEMORY.md" "$TMP/apply/MEMORY-ARCHIVE.md"'
 check "trailer links the archive by exact name" 'grep -q "\[MEMORY-ARCHIVE.md\](MEMORY-ARCHIVE.md)" "$TMP/apply/MEMORY.md"'
 
-# 6. usage
+# 6. header-less index: class comes from filename prefix, not ## headers
+{
+    mkdir -p "$TMP/flat"
+    printf -- '---\nname: hub\n---\nhub\n' > "$TMP/flat/hub_keep.md"
+    touch -t "$OLD_STAMP" "$TMP/flat/hub_keep.md"
+    printf -- '---\nname: user\n---\nuser\n' > "$TMP/flat/user_keep.md"
+    touch -t "$OLD_STAMP" "$TMP/flat/user_keep.md"
+    for i in 1 2 3 4; do
+        f="project_handoff_2026_01_$(printf '%02d' "$i")_flat.md"
+        printf -- '---\nname: h-%s\n---\nh\n' "$i" > "$TMP/flat/$f"
+        touch -t "$OLD_STAMP" "$TMP/flat/$f"
+    done
+    for i in 1 2 3 4; do
+        printf -- '---\nname: fb-%s\n---\nfb\n' "$i" > "$TMP/flat/feedback_flat_$i.md"
+        touch -t "$OLD_STAMP" "$TMP/flat/feedback_flat_$i.md"
+        printf -- '---\nname: pj-%s\n---\npj\n' "$i" > "$TMP/flat/project_flat_$i.md"
+        touch -t "$OLD_STAMP" "$TMP/flat/project_flat_$i.md"
+        printf -- '---\nname: rf-%s\n---\nrf\n' "$i" > "$TMP/flat/reference_flat_$i.md"
+        touch -t "$OLD_STAMP" "$TMP/flat/reference_flat_$i.md"
+    done
+    {
+        echo "# Flat Memory"
+        echo ""
+        echo "- [hub](hub_keep.md) · never moved hub line long enough to carry bytes into the budget for the flat fixture"
+        echo "- [user](user_keep.md) · never moved user line long enough to carry bytes into the budget for the flat fixture"
+        for i in 1 2 3 4; do
+            echo "- [handoff $i](project_handoff_2026_01_$(printf '%02d' "$i")_flat.md) · a handoff line long enough to carry bytes into the budget for the flat fixture $i"
+        done
+        for i in 1 2 3 4; do
+            echo "- [feedback $i](feedback_flat_$i.md) · an old feedback entry with a hook long enough for the flat fixture $i"
+            echo "- [project $i](project_flat_$i.md) · an old project entry with a hook long enough for the flat fixture $i"
+            echo "- [reference $i](reference_flat_$i.md) · an old reference entry with a hook long enough for the flat fixture $i"
+        done
+        echo ""
+        echo "> 14 memory files total. Every file is indexed exactly once across this file and [MEMORY-ARCHIVE.md](MEMORY-ARCHIVE.md)."
+    } > "$TMP/flat/MEMORY.md"
+}
+node "$TOOL" "$TMP/flat" --ceiling 900 --json > "$TMP/flat.json"
+FLAT_MOVES=$(jsonq "$TMP/flat.json" 'r.proposed_moves.length')
+check "header-less over-budget index proposes moves ($FLAT_MOVES)" '[[ "$FLAT_MOVES" -ge 1 ]]'
+FLAT_FIRST=$(jsonq "$TMP/flat.json" 'r.proposed_moves[0].class')
+check "header-less first move is handoff by prefix" '[[ "$FLAT_FIRST" == "handoff" ]]'
+FLAT_BAD=$(jsonq "$TMP/flat.json" 'r.proposed_moves.filter(m=>/^(hub_|user_)/.test(m.file)).length')
+check "header-less never proposes hub_/user_" '[[ "$FLAT_BAD" -eq 0 ]]'
+FLAT_CLASSES=$(jsonq "$TMP/flat.json" '[...new Set(r.proposed_moves.map(m=>m.class))].sort().join(",")')
+check "header-less classes are prefix-derived ($FLAT_CLASSES)" '[[ "$FLAT_CLASSES" == "feedback,handoff,project" || "$FLAT_CLASSES" == "feedback,handoff" || "$FLAT_CLASSES" == "handoff" || "$FLAT_CLASSES" == "handoff,project" ]]'
+FLAT_SECTIONS=$(jsonq "$TMP/flat.json" '[...new Set(r.proposed_moves.map(m=>m.section))].join(",")')
+check "header-less section is only a hint ((none))" '[[ "$FLAT_SECTIONS" == "(none)" ]]'
+
+# 7. usage
 set +e
 node "$TOOL" > /dev/null 2>&1; RC=$?   # silent: known-noise -- usage error text is the expected output here
 set -e
