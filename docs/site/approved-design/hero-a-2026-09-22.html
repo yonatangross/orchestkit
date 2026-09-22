@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>OrchestKit hero mockup A (2026-09-22)</title>
+<!-- Approved reference (lane hero-build-a). Art file: public/brand/hero-a-conductor.png from design/og-card/art/A-1.png. Base64 stripped; path used instead. -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --color-fd-background: oklch(0.13 0.02 270);
+    --color-fd-foreground: oklch(0.93 0.012 270);
+    --color-fd-muted-foreground: oklch(0.77 0.02 270);
+    --color-fd-border: oklch(0.26 0.028 270);
+    --color-fd-primary: oklch(0.62 0.2 264);
+    --color-fd-card: oklch(0.17 0.022 270);
+    --color-fd-surface-raised: oklch(0.20 0.024 270);
+    --color-fd-ring: oklch(0.62 0.2 264);
+    --text-fluid-h1: clamp(2.5rem, 4vw + 1.5rem, 4.25rem);
+    --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
+    --font-mono: "Geist Mono", ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    min-height: 100%;
+    font-family: var(--font-sans);
+    color: var(--color-fd-foreground);
+    background: oklch(0.1 0.018 265);
+  }
+  body {
+    position: relative;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(700px at 35% 22%, oklch(0.62 0.2 264 / 0.18), transparent 70%),
+      radial-gradient(120% 85% at 85% -5%, oklch(0.34 0.13 286 / 0.55), transparent 58%),
+      radial-gradient(100% 75% at 5% 105%, oklch(0.3 0.12 278 / 0.45), transparent 58%);
+  }
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.55;
+    background-image: radial-gradient(circle, oklch(0.62 0.2 264 / 0.22) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+  .hero {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    display: grid;
+    align-items: center;
+  }
+  .hero-inner {
+    position: relative;
+    width: min(1180px, 100%);
+    margin: 0 auto;
+    padding: 72px 28px 88px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+    gap: 24px;
+    align-items: center;
+  }
+  .copy {
+    position: relative;
+    z-index: 2;
+    max-width: 520px;
+  }
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 18px;
+    padding: 4px 12px 4px 4px;
+    border: 1px solid var(--color-fd-border);
+    border-radius: 9999px;
+    background: var(--color-fd-surface-raised);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--color-fd-muted-foreground);
+  }
+  .eyebrow .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 9999px;
+    border: 1px solid oklch(0.62 0.2 264 / 0.35);
+    background: oklch(0.62 0.2 264 / 0.12);
+    color: var(--color-fd-primary);
+    font-weight: 500;
+    font-size: 11px;
+  }
+  h1 {
+    margin: 0;
+    font-size: var(--text-fluid-h1);
+    font-weight: 600;
+    line-height: 1.02;
+    letter-spacing: -0.025em;
+  }
+  .counts {
+    margin: 18px 0 0;
+    font-size: clamp(0.95rem, 0.3vw + 0.9rem, 1.125rem);
+    line-height: 1.55;
+    color: var(--color-fd-muted-foreground);
+  }
+  .counts .stat {
+    white-space: nowrap;
+    font-family: var(--font-mono);
+    font-size: 0.92em;
+    font-weight: 500;
+    color: var(--color-fd-foreground);
+  }
+  .counts .dot {
+    margin: 0 6px;
+    opacity: 0.4;
+  }
+  .sub {
+    display: block;
+    margin-top: 6px;
+    font-size: 0.9em;
+  }
+  .actions {
+    margin-top: 24px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+  }
+  .install {
+    display: inline-flex;
+    max-width: 100%;
+    align-items: center;
+    gap: 8px;
+    min-height: 40px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 1px solid oklch(0.62 0.2 264 / 0.5);
+    background: var(--color-fd-surface-raised);
+    color: var(--color-fd-foreground);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    text-align: left;
+    cursor: pointer;
+  }
+  .install .prompt {
+    color: var(--color-fd-muted-foreground);
+    flex-shrink: 0;
+  }
+  .install .cmd {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .install .icon {
+    margin-left: 4px;
+    flex-shrink: 0;
+    width: 14px;
+    height: 14px;
+    opacity: 0.7;
+  }
+  .get-started {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 40px;
+    padding: 0 12px;
+    border-radius: 8px;
+    color: var(--color-fd-primary);
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .get-started:hover {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .host-note {
+    margin: 10px 0 0;
+    font-size: 12.5px;
+    color: var(--color-fd-muted-foreground);
+  }
+  .art {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 55%;
+    z-index: 1;
+    pointer-events: none;
+    background:
+      url("../public/brand/hero-a-conductor.png") right center / cover no-repeat;
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, rgba(0,0,0,0.15) 12%, #000 38%);
+    mask-image: linear-gradient(to right, transparent 0%, rgba(0,0,0,0.15) 12%, #000 38%);
+  }
+  .label {
+    position: fixed;
+    left: 16px;
+    bottom: 14px;
+    z-index: 5;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--color-fd-muted-foreground);
+    opacity: 0.75;
+  }
+  @media (max-width: 900px) {
+    .hero-inner {
+      grid-template-columns: 1fr;
+      padding-top: 48px;
+      padding-bottom: 56px;
+    }
+    .art {
+      position: relative;
+      width: 100%;
+      height: auto;
+      aspect-ratio: 16 / 9;
+      inset: auto;
+      margin-top: 8px;
+      order: 2;
+      -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 18%);
+      mask-image: linear-gradient(to bottom, transparent 0%, #000 18%);
+      background-position: center 30%;
+    }
+    .copy {
+      order: 1;
+      max-width: none;
+    }
+    .hero-inner {
+      display: flex;
+      flex-direction: column;
+    }
+  }
+</style>
+</head>
+<body>
+  <section class="hero" aria-labelledby="hero-heading">
+    <div class="hero-inner">
+      <div class="copy">
+        <div class="eyebrow" aria-hidden="true">
+          <span class="pill">What&apos;s new</span>
+          <span>10.0.0-beta.76</span>
+        </div>
+        <h1 id="hero-heading">
+          <span class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">OrchestKit. </span>
+          Stop explaining your stack.<br />
+          Start shipping.
+        </h1>
+        <p class="counts">
+          <span class="stat">107 skills</span><span class="dot">·</span>
+          <span class="stat">36 agents</span><span class="dot">·</span>
+          <span class="stat">171 hooks</span>
+          <span class="sub">A Claude Code plugin library. Search it, install it, ship.</span>
+        </p>
+        <div class="actions">
+          <button type="button" class="install" id="install-btn" aria-label="Copy claude plugin marketplace add yonatangross/orchestkit &amp;&amp; claude plugin install ork@orchestkit to clipboard">
+            <span class="prompt">$</span>
+            <span class="cmd">claude plugin marketplace add yonatangross/orchestkit &amp;&amp; claude plugin install ork@orchestkit</span>
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          </button>
+          <a class="get-started" href="https://orchestkit.yonyon.ai/docs/getting-started/first-10-minutes">
+            Get started
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+          </a>
+        </div>
+        <p class="host-note">For Claude Code. On Cursor, Codex, Muse Code, Pi, OpenCode, Devin or Antigravity? Pick your host below.</p>
+      </div>
+      <div class="art" role="img" aria-label="Conductor and holographic orchestra art from design/og-card/art/A-1.png"></div>
+    </div>
+  </section>
+  <div class="label">Mockup A · floor · 2026-09-22 · no site change</div>
+  <script>
+    const CMD = "claude plugin marketplace add yonatangross/orchestkit && claude plugin install ork@orchestkit";
+    document.getElementById("install-btn").addEventListener("click", () => {
+      navigator.clipboard.writeText(CMD).catch(() => {});
+    });
+  </script>
+</body>
+</html>

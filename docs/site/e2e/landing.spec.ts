@@ -30,6 +30,45 @@ test.describe('Landing hero', () => {
     await expect(page.getByRole('navigation', { name: /install by host/i })).toBeVisible();
   });
 
+  test('hero A art bleeds on desktop and stacks as 16:9 under copy on narrow', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/');
+
+    const art = page.locator('.home-hero-art');
+    await expect(art).toBeVisible();
+    const desktop = await art.evaluate((el) => {
+      const cs = getComputedStyle(el);
+      return {
+        position: cs.position,
+        widthPct: Math.round((el.getBoundingClientRect().width / window.innerWidth) * 100),
+        mask: cs.maskImage || (cs as CSSStyleDeclaration & { webkitMaskImage?: string }).webkitMaskImage || '',
+      };
+    });
+    expect(desktop.position).toBe('absolute');
+    expect(desktop.widthPct).toBeGreaterThanOrEqual(40);
+    expect(desktop.widthPct).toBeLessThanOrEqual(75);
+    expect(desktop.mask).toMatch(/linear-gradient/);
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    const mobile = await art.evaluate((el) => {
+      const cs = getComputedStyle(el);
+      const r = el.getBoundingClientRect();
+      return {
+        position: cs.position,
+        aspect: r.width > 0 ? Number((r.width / r.height).toFixed(2)) : 0,
+        top: r.top,
+        bottom: r.bottom,
+      };
+    });
+    const h1Bottom = await page.locator('#hero-heading').evaluate((el) => el.getBoundingClientRect().bottom);
+    const installTop = await page.locator('[data-hero-install]').evaluate((el) => el.getBoundingClientRect().top);
+    expect(mobile.position).toBe('relative');
+    expect(mobile.aspect).toBeGreaterThan(1.6);
+    expect(mobile.aspect).toBeLessThan(2.0);
+    expect(mobile.top).toBeGreaterThan(h1Bottom - 1);
+    expect(mobile.bottom).toBeLessThanOrEqual(installTop + 1);
+  });
+
   test('proof strip shows GitHub stars (real number or fallback)', async ({ page }) => {
     await page.goto('/');
 

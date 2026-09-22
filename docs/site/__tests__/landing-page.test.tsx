@@ -8,6 +8,13 @@ vi.mock("next/link", () => ({
   default: ({ children, href, ...props }: any) => <a href={href} {...props}>{children}</a>,
 }));
 
+vi.mock("next/image", () => ({
+  default: (props: Record<string, unknown>) => {
+    const { fill, priority, ...rest } = props;
+    return <img data-fill={fill ? "true" : undefined} data-priority={priority ? "true" : undefined} {...rest} />;
+  },
+}));
+
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace: vi.fn(), push: vi.fn() }),
   useSearchParams: () => new URLSearchParams(),
@@ -343,6 +350,29 @@ describe("landing page content", () => {
     ).toBeTruthy();
     // Exactly one hero install command.
     expect(container.querySelectorAll("[data-hero-install] button").length).toBe(1);
+  });
+
+  it("renders hero A conductor art with priority image and layout hooks", async () => {
+    const HomePage = (await import("../app/(home)/page")).default;
+    const result = await HomePage();
+    const { container } = render(result);
+
+    const section = container.querySelector("section.home-hero");
+    expect(section).toBeTruthy();
+    expect(container.querySelector(".home-hero-copy")).toBeTruthy();
+    expect(container.querySelector(".home-hero-art")).toBeTruthy();
+
+    const art = container.querySelector(".home-hero-art img");
+    expect(art).toBeTruthy();
+    expect(art?.getAttribute("src")).toBe("/brand/hero-a-conductor.png");
+    expect(art?.getAttribute("data-priority")).toBe("true");
+
+    // Install + Get started stay in the copy column (unchanged CTAs).
+    const copyCol = container.querySelector(".home-hero-copy");
+    expect(copyCol?.querySelector("[data-hero-install]")).toBeTruthy();
+    expect(
+      within(copyCol as HTMLElement).getByRole("link", { name: /get started/i }),
+    ).toBeTruthy();
   });
 
   it("exposes a copyable install command per host", async () => {

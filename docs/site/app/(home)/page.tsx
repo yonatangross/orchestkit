@@ -15,6 +15,7 @@ import { HostInstallPicker } from "@/components/host-install";
 import { WhatsAppCommunityLink } from "@/components/whatsapp-community-link";
 import { WebMcpSearchForm } from "@/components/webmcp-search-form";
 import { CHANGELOG_ENTRIES } from "@/lib/generated/changelog-data";
+import { HomeHeroArt } from "@/components/home-hero-art";
 
 // Homepage-only social fields. Kept off the root layout so marketing pages that
 // only set `title` do not inherit this og/twitter title and description.
@@ -105,129 +106,140 @@ export default async function HomePage() {
         />
       </a>
 
-      <section aria-labelledby="hero-heading" className="border-b border-fd-border">
-        <div className="mx-auto max-w-[880px] px-7 py-12 text-center sm:py-20">
-          {latest ? (
-            <Link
-              href="/changelog"
-              className="inline-flex items-center gap-2 rounded-full border border-fd-border bg-[var(--color-fd-surface-raised)] p-1 pr-3 text-sm text-fd-muted-foreground transition-colors hover:border-fd-primary/40 hover:text-fd-foreground"
-            >
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--color-fd-primary-20)] bg-[var(--color-fd-primary-10)] px-2.5 py-0.5 font-mono text-[11px] font-medium text-fd-primary">
-                <GeorgeMark />
-                What&apos;s new
-              </span>
-              <span className="font-mono text-[12px]">{latest.version}</span>
-              <ArrowRight className="h-3 w-3" aria-hidden="true" />
-            </Link>
-          ) : (
-            <span className="inline-flex items-center gap-2 rounded-full border border-fd-border px-2.5 py-1.5 font-mono text-[12px] font-medium text-fd-muted-foreground">
-              <GeorgeMark />
-              The complete AI development toolkit for Claude Code
-            </span>
-          )}
+      {/* Hero A: left copy + right conductor bleed (approved-design/hero-a-2026-09-22.html) */}
+      <section
+        aria-labelledby="hero-heading"
+        className="home-hero relative overflow-x-hidden border-b border-fd-border"
+      >
+        <div className="home-hero-inner relative mx-auto w-full max-w-[1180px] px-7 py-12 sm:py-[72px]">
+          <div className="home-hero-copy relative z-[2] max-w-[520px] text-left max-[900px]:max-w-none">
+            <div className="home-hero-copy-top">
+              {latest ? (
+                <Link
+                  href="/changelog"
+                  className="inline-flex items-center gap-2 rounded-full border border-fd-border bg-[var(--color-fd-surface-raised)] p-1 pr-3 text-sm text-fd-muted-foreground transition-colors hover:border-fd-primary/40 hover:text-fd-foreground"
+                >
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--color-fd-primary-20)] bg-[var(--color-fd-primary-10)] px-2.5 py-0.5 font-mono text-[11px] font-medium text-fd-primary">
+                    <GeorgeMark />
+                    What&apos;s new
+                  </span>
+                  <span className="font-mono text-[12px]">{latest.version}</span>
+                  <ArrowRight className="h-3 w-3" aria-hidden="true" />
+                </Link>
+              ) : (
+                <span className="inline-flex items-center gap-2 rounded-full border border-fd-border px-2.5 py-1.5 font-mono text-[12px] font-medium text-fd-muted-foreground">
+                  <GeorgeMark />
+                  The complete AI development toolkit for Claude Code
+                </span>
+              )}
 
-          <h1
-            id="hero-heading"
-            data-speakable-headline
-            className="mt-5 text-fluid-h1 font-semibold leading-[1.02] tracking-[-0.025em] text-fd-foreground"
-          >
-            <span className="sr-only">OrchestKit. </span>
-            Stop explaining your stack.
-            <br />
-            Start shipping.
-          </h1>
+              <h1
+                id="hero-heading"
+                data-speakable-headline
+                className="mt-5 text-fluid-h1 font-semibold leading-[1.02] tracking-[-0.025em] text-fd-foreground"
+              >
+                <span className="sr-only">OrchestKit. </span>
+                Stop explaining your stack.
+                <br />
+                Start shipping.
+              </h1>
 
-          <p
-            data-speakable-summary
-            className="mx-auto mt-4 max-w-[620px] text-[clamp(0.95rem,0.3vw+0.9rem,1.125rem)] leading-[1.55] text-fd-muted-foreground [text-wrap:balance]"
-          >
-            <span className="whitespace-nowrap font-mono text-[0.92em] font-medium text-fd-foreground">
-              {COUNTS.skills} skills
-            </span>
-            <span className="mx-1.5 opacity-40">·</span>
-            <span className="whitespace-nowrap font-mono text-[0.92em] font-medium text-fd-foreground">
-              {COUNTS.agents} agents
-            </span>
-            <span className="mx-1.5 opacity-40">·</span>
-            <span className="whitespace-nowrap font-mono text-[0.92em] font-medium text-fd-foreground">
-              {COUNTS.hooks} hooks
-            </span>
-            <span className="mt-1 block text-[0.9em]">
-              A Claude Code plugin library. Search it, install it, ship.
-            </span>
-          </p>
+              <p
+                data-speakable-summary
+                className="mt-4 max-w-[520px] text-[clamp(0.95rem,0.3vw+0.9rem,1.125rem)] leading-[1.55] text-fd-muted-foreground [text-wrap:balance]"
+              >
+                <span className="whitespace-nowrap font-mono text-[0.92em] font-medium text-fd-foreground">
+                  {COUNTS.skills} skills
+                </span>
+                <span className="mx-1.5 opacity-40">·</span>
+                <span className="whitespace-nowrap font-mono text-[0.92em] font-medium text-fd-foreground">
+                  {COUNTS.agents} agents
+                </span>
+                <span className="mx-1.5 opacity-40">·</span>
+                <span className="whitespace-nowrap font-mono text-[0.92em] font-medium text-fd-foreground">
+                  {COUNTS.hooks} hooks
+                </span>
+                <span className="mt-1 block text-[0.9em]">
+                  A Claude Code plugin library. Search it, install it, ship.
+                </span>
+              </p>
+            </div>
 
-          {/* Primary action: the install command itself, above the fold on
-              375x812 and 1024x768. Other hosts stay in the picker below. */}
-          <div
-            data-hero-install
-            className="mt-6 flex flex-wrap items-center justify-center gap-2.5"
-          >
-            <CopyInstallButton
-              surface="hero"
-              className="border-fd-primary/50 bg-[var(--color-fd-surface-raised)] text-fd-foreground hover:border-fd-primary"
-            />
-            <Link
-              href="/docs/getting-started/first-10-minutes"
-              className="inline-flex h-10 items-center gap-2 rounded-lg px-3 text-sm font-semibold text-fd-primary underline-offset-2 transition-colors hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-ring motion-reduce:transition-none"
-            >
-              Get started{" "}
-              <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-            </Link>
+            <div className="home-hero-copy-actions">
+              {/* Primary action: the install command itself, above the fold on
+                  375x812 and 1024x768. Other hosts stay in the picker below. */}
+              <div
+                data-hero-install
+                className="mt-6 flex flex-wrap items-center justify-start gap-2.5"
+              >
+                <CopyInstallButton
+                  surface="hero"
+                  className="border-fd-primary/50 bg-[var(--color-fd-surface-raised)] text-fd-foreground hover:border-fd-primary"
+                />
+                <Link
+                  href="/docs/getting-started/first-10-minutes"
+                  className="inline-flex h-10 items-center gap-2 rounded-lg px-3 text-sm font-semibold text-fd-primary underline-offset-2 transition-colors hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-ring motion-reduce:transition-none"
+                >
+                  Get started{" "}
+                  <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                </Link>
+              </div>
+              <p className="mt-2 text-[12.5px] text-fd-muted-foreground">
+                For Claude Code. On Cursor, Codex, Muse Code, Pi, OpenCode, Devin or Antigravity? Pick your host below.
+              </p>
+              <HostInstallPicker />
+              <HomeSearchTrigger />
+              <WebMcpSearchForm />
+              <div className="mt-4 flex flex-wrap items-center justify-start gap-x-3 gap-y-2 text-[13px] text-fd-muted-foreground">
+                <WhatsAppCommunityLink />
+                <Link
+                  href="/docs/cookbook/implement-feature"
+                  className="text-fd-primary underline-offset-2 hover:underline"
+                >
+                  See the cookbook
+                </Link>
+                <span aria-hidden="true">·</span>
+                <Link
+                  href="/docs/getting-started/configuration"
+                  className="text-fd-primary underline-offset-2 hover:underline"
+                >
+                  Configure your project
+                </Link>
+                <span aria-hidden="true">·</span>
+                <Link
+                  href="/openapi"
+                  className="text-fd-primary underline-offset-2 hover:underline"
+                >
+                  OrchestKit OpenAPI specification
+                </Link>
+                <span aria-hidden="true">·</span>
+                <Link
+                  href="/docs/mcp"
+                  className="text-fd-primary underline-offset-2 hover:underline"
+                >
+                  OrchestKit MCP server
+                </Link>
+                <span aria-hidden="true">·</span>
+                <Link
+                  href="/docs/sdk"
+                  className="text-fd-primary underline-offset-2 hover:underline"
+                >
+                  OrchestKit SDK packages
+                </Link>
+              </div>
+
+              <div className="mt-7 flex flex-wrap items-center justify-start font-mono text-[12px] text-fd-muted-foreground">
+                <StarLink stars={stars} />
+                <span aria-hidden="true" className="h-3 w-px bg-fd-border" />
+                <span className="inline-flex items-center gap-1.5 px-3.5">MIT license</span>
+                <span aria-hidden="true" className="h-3 w-px bg-fd-border" />
+                <span className="inline-flex items-center gap-1.5 px-3.5">
+                  Claude Code ≥ {SITE.ccVersion}
+                </span>
+              </div>
+            </div>
           </div>
-          <p className="mt-2 text-[12.5px] text-fd-muted-foreground">
-            For Claude Code. On Cursor, Codex, Muse Code, Pi, OpenCode, Devin or Antigravity? Pick your host below.
-          </p>
-          <HostInstallPicker />
-          <HomeSearchTrigger />
-          <WebMcpSearchForm />
-          <div className="mt-4 flex flex-wrap items-center justify-center gap-x-3 gap-y-2 text-[13px] text-fd-muted-foreground">
-            <WhatsAppCommunityLink />
-            <Link
-              href="/docs/cookbook/implement-feature"
-              className="text-fd-primary underline-offset-2 hover:underline"
-            >
-              See the cookbook
-            </Link>
-            <span aria-hidden="true">·</span>
-            <Link
-              href="/docs/getting-started/configuration"
-              className="text-fd-primary underline-offset-2 hover:underline"
-            >
-              Configure your project
-            </Link>
-            <span aria-hidden="true">·</span>
-            <Link
-              href="/openapi"
-              className="text-fd-primary underline-offset-2 hover:underline"
-            >
-              OrchestKit OpenAPI specification
-            </Link>
-            <span aria-hidden="true">·</span>
-            <Link
-              href="/docs/mcp"
-              className="text-fd-primary underline-offset-2 hover:underline"
-            >
-              OrchestKit MCP server
-            </Link>
-            <span aria-hidden="true">·</span>
-            <Link
-              href="/docs/sdk"
-              className="text-fd-primary underline-offset-2 hover:underline"
-            >
-              OrchestKit SDK packages
-            </Link>
-          </div>
-
-          <div className="mt-7 flex flex-wrap items-center justify-center font-mono text-[12px] text-fd-muted-foreground">
-            <StarLink stars={stars} />
-            <span aria-hidden="true" className="h-3 w-px bg-fd-border" />
-            <span className="inline-flex items-center gap-1.5 px-3.5">MIT license</span>
-            <span aria-hidden="true" className="h-3 w-px bg-fd-border" />
-            <span className="inline-flex items-center gap-1.5 px-3.5">
-              Claude Code ≥ {SITE.ccVersion}
-            </span>
-          </div>
+          <HomeHeroArt />
         </div>
       </section>
 

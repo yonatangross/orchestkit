@@ -203,6 +203,89 @@
 }
 
 /* ============================================================
+   HOME HERO A: left copy + right conductor bleed (~55%)
+   Reference: approved-design/hero-a-2026-09-22.html
+   Cosmic/dot grid stays on body (unchanged). No new motion here;
+   prefers-reduced-motion already gates body::after cosmic-drift.
+   ============================================================ */
+
+.home-hero-inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  gap: 24px;
+  align-items: center;
+  min-height: min(72vh, 720px);
+}
+
+.home-hero-art {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 55%;
+  z-index: 1;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(0, 0, 0, 0.15) 12%,
+    #000 38%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(0, 0, 0, 0.15) 12%,
+    #000 38%
+  );
+}
+
+.home-hero-art img {
+  object-fit: cover;
+  object-position: right center;
+}
+
+@media (max-width: 900px) {
+  .home-hero-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 0;
+    padding-top: 48px;
+    padding-bottom: 56px;
+  }
+
+  /* Contents of .home-hero-copy become flex siblings of the art so the
+     16:9 band sits under the headline (copy-top), before install CTAs. */
+  .home-hero-copy {
+    display: contents;
+  }
+
+  .home-hero-copy-top {
+    order: 1;
+  }
+
+  .home-hero-art {
+    position: relative;
+    order: 2;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    inset: auto;
+    margin-top: 8px;
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 18%);
+    mask-image: linear-gradient(to bottom, transparent 0%, #000 18%);
+  }
+
+  .home-hero-art img {
+    object-position: center 30%;
+  }
+
+  .home-hero-copy-actions {
+    order: 3;
+  }
+}
+
+/* ============================================================
    CIRCUIT TRACE CONNECTORS
    ============================================================ */
 
