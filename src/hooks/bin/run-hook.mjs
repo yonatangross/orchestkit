@@ -19,7 +19,21 @@ import { rotateAnalyticsIfNeeded } from './analytics-rotate.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const distDir = join(__dirname, '..', 'dist');
+/**
+ * Bundle directory. Normally the dist/ shipped next to this file.
+ *
+ * #4334: ORK_HOOKS_DIST_DIR redirects it. The redact-secrets integration test
+ * builds the PR's source into a temp dir and points the dispatcher there,
+ * instead of copying over the tracked plugins/ork/hooks/dist, which dirtied a
+ * release-owned file and raced the ~20 test files reading those bundles in
+ * parallel. The override is ignored unless the directory exists, and it is not
+ * a new trust boundary: anything that can set this variable on the Claude Code
+ * process can already put its own `node` on PATH.
+ */
+const distOverride = process.env.ORK_HOOKS_DIST_DIR;
+const distDir = distOverride && existsSync(distOverride)
+  ? distOverride
+  : join(__dirname, '..', 'dist');
 
 /** Resolved plugin root — two levels up from hooks/bin/ */
 const pluginRoot = join(__dirname, '..', '..');

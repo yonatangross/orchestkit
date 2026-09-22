@@ -7,8 +7,7 @@
  * `tool_response` (the same trap posttool/secret-handler.ts documented for
  * its own reader). This file closes the loop the verify-all sweep called for:
  * one CC-shaped PostToolUse payload, carried by `tool_response` alone, driven
- * through the BUILT bundle (plugins/ork/hooks/dist/skill.mjs), asserting the
- * token does not survive unflagged.
+ * through the BUILT bundle, asserting the token does not survive unflagged.
  *
  * Two tiers:
  *  - Spawned: `node plugins/ork/hooks/bin/run-hook.mjs skill/redact-secrets`,
@@ -16,24 +15,31 @@
  *    dispatcher to import its dist bundle, which works on Linux/macOS. On
  *    Windows run-hook.mjs cannot import a win32 absolute dist path at all
  *    (ERR_UNSUPPORTED_ESM_URL_SCHEME, swallowed into a silent success by the
- *    runner's catch) — a pre-existing platform gap outside #3725's scope —
+ *    runner's catch), a pre-existing platform gap outside #3725's scope,
  *    so there the spawned tier only checks the envelope contract.
- *  - In-process: the built plugins/ork/hooks/dist/skill.mjs imported directly
- *    via file:// URL and its registered `skill/redact-secrets` hook driven
- *    with the same payload. Cross-platform; asserts detection itself.
+ *  - In-process: the freshly built skill.mjs imported directly via file:// URL
+ *    and its registered `skill/redact-secrets` hook driven with the same
+ *    payload. Cross-platform; asserts detection itself.
  *
- * #3578: feature PRs do not commit hooks/dist. beforeAll rebuilds src/hooks
- * and mirrors skill.mjs into plugins/ so object-shape fixtures exercise THIS
- * PR's source rather than main's last release bundle (the CI failure mode
- * for #4217 part 1).
+ * #3578: feature PRs do not commit hooks/dist, so beforeAll rebuilds src/hooks
+ * to make the fixtures exercise THIS PR's source rather than main's last
+ * release bundle (the CI failure mode for #4217 part 1).
  *
- * Skips automatically when the built bundle isn't present after rebuild.
+ * #4334: that rebuild used to land in the tracked, release-owned
+ * plugins/ork/hooks/dist/skill.mjs via copyFileSync. It left every local run
+ * with a dirty tree, and copyFileSync truncates before it writes, so the ~20
+ * other test files that read those bundles in parallel could import a
+ * half-written one. Now the build goes to a temp dir through
+ * ORK_HOOKS_OUT_DIR, and the spawned dispatcher is pointed at it through
+ * ORK_HOOKS_DIST_DIR. Nothing under plugins/ is written by this file.
+ *
+ * Skips automatically when the build produced no bundle.
  */
 
-import { describe, it, expect, vi, beforeAll, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
 import { spawnSync } from 'node:child_process';
-import { copyFileSync, existsSync, mkdirSync, rmSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
+import { existsSync, mkdirSync, mkdtempSync, rmSync } from 'node:fs';
+import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { tmpdir } from 'node:os';
 
@@ -41,8 +47,6 @@ const REPO_ROOT = resolve(__dirname, '..', '..', '..', '..', '..');
 const HOOKS_PKG = join(REPO_ROOT, 'src', 'hooks');
 const PLUGIN_HOOKS = join(REPO_ROOT, 'plugins', 'ork', 'hooks');
 const RUN_HOOK = join(PLUGIN_HOOKS, 'bin', 'run-hook.mjs');
-const SRC_BUNDLE = join(HOOKS_PKG, 'dist', 'skill.mjs');
-const DIST_BUNDLE = join(PLUGIN_HOOKS, 'dist', 'skill.mjs');
 const HOOK_NAME = 'skill/redact-secrets';
 
 /** Fake-but-realistic GitLab PAT (matches the #3589 glpat- family). */
@@ -67,28 +71,48 @@ function bashObjectResponse(stdout: string, stderr = ''): Record<string, unknown
 let stderrSpy: ReturnType<typeof vi.spyOn> | undefined;
 let scratchDir: string;
 
+/** Temp build output for this file only. Empty until beforeAll succeeds. */
+let distDir = '';
+let bundle = '';
+
+/** Env the spawned dispatcher needs to load the temp bundle (#4334). */
+function dispatcherEnv(): NodeJS.ProcessEnv {
+  return { ...process.env, CLAUDE_PROJECT_DIR: scratchDir, ORK_HOOKS_DIST_DIR: distDir };
+}
+
 beforeAll(() => {
-  // #3578: feature PRs never commit hooks/dist. Rebuild so object-shaped
-  // fixtures see the PR source, not the stale release bundle on disk.
+  // #3578: feature PRs never commit hooks/dist, so rebuild to make the
+  // object-shaped fixtures see the PR source and not the release bundle on
+  // disk. #4334: into a temp dir, so this file writes nothing tracked and
+  // races no other test file.
+  distDir = mkdtempSync(join(tmpdir(), 'ork-hooks-dist-4334-'));
   const build = spawnSync('npm', ['run', 'build'], {
     cwd: HOOKS_PKG,
     encoding: 'utf8',
     timeout: 120_000,
-    env: process.env,
+    env: { ...process.env, ORK_HOOKS_OUT_DIR: distDir },
   });
   if (build.status !== 0) {
     console.warn(
       `[integration] hooks build failed (status=${build.status}): ${String(build.stderr).slice(0, 400)}`,
     );
+    distDir = '';
     return;
   }
-  if (!existsSync(SRC_BUNDLE)) {
-    console.warn(`[integration] hooks build produced no ${SRC_BUNDLE}`);
+  const built = join(distDir, 'skill.mjs');
+  if (!existsSync(built)) {
+    console.warn(`[integration] hooks build produced no ${built}`);
+    distDir = '';
     return;
   }
-  mkdirSync(dirname(DIST_BUNDLE), { recursive: true });
-  copyFileSync(SRC_BUNDLE, DIST_BUNDLE);
+  bundle = built;
 }, 120_000);
+
+afterAll(() => {
+  if (distDir && existsSync(distDir)) {
+    rmSync(distDir, { recursive: true, force: true });
+  }
+});
 
 beforeEach(() => {
   // Fresh project dir per run so the dispatcher's session-event tracking
@@ -108,14 +132,14 @@ afterEach(() => {
 
 describe('redact-secrets through the built skill.mjs bundle (#3725, #4217)', () => {
   it('flags a glpat token in object-shaped Bash tool_response through run-hook.mjs', () => {
-    if (!existsSync(DIST_BUNDLE)) {
-      console.warn(`[integration] Skipping - built bundle not found at ${DIST_BUNDLE}`);
+    if (!bundle) {
+      console.warn('[integration] Skipping - the hooks build produced no skill.mjs');
       return;
     }
 
     const r = spawnSync('node', [RUN_HOOK, HOOK_NAME], {
       input: ccShapedPayload(bashObjectResponse(`GITLAB_TOKEN=${TOKEN} done`)),
-      env: { ...process.env, CLAUDE_PROJECT_DIR: scratchDir },
+      env: dispatcherEnv(),
       encoding: 'utf8',
       timeout: 20_000,
     });
@@ -136,14 +160,14 @@ describe('redact-secrets through the built skill.mjs bundle (#3725, #4217)', () 
   });
 
   it('flags a glpat token that arrives as a string tool_response through run-hook.mjs', () => {
-    if (!existsSync(DIST_BUNDLE)) {
-      console.warn(`[integration] Skipping - built bundle not found at ${DIST_BUNDLE}`);
+    if (!bundle) {
+      console.warn('[integration] Skipping - the hooks build produced no skill.mjs');
       return;
     }
 
     const r = spawnSync('node', [RUN_HOOK, HOOK_NAME], {
       input: ccShapedPayload(`GITLAB_TOKEN=${TOKEN} done`),
-      env: { ...process.env, CLAUDE_PROJECT_DIR: scratchDir },
+      env: dispatcherEnv(),
       encoding: 'utf8',
       timeout: 20_000,
     });
@@ -156,11 +180,11 @@ describe('redact-secrets through the built skill.mjs bundle (#3725, #4217)', () 
   });
 
   it('stays silent on a clean object-shaped tool_response through run-hook.mjs', () => {
-    if (!existsSync(DIST_BUNDLE)) return;
+    if (!bundle) return;
 
     const r = spawnSync('node', [RUN_HOOK, HOOK_NAME], {
       input: ccShapedPayload(bashObjectResponse('build finished, all tests passed')),
-      env: { ...process.env, CLAUDE_PROJECT_DIR: scratchDir },
+      env: dispatcherEnv(),
       encoding: 'utf8',
       timeout: 20_000,
     });
@@ -170,10 +194,10 @@ describe('redact-secrets through the built skill.mjs bundle (#3725, #4217)', () 
   });
 
   it('detects the token when the built bundle is driven in-process with Bash object shape', async () => {
-    if (!existsSync(DIST_BUNDLE)) return;
+    if (!bundle) return;
 
-    const bundle = await import(pathToFileURL(DIST_BUNDLE).href);
-    const hookFn = bundle.hooks?.[HOOK_NAME];
+    const loaded = await import(pathToFileURL(bundle).href);
+    const hookFn = loaded.hooks?.[HOOK_NAME];
     expect(hookFn).toBeTypeOf('function');
 
     stderrSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);

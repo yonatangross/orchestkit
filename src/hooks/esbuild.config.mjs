@@ -8,9 +8,17 @@
 
 import { build, context } from 'esbuild';
 import { writeFileSync, mkdirSync, readdirSync, copyFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 
 const isWatch = process.argv.includes('--watch');
+
+/**
+ * Where the bundles land. Defaults to ./dist; ORK_HOOKS_OUT_DIR redirects the
+ * whole build somewhere else (#4334). The redact-secrets integration test uses
+ * it to build into a temp dir, because building into a tracked dist dirtied a
+ * release-owned file and raced every other test file reading those bundles.
+ */
+const OUT_DIR = resolve(process.env.ORK_HOOKS_OUT_DIR || './dist');
 
 /**
  * Entry points for code splitting
@@ -69,7 +77,7 @@ async function buildSplitBundles() {
   console.log('Building split bundles...\n');
 
   for (const [name, entryPoint] of Object.entries(entryPoints)) {
-    const outfile = `./dist/${name}.mjs`;
+    const outfile = join(OUT_DIR, `${name}.mjs`);
     const result = await build({
       ...commonBuildOptions,
       entryPoints: [entryPoint],
@@ -83,7 +91,11 @@ async function buildSplitBundles() {
       },
     });
 
-    const outputFile = result.metafile.outputs[`dist/${name}.mjs`];
+    // Metafile keys are paths relative to cwd, so they move with OUT_DIR. This
+    // build call has one entry point, so its only non sourcemap output is the
+    // bundle we just asked for.
+    const outputFile = Object.entries(result.metafile.outputs)
+      .find(([key]) => key.endsWith('.mjs'))[1];
     stats.bundles[name] = {
       size: outputFile.bytes,
       sizeKB: (outputFile.bytes / 1024).toFixed(2),
@@ -104,7 +116,7 @@ async function buildSplitBundles() {
   stats.totalSizeKB = (stats.totalSize / 1024).toFixed(2);
   stats.avgBundleSizeKB = (stats.totalSize / Object.keys(entryPoints).length / 1024).toFixed(2);
 
-  writeFileSync('./dist/bundle-stats.json', JSON.stringify(stats, null, 2));
+  writeFileSync(join(OUT_DIR, 'bundle-stats.json'), JSON.stringify(stats, null, 2));
 
   console.log(`\nBuild complete in ${buildTimeMs}ms`);
   console.log(`Split bundles: ${stats.totalSizeKB} KB (${Object.keys(entryPoints).length} bundles)`);
@@ -123,7 +135,7 @@ function copyMigrations() {
   let copied = 0;
   for (const f of readdirSync(srcDir)) {
     if (/^\d{3}-.+\.sql$/.test(f)) {
-      copyFileSync(join(srcDir, f), join('./dist', f));
+      copyFileSync(join(srcDir, f), join(OUT_DIR, f));
       copied++;
     }
   }
@@ -131,7 +143,7 @@ function copyMigrations() {
 }
 
 async function main() {
-  mkdirSync('./dist', { recursive: true });
+  mkdirSync(OUT_DIR, { recursive: true });
 
   if (isWatch) {
     // Watch mode rebuilds the same split bundles the runtime loads — the old
@@ -139,7 +151,7 @@ async function main() {
     const ctx = await context({
       ...commonBuildOptions,
       entryPoints,
-      outdir: './dist',
+      outdir: OUT_DIR,
       outExtension: { '.js': '.mjs' },
       banner: {
         js: `// OrchestKit Hooks - Development Build
