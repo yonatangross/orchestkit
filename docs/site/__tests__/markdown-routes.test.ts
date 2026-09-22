@@ -114,6 +114,18 @@ describe("llms.txt advertised surfaces", () => {
 		expect(txt).toContain("https://pypi.org/project/orchestkit-hook-contract/");
 		expect(txt).toContain("/api-policy.md");
 	});
+
+	it("links the Go module source on GitHub, not a dead pkg.go.dev page", async () => {
+		const txt = await body(getLlmsTxt());
+		expect(txt).toContain(
+			"https://github.com/yonatangross/orchestkit/tree/main/sdk",
+		);
+		expect(txt).not.toContain("pkg.go.dev/github.com/yonatangross/orchestkit/sdk");
+		expect(txt).toContain("/docs/mcp");
+		expect(txt).toContain("/docs/sdk");
+		expect(txt).toContain("/llms.txt");
+		expect(txt).toContain("/llms-full.txt");
+	});
 });
 
 describe("internal link integrity", () => {

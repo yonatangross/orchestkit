@@ -20,8 +20,8 @@ describe("IndexNow", () => {
 		expect([...INDEXNOW_URLS]).toEqual([
 			"https://orchestkit.yonyon.ai/developers",
 			"https://orchestkit.yonyon.ai/openapi",
-			"https://orchestkit.yonyon.ai/mcp-server",
-			"https://orchestkit.yonyon.ai/sdk",
+			"https://orchestkit.yonyon.ai/docs/mcp",
+			"https://orchestkit.yonyon.ai/docs/sdk",
 		]);
 	});
 });

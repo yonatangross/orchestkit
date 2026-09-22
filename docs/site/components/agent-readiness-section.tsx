@@ -38,8 +38,8 @@ export function AgentReadinessSection() {
 				<h3 className="mt-7 font-semibold text-fd-foreground">OrchestKit MCP server</h3>
 				<p className="mt-1 leading-7 text-fd-muted-foreground">
 					Human page:{" "}
-					<Link href="/mcp-server" className="text-fd-primary underline underline-offset-2">
-						/mcp-server
+					<Link href="/docs/mcp" className="text-fd-primary underline underline-offset-2">
+						/docs/mcp
 					</Link>
 					. The OrchestKit MCP server speaks Streamable HTTP at{" "}
 					<code>{SITE.domain}/api/mcp</code> with two read-only tools: documentation search and
@@ -65,8 +65,8 @@ export function AgentReadinessSection() {
 				<h3 className="mt-6 font-semibold text-fd-foreground">OrchestKit SDK packages</h3>
 				<p className="mt-1 leading-7 text-fd-muted-foreground">
 					Official clients are listed at{" "}
-					<Link href="/sdk" className="text-fd-primary underline underline-offset-2">
-						/sdk
+					<Link href="/docs/sdk" className="text-fd-primary underline underline-offset-2">
+						/docs/sdk
 					</Link>
 					: npm <code>orchestkit</code>, PyPI <code>orchestkit</code>, and Go{" "}
 					<code>github.com/yonatangross/orchestkit/sdk</code>.
