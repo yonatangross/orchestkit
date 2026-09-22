@@ -168,6 +168,8 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Run view-transition abort e2e
         working-directory: docs/site
-        run: npx playwright test e2e/view-transitions-abort.spec.ts
+        # Only chromium-desktop: devices['iPhone 14'] defaults to WebKit, and
+        # this job installs Chromium only.
+        run: npx playwright test e2e/view-transitions-abort.spec.ts --project=chromium-desktop
         env:
           CI: true
