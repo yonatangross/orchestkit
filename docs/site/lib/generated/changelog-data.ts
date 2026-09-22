@@ -18,6 +18,28 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.76",
+    "date": "2026-09-22",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.75...v10.0.0-beta.76",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**dream:** classify index budget moves by filename prefix ([#4342](https://github.com/yonatangross/orchestkit/issues/4342)) ([c6189a5](https://github.com/yonatangross/orchestkit/commit/c6189a56e23d7f4dc2e5bf1fd4cf048973c7b1ba))",
+          "**skills:** stacked-PR rebase uses the onto form and real trunk ([#4337](https://github.com/yonatangross/orchestkit/issues/4337)) ([94edc1b](https://github.com/yonatangross/orchestkit/commit/94edc1b51a743b02a8fdafd990d204b5034c262f))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Documentation",
+        "items": [
+          "**site:** date the lab card page after [#4335](https://github.com/yonatangross/orchestkit/issues/4335) merged ([#4340](https://github.com/yonatangross/orchestkit/issues/4340)) ([ce4f9ff](https://github.com/yonatangross/orchestkit/commit/ce4f9ff622cb5843b6df13830989ec4b7c501132))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.75",
     "date": "2026-09-22",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.74...v10.0.0-beta.75",
