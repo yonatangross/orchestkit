@@ -8,7 +8,7 @@
     "url": "https://github.com/yonatangross/orchestkit",
     "source": "github"
   },
-  "version": "10.0.0-beta.78",
+  "version": "10.0.0-beta.79",
   "remotes": [
     {
       "type": "streamable-http",
