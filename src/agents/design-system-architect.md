@@ -34,8 +34,6 @@ tools:
   - mcp__stitch__get_project
   - mcp__stitch__list_screens
   - mcp__stitch__get_screen
-  - mcp__stitch__get_screen_code
-  - mcp__stitch__get_screen_image
   - mcp__storybook-mcp__list-all-documentation
   - mcp__storybook-mcp__get-documentation
   - mcp__storybook-mcp__get-documentation-for-story
