@@ -18,6 +18,27 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.75",
+    "date": "2026-09-22",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.74...v10.0.0-beta.75",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**site:** new link card with live skills, agents and hooks counts ([#4335](https://github.com/yonatangross/orchestkit/issues/4335)) ([8908e53](https://github.com/yonatangross/orchestkit/commit/8908e5335aa5106b6c799a9d22228fdcd6cf7f13))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**hooks:** stacked-PR guards read the trunk from origin/HEAD ([#4336](https://github.com/yonatangross/orchestkit/issues/4336)) ([5e822b0](https://github.com/yonatangross/orchestkit/commit/5e822b0cb8b71e3470b2c7545043e974ff6ec010))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.74",
     "date": "2026-09-21",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.73...v10.0.0-beta.74",
