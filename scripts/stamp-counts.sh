@@ -94,29 +94,32 @@ MARKER_FILES=(
 # ── JSON updates (no markers, pattern-based) ────────────────────────────────
 
 stamp_marketplace_json() {
-  local file="$PROJECT_ROOT/.claude-plugin/marketplace.json"
+  # Optional path arg so --check can stamp a temp copy with the same logic.
+  local file="${1:-$PROJECT_ROOT/.claude-plugin/marketplace.json}"
   if [[ ! -f "$file" ]]; then return; fi
 
-  local sed_in
-  if [[ "$(uname)" == "Darwin" ]]; then
-    sed_in=(sed -i '' -E)
-  else
-    sed_in=(sed -i -E)
-  fi
-
-  # Top-level description: "X skills, Y agents, Z commands, N hooks"
-  "${sed_in[@]}" \
-    "s/[0-9]+ skills, [0-9]+ agents, [0-9]+ commands, [0-9]+ hooks/${SKILLS} skills, ${AGENTS} agents, ${INVOCABLE} commands, ${HOOKS} hooks/g" "$file"
-
-  # plugins[].description: "X skills covering ... Includes Y specialized agents, Z commands, and N lifecycle hooks."
-  "${sed_in[@]}" \
-    "s/[0-9]+ skills covering/${SKILLS} skills covering/g" "$file"
-  "${sed_in[@]}" \
-    "s/Includes [0-9]+ specialized agents, [0-9]+ commands, and [0-9]+ lifecycle hooks/Includes ${AGENTS} specialized agents, ${INVOCABLE} commands, and ${HOOKS} lifecycle hooks/g" "$file"
-
-  # Legacy variant (no commands count) — kept for backwards compat
-  "${sed_in[@]}" \
-    "s/[0-9]+ skills, [0-9]+ agents, [0-9]+ hooks/${SKILLS} skills, ${AGENTS} agents, ${HOOKS} hooks/g" "$file"
+  # Stamp top-level .description and the TRACKING entry (source.ref == "main")
+  # only, never a pinned channel. Whole-file sed used to rewrite the stable
+  # 'ork' entry's counts too (F25 / sc47): same class of bug as the version
+  # stamper's old `.plugins[0]` before #3340. Falls back to plugins[0] for a
+  # single-entry layout with no tracking ref.
+  jq --arg skills "$SKILLS" --arg agents "$AGENTS" \
+     --arg invocable "$INVOCABLE" --arg hooks "$HOOKS" '
+    def stamp_top:
+      gsub("[0-9]+ skills, [0-9]+ agents, [0-9]+ commands, [0-9]+ hooks";
+           "\($skills) skills, \($agents) agents, \($invocable) commands, \($hooks) hooks")
+      | gsub("[0-9]+ skills, [0-9]+ agents, [0-9]+ hooks";
+           "\($skills) skills, \($agents) agents, \($hooks) hooks");
+    def stamp_plugin:
+      gsub("[0-9]+ skills covering"; "\($skills) skills covering")
+      | gsub("Includes [0-9]+ specialized agents, [0-9]+ commands, and [0-9]+ lifecycle hooks";
+           "Includes \($agents) specialized agents, \($invocable) commands, and \($hooks) lifecycle hooks");
+    .description |= stamp_top
+    | (if any(.plugins[]; .source.ref? == "main")
+       then (.plugins[] | select(.source.ref? == "main") | .description) |= stamp_plugin
+       else (.plugins[0].description) |= stamp_plugin
+       end)
+  ' "$file" > "${file}.tmp" && mv "${file}.tmp" "$file"
 }
 
 # ── pyproject.toml description (count tuple, pattern-based) ──────────────────
@@ -401,16 +404,12 @@ if [[ "${1:-}" == "--check" ]]; then
     rm "$TMP"
   done
 
-  # Check marketplace.json
+  # Check marketplace.json (same writer as the stamp path, tracking entry only)
   MKT="$PROJECT_ROOT/.claude-plugin/marketplace.json"
   if [[ -f "$MKT" ]]; then
     TMP=$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")
     cp "$MKT" "$TMP"
-    if [[ "$(uname)" == "Darwin" ]]; then
-      sed -i '' -E "s/[0-9]+ skills, [0-9]+ agents, [0-9]+ hooks/${SKILLS} skills, ${AGENTS} agents, ${HOOKS} hooks/g" "$TMP"
-    else
-      sed -i -E "s/[0-9]+ skills, [0-9]+ agents, [0-9]+ hooks/${SKILLS} skills, ${AGENTS} agents, ${HOOKS} hooks/g" "$TMP"
-    fi
+    stamp_marketplace_json "$TMP"
     if ! diff -q "$MKT" "$TMP" >/dev/null 2>&1; then
       echo "STALE: $MKT"
       STALE=1

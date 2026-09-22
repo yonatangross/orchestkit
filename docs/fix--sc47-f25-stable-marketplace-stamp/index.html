@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="F25: marketplace count stamper rewrote the pinned stable ork entry with beta counts. Fixed by selecting source.ref == main only.">
+<title>Stable ork count stamp no longer rewrites the pin</title>
+<style>
+  :root{--bg:#0f1219;--ink:#e8eaef;--muted:#9aa3b2;--ok:#3ecf8e;--bad:#f07178;--card:#161b26;--edge:#2a3344}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,sans-serif;padding:28px 20px 64px}
+  .wrap{max-width:720px;margin:0 auto}
+  h1{font-size:1.35rem;margin-bottom:8px}
+  h2{font-size:1rem;margin:22px 0 8px}
+  p,li{color:var(--muted)}
+  .card{background:var(--card);border:1px solid var(--edge);border-radius:12px;padding:18px 20px;margin-top:14px}
+  code,pre{font-family:ui-monospace,Menlo,monospace;font-size:.82rem}
+  pre{background:#0a0d13;border:1px solid var(--edge);border-radius:8px;padding:12px;overflow-x:auto;margin-top:10px;white-space:pre-wrap}
+  .ok{color:var(--ok)} .bad{color:var(--bad)}
+  ul{padding-left:1.2rem;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <p style="color:#8b9cff;font-weight:600;font-size:.85rem">F25 / sc47 / PR #4355</p>
+    <h1>Stable <code>ork</code> count stamp no longer rewrites the pin</h1>
+    <p>The marketplace count stamper rewrote the pinned stable <code>ork</code> description with live beta totals. Installers browsing the stable channel saw counts the tag does not ship.</p>
+  </div>
+
+  <div class="card">
+    <h2>What was broken</h2>
+    <pre><span class="bad">origin/main  plugins[0] ork@v9.8.0</span>
+  "107 skills ... 171 lifecycle hooks"   &lt;- beta counts
+
+<span class="ok">tag v9.8.0    plugin.json / marketplace</span>
+  "105 skills ... 218 lifecycle hooks"   &lt;- what the pin ships</pre>
+    <p style="margin-top:10px"><code>stamp_marketplace_json</code> ran whole-file <code>sed /g</code>. Only the pinned entry matched the plugin phrases, so it was the one rewritten. The version stamper already used <code>select(.source.ref == "main")</code> (#3340); the description stamper did not.</p>
+  </div>
+
+  <div class="card">
+    <h2>What changed</h2>
+    <ul>
+      <li><code>stamp_marketplace_json</code> stamps top-level description + tracking entry only (<code>source.ref == "main"</code>).</li>
+      <li>Stable description restored to the tag text (105 / 36 / 35 / 218).</li>
+      <li>Channel test asserts pin description equals <code>git show &lt;pin-ref&gt;:...</code>, fetching the tag when CI has none.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>Proof (revert)</h2>
+    <p>With the fixed description, the old whole-file sed rewrites stable to beta counts; the new selective stamp leaves it alone:</p>
+    <pre>BEFORE pin:  105 skills / 218 lifecycle hooks
+OLD sed:     107 skills / 171 lifecycle hooks   <span class="bad">clobbers pin</span>
+NEW stamp:   105 skills / 218 lifecycle hooks   <span class="ok">pin intact</span>
+
+channel test: pin description == git show v9.8.0:...marketplace.json
+  -&gt; fails under the old sed, passes under the new stamp</pre>
+  </div>
+</div>
+</body>
+</html>
