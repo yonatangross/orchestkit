@@ -374,7 +374,7 @@ export interface ToolInput {
  * PermissionRequest decision object (CC hook reference, "PermissionRequest
  * decision control").
  *
- * PermissionRequest does NOT answer with `permissionDecision` — that key is
+ * PermissionRequest does NOT answer with `permissionDecision`; that key is
  * PreToolUse/PreModelSwitch only. The documented shape is a nested `decision`
  * object whose `behavior` grants or refuses the request, and CC states plainly
  * that "Only the `decision` object can grant or deny the request."
@@ -398,7 +398,7 @@ export interface PermissionRequestDecision {
 export interface HookSpecificOutput {
   /** Hook event name for context */
   hookEventName?: 'PreToolUse' | 'PostToolUse' | 'PostToolUseFailure' | 'PermissionRequest' | 'PermissionDenied' | 'UserPromptSubmit' | 'SubagentStart' | 'SubagentStop' | 'SessionStart' | 'PostCompact' | 'PreModelSwitch';
-  /** Permission decision (PreToolUse hooks, CC 2.1.69: added 'ask', CC 2.1.89: added 'defer'; CC 2.1.251: PreModelSwitch answers allow/deny/ask the same way). NOT read on PermissionRequest — use `decision` there. */
+  /** Permission decision (PreToolUse hooks, CC 2.1.69: added 'ask', CC 2.1.89: added 'defer'; CC 2.1.251: PreModelSwitch answers allow/deny/ask the same way). NOT read on PermissionRequest; use `decision` there. */
   permissionDecision?: 'allow' | 'deny' | 'ask' | 'defer';
   /** Reason for permission decision */
   permissionDecisionReason?: string;
