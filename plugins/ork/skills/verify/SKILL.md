@@ -165,6 +165,8 @@ CronCreate(
 
 ---
 
+**Finish line.** Done means: every selected dimension has a score backed by a command you ran this session, and the report separates VERIFIED from CLAIMED. Follow `Read("../../shared/rules/long-run-protocol.md")`: keep going when a step needs no input from the user, stop and ask only when you can't continue without them or before anything destructive, check each subagent's evidence before accepting it, and mark anything you couldn't confirm with where you looked.
+
 ## Task Management (CC 2.1.16)
 
 ```python

@@ -197,6 +197,8 @@ Read the `/effort` setting and scale brainstorm depth — `low` runs phases 0/2/
 Full level table + detection rules: `Read("skills/brainstorm/references/effort-scaling.md")`
 
 
+**Finish line.** Done means: the top approaches are scored on all seven dimensions and the trade-offs are presented for the user to choose. Follow `Read("../../shared/rules/long-run-protocol.md")`: keep going when a step needs no input from the user, stop and ask only when you can't continue without them or before anything destructive, check each subagent's evidence before accepting it, and mark anything you couldn't confirm with where you looked.
+
 ## 🚨 CRITICAL: Task Management is MANDATORY (CC 2.1.16)
 
 ```python

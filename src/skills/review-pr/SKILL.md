@@ -130,6 +130,8 @@ Write(".claude/chain/capabilities.json", { memory, timestamp })
 
 ---
 
+**Finish line.** Done means: every agent's findings are checked against the diff, the validation checks ran, and the review lists only problems you would block the merge for, each with file, line and why. Follow `Read("../../shared/rules/long-run-protocol.md")`: keep going when a step needs no input from the user, stop and ask only when you can't continue without them or before anything destructive, check each subagent's evidence before accepting it, and mark anything you couldn't confirm with where you looked.
+
 ## CRITICAL: Task Management is MANDATORY
 
 **BEFORE doing ANYTHING else, create tasks to track progress:**
