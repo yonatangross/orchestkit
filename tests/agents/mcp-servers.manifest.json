@@ -67,10 +67,32 @@
   },
   "unconfigured": {
     "stitch": {
-      "reason": "Google Stitch is documented in src/skills/configure/references/mcp-config.md as a user scope add (claude mcp add stitch ... -s user), so it lives in an operator's own config and never in this repo's project .mcp.json. Agents may declare it; granting mcp__stitch__ tools here would achieve nothing. Configure or drop is a separate decision."
+      "reason": "Google Stitch is a user-scope add (claude mcp add stitch ... -s user), so it is absent from this repo's project .mcp.json. Agents that declare it MUST still grant mcp__stitch__* in tools: so a forked agent can call it when the operator has configured it (F12).",
+      "tools": [
+        "list_projects",
+        "get_project",
+        "list_screens",
+        "get_screen",
+        "get_screen_code",
+        "get_screen_image",
+        "build_site",
+        "generate_screen_from_text"
+      ],
+      "toolsVerifiedOn": "2026-09-22",
+      "toolsVerifiedBy": "Attested against community mirrors of stitch.googleapis.com/mcp (Glama / mattferry stitch-mcp-server schema) and the names cited by design-context-extract, design-to-code, and the design-context-extractor agent body. Official docs SPA did not emit a machine-readable tools list in this session."
     },
     "storybook-mcp": {
-      "reason": "Per project Storybook dev server at http://localhost:6006/mcp, provided by @storybook/addon-mcp in the CONSUMER project. It exists only while that project runs Storybook, so it is intentionally absent from this repo's .mcp.json."
+      "reason": "Per project Storybook dev server at http://localhost:6006/mcp, provided by @storybook/addon-mcp in the CONSUMER project. It exists only while that project runs Storybook, so it is intentionally absent from this repo's .mcp.json. Agents that declare it MUST still grant mcp__storybook-mcp__* in tools: (F12).",
+      "tools": [
+        "get-storybook-story-instructions",
+        "preview-stories",
+        "list-all-documentation",
+        "get-documentation",
+        "get-documentation-for-story",
+        "run-story-tests"
+      ],
+      "toolsVerifiedOn": "2026-09-22",
+      "toolsVerifiedBy": "Attested against src/skills/storybook-mcp-integration/SKILL.md Quick Reference (6 tools, 3 toolsets)."
     }
   }
 }

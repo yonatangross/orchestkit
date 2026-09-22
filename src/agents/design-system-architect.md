@@ -27,6 +27,18 @@ tools:
   # WebSearch. Read-only surface; resolve the library ID first, then query.
   - mcp__context7__resolve-library-id
   - mcp__context7__query-docs
+  # mcpServers stitch + storybook-mcp are metadata only (F12).
+  # Stitch: project/screen reads used by this agent body.
+  # Storybook: docs toolset (storybook-mcp-integration Toolset Selection).
+  - mcp__stitch__list_projects
+  - mcp__stitch__get_project
+  - mcp__stitch__list_screens
+  - mcp__stitch__get_screen
+  - mcp__stitch__get_screen_code
+  - mcp__stitch__get_screen_image
+  - mcp__storybook-mcp__list-all-documentation
+  - mcp__storybook-mcp__get-documentation
+  - mcp__storybook-mcp__get-documentation-for-story
 skills:
   - design-system-tokens
   - performance

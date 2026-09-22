@@ -28,6 +28,17 @@ tools:
   # WebSearch. Read-only surface; resolve the library ID first, then query.
   - mcp__context7__resolve-library-id
   - mcp__context7__query-docs
+  # mcpServers/required_mcp_servers stitch entries are metadata only (F12).
+  # Official Stitch MCP names (stitch.googleapis.com/mcp): project/screen reads
+  # plus the extract/generate surface named by design-context-extract skill.
+  - mcp__stitch__list_projects
+  - mcp__stitch__get_project
+  - mcp__stitch__list_screens
+  - mcp__stitch__get_screen
+  - mcp__stitch__get_screen_code
+  - mcp__stitch__get_screen_image
+  - mcp__stitch__build_site
+  - mcp__stitch__generate_screen_from_text
 skills:
   - design-context-extract
   - design-system-tokens
