@@ -142,7 +142,7 @@ const DENY_REGEX: { re: RegExp; label: string }[] = [
   },
   // curl|interpreter stdin-program shapes use pipeToInterpreterStdinProgram()
   // below (not a single regex): bare/sudo/env, lone `-`, `/dev/stdin`, and
-  // option-only flags like `-u` must DENY; `-c`/`-m`/`-e`/`-r`/`-E`/`--eval`
+  // option-only / value-taking flags must DENY; per-interpreter code flags
   // or a real script path must ALLOW.
 ];
 
@@ -152,8 +152,35 @@ const FETCHER_RE = /(?:\bcurl\b|\bwget\b|(?<!\bgit\s)\bfetch\b)/i;
 /** Path-optional interpreter that can run a fetched body as its program. */
 const INTERPRETER_NAME_RE = /^(?:[\w./-]*\/)?(?:python[0-9.]*|node|ruby|perl|php)$/i;
 
-/** Flags that mean the next arg is code/module, not a stdin program. */
-const INTERPRETER_CODE_FLAGS = new Set(['-c', '-m', '-e', '-r', '-E', '--eval']);
+type InterpreterFamily = 'python' | 'node' | 'ruby' | 'perl' | 'php';
+
+/** Flags whose next arg is code/module (ALLOW), keyed by interpreter family. */
+const CODE_FLAGS: Record<InterpreterFamily, ReadonlySet<string>> = {
+  python: new Set(['-c', '-m']),
+  node: new Set(['-e', '-p', '--eval', '--print']),
+  ruby: new Set(['-e']),
+  perl: new Set(['-e', '-E']),
+  php: new Set(['-r']),
+};
+
+/** Options that consume the next token as a value (not a script path). */
+const VALUE_OPTS: Record<InterpreterFamily, ReadonlySet<string>> = {
+  python: new Set(['-W', '-X', '-Q']),
+  node: new Set(['-r', '--require', '--import']),
+  ruby: new Set(['-r', '-I']),
+  perl: new Set(['-M', '-I']),
+  php: new Set(),
+};
+
+function interpreterFamily(name: string): InterpreterFamily | null {
+  const base = name.replace(/^.*\//, '').toLowerCase();
+  if (/^python[0-9.]*$/.test(base)) return 'python';
+  if (base === 'node') return 'node';
+  if (base === 'ruby') return 'ruby';
+  if (base === 'perl') return 'perl';
+  if (base === 'php') return 'php';
+  return null;
+}
 
 /**
  * Tokenize one simple-command suffix (after `|`) until `; | &` or newline.
@@ -205,18 +232,30 @@ function tokenizePipeRhs(s: string): string[] {
 
 /**
  * True when args mean the interpreter runs its PROGRAM from stdin (DENY):
- * no args, only option flags (`-u`, `-I`, `-W`, …), a lone `-` (with or
- * without trailing args), or `/dev/stdin`. False (ALLOW) when any arg is a
- * code/module flag or a script path that is not `-` / `/dev/stdin`.
+ * no args, only option flags, a lone `-` (with or without trailing args), or
+ * `/dev/stdin`. False (ALLOW) when any arg is a family code flag or a script
+ * path that is not `-` / `/dev/stdin`. Value-taking options skip their next
+ * token so the value is not mistaken for a script path.
  */
-function interpreterArgsAreStdinProgram(args: string[]): boolean {
+function interpreterArgsAreStdinProgram(
+  family: InterpreterFamily,
+  args: string[],
+): boolean {
   if (args.length === 0) return true;
-  for (const a of args) {
-    if (INTERPRETER_CODE_FLAGS.has(a)) return false;
+  const codeFlags = CODE_FLAGS[family];
+  const valueOpts = VALUE_OPTS[family];
+  for (let i = 0; i < args.length; i++) {
+    const a = args[i]!;
+    if (codeFlags.has(a)) return false;
     // Lone `-` or /dev/stdin means the program is stdin, with or without
     // trailing args (`python3 - arg1` still runs the piped body).
     if (a === '-' || a === '/dev/stdin') return true;
-    if (a.startsWith('-')) continue; // option-only flags (-u, -I, -W, …)
+    if (valueOpts.has(a)) {
+      // Consume the option value when present and not itself a flag.
+      if (i + 1 < args.length && !args[i + 1]!.startsWith('-')) i++;
+      continue;
+    }
+    if (a.startsWith('-')) continue; // boolean / other option flags
     return false; // script path
   }
   return true;
@@ -257,7 +296,10 @@ function pipeToInterpreterStdinProgram(cmd: string): boolean {
       searchFrom = pipe + 1;
       continue;
     }
-    if (interpreterArgsAreStdinProgram(tokens.slice(idx + 1))) return true;
+    const family = interpreterFamily(tokens[idx]!);
+    if (family && interpreterArgsAreStdinProgram(family, tokens.slice(idx + 1))) {
+      return true;
+    }
     searchFrom = pipe + 1;
   }
   return false;
