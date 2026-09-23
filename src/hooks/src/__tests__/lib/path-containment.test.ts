@@ -11,9 +11,13 @@ import { sep, join } from 'node:path';
 // Mock fs before importing the module
 vi.mock('node:fs', () => ({
   realpathSync: vi.fn(),
+  lstatSync: vi.fn(() => {
+    throw new Error('ENOENT');
+  }),
+  readlinkSync: vi.fn(),
 }));
 
-import { realpathSync } from 'node:fs';
+import { realpathSync, lstatSync, readlinkSync } from 'node:fs';
 import {
   EXCLUDED_DIRS,
   isInsideDir,
@@ -22,6 +26,8 @@ import {
 } from '../../lib/path-containment.js';
 
 const mockRealpathSync = vi.mocked(realpathSync);
+const mockLstatSync = vi.mocked(lstatSync);
+const mockReadlinkSync = vi.mocked(readlinkSync);
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -171,5 +177,21 @@ describe('resolveRealPath', () => {
     const resolved = resolveRealPath('/project/evil-link', '/project');
     expect(resolved).toBe('/etc/passwd');
     // Caller (isInsideDir) would then reject this as outside project
+  });
+
+  test('dangling leaf symlink returns lexical target for denylist', () => {
+    mockRealpathSync.mockImplementation((p: unknown) => {
+      const s = String(p);
+      if (s === '/project/src/cfg.json') throw new Error('ENOENT');
+      if (s === '/project/src') return '/project/src';
+      if (s === '/project/.claude/settings.local.json') throw new Error('ENOENT');
+      throw new Error(`unexpected realpath: ${s}`);
+    });
+    mockLstatSync.mockReturnValue({ isSymbolicLink: () => true } as unknown as import('node:fs').Stats);
+    mockReadlinkSync.mockReturnValue('../.claude/settings.local.json');
+
+    expect(resolveRealPath('/project/src/cfg.json', '/project')).toBe(
+      '/project/.claude/settings.local.json',
+    );
   });
 });

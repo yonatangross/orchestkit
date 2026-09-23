@@ -4,10 +4,10 @@
  * hookSpecificOutput.decision.behavior on this event.
  */
 
-import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, test, expect, beforeEach, afterEach } from 'vitest';
 import { autoApproveSafeBash } from '../../permission/auto-approve-safe-bash.js';
 import { autoApproveProjectWrites } from '../../permission/auto-approve-project-writes.js';
-import { learningTracker } from '../../permission/learning-tracker.js';
+import { learningTracker, _resetPatternCacheForTesting } from '../../permission/learning-tracker.js';
 import { unifiedPermissionBashDispatcher } from '../../permission/unified-dispatcher.js';
 import { outputPermissionRequestAllow, outputSilentAllow } from '../../lib/common.js';
 import type { HookInput } from '../../types.js';
@@ -84,42 +84,33 @@ describe('F11 PermissionRequest output shape', () => {
 
   describe('learning-tracker allow path', () => {
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ork-f11-'));
-    const cachePath = path.join(tmp, 'learned-patterns-cache.json');
 
     beforeEach(() => {
-      vi.spyOn(process, 'env', 'get').mockReturnValue({
-        ...process.env,
-        CLAUDE_PLUGIN_ROOT: tmp,
-      } as NodeJS.ProcessEnv);
-      // learning-tracker resolves cache under plugin root / home; seed via
-      // the distilled cache path it prefers when present.
-      fs.mkdirSync(path.join(tmp, 'hooks'), { recursive: true });
+      process.env.CLAUDE_PLUGIN_ROOT = tmp;
+      process.env.ORK_PERMISSION_AUTO_APPROVE = '1';
+      _resetPatternCacheForTesting();
+
+      const feedbackDir = path.join(tmp, '.claude', 'feedback');
+      fs.mkdirSync(feedbackDir, { recursive: true });
+      // Real distilled cache path learningTracker reads (literal prefix match).
       fs.writeFileSync(
-        path.join(tmp, 'learned-patterns-cache.json'),
+        path.join(feedbackDir, 'learned-patterns-cache.json'),
         JSON.stringify({
           schema: 'ork.learned-patterns-cache.v1',
-          patterns: [{ pattern: '^echo hello$', count: 5 }],
-          generatedAt: new Date().toISOString(),
+          autoApprovePatterns: ['echo hello'],
+          generated_at: new Date().toISOString(),
         }),
       );
-      void cachePath;
     });
 
     afterEach(() => {
-      vi.restoreAllMocks();
       fs.rmSync(tmp, { recursive: true, force: true });
     });
 
     test('learned allow never emits PreToolUse label', () => {
-      // If the cache path does not resolve in this harness, the hook passes
-      // through; that still must not emit a PreToolUse allow.
       const result = learningTracker(bash('echo hello'));
-      if (result.hookSpecificOutput?.decision?.behavior === 'allow') {
-        assertPermissionRequestAllow(result);
-      } else {
-        expect(result.hookSpecificOutput?.hookEventName).not.toBe('PreToolUse');
-        expect(result.hookSpecificOutput?.permissionDecision).not.toBe('allow');
-      }
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      assertPermissionRequestAllow(result);
     });
   });
 

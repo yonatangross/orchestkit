@@ -148,5 +148,39 @@ describe('PermissionRequest auto-approve security hold (#4374)', () => {
       const r = autoApproveProjectWrites(writeInput(`${PROJECT}/${rel}`));
       expect(isAllow(r), `must not allow case variant ${rel}`).toBe(false);
     });
+
+    test('denies dangling leaf symlink into .claude (CodeRabbit #4374)', () => {
+      const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ork-dangle-'));
+      fs.mkdirSync(path.join(tmp, 'proj', 'src'), { recursive: true });
+      const project = fs.realpathSync(path.join(tmp, 'proj'));
+      // Target absent: dangling link src/cfg.json -> ../.claude/settings.local.json
+      const link = path.join(project, 'src', 'cfg.json');
+      fs.symlinkSync('../.claude/settings.local.json', link);
+      try {
+        process.env[FLAG] = '1';
+        const r = autoApproveProjectWrites(writeInput(link, project));
+        expect(isAllow(r), 'dangling symlink into .claude must not auto-approve').toBe(false);
+      } finally {
+        fs.rmSync(tmp, { recursive: true, force: true });
+      }
+    });
+
+    test('denies live symlink into .claude (CodeRabbit #4374)', () => {
+      const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ork-live-'));
+      fs.mkdirSync(path.join(tmp, 'proj', 'src'), { recursive: true });
+      fs.mkdirSync(path.join(tmp, 'proj', '.claude'), { recursive: true });
+      const project = fs.realpathSync(path.join(tmp, 'proj'));
+      const target = path.join(project, '.claude', 'settings.local.json');
+      fs.writeFileSync(target, '{}');
+      const link = path.join(project, 'src', 'looks-safe.json');
+      fs.symlinkSync(target, link);
+      try {
+        process.env[FLAG] = '1';
+        const r = autoApproveProjectWrites(writeInput(link, project));
+        expect(isAllow(r)).toBe(false);
+      } finally {
+        fs.rmSync(tmp, { recursive: true, force: true });
+      }
+    });
   });
 });

@@ -15,7 +15,7 @@
  */
 
 import { resolve, isAbsolute, relative, normalize, sep, dirname, basename, join } from 'node:path';
-import { realpathSync } from 'node:fs';
+import { realpathSync, lstatSync, readlinkSync } from 'node:fs';
 
 /**
  * Directories that should not be auto-approved or retried for writes.
@@ -65,6 +65,12 @@ export function hasExcludedDir(filePath: string): boolean {
  * #4220 AF-15: when the leaf does not exist (ENOENT), realpath the parent
  * directory and join the basename. A committed symlink directory plus a
  * new-file write must not escape via the unresolved lexical path.
+ *
+ * Dangling leaf symlink: realpathSync fails, but the link still names a
+ * target. Resolve readlink relative to the link's real parent so a denylist
+ * sees `.claude/settings.local.json` instead of `src/cfg.json`. If the leaf
+ * is a symlink we cannot resolve, return a path under `.claude` so callers
+ * that auto-approve must pass through (never treat the link path as safe).
  */
 export function resolveRealPath(filePath: string, projectDir: string): string {
   const absolutePath = isAbsolute(filePath)
@@ -75,6 +81,31 @@ export function resolveRealPath(filePath: string, projectDir: string): string {
     // Call realpathSync directly; avoids TOCTOU race between existsSync and realpathSync
     return realpathSync(absolutePath);
   } catch {
+    // Dangling or otherwise unresolvable leaf symlink: follow readlink.
+    try {
+      const st = lstatSync(absolutePath);
+      if (st.isSymbolicLink()) {
+        try {
+          const parentReal = realpathSync(dirname(absolutePath));
+          const linkTarget = readlinkSync(absolutePath);
+          const resolvedTarget = isAbsolute(linkTarget)
+            ? normalize(linkTarget)
+            : resolve(parentReal, linkTarget);
+          try {
+            return realpathSync(resolvedTarget);
+          } catch {
+            // Target absent: return lexical target for denylist/containment.
+            return resolvedTarget;
+          }
+        } catch {
+          // Symlink leaf we cannot resolve: do not hand back the link path.
+          return join(dirname(absolutePath), '.claude', '.ork-unresolved-symlink');
+        }
+      }
+    } catch {
+      // Not a symlink (or leaf missing): fall through to AF-15.
+    }
+
     try {
       const parentReal = realpathSync(dirname(absolutePath));
       return join(parentReal, basename(absolutePath));
