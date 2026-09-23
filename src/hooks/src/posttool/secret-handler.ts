@@ -8,10 +8,10 @@
  * updatedMCPToolOutput to all tools).
  *
  * Three modes via ORK_SECRET_HOOK env var:
- *   AUDIT (default) — sidecar log of would-be matches; output unchanged
- *   REDACT          — in-place [REDACTED:type] for bounded patterns;
- *                     gate (replace whole output) for critical patterns
- *   OFF             — no-op; set explicitly to disable
+ *   AUDIT (default): sidecar log of would-be matches; output unchanged
+ *   REDACT:          in-place [REDACTED:type] for bounded patterns;
+ *                    gate (replace whole output) for critical patterns
+ *   OFF:             no-op; set explicitly to disable
  *
  * Pattern philosophy:
  *   - BOUNDED prefix patterns (gh*_, sk-*, AKIA*) — effectively zero FP rate.

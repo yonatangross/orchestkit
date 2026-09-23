@@ -183,13 +183,13 @@ describe('secretHandler — mode behavior', () => {
   });
 
   it('unset ORK_SECRET_HOOK defaults to AUDIT', () => {
-    // Arrange — beforeEach deletes the env var
+    // Arrange: beforeEach deletes the env var
     const input = makeInput({ tool_output: SECRET });
 
     // Act
     const result = secretHandler(input, testCtx);
 
-    // Assert — audit logs, no mutation
+    // Assert: audit logs, no mutation
     expect(result.hookSpecificOutput).toBeUndefined();
     expect(mockBufferWrite).toHaveBeenCalled();
     const [, payload] = mockBufferWrite.mock.calls[0];
