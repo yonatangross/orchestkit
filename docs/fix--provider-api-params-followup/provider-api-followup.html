@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Provider API follow-up fixes</title>
+<style>
+body{background:#111;color:#ddd;font:13px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;margin:0;padding:30px}main{max-width:1050px;margin:0 auto}
+h1{font-size:20px;color:#fff;margin:0 0 4px}.sub{color:#888;margin-bottom:20px}h2{font-size:13px;letter-spacing:.08em;text-transform:uppercase;margin:28px 0 10px;padding-bottom:6px;border-bottom:1px solid #333}
+.c1{color:#4dd0e1}.c2{color:#e573c7}.f button{background:#1a1a1a;color:#ccc;border:1px solid #333;padding:3px 10px;font:inherit;cursor:pointer;margin:0 6px 8px 0}.f button.on{border-color:#e573c7;color:#fff}
+table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:6px 8px;border-bottom:1px solid #222;vertical-align:top}th{color:#888;font-weight:normal}code{color:#fff}
+.pill{padding:0 6px;border-radius:3px;font-size:12px}.bug{background:#3a1b1b;color:#ef9a9a}.mod{background:#222;color:#aaa}.note{color:#888;font-size:12px}
+</style></head><body><main>
+<h1>Provider API follow-up fixes</h1>
+<div class="sub">Two commits pushed to fix/provider-api-params after #4381 merged, rescued onto this branch. One replaces retired or wrong Gemini model IDs; the other tightens four provider claims that independent verification (11/11 PASS) flagged as overstated.</div>
+<h2 class="c1">01 / Gemini model IDs (b0c23a10)</h2>
+<div class="f" id="f1"></div>
+<table><thead><tr><th>File</th><th>Before</th><th>After</th><th>Kind</th></tr></thead><tbody id="rows1"></tbody></table>
+<h2 class="c2">02 / Claims tightened (6d68eb2a)</h2>
+<div class="f" id="f2"></div>
+<table><thead><tr><th>File</th><th>Before</th><th>After</th><th>Kind</th></tr></thead><tbody id="rows2"></tbody></table>
+<div class="note">Sources: Google models page and changelog via Tavily; platform origin/main 7c21b5268f config.py (pins no Gemini model); ai.google.dev/gemini-api/docs/models; 11/11 independent verifier pass on the wording claims.</div>
+</main><script>
+const A=[
+["multimodal-llm/SKILL.md","gemini-3.1-flash-lite-preview, 'deprecates Oct 2026'","gemini-3.1-flash-lite (preview shut down 2026-05-25)","bug"],
+["multimodal-llm/SKILL.md","table 'pinned against platform config.py'","cites Google's models page; config.py pins no Gemini model","bug"],
+["monitoring-observability dashboard example","gemini-3-flash","gemini-3-flash-preview (real model code)","bug"]];
+const B=[
+["rag-retrieval/rules/hyde-generation.md","gpt-5-mini rejects the temperature parameter","accepts only the default temperature","mod"],
+["multimodal-llm/rules/vision-image-analysis.md","'omitting truncates' comment","dropped: unsupported by the source","mod"],
+["multimodal-llm/SKILL.md","flash-lite succeeds Gemini 2.5 Flash","GA successor of the Flash-Lite preview; shutdown 2027-05-07","mod"],
+["configure/references/mcp-config.md","adaptive thinking list missing Sonnet 4.6","Sonnet 4.6 also supports adaptive thinking","mod"]];
+function wire(rows,elB,elT,keys){
+ let cur="all";
+ function draw(){
+  document.getElementById(elT).innerHTML=rows.filter(r=>cur==="all"||r[3]===cur).map(r=>`<tr><td><code>${r[0]}</code></td><td>${r[1]}</td><td>${r[2]}</td><td><span class="pill ${r[3]}">${r[3]==="bug"?"wrong":"tighten"}</span></td></tr>`).join('');
+  document.getElementById(elB).innerHTML=["all"].concat(keys).map(k=>`<button class="${k===cur?'on':''}" data-k="${k}">${k} (${k==="all"?rows.length:rows.filter(r=>r[3]===k).length})</button>`).join('');
+  document.querySelectorAll('#'+elB+' button').forEach(b=>b.onclick=()=>{cur=b.dataset.k;draw()});
+ }
+ draw();
+}
+wire(A,'f1','rows1',['bug']);
+wire(B,'f2','rows2',['mod']);
+</script></body></html>
