@@ -4,10 +4,9 @@ license: MIT
 compatibility: "Claude Code 2.1.277+."
 description: Implements internationalization (i18n) in React applications. Covers user-facing strings, date/time handling, locale-aware formatting, ICU MessageFormat, and RTL support. Use when building multilingual UIs or formatting dates/currency.
 context: inherit
-agent: frontend-ui-developer
 version: 1.2.0
 author: Yonatan Gross
-tags: [i18n, internationalization, dayjs, dates, react-i18next, localization, rtl, useTranslation, useFormatting, ICU, Trans]
+tags: [i18n, internationalization, dayjs, dates, react-i18next, localization, rtl, useTranslation, useFormatting, ICU, Trans, react]
 user-invocable: false
 disable-model-invocation: true
 complexity: low

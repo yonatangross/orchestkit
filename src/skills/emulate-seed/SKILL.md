@@ -10,7 +10,6 @@ disable-model-invocation: false
 complexity: medium
 context: inherit
 persuasion-type: guidance
-agent: emulate-engineer
 metadata:
   category: testing
   upstream-package: emulate

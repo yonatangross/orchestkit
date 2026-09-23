@@ -5,7 +5,6 @@ compatibility: "Claude Code 2.1.277+."
 description: "Reference for Zustand 5.x state management including slices, middleware, Immer, useShallow, persistence, selectors, and devtools integration. Documents 7 core patterns with TypeScript examples and anti-patterns. Use when building React state management with Zustand instead of Redux."
 tags: [zustand, state-management, react, immer, middleware, persistence, slices]
 context: inherit
-agent: frontend-ui-developer
 version: 1.0.0
 allowed-tools: [Read, Write, Grep, Glob]
 author: OrchestKit

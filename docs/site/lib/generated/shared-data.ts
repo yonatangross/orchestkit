@@ -438,6 +438,7 @@ export const SKILLS_SUMMARY = {
     ],
     "devops": [
       "devops-deployment",
+      "documentation-patterns",
       "monitoring-observability",
       "portless",
       "web-research-workflow"
@@ -445,12 +446,12 @@ export const SKILLS_SUMMARY = {
     "testing": [
       "architecture-patterns",
       "bare-eval",
+      "code-review-playbook",
       "cover",
       "emulate-seed",
       "expect",
       "golden-dataset",
-      "llm-integration",
-      "product-analytics"
+      "llm-integration"
     ],
     "security": [
       "audit-full",

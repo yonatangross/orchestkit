@@ -1416,6 +1416,7 @@ CATEGORY_RULES = {
             "event-driven",
             "microservices",
             "cqrs",
+            "architecture",
         },
         "agents": {
             "backend-system-architect",
@@ -1442,6 +1443,7 @@ CATEGORY_RULES = {
             "shadcn",
             "vite",
             "next",
+            "i18n",
         },
         "agents": {
             "frontend-ui-developer",
@@ -1466,8 +1468,19 @@ CATEGORY_RULES = {
             "coverage",
             "mocking",
             "msw",
+            "code-review",
+            "evaluation",
+            "verification",
+            "golden-dataset",
+            "llm-testing",
+            "debugging",
+            "troubleshooting",
         },
-        "agents": {"test-generator", "code-quality-reviewer"},
+        "agents": {
+            "test-generator",
+            "code-quality-reviewer",
+            "data-pipeline-engineer",
+        },
     },
     "security": {
         "label": "Security",
@@ -1501,10 +1514,14 @@ CATEGORY_RULES = {
             "function-calling",
             "streaming",
             "prompt",
+            "orchestration",
+            "multi-agent",
+            "memory",
         },
         "agents": {
             "llm-integrator",
             "multimodal-specialist",
+            "workflow-architect",
         },
     },
     "devops": {
@@ -1520,12 +1537,18 @@ CATEGORY_RULES = {
             "observability",
             "deployment",
             "github-actions",
+            "github",
+            "analytics",
+            "metrics",
+            "configuration",
+            "releases",
         },
         "agents": {
             "ci-cd-engineer",
             "deployment-manager",
             "infrastructure-architect",
             "monitoring-engineer",
+            "release-engineer",
         },
     },
     "product": {
@@ -1543,13 +1566,15 @@ CATEGORY_RULES = {
             "user-research",
             "business-case",
             "strategy",
+            "demo",
+            "marketing",
         },
         "agents": {"product-strategist", "market-intelligence"},
     },
     "workflows": {
         "label": "Workflows",
         "desc": "User-invocable commands for common development workflows.",
-        "tags": set(),
+        "tags": {"workflow", "wizard"},
         "agents": set(),
         "match_invocable": True,
     },
@@ -1633,8 +1658,14 @@ def generate_categories(skills_src: str, categories_out: str) -> int:
             lines.append("|-------|------|------------|-------------|")
             for s in matched:
                 type_label = "Command" if s["user_invocable"] else "Reference"
-                cplx = s["complexity"] or "\u2014"
+                cplx = s["complexity"] or "-"
                 safe_desc = s["description"].replace("|", "\\|")
+                # House rule: no em/en dashes in generated docs text.
+                safe_desc = (
+                    safe_desc.replace("\u2014", ",")
+                    .replace("\u2013", ",")
+                    .replace(" ,", ",")
+                )
                 # Truncate long descriptions for the table
                 if len(safe_desc) > 120:
                     safe_desc = safe_desc[:117] + "..."

@@ -8,6 +8,7 @@
 # 1. All skills have SKILL.md (file existence)
 # 2. SKILL.md starts with YAML frontmatter (--- delimiter)
 # 3. Frontmatter has required fields: name, description, version
+# 3b. agent: requires context: fork (dead binding otherwise; F26)
 # 4. H1 title exists (# heading)
 # 5. "When to Use" or "Overview" section exists
 # 6. At least one code example (``` block)
@@ -311,6 +312,37 @@ done
 
 if [[ ${#missing_fields[@]} -eq 0 ]]; then
     pass "All SKILL.md files have required frontmatter fields"
+fi
+echo ""
+
+# ============================================================================
+# Test 3b: agent: requires context: fork
+# ============================================================================
+# Claude Code only binds skill frontmatter `agent:` when `context: fork`.
+# `agent:` + `context: inherit` (or missing context) is a dead binding.
+# CONTRIBUTING-SKILLS.md: "agent: ... (requires context: fork)".
+echo -e "${CYAN}Test 3b: agent: requires context: fork${NC}"
+echo "────────────────────────────────────────────────────────────────────────────"
+
+dead_agent_bindings=()
+for skill_dir in "$SKILLS_DIR"/*/; do
+    if [[ -d "$skill_dir" ]] && [[ -f "$skill_dir/SKILL.md" ]]; then
+        skill_name=$(basename "$skill_dir")
+        skill_file="$skill_dir/SKILL.md"
+        frontmatter=$(extract_frontmatter "$skill_file")
+        # Missing keys make grep exit 1 under pipefail. Tolerate empty.
+        agent_field=$(get_frontmatter_field "$frontmatter" "agent" || true)
+        context_field=$(get_frontmatter_field "$frontmatter" "context" || true)
+
+        if [[ -n "$agent_field" && "$context_field" != "fork" ]]; then
+            dead_agent_bindings+=("$skill_name")
+            fail "$skill_name: agent: '$agent_field' requires context: fork (got '${context_field:-<missing>}')"
+        fi
+    fi
+done
+
+if [[ ${#dead_agent_bindings[@]} -eq 0 ]]; then
+    pass "All skills with agent: use context: fork"
 fi
 echo ""
 
