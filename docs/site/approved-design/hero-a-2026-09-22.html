@@ -215,29 +215,34 @@
   }
   @media (max-width: 900px) {
     .hero-inner {
+      display: flex;
+      flex-direction: column;
       grid-template-columns: 1fr;
       padding-top: 48px;
       padding-bottom: 56px;
     }
+    /* Match live build: headline/counts, then 16:9 art, then install. */
+    .copy {
+      display: contents;
+      max-width: none;
+    }
+    .copy-top {
+      order: 1;
+    }
     .art {
       position: relative;
+      order: 2;
       width: 100%;
       height: auto;
       aspect-ratio: 16 / 9;
       inset: auto;
       margin-top: 8px;
-      order: 2;
       -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 18%);
       mask-image: linear-gradient(to bottom, transparent 0%, #000 18%);
       background-position: center 30%;
     }
-    .copy {
-      order: 1;
-      max-width: none;
-    }
-    .hero-inner {
-      display: flex;
-      flex-direction: column;
+    .copy-actions {
+      order: 3;
     }
   }
 </style>
@@ -246,33 +251,37 @@
   <section class="hero" aria-labelledby="hero-heading">
     <div class="hero-inner">
       <div class="copy">
-        <div class="eyebrow" aria-hidden="true">
-          <span class="pill">What&apos;s new</span>
-          <span>10.0.0-beta.76</span>
+        <div class="copy-top">
+          <div class="eyebrow" aria-hidden="true">
+            <span class="pill">What&apos;s new</span>
+            <span>10.0.0-beta.76</span>
+          </div>
+          <h1 id="hero-heading">
+            <span class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">OrchestKit. </span>
+            Stop explaining your stack.<br />
+            Start shipping.
+          </h1>
+          <p class="counts">
+            <span class="stat">107 skills</span><span class="dot">·</span>
+            <span class="stat">36 agents</span><span class="dot">·</span>
+            <span class="stat">171 hooks</span>
+            <span class="sub">A Claude Code plugin library. Search it, install it, ship.</span>
+          </p>
         </div>
-        <h1 id="hero-heading">
-          <span class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">OrchestKit. </span>
-          Stop explaining your stack.<br />
-          Start shipping.
-        </h1>
-        <p class="counts">
-          <span class="stat">107 skills</span><span class="dot">·</span>
-          <span class="stat">36 agents</span><span class="dot">·</span>
-          <span class="stat">171 hooks</span>
-          <span class="sub">A Claude Code plugin library. Search it, install it, ship.</span>
-        </p>
-        <div class="actions">
-          <button type="button" class="install" id="install-btn" aria-label="Copy claude plugin marketplace add yonatangross/orchestkit &amp;&amp; claude plugin install ork@orchestkit to clipboard">
-            <span class="prompt">$</span>
-            <span class="cmd">claude plugin marketplace add yonatangross/orchestkit &amp;&amp; claude plugin install ork@orchestkit</span>
-            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-          </button>
-          <a class="get-started" href="https://orchestkit.yonyon.ai/docs/getting-started/first-10-minutes">
-            Get started
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-          </a>
+        <div class="copy-actions">
+          <div class="actions">
+            <button type="button" class="install" id="install-btn" aria-label="Copy claude plugin marketplace add yonatangross/orchestkit &amp;&amp; claude plugin install ork@orchestkit to clipboard">
+              <span class="prompt">$</span>
+              <span class="cmd">claude plugin marketplace add yonatangross/orchestkit &amp;&amp; claude plugin install ork@orchestkit</span>
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            </button>
+            <a class="get-started" href="https://orchestkit.yonyon.ai/docs/getting-started/first-10-minutes">
+              Get started
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            </a>
+          </div>
+          <p class="host-note">For Claude Code. On Cursor, Codex, Muse Code, Pi, OpenCode, Devin or Antigravity? Pick your host below.</p>
         </div>
-        <p class="host-note">For Claude Code. On Cursor, Codex, Muse Code, Pi, OpenCode, Devin or Antigravity? Pick your host below.</p>
       </div>
       <div class="art" role="img" aria-label="Conductor and holographic orchestra art from design/og-card/art/A-1.png"></div>
     </div>
