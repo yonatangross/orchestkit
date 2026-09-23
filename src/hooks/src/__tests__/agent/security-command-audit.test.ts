@@ -253,6 +253,21 @@ describe('security-command-audit', () => {
       expect(logContent).toContain('CMD:');
     });
 
+    test('redacts every Bearer token when a command carries two (#4217/#4380)', () => {
+      const t1 = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.aaa';
+      const t2 = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.bbb';
+      const input = createToolInput('Bash', {
+        command: `curl -H "Authorization: ${t1}" -H "X-Alt: ${t2}" https://api.example.com`,
+      });
+
+      securityCommandAudit(input, testCtx);
+
+      const logContent = vi.mocked(appendFileSync).mock.calls[0][1] as string;
+      expect(logContent).not.toContain('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.aaa');
+      expect(logContent).not.toContain('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.bbb');
+      expect(logContent.match(/\[REDACTED\]/g)?.length).toBeGreaterThanOrEqual(2);
+    });
+
     test('prefers CLAUDE_PLUGIN_DATA/logs when set (#4217)', () => {
       process.env.CLAUDE_PLUGIN_DATA = '/plugin/data';
       const input = createToolInput('Bash', { command: 'git status' });
