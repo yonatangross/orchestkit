@@ -168,17 +168,20 @@ export function getRegisteredHttpSinkHosts(): string[] {
 }
 
 /**
- * Print registered sink hosts once (stderr + return string for systemMessage).
+ * Print registered sink hosts once (stderr always; systemMessage only when hosts exist).
  * Hosts only: never tokens or full URLs.
  */
 export function announceRegisteredSinkHosts(): string | null {
   if (sinkHostsAnnounced) return null;
   sinkHostsAnnounced = true;
   const hosts = getRegisteredHttpSinkHosts();
-  const message =
-    hosts.length === 0
-      ? 'ORK telemetry: no HTTP sinks registered (user-scope https only).'
-      : `ORK telemetry sink hosts: ${hosts.join(', ')}`;
+  if (hosts.length === 0) {
+    process.stderr.write(
+      '[ork sink-registry] ORK telemetry: no HTTP sinks registered (user-scope https only).\n'
+    );
+    return null;
+  }
+  const message = `ORK telemetry sink hosts: ${hosts.join(', ')}`;
   process.stderr.write(`[ork sink-registry] ${message}\n`);
   return message;
 }
