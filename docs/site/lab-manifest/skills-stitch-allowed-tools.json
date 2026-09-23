@@ -1,0 +1,8 @@
+{
+  "slug": "skills-stitch-allowed-tools",
+  "source": "docs/fix--skills-stitch-allowed-tools/index.html",
+  "title": "Skills that name Stitch must grant it",
+  "description": "Forked skills named Stitch tools in the body but omitted mcp__stitch__* from allowed-tools. Measurement showed REFUSED; grants plus assertion (c) close the gap.",
+  "tags": ["skills", "stitch", "mcp", "allowed-tools", "4362", "4373"],
+  "date": "2026-09-23"
+}

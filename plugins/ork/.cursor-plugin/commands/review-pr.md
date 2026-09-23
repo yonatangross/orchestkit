@@ -5,7 +5,7 @@ context: fork
 user-invocable: true
 name: review-pr
 background: false
-allowed-tools: [SendMessage, AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Agent, TaskCreate, TaskUpdate, TaskStop, mcp__memory__search_nodes, ToolSearch, Monitor]
+allowed-tools: [SendMessage, AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Agent, TaskCreate, TaskUpdate, TaskStop, mcp__memory__search_nodes, mcp__memory__create_entities, mcp__memory__add_observations, ToolSearch, Monitor]
 ---
 
 # Auto-generated from skills/review-pr/SKILL.md

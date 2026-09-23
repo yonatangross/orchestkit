@@ -20,6 +20,11 @@ allowed-tools:
   - Grep
   - WebFetch
   - WebSearch
+  # Stitch: body names generate_screen_from_text and get_screen.
+  # Operators add the official Google Stitch server as "stitch" (mcp__stitch__*).
+  # When Stitch comes from the hq-ext plugin, CC registers mcp__plugin_hq-ext_stitch__*.
+  - mcp__stitch__generate_screen_from_text
+  - mcp__stitch__get_screen
 ---
 
 # AI UI Generation

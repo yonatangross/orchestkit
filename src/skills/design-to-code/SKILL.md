@@ -39,6 +39,19 @@ allowed-tools:
   - mcp__21st-dev-magic__get_component
   - mcp__21st-dev-magic__get_theme
   - mcp__21st-dev-magic__get_usage
+  # Stitch: body names these five (live stitch.googleapis.com/mcp roster).
+  # Operators add the official Google Stitch server as "stitch" (mcp__stitch__*).
+  # When Stitch comes from the hq-ext plugin, CC registers mcp__plugin_hq-ext_stitch__*.
+  - mcp__stitch__list_projects
+  - mcp__stitch__get_project
+  - mcp__stitch__list_screens
+  - mcp__stitch__get_screen
+  - mcp__stitch__generate_screen_from_text
+  # Storybook MCP: body calls these when storybook-mcp is available.
+  - mcp__storybook-mcp__list-all-documentation
+  - mcp__storybook-mcp__get-documentation
+  - mcp__storybook-mcp__preview-stories
+  - mcp__storybook-mcp__run-story-tests
 skills:
   - design-system-tokens
   - component-search

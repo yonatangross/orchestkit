@@ -26,6 +26,14 @@ allowed-tools:
   - TaskCreate
   - TaskUpdate
   - TaskList
+  # Stitch: body names these five (live stitch.googleapis.com/mcp roster).
+  # Operators add the official Google Stitch server as "stitch" (mcp__stitch__*).
+  # When Stitch comes from the hq-ext plugin, CC registers mcp__plugin_hq-ext_stitch__*.
+  - mcp__stitch__list_projects
+  - mcp__stitch__get_project
+  - mcp__stitch__list_screens
+  - mcp__stitch__get_screen
+  - mcp__stitch__generate_screen_from_text
 skills:
   - design-system-tokens
   - remember

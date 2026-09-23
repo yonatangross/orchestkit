@@ -7,7 +7,7 @@ context: fork
 user-invocable: true
 name: expect
 background: false
-allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Agent, TaskCreate, TaskUpdate, TaskList, ToolSearch, WebFetch, Monitor, PushNotification]
+allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Agent, TaskCreate, TaskUpdate, TaskList, ToolSearch, WebFetch, Monitor, PushNotification, mcp__memory__search_nodes]
 ---
 
 # Auto-generated from skills/expect/SKILL.md

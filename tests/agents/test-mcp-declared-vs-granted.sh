@@ -9,7 +9,7 @@
 # declaring `mcpServers: [context7]` with no `mcp__context7__*` entry in
 # `tools:` cannot call context7 and silently degrades to WebSearch.
 #
-# Two assertions, over every src/agents/*.md and src/skills/**/*.md:
+# Three assertions, over every src/agents/*.md and src/skills/**/*.md:
 #
 #   (a) Every agent declaring a non-empty mcpServers entry must grant at
 #       least one matching `mcp__<server>__*` tool in its tools: list.
@@ -23,6 +23,13 @@
 #       this repo's history (resolve, get_library_docs, getLibraryDocs,
 #       query_docs) and one memory spelling (add_node) grant NOTHING; they
 #       do not exist, and a grant of a nonexistent tool is a silent no-op.
+#
+#   (c) Every skill body that names an MCP tool (full mcp__<server>__<tool>
+#       token, or a bare roster tool written as a call like get_screen( or
+#       `get_screen`) must list that tool in allowed-tools. Skills without
+#       allowed-tools inherit the full set and are skipped. Skills marked
+#       tool-coverage: illustrative are skipped (same hatch as
+#       tests/skills/audit-skill-permissions.sh).
 #
 # .mcp.json is untracked (runtime file), so the configured-server list and
 # the configured-server list and the per-server tool rosters are read from
@@ -246,8 +253,147 @@ for srv in $SERVERS_WITH_ROSTER; do
   rm -f "$hits_file"
 done
 
+# ---------------------------------------------------------------------------
+# (c) skill body MCP refs must appear in that skill's allowed-tools
+# ---------------------------------------------------------------------------
+echo "=== (c) skill body MCP refs vs allowed-tools ==="
+
+# Build "tool -> server" map from every roster in the manifest (configured +
+# unconfigured). A bare name maps to every server that lists it; today each
+# name is unique across rosters.
+TOOL_SERVER_MAP="$(node -e '
+  const fs = require("fs");
+  const m = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+  const out = [];
+  for (const bucket of ["configured", "unconfigured"]) {
+    for (const [srv, info] of Object.entries(m[bucket] || {})) {
+      if (!Array.isArray(info.tools)) continue;
+      for (const t of info.tools) out.push(t + "|" + srv);
+    }
+  }
+  process.stdout.write(out.join("\n"));
+' "$MANIFEST")"
+
+check_skill_body_grants() {
+  local skills_root="$1"
+  local label="$2"
+  local local_fail=0
+
+  if [ ! -d "$skills_root" ]; then
+    echo -e "${RED}ERROR${NC}: skills root not found: $skills_root" >&2
+    return 1
+  fi
+
+  local skill_md skill_name result
+  shopt -s nullglob
+  for skill_md in "$skills_root"/*/SKILL.md; do
+    skill_name="$(basename "$(dirname "$skill_md")")"
+    result="$(node -e '
+      const fs = require("fs");
+      const content = fs.readFileSync(process.argv[1], "utf8").replace(/\r\n/g, "\n");
+      const mapLines = process.argv[2].split("\n").filter(Boolean);
+      const toolToServers = new Map();
+      for (const line of mapLines) {
+        const i = line.indexOf("|");
+        const tool = line.slice(0, i);
+        const srv = line.slice(i + 1);
+        if (!toolToServers.has(tool)) toolToServers.set(tool, []);
+        toolToServers.get(tool).push(srv);
+      }
+      const fmMatch = content.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/);
+      if (!fmMatch) process.exit(0);
+      const fm = fmMatch[1];
+      const body = fmMatch[2];
+      if (!/^allowed-tools:/m.test(fm)) process.exit(0);
+      if (/^tool-coverage:\s*illustrative\s*$/m.test(fm)) process.exit(0);
+
+      const allowed = new Set();
+      const inline = fm.match(/^allowed-tools:\s*\[([^\]]*)\]/m);
+      if (inline) {
+        for (const t of inline[1].split(",")) {
+          const x = t.trim();
+          if (x) allowed.add(x);
+        }
+      }
+      const block = fm.match(/^allowed-tools:\s*\n((?:[ \t]*(?:-[ \t]+\S[^\n]*|#[^\n]*)\n?)+)/m);
+      if (block) {
+        for (const line of block[1].split("\n")) {
+          const m = line.match(/^[ \t]*-[ \t]+(\S+)/);
+          if (m) allowed.add(m[1]);
+        }
+      }
+
+      const needed = new Set();
+
+      // Full mcp__<server>__<tool> tokens written as a call, a ToolSearch
+      // select:, or a backticked id. Bare prose lists ("Bash, mcp__memory__...")
+      // do not count; that is the same false-positive class
+      // audit-skill-permissions.sh already documents for CapitalCase tools.
+      const tokRe = /mcp__([a-zA-Z0-9_-]+)__([a-zA-Z0-9_-]+)/g;
+      let m;
+      while ((m = tokRe.exec(body))) {
+        const tok = "mcp__" + m[1] + "__" + m[2];
+        const before = body.slice(Math.max(0, m.index - 8), m.index);
+        const after = body[m.index + m[0].length] || "";
+        const asCall = after === "(";
+        const asSelect = /select:$/.test(before);
+        const inTicks = (body[m.index - 1] === "`") && after === "`";
+        if (asCall || asSelect || inTicks) needed.add(tok);
+      }
+
+      // Bare roster tools written as a call: tool( or `tool`.
+      for (const [tool, servers] of toolToServers) {
+        const esc = tool.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const callRe = new RegExp("(?<![A-Za-z0-9_])" + esc + "\\(");
+        const tickRe = new RegExp("`" + esc + "`");
+        if (callRe.test(body) || tickRe.test(body)) {
+          for (const srv of servers) needed.add("mcp__" + srv + "__" + tool);
+        }
+      }
+
+      const missing = [...needed].filter((t) => !allowed.has(t)).sort();
+      process.stdout.write(missing.join("\n"));
+    ' "$skill_md" "$TOOL_SERVER_MAP")"
+
+    if [ -n "$result" ]; then
+      while IFS= read -r tok; do
+        [ -z "$tok" ] && continue
+        echo -e "${RED}FAIL${NC} [$label/$skill_name]: body names $tok but allowed-tools omits it" >&2
+        local_fail=1
+      done <<< "$result"
+    fi
+  done
+  shopt -u nullglob
+  return "$local_fail"
+}
+
+if ! check_skill_body_grants "$SKILLS_DIR" "skills"; then
+  FAIL=1
+fi
+
+# Fail-first fixture: a skill that names a roster tool without granting it
+# MUST fail. If the fixture ever starts passing, the assertion is dead.
+FIXTURE_SKILLS="${FIXTURE_SKILLS:-$SCRIPT_DIR/fixtures/mcp-body-ungranted}"
+echo "=== (c) fail-first fixture ==="
+if [ -d "$FIXTURE_SKILLS" ]; then
+  set +e
+  fixture_out="$(check_skill_body_grants "$FIXTURE_SKILLS" "fixture" 2>&1)"
+  fixture_rc=$?
+  set -e
+  printf '%s\n' "$fixture_out"
+  if [ "$fixture_rc" -eq 0 ]; then
+    echo -e "${RED}FAIL${NC}: fail-first fixture passed; assertion (c) is not detecting ungranted body refs" >&2
+    FAIL=1
+  else
+    echo -e "${GREEN}OK${NC}: fail-first fixture correctly fails"
+  fi
+else
+  echo -e "${RED}FAIL${NC}: fail-first fixture missing at $FIXTURE_SKILLS" >&2
+  FAIL=1
+fi
+
 if [ "$FAIL" -eq 0 ]; then
-  echo -e "${GREEN}PASS${NC}: every declared mcpServer is granted, every mcp tool name is real."
+  echo -e "${GREEN}PASS${NC}: every declared mcpServer is granted, every mcp tool name is real, skill body MCP refs are granted."
   exit 0
 else
   echo "FAIL: declared-but-uncallable MCP surface detected (#3461). Fix the issues above." >&2
