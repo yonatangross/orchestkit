@@ -14,9 +14,8 @@
  * The LLM now classifies antipatterns directly — no regex needed.
  */
 
-import { writeRulesFile } from '../lib/common.js';
+import { writeRulesFile, rulesFileMatches } from '../lib/common.js';
 import { getHomeDir } from '../lib/paths.js';
-import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 // Static anti-patterns — materialized to rules file at session start
@@ -80,13 +79,8 @@ function userRulesDir(): string {
 export function materializeAntipatternRules(projectDir: string): void {
   const content = buildAntipatternsContent();
 
-  const globalFile = join(userRulesDir(), 'antipatterns.md');
-  try {
-    if (existsSync(globalFile) && readFileSync(globalFile, 'utf8') === content) {
-      return;
-    }
-  } catch {
-    // Unreadable global file: fall through and write the project copy.
+  if (rulesFileMatches(userRulesDir(), 'antipatterns.md', content)) {
+    return;
   }
 
   const rulesDir = join(projectDir, '.claude', 'rules');
