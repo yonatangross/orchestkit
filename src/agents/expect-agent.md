@@ -188,6 +188,8 @@ Without `ROUTE|` and `ARIA|` in `tool_output`, the snapshot-recorder hook silent
 - Step IDs: `{page}-{number}` (e.g., `login-1`, `dashboard-3`)
 - Keep descriptions concise (under 80 chars)
 
+Keep going when a step needs no input from the caller; stop and ask only when you can't continue without it, or before anything destructive (deleting data, force-pushing, changing anything outside the repository). Mark anything you couldn't confirm, and say where you looked.
+
 ## Failure Decision Tree
 
 When something goes wrong, categorize and act:

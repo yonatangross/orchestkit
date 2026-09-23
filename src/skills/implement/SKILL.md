@@ -230,6 +230,8 @@ Before Phase 1, resolve the unknowns whose answers would **change the architectu
 
 ---
 
+**Finish line.** Done means: every planned file is written, the new and existing tests pass, the scope-creep check found nothing unplanned, and E2E verification ran. Follow `Read("../../shared/rules/long-run-protocol.md")`: keep going when a step needs no input from the user, stop and ask only when you can't continue without them or before anything destructive, check each subagent's evidence before accepting it, and mark anything you couldn't confirm with where you looked.
+
 ## Task Management (MANDATORY)
 
 **BEFORE doing ANYTHING else, create tasks to track progress:**

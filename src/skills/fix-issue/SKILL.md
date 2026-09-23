@@ -113,6 +113,8 @@ Session dir must contain `fix-issue-input.json` (with `error_text: str`). The si
 
 Mirrors the memory-consumer pattern from PR #1889 but read-only. Closes orchestkit#1895.
 
+**Finish line.** Done means: the root cause is confirmed by a failing test that now passes, the full suite is green, and the PR links the issue. Follow `Read("../../shared/rules/long-run-protocol.md")`: keep going when a step needs no input from the user, stop and ask only when you can't continue without them or before anything destructive, check each subagent's evidence before accepting it, and mark anything you couldn't confirm with where you looked.
+
 ## CRITICAL: Task Management is MANDATORY (CC 2.1.16)
 
 **BEFORE doing ANYTHING else (after MCP probe), create tasks to track progress:**

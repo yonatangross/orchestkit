@@ -47,3 +47,10 @@ runnable palette validator. ork owns the domain + chrome; `/dataviz` owns the ma
 absent or FAIL → ASCII-card fallback, never a hard require.
 
 - `chart-encoding-standard.md` — defer marks to /dataviz, chrome↔marks boundary, `validate_palette.js` gate, capability-gate fallback
+
+## 7. Long Runs (long-run), HIGH, 1 rule
+
+Working rules for skills that fan out subagents or run for many phases (implement, cover, verify,
+review-pr, fix-issue, brainstorm, swarm-migrate), from Anthropic's Opus 5.5 guidance.
+
+- `long-run-protocol.md`: named finish line, keep-going and stop rule, TASKS.md, subagent evidence check, mark what could not be confirmed

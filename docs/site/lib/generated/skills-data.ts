@@ -689,7 +689,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "brainstorm",
     "description": "Design exploration using parallel agents through a 7-phase process: topic analysis, memory context, divergent ideation (10+ ideas), feasibility filtering, evaluation with devil's advocate scoring (0-10 across 7 dimensions), synthesis of top approaches, and trade-off comparison. Supports open exploration, constrained design, comparison, quick ideation, and iterative optimization modes. Use when brainstorming ideas, exploring solutions, or comparing alternatives.",
     "version": "4.10.0",
-    "sha256": "59dbaf4515ee708c16ab5db9a0ab6f4f3b2fd8f8e7671fd4f7816e36f36b9d8d",
+    "sha256": "b386293aeda591aa480cda66fae8bd16aaf2f0a35bede50f3bc4a2bfa95cafea",
     "author": "OrchestKit",
     "tags": [
       "planning",
@@ -1187,7 +1187,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "cover",
     "description": "Generate tests that do not exist yet. Analyzes coverage gaps, then writes and runs new test files across three tiers (unit, integration via testcontainers, Playwright E2E), one test-generator agent per tier, healing failures for up to 3 iterations. Use when code has no tests or when raising coverage after implementation. Do NOT use to grade tests that already exist (use /ork:verify) or to run a suite without writing anything new.",
     "version": "1.2.0",
-    "sha256": "59dc8bd8540cd109346a64a60120cac0d8657522747a4c3c10b686fc30a07a0f",
+    "sha256": "51b3620b0334823c11be1ec7ddc5832072ff5d176e77d0b25866961b43fd857a",
     "author": "OrchestKit",
     "tags": [
       "testing",
@@ -2305,7 +2305,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "fix-issue",
     "description": "Fixes GitHub issues using parallel analysis agents for root cause investigation, code exploration, and regression detection. Reads issue context from gh CLI, searches codebase and memory for related patterns, generates a fix with tests, and links the resolution back to the issue via PR. Includes prevention analysis to avoid recurrence. Use when debugging errors, resolving regressions, fixing bugs, or triaging issues.",
     "version": "2.6.0",
-    "sha256": "00c42d9b5e3ee7a2de943a7a4403597ecd25e1c80cbabd8ad35c2270110c4d87",
+    "sha256": "3573d5baf043461d75abb633561320740b9ab32c7a4e3fdee0d50390b57bdce2",
     "author": "OrchestKit",
     "tags": [
       "issue",
@@ -2596,7 +2596,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "implement",
     "description": "Full-power feature implementation using parallel subagents for backend, frontend, testing, and security, with worktree isolation and quality verification in one workflow. Chains with /ork:cover for tests and /ork:verify for validation. Use when asked to build, add, create, scaffold, or set up a new feature, endpoint, component, or UI capability. Not for fixing a bug, reviewing, explaining, testing, or comparing existing code.",
     "version": "2.8.0",
-    "sha256": "74e67b419a14273d8a2183752a8a59dcb686882455878a51027ed159816ca60e",
+    "sha256": "872ed8d2fdf34ee7da262358f5c0baeb1b4f70a148ed58dca749b1143ce7510f",
     "author": "OrchestKit",
     "tags": [
       "implementation",
@@ -4068,7 +4068,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "review-pr",
     "description": "PR review using parallel specialized agents for code quality, security, testing, architecture, and performance analysis. Synthesizes findings into a review report with conventional comments (praise/issue/suggestion/nitpick) and approve or request-changes verdict. Use when reviewing pull requests, conducting security audits, or validating changes before merge.",
     "version": "1.9.0",
-    "sha256": "73e1f21aa96186535486527b85f02c646c715cf0d6ca035ad040451a4659eb41",
+    "sha256": "a5f6355fa50155882c248ccd362046f405d8edef7be4f4a6e2e4401318d947c0",
     "author": "OrchestKit",
     "tags": [
       "code-review",
@@ -4393,7 +4393,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "swarm-migrate",
     "description": "Cross-repo migration swarm — one coordinator + N parallel subagents (one per target repo) that apply the same transformation, open PRs, wait for CI, and report back to a shared JSON ledger. Coordinator handles topology, conflict auto-rebase, and stop-on-novel-failure. Use when bumping a shared dependency, rolling out a workflow change, or applying a codemod across the org. Do NOT use for single-repo work — that's /ork:implement.",
     "version": "0.1.0",
-    "sha256": "d394c54f0e453170a04e5a045378b8a7155c46063489309dadf3ef5a198a6595",
+    "sha256": "395643f25c80ed2a1bf1068a44c5d6a5d7af45351e4ec5d651a8bb16448321a9",
     "author": "OrchestKit",
     "tags": [
       "migration",
@@ -4892,7 +4892,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "verify",
     "description": "Grade work that already exists and decide whether it can merge. Runs the project's current unit, integration, and E2E suites plus security scanning and type checking, scores every dimension 0-10, and returns a merge verdict with a VERIFIED-vs-CLAIMED evidence manifest. Writes no test files and edits no source. Use when verifying changes are ready to merge. Use /ork:cover instead when the tests still have to be written.",
     "version": "4.7.0",
-    "sha256": "cf23756dd843b0f81cc7f38f231645623aeb03e56db3bf854a2c7d5e21a88bdd",
+    "sha256": "714cf45b5c687883ec26938b624ea1a0a6f10f928ef314cf9c92d94986da98e8",
     "author": "OrchestKit",
     "tags": [
       "verification",

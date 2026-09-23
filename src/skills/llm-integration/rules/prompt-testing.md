@@ -67,8 +67,8 @@ async def self_consistent_answer(question: str, n_paths: int = 5) -> str:
     for _ in range(n_paths):
         response = await llm.chat([{
             "role": "user",
-            "content": f"{question}\n\nThink step by step."
-        }], temperature=0.7)  # Higher temp for diversity
+            "content": f"{question}\n\nThink step by step."  # non-thinking models; drop on Opus 5.5
+        }], temperature=0.7)  # Higher temp for diversity; Opus 5.5 rejects sampling params
         answer = extract_final_answer(response)
         answers.append(answer)
 

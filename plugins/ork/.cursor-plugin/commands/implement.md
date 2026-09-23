@@ -193,6 +193,8 @@ Load worktree details: `Read("skills/implement/references/worktree-isolation-mod
 Before Phase 1, resolve the unknowns whose answers would **change the architecture**, in blast-radius order — schema/migration → auth → API contract → perf/scale → cosmetics (last). Grep first, then `AskUserQuestion` one at a time (highest first, cap ~5, skip the obvious). Each answer becomes a row in a Decisions table written to `.claude/chain/decisions.json` and the PR body, feeding Phase 4 (Architecture) as constraints. Do NOT start Phase 1 with an unresolved schema/auth question; skip in `low` effort. Full protocol: `Read("skills/implement/references/blast-radius-clarification.md")`.
 
 
+**Finish line.** Done means: every planned file is written, the new and existing tests pass, the scope-creep check found nothing unplanned, and E2E verification ran. Follow `Read("../../shared/rules/long-run-protocol.md")`: keep going when a step needs no input from the user, stop and ask only when you can't continue without them or before anything destructive, check each subagent's evidence before accepting it, and mark anything you couldn't confirm with where you looked.
+
 ## Task Management (MANDATORY)
 
 **BEFORE doing ANYTHING else, create tasks to track progress:**

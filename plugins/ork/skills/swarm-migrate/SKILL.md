@@ -219,6 +219,8 @@ Completed: 12/14 repos · paused: 2 · duration: 47 min
 - trading-ai #99: pyproject lockfile mismatch — see .swarm-logs/trading-ai-ci.log
 ```
 
+**Finish line.** Done means: every repo in the spec has a PR open and green (never merged by the swarm), or is skipped with a reason, or paused with its novel failure logged, and the final report is written. Follow `Read("../../shared/rules/long-run-protocol.md")`: keep going when a step needs no input from the user, stop and ask only when you can't continue without them or before anything destructive, check each subagent's evidence before accepting it, and mark anything you couldn't confirm with where you looked.
+
 ## Hard rules
 
 - **Never** merge a PR. The swarm opens PRs; humans merge them. Auto-merge can be armed by the user with `gh pr merge --auto` post-swarm if they want.
