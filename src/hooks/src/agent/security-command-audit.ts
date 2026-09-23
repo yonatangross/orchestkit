@@ -50,7 +50,7 @@ export function securityCommandAudit(input: HookInput, ctx: HookContext = NOOP_C
       const logFile = resolveSecurityAuditLogPath(projectDir);
       mkdirSync(dirname(logFile), { recursive: true });
 
-      // Never persist raw secrets (Authorization headers, tokens, etc.)
+      // Redact known token shapes before append (Authorization, PATs, etc.)
       const safeCommand = redactSecretValues(command);
       bufferWrite(logFile, `[${timestamp}] [${sessionId}] [${agentId}] CMD: ${safeCommand}\n`);
     } catch {

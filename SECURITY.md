@@ -60,8 +60,8 @@ Out of scope:
   Runtime secret controls ship in the plugin: `redact-secrets` warns on leaked
   tokens in tool output, `secret-handler` defaults to `ORK_SECRET_HOOK=AUDIT`
   (detect + sidecar log, no blocking), and `security-command-audit` appends
-  redacted Bash lines under `CLAUDE_PLUGIN_DATA` when set. Third-party GitHub
-  Actions are pinned by commit SHA.
+  Bash lines with known token shapes redacted under `CLAUDE_PLUGIN_DATA` when
+  set. Third-party GitHub Actions are pinned by commit SHA.
 - **Upstream version tracking.** `scripts/check-labs-versions.mjs` re-checks each
   skill's declared `upstream-version-tested` pin and dependency floors against the
   live npm and PyPI registries on a schedule, so documented versions cannot drift

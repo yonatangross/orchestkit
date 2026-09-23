@@ -35,6 +35,29 @@ describe('Crypto Utilities', () => {
     it('returns the original string when no secret patterns match', () => {
       expect(redactSecretValues('git status')).toBe('git status');
     });
+
+    // #4217 estate-3: long hosts made the prefix heuristic keep scheme://user:pw@
+    it.each([
+      [
+        'mongodb Atlas host',
+        'mongosh mongodb+srv://app:hunter2secretpw@cluster0.abcde.mongodb.net',
+        'hunter2secretpw',
+      ],
+      [
+        'RDS postgres host',
+        'psql postgresql://admin:hunter2secretpw@mydb.c9akciq32.us-east-1.rds.amazonaws.com',
+        'hunter2secretpw',
+      ],
+      [
+        'mysql long host',
+        'mysql://root:hunter2secretpw@db-prod-01.internal.example-corp.com',
+        'hunter2secretpw',
+      ],
+    ])('masks userinfo password on %s (fail-first against prefix heuristic)', (_label, input, pw) => {
+      const out = redactSecretValues(input);
+      expect(out).not.toContain(pw);
+      expect(out).toContain('[REDACTED]');
+    });
   });
 
   describe('sanitizePayload', () => {

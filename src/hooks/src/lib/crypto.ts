@@ -57,6 +57,13 @@ export function redactSecretValues(value: string): string {
   let result = value;
   for (const pattern of SECRET_VALUE_PATTERNS) {
     result = result.replace(pattern, (match) => {
+      // Connection URLs: redact the whole match. The prefix heuristic below
+      // keeps match.slice(0, prefixEnd) where prefixEnd is the last 20+
+      // [A-Za-z0-9._-] run; on Atlas/RDS hosts that run is the hostname, so
+      // scheme://user:password@ would survive (#4217 estate-3 HOLD).
+      if (/^[a-z][a-z0-9+.-]*:\/\//i.test(match)) {
+        return '[REDACTED]';
+      }
       // Keep the prefix (export, Bearer, etc.) but redact the secret part
       const prefixEnd = match.search(/[a-zA-Z0-9._-]{20,}$/);
       if (prefixEnd > 0) {
