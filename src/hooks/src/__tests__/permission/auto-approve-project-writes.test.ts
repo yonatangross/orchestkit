@@ -206,14 +206,12 @@ describe('auto-approve-project-writes', () => {
     });
 
     test('handles case sensitivity in paths', () => {
-      // node_modules vs NODE_MODULES
+      // Excluded-dir matching is case-insensitive.
       const input = createWriteInput('/test/project/NODE_MODULES/pkg/file.js');
       const result = autoApproveProjectWrites(input, testCtx);
 
-      // Case sensitive, so NODE_MODULES should be allowed
-      expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
-      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
       expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
+      expect(result.hookSpecificOutput?.decision?.behavior).not.toBe('allow');
     });
 
     test('handles very long path', () => {
