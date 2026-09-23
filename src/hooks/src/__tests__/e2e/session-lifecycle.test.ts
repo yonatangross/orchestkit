@@ -19,6 +19,15 @@ vi.mock('node:fs', () => ({
   readFileSync: (...args: unknown[]) => mockReadFileSync(...args),
   writeFileSync: (...args: unknown[]) => mockWriteFileSync(...args),
   mkdirSync: (...args: unknown[]) => mockMkdirSync(...args),
+  realpathSync: (p: string) => String(p),
+  lstatSync: () => {
+    const err = new Error('ENOENT') as NodeJS.ErrnoException;
+    err.code = 'ENOENT';
+    throw err;
+  },
+  readlinkSync: () => {
+    throw new Error('EINVAL');
+  },
 }));
 
 // Mock common module

@@ -40,6 +40,17 @@ vi.mock('node:fs', () => ({
   readFileSync: vi.fn().mockReturnValue('{}'),
   writeFileSync: vi.fn(),
   mkdirSync: vi.fn(),
+  // path-containment resolveRealPath needs these; identity realpath keeps
+  // synthetic /test/project paths usable in this suite.
+  realpathSync: vi.fn((p: string) => String(p)),
+  lstatSync: vi.fn(() => {
+    const err = new Error('ENOENT') as NodeJS.ErrnoException;
+    err.code = 'ENOENT';
+    throw err;
+  }),
+  readlinkSync: vi.fn(() => {
+    throw new Error('EINVAL');
+  }),
 }));
 
 let testCtx: ReturnType<typeof createTestContext>;
