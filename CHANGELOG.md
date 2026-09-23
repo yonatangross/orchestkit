@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.84](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.83...v10.0.0-beta.84) (2026-09-23)
+
+
+### Features
+
+* **git-hooks:** opt-in targeted pre-push mode with a 2-slot governor ([#4238](https://github.com/yonatangross/orchestkit/issues/4238)) ([#4389](https://github.com/yonatangross/orchestkit/issues/4389)) ([4d1dfe7](https://github.com/yonatangross/orchestkit/commit/4d1dfe74e7c641e3ee6ed8dbf54c7b62e973b38b))
+
 ## [10.0.0-beta.83](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.82...v10.0.0-beta.83) (2026-09-23)
 
 
