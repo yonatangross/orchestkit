@@ -14,18 +14,54 @@
  * an async Stop hook's systemMessage only lands on a next turn that may never
  * exist after Stop. Deliberately NOT `-uno`: untracked files are part of the
  * warning contract (tests + UX).
+ *
+ * Version is read at runtime from plugin.json (no build-time stamp): the
+ * plugins/ copy must stay byte-identical to this file so release PRs do not
+ * drift on a version literal.
  */
 
 import { execFileSync } from 'node:child_process';
-
-// Injected by build-plugins.sh at build time from manifests/ork.json
-const PLUGIN_VERSION = '10.0.0-beta.80'; // x-release-please-version
+import { existsSync, readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 /** Silent success - tells CC to continue without showing output. */
 const SILENT_OK = JSON.stringify({ continue: true, suppressOutput: true });
 
 /** Bound the Stop-path git spawn; matches security-scan-aggregator's status probe. */
 const GIT_TIMEOUT_MS = 5000;
+
+/**
+ * Resolve the installed plugin version without a build-time placeholder.
+ * Prefer CLAUDE_PLUGIN_ROOT, then walk up from this file to plugin.json.
+ * Unreadable/missing -> "unknown" (message still valid JSON).
+ */
+function resolvePluginVersion() {
+  const candidates = [];
+  const root = process.env.CLAUDE_PLUGIN_ROOT;
+  if (root && !root.startsWith('{') && !root.startsWith('[')) {
+    candidates.push(join(root, 'plugin.json'));
+    candidates.push(join(root, '.claude-plugin', 'plugin.json'));
+  }
+  try {
+    const here = dirname(fileURLToPath(import.meta.url));
+    // hooks/bin -> plugin root (plugins/ork or a mirrored layout)
+    candidates.push(join(here, '..', '..', 'plugin.json'));
+    candidates.push(join(here, '..', '..', '.claude-plugin', 'plugin.json'));
+  } catch {
+    // import.meta.url unavailable - fall through to fallback
+  }
+  for (const path of candidates) {
+    try {
+      if (!existsSync(path)) continue;
+      const version = JSON.parse(readFileSync(path, 'utf8')).version;
+      if (typeof version === 'string' && version.length > 0) return version;
+    } catch {
+      // try next candidate
+    }
+  }
+  return 'unknown';
+}
 
 async function main() {
   // Drain stdin (required by hook protocol)
@@ -69,10 +105,11 @@ async function main() {
       if (unstaged) parts.push(`${unstaged} modified`);
       if (untracked) parts.push(`${untracked} untracked`);
 
+      const version = resolvePluginVersion();
       console.log(
         JSON.stringify({
           continue: true,
-          systemMessage: `[ork@${PLUGIN_VERSION}] ${parts.join(', ')} uncommitted - do not act on these.`,
+          systemMessage: `[ork@${version}] ${parts.join(', ')} uncommitted - do not act on these.`,
         })
       );
     } else {

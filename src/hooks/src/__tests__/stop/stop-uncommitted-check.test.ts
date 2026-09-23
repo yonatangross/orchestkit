@@ -132,8 +132,26 @@ describe('stop-uncommitted-check.mjs output', () => {
     writeFileSync(join(tmpDir, 'file.txt'), 'content');
 
     const output = runHook(tmpDir);
-    // Source has __PLUGIN_VERSION__ placeholder; built version has real version
+    // Version is resolved at runtime from plugin.json (fallback: unknown)
     expect(output.systemMessage).toMatch(/\[ork@/);
+  });
+
+  it('keeps plugins copy byte-identical to src (no version stamp)', () => {
+    const src = readFileSync(SCRIPT_PATH);
+    const pluginsCopy = join(
+      __dirname,
+      '..',
+      '..',
+      '..',
+      '..',
+      '..',
+      'plugins',
+      'ork',
+      'hooks',
+      'bin',
+      'stop-uncommitted-check.mjs'
+    );
+    expect(readFileSync(pluginsCopy)).toEqual(src);
   });
 
   it('always sets continue: true even with changes', () => {
