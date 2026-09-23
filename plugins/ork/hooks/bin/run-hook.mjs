@@ -26,14 +26,19 @@ const __dirname = dirname(__filename);
  * builds the PR's source into a temp dir and points the dispatcher there,
  * instead of copying over the tracked plugins/ork/hooks/dist, which dirtied a
  * release-owned file and raced the ~20 test files reading those bundles in
- * parallel. The override is ignored unless the directory exists, and it is not
- * a new trust boundary: anything that can set this variable on the Claude Code
- * process can already put its own `node` on PATH. When it is active, warn on
- * stderr (same shape as the #3415 stdin warning) so a stale export cannot
- * silently redirect every hook, including security hooks, to a temp bundle.
+ * parallel. The override is ignored unless the directory exists.
+ *
+ * #4360 follow-up: also require ORK_TEST_MODE (not VITEST). Bash dispatcher
+ * tests and vitest both set it explicitly; a stale ORK_HOOKS_DIST_DIR export
+ * in a real Claude Code session cannot redirect every hook (including
+ * security hooks) because the marker is absent. When the override is active,
+ * warn on stderr (same shape as the #3415 stdin warning).
  */
 const distOverride = process.env.ORK_HOOKS_DIST_DIR;
-const distOverrideActive = Boolean(distOverride && existsSync(distOverride));
+const testMode = process.env.ORK_TEST_MODE === '1' || process.env.ORK_TEST_MODE === 'true';
+const distOverrideActive = Boolean(
+  testMode && distOverride && existsSync(distOverride),
+);
 const distDir = distOverrideActive
   ? distOverride
   : join(__dirname, '..', 'dist');
