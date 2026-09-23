@@ -47,7 +47,7 @@
 
 import type { HookInput, HookResult, HookContext } from '../../types.js';
 import { outputSilentSuccess, outputDeny } from '../../lib/common.js';
-import { normalizeSingle, normalizeSingleKeepQuotes, blankQuotedHeredocBodies } from '../../lib/normalize-command.js';
+import { normalizeSingle, blankQuotedHeredocBodies } from '../../lib/normalize-command.js';
 import { NOOP_CTX } from '../../lib/context.js';
 
 const HOOK_NAME = 'network-egress-guard';
@@ -206,12 +206,51 @@ function interpreterFamily(name: string): InterpreterFamily | null {
 }
 
 /**
- * Tokenize one simple-command suffix (after `|`) until `; | &` or newline.
- * Quotes are respected so `-c "code"` stays two tokens.
+ * Tokenize one simple-command suffix (after `|`) with shell quoting rules:
+ * - single quotes: literal until the closing `'`
+ * - double quotes: `\"` and `\\` are escapes; other chars are literal
+ * - outside quotes: a backslash escapes the next character
+ * Adjacent quoted/unquoted pieces join into one word (`-M'strict'`).
+ * Stops at unquoted `; | &` or newline.
+ *
+ * Must receive a view that still has backslashes (not stripBackslashEscapes).
  */
 function tokenizePipeRhs(s: string): string[] {
   const tokens: string[] = [];
   let i = 0;
+
+  const readSingleQuoted = (): string => {
+    // caller saw opening '
+    i++;
+    let tok = '';
+    while (i < s.length && s[i] !== "'") {
+      tok += s[i];
+      i++;
+    }
+    if (i < s.length) i++; // closing '
+    return tok;
+  };
+
+  const readDoubleQuoted = (): string => {
+    // caller saw opening "
+    i++;
+    let tok = '';
+    while (i < s.length && s[i] !== '"') {
+      if (s[i] === '\\' && i + 1 < s.length) {
+        const n = s[i + 1]!;
+        if (n === '"' || n === '\\') {
+          tok += n;
+          i += 2;
+          continue;
+        }
+      }
+      tok += s[i];
+      i++;
+    }
+    if (i < s.length) i++; // closing "
+    return tok;
+  };
+
   while (i < s.length) {
     const ch = s[i]!;
     if (ch === ';' || ch === '\n' || ch === '|' || ch === '&') break;
@@ -219,36 +258,29 @@ function tokenizePipeRhs(s: string): string[] {
       i++;
       continue;
     }
-    if (ch === '"' || ch === "'") {
-      const q = ch;
-      i++;
-      let tok = '';
-      while (i < s.length && s[i] !== q) {
-        if (q === '"' && s[i] === '\\' && i + 1 < s.length) {
-          tok += s[i + 1];
-          i += 2;
-          continue;
-        }
-        tok += s[i];
-        i++;
-      }
-      if (i < s.length) i++; // closing quote
-      tokens.push(tok);
-      continue;
-    }
+
     let tok = '';
-    while (
-      i < s.length &&
-      !/\s/.test(s[i]!) &&
-      s[i] !== ';' &&
-      s[i] !== '|' &&
-      s[i] !== '&' &&
-      s[i] !== '\n'
-    ) {
-      tok += s[i];
+    // One shell word: unquoted runs + adjacent quoted runs glued together.
+    while (i < s.length) {
+      const c = s[i]!;
+      if (/\s/.test(c) || c === ';' || c === '|' || c === '&' || c === '\n') break;
+      if (c === "'") {
+        tok += readSingleQuoted();
+        continue;
+      }
+      if (c === '"') {
+        tok += readDoubleQuoted();
+        continue;
+      }
+      if (c === '\\' && i + 1 < s.length) {
+        tok += s[i + 1];
+        i += 2;
+        continue;
+      }
+      tok += c;
       i++;
     }
-    tokens.push(tok);
+    if (tok.length > 0) tokens.push(tok);
   }
   return tokens;
 }
@@ -288,24 +320,36 @@ function interpreterArgsAreStdinProgram(
 
 /**
  * Indexes of `|` that sit outside quotes (so a pipe inside a grep/echo string
- * is not treated as a pipeline).
+ * is not treated as a pipeline). Honors the same escapes as tokenizePipeRhs.
  */
 function findUnquotedPipeIndexes(cmd: string): number[] {
   const pipes: number[] = [];
   let i = 0;
   while (i < cmd.length) {
     const ch = cmd[i]!;
-    if (ch === '"' || ch === "'") {
-      const q = ch;
+    if (ch === "'") {
       i++;
-      while (i < cmd.length && cmd[i] !== q) {
-        if (q === '"' && cmd[i] === '\\' && i + 1 < cmd.length) {
-          i += 2;
-          continue;
+      while (i < cmd.length && cmd[i] !== "'") i++;
+      if (i < cmd.length) i++;
+      continue;
+    }
+    if (ch === '"') {
+      i++;
+      while (i < cmd.length && cmd[i] !== '"') {
+        if (cmd[i] === '\\' && i + 1 < cmd.length) {
+          const n = cmd[i + 1]!;
+          if (n === '"' || n === '\\') {
+            i += 2;
+            continue;
+          }
         }
         i++;
       }
       if (i < cmd.length) i++;
+      continue;
+    }
+    if (ch === '\\' && i + 1 < cmd.length) {
+      i += 2;
       continue;
     }
     if (ch === '|') pipes.push(i);
@@ -477,10 +521,15 @@ export function networkEgressGuard(input: HookInput, ctx: HookContext = NOOP_CTX
   // (#3098). UNQUOTED heredocs are shell-expanded, so they are left untouched.
   const heredocBlanked = blankQuotedHeredocBodies(raw);
   const denyScan = normalizeSingle(egressDenyScanView(heredocBlanked));
-  // Quote-intact view for interpreter argv: denyScan blanks opaque quotes, and
-  // normalizeSingle would strip quotes (exposing a piped body inside echo/grep).
-  // Keep quotes so `--require 'fs'` and `echo 'curl|python3'` stay correct.
-  const quoteIntact = normalizeSingleKeepQuotes(heredocBlanked);
+  // Interpreter argv tokenizer needs real backslashes (`\"` inside double quotes).
+  // Do not use normalizeSingle / normalizeSingleKeepQuotes here: both run
+  // stripBackslashEscapes and would turn `\"` into a bare `"`, splitting the
+  // quoted value and inventing a fake `-c`. Only collapse continuations/newlines.
+  const quoteIntact = heredocBlanked
+    .replace(/\\\r?\n/g, '')
+    .replace(/\n/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 
   // --- DENY tier ---
   for (const { re, label } of DENY_REGEX) {
