@@ -265,7 +265,11 @@ describe('stop-uncommitted-check.mjs output', () => {
     try {
       // Hang longer than GIT_TIMEOUT_MS (5s) and longer than the outer bound
       // below, so a missing hook timeout cannot look like a fast green.
-      writeFileSync(fakeGit, '#!/bin/sh\nexec sleep 30\n', { mode: 0o755 });
+      writeFileSync(
+        fakeGit,
+        ['#!/bin/sh', 'sleep 30', ''].join('\n'),
+        { mode: 0o755 }
+      );
 
       const started = Date.now();
       const result = execFileSync('node', [SCRIPT_PATH], {
@@ -277,12 +281,14 @@ describe('stop-uncommitted-check.mjs output', () => {
           CLAUDE_PROJECT_DIR: tmpDir,
         },
         input: JSON.stringify({}),
+        // Outer harness kill only: must stay above the <8s assertion so a
+        // removed hook timeout cannot still look green.
         timeout: 10000,
       });
       const elapsed = Date.now() - started;
 
       expect(JSON.parse(result.trim())).toEqual({ continue: true, suppressOutput: true });
-      // Bound: hook timeout 5s + margin; must not reach the outer 10s kill.
+      // Hook GIT_TIMEOUT_MS is 5s; total wall time must stay under 8s.
       expect(elapsed).toBeLessThan(8000);
       expect(elapsed).toBeGreaterThanOrEqual(4000);
     } finally {
