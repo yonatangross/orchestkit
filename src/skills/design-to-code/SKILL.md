@@ -79,9 +79,9 @@ Input (screenshot/description/URL)
   │
   ▼
 ┌─────────────────────────┐
-│ Stage 1: EXTRACT         │  Stitch MCP → HTML + design context
-│ build_site               │  Generate up to 5 screens from prompt
-│ get_screen_code / _image │  Extract React/HTML + PNG for each
+│ Stage 1: EXTRACT         │  Stitch MCP → screen details + URLs
+│ generate_screen_from_text│  Create screens from a text prompt
+│ get_screen               │  Screen details with download URLs
 └─────────┬───────────────┘
           │
           ▼
@@ -164,23 +164,33 @@ Glob("**/components.json")
 
 **If stitch MCP is available:**
 ```python
-# Official Stitch MCP tools (stitch.withgoogle.com/docs/mcp):
-#   - build_site(prompt)          → multi-screen app, up to 5 interconnected screens
-#   - get_screen_code(screenId)   → returns React/HTML for a generated screen
-#   - get_screen_image(screenId)  → returns PNG of a generated screen
+# Live Stitch MCP tools (https://stitch.googleapis.com/mcp), matching
+# design-context-extractor / design-system-architect agent grants:
+#   - list_projects() / get_project(projectId)
+#   - list_screens(projectId)
+#   - get_screen(name="projects/{projectId}/screens/{screenId}")
+#       ONE required param: name. Returns screen details including
+#       download URLs (fetch those URLs; no separate code/image export tool)
+#   - generate_screen_from_text(projectId, prompt)
+#       quota-costing write; can take a few minutes. DO NOT RETRY.
+#       On timeout: poll get_screen(name=...) every 30 s, up to 10 times.
 #
 # For screenshot/URL input:
-#   1. Upload screenshot to Stitch (or pass URL)
-#   2. Call build_site() with the visual as context
-#   3. get_screen_code() to retrieve the React/HTML output
+#   1. list_projects / get_project to locate the Stitch project
+#   2. generate_screen_from_text with the extraction goal (or use an
+#      existing screen if the project already has one). Never retry.
+#   3. list_screens, then get_screen(name="projects/{projectId}/screens/{screenId}")
+#   4. Fetch the download URLs (or Read multimodal) for token extraction
 #
 # For description input:
-#   1. Call build_site(prompt=<description>)
-#   2. get_screen_code() / get_screen_image() to retrieve the result
+#   1. generate_screen_from_text(projectId, prompt=<description>) once
+#   2. On timeout, poll get_screen(name=...) every 30 s up to 10 times
+#   3. Otherwise get_screen(name="projects/{projectId}/screens/{screenId}")
 #
 # DESIGN.md import (Stitch Pro, Mar 2026+):
-#   Stitch can also import a natural-language DESIGN.md file to regenerate
-#   a layout without starting from scratch. Useful for iterative edits.
+#   Prefer upload_design_md / create_design_system_from_design_md when
+#   those tools are available on the live server; otherwise regenerate
+#   via generate_screen_from_text from the DESIGN.md contents (once, no retry).
 ```
 
 **If stitch MCP is NOT available (fallback):**

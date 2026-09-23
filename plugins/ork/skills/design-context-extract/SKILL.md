@@ -58,7 +58,7 @@ Input (screenshot/URL/project)
            │
            ▼
 ┌──────────────────────────────┐
-│ Extract                       │  Stitch extract_design_context
+│ Extract                       │  Stitch get_screen + generate_screen_from_text
 │                               │  OR multimodal analysis (fallback)
 │ → Colors (hex + oklch)        │
 │ → Typography (families, scale)│
@@ -116,8 +116,12 @@ TaskUpdate(taskId="2", status="completed")    # When done — repeat for each su
 
 **For URLs:**
 ```python
-# If stitch available: call build_site(prompt=<url + extraction goal>)
-#   then get_screen_code / get_screen_image per generated screen
+# If stitch available:
+#   list_projects / get_project to locate the project
+#   generate_screen_from_text once for the URL goal (can take minutes; DO NOT RETRY;
+#     on timeout poll get_screen every 30 s up to 10 times)
+#   list_screens, then get_screen(name="projects/{projectId}/screens/{screenId}")
+#   fetch download URLs from the response
 # If not: WebFetch the URL and analyze HTML/CSS
 ```
 
@@ -162,10 +166,18 @@ Never describe motion as "smooth" or "nice" — convert taste into mechanism + n
 
 **If stitch MCP is available:**
 ```python
-# Official Stitch MCP tools (stitch.withgoogle.com/docs/mcp):
-#   - build_site(prompt)          → generates the target design
-#   - get_screen_code(screenId)   → React/HTML output per screen
-#   - get_screen_image(screenId)  → PNG rasterization per screen
+# Live Stitch MCP tools (https://stitch.googleapis.com/mcp), matching
+# design-context-extractor agent grants:
+#   - list_projects() / get_project(projectId)
+#   - list_screens(projectId)
+#   - get_screen(name="projects/{projectId}/screens/{screenId}")
+#       ONE required param: name. Returns screen details including download URLs
+#   - generate_screen_from_text(projectId, prompt)
+#       quota-costing write; can take a few minutes. DO NOT RETRY.
+#       On timeout: poll get_screen(name=...) every 30 s, up to 10 times.
+#
+# Flow: generate_screen_from_text once (or reuse an existing screen) →
+# list_screens → get_screen(name=...) → fetch download URLs for multimodal extract.
 #
 # Also consider Figma Dev Mode MCP as a complementary extraction path
 # when the source is a Figma file:
