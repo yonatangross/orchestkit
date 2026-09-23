@@ -614,6 +614,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.84](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.83...v10.0.0-beta.84)** · 2026-09-23
+
+- **git-hooks:** opt-in targeted pre-push mode with a 2-slot governor (#4238) (#4389)
+
 **[v10.0.0-beta.83](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.82...v10.0.0-beta.83)** · 2026-09-23
 
 - **hooks:** emit PermissionRequest decision.behavior for auto-approve (#4374)
@@ -661,12 +665,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.77](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.76...v10.0.0-beta.77)** · 2026-09-22
 
 - **site:** align title and social meta with the OG card (#4343)
-
-**[v10.0.0-beta.76](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.75...v10.0.0-beta.76)** · 2026-09-22
-
-- **dream:** classify index budget moves by filename prefix (#4342)
-- **skills:** stacked-PR rebase uses the onto form and real trunk (#4337)
-- **site:** date the lab card page after [#4335](https://github.com/yonatangross/orchestkit/issues/4335) merged (#4340)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
