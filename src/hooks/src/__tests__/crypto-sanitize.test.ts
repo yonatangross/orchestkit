@@ -190,6 +190,19 @@ describe('Crypto Utilities', () => {
       expect(items[1].name).toBe('safe');
     });
 
+    it('redacts and truncates string elements inside arrays', () => {
+      const token = 'ghp_aBcDeFgHiJkLmNoPqRsTuVwXyZ0123456789AB';
+      const long = 'x'.repeat(5000);
+      const result = sanitizePayload({
+        argv: [`echo ${token}`, long],
+      });
+      const argv = result?.argv as string[];
+      expect(argv[0]).not.toContain(token);
+      expect(argv[0]).toContain('[REDACTED]');
+      expect(argv[1].length).toBeLessThanOrEqual(500);
+      expect(argv[1].endsWith('...')).toBe(true);
+    });
+
     // --- New secret patterns (security audit fix) ---
 
     it('redacts Anthropic sk-ant- API keys', () => {
