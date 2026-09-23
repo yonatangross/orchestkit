@@ -614,6 +614,14 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.83](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.82...v10.0.0-beta.83)** · 2026-09-23
+
+- **hooks:** emit PermissionRequest decision.behavior for auto-approve (#4374)
+- **hooks:** read tool_response and lock attribution state (sweep T1) (#4386)
+- **security:** XS hardening batch from the 2026-09-17 audit (#4220) (#4383)
+- **skills:** grant Stitch tools the skills call, and guard skill MCP refs (#4376)
+- **skills:** keep rc capture and cleanup working under set -e (sweep T2) (#4387)
+
 **[v10.0.0-beta.82](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.81...v10.0.0-beta.82)** · 2026-09-23
 
 - **docs-site:** hero option A conductor bleed (#4345)
@@ -659,11 +667,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **dream:** classify index budget moves by filename prefix (#4342)
 - **skills:** stacked-PR rebase uses the onto form and real trunk (#4337)
 - **site:** date the lab card page after [#4335](https://github.com/yonatangross/orchestkit/issues/4335) merged (#4340)
-
-**[v10.0.0-beta.75](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.74...v10.0.0-beta.75)** · 2026-09-22
-
-- **site:** new link card with live skills, agents and hooks counts (#4335)
-- **hooks:** stacked-PR guards read the trunk from origin/HEAD (#4336)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
