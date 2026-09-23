@@ -296,6 +296,10 @@ test_cleanup_dirty_confirmed_removes() {
 
 # ── Finding (c): dev/boot.sh ─────────────────────────────────────────────────
 
+# boot.sh deliberately short-circuits under CI=1, so the cases below strip CI
+# and GITHUB_ACTIONS from the boot invocation itself; the rest of this suite
+# still runs under whatever CI env the caller exports.
+
 # `--live` with no value must fall back to the documented 4h default. The old
 # `shift 2` died with "shift count out of range" when --live was the last arg.
 # The tailscale stub fails here too, so this run also proves a dead tailscaled
@@ -308,7 +312,7 @@ test_boot_live_no_value_defaults() {
   local out rc=0
   out=$(STUB_PORTLESS_MODE=list-fail STUB_PIDS="${PIDS_FILE}" \
         PATH="${STUB_DIR}:$PATH" CLAUDE_PROJECT_DIR="${proj}" \
-        bash "${BOOT_SH}" --live 2>&1) || rc=$?
+        env -u CI -u GITHUB_ACTIONS bash "${BOOT_SH}" --live 2>&1) || rc=$?
   local sf="${proj}/.claude/state/dev-stack.json" mode="" exp="" ts=""
   if [[ -f "${sf}" ]]; then
     mode=$(jq -r '.share.mode // ""' "${sf}")
@@ -332,7 +336,7 @@ test_boot_live_explicit_value() {
   local out rc=0
   out=$(STUB_PORTLESS_MODE=list-fail STUB_PIDS="${PIDS_FILE}" \
         PATH="${STUB_DIR}:$PATH" CLAUDE_PROJECT_DIR="${proj}" \
-        bash "${BOOT_SH}" --live 2 2>&1) || rc=$?
+        env -u CI -u GITHUB_ACTIONS bash "${BOOT_SH}" --live 2 2>&1) || rc=$?
   local sf="${proj}/.claude/state/dev-stack.json" exp="" diff=999999
   if [[ -f "${sf}" ]]; then
     exp=$(jq -r '.share.expiresAt // ""' "${sf}")
@@ -365,7 +369,7 @@ test_boot_monorepo_list_failure() {
   local out rc=0
   out=$(STUB_PORTLESS_MODE=list-fail STUB_PIDS="${PIDS_FILE}" \
         PATH="${STUB_DIR}:$PATH" CLAUDE_PROJECT_DIR="${proj}" \
-        bash "${BOOT_SH}" 2>&1) || rc=$?
+        env -u CI -u GITHUB_ACTIONS bash "${BOOT_SH}" 2>&1) || rc=$?
   local sf="${proj}/.claude/state/dev-stack.json" mode=""
   [[ -f "${sf}" ]] && mode=$(jq -r '.mode // ""' "${sf}")
   kill_stub_pids
