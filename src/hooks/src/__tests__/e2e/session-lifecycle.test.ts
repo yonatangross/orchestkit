@@ -19,6 +19,15 @@ vi.mock('node:fs', () => ({
   readFileSync: (...args: unknown[]) => mockReadFileSync(...args),
   writeFileSync: (...args: unknown[]) => mockWriteFileSync(...args),
   mkdirSync: (...args: unknown[]) => mockMkdirSync(...args),
+  realpathSync: (p: string) => String(p),
+  lstatSync: () => {
+    const err = new Error('ENOENT') as NodeJS.ErrnoException;
+    err.code = 'ENOENT';
+    throw err;
+  },
+  readlinkSync: () => {
+    throw new Error('EINVAL');
+  },
 }));
 
 // Mock common module
@@ -50,6 +59,16 @@ import { autoApproveProjectWrites } from '../../permission/auto-approve-project-
 import { createTestContext } from '../fixtures/test-context.js';
 
 let testCtx: ReturnType<typeof createTestContext>;
+
+const __ORK_PAA_PREV = process.env.ORK_PERMISSION_AUTO_APPROVE;
+beforeEach(() => {
+  process.env.ORK_PERMISSION_AUTO_APPROVE = '1';
+});
+afterEach(() => {
+  if (__ORK_PAA_PREV === undefined) delete process.env.ORK_PERMISSION_AUTO_APPROVE;
+  else process.env.ORK_PERMISSION_AUTO_APPROVE = __ORK_PAA_PREV;
+});
+
 describe('Session Lifecycle E2E Tests', () => {
   const originalEnv = process.env;
 
@@ -103,7 +122,9 @@ describe('Session Lifecycle E2E Tests', () => {
         const result = autoApproveProjectWrites(input, testCtx);
         results.push(result);
         expect(result.continue).toBe(true);
-        expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+        expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
       }
 
       // Phase 3: Verification - Run tests and linting
@@ -123,7 +144,9 @@ describe('Session Lifecycle E2E Tests', () => {
         const result = autoApproveSafeBash(input, testCtx);
         results.push(result);
         expect(result.continue).toBe(true);
-        expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+        expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
       }
 
       // All operations should have succeeded
@@ -140,7 +163,9 @@ describe('Session Lifecycle E2E Tests', () => {
         tool_input: { command: 'git status' },
         project_dir: '/test/project',
       };
-      expect(autoApproveSafeBash(statusInput).hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(autoApproveSafeBash(statusInput).hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(autoApproveSafeBash(statusInput).hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(autoApproveSafeBash(statusInput).hookSpecificOutput?.permissionDecision).toBeUndefined();
 
       // Step 2: View diff to understand the issue
       const diffInput: HookInput = {
@@ -149,7 +174,9 @@ describe('Session Lifecycle E2E Tests', () => {
         tool_input: { command: 'git diff HEAD~1' },
         project_dir: '/test/project',
       };
-      expect(autoApproveSafeBash(diffInput).hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(autoApproveSafeBash(diffInput).hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(autoApproveSafeBash(diffInput).hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(autoApproveSafeBash(diffInput).hookSpecificOutput?.permissionDecision).toBeUndefined();
 
       // Step 3: Fix the bug in code
       const fixInput: HookInput = {
@@ -161,7 +188,9 @@ describe('Session Lifecycle E2E Tests', () => {
         },
         project_dir: '/test/project',
       };
-      expect(autoApproveProjectWrites(fixInput).hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(autoApproveProjectWrites(fixInput).hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(autoApproveProjectWrites(fixInput).hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(autoApproveProjectWrites(fixInput).hookSpecificOutput?.permissionDecision).toBeUndefined();
 
       // Step 4: Run tests to verify fix
       const testInput: HookInput = {
@@ -170,7 +199,9 @@ describe('Session Lifecycle E2E Tests', () => {
         tool_input: { command: 'npm test' },
         project_dir: '/test/project',
       };
-      expect(autoApproveSafeBash(testInput).hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(autoApproveSafeBash(testInput).hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(autoApproveSafeBash(testInput).hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(autoApproveSafeBash(testInput).hookSpecificOutput?.permissionDecision).toBeUndefined();
 
       // Step 5: Check git status after fix
       const finalStatusInput: HookInput = {
@@ -179,7 +210,9 @@ describe('Session Lifecycle E2E Tests', () => {
         tool_input: { command: 'git status' },
         project_dir: '/test/project',
       };
-      expect(autoApproveSafeBash(finalStatusInput).hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(autoApproveSafeBash(finalStatusInput).hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(autoApproveSafeBash(finalStatusInput).hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(autoApproveSafeBash(finalStatusInput).hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
   });
 
@@ -208,7 +241,9 @@ describe('Session Lifecycle E2E Tests', () => {
 
         const result = autoApproveProjectWrites(input, testCtx);
         expect(result.continue).toBe(true);
-        expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+        expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
       }
 
       // Verify changes compile
@@ -218,7 +253,9 @@ describe('Session Lifecycle E2E Tests', () => {
         tool_input: { command: 'npm run typecheck' },
         project_dir: '/test/project',
       };
-      expect(autoApproveSafeBash(typeCheckInput).hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(autoApproveSafeBash(typeCheckInput).hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(autoApproveSafeBash(typeCheckInput).hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(autoApproveSafeBash(typeCheckInput).hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
   });
 
@@ -331,7 +368,9 @@ describe('Session Lifecycle E2E Tests', () => {
       };
 
       const goodResult = autoApproveSafeBash(goodInput, testCtx);
-      expect(goodResult.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(goodResult.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(goodResult.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(goodResult.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
 
     test('session handles rapid sequential operations', async () => {
@@ -352,7 +391,8 @@ describe('Session Lifecycle E2E Tests', () => {
 
       // All should succeed
       expect(results.every(r => r.continue)).toBe(true);
-      expect(results.every(r => r.hookSpecificOutput?.permissionDecision === 'allow')).toBe(true);
+      expect(results.every(r => r.hookSpecificOutput?.decision?.behavior === 'allow')).toBe(true);
+      expect(results.every(r => r.hookSpecificOutput?.permissionDecision === undefined)).toBe(true);
     });
   });
 
@@ -381,8 +421,12 @@ describe('Session Lifecycle E2E Tests', () => {
       const result2 = autoApproveSafeBash(input2, testCtx);
 
       // Both should work independently
-      expect(result1.hookSpecificOutput?.permissionDecision).toBe('allow');
-      expect(result2.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(result1.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result1.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result1.hookSpecificOutput?.permissionDecision).toBeUndefined();
+      expect(result2.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result2.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result2.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
 
     test('session handles project directory changes', async () => {
@@ -399,7 +443,9 @@ describe('Session Lifecycle E2E Tests', () => {
         project_dir: '/test/project',
       };
 
-      expect(autoApproveProjectWrites(input1).hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(autoApproveProjectWrites(input1).hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(autoApproveProjectWrites(input1).hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(autoApproveProjectWrites(input1).hookSpecificOutput?.permissionDecision).toBeUndefined();
 
       // File outside the project directory
       const input2: HookInput = {

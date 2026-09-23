@@ -67,6 +67,16 @@ function createBashInput(command: string): HookInput {
 // Tests
 // ---------------------------------------------------------------------------
 
+
+const __ORK_PAA_PREV = process.env.ORK_PERMISSION_AUTO_APPROVE;
+beforeEach(() => {
+  process.env.ORK_PERMISSION_AUTO_APPROVE = '1';
+});
+afterEach(() => {
+  if (__ORK_PAA_PREV === undefined) delete process.env.ORK_PERMISSION_AUTO_APPROVE;
+  else process.env.ORK_PERMISSION_AUTO_APPROVE = __ORK_PAA_PREV;
+});
+
 describe('learningTracker', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -189,7 +199,9 @@ describe('learningTracker', () => {
 
       // Assert
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
 
     test('auto-approves when second pattern matches', () => {
@@ -207,7 +219,9 @@ describe('learningTracker', () => {
 
       // Assert
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
 
     test('returns silentSuccess when no pattern matches', () => {
@@ -353,7 +367,9 @@ describe('learningTracker', () => {
 
       // Assert - long pattern skipped, valid prefix matches
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
 
     test('regex-like patterns are treated as literal prefixes (SEC: no regex injection)', () => {
@@ -389,7 +405,9 @@ describe('learningTracker', () => {
 
       // Assert - non-string skipped, valid prefix matches
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
   });
 
@@ -496,11 +514,11 @@ describe('learningTracker', () => {
       // Assert - CC 2.1.6 compliant shape
       expect(result).toHaveProperty('continue', true);
       expect(result).toHaveProperty('suppressOutput', true);
-      // #1910: hookSpecificOutput must carry hookEventName ('PreToolUse' for a
-      // permission hook), else CC's envelope validator rejects it.
+      // F11: PermissionRequest uses decision.behavior, not PreToolUse
+      // permissionDecision. hookEventName must match the firing event.
       expect(result.hookSpecificOutput).toEqual({
-        hookEventName: 'PreToolUse',
-        permissionDecision: 'allow',
+        hookEventName: 'PermissionRequest',
+        decision: { behavior: 'allow' },
       });
     });
 
@@ -545,7 +563,9 @@ describe('learningTracker', () => {
 
       // Assert — auto-approved purely from the cache
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
       // The full learned-patterns.json was neither stat'd nor read
       const bigFileTouches = [
         ...(existsSync as ReturnType<typeof vi.fn>).mock.calls,
@@ -572,7 +592,9 @@ describe('learningTracker', () => {
 
       // Assert — legacy fallback still auto-approves (fail-open preserved)
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
 
     test('rejects a cache with the wrong schema key and falls back', () => {
@@ -609,7 +631,9 @@ describe('learningTracker', () => {
 
       // Assert — the one valid pattern still matches
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
 
     test('survives absence of BOTH cache and legacy file (fail-open)', () => {

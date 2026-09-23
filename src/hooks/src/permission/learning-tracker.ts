@@ -1,22 +1,21 @@
 /**
  * Permission Learning Tracker - Learns from user approval patterns
  * Hook: PermissionRequest (Post-approval tracking)
- * CC 2.1.6 Compliant: includes continue field in all outputs
  *
- * This hook runs AFTER other permission hooks and tracks:
- * 1. Commands that are approved manually (potential auto-approve candidates)
- * 2. Patterns in approved commands for learning
- * 3. Frequency of command types
+ * OPT-IN (#4374 security hold): emits allow only when
+ * ORK_PERMISSION_AUTO_APPROVE=1. Default OFF so CC shows its normal dialog.
+ * Observation / logging still runs; only the allow decision is gated.
  */
 
 import type { HookInput, HookResult , HookContext} from '../types.js';
 import {
   outputSilentSuccess,
-  outputSilentAllow,
+  outputPermissionRequestAllow,
   getPluginRoot,
 } from '../lib/common.js';
 import { isCompoundCommand, normalizeSingle } from '../lib/normalize-command.js';
 import { readDistilledPatterns } from '../lib/learned-patterns-cache.js';
+import { isPermissionAutoApproveEnabled } from '../lib/permission-auto-approve.js';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { NOOP_CTX } from '../lib/context.js';
@@ -129,6 +128,11 @@ function shouldAutoApprove(command: string): boolean {
  * Learning tracker hook - observes permissions for learning, optionally auto-approves
  */
 export function learningTracker(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
+  if (!isPermissionAutoApproveEnabled()) {
+    ctx.log('learning-tracker', 'ORK_PERMISSION_AUTO_APPROVE not set; pass-through (no allow)');
+    return outputSilentSuccess();
+  }
+
   const toolName = input.tool_name;
   const command = input.tool_input.command || input.tool_input.file_path || '';
 
@@ -152,7 +156,7 @@ export function learningTracker(input: HookInput, ctx: HookContext = NOOP_CTX): 
     if (shouldAutoApprove(command)) {
       ctx.log('learning-tracker', 'Command matches learned auto-approve pattern');
       ctx.logPermission('allow', 'Learned pattern match', input);
-      return outputSilentAllow();
+      return outputPermissionRequestAllow();
     }
   }
 

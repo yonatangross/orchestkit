@@ -34,10 +34,15 @@ export function outputTerminalSequence(sequence: string): HookResult {
 }
 
 /**
- * Output silent allow - permission hook approves silently.
- * #1910: all callers are PreToolUse permission hooks, so hookEventName is
- * 'PreToolUse'. Without it CC's envelope validator rejects the hookSpecificOutput
- * ("missing required field hookEventName") and drops the decision silently.
+ * Output silent allow - PreToolUse permission hook approves silently.
+ * #1910: hookEventName is required. Without it CC's envelope validator rejects
+ * the hookSpecificOutput ("missing required field hookEventName") and drops the
+ * decision silently.
+ *
+ * PreToolUse ONLY. A PermissionRequest hook must use
+ * outputPermissionRequestAllow() instead: the two events answer with different
+ * keys and a PreToolUse labelled permissionDecision is inert on
+ * PermissionRequest (F11 / SC47).
  */
 export function outputSilentAllow(): HookResult {
   return {
@@ -46,6 +51,36 @@ export function outputSilentAllow(): HookResult {
     hookSpecificOutput: {
       hookEventName: 'PreToolUse',
       permissionDecision: 'allow',
+    },
+  };
+}
+
+/**
+ * Output silent allow for a PermissionRequest hook (F11 / SC47).
+ *
+ * PermissionRequest answers with a nested `decision` object, NOT with the
+ * PreToolUse `permissionDecision` string. Per CC's hook reference
+ * (PermissionRequest decision control):
+ *
+ *   {"hookSpecificOutput": {"hookEventName": "PermissionRequest",
+ *                           "decision": {"behavior": "allow"}}}
+ *
+ * and the same reference states "Only the `decision` object can grant or deny
+ * the request". The three auto-approve hooks on this event previously returned
+ * outputSilentAllow(), whose PreToolUse label plus permissionDecision matches
+ * neither half of that contract, so every auto-approval they computed was
+ * dropped and the user was prompted anyway.
+ *
+ * CC still evaluates deny and ask rules after an allow, so this grants the
+ * request without overriding a matching deny rule.
+ */
+export function outputPermissionRequestAllow(): HookResult {
+  return {
+    continue: true,
+    suppressOutput: true,
+    hookSpecificOutput: {
+      hookEventName: 'PermissionRequest',
+      decision: { behavior: 'allow' },
     },
   };
 }

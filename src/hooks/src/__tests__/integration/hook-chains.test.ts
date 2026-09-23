@@ -3,7 +3,7 @@
  * Tests how multiple hooks work together in realistic scenarios
  */
 
-import { describe, test, expect, vi, beforeEach, } from 'vitest';
+import { describe, test, expect, vi, beforeEach,  afterEach} from 'vitest';
 import type { HookInput, HookResult } from '../../types.js';
 
 // Import hooks for integration testing
@@ -40,9 +40,30 @@ vi.mock('node:fs', () => ({
   readFileSync: vi.fn().mockReturnValue('{}'),
   writeFileSync: vi.fn(),
   mkdirSync: vi.fn(),
+  // path-containment resolveRealPath needs these; identity realpath keeps
+  // synthetic /test/project paths usable in this suite.
+  realpathSync: vi.fn((p: string) => String(p)),
+  lstatSync: vi.fn(() => {
+    const err = new Error('ENOENT') as NodeJS.ErrnoException;
+    err.code = 'ENOENT';
+    throw err;
+  }),
+  readlinkSync: vi.fn(() => {
+    throw new Error('EINVAL');
+  }),
 }));
 
 let testCtx: ReturnType<typeof createTestContext>;
+
+const __ORK_PAA_PREV = process.env.ORK_PERMISSION_AUTO_APPROVE;
+beforeEach(() => {
+  process.env.ORK_PERMISSION_AUTO_APPROVE = '1';
+});
+afterEach(() => {
+  if (__ORK_PAA_PREV === undefined) delete process.env.ORK_PERMISSION_AUTO_APPROVE;
+  else process.env.ORK_PERMISSION_AUTO_APPROVE = __ORK_PAA_PREV;
+});
+
 describe('Hook Chain Integration Tests', () => {
   beforeEach(() => {
     testCtx = createTestContext();
@@ -63,7 +84,9 @@ describe('Hook Chain Integration Tests', () => {
         const permResult = autoApproveSafeBash(input, testCtx);
 
         expect(permResult.continue).toBe(true);
-        expect(permResult.hookSpecificOutput?.permissionDecision).toBe('allow');
+        expect(permResult.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(permResult.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(permResult.hookSpecificOutput?.permissionDecision).toBeUndefined();
       });
 
       test('dangerous command requires manual approval through chain', () => {
@@ -97,7 +120,9 @@ describe('Hook Chain Integration Tests', () => {
           };
 
           const result = autoApproveSafeBash(input, testCtx);
-          expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+          expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
         });
       });
     });
@@ -117,7 +142,9 @@ describe('Hook Chain Integration Tests', () => {
         const permResult = autoApproveProjectWrites(input, testCtx);
 
         expect(permResult.continue).toBe(true);
-        expect(permResult.hookSpecificOutput?.permissionDecision).toBe('allow');
+        expect(permResult.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(permResult.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(permResult.hookSpecificOutput?.permissionDecision).toBeUndefined();
       });
 
       test('out-of-project write requires manual approval', () => {
@@ -179,7 +206,9 @@ describe('Hook Chain Integration Tests', () => {
       };
 
       const writeResult = autoApproveProjectWrites(writeInput, testCtx);
-      expect(writeResult.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(writeResult.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(writeResult.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(writeResult.hookSpecificOutput?.permissionDecision).toBeUndefined();
 
       // Step 3: User runs tests
       const testInput: HookInput = {
@@ -190,7 +219,9 @@ describe('Hook Chain Integration Tests', () => {
       };
 
       const testResult = autoApproveSafeBash(testInput, testCtx);
-      expect(testResult.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(testResult.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(testResult.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(testResult.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
 
     test('git workflow: status, diff, add, commit', () => {
@@ -212,7 +243,9 @@ describe('Hook Chain Integration Tests', () => {
         const result = autoApproveSafeBash(input, testCtx);
 
         if (shouldAutoApprove) {
-          expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+          expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
         } else {
           expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
         }
@@ -236,7 +269,9 @@ describe('Hook Chain Integration Tests', () => {
       // Permission hook should still allow
       const permResult = autoApproveProjectWrites(input, testCtx);
       expect(permResult.continue).toBe(true);
-      expect(permResult.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(permResult.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(permResult.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(permResult.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
 
     test('chain handles unexpected input gracefully', () => {
@@ -301,11 +336,15 @@ describe('Hook Chain Integration Tests', () => {
         if (input.tool_name === 'Bash') {
           const result = autoApproveSafeBash(input, testCtx);
           expect(result.continue).toBe(true);
-          expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+          expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
         } else {
           const result = autoApproveProjectWrites(input, testCtx);
           expect(result.continue).toBe(true);
-          expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+          expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
         }
       });
     });
@@ -325,7 +364,9 @@ describe('Hook Chain Integration Tests', () => {
       };
 
       const writeResult = autoApproveProjectWrites(writeInput, testCtx);
-      expect(writeResult.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(writeResult.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(writeResult.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(writeResult.hookSpecificOutput?.permissionDecision).toBeUndefined();
 
       // Run the tests
       const testInput: HookInput = {
@@ -336,7 +377,9 @@ describe('Hook Chain Integration Tests', () => {
       };
 
       const testResult = autoApproveSafeBash(testInput, testCtx);
-      expect(testResult.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(testResult.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(testResult.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(testResult.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
 
     test('bash then write flow (create directory then file)', () => {
@@ -365,7 +408,9 @@ describe('Hook Chain Integration Tests', () => {
       };
 
       const writeResult = autoApproveProjectWrites(writeInput, testCtx);
-      expect(writeResult.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(writeResult.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(writeResult.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(writeResult.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
   });
 });

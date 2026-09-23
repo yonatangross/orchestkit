@@ -92,6 +92,15 @@ export function createFsMock(overrides: Record<string, unknown> = {}) {
     renameSync: vi.fn((_oldPath: MockPath, _newPath: MockPath) => undefined),
     unlinkSync: vi.fn((_path: MockPath) => undefined),
     readdirSync: vi.fn((_path: MockPath) => []),
+    realpathSync: vi.fn((p: MockPath) => String(p)),
+    lstatSync: vi.fn((_path: MockPath) => {
+      const err = new Error('ENOENT') as NodeJS.ErrnoException;
+      err.code = 'ENOENT';
+      throw err;
+    }),
+    readlinkSync: vi.fn((_path: MockPath) => {
+      throw new Error('EINVAL');
+    }),
     ...overrides,
   };
 }

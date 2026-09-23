@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [9.8.2](https://github.com/yonatangross/orchestkit/compare/v9.8.1...v9.8.2) (2026-10-22)
+
+
+### Security
+
+* **hooks:** backport the [#4374](https://github.com/yonatangross/orchestkit/pull/4374) permission hardening from main for GHSA-97cf-6g9r-2x39: path containment resolves symlink chains and excludes `.git` case-insensitively plus `.claude`, `.github` and `.husky`; PermissionRequest auto-approve is opt-in (`ORK_PERMISSION_AUTO_APPROVE=1`) with a hard denylist even when enabled; allows use `decision.behavior` instead of the ignored `permissionDecision`
+
 ## [9.8.1](https://github.com/yonatangross/orchestkit/compare/v9.8.0...v9.8.1) (2026-09-28)
 
 
