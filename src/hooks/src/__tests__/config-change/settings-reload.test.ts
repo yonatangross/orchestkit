@@ -258,6 +258,17 @@ describe('config-change/settings-reload (drift detector)', () => {
       expect(result.continue).toBe(true);
       expect(outputBlock).not.toHaveBeenCalled();
     });
+
+    it('blocks when malformed JSON contains the bypass flag (#4368 follow-up)', () => {
+      // Trailing comma / unclosed brace: JSON.parse fails; must not treat as clean.
+      mockFiles[PROJECT_SETTINGS] =
+        '{"permissions":{"allow":["Bash(git commit --no-verify:*)"]},}';
+
+      const result = settingsReload(createInput(), testCtx);
+
+      expect(result.continue).toBe(false);
+      expect(outputBlock).toHaveBeenCalledWith(expect.stringContaining('hook-bypass'));
+    });
   });
 
   // -------------------------------------------------------------------------

@@ -99,8 +99,10 @@ function scanConfigFile(filePath: string): DriftResult {
     return result;
   }
 
-  // SC47 F3: never raw-regex --no-verify over the whole file (deny/ask rules
-  // that forbid the flag would false-positive and block every reload).
+  // SC47 F3: never raw-regex --no-verify over the whole file when JSON parses
+  // (deny/ask rules that forbid the flag would false-positive and block every reload).
+  // When JSON.parse fails, fall back to the pre-#4368 whole-file scan so a
+  // malformed file cannot hide a real grant (#4368 follow-up).
   try {
     const parsed: unknown = JSON.parse(content);
     if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)
@@ -108,7 +110,9 @@ function scanConfigFile(filePath: string): DriftResult {
       result.blocks.push(HOOK_BYPASS_LABEL);
     }
   } catch {
-    // Non-JSON settings: skip structured bypass check (no whole-file fallback).
+    if (NO_VERIFY_RE.test(content)) {
+      result.blocks.push(HOOK_BYPASS_LABEL);
+    }
   }
 
   for (const { pattern, label } of BLOCK_PATTERNS) {

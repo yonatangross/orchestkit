@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>#4368 follow-up: parse-fail --no-verify fallback</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0f0b1a;--surface:#1a1428;--border:#3d2e5c;--text:#e8e0f0;--muted:#9b8eb8;--accent:#a855f7;--ok:#22c55e;--bad:#ef4444;--mono:ui-monospace,Menlo,monospace}
+body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);padding:24px;max-width:920px;margin:0 auto}
+h1{color:var(--accent);font-size:20px;margin-bottom:8px}
+.meta{color:var(--muted);font-size:13px;margin-bottom:20px;max-width:72ch}
+section{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px}
+h2{font-size:14px;margin-bottom:10px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:8px;border-bottom:1px solid rgba(255,255,255,.06);vertical-align:top}
+th{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+code{font-family:var(--mono);font-size:12px;background:rgba(255,255,255,.05);padding:2px 6px;border-radius:4px}
+.ok{color:var(--ok)}.bad{color:var(--bad)}
+label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+textarea{width:100%;min-height:120px;background:#0a0712;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:10px;font-family:var(--mono);font-size:12px}
+.verdict{margin-top:10px;font-size:13px;padding:10px;border-radius:8px;border:1px solid var(--border)}
+.btn{margin-top:8px;background:var(--accent);color:#fff;border:0;border-radius:8px;padding:8px 12px;font-size:13px;cursor:pointer}
+</style>
+</head>
+<body>
+<header>
+  <h1>Malformed settings cannot hide <code>--no-verify</code></h1>
+  <p class="meta">#4368 taught <code>settings-reload</code> to ignore deny/ask text when JSON parses. This follow-up restores a whole-file <code>--no-verify</code> scan only when <code>JSON.parse</code> fails, so a broken file cannot smuggle a real grant past the gate.</p>
+</header>
+
+<section>
+  <h2>Decision table</h2>
+  <table>
+    <thead><tr><th>input</th><th>#4368 alone</th><th>with parse fallback</th></tr></thead>
+    <tbody>
+      <tr><td>Valid JSON, deny names <code>--no-verify</code></td><td class="ok">allow</td><td class="ok">allow</td></tr>
+      <tr><td>Valid JSON, allow grants <code>--no-verify</code></td><td class="bad">block</td><td class="bad">block</td></tr>
+      <tr><td>Malformed JSON containing <code>--no-verify</code></td><td class="ok">allow (gap)</td><td class="bad">block</td></tr>
+      <tr><td>Malformed JSON without the flag</td><td class="ok">allow</td><td class="ok">allow</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>Try a snippet</h2>
+  <label for="snip">Paste settings text (may be invalid JSON)</label>
+  <textarea id="snip">{"permissions":{"allow":["Bash(git commit --no-verify:*)"]},}</textarea>
+  <button class="btn" type="button" id="run">Classify</button>
+  <div class="verdict" id="out">Press Classify.</div>
+</section>
+
+<script>
+const NO_VERIFY = /--no-verify/;
+function hooksGrant(node) {
+  if (node == null) return false;
+  if (Array.isArray(node)) return node.some(hooksGrant);
+  if (typeof node !== 'object') return false;
+  if (typeof node.command === 'string' && NO_VERIFY.test(node.command)) return true;
+  return Object.values(node).some(hooksGrant);
+}
+function grants(settings) {
+  const perms = settings.permissions;
+  if (perms && Array.isArray(perms.allow) && perms.allow.some(e => typeof e === 'string' && NO_VERIFY.test(e))) return true;
+  if (settings.hooks != null && hooksGrant(settings.hooks)) return true;
+  const env = settings.env;
+  if (env && typeof env === 'object') {
+    for (const v of Object.values(env)) if (typeof v === 'string' && NO_VERIFY.test(v)) return true;
+  }
+  return false;
+}
+function classify(raw) {
+  let structured = null;
+  let parseOk = false;
+  try {
+    const parsed = JSON.parse(raw);
+    parseOk = true;
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) structured = grants(parsed);
+  } catch (_) { /* fall through */ }
+  const wholeFile = NO_VERIFY.test(raw);
+  const after4368 = parseOk ? structured : false;
+  const withFallback = parseOk ? structured : wholeFile;
+  return 'JSON.parse: ' + (parseOk ? 'ok' : 'FAIL') +
+    ' | #4368 alone: ' + (after4368 ? 'BLOCK' : 'allow') +
+    ' | with fallback: ' + (withFallback ? 'BLOCK' : 'allow');
+}
+document.getElementById('run').addEventListener('click', () => {
+  document.getElementById('out').textContent = classify(document.getElementById('snip').value);
+});
+</script>
+</body>
+</html>
