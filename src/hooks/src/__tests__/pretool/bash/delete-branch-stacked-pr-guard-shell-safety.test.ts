@@ -2,7 +2,7 @@
 // Created: 2026-09-23
 
 /**
- * HR-3 / #4220 — delete-branch-stacked-pr-guard must never put a branch name
+ * HR-3 / #4220: delete-branch-stacked-pr-guard must never put a branch name
  * into a shell string.
  *
  * `git check-ref-format` rejects spaces, not `;` / backticks / `$(...)`, so a
@@ -40,7 +40,7 @@ const EVIL_BRANCH = 'evil;touch /tmp/pwned';
 const EVIL_REF = 'evil;touch_/tmp/pwned';
 const PROJECT = '/tmp/ork-hr3-proj';
 
-/** Every child_process call must be (file, string[], opts) — never a shell string. */
+/** Every child_process call must be (file, string[], opts): never a shell string. */
 function assertArgvOnlyCalls(calls: unknown[][], forbiddenInFile = EVIL_BRANCH): void {
   for (const call of calls) {
     expect(typeof call[0]).toBe('string');
@@ -68,7 +68,7 @@ describe('HR-3 delete-branch-stacked-pr-guard shell safety', () => {
   });
 
   it('resolveHeadBranch passes a metachar PR ref as one argv entry, not a shell string', () => {
-    // Arrange — hostile name is the merge positional; gh pr view gets it as argv[2].
+    // Arrange: hostile name is the merge positional; gh pr view gets it as argv[2].
     mockExecFileSync.mockReturnValue('feat/legit\n');
 
     // Act
@@ -89,7 +89,7 @@ describe('HR-3 delete-branch-stacked-pr-guard shell safety', () => {
   });
 
   it('findDependentPRs passes a metachar head branch as --base argv entry', () => {
-    // Arrange — EVIL_BRANCH matches the audit payload (`evil;touch /tmp/pwned`)
+    // Arrange: EVIL_BRANCH matches the audit payload (`evil;touch /tmp/pwned`)
     mockExecFileSync.mockReturnValue('[{"number":7,"title":"stacked"}]');
 
     // Act
@@ -114,7 +114,7 @@ describe('HR-3 delete-branch-stacked-pr-guard shell safety', () => {
       ],
       expect.objectContaining({ cwd: PROJECT }),
     );
-    // The evil string is exactly one argv slot — not concatenated into argv[0]
+    // The evil string is exactly one argv slot, not concatenated into argv[0]
     const args = mockExecFileSync.mock.calls[0]?.[1] as string[];
     expect(args).toContain(EVIL_BRANCH);
     expect(args.filter(a => a === EVIL_BRANCH)).toHaveLength(1);

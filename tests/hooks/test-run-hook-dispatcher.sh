@@ -228,7 +228,7 @@ rm -rf "$TEMP_PROJECT" "$HOME_SEC"
 # (#4220). Today SECURITY_HOOKS only lists security-pattern-validator +
 # redact-secrets, so a project (or, after the user-scope-only fix, a HOME)
 # override that disables the dispatcher returns bare SILENT_OK with no
-# warning — every Bash guard behind the dispatcher is then a no-op.
+# warning: every Bash guard behind the dispatcher is then a no-op.
 # Fail-first: dual-plant the disable in PROJECT and HOME so the case
 # still fires after loadOverrides reads user-scope only.
 TEMP_AF12=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")
@@ -248,7 +248,7 @@ run_hook "pretool/bash/sync-bash-dispatcher" \
   "CLAUDE_PROJECT_DIR=$TEMP_AF12" "HOME=$HOME_AF12"
 # Silent-skip path from isHookDisabled: exactly continue+suppressOutput, no
 # hookSpecificOutput. A live dispatcher injects default timeout via
-# updatedInput — that proves the override was ignored and the hook ran.
+# updatedInput: that proves the override was ignored and the hook ran.
 if echo "$LAST_STDERR" | grep -q "cannot disable security hook" \
   && ! echo "$LAST_STDOUT" | python3 -c "import json,sys; d=json.load(sys.stdin); assert d.get('continue') is True and d.get('suppressOutput') is True and 'hookSpecificOutput' not in d" 2>/dev/null; then
   pass "AF-12: sync-bash-dispatcher override rejected (warning + hook ran)"
