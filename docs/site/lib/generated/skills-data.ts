@@ -972,13 +972,14 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "code-review-playbook",
     "description": "Structured review processes, conventional comments, language-specific checklists, and feedback templates. Use when reviewing PRs, conducting code review, or standardizing review practice.",
     "version": "2.0.0",
-    "sha256": "0db34db21da0528b3ca570e6113a76d4add91c4e96784d525d515d9e009a3531",
+    "sha256": "9f9e099505121d5892ec8f2e46a57a5e636b7e4c875c4fa0593e5849182f9d84",
     "author": "OrchestKit",
     "tags": [
       "code-review",
       "quality",
       "collaboration",
-      "best-practices"
+      "best-practices",
+      "testing"
     ],
     "userInvocable": false,
     "context": "inherit",
@@ -990,7 +991,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "WebSearch"
     ],
     "skills": [],
-    "agent": "code-quality-reviewer",
+    "agent": null,
     "complexity": "low",
     "structure": {
       "references": [
@@ -1147,7 +1148,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "configure",
     "description": "Interactive wizard for OrchestKit settings: MCP servers, hook permissions, keybindings, and install presets. Use when customizing plugin behavior or managing settings.",
     "version": "1.0.1",
-    "sha256": "bba17e85408c0919849f8364fa25e234bd5376505b61537578e67529522a3455",
+    "sha256": "3c1921ca5bd7fb1912d7f3b98f1d6c6b09ce4b657ec916d861efad9145ef231a",
     "author": "OrchestKit",
     "tags": [
       "configuration",
@@ -1930,7 +1931,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "documentation-patterns",
     "description": "Technical documentation patterns for READMEs, ADRs, API docs (OpenAPI 3.1), changelogs, and writing style guides. Use when creating project documentation, writing architecture decisions, documenting APIs, or maintaining changelogs.",
     "version": "1.0.0",
-    "sha256": "5291717635dc2df2953a03ce915a487b7500280d4153be55c1687b638ca0a1dc",
+    "sha256": "68600dcfaed9fb35e0438a1993a21d14fdf12b5343a6336f3df78f8c4d180bc1",
     "author": "OrchestKit",
     "tags": [
       "documentation",
@@ -1940,7 +1941,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       "openapi",
       "changelog",
       "writing-style",
-      "technical-writing"
+      "technical-writing",
+      "ci-cd"
     ],
     "userInvocable": false,
     "context": "inherit",
@@ -1950,7 +1952,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "Grep"
     ],
     "skills": [],
-    "agent": "release-engineer",
+    "agent": null,
     "complexity": "low",
     "structure": {},
     "plugins": [
@@ -2042,7 +2044,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "emulate-seed",
     "description": "Generate emulate seed configs for stateful API emulation. Wraps Vercel's emulate tool for GitHub, Vercel, Google OAuth, Slack, Apple Auth, Microsoft Entra, AWS, Okta, Clerk, Resend, Stripe, and MongoDB Atlas APIs — full state machines, not mocks. Use when setting up test environments, CI pipelines, integration tests, or offline development.",
     "version": "1.3.0",
-    "sha256": "555b5fbf9a64f1b5ebbbca62c74c340574973f55cc5f1374832f6c27b0fd5241",
+    "sha256": "3d41d52eef7eed85e500fcade5b9a3c64d37de58f4d282906a1a8e77eab64b18",
     "author": "OrchestKit",
     "tags": [
       "emulate",
@@ -2064,7 +2066,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "context": "inherit",
     "allowedTools": [],
     "skills": [],
-    "agent": "emulate-engineer",
+    "agent": null,
     "complexity": "medium",
     "structure": {
       "references": [
@@ -2092,7 +2094,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "errors",
     "description": "Error pattern analysis and troubleshooting for Claude Code sessions. Categorizes errors (network, auth, model, tool, memory, permission) with known resolution patterns, searches memory for prior occurrences, and suggests recovery steps. Delegates to debug-investigator agent for complex root cause analysis. Use when handling errors, fixing failures, or troubleshooting session issues.",
     "version": "1.0.0",
-    "sha256": "4a5e00b3786cf1b1aea445a75d2bc96262c282983b6df610e9e20574259257ac",
+    "sha256": "c37136ed4b618764f476311804ec2cd3472348e9215c301708277e98a56960a2",
     "author": "OrchestKit",
     "tags": [
       "errors",
@@ -2108,7 +2110,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "Grep"
     ],
     "skills": [],
-    "agent": "debug-investigator",
+    "agent": null,
     "complexity": "low",
     "structure": {},
     "plugins": [
@@ -2551,7 +2553,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "i18n-date-patterns",
     "description": "Implements internationalization (i18n) in React applications. Covers user-facing strings, date/time handling, locale-aware formatting, ICU MessageFormat, and RTL support. Use when building multilingual UIs or formatting dates/currency.",
     "version": "1.2.0",
-    "sha256": "a48b618e284087f27d7cc6f01665d465bb0f68c0509d984021bc143edb19b32c",
+    "sha256": "cfdf50ec4cda922420843b836190be36a7a856d9cdf38ed098f0947c7fd30c3b",
     "author": "Yonatan Gross",
     "tags": [
       "i18n",
@@ -2564,7 +2566,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       "useTranslation",
       "useFormatting",
       "ICU",
-      "Trans"
+      "Trans",
+      "react"
     ],
     "userInvocable": false,
     "context": "inherit",
@@ -2576,7 +2579,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "WebSearch"
     ],
     "skills": [],
-    "agent": "frontend-ui-developer",
+    "agent": null,
     "complexity": "low",
     "structure": {
       "references": [
@@ -2758,7 +2761,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "json-render-catalog",
     "description": "json-render component catalog patterns for AI-safe generative UI. Define Zod-typed catalogs that constrain what AI can generate, use @json-render/shadcn for 36 pre-built components, optimize specs with YAML mode, and apply the three edit modes (patch/merge/diff) for progressive updates. Use when building AI-generated UIs, defining component catalogs, or integrating json-render into React/Vue/Svelte/React Native/Ink/Next.js projects.",
     "version": "1.3.0",
-    "sha256": "6814ea0416f22b7a663b09adaec5302cbf989d52bcf258ecdc67ab2de18347bb",
+    "sha256": "d279de96d332e2419bd987476c56c8164bd5f0a80533f43d4328ef2e755a4c31",
     "author": "OrchestKit",
     "tags": [
       "json-render",
@@ -2774,7 +2777,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "context": "inherit",
     "allowedTools": [],
     "skills": [],
-    "agent": "genui-architect",
+    "agent": null,
     "complexity": "medium",
     "structure": {
       "references": [
@@ -3226,7 +3229,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "multimodal-llm",
     "description": "Vision, audio, video generation, and multimodal LLM integration patterns. Use when processing images, transcribing audio, generating speech, generating AI video (Kling v3, Sora 2, Veo 3.1 std/lite/fast, Runway Gen-4.5 via `gen4_turbo`), or building multimodal AI pipelines.",
     "version": "2.1.1",
-    "sha256": "81bb5b8061ecd15dea864709059cc4e95eb9dc398a23076e591921dad025de29",
+    "sha256": "34a580ea173a9c2f903f2896fef86a80d2be992539d853cec371702aee4eba5c",
     "author": "OrchestKit",
     "tags": [
       "vision",
@@ -3911,7 +3914,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "release-sync",
     "description": "Syncs latest release content to NotebookLM and HQ Knowledge Base after version tagging. Reads CHANGELOG, CLAUDE.md, and hook README, updates notebook sources, and ingests release digest. Optionally generates podcast from updated knowledge base. Use after tagging a new version to propagate release knowledge.",
     "version": "1.0.0",
-    "sha256": "87ce1e91a3afaf2f567be2286590cba1191a8e970054ccb7e44a5c5d507abc50",
+    "sha256": "885b6de526126ece9d6175e56855648701635e1a11f000d7698e87322ba28a5c",
     "author": "OrchestKit",
     "tags": [
       "release",
@@ -3924,7 +3927,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "context": "inherit",
     "allowedTools": [],
     "skills": [],
-    "agent": "release-engineer",
+    "agent": null,
     "complexity": "low",
     "structure": {},
     "plugins": [
@@ -5101,7 +5104,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "web-research-workflow",
     "description": "Unified decision tree for web research and competitive monitoring. Auto-selects WebFetch, Tavily, or agent-browser based on target site characteristics and available API keys. Includes competitor page tracking, snapshot diffing, and change alerting. Use when researching web content, scraping, extracting raw markdown, capturing documentation, or monitoring competitor changes.",
     "version": "1.3.0",
-    "sha256": "20a0db8986a2425f4bc3df9b7ce422a554dedc8dbe8fa5b23672f89946832aad",
+    "sha256": "c72995424dc088afd7afd7bec680f1f0a7c6053d3cade372757371d9b79f4cea",
     "author": "OrchestKit",
     "tags": [
       "research",
@@ -5123,7 +5126,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "WebFetch"
     ],
     "skills": [],
-    "agent": "web-research-analyst",
+    "agent": null,
     "complexity": "low",
     "structure": {
       "references": [
@@ -5192,7 +5195,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "zustand-patterns",
     "description": "Reference for Zustand 5.x state management including slices, middleware, Immer, useShallow, persistence, selectors, and devtools integration. Documents 7 core patterns with TypeScript examples and anti-patterns. Use when building React state management with Zustand instead of Redux.",
     "version": "1.0.0",
-    "sha256": "d8dbc24b5f210abce3db3e6b7fce8f708c1a4c75fa19378d71706bab3cb576e3",
+    "sha256": "48e8b9637bad6cb2099f7c441c6e0beefbdb51ceebd5074d7ec18cda32604a46",
     "author": "OrchestKit",
     "tags": [
       "zustand",
@@ -5212,7 +5215,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "Glob"
     ],
     "skills": [],
-    "agent": "frontend-ui-developer",
+    "agent": null,
     "complexity": "low",
     "structure": {
       "references": [

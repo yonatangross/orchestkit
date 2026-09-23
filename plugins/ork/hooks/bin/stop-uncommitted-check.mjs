@@ -7,15 +7,61 @@
  *
  * This deterministic command hook runs `git status --porcelain` and warns
  * via systemMessage if uncommitted changes exist. Does not block session exit.
+ *
+ * F24 (sc47): use execFileSync with argv + timeout + --no-optional-locks so a
+ * hung/slow git cannot pin the Stop event loop, and so concurrent sessions
+ * don't contend on the index lock. Kept SYNC in hooks.json (no `async: true`):
+ * an async Stop hook's systemMessage only lands on a next turn that may never
+ * exist after Stop. Deliberately NOT `-uno`: untracked files are part of the
+ * warning contract (tests + UX).
+ *
+ * Version is read at runtime from plugin.json (no build-time stamp): the
+ * plugins/ copy must stay byte-identical to this file so release PRs do not
+ * drift on a version literal.
  */
 
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
+import { existsSync, readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-// Injected by build-plugins.sh at build time from manifests/ork.json
-const PLUGIN_VERSION = '10.0.0-beta.79'; // x-release-please-version
-
-/** Silent success — tells CC to continue without showing output. */
+/** Silent success - tells CC to continue without showing output. */
 const SILENT_OK = JSON.stringify({ continue: true, suppressOutput: true });
+
+/** Bound the Stop-path git spawn; matches security-scan-aggregator's status probe. */
+const GIT_TIMEOUT_MS = 5000;
+
+/**
+ * Resolve the installed plugin version without a build-time placeholder.
+ * Prefer CLAUDE_PLUGIN_ROOT, then walk up from this file to plugin.json.
+ * Unreadable/missing -> "unknown" (message still valid JSON).
+ */
+function resolvePluginVersion() {
+  const candidates = [];
+  const root = process.env.CLAUDE_PLUGIN_ROOT;
+  if (root && !root.startsWith('{') && !root.startsWith('[')) {
+    candidates.push(join(root, 'plugin.json'));
+    candidates.push(join(root, '.claude-plugin', 'plugin.json'));
+  }
+  try {
+    const here = dirname(fileURLToPath(import.meta.url));
+    // hooks/bin -> plugin root (plugins/ork or a mirrored layout)
+    candidates.push(join(here, '..', '..', 'plugin.json'));
+    candidates.push(join(here, '..', '..', '.claude-plugin', 'plugin.json'));
+  } catch {
+    // import.meta.url unavailable - fall through to fallback
+  }
+  for (const path of candidates) {
+    try {
+      if (!existsSync(path)) continue;
+      const version = JSON.parse(readFileSync(path, 'utf8')).version;
+      if (typeof version === 'string' && version.length > 0) return version;
+    } catch {
+      // try next candidate
+    }
+  }
+  return 'unknown';
+}
 
 async function main() {
   // Drain stdin (required by hook protocol)
@@ -31,18 +77,20 @@ async function main() {
     : process.cwd();
 
   try {
-    // Check if we're in a git repo
-    execSync('git rev-parse --is-inside-work-tree', {
-      cwd: projectDir,
-      stdio: ['pipe', 'pipe', 'pipe'],
-    });
-
-    // Check for uncommitted changes (staged + unstaged + untracked)
-    const raw = execSync('git status --porcelain', {
-      cwd: projectDir,
-      encoding: 'utf-8',
-      stdio: ['pipe', 'pipe', 'pipe'],
-    });
+    // One spawn: status fails outside a git work tree, so a separate rev-parse
+    // probe was pure Stop-path cost. --no-optional-locks avoids index.lock
+    // waits when another session is mid-commit.
+    const raw = execFileSync(
+      'git',
+      ['--no-optional-locks', 'status', '--porcelain'],
+      {
+        cwd: projectDir,
+        encoding: 'utf-8',
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: GIT_TIMEOUT_MS,
+        windowsHide: true,
+      }
+    );
 
     // Split into lines preserving leading spaces (significant in porcelain format)
     const lines = raw.split('\n').filter((l) => l.length > 0);
@@ -57,17 +105,18 @@ async function main() {
       if (unstaged) parts.push(`${unstaged} modified`);
       if (untracked) parts.push(`${untracked} untracked`);
 
+      const version = resolvePluginVersion();
       console.log(
         JSON.stringify({
           continue: true,
-          systemMessage: `[ork@${PLUGIN_VERSION}] ${parts.join(', ')} uncommitted — do not act on these.`,
+          systemMessage: `[ork@${version}] ${parts.join(', ')} uncommitted - do not act on these.`,
         })
       );
     } else {
       console.log(SILENT_OK);
     }
   } catch {
-    // Not a git repo or git not available — skip silently
+    // Not a git repo, git unavailable, or timed out - skip silently
     console.log(SILENT_OK);
   }
 }

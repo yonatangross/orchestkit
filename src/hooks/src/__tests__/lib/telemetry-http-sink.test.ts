@@ -96,6 +96,11 @@ describe('telemetry-http-sink', () => {
       process.env.ORK_HQ_TELEMETRY_USE_HQ_API = '0';
       expect(resolveSinkUrl()).toBeNull();
     });
+
+    it('refuses http:// URLs including localhost (#4218)', () => {
+      process.env.ORK_HQ_TELEMETRY_URL = 'http://localhost:9999';
+      expect(resolveSinkUrl()).toBeNull();
+    });
   });
 
   // ─── resolveSinkToken ────────────────────────────────────────────────────
@@ -196,6 +201,7 @@ describe('telemetry-http-sink', () => {
     it('returns synchronously even when fetch hangs', () => {
       process.env.ORK_HQ_TELEMETRY_URL = 'https://my.hq';
       process.env.CC_HOOKS_SECRET_TOKEN = 'tok';
+      process.env.CC_HOOKS_SECRET_TOKEN_HOST = 'my.hq';
       // Make fetch hang forever — postAnalyticsToSink must still return.
       fetchSpy.mockReturnValue(new Promise(() => {}));
       const start = Date.now();
@@ -209,10 +215,19 @@ describe('telemetry-http-sink', () => {
     it('never throws even when fetch rejects', () => {
       process.env.ORK_HQ_TELEMETRY_URL = 'https://my.hq';
       process.env.CC_HOOKS_SECRET_TOKEN = 'tok';
+      process.env.CC_HOOKS_SECRET_TOKEN_HOST = 'my.hq';
       fetchSpy.mockRejectedValue(new Error('boom'));
       expect(() =>
         postAnalyticsToSink('skill-usage.jsonl', { skill: 'demo' }),
       ).not.toThrow();
+    });
+
+    it('no-ops when token host does not match URL host (#4218)', () => {
+      process.env.ORK_HQ_TELEMETRY_URL = 'https://evil.hq';
+      process.env.CC_HOOKS_SECRET_TOKEN = 'tok';
+      process.env.CC_HOOKS_SECRET_TOKEN_HOST = 'my.hq';
+      postAnalyticsToSink('skill-usage.jsonl', { skill: 'demo' });
+      expect(fetchSpy).not.toHaveBeenCalled();
     });
   });
 

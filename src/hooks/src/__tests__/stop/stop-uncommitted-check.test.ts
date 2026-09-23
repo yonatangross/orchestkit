@@ -2,7 +2,7 @@
 // Created: 2026-04-06
 
 /**
- * Tests for stop-uncommitted-check.mjs — standalone command hook
+ * Tests for stop-uncommitted-check.mjs - standalone command hook
  *
  * Spawns the script as a subprocess with controlled git states and asserts
  * on the JSON stdout output (systemMessage text, continue, suppressOutput).
@@ -10,7 +10,7 @@
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { execFileSync, execSync } from 'node:child_process';
-import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 
@@ -32,7 +32,7 @@ describe('stop-uncommitted-check.mjs output', () => {
   let tmpDir: string;
 
   /**
-   * Isolated git env — prevents gitdir walk-up to the parent worktree
+   * Isolated git env - prevents gitdir walk-up to the parent worktree
    * when this test runs from inside an existing checkout (CI, dev,
    * pre-push hook). Without these, `git config user.name "Test"` writes
    * to the parent's .git/config and commits land on the parent's branch
@@ -128,12 +128,53 @@ describe('stop-uncommitted-check.mjs output', () => {
     expect(output.systemMessage).toContain('do not act on these');
   });
 
-  it('includes ork@ version prefix in systemMessage', () => {
+  it('includes ork@ version from CLAUDE_PLUGIN_ROOT plugin.json', () => {
     writeFileSync(join(tmpDir, 'file.txt'), 'content');
+    const pluginRoot = mkdtempSync(join(tmpdir(), 'ork-plugin-root-'));
+    try {
+      writeFileSync(
+        join(pluginRoot, 'plugin.json'),
+        JSON.stringify({ name: 'ork', version: '9.9.9-fixture' })
+      );
+      const result = execFileSync('node', [SCRIPT_PATH], {
+        cwd: tmpDir,
+        encoding: 'utf-8',
+        env: {
+          ...process.env,
+          CLAUDE_PROJECT_DIR: tmpDir,
+          CLAUDE_PLUGIN_ROOT: pluginRoot,
+        },
+        input: JSON.stringify({}),
+        timeout: 5000,
+      });
+      const output = JSON.parse(result.trim()) as {
+        continue: boolean;
+        systemMessage?: string;
+      };
+      // Exact fixture version: must fail if resolvePluginVersion is reverted
+      // to a constant, placeholder, or hard coded unknown.
+      expect(output.systemMessage).toContain('[ork@9.9.9-fixture]');
+    } finally {
+      rmSync(pluginRoot, { recursive: true, force: true });
+    }
+  });
 
-    const output = runHook(tmpDir);
-    // Source has __PLUGIN_VERSION__ placeholder; built version has real version
-    expect(output.systemMessage).toMatch(/\[ork@/);
+  it('keeps plugins copy byte-identical to src (no version stamp)', () => {
+    const src = readFileSync(SCRIPT_PATH);
+    const pluginsCopy = join(
+      __dirname,
+      '..',
+      '..',
+      '..',
+      '..',
+      '..',
+      'plugins',
+      'ork',
+      'hooks',
+      'bin',
+      'stop-uncommitted-check.mjs'
+    );
+    expect(readFileSync(pluginsCopy)).toEqual(src);
   });
 
   it('always sets continue: true even with changes', () => {
@@ -184,7 +225,7 @@ describe('stop-uncommitted-check.mjs output', () => {
     writeFileSync(join(tmpDir, 'file.txt'), 'v3');
 
     const output = runHook(tmpDir);
-    // MM counts as both staged AND modified — correct UX
+    // MM counts as both staged AND modified - correct UX
     expect(output.systemMessage).toContain('1 staged');
     expect(output.systemMessage).toContain('1 modified');
     expect(output.systemMessage).toContain('uncommitted');
@@ -199,4 +240,82 @@ describe('stop-uncommitted-check.mjs output', () => {
     const output = runHook(tmpDir);
     expect(output.systemMessage!.length).toBeLessThan(100);
   });
+
+  /**
+   * F24: one git spawn with --no-optional-locks; no separate rev-parse probe.
+   * Stub git on PATH so we assert argv without depending on real porcelain.
+   */
+  it('invokes git once with --no-optional-locks status --porcelain (F24)', () => {
+    const binDir = mkdtempSync(join(tmpdir(), 'fake-git-'));
+    const logPath = join(binDir, 'argv.log');
+    const fakeGit = join(binDir, 'git');
+    // POSIX sh stub - records argv and emits empty porcelain (clean tree).
+    writeFileSync(
+      fakeGit,
+      `#!/bin/sh\nprintf '%s\\n' "$*" >> "${logPath}"\nexit 0\n`,
+      { mode: 0o755 }
+    );
+
+    const result = execFileSync('node', [SCRIPT_PATH], {
+      cwd: tmpDir,
+      encoding: 'utf-8',
+      env: {
+        ...process.env,
+        PATH: `${binDir}:${process.env.PATH ?? ''}`,
+        CLAUDE_PROJECT_DIR: tmpDir,
+      },
+      input: JSON.stringify({}),
+      timeout: 5000,
+    });
+    expect(JSON.parse(result.trim())).toEqual({ continue: true, suppressOutput: true });
+
+    const lines = readFileSync(logPath, 'utf-8').trim().split('\n').filter(Boolean);
+    expect(lines).toHaveLength(1);
+    expect(lines[0]).toBe('--no-optional-locks status --porcelain');
+
+    rmSync(binDir, { recursive: true, force: true });
+  });
+
+  /**
+   * F24 timeout gate: fake git sleeps past GIT_TIMEOUT_MS (5s). Hook must
+   * catch the spawn timeout and return SILENT_OK. Without timeout on the
+   * hook's execFileSync this test hangs until the outer 10s kill and fails
+   * (ablation: strip `timeout: GIT_TIMEOUT_MS` and re-run).
+   */
+  it('returns silent success when git stalls past GIT_TIMEOUT_MS (F24)', () => {
+    const binDir = mkdtempSync(join(tmpdir(), 'fake-git-timeout-'));
+    const fakeGit = join(binDir, 'git');
+    try {
+      // Hang longer than GIT_TIMEOUT_MS (5s) and longer than the outer bound
+      // below, so a missing hook timeout cannot look like a fast green.
+      writeFileSync(
+        fakeGit,
+        ['#!/bin/sh', 'sleep 30', ''].join('\n'),
+        { mode: 0o755 }
+      );
+
+      const started = Date.now();
+      const result = execFileSync('node', [SCRIPT_PATH], {
+        cwd: tmpDir,
+        encoding: 'utf-8',
+        env: {
+          ...process.env,
+          PATH: `${binDir}:${process.env.PATH ?? ''}`,
+          CLAUDE_PROJECT_DIR: tmpDir,
+        },
+        input: JSON.stringify({}),
+        // Outer harness kill only: must stay above the <8s assertion so a
+        // removed hook timeout cannot still look green.
+        timeout: 10000,
+      });
+      const elapsed = Date.now() - started;
+
+      expect(JSON.parse(result.trim())).toEqual({ continue: true, suppressOutput: true });
+      // Hook GIT_TIMEOUT_MS is 5s; total wall time must stay under 8s.
+      expect(elapsed).toBeLessThan(8000);
+      expect(elapsed).toBeGreaterThanOrEqual(4000);
+    } finally {
+      rmSync(binDir, { recursive: true, force: true });
+    }
+  }, 15000);
 });

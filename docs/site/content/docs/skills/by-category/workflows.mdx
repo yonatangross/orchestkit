@@ -5,7 +5,7 @@ description: "User-invocable commands for common development workflows."
 
 # Workflows Skills
 
-**36 skills** for user-invocable commands for common development workflows.
+**40 skills** for user-invocable commands for common development workflows.
 
 | Skill | Type | Complexity | Description |
 |-------|------|------------|-------------|
@@ -17,22 +17,25 @@ description: "User-invocable commands for common development workflows."
 | [Ci Sentinel](/docs/reference/skills/ci-sentinel) | Command | medium | Daily autonomous classifier for failing PRs across your repos. Runs /ci-debug headless against every open PR with red... |
 | [Commit](/docs/reference/skills/commit) | Command | low | Creates commits with Conventional Commits format (feat/fix/docs/refactor/test/chore), automatic scope detection, co-a... |
 | [Component Search](/docs/reference/skills/component-search) | Command | simple | Search 21st.dev component registry for production-ready React components. Finds components by natural language descri... |
+| [Configure](/docs/reference/skills/configure) | Reference | low | Interactive wizard for OrchestKit settings: MCP servers, hook permissions, keybindings, and install presets. Use when... |
 | [Cover](/docs/reference/skills/cover) | Command | high | Generate tests that do not exist yet. Analyzes coverage gaps, then writes and runs new test files across three tiers ... |
 | [Create Pr](/docs/reference/skills/create-pr) | Command | medium | Creates GitHub pull requests with pre-flight validation, conventional title formatting, and structured summary genera... |
-| [Design Context Extract](/docs/reference/skills/design-context-extract) | Command | medium | Extract design DNA from app screenshots, live URLs, or screen recordings using Google Stitch — color palettes, typogr... |
+| [Design Context Extract](/docs/reference/skills/design-context-extract) | Command | medium | Extract design DNA from app screenshots, live URLs, or screen recordings using Google Stitch, color palettes, typogra... |
 | [Design Import](/docs/reference/skills/design-import) | Command | medium | Scaffolds React components from a Claude Design handoff bundle and stops at files on disk: no stories, no tests, no p... |
 | [Design Ship](/docs/reference/skills/design-ship) | Command | complex | One-shot pipeline turning a claude.ai/design link into a pull request: scaffold via /ork:design-import, stories and s... |
-| [Design Stylecards](/docs/reference/skills/design-stylecards) | Command | low | Declarative catalog of named aesthetic recipes — exact shadow stacks, glass surfaces, gradient treatments, and type s... |
+| [Design Stylecards](/docs/reference/skills/design-stylecards) | Command | low | Declarative catalog of named aesthetic recipes, exact shadow stacks, glass surfaces, gradient treatments, and type sc... |
 | [Design To Code](/docs/reference/skills/design-to-code) | Command | complex | Mockup-to-component pipeline using Google Stitch, 21st.dev, and Storybook MCP. Accepts a screenshot, a description, o... |
 | [Dev](/docs/reference/skills/dev) | Command | medium | One-command dev loop boot. Spins up portless (named HTTPS subdomain), emulate (stateful API mocks), the project's dev... |
 | [Doctor](/docs/reference/skills/doctor) | Command | low | OrchestKit doctor for health diagnostics across manifest integrity, hook configuration, skill validation, agent front... |
-| [Dream](/docs/reference/skills/dream) | Command | medium | Nightly memory consolidation — prunes stale entries, merges duplicates, resolves contradictions, rebuilds MEMORY.md i... |
-| [Expect](/docs/reference/skills/expect) | Command | high | Diff-aware AI browser testing — reads the git diff, maps changes to affected pages via the route map, generates a tar... |
+| [Dream](/docs/reference/skills/dream) | Command | medium | Nightly memory consolidation, prunes stale entries, merges duplicates, resolves contradictions, rebuilds MEMORY.md in... |
+| [Expect](/docs/reference/skills/expect) | Command | high | Diff-aware AI browser testing, reads the git diff, maps changes to affected pages via the route map, generates a targ... |
 | [Explore](/docs/reference/skills/explore) | Command | high | Multi-angle codebase exploration spawning 3-5 parallel agents for code structure, data flow, architecture patterns, a... |
 | [Fix Issue](/docs/reference/skills/fix-issue) | Command | medium | Fixes GitHub issues using parallel analysis agents for root cause investigation, code exploration, and regression det... |
 | [Glyph](/docs/reference/skills/glyph) | Command | low | Render an answer as ASCII art plus semantic emojis inline, right now, with no setup questions: one render per reply, ... |
 | [Help](/docs/reference/skills/help) | Command | low | OrchestKit help directory with categorized skill listings. Use when discovering skills for a task, finding the right ... |
 | [Implement](/docs/reference/skills/implement) | Command | medium | Full-power feature implementation using parallel subagents for backend, frontend, testing, and security, with worktre... |
+| [Issue Progress Tracking](/docs/reference/skills/issue-progress-tracking) | Reference | low | GitHub issue workflow ceremony using gh CLI, labels issues as in-progress, creates feature branches (issue/N-descript... |
+| [Langgraph](/docs/reference/skills/langgraph) | Reference | high | LangGraph 1.x (LTS) Python workflow patterns for state management, delta channels, resilience (node timeouts, error h... |
 | [Memory](/docs/reference/skills/memory) | Command | low | Unified read-side memory operations including knowledge graph search, session context loading, decision timeline view... |
 | [Page Serve](/docs/reference/skills/page-serve) | Command | low | Hand a human a rendered HTML page at a stable HTTPS URL. Registers a portless route for a file or directory (https://... |
 | [Prd To Goal](/docs/reference/skills/prd-to-goal) | Command | low | Decomposes a PRD, issue, or spec into a copy-pasteable single `/goal until ..., or stop after N turns` line. Use when... |
@@ -40,8 +43,9 @@ description: "User-invocable commands for common development workflows."
 | [Remember](/docs/reference/skills/remember) | Command | low | Stores decisions, patterns, and outcomes in the MCP memory knowledge graph as entities with typed observations and re... |
 | [Review Pr](/docs/reference/skills/review-pr) | Command | medium | PR review using parallel specialized agents for code quality, security, testing, architecture, and performance analys... |
 | [Setup](/docs/reference/skills/setup) | Command | medium | Personalized 7-phase onboarding wizard that scans the codebase, detects tech stack, recommends skills and MCP servers... |
-| [Swarm Migrate](/docs/reference/skills/swarm-migrate) | Command | high | Cross-repo migration swarm — one coordinator + N parallel subagents (one per target repo) that apply the same transfo... |
-| [Telemetry Inspect](/docs/reference/skills/telemetry-inspect) | Command | low | Inspects the OrchestKit telemetry pipeline for the current project — lists all known telemetry files with write count... |
+| [Swarm Migrate](/docs/reference/skills/swarm-migrate) | Command | high | Cross-repo migration swarm, one coordinator + N parallel subagents (one per target repo) that apply the same transfor... |
+| [Task Dependency Patterns](/docs/reference/skills/task-dependency-patterns) | Reference | medium | Task Management patterns with TaskCreate, TaskUpdate, TaskGet, TaskList tools. Decompose complex work into trackable ... |
+| [Telemetry Inspect](/docs/reference/skills/telemetry-inspect) | Command | low | Inspects the OrchestKit telemetry pipeline for the current project, lists all known telemetry files with write counts... |
 | [Verify](/docs/reference/skills/verify) | Command | high | Grade work that already exists and decide whether it can merge. Runs the project's current unit, integration, and E2E... |
-| [Visualize Plan](/docs/reference/skills/visualize-plan) | Command | medium | Renders planned changes — architecture and before/after comparisons, risk heat maps, execution order, dependency grap... |
-| [Write Prd](/docs/reference/skills/write-prd) | Command | medium | Write PRD — Product Requirements Documents with structured 8-section templates, user stories, acceptance criteria, an... |
+| [Visualize Plan](/docs/reference/skills/visualize-plan) | Command | medium | Renders planned changes, architecture and before/after comparisons, risk heat maps, execution order, dependency graph... |
+| [Write Prd](/docs/reference/skills/write-prd) | Command | medium | Write PRD, Product Requirements Documents with structured 8-section templates, user stories, acceptance criteria, and... |

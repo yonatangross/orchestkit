@@ -1,0 +1,8 @@
+{
+  "slug": "hook-runtime-session-cost",
+  "source": "docs/fix--sc47-f23-f24-hook-runtime-cost/index.html",
+  "title": "Hook runtime cost: session event retention + Stop git spawn",
+  "description": "F23/F24: age-cap session events.jsonl dirs at 14d; Stop uncommitted check uses execFileSync with --no-optional-locks and a timeout.",
+  "tags": ["hooks", "session-cleanup", "stop", "runtime-cost"],
+  "date": "2026-09-22"
+}

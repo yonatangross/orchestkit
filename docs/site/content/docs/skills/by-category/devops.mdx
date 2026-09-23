@@ -5,16 +5,28 @@ description: "CI/CD, deployment, monitoring, infrastructure, containers."
 
 # DevOps Skills
 
-**7 skills** for ci/cd, deployment, monitoring, infrastructure, containers.
+**19 skills** for ci/cd, deployment, monitoring, infrastructure, containers.
 
 | Skill | Type | Complexity | Description |
 |-------|------|------------|-------------|
+| [Analytics](/docs/reference/skills/analytics) | Reference | low | Queries local analytics across OrchestKit projects for agent usage, skill frequency, hook timing, team activity, sess... |
 | [Ci Debug](/docs/reference/skills/ci-debug) | Command | medium | Diagnose a failing CI run against an 11-pattern playbook. Classifies the failure, cites the relevant memory entry, pr... |
 | [Ci Sentinel](/docs/reference/skills/ci-sentinel) | Command | medium | Daily autonomous classifier for failing PRs across your repos. Runs /ci-debug headless against every open PR with red... |
+| [Configure](/docs/reference/skills/configure) | Reference | low | Interactive wizard for OrchestKit settings: MCP servers, hook permissions, keybindings, and install presets. Use when... |
+| [Create Pr](/docs/reference/skills/create-pr) | Command | medium | Creates GitHub pull requests with pre-flight validation, conventional title formatting, and structured summary genera... |
 | [Devops Deployment](/docs/reference/skills/devops-deployment) | Reference | medium | Use when setting up CI/CD pipelines, containerizing applications, deploying to Kubernetes, or writing infrastructure ... |
+| [Documentation Patterns](/docs/reference/skills/documentation-patterns) | Reference | low | Technical documentation patterns for READMEs, ADRs, API docs (OpenAPI 3.1), changelogs, and writing style guides. Use... |
+| [Emulate Seed](/docs/reference/skills/emulate-seed) | Reference | medium | Generate emulate seed configs for stateful API emulation. Wraps Vercel's emulate tool for GitHub, Vercel, Google OAut... |
+| [Fix Issue](/docs/reference/skills/fix-issue) | Command | medium | Fixes GitHub issues using parallel analysis agents for root cause investigation, code exploration, and regression det... |
+| [Github Operations](/docs/reference/skills/github-operations) | Reference | medium | GitHub CLI operations for issues, PRs, milestones, and Projects v2. Covers gh commands, REST API patterns, and automa... |
+| [Issue Progress Tracking](/docs/reference/skills/issue-progress-tracking) | Reference | low | GitHub issue workflow ceremony using gh CLI, labels issues as in-progress, creates feature branches (issue/N-descript... |
 | [Monitoring Observability](/docs/reference/skills/monitoring-observability) | Reference | medium | Monitoring and observability patterns for Prometheus metrics, Grafana dashboards, Langfuse v4 LLM tracing (as_type, s... |
+| [Okr Design](/docs/reference/skills/okr-design) | Reference | medium | OKR trees, KPI dashboards, North Star Metric, leading/lagging indicators, and experiment design. Use when setting tea... |
 | [Portless](/docs/reference/skills/portless) | Reference | low | Named HTTPS .localhost URLs with portless (v0.15.x). Eliminates port collisions, gives agents stable URLs, adds branc... |
-| [Telemetry Inspect](/docs/reference/skills/telemetry-inspect) | Command | low | Inspects the OrchestKit telemetry pipeline for the current project — lists all known telemetry files with write count... |
+| [Product Analytics](/docs/reference/skills/product-analytics) | Reference | medium | A/B test evaluation, cohort retention analysis, funnel metrics, and experiment-driven product decisions. Use when ana... |
+| [Release Management](/docs/reference/skills/release-management) | Reference | low | Automates GitHub releases with semantic versioning, changelog generation from merged PRs, and gh CLI integration. Sup... |
+| [Setup](/docs/reference/skills/setup) | Command | medium | Personalized 7-phase onboarding wizard that scans the codebase, detects tech stack, recommends skills and MCP servers... |
+| [Telemetry Inspect](/docs/reference/skills/telemetry-inspect) | Command | low | Inspects the OrchestKit telemetry pipeline for the current project, lists all known telemetry files with write counts... |
 | [Web Research Workflow](/docs/reference/skills/web-research-workflow) | Reference | low | Unified decision tree for web research and competitive monitoring. Auto-selects WebFetch, Tavily, or agent-browser ba... |
 
 ## Related Agents
@@ -23,3 +35,4 @@ description: "CI/CD, deployment, monitoring, infrastructure, containers."
 - [Deployment Manager](/docs/reference/agents/deployment-manager)
 - [Infrastructure Architect](/docs/reference/agents/infrastructure-architect)
 - [Monitoring Engineer](/docs/reference/agents/monitoring-engineer)
+- [Release Engineer](/docs/reference/agents/release-engineer)

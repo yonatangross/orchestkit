@@ -12,6 +12,7 @@
 import { existsSync, readFileSync, mkdirSync, unlinkSync, readdirSync, statSync } from 'node:fs';
 import { atomicWriteSync } from './atomic-write.js';
 import { getProjectDir, getSessionId, logHook } from './common.js';
+import { isHttpsUrl, warnRefusedUrlOnce } from './sink-url-policy.js';
 import type {
   OrchestrationState,
   DispatchedAgent,
@@ -311,19 +312,22 @@ export function saveConfig(config: Partial<OrchestrationConfig>): void {
 }
 
 /**
- * Resolve webhook URL: config.webhookUrl first, then the manifest userConfig
- * value (CC injects userConfig options into hook processes as
- * CLAUDE_PLUGIN_OPTION_<KEY>, key uppercased), then the ORCHESTKIT_HOOK_URL
- * env var for existing installs. Returns undefined if none is set.
+ * Resolve webhook URL from user-scope sources only (#4218):
+ * manifest userConfig (CLAUDE_PLUGIN_OPTION_WEBHOOKURL) then ORCHESTKIT_HOOK_URL.
+ * Never reads webhookUrl from project-tree orchestration/config.json.
+ * Requires https:; anything else is refused with a one-shot stderr warning.
  */
 export function getWebhookUrl(): string | undefined {
-  const config = loadConfig();
-  return (
-    config.webhookUrl ||
+  const raw =
     process.env.CLAUDE_PLUGIN_OPTION_WEBHOOKURL ||
     process.env.ORCHESTKIT_HOOK_URL ||
-    undefined
-  );
+    undefined;
+  if (!raw) return undefined;
+  if (!isHttpsUrl(raw)) {
+    warnRefusedUrlOnce(raw, 'orchestration webhook');
+    return undefined;
+  }
+  return raw;
 }
 
 /**

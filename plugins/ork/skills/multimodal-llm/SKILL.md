@@ -27,13 +27,13 @@ allowed-tools:
 
 Integrate vision, audio, and video generation capabilities from leading multimodal models. Covers image analysis, document understanding, real-time voice agents, speech-to-text, text-to-speech, and AI video generation (Kling v3, Sora 2, Veo 3.1 std/lite/fast tiers, Runway Gen-4.5 via `gen4_turbo`).
 
-> **Canonical model IDs** (pinned against `yonatan-hq/platform/apps/api/app/config.py`):
+> **Canonical model IDs** (Google IDs checked against ai.google.dev/gemini-api/docs/models on 2026-09-23):
 >
 > | Provider | Model IDs |
 > |----------|-----------|
 > | Anthropic | `claude-opus-5-5` (recommended, the default Opus since CC 2.1.280, same 2,576 px budget as Opus 5), `claude-opus-5`, `claude-opus-4-8`, `claude-opus-4-7`, `claude-opus-4-6`, `claude-sonnet-4-6`, `claude-haiku-4-5-20251001`. `claude-fable-5` is Anthropic's **frontier tier above Opus** (GA 2026-07). Premium cost — never auto-pin it; the fable-spend-consent gate requires explicit user consent before any Fable spend |
 > | OpenAI    | `gpt-5.5` (current flagship) |
-> | Google    | `gemini-3.1-pro-preview` (flagship), `gemini-3.1-flash-lite-preview` (cost) |
+> | Google    | `gemini-3.1-pro-preview` (flagship), `gemini-3.1-flash-lite` (cost) |
 > | Veo       | `veo-3.1-generate-preview` / `veo-3.1-lite-generate-preview` / `veo-3.1-fast-generate-preview` |
 > | Kling     | `kling-v3` (model_name field in Kling API) |
 > | Runway    | `gen4_turbo` (product label: Gen-4.5) |
@@ -132,7 +132,7 @@ Generate multi-scene videos with consistent characters using storyboarding and c
 |----------|----------------|
 | High accuracy vision | `claude-opus-5-5` (default Opus since CC 2.1.280, 2,576 px vision budget, 3× what Opus 4.6 allotted; give it crop/analyze tools rather than more thinking, which is the cheaper lever on this model). (`claude-fable-5` is the frontier SOTA option, GA 2026-07 — premium cost, use only with explicit consent via the fable-spend-consent gate) |
 | Long documents | `gemini-3.1-pro-preview` (1M+ context) |
-| Cost-efficient vision | `gemini-3.1-flash-lite-preview` (**replaces Gemini 2.5 Flash**, deprecates Oct 2026) |
+| Cost-efficient vision | `gemini-3.1-flash-lite` (GA successor of the Flash-Lite preview, which was shut down 2026-05-25; shutdown scheduled 2027-05-07) |
 | Video analysis | `gemini-3.1-pro-preview` (native video, supersedes 2.5 Pro) |
 | Voice assistant | Grok Voice Agent on Grok 4.20 (fastest, <1s) |
 | Emotional voice AI | Gemini Live API |

@@ -2,7 +2,7 @@
 // Created: 2026-04-03
 
 import { describe, it, expect } from 'vitest';
-import { signPayload, sanitizePayload } from '../lib/crypto.js';
+import { signPayload, sanitizePayload, redactSecretValues } from '../lib/crypto.js';
 
 describe('Crypto Utilities', () => {
   describe('signPayload', () => {
@@ -21,6 +21,42 @@ describe('Crypto Utilities', () => {
       const a = signPayload('body', 'key1');
       const b = signPayload('body', 'key2');
       expect(a).not.toBe(b);
+    });
+  });
+
+  describe('redactSecretValues', () => {
+    it('redacts a GitHub PAT in a command string', () => {
+      const token = 'ghp_aBcDeFgHiJkLmNoPqRsTuVwXyZ0123456789AB';
+      const out = redactSecretValues(`curl -H "Authorization: Bearer ${token}" https://x`);
+      expect(out).not.toContain(token);
+      expect(out).toContain('[REDACTED]');
+    });
+
+    it('returns the original string when no secret patterns match', () => {
+      expect(redactSecretValues('git status')).toBe('git status');
+    });
+
+    // #4217 estate-3: long hosts made the prefix heuristic keep scheme://user:pw@
+    it.each([
+      [
+        'mongodb Atlas host',
+        'mongosh mongodb+srv://app:hunter2secretpw@cluster0.abcde.mongodb.net',
+        'hunter2secretpw',
+      ],
+      [
+        'RDS postgres host',
+        'psql postgresql://admin:hunter2secretpw@mydb.c9akciq32.us-east-1.rds.amazonaws.com',
+        'hunter2secretpw',
+      ],
+      [
+        'mysql long host',
+        'mysql://root:hunter2secretpw@db-prod-01.internal.example-corp.com',
+        'hunter2secretpw',
+      ],
+    ])('masks userinfo password on %s (fail-first against prefix heuristic)', (_label, input, pw) => {
+      const out = redactSecretValues(input);
+      expect(out).not.toContain(pw);
+      expect(out).toContain('[REDACTED]');
     });
   });
 
@@ -83,6 +119,18 @@ describe('Crypto Utilities', () => {
       expect(result?.command).not.toContain('ghp_1234567890abcdefghijklmnopqrstuvwxyz1234');
     });
 
+    it('redacts two secrets in one string (#4218 g flag)', () => {
+      const a = 'ghp_AAAAAAAAAAAAAAAAaaaaaaaaaaaaaaaaaaaa';
+      const b = 'ghp_BBBBBBBBBBBBBBBBbbbbbbbbbbbbbbbbbbbb';
+      const result = sanitizePayload({
+        command: `echo ${a} then ${b}`,
+      });
+      expect(result?.command).not.toContain(a);
+      expect(result?.command).not.toContain(b);
+      const redactedCount = String(result?.command).split('[REDACTED]').length - 1;
+      expect(redactedCount).toBeGreaterThanOrEqual(2);
+    });
+
     it('redacts GitLab tokens in commands (#3589)', () => {
       const result = sanitizePayload({
         command: 'glab auth login --token glpat-aB1cD2eF3gH4iJ5kL6mN7oP8qR',
@@ -140,6 +188,19 @@ describe('Crypto Utilities', () => {
       const items = result?.items as Array<Record<string, unknown>>;
       expect(items[0].api_token).toBe('[REDACTED]');
       expect(items[1].name).toBe('safe');
+    });
+
+    it('redacts and truncates string elements inside arrays', () => {
+      const token = 'ghp_aBcDeFgHiJkLmNoPqRsTuVwXyZ0123456789AB';
+      const long = 'x'.repeat(5000);
+      const result = sanitizePayload({
+        argv: [`echo ${token}`, long],
+      });
+      const argv = result?.argv as string[];
+      expect(argv[0]).not.toContain(token);
+      expect(argv[0]).toContain('[REDACTED]');
+      expect(argv[1].length).toBeLessThanOrEqual(500);
+      expect(argv[1].endsWith('...')).toBe(true);
     });
 
     // --- New secret patterns (security audit fix) ---

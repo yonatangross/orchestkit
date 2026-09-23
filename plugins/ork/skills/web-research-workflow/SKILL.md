@@ -4,7 +4,6 @@ license: MIT
 compatibility: "Claude Code 2.1.277+. Requires network access."
 description: Unified decision tree for web research and competitive monitoring. Auto-selects WebFetch, Tavily, or agent-browser based on target site characteristics and available API keys. Includes competitor page tracking, snapshot diffing, and change alerting. Use when researching web content, scraping, extracting raw markdown, capturing documentation, or monitoring competitor changes.
 context: inherit
-agent: web-research-analyst
 version: 1.3.0
 author: OrchestKit
 tags: [research, browser, webfetch, tavily, automation, scraping, content-extraction, competitive-intelligence, monitoring]

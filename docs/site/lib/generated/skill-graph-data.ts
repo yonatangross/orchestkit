@@ -209,7 +209,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "label": "Code Review Playbook",
     "type": "reference",
     "complexity": "low",
-    "category": "other",
+    "category": "testing",
     "hasDeps": false,
     "depCount": 0,
     "usedByCount": 3
@@ -399,7 +399,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "label": "Documentation Patterns",
     "type": "reference",
     "complexity": "low",
-    "category": "other",
+    "category": "devops",
     "hasDeps": false,
     "depCount": 0,
     "usedByCount": 0
@@ -529,7 +529,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "label": "I18n Date Patterns",
     "type": "reference",
     "complexity": "low",
-    "category": "other",
+    "category": "frontend",
     "hasDeps": false,
     "depCount": 0,
     "usedByCount": 0
