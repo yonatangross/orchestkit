@@ -11,6 +11,7 @@
  *
  * SEC: Respects EXCLUDED_DIRS (node_modules, .git, dist, etc.)
  * SEC: Never retries writes outside project or added dirs
+ * SEC: Never retries hard-denied paths (same denylist as PermissionRequest auto-approve)
  *
  * CC 2.1.88 Compliant: PermissionDenied hook, returns {retry: true}
  * @hook PermissionDenied[Write|Edit]
@@ -21,6 +22,7 @@
 import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess } from '../lib/common.js';
 import { isInsideDir, hasExcludedDir, resolveRealPath } from '../lib/path-containment.js';
+import { isHardDeniedWritePath } from '../lib/permission-auto-approve.js';
 import { NOOP_CTX } from '../lib/context.js';
 
 const HOOK_NAME = 'project-write-retry';
@@ -49,8 +51,14 @@ export function projectWriteRetry(input: HookInput, ctx: HookContext = NOOP_CTX)
 
   // CC >= 2.1.88 delivers absolute file_path for Write/Edit/Read; the support
   // floor is far above that, so no relative-path compat branch remains.
-  // SEC: Resolve symlinks to prevent bypass attacks (ME-001 / PD-001)
+  // SEC: Resolve symlinks before containment and denylist checks (ME-001 / PD-001)
   filePath = resolveRealPath(filePath, projectDir);
+
+  // SEC: hard denylist (same rules as PermissionRequest auto-approve)
+  if (isHardDeniedWritePath(filePath)) {
+    ctx.log(HOOK_NAME, `Hard-denied write path: not retrying: ${filePath}`);
+    return outputSilentSuccess();
+  }
 
   // Check all root directories: project + /add-dir dirs
   // SEC-003: Validate added_dirs — reject filesystem root or sensitive directories

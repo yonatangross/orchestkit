@@ -179,17 +179,17 @@ describe('resolveRealPath', () => {
     // Caller (isInsideDir) would then reject this as outside project
   });
 
-  test('dangling leaf symlink returns lexical target for denylist', () => {
+  test('dangling leaf symlink returns target joined on real parent', () => {
     mockRealpathSync.mockImplementation((p: unknown) => {
       const s = String(p);
-      if (s === '/project/src/cfg.json') throw new Error('ENOENT');
-      if (s === '/project/src') return '/project/src';
-      if (s === '/project/.claude/settings.local.json') throw new Error('ENOENT');
-      throw new Error(`unexpected realpath: ${s}`);
+      if (s.endsWith('cfg.json') || s.endsWith('settings.local.json')) {
+        throw new Error('ENOENT');
+      }
+      return s;
     });
     mockLstatSync.mockImplementation((p: unknown) => {
       const s = String(p);
-      if (s === '/project/src/cfg.json') {
+      if (s.endsWith('cfg.json')) {
         return { isSymbolicLink: () => true } as unknown as import('node:fs').Stats;
       }
       throw new Error('ENOENT');
@@ -204,27 +204,49 @@ describe('resolveRealPath', () => {
   test('dangling symlink chain follows multiple readlink hops', () => {
     mockRealpathSync.mockImplementation((p: unknown) => {
       const s = String(p);
-      if (s === '/project/src/link1.json') throw new Error('ENOENT');
-      if (s === '/project/src') return '/project/src';
-      if (s === '/project/.claude/settings.local.json') throw new Error('ENOENT');
-      throw new Error(`unexpected realpath: ${s}`);
+      if (s.endsWith('link1.json') || s.endsWith('settings.local.json')) {
+        throw new Error('ENOENT');
+      }
+      return s;
     });
     mockLstatSync.mockImplementation((p: unknown) => {
       const s = String(p);
-      if (s === '/project/src/link1.json' || s === '/project/src/link2.json') {
+      if (s.endsWith('link1.json') || s.endsWith('link2.json')) {
         return { isSymbolicLink: () => true } as unknown as import('node:fs').Stats;
       }
       throw new Error('ENOENT');
     });
     mockReadlinkSync.mockImplementation((p: unknown) => {
       const s = String(p);
-      if (s === '/project/src/link1.json') return 'link2.json';
-      if (s === '/project/src/link2.json') return '../.claude/settings.local.json';
+      if (s.endsWith('link1.json')) return 'link2.json';
+      if (s.endsWith('link2.json')) return '../.claude/settings.local.json';
       throw new Error(`unexpected readlink: ${s}`);
     });
 
     expect(resolveRealPath('/project/src/link1.json', '/project')).toBe(
       '/project/.claude/settings.local.json',
+    );
+  });
+
+  test('absent target under a linked parent resolves through the real parent', () => {
+    mockRealpathSync.mockImplementation((p: unknown) => {
+      const s = String(p);
+      if (s === '/project/notes.md') throw new Error('ENOENT');
+      if (s === '/project') return '/project';
+      if (s === '/project/sub/hooks') return '/project/.claude/hooks';
+      throw new Error(`unexpected realpath: ${s}`);
+    });
+    mockLstatSync.mockImplementation((p: unknown) => {
+      const s = String(p);
+      if (s === '/project/notes.md') {
+        return { isSymbolicLink: () => true } as unknown as import('node:fs').Stats;
+      }
+      throw new Error('ENOENT');
+    });
+    mockReadlinkSync.mockReturnValue('sub/hooks/new.sh');
+
+    expect(resolveRealPath('/project/notes.md', '/project')).toBe(
+      '/project/.claude/hooks/new.sh',
     );
   });
 });

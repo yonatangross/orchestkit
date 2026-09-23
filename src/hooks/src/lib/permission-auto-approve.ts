@@ -7,7 +7,7 @@
  * auto-approve hooks (project-writes, safe-bash, learning-tracker).
  *
  * Hard denylist (always, even when enabled): resolved real paths that match
- * settings*.json, .mcp.json, plugin.json, .claude/**, .github/**, .husky/**,
+ * settings*.json, .mcp.json, plugin.json, .git*, .claude/**, .github/**, .husky/**,
  * .env / .env.*, and every file lib/sink-registry.ts reads
  * (plugin.json, .claude/settings.local.json).
  */
@@ -26,8 +26,7 @@ export function isPermissionAutoApproveEnabled(
 /**
  * True when a resolved absolute path must never be auto-approved for Write/Edit.
  * Callers must pass resolveRealPath() output so ../ and symlinks cannot slip past.
- * Comparison is case-insensitive (macOS APFS default) so .MCP.json / .Claude /
- * Plugin.json / .ENV cannot bypass the denylist.
+ * Comparison is case-insensitive (macOS APFS default).
  */
 export function isHardDeniedWritePath(resolvedPath: string): boolean {
   const normalized = normalize(resolvedPath);
@@ -43,8 +42,9 @@ export function isHardDeniedWritePath(resolvedPath: string): boolean {
   // .env and .env.*
   if (base === '.env' || base.startsWith('.env.')) return true;
 
-  // Directory trees: .claude, .github, .husky (segment match)
+  // Directory trees / prefixes: .git*, .claude, .github, .husky (segment match)
   for (const seg of parts) {
+    if (seg.startsWith('.git')) return true;
     if (seg === '.claude' || seg === '.github' || seg === '.husky') return true;
   }
 

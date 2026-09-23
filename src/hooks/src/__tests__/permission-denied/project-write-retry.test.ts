@@ -7,6 +7,9 @@ import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { projectWriteRetry } from '../../permission-denied/project-write-retry.js';
 import type { HookInput } from '../../types.js';
 import { createTestContext } from '../fixtures/test-context.js';
+import * as fs from 'node:fs';
+import * as os from 'node:os';
+import * as path from 'node:path';
 
 // Mock the common module
 vi.mock('../../lib/common.js', async () => {
@@ -308,6 +311,39 @@ describe('project-write-retry', () => {
           additionalContext: expect.stringContaining('incorrectly denied'),
         },
       });
+    });
+  });
+
+  describe('Hard-denied and case-variant paths are not retried', () => {
+    test.each([
+      '/test/project/.GIT/config',
+      '/test/project/.Git/hooks/pre-commit',
+      '/test/project/.Claude/settings.local.json',
+      '/test/project/.mcp.json',
+      '/test/project/.env',
+      '/test/project/settings.json',
+    ])('does not retry %s', (filePath) => {
+      const result = projectWriteRetry(createDeniedWriteInput(filePath), testCtx);
+      expect(result.hookSpecificOutput?.retry).toBeUndefined();
+    });
+
+    test('does not retry write whose target path crosses a linked parent', () => {
+      const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ork-retry-linked-'));
+      fs.mkdirSync(path.join(tmp, 'proj'), { recursive: true });
+      const project = fs.realpathSync(path.join(tmp, 'proj'));
+      fs.mkdirSync(path.join(project, '.claude'), { recursive: true });
+      fs.symlinkSync('.claude', path.join(project, 'sub'));
+      const leaf = path.join(project, 'notes.md');
+      fs.symlinkSync('sub/hooks/new.sh', leaf);
+      try {
+        const result = projectWriteRetry(
+          createDeniedWriteInput(leaf, { projectDir: project }),
+          testCtx,
+        );
+        expect(result.hookSpecificOutput?.retry).toBeUndefined();
+      } finally {
+        fs.rmSync(tmp, { recursive: true, force: true });
+      }
     });
   });
 });

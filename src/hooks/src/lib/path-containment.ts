@@ -4,7 +4,7 @@
  * Shared path validation for project directory containment checks.
  * Used by auto-approve-project-writes.ts and project-write-retry.ts.
  *
- * SEC: resolveRealPath follows symlinks to prevent bypass attacks (ME-001).
+ * SEC: resolveRealPath follows symlinks before containment checks (ME-001).
  * SEC: isInsideDir uses relative() not startsWith() to prevent prefix attacks.
  * SEC #4220 AF-13: EXCLUDED_DIRS includes .github / .claude / .husky; segments
  * matching .git* are also excluded.
@@ -49,18 +49,20 @@ export function isInsideDir(filePath: string, rootDir: string): boolean {
 /**
  * Check if a file path contains an excluded directory segment.
  * Exact EXCLUDED_DIRS matches, plus any segment starting with `.git` (#4220 AF-13).
+ * Segment compares are case-insensitive.
  */
 export function hasExcludedDir(filePath: string): boolean {
   const parts = normalize(filePath).split(sep).filter(Boolean);
   for (const part of parts) {
-    if (part.startsWith('.git')) return true;
-    if (EXCLUDED_DIRS.includes(part)) return true;
+    const lower = part.toLowerCase();
+    if (lower.startsWith('.git')) return true;
+    if (EXCLUDED_DIRS.includes(lower)) return true;
   }
   return false;
 }
 
 /**
- * Resolve file path, following symlinks to prevent bypass attacks.
+ * Resolve file path, following symlinks before containment checks.
  * Pattern from file-guard.ts (ME-001 fix).
  *
  * #4220 AF-15: when the leaf does not exist (ENOENT), realpath the parent
@@ -74,6 +76,15 @@ export function hasExcludedDir(filePath: string): boolean {
  * cap is hit, return a path under `.claude` so auto-approve passes through.
  */
 const MAX_SYMLINK_HOPS = 40;
+
+/** Join basename onto the real parent dir; fail closed if the parent cannot be resolved. */
+function joinOnRealParent(targetPath: string): string {
+  try {
+    return join(realpathSync(dirname(targetPath)), basename(targetPath));
+  } catch {
+    return join(dirname(targetPath), '.claude', '.ork-unresolved-symlink');
+  }
+}
 
 export function resolveRealPath(filePath: string, projectDir: string): string {
   const absolutePath = isAbsolute(filePath)
@@ -94,14 +105,14 @@ export function resolveRealPath(filePath: string, projectDir: string): string {
           try {
             curStat = lstatSync(current);
           } catch {
-            // Lexical target absent: return it for denylist/containment.
-            return current;
+            // Target absent: realpath the parent so linked parents are followed.
+            return joinOnRealParent(current);
           }
           if (!curStat.isSymbolicLink()) {
             try {
               return realpathSync(current);
             } catch {
-              return current;
+              return joinOnRealParent(current);
             }
           }
           try {

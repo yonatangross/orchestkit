@@ -135,7 +135,7 @@ describe('PermissionRequest auto-approve security hold (#4374)', () => {
       expect(isAllow(r)).toBe(true);
     });
 
-    // reviewer-estate-2 should-fix #1: macOS case-insensitive denylist bypass
+    // reviewer-estate-2 should-fix #1: macOS case-insensitive denylist match
     const caseVariantRel = [
       '.MCP.json',
       'Plugin.json',
@@ -184,8 +184,6 @@ describe('PermissionRequest auto-approve security hold (#4374)', () => {
     });
 
     test('denies dangling symlink CHAIN into .claude (multi-hop)', () => {
-      // link1 -> link2 -> .claude/settings.local.json; both links dangling.
-      // One readlink hop returns the lexical link2 path (no .claude segment).
       const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ork-chain-'));
       fs.mkdirSync(path.join(tmp, 'proj', 'src'), { recursive: true });
       const project = fs.realpathSync(path.join(tmp, 'proj'));
@@ -196,7 +194,32 @@ describe('PermissionRequest auto-approve security hold (#4374)', () => {
       try {
         process.env[FLAG] = '1';
         const r = autoApproveProjectWrites(writeInput(link1, project));
-        expect(isAllow(r), 'dangling symlink chain into .claude must not auto-approve').toBe(false);
+        expect(isAllow(r), 'multi-hop dangling chain must not auto-approve').toBe(false);
+      } finally {
+        fs.rmSync(tmp, { recursive: true, force: true });
+      }
+    });
+
+    test.each(['.GIT/config', '.Git/hooks/pre-commit', '.Claude/settings.local.json'])(
+      'denies case-variant path %s',
+      (rel) => {
+        const r = autoApproveProjectWrites(writeInput(`${PROJECT}/${rel}`));
+        expect(isAllow(r), `must not allow ${rel}`).toBe(false);
+      },
+    );
+
+    test('denies write whose target path crosses a linked parent', () => {
+      const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ork-linked-parent-'));
+      fs.mkdirSync(path.join(tmp, 'proj'), { recursive: true });
+      const project = fs.realpathSync(path.join(tmp, 'proj'));
+      fs.mkdirSync(path.join(project, '.claude'), { recursive: true });
+      fs.symlinkSync('.claude', path.join(project, 'sub'));
+      const leaf = path.join(project, 'notes.md');
+      fs.symlinkSync('sub/hooks/new.sh', leaf);
+      try {
+        process.env[FLAG] = '1';
+        const r = autoApproveProjectWrites(writeInput(leaf, project));
+        expect(isAllow(r), 'linked-parent target must not auto-approve').toBe(false);
       } finally {
         fs.rmSync(tmp, { recursive: true, force: true });
       }
