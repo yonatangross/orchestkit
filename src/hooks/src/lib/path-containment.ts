@@ -66,12 +66,14 @@ export function hasExcludedDir(filePath: string): boolean {
  * directory and join the basename. A committed symlink directory plus a
  * new-file write must not escape via the unresolved lexical path.
  *
- * Dangling leaf symlink: realpathSync fails, but the link still names a
- * target. Resolve readlink relative to the link's real parent so a denylist
- * sees `.claude/settings.local.json` instead of `src/cfg.json`. If the leaf
- * is a symlink we cannot resolve, return a path under `.claude` so callers
- * that auto-approve must pass through (never treat the link path as safe).
+ * Dangling leaf symlink chain: realpathSync fails, but links still name
+ * targets. Follow readlink hops (cap MAX_SYMLINK_HOPS) relative to each
+ * link's real parent so a denylist sees `.claude/settings.local.json`
+ * instead of an intermediate link path. If hops cannot be resolved or the
+ * cap is hit, return a path under `.claude` so auto-approve passes through.
  */
+const MAX_SYMLINK_HOPS = 40;
+
 export function resolveRealPath(filePath: string, projectDir: string): string {
   const absolutePath = isAbsolute(filePath)
     ? filePath
@@ -81,26 +83,38 @@ export function resolveRealPath(filePath: string, projectDir: string): string {
     // Call realpathSync directly; avoids TOCTOU race between existsSync and realpathSync
     return realpathSync(absolutePath);
   } catch {
-    // Dangling or otherwise unresolvable leaf symlink: follow readlink.
+    // Dangling or otherwise unresolvable leaf symlink chain: follow readlink hops.
     try {
       const st = lstatSync(absolutePath);
       if (st.isSymbolicLink()) {
-        try {
-          const parentReal = realpathSync(dirname(absolutePath));
-          const linkTarget = readlinkSync(absolutePath);
-          const resolvedTarget = isAbsolute(linkTarget)
-            ? normalize(linkTarget)
-            : resolve(parentReal, linkTarget);
+        let current = absolutePath;
+        for (let hop = 0; hop < MAX_SYMLINK_HOPS; hop++) {
+          let curStat;
           try {
-            return realpathSync(resolvedTarget);
+            curStat = lstatSync(current);
           } catch {
-            // Target absent: return lexical target for denylist/containment.
-            return resolvedTarget;
+            // Lexical target absent: return it for denylist/containment.
+            return current;
           }
-        } catch {
-          // Symlink leaf we cannot resolve: do not hand back the link path.
-          return join(dirname(absolutePath), '.claude', '.ork-unresolved-symlink');
+          if (!curStat.isSymbolicLink()) {
+            try {
+              return realpathSync(current);
+            } catch {
+              return current;
+            }
+          }
+          try {
+            const parentReal = realpathSync(dirname(current));
+            const linkTarget = readlinkSync(current);
+            current = isAbsolute(linkTarget)
+              ? normalize(linkTarget)
+              : resolve(parentReal, linkTarget);
+          } catch {
+            return join(dirname(current), '.claude', '.ork-unresolved-symlink');
+          }
         }
+        // Cap exceeded: do not treat the start link as safe.
+        return join(dirname(absolutePath), '.claude', '.ork-unresolved-symlink');
       }
     } catch {
       // Not a symlink (or leaf missing): fall through to AF-15.

@@ -182,5 +182,24 @@ describe('PermissionRequest auto-approve security hold (#4374)', () => {
         fs.rmSync(tmp, { recursive: true, force: true });
       }
     });
+
+    test('denies dangling symlink CHAIN into .claude (multi-hop)', () => {
+      // link1 -> link2 -> .claude/settings.local.json; both links dangling.
+      // One readlink hop returns the lexical link2 path (no .claude segment).
+      const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ork-chain-'));
+      fs.mkdirSync(path.join(tmp, 'proj', 'src'), { recursive: true });
+      const project = fs.realpathSync(path.join(tmp, 'proj'));
+      const link2 = path.join(project, 'src', 'link2.json');
+      const link1 = path.join(project, 'src', 'link1.json');
+      fs.symlinkSync('../.claude/settings.local.json', link2);
+      fs.symlinkSync('link2.json', link1);
+      try {
+        process.env[FLAG] = '1';
+        const r = autoApproveProjectWrites(writeInput(link1, project));
+        expect(isAllow(r), 'dangling symlink chain into .claude must not auto-approve').toBe(false);
+      } finally {
+        fs.rmSync(tmp, { recursive: true, force: true });
+      }
+    });
   });
 });

@@ -187,10 +187,43 @@ describe('resolveRealPath', () => {
       if (s === '/project/.claude/settings.local.json') throw new Error('ENOENT');
       throw new Error(`unexpected realpath: ${s}`);
     });
-    mockLstatSync.mockReturnValue({ isSymbolicLink: () => true } as unknown as import('node:fs').Stats);
+    mockLstatSync.mockImplementation((p: unknown) => {
+      const s = String(p);
+      if (s === '/project/src/cfg.json') {
+        return { isSymbolicLink: () => true } as unknown as import('node:fs').Stats;
+      }
+      throw new Error('ENOENT');
+    });
     mockReadlinkSync.mockReturnValue('../.claude/settings.local.json');
 
     expect(resolveRealPath('/project/src/cfg.json', '/project')).toBe(
+      '/project/.claude/settings.local.json',
+    );
+  });
+
+  test('dangling symlink chain follows multiple readlink hops', () => {
+    mockRealpathSync.mockImplementation((p: unknown) => {
+      const s = String(p);
+      if (s === '/project/src/link1.json') throw new Error('ENOENT');
+      if (s === '/project/src') return '/project/src';
+      if (s === '/project/.claude/settings.local.json') throw new Error('ENOENT');
+      throw new Error(`unexpected realpath: ${s}`);
+    });
+    mockLstatSync.mockImplementation((p: unknown) => {
+      const s = String(p);
+      if (s === '/project/src/link1.json' || s === '/project/src/link2.json') {
+        return { isSymbolicLink: () => true } as unknown as import('node:fs').Stats;
+      }
+      throw new Error('ENOENT');
+    });
+    mockReadlinkSync.mockImplementation((p: unknown) => {
+      const s = String(p);
+      if (s === '/project/src/link1.json') return 'link2.json';
+      if (s === '/project/src/link2.json') return '../.claude/settings.local.json';
+      throw new Error(`unexpected readlink: ${s}`);
+    });
+
+    expect(resolveRealPath('/project/src/link1.json', '/project')).toBe(
       '/project/.claude/settings.local.json',
     );
   });
