@@ -241,11 +241,19 @@ export interface HookInput {
   };
 
   // ConfigChange event (CC documented payload).
-  /** Which settings layer changed */
+  // Docs (CC ≥2.1.280): https://docs.claude.com/en/docs/claude-code/hooks#configchange-input
+  // Payload shape verified 2.1.227+: {hook_event_name:"ConfigChange", source, file_path}.
+  /**
+   * Which configuration layer changed (ConfigChange). CC field name is `source`.
+   * Also used by SessionStart (`startup` | `resume` | …) and other events.
+   */
+  source?: string;
+  /**
+   * NOT sent. Invented alias for ConfigChange `source`. Kept so older readers
+   * and tests typecheck; prefer `source`.
+   */
   config_source?: 'user_settings' | 'project_settings' | 'local_settings' | 'policy_settings' | 'skills';
-  /** NOT sent — ConfigChange delivers the path as `file_path` (verified
-   *  2.1.227: {hook_event_name:"ConfigChange", source, file_path}). Use the
-   *  shared `file_path` field declared in the FileChanged block. */
+  /** NOT sent. ConfigChange delivers the path as `file_path`. */
   config_file_path?: string;
   /** The changed fields (hooks, permissions, …) */
   changes?: Record<string, unknown>;
