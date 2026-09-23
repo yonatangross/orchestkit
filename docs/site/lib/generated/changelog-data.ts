@@ -18,6 +18,24 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.83",
+    "date": "2026-09-23",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.82...v10.0.0-beta.83",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**hooks:** emit PermissionRequest decision.behavior for auto-approve ([#4374](https://github.com/yonatangross/orchestkit/issues/4374)) ([7725095](https://github.com/yonatangross/orchestkit/commit/7725095061b54fc55012ca21afcc5528db54902d))",
+          "**hooks:** read tool_response and lock attribution state (sweep T1) ([#4386](https://github.com/yonatangross/orchestkit/issues/4386)) ([39d67e5](https://github.com/yonatangross/orchestkit/commit/39d67e5e2298404ab51a5de14c47d7141de45107))",
+          "**security:** XS hardening batch from the 2026-09-17 audit ([#4220](https://github.com/yonatangross/orchestkit/issues/4220)) ([#4383](https://github.com/yonatangross/orchestkit/issues/4383)) ([5fbfa83](https://github.com/yonatangross/orchestkit/commit/5fbfa83a0bda4859b36c86be9ba518ba4c666588))",
+          "**skills:** grant Stitch tools the skills call, and guard skill MCP refs ([#4376](https://github.com/yonatangross/orchestkit/issues/4376)) ([3cbe64d](https://github.com/yonatangross/orchestkit/commit/3cbe64df01ca1fb4058734a54d8cb3cbe3b285e9))",
+          "**skills:** keep rc capture and cleanup working under set -e (sweep T2) ([#4387](https://github.com/yonatangross/orchestkit/issues/4387)) ([df86f66](https://github.com/yonatangross/orchestkit/commit/df86f6601c51c0bbe1a20a066346915ba07fb169))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.82",
     "date": "2026-09-23",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.81...v10.0.0-beta.82",
