@@ -176,7 +176,7 @@ const VALUE_OPTS: Record<InterpreterFamily, ReadonlySet<string>> = {
     '--conditions',
     '--env-file',
   ]),
-  ruby: new Set(['-r', '-I', '-C', '-E', '--encoding', '-x']),
+  ruby: new Set(['-r', '-I', '-C', '-E', '--encoding']),
   perl: new Set(['-M', '-I']),
   // php -f is a boolean below: the following token is the script path (ALLOW).
   // -c here is php.ini, not code.
@@ -235,6 +235,8 @@ const BOOLEAN_FLAGS: Record<InterpreterFamily, ReadonlySet<string>> = {
     '-s',
     '-S',
     '-y',
+    // -x may take an attached directory (`-x/tmp`) but never a separate argv token.
+    '-x',
   ]),
   // -n/-p/-a/-l/-w so clusters like `-ne` stay ALLOW when `-e` is a code flag.
   perl: new Set(['-n', '-p', '-a', '-l', '-w', '-c', '-d', '-t', '-T', '-U', '-u', '-W', '-X', '-S', '-h', '-v']),
@@ -385,6 +387,8 @@ function interpreterArgsAreStdinProgram(
     if (codeFlags.has(a)) return false; // ALLOW: inline code/module
 
     if (booleans.has(a)) continue;
+    // ruby -x[dir]: directory is attached to the flag, never a following argv token.
+    if (family === 'ruby' && a.startsWith('-x/')) continue;
 
     // Short option cluster: `-ne` => `-n` then `-e`, etc.
     if (/^-[A-Za-z0-9]+$/.test(a) && a.length > 2) {
