@@ -127,11 +127,11 @@ const DENY_REGEX: { re: RegExp; label: string }[] = [
     re: /\b(?:nc|ncat|netcat)\b[^\n]*\s-e\b/i,
     label: 'nc -e: netcat command-exec (reverse shell)',
   },
-  // Plain pipe-to-shell / pipe-to-interpreter (#4220 HR-5). The retired
-  // dangerous-command-blocker used to own these; without them an allowlisted
-  // `curl … | sh` runs with no deny (measured #3877 / CC 2.1.263).
+  // Plain pipe-to-shell (#4220 HR-5). The retired dangerous-command-blocker
+  // used to own these; without them an allowlisted `curl … | sh` runs with no
+  // deny (measured #3877 / CC 2.1.263).
   // Fetcher is curl/wget, or fetch as its own command word (not `git fetch`).
-  // Optional path prefix ([\w./-]*/) covers `/bin/sh`, `/usr/bin/python3`, etc.
+  // Optional path prefix ([\w./-]*/) covers `/bin/sh`, `/usr/bin/bash`, etc.
   {
     re: /(?:\bcurl\b|\bwget\b|(?<!\bgit\s)\bfetch\b)[^\n]{0,200}\|\s*(?:[\w./-]*\/)?(?:ba|z|k|da)?sh\b/i,
     label: 'curl|sh: pipes fetched content to a shell',
@@ -140,14 +140,128 @@ const DENY_REGEX: { re: RegExp; label: string }[] = [
     re: /(?:\bcurl\b|\bwget\b|(?<!\bgit\s)\bfetch\b)[^\n]{0,200}\|\s*base64\b(?:\s+-[A-Za-z]*)?[^\n]{0,80}\|\s*(?:[\w./-]*\/)?(?:ba|z|k|da)?sh\b/i,
     label: 'curl|base64|sh: pipes decoded remote content to a shell',
   },
-  // Interpreter DENY only when the program is read from stdin: bare name
-  // (optionally path-prefixed) or a lone `-`. Flags like -c/-m/-e/-r or a
-  // script path argument are normal parsing and must pass.
-  {
-    re: /(?:\bcurl\b|\bwget\b|(?<!\bgit\s)\bfetch\b)[^\n]{0,200}\|\s*(?:[\w./-]*\/)?(?:python[0-9.]*|node|ruby|perl|php)(?:\s+-(?=\s*(?:$|[|;&#])))?(?=\s*(?:$|[|;&#]))/i,
-    label: 'curl|interpreter: pipes fetched content to an interpreter',
-  },
+  // curl|interpreter stdin-program shapes use pipeToInterpreterStdinProgram()
+  // below (not a single regex): bare/sudo/env, lone `-`, `/dev/stdin`, and
+  // option-only flags like `-u` must DENY; `-c`/`-m`/`-e`/`-r`/`-E`/`--eval`
+  // or a real script path must ALLOW.
 ];
+
+/** curl/wget, or fetch not preceded by `git ` (so `git fetch` is not a fetcher). */
+const FETCHER_RE = /(?:\bcurl\b|\bwget\b|(?<!\bgit\s)\bfetch\b)/i;
+
+/** Path-optional interpreter that can run a fetched body as its program. */
+const INTERPRETER_NAME_RE = /^(?:[\w./-]*\/)?(?:python[0-9.]*|node|ruby|perl|php)$/i;
+
+/** Flags that mean the next arg is code/module, not a stdin program. */
+const INTERPRETER_CODE_FLAGS = new Set(['-c', '-m', '-e', '-r', '-E', '--eval']);
+
+/**
+ * Tokenize one simple-command suffix (after `|`) until `; | &` or newline.
+ * Quotes are respected so `-c "code"` stays two tokens.
+ */
+function tokenizePipeRhs(s: string): string[] {
+  const tokens: string[] = [];
+  let i = 0;
+  while (i < s.length) {
+    const ch = s[i]!;
+    if (ch === ';' || ch === '\n' || ch === '|' || ch === '&') break;
+    if (/\s/.test(ch)) {
+      i++;
+      continue;
+    }
+    if (ch === '"' || ch === "'") {
+      const q = ch;
+      i++;
+      let tok = '';
+      while (i < s.length && s[i] !== q) {
+        if (q === '"' && s[i] === '\\' && i + 1 < s.length) {
+          tok += s[i + 1];
+          i += 2;
+          continue;
+        }
+        tok += s[i];
+        i++;
+      }
+      if (i < s.length) i++; // closing quote
+      tokens.push(tok);
+      continue;
+    }
+    let tok = '';
+    while (
+      i < s.length &&
+      !/\s/.test(s[i]!) &&
+      s[i] !== ';' &&
+      s[i] !== '|' &&
+      s[i] !== '&' &&
+      s[i] !== '\n'
+    ) {
+      tok += s[i];
+      i++;
+    }
+    tokens.push(tok);
+  }
+  return tokens;
+}
+
+/**
+ * True when args mean the interpreter runs its PROGRAM from stdin (DENY):
+ * no args, only option flags (`-u`, `-I`, `-W`, …), a lone `-` (with or
+ * without trailing args), or `/dev/stdin`. False (ALLOW) when any arg is a
+ * code/module flag or a script path that is not `-` / `/dev/stdin`.
+ */
+function interpreterArgsAreStdinProgram(args: string[]): boolean {
+  if (args.length === 0) return true;
+  for (const a of args) {
+    if (INTERPRETER_CODE_FLAGS.has(a)) return false;
+    // Lone `-` or /dev/stdin means the program is stdin, with or without
+    // trailing args (`python3 - arg1` still runs the piped body).
+    if (a === '-' || a === '/dev/stdin') return true;
+    if (a.startsWith('-')) continue; // option-only flags (-u, -I, -W, …)
+    return false; // script path
+  }
+  return true;
+}
+
+/**
+ * HR-5 curl|interpreter: after a fetcher and a pipe, skip optional sudo/env
+ * (and `env VAR=val`) prefixes, then decide DENY vs ALLOW from interpreter args.
+ */
+function pipeToInterpreterStdinProgram(cmd: string): boolean {
+  let searchFrom = 0;
+  while (searchFrom < cmd.length) {
+    const pipe = cmd.indexOf('|', searchFrom);
+    if (pipe < 0) return false;
+    const left = cmd.slice(Math.max(0, pipe - 200), pipe);
+    if (!FETCHER_RE.test(left)) {
+      searchFrom = pipe + 1;
+      continue;
+    }
+    const tokens = tokenizePipeRhs(cmd.slice(pipe + 1));
+    let idx = 0;
+    while (idx < tokens.length) {
+      const t = tokens[idx]!.toLowerCase();
+      if (t === 'sudo') {
+        idx++;
+        continue;
+      }
+      if (t === 'env') {
+        idx++;
+        while (idx < tokens.length && /^[A-Za-z_][A-Za-z0-9_]*=/.test(tokens[idx]!)) {
+          idx++;
+        }
+        continue;
+      }
+      break;
+    }
+    if (idx >= tokens.length || !INTERPRETER_NAME_RE.test(tokens[idx]!)) {
+      searchFrom = pipe + 1;
+      continue;
+    }
+    if (interpreterArgsAreStdinProgram(tokens.slice(idx + 1))) return true;
+    searchFrom = pipe + 1;
+  }
+  return false;
+}
 
 // =============================================================================
 // Quote-aware view for the DENY tier (#3122)
@@ -253,6 +367,19 @@ export function networkEgressGuard(input: HookInput, ctx: HookContext = NOOP_CTX
           'separate reviewed step.',
       );
     }
+  }
+
+  if (pipeToInterpreterStdinProgram(denyScan)) {
+    const label = 'curl|interpreter: pipes fetched content to an interpreter';
+    ctx.log(HOOK_NAME, `BLOCKED: ${label}`);
+    ctx.logPermission('deny', label, input);
+    return outputDeny(
+      `Blocked remote-code-execution pattern: ${label}\n\n` +
+        'Fetching content from the network and executing it in one step is a ' +
+        'common exfiltration / supply-chain vector and has been blocked. If this ' +
+        'is intentional, download to a file, inspect it, then run it as a ' +
+        'separate reviewed step.',
+    );
   }
 
   // ASK tier retired 2026-08-31 (#3835 wave 2). It stood down behind an
