@@ -1,0 +1,8 @@
+{
+  "slug": "hooks-payload-shape-sweep-t1",
+  "source": "docs/fix--hooks-payload-shape-sweep/index.html",
+  "title": "Sweep T1: hooks read the payload CC actually sends",
+  "description": "Four hook fixes: tool_response instead of the never-sent tool_output, ork: skill prefix normalization, locked agent-attribution read-modify-write, and host-only sink URL logging.",
+  "tags": ["hooks", "payload", "locking", "sweep-t1"],
+  "date": "2026-09-23"
+}

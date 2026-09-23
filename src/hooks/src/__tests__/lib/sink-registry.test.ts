@@ -49,6 +49,29 @@ vi.mock('../../lib/crypto.js', () => ({
   sanitizePayload: (obj: unknown) => obj,
 }));
 
+// HttpSink throws only for a marked URL, so one test can force the
+// construction-failure path in registerAllSinks without touching other cases.
+vi.mock('../../lib/http-sink.js', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../lib/http-sink.js')>();
+  return {
+    ...actual,
+    HttpSink: class extends actual.HttpSink {
+      constructor(options?: { name?: string; url?: string; token?: string }) {
+        let host = '';
+        try {
+          host = new URL(options?.url ?? '').host;
+        } catch {
+          host = '';
+        }
+        if (host === 'explode.example.com') {
+          throw new Error('ctor exploded');
+        }
+        super(options);
+      }
+    },
+  };
+});
+
 vi.mock('../../lifecycle/usage-summary-reporter.js', () => ({
   getProjectSlug: () => 'test-project',
 }));
@@ -276,6 +299,26 @@ describe('Sink Registry', () => {
       });
       registerAllSinks();
       expect(sinkCount()).toBe(2);
+    });
+
+    it('logs only the URL host when sink construction fails (#4380 follow-up)', () => {
+      writeUserSettingsLocalJson({
+        telemetry: {
+          sinks: [
+            {
+              type: 'http',
+              url: 'https://explode.example.com/private/ingest?token=sekret123',
+              token: 'tok',
+            },
+          ],
+        },
+      });
+      registerAllSinks();
+      const failureLog = logMessages.find((m) => m.includes('Failed to create sink'));
+      expect(failureLog).toBeDefined();
+      expect(failureLog).toBe('Failed to create sink from user config: explode.example.com');
+      expect(failureLog).not.toContain('/private/ingest');
+      expect(failureLog).not.toContain('sekret123');
     });
 
     it('derives sink name from URL hostname when name not provided', () => {

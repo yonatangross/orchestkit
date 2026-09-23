@@ -18,6 +18,7 @@ import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import { safeProjectDir } from '../../lib/paths.js';
 import { NOOP_CTX } from '../../lib/context.js';
+import { stringifyOutput } from '../../lib/stringify-output.js';
 
 export async function fingerprintSaver(input: HookInput, ctx: HookContext = NOOP_CTX): Promise<HookResult> {
   // Guard: only fire for /ork:expect skill completion
@@ -25,13 +26,16 @@ export async function fingerprintSaver(input: HookInput, ctx: HookContext = NOOP
     return outputSilentSuccess();
   }
 
-  const skillName = (input.tool_input as Record<string, unknown>)?.skill;
+  // CC sends the skill name with its plugin prefix (`ork:expect`) and the
+  // tool result as `tool_response`; `tool_output` is a legacy alias.
+  const skillName = String((input.tool_input as Record<string, unknown>)?.skill ?? '')
+    .replace(/^ork:/, '');
   if (skillName !== 'expect') {
     return outputSilentSuccess();
   }
 
   // Check if the run passed
-  const output = String(input.tool_output ?? '');
+  const output = stringifyOutput(input.tool_response ?? input.tool_output) ?? '';
   if (!output.includes('RUN_COMPLETED|passed')) {
     ctx.log('fingerprint-saver', 'Expect run did not pass — skipping fingerprint save');
     return outputSilentSuccess();
