@@ -203,6 +203,105 @@
 }
 
 /* ============================================================
+   HOME HERO A: left copy + right conductor bleed (~55%)
+   Reference: approved-design/hero-a-2026-09-22.html
+   Cosmic/dot grid stays on body (unchanged). No new motion here;
+   prefers-reduced-motion already gates body::after cosmic-drift.
+   ============================================================ */
+
+.home-hero-inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  gap: 24px;
+  align-items: start;
+  min-height: min(72vh, 720px);
+}
+
+/* Hero-only display cap (mockup A). Keep global --text-fluid-h1 at 6rem
+   for factory-ride and other surfaces. */
+.home-hero {
+  --text-fluid-h1: clamp(2.5rem, 4vw + 1.5rem, 4.25rem);
+}
+
+/* Desktop art box follows source 1280x723. Do not stretch top/bottom to the
+   full copy column (picker/search/proof): that made object-fit:cover crop the
+   conductor to one arm at about 2x zoom (reviewer-estate-3 HOLD on #4345).
+   Top-align with the headline column so art sits beside the copy-top, not
+   centered beside the host picker. */
+.home-hero-art {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: auto;
+  width: 55%;
+  height: auto;
+  aspect-ratio: 1280 / 723;
+  transform: none;
+  z-index: 1;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(0, 0, 0, 0.15) 12%,
+    #000 38%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(0, 0, 0, 0.15) 12%,
+    #000 38%
+  );
+}
+
+.home-hero-art img {
+  object-fit: cover;
+  object-position: right center;
+}
+
+@media (max-width: 900px) {
+  .home-hero-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 0;
+    padding-top: 48px;
+    padding-bottom: 56px;
+  }
+
+  /* Contents of .home-hero-copy become flex siblings of the art so the
+     16:9 band sits under the headline (copy-top), before install CTAs. */
+  .home-hero-copy {
+    display: contents;
+  }
+
+  .home-hero-copy-top {
+    order: 1;
+  }
+
+  .home-hero-art {
+    position: relative;
+    order: 2;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    inset: auto;
+    top: auto;
+    transform: none;
+    margin-top: 8px;
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 18%);
+    mask-image: linear-gradient(to bottom, transparent 0%, #000 18%);
+  }
+
+  .home-hero-art img {
+    object-position: center 30%;
+  }
+
+  .home-hero-copy-actions {
+    order: 3;
+  }
+}
+
+/* ============================================================
    CIRCUIT TRACE CONNECTORS
    ============================================================ */
 

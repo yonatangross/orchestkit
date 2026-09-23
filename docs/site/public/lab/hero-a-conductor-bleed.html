@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hero A: conductor bleed playground</title>
+<style>
+  :root {
+    --bg: oklch(0.13 0.02 270);
+    --fg: oklch(0.93 0.012 270);
+    --muted: oklch(0.77 0.02 270);
+    --border: oklch(0.26 0.028 270);
+    --primary: oklch(0.62 0.2 264);
+    --raised: oklch(0.20 0.024 270);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    color: var(--fg);
+    background: oklch(0.1 0.018 265);
+    font: 14px/1.5 ui-sans-serif, system-ui, sans-serif;
+  }
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(700px at 35% 22%, oklch(0.62 0.2 264 / 0.18), transparent 70%),
+      radial-gradient(120% 85% at 85% -5%, oklch(0.34 0.13 286 / 0.55), transparent 58%);
+  }
+  header, main { position: relative; z-index: 1; }
+  header { padding: 20px 24px 8px; max-width: 1100px; margin: 0 auto; }
+  h1 { margin: 0 0 6px; font-size: 18px; }
+  .sub { margin: 0; color: var(--muted); }
+  main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 12px 24px 40px;
+    display: grid;
+    gap: 16px;
+    grid-template-columns: 260px 1fr;
+  }
+  @media (max-width: 820px) { main { grid-template-columns: 1fr; } }
+  .panel {
+    background: var(--raised);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+  }
+  .group { margin-bottom: 14px; }
+  .group h2 {
+    margin: 0 0 8px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+  }
+  .seg { display: flex; flex-wrap: wrap; gap: 6px; }
+  button.opt {
+    background: #1d2330;
+    color: var(--fg);
+    border: 1px solid #2d3546;
+    border-radius: 7px;
+    padding: 6px 10px;
+    cursor: pointer;
+    font: inherit;
+  }
+  button.opt[aria-pressed="true"] {
+    border-color: var(--primary);
+    background: #26304a;
+  }
+  button.opt:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+  .stage {
+    position: relative;
+    min-height: 420px;
+    overflow: hidden;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: oklch(0.12 0.02 270);
+  }
+  .hero {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+    gap: 16px;
+    align-items: center;
+    padding: 28px;
+    min-height: 420px;
+  }
+  .copy { position: relative; z-index: 2; max-width: 320px; }
+  .eyebrow {
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+    padding: 4px 10px 4px 4px;
+    border: 1px solid var(--border);
+    border-radius: 9999px;
+    background: var(--raised);
+    font: 11px ui-monospace, Menlo, monospace;
+    color: var(--muted);
+  }
+  .pill {
+    padding: 3px 8px;
+    border-radius: 9999px;
+    border: 1px solid oklch(0.62 0.2 264 / 0.35);
+    background: oklch(0.62 0.2 264 / 0.12);
+    color: var(--primary);
+  }
+  h3 {
+    margin: 14px 0 0;
+    font-size: clamp(1.6rem, 3vw + 0.8rem, 2.4rem);
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+  }
+  .counts { margin: 12px 0 0; color: var(--muted); }
+  .counts b { color: var(--fg); font-family: ui-monospace, Menlo, monospace; font-weight: 500; }
+  .actions { margin-top: 16px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .install {
+    border: 1px solid oklch(0.62 0.2 264 / 0.5);
+    background: var(--raised);
+    color: var(--fg);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font: 12px ui-monospace, Menlo, monospace;
+  }
+  .cta { color: var(--primary); font-weight: 600; text-decoration: none; }
+  .art {
+    position: absolute;
+    top: 0; right: 0; bottom: 0;
+    width: 55%;
+    z-index: 1;
+    pointer-events: none;
+    background:
+      url("../site/approved-design/compare/dev-1440x900.png") right center / cover no-repeat;
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, rgba(0,0,0,0.15) 12%, #000 38%);
+    mask-image: linear-gradient(to right, transparent 0%, rgba(0,0,0,0.15) 12%, #000 38%);
+  }
+  .stage.narrow .hero {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    padding: 20px;
+  }
+  .stage.narrow .art {
+    position: relative;
+    order: 2;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    inset: auto;
+    margin-top: 8px;
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 18%);
+    mask-image: linear-gradient(to bottom, transparent 0%, #000 18%);
+    background-position: center 30%;
+  }
+  .stage.narrow .copy-top { order: 1; }
+  .stage.narrow .copy-actions { order: 3; }
+  .stage.narrow .copy { display: contents; max-width: none; }
+  .note { margin: 10px 0 0; color: var(--muted); font-size: 12px; }
+  .shots {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  @media (max-width: 820px) { .shots { grid-template-columns: 1fr; } }
+  .shots figure { margin: 0; }
+  .shots img {
+    width: 100%;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    display: block;
+  }
+  .shots figcaption { margin-top: 6px; color: var(--muted); font-size: 12px; }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Hero A: conductor bleed"><meta property="og:description" content="Interactive playground for the docs homepage hero option A: left headline column with conductor art bleeding on the right under an L to R gradient mask, plus mobile 16:9 band under the headline."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/hero-a-conductor-bleed.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Hero A: conductor bleed"><meta name="twitter:description" content="Interactive playground for the docs homepage hero option A: left headline column with conductor art bleeding on the right under an L to R gradient mask, plus mobile 16:9 band under the headline."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<header>
+  <h1>Hero A: conductor bleed</h1>
+  <p class="sub">Interactive check for PR playground. Left copy, ~55% right art, L→R mask, 16:9 under headline below 900px. Install and Get started stay.</p>
+</header>
+<main>
+  <aside class="panel" aria-label="Controls">
+    <div class="group">
+      <h2>Viewport</h2>
+      <div class="seg" role="group" aria-label="Viewport">
+        <button type="button" class="opt" data-vp="wide" aria-pressed="true">1440</button>
+        <button type="button" class="opt" data-vp="narrow" aria-pressed="false">390</button>
+      </div>
+    </div>
+    <div class="group">
+      <h2>Mask</h2>
+      <div class="seg" role="group" aria-label="Mask">
+        <button type="button" class="opt" data-mask="on" aria-pressed="true">on</button>
+        <button type="button" class="opt" data-mask="off" aria-pressed="false">off</button>
+      </div>
+    </div>
+    <p class="note">Reference HTML: <code>docs/site/approved-design/hero-a-2026-09-22.html</code>. Art from <code>design/og-card/art/A-1.png</code>.</p>
+  </aside>
+  <section class="panel">
+    <div id="stage" class="stage" data-vp="wide">
+      <div class="hero">
+        <div class="copy">
+          <div class="copy-top">
+            <div class="eyebrow"><span class="pill">What's new</span> 10.0.0-beta.76</div>
+            <h3>Stop explaining your stack.<br>Start shipping.</h3>
+            <p class="counts"><b>107 skills</b> · <b>36 agents</b> · <b>171 hooks</b></p>
+          </div>
+          <div class="copy-actions">
+            <div class="actions">
+              <span class="install">$ claude plugin marketplace add …</span>
+              <a class="cta" href="#">Get started →</a>
+            </div>
+          </div>
+        </div>
+        <div id="art" class="art" role="img" aria-label="Conductor art preview"></div>
+      </div>
+    </div>
+    <div class="shots" style="margin-top:14px">
+      <figure>
+        <img src="../site/approved-design/compare/mockup-1440x900.png" alt="Approved mockup at 1440 by 900">
+        <figcaption>Approved mockup · 1440×900</figcaption>
+      </figure>
+      <figure>
+        <img src="../site/approved-design/compare/dev-1440x900.png" alt="Live-dev branch at 1440 by 900">
+        <figcaption>Live-dev · 1440×900</figcaption>
+      </figure>
+    </div>
+  </section>
+</main>
+<script>
+  const stage = document.getElementById("stage");
+  const art = document.getElementById("art");
+  function setPressed(group, value) {
+    document.querySelectorAll(`button.opt[data-${group}]`).forEach((btn) => {
+      btn.setAttribute("aria-pressed", btn.dataset[group] === value ? "true" : "false");
+    });
+  }
+  document.querySelectorAll("button.opt[data-vp]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const vp = btn.dataset.vp;
+      stage.classList.toggle("narrow", vp === "narrow");
+      stage.dataset.vp = vp;
+      setPressed("vp", vp);
+    });
+  });
+  document.querySelectorAll("button.opt[data-mask]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const on = btn.dataset.mask === "on";
+      art.style.webkitMaskImage = on ? "" : "none";
+      art.style.maskImage = on ? "" : "none";
+      setPressed("mask", btn.dataset.mask);
+    });
+  });
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

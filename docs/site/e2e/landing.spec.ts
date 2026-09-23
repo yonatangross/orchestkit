@@ -30,6 +30,79 @@ test.describe('Landing hero', () => {
     await expect(page.getByRole('navigation', { name: /install by host/i })).toBeVisible();
   });
 
+  test('hero A art bleeds on desktop and stacks as 16:9 under copy on narrow', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/');
+
+    const art = page.locator('.home-hero-art');
+    await expect(art).toBeVisible();
+    const desktop = await art.evaluate((el) => {
+      const cs = getComputedStyle(el);
+      const r = el.getBoundingClientRect();
+      return {
+        position: cs.position,
+        widthPct: Math.round((r.width / window.innerWidth) * 100),
+        width: r.width,
+        height: r.height,
+        aspect: r.height > 0 ? Number((r.width / r.height).toFixed(2)) : 0,
+        mask: cs.maskImage || (cs as CSSStyleDeclaration & { webkitMaskImage?: string }).webkitMaskImage || '',
+      };
+    });
+    expect(desktop.position).toBe('absolute');
+    expect(desktop.widthPct).toBeGreaterThanOrEqual(40);
+    expect(desktop.widthPct).toBeLessThanOrEqual(75);
+    expect(desktop.mask).toMatch(/linear-gradient/);
+    // Source is 1280x723 (~1.77). Full-column stretch + cover cropped the
+    // conductor (~2x zoom). Height must track width at that ratio, not the
+    // tall copy column (picker/search/proof).
+    expect(desktop.height).toBeGreaterThan(200);
+    expect(desktop.height).toBeLessThan(480);
+    expect(desktop.aspect).toBeGreaterThan(1.6);
+    expect(desktop.aspect).toBeLessThan(2.0);
+    const expectedH = desktop.width * (723 / 1280);
+    expect(Math.abs(desktop.height - expectedH)).toBeLessThan(12);
+
+    // Mockup caps display at 4.25rem so the headline is 3 lines at 1440.
+    const h1Lines = await page.locator('#hero-heading').evaluate((el) => {
+      const cs = getComputedStyle(el);
+      const lh = parseFloat(cs.lineHeight);
+      if (!Number.isFinite(lh) || lh <= 0) return -1;
+      return Math.round(el.getBoundingClientRect().height / lh);
+    });
+    expect(h1Lines).toBe(3);
+
+    // Art must sit beside the headline, not vertically centred on the full
+    // copy column. Compare artTop to h1.top (not h1.bottom): a centered
+    // 16:9 box can still clear h1.bottom at 1440x900 (CodeRabbit).
+    const anchor = await page.evaluate(() => {
+      const art = document.querySelector('.home-hero-art')?.getBoundingClientRect();
+      const h1 = document.querySelector('#hero-heading')?.getBoundingClientRect();
+      if (!art || !h1) return null;
+      return { artTop: art.top, h1Top: h1.top };
+    });
+    expect(anchor).not.toBeNull();
+    expect(anchor!.artTop).toBeLessThan(anchor!.h1Top);
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    const mobile = await art.evaluate((el) => {
+      const cs = getComputedStyle(el);
+      const r = el.getBoundingClientRect();
+      return {
+        position: cs.position,
+        aspect: r.width > 0 ? Number((r.width / r.height).toFixed(2)) : 0,
+        top: r.top,
+        bottom: r.bottom,
+      };
+    });
+    const h1Bottom = await page.locator('#hero-heading').evaluate((el) => el.getBoundingClientRect().bottom);
+    const installTop = await page.locator('[data-hero-install]').evaluate((el) => el.getBoundingClientRect().top);
+    expect(mobile.position).toBe('relative');
+    expect(mobile.aspect).toBeGreaterThan(1.6);
+    expect(mobile.aspect).toBeLessThan(2.0);
+    expect(mobile.top).toBeGreaterThan(h1Bottom - 1);
+    expect(mobile.bottom).toBeLessThanOrEqual(installTop + 1);
+  });
+
   test('proof strip shows GitHub stars (real number or fallback)', async ({ page }) => {
     await page.goto('/');
 
