@@ -103,6 +103,10 @@ describe('project-write-retry', () => {
       '/test/project/__pycache__/module.pyc',
       '/test/project/.venv/lib/site-packages/pkg.py',
       '/test/project/venv/bin/python',
+      // #4220 AF-13
+      '/test/project/.github/workflows/ci.yml',
+      '/test/project/.claude/settings.local.json',
+      '/test/project/.husky/pre-commit',
     ];
 
     test.each(excludedPaths)('does not retry excluded dir write: %s', (filePath) => {
