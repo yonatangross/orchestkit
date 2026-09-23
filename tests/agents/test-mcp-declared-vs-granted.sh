@@ -361,10 +361,11 @@ check_skill_body_grants() {
       let m;
       while ((m = tokRe.exec(body))) {
         const tok = \"mcp__\" + m[1] + \"__\" + m[2];
-        const before = body.slice(Math.max(0, m.index - 8), m.index);
+        const lineStart = body.lastIndexOf(\"\\n\", m.index - 1) + 1;
+        const before = body.slice(lineStart, m.index);
         const after = body[m.index + m[0].length] || \"\";
         const asCall = after === \"(\";
-        const asSelect = /select:$/.test(before);
+        const asSelect = /select:[A-Za-z0-9_,-]*$/.test(before);
         const inTicks = (body[m.index - 1] === \"\`\") && after === \"\`\";
         if (asCall || asSelect || inTicks) needed.add(tok);
       }

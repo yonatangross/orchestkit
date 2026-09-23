@@ -87,6 +87,18 @@
       "toolsVerifiedOn": "2026-09-22",
       "toolsVerifiedBy": "Live tools/list of https://stitch.googleapis.com/mcp via hq-ext Stitch (reviewer-estate-1 on #4362). Roster is the subset agents grant: list_projects, get_project, list_screens, get_screen, generate_screen_from_text."
     },
+    "plugin_hq-ext_stitch": {
+      "reason": "Same Stitch MCP as unconfigured.stitch, registered by the hq-ext plugin. Claude Code names tools mcp__plugin_hq-ext_stitch__<tool> (https://code.claude.com/docs/en/mcp-servers). Listed so assertion (b) validates those grants the same way as mcp__stitch__*.",
+      "tools": [
+        "list_projects",
+        "get_project",
+        "list_screens",
+        "get_screen",
+        "generate_screen_from_text"
+      ],
+      "toolsVerifiedOn": "2026-09-23",
+      "toolsVerifiedBy": "Same live tools/list as stitch (operator hq-ext session); tool leaf names identical, only the server segment differs."
+    },
     "storybook-mcp": {
       "reason": "Per project Storybook dev server at http://localhost:6006/mcp, provided by @storybook/addon-mcp in the CONSUMER project. It exists only while that project runs Storybook, so it is intentionally absent from this repo's .mcp.json. Agents that declare it MUST still grant mcp__storybook-mcp__* in tools: (F12).",
       "tools": [
