@@ -115,8 +115,7 @@ jobs:
           # Hook bundles (src/hooks/dist, plugins/ork/hooks/dist) are excluded
           # since #3578: they are release-owned and a heal commit carrying them
           # would fail ci.yml's "release-owned" gate on the very PR it healed.
-          # stop-uncommitted-check.mjs is the same class (release-please extra-files).
-          GATED=(plugins/ ':!plugins/ork/hooks/dist' ':!plugins/ork/hooks/bin/stop-uncommitted-check.mjs' docs/site/content/docs/reference docs/site/content/docs/skills/by-category)
+          GATED=(plugins/ ':!plugins/ork/hooks/dist' docs/site/content/docs/reference docs/site/content/docs/skills/by-category)
           if git diff --quiet -- "${GATED[@]}"; then
             echo "::notice::No build drift — source and committed artifacts already in sync."
             exit 0
