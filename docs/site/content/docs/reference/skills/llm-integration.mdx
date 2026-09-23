@@ -1262,7 +1262,7 @@ Key decisions:
 - Example ordering: most similar examples last (recency bias)
 - CoT trigger: "Let's think step by step" or explicit format, for models without built-in thinking only
 - Claude models that think by default (Opus 5.5 "always thinks before it replies"): delete CoT triggers and "show your reasoning" asks; change `effort` for depth, and ask for a short rationale when you need one
-- Always use CoT for math/logic tasks
+- Math/logic tasks: use CoT on models without built-in thinking; on thinking models, raise `effort` instead
 
 
 ### Optimize prompts for token efficiency, accuracy, and cost through systematic techniques: HIGH
@@ -1552,14 +1552,19 @@ optimized = optimizer.compile(OptimizedQA(), trainset=examples)
 
 **Correct -- self-consistency for hard problems:**
 ```python
-async def self_consistent_answer(question: str, n_paths: int = 5) -> str:
-    """Generate multiple CoT reasoning paths and vote on answer."""
+async def self_consistent_answer(question: str, n_paths: int = 5, model_thinks: bool = False) -> str:
+    """Sample several reasoning paths and vote on the answer.
+
+    model_thinks=True for models that reason by default (Claude Opus 5.5 always
+    thinks and rejects sampling params): send the bare question, no CoT suffix,
+    no temperature. Non-thinking models get the CoT suffix and a higher
+    temperature for path diversity.
+    """
+    content = question if model_thinks else f"{question}\n\nThink step by step."
+    sampling = {} if model_thinks else {"temperature": 0.7}
     answers = []
     for _ in range(n_paths):
-        response = await llm.chat([{
-            "role": "user",
-            "content": f"{question}\n\nThink step by step."  # non-thinking models; drop on Opus 5.5
-        }], temperature=0.7)  # Higher temp for diversity; Opus 5.5 rejects sampling params
+        response = await llm.chat([{"role": "user", "content": content}], **sampling)
         answer = extract_final_answer(response)
         answers.append(answer)
 

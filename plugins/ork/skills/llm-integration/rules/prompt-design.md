@@ -79,4 +79,4 @@ Key decisions:
 - Example ordering: most similar examples last (recency bias)
 - CoT trigger: "Let's think step by step" or explicit format, for models without built-in thinking only
 - Claude models that think by default (Opus 5.5 "always thinks before it replies"): delete CoT triggers and "show your reasoning" asks; change `effort` for depth, and ask for a short rationale when you need one
-- Always use CoT for math/logic tasks
+- Math/logic tasks: use CoT on models without built-in thinking; on thinking models, raise `effort` instead
