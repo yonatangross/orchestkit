@@ -2,7 +2,11 @@
  * Antipattern Warning - Static Rules Materializer
  *
  * materializeAntipatternRules() writes .claude/rules/antipatterns.md
- * at session start. CC loads this into every prompt for FREE — no per-turn cost.
+ * at session start. CC loads rules files into every prompt; they ride the
+ * prompt cache, but they are not free: each copy is injected as context.
+ * When the user-global copy ($CLAUDE_CONFIG_DIR/rules/, default ~/.claude/rules/)
+ * already carries identical content, the project-level write is skipped so the
+ * same text is not duplicated once per project dir.
  * Called by sync-session-dispatcher.ts at SessionStart.
  *
  * Dynamic per-turn pattern matching (antipatternWarning, searchDynamicPatterns)
@@ -11,6 +15,8 @@
  */
 
 import { writeRulesFile } from '../lib/common.js';
+import { getHomeDir } from '../lib/paths.js';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 // Static anti-patterns — materialized to rules file at session start
@@ -49,12 +55,40 @@ const STATIC_ANTIPATTERNS: Array<{ pattern: string; warning: string }> = [
 ];
 
 /**
+ * Render the static anti-patterns rules file content.
+ * Exported so tests can place a byte-identical copy at the user-global path.
+ */
+export function buildAntipatternsContent(): string {
+  const lines = STATIC_ANTIPATTERNS.map(({ pattern, warning }) => `- **${pattern}**: ${warning}`);
+  return `# Anti-Pattern Warnings\n\nAvoid these known anti-patterns:\n\n${lines.join('\n')}\n`;
+}
+
+/**
+ * User-global rules directory: $CLAUDE_CONFIG_DIR/rules, default ~/.claude/rules.
+ */
+function userRulesDir(): string {
+  const configDir = process.env.CLAUDE_CONFIG_DIR || join(getHomeDir(), '.claude');
+  return join(configDir, 'rules');
+}
+
+/**
  * Materialize static anti-patterns to a rules file (called once at session start).
- * CC loads .claude/rules/ files into every prompt automatically — zero per-turn cost.
+ * CC loads .claude/rules/ files into every prompt (prompt-cached, not free).
+ * Skips the project-level write when the user-global copy is byte-identical;
+ * an existing project copy is left in place, never deleted from a hook.
  */
 export function materializeAntipatternRules(projectDir: string): void {
-  const lines = STATIC_ANTIPATTERNS.map(({ pattern, warning }) => `- **${pattern}**: ${warning}`);
-  const content = `# Anti-Pattern Warnings\n\nAvoid these known anti-patterns:\n\n${lines.join('\n')}\n`;
+  const content = buildAntipatternsContent();
+
+  const globalFile = join(userRulesDir(), 'antipatterns.md');
+  try {
+    if (existsSync(globalFile) && readFileSync(globalFile, 'utf8') === content) {
+      return;
+    }
+  } catch {
+    // Unreadable global file: fall through and write the project copy.
+  }
+
   const rulesDir = join(projectDir, '.claude', 'rules');
   writeRulesFile(rulesDir, 'antipatterns.md', content, 'antipattern-warning');
 }
