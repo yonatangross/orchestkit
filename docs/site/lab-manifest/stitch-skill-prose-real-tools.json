@@ -1,0 +1,8 @@
+{
+  "slug": "stitch-skill-prose-real-tools",
+  "source": "docs/fix--4362-stitch-skill-prose/index.html",
+  "title": "Phantom Stitch names out of skill prose",
+  "description": "After #4362, skill prose still named build_site, get_screen_code, and get_screen_image. Follow-up rewrites those 15 mentions to the live Stitch tool set.",
+  "tags": ["skills", "stitch", "mcp", "4362"],
+  "date": "2026-09-23"
+}

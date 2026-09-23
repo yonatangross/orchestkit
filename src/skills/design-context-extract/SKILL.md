@@ -66,7 +66,7 @@ Input (screenshot/URL/project)
            │
            ▼
 ┌──────────────────────────────┐
-│ Extract                       │  Stitch extract_design_context
+│ Extract                       │  Stitch get_screen + generate_screen_from_text
 │                               │  OR multimodal analysis (fallback)
 │ → Colors (hex + oklch)        │
 │ → Typography (families, scale)│
@@ -124,8 +124,9 @@ TaskUpdate(taskId="2", status="completed")    # When done — repeat for each su
 
 **For URLs:**
 ```python
-# If stitch available: call build_site(prompt=<url + extraction goal>)
-#   then get_screen_code / get_screen_image per generated screen
+# If stitch available:
+#   list_projects / get_project, then generate_screen_from_text for the URL goal
+#   list_screens, then get_screen for details + download URLs; fetch those URLs
 # If not: WebFetch the URL and analyze HTML/CSS
 ```
 
@@ -170,10 +171,15 @@ Never describe motion as "smooth" or "nice" — convert taste into mechanism + n
 
 **If stitch MCP is available:**
 ```python
-# Official Stitch MCP tools (stitch.withgoogle.com/docs/mcp):
-#   - build_site(prompt)          → generates the target design
-#   - get_screen_code(screenId)   → React/HTML output per screen
-#   - get_screen_image(screenId)  → PNG rasterization per screen
+# Live Stitch MCP tools (https://stitch.googleapis.com/mcp), matching
+# design-context-extractor agent grants:
+#   - list_projects() / get_project(projectId)
+#   - list_screens(projectId) / get_screen(projectId, screenId)
+#       get_screen returns screen details including download URLs
+#   - generate_screen_from_text(projectId, prompt)
+#
+# Flow: generate_screen_from_text (or reuse an existing screen) →
+# list_screens → get_screen → fetch download URLs for multimodal extract.
 #
 # Also consider Figma Dev Mode MCP as a complementary extraction path
 # when the source is a Figma file:

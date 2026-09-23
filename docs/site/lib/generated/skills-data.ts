@@ -101,7 +101,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "ai-ui-generation",
     "description": "AI-assisted UI generation patterns for json-render, v0.app, Google Stitch, Bolt Cloud, and Cursor workflows. Covers prompt engineering for component and full-stack app generation, review checklists for AI-generated code, design token injection, refactoring for design system conformance, and CI gates for quality assurance. Use when generating UI components with AI tools, rendering multi-surface MCP visual output, reviewing AI-generated code, or integrating AI output into design systems.",
     "version": "1.1.0",
-    "sha256": "a4a6e6a4f8bc090fd45af0401904a8629059658e3160418a00de81e47d59f8f9",
+    "sha256": "ab546ebe382363699226f7e496a8445d38ff60d5f2a1b8360e6e6289c409eb0c",
     "author": "OrchestKit",
     "tags": [
       "ai-ui",
@@ -1420,7 +1420,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "design-context-extract",
     "description": "Extract design DNA from app screenshots, live URLs, or screen recordings using Google Stitch — color palettes, typography, spacing tokens, component patterns, and motion specs as design-tokens.json or Tailwind config. Use when the user points to a screenshot, URL, or video and asks to extract or audit the design, analyze animations or scroll behavior, or keep new pages matching an established visual identity.",
     "version": "1.0.1",
-    "sha256": "ae734f1c31b82894730335a685dbbe8c4901e408ecd9558e17792061eee41905",
+    "sha256": "cf25ce464cbc5b5f4130f8bc63c990c4c4b2bd21904fde0a7ffd4d78ed9d6797",
     "author": "OrchestKit",
     "tags": [
       "design-context",
@@ -1653,7 +1653,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "design-to-code",
     "description": "Mockup-to-component pipeline using Google Stitch, 21st.dev, and Storybook MCP. Accepts a screenshot, a description, or a URL and produces production-ready React components, checking existing Storybook components before generating anything new. Use when implementing UI from a mockup or screenshot. To call the MCP tool surface on its own, with no design to convert, use storybook-mcp-integration.",
     "version": "1.0.1",
-    "sha256": "76b454d194df595a0a75d60f562e4054d3f0c77b920d236bd73099a51a29981e",
+    "sha256": "0a9481d533b4b7e7858f4f84d24e51b92cf997aee1932fe546d78d9f35739d5e",
     "author": "OrchestKit",
     "tags": [
       "design-to-code",
@@ -2179,6 +2179,7 @@ export const SKILLS: Record<string, SkillMeta> = {
         "test-plan.md"
       ],
       "scripts": [
+        "__pycache__",
         "coverage-context.sh",
         "diff-scan.sh",
         "fingerprint.sh",
