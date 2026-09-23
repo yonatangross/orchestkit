@@ -130,17 +130,18 @@ const DENY_REGEX: { re: RegExp; label: string }[] = [
   // Plain pipe-to-shell / pipe-to-interpreter (#4220 HR-5). The retired
   // dangerous-command-blocker used to own these; without them an allowlisted
   // `curl … | sh` runs with no deny (measured #3877 / CC 2.1.263).
+  // Optional path prefix ([\w./-]*/) covers `/bin/sh`, `/usr/bin/python3`, etc.
   {
-    re: /\b(?:curl|wget|fetch)\b[^\n]{0,200}\|\s*(?:ba|z|k|da)?sh\b/i,
-    label: 'curl|sh — pipes fetched content to a shell',
+    re: /\b(?:curl|wget|fetch)\b[^\n]{0,200}\|\s*(?:[\w./-]*\/)?(?:ba|z|k|da)?sh\b/i,
+    label: 'curl|sh: pipes fetched content to a shell',
   },
   {
-    re: /\b(?:curl|wget|fetch)\b[^\n]{0,200}\|\s*base64\b[^\n]{0,80}\|\s*(?:ba|z|k|da)?sh\b/i,
-    label: 'curl|base64|sh — pipes decoded remote content to a shell',
+    re: /\b(?:curl|wget|fetch)\b[^\n]{0,200}\|\s*base64\b(?:\s+-[A-Za-z]*)?[^\n]{0,80}\|\s*(?:[\w./-]*\/)?(?:ba|z|k|da)?sh\b/i,
+    label: 'curl|base64|sh: pipes decoded remote content to a shell',
   },
   {
-    re: /\b(?:curl|wget|fetch)\b[^\n]{0,200}\|\s*(?:python[0-9.]*|node|ruby|perl|php)\b/i,
-    label: 'curl|interpreter — pipes fetched content to an interpreter',
+    re: /\b(?:curl|wget|fetch)\b[^\n]{0,200}\|\s*(?:[\w./-]*\/)?(?:python[0-9.]*|node|ruby|perl|php)\b/i,
+    label: 'curl|interpreter: pipes fetched content to an interpreter',
   },
 ];
 
