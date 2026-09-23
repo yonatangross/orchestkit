@@ -56,6 +56,8 @@ beforeEach(() => {
   // Two commits so snapshot-recorder's `git rev-parse HEAD~1` resolves.
   try {
     execFileSync('git', ['init'], { cwd: workspace, stdio: 'pipe' });
+    execFileSync('git', ['config', 'user.email', 't@t.t'], { cwd: workspace, stdio: 'pipe' });
+    execFileSync('git', ['config', 'user.name', 't'], { cwd: workspace, stdio: 'pipe' });
     writeFileSync(join(workspace, 'a.txt'), '1');
     execFileSync('git', ['add', '.'], { cwd: workspace, stdio: 'pipe' });
     execFileSync('git', ['commit', '-m', 'one', '--no-gpg-sign'], { cwd: workspace, stdio: 'pipe' });
