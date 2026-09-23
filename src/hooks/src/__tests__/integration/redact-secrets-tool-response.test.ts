@@ -76,9 +76,17 @@ let distDir = '';
 /** Path to skill.mjs inside distDir. Empty until beforeAll succeeds. */
 let bundle = '';
 
-/** Env the spawned dispatcher needs to load the temp bundle (#4334). */
+/** Env the spawned dispatcher needs to load the temp bundle (#4334 / #4360). */
 function dispatcherEnv(): NodeJS.ProcessEnv {
-  return { ...process.env, CLAUDE_PROJECT_DIR: scratchDir, ORK_HOOKS_DIST_DIR: distDir };
+  return {
+    ...process.env,
+    CLAUDE_PROJECT_DIR: scratchDir,
+    ORK_HOOKS_DIST_DIR: distDir,
+    // Explicit test marker (not VITEST): bash suites share this path and do
+    // not set VITEST. Without ORK_TEST_MODE the dispatcher ignores the
+    // override so a stale shell export cannot redirect production hooks.
+    ORK_TEST_MODE: '1',
+  };
 }
 
 beforeAll(() => {
@@ -217,7 +225,33 @@ describe('redact-secrets through the built skill.mjs bundle (#3725, #4217)', () 
     const missing = join(tmpdir(), `ork-hooks-dist-missing-${process.pid}-${Date.now()}`);
     const r = spawnSync('node', [RUN_HOOK, HOOK_NAME], {
       input: ccShapedPayload(bashObjectResponse('noop')),
-      env: { ...process.env, CLAUDE_PROJECT_DIR: scratchDir, ORK_HOOKS_DIST_DIR: missing },
+      env: {
+        ...process.env,
+        CLAUDE_PROJECT_DIR: scratchDir,
+        ORK_HOOKS_DIST_DIR: missing,
+        ORK_TEST_MODE: '1',
+      },
+      encoding: 'utf8',
+      timeout: 20_000,
+    });
+
+    expect(r.status).toBe(0);
+    expect(String(r.stderr)).not.toContain('ORK_HOOKS_DIST_DIR overrides');
+  });
+
+  it('ignores ORK_HOOKS_DIST_DIR without ORK_TEST_MODE (#4360 follow-up)', () => {
+    if (!bundle) return;
+
+    // Fails on origin/main (override activates on existsSync alone) and passes
+    // once the test-mode gate lands: a stale export must not redirect hooks.
+    const r = spawnSync('node', [RUN_HOOK, HOOK_NAME], {
+      input: ccShapedPayload(bashObjectResponse('noop')),
+      env: {
+        ...process.env,
+        CLAUDE_PROJECT_DIR: scratchDir,
+        ORK_HOOKS_DIST_DIR: distDir,
+        ORK_TEST_MODE: '',
+      },
       encoding: 'utf8',
       timeout: 20_000,
     });

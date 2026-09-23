@@ -1,0 +1,13 @@
+{
+  "slug": "dist-override-test-gate",
+  "source": "docs/fix--4360-dist-override-test-gate/index.html",
+  "title": "#4360 follow-up: gate ORK_HOOKS_DIST_DIR on ORK_TEST_MODE",
+  "description": "ORK_HOOKS_DIST_DIR only redirects hook bundles when ORK_TEST_MODE is set, so a stale shell export cannot redirect security hooks in a real session.",
+  "tags": [
+    "hooks",
+    "tests",
+    "security",
+    "#4360"
+  ],
+  "date": "2026-09-23"
+}

@@ -492,21 +492,33 @@ rm -rf "$SANDBOX"
 
 # =============================================================================
 echo ""
-echo "10. ORK_HOOKS_DIST_DIR override warning (#4334)"
+echo "10. ORK_HOOKS_DIST_DIR override warning (#4334 / #4360)"
 echo "-----------------------------------------------"
 
 # Active override must announce itself: a stale export would otherwise redirect
 # every hook (including security hooks) to a temp bundle with no signal.
+# #4360: also require ORK_TEST_MODE so production sessions ignore the path alone.
 DIST_TMP=$(mktemp -d "${TMPDIR:-/tmp}/ork-dist-4334.XXXXXX")
 # Point at the real shipped dist contents so the hook can still load.
 cp -R "$PROJECT_ROOT/plugins/ork/hooks/dist/." "$DIST_TMP/" 2>/dev/null || true
 run_hook "skill/redact-secrets" \
   '{"hook_event_name":"PostToolUse","tool_name":"Bash","tool_response":"clean"}' \
-  "CLAUDE_PROJECT_DIR=$PROJECT_ROOT" "ORK_HOOKS_DIST_DIR=$DIST_TMP"
+  "CLAUDE_PROJECT_DIR=$PROJECT_ROOT" "ORK_HOOKS_DIST_DIR=$DIST_TMP" "ORK_TEST_MODE=1"
 if echo "$LAST_STDERR" | grep -Fq "ORK_HOOKS_DIST_DIR overrides hook bundles to \"$DIST_TMP\""; then
   pass "active ORK_HOOKS_DIST_DIR writes a stderr warning naming the directory"
 else
   fail "active ORK_HOOKS_DIST_DIR stayed silent (stderr=$LAST_STDERR)"
+fi
+
+# Without ORK_TEST_MODE: ignore even when the directory exists (fails on main
+# before the gate; passes after). Residual risk of a stale shell export.
+run_hook "skill/redact-secrets" \
+  '{"hook_event_name":"PostToolUse","tool_name":"Bash","tool_response":"clean"}' \
+  "CLAUDE_PROJECT_DIR=$PROJECT_ROOT" "ORK_HOOKS_DIST_DIR=$DIST_TMP"
+if echo "$LAST_STDERR" | grep -Fq "ORK_HOOKS_DIST_DIR overrides"; then
+  fail "ORK_HOOKS_DIST_DIR without ORK_TEST_MODE still activated (stderr=$LAST_STDERR)"
+else
+  pass "ORK_HOOKS_DIST_DIR without ORK_TEST_MODE is ignored (shipped dist)"
 fi
 rm -rf "$DIST_TMP"
 
@@ -514,7 +526,7 @@ rm -rf "$DIST_TMP"
 MISSING="/tmp/ork-dist-4334-does-not-exist-$$"
 run_hook "skill/redact-secrets" \
   '{"hook_event_name":"PostToolUse","tool_name":"Bash","tool_response":"clean"}' \
-  "CLAUDE_PROJECT_DIR=$PROJECT_ROOT" "ORK_HOOKS_DIST_DIR=$MISSING"
+  "CLAUDE_PROJECT_DIR=$PROJECT_ROOT" "ORK_HOOKS_DIST_DIR=$MISSING" "ORK_TEST_MODE=1"
 if echo "$LAST_STDERR" | grep -Fq "ORK_HOOKS_DIST_DIR overrides"; then
   fail "missing ORK_HOOKS_DIST_DIR still warned (should ignore via existsSync)"
 else
