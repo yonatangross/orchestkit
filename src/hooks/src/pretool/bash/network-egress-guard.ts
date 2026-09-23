@@ -130,17 +130,21 @@ const DENY_REGEX: { re: RegExp; label: string }[] = [
   // Plain pipe-to-shell / pipe-to-interpreter (#4220 HR-5). The retired
   // dangerous-command-blocker used to own these; without them an allowlisted
   // `curl … | sh` runs with no deny (measured #3877 / CC 2.1.263).
+  // Fetcher is curl/wget, or fetch as its own command word (not `git fetch`).
   // Optional path prefix ([\w./-]*/) covers `/bin/sh`, `/usr/bin/python3`, etc.
   {
-    re: /\b(?:curl|wget|fetch)\b[^\n]{0,200}\|\s*(?:[\w./-]*\/)?(?:ba|z|k|da)?sh\b/i,
+    re: /(?:\bcurl\b|\bwget\b|(?<!\bgit\s)\bfetch\b)[^\n]{0,200}\|\s*(?:[\w./-]*\/)?(?:ba|z|k|da)?sh\b/i,
     label: 'curl|sh: pipes fetched content to a shell',
   },
   {
-    re: /\b(?:curl|wget|fetch)\b[^\n]{0,200}\|\s*base64\b(?:\s+-[A-Za-z]*)?[^\n]{0,80}\|\s*(?:[\w./-]*\/)?(?:ba|z|k|da)?sh\b/i,
+    re: /(?:\bcurl\b|\bwget\b|(?<!\bgit\s)\bfetch\b)[^\n]{0,200}\|\s*base64\b(?:\s+-[A-Za-z]*)?[^\n]{0,80}\|\s*(?:[\w./-]*\/)?(?:ba|z|k|da)?sh\b/i,
     label: 'curl|base64|sh: pipes decoded remote content to a shell',
   },
+  // Interpreter DENY only when the program is read from stdin: bare name
+  // (optionally path-prefixed) or a lone `-`. Flags like -c/-m/-e/-r or a
+  // script path argument are normal parsing and must pass.
   {
-    re: /\b(?:curl|wget|fetch)\b[^\n]{0,200}\|\s*(?:[\w./-]*\/)?(?:python[0-9.]*|node|ruby|perl|php)\b/i,
+    re: /(?:\bcurl\b|\bwget\b|(?<!\bgit\s)\bfetch\b)[^\n]{0,200}\|\s*(?:[\w./-]*\/)?(?:python[0-9.]*|node|ruby|perl|php)(?:\s+-(?=\s*(?:$|[|;&#])))?(?=\s*(?:$|[|;&#]))/i,
     label: 'curl|interpreter: pipes fetched content to an interpreter',
   },
 ];

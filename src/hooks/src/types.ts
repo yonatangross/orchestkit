@@ -465,8 +465,9 @@ export interface HookMeta {
 }
 
 /**
- * Hook overrides configuration for per-project toggle/customization
- * Stored at .claude/hook-overrides.json (gitignored)
+ * Hook overrides configuration for user-scope toggle/customization.
+ * Honored only at ~/.claude/hook-overrides.json (AF-12 / #4220); a project
+ * .claude/hook-overrides.json is ignored. Security hooks cannot be disabled.
  */
 export interface HookOverrides {
   /** Hook names to disable entirely */
