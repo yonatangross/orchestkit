@@ -7,7 +7,7 @@
  * the rework.
  */
 
-import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, test, expect, beforeEach, afterEach } from 'vitest';
 import { autoApproveProjectWrites } from '../../permission/auto-approve-project-writes.js';
 import { autoApproveSafeBash } from '../../permission/auto-approve-safe-bash.js';
 import { learningTracker } from '../../permission/learning-tracker.js';
