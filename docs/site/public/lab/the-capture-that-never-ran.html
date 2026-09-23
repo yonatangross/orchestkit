@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The capture that never ran</title>
+<meta name="description" content="Toggle set -e and a failing command to see why out=$(cmd); rc=$? exits before the capture, and why rc=0; out=$(cmd) || rc=$? survives it.">
+<style>
+:root{color-scheme:dark;--pg-bg:oklch(19% .02 255);--pg-panel:oklch(25% .025 255);--pg-fg:oklch(94% .01 255);--pg-muted:oklch(78% .02 255);--pg-accent:oklch(82% .12 165);--pg-warn:oklch(78% .14 70);--pg-bad:oklch(70% .16 25)}
+*{box-sizing:border-box}body{margin:0;background:var(--pg-bg);color:var(--pg-fg);font:18px/1.6 system-ui,sans-serif}main{max-width:850px;margin:4rem auto;padding:1.5rem}h1{font-size:clamp(2rem,5vw,3.3rem);line-height:1.1}h2{font-size:1.35rem;margin-top:2.5rem}p{color:var(--pg-muted)}.controls,article{background:var(--pg-panel);padding:1.5rem;border-radius:16px;margin-block:1.5rem}.controls{display:flex;flex-wrap:wrap;gap:1.5rem}label{display:grid;gap:.5rem;flex:1}select{font:inherit;background:var(--pg-bg);color:var(--pg-fg);padding:.6rem;border:1px solid var(--pg-muted);border-radius:8px}select:focus-visible{outline:3px solid var(--pg-accent);outline-offset:3px}code{overflow-wrap:anywhere;color:var(--pg-accent)}pre{overflow-x:auto;background:var(--pg-bg);border:1px solid var(--pg-muted);border-radius:10px;padding:1rem;font-size:.85rem;line-height:1.55}pre .del{color:var(--pg-bad)}pre .add{color:var(--pg-accent)}pre .skip{color:var(--pg-muted);text-decoration:line-through}#result{font-size:1.4rem;font-weight:700}#result.bad{color:var(--pg-bad)}#result.good{color:var(--pg-accent)}small{color:var(--pg-muted)}table{border-collapse:collapse;width:100%;font-size:.95rem}td,th{padding:.5rem .75rem;border-bottom:1px solid var(--pg-panel);text-align:left}th{color:var(--pg-muted);font-weight:600}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="The capture that never ran"><meta property="og:description" content="Toggle set -e and a failing command to see why out=$(cmd); rc=$? exits before the capture, and why rc=0; out=$(cmd) || rc=$? survives it."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/the-capture-that-never-ran.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="The capture that never ran"><meta name="twitter:description" content="Toggle set -e and a failing command to see why out=$(cmd); rc=$? exits before the capture, and why rc=0; out=$(cmd) || rc=$? survives it."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<body><main>
+<small>ESTATE SWEEP T2 &middot; SKILL SCRIPTS UNDER set -e</small>
+<h1>The capture<br>that never ran.</h1>
+<p>Seven places in the page-serve scripts read <code>out="$(cmd)"; rc=$?</code>. Under <code>set -e</code> the assignment itself is the failing command: the script exits on it, so <code>rc=$?</code> never runs, the error branch is dead code, and whatever cleanup sat behind it never fires. status.sh exited 7 on a dead pid despite documenting "exit 0 always"; serve.sh leaked its python http.server when <code>portless alias</code> failed.</p>
+
+<h2>Run the model</h2>
+<div class="controls">
+<label>Capture shape<select id="shape"><option value="old">out="$(cmd)"; rc=$?</option><option value="new">rc=0; out="$(cmd)" || rc=$?</option></select></label>
+<label>errexit<select id="errexit"><option value="on">set -e (on)</option><option value="off">off</option></select></label>
+<label>Command result<select id="cmd"><option value="fail">cmd exits 7</option><option value="ok">cmd exits 0</option></select></label>
+</div>
+<article aria-live="polite"><pre id="trace"><code></code></pre><div id="result"></div><p id="explanation"></p></article>
+
+<h2>The other two findings</h2>
+<article><pre><code><span class="del">-  if ! git diff --quiet || ! git diff --cached --quiet; then  # blind to untracked</span>
+<span class="del">-  git worktree remove "$worktree_path" --force                 # no prompt, files gone</span>
+<span class="add">+  if [ -n "$(git -C "$worktree_path" status --porcelain)" ]; then</span>
+<span class="add">+  [[ "$confirmed" == "1" ]] && git worktree remove "$p" --force || git worktree remove "$p"</span></code></pre>
+<p>worktree-setup.sh cleanup asked <code>git diff</code> whether the tree was dirty. Untracked files are invisible to it, so a worktree holding only new files was force-removed with no prompt. The guard now reads <code>status --porcelain</code> and the worktree match is an exact porcelain line, not a substring that could hit a sibling.</p></article>
+
+<article><pre><code><span class="del">-  --live) share_mode="funnel"; live_duration_hours="${2:-4}"; shift 2 ;;</span>
+<span class="add">+  --live) share_mode="funnel"; live_duration_hours="4"</span>
+<span class="add">+          if [[ "${2:-}" =~ ^[0-9]+$ ]]; then live_duration_hours="$2"; shift; fi</span>
+<span class="add">+          shift ;;</span></code></pre>
+<p>boot.sh <code>--live</code> as the last argument ran <code>shift 2</code> with one argument left, which exits 1 under errexit before the documented 4h default ever applied. A failing <code>tailscale status</code> (and the monorepo <code>portless list</code>) aborted after the dev server started and before dev-stack.json was written, orphaning the wrapper; both captures are now wrapped in <code>{ ...; } || true</code>.</p></article>
+
+<h2>Evidence</h2>
+<article><table>
+<tr><th>arm</th><th>before</th><th>after</th></tr>
+<tr><td>status.sh, dead pid, curl down</td><td>exit 7, no rows</td><td>exit 0, one row per page</td></tr>
+<tr><td>serve.sh, portless alias fails</td><td>exit 1, http.server leaked</td><td>exit 2, server killed</td></tr>
+<tr><td>stop.sh, alias remove fails</td><td>exit 1, state left</td><td>exit 0, teardown completes</td></tr>
+<tr><td>worktree cleanup, untracked only</td><td>deleted, no prompt</td><td>prompts; n aborts</td></tr>
+<tr><td>boot.sh --live (bare)</td><td>exit 1 silently</td><td>boots, 4h expiry in state</td></tr>
+<tr><td>boot.sh, tailscale down</td><td>exit 1, orphan wrapper</td><td>exit 0, dev-stack.json written</td></tr>
+</table></article>
+
+<small>Measured by tests/unit/test-skill-scripts-errexit.sh: 7 of 9 assertions failed at origin/main, all 9 pass after the fix. The CI-safe capture idiom is <code>rc=0; out="$(cmd)" || rc=$?</code>; grep -q is never piped under pipefail (capture first, match on a herestring) because grep's early exit SIGPIPEs the producer.</small>
+</main>
+<script>
+const shape=document.querySelector('#shape'),errexit=document.querySelector('#errexit'),cmd=document.querySelector('#cmd');
+function render(){
+  const old=shape.value==='old',e=errexit.value==='on',fail=cmd.value==='fail';
+  const t=document.querySelector('#trace code'),r=document.querySelector('#result'),x=document.querySelector('#explanation');
+  const dies=e&&fail&&old;
+  t.innerHTML= old
+    ? 'out="$(cmd)"; rc=$?        <span class="'+(dies?'del':'add')+'">'+(fail?'cmd exits 7':'cmd exits 0')+'</span>\n'+
+      (dies?'<span class="skip">if [[ "$rc" != "0" ]]; then kill "$live_pid"; fi   # never reached</span>\n':'if [[ "$rc" != "0" ]]; then kill "$live_pid"; fi   rc='+ (fail?'0 (never set; errexit already fired)':'0')+'\n')+
+      (dies?'<span class="skip">exit "$final_rc"                                  # never reached</span>':'exit "$final_rc"')
+    : 'rc=0; out="$(cmd)" || rc=$?  <span class="'+(fail?'warn':'add')+'">'+(fail?'rc=7':'rc=0')+'</span>\n'+
+      'if [[ "$rc" != "0" ]]; then kill "$live_pid"; fi   '+(fail?'<span class="add">cleanup runs</span>':'skipped, rc is 0')+'\n'+
+      'exit "$final_rc"';
+  if(dies){r.textContent='script exits 7, rc never captured, server leaked';r.className='bad';x.textContent='The assignment is the failing command. set -e fires on it, so every line after it is unreachable, including the cleanup that was the point of capturing rc.';}
+  else if(fail&&old&&!e){r.textContent='rc=7 captured, cleanup runs';r.className='good';x.textContent='Without errexit the old shape works. The bug needs both halves: set -e AND a command that can fail.';}
+  else if(fail){r.textContent='rc=7 captured, cleanup runs';r.className='good';x.textContent='The || list exempts the assignment from errexit and hands the exit status to rc. The error branch is live again.';}
+  else{r.textContent='rc=0 captured, success path';r.className='good';x.textContent='On success both shapes agree. Only the failure arm separates them.';}
+}
+shape.addEventListener('change',render);errexit.addEventListener('change',render);cmd.addEventListener('change',render);render();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

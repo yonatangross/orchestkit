@@ -39,7 +39,7 @@ stop_one() {
   fi
   pid="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("pid",0))' "$f")"
 
-  local alias_out; alias_out="$(portless alias --remove "$name" 2>&1)"; rc=$?
+  local alias_out; rc=0; alias_out="$(portless alias --remove "$name" 2>&1)" || rc=$?
   if [[ "$rc" == "0" ]]; then
     printf '  alias %s.localhost removed\n' "$name"
   else
@@ -49,7 +49,7 @@ stop_one() {
   if [[ -n "$pid" && "$pid" != "0" ]]; then
     # silent: gating-relaxed (kill -0 is a liveness probe; an exited server is the expected "no")
     if kill -0 "$pid" 2>/dev/null; then
-      local kill_out; kill_out="$(kill "$pid" 2>&1)"; rc=$?
+      local kill_out; rc=0; kill_out="$(kill "$pid" 2>&1)" || rc=$?
       if [[ "$rc" == "0" ]]; then
         printf '  server pid %s stopped\n' "$pid"
       else

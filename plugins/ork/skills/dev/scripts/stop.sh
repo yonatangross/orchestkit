@@ -76,7 +76,8 @@ fi
 
 # Note: portless PROXY DAEMON intentionally NOT stopped — it's a shared resource.
 # Verify the route is gone (portless detects wrapper exit and unregisters).
-if [[ -n "${slug}" ]] && portless list 2>/dev/null | grep -qE "https?://${slug}\.localhost(:[0-9]+)?\b"; then
+routes="$(portless list 2>/dev/null || true)"
+if [[ -n "${slug}" ]] && grep -qE "https?://${slug}\.localhost(:[0-9]+)?\b" <<<"${routes}"; then
   printf '  ⚠ portless route %s.localhost still registered (proxy may need a moment)\n' "${slug}" >&2
 fi
 

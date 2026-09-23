@@ -1,0 +1,13 @@
+{
+  "slug": "the-capture-that-never-ran",
+  "source": "docs/fix--skill-scripts-errexit-sweep/index.html",
+  "title": "The capture that never ran",
+  "description": "Toggle set -e and a failing command to see why out=$(cmd); rc=$? exits before the capture, and why rc=0; out=$(cmd) || rc=$? survives it.",
+  "tags": [
+    "bash",
+    "errexit",
+    "skills",
+    "sweep"
+  ],
+  "date": "2026-09-23"
+}
