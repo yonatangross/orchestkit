@@ -18,6 +18,29 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.82",
+    "date": "2026-09-23",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.81...v10.0.0-beta.82",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**docs-site:** hero option A conductor bleed ([#4345](https://github.com/yonatangross/orchestkit/issues/4345)) ([d6abd66](https://github.com/yonatangross/orchestkit/commit/d6abd66559eef920f878dd78d479c6d9cadbb715))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**hooks:** load telemetry sinks only from user scope over https ([#4218](https://github.com/yonatangross/orchestkit/issues/4218)) ([#4380](https://github.com/yonatangross/orchestkit/issues/4380)) ([f5785fe](https://github.com/yonatangross/orchestkit/commit/f5785fe869c7637cc1c4b5af57711bf130f15a9a))",
+          "**hooks:** secret-handler AUDIT default and redacted security-audit log ([#4379](https://github.com/yonatangross/orchestkit/issues/4379)) ([ee487e4](https://github.com/yonatangross/orchestkit/commit/ee487e4b8fe7f62dc9ace5f9d4803aaa2e1c5e8c))",
+          "**skills:** Gemini model IDs and provider wording missed by [#4381](https://github.com/yonatangross/orchestkit/issues/4381) ([#4382](https://github.com/yonatangross/orchestkit/issues/4382)) ([b22d76a](https://github.com/yonatangross/orchestkit/commit/b22d76adfba03ca35602b7929f38117c6a83cb3f))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.81",
     "date": "2026-09-23",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.80...v10.0.0-beta.81",
