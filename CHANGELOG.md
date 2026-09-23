@@ -5,6 +5,31 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.80](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.79...v10.0.0-beta.80) (2026-09-23)
+
+
+### Features
+
+* **agents:** adopt Anthropic's Opus 5.5 working guidance ([#4363](https://github.com/yonatangross/orchestkit/issues/4363)) ([af501e2](https://github.com/yonatangross/orchestkit/commit/af501e22bbd87fe69fedcf00684336b10fc63290))
+
+
+### Bug Fixes
+
+* **agents:** grant stitch and storybook-mcp tools (F12) ([#4362](https://github.com/yonatangross/orchestkit/issues/4362)) ([5c3662d](https://github.com/yonatangross/orchestkit/commit/5c3662d6b897ec836248633fa28b783628a04712))
+* **hooks:** ConfigChange --no-verify false positives (SC47 F3) ([#4368](https://github.com/yonatangross/orchestkit/issues/4368)) ([ee96f03](https://github.com/yonatangross/orchestkit/commit/ee96f0383849c8ddff532be3c39508d6d6dbfae3))
+* **hooks:** fall back to raw --no-verify scan on settings parse failure ([#4370](https://github.com/yonatangross/orchestkit/issues/4370)) ([2d5b9cc](https://github.com/yonatangross/orchestkit/commit/2d5b9ccb35d82641787e3fc25cc2148ed4314352))
+* **hooks:** require ORK_TEST_MODE for ORK_HOOKS_DIST_DIR ([#4371](https://github.com/yonatangross/orchestkit/issues/4371)) ([060195e](https://github.com/yonatangross/orchestkit/commit/060195e115a9eaf857852c6d7a3b0c3d7fe04515))
+* **llm-integration:** make CoT examples thinking-model aware ([#4363](https://github.com/yonatangross/orchestkit/issues/4363)) ([#4372](https://github.com/yonatangross/orchestkit/issues/4372)) ([94d1d04](https://github.com/yonatangross/orchestkit/commit/94d1d04cee34b78234ba8889031c75cee387991b))
+* **prompts:** apply high-confidence Opus 5.5 prompt-audit findings ([#4366](https://github.com/yonatangross/orchestkit/issues/4366)) ([bb6f995](https://github.com/yonatangross/orchestkit/commit/bb6f995eb62bfcfa5d76bb36e8cd13eed425a9f4))
+* **site:** guard view transitions against aborted transitions (PostHog issue 01a0a900) ([#4353](https://github.com/yonatangross/orchestkit/issues/4353)) ([d05adb9](https://github.com/yonatangross/orchestkit/commit/d05adb96df498d1ee417feb7230b01be950e360b))
+* **skills:** replace phantom Stitch tool names in prose ([#4373](https://github.com/yonatangross/orchestkit/issues/4373)) ([15f5451](https://github.com/yonatangross/orchestkit/commit/15f54513355aa139de2287eaa65e56256c02f2ae))
+* **testing-e2e:** reject backtick refs that escape skill root ([#4364](https://github.com/yonatangross/orchestkit/issues/4364)) ([17bf40f](https://github.com/yonatangross/orchestkit/commit/17bf40fdda6d52e82fdd42a2f0ae95137273d0da))
+
+
+### Miscellaneous
+
+* **docker:** bump node from `50c8e8c` to `ebfe2f9` ([#4369](https://github.com/yonatangross/orchestkit/issues/4369)) ([ef53a00](https://github.com/yonatangross/orchestkit/commit/ef53a00d7ad9de22668f2ab8080317fe8146e5dc))
+
 ## [10.0.0-beta.79](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.78...v10.0.0-beta.79) (2026-09-22)
 
 
