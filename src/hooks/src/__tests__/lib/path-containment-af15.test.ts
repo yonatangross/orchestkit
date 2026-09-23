@@ -35,4 +35,18 @@ describe('resolveRealPath AF-15 symlink-dir new-file (#4220)', () => {
     expect(resolved).toBe(path.join(outsideReal, 'brand-new.ts'));
     expect(isInsideDir(resolved, project)).toBe(false);
   });
+
+  test('missing intermediate dirs under a linked ancestor resolve to the real target', () => {
+    tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ork-af15-mid-'));
+    fs.mkdirSync(path.join(tmp, 'proj'), { recursive: true });
+    const project = fs.realpathSync(path.join(tmp, 'proj'));
+    fs.mkdirSync(path.join(project, '.claude'), { recursive: true });
+    fs.symlinkSync('.claude', path.join(project, 'a'));
+
+    const lexical = path.join(project, 'a', 'new', 'sub', 'file.txt');
+    const resolved = resolveRealPath(lexical, project);
+    const claudeReal = fs.realpathSync(path.join(project, '.claude'));
+
+    expect(resolved).toBe(path.join(claudeReal, 'new', 'sub', 'file.txt'));
+  });
 });

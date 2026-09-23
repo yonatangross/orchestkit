@@ -77,13 +77,31 @@ export function hasExcludedDir(filePath: string): boolean {
  */
 const MAX_SYMLINK_HOPS = 40;
 
-/** Join basename onto the real parent dir; fail closed if the parent cannot be resolved. */
-function joinOnRealParent(targetPath: string): string {
-  try {
-    return join(realpathSync(dirname(targetPath)), basename(targetPath));
-  } catch {
-    return join(dirname(targetPath), '.claude', '.ork-unresolved-symlink');
+/**
+ * Walk up to the nearest existing ancestor, realpath it, then join the
+ * remaining unresolved segments. Fail closed if no ancestor resolves.
+ */
+function resolveViaNearestAncestor(absolutePath: string): string {
+  const missing: string[] = [];
+  let cursor = absolutePath;
+  for (;;) {
+    try {
+      const real = realpathSync(cursor);
+      return missing.length === 0 ? real : join(real, ...missing.reverse());
+    } catch {
+      const parent = dirname(cursor);
+      if (parent === cursor) {
+        return join(dirname(absolutePath), '.claude', '.ork-unresolved-symlink');
+      }
+      missing.push(basename(cursor));
+      cursor = parent;
+    }
   }
+}
+
+/** Join onto the real ancestor chain; fail closed if nothing resolves. */
+function joinOnRealParent(targetPath: string): string {
+  return resolveViaNearestAncestor(targetPath);
 }
 
 export function resolveRealPath(filePath: string, projectDir: string): string {
@@ -105,7 +123,7 @@ export function resolveRealPath(filePath: string, projectDir: string): string {
           try {
             curStat = lstatSync(current);
           } catch {
-            // Target absent: realpath the parent so linked parents are followed.
+            // Target absent: realpath the nearest existing ancestor.
             return joinOnRealParent(current);
           }
           if (!curStat.isSymbolicLink()) {
@@ -132,11 +150,7 @@ export function resolveRealPath(filePath: string, projectDir: string): string {
       // Not a symlink (or leaf missing): fall through to AF-15.
     }
 
-    try {
-      const parentReal = realpathSync(dirname(absolutePath));
-      return join(parentReal, basename(absolutePath));
-    } catch {
-      return absolutePath;
-    }
+    // AF-15 / missing parents: walk up to the nearest existing ancestor.
+    return resolveViaNearestAncestor(absolutePath);
   }
 }

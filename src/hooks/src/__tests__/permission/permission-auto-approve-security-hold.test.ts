@@ -224,5 +224,22 @@ describe('PermissionRequest auto-approve security hold (#4374)', () => {
         fs.rmSync(tmp, { recursive: true, force: true });
       }
     });
+
+    test('denies write under missing dirs beneath a linked ancestor', () => {
+      const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ork-missing-mid-'));
+      fs.mkdirSync(path.join(tmp, 'proj'), { recursive: true });
+      const project = fs.realpathSync(path.join(tmp, 'proj'));
+      fs.mkdirSync(path.join(project, '.claude'), { recursive: true });
+      fs.symlinkSync('.claude', path.join(project, 'a'));
+      // a/new does not exist yet; write targets a/new/sub/file.txt
+      const leaf = path.join(project, 'a', 'new', 'sub', 'file.txt');
+      try {
+        process.env[FLAG] = '1';
+        const r = autoApproveProjectWrites(writeInput(leaf, project));
+        expect(isAllow(r), 'missing mids under linked ancestor must not auto-approve').toBe(false);
+      } finally {
+        fs.rmSync(tmp, { recursive: true, force: true });
+      }
+    });
   });
 });

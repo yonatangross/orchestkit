@@ -155,12 +155,14 @@ describe('resolveRealPath', () => {
     );
   });
 
-  test('returns best-effort path when parent realpath also fails', () => {
+  test('returns fail-closed sentinel when no ancestor resolves', () => {
     mockRealpathSync.mockImplementation(() => {
       throw new Error('ENOENT');
     });
 
-    expect(resolveRealPath('/new/file.ts', '/project')).toBe('/new/file.ts');
+    expect(resolveRealPath('/new/file.ts', '/project')).toBe(
+      join('/new', '.claude', '.ork-unresolved-symlink'),
+    );
   });
 
   test('resolves relative path against projectDir', () => {
