@@ -458,21 +458,22 @@ run_security_stage() {
 }
 
 # Hooks vitest. Same MAX_JOBS as the unit stage, via --maxWorkers (vitest 5).
-# Prefer local node_modules/.bin so a missing install cannot fetch an unrelated
-# npm package via bare npx (#4220 HR-7 / IC-4).
+# Skip when the local binary is absent so bare npx cannot fetch an unrelated
+# npm package (#4220 HR-7 / IC-4). Still invoke via `npx vitest` when present
+# so the GIT_* scrub + Test 9 argv probe stay intact; a local install means
+# npx resolves without a network fetch.
 run_hooks_vitest_stage() {
   print_pre_push_load_notice
   echo -n "  Running hook vitest suite... "
   HOOK_LOG="$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")"
-  local vitest_bin="$PROJECT_ROOT/src/hooks/node_modules/.bin/vitest"
-  if [[ ! -x "$vitest_bin" ]]; then
+  if [[ ! -x src/hooks/node_modules/.bin/vitest ]]; then
     echo "SKIP (vitest not installed under src/hooks/node_modules/.bin)"
     rm -f "$HOOK_LOG"
     return 0
   fi
   if ! (cd src/hooks && env -u GIT_DIR -u GIT_WORK_TREE -u GIT_INDEX_FILE -u GIT_PREFIX \
-      -u GIT_COMMON_DIR -u GIT_OBJECT_DIRECTORY "$vitest_bin" run --reporter=dot --maxWorkers="$MAX_JOBS" >"$HOOK_LOG" 2>&1); then
-    LOG_KEEP_DIR="$PROJECT_ROOT/.cache/pre-push"
+      -u GIT_COMMON_DIR -u GIT_OBJECT_DIRECTORY npx vitest run --reporter=dot --maxWorkers="$MAX_JOBS" >"$HOOK_LOG" 2>&1); then
+    LOG_KEEP_DIR=".cache/pre-push"
     mkdir -p "$LOG_KEEP_DIR"
     LOG_KEEP="$LOG_KEEP_DIR/hooks-vitest.log"
     cp "$HOOK_LOG" "$LOG_KEEP"
@@ -514,18 +515,20 @@ echo -n "  Running TypeScript type check... "
 if [[ -f "src/hooks/tsconfig.json" ]]; then
   # Prefer local binary; bare `npx tsc` can fetch the unrelated npm package
   # named `tsc` when typescript is absent (#4220 HR-7 / IC-4).
-  TSC_BIN="$PROJECT_ROOT/src/hooks/node_modules/.bin/tsc"
-  if [[ ! -x "$TSC_BIN" ]]; then
+  if [[ ! -x src/hooks/node_modules/.bin/tsc ]]; then
     echo "SKIP (tsc not installed under src/hooks/node_modules/.bin)"
   else
-    run_captured run_with_timeout 120 "$TSC_BIN" --noEmit -p src/hooks/tsconfig.json; stage_rc=$?
+    # Local binary exists: still go through npx so stage stubs (Test: captured
+    # stage exit status) keep working. --no-install refuses a network fetch of
+    # the unrelated npm package named `tsc` (#4220 HR-7 / IC-4).
+    run_captured run_with_timeout 120 npx --no-install tsc --noEmit -p src/hooks/tsconfig.json; stage_rc=$?
     if [[ "$stage_rc" -ne 0 ]]; then
       echo "FAILED"
       echo ""
       echo "╔════════════════════════════════════════════════════════════╗"
       echo "║  TypeScript validation failed!"
       echo "╠════════════════════════════════════════════════════════════╣"
-      echo "║  Run: cd src/hooks && ./node_modules/.bin/tsc --noEmit"
+      echo "║  Run: cd src/hooks && npx --no-install tsc --noEmit"
       print_kept_stage_log
       echo "╚════════════════════════════════════════════════════════════╝"
       exit "$stage_rc"
