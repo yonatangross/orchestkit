@@ -95,6 +95,6 @@ async def generate_hyde(query: str) -> HyDEResult:
 **Key rules:**
 - Embed the hypothetical document, NOT the original query
 - Use fast/cheap model (gpt-5-mini, claude-haiku-4-5) for generation
-- Omit `temperature` on gpt-5-mini (OpenAI rejects it on older GPT-5 models); where a model accepts it, 0.3 keeps hypothetical docs consistent and factual
+- Omit `temperature` on gpt-5-mini (only the default value is accepted on older GPT-5 models); where a model accepts it, 0.3 keeps hypothetical docs consistent and factual
 - Keep hypothetical docs concise: 100-200 tokens
 - Adds ~500ms latency — always implement with timeout fallback

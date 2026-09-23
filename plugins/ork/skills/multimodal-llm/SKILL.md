@@ -132,7 +132,7 @@ Generate multi-scene videos with consistent characters using storyboarding and c
 |----------|----------------|
 | High accuracy vision | `claude-opus-5-5` (default Opus since CC 2.1.280, 2,576 px vision budget, 3× what Opus 4.6 allotted; give it crop/analyze tools rather than more thinking, which is the cheaper lever on this model). (`claude-fable-5` is the frontier SOTA option, GA 2026-07 — premium cost, use only with explicit consent via the fable-spend-consent gate) |
 | Long documents | `gemini-3.1-pro-preview` (1M+ context) |
-| Cost-efficient vision | `gemini-3.1-flash-lite` (**replaces Gemini 2.5 Flash**; the GA successor, its preview was shut down 2026-05-25) |
+| Cost-efficient vision | `gemini-3.1-flash-lite` (GA successor of the Flash-Lite preview, which was shut down 2026-05-25; shutdown scheduled 2027-05-07) |
 | Video analysis | `gemini-3.1-pro-preview` (native video, supersedes 2.5 Pro) |
 | Voice assistant | Grok Voice Agent on Grok 4.20 (fastest, <1s) |
 | Emotional voice AI | Gemini Live API |
