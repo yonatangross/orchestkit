@@ -57,7 +57,13 @@ vi.mock('../../lib/http-sink.js', async (importOriginal) => {
     ...actual,
     HttpSink: class extends actual.HttpSink {
       constructor(options?: { name?: string; url?: string; token?: string }) {
-        if (options?.url?.includes('explode.example.com')) {
+        let host = '';
+        try {
+          host = new URL(options?.url ?? '').host;
+        } catch {
+          host = '';
+        }
+        if (host === 'explode.example.com') {
           throw new Error('ctor exploded');
         }
         super(options);
