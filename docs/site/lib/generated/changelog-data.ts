@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.84",
+    "date": "2026-09-23",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.83...v10.0.0-beta.84",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**git-hooks:** opt-in targeted pre-push mode with a 2-slot governor ([#4238](https://github.com/yonatangross/orchestkit/issues/4238)) ([#4389](https://github.com/yonatangross/orchestkit/issues/4389)) ([4d1dfe7](https://github.com/yonatangross/orchestkit/commit/4d1dfe74e7c641e3ee6ed8dbf54c7b62e973b38b))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.83",
     "date": "2026-09-23",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.82...v10.0.0-beta.83",
