@@ -29,7 +29,9 @@
 #       `get_screen`) must list that tool in allowed-tools. Skills without
 #       allowed-tools inherit the full set and are skipped. Skills marked
 #       tool-coverage: illustrative are skipped (same hatch as
-#       tests/skills/audit-skill-permissions.sh).
+#       tests/skills/audit-skill-permissions.sh). For Stitch, either
+#       mcp__stitch__<tool> or mcp__plugin_hq-ext_stitch__<tool> counts as a
+#       grant (standalone server vs hq-ext plugin registration).
 #
 # .mcp.json is untracked (runtime file), so the configured-server list and
 # the configured-server list and the per-server tool rosters are read from
@@ -351,7 +353,22 @@ check_skill_body_grants() {
         }
       }
 
-      const missing = [...needed].filter((t) => !allowed.has(t)).sort();
+      // Stitch ships under two registered names: standalone "stitch"
+      // (mcp__stitch__*) and hq-ext plugin (mcp__plugin_hq-ext_stitch__*).
+      // Either prefix satisfies the grant check for the same tool leaf.
+      // Docs: https://code.claude.com/docs/en/mcp-servers (Plugin MCP tool names).
+      const STITCH_PREFIXES = ["mcp__stitch__", "mcp__plugin_hq-ext_stitch__"];
+      function isGranted(tok) {
+        if (allowed.has(tok)) return true;
+        for (const p of STITCH_PREFIXES) {
+          if (!tok.startsWith(p)) continue;
+          const leaf = tok.slice(p.length);
+          return STITCH_PREFIXES.some((q) => allowed.has(q + leaf));
+        }
+        return false;
+      }
+
+      const missing = [...needed].filter((t) => !isGranted(t)).sort();
       process.stdout.write(missing.join("\n"));
     ' "$skill_md" "$TOOL_SERVER_MAP")"
 

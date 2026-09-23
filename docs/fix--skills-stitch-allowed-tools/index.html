@@ -77,19 +77,24 @@
     <div class="proof">Permission to use mcp__plugin_hq-ext_stitch__list_projects has been denied because Claude Code is running in don't ask mode.</div>
 
     <footer>
-      ork ships no .mcp.json entry for stitch. Operator adds official Google Stitch
-      (named stitch). When Stitch comes from hq-ext, tools are mcp__plugin_hq-ext_stitch__*.
-      Grants use mcp__stitch__* to match #4362 and the manifest.
+      ork ships no .mcp.json entry for stitch. Grants list BOTH
+      mcp__stitch__&lt;tool&gt; (standalone) and mcp__plugin_hq-ext_stitch__&lt;tool&gt;
+      (hq-ext plugin). Docs: https://code.claude.com/docs/en/mcp-servers
     </footer>
   </main>
   <script>
     const GRANTS = {
       "design-to-code": [
         "mcp__stitch__list_projects",
+        "mcp__plugin_hq-ext_stitch__list_projects",
         "mcp__stitch__get_project",
+        "mcp__plugin_hq-ext_stitch__get_project",
         "mcp__stitch__list_screens",
+        "mcp__plugin_hq-ext_stitch__list_screens",
         "mcp__stitch__get_screen",
+        "mcp__plugin_hq-ext_stitch__get_screen",
         "mcp__stitch__generate_screen_from_text",
+        "mcp__plugin_hq-ext_stitch__generate_screen_from_text",
         "mcp__storybook-mcp__list-all-documentation",
         "mcp__storybook-mcp__get-documentation",
         "mcp__storybook-mcp__preview-stories",
@@ -97,14 +102,21 @@
       ],
       "design-context-extract": [
         "mcp__stitch__list_projects",
+        "mcp__plugin_hq-ext_stitch__list_projects",
         "mcp__stitch__get_project",
+        "mcp__plugin_hq-ext_stitch__get_project",
         "mcp__stitch__list_screens",
+        "mcp__plugin_hq-ext_stitch__list_screens",
         "mcp__stitch__get_screen",
-        "mcp__stitch__generate_screen_from_text"
+        "mcp__plugin_hq-ext_stitch__get_screen",
+        "mcp__stitch__generate_screen_from_text",
+        "mcp__plugin_hq-ext_stitch__generate_screen_from_text"
       ],
       "ai-ui-generation": [
         "mcp__stitch__generate_screen_from_text",
-        "mcp__stitch__get_screen"
+        "mcp__plugin_hq-ext_stitch__generate_screen_from_text",
+        "mcp__stitch__get_screen",
+        "mcp__plugin_hq-ext_stitch__get_screen"
       ]
     };
     document.getElementById("go").addEventListener("click", () => {

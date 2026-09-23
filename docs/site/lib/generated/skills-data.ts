@@ -101,7 +101,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "ai-ui-generation",
     "description": "AI-assisted UI generation patterns for json-render, v0.app, Google Stitch, Bolt Cloud, and Cursor workflows. Covers prompt engineering for component and full-stack app generation, review checklists for AI-generated code, design token injection, refactoring for design system conformance, and CI gates for quality assurance. Use when generating UI components with AI tools, rendering multi-surface MCP visual output, reviewing AI-generated code, or integrating AI output into design systems.",
     "version": "1.1.0",
-    "sha256": "62b600c26ea4b5f93bbd256ee7e87b6e220da29925a5bbe241336b5f1eafc354",
+    "sha256": "ce0a144b5a33add8eba78ec8a333229c029f7664325c2ad6132f03931a46c3c4",
     "author": "OrchestKit",
     "tags": [
       "ai-ui",
@@ -128,7 +128,9 @@ export const SKILLS: Record<string, SkillMeta> = {
       "WebFetch",
       "WebSearch",
       "mcp__stitch__generate_screen_from_text",
-      "mcp__stitch__get_screen"
+      "mcp__plugin_hq-ext_stitch__generate_screen_from_text",
+      "mcp__stitch__get_screen",
+      "mcp__plugin_hq-ext_stitch__get_screen"
     ],
     "skills": [],
     "agent": "frontend-ui-developer",
@@ -1423,7 +1425,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "design-context-extract",
     "description": "Extract design DNA from app screenshots, live URLs, or screen recordings using Google Stitch — color palettes, typography, spacing tokens, component patterns, and motion specs as design-tokens.json or Tailwind config. Use when the user points to a screenshot, URL, or video and asks to extract or audit the design, analyze animations or scroll behavior, or keep new pages matching an established visual identity.",
     "version": "1.0.1",
-    "sha256": "9f0af870b7f35d54a59f387babad6735f0ef2e3a9de168a30ea0af8a9a631fe2",
+    "sha256": "9099da6d39a6c0bf5ee0ad08cbe739b78cca2b745915bd2f01b1575e9697af50",
     "author": "OrchestKit",
     "tags": [
       "design-context",
@@ -1449,10 +1451,15 @@ export const SKILLS: Record<string, SkillMeta> = {
       "TaskUpdate",
       "TaskList",
       "mcp__stitch__list_projects",
+      "mcp__plugin_hq-ext_stitch__list_projects",
       "mcp__stitch__get_project",
+      "mcp__plugin_hq-ext_stitch__get_project",
       "mcp__stitch__list_screens",
+      "mcp__plugin_hq-ext_stitch__list_screens",
       "mcp__stitch__get_screen",
-      "mcp__stitch__generate_screen_from_text"
+      "mcp__plugin_hq-ext_stitch__get_screen",
+      "mcp__stitch__generate_screen_from_text",
+      "mcp__plugin_hq-ext_stitch__generate_screen_from_text"
     ],
     "skills": [
       "design-system-tokens",
@@ -1661,7 +1668,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "design-to-code",
     "description": "Mockup-to-component pipeline using Google Stitch, 21st.dev, and Storybook MCP. Accepts a screenshot, a description, or a URL and produces production-ready React components, checking existing Storybook components before generating anything new. Use when implementing UI from a mockup or screenshot. To call the MCP tool surface on its own, with no design to convert, use storybook-mcp-integration.",
     "version": "1.0.1",
-    "sha256": "804e0de21886e6fd87b347ec5da5d7afab678f8cb69e8d1b112eb5a974ff345a",
+    "sha256": "9fad574287a5e70cbefc4e9f488a6d1bdbe501cf2da8520b3f522f4b0895f4fa",
     "author": "OrchestKit",
     "tags": [
       "design-to-code",
@@ -1695,10 +1702,15 @@ export const SKILLS: Record<string, SkillMeta> = {
       "mcp__21st-dev-magic__get_theme",
       "mcp__21st-dev-magic__get_usage",
       "mcp__stitch__list_projects",
+      "mcp__plugin_hq-ext_stitch__list_projects",
       "mcp__stitch__get_project",
+      "mcp__plugin_hq-ext_stitch__get_project",
       "mcp__stitch__list_screens",
+      "mcp__plugin_hq-ext_stitch__list_screens",
       "mcp__stitch__get_screen",
+      "mcp__plugin_hq-ext_stitch__get_screen",
       "mcp__stitch__generate_screen_from_text",
+      "mcp__plugin_hq-ext_stitch__generate_screen_from_text",
       "mcp__storybook-mcp__list-all-documentation",
       "mcp__storybook-mcp__get-documentation",
       "mcp__storybook-mcp__preview-stories",
@@ -2201,6 +2213,7 @@ export const SKILLS: Record<string, SkillMeta> = {
         "test-plan.md"
       ],
       "scripts": [
+        "__pycache__",
         "coverage-context.sh",
         "diff-scan.sh",
         "fingerprint.sh",
