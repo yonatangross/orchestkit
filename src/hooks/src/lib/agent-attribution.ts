@@ -67,30 +67,39 @@ export function updateSessionState(fn: (state: SessionState) => void): void {
  * SubagentStop for both, so this is the reliable capture point (#245).
  */
 export function recordAgentStart(agentId: string, agentType?: string): void {
+  // HEAD read stays OUTSIDE the lock: gitExec can outlast acquireLock's 5s
+  // stale-lock break, and a break while we hold the lock mid-git lets a
+  // second SubagentStart steal the lock and overwrite our entry (#4386).
+  // The peek is unlocked but the locked fn re-checks commit_base, so the
+  // only cost of a stale peek is one unneeded rev-parse.
+  const head = readSessionState().commit_base ? '' : gitExec(['rev-parse', 'HEAD']);
   updateSessionState((state) => {
     state.agent_starts[agentId] = Date.now();
     if (agentType) {
       state.agent_types ||= {};
       state.agent_types[agentId] = agentType;
     }
-    if (!state.commit_base) {
-      const head = gitExec(['rev-parse', 'HEAD']);
-      if (head) state.commit_base = head;
+    if (!state.commit_base && head) {
+      state.commit_base = head;
     }
   });
+}
+
+export interface AgentContext {
+  startMs: number;
+  counter: number;
+  commitBase: string;
+  type?: string;
 }
 
 /**
  * Get agent context and increment counter (called from SubagentStop hook).
  * Returns `type` when the SubagentStart hook staged it for this agent_id.
+ * Returns null when the state lock or read failed: zeros were being written
+ * as ledger rows with duration_ms 0, stage 0, commit_base '' (#4386).
  */
-export function resolveAgentContext(agentId: string): { startMs: number; counter: number; commitBase: string; type?: string } {
-  let resolved: { startMs: number; counter: number; commitBase: string; type?: string } = {
-    startMs: 0,
-    counter: 0,
-    commitBase: '',
-    type: undefined,
-  };
+export function resolveAgentContext(agentId: string): AgentContext | null {
+  let resolved: AgentContext | null = null;
   updateSessionState((state) => {
     resolved = {
       startMs: state.agent_starts[agentId] || 0,

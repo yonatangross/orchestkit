@@ -9,7 +9,7 @@
  */
 
 import { describe, test, expect, beforeEach, afterEach } from 'vitest';
-import { mkdirSync, writeFileSync, readFileSync, rmSync, existsSync } from 'node:fs';
+import { mkdirSync, writeFileSync, readFileSync, rmSync, existsSync, chmodSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { execFileSync, spawn } from 'node:child_process';
@@ -35,6 +35,14 @@ import type { LedgerEntry } from '../../lib/agent-attribution-types.js';
 
 let tmpDir: string;
 let activityDir: string;
+
+// resolveAgentContext returns null on lock/read failure (#4386); these tests
+// always have a healthy state file, so unwrap loudly rather than silently.
+function mustCtx(agentId: string) {
+  const ctx = resolveAgentContext(agentId);
+  if (!ctx) throw new Error(`resolveAgentContext(${agentId}) returned null`);
+  return ctx;
+}
 
 function makeLedgerEntry(overrides: Partial<LedgerEntry> = {}): LedgerEntry {
   return {
@@ -92,12 +100,12 @@ describe('Session State Pipeline', () => {
 
   test('resolveAgentContext returns start time and increments counter', () => {
     recordAgentStart('agent-1');
-    const ctx = resolveAgentContext('agent-1');
+    const ctx = mustCtx('agent-1');
     expect(ctx.startMs).toBeGreaterThan(0);
     expect(ctx.counter).toBe(0); // first agent
 
     recordAgentStart('agent-2');
-    const ctx2 = resolveAgentContext('agent-2');
+    const ctx2 = mustCtx('agent-2');
     expect(ctx2.counter).toBe(1); // second agent
   });
 
@@ -110,13 +118,13 @@ describe('Session State Pipeline', () => {
   });
 
   test('resolveAgentContext with unknown agent returns 0 startMs', () => {
-    const ctx = resolveAgentContext('nonexistent');
+    const ctx = mustCtx('nonexistent');
     expect(ctx.startMs).toBe(0);
   });
 
   test('stages and resolves the agent type across the start→stop loop (#245)', () => {
     recordAgentStart('agent-1', 'ork:test-generator');
-    const ctx = resolveAgentContext('agent-1');
+    const ctx = mustCtx('agent-1');
     expect(ctx.type).toBe('ork:test-generator');
   });
 
@@ -130,7 +138,7 @@ describe('Session State Pipeline', () => {
 
   test('resolveAgentContext returns undefined type when none was staged (#245)', () => {
     recordAgentStart('agent-1'); // no type arg
-    const ctx = resolveAgentContext('agent-1');
+    const ctx = mustCtx('agent-1');
     expect(ctx.type).toBeUndefined();
   });
 
@@ -138,7 +146,7 @@ describe('Session State Pipeline', () => {
     recordAgentStart('agent-1');
     // Simulate some work time
     const beforeResolve = Date.now();
-    const ctx = resolveAgentContext('agent-1');
+    const ctx = mustCtx('agent-1');
     const duration = beforeResolve - ctx.startMs;
     // Duration should be non-negative (could be 0 if very fast)
     expect(duration).toBeGreaterThanOrEqual(0);
@@ -152,24 +160,24 @@ describe('Session State Pipeline', () => {
 describe('Sequential Agent Pipeline', () => {
   test('3 sequential agents get stages 0, 1, 2', () => {
     recordAgentStart('a1');
-    const ctx1 = resolveAgentContext('a1');
+    const ctx1 = mustCtx('a1');
     expect(ctx1.counter).toBe(0); // lead
 
     recordAgentStart('a2');
-    const ctx2 = resolveAgentContext('a2');
+    const ctx2 = mustCtx('a2');
     expect(ctx2.counter).toBe(1); // second
 
     recordAgentStart('a3');
-    const ctx3 = resolveAgentContext('a3');
+    const ctx3 = mustCtx('a3');
     expect(ctx3.counter).toBe(2); // third
   });
 
   test('commit_base stays consistent across all agents', () => {
     recordAgentStart('a1');
-    const ctx1 = resolveAgentContext('a1');
+    const ctx1 = mustCtx('a1');
 
     recordAgentStart('a2');
-    const ctx2 = resolveAgentContext('a2');
+    const ctx2 = mustCtx('a2');
 
     expect(ctx1.commitBase).toBe(ctx2.commitBase);
   });
@@ -256,6 +264,73 @@ describe('Concurrent Access (separate processes)', () => {
       expect(state.agent_starts[id], `missing ${id}`).toBeGreaterThan(0);
     }
   });
+
+  // gitExec can take longer than acquireLock's 5s stale-lock break. If the
+  // HEAD read runs inside the critical section, a second process breaks the
+  // lock mid-git, both write, and one start is lost (#4386 CodeRabbit).
+  test('a parallel start survives while another process is stuck in git', async () => {
+    const realGit = execFileSync('which', ['git'], { encoding: 'utf8' }).trim();
+    const stubDir = join(tmpDir, 'stubbin');
+    mkdirSync(stubDir, { recursive: true });
+    writeFileSync(
+      join(stubDir, 'git'),
+      `#!/usr/bin/env bash\nif [ "$1" = "rev-parse" ]; then sleep 6; fi\nexec ${realGit} "$@"\n`,
+    );
+    chmodSync(join(stubDir, 'git'), 0o755);
+
+    const entry = join(tmpDir, 'record-entry-slow.ts');
+    const libPath = fileURLToPath(new URL('../../lib/agent-attribution.ts', import.meta.url));
+    writeFileSync(
+      entry,
+      `import { recordAgentStart } from ${JSON.stringify(libPath)};\n` +
+        `recordAgentStart(process.argv[2], 'ork:test-generator');\n`,
+    );
+    const bundle = join(tmpDir, 'record-entry-slow.mjs');
+    buildSync({
+      entryPoints: [entry],
+      bundle: true,
+      platform: 'node',
+      format: 'esm',
+      outfile: bundle,
+      logLevel: 'silent',
+    });
+
+    const stubEnv = {
+      ...process.env,
+      CLAUDE_PROJECT_DIR: tmpDir,
+      PATH: `${stubDir}:${process.env.PATH}`,
+    };
+    const ids = ['agent-slow-a', 'agent-slow-b'];
+    await Promise.all(
+      ids.map(
+        (id) =>
+          new Promise<void>((resolve, reject) => {
+            const child = spawn('node', [bundle, id], { env: stubEnv, stdio: 'ignore' });
+            child.on('exit', (code) =>
+              code === 0 ? resolve() : reject(new Error(`child ${id} exited ${code}`)),
+            );
+            child.on('error', reject);
+          }),
+      ),
+    );
+
+    const statePath = join(tmpDir, '.claude', 'agents', 'session-state.json');
+    const state = JSON.parse(readFileSync(statePath, 'utf8'));
+    for (const id of ids) {
+      expect(state.agent_starts[id], `missing ${id}`).toBeGreaterThan(0);
+    }
+  }, 30000);
+
+  // A regular file at the lock path defeats acquireLock: mkdir EEXISTs, the
+  // stale-lock rmdir ENOTDIRs, and the retry mkdir EEXISTs, so it returns
+  // false. resolveAgentContext must surface that as unavailable, not zeros
+  // (zeros became ledger rows with duration_ms 0 / stage 0 / commit_base '').
+  test('resolveAgentContext returns null when the state lock cannot be acquired', () => {
+    const stateDir = join(tmpDir, '.claude', 'agents');
+    mkdirSync(stateDir, { recursive: true });
+    writeFileSync(join(stateDir, 'session-state.json.lock'), 'held');
+    expect(resolveAgentContext('agent-blocked')).toBeNull();
+  }, 15000);
 });
 
 // ---------------------------------------------------------------------------
@@ -324,7 +399,7 @@ describe('E2E: Full Attribution Pipeline', () => {
     recordAgentStart('e2e-agent-1');
 
     // 2. Simulate SubagentStop
-    const ctx = resolveAgentContext('e2e-agent-1');
+    const ctx = mustCtx('e2e-agent-1');
     expect(ctx.counter).toBe(0); // lead
     expect(ctx.startMs).toBeGreaterThan(0);
 
@@ -342,7 +417,7 @@ describe('E2E: Full Attribution Pipeline', () => {
 
     // 4. Simulate second agent (parallel)
     recordAgentStart('e2e-agent-2');
-    const ctx2 = resolveAgentContext('e2e-agent-2');
+    const ctx2 = mustCtx('e2e-agent-2');
     appendLedgerEntry(makeLedgerEntry({
       agent: 'ork:security-auditor',
       stage: 2,
