@@ -3,7 +3,7 @@
  * Hook: SessionEnd
  */
 
-import { existsSync, mkdirSync, readdirSync, unlinkSync, copyFileSync, statSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, unlinkSync, copyFileSync, statSync, rmSync, type Dirent } from 'node:fs';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
 import { stateRootDir } from '../lib/session-state.js';
@@ -145,7 +145,7 @@ function sweepStaleSessionDirs(projectDir: string, sessionId: string | undefined
   let removed = 0;
 
   for (const root of roots) {
-    let entries;
+    let entries: Dirent[];
     try {
       entries = readdirSync(root, { withFileTypes: true });
     } catch {
