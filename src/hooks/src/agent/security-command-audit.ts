@@ -9,10 +9,24 @@
  */
 
 import { mkdirSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import { bufferWrite } from '../lib/analytics-buffer.js';
-import type { HookInput, HookResult , HookContext} from '../types.js';
+import { redactSecretValues } from '../lib/crypto.js';
+import type { HookInput, HookResult, HookContext } from '../types.js';
 import { outputSilentSuccess } from '../lib/common.js';
 import { NOOP_CTX } from '../lib/context.js';
+
+/**
+ * Prefer CLAUDE_PLUGIN_DATA/logs (CC 2.1.78+) so the audit trail is not in the
+ * project tree; fall back to <projectDir>/.claude/logs for older CC (#4217).
+ */
+function resolveSecurityAuditLogPath(projectDir: string): string {
+  const pluginData = process.env.CLAUDE_PLUGIN_DATA;
+  if (pluginData) {
+    return join(pluginData, 'logs', 'security-audit.log');
+  }
+  return join(projectDir, '.claude', 'logs', 'security-audit.log');
+}
 
 /**
  * Security command audit hook
@@ -22,8 +36,6 @@ export function securityCommandAudit(input: HookInput, ctx: HookContext = NOOP_C
   const toolName = input.tool_name;
   const sessionId = input.session_id || (ctx.sessionId);
   const projectDir = input.project_dir || (ctx.projectDir);
-
-  const logFile = `${projectDir}/.claude/logs/security-audit.log`;
 
   // Only audit Bash commands
   if (toolName !== 'Bash') {
@@ -35,11 +47,12 @@ export function securityCommandAudit(input: HookInput, ctx: HookContext = NOOP_C
 
   if (command) {
     try {
-      // Create log directory if needed
-      mkdirSync(`${projectDir}/.claude/logs`, { recursive: true });
+      const logFile = resolveSecurityAuditLogPath(projectDir);
+      mkdirSync(dirname(logFile), { recursive: true });
 
-      // Log the command execution
-      bufferWrite(logFile, `[${timestamp}] [${sessionId}] [${agentId}] CMD: ${command}\n`);
+      // Never persist raw secrets (Authorization headers, tokens, etc.)
+      const safeCommand = redactSecretValues(command);
+      bufferWrite(logFile, `[${timestamp}] [${sessionId}] [${agentId}] CMD: ${safeCommand}\n`);
     } catch {
       // Ignore logging errors - don't block the operation
     }

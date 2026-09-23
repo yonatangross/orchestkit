@@ -2,7 +2,7 @@
 // Created: 2026-04-03
 
 import { describe, it, expect } from 'vitest';
-import { signPayload, sanitizePayload } from '../lib/crypto.js';
+import { signPayload, sanitizePayload, redactSecretValues } from '../lib/crypto.js';
 
 describe('Crypto Utilities', () => {
   describe('signPayload', () => {
@@ -21,6 +21,19 @@ describe('Crypto Utilities', () => {
       const a = signPayload('body', 'key1');
       const b = signPayload('body', 'key2');
       expect(a).not.toBe(b);
+    });
+  });
+
+  describe('redactSecretValues', () => {
+    it('redacts a GitHub PAT in a command string', () => {
+      const token = 'ghp_aBcDeFgHiJkLmNoPqRsTuVwXyZ0123456789AB';
+      const out = redactSecretValues(`curl -H "Authorization: Bearer ${token}" https://x`);
+      expect(out).not.toContain(token);
+      expect(out).toContain('[REDACTED]');
+    });
+
+    it('returns the original string when no secret patterns match', () => {
+      expect(redactSecretValues('git status')).toBe('git status');
     });
   });
 

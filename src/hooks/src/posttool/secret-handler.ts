@@ -8,10 +8,10 @@
  * updatedMCPToolOutput to all tools).
  *
  * Three modes via ORK_SECRET_HOOK env var:
- *   OFF (default) — no-op; behavior-preserving rollout
- *   AUDIT         — sidecar log of would-be matches; output unchanged
- *   REDACT        — in-place [REDACTED:type] for bounded patterns;
- *                   gate (replace whole output) for critical patterns
+ *   AUDIT (default) — sidecar log of would-be matches; output unchanged
+ *   REDACT          — in-place [REDACTED:type] for bounded patterns;
+ *                     gate (replace whole output) for critical patterns
+ *   OFF             — no-op; set explicitly to disable
  *
  * Pattern philosophy:
  *   - BOUNDED prefix patterns (gh*_, sk-*, AKIA*) — effectively zero FP rate.
@@ -39,7 +39,7 @@ export const meta: HookMeta = {
   name: 'posttool/secret-handler',
   description:
     'Detects API keys + private blocks in Read/Bash/Grep/Glob output. ' +
-    'OFF (default) | AUDIT | REDACT via ORK_SECRET_HOOK env var (#1543).',
+    'AUDIT (default) | REDACT | OFF via ORK_SECRET_HOOK env var (#1543, #4217).',
   event: 'PostToolUse',
   matchers: ['Read', 'Bash', 'Grep', 'Glob'],
   tier: 'standard',

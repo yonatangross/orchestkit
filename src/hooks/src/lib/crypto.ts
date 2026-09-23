@@ -52,8 +52,9 @@ export function signPayload(body: string, secret: string): string {
 /**
  * Redact a string value that contains embedded secrets.
  * Returns the original string if no secrets detected.
+ * Exported for audit log writers that must not persist raw commands (#4217).
  */
-function redactSecretValues(value: string): string {
+export function redactSecretValues(value: string): string {
   let result = value;
   for (const pattern of SECRET_VALUE_PATTERNS) {
     result = result.replace(pattern, (match) => {
