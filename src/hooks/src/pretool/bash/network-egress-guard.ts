@@ -287,47 +287,89 @@ function interpreterArgsAreStdinProgram(
 }
 
 /**
- * HR-5 curl|interpreter: after a fetcher and a pipe, skip optional sudo/env
- * (and `env VAR=val`) prefixes, then decide DENY vs ALLOW from interpreter args.
+ * Indexes of `|` that sit outside quotes (so a pipe inside a grep/echo string
+ * is not treated as a pipeline).
  */
-function pipeToInterpreterStdinProgram(cmd: string): boolean {
-  let searchFrom = 0;
-  while (searchFrom < cmd.length) {
-    const pipe = cmd.indexOf('|', searchFrom);
-    if (pipe < 0) return false;
-    const left = cmd.slice(Math.max(0, pipe - 200), pipe);
-    if (!FETCHER_RE.test(left)) {
-      searchFrom = pipe + 1;
-      continue;
-    }
-    const tokens = tokenizePipeRhs(cmd.slice(pipe + 1));
-    let idx = 0;
-    while (idx < tokens.length) {
-      const t = tokens[idx]!.toLowerCase();
-      if (t === 'sudo') {
-        idx++;
-        continue;
-      }
-      if (t === 'env') {
-        idx++;
-        while (idx < tokens.length && /^[A-Za-z_][A-Za-z0-9_]*=/.test(tokens[idx]!)) {
-          idx++;
+function findUnquotedPipeIndexes(cmd: string): number[] {
+  const pipes: number[] = [];
+  let i = 0;
+  while (i < cmd.length) {
+    const ch = cmd[i]!;
+    if (ch === '"' || ch === "'") {
+      const q = ch;
+      i++;
+      while (i < cmd.length && cmd[i] !== q) {
+        if (q === '"' && cmd[i] === '\\' && i + 1 < cmd.length) {
+          i += 2;
+          continue;
         }
-        continue;
+        i++;
       }
-      break;
-    }
-    if (idx >= tokens.length || !INTERPRETER_NAME_RE.test(tokens[idx]!)) {
-      searchFrom = pipe + 1;
+      if (i < cmd.length) i++;
       continue;
     }
-    const family = interpreterFamily(tokens[idx]!);
-    if (family && interpreterArgsAreStdinProgram(family, tokens.slice(idx + 1))) {
-      return true;
+    if (ch === '|') pipes.push(i);
+    i++;
+  }
+  return pipes;
+}
+
+/**
+ * HR-5 curl|interpreter: detect fetcher|pipe on the quote-blanked denyScan
+ * (so quoted mentions do not fire), but tokenize the RHS from quoteIntact so
+ * values like `--require 'fs'` stay as their own token and are not dropped.
+ */
+function pipeToInterpreterStdinProgram(denyScan: string, quoteIntact: string): boolean {
+  const denyPipes: number[] = [];
+  for (let i = 0; i < denyScan.length; i++) {
+    if (denyScan[i] === '|') denyPipes.push(i);
+  }
+  const intactPipes = findUnquotedPipeIndexes(quoteIntact);
+  // Unquoted pipes should align 1:1; when blanking removes a quoted `|`, counts
+  // still match because that `|` was never in intactPipes either.
+  if (denyPipes.length !== intactPipes.length) {
+    // Divergent views: parse from quoteIntact only, with fetcher check on the
+    // same left slice (rare; prefer not to miss a real script path).
+    for (const pipe of intactPipes) {
+      const left = quoteIntact.slice(Math.max(0, pipe - 200), pipe);
+      if (!FETCHER_RE.test(left)) continue;
+      if (rhsIsStdinInterpreter(tokenizePipeRhs(quoteIntact.slice(pipe + 1)))) {
+        return true;
+      }
     }
-    searchFrom = pipe + 1;
+    return false;
+  }
+  for (let i = 0; i < denyPipes.length; i++) {
+    const dPipe = denyPipes[i]!;
+    const left = denyScan.slice(Math.max(0, dPipe - 200), dPipe);
+    if (!FETCHER_RE.test(left)) continue;
+    const tokens = tokenizePipeRhs(quoteIntact.slice(intactPipes[i]! + 1));
+    if (rhsIsStdinInterpreter(tokens)) return true;
   }
   return false;
+}
+
+/** Shared sudo/env skip + interpreter arg scan for one pipe RHS token list. */
+function rhsIsStdinInterpreter(tokens: string[]): boolean {
+  let idx = 0;
+  while (idx < tokens.length) {
+    const t = tokens[idx]!.toLowerCase();
+    if (t === 'sudo') {
+      idx++;
+      continue;
+    }
+    if (t === 'env') {
+      idx++;
+      while (idx < tokens.length && /^[A-Za-z_][A-Za-z0-9_]*=/.test(tokens[idx]!)) {
+        idx++;
+      }
+      continue;
+    }
+    break;
+  }
+  if (idx >= tokens.length || !INTERPRETER_NAME_RE.test(tokens[idx]!)) return false;
+  const family = interpreterFamily(tokens[idx]!);
+  return Boolean(family && interpreterArgsAreStdinProgram(family, tokens.slice(idx + 1)));
 }
 
 // =============================================================================
@@ -419,7 +461,11 @@ export function networkEgressGuard(input: HookInput, ctx: HookContext = NOOP_CTX
   // and pair a body-local curl with an unrelated later `bash <file>`.
   // Same precedent dangerous-command-blocker applies to its pipe-to-shell check
   // (#3098). UNQUOTED heredocs are shell-expanded, so they are left untouched.
-  const denyScan = normalizeSingle(egressDenyScanView(blankQuotedHeredocBodies(raw)));
+  const heredocBlanked = blankQuotedHeredocBodies(raw);
+  const denyScan = normalizeSingle(egressDenyScanView(heredocBlanked));
+  // Quote-intact view for interpreter argv: denyScan blanks opaque quotes, which
+  // would drop `--require 'fs'` and mis-consume the next token as the value.
+  const quoteIntact = normalizeSingle(heredocBlanked);
 
   // --- DENY tier ---
   for (const { re, label } of DENY_REGEX) {
@@ -436,7 +482,7 @@ export function networkEgressGuard(input: HookInput, ctx: HookContext = NOOP_CTX
     }
   }
 
-  if (pipeToInterpreterStdinProgram(denyScan)) {
+  if (pipeToInterpreterStdinProgram(denyScan, quoteIntact)) {
     const label = 'curl|interpreter: pipes fetched content to an interpreter';
     ctx.log(HOOK_NAME, `BLOCKED: ${label}`);
     ctx.logPermission('deny', label, input);

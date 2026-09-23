@@ -105,6 +105,14 @@ describe('network-egress-guard', () => {
       notDenied('curl -s https://api.example/x | node -e "process.stdin.pipe(process.stdout)"'));
     it('allows git fetch && git diff | python3 script.py', () =>
       notDenied('git fetch && git diff | python3 script.py'));
+    // Quoted value-opt args must stay intact so the following script path is
+    // not consumed as the option value.
+    it("allows curl | node --require 'fs' app.js", () =>
+      notDenied("curl -s https://api.example/x.js | node --require 'fs' app.js"));
+    it("allows curl | python3 -W 'ignore' s.py", () =>
+      notDenied("curl -s https://api.example/x.py | python3 -W 'ignore' s.py"));
+    it("allows curl | perl -M'strict' s.pl", () =>
+      notDenied("curl -s https://api.example/x.pl | perl -M'strict' s.pl"));
     // Stdin-program shapes the single-regex miss: lone `-`, option-only flags,
     // /dev/stdin, and sudo/env prefixes must still DENY.
     it('blocks curl | python3 - arg1', () =>
