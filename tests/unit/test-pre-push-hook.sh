@@ -860,20 +860,39 @@ test_shared_load_backoff_fixture() {
 
 # A captured stage that exits 7 must make the hook exit 7.
 # Reading $? after the if reports 0, so the gate used to pass.
+# The typecheck stage runs src/hooks/node_modules/.bin/tsc directly (#4220),
+# so stub that binary (npx is no longer on this path).
 test_captured_stage_exit_status() {
     log_section "Test: captured stage exit status is the hook exit status"
 
-    local tmp bin hook rc out kept
+    local tmp hook rc out kept tsc_bin tsc_backup=""
     tmp=$(mktemp -d "${TMPDIR:-/tmp}/ork-pre-push-rc.XXXXXX")
-    bin="$tmp/bin"
-    mkdir -p "$bin"
-    printf '%s\n' '#!/bin/bash' 'exit 7' > "$bin/npx"
-    chmod +x "$bin/npx"
     hook="${PROJECT_ROOT}/bin/git-hooks/pre-push"
+    tsc_bin="${PROJECT_ROOT}/src/hooks/node_modules/.bin/tsc"
+
+    if [[ ! -x "$tsc_bin" ]]; then
+        log_fail "local tsc missing at $tsc_bin (typecheck stage would SKIP, not exercise capture)"
+        rm -rf "$tmp"
+        return
+    fi
+
+    tsc_backup="$tmp/tsc.real"
+    mv "$tsc_bin" "$tsc_backup"
+    printf '%s\n' '#!/bin/bash' 'exit 7' > "$tsc_bin"
+    chmod +x "$tsc_bin"
+    restore_tsc() {
+        if [[ -n "$tsc_backup" && -f "$tsc_backup" ]]; then
+            mv -f "$tsc_backup" "$tsc_bin"
+        fi
+    }
+    trap restore_tsc EXIT
 
     rc=0
-    out=$(PATH="$bin:$PATH" /bin/bash "$hook" origin "https://example.invalid/repo.git" \
+    out=$(/bin/bash "$hook" origin "https://example.invalid/repo.git" \
         <<<'refs/heads/chore/exit-status 0000000000000000000000000000000000000000 refs/heads/chore/exit-status 0000000000000000000000000000000000000000') || rc=$?
+
+    restore_tsc
+    trap - EXIT
 
     if [[ "$rc" -eq 7 ]]; then
         log_pass "stubbed stage exit 7 is the hook exit status"
