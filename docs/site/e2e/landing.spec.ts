@@ -72,17 +72,16 @@ test.describe('Landing hero', () => {
     expect(h1Lines).toBe(3);
 
     // Art must sit beside the headline, not vertically centred on the full
-    // copy column (host picker). artTop at or above h1.top fails a top:50%
-    // + translateY(-50%) layout that still clears h1.bottom (CodeRabbit).
+    // copy column. Compare artTop to h1.top (not h1.bottom): a centered
+    // 16:9 box can still clear h1.bottom at 1440x900 (CodeRabbit).
     const anchor = await page.evaluate(() => {
       const art = document.querySelector('.home-hero-art')?.getBoundingClientRect();
       const h1 = document.querySelector('#hero-heading')?.getBoundingClientRect();
       if (!art || !h1) return null;
-      return { artTop: art.top, h1Top: h1.top, h1Bottom: h1.bottom };
+      return { artTop: art.top, h1Top: h1.top };
     });
     expect(anchor).not.toBeNull();
-    expect(anchor!.artTop).toBeLessThanOrEqual(anchor!.h1Top + 1);
-    expect(anchor!.artTop).toBeLessThan(anchor!.h1Bottom);
+    expect(anchor!.artTop).toBeLessThan(anchor!.h1Top);
 
     await page.setViewportSize({ width: 390, height: 844 });
     const mobile = await art.evaluate((el) => {
