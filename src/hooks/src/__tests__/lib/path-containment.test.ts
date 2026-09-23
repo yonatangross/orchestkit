@@ -31,6 +31,9 @@ describe('EXCLUDED_DIRS', () => {
   test('includes all expected directories', () => {
     expect(EXCLUDED_DIRS).toContain('node_modules');
     expect(EXCLUDED_DIRS).toContain('.git');
+    expect(EXCLUDED_DIRS).toContain('.github');
+    expect(EXCLUDED_DIRS).toContain('.claude');
+    expect(EXCLUDED_DIRS).toContain('.husky');
     expect(EXCLUDED_DIRS).toContain('dist');
     expect(EXCLUDED_DIRS).toContain('build');
     expect(EXCLUDED_DIRS).toContain('__pycache__');
@@ -38,8 +41,8 @@ describe('EXCLUDED_DIRS', () => {
     expect(EXCLUDED_DIRS).toContain('venv');
   });
 
-  test('has exactly 7 entries', () => {
-    expect(EXCLUDED_DIRS).toHaveLength(7);
+  test('has exactly 10 entries', () => {
+    expect(EXCLUDED_DIRS).toHaveLength(10);
   });
 });
 
@@ -106,8 +109,14 @@ describe('hasExcludedDir', () => {
     expect(hasExcludedDir(`/project${sep}dist-tools${sep}run.sh`)).toBe(false);
   });
 
-  test('returns false for path with no excluded dirs', () => {
-    expect(hasExcludedDir(`/home${sep}user${sep}project${sep}lib${sep}utils.ts`)).toBe(false);
+  test('detects .claude and .husky mid-path (#4220 AF-13)', () => {
+    expect(hasExcludedDir(`/project${sep}.claude${sep}settings.json`)).toBe(true);
+    expect(hasExcludedDir(`/project${sep}.husky${sep}pre-commit`)).toBe(true);
+  });
+
+  test('detects .git* prefix segments (#4220 AF-13)', () => {
+    expect(hasExcludedDir(`/project${sep}.github${sep}workflows${sep}ci.yml`)).toBe(true);
+    expect(hasExcludedDir(`/project${sep}.gitignore${sep}x`)).toBe(true);
   });
 
   test.each(EXCLUDED_DIRS)('detects %s as mid-path segment', (dir) => {
@@ -127,12 +136,25 @@ describe('resolveRealPath', () => {
     expect(mockRealpathSync).toHaveBeenCalledWith('/symlink/path/file.ts');
   });
 
-  test('returns original absolute path when file does not exist (ENOENT)', () => {
-    // TOCTOU fix: realpathSync called directly, ENOENT caught in catch block
-    mockRealpathSync.mockImplementation(() => { throw new Error('ENOENT'); });
+  test('on ENOENT realpaths the parent and joins the basename (#4220 AF-15)', () => {
+    mockRealpathSync.mockImplementation((p: unknown) => {
+      const s = String(p);
+      if (s === '/project/vendor/new.ts') throw new Error('ENOENT');
+      if (s === '/project/vendor') return '/outside/real';
+      throw new Error(`unexpected realpath: ${s}`);
+    });
+
+    expect(resolveRealPath('/project/vendor/new.ts', '/project')).toBe(
+      join('/outside/real', 'new.ts'),
+    );
+  });
+
+  test('returns best-effort path when parent realpath also fails', () => {
+    mockRealpathSync.mockImplementation(() => {
+      throw new Error('ENOENT');
+    });
 
     expect(resolveRealPath('/new/file.ts', '/project')).toBe('/new/file.ts');
-    expect(mockRealpathSync).toHaveBeenCalledWith('/new/file.ts');
   });
 
   test('resolves relative path against projectDir', () => {
@@ -141,13 +163,6 @@ describe('resolveRealPath', () => {
 
     expect(resolveRealPath('src/file.ts', '/project')).toBe(expectedAbsolute);
     expect(mockRealpathSync).toHaveBeenCalledWith(expectedAbsolute);
-  });
-
-  test('returns best-effort path on realpathSync error', () => {
-    mockRealpathSync.mockImplementation(() => { throw new Error('ELOOP'); });
-
-    // Catch block returns best-effort absolute path
-    expect(resolveRealPath('/loop/file.ts', '/project')).toBe('/loop/file.ts');
   });
 
   test('SEC: follows symlink to detect escape from project', () => {

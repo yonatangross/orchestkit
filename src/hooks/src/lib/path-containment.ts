@@ -6,19 +6,29 @@
  *
  * SEC: resolveRealPath follows symlinks to prevent bypass attacks (ME-001).
  * SEC: isInsideDir uses relative() not startsWith() to prevent prefix attacks.
+ * SEC #4220 AF-13: EXCLUDED_DIRS includes .github / .claude / .husky; segments
+ * matching .git* are also excluded.
+ * SEC #4220 AF-15: on ENOENT, realpath the parent so symlink-dir + new file
+ * cannot escape via an unresolved lexical path.
  *
  * @since v7.27.1
  */
 
-import { resolve, isAbsolute, relative, normalize, sep } from 'node:path';
+import { resolve, isAbsolute, relative, normalize, sep, dirname, basename, join } from 'node:path';
 import { realpathSync } from 'node:fs';
 
 /**
  * Directories that should not be auto-approved or retried for writes.
+ * #4220 AF-13: .github, .claude, .husky added. Any path segment matching
+ * `.git*` (prefix) is also excluded in hasExcludedDir (covers .git, .github,
+ * .gitignore dirs, etc.).
  */
 export const EXCLUDED_DIRS = [
   'node_modules',
   '.git',
+  '.github',
+  '.claude',
+  '.husky',
   'dist',
   'build',
   '__pycache__',
@@ -37,12 +47,13 @@ export function isInsideDir(filePath: string, rootDir: string): boolean {
 
 /**
  * Check if a file path contains an excluded directory segment.
+ * Exact EXCLUDED_DIRS matches, plus any segment starting with `.git` (#4220 AF-13).
  */
 export function hasExcludedDir(filePath: string): boolean {
-  for (const dir of EXCLUDED_DIRS) {
-    if (filePath.includes(`${sep}${dir}${sep}`) || filePath.endsWith(`${sep}${dir}`)) {
-      return true;
-    }
+  const parts = normalize(filePath).split(sep).filter(Boolean);
+  for (const part of parts) {
+    if (part.startsWith('.git')) return true;
+    if (EXCLUDED_DIRS.includes(part)) return true;
   }
   return false;
 }
@@ -50,18 +61,25 @@ export function hasExcludedDir(filePath: string): boolean {
 /**
  * Resolve file path, following symlinks to prevent bypass attacks.
  * Pattern from file-guard.ts (ME-001 fix).
+ *
+ * #4220 AF-15: when the leaf does not exist (ENOENT), realpath the parent
+ * directory and join the basename. A committed symlink directory plus a
+ * new-file write must not escape via the unresolved lexical path.
  */
 export function resolveRealPath(filePath: string, projectDir: string): string {
-  try {
-    const absolutePath = isAbsolute(filePath)
-      ? filePath
-      : resolve(projectDir, filePath);
+  const absolutePath = isAbsolute(filePath)
+    ? filePath
+    : resolve(projectDir, filePath);
 
-    // Call realpathSync directly — avoids TOCTOU race between existsSync and realpathSync
+  try {
+    // Call realpathSync directly; avoids TOCTOU race between existsSync and realpathSync
     return realpathSync(absolutePath);
   } catch {
-    // ENOENT (file doesn't exist) or other errors — return best-effort absolute path
-    const absolutePath = isAbsolute(filePath) ? filePath : resolve(projectDir, filePath);
-    return absolutePath;
+    try {
+      const parentReal = realpathSync(dirname(absolutePath));
+      return join(parentReal, basename(absolutePath));
+    } catch {
+      return absolutePath;
+    }
   }
 }
