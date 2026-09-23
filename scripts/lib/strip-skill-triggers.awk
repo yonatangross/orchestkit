@@ -1,4 +1,3 @@
-# Invoked by build-plugins.sh so built skill copies drop object-shaped triggers (#4220 rebuild).
 # Delete the object-shaped `triggers` frontmatter block from a SKILL.md
 # stream: the `triggers:` line plus its children, inside the frontmatter
 # fence only. A child is an indented line, a blank line, or a `- ` sequence
