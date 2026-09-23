@@ -16,6 +16,7 @@
 
 import { resolve, isAbsolute, relative, normalize, sep, dirname, basename, join } from 'node:path';
 import { realpathSync, lstatSync, readlinkSync } from 'node:fs';
+import type { Stats } from 'node:fs';
 
 /**
  * Directories that should not be auto-approved or retried for writes.
@@ -89,7 +90,7 @@ export function resolveRealPath(filePath: string, projectDir: string): string {
       if (st.isSymbolicLink()) {
         let current = absolutePath;
         for (let hop = 0; hop < MAX_SYMLINK_HOPS; hop++) {
-          let curStat;
+          let curStat: Stats;
           try {
             curStat = lstatSync(current);
           } catch {
