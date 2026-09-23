@@ -28,13 +28,6 @@ hooks:
 metadata:
   category: workflow-automation
   mcp-server: memory
-triggers:
-  keywords: [verify, verifiy, validate, verification, "ready for merge", "check everything", "security scan", "give me a score", "full verification", "grade my", "verified vs claimed", "what did you actually verify", "prove it"]
-  examples:
-    - "verify the authentication implementation"
-    - "is this feature ready for merge? check everything"
-    - "run tests, security scan, and give me a score"
-  anti-triggers: [implement, build, fix, cover, "generate tests", commit]
 ---
 
 # Verify Feature
