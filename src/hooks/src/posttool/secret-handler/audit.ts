@@ -21,9 +21,16 @@ export interface AuditEntry {
   readonly span_length: number;
 }
 
+/**
+ * Resolve ORK_SECRET_HOOK. Unset → AUDIT (detect + sidecar warn, no blocking).
+ * Explicit OFF disables; REDACT mutates output. Unknown values → OFF so a typo
+ * cannot silently escalate into REDACT (#4217 / audit L4).
+ */
 export function getMode(): Mode {
-  const raw = (process.env.ORK_SECRET_HOOK || 'OFF').toUpperCase();
-  if (raw === 'AUDIT' || raw === 'REDACT') return raw;
+  const raw = process.env.ORK_SECRET_HOOK;
+  if (raw === undefined || raw === '') return 'AUDIT';
+  const upper = raw.toUpperCase();
+  if (upper === 'AUDIT' || upper === 'REDACT' || upper === 'OFF') return upper;
   return 'OFF';
 }
 

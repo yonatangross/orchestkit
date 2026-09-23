@@ -69,6 +69,7 @@ function createToolInput(
  * Store original environment for cleanup
  */
 let originalAgentId: string | undefined;
+let originalPluginData: string | undefined;
 
 // =============================================================================
 // Security Command Audit Tests
@@ -95,6 +96,8 @@ describe('security-command-audit', () => {
     // Save and set environment
     originalAgentId = process.env.CLAUDE_AGENT_ID;
     process.env.CLAUDE_AGENT_ID = 'security-auditor';
+    originalPluginData = process.env.CLAUDE_PLUGIN_DATA;
+    delete process.env.CLAUDE_PLUGIN_DATA;
   });
 
   afterEach(() => {
@@ -103,6 +106,11 @@ describe('security-command-audit', () => {
       process.env.CLAUDE_AGENT_ID = originalAgentId;
     } else {
       delete process.env.CLAUDE_AGENT_ID;
+    }
+    if (originalPluginData !== undefined) {
+      process.env.CLAUDE_PLUGIN_DATA = originalPluginData;
+    } else {
+      delete process.env.CLAUDE_PLUGIN_DATA;
     }
     // Note: do NOT use vi.restoreAllMocks() here as it undoes vi.mock() factory mocks
   });
@@ -229,6 +237,46 @@ describe('security-command-audit', () => {
       // Assert
       const logFilePath = vi.mocked(appendFileSync).mock.calls[0][0];
       expect(logFilePath).toBe('/test/project/.claude/logs/security-audit.log');
+    });
+
+    test('redacts secret values in the logged command (#4217)', () => {
+      const token = 'ghp_aBcDeFgHiJkLmNoPqRsTuVwXyZ0123456789AB';
+      const input = createToolInput('Bash', {
+        command: `curl -H "Authorization: Bearer ${token}" https://api.example.com`,
+      });
+
+      securityCommandAudit(input, testCtx);
+
+      const logContent = vi.mocked(appendFileSync).mock.calls[0][1] as string;
+      expect(logContent).not.toContain(token);
+      expect(logContent).toContain('[REDACTED]');
+      expect(logContent).toContain('CMD:');
+    });
+
+    test('redacts every Bearer token when a command carries two (#4217/#4380)', () => {
+      const t1 = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.aaa';
+      const t2 = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.bbb';
+      const input = createToolInput('Bash', {
+        command: `curl -H "Authorization: ${t1}" -H "X-Alt: ${t2}" https://api.example.com`,
+      });
+
+      securityCommandAudit(input, testCtx);
+
+      const logContent = vi.mocked(appendFileSync).mock.calls[0][1] as string;
+      expect(logContent).not.toContain('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.aaa');
+      expect(logContent).not.toContain('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.bbb');
+      expect(logContent.match(/\[REDACTED\]/g)?.length).toBeGreaterThanOrEqual(2);
+    });
+
+    test('prefers CLAUDE_PLUGIN_DATA/logs when set (#4217)', () => {
+      process.env.CLAUDE_PLUGIN_DATA = '/plugin/data';
+      const input = createToolInput('Bash', { command: 'git status' });
+
+      securityCommandAudit(input, testCtx);
+
+      expect(mkdirSync).toHaveBeenCalledWith('/plugin/data/logs', { recursive: true });
+      const logFilePath = vi.mocked(appendFileSync).mock.calls[0][0];
+      expect(logFilePath).toBe('/plugin/data/logs/security-audit.log');
     });
   });
 

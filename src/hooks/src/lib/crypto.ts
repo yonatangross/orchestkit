@@ -53,10 +53,17 @@ export function signPayload(body: string, secret: string): string {
  * Redact a string value that contains embedded secrets.
  * Returns the original string if no secrets detected.
  */
-function redactSecretValues(value: string): string {
+export function redactSecretValues(value: string): string {
   let result = value;
   for (const pattern of SECRET_VALUE_PATTERNS) {
     result = result.replace(pattern, (match) => {
+      // Connection URLs: redact the whole match. The prefix heuristic below
+      // keeps match.slice(0, prefixEnd) where prefixEnd is the last 20+
+      // [A-Za-z0-9._-] run; on Atlas/RDS hosts that run is the hostname, so
+      // scheme://user:password@ would survive (#4217 estate-3 HOLD).
+      if (/^[a-z][a-z0-9+.-]*:\/\//i.test(match)) {
+        return '[REDACTED]';
+      }
       // Keep the prefix (export, Bearer, etc.) but redact the secret part
       const prefixEnd = match.search(/[a-zA-Z0-9._-]{20,}$/);
       if (prefixEnd > 0) {
@@ -69,11 +76,34 @@ function redactSecretValues(value: string): string {
 }
 
 /**
+ * Recursively sanitize a single value for egress (HttpSink / JsonlSink).
+ * Strings: redact known token shapes then truncate to MAX_STRING_LENGTH.
+ * Arrays: map each element (including string argv / MultiEdit / MCP args).
+ * Plain objects: sanitizePayload (sensitive keys + recursive values).
+ */
+function sanitizeValue(value: unknown): unknown {
+  if (typeof value === 'string') {
+    let processed = redactSecretValues(value);
+    if (processed.length > MAX_STRING_LENGTH) {
+      processed = `${processed.slice(0, MAX_STRING_LENGTH - 3)}...`;
+    }
+    return processed;
+  }
+  if (Array.isArray(value)) {
+    return value.map((item) => sanitizeValue(item));
+  }
+  if (typeof value === 'object' && value !== null) {
+    return sanitizePayload(value as Record<string, unknown>);
+  }
+  return value;
+}
+
+/**
  * Sanitize an object for safe transmission over the network.
  * - Redacts values of sensitive keys (password, secret, token, etc.)
  * - Detects and redacts embedded secrets in string values (API keys, Bearer tokens)
  * - Truncates long strings to MAX_STRING_LENGTH
- * - Recursively processes nested objects
+ * - Recursively processes nested objects and array elements (including strings)
  * - Returns undefined for undefined input (pass-through)
  */
 export function sanitizePayload(
@@ -90,33 +120,7 @@ export function sanitizePayload(
       continue;
     }
 
-    // Process string values
-    if (typeof value === 'string') {
-      let processed = redactSecretValues(value);
-      if (processed.length > MAX_STRING_LENGTH) {
-        processed = `${processed.slice(0, MAX_STRING_LENGTH - 3)}...`;
-      }
-      sanitized[key] = processed;
-      continue;
-    }
-
-    // Recursively sanitize nested objects
-    if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-      sanitized[key] = sanitizePayload(value as Record<string, unknown>);
-      continue;
-    }
-
-    // Arrays: sanitize each element if object, pass through otherwise
-    if (Array.isArray(value)) {
-      sanitized[key] = value.map(item =>
-        typeof item === 'object' && item !== null && !Array.isArray(item)
-          ? sanitizePayload(item as Record<string, unknown>)
-          : item
-      );
-      continue;
-    }
-
-    sanitized[key] = value;
+    sanitized[key] = sanitizeValue(value);
   }
 
   return sanitized;

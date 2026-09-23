@@ -56,8 +56,12 @@ Out of scope:
   categories, including malicious code, prompt injection, toxic flows, suspicious
   downloads, and exposed credentials.
 - **CI gates.** CodeQL, dependency review with Dependabot auto-merge for patches,
-  an OpenSSF Scorecard run, secret-audit hooks, and hook-contract tests run on the
-  repository. Third-party GitHub Actions are pinned by commit SHA.
+  an OpenSSF Scorecard run, and hook-contract tests run on the repository.
+  Runtime secret controls ship in the plugin: `redact-secrets` warns on leaked
+  tokens in tool output, `secret-handler` defaults to `ORK_SECRET_HOOK=AUDIT`
+  (detect + sidecar log, no blocking), and `security-command-audit` appends
+  Bash lines with known token shapes redacted under `CLAUDE_PLUGIN_DATA` when
+  set. Third-party GitHub Actions are pinned by commit SHA.
 - **Upstream version tracking.** `scripts/check-labs-versions.mjs` re-checks each
   skill's declared `upstream-version-tested` pin and dependency floors against the
   live npm and PyPI registries on a schedule, so documented versions cannot drift
