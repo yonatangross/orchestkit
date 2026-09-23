@@ -37,6 +37,8 @@ const SIDE_EFFECT_STUBS = {
   logPermissionFeedback: vi.fn(),
   // I/O: rules file writes to disk
   writeRulesFile: vi.fn(() => true),
+  // I/O: rules file reads from disk
+  rulesFileMatches: vi.fn(() => false),
   // I/O: reads stdin
   readHookInput: vi.fn((): HookInput => ({ tool_name: '', session_id: 'test-session-123', tool_input: {} })),
   // Environment: reads cwd, env vars, git
@@ -304,6 +306,7 @@ export function mockLog(
     logPermissionFeedback: vi.fn<(...args: unknown[]) => void>(),
     outputStderrWarning: vi.fn(() => { throw new Error('outputStderrWarning calls process.exit — do not use in tests'); }) as unknown as (...args: unknown[]) => never,
     writeRulesFile: vi.fn(() => true),
+    rulesFileMatches: vi.fn(() => false),
     readHookInput: vi.fn((): HookInput => ({ tool_name: '', session_id: 'test-session-123', tool_input: {} })),
     ...overrides,
   };
