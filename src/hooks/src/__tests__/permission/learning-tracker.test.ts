@@ -67,6 +67,16 @@ function createBashInput(command: string): HookInput {
 // Tests
 // ---------------------------------------------------------------------------
 
+
+const __ORK_PAA_PREV = process.env.ORK_PERMISSION_AUTO_APPROVE;
+beforeEach(() => {
+  process.env.ORK_PERMISSION_AUTO_APPROVE = '1';
+});
+afterEach(() => {
+  if (__ORK_PAA_PREV === undefined) delete process.env.ORK_PERMISSION_AUTO_APPROVE;
+  else process.env.ORK_PERMISSION_AUTO_APPROVE = __ORK_PAA_PREV;
+});
+
 describe('learningTracker', () => {
   beforeEach(() => {
     vi.clearAllMocks();

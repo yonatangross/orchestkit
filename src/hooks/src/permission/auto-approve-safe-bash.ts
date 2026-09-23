@@ -1,7 +1,9 @@
 /**
  * Auto-Approve Safe Bash - Automatically approves safe bash commands
  * Hook: PermissionRequest (Bash)
- * CC 2.1.6 Compliant: includes continue field in all outputs
+ *
+ * OPT-IN (#4374 security hold): emits allow only when
+ * ORK_PERMISSION_AUTO_APPROVE=1. Default OFF so CC shows its normal dialog.
  */
 
 import type { HookInput, HookResult , HookContext} from '../types.js';
@@ -11,6 +13,7 @@ import {
 } from '../lib/common.js';
 import { isCompoundCommand, normalizeSingle } from '../lib/normalize-command.js';
 import { REJECT_PATTERNS } from '../lib/bash-patterns.js';
+import { isPermissionAutoApproveEnabled } from '../lib/permission-auto-approve.js';
 import { NOOP_CTX } from '../lib/context.js';
 
 /**
@@ -90,6 +93,11 @@ const SAFE_PATTERNS: RegExp[] = [
  * Auto-approve safe bash commands
  */
 export function autoApproveSafeBash(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
+  if (!isPermissionAutoApproveEnabled()) {
+    ctx.log('auto-approve-safe-bash', 'ORK_PERMISSION_AUTO_APPROVE not set; pass-through');
+    return outputSilentSuccess();
+  }
+
   const command = input.tool_input.command || '';
 
   ctx.log('auto-approve-safe-bash', `Evaluating bash command: ${command.slice(0, 50)}...`);

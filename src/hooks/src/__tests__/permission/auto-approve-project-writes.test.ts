@@ -3,7 +3,7 @@
  * Tests file path validation and permission decisions
  */
 
-import { describe, test, expect, vi, beforeEach } from 'vitest';
+import { describe, test, expect, vi, beforeEach, afterEach} from 'vitest';
 import { autoApproveProjectWrites } from '../../permission/auto-approve-project-writes.js';
 import type { HookInput } from '../../types.js';
 import { createTestContext } from '../fixtures/test-context.js';
@@ -32,6 +32,16 @@ function createWriteInput(filePath: string, projectDir = '/test/project'): HookI
 }
 
 let testCtx: ReturnType<typeof createTestContext>;
+
+const __ORK_PAA_PREV = process.env.ORK_PERMISSION_AUTO_APPROVE;
+beforeEach(() => {
+  process.env.ORK_PERMISSION_AUTO_APPROVE = '1';
+});
+afterEach(() => {
+  if (__ORK_PAA_PREV === undefined) delete process.env.ORK_PERMISSION_AUTO_APPROVE;
+  else process.env.ORK_PERMISSION_AUTO_APPROVE = __ORK_PAA_PREV;
+});
+
 describe('auto-approve-project-writes', () => {
   beforeEach(() => {
     testCtx = createTestContext();
@@ -46,7 +56,6 @@ describe('auto-approve-project-writes', () => {
       '/test/project/README.md',
       '/test/project/package.json',
       '/test/project/tsconfig.json',
-      '/test/project/.github/workflows/ci.yml',
       '/test/project/deep/nested/path/file.txt',
     ];
 
@@ -90,6 +99,13 @@ describe('auto-approve-project-writes', () => {
       '/test/project/__pycache__/module.pyc',
       '/test/project/.venv/lib/site-packages/pkg.py',
       '/test/project/venv/bin/python',
+      // #4374 hard denylist (even when ORK_PERMISSION_AUTO_APPROVE=1)
+      '/test/project/.github/workflows/ci.yml',
+      '/test/project/.claude/settings.local.json',
+      '/test/project/.mcp.json',
+      '/test/project/plugin.json',
+      '/test/project/.env',
+      '/test/project/.husky/pre-commit',
     ];
 
     test.each(excludedPaths)('requires manual approval for excluded: %s', (filePath) => {

@@ -201,6 +201,9 @@ echo "=========================================="
 # {"continue":true,"suppressOutput":true} and exit 0, which carries no
 # permissionDecision and is indistinguishable from a deliberate passthrough.
 # That is the exact mechanism that blinded this file.
+# #4374: PermissionRequest auto-approve is opt-in (default OFF).
+export ORK_PERMISSION_AUTO_APPROVE=1
+
 section "0. Every hook under test is registered"
 
 if [[ ! -f "$RUNNER" ]]; then

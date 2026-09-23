@@ -3,7 +3,7 @@
  * Tests how multiple hooks work together in realistic scenarios
  */
 
-import { describe, test, expect, vi, beforeEach, } from 'vitest';
+import { describe, test, expect, vi, beforeEach,  afterEach} from 'vitest';
 import type { HookInput, HookResult } from '../../types.js';
 
 // Import hooks for integration testing
@@ -43,6 +43,16 @@ vi.mock('node:fs', () => ({
 }));
 
 let testCtx: ReturnType<typeof createTestContext>;
+
+const __ORK_PAA_PREV = process.env.ORK_PERMISSION_AUTO_APPROVE;
+beforeEach(() => {
+  process.env.ORK_PERMISSION_AUTO_APPROVE = '1';
+});
+afterEach(() => {
+  if (__ORK_PAA_PREV === undefined) delete process.env.ORK_PERMISSION_AUTO_APPROVE;
+  else process.env.ORK_PERMISSION_AUTO_APPROVE = __ORK_PAA_PREV;
+});
+
 describe('Hook Chain Integration Tests', () => {
   beforeEach(() => {
     testCtx = createTestContext();

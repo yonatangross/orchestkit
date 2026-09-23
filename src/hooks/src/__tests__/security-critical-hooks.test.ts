@@ -87,6 +87,16 @@ function expectSilentAllow(result: ReturnType<typeof autoApproveSafeBash>): void
 // 3. AUTO-APPROVE SAFE BASH
 // =============================================================================
 
+
+const __ORK_PAA_PREV = process.env.ORK_PERMISSION_AUTO_APPROVE;
+beforeEach(() => {
+  process.env.ORK_PERMISSION_AUTO_APPROVE = '1';
+});
+afterEach(() => {
+  if (__ORK_PAA_PREV === undefined) delete process.env.ORK_PERMISSION_AUTO_APPROVE;
+  else process.env.ORK_PERMISSION_AUTO_APPROVE = __ORK_PAA_PREV;
+});
+
 describe('autoApproveSafeBash', () => {
   describe('auto-approves git read operations', () => {
     test.each([

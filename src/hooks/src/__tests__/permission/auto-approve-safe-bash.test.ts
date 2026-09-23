@@ -3,7 +3,7 @@
  * Tests safe command pattern matching and permission decisions
  */
 
-import { describe, test, expect, vi, beforeEach } from 'vitest';
+import { describe, test, expect, vi, beforeEach, afterEach} from 'vitest';
 import { autoApproveSafeBash } from '../../permission/auto-approve-safe-bash.js';
 import type { HookInput } from '../../types.js';
 import { createTestContext } from '../fixtures/test-context.js';
@@ -31,6 +31,16 @@ function createBashInput(command: string): HookInput {
 }
 
 let testCtx: ReturnType<typeof createTestContext>;
+
+const __ORK_PAA_PREV = process.env.ORK_PERMISSION_AUTO_APPROVE;
+beforeEach(() => {
+  process.env.ORK_PERMISSION_AUTO_APPROVE = '1';
+});
+afterEach(() => {
+  if (__ORK_PAA_PREV === undefined) delete process.env.ORK_PERMISSION_AUTO_APPROVE;
+  else process.env.ORK_PERMISSION_AUTO_APPROVE = __ORK_PAA_PREV;
+});
+
 describe('auto-approve-safe-bash', () => {
   beforeEach(() => {
     testCtx = createTestContext();

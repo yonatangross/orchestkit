@@ -3,7 +3,7 @@
  * Tests critical hooks and shared utilities with realistic HookInput objects
  */
 
-import { describe, test, expect, } from 'vitest';
+import { describe, test, expect,  afterEach, beforeEach} from 'vitest';
 import type { HookInput, } from '../types.js';
 
 // Import hooks to test
@@ -90,6 +90,16 @@ function createReadInput(file_path: string, overrides: Partial<HookInput> = {}):
 // Permission Hooks Tests
 // =============================================================================
 
+
+
+const __ORK_PAA_PREV = process.env.ORK_PERMISSION_AUTO_APPROVE;
+beforeEach(() => {
+  process.env.ORK_PERMISSION_AUTO_APPROVE = '1';
+});
+afterEach(() => {
+  if (__ORK_PAA_PREV === undefined) delete process.env.ORK_PERMISSION_AUTO_APPROVE;
+  else process.env.ORK_PERMISSION_AUTO_APPROVE = __ORK_PAA_PREV;
+});
 
 describe('permission/auto-approve-safe-bash', () => {
   describe('safe git commands', () => {
