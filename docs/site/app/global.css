@@ -23,7 +23,7 @@
   /* Fluid typography — clamp(min, vw + rem, max)
      rem component respects user font-size preferences (accessibility)
      vw component drives smooth viewport scaling */
-  --text-fluid-h1: clamp(2.5rem, 4vw + 1.5rem, 6rem);   /* yonyon-scale display */
+  --text-fluid-h1: clamp(2.5rem, 4vw + 1.5rem, 4.25rem); /* hero A mockup cap (was 6rem) */
   --text-fluid-h2: clamp(1.25rem, 1.5vw + 0.75rem, 2.25rem);
 
   /* Light mode palette — warm-undertone neutrals (hue 85, chroma <= 0.012
@@ -217,12 +217,18 @@
   min-height: min(72vh, 720px);
 }
 
+/* Desktop art box follows source 1280x723. Do not stretch top/bottom to the
+   full copy column (picker/search/proof): that made object-fit:cover crop the
+   conductor to one arm at ~2x zoom (reviewer-estate-3 HOLD on #4345). */
 .home-hero-art {
   position: absolute;
-  top: 0;
+  top: 50%;
   right: 0;
-  bottom: 0;
+  bottom: auto;
   width: 55%;
+  height: auto;
+  aspect-ratio: 1280 / 723;
+  transform: translateY(-50%);
   z-index: 1;
   pointer-events: none;
   -webkit-mask-image: linear-gradient(
@@ -271,6 +277,8 @@
     height: auto;
     aspect-ratio: 16 / 9;
     inset: auto;
+    top: auto;
+    transform: none;
     margin-top: 8px;
     -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 18%);
     mask-image: linear-gradient(to bottom, transparent 0%, #000 18%);

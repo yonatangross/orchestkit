@@ -38,9 +38,13 @@ test.describe('Landing hero', () => {
     await expect(art).toBeVisible();
     const desktop = await art.evaluate((el) => {
       const cs = getComputedStyle(el);
+      const r = el.getBoundingClientRect();
       return {
         position: cs.position,
-        widthPct: Math.round((el.getBoundingClientRect().width / window.innerWidth) * 100),
+        widthPct: Math.round((r.width / window.innerWidth) * 100),
+        width: r.width,
+        height: r.height,
+        aspect: r.height > 0 ? Number((r.width / r.height).toFixed(2)) : 0,
         mask: cs.maskImage || (cs as CSSStyleDeclaration & { webkitMaskImage?: string }).webkitMaskImage || '',
       };
     });
@@ -48,6 +52,24 @@ test.describe('Landing hero', () => {
     expect(desktop.widthPct).toBeGreaterThanOrEqual(40);
     expect(desktop.widthPct).toBeLessThanOrEqual(75);
     expect(desktop.mask).toMatch(/linear-gradient/);
+    // Source is 1280x723 (~1.77). Full-column stretch + cover cropped the
+    // conductor (~2x zoom). Height must track width at that ratio, not the
+    // tall copy column (picker/search/proof).
+    expect(desktop.height).toBeGreaterThan(200);
+    expect(desktop.height).toBeLessThan(480);
+    expect(desktop.aspect).toBeGreaterThan(1.6);
+    expect(desktop.aspect).toBeLessThan(2.0);
+    const expectedH = desktop.width * (723 / 1280);
+    expect(Math.abs(desktop.height - expectedH)).toBeLessThan(12);
+
+    // Mockup caps display at 4.25rem so the headline is 3 lines at 1440.
+    const h1Lines = await page.locator('#hero-heading').evaluate((el) => {
+      const cs = getComputedStyle(el);
+      const lh = parseFloat(cs.lineHeight);
+      if (!Number.isFinite(lh) || lh <= 0) return -1;
+      return Math.round(el.getBoundingClientRect().height / lh);
+    });
+    expect(h1Lines).toBe(3);
 
     await page.setViewportSize({ width: 390, height: 844 });
     const mobile = await art.evaluate((el) => {
