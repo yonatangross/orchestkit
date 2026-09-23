@@ -26,14 +26,16 @@ export function isPermissionAutoApproveEnabled(
 /**
  * True when a resolved absolute path must never be auto-approved for Write/Edit.
  * Callers must pass resolveRealPath() output so ../ and symlinks cannot slip past.
+ * Comparison is case-insensitive (macOS APFS default) so .MCP.json / .Claude /
+ * Plugin.json / .ENV cannot bypass the denylist.
  */
 export function isHardDeniedWritePath(resolvedPath: string): boolean {
   const normalized = normalize(resolvedPath);
-  const base = basename(normalized);
-  const parts = normalized.split(sep).filter(Boolean);
+  const base = basename(normalized).toLowerCase();
+  const parts = normalized.split(sep).filter(Boolean).map((p) => p.toLowerCase());
 
   // settings*.json at any depth (settings.json, settings.local.json, settings.foo.json)
-  if (/^settings.*\.json$/i.test(base)) return true;
+  if (/^settings.*\.json$/.test(base)) return true;
 
   if (base === '.mcp.json') return true;
   if (base === 'plugin.json') return true;

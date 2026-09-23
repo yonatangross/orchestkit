@@ -140,6 +140,8 @@ Auto-approve or deny permission requests based on safety rules.
 pass through so Claude Code shows its normal permission dialog. This is the
 #4374 security hold: fixing the F11 output shape without an opt-in would have
 turned previously inert hooks into live auto-approve for every install.
+Opt-in also auto-approves the safe-bash test runners (pytest, npm run/test), so
+enabling it means acceptEdits plus auto-approved runners.
 
 **Hard denylist (enforced even when enabled):** Write/Edit auto-approve never
 allows a resolved real path matching `settings*.json`, `.mcp.json`, `plugin.json`

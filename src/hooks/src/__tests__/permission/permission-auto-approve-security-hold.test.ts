@@ -134,5 +134,19 @@ describe('PermissionRequest auto-approve security hold (#4374)', () => {
       const r = autoApproveProjectWrites(writeInput(`${PROJECT}/src/foo.ts`));
       expect(isAllow(r)).toBe(true);
     });
+
+    // reviewer-estate-2 should-fix #1: macOS case-insensitive denylist bypass
+    const caseVariantRel = [
+      '.MCP.json',
+      'Plugin.json',
+      '.Claude/settings.json',
+      '.GITHUB/workflows/x.yml',
+      '.ENV',
+    ];
+
+    test.each(caseVariantRel)('denies case variant %s', (rel) => {
+      const r = autoApproveProjectWrites(writeInput(`${PROJECT}/${rel}`));
+      expect(isAllow(r), `must not allow case variant ${rel}`).toBe(false);
+    });
   });
 });
