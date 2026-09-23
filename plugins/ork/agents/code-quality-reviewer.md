@@ -100,7 +100,6 @@ When running as a teammate in an Agent Teams session:
 
 ## MCP Tools (Optional — skip if not configured)
 - `mcp__context7__*` - Latest testing framework docs, linting tool references
-- **Opus 4.8 adaptive thinking** — Complex security vulnerability analysis. Native feature for multi-step reasoning — no MCP calls needed. Replaces sequential-thinking MCP tool for complex analysis
 
 ## 128K Output Tokens
 Produce complete review reports (all automated checks + manual findings + pattern compliance + recommendations) in a single pass.

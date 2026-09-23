@@ -556,7 +556,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "audit-full",
     "description": "Single-pass codebase analysis leveraging a 1M-token context window for comprehensive security scanning, architecture review, and dependency auditing. Loads entire codebases for cross-file pattern detection and generates structured audit reports with severity-ranked findings. Use when you need whole-project analysis before releases or security reviews.",
     "version": "1.2.0",
-    "sha256": "2ae4707dc02f7c4b8e6a45fedb42e39e63f6d946a477aea3d7f155222cb0669c",
+    "sha256": "3648ea0149f89bf4967bc4d911c59a7241a0f9e038fca00d8890b404e86d63b3",
     "author": "OrchestKit",
     "tags": [
       "security",
@@ -620,7 +620,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "auto",
     "description": "Intent-classified router, the front door to OrchestKit and the DEFAULT entry point for any goal-shaped request. Classifies a plain-English goal and routes it to the right specialist skill. Routing is never overhead, so use it even when the target skill seems obvious; skip only when already executing inside another skill (no recursion). Triggers on: auto, do this, figure out, just make, I want, help me, fix, build, improve, any goal description.",
     "version": "1.0.0",
-    "sha256": "d0bbcf17e522bcd6d1075c937134ac9db6aca53139a96905dba8c1baaa3cb3b5",
+    "sha256": "0cc820c84523a7898efe07091d82f413facedd17746fc370e403c4b719dd01e6",
     "author": "OrchestKit",
     "tags": [
       "router",
@@ -1187,7 +1187,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "cover",
     "description": "Generate tests that do not exist yet. Analyzes coverage gaps, then writes and runs new test files across three tiers (unit, integration via testcontainers, Playwright E2E), one test-generator agent per tier, healing failures for up to 3 iterations. Use when code has no tests or when raising coverage after implementation. Do NOT use to grade tests that already exist (use /ork:verify) or to run a suite without writing anything new.",
     "version": "1.2.0",
-    "sha256": "51b3620b0334823c11be1ec7ddc5832072ff5d176e77d0b25866961b43fd857a",
+    "sha256": "4b2b739a78c4b9e80cfcdc4f90712cd7338ead6acb496cb672504fa047d5bed2",
     "author": "OrchestKit",
     "tags": [
       "testing",
@@ -1750,7 +1750,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "devops-deployment",
     "description": "Use when setting up CI/CD pipelines, containerizing applications, deploying to Kubernetes, or writing infrastructure as code. DevOps & Deployment covers GitHub Actions, Docker, Helm, and Terraform patterns.",
     "version": "1.0.0",
-    "sha256": "bc7aa92d32160e350753ec2d5e66c4c6b7d7c4b4ffa6061250e6e6e424cae0df",
+    "sha256": "7f52da302d2c2877baeab4426de6df1eb5d7eeca68ed78e52df08b2b79601881",
     "author": "OrchestKit",
     "tags": [
       "devops",
@@ -1866,7 +1866,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "doctor",
     "description": "OrchestKit doctor for health diagnostics across manifest integrity, hook configuration, skill validation, agent frontmatter, MCP server connectivity, CC version compatibility, and permission rules. Reports issues with severity levels and auto-remediation suggestions. Validates component counts, detects orphaned entries, and checks CC version matrix compliance. Use when diagnosing plugin health, troubleshooting configuration issues, or running pre-release checks.",
     "version": "3.3.0",
-    "sha256": "2d406947166b6228978b5cafb8e229144d42db17324cd82522e112dd21a01b44",
+    "sha256": "ad01301dde9af7d6bc1aaef75d928db5c426d9ec333fa4d5f41f4094509514e7",
     "author": "OrchestKit",
     "tags": [
       "health-check",
@@ -2004,7 +2004,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "dream",
     "description": "Nightly memory consolidation — prunes stale entries, merges duplicates, resolves contradictions, rebuilds MEMORY.md index. Use when memory files have accumulated over many sessions and need cleanup. Do NOT use for storing new decisions (use remember) or searching memory (use memory).",
     "version": "1.1.0",
-    "sha256": "75e795c327b60282f15fe5d3000d7038977dbfd19c14e62feb3cca9d79d3fbe6",
+    "sha256": "27996c2151e6c2e1f7b51721ec8068807ad967fe90b0075eca6460282c7335e8",
     "author": "OrchestKit",
     "tags": [
       "memory",
@@ -2200,7 +2200,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "explore",
     "description": "Multi-angle codebase exploration spawning 3-5 parallel agents for code structure, data flow, architecture patterns, and health assessment. Generates ASCII visualizations, import graphs, and design pattern detection with cross-session memory storage. Use when exploring a repo, discovering architecture, onboarding to a new codebase, or analyzing design patterns.",
     "version": "2.6.0",
-    "sha256": "1d5e77778b867e70cbf1f8297a2ae79120757c440cde9961db48484209c3ea55",
+    "sha256": "a4208204156ec2ca40ec14a6d7a433259fcc982a98e66f2bc622fcc9527aeebd",
     "author": "OrchestKit",
     "tags": [
       "exploration",

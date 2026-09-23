@@ -192,7 +192,7 @@ threshold, config or ordering decision, not the vendor tutorial.
 
 ## Deployment Checklist & Templates
 
-Load: `Read("references/checklists-and-templates.md")` for pre/during/post-deployment checklists, Helm chart structure, template reference table, and extended thinking triggers.
+Load: `Read("references/checklists-and-templates.md")` for pre/during/post-deployment checklists, Helm chart structure, and template reference table.
 
 ---
 

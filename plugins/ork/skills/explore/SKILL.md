@@ -64,7 +64,7 @@ EFFORT = EFFORT or "high"  # default
 | `high` (default) | 4 (full parallel team) | 1–8 | ~6 min |
 | `xhigh` (Opus 5) | 5 (+ uncertainty pass on health scores) | 1–8 + caveats | ~8 min |
 
-**Override gate:** if the user passes `--effort=high` explicitly while `$CLAUDE_EFFORT` is `low`, the flag wins. `doctor` warns when `xhigh` is requested without Opus 5.5.
+**Override gate:** if the user passes `--effort=high` explicitly while `$CLAUDE_EFFORT` is `low`, the flag wins. `doctor` warns only when `xhigh` is configured on a model in its `XHIGH_UNSUPPORTED_PREFIXES` table.
 
 ---
 

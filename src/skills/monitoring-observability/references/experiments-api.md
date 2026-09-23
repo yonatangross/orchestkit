@@ -285,7 +285,7 @@ async def ab_test_models(dataset_name: str):
     """Compare two model configurations."""
 
     configs = {
-        "sonnet": {"model": "claude-sonnet-5", "temperature": 0.7},
+        "sonnet": {"model": "claude-sonnet-5"},  # Sonnet 5 rejects sampling params
         "gpt5": {"model": "gpt-5.5", "temperature": 0.7},
     }
 

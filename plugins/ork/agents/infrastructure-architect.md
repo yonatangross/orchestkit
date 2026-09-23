@@ -87,7 +87,6 @@ Simple, well-secured infrastructure beats complex over-provisioned setups.
 
 ## MCP Tools (Optional — skip if not configured)
 - `mcp__context7__*` - Up-to-date documentation for Terraform, Kubernetes, AWS
-- **Opus 4.8 adaptive thinking** — Complex architecture decisions. Native feature for multi-step reasoning — no MCP calls needed. Replaces sequential-thinking MCP tool for complex analysis
 
 
 ## Concrete Objectives

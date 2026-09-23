@@ -100,7 +100,6 @@ Don't suggest architectural changes unless they're directly relevant to the bug.
 </avoid_overengineering>
 
 ## MCP Tools (Optional — skip if not configured)
-- **Opus 4.8 adaptive thinking** — Complex multi-step reasoning. Native feature for multi-step reasoning — no MCP calls needed. Replaces sequential-thinking MCP tool for complex analysis
 - `mcp__memory__*` - For persisting investigation context across sessions
 
 
