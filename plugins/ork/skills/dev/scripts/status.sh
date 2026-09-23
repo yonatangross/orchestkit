@@ -70,7 +70,8 @@ printf '  base url:  %s\n' "${base_url}"
 if command -v portless >/dev/null 2>&1; then
   slug="$(jq -r '.subdomain // ""' "${STATE_FILE}" | sed 's/\.localhost$//')"
   if [[ -n "${slug}" ]]; then
-    if portless list 2>/dev/null | grep -qE "https?://${slug}\.localhost(:[0-9]+)?\b"; then
+    routes="$(portless list 2>/dev/null || true)"
+    if grep -qE "https?://${slug}\.localhost(:[0-9]+)?\b" <<<"${routes}"; then
       printf '  portless:  route registered ✓\n'
     else
       printf '  portless:  route NOT registered (wrapper may have died)\n'

@@ -34,7 +34,7 @@ for f in "${STATE_DIR}"/*.json; do
   # silent: gating-relaxed (liveness probe)
   if [[ -n "$pid" && "$pid" != "0" ]] && kill -0 "$pid" 2>/dev/null; then alive="up"; else alive="dead"; fi
   case "$routes" in *"${name}.localhost"*) route="registered" ;; *) route="missing" ;; esac
-  code="$(curl -sSk -o /dev/null -m 5 -w '%{http_code}' "$url" 2>&1)"; crc=$?
+  crc=0; code="$(curl -sSk -o /dev/null -m 5 -w '%{http_code}' "$url" 2>&1)" || crc=$?
   [[ "$crc" == "0" ]] || code="000"
 
   if [[ "$JSON" == "1" ]]; then

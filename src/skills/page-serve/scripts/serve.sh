@@ -94,7 +94,7 @@ if ! command -v portless >/dev/null 2>&1; then
   printf 'serve.sh: portless is not installed. Install: npm i -g portless   (then: portless service install)\n' >&2
   exit 2
 fi
-svc_out="$(portless service status 2>&1)"; svc_rc=$?
+svc_rc=0; svc_out="$(portless service status 2>&1)" || svc_rc=$?
 case "$svc_out" in
   *"Proxy on 443: responding"*) ;;
   *)
@@ -112,6 +112,7 @@ fi
 read_state() { python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); print(d.get(sys.argv[2], ""))' "$STATE_FILE" "$1"; }
 
 live_pid=0
+new_pid=0
 PORT=""
 if [[ -f "$STATE_FILE" ]]; then
   prev_root="$(read_state root)"
@@ -134,6 +135,7 @@ if [[ "$live_pid" == "0" ]]; then
   LOG="${STATE_DIR}/${NAME}.log"
   ( cd "$ROOT" && exec python3 -m http.server "$PORT" --bind 127.0.0.1 >"$LOG" 2>&1 ) &
   live_pid=$!
+  new_pid=$!
   ok=0
   for _ in $(seq 1 30); do
     # silent: gating-relaxed (readiness poll; connection refused is the expected early answer)
@@ -149,11 +151,11 @@ if [[ "$live_pid" == "0" ]]; then
 fi
 
 # ── 4. Register the route (--force overrides a stale alias for the same name) ─
-alias_out="$(portless alias "$NAME" "$PORT" --force 2>&1)"; alias_rc=$?
+alias_rc=0; alias_out="$(portless alias "$NAME" "$PORT" --force 2>&1)" || alias_rc=$?
 if [[ "$alias_rc" != "0" ]]; then
   printf 'serve.sh: portless alias %s %s failed (rc=%s): %s\n' "$NAME" "$PORT" "$alias_rc" "$alias_out" >&2
-  # silent: post-cleanup (undo the server we just started)
-  kill "$live_pid" 2>/dev/null || true
+  # silent: post-cleanup (undo the server this run started; a reused server is left alone)
+  if [[ "$new_pid" != "0" ]]; then kill "$new_pid" 2>/dev/null || true; fi
   exit 2
 fi
 
@@ -169,7 +171,7 @@ json.dump({"name": name, "root": root, "file": file, "port": int(port), "pid": i
 PY
 
 # ── 6. Verify the URL answers through the proxy (portless CA is self-signed: -k) ─
-code="$(curl -sSk -o /dev/null -m 8 -w '%{http_code}' "$URL" 2>&1)"; curl_rc=$?
+curl_rc=0; code="$(curl -sSk -o /dev/null -m 8 -w '%{http_code}' "$URL" 2>&1)" || curl_rc=$?
 if [[ "$curl_rc" != "0" || "$code" != "200" ]]; then
   printf 'serve.sh: %s answered %s (curl rc=%s), not 200. The server is up on :%s; check: portless list\n' "$URL" "$code" "$curl_rc" "$PORT" >&2
   final_rc=4
@@ -185,7 +187,7 @@ fi
 if [[ "$SHOT" == "yes" ]]; then
   if command -v agent-browser >/dev/null 2>&1; then
     SHOT_PATH="${STATE_DIR}/${NAME}.png"
-    shot_out="$(agent-browser open "$URL" 2>&1 && agent-browser screenshot "$SHOT_PATH" 2>&1)"; shot_rc=$?
+    shot_rc=0; shot_out="$(agent-browser open "$URL" 2>&1 && agent-browser screenshot "$SHOT_PATH" 2>&1)" || shot_rc=$?
     if [[ "$shot_rc" != "0" || ! -s "$SHOT_PATH" ]]; then
       printf 'serve.sh: screenshot failed (agent-browser rc=%s): %s. The page is still served.\n' "$shot_rc" "${shot_out:0:200}" >&2
       SHOT_PATH=""
