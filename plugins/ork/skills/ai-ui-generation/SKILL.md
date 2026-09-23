@@ -53,7 +53,7 @@ Patterns for generating, reviewing, and integrating UI components produced by AI
 | Streaming UI from AI agents | json-render | Structured JSON specs render progressively |
 | New component from scratch | v0.app | Full scaffold with shadcn/ui, Tailwind, a11y. Pair with `shadcn apply <style>` for style consistency |
 | Full-stack app with deploy | v0.app | Jan 2026 expansion — routes, DB, auth, Vercel/Cloudflare deploy in one generation |
-| Design-driven (screenshot/URL/DESIGN.md) | Google Stitch | `generate_screen_from_text` + `get_screen` (details + download URLs) |
+| Design-driven (screenshot/URL/DESIGN.md) | Google Stitch | `generate_screen_from_text` (once; no retry) + `get_screen(name="projects/{project}/screens/{screen}")` |
 | Multi-screen flow from a visual source | Google Stitch | Strongest when grounded in an existing design |
 | Full-stack prototype with persistent backend | Bolt Cloud | Cloud dev env, GitHub integration, databases |
 | Incremental change in existing codebase | Cursor | Understands project context, imports, tokens |

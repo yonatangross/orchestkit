@@ -119,27 +119,30 @@ Glob("**/components.json")
 # Live Stitch MCP tools (https://stitch.googleapis.com/mcp), matching
 # design-context-extractor / design-system-architect agent grants:
 #   - list_projects() / get_project(projectId)
-#   - list_screens(projectId) / get_screen(projectId, screenId)
-#       get_screen returns screen details including download URLs
-#       (fetch those URLs; Stitch has no separate code or image export tool)
+#   - list_screens(projectId)
+#   - get_screen(name="projects/{projectId}/screens/{screenId}")
+#       ONE required param: name. Returns screen details including
+#       download URLs (fetch those URLs; no separate code/image export tool)
 #   - generate_screen_from_text(projectId, prompt)
-#       creates a screen from a text prompt (quota-costing write)
+#       quota-costing write; can take a few minutes. DO NOT RETRY.
+#       On timeout: poll get_screen(name=...) every 30 s, up to 10 times.
 #
 # For screenshot/URL input:
-#   1. list_projects / get_project to locate or create the Stitch project
+#   1. list_projects / get_project to locate the Stitch project
 #   2. generate_screen_from_text with the extraction goal (or use an
-#      existing screen if the project already has one)
-#   3. list_screens, then get_screen for details + download URLs
+#      existing screen if the project already has one). Never retry.
+#   3. list_screens, then get_screen(name="projects/{projectId}/screens/{screenId}")
 #   4. Fetch the download URLs (or Read multimodal) for token extraction
 #
 # For description input:
-#   1. generate_screen_from_text(projectId, prompt=<description>)
-#   2. get_screen for the new screenId (details + download URLs)
+#   1. generate_screen_from_text(projectId, prompt=<description>) once
+#   2. On timeout, poll get_screen(name=...) every 30 s up to 10 times
+#   3. Otherwise get_screen(name="projects/{projectId}/screens/{screenId}")
 #
 # DESIGN.md import (Stitch Pro, Mar 2026+):
 #   Prefer upload_design_md / create_design_system_from_design_md when
 #   those tools are available on the live server; otherwise regenerate
-#   via generate_screen_from_text from the DESIGN.md contents.
+#   via generate_screen_from_text from the DESIGN.md contents (once, no retry).
 ```
 
 **If stitch MCP is NOT available (fallback):**
