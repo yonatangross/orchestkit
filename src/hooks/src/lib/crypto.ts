@@ -19,22 +19,24 @@ import { createHmac } from 'node:crypto';
 const SENSITIVE_KEYS = ['password', 'secret', 'token', 'key', 'credential', 'auth'];
 
 // Patterns in string VALUES that indicate embedded secrets
+// #4218: every pattern carries the `g` flag so multiple secrets in one string
+// are all redacted (without it, String.replace stops after the first match).
 const SECRET_VALUE_PATTERNS = [
-  /sk-ant-[a-zA-Z0-9-]{20,}/,                  // Anthropic API keys (sk-ant-api03-...)
-  /sk-[a-zA-Z0-9]{20,}/,                       // OpenAI API keys (sk-...)
-  /ghp_[a-zA-Z0-9]{36,}/,                      // GitHub PATs
-  /gl(?:pat|ptt|dt|rt|oas|agent|imt|soat|cbt|ft|ffct)-[a-zA-Z0-9_-]{20,}/, // GitLab tokens (#3589)
-  /gho_[a-zA-Z0-9]{36,}/,                      // GitHub OAuth tokens
-  /github_pat_[a-zA-Z0-9_]{60,}/,              // GitHub fine-grained PATs
-  /xoxb-[a-zA-Z0-9-]{20,}/,                    // Slack bot tokens
-  /xoxp-[a-zA-Z0-9-]{20,}/,                    // Slack user tokens
-  /AKIA[A-Z0-9]{16}/,                          // AWS Access Key IDs
-  /AIza[a-zA-Z0-9_-]{35}/,                    // Google/Firebase API keys
-  /Bearer\s+[a-zA-Z0-9._-]{20,}/,             // Bearer tokens in headers
-  /(?:export\s+\w*(?:KEY|TOKEN|SECRET|PASSWORD|CREDENTIAL)\w*\s*=\s*)([^\s;]+)/i, // env var assignments
-  /(?:mongodb(?:\+srv)?:\/\/)[^\s]+/,           // MongoDB connection strings
-  /(?:postgres(?:ql)?:\/\/)[^\s]+/,             // PostgreSQL connection strings
-  /(?:mysql:\/\/)[^\s]+/,                       // MySQL connection strings
+  /sk-ant-[a-zA-Z0-9-]{20,}/g,                  // Anthropic API keys (sk-ant-api03-...)
+  /sk-[a-zA-Z0-9]{20,}/g,                       // OpenAI API keys (sk-...)
+  /ghp_[a-zA-Z0-9]{36,}/g,                      // GitHub PATs
+  /gl(?:pat|ptt|dt|rt|oas|agent|imt|soat|cbt|ft|ffct)-[a-zA-Z0-9_-]{20,}/g, // GitLab tokens (#3589)
+  /gho_[a-zA-Z0-9]{36,}/g,                      // GitHub OAuth tokens
+  /github_pat_[a-zA-Z0-9_]{60,}/g,              // GitHub fine-grained PATs
+  /xoxb-[a-zA-Z0-9-]{20,}/g,                    // Slack bot tokens
+  /xoxp-[a-zA-Z0-9-]{20,}/g,                    // Slack user tokens
+  /AKIA[A-Z0-9]{16}/g,                          // AWS Access Key IDs
+  /AIza[a-zA-Z0-9_-]{35}/g,                    // Google/Firebase API keys
+  /Bearer\s+[a-zA-Z0-9._-]{20,}/g,             // Bearer tokens in headers
+  /(?:export\s+\w*(?:KEY|TOKEN|SECRET|PASSWORD|CREDENTIAL)\w*\s*=\s*)([^\s;]+)/gi, // env var assignments
+  /(?:mongodb(?:\+srv)?:\/\/)[^\s]+/g,           // MongoDB connection strings
+  /(?:postgres(?:ql)?:\/\/)[^\s]+/g,             // PostgreSQL connection strings
+  /(?:mysql:\/\/)[^\s]+/g,                       // MySQL connection strings
 ];
 
 const MAX_STRING_LENGTH = 500;

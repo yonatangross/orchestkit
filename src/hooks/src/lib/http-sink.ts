@@ -21,6 +21,7 @@ import { signPayload } from './crypto.js';
 import { logHook } from './common.js';
 import { getWebhookUrl, getHookToken } from './orchestration-state.js';
 import { getPluginDataDir, getProjectDir } from './paths.js';
+import { isHttpsUrl, warnRefusedUrlOnce } from './sink-url-policy.js';
 
 const HOOK_NAME = 'http-sink';
 const FETCH_TIMEOUT_MS = 1500;
@@ -211,6 +212,11 @@ export class HttpSink implements TelemetrySink {
     const hookToken = this.configToken ?? getHookToken();
 
     if (!hookUrl || !hookToken) return;
+
+    if (!isHttpsUrl(hookUrl)) {
+      warnRefusedUrlOnce(hookUrl, 'HTTP telemetry sink');
+      return;
+    }
 
     // Circuit breaker gate
     if (!circuitAllows()) {

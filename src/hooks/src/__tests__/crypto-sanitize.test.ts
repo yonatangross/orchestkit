@@ -83,6 +83,18 @@ describe('Crypto Utilities', () => {
       expect(result?.command).not.toContain('ghp_1234567890abcdefghijklmnopqrstuvwxyz1234');
     });
 
+    it('redacts two secrets in one string (#4218 g flag)', () => {
+      const a = 'ghp_AAAAAAAAAAAAAAAAaaaaaaaaaaaaaaaaaaaa';
+      const b = 'ghp_BBBBBBBBBBBBBBBBbbbbbbbbbbbbbbbbbbbb';
+      const result = sanitizePayload({
+        command: `echo ${a} then ${b}`,
+      });
+      expect(result?.command).not.toContain(a);
+      expect(result?.command).not.toContain(b);
+      const redactedCount = String(result?.command).split('[REDACTED]').length - 1;
+      expect(redactedCount).toBeGreaterThanOrEqual(2);
+    });
+
     it('redacts GitLab tokens in commands (#3589)', () => {
       const result = sanitizePayload({
         command: 'glab auth login --token glpat-aB1cD2eF3gH4iJ5kL6mN7oP8qR',

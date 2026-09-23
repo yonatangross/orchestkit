@@ -695,11 +695,16 @@ describe('getWebhookUrl / getHookToken — resolved config (#1270)', () => {
     expect(getWebhookUrl()).toBe('https://env.example.com');
   });
 
-  test('getWebhookUrl prefers config.webhookUrl over all env vars', () => {
+  test('getWebhookUrl ignores config.webhookUrl from project tree (#4218)', () => {
     saveConfig({ webhookUrl: 'https://file.example.com' });
     process.env.CLAUDE_PLUGIN_OPTION_WEBHOOKURL = 'https://uc.example.com';
     process.env.ORCHESTKIT_HOOK_URL = 'https://env.example.com';
-    expect(getWebhookUrl()).toBe('https://file.example.com');
+    expect(getWebhookUrl()).toBe('https://uc.example.com');
+  });
+
+  test('getWebhookUrl ignores project-tree webhook when env unset (#4218)', () => {
+    saveConfig({ webhookUrl: 'https://file.example.com' });
+    expect(getWebhookUrl()).toBeUndefined();
   });
 
   test('getWebhookUrl returns undefined when nothing is configured', () => {
