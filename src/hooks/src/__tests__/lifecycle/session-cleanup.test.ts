@@ -4,12 +4,13 @@
  */
 
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
-import { existsSync, readFileSync, writeFileSync, mkdirSync, mkdtempSync, rmSync, readdirSync, utimesSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, mkdirSync, mkdtempSync, rmSync, readdirSync, utimesSync, chmodSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import type { HookInput } from '../../types.js';
 import { sessionCleanup } from '../../lifecycle/session-cleanup.js';
 import { getMetricsFile } from '../../lib/paths.js';
+import { NOOP_CTX } from '../../lib/context.js';
 
 // =============================================================================
 // Test Setup
@@ -578,6 +579,117 @@ describe('session-cleanup', () => {
       sessionCleanup(createHookInput());
 
       expect(snapshotTree(ccProjectsDir())).toEqual(before);
+    });
+  });
+
+  // ===========================================================================
+  // F23: 14-day age cap on session event dirs
+  // ===========================================================================
+
+  describe('stale session-dir sweep (F23)', () => {
+    const FIFTEEN_DAYS_SEC = (15 * 24 * 60 * 60);
+    let prevPluginData: string | undefined;
+    let pluginDataRoot: string;
+
+    beforeEach(() => {
+      prevPluginData = process.env.CLAUDE_PLUGIN_DATA;
+      pluginDataRoot = mkdtempSync(join(tmpdir(), 'cleanup-plugin-data-'));
+      process.env.CLAUDE_PLUGIN_DATA = pluginDataRoot;
+    });
+
+    afterEach(() => {
+      if (prevPluginData === undefined) delete process.env.CLAUDE_PLUGIN_DATA;
+      else process.env.CLAUDE_PLUGIN_DATA = prevPluginData;
+      try { rmSync(pluginDataRoot, { recursive: true, force: true }); } catch { /* best-effort */ }
+    });
+
+    function seedSessionDir(root: string, sessionId: string, ageSec: number | null): string {
+      const dir = join(root, 'sessions', sessionId);
+      mkdirSync(dir, { recursive: true });
+      if (ageSec !== null) {
+        const events = join(dir, 'events.jsonl');
+        writeFileSync(events, '{"event_type":"hook_triggered"}\n');
+        const past = Math.floor(Date.now() / 1000) - ageSec;
+        utimesSync(events, past, past);
+      }
+      return dir;
+    }
+
+    test('evicts project-local dirs whose events.jsonl is older than 14 days', () => {
+      const sessionsRoot = join(TEST_PROJECT_DIR, '.claude', 'memory', 'sessions');
+      const stale = seedSessionDir(join(TEST_PROJECT_DIR, '.claude', 'memory'), 'stale-session-aaa', FIFTEEN_DAYS_SEC);
+      const fresh = seedSessionDir(join(TEST_PROJECT_DIR, '.claude', 'memory'), 'fresh-session-bbb', 60);
+
+      sessionCleanup(createHookInput({ session_id: 'test-session-cleanup-123' }));
+
+      expect(existsSync(stale)).toBe(false);
+      expect(existsSync(fresh)).toBe(true);
+      expect(existsSync(sessionsRoot)).toBe(true);
+    });
+
+    test('never evicts the ending session even when its events.jsonl is stale', () => {
+      const endingId = 'ending-session-ccc';
+      const ending = seedSessionDir(join(TEST_PROJECT_DIR, '.claude', 'memory'), endingId, FIFTEEN_DAYS_SEC);
+
+      sessionCleanup(createHookInput({ session_id: endingId }));
+
+      expect(existsSync(ending)).toBe(true);
+    });
+
+    test('leaves dirs without events.jsonl alone (no clock to read)', () => {
+      const bare = seedSessionDir(join(TEST_PROJECT_DIR, '.claude', 'memory'), 'counter-only-ddd', null);
+      writeFileSync(join(bare, 'counters.json'), '{}');
+
+      sessionCleanup(createHookInput());
+
+      expect(existsSync(bare)).toBe(true);
+      expect(existsSync(join(bare, 'counters.json'))).toBe(true);
+    });
+
+    test('also sweeps CLAUDE_PLUGIN_DATA/sessions', () => {
+      const stale = seedSessionDir(pluginDataRoot, 'plugin-stale-eee', FIFTEEN_DAYS_SEC);
+      const fresh = seedSessionDir(pluginDataRoot, 'plugin-fresh-fff', 60);
+
+      sessionCleanup(createHookInput());
+
+      expect(existsSync(stale)).toBe(false);
+      expect(existsSync(fresh)).toBe(true);
+    });
+
+    test('rejects path-traversal shaped session ids (SEC-001 pattern)', () => {
+      const sessionsRoot = join(TEST_PROJECT_DIR, '.claude', 'memory', 'sessions');
+      mkdirSync(sessionsRoot, { recursive: true });
+      // A dir name that fails SESSION_ID_PATTERN must survive even if aged.
+      const invalid = join(sessionsRoot, 'has.dot.in.name');
+      mkdirSync(invalid, { recursive: true });
+      const events = join(invalid, 'events.jsonl');
+      writeFileSync(events, '{}\n');
+      const past = Math.floor(Date.now() / 1000) - FIFTEEN_DAYS_SEC;
+      utimesSync(events, past, past);
+
+      sessionCleanup(createHookInput());
+
+      expect(existsSync(invalid)).toBe(true);
+    });
+
+    test('logs when sessions root readdir fails with EACCES (still continues)', () => {
+      const sessionsRoot = join(TEST_PROJECT_DIR, '.claude', 'memory', 'sessions');
+      mkdirSync(sessionsRoot, { recursive: true });
+      chmodSync(sessionsRoot, 0o000);
+      const logs: string[] = [];
+      try {
+        sessionCleanup(createHookInput(), {
+          ...NOOP_CTX,
+          log: (hookName, message) => {
+            logs.push(`${hookName}|${message}`);
+          },
+        });
+      } finally {
+        chmodSync(sessionsRoot, 0o755);
+      }
+      expect(logs.some((line) =>
+        line.includes('Cannot read session root') && line.includes(sessionsRoot)
+      )).toBe(true);
     });
   });
 });
