@@ -11,7 +11,7 @@ version: 1.2.0
 author: OrchestKit
 tags: [testing, browser, e2e, diff-aware, regression, visual, accessibility, ai-testing]
 user-invocable: true
-allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Agent, TaskCreate, TaskUpdate, TaskList, ToolSearch, WebFetch, Monitor, PushNotification]
+allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Agent, TaskCreate, TaskUpdate, TaskList, ToolSearch, WebFetch, Monitor, PushNotification, mcp__memory__search_nodes]
 skills: [testing-e2e, chain-patterns, memory]
 complexity: high
 persuasion-type: guidance

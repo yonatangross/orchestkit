@@ -8,7 +8,7 @@ tags: [memory, maintenance, consolidation]
 version: 1.1.0
 author: OrchestKit
 user-invocable: true
-allowed-tools: [Read, Write, Edit, Glob, Grep, Bash]
+allowed-tools: [Read, Write, Edit, Glob, Grep, Bash, mcp__memory__search_nodes, mcp__memory__open_nodes, mcp__memory__read_graph]
 complexity: medium
 context: inherit
 persuasion-type: collaborative

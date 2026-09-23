@@ -20,6 +20,13 @@ allowed-tools:
   - Grep
   - WebFetch
   - WebSearch
+  # Stitch: body names generate_screen_from_text and get_screen.
+  # Grant BOTH prefixes: standalone stitch (mcp__stitch__*) and hq-ext plugin
+  # (mcp__plugin_hq-ext_stitch__*). See https://code.claude.com/docs/en/mcp-servers
+  - mcp__stitch__generate_screen_from_text
+  - mcp__plugin_hq-ext_stitch__generate_screen_from_text
+  - mcp__stitch__get_screen
+  - mcp__plugin_hq-ext_stitch__get_screen
 ---
 
 # AI UI Generation

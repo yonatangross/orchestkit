@@ -13,7 +13,7 @@ version: 2.1.0
 author: OrchestKit
 tags: [visualization, planning, before-after, architecture, diff, risk, impact, migration, playground, infographic, multi-format]
 user-invocable: true
-allowed-tools: [Read, Grep, Glob, Agent, TaskCreate, TaskUpdate, AskUserQuestion, Bash, Write, mcp__memory__search_nodes, mcp__memory__create_entities, ToolSearch]
+allowed-tools: [Read, Grep, Glob, Agent, TaskCreate, TaskUpdate, AskUserQuestion, Bash, Write, mcp__memory__search_nodes, mcp__memory__create_entities, ToolSearch, mcp__notebooklm-mcp__studio_create]
 skills: [glyph, explore, architecture-decision-record, memory, remember, page-serve]
 complexity: medium
 persuasion-type: guidance

@@ -39,6 +39,24 @@ allowed-tools:
   - mcp__21st-dev-magic__get_component
   - mcp__21st-dev-magic__get_theme
   - mcp__21st-dev-magic__get_usage
+  # Stitch: body names these five (live stitch.googleapis.com/mcp roster).
+  # Grant BOTH prefixes: standalone stitch (mcp__stitch__*) and hq-ext plugin
+  # (mcp__plugin_hq-ext_stitch__*). See https://code.claude.com/docs/en/mcp-servers
+  - mcp__stitch__list_projects
+  - mcp__plugin_hq-ext_stitch__list_projects
+  - mcp__stitch__get_project
+  - mcp__plugin_hq-ext_stitch__get_project
+  - mcp__stitch__list_screens
+  - mcp__plugin_hq-ext_stitch__list_screens
+  - mcp__stitch__get_screen
+  - mcp__plugin_hq-ext_stitch__get_screen
+  - mcp__stitch__generate_screen_from_text
+  - mcp__plugin_hq-ext_stitch__generate_screen_from_text
+  # Storybook MCP: body calls these when storybook-mcp is available.
+  - mcp__storybook-mcp__list-all-documentation
+  - mcp__storybook-mcp__get-documentation
+  - mcp__storybook-mcp__preview-stories
+  - mcp__storybook-mcp__run-story-tests
 skills:
   - design-system-tokens
   - component-search

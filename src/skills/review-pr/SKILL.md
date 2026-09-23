@@ -11,7 +11,7 @@ version: 1.9.0
 author: OrchestKit
 tags: [code-review, pull-request, quality, security, testing]
 user-invocable: true
-allowed-tools: [SendMessage, AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Agent, TaskCreate, TaskUpdate, TaskStop, mcp__memory__search_nodes, ToolSearch, Monitor]
+allowed-tools: [SendMessage, AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Agent, TaskCreate, TaskUpdate, TaskStop, mcp__memory__search_nodes, mcp__memory__create_entities, mcp__memory__add_observations, ToolSearch, Monitor]
 skills: [code-review-playbook, testing-unit, testing-e2e, testing-integration, memory, chain-patterns]
 complexity: medium
 persuasion-type: discipline

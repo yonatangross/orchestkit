@@ -6,7 +6,7 @@ effort: low
 context: inherit
 user-invocable: true
 name: dream
-allowed-tools: [Read, Write, Edit, Glob, Grep, Bash]
+allowed-tools: [Read, Write, Edit, Glob, Grep, Bash, mcp__memory__search_nodes, mcp__memory__open_nodes, mcp__memory__read_graph]
 ---
 
 # Auto-generated from skills/dream/SKILL.md

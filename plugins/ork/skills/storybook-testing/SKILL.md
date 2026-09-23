@@ -12,6 +12,9 @@ user-invocable: false
 disable-model-invocation: true
 complexity: medium
 persuasion-type: guidance
+# Reference skill: fenced Storybook MCP names teach CSF/testing patterns; this
+# skill never invokes those tools (disable-model-invocation: true).
+tool-coverage: illustrative
 targets:
   - library: storybook
     version: ">=10.3.0"

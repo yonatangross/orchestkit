@@ -9,7 +9,7 @@
 # declaring `mcpServers: [context7]` with no `mcp__context7__*` entry in
 # `tools:` cannot call context7 and silently degrades to WebSearch.
 #
-# Two assertions, over every src/agents/*.md and src/skills/**/*.md:
+# Three assertions, over every src/agents/*.md and src/skills/**/*.md:
 #
 #   (a) Every agent declaring a non-empty mcpServers entry must grant at
 #       least one matching `mcp__<server>__*` tool in its tools: list.
@@ -24,6 +24,14 @@
 #       query_docs) and one memory spelling (add_node) grant NOTHING; they
 #       do not exist, and a grant of a nonexistent tool is a silent no-op.
 #
+#   (c) Skill body MCP refs must appear in allowed-tools (call / tick /
+#       ToolSearch shapes). Skills without allowed-tools, or marked
+#       tool-coverage: illustrative, are skipped. For Stitch body refs,
+#       either mcp__stitch__<tool> or mcp__plugin_hq-ext_stitch__<tool>
+#       counts. Separately, every skill allowed-tools and every
+#       src/agents/*.md tools: list: granting a Stitch tool under only one
+#       of those two prefixes fails (operator hq-ext vs standalone).
+#
 # .mcp.json is untracked (runtime file), so the configured-server list and
 # the configured-server list and the per-server tool rosters are read from
 # tests/agents/mcp-servers.manifest.json, which IS tracked. When .mcp.json is
@@ -31,7 +39,8 @@
 # cannot silently go stale the way the previous hardcoded literal did.
 #
 # Overridable for differential testing:
-#   AGENTS_DIR=<dir> SKILLS_DIR=<dir> bash tests/agents/test-mcp-declared-vs-granted.sh
+#   AGENTS_DIR=<dir> SKILLS_DIR=<dir> FIXTURE_SKILLS=<dir> FIXTURE_AGENTS=<dir>
+#   bash tests/agents/test-mcp-declared-vs-granted.sh
 
 set -euo pipefail
 
@@ -246,8 +255,273 @@ for srv in $SERVERS_WITH_ROSTER; do
   rm -f "$hits_file"
 done
 
+# ---------------------------------------------------------------------------
+# (c) skill body MCP refs vs allowed-tools + Stitch dual-prefix pairing
+# ---------------------------------------------------------------------------
+echo "=== (c) skill body MCP refs vs allowed-tools ==="
+
+# Build "tool -> server" map from every roster in the manifest (configured +
+# unconfigured). A bare name maps to every server that lists it; today each
+# name is unique across rosters.
+TOOL_SERVER_MAP="$(node -e '
+  const fs = require("fs");
+  const m = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+  const out = [];
+  for (const bucket of ["configured", "unconfigured"]) {
+    for (const [srv, info] of Object.entries(m[bucket] || {})) {
+      if (!Array.isArray(info.tools)) continue;
+      for (const t of info.tools) out.push(t + "|" + srv);
+    }
+  }
+  process.stdout.write(out.join("\n"));
+' "$MANIFEST")"
+
+# Shared Stitch dual-prefix helpers (standalone vs hq-ext plugin).
+# Docs: https://code.claude.com/docs/en/mcp-servers (Plugin MCP tool names).
+STITCH_DUAL_JS='
+  const STITCH_PREFIXES = ["mcp__stitch__", "mcp__plugin_hq-ext_stitch__"];
+  function stitchLeaf(tok) {
+    for (const p of STITCH_PREFIXES) {
+      if (tok.startsWith(p)) return tok.slice(p.length);
+    }
+    return null;
+  }
+  function collectStitchLeaves(tokens) {
+    const leaves = new Set();
+    for (const t of tokens) {
+      const leaf = stitchLeaf(t);
+      if (leaf) leaves.add(leaf);
+    }
+    return leaves;
+  }
+  function missingStitchTwins(leaves, granted) {
+    const missing = [];
+    for (const leaf of [...leaves].sort()) {
+      for (const p of STITCH_PREFIXES) {
+        const tok = p + leaf;
+        if (!granted.has(tok)) missing.push(tok);
+      }
+    }
+    return missing;
+  }
+'
+
+check_skill_body_grants() {
+  local skills_root="$1"
+  local label="$2"
+  local local_fail=0
+
+  if [ ! -d "$skills_root" ]; then
+    echo -e "${RED}ERROR${NC}: skills root not found: $skills_root" >&2
+    return 1
+  fi
+
+  local skill_md skill_name result
+  shopt -s nullglob
+  for skill_md in "$skills_root"/*/SKILL.md; do
+    skill_name="$(basename "$(dirname "$skill_md")")"
+    result="$(node -e "
+      const fs = require(\"fs\");
+      const content = fs.readFileSync(process.argv[1], \"utf8\").replace(/\\r\\n/g, \"\\n\");
+      const mapLines = process.argv[2].split(\"\\n\").filter(Boolean);
+      const toolToServers = new Map();
+      for (const line of mapLines) {
+        const i = line.indexOf(\"|\");
+        const tool = line.slice(0, i);
+        const srv = line.slice(i + 1);
+        if (!toolToServers.has(tool)) toolToServers.set(tool, []);
+        toolToServers.get(tool).push(srv);
+      }
+      const fmMatch = content.match(/^---\\n([\\s\\S]*?)\\n---\\n?([\\s\\S]*)$/);
+      if (!fmMatch) process.exit(0);
+      const fm = fmMatch[1];
+      const body = fmMatch[2];
+      if (!/^allowed-tools:/m.test(fm)) process.exit(0);
+      if (/^tool-coverage:\\s*illustrative\\s*$/m.test(fm)) process.exit(0);
+
+      const allowed = new Set();
+      const inline = fm.match(/^allowed-tools:\\s*\\[([^\\]]*)\\]/m);
+      if (inline) {
+        for (const t of inline[1].split(\",\")) {
+          const x = t.trim();
+          if (x) allowed.add(x);
+        }
+      }
+      const block = fm.match(/^allowed-tools:\\s*\\n((?:[ \\t]*(?:-[ \\t]+\\S[^\\n]*|#[^\\n]*)\\n?)+)/m);
+      if (block) {
+        for (const line of block[1].split(\"\\n\")) {
+          const m = line.match(/^[ \\t]*-[ \\t]+(\\S+)/);
+          if (m) allowed.add(m[1]);
+        }
+      }
+
+      const needed = new Set();
+
+      const tokRe = /mcp__([a-zA-Z0-9_-]+)__([a-zA-Z0-9_-]+)/g;
+      let m;
+      while ((m = tokRe.exec(body))) {
+        const tok = \"mcp__\" + m[1] + \"__\" + m[2];
+        const lineStart = body.lastIndexOf(\"\\n\", m.index - 1) + 1;
+        const before = body.slice(lineStart, m.index);
+        const after = body[m.index + m[0].length] || \"\";
+        const asCall = after === \"(\";
+        const asSelect = /select:[A-Za-z0-9_,-]*$/.test(before);
+        const inTicks = (body[m.index - 1] === \"\`\") && after === \"\`\";
+        if (asCall || asSelect || inTicks) needed.add(tok);
+      }
+
+      for (const [tool, servers] of toolToServers) {
+        const esc = tool.replace(/[.*+?^\${}()|[\\]\\\\]/g, \"\\\\\$&\");
+        const callRe = new RegExp(\"(?<![A-Za-z0-9_])\" + esc + \"\\\\(\");
+        const tickRe = new RegExp(\"\`\" + esc + \"\`\");
+        if (callRe.test(body) || tickRe.test(body)) {
+          for (const srv of servers) needed.add(\"mcp__\" + srv + \"__\" + tool);
+        }
+      }
+
+      ${STITCH_DUAL_JS}
+
+      function stitchBodyGranted(tok) {
+        const leaf = stitchLeaf(tok);
+        if (!leaf) return allowed.has(tok);
+        // Body reference: either prefix counts as a grant for that leaf.
+        return STITCH_PREFIXES.some((p) => allowed.has(p + leaf));
+      }
+
+      const missing = [];
+      for (const t of [...needed].sort()) {
+        if (!stitchBodyGranted(t)) missing.push(t);
+      }
+      // Separate pairing check: any Stitch grant under one prefix needs the twin.
+      // Leaves come from allowed-tools only (not from body alone).
+      missing.push(...missingStitchTwins(collectStitchLeaves([...allowed]), allowed));
+      process.stdout.write([...new Set(missing)].sort().join(\"\\n\"));
+    " "$skill_md" "$TOOL_SERVER_MAP")"
+
+    if [ -n "$result" ]; then
+      while IFS= read -r tok; do
+        [ -z "$tok" ] && continue
+        echo -e "${RED}FAIL${NC} [$label/$skill_name]: body/grant needs $tok but allowed-tools omits it" >&2
+        local_fail=1
+      done <<< "$result"
+    fi
+  done
+  shopt -u nullglob
+  return "$local_fail"
+}
+
+# Agents: any Stitch tool granted or named under one prefix needs the twin.
+check_agent_stitch_dual() {
+  local agents_root="$1"
+  local label="$2"
+  local local_fail=0
+
+  if [ ! -d "$agents_root" ]; then
+    echo -e "${RED}ERROR${NC}: agents root not found: $agents_root" >&2
+    return 1
+  fi
+
+  local agent_file name result
+  shopt -s nullglob
+  for agent_file in "$agents_root"/*.md; do
+    name="$(basename "$agent_file" .md)"
+    case "$name" in README|INDEX|CONTRIBUTING) continue ;; esac
+
+    result="$(node -e "
+      const fs = require(\"fs\");
+      const content = fs.readFileSync(process.argv[1], \"utf8\").replace(/\\r\\n/g, \"\\n\");
+      const fmMatch = content.match(/^---\\n([\\s\\S]*?)\\n---\\n?([\\s\\S]*)$/);
+      if (!fmMatch) process.exit(0);
+      const fm = fmMatch[1];
+      const body = fmMatch[2];
+
+      const toolsBlock = fm.match(/^tools:\\s*\\n((?:[ \\t]*(?:-[ \\t]+\\S[^\\n]*|#[^\\n]*)\\n?)+)/m);
+      const tools = new Set(
+        toolsBlock
+          ? toolsBlock[1].split(\"\\n\").map((l) => l.replace(/^[ \\t]*-[ \\t]+/, \"\").trim()).filter((l) => l && !l.startsWith(\"#\"))
+          : []
+      );
+
+      ${STITCH_DUAL_JS}
+
+      const named = new Set();
+      const tokRe = /mcp__(?:stitch|plugin_hq-ext_stitch)__([a-zA-Z0-9_-]+)/g;
+      let m;
+      while ((m = tokRe.exec(body))) {
+        named.add(m[1]);
+      }
+      // Also treat tools: entries as naming.
+      const leaves = collectStitchLeaves([...tools]);
+      for (const leaf of named) leaves.add(leaf);
+
+      const missing = missingStitchTwins(leaves, tools);
+      process.stdout.write(missing.join(\"\\n\"));
+    " "$agent_file")"
+
+    if [ -n "$result" ]; then
+      while IFS= read -r tok; do
+        [ -z "$tok" ] && continue
+        echo -e "${RED}FAIL${NC} [$label/$name]: Stitch dual-prefix missing $tok" >&2
+        local_fail=1
+      done <<< "$result"
+    fi
+  done
+  shopt -u nullglob
+  return "$local_fail"
+}
+
+if ! check_skill_body_grants "$SKILLS_DIR" "skills"; then
+  FAIL=1
+fi
+
+echo "=== (c) agent Stitch dual-prefix grants ==="
+if ! check_agent_stitch_dual "$AGENTS_DIR" "agents"; then
+  FAIL=1
+fi
+
+# Fail-first fixture: a skill that names a roster tool without granting it
+# MUST fail. If the fixture ever starts passing, the assertion is dead.
+FIXTURE_SKILLS="${FIXTURE_SKILLS:-$SCRIPT_DIR/fixtures/mcp-body-ungranted}"
+echo "=== (c) fail-first skill fixture ==="
+if [ -d "$FIXTURE_SKILLS" ]; then
+  set +e
+  fixture_out="$(check_skill_body_grants "$FIXTURE_SKILLS" "fixture" 2>&1)"
+  fixture_rc=$?
+  set -e
+  printf '%s\n' "$fixture_out"
+  if [ "$fixture_rc" -eq 0 ]; then
+    echo -e "${RED}FAIL${NC}: fail-first skill fixture passed; assertion (c) is not detecting ungranted body refs" >&2
+    FAIL=1
+  else
+    echo -e "${GREEN}OK${NC}: fail-first skill fixture correctly fails"
+  fi
+else
+  echo -e "${RED}FAIL${NC}: fail-first skill fixture missing at $FIXTURE_SKILLS" >&2
+  FAIL=1
+fi
+
+# Fail-first agent fixture: only one Stitch prefix MUST fail the dual check.
+FIXTURE_AGENTS="${FIXTURE_AGENTS:-$SCRIPT_DIR/fixtures/mcp-agent-stitch-one-prefix}"
+echo "=== (c) fail-first agent fixture (one Stitch prefix) ==="
+if [ -d "$FIXTURE_AGENTS" ]; then
+  set +e
+  agent_fix_out="$(check_agent_stitch_dual "$FIXTURE_AGENTS" "fixture-agent" 2>&1)"
+  agent_fix_rc=$?
+  set -e
+  printf '%s\n' "$agent_fix_out"
+  if [ "$agent_fix_rc" -eq 0 ]; then
+    echo -e "${RED}FAIL${NC}: fail-first agent fixture passed; dual-prefix check is dead" >&2
+    FAIL=1
+  else
+    echo -e "${GREEN}OK${NC}: fail-first agent fixture correctly fails"
+  fi
+else
+  echo -e "${RED}FAIL${NC}: fail-first agent fixture missing at $FIXTURE_AGENTS" >&2
+  FAIL=1
+fi
+
 if [ "$FAIL" -eq 0 ]; then
-  echo -e "${GREEN}PASS${NC}: every declared mcpServer is granted, every mcp tool name is real."
+  echo -e "${GREEN}PASS${NC}: every declared mcpServer is granted, every mcp tool name is real, skill body MCP refs are granted, Stitch dual-prefix pairs hold."
   exit 0
 else
   echo "FAIL: declared-but-uncallable MCP surface detected (#3461). Fix the issues above." >&2

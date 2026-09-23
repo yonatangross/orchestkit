@@ -101,7 +101,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "ai-ui-generation",
     "description": "AI-assisted UI generation patterns for json-render, v0.app, Google Stitch, Bolt Cloud, and Cursor workflows. Covers prompt engineering for component and full-stack app generation, review checklists for AI-generated code, design token injection, refactoring for design system conformance, and CI gates for quality assurance. Use when generating UI components with AI tools, rendering multi-surface MCP visual output, reviewing AI-generated code, or integrating AI output into design systems.",
     "version": "1.1.0",
-    "sha256": "5bcb667dffd7622d1b0503f5865e6da266a519480889be3a88cf2a5463958dff",
+    "sha256": "ce0a144b5a33add8eba78ec8a333229c029f7664325c2ad6132f03931a46c3c4",
     "author": "OrchestKit",
     "tags": [
       "ai-ui",
@@ -126,7 +126,11 @@ export const SKILLS: Record<string, SkillMeta> = {
       "Glob",
       "Grep",
       "WebFetch",
-      "WebSearch"
+      "WebSearch",
+      "mcp__stitch__generate_screen_from_text",
+      "mcp__plugin_hq-ext_stitch__generate_screen_from_text",
+      "mcp__stitch__get_screen",
+      "mcp__plugin_hq-ext_stitch__get_screen"
     ],
     "skills": [],
     "agent": "frontend-ui-developer",
@@ -1421,7 +1425,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "design-context-extract",
     "description": "Extract design DNA from app screenshots, live URLs, or screen recordings using Google Stitch — color palettes, typography, spacing tokens, component patterns, and motion specs as design-tokens.json or Tailwind config. Use when the user points to a screenshot, URL, or video and asks to extract or audit the design, analyze animations or scroll behavior, or keep new pages matching an established visual identity.",
     "version": "1.0.1",
-    "sha256": "4a285271c3c97012565a4ab4670182b90a8c52a566083076440ecda129b88959",
+    "sha256": "9099da6d39a6c0bf5ee0ad08cbe739b78cca2b745915bd2f01b1575e9697af50",
     "author": "OrchestKit",
     "tags": [
       "design-context",
@@ -1445,7 +1449,17 @@ export const SKILLS: Record<string, SkillMeta> = {
       "AskUserQuestion",
       "TaskCreate",
       "TaskUpdate",
-      "TaskList"
+      "TaskList",
+      "mcp__stitch__list_projects",
+      "mcp__plugin_hq-ext_stitch__list_projects",
+      "mcp__stitch__get_project",
+      "mcp__plugin_hq-ext_stitch__get_project",
+      "mcp__stitch__list_screens",
+      "mcp__plugin_hq-ext_stitch__list_screens",
+      "mcp__stitch__get_screen",
+      "mcp__plugin_hq-ext_stitch__get_screen",
+      "mcp__stitch__generate_screen_from_text",
+      "mcp__plugin_hq-ext_stitch__generate_screen_from_text"
     ],
     "skills": [
       "design-system-tokens",
@@ -1654,7 +1668,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "design-to-code",
     "description": "Mockup-to-component pipeline using Google Stitch, 21st.dev, and Storybook MCP. Accepts a screenshot, a description, or a URL and produces production-ready React components, checking existing Storybook components before generating anything new. Use when implementing UI from a mockup or screenshot. To call the MCP tool surface on its own, with no design to convert, use storybook-mcp-integration.",
     "version": "1.0.1",
-    "sha256": "f56942d08e251b1aebee938b69d212386e01365b58388ba764649255e236da79",
+    "sha256": "9fad574287a5e70cbefc4e9f488a6d1bdbe501cf2da8520b3f522f4b0895f4fa",
     "author": "OrchestKit",
     "tags": [
       "design-to-code",
@@ -1686,7 +1700,21 @@ export const SKILLS: Record<string, SkillMeta> = {
       "mcp__21st-dev-magic__search_picker",
       "mcp__21st-dev-magic__get_component",
       "mcp__21st-dev-magic__get_theme",
-      "mcp__21st-dev-magic__get_usage"
+      "mcp__21st-dev-magic__get_usage",
+      "mcp__stitch__list_projects",
+      "mcp__plugin_hq-ext_stitch__list_projects",
+      "mcp__stitch__get_project",
+      "mcp__plugin_hq-ext_stitch__get_project",
+      "mcp__stitch__list_screens",
+      "mcp__plugin_hq-ext_stitch__list_screens",
+      "mcp__stitch__get_screen",
+      "mcp__plugin_hq-ext_stitch__get_screen",
+      "mcp__stitch__generate_screen_from_text",
+      "mcp__plugin_hq-ext_stitch__generate_screen_from_text",
+      "mcp__storybook-mcp__list-all-documentation",
+      "mcp__storybook-mcp__get-documentation",
+      "mcp__storybook-mcp__preview-stories",
+      "mcp__storybook-mcp__run-story-tests"
     ],
     "skills": [
       "design-system-tokens",
@@ -2006,7 +2034,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "dream",
     "description": "Nightly memory consolidation — prunes stale entries, merges duplicates, resolves contradictions, rebuilds MEMORY.md index. Use when memory files have accumulated over many sessions and need cleanup. Do NOT use for storing new decisions (use remember) or searching memory (use memory).",
     "version": "1.1.0",
-    "sha256": "27996c2151e6c2e1f7b51721ec8068807ad967fe90b0075eca6460282c7335e8",
+    "sha256": "b1dd98b100e75eec000f106df9c114b1ba316229296746577c3b4bcabbc54c10",
     "author": "OrchestKit",
     "tags": [
       "memory",
@@ -2021,7 +2049,10 @@ export const SKILLS: Record<string, SkillMeta> = {
       "Edit",
       "Glob",
       "Grep",
-      "Bash"
+      "Bash",
+      "mcp__memory__search_nodes",
+      "mcp__memory__open_nodes",
+      "mcp__memory__read_graph"
     ],
     "skills": [],
     "agent": null,
@@ -2124,7 +2155,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "expect",
     "description": "Diff-aware AI browser testing — reads the git diff, maps changes to affected pages via the route map, generates a targeted test plan, and executes it via agent-browser (Rust daemon + CDP, ARIA-tree-first) with pass/fail reporting. Use when testing UI changes, verifying PRs before merge, or running regression checks on changed components.",
     "version": "1.2.0",
-    "sha256": "49b651d12e1edca4fd6ba81b9d0c30d54268f93271ac3675c6133d57d9dafc79",
+    "sha256": "56756fcf32aa985fe05660edd9190080b3304d36ab3ef41c2a27c190bb80da86",
     "author": "OrchestKit",
     "tags": [
       "testing",
@@ -2153,7 +2184,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ToolSearch",
       "WebFetch",
       "Monitor",
-      "PushNotification"
+      "PushNotification",
+      "mcp__memory__search_nodes"
     ],
     "skills": [
       "testing-e2e",
@@ -2307,7 +2339,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "fix-issue",
     "description": "Fixes GitHub issues using parallel analysis agents for root cause investigation, code exploration, and regression detection. Reads issue context from gh CLI, searches codebase and memory for related patterns, generates a fix with tests, and links the resolution back to the issue via PR. Includes prevention analysis to avoid recurrence. Use when debugging errors, resolving regressions, fixing bugs, or triaging issues.",
     "version": "2.6.0",
-    "sha256": "3573d5baf043461d75abb633561320740b9ab32c7a4e3fdee0d50390b57bdce2",
+    "sha256": "32858c488703a45bce6a92d2abb3ba50d414817f58eb76dc677553bdf0a66abe",
     "author": "OrchestKit",
     "tags": [
       "issue",
@@ -2338,6 +2370,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "CronDelete",
       "PushNotification",
       "mcp__memory__search_nodes",
+      "mcp__memory__create_entities",
       "mcp__context7__resolve-library-id",
       "mcp__context7__query-docs"
     ],
@@ -4071,7 +4104,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "review-pr",
     "description": "PR review using parallel specialized agents for code quality, security, testing, architecture, and performance analysis. Synthesizes findings into a review report with conventional comments (praise/issue/suggestion/nitpick) and approve or request-changes verdict. Use when reviewing pull requests, conducting security audits, or validating changes before merge.",
     "version": "1.9.0",
-    "sha256": "a5f6355fa50155882c248ccd362046f405d8edef7be4f4a6e2e4401318d947c0",
+    "sha256": "1df519eab5134bd2222e0d9a04b5055f875d874f7c1c54c0ae55847ce709e788",
     "author": "OrchestKit",
     "tags": [
       "code-review",
@@ -4096,6 +4129,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       "TaskUpdate",
       "TaskStop",
       "mcp__memory__search_nodes",
+      "mcp__memory__create_entities",
+      "mcp__memory__add_observations",
       "ToolSearch",
       "Monitor"
     ],
@@ -4313,7 +4348,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "storybook-mcp-integration",
     "description": "Reference for the Storybook MCP server itself (@storybook/addon-mcp): 6 tools across 3 toolsets (dev, docs, testing), availability detection, and per-agent toolset filtering. Use when setting up the server or calling these tools directly against components that already exist. For the end-to-end pipeline that turns a mockup into a new component and consumes these tools as one stage, use design-to-code.",
     "version": "1.0.0",
-    "sha256": "53c378dd0893c14d38f2ed1e5e0c16311c26d1d2072c21a38f81eb02a884ba4c",
+    "sha256": "e4ff10e52f25113890073dc361ef67b18bf0d0477268e5f7747a940111e83a6f",
     "author": "OrchestKit",
     "tags": [
       "storybook",
@@ -4333,7 +4368,13 @@ export const SKILLS: Record<string, SkillMeta> = {
       "Grep",
       "WebFetch",
       "WebSearch",
-      "ToolSearch"
+      "ToolSearch",
+      "mcp__storybook-mcp__get-storybook-story-instructions",
+      "mcp__storybook-mcp__preview-stories",
+      "mcp__storybook-mcp__list-all-documentation",
+      "mcp__storybook-mcp__get-documentation",
+      "mcp__storybook-mcp__get-documentation-for-story",
+      "mcp__storybook-mcp__run-story-tests"
     ],
     "skills": [],
     "agent": null,
@@ -4352,7 +4393,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "storybook-testing",
     "description": "Storybook 10 testing patterns with Vitest integration, ESM-only distribution, CSF3 typesafe factories, play() interaction tests, Chromatic TurboSnap visual regression, module automocking, accessibility addon testing, and autodocs generation. Use when writing component stories, setting up visual regression testing, configuring Storybook CI pipelines, or migrating from Storybook 9.",
     "version": "2.0.0",
-    "sha256": "c59249764e8b727ac811b8aa5e4b9c9199c0de47f0622f82af402af737d5e9e1",
+    "sha256": "f5a586111d16e800011c4d4b571bf17968d1f6df426a9e759dcbee16145a1c42",
     "author": "OrchestKit",
     "tags": [
       "storybook",
@@ -4981,7 +5022,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "visualize-plan",
     "description": "Renders planned changes — architecture and before/after comparisons, risk heat maps, execution order, dependency graphs, impact metrics — in your chosen output format (ASCII + emojis, an interactive HTML playground, or a NotebookLM infographic). Stores visualizations in memory for cross-session reference. Use when reviewing implementation plans, comparing approaches, assessing risk, or analyzing change propagation.",
     "version": "2.1.0",
-    "sha256": "2e2737fdf6b26d0f02c02f508d3402dbbe70cb96e14d9f96acc7b32f600c45cd",
+    "sha256": "263682765997117d86049998d55f0855f08a97245c7b87fd7670a15ff29d694a",
     "author": "OrchestKit",
     "tags": [
       "visualization",
@@ -5010,7 +5051,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       "Write",
       "mcp__memory__search_nodes",
       "mcp__memory__create_entities",
-      "ToolSearch"
+      "ToolSearch",
+      "mcp__notebooklm-mcp__studio_create"
     ],
     "skills": [
       "glyph",

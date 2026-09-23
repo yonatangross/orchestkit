@@ -29,13 +29,18 @@ tools:
   - mcp__context7__resolve-library-id
   - mcp__context7__query-docs
   # mcpServers/required_mcp_servers stitch entries are metadata only (F12).
-  # Official Stitch MCP names (stitch.googleapis.com/mcp): project/screen reads
-  # plus generate_screen_from_text (named in this agent body).
+  # Grant BOTH prefixes: mcp__stitch__* (standalone) and
+  # mcp__plugin_hq-ext_stitch__* (hq-ext). https://code.claude.com/docs/en/mcp-servers
   - mcp__stitch__list_projects
+  - mcp__plugin_hq-ext_stitch__list_projects
   - mcp__stitch__get_project
+  - mcp__plugin_hq-ext_stitch__get_project
   - mcp__stitch__list_screens
+  - mcp__plugin_hq-ext_stitch__list_screens
   - mcp__stitch__get_screen
+  - mcp__plugin_hq-ext_stitch__get_screen
   - mcp__stitch__generate_screen_from_text
+  - mcp__plugin_hq-ext_stitch__generate_screen_from_text
 skills:
   - design-context-extract
   - design-system-tokens

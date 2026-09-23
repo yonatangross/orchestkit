@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Skills that name Stitch must grant it | OrchestKit Lab</title>
+  <meta name="description" content="Forked skills named Stitch tools in the body but omitted mcp__stitch__* from allowed-tools. Measurement showed REFUSED; grants plus assertion (c) close the gap.">
+  <style>
+    :root { color-scheme: dark; font: 17px/1.55 system-ui, sans-serif; background: #101822; color: #e9eef3; }
+    body { max-width: 760px; margin: auto; padding: 40px 20px; }
+    h1 { font-size: clamp(1.8rem, 5vw, 2.6rem); line-height: 1.15; margin: 0 0 12px; }
+    h2 { font-size: 1.1rem; margin: 28px 0 10px; color: #b8c5d1; }
+    a { color: #8fd8ff; }
+    .eyebrow { color: #8fd8ff; letter-spacing: .08em; font-size: 13px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; }
+    @media (max-width: 640px) { .row { grid-template-columns: 1fr; } }
+    article { border: 1px solid #43566a; border-radius: 10px; padding: 16px; }
+    .before { border-color: #7f1d1d; }
+    .after { border-color: #166534; }
+    code { background: rgba(255,255,255,.07); border-radius: 4px; padding: 1px 5px; font-size: 14px; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 8px; }
+    th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid #2a3a4a; vertical-align: top; }
+    th { color: #8fd8ff; font-weight: 600; }
+    .proof { font-family: ui-monospace, monospace; font-size: 13px; background: #0d1017; padding: 12px; border-radius: 8px; white-space: pre-wrap; }
+    label { display: block; margin: 8px 0 4px; color: #b8c5d1; font-size: 14px; }
+    select, button { font: inherit; padding: 8px 12px; border-radius: 8px; border: 1px solid #43566a; background: #1a2430; color: #e9eef3; }
+    button { cursor: pointer; background: #1e3a5f; border-color: #3b82f6; margin-top: 12px; }
+    #out { margin-top: 12px; min-height: 4.5em; }
+    footer { margin-top: 28px; color: #b8c5d1; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="eyebrow">ORCHESTKIT LAB · SKILLS STITCH ALLOWED-TOOLS</p>
+    <h1>Body names are not grants</h1>
+    <p>After <a href="https://github.com/yonatangross/orchestkit/pull/4362">#4362</a> and
+    <a href="https://github.com/yonatangross/orchestkit/pull/4373">#4373</a>, three forked
+    skills told the model to call Stitch tools but never listed
+    <code>mcp__stitch__*</code> in <code>allowed-tools</code>.</p>
+
+    <div class="row">
+      <article class="before">
+        <h2>Broken</h2>
+        <p>Body: <code>list_projects()</code>, <code>get_screen(…)</code>.</p>
+        <p><code>allowed-tools</code>: Read/Bash/…, no Stitch.</p>
+        <p>Measured with <code>claude -p</code>: <strong>REFUSED</strong>.</p>
+      </article>
+      <article class="after">
+        <h2>Fixed</h2>
+        <p>Grant each named tool as <code>mcp__stitch__&lt;tool&gt;</code>.</p>
+        <p>Assertion (c) fails if a body call is ungranted.</p>
+        <p>Fail-first fixture keeps the gate honest.</p>
+      </article>
+    </div>
+
+    <h2>Interactive: pick a skill, see the grant</h2>
+    <label for="skill">Skill</label>
+    <select id="skill">
+      <option value="design-to-code">design-to-code (5 Stitch + 4 Storybook)</option>
+      <option value="design-context-extract">design-context-extract (5 Stitch)</option>
+      <option value="ai-ui-generation">ai-ui-generation (2 Stitch)</option>
+    </select>
+    <button type="button" id="go">Show grants</button>
+    <div class="proof" id="out" aria-live="polite">Select a skill.</div>
+
+    <h2>Grant table</h2>
+    <table>
+      <thead><tr><th>Skill</th><th>Granted mcp__stitch__*</th></tr></thead>
+      <tbody>
+        <tr><td>design-to-code</td><td>list_projects, get_project, list_screens, get_screen, generate_screen_from_text</td></tr>
+        <tr><td>design-context-extract</td><td>same five</td></tr>
+        <tr><td>ai-ui-generation</td><td>generate_screen_from_text, get_screen</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Measurement (verbatim)</h2>
+    <div class="proof">Permission to use mcp__plugin_hq-ext_stitch__list_projects has been denied because Claude Code is running in don't ask mode.</div>
+
+    <footer>
+      ork ships no .mcp.json entry for stitch. Grants list BOTH
+      mcp__stitch__&lt;tool&gt; (standalone) and mcp__plugin_hq-ext_stitch__&lt;tool&gt;
+      (hq-ext plugin). Docs: https://code.claude.com/docs/en/mcp-servers
+    </footer>
+  </main>
+  <script>
+    const GRANTS = {
+      "design-to-code": [
+        "mcp__stitch__list_projects",
+        "mcp__plugin_hq-ext_stitch__list_projects",
+        "mcp__stitch__get_project",
+        "mcp__plugin_hq-ext_stitch__get_project",
+        "mcp__stitch__list_screens",
+        "mcp__plugin_hq-ext_stitch__list_screens",
+        "mcp__stitch__get_screen",
+        "mcp__plugin_hq-ext_stitch__get_screen",
+        "mcp__stitch__generate_screen_from_text",
+        "mcp__plugin_hq-ext_stitch__generate_screen_from_text",
+        "mcp__storybook-mcp__list-all-documentation",
+        "mcp__storybook-mcp__get-documentation",
+        "mcp__storybook-mcp__preview-stories",
+        "mcp__storybook-mcp__run-story-tests"
+      ],
+      "design-context-extract": [
+        "mcp__stitch__list_projects",
+        "mcp__plugin_hq-ext_stitch__list_projects",
+        "mcp__stitch__get_project",
+        "mcp__plugin_hq-ext_stitch__get_project",
+        "mcp__stitch__list_screens",
+        "mcp__plugin_hq-ext_stitch__list_screens",
+        "mcp__stitch__get_screen",
+        "mcp__plugin_hq-ext_stitch__get_screen",
+        "mcp__stitch__generate_screen_from_text",
+        "mcp__plugin_hq-ext_stitch__generate_screen_from_text"
+      ],
+      "ai-ui-generation": [
+        "mcp__stitch__generate_screen_from_text",
+        "mcp__plugin_hq-ext_stitch__generate_screen_from_text",
+        "mcp__stitch__get_screen",
+        "mcp__plugin_hq-ext_stitch__get_screen"
+      ]
+    };
+    document.getElementById("go").addEventListener("click", () => {
+      const key = document.getElementById("skill").value;
+      document.getElementById("out").textContent = key + "\n" + GRANTS[key].join("\n");
+    });
+  </script>
+</body>
+</html>
