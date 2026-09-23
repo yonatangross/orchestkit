@@ -1005,11 +1005,12 @@ PP_RUN_RC=0
 PP_RUN_TMP=""
 
 _prepush_stubbed_run() {
-    # _prepush_stubbed_run <mode-or-empty> <fake-diff-lines> [diff-rc] [diff-fail-match]
+    # _prepush_stubbed_run <mode-or-empty> <fake-diff-lines> [diff-rc] [diff-fail-match] [slot-dir]
     # When diff-fail-match is set, `git diff` fails only when its args
     # contain that string, which models "origin/main unreadable but
-    # HEAD~1 readable" without touching real refs.
-    local mode="$1" fake="$2" diff_rc="${3:-0}" diff_match="${4:-}"
+    # HEAD~1 readable" without touching real refs. slot-dir overrides the
+    # per-run ORK_TEST_SLOT_DIR so a caller can pre-seed held slots.
+    local mode="$1" fake="$2" diff_rc="${3:-0}" diff_match="${4:-}" slot_dir="${5:-}"
     local tmp bin repo real_git real_bash out rc=0
     tmp=$(mktemp -d "${TMPDIR:-/tmp}/ork-pre-push-mode.XXXXXX")
     bin="$tmp/bin"
@@ -1076,7 +1077,7 @@ _prepush_stubbed_run() {
         "FAKE_DIFF=${fake}"
         "FAKE_DIFF_RC=${diff_rc}"
         "FAKE_DIFF_MATCH=${diff_match}"
-        "ORK_TEST_SLOT_DIR=${tmp}/slots"
+        "ORK_TEST_SLOT_DIR=${slot_dir:-${tmp}/slots}"
         "ORK_PRE_PUSH_JOBS=1"
     )
     [[ -n "$mode" ]] && env_args+=("ORK_PRE_PUSH_MODE=${mode}")
@@ -1137,6 +1138,38 @@ test_targeted_mode_selection() {
         log_pass "mode unset: nothing is reported as deferred"
     fi
     rm -rf "$PP_RUN_TMP"
+
+    # Case A2: mode unset never touches the governor. Both slots are held
+    # by live pids; if the hook tried to acquire, the 2s timeout would
+    # fail the run. It must run the full suite immediately and create no
+    # slot dir (#4238 hold: default pushes cannot queue behind lanes).
+    local slot_dir live1 live2 slot_entries
+    slot_dir=$(mktemp -d "${TMPDIR:-/tmp}/ork-pre-push-slots.XXXXXX")
+    sleep 60 & live1=$!
+    sleep 60 & live2=$!
+    mkdir -p "$slot_dir/slot-1" "$slot_dir/slot-2"
+    printf '%s\n' "$live1" > "$slot_dir/slot-1/pid"
+    printf '%s\n' "$live2" > "$slot_dir/slot-2/pid"
+    ORK_TEST_SLOT_TIMEOUT=2 _prepush_stubbed_run "" "docs/anywhere.md" 0 "" "$slot_dir"
+    ran_count=$(_pp_unit_ran_count "$PP_RUN_STUB")
+    if [[ $PP_RUN_RC -eq 0 && "$ran_count" == "$want_count" ]]; then
+        log_pass "mode unset: full suite ran with every slot held (no queue, no wait)"
+    else
+        log_fail "mode unset: governor interfered (rc=${PP_RUN_RC}, ran ${ran_count}/${want_count}): ${PP_RUN_OUT}"
+    fi
+    slot_entries=$(find "$slot_dir" -mindepth 1 -maxdepth 1 | wc -l | tr -d ' ')
+    if [[ "$slot_entries" == "2" && ! -d "$slot_dir/slot-3" ]]; then
+        log_pass "mode unset: no slot dir created (slot dir untouched)"
+    else
+        log_fail "mode unset: slot dir gained entries: $(ls "$slot_dir")"
+    fi
+    if grep -F -q '[test-slot]' <<< "$PP_RUN_OUT"; then
+        log_fail "mode unset: governor output appeared under the default mode: ${PP_RUN_OUT}"
+    else
+        log_pass "mode unset: no governor output"
+    fi
+    kill "$live1" "$live2" 2>/dev/null || true
+    rm -rf "$slot_dir" "$PP_RUN_TMP"
 
     # Case B: targeted + docs-only diff selects zero and skips security.
     _prepush_stubbed_run "targeted" "docs/site/content/docs/guide.md

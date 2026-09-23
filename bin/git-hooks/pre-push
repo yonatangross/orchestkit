@@ -573,15 +573,18 @@ assert_repo_config_unchanged() {
   fi
 }
 
-# ===== Test slot governor (#4238) =====
+# ===== Test slot governor (#4238, targeted mode only) =====
 #
 # Machine-wide cap on concurrent suite runs: at most ORK_TEST_SLOT_MAX
 # (default 2) holders across every repo on this host. A push that arrives
-# third queues; a slot whose holder pid is gone is reclaimed. This is what
-# keeps seven lane pushes from running seven suites at once. Skipped on CI
-# (runners govern themselves) and when the library is absent (governance is
-# a courtesy, not a correctness gate). ORK_TEST_SLOT_NOLOCK=1 bypasses.
-if [[ -f "$PROJECT_ROOT/scripts/lib/test-slot.sh" ]]; then
+# third queues; a slot whose holder pid is gone is reclaimed. Only
+# targeted mode takes a slot: full/unset is the default human path and
+# must behave exactly as it did before the mode switch existed, so it
+# never touches the slot dir and can never queue behind other lanes.
+# Skipped on CI (runners govern themselves) and when the library is
+# absent (governance is a courtesy, not a correctness gate).
+# ORK_TEST_SLOT_NOLOCK=1 bypasses.
+if [[ "$PRE_PUSH_MODE" == "targeted" && -f "$PROJECT_ROOT/scripts/lib/test-slot.sh" ]]; then
   # shellcheck source=../../scripts/lib/test-slot.sh
   . "$PROJECT_ROOT/scripts/lib/test-slot.sh"
   _pp_slot_rc=0
@@ -729,7 +732,8 @@ fi
 
 export _PREPUSH_FAIL_DIR=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")
 # This and the TOKEN_LOG trap below replace the EXIT trap that
-# acquire_test_slot installed, so each must release the slot itself.
+# acquire_test_slot installs in targeted mode, so each must release the
+# slot itself (a no-op when no slot was taken).
 trap 'rm -rf "$_PREPUSH_FAIL_DIR"; declare -f release_test_slot >/dev/null && release_test_slot' EXIT
 
 # Dispatch on EXTENSION, not on hope (#4024).
@@ -945,8 +949,9 @@ if ! assert_repo_config_unchanged; then
   exit 1
 fi
 
-# Return the governor slot before exiting. The EXIT traps above already
-# release it on every earlier exit path; this covers the success path.
+# Return the governor slot before exiting; only targeted mode ever holds
+# one. The EXIT traps above release it on every earlier exit path, and
+# this covers the success path.
 if declare -f release_test_slot >/dev/null 2>&1; then
   release_test_slot
 fi

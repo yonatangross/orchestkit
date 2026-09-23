@@ -72,7 +72,7 @@
   <tr><td>unit tests</td><td class="run">all discovered files</td><td class="skip">files naming a changed path (+ smoke pick)</td></tr>
   <tr><td>security</td><td class="run">always</td><td class="skip">only on hook/lib/security/CI paths</td></tr>
   <tr><td>imports, mdx, agents, skills, manifests, tokens, vitest</td><td class="run">always</td><td class="run">always</td></tr>
-  <tr><td>concurrency</td><td class="defer" colspan="2">2-slot governor, queue on third, dead pid reclaimed (skipped on CI)</td></tr>
+  <tr><td>concurrency</td><td class="defer" colspan="2">2-slot governor in targeted mode only, queue on third, dead pid reclaimed (skipped on CI)</td></tr>
 </table>
 
 <div class="grid" style="margin-top:24px">
