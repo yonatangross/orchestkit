@@ -24,13 +24,13 @@
 #       query_docs) and one memory spelling (add_node) grant NOTHING; they
 #       do not exist, and a grant of a nonexistent tool is a silent no-op.
 #
-#   (c) Skill body MCP refs must appear in allowed-tools (same call / tick /
-#       ToolSearch shapes as before). Skills without allowed-tools, or marked
-#       tool-coverage: illustrative, are skipped. Separately, every
-#       src/agents/*.md and every skill with allowed-tools: if a Stitch tool
-#       is granted or named under mcp__stitch__* OR mcp__plugin_hq-ext_stitch__*,
-#       the twin prefix for that same tool leaf must also be granted (operator
-#       hq-ext registration vs standalone stitch server).
+#   (c) Skill body MCP refs must appear in allowed-tools (call / tick /
+#       ToolSearch shapes). Skills without allowed-tools, or marked
+#       tool-coverage: illustrative, are skipped. For Stitch body refs,
+#       either mcp__stitch__<tool> or mcp__plugin_hq-ext_stitch__<tool>
+#       counts. Separately, every skill allowed-tools and every
+#       src/agents/*.md tools: list: granting a Stitch tool under only one
+#       of those two prefixes fails (operator hq-ext vs standalone).
 #
 # .mcp.json is untracked (runtime file), so the configured-server list and
 # the configured-server list and the per-server tool rosters are read from
@@ -380,15 +380,20 @@ check_skill_body_grants() {
 
       ${STITCH_DUAL_JS}
 
-      // Non-Stitch body refs: exact grant required.
-      // Stitch body refs / grants: BOTH prefixes required for each leaf.
+      function stitchBodyGranted(tok) {
+        const leaf = stitchLeaf(tok);
+        if (!leaf) return allowed.has(tok);
+        // Body reference: either prefix counts as a grant for that leaf.
+        return STITCH_PREFIXES.some((p) => allowed.has(p + leaf));
+      }
+
       const missing = [];
       for (const t of [...needed].sort()) {
-        if (stitchLeaf(t)) continue;
-        if (!allowed.has(t)) missing.push(t);
+        if (!stitchBodyGranted(t)) missing.push(t);
       }
-      const stitchLeaves = collectStitchLeaves([...needed, ...allowed]);
-      missing.push(...missingStitchTwins(stitchLeaves, allowed));
+      // Separate pairing check: any Stitch grant under one prefix needs the twin.
+      // Leaves come from allowed-tools only (not from body alone).
+      missing.push(...missingStitchTwins(collectStitchLeaves([...allowed]), allowed));
       process.stdout.write([...new Set(missing)].sort().join(\"\\n\"));
     " "$skill_md" "$TOOL_SERVER_MAP")"
 
