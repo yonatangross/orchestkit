@@ -47,7 +47,7 @@
 
 import type { HookInput, HookResult, HookContext } from '../../types.js';
 import { outputSilentSuccess, outputDeny } from '../../lib/common.js';
-import { normalizeSingle, blankQuotedHeredocBodies } from '../../lib/normalize-command.js';
+import { normalizeSingle, normalizeSingleKeepQuotes, blankQuotedHeredocBodies } from '../../lib/normalize-command.js';
 import { NOOP_CTX } from '../../lib/context.js';
 
 const HOOK_NAME = 'network-egress-guard';
@@ -349,27 +349,41 @@ function pipeToInterpreterStdinProgram(denyScan: string, quoteIntact: string): b
   return false;
 }
 
+/**
+ * Strip one layer of matching surrounding quotes from a token. Used after
+ * tokenize so `"python3"` / `"-"` classify like their unquoted forms.
+ */
+function unwrapToken(tok: string): string {
+  if (tok.length >= 2) {
+    const a = tok[0]!;
+    const b = tok[tok.length - 1]!;
+    if ((a === '"' || a === "'") && a === b) return tok.slice(1, -1);
+  }
+  return tok;
+}
+
 /** Shared sudo/env skip + interpreter arg scan for one pipe RHS token list. */
 function rhsIsStdinInterpreter(tokens: string[]): boolean {
+  const unwrapped = tokens.map(unwrapToken);
   let idx = 0;
-  while (idx < tokens.length) {
-    const t = tokens[idx]!.toLowerCase();
+  while (idx < unwrapped.length) {
+    const t = unwrapped[idx]!.toLowerCase();
     if (t === 'sudo') {
       idx++;
       continue;
     }
     if (t === 'env') {
       idx++;
-      while (idx < tokens.length && /^[A-Za-z_][A-Za-z0-9_]*=/.test(tokens[idx]!)) {
+      while (idx < unwrapped.length && /^[A-Za-z_][A-Za-z0-9_]*=/.test(unwrapped[idx]!)) {
         idx++;
       }
       continue;
     }
     break;
   }
-  if (idx >= tokens.length || !INTERPRETER_NAME_RE.test(tokens[idx]!)) return false;
-  const family = interpreterFamily(tokens[idx]!);
-  return Boolean(family && interpreterArgsAreStdinProgram(family, tokens.slice(idx + 1)));
+  if (idx >= unwrapped.length || !INTERPRETER_NAME_RE.test(unwrapped[idx]!)) return false;
+  const family = interpreterFamily(unwrapped[idx]!);
+  return Boolean(family && interpreterArgsAreStdinProgram(family, unwrapped.slice(idx + 1)));
 }
 
 // =============================================================================
@@ -463,9 +477,10 @@ export function networkEgressGuard(input: HookInput, ctx: HookContext = NOOP_CTX
   // (#3098). UNQUOTED heredocs are shell-expanded, so they are left untouched.
   const heredocBlanked = blankQuotedHeredocBodies(raw);
   const denyScan = normalizeSingle(egressDenyScanView(heredocBlanked));
-  // Quote-intact view for interpreter argv: denyScan blanks opaque quotes, which
-  // would drop `--require 'fs'` and mis-consume the next token as the value.
-  const quoteIntact = normalizeSingle(heredocBlanked);
+  // Quote-intact view for interpreter argv: denyScan blanks opaque quotes, and
+  // normalizeSingle would strip quotes (exposing a piped body inside echo/grep).
+  // Keep quotes so `--require 'fs'` and `echo 'curl|python3'` stay correct.
+  const quoteIntact = normalizeSingleKeepQuotes(heredocBlanked);
 
   // --- DENY tier ---
   for (const { re, label } of DENY_REGEX) {
