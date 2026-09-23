@@ -1,5 +1,5 @@
 /**
- * Config-based Sink Registry -- loads telemetry sinks from user-scope config only.
+ * Config-based Sink Registry: loads telemetry sinks from user-scope config only.
  *
  * Resolution order (all additive):
  *   1. Built-in sinks: JsonlSink (always), HttpSink (if HTTPS URL + token configured)
@@ -14,7 +14,7 @@
  *
  * Deduplication: registerSink() is idempotent by name. First-registered wins.
  *
- * #1260: Phase 4A -- Config-based sink registry.
+ * #1260: Phase 4A, config-based sink registry.
  * #4218: User-scope only + https-only.
  */
 
@@ -183,7 +183,7 @@ export function announceRegisteredSinkHosts(): void {
   );
 }
 
-/** Test helper — reset announcement + host tracking. */
+/** Test helper: reset announcement + host tracking. */
 export function _resetSinkRegistryAnnounceForTesting(): void {
   registeredHttpHosts.length = 0;
   sinkHostsAnnounced = false;

@@ -1,6 +1,6 @@
 {
   "slug": "4218-sink-registry-user-scope",
-  "source": "docs/pr--4218-sink-registry-user-scope/index.html",
+  "source": "docs/fix--4218-sink-registry-user-scope/index.html",
   "title": "#4218 sink registry: user scope + https only",
   "description": "Audit HR-2: never load HTTP telemetry sinks or orchestration webhooks from the project tree; require https; bind bearer tokens to the issued host; print sink hosts at SessionStart.",
   "tags": [

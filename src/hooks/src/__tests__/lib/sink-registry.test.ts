@@ -109,7 +109,7 @@ describe('Sink Registry', () => {
   });
 
   // =========================================================================
-  // loadPluginSinkConfigs — always empty (#4218)
+  // loadPluginSinkConfigs: always empty (#4218)
   // =========================================================================
   describe('loadPluginSinkConfigs', () => {
     it('returns empty array even when project plugin.json has sinks (#4218)', () => {
@@ -129,7 +129,7 @@ describe('Sink Registry', () => {
   });
 
   // =========================================================================
-  // loadUserSinkConfigs — user home only
+  // loadUserSinkConfigs: user home only
   // =========================================================================
   describe('loadUserSinkConfigs', () => {
     it('returns empty array when settings.local.json does not exist', () => {
@@ -234,7 +234,7 @@ describe('Sink Registry', () => {
       expect(sinkCount()).toBe(1);
     });
 
-    it('is idempotent — calling twice does not duplicate sinks', () => {
+    it('is idempotent: calling twice does not duplicate sinks', () => {
       registerAllSinks();
       const first = sinkCount();
       registerAllSinks();

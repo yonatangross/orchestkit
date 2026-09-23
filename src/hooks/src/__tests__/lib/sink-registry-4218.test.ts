@@ -38,7 +38,7 @@ vi.mock('../../lib/paths.js', async (importOriginal) => {
 
 vi.mock('../../lib/orchestration-state.js', async (importOriginal) => {
   // Keep real getWebhookUrl for the orchestration ignore test via a separate import
-  // path — this mock is only for sink-registry registerAllSinks built-in path.
+  // path: this mock is only for sink-registry registerAllSinks built-in path.
   const actual = await importOriginal<typeof import('../../lib/orchestration-state.js')>();
   return {
     ...actual,
@@ -120,7 +120,7 @@ describe('#4218 sink registry user-scope + https', () => {
     });
     expect(loadPluginSinkConfigs()).toEqual([]);
     registerAllSinks();
-    // JSONL only — no HTTP sink from project-tree plugin.json
+    // JSONL only: no HTTP sink from project-tree plugin.json
     expect(sinkCount()).toBe(1);
   });
 
