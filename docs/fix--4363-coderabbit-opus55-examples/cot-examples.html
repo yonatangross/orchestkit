@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Thinking-model aware CoT examples</title>
+<style>
+body{background:#111;color:#ddd;font:14px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;margin:0;padding:32px}main{max-width:900px;margin:0 auto}
+h1{font-size:20px;color:#fff;margin:0 0 4px}.sub{color:#888;margin-bottom:22px}h2{font-size:13px;letter-spacing:.08em;text-transform:uppercase;margin:30px 0 10px;padding-bottom:6px;border-bottom:1px solid #333}
+.c1{color:#4dd0e1}.c2{color:#e573c7}pre{background:#181818;padding:12px;overflow-x:auto;border-left:2px solid #4dd0e1}
+.t button{background:#1a1a1a;color:#ccc;border:1px solid #333;padding:4px 12px;font:inherit;cursor:pointer;margin-right:6px}.t button.on{border-color:#e573c7;color:#fff}
+table{width:100%;border-collapse:collapse}td,th{text-align:left;padding:6px 8px;border-bottom:1px solid #222;vertical-align:top}th{color:#888;font-weight:normal}.note{color:#888;font-size:12px}
+</style></head><body><main>
+<h1>Thinking-model aware CoT examples</h1>
+<div class="sub">Fix-forward for the two CodeRabbit threads on #4363, in the llm-integration skill.</div>
+<h2 class="c1">01 / What self_consistent_answer sends</h2>
+<div class="t" id="t"><button data-m="0" class="on">model_thinks=False (e.g. a non-thinking model)</button><button data-m="1">model_thinks=True (Claude Opus 5.5)</button></div>
+<pre id="req"></pre>
+<div class="note">Opus 5.5 always thinks before it replies and rejects sampling parameters (claude-api skill, Migrating to Claude Opus 5.5), so the thinking path sends the bare question with no temperature.</div>
+<h2 class="c2">02 / The two lines that changed</h2>
+<table><tr><th>File</th><th>Before</th><th>After</th></tr>
+<tr><td>prompt-testing.md</td><td>Always appends "Think step by step." and sends temperature=0.7</td><td>Takes model_thinks; the CoT suffix and temperature apply only to non-thinking models</td></tr>
+<tr><td>prompt-design.md (+ .mdx mirror)</td><td>Always use CoT for math/logic tasks</td><td>Math/logic tasks: use CoT on models without built-in thinking; on thinking models, raise effort instead</td></tr></table>
+</main><script>
+const R=[`llm.chat(
+  [{"role": "user", "content": question + "\\n\\nThink step by step."}],
+  temperature=0.7,
+)`,`llm.chat(
+  [{"role": "user", "content": question}],
+)`];
+function show(m){document.getElementById('req').textContent=R[m];document.querySelectorAll('#t button').forEach(b=>b.classList.toggle('on',b.dataset.m==m));}
+document.querySelectorAll('#t button').forEach(b=>b.onclick=()=>show(+b.dataset.m));show(0);
+</script></body></html>
