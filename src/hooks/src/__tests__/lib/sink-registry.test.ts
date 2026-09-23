@@ -316,7 +316,7 @@ describe('Sink Registry', () => {
       registerAllSinks();
       const failureLog = logMessages.find((m) => m.includes('Failed to create sink'));
       expect(failureLog).toBeDefined();
-      expect(failureLog).toContain('explode.example.com');
+      expect(failureLog).toBe('Failed to create sink from user config: explode.example.com');
       expect(failureLog).not.toContain('/private/ingest');
       expect(failureLog).not.toContain('sekret123');
     });
