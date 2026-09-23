@@ -130,7 +130,9 @@ describe('Security Boundaries E2E', () => {
         const result = autoApproveSafeBash(input, testCtx);
 
         expect(result.continue).toBe(true);
-        expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+        expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
       });
     });
 
@@ -166,7 +168,9 @@ describe('Security Boundaries E2E', () => {
         const result = autoApproveProjectWrites(input, testCtx);
 
         expect(result.continue).toBe(true);
-        expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+        expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
       });
     });
 
