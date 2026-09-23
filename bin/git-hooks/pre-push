@@ -518,17 +518,16 @@ if [[ -f "src/hooks/tsconfig.json" ]]; then
   if [[ ! -x src/hooks/node_modules/.bin/tsc ]]; then
     echo "SKIP (tsc not installed under src/hooks/node_modules/.bin)"
   else
-    # Local binary exists: still go through npx so stage stubs (Test: captured
-    # stage exit status) keep working. --no-install refuses a network fetch of
-    # the unrelated npm package named `tsc` (#4220 HR-7 / IC-4).
-    run_captured run_with_timeout 120 npx --no-install tsc --noEmit -p src/hooks/tsconfig.json; stage_rc=$?
+    # Run the checked local binary under src/hooks (npx from repo root can
+    # miss a checkout that only installed typescript there) (#4220 HR-7 / IC-4).
+    run_captured run_with_timeout 120 src/hooks/node_modules/.bin/tsc --noEmit -p src/hooks/tsconfig.json; stage_rc=$?
     if [[ "$stage_rc" -ne 0 ]]; then
       echo "FAILED"
       echo ""
       echo "╔════════════════════════════════════════════════════════════╗"
       echo "║  TypeScript validation failed!"
       echo "╠════════════════════════════════════════════════════════════╣"
-      echo "║  Run: cd src/hooks && npx --no-install tsc --noEmit"
+      echo "║  Run: cd src/hooks && ./node_modules/.bin/tsc --noEmit"
       print_kept_stage_log
       echo "╚════════════════════════════════════════════════════════════╝"
       exit "$stage_rc"

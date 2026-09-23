@@ -11,5 +11,14 @@ for FILE in "${FILES[@]}"; do
     echo "FAIL: esc() map missing quote characters in $FILE"
     exit 1
   fi
+  # Assert escaped output for both quote characters (map keys use the other quote).
+  if ! grep -F "'\"': \"&quot;\"" "$FILE" >/dev/null; then
+    echo "FAIL: esc() missing double-quote -> &quot; mapping in $FILE"
+    exit 1
+  fi
+  if ! grep -F "\"'\": \"&#39;\"" "$FILE" >/dev/null; then
+    echo "FAIL: esc() missing single-quote -> &#39; mapping in $FILE"
+    exit 1
+  fi
 done
 echo "PASS: esc() includes quote sanitization (lab + source)"

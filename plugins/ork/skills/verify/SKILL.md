@@ -28,6 +28,13 @@ hooks:
 metadata:
   category: workflow-automation
   mcp-server: memory
+triggers:
+  keywords: [verify, verifiy, validate, verification, "ready for merge", "check everything", "security scan", "give me a score", "full verification", "grade my", "verified vs claimed", "what did you actually verify", "prove it"]
+  examples:
+    - "verify the authentication implementation"
+    - "is this feature ready for merge? check everything"
+    - "run tests, security scan, and give me a score"
+  anti-triggers: [implement, build, fix, cover, "generate tests", commit]
 ---
 
 # Verify Feature
@@ -254,7 +261,7 @@ if not task.id:                 # request ignored → the command ran inline and
 else:
     Monitor(pid=task.id)        # bounded: see the contract reference below; progress via `tail -n 5 {LOG}`
 # The verdict gate is EXECUTABLE, not prose (#3263). Only outcome=EVIDENCE may be graded:
-Bash(command=f"bash \"${{CLAUDE_PLUGIN_ROOT}}/skills/verify/scripts/assert-evidence.sh\" {LOG} --task-id '{task.id or 'none'}'")
+Bash(command=f"bash \"${{CLAUDE_SKILL_DIR}}/scripts/assert-evidence.sh\" {LOG} --task-id '{task.id or 'none'}'")
 # exit 0 EVIDENCE   → grade from LOG's runner summary line
 # exit 4 STILL-RUNNING → keep the bounded wait, re-run the gate
 # exit 3 COULD-NOT-OBSERVE (0 bytes, no live process) or exit 1 NO-BANNER →

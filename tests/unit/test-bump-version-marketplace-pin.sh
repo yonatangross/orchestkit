@@ -6,7 +6,13 @@ ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 TMP=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")
 trap 'rm -rf "$TMP"' EXIT
 
-mkdir -p "$TMP/.claude-plugin"
+# Minimal project tree so the real bin/bump-version.sh resolves PROJECT_ROOT
+# to TMP and only sync_versions runs (main replaced below).
+mkdir -p "$TMP/bin" "$TMP/.claude-plugin" "$TMP/plugins/ork/.claude-plugin"
+cp "$ROOT/bin/bump-version.sh" "$TMP/bin/bump-version.sh"
+# Call production sync_versions against the fixture (skip full bump side effects).
+perl -i -pe 's/^main "\$@"$/sync_versions "10.0.0-beta.99"/' "$TMP/bin/bump-version.sh"
+
 cat > "$TMP/.claude-plugin/marketplace.json" <<'JSON'
 {
   "name": "orchestkit",
@@ -18,18 +24,11 @@ cat > "$TMP/.claude-plugin/marketplace.json" <<'JSON'
 }
 JSON
 
-# Extract and run only sync_versions against TMP by sourcing a stub.
-# Call the jq fragment identical to bin/bump-version.sh.
-version="10.0.0-beta.99"
-marketplace="$TMP/.claude-plugin/marketplace.json"
-jq --arg v "$version" '
-  .version = $v
-  | (if any(.plugins[]; .source.ref? == "main")
-     then (.plugins[] | select(.source.ref? == "main") | .version) |= $v
-     else .
-     end)' "$marketplace" > "$marketplace.tmp"
-mv "$marketplace.tmp" "$marketplace"
+printf '%s\n' '{"name":"ork","version":"9.8.0"}' > "$TMP/plugins/ork/.claude-plugin/plugin.json"
 
+bash "$TMP/bin/bump-version.sh"
+
+marketplace="$TMP/.claude-plugin/marketplace.json"
 pinned=$(jq -r '.plugins[] | select(.name=="ork") | .version' "$marketplace")
 track=$(jq -r '.plugins[] | select(.name=="ork-alpha") | .version' "$marketplace")
 top=$(jq -r '.version' "$marketplace")

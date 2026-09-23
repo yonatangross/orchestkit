@@ -249,8 +249,9 @@ run_hook "pretool/bash/sync-bash-dispatcher" \
 # Silent-skip path from isHookDisabled: exactly continue+suppressOutput, no
 # hookSpecificOutput. A live dispatcher injects default timeout via
 # updatedInput: that proves the override was ignored and the hook ran.
-if echo "$LAST_STDERR" | grep -q "cannot disable security hook" \
-  && ! echo "$LAST_STDOUT" | python3 -c "import json,sys; d=json.load(sys.stdin); assert d.get('continue') is True and d.get('suppressOutput') is True and 'hookSpecificOutput' not in d" 2>/dev/null; then
+if [[ $LAST_EXIT -eq 0 ]] \
+  && grep -q "cannot disable security hook" <<<"$LAST_STDERR" \
+  && python3 -c "import json,sys; d=json.load(sys.stdin); ui=((d.get('hookSpecificOutput') or {}).get('updatedInput') or {}); assert d.get('continue') is True and ui.get('timeout')==120000" <<<"$LAST_STDOUT" 2>/dev/null; then
   pass "AF-12: sync-bash-dispatcher override rejected (warning + hook ran)"
 else
   fail "AF-12: sync-bash-dispatcher still disableable (exit=$LAST_EXIT, stderr=$LAST_STDERR, stdout=$LAST_STDOUT)"
@@ -275,7 +276,7 @@ OVERRIDE_EOF
 run_hook "pretool/bash/default-timeout-setter" \
   "{\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"echo safe\"},\"hook_event\":\"PreToolUse\",\"project_dir\":\"$TEMP_AF12b\"}" \
   "CLAUDE_PROJECT_DIR=$TEMP_AF12b" "HOME=$HOME_AF12b"
-if [[ $LAST_EXIT -eq 0 ]] && echo "$LAST_STDOUT" | grep -q '"timeout":120000'; then
+if [[ $LAST_EXIT -eq 0 ]] && grep -q '"timeout":120000' <<<"$LAST_STDOUT"; then
   pass "AF-12: project-level hook-overrides.json ignored (user-scope only)"
 else
   fail "AF-12: project-level override still applied (exit=$LAST_EXIT, stdout=$LAST_STDOUT)"

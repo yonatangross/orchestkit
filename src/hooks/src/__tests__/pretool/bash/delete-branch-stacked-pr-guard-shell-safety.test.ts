@@ -85,6 +85,8 @@ describe('HR-3 delete-branch-stacked-pr-guard shell safety', () => {
       ['pr', 'view', EVIL_REF, '--json', 'headRefName', '-q', '.headRefName'],
       expect.objectContaining({ cwd: PROJECT }),
     );
+    const viewOpts = mockExecFileSync.mock.calls[0]?.[2] as { shell?: boolean } | undefined;
+    expect(viewOpts?.shell ?? false).toBe(false);
     assertArgvOnlyCalls(mockExecFileSync.mock.calls, EVIL_REF);
   });
 
@@ -114,6 +116,8 @@ describe('HR-3 delete-branch-stacked-pr-guard shell safety', () => {
       ],
       expect.objectContaining({ cwd: PROJECT }),
     );
+    const listOpts = mockExecFileSync.mock.calls[0]?.[2] as { shell?: boolean } | undefined;
+    expect(listOpts?.shell ?? false).toBe(false);
     // The evil string is exactly one argv slot, not concatenated into argv[0]
     const args = mockExecFileSync.mock.calls[0]?.[1] as string[];
     expect(args).toContain(EVIL_BRANCH);

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# #4220 AF-32: root package.json must be private so npm pack cannot leak the tree.
+# #4220 AF-32: root package.json must be private so npm publish cannot leak the tree.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 priv=$(jq -r '.private // false' "$ROOT/package.json")
