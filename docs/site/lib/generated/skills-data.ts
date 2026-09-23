@@ -2094,7 +2094,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "errors",
     "description": "Error pattern analysis and troubleshooting for Claude Code sessions. Categorizes errors (network, auth, model, tool, memory, permission) with known resolution patterns, searches memory for prior occurrences, and suggests recovery steps. Delegates to debug-investigator agent for complex root cause analysis. Use when handling errors, fixing failures, or troubleshooting session issues.",
     "version": "1.0.0",
-    "sha256": "3cfdaef874792d554737100e9a87c81867e0f7f3f3c97ffc0491b31ea741c4b2",
+    "sha256": "254ab4286fba3957433cd5c734ed1d48703597b3c0f765cfe2a5b956a5c9beaf",
     "author": "OrchestKit",
     "tags": [
       "errors",
