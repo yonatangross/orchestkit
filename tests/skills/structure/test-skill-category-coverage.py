@@ -39,17 +39,25 @@ def main() -> int:
         if not cats:
             orphans.append(skill["slug"])
 
-    mdx_text = ""
+    # Per-category page text keyed by category slug (exact-link checks below).
+    page_by_cat: dict[str, str] = {}
     if BY_CATEGORY.is_dir():
         for mdx in sorted(BY_CATEGORY.glob("*.mdx")):
-            mdx_text += mdx.read_text(encoding="utf-8")
+            page_by_cat[mdx.stem] = mdx.read_text(encoding="utf-8")
 
     missing_from_pages: list[str] = []
     for skill in skills:
         slug = skill["slug"]
         if slug in orphans:
             continue
-        if f"/docs/reference/skills/{slug}" not in mdx_text:
+        # Exact markdown link, not a slug-prefix substring (memory vs memory-fabric).
+        exact_link = f"](/docs/reference/skills/{slug})"
+        matched_cats = [
+            cat
+            for cat, rule in mod.CATEGORY_RULES.items()
+            if mod._match_category(skill, rule)
+        ]
+        if not any(exact_link in page_by_cat.get(cat, "") for cat in matched_cats):
             missing_from_pages.append(slug)
 
     print(f"skills={len(skills)}")
