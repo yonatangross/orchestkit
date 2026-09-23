@@ -1565,7 +1565,8 @@ async def self_consistent_answer(
     accepts_sampling controls only temperature. Current Claude models (Opus 5.5,
     Opus 5, Opus 4.8/4.7, Sonnet 5, Fable 5/5.1) return 400 on temperature,
     top_p and top_k even with thinking off, so it defaults to False; set it True
-    only for Opus 4.6, Sonnet 4.6, Haiku 4.5 and older, or non-Claude models.
+    only for a model older than the Opus 4.7 generation (the claude-api skill's
+    Thinking and Effort table lists them) or a non-Claude model.
     On current Claude models, path diversity comes from independent calls and
     the effort setting, not temperature.
     """
