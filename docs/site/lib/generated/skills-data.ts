@@ -2075,7 +2075,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "emulate-seed",
     "description": "Generate emulate seed configs for stateful API emulation. Wraps Vercel's emulate tool for GitHub, Vercel, Google OAuth, Slack, Apple Auth, Microsoft Entra, AWS, Okta, Clerk, Resend, Stripe, and MongoDB Atlas APIs — full state machines, not mocks. Use when setting up test environments, CI pipelines, integration tests, or offline development.",
     "version": "1.3.0",
-    "sha256": "3d41d52eef7eed85e500fcade5b9a3c64d37de58f4d282906a1a8e77eab64b18",
+    "sha256": "3e4aecbef236c9d7c4fe187939bc8626f3dbe9ad31923a95069b27a51516c3f0",
     "author": "OrchestKit",
     "tags": [
       "emulate",
@@ -4936,7 +4936,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "verify",
     "description": "Grade work that already exists and decide whether it can merge. Runs the project's current unit, integration, and E2E suites plus security scanning and type checking, scores every dimension 0-10, and returns a merge verdict with a VERIFIED-vs-CLAIMED evidence manifest. Writes no test files and edits no source. Use when verifying changes are ready to merge. Use /ork:cover instead when the tests still have to be written.",
     "version": "4.7.0",
-    "sha256": "714cf45b5c687883ec26938b624ea1a0a6f10f928ef314cf9c92d94986da98e8",
+    "sha256": "6c1b9fd69e2c45987454e68a15348eeb3ac89d0166b23412ac53ab214eb961d8",
     "author": "OrchestKit",
     "tags": [
       "verification",

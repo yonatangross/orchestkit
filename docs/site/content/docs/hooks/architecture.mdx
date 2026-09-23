@@ -506,7 +506,7 @@ OrchestKit uses `statusMessage` on 15 hooks -- primarily context loaders, PR enr
 
 ## Hook Overrides
 
-Hooks can be disabled per-project by creating `.claude/hook-overrides.json`:
+Hooks can be disabled only at user scope by creating `~/.claude/hook-overrides.json` (a project `.claude/hook-overrides.json` is ignored; AF-12 / #4220):
 
 ```json
 {
@@ -517,7 +517,7 @@ Hooks can be disabled per-project by creating `.claude/hook-overrides.json`:
 }
 ```
 
-`run-hook.mjs` checks this file before executing any hook. If the hook name appears in the `disabled` array, it returns silent success without loading the bundle.
+`run-hook.mjs` reads this file from the user home before executing any hook. If the hook name appears in the `disabled` array, it returns silent success without loading the bundle. Security hooks in `SECURITY_HOOKS` cannot be disabled this way.
 
 ## Execution Tracking
 

@@ -860,26 +860,121 @@ test_shared_load_backoff_fixture() {
 
 # A captured stage that exits 7 must make the hook exit 7.
 # Reading $? after the if reports 0, so the gate used to pass.
+# The typecheck stage runs src/hooks/node_modules/.bin/tsc directly (#4220),
+# so stub that binary (npx is no longer on this path).
+#
+# Covers both setups the push gate can hit:
+#   - tsc ABSENT: plant a test-owned exit-7 stub; remove it on cleanup.
+#   - tsc is a RELATIVE symlink (npm ci): move it aside, stub, restore with
+#     -L||-f so a dangling $tmp backup is not skipped (#4220 / CodeRabbit).
+_run_pre_push_for_exit_status() {
+    local hook="$1" rc=0 out
+    out=$(/bin/bash "$hook" origin "https://example.invalid/repo.git" \
+        <<<'refs/heads/chore/exit-status 0000000000000000000000000000000000000000 refs/heads/chore/exit-status 0000000000000000000000000000000000000000') || rc=$?
+    printf '%s\n' "$out"
+    return "$rc"
+}
+
 test_captured_stage_exit_status() {
     log_section "Test: captured stage exit status is the hook exit status"
 
-    local tmp bin hook rc out kept
+    local tmp hook tsc_bin tsc_dir
+    local tsc_backup="" tsc_park="" tsc_link_target="" planted_stub=0
+    local rc out kept had_original=0
+
     tmp=$(mktemp -d "${TMPDIR:-/tmp}/ork-pre-push-rc.XXXXXX")
-    bin="$tmp/bin"
-    mkdir -p "$bin"
-    printf '%s\n' '#!/bin/bash' 'exit 7' > "$bin/npx"
-    chmod +x "$bin/npx"
     hook="${PROJECT_ROOT}/bin/git-hooks/pre-push"
+    tsc_bin="${PROJECT_ROOT}/src/hooks/node_modules/.bin/tsc"
+    tsc_dir=$(dirname "$tsc_bin")
+    mkdir -p "$tsc_dir"
+    tsc_backup="$tmp/tsc.real"
+
+    cleanup_exit_status_tsc() {
+        # Restore a backed-up original (regular file OR relative symlink).
+        if [[ -n "$tsc_backup" && ( -L "$tsc_backup" || -f "$tsc_backup" ) ]]; then
+            mv -f "$tsc_backup" "$tsc_bin"
+        elif [[ "$planted_stub" -eq 1 ]]; then
+            # No original existed for this case: drop the test-owned stub.
+            rm -f "$tsc_bin"
+        fi
+        # Park holds the real tree binary while the absent case runs.
+        if [[ -n "$tsc_park" && ( -L "$tsc_park" || -f "$tsc_park" ) ]]; then
+            mv -f "$tsc_park" "$tsc_bin"
+            tsc_park=""
+        fi
+    }
+    trap cleanup_exit_status_tsc EXIT
+
+    # ----- Case A: tsc ABSENT -----
+    if [[ -e "$tsc_bin" || -L "$tsc_bin" ]]; then
+        had_original=1
+        tsc_park="$tmp/tsc.park"
+        mv "$tsc_bin" "$tsc_park"
+    fi
+    planted_stub=1
+    printf '%s\n' '#!/bin/bash' 'exit 7' > "$tsc_bin"
+    chmod +x "$tsc_bin"
 
     rc=0
-    out=$(PATH="$bin:$PATH" /bin/bash "$hook" origin "https://example.invalid/repo.git" \
-        <<<'refs/heads/chore/exit-status 0000000000000000000000000000000000000000 refs/heads/chore/exit-status 0000000000000000000000000000000000000000') || rc=$?
+    out=$(_run_pre_push_for_exit_status "$hook") || rc=$?
+    # No backup for this case: cleanup removes the planted stub, then park.
+    rm -f "$tsc_backup"
+    cleanup_exit_status_tsc
+    planted_stub=0
 
     if [[ "$rc" -eq 7 ]]; then
-        log_pass "stubbed stage exit 7 is the hook exit status"
+        log_pass "absent tsc: planted stub exit 7 is the hook exit status"
     else
-        log_fail "hook exited $rc, want 7. output: $out"
+        log_fail "absent tsc: hook exited $rc, want 7. output: $out"
     fi
+    if [[ -f "$tsc_bin" ]] && ! [[ -L "$tsc_bin" ]] && grep -q 'exit 7' "$tsc_bin" 2>/dev/null; then
+        log_fail "absent tsc: exit-7 stub still present after cleanup"
+    else
+        log_pass "absent tsc: cleanup removed the planted stub"
+    fi
+
+    # ----- Case B: relative-symlink tsc -----
+    if [[ ! -L "$tsc_bin" ]]; then
+        # No real npm link: install a relative-symlink fixture under .bin.
+        printf '%s\n' '#!/bin/bash' 'exit 0' > "$tsc_dir/tsc.fixture-bin"
+        chmod +x "$tsc_dir/tsc.fixture-bin"
+        ln -s ./tsc.fixture-bin "$tsc_bin"
+    fi
+    if [[ ! -L "$tsc_bin" ]]; then
+        log_fail "relative-symlink case: could not obtain a symlink at $tsc_bin"
+        trap - EXIT
+        rm -rf "$tmp"
+        return
+    fi
+    tsc_link_target=$(readlink "$tsc_bin")
+    # Fresh backup path for the symlink move.
+    tsc_backup="$tmp/tsc.real"
+    planted_stub=0
+    mv "$tsc_bin" "$tsc_backup"
+    printf '%s\n' '#!/bin/bash' 'exit 7' > "$tsc_bin"
+    chmod +x "$tsc_bin"
+
+    rc=0
+    out=$(_run_pre_push_for_exit_status "$hook") || rc=$?
+    cleanup_exit_status_tsc
+
+    if [[ "$rc" -eq 7 ]]; then
+        log_pass "relative-symlink tsc: stubbed exit 7 is the hook exit status"
+    else
+        log_fail "relative-symlink tsc: hook exited $rc, want 7. output: $out"
+    fi
+    if [[ -L "$tsc_bin" && "$(readlink "$tsc_bin")" == "$tsc_link_target" ]]; then
+        log_pass "relative-symlink tsc restored as the original link ($tsc_link_target)"
+    else
+        log_fail "tsc not restored as original link (was -> $tsc_link_target, now: $(ls -la "$tsc_bin" 2>&1))"
+    fi
+
+    # Drop fixture sibling if we created one (do not delete a real typescript link).
+    if [[ "$tsc_link_target" == "./tsc.fixture-bin" ]]; then
+        rm -f "$tsc_bin" "$tsc_dir/tsc.fixture-bin"
+    fi
+
+    trap - EXIT
     kept=$(printf '%s\n' "$out" | sed -n 's/.*Full log kept at: //p')
     if [[ -n "$kept" ]]; then
         rm -f "$kept"

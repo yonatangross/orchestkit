@@ -46,7 +46,7 @@ Generate and manage seed configs for [emulate](https://github.com/vercel-labs/em
 | `--apply` | Write `emulate.config.yaml` (refuses to overwrite without `--force`) |
 
 ```bash
-$ bash scripts/auto-discover.sh
+$ bash "${CLAUDE_SKILL_DIR}/scripts/auto-discover.sh"
 emulate-seed --auto — scanning /path/to/package.json
 
 Detected:
@@ -57,7 +57,7 @@ Detected:
 
 Union: apple-auth, aws, github, google-oauth, microsoft-entra, stripe
 
-$ bash scripts/auto-discover.sh --apply
+$ bash "${CLAUDE_SKILL_DIR}/scripts/auto-discover.sh" --apply
 …
 ✓ Wrote /path/to/emulate.config.yaml with 6 service(s)
 ```

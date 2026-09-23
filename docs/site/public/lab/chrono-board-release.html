@@ -313,7 +313,7 @@ const ICONS = {
 const state = { step: 0, playing: false, rtl: false, reduce: false };
 let timer = null;
 const stage = document.getElementById("stage");
-const esc = s => String(s).replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const escapeAttr = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const maxStep = () => STEPS.length - 1;
 

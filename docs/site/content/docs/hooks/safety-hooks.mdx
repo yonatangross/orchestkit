@@ -405,7 +405,7 @@ Categorizes tool failures and provides actionable recovery suggestions. Tracks e
 
 ### Hook Overrides
 
-You can disable specific hooks per-project by creating `.claude/hook-overrides.json`:
+You can disable specific hooks only at user scope via `~/.claude/hook-overrides.json` (project-level `.claude/hook-overrides.json` is not read; AF-12 / #4220):
 
 ```json
 {
@@ -419,7 +419,7 @@ You can disable specific hooks per-project by creating `.claude/hook-overrides.j
 ```
 
 <Callout type="warn">
-Never disable security-critical hooks like `dangerous-command-blocker` or `file-guard`. These exist to prevent catastrophic damage and should remain active at all times.
+Never disable security-critical hooks. Entries in `SECURITY_HOOKS` (including the Bash / Write-Edit dispatchers) ignore overrides and warn on stderr instead.
 </Callout>
 
 ### Permission Mode: dontAsk

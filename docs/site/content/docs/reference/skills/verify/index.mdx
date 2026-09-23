@@ -238,7 +238,7 @@ if not task.id:                 # request ignored → the command ran inline and
 else:
     Monitor(pid=task.id)        # bounded: see the contract reference below; progress via `tail -n 5 {LOG}`
 # The verdict gate is EXECUTABLE, not prose (#3263). Only outcome=EVIDENCE may be graded:
-Bash(command=f"bash scripts/assert-evidence.sh {LOG} --task-id '{task.id or 'none'}'")
+Bash(command=f"bash \"${{CLAUDE_SKILL_DIR}}/scripts/assert-evidence.sh\" {LOG} --task-id '{task.id or 'none'}'")
 # exit 0 EVIDENCE   → grade from LOG's runner summary line
 # exit 4 STILL-RUNNING → keep the bounded wait, re-run the gate
 # exit 3 COULD-NOT-OBSERVE (0 bytes, no live process) or exit 1 NO-BANNER →

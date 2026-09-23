@@ -10,11 +10,12 @@
  *
  * Scope split (mirrors dangerous-command-blocker's DENY/ASK/ALLOW tiers):
  *
- *   DENY  — remote code execution via fetched content. Never legitimate for an
- *           agent: `bash <(curl …)`, `eval $(curl …)`, `nc -e` reverse shell.
- *           NOTE: `curl … | sh` / `… | base64 -d | sh` are ALREADY blocked by
- *           dangerous-command-blocker's PIPE_TO_SHELL_RE (runs first), so we do
- *           NOT duplicate the simple pipe-to-shell case here.
+ *   DENY  - remote code execution via fetched content. Never legitimate for an
+ *           agent: `bash <(curl …)`, `eval $(curl …)`, `curl … | sh`,
+ *           `curl … | python3`, `nc -e` reverse shell.
+ *           NOTE: dangerous-command-blocker (and its PIPE_TO_SHELL_RE) was
+ *           retired in #3835. Plain pipe-to-shell / pipe-to-interpreter shapes
+ *           live in THIS guard's DENY tier now (#4220 HR-5).
  *
  *   ASK   — sometimes-legitimate egress that is also the classic exfil/install
  *           vector: staged download-then-run (`curl -o x.sh … && sh x.sh`),
@@ -106,27 +107,161 @@ const DENY_REGEX: { re: RegExp; label: string }[] = [
   // interpreter reading a process-substitution network fetch: bash <(curl …)
   {
     re: /\b(?:ba|z|k|da)?sh\s+<\(\s*(?:curl|wget|fetch)\b/i,
-    label: 'shell <(curl …) — executes fetched remote content',
+    label: 'shell <(curl …): executes fetched remote content',
   },
   {
     re: /\b(?:source|\.)\s+<\(\s*(?:curl|wget|fetch)\b/i,
-    label: 'source <(curl …) — sources fetched remote content',
+    label: 'source <(curl …): sources fetched remote content',
   },
   {
     re: /\b(?:python[0-9.]*|node|ruby|perl|php)\s+<\(\s*(?:curl|wget|fetch)\b/i,
-    label: 'interpreter <(curl …) — runs fetched remote content',
+    label: 'interpreter <(curl …): runs fetched remote content',
   },
   // eval of a command substitution that fetches: eval $(curl …) / eval `curl …`
   {
     re: /\beval\b[^\n]{0,60}?(?:\$\(|`)\s*(?:curl|wget|fetch)\b/i,
-    label: 'eval $(curl …) — evaluates fetched remote content',
+    label: 'eval $(curl …): evaluates fetched remote content',
   },
   // netcat reverse shell: nc -e /bin/sh host port
   {
     re: /\b(?:nc|ncat|netcat)\b[^\n]*\s-e\b/i,
-    label: 'nc -e — netcat command-exec (reverse shell)',
+    label: 'nc -e: netcat command-exec (reverse shell)',
   },
+  // Plain pipe-to-shell (#4220 HR-5). The retired dangerous-command-blocker
+  // used to own these; without them an allowlisted `curl … | sh` runs with no
+  // deny (measured #3877 / CC 2.1.263).
+  // Fetcher is curl/wget, or fetch as its own command word (not `git fetch`).
+  // Optional path prefix ([\w./-]*/) covers `/bin/sh`, `/usr/bin/bash`, etc.
+  {
+    re: /(?:\bcurl\b|\bwget\b|(?<!\bgit\s)\bfetch\b)[^\n]{0,200}\|\s*(?:[\w./-]*\/)?(?:ba|z|k|da)?sh\b/i,
+    label: 'curl|sh: pipes fetched content to a shell',
+  },
+  {
+    re: /(?:\bcurl\b|\bwget\b|(?<!\bgit\s)\bfetch\b)[^\n]{0,200}\|\s*base64\b(?:\s+-[A-Za-z]*)?[^\n]{0,80}\|\s*(?:[\w./-]*\/)?(?:ba|z|k|da)?sh\b/i,
+    label: 'curl|base64|sh: pipes decoded remote content to a shell',
+  },
+  // curl|interpreter stdin-program shapes use pipeToInterpreterStdinProgram()
+  // below (not a single regex): bare/sudo/env, lone `-`, `/dev/stdin`, and
+  // option-only flags like `-u` must DENY; `-c`/`-m`/`-e`/`-r`/`-E`/`--eval`
+  // or a real script path must ALLOW.
 ];
+
+/** curl/wget, or fetch not preceded by `git ` (so `git fetch` is not a fetcher). */
+const FETCHER_RE = /(?:\bcurl\b|\bwget\b|(?<!\bgit\s)\bfetch\b)/i;
+
+/** Path-optional interpreter that can run a fetched body as its program. */
+const INTERPRETER_NAME_RE = /^(?:[\w./-]*\/)?(?:python[0-9.]*|node|ruby|perl|php)$/i;
+
+/** Flags that mean the next arg is code/module, not a stdin program. */
+const INTERPRETER_CODE_FLAGS = new Set(['-c', '-m', '-e', '-r', '-E', '--eval']);
+
+/**
+ * Tokenize one simple-command suffix (after `|`) until `; | &` or newline.
+ * Quotes are respected so `-c "code"` stays two tokens.
+ */
+function tokenizePipeRhs(s: string): string[] {
+  const tokens: string[] = [];
+  let i = 0;
+  while (i < s.length) {
+    const ch = s[i]!;
+    if (ch === ';' || ch === '\n' || ch === '|' || ch === '&') break;
+    if (/\s/.test(ch)) {
+      i++;
+      continue;
+    }
+    if (ch === '"' || ch === "'") {
+      const q = ch;
+      i++;
+      let tok = '';
+      while (i < s.length && s[i] !== q) {
+        if (q === '"' && s[i] === '\\' && i + 1 < s.length) {
+          tok += s[i + 1];
+          i += 2;
+          continue;
+        }
+        tok += s[i];
+        i++;
+      }
+      if (i < s.length) i++; // closing quote
+      tokens.push(tok);
+      continue;
+    }
+    let tok = '';
+    while (
+      i < s.length &&
+      !/\s/.test(s[i]!) &&
+      s[i] !== ';' &&
+      s[i] !== '|' &&
+      s[i] !== '&' &&
+      s[i] !== '\n'
+    ) {
+      tok += s[i];
+      i++;
+    }
+    tokens.push(tok);
+  }
+  return tokens;
+}
+
+/**
+ * True when args mean the interpreter runs its PROGRAM from stdin (DENY):
+ * no args, only option flags (`-u`, `-I`, `-W`, …), a lone `-` (with or
+ * without trailing args), or `/dev/stdin`. False (ALLOW) when any arg is a
+ * code/module flag or a script path that is not `-` / `/dev/stdin`.
+ */
+function interpreterArgsAreStdinProgram(args: string[]): boolean {
+  if (args.length === 0) return true;
+  for (const a of args) {
+    if (INTERPRETER_CODE_FLAGS.has(a)) return false;
+    // Lone `-` or /dev/stdin means the program is stdin, with or without
+    // trailing args (`python3 - arg1` still runs the piped body).
+    if (a === '-' || a === '/dev/stdin') return true;
+    if (a.startsWith('-')) continue; // option-only flags (-u, -I, -W, …)
+    return false; // script path
+  }
+  return true;
+}
+
+/**
+ * HR-5 curl|interpreter: after a fetcher and a pipe, skip optional sudo/env
+ * (and `env VAR=val`) prefixes, then decide DENY vs ALLOW from interpreter args.
+ */
+function pipeToInterpreterStdinProgram(cmd: string): boolean {
+  let searchFrom = 0;
+  while (searchFrom < cmd.length) {
+    const pipe = cmd.indexOf('|', searchFrom);
+    if (pipe < 0) return false;
+    const left = cmd.slice(Math.max(0, pipe - 200), pipe);
+    if (!FETCHER_RE.test(left)) {
+      searchFrom = pipe + 1;
+      continue;
+    }
+    const tokens = tokenizePipeRhs(cmd.slice(pipe + 1));
+    let idx = 0;
+    while (idx < tokens.length) {
+      const t = tokens[idx]!.toLowerCase();
+      if (t === 'sudo') {
+        idx++;
+        continue;
+      }
+      if (t === 'env') {
+        idx++;
+        while (idx < tokens.length && /^[A-Za-z_][A-Za-z0-9_]*=/.test(tokens[idx]!)) {
+          idx++;
+        }
+        continue;
+      }
+      break;
+    }
+    if (idx >= tokens.length || !INTERPRETER_NAME_RE.test(tokens[idx]!)) {
+      searchFrom = pipe + 1;
+      continue;
+    }
+    if (interpreterArgsAreStdinProgram(tokens.slice(idx + 1))) return true;
+    searchFrom = pipe + 1;
+  }
+  return false;
+}
 
 // =============================================================================
 // Quote-aware view for the DENY tier (#3122)
@@ -232,6 +367,19 @@ export function networkEgressGuard(input: HookInput, ctx: HookContext = NOOP_CTX
           'separate reviewed step.',
       );
     }
+  }
+
+  if (pipeToInterpreterStdinProgram(denyScan)) {
+    const label = 'curl|interpreter: pipes fetched content to an interpreter';
+    ctx.log(HOOK_NAME, `BLOCKED: ${label}`);
+    ctx.logPermission('deny', label, input);
+    return outputDeny(
+      `Blocked remote-code-execution pattern: ${label}\n\n` +
+        'Fetching content from the network and executing it in one step is a ' +
+        'common exfiltration / supply-chain vector and has been blocked. If this ' +
+        'is intentional, download to a file, inspect it, then run it as a ' +
+        'separate reviewed step.',
+    );
   }
 
   // ASK tier retired 2026-08-31 (#3835 wave 2). It stood down behind an

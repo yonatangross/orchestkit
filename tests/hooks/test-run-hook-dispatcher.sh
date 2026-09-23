@@ -179,8 +179,9 @@ echo "------------------------------------"
 
 # 3a. Security hooks cannot be disabled via hook-overrides.json
 TEMP_PROJECT=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")
-mkdir -p "$TEMP_PROJECT/.claude"
-cat > "$TEMP_PROJECT/.claude/hook-overrides.json" << 'OVERRIDE_EOF'
+HOME_SEC=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")
+mkdir -p "$TEMP_PROJECT/.claude" "$HOME_SEC/.claude"
+cat > "$HOME_SEC/.claude/hook-overrides.json" << 'OVERRIDE_EOF'
 {
   "disabled": [
     "pretool/bash/dangerous-command-blocker",
@@ -194,9 +195,10 @@ OVERRIDE_EOF
 # #3835 wave 3: dangerous-command-blocker left the runner's un-disableable set
 # (its opinion is an operator-scope permissions.deny rule now), so the probe
 # uses security-pattern-validator, which remains in SECURITY_HOOKS.
+# #4220 AF-12: overrides are user-scope only (HOME), so plant there.
 run_hook "pretool/Write/security-pattern-validator" \
   "{\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"$TEMP_PROJECT/probe.ts\",\"content\":\"export const ok = 1;\"},\"hook_event\":\"PreToolUse\",\"project_dir\":\"$TEMP_PROJECT\"}" \
-  "CLAUDE_PROJECT_DIR=$TEMP_PROJECT"
+  "CLAUDE_PROJECT_DIR=$TEMP_PROJECT" "HOME=$HOME_SEC"
 if [[ $LAST_EXIT -eq 0 ]] && echo "$LAST_STDERR" | grep -q "cannot disable security hook"; then
   pass "Security hook override rejected with warning"
 else
@@ -210,7 +212,8 @@ fi
 
 # 3b. Non-security hook CAN be disabled
 run_hook "posttool/telemetry/emit" \
-  "{\"tool_input\":{},\"hook_event\":\"PostToolUse\",\"project_dir\":\"$TEMP_PROJECT\"}"
+  "{\"tool_input\":{},\"hook_event\":\"PostToolUse\",\"project_dir\":\"$TEMP_PROJECT\"}" \
+  "HOME=$HOME_SEC"
 # This is a non-security hook — if overrides had it, it would be disabled
 # Since it's not in the disabled list, it should still run normally
 if [[ $LAST_EXIT -eq 0 ]]; then
@@ -219,7 +222,67 @@ else
   fail "Non-security hook affected by overrides (exit=$LAST_EXIT)"
 fi
 
-rm -rf "$TEMP_PROJECT"
+rm -rf "$TEMP_PROJECT" "$HOME_SEC"
+
+# 3c. AF-12: sync-bash-dispatcher cannot be silenced via hook-overrides.json
+# (#4220). Today SECURITY_HOOKS only lists security-pattern-validator +
+# redact-secrets, so a project (or, after the user-scope-only fix, a HOME)
+# override that disables the dispatcher returns bare SILENT_OK with no
+# warning: every Bash guard behind the dispatcher is then a no-op.
+# Fail-first: dual-plant the disable in PROJECT and HOME so the case
+# still fires after loadOverrides reads user-scope only.
+TEMP_AF12=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")
+HOME_AF12=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")
+mkdir -p "$TEMP_AF12/.claude" "$HOME_AF12/.claude"
+cat > "$TEMP_AF12/.claude/hook-overrides.json" << 'OVERRIDE_EOF'
+{
+  "disabled": [
+    "pretool/bash/sync-bash-dispatcher"
+  ]
+}
+OVERRIDE_EOF
+cp "$TEMP_AF12/.claude/hook-overrides.json" "$HOME_AF12/.claude/hook-overrides.json"
+
+run_hook "pretool/bash/sync-bash-dispatcher" \
+  "{\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"echo safe\"},\"hook_event\":\"PreToolUse\",\"project_dir\":\"$TEMP_AF12\"}" \
+  "CLAUDE_PROJECT_DIR=$TEMP_AF12" "HOME=$HOME_AF12"
+# Silent-skip path from isHookDisabled: exactly continue+suppressOutput, no
+# hookSpecificOutput. A live dispatcher injects default timeout via
+# updatedInput: that proves the override was ignored and the hook ran.
+if [[ $LAST_EXIT -eq 0 ]] \
+  && grep -q "cannot disable security hook" <<<"$LAST_STDERR" \
+  && python3 -c "import json,sys; d=json.load(sys.stdin); ui=((d.get('hookSpecificOutput') or {}).get('updatedInput') or {}); assert d.get('continue') is True and ui.get('timeout')==120000" <<<"$LAST_STDOUT" 2>/dev/null; then
+  pass "AF-12: sync-bash-dispatcher override rejected (warning + hook ran)"
+else
+  fail "AF-12: sync-bash-dispatcher still disableable (exit=$LAST_EXIT, stderr=$LAST_STDERR, stdout=$LAST_STDOUT)"
+fi
+
+# 3d. AF-12: project-level hook-overrides.json is ignored once loadOverrides
+# reads user-scope only (HOME/.claude). Clean HOME (no overrides); plant a
+# project disable of a non-security hook whose live path is distinguishable
+# from SILENT_OK (default-timeout-setter injects timeout=120000).
+TEMP_AF12b=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")
+HOME_AF12b=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")
+mkdir -p "$TEMP_AF12b/.claude" "$HOME_AF12b/.claude"
+cat > "$TEMP_AF12b/.claude/hook-overrides.json" << 'OVERRIDE_EOF'
+{
+  "disabled": [
+    "pretool/bash/default-timeout-setter"
+  ]
+}
+OVERRIDE_EOF
+# HOME_AF12b/.claude exists but has NO hook-overrides.json
+
+run_hook "pretool/bash/default-timeout-setter" \
+  "{\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"echo safe\"},\"hook_event\":\"PreToolUse\",\"project_dir\":\"$TEMP_AF12b\"}" \
+  "CLAUDE_PROJECT_DIR=$TEMP_AF12b" "HOME=$HOME_AF12b"
+if [[ $LAST_EXIT -eq 0 ]] && grep -q '"timeout":120000' <<<"$LAST_STDOUT"; then
+  pass "AF-12: project-level hook-overrides.json ignored (user-scope only)"
+else
+  fail "AF-12: project-level override still applied (exit=$LAST_EXIT, stdout=$LAST_STDOUT)"
+fi
+
+rm -rf "$TEMP_AF12" "$HOME_AF12" "$TEMP_AF12b" "$HOME_AF12b"
 
 # =============================================================================
 echo ""
