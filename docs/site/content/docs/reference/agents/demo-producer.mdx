@@ -84,14 +84,14 @@ What format(s) do you need?
 Use the universal generator:
 
 ```bash
-./skills/demo-producer/scripts/generate.sh <type> <source> [style] [format]
+"${CLAUDE_PLUGIN_ROOT}/skills/demo-producer/scripts/generate.sh" <type> <source> [style] [format]
 
 # Examples:
-./skills/demo-producer/scripts/generate.sh skill explore
-./skills/demo-producer/scripts/generate.sh agent debug-investigator
-./skills/demo-producer/scripts/generate.sh plugin ork
-./skills/demo-producer/scripts/generate.sh tutorial "Building a REST API"
-./skills/demo-producer/scripts/generate.sh cli "npm create vite"
+"${CLAUDE_PLUGIN_ROOT}/skills/demo-producer/scripts/generate.sh" skill explore
+"${CLAUDE_PLUGIN_ROOT}/skills/demo-producer/scripts/generate.sh" agent debug-investigator
+"${CLAUDE_PLUGIN_ROOT}/skills/demo-producer/scripts/generate.sh" plugin ork
+"${CLAUDE_PLUGIN_ROOT}/skills/demo-producer/scripts/generate.sh" tutorial "Building a REST API"
+"${CLAUDE_PLUGIN_ROOT}/skills/demo-producer/scripts/generate.sh" cli "npm create vite"
 ```
 
 This creates:

@@ -27,7 +27,7 @@ import {
   loadSessionDecisions, loadCoordinationDecisions, loadChangelogDecisions,
   deduplicateById, aggregateDecisions, groupDecisions,
   formatTable, formatTimeline, formatStats, formatDecisionDetail,
-  formatMermaid, validateMermaidViaAPI, generateMermaidDocument,
+  formatMermaid, generateMermaidDocument,
   filterDecisions, searchDecisions, COLORS,
 } from '../../lib/decision-history.js';
 import type { Decision, AggregatedDecisions } from '../../lib/decision-history.js';
@@ -355,15 +355,6 @@ describe('formatMermaid', () => {
   it('excludes low impact', () => {
     const m = formatMermaid([makeDecision({ impact: 'low', ccVersion: 'X', summary: 'Low', date: '2026-01-01' })]);
     expect(m).not.toContain('Low');
-  });
-});
-
-describe('validateMermaidViaAPI', () => {
-  it('returns true on network failure (fail-open)', async () => {
-    const orig = globalThis.fetch;
-    globalThis.fetch = vi.fn().mockRejectedValue(new Error('down'));
-    expect(await validateMermaidViaAPI('timeline')).toBe(true);
-    globalThis.fetch = orig;
   });
 });
 

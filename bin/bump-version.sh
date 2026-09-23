@@ -65,12 +65,19 @@ sync_versions() {
 
   echo "Syncing version files..."
 
-  # marketplace.json (top-level + all plugin entries)
+  # marketplace.json: top-level version + TRACKING entries only (source.ref ==
+  # "main"). The pinned stable channel (ref = a tag) must not move on a bump
+  # (#4220 IC-8; same rule as scripts/stamp-counts.sh).
   local marketplace="$PROJECT_ROOT/.claude-plugin/marketplace.json"
   if [[ -f "$marketplace" ]]; then
-    jq --arg v "$version" '.version = $v | .plugins = [.plugins[] | .version = $v]' "$marketplace" > "$marketplace.tmp"
+    jq --arg v "$version" '
+      .version = $v
+      | (if any(.plugins[]; .source.ref? == "main")
+         then (.plugins[] | select(.source.ref? == "main") | .version) |= $v
+         else .
+         end)' "$marketplace" > "$marketplace.tmp"
     mv "$marketplace.tmp" "$marketplace"
-    echo "  ✓ marketplace.json"
+    echo "  ✓ marketplace.json (tracking entries only)"
   fi
 
   # All manifests (build reads version from manifests for plugin.json generation)

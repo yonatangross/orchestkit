@@ -10,11 +10,12 @@
  *
  * Scope split (mirrors dangerous-command-blocker's DENY/ASK/ALLOW tiers):
  *
- *   DENY  — remote code execution via fetched content. Never legitimate for an
- *           agent: `bash <(curl …)`, `eval $(curl …)`, `nc -e` reverse shell.
- *           NOTE: `curl … | sh` / `… | base64 -d | sh` are ALREADY blocked by
- *           dangerous-command-blocker's PIPE_TO_SHELL_RE (runs first), so we do
- *           NOT duplicate the simple pipe-to-shell case here.
+ *   DENY  - remote code execution via fetched content. Never legitimate for an
+ *           agent: `bash <(curl …)`, `eval $(curl …)`, `curl … | sh`,
+ *           `curl … | python3`, `nc -e` reverse shell.
+ *           NOTE: dangerous-command-blocker (and its PIPE_TO_SHELL_RE) was
+ *           retired in #3835. Plain pipe-to-shell / pipe-to-interpreter shapes
+ *           live in THIS guard's DENY tier now (#4220 HR-5).
  *
  *   ASK   — sometimes-legitimate egress that is also the classic exfil/install
  *           vector: staged download-then-run (`curl -o x.sh … && sh x.sh`),
@@ -125,6 +126,21 @@ const DENY_REGEX: { re: RegExp; label: string }[] = [
   {
     re: /\b(?:nc|ncat|netcat)\b[^\n]*\s-e\b/i,
     label: 'nc -e — netcat command-exec (reverse shell)',
+  },
+  // Plain pipe-to-shell / pipe-to-interpreter (#4220 HR-5). The retired
+  // dangerous-command-blocker used to own these; without them an allowlisted
+  // `curl … | sh` runs with no deny (measured #3877 / CC 2.1.263).
+  {
+    re: /\b(?:curl|wget|fetch)\b[^\n]{0,200}\|\s*(?:ba|z|k|da)?sh\b/i,
+    label: 'curl|sh — pipes fetched content to a shell',
+  },
+  {
+    re: /\b(?:curl|wget|fetch)\b[^\n]{0,200}\|\s*base64\b[^\n]{0,80}\|\s*(?:ba|z|k|da)?sh\b/i,
+    label: 'curl|base64|sh — pipes decoded remote content to a shell',
+  },
+  {
+    re: /\b(?:curl|wget|fetch)\b[^\n]{0,200}\|\s*(?:python[0-9.]*|node|ruby|perl|php)\b/i,
+    label: 'curl|interpreter — pipes fetched content to an interpreter',
   },
 ];
 

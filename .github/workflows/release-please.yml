@@ -338,7 +338,7 @@ jobs:
           # dist dirs byte-identically to the full root build, so the step no
           # longer pays for the root install (and its npm prepare hooks) or the
           # full plugin build. The release PR's own CI re-verifies everything.
-          if ! (cd src/hooks && npm ci); then
+          if ! (cd src/hooks && env -u GH_TOKEN npm ci); then
             echo "::error::npm ci (src/hooks) failed on ${BRANCH}; hook bundles not rebuilt."
             exit 1
           fi

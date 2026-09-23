@@ -458,12 +458,20 @@ run_security_stage() {
 }
 
 # Hooks vitest. Same MAX_JOBS as the unit stage, via --maxWorkers (vitest 5).
+# Prefer local node_modules/.bin so a missing install cannot fetch an unrelated
+# npm package via bare npx (#4220 HR-7 / IC-4).
 run_hooks_vitest_stage() {
   print_pre_push_load_notice
   echo -n "  Running hook vitest suite... "
   HOOK_LOG="$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")"
+  local vitest_bin="$PROJECT_ROOT/src/hooks/node_modules/.bin/vitest"
+  if [[ ! -x "$vitest_bin" ]]; then
+    echo "SKIP (vitest not installed under src/hooks/node_modules/.bin)"
+    rm -f "$HOOK_LOG"
+    return 0
+  fi
   if ! (cd src/hooks && env -u GIT_DIR -u GIT_WORK_TREE -u GIT_INDEX_FILE -u GIT_PREFIX \
-      -u GIT_COMMON_DIR -u GIT_OBJECT_DIRECTORY npx vitest run --reporter=dot --maxWorkers="$MAX_JOBS" >"$HOOK_LOG" 2>&1); then
+      -u GIT_COMMON_DIR -u GIT_OBJECT_DIRECTORY "$vitest_bin" run --reporter=dot --maxWorkers="$MAX_JOBS" >"$HOOK_LOG" 2>&1); then
     LOG_KEEP_DIR="$PROJECT_ROOT/.cache/pre-push"
     mkdir -p "$LOG_KEEP_DIR"
     LOG_KEEP="$LOG_KEEP_DIR/hooks-vitest.log"
@@ -504,19 +512,26 @@ assert_repo_config_unchanged() {
 echo -n "  Running TypeScript type check... "
 
 if [[ -f "src/hooks/tsconfig.json" ]]; then
-  run_captured run_with_timeout 120 npx tsc --noEmit -p src/hooks/tsconfig.json; stage_rc=$?
-  if [[ "$stage_rc" -ne 0 ]]; then
-    echo "FAILED"
-    echo ""
-    echo "╔════════════════════════════════════════════════════════════╗"
-    echo "║  TypeScript validation failed!"
-    echo "╠════════════════════════════════════════════════════════════╣"
-    echo "║  Run: cd src/hooks && npx tsc --noEmit"
-    print_kept_stage_log
-    echo "╚════════════════════════════════════════════════════════════╝"
-    exit "$stage_rc"
+  # Prefer local binary; bare `npx tsc` can fetch the unrelated npm package
+  # named `tsc` when typescript is absent (#4220 HR-7 / IC-4).
+  TSC_BIN="$PROJECT_ROOT/src/hooks/node_modules/.bin/tsc"
+  if [[ ! -x "$TSC_BIN" ]]; then
+    echo "SKIP (tsc not installed under src/hooks/node_modules/.bin)"
+  else
+    run_captured run_with_timeout 120 "$TSC_BIN" --noEmit -p src/hooks/tsconfig.json; stage_rc=$?
+    if [[ "$stage_rc" -ne 0 ]]; then
+      echo "FAILED"
+      echo ""
+      echo "╔════════════════════════════════════════════════════════════╗"
+      echo "║  TypeScript validation failed!"
+      echo "╠════════════════════════════════════════════════════════════╣"
+      echo "║  Run: cd src/hooks && ./node_modules/.bin/tsc --noEmit"
+      print_kept_stage_log
+      echo "╚════════════════════════════════════════════════════════════╝"
+      exit "$stage_rc"
+    fi
+    echo "OK"
   fi
-  echo "OK"
 else
   echo "SKIP (no tsconfig.json)"
 fi

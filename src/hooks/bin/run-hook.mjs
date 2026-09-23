@@ -232,11 +232,18 @@ const SILENT_OK = JSON.stringify({ continue: true, suppressOutput: true });
 const SECURITY_HOOKS = new Set([
   'pretool/Write/security-pattern-validator',
   'skill/redact-secrets',
+  // #4220 AF-12: a committed project .claude/hook-overrides.json used to silence
+  // these dispatchers and turn every Bash / Write-Edit guard into a no-op.
+  'pretool/bash/sync-bash-dispatcher',
+  'pretool/write-edit/sync-write-edit-dispatcher',
 ]);
 
-/** Load hook overrides from .claude/hook-overrides.json (or null). */
-function loadOverrides(projectDir) {
-  const overridesPath = join(projectDir, '.claude', 'hook-overrides.json');
+/**
+ * Load hook overrides from the USER scope only (~/.claude/hook-overrides.json).
+ * Project-committed overrides are ignored so a repo cannot disable guards (#4220 AF-12).
+ */
+function loadOverrides() {
+  const overridesPath = join(homedir(), '.claude', 'hook-overrides.json');
   if (!existsSync(overridesPath)) return null;
   try {
     return JSON.parse(readFileSync(overridesPath, 'utf-8'));
@@ -319,8 +326,7 @@ function silentExit() {
 // Early security-hook override probe — emits the stderr warning even when
 // the bundle can't load. See SECURITY_HOOKS docstring above.
 try {
-  const earlyProjectDir = process.env.CLAUDE_PROJECT_DIR || '.';
-  const earlyOverrides = loadOverrides(earlyProjectDir);
+  const earlyOverrides = loadOverrides();
   if (
     earlyOverrides?.disabled &&
     Array.isArray(earlyOverrides.disabled) &&
@@ -797,7 +803,7 @@ function emitHookResult(result, firingEvent, hookType, emptyPayload = false) {
 async function runHook(parsedInput) {
   // Check hook overrides before execution
   const projectDir = parsedInput.project_dir || process.env.CLAUDE_PROJECT_DIR || '.';
-  const overrides = loadOverrides(projectDir);
+  const overrides = loadOverrides();
 
   if (isHookDisabled(hookName, overrides)) {
     // Through emitHookResult, not a bare SILENT_OK: a disabled PreCompact hook

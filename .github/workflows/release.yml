@@ -97,22 +97,23 @@ jobs:
       - name: Check if release exists
         id: check
         run: |
-          TAG="${{ steps.version.outputs.tag }}"
           if gh release view "$TAG" &>/dev/null; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
           else
             echo "exists=false" >> "$GITHUB_OUTPUT"
           fi
         env:
+          TAG: ${{ steps.version.outputs.tag }}
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
 
       - name: Create GitHub Release
         if: steps.check.outputs.exists == 'false'
         run: |
-          gh release create "${{ steps.version.outputs.tag }}" \
-            --title "${{ steps.version.outputs.tag }}" \
+          gh release create "$TAG" \
+            --title "$TAG" \
             --notes-file /tmp/release-notes.md
         env:
+          TAG: ${{ steps.version.outputs.tag }}
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
 
       - name: Setup Node.js for SBOM generation
@@ -130,10 +131,11 @@ jobs:
 
       - name: Upload SBOM to release
         run: |
-          gh release upload "${{ steps.version.outputs.tag }}" \
+          gh release upload "$TAG" \
             bom.json#sbom-cyclonedx.json \
             --clobber
         env:
+          TAG: ${{ steps.version.outputs.tag }}
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
 
       - name: Attest build provenance
