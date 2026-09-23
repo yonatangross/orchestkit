@@ -865,15 +865,23 @@ test_shared_load_backoff_fixture() {
 test_captured_stage_exit_status() {
     log_section "Test: captured stage exit status is the hook exit status"
 
-    local tmp hook rc out kept tsc_bin tsc_backup=""
+    local tmp hook rc out kept tsc_bin tsc_backup="" tsc_was_link=0 tsc_link_target=""
     tmp=$(mktemp -d "${TMPDIR:-/tmp}/ork-pre-push-rc.XXXXXX")
     hook="${PROJECT_ROOT}/bin/git-hooks/pre-push"
     tsc_bin="${PROJECT_ROOT}/src/hooks/node_modules/.bin/tsc"
 
-    if [[ ! -x "$tsc_bin" ]]; then
+    if [[ ! -x "$tsc_bin" && ! -L "$tsc_bin" ]]; then
         log_fail "local tsc missing at $tsc_bin (typecheck stage would SKIP, not exercise capture)"
         rm -rf "$tmp"
         return
+    fi
+
+    # npm ci installs .bin/tsc as a RELATIVE symlink. Moving it into $tmp makes
+    # that link dangling, so restore must accept -L (not only -f) or the exit-7
+    # stub is left in the developer tree and $tmp cleanup deletes the backup.
+    if [[ -L "$tsc_bin" ]]; then
+        tsc_was_link=1
+        tsc_link_target=$(readlink "$tsc_bin")
     fi
 
     tsc_backup="$tmp/tsc.real"
@@ -881,8 +889,9 @@ test_captured_stage_exit_status() {
     printf '%s\n' '#!/bin/bash' 'exit 7' > "$tsc_bin"
     chmod +x "$tsc_bin"
     restore_tsc() {
-        if [[ -n "$tsc_backup" && -f "$tsc_backup" ]]; then
-            mv -f "$tsc_backup" "$tsc_bin"
+        local b="$tsc_backup"
+        if [[ -n "$b" && ( -L "$b" || -f "$b" ) ]]; then
+            mv -f "$b" "$tsc_bin"
         fi
     }
     trap restore_tsc EXIT
@@ -899,6 +908,16 @@ test_captured_stage_exit_status() {
     else
         log_fail "hook exited $rc, want 7. output: $out"
     fi
+
+    # Relative-symlink fixture: after restore, .bin/tsc must be the original link.
+    if [[ "$tsc_was_link" -eq 1 ]]; then
+        if [[ -L "$tsc_bin" && "$(readlink "$tsc_bin")" == "$tsc_link_target" ]]; then
+            log_pass "relative-symlink tsc restored as the original link ($tsc_link_target)"
+        else
+            log_fail "tsc not restored as original link (was -> $tsc_link_target, now: $(ls -la "$tsc_bin" 2>&1))"
+        fi
+    fi
+
     kept=$(printf '%s\n' "$out" | sed -n 's/.*Full log kept at: //p')
     if [[ -n "$kept" ]]; then
         rm -f "$kept"
