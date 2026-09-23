@@ -25,6 +25,7 @@ import { existsSync, readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { safeProjectDir } from '../../lib/paths.js';
 import { NOOP_CTX } from '../../lib/context.js';
+import { stringifyOutput } from '../../lib/stringify-output.js';
 
 export async function postDesignImportAutoVerify(
   input: HookInput,
@@ -35,13 +36,16 @@ export async function postDesignImportAutoVerify(
     return outputSilentSuccess();
   }
 
-  const skillName = (input.tool_input as Record<string, unknown>)?.skill;
+  // CC sends the skill name with its plugin prefix (`ork:design-import`) and
+  // the tool result as `tool_response`; `tool_output` is a legacy alias.
+  const skillName = String((input.tool_input as Record<string, unknown>)?.skill ?? '')
+    .replace(/^ork:/, '');
   if (skillName !== 'design-import') {
     return outputSilentSuccess();
   }
 
   // Bail quietly if the import did not actually produce a manifest
-  const output = String(input.tool_output ?? '');
+  const output = stringifyOutput(input.tool_response ?? input.tool_output) ?? '';
   if (!output.includes('Imported bundle')) {
     ctx.log('post-design-import', 'No import manifest detected — skipping verify nudge');
     return outputSilentSuccess();

@@ -8,12 +8,12 @@
  *   - agent-attribution-format.ts (commit trailers, PR markdown)
  */
 
-import { readFileSync, existsSync, readdirSync, unlinkSync, statSync } from 'node:fs';
-import { join } from 'node:path';
+import { readFileSync, existsSync, readdirSync, unlinkSync, statSync, mkdirSync } from 'node:fs';
+import { join, dirname } from 'node:path';
 import { bufferWrite } from './analytics-buffer.js';
 import { getCurrentBranch, gitExec } from './git.js';
 import { getProjectDir } from './common.js';
-import { lockedAtomicWriteSync } from './atomic-write.js';
+import { acquireLock, atomicWriteSync, releaseLock } from './atomic-write.js';
 import type { SessionState, LedgerEntry } from './agent-attribution-types.js';
 
 // Re-export types and formatters for consumers
@@ -37,9 +37,25 @@ function readSessionState(): SessionState {
   return { commit_base: '', agent_counter: 0, agent_starts: {}, agent_types: {} };
 }
 
-function writeSessionState(state: SessionState): void {
+/**
+ * Read-modify-write session state while holding the file lock for the WHOLE
+ * critical section, not just the write (sweep T1). Locking only the write
+ * leaves the read outside: two parallel SubagentStart processes each read
+ * stale state, and the last writer wins, silently dropping agent entries.
+ */
+export function updateSessionState(fn: (state: SessionState) => void): void {
+  const path = getStatePath();
+  const lockPath = `${path}.lock`;
   try {
-    lockedAtomicWriteSync(getStatePath(), JSON.stringify(state));
+    mkdirSync(dirname(path), { recursive: true });
+    if (!acquireLock(lockPath)) return;
+    try {
+      const state = readSessionState();
+      fn(state);
+      atomicWriteSync(path, JSON.stringify(state));
+    } finally {
+      releaseLock(lockPath);
+    }
   } catch { /* attribution should never break hooks */ }
 }
 
@@ -51,17 +67,17 @@ function writeSessionState(state: SessionState): void {
  * SubagentStop for both, so this is the reliable capture point (#245).
  */
 export function recordAgentStart(agentId: string, agentType?: string): void {
-  const state = readSessionState();
-  state.agent_starts[agentId] = Date.now();
-  if (agentType) {
-    state.agent_types ||= {};
-    state.agent_types[agentId] = agentType;
-  }
-  if (!state.commit_base) {
-    const head = gitExec(['rev-parse', 'HEAD']);
-    if (head) state.commit_base = head;
-  }
-  writeSessionState(state);
+  updateSessionState((state) => {
+    state.agent_starts[agentId] = Date.now();
+    if (agentType) {
+      state.agent_types ||= {};
+      state.agent_types[agentId] = agentType;
+    }
+    if (!state.commit_base) {
+      const head = gitExec(['rev-parse', 'HEAD']);
+      if (head) state.commit_base = head;
+    }
+  });
 }
 
 /**
@@ -69,16 +85,24 @@ export function recordAgentStart(agentId: string, agentType?: string): void {
  * Returns `type` when the SubagentStart hook staged it for this agent_id.
  */
 export function resolveAgentContext(agentId: string): { startMs: number; counter: number; commitBase: string; type?: string } {
-  const state = readSessionState();
-  const startMs = state.agent_starts[agentId] || 0;
-  const counter = state.agent_counter;
-  const commitBase = state.commit_base;
-  const type = state.agent_types?.[agentId];
-  state.agent_counter = counter + 1;
-  delete state.agent_starts[agentId];
-  if (state.agent_types) delete state.agent_types[agentId];
-  writeSessionState(state);
-  return { startMs, counter, commitBase, type };
+  let resolved: { startMs: number; counter: number; commitBase: string; type?: string } = {
+    startMs: 0,
+    counter: 0,
+    commitBase: '',
+    type: undefined,
+  };
+  updateSessionState((state) => {
+    resolved = {
+      startMs: state.agent_starts[agentId] || 0,
+      counter: state.agent_counter,
+      commitBase: state.commit_base,
+      type: state.agent_types?.[agentId],
+    };
+    state.agent_counter = resolved.counter + 1;
+    delete state.agent_starts[agentId];
+    if (state.agent_types) delete state.agent_types[agentId];
+  });
+  return resolved;
 }
 
 // -----------------------------------------------------------------------------

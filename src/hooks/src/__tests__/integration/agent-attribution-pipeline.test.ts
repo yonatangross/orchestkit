@@ -12,7 +12,9 @@ import { describe, test, expect, beforeEach, afterEach } from 'vitest';
 import { mkdirSync, writeFileSync, readFileSync, rmSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawn } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+import { buildSync } from 'esbuild';
 
 import {
   recordAgentStart,
@@ -202,6 +204,57 @@ describe('Concurrent Access (interleaved)', () => {
     const state = JSON.parse(readFileSync(statePath, 'utf8'));
     expect(state.agent_starts.a1).toBeUndefined(); // cleaned up
     expect(state.agent_starts.a2).toBeGreaterThan(0); // still there
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Cross-process concurrency (sweep T1): parallel SubagentStart hook processes
+// race on session-state.json. A read outside the lock loses entries because
+// the last writer wins; the update must hold the lock for read+modify+write.
+// Children are real node processes on the same file, so the race is real.
+// ---------------------------------------------------------------------------
+
+describe('Concurrent Access (separate processes)', () => {
+  test('parallel recordAgentStart calls all survive in session-state.json', async () => {
+    const entry = join(tmpDir, 'record-entry.ts');
+    const libPath = fileURLToPath(new URL('../../lib/agent-attribution.ts', import.meta.url));
+    writeFileSync(
+      entry,
+      `import { recordAgentStart } from ${JSON.stringify(libPath)};\n` +
+        `recordAgentStart(process.argv[2], 'ork:test-generator');\n`,
+    );
+    const bundle = join(tmpDir, 'record-entry.mjs');
+    buildSync({
+      entryPoints: [entry],
+      bundle: true,
+      platform: 'node',
+      format: 'esm',
+      outfile: bundle,
+      logLevel: 'silent',
+    });
+
+    const ids = Array.from({ length: 8 }, (_, i) => `agent-${i}`);
+    await Promise.all(
+      ids.map(
+        (id) =>
+          new Promise<void>((resolve, reject) => {
+            const child = spawn('node', [bundle, id], {
+              env: { ...process.env, CLAUDE_PROJECT_DIR: tmpDir },
+              stdio: 'ignore',
+            });
+            child.on('exit', (code) =>
+              code === 0 ? resolve() : reject(new Error(`child ${id} exited ${code}`)),
+            );
+            child.on('error', reject);
+          }),
+      ),
+    );
+
+    const statePath = join(tmpDir, '.claude', 'agents', 'session-state.json');
+    const state = JSON.parse(readFileSync(statePath, 'utf8'));
+    for (const id of ids) {
+      expect(state.agent_starts[id], `missing ${id}`).toBeGreaterThan(0);
+    }
   });
 });
 

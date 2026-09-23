@@ -23,6 +23,7 @@ import type { HookInput, HookResult, HookContext } from '../../types.js';
 import { outputSilentSuccess, outputWithContext } from '../../lib/common.js';
 import { NOOP_CTX } from '../../lib/context.js';
 import { getProjectDir } from '../../lib/env.js';
+import { stringifyOutput } from '../../lib/stringify-output.js';
 
 const SNAPSHOT_DIR = '.claude/state/expect-snapshots';
 
@@ -59,10 +60,13 @@ export async function expectSnapshotRecorder(
 ): Promise<HookResult> {
   if (input.tool_name !== 'Skill') return outputSilentSuccess();
 
-  const skillName = (input.tool_input as Record<string, unknown>)?.skill;
+  // CC sends the skill name with its plugin prefix (`ork:expect`) and the
+  // tool result as `tool_response`; `tool_output` is a legacy alias.
+  const skillName = String((input.tool_input as Record<string, unknown>)?.skill ?? '')
+    .replace(/^ork:/, '');
   if (skillName !== 'expect') return outputSilentSuccess();
 
-  const output = String(input.tool_output ?? '');
+  const output = stringifyOutput(input.tool_response ?? input.tool_output) ?? '';
   if (!output.includes('RUN_COMPLETED|passed')) return outputSilentSuccess();
 
   // Look for the route + ARIA blob the skill emits.

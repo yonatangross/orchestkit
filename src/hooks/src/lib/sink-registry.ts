@@ -224,7 +224,15 @@ export function registerAllSinks(): void {
       trackHost(config.url);
       logHook(HOOK_NAME, `Registered user sink: ${name}`);
     } catch {
-      logHook(HOOK_NAME, `Failed to create sink from user config: ${config.url}`);
+      // Host only: config.url can carry a path/query with secrets in it
+      // (tokens as query params), and this line writes to the hook log.
+      let host = '<unparseable-url>';
+      try {
+        host = new URL(config.url).host;
+      } catch {
+        /* keep placeholder */
+      }
+      logHook(HOOK_NAME, `Failed to create sink from user config: ${host}`);
     }
   }
 
