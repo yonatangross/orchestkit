@@ -31,7 +31,7 @@ def encode_image(path: str) -> tuple[str, str]:
 base64_data, mime_type = encode_image(image_path)
 response = client.chat.completions.create(
     model="gpt-5.5",
-    max_tokens=4096,  # Required for vision — omitting truncates response
+    max_completion_tokens=4096,  # Required for vision, omitting truncates response
     messages=[{
         "role": "user",
         "content": [

@@ -828,10 +828,11 @@ def contextualize_chunk(document: str, chunk: str) -> str:
     response = client.messages.create(
         model="claude-sonnet-5",
         max_tokens=150,
+        thinking={"type": "disabled"},  # Sonnet 5 thinks by default and thinking counts toward max_tokens
         messages=[{"role": "user",
                    "content": CONTEXT_PROMPT.format(document=document, chunk=chunk)}]
     )
-    return f"{response.content[0].text}\n\n{chunk}"
+    return f"{next(b.text for b in response.content if b.type == 'text')}\n\n{chunk}"
 ```
 
 **With Prompt Caching (90% cost reduction):**
@@ -840,13 +841,14 @@ def contextualize_cached(document: str, chunk: str) -> str:
     response = client.messages.create(
         model="claude-sonnet-5",
         max_tokens=150,
+        thinking={"type": "disabled"},  # Sonnet 5 thinks by default and thinking counts toward max_tokens
         messages=[{"role": "user", "content": [
             {"type": "text", "text": f"<document>\n{document}\n</document>",
              "cache_control": {"type": "ephemeral"}},
             {"type": "text", "text": f"Situate this chunk (1-2 sentences):\n<chunk>\n{chunk}\n</chunk>"}
         ]}]
     )
-    return f"{response.content[0].text}\n\n{chunk}"
+    return f"{next(b.text for b in response.content if b.type == 'text')}\n\n{chunk}"
 ```
 
 **Incorrect — chunk without document context:**
@@ -863,13 +865,14 @@ def contextualize_chunk(document: str, chunk: str) -> str:
     context = client.messages.create(
         model="claude-sonnet-5",
         max_tokens=150,
+        thinking={"type": "disabled"},  # Sonnet 5 thinks by default and thinking counts toward max_tokens
         messages=[{"role": "user", "content": [
             {"type": "text", "text": f"<document>\n{document}\n</document>",
              "cache_control": {"type": "ephemeral"}},  # Cache for 90% cost reduction
             {"type": "text", "text": f"Situate this chunk (1-2 sentences):\n<chunk>\n{chunk}\n</chunk>"}
         ]}]
     )
-    return f"{context.content[0].text}\n\n{chunk}"  # Prepend context
+    return f"{next(b.text for b in context.content if b.type == 'text')}\n\n{chunk}"  # Prepend context
 ```
 
 **Key rules:**
@@ -1609,8 +1612,7 @@ async def generate_hyde(
                 "Use technical terminology that documentation would use."},
             {"role": "user", "content": query}
         ],
-        max_tokens=max_tokens,
-        temperature=0.3,
+        max_completion_tokens=max_tokens,
     )
 
     hypothetical_doc = response.choices[0].message.content
@@ -1639,7 +1641,7 @@ async def generate_hyde(query: str) -> HyDEResult:
     response = await llm.chat.completions.create(
         model="gpt-5-mini",
         messages=[{"role": "user", "content": query}],
-        max_tokens=150
+        max_completion_tokens=150
     )
     hypothetical_doc = response.choices[0].message.content
     embedding = await embed_fn(query)  # WRONG: Embeds query, not hypothetical doc!
@@ -1655,8 +1657,7 @@ async def generate_hyde(query: str) -> HyDEResult:
             {"role": "system", "content": "Write a short paragraph that would answer this query."},
             {"role": "user", "content": query}
         ],
-        max_tokens=150,
-        temperature=0.3
+        max_completion_tokens=150
     )
 
     hypothetical_doc = response.choices[0].message.content
@@ -1668,7 +1669,7 @@ async def generate_hyde(query: str) -> HyDEResult:
 **Key rules:**
 - Embed the hypothetical document, NOT the original query
 - Use fast/cheap model (gpt-5-mini, claude-haiku-4-5) for generation
-- Temperature 0.3 for consistent, factual hypothetical docs
+- Omit `temperature` on gpt-5-mini (OpenAI rejects it on older GPT-5 models); where a model accepts it, 0.3 keeps hypothetical docs consistent and factual
 - Keep hypothetical docs concise: 100-200 tokens
 - Adds ~500ms latency — always implement with timeout fallback
 
@@ -2382,7 +2383,6 @@ async def decompose_query(query: str, llm: AsyncOpenAI) -> list[str]:
             {"role": "user", "content": query}
         ],
         response_format={"type": "json_object"},
-        temperature=0,
     )
     result = ConceptExtraction.model_validate_json(response.choices[0].message.content)
     return result.concepts
@@ -2742,7 +2742,6 @@ async def llm_rerank(query: str, documents: list[dict], llm: AsyncOpenAI, top_k:
             {"role": "system", "content": "Rate each document's relevance to the query (0.0-1.0).\nOutput one score per line."},
             {"role": "user", "content": f"Query: {query}\n\nDocuments:\n{docs_text}"}
         ],
-        temperature=0,
     )
 
     scores = parse_scores(response.choices[0].message.content, len(documents))
@@ -2805,8 +2804,7 @@ async def llm_rerank(query: str, documents: list[dict], top_k: int = 10) -> list
         messages=[
             {"role": "system", "content": "Rate each document's relevance (0.0-1.0). One score per line."},
             {"role": "user", "content": f"Query: {query}\n\nDocuments:\n{docs_text}"}
-        ],
-        temperature=0
+        ]
     )
 
     scores = parse_scores(response.choices[0].message.content, len(documents))
