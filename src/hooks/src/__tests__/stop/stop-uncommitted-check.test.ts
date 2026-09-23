@@ -252,4 +252,41 @@ describe('stop-uncommitted-check.mjs output', () => {
 
     rmSync(binDir, { recursive: true, force: true });
   });
+
+  /**
+   * F24 timeout gate: fake git sleeps past GIT_TIMEOUT_MS (5s). Hook must
+   * catch the spawn timeout and return SILENT_OK. Without timeout on the
+   * hook's execFileSync this test hangs until the outer 10s kill and fails
+   * (ablation: strip `timeout: GIT_TIMEOUT_MS` and re-run).
+   */
+  it('returns silent success when git stalls past GIT_TIMEOUT_MS (F24)', () => {
+    const binDir = mkdtempSync(join(tmpdir(), 'fake-git-timeout-'));
+    const fakeGit = join(binDir, 'git');
+    try {
+      // Hang longer than GIT_TIMEOUT_MS (5s) and longer than the outer bound
+      // below, so a missing hook timeout cannot look like a fast green.
+      writeFileSync(fakeGit, '#!/bin/sh\nexec sleep 30\n', { mode: 0o755 });
+
+      const started = Date.now();
+      const result = execFileSync('node', [SCRIPT_PATH], {
+        cwd: tmpDir,
+        encoding: 'utf-8',
+        env: {
+          ...process.env,
+          PATH: `${binDir}:${process.env.PATH ?? ''}`,
+          CLAUDE_PROJECT_DIR: tmpDir,
+        },
+        input: JSON.stringify({}),
+        timeout: 10000,
+      });
+      const elapsed = Date.now() - started;
+
+      expect(JSON.parse(result.trim())).toEqual({ continue: true, suppressOutput: true });
+      // Bound: hook timeout 5s + margin; must not reach the outer 10s kill.
+      expect(elapsed).toBeLessThan(8000);
+      expect(elapsed).toBeGreaterThanOrEqual(4000);
+    } finally {
+      rmSync(binDir, { recursive: true, force: true });
+    }
+  }, 15000);
 });
