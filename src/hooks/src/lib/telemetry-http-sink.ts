@@ -30,7 +30,7 @@
 
 import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { getHomeDir, joinPath } from './paths.js';
-import { isHttpsUrl, tokenHostMatchesUrl, warnRefusedUrlOnce } from './sink-url-policy.js';
+import { isHttpsUrl, tokenHostMatchesUrl, warnRefusedUrlOnce, hostnameOf } from './sink-url-policy.js';
 
 // ─── Configuration resolution ──────────────────────────────────────────────
 
@@ -87,6 +87,7 @@ export function resolveSinkToken(): string | null {
  * Host the bearer token was issued for (#4218).
  * Sources: CC_HOOKS_SECRET_TOKEN_HOST env, CLAUDE_PLUGIN_CONFIG field,
  * or sidecar file ~/.claude/hooks/.cc-hooks-token.host next to the token file.
+ * Returns null when none is set (caller may fall back to the sink URL host).
  */
 export function resolveSinkTokenHost(): string | null {
   if (process.env.CC_HOOKS_SECRET_TOKEN_HOST) {
@@ -108,6 +109,17 @@ export function resolveSinkTokenHost(): string | null {
     if (host) return host;
   }
   return null;
+}
+
+/**
+ * Effective issued host for bearer attach (#4218).
+ * Prefer an explicit token-host setting; when absent, bind to the host of the
+ * configured https sink URL so existing HQ setups keep working (still one host).
+ */
+export function effectiveSinkTokenHost(sinkUrl: string): string | null {
+  const explicit = resolveSinkTokenHost();
+  if (explicit) return explicit;
+  return hostnameOf(sinkUrl);
 }
 
 // ─── Filename → CCHookEvent mapping ────────────────────────────────────────
@@ -235,7 +247,7 @@ export function postAnalyticsToSink(file: string, entry: Record<string, unknown>
   const token = resolveSinkToken();
   if (!token) return;
 
-  const issuedHost = resolveSinkTokenHost();
+  const issuedHost = effectiveSinkTokenHost(url);
   if (!tokenHostMatchesUrl(issuedHost, url)) {
     // #4218: never attach a bearer token to a host other than the one it was issued for.
     return;

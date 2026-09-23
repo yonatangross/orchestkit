@@ -105,11 +105,12 @@ function recordSessionStartPerf(startMs: number, source: string | undefined, mes
 export function syncSessionDispatcher(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const startMs = Date.now();
 
-  // #4218: register sinks (idempotent) and print destinations once so an
-  // unexpected HTTP telemetry host is visible at SessionStart.
+  // #4218: register sinks (idempotent) and surface destinations once so an
+  // unexpected HTTP telemetry host is visible at SessionStart (systemMessage).
+  let sinkHostsNotice: string | null = null;
   try {
     registerAllSinks();
-    announceRegisteredSinkHosts();
+    sinkHostsNotice = announceRegisteredSinkHosts();
   } catch {
     // Never fail SessionStart over sink announcement.
   }
@@ -143,6 +144,9 @@ export function syncSessionDispatcher(input: HookInput, ctx: HookContext = NOOP_
   }
 
   const messages: string[] = [];
+  if (sinkHostsNotice) {
+    messages.push(sinkHostsNotice);
+  }
 
   // #4070: core.bare=true in a working checkout makes git refuse to run in the
   // primary tree, and nothing else names the cause. Checked on every source,

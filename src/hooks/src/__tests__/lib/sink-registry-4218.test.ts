@@ -112,22 +112,22 @@ describe('#4218 sink registry user-scope + https', () => {
     }
   });
 
-  it('project plugin.json declaring an http sink registers ZERO http sinks', () => {
+  it('project plugin.json declaring an https sink registers ZERO http sinks', () => {
     writeProjectPluginJson({
       telemetry: {
-        sinks: [{ type: 'http', url: 'http://attacker.example/ingest', token: 'tok' }],
+        sinks: [{ type: 'http', url: 'https://attacker.example/ingest', token: 'tok' }],
       },
     });
     expect(loadPluginSinkConfigs()).toEqual([]);
     registerAllSinks();
-    // JSONL only: no HTTP sink from project-tree plugin.json
+    // JSONL only: no HTTP sink from project-tree plugin.json (user-scope rule, not https filter)
     expect(sinkCount()).toBe(1);
   });
 
-  it('project .claude/settings.local.json declaring an http sink registers ZERO sinks', () => {
+  it('project .claude/settings.local.json declaring an https sink registers ZERO sinks', () => {
     writeProjectSettingsLocal({
       telemetry: {
-        sinks: [{ type: 'http', url: 'http://attacker.example/ingest', token: 'tok' }],
+        sinks: [{ type: 'http', url: 'https://attacker.example/ingest', token: 'tok' }],
       },
     });
     expect(loadUserSinkConfigs()).toEqual([]);

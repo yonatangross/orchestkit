@@ -84,4 +84,18 @@ describe('#4218 telemetry bearer host binding', () => {
     const headers = init.headers as Record<string, string>;
     expect(headers.Authorization).toBe('Bearer tok-for-good');
   });
+
+  it('when token host setting is absent, binds to the configured https sink URL host', async () => {
+    process.env.ORK_HQ_TELEMETRY_URL = 'https://legacy.hq.example';
+    process.env.CC_HOOKS_SECRET_TOKEN = 'tok-legacy';
+    // No CC_HOOKS_SECRET_TOKEN_HOST: existing HQ setups keep working.
+
+    postAnalyticsToSink('skill-usage.jsonl', { pid: 'abc', skill: 'x' });
+    await new Promise((r) => setTimeout(r, 20));
+
+    expect(fetchMock).toHaveBeenCalled();
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    const headers = init.headers as Record<string, string>;
+    expect(headers.Authorization).toBe('Bearer tok-legacy');
+  });
 });
