@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Docs gen: skip __pycache__ and .pyc</title>
+<style>
+  :root { color-scheme: dark; --bg:#12141a; --ink:#e8e6e3; --muted:#9a968f; --line:#2c313c; --ok:#3ddc97; --bad:#ff6b6b; }
+  * { box-sizing: border-box; }
+  body { margin:0; font:16px/1.5 ui-sans-serif, system-ui, sans-serif; background:var(--bg); color:var(--ink); }
+  main { max-width:880px; margin:0 auto; padding:32px 20px 80px; }
+  h1 { font-size:28px; margin:0 0 8px; }
+  h2 { font-size:18px; margin:28px 0 8px; }
+  p { color:var(--muted); }
+  .row { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0; }
+  button { background:#1c2030; color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:8px 12px; cursor:pointer; }
+  button[aria-pressed="true"] { border-color:var(--ok); color:var(--ok); }
+  pre { background:#0c0e14; border:1px solid var(--line); border-radius:10px; padding:14px; overflow:auto; font:13px/1.45 ui-monospace, monospace; white-space:pre; }
+  table { width:100%; border-collapse:collapse; margin-top:12px; font:14px/1.4 ui-monospace, monospace; }
+  td, th { border:1px solid var(--line); padding:8px 10px; text-align:left; }
+  th { color:var(--muted); font-weight:normal; }
+  .ok { color:var(--ok); }
+  .bad { color:var(--bad); }
+  .note { font-size:14px; }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Docs gen: skip __pycache__ and .pyc"><meta property="og:description" content="scanFolderStructure leaked local __pycache__ and .pyc/.pyo into skills-data.ts. Filter them so generated docs stay a pure function of tracked inputs."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/docs-gen-skip-pycache.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Docs gen: skip __pycache__ and .pyc"><meta name="twitter:description" content="scanFolderStructure leaked local __pycache__ and .pyc/.pyo into skills-data.ts. Filter them so generated docs stay a pure function of tracked inputs."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <h1>Generated skill folder lists must ignore bytecode</h1>
+  <p>
+    <code>scanFolderStructure()</code> in <code>scripts/generate-docs-data.js</code>
+    listed every non-dot entry under a skill's <code>scripts/</code> folder.
+    A local untracked <code>__pycache__/</code> (from running a skill Python
+    script) was written into <code>docs/site/lib/generated/skills-data.ts</code>.
+    Three lanes committed that line this week (#4367, #4373, #4358).
+  </p>
+
+  <h2>Toggle the filter</h2>
+  <div class="row" role="group" aria-label="Filter mode">
+    <button type="button" id="buggy" aria-pressed="true">Before (dotfiles only)</button>
+    <button type="button" id="fixed" aria-pressed="false">After (skip bytecode)</button>
+  </div>
+  <pre id="code"></pre>
+  <table>
+    <tr><th>input on disk</th><th id="outH">structure.scripts</th></tr>
+    <tr><td>validate-conventional.sh</td><td id="r1"></td></tr>
+    <tr><td>__pycache__/</td><td id="r2"></td></tr>
+    <tr><td>foo.pyc</td><td id="r3"></td></tr>
+    <tr><td>bar.pyo</td><td id="r4"></td></tr>
+  </table>
+  <p class="note" id="verdict"></p>
+</main>
+<script>
+const BEFORE = [
+  '.filter(f => !f.startsWith("."))',
+  '.sort();',
+].join('\n');
+const AFTER = [
+  '.filter(f => !f.startsWith("."))',
+  '.filter(f => f !== "__pycache__"',
+  '  && !f.endsWith(".pyc")',
+  '  && !f.endsWith(".pyo"))',
+  '.sort();',
+].join('\n');
+const code = document.getElementById('code');
+const cells = [
+  document.getElementById('r1'),
+  document.getElementById('r2'),
+  document.getElementById('r3'),
+  document.getElementById('r4'),
+];
+const verdict = document.getElementById('verdict');
+function pick(buggy) {
+  document.getElementById('buggy').setAttribute('aria-pressed', String(buggy));
+  document.getElementById('fixed').setAttribute('aria-pressed', String(!buggy));
+  code.textContent = buggy ? BEFORE : AFTER;
+  code.style.borderColor = buggy ? 'var(--bad)' : 'var(--ok)';
+  const listed = buggy
+    ? ['listed', 'listed (LEAK)', 'listed (LEAK)', 'listed (LEAK)']
+    : ['listed', 'skipped', 'skipped', 'skipped'];
+  const classes = buggy
+    ? ['ok', 'bad', 'bad', 'bad']
+    : ['ok', 'ok', 'ok', 'ok'];
+  cells.forEach((el, i) => { el.textContent = listed[i]; el.className = classes[i]; });
+  verdict.textContent = buggy
+    ? 'Fail-first: baseline=["validate-conventional.sh"] after=["__pycache__","bar.pyo","foo.pyc","validate-conventional.sh"]'
+    : 'Fixed: structure.scripts stays identical to the clean baseline; generated output is a pure function of tracked inputs.';
+  verdict.className = 'note ' + (buggy ? 'bad' : 'ok');
+}
+document.getElementById('buggy').onclick = () => pick(true);
+document.getElementById('fixed').onclick = () => pick(false);
+pick(true);
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

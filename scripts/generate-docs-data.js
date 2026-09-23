@@ -58,6 +58,10 @@ function scanFolderStructure(skillPath) {
     if (fs.existsSync(folderPath) && fs.statSync(folderPath).isDirectory()) {
       const files = fs.readdirSync(folderPath)
         .filter(f => !f.startsWith('.'))
+        // Generated docs must be a pure function of tracked inputs. Local
+        // Python runs leave __pycache__/ and *.pyc/*.pyo under scripts/; those
+        // are gitignored and must not land in skills-data.ts (#4367/#4373/#4358).
+        .filter(f => f !== '__pycache__' && !f.endsWith('.pyc') && !f.endsWith('.pyo'))
         .sort();
       structure[folder] = files;
     }
