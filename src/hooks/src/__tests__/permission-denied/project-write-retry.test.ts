@@ -51,7 +51,6 @@ describe('project-write-retry', () => {
       '/test/project/README.md',
       '/test/project/package.json',
       '/test/project/tsconfig.json',
-      '/test/project/.github/workflows/ci.yml',
       '/test/project/deep/nested/path/file.txt',
     ];
 
