@@ -169,8 +169,31 @@ const VALUE_OPTS: Record<InterpreterFamily, ReadonlySet<string>> = {
   node: new Set(['-r', '--require', '--import']),
   ruby: new Set(['-r', '-I']),
   perl: new Set(['-M', '-I']),
-  php: new Set(),
+  // php -f takes a file path and is intentionally NOT listed: the next token
+  // is a real script path (ALLOW). -n is boolean. -c here is php.ini, not code.
+  php: new Set(['-d', '-c', '-z']),
 };
+
+/**
+ * Exact value-opt (`-M foo`) or glued form (`-Mstrict`, `-I/lib`, `--require=fs`).
+ * Returns `exact` (skip next non-flag token), `glued` (value already in token),
+ * or null.
+ */
+function valueOptKind(
+  a: string,
+  valueOpts: ReadonlySet<string>,
+): 'exact' | 'glued' | null {
+  if (valueOpts.has(a)) return 'exact';
+  for (const opt of valueOpts) {
+    if (!a.startsWith(opt) || a.length <= opt.length) continue;
+    if (opt.startsWith('--')) {
+      if (a.startsWith(`${opt}=`)) return 'glued';
+      continue;
+    }
+    return 'glued';
+  }
+  return null;
+}
 
 function interpreterFamily(name: string): InterpreterFamily | null {
   const base = name.replace(/^.*\//, '').toLowerCase();
@@ -250,11 +273,13 @@ function interpreterArgsAreStdinProgram(
     // Lone `-` or /dev/stdin means the program is stdin, with or without
     // trailing args (`python3 - arg1` still runs the piped body).
     if (a === '-' || a === '/dev/stdin') return true;
-    if (valueOpts.has(a)) {
+    const vKind = valueOptKind(a, valueOpts);
+    if (vKind === 'exact') {
       // Consume the option value when present and not itself a flag.
       if (i + 1 < args.length && !args[i + 1]!.startsWith('-')) i++;
       continue;
     }
+    if (vKind === 'glued') continue;
     if (a.startsWith('-')) continue; // boolean / other option flags
     return false; // script path
   }
