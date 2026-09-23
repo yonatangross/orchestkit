@@ -5,6 +5,16 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.81](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.80...v10.0.0-beta.81) (2026-09-23)
+
+
+### Bug Fixes
+
+* **docs:** skip __pycache__ and .pyc in generated skill folder lists ([#4378](https://github.com/yonatangross/orchestkit/issues/4378)) ([15853a8](https://github.com/yonatangross/orchestkit/commit/15853a8df104aadefb73c004f641951005a3394c))
+* **hooks:** age-cap session events and bound Stop git status ([#4367](https://github.com/yonatangross/orchestkit/issues/4367)) ([a1ed4e0](https://github.com/yonatangross/orchestkit/commit/a1ed4e03bb94db61dd185408da642711192d8a2f))
+* **skills:** correct provider API parameters in skill examples ([#4381](https://github.com/yonatangross/orchestkit/issues/4381)) ([922e2bc](https://github.com/yonatangross/orchestkit/commit/922e2bc2cc429b163539e0289aa61c0bdc4c45b6))
+* **skills:** drop dead agent: bindings under context inherit (F26) ([#4358](https://github.com/yonatangross/orchestkit/issues/4358)) ([de2b771](https://github.com/yonatangross/orchestkit/commit/de2b771cc4c4589bace2de44e882de0daf54dc2e))
+
 ## [10.0.0-beta.80](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.79...v10.0.0-beta.80) (2026-09-23)
 
 
