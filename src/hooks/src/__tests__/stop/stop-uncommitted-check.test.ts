@@ -128,12 +128,35 @@ describe('stop-uncommitted-check.mjs output', () => {
     expect(output.systemMessage).toContain('do not act on these');
   });
 
-  it('includes ork@ version prefix in systemMessage', () => {
+  it('includes ork@ version from CLAUDE_PLUGIN_ROOT plugin.json', () => {
     writeFileSync(join(tmpDir, 'file.txt'), 'content');
-
-    const output = runHook(tmpDir);
-    // Version is resolved at runtime from plugin.json (fallback: unknown)
-    expect(output.systemMessage).toMatch(/\[ork@/);
+    const pluginRoot = mkdtempSync(join(tmpdir(), 'ork-plugin-root-'));
+    try {
+      writeFileSync(
+        join(pluginRoot, 'plugin.json'),
+        JSON.stringify({ name: 'ork', version: '9.9.9-fixture' })
+      );
+      const result = execFileSync('node', [SCRIPT_PATH], {
+        cwd: tmpDir,
+        encoding: 'utf-8',
+        env: {
+          ...process.env,
+          CLAUDE_PROJECT_DIR: tmpDir,
+          CLAUDE_PLUGIN_ROOT: pluginRoot,
+        },
+        input: JSON.stringify({}),
+        timeout: 5000,
+      });
+      const output = JSON.parse(result.trim()) as {
+        continue: boolean;
+        systemMessage?: string;
+      };
+      // Exact fixture version: must fail if resolvePluginVersion is reverted
+      // to a constant, placeholder, or hard coded unknown.
+      expect(output.systemMessage).toContain('[ork@9.9.9-fixture]');
+    } finally {
+      rmSync(pluginRoot, { recursive: true, force: true });
+    }
   });
 
   it('keeps plugins copy byte-identical to src (no version stamp)', () => {

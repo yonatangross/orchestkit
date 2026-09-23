@@ -148,8 +148,17 @@ function sweepStaleSessionDirs(projectDir: string, sessionId: string | undefined
     let entries: Dirent[];
     try {
       entries = readdirSync(root, { withFileTypes: true });
-    } catch {
-      continue; // root absent on this machine
+    } catch (err: unknown) {
+      // Silent only when the root was never created. Other errors leave stale
+      // dirs in place, so surface them via the hook logger.
+      const code =
+        err && typeof err === 'object' && 'code' in err
+          ? String((err as { code: unknown }).code)
+          : undefined;
+      if (code === 'ENOENT') continue;
+      const detail = err instanceof Error ? err.message : String(err);
+      ctx.log('session-cleanup', `Cannot read session root ${root}: ${detail}`);
+      continue;
     }
 
     for (const entry of entries) {

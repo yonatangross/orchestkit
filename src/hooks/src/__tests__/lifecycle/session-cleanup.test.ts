@@ -4,12 +4,13 @@
  */
 
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
-import { existsSync, readFileSync, writeFileSync, mkdirSync, mkdtempSync, rmSync, readdirSync, utimesSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, mkdirSync, mkdtempSync, rmSync, readdirSync, utimesSync, chmodSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import type { HookInput } from '../../types.js';
 import { sessionCleanup } from '../../lifecycle/session-cleanup.js';
 import { getMetricsFile } from '../../lib/paths.js';
+import { NOOP_CTX } from '../../lib/context.js';
 
 // =============================================================================
 // Test Setup
@@ -669,6 +670,26 @@ describe('session-cleanup', () => {
       sessionCleanup(createHookInput());
 
       expect(existsSync(invalid)).toBe(true);
+    });
+
+    test('logs when sessions root readdir fails with EACCES (still continues)', () => {
+      const sessionsRoot = join(TEST_PROJECT_DIR, '.claude', 'memory', 'sessions');
+      mkdirSync(sessionsRoot, { recursive: true });
+      chmodSync(sessionsRoot, 0o000);
+      const logs: string[] = [];
+      try {
+        sessionCleanup(createHookInput(), {
+          ...NOOP_CTX,
+          log: (hookName, message) => {
+            logs.push(`${hookName}|${message}`);
+          },
+        });
+      } finally {
+        chmodSync(sessionsRoot, 0o755);
+      }
+      expect(logs.some((line) =>
+        line.includes('Cannot read session root') && line.includes(sessionsRoot)
+      )).toBe(true);
     });
   });
 });
