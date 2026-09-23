@@ -71,6 +71,17 @@ test.describe('Landing hero', () => {
     });
     expect(h1Lines).toBe(3);
 
+    // Art must sit beside the headline, not centred on the full copy column
+    // (host picker). Top of art above bottom of h1 at 1440x900.
+    const anchor = await page.evaluate(() => {
+      const art = document.querySelector('.home-hero-art')?.getBoundingClientRect();
+      const h1 = document.querySelector('#hero-heading')?.getBoundingClientRect();
+      if (!art || !h1) return null;
+      return { artTop: art.top, h1Bottom: h1.bottom };
+    });
+    expect(anchor).not.toBeNull();
+    expect(anchor!.artTop).toBeLessThan(anchor!.h1Bottom);
+
     await page.setViewportSize({ width: 390, height: 844 });
     const mobile = await art.evaluate((el) => {
       const cs = getComputedStyle(el);

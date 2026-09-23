@@ -23,7 +23,7 @@
   /* Fluid typography — clamp(min, vw + rem, max)
      rem component respects user font-size preferences (accessibility)
      vw component drives smooth viewport scaling */
-  --text-fluid-h1: clamp(2.5rem, 4vw + 1.5rem, 4.25rem); /* hero A mockup cap (was 6rem) */
+  --text-fluid-h1: clamp(2.5rem, 4vw + 1.5rem, 6rem);   /* yonyon-scale display */
   --text-fluid-h2: clamp(1.25rem, 1.5vw + 0.75rem, 2.25rem);
 
   /* Light mode palette — warm-undertone neutrals (hue 85, chroma <= 0.012
@@ -213,22 +213,30 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
   gap: 24px;
-  align-items: center;
+  align-items: start;
   min-height: min(72vh, 720px);
+}
+
+/* Hero-only display cap (mockup A). Keep global --text-fluid-h1 at 6rem
+   for factory-ride and other surfaces. */
+.home-hero {
+  --text-fluid-h1: clamp(2.5rem, 4vw + 1.5rem, 4.25rem);
 }
 
 /* Desktop art box follows source 1280x723. Do not stretch top/bottom to the
    full copy column (picker/search/proof): that made object-fit:cover crop the
-   conductor to one arm at ~2x zoom (reviewer-estate-3 HOLD on #4345). */
+   conductor to one arm at about 2x zoom (reviewer-estate-3 HOLD on #4345).
+   Top-align with the headline column so art sits beside the copy-top, not
+   centered beside the host picker. */
 .home-hero-art {
   position: absolute;
-  top: 50%;
+  top: 0;
   right: 0;
   bottom: auto;
   width: 55%;
   height: auto;
   aspect-ratio: 1280 / 723;
-  transform: translateY(-50%);
+  transform: none;
   z-index: 1;
   pointer-events: none;
   -webkit-mask-image: linear-gradient(
