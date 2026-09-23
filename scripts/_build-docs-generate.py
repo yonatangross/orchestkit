@@ -1473,6 +1473,8 @@ CATEGORY_RULES = {
             "verification",
             "golden-dataset",
             "llm-testing",
+            "debugging",
+            "troubleshooting",
         },
         "agents": {
             "test-generator",

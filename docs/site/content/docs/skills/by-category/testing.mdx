@@ -5,18 +5,20 @@ description: "Unit, integration, E2E, performance, and LLM testing patterns."
 
 # Testing Skills
 
-**21 skills** for unit, integration, e2e, performance, and llm testing patterns.
+**23 skills** for unit, integration, e2e, performance, and llm testing patterns.
 
 | Skill | Type | Complexity | Description |
 |-------|------|------------|-------------|
 | [Assess](/docs/reference/skills/assess) | Command | high | Assesses and rates quality 0-10 across multiple dimensions (correctness, maintainability, security, performance, test... |
 | [Bare Eval](/docs/reference/skills/bare-eval) | Reference | medium | Run isolated eval and grading calls using CC 2.1.81 --bare mode. Constructs claude -p --bare invocations for skill ev... |
+| [Ci Debug](/docs/reference/skills/ci-debug) | Command | medium | Diagnose a failing CI run against an 11-pattern playbook. Classifies the failure, cites the relevant memory entry, pr... |
 | [Code Review Playbook](/docs/reference/skills/code-review-playbook) | Reference | low | Structured review processes, conventional comments, language-specific checklists, and feedback templates. Use when re... |
 | [Cover](/docs/reference/skills/cover) | Command | high | Generate tests that do not exist yet. Analyzes coverage gaps, then writes and runs new test files across three tiers ... |
 | [Create Pr](/docs/reference/skills/create-pr) | Command | medium | Creates GitHub pull requests with pre-flight validation, conventional title formatting, and structured summary genera... |
 | [Emulate Seed](/docs/reference/skills/emulate-seed) | Reference | medium | Generate emulate seed configs for stateful API emulation. Wraps Vercel's emulate tool for GitHub, Vercel, Google OAut... |
 | [Errors](/docs/reference/skills/errors) | Reference | low | Error pattern analysis and troubleshooting for Claude Code sessions. Categorizes errors (network, auth, model, tool, ... |
 | [Expect](/docs/reference/skills/expect) | Command | high | Diff-aware AI browser testing, reads the git diff, maps changes to affected pages via the route map, generates a targ... |
+| [Fix Issue](/docs/reference/skills/fix-issue) | Command | medium | Fixes GitHub issues using parallel analysis agents for root cause investigation, code exploration, and regression det... |
 | [Golden Dataset](/docs/reference/skills/golden-dataset) | Reference | medium | Golden dataset lifecycle patterns for curation, versioning, quality validation, and CI integration. Use when building... |
 | [Paired Probe](/docs/reference/skills/paired-probe) | Reference | low | Refuse a verdict a probe did not earn. Runs a check where the fault IS present and where it is NOT, and blocks the an... |
 | [Quality Gates](/docs/reference/skills/quality-gates) | Reference | max | Use when assessing task complexity, before starting complex tasks, when stuck after multiple attempts, or reviewing c... |

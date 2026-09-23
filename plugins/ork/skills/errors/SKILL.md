@@ -6,7 +6,7 @@ description: "Error pattern analysis and troubleshooting for Claude Code session
 context: inherit
 version: 1.0.0
 author: OrchestKit
-tags: [errors, debugging, troubleshooting, patterns, testing]
+tags: [errors, debugging, troubleshooting, patterns]
 user-invocable: false
 allowed-tools: [Read, Bash, Grep]
 complexity: low

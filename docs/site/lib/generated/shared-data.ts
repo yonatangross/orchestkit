@@ -449,9 +449,9 @@ export const SKILLS_SUMMARY = {
       "code-review-playbook",
       "cover",
       "emulate-seed",
-      "errors",
       "expect",
-      "golden-dataset"
+      "golden-dataset",
+      "llm-integration"
     ],
     "security": [
       "audit-full",

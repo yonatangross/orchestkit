@@ -439,7 +439,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "label": "Errors",
     "type": "reference",
     "complexity": "low",
-    "category": "testing",
+    "category": "other",
     "hasDeps": false,
     "depCount": 0,
     "usedByCount": 0
