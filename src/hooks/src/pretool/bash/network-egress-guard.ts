@@ -394,6 +394,74 @@ function pipeToInterpreterStdinProgram(denyScan: string, quoteIntact: string): b
 }
 
 /**
+ * Collapse horizontal whitespace and line continuations, but keep real newlines
+ * as command separators so `curl U | python3\necho done` still ends the RHS.
+ */
+function collapseHorizontalWhitespace(cmd: string): string {
+  return cmd
+    .replace(/\\\r?\n/g, '')
+    .replace(/[^\S\n]+/g, ' ')
+    .replace(/ *\n */g, '\n')
+    .trim();
+}
+
+/**
+ * Bodies of quotes governed by eval / sh -c / python -c / etc. Each is its own
+ * command for the fetcher|interpreter scan (nested recursively).
+ */
+function extractExecutedQuoteBodies(raw: string): string[] {
+  const bodies: string[] = [];
+  let seg = '';
+  for (let i = 0; i < raw.length; i++) {
+    const ch = raw[i]!;
+    if (ch === '"' || ch === "'") {
+      const q = ch;
+      let j = i + 1;
+      let content = '';
+      while (j < raw.length && raw[j] !== q) {
+        if (q === '"' && raw[j] === '\\' && j + 1 < raw.length) {
+          // Keep escapes in the body so nested quoteIntact can tokenize them.
+          content += raw[j]!;
+          content += raw[j + 1]!;
+          j += 2;
+          continue;
+        }
+        content += raw[j]!;
+        j++;
+      }
+      if (execGovernsQuote(seg)) bodies.push(content);
+      seg = '';
+      i = j;
+      continue;
+    }
+    if (ch === ';' || ch === '\n' || ch === '&' || ch === '|' || ch === '(') {
+      seg = '';
+      continue;
+    }
+    seg += ch;
+  }
+  return bodies;
+}
+
+const MAX_EXEC_QUOTE_DEPTH = 8;
+
+/**
+ * Top-level + nested scan: run the pipe check on this command, then on every
+ * executed-quote body as its own command (with its own denyScan / quoteIntact).
+ */
+function scanFetcherInterpreterPipes(rawCmd: string, depth = 0): boolean {
+  if (depth > MAX_EXEC_QUOTE_DEPTH) return false;
+  const blanked = blankQuotedHeredocBodies(rawCmd);
+  const denyScan = normalizeSingle(egressDenyScanView(blanked));
+  const quoteIntact = collapseHorizontalWhitespace(blanked);
+  if (pipeToInterpreterStdinProgram(denyScan, quoteIntact)) return true;
+  for (const body of extractExecutedQuoteBodies(blanked)) {
+    if (scanFetcherInterpreterPipes(body, depth + 1)) return true;
+  }
+  return false;
+}
+
+/**
  * Strip one layer of matching surrounding quotes from a token. Used after
  * tokenize so `"python3"` / `"-"` classify like their unquoted forms.
  */
@@ -521,15 +589,6 @@ export function networkEgressGuard(input: HookInput, ctx: HookContext = NOOP_CTX
   // (#3098). UNQUOTED heredocs are shell-expanded, so they are left untouched.
   const heredocBlanked = blankQuotedHeredocBodies(raw);
   const denyScan = normalizeSingle(egressDenyScanView(heredocBlanked));
-  // Interpreter argv tokenizer needs real backslashes (`\"` inside double quotes).
-  // Do not use normalizeSingle / normalizeSingleKeepQuotes here: both run
-  // stripBackslashEscapes and would turn `\"` into a bare `"`, splitting the
-  // quoted value and inventing a fake `-c`. Only collapse continuations/newlines.
-  const quoteIntact = heredocBlanked
-    .replace(/\\\r?\n/g, '')
-    .replace(/\n/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
 
   // --- DENY tier ---
   for (const { re, label } of DENY_REGEX) {
@@ -546,7 +605,7 @@ export function networkEgressGuard(input: HookInput, ctx: HookContext = NOOP_CTX
     }
   }
 
-  if (pipeToInterpreterStdinProgram(denyScan, quoteIntact)) {
+  if (scanFetcherInterpreterPipes(raw)) {
     const label = 'curl|interpreter: pipes fetched content to an interpreter';
     ctx.log(HOOK_NAME, `BLOCKED: ${label}`);
     ctx.logPermission('deny', label, input);
