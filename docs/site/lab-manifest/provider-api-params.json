@@ -1,0 +1,8 @@
+{
+  "slug": "provider-api-params",
+  "source": "docs/fix--provider-api-params/provider-api-fixes.html",
+  "title": "Provider API parameter fixes",
+  "description": "Claude, Gemini and OpenAI API examples in the skills checked against current provider docs: what was wrong, what changed, and what was left open on purpose.",
+  "tags": ["models", "providers", "audit"],
+  "date": "2026-09-23"
+}

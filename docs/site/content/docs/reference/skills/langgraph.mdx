@@ -1158,16 +1158,17 @@ from langgraph_sdk import get_client
 
 client = get_client(url="http://localhost:2024")
 
-# Create assistants with different configs from the same graph
+# Create assistants with different configs from the same graph.
+# Vary them through the prompt: claude-sonnet-5 returns 400 on a non-default temperature.
 creative = await client.assistants.create(
     graph_id="my_agent",
-    config={"configurable": {"temperature": 0.9, "model": "claude-sonnet-5"}},
+    config={"configurable": {"system_prompt": "Write vividly and explore unusual angles.", "model": "claude-sonnet-5"}},
     name="creative-writer",
 )
 
 precise = await client.assistants.create(
     graph_id="my_agent",
-    config={"configurable": {"temperature": 0.1, "model": "claude-sonnet-5"}},
+    config={"configurable": {"system_prompt": "Be precise; state only what the data supports.", "model": "claude-sonnet-5"}},
     name="precise-analyst",
 )
 ```

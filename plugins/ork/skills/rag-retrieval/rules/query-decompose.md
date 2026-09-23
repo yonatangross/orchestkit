@@ -27,7 +27,6 @@ async def decompose_query(query: str, llm: AsyncOpenAI) -> list[str]:
             {"role": "user", "content": query}
         ],
         response_format={"type": "json_object"},
-        temperature=0,
     )
     result = ConceptExtraction.model_validate_json(response.choices[0].message.content)
     return result.concepts

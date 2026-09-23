@@ -26,12 +26,13 @@ def text_to_speech(text: str, voice: str = "Kore") -> bytes:
     """Gemini 2.5 Flash TTS with voice selection.
 
     Available voices: Puck, Charon, Kore, Fenrir, Aoede (30 total)
+    Returns raw PCM audio (24 kHz, mono, 16-bit); wrap it in a WAV header to play it.
     """
     response = client.models.generate_content(
-        model="gemini-2.5-flash-tts",
+        model="gemini-2.5-flash-preview-tts",
         contents=text,
         config=types.GenerateContentConfig(
-            response_mime_type="audio/mp3",
+            response_modalities=["AUDIO"],
             speech_config=types.SpeechConfig(
                 voice_config=types.VoiceConfig(
                     prebuilt_voice_config=types.PrebuiltVoiceConfig(
@@ -41,7 +42,7 @@ def text_to_speech(text: str, voice: str = "Kore") -> bytes:
             ),
         ),
     )
-    return response.audio
+    return response.candidates[0].content.parts[0].inline_data.data
 ```
 
 **Expressive voice with auditory cues (Grok Voice Agent):**
@@ -57,11 +58,11 @@ await ws.send(json.dumps({
 
 **Gemini Live — real-time TTS with emotional awareness:**
 ```python
-config = live.LiveConnectConfig(
+config = types.LiveConnectConfig(
     response_modalities=["AUDIO"],
-    speech_config=live.SpeechConfig(
-        voice_config=live.VoiceConfig(
-            prebuilt_voice_config=live.PrebuiltVoiceConfig(
+    speech_config=types.SpeechConfig(
+        voice_config=types.VoiceConfig(
+            prebuilt_voice_config=types.PrebuiltVoiceConfig(
                 voice_name="Puck"  # 30 HD voices in 24 languages
             )
         )
