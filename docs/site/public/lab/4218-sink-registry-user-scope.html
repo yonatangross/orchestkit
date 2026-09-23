@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>#4218 sink registry: user scope + https only</title>
+<meta name="description" content="Audit HR-2: project-tree plugin.json and settings.local.json must not register HTTP telemetry sinks. https only. Token host binding. SessionStart host print.">
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c2129; --line:#30363d;
+    --ink:#e6edf3; --dim:#8b949e; --mute:#6e7681;
+    --ok:#3fb950; --bad:#f85149; --warn:#d29922; --acc:#58a6ff;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;}
+  .wrap{max-width:920px;margin:0 auto;padding:32px 20px 72px}
+  header{border-bottom:1px solid var(--line);padding-bottom:20px;margin-bottom:24px}
+  h1{margin:0 0 8px;font-size:24px;letter-spacing:-.02em}
+  h2{font-size:16px;margin:28px 0 10px}
+  p{margin:0 0 10px}
+  .lede{color:var(--dim);max-width:72ch}
+  code{font-family:var(--mono);font-size:.9em}
+  .tag{display:inline-block;font-family:var(--mono);font-size:11px;padding:2px 8px;
+    border:1px solid var(--line);border-radius:999px;color:var(--dim);margin:0 6px 6px 0}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:720px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
+  .card.bad{border-color:rgba(248,81,73,.45)}
+  .card.ok{border-color:rgba(63,185,80,.45)}
+  .card h3{margin:0 0 8px;font-size:14px}
+  pre{margin:0;font-family:var(--mono);font-size:12px;line-height:1.5;white-space:pre-wrap;
+    color:var(--dim);background:var(--panel2);border-radius:8px;padding:12px}
+  .sim{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;margin:14px 0}
+  .row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+  button{cursor:pointer;background:var(--panel2);color:var(--ink);border:1px solid var(--line);
+    border-radius:8px;padding:8px 12px;font:inherit}
+  button[aria-pressed="true"]{border-color:var(--acc);background:#12253f}
+  .out{font-family:var(--mono);font-size:13px;padding:12px;border-radius:8px;background:var(--panel2);
+    border:1px solid var(--line);min-height:4em}
+  .ok{color:var(--ok)}.bad{color:var(--bad)}.warn{color:var(--warn)}
+  footer{margin-top:40px;border-top:1px solid var(--line);padding-top:14px;font-size:13px;color:var(--mute)}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="#4218 sink registry: user scope + https only"><meta property="og:description" content="Audit HR-2: never load HTTP telemetry sinks or orchestration webhooks from the project tree; require https; bind bearer tokens to the issued host; print sink hosts at SessionStart."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/4218-sink-registry-user-scope.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="#4218 sink registry: user scope + https only"><meta name="twitter:description" content="Audit HR-2: never load HTTP telemetry sinks or orchestration webhooks from the project tree; require https; bind bearer tokens to the issued host; print sink hosts at SessionStart."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<div class="wrap">
+<header>
+  <h1>HTTP sinks no longer load from the project tree</h1>
+  <p class="lede">
+    Issue <code>#4218</code> (audit HR-2). A committed
+    <code>plugin.json</code> or <code>.claude/settings.local.json</code>
+    used to register an HTTP telemetry sink with no https check.
+    Fix: user scope only, https only, token host binding, SessionStart host print.
+  </p>
+  <p>
+    <span class="tag">#4218</span><span class="tag">security</span>
+    <span class="tag">sink-registry</span><span class="tag">HR-2</span>
+  </p>
+</header>
+
+<h2>Before vs after</h2>
+<div class="grid">
+  <div class="card bad">
+    <h3>Before (main)</h3>
+    <pre>loadPluginSinkConfigs()
+  → join(getProjectDir(), 'plugin.json')
+
+loadUserSinkConfigs()
+  → project/.claude/settings.local.json
+
+getWebhookUrl()
+  → project/.claude/orchestration/config.json
+
+Any scheme accepted. Bearer sent to any host.</pre>
+  </div>
+  <div class="card ok">
+    <h3>After (#4218)</h3>
+    <pre>loadPluginSinkConfigs() → []
+
+loadUserSinkConfigs()
+  → ~/.claude/settings.local.json
+  → CLAUDE_PLUGIN_DATA/settings.local.json
+
+getWebhookUrl() → env/userConfig only
+
+https: required. Token host must match.</pre>
+  </div>
+</div>
+
+<h2>Simulate a config load</h2>
+<div class="sim">
+  <div class="row" role="group" aria-label="Config source">
+    <button type="button" id="btn-project" aria-pressed="true">Project plugin.json (http)</button>
+    <button type="button" id="btn-user-http" aria-pressed="false">User scope http</button>
+    <button type="button" id="btn-user-https" aria-pressed="false">User scope https</button>
+    <button type="button" id="btn-token" aria-pressed="false">Token host mismatch</button>
+  </div>
+  <div id="out" class="out" aria-live="polite">Pick a scenario.</div>
+</div>
+
+<footer>
+  <!-- dash-ok: playground path slug uses required pr-- gate naming -->
+  Repo path under docs/ for this PR playground (see lab-manifest source). Lab slug: <code>4218-sink-registry-user-scope</code>.
+</footer>
+</div>
+<script>
+(function () {
+  var out = document.getElementById('out');
+  var buttons = {
+    'btn-project': {
+      label: 'Project plugin.json with http attacker URL',
+      html: '<span class="ok">Registered sinks: 0 (JSONL only)</span><br>' +
+        'Project-tree plugin.json is never read for sinks.'
+    },
+    'btn-user-http': {
+      label: 'User settings.local.json with http localhost',
+      html: '<span class="warn">Refused (https required, including no http localhost)</span><br>' +
+        '<span class="ok">Registered sinks: 0</span>'
+    },
+    'btn-user-https': {
+      label: 'User scope https metrics.example.com',
+      html: '<span class="ok">Registered: http-metrics.example.com</span><br>' +
+        'SessionStart stderr: Registered HTTP telemetry sink hosts: metrics.example.com'
+    },
+    'btn-token': {
+      label: 'Telemetry URL host evil, token host good.example.com',
+      html: '<span class="ok">No Authorization header attached</span><br>' +
+        'Bearer is bound to the issued host; mismatch skips the POST.'
+    }
+  };
+
+  function select(id) {
+    Object.keys(buttons).forEach(function (key) {
+      var el = document.getElementById(key);
+      el.setAttribute('aria-pressed', key === id ? 'true' : 'false');
+    });
+    var s = buttons[id];
+    out.innerHTML = '<strong>' + s.label + '</strong><br>' + s.html;
+  }
+
+  Object.keys(buttons).forEach(function (id) {
+    document.getElementById(id).addEventListener('click', function () { select(id); });
+  });
+  select('btn-project');
+})();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

@@ -30,6 +30,7 @@
 
 import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { getHomeDir, joinPath } from './paths.js';
+import { isHttpsUrl, tokenHostMatchesUrl, warnRefusedUrlOnce } from './sink-url-policy.js';
 
 // ─── Configuration resolution ──────────────────────────────────────────────
 
@@ -39,14 +40,22 @@ import { getHomeDir, joinPath } from './paths.js';
  * Order: `ORK_HQ_TELEMETRY_URL` (explicit opt-in) → `HQ_API_URL` (only when
  * `ORK_HQ_TELEMETRY_USE_HQ_API=1` so co-deployed hq-ext sessions can share a
  * single base URL) → null (disabled).
+ *
+ * #4218: https: required. http:// (including localhost) is refused.
  */
 export function resolveSinkUrl(): string | null {
+  let raw: string | null = null;
   const explicit = process.env.ORK_HQ_TELEMETRY_URL;
-  if (explicit) return explicit.replace(/\/$/, '');
-  if (process.env.ORK_HQ_TELEMETRY_USE_HQ_API === '1' && process.env.HQ_API_URL) {
-    return process.env.HQ_API_URL.replace(/\/$/, '');
+  if (explicit) raw = explicit.replace(/\/$/, '');
+  else if (process.env.ORK_HQ_TELEMETRY_USE_HQ_API === '1' && process.env.HQ_API_URL) {
+    raw = process.env.HQ_API_URL.replace(/\/$/, '');
   }
-  return null;
+  if (!raw) return null;
+  if (!isHttpsUrl(raw)) {
+    warnRefusedUrlOnce(raw, 'HQ telemetry sink');
+    return null;
+  }
+  return raw;
 }
 
 /**
@@ -70,6 +79,33 @@ export function resolveSinkToken(): string | null {
   if (existsSync(cachePath)) {
     const cached = readFileSync(cachePath, 'utf-8').trim();
     if (cached) return cached;
+  }
+  return null;
+}
+
+/**
+ * Host the bearer token was issued for (#4218).
+ * Sources: CC_HOOKS_SECRET_TOKEN_HOST env, CLAUDE_PLUGIN_CONFIG field,
+ * or sidecar file ~/.claude/hooks/.cc-hooks-token.host next to the token file.
+ */
+export function resolveSinkTokenHost(): string | null {
+  if (process.env.CC_HOOKS_SECRET_TOKEN_HOST) {
+    return process.env.CC_HOOKS_SECRET_TOKEN_HOST.trim() || null;
+  }
+  const pluginConfig = process.env.CLAUDE_PLUGIN_CONFIG;
+  if (pluginConfig) {
+    try {
+      const cfg = JSON.parse(pluginConfig) as Record<string, unknown>;
+      const host = cfg.CC_HOOKS_SECRET_TOKEN_HOST;
+      if (typeof host === 'string' && host.trim()) return host.trim();
+    } catch {
+      // fall through
+    }
+  }
+  const hostPath = joinPath(getHomeDir(), '.claude', 'hooks', '.cc-hooks-token.host');
+  if (existsSync(hostPath)) {
+    const host = readFileSync(hostPath, 'utf-8').trim();
+    if (host) return host;
   }
   return null;
 }
@@ -198,6 +234,12 @@ export function postAnalyticsToSink(file: string, entry: Record<string, unknown>
 
   const token = resolveSinkToken();
   if (!token) return;
+
+  const issuedHost = resolveSinkTokenHost();
+  if (!tokenHostMatchesUrl(issuedHost, url)) {
+    // #4218: never attach a bearer token to a host other than the one it was issued for.
+    return;
+  }
 
   if (isCircuitOpen()) return;
 

@@ -39,6 +39,7 @@ import { NOOP_CTX } from '../lib/context.js';
 import { readResumeStaleness } from '../lib/session-staleness.js';
 // #4070: a test fixture flipped core.bare=true in a real repo's shared config
 import { coreBareFlipWarning, findCoreBareFlip } from '../lib/core-bare-flip.js';
+import { registerAllSinks, announceRegisteredSinkHosts } from '../lib/sink-registry.js';
 
 const HOOK_NAME = 'sync-session-dispatcher';
 
@@ -103,6 +104,15 @@ function recordSessionStartPerf(startMs: number, source: string | undefined, mes
 
 export function syncSessionDispatcher(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const startMs = Date.now();
+
+  // #4218: register sinks (idempotent) and print destinations once so an
+  // unexpected HTTP telemetry host is visible at SessionStart.
+  try {
+    registerAllSinks();
+    announceRegisteredSinkHosts();
+  } catch {
+    // Never fail SessionStart over sink announcement.
+  }
 
   // v7.30.0 (#1269): Source-aware gating.
   // CC sends input.source: "startup" | "resume" | "clear" | "compact" | "fork" (fork since CC 2.1.214; previously reported as "resume")
