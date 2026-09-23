@@ -614,6 +614,13 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.82](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.81...v10.0.0-beta.82)** · 2026-09-23
+
+- **docs-site:** hero option A conductor bleed (#4345)
+- **hooks:** load telemetry sinks only from user scope over https (#4218) (#4380)
+- **hooks:** secret-handler AUDIT default and redacted security-audit log (#4379)
+- **skills:** Gemini model IDs and provider wording missed by [#4381](https://github.com/yonatangross/orchestkit/issues/4381) (#4382)
+
 **[v10.0.0-beta.81](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.80...v10.0.0-beta.81)** · 2026-09-23
 
 - **docs:** skip __pycache__ and .pyc in generated skill folder lists (#4378)
@@ -657,11 +664,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **site:** new link card with live skills, agents and hooks counts (#4335)
 - **hooks:** stacked-PR guards read the trunk from origin/HEAD (#4336)
-
-**[v10.0.0-beta.74](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.73...v10.0.0-beta.74)** · 2026-09-21
-
-- **hooks:** redact-secrets scans object-shaped Bash tool_response (#4330)
-- **scripts:** derive-cc-output-keys --check arbitrates EVENTS_WITH_HOOK_EVENT_NAME (#4331)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
