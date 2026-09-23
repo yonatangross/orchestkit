@@ -1262,7 +1262,7 @@ Key decisions:
 - Example ordering: most similar examples last (recency bias)
 - CoT trigger: "Let's think step by step" or explicit format, for models without built-in thinking only
 - Claude models that think by default (Opus 5.5 "always thinks before it replies"): delete CoT triggers and "show your reasoning" asks; change `effort` for depth, and ask for a short rationale when you need one
-- Always use CoT for math/logic tasks
+- Math/logic tasks: use CoT on models without built-in thinking; on thinking models, raise `effort` instead
 
 
 ### Optimize prompts for token efficiency, accuracy, and cost through systematic techniques: HIGH
@@ -1552,14 +1552,29 @@ optimized = optimizer.compile(OptimizedQA(), trainset=examples)
 
 **Correct -- self-consistency for hard problems:**
 ```python
-async def self_consistent_answer(question: str, n_paths: int = 5) -> str:
-    """Generate multiple CoT reasoning paths and vote on answer."""
+async def self_consistent_answer(
+    question: str,
+    n_paths: int = 5,
+    model_thinks: bool = True,
+    accepts_sampling: bool = False,
+) -> str:
+    """Sample several reasoning paths and vote on the answer.
+
+    model_thinks controls only the CoT suffix: models that reason by default
+    (Claude Opus 5.5 always thinks) get the bare question.
+    accepts_sampling controls only temperature. Current Claude models (Opus 5.5,
+    Opus 5, Opus 4.8/4.7, Sonnet 5, Fable 5/5.1) return 400 on temperature,
+    top_p and top_k even with thinking off, so it defaults to False; set it True
+    only for a model older than the Opus 4.7 generation (the claude-api skill's
+    Thinking and Effort table lists them) or a non-Claude model.
+    On current Claude models, path diversity comes from independent calls and
+    the effort setting, not temperature.
+    """
+    content = question if model_thinks else f"{question}\n\nThink step by step."
+    sampling = {"temperature": 0.7} if accepts_sampling else {}
     answers = []
     for _ in range(n_paths):
-        response = await llm.chat([{
-            "role": "user",
-            "content": f"{question}\n\nThink step by step."  # non-thinking models; drop on Opus 5.5
-        }], temperature=0.7)  # Higher temp for diversity; Opus 5.5 rejects sampling params
+        response = await llm.chat([{"role": "user", "content": content}], **sampling)
         answer = extract_final_answer(response)
         answers.append(answer)
 
