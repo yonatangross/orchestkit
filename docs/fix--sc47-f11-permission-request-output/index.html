@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="F11: PermissionRequest auto-approve used a PreToolUse permissionDecision. CC only reads decision.behavior on that event.">
+<title>PermissionRequest allow shape (F11)</title>
+<style>
+  :root { color-scheme: dark; --bg:#12141a; --ink:#e8e6e3; --muted:#9a968f; --line:#2c313c; --ok:#3ddc97; --bad:#ff6b6b; }
+  * { box-sizing: border-box; }
+  body { margin:0; font:16px/1.5 ui-sans-serif, system-ui, sans-serif; background:var(--bg); color:var(--ink); }
+  main { max-width:820px; margin:0 auto; padding:32px 20px 80px; }
+  h1 { font-size:26px; margin:0 0 8px; }
+  h2 { font-size:18px; margin:28px 0 8px; }
+  p { color:var(--muted); }
+  pre { background:#0c0e14; border:1px solid var(--line); border-radius:10px; padding:14px; overflow:auto; font:13px/1.4 ui-monospace, monospace; }
+  .ok { color:var(--ok); }
+  .bad { color:var(--bad); }
+  button { background:#1c2030; color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:8px 12px; cursor:pointer; }
+  .row { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0; }
+</style>
+</head>
+<body>
+<main>
+  <h1>PermissionRequest allow was inert</h1>
+  <p>Finding F11 (SC47). Three PermissionRequest auto-approve hooks returned
+  <code>hookEventName: PreToolUse</code> plus <code>permissionDecision: allow</code>.
+  Claude Code only grants on this event via
+  <code>decision.behavior</code>. The allow looked successful and the user was
+  prompted anyway.</p>
+
+  <h2>Compare the envelopes</h2>
+  <div class="row">
+    <button type="button" id="before">Before (broken)</button>
+    <button type="button" id="after">After (fixed)</button>
+  </div>
+  <pre id="out"></pre>
+  <p id="verdict"></p>
+
+  <h2>What changed</h2>
+  <p><code>outputPermissionRequestAllow()</code> returns the documented shape.
+  The three hooks and the bash dispatcher read <code>decision.behavior</code>.
+  <code>outputSilentAllow</code> stays PreToolUse only. KEY_EVENTS no longer lists
+  PermissionRequest under <code>permissionDecision</code>.</p>
+</main>
+<script>
+const broken = {
+  continue: true,
+  suppressOutput: true,
+  hookSpecificOutput: {
+    hookEventName: 'PreToolUse',
+    permissionDecision: 'allow'
+  }
+};
+const fixed = {
+  continue: true,
+  suppressOutput: true,
+  hookSpecificOutput: {
+    hookEventName: 'PermissionRequest',
+    decision: { behavior: 'allow' }
+  }
+};
+function show(kind) {
+  const payload = kind === 'before' ? broken : fixed;
+  document.getElementById('out').textContent = JSON.stringify(payload, null, 2);
+  const v = document.getElementById('verdict');
+  if (kind === 'before') {
+    v.innerHTML = '<span class="bad">CC ignores this on PermissionRequest. Prompt still shown.</span>';
+  } else {
+    v.innerHTML = '<span class="ok">CC grants via decision.behavior. Auto-approve works.</span>';
+  }
+}
+document.getElementById('before').onclick = () => show('before');
+document.getElementById('after').onclick = () => show('after');
+show('before');
+</script>
+</body>
+</html>

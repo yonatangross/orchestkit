@@ -118,8 +118,12 @@ raw_hook() { # raw_hook <hook-key> <json> [env assignments...]
 # A permission-bypass test built on hook_decision cannot tell a bypass from
 # correct behaviour. This tells them apart.
 #
-# Worth promoting into tests/fixtures/test-helpers.sh — reported rather than
-# added here, since that file is shared with other in-flight work.
+# F11 / SC47: PermissionRequest auto-approve answers with decision.behavior,
+# not permissionDecision. Read decision.behavior first so a real allow is not
+# misread as passthrough.
+#
+# Worth promoting into tests/fixtures/test-helpers.sh (reported rather than
+# added here, since that file is shared with other in-flight work).
 permission_verdict() { # permission_verdict <hook-key> <json> [env assignments...]
   local key="$1" input="$2"; shift 2
   local out
@@ -129,7 +133,7 @@ permission_verdict() { # permission_verdict <hook-key> <json> [env assignments..
     echo "ERROR"
     return 0
   fi
-  printf '%s' "$out" | jq -r '.hookSpecificOutput.permissionDecision // "passthrough"'
+  printf '%s' "$out" | jq -r '.hookSpecificOutput.decision.behavior // .hookSpecificOutput.permissionDecision // "passthrough"'
 }
 
 expect_permission() { # expect_permission <want> <hook-key> <json> <label> [env...]
@@ -147,7 +151,8 @@ expect_permission() { # expect_permission <want> <hook-key> <json> <label> [env.
 # empty or unparseable becomes ERROR, which fails whatever comparison follows.
 verdict_of() { # verdict_of <raw-json>
   # silent: best-effort
-  printf '%s' "$1" | jq -r '.hookSpecificOutput.permissionDecision // "passthrough"' 2>/dev/null || echo ERROR
+  # Prefer decision.behavior (PermissionRequest) over permissionDecision (PreToolUse).
+  printf '%s' "$1" | jq -r '.hookSpecificOutput.decision.behavior // .hookSpecificOutput.permissionDecision // "passthrough"' 2>/dev/null || echo ERROR
 }
 
 write_input() { jq -n --arg p "$1" '{tool_name:"Write",tool_input:{file_path:$p,content:"x"}}'; }
@@ -196,6 +201,9 @@ echo "=========================================="
 # {"continue":true,"suppressOutput":true} and exit 0, which carries no
 # permissionDecision and is indistinguishable from a deliberate passthrough.
 # That is the exact mechanism that blinded this file.
+# #4374: PermissionRequest auto-approve is opt-in (default OFF).
+export ORK_PERMISSION_AUTO_APPROVE=1
+
 section "0. Every hook under test is registered"
 
 if [[ ! -f "$RUNNER" ]]; then
@@ -582,7 +590,8 @@ expect_permission allow 'permission/auto-approve-safe-bash' \
 #   printf '%s' '{"tool_name":"Read","tool_input":{}}' \
 #     | node src/hooks/bin/run-hook.mjs permission/auto-approve-project-writes
 #   -> {"continue":true,"suppressOutput":true,
-#       "hookSpecificOutput":{"permissionDecision":"allow"}}
+#       "hookSpecificOutput":{"hookEventName":"PermissionRequest",
+#                             "decision":{"behavior":"allow"}}}
 #
 # Cause: auto-approve-project-writes.ts:21-29 defaults file_path to '', and
 # resolve(projectDir, '') yields projectDir itself, which is trivially inside

@@ -14,6 +14,7 @@
 export {
   outputSilentSuccess,
   outputSilentAllow,
+  outputPermissionRequestAllow,
   outputTerminalSequence,
   outputBlock,
   outputWithContext,

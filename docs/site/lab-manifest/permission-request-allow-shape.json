@@ -1,0 +1,8 @@
+{
+  "slug": "permission-request-allow-shape",
+  "source": "docs/fix--sc47-f11-permission-request-output/index.html",
+  "title": "PermissionRequest allow shape (F11)",
+  "description": "PermissionRequest auto-approve used a PreToolUse permissionDecision. CC only reads decision.behavior on that event. Compare before and after envelopes.",
+  "tags": ["hooks", "permission", "cc", "f11"],
+  "date": "2026-09-22"
+}

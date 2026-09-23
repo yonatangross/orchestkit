@@ -64,11 +64,13 @@ function expectDeny(result: { continue: boolean; stopReason?: string; hookSpecif
   expect(result.hookSpecificOutput?.permissionDecision).toBe('deny');
 }
 
-/** Assert the result is a silent allow with permissionDecision: 'allow' */
+/** Assert PermissionRequest silent allow (decision.behavior allow, F11) */
 function expectSilentAllow(result: ReturnType<typeof autoApproveSafeBash>): void {
   expect(result.continue).toBe(true);
   expect(result.suppressOutput).toBe(true);
-  expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+  expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+  expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+  expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
 }
 
 // =============================================================================
@@ -84,6 +86,16 @@ function expectSilentAllow(result: ReturnType<typeof autoApproveSafeBash>): void
 // =============================================================================
 // 3. AUTO-APPROVE SAFE BASH
 // =============================================================================
+
+
+const __ORK_PAA_PREV = process.env.ORK_PERMISSION_AUTO_APPROVE;
+beforeEach(() => {
+  process.env.ORK_PERMISSION_AUTO_APPROVE = '1';
+});
+afterEach(() => {
+  if (__ORK_PAA_PREV === undefined) delete process.env.ORK_PERMISSION_AUTO_APPROVE;
+  else process.env.ORK_PERMISSION_AUTO_APPROVE = __ORK_PAA_PREV;
+});
 
 describe('autoApproveSafeBash', () => {
   describe('auto-approves git read operations', () => {
@@ -246,10 +258,12 @@ describe('autoApproveSafeBash', () => {
   });
 
   describe('result structure for allowed commands', () => {
-    test('includes permissionDecision allow for safe commands', () => {
+    test('includes decision.behavior allow for safe commands', () => {
       const result = autoApproveSafeBash(createBashInput('git status'));
       expect(result.hookSpecificOutput).toBeDefined();
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
   });
 });

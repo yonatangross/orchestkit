@@ -1,0 +1,125 @@
+/**
+ * F11 / SC47: PermissionRequest auto-approve hooks must never emit a
+ * PreToolUse label or permissionDecision. CC reads only
+ * hookSpecificOutput.decision.behavior on this event.
+ */
+
+import { describe, test, expect, beforeEach, afterEach } from 'vitest';
+import { autoApproveSafeBash } from '../../permission/auto-approve-safe-bash.js';
+import { autoApproveProjectWrites } from '../../permission/auto-approve-project-writes.js';
+import { learningTracker, _resetPatternCacheForTesting } from '../../permission/learning-tracker.js';
+import { unifiedPermissionBashDispatcher } from '../../permission/unified-dispatcher.js';
+import { outputPermissionRequestAllow, outputSilentAllow } from '../../lib/common.js';
+import type { HookInput } from '../../types.js';
+import * as fs from 'node:fs';
+import * as os from 'node:os';
+import * as path from 'node:path';
+
+function bash(command: string): HookInput {
+  return {
+    hook_event_name: 'PermissionRequest',
+    tool_name: 'Bash',
+    tool_input: { command },
+    cwd: process.cwd(),
+    session_id: 'test',
+  } as HookInput;
+}
+
+function writeEdit(filePath: string): HookInput {
+  return {
+    hook_event_name: 'PermissionRequest',
+    tool_name: 'Write',
+    tool_input: { file_path: filePath, content: 'x' },
+    cwd: process.cwd(),
+    session_id: 'test',
+  } as HookInput;
+}
+
+function assertPermissionRequestAllow(result: {
+  hookSpecificOutput?: {
+    hookEventName?: string;
+    permissionDecision?: string;
+    decision?: { behavior?: string };
+  };
+}): void {
+  expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+  expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+  expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
+  expect(result.hookSpecificOutput?.hookEventName).not.toBe('PreToolUse');
+}
+
+
+const __ORK_PAA_PREV = process.env.ORK_PERMISSION_AUTO_APPROVE;
+beforeEach(() => {
+  process.env.ORK_PERMISSION_AUTO_APPROVE = '1';
+});
+afterEach(() => {
+  if (__ORK_PAA_PREV === undefined) delete process.env.ORK_PERMISSION_AUTO_APPROVE;
+  else process.env.ORK_PERMISSION_AUTO_APPROVE = __ORK_PAA_PREV;
+});
+
+describe('F11 PermissionRequest output shape', () => {
+  test('builder emits decision.behavior allow, not PreToolUse', () => {
+    assertPermissionRequestAllow(outputPermissionRequestAllow());
+  });
+
+  test('PreToolUse builder stays on permissionDecision (callers unchanged)', () => {
+    const r = outputSilentAllow();
+    expect(r.hookSpecificOutput?.hookEventName).toBe('PreToolUse');
+    expect(r.hookSpecificOutput?.permissionDecision).toBe('allow');
+  });
+
+  test('auto-approve-safe-bash never labels allow as PreToolUse', () => {
+    assertPermissionRequestAllow(autoApproveSafeBash(bash('git status')));
+  });
+
+  test('auto-approve-project-writes never labels allow as PreToolUse', () => {
+    const filePath = path.join(process.cwd(), 'src', 'hooks', 'package.json');
+    assertPermissionRequestAllow(autoApproveProjectWrites(writeEdit(filePath)));
+  });
+
+  test('unified dispatcher forwards decision.behavior allow', () => {
+    assertPermissionRequestAllow(unifiedPermissionBashDispatcher(bash('git status')));
+  });
+
+  describe('learning-tracker allow path', () => {
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ork-f11-'));
+
+    beforeEach(() => {
+      process.env.CLAUDE_PLUGIN_ROOT = tmp;
+      process.env.ORK_PERMISSION_AUTO_APPROVE = '1';
+      _resetPatternCacheForTesting();
+
+      const feedbackDir = path.join(tmp, '.claude', 'feedback');
+      fs.mkdirSync(feedbackDir, { recursive: true });
+      // Real distilled cache path learningTracker reads (literal prefix match).
+      fs.writeFileSync(
+        path.join(feedbackDir, 'learned-patterns-cache.json'),
+        JSON.stringify({
+          schema: 'ork.learned-patterns-cache.v1',
+          autoApprovePatterns: ['echo hello'],
+          generated_at: new Date().toISOString(),
+        }),
+      );
+    });
+
+    afterEach(() => {
+      fs.rmSync(tmp, { recursive: true, force: true });
+    });
+
+    test('learned allow never emits PreToolUse label', () => {
+      const result = learningTracker(bash('echo hello'));
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      assertPermissionRequestAllow(result);
+    });
+  });
+
+  test('KEY_EVENTS no longer lists PermissionRequest under permissionDecision', async () => {
+    const { KEY_EVENTS } = await import('../../../bin/cc-output-keys.generated.mjs');
+    const pd = KEY_EVENTS.get('permissionDecision');
+    expect(pd?.has('PermissionRequest')).toBe(false);
+    expect(pd?.has('PreToolUse')).toBe(true);
+    const decision = KEY_EVENTS.get('decision');
+    expect(decision?.has('PermissionRequest')).toBe(true);
+  });
+});

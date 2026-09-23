@@ -3,7 +3,7 @@
  * Tests file path validation and permission decisions
  */
 
-import { describe, test, expect, vi, beforeEach } from 'vitest';
+import { describe, test, expect, vi, beforeEach, afterEach} from 'vitest';
 import { autoApproveProjectWrites } from '../../permission/auto-approve-project-writes.js';
 import type { HookInput } from '../../types.js';
 import { createTestContext } from '../fixtures/test-context.js';
@@ -32,6 +32,16 @@ function createWriteInput(filePath: string, projectDir = '/test/project'): HookI
 }
 
 let testCtx: ReturnType<typeof createTestContext>;
+
+const __ORK_PAA_PREV = process.env.ORK_PERMISSION_AUTO_APPROVE;
+beforeEach(() => {
+  process.env.ORK_PERMISSION_AUTO_APPROVE = '1';
+});
+afterEach(() => {
+  if (__ORK_PAA_PREV === undefined) delete process.env.ORK_PERMISSION_AUTO_APPROVE;
+  else process.env.ORK_PERMISSION_AUTO_APPROVE = __ORK_PAA_PREV;
+});
+
 describe('auto-approve-project-writes', () => {
   beforeEach(() => {
     testCtx = createTestContext();
@@ -46,7 +56,6 @@ describe('auto-approve-project-writes', () => {
       '/test/project/README.md',
       '/test/project/package.json',
       '/test/project/tsconfig.json',
-      '/test/project/.github/workflows/ci.yml',
       '/test/project/deep/nested/path/file.txt',
     ];
 
@@ -55,7 +64,9 @@ describe('auto-approve-project-writes', () => {
       const result = autoApproveProjectWrites(input, testCtx);
 
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
   });
 
@@ -72,7 +83,9 @@ describe('auto-approve-project-writes', () => {
       const result = autoApproveProjectWrites(input, testCtx);
 
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
   });
 
@@ -86,6 +99,13 @@ describe('auto-approve-project-writes', () => {
       '/test/project/__pycache__/module.pyc',
       '/test/project/.venv/lib/site-packages/pkg.py',
       '/test/project/venv/bin/python',
+      // #4374 hard denylist (even when ORK_PERMISSION_AUTO_APPROVE=1)
+      '/test/project/.github/workflows/ci.yml',
+      '/test/project/.claude/settings.local.json',
+      '/test/project/.mcp.json',
+      '/test/project/plugin.json',
+      '/test/project/.env',
+      '/test/project/.husky/pre-commit',
     ];
 
     test.each(excludedPaths)('requires manual approval for excluded: %s', (filePath) => {
@@ -180,16 +200,18 @@ describe('auto-approve-project-writes', () => {
       const input = createWriteInput('/test/project/docs/node_modules.txt');
       const result = autoApproveProjectWrites(input, testCtx);
 
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
 
     test('handles case sensitivity in paths', () => {
-      // node_modules vs NODE_MODULES
+      // Excluded-dir matching is case-insensitive.
       const input = createWriteInput('/test/project/NODE_MODULES/pkg/file.js');
       const result = autoApproveProjectWrites(input, testCtx);
 
-      // Case sensitive, so NODE_MODULES should be allowed
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
+      expect(result.hookSpecificOutput?.decision?.behavior).not.toBe('allow');
     });
 
     test('handles very long path', () => {
@@ -197,21 +219,27 @@ describe('auto-approve-project-writes', () => {
       const input = createWriteInput(longPath);
       const result = autoApproveProjectWrites(input, testCtx);
 
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
 
     test('handles special characters in path', () => {
       const input = createWriteInput('/test/project/src/file with spaces.ts');
       const result = autoApproveProjectWrites(input, testCtx);
 
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
 
     test('handles unicode in path', () => {
       const input = createWriteInput('/test/project/src/\u00E9\u00E8\u00EA.ts');
       const result = autoApproveProjectWrites(input, testCtx);
 
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
   });
 
@@ -229,7 +257,9 @@ describe('auto-approve-project-writes', () => {
       };
       const result = autoApproveProjectWrites(input, testCtx);
 
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
 
     test('blocks Edit to node_modules', () => {
@@ -259,7 +289,9 @@ describe('auto-approve-project-writes', () => {
         added_dirs: ['/other/service'],
       };
       const result = autoApproveProjectWrites(input, testCtx);
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
 
     test('requires manual approval for paths outside both project_dir and added_dirs', () => {
@@ -295,7 +327,9 @@ describe('auto-approve-project-writes', () => {
         added_dirs: [],
       };
       const result = autoApproveProjectWrites(input, testCtx);
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
 
     test('works correctly when added_dirs is undefined', () => {
@@ -306,7 +340,9 @@ describe('auto-approve-project-writes', () => {
         project_dir: '/test/project',
       };
       const result = autoApproveProjectWrites(input, testCtx);
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
 
     test('guards against prefix attack in added_dirs', () => {
@@ -336,7 +372,9 @@ describe('auto-approve-project-writes', () => {
       const input = createWriteInput('/test/project/src/file.ts');
       const result = autoApproveProjectWrites(input, testCtx);
 
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
 
     test('handles Windows-style paths', () => {

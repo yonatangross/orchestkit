@@ -11,9 +11,13 @@ import { sep, join } from 'node:path';
 // Mock fs before importing the module
 vi.mock('node:fs', () => ({
   realpathSync: vi.fn(),
+  lstatSync: vi.fn(() => {
+    throw new Error('ENOENT');
+  }),
+  readlinkSync: vi.fn(),
 }));
 
-import { realpathSync } from 'node:fs';
+import { realpathSync, lstatSync, readlinkSync } from 'node:fs';
 import {
   EXCLUDED_DIRS,
   isInsideDir,
@@ -22,6 +26,8 @@ import {
 } from '../../lib/path-containment.js';
 
 const mockRealpathSync = vi.mocked(realpathSync);
+const mockLstatSync = vi.mocked(lstatSync);
+const mockReadlinkSync = vi.mocked(readlinkSync);
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -31,6 +37,9 @@ describe('EXCLUDED_DIRS', () => {
   test('includes all expected directories', () => {
     expect(EXCLUDED_DIRS).toContain('node_modules');
     expect(EXCLUDED_DIRS).toContain('.git');
+    expect(EXCLUDED_DIRS).toContain('.github');
+    expect(EXCLUDED_DIRS).toContain('.claude');
+    expect(EXCLUDED_DIRS).toContain('.husky');
     expect(EXCLUDED_DIRS).toContain('dist');
     expect(EXCLUDED_DIRS).toContain('build');
     expect(EXCLUDED_DIRS).toContain('__pycache__');
@@ -38,8 +47,8 @@ describe('EXCLUDED_DIRS', () => {
     expect(EXCLUDED_DIRS).toContain('venv');
   });
 
-  test('has exactly 7 entries', () => {
-    expect(EXCLUDED_DIRS).toHaveLength(7);
+  test('has exactly 10 entries', () => {
+    expect(EXCLUDED_DIRS).toHaveLength(10);
   });
 });
 
@@ -106,8 +115,14 @@ describe('hasExcludedDir', () => {
     expect(hasExcludedDir(`/project${sep}dist-tools${sep}run.sh`)).toBe(false);
   });
 
-  test('returns false for path with no excluded dirs', () => {
-    expect(hasExcludedDir(`/home${sep}user${sep}project${sep}lib${sep}utils.ts`)).toBe(false);
+  test('detects .claude and .husky mid-path (#4220 AF-13)', () => {
+    expect(hasExcludedDir(`/project${sep}.claude${sep}settings.json`)).toBe(true);
+    expect(hasExcludedDir(`/project${sep}.husky${sep}pre-commit`)).toBe(true);
+  });
+
+  test('detects .git* prefix segments (#4220 AF-13)', () => {
+    expect(hasExcludedDir(`/project${sep}.github${sep}workflows${sep}ci.yml`)).toBe(true);
+    expect(hasExcludedDir(`/project${sep}.gitignore${sep}x`)).toBe(true);
   });
 
   test.each(EXCLUDED_DIRS)('detects %s as mid-path segment', (dir) => {
@@ -127,12 +142,27 @@ describe('resolveRealPath', () => {
     expect(mockRealpathSync).toHaveBeenCalledWith('/symlink/path/file.ts');
   });
 
-  test('returns original absolute path when file does not exist (ENOENT)', () => {
-    // TOCTOU fix: realpathSync called directly, ENOENT caught in catch block
-    mockRealpathSync.mockImplementation(() => { throw new Error('ENOENT'); });
+  test('on ENOENT realpaths the parent and joins the basename (#4220 AF-15)', () => {
+    mockRealpathSync.mockImplementation((p: unknown) => {
+      const s = String(p);
+      if (s === '/project/vendor/new.ts') throw new Error('ENOENT');
+      if (s === '/project/vendor') return '/outside/real';
+      throw new Error(`unexpected realpath: ${s}`);
+    });
 
-    expect(resolveRealPath('/new/file.ts', '/project')).toBe('/new/file.ts');
-    expect(mockRealpathSync).toHaveBeenCalledWith('/new/file.ts');
+    expect(resolveRealPath('/project/vendor/new.ts', '/project')).toBe(
+      join('/outside/real', 'new.ts'),
+    );
+  });
+
+  test('returns fail-closed sentinel when no ancestor resolves', () => {
+    mockRealpathSync.mockImplementation(() => {
+      throw new Error('ENOENT');
+    });
+
+    expect(resolveRealPath('/new/file.ts', '/project')).toBe(
+      join('/new', '.claude', '.ork-unresolved-symlink'),
+    );
   });
 
   test('resolves relative path against projectDir', () => {
@@ -143,18 +173,82 @@ describe('resolveRealPath', () => {
     expect(mockRealpathSync).toHaveBeenCalledWith(expectedAbsolute);
   });
 
-  test('returns best-effort path on realpathSync error', () => {
-    mockRealpathSync.mockImplementation(() => { throw new Error('ELOOP'); });
-
-    // Catch block returns best-effort absolute path
-    expect(resolveRealPath('/loop/file.ts', '/project')).toBe('/loop/file.ts');
-  });
-
   test('SEC: follows symlink to detect escape from project', () => {
     mockRealpathSync.mockReturnValue('/etc/passwd');
 
     const resolved = resolveRealPath('/project/evil-link', '/project');
     expect(resolved).toBe('/etc/passwd');
     // Caller (isInsideDir) would then reject this as outside project
+  });
+
+  test('dangling leaf symlink returns target joined on real parent', () => {
+    mockRealpathSync.mockImplementation((p: unknown) => {
+      const s = String(p);
+      if (s.endsWith('cfg.json') || s.endsWith('settings.local.json')) {
+        throw new Error('ENOENT');
+      }
+      return s;
+    });
+    mockLstatSync.mockImplementation((p: unknown) => {
+      const s = String(p);
+      if (s.endsWith('cfg.json')) {
+        return { isSymbolicLink: () => true } as unknown as import('node:fs').Stats;
+      }
+      throw new Error('ENOENT');
+    });
+    mockReadlinkSync.mockReturnValue('../.claude/settings.local.json');
+
+    expect(resolveRealPath('/project/src/cfg.json', '/project')).toBe(
+      '/project/.claude/settings.local.json',
+    );
+  });
+
+  test('dangling symlink chain follows multiple readlink hops', () => {
+    mockRealpathSync.mockImplementation((p: unknown) => {
+      const s = String(p);
+      if (s.endsWith('link1.json') || s.endsWith('settings.local.json')) {
+        throw new Error('ENOENT');
+      }
+      return s;
+    });
+    mockLstatSync.mockImplementation((p: unknown) => {
+      const s = String(p);
+      if (s.endsWith('link1.json') || s.endsWith('link2.json')) {
+        return { isSymbolicLink: () => true } as unknown as import('node:fs').Stats;
+      }
+      throw new Error('ENOENT');
+    });
+    mockReadlinkSync.mockImplementation((p: unknown) => {
+      const s = String(p);
+      if (s.endsWith('link1.json')) return 'link2.json';
+      if (s.endsWith('link2.json')) return '../.claude/settings.local.json';
+      throw new Error(`unexpected readlink: ${s}`);
+    });
+
+    expect(resolveRealPath('/project/src/link1.json', '/project')).toBe(
+      '/project/.claude/settings.local.json',
+    );
+  });
+
+  test('absent target under a linked parent resolves through the real parent', () => {
+    mockRealpathSync.mockImplementation((p: unknown) => {
+      const s = String(p);
+      if (s === '/project/notes.md') throw new Error('ENOENT');
+      if (s === '/project') return '/project';
+      if (s === '/project/sub/hooks') return '/project/.claude/hooks';
+      throw new Error(`unexpected realpath: ${s}`);
+    });
+    mockLstatSync.mockImplementation((p: unknown) => {
+      const s = String(p);
+      if (s === '/project/notes.md') {
+        return { isSymbolicLink: () => true } as unknown as import('node:fs').Stats;
+      }
+      throw new Error('ENOENT');
+    });
+    mockReadlinkSync.mockReturnValue('sub/hooks/new.sh');
+
+    expect(resolveRealPath('/project/notes.md', '/project')).toBe(
+      '/project/.claude/hooks/new.sh',
+    );
   });
 });

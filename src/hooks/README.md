@@ -133,10 +133,27 @@ hooks/
 ### Permission Hooks (PermissionRequest)
 Auto-approve or deny permission requests based on safety rules.
 
+**Opt-in (`ORK_PERMISSION_AUTO_APPROVE`, default OFF):**
+`permission/auto-approve-project-writes`, `permission/auto-approve-safe-bash`, and
+`permission/learning-tracker` emit `decision.behavior: allow` only when
+`ORK_PERMISSION_AUTO_APPROVE=1`. With the flag unset or any other value, they
+pass through so Claude Code shows its normal permission dialog. This is the
+#4374 security hold: fixing the F11 output shape without an opt-in would have
+turned previously inert hooks into live auto-approve for every install.
+Opt-in also auto-approves the safe-bash test runners (pytest, npm run/test), so
+enabling it means acceptEdits plus auto-approved runners.
+
+**Hard denylist (enforced even when enabled):** Write/Edit auto-approve never
+allows a resolved real path matching `settings*.json`, `.mcp.json`, `plugin.json`
+(any depth), `.claude/**`, `.github/**`, `.husky/**`, `.env` / `.env.*`, or the
+files `lib/sink-registry.ts` reads (`plugin.json`, `.claude/settings.local.json`).
+See `lib/permission-auto-approve.ts`. Related open finding: #4218 (HTTP sinks
+from those configs).
+
 **Examples:**
 - `permission/auto-approve-readonly` - Auto-approve Read, Glob, Grep
-- `permission/auto-approve-safe-bash` - Auto-approve safe bash commands
-- `permission/auto-approve-project-writes` - Auto-approve writes to project directory
+- `permission/auto-approve-safe-bash` - Auto-approve safe bash commands (opt-in)
+- `permission/auto-approve-project-writes` - Auto-approve writes to project directory (opt-in)
 
 > **`--dangerously-skip-permissions` scope (CC 2.1.121 + 2.1.126):** the flag now bypasses prompts for writes to `.claude/skills/`, `.claude/agents/`, `.claude/commands/` (since 2.1.121) and `.claude/`, `.git/`, `.vscode/`, shell config files (since 2.1.126). Catastrophic removal commands (`rm -rf` on system paths, etc.) still prompt. Permission hooks above are the only line of defense in shared/CI environments — do NOT recommend `--dangerously-skip-permissions` for those contexts. See `src/skills/setup/SKILL.md` for the full policy.
 

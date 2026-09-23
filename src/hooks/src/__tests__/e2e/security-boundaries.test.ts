@@ -89,6 +89,16 @@ function createWriteInput(filePath: string): HookInput {
 }
 
 let testCtx: ReturnType<typeof createTestContext>;
+
+const __ORK_PAA_PREV = process.env.ORK_PERMISSION_AUTO_APPROVE;
+beforeEach(() => {
+  process.env.ORK_PERMISSION_AUTO_APPROVE = '1';
+});
+afterEach(() => {
+  if (__ORK_PAA_PREV === undefined) delete process.env.ORK_PERMISSION_AUTO_APPROVE;
+  else process.env.ORK_PERMISSION_AUTO_APPROVE = __ORK_PAA_PREV;
+});
+
 describe('Security Boundaries E2E', () => {
   const originalEnv = process.env;
 
@@ -130,7 +140,9 @@ describe('Security Boundaries E2E', () => {
         const result = autoApproveSafeBash(input, testCtx);
 
         expect(result.continue).toBe(true);
-        expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+        expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
       });
     });
 
@@ -166,7 +178,9 @@ describe('Security Boundaries E2E', () => {
         const result = autoApproveProjectWrites(input, testCtx);
 
         expect(result.continue).toBe(true);
-        expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+        expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
       });
     });
 
