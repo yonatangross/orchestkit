@@ -107,25 +107,25 @@ const DENY_REGEX: { re: RegExp; label: string }[] = [
   // interpreter reading a process-substitution network fetch: bash <(curl …)
   {
     re: /\b(?:ba|z|k|da)?sh\s+<\(\s*(?:curl|wget|fetch)\b/i,
-    label: 'shell <(curl …) — executes fetched remote content',
+    label: 'shell <(curl …): executes fetched remote content',
   },
   {
     re: /\b(?:source|\.)\s+<\(\s*(?:curl|wget|fetch)\b/i,
-    label: 'source <(curl …) — sources fetched remote content',
+    label: 'source <(curl …): sources fetched remote content',
   },
   {
     re: /\b(?:python[0-9.]*|node|ruby|perl|php)\s+<\(\s*(?:curl|wget|fetch)\b/i,
-    label: 'interpreter <(curl …) — runs fetched remote content',
+    label: 'interpreter <(curl …): runs fetched remote content',
   },
   // eval of a command substitution that fetches: eval $(curl …) / eval `curl …`
   {
     re: /\beval\b[^\n]{0,60}?(?:\$\(|`)\s*(?:curl|wget|fetch)\b/i,
-    label: 'eval $(curl …) — evaluates fetched remote content',
+    label: 'eval $(curl …): evaluates fetched remote content',
   },
   // netcat reverse shell: nc -e /bin/sh host port
   {
     re: /\b(?:nc|ncat|netcat)\b[^\n]*\s-e\b/i,
-    label: 'nc -e — netcat command-exec (reverse shell)',
+    label: 'nc -e: netcat command-exec (reverse shell)',
   },
   // Plain pipe-to-shell / pipe-to-interpreter (#4220 HR-5). The retired
   // dangerous-command-blocker used to own these; without them an allowlisted
