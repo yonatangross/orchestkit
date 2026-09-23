@@ -8,7 +8,7 @@
 |testing-e2e:{SKILL.md,references/{ork-delta.md,playwright-setup.md}}|testing,e2e,playwright,accessibility,visual-regression,page-objects
 |design-system-tokens:{SKILL.md,references/{style-dictionary-config.md,token-naming-conventions.md,w3c-token-spec.md}}|design-tokens,w3c-tokens,oklch,style-dictionary,theming,dark-mode,css-variables,tailwind-theme,design-system,color-spaces
 |performance:{SKILL.md,references/{cc-prompt-cache-guide.md,database-optimization.md,ork-delta.md}}|performance,core-web-vitals,lcp,inp,cls,react-compiler,virtualization,lazy-loading,code-splitting,image-optimization,avif,profiling,vllm,quantization,inference,caching,redis,prompt-caching,tanstack-query,prefetching,optimistic-updates,sustainability,carbon-footprint,page-weight
-|code-review-playbook:{SKILL.md,references/{conventional-comments.md,ork-delta.md}}|code-review,quality,collaboration,best-practices
+|code-review-playbook:{SKILL.md,references/{conventional-comments.md,ork-delta.md}}|code-review,quality,collaboration,best-practices,testing
 |architecture-patterns:{SKILL.md,references/{naming-conventions.md,ork-delta.md,structure-import-direction.md,testing-naming-conventions.md}}|architecture,clean-architecture,validation,structure,enforcement,testing-standards,right-sizing,over-engineering,context-aware
 |component-search:{SKILL.md}|components,21st-dev,react,ui,search,registry,tailwind,shadcn
 |storybook-mcp-integration:{SKILL.md}|storybook,mcp,component-discovery,story-preview,component-testing,a11y,design-system,react

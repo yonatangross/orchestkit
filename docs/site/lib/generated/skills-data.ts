@@ -972,13 +972,14 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "code-review-playbook",
     "description": "Structured review processes, conventional comments, language-specific checklists, and feedback templates. Use when reviewing PRs, conducting code review, or standardizing review practice.",
     "version": "2.0.0",
-    "sha256": "69314142567f0ad33d610481b6b5e8d53fc202900c30c3824eb085968dcda287",
+    "sha256": "9f9e099505121d5892ec8f2e46a57a5e636b7e4c875c4fa0593e5849182f9d84",
     "author": "OrchestKit",
     "tags": [
       "code-review",
       "quality",
       "collaboration",
-      "best-practices"
+      "best-practices",
+      "testing"
     ],
     "userInvocable": false,
     "context": "inherit",
@@ -1930,7 +1931,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "documentation-patterns",
     "description": "Technical documentation patterns for READMEs, ADRs, API docs (OpenAPI 3.1), changelogs, and writing style guides. Use when creating project documentation, writing architecture decisions, documenting APIs, or maintaining changelogs.",
     "version": "1.0.0",
-    "sha256": "54f368b89a51d4d239a76a142d8129dd957ae7c25c983ca756eb2648280f80d6",
+    "sha256": "68600dcfaed9fb35e0438a1993a21d14fdf12b5343a6336f3df78f8c4d180bc1",
     "author": "OrchestKit",
     "tags": [
       "documentation",
@@ -1940,7 +1941,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       "openapi",
       "changelog",
       "writing-style",
-      "technical-writing"
+      "technical-writing",
+      "ci-cd"
     ],
     "userInvocable": false,
     "context": "inherit",
@@ -2092,13 +2094,14 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "errors",
     "description": "Error pattern analysis and troubleshooting for Claude Code sessions. Categorizes errors (network, auth, model, tool, memory, permission) with known resolution patterns, searches memory for prior occurrences, and suggests recovery steps. Delegates to debug-investigator agent for complex root cause analysis. Use when handling errors, fixing failures, or troubleshooting session issues.",
     "version": "1.0.0",
-    "sha256": "bc7e629d8aec45a3cbcd76d00f2ebb3d7e98e31be25e745af37d8d93c782b01d",
+    "sha256": "3cfdaef874792d554737100e9a87c81867e0f7f3f3c97ffc0491b31ea741c4b2",
     "author": "OrchestKit",
     "tags": [
       "errors",
       "debugging",
       "troubleshooting",
-      "patterns"
+      "patterns",
+      "testing"
     ],
     "userInvocable": false,
     "context": "inherit",
@@ -2179,6 +2182,7 @@ export const SKILLS: Record<string, SkillMeta> = {
         "test-plan.md"
       ],
       "scripts": [
+        "__pycache__",
         "coverage-context.sh",
         "diff-scan.sh",
         "fingerprint.sh",
@@ -2551,7 +2555,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "i18n-date-patterns",
     "description": "Implements internationalization (i18n) in React applications. Covers user-facing strings, date/time handling, locale-aware formatting, ICU MessageFormat, and RTL support. Use when building multilingual UIs or formatting dates/currency.",
     "version": "1.2.0",
-    "sha256": "e00c223a26e65318303ce6d9641d2164021253335bbb9f2d023c86969d55b45d",
+    "sha256": "cfdf50ec4cda922420843b836190be36a7a856d9cdf38ed098f0947c7fd30c3b",
     "author": "Yonatan Gross",
     "tags": [
       "i18n",
@@ -2564,7 +2568,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       "useTranslation",
       "useFormatting",
       "ICU",
-      "Trans"
+      "Trans",
+      "react"
     ],
     "userInvocable": false,
     "context": "inherit",
