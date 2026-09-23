@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Targeted pre-push mode with a 2-slot governor</title>
+<meta name="description" content="ORK_PRE_PUSH_MODE=targeted selects unit tests by diff, gates security and tsc+build by path class, and defers the rest to CI. The default stays the full suite.">
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c2129; --line:#30363d;
+    --ink:#e6edf3; --dim:#8b949e; --mute:#6e7681;
+    --ok:#3fb950; --bad:#f85149; --warn:#d29922; --acc:#58a6ff;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;}
+  .wrap{max-width:920px;margin:0 auto;padding:32px 20px 72px}
+  header{border-bottom:1px solid var(--line);padding-bottom:20px;margin-bottom:24px}
+  h1{margin:0 0 8px;font-size:24px;letter-spacing:-.02em}
+  h2{font-size:16px;margin:28px 0 10px}
+  p{margin:0 0 10px}
+  .lede{color:var(--dim);max-width:72ch}
+  code{font-family:var(--mono);font-size:.9em}
+  .tag{display:inline-block;font-family:var(--mono);font-size:11px;padding:2px 8px;
+    border:1px solid var(--line);border-radius:999px;color:var(--dim);margin:0 6px 6px 0}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:720px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
+  .card h3{margin:0 0 8px;font-size:14px}
+  .sim{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;margin:14px 0}
+  .row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+  button{cursor:pointer;background:var(--panel2);color:var(--ink);border:1px solid var(--line);
+    border-radius:8px;padding:8px 12px;font:inherit}
+  button[aria-pressed="true"]{border-color:var(--acc);background:#12253f}
+  .out{font-family:var(--mono);font-size:13px;padding:12px;border-radius:8px;background:var(--panel2);
+    border:1px solid var(--line);min-height:4em;white-space:pre-wrap}
+  .run{color:var(--ok)}.skip{color:var(--warn)}.defer{color:var(--acc)}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  td,th{border:1px solid var(--line);padding:6px 10px;text-align:left;font-family:var(--mono)}
+  th{color:var(--dim);font-weight:600}
+  footer{margin-top:40px;border-top:1px solid var(--line);padding-top:14px;font-size:13px;color:var(--mute)}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Targeted pre-push mode with a 2-slot governor"><meta property="og:description" content="ORK_PRE_PUSH_MODE=targeted selects unit tests by diff, gates security and tsc+build by path class, and defers the rest to CI. The default stays the full suite."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/targeted-prepush-mode.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Targeted pre-push mode with a 2-slot governor"><meta name="twitter:description" content="ORK_PRE_PUSH_MODE=targeted selects unit tests by diff, gates security and tsc+build by path class, and defers the rest to CI. The default stays the full suite."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Targeted pre-push, opt-in only</h1>
+  <p class="lede">
+    Lane pushes were each running the full local suite (92 unit + 22 security
+    files) while seven worktrees shared one host.
+    <code>ORK_PRE_PUSH_MODE=targeted</code> narrows three stages by diff;
+    everything else is unchanged, and anything uncertain falls back to the
+    full suite with one WARN. Pick a diff and see which stages run.
+  </p>
+  <p>
+    <span class="tag">git hooks</span><span class="tag">#4238</span>
+    <span class="tag">opt-in env var</span><span class="tag">CI still the gate</span>
+  </p>
+</header>
+
+<h2>Try a diff</h2>
+<div class="sim">
+  <div class="row" id="cases"></div>
+  <div class="out" id="out"></div>
+</div>
+
+<h2>What each mode runs</h2>
+<table>
+  <tr><th>stage</th><th>full (default)</th><th>targeted</th></tr>
+  <tr><td>tsc + build</td><td class="run">always</td><td class="skip">only when src/ or manifests/ changed</td></tr>
+  <tr><td>unit tests</td><td class="run">all discovered files</td><td class="skip">files naming a changed path (+ smoke pick)</td></tr>
+  <tr><td>security</td><td class="run">always</td><td class="skip">only on hook/lib/security/CI paths</td></tr>
+  <tr><td>imports, mdx, agents, skills, manifests, tokens, vitest</td><td class="run">always</td><td class="run">always</td></tr>
+  <tr><td>concurrency</td><td class="defer" colspan="2">2-slot governor in targeted mode only, queue on third, dead pid reclaimed (skipped on CI)</td></tr>
+</table>
+
+<div class="grid" style="margin-top:24px">
+  <div class="card">
+    <h3>Fallbacks (one WARN, full suite)</h3>
+    <p class="lede">An unknown <code>ORK_PRE_PUSH_MODE</code> value, a diff base git cannot
+    read, or a missing selector library. Nothing is ever silently skipped.</p>
+  </div>
+  <div class="card">
+    <h3>Why CI is still the gate</h3>
+    <p class="lede">Targeted only narrows the local signal. The deferred line names the
+    required checks that still run on the PR before merge.</p>
+  </div>
+</div>
+
+<footer>
+  Lane 0P, 2026-09-23. Sources: <code>bin/git-hooks/pre-push</code>,
+  <code>scripts/lib/pre-push-select.sh</code>, <code>scripts/lib/test-slot.sh</code>,
+  <code>tests/unit/test-pre-push-hook.sh</code>.
+</footer>
+</div>
+<script>
+const cases = {
+  "docs-only diff": {
+    diff: "docs/guide.md\nREADME.md",
+    lines: [
+      ["mode", "pre-push mode: targeted"],
+      ["sel", "unit tests selected: 0"],
+      ["defer", "deferred to CI: Unit Tests (node 22), Security Tests"],
+      ["skip", "TypeScript type check... SKIP (no src/ changes)"],
+      ["skip", "Verifying build... SKIP (no src/ changes)"],
+      ["run", "unit tests... OK (targeted: 0 selected, suite deferred to CI)"],
+      ["skip", "Security tests: SKIP (no security-relevant paths)"],
+      ["run", "imports / mdx / agents / skills / manifests / tokens ... OK"],
+    ]
+  },
+  "src/hooks pretool diff": {
+    diff: "src/hooks/src/pretool/foo.ts",
+    lines: [
+      ["mode", "pre-push mode: targeted"],
+      ["sel", "unit tests selected: 1\n    tests/unit/test-pre-push-hook.sh (smoke)"],
+      ["defer", "deferred to CI: Unit Tests (node 22)"],
+      ["run", "TypeScript type check... OK"],
+      ["run", "Verifying build... OK"],
+      ["run", "unit tests... OK (1 tests)"],
+      ["run", "Running security tests... OK"],
+      ["run", "hook vitest suite... OK (src/hooks changed)"],
+    ]
+  },
+  "bin/git-hooks diff": {
+    diff: "bin/git-hooks/pre-push",
+    lines: [
+      ["mode", "pre-push mode: targeted"],
+      ["sel", "unit tests selected: 2\n    tests/unit/test-pre-push-hook.sh\n    tests/unit/test-prepush-interpreter-dispatch.sh"],
+      ["defer", "deferred to CI: Unit Tests (node 22)"],
+      ["skip", "TypeScript type check... SKIP (no src/ changes)"],
+      ["skip", "Verifying build... SKIP (no src/ changes)"],
+      ["run", "unit tests... OK (2 tests)"],
+      ["run", "Running security tests... OK (bin/ is guarded)"],
+    ]
+  },
+  "unknown mode": {
+    diff: "ORK_PRE_PUSH_MODE=bogus",
+    lines: [
+      ["run", "WARN: ORK_PRE_PUSH_MODE='bogus' is not a known mode; running the full suite"],
+      ["run", "TypeScript type check... OK"],
+      ["run", "Verifying build... OK"],
+      ["run", "unit tests... OK (92 tests)"],
+      ["run", "Running security tests... OK"],
+    ]
+  },
+  "mode unset": {
+    diff: "tests/unit/test-pre-push-hook.sh",
+    lines: [
+      ["run", "(no mode line, no deferral line)"],
+      ["run", "TypeScript type check... OK"],
+      ["run", "Verifying build... OK"],
+      ["run", "unit tests... OK (92 tests)"],
+      ["run", "Running security tests... OK"],
+    ]
+  }
+};
+const cls = {mode:"defer", sel:"defer", defer:"defer", skip:"skip", run:"run"};
+const caseBox = document.getElementById('cases');
+const out = document.getElementById('out');
+Object.keys(cases).forEach((name, i) => {
+  const b = document.createElement('button');
+  b.textContent = name;
+  b.setAttribute('aria-pressed', i === 0 ? 'true' : 'false');
+  b.onclick = () => {
+    caseBox.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed','false'));
+    b.setAttribute('aria-pressed','true');
+    const c = cases[name];
+    out.innerHTML = '<span style="color:var(--mute)">$ git push (diff: ' + c.diff.replace(/\n/g, ', ') + ')</span>\n' +
+      c.lines.map(([k, t]) => '<span class="' + cls[k] + '">' + t + '</span>').join('\n');
+  };
+  caseBox.appendChild(b);
+  if (i === 0) b.click();
+});
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
