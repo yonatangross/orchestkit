@@ -1,0 +1,8 @@
+{
+  "slug": "egress-interpreter-flag-handling",
+  "source": "docs/fix--egress-interpreter-flag-handling/playground.html",
+  "title": "Per-interpreter flag handling in the egress pipe check",
+  "description": "Egress pipe check: flag parsing is now interpreter-specific.",
+  "tags": ["hooks", "security", "egress"],
+  "date": "2026-09-23"
+}

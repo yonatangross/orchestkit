@@ -142,7 +142,7 @@ const DENY_REGEX: { re: RegExp; label: string }[] = [
   },
   // curl|interpreter stdin-program shapes use pipeToInterpreterStdinProgram()
   // below (not a single regex): bare/sudo/env, lone `-`, `/dev/stdin`, and
-  // option-only flags like `-u` must DENY; `-c`/`-m`/`-e`/`-r`/`-E`/`--eval`
+  // option-only / value-taking flags must DENY; per-interpreter code flags
   // or a real script path must ALLOW.
 ];
 
@@ -152,16 +152,105 @@ const FETCHER_RE = /(?:\bcurl\b|\bwget\b|(?<!\bgit\s)\bfetch\b)/i;
 /** Path-optional interpreter that can run a fetched body as its program. */
 const INTERPRETER_NAME_RE = /^(?:[\w./-]*\/)?(?:python[0-9.]*|node|ruby|perl|php)$/i;
 
-/** Flags that mean the next arg is code/module, not a stdin program. */
-const INTERPRETER_CODE_FLAGS = new Set(['-c', '-m', '-e', '-r', '-E', '--eval']);
+type InterpreterFamily = 'python' | 'node' | 'ruby' | 'perl' | 'php';
+
+/** Flags whose next arg is code/module (ALLOW), keyed by interpreter family. */
+const CODE_FLAGS: Record<InterpreterFamily, ReadonlySet<string>> = {
+  python: new Set(['-c', '-m']),
+  node: new Set(['-e', '-p', '--eval', '--print']),
+  ruby: new Set(['-e']),
+  perl: new Set(['-e', '-E']),
+  php: new Set(['-r']),
+};
+
+/** Options that consume the next token as a value (not a script path). */
+const VALUE_OPTS: Record<InterpreterFamily, ReadonlySet<string>> = {
+  python: new Set(['-W', '-X', '-Q']),
+  node: new Set(['-r', '--require', '--import']),
+  ruby: new Set(['-r', '-I']),
+  perl: new Set(['-M', '-I']),
+  // php -f takes a file path and is intentionally NOT listed: the next token
+  // is a real script path (ALLOW). -n is boolean. -c here is php.ini, not code.
+  php: new Set(['-d', '-c', '-z']),
+};
 
 /**
- * Tokenize one simple-command suffix (after `|`) until `; | &` or newline.
- * Quotes are respected so `-c "code"` stays two tokens.
+ * Exact value-opt (`-M foo`) or glued form (`-Mstrict`, `-I/lib`, `--require=fs`).
+ * Returns `exact` (skip next non-flag token), `glued` (value already in token),
+ * or null.
+ */
+function valueOptKind(
+  a: string,
+  valueOpts: ReadonlySet<string>,
+): 'exact' | 'glued' | null {
+  if (valueOpts.has(a)) return 'exact';
+  for (const opt of valueOpts) {
+    if (!a.startsWith(opt) || a.length <= opt.length) continue;
+    if (opt.startsWith('--')) {
+      if (a.startsWith(`${opt}=`)) return 'glued';
+      continue;
+    }
+    return 'glued';
+  }
+  return null;
+}
+
+function interpreterFamily(name: string): InterpreterFamily | null {
+  const base = name.replace(/^.*\//, '').toLowerCase();
+  if (/^python[0-9.]*$/.test(base)) return 'python';
+  if (base === 'node') return 'node';
+  if (base === 'ruby') return 'ruby';
+  if (base === 'perl') return 'perl';
+  if (base === 'php') return 'php';
+  return null;
+}
+
+/**
+ * Tokenize one simple-command suffix (after `|`) with shell quoting rules:
+ * - single quotes: literal until the closing `'`
+ * - double quotes: `\"` and `\\` are escapes; other chars are literal
+ * - outside quotes: a backslash escapes the next character
+ * Adjacent quoted/unquoted pieces join into one word (`-M'strict'`).
+ * Stops at unquoted `; | &` or newline.
+ *
+ * Must receive a view that still has backslashes (not stripBackslashEscapes).
  */
 function tokenizePipeRhs(s: string): string[] {
   const tokens: string[] = [];
   let i = 0;
+
+  const readSingleQuoted = (): string => {
+    // caller saw opening '
+    i++;
+    let tok = '';
+    while (i < s.length && s[i] !== "'") {
+      tok += s[i];
+      i++;
+    }
+    if (i < s.length) i++; // closing '
+    return tok;
+  };
+
+  const readDoubleQuoted = (): string => {
+    // caller saw opening "
+    i++;
+    let tok = '';
+    while (i < s.length && s[i] !== '"') {
+      if (s[i] === '\\' && i + 1 < s.length) {
+        const n = s[i + 1]!;
+        if (n === '"' || n === '\\') {
+          tok += n;
+          i += 2;
+          continue;
+        }
+      }
+      tok += s[i];
+      i++;
+    }
+    if (i < s.length) i++; // closing "
+    return tok;
+  };
+
   while (i < s.length) {
     const ch = s[i]!;
     if (ch === ';' || ch === '\n' || ch === '|' || ch === '&') break;
@@ -169,98 +258,244 @@ function tokenizePipeRhs(s: string): string[] {
       i++;
       continue;
     }
-    if (ch === '"' || ch === "'") {
-      const q = ch;
-      i++;
-      let tok = '';
-      while (i < s.length && s[i] !== q) {
-        if (q === '"' && s[i] === '\\' && i + 1 < s.length) {
-          tok += s[i + 1];
-          i += 2;
-          continue;
-        }
-        tok += s[i];
-        i++;
-      }
-      if (i < s.length) i++; // closing quote
-      tokens.push(tok);
-      continue;
-    }
+
     let tok = '';
-    while (
-      i < s.length &&
-      !/\s/.test(s[i]!) &&
-      s[i] !== ';' &&
-      s[i] !== '|' &&
-      s[i] !== '&' &&
-      s[i] !== '\n'
-    ) {
-      tok += s[i];
+    // One shell word: unquoted runs + adjacent quoted runs glued together.
+    while (i < s.length) {
+      const c = s[i]!;
+      if (/\s/.test(c) || c === ';' || c === '|' || c === '&' || c === '\n') break;
+      if (c === "'") {
+        tok += readSingleQuoted();
+        continue;
+      }
+      if (c === '"') {
+        tok += readDoubleQuoted();
+        continue;
+      }
+      if (c === '\\' && i + 1 < s.length) {
+        tok += s[i + 1];
+        i += 2;
+        continue;
+      }
+      tok += c;
       i++;
     }
-    tokens.push(tok);
+    if (tok.length > 0) tokens.push(tok);
   }
   return tokens;
 }
 
 /**
  * True when args mean the interpreter runs its PROGRAM from stdin (DENY):
- * no args, only option flags (`-u`, `-I`, `-W`, …), a lone `-` (with or
- * without trailing args), or `/dev/stdin`. False (ALLOW) when any arg is a
- * code/module flag or a script path that is not `-` / `/dev/stdin`.
+ * no args, only option flags, a lone `-` (with or without trailing args), or
+ * `/dev/stdin`. False (ALLOW) when any arg is a family code flag or a script
+ * path that is not `-` / `/dev/stdin`. Value-taking options skip their next
+ * token so the value is not mistaken for a script path.
  */
-function interpreterArgsAreStdinProgram(args: string[]): boolean {
+function interpreterArgsAreStdinProgram(
+  family: InterpreterFamily,
+  args: string[],
+): boolean {
   if (args.length === 0) return true;
-  for (const a of args) {
-    if (INTERPRETER_CODE_FLAGS.has(a)) return false;
+  const codeFlags = CODE_FLAGS[family];
+  const valueOpts = VALUE_OPTS[family];
+  for (let i = 0; i < args.length; i++) {
+    const a = args[i]!;
+    if (codeFlags.has(a)) return false;
     // Lone `-` or /dev/stdin means the program is stdin, with or without
     // trailing args (`python3 - arg1` still runs the piped body).
     if (a === '-' || a === '/dev/stdin') return true;
-    if (a.startsWith('-')) continue; // option-only flags (-u, -I, -W, …)
+    const vKind = valueOptKind(a, valueOpts);
+    if (vKind === 'exact') {
+      // Consume the option value when present and not itself a flag.
+      if (i + 1 < args.length && !args[i + 1]!.startsWith('-')) i++;
+      continue;
+    }
+    if (vKind === 'glued') continue;
+    if (a.startsWith('-')) continue; // boolean / other option flags
     return false; // script path
   }
   return true;
 }
 
 /**
- * HR-5 curl|interpreter: after a fetcher and a pipe, skip optional sudo/env
- * (and `env VAR=val`) prefixes, then decide DENY vs ALLOW from interpreter args.
+ * Indexes of `|` that sit outside quotes (so a pipe inside a grep/echo string
+ * is not treated as a pipeline). Honors the same escapes as tokenizePipeRhs.
  */
-function pipeToInterpreterStdinProgram(cmd: string): boolean {
-  let searchFrom = 0;
-  while (searchFrom < cmd.length) {
-    const pipe = cmd.indexOf('|', searchFrom);
-    if (pipe < 0) return false;
-    const left = cmd.slice(Math.max(0, pipe - 200), pipe);
-    if (!FETCHER_RE.test(left)) {
-      searchFrom = pipe + 1;
+function findUnquotedPipeIndexes(cmd: string): number[] {
+  const pipes: number[] = [];
+  let i = 0;
+  while (i < cmd.length) {
+    const ch = cmd[i]!;
+    if (ch === "'") {
+      i++;
+      while (i < cmd.length && cmd[i] !== "'") i++;
+      if (i < cmd.length) i++;
       continue;
     }
-    const tokens = tokenizePipeRhs(cmd.slice(pipe + 1));
-    let idx = 0;
-    while (idx < tokens.length) {
-      const t = tokens[idx]!.toLowerCase();
-      if (t === 'sudo') {
-        idx++;
-        continue;
-      }
-      if (t === 'env') {
-        idx++;
-        while (idx < tokens.length && /^[A-Za-z_][A-Za-z0-9_]*=/.test(tokens[idx]!)) {
-          idx++;
+    if (ch === '"') {
+      i++;
+      while (i < cmd.length && cmd[i] !== '"') {
+        if (cmd[i] === '\\' && i + 1 < cmd.length) {
+          const n = cmd[i + 1]!;
+          if (n === '"' || n === '\\') {
+            i += 2;
+            continue;
+          }
         }
-        continue;
+        i++;
       }
-      break;
-    }
-    if (idx >= tokens.length || !INTERPRETER_NAME_RE.test(tokens[idx]!)) {
-      searchFrom = pipe + 1;
+      if (i < cmd.length) i++;
       continue;
     }
-    if (interpreterArgsAreStdinProgram(tokens.slice(idx + 1))) return true;
-    searchFrom = pipe + 1;
+    if (ch === '\\' && i + 1 < cmd.length) {
+      i += 2;
+      continue;
+    }
+    if (ch === '|') pipes.push(i);
+    i++;
+  }
+  return pipes;
+}
+
+/**
+ * HR-5 curl|interpreter: detect fetcher|pipe on the quote-blanked denyScan
+ * (so quoted mentions do not fire), but tokenize the RHS from quoteIntact so
+ * values like `--require 'fs'` stay as their own token and are not dropped.
+ */
+function pipeToInterpreterStdinProgram(denyScan: string, quoteIntact: string): boolean {
+  const denyPipes: number[] = [];
+  for (let i = 0; i < denyScan.length; i++) {
+    if (denyScan[i] === '|') denyPipes.push(i);
+  }
+  const intactPipes = findUnquotedPipeIndexes(quoteIntact);
+  // Unquoted pipes should align 1:1; when blanking removes a quoted `|`, counts
+  // still match because that `|` was never in intactPipes either.
+  if (denyPipes.length !== intactPipes.length) {
+    // Divergent views: parse from quoteIntact only, with fetcher check on the
+    // same left slice (rare; prefer not to miss a real script path).
+    for (const pipe of intactPipes) {
+      const left = quoteIntact.slice(Math.max(0, pipe - 200), pipe);
+      if (!FETCHER_RE.test(left)) continue;
+      if (rhsIsStdinInterpreter(tokenizePipeRhs(quoteIntact.slice(pipe + 1)))) {
+        return true;
+      }
+    }
+    return false;
+  }
+  for (let i = 0; i < denyPipes.length; i++) {
+    const dPipe = denyPipes[i]!;
+    const left = denyScan.slice(Math.max(0, dPipe - 200), dPipe);
+    if (!FETCHER_RE.test(left)) continue;
+    const tokens = tokenizePipeRhs(quoteIntact.slice(intactPipes[i]! + 1));
+    if (rhsIsStdinInterpreter(tokens)) return true;
   }
   return false;
+}
+
+/**
+ * Collapse horizontal whitespace and line continuations, but keep real newlines
+ * as command separators so `curl U | python3\necho done` still ends the RHS.
+ */
+function collapseHorizontalWhitespace(cmd: string): string {
+  return cmd
+    .replace(/\\\r?\n/g, '')
+    .replace(/[^\S\n]+/g, ' ')
+    .replace(/ *\n */g, '\n')
+    .trim();
+}
+
+/**
+ * Bodies of quotes governed by eval / sh -c / python -c / etc. Each is its own
+ * command for the fetcher|interpreter scan (nested recursively).
+ */
+function extractExecutedQuoteBodies(raw: string): string[] {
+  const bodies: string[] = [];
+  let seg = '';
+  for (let i = 0; i < raw.length; i++) {
+    const ch = raw[i]!;
+    if (ch === '"' || ch === "'") {
+      const q = ch;
+      let j = i + 1;
+      let content = '';
+      while (j < raw.length && raw[j] !== q) {
+        if (q === '"' && raw[j] === '\\' && j + 1 < raw.length) {
+          // Keep escapes in the body so nested quoteIntact can tokenize them.
+          content += raw[j]!;
+          content += raw[j + 1]!;
+          j += 2;
+          continue;
+        }
+        content += raw[j]!;
+        j++;
+      }
+      if (execGovernsQuote(seg)) bodies.push(content);
+      seg = '';
+      i = j;
+      continue;
+    }
+    if (ch === ';' || ch === '\n' || ch === '&' || ch === '|' || ch === '(') {
+      seg = '';
+      continue;
+    }
+    seg += ch;
+  }
+  return bodies;
+}
+
+const MAX_EXEC_QUOTE_DEPTH = 8;
+
+/**
+ * Top-level + nested scan: run the pipe check on this command, then on every
+ * executed-quote body as its own command (with its own denyScan / quoteIntact).
+ */
+function scanFetcherInterpreterPipes(rawCmd: string, depth = 0): boolean {
+  if (depth > MAX_EXEC_QUOTE_DEPTH) return false;
+  const blanked = blankQuotedHeredocBodies(rawCmd);
+  const denyScan = normalizeSingle(egressDenyScanView(blanked));
+  const quoteIntact = collapseHorizontalWhitespace(blanked);
+  if (pipeToInterpreterStdinProgram(denyScan, quoteIntact)) return true;
+  for (const body of extractExecutedQuoteBodies(blanked)) {
+    if (scanFetcherInterpreterPipes(body, depth + 1)) return true;
+  }
+  return false;
+}
+
+/**
+ * Strip one layer of matching surrounding quotes from a token. Used after
+ * tokenize so `"python3"` / `"-"` classify like their unquoted forms.
+ */
+function unwrapToken(tok: string): string {
+  if (tok.length >= 2) {
+    const a = tok[0]!;
+    const b = tok[tok.length - 1]!;
+    if ((a === '"' || a === "'") && a === b) return tok.slice(1, -1);
+  }
+  return tok;
+}
+
+/** Shared sudo/env skip + interpreter arg scan for one pipe RHS token list. */
+function rhsIsStdinInterpreter(tokens: string[]): boolean {
+  const unwrapped = tokens.map(unwrapToken);
+  let idx = 0;
+  while (idx < unwrapped.length) {
+    const t = unwrapped[idx]!.toLowerCase();
+    if (t === 'sudo') {
+      idx++;
+      continue;
+    }
+    if (t === 'env') {
+      idx++;
+      while (idx < unwrapped.length && /^[A-Za-z_][A-Za-z0-9_]*=/.test(unwrapped[idx]!)) {
+        idx++;
+      }
+      continue;
+    }
+    break;
+  }
+  if (idx >= unwrapped.length || !INTERPRETER_NAME_RE.test(unwrapped[idx]!)) return false;
+  const family = interpreterFamily(unwrapped[idx]!);
+  return Boolean(family && interpreterArgsAreStdinProgram(family, unwrapped.slice(idx + 1)));
 }
 
 // =============================================================================
@@ -352,7 +587,8 @@ export function networkEgressGuard(input: HookInput, ctx: HookContext = NOOP_CTX
   // and pair a body-local curl with an unrelated later `bash <file>`.
   // Same precedent dangerous-command-blocker applies to its pipe-to-shell check
   // (#3098). UNQUOTED heredocs are shell-expanded, so they are left untouched.
-  const denyScan = normalizeSingle(egressDenyScanView(blankQuotedHeredocBodies(raw)));
+  const heredocBlanked = blankQuotedHeredocBodies(raw);
+  const denyScan = normalizeSingle(egressDenyScanView(heredocBlanked));
 
   // --- DENY tier ---
   for (const { re, label } of DENY_REGEX) {
@@ -369,7 +605,7 @@ export function networkEgressGuard(input: HookInput, ctx: HookContext = NOOP_CTX
     }
   }
 
-  if (pipeToInterpreterStdinProgram(denyScan)) {
+  if (scanFetcherInterpreterPipes(raw)) {
     const label = 'curl|interpreter: pipes fetched content to an interpreter';
     ctx.log(HOOK_NAME, `BLOCKED: ${label}`);
     ctx.logPermission('deny', label, input);

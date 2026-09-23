@@ -59,11 +59,18 @@ function stripQuotes(cmd: string): string {
  * - Collapse whitespace
  */
 export function normalizeSingle(cmd: string): string {
+  return stripQuotes(normalizeSingleKeepQuotes(cmd));
+}
+
+/**
+ * Like normalizeSingle but keeps quote characters so a later quote-aware
+ * tokenizer can still see `'fs'` as a quoted value (not merge it into neighbors).
+ */
+export function normalizeSingleKeepQuotes(cmd: string): string {
   let result = cmd;
   result = expandHexEscapes(result);
   result = expandOctalEscapes(result);
   result = stripBackslashEscapes(result);
-  result = stripQuotes(result);
   // Remove line continuations. Bash JOINS the tokens on either side, it does
   // not separate them: `rm -r\<newline>f /` executes as `rm -rf /`. Replacing
   // the continuation with a SPACE produced `rm -r f /`, which no longer matched
