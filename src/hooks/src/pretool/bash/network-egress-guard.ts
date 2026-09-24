@@ -359,21 +359,35 @@ function tokenizePipeRhs(s: string): string[] {
   return tokens;
 }
 
+/** True when a normalized absolute path sits under a kernel filesystem tree. */
+function isKernelFsPath(n: string): boolean {
+  return n === '/dev' || n === '/proc' || n.startsWith('/dev/') || n.startsWith('/proc/');
+}
+
 /**
- * Fail-closed stdin-program path check. After posix.normalize:
+ * Fail-closed stdin-program path check against a cwd candidate set.
+ * After posix.normalize:
  * (a) lone `-`
- * (b) absolute path under `/dev` or `/proc` (no real script lives there)
- * (c) relative path whose `..` segments lead into a `dev` or `proc` segment
+ * (b) absolute path under `/dev` or `/proc`
+ * (c) relative path: DENY when cwd is unknown; otherwise DENY when the path
+ *     resolves under `/dev` or `/proc` from ANY candidate
  */
-function isStdinProgramPath(a: string): boolean {
+function isStdinProgramPath(a: string, cwdCandidates: string[] | null): boolean {
   if (a === '-') return true;
   const n = posix.normalize(a);
   if (n === '-') return true;
-  if (posix.isAbsolute(n)) {
-    return n === '/dev' || n === '/proc' || n.startsWith('/dev/') || n.startsWith('/proc/');
+  // Relative climb into a kernel tree name (no cwd needed).
+  if (/^(?:\.\.\/)+(?:dev|proc)(?:\/|$)/.test(n)) return true;
+
+  if (posix.isAbsolute(n)) return isKernelFsPath(n);
+
+  // Relative path: unknown cwd is fail-closed; else resolve against every candidate.
+  if (cwdCandidates === null) return true;
+  if (cwdCandidates.length === 0) return true;
+  for (const c of cwdCandidates) {
+    if (isKernelFsPath(posix.normalize(posix.join(c, n)))) return true;
   }
-  // Relative escape into a kernel filesystem name, e.g. `../dev/...`.
-  return /^(?:\.\.\/)+(?:dev|proc)(?:\/|$)/.test(n);
+  return false;
 }
 
 /**
@@ -405,10 +419,710 @@ function isInputRedirectOrProcSub(tok: string): boolean {
 
 /**
  * True when this program token must be treated as an unknown/stdin program:
- * shell-expanded form, or a path under a kernel filesystem tree.
+ * shell-expanded form, or a path under a kernel filesystem tree (resolved
+ * against every cwd candidate when relative).
  */
-function programArgIsDenied(a: string): boolean {
-  return programArgIsShellExpanded(a) || isStdinProgramPath(a);
+function programArgIsDenied(a: string, cwdCandidates: string[] | null): boolean {
+  return programArgIsShellExpanded(a) || isStdinProgramPath(a, cwdCandidates);
+}
+
+/**
+ * Hook payload cwd (CC shared base), falling back to project_dir.
+ */
+function hookInputCwd(input: HookInput): string | null {
+  const rec = input as unknown as Record<string, unknown>;
+  if (typeof rec.cwd === 'string' && rec.cwd.length > 0) return rec.cwd;
+  if (typeof input.project_dir === 'string' && input.project_dir.length > 0) {
+    return input.project_dir;
+  }
+  return null;
+}
+
+/** Directory-changing builtins tracked for the cwd candidate set. */
+function isDirChangeWord(w: string): boolean {
+  return w === 'cd' || w === 'pushd' || w === 'popd' || w === 'chdir';
+}
+
+/** True when `eval` / `source` / `.` appears as a whole word (effect unknown). */
+function isOpaqueDirEffectWord(w: string): boolean {
+  return w === 'eval' || w === 'source' || w === '.';
+}
+
+/**
+ * A dir-change word inside a multi-word token (typical of a quoted string
+ * after quote stripping, e.g. `cd /dev` from `"cd /dev"`) cannot yield a
+ * trusted literal target; treat as UNKNOWN.
+ */
+function tokenEmbedsDirChangeWord(tok: string): boolean {
+  if (!/\s/.test(tok)) return false;
+  return /(?:^|[\s;|&()])(cd|pushd|popd|chdir)(?=[\s;|&()]|$)/.test(tok);
+}
+
+/**
+ * Scan every token in a simple-command segment for directory-change words.
+ * Fail-closed: a word `cd` / `pushd` / `popd` / `chdir` anywhere counts, not
+ * only in command position (covers `time cd`, `then cd`, `do cd`, …).
+ * A literal following target is ADDed; anything else makes the set UNKNOWN.
+ * `eval` / `source` / `.`, dir-change words embedded in quoted tokens,
+ * redirection tokens, bare relative targets (no ./ or ../), and multi-operand
+ * `cd` also make the set UNKNOWN.
+ */
+function isRedirectionToken(tok: string): boolean {
+  if (tok === '<' || tok === '>' || tok === '>>' || tok === '&>' || tok === '&>>') {
+    return true;
+  }
+  if (/^&>/.test(tok)) return true;
+  if (/^(?:\d*)>{1,2}/.test(tok)) return true;
+  if (/^(?:\d*)(?:<<|<>|<&|<)/.test(tok)) return true;
+  return false;
+}
+
+function applyDirChangesInSegment(
+  tokens: string[],
+  addTarget: (target: string) => boolean,
+): 'ok' | 'unknown' {
+  if (tokens.length === 0) return 'ok';
+  // Keep backslashes so escaped targets stay shell-expanded / UNKNOWN.
+  const words = tokens.map((t) => unwrapToken(t));
+  if (words.some(isRedirectionToken)) return 'unknown';
+
+  for (let i = 0; i < words.length; i++) {
+    const rawWord = words[i]!;
+    if (tokenEmbedsDirChangeWord(rawWord)) return 'unknown';
+
+    const head = rawWord.replace(/\\/g, '');
+    if (isOpaqueDirEffectWord(head)) return 'unknown';
+    if (!isDirChangeWord(head)) continue;
+    if (head === 'popd') return 'unknown';
+
+    // Collect operands until the next dir-change word.
+    const operands: string[] = [];
+    for (let j = i + 1; j < words.length; j++) {
+      const w = words[j]!.replace(/\\/g, '');
+      if (isDirChangeWord(w) || isOpaqueDirEffectWord(w)) break;
+      operands.push(words[j]!);
+    }
+    if (operands.length === 0) return 'unknown';
+    // zsh two-argument `cd` and any multi-operand form.
+    if (operands.length !== 1) return 'unknown';
+
+    const target = operands[0]!;
+    if (target === '-') return 'unknown';
+    if (head === 'pushd' && /^[+-]\d+$/.test(target)) return 'unknown';
+    if (target.startsWith('-') && target !== '-') return 'unknown';
+    if (programArgIsShellExpanded(target)) return 'unknown';
+    if (isDirChangeWord(target.replace(/\\/g, ''))) return 'unknown';
+    if (tokenEmbedsDirChangeWord(target)) return 'unknown';
+    // Bare relative (no ./ or ../): CDPATH / cdable_vars / shell options.
+    const cleaned = target.replace(/\\/g, '');
+    if (
+      (head === 'cd' || head === 'pushd' || head === 'chdir') &&
+      isCdpathEligibleTarget(cleaned)
+    ) {
+      return 'unknown';
+    }
+    if (!addTarget(cleaned)) return 'unknown';
+  }
+  return 'ok';
+}
+
+/** Cap cwd candidates and directory changes; overflow => UNKNOWN. */
+const CWD_CANDIDATE_CAP = 32;
+const CWD_DIR_CHANGE_CAP = 32;
+
+/**
+ * Relative targets that bash may resolve via CDPATH (not absolute, not ./ or ../).
+ */
+function isCdpathEligibleTarget(target: string): boolean {
+  if (posix.isAbsolute(target)) return false;
+  if (target.startsWith('./') || target.startsWith('../')) return false;
+  return true;
+}
+
+/**
+ * True when CDPATH may be in play for the command: the word CDPATH appears,
+ * a variable-setting builtin / eval / source / dot appears, or the hook
+ * process already has a non-empty CDPATH.
+ */
+function cdpathMayAffectCommand(fullCommand: string): boolean {
+  if (typeof process.env.CDPATH === 'string' && process.env.CDPATH.length > 0) {
+    return true;
+  }
+  if (/\bCDPATH\b/.test(fullCommand)) return true;
+  if (
+    /\b(?:read|declare|typeset|export|local|mapfile|readarray|let)\b/.test(fullCommand)
+  ) {
+    return true;
+  }
+  // `printf -v NAME` can assign without `NAME=` text.
+  if (/\bprintf\b[^\n;|&]{0,120}-v\b/.test(fullCommand)) return true;
+  if (/\b(?:eval|source)\b/.test(fullCommand)) return true;
+  if (/(?:^|[\s;|&()])\.(?=[\s;|&()]|$)/.test(fullCommand)) return true;
+  return false;
+}
+
+/**
+ * Add one directory-change target to a candidate set. Returns false when the
+ * set becomes UNKNOWN (CDPATH-eligible under risk, or cap overflow).
+ */
+function addCwdCandidateTarget(
+  candidates: Set<string>,
+  target: string,
+  state: { dirChanges: number; cdpathRisk: boolean },
+): boolean {
+  if (state.dirChanges >= CWD_DIR_CHANGE_CAP) return false;
+  state.dirChanges++;
+
+  if (state.cdpathRisk && isCdpathEligibleTarget(target)) return false;
+
+  if (posix.isAbsolute(target)) {
+    if (candidates.size >= CWD_CANDIDATE_CAP) return false;
+    candidates.add(posix.normalize(target));
+    return candidates.size <= CWD_CANDIDATE_CAP;
+  }
+
+  if (candidates.size === 0) return false;
+  const next = new Set(candidates);
+  for (const c of candidates) {
+    next.add(posix.normalize(posix.join(c, target)));
+    if (next.size > CWD_CANDIDATE_CAP) return false;
+  }
+  candidates.clear();
+  for (const p of next) candidates.add(p);
+  return true;
+}
+
+/**
+ * Build the never-shrinking set of directories the shell could be in after the
+ * prefix before a fetcher|interpreter pipe. Starts from `baseCandidates`
+ * (hook cwd, or an outer set when scanning an executed-quote body). Every
+ * directory change ADDS targets. Returns null when the set is UNKNOWN.
+ */
+function resolveCwdCandidates(
+  prefix: string,
+  baseCandidates: string[] | null,
+  fullCommand: string,
+): string[] | null {
+  // Once unknown, stay unknown (do not recover via later absolute cds).
+  if (baseCandidates === null) return null;
+
+  const cdpathRisk = cdpathMayAffectCommand(fullCommand);
+  const candidates = new Set<string>();
+  for (const c of baseCandidates) {
+    if (c.length > 0) candidates.add(posix.normalize(c));
+  }
+
+  const state = { dirChanges: 0, cdpathRisk };
+  let pos = 0;
+  const n = prefix.length;
+
+  const addTarget = (target: string): boolean =>
+    addCwdCandidateTarget(candidates, target, state);
+
+  while (pos < n) {
+    while (pos < n && /\s/.test(prefix[pos]!)) pos++;
+    if (pos >= n) break;
+
+    const ch0 = prefix[pos]!;
+    if (ch0 === '(' || ch0 === '{') {
+      pos++;
+      continue;
+    }
+    if (ch0 === ')' || ch0 === '}') {
+      pos++;
+      continue;
+    }
+
+    let end = pos;
+    while (end < n) {
+      const c = prefix[end]!;
+      if (c === '"' || c === "'") {
+        const q = c;
+        end++;
+        while (end < n && prefix[end] !== q) {
+          if (q === '"' && prefix[end] === '\\' && end + 1 < n) end += 2;
+          else end++;
+        }
+        if (end < n) end++;
+        continue;
+      }
+      if (c === '(' || c === '{' || c === ')' || c === '}') break;
+      if (c === ';' || c === '\n' || c === '|') break;
+      if (c === '&') break;
+      end++;
+    }
+
+    const segment = prefix.slice(pos, end).trim();
+    if (segment.length > 0) {
+      const applied = applyDirChangesInSegment(tokenizePipeRhs(segment), addTarget);
+      if (applied === 'unknown') return null;
+    }
+
+    if (end >= n) break;
+    const sep = prefix[end]!;
+    // Continue across every separator, including earlier pipes and `||`.
+    if (sep === '|') {
+      pos = prefix[end + 1] === '|' ? end + 2 : end + 1;
+      continue;
+    }
+    if (sep === ';' || sep === '\n') {
+      pos = end + 1;
+      continue;
+    }
+    if (sep === '&') {
+      pos = prefix[end + 1] === '&' ? end + 2 : end + 1;
+      continue;
+    }
+    if (sep === '(' || sep === '{' || sep === ')' || sep === '}') {
+      pos = end + 1;
+      continue;
+    }
+    pos = end;
+  }
+
+  return [...candidates];
+}
+
+/** Unescaped basename of a command token (`/usr/bin/env`, `en\\v` → `env`). */
+function commandBasename(tok: string): string {
+  const u = unescapeInterpreterName(unwrapToken(tok));
+  const slash = u.lastIndexOf('/');
+  return (slash >= 0 ? u.slice(slash + 1) : u).toLowerCase();
+}
+
+const SHELL_BASENAMES = new Set(['sh', 'bash', 'zsh', 'dash', 'ksh']);
+
+/**
+ * Front wrappers the interpreter finder peels before env/sudo/the interpreter.
+ * Each entry is matched on unescaped basename. Value-taking forms advance past
+ * their operand so the next peel can see env/sudo again.
+ */
+function skipOneFrontWrapper(tokens: string[], startIdx: number): number | null {
+  if (startIdx >= tokens.length) return null;
+  const base = commandBasename(tokens[startIdx]!);
+  let i = startIdx + 1;
+
+  if (base === 'nohup' || base === 'exec' || base === 'setsid' || base === 'catchsegv') {
+    // Optional short flags then the utility.
+    while (i < tokens.length) {
+      const a = unwrapToken(tokens[i]!);
+      if (a === '--') {
+        i++;
+        break;
+      }
+      if (base === 'exec' && (a === '-a' || a === '-c' || a === '-l')) {
+        if (a === '-a') {
+          if (i + 1 >= tokens.length) return null;
+          i += 2;
+        } else i++;
+        continue;
+      }
+      if (a.startsWith('-') && a !== '-') {
+        i++;
+        continue;
+      }
+      break;
+    }
+    return i > startIdx ? i : null;
+  }
+
+  if (base === 'nice' || base === 'ionice') {
+    while (i < tokens.length) {
+      const a = unwrapToken(tokens[i]!);
+      if (a === '--') {
+        i++;
+        break;
+      }
+      if (a === '-n' || a === '-p' || a === '-c' || a === '-t') {
+        if (i + 1 >= tokens.length) return null;
+        i += 2;
+        continue;
+      }
+      if (a.startsWith('--adjustment=')) {
+        i++;
+        continue;
+      }
+      if (a === '--adjustment') {
+        if (i + 1 >= tokens.length) return null;
+        i += 2;
+        continue;
+      }
+      if (a.startsWith('-') && a !== '-') {
+        i++;
+        continue;
+      }
+      break;
+    }
+    return i > startIdx ? i : null;
+  }
+
+  if (base === 'command') {
+    while (i < tokens.length) {
+      const a = unwrapToken(tokens[i]!);
+      if (a === '--') {
+        i++;
+        break;
+      }
+      if (a === '-p' || a === '-v' || a === '-V') {
+        i++;
+        continue;
+      }
+      break;
+    }
+    return i > startIdx ? i : null;
+  }
+
+  if (base === 'stdbuf') {
+    while (i < tokens.length) {
+      const a = unwrapToken(tokens[i]!);
+      if (a === '--') {
+        i++;
+        break;
+      }
+      if (
+        a.startsWith('--input-size=') ||
+        a.startsWith('--output-size=') ||
+        a.startsWith('--error-size=')
+      ) {
+        i++;
+        continue;
+      }
+      if (a === '--input-size' || a === '--output-size' || a === '--error-size') {
+        if (i + 1 >= tokens.length) return null;
+        i += 2;
+        continue;
+      }
+      // -i0 / -oL / -e0 glued, or -i / -o / -e with a separate value.
+      if (/^-[ioe]/.test(a)) {
+        if (/^-[ioe].+/.test(a)) {
+          i++;
+          continue;
+        }
+        if (i + 1 >= tokens.length) return null;
+        i += 2;
+        continue;
+      }
+      if (a.startsWith('-') && a !== '-') {
+        i++;
+        continue;
+      }
+      break;
+    }
+    return i > startIdx ? i : null;
+  }
+
+  if (base === 'timeout' || base === 'time' || base === 'watch') {
+    while (i < tokens.length) {
+      const a = unwrapToken(tokens[i]!);
+      if (a === '--') {
+        i++;
+        break;
+      }
+      if (
+        a === '--preserve-status' ||
+        a === '--foreground' ||
+        a === '--verbose' ||
+        a === '-v' ||
+        a === '-p' ||
+        a === '-f'
+      ) {
+        i++;
+        continue;
+      }
+      if (
+        a.startsWith('--signal=') ||
+        a.startsWith('--kill-after=') ||
+        a.startsWith('--format=')
+      ) {
+        i++;
+        continue;
+      }
+      if (a === '--signal' || a === '--kill-after' || a === '-s' || a === '-k' || a === '-n') {
+        if (i + 1 >= tokens.length) return null;
+        i += 2;
+        continue;
+      }
+      if (a.startsWith('-') && a !== '-') {
+        i++;
+        continue;
+      }
+      // Duration / interval operand for timeout / watch; `time` has none.
+      if (base === 'timeout' || base === 'watch') {
+        i++;
+      }
+      break;
+    }
+    return i > startIdx ? i : null;
+  }
+
+  return null;
+}
+
+/**
+ * Peel wrappers + env / sudo in front of the interpreter with a POSITIVE
+ * option allowlist. Match env/sudo on unescaped basename. Run the env/sudo
+ * parser after every skipped wrapper. Allowed options are consumed; -C / -D /
+ * --chdir ADD to the cwd set. Anything else means the whole RHS is an UNKNOWN
+ * program (DENY). Never advance past an unknown option and treat the next
+ * token as the utility.
+ */
+function applyInterpreterFrontChdir(
+  tokens: string[],
+  startIdx: number,
+  candidates: string[] | null,
+  fullCommand: string,
+): { nextIdx: number; candidates: string[] | null; denyProgram: boolean } {
+  let unknownCwd = candidates === null;
+  let denyProgram = false;
+  const set = new Set<string>(candidates ?? []);
+  const state = {
+    dirChanges: 0,
+    cdpathRisk: cdpathMayAffectCommand(fullCommand),
+  };
+  let idx = startIdx;
+
+  const addTarget = (raw: string): void => {
+    const target = unwrapToken(raw).replace(/\\/g, '');
+    if (target.length === 0 || programArgIsShellExpanded(target) || target === '-') {
+      unknownCwd = true;
+      return;
+    }
+    if (!addCwdCandidateTarget(set, target, state)) unknownCwd = true;
+  };
+
+  const takeValue = (): string | null => {
+    if (idx + 1 >= tokens.length) return null;
+    idx++;
+    return unwrapToken(tokens[idx]!);
+  };
+
+  while (idx < tokens.length) {
+    const afterWrapper = skipOneFrontWrapper(tokens, idx);
+    if (afterWrapper !== null) {
+      idx = afterWrapper;
+      continue;
+    }
+
+    const t = commandBasename(tokens[idx]!);
+
+    if (t === 'env') {
+      idx++;
+      while (idx < tokens.length) {
+        const a = unwrapToken(tokens[idx]!);
+        if (/^[A-Za-z_][A-Za-z0-9_]*=/.test(a)) {
+          idx++;
+          continue;
+        }
+        if (a === '--') {
+          idx++;
+          break;
+        }
+        if (a.startsWith('--')) {
+          if (a === '--chdir') {
+            const v = takeValue();
+            if (v === null) {
+              denyProgram = true;
+              break;
+            }
+            addTarget(v);
+            idx++;
+            continue;
+          }
+          if (a.startsWith('--chdir=')) {
+            addTarget(a.slice('--chdir='.length));
+            idx++;
+            continue;
+          }
+          if (a === '--unset') {
+            if (takeValue() === null) {
+              denyProgram = true;
+              break;
+            }
+            idx++;
+            continue;
+          }
+          if (a.startsWith('--unset=')) {
+            idx++;
+            continue;
+          }
+          if (a === '--ignore-environment' || a === '--debug') {
+            idx++;
+            continue;
+          }
+          // Not on the allowlist (including --split-string): DENY the whole RHS.
+          denyProgram = true;
+          break;
+        }
+        if (a.startsWith('-') && a !== '-') {
+          let p = 1;
+          let clusterBad = false;
+          while (p < a.length) {
+            const ch = a[p]!;
+            if (ch === 'C') {
+              const glued = a.slice(p + 1);
+              if (glued.length > 0) {
+                addTarget(glued);
+                p = a.length;
+              } else {
+                const v = takeValue();
+                if (v === null) {
+                  clusterBad = true;
+                  break;
+                }
+                addTarget(v);
+                p = a.length;
+              }
+              continue;
+            }
+            if (ch === 'u' || ch === 'P') {
+              const glued = a.slice(p + 1);
+              if (glued.length > 0) {
+                p = a.length;
+              } else if (takeValue() === null) {
+                clusterBad = true;
+                break;
+              } else {
+                p = a.length;
+              }
+              continue;
+            }
+            if (ch === 'i' || ch === '0' || ch === 'v') {
+              p++;
+              continue;
+            }
+            // S anywhere in the cluster (or any other letter): DENY.
+            clusterBad = true;
+            break;
+          }
+          if (clusterBad) {
+            denyProgram = true;
+            break;
+          }
+          idx++;
+          continue;
+        }
+        break;
+      }
+      if (denyProgram) break;
+      continue;
+    }
+
+    if (t === 'sudo') {
+      idx++;
+      while (idx < tokens.length) {
+        const a = unwrapToken(tokens[idx]!);
+        if (a === '--') {
+          idx++;
+          break;
+        }
+        if (a.startsWith('--')) {
+          if (a === '--chdir') {
+            const v = takeValue();
+            if (v === null) {
+              denyProgram = true;
+              break;
+            }
+            addTarget(v);
+            idx++;
+            continue;
+          }
+          if (a.startsWith('--chdir=')) {
+            addTarget(a.slice('--chdir='.length));
+            idx++;
+            continue;
+          }
+          // -s / -i long forms are boolean when a command follows.
+          if (a === '--shell' || a === '--login') {
+            idx++;
+            continue;
+          }
+          denyProgram = true;
+          break;
+        }
+        if (a.startsWith('-') && a !== '-') {
+          let p = 1;
+          let clusterBad = false;
+          while (p < a.length) {
+            const ch = a[p]!;
+            if (ch === 'D') {
+              const glued = a.slice(p + 1);
+              if (glued.length > 0) {
+                addTarget(glued);
+                p = a.length;
+              } else {
+                const v = takeValue();
+                if (v === null) {
+                  clusterBad = true;
+                  break;
+                }
+                addTarget(v);
+                p = a.length;
+              }
+              continue;
+            }
+            if (ch === 'u' || ch === 'g' || ch === 'U' || ch === 'p' || ch === 'C') {
+              const glued = a.slice(p + 1);
+              if (glued.length > 0) {
+                p = a.length;
+              } else if (takeValue() === null) {
+                clusterBad = true;
+                break;
+              } else {
+                p = a.length;
+              }
+              continue;
+            }
+            if (
+              ch === 'E' ||
+              ch === 'H' ||
+              ch === 'n' ||
+              ch === 'k' ||
+              ch === 'K' ||
+              ch === 'b' ||
+              ch === 'P' ||
+              ch === 's' ||
+              ch === 'i'
+            ) {
+              // -s / -i are boolean when a command follows; no-command case
+              // is handled after the option loop.
+              p++;
+              continue;
+            }
+            clusterBad = true;
+            break;
+          }
+          if (clusterBad) {
+            denyProgram = true;
+            break;
+          }
+          idx++;
+          continue;
+        }
+        break;
+      }
+      if (denyProgram) break;
+      // No utility after sudo (including `sudo -s` / `sudo -i` alone): the
+      // shell would read the pipe → DENY. Same for a bare shell with no args.
+      if (idx >= tokens.length) {
+        denyProgram = true;
+        break;
+      }
+      const utilBase = commandBasename(tokens[idx]!);
+      if (SHELL_BASENAMES.has(utilBase) && idx + 1 >= tokens.length) {
+        denyProgram = true;
+        break;
+      }
+      continue;
+    }
+
+    break;
+  }
+
+  return {
+    nextIdx: idx,
+    candidates: unknownCwd || denyProgram ? null : [...set],
+    denyProgram,
+  };
 }
 
 /**
@@ -427,6 +1141,7 @@ function programArgIsDenied(a: string): boolean {
 function interpreterArgsAreStdinProgram(
   family: InterpreterFamily,
   args: string[],
+  cwdCandidates: string[] | null,
 ): boolean {
   if (args.length === 0) return true;
   if (args.some(isInputRedirectOrProcSub)) return true;
@@ -485,7 +1200,7 @@ function interpreterArgsAreStdinProgram(
     // End of options: the next token is the program.
     if (a === '--') {
       if (i + 1 >= args.length) return true;
-      return programArgIsDenied(args[i + 1]!);
+      return programArgIsDenied(args[i + 1]!, cwdCandidates);
     }
 
     // Output redirection tokens are not the program; skip and keep walking.
@@ -498,7 +1213,7 @@ function interpreterArgsAreStdinProgram(
     }
 
     // Stdin-program path or shell-expanded program token.
-    if (programArgIsDenied(a)) return true;
+    if (programArgIsDenied(a, cwdCandidates)) return true;
 
     // Unknown option => DENY (fail closed).
     if (a.startsWith('-')) return true;
@@ -553,7 +1268,11 @@ function findUnquotedPipeIndexes(cmd: string): number[] {
  * (so quoted mentions do not fire), but tokenize the RHS from quoteIntact so
  * values like `--require 'fs'` stay as their own token and are not dropped.
  */
-function pipeToInterpreterStdinProgram(denyScan: string, quoteIntact: string): boolean {
+function pipeToInterpreterStdinProgram(
+  denyScan: string,
+  quoteIntact: string,
+  baseCandidates: string[] | null,
+): boolean {
   const denyPipes: number[] = [];
   for (let i = 0; i < denyScan.length; i++) {
     if (denyScan[i] === '|') denyPipes.push(i);
@@ -567,7 +1286,18 @@ function pipeToInterpreterStdinProgram(denyScan: string, quoteIntact: string): b
     for (const pipe of intactPipes) {
       const left = quoteIntact.slice(Math.max(0, pipe - 200), pipe);
       if (!FETCHER_RE.test(left)) continue;
-      if (rhsIsStdinInterpreter(tokenizePipeRhs(quoteIntact.slice(pipe + 1)))) {
+      const cwdCandidates = resolveCwdCandidates(
+        quoteIntact.slice(0, pipe),
+        baseCandidates,
+        quoteIntact,
+      );
+      if (
+        rhsIsStdinInterpreter(
+          tokenizePipeRhs(quoteIntact.slice(pipe + 1)),
+          cwdCandidates,
+          quoteIntact,
+        )
+      ) {
         return true;
       }
     }
@@ -577,8 +1307,14 @@ function pipeToInterpreterStdinProgram(denyScan: string, quoteIntact: string): b
     const dPipe = denyPipes[i]!;
     const left = denyScan.slice(Math.max(0, dPipe - 200), dPipe);
     if (!FETCHER_RE.test(left)) continue;
-    const tokens = tokenizePipeRhs(quoteIntact.slice(intactPipes[i]! + 1));
-    if (rhsIsStdinInterpreter(tokens)) return true;
+    const pipe = intactPipes[i]!;
+    const cwdCandidates = resolveCwdCandidates(
+      quoteIntact.slice(0, pipe),
+      baseCandidates,
+      quoteIntact,
+    );
+    const tokens = tokenizePipeRhs(quoteIntact.slice(pipe + 1));
+    if (rhsIsStdinInterpreter(tokens, cwdCandidates, quoteIntact)) return true;
   }
   return false;
 }
@@ -596,11 +1332,11 @@ function collapseHorizontalWhitespace(cmd: string): string {
 }
 
 /**
- * Bodies of quotes governed by eval / sh -c / python -c / etc. Each is its own
- * command for the fetcher|interpreter scan (nested recursively).
+ * Bodies of quotes governed by eval / sh -c / python -c / etc., paired with
+ * the text before that quote (used to resolve the outer cwd candidate set).
  */
-function extractExecutedQuoteBodies(raw: string): string[] {
-  const bodies: string[] = [];
+function extractExecutedQuoteBodies(raw: string): { body: string; prefix: string }[] {
+  const bodies: { body: string; prefix: string }[] = [];
   let seg = '';
   for (let i = 0; i < raw.length; i++) {
     const ch = raw[i]!;
@@ -619,7 +1355,9 @@ function extractExecutedQuoteBodies(raw: string): string[] {
         content += raw[j]!;
         j++;
       }
-      if (execGovernsQuote(seg)) bodies.push(content);
+      if (execGovernsQuote(seg)) {
+        bodies.push({ body: content, prefix: raw.slice(0, i) });
+      }
       seg = '';
       i = j;
       continue;
@@ -637,16 +1375,23 @@ const MAX_EXEC_QUOTE_DEPTH = 8;
 
 /**
  * Top-level + nested scan: run the pipe check on this command, then on every
- * executed-quote body as its own command (with its own denyScan / quoteIntact).
+ * executed-quote body as its own command. The outer cwd candidate set from the
+ * prefix up to that quote becomes the inner base (so `cd …; bash -c '…'` keeps
+ * the directory change).
  */
-function scanFetcherInterpreterPipes(rawCmd: string, depth = 0): boolean {
+function scanFetcherInterpreterPipes(
+  rawCmd: string,
+  baseCandidates: string[] | null,
+  depth = 0,
+): boolean {
   if (depth > MAX_EXEC_QUOTE_DEPTH) return false;
   const blanked = blankQuotedHeredocBodies(rawCmd);
   const denyScan = normalizeSingle(egressDenyScanView(blanked));
   const quoteIntact = collapseHorizontalWhitespace(blanked);
-  if (pipeToInterpreterStdinProgram(denyScan, quoteIntact)) return true;
-  for (const body of extractExecutedQuoteBodies(blanked)) {
-    if (scanFetcherInterpreterPipes(body, depth + 1)) return true;
+  if (pipeToInterpreterStdinProgram(denyScan, quoteIntact, baseCandidates)) return true;
+  for (const { body, prefix } of extractExecutedQuoteBodies(blanked)) {
+    const outer = resolveCwdCandidates(prefix, baseCandidates, blanked);
+    if (scanFetcherInterpreterPipes(body, outer, depth + 1)) return true;
   }
   return false;
 }
@@ -674,29 +1419,25 @@ function unescapeInterpreterName(name: string): string {
 }
 
 /** Shared sudo/env skip + interpreter arg scan for one pipe RHS token list. */
-function rhsIsStdinInterpreter(tokens: string[]): boolean {
+function rhsIsStdinInterpreter(
+  tokens: string[],
+  cwdCandidates: string[] | null,
+  fullCommand: string,
+): boolean {
   const unwrapped = tokens.map(unwrapToken);
-  let idx = 0;
-  while (idx < unwrapped.length) {
-    const t = unescapeInterpreterName(unwrapped[idx]!).toLowerCase();
-    if (t === 'sudo') {
-      idx++;
-      continue;
-    }
-    if (t === 'env') {
-      idx++;
-      while (idx < unwrapped.length && /^[A-Za-z_][A-Za-z0-9_]*=/.test(unwrapped[idx]!)) {
-        idx++;
-      }
-      continue;
-    }
-    break;
-  }
+  const front = applyInterpreterFrontChdir(unwrapped, 0, cwdCandidates, fullCommand);
+  // Unknown env/sudo option: the whole RHS is an unknown program → DENY.
+  if (front.denyProgram) return true;
+  const idx = front.nextIdx;
+  const resolvedCandidates = front.candidates;
   if (idx >= unwrapped.length) return false;
   const name = unescapeInterpreterName(unwrapped[idx]!);
   if (!INTERPRETER_NAME_RE.test(name)) return false;
   const family = interpreterFamily(name);
-  return Boolean(family && interpreterArgsAreStdinProgram(family, unwrapped.slice(idx + 1)));
+  return Boolean(
+    family &&
+      interpreterArgsAreStdinProgram(family, unwrapped.slice(idx + 1), resolvedCandidates),
+  );
 }
 
 // =============================================================================
@@ -806,7 +1547,9 @@ export function networkEgressGuard(input: HookInput, ctx: HookContext = NOOP_CTX
     }
   }
 
-  if (scanFetcherInterpreterPipes(raw)) {
+  const hookCwd = hookInputCwd(input);
+  const baseCandidates = hookCwd !== null && hookCwd.length > 0 ? [hookCwd] : [];
+  if (scanFetcherInterpreterPipes(raw, baseCandidates)) {
     const label = 'curl|interpreter: pipes fetched content to an interpreter';
     ctx.log(HOOK_NAME, `BLOCKED: ${label}`);
     ctx.logPermission('deny', label, input);
