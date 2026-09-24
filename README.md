@@ -614,6 +614,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.88](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.87...v10.0.0-beta.88)** · 2026-09-24
+
+- **docs-site:** align three stale landing.spec cases with hero A (#4398)
+- **hooks:** resolve relative interpreter program paths against the effective working directory (#4400)
+
 **[v10.0.0-beta.87](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.86...v10.0.0-beta.87)** · 2026-09-24
 
 - **hooks:** fail-closed on shell-expanded interpreter arguments (#4397)
@@ -653,15 +658,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **hooks:** age-cap session events and bound Stop git status (#4367)
 - **skills:** correct provider API parameters in skill examples (#4381)
 - **skills:** drop dead agent: bindings under context inherit (F26) (#4358)
-
-**[v10.0.0-beta.80](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.79...v10.0.0-beta.80)** · 2026-09-23
-
-- **agents:** adopt Anthropic's Opus 5.5 working guidance (#4363)
-- **agents:** grant stitch and storybook-mcp tools (F12) (#4362)
-- **hooks:** ConfigChange --no-verify false positives (SC47 F3) (#4368)
-- **hooks:** fall back to raw --no-verify scan on settings parse failure (#4370)
-- **hooks:** require ORK_TEST_MODE for ORK_HOOKS_DIST_DIR (#4371)
-- …and 6 more (see [CHANGELOG.md](CHANGELOG.md))
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
