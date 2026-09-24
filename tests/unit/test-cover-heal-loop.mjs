@@ -493,13 +493,58 @@ const twoHunkCases = [
     ],
     0,
   ],
+  // CodeRabbit :345 and :395: subjects and expected-side names are separate sets.
+  [
+    ':345 locator renamed in one hunk, its subject asserted in the other',
+    [
+      {
+        before: "const button = page.getByRole('button', { name: 'Old' })",
+        after: "const button = page.getByRole('button', { name: 'New' })",
+      },
+      { before: 'await expect(button).toBeVisible()', after: 'await button.waitFor()\nawait expect(button).toBeVisible()' },
+    ],
+    0,
+    STALE_F,
+  ],
+  [
+    ':395 expected constant re-pointed with no literal',
+    [
+      { before: 'const CODE = oldStatus', after: 'const CODE = newStatus' },
+      { before: 'expect(res.status).toBe(CODE)', after: 'await settle()\nexpect(res.status).toBe(CODE)' },
+    ],
+    1,
+  ],
+  [
+    ':395 expected constant re-pointed through a member expression',
+    [
+      { before: 'const CODE = STATUS.CONFLICT', after: 'const CODE = STATUS.UNPROCESSABLE' },
+      { before: 'expect(res.status).toBe(CODE)', after: 'await settle()\nexpect(res.status).toBe(CODE)' },
+    ],
+    1,
+  ],
+  [
+    'subject variable set to the expected value in the other hunk',
+    [
+      { before: 'const got = await api.create(user)', after: 'const got = 409' },
+      { before: 'await page.waitForTimeout(500)\nexpect(got).toBe(409)', after: 'await settle()\nexpect(got).toBe(409)' },
+    ],
+    1,
+  ],
+  [
+    'Python subject set to the expected value in the other hunk',
+    [
+      { before: "got = client.post('/users').status_code", after: 'got = 409' },
+      { before: 'time.sleep(0.5)\nassert got == 409', after: 'wait_for_idle()\nassert got == 409' },
+    ],
+    1,
+  ],
 ];
-for (const [label, hunks, rejectedCount] of twoHunkCases) {
+for (const [label, hunks, rejectedCount, target = FLAKY_E] of twoHunkCases) {
   await scenario(`two hunks: ${label}`, async () => {
     const { result } = await runLoop({
-      runs: [red([FLAKY_E]), GREEN],
-      repairs: [repairOf(hunks.map((h) => fix(FLAKY_E, { change: 'stabilised the test', ...h })))],
-      reverts: REVERT_E,
+      runs: [red([target]), GREEN],
+      repairs: [repairOf(hunks.map((h) => fix(target, { change: 'stabilised the test', ...h })))],
+      reverts: [{ reverted: [{ file: target.file, line: target.line, restored: true }] }],
     });
     check(
       `two hunks ${label}: ${rejectedCount ? 'rejected' : 'kept'}`,

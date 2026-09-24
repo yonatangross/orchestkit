@@ -66,12 +66,17 @@ trusted on their own. `heal-loop.js` also decides from the text:
     locator expressions (`getBy*`, `queryBy*`, `findBy*`, `locator(`, behind `page.`,
     `screen.` or `within(x).`), and the new subject holds no literal equal to the failure's
     expected value. `expect(409)` or `expect(Math.min(res.status, 409))` never passes;
-  - an assignment changes a literal for a name used in any assertion (`const want = 409`
-    to `422`, Python `WANT = 409` to `422`), or changes at all for a name in an `expect`
-    matcher's arguments. Fixes of one repair pass are vetted per file together: a name used
-    by an assertion in any hunk of that file counts in every hunk, and a name matching
-    `expect`, `want` or `golden` counts even when no reported hunk asserts on it
-    (`const EXPECTED_STATUS = 409` to `422` in its own hunk is rejected);
+  - an assignment changes at all for a name on an assertion's expected side: an `expect`
+    matcher's arguments, the right of `assert a == b`, the expected argument of
+    `assertEqual` and friends (`const want = 409` to `422`, Python `WANT = 409` to `422`,
+    `const CODE = oldStatus` to `newStatus`), or for a name matching `expect`, `want` or
+    `golden` even when no reported hunk asserts on it;
+  - an assignment changes a literal for a name an assertion inspects (`const got = 409`
+    for `expect(got).toBe(409)`), unless it is a stale-selector locator swap, the same
+    rule as a subject rewritten in place (`page.getByRole('button', { name: 'Old' })` to
+    `'New'` for `expect(button).toBeVisible()` is kept);
+  - both name sets are collected per file across every hunk of one repair pass, before
+    and after, so a value moved in one hunk is caught when the assertion sits in another;
   - `after` adds `try`, `catch`/`except`, `return`, `if`, a ternary, `&&` or `||` while it
     contains an assertion (counted against `before`);
   - `after` adds `skip`, `only`, `todo`, `fixme` or `xfail`.

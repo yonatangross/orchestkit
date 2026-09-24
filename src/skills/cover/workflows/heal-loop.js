@@ -271,7 +271,53 @@ function closeParen(text, open) {
 	return text.length;
 }
 
+function splitArgs(s) {
+	const out = [];
+	let depth = 0;
+	let start = 0;
+	let quote = null;
+	for (let i = 0; i < s.length; i++) {
+		const c = s[i];
+		if (quote) {
+			if (c === "\\") i += 1;
+			else if (c === quote) quote = null;
+		} else if (c === '"' || c === "'" || c === "`") quote = c;
+		else if ("([{".includes(c)) depth += 1;
+		else if (")]}".includes(c)) depth -= 1;
+		else if (c === "," && depth === 0) {
+			out.push(s.slice(start, i));
+			start = i + 1;
+		}
+	}
+	out.push(s.slice(start));
+	return out.map((a) => a.trim()).filter(Boolean);
+}
+
+const comparisonRight = (s) => {
+	const m = /(?:===?|!==?|<=|>=|\bis(?:\s+not)?\s|\bnot\s+in\s|\bin\s|[<>])\s*(.+)$/.exec(s);
+	return m ? m[1] : "";
+};
+
+// The expected side of a line assertion: the right of a comparison, the expected argument
+// of an assertEqual style call, the exception of pytest.raises, the chain after .should.
+function lineExpectedSide(line) {
+	const call = /\b((?:self\.)?assert[A-Z]\w*|assert\.\w+|pytest\.raises)\s*\(/.exec(line);
+	if (call) {
+		const open = call.index + call[0].length - 1;
+		const inner = line.slice(open + 1, closeParen(line, open) - 1);
+		if (call[1] === "pytest.raises") return inner;
+		const args = splitArgs(inner);
+		if (args.length < 2) return comparisonRight(args[0] || "");
+		// JUnit assertEquals(expected, actual); unittest and node:assert take (actual, expected).
+		return /(?:Equals|Same)$/.test(call[1]) ? args[0] : args.slice(1).join(",");
+	}
+	const should = line.indexOf(".should");
+	if (should >= 0) return line.slice(should + ".should".length);
+	return comparisonRight(line.replace(/^\s*assert\b/, ""));
+}
+
 // expect(key, subject, expectedSide): expectedSide is the matcher arguments only.
+// actualSide is what the assertion inspects: the expect subject, or the rest of the line.
 function extractAssertions(text) {
 	const out = [];
 	for (const m of text.matchAll(EXPECT_CALL)) {
@@ -292,11 +338,21 @@ function extractAssertions(text) {
 				i = end;
 			}
 		}
-		out.push({ key: `expect(...)${chain}`, subject, expectedSide: args, raw: subject + chain, js: true });
+		out.push({
+			key: `expect(...)${chain}`,
+			subject,
+			expectedSide: args,
+			actualSide: subject,
+			raw: subject + chain,
+			js: true,
+		});
 	}
 	for (const re of LINE_ASSERTIONS) {
 		for (const m of text.matchAll(re)) {
-			out.push({ key: squash(m[0]), subject: "", expectedSide: m[0], raw: m[0], js: false });
+			const expectedSide = lineExpectedSide(m[0]);
+			const at = expectedSide ? m[0].lastIndexOf(expectedSide) : -1;
+			const actualSide = at < 0 ? m[0] : `${m[0].slice(0, at)} ${m[0].slice(at + expectedSide.length)}`;
+			out.push({ key: squash(m[0]), subject: "", expectedSide, actualSide, raw: m[0], js: false });
 		}
 	}
 	return out;
@@ -334,23 +390,25 @@ const GUARDS = [
 // the reported hunks names it (the assertion can sit in an unreported part of the file).
 const EXPECTED_NAME = /expect|want|golden/i;
 
-// Every identifier used by an assertion in any hunk of one file, before or after. A pass
-// can move the expected value in one hunk while the assertion sits in another.
-function assertedNamesByFile(fixes) {
+// Identifiers on one side of every assertion in any hunk of one file, before or after. A
+// pass can move a value in one hunk while the assertion sits in another.
+function namesByFile(fixes, side) {
 	const byFile = new Map();
 	for (const fix of fixes) {
 		const set = byFile.get(fix.file) || new Set();
-		for (const side of [fix.before, fix.after]) {
-			for (const a of extractAssertions(String(side || ""))) {
-				for (const n of names(a.raw)) set.add(n);
+		for (const text of [fix.before, fix.after]) {
+			for (const a of extractAssertions(String(text || ""))) {
+				for (const n of names(a[side])) set.add(n);
 			}
 		}
 		byFile.set(fix.file, set);
 	}
 	return byFile;
 }
+const assertedNamesByFile = (fixes) => namesByFile(fixes, "expectedSide");
+const subjectNamesByFile = (fixes) => namesByFile(fixes, "actualSide");
 
-function assertionChange(before, after, fix = {}, target = {}, fileAsserted = new Set()) {
+function assertionChange(before, after, fix = {}, target = {}, fileExpected = new Set(), fileSubjects = new Set()) {
 	const was = extractAssertions(before);
 	const now = extractAssertions(after);
 	const cut = (k) => String(k).slice(0, 120);
@@ -370,30 +428,41 @@ function assertionChange(before, after, fix = {}, target = {}, fileAsserted = ne
 	}
 
 	const [expectedValue] = expectedActual(target);
+	// The only subject change heal may keep: a stale-selector fix swapping one locator for
+	// another that does not carry the failure's expected value.
+	const locatorSwap = (from, to) =>
+		fix.category === "stale-selector" &&
+		LOCATOR_SUBJECT.test(from) &&
+		LOCATOR_SUBJECT.test(to) &&
+		!(expectedValue !== "?" && literals(to).includes(expectedValue.replace(/^["'`]|["'`]$/g, "")));
 	const unpaired = now.filter((a) => a.js);
 	for (const o of was.filter((a) => a.js)) {
 		const i = unpaired.findIndex((a) => a.key === o.key);
 		if (i < 0) continue;
 		const [n] = unpaired.splice(i, 1);
 		if (n.subject === o.subject) continue;
-		const swap =
-			fix.category === "stale-selector" &&
-			LOCATOR_SUBJECT.test(o.subject) &&
-			LOCATOR_SUBJECT.test(n.subject) &&
-			!(expectedValue !== "?" && literals(n.subject).includes(expectedValue.replace(/^["'`]|["'`]$/g, "")));
-		if (!swap) return `assertion subject changed: expect(${cut(o.subject)}) became expect(${cut(n.subject)})`;
+		if (!locatorSwap(o.subject, n.subject)) {
+			return `assertion subject changed: expect(${cut(o.subject)}) became expect(${cut(n.subject)})`;
+		}
 	}
 
-	const asserted = names([...was, ...now].map((a) => a.raw).join(" "));
-	for (const n of fileAsserted) asserted.add(n);
-	const expectedNames = names([...was, ...now].filter((a) => a.js).map((a) => a.expectedSide).join(" "));
+	// Expected-side names: any change moves the expected value. Subject names: a literal
+	// change is held to the same locator-swap rule as a subject rewritten in place.
+	const expectedNames = names([...was, ...now].map((a) => a.expectedSide).join(" "));
+	for (const n of fileExpected) expectedNames.add(n);
+	const subjectNames = names([...was, ...now].map((a) => a.actualSide).join(" "));
+	for (const n of fileSubjects) subjectNames.add(n);
 	const wasSet = assignments(before);
 	const nowSet = assignments(after);
 	for (const [name, value] of wasSet) {
-		if (!nowSet.has(name) || nowSet.get(name) === value) continue;
-		const literalChange = literals(value).join("\u0000") !== literals(nowSet.get(name)).join("\u0000");
-		if (((asserted.has(name) || EXPECTED_NAME.test(name)) && literalChange) || expectedNames.has(name)) {
-			return `expected value changed through ${name}: ${cut(value)} became ${cut(nowSet.get(name))}`;
+		const next = nowSet.get(name);
+		if (next === undefined || next === value) continue;
+		if (expectedNames.has(name) || EXPECTED_NAME.test(name)) {
+			return `expected value changed through ${name}: ${cut(value)} became ${cut(next)}`;
+		}
+		const literalChange = literals(value).join("\u0000") !== literals(next).join("\u0000");
+		if (subjectNames.has(name) && literalChange && !locatorSwap(value, next)) {
+			return `assertion subject changed through ${name}: ${cut(value)} became ${cut(next)}`;
 		}
 	}
 
@@ -437,7 +506,7 @@ function flagProductBug(f, origin, iteration, reason) {
 }
 
 // Returns the reason a reported fix is rejected, or null when heal may keep it.
-function vetFix(fix, target, fileAsserted) {
+function vetFix(fix, target, fileExpected, fileSubjects) {
 	if (VALUE_MISMATCH.has(fix.category)) {
 		return `fix targets a ${fix.category} failure; value mismatches are never healed`;
 	}
@@ -445,7 +514,7 @@ function vetFix(fix, target, fileAsserted) {
 	if (typeof fix.before !== "string" || typeof fix.after !== "string") {
 		return "fix reported no before/after text, so it cannot be vetted";
 	}
-	const changed = assertionChange(fix.before, fix.after, fix, target, fileAsserted);
+	const changed = assertionChange(fix.before, fix.after, fix, target, fileExpected, fileSubjects);
 	if (changed) return changed;
 	if (EXPECTED_EDIT.test(String(fix.change || ""))) {
 		return "fix describes an expected value or snapshot rewrite";
@@ -641,9 +710,15 @@ or xfail, whatever category you report.`,
 		repair && Array.isArray(repair.possible_product_bugs) ? repair.possible_product_bugs : [];
 	const accepted = [];
 	const rejected = [];
-	const assertedByFile = assertedNamesByFile(fixes);
+	const expectedByFile = assertedNamesByFile(fixes);
+	const subjectsByFile = subjectNamesByFile(fixes);
 	for (const fix of fixes) {
-		const reason = vetFix(fix, fixTarget(fix, repairable), assertedByFile.get(fix.file));
+		const reason = vetFix(
+			fix,
+			fixTarget(fix, repairable),
+			expectedByFile.get(fix.file),
+			subjectsByFile.get(fix.file),
+		);
 		if (reason) rejected.push({ fix, reason });
 		else accepted.push(fix);
 	}
