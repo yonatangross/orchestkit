@@ -51,19 +51,20 @@
   <div class="glass">
     <div class="issue">network-egress-guard &middot; curl|interpreter</div>
     <h1>Resolve relative interpreter program paths against the effective working directory</h1>
-    <p>After a fetcher pipe, a relative program path is judged against the
-       directory the shell would be in: the hook cwd, updated by every top-level
-       directory change before the interpreter. If that directory is unknown, a
-       relative program path is denied.</p>
+    <p>After a fetcher pipe, a relative program path is judged against every
+       directory the shell could be in: start from the hook cwd, then ADD each
+       directory change found before the interpreter. The set never shrinks, so
+       a later failed or skipped change cannot hide an earlier one. If the set
+       is unknown, a relative program path is denied.</p>
   </div>
 
   <div class="glass">
-    <h2>How the cwd is tracked</h2>
+    <h2>How the cwd set is tracked</h2>
     <ol>
-      <li>Start from the hook working directory.</li>
-      <li>Apply each literal top-level directory change before the interpreter.</li>
-      <li>Any unresolvable change makes the cwd unknown.</li>
-      <li>Resolve the program path; deny under a kernel filesystem tree.</li>
+      <li>Start from the hook working directory as the only candidate.</li>
+      <li>Scan the whole prefix for directory changes across every separator.</li>
+      <li>Each change adds targets; existing candidates stay.</li>
+      <li>Deny a relative program path that resolves badly from any candidate, or when the set is unknown.</li>
     </ol>
   </div>
 
