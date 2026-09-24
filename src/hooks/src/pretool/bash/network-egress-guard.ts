@@ -684,19 +684,19 @@ function resolveCwdCandidates(
 }
 
 /**
- * Consume env -C / env --chdir and sudo -D / sudo --chdir that sit directly
- * in front of the interpreter. Short option clusters are walked letter by
- * letter (`-iC/dev`, `-C/dev`). Any unknown option, or a long-option prefix of
- * `--chdir` (`--c`, `--ch`, `--chd`, …), makes the set UNKNOWN. Successful
- * parses ADD targets (capped).
+ * Peel env / sudo in front of the interpreter with a POSITIVE option allowlist.
+ * Allowed options are consumed; -C / -D / --chdir ADD to the cwd set.
+ * Anything else means the whole RHS is an UNKNOWN program (DENY). Never advance
+ * past an unknown option and treat the next token as the utility.
  */
 function applyInterpreterFrontChdir(
   tokens: string[],
   startIdx: number,
   candidates: string[] | null,
   fullCommand: string,
-): { nextIdx: number; candidates: string[] | null } {
-  let unknown = candidates === null;
+): { nextIdx: number; candidates: string[] | null; denyProgram: boolean } {
+  let unknownCwd = candidates === null;
+  let denyProgram = false;
   const set = new Set<string>(candidates ?? []);
   const state = {
     dirChanges: 0,
@@ -707,18 +707,17 @@ function applyInterpreterFrontChdir(
   const addTarget = (raw: string): void => {
     const target = unwrapToken(raw).replace(/\\/g, '');
     if (target.length === 0 || programArgIsShellExpanded(target) || target === '-') {
-      unknown = true;
+      unknownCwd = true;
       return;
     }
-    if (!addCwdCandidateTarget(set, target, state)) unknown = true;
+    if (!addCwdCandidateTarget(set, target, state)) unknownCwd = true;
   };
 
-  /** True when `opt` is a proper prefix of `--chdir` (GNU abbreviation risk). */
-  const isChdirLongPrefix = (opt: string): boolean =>
-    opt.startsWith('--') &&
-    opt !== '--chdir' &&
-    !opt.startsWith('--chdir=') &&
-    '--chdir'.startsWith(opt);
+  const takeValue = (): string | null => {
+    if (idx + 1 >= tokens.length) return null;
+    idx++;
+    return unwrapToken(tokens[idx]!);
+  };
 
   while (idx < tokens.length) {
     const raw = tokens[idx]!;
@@ -738,13 +737,13 @@ function applyInterpreterFrontChdir(
         }
         if (a.startsWith('--')) {
           if (a === '--chdir') {
-            if (idx + 1 >= tokens.length) {
-              unknown = true;
-              idx++;
+            const v = takeValue();
+            if (v === null) {
+              denyProgram = true;
               break;
             }
-            addTarget(tokens[idx + 1]!);
-            idx += 2;
+            addTarget(v);
+            idx++;
             continue;
           }
           if (a.startsWith('--chdir=')) {
@@ -752,26 +751,29 @@ function applyInterpreterFrontChdir(
             idx++;
             continue;
           }
-          if (a === '--unset' || a.startsWith('--unset=')) {
-            if (a === '--unset') {
-              if (idx + 1 < tokens.length) idx += 2;
-              else idx++;
-            } else idx++;
-            continue;
-          }
-          if (isChdirLongPrefix(a)) {
-            unknown = true;
+          if (a === '--unset') {
+            if (takeValue() === null) {
+              denyProgram = true;
+              break;
+            }
             idx++;
             continue;
           }
-          // Unknown long option: fail-closed.
-          unknown = true;
-          idx++;
-          continue;
+          if (a.startsWith('--unset=')) {
+            idx++;
+            continue;
+          }
+          if (a === '--ignore-environment' || a === '--debug') {
+            idx++;
+            continue;
+          }
+          // Not on the allowlist: DENY the whole RHS.
+          denyProgram = true;
+          break;
         }
         if (a.startsWith('-') && a !== '-') {
-          // Short cluster: -iC/dev, -C/dev, -iC, -uNAME, …
           let p = 1;
+          let clusterBad = false;
           while (p < a.length) {
             const ch = a[p]!;
             if (ch === 'C') {
@@ -779,42 +781,47 @@ function applyInterpreterFrontChdir(
               if (glued.length > 0) {
                 addTarget(glued);
                 p = a.length;
-              } else if (idx + 1 < tokens.length) {
-                addTarget(tokens[idx + 1]!);
-                idx++;
-                p = a.length;
               } else {
-                unknown = true;
+                const v = takeValue();
+                if (v === null) {
+                  clusterBad = true;
+                  break;
+                }
+                addTarget(v);
                 p = a.length;
               }
               continue;
             }
-            if (ch === 'u') {
+            if (ch === 'u' || ch === 'P') {
               const glued = a.slice(p + 1);
               if (glued.length > 0) {
                 p = a.length;
-              } else if (idx + 1 < tokens.length) {
-                idx++;
-                p = a.length;
+              } else if (takeValue() === null) {
+                clusterBad = true;
+                break;
               } else {
-                unknown = true;
                 p = a.length;
               }
               continue;
             }
-            // Known no-arg env shorts; anything else is unknown.
-            if (ch === 'i' || ch === '0' || ch === 'v' || ch === 'S') {
+            if (ch === 'i' || ch === '0' || ch === 'v') {
               p++;
               continue;
             }
-            unknown = true;
-            p = a.length;
+            // Not on the allowlist: DENY the whole RHS.
+            clusterBad = true;
+            break;
+          }
+          if (clusterBad) {
+            denyProgram = true;
+            break;
           }
           idx++;
           continue;
         }
         break;
       }
+      if (denyProgram) break;
       continue;
     }
 
@@ -828,13 +835,13 @@ function applyInterpreterFrontChdir(
         }
         if (a.startsWith('--')) {
           if (a === '--chdir') {
-            if (idx + 1 >= tokens.length) {
-              unknown = true;
-              idx++;
+            const v = takeValue();
+            if (v === null) {
+              denyProgram = true;
               break;
             }
-            addTarget(tokens[idx + 1]!);
-            idx += 2;
+            addTarget(v);
+            idx++;
             continue;
           }
           if (a.startsWith('--chdir=')) {
@@ -842,18 +849,12 @@ function applyInterpreterFrontChdir(
             idx++;
             continue;
           }
-          if (isChdirLongPrefix(a)) {
-            unknown = true;
-            idx++;
-            continue;
-          }
-          // Other long options: fail-closed on cwd knowledge.
-          unknown = true;
-          idx++;
-          continue;
+          denyProgram = true;
+          break;
         }
         if (a.startsWith('-') && a !== '-') {
           let p = 1;
+          let clusterBad = false;
           while (p < a.length) {
             const ch = a[p]!;
             if (ch === 'D') {
@@ -861,71 +862,71 @@ function applyInterpreterFrontChdir(
               if (glued.length > 0) {
                 addTarget(glued);
                 p = a.length;
-              } else if (idx + 1 < tokens.length) {
-                addTarget(tokens[idx + 1]!);
-                idx++;
-                p = a.length;
               } else {
-                unknown = true;
+                const v = takeValue();
+                if (v === null) {
+                  clusterBad = true;
+                  break;
+                }
+                addTarget(v);
                 p = a.length;
               }
               continue;
             }
-            // Value-taking sudo shorts: consume glued rest or next token.
-            if (
-              ch === 'u' ||
-              ch === 'g' ||
-              ch === 'p' ||
-              ch === 'r' ||
-              ch === 't' ||
-              ch === 'U' ||
-              ch === 'C'
-            ) {
+            if (ch === 'u' || ch === 'g' || ch === 'U' || ch === 'p' || ch === 'C') {
               const glued = a.slice(p + 1);
               if (glued.length > 0) {
                 p = a.length;
-              } else if (idx + 1 < tokens.length) {
-                idx++;
-                p = a.length;
+              } else if (takeValue() === null) {
+                clusterBad = true;
+                break;
               } else {
-                unknown = true;
                 p = a.length;
               }
               continue;
             }
-            // Common no-arg sudo shorts.
             if (
               ch === 'E' ||
               ch === 'H' ||
               ch === 'n' ||
-              ch === 's' ||
-              ch === 'i' ||
-              ch === 'b' ||
               ch === 'k' ||
               ch === 'K' ||
-              ch === 'l' ||
-              ch === 'v' ||
-              ch === 'A' ||
-              ch === 'S'
+              ch === 'b' ||
+              ch === 'P'
             ) {
               p++;
               continue;
             }
-            unknown = true;
-            p = a.length;
+            // Not on the allowlist (including shell modes): DENY.
+            clusterBad = true;
+            break;
+          }
+          if (clusterBad) {
+            denyProgram = true;
+            break;
           }
           idx++;
           continue;
         }
+        // Bare shell name after sudo: DENY.
+        if (a === 'sh' || a === 'bash' || a === 'zsh' || a === 'dash' || a === 'ksh') {
+          denyProgram = true;
+          break;
+        }
         break;
       }
+      if (denyProgram) break;
       continue;
     }
 
     break;
   }
 
-  return { nextIdx: idx, candidates: unknown ? null : [...set] };
+  return {
+    nextIdx: idx,
+    candidates: unknownCwd || denyProgram ? null : [...set],
+    denyProgram,
+  };
 }
 
 /**
@@ -1229,6 +1230,8 @@ function rhsIsStdinInterpreter(
 ): boolean {
   const unwrapped = tokens.map(unwrapToken);
   const front = applyInterpreterFrontChdir(unwrapped, 0, cwdCandidates, fullCommand);
+  // Unknown env/sudo option: the whole RHS is an unknown program → DENY.
+  if (front.denyProgram) return true;
   const idx = front.nextIdx;
   const resolvedCandidates = front.candidates;
   if (idx >= unwrapped.length) return false;
