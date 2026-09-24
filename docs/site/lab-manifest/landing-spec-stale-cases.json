@@ -1,0 +1,8 @@
+{
+  "slug": "landing-spec-stale-cases",
+  "source": "docs/chore--dsp-33825-4384-docs-site-them/playground.html",
+  "title": "Three stale landing.spec cases vs hero A",
+  "description": "Toggle each of the three landing.spec failures exposed by #4345 and see the hero A selector repair: scoped status, beta changelog links, primary text color.",
+  "tags": ["docs", "site", "playwright", "4384"],
+  "date": "2026-09-24"
+}
