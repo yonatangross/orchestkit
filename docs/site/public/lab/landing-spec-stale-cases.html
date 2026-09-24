@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Three stale landing.spec cases vs hero A</title>
+<meta name="description" content="Toggle each of the three landing.spec failures exposed by #4345 and see why the hero A page needs a scoped status, a beta changelog link, and a text-color token check.">
+<style>
+:root{color-scheme:dark;--bg:#101820;--panel:#1a2934;--text:#edf4f7;--muted:#b5c8d2;--ok:#83e1bc;--bad:#f0a0a0}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:18px/1.55 system-ui,sans-serif}
+main{max-width:880px;margin:3rem auto;padding:1.5rem}h1{font-size:clamp(2rem,5vw,3rem);line-height:1.12}
+p,small{color:var(--muted)}section{background:var(--panel);padding:1.25rem 1.5rem;border-radius:12px;margin-block:1.25rem}
+label{display:flex;gap:.75rem;align-items:flex-start;margin:.7rem 0;cursor:pointer}
+input{margin-top:.35rem}code{color:var(--ok);overflow-wrap:anywhere}
+table{width:100%;border-collapse:collapse;text-align:left}th,td{padding:.7rem;border-bottom:1px solid #2c3d4a;vertical-align:top}
+.ok{color:var(--ok);font-weight:700}.bad{color:var(--bad);font-weight:700}
+button{font:inherit;background:var(--bg);color:var(--text);padding:.55rem .9rem;border:1px solid var(--muted);border-radius:6px;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:3px solid var(--ok);outline-offset:3px}
+a{color:var(--ok)}#status{margin-left:.5rem}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Three stale landing.spec cases vs hero A"><meta property="og:description" content="Toggle each of the three landing.spec failures exposed by #4345 and see the hero A selector repair: scoped status, beta changelog links, primary text color."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/landing-spec-stale-cases.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Three stale landing.spec cases vs hero A"><meta name="twitter:description" content="Toggle each of the three landing.spec failures exposed by #4345 and see the hero A selector repair: scoped status, beta changelog links, primary text color."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<body><main>
+<small>PR Playground / Issue #4384</small>
+<h1>Stale selectors.<br>Live hero A.</h1>
+<p>#4345 wired <code>landing.spec.ts</code> into Docs Site CI, then grepped down to hero A geometry so three never-run cases stayed red. This page is the selector repair for those three.</p>
+
+<section>
+<p><strong>Toggle the broken assertion</strong> to see what Playwright hit before the fix.</p>
+<label><input type="checkbox" id="c1" checked> Agents tab: page-wide <code>getByRole('status')</code></label>
+<label><input type="checkbox" id="c2" checked> Changelog: link matching <code>10.0.0-alpha.N</code></label>
+<label><input type="checkbox" id="c3" checked> Get started: assert <code>backgroundColor</code></label>
+</section>
+
+<section aria-live="polite">
+<table>
+<caption>Case outcome</caption>
+<thead><tr><th scope="col">Case</th><th scope="col">On the page today</th><th scope="col">Assertion</th></tr></thead>
+<tbody>
+<tr><td>Agents catalog</td><td id="a1"></td><td id="r1"></td></tr>
+<tr><td>Changelog versions</td><td id="a2"></td><td id="r2"></td></tr>
+<tr><td>Get started CTA</td><td id="a3"></td><td id="r3"></td></tr>
+</tbody>
+</table>
+<p id="summary"></p>
+</section>
+
+<p>Root cause matched the issue: CopyInstallButton owns an sr-only live region; RecentVersions links beta tags; hero A Get started is <code>text-fd-primary</code>, not a filled button. Docs Site CI grep is <code>Landing|View transition abort guard</code> so the full suite gates again.</p>
+<button id="copy" type="button">Copy Playwright command</button><span id="status" role="status"></span>
+<p><a href="https://github.com/yonatangross/orchestkit/issues/4384">Issue #4384</a></p>
+</main>
+<script>
+const c1=document.querySelector('#c1'),c2=document.querySelector('#c2'),c3=document.querySelector('#c3');
+function cell(id,ok,text){const el=document.getElementById(id);el.className=ok?'ok':'bad';el.textContent=text;}
+function render(){
+  cell('a1',true,'CopyInstall status + AgentsGrid status');
+  cell('r1',!c1.checked,c1.checked?'strict mode: 2 matches':'panel.getByRole(status) /agents/i');
+  cell('a2',true,'RecentVersions: 10.0.0-beta.N');
+  cell('r2',!c2.checked,c2.checked?'alpha link not found':'beta link visible');
+  cell('a3',true,'text link, background transparent');
+  cell('r3',!c3.checked,c3.checked?'bg rgba(0,0,0,0) fails':'color token resolves');
+  const broken=[c1,c2,c3].filter(x=>x.checked).length;
+  document.querySelector('#summary').textContent=broken
+    ? broken+' assertion(s) still match the pre-fix failure.'
+    : 'All three assertions match hero A. Local: 9 passed, 1 skipped.';
+}
+[c1,c2,c3].forEach(el=>el.addEventListener('change',render));render();
+document.querySelector('#copy').addEventListener('click',async()=>{
+  const cmd='cd docs/site && npx playwright test e2e/landing.spec.ts --project=chromium-desktop';
+  try{await navigator.clipboard.writeText(cmd);document.querySelector('#status').textContent='Copied.';}
+  catch{document.querySelector('#status').textContent=cmd;}
+});
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
