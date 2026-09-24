@@ -174,7 +174,8 @@ const REVERT_RESULT = {
 
 const TAXONOMY = `Classify EVERY failure into exactly one category:
 - assertion       VALUE mismatch: expected X, got Y; snapshot diff; wrong status code; wrong
-                  count (e.g. "expected 200, got 201"). Never healed, reported as a possible product bug
+                  count (e.g. "expected 200, got 201"). Never healed, reported as a possible product bug.
+                  The workflow treats any message in that shape as a value mismatch whatever the category
 - import          module resolution (e.g. "Cannot find module './auth'")
 - setup           missing service/fixture (e.g. "Connection refused", wrong fixture scope)
 - timeout         exceeded the time budget
@@ -199,16 +200,111 @@ ${TAXONOMY}
 Put the last ~2000 characters of real stdout/stderr in raw_output.`;
 
 const failureKey = (f) => `${f.file || ""}::${f.test || ""}`;
-const isValueMismatch = (f) => VALUE_MISMATCH.has(f.category);
 const EXPECTED_GOT = /expected:?\s+(.+?)[,;]?\s+(?:but\s+)?(?:got|received):?\s+(.+)/i;
+// Value-mismatch message shapes, each with the capture order [expected, actual].
+// The agent's category is not trusted: a message in one of these shapes is a value
+// mismatch whatever the failure is labelled.
+const VALUE_MESSAGES = [
+	{ re: EXPECTED_GOT, order: [1, 2] }, // expected X, got Y / Expected: X Received: Y
+	{ re: /\bassert\s+(.+?)\s+==\s+(.+)/, order: [2, 1] }, // pytest: assert actual == expected
+	{ re: /AssertionError:\s*(.+?)\s+!=\s+(.+)/, order: [2, 1] }, // unittest: first != second
+	{ re: /\bstatus(?:[ _]?code)?\b[^\n]*?\b([1-5]\d\d)\b[^\n]*?\b([1-5]\d\d)\b/i, order: [1, 2] },
+];
+// TS2554 "Expected 2 arguments, but got 1" has the expected/got shape but is a type error.
+const NOT_VALUE = /\bexpected \d+(?:-\d+)? (?:type )?arguments?\b/i;
+const valueMessage = (f) => {
+	const msg = String(f.message || "");
+	return NOT_VALUE.test(msg) ? undefined : VALUE_MESSAGES.find((v) => v.re.test(msg));
+};
+const isValueMismatch = (f) => VALUE_MISMATCH.has(f.category) || Boolean(valueMessage(f));
 // A fix whose own description says it rewrites an expected value or a snapshot is
 // rejected even when touches_expected_value claims otherwise.
 const EXPECTED_EDIT = /\bexpected (?:value|status|count)\b|\bsnapshots?\b|update-?snapshot|\s-u\b/i;
 
 function expectedActual(f) {
 	if (f.expected || f.actual) return [f.expected || "?", f.actual || "?"];
-	const m = String(f.message || "").match(EXPECTED_GOT);
-	return m ? [m[1].trim(), m[2].trim()] : ["?", "?"];
+	const v = valueMessage(f);
+	if (!v) return ["?", "?"];
+	const m = String(f.message).match(v.re);
+	return v.order.map((i) => m[i].trim());
+}
+
+// Deterministic assertion diff over a fix's before/after text. The agent's category and
+// touches_expected_value are labels it chose; this reads the code it says it changed.
+// JS expect(...) keeps its subject out of the key, so a selector or subject change passes
+// while any change to the matcher chain or its arguments (the expected side) does not.
+const EXPECT_CALL = /\bexpect(?:\.soft)?\s*\(/g;
+const LINE_ASSERTIONS = [
+	/^\s*assert\b.*$/gm, // pytest / plain assert
+	/\b(?:self\.)?assert[A-Z]\w*\s*\(.*$/gm, // unittest assertEqual, assertTrue, JUnit
+	/\bassert\.\w+\s*\(.*$/gm, // node:assert, chai assert
+	/\bpytest\.raises\s*\(.*$/gm,
+	/\.should\b.*$/gm, // chai should
+	/\bstatus(?:_code|Code)?\s*(?:===?|!==?)\s*\d{3}\b.*$/gm, // status comparisons
+];
+const WEAK_MATCHER =
+	/\.(?:toBeDefined|toBeTruthy|toBeFalsy|toBeTypeOf|not\.toBeNull|not\.toBeUndefined|not\.toThrow)\(|expect\.any(?:thing)?\(/;
+const SKIP_MARKER =
+	/\b(?:it|test|describe)\.(?:skip|only|todo|fixme)\b|\bx(?:it|test|describe)\s*\(|\btest\.fail\s*\(|@pytest\.mark\.(?:skip|skipif|xfail)\b|\bpytest\.(?:skip|xfail)\s*\(|@unittest\.skip/g;
+
+const squash = (s) => s.replace(/\s+/g, "").replace(/[;,]+$/, "");
+
+function closeParen(text, open) {
+	let depth = 0;
+	for (let i = open; i < text.length; i++) {
+		if (text[i] === "(") depth += 1;
+		else if (text[i] === ")") {
+			depth -= 1;
+			if (depth === 0) return i + 1;
+		}
+	}
+	return text.length;
+}
+
+function assertionKeys(text) {
+	const keys = [];
+	for (const m of text.matchAll(EXPECT_CALL)) {
+		let i = closeParen(text, m.index + m[0].length - 1);
+		let chain = "";
+		for (;;) {
+			const step = /^\s*\.\s*([A-Za-z_$][\w$]*)\s*/.exec(text.slice(i));
+			if (!step) break;
+			i += step[0].length;
+			chain += `.${step[1]}`;
+			if (text[i] === "(") {
+				const end = closeParen(text, i);
+				chain += squash(text.slice(i, end));
+				i = end;
+			}
+		}
+		keys.push(`expect(...)${chain}`);
+	}
+	for (const re of LINE_ASSERTIONS) {
+		for (const m of text.matchAll(re)) keys.push(squash(m[0]));
+	}
+	return keys;
+}
+
+function assertionChange(before, after) {
+	const was = assertionKeys(before);
+	const now = assertionKeys(after);
+	const left = [...now];
+	const missing = [];
+	for (const k of was) {
+		const i = left.indexOf(k);
+		if (i >= 0) left.splice(i, 1);
+		else missing.push(k);
+	}
+	const cut = (k) => k.slice(0, 120);
+	if (missing.length) {
+		const weak = left.find((k) => WEAK_MATCHER.test(k));
+		if (weak) return `assertion weakened: ${cut(missing[0])} became ${cut(weak)}`;
+		if (now.length < was.length) return `assertion removed: ${cut(missing[0])}`;
+		return `assertion expected side changed: ${cut(missing[0])}`;
+	}
+	const skips = (s) => (s.match(SKIP_MARKER) || []).length;
+	if (skips(after) > skips(before)) return "fix adds skip, only, todo or xfail";
+	return null;
 }
 
 // Keyed by file + test so a failure reported again in a later iteration stays one entry.
@@ -225,6 +321,7 @@ function flagProductBug(f, origin, iteration, reason) {
 		file,
 		line: f.line,
 		category: f.category,
+		classified_by: VALUE_MISMATCH.has(f.category) ? "category" : valueMessage(f) ? "message" : "vetting",
 		expected,
 		actual,
 		report: `possible product bug: expected ${expected}, got ${actual} (${where})`,
@@ -243,6 +340,11 @@ function vetFix(fix) {
 		return `fix targets a ${fix.category} failure; value mismatches are never healed`;
 	}
 	if (fix.touches_expected_value === true) return "fix rewrites an expected value";
+	if (typeof fix.before !== "string" || typeof fix.after !== "string") {
+		return "fix reported no before/after text, so it cannot be vetted";
+	}
+	const changed = assertionChange(fix.before, fix.after);
+	if (changed) return changed;
 	if (EXPECTED_EDIT.test(String(fix.change || ""))) {
 		return "fix describes an expected value or snapshot rewrite";
 	}
@@ -418,7 +520,9 @@ ${doNotTouch || "(none)"}
 7. Anything you cannot fix within these rules goes in unfixable with the reason.
 
 Report exactly what you changed: one fixes entry per edit, with before and after verbatim and
-touches_expected_value set truthfully. The workflow reverts any fix that rewrites an expected value.`,
+touches_expected_value set truthfully. The workflow diffs every before/after itself and reverts
+any fix that changes, removes or weakens an assertion's expected side, or adds skip, only, todo
+or xfail, whatever category you report.`,
 		{
 			// M170/#3126: repair has an obvious specialist owner — fixing tests
 			// by failure category is test-generator's exact domain. The run stage

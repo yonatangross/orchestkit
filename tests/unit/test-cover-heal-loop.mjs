@@ -93,7 +93,7 @@ const FLAKY_E = {
   file: 'tests/unit/debounce.test.ts',
   line: 20,
   category: 'flaky',
-  message: 'expected 1 call, got 0 (fails 1 run in 3)',
+  message: 'Error: Test timed out in 1000ms waiting for the debounce callback (fails 1 run in 3)',
 };
 
 const red = (failures) => ({
@@ -268,6 +268,141 @@ await scenario('rejected-repair entries never count as vanished', async () => {
   });
   check('rejected only: no vanished flag from a rejected-repair entry', [result.value_mismatch_vanished, result.vanished_value_mismatches], [false, []]);
 });
+
+// estate-5 (HOLD on #4407): labels are the agent's; the script must read the code and the message.
+const REVERT_E = [{ reverted: [{ file: FLAKY_E.file, line: FLAKY_E.line, restored: true }] }];
+
+await scenario('estate-5: flaky fix changing toHaveBeenCalledTimes(1) to (0)', async () => {
+  const { result, kinds } = await runLoop({
+    runs: [red([FLAKY_E]), GREEN],
+    repairs: [
+      repairOf([
+        fix(FLAKY_E, {
+          change: 'stabilised the debounce test',
+          before: 'expect(spy).toHaveBeenCalledTimes(1)',
+          after: 'expect(spy).toHaveBeenCalledTimes(0)',
+        }),
+      ]),
+    ],
+    reverts: REVERT_E,
+  });
+  check('estate-5 calls: rejected and reverted, never verified green', kinds, ['run', 'repair', 'revert']);
+  check('estate-5 calls: not healed', [result.status, result.healed], ['failed', false]);
+  const bug = result.possible_product_bugs.find((b) => b.test === FLAKY_E.test);
+  check('estate-5 calls: moved to possible product bugs', bug && bug.origin, 'rejected-repair');
+  check('estate-5 calls: reason names the changed assertion', !!bug && bug.reason.includes('toHaveBeenCalledTimes(1)'), true);
+});
+
+await scenario('estate-5 calls rewrite next to a legit import fix', async () => {
+  const { result, kinds } = await runLoop({
+    runs: [red([IMPORT_B, FLAKY_E]), red([FLAKY_E])],
+    repairs: [
+      repairOf([
+        fix(IMPORT_B),
+        fix(FLAKY_E, {
+          change: 'stabilised the debounce test',
+          before: 'expect(spy).toHaveBeenCalledTimes(1)',
+          after: 'expect(spy).toHaveBeenCalledTimes(0)',
+        }),
+      ]),
+    ],
+    reverts: REVERT_E,
+  });
+  check('mixed vet: import kept, assertion rewrite rejected', [result.iteration_ledger[0].accepted_fixes, result.iteration_ledger[0].rejected_fixes], [1, 1]);
+  check('mixed vet: rejected item never repaired again', kinds, ['run', 'repair', 'revert', 'run']);
+});
+
+await scenario('estate-5: 409 vs 422 labelled flaky', async () => {
+  const MISLABELLED = {
+    test: 'POST /users conflict',
+    file: 'tests/unit/users.test.ts',
+    line: 30,
+    category: 'flaky',
+    message: 'AssertionError: expected 409, got 422',
+  };
+  const { result, kinds } = await runLoop({
+    runs: [red([MISLABELLED]), GREEN],
+    repairs: [
+      repairOf([
+        fix(MISLABELLED, { change: 'stabilised the response wait', before: 'expect(res.status).toBe(409)', after: 'expect(res.status).toBe(422)' }),
+      ]),
+    ],
+  });
+  check('estate-5 409: withheld from repair whatever the label', kinds, ['run']);
+  check(
+    'estate-5 409: flagged with expected and got',
+    result.possible_product_bugs.map((b) => [b.report, b.classified_by]),
+    [['possible product bug: expected 409, got 422 (tests/unit/users.test.ts:30)', 'message']],
+  );
+  check('estate-5 409: not healed, still failing', [result.healed, result.remaining_failures.map((f) => f.test)], [false, [MISLABELLED.test]]);
+});
+
+const valueMessages = [
+  ['pytest assert', 'E       assert 422 == 409', 'possible product bug: expected 409, got 422 (tests/unit/api.test.py:5)'],
+  ['unittest assertEqual', 'AssertionError: 422 != 409', 'possible product bug: expected 409, got 422 (tests/unit/api.test.py:5)'],
+  ['status code mismatch', 'expected status code 409 but the response status was 422', 'possible product bug: expected 409, got 422 (tests/unit/api.test.py:5)'],
+  ['jest length', 'expect(received).toHaveLength(expected)\n\nExpected length: 3\nReceived length: 2', 'possible product bug: expected length: 3, got length: 2 (tests/unit/api.test.py:5)'],
+  ['jest call count', 'expect(jest.fn()).toHaveBeenCalledTimes(expected)\n\nExpected number of calls: 1\nReceived number of calls: 0', 'possible product bug: expected number of calls: 1, got number of calls: 0 (tests/unit/api.test.py:5)'],
+];
+for (const [label, message, report] of valueMessages) {
+  await scenario(`value message: ${label}`, async () => {
+    const f = { test: `api ${label}`, file: 'tests/unit/api.test.py', line: 5, category: 'setup', message };
+    const { result, kinds } = await runLoop({ runs: [red([f])] });
+    check(`value message ${label}: withheld though labelled setup`, kinds, ['run']);
+    check(`value message ${label}: report`, result.possible_product_bugs.map((b) => b.report), [report]);
+  });
+}
+
+await scenario('TS2554 argument count is a type error, not a value mismatch', async () => {
+  const f = { test: 'builds a profile', file: 'tests/unit/profile.test.ts', line: 9, category: 'type', message: 'error TS2554: Expected 2 arguments, but got 1.' };
+  const { result, kinds } = await runLoop({
+    runs: [red([f]), GREEN],
+    repairs: [repairOf([fix(f, { change: 'passed the missing options argument', before: 'buildProfile(user)', after: 'buildProfile(user, {})' })])],
+  });
+  check('TS2554: still repaired and healed', [kinds, result.healed], [['run', 'repair', 'run'], true]);
+});
+
+// Before/after vetting over the agent's reported text. true = the script must reject it.
+const vetCases = [
+  ['toBe literal', 'expect(res.status).toBe(409)', 'expect(res.status).toBe(422)', true],
+  ['toEqual object', "expect(user).toEqual({ id: 1, role: 'admin' })", "expect(user).toEqual({ id: 1, role: 'guest' })", true],
+  ['toStrictEqual', 'expect(list).toStrictEqual([1, 2, 3])', 'expect(list).toStrictEqual([1, 2])', true],
+  ['toHaveBeenCalledWith', "expect(send).toHaveBeenCalledWith('a@b.co')", "expect(send).toHaveBeenCalledWith('c@d.co')", true],
+  ['toHaveLength', 'expect(items).toHaveLength(3)', 'expect(items).toHaveLength(2)', true],
+  ['toMatchInlineSnapshot', 'expect(out).toMatchInlineSnapshot(`"ok"`)', 'expect(out).toMatchInlineSnapshot(`"fail"`)', true],
+  ['toThrow argument', "expect(fn).toThrow('boom')", "expect(fn).toThrow('bang')", true],
+  ['multi-line chain', 'expect(total)\n  .toBe(3)', 'expect(total)\n  .toBe(2)', true],
+  ['negated', 'expect(flag).toBe(true)', 'expect(flag).not.toBe(true)', true],
+  ['assertion removed', 'expect(a).toBe(1)\nexpect(b).toBe(2)', 'expect(a).toBe(1)', true],
+  ['weakened to toBeDefined', 'expect(user.id).toBe(7)', 'expect(user.id).toBeDefined()', true],
+  ['weakened to toBeTruthy', "expect(res.body.ok).toBe('yes')", 'expect(res.body.ok).toBeTruthy()', true],
+  ['weakened to not.toThrow', "expect(fn).toThrow('boom')", 'expect(fn).not.toThrow()', true],
+  ['adds it.skip', "it('debounce fires once', async () => {", "it.skip('debounce fires once', async () => {", true],
+  ['adds test.only', "test('debounce fires once', async () => {", "test.only('debounce fires once', async () => {", true],
+  ['adds it.todo', "it('debounce fires once', async () => {", "it.todo('debounce fires once')", true],
+  ['adds pytest xfail', 'def test_total():', '@pytest.mark.xfail\ndef test_total():', true],
+  ['python assert', 'assert resp.status_code == 409', 'assert resp.status_code == 422', true],
+  ['assertEqual', 'self.assertEqual(total, 3)', 'self.assertEqual(total, 2)', true],
+  ['assertTrue removed', 'self.assertTrue(ok)\nself.assertEqual(n, 1)', 'self.assertEqual(n, 1)', true],
+  ['pytest.raises', 'with pytest.raises(ValueError):', 'with pytest.raises(Exception):', true],
+  ['status comparison', 'ok = res.status === 409', 'ok = res.status === 422', true],
+  ['import path', "import { login } from './auth'", "import { login } from '../../src/auth'", false],
+  ['fixture added', '', 'beforeEach(() => { db = createTestDb() })', false],
+  ['deterministic wait', 'await sleep(300)', 'await vi.advanceTimersByTimeAsync(300)', false],
+  ['selector in the expect subject', "await expect(page.getByTestId('submit')).toBeVisible()", "await expect(page.getByRole('button', { name: 'Submit' })).toBeVisible()", false],
+  ['assertion added', 'expect(a).toBe(1)', 'expect(a).toBe(1)\nexpect(b).toBe(2)', false],
+  ['whitespace only', 'expect(a).toBe( 1 )', 'expect(a).toBe(1)', false],
+];
+for (const [label, before, after, reject] of vetCases) {
+  await scenario(`vet: ${label}`, async () => {
+    const { result } = await runLoop({
+      runs: [red([FLAKY_E]), GREEN],
+      repairs: [repairOf([fix(FLAKY_E, { change: 'stabilised the test', before, after })])],
+      reverts: REVERT_E,
+    });
+    check(`vet ${label}: ${reject ? 'rejected' : 'kept'}`, [result.iteration_ledger[0].rejected_fixes, result.healed], reject ? [1, false] : [0, true]);
+  });
+}
 
 // (3) import / setup / flaky failures are still repaired.
 await scenario('import, setup and flaky are repaired', async () => {

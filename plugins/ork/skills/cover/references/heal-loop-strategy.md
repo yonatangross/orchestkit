@@ -43,6 +43,23 @@ Anything still failing after the final diagnose is reported with:
 4. **Don't suppress errors**: if a test exposes a real bug, report it
 5. **Keep tests deterministic**: no `Date.now()`, no `Math.random()` without seeding
 
+## Deterministic Checks
+
+The agents' labels (failure `category`, fix `category`, `touches_expected_value`) are not
+trusted on their own. `heal-loop.js` also decides from the text:
+
+- **Classification.** A failure message in an expected/actual shape (`expected X, got Y`,
+  Jest `Expected: / Received:`, pytest `assert 422 == 409`, unittest `422 != 409`, two status
+  codes on one `status` line) is a value mismatch whatever category the run agent gave it.
+  TS2554 `Expected 2 arguments, but got 1` is excluded, it is a type error.
+- **Fix vetting.** Assertions are extracted from each fix's `before` and `after`: `expect(...)`
+  with its whole matcher chain and arguments (the subject is ignored, so a selector change
+  passes), Python `assert`, `assertEqual`/`assertTrue` style calls, `assert.*`, `pytest.raises`,
+  chai `should`, and status comparisons. The fix is rejected when any assertion from `before`
+  is missing from `after` (changed, removed, negated, or weakened to `toBeDefined`,
+  `toBeTruthy`, `not.toThrow`), or when `after` adds `skip`, `only`, `todo`, `fixme` or `xfail`.
+  Edits that touch no assertion (imports, fixtures, waits, selectors) pass.
+
 ## Possible Product Bugs
 
 Every value mismatch (`assertion`, `source-bug`), every fix the script rejected, and every
