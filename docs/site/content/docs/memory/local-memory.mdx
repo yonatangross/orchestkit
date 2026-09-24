@@ -1,11 +1,11 @@
 ---
 title: "Local Session Persistence"
-description: "How .claude/memory/ JSONL files provide offline-first durability, queue management, and session backup for OrchestKit memory."
+description: "How .claude/memory/ JSONL files act as optional local artifacts for OrchestKit skills, status, and compaction snapshots."
 ---
 
 import { Callout } from 'fumadocs-ui/components/callout';
 
-Local memory is Tier 2 -- the **durability layer** that ensures no decision is lost even if graph operations fail or sessions end unexpectedly. It uses JSONL (JSON Lines) files in the `.claude/memory/` directory, which is auto-created on first write.
+Local memory is Tier 2 in the public docs model: optional JSONL (JSON Lines) files under `.claude/memory/`. The directory is created when something writes to it. It is not an automatic safety net that captures every graph decision.
 
 ## The `.claude/memory/` Directory
 
@@ -18,11 +18,11 @@ Local memory is Tier 2 -- the **durability layer** that ensures no decision is l
   tool-preferences.json  # Learned tool usage preferences
 ```
 
-Each file serves a distinct purpose. The JSONL files form a **write-ahead queue** system: decisions land in the local files first, then are processed asynchronously into graph storage.
+Each file serves a distinct purpose when present. Treat them as optional local artifacts for skills and compaction snapshots, not as an automatic write-ahead queue flushed into the graph by a hook.
 
 ## `decisions.jsonl` -- The Decision Log
 
-This is the primary local backup. Every decision captured by the memory writer is appended here as a single JSON line, regardless of whether graph or cloud storage succeeds.
+This is the primary local backup when something appends to it. Skill scripts and tooling may write JSONL here for viz and status. There is no `memory-writer` hook that appends automatically.
 
 ### Record Structure
 
@@ -60,19 +60,15 @@ This is the primary local backup. Every decision captured by the memory writer i
 
 ### How It Gets Written
 
-Memory hooks (such as `pre-compact-saver` and `context-exhaustion-warner`) append to `decisions.jsonl` as their first action. This ensures the decision is durably stored on disk before any graph or MCP operation attempts to process it.
+No registered OrchestKit hook auto-appends to `.claude/memory/decisions.jsonl`. Writes come from skills, scripts, or agent file tools when those paths are used. Separately, some stop and compaction hooks read `.claude/logs/decisions.jsonl` (a different path under `.claude/logs/`).
+
+`lifecycle/pre-compact-saver` counts lines under `.claude/memory/*.jsonl` and snapshots recent `.claude/logs/decisions.jsonl` entries into session state before compaction. It does not append new decisions.
 
 ### How It Gets Read
 
-The `memory-context-loader` hook reads this file once per session on the first prompt. It:
+There is no live `memory-context-loader` hook on main. Reading happens when you run `/ork:memory` (load, history, viz, status) or when an agent opens the files directly. Claude Code still injects project `MEMORY.md` at session start for the native tier.
 
-1. Reads the last 10 lines (most recent decisions)
-2. Parses each JSON line, skipping any malformed entries
-3. Reverses the order so the most recent decision appears first
-4. Formats decisions as markdown with type labels (`[Decision]`, `[Preference]`), rationale, and entity tags
-5. Truncates output at 3000 characters to stay within the context budget
-
-Example injected context:
+Skill viz/history scripts may read the last lines of `.claude/memory/decisions.jsonl` when that file exists. Treat the sample below as the shape those tools format, not as automatic prompt injection:
 
 ```markdown
 ## Recent Project Decisions
@@ -100,60 +96,37 @@ Records of completed multi-step workflows, providing an audit trail of complex o
 
 Stores learned tool usage preferences (e.g., preferred editor, testing framework) as a JSON object rather than JSONL.
 
-## Offline-First Design
+## Optional Local Artifacts
 
-The local persistence layer is designed around an offline-first principle:
+Local JSONL under `.claude/memory/` is optional. Skills and scripts may create the directory and append records. Nothing on main auto-flushes `graph-queue.jsonl` into MCP memory.
 
-1. **Writes always succeed locally.** The `appendToJsonl` function creates the directory if it does not exist and appends the record. Even if graph MCP is unreachable, the decision is safely stored.
-
-2. **Queues are processed when services become available.** Graph operations queue in `graph-queue.jsonl` until the MCP server processes them.
-
-3. **No data is lost on unexpected shutdown.** Since each write is an atomic file append (not a rewrite), partial writes at most lose one line. The JSONL parser in the context loader silently skips malformed lines.
+If a writer uses atomic line appends, a crashed process can leave at most one partial line. Consumers that parse JSONL should skip malformed lines. That is application discipline, not a live context-loader hook.
 
 ## Health Monitoring
 
-The `memory-health.ts` library provides detailed health analysis for each JSONL file:
+`lib/memory-health.ts` exposes `analyzeJsonlFile()` for per-file metrics (exists, line count, corrupt lines, size, mtime). The `checkMemoryHealth()` report used by status tooling currently probes only whether `.claude/memory/` exists and maps that to the graph-tier status. It does not probe MCP reachability, MEMORY.md, or queue depth.
 
-```typescript
-interface FileHealth {
-  exists: boolean;       // File found on disk
-  lineCount: number;     // Total JSONL lines
-  corruptLines: number;  // Lines that fail JSON.parse
-  sizeBytes: number;     // File size
-  lastModified: string;  // Last modification timestamp
-}
-```
-
-The health check flags:
-
-| Condition | Status | Meaning |
-|---|---|---|
-| `.claude/memory/` does not exist | `unavailable` | No memory directory; nothing has been stored yet |
-| `decisions.jsonl` has corrupt lines | `degraded` | Some entries were partially written; parseable entries still work |
-| `graph-queue.jsonl` has 50+ entries | `degraded` | Queue is backing up; graph operations may not be processing |
-
-Run `/ork:memory status` to see the full health report.
+Run `/ork:memory status` for the skill-side health view.
 
 ## Synchronization Between Local and Graph
 
-The local layer and graph layer stay in sync through the write-ahead queue pattern:
+There is no `memory-writer.ts` and no live `graph-queue-sync` stop hook. The primary write path is `/ork:remember` calling `mcp__memory__*` directly (validated by `memory-validator`). Local JSONL under `.claude/memory/` is an optional artifact surface, not an automatic write-ahead queue flushed by OrchestKit hooks.
 
 | Stage | Target | Timing |
 |---|---|---|
-| **memory-writer.ts** | `decisions.jsonl` | Always, immediate |
-| | `graph-queue.jsonl` | Always, queued operations |
-| **Hook processing** | Graph queue processed via `mcp__memory__create_entities` | Async, batched |
+| **`/ork:remember` (skill)** | Knowledge graph via MCP | On explicit invoke |
+| **Agent Edit/Write** | `MEMORY.md` or local memory files when chosen | On explicit edit |
+| **`pre-compact-saver`** | Session state snapshot of local + logs | On compaction |
+| **`session-summary`** | Graph capture *suggestion* via additionalContext | On stop (busy sessions) |
 
-The local files serve as the durable source of truth. If the graph is ever rebuilt or cleared, the decisions in `decisions.jsonl` can be replayed to reconstruct it.
+If local `decisions.jsonl` exists, skill scripts can still use it for viz and status. Replaying it into the graph is a manual or skill-driven operation, not an automatic hook flush.
 
 ## File Size Management
 
-- `decisions.jsonl` grows unbounded but is read from the tail (last N lines), so size does not affect read performance
-- `graph-queue.jsonl` is cleared as operations are processed
-
-If files become very large, the health check reports `degraded` status at the 50-entry threshold for queue files, signaling that processing may need attention.
+- `decisions.jsonl` can grow unbounded; readers that only need recent entries should read from the tail
+- `graph-queue.jsonl`, if present, is a leftover artifact. No live hook on main clears or flushes it
 
 ## Next Steps
 
-- [Graph Memory](/docs/memory/graph-memory) -- the primary tier that local queues feed into
+- [Graph Memory](/docs/memory/graph-memory) -- the primary tier for typed entities and relations
 - [Architecture Overview](/docs/memory/overview) -- the full 3-tier system
