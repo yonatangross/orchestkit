@@ -14,7 +14,7 @@
  * The LLM now classifies antipatterns directly — no regex needed.
  */
 
-import { writeRulesFile, rulesFileMatches } from '../lib/common.js';
+import { writeRulesFile, rulesFileMatches, rulesFileExists } from '../lib/common.js';
 import { getHomeDir } from '../lib/paths.js';
 import { join } from 'node:path';
 
@@ -73,16 +73,21 @@ function userRulesDir(): string {
 /**
  * Materialize static anti-patterns to a rules file (called once at session start).
  * CC loads .claude/rules/ files into every prompt (prompt-cached, not free).
- * Skips the project-level write when the user-global copy is byte-identical;
- * an existing project copy is left in place, never deleted from a hook.
+ * Skips the project-level write when the user-global copy is byte-identical
+ * and the project copy is absent or already identical; a stale project copy
+ * is still refreshed below. Hooks never delete rules files.
  */
 export function materializeAntipatternRules(projectDir: string): void {
   const content = buildAntipatternsContent();
+  const rulesDir = join(projectDir, '.claude', 'rules');
 
-  if (rulesFileMatches(userRulesDir(), 'antipatterns.md', content)) {
+  if (
+    rulesFileMatches(userRulesDir(), 'antipatterns.md', content) &&
+    (rulesFileMatches(rulesDir, 'antipatterns.md', content) ||
+      !rulesFileExists(rulesDir, 'antipatterns.md'))
+  ) {
     return;
   }
 
-  const rulesDir = join(projectDir, '.claude', 'rules');
   writeRulesFile(rulesDir, 'antipatterns.md', content, 'antipattern-warning');
 }

@@ -87,6 +87,13 @@ describe('prompt/antipattern-warning', () => {
       expect(existsSync(projectRulesFile())).toBe(false);
     });
 
+    test('refreshes a stale project copy when global copy is identical', () => {
+      writeFileSync(projectRulesFile(), '# stale rules\n');
+      writeGlobal(buildAntipatternsContent());
+      materializeAntipatternRules(tempDir);
+      expect(readFileSync(projectRulesFile(), 'utf8')).toBe(buildAntipatternsContent());
+    });
+
     test('leaves an existing identical project copy in place', () => {
       writeFileSync(projectRulesFile(), buildAntipatternsContent());
       writeGlobal(buildAntipatternsContent());

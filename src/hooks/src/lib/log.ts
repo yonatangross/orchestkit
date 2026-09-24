@@ -188,6 +188,18 @@ export function rulesFileMatches(
   }
 }
 
+/**
+ * Check whether a rules file exists, without reading it.
+ * Same FH-ready rationale as rulesFileMatches (#3917).
+ */
+export function rulesFileExists(rulesDir: string, filename: string): boolean {
+  try {
+    return existsSync(join(rulesDir, filename));
+  } catch {
+    return false;
+  }
+}
+
 // -----------------------------------------------------------------------------
 // Input Helpers
 // -----------------------------------------------------------------------------
