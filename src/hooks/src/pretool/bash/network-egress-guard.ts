@@ -496,6 +496,72 @@ function applyDirChangesInSegment(
   return 'ok';
 }
 
+/** Cap cwd candidates and directory changes; overflow => UNKNOWN. */
+const CWD_CANDIDATE_CAP = 32;
+const CWD_DIR_CHANGE_CAP = 32;
+
+/**
+ * Relative targets that bash may resolve via CDPATH (not absolute, not ./ or ../).
+ */
+function isCdpathEligibleTarget(target: string): boolean {
+  if (posix.isAbsolute(target)) return false;
+  if (target.startsWith('./') || target.startsWith('../')) return false;
+  return true;
+}
+
+/**
+ * True when CDPATH may be in play for the command: the word CDPATH appears,
+ * a variable-setting builtin / eval / source / dot appears, or the hook
+ * process already has a non-empty CDPATH.
+ */
+function cdpathMayAffectCommand(fullCommand: string): boolean {
+  if (typeof process.env.CDPATH === 'string' && process.env.CDPATH.length > 0) {
+    return true;
+  }
+  if (/\bCDPATH\b/.test(fullCommand)) return true;
+  if (
+    /\b(?:read|declare|typeset|export|local|mapfile|readarray|let)\b/.test(fullCommand)
+  ) {
+    return true;
+  }
+  // `printf -v NAME` can assign without `NAME=` text.
+  if (/\bprintf\b[^\n;|&]{0,120}-v\b/.test(fullCommand)) return true;
+  if (/\b(?:eval|source)\b/.test(fullCommand)) return true;
+  if (/(?:^|[\s;|&()])\.(?=[\s;|&()]|$)/.test(fullCommand)) return true;
+  return false;
+}
+
+/**
+ * Add one directory-change target to a candidate set. Returns false when the
+ * set becomes UNKNOWN (CDPATH-eligible under risk, or cap overflow).
+ */
+function addCwdCandidateTarget(
+  candidates: Set<string>,
+  target: string,
+  state: { dirChanges: number; cdpathRisk: boolean },
+): boolean {
+  if (state.dirChanges >= CWD_DIR_CHANGE_CAP) return false;
+  state.dirChanges++;
+
+  if (state.cdpathRisk && isCdpathEligibleTarget(target)) return false;
+
+  if (posix.isAbsolute(target)) {
+    if (candidates.size >= CWD_CANDIDATE_CAP) return false;
+    candidates.add(posix.normalize(target));
+    return candidates.size <= CWD_CANDIDATE_CAP;
+  }
+
+  if (candidates.size === 0) return false;
+  const next = new Set(candidates);
+  for (const c of candidates) {
+    next.add(posix.normalize(posix.join(c, target)));
+    if (next.size > CWD_CANDIDATE_CAP) return false;
+  }
+  candidates.clear();
+  for (const p of next) candidates.add(p);
+  return true;
+}
+
 /**
  * Build the never-shrinking set of directories the shell could be in after the
  * prefix before a fetcher|interpreter pipe. Starts as {hook cwd}. Every
@@ -507,30 +573,18 @@ function resolveCwdCandidates(
   baseCwd: string | null,
   fullCommand: string,
 ): string[] | null {
-  // Any CDPATH assignment makes relative targets unresolvable.
-  if (/\bCDPATH=/.test(fullCommand)) return null;
-
+  const cdpathRisk = cdpathMayAffectCommand(fullCommand);
   const candidates = new Set<string>();
   if (baseCwd !== null && baseCwd.length > 0) {
     candidates.add(posix.normalize(baseCwd));
   }
 
+  const state = { dirChanges: 0, cdpathRisk };
   let pos = 0;
   const n = prefix.length;
 
-  const addTarget = (target: string): boolean => {
-    if (posix.isAbsolute(target)) {
-      candidates.add(posix.normalize(target));
-      return true;
-    }
-    if (candidates.size === 0) return false;
-    const joined: string[] = [];
-    for (const c of candidates) {
-      joined.push(posix.normalize(posix.join(c, target)));
-    }
-    for (const j of joined) candidates.add(j);
-    return true;
-  };
+  const addTarget = (target: string): boolean =>
+    addCwdCandidateTarget(candidates, target, state);
 
   while (pos < n) {
     while (pos < n && /\s/.test(prefix[pos]!)) pos++;
@@ -606,9 +660,14 @@ function applyInterpreterFrontChdir(
   tokens: string[],
   startIdx: number,
   candidates: string[] | null,
+  fullCommand: string,
 ): { nextIdx: number; candidates: string[] | null } {
   let unknown = candidates === null;
   const set = new Set<string>(candidates ?? []);
+  const state = {
+    dirChanges: 0,
+    cdpathRisk: cdpathMayAffectCommand(fullCommand),
+  };
   let idx = startIdx;
 
   const addTarget = (raw: string): void => {
@@ -617,17 +676,7 @@ function applyInterpreterFrontChdir(
       unknown = true;
       return;
     }
-    if (posix.isAbsolute(target)) {
-      set.add(posix.normalize(target));
-      return;
-    }
-    if (set.size === 0) {
-      unknown = true;
-      return;
-    }
-    const joined: string[] = [];
-    for (const c of set) joined.push(posix.normalize(posix.join(c, target)));
-    for (const j of joined) set.add(j);
+    if (!addCwdCandidateTarget(set, target, state)) unknown = true;
   };
 
   while (idx < tokens.length) {
@@ -884,7 +933,13 @@ function pipeToInterpreterStdinProgram(
         baseCwd,
         quoteIntact,
       );
-      if (rhsIsStdinInterpreter(tokenizePipeRhs(quoteIntact.slice(pipe + 1)), cwdCandidates)) {
+      if (
+        rhsIsStdinInterpreter(
+          tokenizePipeRhs(quoteIntact.slice(pipe + 1)),
+          cwdCandidates,
+          quoteIntact,
+        )
+      ) {
         return true;
       }
     }
@@ -901,7 +956,7 @@ function pipeToInterpreterStdinProgram(
       quoteIntact,
     );
     const tokens = tokenizePipeRhs(quoteIntact.slice(pipe + 1));
-    if (rhsIsStdinInterpreter(tokens, cwdCandidates)) return true;
+    if (rhsIsStdinInterpreter(tokens, cwdCandidates, quoteIntact)) return true;
   }
   return false;
 }
@@ -1004,9 +1059,10 @@ function unescapeInterpreterName(name: string): string {
 function rhsIsStdinInterpreter(
   tokens: string[],
   cwdCandidates: string[] | null,
+  fullCommand: string,
 ): boolean {
   const unwrapped = tokens.map(unwrapToken);
-  const front = applyInterpreterFrontChdir(unwrapped, 0, cwdCandidates);
+  const front = applyInterpreterFrontChdir(unwrapped, 0, cwdCandidates, fullCommand);
   const idx = front.nextIdx;
   const resolvedCandidates = front.candidates;
   if (idx >= unwrapped.length) return false;
