@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.87",
+    "date": "2026-09-24",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.86...v10.0.0-beta.87",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**hooks:** fail-closed on shell-expanded interpreter arguments ([#4397](https://github.com/yonatangross/orchestkit/issues/4397)) ([4f47f3e](https://github.com/yonatangross/orchestkit/commit/4f47f3e12b62f42b229e4378801136aa682d637b))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.86",
     "date": "2026-09-24",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.85...v10.0.0-beta.86",
