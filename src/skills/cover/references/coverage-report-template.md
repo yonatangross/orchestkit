@@ -59,11 +59,18 @@ Checker: `scripts/check-behaviour-tests.mjs`, final run exit {0|1}.
 
 {tests that could not be healed within the iteration budget, with failure reason and suggested fix}
 
+## Possible Product Bugs (if any)
+
+{one line per heal-loop `possible_product_bugs` entry, its `report` field verbatim:
+"possible product bug: expected X, got Y (file:line)". These tests are left failing on
+purpose: heal never rewrites an expected value to match current output.}
+
 ## Next Steps
 
 - `/ork:verify {SCOPE}`: grade the implementation + tests
 - `/ork:commit`: commit generated test files
 - Fix source bugs detected during test generation (if any)
+- Confirm or fix each possible product bug listed above (if any)
 ```
 
 ## Delta Calculation

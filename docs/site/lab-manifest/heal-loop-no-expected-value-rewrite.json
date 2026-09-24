@@ -1,0 +1,13 @@
+{
+  "slug": "heal-loop-no-expected-value-rewrite",
+  "source": "docs/fix--heal-loop-no-expected-value-rewrite/playground.html",
+  "title": "heal-loop never rewrites an expected value",
+  "description": "/ork:cover Phase 5: value mismatches are reported as possible product bugs and left failing; the heal-loop script rejects and reverts any repair that rewrites an expected value.",
+  "tags": [
+    "cover",
+    "heal-loop",
+    "tests",
+    "workflow"
+  ],
+  "date": "2026-09-24"
+}

@@ -1,0 +1,274 @@
+#!/usr/bin/env node
+// ============================================================================
+// cover heal-loop: value mismatches are never healed (offline, stubbed agent)
+// ============================================================================
+// WHAT THIS GUARDS
+//
+//   src/skills/cover/workflows/heal-loop.js is the /ork:cover Phase 5 repair
+//   loop. It used to tell the repair agent "assertion -> correct the expected
+//   value against real source behavior", which turns a product bug into a
+//   green test by rewriting what the test expects. The rule now:
+//
+//   1. A value mismatch (assertion, source-bug) is never sent for repair. It
+//      lands in possible_product_bugs as "possible product bug: expected X,
+//      got Y (file:line)" and the test stays failing.
+//   2. A repair the agent reports as rewriting an expected value, snapshot,
+//      or a withheld test is rejected by the SCRIPT, reverted, and moved to
+//      possible_product_bugs.
+//   3. import / setup / flaky failures are still repaired, and the 3 diagnose
+//      / 2 repair iteration bound is unchanged.
+//
+// HOW
+//
+//   The workflow script runs as an async function body with args, agent,
+//   phase and log injected, the same shape the Workflow runtime gives it.
+//   agent() is a stub that answers from scripted queues keyed by the label
+//   prefix (run, repair, revert) and records every prompt. No LLM is called.
+// ============================================================================
+
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const REPO = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
+const SCRIPT = path.join(REPO, 'src', 'skills', 'cover', 'workflows', 'heal-loop.js');
+
+const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
+const body = new AsyncFunction(
+  'args',
+  'agent',
+  'phase',
+  'log',
+  readFileSync(SCRIPT, 'utf8').replace(/^export const meta/m, 'const meta'),
+);
+
+async function runLoop({ args = {}, runs = [], repairs = [], reverts = [] }) {
+  const calls = [];
+  const queues = { run: [...runs], repair: [...repairs], revert: [...reverts] };
+  const agent = async (prompt, opts) => {
+    const kind = String(opts.label).split(':')[0];
+    calls.push({ kind, prompt, opts });
+    const q = queues[kind];
+    if (!q) throw new Error(`unexpected agent label ${opts.label}`);
+    if (!q.length) throw new Error(`no scripted ${kind} response left for ${opts.label}`);
+    return q.shift();
+  };
+  const logs = [];
+  const result = await body(args, agent, () => {}, (m) => logs.push(String(m)));
+  return { result, calls, kinds: calls.map((c) => c.kind), logs };
+}
+
+const ASSERT_A = {
+  test: 'POST /users returns 409 on duplicate',
+  file: 'tests/unit/users.test.ts',
+  line: 12,
+  category: 'assertion',
+  message: 'AssertionError: expected 409, got 422',
+  expected: '409',
+  actual: '422',
+};
+const ASSERT_JEST = {
+  test: 'cart total counts items',
+  file: 'tests/unit/cart.test.ts',
+  line: 40,
+  category: 'assertion',
+  message: 'expect(received).toBe(expected)\n\nExpected: 3\nReceived: 2',
+};
+const IMPORT_B = {
+  test: 'loads auth',
+  file: 'tests/unit/auth.test.ts',
+  line: 3,
+  category: 'import',
+  message: "Error: Cannot find module './auth'",
+};
+const SETUP_D = {
+  test: 'db roundtrip',
+  file: 'tests/unit/db.test.ts',
+  line: 8,
+  category: 'setup',
+  message: 'connect ECONNREFUSED 127.0.0.1:5432',
+};
+const FLAKY_E = {
+  test: 'debounce fires once',
+  file: 'tests/unit/debounce.test.ts',
+  line: 20,
+  category: 'flaky',
+  message: 'expected 1 call, got 0 (fails 1 run in 3)',
+};
+
+const red = (failures) => ({
+  passed: false,
+  pass_count: 5,
+  fail_count: failures.length,
+  exit_code: 1,
+  failures,
+  raw_output: failures.map((f) => f.message).join('\n'),
+});
+const GREEN = { passed: true, pass_count: 8, fail_count: 0, exit_code: 0, failures: [], raw_output: '8 passed' };
+
+const fix = (f, over = {}) => ({
+  file: f.file,
+  test: f.test,
+  line: f.line,
+  category: f.category,
+  change: 'fixed the import path',
+  before: "import { login } from './auth'",
+  after: "import { login } from '../../src/auth'",
+  touches_expected_value: false,
+  ...over,
+});
+const repairOf = (fixes, bugs = []) => ({
+  files_edited: Array.from(new Set(fixes.map((x) => x.file))),
+  fixes,
+  possible_product_bugs: bugs,
+  unfixable: [],
+});
+
+let passed = 0;
+const failures = [];
+
+function check(name, actual, expected) {
+  const a = JSON.stringify(actual);
+  const e = JSON.stringify(expected);
+  if (a === e) passed++;
+  else failures.push(`${name}\n      expected ${e}\n      actual   ${a}`);
+}
+
+async function scenario(name, fn) {
+  try {
+    await fn();
+  } catch (err) {
+    failures.push(`${name}\n      threw ${err && err.message}`);
+  }
+}
+
+// (1) An assertion failure is never sent for repair and becomes a possible product bug.
+await scenario('assertion only', async () => {
+  const { result, kinds } = await runLoop({ runs: [red([ASSERT_A])] });
+  check('assertion only: no repair agent is spawned', kinds, ['run']);
+  check('assertion only: not healed', [result.status, result.healed], ['failed', false]);
+  check('assertion only: test stays failing', result.remaining_failures.map((f) => f.test), [ASSERT_A.test]);
+  check(
+    'assertion only: report names expected, got and file:line',
+    result.possible_product_bugs.map((b) => b.report),
+    ['possible product bug: expected 409, got 422 (tests/unit/users.test.ts:12)'],
+  );
+});
+
+await scenario('assertion mixed with import', async () => {
+  const { result, calls, kinds } = await runLoop({
+    runs: [red([ASSERT_A, IMPORT_B]), red([ASSERT_A])],
+    repairs: [repairOf([fix(IMPORT_B)])],
+  });
+  const repairPrompts = calls.filter((c) => c.kind === 'repair').map((c) => c.prompt);
+  check('mixed: one repair, then stop when only the value mismatch is left', kinds, ['run', 'repair', 'run']);
+  check('mixed: repair prompt carries the import failure', repairPrompts[0].includes(IMPORT_B.message), true);
+  check('mixed: repair prompt never carries the assertion diff', repairPrompts.some((p) => p.includes(ASSERT_A.message)), false);
+  check('mixed: repair prompt never carries the expected or actual value', repairPrompts.some((p) => /expected 409|got 422/.test(p)), false);
+  check('mixed: assertion test is on the do not touch list', repairPrompts[0].includes('tests/unit/users.test.ts:12'), true);
+  check('mixed: flagged once across iterations', result.possible_product_bugs.length, 1);
+  check('mixed: origin is the classification', result.possible_product_bugs[0].origin, 'classified');
+  check('mixed: not healed, assertion still failing', [result.healed, result.remaining_failures.map((f) => f.category)], [false, ['assertion']]);
+});
+
+await scenario('assertion without expected/actual fields', async () => {
+  const { result } = await runLoop({ runs: [red([ASSERT_JEST])] });
+  check(
+    'jest diff: expected and received are read from the verbatim message',
+    result.possible_product_bugs.map((b) => b.report),
+    ['possible product bug: expected 3, got 2 (tests/unit/cart.test.ts:40)'],
+  );
+});
+
+// (2) A repair that edits an expected value is rejected, reverted and reported.
+await scenario('expected value rewrite on a flaky failure', async () => {
+  const rewrite = fix(FLAKY_E, {
+    change: 'made the assertion match the observed call count',
+    before: 'expect(spy).toHaveBeenCalledTimes(1)',
+    after: 'expect(spy).toHaveBeenCalledTimes(0)',
+    touches_expected_value: true,
+  });
+  const { result, calls, kinds } = await runLoop({
+    runs: [red([IMPORT_B, FLAKY_E]), red([FLAKY_E])],
+    repairs: [repairOf([fix(IMPORT_B), rewrite])],
+    reverts: [{ reverted: [{ file: FLAKY_E.file, line: FLAKY_E.line, restored: true }] }],
+  });
+  const revert = calls.find((c) => c.kind === 'revert');
+  check('rewrite: revert agent runs, then no repair of the rejected item', kinds, ['run', 'repair', 'revert', 'run']);
+  check('rewrite: revert prompt names the rewritten text', !!revert && revert.prompt.includes(rewrite.after), true);
+  check('rewrite: revert prompt leaves the accepted import fix alone', !!revert && revert.prompt.includes(IMPORT_B.file), false);
+  check('rewrite: ledger counts one kept and one rejected fix', [result.iteration_ledger[0].accepted_fixes, result.iteration_ledger[0].rejected_fixes], [1, 1]);
+  const bug = result.possible_product_bugs.find((b) => b.file === FLAKY_E.file);
+  check('rewrite: item moved to possible product bugs', bug && [bug.origin, bug.test], ['rejected-repair', FLAKY_E.test]);
+  check('rewrite: revert confirmed from the revert agent', bug && bug.rejected_fix.revert_confirmed, true);
+  check('rewrite: report names file:line', bug && bug.report.endsWith('(tests/unit/debounce.test.ts:20)'), true);
+  check('rewrite: not healed', result.healed, false);
+});
+
+const smuggled = [
+  ['category assertion', fix(ASSERT_A, { change: 'aligned the status code', before: 'toBe(409)', after: 'toBe(422)' })],
+  ['withheld test under another category', fix(ASSERT_A, { category: 'type', change: 'tidied the test', before: 'toBe(409)', after: 'toBe(422)' })],
+  ['snapshot update', fix(IMPORT_B, { change: 'ran vitest -u to update the snapshot', before: '', after: '' })],
+];
+for (const [label, bad] of smuggled) {
+  await scenario(`rejected: ${label}`, async () => {
+    const { result, kinds } = await runLoop({
+      runs: [red([ASSERT_A, IMPORT_B]), red([ASSERT_A])],
+      repairs: [repairOf([fix(IMPORT_B, { test: 'other import', line: 99 }), bad])],
+      reverts: [{ reverted: [{ file: bad.file, line: bad.line, restored: true }] }],
+    });
+    check(`rejected ${label}: script reverts it`, kinds, ['run', 'repair', 'revert', 'run']);
+    check(`rejected ${label}: ledger counts it rejected`, result.iteration_ledger[0].rejected_fixes, 1);
+    check(`rejected ${label}: not healed`, result.healed, false);
+  });
+}
+
+await scenario('value mismatch that vanishes', async () => {
+  const { result } = await runLoop({
+    runs: [red([ASSERT_A, IMPORT_B]), GREEN],
+    repairs: [repairOf([fix(IMPORT_B)])],
+  });
+  check('vanished: a green run after a flagged value mismatch is not a heal', [result.status, result.healed], ['failed', false]);
+  check('vanished: flagged and gate cannot read it as clean', [result.value_mismatch_vanished, result.fail_count, result.state_known], [true, -1, false]);
+});
+
+// (3) import / setup / flaky failures are still repaired.
+await scenario('import, setup and flaky are repaired', async () => {
+  const { result, calls, kinds } = await runLoop({
+    runs: [red([IMPORT_B, SETUP_D, FLAKY_E]), GREEN],
+    repairs: [
+      repairOf([
+        fix(IMPORT_B),
+        fix(SETUP_D, { change: 'added a postgres testcontainer fixture', before: '', after: 'const pg = await new PostgreSqlContainer().start()' }),
+        fix(FLAKY_E, { change: 'froze time with vi.useFakeTimers and advanced it past the debounce', before: 'await sleep(300)', after: 'vi.advanceTimersByTime(300)' }),
+      ]),
+    ],
+  });
+  const prompt = calls.find((c) => c.kind === 'repair').prompt;
+  check('repairable: run, repair, verify run, no revert', kinds, ['run', 'repair', 'run']);
+  check('repairable: every failure is sent for repair', [IMPORT_B, SETUP_D, FLAKY_E].map((f) => prompt.includes(f.message)), [true, true, true]);
+  check('repairable: healed', [result.status, result.healed, result.fail_count], ['healed', true, 0]);
+  check('repairable: no possible product bugs', result.possible_product_bugs, []);
+  check('repairable: three fixes kept', result.iteration_ledger[0].accepted_fixes, 3);
+});
+
+await scenario('iteration bound unchanged', async () => {
+  const { result, kinds } = await runLoop({
+    args: { maxIterations: 9 },
+    runs: [red([IMPORT_B]), red([IMPORT_B]), red([IMPORT_B])],
+    repairs: [repairOf([fix(IMPORT_B)]), repairOf([fix(IMPORT_B)])],
+  });
+  check('bound: 3 diagnose runs and 2 repair passes', kinds, ['run', 'repair', 'run', 'repair', 'run']);
+  check('bound: clamped to 3', [result.iterations_used, result.max_iterations, result.healed], [3, 3, false]);
+});
+
+console.log('='.repeat(70));
+console.log('  cover heal-loop: value mismatches never healed');
+console.log('='.repeat(70));
+if (failures.length) {
+  for (const f of failures) console.log(`  FAIL ${f}`);
+  console.log(`\nFAILED: ${failures.length} check(s) failed, ${passed} passed`);
+  process.exit(1);
+}
+console.log(`SUCCESS: ${passed} checks passed`);
+process.exit(0);

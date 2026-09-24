@@ -7,7 +7,7 @@ final verifying run) to prevent infinite loops. See "Iteration Budget" below for
 
 | Category | Example | Fix Strategy |
 |----------|---------|-------------|
-| **Assertion error** | `expected 200, got 201` | Update expected value after verifying source behavior |
+| **Assertion error** (value mismatch) | `expected 200, got 201`, snapshot diff, wrong status code or count | **Never healed.** Report `possible product bug: expected X, got Y (file:line)`; the test stays failing |
 | **Import error** | `Cannot find module './auth'` | Fix import path, check tsconfig/conftest |
 | **Setup error** | `Connection refused` | Add missing service setup, check fixture scope |
 | **Timeout** | `Test exceeded 5000ms` | Add proper waits (Playwright: auto-wait; API: increase timeout) |
@@ -22,7 +22,7 @@ and 2 repair passes**: the final iteration verifies the previous repair and does
 new one, because there would be no run left to confirm it.
 
 ```
-Iteration 1: diagnose -> repair  (obvious errors: imports, assertions, setup)
+Iteration 1: diagnose -> repair  (obvious errors: imports, paths, setup)
 Iteration 2: diagnose -> repair  (interaction errors: selectors, timing, state)
 Iteration 3: diagnose only       (verify iteration 2's repair; no further repair)
 ```
@@ -34,25 +34,31 @@ Anything still failing after the final diagnose is reported with:
 
 ## Fix Rules
 
-1. **Never modify source code** — only fix test files
-2. **Read source before fixing** — understand the actual behavior
-3. **Prefer updating assertions** over adding workarounds
-4. **Don't suppress errors** — if a test exposes a real bug, report it
-5. **Keep tests deterministic** — no `Date.now()`, no `Math.random()` without seeding
+1. **Never modify source code**: only fix test files
+2. **Read source before fixing**: understand the actual behavior
+3. **Never rewrite an expected value** to match current output. Heal repairs setup, fixtures,
+   imports, paths, types, selectors, timeouts and flakes only. `heal-loop.js` withholds value
+   mismatches from the repair agent, and rejects and reverts any reported fix that changes an
+   expected value, a snapshot, or a test already reported as a possible product bug
+4. **Don't suppress errors**: if a test exposes a real bug, report it
+5. **Keep tests deterministic**: no `Date.now()`, no `Math.random()` without seeding
 
-## Source Bug Detection
+## Possible Product Bugs
 
-If a test failure reveals a real bug in source code:
+Every value mismatch (`assertion`, `source-bug`), every fix the script rejected, and every
+bug the repair agent reports lands in `possible_product_bugs` of the workflow result. Each
+entry carries a `report` line to surface verbatim in the Phase 6 report:
 
 ```
-[SOURCE BUG DETECTED]
-File: src/services/payment.ts:45
-Issue: calculateTotal() doesn't handle negative quantities
-Test: tests/unit/test_payment.ts:23 — test_negative_quantity
-Action: Test is CORRECT. Source code needs fixing.
-         Skipping this test in heal loop.
-         Report to user for manual resolution.
+possible product bug: expected 0, got -40 (tests/unit/test_payment.ts:23)
+  test:   test_negative_quantity
+  origin: classified | rejected-repair | repair-agent
+  action: test left FAILING. Confirm the intended behavior, then fix the source or the test by hand.
 ```
+
+If the suite goes green after a possible product bug was flagged, a test edit changed what
+it asserts. The workflow reports `status: "failed"`, `value_mismatch_vanished: true` and
+`fail_count: -1` so a caller cannot read it as healed.
 
 ## Flaky Test Prevention
 
