@@ -1,0 +1,8 @@
+{
+  "slug": "egress-expanded-args",
+  "source": "docs/fix--egress-expanded-args/playground.html",
+  "title": "Fail-closed on shell-expanded interpreter arguments",
+  "description": "Egress pipe check: fail-closed on shell-expanded interpreter arguments.",
+  "tags": ["hooks", "security", "egress"],
+  "date": "2026-09-24"
+}

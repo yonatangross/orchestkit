@@ -345,6 +345,8 @@ function tokenizePipeRhs(s: string): string[] {
         continue;
       }
       if (c === '\\' && i + 1 < s.length) {
+        // Keep the backslash so fail-closed expansion checks can see escapes.
+        tok += '\\';
         tok += s[i + 1];
         i += 2;
         continue;
@@ -375,15 +377,49 @@ function isStdinProgramPath(a: string): boolean {
 }
 
 /**
+ * True when a program token still has shell expansion surface: glob/brace
+ * metacharacters, `$` / backtick substitution, or a backslash escape.
+ * Quoted literals that keep those shapes after tokenize may over-block.
+ */
+function programArgIsShellExpanded(a: string): boolean {
+  if (/[*?[{]/.test(a)) return true;
+  if (/[`$]/.test(a)) return true;
+  if (a.includes('\\')) return true;
+  return false;
+}
+
+/**
+ * Input redirection or process substitution on the interpreter segment.
+ * Output redirections (`>`, `>>`, `2>`, `2>&1`, `&>`) are not matched.
+ */
+function isInputRedirectOrProcSub(tok: string): boolean {
+  if (/^<\(/.test(tok) || /^>\(/.test(tok)) return true;
+  // Output forms first so `2>&1` / `2>/dev/null` / `&>` stay allowed.
+  if (/^&>/.test(tok)) return false;
+  if (/^(?:\d*)>/.test(tok)) return false;
+  if (/^(?:\d*)(?:<<|<>|<&|<)/.test(tok)) return true;
+  return tok === '<';
+}
+
+/**
+ * True when this program token must be treated as an unknown/stdin program:
+ * shell-expanded form, or a path under a kernel filesystem tree.
+ */
+function programArgIsDenied(a: string): boolean {
+  return programArgIsShellExpanded(a) || isStdinProgramPath(a);
+}
+
+/**
  * Fail-closed stdin-program classifier. Walk args left to right:
+ * - any input redirection / process substitution on the segment => DENY
  * - known value option always consumes the next token (even if it starts with `-`)
  * - known boolean is skipped
  * - perl `-0` / `-0<digits>` (record-separator) is skipped as a boolean
  * - known CODE flag => ALLOW (not stdin)
- * - `--` ends options: next token is the program (script ALLOW; stdin path DENY)
- * - first non-option that is not a stdin-program path => script path => ALLOW
+ * - `--` ends options: next token is the program (script ALLOW; expanded/stdin DENY)
+ * - first non-option: shell-expanded or stdin-program path => DENY; else script ALLOW
  * - any unknown option (starts with `-`, not in the tables) => DENY
- * - end of args / stdin-program path => DENY
+ * - end of args => DENY
  * Short clusters like `perl -ne` expand letter-by-letter.
  */
 function interpreterArgsAreStdinProgram(
@@ -391,6 +427,8 @@ function interpreterArgsAreStdinProgram(
   args: string[],
 ): boolean {
   if (args.length === 0) return true;
+  if (args.some(isInputRedirectOrProcSub)) return true;
+
   const codeFlags = CODE_FLAGS[family];
   const valueOpts = VALUE_OPTS[family];
   const booleans = BOOLEAN_FLAGS[family];
@@ -445,11 +483,20 @@ function interpreterArgsAreStdinProgram(
     // End of options: the next token is the program.
     if (a === '--') {
       if (i + 1 >= args.length) return true;
-      return isStdinProgramPath(args[i + 1]!);
+      return programArgIsDenied(args[i + 1]!);
     }
 
-    // Stdin-program path (fail-closed under /dev and /proc).
-    if (isStdinProgramPath(a)) return true;
+    // Output redirection tokens are not the program; skip and keep walking.
+    if (/^&>/.test(a) || /^(?:\d*)>/.test(a)) {
+      // `>` / `>>` / `2>` take a following path word when the op is bare.
+      if (/^(?:\d*)>{1,2}$/.test(a) || a === '&>' || a === '&>>') {
+        if (i + 1 < args.length) i++;
+      }
+      continue;
+    }
+
+    // Stdin-program path or shell-expanded program token.
+    if (programArgIsDenied(a)) return true;
 
     // Unknown option => DENY (fail closed).
     if (a.startsWith('-')) return true;
