@@ -45,6 +45,7 @@
  * Issue: #2533. CC 2.1.7 compliant (JSON with continue field via output builders).
  */
 
+import { posix } from 'node:path';
 import type { HookInput, HookResult, HookContext } from '../../types.js';
 import { outputSilentSuccess, outputDeny } from '../../lib/common.js';
 import { normalizeSingle, blankQuotedHeredocBodies } from '../../lib/normalize-command.js';
@@ -357,16 +358,20 @@ function tokenizePipeRhs(s: string): string[] {
 }
 
 /**
- * True when the token names the stdin program (classic `-` / `/dev/stdin`,
- * plus fd-0 aliases: `/dev/fd/0`, `/proc/self/fd/0`, `/proc/<pid>/fd/0`,
- * including zero-padded fd forms like `/dev/fd/00`).
+ * Fail-closed stdin-program path check. After posix.normalize:
+ * (a) lone `-`
+ * (b) absolute path under `/dev` or `/proc` (no real script lives there)
+ * (c) relative path whose `..` segments lead into a `dev` or `proc` segment
  */
 function isStdinProgramPath(a: string): boolean {
-  if (a === '-' || a === '/dev/stdin') return true;
-  if (/^\/dev\/fd\/0+$/.test(a)) return true;
-  if (/^\/proc\/self\/fd\/0+$/.test(a)) return true;
-  if (/^\/proc\/[0-9]+\/fd\/0+$/.test(a)) return true;
-  return false;
+  if (a === '-') return true;
+  const n = posix.normalize(a);
+  if (n === '-') return true;
+  if (posix.isAbsolute(n)) {
+    return n === '/dev' || n === '/proc' || n.startsWith('/dev/') || n.startsWith('/proc/');
+  }
+  // Relative escape into a kernel filesystem name, e.g. `../dev/...`.
+  return /^(?:\.\.\/)+(?:dev|proc)(?:\/|$)/.test(n);
 }
 
 /**
@@ -443,7 +448,7 @@ function interpreterArgsAreStdinProgram(
       return isStdinProgramPath(args[i + 1]!);
     }
 
-    // Stdin-program path (including fd-0 aliases).
+    // Stdin-program path (fail-closed under /dev and /proc).
     if (isStdinProgramPath(a)) return true;
 
     // Unknown option => DENY (fail closed).

