@@ -45,8 +45,8 @@ Heal iterations used: {N}/{maxIterations}   # denominator is 2 or 3, see heal-lo
 
 ## Next Steps
 
-- `/ork:verify {SCOPE}` — grade the implementation + tests
-- `/ork:commit` — commit generated test files
+- `/ork:verify {SCOPE}`: grade the implementation + tests
+- `/ork:commit`: commit generated test files
 - Fix source bugs detected during test generation (if any)
 ```
 
