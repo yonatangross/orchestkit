@@ -1,0 +1,8 @@
+{
+  "slug": "egress-wrapper-grammar",
+  "source": "docs/fix--egress-wrapper-grammar/playground.html",
+  "title": "Exact option grammar for command wrappers in the egress check",
+  "description": "Egress pipe check: peel front wrappers with exact option grammars and treat login modes as an unknown working directory.",
+  "tags": ["hooks", "security", "egress"],
+  "date": "2026-09-24"
+}
