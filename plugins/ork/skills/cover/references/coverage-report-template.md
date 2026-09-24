@@ -68,7 +68,8 @@ purpose: heal never rewrites an expected value to match current output.}
 ## Needs a Human (if any)
 
 {one line per heal-loop `needs_human` entry, its `report` field verbatim:
-"binding change needs a human: NAME old -> new". The change was reverted and the test left
+"binding change needs a human: NAME old -> new", "value change needs a human: WHAT old -> new"
+or "snapshot or golden edit needs a human: FILE". The change was reverted and the test left
 failing; decide whether it is a fix or a product bug.}
 
 ## Next Steps

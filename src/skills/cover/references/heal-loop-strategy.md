@@ -44,7 +44,8 @@ Anything still failing after the final diagnose is reported with:
 4. **Binding changes go to a human.** In a test file, a fix that changes the value of a
    `const`/`let`/`var` binding, a bare reassignment, or a Python `NAME =` is not healed: the
    assertion reading it can sit outside every reported hunk, so no hunk rule can tell a
-   setup fix from a moved expected value. See Needs a Human below
+   setup fix from a moved expected value. The same holds for any other changed value and
+   for any snapshot or golden edit. See Needs a Human below
 5. **Don't suppress errors**: if a test exposes a real bug, report it
 6. **Keep tests deterministic**: no `Date.now()`, no `Math.random()` without seeding
 
@@ -112,11 +113,27 @@ reported as `status: "failed"` with `fail_count: -1`.
 
 ## Needs a Human
 
-A fix that passes every check above but changes a binding's value in a test file is held,
-reverted, and listed in `needs_human` with a `report` line to surface verbatim:
+A fix that passes every check above but changes a value in a test file is held, reverted,
+and listed in `needs_human` with a `report` line to surface verbatim. A changed value is,
+whatever the syntax:
+
+- a binding: `const`/`let`/`var`, a bare reassignment, or a Python `NAME =`;
+- a member or subscript assignment: `obj.x = v`, `obj['k'] = v`, Python `d['k'] = v`;
+- a merge into an existing object: `Object.assign`, lodash `merge`, `deepmerge`, Python
+  `d.update(...)`, or a spread in a changed literal;
+- the contents of an object, array or dict literal (a mock return, a seed list), except a
+  flat options object whose only changed keys are safe names (`{ timeout: 5000 }`).
+
+Any edit to a snapshot or golden file is held the same way, test file or not: a path under
+`__snapshots__/`, a `*.snap`, a `*.json` under `tests/`, or any path containing `golden` or
+`expected`. So is a change that turns snapshot updating on (`-u`, the update-snapshot flag,
+`updateSnapshot`); a repair whose own description names a snapshot update is already
+rejected above as a possible product bug.
 
 ```
 binding change needs a human: CODE STATUS.CONFLICT -> STATUS.UNPROCESSABLE
+value change needs a human: Object.assign(expected) Object.assign(expected,{total:3}) -> Object.assign(expected,{total:2})
+snapshot or golden edit needs a human: tests/golden/order.json
 ```
 
 The test stays failing, is withheld from later repair passes, and is never reported as
@@ -133,11 +150,13 @@ healable:
   `dataDir`). A substring does not count: `redirectTarget`, `userProfile`, `reportTotal`,
   `hostName` and `timeoutMessage` are held;
 - the fix is `stale-selector` and both values are locator expressions with no literal equal
-  to the failure's expected value (`page.getByRole('button', { name: 'Old' })` to `'New'`).
+  to the failure's expected value (`page.getByRole('button', { name: 'Old' })` to `'New'`),
+  or the changed literal is an argument of a locator call. Snapshot and golden edits have no
+  exception.
 
 A binding deleted in one hunk and re-added with a new value in another counts as a change,
-and holds both hunks. Files outside the test tree (`playwright.config.ts`) are not covered
-by this rule.
+and holds both hunks. Apart from snapshot and golden paths, files outside the test tree
+(`playwright.config.ts`) are not covered by this rule.
 
 ## Flaky Test Prevention
 

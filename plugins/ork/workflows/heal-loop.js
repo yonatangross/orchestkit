@@ -461,20 +461,151 @@ const TEST_FILE =
 	/(?:^|\/)(?:tests?|__tests__|specs?|e2e)\/|[._](?:test|spec)\.[cm]?[jt]sx?$|(?:^|\/)test_[^/]*\.py$|_test\.(?:py|go)$|(?:^|\/)conftest\.py$/i;
 const isTestFile = (file) => !file || TEST_FILE.test(String(file).replace(/\\/g, "/"));
 
-// Bindings (const/let/var, bare reassignment, Python NAME =) whose value a fix changes. A
-// side missing from the fix's own before or after is taken from any hunk of that file in
-// the pass, so a binding deleted in one hunk and re-added changed in another holds both.
-function bindingChanges(fix, target, file = { before: new Map(), after: new Map() }) {
+// obj.x = v, obj['k'] = v and Python d['k'] = v. Keyed by the squashed target.
+const MEMBER_ASSIGNMENT =
+	/(?:^|[;{(\s])([A-Za-z_$][\w$]*(?:\s*(?:\.\s*[A-Za-z_$][\w$]*|\[[^\]\n]*\]))+)\s*=(?![=>])\s*([^;\n]+)/g;
+
+function valueBindings(text) {
+	const out = assignments(text);
+	for (const m of text.matchAll(MEMBER_ASSIGNMENT)) out.set(squash(m[1]), squash(m[2]));
+	return out;
+}
+
+const lastSegment = (name) => {
+	const m = String(name).match(/(?:\.([A-Za-z_$][\w$]*)|\[\s*["'`]?([^\]"'`]*)["'`]?\s*\])$/);
+	return m ? m[1] || m[2] : String(name);
+};
+
+// Object.assign(target, ...), lodash merge, deepmerge and Python d.update(...): a call that
+// writes into an existing object. Keyed by the line up to the call and the target argument.
+const MERGE_CALL = /(?:\bObject\.assign|\b(?:_|lodash)\.(?:merge|assign|defaults|set)|\bdeepmerge|(?<![\w$.])merge|\.update)\s*\(/g;
+
+function mergeCalls(text) {
+	const out = new Map();
+	for (const m of text.matchAll(MERGE_CALL)) {
+		const open = m.index + m[0].length - 1;
+		const end = closeParen(text, open);
+		const args = splitArgs(text.slice(open + 1, end - 1));
+		const start = text.lastIndexOf("\n", m.index) + 1;
+		out.set(`${squash(text.slice(start, open))}(${args.length > 1 ? squash(args[0]) : ""})`, squash(text.slice(start, end)));
+	}
+	return out;
+}
+
+function closeBracket(text, open) {
+	let depth = 0;
+	let quote = null;
+	for (let i = open; i < text.length; i++) {
+		const c = text[i];
+		if (quote) {
+			if (c === "\\") i += 1;
+			else if (c === quote) quote = null;
+		} else if (c === '"' || c === "'" || c === "`") quote = c;
+		else if ("([{".includes(c)) depth += 1;
+		else if (")]}".includes(c)) {
+			depth -= 1;
+			if (depth === 0) return i + 1;
+		}
+	}
+	return text.length;
+}
+
+// Outermost object, array and dict literals in expression position, keyed by the text from
+// the start of the line that leads into them. A block brace after ) or => is not one.
+function literalValues(text) {
+	const out = new Map();
+	const seen = new Map();
+	for (let i = 0; i < text.length; i++) {
+		const c = text[i];
+		if (c === '"' || c === "'" || c === "`") {
+			for (i += 1; i < text.length && text[i] !== c && text[i] !== "\n"; i++) if (text[i] === "\\") i += 1;
+			continue;
+		}
+		if (c !== "{" && c !== "[") continue;
+		let p = i - 1;
+		while (p >= 0 && /\s/.test(text[p])) p -= 1;
+		const lead = p >= 0 ? text[p] : "";
+		const isReturn = /\breturn$/.test(text.slice(Math.max(0, p - 5), p + 1));
+		if (!"=(,:[?".includes(lead) && !isReturn) continue;
+		if (lead === "=" && /[=!<>]/.test(text[p - 1] || "")) continue;
+		const end = closeBracket(text, i);
+		const anchor = squash(text.slice(text.lastIndexOf("\n", p) + 1, i));
+		const n = seen.get(anchor) || 0;
+		seen.set(anchor, n + 1);
+		out.set(`${anchor}#${n}`, { anchor, value: squash(text.slice(i, end)) });
+		i = end - 1;
+	}
+	return out;
+}
+
+// A flat object literal whose only changed properties have safe names, like { timeout: 5000 }.
+function safePropertyChange(from, to) {
+	const props = (s) => {
+		if (!/^\{.*\}$/s.test(s)) return null;
+		const map = new Map();
+		for (const part of splitArgs(s.slice(1, -1))) {
+			const m = part.match(/^["']?([A-Za-z_$][\w$]*)["']?:(.+)$/s);
+			if (!m) return null;
+			map.set(m[1], m[2]);
+		}
+		return map;
+	};
+	const was = props(from);
+	const now = props(to);
+	if (!was || !now || was.size !== now.size) return false;
+	for (const [key, value] of was) {
+		if (!now.has(key)) return false;
+		if (now.get(key) !== value && !isSafeBinding(key)) return false;
+	}
+	return true;
+}
+
+const LOCATOR_ARG = /(?:(?:get|query|find)(?:All)?By[A-Z]\w*|locator)\([^()]*$/;
+
+// Snapshot and golden files, and snapshot update flags: every edit needs a human.
+const SNAPSHOT_PATH = /(?:^|\/)__snapshots__\/|\.snap$|(?:^|\/)tests?\/(?:[^/]+\/)*[^/]+\.json$|golden|expected/i;
+const SNAPSHOT_FLAG = /(?:^|\s)-u(?:\s|$)|-{2}update-?snapshots?\b|updateSnapshot/i;
+
+// Every value a fix in a test file changes, whatever the syntax: bindings (const/let/var,
+// bare reassignment, Python NAME =), member and subscript assignments, merges into an
+// existing object, and object/array/dict literal contents. A side missing from the fix's
+// own before or after is taken from any hunk of that file in the pass, so a binding deleted
+// in one hunk and re-added changed in another holds both. The only exceptions are a name
+// whose last word is on the safe list and a locator swap under stale-selector.
+function valueChanges(fix, target, file = { before: new Map(), after: new Map() }) {
+	const before = String(fix.before || "");
+	const after = String(fix.after || "");
+	const path = String(fix.file || "").replace(/\\/g, "/");
+	if ((SNAPSHOT_PATH.test(path) && before !== after) || SNAPSHOT_FLAG.test(`${fix.change || ""}\n${after}`)) {
+		return [{ kind: "snapshot", name: fix.file || "?", from: "", to: "" }];
+	}
 	if (!isTestFile(fix.file)) return [];
-	const was = assignments(String(fix.before || ""));
-	const now = assignments(String(fix.after || ""));
 	const out = [];
+	const was = valueBindings(before);
+	const now = valueBindings(after);
 	for (const name of new Set([...was.keys(), ...now.keys()])) {
 		const prior = was.has(name) ? was.get(name) : file.before.get(name);
 		const next = now.has(name) ? now.get(name) : file.after.get(name);
 		if (prior === undefined || next === undefined || prior === next) continue;
-		if (isSafeBinding(name) || isLocatorSwap(fix, target, prior, next)) continue;
-		out.push({ name, from: prior, to: next });
+		if (isSafeBinding(lastSegment(name)) || isLocatorSwap(fix, target, prior, next)) continue;
+		out.push({ kind: "binding", name, from: prior, to: next });
+	}
+	const mergedBefore = mergeCalls(before);
+	const mergedAfter = mergeCalls(after);
+	for (const [name, prior] of mergedBefore) {
+		const next = mergedAfter.get(name);
+		if (next !== undefined && next !== prior) out.push({ kind: "value", name, from: prior, to: next });
+	}
+	const litBefore = literalValues(before);
+	const litAfter = literalValues(after);
+	const [expectedValue] = expectedActual(target);
+	const expectedText = expectedValue.replace(/^["'`]|["'`]$/g, "");
+	for (const [key, { anchor, value: prior }] of litBefore) {
+		const next = litAfter.get(key)?.value;
+		if (next === undefined || next === prior || safePropertyChange(prior, next)) continue;
+		if (fix.category === "stale-selector" && LOCATOR_ARG.test(anchor) && !(expectedValue !== "?" && literals(next).includes(expectedText))) continue;
+		if (out.some((c) => c.from.includes(prior) && c.to.includes(next))) continue;
+		out.push({ kind: "value", name: `literal after ${anchor.slice(-40) || "line start"}`, from: prior, to: next });
 	}
 	return out;
 }
@@ -484,7 +615,7 @@ function bindingsByFile(fixes) {
 	for (const fix of fixes) {
 		const entry = byFile.get(fix.file) || { before: new Map(), after: new Map() };
 		for (const side of ["before", "after"]) {
-			for (const [name, value] of assignments(String(fix[side] || ""))) {
+			for (const [name, value] of valueBindings(String(fix[side] || ""))) {
 				if (!entry[side].has(name)) entry[side].set(name, value);
 			}
 		}
@@ -512,7 +643,13 @@ function holdForHuman(f, fix, changes, iteration) {
 		if (!entry.bindings.some((b) => b.name === c.name && b.from === c.from && b.to === c.to)) entry.bindings.push(c);
 	}
 	entry.report = entry.bindings.length
-		? entry.bindings.map((c) => `binding change needs a human: ${c.name} ${c.from} -> ${c.to}`).join("; ")
+		? entry.bindings
+				.map((c) =>
+					c.kind === "snapshot"
+						? `snapshot or golden edit needs a human: ${c.name}`
+						: `${c.kind === "value" ? "value" : "binding"} change needs a human: ${c.name} ${c.from} -> ${c.to}`,
+				)
+				.join("; ")
 		: "fix edits a test already held for a human";
 	entry.held_fixes.push({ file: fix.file, line: fix.line, before: fix.before, after: fix.after, revert_confirmed: false });
 	needsHuman.set(key, entry);
@@ -638,7 +775,8 @@ function vetFix(fix, target, fileExpected, fileSubjects) {
 function fixTarget(fix, candidates) {
 	const hit =
 		candidates.find((f) => f.file === fix.file && fix.test && f.test === fix.test) ||
-		candidates.find((f) => f.file === fix.file && fix.line && f.line === fix.line);
+		candidates.find((f) => f.file === fix.file && fix.line && f.line === fix.line) ||
+		candidates.find((f) => fix.test && f.test === fix.test && SNAPSHOT_PATH.test(String(fix.file || "")));
 	return (
 		hit || {
 			test: fix.test || "",
@@ -797,8 +935,10 @@ ${doNotTouch || "(none)"}
 6. In a test file, do NOT change the value of any const, let, var or Python NAME = binding
    unless its name ENDS in a timeout, delay, retry, wait, interval, poll, port, host, url,
    base url, path, dir, fixture or file word (a unit like Ms may follow: TIMEOUT_MS, apiBaseUrl,
-   dataDir), or it is a stale-selector locator swap. The workflow reverts any other binding change and
-   hands it to a human.
+   dataDir), or it is a stale-selector locator swap. The same holds for member and subscript
+   assignments (obj.x = v, d['k'] = v), Object.assign, merge or update into an existing object,
+   and the contents of object, array and dict literals. Do NOT edit snapshot or golden files and
+   do NOT update snapshots. The workflow reverts any such change and hands it to a human.
 7. Do NOT suppress: no skip, no try/except swallow, no eslint-disable, no type ignore.
 8. Anything you cannot fix within these rules goes in unfixable with the reason.
 
@@ -833,7 +973,7 @@ or xfail, whatever category you report.`,
 			rejected.push({ fix, reason });
 			continue;
 		}
-		const changes = bindingChanges(fix, target, bindingsInFile.get(fix.file));
+		const changes = valueChanges(fix, target, bindingsInFile.get(fix.file));
 		if (changes.length || (fix.test && needsHuman.has(failureKey({ file: fix.file, test: fix.test })))) {
 			held.push({ fix, reason: holdForHuman(target, fix, changes, iteration).report });
 		} else accepted.push(fix);
