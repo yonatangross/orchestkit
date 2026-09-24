@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>cover writes a test only when it asserts behaviour</title>
+<style>
+  :root {
+    --pg-bg:         hsl(232 26% 7%);
+    --pg-ink:        hsl(220 18% 93%);
+    --pg-muted:      hsl(220 12% 64%);
+    --pg-faint:      hsl(220 10% 46%);
+    --pg-line:       hsl(0 0% 100% / 0.10);
+    --pg-glass:      hsl(0 0% 100% / 0.05);
+    --pg-glass-edge: hsl(0 0% 100% / 0.18);
+    --pg-accent:     hsl(248 84% 68%);
+    --pg-rose:       hsl(345 76% 63%);
+    --pg-emerald:    hsl(160 68% 45%);
+    --pg-warm:       hsl(38 95% 60%);
+    --pg-r-md: 16px;
+    --pg-dur-fast: 200ms;
+    --pg-ease: cubic-bezier(.2,.8,.25,1);
+    --pg-font: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, system-ui, sans-serif;
+    --pg-mono: "SF Mono", "JetBrains Mono", ui-monospace, Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding-block: 3rem; padding-inline: 1.5rem;
+    font-family: var(--pg-font); color: var(--pg-ink);
+    background: var(--pg-bg); line-height: 1.6;
+  }
+  main { max-inline-size: 52rem; margin-inline: auto; }
+  h1 { font-size: 1.55rem; line-height: 1.25; margin-block-end: .25rem; }
+  .sub { color: var(--pg-muted); margin-block-start: 0; font-size: .95rem; }
+  .card {
+    border: 1px solid var(--pg-line); background: var(--pg-glass);
+    border-radius: var(--pg-r-md); padding: 1.1rem 1.25rem; margin-block: 1.25rem;
+  }
+  h2 { font-size: 1.02rem; margin-block: 0 .7rem; }
+  pre {
+    font-family: var(--pg-mono); font-size: .78rem; overflow-x: auto;
+    background: hsl(232 30% 4%); border: 1px solid var(--pg-line);
+    border-radius: 10px; padding: .85rem 1rem; margin: 0;
+  }
+  .bad { color: var(--pg-rose); }
+  .good { color: var(--pg-emerald); }
+  .warn { color: var(--pg-warm); }
+  a { color: var(--pg-accent); }
+  table { inline-size: 100%; border-collapse: collapse; font-size: .85rem; }
+  th, td { text-align: start; padding: .45rem .6rem; border-block-end: 1px solid var(--pg-line); vertical-align: top; }
+  th { color: var(--pg-muted); font-weight: 600; }
+  code { font-family: var(--pg-mono); font-size: .87em; }
+  button {
+    font: inherit; font-size: .85rem; color: var(--pg-ink);
+    background: var(--pg-glass); border: 1px solid var(--pg-glass-edge);
+    border-radius: 9px; padding: .5rem .85rem; cursor: pointer;
+    transition: background var(--pg-dur-fast) var(--pg-ease);
+  }
+  button:hover { background: hsl(0 0% 100% / 0.10); }
+  button[aria-pressed="true"] { border-color: var(--pg-accent); background: hsl(248 84% 68% / 0.16); }
+  .picks { display: flex; flex-wrap: wrap; gap: .5rem; margin-block-end: .9rem; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  @media (max-width: 760px) { .cols { grid-template-columns: 1fr; } }
+  .stamp { font-size: .78rem; letter-spacing: .02em; color: var(--pg-faint); }
+  footer { color: var(--pg-faint); font-size: .82rem; margin-block-start: 2rem; }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="cover writes a test only when it asserts behaviour"><meta property="og:description" content="ork:cover drops its 90% business logic coverage target and picks targets by risk (changed code, complex branches, error paths, security and money paths, past bugs), recording why each was chosen. A new Phase 3b runs src/skills/cover/scripts/check-behaviour-tests.mjs over the new test files and rejects tests that only assert mock calls, assert nothing, or read the source instead of executing it. Pick a committed fixture and read the checker's real per-test verdicts."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/feat--cover-behaviour-authoring-gate.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="cover writes a test only when it asserts behaviour"><meta name="twitter:description" content="ork:cover drops its 90% business logic coverage target and picks targets by risk (changed code, complex branches, error paths, security and money paths, past bugs), recording why each was chosen. A new Phase 3b runs src/skills/cover/scripts/check-behaviour-tests.mjs over the new test files and rejects tests that only assert mock calls, assert nothing, or read the source instead of executing it. Pick a committed fixture and read the checker's real per-test verdicts."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <h1>cover writes a test only when it asserts behaviour</h1>
+  <p class="sub">PR playground for branch <code>feat/cover-behaviour-authoring-gate</code>:
+    <code>ork:cover</code> drops its 90% coverage target, picks targets by risk, and runs a
+    checker that rejects hollow tests before they are executed.</p>
+
+  <div class="card">
+    <h2>What changed in the skill</h2>
+    <div class="cols">
+      <div>
+        <p class="stamp">BEFORE (origin/main)</p>
+        <pre><span class="bad">- Target: 90%+ business logic coverage</span>
+<span class="bad"># 1. Files with 0% coverage (priority targets)</span>
+<span class="bad"># 2. Files below threshold (default 70%)</span>
+<span class="bad">If coverage drops > 5% → alert</span>
+<span class="bad">| Unit (business logic) | 90% | 70% |</span></pre>
+      </div>
+      <div>
+        <p class="stamp">AFTER (this PR)</p>
+        <pre><span class="good">gap_map[tier] = [{"target": "...:roundRefund",</span>
+<span class="good">                  "why": "money path, fixed in #812"}]</span>
+<span class="good">BEHAVIOUR GATE: write a test ONLY if it asserts</span>
+<span class="good">an observable result.</span>
+<span class="good">Phase 3b: check-behaviour-tests.mjs, re-run until exit 0</span>
+<span class="good">Coverage is information, never a target.</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Feed a fixture to the checker</h2>
+    <p style="margin-block-start:0">Each button is a committed fixture under
+      <code>tests/fixtures/cover-behaviour-gate/</code>. The verdicts shown are the checker's
+      real output for that file, recorded from <code>check-behaviour-tests.mjs</code> in this PR.</p>
+    <div class="picks" role="group" aria-label="Fixture">
+      <button type="button" data-f="mock">(a) mock-only.ts</button>
+      <button type="button" data-f="free">(b) assertion-free.ts</button>
+      <button type="button" data-f="reads">(c) reads-source.ts</button>
+      <button type="button" data-f="good">behaviour.py</button>
+    </div>
+    <p id="summary" style="margin-block:.2rem .8rem"></p>
+    <table>
+      <thead><tr><th>Line</th><th>Test</th><th>Verdict</th><th>Reason</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <p class="stamp" style="margin-block:.9rem .4rem">SOURCE</p>
+    <pre id="src"></pre>
+  </div>
+
+  <div class="card">
+    <h2>Run it yourself</h2>
+    <pre id="cmd">node src/skills/cover/scripts/check-behaviour-tests.mjs tests/fixtures/cover-behaviour-gate/*
+node tests/unit/test-cover-behaviour-gate.mjs</pre>
+    <p style="margin-block-end:0"><button type="button" id="copy">Copy commands</button><span id="copied" class="stamp"></span></p>
+    <p class="stamp" style="margin-block-end:0">Exit 0: every test kept. Exit 1: a test was rejected. Exit 2: usage or read error.
+      Unsupported languages come back as <code>unchecked</code> and are reviewed by hand.</p>
+  </div>
+
+  <footer>Rules: (a) only mock-call assertions, (b) no assertion, or only not-to-throw when not
+    throwing is not the stated contract, (c) reads or greps the source instead of executing it.
+    Full detail in <code>src/skills/cover/references/behaviour-gate.md</code>.</footer>
+</main>
+<script>
+  const FIXTURES = {
+    mock: {
+      verdict: 'drop', reason: 'all 3 tests rejected', exit: 1,
+      tests: [
+        [5, 'calls the payment gateway', 'reject a', 'only mock-call assertions (1); nothing asserts an observable result'],
+        [11, 'logs once', 'reject a', 'only mock-call assertions (2); nothing asserts an observable result'],
+        [18, 'passes the total through', 'reject a', 'only mock-call assertions (1); nothing asserts an observable result'],
+      ],
+      src: `import { expect, it, vi } from 'vitest';
+import { checkout } from '../src/checkout';
+
+it('calls the payment gateway', async () => {
+  const gateway = { charge: vi.fn() };
+  await checkout(gateway, { total: 10 });
+  expect(gateway.charge).toHaveBeenCalledWith(10);
+});
+
+it('logs once', () => {
+  const log = vi.fn();
+  checkout({ charge: vi.fn() }, { total: 0 }, log);
+  expect(log).toHaveBeenCalledTimes(1);
+  expect(log).not.toHaveBeenCalledWith('error');
+});
+
+it('passes the total through', () => {
+  const charge = vi.fn();
+  checkout({ charge }, { total: 5 });
+  expect(charge.mock.calls[0][0]).toBe(5);
+});`,
+    },
+    free: {
+      verdict: 'drop', reason: 'all 3 tests rejected', exit: 1,
+      tests: [
+        [5, 'runs applyDiscount', 'reject b', 'no assertion: the test runs code but checks nothing'],
+        [9, 'handles a large order', 'reject b', 'only a not-to-throw assertion, and not throwing is not the stated contract'],
+        [13, 'counts assertions but makes none', 'reject b', 'no assertion: the test runs code but checks nothing'],
+      ],
+      src: `import { expect, it } from 'vitest';
+import { applyDiscount } from '../src/pricing';
+
+it('runs applyDiscount', () => {
+  applyDiscount(100, 0.1);
+});
+
+it('handles a large order', () => {
+  expect(() => applyDiscount(1e9, 0.1)).not.toThrow();
+});
+
+it('counts assertions but makes none', () => {
+  expect.hasAssertions();
+  applyDiscount(1, 0);
+});`,
+    },
+    reads: {
+      verdict: 'partial', reason: '3 of 4 tests rejected', exit: 1,
+      tests: [
+        [11, 'exports applyDiscount', 'reject c', "reads source text instead of executing it (line 9: const SRC = readFileSync(PRICING, 'utf8');)"],
+        [15, 'has no TODO left in pricing', 'reject c', "reads source text instead of executing it (line 16: const hits = execSync('grep -c TODO src/pricing.ts || true').toString();)"],
+        [20, 'guards the rate inline', 'reject c', "reads source text instead of executing it (line 21: const text = readFileSync('src/pricing.ts', 'utf8');)"],
+        [25, 'still computes a total', 'keep', 'asserts behaviour (1 assertion)'],
+      ],
+      src: `const PRICING = join(__dirname, '..', 'src', 'pricing.ts');
+const SRC = readFileSync(PRICING, 'utf8');
+
+it('exports applyDiscount', () => {
+  expect(SRC).toContain('export function applyDiscount');
+});
+
+it('has no TODO left in pricing', () => {
+  const hits = execSync('grep -c TODO src/pricing.ts || true').toString();
+  expect(hits.trim()).toBe('0');
+});
+
+it('guards the rate inline', () => {
+  const text = readFileSync('src/pricing.ts', 'utf8');
+  expect(text).toMatch(/rate < 0/);
+});
+
+it('still computes a total', () => {
+  expect(applyDiscount(10, 0.5)).toBe(5);
+});`,
+    },
+    good: {
+      verdict: 'keep', reason: '6 tests, all assert behaviour', exit: 0,
+      tests: [
+        [13, 'test_returns_discounted_total', 'keep', 'asserts behaviour (1 assertion)'],
+        [17, 'test_negative_rate_raises', 'keep', 'asserts behaviour (1 assertion)'],
+        [22, 'test_sends_receipt_and_returns_id', 'keep', 'asserts behaviour (1 assertion)'],
+        [30, 'test_empty_cart', 'keep', 'not throwing is the stated contract'],
+        [36, 'test_parses_cents', 'keep', 'asserts behaviour (1 assertion)'],
+        [39, 'test_comment_mentions_assert_called_but_asserts_value', 'keep', 'asserts behaviour (1 assertion)'],
+      ],
+      src: `def test_returns_discounted_total():
+    assert apply_discount(100, 0.2) == 80
+
+
+def test_negative_rate_raises():
+    with pytest.raises(ValueError, match="rate"):
+        apply_discount(100, -1)
+
+
+def test_sends_receipt_and_returns_id():
+    mailer = MagicMock()
+    mailer.send.return_value = {"id": "r1"}
+    receipt = send_receipt(mailer, 42)
+    mailer.send.assert_called_once()
+    assert receipt["id"] == "r1"
+
+
+def test_empty_cart():
+    """Not raising on an empty cart is the contract: apply_discount never raises for zero totals."""
+    apply_discount(0, 0)
+
+
+class TestParse(unittest.TestCase):
+    def test_parses_cents(self):
+        self.assertEqual(parse_amount("1.50"), 150)
+
+    def test_comment_mentions_assert_called_but_asserts_value(self):
+        # mock.assert_called() would be rule (a); this test checks the value instead
+        self.assertIsNone(parse_amount(""))`,
+    },
+  };
+
+  function cell(text, cls) {
+    const td = document.createElement('td');
+    td.textContent = text;
+    if (cls) td.className = cls;
+    return td;
+  }
+
+  function show(key) {
+    const f = FIXTURES[key];
+    document.querySelectorAll('.picks button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.f === key)));
+    const summary = document.getElementById('summary');
+    summary.textContent = '';
+    const v = document.createElement('strong');
+    v.textContent = f.verdict.toUpperCase();
+    v.className = f.verdict === 'keep' ? 'good' : f.verdict === 'partial' ? 'warn' : 'bad';
+    summary.append(v, ` (${f.reason}), CLI exit ${f.exit}`);
+    const rows = document.getElementById('rows');
+    rows.textContent = '';
+    for (const [line, name, verdict, reason] of f.tests) {
+      const tr = document.createElement('tr');
+      tr.append(cell(String(line)), cell(name), cell(verdict, verdict === 'keep' ? 'good' : 'bad'), cell(reason));
+      rows.append(tr);
+    }
+    document.getElementById('src').textContent = f.src;
+  }
+
+  document.querySelectorAll('.picks button').forEach((b) => b.addEventListener('click', () => show(b.dataset.f)));
+  show('mock');
+
+  document.getElementById('copy').addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(document.getElementById('cmd').textContent);
+      document.getElementById('copied').textContent = ' copied';
+    } catch {
+      document.getElementById('copied').textContent = ' copy failed, select it by hand';
+    }
+  });
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
