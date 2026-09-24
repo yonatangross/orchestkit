@@ -54,53 +54,6 @@ import { NOOP_CTX } from '../../lib/context.js';
 const HOOK_NAME = 'network-egress-guard';
 
 // =============================================================================
-// Allowlist — hosts the agent routinely + safely talks to. User-extensible via
-// ORCHESTKIT_EGRESS_ALLOWLIST (comma-separated). Suffix-matched, so `github.com`
-// also covers `api.github.com`, `raw.githubusercontent.com`, etc.
-// =============================================================================
-
-const DEFAULT_ALLOWLIST = [
-  'github.com',
-  'githubusercontent.com',
-  'codeload.github.com',
-  'registry.npmjs.org',
-  'npmjs.com',
-  'npmjs.org',
-  'pypi.org',
-  'files.pythonhosted.org',
-  'crates.io',
-  'api.anthropic.com',
-  'localhost',
-  '127.0.0.1',
-  '0.0.0.0',
-  '::1',
-];
-
-function allowlist(): string[] {
-  const extra = (process.env.ORCHESTKIT_EGRESS_ALLOWLIST || '')
-    .split(',')
-    .map((h) => h.trim().toLowerCase())
-    .filter(Boolean);
-  return [...DEFAULT_ALLOWLIST, ...extra];
-}
-
-/** True when `host` is the allowlist entry or a subdomain of it. */
-function isAllowlisted(host: string): boolean {
-  const h = host.toLowerCase().replace(/:\d+$/, ''); // strip :port
-  return allowlist().some((a) => h === a || h.endsWith(`.${a}`));
-}
-
-/** Extract hostnames from `http(s)://host[:port]/…` occurrences. */
-function extractUrlHosts(cmd: string): string[] {
-  const hosts: string[] = [];
-  for (const m of cmd.matchAll(/https?:\/\/([^/\s"'`)]+)/gi)) {
-    // strip credentials in `user:pass@host`
-    hosts.push(m[1].replace(/^[^@]*@/, ''));
-  }
-  return hosts;
-}
-
-// =============================================================================
 // DENY tier — remote code execution via fetched content
 // =============================================================================
 
@@ -1173,11 +1126,12 @@ function applyInterpreterFrontChdir(
       continue;
     }
 
-    // su / runuser: login modes make cwd UNKNOWN; -c/--command STRING is an
-    // executed body (recurse with the outer candidate set).
+    // su / runuser: parse the WHOLE option list first (a later login flag after
+    // -c still makes cwd UNKNOWN). -c/--command STRING is an executed body.
     if (t === 'su' || t === 'runuser') {
       idx++;
       let sawCommand = false;
+      let body: string | null = null;
       while (idx < tokens.length) {
         const a = unwrapToken(tokens[idx]!);
         if (a === '--') {
@@ -1195,19 +1149,14 @@ function applyInterpreterFrontChdir(
             denyProgram = true;
             break;
           }
-          execBody = v;
+          body = v;
           sawCommand = true;
           idx++;
-          break;
+          continue;
         }
         if (a.startsWith('--command=')) {
-          execBody = a.slice('--command='.length);
+          body = a.slice('--command='.length);
           sawCommand = true;
-          idx++;
-          break;
-        }
-        if (t === 'runuser' && a === '-l') {
-          unknownCwd = true;
           idx++;
           continue;
         }
@@ -1225,17 +1174,15 @@ function applyInterpreterFrontChdir(
           continue;
         }
         if (a.startsWith('-') && a !== '-') {
-          // Other short/long options: fail-closed.
           denyProgram = true;
           break;
         }
         // Positional user name (su USER / runuser USER).
         idx++;
-        continue;
       }
       if (denyProgram) break;
-      if (sawCommand && execBody !== null) {
-        // Body is handled by the caller; stop peeling.
+      if (sawCommand && body !== null) {
+        execBody = body;
         break;
       }
       // Interactive su/runuser with no -c would read the pipe.
@@ -1560,8 +1507,10 @@ function rhsIsStdinInterpreter(
   const front = applyInterpreterFrontChdir(unwrapped, 0, cwdCandidates, fullCommand);
   // Unknown env/sudo/wrapper option: the whole RHS is an unknown program → DENY.
   if (front.denyProgram) return true;
-  // su/runuser -c STRING: recurse into the executed body with the peeled cwd set.
+  // su/runuser -c STRING: compound bodies (; & | newline) DENY (same fail-closed
+  // split the bash -c path needs). A simple body is scanned as its own RHS.
   if (front.execBody !== null) {
+    if (/[\n;&|]/.test(front.execBody)) return true;
     return rhsIsStdinInterpreter(
       tokenizePipeRhs(front.execBody),
       front.candidates,
@@ -1595,7 +1544,10 @@ function execGovernsQuote(prefix: string): boolean {
   return (
     /\beval\s*$/i.test(p) ||
     /\b(?:ba|z|k|da)?sh\b[^\n]{0,120}\s-[A-Za-z]*c\b\s*$/i.test(p) ||
-    /\b(?:su|runuser)\b[^\n]{0,120}\s-(?:-command=|[A-Za-z]*c\b)/i.test(p) ||
+    // su/runuser: -c, --command=BODY, or --command with BODY as the next arg.
+    /\b(?:su|runuser)\b[^\n]{0,160}(?:\s--command=|\s--command\s*$|\s-[A-Za-z]*c\b\s*$)/i.test(
+      p,
+    ) ||
     /\bpython[0-9.]*\b[^\n]{0,120}\s-c\b\s*$/i.test(p) ||
     /\b(?:node|perl|ruby)\b[^\n]{0,120}\s-e\b\s*$/i.test(p) ||
     /\bphp\b[^\n]{0,120}\s-r\b\s*$/i.test(p)
@@ -1656,12 +1608,9 @@ export function networkEgressGuard(input: HookInput, ctx: HookContext = NOOP_CTX
   const raw = input.tool_input?.command || '';
   if (!raw) return outputSilentSuccess();
 
-  const command = normalizeSingle(raw);
   // #3122/#3125: both tiers scan the quote-aware view so a quoted mention of an
   // RCE/staged-run/exfil pattern (a grep/rg search string, an echo) is not
-  // flagged. `command` (quote-STRIPPED, not quote-aware) is kept only for host
-  // extraction (extractUrlHosts/firstRemoteHost) on the two ASK checks that
-  // genuinely need to see a quoted URL to resolve its allowlist status.
+  // flagged. The DENY tier blanks quoted regions except executed quote bodies.
   // #3632: blank QUOTED heredoc bodies BEFORE the quote view. A `<<'SH'` body is
   // inert payload being written to a file, exactly like a single-quoted string,
   // so a `curl -o` on one body line is not an operator of THIS command. This
