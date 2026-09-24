@@ -136,8 +136,12 @@ test.describe('Landing library catalog', () => {
       'aria-selected',
       'true',
     );
-    await expect(page.getByRole('status')).toContainText(/agents/i);
-    await expect(page.getByRole('tabpanel')).toBeVisible();
+    // Scope to the library tabpanel: the hero CopyInstallButton also owns a
+    // live region (role=status, sr-only), so a page-wide getByRole('status')
+    // is ambiguous (strict mode: 2 matches).
+    const panel = page.getByRole('tabpanel');
+    await expect(panel.getByRole('status')).toContainText(/agents/i);
+    await expect(panel).toBeVisible();
   });
 });
 
@@ -176,7 +180,8 @@ test.describe('Landing changelog', () => {
     await page.goto('/changelog');
     await expect(page.getByRole('heading', { name: 'Changelog' })).toBeVisible();
     await expect(page.getByText('new capability')).toBeVisible();
-    await expect(page.getByRole('link', { name: /10\.0\.0-alpha\.\d+/ }).first()).toBeVisible();
+    // Releases are 10.0.0-beta.N now; RecentVersions links those anchors.
+    await expect(page.getByRole('link', { name: /10\.0\.0-beta\.\d+/ }).first()).toBeVisible();
   });
 });
 
@@ -190,13 +195,15 @@ test.describe('Landing design tokens (no missing CSS variables)', () => {
     expect(color).not.toMatch(/rgba?\(0,\s*0,\s*0,\s*0\)/);
   });
 
-  test('primary button uses the indigo token', async ({ page }) => {
+  test('Get started CTA uses the primary text color', async ({ page }) => {
     await page.goto('/');
 
+    // Hero option A: Get started is a text link (text-fd-primary), not a
+    // filled indigo button. Assert the color token resolves, not background.
     const cta = page.getByRole('link', { name: /get started/i }).first();
-    const bg = await cta.evaluate((el) => getComputedStyle(el).backgroundColor);
-    expect(bg).toMatch(/^(rgb|oklch|lab|color|hwb|hsl)\(/);
-    expect(bg).not.toMatch(/rgba?\(0,\s*0,\s*0,\s*0\)/);
+    const color = await cta.evaluate((el) => getComputedStyle(el).color);
+    expect(color).toMatch(/^(rgb|oklch|lab|color|hwb|hsl)\(/);
+    expect(color).not.toMatch(/rgba?\(0,\s*0,\s*0,\s*0\)/);
   });
 });
 

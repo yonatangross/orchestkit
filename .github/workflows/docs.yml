@@ -161,15 +161,14 @@ jobs:
         run: npm test
 
       # Playwright e2e on chromium-desktop only (iPhone project defaults to
-      # WebKit; this job installs Chromium). Keep both gates: view-transition
-      # abort (PostHog 01a0a900 / #4353) and hero A geometry. --grep filters
-      # every listed file, so both titles must match or VT falls out of CI.
-      # Other landing.spec cases stay out; tracked in #4384, not repaired here.
+      # WebKit; this job installs Chromium). Full landing.spec plus the
+      # view-transition abort guard (PostHog 01a0a900 / #4353). Grep only
+      # the VT title so landing.spec runs every case (#4384).
       - name: Install Playwright Chromium
         working-directory: docs/site
         run: npx playwright install --with-deps chromium
       - name: Run docs-site Playwright e2e
         working-directory: docs/site
-        run: npx playwright test e2e/view-transitions-abort.spec.ts e2e/landing.spec.ts --project=chromium-desktop --grep "hero A art|View transition abort guard"
+        run: npx playwright test e2e/view-transitions-abort.spec.ts e2e/landing.spec.ts --project=chromium-desktop --grep "Landing|View transition abort guard"
         env:
           CI: true
