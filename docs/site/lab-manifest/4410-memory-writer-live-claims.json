@@ -1,0 +1,8 @@
+{
+  "slug": "4410-memory-writer-live-claims",
+  "source": "docs/docs--memory-fix-stale-writer-live-claims/index.html",
+  "title": "Memory hooks: LIVE claims vs the registry",
+  "description": "Interactive check of which OrchestKit memory names are still registered hooks after the memory-writer docs purge in PR #4410.",
+  "tags": ["docs", "memory", "hooks", "explainer"],
+  "date": "2026-09-25"
+}
