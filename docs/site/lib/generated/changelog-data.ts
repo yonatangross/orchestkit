@@ -18,6 +18,21 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.88",
+    "date": "2026-09-24",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.87...v10.0.0-beta.88",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**docs-site:** align three stale landing.spec cases with hero A ([#4398](https://github.com/yonatangross/orchestkit/issues/4398)) ([eb5bc52](https://github.com/yonatangross/orchestkit/commit/eb5bc525f045e714df0687f9c5fb02df5e40453e))",
+          "**hooks:** resolve relative interpreter program paths against the effective working directory ([#4400](https://github.com/yonatangross/orchestkit/issues/4400)) ([5b42ec9](https://github.com/yonatangross/orchestkit/commit/5b42ec90d693c28e49b6bc517c40bd4e27363fce))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.87",
     "date": "2026-09-24",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.86...v10.0.0-beta.87",
