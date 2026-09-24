@@ -443,11 +443,28 @@ function isDirChangeWord(w: string): boolean {
   return w === 'cd' || w === 'pushd' || w === 'popd' || w === 'chdir';
 }
 
+/** True when `eval` / `source` / `.` appears as a whole word (effect unknown). */
+function isOpaqueDirEffectWord(w: string): boolean {
+  return w === 'eval' || w === 'source' || w === '.';
+}
+
+/**
+ * A dir-change word inside a multi-word token (typical of a quoted string
+ * after quote stripping, e.g. `cd /dev` from `"cd /dev"`) cannot yield a
+ * trusted literal target; treat as UNKNOWN.
+ */
+function tokenEmbedsDirChangeWord(tok: string): boolean {
+  if (!/\s/.test(tok)) return false;
+  return /(?:^|[\s;|&()])(cd|pushd|popd|chdir)(?=[\s;|&()]|$)/.test(tok);
+}
+
 /**
  * Scan every token in a simple-command segment for directory-change words.
  * Fail-closed: a word `cd` / `pushd` / `popd` / `chdir` anywhere counts, not
  * only in command position (covers `time cd`, `then cd`, `do cd`, …).
  * A literal following target is ADDed; anything else makes the set UNKNOWN.
+ * `eval` / `source` / `.`, and dir-change words embedded in quoted tokens,
+ * also make the set UNKNOWN.
  */
 function applyDirChangesInSegment(
   tokens: string[],
@@ -457,7 +474,11 @@ function applyDirChangesInSegment(
   // Keep backslashes so escaped targets stay shell-expanded / UNKNOWN.
   const words = tokens.map((t) => unwrapToken(t));
   for (let i = 0; i < words.length; i++) {
-    const head = words[i]!.replace(/\\/g, '');
+    const rawWord = words[i]!;
+    if (tokenEmbedsDirChangeWord(rawWord)) return 'unknown';
+
+    const head = rawWord.replace(/\\/g, '');
+    if (isOpaqueDirEffectWord(head)) return 'unknown';
     if (!isDirChangeWord(head)) continue;
     if (head === 'popd') return 'unknown';
     const target = words[i + 1];
@@ -469,6 +490,7 @@ function applyDirChangesInSegment(
     if (programArgIsShellExpanded(target)) return 'unknown';
     // Another dir-change word as the "target" is not a literal path.
     if (isDirChangeWord(target.replace(/\\/g, ''))) return 'unknown';
+    if (tokenEmbedsDirChangeWord(target)) return 'unknown';
     if (!addTarget(target.replace(/\\/g, ''))) return 'unknown';
   }
   return 'ok';
