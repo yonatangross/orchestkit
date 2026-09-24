@@ -1,0 +1,8 @@
+{
+  "slug": "egress-program-cwd",
+  "source": "docs/fix--egress-program-cwd/playground.html",
+  "title": "Resolve relative interpreter program paths against the effective working directory",
+  "description": "Egress pipe check: resolve relative interpreter program paths against the effective working directory.",
+  "tags": ["hooks", "security", "egress"],
+  "date": "2026-09-24"
+}

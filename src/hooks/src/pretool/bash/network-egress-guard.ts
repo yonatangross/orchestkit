@@ -360,20 +360,34 @@ function tokenizePipeRhs(s: string): string[] {
 }
 
 /**
- * Fail-closed stdin-program path check. After posix.normalize:
+ * Fail-closed stdin-program path check against an effective working directory.
+ * After posix.normalize:
  * (a) lone `-`
- * (b) absolute path under `/dev` or `/proc` (no real script lives there)
- * (c) relative path whose `..` segments lead into a `dev` or `proc` segment
+ * (b) absolute path under `/dev` or `/proc`
+ * (c) relative path: DENY when cwd is unknown; otherwise join with cwd and
+ *     apply (b)
  */
-function isStdinProgramPath(a: string): boolean {
+function isStdinProgramPath(a: string, effectiveCwd: string | null): boolean {
   if (a === '-') return true;
   const n = posix.normalize(a);
   if (n === '-') return true;
+  // Relative climb into a kernel tree name (no cwd needed).
+  if (/^(?:\.\.\/)+(?:dev|proc)(?:\/|$)/.test(n)) return true;
+
   if (posix.isAbsolute(n)) {
-    return n === '/dev' || n === '/proc' || n.startsWith('/dev/') || n.startsWith('/proc/');
+    return (
+      n === '/dev' || n === '/proc' || n.startsWith('/dev/') || n.startsWith('/proc/')
+    );
   }
-  // Relative escape into a kernel filesystem name, e.g. `../dev/...`.
-  return /^(?:\.\.\/)+(?:dev|proc)(?:\/|$)/.test(n);
+  // Relative path: unknown cwd is fail-closed; else resolve against cwd.
+  if (effectiveCwd === null) return true;
+  const resolved = posix.normalize(posix.join(effectiveCwd, n));
+  return (
+    resolved === '/dev' ||
+    resolved === '/proc' ||
+    resolved.startsWith('/dev/') ||
+    resolved.startsWith('/proc/')
+  );
 }
 
 /**
@@ -405,10 +419,142 @@ function isInputRedirectOrProcSub(tok: string): boolean {
 
 /**
  * True when this program token must be treated as an unknown/stdin program:
- * shell-expanded form, or a path under a kernel filesystem tree.
+ * shell-expanded form, or a path under a kernel filesystem tree (resolved
+ * against the effective cwd when relative).
  */
-function programArgIsDenied(a: string): boolean {
-  return programArgIsShellExpanded(a) || isStdinProgramPath(a);
+function programArgIsDenied(a: string, effectiveCwd: string | null): boolean {
+  return programArgIsShellExpanded(a) || isStdinProgramPath(a, effectiveCwd);
+}
+
+/**
+ * Hook payload cwd (CC shared base), falling back to project_dir.
+ */
+function hookInputCwd(input: HookInput): string | null {
+  const rec = input as unknown as Record<string, unknown>;
+  if (typeof rec.cwd === 'string' && rec.cwd.length > 0) return rec.cwd;
+  if (typeof input.project_dir === 'string' && input.project_dir.length > 0) {
+    return input.project_dir;
+  }
+  return null;
+}
+
+/**
+ * Resolve the effective working directory by applying every top-level `cd` /
+ * `pushd` in `prefix` (text before the fetcher|interpreter pipe), starting
+ * from the hook cwd. Returns null when the cwd is unknown.
+ */
+function resolveEffectiveCwd(
+  prefix: string,
+  baseCwd: string | null,
+  fullCommand: string,
+): string | null {
+  const cdpathAssigned = /\bCDPATH=/.test(fullCommand);
+  let cwd: string | null = baseCwd;
+  let pos = 0;
+  let depth = 0;
+  const n = prefix.length;
+
+  const applyTarget = (target: string): boolean => {
+    if (target === '-' || programArgIsShellExpanded(target)) return false;
+    if (target.startsWith('-')) return false; // cd flags
+    if (
+      cdpathAssigned &&
+      !posix.isAbsolute(target) &&
+      !target.startsWith('./') &&
+      !target.startsWith('../')
+    ) {
+      return false;
+    }
+    if (posix.isAbsolute(target)) {
+      cwd = posix.normalize(target);
+      return true;
+    }
+    if (cwd === null) return false;
+    cwd = posix.normalize(posix.join(cwd, target));
+    return true;
+  };
+
+  while (pos < n) {
+    while (pos < n && /\s/.test(prefix[pos]!)) pos++;
+    if (pos >= n) break;
+
+    const ch0 = prefix[pos]!;
+    if (ch0 === '(' || ch0 === '{') {
+      depth++;
+      pos++;
+      continue;
+    }
+    if (ch0 === ')' || ch0 === '}') {
+      depth = Math.max(0, depth - 1);
+      pos++;
+      continue;
+    }
+
+    let end = pos;
+    while (end < n) {
+      const c = prefix[end]!;
+      if (c === '"' || c === "'") {
+        const q = c;
+        end++;
+        while (end < n && prefix[end] !== q) {
+          if (q === '"' && prefix[end] === '\\' && end + 1 < n) end += 2;
+          else end++;
+        }
+        if (end < n) end++;
+        continue;
+      }
+      if (c === '(' || c === '{' || c === ')' || c === '}') break;
+      if (c === ';' || c === '\n' || c === '|') break;
+      if (c === '&') break;
+      end++;
+    }
+
+    const segment = prefix.slice(pos, end).trim();
+    if (segment.length > 0) {
+      const tokens = tokenizePipeRhs(segment);
+      const head = tokens[0] ? unwrapToken(tokens[0]) : '';
+      if (head === 'cd' || head === 'pushd' || head === 'popd') {
+        if (depth > 0) return null;
+        if (head === 'popd') return null;
+        if (tokens.length !== 2) return null;
+        const target = unwrapToken(tokens[1]!);
+        if (!applyTarget(target)) return null;
+      }
+    }
+
+    if (end >= n) break;
+    const sep = prefix[end]!;
+    if (sep === '|') break;
+    if (sep === ';') {
+      pos = end + 1;
+      continue;
+    }
+    if (sep === '\n') {
+      pos = end + 1;
+      continue;
+    }
+    if (sep === '&') {
+      if (prefix[end + 1] === '&') {
+        pos = end + 2;
+        continue;
+      }
+      // Backgrounded segment: fail-closed.
+      return null;
+    }
+    if (sep === '(' || sep === '{') {
+      depth++;
+      pos = end + 1;
+      continue;
+    }
+    if (sep === ')' || sep === '}') {
+      depth = Math.max(0, depth - 1);
+      pos = end + 1;
+      continue;
+    }
+    pos = end;
+  }
+
+  return cwd;
 }
 
 /**
@@ -427,6 +573,7 @@ function programArgIsDenied(a: string): boolean {
 function interpreterArgsAreStdinProgram(
   family: InterpreterFamily,
   args: string[],
+  effectiveCwd: string | null,
 ): boolean {
   if (args.length === 0) return true;
   if (args.some(isInputRedirectOrProcSub)) return true;
@@ -485,7 +632,7 @@ function interpreterArgsAreStdinProgram(
     // End of options: the next token is the program.
     if (a === '--') {
       if (i + 1 >= args.length) return true;
-      return programArgIsDenied(args[i + 1]!);
+      return programArgIsDenied(args[i + 1]!, effectiveCwd);
     }
 
     // Output redirection tokens are not the program; skip and keep walking.
@@ -498,7 +645,7 @@ function interpreterArgsAreStdinProgram(
     }
 
     // Stdin-program path or shell-expanded program token.
-    if (programArgIsDenied(a)) return true;
+    if (programArgIsDenied(a, effectiveCwd)) return true;
 
     // Unknown option => DENY (fail closed).
     if (a.startsWith('-')) return true;
@@ -553,7 +700,11 @@ function findUnquotedPipeIndexes(cmd: string): number[] {
  * (so quoted mentions do not fire), but tokenize the RHS from quoteIntact so
  * values like `--require 'fs'` stay as their own token and are not dropped.
  */
-function pipeToInterpreterStdinProgram(denyScan: string, quoteIntact: string): boolean {
+function pipeToInterpreterStdinProgram(
+  denyScan: string,
+  quoteIntact: string,
+  baseCwd: string | null,
+): boolean {
   const denyPipes: number[] = [];
   for (let i = 0; i < denyScan.length; i++) {
     if (denyScan[i] === '|') denyPipes.push(i);
@@ -567,7 +718,12 @@ function pipeToInterpreterStdinProgram(denyScan: string, quoteIntact: string): b
     for (const pipe of intactPipes) {
       const left = quoteIntact.slice(Math.max(0, pipe - 200), pipe);
       if (!FETCHER_RE.test(left)) continue;
-      if (rhsIsStdinInterpreter(tokenizePipeRhs(quoteIntact.slice(pipe + 1)))) {
+      const effectiveCwd = resolveEffectiveCwd(
+        quoteIntact.slice(0, pipe),
+        baseCwd,
+        quoteIntact,
+      );
+      if (rhsIsStdinInterpreter(tokenizePipeRhs(quoteIntact.slice(pipe + 1)), effectiveCwd)) {
         return true;
       }
     }
@@ -577,8 +733,14 @@ function pipeToInterpreterStdinProgram(denyScan: string, quoteIntact: string): b
     const dPipe = denyPipes[i]!;
     const left = denyScan.slice(Math.max(0, dPipe - 200), dPipe);
     if (!FETCHER_RE.test(left)) continue;
-    const tokens = tokenizePipeRhs(quoteIntact.slice(intactPipes[i]! + 1));
-    if (rhsIsStdinInterpreter(tokens)) return true;
+    const pipe = intactPipes[i]!;
+    const effectiveCwd = resolveEffectiveCwd(
+      quoteIntact.slice(0, pipe),
+      baseCwd,
+      quoteIntact,
+    );
+    const tokens = tokenizePipeRhs(quoteIntact.slice(pipe + 1));
+    if (rhsIsStdinInterpreter(tokens, effectiveCwd)) return true;
   }
   return false;
 }
@@ -639,14 +801,18 @@ const MAX_EXEC_QUOTE_DEPTH = 8;
  * Top-level + nested scan: run the pipe check on this command, then on every
  * executed-quote body as its own command (with its own denyScan / quoteIntact).
  */
-function scanFetcherInterpreterPipes(rawCmd: string, depth = 0): boolean {
+function scanFetcherInterpreterPipes(
+  rawCmd: string,
+  baseCwd: string | null,
+  depth = 0,
+): boolean {
   if (depth > MAX_EXEC_QUOTE_DEPTH) return false;
   const blanked = blankQuotedHeredocBodies(rawCmd);
   const denyScan = normalizeSingle(egressDenyScanView(blanked));
   const quoteIntact = collapseHorizontalWhitespace(blanked);
-  if (pipeToInterpreterStdinProgram(denyScan, quoteIntact)) return true;
+  if (pipeToInterpreterStdinProgram(denyScan, quoteIntact, baseCwd)) return true;
   for (const body of extractExecutedQuoteBodies(blanked)) {
-    if (scanFetcherInterpreterPipes(body, depth + 1)) return true;
+    if (scanFetcherInterpreterPipes(body, baseCwd, depth + 1)) return true;
   }
   return false;
 }
@@ -674,7 +840,10 @@ function unescapeInterpreterName(name: string): string {
 }
 
 /** Shared sudo/env skip + interpreter arg scan for one pipe RHS token list. */
-function rhsIsStdinInterpreter(tokens: string[]): boolean {
+function rhsIsStdinInterpreter(
+  tokens: string[],
+  effectiveCwd: string | null,
+): boolean {
   const unwrapped = tokens.map(unwrapToken);
   let idx = 0;
   while (idx < unwrapped.length) {
@@ -696,7 +865,9 @@ function rhsIsStdinInterpreter(tokens: string[]): boolean {
   const name = unescapeInterpreterName(unwrapped[idx]!);
   if (!INTERPRETER_NAME_RE.test(name)) return false;
   const family = interpreterFamily(name);
-  return Boolean(family && interpreterArgsAreStdinProgram(family, unwrapped.slice(idx + 1)));
+  return Boolean(
+    family && interpreterArgsAreStdinProgram(family, unwrapped.slice(idx + 1), effectiveCwd),
+  );
 }
 
 // =============================================================================
@@ -806,7 +977,7 @@ export function networkEgressGuard(input: HookInput, ctx: HookContext = NOOP_CTX
     }
   }
 
-  if (scanFetcherInterpreterPipes(raw)) {
+  if (scanFetcherInterpreterPipes(raw, hookInputCwd(input))) {
     const label = 'curl|interpreter: pipes fetched content to an interpreter';
     ctx.log(HOOK_NAME, `BLOCKED: ${label}`);
     ctx.logPermission('deny', label, input);
