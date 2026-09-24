@@ -666,6 +666,97 @@ function skipOneFrontWrapper(tokens: string[], startIdx: number): WrapperSkipRes
     return { kind: 'skip', nextIdx: i };
   }
 
+  if (base === 'catchsegv') {
+    // catchsegv PROGRAM; no options.
+    return { kind: 'skip', nextIdx: i };
+  }
+
+  if (base === 'setsid') {
+    while (i < tokens.length) {
+      const a = unwrapToken(tokens[i]!);
+      if (a === '--') {
+        i++;
+        break;
+      }
+      if (a === '-c' || a === '-f' || a === '-w' || a === '--ctty' || a === '--fork' || a === '--wait') {
+        i++;
+        continue;
+      }
+      if (a.startsWith('-') && a !== '-') return { kind: 'deny' };
+      break;
+    }
+    return { kind: 'skip', nextIdx: i };
+  }
+
+  if (base === 'ionice') {
+    while (i < tokens.length) {
+      const a = unwrapToken(tokens[i]!);
+      if (a === '--') {
+        i++;
+        break;
+      }
+      if (a === '-t' || a === '--ignore') {
+        i++;
+        continue;
+      }
+      if (a.startsWith('--class=') || a.startsWith('--classdata=')) {
+        i++;
+        continue;
+      }
+      if (a === '-c' || a === '--class' || a === '-n' || a === '--classdata') {
+        if (i + 1 >= tokens.length) return { kind: 'deny' };
+        i += 2;
+        continue;
+      }
+      // Glued -c3 / -n0
+      if (/^-[cn].+/.test(a)) {
+        i++;
+        continue;
+      }
+      if (a.startsWith('-') && a !== '-') return { kind: 'deny' };
+      break;
+    }
+    return { kind: 'skip', nextIdx: i };
+  }
+
+  if (base === 'time') {
+    // Shell keyword or /usr/bin/time: -p; GNU also -f/-o VALUE, -a, -v.
+    while (i < tokens.length) {
+      const a = unwrapToken(tokens[i]!);
+      if (a === '--') {
+        i++;
+        break;
+      }
+      if (
+        a === '-p' ||
+        a === '--portability' ||
+        a === '-a' ||
+        a === '--append' ||
+        a === '-v' ||
+        a === '--verbose'
+      ) {
+        i++;
+        continue;
+      }
+      if (a.startsWith('--format=') || a.startsWith('--output=')) {
+        i++;
+        continue;
+      }
+      if (a === '-f' || a === '--format' || a === '-o' || a === '--output') {
+        if (i + 1 >= tokens.length) return { kind: 'deny' };
+        i += 2;
+        continue;
+      }
+      if (/^-f.+/.test(a) || /^-o.+/.test(a)) {
+        i++;
+        continue;
+      }
+      if (a.startsWith('-') && a !== '-') return { kind: 'deny' };
+      break;
+    }
+    return { kind: 'skip', nextIdx: i };
+  }
+
   if (base === 'exec') {
     while (i < tokens.length) {
       const a = unwrapToken(tokens[i]!);
