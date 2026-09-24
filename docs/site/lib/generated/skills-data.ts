@@ -624,7 +624,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "auto",
     "description": "Intent-classified router, the front door to OrchestKit and the DEFAULT entry point for any goal-shaped request. Classifies a plain-English goal and routes it to the right specialist skill. Routing is never overhead, so use it even when the target skill seems obvious; skip only when already executing inside another skill (no recursion). Triggers on: auto, do this, figure out, just make, I want, help me, fix, build, improve, any goal description.",
     "version": "1.0.0",
-    "sha256": "0cc820c84523a7898efe07091d82f413facedd17746fc370e403c4b719dd01e6",
+    "sha256": "121cce365d04d8e9e4e25e349ea30ce8bd73eeeb200d71291f2902aa526cba2e",
     "author": "OrchestKit",
     "tags": [
       "router",
@@ -1023,9 +1023,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "commit": {
     "name": "commit",
-    "description": "Creates commits with Conventional Commits format (feat/fix/docs/refactor/test/chore), automatic scope detection, co-author attribution, and pre-commit hook compliance. Validates staged changes, generates descriptive messages focusing on the 'why', and prevents secrets or generated-only files from being committed. Use for requests to commit, stage and commit, save progress, or write a commit message, whether or not they name this skill. Do not invoke it for git commits you make incidentally during other work; those stay a bare CLI call.",
+    "description": "Creates commits with Conventional Commits format (feat/fix/docs/refactor/test/chore), scope detection, co-author attribution, and pre-commit hook compliance. Validates staged changes and prevents secrets or generated-only files from being committed. Use for requests to commit, stage and commit, save progress, or write a commit message. Do not invoke it for incidental git commits during other work; those stay a bare CLI call.",
     "version": "1.2.0",
-    "sha256": "bb3ee7fac17e201f7e94b06ecd441611de15721d95082aeee90006b990dbb812",
+    "sha256": "3976ba7d98101c10d973376a71003c1c6173cbdc60097981c573a20408dd2057",
     "author": "OrchestKit",
     "tags": [
       "git",
@@ -2121,6 +2121,62 @@ export const SKILLS: Record<string, SkillMeta> = {
       "emulate-engineer"
     ]
   },
+  "error-analysis": {
+    "name": "error-analysis",
+    "description": "Evals-first error analysis for LLM apps: clusters real Langfuse or JSONL traces into a human-confirmed failure taxonomy with counts, then recommends binary pass/fail evals for recurring named modes. Use to learn what to measure before writing evals. Not for CI failures.",
+    "version": "1.0.0",
+    "sha256": "3e6ccb58b3bb6f1e405f905ac45b8780eef7d93d93cd2328489778ab74ca005f",
+    "author": "OrchestKit",
+    "tags": [
+      "error-analysis",
+      "evaluation",
+      "llm-testing",
+      "testing",
+      "langfuse",
+      "traces",
+      "failure-taxonomy",
+      "evals",
+      "debugging"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [
+      "AskUserQuestion",
+      "Bash",
+      "Read",
+      "Write",
+      "Edit",
+      "Grep",
+      "Glob",
+      "Agent",
+      "TaskCreate",
+      "TaskUpdate",
+      "TaskList",
+      "TaskGet",
+      "TaskStop",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "skills": [
+      "testing-llm",
+      "memory"
+    ],
+    "agent": null,
+    "complexity": "high",
+    "structure": {
+      "references": [
+        "judge-alignment.md",
+        "langfuse-traces.md",
+        "method.md"
+      ]
+    },
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": [
+      "eval-runner"
+    ]
+  },
   "errors": {
     "name": "errors",
     "description": "Error pattern analysis and troubleshooting for Claude Code sessions. Categorizes errors (network, auth, model, tool, memory, permission) with known resolution patterns, searches memory for prior occurrences, and suggests recovery steps. Delegates to debug-investigator agent for complex root cause analysis. Use when handling errors, fixing failures, or troubleshooting session issues.",
@@ -2473,9 +2529,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "glyph": {
     "name": "glyph",
-    "description": "Render an answer as ASCII art plus semantic emojis inline, right now, with no setup questions: one render per reply, up to about 50 lines, verdict first. Use for any answer with shape: status, inventories, audits, budgets, comparisons, rankings, pipelines, 'what is using X', or any ad-hoc 'show me X visually' ask. Not for definitions, conceptual explanations, or one-sentence and one-paragraph asks; those have no shape to draw. For a full multi-artifact plan playground, use visualize-plan instead.",
+    "description": "Render an answer as ASCII art plus semantic emojis inline with no setup questions: one render per reply, verdict first. Use for any answer with shape: status, inventories, audits, budgets, comparisons, rankings, pipelines, 'what is using X', or any ad-hoc 'show me X visually' ask. Not for definitions, conceptual explanations, or one-liner asks. For a full multi-artifact plan playground, use visualize-plan instead.",
     "version": "3.0.0",
-    "sha256": "cdf27e00c3133f8c88cbf1d668d1896e50d503e4fb357b66c23d731cda973b5d",
+    "sha256": "69a5129dba1a8f8b4acaa62e21e7def051e0a4687bf89e61f38ee9ccc007942f",
     "author": "OrchestKit",
     "tags": [
       "ascii",
@@ -3336,9 +3392,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "page-serve": {
     "name": "page-serve",
-    "description": "Hand a human a rendered HTML page at a stable HTTPS URL. Registers a portless route for a file or directory (https://NAME.localhost/, never a :port), prints the URL, optionally screenshots it through agent-browser, and tears it down on stop. Use whenever an agent has produced a page a human is meant to open: glyph explainers, playgrounds, decision pages, visualize-plan output, a docs preview. Replaces the ad hoc python http.server plus hand-typed alias pattern that leaves servers alive across sessions.",
+    "description": "Hand a human a rendered HTML page at a stable HTTPS URL. Registers a portless route for a file or directory (https://NAME.localhost/, never a :port), prints the URL, optionally screenshots it, and tears it down on stop. Use when an agent produced a page a human is meant to open: glyph explainers, playgrounds, decision pages, docs previews. Replaces ad hoc python http.server plus alias patterns that leave servers alive.",
     "version": "1.0.0",
-    "sha256": "3bc30b2df2904567cc312f6c52f1fe765d59361f3dbd726c7d1054cc8d15e131",
+    "sha256": "d9043e6cbe6817bca1b4a06b5629ac6c9e7b43862f592547ec4af03f9eb378e6",
     "author": "OrchestKit",
     "tags": [
       "page-serve",

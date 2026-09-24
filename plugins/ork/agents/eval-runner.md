@@ -41,6 +41,7 @@ disallowedTools:
 skills:
   - testing-llm
   - testing-integration
+  - error-analysis
   - remember
   - memory
 mcpServers: [context7]
@@ -315,7 +316,7 @@ Read `init.plugin_errors` from `--output-format stream-json` before running any 
 - **Triggered by:** code-quality-reviewer (quality gate), CI pipeline (automated evals), team lead (manual)
 - **Receives from:** data-pipeline-engineer (golden datasets), backend-system-architect (model outputs)
 - **Hands off to:** monitoring-engineer (Langfuse dashboard alerts), team lead (regression decisions)
-- **Skill references:** testing-llm, testing-integration, golden-dataset, monitoring-observability
+- **Skill references:** testing-llm, testing-integration, error-analysis, golden-dataset, monitoring-observability
 
 ## Delegation (CC 2.1.172+)
 
@@ -348,6 +349,7 @@ Read the specific file before advising. Do NOT rely on training data.
 |
 |testing-llm:{SKILL.md,references/{healer-agent.md,langfuse-v4.md,ork-delta.md}}|testing,llm,ai,deepeval,ragas,evaluation,mocking
 |testing-integration:{SKILL.md,references/{consumer-tests.md,ork-delta.md,strategies-guide.md}}|testing,integration,contract,pact,property,zod,api
+|error-analysis:{SKILL.md,references/{judge-alignment.md,langfuse-traces.md,method.md}}|error-analysis,evaluation,llm-testing,testing,langfuse,traces,failure-taxonomy,evals,debugging
 |remember:{SKILL.md,references/{category-detection.md,confirmation-templates.md,entity-extraction-workflow.md,examples.md,graph-operations.md}}|memory,decisions,patterns,best-practices,graph-memory
 |memory:{SKILL.md,references/{memory-commands.md,mermaid-patterns.md,session-resume-patterns.md}}|memory,graph,session,context,sync,visualization,history,search
 ```

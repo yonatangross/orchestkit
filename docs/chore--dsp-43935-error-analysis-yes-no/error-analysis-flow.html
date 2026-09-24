@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>error-analysis: traces to evals</title>
+<style>
+  :root { color-scheme: dark; --bg:#12141a; --ink:#e8e6e3; --muted:#9a968f; --line:#2c313c; --ok:#3ddc97; --bad:#ff6b6b; --accent:#7aa2f7; }
+  * { box-sizing: border-box; }
+  body { margin:0; font:16px/1.5 ui-sans-serif, system-ui, sans-serif; background:var(--bg); color:var(--ink); }
+  main { max-width:880px; margin:0 auto; padding:32px 20px 80px; }
+  h1 { font-size:28px; margin:0 0 8px; }
+  p { color:var(--muted); }
+  .row { display:flex; gap:8px; flex-wrap:wrap; margin:16px 0; }
+  button { background:#1c2030; color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:8px 12px; cursor:pointer; }
+  button[aria-pressed="true"], button:hover { border-color:var(--accent); color:var(--accent); }
+  pre { background:#0c0e14; border:1px solid var(--line); border-radius:10px; padding:14px; overflow:auto; font:13px/1.45 ui-monospace, monospace; white-space:pre-wrap; }
+  .step { border:1px solid var(--line); border-radius:10px; padding:16px; margin:14px 0; }
+  .step h2 { font-size:18px; margin:0 0 6px; }
+  .step.active { border-color:var(--accent); }
+  .tag { display:inline-block; font-size:12px; padding:2px 8px; border-radius:999px; border:1px solid var(--line); color:var(--muted); margin-right:6px; }
+  .tag.ok { color:var(--ok); border-color:var(--ok); }
+  .tag.bad { color:var(--bad); border-color:var(--bad); }
+  table { border-collapse:collapse; width:100%; font-size:14px; }
+  th, td { border:1px solid var(--line); padding:8px 10px; text-align:left; }
+  th { color:var(--muted); font-weight:600; }
+  .note { font-size:14px; color:var(--muted); }
+  .hidden { display:none; }
+</style>
+</head>
+<body>
+<main>
+  <h1>error-analysis: from 100 traces to named failure modes</h1>
+  <p>Interactive walkthrough of the new <code>error-analysis</code> skill (PR #4402). Evals-first failure analysis for LLM apps, the Husain and Shankar method: real traces in, binary evals out.</p>
+
+  <div class="step" id="s1">
+    <h2>1. Sample real traces</h2>
+    <p>Pull a default sample of 100 real traces from the Langfuse public API, or read an exported JSONL file. Keep the trace id and enough context to review each one.</p>
+    <pre>langfuse api GET /api/public/traces?limit=100
+traces.jsonl  (one trace per line, ids preserved)</pre>
+  </div>
+
+  <div class="step" id="s2">
+    <h2>2. Open-code each failing trace</h2>
+    <p>One short free-form note per failing trace, written by the human. Claude drafts candidates; the human accepts or edits each one.</p>
+    <div class="row" role="group" aria-label="Candidate note for trace t-1042">
+      <button type="button" id="accept">Accept draft note</button>
+      <button type="button" id="edit">Edit note</button>
+    </div>
+    <pre id="note">trace t-1042: draft note (Claude): "tool returned empty result set, model apologized instead of retrying"</pre>
+    <p class="note" id="noteStatus">Waiting for human decision.</p>
+  </div>
+
+  <div class="step" id="s3">
+    <h2>3. Axial-code the notes</h2>
+    <p>Claude proposes 5 to 8 named failure modes from the open notes. The human confirms the taxonomy before anything is written.</p>
+    <div class="row">
+      <span class="tag">tool-empty-result</span>
+      <span class="tag">context-drop</span>
+      <span class="tag">wrong-schema</span>
+      <span class="tag">over-refusal</span>
+      <span class="tag">stale-param</span>
+    </div>
+  </div>
+
+  <div class="step" id="s4">
+    <h2>4. Write failure-taxonomy.md</h2>
+    <p>Each mode gets a definition, example trace ids, a count, and a binary eval decision. Counts table included.</p>
+    <table>
+      <thead><tr><th>Mode</th><th>Count</th><th>Eval</th></tr></thead>
+      <tbody>
+        <tr><td>tool-empty-result</td><td>31</td><td><span class="tag ok">yes</span></td></tr>
+        <tr><td>context-drop</td><td>18</td><td><span class="tag ok">yes</span></td></tr>
+        <tr><td>wrong-schema</td><td>9</td><td><span class="tag ok">yes</span></td></tr>
+        <tr><td>over-refusal</td><td>3</td><td><span class="tag bad">no</span></td></tr>
+        <tr><td>stale-param</td><td>2</td><td><span class="tag bad">no</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="step" id="s5">
+    <h2>5. Prompt or code? Replay the tool output</h2>
+    <p>Before writing an eval, replay the tool or DB output for a trace. Correct output means a prompt or context failure. Wrong output means a code failure, and no eval will catch it.</p>
+    <div class="row" role="group" aria-label="Replay outcome">
+      <button type="button" id="replayOk">Replay: correct output</button>
+      <button type="button" id="replayBad">Replay: wrong output</button>
+    </div>
+    <pre id="verdict">Pick a replay outcome.</pre>
+  </div>
+
+  <p class="note">Evals only for named, recurring modes. Binary pass/fail, written critique on failure, judge aligned against human labels, then handed to the eval-runner agent.</p>
+</main>
+<script>
+  const accept = document.getElementById('accept');
+  const edit = document.getElementById('edit');
+  const status = document.getElementById('noteStatus');
+  const note = document.getElementById('note');
+  accept.addEventListener('click', () => {
+    note.textContent = 'trace t-1042: "tool returned empty result set, model apologized instead of retrying" (accepted)';
+    status.textContent = 'Human accepted the draft. Note is human-authored by adoption.';
+  });
+  edit.addEventListener('click', () => {
+    note.textContent = 'trace t-1042: "empty tool result, model gave up; should have retried with looser filter" (human edit)';
+    status.textContent = 'Human rewrote the draft. Claude suggestion was a starting point only.';
+  });
+  const verdict = document.getElementById('verdict');
+  document.getElementById('replayOk').addEventListener('click', () => {
+    verdict.textContent = 'Replayed tool output is CORRECT.\n=> prompt/context failure. Fix the prompt or context; a binary eval can guard the regression.';
+    verdict.style.borderColor = 'var(--ok)';
+  });
+  document.getElementById('replayBad').addEventListener('click', () => {
+    verdict.textContent = 'Replayed tool output is WRONG.\n=> code failure. Fix the tool or query code first; an eval will not help until the tool is correct.';
+    verdict.style.borderColor = 'var(--bad)';
+  });
+</script>
+</body>
+</html>

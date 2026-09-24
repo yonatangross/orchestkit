@@ -1,0 +1,36 @@
+{
+  "skill": "error-analysis",
+  "version": "1.0.0",
+  "testCases": [
+    {
+      "id": "langfuse-taxonomy-flow",
+      "query": "My Langfuse traces show the support agent failing but I do not know which evals to write. Pull the last 100 traces and build a failure taxonomy.",
+      "expectedBehavior": [
+        "Claude pulls traces via the Langfuse public API using env vars without printing secrets",
+        "Claude walks the user through open coding, drafting candidate notes the human accepts or edits",
+        "Claude proposes 5-8 named failure modes and asks the human to confirm before writing the taxonomy",
+        "Claude writes failure-taxonomy.md with mode, definition, example trace ids, count, and eval yes/no",
+        "Eval recommendations are binary pass/fail and only cover named recurring modes"
+      ]
+    },
+    {
+      "id": "jsonl-prompt-or-code",
+      "query": "Here is an exported JSONL of production traces (traces.jsonl). The retriever might be broken. Analyze failures and tell me if it is a prompt problem or a code problem.",
+      "expectedBehavior": [
+        "Claude inspects the JSONL field names before normalizing instead of assuming a schema",
+        "Claude replays the suspect tool or DB call with the recorded inputs and compares the replayed output to the recorded observation",
+        "A matching wrong replay leads to a code or data verdict; a matching correct replay plus bad final answer leads to a prompt or context verdict; a differing replay is inconclusive",
+        "Claude does not recommend evals for one-off modes that lack recurrence"
+      ]
+    },
+    {
+      "id": "likert-judge-refusal",
+      "query": "Write me an LLM judge that scores response quality 1-5 for my chatbot.",
+      "expectedBehavior": [
+        "Claude pushes back on the Likert scale and asks for a named failure mode with binary pass/fail",
+        "Claude asks whether error analysis has been run to identify which failure modes exist",
+        "Claude does not start building a generic quality judge"
+      ]
+    }
+  ]
+}

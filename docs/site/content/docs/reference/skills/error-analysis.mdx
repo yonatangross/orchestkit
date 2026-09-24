@@ -1,0 +1,525 @@
+---
+title: "Error Analysis"
+description: "Evals-first error analysis for LLM apps: clusters real Langfuse or JSONL traces into a human-confirmed failure taxonomy with counts, then recommends binary pass/fail evals for recurring named modes. Use to learn what to measure before writing evals. Not for CI failures."
+---
+
+<span className="badge badge-gray">Reference</span> <span className="badge badge-orange">high</span>
+
+> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+
+<ContextualSkillSidebar slug="error-analysis" />
+
+> **Error Analysis** Evals-first error analysis for LLM apps: clusters real Langfuse or JSONL traces into a human-confirmed failure taxonomy with counts, then recommends binary pass/fail evals for recurring named modes. Use to learn what to measure before writing evals. Not for CI failures.
+
+
+# Error Analysis
+
+Evals-first failure analysis for LLM applications. The method (Hamel Husain, Shreya Shankar) is qualitative research applied to traces: a human open-codes real failures, Claude axial-codes the notes into a named taxonomy, and only the recurring named modes earn an automated eval. Error analysis decides what to measure; it never writes an eval for a mode that has no name and no count.
+
+## When to Use
+
+- An LLM feature (chatbot, RAG, agent, extractor) misbehaves and the team is guessing which evals to write
+- You have production traces in Langfuse (or a JSONL export) and need the top failure modes with counts
+- Eval scores exist but nobody trusts them because they were never grounded in real failures
+- A judge or metric exists and its agreement with human labels is unknown
+
+Do NOT use for Claude Code session errors (`errors` skill), failing CI runs (`ci-debug`), or writing the evaluators themselves once modes are named (`testing-llm`, `ork:eval-runner`).
+
+## Task Management (CC 2.1.16)
+
+Multi-phase workflow: create tasks before Phase 1 and keep status current.
+
+```python
+t_run  = TaskCreate(subject="Error analysis: {target}", activeForm="Running error analysis on {target}")
+t_pull = TaskCreate(subject="Pull traces", activeForm="Pulling traces")
+t_open = TaskCreate(subject="Open-code failure notes", activeForm="Open-coding traces")
+t_axial = TaskCreate(subject="Axial-code failure taxonomy", activeForm="Axial-coding notes")
+t_tax  = TaskCreate(subject="Write failure-taxonomy.md", activeForm="Writing taxonomy")
+t_eval = TaskCreate(subject="Recommend evals + judge alignment", activeForm="Recommending evals")
+TaskUpdate(taskId=t_open,  addBlockedBy=[t_pull])
+TaskUpdate(taskId=t_axial, addBlockedBy=[t_open])
+TaskUpdate(taskId=t_tax,   addBlockedBy=[t_axial])
+TaskUpdate(taskId=t_eval,  addBlockedBy=[t_tax])
+```
+
+## Effort Scaling (CC 2.1.76)
+
+| Effort | Trace pool | Notes | Outcome |
+|--------|-----------|-------|---------|
+| low | 30 | human notes only, no Claude drafts | draft taxonomy |
+| medium | 50 | drafts after 10 human notes | taxonomy + counts |
+| high (default) | 100 | drafts after 30 human notes, saturation check | full deliverable |
+
+## Phase 1: Pull Traces
+
+Goal: a working pool of ~100 diverse traces (default N=100), skewed toward failures.
+
+**Source A, Langfuse public API.** Requires `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, `LANGFUSE_HOST` in env. Never echo or print the secret value; reference the variable names only.
+
+```bash
+mkdir -p error-analysis/traces
+# Credentials ride in the Authorization header, so let curl enforce the scheme:
+# --proto '=https' fails closed on every non-HTTPS URL. Do not pattern-match the
+# host yourself; uppercase schemes, scheme-less names, decimal IPs, and userinfo
+# tricks all bypass a regex. Relax to '=http,https' ONLY for an exact local
+# endpoint (http://localhost, http://127.0.0.1, http://[::1], optional port and
+# path, no userinfo). For a self-hosted internal instance, use HTTPS or an SSH
+# tunnel to localhost.
+proto="=https"
+host_lc=$(printf '%s' "$LANGFUSE_HOST" | tr 'A-Z' 'a-z')
+case "$host_lc" in
+  http://*)
+    authority=${host_lc#http://}
+    authority=${authority%%/*}
+    case "$authority" in
+      *@*) printf '%s\n' 'Refusing HTTP with userinfo in the URL; use HTTPS.' >&2; exit 1 ;;
+    esac
+    case "$authority" in
+      localhost|localhost:*|127.0.0.1|127.0.0.1:*|\[::1\]|\[::1\]:*) proto="=http,https" ;;
+      *) printf '%s\n' 'Refusing plain HTTP to a non-local host; use HTTPS or an SSH tunnel to localhost.' >&2; exit 1 ;;
+    esac
+    ;;
+esac
+# Langfuse v4 removed GET /api/public/traces (404); the v2 Observations API is the
+# supported read. It returns observation rows, so group by traceId client-side.
+# io is required in fields or the rows come back without input/output.
+curl -sS --fail-with-body --proto "${proto:-=https}" -u "$LANGFUSE_PUBLIC_KEY:$LANGFUSE_SECRET_KEY" \
+  "$LANGFUSE_HOST/api/public/v2/observations?fromStartTime=$FROM&toStartTime=$TO&limit=100&fields=core,basic,trace_context,io" \
+  -o error-analysis/traces/page1.json
+```
+
+Paginate with the `cursor` from each response until ~100 distinct `traceId` values are collected (or the cursor is exhausted), aborting on any non-2xx status so an error body is not read as the end of the cursor. Then finish the selected traces: the last trace in the pool may be missing rows, so keep paging until every selected `traceId` has its root observation (the `isRootObservation: true` row, or exactly one `parentObservationId == null` row as fallback; zero or several null-parent rows means `root-unknown`, so exclude that trace and say so in the notes), or fetch the missing rows per trace with `?traceId=&lt;id&gt;`. Group rows by `traceId` and normalize each trace to one JSONL line in `error-analysis/traces.jsonl`: `\{id, timestamp, input, output, scores, observations[]\}`. Observation rows do not carry `scores`; fetch them per trace id from the Scores API v3 (`GET /api/public/v3/scores?traceId=&lt;id&gt;`) and join them in, since low scores and negative feedback are the failure signals Phase 1 prioritizes. Keep the raw tool and DB observations; Phase 5 needs them for replay. On a v3 host the legacy `GET /api/public/traces` list still works; the v2/v1 shapes, deprecation detail, and the JSONL fallback live in `references/langfuse-traces.md`.
+
+**Source B, exported JSONL.** If the user hands you a file, inspect the first line with `head -1` and map its fields to the same normalized shape. Do not assume field names; Langfuse, Braintrust, and home-grown loggers all differ.
+
+Prioritize traces that carry failure signals: thumbs-down feedback, low scores, exceptions, retries, escalations. If fewer than ~30 traces show any failure signal, say so and ask whether to analyze a random sample anyway.
+
+## Phase 2: Open Coding (human writes, Claude drafts)
+
+Open coding is a human activity. The reviewer is the benevolent dictator: one person owns the labels so the taxonomy stays coherent. Claude accelerates, it does not label unattended.
+
+For each failing trace:
+
+1. Render a compact view: input, final output, and each tool or DB observation with its output.
+2. Draft ONE short free-form candidate note (a sentence, not a category). Aim at the FIRST failure in the trace; upstream failures cascade, so tagging a downstream symptom as its own mode double-counts.
+3. The human accepts, edits, or replaces the note via AskUserQuestion (options: Accept, Edit, Skip; Other captures free text).
+4. Append to `error-analysis/open-coding-notes.md`: `trace_id | note`.
+5. Label passing traces too. Judge alignment needs true negatives, so the human also labels a slice of traces with no failure signal (roughly one pass for every two failures) with the same per-mode binary label. Without labeled passes, Phase 5 can report TPR but never an honest TNR.
+
+Cadence per the method: the human writes the first ~30 notes largely unaided (Claude drafts may be shown but the human decides), then Claude may search remaining traces for likely instances of the failure patterns seen so far and the human accepts or rejects each suggestion. Continue until theoretical saturation: new traces stop revealing new failure modes. ~100 diverse traces is the usual working pool, not a quota.
+
+**Prompt or code?** When a note implicates a tool or retrieval step, replay it: re-run that tool call or DB query with the inputs recorded in the trace. Replay live only when the call is read-only; a payment, message send, or DB write replays against a sandbox or a recorded fixture, never a live service, or it is not replayed at all. Compare the replayed output with the observation recorded in the trace before assigning a verdict. If the replayed output matches the recorded one and it was wrong, the failure is code or data (the tool itself). If the replayed output matches a correct recorded output yet the final answer was wrong, the failure is prompt or context (the model had good inputs and used them badly). If the replayed output differs from the recorded one, the verdict is inconclusive until the difference is explained (stale data, drift, flaky tool), because the recorded output is what the model actually saw. Record the verdict in the note, for example `prompt`, `code:retriever`, or `inconclusive:replay-diverged`. This one check splits the taxonomy into things a prompt edit can fix and things it cannot.
+
+## Phase 3: Axial Coding (Claude proposes, human confirms)
+
+When open coding slows or the pool is exhausted, cluster the notes:
+
+1. Claude reads `open-coding-notes.md` and proposes 5 to 8 named failure modes. Each mode gets a name, a one-sentence definition, and the notes it absorbs.
+2. Present the proposed modes with per-mode note counts via AskUserQuestion. The human confirms, merges, splits, renames, or rejects modes. This confirmation is mandatory; an unconfirmed taxonomy is a draft.
+3. Fewer than 5 modes usually means over-merged categories that will produce vague judges. More than 8 usually means noise modes with count 1 or 2 that should fold into a sibling or a `misc` bucket rather than earn a name.
+
+## Phase 4: Write failure-taxonomy.md
+
+Write `error-analysis/failure-taxonomy.md` with two artifacts:
+
+Table 1, the taxonomy:
+
+| Failure mode | Definition | Example trace ids | Count | Eval? |
+|---|---|---|---|---|
+
+Table 2, counts:
+
+| Mode | Count | % of failures | Fix surface (prompt/code/data) |
+|---|---|---|---|
+
+Rules for the Eval? column: `yes` only for modes that are named, recurring (count >= ~3 or a top share of failures), and expected to persist after an obvious prompt fix. One-off bugs, upstream data issues, and modes a code assertion can check deterministically get `no` with a reason in Phase 5. Sort both tables by count descending.
+
+## Phase 5: Recommend Evals
+
+For each `eval: yes` mode, write a recommendation in `error-analysis/eval-recommendations.md`:
+
+- **Name** and the failure mode it detects
+- **Check**: binary pass/fail only. Phrase it so a grader answers "did failure X occur, yes or no". No Likert scales; a 1-5 score hides disagreement inside the middle values and makes judge alignment unmeasurable.
+- **Critique**: a written paragraph covering what the eval can and cannot catch, likely false-positive sources, and the cheapest viable implementation (code assertion before LLM judge; a judge is a classifier returning pass or fail, one judge per mode, never one judge grading overall quality).
+- **Judge alignment**: if the check needs an LLM judge, it is untrusted until measured against the Phase 2 human labels, which must include both labeled failures and labeled passes for the mode. Split labeled examples into train/dev/test, iterate the judge prompt on dev disagreements, and report TPR (failures caught) and TNR (good outputs passed) on the untouched test set. The full protocol is `references/judge-alignment.md`.
+
+Delegate execution to the eval-runner agent (`ork:eval-runner`) when the user wants the evals actually run against a dataset; this skill produces the taxonomy and the eval specs, the runner executes and scores them.
+
+```python
+Agent(subagent_type="ork:eval-runner",
+      prompt="Run the recommended evals in error-analysis/eval-recommendations.md against <dataset>. Report TPR/TNR vs the human labels in error-analysis/open-coding-notes.md.")
+```
+
+## Output Artifacts
+
+| File | Content |
+|------|---------|
+| `error-analysis/traces.jsonl` | Normalized trace pool |
+| `error-analysis/open-coding-notes.md` | trace_id, note, prompt-or-code verdict |
+| `error-analysis/failure-taxonomy.md` | Named modes, definitions, examples, counts, eval yes/no |
+| `error-analysis/eval-recommendations.md` | Binary eval specs, critiques, judge-alignment status |
+
+## Key Decisions
+
+| Decision | Recommendation |
+|----------|----------------|
+| Who labels | One human (benevolent dictator); Claude drafts, human decides |
+| Which failure to note | The first one in the trace; downstream symptoms cascade from it |
+| How many modes | 5 to 8, human-confirmed |
+| Eval granularity | Binary pass/fail, one judge per mode |
+| Which modes get evals | Named and recurring only; fix trivial prompt gaps first |
+| Judge trust | Unmeasured until TPR/TNR vs human labels on a held-out test set |
+
+## References
+
+- `references/method.md`: the open/axial coding method, saturation, and the source list (hamel.dev evals FAQ, hamel.dev LLM-as-judge, Anthropic eval docs)
+- `references/langfuse-traces.md`: Langfuse public API trace pull, pagination, JSONL export shape
+- `references/judge-alignment.md`: train/dev/test splits, TPR/TNR, disagreement-driven judge iteration
+
+## Related Skills
+
+- `testing-llm`: evaluation frameworks, Langfuse SDK v4, metric thresholds for the evals this skill recommends
+- `errors`: Claude Code session errors, a different domain than LLM app traces
+- `cover`: generates tests; run it after the taxonomy names what to test
+- `verify`: grades the resulting eval suite once it exists
+- `ork:eval-runner`: executes the recommended evals and reports scores to Langfuse
+
+
+---
+
+## References (3)
+
+### Judge Alignment
+
+# Judge Alignment
+
+An LLM judge is a binary classifier: given a trace (or the slice of it that matters),
+it answers "did failure mode X occur, pass or fail". It is untrusted until measured
+against human labels. This file is the validation protocol; the failure taxonomy and
+human notes are its inputs.
+
+## Labels come from open coding
+
+Phase 2 produces the raw material: human-reviewed traces with failure notes. To align
+a judge for one mode you need labeled positives AND negatives. Target at least 50
+failing and 50 passing examples per judge. The taxonomy counts tell you whether a mode
+has enough examples; a mode with 4 occurrences cannot support judge alignment yet.
+
+## Three splits, used in order
+
+Split the labeled examples before touching the judge prompt:
+
+- **Train**: examples allowed inside the judge prompt itself (as few-shot cases or
+  quoted failure definitions).
+- **Dev**: run the judge here, compare its pass/fail to the human label, inspect every
+  disagreement, iterate the prompt or add missing context.
+- **Test**: locked until iteration stops. The final agreement numbers come only from
+  this split, on examples that never influenced the judge.
+
+Iterating on dev bleeds information into the judge; a judge that scores well on dev
+and poorly on test is overfit. If that happens, revisit the prompt and failure
+definition, then reserve a fresh test set.
+
+## Metrics
+
+With "positive" meaning the failure is present:
+
+- **TPR (recall)**: of the traces humans marked as failures, how many the judge
+  catches. Prioritize when a missed failure is costly.
+- **TNR**: of the good traces, how many the judge correctly passes. False alarms burn
+  reviewer time; on rare failure modes even a small false-positive rate generates a
+  large review queue.
+
+Track both per iteration and pick acceptable floors based on the cost of a miss vs a
+false alarm for this application.
+
+## Debugging a disagreeing judge
+
+Inspect disagreements by hand before any automated tuning. Common causes, in rough
+frequency order:
+
+1. Missing context: the judge was not shown the field or tool output the human used.
+2. Vague failure definition: tighten the taxonomy definition; if a human cannot decide
+   pass or fail on a borderline trace, the definition is the problem, not the judge.
+3. Over-broad scope: the judge is grading several failure kinds at once. Split into
+   one judge per mode. "Did the assistant escalate when required" aligns; "is this
+   conversation good" does not.
+4. Bad labels: re-review the human notes for the disagreeing traces.
+
+Only after manual fixes plateau is automated prompt tuning (e.g. GEPA) worth its
+hundreds of dev-set runs.
+
+## Cheaper than a judge
+
+If code can check the condition directly (a record exists, a schema validates, a
+string matches), write the assertion and skip alignment entirely. Reserve judges for
+modes where correctness is a judgment call. See `method.md` for the cost hierarchy.
+
+## Handoff
+
+The `ork:eval-runner` agent executes judge candidates against datasets and reports
+scores to Langfuse. Give it: the failure definition, the judge prompt, the labeled
+split files, and the TPR/TNR floors to hit. It reports; it does not set the taxonomy.
+
+
+### Langfuse Traces
+
+# Pulling Traces from Langfuse
+
+The skill needs ~100 real traces in a normalized JSONL shape. Two sources: the
+Langfuse public API (live) or an exported JSONL file (offline).
+
+## Credentials and safety
+
+Auth is HTTP Basic with the project public key as username and secret key as
+password. Both come from env vars:
+
+- `LANGFUSE_PUBLIC_KEY`
+- `LANGFUSE_SECRET_KEY`
+- `LANGFUSE_HOST` (for example `https://cloud.langfuse.com` or a self-hosted URL)
+
+Never print, log, or paste the secret value. Use `-u "$LANGFUSE_PUBLIC_KEY:$LANGFUSE_SECRET_KEY"`
+so the credential stays inside the variable. If the env vars are unset, stop and ask
+the user to provide them or to hand over a JSONL export instead.
+
+Basic auth sends the secret in every request header, so transport matters. The
+guard below matches the Phase 1 pull in `../SKILL.md`: `--proto '=https'` fails
+closed on non-HTTPS schemes, and relaxes to `'=http,https'` only for an exact
+local endpoint (lowercased `http://localhost`, `http://127.0.0.1`, or
+`http://[::1]`, optional port and path, no userinfo). Anything else needs HTTPS
+or an SSH tunnel to localhost.
+
+```bash
+proto="=https"
+host_lc=$(printf '%s' "$LANGFUSE_HOST" | tr 'A-Z' 'a-z')
+case "$host_lc" in
+  http://*)
+    authority=${host_lc#http://}
+    authority=${authority%%/*}
+    case "$authority" in
+      *@*) printf '%s\n' 'Refusing HTTP with userinfo in the URL; use HTTPS.' >&2; exit 1 ;;
+    esac
+    case "$authority" in
+      localhost|localhost:*|127.0.0.1|127.0.0.1:*|\[::1\]|\[::1\]:*) proto="=http,https" ;;
+      *) printf '%s\n' 'Refusing plain HTTP to a non-local host; use HTTPS or an SSH tunnel to localhost.' >&2; exit 1 ;;
+    esac
+    ;;
+esac
+```
+
+## Public API shape
+
+Langfuse v4 removed the legacy trace reads (`GET /api/public/traces` and
+`/api/public/traces/\{id\}` return 404 on v4 and are deprecated on v3). The
+supported read is the Observations API v2:
+
+```
+GET {LANGFUSE_HOST}/api/public/v2/observations?fromStartTime=...&toStartTime=...&limit=100&fields=core,basic,trace_context,io
+GET {LANGFUSE_HOST}/api/public/v2/observations?traceId=<id>&fields=core,basic,io
+```
+
+The response is observation rows, not trace objects. Group rows by `traceId` to
+reconstruct each trace. The root is the row with `isRootObservation: true`;
+Langfuse can set that flag even when `parentObservationId` is non-null. When no
+row is flagged, fall back to a `parentObservationId == null` row only if exactly
+one exists. Zero or several null-parent rows means the root is ambiguous: mark
+that trace `root-unknown` in the notes and exclude it from the pool rather than
+guessing, because picking a row could assign another observation's input and
+output to the trace. The root stands in for trace-level `input`/`output`. Pagination is a `cursor` in the
+response metadata, results come back sorted by `startTime` descending, and
+`limit` caps at 1000. Always pass `fromStartTime`/`toStartTime` to keep each
+request bounded. Include `io` in `fields` on every call; without it the rows come
+back without `input`/`output`, which are exactly what the prompt-or-code replay
+step needs.
+
+Observation rows carry no scores. Failure prioritization needs them, so fetch
+scores per selected trace id from the Scores API v3 and join by `traceId`:
+
+```
+GET {LANGFUSE_HOST}/api/public/v3/scores?traceId=<id>
+```
+
+Example pull loop (v2, short flags only). Stop on trace count, not page count:
+one page is up to 1000 observation rows, but a single trace can own many rows.
+Check the HTTP status every page so a 429 or 5xx error body is not mistaken for
+an exhausted cursor, and clear stale pages before starting.
+
+```bash
+mkdir -p error-analysis/traces
+rm -f error-analysis/traces/page*.json   # drop stale pages from earlier runs
+cursor=""
+page=1
+while true; do
+  url="$LANGFUSE_HOST/api/public/v2/observations?fromStartTime=$FROM&toStartTime=$TO&limit=1000&fields=core,basic,trace_context,io"
+  [ -n "$cursor" ] && url="$url&cursor=$cursor"
+  out="error-analysis/traces/page$page.json"
+  code=$(curl -sS -w '%{http_code}' --proto "${proto:-=https}" -u "$LANGFUSE_PUBLIC_KEY:$LANGFUSE_SECRET_KEY" "$url" -o "$out")
+  case "$code" in
+    2*) ;;
+    *) printf 'Observations API returned %s; aborting pull\n' "$code" >&2; exit 1 ;;
+  esac
+  traces=$(jq -sr '[.[].data[].traceId] | unique | length' error-analysis/traces/page*.json)
+  [ "$traces" -ge 100 ] && break
+  cursor=$(jq -r '.meta.cursor // empty' "$out")
+  [ -z "$cursor" ] && break
+  page=$((page + 1))
+done
+```
+
+Reaching 100 distinct trace ids mid-page can still cut a trace in half: its rows
+are contiguous only while paging, so the last trace in the pool may be missing
+observations (including its root). Finish the selected traces before moving on.
+Either keep paging until every selected `traceId` has a root row, or fetch the
+missing observations per trace:
+
+```
+GET {LANGFUSE_HOST}/api/public/v2/observations?traceId=<id>&fields=core,basic,io
+```
+
+On a Langfuse v3 host the deprecated `GET /api/public/traces?limit=100&page=1`
+list still answers (params `page`, `userId`, `sessionId`, `tags`,
+`fromTimestamp`, `toTimestamp`; observations on the detail endpoint). Prefer v2;
+the migration mapping lives in the Langfuse deprecated-API migration doc.
+
+Then normalize with jq or a small script into `error-analysis/traces.jsonl`, one line
+per trace:
+
+```json
+{"id": "tr_...", "timestamp": "...", "input": ..., "output": ..., "scores": {...}, "observations": [{"type": "tool", "name": "...", "input": ..., "output": ...}]}
+```
+
+Field names differ across Langfuse versions; inspect one real trace object before
+writing the normalization (`jq '.data[0] | keys' error-analysis/traces/page1.json`).
+
+## Picking which traces to review
+
+The pool should over-represent failures. Signals to prefer, in rough order:
+
+1. Negative user feedback or low human/agent scores on the trace
+2. Exceptions, error observations, retries, escalations to a human
+3. Long traces that ended without a usable answer
+4. A random slice of the remainder for coverage (some failures are silent)
+
+If the `scores` field exists, filter or sort by it. If nothing looks like a failure in
+the first 30, tell the user before burning the whole pool on happy-path traces.
+
+## Exported JSONL fallback
+
+Teams often export traces by hand (Langfuse UI export, a warehouse query, a logging
+pipeline). Accept any JSONL where each line is one interaction with at minimum an id,
+an input, and an output. Map foreign field names to the normalized shape and record
+the mapping in `traces.jsonl` provenance comment at the top of the notes file.
+
+If lines lack tool observations, say so: the prompt-or-code replay step degrades to
+inspecting whatever tool outputs were logged, or is skipped per trace with the skip
+noted.
+
+
+### Method
+
+# The Error Analysis Method
+
+Condensed from Hamel Husain and Shreya Shankar's evals teaching. This file carries the
+method detail the SKILL.md index compresses, plus the source list.
+
+## Why error analysis comes first
+
+Error analysis is the most important activity in evals because it decides what to
+measure. Teams that skip it write generic evals (platform-default metrics, Likert
+scored "quality") that never correspond to a real failure, then distrust the scores.
+The taxonomy produced here is the spec that later evals are built against.
+
+## The four steps
+
+### 1. Create a dataset
+
+Gather representative traces of real user interactions. Synthetic data works only as a
+bootstrap when no production data exists; it is not a substitute for real traces. A
+working pool of roughly 100 diverse traces is a useful guardrail for the human-agent
+loop. Sample toward failures: user feedback, low scores, errors, retries.
+
+### 2. Open coding
+
+A human annotator reviews traces and writes open-ended notes about anything wrong,
+journaling style, adapted from qualitative research. Rules that matter:
+
+- One annotator owns the labels (the benevolent dictator). Splitting labeling across
+  people without reconciliation produces a taxonomy nobody can reproduce.
+- The annotator should be a domain expert or paired with one; many failures are only
+  visible to someone who knows what correct looks like.
+- Note the FIRST failure observed in a trace. Upstream errors cause downstream issues,
+  so a downstream symptom tagged as its own mode double-counts the same root cause.
+  Tagging additional independent failures is fine when feasible.
+- Annotate at least ~30 traces before leaning on agent suggestions. After that, let the
+  agent search remaining traces for likely instances of the patterns seen so far, and
+  accept or reject each suggestion.
+- Record problems that are not the model's fault. Some failures turn out to be
+  engineering or design issues (a broken tool, missing data, an impossible request).
+  They belong in the taxonomy because they route the fix to the right owner.
+
+### 3. Axial coding
+
+Group the open-ended notes into a failure taxonomy: named categories with definitions.
+This is the most important step. An LLM can propose the clustering; the human confirms
+it. Count the failures in each category at the end. The counts, not vibes, decide where
+eval effort goes.
+
+### 4. Iterative refinement to saturation
+
+Keep reviewing until theoretical saturation: new reviews stop revealing new failure
+modes or changing existing ones. Efficient sampling (cluster traces, sort by user
+feedback, sort by likely-failure signals) focuses human attention on the most
+informative traces instead of reading all 100 sequentially. Re-run the whole process
+periodically on production traffic; taxonomies go stale as usage shifts.
+
+## Prompt or code?
+
+Before routing a fix, replay the suspected step: re-execute the tool call or DB query
+with the inputs recorded in the trace. Replay live only for read-only calls; a
+payment, message send, or DB write replays against a sandbox or a recorded
+fixture, never a live service.
+
+Compare the replayed output with the observation recorded in the trace, not with
+what looks correct today. Three verdicts:
+
+- Replayed output matches a wrong recorded observation: code or data failure. The
+  tool itself returned bad data. Fix the retriever, the tool implementation, or
+  the underlying data.
+- Replayed output matches a correct recorded observation, final answer wrong:
+  prompt or context failure. The model had good inputs. Fix the prompt, the
+  context assembly, or the tool-output presentation.
+- Replayed output differs from the recorded observation: inconclusive until the
+  difference is explained (stale data, drift, flaky tool). The recorded output is
+  what the model actually saw.
+
+This check is cheap and it prevents the most common misdiagnosis: rewriting a prompt
+for a failure whose root cause is a broken retrieval call.
+
+## What earns an eval
+
+Not every failure mode deserves an automated evaluator. The cost hierarchy:
+
+1. Fix obvious prompt gaps first (missing instructions for format, length, tone).
+   Many "failures" are preferences nobody specified.
+2. Code assertions next (regex, schema validation, DB state checks). Cheap, exact, no
+   human labels needed.
+3. LLM-as-judge last, only for subjective, recurring modes that survived the first
+   two. A judge costs 100+ labeled examples plus ongoing maintenance.
+
+A judge is a binary classifier returning pass or fail for ONE failure mode. Never
+build one judge that grades overall quality; it cannot be aligned and its failures are
+unactionable. Judge validation is in `judge-alignment.md`.
+
+## Sources
+
+- Hamel Husain and Shreya Shankar, "AI Evals: Everything You Need to Know" (the error
+  analysis, binary evals, and judge-alignment FAQs):
+  https://hamel.dev/blog/posts/evals-faq/
+- Hamel Husain, "LLM-as-Judge" (judge design and alignment):
+  https://hamel.dev/blog/posts/llm-judge/
+- Anthropic, "Develop tests" / evaluation guidance:
+  https://docs.claude.com/en/docs/test-and-evaluate/develop-tests
+- Langfuse public API (trace fetch): https://api.reference.langfuse.com/
+- Method originates in qualitative research: open coding and axial coding are grounded
+  theory terms (Strauss and Corbin); "theoretical saturation" is the stopping rule.
+
