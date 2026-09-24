@@ -18,6 +18,21 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.86",
+    "date": "2026-09-24",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.85...v10.0.0-beta.86",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**hooks:** skip project rules write when global copy is identical ([#4393](https://github.com/yonatangross/orchestkit/issues/4393)) ([a8ab7c2](https://github.com/yonatangross/orchestkit/commit/a8ab7c2276255f5b04bf122f08cd532c7b44d161))",
+          "**hooks:** stdin path handling in egress interpreter argv ([#4396](https://github.com/yonatangross/orchestkit/issues/4396)) ([5941f90](https://github.com/yonatangross/orchestkit/commit/5941f9033c1743439ad380ac11ffb23f443b7ab0))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.85",
     "date": "2026-09-24",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.84...v10.0.0-beta.85",

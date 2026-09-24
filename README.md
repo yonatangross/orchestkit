@@ -614,6 +614,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.86](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.85...v10.0.0-beta.86)** · 2026-09-24
+
+- **hooks:** skip project rules write when global copy is identical (#4393)
+- **hooks:** stdin path handling in egress interpreter argv (#4396)
+
 **[v10.0.0-beta.85](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.84...v10.0.0-beta.85)** · 2026-09-24
 
 - **hooks:** fail-closed interpreter argument classification in egress check (#4394)
@@ -661,11 +666,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **release:** stop marketplace count stamp from rewriting stable ork (#4355)
 - **site:** close orank OG, llms.txt, and /docs landing gaps (#4354)
 - **testing-e2e:** repoint dead planner-agent reference (F27) (#4356)
-
-**[v10.0.0-beta.78](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.77...v10.0.0-beta.78)** · 2026-09-22
-
-- **site:** scope social meta to the homepage ([#4343](https://github.com/yonatangross/orchestkit/issues/4343) follow-up) (#4347)
-- **playground:** drop the homeos-arieh exemplar (#4348)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
