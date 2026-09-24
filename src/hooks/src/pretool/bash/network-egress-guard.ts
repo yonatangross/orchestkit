@@ -1508,6 +1508,7 @@ function collapseHorizontalWhitespace(cmd: string): string {
 function extractExecutedQuoteBodies(raw: string): { body: string; prefix: string }[] {
   const bodies: { body: string; prefix: string }[] = [];
   let seg = '';
+  let cmdStart = 0;
   for (let i = 0; i < raw.length; i++) {
     const ch = raw[i]!;
     if (ch === '"' || ch === "'") {
@@ -1525,7 +1526,7 @@ function extractExecutedQuoteBodies(raw: string): { body: string; prefix: string
         content += raw[j]!;
         j++;
       }
-      if (execGovernsQuote(seg)) {
+      if (execGovernsQuote(seg, raw.slice(cmdStart, i), raw, i)) {
         bodies.push({ body: content, prefix: raw.slice(0, i) });
       }
       seg = '';
@@ -1533,7 +1534,13 @@ function extractExecutedQuoteBodies(raw: string): { body: string; prefix: string
       continue;
     }
     if (ch === ';' || ch === '\n' || ch === '&' || ch === '|' || ch === '(') {
+      // Do not treat $( / <( / >( as a new simple command.
+      if (ch === '(' && i > 0 && (raw[i - 1] === '$' || raw[i - 1] === '<' || raw[i - 1] === '>')) {
+        seg += ch;
+        continue;
+      }
       seg = '';
+      cmdStart = i + 1;
       continue;
     }
     seg += ch;
@@ -1660,58 +1667,405 @@ function hasUnquotedShellSeparator(s: string): boolean {
   return false;
 }
 
-/** Max words walked when deciding if su/runuser governs an executed quote. */
+/** Max option words walked after a su/runuser (fail closed past this). */
 const MAX_SU_RUNUSER_GOVERN_WORDS = 64;
 
 /**
- * Word-bound su/runuser governor: tokenize the last simple-command segment and
- * walk options with the same grammar as applyInterpreterFrontChdir. No character
- * gap limit between the wrapper and -c/--command (whitespace is word-skipped).
+ * Utilities that print or search their arguments and never execute them.
+ * A later plain su/runuser argument of one of these is data, not an executed
+ * body, unless the utility's output flows into a shell or interpreter.
  */
-function suRunuserGovernsExecutedQuote(prefix: string): boolean {
+const NON_EXECUTING_ARG_UTILS = new Set([
+  'echo',
+  'printf',
+  'grep',
+  'egrep',
+  'fgrep',
+  'rg',
+  'cat',
+  'man',
+  'which',
+  'type',
+  'whatis',
+  'apropos',
+]);
+
+/** Shells / interpreters that execute piped or redirected script text. */
+// (matched inline in outputFlowsToExecutor)
+
+/**
+ * Advance past one env invocation's options/assignments to the utility index.
+ * On an unknown option, return that option's index (caller treats it as command).
+ */
+function skipEnvToCommand(tokens: string[], idx: number): number {
+  while (idx < tokens.length) {
+    const a = unwrapToken(tokens[idx]!);
+    if (/^[A-Za-z_][A-Za-z0-9_]*=/.test(a)) {
+      idx++;
+      continue;
+    }
+    if (a === '--') return idx + 1;
+    if (!(a.startsWith('-') && a !== '-')) return idx;
+    if (
+      a === '--ignore-environment' ||
+      a === '--debug' ||
+      a === '-i' ||
+      a === '-0' ||
+      a === '-v' ||
+      a === '-u' ||
+      a === '--unset' ||
+      a === '-C' ||
+      a === '--chdir'
+    ) {
+      if (a === '-u' || a === '--unset' || a === '-C' || a === '--chdir') {
+        if (idx + 1 >= tokens.length) return idx;
+        idx += 2;
+        continue;
+      }
+      idx++;
+      continue;
+    }
+    if (a.startsWith('--unset=') || a.startsWith('--chdir=')) {
+      idx++;
+      continue;
+    }
+    return idx;
+  }
+  return idx;
+}
+
+/**
+ * Advance past one sudo invocation's options to the utility index.
+ * On an unknown option, return that option's index.
+ */
+function skipSudoToCommand(tokens: string[], idx: number): number {
+  while (idx < tokens.length) {
+    const a = unwrapToken(tokens[idx]!);
+    if (a === '--') return idx + 1;
+    if (!(a.startsWith('-') && a !== '-')) return idx;
+    if (
+      a === '--login' ||
+      a === '--shell' ||
+      a === '-i' ||
+      a === '-s' ||
+      a === '-E' ||
+      a === '-H' ||
+      a === '-n' ||
+      a === '-k' ||
+      a === '-K' ||
+      a === '-b' ||
+      a === '-P'
+    ) {
+      idx++;
+      continue;
+    }
+    if (a === '--chdir' || a === '-D' || a === '-u' || a === '-g' || a === '-U' || a === '-p' || a === '-C') {
+      if (idx + 1 >= tokens.length) return idx;
+      idx += 2;
+      continue;
+    }
+    if (a.startsWith('--chdir=')) {
+      idx++;
+      continue;
+    }
+    if (a.startsWith('-') && !a.startsWith('--') && a.length > 2) {
+      idx++;
+      continue;
+    }
+    return idx;
+  }
+  return idx;
+}
+
+/**
+ * Index of the command word after peeling supported front wrappers, env, and sudo.
+ * Returns -1 when no command remains.
+ */
+function indexOfCommandAfterFrontPeels(tokens: string[]): number {
+  let idx = 0;
+  while (idx < tokens.length) {
+    const wrap = skipOneFrontWrapper(tokens, idx);
+    if (wrap.kind === 'deny') return idx;
+    if (wrap.kind === 'skip') {
+      idx = wrap.nextIdx;
+      continue;
+    }
+    const base = commandBasename(tokens[idx]!);
+    if (base === 'env') {
+      idx = skipEnvToCommand(tokens, idx + 1);
+      continue;
+    }
+    if (base === 'sudo') {
+      idx = skipSudoToCommand(tokens, idx + 1);
+      continue;
+    }
+    return idx;
+  }
+  return -1;
+}
+
+/**
+ * True when a token is su/runuser, including nested command-sub / process-sub
+ * forms (`$(su`, `<(su`, `` `su ``) and trailing punctuation (`su)`).
+ */
+function isSuRunuserToken(tok: string): boolean {
+  let b = commandBasename(tok);
+  if (b === 'su' || b === 'runuser') return true;
+  b = b.replace(/^\$\(/, '').replace(/^[<>]\(/, '').replace(/^`+/, '');
+  b = b.replace(/[)`]+$/, '');
+  return b === 'su' || b === 'runuser';
+}
+
+/** True when the token is a plain su/runuser word (not inside $() / <() / backticks). */
+function isPlainSuRunuserToken(tok: string): boolean {
+  const b = commandBasename(tok);
+  return b === 'su' || b === 'runuser';
+}
+
+/**
+ * Walk option tokens after a su/runuser. Returns whether that wrapper governs
+ * the quote (body missing as next word, or fail-closed past the word bound).
+ */
+function suOptionsGovernQuote(optionTokens: string[]): boolean {
+  let walked = 0;
+  for (let j = 0; j < optionTokens.length; j++) {
+    walked++;
+    if (walked > MAX_SU_RUNUSER_GOVERN_WORDS) return true;
+    const a = unwrapToken(optionTokens[j]!);
+    if (a === '--') return false;
+    if (a === '-c' || a === '--command') return j + 1 >= optionTokens.length;
+    if (a.startsWith('--command=')) return a.length === '--command='.length;
+    if (/^-[A-Za-z]*c$/.test(a)) return j + 1 >= optionTokens.length;
+    if (a === '-u' || a === '--user') {
+      if (j + 1 < optionTokens.length) {
+        j++;
+        walked++;
+        if (walked > MAX_SU_RUNUSER_GOVERN_WORDS) return true;
+      }
+      continue;
+    }
+    if (a.startsWith('--user=')) continue;
+    if (
+      a === '-' ||
+      a === '-l' ||
+      a === '--login' ||
+      a === '-m' ||
+      a === '-p' ||
+      a === '--preserve-environment'
+    ) {
+      continue;
+    }
+    if (a.startsWith('-')) return true;
+  }
+  return false;
+}
+
+/**
+ * After an executed quote body closes, true when the rest of the command line
+ * feeds that output into a shell/interpreter (pipe or redirect-then-run).
+ * When unsure, fail closed (true).
+ */
+function outputFlowsToExecutor(fullRaw: string, quoteStart: number): boolean {
+  const q = fullRaw[quoteStart];
+  if (q !== '"' && q !== "'") return true;
+  let j = quoteStart + 1;
+  while (j < fullRaw.length && fullRaw[j] !== q) {
+    if (q === '"' && fullRaw[j] === '\\' && j + 1 < fullRaw.length) {
+      j += 2;
+      continue;
+    }
+    j++;
+  }
+  const after = fullRaw.slice(j + (j < fullRaw.length ? 1 : 0));
+  if (/\|/.test(after)) {
+    // Any pipe after an exempt utility's quote: fail closed (may feed a shell).
+    if (/\|\s*(?:[\w./-]*\/)?(?:ba|z|k|da)?sh\b/i.test(after)) return true;
+    if (/\|\s*(?:[\w./-]*\/)?(?:python[0-9.]*|node|perl|ruby)\b/i.test(after)) return true;
+    // Unknown pipe target: fail closed.
+    return true;
+  }
+  // Redirect then a later executor on the same line.
+  if (/>/.test(after) && /\b(?:ba|z|k|da)?sh\b/i.test(after)) return true;
+  if (/>/.test(after) && /\b(?:python[0-9.]*|node|perl|ruby)\b/i.test(after)) return true;
+  return false;
+}
+
+/**
+ * Streaming scan of one simple-command segment for su/runuser governance.
+ * Avoids allocating tens of thousands of tokens for long echo-arg lists or
+ * repeated login flags (fail closed past the option-word bound).
+ */
+function scanSegmentForSuGovernance(segment: string): {
+  governs: boolean;
+  plainGovern: boolean;
+  cmdBase: string | null;
+} {
+  // Keep only peel-prefix tokens (small) until the first real command word.
+  const head: string[] = [];
+  let cmdBase: string | null = null;
+  let cmdResolved = false;
+  let governs = false;
+  let plainGovern = false;
+
+  let i = 0;
+  const n = segment.length;
+
+  const skipWs = (): void => {
+    while (i < n && /\s/.test(segment[i]!)) i++;
+  };
+
+  const readToken = (): string | null => {
+    skipWs();
+    if (i >= n) return null;
+    const start = i;
+    // Stop at simple-command separators (same as tokenizePipeRhs).
+    while (i < n) {
+      const c = segment[i]!;
+      if (/\s/.test(c) || c === ';' || c === '|' || c === '&' || c === '\n') break;
+      if (c === "'") {
+        i++;
+        while (i < n && segment[i] !== "'") i++;
+        if (i < n) i++;
+        continue;
+      }
+      if (c === '"') {
+        i++;
+        while (i < n && segment[i] !== '"') {
+          if (segment[i] === '\\' && i + 1 < n) {
+            i += 2;
+            continue;
+          }
+          i++;
+        }
+        if (i < n) i++;
+        continue;
+      }
+      if (c === '\\' && i + 1 < n) {
+        i += 2;
+        continue;
+      }
+      i++;
+    }
+    return start === i ? null : segment.slice(start, i);
+  };
+
+  while (i < n) {
+    if (segment[i] === ';' || segment[i] === '\n' || segment[i] === '|' || segment[i] === '&') break;
+
+    // After the command word is known, jump to the next su/runuser-like token
+    // instead of materializing every intervening argument (echo w w w …).
+    if (cmdResolved) {
+      skipWs();
+      if (i >= n) break;
+      const rest = segment.slice(i);
+      const jump = rest.search(
+        /(?:^|[\s])(?:\$\(|<\(|>\(|`+)?(?:[\w./-]*\/)?(?:su|runuser)(?:[)`]+)?(?=[\s;|&"'`]|$)/i,
+      );
+      if (jump < 0) break;
+      // land on the su token start (skip the leading whitespace match)
+      let at = i + jump;
+      if (/\s/.test(segment[at]!)) at++;
+      i = at;
+    }
+
+    const tok = readToken();
+    if (tok === null) break;
+
+    if (!cmdResolved) {
+      head.push(tok);
+      let idx = indexOfCommandAfterFrontPeels(head);
+      while (
+        idx >= 0 &&
+        idx < head.length &&
+        /^[A-Za-z_][A-Za-z0-9_]*=/.test(unwrapToken(head[idx]!))
+      ) {
+        idx++;
+      }
+      if (idx >= 0 && idx < head.length) {
+        const b = commandBasename(head[idx]!);
+        const wrap = skipOneFrontWrapper(head, idx);
+        const needsMorePeel =
+          wrap.kind === 'skip' ||
+          ((b === 'env' || b === 'sudo') && idx === head.length - 1);
+        if (!needsMorePeel) {
+          cmdBase = b;
+          cmdResolved = true;
+        }
+      }
+      if (head.length > 48) {
+        cmdBase = cmdBase ?? commandBasename(head[0]!);
+        cmdResolved = true;
+      }
+    }
+
+    if (isSuRunuserToken(tok)) {
+      const plain = isPlainSuRunuserToken(tok);
+      const optionTokens: string[] = [];
+      let capped = false;
+      for (;;) {
+        const save = i;
+        const opt = readToken();
+        if (opt === null) break;
+        if (isSuRunuserToken(opt)) {
+          i = save;
+          break;
+        }
+        optionTokens.push(opt);
+        if (optionTokens.length > MAX_SU_RUNUSER_GOVERN_WORDS) {
+          capped = true;
+          break;
+        }
+      }
+      if (capped || suOptionsGovernQuote(optionTokens)) {
+        governs = true;
+        if (plain) plainGovern = true;
+        else {
+          return { governs: true, plainGovern: false, cmdBase };
+        }
+      }
+    }
+  }
+
+  return { governs, plainGovern, cmdBase };
+}
+
+/**
+ * su/runuser governor: default ON when a su/runuser option walk says the quote
+ * is an executed body. Nested command/process substitutions always govern.
+ * EXEMPT only when the command-position utility is on the non-executing
+ * allowlist, the su is a plain argument word in the same simple command, and
+ * that utility's output does not flow into a shell/interpreter.
+ */
+function suRunuserGovernsExecutedQuote(
+  prefix: string,
+  fullRaw?: string,
+  quoteStart?: number,
+): boolean {
+  if (!/su|runuser/i.test(prefix)) return false;
+
   let start = 0;
   for (let i = 0; i < prefix.length; i++) {
     const ch = prefix[i]!;
-    if (ch === ';' || ch === '\n' || ch === '&' || ch === '|' || ch === '(') start = i + 1;
-  }
-  const tokens = tokenizePipeRhs(prefix.slice(start));
-  if (tokens.length === 0) return false;
-  const words =
-    tokens.length > MAX_SU_RUNUSER_GOVERN_WORDS
-      ? tokens.slice(-MAX_SU_RUNUSER_GOVERN_WORDS)
-      : tokens;
-
-  for (let i = 0; i < words.length; i++) {
-    const base = commandBasename(words[i]!);
-    if (base !== 'su' && base !== 'runuser') continue;
-
-    for (let j = i + 1; j < words.length; j++) {
-      const a = unwrapToken(words[j]!);
-      if (a === '--') break;
-      if (a === '-c' || a === '--command') {
-        // Body is the next argv word. No next word ⇒ the quote being classified.
-        return j + 1 >= words.length;
-      }
-      if (a.startsWith('--command=')) {
-        // Empty glued body ⇒ quote after `=` is the executed body.
-        if (a.length === '--command='.length) return true;
-        break;
-      }
-      // Short cluster ending in c (e.g. -lc) with no value word yet.
-      if (/^-[A-Za-z]*c$/.test(a)) {
-        return j + 1 >= words.length;
-      }
-      if (a === '-u' || a === '--user') {
-        if (j + 1 < words.length) j++;
+    if (ch === ';' || ch === '\n' || ch === '&' || ch === '|' || ch === '(') {
+      if (ch === '(' && i > 0 && (prefix[i - 1] === '$' || prefix[i - 1] === '<' || prefix[i - 1] === '>')) {
         continue;
       }
-      if (a.startsWith('--user=')) continue;
-      if (a === '-' || a === '-l' || a === '--login') continue;
-      if (a.startsWith('-')) break;
-      // Positional user name; keep looking for -c/--command.
+      start = i + 1;
     }
   }
-  return false;
+  const { governs, plainGovern, cmdBase } = scanSegmentForSuGovernance(prefix.slice(start));
+  if (!governs) return false;
+  // Nested su already returned governs with plainGovern false from the scanner.
+  if (!plainGovern) return true;
+
+  if (cmdBase && NON_EXECUTING_ARG_UTILS.has(cmdBase)) {
+    if (fullRaw != null && quoteStart != null && outputFlowsToExecutor(fullRaw, quoteStart)) {
+      return true;
+    }
+    // Plain arg of echo/grep/… with no executor sink: exempt.
+    return false;
+  }
+  return true;
 }
 
 /**
@@ -1719,14 +2073,23 @@ function suRunuserGovernsExecutedQuote(prefix: string): boolean {
  * code: `eval "…"`, an inline-script shell (`sh -c`, `bash -euc`), `python -c`,
  * node/perl/ruby `-e`, php `-r`. A quote governed by none of these is opaque
  * data (a grep/rg pattern, an echo string, a jq filter).
+ *
+ * `seg` is the unquoted run immediately before the quote (regex governors).
+ * `simpleCmd` is the full simple-command text including quoted words.
+ * `fullRaw` / `quoteStart` let the su/runuser path see pipes and redirects after
+ * the quote (echo … | sh).
  */
-function execGovernsQuote(prefix: string): boolean {
-  const p = prefix.slice(-200); // bound the regex governors (ReDoS-safe)
+function execGovernsQuote(
+  seg: string,
+  simpleCmd: string = seg,
+  fullRaw?: string,
+  quoteStart?: number,
+): boolean {
+  const p = seg.slice(-200); // bound the regex governors (ReDoS-safe)
   return (
     /\beval\s*$/i.test(p) ||
     /\b(?:ba|z|k|da)?sh\b[^\n]{0,120}\s-[A-Za-z]*c\b\s*$/i.test(p) ||
-    // su/runuser: word-bound option walk (no character gap limit).
-    suRunuserGovernsExecutedQuote(prefix) ||
+    suRunuserGovernsExecutedQuote(simpleCmd, fullRaw, quoteStart) ||
     /\bpython[0-9.]*\b[^\n]{0,120}\s-c\b\s*$/i.test(p) ||
     /\b(?:node|perl|ruby)\b[^\n]{0,120}\s-e\b\s*$/i.test(p) ||
     /\bphp\b[^\n]{0,120}\s-r\b\s*$/i.test(p)
@@ -1747,6 +2110,7 @@ function execGovernsQuote(prefix: string): boolean {
 function egressDenyScanView(raw: string): string {
   let out = '';
   let seg = ''; // unquoted text of the current simple command (governor context)
+  let cmdStart = 0;
   for (let i = 0; i < raw.length; i++) {
     const ch = raw[i];
     if (ch === '"' || ch === "'") {
@@ -1762,14 +2126,20 @@ function egressDenyScanView(raw: string): string {
         content += raw[j];
         j++;
       }
-      if (execGovernsQuote(seg)) out += ` ${content} `; // re-expose executed code
+      if (execGovernsQuote(seg, raw.slice(cmdStart, i), raw, i)) out += ` ${content} `; // re-expose executed code
       seg = '';
       i = j; // for-loop ++ moves past the closing quote
       continue;
     }
     // A new simple-command / substitution boundary resets the governor context.
     if (ch === ';' || ch === '\n' || ch === '&' || ch === '|' || ch === '(') {
+      if (ch === '(' && i > 0 && (raw[i - 1] === '$' || raw[i - 1] === '<' || raw[i - 1] === '>')) {
+        seg += ch;
+        out += ch;
+        continue;
+      }
       seg = '';
+      cmdStart = i + 1;
       out += ch;
       continue;
     }
