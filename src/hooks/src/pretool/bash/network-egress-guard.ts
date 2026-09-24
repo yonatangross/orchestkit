@@ -378,10 +378,12 @@ function isStdinProgramPath(a: string): boolean {
 
 /**
  * True when a program token still has shell expansion surface: glob/brace
- * metacharacters, `$` / backtick substitution, or a backslash escape.
+ * metacharacters, `$` / backtick substitution, a backslash escape, or a
+ * leading `~` (HOME / user / `~+` / `~-` tilde expansion).
  * Quoted literals that keep those shapes after tokenize may over-block.
  */
 function programArgIsShellExpanded(a: string): boolean {
+  if (a.startsWith('~')) return true;
   if (/[*?[{]/.test(a)) return true;
   if (/[`$]/.test(a)) return true;
   if (a.includes('\\')) return true;
