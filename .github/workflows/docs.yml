@@ -162,8 +162,8 @@ jobs:
 
       # Playwright e2e on chromium-desktop only (iPhone project defaults to
       # WebKit; this job installs Chromium). Full landing.spec plus the
-      # view-transition abort guard (PostHog 01a0a900 / #4353). Grep only
-      # the VT title so landing.spec runs every case (#4384).
+      # view-transition abort guard (PostHog 01a0a900 / #4353). Grep matches
+      # Landing titles and the VT describe so both files stay in CI (#4384).
       - name: Install Playwright Chromium
         working-directory: docs/site
         run: npx playwright install --with-deps chromium
