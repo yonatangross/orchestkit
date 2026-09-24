@@ -45,6 +45,7 @@
  * Issue: #2533. CC 2.1.7 compliant (JSON with continue field via output builders).
  */
 
+import { posix } from 'node:path';
 import type { HookInput, HookResult, HookContext } from '../../types.js';
 import { outputSilentSuccess, outputDeny } from '../../lib/common.js';
 import { normalizeSingle, blankQuotedHeredocBodies } from '../../lib/normalize-command.js';
@@ -216,6 +217,8 @@ const BOOLEAN_FLAGS: Record<InterpreterFamily, ReadonlySet<string>> = {
     '--trace-warnings',
     '--inspect',
     '--inspect-brk',
+    // Benign experimental boolean (LAND over-block nit); unknown opts still DENY.
+    '--experimental-vm-modules',
   ]),
   ruby: new Set([
     '-h',
@@ -355,13 +358,32 @@ function tokenizePipeRhs(s: string): string[] {
 }
 
 /**
+ * Fail-closed stdin-program path check. After posix.normalize:
+ * (a) lone `-`
+ * (b) absolute path under `/dev` or `/proc` (no real script lives there)
+ * (c) relative path whose `..` segments lead into a `dev` or `proc` segment
+ */
+function isStdinProgramPath(a: string): boolean {
+  if (a === '-') return true;
+  const n = posix.normalize(a);
+  if (n === '-') return true;
+  if (posix.isAbsolute(n)) {
+    return n === '/dev' || n === '/proc' || n.startsWith('/dev/') || n.startsWith('/proc/');
+  }
+  // Relative escape into a kernel filesystem name, e.g. `../dev/...`.
+  return /^(?:\.\.\/)+(?:dev|proc)(?:\/|$)/.test(n);
+}
+
+/**
  * Fail-closed stdin-program classifier. Walk args left to right:
  * - known value option always consumes the next token (even if it starts with `-`)
  * - known boolean is skipped
+ * - perl `-0` / `-0<digits>` (record-separator) is skipped as a boolean
  * - known CODE flag => ALLOW (not stdin)
- * - first non-option that is not `-` / `/dev/stdin` => script path => ALLOW
+ * - `--` ends options: next token is the program (script ALLOW; stdin path DENY)
+ * - first non-option that is not a stdin-program path => script path => ALLOW
  * - any unknown option (starts with `-`, not in the tables) => DENY
- * - end of args / lone `-` / `/dev/stdin` => DENY
+ * - end of args / stdin-program path => DENY
  * Short clusters like `perl -ne` expand letter-by-letter.
  */
 function interpreterArgsAreStdinProgram(
@@ -389,6 +411,8 @@ function interpreterArgsAreStdinProgram(
     if (booleans.has(a)) continue;
     // ruby -x[dir]: directory is attached to the flag, never a following argv token.
     if (family === 'ruby' && a.startsWith('-x/')) continue;
+    // perl -0 / -0777: input record separator; digits attach to the flag.
+    if (family === 'perl' && /^-0[0-9]*$/.test(a)) continue;
 
     // Short option cluster: `-ne` => `-n` then `-e`, etc.
     if (/^-[A-Za-z0-9]+$/.test(a) && a.length > 2) {
@@ -418,8 +442,14 @@ function interpreterArgsAreStdinProgram(
       continue;
     }
 
-    // Lone `-` or /dev/stdin: program is stdin.
-    if (a === '-' || a === '/dev/stdin') return true;
+    // End of options: the next token is the program.
+    if (a === '--') {
+      if (i + 1 >= args.length) return true;
+      return isStdinProgramPath(args[i + 1]!);
+    }
+
+    // Stdin-program path (fail-closed under /dev and /proc).
+    if (isStdinProgramPath(a)) return true;
 
     // Unknown option => DENY (fail closed).
     if (a.startsWith('-')) return true;
