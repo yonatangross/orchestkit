@@ -1,0 +1,8 @@
+{
+  "slug": "egress-argv-followups",
+  "source": "docs/fix--egress-argv-followups/playground.html",
+  "title": "Stdin path handling after a fetcher pipe",
+  "description": "Egress pipe check: stdin path handling and end-of-options after a fetcher.",
+  "tags": ["hooks", "security", "egress"],
+  "date": "2026-09-24"
+}

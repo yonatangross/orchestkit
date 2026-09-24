@@ -216,6 +216,8 @@ const BOOLEAN_FLAGS: Record<InterpreterFamily, ReadonlySet<string>> = {
     '--trace-warnings',
     '--inspect',
     '--inspect-brk',
+    // Benign experimental boolean (LAND over-block nit); unknown opts still DENY.
+    '--experimental-vm-modules',
   ]),
   ruby: new Set([
     '-h',
@@ -355,13 +357,28 @@ function tokenizePipeRhs(s: string): string[] {
 }
 
 /**
+ * True when the token names the stdin program (classic `-` / `/dev/stdin`,
+ * plus fd-0 aliases: `/dev/fd/0`, `/proc/self/fd/0`, `/proc/<pid>/fd/0`,
+ * including zero-padded fd forms like `/dev/fd/00`).
+ */
+function isStdinProgramPath(a: string): boolean {
+  if (a === '-' || a === '/dev/stdin') return true;
+  if (/^\/dev\/fd\/0+$/.test(a)) return true;
+  if (/^\/proc\/self\/fd\/0+$/.test(a)) return true;
+  if (/^\/proc\/[0-9]+\/fd\/0+$/.test(a)) return true;
+  return false;
+}
+
+/**
  * Fail-closed stdin-program classifier. Walk args left to right:
  * - known value option always consumes the next token (even if it starts with `-`)
  * - known boolean is skipped
+ * - perl `-0` / `-0<digits>` (record-separator) is skipped as a boolean
  * - known CODE flag => ALLOW (not stdin)
- * - first non-option that is not `-` / `/dev/stdin` => script path => ALLOW
+ * - `--` ends options: next token is the program (script ALLOW; stdin path DENY)
+ * - first non-option that is not a stdin-program path => script path => ALLOW
  * - any unknown option (starts with `-`, not in the tables) => DENY
- * - end of args / lone `-` / `/dev/stdin` => DENY
+ * - end of args / stdin-program path => DENY
  * Short clusters like `perl -ne` expand letter-by-letter.
  */
 function interpreterArgsAreStdinProgram(
@@ -389,6 +406,8 @@ function interpreterArgsAreStdinProgram(
     if (booleans.has(a)) continue;
     // ruby -x[dir]: directory is attached to the flag, never a following argv token.
     if (family === 'ruby' && a.startsWith('-x/')) continue;
+    // perl -0 / -0777: input record separator; digits attach to the flag.
+    if (family === 'perl' && /^-0[0-9]*$/.test(a)) continue;
 
     // Short option cluster: `-ne` => `-n` then `-e`, etc.
     if (/^-[A-Za-z0-9]+$/.test(a) && a.length > 2) {
@@ -418,8 +437,14 @@ function interpreterArgsAreStdinProgram(
       continue;
     }
 
-    // Lone `-` or /dev/stdin: program is stdin.
-    if (a === '-' || a === '/dev/stdin') return true;
+    // End of options: the next token is the program.
+    if (a === '--') {
+      if (i + 1 >= args.length) return true;
+      return isStdinProgramPath(args[i + 1]!);
+    }
+
+    // Stdin-program path (including fd-0 aliases).
+    if (isStdinProgramPath(a)) return true;
 
     // Unknown option => DENY (fail closed).
     if (a.startsWith('-')) return true;
