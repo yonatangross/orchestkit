@@ -426,7 +426,6 @@ const vetCases = [
   ['stale-selector locator swap', "await expect(page.getByTestId('submit')).toBeVisible()", "await expect(page.getByRole('button', { name: 'Submit' })).toBeVisible()", false, 'stale-selector'],
   ['assertion added', 'expect(a).toBe(1)', 'expect(a).toBe(1)\nexpect(b).toBe(2)', false],
   ['whitespace only', 'expect(a).toBe( 1 )', 'expect(a).toBe(1)', false],
-  ['setup change on a subject variable', "const user = makeUser()\nexpect(user.name).toBe('ada')", "const user = await makeUser(db)\nexpect(user.name).toBe('ada')", false],
   // c13 probe (5a902387): each turned a failing value assertion green and passed as unchanged.
   ['c13 1: expected value via a const', 'const want = 409\nexpect(res.status).toBe(want)', 'const want = 422\nexpect(res.status).toBe(want)', true],
   ['c13 2: subject rewritten to the literal', 'expect(res.status).toBe(409)', 'expect(409).toBe(409)', true],
@@ -553,6 +552,111 @@ for (const [label, hunks, rejectedCount, target = FLAKY_E] of twoHunkCases) {
     );
   });
 }
+
+// Conservative rule (estate-5 HOLD #3 cap): a binding value change in a test file is held for
+// a human, reverted, left failing, and neither healed nor a possible product bug.
+const humanCases = [
+  // [label, target, fixes (over), held report or null when it must heal]
+  [
+    'CR395 single hunk: CODE re-pointed, assertion in no hunk',
+    FLAKY_E,
+    [{ before: 'const CODE = STATUS.CONFLICT', after: 'const CODE = STATUS.UNPROCESSABLE' }],
+    'binding change needs a human: CODE STATUS.CONFLICT -> STATUS.UNPROCESSABLE',
+  ],
+  ['neutral TOTAL 3 to 2', FLAKY_E, [{ before: 'const TOTAL = 3', after: 'const TOTAL = 2' }], 'binding change needs a human: TOTAL 3 -> 2'],
+  [
+    'setup change on a subject variable',
+    FLAKY_E,
+    [{ before: "const user = makeUser()\nexpect(user.name).toBe('ada')", after: "const user = await makeUser(db)\nexpect(user.name).toBe('ada')" }],
+    'binding change needs a human: user makeUser() -> awaitmakeUser(db)',
+  ],
+  ['Python bare NAME reassigned', FLAKY_E, [{ before: 'LIMIT = 10', after: 'LIMIT = 20' }], 'binding change needs a human: LIMIT 10 -> 20'],
+  ['bare let reassignment', FLAKY_E, [{ before: 'count = 1', after: 'count = 0' }], 'binding change needs a human: count 1 -> 0'],
+  [
+    'binding deleted in one hunk, re-added changed in another',
+    FLAKY_E,
+    [
+      { before: 'const CODE = 409\nawait page.waitForTimeout(500)', after: 'await page.waitForTimeout(500)' },
+      { before: 'await settle()', after: 'await settle()\nconst CODE = 422' },
+    ],
+    'binding change needs a human: CODE 409 -> 422',
+  ],
+  [
+    'locator binding changed outside stale-selector',
+    FLAKY_E,
+    [{ before: "const btn = page.getByRole('button', { name: 'Old' })", after: "const btn = page.getByRole('button', { name: 'New' })" }],
+    "binding change needs a human: btn page.getByRole('button',{name:'Old'}) -> page.getByRole('button',{name:'New'})",
+  ],
+  ['timeout constant raised', FLAKY_E, [{ before: 'const TIMEOUT_MS = 5000', after: 'const TIMEOUT_MS = 15000' }], null],
+  ['wait budget raised', FLAKY_E, [{ before: 'const WAIT_MS = 5000', after: 'const WAIT_MS = 10000' }], null],
+  ['base url fixed', FLAKY_E, [{ before: "const BASE_URL = 'http://localhost:3000'", after: "const BASE_URL = 'http://127.0.0.1:3000'" }], null],
+  ['import path fixed', FLAKY_E, [{}], null],
+  [
+    'X4 selector swap inside the expect, same value',
+    STALE_F,
+    [{ before: "await expect(page.getByText('Total')).toHaveText('Total: 3')", after: "await expect(page.getByTestId('total')).toHaveText('Total: 3')" }],
+    null,
+  ],
+  [
+    'CR345 locator binding renamed under stale-selector',
+    STALE_F,
+    [{ before: "const button = page.getByRole('button', { name: 'Old' })", after: "const button = page.getByRole('button', { name: 'New' })" }],
+    null,
+  ],
+  [
+    'binding in a config file, not a test file',
+    FLAKY_E,
+    [{ file: 'playwright.config.ts', before: 'const workers = 4', after: 'const workers = 1' }],
+    null,
+  ],
+];
+for (const [label, target, overs, report] of humanCases) {
+  await scenario(`needs human: ${label}`, async () => {
+    const { result, kinds } = await runLoop({
+      runs: [red([target]), GREEN],
+      repairs: [repairOf(overs.map((o) => fix(target, { change: 'stabilised the test', ...o })))],
+      reverts: [{ reverted: [{ file: target.file, line: target.line, restored: true }] }],
+    });
+    const human = result.needs_human || [];
+    if (report) {
+      const [h] = human;
+      check(
+        `needs human ${label}: held, reverted, not healed, not a bug`,
+        [result.healed, human.length, h && h.report, h && h.still_failing, result.possible_product_bugs.length, result.iteration_ledger[0].rejected_fixes, result.iteration_ledger[0].held_fixes, kinds.join(',')],
+        [false, 1, report, true, 0, 0, overs.length, 'run,repair,revert'],
+      );
+    } else {
+      check(`needs human ${label}: heals`, [result.healed, human.length, kinds.join(',')], [true, 0, 'run,repair,run']);
+    }
+  });
+}
+
+await scenario('needs human: held test is withheld from later passes, green is not a heal', async () => {
+  const held = fix(FLAKY_E, { change: 'stabilised', before: 'const TOTAL = 3', after: 'const TOTAL = 2' });
+  const { result, calls, kinds } = await runLoop({
+    runs: [red([FLAKY_E, IMPORT_B]), red([FLAKY_E, SETUP_D]), red([FLAKY_E])],
+    repairs: [repairOf([held, fix(IMPORT_B)]), repairOf([fix(SETUP_D)])],
+    reverts: REVERT_E,
+  });
+  const secondRepair = calls.filter((c) => c.kind === 'repair')[1].prompt;
+  check('held test never re-sent for repair', kinds.join(','), 'run,repair,revert,run,repair,run');
+  check(
+    'second repair pass: held test only in the do-not-touch list',
+    [secondRepair.includes(`- ${FLAKY_E.file}:${FLAKY_E.line} ${FLAKY_E.test}`), secondRepair.includes(FLAKY_E.message), secondRepair.includes(SETUP_D.message)],
+    [true, false, true],
+  );
+  const second = await runLoop({
+    runs: [red([FLAKY_E, IMPORT_B]), GREEN],
+    repairs: [repairOf([held, fix(IMPORT_B)])],
+    reverts: REVERT_E,
+  });
+  check(
+    'green with a held binding change is not a heal',
+    [second.result.healed, second.result.fail_count, second.result.state_known, (second.result.needs_human || []).length, second.result.possible_product_bugs.length],
+    [false, -1, false, 1, 0],
+  );
+  check('verdict note names needs_human', /binding change needs a human/.test(String(result.note)), true);
+});
 
 // (3) import / setup / flaky failures are still repaired.
 await scenario('import, setup and flaky are repaired', async () => {

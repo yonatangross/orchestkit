@@ -408,6 +408,83 @@ function namesByFile(fixes, side) {
 const assertedNamesByFile = (fixes) => namesByFile(fixes, "expectedSide");
 const subjectNamesByFile = (fixes) => namesByFile(fixes, "actualSide");
 
+// The only subject change heal may keep: a stale-selector fix swapping one locator for
+// another that does not carry the failure's expected value.
+function isLocatorSwap(fix, target, from, to) {
+	const [expectedValue] = expectedActual(target);
+	return (
+		fix.category === "stale-selector" &&
+		LOCATOR_SUBJECT.test(from) &&
+		LOCATOR_SUBJECT.test(to) &&
+		!(expectedValue !== "?" && literals(to).includes(expectedValue.replace(/^["'`]|["'`]$/g, "")))
+	);
+}
+
+// Conservative rule: in a test file, a changed binding value is never healed, because the
+// assertion reading it can sit outside every reported hunk. Only these names stay healable.
+const SAFE_BINDING = /timeout|delay|retr(?:y|ies)|wait|interval|poll|port|host|url|base_?url|path|dir|fixture|file/i;
+const TEST_FILE =
+	/(?:^|\/)(?:tests?|__tests__|specs?|e2e)\/|[._](?:test|spec)\.[cm]?[jt]sx?$|(?:^|\/)test_[^/]*\.py$|_test\.(?:py|go)$|(?:^|\/)conftest\.py$/i;
+const isTestFile = (file) => !file || TEST_FILE.test(String(file).replace(/\\/g, "/"));
+
+// Bindings (const/let/var, bare reassignment, Python NAME =) whose value a fix changes. A
+// side missing from the fix's own before or after is taken from any hunk of that file in
+// the pass, so a binding deleted in one hunk and re-added changed in another holds both.
+function bindingChanges(fix, target, file = { before: new Map(), after: new Map() }) {
+	if (!isTestFile(fix.file)) return [];
+	const was = assignments(String(fix.before || ""));
+	const now = assignments(String(fix.after || ""));
+	const out = [];
+	for (const name of new Set([...was.keys(), ...now.keys()])) {
+		const prior = was.has(name) ? was.get(name) : file.before.get(name);
+		const next = now.has(name) ? now.get(name) : file.after.get(name);
+		if (prior === undefined || next === undefined || prior === next) continue;
+		if (SAFE_BINDING.test(name) || isLocatorSwap(fix, target, prior, next)) continue;
+		out.push({ name, from: prior, to: next });
+	}
+	return out;
+}
+
+function bindingsByFile(fixes) {
+	const byFile = new Map();
+	for (const fix of fixes) {
+		const entry = byFile.get(fix.file) || { before: new Map(), after: new Map() };
+		for (const side of ["before", "after"]) {
+			for (const [name, value] of assignments(String(fix[side] || ""))) {
+				if (!entry[side].has(name)) entry[side].set(name, value);
+			}
+		}
+		byFile.set(fix.file, entry);
+	}
+	return byFile;
+}
+
+// Keyed by file + test. Held fixes are reverted, the test stays failing, and the entry is
+// neither healed nor a possible product bug.
+const needsHuman = new Map();
+
+function holdForHuman(f, fix, changes, iteration) {
+	const key = failureKey(f);
+	const entry = needsHuman.get(key) || {
+		test: f.test || "",
+		file: f.file || fix.file || "?",
+		line: f.line,
+		category: f.category,
+		iteration,
+		bindings: [],
+		held_fixes: [],
+	};
+	for (const c of changes) {
+		if (!entry.bindings.some((b) => b.name === c.name && b.from === c.from && b.to === c.to)) entry.bindings.push(c);
+	}
+	entry.report = entry.bindings.length
+		? entry.bindings.map((c) => `binding change needs a human: ${c.name} ${c.from} -> ${c.to}`).join("; ")
+		: "fix edits a test already held for a human";
+	entry.held_fixes.push({ file: fix.file, line: fix.line, before: fix.before, after: fix.after, revert_confirmed: false });
+	needsHuman.set(key, entry);
+	return entry;
+}
+
 function assertionChange(before, after, fix = {}, target = {}, fileExpected = new Set(), fileSubjects = new Set()) {
 	const was = extractAssertions(before);
 	const now = extractAssertions(after);
@@ -427,14 +504,7 @@ function assertionChange(before, after, fix = {}, target = {}, fileExpected = ne
 		return `assertion expected side changed: ${cut(missing[0])}`;
 	}
 
-	const [expectedValue] = expectedActual(target);
-	// The only subject change heal may keep: a stale-selector fix swapping one locator for
-	// another that does not carry the failure's expected value.
-	const locatorSwap = (from, to) =>
-		fix.category === "stale-selector" &&
-		LOCATOR_SUBJECT.test(from) &&
-		LOCATOR_SUBJECT.test(to) &&
-		!(expectedValue !== "?" && literals(to).includes(expectedValue.replace(/^["'`]|["'`]$/g, "")));
+	const locatorSwap = (from, to) => isLocatorSwap(fix, target, from, to);
 	const unpaired = now.filter((a) => a.js);
 	for (const o of was.filter((a) => a.js)) {
 		const i = unpaired.findIndex((a) => a.key === o.key);
@@ -608,8 +678,9 @@ for (let iteration = 1; iteration <= MAX_ITERATIONS; iteration++) {
 		flagProductBug(f, "classified", iteration, "value mismatch; heal never rewrites an expected value");
 		diagnosedValueKeys.add(failureKey(f));
 	}
-	const repairable = failures.filter((f) => !isValueMismatch(f) && !productBugs.has(failureKey(f)));
-	const withheld = failures.filter((f) => !repairable.includes(f));
+	const withheld = failures.filter((f) => isValueMismatch(f) || productBugs.has(failureKey(f)));
+	const heldForHuman = failures.filter((f) => !withheld.includes(f) && needsHuman.has(failureKey(f)));
+	const repairable = failures.filter((f) => !withheld.includes(f) && !heldForHuman.includes(f));
 
 	ledger.push({
 		iteration,
@@ -617,13 +688,14 @@ for (let iteration = 1; iteration <= MAX_ITERATIONS; iteration++) {
 		fail_count: run.fail_count,
 		categories,
 		withheld_value_mismatches: withheld.length,
+		withheld_needs_human: heldForHuman.length,
 	});
 
 	if (run.passed && failures.length === 0) {
-		if (productBugs.size) {
+		if (productBugs.size || needsHuman.size) {
 			greenWithOpenBugs = true;
 			log(
-				`Iteration ${iteration}: suite is GREEN but ${productBugs.size} possible product bug(s) were flagged; heal never rewrites expected values, so this is NOT a heal.`,
+				`Iteration ${iteration}: suite is GREEN but ${productBugs.size} possible product bug(s) and ${needsHuman.size} binding change(s) held for a human were flagged; heal never rewrites expected values or binding values, so this is NOT a heal.`,
 			);
 		} else {
 			healed = true;
@@ -649,7 +721,7 @@ for (let iteration = 1; iteration <= MAX_ITERATIONS; iteration++) {
 
 	if (!repairable.length) {
 		log(
-			`Iteration ${iteration}: every failure is a possible product bug (value mismatch), nothing heal may repair. Stopping.`,
+			`Iteration ${iteration}: every failure is a possible product bug (value mismatch) or held for a human, nothing heal may repair. Stopping.`,
 		);
 		break;
 	}
@@ -657,10 +729,11 @@ for (let iteration = 1; iteration <= MAX_ITERATIONS; iteration++) {
 	// Hand the repair agent the REAL failure text, verbatim, for repairable failures only.
 	// The raw tail would carry the withheld diffs too, so it is dropped when any exist.
 	const failureText = JSON.stringify(repairable).slice(0, 12000);
-	const rawTail = withheld.length
-		? "(omitted: it contains value mismatch failures that heal must not touch)"
-		: String(run.raw_output || "").slice(0, 3000);
-	const doNotTouch = Array.from(productBugs.values())
+	const rawTail =
+		withheld.length || heldForHuman.length
+			? "(omitted: it contains failures that heal must not touch)"
+			: String(run.raw_output || "").slice(0, 3000);
+	const doNotTouch = [...productBugs.values(), ...needsHuman.values()]
 		.map((b) => `- ${b.file}${b.line ? `:${b.line}` : ""} ${b.test}`)
 		.join("\n");
 	const repair = await agent(
@@ -685,10 +758,14 @@ Rules (references/heal-loop-strategy.md):
 4. NEVER change an expected value, snapshot, expected status code or expected count so a
    test matches current output. If that is the only fix you can find, do not make it:
    record it in possible_product_bugs with expected and actual, and leave the test failing.
-5. Do NOT touch these tests, they are reported as possible product bugs:
+5. Do NOT touch these tests, they are reported as possible product bugs or held for a human:
 ${doNotTouch || "(none)"}
-6. Do NOT suppress: no skip, no try/except swallow, no eslint-disable, no type ignore.
-7. Anything you cannot fix within these rules goes in unfixable with the reason.
+6. In a test file, do NOT change the value of any const, let, var or Python NAME = binding
+   unless its name is about waits, retries, hosts, ports, urls, paths, dirs, fixtures or files,
+   or it is a stale-selector locator swap. The workflow reverts any other binding change and
+   hands it to a human.
+7. Do NOT suppress: no skip, no try/except swallow, no eslint-disable, no type ignore.
+8. Anything you cannot fix within these rules goes in unfixable with the reason.
 
 Report exactly what you changed: one fixes entry per edit, with before and after verbatim and
 touches_expected_value set truthfully. The workflow diffs every before/after itself and reverts
@@ -710,17 +787,21 @@ or xfail, whatever category you report.`,
 		repair && Array.isArray(repair.possible_product_bugs) ? repair.possible_product_bugs : [];
 	const accepted = [];
 	const rejected = [];
+	const held = [];
 	const expectedByFile = assertedNamesByFile(fixes);
 	const subjectsByFile = subjectNamesByFile(fixes);
+	const bindingsInFile = bindingsByFile(fixes);
 	for (const fix of fixes) {
-		const reason = vetFix(
-			fix,
-			fixTarget(fix, repairable),
-			expectedByFile.get(fix.file),
-			subjectsByFile.get(fix.file),
-		);
-		if (reason) rejected.push({ fix, reason });
-		else accepted.push(fix);
+		const target = fixTarget(fix, repairable);
+		const reason = vetFix(fix, target, expectedByFile.get(fix.file), subjectsByFile.get(fix.file));
+		if (reason) {
+			rejected.push({ fix, reason });
+			continue;
+		}
+		const changes = bindingChanges(fix, target, bindingsInFile.get(fix.file));
+		if (changes.length || (fix.test && needsHuman.has(failureKey({ file: fix.file, test: fix.test })))) {
+			held.push({ fix, reason: holdForHuman(target, fix, changes, iteration).report });
+		} else accepted.push(fix);
 	}
 	for (const { fix, reason } of rejected) {
 		flagProductBug(fixTarget(fix, repairable), "rejected-repair", iteration, reason).rejected_fix = {
@@ -748,14 +829,16 @@ or xfail, whatever category you report.`,
 		);
 	}
 
-	if (rejected.length) {
+	const undo = [...rejected, ...held];
+	if (undo.length) {
 		const revert = await agent(
-			`The heal repair pass made edits that heal is NOT allowed to make: they rewrite what a test
-expects so it matches current output. Undo EXACTLY these edits and nothing else. For each one,
-replace the "after" text with the "before" text in that file, then run git diff on the file to
-confirm the original assertion is back. Do not touch any other line and do not edit source code.
+			`The heal repair pass made edits that heal is NOT allowed to keep: they rewrite what a test
+expects so it matches current output, or they change a binding's value, which needs a human.
+Undo EXACTLY these edits and nothing else. For each one, replace the "after" text with the
+"before" text in that file, then run git diff on the file to confirm the original text is back.
+Do not touch any other line and do not edit source code.
 
-${JSON.stringify(rejected.map(({ fix, reason }) => ({ file: fix.file, line: fix.line, test: fix.test, before: fix.before, after: fix.after, reason }))).slice(0, 8000)}
+${JSON.stringify(undo.map(({ fix, reason }) => ({ file: fix.file, line: fix.line, test: fix.test, before: fix.before, after: fix.after, reason }))).slice(0, 8000)}
 
 Set restored=true ONLY when git diff shows the "before" text back in place.`,
 			{
@@ -768,15 +851,16 @@ Set restored=true ONLY when git diff shows the "before" text back in place.`,
 		const restored = (revert && Array.isArray(revert.reverted) ? revert.reverted : []).filter(
 			(r) => r.restored === true,
 		);
-		for (const bug of productBugs.values()) {
-			const rf = bug.rejected_fix;
-			if (!rf || rf.revert_confirmed) continue;
+		const confirm = (rf) => {
+			if (!rf || rf.revert_confirmed) return;
 			rf.revert_confirmed = restored.some(
 				(r) => r.file === rf.file && (!rf.line || !r.line || r.line === rf.line),
 			);
-		}
+		};
+		for (const bug of productBugs.values()) confirm(bug.rejected_fix);
+		for (const entry of needsHuman.values()) entry.held_fixes.forEach(confirm);
 		log(
-			`Iteration ${iteration}: REJECTED ${rejected.length} fix(es) that rewrote an expected value; reverted ${restored.length}.`,
+			`Iteration ${iteration}: REJECTED ${rejected.length} fix(es) that rewrote an expected value, HELD ${held.length} binding change(s) for a human; reverted ${restored.length}.`,
 		);
 	}
 
@@ -784,9 +868,11 @@ Set restored=true ONLY when git diff shows the "before" text back in place.`,
 	last.repaired_files = Array.from(new Set(accepted.map((f) => f.file)));
 	last.accepted_fixes = accepted.length;
 	last.rejected_fixes = rejected.length;
+	last.held_fixes = held.length;
 	last.possible_product_bugs = productBugs.size;
+	last.needs_human = needsHuman.size;
 	log(
-		`Iteration ${iteration}: kept ${accepted.length} fix(es) in ${last.repaired_files.length} test file(s)${productBugs.size ? ` · ${productBugs.size} possible product bug(s), left failing on purpose` : ""}`,
+		`Iteration ${iteration}: kept ${accepted.length} fix(es) in ${last.repaired_files.length} test file(s)${productBugs.size ? ` · ${productBugs.size} possible product bug(s), left failing on purpose` : ""}${needsHuman.size ? ` · ${needsHuman.size} binding change(s) held for a human, left failing` : ""}`,
 	);
 
 	if (!accepted.length) {
@@ -818,6 +904,7 @@ if (healed) {
 		fail_count: 0,
 		remaining_failures: [],
 		possible_product_bugs: [],
+		needs_human: [],
 		iteration_ledger: ledger,
 	};
 }
@@ -837,12 +924,20 @@ const bugs = Array.from(productBugs.values()).map((b) => ({
 	...b,
 	still_failing: residualKeys.has(failureKey(b)),
 }));
+const human = Array.from(needsHuman.values()).map((h) => ({
+	...h,
+	still_failing: residualKeys.has(failureKey(h)),
+}));
 log(
 	latest === null
 		? `heal-loop: NOT HEALED after ${iterationsUsed} iteration(s); suite state UNKNOWN, every diagnose run returned nothing.`
-		: `heal-loop: NOT HEALED after ${iterationsUsed} iteration(s), ${residual.length} test(s) still failing, ${bugs.length} possible product bug(s).`,
+		: `heal-loop: NOT HEALED after ${iterationsUsed} iteration(s), ${residual.length} test(s) still failing, ${bugs.length} possible product bug(s), ${human.length} held for a human.`,
 );
 for (const b of bugs) log(`  ${b.report}`);
+for (const h of human) log(`  ${h.report} (${h.file}${h.line ? `:${h.line}` : ""})`);
+const humanNote = human.length
+	? ` Report each needs_human entry verbatim ("binding change needs a human: NAME old -> new"); heal does not change binding values, so a person decides whether each one is a fix or a product bug.`
+	: "";
 return {
 	status: "failed",
 	healed: false,
@@ -855,6 +950,7 @@ return {
 	fail_count: unknownState ? -1 : latest.fail_count,
 	failure_categories: byCategory,
 	possible_product_bugs: bugs,
+	needs_human: human,
 	value_mismatch_vanished: vanished,
 	vanished_value_mismatches: vanishedBugs.map((b) => ({
 		test: b.test,
@@ -872,11 +968,12 @@ return {
 		suggested_fix: f.suggested_fix,
 	})),
 	iteration_ledger: ledger,
-	note: vanished
+	note:
+		(vanished
 		? `Iteration ceiling ${MAX_ITERATIONS} enforced by the script. Tests diagnosed as value mismatches stopped failing: ${vanishedBugs.map((b) => `"${b.test}" (${b.file}${b.line ? `:${b.line}` : ""})`).join(", ")}. Heal never rewrites expected values, so inspect the test diff for those tests (fail_count -1, state_known false). Do NOT report this run as a success.`
 		: greenWithOpenBugs
-			? `Iteration ceiling ${MAX_ITERATIONS} enforced by the script. The suite went green while possible product bugs were flagged; heal never rewrites expected values, so inspect the test diff for those tests (fail_count -1, state_known false). Do NOT report this run as a success.`
+			? `Iteration ceiling ${MAX_ITERATIONS} enforced by the script. The suite went green while possible product bugs or binding changes held for a human were flagged; heal never rewrites expected values or binding values, so inspect the test diff for those tests (fail_count -1, state_known false). Do NOT report this run as a success.`
 			: latest === null
 				? `Iteration ceiling ${MAX_ITERATIONS} enforced by the script. Every diagnose run returned nothing, so the suite state is UNKNOWN (fail_count -1, state_known false). Do NOT report this run as a success and do NOT treat fail_count 0 as green.`
-				: `Iteration ceiling ${MAX_ITERATIONS} enforced by the script. These tests are STILL FAILING and require manual resolution; report each possible_product_bugs entry verbatim ("possible product bug: expected X, got Y (file:line)"); do not report this run as a success.`,
+				: `Iteration ceiling ${MAX_ITERATIONS} enforced by the script. These tests are STILL FAILING and require manual resolution; report each possible_product_bugs entry verbatim ("possible product bug: expected X, got Y (file:line)"); do not report this run as a success.`) + humanNote,
 };

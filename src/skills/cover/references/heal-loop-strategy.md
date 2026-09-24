@@ -2,6 +2,7 @@
 
 Fix failing generated tests iteratively. Ceiling is 3 iterations (2 repair passes plus a
 final verifying run) to prevent infinite loops. See "Iteration Budget" below for the split.
+Phase 5 of `/ork:cover` runs this as `src/skills/cover/workflows/heal-loop.js`.
 
 ## Failure Classification
 
@@ -40,8 +41,12 @@ Anything still failing after the final diagnose is reported with:
    imports, paths, types, selectors, timeouts and flakes only. `heal-loop.js` withholds value
    mismatches from the repair agent, and rejects and reverts any reported fix that changes an
    expected value, a snapshot, or a test already reported as a possible product bug
-4. **Don't suppress errors**: if a test exposes a real bug, report it
-5. **Keep tests deterministic**: no `Date.now()`, no `Math.random()` without seeding
+4. **Binding changes go to a human.** In a test file, a fix that changes the value of a
+   `const`/`let`/`var` binding, a bare reassignment, or a Python `NAME =` is not healed: the
+   assertion reading it can sit outside every reported hunk, so no hunk rule can tell a
+   setup fix from a moved expected value. See Needs a Human below
+5. **Don't suppress errors**: if a test exposes a real bug, report it
+6. **Keep tests deterministic**: no `Date.now()`, no `Math.random()` without seeding
 
 ## Deterministic Checks
 
@@ -104,6 +109,30 @@ entry `still_failing: false`, and sets `fail_count: -1` so a caller cannot read 
 Only failures the run agent diagnosed count here; rejected-repair and agent-reported entries
 can carry incomplete identities. A green run with any possible product bug flagged is also
 reported as `status: "failed"` with `fail_count: -1`.
+
+## Needs a Human
+
+A fix that passes every check above but changes a binding's value in a test file is held,
+reverted, and listed in `needs_human` with a `report` line to surface verbatim:
+
+```
+binding change needs a human: CODE STATUS.CONFLICT -> STATUS.UNPROCESSABLE
+```
+
+The test stays failing, is withheld from later repair passes, and is never reported as
+healed or as a possible product bug: a person decides which it is. A green run with any
+entry held is reported as `status: "failed"` with `fail_count: -1`. Two exceptions stay
+healable:
+
+- the binding's name matches
+  `/timeout|delay|retr(y|ies)|wait|interval|poll|port|host|url|base_?url|path|dir|fixture|file/i`
+  (`TIMEOUT_MS`, `WAIT_MS`, `BASE_URL`, `FIXTURE_DIR`);
+- the fix is `stale-selector` and both values are locator expressions with no literal equal
+  to the failure's expected value (`page.getByRole('button', { name: 'Old' })` to `'New'`).
+
+A binding deleted in one hunk and re-added with a new value in another counts as a change,
+and holds both hunks. Files outside the test tree (`playwright.config.ts`) are not covered
+by this rule.
 
 ## Flaky Test Prevention
 

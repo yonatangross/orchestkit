@@ -65,12 +65,19 @@ Checker: `scripts/check-behaviour-tests.mjs`, final run exit {0|1}.
 "possible product bug: expected X, got Y (file:line)". These tests are left failing on
 purpose: heal never rewrites an expected value to match current output.}
 
+## Needs a Human (if any)
+
+{one line per heal-loop `needs_human` entry, its `report` field verbatim:
+"binding change needs a human: NAME old -> new". The change was reverted and the test left
+failing; decide whether it is a fix or a product bug.}
+
 ## Next Steps
 
 - `/ork:verify {SCOPE}`: grade the implementation + tests
 - `/ork:commit`: commit generated test files
 - Fix source bugs detected during test generation (if any)
 - Confirm or fix each possible product bug listed above (if any)
+- Decide each binding change listed under Needs a Human (if any)
 ```
 
 ## Delta Calculation
