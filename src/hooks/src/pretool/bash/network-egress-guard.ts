@@ -444,51 +444,34 @@ function isDirChangeWord(w: string): boolean {
 }
 
 /**
- * Peel leading VAR=x assignments and builtin/command/exec wrappers so the
- * directory-changing word is found in command position.
+ * Scan every token in a simple-command segment for directory-change words.
+ * Fail-closed: a word `cd` / `pushd` / `popd` / `chdir` anywhere counts, not
+ * only in command position (covers `time cd`, `then cd`, `do cd`, …).
+ * A literal following target is ADDed; anything else makes the set UNKNOWN.
  */
-function peelToCommandPosition(words: string[]): number {
-  let i = 0;
-  while (i < words.length && /^[A-Za-z_][A-Za-z0-9_]*=/.test(words[i]!)) i++;
-  while (i < words.length) {
-    const w = words[i]!;
-    if (w !== 'builtin' && w !== 'command' && w !== 'exec') break;
-    i++;
-    // `command` accepts -p / -v / -V before the utility name.
-    while (i < words.length && /^-[pVv]+$/.test(words[i]!)) i++;
-  }
-  return i;
-}
-
-/**
- * Classify one simple-command segment for directory changes.
- * Returns 'none', a literal target to ADD, or 'unknown'.
- */
-function classifyDirChangeSegment(
+function applyDirChangesInSegment(
   tokens: string[],
-): { kind: 'none' } | { kind: 'unknown' } | { kind: 'add'; target: string } {
-  if (tokens.length === 0) return { kind: 'none' };
-  const words = tokens.map((t) => unwrapToken(t).replace(/\\/g, ''));
-  const idx = peelToCommandPosition(words);
-  if (idx >= words.length) return { kind: 'none' };
-  const head = words[idx]!;
-  // `eval …` can change directory in ways we cannot resolve statically.
-  if (head === 'eval') return { kind: 'unknown' };
-  if (!isDirChangeWord(head)) return { kind: 'none' };
-
-  if (head === 'popd') return { kind: 'unknown' };
-  const args = words.slice(idx + 1);
-  if (args.length === 0) return { kind: 'unknown' }; // bare cd / pushd / chdir
-  if (args.length !== 1) return { kind: 'unknown' };
-  const target = args[0]!;
-  if (target === '-') return { kind: 'unknown' };
-  // pushd +N / -N rotates the stack; do not treat as a path.
-  if ((head === 'pushd' || head === 'popd') && /^[+-]\d+$/.test(target)) {
-    return { kind: 'unknown' };
+  addTarget: (target: string) => boolean,
+): 'ok' | 'unknown' {
+  if (tokens.length === 0) return 'ok';
+  // Keep backslashes so escaped targets stay shell-expanded / UNKNOWN.
+  const words = tokens.map((t) => unwrapToken(t));
+  for (let i = 0; i < words.length; i++) {
+    const head = words[i]!.replace(/\\/g, '');
+    if (!isDirChangeWord(head)) continue;
+    if (head === 'popd') return 'unknown';
+    const target = words[i + 1];
+    if (target === undefined) return 'unknown'; // missing / separator / end
+    if (target === '-') return 'unknown';
+    // pushd +N / -N rotates the stack; not a path.
+    if (head === 'pushd' && /^[+-]\d+$/.test(target)) return 'unknown';
+    if (target.startsWith('-') && target !== '-') return 'unknown'; // flags
+    if (programArgIsShellExpanded(target)) return 'unknown';
+    // Another dir-change word as the "target" is not a literal path.
+    if (isDirChangeWord(target.replace(/\\/g, ''))) return 'unknown';
+    if (!addTarget(target.replace(/\\/g, ''))) return 'unknown';
   }
-  if (target.startsWith('-') && target !== '-') return { kind: 'unknown' }; // flags
-  if (programArgIsShellExpanded(target)) return { kind: 'unknown' };
-  return { kind: 'add', target };
+  return 'ok';
 }
 
 /**
@@ -562,9 +545,8 @@ function resolveCwdCandidates(
 
     const segment = prefix.slice(pos, end).trim();
     if (segment.length > 0) {
-      const classified = classifyDirChangeSegment(tokenizePipeRhs(segment));
-      if (classified.kind === 'unknown') return null;
-      if (classified.kind === 'add' && !addTarget(classified.target)) return null;
+      const applied = applyDirChangesInSegment(tokenizePipeRhs(segment), addTarget);
+      if (applied === 'unknown') return null;
     }
 
     if (end >= n) break;
