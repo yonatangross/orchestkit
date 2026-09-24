@@ -662,12 +662,21 @@ function unwrapToken(tok: string): string {
   return tok;
 }
 
+/**
+ * Bash may write `py\thon3` before the interpreter runs. Strip escapes so the
+ * name still matches; program-argument tokens keep their backslashes for the
+ * shell-expanded fail-closed rule.
+ */
+function unescapeInterpreterName(name: string): string {
+  return name.replace(/\\/g, '');
+}
+
 /** Shared sudo/env skip + interpreter arg scan for one pipe RHS token list. */
 function rhsIsStdinInterpreter(tokens: string[]): boolean {
   const unwrapped = tokens.map(unwrapToken);
   let idx = 0;
   while (idx < unwrapped.length) {
-    const t = unwrapped[idx]!.toLowerCase();
+    const t = unescapeInterpreterName(unwrapped[idx]!).toLowerCase();
     if (t === 'sudo') {
       idx++;
       continue;
@@ -681,8 +690,10 @@ function rhsIsStdinInterpreter(tokens: string[]): boolean {
     }
     break;
   }
-  if (idx >= unwrapped.length || !INTERPRETER_NAME_RE.test(unwrapped[idx]!)) return false;
-  const family = interpreterFamily(unwrapped[idx]!);
+  if (idx >= unwrapped.length) return false;
+  const name = unescapeInterpreterName(unwrapped[idx]!);
+  if (!INTERPRETER_NAME_RE.test(name)) return false;
+  const family = interpreterFamily(name);
   return Boolean(family && interpreterArgsAreStdinProgram(family, unwrapped.slice(idx + 1)));
 }
 
