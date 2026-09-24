@@ -409,7 +409,7 @@ const JS_MOCK_ASSERT_METHOD =
   /^(?:called|notCalled|calledOnce|calledTwice|calledThrice|calledWith|calledWithExactly|calledWithMatch|calledOnceWithExactly|alwaysCalledWith|neverCalledWith|callCount|callOrder|calledOn|alwaysCalledOn)$/;
 const THROW_NAME = /^(?:toThrow\w*|throw|throws)$/;
 
-function readChain(masked, j) {
+function readChain(masked, j, calls = []) {
   const names = [];
   for (;;) {
     const k = skipSpace(masked, j);
@@ -419,9 +419,54 @@ function readChain(masked, j) {
     names.push(id[0]);
     j = skipSpace(masked, k + 1) + id[0].length;
     const after = skipSpace(masked, j);
-    if (masked[after] === '(' || masked[after] === '[') j = matchParen(masked, after) + 1;
+    if (masked[after] === '(' || masked[after] === '[') {
+      j = matchParen(masked, after) + 1;
+      if (masked[after] === '(') calls.push([after, j - 1]);
+    }
   }
   return names;
+}
+
+// Tautologies: an assertion whose operands are all literals, or the same name twice, checks
+// no code (`expect(true).toBe(true)`, `assert 1 == 1`) and counts as no assertion (rule b).
+const JS_LITERAL =
+  /^(?:true|false|null|undefined|NaN|-?(?:\d[\d_]*(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?n?|0[xXoObB][\da-fA-F_]+|'(?:[^'\\\n]|\\.)*'|"(?:[^"\\\n]|\\.)*"|`[^`$\\]*`|\/(?:[^/\\\n]|\\.)+\/[a-z]*)$/;
+const PY_LITERAL =
+  /^(?:True|False|None|-?(?:\d[\d_]*(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?j?|[rRbBuU]{0,2}(?:'[^'\n]*'|"[^"\n]*"))$/;
+const PLAIN_NAME = /^[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*$/;
+
+function unwrap(masked, raw) {
+  let m = masked.trim();
+  let r = raw.trim();
+  while (m.startsWith('(') && matchParen(m, 0) === m.length - 1) {
+    m = m.slice(1, -1).trim();
+    r = r.slice(1, -1).trim();
+  }
+  return r;
+}
+
+function argTexts(masked, raw, open, close) {
+  if (!masked.slice(open + 1, close).trim()) return [];
+  return topLevelArgs(masked, open, close).map(([a, b]) => unwrap(masked.slice(a, b), raw.slice(a, b)));
+}
+
+function isTautology(operands, literal) {
+  if (operands.length === 0) return false;
+  if (operands.every((o) => literal.test(o))) return true;
+  return operands.length >= 2 && operands[0] === operands[1] && PLAIN_NAME.test(operands[0]);
+}
+
+// Supertest: `request(app).post(...).expect(201)` asserts on the response through the chain.
+function httpRoots(src, masked) {
+  const roots = new Set(['request', 'supertest']);
+  for (const m of src.matchAll(/\bimport\s+(?:\*\s+as\s+)?([A-Za-z_$][\w$]*)\s+from\s+['"]supertest['"]|([A-Za-z_$][\w$]*)\s*=\s*require\(\s*['"]supertest['"]\s*\)/g)) {
+    roots.add(m[1] || m[2]);
+  }
+  const base = [...roots].map(escapeRegExp).join('|');
+  for (const m of masked.matchAll(new RegExp(`(?<![\\w$.])([A-Za-z_$][\\w$]*)\\s*=\\s*(?:await\\s+)?(?:${base})(?:\\s*\\.\\s*agent)?\\s*\\(`, 'g'))) {
+    roots.add(m[1]);
+  }
+  return roots;
 }
 
 function classifyChain(names, arg) {
@@ -435,21 +480,41 @@ const CONTEXT_ASSERT =
   /^(?:equal|not|notEqual|same|notSame|strictSame|strictNotSame|strictEqual|notStrictEqual|deepEqual|notDeepEqual|ok|notOk|true|false|truthy|falsy|is|match|notMatch|has|hasStrict|notHas|type|throws|throwsAsync|rejects|resolveMatch|error|like|unlike|regex|notRegex|snapshot|matchSnapshot)$/;
 const CONTEXT_NO_THROW = /^(?:doesNotThrow|notThrows|notThrowsAsync|resolves)$/;
 
-function classifyJs(body, receivers = new Set()) {
+function classifyJs(body, receivers = new Set(), raw = body, roots = new Set()) {
   const kinds = [];
+  const callKind = (open, close) => {
+    const arg = body.slice(open + 1, close);
+    if (JS_MOCK_ARG.test(arg)) return 'mock';
+    return isTautology(argTexts(body, raw, open, close), JS_LITERAL) ? 'tautology' : 'behaviour';
+  };
   for (const r of receivers) {
     for (const m of body.matchAll(new RegExp(`(?<![\\w$.])${escapeRegExp(r)}\\.([A-Za-z_$][\\w$]*)\\s*\\(`, 'g'))) {
       const open = m.index + m[0].length - 1;
-      const arg = body.slice(open + 1, matchParen(body, open));
       if (CONTEXT_NO_THROW.test(m[1])) kinds.push('noThrow');
-      else if (CONTEXT_ASSERT.test(m[1])) kinds.push(JS_MOCK_ARG.test(arg) ? 'mock' : 'behaviour');
+      else if (CONTEXT_ASSERT.test(m[1])) kinds.push(callKind(open, matchParen(body, open)));
     }
   }
   for (const m of body.matchAll(/(?<![\w$.])expect(?:\.(?:soft|poll|element))?\s*\(/g)) {
     const open = m.index + m[0].length - 1;
     const close = matchParen(body, open);
-    const names = readChain(body, close + 1);
-    if (names.length) kinds.push(classifyChain(names, body.slice(open + 1, close)));
+    const calls = [];
+    const names = readChain(body, close + 1, calls);
+    if (!names.length) continue;
+    const kind = classifyChain(names, body.slice(open + 1, close));
+    const subject = argTexts(body, raw, open, close);
+    const expected = calls.flatMap(([a, b]) => argTexts(body, raw, a, b));
+    const tautology = kind === 'behaviour' && subject.length === 1 &&
+      (expected.length === 0 ? JS_LITERAL.test(subject[0]) : isTautology([...subject, ...expected], JS_LITERAL));
+    kinds.push(tautology ? 'tautology' : kind);
+  }
+  if (roots.size) {
+    const rootRe = new RegExp(`(?<![\\w$.])(?:${[...roots].map(escapeRegExp).join('|')})(?![\\w$])`, 'g');
+    for (const m of body.matchAll(rootRe)) {
+      let j = m.index + m[0].length;
+      const k = skipSpace(body, j);
+      if (body[k] === '(') j = matchParen(body, k) + 1;
+      for (const n of readChain(body, j)) if (n === 'expect') kinds.push('behaviour');
+    }
   }
   for (const m of body.matchAll(/(?<![\w$.])((?:[A-Za-z_$][\w$]*\.)?)assert((?:\.[A-Za-z_$][\w$]*)*)\s*\(/g)) {
     const method = m[2] ? m[2].split('.').pop() : '';
@@ -457,13 +522,33 @@ function classifyJs(body, receivers = new Set()) {
     const arg = body.slice(open + 1, matchParen(body, open));
     if (m[1] === 'sinon.' || JS_MOCK_ASSERT_METHOD.test(method) || JS_MOCK_ARG.test(arg)) kinds.push('mock');
     else if (method === 'doesNotThrow' || method === 'doesNotReject') kinds.push('noThrow');
-    else kinds.push('behaviour');
+    else if (method === 'fail') kinds.push('behaviour');
+    else kinds.push(callKind(open, matchParen(body, open)));
   }
   for (const m of body.matchAll(/\.should((?:\.[A-Za-z_$][\w$]*)+)/g)) {
     kinds.push(classifyChain(m[1].split('.').filter(Boolean), ''));
   }
-  for (const _ of body.matchAll(/(?<![\w$.])(?:expect|assert)[A-Z_][\w$]*\s*\(/g)) kinds.push('behaviour');
+  for (const m of body.matchAll(/(?<![\w$.])(?:expect|assert)[A-Z_][\w$]*\s*\(/g)) {
+    const open = m.index + m[0].length - 1;
+    kinds.push(callKind(open, matchParen(body, open)));
+  }
   return kinds;
+}
+
+const PY_COMPARE = /^(.*?\S)\s*(?:==|!=|<=|>=|<|>|\bis\s+not\b|\bis\b|\bnot\s+in\b|\bin\b)\s*(\S.*)$/;
+
+function pyAssertIsTautology(masked, raw) {
+  const [[a, b]] = topLevelArgs(`(${masked})`, 0, masked.length + 1).map(([s, e]) => [s - 1, e - 1]);
+  const m = masked.slice(a, b).trimEnd();
+  const r = raw.slice(a, a + m.length);
+  const expr = unwrap(m, r);
+  if (PY_LITERAL.test(expr)) return true;
+  const mExpr = unwrap(m, m);
+  const cmp = PY_COMPARE.exec(mExpr);
+  if (!cmp) return false;
+  const left = expr.slice(0, cmp[1].length).trim();
+  const right = expr.slice(mExpr.length - cmp[2].length).trim();
+  return isTautology([left, right], PY_LITERAL);
 }
 
 const PY_MOCK_ATTR =
@@ -471,17 +556,25 @@ const PY_MOCK_ATTR =
 const PY_MOCK_ASSERT =
   /^assert_(?:called|not_called|any_call|has_calls|awaited|not_awaited|has_awaits|any_await)/;
 
-function classifyPython(body) {
+function classifyPython(body, raw = body) {
   const kinds = [];
   for (const m of body.matchAll(/(?<![\w.])assert(?=[\s(])([^\n]*)/g)) {
-    kinds.push(PY_MOCK_ATTR.test(m[1]) ? 'mock' : 'behaviour');
+    const from = m.index + 'assert'.length;
+    if (PY_MOCK_ATTR.test(m[1])) kinds.push('mock');
+    else kinds.push(pyAssertIsTautology(m[1], raw.slice(from, from + m[1].length)) ? 'tautology' : 'behaviour');
   }
+  const callKind = (open, close) =>
+    (isTautology(argTexts(body, raw, open, close), PY_LITERAL) ? 'tautology' : 'behaviour');
   for (const m of body.matchAll(/\.(assert\w*)\s*\(/g)) {
     const open = m.index + m[0].length - 1;
-    const arg = body.slice(open + 1, matchParen(body, open));
-    kinds.push(PY_MOCK_ASSERT.test(m[1]) || PY_MOCK_ATTR.test(arg) ? 'mock' : 'behaviour');
+    const close = matchParen(body, open);
+    const arg = body.slice(open + 1, close);
+    kinds.push(PY_MOCK_ASSERT.test(m[1]) || PY_MOCK_ATTR.test(arg) ? 'mock' : callKind(open, close));
   }
-  for (const _ of body.matchAll(/(?<![\w.])(?:assert|expect)_\w+\s*\(/g)) kinds.push('behaviour');
+  for (const m of body.matchAll(/(?<![\w.])(?:assert|expect)_\w+\s*\(/g)) {
+    const open = m.index + m[0].length - 1;
+    kinds.push(callKind(open, matchParen(body, open)));
+  }
   for (const _ of body.matchAll(/(?<![\w])(?:pytest\.)?(?:raises|warns)\s*\(/g)) kinds.push('behaviour');
   for (const _ of body.matchAll(/(?<![\w])(?:does_not_raise|not_raises|nullcontext)\s*\(/g)) kinds.push('noThrow');
   return kinds;
@@ -592,7 +685,8 @@ function verdictFor(test, ctx) {
   if (read) {
     return { verdict: 'reject', rule: 'c', reason: `reads source text instead of executing it (line ${read.line}: ${read.text})` };
   }
-  const kinds = language === 'js' ? classifyJs(body, test.receivers) : classifyPython(body);
+  const raw = test.ranges.map(([a, b]) => src.slice(a, b)).join('\n');
+  const kinds = language === 'js' ? classifyJs(body, test.receivers, raw, ctx.roots) : classifyPython(body, raw);
   const behaviour = kinds.filter((k) => k === 'behaviour').length;
   const mock = kinds.filter((k) => k === 'mock').length;
   if (behaviour > 0) return { verdict: 'keep', rule: null, reason: `asserts behaviour (${behaviour} assertion${behaviour === 1 ? '' : 's'})` };
@@ -613,8 +707,12 @@ function verdictFor(test, ctx) {
     return { verdict: 'keep', rule: null, reason: 'not throwing is the stated contract' };
   }
   const noThrow = kinds.filter((k) => k === 'noThrow').length;
-  return noThrow > 0
-    ? { verdict: 'reject', rule: 'b', reason: 'only a not-to-throw assertion, and not throwing is not the stated contract' }
+  const tautology = kinds.filter((k) => k === 'tautology').length;
+  if (noThrow > 0) {
+    return { verdict: 'reject', rule: 'b', reason: 'only a not-to-throw assertion, and not throwing is not the stated contract' };
+  }
+  return tautology > 0
+    ? { verdict: 'reject', rule: 'b', reason: `only tautological assertions (${tautology}): they compare literals or a value with itself and check no code` }
     : { verdict: 'reject', rule: 'b', reason: 'no assertion: the test runs code but checks nothing' };
 }
 
@@ -628,7 +726,8 @@ export function checkTestSource(src, { filename = '<source>', language = languag
     ...r,
     inTest: found.some((t) => covers(t, r.offset)),
   }));
-  const ctx = { src, masked, comments, strings, language, reads };
+  const roots = language === 'js' ? httpRoots(src, masked) : new Set();
+  const ctx = { src, masked, comments, strings, language, reads, roots };
   const tests = found.map((t) => ({ name: t.name, line: lineAt(src, t.start), ...verdictFor(t, ctx) }));
   const rejected = tests.filter((t) => t.verdict === 'reject').length;
   const unchecked = tests.filter((t) => t.verdict === 'unchecked').length;

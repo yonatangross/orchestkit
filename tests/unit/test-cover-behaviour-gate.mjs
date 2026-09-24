@@ -108,6 +108,26 @@ const EXPECTED = {
   'suites.js': ['keep', { adds: 'keep', subtracts: 'keep' }],
   // No recognised case: reported for review, never dropped (dropping deletes the file).
   'no-tests.ts': ['unchecked', {}],
+  // Supertest asserts status, headers and body through `.expect(...)` on the request chain.
+  'supertest.js': ['keep', { 'creates a user': 'keep', 'rejects bad input': 'keep' }],
+  'supertest-agent.js': ['keep', { 'keeps the session cookie': 'keep', 'lists users': 'keep' }],
+  // A literal compared with a literal (or a name with itself) checks no code: rule (b).
+  'tautology.js': ['drop', {
+    'always passes': 'b',
+    'also passes': 'b',
+    'compares two literals': 'b',
+    'is truthy': 'b',
+    'compares a name with itself': 'b',
+    'node asserts on literals': 'b',
+  }],
+  'tautology.py': ['drop', {
+    test_always: 'b',
+    test_one_is_one: 'b',
+    test_same_string: 'b',
+    test_same_name: 'b',
+    test_unittest_literal: 'b',
+  }],
+  'mixed.ts': ['keep', { 'discounts and keeps a leftover sanity check': 'keep' }],
 };
 
 for (const [file, [fileVerdict, perTest]] of Object.entries(EXPECTED)) {
@@ -198,6 +218,29 @@ test('ava wrapped call', (t) => { t.notThrows(() => add(1, 2)); });`),
 check('Deno.test with an options object takes its name and fn body', js(`
 Deno.test({ name: 'adds', fn() { assertEquals(add(1, 2), 3); } });
 Deno.test({ name: 'runs', fn: () => { add(1, 2); } });`), { adds: 'keep', runs: 'b' });
+
+check('a tautology-only test names the tautology in its reason',
+  fixture('tautology.js').tests[0].reason,
+  'only tautological assertions (1): they compare literals or a value with itself and check no code');
+
+check('a mixed test is kept on its real assertion, and the tautology is not counted',
+  fixture('mixed.ts').tests[0].reason, 'asserts behaviour (1 assertion)');
+
+check('.expect counts only on a supertest chain, and a request alone asserts nothing', js(`
+import request from 'supertest';
+it('sends only', async () => { await request(app).post('/x').send({}); });
+it('other chain', () => { builder().expect(200); });
+it('status', () => request(app).get('/').expect(200));`), { 'sends only': 'b', 'other chain': 'b', status: 'keep' });
+
+check('a literal on one side of a real comparison is still behaviour', js(`
+it('js', () => { expect(add(1, 2)).toBe(3); });
+it('literal first', () => { expect(3).toBe(add(1, 2)); });
+it('different names', () => { expect(result).toBe(expected); });`), { js: 'keep', 'literal first': 'keep', 'different names': 'keep' });
+
+check('a python comparison against code is still behaviour', py(`
+def test_eq(): assert add(1, 2) == 3
+def test_in(): assert "a" in render()
+def test_call(): assert is_valid("x")`), { test_eq: 'keep', test_in: 'keep', test_call: 'keep' });
 
 const META = 'a.b*c+d?e^f$g{h}i(j)k|l[m]n\\o/p';
 const escape = typeof gate.escapeRegExp === 'function' ? gate.escapeRegExp : () => null;

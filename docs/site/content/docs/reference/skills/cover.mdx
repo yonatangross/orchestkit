@@ -267,7 +267,7 @@ if "unit" in TIERS:
         - Factory-based test data (FactoryBoy/faker-js)
         - Edge cases: empty input, errors, timeouts, boundary values
         - BEHAVIOUR GATE: write a test ONLY if it asserts an observable result. Never write a
-          mock-call-only, assertion-free, or source-reading test (references/behaviour-gate.md)""",
+          mock-call-only, assertion-free, tautological, or source-reading test (references/behaviour-gate.md)""",
         run_in_background=True,
         max_turns=50,
         model=MODEL_OVERRIDE
@@ -290,7 +290,7 @@ Output each agent's results **as soon as it returns**. Don't wait for all agents
 
 ### Phase 3b: Behaviour Gate
 
-Before Phase 4, run `node "$\{CLAUDE_SKILL_DIR\}/scripts/check-behaviour-tests.mjs" --json &lt;new test files&gt;` over the NEW test files only. Exit 1 lists each rejected test with its rule: (a) only mock-call assertions, (b) no assertion, or only not-to-throw when not throwing is not the stated contract, (c) reads or greps source instead of executing it. Delete each rejected test (the whole file on `drop`, which means every recognised test was rejected) or rewrite it to assert an observable result, and re-run until exit 0. Never delete an `unchecked` file or test (no test recognised, or its body is declared elsewhere): review it by hand. Run it again after Phase 5. Record the verdicts in `03-cover-generation.json`. Rules and limits: `Read("references/behaviour-gate.md")`.
+Before Phase 4, run `node "$\{CLAUDE_SKILL_DIR\}/scripts/check-behaviour-tests.mjs" --json &lt;new test files&gt;` over the NEW test files only. Exit 1 lists each rejected test with its rule: (a) only mock-call assertions, (b) no assertion, only tautologies (`expect(true).toBe(true)`), or only not-to-throw when not throwing is not the stated contract, (c) reads or greps source instead of executing it. Delete each rejected test (the whole file on `drop`, which means every recognised test was rejected) or rewrite it to assert an observable result, and re-run until exit 0. Never delete an `unchecked` file or test (no test recognised, or its body is declared elsewhere): review it by hand. Run it again after Phase 5. Record the verdicts in `03-cover-generation.json`. Rules and limits: `Read("references/behaviour-gate.md")`.
 
 > **Focus mode (CC 2.1.101):** In focus mode, include the full coverage report (before/after delta, test count per tier, files created) in your final message.
 
@@ -514,7 +514,7 @@ an HTTP response, rendered output, a file the code wrote. The checker rejects th
 | Rule | Rejected shape | Write this instead |
 |------|----------------|--------------------|
 | **a** | Every assertion is on mock calls: `toHaveBeenCalled*`, `.mock.calls`, `assert_called*`, `call_count`, `sinon.assert.*` | Also assert what the code returned or changed. Mock-call assertions are fine next to a result assertion. |
-| **b** | No assertion (the test only runs code), or only `not.toThrow()` / `does_not_raise()` | Assert the result. Keep a not-throw-only test only when not throwing IS the contract, and say so in the test name, a comment, or the docstring ("does not throw on empty input"). |
+| **b** | No assertion (the test only runs code), only tautologies (`expect(true).toBe(true)`, `assert 1 == 1`: literals compared with literals, or a name with itself), or only `not.toThrow()` / `does_not_raise()` | Assert the result. Keep a not-throw-only test only when not throwing IS the contract, and say so in the test name, a comment, or the docstring ("does not throw on empty input"). |
 | **c** | Reads the code under test as text: `readFileSync` / `open()` / `read_text()` of a source file, `inspect.getsource`, a `grep` / `rg` subprocess, a `?raw` import | Import or call the code and assert on what it does. Reading fixtures and test data is fine. |
 
 ## The checker (Phase 3b, again after Phase 5)
@@ -547,7 +547,10 @@ hand only when it breaks one.
 The checker is static and heuristic. It recognises `it` / `test` / `fit` / `xit` cases
 (Jest, Vitest, Jasmine, Mocha, Playwright, node:test), `Deno.test`, and tap `t.test`, with an
 inline body or the name of a function declared in the same file. It recognises Jest, Vitest,
-Playwright, node:assert, chai, sinon, tap, ava, Deno, pytest, and unittest assertions. An assertion hidden in a helper counts only if
+Playwright, node:assert, chai, chai-http, sinon, tap, ava, Deno, pytest, and unittest
+assertions, and Supertest `.expect(...)` on a chain rooted at `request(` / `supertest(`, the
+name the file imports `supertest` as, or an agent variable built from them. An assertion
+whose operands are all literals counts as no assertion. An assertion hidden in a helper counts only if
 the helper is named `expect*` or `assert*` (`assert_*` / `expect_*` in Python), so name
 helpers that way. A read is treated as a source read when its path, or a variable declared
 from that path, names a code file; paths containing `fixture`, `testdata`, or `__snapshots__`
