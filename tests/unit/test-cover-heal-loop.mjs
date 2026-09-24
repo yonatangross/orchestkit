@@ -232,6 +232,43 @@ await scenario('value mismatch that vanishes', async () => {
   check('vanished: flagged and gate cannot read it as clean', [result.value_mismatch_vanished, result.fail_count, result.state_known], [true, -1, false]);
 });
 
+await scenario('value mismatch that vanishes while the suite stays red', async () => {
+  const TYPE_C = {
+    test: 'profile factory shape',
+    file: 'tests/unit/profile.test.ts',
+    line: 31,
+    category: 'type',
+    message: "TypeError: Property 'avatarUrl' does not exist on type 'Profile'",
+  };
+  const { result, kinds } = await runLoop({
+    args: { maxIterations: 2 },
+    runs: [red([ASSERT_A, IMPORT_B]), red([TYPE_C])],
+    repairs: [repairOf([fix(IMPORT_B)])],
+  });
+  check('red vanish: run, repair, final run', kinds, ['run', 'repair', 'run']);
+  check('red vanish: value_mismatch_vanished is set on a red run', result.value_mismatch_vanished, true);
+  check(
+    'red vanish: the vanished test is named',
+    result.vanished_value_mismatches.map((v) => [v.test, v.file, v.line, v.vanished_at_iteration]),
+    [[ASSERT_A.test, ASSERT_A.file, ASSERT_A.line, 2]],
+  );
+  check('red vanish: A is not reported as still failing', result.remaining_failures.map((f) => f.test), [TYPE_C.test]);
+  const bugA = result.possible_product_bugs.find((b) => b.test === ASSERT_A.test);
+  check('red vanish: possible product bug entry says not still failing', bugA && bugA.still_failing, false);
+  check('red vanish: gate cannot read it as clean', [result.healed, result.fail_count, result.state_known], [false, -1, false]);
+});
+
+await scenario('rejected-repair entries never count as vanished', async () => {
+  const rewrite = fix(FLAKY_E, { change: 'matched the observed count', before: 'toHaveBeenCalledTimes(1)', after: 'toHaveBeenCalledTimes(0)', touches_expected_value: true });
+  const { result } = await runLoop({
+    args: { maxIterations: 2 },
+    runs: [red([IMPORT_B, FLAKY_E]), red([IMPORT_B])],
+    repairs: [repairOf([rewrite])],
+    reverts: [{ reverted: [{ file: FLAKY_E.file, line: FLAKY_E.line, restored: true }] }],
+  });
+  check('rejected only: no vanished flag from a rejected-repair entry', [result.value_mismatch_vanished, result.vanished_value_mismatches], [false, []]);
+});
+
 // (3) import / setup / flaky failures are still repaired.
 await scenario('import, setup and flaky are repaired', async () => {
   const { result, calls, kinds } = await runLoop({

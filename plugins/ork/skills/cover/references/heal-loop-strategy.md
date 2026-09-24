@@ -56,9 +56,13 @@ possible product bug: expected 0, got -40 (tests/unit/test_payment.ts:23)
   action: test left FAILING. Confirm the intended behavior, then fix the source or the test by hand.
 ```
 
-If the suite goes green after a possible product bug was flagged, a test edit changed what
-it asserts. The workflow reports `status: "failed"`, `value_mismatch_vanished: true` and
-`fail_count: -1` so a caller cannot read it as healed.
+If a test diagnosed as a value mismatch stops failing on any later run, red or green, a test
+edit changed what it asserts. The workflow reports `status: "failed"`,
+`value_mismatch_vanished: true`, names each one in `vanished_value_mismatches`, marks its
+entry `still_failing: false`, and sets `fail_count: -1` so a caller cannot read it as healed.
+Only failures the run agent diagnosed count here; rejected-repair and agent-reported entries
+can carry incomplete identities. A green run with any possible product bug flagged is also
+reported as `status: "failed"` with `fail_count: -1`.
 
 ## Flaky Test Prevention
 

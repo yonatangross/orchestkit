@@ -281,8 +281,12 @@ log(
 const ledger = [];
 let latest = null;
 let healed = false;
-let vanished = false;
+let greenWithOpenBugs = false;
 let iterationsUsed = 0;
+// Only keys of failures the run agent DIAGNOSED as value mismatches: rejected-repair and
+// agent-reported entries can carry incomplete identities and would read as vanished.
+const diagnosedValueKeys = new Set();
+const vanishedBugs = [];
 
 // REAL loop with a REAL counter, bounded by MAX_ITERATIONS.
 for (let iteration = 1; iteration <= MAX_ITERATIONS; iteration++) {
@@ -313,8 +317,23 @@ for (let iteration = 1; iteration <= MAX_ITERATIONS; iteration++) {
 	const failures = Array.isArray(run.failures) ? run.failures : [];
 	const categories = Array.from(new Set(failures.map((f) => f.category)));
 
+	// A diagnosed value mismatch only stops failing if a test edit changed what it asserts,
+	// which is the rewrite this loop forbids. Checked on red runs too: another failure can
+	// keep the suite red while the flagged test quietly passes.
+	const present = new Set(failures.map(failureKey));
+	for (const key of diagnosedValueKeys) {
+		const bug = productBugs.get(key);
+		if (present.has(key) || bug.vanished_at_iteration) continue;
+		bug.vanished_at_iteration = iteration;
+		vanishedBugs.push(bug);
+		log(
+			`Iteration ${iteration}: VANISHED "${bug.test}" (${bug.file}${bug.line ? `:${bug.line}` : ""}) was diagnosed as a value mismatch and no longer fails; heal never rewrites expected values, so inspect its diff.`,
+		);
+	}
+
 	for (const f of failures.filter(isValueMismatch)) {
 		flagProductBug(f, "classified", iteration, "value mismatch; heal never rewrites an expected value");
+		diagnosedValueKeys.add(failureKey(f));
 	}
 	const repairable = failures.filter((f) => !isValueMismatch(f) && !productBugs.has(failureKey(f)));
 	const withheld = failures.filter((f) => !repairable.includes(f));
@@ -329,11 +348,9 @@ for (let iteration = 1; iteration <= MAX_ITERATIONS; iteration++) {
 
 	if (run.passed && failures.length === 0) {
 		if (productBugs.size) {
-			// A flagged test only goes green if a test edit changed what it asserts,
-			// which is the rewrite this loop forbids. It is not a heal.
-			vanished = true;
+			greenWithOpenBugs = true;
 			log(
-				`Iteration ${iteration}: suite is GREEN but ${productBugs.size} test(s) reported as possible product bugs no longer fail; heal never rewrites expected values, so this is NOT a heal.`,
+				`Iteration ${iteration}: suite is GREEN but ${productBugs.size} possible product bug(s) were flagged; heal never rewrites expected values, so this is NOT a heal.`,
 			);
 		} else {
 			healed = true;
@@ -529,9 +546,15 @@ if (healed) {
 // unknown rather than known-good. Reporting fail_count 0 there would let a caller gating on
 // fail_count read a failed run as clean, which is the exact fail-open shape this loop exists
 // to avoid. Emit -1 (the same unknown sentinel the ledger uses) so the gate cannot pass.
-// A green run after a possible product bug was flagged is untrusted the same way.
-const unknownState = latest === null || vanished;
-const bugs = Array.from(productBugs.values());
+// A diagnosed value mismatch that vanished, or a green run with a possible product bug
+// flagged, is untrusted the same way.
+const vanished = vanishedBugs.length > 0;
+const unknownState = latest === null || vanished || greenWithOpenBugs;
+const residualKeys = new Set(residual.map(failureKey));
+const bugs = Array.from(productBugs.values()).map((b) => ({
+	...b,
+	still_failing: residualKeys.has(failureKey(b)),
+}));
 log(
 	latest === null
 		? `heal-loop: NOT HEALED after ${iterationsUsed} iteration(s); suite state UNKNOWN, every diagnose run returned nothing.`
@@ -551,6 +574,13 @@ return {
 	failure_categories: byCategory,
 	possible_product_bugs: bugs,
 	value_mismatch_vanished: vanished,
+	vanished_value_mismatches: vanishedBugs.map((b) => ({
+		test: b.test,
+		file: b.file,
+		line: b.line,
+		vanished_at_iteration: b.vanished_at_iteration,
+		report: b.report,
+	})),
 	remaining_failures: residual.map((f) => ({
 		test: f.test,
 		file: f.file,
@@ -561,8 +591,10 @@ return {
 	})),
 	iteration_ledger: ledger,
 	note: vanished
-		? `Iteration ceiling ${MAX_ITERATIONS} enforced by the script. The suite went green after tests were reported as possible product bugs; heal never rewrites expected values, so inspect the test diff for those tests (fail_count -1, state_known false). Do NOT report this run as a success.`
-		: latest === null
-			? `Iteration ceiling ${MAX_ITERATIONS} enforced by the script. Every diagnose run returned nothing, so the suite state is UNKNOWN (fail_count -1, state_known false). Do NOT report this run as a success and do NOT treat fail_count 0 as green.`
-			: `Iteration ceiling ${MAX_ITERATIONS} enforced by the script. These tests are STILL FAILING and require manual resolution; report each possible_product_bugs entry verbatim ("possible product bug: expected X, got Y (file:line)"); do not report this run as a success.`,
+		? `Iteration ceiling ${MAX_ITERATIONS} enforced by the script. Tests diagnosed as value mismatches stopped failing: ${vanishedBugs.map((b) => `"${b.test}" (${b.file}${b.line ? `:${b.line}` : ""})`).join(", ")}. Heal never rewrites expected values, so inspect the test diff for those tests (fail_count -1, state_known false). Do NOT report this run as a success.`
+		: greenWithOpenBugs
+			? `Iteration ceiling ${MAX_ITERATIONS} enforced by the script. The suite went green while possible product bugs were flagged; heal never rewrites expected values, so inspect the test diff for those tests (fail_count -1, state_known false). Do NOT report this run as a success.`
+			: latest === null
+				? `Iteration ceiling ${MAX_ITERATIONS} enforced by the script. Every diagnose run returned nothing, so the suite state is UNKNOWN (fail_count -1, state_known false). Do NOT report this run as a success and do NOT treat fail_count 0 as green.`
+				: `Iteration ceiling ${MAX_ITERATIONS} enforced by the script. These tests are STILL FAILING and require manual resolution; report each possible_product_bugs entry verbatim ("possible product bug: expected X, got Y (file:line)"); do not report this run as a success.`,
 };
