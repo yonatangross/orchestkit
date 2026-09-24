@@ -198,12 +198,21 @@ test.describe('Landing design tokens (no missing CSS variables)', () => {
   test('Get started CTA uses the primary text color', async ({ page }) => {
     await page.goto('/');
 
-    // Hero option A: Get started is a text link (text-fd-primary), not a
-    // filled indigo button. Assert the color token resolves, not background.
+    // Hero option A: Get started is a text link (text-fd-primary), which maps
+    // to --color-fd-primary. Probe that token on a throwaway node and require
+    // the CTA color to equal it (any other opaque color must fail).
     const cta = page.getByRole('link', { name: /get started/i }).first();
-    const color = await cta.evaluate((el) => getComputedStyle(el).color);
-    expect(color).toMatch(/^(rgb|oklch|lab|color|hwb|hsl)\(/);
-    expect(color).not.toMatch(/rgba?\(0,\s*0,\s*0,\s*0\)/);
+    const { color, primary } = await cta.evaluate((el) => {
+      const probe = document.createElement('span');
+      probe.style.color = 'var(--color-fd-primary)';
+      document.body.appendChild(probe);
+      const primaryColor = getComputedStyle(probe).color;
+      probe.remove();
+      return { color: getComputedStyle(el).color, primary: primaryColor };
+    });
+    expect(primary).toMatch(/^(rgb|oklch|lab|color|hwb|hsl)\(/);
+    expect(primary).not.toMatch(/rgba?\(0,\s*0,\s*0,\s*0\)/);
+    expect(color).toBe(primary);
   });
 });
 
