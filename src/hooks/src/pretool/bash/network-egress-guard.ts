@@ -54,53 +54,6 @@ import { NOOP_CTX } from '../../lib/context.js';
 const HOOK_NAME = 'network-egress-guard';
 
 // =============================================================================
-// Allowlist — hosts the agent routinely + safely talks to. User-extensible via
-// ORCHESTKIT_EGRESS_ALLOWLIST (comma-separated). Suffix-matched, so `github.com`
-// also covers `api.github.com`, `raw.githubusercontent.com`, etc.
-// =============================================================================
-
-const DEFAULT_ALLOWLIST = [
-  'github.com',
-  'githubusercontent.com',
-  'codeload.github.com',
-  'registry.npmjs.org',
-  'npmjs.com',
-  'npmjs.org',
-  'pypi.org',
-  'files.pythonhosted.org',
-  'crates.io',
-  'api.anthropic.com',
-  'localhost',
-  '127.0.0.1',
-  '0.0.0.0',
-  '::1',
-];
-
-function allowlist(): string[] {
-  const extra = (process.env.ORCHESTKIT_EGRESS_ALLOWLIST || '')
-    .split(',')
-    .map((h) => h.trim().toLowerCase())
-    .filter(Boolean);
-  return [...DEFAULT_ALLOWLIST, ...extra];
-}
-
-/** True when `host` is the allowlist entry or a subdomain of it. */
-function isAllowlisted(host: string): boolean {
-  const h = host.toLowerCase().replace(/:\d+$/, ''); // strip :port
-  return allowlist().some((a) => h === a || h.endsWith(`.${a}`));
-}
-
-/** Extract hostnames from `http(s)://host[:port]/…` occurrences. */
-function extractUrlHosts(cmd: string): string[] {
-  const hosts: string[] = [];
-  for (const m of cmd.matchAll(/https?:\/\/([^/\s"'`)]+)/gi)) {
-    // strip credentials in `user:pass@host`
-    hosts.push(m[1].replace(/^[^@]*@/, ''));
-  }
-  return hosts;
-}
-
-// =============================================================================
 // DENY tier — remote code execution via fetched content
 // =============================================================================
 
@@ -692,68 +645,138 @@ function commandBasename(tok: string): string {
 
 const SHELL_BASENAMES = new Set(['sh', 'bash', 'zsh', 'dash', 'ksh']);
 
+type WrapperSkipResult =
+  | { kind: 'not' }
+  | { kind: 'deny' }
+  | { kind: 'skip'; nextIdx: number };
+
 /**
- * Front wrappers the interpreter finder peels before env/sudo/the interpreter.
- * Each entry is matched on unescaped basename. Value-taking forms advance past
- * their operand so the next peel can see env/sudo again.
+ * Peel one known front wrapper with its EXACT option grammar. Unknown options
+ * on a known wrapper mean the whole RHS is an UNKNOWN program (DENY). `watch`
+ * has no positional duration; after its options the next token is the command.
+ * `timeout` takes options, then one DURATION, then the command.
  */
-function skipOneFrontWrapper(tokens: string[], startIdx: number): number | null {
-  if (startIdx >= tokens.length) return null;
+function skipOneFrontWrapper(tokens: string[], startIdx: number): WrapperSkipResult {
+  if (startIdx >= tokens.length) return { kind: 'not' };
   const base = commandBasename(tokens[startIdx]!);
   let i = startIdx + 1;
 
-  if (base === 'nohup' || base === 'exec' || base === 'setsid' || base === 'catchsegv') {
-    // Optional short flags then the utility.
-    while (i < tokens.length) {
-      const a = unwrapToken(tokens[i]!);
-      if (a === '--') {
-        i++;
-        break;
-      }
-      if (base === 'exec' && (a === '-a' || a === '-c' || a === '-l')) {
-        if (a === '-a') {
-          if (i + 1 >= tokens.length) return null;
-          i += 2;
-        } else i++;
-        continue;
-      }
-      if (a.startsWith('-') && a !== '-') {
-        i++;
-        continue;
-      }
-      break;
-    }
-    return i > startIdx ? i : null;
+  if (base === 'nohup') {
+    // nohup [command...]; no options.
+    return { kind: 'skip', nextIdx: i };
   }
 
-  if (base === 'nice' || base === 'ionice') {
+  if (base === 'catchsegv') {
+    // catchsegv PROGRAM; no options.
+    return { kind: 'skip', nextIdx: i };
+  }
+
+  if (base === 'setsid') {
     while (i < tokens.length) {
       const a = unwrapToken(tokens[i]!);
       if (a === '--') {
         i++;
         break;
       }
-      if (a === '-n' || a === '-p' || a === '-c' || a === '-t') {
-        if (i + 1 >= tokens.length) return null;
-        i += 2;
-        continue;
-      }
-      if (a.startsWith('--adjustment=')) {
+      if (a === '-c' || a === '-f' || a === '-w' || a === '--ctty' || a === '--fork' || a === '--wait') {
         i++;
         continue;
       }
-      if (a === '--adjustment') {
-        if (i + 1 >= tokens.length) return null;
-        i += 2;
-        continue;
-      }
-      if (a.startsWith('-') && a !== '-') {
-        i++;
-        continue;
-      }
+      if (a.startsWith('-') && a !== '-') return { kind: 'deny' };
       break;
     }
-    return i > startIdx ? i : null;
+    return { kind: 'skip', nextIdx: i };
+  }
+
+  if (base === 'ionice') {
+    while (i < tokens.length) {
+      const a = unwrapToken(tokens[i]!);
+      if (a === '--') {
+        i++;
+        break;
+      }
+      if (a === '-t' || a === '--ignore') {
+        i++;
+        continue;
+      }
+      if (a.startsWith('--class=') || a.startsWith('--classdata=')) {
+        i++;
+        continue;
+      }
+      if (a === '-c' || a === '--class' || a === '-n' || a === '--classdata') {
+        if (i + 1 >= tokens.length) return { kind: 'deny' };
+        i += 2;
+        continue;
+      }
+      // Glued -c3 / -n0
+      if (/^-[cn].+/.test(a)) {
+        i++;
+        continue;
+      }
+      if (a.startsWith('-') && a !== '-') return { kind: 'deny' };
+      break;
+    }
+    return { kind: 'skip', nextIdx: i };
+  }
+
+  if (base === 'time') {
+    // Shell keyword or /usr/bin/time: -p; GNU also -f/-o VALUE, -a, -v.
+    while (i < tokens.length) {
+      const a = unwrapToken(tokens[i]!);
+      if (a === '--') {
+        i++;
+        break;
+      }
+      if (
+        a === '-p' ||
+        a === '--portability' ||
+        a === '-a' ||
+        a === '--append' ||
+        a === '-v' ||
+        a === '--verbose'
+      ) {
+        i++;
+        continue;
+      }
+      if (a.startsWith('--format=') || a.startsWith('--output=')) {
+        i++;
+        continue;
+      }
+      if (a === '-f' || a === '--format' || a === '-o' || a === '--output') {
+        if (i + 1 >= tokens.length) return { kind: 'deny' };
+        i += 2;
+        continue;
+      }
+      if (/^-f.+/.test(a) || /^-o.+/.test(a)) {
+        i++;
+        continue;
+      }
+      if (a.startsWith('-') && a !== '-') return { kind: 'deny' };
+      break;
+    }
+    return { kind: 'skip', nextIdx: i };
+  }
+
+  if (base === 'exec') {
+    while (i < tokens.length) {
+      const a = unwrapToken(tokens[i]!);
+      if (a === '--') {
+        i++;
+        break;
+      }
+      if (a === '-a') {
+        if (i + 1 >= tokens.length) return { kind: 'deny' };
+        i += 2;
+        continue;
+      }
+      if (a === '-c' || a === '-l') {
+        i++;
+        continue;
+      }
+      if (a.startsWith('-') && a !== '-') return { kind: 'deny' };
+      break;
+    }
+    return { kind: 'skip', nextIdx: i };
   }
 
   if (base === 'command') {
@@ -767,9 +790,37 @@ function skipOneFrontWrapper(tokens: string[], startIdx: number): number | null 
         i++;
         continue;
       }
+      if (a.startsWith('-') && a !== '-') return { kind: 'deny' };
       break;
     }
-    return i > startIdx ? i : null;
+    return { kind: 'skip', nextIdx: i };
+  }
+
+  if (base === 'nice') {
+    while (i < tokens.length) {
+      const a = unwrapToken(tokens[i]!);
+      if (a === '--') {
+        i++;
+        break;
+      }
+      if (a.startsWith('--adjustment=')) {
+        i++;
+        continue;
+      }
+      if (a === '-n' || a === '--adjustment') {
+        if (i + 1 >= tokens.length) return { kind: 'deny' };
+        i += 2;
+        continue;
+      }
+      // Glued -nN
+      if (/^-n.+/.test(a)) {
+        i++;
+        continue;
+      }
+      if (a.startsWith('-') && a !== '-') return { kind: 'deny' };
+      break;
+    }
+    return { kind: 'skip', nextIdx: i };
   }
 
   if (base === 'stdbuf') {
@@ -788,7 +839,7 @@ function skipOneFrontWrapper(tokens: string[], startIdx: number): number | null 
         continue;
       }
       if (a === '--input-size' || a === '--output-size' || a === '--error-size') {
-        if (i + 1 >= tokens.length) return null;
+        if (i + 1 >= tokens.length) return { kind: 'deny' };
         i += 2;
         continue;
       }
@@ -798,20 +849,17 @@ function skipOneFrontWrapper(tokens: string[], startIdx: number): number | null 
           i++;
           continue;
         }
-        if (i + 1 >= tokens.length) return null;
+        if (i + 1 >= tokens.length) return { kind: 'deny' };
         i += 2;
         continue;
       }
-      if (a.startsWith('-') && a !== '-') {
-        i++;
-        continue;
-      }
+      if (a.startsWith('-') && a !== '-') return { kind: 'deny' };
       break;
     }
-    return i > startIdx ? i : null;
+    return { kind: 'skip', nextIdx: i };
   }
 
-  if (base === 'timeout' || base === 'time' || base === 'watch') {
+  if (base === 'timeout') {
     while (i < tokens.length) {
       const a = unwrapToken(tokens[i]!);
       if (a === '--') {
@@ -829,51 +877,99 @@ function skipOneFrontWrapper(tokens: string[], startIdx: number): number | null 
         i++;
         continue;
       }
+      if (a.startsWith('--signal=') || a.startsWith('--kill-after=')) {
+        i++;
+        continue;
+      }
+      if (a === '--signal' || a === '--kill-after' || a === '-s' || a === '-k') {
+        if (i + 1 >= tokens.length) return { kind: 'deny' };
+        i += 2;
+        continue;
+      }
+      if (a.startsWith('-') && a !== '-') return { kind: 'deny' };
+      break;
+    }
+    // Exactly one DURATION token, then the command.
+    if (i >= tokens.length) return { kind: 'deny' };
+    i++;
+    return { kind: 'skip', nextIdx: i };
+  }
+
+  if (base === 'watch') {
+    // watch [OPTION]... COMMAND; no positional interval (-n/--interval takes the value).
+    while (i < tokens.length) {
+      const a = unwrapToken(tokens[i]!);
+      if (a === '--') {
+        i++;
+        break;
+      }
       if (
-        a.startsWith('--signal=') ||
-        a.startsWith('--kill-after=') ||
-        a.startsWith('--format=')
+        a === '-t' ||
+        a === '--no-title' ||
+        a === '-c' ||
+        a === '--color' ||
+        a === '-p' ||
+        a === '--precise' ||
+        a === '-e' ||
+        a === '--errexit' ||
+        a === '-g' ||
+        a === '--chgexit' ||
+        a === '-b' ||
+        a === '--beep' ||
+        a === '-w' ||
+        a === '--no-redraw' ||
+        a === '-x' ||
+        a === '--exec' ||
+        a === '-d' ||
+        a === '--differences' ||
+        a.startsWith('--differences=')
       ) {
         i++;
         continue;
       }
-      if (a === '--signal' || a === '--kill-after' || a === '-s' || a === '-k' || a === '-n') {
-        if (i + 1 >= tokens.length) return null;
+      if (a.startsWith('--interval=') || a.startsWith('--equexit=')) {
+        i++;
+        continue;
+      }
+      if (a === '-n' || a === '--interval' || a === '-q' || a === '--equexit') {
+        if (i + 1 >= tokens.length) return { kind: 'deny' };
         i += 2;
         continue;
       }
-      if (a.startsWith('-') && a !== '-') {
+      // Glued -n1
+      if (/^-n.+/.test(a)) {
         i++;
         continue;
       }
-      // Duration / interval operand for timeout / watch; `time` has none.
-      if (base === 'timeout' || base === 'watch') {
-        i++;
-      }
+      if (a.startsWith('-') && a !== '-') return { kind: 'deny' };
       break;
     }
-    return i > startIdx ? i : null;
+    return { kind: 'skip', nextIdx: i };
   }
 
-  return null;
+  return { kind: 'not' };
 }
 
 /**
- * Peel wrappers + env / sudo in front of the interpreter with a POSITIVE
- * option allowlist. Match env/sudo on unescaped basename. Run the env/sudo
- * parser after every skipped wrapper. Allowed options are consumed; -C / -D /
- * --chdir ADD to the cwd set. Anything else means the whole RHS is an UNKNOWN
- * program (DENY). Never advance past an unknown option and treat the next
- * token as the utility.
+ * Peel wrappers + env / sudo / su / runuser in front of the interpreter with a
+ * POSITIVE option allowlist. Match on unescaped basename. Run the env/sudo
+ * parser after every skipped wrapper. Login modes make the cwd UNKNOWN.
+ * Unknown wrapper/env/sudo options mean the whole RHS is an UNKNOWN program.
  */
 function applyInterpreterFrontChdir(
   tokens: string[],
   startIdx: number,
   candidates: string[] | null,
   fullCommand: string,
-): { nextIdx: number; candidates: string[] | null; denyProgram: boolean } {
+): {
+  nextIdx: number;
+  candidates: string[] | null;
+  denyProgram: boolean;
+  execBody: string | null;
+} {
   let unknownCwd = candidates === null;
   let denyProgram = false;
+  let execBody: string | null = null;
   const set = new Set<string>(candidates ?? []);
   const state = {
     dirChanges: 0,
@@ -897,9 +993,13 @@ function applyInterpreterFrontChdir(
   };
 
   while (idx < tokens.length) {
-    const afterWrapper = skipOneFrontWrapper(tokens, idx);
-    if (afterWrapper !== null) {
-      idx = afterWrapper;
+    const wrap = skipOneFrontWrapper(tokens, idx);
+    if (wrap.kind === 'deny') {
+      denyProgram = true;
+      break;
+    }
+    if (wrap.kind === 'skip') {
+      idx = wrap.nextIdx;
       continue;
     }
 
@@ -949,7 +1049,6 @@ function applyInterpreterFrontChdir(
             idx++;
             continue;
           }
-          // Not on the allowlist (including --split-string): DENY the whole RHS.
           denyProgram = true;
           break;
         }
@@ -990,7 +1089,6 @@ function applyInterpreterFrontChdir(
               p++;
               continue;
             }
-            // S anywhere in the cluster (or any other letter): DENY.
             clusterBad = true;
             break;
           }
@@ -1031,8 +1129,12 @@ function applyInterpreterFrontChdir(
             idx++;
             continue;
           }
-          // -s / -i long forms are boolean when a command follows.
-          if (a === '--shell' || a === '--login') {
+          if (a === '--shell') {
+            idx++;
+            continue;
+          }
+          if (a === '--login') {
+            unknownCwd = true;
             idx++;
             continue;
           }
@@ -1080,11 +1182,13 @@ function applyInterpreterFrontChdir(
               ch === 'K' ||
               ch === 'b' ||
               ch === 'P' ||
-              ch === 's' ||
-              ch === 'i'
+              ch === 's'
             ) {
-              // -s / -i are boolean when a command follows; no-command case
-              // is handled after the option loop.
+              p++;
+              continue;
+            }
+            if (ch === 'i') {
+              unknownCwd = true;
               p++;
               continue;
             }
@@ -1101,14 +1205,79 @@ function applyInterpreterFrontChdir(
         break;
       }
       if (denyProgram) break;
-      // No utility after sudo (including `sudo -s` / `sudo -i` alone): the
-      // shell would read the pipe → DENY. Same for a bare shell with no args.
       if (idx >= tokens.length) {
         denyProgram = true;
         break;
       }
       const utilBase = commandBasename(tokens[idx]!);
       if (SHELL_BASENAMES.has(utilBase) && idx + 1 >= tokens.length) {
+        denyProgram = true;
+        break;
+      }
+      continue;
+    }
+
+    // su / runuser: parse the WHOLE option list first (a later login flag after
+    // -c still makes cwd UNKNOWN). -c/--command STRING is an executed body.
+    if (t === 'su' || t === 'runuser') {
+      idx++;
+      let sawCommand = false;
+      let body: string | null = null;
+      while (idx < tokens.length) {
+        const a = unwrapToken(tokens[idx]!);
+        if (a === '--') {
+          idx++;
+          break;
+        }
+        if (a === '-' || a === '-l' || a === '--login') {
+          unknownCwd = true;
+          idx++;
+          continue;
+        }
+        if (a === '-c' || a === '--command') {
+          const v = takeValue();
+          if (v === null) {
+            denyProgram = true;
+            break;
+          }
+          body = v;
+          sawCommand = true;
+          idx++;
+          continue;
+        }
+        if (a.startsWith('--command=')) {
+          body = a.slice('--command='.length);
+          sawCommand = true;
+          idx++;
+          continue;
+        }
+        // -u USER / --user for runuser; plain USER for su: consume and continue.
+        if (a === '-u' || a === '--user') {
+          if (takeValue() === null) {
+            denyProgram = true;
+            break;
+          }
+          idx++;
+          continue;
+        }
+        if (a.startsWith('--user=')) {
+          idx++;
+          continue;
+        }
+        if (a.startsWith('-') && a !== '-') {
+          denyProgram = true;
+          break;
+        }
+        // Positional user name (su USER / runuser USER).
+        idx++;
+      }
+      if (denyProgram) break;
+      if (sawCommand && body !== null) {
+        execBody = body;
+        break;
+      }
+      // Interactive su/runuser with no -c would read the pipe.
+      if (idx >= tokens.length) {
         denyProgram = true;
         break;
       }
@@ -1122,6 +1291,7 @@ function applyInterpreterFrontChdir(
     nextIdx: idx,
     candidates: unknownCwd || denyProgram ? null : [...set],
     denyProgram,
+    execBody,
   };
 }
 
@@ -1426,8 +1596,18 @@ function rhsIsStdinInterpreter(
 ): boolean {
   const unwrapped = tokens.map(unwrapToken);
   const front = applyInterpreterFrontChdir(unwrapped, 0, cwdCandidates, fullCommand);
-  // Unknown env/sudo option: the whole RHS is an unknown program → DENY.
+  // Unknown env/sudo/wrapper option: the whole RHS is an unknown program → DENY.
   if (front.denyProgram) return true;
+  // su/runuser -c STRING: compound bodies (; & | newline) DENY (same fail-closed
+  // split the bash -c path needs). A simple body is scanned as its own RHS.
+  if (front.execBody !== null) {
+    if (/[\n;&|]/.test(front.execBody)) return true;
+    return rhsIsStdinInterpreter(
+      tokenizePipeRhs(front.execBody),
+      front.candidates,
+      fullCommand,
+    );
+  }
   const idx = front.nextIdx;
   const resolvedCandidates = front.candidates;
   if (idx >= unwrapped.length) return false;
@@ -1455,6 +1635,10 @@ function execGovernsQuote(prefix: string): boolean {
   return (
     /\beval\s*$/i.test(p) ||
     /\b(?:ba|z|k|da)?sh\b[^\n]{0,120}\s-[A-Za-z]*c\b\s*$/i.test(p) ||
+    // su/runuser: -c, --command=BODY, or --command with BODY as the next arg.
+    /\b(?:su|runuser)\b[^\n]{0,160}(?:\s--command=|\s--command\s*$|\s-[A-Za-z]*c\b\s*$)/i.test(
+      p,
+    ) ||
     /\bpython[0-9.]*\b[^\n]{0,120}\s-c\b\s*$/i.test(p) ||
     /\b(?:node|perl|ruby)\b[^\n]{0,120}\s-e\b\s*$/i.test(p) ||
     /\bphp\b[^\n]{0,120}\s-r\b\s*$/i.test(p)
@@ -1515,12 +1699,9 @@ export function networkEgressGuard(input: HookInput, ctx: HookContext = NOOP_CTX
   const raw = input.tool_input?.command || '';
   if (!raw) return outputSilentSuccess();
 
-  const command = normalizeSingle(raw);
   // #3122/#3125: both tiers scan the quote-aware view so a quoted mention of an
   // RCE/staged-run/exfil pattern (a grep/rg search string, an echo) is not
-  // flagged. `command` (quote-STRIPPED, not quote-aware) is kept only for host
-  // extraction (extractUrlHosts/firstRemoteHost) on the two ASK checks that
-  // genuinely need to see a quoted URL to resolve its allowlist status.
+  // flagged. The DENY tier blanks quoted regions except executed quote bodies.
   // #3632: blank QUOTED heredoc bodies BEFORE the quote view. A `<<'SH'` body is
   // inert payload being written to a file, exactly like a single-quoted string,
   // so a `curl -o` on one body line is not an operator of THIS command. This
