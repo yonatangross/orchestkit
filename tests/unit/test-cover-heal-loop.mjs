@@ -353,6 +353,40 @@ for (const [label, message, report] of valueMessages) {
   });
 }
 
+// c13 classification probe (CodeRabbit :219 on #4407). V = withheld value mismatch, R = repairable.
+const classifyCases = [
+  ['PW toBeVisible not found', 'stale-selector', 'Error: Timed out 5000ms waiting for expect(locator).toBeVisible()\n\nExpected: visible\nReceived: <element(s) not found>', 'R'],
+  ['PW toHaveText not found', 'stale-selector', 'Timed out 5000ms waiting for expect(locator).toHaveText(expected)\n\nExpected string: "Save"\nReceived: <element(s) not found>', 'R'],
+  ['PW toHaveCount not found', 'stale-selector', "expect(locator).toHaveCount(expected)\n\nExpected: 3\nReceived: 0\nCall log:\n  - waiting for getByRole('row')", 'V'],
+  ['PW toHaveText real diff', 'stale-selector', 'expect(locator).toHaveText(expected)\n\nExpected string: "Save"\nReceived string: "Submit"', 'V'],
+  ['vitest value', 'flaky', 'AssertionError: expected 409 to be 422', 'V'],
+  ['jest value', 'flaky', 'expect(received).toBe(expected)\n\nExpected: 409\nReceived: 422', 'V'],
+  ['TS2554 args', 'type', 'error TS2554: Expected 2 arguments, but got 1.', 'R'],
+  ['import error', 'import', "Error: Cannot find module './api'", 'R'],
+];
+for (const [label, category, message, want] of classifyCases) {
+  await scenario(`classify: ${label}`, async () => {
+    const f = { test: `classify ${label}`, file: 'tests/e2e/classify.spec.ts', line: 7, category, message };
+    const { kinds } = await runLoop({
+      runs: [red([f]), GREEN],
+      repairs: [repairOf([fix(f)])],
+    });
+    check(`classify ${label}: ${want === 'V' ? 'withheld as a value mismatch' : 'sent for repair'}`, kinds, want === 'V' ? ['run'] : ['run', 'repair', 'run']);
+  });
+}
+
+await scenario('vitest shape reports expected and got in the right order', async () => {
+  const f = { test: 'vitest status', file: 'tests/unit/api.test.ts', line: 21, category: 'flaky', message: 'AssertionError: expected 409 to be 422 // Object.is equality' };
+  const { result } = await runLoop({ runs: [red([f])] });
+  check('vitest report: expected is the matcher argument', result.possible_product_bugs.map((b) => b.report), ['possible product bug: expected 422, got 409 (tests/unit/api.test.ts:21)']);
+});
+
+await scenario('chai length with a trailing but got', async () => {
+  const f = { test: 'chai length', file: 'tests/unit/list.test.ts', line: 4, category: 'setup', message: 'AssertionError: expected [ 1, 2 ] to have a length of 3 but got 2' };
+  const { result } = await runLoop({ runs: [red([f])] });
+  check('chai length report', result.possible_product_bugs.map((b) => b.report), ['possible product bug: expected 3, got [ 1, 2 ] (tests/unit/list.test.ts:4)']);
+});
+
 await scenario('TS2554 argument count is a type error, not a value mismatch', async () => {
   const f = { test: 'builds a profile', file: 'tests/unit/profile.test.ts', line: 9, category: 'type', message: 'error TS2554: Expected 2 arguments, but got 1.' };
   const { result, kinds } = await runLoop({
@@ -427,6 +461,51 @@ for (const [label, before, after, reject, kind] of vetCases) {
       reverts: [{ reverted: [{ file: target.file, line: target.line, restored: true }] }],
     });
     check(`vet ${label}: ${reject ? 'rejected' : 'kept'}`, [result.iteration_ledger[0].rejected_fixes, result.healed], reject ? [1, false] : [0, true]);
+  });
+}
+
+// estate-5 HOLD #2: a constant moved in one hunk, the assertion in another (or in none).
+const twoHunkCases = [
+  [
+    'EXPECTED_STATUS in a separate hunk, assertion in neither',
+    [
+      { before: 'const EXPECTED_STATUS = 409', after: 'const EXPECTED_STATUS = 422' },
+      { before: 'await page.waitForTimeout(500)', after: "await page.waitForLoadState('networkidle')" },
+    ],
+    1,
+  ],
+  [
+    'plain constant, assertion only in the other hunk',
+    [
+      { before: 'const CODE = 409', after: 'const CODE = 422' },
+      {
+        before: 'await page.waitForTimeout(500)\nexpect(res.status).toBe(CODE)',
+        after: "await page.waitForLoadState('networkidle')\nexpect(res.status).toBe(CODE)",
+      },
+    ],
+    1,
+  ],
+  [
+    'legit import plus fixture path',
+    [
+      { before: "import { api } from './api'", after: "import { api } from '../../src/api'" },
+      { before: "const FIXTURE_DIR = 'tests/fixtures'", after: "const FIXTURE_DIR = 'tests/unit/fixtures'" },
+    ],
+    0,
+  ],
+];
+for (const [label, hunks, rejectedCount] of twoHunkCases) {
+  await scenario(`two hunks: ${label}`, async () => {
+    const { result } = await runLoop({
+      runs: [red([FLAKY_E]), GREEN],
+      repairs: [repairOf(hunks.map((h) => fix(FLAKY_E, { change: 'stabilised the test', ...h })))],
+      reverts: REVERT_E,
+    });
+    check(
+      `two hunks ${label}: ${rejectedCount ? 'rejected' : 'kept'}`,
+      [result.iteration_ledger[0].rejected_fixes, result.healed],
+      [rejectedCount, !rejectedCount],
+    );
   });
 }
 

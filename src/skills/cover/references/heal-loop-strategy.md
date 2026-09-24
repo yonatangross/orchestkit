@@ -49,9 +49,13 @@ The agents' labels (failure `category`, fix `category`, `touches_expected_value`
 trusted on their own. `heal-loop.js` also decides from the text:
 
 - **Classification.** A failure message in an expected/actual shape (`expected X, got Y`,
-  Jest `Expected: / Received:`, pytest `assert 422 == 409`, unittest `422 != 409`, two status
-  codes on one `status` line) is a value mismatch whatever category the run agent gave it.
-  TS2554 `Expected 2 arguments, but got 1` is excluded, it is a type error.
+  Jest `Expected: / Received:`, chai/vitest `expected 409 to be 422`, pytest
+  `assert 422 == 409`, unittest `422 != 409`, two status codes on one `status` line) is a
+  value mismatch whatever category the run agent gave it. Two shapes are excluded: TS2554
+  `Expected 2 arguments, but got 1` is a type error, and Playwright
+  `Received: <element(s) not found>` is a locator that matched nothing, so it stays
+  repairable as a stale selector. `toHaveCount` `Received: 0` and a real `toHaveText` diff
+  (`Received string: "Submit"`) remain value mismatches.
 - **Fix vetting.** Assertions are extracted from each fix's `before` and `after`: `expect(...)`
   keyed by its whole matcher chain and arguments, Python `assert`, `assertEqual`/`assertTrue`
   style calls, `assert.*`, `pytest.raises`, chai `should`, and status comparisons. The fix is
@@ -64,7 +68,10 @@ trusted on their own. `heal-loop.js` also decides from the text:
     expected value. `expect(409)` or `expect(Math.min(res.status, 409))` never passes;
   - an assignment changes a literal for a name used in any assertion (`const want = 409`
     to `422`, Python `WANT = 409` to `422`), or changes at all for a name in an `expect`
-    matcher's arguments;
+    matcher's arguments. Fixes of one repair pass are vetted per file together: a name used
+    by an assertion in any hunk of that file counts in every hunk, and a name matching
+    `expect`, `want` or `golden` counts even when no reported hunk asserts on it
+    (`const EXPECTED_STATUS = 409` to `422` in its own hunk is rejected);
   - `after` adds `try`, `catch`/`except`, `return`, `if`, a ternary, `&&` or `||` while it
     contains an assertion (counted against `before`);
   - `after` adds `skip`, `only`, `todo`, `fixme` or `xfail`.

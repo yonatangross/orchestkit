@@ -205,13 +205,23 @@ const EXPECTED_GOT = /expected:?\s+(.+?)[,;]?\s+(?:but\s+)?(?:got|received):?\s+
 // The agent's category is not trusted: a message in one of these shapes is a value
 // mismatch whatever the failure is labelled.
 const VALUE_MESSAGES = [
+	{
+		// chai / vitest: expected <actual> to be <expected>, before EXPECTED_GOT so a trailing
+		// "but got N" does not swap the sides.
+		re: /\bexpected\s+(.+?)\s+to\s+(?:be|equal|eql|deep\s+equal|have\s+(?:a\s+)?length(?:Of)?(?:\s+of)?)\s+(.+?)(?:\s+but\b.*|\s+\/\/.*)?$/im,
+		order: [2, 1],
+	},
 	{ re: EXPECTED_GOT, order: [1, 2] }, // expected X, got Y / Expected: X Received: Y
 	{ re: /\bassert\s+(.+?)\s+==\s+(.+)/, order: [2, 1] }, // pytest: assert actual == expected
 	{ re: /AssertionError:\s*(.+?)\s+!=\s+(.+)/, order: [2, 1] }, // unittest: first != second
 	{ re: /\bstatus(?:[ _]?code)?\b[^\n]*?\b([1-5]\d\d)\b[^\n]*?\b([1-5]\d\d)\b/i, order: [1, 2] },
 ];
-// TS2554 "Expected 2 arguments, but got 1" has the expected/got shape but is a type error.
-const NOT_VALUE = /\bexpected \d+(?:-\d+)? (?:type )?arguments?\b/i;
+// Expected/got shapes that are not value mismatches: TS2554 "Expected 2 arguments, but got 1"
+// is a type error, and a Playwright "Received: <element(s) not found>" is a locator that
+// matched nothing (stale selector). toHaveCount "Received: 0" and a real toHaveText diff
+// ("Received string: ...") stay value mismatches.
+const NOT_VALUE =
+	/\bexpected \d+(?:-\d+)? (?:type )?arguments?\b|\bReceived:?\s*<?element\(s\) not found>?/i;
 const valueMessage = (f) => {
 	const msg = String(f.message || "");
 	return NOT_VALUE.test(msg) ? undefined : VALUE_MESSAGES.find((v) => v.re.test(msg));
@@ -320,7 +330,27 @@ const GUARDS = [
 	["&& or ||", /&&|\|\|/g],
 ];
 
-function assertionChange(before, after, fix = {}, target = {}) {
+// A constant with one of these names carries an expected value even when no assertion in
+// the reported hunks names it (the assertion can sit in an unreported part of the file).
+const EXPECTED_NAME = /expect|want|golden/i;
+
+// Every identifier used by an assertion in any hunk of one file, before or after. A pass
+// can move the expected value in one hunk while the assertion sits in another.
+function assertedNamesByFile(fixes) {
+	const byFile = new Map();
+	for (const fix of fixes) {
+		const set = byFile.get(fix.file) || new Set();
+		for (const side of [fix.before, fix.after]) {
+			for (const a of extractAssertions(String(side || ""))) {
+				for (const n of names(a.raw)) set.add(n);
+			}
+		}
+		byFile.set(fix.file, set);
+	}
+	return byFile;
+}
+
+function assertionChange(before, after, fix = {}, target = {}, fileAsserted = new Set()) {
 	const was = extractAssertions(before);
 	const now = extractAssertions(after);
 	const cut = (k) => String(k).slice(0, 120);
@@ -355,13 +385,14 @@ function assertionChange(before, after, fix = {}, target = {}) {
 	}
 
 	const asserted = names([...was, ...now].map((a) => a.raw).join(" "));
+	for (const n of fileAsserted) asserted.add(n);
 	const expectedNames = names([...was, ...now].filter((a) => a.js).map((a) => a.expectedSide).join(" "));
 	const wasSet = assignments(before);
 	const nowSet = assignments(after);
 	for (const [name, value] of wasSet) {
 		if (!nowSet.has(name) || nowSet.get(name) === value) continue;
 		const literalChange = literals(value).join("\u0000") !== literals(nowSet.get(name)).join("\u0000");
-		if ((asserted.has(name) && literalChange) || expectedNames.has(name)) {
+		if (((asserted.has(name) || EXPECTED_NAME.test(name)) && literalChange) || expectedNames.has(name)) {
 			return `expected value changed through ${name}: ${cut(value)} became ${cut(nowSet.get(name))}`;
 		}
 	}
@@ -406,7 +437,7 @@ function flagProductBug(f, origin, iteration, reason) {
 }
 
 // Returns the reason a reported fix is rejected, or null when heal may keep it.
-function vetFix(fix, target) {
+function vetFix(fix, target, fileAsserted) {
 	if (VALUE_MISMATCH.has(fix.category)) {
 		return `fix targets a ${fix.category} failure; value mismatches are never healed`;
 	}
@@ -414,7 +445,7 @@ function vetFix(fix, target) {
 	if (typeof fix.before !== "string" || typeof fix.after !== "string") {
 		return "fix reported no before/after text, so it cannot be vetted";
 	}
-	const changed = assertionChange(fix.before, fix.after, fix, target);
+	const changed = assertionChange(fix.before, fix.after, fix, target, fileAsserted);
 	if (changed) return changed;
 	if (EXPECTED_EDIT.test(String(fix.change || ""))) {
 		return "fix describes an expected value or snapshot rewrite";
@@ -610,8 +641,9 @@ or xfail, whatever category you report.`,
 		repair && Array.isArray(repair.possible_product_bugs) ? repair.possible_product_bugs : [];
 	const accepted = [];
 	const rejected = [];
+	const assertedByFile = assertedNamesByFile(fixes);
 	for (const fix of fixes) {
-		const reason = vetFix(fix, fixTarget(fix, repairable));
+		const reason = vetFix(fix, fixTarget(fix, repairable), assertedByFile.get(fix.file));
 		if (reason) rejected.push({ fix, reason });
 		else accepted.push(fix);
 	}
