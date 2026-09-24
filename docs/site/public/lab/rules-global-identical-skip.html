@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>One rules file, written once per project dir</title>
+<meta name="description" content="materializeAntipatternRules wrote byte-identical .claude/rules/antipatterns.md into every project dir at SessionStart, and every copy is injected into every prompt. The fix: skip the project write when the user-global copy is already identical.">
+<style>
+  :root{--bg:#0f1117;--panel:#161922;--edge:#272b38;--ink:#e8eaf2;--dim:#9aa3b8;--ok:#4ade80;--bad:#f87171;--warn:#fbbf24;--accent:#7dd3fc;--mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;}
+  *{box-sizing:border-box} body{margin:0;padding:2.5rem 1.25rem;background:var(--bg);color:var(--ink);font-family:var(--mono);line-height:1.6}
+  main{max-width:64rem;margin-inline:auto} h1{font-size:1.3rem;margin:0 0 .3rem} .sub{color:var(--dim);margin:0 0 2rem;font-size:.85rem}
+  section{background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:1.2rem 1.4rem;margin-block:1.1rem}
+  h2{font-size:.9rem;margin:0 0 .9rem;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
+  table{width:100%;border-collapse:collapse;font-size:.8rem} th,td{text-align:start;padding:.35rem .5rem;border-bottom:1px solid var(--edge);vertical-align:top} th{color:var(--dim);font-weight:600}
+  code{background:#0b0d13;border:1px solid var(--edge);border-radius:5px;padding:0 4px} .ok{color:var(--ok)} .bad{color:var(--bad)} .warn{color:var(--warn)} .dim{color:var(--dim)}
+  .controls{display:flex;gap:.6rem;flex-wrap:wrap;margin:.6rem 0} button{background:#0b0d13;color:var(--ink);border:1px solid var(--edge);border-radius:6px;padding:.4rem .8rem;font-family:inherit;font-size:.8rem;cursor:pointer} button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+  pre{background:#0b0d13;border:1px solid var(--edge);border-radius:8px;padding:.9rem 1rem;font-size:.78rem;overflow:auto;margin:.6rem 0}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem} @media (max-width:52rem){.grid{grid-template-columns:1fr}}
+  .card{border:1px solid var(--edge);border-radius:8px;padding:.8rem 1rem;background:#0b0d13}
+  .card h3{margin:0 0 .5rem;font-size:.8rem;color:var(--dim)}
+  p{font-size:.85rem;margin:.4rem 0}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="One rules file, written once per project dir"><meta property="og:description" content="materializeAntipatternRules wrote byte-identical .claude/rules/antipatterns.md into every project dir at SessionStart, and every copy is injected into every prompt. The fix skips the project write when the user-global copy is already identical."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/rules-global-identical-skip.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="One rules file, written once per project dir"><meta name="twitter:description" content="materializeAntipatternRules wrote byte-identical .claude/rules/antipatterns.md into every project dir at SessionStart, and every copy is injected into every prompt. The fix skips the project write when the user-global copy is already identical."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+<h1>One rules file, written once per project dir</h1>
+<p class="sub">SessionStart materialization for <code>antipatterns.md</code>. Rules files ride the prompt cache, but they are not free: every copy is injected into every prompt.</p>
+
+<section>
+<h2>The defect</h2>
+<p><code>materializeAntipatternRules(projectDir)</code> wrote the same static content to <code>&lt;project&gt;/.claude/rules/antipatterns.md</code> on every session start, for every project dir. With a byte-identical copy already at <code>~/.claude/rules/</code> (the user-global scope), each project dir added one more copy of the same text to the prompt.</p>
+<pre>~/.claude/rules/antipatterns.md            injected once (user scope)
+&lt;proj A&gt;/.claude/rules/antipatterns.md    identical copy, injected again
+&lt;proj B&gt;/.claude/rules/antipatterns.md    identical copy, injected again
+&lt;proj C&gt;/.claude/rules/antipatterns.md    identical copy, injected again</pre>
+</section>
+
+<section>
+<h2>Simulate the guard</h2>
+<p>Pick the state of the user-global copy, then run the materializer.</p>
+<div class="controls" role="group" aria-label="global copy state">
+  <button data-s="identical" aria-pressed="true">global identical</button>
+  <button data-s="different" aria-pressed="false">global differs</button>
+  <button data-s="missing" aria-pressed="false">no global copy</button>
+</div>
+<pre id="out"></pre>
+</section>
+
+<section>
+<h2>Decision table</h2>
+<table>
+<thead><tr><th>global copy</th><th>project copy</th><th>action</th></tr></thead>
+<tbody>
+<tr><td>identical</td><td>absent</td><td class="ok">skip write</td></tr>
+<tr><td>identical</td><td>identical</td><td class="ok">leave it (never delete user files from a hook)</td></tr>
+<tr><td>different or unreadable</td><td>any</td><td class="warn">write project copy (today's behavior)</td></tr>
+<tr><td>missing</td><td>any</td><td class="warn">write project copy (today's behavior)</td></tr>
+</tbody>
+</table>
+</section>
+
+<section>
+<h2>Scope</h2>
+<p>The lookup honors <code>CLAUDE_CONFIG_DIR</code> and falls back to <code>~/.claude</code>. An identical file anywhere else does not count. Five unit cases pin the table above; the dispatcher contract (<code>projectDir</code> in, side effect out) is unchanged.</p>
+</section>
+</main>
+<script>
+const out = document.getElementById('out');
+const scenes = {
+  identical: 'global ~/.claude/rules/antipatterns.md  == generated content\n' +
+             'project write ........................... SKIPPED\n' +
+             'result: one copy in the prompt, not two',
+  different: 'global ~/.claude/rules/antipatterns.md  != generated content\n' +
+             'project write ........................... WRITTEN\n' +
+             'result: project copy refreshed as before',
+  missing:   'global ~/.claude/rules/antipatterns.md  absent\n' +
+             'project write ........................... WRITTEN\n' +
+             'result: unchanged from today'
+};
+function show(s){ out.textContent = scenes[s];
+  document.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.s === s))); }
+document.querySelectorAll('button').forEach(b => b.addEventListener('click', () => show(b.dataset.s)));
+show('identical');
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

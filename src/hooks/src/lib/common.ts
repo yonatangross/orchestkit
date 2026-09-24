@@ -64,5 +64,7 @@ export {
   logPermissionFeedback,
   outputStderrWarning,
   writeRulesFile,
+  rulesFileMatches,
+  rulesFileExists,
   readHookInput,
 } from './log.js';

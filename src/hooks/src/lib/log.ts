@@ -165,6 +165,41 @@ export function writeRulesFile(
   return true;
 }
 
+/**
+ * Check whether a rules file already exists with identical content.
+ * Lets a handler detect a byte-identical copy in another scope (e.g. the
+ * user-global rules dir) without owning the file I/O itself (#3917).
+ *
+ * @param rulesDir - Directory to look in
+ * @param filename - File name
+ * @param content - Expected content
+ * @returns true only when the file exists and its utf8 content matches exactly
+ */
+export function rulesFileMatches(
+  rulesDir: string,
+  filename: string,
+  content: string,
+): boolean {
+  const filePath = join(rulesDir, filename);
+  try {
+    return existsSync(filePath) && readFileSync(filePath, 'utf8') === content;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Check whether a rules file exists, without reading it.
+ * Same FH-ready rationale as rulesFileMatches (#3917).
+ */
+export function rulesFileExists(rulesDir: string, filename: string): boolean {
+  try {
+    return existsSync(join(rulesDir, filename));
+  } catch {
+    return false;
+  }
+}
+
 // -----------------------------------------------------------------------------
 // Input Helpers
 // -----------------------------------------------------------------------------
