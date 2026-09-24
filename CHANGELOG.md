@@ -5,6 +5,14 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.86](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.85...v10.0.0-beta.86) (2026-09-24)
+
+
+### Bug Fixes
+
+* **hooks:** skip project rules write when global copy is identical ([#4393](https://github.com/yonatangross/orchestkit/issues/4393)) ([a8ab7c2](https://github.com/yonatangross/orchestkit/commit/a8ab7c2276255f5b04bf122f08cd532c7b44d161))
+* **hooks:** stdin path handling in egress interpreter argv ([#4396](https://github.com/yonatangross/orchestkit/issues/4396)) ([5941f90](https://github.com/yonatangross/orchestkit/commit/5941f9033c1743439ad380ac11ffb23f443b7ab0))
+
 ## [10.0.0-beta.85](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.84...v10.0.0-beta.85) (2026-09-24)
 
 
