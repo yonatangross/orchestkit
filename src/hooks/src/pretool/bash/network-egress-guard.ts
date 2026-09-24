@@ -463,9 +463,20 @@ function tokenEmbedsDirChangeWord(tok: string): boolean {
  * Fail-closed: a word `cd` / `pushd` / `popd` / `chdir` anywhere counts, not
  * only in command position (covers `time cd`, `then cd`, `do cd`, …).
  * A literal following target is ADDed; anything else makes the set UNKNOWN.
- * `eval` / `source` / `.`, and dir-change words embedded in quoted tokens,
- * also make the set UNKNOWN.
+ * `eval` / `source` / `.`, dir-change words embedded in quoted tokens,
+ * redirection tokens, bare relative targets (no ./ or ../), and multi-operand
+ * `cd` also make the set UNKNOWN.
  */
+function isRedirectionToken(tok: string): boolean {
+  if (tok === '<' || tok === '>' || tok === '>>' || tok === '&>' || tok === '&>>') {
+    return true;
+  }
+  if (/^&>/.test(tok)) return true;
+  if (/^(?:\d*)>{1,2}/.test(tok)) return true;
+  if (/^(?:\d*)(?:<<|<>|<&|<)/.test(tok)) return true;
+  return false;
+}
+
 function applyDirChangesInSegment(
   tokens: string[],
   addTarget: (target: string) => boolean,
@@ -473,6 +484,8 @@ function applyDirChangesInSegment(
   if (tokens.length === 0) return 'ok';
   // Keep backslashes so escaped targets stay shell-expanded / UNKNOWN.
   const words = tokens.map((t) => unwrapToken(t));
+  if (words.some(isRedirectionToken)) return 'unknown';
+
   for (let i = 0; i < words.length; i++) {
     const rawWord = words[i]!;
     if (tokenEmbedsDirChangeWord(rawWord)) return 'unknown';
@@ -481,17 +494,34 @@ function applyDirChangesInSegment(
     if (isOpaqueDirEffectWord(head)) return 'unknown';
     if (!isDirChangeWord(head)) continue;
     if (head === 'popd') return 'unknown';
-    const target = words[i + 1];
-    if (target === undefined) return 'unknown'; // missing / separator / end
+
+    // Collect operands until the next dir-change word.
+    const operands: string[] = [];
+    for (let j = i + 1; j < words.length; j++) {
+      const w = words[j]!.replace(/\\/g, '');
+      if (isDirChangeWord(w) || isOpaqueDirEffectWord(w)) break;
+      operands.push(words[j]!);
+    }
+    if (operands.length === 0) return 'unknown';
+    // zsh two-argument `cd` and any multi-operand form.
+    if (operands.length !== 1) return 'unknown';
+
+    const target = operands[0]!;
     if (target === '-') return 'unknown';
-    // pushd +N / -N rotates the stack; not a path.
     if (head === 'pushd' && /^[+-]\d+$/.test(target)) return 'unknown';
-    if (target.startsWith('-') && target !== '-') return 'unknown'; // flags
+    if (target.startsWith('-') && target !== '-') return 'unknown';
     if (programArgIsShellExpanded(target)) return 'unknown';
-    // Another dir-change word as the "target" is not a literal path.
     if (isDirChangeWord(target.replace(/\\/g, ''))) return 'unknown';
     if (tokenEmbedsDirChangeWord(target)) return 'unknown';
-    if (!addTarget(target.replace(/\\/g, ''))) return 'unknown';
+    // Bare relative (no ./ or ../): CDPATH / cdable_vars / shell options.
+    const cleaned = target.replace(/\\/g, '');
+    if (
+      (head === 'cd' || head === 'pushd' || head === 'chdir') &&
+      isCdpathEligibleTarget(cleaned)
+    ) {
+      return 'unknown';
+    }
+    if (!addTarget(cleaned)) return 'unknown';
   }
   return 'ok';
 }
@@ -564,19 +594,22 @@ function addCwdCandidateTarget(
 
 /**
  * Build the never-shrinking set of directories the shell could be in after the
- * prefix before a fetcher|interpreter pipe. Starts as {hook cwd}. Every
- * directory change ADDS targets (absolute, or join with every current
- * candidate for relative). Returns null when the set is UNKNOWN.
+ * prefix before a fetcher|interpreter pipe. Starts from `baseCandidates`
+ * (hook cwd, or an outer set when scanning an executed-quote body). Every
+ * directory change ADDS targets. Returns null when the set is UNKNOWN.
  */
 function resolveCwdCandidates(
   prefix: string,
-  baseCwd: string | null,
+  baseCandidates: string[] | null,
   fullCommand: string,
 ): string[] | null {
+  // Once unknown, stay unknown (do not recover via later absolute cds).
+  if (baseCandidates === null) return null;
+
   const cdpathRisk = cdpathMayAffectCommand(fullCommand);
   const candidates = new Set<string>();
-  if (baseCwd !== null && baseCwd.length > 0) {
-    candidates.add(posix.normalize(baseCwd));
+  for (const c of baseCandidates) {
+    if (c.length > 0) candidates.add(posix.normalize(c));
   }
 
   const state = { dirChanges: 0, cdpathRisk };
@@ -652,9 +685,10 @@ function resolveCwdCandidates(
 
 /**
  * Consume env -C / env --chdir and sudo -D / sudo --chdir that sit directly
- * in front of the interpreter. Each successful parse ADDS a target; an
- * unresolvable chdir marks the candidate set UNKNOWN but still advances to
- * the utility so the relative-program check can fail closed.
+ * in front of the interpreter. Short option clusters are walked letter by
+ * letter (`-iC/dev`, `-C/dev`). Any unknown option, or a long-option prefix of
+ * `--chdir` (`--c`, `--ch`, `--chd`, …), makes the set UNKNOWN. Successful
+ * parses ADD targets (capped).
  */
 function applyInterpreterFrontChdir(
   tokens: string[],
@@ -679,6 +713,13 @@ function applyInterpreterFrontChdir(
     if (!addCwdCandidateTarget(set, target, state)) unknown = true;
   };
 
+  /** True when `opt` is a proper prefix of `--chdir` (GNU abbreviation risk). */
+  const isChdirLongPrefix = (opt: string): boolean =>
+    opt.startsWith('--') &&
+    opt !== '--chdir' &&
+    !opt.startsWith('--chdir=') &&
+    '--chdir'.startsWith(opt);
+
   while (idx < tokens.length) {
     const raw = tokens[idx]!;
     const t = unescapeInterpreterName(unwrapToken(raw)).toLowerCase();
@@ -691,27 +732,84 @@ function applyInterpreterFrontChdir(
           idx++;
           continue;
         }
-        if (a === '-C' || a === '--chdir') {
-          if (idx + 1 >= tokens.length) {
-            unknown = true;
-            break;
-          }
-          addTarget(tokens[idx + 1]!);
-          idx += 2;
-          continue;
+        if (a === '--') {
+          idx++;
+          break;
         }
-        if (a.startsWith('--chdir=')) {
-          addTarget(a.slice('--chdir='.length));
+        if (a.startsWith('--')) {
+          if (a === '--chdir') {
+            if (idx + 1 >= tokens.length) {
+              unknown = true;
+              idx++;
+              break;
+            }
+            addTarget(tokens[idx + 1]!);
+            idx += 2;
+            continue;
+          }
+          if (a.startsWith('--chdir=')) {
+            addTarget(a.slice('--chdir='.length));
+            idx++;
+            continue;
+          }
+          if (a === '--unset' || a.startsWith('--unset=')) {
+            if (a === '--unset') {
+              if (idx + 1 < tokens.length) idx += 2;
+              else idx++;
+            } else idx++;
+            continue;
+          }
+          if (isChdirLongPrefix(a)) {
+            unknown = true;
+            idx++;
+            continue;
+          }
+          // Unknown long option: fail-closed.
+          unknown = true;
           idx++;
           continue;
         }
-        if (a === '-u' || a === '--unset') {
-          if (idx + 1 < tokens.length) idx += 2;
-          else idx++;
-          continue;
-        }
-        if (a.startsWith('-')) {
-          // Other env options do not change cwd knowledge.
+        if (a.startsWith('-') && a !== '-') {
+          // Short cluster: -iC/dev, -C/dev, -iC, -uNAME, …
+          let p = 1;
+          while (p < a.length) {
+            const ch = a[p]!;
+            if (ch === 'C') {
+              const glued = a.slice(p + 1);
+              if (glued.length > 0) {
+                addTarget(glued);
+                p = a.length;
+              } else if (idx + 1 < tokens.length) {
+                addTarget(tokens[idx + 1]!);
+                idx++;
+                p = a.length;
+              } else {
+                unknown = true;
+                p = a.length;
+              }
+              continue;
+            }
+            if (ch === 'u') {
+              const glued = a.slice(p + 1);
+              if (glued.length > 0) {
+                p = a.length;
+              } else if (idx + 1 < tokens.length) {
+                idx++;
+                p = a.length;
+              } else {
+                unknown = true;
+                p = a.length;
+              }
+              continue;
+            }
+            // Known no-arg env shorts; anything else is unknown.
+            if (ch === 'i' || ch === '0' || ch === 'v' || ch === 'S') {
+              p++;
+              continue;
+            }
+            unknown = true;
+            p = a.length;
+          }
           idx++;
           continue;
         }
@@ -724,35 +822,98 @@ function applyInterpreterFrontChdir(
       idx++;
       while (idx < tokens.length) {
         const a = unwrapToken(tokens[idx]!);
-        if (a === '-D' || a === '--chdir') {
-          if (idx + 1 >= tokens.length) {
-            unknown = true;
-            break;
-          }
-          addTarget(tokens[idx + 1]!);
-          idx += 2;
-          continue;
+        if (a === '--') {
+          idx++;
+          break;
         }
-        if (a.startsWith('--chdir=')) {
-          addTarget(a.slice('--chdir='.length));
+        if (a.startsWith('--')) {
+          if (a === '--chdir') {
+            if (idx + 1 >= tokens.length) {
+              unknown = true;
+              idx++;
+              break;
+            }
+            addTarget(tokens[idx + 1]!);
+            idx += 2;
+            continue;
+          }
+          if (a.startsWith('--chdir=')) {
+            addTarget(a.slice('--chdir='.length));
+            idx++;
+            continue;
+          }
+          if (isChdirLongPrefix(a)) {
+            unknown = true;
+            idx++;
+            continue;
+          }
+          // Other long options: fail-closed on cwd knowledge.
+          unknown = true;
           idx++;
           continue;
         }
-        if (
-          a === '-u' ||
-          a === '-g' ||
-          a === '-p' ||
-          a === '-r' ||
-          a === '-t' ||
-          a === '-U' ||
-          a === '-C'
-        ) {
-          if (idx + 1 < tokens.length) idx += 2;
-          else idx++;
-          continue;
-        }
-        if (a.startsWith('-')) {
-          // Other sudo options do not change cwd knowledge.
+        if (a.startsWith('-') && a !== '-') {
+          let p = 1;
+          while (p < a.length) {
+            const ch = a[p]!;
+            if (ch === 'D') {
+              const glued = a.slice(p + 1);
+              if (glued.length > 0) {
+                addTarget(glued);
+                p = a.length;
+              } else if (idx + 1 < tokens.length) {
+                addTarget(tokens[idx + 1]!);
+                idx++;
+                p = a.length;
+              } else {
+                unknown = true;
+                p = a.length;
+              }
+              continue;
+            }
+            // Value-taking sudo shorts: consume glued rest or next token.
+            if (
+              ch === 'u' ||
+              ch === 'g' ||
+              ch === 'p' ||
+              ch === 'r' ||
+              ch === 't' ||
+              ch === 'U' ||
+              ch === 'C'
+            ) {
+              const glued = a.slice(p + 1);
+              if (glued.length > 0) {
+                p = a.length;
+              } else if (idx + 1 < tokens.length) {
+                idx++;
+                p = a.length;
+              } else {
+                unknown = true;
+                p = a.length;
+              }
+              continue;
+            }
+            // Common no-arg sudo shorts.
+            if (
+              ch === 'E' ||
+              ch === 'H' ||
+              ch === 'n' ||
+              ch === 's' ||
+              ch === 'i' ||
+              ch === 'b' ||
+              ch === 'k' ||
+              ch === 'K' ||
+              ch === 'l' ||
+              ch === 'v' ||
+              ch === 'A' ||
+              ch === 'S'
+            ) {
+              p++;
+              continue;
+            }
+            unknown = true;
+            p = a.length;
+          }
           idx++;
           continue;
         }
@@ -913,7 +1074,7 @@ function findUnquotedPipeIndexes(cmd: string): number[] {
 function pipeToInterpreterStdinProgram(
   denyScan: string,
   quoteIntact: string,
-  baseCwd: string | null,
+  baseCandidates: string[] | null,
 ): boolean {
   const denyPipes: number[] = [];
   for (let i = 0; i < denyScan.length; i++) {
@@ -930,7 +1091,7 @@ function pipeToInterpreterStdinProgram(
       if (!FETCHER_RE.test(left)) continue;
       const cwdCandidates = resolveCwdCandidates(
         quoteIntact.slice(0, pipe),
-        baseCwd,
+        baseCandidates,
         quoteIntact,
       );
       if (
@@ -952,7 +1113,7 @@ function pipeToInterpreterStdinProgram(
     const pipe = intactPipes[i]!;
     const cwdCandidates = resolveCwdCandidates(
       quoteIntact.slice(0, pipe),
-      baseCwd,
+      baseCandidates,
       quoteIntact,
     );
     const tokens = tokenizePipeRhs(quoteIntact.slice(pipe + 1));
@@ -974,11 +1135,11 @@ function collapseHorizontalWhitespace(cmd: string): string {
 }
 
 /**
- * Bodies of quotes governed by eval / sh -c / python -c / etc. Each is its own
- * command for the fetcher|interpreter scan (nested recursively).
+ * Bodies of quotes governed by eval / sh -c / python -c / etc., paired with
+ * the text before that quote (used to resolve the outer cwd candidate set).
  */
-function extractExecutedQuoteBodies(raw: string): string[] {
-  const bodies: string[] = [];
+function extractExecutedQuoteBodies(raw: string): { body: string; prefix: string }[] {
+  const bodies: { body: string; prefix: string }[] = [];
   let seg = '';
   for (let i = 0; i < raw.length; i++) {
     const ch = raw[i]!;
@@ -997,7 +1158,9 @@ function extractExecutedQuoteBodies(raw: string): string[] {
         content += raw[j]!;
         j++;
       }
-      if (execGovernsQuote(seg)) bodies.push(content);
+      if (execGovernsQuote(seg)) {
+        bodies.push({ body: content, prefix: raw.slice(0, i) });
+      }
       seg = '';
       i = j;
       continue;
@@ -1015,20 +1178,23 @@ const MAX_EXEC_QUOTE_DEPTH = 8;
 
 /**
  * Top-level + nested scan: run the pipe check on this command, then on every
- * executed-quote body as its own command (with its own denyScan / quoteIntact).
+ * executed-quote body as its own command. The outer cwd candidate set from the
+ * prefix up to that quote becomes the inner base (so `cd …; bash -c '…'` keeps
+ * the directory change).
  */
 function scanFetcherInterpreterPipes(
   rawCmd: string,
-  baseCwd: string | null,
+  baseCandidates: string[] | null,
   depth = 0,
 ): boolean {
   if (depth > MAX_EXEC_QUOTE_DEPTH) return false;
   const blanked = blankQuotedHeredocBodies(rawCmd);
   const denyScan = normalizeSingle(egressDenyScanView(blanked));
   const quoteIntact = collapseHorizontalWhitespace(blanked);
-  if (pipeToInterpreterStdinProgram(denyScan, quoteIntact, baseCwd)) return true;
-  for (const body of extractExecutedQuoteBodies(blanked)) {
-    if (scanFetcherInterpreterPipes(body, baseCwd, depth + 1)) return true;
+  if (pipeToInterpreterStdinProgram(denyScan, quoteIntact, baseCandidates)) return true;
+  for (const { body, prefix } of extractExecutedQuoteBodies(blanked)) {
+    const outer = resolveCwdCandidates(prefix, baseCandidates, blanked);
+    if (scanFetcherInterpreterPipes(body, outer, depth + 1)) return true;
   }
   return false;
 }
@@ -1182,7 +1348,9 @@ export function networkEgressGuard(input: HookInput, ctx: HookContext = NOOP_CTX
     }
   }
 
-  if (scanFetcherInterpreterPipes(raw, hookInputCwd(input))) {
+  const hookCwd = hookInputCwd(input);
+  const baseCandidates = hookCwd !== null && hookCwd.length > 0 ? [hookCwd] : [];
+  if (scanFetcherInterpreterPipes(raw, baseCandidates)) {
     const label = 'curl|interpreter: pipes fetched content to an interpreter';
     ctx.log(HOOK_NAME, `BLOCKED: ${label}`);
     ctx.logPermission('deny', label, input);
