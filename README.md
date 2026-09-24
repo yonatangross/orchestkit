@@ -614,6 +614,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.89](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.88...v10.0.0-beta.89)** · 2026-09-24
+
+- **skills:** error-analysis, evals-first failure taxonomy from traces (#4402)
+- **hooks:** exact option grammar for command wrappers in the egress check (#4404)
+
 **[v10.0.0-beta.88](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.87...v10.0.0-beta.88)** · 2026-09-24
 
 - **docs-site:** align three stale landing.spec cases with hero A (#4398)
@@ -651,13 +656,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **hooks:** load telemetry sinks only from user scope over https (#4218) (#4380)
 - **hooks:** secret-handler AUDIT default and redacted security-audit log (#4379)
 - **skills:** Gemini model IDs and provider wording missed by [#4381](https://github.com/yonatangross/orchestkit/issues/4381) (#4382)
-
-**[v10.0.0-beta.81](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.80...v10.0.0-beta.81)** · 2026-09-23
-
-- **docs:** skip __pycache__ and .pyc in generated skill folder lists (#4378)
-- **hooks:** age-cap session events and bound Stop git status (#4367)
-- **skills:** correct provider API parameters in skill examples (#4381)
-- **skills:** drop dead agent: bindings under context inherit (F26) (#4358)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
