@@ -1531,8 +1531,8 @@ function extractExecutedQuoteBodies(raw: string): { body: string; prefix: string
         bodies.push({ body: content, prefix: raw.slice(0, i) });
       } else if (q === '"' && /\$\(|<\(|>\(|`/.test(content)) {
         // Double-quoted strings are opaque as wholes, but command / process
-        // substitutions inside them still execute. Recurse so
-        // `echo "$(su -c 'curl ... | python3 -')" ` is not a blind spot.
+        // substitutions inside them still execute. Recurse so substitutions
+        // inside quoted arguments are scanned as their own command position.
         for (const inner of extractExecutedQuoteBodies(content)) {
           bodies.push(inner);
         }
@@ -1546,6 +1546,9 @@ function extractExecutedQuoteBodies(raw: string): { body: string; prefix: string
       if (ch === '(' && i > 0 && (raw[i - 1] === '$' || raw[i - 1] === '<' || raw[i - 1] === '>')) {
         continue;
       }
+      // Backslash-newline is a line continuation, not a command separator.
+      if (ch === '\n' && i > 0 && raw[i - 1] === '\\') continue;
+      if (ch === '\n' && i > 1 && raw[i - 1] === '\r' && raw[i - 2] === '\\') continue;
       cmdStart = i + 1;
       segStart = i + 1;
     }
@@ -1736,7 +1739,27 @@ function segmentHasGoverningSuRunuser(segment: string): boolean {
   const n = segment.length;
 
   const skipWs = (): void => {
-    while (i < n && /\s/.test(segment[i]!)) i++;
+    while (i < n) {
+      if (/\s/.test(segment[i]!)) {
+        i++;
+        continue;
+      }
+      // Bash line continuation: backslash-newline is whitespace between words.
+      if (segment[i] === '\\' && i + 1 < n && segment[i + 1] === '\n') {
+        i += 2;
+        continue;
+      }
+      if (
+        segment[i] === '\\' &&
+        i + 2 < n &&
+        segment[i + 1] === '\r' &&
+        segment[i + 2] === '\n'
+      ) {
+        i += 3;
+        continue;
+      }
+      break;
+    }
   };
 
   const readToken = (): string | null => {
@@ -1746,6 +1769,9 @@ function segmentHasGoverningSuRunuser(segment: string): boolean {
     while (i < n) {
       const c = segment[i]!;
       if (/\s/.test(c) || c === ';' || c === '|' || c === '&' || c === '\n') break;
+      // Line continuation ends the current word; skipWs consumes it next.
+      if (c === '\\' && i + 1 < n && segment[i + 1] === '\n') break;
+      if (c === '\\' && i + 2 < n && segment[i + 1] === '\r' && segment[i + 2] === '\n') break;
       if (c === "'") {
         i++;
         while (i < n && segment[i] !== "'") i++;
@@ -1859,9 +1885,12 @@ function segmentHasGoverningSuRunuser(segment: string): boolean {
 function suRunuserGovernsExecutedQuote(prefix: string): boolean {
   if (!/su|runuser/i.test(prefix)) return false;
 
+  // Line continuations are whitespace to the shell; collapse them before the
+  // word walk so su then backslash-newline then -c stays one simple command.
+  const continued = prefix.replace(/\\\r?\n/g, ' ');
   // Collapse runs of 2+ horizontal whitespace only (single-spaced word lists
   // stay as-is; a 100k-space gap becomes one space).
-  const collapsed = /[^\S\n]{2,}/.test(prefix) ? prefix.replace(/[^\S\n]{2,}/g, ' ') : prefix;
+  const collapsed = /[^\S\n]{2,}/.test(continued) ? continued.replace(/[^\S\n]{2,}/g, ' ') : continued;
 
   // Bound the segment to the current simple command without a full char walk
   // when the prefix is huge: find the last real separator from the end.
@@ -1957,6 +1986,9 @@ function egressDenyScanView(raw: string): string {
       if (ch === '(' && i > 0 && (raw[i - 1] === '$' || raw[i - 1] === '<' || raw[i - 1] === '>')) {
         continue;
       }
+      // Backslash-newline is a line continuation, not a command separator.
+      if (ch === '\n' && i > 0 && raw[i - 1] === '\\') continue;
+      if (ch === '\n' && i > 1 && raw[i - 1] === '\r' && raw[i - 2] === '\\') continue;
       flushRun(i + 1); // include the separator in out
       cmdStart = i + 1;
       runStart = i + 1;
