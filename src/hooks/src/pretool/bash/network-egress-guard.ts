@@ -166,17 +166,86 @@ const CODE_FLAGS: Record<InterpreterFamily, ReadonlySet<string>> = {
 /** Options that consume the next token as a value (not a script path). */
 const VALUE_OPTS: Record<InterpreterFamily, ReadonlySet<string>> = {
   python: new Set(['-W', '-X', '-Q']),
-  node: new Set(['-r', '--require', '--import']),
-  ruby: new Set(['-r', '-I']),
+  node: new Set([
+    '-r',
+    '--require',
+    '--import',
+    '--loader',
+    '--experimental-loader',
+    '-C',
+    '--conditions',
+    '--env-file',
+  ]),
+  ruby: new Set(['-r', '-I', '-C', '-E', '--encoding']),
   perl: new Set(['-M', '-I']),
-  // php -f takes a file path and is intentionally NOT listed: the next token
-  // is a real script path (ALLOW). -n is boolean. -c here is php.ini, not code.
+  // php -f is a boolean below: the following token is the script path (ALLOW).
+  // -c here is php.ini, not code.
   php: new Set(['-d', '-c', '-z']),
 };
 
 /**
+ * Known boolean flags (skipped). Fail-closed: any other token starting with `-`
+ * is an unknown option and DENYs (stdin-program).
+ */
+const BOOLEAN_FLAGS: Record<InterpreterFamily, ReadonlySet<string>> = {
+  python: new Set([
+    '-u',
+    '-E',
+    '-I',
+    '-O',
+    '-OO',
+    '-B',
+    '-S',
+    '-s',
+    '-v',
+    '-V',
+    '-h',
+    '-q',
+    '-R',
+    '--help',
+    '--version',
+  ]),
+  node: new Set([
+    '-h',
+    '-c',
+    '--check',
+    '--help',
+    '--version',
+    '--jitless',
+    '--no-warnings',
+    '--trace-warnings',
+    '--inspect',
+    '--inspect-brk',
+  ]),
+  ruby: new Set([
+    '-h',
+    '--help',
+    '--version',
+    '-v',
+    '-w',
+    '-W',
+    '-W0',
+    '-W1',
+    '-W2',
+    '-d',
+    '-n',
+    '-p',
+    '-l',
+    '-a',
+    '-s',
+    '-S',
+    '-y',
+    // -x may take an attached directory (`-x/tmp`) but never a separate argv token.
+    '-x',
+  ]),
+  // -n/-p/-a/-l/-w so clusters like `-ne` stay ALLOW when `-e` is a code flag.
+  perl: new Set(['-n', '-p', '-a', '-l', '-w', '-c', '-d', '-t', '-T', '-U', '-u', '-W', '-X', '-S', '-h', '-v']),
+  php: new Set(['-n', '-f', '-h', '-v', '-w', '--help', '--version']),
+};
+
+/**
  * Exact value-opt (`-M foo`) or glued form (`-Mstrict`, `-I/lib`, `--require=fs`).
- * Returns `exact` (skip next non-flag token), `glued` (value already in token),
+ * Returns `exact` (always consume next token), `glued` (value already in token),
  * or null.
  */
 function valueOptKind(
@@ -286,11 +355,14 @@ function tokenizePipeRhs(s: string): string[] {
 }
 
 /**
- * True when args mean the interpreter runs its PROGRAM from stdin (DENY):
- * no args, only option flags, a lone `-` (with or without trailing args), or
- * `/dev/stdin`. False (ALLOW) when any arg is a family code flag or a script
- * path that is not `-` / `/dev/stdin`. Value-taking options skip their next
- * token so the value is not mistaken for a script path.
+ * Fail-closed stdin-program classifier. Walk args left to right:
+ * - known value option always consumes the next token (even if it starts with `-`)
+ * - known boolean is skipped
+ * - known CODE flag => ALLOW (not stdin)
+ * - first non-option that is not `-` / `/dev/stdin` => script path => ALLOW
+ * - any unknown option (starts with `-`, not in the tables) => DENY
+ * - end of args / lone `-` / `/dev/stdin` => DENY
+ * Short clusters like `perl -ne` expand letter-by-letter.
  */
 function interpreterArgsAreStdinProgram(
   family: InterpreterFamily,
@@ -299,21 +371,60 @@ function interpreterArgsAreStdinProgram(
   if (args.length === 0) return true;
   const codeFlags = CODE_FLAGS[family];
   const valueOpts = VALUE_OPTS[family];
+  const booleans = BOOLEAN_FLAGS[family];
+
   for (let i = 0; i < args.length; i++) {
     const a = args[i]!;
-    if (codeFlags.has(a)) return false;
-    // Lone `-` or /dev/stdin means the program is stdin, with or without
-    // trailing args (`python3 - arg1` still runs the piped body).
-    if (a === '-' || a === '/dev/stdin') return true;
+
     const vKind = valueOptKind(a, valueOpts);
     if (vKind === 'exact') {
-      // Consume the option value when present and not itself a flag.
-      if (i + 1 < args.length && !args[i + 1]!.startsWith('-')) i++;
+      // Always consume the next token, even when it looks like a flag (`-W -c`).
+      if (i + 1 < args.length) i++;
       continue;
     }
     if (vKind === 'glued') continue;
-    if (a.startsWith('-')) continue; // boolean / other option flags
-    return false; // script path
+
+    if (codeFlags.has(a)) return false; // ALLOW: inline code/module
+
+    if (booleans.has(a)) continue;
+    // ruby -x[dir]: directory is attached to the flag, never a following argv token.
+    if (family === 'ruby' && a.startsWith('-x/')) continue;
+
+    // Short option cluster: `-ne` => `-n` then `-e`, etc.
+    if (/^-[A-Za-z0-9]+$/.test(a) && a.length > 2) {
+      let denyCluster = false;
+      let allowCluster = false;
+      for (let k = 1; k < a.length; k++) {
+        const flag = `-${a[k]!}`;
+        if (valueOpts.has(flag)) {
+          if (k + 1 < a.length) {
+            // Remainder of this token is the glued value (`-Ilib`).
+            break;
+          }
+          // Value is the next argv token.
+          if (i + 1 < args.length) i++;
+          break;
+        }
+        if (codeFlags.has(flag)) {
+          allowCluster = true;
+          break;
+        }
+        if (booleans.has(flag)) continue;
+        denyCluster = true;
+        break;
+      }
+      if (allowCluster) return false;
+      if (denyCluster) return true;
+      continue;
+    }
+
+    // Lone `-` or /dev/stdin: program is stdin.
+    if (a === '-' || a === '/dev/stdin') return true;
+
+    // Unknown option => DENY (fail closed).
+    if (a.startsWith('-')) return true;
+
+    return false; // script path => ALLOW
   }
   return true;
 }
