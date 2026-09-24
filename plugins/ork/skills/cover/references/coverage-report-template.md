@@ -9,6 +9,8 @@ Format for the Phase 6 report output.
 
 ## Summary
 
+Coverage is shown as information, never as a target.
+
 | Metric | Before | After | Delta |
 |--------|--------|-------|-------|
 | Unit coverage | {N}% | {N}% | +{N}% |
@@ -27,6 +29,20 @@ Format for the Phase 6 report output.
 
 Heal iterations used: {N}/{maxIterations}   # denominator is 2 or 3, see heal-loop-strategy.md
 
+## Risk Targets
+
+| Target | Why chosen | Tests kept |
+|--------|------------|------------|
+| {file}:{symbol} | {changed code / complex branches / error path / security / money / past bug} | {N} |
+
+## Behaviour Gate
+
+Checker: `scripts/check-behaviour-tests.mjs`, final run exit {0|1}.
+
+| Test | Rule | Action |
+|------|------|--------|
+| {file}:{line} "{name}" | {a: mock calls only / b: no assertion / c: reads source} | {dropped / rewritten} |
+
 ## Files Created
 
 {list of test files created, grouped by tier}
@@ -37,7 +53,7 @@ Heal iterations used: {N}/{maxIterations}   # denominator is 2 or 3, see heal-lo
 
 ## Remaining Gaps
 
-{files or functions still below coverage threshold, with reasons}
+{risk targets still without a behaviour test, with reasons}
 
 ## Failures (if any)
 
@@ -75,11 +91,8 @@ for file in scope_files:
 | Go | `go test -coverprofile=coverage.out ./...` | `coverage.out` |
 | Playwright | Coverage via Istanbul instrumentation | `coverage/` dir |
 
-## Thresholds
+## No Coverage Targets
 
-| Tier | Target | Minimum |
-|------|--------|---------|
-| Unit (business logic) | 90% | 70% |
-| Integration (API boundaries) | 80% | 60% |
-| E2E (critical user flows) | N/A | Key flows covered |
-| Overall | 80% | 70% |
+There is no percentage to reach. Coverage numbers describe the suite; they never decide
+whether to write a test. Targets come from risk (see `behaviour-gate.md`), and a test is
+kept only when it asserts behaviour.

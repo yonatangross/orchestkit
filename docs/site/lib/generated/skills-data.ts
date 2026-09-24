@@ -1191,8 +1191,8 @@ export const SKILLS: Record<string, SkillMeta> = {
   "cover": {
     "name": "cover",
     "description": "Generate tests that do not exist yet. Analyzes coverage gaps, then writes and runs new test files across three tiers (unit, integration via testcontainers, Playwright E2E), one test-generator agent per tier, healing failures for up to 3 iterations. Use when code has no tests or when raising coverage after implementation. Do NOT use to grade tests that already exist (use /ork:verify) or to run a suite without writing anything new.",
-    "version": "1.2.0",
-    "sha256": "e9ed1d11039c6aeefc9137c947acbb9858d5b899c157956accd3af5bf8dba68c",
+    "version": "1.3.0",
+    "sha256": "dda2c926727c4888c524a47ca28bb0624da584f2563b6b115f4ec2a7159747cd",
     "author": "OrchestKit",
     "tags": [
       "testing",

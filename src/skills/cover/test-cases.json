@@ -47,6 +47,17 @@
       ]
     },
     {
+      "id": "behaviour-gate-risk-targets",
+      "rule": null,
+      "query": "Write tests for the refund service",
+      "expectedBehavior": [
+        "Picks targets by risk (changed code, error paths, money paths, past bugs) and states why each was chosen",
+        "Sets no coverage percentage target; reports coverage as information only",
+        "Runs scripts/check-behaviour-tests.mjs over the new test files before executing them",
+        "Drops or rewrites any test that only asserts mock calls, asserts nothing, or reads source text"
+      ]
+    },
+    {
       "id": "negative-verify-request",
       "rule": null,
       "query": "Verify my existing tests are good quality",

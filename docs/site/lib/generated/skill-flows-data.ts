@@ -1988,15 +1988,15 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "2",
             "label": "Coverage Analysis",
-            "does": "Run existing tests, map gaps per tier",
-            "out": "Coverage baseline, gap map",
+            "does": "Run existing tests, rank risk targets per tier",
+            "out": "Coverage baseline, risk targets with why",
             "tag": null
           },
           {
             "num": "3",
             "label": "Generation",
-            "does": "Parallel test-generator agents per tier",
-            "out": "Test files created",
+            "does": "Parallel test-generator agents per tier, then behaviour gate",
+            "out": "Test files created, gate verdicts",
             "tag": null
           },
           {
