@@ -138,7 +138,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/foundations/overview",
     "title": "What is OrchestKit?",
-    "description": "The complete AI development toolkit for Claude Code — 107 skills, 36 agents, 171 hooks working together."
+    "description": "The complete AI development toolkit for Claude Code — 108 skills, 36 agents, 171 hooks working together."
   },
   {
     "url": "/docs/foundations/skills-agents-hooks",
@@ -713,7 +713,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference",
     "title": "Reference",
-    "description": "Complete reference for all 107 skills, 36 agents, and 171 hooks."
+    "description": "Complete reference for all 108 skills, 36 agents, and 171 hooks."
   },
   {
     "url": "/docs/reference/skills/accessibility",
@@ -843,7 +843,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/commit",
     "title": "Commit",
-    "description": "Creates commits with Conventional Commits format (feat/fix/docs/refactor/test/chore), automatic scope detection, co-author attribution, and pre-commit hook compliance. Validates staged changes, generates descriptive messages focusing on the 'why', and prevents secrets or generated-only files from being committed. Use for requests to commit, stage and commit, save progress, or write a commit message, whether or not they name this skill. Do not invoke it for git commits you make incidentally during other work; those stay a bare CLI call."
+    "description": "Creates commits with Conventional Commits format (feat/fix/docs/refactor/test/chore), scope detection, co-author attribution, and pre-commit hook compliance. Validates staged changes and prevents secrets or generated-only files from being committed. Use for requests to commit, stage and commit, save progress, or write a commit message. Do not invoke it for incidental git commits during other work; those stay a bare CLI call."
   },
   {
     "url": "/docs/reference/skills/competitive-analysis",
@@ -1028,7 +1028,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/doctor/references/skills-validation",
     "title": "Doctor: Skills Validation",
-    "description": "OrchestKit includes 107 skills validated against frontmatter requirements and content standards."
+    "description": "OrchestKit includes 108 skills validated against frontmatter requirements and content standards."
   },
   {
     "url": "/docs/reference/skills/doctor/references/version-compatibility/00-overview",
@@ -1076,6 +1076,11 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
     "description": "Generate emulate seed configs for stateful API emulation. Wraps Vercel's emulate tool for GitHub, Vercel, Google OAuth, Slack, Apple Auth, Microsoft Entra, AWS, Okta, Clerk, Resend, Stripe, and MongoDB Atlas APIs — full state machines, not mocks. Use when setting up test environments, CI pipelines, integration tests, or offline development."
   },
   {
+    "url": "/docs/reference/skills/error-analysis",
+    "title": "Error Analysis",
+    "description": "Evals-first error analysis for LLM apps: clusters real Langfuse or JSONL traces into a human-confirmed failure taxonomy with counts, then recommends binary pass/fail evals for recurring named modes. Use to learn what to measure before writing evals. Not for CI failures."
+  },
+  {
     "url": "/docs/reference/skills/errors",
     "title": "Errors",
     "description": "Error pattern analysis and troubleshooting for Claude Code sessions. Categorizes errors (network, auth, model, tool, memory, permission) with known resolution patterns, searches memory for prior occurrences, and suggests recovery steps. Delegates to debug-investigator agent for complex root cause analysis. Use when handling errors, fixing failures, or troubleshooting session issues."
@@ -1108,7 +1113,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/glyph",
     "title": "Glyph",
-    "description": "Render an answer as ASCII art plus semantic emojis inline, right now, with no setup questions: one render per reply, up to about 50 lines, verdict first. Use for any answer with shape: status, inventories, audits, budgets, comparisons, rankings, pipelines, 'what is using X', or any ad-hoc 'show me X visually' ask. Not for definitions, conceptual explanations, or one-sentence and one-paragraph asks; those have no shape to draw. For a full multi-artifact plan playground, use visualize-plan instead."
+    "description": "Render an answer as ASCII art plus semantic emojis inline with no setup questions: one render per reply, verdict first. Use for any answer with shape: status, inventories, audits, budgets, comparisons, rankings, pipelines, 'what is using X', or any ad-hoc 'show me X visually' ask. Not for definitions, conceptual explanations, or one-liner asks. For a full multi-artifact plan playground, use visualize-plan instead."
   },
   {
     "url": "/docs/reference/skills/golden-dataset",
@@ -1148,7 +1153,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills",
     "title": "Skills Reference",
-    "description": "Complete reference for all 107 OrchestKit skills."
+    "description": "Complete reference for all 108 OrchestKit skills."
   },
   {
     "url": "/docs/reference/skills/interaction-patterns",
@@ -1223,7 +1228,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/page-serve",
     "title": "Page Serve",
-    "description": "Hand a human a rendered HTML page at a stable HTTPS URL. Registers a portless route for a file or directory (https://NAME.localhost/, never a :port), prints the URL, optionally screenshots it through agent-browser, and tears it down on stop. Use whenever an agent has produced a page a human is meant to open: glyph explainers, playgrounds, decision pages, visualize-plan output, a docs preview. Replaces the ad hoc python http.server plus hand-typed alias pattern that leaves servers alive across sessions."
+    "description": "Hand a human a rendered HTML page at a stable HTTPS URL. Registers a portless route for a file or directory (https://NAME.localhost/, never a :port), prints the URL, optionally screenshots it, and tears it down on stop. Use when an agent produced a page a human is meant to open: glyph explainers, playgrounds, decision pages, docs previews. Replaces ad hoc python http.server plus alias patterns that leave servers alive."
   },
   {
     "url": "/docs/reference/skills/paired-probe",
@@ -1508,7 +1513,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/skills/dependency-graph",
     "title": "Skill Dependency Graph",
-    "description": "Interactive visualization of how OrchestKit's 107 skills connect through dependency relationships."
+    "description": "Interactive visualization of how OrchestKit's 108 skills connect through dependency relationships."
   },
   {
     "url": "/docs/skills",
@@ -1523,7 +1528,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/skills/reference-skills",
     "title": "Reference Skills",
-    "description": "The 71 user-invocable:false skills auto-injected into agent context — the knowledge library behind OrchestKit agents."
+    "description": "The 72 user-invocable:false skills auto-injected into agent context — the knowledge library behind OrchestKit agents."
   },
   {
     "url": "/docs/skills/skill-composition",

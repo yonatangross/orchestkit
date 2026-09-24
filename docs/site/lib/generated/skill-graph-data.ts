@@ -435,6 +435,16 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "usedByCount": 0
   },
   {
+    "id": "error-analysis",
+    "label": "Error Analysis",
+    "type": "reference",
+    "complexity": "high",
+    "category": "testing",
+    "hasDeps": true,
+    "depCount": 2,
+    "usedByCount": 0
+  },
+  {
     "id": "errors",
     "label": "Errors",
     "type": "reference",
@@ -632,7 +642,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "category": "workflow",
     "hasDeps": false,
     "depCount": 0,
-    "usedByCount": 18
+    "usedByCount": 19
   },
   {
     "id": "memory-fabric",
@@ -962,7 +972,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "category": "testing",
     "hasDeps": false,
     "depCount": 0,
-    "usedByCount": 2
+    "usedByCount": 3
   },
   {
     "id": "testing-patterns",
@@ -1336,6 +1346,14 @@ export const GRAPH_EDGES: SkillGraphEdge[] = [
   {
     "source": "doctor",
     "target": "configure"
+  },
+  {
+    "source": "error-analysis",
+    "target": "testing-llm"
+  },
+  {
+    "source": "error-analysis",
+    "target": "memory"
   },
   {
     "source": "expect",

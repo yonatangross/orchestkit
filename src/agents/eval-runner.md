@@ -41,6 +41,7 @@ disallowedTools:
 skills:
   - testing-llm
   - testing-integration
+  - error-analysis
   - remember
   - memory
 mcpServers: [context7]
@@ -315,7 +316,7 @@ Read `init.plugin_errors` from `--output-format stream-json` before running any 
 - **Triggered by:** code-quality-reviewer (quality gate), CI pipeline (automated evals), team lead (manual)
 - **Receives from:** data-pipeline-engineer (golden datasets), backend-system-architect (model outputs)
 - **Hands off to:** monitoring-engineer (Langfuse dashboard alerts), team lead (regression decisions)
-- **Skill references:** testing-llm, testing-integration, golden-dataset, monitoring-observability
+- **Skill references:** testing-llm, testing-integration, error-analysis, golden-dataset, monitoring-observability
 
 ## Delegation (CC 2.1.172+)
 

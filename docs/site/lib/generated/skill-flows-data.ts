@@ -3245,6 +3245,52 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
       }
     ]
   },
+  "error-analysis": {
+    "tier": "headings",
+    "lanes": [
+      {
+        "id": "core",
+        "label": "Steps",
+        "nodes": [
+          {
+            "num": "1",
+            "label": "Pull Traces",
+            "does": "Goal: a working pool of ~100 diverse traces (default N=100), skewed toward failures.",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "2",
+            "label": "Open Coding",
+            "does": "Open coding is a human activity. The reviewer is the benevolent dictator: one person owns the labels so the taxonomy stays coherent. Claude accelerates, it does not label unattended.",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "3",
+            "label": "Axial Coding",
+            "does": "When open coding slows or the pool is exhausted, cluster the notes:",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "4",
+            "label": "Write failure-taxonomy.md",
+            "does": "Write error-analysis/failure-taxonomy.md with two artifacts:",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "5",
+            "label": "Recommend Evals",
+            "does": "For each eval: yes mode, write a recommendation in error-analysis/eval-recommendations.md:",
+            "out": null,
+            "tag": null
+          }
+        ]
+      }
+    ]
+  },
   "errors": {
     "tier": "sections",
     "lanes": [
