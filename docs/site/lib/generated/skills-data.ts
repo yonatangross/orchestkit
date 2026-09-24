@@ -1244,10 +1244,14 @@ export const SKILLS: Record<string, SkillMeta> = {
     "complexity": "high",
     "structure": {
       "references": [
+        "behaviour-gate.md",
         "claude-code.md",
         "coverage-report-template.md",
         "heal-loop-strategy.md",
         "real-service-detection.md"
+      ],
+      "scripts": [
+        "check-behaviour-tests.mjs"
       ]
     },
     "plugins": [
