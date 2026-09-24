@@ -231,8 +231,8 @@ function expectedActual(f) {
 
 // Deterministic assertion diff over a fix's before/after text. The agent's category and
 // touches_expected_value are labels it chose; this reads the code it says it changed.
-// JS expect(...) keeps its subject out of the key, so a selector or subject change passes
-// while any change to the matcher chain or its arguments (the expected side) does not.
+// A JS expect(...) is keyed by its matcher chain and arguments (the expected side); its
+// subject is compared separately and may only change as a locator swap in a stale-selector fix.
 const EXPECT_CALL = /\bexpect(?:\.soft)?\s*\(/g;
 const LINE_ASSERTIONS = [
 	/^\s*assert\b.*$/gm, // pytest / plain assert
@@ -261,11 +261,15 @@ function closeParen(text, open) {
 	return text.length;
 }
 
-function assertionKeys(text) {
-	const keys = [];
+// expect(key, subject, expectedSide): expectedSide is the matcher arguments only.
+function extractAssertions(text) {
+	const out = [];
 	for (const m of text.matchAll(EXPECT_CALL)) {
-		let i = closeParen(text, m.index + m[0].length - 1);
+		const open = m.index + m[0].length - 1;
+		let i = closeParen(text, open);
+		const subject = squash(text.slice(open + 1, i - 1));
 		let chain = "";
+		let args = "";
 		for (;;) {
 			const step = /^\s*\.\s*([A-Za-z_$][\w$]*)\s*/.exec(text.slice(i));
 			if (!step) break;
@@ -274,34 +278,101 @@ function assertionKeys(text) {
 			if (text[i] === "(") {
 				const end = closeParen(text, i);
 				chain += squash(text.slice(i, end));
+				args += text.slice(i, end);
 				i = end;
 			}
 		}
-		keys.push(`expect(...)${chain}`);
+		out.push({ key: `expect(...)${chain}`, subject, expectedSide: args, raw: subject + chain, js: true });
 	}
 	for (const re of LINE_ASSERTIONS) {
-		for (const m of text.matchAll(re)) keys.push(squash(m[0]));
+		for (const m of text.matchAll(re)) {
+			out.push({ key: squash(m[0]), subject: "", expectedSide: m[0], raw: m[0], js: false });
+		}
 	}
-	return keys;
+	return out;
 }
 
-function assertionChange(before, after) {
-	const was = assertionKeys(before);
-	const now = assertionKeys(after);
-	const left = [...now];
+const LITERAL = /(["'`])(?:\\.|(?!\1).)*\1|\b\d+(?:\.\d+)?\b|\b(?:true|false|null|undefined|None|True|False)\b/g;
+const literals = (s) => (String(s).match(LITERAL) || []).map((l) => l.replace(/^["'`]|["'`]$/g, ""));
+const names = (s) => new Set(String(s).match(/[A-Za-z_$][\w$]*/g) || []);
+// name = value, with an optional const/let/var and TS type; not ==, ===, => or a property.
+const ASSIGNMENT =
+	/(?:^|[;{(\s])(?:(?:const|let|var)\s+)?([A-Za-z_$][\w$]*)\s*(?::\s*[\w<>[\]|, ]+?)?\s*=(?![=>])\s*([^;\n]+)/g;
+
+function assignments(text) {
+	const out = new Map();
+	for (const m of text.matchAll(ASSIGNMENT)) out.set(m[1], squash(m[2]));
+	return out;
+}
+
+// A locator root: getBy*/queryBy*/findBy* or locator(, optionally behind page., screen.,
+// within(x). and the like. Math.min(res.status, 409) or a bare 409 is not one.
+const LOCATOR_SUBJECT =
+	/^(?:[A-Za-z_$][\w$]*(?:\([^()]*\))?\.)*(?:(?:get|query|find)(?:All)?By[A-Z]\w*|locator)\(/;
+
+// Added control flow around an assertion can stop it from ever failing.
+const GUARDS = [
+	["try", /\btry\s*[{:]/g],
+	["catch", /\bcatch\b|\bexcept\b/g],
+	["return", /\breturn\b/g],
+	["if", /\bif\s*\(|^\s*(?:el)?if\s[^\n]*:\s*$/gm],
+	["ternary", /\s\?\s[^\n]*?\s:\s/g],
+	["&& or ||", /&&|\|\|/g],
+];
+
+function assertionChange(before, after, fix = {}, target = {}) {
+	const was = extractAssertions(before);
+	const now = extractAssertions(after);
+	const cut = (k) => String(k).slice(0, 120);
+
+	const left = now.map((a) => a.key);
 	const missing = [];
-	for (const k of was) {
-		const i = left.indexOf(k);
+	for (const a of was) {
+		const i = left.indexOf(a.key);
 		if (i >= 0) left.splice(i, 1);
-		else missing.push(k);
+		else missing.push(a.key);
 	}
-	const cut = (k) => k.slice(0, 120);
 	if (missing.length) {
 		const weak = left.find((k) => WEAK_MATCHER.test(k));
 		if (weak) return `assertion weakened: ${cut(missing[0])} became ${cut(weak)}`;
 		if (now.length < was.length) return `assertion removed: ${cut(missing[0])}`;
 		return `assertion expected side changed: ${cut(missing[0])}`;
 	}
+
+	const [expectedValue] = expectedActual(target);
+	const unpaired = now.filter((a) => a.js);
+	for (const o of was.filter((a) => a.js)) {
+		const i = unpaired.findIndex((a) => a.key === o.key);
+		if (i < 0) continue;
+		const [n] = unpaired.splice(i, 1);
+		if (n.subject === o.subject) continue;
+		const swap =
+			fix.category === "stale-selector" &&
+			LOCATOR_SUBJECT.test(o.subject) &&
+			LOCATOR_SUBJECT.test(n.subject) &&
+			!(expectedValue !== "?" && literals(n.subject).includes(expectedValue.replace(/^["'`]|["'`]$/g, "")));
+		if (!swap) return `assertion subject changed: expect(${cut(o.subject)}) became expect(${cut(n.subject)})`;
+	}
+
+	const asserted = names([...was, ...now].map((a) => a.raw).join(" "));
+	const expectedNames = names([...was, ...now].filter((a) => a.js).map((a) => a.expectedSide).join(" "));
+	const wasSet = assignments(before);
+	const nowSet = assignments(after);
+	for (const [name, value] of wasSet) {
+		if (!nowSet.has(name) || nowSet.get(name) === value) continue;
+		const literalChange = literals(value).join("\u0000") !== literals(nowSet.get(name)).join("\u0000");
+		if ((asserted.has(name) && literalChange) || expectedNames.has(name)) {
+			return `expected value changed through ${name}: ${cut(value)} became ${cut(nowSet.get(name))}`;
+		}
+	}
+
+	if (now.length) {
+		for (const [label, re] of GUARDS) {
+			const count = (s) => (s.match(re) || []).length;
+			if (count(after) > count(before)) return `fix adds ${label} around or before an assertion`;
+		}
+	}
+
 	const skips = (s) => (s.match(SKIP_MARKER) || []).length;
 	if (skips(after) > skips(before)) return "fix adds skip, only, todo or xfail";
 	return null;
@@ -335,7 +406,7 @@ function flagProductBug(f, origin, iteration, reason) {
 }
 
 // Returns the reason a reported fix is rejected, or null when heal may keep it.
-function vetFix(fix) {
+function vetFix(fix, target) {
 	if (VALUE_MISMATCH.has(fix.category)) {
 		return `fix targets a ${fix.category} failure; value mismatches are never healed`;
 	}
@@ -343,13 +414,13 @@ function vetFix(fix) {
 	if (typeof fix.before !== "string" || typeof fix.after !== "string") {
 		return "fix reported no before/after text, so it cannot be vetted";
 	}
-	const changed = assertionChange(fix.before, fix.after);
+	const changed = assertionChange(fix.before, fix.after, fix, target);
 	if (changed) return changed;
 	if (EXPECTED_EDIT.test(String(fix.change || ""))) {
 		return "fix describes an expected value or snapshot rewrite";
 	}
-	const target = failureKey({ file: fix.file, test: fix.test });
-	if (fix.test && productBugs.has(target)) {
+	const fixKey = failureKey({ file: fix.file, test: fix.test });
+	if (fix.test && productBugs.has(fixKey)) {
 		return "fix edits a test already reported as a possible product bug";
 	}
 	for (const bug of productBugs.values()) {
@@ -540,7 +611,7 @@ or xfail, whatever category you report.`,
 	const accepted = [];
 	const rejected = [];
 	for (const fix of fixes) {
-		const reason = vetFix(fix);
+		const reason = vetFix(fix, fixTarget(fix, repairable));
 		if (reason) rejected.push({ fix, reason });
 		else accepted.push(fix);
 	}

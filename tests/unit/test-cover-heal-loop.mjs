@@ -389,16 +389,42 @@ const vetCases = [
   ['import path', "import { login } from './auth'", "import { login } from '../../src/auth'", false],
   ['fixture added', '', 'beforeEach(() => { db = createTestDb() })', false],
   ['deterministic wait', 'await sleep(300)', 'await vi.advanceTimersByTimeAsync(300)', false],
-  ['selector in the expect subject', "await expect(page.getByTestId('submit')).toBeVisible()", "await expect(page.getByRole('button', { name: 'Submit' })).toBeVisible()", false],
+  ['stale-selector locator swap', "await expect(page.getByTestId('submit')).toBeVisible()", "await expect(page.getByRole('button', { name: 'Submit' })).toBeVisible()", false, 'stale-selector'],
   ['assertion added', 'expect(a).toBe(1)', 'expect(a).toBe(1)\nexpect(b).toBe(2)', false],
   ['whitespace only', 'expect(a).toBe( 1 )', 'expect(a).toBe(1)', false],
+  ['setup change on a subject variable', "const user = makeUser()\nexpect(user.name).toBe('ada')", "const user = await makeUser(db)\nexpect(user.name).toBe('ada')", false],
+  // c13 probe (5a902387): each turned a failing value assertion green and passed as unchanged.
+  ['c13 1: expected value via a const', 'const want = 409\nexpect(res.status).toBe(want)', 'const want = 422\nexpect(res.status).toBe(want)', true],
+  ['c13 2: subject rewritten to the literal', 'expect(res.status).toBe(409)', 'expect(409).toBe(409)', true],
+  ['c13 3: subject clamped', 'expect(res.status).toBe(409)', 'expect(Math.min(res.status, 409)).toBe(409)', true],
+  ['c13 4: wrapped in try/catch', 'expect(res.status).toBe(409)', 'try { expect(res.status).toBe(409) } catch {}', true],
+  ['c13 5: early return before the assertion', 'expect(res.status).toBe(409)', 'return;\nexpect(res.status).toBe(409)', true],
+  ['c13 6: if (false) in front', 'expect(res.status).toBe(409)', 'if (false) expect(res.status).toBe(409)', true],
+  ['c13 7: python WANT constant', 'WANT = 409\nassert resp.status_code == WANT', 'WANT = 422\nassert resp.status_code == WANT', true],
+  ['c13 control: direct value edit', 'expect(res.status).toBe(409)', 'expect(res.status).toBe(422)', true],
+  ['c13 control: weaken', 'expect(res.status).toBe(409)', 'expect(res.status).toBeDefined()', true],
+  ['c13 control: import path fix', "import { app } from './app'", "import { app } from '../../src/app'", false],
+  // Rule boundaries: the selector swap is narrow, and the expected side cannot be recomputed.
+  ['stale-selector label, literal subject', "await expect(page.getByTestId('status')).toHaveText('409')", "await expect('409').toHaveText('409')", true, 'stale-selector'],
+  ['flaky label, locator swap', "await expect(page.getByTestId('submit')).toBeVisible()", "await expect(page.getByRole('button')).toBeVisible()", true],
+  ['expected side recomputed from the subject', 'const want = expectedTotal(cart)\nexpect(total).toBe(want)', 'const want = total\nexpect(total).toBe(want)', true],
+  ['adds && guard', 'expect(res.status).toBe(409)', 'res.ok && expect(res.status).toBe(409)', true],
+  ['adds ternary', 'expect(res.status).toBe(409)', 'res.ok ? expect(res.status).toBe(409) : null', true],
 ];
-for (const [label, before, after, reject] of vetCases) {
+const STALE_F = {
+  test: 'submit button',
+  file: 'tests/e2e/checkout.spec.ts',
+  line: 14,
+  category: 'stale-selector',
+  message: "Error: locator.click: Timeout 5000ms waiting for getByTestId('submit')",
+};
+for (const [label, before, after, reject, kind] of vetCases) {
   await scenario(`vet: ${label}`, async () => {
+    const target = kind === 'stale-selector' ? STALE_F : FLAKY_E;
     const { result } = await runLoop({
-      runs: [red([FLAKY_E]), GREEN],
-      repairs: [repairOf([fix(FLAKY_E, { change: 'stabilised the test', before, after })])],
-      reverts: REVERT_E,
+      runs: [red([target]), GREEN],
+      repairs: [repairOf([fix(target, { change: 'stabilised the test', before, after })])],
+      reverts: [{ reverted: [{ file: target.file, line: target.line, restored: true }] }],
     });
     check(`vet ${label}: ${reject ? 'rejected' : 'kept'}`, [result.iteration_ledger[0].rejected_fixes, result.healed], reject ? [1, false] : [0, true]);
   });

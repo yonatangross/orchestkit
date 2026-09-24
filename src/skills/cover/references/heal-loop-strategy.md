@@ -53,12 +53,24 @@ trusted on their own. `heal-loop.js` also decides from the text:
   codes on one `status` line) is a value mismatch whatever category the run agent gave it.
   TS2554 `Expected 2 arguments, but got 1` is excluded, it is a type error.
 - **Fix vetting.** Assertions are extracted from each fix's `before` and `after`: `expect(...)`
-  with its whole matcher chain and arguments (the subject is ignored, so a selector change
-  passes), Python `assert`, `assertEqual`/`assertTrue` style calls, `assert.*`, `pytest.raises`,
-  chai `should`, and status comparisons. The fix is rejected when any assertion from `before`
-  is missing from `after` (changed, removed, negated, or weakened to `toBeDefined`,
-  `toBeTruthy`, `not.toThrow`), or when `after` adds `skip`, `only`, `todo`, `fixme` or `xfail`.
-  Edits that touch no assertion (imports, fixtures, waits, selectors) pass.
+  keyed by its whole matcher chain and arguments, Python `assert`, `assertEqual`/`assertTrue`
+  style calls, `assert.*`, `pytest.raises`, chai `should`, and status comparisons. The fix is
+  rejected when:
+  - an assertion from `before` is missing from `after` (changed, removed, negated, or
+    weakened to `toBeDefined`, `toBeTruthy`, `not.toThrow`);
+  - an `expect(...)` subject changes, unless the fix is `stale-selector`, both subjects are
+    locator expressions (`getBy*`, `queryBy*`, `findBy*`, `locator(`, behind `page.`,
+    `screen.` or `within(x).`), and the new subject holds no literal equal to the failure's
+    expected value. `expect(409)` or `expect(Math.min(res.status, 409))` never passes;
+  - an assignment changes a literal for a name used in any assertion (`const want = 409`
+    to `422`, Python `WANT = 409` to `422`), or changes at all for a name in an `expect`
+    matcher's arguments;
+  - `after` adds `try`, `catch`/`except`, `return`, `if`, a ternary, `&&` or `||` while it
+    contains an assertion (counted against `before`);
+  - `after` adds `skip`, `only`, `todo`, `fixme` or `xfail`.
+
+  Edits that touch no assertion (imports, fixtures, waits) pass, and so does a locator swap
+  in a stale-selector fix.
 
 ## Possible Product Bugs
 
