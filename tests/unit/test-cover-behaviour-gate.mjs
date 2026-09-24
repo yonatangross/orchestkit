@@ -22,7 +22,9 @@
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { checkFile, checkTestSource } from '../../src/skills/cover/scripts/check-behaviour-tests.mjs';
+import * as gate from '../../src/skills/cover/scripts/check-behaviour-tests.mjs';
+
+const { checkFile, checkTestSource } = gate;
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const FIXTURES = path.join(ROOT, 'tests', 'fixtures', 'cover-behaviour-gate');
@@ -98,6 +100,14 @@ const EXPECTED = {
     test_opens_the_module: 'c',
     test_still_computes_a_total: 'keep',
   }],
+  // Runner shapes beyond it/test: each asserts behaviour, so each must be kept.
+  'deno.ts': ['keep', { adds: 'keep' }],
+  'tap.js': ['keep', { adds: 'keep' }],
+  'fit.js': ['keep', { adds: 'keep' }],
+  'named.js': ['keep', { adds: 'keep' }],
+  'suites.js': ['keep', { adds: 'keep', subtracts: 'keep' }],
+  // No recognised case: reported for review, never dropped (dropping deletes the file).
+  'no-tests.ts': ['unchecked', {}],
 };
 
 for (const [file, [fileVerdict, perTest]] of Object.entries(EXPECTED)) {
@@ -159,7 +169,43 @@ assert compute() == 1
 def test_second():
     assert compute() == 1`), { test_first: 'b', test_second: 'keep' });
 
-check('a file with no test cases is dropped', checkTestSource('export const x = 1;\n', { filename: 'x.test.ts' }).verdict, 'drop');
+check('a file with no recognised test case is unchecked, never dropped',
+  checkTestSource('export const x = 1;\n', { filename: 'x.test.ts' }).verdict, 'unchecked');
+
+check('a named function body is gated like an inline one', js(`
+function callsGateway() { charge(1); expect(gateway.charge).toHaveBeenCalled(); }
+const $adds = async () => { expect(await add(1, 2)).toBe(3); };
+function runsOnly() { add(1, 2); }
+it('mock only', callsGateway);
+it('dollar named arrow', $adds);
+test('runs only', runsOnly);`), { 'mock only': 'a', 'dollar named arrow': 'keep', 'runs only': 'b' });
+
+check('a source read inside a named function body is rule (c)', js(`
+function readsPricing() { expect(readFileSync('src/pricing.ts', 'utf8')).toContain('rate'); }
+it('mentions rate', readsPricing);`), { 'mentions rate': 'c' });
+
+const imported = checkTestSource(`import { sharedCase } from './cases.js';\nit('shared', sharedCase);\n`, { filename: 'x.test.js' });
+check('a body imported from another file is unchecked, never rejected',
+  [imported.verdict, verdicts(imported)], ['unchecked', { shared: 'unchecked' }]);
+
+check('tap and ava context assertions are judged by method', js(`
+t.test('equal', (t) => { t.equal(add(1, 2), 3); t.end(); });
+t.test('pass only', (t) => { add(1, 2); t.pass(); t.end(); });
+test('ava is', (t) => { t.is(add(1, 2), 3); });
+test('ava wrapped call', (t) => { t.notThrows(() => add(1, 2)); });`),
+{ equal: 'keep', 'pass only': 'b', 'ava is': 'keep', 'ava wrapped call': 'b' });
+
+check('Deno.test with an options object takes its name and fn body', js(`
+Deno.test({ name: 'adds', fn() { assertEquals(add(1, 2), 3); } });
+Deno.test({ name: 'runs', fn: () => { add(1, 2); } });`), { adds: 'keep', runs: 'b' });
+
+const META = 'a.b*c+d?e^f$g{h}i(j)k|l[m]n\\o/p';
+const escape = typeof gate.escapeRegExp === 'function' ? gate.escapeRegExp : () => null;
+check('escapeRegExp escapes every regex metacharacter', [
+  new RegExp(`^${escape(META)}$`).test(META),
+  new RegExp(`^${escape(META)}$`).test(META.replace('.', 'X')),
+  new RegExp(`^${escape('a|b')}$`).test('a'),
+], [true, false, false]);
 
 // --- CLI contract -----------------------------------------------------------
 
@@ -178,6 +224,10 @@ check('CLI summary counts keep and unchecked files', cleanRun.stdout.trim().spli
 check('CLI lists each rejected test with its rule and line',
   run([path.join(FIXTURES, 'mock_only.py')]).stdout.split('\n')[1],
   '  reject [a] line 7 "test_calls_gateway": only mock-call assertions (1); nothing asserts an observable result');
+const uncheckedRun = run([path.join(FIXTURES, 'no-tests.ts')]);
+check('CLI exits 0 and reports a file with no recognised test as unchecked',
+  [uncheckedRun.status, uncheckedRun.stdout.trim().split('\n').pop()],
+  [0, 'behaviour gate: 1 files, 0 keep, 0 partial, 0 drop, 1 unchecked']);
 check('CLI exits 2 with no files', run([]).status, 2);
 check('CLI exits 2 on an unreadable file', run([path.join(FIXTURES, 'missing.ts')]).status, 2);
 

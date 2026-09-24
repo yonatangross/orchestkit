@@ -13,8 +13,12 @@
  * are masked before any code pattern is matched, so `"expect("` in a string counts for
  * nothing. Assertion helpers are recognised only when named expect* / assert*.
  *
+ * A file with no recognised test case, or a case whose body cannot be seen, is
+ * `unchecked`: reported for review, never a reason to delete anything. A file is `drop`
+ * only when at least one case was recognised and every recognised case was rejected.
+ *
  * Usage: node check-behaviour-tests.mjs [--json] <test-file>...
- * Exit:  0 every test kept · 1 at least one test rejected · 2 usage or read error
+ * Exit:  0 nothing rejected (keep or unchecked) · 1 at least one test rejected · 2 usage or read error
  */
 import { readFileSync, realpathSync } from 'node:fs';
 import { extname } from 'node:path';
@@ -258,8 +262,64 @@ function commentsAbove(src, comments, offset) {
 // Test case discovery
 // ---------------------------------------------------------------------------
 
+// it / test (Jest, Vitest, Mocha, Playwright, node:test), fit / xit / xtest (Jasmine, Jest),
+// Deno.test, and tap's t.test / tap.test. fdescribe / xdescribe are suites, not cases.
 const JS_TEST_START =
-  /(?<![\w$.])(it|test)((?:\.(?:only|skip|concurrent|sequential|fails|failing|fixme|slow|todo|each|for|(?:skipIf|runIf)\s*\([^()]*\)))*)\s*([(`])/g;
+  /(?<![\w$.])(Deno\.test|(?:t|tap)\.test|it|test|fit|xit|xtest)((?:\.(?:only|skip|ignore|concurrent|sequential|fails|failing|fixme|slow|todo|each|for|(?:skipIf|runIf)\s*\([^()]*\)))*)\s*([(`])/g;
+const INLINE_FN = /=>|\bfunction\b|\bfn\s*\(/;
+
+export function escapeRegExp(s) {
+  return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function topLevelArgs(masked, open, close) {
+  const out = [];
+  let depth = 0;
+  let from = open + 1;
+  for (let j = open + 1; j < close; j++) {
+    const c = masked[j];
+    if (c === '(' || c === '[' || c === '{') depth++;
+    else if (c === ')' || c === ']' || c === '}') depth -= 1;
+    else if (c === ',' && depth === 0) {
+      out.push([from, j]);
+      from = j + 1;
+    }
+  }
+  out.push([from, close]);
+  return out;
+}
+
+// Body range of a function declared in this file under `name`:
+// `function name(...) {...}` or `const name = (...) => {...}` / `= function (...) {...}`.
+function resolveFunction(masked, name) {
+  const id = escapeRegExp(name);
+  const decl = new RegExp(`(?<![\\w$.])(?:async\\s+)?function\\s*\\*?\\s*${id}\\s*\\(`).exec(masked);
+  if (decl) {
+    const paramsClose = matchParen(masked, decl.index + decl[0].length - 1);
+    const brace = masked.indexOf('{', paramsClose);
+    if (brace !== -1) return { start: decl.index, bodyStart: brace, end: matchParen(masked, brace) + 1 };
+  }
+  const bound = new RegExp(`(?<![\\w$.])(?:const|let|var)\\s+${id}\\s*=\\s*`).exec(masked);
+  if (bound) {
+    const from = bound.index + bound[0].length;
+    const arrow = /^(?:async\s*)?(?:function\b[^{]*|(?:\([^)]*\)|[A-Za-z_$][\w$]*)\s*=>\s*)/.exec(masked.slice(from));
+    if (arrow) {
+      const at = skipSpace(masked, from + arrow[0].length);
+      if (masked[at] === '{') return { start: bound.index, bodyStart: at, end: matchParen(masked, at) + 1 };
+      return { start: bound.index, bodyStart: at, end: lineBounds(masked, at)[1] };
+    }
+  }
+  return null;
+}
+
+// Names the case callback gives its test context (`(t) =>`, `function (t)`), for tap / ava asserts.
+function contextParams(argsText) {
+  const names = new Set();
+  for (const m of argsText.matchAll(/(?:^|[,(\s])(?:async\s*)?\(\s*([A-Za-z_$][\w$]*)\s*[,)]\s*=>|(?:^|[,(\s])([A-Za-z_$][\w$]*)\s*=>|\bfunction\b[^(]*\(\s*([A-Za-z_$][\w$]*)/g)) {
+    names.add(m[1] || m[2] || m[3]);
+  }
+  return names;
+}
 
 function findJsTests(src, masked, strings) {
   const tests = [];
@@ -280,11 +340,26 @@ function findJsTests(src, masked, strings) {
     JS_TEST_START.lastIndex = close + 1;
     const args = masked.slice(open + 1, close);
     if (/\.todo\b/.test(modifiers)) continue;
-    if (!/=>|\bfunction\b/.test(args)) continue;
-    const first = skipSpace(masked, open + 1);
+    let first = skipSpace(masked, open + 1);
+    const nameKey = masked[first] === '{' ? /\bname\s*:\s*/.exec(args) : null;
+    if (nameKey) first = open + 1 + nameKey.index + nameKey[0].length;
     const lit = strings.find(([s]) => s === first);
     const name = lit ? src.slice(lit[0] + 1, lit[1] - 1) : args.trim().split(/[,\s]/)[0];
-    tests.push({ name, start, end: close + 1, bodyStart: open + 1 });
+    const test = { name, start, end: close + 1, ranges: [[open + 1, close]], receivers: contextParams(args) };
+    if (!INLINE_FN.test(args)) {
+      const parts = topLevelArgs(masked, open, close).map(([a, b]) => masked.slice(a, b).trim());
+      const ref = parts.length >= 2 && /^[A-Za-z_$][\w$]*$/.test(parts[1]) ? parts[1] : null;
+      if (!ref) continue;
+      const fn = resolveFunction(masked, ref);
+      if (fn) {
+        test.ranges.push([fn.bodyStart, fn.end]);
+        test.fnStart = fn.start;
+        for (const p of contextParams(masked.slice(fn.start, fn.bodyStart))) test.receivers.add(p);
+      } else {
+        test.unresolved = ref;
+      }
+    }
+    tests.push(test);
   }
   return tests;
 }
@@ -317,7 +392,7 @@ function findPythonTests(src, masked) {
         cursor = le + 1;
       }
     }
-    tests.push({ name: m[2], start: m.index + defIndent, end, bodyStart: colon + 1 });
+    tests.push({ name: m[2], start: m.index + defIndent, end, ranges: [[colon + 1, end]], receivers: new Set() });
   }
   return tests;
 }
@@ -355,8 +430,21 @@ function classifyChain(names, arg) {
   return 'behaviour';
 }
 
-function classifyJs(body) {
+// tap and ava assertion methods on the case's context object (`t.equal(...)`, `t.is(...)`).
+const CONTEXT_ASSERT =
+  /^(?:equal|not|notEqual|same|notSame|strictSame|strictNotSame|strictEqual|notStrictEqual|deepEqual|notDeepEqual|ok|notOk|true|false|truthy|falsy|is|match|notMatch|has|hasStrict|notHas|type|throws|throwsAsync|rejects|resolveMatch|error|like|unlike|regex|notRegex|snapshot|matchSnapshot)$/;
+const CONTEXT_NO_THROW = /^(?:doesNotThrow|notThrows|notThrowsAsync|resolves)$/;
+
+function classifyJs(body, receivers = new Set()) {
   const kinds = [];
+  for (const r of receivers) {
+    for (const m of body.matchAll(new RegExp(`(?<![\\w$.])${escapeRegExp(r)}\\.([A-Za-z_$][\\w$]*)\\s*\\(`, 'g'))) {
+      const open = m.index + m[0].length - 1;
+      const arg = body.slice(open + 1, matchParen(body, open));
+      if (CONTEXT_NO_THROW.test(m[1])) kinds.push('noThrow');
+      else if (CONTEXT_ASSERT.test(m[1])) kinds.push(JS_MOCK_ARG.test(arg) ? 'mock' : 'behaviour');
+    }
+  }
   for (const m of body.matchAll(/(?<![\w$.])expect(?:\.(?:soft|poll|element))?\s*\(/g)) {
     const open = m.index + m[0].length - 1;
     const close = matchParen(body, open);
@@ -419,7 +507,7 @@ const SELF_READ =
 const FIXTURE_PATH = /fixture|testdata|test_data|__snapshots__|golden/i;
 
 function declarationLines(src, name, language) {
-  const esc = name.replace(/[$]/g, '\\$');
+  const esc = escapeRegExp(name);
   const re = language === 'js'
     ? new RegExp(`(?:const|let|var)\\s+${esc}\\s*=[^\\n]*`, 'g')
     : new RegExp(`^[ \\t]*${esc}\\s*(?::[^=\\n]+)?=(?!=)[^\\n]*`, 'gm');
@@ -487,24 +575,37 @@ function findSourceReads(src, masked, language) {
 // Verdicts
 // ---------------------------------------------------------------------------
 
+function covers(test, offset) {
+  return (offset >= test.start && offset < test.end) || test.ranges.some(([a, b]) => offset >= a && offset < b);
+}
+
 function verdictFor(test, ctx) {
   const { src, masked, comments, strings, language, reads } = ctx;
-  const body = masked.slice(test.bodyStart, test.end);
-  const inside = reads.filter((r) => r.offset >= test.start && r.offset < test.end);
+  if (test.unresolved) {
+    return { verdict: 'unchecked', rule: null, reason: `body is ${test.unresolved}, not declared in this file; review it by hand` };
+  }
+  const body = test.ranges.map(([a, b]) => masked.slice(a, b)).join('\n');
+  const inside = reads.filter((r) => covers(test, r.offset));
   const viaBinding = reads.filter((r) => !r.inTest && r.binding &&
-    new RegExp(`(?<![\\w$.])${r.binding.replace(/[$]/g, '\\$')}(?![\\w$])`).test(body));
+    new RegExp(`(?<![\\w$.])${escapeRegExp(r.binding)}(?![\\w$])`).test(body));
   const read = inside[0] || viaBinding[0];
   if (read) {
     return { verdict: 'reject', rule: 'c', reason: `reads source text instead of executing it (line ${read.line}: ${read.text})` };
   }
-  const kinds = language === 'js' ? classifyJs(body) : classifyPython(body);
+  const kinds = language === 'js' ? classifyJs(body, test.receivers) : classifyPython(body);
   const behaviour = kinds.filter((k) => k === 'behaviour').length;
   const mock = kinds.filter((k) => k === 'mock').length;
   if (behaviour > 0) return { verdict: 'keep', rule: null, reason: `asserts behaviour (${behaviour} assertion${behaviour === 1 ? '' : 's'})` };
   if (mock > 0) return { verdict: 'reject', rule: 'a', reason: `only mock-call assertions (${mock}); nothing asserts an observable result` };
-  let contractText = `${test.name}\n${commentText(src, comments, test.start, test.end)}\n${commentsAbove(src, comments, test.start)}`;
+  let contractText = [
+    test.name,
+    ...test.ranges.map(([a, b]) => commentText(src, comments, a, b)),
+    commentText(src, comments, test.start, test.end),
+    commentsAbove(src, comments, test.start),
+    test.fnStart === undefined ? '' : commentsAbove(src, comments, test.fnStart),
+  ].join('\n');
   if (language === 'python') {
-    const first = skipSpace(masked, test.bodyStart);
+    const first = skipSpace(masked, test.ranges[0][0]);
     const doc = strings.find(([s]) => s === first);
     if (doc) contractText += `\n${src.slice(doc[0], doc[1])}`;
   }
@@ -525,22 +626,30 @@ export function checkTestSource(src, { filename = '<source>', language = languag
   const found = language === 'js' ? findJsTests(src, masked, strings) : findPythonTests(src, masked);
   const reads = findSourceReads(src, masked, language).map((r) => ({
     ...r,
-    inTest: found.some((t) => r.offset >= t.start && r.offset < t.end),
+    inTest: found.some((t) => covers(t, r.offset)),
   }));
   const ctx = { src, masked, comments, strings, language, reads };
   const tests = found.map((t) => ({ name: t.name, line: lineAt(src, t.start), ...verdictFor(t, ctx) }));
   const rejected = tests.filter((t) => t.verdict === 'reject').length;
+  const unchecked = tests.filter((t) => t.verdict === 'unchecked').length;
   let verdict = 'keep';
-  let reason = `${tests.length} test${tests.length === 1 ? '' : 's'}, all assert behaviour`;
+  let reason = unchecked
+    ? `${tests.length - unchecked} of ${tests.length} tests assert behaviour, ${unchecked} unchecked`
+    : `${tests.length} test${tests.length === 1 ? '' : 's'}, all assert behaviour`;
+  // Zero recognised cases means the parser did not understand the file, not that it is
+  // hollow: report it and never let the skill delete it.
   if (tests.length === 0) {
-    verdict = 'drop';
-    reason = 'no test cases found';
+    verdict = 'unchecked';
+    reason = 'no test cases recognised; review it by hand, never delete it';
   } else if (rejected === tests.length) {
     verdict = 'drop';
     reason = `all ${tests.length} tests rejected`;
   } else if (rejected > 0) {
     verdict = 'partial';
     reason = `${rejected} of ${tests.length} tests rejected`;
+  } else if (unchecked === tests.length) {
+    verdict = 'unchecked';
+    reason = `${unchecked} test${unchecked === 1 ? '' : 's'} with a body declared elsewhere; review by hand, never delete`;
   }
   return { file: filename, language, verdict, reason, tests };
 }
@@ -555,6 +664,7 @@ function formatReport(results) {
     lines.push(`${r.verdict.toUpperCase().padEnd(9)} ${r.file}  (${r.reason})`);
     for (const t of r.tests) {
       if (t.verdict === 'reject') lines.push(`  reject [${t.rule}] line ${t.line} "${t.name}": ${t.reason}`);
+      else if (t.verdict === 'unchecked') lines.push(`  unchecked line ${t.line} "${t.name}": ${t.reason}`);
     }
   }
   const count = (v) => results.filter((r) => r.verdict === v).length;

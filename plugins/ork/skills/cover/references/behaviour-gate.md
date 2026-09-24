@@ -42,10 +42,13 @@ node "${CLAUDE_SKILL_DIR}/scripts/check-behaviour-tests.mjs" --json <new test fi
 ```
 
 Run it over the NEW test files only, never the pre-existing suite. Per file it reports
-`keep`, `partial` (some tests rejected), `drop` (every test rejected, or no test found), or
-`unchecked` (not JavaScript, TypeScript, or Python). Each rejected test has its rule,
-line, and reason. Exit `0` means every checked test was kept, `1` means something was rejected,
-and `2` means a usage or read error.
+`keep`, `partial` (some tests rejected), `drop` (at least one test recognised and every
+recognised test rejected), or `unchecked`. A file is `unchecked` when its language is not
+JavaScript, TypeScript, or Python, when no test case was recognised in it, or when every case
+passes a function declared in another file as its body. A single case can also be
+`unchecked` for that last reason. Each rejected test has its rule, line, and reason. Exit
+`0` means nothing was rejected (every result is `keep` or `unchecked`), `1` means something
+was rejected, and `2` means a usage or read error.
 
 On exit `1`: delete each rejected test, or delete the whole file when its verdict is `drop`,
 or rewrite the test to assert an observable result. Then re-run the checker until it exits
@@ -53,12 +56,16 @@ or rewrite the test to assert an observable result. Then re-run the checker unti
 a rule (b) failure. Record the final verdicts in `03-cover-generation.json` and list every
 dropped or rewritten test in the report's Behaviour Gate section.
 
-For `unchecked` files (Go, Rust, others), apply the same three rules by reading each new test.
+**Never delete an `unchecked` file or test.** Unchecked means the checker could not see the
+test, not that the test is hollow. Apply the same three rules by reading it, and fix it by
+hand only when it breaks one.
 
 ## Known limits
 
-The checker is static and heuristic. It recognises Jest, Vitest, Playwright, node:assert,
-chai, sinon, pytest, and unittest assertions. An assertion hidden in a helper counts only if
+The checker is static and heuristic. It recognises `it` / `test` / `fit` / `xit` cases
+(Jest, Vitest, Jasmine, Mocha, Playwright, node:test), `Deno.test`, and tap `t.test`, with an
+inline body or the name of a function declared in the same file. It recognises Jest, Vitest,
+Playwright, node:assert, chai, sinon, tap, ava, Deno, pytest, and unittest assertions. An assertion hidden in a helper counts only if
 the helper is named `expect*` or `assert*` (`assert_*` / `expect_*` in Python), so name
 helpers that way. A read is treated as a source read when its path, or a variable declared
 from that path, names a code file; paths containing `fixture`, `testdata`, or `__snapshots__`

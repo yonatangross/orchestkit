@@ -306,7 +306,7 @@ Output each agent's results **as soon as it returns**. Don't wait for all agents
 
 ### Phase 3b: Behaviour Gate
 
-Before Phase 4, run `node "${CLAUDE_SKILL_DIR}/scripts/check-behaviour-tests.mjs" --json <new test files>` over the NEW test files only. Exit 1 lists each rejected test with its rule: (a) only mock-call assertions, (b) no assertion, or only not-to-throw when not throwing is not the stated contract, (c) reads or greps source instead of executing it. Delete each rejected test (the whole file on `drop`) or rewrite it to assert an observable result, and re-run until exit 0. Run it again after Phase 5. Record the verdicts in `03-cover-generation.json`. Rules and limits: `Read("references/behaviour-gate.md")`.
+Before Phase 4, run `node "${CLAUDE_SKILL_DIR}/scripts/check-behaviour-tests.mjs" --json <new test files>` over the NEW test files only. Exit 1 lists each rejected test with its rule: (a) only mock-call assertions, (b) no assertion, or only not-to-throw when not throwing is not the stated contract, (c) reads or greps source instead of executing it. Delete each rejected test (the whole file on `drop`, which means every recognised test was rejected) or rewrite it to assert an observable result, and re-run until exit 0. Never delete an `unchecked` file or test (no test recognised, or its body is declared elsewhere): review it by hand. Run it again after Phase 5. Record the verdicts in `03-cover-generation.json`. Rules and limits: `Read("references/behaviour-gate.md")`.
 
 > **Focus mode (CC 2.1.101):** In focus mode, include the full coverage report (before/after delta, test count per tier, files created) in your final message.
 
