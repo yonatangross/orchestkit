@@ -683,11 +683,188 @@ function resolveCwdCandidates(
   return [...candidates];
 }
 
+/** Unescaped basename of a command token (`/usr/bin/env`, `en\\v` → `env`). */
+function commandBasename(tok: string): string {
+  const u = unescapeInterpreterName(unwrapToken(tok));
+  const slash = u.lastIndexOf('/');
+  return (slash >= 0 ? u.slice(slash + 1) : u).toLowerCase();
+}
+
+const SHELL_BASENAMES = new Set(['sh', 'bash', 'zsh', 'dash', 'ksh']);
+
 /**
- * Peel env / sudo in front of the interpreter with a POSITIVE option allowlist.
- * Allowed options are consumed; -C / -D / --chdir ADD to the cwd set.
- * Anything else means the whole RHS is an UNKNOWN program (DENY). Never advance
- * past an unknown option and treat the next token as the utility.
+ * Front wrappers the interpreter finder peels before env/sudo/the interpreter.
+ * Each entry is matched on unescaped basename. Value-taking forms advance past
+ * their operand so the next peel can see env/sudo again.
+ */
+function skipOneFrontWrapper(tokens: string[], startIdx: number): number | null {
+  if (startIdx >= tokens.length) return null;
+  const base = commandBasename(tokens[startIdx]!);
+  let i = startIdx + 1;
+
+  if (base === 'nohup' || base === 'exec' || base === 'setsid' || base === 'catchsegv') {
+    // Optional short flags then the utility.
+    while (i < tokens.length) {
+      const a = unwrapToken(tokens[i]!);
+      if (a === '--') {
+        i++;
+        break;
+      }
+      if (base === 'exec' && (a === '-a' || a === '-c' || a === '-l')) {
+        if (a === '-a') {
+          if (i + 1 >= tokens.length) return null;
+          i += 2;
+        } else i++;
+        continue;
+      }
+      if (a.startsWith('-') && a !== '-') {
+        i++;
+        continue;
+      }
+      break;
+    }
+    return i > startIdx ? i : null;
+  }
+
+  if (base === 'nice' || base === 'ionice') {
+    while (i < tokens.length) {
+      const a = unwrapToken(tokens[i]!);
+      if (a === '--') {
+        i++;
+        break;
+      }
+      if (a === '-n' || a === '-p' || a === '-c' || a === '-t') {
+        if (i + 1 >= tokens.length) return null;
+        i += 2;
+        continue;
+      }
+      if (a.startsWith('--adjustment=')) {
+        i++;
+        continue;
+      }
+      if (a === '--adjustment') {
+        if (i + 1 >= tokens.length) return null;
+        i += 2;
+        continue;
+      }
+      if (a.startsWith('-') && a !== '-') {
+        i++;
+        continue;
+      }
+      break;
+    }
+    return i > startIdx ? i : null;
+  }
+
+  if (base === 'command') {
+    while (i < tokens.length) {
+      const a = unwrapToken(tokens[i]!);
+      if (a === '--') {
+        i++;
+        break;
+      }
+      if (a === '-p' || a === '-v' || a === '-V') {
+        i++;
+        continue;
+      }
+      break;
+    }
+    return i > startIdx ? i : null;
+  }
+
+  if (base === 'stdbuf') {
+    while (i < tokens.length) {
+      const a = unwrapToken(tokens[i]!);
+      if (a === '--') {
+        i++;
+        break;
+      }
+      if (
+        a.startsWith('--input-size=') ||
+        a.startsWith('--output-size=') ||
+        a.startsWith('--error-size=')
+      ) {
+        i++;
+        continue;
+      }
+      if (a === '--input-size' || a === '--output-size' || a === '--error-size') {
+        if (i + 1 >= tokens.length) return null;
+        i += 2;
+        continue;
+      }
+      // -i0 / -oL / -e0 glued, or -i / -o / -e with a separate value.
+      if (/^-[ioe]/.test(a)) {
+        if (/^-[ioe].+/.test(a)) {
+          i++;
+          continue;
+        }
+        if (i + 1 >= tokens.length) return null;
+        i += 2;
+        continue;
+      }
+      if (a.startsWith('-') && a !== '-') {
+        i++;
+        continue;
+      }
+      break;
+    }
+    return i > startIdx ? i : null;
+  }
+
+  if (base === 'timeout' || base === 'time' || base === 'watch') {
+    while (i < tokens.length) {
+      const a = unwrapToken(tokens[i]!);
+      if (a === '--') {
+        i++;
+        break;
+      }
+      if (
+        a === '--preserve-status' ||
+        a === '--foreground' ||
+        a === '--verbose' ||
+        a === '-v' ||
+        a === '-p' ||
+        a === '-f'
+      ) {
+        i++;
+        continue;
+      }
+      if (
+        a.startsWith('--signal=') ||
+        a.startsWith('--kill-after=') ||
+        a.startsWith('--format=')
+      ) {
+        i++;
+        continue;
+      }
+      if (a === '--signal' || a === '--kill-after' || a === '-s' || a === '-k' || a === '-n') {
+        if (i + 1 >= tokens.length) return null;
+        i += 2;
+        continue;
+      }
+      if (a.startsWith('-') && a !== '-') {
+        i++;
+        continue;
+      }
+      // Duration / interval operand for timeout / watch; `time` has none.
+      if (base === 'timeout' || base === 'watch') {
+        i++;
+      }
+      break;
+    }
+    return i > startIdx ? i : null;
+  }
+
+  return null;
+}
+
+/**
+ * Peel wrappers + env / sudo in front of the interpreter with a POSITIVE
+ * option allowlist. Match env/sudo on unescaped basename. Run the env/sudo
+ * parser after every skipped wrapper. Allowed options are consumed; -C / -D /
+ * --chdir ADD to the cwd set. Anything else means the whole RHS is an UNKNOWN
+ * program (DENY). Never advance past an unknown option and treat the next
+ * token as the utility.
  */
 function applyInterpreterFrontChdir(
   tokens: string[],
@@ -720,8 +897,13 @@ function applyInterpreterFrontChdir(
   };
 
   while (idx < tokens.length) {
-    const raw = tokens[idx]!;
-    const t = unescapeInterpreterName(unwrapToken(raw)).toLowerCase();
+    const afterWrapper = skipOneFrontWrapper(tokens, idx);
+    if (afterWrapper !== null) {
+      idx = afterWrapper;
+      continue;
+    }
+
+    const t = commandBasename(tokens[idx]!);
 
     if (t === 'env') {
       idx++;
@@ -767,7 +949,7 @@ function applyInterpreterFrontChdir(
             idx++;
             continue;
           }
-          // Not on the allowlist: DENY the whole RHS.
+          // Not on the allowlist (including --split-string): DENY the whole RHS.
           denyProgram = true;
           break;
         }
@@ -808,7 +990,7 @@ function applyInterpreterFrontChdir(
               p++;
               continue;
             }
-            // Not on the allowlist: DENY the whole RHS.
+            // S anywhere in the cluster (or any other letter): DENY.
             clusterBad = true;
             break;
           }
@@ -846,6 +1028,11 @@ function applyInterpreterFrontChdir(
           }
           if (a.startsWith('--chdir=')) {
             addTarget(a.slice('--chdir='.length));
+            idx++;
+            continue;
+          }
+          // -s / -i long forms are boolean when a command follows.
+          if (a === '--shell' || a === '--login') {
             idx++;
             continue;
           }
@@ -892,12 +1079,15 @@ function applyInterpreterFrontChdir(
               ch === 'k' ||
               ch === 'K' ||
               ch === 'b' ||
-              ch === 'P'
+              ch === 'P' ||
+              ch === 's' ||
+              ch === 'i'
             ) {
+              // -s / -i are boolean when a command follows; no-command case
+              // is handled after the option loop.
               p++;
               continue;
             }
-            // Not on the allowlist (including shell modes): DENY.
             clusterBad = true;
             break;
           }
@@ -908,14 +1098,20 @@ function applyInterpreterFrontChdir(
           idx++;
           continue;
         }
-        // Bare shell name after sudo: DENY.
-        if (a === 'sh' || a === 'bash' || a === 'zsh' || a === 'dash' || a === 'ksh') {
-          denyProgram = true;
-          break;
-        }
         break;
       }
       if (denyProgram) break;
+      // No utility after sudo (including `sudo -s` / `sudo -i` alone): the
+      // shell would read the pipe → DENY. Same for a bare shell with no args.
+      if (idx >= tokens.length) {
+        denyProgram = true;
+        break;
+      }
+      const utilBase = commandBasename(tokens[idx]!);
+      if (SHELL_BASENAMES.has(utilBase) && idx + 1 >= tokens.length) {
+        denyProgram = true;
+        break;
+      }
       continue;
     }
 
