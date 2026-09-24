@@ -65,7 +65,7 @@ function render(){
 }
 [c1,c2,c3].forEach(el=>el.addEventListener('change',render));render();
 document.querySelector('#copy').addEventListener('click',async()=>{
-  const cmd='cd docs/site && npx playwright test e2e/landing.spec.ts --project=chromium-desktop';
+  const cmd='cd docs/site && npx playwright test e2e/landing.spec.ts';
   try{await navigator.clipboard.writeText(cmd);document.querySelector('#status').textContent='Copied.';}
   catch{document.querySelector('#status').textContent=cmd;}
 });
