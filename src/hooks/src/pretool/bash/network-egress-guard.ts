@@ -1598,10 +1598,10 @@ function rhsIsStdinInterpreter(
   const front = applyInterpreterFrontChdir(unwrapped, 0, cwdCandidates, fullCommand);
   // Unknown env/sudo/wrapper option: the whole RHS is an unknown program → DENY.
   if (front.denyProgram) return true;
-  // su/runuser -c STRING: compound bodies (; & | newline) DENY (same fail-closed
-  // split the bash -c path needs). A simple body is scanned as its own RHS.
+  // su/runuser -c STRING: compound bodies (; & | newline) DENY only when the
+  // separator is outside quoted spans. A simple body is scanned as its own RHS.
   if (front.execBody !== null) {
-    if (/[\n;&|]/.test(front.execBody)) return true;
+    if (hasUnquotedShellSeparator(front.execBody)) return true;
     return rhsIsStdinInterpreter(
       tokenizePipeRhs(front.execBody),
       front.candidates,
@@ -1625,20 +1625,108 @@ function rhsIsStdinInterpreter(
 // =============================================================================
 
 /**
+ * True when `s` has a shell command separator (`;`, `&`, `|`, newline) outside
+ * single/double quotes. Separators inside quoted spans are argument data.
+ */
+function hasUnquotedShellSeparator(s: string): boolean {
+  let i = 0;
+  while (i < s.length) {
+    const c = s[i]!;
+    if (c === "'") {
+      i++;
+      while (i < s.length && s[i] !== "'") i++;
+      if (i < s.length) i++;
+      continue;
+    }
+    if (c === '"') {
+      i++;
+      while (i < s.length && s[i] !== '"') {
+        if (s[i] === '\\' && i + 1 < s.length) {
+          i += 2;
+          continue;
+        }
+        i++;
+      }
+      if (i < s.length) i++;
+      continue;
+    }
+    if (c === '\\' && i + 1 < s.length) {
+      i += 2;
+      continue;
+    }
+    if (c === '\n' || c === ';' || c === '|' || c === '&') return true;
+    i++;
+  }
+  return false;
+}
+
+/** Max words walked when deciding if su/runuser governs an executed quote. */
+const MAX_SU_RUNUSER_GOVERN_WORDS = 64;
+
+/**
+ * Word-bound su/runuser governor: tokenize the last simple-command segment and
+ * walk options with the same grammar as applyInterpreterFrontChdir. No character
+ * gap limit between the wrapper and -c/--command (whitespace is word-skipped).
+ */
+function suRunuserGovernsExecutedQuote(prefix: string): boolean {
+  let start = 0;
+  for (let i = 0; i < prefix.length; i++) {
+    const ch = prefix[i]!;
+    if (ch === ';' || ch === '\n' || ch === '&' || ch === '|' || ch === '(') start = i + 1;
+  }
+  const tokens = tokenizePipeRhs(prefix.slice(start));
+  if (tokens.length === 0) return false;
+  const words =
+    tokens.length > MAX_SU_RUNUSER_GOVERN_WORDS
+      ? tokens.slice(-MAX_SU_RUNUSER_GOVERN_WORDS)
+      : tokens;
+
+  for (let i = 0; i < words.length; i++) {
+    const base = commandBasename(words[i]!);
+    if (base !== 'su' && base !== 'runuser') continue;
+
+    for (let j = i + 1; j < words.length; j++) {
+      const a = unwrapToken(words[j]!);
+      if (a === '--') break;
+      if (a === '-c' || a === '--command') {
+        // Body is the next argv word. No next word ⇒ the quote being classified.
+        return j + 1 >= words.length;
+      }
+      if (a.startsWith('--command=')) {
+        // Empty glued body ⇒ quote after `=` is the executed body.
+        if (a.length === '--command='.length) return true;
+        break;
+      }
+      // Short cluster ending in c (e.g. -lc) with no value word yet.
+      if (/^-[A-Za-z]*c$/.test(a)) {
+        return j + 1 >= words.length;
+      }
+      if (a === '-u' || a === '--user') {
+        if (j + 1 < words.length) j++;
+        continue;
+      }
+      if (a.startsWith('--user=')) continue;
+      if (a === '-' || a === '-l' || a === '--login') continue;
+      if (a.startsWith('-')) break;
+      // Positional user name; keep looking for -c/--command.
+    }
+  }
+  return false;
+}
+
+/**
  * True when the unquoted text just before a quote makes that quote EXECUTED
  * code: `eval "…"`, an inline-script shell (`sh -c`, `bash -euc`), `python -c`,
  * node/perl/ruby `-e`, php `-r`. A quote governed by none of these is opaque
  * data (a grep/rg pattern, an echo string, a jq filter).
  */
 function execGovernsQuote(prefix: string): boolean {
-  const p = prefix.slice(-200); // bound the governor scan (ReDoS-safe)
+  const p = prefix.slice(-200); // bound the regex governors (ReDoS-safe)
   return (
     /\beval\s*$/i.test(p) ||
     /\b(?:ba|z|k|da)?sh\b[^\n]{0,120}\s-[A-Za-z]*c\b\s*$/i.test(p) ||
-    // su/runuser: -c, --command=BODY, or --command with BODY as the next arg.
-    /\b(?:su|runuser)\b[^\n]{0,160}(?:\s--command=|\s--command\s*$|\s-[A-Za-z]*c\b\s*$)/i.test(
-      p,
-    ) ||
+    // su/runuser: word-bound option walk (no character gap limit).
+    suRunuserGovernsExecutedQuote(prefix) ||
     /\bpython[0-9.]*\b[^\n]{0,120}\s-c\b\s*$/i.test(p) ||
     /\b(?:node|perl|ruby)\b[^\n]{0,120}\s-e\b\s*$/i.test(p) ||
     /\bphp\b[^\n]{0,120}\s-r\b\s*$/i.test(p)
