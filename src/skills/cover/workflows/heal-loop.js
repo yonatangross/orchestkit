@@ -421,8 +421,42 @@ function isLocatorSwap(fix, target, from, to) {
 }
 
 // Conservative rule: in a test file, a changed binding value is never healed, because the
-// assertion reading it can sit outside every reported hunk. Only these names stay healable.
-const SAFE_BINDING = /timeout|delay|retr(?:y|ies)|wait|interval|poll|port|host|url|base_?url|path|dir|fixture|file/i;
+// assertion reading it can sit outside every reported hunk. Only names whose LAST word (or
+// last two words joined), after dropping trailing unit words, is one of these stay healable.
+// A substring is not enough: redirectTarget holds dir, hostName and timeoutMessage hold one.
+const SAFE_WORDS = new Set([
+	"timeout",
+	"delay",
+	"retry",
+	"retries",
+	"wait",
+	"interval",
+	"poll",
+	"port",
+	"host",
+	"url",
+	"baseurl",
+	"path",
+	"dir",
+	"directory",
+	"fixture",
+	"fixtures",
+	"file",
+	"filename",
+]);
+const UNIT_WORDS = new Set(["ms", "s", "sec", "secs", "seconds", "millis", "milliseconds", "min", "mins", "minutes"]);
+const nameWords = (name) =>
+	String(name)
+		.replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+		.replace(/([A-Z]+)([A-Z][a-z])/g, "$1 $2")
+		.split(/[\s_-]+/)
+		.filter(Boolean)
+		.map((w) => w.toLowerCase());
+function isSafeBinding(name) {
+	const words = nameWords(name);
+	while (words.length > 1 && UNIT_WORDS.has(words[words.length - 1])) words.pop();
+	return SAFE_WORDS.has(words[words.length - 1]) || SAFE_WORDS.has(words.slice(-2).join(""));
+}
 const TEST_FILE =
 	/(?:^|\/)(?:tests?|__tests__|specs?|e2e)\/|[._](?:test|spec)\.[cm]?[jt]sx?$|(?:^|\/)test_[^/]*\.py$|_test\.(?:py|go)$|(?:^|\/)conftest\.py$/i;
 const isTestFile = (file) => !file || TEST_FILE.test(String(file).replace(/\\/g, "/"));
@@ -439,7 +473,7 @@ function bindingChanges(fix, target, file = { before: new Map(), after: new Map(
 		const prior = was.has(name) ? was.get(name) : file.before.get(name);
 		const next = now.has(name) ? now.get(name) : file.after.get(name);
 		if (prior === undefined || next === undefined || prior === next) continue;
-		if (SAFE_BINDING.test(name) || isLocatorSwap(fix, target, prior, next)) continue;
+		if (isSafeBinding(name) || isLocatorSwap(fix, target, prior, next)) continue;
 		out.push({ name, from: prior, to: next });
 	}
 	return out;
@@ -761,8 +795,9 @@ Rules (references/heal-loop-strategy.md):
 5. Do NOT touch these tests, they are reported as possible product bugs or held for a human:
 ${doNotTouch || "(none)"}
 6. In a test file, do NOT change the value of any const, let, var or Python NAME = binding
-   unless its name is about waits, retries, hosts, ports, urls, paths, dirs, fixtures or files,
-   or it is a stale-selector locator swap. The workflow reverts any other binding change and
+   unless its name ENDS in a timeout, delay, retry, wait, interval, poll, port, host, url,
+   base url, path, dir, fixture or file word (a unit like Ms may follow: TIMEOUT_MS, apiBaseUrl,
+   dataDir), or it is a stale-selector locator swap. The workflow reverts any other binding change and
    hands it to a human.
 7. Do NOT suppress: no skip, no try/except swallow, no eslint-disable, no type ignore.
 8. Anything you cannot fix within these rules goes in unfixable with the reason.

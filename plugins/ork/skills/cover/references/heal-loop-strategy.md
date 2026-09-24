@@ -124,9 +124,14 @@ healed or as a possible product bug: a person decides which it is. A green run w
 entry held is reported as `status: "failed"` with `fail_count: -1`. Two exceptions stay
 healable:
 
-- the binding's name matches
-  `/timeout|delay|retr(y|ies)|wait|interval|poll|port|host|url|base_?url|path|dir|fixture|file/i`
-  (`TIMEOUT_MS`, `WAIT_MS`, `BASE_URL`, `FIXTURE_DIR`);
+- the binding's name ENDS in a safe word. The name is split into words (camelCase,
+  snake_case, kebab-case, SCREAMING_CASE), trailing unit words (`ms`, `s`, `sec`, `secs`,
+  `seconds`, `millis`, `milliseconds`, `min`, `mins`, `minutes`) are dropped, and the last
+  word, or the last two joined, must be one of `timeout`, `delay`, `retry`, `retries`,
+  `wait`, `interval`, `poll`, `port`, `host`, `url`, `baseurl`, `path`, `dir`, `directory`,
+  `fixture`, `fixtures`, `file`, `filename` (`TIMEOUT_MS`, `retryDelayMs`, `apiBaseUrl`,
+  `dataDir`). A substring does not count: `redirectTarget`, `userProfile`, `reportTotal`,
+  `hostName` and `timeoutMessage` are held;
 - the fix is `stale-selector` and both values are locator expressions with no literal equal
   to the failure's expected value (`page.getByRole('button', { name: 'Old' })` to `'New'`).
 

@@ -587,6 +587,12 @@ const humanCases = [
     [{ before: "const btn = page.getByRole('button', { name: 'Old' })", after: "const btn = page.getByRole('button', { name: 'New' })" }],
     "binding change needs a human: btn page.getByRole('button',{name:'Old'}) -> page.getByRole('button',{name:'New'})",
   ],
+  [
+    'CodeRabbit :425 redirectTarget, a substring of dir',
+    FLAKY_E,
+    [{ before: "const redirectTarget = '/home'", after: "const redirectTarget = '/dashboard'" }],
+    "binding change needs a human: redirectTarget '/home' -> '/dashboard'",
+  ],
   ['timeout constant raised', FLAKY_E, [{ before: 'const TIMEOUT_MS = 5000', after: 'const TIMEOUT_MS = 15000' }], null],
   ['wait budget raised', FLAKY_E, [{ before: 'const WAIT_MS = 5000', after: 'const WAIT_MS = 10000' }], null],
   ['base url fixed', FLAKY_E, [{ before: "const BASE_URL = 'http://localhost:3000'", after: "const BASE_URL = 'http://127.0.0.1:3000'" }], null],
@@ -628,6 +634,25 @@ for (const [label, target, overs, report] of humanCases) {
     } else {
       check(`needs human ${label}: heals`, [result.healed, human.length, kinds.join(',')], [true, 0, 'run,repair,run']);
     }
+  });
+}
+
+// CodeRabbit :425: the safe allowlist is a last-word rule, not a substring match.
+const SHOULD_HOLD = ['redirectTarget', 'userProfile', 'reportTotal', 'exportCount', 'supportedCount', 'ghostCount', 'fileCount', 'portCount', 'hostName', 'pathLength', 'waitingUsers', 'TOTAL', 'CODE', 'expectedStatus', 'timeoutMessage', 'directoryEntries'];
+const SHOULD_HEAL = ['TIMEOUT_MS', 'timeout', 'retryDelayMs', 'maxRetries', 'pollInterval', 'POLL_INTERVAL_MS', 'apiBaseUrl', 'BASE_URL', 'fixturePath', 'dataDir', 'configFile', 'PORT', 'dbHost', 'waitMs', 'SNAPSHOT_DIR', 'fixtures'];
+for (const name of [...SHOULD_HOLD, ...SHOULD_HEAL]) {
+  const hold = SHOULD_HOLD.includes(name);
+  await scenario(`safe name: ${name}`, async () => {
+    const { result } = await runLoop({
+      runs: [red([FLAKY_E]), GREEN],
+      repairs: [repairOf([fix(FLAKY_E, { change: 'stabilised the test', before: `const ${name} = 1`, after: `const ${name} = 2` })])],
+      reverts: REVERT_E,
+    });
+    const human = (result.needs_human || []).length;
+    const bugs = result.possible_product_bugs.length;
+    // expectedStatus is already rejected as a possible product bug by the expected-name rule.
+    const want = !hold ? [true, 0, 0] : /expect/i.test(name) ? [false, 0, 1] : [false, 1, 0];
+    check(`safe name ${name}: ${hold ? 'held' : 'heals'}`, [result.healed, human, bugs], want);
   });
 }
 
