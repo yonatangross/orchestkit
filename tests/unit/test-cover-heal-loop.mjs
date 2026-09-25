@@ -671,6 +671,15 @@ const humanCases = [
     [{ before: 'expectTotal(cart, 3)\nsetQuantity(cart, 2)', after: 'expectTotal(cart, 2)\nsetQuantity(cart, 3)' }],
     'value change needs a human: literal 3, 2 -> 2, 3',
   ],
+  ['regex argument to a helper', FLAKY_E, [{ before: 'expectText(el, /Total/)', after: 'expectText(el, /Sum/i)' }], 'value change needs a human: literal /Total/ -> /Sum/i'],
+  ['boolean argument to a helper', FLAKY_E, [{ before: 'expectEnabled(btn, true)', after: 'expectEnabled(btn, false)' }], 'value change needs a human: literal true -> false'],
+  ['division is not a regex', FLAKY_E, [{ before: 'const ratio = total / count', after: 'const ratio = total / count\nawait flush()' }], null],
+  [
+    'regex locator swap under stale-selector',
+    STALE_F,
+    [{ before: 'await page.getByText(/Save/).click()', after: "await page.getByRole('button', { name: /Save/ }).click()" }],
+    null,
+  ],
   ['assertion added with a new literal', FLAKY_E, [{ before: 'expect(a).toBe(1)', after: 'expect(a).toBe(1)\nexpect(b).toBe(2)' }], 'value change needs a human: literal (none) -> 2'],
   [
     'timeout property in an options literal',

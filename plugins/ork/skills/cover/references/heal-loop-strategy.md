@@ -125,8 +125,9 @@ whatever the syntax:
   object such as `{ timeout: 5000 }`);
 - any other literal the hunk adds, changes or removes (the closure rule), such as an
   argument to an `expect*` helper (`expectTotal(cart, 3)` to `2`) or a mutating call on an
-  expected container (`expected.push(4)`). Literals are compared per enclosing call, so a
-  value swapped between two calls is still a change.
+  expected container (`expected.push(4)`). A literal is a number, string, boolean, regex,
+  array or object literal. Literals are compared per enclosing call, so a value swapped
+  between two calls is still a change.
 
 Any edit to a snapshot or golden file is held the same way, test file or not: a path under
 `__snapshots__/`, a `*.snap`, a `*.json` under `tests/`, or any path containing `golden` or

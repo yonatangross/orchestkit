@@ -593,7 +593,7 @@ const LOAD_STATE = /^["'](?:load|domcontentloaded|networkidle)["']$/;
 // Each literal tagged with the call it is an argument of, or else the name the line assigns,
 // so a value swapped between two calls is not cancelled out.
 const LITERAL_TOKEN =
-	/(["'`])(?:\\.|(?!\1).)*\1|\b\d+(?:\.\d+)?\b|\b(?:true|false|null|undefined|None|True|False)\b|([A-Za-z_$][\w$]*)\s*\(|[()]/g;
+	/(["'`])(?:\\.|(?!\1).)*\1|(?<=(?:^|[(,=:[!&|?{};])\s*)\/(?![/*\s])(?:\\.|\[(?:\\.|[^\]\\])*\]|[^/\\\n[])+\/[dgimsuy]*|\b\d+(?:\.\d+)?\b|\b(?:true|false|null|undefined|None|True|False)\b|([A-Za-z_$][\w$]*)\s*\(|[()]/g;
 function taggedLiterals(line) {
 	const lhs = (line.match(/^(?:(?:const|let|var)\s+)?([^\s=(]+?)\s*(?::\s*[^=]+?)?\s*=(?![=>])/) || [])[1] || "";
 	const stack = [];
@@ -999,7 +999,8 @@ ${doNotTouch || "(none)"}
    dataDir), or it is a stale-selector locator swap. The same holds for member and subscript
    assignments (obj.x = v, d['k'] = v), Object.assign, merge or update into an existing object,
    and the contents of object, array and dict literals. More generally, do NOT add, change or
-   remove a literal in a test file except in an import, in such a safe-named binding, in a
+   remove a literal (number, string, boolean, regex, array or object) in a test file except
+   in an import, in such a safe-named binding, in a
    stale-selector locator swap, or as the duration or load state of a wait. Do NOT edit
    snapshot or golden files and do NOT update snapshots. The workflow reverts any such change
    and hands it to a human.
