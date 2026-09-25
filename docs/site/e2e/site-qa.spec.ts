@@ -77,18 +77,23 @@ test.describe("Site QA", () => {
 		const card = page.getByRole("button", { name: /^Copy claude plugin marketplace add/ }).first();
 		await expect(card).toBeVisible();
 		expect(await card.evaluate(tokensSplitAcrossLines)).toEqual([]);
-		// And no card's command runs past its card (Devin ran 95px into the next).
-		const overflowing = await page.evaluate(() =>
-			[...document.querySelectorAll("button[aria-label^='Copy ']")]
-				.filter((b) => {
-					const edge = b.getBoundingClientRect().right;
-					const range = document.createRange();
-					range.selectNodeContents(b);
-					return Math.max(...[...range.getClientRects()].map((r) => r.right)) > edge + 0.5;
-				})
-				.map((b) => b.getAttribute("aria-label")?.slice(0, 40)),
-		);
-		expect(overflowing).toEqual([]);
+		// And no card's command runs past its card, at every width where the
+		// grid changes shape (Devin ran 95px into the next card at 1440; Codex
+		// clipped between 768 and 850px).
+		for (const width of [360, 390, 768, 800, 820, 850, 1024, 1280, 1440]) {
+			await page.setViewportSize({ width, height: 900 });
+			const overflowing = await page.evaluate(() =>
+				[...document.querySelectorAll("button[aria-label^='Copy ']")]
+					.filter((b) => {
+						const edge = b.getBoundingClientRect().right;
+						const range = document.createRange();
+						range.selectNodeContents(b);
+						return Math.max(...[...range.getClientRects()].map((r) => r.right)) > edge + 0.5;
+					})
+					.map((b) => b.getAttribute("aria-label")?.slice(0, 40)),
+			);
+			expect(overflowing, `at ${width}px`).toEqual([]);
+		}
 	});
 
 	test.describe("phone", () => {
@@ -143,9 +148,10 @@ function tokensSplitAcrossLines(el: Element): string[] {
 		return { node: hit.node, offset: Math.min(pos - hit.start, hit.node.length) };
 	};
 	const broken: string[] = [];
-	// A segment is a run of non-space up to and including a "/" or "#": long
-	// URLs may wrap there on purpose, never inside a segment or at a hyphen.
-	for (const m of text.matchAll(/[^\s/#]+[/#]?|[/#]/g)) {
+	// A segment is a run of non-space up to and including a "/", "#" or "@":
+	// long URLs and package refs may wrap there on purpose, never inside a
+	// segment or at a hyphen.
+	for (const m of text.matchAll(/[^\s/#@]+[/#@]?|[/#@]/g)) {
 		const range = document.createRange();
 		const a = at(m.index ?? 0);
 		const b = at((m.index ?? 0) + m[0].length);

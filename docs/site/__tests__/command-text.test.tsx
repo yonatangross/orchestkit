@@ -23,6 +23,12 @@ describe("CommandText", () => {
 		expect(segments).toContain("ork-codex");
 	});
 
+	it("lets a package ref wrap after @", () => {
+		// ork-codex@orchestkit-codex clipped the Codex card at 768 to 850px (gate, round 6).
+		const { container } = render(<CommandText line="codex plugin add ork-codex@orchestkit-codex" />);
+		expect(segmentsOf(container)).toEqual(["codex", "plugin", "add", "ork-codex@", "orchestkit-codex"]);
+	});
+
 	it("lets a long URL wrap after / and #, never inside a segment", () => {
 		// Devin's git URL was one 406px unbreakable span, clipped at 390 (gate NEW-1).
 		const devin = "devin plugin install https://github.com/yonatangross/orchestkit#plugins/ork";

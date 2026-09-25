@@ -48,7 +48,7 @@ export function useTrackedCopy(
 
 /**
  * A shell command that wraps at spaces, and inside a long token only after a
- * "/" or "#". Segments are nowrap because browsers also break after a hard
+ * "/", "#" or "@" (ork-codex@orchestkit-codex clipped at 768 to 850px). Segments are nowrap because browsers also break after a hard
  * hyphen, which split "--sparse" and "orchestkit-codex" at 390; a whole token
  * nowrap then clipped Devin's 406px git URL (QA 2026-09-25). A <wbr> inside a
  * nowrap span is ignored, so the break points sit between segment spans.
@@ -58,7 +58,7 @@ export function CommandText({ line }: { line: string }) {
 	return (
 		<span className="min-w-0 [overflow-wrap:anywhere]">
 			{tokens.map((token, i) => {
-				const segments = token.split(/(?<=[/#])(?=.)/);
+				const segments = token.split(/(?<=[/#@])(?=.)/);
 				return (
 					// Tokens can repeat ("--sparse") and never reorder, so the index keys them.
 					<span key={i} data-token>
