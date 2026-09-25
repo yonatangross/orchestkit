@@ -630,6 +630,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.97](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.96...v10.0.0-beta.97)** · 2026-09-25
+
+- **secrets-veil:** show a toast with masked value and byte counts (#4431)
+
 **[v10.0.0-beta.96](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.95...v10.0.0-beta.96)** · 2026-09-25
 
 - **verify:** Phase 2 dispatch runs as a Workflow script (#4424)
@@ -661,11 +665,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **cover:** gate generated tests on behaviour and target by risk (#4408)
 - **hooks:** word-based wrapper option parsing in the egress check (#4406)
-
-**[v10.0.0-beta.89](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.88...v10.0.0-beta.89)** · 2026-09-24
-
-- **skills:** error-analysis, evals-first failure taxonomy from traces (#4402)
-- **hooks:** exact option grammar for command wrappers in the egress check (#4404)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
