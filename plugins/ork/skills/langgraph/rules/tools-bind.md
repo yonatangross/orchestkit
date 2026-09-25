@@ -61,6 +61,6 @@ model.bind_tools(tools, tool_choice="search_database")  # Specific tool
 - Always `bind_tools()` before invoking the model
 - Use descriptive `@tool` docstrings — LLM uses them to decide which tool to call
 - Keep 5-10 tools max per agent (use dynamic selection for more)
-- Use `tool_choice` when a specific tool is required, except on Opus 5.5 or Fable 5.1 (400): there use `auto` plus `strict` tools and a prompt that names the tool
+- Use `tool_choice` when a specific tool is required, except on Opus 5.5, Fable 5.1 or Mythos 5.1 (400): there use `auto` plus `strict` tools and a prompt that names the tool
 
 Reference: [LangGraph Tool Calling](https://langchain-ai.github.io/langgraph/concepts/agentic_concepts/#tool-calling-agent)

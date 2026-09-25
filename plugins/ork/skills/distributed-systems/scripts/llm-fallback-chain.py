@@ -25,6 +25,18 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, TypeVar
 
+# Claude 5-series models reject non-default sampling params (temperature, top_p,
+# top_k) with a 400, so they are dropped per provider call, never chain-wide.
+_NO_SAMPLING_PREFIXES = ("claude-sonnet-5", "claude-opus-5", "claude-fable-5", "claude-mythos-5")
+_SAMPLING_KEYS = ("temperature", "top_p", "top_k")
+
+
+def _call_kwargs(model: str, kwargs: dict[str, Any]) -> dict[str, Any]:
+    """Return the kwargs one provider may receive (no sampling params for 5-series)."""
+    if model.startswith(_NO_SAMPLING_PREFIXES):
+        return {k: v for k, v in kwargs.items() if k not in _SAMPLING_KEYS}
+    return kwargs
+
 logger = logging.getLogger(__name__)
 
 T = TypeVar("T")
@@ -68,7 +80,7 @@ class LLMConfig:
     api_key: str | None = None
     timeout: float = 30.0
     max_tokens: int = 4096
-    temperature: float = 0.7  # not sent to Claude 5-series models (non-default sampling params return a 400)
+    temperature: float = 0.7  # providers must not send it to Claude 5-series models (400); see _call_kwargs
     # Cost per 1M tokens (input, output)
     cost_per_million_input: float = 1.0
     cost_per_million_output: float = 3.0
@@ -228,7 +240,7 @@ class LLMFallbackChain:
 
         # Try primary model
         try:
-            response = await self.primary.complete(prompt, **kwargs)
+            response = await self.primary.complete(prompt, **_call_kwargs(self.primary.config.model, kwargs))
             response.source = ResponseSource.PRIMARY
             self.stats.primary_successes += 1
             self.stats.total_cost_usd += response.cost_usd
@@ -252,7 +264,7 @@ class LLMFallbackChain:
         # Try fallback models
         for fallback in self.fallbacks:
             try:
-                response = await fallback.complete(prompt, **kwargs)
+                response = await fallback.complete(prompt, **_call_kwargs(fallback.config.model, kwargs))
                 response.source = ResponseSource.FALLBACK
                 response.is_fallback = True
                 self.stats.fallback_successes += 1
@@ -386,10 +398,9 @@ class QualityAwareFallbackChain(LLMFallbackChain):
                 extra={"attempt": attempt + 1},
             )
 
-            # Adjust parameters for retry. Claude 5-series models reject non-default
-            # sampling params with a 400, so only lower temperature for other models.
-            if not self.primary.config.model.startswith(("claude-sonnet-5", "claude-opus-5", "claude-fable-5")):
-                kwargs["temperature"] = max(0.3, kwargs.get("temperature", 0.7) - 0.15)
+            # Adjust parameters for retry. _call_kwargs drops them again for any
+            # Claude 5-series provider (primary or fallback) right before its call.
+            kwargs["temperature"] = max(0.3, kwargs.get("temperature", 0.7) - 0.15)
 
         # Return best effort with warning
         if best_response:

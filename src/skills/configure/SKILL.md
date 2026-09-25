@@ -50,8 +50,8 @@ Use AskUserQuestion:
 |--------|--------|--------|-------|-------------|
 | **Complete** | all | all | all | Everything |
 | **Standard** | all | 0 | all | Skills, no agents |
-| **Lite** | 10 | 0 | all | Essential only |
-| **Hooks-only** | 0 | 0 | all | Just safety |
+| **Lite** | 28 | 0 | all | Essential only (testing, security, planning) |
+| **Hooks-only** | 0 | 0 | all | Safety, productivity and team coordination hooks |
 | **Monorepo** | all | all | all | Complete + monorepo detection |
 
 Live counts: run `claude plugin details ork` (108 skills, 36 agents on 2026-09-25).

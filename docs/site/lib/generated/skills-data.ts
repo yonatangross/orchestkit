@@ -1152,7 +1152,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "configure",
     "description": "Interactive wizard for OrchestKit settings: MCP servers, hook permissions, keybindings, and install presets. Use when customizing plugin behavior or managing settings.",
     "version": "1.0.1",
-    "sha256": "03b221acf3c307c1238dbef607baaea1c9e649e741013864fa433ad2a9e013ac",
+    "sha256": "3aecca49f9a033872c980a29e68a064481a815a7af7b4dec4a66028e57bdb6a7",
     "author": "OrchestKit",
     "tags": [
       "configuration",
