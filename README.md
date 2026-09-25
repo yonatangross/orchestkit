@@ -630,6 +630,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.99](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.98...v10.0.0-beta.99)** · 2026-09-25
+
+- **secrets-veil:** fail closed when session.start never ran (#4436)
+
 **[v10.0.0-beta.98](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.97...v10.0.0-beta.98)** · 2026-09-25
 
 - **lesson-cards:** draw cards with $.ui.resolve and ask on block lessons (#4429)
@@ -660,12 +664,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.92](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.91...v10.0.0-beta.92)** · 2026-09-25
 
 - **mods:** port the 3 mods to the CC 2.1.282 mods API (#4413)
-
-**[v10.0.0-beta.91](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.90...v10.0.0-beta.91)** · 2026-09-25
-
-- **cover:** heal-loop never rewrites an expected value (#4407)
-- **memory:** drop LIVE claims for removed memory-writer hook (#4410)
-- **memory:** remove stale memory-writer.ts hook reference (#4409)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
