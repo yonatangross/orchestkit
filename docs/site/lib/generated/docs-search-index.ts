@@ -268,7 +268,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/hooks/memory-hooks",
     "title": "Memory Bridge and Context Injection",
-    "description": "How OrchestKit validates graph memory writes, suggests capture at session end, and guards MEMORY.md size, without a dedicated auto-writer hook."
+    "description": "How OrchestKit validates graph memory writes, suggests capture on async Stop turns, and guards MEMORY.md size, without a dedicated auto-writer hook."
   },
   {
     "url": "/docs/hooks/overview",
