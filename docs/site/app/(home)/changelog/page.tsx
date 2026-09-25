@@ -82,7 +82,11 @@ export default function ChangelogPage() {
         <p className="font-mono text-[11px] font-medium uppercase tracking-[0.06em] text-fd-muted-foreground">
           Recent versions
         </p>
-        <ChangelogMermaid chart={recentTimelineMermaid(CHANGELOG_ENTRIES, 6)} />
+        {/* The version chips below carry the same six releases; at phone width
+            this diagram rendered at ~3px text. md and up only. */}
+        <div className="hidden md:block">
+          <ChangelogMermaid chart={recentTimelineMermaid(CHANGELOG_ENTRIES, 6)} />
+        </div>
         <RecentVersions entries={CHANGELOG_ENTRIES.slice(0, 6)} />
       </div>
 

@@ -263,10 +263,11 @@
   aspect-ratio: 840 / 723;
   z-index: 1;
   pointer-events: none;
-  /* Radial, not four linear fades: the linear mask left near-straight edges
-     where the art's own backdrop hid the page grid (a visible rectangle). */
-  -webkit-mask-image: radial-gradient(ellipse 72% 70% at 55% 50%, #000 58%, transparent 100%);
-  mask-image: radial-gradient(ellipse 72% 70% at 55% 50%, #000 58%, transparent 100%);
+  /* Radial, sized to the box (closest-side) so it reaches full transparency
+     AT the edges. Four linear fades, or an ellipse larger than the box, left
+     straight edges where the art's backdrop hid the page grid. */
+  -webkit-mask-image: radial-gradient(closest-side at 55% 50%, #000 62%, transparent 100%);
+  mask-image: radial-gradient(closest-side at 55% 50%, #000 62%, transparent 100%);
 }
 
 .home-hero-art img {
