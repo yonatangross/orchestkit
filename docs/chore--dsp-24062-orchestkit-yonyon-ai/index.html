@@ -35,11 +35,11 @@ code { font:13px ui-monospace,Menlo,monospace; }
 
 <div class="cause">
 <p><strong>Hero root cause.</strong> <code>.home-hero-art</code> was <code>position:absolute; top:0; right:0; width:55%</code> with a fixed aspect ratio, inside a two-column grid whose second column held nothing. The copy column carried the host picker, search and links, so everything under the art was bare grid. The 1180 px container cap also left the right gutter unused at 1575 px and up. In light mode the opaque night-scene art, feathered on one side only, showed as a black slab.</p>
-<p><strong>Hero fix.</strong> The art is a grid item in column 2, vertically centred on the copy. The picker, search, links and proof row move to a full-width row under the hero. Both arts are cropped to the subject (the source was 44% black on the left, which pushed the conductor ~490 px from the headline at 2000 px) and the box stays in column 2. Light mode has its own art, a GPT Image 2 restyle of the dark one. The theme switch reveals the page in a circle from the toggle while the incoming art settles in.</p>
+<p><strong>Hero fix.</strong> The art is a grid item in column 2, vertically centred on the copy. Install is host-first: the copy column holds the host picker and one command box for the picked host, with its Copy button, docs link and Get started. Search, links and the proof row move to a full-width row under the hero. Both arts are cropped to the subject (the source was 44% black on the left, which pushed the conductor ~490 px from the headline at 2000 px) and the box stays in column 2. Light mode has its own art, a GPT Image 2 restyle of the dark one. The theme switch reveals the page in a circle from the toggle while the incoming art settles in.</p>
 <p><strong>Logo root cause and fix.</strong> <code>george-badge.png</code> (128 px, detailed husky, no alpha) rendered at 22 px with a warm ring beside a wordmark whose "Kit" had its own gradient. The failure was the crop, not George: the suit, ring and disc were squeezed in with him. The nav now shows an 84 px crop of his head at 30 px on a rounded square, so the ears, glasses and two eye colors read, beside a one-color wordmark.</p>
 </div>
 
-<h2>Mockup (shown before the build)</h2>
+<h2>Mockup (shown before the build; the picker later moved up into the copy column)</h2>
 <pre>BEFORE (prod, 1575 dark)                  AFTER
 + [o] OrchestKit  Docs Cookbook ... +       + [O] OrchestKit  Docs Cookbook ... +
 | 22px raster husky + ring,       |       | George head crop 30px, one color  |
@@ -56,28 +56,28 @@ light: black slab on white                light: art in a rounded framed card</p
 
 <h2>Compare in the browser</h2>
 <section class="pair"><h3>1575 px laptop, dark (the operator's report)</h3><div class="two">
-<figure><img loading="lazy" alt="before-1575x900-dark" src="https://raw.githubusercontent.com/yonatangross/orchestkit/190636d6c302cda2126d0f3edb846c7c404156bf/docs/chore--dsp-24062-orchestkit-yonyon-ai/shots/before-1575x900-dark.jpg"><figcaption>Before (prod)</figcaption></figure>
-<figure><img loading="lazy" alt="after-1575x900-dark" src="https://raw.githubusercontent.com/yonatangross/orchestkit/190636d6c302cda2126d0f3edb846c7c404156bf/docs/chore--dsp-24062-orchestkit-yonyon-ai/shots/after-1575x900-dark.jpg"><figcaption>After (this PR)</figcaption></figure>
+<figure><img loading="lazy" alt="before-1575x900-dark" src="https://raw.githubusercontent.com/yonatangross/orchestkit/40ad9d75f0380a156ba515c3016098d7f0764b35/docs/chore--dsp-24062-orchestkit-yonyon-ai/shots/before-1575x900-dark.jpg"><figcaption>Before (prod)</figcaption></figure>
+<figure><img loading="lazy" alt="after-1575x900-dark" src="https://raw.githubusercontent.com/yonatangross/orchestkit/40ad9d75f0380a156ba515c3016098d7f0764b35/docs/chore--dsp-24062-orchestkit-yonyon-ai/shots/after-1575x900-dark.jpg"><figcaption>After (this PR)</figcaption></figure>
 </div></section>
 <section class="pair"><h3>1575 px laptop, light</h3><div class="two">
-<figure><img loading="lazy" alt="before-1575x900-light" src="https://raw.githubusercontent.com/yonatangross/orchestkit/190636d6c302cda2126d0f3edb846c7c404156bf/docs/chore--dsp-24062-orchestkit-yonyon-ai/shots/before-1575x900-light.jpg"><figcaption>Before (prod)</figcaption></figure>
-<figure><img loading="lazy" alt="after-1575x900-light" src="https://raw.githubusercontent.com/yonatangross/orchestkit/190636d6c302cda2126d0f3edb846c7c404156bf/docs/chore--dsp-24062-orchestkit-yonyon-ai/shots/after-1575x900-light.jpg"><figcaption>After (this PR)</figcaption></figure>
+<figure><img loading="lazy" alt="before-1575x900-light" src="https://raw.githubusercontent.com/yonatangross/orchestkit/40ad9d75f0380a156ba515c3016098d7f0764b35/docs/chore--dsp-24062-orchestkit-yonyon-ai/shots/before-1575x900-light.jpg"><figcaption>Before (prod)</figcaption></figure>
+<figure><img loading="lazy" alt="after-1575x900-light" src="https://raw.githubusercontent.com/yonatangross/orchestkit/40ad9d75f0380a156ba515c3016098d7f0764b35/docs/chore--dsp-24062-orchestkit-yonyon-ai/shots/after-1575x900-light.jpg"><figcaption>After (this PR)</figcaption></figure>
 </div></section>
 <section class="pair"><h3>1280 px, dark</h3><div class="two">
-<figure><img loading="lazy" alt="before-1280x800-dark" src="https://raw.githubusercontent.com/yonatangross/orchestkit/190636d6c302cda2126d0f3edb846c7c404156bf/docs/chore--dsp-24062-orchestkit-yonyon-ai/shots/before-1280x800-dark.jpg"><figcaption>Before (prod)</figcaption></figure>
-<figure><img loading="lazy" alt="after-1280x800-dark" src="https://raw.githubusercontent.com/yonatangross/orchestkit/190636d6c302cda2126d0f3edb846c7c404156bf/docs/chore--dsp-24062-orchestkit-yonyon-ai/shots/after-1280x800-dark.jpg"><figcaption>After (this PR)</figcaption></figure>
+<figure><img loading="lazy" alt="before-1280x800-dark" src="https://raw.githubusercontent.com/yonatangross/orchestkit/40ad9d75f0380a156ba515c3016098d7f0764b35/docs/chore--dsp-24062-orchestkit-yonyon-ai/shots/before-1280x800-dark.jpg"><figcaption>Before (prod)</figcaption></figure>
+<figure><img loading="lazy" alt="after-1280x800-dark" src="https://raw.githubusercontent.com/yonatangross/orchestkit/40ad9d75f0380a156ba515c3016098d7f0764b35/docs/chore--dsp-24062-orchestkit-yonyon-ai/shots/after-1280x800-dark.jpg"><figcaption>After (this PR)</figcaption></figure>
 </div></section>
 <section class="pair"><h3>1920 px, dark</h3><div class="two">
-<figure><img loading="lazy" alt="before-1920x1080-dark" src="https://raw.githubusercontent.com/yonatangross/orchestkit/190636d6c302cda2126d0f3edb846c7c404156bf/docs/chore--dsp-24062-orchestkit-yonyon-ai/shots/before-1920x1080-dark.jpg"><figcaption>Before (prod)</figcaption></figure>
-<figure><img loading="lazy" alt="after-1920x1080-dark" src="https://raw.githubusercontent.com/yonatangross/orchestkit/190636d6c302cda2126d0f3edb846c7c404156bf/docs/chore--dsp-24062-orchestkit-yonyon-ai/shots/after-1920x1080-dark.jpg"><figcaption>After (this PR)</figcaption></figure>
+<figure><img loading="lazy" alt="before-1920x1080-dark" src="https://raw.githubusercontent.com/yonatangross/orchestkit/40ad9d75f0380a156ba515c3016098d7f0764b35/docs/chore--dsp-24062-orchestkit-yonyon-ai/shots/before-1920x1080-dark.jpg"><figcaption>Before (prod)</figcaption></figure>
+<figure><img loading="lazy" alt="after-1920x1080-dark" src="https://raw.githubusercontent.com/yonatangross/orchestkit/40ad9d75f0380a156ba515c3016098d7f0764b35/docs/chore--dsp-24062-orchestkit-yonyon-ai/shots/after-1920x1080-dark.jpg"><figcaption>After (this PR)</figcaption></figure>
 </div></section>
 <section class="pair"><h3>390 px mobile, dark</h3><div class="two">
-<figure><img loading="lazy" alt="before-390x844-dark" src="https://raw.githubusercontent.com/yonatangross/orchestkit/190636d6c302cda2126d0f3edb846c7c404156bf/docs/chore--dsp-24062-orchestkit-yonyon-ai/shots/before-390x844-dark.jpg"><figcaption>Before (prod)</figcaption></figure>
-<figure><img loading="lazy" alt="after-390x844-dark" src="https://raw.githubusercontent.com/yonatangross/orchestkit/190636d6c302cda2126d0f3edb846c7c404156bf/docs/chore--dsp-24062-orchestkit-yonyon-ai/shots/after-390x844-dark.jpg"><figcaption>After (this PR)</figcaption></figure>
+<figure><img loading="lazy" alt="before-390x844-dark" src="https://raw.githubusercontent.com/yonatangross/orchestkit/40ad9d75f0380a156ba515c3016098d7f0764b35/docs/chore--dsp-24062-orchestkit-yonyon-ai/shots/before-390x844-dark.jpg"><figcaption>Before (prod)</figcaption></figure>
+<figure><img loading="lazy" alt="after-390x844-dark" src="https://raw.githubusercontent.com/yonatangross/orchestkit/40ad9d75f0380a156ba515c3016098d7f0764b35/docs/chore--dsp-24062-orchestkit-yonyon-ai/shots/after-390x844-dark.jpg"><figcaption>After (this PR)</figcaption></figure>
 </div></section>
 <section class="pair"><h3>390 px mobile, light</h3><div class="two">
-<figure><img loading="lazy" alt="before-390x844-light" src="https://raw.githubusercontent.com/yonatangross/orchestkit/190636d6c302cda2126d0f3edb846c7c404156bf/docs/chore--dsp-24062-orchestkit-yonyon-ai/shots/before-390x844-light.jpg"><figcaption>Before (prod)</figcaption></figure>
-<figure><img loading="lazy" alt="after-390x844-light" src="https://raw.githubusercontent.com/yonatangross/orchestkit/190636d6c302cda2126d0f3edb846c7c404156bf/docs/chore--dsp-24062-orchestkit-yonyon-ai/shots/after-390x844-light.jpg"><figcaption>After (this PR)</figcaption></figure>
+<figure><img loading="lazy" alt="before-390x844-light" src="https://raw.githubusercontent.com/yonatangross/orchestkit/40ad9d75f0380a156ba515c3016098d7f0764b35/docs/chore--dsp-24062-orchestkit-yonyon-ai/shots/before-390x844-light.jpg"><figcaption>Before (prod)</figcaption></figure>
+<figure><img loading="lazy" alt="after-390x844-light" src="https://raw.githubusercontent.com/yonatangross/orchestkit/40ad9d75f0380a156ba515c3016098d7f0764b35/docs/chore--dsp-24062-orchestkit-yonyon-ai/shots/after-390x844-light.jpg"><figcaption>After (this PR)</figcaption></figure>
 </div></section>
 </main>
 </body>
