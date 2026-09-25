@@ -20,10 +20,10 @@ interface Fake$ {
     repo: () => Promise<{ owner: string; name: string } | null>;
   };
   process: {
-    run: (opts: {
-      argv: string[];
-      init?: Record<string, unknown>;
-    }) => Promise<{ exitCode: number; stdout: string; stderr: string }>;
+    run: (
+      argv: readonly string[],
+      init?: Record<string, unknown>
+    ) => Promise<{ exitCode: number; stdout: string; stderr: string }>;
   };
   fs: {
     read: (path: string) => Promise<unknown>;
@@ -40,9 +40,12 @@ interface Fake$ {
     status: (line: string) => Promise<void>;
     invalidate: (component: string) => void;
   };
+  command: {
+    register: (spec: { name: string; description: string; argumentHint?: string }) => Promise<unknown>;
+  };
 }
 
-type Handler = ($: Fake$, e: unknown, next: () => Promise<unknown>) => unknown;
+type Handler = ($: Fake$, e: unknown, next: (ev?: unknown) => Promise<unknown>) => unknown;
 
 /** Capture the handlers register() subscribes, keyed by event name. */
 function captureHandlers(mod: { register: (on: never) => void }): Map<string, Handler> {
@@ -85,8 +88,7 @@ const PR_VIEW_OPEN = JSON.stringify({
  * under test gets realistic responses per endpoint.
  */
 function makeDispatchingRun(overrides: Record<string, unknown> = {}) {
-  return vi.fn(async (opts: { argv: string[] }) => {
-    const argv = opts.argv;
+  return vi.fn(async (argv: readonly string[], _init?: Record<string, unknown>) => {
     if (overrides.before) (overrides.before as () => void)();
     if (argv[1] === "pr" && argv[2] === "list") {
       return {
@@ -156,10 +158,13 @@ function createFake$(overrides: Record<string, unknown> = {}): Fake$ {
       status: vi.fn().mockResolvedValue(undefined),
       invalidate: vi.fn(),
     },
+    command: {
+      register: vi.fn().mockResolvedValue(undefined),
+    },
   };
 }
 
-const NEXT = () => Promise.resolve({});
+const NEXT = (_ev?: unknown) => Promise.resolve({});
 
 /** Fresh module instance per load: register.ts keeps lastPR/ticking in
  * module-level state, so tests that need independent runs re-import it. */
@@ -224,16 +229,36 @@ describe("register", () => {
     expect((uiRenderCall?.[1] as { component: string }).component).toBe("AbovePrompt");
   });
 
-  test("command.register hooks for /lights", async () => {
+  test("command.run hooks for /lights with a {command: 'lights'} matcher", async () => {
+    // CC 2.1.282: /lights is served by command.run and declared with
+    // $.command.register at session start. command.register is an op
+    // event there, so hooking it would never fire.
     const { register } = await import("../hooks/register.ts");
 
     const on = vi.fn();
     register(on as unknown as Parameters<typeof register>[0]);
 
     const commandCall = on.mock.calls.find(
-      (call) => call[0] === "command.register"
+      (call) => call[0] === "command.run"
     );
     expect(commandCall).toBeTruthy();
+    expect(commandCall?.[1]).toEqual({ command: "lights" });
+    expect(on.mock.calls.some((call) => call[0] === "command.register")).toBe(false);
+  });
+
+  test("session.start declares /lights with $.command.register before anything else", async () => {
+    const { register } = await import("../hooks/register.ts");
+    const handlers = captureHandlers({ register });
+    // No repo: the declaration must still happen, since the command is
+    // useful (it reports "no PR tracked") even outside a repo.
+    const $ = createFake$({ repo: null });
+
+    await handlers.get("session.start")!($, {}, NEXT);
+
+    expect($.command.register).toHaveBeenCalledTimes(1);
+    expect($.command.register).toHaveBeenCalledWith(
+      expect.objectContaining({ name: "lights", argumentHint: "[off|refresh]" })
+    );
   });
 });
 
@@ -248,15 +273,20 @@ describe("register behavior (mutant-killing)", () => {
     vi.resetModules();
   });
 
-  test("session.start with no repo calls next() and never runs gh", async () => {
+  test("session.start with no repo calls next(e) and never runs gh", async () => {
     const { register } = await import("../hooks/register.ts");
     const handlers = captureHandlers({ register });
     const $ = createFake$({ repo: null });
+    const e = { name: "session.start" };
+    const next = vi.fn(NEXT);
 
-    await handlers.get("session.start")!($, {}, NEXT);
+    await handlers.get("session.start")!($, e, next);
 
     expect($.process.run).not.toHaveBeenCalled();
     expect($.store.set).not.toHaveBeenCalled();
+    // CC 2.1.282 rejects a bare next(): the event must be passed through.
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(next).toHaveBeenCalledWith(e);
   });
 
   test("session.start with failing gh stores the error and never starts the clock", async () => {
@@ -292,13 +322,20 @@ describe("register behavior (mutant-killing)", () => {
 
     await handlers.get("session.start")!($, {}, NEXT);
 
+    // CC 2.1.282 process.run takes the argv array positionally plus init,
+    // not an { argv, init } object.
+    expect($.process.run).toHaveBeenCalledWith(
+      ["gh", "pr", "list", "--base", "main", "--state", "open", "--json", "number,headRefOid,title"],
+      { timeoutMs: 15000 }
+    );
+
     // The clock ticks every 60000ms.
     expect($.clock.every).toHaveBeenCalledTimes(1);
     expect($.clock.every).toHaveBeenCalledWith(60000, expect.any(Function));
 
     // The first tick ran synchronously: required contexts were fetched.
     const apiCalls = ($.process.run as ReturnType<typeof vi.fn>).mock.calls.filter(
-      (c: unknown[]) => (c[0] as { argv: string[] }).argv[1] === "api"
+      (c: unknown[]) => (c[0] as readonly string[])[1] === "api"
     );
     expect(apiCalls.length).toBeGreaterThanOrEqual(3);
 
@@ -402,12 +439,11 @@ describe("register behavior (mutant-killing)", () => {
     const dispose = ($.clock.every as ReturnType<typeof vi.fn>).mock.results[0]
       .value as { dispose: ReturnType<typeof vi.fn> };
 
-    const result = (await handlers.get("command.register")!($, { name: "lights", args: ["off"] }, NEXT)) as {
-      command: string;
-      result: string;
+    const result = (await handlers.get("command.run")!($, { command: "lights", args: "off" }, NEXT)) as {
+      text: string;
     };
 
-    expect(result).toEqual({ command: "lights", result: "stopped" });
+    expect(result).toEqual({ text: "lights: stopped" });
     // The interval is disposed, so no further ticks fire.
     expect(dispose.dispose).toHaveBeenCalledTimes(1);
     expect($.store.delete).toHaveBeenCalledWith("lights:yonatangross/orchestkit");
@@ -423,12 +459,13 @@ describe("register behavior (mutant-killing)", () => {
     const callsAfterStart = ($.process.run as ReturnType<typeof vi.fn>).mock.calls.length;
     ($.ui.status as ReturnType<typeof vi.fn>).mockClear();
 
-    const result = (await handlers.get("command.register")!($, { name: "lights", args: ["refresh"] }, NEXT)) as {
-      command: string;
-      result: string;
+    // args arrive as one raw string; surrounding whitespace must not stop
+    // the subcommand from matching.
+    const result = (await handlers.get("command.run")!($, { command: "lights", args: " refresh " }, NEXT)) as {
+      text: string;
     };
 
-    expect(result).toEqual({ command: "lights", result: "refreshed" });
+    expect(result).toEqual({ text: "lights: refreshed" });
     expect(
       ($.process.run as ReturnType<typeof vi.fn>).mock.calls.length
     ).toBeGreaterThan(callsAfterStart);
@@ -448,13 +485,28 @@ describe("register behavior (mutant-killing)", () => {
     )?.[1];
     ($.store.get as ReturnType<typeof vi.fn>).mockResolvedValue(stored);
 
-    const result = (await handlers.get("command.register")!($, { name: "lights", args: [] }, NEXT)) as {
-      command: string;
-      result: string;
+    const result = (await handlers.get("command.run")!($, { command: "lights", args: "" }, NEXT)) as {
+      text: string;
     };
-    expect(result.command).toBe("lights");
     // The status line names the PR it is tracking.
-    expect(result.result).toContain("4165");
+    expect(result.text).toContain("4165");
+    expect(result.text).not.toBe("no PR tracked");
+    // A bare /lights is a read: it neither stops nor re-ticks.
+    const dispose = ($.clock.every as ReturnType<typeof vi.fn>).mock.results[0]
+      .value as { dispose: ReturnType<typeof vi.fn> };
+    expect(dispose.dispose).not.toHaveBeenCalled();
+  });
+
+  test("/lights with no tracked state reports no PR tracked", async () => {
+    const { register } = await import("../hooks/register.ts");
+    const handlers = captureHandlers({ register });
+    const $ = createFake$();
+
+    const result = (await handlers.get("command.run")!($, { command: "lights" }, NEXT)) as {
+      text: string;
+    };
+    expect(result).toEqual({ text: "no PR tracked" });
+    expect($.process.run).not.toHaveBeenCalled();
   });
 
   test("turn.complete with a closed PR stops tracking and deletes state", async () => {
@@ -504,10 +556,7 @@ describe("fake $ behavior", () => {
 
   test("fake process.run dispatches gh pr list", async () => {
     const fake$ = createFake$();
-    const result = await fake$.process.run({
-      argv: ["gh", "pr", "list"],
-      init: {},
-    });
+    const result = await fake$.process.run(["gh", "pr", "list"], {});
     expect(result.exitCode).toBe(0);
     expect(JSON.parse(result.stdout)).toHaveLength(1);
   });

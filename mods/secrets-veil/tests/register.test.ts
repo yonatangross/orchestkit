@@ -67,6 +67,27 @@ function captureHooks(): Map<string, RegisteredHook> {
   return hooks;
 }
 
+/** The session.start event CC 2.1.282 passes; the hook hands it to next(e). */
+const SESSION_EVENT = { cwd: "/tmp/veil-test" };
+
+/** Sentinel next(e) answer, so a test can prove the hook returned it. */
+const SESSION_NEXT_ANSWER = { answered: "session.start" };
+
+/**
+ * Run session.start the way CC 2.1.282 does: ($, e, next). Asserts the hook
+ * forwarded the same event to next exactly once and returned next's answer.
+ */
+async function startSession(hooks: Map<string, RegisteredHook>, $: unknown): Promise<void> {
+  const seen: unknown[] = [];
+  const next = async (ev: unknown): Promise<unknown> => {
+    seen.push(ev);
+    return SESSION_NEXT_ANSWER;
+  };
+  const answer = await hooks.get("session.start")!($, SESSION_EVENT, next);
+  expect(seen).toEqual([SESSION_EVENT]);
+  expect(answer).toBe(SESSION_NEXT_ANSWER);
+}
+
 function asNext<E>(result: unknown): (ev: E) => Promise<unknown> {
   return async () => result;
 }
@@ -80,13 +101,34 @@ describe("registration", () => {
     const hooks = captureHooks();
     expect([...hooks.keys()].sort()).toEqual(["session.start", "tool.call"]);
   });
+
+  test("session.start answers with next(e) (CC 2.1.282 skips a hook that returns nothing)", async () => {
+    const hooks = captureHooks();
+    const { $ } = makeFake$({});
+    await startSession(hooks, $);
+  });
+
+  test("tool.call runs the tool via next(e) with the same event before masking", async () => {
+    const hooks = captureHooks();
+    const { $ } = makeFake$({ GITHUB_TOKEN: SYNTHETIC });
+    await startSession(hooks, $);
+
+    const event = { tool: "Bash", args: { command: "echo" }, tool_use_id: "toolu_veiltest" };
+    const seen: unknown[] = [];
+    const out = await hooks.get("tool.call")!($, event, async (ev: unknown) => {
+      seen.push(ev);
+      return { result: `ran ${SYNTHETIC}` };
+    });
+    expect(seen).toEqual([event]);
+    expect(resultText(out)).not.toContain(SYNTHETIC);
+  });
 });
 
 describe("named masking", () => {
   test("a: masks a synthetic secret named by a vendor variable in result text", async () => {
     const hooks = captureHooks();
     const { $ } = makeFake$({ GITHUB_TOKEN: SYNTHETIC });
-    await hooks.get("session.start")!($);
+    await startSession(hooks, $);
 
     const out = await hooks.get("tool.call")!(
       $,
@@ -100,7 +142,7 @@ describe("named masking", () => {
   test("b: masks the same secret inside a structured result (result.stdout)", async () => {
     const hooks = captureHooks();
     const { $ } = makeFake$({ GITHUB_TOKEN: SYNTHETIC });
-    await hooks.get("session.start")!($);
+    await startSession(hooks, $);
 
     const out = (await hooks.get("tool.call")!(
       $,
@@ -117,7 +159,7 @@ describe("named masking", () => {
       const hooks = captureHooks();
       const value = `veiltest-${name.toLowerCase()}-42`;
       const { $ } = makeFake$({ [name]: value });
-      await hooks.get("session.start")!($);
+      await startSession(hooks, $);
 
       const out = await hooks.get("tool.call")!(
         $,
@@ -131,7 +173,7 @@ describe("named masking", () => {
   test("f: does not mask a named value shorter than 8 characters", async () => {
     const hooks = captureHooks();
     const { $ } = makeFake$({ GITHUB_TOKEN: "short" });
-    await hooks.get("session.start")!($);
+    await startSession(hooks, $);
 
     const out = await hooks.get("tool.call")!(
       $,
@@ -146,7 +188,7 @@ describe("empty named list", () => {
   test("d: emits exactly one notice when no named value resolves", async () => {
     const hooks = captureHooks();
     const { $, notices } = makeFake$({});
-    await hooks.get("session.start")!($);
+    await startSession(hooks, $);
 
     expect(notices.length).toBe(1);
     expect(notices[0]).toMatch(/patterns and entropy/);
@@ -155,7 +197,7 @@ describe("empty named list", () => {
   test("d: emits no notice when at least one named value resolves", async () => {
     const hooks = captureHooks();
     const { $, notices } = makeFake$({ GITHUB_TOKEN: SYNTHETIC });
-    await hooks.get("session.start")!($);
+    await startSession(hooks, $);
 
     expect(notices.length).toBe(0);
   });
@@ -163,7 +205,7 @@ describe("empty named list", () => {
   test("still masks shapes and entropy when the named list is empty", async () => {
     const hooks = captureHooks();
     const { $ } = makeFake$({});
-    await hooks.get("session.start")!($);
+    await startSession(hooks, $);
 
     const out = await hooks.get("tool.call")!(
       $,
@@ -185,7 +227,7 @@ describe("entropy masking through the shipped register", () => {
   test("e: masks a high-entropy token", async () => {
     const hooks = captureHooks();
     const { $ } = makeFake$({});
-    await hooks.get("session.start")!($);
+    await startSession(hooks, $);
 
     const out = await hooks.get("tool.call")!(
       $,
@@ -198,7 +240,7 @@ describe("entropy masking through the shipped register", () => {
   test("e: keeps a 40-char hex git sha readable", async () => {
     const hooks = captureHooks();
     const { $ } = makeFake$({});
-    await hooks.get("session.start")!($);
+    await startSession(hooks, $);
 
     const out = await hooks.get("tool.call")!(
       $,
@@ -211,7 +253,7 @@ describe("entropy masking through the shipped register", () => {
   test("e: keeps a 64-char hex hash readable", async () => {
     const hooks = captureHooks();
     const { $ } = makeFake$({});
-    await hooks.get("session.start")!($);
+    await startSession(hooks, $);
 
     const out = await hooks.get("tool.call")!(
       $,
@@ -224,7 +266,7 @@ describe("entropy masking through the shipped register", () => {
   test("e: keeps a UUID readable", async () => {
     const hooks = captureHooks();
     const { $ } = makeFake$({});
-    await hooks.get("session.start")!($);
+    await startSession(hooks, $);
 
     const out = await hooks.get("tool.call")!(
       $,
@@ -237,7 +279,7 @@ describe("entropy masking through the shipped register", () => {
   test("e: keeps a long file path readable", async () => {
     const hooks = captureHooks();
     const { $ } = makeFake$({});
-    await hooks.get("session.start")!($);
+    await startSession(hooks, $);
 
     const out = await hooks.get("tool.call")!(
       $,
@@ -265,7 +307,7 @@ describe("rejected reads", () => {
         },
       },
     };
-    await hooks.get("session.start")!($);
+    await startSession(hooks, $);
     expect(notices.length).toBe(0);
 
     const out = await hooks.get("tool.call")!(
