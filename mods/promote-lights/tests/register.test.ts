@@ -43,7 +43,7 @@ interface Fake$ {
   command: {
     register: (spec: { name: string; description: string; argumentHint?: string }) => Promise<unknown>;
   };
-  env?: {
+  env: {
     get: (key: string) => Promise<string | undefined>;
   };
 }
@@ -163,6 +163,9 @@ function createFake$(overrides: Record<string, unknown> = {}): Fake$ {
     },
     command: {
       register: vi.fn().mockResolvedValue(undefined),
+    },
+    env: {
+      get: (overrides.envGet as Fake$["env"]["get"]) ?? vi.fn().mockResolvedValue(undefined),
     },
   };
 }
@@ -378,8 +381,8 @@ describe("register behavior (mutant-killing)", () => {
       prList: JSON.stringify([
         { number: 4419, headRefName: "release", headRefOid: "abc123def4567", title: "promote release", labels: [] },
       ]),
+      envGet: vi.fn().mockResolvedValue("release"),
     });
-    $.env = { get: vi.fn().mockResolvedValue("release") };
 
     await handlers.get("session.start")!($, {}, NEXT);
 

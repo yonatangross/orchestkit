@@ -15,6 +15,7 @@
  * - $.store.get/set
  * - $.ui.status
  * - $.ui.invalidate
+ * - $.env.get (PROMOTE_HEAD override)
  */
 
 import { matchAndClassify, isPassing, type ClassifiedLight } from "../src/classify.js";
@@ -45,7 +46,7 @@ type Hook$ = {
     set: (key: string, value: unknown) => Promise<void>;
     delete: (key: string) => Promise<void>;
   };
-  env?: {
+  env: {
     get: (key: string) => Promise<string | undefined>;
   };
   ui: {
@@ -124,12 +125,8 @@ export const register: Register = (on) => {
     // promote head) with base main, or the promote label. An ordinary
     // PR with base main must never match.
     let promoteHead = DEFAULT_PROMOTE_HEAD;
-    try {
-      const configured = await $.env?.get("PROMOTE_HEAD");
-      if (configured) promoteHead = configured;
-    } catch {
-      promoteHead = DEFAULT_PROMOTE_HEAD;
-    }
+    const configured = await $.env.get("PROMOTE_HEAD").catch(() => undefined);
+    if (configured) promoteHead = configured;
     const prs = parsePRList(result.stdout);
     const promotePR = prs.find((pr) => isPromotePR(pr, promoteHead));
 
