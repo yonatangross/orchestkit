@@ -32,7 +32,8 @@ test.describe('Landing hero', () => {
 
   test('hero A art bleeds on desktop and stacks as 16:9 under copy on narrow', async ({ page }) => {
     // The bleed is the dark-mode treatment (approved mockup A); light frames it.
-    await page.emulateMedia({ colorScheme: 'dark' });
+    // Pin the stored theme: emulateMedia is a no-op under defaultTheme "dark".
+    await page.addInitScript(() => localStorage.setItem('theme', 'dark'));
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/');
 
@@ -116,14 +117,17 @@ test.describe('Landing hero', () => {
 
   for (const width of [1280, 1575, 1920]) {
     test(`hero art reaches the viewport edge in dark at ${width}px`, async ({ page }) => {
-      await page.emulateMedia({ colorScheme: 'dark' });
+      await page.addInitScript(() => localStorage.setItem('theme', 'dark'));
       await page.setViewportSize({ width, height: 900 });
       await page.goto('/');
       const right = await page
         .locator('.home-hero-art')
         .evaluate((el) => el.getBoundingClientRect().right);
-      // The 1180px container cap left a bare gutter right of the art.
+      // The 1180px container cap left a bare gutter right of the art. The
+      // upper bound catches a runaway bleed that the section would clip,
+      // cropping the conductor (20px allows a classic scrollbar).
       expect(right).toBeGreaterThanOrEqual(width - 1);
+      expect(right).toBeLessThanOrEqual(width + 20);
     });
   }
 

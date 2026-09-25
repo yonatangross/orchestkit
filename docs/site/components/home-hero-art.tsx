@@ -2,8 +2,10 @@ import Image from "next/image";
 
 /**
  * Conductor OG art for hero option A (design/og-card/art/A-1.png).
- * Desktop: absolute right bleed ~55% with L→R mask (see .home-hero-art in global.css).
- * Mobile ≤900px: 16:9 band under the copy column.
+ * Desktop: an in-flow grid item in column 2, never absolute (see
+ * .home-hero-art in global.css). Dark bleeds to the viewport edge with
+ * feathered inner edges; light is a framed card.
+ * Mobile ≤900px: 16:9 band under the headline.
  */
 export function HomeHeroArt() {
   return (

@@ -215,6 +215,8 @@
    it left column 2 empty and the long copy column (picker, search, proof)
    ran ~600px past it, the "broken on a laptop" report of 2026-09-25. */
 .home-hero-inner {
+  /* Single source for the container: page.tsx sets max-width and padding
+     from these, and the dark bleed below subtracts the same two values. */
   --hero-max: 1180px;
   --hero-pad: 28px;
   display: grid;

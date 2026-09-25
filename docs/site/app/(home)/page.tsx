@@ -113,7 +113,7 @@ export default async function HomePage() {
         aria-labelledby="hero-heading"
         className="home-hero relative overflow-x-hidden border-b border-fd-border"
       >
-        <div className="home-hero-inner relative mx-auto w-full max-w-[1180px] px-7 py-12 sm:py-[72px]">
+        <div className="home-hero-inner relative mx-auto w-full max-w-[var(--hero-max)] px-[var(--hero-pad)] py-12 sm:py-[72px]">
           <div className="home-hero-copy relative z-[2] max-w-[520px] text-left max-[900px]:max-w-none">
             <div className="home-hero-copy-top">
               {latest ? (
