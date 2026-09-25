@@ -85,6 +85,15 @@ No state persisted except the in-memory match map, which is safe to drop.
 
 - `/lessons` - Reload corpus from hq-ext cache and lessons.md files
 
+## Seeing a card in a live session
+
+In an environment with hq-ext installed, pretool-lesson-guard checks commands before tool execution. Block-severity patterns like gh pr checks are denied by the pretool guard first, preventing the tool call from running and rendering a card.
+
+To see a hint card in a live session, invoke a command that the hq-ext guard allows:
+
+1. **Floor lessons bullet**: Run an indexed command from ~/.claude/hq/floor-*/lessons.md, such as vm_stat. The hq-ext guard does not inspect floor bullets, allowing the command to run and display an advisory hint card under the tool row.
+2. **Warn pattern**: Run a command matching a warn-severity pattern, such as alembic stamp head. The hq-ext guard exits 0 for warn-severity patterns, allowing the command to proceed while lesson-cards renders the card and notice.
+
 ## Acceptance checklist
 
 - [ ] Pattern matching works for Bash commands

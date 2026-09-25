@@ -308,6 +308,43 @@ describe('tool.call', () => {
     const clean = (await hooks.get('tool.call')!($, { tool: 'Edit', file_path: 'tests/run.py', old_string: 'pytest.main()', new_string: 'pass' }, next)) as Record<string, unknown>;
     expect(clean).toEqual({});
   });
+
+  test('feeds matching tool.call and asserts card and lesson notice independently', async () => {
+    const { hooks } = captureHooks();
+    const { $, notices } = makeFake$();
+    await startSession(hooks, $);
+
+    const toolUseId = 'call_1';
+    const next = asNext<never>({ result: 'ok' });
+    const callResult = (await hooks.get('tool.call')!(
+      $,
+      { tool: 'Bash', command: 'gh pr checks', tool_use_id: toolUseId },
+      next
+    )) as { result?: string; context?: string[] };
+
+    expect(callResult.result).toBe('ok');
+    expect(callResult.context?.[0]).toContain('[lesson:cancelled-check-is-not-pass]');
+    expect(notices).toContain(`${toolUseId}: lesson: cancelled-check-is-not-pass`);
+
+    const renderTree = (await hooks.get('ui.render')!(
+      $,
+      { component: 'ToolUse', requestId: toolUseId },
+      asNext<never>({ children: [] })
+    )) as {
+      children: Array<{
+        type: string;
+        props: Record<string, unknown>;
+        children?: Array<{ children?: Array<{ text?: string }> }>;
+      }>;
+    };
+
+    expect(renderTree.children.length).toBe(1);
+    const card = renderTree.children[0];
+    expect(card.type).toBe('Box');
+    expect(card.props.key).toBe(`lesson-${toolUseId}`);
+    expect(card.props.borderColor).toBe('red');
+    expect(card.children?.[0]?.children?.[0]?.text).toBe('lesson: cancelled-check-is-not-pass');
+  });
 });
 
 describe('ui.render', () => {
