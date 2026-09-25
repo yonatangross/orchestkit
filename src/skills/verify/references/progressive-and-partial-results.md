@@ -14,7 +14,7 @@ Code Quality: 7.5/10 — 3 complexity hotspots identified
 [...remaining agents still running...]
 ```
 
-This gives users real-time visibility into multi-agent verification. If any dimension scores below the `security_minimum` threshold (default 5.0), flag it as a **blocker immediately** — the user can terminate early without waiting for remaining agents.
+This gives users real-time visibility into multi-agent verification. If any dimension scores below the rubric `min_blocker` for security (7.0), flag it as a **blocker immediately** — the user can terminate early without waiting for remaining agents.
 
 ## Partial results (CC 2.1.98)
 

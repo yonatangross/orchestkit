@@ -339,13 +339,14 @@ The composite table above is overridden by per-dimension floors. Thresholds live
 
 | Dimension | Threshold | Effect when below |
 |-----------|-----------|-------------------|
-| Security | `min_blocker` 4.0 | Verdict BLOCKED regardless of composite |
+| Security | `min_blocker` 7.0 | Verdict BLOCKED regardless of composite |
+| Every other dimension | `min_blocker` 3.0 | Verdict BLOCKED regardless of composite (0-3 blocks merge) |
 | Compliance | `min_pass` 6.0 | Verdict capped at IMPROVEMENTS RECOMMENDED |
 
 Reporting format — the tripped dimension leads the verdict, with the threshold named:
 
 ```
-Security 3.2/10 (CRITICAL BLOCKER — below min_blocker 4.0)
+Security 3.2/10 (CRITICAL BLOCKER — below min_blocker 7.0)
 ```
 
 A passing composite never clears a tripped `min_blocker`; list every tripped dimension with the fix required to clear it.
@@ -524,7 +525,7 @@ Code Quality: 7.5/10 — 3 complexity hotspots identified
 [...remaining agents still running...]
 ```
 
-This gives users real-time visibility into multi-agent verification. If any dimension scores below the `security_minimum` threshold (default 5.0), flag it as a **blocker immediately** — the user can terminate early without waiting for remaining agents.
+This gives users real-time visibility into multi-agent verification. If any dimension scores below the rubric `min_blocker` for security (7.0), flag it as a **blocker immediately** — the user can terminate early without waiting for remaining agents.
 
 ## Partial results (CC 2.1.98)
 

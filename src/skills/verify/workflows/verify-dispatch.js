@@ -71,7 +71,7 @@ const AGENTS = [
 const RUBRIC_DIM = { security: "security", quality: "maintainability", coverage: "testability", api: "compliance", ui: "compliance", performance: "performance" };
 
 // SKILL.md STEP 0 effort table: low = tests only, medium = 3 agents, high/xhigh = all.
-const EFFORT_FOCUS = { low: [], medium: ["security", "quality", "coverage"], high: AGENTS.map((a) => a.focus), xhigh: AGENTS.map((a) => a.focus) };
+const EFFORT_FOCUS = { low: [], medium: ["security", "quality", "coverage", "api"], high: AGENTS.map((a) => a.focus), xhigh: AGENTS.map((a) => a.focus) };
 let EFFORT = String(cfg.effort || "high").toLowerCase();
 if (EFFORT === "max") EFFORT = "xhigh";
 if (!Object.prototype.hasOwnProperty.call(EFFORT_FOCUS, EFFORT)) {
@@ -91,27 +91,39 @@ if (Array.isArray(cfg.dimensions) && cfg.dimensions.length) {
 	if (!wanted.length) lower("BLOCKED", "a dimensions override selected no known verifier, nothing was verified");
 }
 const SELECTED = AGENTS.filter((a) => wanted.includes(a.focus));
+if (!SELECTED.length) lower("BLOCKED", `no verifier selected at effort ${EFFORT}, nothing was verified`);
 const VOTES = EFFORT === "xhigh" ? 3 : EFFORT === "high" ? 1 : 0;
 const maxArg = Number(cfg.maxAgents);
 const MAX_AGENTS = Number.isFinite(maxArg) && cfg.maxAgents !== undefined && cfg.maxAgents !== null ? Math.max(1, Math.min(12, Math.floor(maxArg))) : 12;
 const SCOPE = String(cfg.scope || "the current branch diff against its base");
 const MODEL = cfg.modelOverride ? String(cfg.modelOverride) : undefined;
 
-// Rubric: object or JSON text. Without dimensions, fall back to the two thresholds
-// grading-rubric.md names (security min_blocker 4.0, compliance min_pass 6.0) and say so.
-let rubric = parseMaybeJson(cfg.rubric, "rubric");
-let rubricDims = Array.isArray(rubric?.dimensions) ? rubric.dimensions : [];
+// Rubric thresholds are FLOORS the rubric may tighten, never loosen (SKILL.md: a policy
+// "may tighten these thresholds, never loosen them"). The floors come from the rules
+// the skill grades by: grading-rubric.md (0-3 "Critical issues, blocks merge") and
+// quality-gates unified-scoring-framework.md (security below 7.0 and any critical
+// dimension below 3.0 BLOCK). Compliance keeps min_pass 6.0.
+const FLOOR = { security: { minBlocker: 7.0, minPass: null }, compliance: { minBlocker: 3.0, minPass: 6.0 } };
+const DEFAULT_FLOOR = { minBlocker: 3.0, minPass: null };
+const num = (v) => {
+	const n = typeof v === "string" && v.trim() !== "" ? Number(v.trim()) : v;
+	return typeof n === "number" && Number.isFinite(n) ? n : null;
+};
+const rubric = parseMaybeJson(cfg.rubric, "rubric");
+const rubricDims = Array.isArray(rubric?.dimensions) ? rubric.dimensions : [];
 if (!rubricDims.length) {
-	rubricDims = [
-		{ name: "security", min_blocker: 4.0 },
-		{ name: "compliance", min_pass: 6.0 },
-	];
-	log("rubric missing or empty, applying default thresholds (security min_blocker 4.0, compliance min_pass 6.0)");
-	lower("IMPROVEMENTS RECOMMENDED", "rubric.json was not passed; default thresholds applied");
+	log("rubric missing or empty, applying the default floors");
+	lower("IMPROVEMENTS RECOMMENDED", "rubric.json was not passed; default floors applied");
 }
 const threshold = (focus) => {
-	const d = rubricDims.find((x) => x && x.name === RUBRIC_DIM[focus]);
-	return { minPass: typeof d?.min_pass === "number" ? d.min_pass : null, minBlocker: typeof d?.min_blocker === "number" ? d.min_blocker : null };
+	const name = RUBRIC_DIM[focus];
+	const floor = FLOOR[name] || DEFAULT_FLOOR;
+	const d = rubricDims.find((x) => x && String(x.name || "").toLowerCase() === name);
+	const mb = num(d?.min_blocker);
+	const mp = num(d?.min_pass);
+	const minBlocker = Math.max(floor.minBlocker, mb ?? -Infinity);
+	const minPass = floor.minPass === null && mp === null ? null : Math.max(floor.minPass ?? -Infinity, mp ?? -Infinity);
+	return { minBlocker, minPass };
 };
 
 const DIM_SCHEMA = {
@@ -214,8 +226,11 @@ const results = await pipeline(
 		return agent(dispatchPrompt(a), opts({ label: `dispatch:${a.focus}`, phase: "Dispatch", schema: DIM_SCHEMA, agentType: a.agentType }));
 	},
 	async (res, a) => {
-		if (!res) return { focus: a.focus, agentType: a.agentType, outcome: "NO-RESULT", score: null, effectiveScore: null, evidence: [], blockers: [], refuted: [], claimed: [] };
+		if (!res || !Number.isFinite(res.score)) return { focus: a.focus, agentType: a.agentType, outcome: "NO-RESULT", score: null, effectiveScore: null, evidence: [], blockers: [], refuted: [], claimed: [] };
 		const t = threshold(a.focus);
+		const SEV = ["critical", "high", "medium", "low"];
+		res.blockers = (Array.isArray(res.blockers) ? res.blockers : []).map((b) => (SEV.includes(b.severity) ? b : { ...b, severity: "critical" }));
+		res.evidence = Array.isArray(res.evidence) ? res.evidence : [];
 		const findings = res.blockers.filter((b) => b.severity === "critical").map((b) => ({ kind: "blocker", ...b }));
 		const low = (t.minBlocker !== null && res.score < t.minBlocker) || (t.minPass !== null && res.score < t.minPass);
 		if (low) findings.push({ kind: "score", score: res.score, minPass: t.minPass, minBlocker: t.minBlocker });
@@ -249,7 +264,8 @@ const agents = results.filter(Boolean);
 
 for (const a of agents) {
 	if (a.outcome === "NO-RESULT") {
-		lower("IMPROVEMENTS RECOMMENDED", `${a.focus}: verifier returned no result`);
+		if (a.focus === "security") lower("BLOCKED", "security not verified: the security verifier returned no result");
+		else lower("IMPROVEMENTS RECOMMENDED", `${a.focus}: verifier returned no result`);
 		continue;
 	}
 	const t = threshold(a.focus);
@@ -264,7 +280,8 @@ for (const a of agents) {
 	if (a.claimed.length) lower("IMPROVEMENTS RECOMMENDED", `${a.focus}: ${a.claimed.length} CLAIMED item(s) without a command`);
 }
 for (const f of SELECTED.filter((a) => !agents.some((r) => r.focus === a.focus))) {
-	lower("IMPROVEMENTS RECOMMENDED", `${f.focus}: no result`);
+	if (f.focus === "security") lower("BLOCKED", "security not verified: the security verifier did not run to a result");
+	else lower("IMPROVEMENTS RECOMMENDED", `${f.focus}: no result`);
 }
 if (dropped.length) lower("IMPROVEMENTS RECOMMENDED", `${dropped.length} agent spawn(s) dropped at the ${MAX_AGENTS}-agent ceiling`);
 
@@ -282,6 +299,7 @@ if (!te) {
 	tests = { outcome: String(te.outcome || "COULD-NOT-OBSERVE"), exitCode: typeof te.exitCode === "number" ? te.exitCode : null, summaryLine: String(te.summaryLine || "") };
 	if (tests.outcome !== "EVIDENCE") lower("BLOCKED", `Tests: ${tests.outcome}, no grade from an unobserved run`);
 	else if (tests.exitCode !== 0) lower("BLOCKED", `Tests: EVIDENCE with exit ${tests.exitCode === null ? "unknown (pass exitCode from the EXIT= marker)" : tests.exitCode}`);
+	else if (!tests.summaryLine.trim() || /\b0 (passed|tests?)\b|no tests? (found|ran|run|collected)/i.test(tests.summaryLine)) lower("BLOCKED", `Tests: exit 0 but the summary shows no tests ran ("${tests.summaryLine}")`);
 }
 
 return {

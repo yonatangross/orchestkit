@@ -116,14 +116,20 @@ const why = (r) => r.reasons.join('\n');
 console.log('verify-dispatch');
 
 // 1. effort and selection
-await test('low effort spawns no verifier', async () => {
+await test('low effort spawns no verifier and can never be READY (nothing verified)', async () => {
   const { calls, result } = await run({ args: { effort: 'low' } });
   assert.equal(calls.length, 0);
+  assert.equal(result.verdictCap, 'BLOCKED');
+  assert.match(why(result), /no verifier selected at effort low/);
+});
+await test('Full verification passes all six and overrides low effort', async () => {
+  const { dispatched, result } = await run({ args: { effort: 'low', dimensions: ['security', 'quality', 'coverage', 'api', 'performance', 'ui'] } });
+  assert.equal(dispatched.length, 6);
   assert.equal(result.verdictCap, 'READY FOR MERGE');
 });
-await test('medium effort spawns security, quality, coverage', async () => {
+await test('medium effort keeps compliance: security, quality, coverage, api', async () => {
   const { dispatched } = await run({ args: { effort: 'medium' } });
-  assert.deepEqual(dispatched, ['coverage', 'quality', 'security']);
+  assert.deepEqual(dispatched, ['api', 'coverage', 'quality', 'security']);
 });
 await test('high effort spawns all six with their agent types', async () => {
   const { calls, result } = await run({ args: { effort: 'high' } });
@@ -177,12 +183,12 @@ await test('probe J: no testEvidence is PENDING-TESTS, never READY', async () =>
 await test('probe A: missing rubric applies defaults and caps (security 1 is BLOCKED)', async () => {
   const { result } = await run({ args: { effort: 'high', rubric: undefined }, dispatch: { security: GOOD(1) }, refute: [NO] });
   assert.equal(result.verdictCap, 'BLOCKED');
-  assert.match(why(result), /default thresholds applied/);
+  assert.match(why(result), /default floors applied/);
 });
 await test('probe B: rubric given as JSON text is parsed (security 1 is BLOCKED)', async () => {
   const { result } = await run({ args: { effort: 'high', rubric: JSON.stringify(RUBRIC) }, dispatch: { security: GOOD(1) }, refute: [NO] });
   assert.equal(result.verdictCap, 'BLOCKED');
-  assert.doesNotMatch(why(result), /default thresholds/);
+  assert.doesNotMatch(why(result), /default floors/);
 });
 await test('compliance: an api score under min_pass caps at IMPROVEMENTS RECOMMENDED', async () => {
   const { result } = await run({ args: { effort: 'high' }, dispatch: { api: GOOD(5) }, refute: [NO] });
@@ -289,10 +295,81 @@ await test('args given as a JSON string are parsed', async () => {
     return GOOD();
   };
   await body(JSON.stringify({ effort: 'medium', rubric: RUBRIC, testEvidence: PASSED }), agent, () => {}, () => {}, pipeline);
-  assert.equal(labels.length, 3);
+  assert.equal(labels.length, 4);
 });
 await test('malformed args text fails with a clear message', async () => {
   await assert.rejects(body('{not json', async () => GOOD(), () => {}, () => {}, pipeline), /verify-dispatch: args is not valid JSON/);
+});
+
+// 8. round-1 HOLD: floors, clamping, fail-closed security, test summary
+for (const [focus, dim] of [['quality', 'maintainability'], ['coverage', 'testability'], ['performance', 'performance']]) {
+  await test(`a ${focus} score of 2 is BLOCKED (${dim} min_blocker 3.0)`, async () => {
+    const { result } = await run({ args: { effort: 'high' }, dispatch: { [focus]: GOOD(2) }, refute: [NO] });
+    assert.equal(result.verdictCap, 'BLOCKED');
+    assert.match(why(result), new RegExp(`${focus} 2/10 below min_blocker 3`));
+  });
+}
+await test('security 6.5 is BLOCKED (threshold 7.0)', async () => {
+  const { result } = await run({ args: { effort: 'high' }, dispatch: { security: GOOD(6.5) }, refute: [NO] });
+  assert.equal(result.verdictCap, 'BLOCKED');
+  assert.match(why(result), /security 6.5\/10 below min_blocker 7/);
+});
+await test('rubric.json itself carries security 7.0 and a 3.0 floor on every dimension', async () => {
+  for (const d of RUBRIC.dimensions) assert.equal(d.min_blocker, d.name === 'security' ? 7 : 3, d.name);
+});
+const SEC_ONLY = (sec) => ({ ...RUBRIC, dimensions: RUBRIC.dimensions.map((d) => (d.name === 'security' ? sec : d)) });
+await test('a partial rubric (security without min_blocker) keeps the 7.0 floor', async () => {
+  const { result } = await run({ args: { effort: 'high', rubric: SEC_ONLY({ name: 'security', weight: 0.18 }) }, dispatch: { security: GOOD(5) }, refute: [NO] });
+  assert.equal(result.verdictCap, 'BLOCKED');
+});
+await test('a string min_blocker "4.0" and a "Security" name are clamped to 7.0', async () => {
+  const { result } = await run({ args: { effort: 'high', rubric: SEC_ONLY({ name: 'Security', weight: 0.18, min_blocker: '4.0' }) }, dispatch: { security: GOOD(5) }, refute: [NO] });
+  assert.equal(result.verdictCap, 'BLOCKED');
+});
+await test('a looser min_blocker 1.0 never loosens the floor', async () => {
+  const { result } = await run({ args: { effort: 'high', rubric: SEC_ONLY({ name: 'security', weight: 0.18, min_blocker: 1.0 }) }, dispatch: { security: GOOD(5) }, refute: [NO] });
+  assert.equal(result.verdictCap, 'BLOCKED');
+});
+await test('a tighter rubric threshold is honoured (security min_blocker 8.5)', async () => {
+  const { result } = await run({ args: { effort: 'high', rubric: SEC_ONLY({ name: 'security', weight: 0.18, min_blocker: 8.5 }) }, dispatch: { security: GOOD(8) }, refute: [NO] });
+  assert.equal(result.verdictCap, 'BLOCKED');
+});
+await test('a dead security verifier fails closed: BLOCKED, security not verified', async () => {
+  const nul = await run({ args: { effort: 'high' }, dispatch: { security: null } });
+  assert.equal(nul.result.verdictCap, 'BLOCKED');
+  assert.match(why(nul.result), /security not verified/);
+  const thrown = await run({ args: { effort: 'high' }, dispatch: { security: new Error('crash') } });
+  assert.equal(thrown.result.verdictCap, 'BLOCKED');
+  assert.match(why(thrown.result), /security not verified/);
+});
+await test('a non-finite score counts as no result', async () => {
+  const { result } = await run({ args: { effort: 'high' }, dispatch: { security: { ...GOOD(), score: Number.NaN } } });
+  assert.equal(result.verdictCap, 'BLOCKED');
+});
+await test('an unknown blocker severity fails closed as critical', async () => {
+  const { result } = await run({ args: { effort: 'high' }, dispatch: { quality: { ...GOOD(8), blockers: [{ issue: 'x', severity: 'blocker' }] } }, refute: [NO] });
+  assert.equal(result.verdictCap, 'BLOCKED');
+});
+await test('EVIDENCE exit 0 with an empty or zero-test summary is BLOCKED', async () => {
+  for (const summaryLine of ['', 'No tests found', '0 passed']) {
+    const { result } = await run({ args: { effort: 'medium', testEvidence: { outcome: 'EVIDENCE', exitCode: 0, summaryLine } } });
+    assert.equal(result.verdictCap, 'BLOCKED', JSON.stringify(summaryLine));
+  }
+});
+await test('capIfTestsPass is BLOCKED when a verifier blocks and tests are pending', async () => {
+  const { result } = await run({ args: { effort: 'medium', testEvidence: undefined }, dispatch: { quality: CRIT } });
+  assert.equal(result.verdictCap, 'PENDING-TESTS');
+  assert.equal(result.capIfTestsPass, 'BLOCKED');
+});
+await test('a ui score under compliance min_pass caps', async () => {
+  const { result } = await run({ args: { effort: 'high' }, dispatch: { ui: GOOD(5) }, refute: [NO] });
+  assert.equal(result.verdictCap, 'IMPROVEMENTS RECOMMENDED');
+  assert.match(why(result), /ui 5\/10 below min_pass 6/);
+});
+await test('xhigh with two different correctedScores uses the lower one', async () => {
+  const { result } = await run({ args: { effort: 'xhigh' }, dispatch: { security: GOOD(3) }, refute: [YES({ correctedScore: 9 }), YES({ correctedScore: 6 }), NO] });
+  assert.equal(result.agents.find((a) => a.focus === 'security').effectiveScore, 6);
+  assert.equal(result.verdictCap, 'BLOCKED');
 });
 
 console.log(`\n${passed} passed, ${failures.length} failed`);
