@@ -32,6 +32,14 @@ test.describe("Site QA", () => {
 		});
 	}
 
+	test("the release banner sits in a named landmark", async ({ page }) => {
+		// axe "region" fired on every route for the unlandmarked banner (QA #22).
+		await page.goto("/");
+		const banner = page.getByRole("region", { name: "Release announcement" });
+		await expect(banner).toBeVisible();
+		await expect(banner).toContainText("skills");
+	});
+
 	test("the whole Codex command is visible at 1440", async ({ page }) => {
 		await page.goto("/?host=codex");
 		const command = page.locator('[aria-label="Codex install command"]');
@@ -53,21 +61,52 @@ test.describe("Site QA", () => {
 		await expect(page.getByText("Click a chip")).toHaveCount(0);
 		const card = page.getByRole("button", { name: /^Copy claude plugin marketplace add/ }).first();
 		await expect(card).toBeVisible();
-		const split = await card.evaluate((el) => {
-			const broken: string[] = [];
-			const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
-			while (walker.nextNode()) {
-				const node = walker.currentNode;
-				for (const m of (node.textContent ?? "").matchAll(/\S+/g)) {
-					const range = document.createRange();
-					range.setStart(node, m.index ?? 0);
-					range.setEnd(node, (m.index ?? 0) + m[0].length);
-					const lines = new Set([...range.getClientRects()].map((r) => Math.round(r.top)));
-					if (lines.size > 1) broken.push(m[0]);
-				}
-			}
-			return broken;
+		expect(await card.evaluate(tokensSplitAcrossLines)).toEqual([]);
+	});
+
+	test.describe("phone", () => {
+		test.use({ viewport: { width: 390, height: 844 } });
+
+		test("the Codex command wraps only at spaces at 390", async ({ page }) => {
+			await page.goto("/?host=codex");
+			const command = page.locator('[aria-label="Codex install command"]');
+			await expect(command).toContainText("ork-codex@orchestkit-codex");
+			expect(await command.evaluate(tokensSplitAcrossLines)).toEqual([]);
 		});
-		expect(split).toEqual([]);
 	});
 });
+
+/** Tokens (runs of non-space) whose glyphs land on more than one line. */
+function tokensSplitAcrossLines(el: Element): string[] {
+	const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+	const nodes: { node: Text; start: number }[] = [];
+	let text = "";
+	let block: Element | null = null;
+	while (walker.nextNode()) {
+		const node = walker.currentNode as Text;
+		// Each command line is its own div; never join the end of one line
+		// to the start of the next into one fake token.
+		const own = node.parentElement?.closest("div") ?? null;
+		if (block && own !== block) text += "\n";
+		block = own;
+		nodes.push({ node, start: text.length });
+		text += node.data;
+	}
+	// Map a text offset back to its node, so a token spread over several
+	// nodes (one span per token) is measured as one range.
+	const at = (pos: number) => {
+		const hit = [...nodes].reverse().find((n) => n.start <= pos) ?? nodes[0];
+		return { node: hit.node, offset: Math.min(pos - hit.start, hit.node.length) };
+	};
+	const broken: string[] = [];
+	for (const m of text.matchAll(/\S+/g)) {
+		const range = document.createRange();
+		const a = at(m.index ?? 0);
+		const b = at((m.index ?? 0) + m[0].length);
+		range.setStart(a.node, a.offset);
+		range.setEnd(b.node, b.offset);
+		const lines = new Set([...range.getClientRects()].filter((r) => r.width > 0).map((r) => Math.round(r.top)));
+		if (lines.size > 1) broken.push(m[0]);
+	}
+	return broken;
+}

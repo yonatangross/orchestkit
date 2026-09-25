@@ -86,6 +86,10 @@ export default function Layout({ children }: { children: ReactNode }) {
 					id={`v${SITE.version}`}
 					className="relative ps-10 pe-10"
 					changeLayout={false}
+					// A named region, so the announcement sits in a landmark (axe
+					// "region" fired on every route, QA 2026-09-25).
+					role="region"
+					aria-label="Release announcement"
 				>
 					{BANNER_TEXT}
 				</Banner>
