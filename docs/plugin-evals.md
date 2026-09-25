@@ -76,7 +76,7 @@ Four things the wrapper handles that are easy to get wrong by hand:
 - **`--no-publish` is mandatory.** The HTML report is published to claude.ai by
   default. Every run this repo makes keeps it local.
 - **Both models are pinned and recorded.** Agent `claude-sonnet-5`, judge
-  `claude-opus-5`, flippable with `--model` and `--judge-model`. The tool's
+  `claude-opus-5-5`, flippable with `--model` and `--judge-model`. The tool's
   `run.json` never records the agent model, so the runner writes `models.txt`
   beside it. The judge must not be the agent model (self-preference), and
   judging is about 2% of spend, so the bigger judge costs cents. A sonnet
