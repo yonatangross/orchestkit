@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.96](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.95...v10.0.0-beta.96) (2026-09-25)
+
+
+### Features
+
+* **verify:** Phase 2 dispatch runs as a Workflow script ([#4424](https://github.com/yonatangross/orchestkit/issues/4424)) ([65ae19d](https://github.com/yonatangross/orchestkit/commit/65ae19dce174b506edf9399189626e617184bee8))
+
+
+### Documentation
+
+* **readme:** skills.sh badge and measured starter 12 ([#4426](https://github.com/yonatangross/orchestkit/issues/4426)) ([3d9df6d](https://github.com/yonatangross/orchestkit/commit/3d9df6de147585bc9ce433be02349cd0f457da11))
+
 ## [10.0.0-beta.95](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.94...v10.0.0-beta.95) (2026-09-25)
 
 
