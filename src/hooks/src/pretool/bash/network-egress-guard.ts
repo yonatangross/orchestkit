@@ -11,14 +11,14 @@
  * Scope split (mirrors dangerous-command-blocker's DENY/ASK/ALLOW tiers):
  *
  *   DENY  - remote code execution via fetched content. Never legitimate for an
- *           agent: `bash <(curl …)`, `eval $(curl …)`, `curl … | sh`,
- *           `curl … | python3`, `nc -e` reverse shell.
+ *           agent: `bash <(curl ...)`, `eval $(curl ...)`, `curl ... | sh`,
+ *           `curl ... | python3`, `nc -e` reverse shell.
  *           NOTE: dangerous-command-blocker (and its PIPE_TO_SHELL_RE) was
  *           retired in #3835. Plain pipe-to-shell / pipe-to-interpreter shapes
  *           live in THIS guard's DENY tier now (#4220 HR-5).
  *
  *   ASK   — sometimes-legitimate egress that is also the classic exfil/install
- *           vector: staged download-then-run (`curl -o x.sh … && sh x.sh`),
+ *           vector: staged download-then-run (`curl -o x.sh ... && sh x.sh`),
  *           data UPLOAD (POST/PUT/-d/-F/-T) to a non-allowlisted host, and
  *           nc/scp/rsync to a non-allowlisted host.
  *
@@ -58,23 +58,23 @@ const HOOK_NAME = 'network-egress-guard';
 // =============================================================================
 
 const DENY_REGEX: { re: RegExp; label: string }[] = [
-  // interpreter reading a process-substitution network fetch: bash <(curl …)
+  // interpreter reading a process-substitution network fetch: bash <(curl ...)
   {
     re: /\b(?:ba|z|k|da)?sh\s+<\(\s*(?:curl|wget|fetch)\b/i,
-    label: 'shell <(curl …): executes fetched remote content',
+    label: 'shell <(curl ...): executes fetched remote content',
   },
   {
     re: /\b(?:source|\.)\s+<\(\s*(?:curl|wget|fetch)\b/i,
-    label: 'source <(curl …): sources fetched remote content',
+    label: 'source <(curl ...): sources fetched remote content',
   },
   {
     re: /\b(?:python[0-9.]*|node|ruby|perl|php)\s+<\(\s*(?:curl|wget|fetch)\b/i,
-    label: 'interpreter <(curl …): runs fetched remote content',
+    label: 'interpreter <(curl ...): runs fetched remote content',
   },
-  // eval of a command substitution that fetches: eval $(curl …) / eval `curl …`
+  // eval of a command substitution that fetches: eval $(curl ...) / eval `curl ...`
   {
     re: /\beval\b[^\n]{0,60}?(?:\$\(|`)\s*(?:curl|wget|fetch)\b/i,
-    label: 'eval $(curl …): evaluates fetched remote content',
+    label: 'eval $(curl ...): evaluates fetched remote content',
   },
   // netcat reverse shell: nc -e /bin/sh host port
   {
@@ -82,7 +82,7 @@ const DENY_REGEX: { re: RegExp; label: string }[] = [
     label: 'nc -e: netcat command-exec (reverse shell)',
   },
   // Plain pipe-to-shell (#4220 HR-5). The retired dangerous-command-blocker
-  // used to own these; without them an allowlisted `curl … | sh` runs with no
+  // used to own these; without them an allowlisted `curl ... | sh` runs with no
   // deny (measured #3877 / CC 2.1.263).
   // Fetcher is curl/wget, or fetch as its own command word (not `git fetch`).
   // Optional path prefix ([\w./-]*/) covers `/bin/sh`, `/usr/bin/bash`, etc.
@@ -414,7 +414,7 @@ function tokenEmbedsDirChangeWord(tok: string): boolean {
 /**
  * Scan every token in a simple-command segment for directory-change words.
  * Fail-closed: a word `cd` / `pushd` / `popd` / `chdir` anywhere counts, not
- * only in command position (covers `time cd`, `then cd`, `do cd`, …).
+ * only in command position (covers `time cd`, `then cd`, `do cd`, ...).
  * A literal following target is ADDed; anything else makes the set UNKNOWN.
  * `eval` / `source` / `.`, dir-change words embedded in quoted tokens,
  * redirection tokens, bare relative targets (no ./ or ../), and multi-operand
@@ -1507,7 +1507,8 @@ function collapseHorizontalWhitespace(cmd: string): string {
  */
 function extractExecutedQuoteBodies(raw: string): { body: string; prefix: string }[] {
   const bodies: { body: string; prefix: string }[] = [];
-  let seg = '';
+  let cmdStart = 0;
+  let segStart = 0;
   for (let i = 0; i < raw.length; i++) {
     const ch = raw[i]!;
     if (ch === '"' || ch === "'") {
@@ -1525,18 +1526,32 @@ function extractExecutedQuoteBodies(raw: string): { body: string; prefix: string
         content += raw[j]!;
         j++;
       }
-      if (execGovernsQuote(seg)) {
+      const seg = raw.slice(segStart, i);
+      if (execGovernsQuote(seg, raw.slice(cmdStart, i))) {
         bodies.push({ body: content, prefix: raw.slice(0, i) });
+      } else if (q === '"' && /\$\(|<\(|>\(|`/.test(content)) {
+        // Double-quoted strings are opaque as wholes, but command / process
+        // substitutions inside them still execute. Recurse so substitutions
+        // inside quoted arguments are scanned as their own command position.
+        for (const inner of extractExecutedQuoteBodies(content)) {
+          bodies.push(inner);
+        }
       }
-      seg = '';
       i = j;
+      segStart = i + 1;
       continue;
     }
     if (ch === ';' || ch === '\n' || ch === '&' || ch === '|' || ch === '(') {
-      seg = '';
-      continue;
+      // Do not treat $( / <( / >( as a new simple command.
+      if (ch === '(' && i > 0 && (raw[i - 1] === '$' || raw[i - 1] === '<' || raw[i - 1] === '>')) {
+        continue;
+      }
+      // Backslash-newline is a line continuation, not a command separator.
+      if (ch === '\n' && i > 0 && raw[i - 1] === '\\') continue;
+      if (ch === '\n' && i > 1 && raw[i - 1] === '\r' && raw[i - 2] === '\\') continue;
+      cmdStart = i + 1;
+      segStart = i + 1;
     }
-    seg += ch;
   }
   return bodies;
 }
@@ -1546,7 +1561,7 @@ const MAX_EXEC_QUOTE_DEPTH = 8;
 /**
  * Top-level + nested scan: run the pipe check on this command, then on every
  * executed-quote body as its own command. The outer cwd candidate set from the
- * prefix up to that quote becomes the inner base (so `cd …; bash -c '…'` keeps
+ * prefix up to that quote becomes the inner base (so `cd ...; bash -c '...'` keeps
  * the directory change).
  */
 function scanFetcherInterpreterPipes(
@@ -1598,10 +1613,10 @@ function rhsIsStdinInterpreter(
   const front = applyInterpreterFrontChdir(unwrapped, 0, cwdCandidates, fullCommand);
   // Unknown env/sudo/wrapper option: the whole RHS is an unknown program → DENY.
   if (front.denyProgram) return true;
-  // su/runuser -c STRING: compound bodies (; & | newline) DENY (same fail-closed
-  // split the bash -c path needs). A simple body is scanned as its own RHS.
+  // su/runuser -c STRING: compound bodies (; & | newline) DENY only when the
+  // separator is outside quoted spans. A simple body is scanned as its own RHS.
   if (front.execBody !== null) {
-    if (/[\n;&|]/.test(front.execBody)) return true;
+    if (hasUnquotedShellSeparator(front.execBody)) return true;
     return rhsIsStdinInterpreter(
       tokenizePipeRhs(front.execBody),
       front.candidates,
@@ -1625,20 +1640,292 @@ function rhsIsStdinInterpreter(
 // =============================================================================
 
 /**
+ * True when `s` has a shell command separator (`;`, `&`, `|`, newline) outside
+ * single/double quotes. Separators inside quoted spans are argument data.
+ */
+function hasUnquotedShellSeparator(s: string): boolean {
+  let i = 0;
+  while (i < s.length) {
+    const c = s[i]!;
+    if (c === "'") {
+      i++;
+      while (i < s.length && s[i] !== "'") i++;
+      if (i < s.length) i++;
+      continue;
+    }
+    if (c === '"') {
+      i++;
+      while (i < s.length && s[i] !== '"') {
+        if (s[i] === '\\' && i + 1 < s.length) {
+          i += 2;
+          continue;
+        }
+        i++;
+      }
+      if (i < s.length) i++;
+      continue;
+    }
+    if (c === '\\' && i + 1 < s.length) {
+      i += 2;
+      continue;
+    }
+    if (c === '\n' || c === ';' || c === '|' || c === '&') return true;
+    i++;
+  }
+  return false;
+}
+
+/** Max option words walked after a su/runuser (fail closed past this). */
+const MAX_SU_RUNUSER_GOVERN_WORDS = 64;
+
+/**
+ * True when a token is su/runuser, including nested command-sub / process-sub
+ * forms (`$(su`, `<(su`, `` `su ``) and trailing punctuation (`su)`).
+ */
+function isSuRunuserToken(tok: string): boolean {
+  let b = commandBasename(tok);
+  if (b === 'su' || b === 'runuser') return true;
+  b = b.replace(/^\$\(/, '').replace(/^[<>]\(/, '').replace(/^`+/, '');
+  b = b.replace(/[)`]+$/, '');
+  return b === 'su' || b === 'runuser';
+}
+
+/**
+ * Walk option tokens after a su/runuser. Returns whether that wrapper governs
+ * the quote (body missing as next word, or fail-closed past the word bound).
+ */
+function suOptionsGovernQuote(optionTokens: string[]): boolean {
+  let walked = 0;
+  for (let j = 0; j < optionTokens.length; j++) {
+    walked++;
+    if (walked > MAX_SU_RUNUSER_GOVERN_WORDS) return true;
+    const a = unwrapToken(optionTokens[j]!);
+    if (a === '--') return false;
+    if (a === '-c' || a === '--command') return j + 1 >= optionTokens.length;
+    if (a.startsWith('--command=')) return a.length === '--command='.length;
+    if (/^-[A-Za-z]*c$/.test(a)) return j + 1 >= optionTokens.length;
+    if (a === '-u' || a === '--user') {
+      if (j + 1 < optionTokens.length) {
+        j++;
+        walked++;
+        if (walked > MAX_SU_RUNUSER_GOVERN_WORDS) return true;
+      }
+      continue;
+    }
+    if (a.startsWith('--user=')) continue;
+    if (
+      a === '-' ||
+      a === '-l' ||
+      a === '--login' ||
+      a === '-m' ||
+      a === '-p' ||
+      a === '--preserve-environment'
+    ) {
+      continue;
+    }
+    if (a.startsWith('-')) return true;
+  }
+  return false;
+}
+
+/**
+ * Streaming scan: true when some su/runuser in the segment governs the next
+ * quote. Jumps to su/runuser-like tokens so long echo-arg lists stay fast.
+ * Fail closed past the option-word bound. No exemption (fail closed on
+ * echo/grep/printf argument forms too).
+ */
+function segmentHasGoverningSuRunuser(segment: string): boolean {
+  let i = 0;
+  const n = segment.length;
+
+  const skipWs = (): void => {
+    while (i < n) {
+      if (/\s/.test(segment[i]!)) {
+        i++;
+        continue;
+      }
+      // Bash line continuation: backslash-newline is whitespace between words.
+      if (segment[i] === '\\' && i + 1 < n && segment[i + 1] === '\n') {
+        i += 2;
+        continue;
+      }
+      if (
+        segment[i] === '\\' &&
+        i + 2 < n &&
+        segment[i + 1] === '\r' &&
+        segment[i + 2] === '\n'
+      ) {
+        i += 3;
+        continue;
+      }
+      break;
+    }
+  };
+
+  const readToken = (): string | null => {
+    skipWs();
+    if (i >= n) return null;
+    const start = i;
+    while (i < n) {
+      const c = segment[i]!;
+      if (/\s/.test(c) || c === ';' || c === '|' || c === '&' || c === '\n') break;
+      // Line continuation ends the current word; skipWs consumes it next.
+      if (c === '\\' && i + 1 < n && segment[i + 1] === '\n') break;
+      if (c === '\\' && i + 2 < n && segment[i + 1] === '\r' && segment[i + 2] === '\n') break;
+      if (c === "'") {
+        i++;
+        while (i < n && segment[i] !== "'") i++;
+        if (i < n) i++;
+        continue;
+      }
+      if (c === '"') {
+        i++;
+        while (i < n && segment[i] !== '"') {
+          if (segment[i] === '\\' && i + 1 < n) {
+            i += 2;
+            continue;
+          }
+          i++;
+        }
+        if (i < n) i++;
+        continue;
+      }
+      if (c === '\\' && i + 1 < n) {
+        i += 2;
+        continue;
+      }
+      i++;
+    }
+    return start === i ? null : segment.slice(start, i);
+  };
+
+  // Case-insensitive indexOf probes beat a multi-alternative RegExp across
+  // 50k echo words. Validate each hit with isSuRunuserToken after peel.
+  const lower = segment.toLowerCase();
+
+  while (i < n) {
+    if (segment[i] === ';' || segment[i] === '\n' || segment[i] === '|' || segment[i] === '&') break;
+
+    skipWs();
+    if (i >= n) break;
+
+    let hit = lower.indexOf('su', i);
+    const hitRu = lower.indexOf('runuser', i);
+    if (hitRu >= 0 && (hit < 0 || hitRu < hit)) hit = hitRu;
+    if (hit < 0) break;
+
+    // Walk back over wrappers / quotes / path so readToken starts on the word.
+    let at = hit;
+    while (at > i) {
+      const p = segment[at - 1]!;
+      if (p === '\\' || p === '`' || p === '"' || p === "'") {
+        at--;
+        continue;
+      }
+      if (at >= 2 && segment.slice(at - 2, at) === '$(') {
+        at -= 2;
+        continue;
+      }
+      if (at >= 2 && (segment.slice(at - 2, at) === '<(' || segment.slice(at - 2, at) === '>(')) {
+        at -= 2;
+        continue;
+      }
+      if (p === '/') {
+        // Keep path prefix (/bin/su); readToken eats it.
+        at--;
+        while (at > i && /[\w.-]/.test(segment[at - 1]!)) at--;
+        continue;
+      }
+      break;
+    }
+    // Reject mid-word hits (e.g. "issue" containing "su").
+    if (at > 0 && /[^\s;|&"'`$()\\/]/.test(segment[at - 1]!)) {
+      i = hit + 1;
+      continue;
+    }
+    i = at;
+
+    const tok = readToken();
+    if (tok === null) break;
+    if (!isSuRunuserToken(tok)) {
+      // Advance past this false hit so indexOf does not spin.
+      if (i <= hit) i = hit + 1;
+      continue;
+    }
+
+    const optionTokens: string[] = [];
+    let capped = false;
+    for (;;) {
+      const save = i;
+      const opt = readToken();
+      if (opt === null) break;
+      if (isSuRunuserToken(opt)) {
+        i = save;
+        break;
+      }
+      optionTokens.push(opt);
+      if (optionTokens.length > MAX_SU_RUNUSER_GOVERN_WORDS) {
+        capped = true;
+        break;
+      }
+    }
+    if (capped || suOptionsGovernQuote(optionTokens)) return true;
+  }
+  return false;
+}
+
+/**
+ * su/runuser governor: default ON when a su/runuser option walk says the quote
+ * is an executed body (any gap, nested substitutions, fail closed past the word
+ * bound). No exemption for echo/grep/printf argument forms.
+ *
+ * Horizontal whitespace runs of length 2+ are collapsed so a 100k-space gap
+ * stays O(words) for the option walk (newlines stay: they are real separators).
+ */
+function suRunuserGovernsExecutedQuote(prefix: string): boolean {
+  if (!/su|runuser/i.test(prefix)) return false;
+
+  // Line continuations are whitespace to the shell; collapse them before the
+  // word walk so su then backslash-newline then -c stays one simple command.
+  const continued = prefix.replace(/\\\r?\n/g, ' ');
+  // Collapse runs of 2+ horizontal whitespace only (single-spaced word lists
+  // stay as-is; a 100k-space gap becomes one space).
+  const collapsed = /[^\S\n]{2,}/.test(continued) ? continued.replace(/[^\S\n]{2,}/g, ' ') : continued;
+
+  // Bound the segment to the current simple command without a full char walk
+  // when the prefix is huge: find the last real separator from the end.
+  let start = 0;
+  for (let i = collapsed.length - 1; i >= 0; i--) {
+    const ch = collapsed[i]!;
+    if (ch === ';' || ch === '\n' || ch === '&' || ch === '|') {
+      start = i + 1;
+      break;
+    }
+    if (ch === '(') {
+      const prev = i > 0 ? collapsed[i - 1]! : '';
+      if (prev === '$' || prev === '<' || prev === '>') continue; // keep scanning
+      start = i + 1;
+      break;
+    }
+  }
+  return segmentHasGoverningSuRunuser(start === 0 ? collapsed : collapsed.slice(start));
+}
+
+/**
  * True when the unquoted text just before a quote makes that quote EXECUTED
- * code: `eval "…"`, an inline-script shell (`sh -c`, `bash -euc`), `python -c`,
+ * code: `eval "..."`, an inline-script shell (`sh -c`, `bash -euc`), `python -c`,
  * node/perl/ruby `-e`, php `-r`. A quote governed by none of these is opaque
  * data (a grep/rg pattern, an echo string, a jq filter).
+ *
+ * `seg` is the unquoted run immediately before the quote (regex governors).
+ * `simpleCmd` is the full simple-command text including quoted words.
  */
-function execGovernsQuote(prefix: string): boolean {
-  const p = prefix.slice(-200); // bound the governor scan (ReDoS-safe)
+function execGovernsQuote(seg: string, simpleCmd: string = seg): boolean {
+  const p = seg.slice(-200); // bound the regex governors (ReDoS-safe)
   return (
     /\beval\s*$/i.test(p) ||
     /\b(?:ba|z|k|da)?sh\b[^\n]{0,120}\s-[A-Za-z]*c\b\s*$/i.test(p) ||
-    // su/runuser: -c, --command=BODY, or --command with BODY as the next arg.
-    /\b(?:su|runuser)\b[^\n]{0,160}(?:\s--command=|\s--command\s*$|\s-[A-Za-z]*c\b\s*$)/i.test(
-      p,
-    ) ||
+    suRunuserGovernsExecutedQuote(simpleCmd) ||
     /\bpython[0-9.]*\b[^\n]{0,120}\s-c\b\s*$/i.test(p) ||
     /\b(?:node|perl|ruby)\b[^\n]{0,120}\s-e\b\s*$/i.test(p) ||
     /\bphp\b[^\n]{0,120}\s-r\b\s*$/i.test(p)
@@ -1658,36 +1945,57 @@ function execGovernsQuote(prefix: string): boolean {
  */
 function egressDenyScanView(raw: string): string {
   let out = '';
-  let seg = ''; // unquoted text of the current simple command (governor context)
+  let cmdStart = 0;
+  let runStart = 0; // start of the current unquoted run to copy into out
+  let segStart = 0; // start of unquoted governor text after the last quote/separator
+  const flushRun = (upto: number): void => {
+    if (upto > runStart) out += raw.slice(runStart, upto);
+  };
   for (let i = 0; i < raw.length; i++) {
-    const ch = raw[i];
+    const ch = raw[i]!;
     if (ch === '"' || ch === "'") {
+      flushRun(i);
+      const seg = raw.slice(segStart, i);
       const q = ch;
       let j = i + 1;
       let content = '';
       while (j < raw.length && raw[j] !== q) {
         if (q === '"' && raw[j] === '\\' && j + 1 < raw.length) {
-          content += raw[j + 1];
+          content += raw[j + 1]!;
           j += 2;
           continue;
         }
-        content += raw[j];
+        content += raw[j]!;
         j++;
       }
-      if (execGovernsQuote(seg)) out += ` ${content} `; // re-expose executed code
-      seg = '';
+      if (execGovernsQuote(seg, raw.slice(cmdStart, i))) out += ` ${content} `; // re-expose executed code
+      else if (q === '"' && /\$\(|<\(|>\(|`/.test(content)) {
+        // Only re-expose nested executed quote bodies inside substitutions,
+        // not the opaque double-quoted text itself (grep "source <(curl" stays data).
+        for (const { body } of extractExecutedQuoteBodies(content)) {
+          out += ` ${body} `;
+        }
+      }
       i = j; // for-loop ++ moves past the closing quote
+      runStart = i + 1;
+      segStart = i + 1;
       continue;
     }
     // A new simple-command / substitution boundary resets the governor context.
     if (ch === ';' || ch === '\n' || ch === '&' || ch === '|' || ch === '(') {
-      seg = '';
-      out += ch;
-      continue;
+      if (ch === '(' && i > 0 && (raw[i - 1] === '$' || raw[i - 1] === '<' || raw[i - 1] === '>')) {
+        continue;
+      }
+      // Backslash-newline is a line continuation, not a command separator.
+      if (ch === '\n' && i > 0 && raw[i - 1] === '\\') continue;
+      if (ch === '\n' && i > 1 && raw[i - 1] === '\r' && raw[i - 2] === '\\') continue;
+      flushRun(i + 1); // include the separator in out
+      cmdStart = i + 1;
+      runStart = i + 1;
+      segStart = i + 1;
     }
-    seg += ch;
-    out += ch;
   }
+  flushRun(raw.length);
   return out;
 }
 
