@@ -7,7 +7,7 @@
  * - tool.call{tool=Edit}: Match file/content, return context
  * - tool.call{tool=Write}: Match file/content, return context
  * - ui.render{component=ToolUse}: Append card under tool row
- * - command.register: /lessons reload command
+ * - command.run{command=lessons}: /lessons reload (declared with $.command.register at session start)
  *
  * Hooks module format: exports register(on, options); $ is only ever used
  * as $.noun.event(...), so all $-taking helpers live in this file.
@@ -27,21 +27,27 @@ import type { MatchedLesson } from '../src/types.js';
 
 /** Minimal $ facade for the events this module uses. */
 type Hook$ = {
+  env: {
+    get: (name: string) => Promise<string | undefined>;
+  };
   fs: {
-    read: (path: string, encoding?: string) => Promise<string | Uint8Array>;
-    list: (path: string) => Promise<Array<{ name: string; isDirectory: boolean; isFile: boolean }> | null>;
-    stat: (path: string) => Promise<{ size: number; mtime?: number; isFile: boolean; isDirectory: boolean } | null>;
+    read: (path: string) => Promise<string>;
+    list: (path: string) => Promise<Array<{ name: string; kind: 'file' | 'dir' | 'other' }> | null>;
+    stat: (path: string) => Promise<{ size: number; mtimeMs: number; kind: 'file' | 'dir' | 'other' } | null>;
   };
   ui: {
     notice: (toolUseId: string, message: string) => Promise<void>;
     invalidate: (component: string) => Promise<void>;
   };
+  command: {
+    register: (spec: { name: string; description: string }) => Promise<unknown>;
+  };
 };
 
 type ToolCallEvent = {
   tool: string;
-  args: Record<string, unknown>;
   tool_use_id?: string;
+  [argument: string]: unknown;
 };
 
 type UiRenderEvent = {
@@ -51,6 +57,8 @@ type UiRenderEvent = {
 
 type NextFn<E> = (ev: E) => Promise<unknown>;
 
+type SessionStartEvent = { cwd: string; isInteractive: boolean };
+
 // Module-scope state (per session)
 let corpus: Corpus | null = null;
 const matchMap = new Map<string, MatchedLesson[]>();
@@ -58,8 +66,8 @@ const matchMap = new Map<string, MatchedLesson[]>();
 /**
  * Find the newest hq-ext version directory.
  */
-async function findNewestHqExt($: Hook$): Promise<string | null> {
-  const cacheBase = joinPath(homeDir(), '.claude', 'plugins', 'cache', 'yonatan-hq', 'hq-ext');
+async function findNewestHqExt($: Hook$, home: string): Promise<string | null> {
+  const cacheBase = joinPath(home, '.claude', 'plugins', 'cache', 'yonatan-hq', 'hq-ext');
 
   try {
     const entries = await $.fs.list(cacheBase);
@@ -67,7 +75,7 @@ async function findNewestHqExt($: Hook$): Promise<string | null> {
 
     // Sort by version, highest first
     const versions = entries
-      .filter(e => e.isDirectory)
+      .filter(e => e.kind === 'dir')
       .map(e => e.name)
       .sort((a, b) => b.localeCompare(a, undefined, { numeric: true }));
 
@@ -83,7 +91,7 @@ async function findNewestHqExt($: Hook$): Promise<string | null> {
 async function loadPatterns($: Hook$, hqExtPath: string): Promise<LessonPattern[]> {
   const configPath = joinPath(hqExtPath, 'configs', 'lesson-patterns.json');
   try {
-    const content = await $.fs.read(configPath, 'utf-8');
+    const content = await $.fs.read(configPath);
     if (typeof content !== 'string') return [];
     const parsed = JSON.parse(content) as unknown;
     return Array.isArray(parsed) ? (parsed as LessonPattern[]) : [];
@@ -95,8 +103,8 @@ async function loadPatterns($: Hook$, hqExtPath: string): Promise<LessonPattern[
 /**
  * Load newest three lessons.md files.
  */
-async function loadLessonsMds($: Hook$): Promise<LessonBullet[]> {
-  const hqBase = joinPath(homeDir(), '.claude', 'hq');
+async function loadLessonsMds($: Hook$, home: string): Promise<LessonBullet[]> {
+  const hqBase = joinPath(home, '.claude', 'hq');
   const allBullets: LessonBullet[] = [];
 
   try {
@@ -105,7 +113,7 @@ async function loadLessonsMds($: Hook$): Promise<LessonBullet[]> {
     if (!hqEntries) return [];
 
     const floorDirs = hqEntries
-      .filter(e => e.isDirectory && e.name.startsWith('floor-'))
+      .filter(e => e.kind === 'dir' && e.name.startsWith('floor-'))
       .map(e => joinPath(hqBase, e.name));
 
     // Collect lessons.md files with their mtime
@@ -114,8 +122,8 @@ async function loadLessonsMds($: Hook$): Promise<LessonBullet[]> {
       const lessonsPath = joinPath(dir, 'lessons.md');
       try {
         const stat = await $.fs.stat(lessonsPath);
-        if (stat) {
-          lessonsFiles.push({ path: lessonsPath, mtime: stat.mtime ?? 0 });
+        if (stat && stat.kind === 'file') {
+          lessonsFiles.push({ path: lessonsPath, mtime: stat.mtimeMs });
         }
       } catch {
         // File doesn't exist, skip
@@ -128,7 +136,7 @@ async function loadLessonsMds($: Hook$): Promise<LessonBullet[]> {
 
     for (const { path } of newest) {
       try {
-        const content = await $.fs.read(path, 'utf-8');
+        const content = await $.fs.read(path);
         if (typeof content === 'string') {
           allBullets.push(...parseLessonsMd(content));
         }
@@ -147,14 +155,18 @@ async function loadLessonsMds($: Hook$): Promise<LessonBullet[]> {
  * Load the full corpus at session.start.
  */
 async function loadCorpus($: Hook$): Promise<Corpus> {
+  // A mod has no process.env: HOME comes from $.env (types/claude-code.d.ts `$.env.get("HOME")`).
+  // With homeDir() alone the path was relative, resolved under the session's cwd, and the
+  // corpus loaded 0 entries on CC 2.1.282.
+  const home = (await $.env.get('HOME').catch(() => undefined)) || homeDir();
   const startTime = Date.now();
 
   try {
-    const hqExtPath = await findNewestHqExt($);
+    const hqExtPath = await findNewestHqExt($, home);
 
     const [patterns, bullets] = await Promise.all([
       hqExtPath ? loadPatterns($, hqExtPath) : Promise.resolve([] as LessonPattern[]),
-      loadLessonsMds($),
+      loadLessonsMds($, home),
     ]);
 
     return {
@@ -175,14 +187,17 @@ async function loadCorpus($: Hook$): Promise<Corpus> {
 /**
  * Register the lesson-cards hooks.
  */
-export function register(on: (event: string, hook: unknown) => void, _options?: unknown): void {
-  on('session.start', async ($: Hook$) => {
+export function register(on: (event: string, matcherOrHook: unknown, hook?: unknown) => void, _options?: unknown): void {
+  on('session.start', async ($: Hook$, e: SessionStartEvent, next: NextFn<SessionStartEvent>) => {
     corpus = await loadCorpus($);
     matchMap.clear();
+    await $.command.register({ name: 'lessons', description: 'Reload the lesson cards corpus' });
+    return next(e);
   });
 
   on('tool.call', async ($: Hook$, e: ToolCallEvent, next?: NextFn<ToolCallEvent>) => {
-    const { tool, args, tool_use_id } = e;
+    const { tool, tool_use_id } = e;
+    const args: Record<string, unknown> = e;
     const requestId = tool_use_id || `tool-${Date.now()}`;
 
     // First, let the tool execute
@@ -201,7 +216,7 @@ export function register(on: (event: string, hook: unknown) => void, _options?: 
       }
     } else if (tool === 'Edit') {
       const filePath = String(args.file_path || '');
-      const newContent = String(args.new_content || args.content || '');
+      const newContent = String(args.new_string || args.content || '');
       if (filePath) {
         matches = matchFileEdit(filePath, newContent, corpus.patterns);
       }
@@ -261,19 +276,15 @@ export function register(on: (event: string, hook: unknown) => void, _options?: 
     return tree;
   });
 
-  on('command.register', async ($: Hook$, e: { command: string }) => {
-    if (e.command === '/lessons') {
-      // Reload corpus
-      corpus = await loadCorpus($);
-      matchMap.clear();
-      // Invalidate UI to show updated state
-      try {
-        await $.ui.invalidate('ui.render');
-      } catch {
-        // Ignore if invalidate fails
-      }
-      return { message: 'Lessons reloaded' };
+  on('command.run', { command: 'lessons' }, async ($: Hook$) => {
+    corpus = await loadCorpus($);
+    matchMap.clear();
+    try {
+      await $.ui.invalidate('ui.render');
+    } catch {
+      // nothing drawn yet: nothing to refresh
     }
-    return {};
+    const n = corpus ? corpus.patterns.length + corpus.bullets.length : 0;
+    return { text: `Lessons reloaded (${n} entries)` };
   });
 }

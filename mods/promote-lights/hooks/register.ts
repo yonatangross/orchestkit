@@ -4,7 +4,7 @@
  * Hooks registered:
  * - session.start
  * - turn.complete
- * - command.register /lights
+ * - command.run{command=lights} (declared with $.command.register at session start)
  * - ui.render { component: 'AbovePrompt' }
  *
  * Calls:
@@ -32,10 +32,10 @@ type Hook$ = {
     repo: () => Promise<{ owner: string; name: string } | null>;
   };
   process: {
-    run: (opts: {
-      argv: string[];
-      init?: { timeoutMs?: number };
-    }) => Promise<{ exitCode: number; stdout: string; stderr: string }>;
+    run: (
+      argv: readonly string[],
+      init?: { timeoutMs?: number }
+    ) => Promise<{ exitCode: number; stdout: string; stderr: string }>;
   };
   clock: {
     every: (ms: number, fn: () => void) => { dispose: () => void };
@@ -49,13 +49,16 @@ type Hook$ = {
     status: (line: string) => Promise<void>;
     invalidate: (component: string) => void;
   };
+  command: {
+    register: (spec: { name: string; description: string; argumentHint?: string }) => Promise<unknown>;
+  };
 };
 
 type Matcher = Record<string, unknown>;
 
 type HookEvent = {
   name?: string;
-  args?: string[];
+  args?: string;
   component?: string;
   [key: string]: unknown;
 };
@@ -91,13 +94,13 @@ const TICK_MS = 60000;
 
 export const register: Register = (on) => {
   // Detect open promote PR at session start
-  on("session.start", {}, async ($, _e, next) => {
+  on("session.start", {}, async ($, e, next) => {
+    await $.command.register({ name: "lights", description: "Promote CI lights for the open promote PR", argumentHint: "[off|refresh]" });
     const repo = await $.session.repo();
-    if (!repo) return next();
+    if (!repo) return next(e);
 
     const { owner, name } = repo;
-    const result = await $.process.run({
-      argv: [
+    const result = await $.process.run([
         "gh",
         "pr",
         "list",
@@ -107,13 +110,11 @@ export const register: Register = (on) => {
         "open",
         "--json",
         "number,headRefOid,title",
-      ],
-      init: { timeoutMs: 15000 },
-    });
+      ], { timeoutMs: 15000 });
 
     if (result.exitCode !== 0) {
       await $.store.set(`lights:${owner}/${name}`, { error: "gh: not found" });
-      return next();
+      return next(e);
     }
 
     const prs = parsePRList(result.stdout);
@@ -121,7 +122,7 @@ export const register: Register = (on) => {
 
     if (!promotePR) {
       await $.store.delete(`lights:${owner}/${name}`);
-      return next();
+      return next(e);
     }
 
     lastPR = { number: promotePR.number, head: promotePR.headRefOid };
@@ -132,27 +133,24 @@ export const register: Register = (on) => {
       await doTick($, owner, name);
     }
 
-    return next();
+    return next(e);
   });
 
   // Re-check on turn complete in case PR changed
-  on("turn.complete", {}, async ($, _e, next) => {
+  on("turn.complete", {}, async ($, e, next) => {
     const repo = await $.session.repo();
-    if (!repo || !lastPR) return next();
+    if (!repo || !lastPR) return next(e);
 
-    const result = await $.process.run({
-      argv: [
+    const result = await $.process.run([
         "gh",
         "pr",
         "view",
         String(lastPR.number),
         "--json",
         "headRefOid,state,mergeStateStatus",
-      ],
-      init: { timeoutMs: 10000 },
-    });
+      ], { timeoutMs: 10000 });
 
-    if (result.exitCode !== 0) return next();
+    if (result.exitCode !== 0) return next(e);
 
     const details = parsePRView(result.stdout);
     if (!details || details.state !== "OPEN") {
@@ -160,7 +158,7 @@ export const register: Register = (on) => {
       await $.store.delete(`lights:${repo.owner}/${repo.name}`);
       lastPR = null;
       $.ui.invalidate("ui.render");
-      return next();
+      return next(e);
     }
 
     if (details.headRefOid !== lastPR.head) {
@@ -170,10 +168,10 @@ export const register: Register = (on) => {
       });
       lastPR = null;
       $.ui.invalidate("ui.render");
-      return next();
+      return next(e);
     }
 
-    return next();
+    return next(e);
   });
 
   // Render the AbovePrompt band
@@ -190,31 +188,29 @@ export const register: Register = (on) => {
         stored.hold ?? false
       );
 
-      const tree = await next(e);
-      return { ...tree, _prependBand: content };
+      const line = content.map((c) => `${c.symbol} ${c.name}`.trim()).join("  ");
+      return { type: "Box", children: [line] };
     }
 
-    return next();
+    return next(e);
   });
 
   // Manual control command
-  on("command.register", {}, async ($, e, next) => {
-    if (e.name !== "lights") return next();
-
-    const [arg] = e.args ?? [];
+  on("command.run", { command: "lights" }, async ($, e) => {
+    const [arg] = (e.args ?? "").trim().split(/\s+/);
 
     if (arg === "off") {
       stopTick();
       const repo = await $.session.repo();
       if (repo) await $.store.delete(`lights:${repo.owner}/${repo.name}`);
       $.ui.invalidate("ui.render");
-      return { command: "lights", result: "stopped" };
+      return { text: "lights: stopped" };
     }
 
     if (arg === "refresh") {
       const repo = await $.session.repo();
       if (repo) await doTick($, repo.owner, repo.name);
-      return { command: "lights", result: "refreshed" };
+      return { text: "lights: refreshed" };
     }
 
     const repo = await $.session.repo();
@@ -222,8 +218,7 @@ export const register: Register = (on) => {
     const stored = key ? await $.store.get(key) : null;
 
     return {
-      command: "lights",
-      result: stored
+      text: stored
         ? buildStatusLine(
             stored.prNumber ?? 0,
             stored.lights ?? [],
@@ -247,14 +242,8 @@ async function doTick(
 
   try {
     const [protection, rulesets] = await Promise.all([
-      $.process.run({
-        argv: ["gh", "api", `repos/${owner}/${repo}/branches/main/protection`],
-        init: { timeoutMs: 10000 },
-      }),
-      $.process.run({
-        argv: ["gh", "api", `repos/${owner}/${repo}/rules/branches/main`],
-        init: { timeoutMs: 10000 },
-      }),
+      $.process.run(["gh", "api", `repos/${owner}/${repo}/branches/main/protection`], { timeoutMs: 10000 }),
+      $.process.run(["gh", "api", `repos/${owner}/${repo}/rules/branches/main`], { timeoutMs: 10000 }),
     ]);
 
     const requiredContexts = computeRequiredUnion(
@@ -270,29 +259,23 @@ async function doTick(
       return;
     }
 
-    const checkRunsResult = await $.process.run({
-      argv: [
+    const checkRunsResult = await $.process.run([
         "gh",
         "api",
         `repos/${owner}/${repo}/commits/${head}/check-runs?per_page=100`,
-      ],
-      init: { timeoutMs: 10000 },
-    });
+      ], { timeoutMs: 10000 });
 
     const checkRuns = parseCheckRuns(checkRunsResult.stdout ?? "");
     const lights = matchAndClassify(requiredContexts, checkRuns.check_runs);
 
-    const prViewResult = await $.process.run({
-      argv: [
+    const prViewResult = await $.process.run([
         "gh",
         "pr",
         "view",
         String(prNumber),
         "--json",
         "headRefOid,state,mergeStateStatus",
-      ],
-      init: { timeoutMs: 10000 },
-    });
+      ], { timeoutMs: 10000 });
 
     const prDetails = parsePRView(prViewResult.stdout ?? "");
     const mergeStateStatus = prDetails?.mergeStateStatus ?? "";
