@@ -40,13 +40,31 @@ If zero named values resolve at `session.start`, the mod emits one
 `$.ui.notice` saying the veil is running on value patterns and entropy only.
 Silence is not allowed: an operator must know the named layer is empty.
 
+## Seeing it work
+
+When a tool result had at least one value covered, the mod says so where
+you can see it, with numbers you can check (Claude Code shows each line
+with the plugin name in front):
+
+- a toast: `masked 1 value in Bash, 40 bytes in, 24 bytes out`
+  (UTF-8 bytes of the covered values, then of the bullets that replaced
+  them; a bullet is 3 bytes, at most 8 per value);
+- a status line under the prompt: `3 masked this session`;
+- the same numbers in the debug log via `$.ui.log`, plus
+  the whole result's byte size before and after masking.
+
+These lines carry counts only, never a value. Nothing is shown when nothing
+was masked. A refused toast or status never unmasks a result.
+
 ## What this mod deliberately does not do
 
 - **No reveal UI.** There is no hover reveal, no `/veil` command, no
   `ui.render`, no `ui.press`, no `command.register`. A reveal path re-arms
   the secret one interaction away from the model and the transcript.
 - **No network, no process, no storage.** Negative pins: `process.run`,
-  `http.fetch`, `store.*`, and `ui.log` are absent from the module.
+  `http.fetch` and `store.*` are absent from the module. Its only `$.ui`
+  calls are `notice`, `toast`, `status` and `log`, and each carries counts,
+  never a value.
 - **No names beyond the 21.** The mod reads only the names listed above.
 
 ## Why your own variable names are not listed

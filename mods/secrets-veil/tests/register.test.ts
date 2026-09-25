@@ -44,8 +44,14 @@ const SYNTHETIC = "veiltest-synthetic-value-42";
 function makeFake$(env: Record<string, string> = {}): {
   $: unknown;
   notices: string[];
+  toasts: string[];
+  statuses: string[];
+  logs: string[];
 } {
   const notices: string[] = [];
+  const toasts: string[] = [];
+  const statuses: string[] = [];
+  const logs: string[] = [];
   const $ = {
     env: {
       get: async (name: string): Promise<string | undefined> => env[name],
@@ -54,9 +60,18 @@ function makeFake$(env: Record<string, string> = {}): {
       notice: async (id: string, message: string): Promise<void> => {
         notices.push(`${id}: ${message}`);
       },
+      toast: async (text: string): Promise<void> => {
+        toasts.push(text);
+      },
+      status: async (line: string): Promise<void> => {
+        statuses.push(line);
+      },
+      log: async (text: string): Promise<void> => {
+        logs.push(text);
+      },
     },
   };
-  return { $, notices };
+  return { $, notices, toasts, statuses, logs };
 }
 
 function captureHooks(): Map<string, RegisteredHook> {
@@ -316,5 +331,107 @@ describe("rejected reads", () => {
       asNext({ result: `value ${SYNTHETIC} end` })
     );
     expect(resultText(out)).not.toContain(SYNTHETIC);
+  });
+});
+
+describe("visible proof: toast, status and byte counts", () => {
+  // A fake GitHub token shape, assembled at runtime so no token-shaped
+  // literal sits in the source: the ghp_ prefix plus 36 filler characters.
+  const FAKE_GH = "gh" + "p_" + "Zq8Lm3Rt7Vx2Kp9Nw4Hy6Bc1Df5Gj0Sa8Ue3";
+  const BULLET_BYTES = 3; // U+2022 is 3 bytes in UTF-8
+
+  test("a masked value fires one toast with the count and UTF-8 byte counts", async () => {
+    const hooks = captureHooks();
+    const { $, toasts, statuses, logs } = makeFake$({});
+    await startSession(hooks, $);
+
+    const out = await hooks.get("tool.call")!(
+      $,
+      { tool: "Bash", args: {} },
+      asNext({ result: { stdout: `FAKE_TOKEN=${FAKE_GH}\n` } })
+    );
+    expect(JSON.stringify(out)).not.toContain(FAKE_GH);
+    expect(FAKE_GH.length).toBe(40);
+    expect(toasts).toEqual([
+      `masked 1 value in Bash, 40 bytes in, ${8 * BULLET_BYTES} bytes out`,
+    ]);
+    expect(statuses).toEqual(["1 masked this session"]);
+    expect(logs).toHaveLength(1);
+    expect(logs[0]).toContain("40 bytes in, 24 bytes out");
+    expect(logs[0]).toMatch(/result \d+ bytes before, \d+ bytes after/);
+    // No UI line ever carries the value itself.
+    for (const line of [...toasts, ...statuses, ...logs]) {
+      expect(line).not.toContain(FAKE_GH);
+    }
+  });
+
+  test("two values in one result count as 2 and the session total accumulates", async () => {
+    const hooks = captureHooks();
+    const { $, toasts, statuses } = makeFake$({ GITHUB_TOKEN: SYNTHETIC });
+    await startSession(hooks, $);
+
+    await hooks.get("tool.call")!(
+      $,
+      { tool: "Read", args: {} },
+      asNext({ result: `a ${SYNTHETIC} b ${FAKE_GH}` })
+    );
+    await hooks.get("tool.call")!($, { tool: "Bash", args: {} }, asNext({ result: `again ${SYNTHETIC}` }));
+
+    const synBytes = new TextEncoder().encode(SYNTHETIC).length;
+    expect(toasts[0]).toBe(
+      `masked 2 values in Read, ${synBytes + 40} bytes in, ${16 * BULLET_BYTES} bytes out`
+    );
+    expect(statuses).toEqual(["2 masked this session", "3 masked this session"]);
+  });
+
+  test("one value repeated in stdout and text (the live Bash shape) counts once", async () => {
+    const hooks = captureHooks();
+    const { $, toasts, statuses } = makeFake$({});
+    await startSession(hooks, $);
+
+    const line = `FAKE_TOKEN=${FAKE_GH}\n`;
+    const out = await hooks.get("tool.call")!(
+      $,
+      { tool: "Bash", args: {} },
+      asNext({ result: { stdout: line, stderr: "" }, text: line })
+    );
+    expect(JSON.stringify(out)).not.toContain(FAKE_GH);
+    expect(toasts).toEqual([`masked 1 value in Bash, 40 bytes in, ${8 * BULLET_BYTES} bytes out`]);
+    expect(statuses).toEqual(["1 masked this session"]);
+  });
+
+  test("nothing masked fires no toast, no status and no log", async () => {
+    const hooks = captureHooks();
+    const { $, toasts, statuses, logs } = makeFake$({});
+    await startSession(hooks, $);
+
+    await hooks.get("tool.call")!($, { tool: "Bash", args: {} }, asNext({ result: "plain output" }));
+    expect(toasts).toEqual([]);
+    expect(statuses).toEqual([]);
+    expect(logs).toEqual([]);
+  });
+
+  test("a refused toast never unmasks the result", async () => {
+    const hooks = captureHooks();
+    const $ = {
+      env: { get: async (): Promise<string | undefined> => undefined },
+      ui: {
+        notice: async (): Promise<void> => {},
+        toast: async (): Promise<void> => {
+          throw new Error("toast refused");
+        },
+        status: async (): Promise<void> => {
+          throw new Error("status refused");
+        },
+        log: async (): Promise<void> => {
+          throw new Error("log refused");
+        },
+      },
+    };
+    await startSession(hooks, $);
+
+    const out = await hooks.get("tool.call")!($, { tool: "Bash", args: {} }, asNext({ result: `x ${FAKE_GH}` }));
+    expect(resultText(out)).not.toContain(FAKE_GH);
+    expect(resultText(out)).toContain("•".repeat(8));
   });
 });
