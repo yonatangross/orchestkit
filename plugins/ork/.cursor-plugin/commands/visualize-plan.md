@@ -63,6 +63,8 @@ round-trip. The rule now:
 
 `--quick` skips even that one.
 
+Budget: at most 1 Explore agent and one post-render question (STEP 5); stop and report at the finish line or the first cap, whichever comes first.
+
 
 ## CRITICAL: Task Tracking
 

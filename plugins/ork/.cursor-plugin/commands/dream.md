@@ -33,6 +33,10 @@ Memory files accumulate across sessions. Over time they develop problems:
 
 This skill fixes all four problems using deterministic checks only.
 
+**Finish line.** Done means: MEMORY.md is rebuilt from the surviving files and passes the STEP 5.5 verify, the STEP 6 report is printed, and STEPs 7 to 9 have each run or printed a one-line skip reason.
+
+Budget: at most 500 memory files scanned per run, oldest mtime first (the 17 KB ceiling bounds the index, not the run). At the cap, leave unscanned files untouched, still index them in the rebuild, and list the unscanned count in the STEP 6 report; stop and report at the finish line or the first cap, whichever comes first.
+
 > **Cadence (CC 2.1.142+):** Reactive compaction now sizes its first summarize attempt to the actual overflow, so long sessions stall mid-turn far less often. The "run nightly" cadence can relax toward "run when memory files accumulate" — consolidation is no longer needed to head off compaction inefficiency.
 
 
@@ -404,49 +408,7 @@ If `--dry-run`, prefix the entire report with:
 | Memory file has no frontmatter | Treat as EVERGREEN (cannot verify refs without metadata) |
 
 
-## STEP 7: Plugin Housekeeping (CC 2.1.121+, #1544)
-
-After memory consolidation, check for orphaned auto-installed plugin dependencies and offer to prune them:
-
-```bash
-# Detect orphans
-claude plugin list --json | jq '[.[] | select(.auto_installed == true and .reason_kept == "orphaned")] | length'
-
-# If > 0 and last prune > 7 days ago (track in .claude/state/last-prune.txt):
-claude plugin prune  # interactive — confirms before removing
-```
-
-Skip this step on CC < 2.1.121. The state file `.claude/state/last-prune.txt` records the last successful prune date so we don't run it on every dream invocation.
-
-
-## STEP 8: Stale Project State Hint (CC 2.1.126+, #1582, fixed in #1587)
-
-After plugin housekeeping, surface a non-blocking suggestion when stale project state exists. Never execute the purge — only preview it.
-
-```bash
-# Skip on CC < 2.1.126 (no `claude project purge` available)
-
-# Detect stale projects via the authoritative source: `claude project purge --dry-run --all`
-# emits `config: projects["<canonical-path>"]` lines that come straight from ~/.claude.json.
-# Parsing these is lossless; the directory-name encoding under ~/.claude/projects/ is NOT
-# (both `/` and `.` collapse to `-`, so it cannot be reversed deterministically).
-stale_count=$(claude project purge --dry-run --all 2>/dev/null \
-  | grep -oE 'projects\["[^"]+"\]' \
-  | sed -E 's/^projects\["//; s/"\]$//' \
-  | while IFS= read -r p; do
-      [ -n "$p" ] && [ ! -d "$p" ] && echo "$p"
-    done | wc -l)
-
-# If > 0, surface the hint in the dream summary (never auto-execute)
-if [ "$stale_count" -gt 0 ]; then
-  echo "ℹ $stale_count stale project state entries detected."
-  echo "   Preview cleanup with: claude project purge --dry-run --all"
-fi
-```
-
-**Strict rules:** always `--dry-run`, never `--yes`. Users who moved (not deleted) a project need to keep the directory; the purge is irreversible. Surface the suggestion, let the user decide.
-
-**Why parse `claude project purge --dry-run --all` instead of `~/.claude/projects/`:** the directory naming under `~/.claude/projects/` is a lossy collapse of the original path (`/` and `.` both become `-`). A naive `sed 's|-|/|g'` decode misidentifies any path containing `-` (e.g. `my-project` → `/my/project`). The CLI's dry-run output reads canonical paths from `~/.claude.json` and is the only reliable source.
+After STEP 6: `Read("skills/dream/references/housekeeping.md")` for STEP 7 (orphaned plugin prune offer) and STEP 8 (stale project state hint, preview only, never purge).
 
 
 ## STEP 9: Cross-Repo Promotion Candidates (#3295)

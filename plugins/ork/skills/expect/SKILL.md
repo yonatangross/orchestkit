@@ -371,6 +371,8 @@ Done means all of these hold:
 - Each executed step reports PASS or FAIL with evidence (screenshot on failure), and the report's pass/fail totals match the steps actually run.
 - The report's exit code is non-zero whenever any step failed.
 
+Budget: at most 30 minutes total and 5 minutes per page (defaults, `.expect/config.yaml` overrides), 50 executor turns (`max_turns=50`), one sequential `ork:expect-agent`, never parallel browsers (`rules/no-parallel-browsers.md`); stop and report partial results at the finish line or the first cap, whichever comes first.
+
 ## Related Skills
 
 - `agent-browser` — Browser automation engine (required dependency)

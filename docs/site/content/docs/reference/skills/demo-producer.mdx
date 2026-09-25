@@ -145,6 +145,12 @@ Audio preferences?
 
 Content Detector -> Content Analyzer -> Script Generator -> Terminal Script -> VHS Recorder -> Remotion Composer -> Final Outputs (horizontal/vertical/square).
 
+## Finish line and budget
+
+**Finish line.** Done means: every requested format variant is rendered, written to the output directory, verified with ffprobe (non-zero duration, expected resolution per variant), and the completion PushNotification is sent.
+
+Budget: at most 2 render retries per video, 3 format variants, and 45 minutes wall clock per variant (135 minutes total); stop and report at the finish line or the first cap, whichever comes first, naming the variants still unrendered.
+
 ## Template System
 
 Four template architectures for different demo styles. Load `Read("references/template-system.md")` for detailed configuration and the SkillDemoConfig interface.

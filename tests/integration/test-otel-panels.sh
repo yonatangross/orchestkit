@@ -162,7 +162,7 @@ test_panel8_empty_file_returns_empty
 test_dream_no_lossy_decode() {
   # Detect the buggy pipeline shape (printf | sed s|-|/|g) used as actual code.
   # The pattern appears in prose-as-example with single backticks but never with `printf` adjacent.
-  if grep -qE "printf.*sed.*s\|-\|/\|g" "$PROJECT_ROOT/src/skills/dream/SKILL.md"; then
+  if grep -qE "printf.*sed.*s\|-\|/\|g" "$PROJECT_ROOT/src/skills/dream/SKILL.md" "$PROJECT_ROOT/src/skills/dream/references/housekeeping.md"; then
     log_fail "dream SKILL.md still uses lossy sed decode pipeline" "see STEP 8"
   else
     log_pass "dream SKILL.md does not use lossy sed decode pipeline"
@@ -180,10 +180,10 @@ test_doctor_no_lossy_decode() {
 test_doctor_no_lossy_decode
 
 test_dream_uses_proper_source() {
-  if grep -qE "claude project purge --dry-run --all" "$PROJECT_ROOT/src/skills/dream/SKILL.md"; then
-    log_pass "dream SKILL.md uses authoritative 'claude project purge --dry-run --all' source"
+  if grep -qE "claude project purge --dry-run --all" "$PROJECT_ROOT/src/skills/dream/references/housekeeping.md"; then
+    log_pass "dream housekeeping reference uses authoritative 'claude project purge --dry-run --all' source"
   else
-    log_fail "dream SKILL.md missing canonical detection source" "expected 'claude project purge --dry-run --all'"
+    log_fail "dream housekeeping reference missing canonical detection source" "expected 'claude project purge --dry-run --all'"
   fi
 }
 test_dream_uses_proper_source

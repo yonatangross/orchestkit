@@ -1263,7 +1263,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "create-pr",
     "description": "Creates GitHub pull requests with pre-flight validation, conventional title formatting, and structured summary generation. Runs parallel checks (tests, lint, type-check, security) before opening. Supports feature, bugfix, refactor, and hotfix PR types with milestone assignment via gh CLI. Invoke only if the operator named it; an everyday `gh pr create` stays plain tooling. Use when opening PRs or submitting code for review.",
     "version": "2.7.0",
-    "sha256": "3aebfae355fefe3049d98e3c15248e1171f035bc9f0c7d29546eb93eaed7ae56",
+    "sha256": "6dc3aeb344f15b1c33eae4138f39e3036d8cd670c7dadbbbf53995b94389ad2d",
     "author": "OrchestKit",
     "tags": [
       "git",
@@ -1298,10 +1298,12 @@ export const SKILLS: Record<string, SkillMeta> = {
       "references": [
         "ci-integration.md",
         "coderabbit-cli-prereview.md",
+        "coderabbit-harvest.md",
         "coderabbit-zero-reviews.md",
         "multi-commit-pr.md",
         "parallel-validation.md",
         "pr-body-templates.md",
+        "pr-playground.md",
         "stacked-pr.md"
       ],
       "assets": [
@@ -1372,7 +1374,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "demo-producer",
     "description": "Universal demo video creator for skills, agents, plugins, tutorials, CLI commands, and code walkthroughs. Generates scripts, storyboards, VHS terminal recordings, and Remotion video compositions with task-tracked production phases. Use when producing video showcases, marketing content, or terminal recordings.",
     "version": "1.1.0",
-    "sha256": "3eaa5c9de9417bedfc2b760786916660f59c2eb3858c1d80b0bc2d5d97a2f547",
+    "sha256": "7c785410e76b8f0af39337f1cd2cad13a4b0448dc958107a099f2d847ec590e1",
     "author": "OrchestKit",
     "tags": [
       "demo",
@@ -2038,7 +2040,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "dream",
     "description": "Nightly memory consolidation — prunes stale entries, merges duplicates, resolves contradictions, rebuilds MEMORY.md index. Use when memory files have accumulated over many sessions and need cleanup. Do NOT use for storing new decisions (use remember) or searching memory (use memory).",
     "version": "1.1.0",
-    "sha256": "b1dd98b100e75eec000f106df9c114b1ba316229296746577c3b4bcabbc54c10",
+    "sha256": "b06b123f1759368d9b3af75a7b936a43d4c75541466072c707a4b182611d73fe",
     "author": "OrchestKit",
     "tags": [
       "memory",
@@ -2063,6 +2065,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "complexity": "medium",
     "structure": {
       "references": [
+        "housekeeping.md",
         "index-budget.md",
         "safe-deletes.md"
       ],
@@ -2215,7 +2218,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "expect",
     "description": "Diff-aware AI browser testing — reads the git diff, maps changes to affected pages via the route map, generates a targeted test plan, and executes it via agent-browser (Rust daemon + CDP, ARIA-tree-first) with pass/fail reporting. Use when testing UI changes, verifying PRs before merge, or running regression checks on changed components.",
     "version": "1.2.0",
-    "sha256": "56756fcf32aa985fe05660edd9190080b3304d36ab3ef41c2a27c190bb80da86",
+    "sha256": "13da8917dca9aae83c614d6afaacb3b91dcc6b90dbe358d7785d279425dbf03f",
     "author": "OrchestKit",
     "tags": [
       "testing",
@@ -2399,7 +2402,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "fix-issue",
     "description": "Fixes GitHub issues using parallel analysis agents for root cause investigation, code exploration, and regression detection. Reads issue context from gh CLI, searches codebase and memory for related patterns, generates a fix with tests, and links the resolution back to the issue via PR. Includes prevention analysis to avoid recurrence. Use when debugging errors, resolving regressions, fixing bugs, or triaging issues.",
     "version": "2.6.0",
-    "sha256": "32858c488703a45bce6a92d2abb3ba50d414817f58eb76dc677553bdf0a66abe",
+    "sha256": "e1886ee83c82672c741a3421fa023776d876ef156bd91cea14023e37ba22881b",
     "author": "OrchestKit",
     "tags": [
       "issue",
@@ -5082,7 +5085,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "visualize-plan",
     "description": "Renders planned changes — architecture and before/after comparisons, risk heat maps, execution order, dependency graphs, impact metrics — in your chosen output format (ASCII + emojis, an interactive HTML playground, or a NotebookLM infographic). Stores visualizations in memory for cross-session reference. Use when reviewing implementation plans, comparing approaches, assessing risk, or analyzing change propagation.",
     "version": "2.1.0",
-    "sha256": "263682765997117d86049998d55f0855f08a97245c7b87fd7670a15ff29d694a",
+    "sha256": "4027ff2a07140f079b01ef074f7432394e91d17ba5693334bfa5a5338c3a2ee4",
     "author": "OrchestKit",
     "tags": [
       "visualization",
