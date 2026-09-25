@@ -130,7 +130,7 @@ export function LibraryCatalog() {
                   <LibraryMark kind={t.id} className="h-3.5 w-3.5" />
                 </span>
                 {t.label}
-                <span className="font-mono text-[11px] tabular-nums opacity-70">
+                <span className="font-mono text-[11px] tabular-nums">
                   {t.count}
                 </span>
               </>

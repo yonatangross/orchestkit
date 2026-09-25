@@ -12,7 +12,7 @@ export function HomeShell({ children }: { children: ReactNode }) {
 
 	return (
 		<>
-			<KineticGrid className="fixed inset-0 z-0 h-dvh w-screen" />
+			<KineticGrid className="fixed inset-0 z-0 h-dvh w-full" />
 			<div className="relative z-10">{children}</div>
 		</>
 	);

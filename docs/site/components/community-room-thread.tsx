@@ -18,7 +18,7 @@ export type RoomBubble = {
 };
 
 const PEOPLE: Record<string, { initial: string; tone: string }> = {
-	Yonatan: { initial: "Y", tone: "text-[#25D366]" },
+	Yonatan: { initial: "Y", tone: "text-[#15803d] dark:text-[#25D366]" },
 	Noa: { initial: "N", tone: "text-[var(--yy-george-cool-text)]" },
 	Ari: { initial: "A", tone: "text-fd-primary" },
 	Lea: { initial: "L", tone: "text-[var(--yy-george-warm-text)]" },
@@ -103,7 +103,7 @@ export function buildRoomPlaylist(botLine: string): RoomBubble[] {
 		side: "in",
 		kind: "bot",
 		text: botLine,
-		time: "08:01",
+		time: "11:43",
 		initial: "OK",
 		tone: "text-fd-primary",
 		reaction: "👀 5",
@@ -243,7 +243,7 @@ export function CommunityRoomThread({ botLine }: { botLine: string }) {
 					<span className="flex-1 rounded-full border border-fd-border bg-[color-mix(in_oklch,var(--color-fd-muted)_50%,transparent)] px-2.5 py-1 text-[10px] text-fd-muted-foreground">
 						Message
 					</span>
-					<span className="text-[12px] text-[#25D366]">➤</span>
+					<span className="text-[12px] text-[#15803d] dark:text-[#25D366]">➤</span>
 				</div>
 			</div>
 		</div>

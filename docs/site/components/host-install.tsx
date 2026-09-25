@@ -214,7 +214,7 @@ export function HostInstallPicker({
 	};
 
 	return (
-		<nav aria-label="Install by host" className="mt-6 w-full min-w-0 max-w-[560px] text-left">
+		<nav aria-label="Install by host" className="mt-6 w-full min-w-0 max-w-[560px] text-left max-[900px]:max-w-none">
 			<SearchParamsSync onChange={syncFromUrl} />
 			<p
 				id="install-for-label"
@@ -367,7 +367,14 @@ function HostCommandPanel({ spec, source }: { spec: HostInstallSpec; source: Hos
 					</div>
 					{/* One line per command, never wrapped: a wrapped command read as three
 					    commands with the $ on the middle line (operator, 2026-09-25). */}
-					<div className="min-w-0 max-w-full overflow-x-auto px-3 py-2.5 font-mono text-[13px] leading-6 text-fd-foreground">
+					<div
+						// Long lines scroll sideways on phones, so the region needs a tab
+						// stop and a name (axe scrollable-region-focusable).
+						tabIndex={0}
+						role="region"
+						aria-label={`${spec.name} install command`}
+						className="scroll-shadows min-w-0 max-w-full overflow-x-auto px-3 py-2.5 font-mono text-[12.5px] leading-6 text-fd-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-fd-ring xl:text-[13px]"
+					>
 						{spec.commands.map((line) => (
 							<div key={line} className="whitespace-pre">
 								{spec.prompt ? (
@@ -385,7 +392,7 @@ function HostCommandPanel({ spec, source }: { spec: HostInstallSpec; source: Hos
 					<span className="ml-auto inline-flex items-center gap-4">
 						<Link
 							href={spec.href}
-							className="font-mono text-[12px] text-fd-primary underline-offset-2 hover:underline"
+							className="font-medium text-fd-primary underline-offset-2 hover:underline"
 						>
 							{spec.name} docs
 						</Link>

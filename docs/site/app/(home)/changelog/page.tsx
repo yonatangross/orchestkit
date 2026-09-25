@@ -64,7 +64,11 @@ export default function ChangelogPage() {
           How to read a release
         </p>
         <ChangelogLegend />
-        <ChangelogMermaid chart={howToReadMermaid()} />
+        {/* Same content as the chip legend above; at phone width the diagram
+            scaled to ~4px text (visual audit 2026-09-25), so md and up only. */}
+        <div className="hidden md:block">
+          <ChangelogMermaid chart={howToReadMermaid()} />
+        </div>
         <h2
           id="release-activity-heading"
           className="font-mono text-[11px] font-medium uppercase tracking-[0.06em] text-fd-muted-foreground"

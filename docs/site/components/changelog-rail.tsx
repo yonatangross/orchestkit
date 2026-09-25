@@ -186,7 +186,10 @@ export function ChangelogRail({
   if (targetVersion) diagramVersions.add(targetVersion);
 
   return (
-    <div className="space-y-10" role="feed" aria-label="Changelog">
+    <div className="space-y-10">
+      {/* role=feed allows only article children (axe aria-required-children,
+          critical): the "older releases" button lives outside the feed. */}
+      <div className="space-y-10" role="feed" aria-label="Changelog">
       {visible.map((entry) => (
         <VersionRow
           key={entry.version}
@@ -199,6 +202,7 @@ export function ChangelogRail({
           showDiagram={!showAll && diagramVersions.has(entry.version)}
         />
       ))}
+      </div>
       {!showAll && hiddenCount > 0 ? (
         <button
           type="button"

@@ -27,7 +27,7 @@ export function CommunityDoors() {
 						<WhatsAppGlyph className="h-6 w-6" />
 					</span>
 					<span className="mt-8 block">
-						<span className="font-mono text-[11px] font-medium tracking-[0.14em] text-[#25D366] uppercase">
+						<span className="font-mono text-[11px] font-medium tracking-[0.14em] text-[#15803d] dark:text-[#25D366] uppercase">
 							Live room
 						</span>
 						<span className="mt-2 block text-xl font-semibold tracking-tight text-fd-foreground">
@@ -37,7 +37,7 @@ export function CommunityDoors() {
 							The invite rotates. This is the current door.
 						</span>
 					</span>
-					<span className="mt-8 inline-flex items-center gap-1.5 text-sm font-medium text-[#25D366]">
+					<span className="mt-8 inline-flex items-center gap-1.5 text-sm font-medium text-[#15803d] dark:text-[#25D366]">
 						Join the WhatsApp community
 						<ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
 					</span>

@@ -318,7 +318,7 @@ export function AgentSelector() {
                   } ${meta.dot}`}
                 />
                 {meta.label}
-                <span className="tabular-nums text-fd-muted-foreground/70">
+                <span className="tabular-nums text-fd-muted-foreground">
                   {countOf(cat)}
                 </span>
               </button>

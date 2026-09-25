@@ -339,7 +339,7 @@ export function SkillBrowser() {
               >
                 <CategoryMark category={cat} className="h-3.5 w-3.5" />
                 {meta.label}
-                <span className="tabular-nums text-fd-muted-foreground/70">
+                <span className="tabular-nums text-fd-muted-foreground">
                   {countOf(cat)}
                 </span>
               </motion.button>

@@ -6,7 +6,6 @@ import {
 	type ReactNode,
 } from "react";
 import Link from "next/link";
-import defaultMdxComponents from "fumadocs-ui/mdx";
 import { LibraryMark } from "@/components/category-mark";
 import {
 	Item,
@@ -193,12 +192,30 @@ export function HookIndexList({ rows }: { rows: HookIndexRow[] }) {
 	);
 }
 
-const FumadocsTable = defaultMdxComponents.table;
 
 export function DocsTable(props: ComponentProps<"table">) {
 	const hookRows = parseHookEventTable(props.children);
 	if (hookRows) return <HookEventTable rows={hookRows} />;
 	const indexRows = parseHookIndexTable(props.children);
 	if (indexRows && indexRows.length > 0) return <HookIndexList rows={indexRows} />;
-	return <FumadocsTable {...props} />;
+	return <ScrollTable {...props} />;
+}
+
+/**
+ * Fumadocs' table wrapper (`relative overflow-auto prose-no-margin my-6`) made
+ * keyboard-reachable: a wide table scrolls, so the region needs a tab stop and
+ * a name (axe scrollable-region-focusable, serious, on the deep reference
+ * pages). Same classes, so the layout is unchanged.
+ */
+function ScrollTable(props: ComponentProps<"table">) {
+	return (
+		<div
+			tabIndex={0}
+			role="region"
+			aria-label="Table, scrolls sideways"
+			className="scroll-shadows relative my-6 overflow-auto prose-no-margin focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-ring"
+		>
+			<table {...props} />
+		</div>
+	);
 }

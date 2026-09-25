@@ -5,6 +5,7 @@ import { RootProvider } from "fumadocs-ui/provider/next";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import type { ReactNode } from "react";
+import { BannerOffset } from "@/components/banner-offset";
 import { ClientErrorReporter } from "@/components/client-error-reporter";
 import { GitHubClickTracker } from "@/components/github-click-tracker";
 import CustomSearchDialog from "@/components/search-dialog";
@@ -79,10 +80,16 @@ export default function Layout({ children }: { children: ReactNode }) {
 				{/* Own row, not sticky (operator, 2026-09-25). Fumadocs pins the banner
 				    sticky top-0 while the nav also sticks at top 0, so after any scroll
 				    the banner text showed through the nav (48px overlap). It now scrolls
-				    away, and changeLayout={false} stops docs layouts reserving its height. */}
-				<Banner id={`v${SITE.version}`} className="relative" changeLayout={false}>
+				    away; BannerOffset feeds docs layouts its visible height, and the
+				    side padding keeps the close X off the text on phones. */}
+				<Banner
+					id={`v${SITE.version}`}
+					className="relative ps-10 pe-10"
+					changeLayout={false}
+				>
 					{BANNER_TEXT}
 				</Banner>
+				<BannerOffset bannerId={`v${SITE.version}`} />
 				<RootProvider
 					theme={{ defaultTheme: "dark" }}
 					search={{ SearchDialog: CustomSearchDialog }}

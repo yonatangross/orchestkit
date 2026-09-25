@@ -24,7 +24,7 @@ function botDigestLine(): string {
 export function CommunityRoomPreview() {
 	return (
 		<figure className="card-elevated card-trace mt-8 overflow-hidden rounded-[var(--radius-card)] border border-fd-border bg-[color-mix(in_oklch,var(--color-fd-card)_52%,transparent)] backdrop-blur-md">
-			<figcaption className="px-5 pt-5 font-mono text-[11px] font-medium tracking-[0.14em] text-[#25D366] uppercase md:px-6 md:pt-6">
+			<figcaption className="px-5 pt-5 font-mono text-[11px] font-medium tracking-[0.14em] text-[#15803d] dark:text-[#25D366] uppercase md:px-6 md:pt-6">
 				Example of the live room
 			</figcaption>
 			<div className="grid gap-6 px-5 pt-3 pb-5 md:grid-cols-[minmax(0,240px)_1fr] md:items-center md:px-6 md:pb-6">

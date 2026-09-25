@@ -263,14 +263,10 @@
   aspect-ratio: 840 / 723;
   z-index: 1;
   pointer-events: none;
-  -webkit-mask-image:
-    linear-gradient(to right, transparent 0%, #000 20%, #000 94%, transparent 100%),
-    linear-gradient(to bottom, transparent 0%, #000 10%, #000 88%, transparent 100%);
-  -webkit-mask-composite: source-in;
-  mask-image:
-    linear-gradient(to right, transparent 0%, #000 20%, #000 94%, transparent 100%),
-    linear-gradient(to bottom, transparent 0%, #000 10%, #000 88%, transparent 100%);
-  mask-composite: intersect;
+  /* Radial, not four linear fades: the linear mask left near-straight edges
+     where the art's own backdrop hid the page grid (a visible rectangle). */
+  -webkit-mask-image: radial-gradient(ellipse 72% 70% at 55% 50%, #000 58%, transparent 100%);
+  mask-image: radial-gradient(ellipse 72% 70% at 55% 50%, #000 58%, transparent 100%);
 }
 
 .home-hero-art img {
@@ -364,17 +360,19 @@
     order: 1;
   }
 
+  /* 4:3, not 16:9: the art is cropped to its subject (1.16:1), and a 16:9 band
+     cut the outer players off at 768. Same radial fade as desktop. */
   .home-hero-art {
     order: 3;
     width: 100%;
-    aspect-ratio: 16 / 9;
+    max-width: 640px;
+    align-self: center;
+    aspect-ratio: 4 / 3;
     margin-top: 8px;
-    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 18%, #000 88%, transparent 100%);
-    mask-image: linear-gradient(to bottom, transparent 0%, #000 18%, #000 88%, transparent 100%);
   }
 
   .home-hero-art img {
-    object-position: center 30%;
+    object-position: center 45%;
   }
 
   /* Install before the art on phones: 35% of home sessions are mobile and
@@ -1125,4 +1123,47 @@ article blockquote {
   .community-room-pop {
     animation: none;
   }
+}
+
+/* Docs prev/next cards: fumadocs-ui 16.15 renders the description with
+   `truncate`, which cut "Skills are knowledge, agents are specialists…" to one
+   line. The live deploy predates that and wrapped. Keep the full sentence,
+   capped at two lines. */
+#nd-page a.rounded-lg.border > p.text-fd-muted-foreground.truncate {
+  white-space: normal;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+/* Contrast (axe color-contrast, serious), measured 2026-09-25:
+   - Dark: primary text on the primary tints (What's new, NEW, Latest,
+     changelog version chips) read 3.7 to 4.49:1. Lighten primary TEXT only;
+     buttons that use primary as a background keep it.
+   - Shiki GitHub themes: light `export` red #D73A49 was 4.37:1 and dark
+     comment grey #6A737D was 3.97:1 on the code background. */
+.dark .text-fd-primary {
+  color: oklch(0.76 0.13 264);
+}
+.shiki span[style*="--shiki-light:#D73A49"] {
+  --shiki-light: #b31d28 !important;
+}
+.dark .shiki span[style*="--shiki-dark:#6A737D"] {
+  --shiki-dark: #8b949e !important;
+}
+
+/* Sideways scroll areas (hero command box, wide docs tables): these shadows
+   show that there is more (scroll-shadow technique, no JS). */
+.scroll-shadows {
+  /* The cover colour must match what sits behind the region. */
+  --scroll-shadow-bg: var(--color-fd-surface-raised);
+  background:
+    linear-gradient(to right, var(--scroll-shadow-bg) 30%, transparent) left / 24px 100% no-repeat local,
+    linear-gradient(to left, var(--scroll-shadow-bg) 30%, transparent) right / 24px 100% no-repeat local,
+    radial-gradient(farthest-side at 0 50%, color-mix(in oklch, var(--color-fd-foreground) 22%, transparent), transparent) left / 10px 100% no-repeat scroll,
+    radial-gradient(farthest-side at 100% 50%, color-mix(in oklch, var(--color-fd-foreground) 22%, transparent), transparent) right / 10px 100% no-repeat scroll;
+}
+#nd-page .scroll-shadows {
+  --scroll-shadow-bg: var(--color-fd-background);
 }
