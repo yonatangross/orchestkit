@@ -41,13 +41,24 @@ type RegisteredHook = (...args: unknown[]) => unknown;
  *  so masking it proves the named-value path, not the shape or entropy paths. */
 const SYNTHETIC = "veiltest-synthetic-value-42";
 
-function makeFake$(env: Record<string, string> = {}): {
+interface CopyOptions {
+  /** When set, $.ui.ask exists and answers with this label. */
+  askAnswer?: string;
+  /** What $.ui.copy reports; defaults to copied. */
+  copyResult?: { isCopied: boolean; reason?: string };
+}
+
+function makeFake$(env: Record<string, string> = {}, copyOptions: CopyOptions = {}): {
   $: unknown;
   notices: string[];
   toasts: string[];
   statuses: string[];
   logs: string[];
+  asks: string[];
+  copies: string[];
 } {
+  const asks: string[] = [];
+  const copies: string[] = [];
   const notices: string[] = [];
   const toasts: string[] = [];
   const statuses: string[] = [];
@@ -69,9 +80,21 @@ function makeFake$(env: Record<string, string> = {}): {
       log: async (text: string): Promise<void> => {
         logs.push(text);
       },
+      ...(copyOptions.askAnswer === undefined
+        ? {}
+        : {
+            ask: async (question: string): Promise<string> => {
+              asks.push(question);
+              return copyOptions.askAnswer as string;
+            },
+            copy: async (spec: { text: string }): Promise<{ isCopied: boolean; reason?: string }> => {
+              copies.push(spec.text);
+              return copyOptions.copyResult ?? { isCopied: true };
+            },
+          }),
     },
   };
-  return { $, notices, toasts, statuses, logs };
+  return { $, notices, toasts, statuses, logs, asks, copies };
 }
 
 function captureHooks(): Map<string, RegisteredHook> {
@@ -433,5 +456,64 @@ describe("visible proof: toast, status and byte counts", () => {
     const out = await hooks.get("tool.call")!($, { tool: "Bash", args: {} }, asNext({ result: `x ${FAKE_GH}` }));
     expect(resultText(out)).not.toContain(FAKE_GH);
     expect(resultText(out)).toContain("•".repeat(8));
+  });
+});
+
+describe("opt-in copy offer: the value goes to the clipboard, never to the model", () => {
+  const FAKE_GH = "gh" + "p_" + "Zq8Lm3Rt7Vx2Kp9Nw4Hy6Bc1Df5Gj0Sa8Ue3";
+  const RESULT = { result: { stdout: `FAKE_TOKEN=${FAKE_GH}\n` } };
+
+  test("Copy to clipboard hands the raw value to $.ui.copy and the model still reads dots", async () => {
+    const hooks = captureHooks();
+    const { $, asks, copies, toasts, statuses, logs } = makeFake$(
+      { SECRETS_VEIL_OFFER_COPY: "1" },
+      { askAnswer: "Copy to clipboard" }
+    );
+    await startSession(hooks, $);
+
+    const out = await hooks.get("tool.call")!($, { tool: "Bash", args: {} }, asNext(RESULT));
+
+    expect(copies).toEqual([FAKE_GH]);
+    expect(asks).toHaveLength(1);
+    // The model-visible result stays masked: no raw value, bullets present.
+    expect(JSON.stringify(out)).not.toContain(FAKE_GH);
+    expect(JSON.stringify(out)).toContain("\u2022".repeat(8));
+    // Nothing the terminal or the log shows carries the value either.
+    for (const line of [...asks, ...toasts, ...statuses, ...logs]) {
+      expect(line).not.toContain(FAKE_GH);
+    }
+    expect(toasts).toContain("copied 40 characters to your clipboard; Claude still sees dots");
+  });
+
+  test("Keep hidden copies nothing", async () => {
+    const hooks = captureHooks();
+    const { $, asks, copies } = makeFake$({ SECRETS_VEIL_OFFER_COPY: "1" }, { askAnswer: "Keep hidden" });
+    await startSession(hooks, $);
+    const out = await hooks.get("tool.call")!($, { tool: "Bash", args: {} }, asNext(RESULT));
+    expect(asks).toHaveLength(1);
+    expect(copies).toEqual([]);
+    expect(JSON.stringify(out)).not.toContain(FAKE_GH);
+  });
+
+  test("without SECRETS_VEIL_OFFER_COPY=1 there is no dialog and no copy", async () => {
+    const hooks = captureHooks();
+    const { $, asks, copies } = makeFake$({}, { askAnswer: "Copy to clipboard" });
+    await startSession(hooks, $);
+    await hooks.get("tool.call")!($, { tool: "Bash", args: {} }, asNext(RESULT));
+    expect(asks).toEqual([]);
+    expect(copies).toEqual([]);
+  });
+
+  test("a failed copy says so and still never leaks the value", async () => {
+    const hooks = captureHooks();
+    const { $, copies, toasts } = makeFake$(
+      { SECRETS_VEIL_OFFER_COPY: "1" },
+      { askAnswer: "Copy to clipboard", copyResult: { isCopied: false, reason: "no-clipboard" } }
+    );
+    await startSession(hooks, $);
+    const out = await hooks.get("tool.call")!($, { tool: "Bash", args: {} }, asNext(RESULT));
+    expect(copies).toEqual([FAKE_GH]);
+    expect(toasts).toContain("nothing copied (no-clipboard); the value stays covered");
+    expect(JSON.stringify(out)).not.toContain(FAKE_GH);
   });
 });

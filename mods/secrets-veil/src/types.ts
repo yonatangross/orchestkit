@@ -78,6 +78,10 @@ export interface DollarAPI {
     toast(text: string): Promise<void>;
     status(line: string): Promise<void>;
     log(text: string): Promise<void>;
+    /** Opt-in only: the AskUserQuestion dialog, resolves to the picked label. */
+    ask(question: string, options: readonly string[]): Promise<unknown>;
+    /** Opt-in only: writes to the human's clipboard (OSC 52); the model never sees it. */
+    copy(spec: { text: string }): Promise<{ isCopied: boolean; reason?: string }>;
   };
 }
 

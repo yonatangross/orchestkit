@@ -42,6 +42,22 @@ let table: MaskTable | null = null;
 /** Module-scope state (per session): values masked since session.start. */
 let maskedThisSession = 0;
 
+/** Module-scope state (per session): SECRETS_VEIL_OFFER_COPY=1 turns the copy offer on. */
+let offerCopy = false;
+
+/** The two answers the copy offer gives. */
+export const COPY = "Copy to clipboard";
+export const KEEP = "Keep hidden";
+
+/**
+ * The copy offer's question. It names the count and the tool, never a value:
+ * the question is drawn in the terminal and may be logged.
+ */
+export function copyQuestion(values: number, tool: string): string {
+  const which = values === 1 ? "the masked value" : `the first of ${values} masked values`;
+  return `secrets-veil covered a secret in ${tool}. Copy ${which} to your clipboard? It goes to your clipboard only; Claude never sees it.`;
+}
+
 /** What one tool result's masking did, in counts and UTF-8 bytes. */
 export interface MaskStats {
   /** Number of values covered. */
@@ -108,6 +124,35 @@ export function toastText(stats: MaskStats, tool: string): string {
 }
 
 /**
+ * Offer the human a copy of the first covered value. The value goes to
+ * $.ui.copy and nowhere else: not the tool result, not a toast, not the log.
+ * Any refusal (no dialog, no clipboard) leaves the value covered.
+ */
+async function offerToCopy($: DollarAPI, covered: Set<string>, tool: string): Promise<void> {
+  const [first] = covered;
+  // No presence check: the validator allows $ members only as calls; a missing
+  // ask or copy throws and the catch leaves the value covered.
+  if (first === undefined) return;
+  let answer: unknown = KEEP;
+  try {
+    answer = await $.ui.ask(copyQuestion(covered.size, tool), [COPY, KEEP]);
+  } catch {
+    return;
+  }
+  if (answer !== COPY) return;
+  try {
+    const copied = await $.ui.copy({ text: first });
+    await $.ui.toast(
+      copied.isCopied
+        ? `copied ${first.length} characters to your clipboard; Claude still sees dots`
+        : `nothing copied (${copied.reason ?? "no clipboard"}); the value stays covered`
+    );
+  } catch {
+    // A refused copy leaves the value covered; masking is already done.
+  }
+}
+
+/**
  * Register the secrets-veil hooks.
  */
 export function register(on: (event: string, hook: unknown) => void, _options?: unknown): void {
@@ -163,6 +208,9 @@ export function register(on: (event: string, hook: unknown) => void, _options?: 
     const names = Object.keys(named);
     table = buildTable(names, named, DEFAULT_PATTERNS, { entropy: true });
     maskedThisSession = 0;
+    // Off unless the human opts in: a dialog on every masked result would be noise.
+    const offer = await $.env.get("SECRETS_VEIL_OFFER_COPY").catch(() => undefined);
+    offerCopy = offer === "1";
 
     // FAIL LOUD on an empty named list. Silence is not allowed: say plainly
     // that only the value shapes and entropy are standing guard.
@@ -204,6 +252,9 @@ export function register(on: (event: string, hook: unknown) => void, _options?: 
         await $.ui.status(`${maskedThisSession} masked this session`);
       } catch {
         // Status refused; the result stays masked.
+      }
+      if (offerCopy) {
+        await offerToCopy($, covered, tool);
       }
       try {
         await $.ui.log(`${line}; result ${utf8Bytes(JSON.stringify(result))} bytes before, ${utf8Bytes(JSON.stringify(masked))} bytes after`);

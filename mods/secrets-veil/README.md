@@ -56,15 +56,33 @@ with the plugin name in front):
 These lines carry counts only, never a value. Nothing is shown when nothing
 was masked. A refused toast or status never unmasks a result.
 
+## Copy to your clipboard (opt-in)
+
+With `SECRETS_VEIL_OFFER_COPY=1` in the environment, a masked result also
+opens the Claude Code question dialog (`$.ui.ask`): "Copy the masked value to
+your clipboard? It goes to your clipboard only; Claude never sees it." The
+answers are `Copy to clipboard` and `Keep hidden`. `Copy to clipboard` hands
+the first covered value to `$.ui.copy` (OSC 52 in the terminal) and nothing
+else: the tool result the model reads stays masked, and the question, the
+toast, the status line and the log carry counts only. A missing dialog, a
+refused copy or `Keep hidden` all leave the value covered. The option is off by
+default because a dialog on every masked result would be noise.
+
+Measured on CC 2.1.282 (2026-09-25): the model read 8 bullets, the debug log
+said `$.ui.copy (secrets-veil): 40 chars, path native, OSC 52 written; copied`,
+and the clipboard held 40 bytes.
+
 ## What this mod deliberately does not do
 
-- **No reveal UI.** There is no hover reveal, no `/veil` command, no
-  `ui.render`, no `ui.press`, no `command.register`. A reveal path re-arms
-  the secret one interaction away from the model and the transcript.
+- **No reveal to the model.** There is no hover reveal, no `/veil` command,
+  no `ui.render`, no `ui.press`, no `command.register`. A reveal path re-arms
+  the secret one interaction away from the model and the transcript. The
+  opt-in copy above goes to the human's clipboard only.
 - **No network, no process, no storage.** Negative pins: `process.run`,
-  `http.fetch` and `store.*` are absent from the module. Its only `$.ui`
-  calls are `notice`, `toast`, `status` and `log`, and each carries counts,
-  never a value.
+  `http.fetch` and `store.*` are absent from the module. Its `$.ui` calls are
+  `notice`, `toast`, `status` and `log`, each carrying counts, never a value,
+  plus `ask` and `copy` when the copy offer is opted in; only `copy` ever
+  receives a value.
 - **No names beyond the 21.** The mod reads only the names listed above.
 
 ## Why your own variable names are not listed
