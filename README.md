@@ -614,6 +614,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.92](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.91...v10.0.0-beta.92)** · 2026-09-25
+
+- **mods:** port the 3 mods to the CC 2.1.282 mods API (#4413)
+
 **[v10.0.0-beta.91](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.90...v10.0.0-beta.91)** · 2026-09-25
 
 - **cover:** heal-loop never rewrites an expected value (#4407)
@@ -648,10 +652,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **hooks:** fail-closed interpreter argument classification in egress check (#4394)
 - **hooks:** per-interpreter flag handling in egress pipe check (#4390)
-
-**[v10.0.0-beta.84](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.83...v10.0.0-beta.84)** · 2026-09-23
-
-- **git-hooks:** opt-in targeted pre-push mode with a 2-slot governor (#4238) (#4389)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

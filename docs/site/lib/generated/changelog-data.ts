@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.92",
+    "date": "2026-09-25",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.91...v10.0.0-beta.92",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**mods:** port the 3 mods to the CC 2.1.282 mods API ([#4413](https://github.com/yonatangross/orchestkit/issues/4413)) ([8ad54b3](https://github.com/yonatangross/orchestkit/commit/8ad54b3ac1915f490664c8e53d2d0c52ec429d73))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.91",
     "date": "2026-09-25",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.90...v10.0.0-beta.91",
