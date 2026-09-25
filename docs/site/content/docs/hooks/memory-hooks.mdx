@@ -1,6 +1,6 @@
 ---
 title: "Memory Bridge and Context Injection"
-description: "How OrchestKit validates graph memory writes, suggests capture at session end, and guards MEMORY.md size, without a dedicated auto-writer hook."
+description: "How OrchestKit validates graph memory writes, suggests capture on async Stop turns, and guards MEMORY.md size, without a dedicated auto-writer hook."
 ---
 
 import { Callout } from "fumadocs-ui/components/callout";
@@ -11,13 +11,14 @@ import { Steps, Step } from "fumadocs-ui/components/steps";
 OrchestKit no longer ships a `memory-writer` hook (or per-prompt `memory-context` / `memory-context-loader` injectors). Memory persistence is skill-driven (graph MCP plus optional filesystem MEMORY.md edits). A small set of hooks still touch the pipeline:
 
 ```
-Session start                         During session                      Session end
--------------                         --------------                      -----------
+Session start                         During session                      Stop (every assistant turn, async)
+-------------                         --------------                      --------------------------------
 CC loads MEMORY.md                    /ork:remember -> mcp__memory__*     stop/session-summary
-sync-session-dispatcher               memory-validator (PreToolUse)       (graph entity suggestion)
-  materializes profile rules          sync-write-edit-dispatcher          stop/handoff-writer
-                                      (context-file-budget-guard on       (may cite decisions.jsonl)
-                                       MEMORY.md / CLAUDE.md writes)
+sync-session-dispatcher               memory-validator (PreToolUse)       (graph entity suggestion; may
+  materializes profile rules          sync-write-edit-dispatcher           land on a later turn)
+                                      (context-file-budget-guard on       stop/handoff-writer
+                                       MEMORY.md / CLAUDE.md writes)      (may cite decisions.jsonl)
+
                                                                           PreCompact:
                                                                           pre-compact-saver snapshots
                                                                           .claude/memory + logs
@@ -29,15 +30,15 @@ sync-session-dispatcher               memory-validator (PreToolUse)       (graph
 **Event:** PreToolUse (`mcp__memory__*`)
 **Purpose:** Validate knowledge graph operations before they execute.
 
-Wired in `hooks.json` and `entries/pretool.ts`. It checks entity and relation payloads for size limits, required fields, and known entity types. Oversized payloads are denied; missing required fields and unknown entity types return warnings and still allow the call.
+Wired in `hooks.json` and `entries/pretool.ts`. Entity creates get size limits (deny on oversized names/observations) plus required-field checks. Relation creates get required-field checks only (no relation size limit). Missing required fields return `outputWarning` and still allow the call. Unknown entity types are logged only (no warning result) and still allow the call.
 
 ## Session Summary (Stop)
 
 **Hook:** `stop/session-summary`
-**Event:** Stop
-**Purpose:** Suggest graph entity capture at session end for high-activity sessions.
+**Event:** Stop (`async: true` in `hooks.json`)
+**Purpose:** Suggest graph entity capture after assistant turns that clear the activity threshold.
 
-This is the graph-first replacement for older local-capture hooks. It does not write JSONL or MEMORY.md.
+This is the graph-first replacement for older local-capture hooks. It does not write JSONL or MEMORY.md. Because Stop fires after every assistant turn and this hook is async, the suggestion is delivered on a later turn (or may be lost if the session ends immediately).
 
 ### How It Works
 
@@ -61,9 +62,9 @@ return {
 ## Handoff Writer (Stop)
 
 **Hook:** `stop/handoff-writer`
-**Event:** Stop
+**Event:** Stop (`async: true` in `hooks.json`)
 
-Reads recent lines from `.claude/logs/decisions.jsonl` (when present) to enrich the session handoff note. That log path is separate from `.claude/memory/decisions.jsonl` used by some skill scripts.
+Runs after every assistant turn (async). Reads recent lines from `.claude/logs/decisions.jsonl` (when present) to enrich the handoff note. That log path is separate from `.claude/memory/decisions.jsonl` used by some skill scripts.
 
 ## PreCompact Saver
 
@@ -115,7 +116,7 @@ Profile materialization runs inside `lifecycle/sync-session-dispatcher` at Sessi
 |------|-------|-----------|-----------|
 | `memory-validator` | PreToolUse (MCP) | Validate | Per `mcp__memory__*` call |
 | `sync-write-edit-dispatcher` (`context-file-budget-guard`) | PreToolUse (Write/Edit) | Advise | Per MEMORY.md / CLAUDE.md write |
-| `session-summary` | Stop | Write hint (graph via additionalContext) | Once at exit (if busy enough) |
-| `handoff-writer` | Stop | Read (`.claude/logs/decisions.jsonl`) | Once at exit |
+| `session-summary` | Stop (async) | Write hint (graph via additionalContext) | After each assistant turn when busy enough; delivery may be delayed |
+| `handoff-writer` | Stop (async) | Read (`.claude/logs/decisions.jsonl`) | After each assistant turn (async) |
 | `pre-compact-saver` | PreCompact | Snapshot (local + logs) | On compaction |
 | `sync-session-dispatcher` | SessionStart | Materialize profile rules | Once per startup |

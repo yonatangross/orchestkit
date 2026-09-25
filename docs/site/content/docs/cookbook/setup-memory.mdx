@@ -19,7 +19,7 @@ OrchestKit solves this with a **3-tier memory architecture**: graph MCP for sear
 |---|---|---|
 | `/ork:remember` | Command skill | Store decisions, patterns, and context in the knowledge graph (and optionally filesystem memory) |
 | `/ork:memory` | Command skill | Search, load, sync, visualize stored knowledge |
-| `session-summary` | Hook (stop) | At session end, suggests a graph entity capture and nudges `/ork:remember` on busy sessions |
+| `session-summary` | Hook (stop, async) | After each assistant turn (when busy enough), suggests a graph entity capture and nudges `/ork:remember`; async output may arrive on a later turn |
 | `memory-validator` | Hook (pretool) | Validates `mcp__memory__*` tool calls before they run |
 | `mcp__memory__*` | MCP server | Graph database for entities and relations |
 
@@ -191,13 +191,15 @@ Here is what OrchestKit actually wires for memory today (verified against `src/h
 
 ### On MCP Memory Calls
 
-`pretool/mcp/memory-validator` runs on `mcp__memory__*` PreToolUse. It denies oversized payloads and warns on missing required fields or unknown entity types before the call proceeds.
+`pretool/mcp/memory-validator` runs on `mcp__memory__*` PreToolUse. It denies oversized entity (and observation) payloads, warns on missing required fields, and only logs unknown entity types (no warning result). Relation creates check required fields only; there is no relation size check.
 
-### On Session End
+### On Stop (after every assistant turn)
 
-`stop/session-summary` runs when the session had meaningful work (20 or more tool calls). It returns an `additionalContext` suggestion to create a session graph entity, and for high-activity sessions (over 50 tool calls) it nudges you to run `/ork:remember`. It does not write local JSONL or MEMORY.md itself.
+`stop/session-summary` and `stop/handoff-writer` are async Stop hooks. Claude Code fires Stop after every assistant turn, not only when you quit. Their output is delivered asynchronously and may land on a later turn. If you end the session right after a qualifying turn, the suggestion may never reach Claude; if you continue, the nudge can recur.
 
-`stop/handoff-writer` may include recent entries from `.claude/logs/decisions.jsonl` in the handoff note when that file exists.
+When the session has had meaningful work (20 or more tool calls), `session-summary` returns an `additionalContext` suggestion to create a session graph entity, and for high-activity sessions (over 50 tool calls) it nudges you to run `/ork:remember`. It does not write local JSONL or MEMORY.md itself.
+
+`handoff-writer` may include recent entries from `.claude/logs/decisions.jsonl` in the handoff note when that file exists.
 
 ### Before Compaction
 
@@ -228,7 +230,7 @@ Graph memory stores explicit relationships between entities: `"JWT" -> USED_FOR 
 ## Tips
 
 <Callout type="info">
-**Store investigation context before ending a session.** Run `/ork:remember "Session summary: completed X, found Y, next steps Z"` before closing. `session-summary` only suggests graph capture via additionalContext; it does not persist MEMORY.md for you. Explicit `/ork:remember` (and optional filesystem memory edits) are the durable write path.
+**Store investigation context explicitly.** Run `/ork:remember "Session summary: completed X, found Y, next steps Z"` when you want durable recall. `session-summary` only suggests graph capture via additionalContext on Stop turns (async, after each assistant turn when busy enough); it does not persist MEMORY.md for you.
 </Callout>
 
 <Callout type="info">

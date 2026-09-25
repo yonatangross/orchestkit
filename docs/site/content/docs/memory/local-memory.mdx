@@ -12,7 +12,7 @@ Local memory is Tier 2 in the public docs model: optional JSONL (JSON Lines) fil
 ```
 .claude/memory/
   decisions.jsonl        # All captured decisions and preferences
-  graph-queue.jsonl      # Pending graph operations (entities + relations)
+  graph-queue.jsonl      # Leftover artifact if present (not auto-flushed to MCP)
   open-problems.jsonl    # Tracked open problems and blockers
   completed-flows.jsonl  # Completed workflow records
   tool-preferences.json  # Learned tool usage preferences
