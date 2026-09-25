@@ -330,7 +330,20 @@ export function matchFileEdit(
     });
   }
 
-  return matches;
+  // Block before warn (stable within a severity): callers act on matches[0],
+  // so corpus order must never let a warn hide a block (estate-6 HOLD on #4429).
+  return bySeverity(matches);
+}
+
+/** Severity rank: block first. */
+const SEVERITY_RANK: Record<MatchedLesson['severity'], number> = { block: 0, warn: 1 };
+
+/** Stable sort of matches, block before warn. */
+export function bySeverity(matches: MatchedLesson[]): MatchedLesson[] {
+  return matches
+    .map((m, i) => ({ m, i }))
+    .sort((a, b) => SEVERITY_RANK[a.m.severity] - SEVERITY_RANK[b.m.severity] || a.i - b.i)
+    .map(({ m }) => m);
 }
 
 /**

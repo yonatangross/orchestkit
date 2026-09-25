@@ -54,6 +54,9 @@ interface Fake$Options {
   askAnswer?: string;
 }
 
+/** askAnswer sentinel: the dialog throws, the way Escape does on CC 2.1.282. */
+const ESCAPE = '<escape>';
+
 /** A node built by a fake element constructor: the name as type, props spread. */
 type FakeNode = { type: string; key?: string; children?: unknown; [prop: string]: unknown };
 
@@ -81,6 +84,9 @@ function makeFake$(options: Fake$Options = {}): Fake$Record {
 
   const ask = async (question: string, opts: readonly string[]): Promise<string> => {
     asks.push({ question, options: opts });
+    if (options.askAnswer === ESCAPE) {
+      throw new Error('$.ui.ask: no answer (the dialog was dismissed)');
+    }
     return options.askAnswer as string;
   };
 
@@ -239,7 +245,7 @@ describe('session.start', () => {
 
   test('loads patterns and newest three floor lessons', async () => {
     const { hooks } = captureHooks();
-    const { $ } = makeFake$();
+    const { $ } = makeFake$({ askAnswer: 'Proceed anyway' });
     await startSession(hooks, $);
 
     const next = asNext<never>({});
@@ -267,7 +273,7 @@ describe('session.start', () => {
 describe('tool.call', () => {
   test('returns context for a matched block pattern', async () => {
     const { hooks } = captureHooks();
-    const { $ } = makeFake$();
+    const { $ } = makeFake$({ askAnswer: 'Proceed anyway' });
     await startSession(hooks, $);
 
     const next = asNext<never>({ result: 'ok' });
@@ -298,7 +304,7 @@ describe('tool.call', () => {
 
   test('survives a refused ui.notice', async () => {
     const { hooks } = captureHooks();
-    const { $ } = makeFake$({ noticeThrows: true });
+    const { $ } = makeFake$({ noticeThrows: true, askAnswer: 'Proceed anyway' });
     await startSession(hooks, $);
 
     const next = asNext<never>({});
@@ -332,7 +338,7 @@ describe('tool.call', () => {
 
   test('feeds matching tool.call and asserts card and lesson notice independently', async () => {
     const { hooks } = captureHooks();
-    const { $, notices } = makeFake$();
+    const { $, notices } = makeFake$({ askAnswer: 'Proceed anyway' });
     await startSession(hooks, $);
 
     const toolUseId = 'call_1';
@@ -446,10 +452,36 @@ describe('block lessons ask before the call runs', () => {
   });
 });
 
+describe('a block lesson fails closed: only an explicit Proceed anyway runs it', () => {
+  const cases: Array<[string, string | undefined]> = [
+    ['Escape (the dialog throws)', ESCAPE],
+    ['a typed free-text answer', 'sure, go ahead'],
+    ['no dialog at all (headless)', undefined],
+  ];
+  for (const [label, answer] of cases) {
+    test(`${label} denies without running the tool`, async () => {
+      const { hooks } = captureHooks();
+      const { $ } = makeFake$(answer === undefined ? {} : { askAnswer: answer });
+      await startSession(hooks, $);
+
+      let ran = false;
+      const next = async (): Promise<unknown> => {
+        ran = true;
+        return { result: 'ran' };
+      };
+      const out = (await hooks.get('tool.call')!($, { tool: 'Bash', command: 'gh pr checks' }, next)) as { deny?: string; result?: string };
+      expect(ran).toBe(false);
+      expect(out.result).toBeUndefined();
+      expect(out.deny).toContain('no explicit "Proceed anyway"');
+      expect(out.deny).toContain('[lesson:cancelled-check-is-not-pass]');
+    });
+  }
+});
+
 describe('command.run', () => {
   test('/lessons reloads the corpus and invalidates ui.render', async () => {
     const { hooks } = captureHooks();
-    const { $, invalidateCalls } = makeFake$();
+    const { $, invalidateCalls } = makeFake$({ askAnswer: 'Proceed anyway' });
     await startSession(hooks, $);
 
     const result = (await hooks.get('command.run')!($, { command: 'lessons' })) as { text?: string };

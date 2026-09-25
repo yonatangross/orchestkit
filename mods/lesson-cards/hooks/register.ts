@@ -252,22 +252,24 @@ export function register(on: (event: string, matcherOrHook: unknown, hook?: unkn
     const lesson = matches[0];
     const context = formatContext(lesson);
 
-    // A block lesson asks the human before the call runs. A refused or
-    // unavailable dialog (headless -p, an older build) proceeds: the card and
-    // the model context still land, and the classic guard hooks still gate.
+    // A block lesson asks the human before the call runs, and only an explicit
+    // "Proceed anyway" runs it. Cancel, Escape (the dialog throws "no answer"),
+    // a typed free-text answer, and no dialog at all (headless -p) all deny:
+    // a block lesson fails closed (estate-6 HOLD on #4429).
     if (lesson.severity === 'block' && lesson.source === 'pattern') {
-      let answer: unknown = PROCEED;
+      let answer: unknown;
       try {
         answer = await $.ui.ask(`lesson ${lesson.id}: ${lesson.message} Proceed anyway?`, [PROCEED, CANCEL]);
       } catch {
-        answer = PROCEED;
+        answer = undefined;
       }
-      if (answer === CANCEL) {
+      if (answer !== PROCEED) {
         // { deny } is the tool.call refusal CC 2.1.282 reads: the call is not
         // run and the model sees the reason as a permission denial. A bare
         // { result: string } is refused for Bash (its output is an object).
+        const why = answer === CANCEL ? 'the user chose Cancel' : 'no explicit "Proceed anyway" came back';
         return {
-          deny: `lesson-cards: the user chose Cancel at lesson ${lesson.id}, so this call did not run. ${formatContext(lesson)}`,
+          deny: `lesson-cards: ${why} at lesson ${lesson.id}, so this call did not run. ${formatContext(lesson)}`,
         };
       }
     }

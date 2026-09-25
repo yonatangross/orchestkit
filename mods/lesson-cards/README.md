@@ -37,7 +37,7 @@ Requires Claude Code 2.1.266 or later (first measured `classic.*` binary).
 - **Pattern matching**: Matches Bash commands and Edit/Write operations against known lesson patterns from hq-ext
 - **Lessons.md indexing**: Parses bullet points from `~/.claude/hq/floor-*/lessons.md` and indexes by command tokens
 - **Hint cards**: Displays a bordered card under the tool row with lesson id, severity, message, and fix suggestion (red for block, yellow for warn, gray for a lessons.md note)
-- **Proceed anyway?**: A block-severity pattern opens the Claude Code question dialog (`$.ui.ask`) before the call runs. `Cancel` refuses the call with `{ deny }`, so it never runs and the model reads the lesson as the reason. With no dialog available (headless `-p`) the call proceeds and the card and context still land
+- **Proceed anyway?**: A block-severity pattern opens the Claude Code question dialog (`$.ui.ask`) before the call runs. Only an explicit `Proceed anyway` runs the call. `Cancel`, Escape, a typed free-text answer, and no dialog at all (headless `-p`) refuse it with `{ deny }`, so it never runs and the model reads the lesson as the reason. When several patterns match an Edit or Write, a block match always ranks before a warn
 - **Model context**: Adds matched lessons to the tool result context for the model to read
 - **Additive**: During pilot, the classic `pretool-lesson-guard --strict` keeps its 12 block-severity denies unchanged
 
