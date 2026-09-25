@@ -18,6 +18,35 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.100",
+    "date": "2026-09-25",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.99...v10.0.0-beta.100",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**promote-lights:** compact band, one line per failing check ([#4440](https://github.com/yonatangross/orchestkit/issues/4440)) ([d5faf0e](https://github.com/yonatangross/orchestkit/commit/d5faf0ebfa2d9ae062bfa93998bc58e8ee536b09))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**lab:** commit missing coderabbit-runnable-examples page ([#4439](https://github.com/yonatangross/orchestkit/issues/4439)) ([f35a756](https://github.com/yonatangross/orchestkit/commit/f35a756689af621e189d0ec18f5f9e40dad5cc7e))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Miscellaneous",
+        "items": [
+          "**evals:** move eval judges and holdout grader to claude-opus-5-5 ([#4443](https://github.com/yonatangross/orchestkit/issues/4443)) ([8fe5fb8](https://github.com/yonatangross/orchestkit/commit/8fe5fb89367a525591f7ce1ef120c49bb16e1c8b))",
+          "**skills:** retire testing-patterns stub, disambiguate memory cluster ([#4428](https://github.com/yonatangross/orchestkit/issues/4428)) ([01fd47b](https://github.com/yonatangross/orchestkit/commit/01fd47b5f566cd7a3abac8d850bffde69db89e19))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.99",
     "date": "2026-09-25",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.98...v10.0.0-beta.99",
