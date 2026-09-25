@@ -338,8 +338,8 @@ function extractSkillMetadata(skillName, skillPath) {
     structure: structure,
     // Derived from the FULL body on purpose: `content` below is truncated at
     // 3000 chars, which lands short of most phase tables.
-    flow: extractSkillFlow(body),
-    content: truncatedBody,
+    flow: displayDeep(extractSkillFlow(body)),
+    content: displayMarkdown(truncatedBody),
     contentTruncated: bodyTruncated
   };
 }
@@ -387,12 +387,38 @@ function getSkillPlugins(skillName, manifestData, allSkillNames) {
 // dash between numbers is a range and becomes a hyphen; any other becomes a
 // comma. Same rules as undash_line in _build-docs-generate.py.
 function displayText(text) {
+  // A lone dash is an empty-value placeholder (phase tables): keep it, as a hyphen.
+  if (/^\s*[\u2013\u2014]\s*$/.test(String(text))) return '-';
   return String(text)
     .replace(/(\d)\s*[\u2013\u2014]\s*(\d)/g, '$1-$2')
     .replace(/\s*[\u2013\u2014]\s*/g, ', ')
     .replace(/\s+-{2}\s+/g, ', ')
     .replace(/\s+,/g, ',')
     .replace(/,\s*,/g, ',');
+}
+
+// displayText for a markdown body: fenced code and inline code stay literal,
+// everything else is normalized. The skill pages render these headings and
+// tables straight from the body (gate sweep 2026-09-25: 20 pages).
+function displayMarkdown(md) {
+  let inFence = false;
+  return String(md).split('\n').map((line) => {
+    if (/^\s*(```|~~~)/.test(line)) { inFence = !inFence; return line; }
+    if (inFence || !/[\u2013\u2014]/.test(line)) return line;
+    // A heading reads as a title, so its dash becomes a colon (as in _build-docs-generate.py).
+    if (/^#{1,6}\s/.test(line)) return line.replace(/\s*[\u2013\u2014]\s*/g, ': ');
+    return line.split(/(`+[^`]*`+)/).map((part, i) => (i % 2 ? part : part.replace(/\|(\s*)[\u2013\u2014](\s*)(?=\|)/g, '|$1-$2').replace(/[^|]+/g, (cell) => (/[\u2013\u2014]/.test(cell) ? displayText(cell) : cell)))).join('');
+  }).join('\n');
+}
+
+// displayText on every string in a derived structure (the skill flow graphs).
+function displayDeep(value) {
+  if (typeof value === 'string') return displayText(value);
+  if (Array.isArray(value)) return value.map(displayDeep);
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, displayDeep(v)]));
+  }
+  return value;
 }
 
 function extractAgentMetadata(agentPath) {

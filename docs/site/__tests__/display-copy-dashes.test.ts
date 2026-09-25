@@ -4,6 +4,8 @@
 import { describe, expect, it } from "vitest";
 import { SKILLS } from "@/lib/generated/skills-data";
 import { AGENTS } from "@/lib/generated/shared-data";
+import { SKILL_CONTENT } from "@/lib/generated/skill-content-data";
+import { SKILL_FLOWS } from "@/lib/generated/skill-flows-data";
 
 // The house writing rule has no em dash or en dash in visible copy, but skill
 // and agent frontmatter still carry them; the home library printed them on 20
@@ -15,6 +17,36 @@ describe("generated display copy", () => {
 	it("skill descriptions carry no em or en dash", () => {
 		const offenders = Object.entries(SKILLS)
 			.filter(([, skill]) => DASH.test(skill.description))
+			.map(([id]) => id);
+		expect(offenders).toEqual([]);
+	});
+
+	it("skill bodies carry no em or en dash outside code (the pages render their headings)", () => {
+		// Walk lines like the generator: bodies are cut at 3000 characters, so
+		// the last fence is often left open and runs to the end.
+		const prose = (content: string) => {
+			let fence = false;
+			return content
+				.split("\n")
+				.filter((line) => {
+					if (/^\s*(```|~~~)/.test(line)) {
+						fence = !fence;
+						return false;
+					}
+					return !fence;
+				})
+				.join("\n")
+				.replace(/`+[^`]*`+/g, "");
+		};
+		const offenders = Object.entries(SKILL_CONTENT)
+			.filter(([, { content }]) => DASH.test(prose(content)))
+			.map(([id]) => id);
+		expect(offenders).toEqual([]);
+	});
+
+	it("skill flow graphs carry no em or en dash", () => {
+		const offenders = Object.entries(SKILL_FLOWS)
+			.filter(([, flow]) => DASH.test(JSON.stringify(flow)))
 			.map(([id]) => id);
 		expect(offenders).toEqual([]);
 	});
