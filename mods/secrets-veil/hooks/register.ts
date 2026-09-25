@@ -108,58 +108,93 @@ export function toastText(stats: MaskStats, tool: string): string {
 }
 
 /**
+ * Read the 21 vendor names, one literal $.env.get call site per name (the
+ * validator records env reads statically). Keep a value only when it is at
+ * least MIN_NAMED_VALUE_LENGTH characters; a rejected read counts as absent.
+ */
+async function readNamed($: DollarAPI): Promise<Record<string, string>> {
+  const named: Record<string, string> = {};
+
+  // One literal call site per vendor name. Keep a value only when it is at
+  // least MIN_NAMED_VALUE_LENGTH characters; a rejected read counts as
+  // absent, never as a failure of the session.
+  const anthropicApiKey = await $.env.get("ANTHROPIC_API_KEY").catch(() => undefined);
+  if (anthropicApiKey && anthropicApiKey.length >= MIN_NAMED_VALUE_LENGTH) named.ANTHROPIC_API_KEY = anthropicApiKey;
+  const openaiApiKey = await $.env.get("OPENAI_API_KEY").catch(() => undefined);
+  if (openaiApiKey && openaiApiKey.length >= MIN_NAMED_VALUE_LENGTH) named.OPENAI_API_KEY = openaiApiKey;
+  const geminiApiKey = await $.env.get("GEMINI_API_KEY").catch(() => undefined);
+  if (geminiApiKey && geminiApiKey.length >= MIN_NAMED_VALUE_LENGTH) named.GEMINI_API_KEY = geminiApiKey;
+  const googleApiKey = await $.env.get("GOOGLE_API_KEY").catch(() => undefined);
+  if (googleApiKey && googleApiKey.length >= MIN_NAMED_VALUE_LENGTH) named.GOOGLE_API_KEY = googleApiKey;
+  const mistralApiKey = await $.env.get("MISTRAL_API_KEY").catch(() => undefined);
+  if (mistralApiKey && mistralApiKey.length >= MIN_NAMED_VALUE_LENGTH) named.MISTRAL_API_KEY = mistralApiKey;
+  const groqApiKey = await $.env.get("GROQ_API_KEY").catch(() => undefined);
+  if (groqApiKey && groqApiKey.length >= MIN_NAMED_VALUE_LENGTH) named.GROQ_API_KEY = groqApiKey;
+  const openrouterApiKey = await $.env.get("OPENROUTER_API_KEY").catch(() => undefined);
+  if (openrouterApiKey && openrouterApiKey.length >= MIN_NAMED_VALUE_LENGTH) named.OPENROUTER_API_KEY = openrouterApiKey;
+  const hfToken = await $.env.get("HF_TOKEN").catch(() => undefined);
+  if (hfToken && hfToken.length >= MIN_NAMED_VALUE_LENGTH) named.HF_TOKEN = hfToken;
+  const githubToken = await $.env.get("GITHUB_TOKEN").catch(() => undefined);
+  if (githubToken && githubToken.length >= MIN_NAMED_VALUE_LENGTH) named.GITHUB_TOKEN = githubToken;
+  const ghToken = await $.env.get("GH_TOKEN").catch(() => undefined);
+  if (ghToken && ghToken.length >= MIN_NAMED_VALUE_LENGTH) named.GH_TOKEN = ghToken;
+  const gitlabToken = await $.env.get("GITLAB_TOKEN").catch(() => undefined);
+  if (gitlabToken && gitlabToken.length >= MIN_NAMED_VALUE_LENGTH) named.GITLAB_TOKEN = gitlabToken;
+  const npmToken = await $.env.get("NPM_TOKEN").catch(() => undefined);
+  if (npmToken && npmToken.length >= MIN_NAMED_VALUE_LENGTH) named.NPM_TOKEN = npmToken;
+  const awsAccessKeyId = await $.env.get("AWS_ACCESS_KEY_ID").catch(() => undefined);
+  if (awsAccessKeyId && awsAccessKeyId.length >= MIN_NAMED_VALUE_LENGTH) named.AWS_ACCESS_KEY_ID = awsAccessKeyId;
+  const awsSecretAccessKey = await $.env.get("AWS_SECRET_ACCESS_KEY").catch(() => undefined);
+  if (awsSecretAccessKey && awsSecretAccessKey.length >= MIN_NAMED_VALUE_LENGTH) named.AWS_SECRET_ACCESS_KEY = awsSecretAccessKey;
+  const awsSessionToken = await $.env.get("AWS_SESSION_TOKEN").catch(() => undefined);
+  if (awsSessionToken && awsSessionToken.length >= MIN_NAMED_VALUE_LENGTH) named.AWS_SESSION_TOKEN = awsSessionToken;
+  const azureOpenaiApiKey = await $.env.get("AZURE_OPENAI_API_KEY").catch(() => undefined);
+  if (azureOpenaiApiKey && azureOpenaiApiKey.length >= MIN_NAMED_VALUE_LENGTH) named.AZURE_OPENAI_API_KEY = azureOpenaiApiKey;
+  const stripeSecretKey = await $.env.get("STRIPE_SECRET_KEY").catch(() => undefined);
+  if (stripeSecretKey && stripeSecretKey.length >= MIN_NAMED_VALUE_LENGTH) named.STRIPE_SECRET_KEY = stripeSecretKey;
+  const slackBotToken = await $.env.get("SLACK_BOT_TOKEN").catch(() => undefined);
+  if (slackBotToken && slackBotToken.length >= MIN_NAMED_VALUE_LENGTH) named.SLACK_BOT_TOKEN = slackBotToken;
+  const vercelToken = await $.env.get("VERCEL_TOKEN").catch(() => undefined);
+  if (vercelToken && vercelToken.length >= MIN_NAMED_VALUE_LENGTH) named.VERCEL_TOKEN = vercelToken;
+  const cloudflareApiToken = await $.env.get("CLOUDFLARE_API_TOKEN").catch(() => undefined);
+  if (cloudflareApiToken && cloudflareApiToken.length >= MIN_NAMED_VALUE_LENGTH) named.CLOUDFLARE_API_TOKEN = cloudflareApiToken;
+  const opServiceAccountToken = await $.env.get("OP_SERVICE_ACCOUNT_TOKEN").catch(() => undefined);
+  if (opServiceAccountToken && opServiceAccountToken.length >= MIN_NAMED_VALUE_LENGTH) named.OP_SERVICE_ACCOUNT_TOKEN = opServiceAccountToken;
+
+  return named;
+}
+
+/**
+ * The table of last resort: value shapes and entropy, no named values. Pure,
+ * no $ call, so it cannot be refused the way an env read can.
+ */
+function shapesOnlyTable(): MaskTable {
+  return buildTable([], {}, DEFAULT_PATTERNS, { entropy: true });
+}
+
+/**
+ * Arm the veil where session.start never did: a module enabled or reloaded
+ * mid-session can see tool.call before (or without) session.start. Measured
+ * on CC 2.1.282 (2026-09-26): a hot reload re-dispatches session.start about
+ * a second after "reloaded", so a call in that window found table === null
+ * and the old code returned the result UNMASKED. Named reads first; if they
+ * fail, shapes and entropy alone. Never null.
+ */
+async function armLazily($: DollarAPI): Promise<MaskTable> {
+  try {
+    const named = await readNamed($);
+    return buildTable(Object.keys(named), named, DEFAULT_PATTERNS, { entropy: true });
+  } catch {
+    return shapesOnlyTable();
+  }
+}
+
+/**
  * Register the secrets-veil hooks.
  */
 export function register(on: (event: string, hook: unknown) => void, _options?: unknown): void {
   on("session.start", async ($: DollarAPI, e: { cwd: string }, next: (ev: { cwd: string }) => Promise<unknown>) => {
-    const named: Record<string, string> = {};
-
-    // One literal call site per vendor name. Keep a value only when it is at
-    // least MIN_NAMED_VALUE_LENGTH characters; a rejected read counts as
-    // absent, never as a failure of the session.
-    const anthropicApiKey = await $.env.get("ANTHROPIC_API_KEY").catch(() => undefined);
-    if (anthropicApiKey && anthropicApiKey.length >= MIN_NAMED_VALUE_LENGTH) named.ANTHROPIC_API_KEY = anthropicApiKey;
-    const openaiApiKey = await $.env.get("OPENAI_API_KEY").catch(() => undefined);
-    if (openaiApiKey && openaiApiKey.length >= MIN_NAMED_VALUE_LENGTH) named.OPENAI_API_KEY = openaiApiKey;
-    const geminiApiKey = await $.env.get("GEMINI_API_KEY").catch(() => undefined);
-    if (geminiApiKey && geminiApiKey.length >= MIN_NAMED_VALUE_LENGTH) named.GEMINI_API_KEY = geminiApiKey;
-    const googleApiKey = await $.env.get("GOOGLE_API_KEY").catch(() => undefined);
-    if (googleApiKey && googleApiKey.length >= MIN_NAMED_VALUE_LENGTH) named.GOOGLE_API_KEY = googleApiKey;
-    const mistralApiKey = await $.env.get("MISTRAL_API_KEY").catch(() => undefined);
-    if (mistralApiKey && mistralApiKey.length >= MIN_NAMED_VALUE_LENGTH) named.MISTRAL_API_KEY = mistralApiKey;
-    const groqApiKey = await $.env.get("GROQ_API_KEY").catch(() => undefined);
-    if (groqApiKey && groqApiKey.length >= MIN_NAMED_VALUE_LENGTH) named.GROQ_API_KEY = groqApiKey;
-    const openrouterApiKey = await $.env.get("OPENROUTER_API_KEY").catch(() => undefined);
-    if (openrouterApiKey && openrouterApiKey.length >= MIN_NAMED_VALUE_LENGTH) named.OPENROUTER_API_KEY = openrouterApiKey;
-    const hfToken = await $.env.get("HF_TOKEN").catch(() => undefined);
-    if (hfToken && hfToken.length >= MIN_NAMED_VALUE_LENGTH) named.HF_TOKEN = hfToken;
-    const githubToken = await $.env.get("GITHUB_TOKEN").catch(() => undefined);
-    if (githubToken && githubToken.length >= MIN_NAMED_VALUE_LENGTH) named.GITHUB_TOKEN = githubToken;
-    const ghToken = await $.env.get("GH_TOKEN").catch(() => undefined);
-    if (ghToken && ghToken.length >= MIN_NAMED_VALUE_LENGTH) named.GH_TOKEN = ghToken;
-    const gitlabToken = await $.env.get("GITLAB_TOKEN").catch(() => undefined);
-    if (gitlabToken && gitlabToken.length >= MIN_NAMED_VALUE_LENGTH) named.GITLAB_TOKEN = gitlabToken;
-    const npmToken = await $.env.get("NPM_TOKEN").catch(() => undefined);
-    if (npmToken && npmToken.length >= MIN_NAMED_VALUE_LENGTH) named.NPM_TOKEN = npmToken;
-    const awsAccessKeyId = await $.env.get("AWS_ACCESS_KEY_ID").catch(() => undefined);
-    if (awsAccessKeyId && awsAccessKeyId.length >= MIN_NAMED_VALUE_LENGTH) named.AWS_ACCESS_KEY_ID = awsAccessKeyId;
-    const awsSecretAccessKey = await $.env.get("AWS_SECRET_ACCESS_KEY").catch(() => undefined);
-    if (awsSecretAccessKey && awsSecretAccessKey.length >= MIN_NAMED_VALUE_LENGTH) named.AWS_SECRET_ACCESS_KEY = awsSecretAccessKey;
-    const awsSessionToken = await $.env.get("AWS_SESSION_TOKEN").catch(() => undefined);
-    if (awsSessionToken && awsSessionToken.length >= MIN_NAMED_VALUE_LENGTH) named.AWS_SESSION_TOKEN = awsSessionToken;
-    const azureOpenaiApiKey = await $.env.get("AZURE_OPENAI_API_KEY").catch(() => undefined);
-    if (azureOpenaiApiKey && azureOpenaiApiKey.length >= MIN_NAMED_VALUE_LENGTH) named.AZURE_OPENAI_API_KEY = azureOpenaiApiKey;
-    const stripeSecretKey = await $.env.get("STRIPE_SECRET_KEY").catch(() => undefined);
-    if (stripeSecretKey && stripeSecretKey.length >= MIN_NAMED_VALUE_LENGTH) named.STRIPE_SECRET_KEY = stripeSecretKey;
-    const slackBotToken = await $.env.get("SLACK_BOT_TOKEN").catch(() => undefined);
-    if (slackBotToken && slackBotToken.length >= MIN_NAMED_VALUE_LENGTH) named.SLACK_BOT_TOKEN = slackBotToken;
-    const vercelToken = await $.env.get("VERCEL_TOKEN").catch(() => undefined);
-    if (vercelToken && vercelToken.length >= MIN_NAMED_VALUE_LENGTH) named.VERCEL_TOKEN = vercelToken;
-    const cloudflareApiToken = await $.env.get("CLOUDFLARE_API_TOKEN").catch(() => undefined);
-    if (cloudflareApiToken && cloudflareApiToken.length >= MIN_NAMED_VALUE_LENGTH) named.CLOUDFLARE_API_TOKEN = cloudflareApiToken;
-    const opServiceAccountToken = await $.env.get("OP_SERVICE_ACCOUNT_TOKEN").catch(() => undefined);
-    if (opServiceAccountToken && opServiceAccountToken.length >= MIN_NAMED_VALUE_LENGTH) named.OP_SERVICE_ACCOUNT_TOKEN = opServiceAccountToken;
-
+    const named = await readNamed($);
     const names = Object.keys(named);
     table = buildTable(names, named, DEFAULT_PATTERNS, { entropy: true });
     maskedThisSession = 0;
@@ -183,12 +218,21 @@ export function register(on: (event: string, hook: unknown) => void, _options?: 
   on("tool.call", async ($: DollarAPI, e: ToolCallEvent, next?: (ev: ToolCallEvent) => Promise<ToolCallResult>) => {
     // First, let the tool execute.
     const result = next ? ((await next(e)) ?? {}) : {};
+    // Never pass a result through unmasked: arm now if session.start has not
+    // (a mod enabled or reloaded mid-session), and fail CLOSED if even the
+    // shapes-only table cannot be built.
     if (!table) {
-      // session.start has not armed the veil yet; pass through unchanged.
-      return result;
+      table = await armLazily($);
     }
+    let masked: unknown;
     const covered = new Set<string>();
-    const masked = maskDeep(result, table, covered);
+    try {
+      masked = maskDeep(result, table, covered);
+    } catch {
+      return {
+        deny: "secrets-veil could not mask this result, so it is withheld rather than shown unmasked.",
+      };
+    }
     const stats = statsOf(covered);
     if (stats.values > 0) {
       maskedThisSession += stats.values;
