@@ -100,7 +100,7 @@ export interface ToolCallEvent {
 }
 
 export interface ToolCallResult {
-  deny?: { reason: string };
+  deny?: string;
   result?: unknown;
   text?: string;
   isError?: boolean;

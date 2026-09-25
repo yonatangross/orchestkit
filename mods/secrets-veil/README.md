@@ -40,6 +40,17 @@ If zero named values resolve at `session.start`, the mod emits one
 `$.ui.notice` saying the veil is running on value patterns and entropy only.
 Silence is not allowed: an operator must know the named layer is empty.
 
+**It fails closed.** A tool result is never returned unmasked. If a
+`tool.call` arrives before `session.start` has armed the veil (a mod enabled
+or hot-reloaded mid-session; on CC 2.1.282 a reload re-dispatches
+`session.start` about a second after "reloaded"), the mod arms itself on the
+spot with the same named reads. If those reads fail it falls back to value
+shapes and entropy alone, and if a result cannot be masked at all it is
+withheld with `{ deny }` rather than shown. The same holds for a result that
+is too large or too slow to mask within a fixed cap, a value the veil cannot
+rebuild faithfully (a Buffer, a Map), and any failure the runtime sees in
+the hook: each is withheld, none is passed through.
+
 ## Seeing it work
 
 When a tool result had at least one value covered, the mod says so where

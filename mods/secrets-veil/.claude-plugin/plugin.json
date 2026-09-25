@@ -1,6 +1,6 @@
 {
   "name": "secrets-veil",
-  "version": "0.0.4",
+  "version": "0.0.6",
   "description": "Masks secret values in tool results before the model reads them: named vendor variables, value-shape patterns, and high-entropy tokens. No reveal path.",
   "author": {
     "name": "OrchestKit"
