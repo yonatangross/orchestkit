@@ -100,7 +100,6 @@
     "testing-e2e",
     "testing-integration",
     "testing-llm",
-    "testing-patterns",
     "testing-perf",
     "testing-unit",
     "ui-components",

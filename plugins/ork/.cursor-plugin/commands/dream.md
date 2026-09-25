@@ -1,5 +1,5 @@
 ---
-description: "Nightly memory consolidation — prunes stale entries, merges duplicates, resolves contradictions, rebuilds MEMORY.md index. Use when memory files have accumulated over many sessions and need cleanup. Do NOT use for storing new decisions (use remember) or searching memory (use memory)."
+description: "Nightly memory consolidation: prunes stale entries, merges duplicates, resolves contradictions, rebuilds the MEMORY.md index. Use when memory files accumulated over many sessions need cleanup. New decisions get stored by remember; searches run through memory; internals live in memory-fabric."
 argument-hint: "[--dry-run]"
 model: sonnet
 effort: low

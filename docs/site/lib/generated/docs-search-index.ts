@@ -138,7 +138,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/foundations/overview",
     "title": "What is OrchestKit?",
-    "description": "The complete AI development toolkit for Claude Code — 108 skills, 36 agents, 171 hooks working together."
+    "description": "The complete AI development toolkit for Claude Code — 107 skills, 36 agents, 171 hooks working together."
   },
   {
     "url": "/docs/foundations/skills-agents-hooks",
@@ -713,7 +713,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference",
     "title": "Reference",
-    "description": "Complete reference for all 108 skills, 36 agents, and 171 hooks."
+    "description": "Complete reference for all 107 skills, 36 agents, and 171 hooks."
   },
   {
     "url": "/docs/reference/skills/accessibility",
@@ -1028,7 +1028,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/doctor/references/skills-validation",
     "title": "Doctor: Skills Validation",
-    "description": "OrchestKit includes 108 skills validated against frontmatter requirements and content standards."
+    "description": "OrchestKit includes 107 skills validated against frontmatter requirements and content standards."
   },
   {
     "url": "/docs/reference/skills/doctor/references/version-compatibility/00-overview",
@@ -1068,7 +1068,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/dream",
     "title": "Dream",
-    "description": "Nightly memory consolidation — prunes stale entries, merges duplicates, resolves contradictions, rebuilds MEMORY.md index. Use when memory files have accumulated over many sessions and need cleanup. Do NOT use for storing new decisions (use remember) or searching memory (use memory)."
+    "description": "Nightly memory consolidation: prunes stale entries, merges duplicates, resolves contradictions, rebuilds the MEMORY.md index. Use when memory files accumulated over many sessions need cleanup. New decisions get stored by remember; searches run through memory; internals live in memory-fabric."
   },
   {
     "url": "/docs/reference/skills/emulate-seed",
@@ -1153,7 +1153,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills",
     "title": "Skills Reference",
-    "description": "Complete reference for all 108 OrchestKit skills."
+    "description": "Complete reference for all 107 OrchestKit skills."
   },
   {
     "url": "/docs/reference/skills/interaction-patterns",
@@ -1198,12 +1198,12 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/memory-fabric",
     "title": "Memory Fabric",
-    "description": "Knowledge graph orchestration layer with entity extraction, natural language query parsing, deduplication (>85% similarity), and cross-reference boosting. Unifies search results ranked by recency, relevance, and authority. Use when designing memory retrieval, building entity graphs, or optimizing knowledge graph queries."
+    "description": "Memory retrieval internals: knowledge graph orchestration with entity extraction, natural language query parsing, deduplication (>85% similarity), and cross-reference boosting over unified recency, relevance, and authority ranking. Use when designing or debugging how memory search itself works. Everyday lookups belong to memory; entry storage to remember; consolidation to dream."
   },
   {
     "url": "/docs/reference/skills/memory",
     "title": "Memory",
-    "description": "Unified read-side memory operations including knowledge graph search, session context loading, decision timeline viewing, and Mermaid graph visualization. Subcommands: search, load, history, viz, status. Complements /ork:remember (write-side). Use when searching past decisions, loading context, or visualizing the knowledge graph."
+    "description": "Read-side memory operations on the knowledge graph: search past decisions and patterns, load session context, view decision timelines, render Mermaid graph visualizations. Subcommands: search, load, history, viz, status. Use when finding or reviewing what memory already holds. For storing new knowledge instead, invoke remember; for retrieval internals, memory-fabric; for cleanup, dream."
   },
   {
     "url": "/docs/reference/skills/monitoring-observability",
@@ -1298,7 +1298,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/remember",
     "title": "Remember",
-    "description": "Stores decisions, patterns, and outcomes in the MCP memory knowledge graph as entities with typed observations and relations. Supports recording architectural decisions, anti-patterns, tool preferences, workflow outcomes, and project conventions that persist across sessions. Use when saving patterns, remembering outcomes, recording decisions, or building institutional knowledge."
+    "description": "Write-side memory: stores decisions, patterns, and outcomes in the MCP memory knowledge graph as entities with typed observations and relations. Use when something worth persisting across sessions was just learned or decided. To search or read existing memory, invoke memory; to debug retrieval internals, memory-fabric; to consolidate, dream."
   },
   {
     "url": "/docs/reference/skills/responsive-patterns",
@@ -1364,11 +1364,6 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
     "url": "/docs/reference/skills/testing-llm",
     "title": "Testing Llm",
     "description": "LLM and AI testing patterns — mock responses, evaluation with DeepEval/RAGAS, structured output validation, and agentic test patterns (generator, healer, planner). Use when testing AI features, validating LLM outputs, or building evaluation pipelines."
-  },
-  {
-    "url": "/docs/reference/skills/testing-patterns",
-    "title": "Testing Patterns",
-    "description": "Redirect — testing-patterns was split into 5 focused sub-skills. Use when looking for testing-patterns, writing tests, or test automation. Redirects to testing-unit, testing-e2e, testing-integration, testing-llm, or testing-perf."
   },
   {
     "url": "/docs/reference/skills/testing-perf",
@@ -1513,7 +1508,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/skills/dependency-graph",
     "title": "Skill Dependency Graph",
-    "description": "Interactive visualization of how OrchestKit's 108 skills connect through dependency relationships."
+    "description": "Interactive visualization of how OrchestKit's 107 skills connect through dependency relationships."
   },
   {
     "url": "/docs/skills",
@@ -1528,7 +1523,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/skills/reference-skills",
     "title": "Reference Skills",
-    "description": "The 72 user-invocable:false skills auto-injected into agent context — the knowledge library behind OrchestKit agents."
+    "description": "The 71 user-invocable:false skills auto-injected into agent context — the knowledge library behind OrchestKit agents."
   },
   {
     "url": "/docs/skills/skill-composition",

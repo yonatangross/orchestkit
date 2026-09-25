@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>memory cluster: one trigger each</title>
+<style>
+  :root { color-scheme: dark; --bg:#12141a; --ink:#e8e6e3; --muted:#9a968f; --line:#2c313c; --ok:#3ddc97; --bad:#ff6b6b; }
+  * { box-sizing: border-box; }
+  body { margin:0; font:16px/1.5 ui-sans-serif, system-ui, sans-serif; background:var(--bg); color:var(--ink); }
+  main { max-width:880px; margin:0 auto; padding:32px 20px 80px; }
+  h1 { font-size:28px; margin:0 0 8px; }
+  h2 { font-size:18px; margin:32px 0 8px; }
+  p { color:var(--muted); }
+  .row { display:flex; gap:8px; flex-wrap:wrap; margin:16px 0; }
+  button { background:#1c2030; color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:8px 12px; cursor:pointer; }
+  button[aria-pressed="true"] { border-color:var(--ok); color:var(--ok); }
+  table { border-collapse:collapse; width:100%; font-size:14px; }
+  th, td { border:1px solid var(--line); padding:8px 10px; text-align:left; }
+  th { color:var(--muted); font-weight:600; }
+  td.owner { color:var(--ok); font-weight:600; }
+  td.overlap { color:var(--bad); }
+  .note { font-size:14px; }
+  code { background:#0c0e14; border:1px solid var(--line); border-radius:6px; padding:1px 6px; font:13px ui-monospace, monospace; }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="memory cluster: one trigger each"><meta property="og:description" content="skills.sh hygiene PR: the four memory skills before and after description disambiguation, and what retiring the testing-patterns redirect stub does to old installs."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/chore--dsp-60958-4424-skills-sh-ci-so.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="memory cluster: one trigger each"><meta name="twitter:description" content="skills.sh hygiene PR: the four memory skills before and after description disambiguation, and what retiring the testing-patterns redirect stub does to old installs."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <h1>Four memory skills, one job each</h1>
+  <p>skills.sh hygiene pass (2026-09-25). The four memory skills used to compete for the same job in every description. Now each description names one trigger and points at the siblings it is not.</p>
+
+  <h2>Pick a prompt</h2>
+  <div class="row" role="group" aria-label="Prompt">
+    <button type="button" data-q="find" aria-pressed="true">"what did we decide about retries?"</button>
+    <button type="button" data-q="store" aria-pressed="false">"remember this postmortem"</button>
+    <button type="button" data-q="tune" aria-pressed="false">"memory search misses near-dupes"</button>
+    <button type="button" data-q="clean" aria-pressed="false">"memory files are a mess, tidy up"</button>
+  </div>
+  <table aria-label="Skill routing">
+    <thead><tr><th>Skill</th><th>Before: claimed this prompt?</th><th>After: claims this prompt?</th></tr></thead>
+    <tbody id="routing"></tbody>
+  </table>
+  <p class="note" id="verdict"></p>
+
+  <h2>The retired stub</h2>
+  <table aria-label="testing-patterns stub">
+    <thead><tr><th>testing-patterns</th><th>Before</th><th>After</th></tr></thead>
+    <tbody>
+      <tr><td>catalog row</td><td class="overlap">redirect stub, 32 lines, 0 calls in 30d</td><td class="owner">gone (108 &rarr; 107)</td></tr>
+      <tr><td>old installs</td><td>resolve via the stub file</td><td class="owner">still resolve: installs are versioned snapshots, not live links</td></tr>
+      <tr><td>its redirect content</td><td>SKILL.md table</td><td class="owner">the five testing-* descriptions now carry it</td></tr>
+    </tbody>
+  </table>
+</main>
+<script>
+const SKILLS = ["memory", "remember", "memory-fabric", "dream"];
+const BEFORE = { find: [1,1,1,0], store: [1,1,0,0], tune: [0,0,1,0], clean: [1,0,0,1] };
+const AFTER  = { find: [1,0,0,0], store: [0,1,0,0], tune: [0,0,1,0], clean: [0,0,0,1] };
+const WHY = {
+  find: "Read-side queries are memory's only trigger now.",
+  store: "Persisting a fresh decision is remember's only trigger.",
+  tune: "Retrieval internals belong to memory-fabric alone.",
+  clean: "Consolidation of accumulated files is dream's only trigger."
+};
+const tbody = document.getElementById("routing");
+const verdict = document.getElementById("verdict");
+function render(q) {
+  tbody.innerHTML = SKILLS.map((s, i) => {
+    const b = BEFORE[q][i], a = AFTER[q][i];
+    const bc = b ? 'class="overlap"' : "";
+    const ac = a ? 'class="owner"' : "";
+    return "<tr><td><code>" + s + "</code></td><td " + bc + ">" + (b ? "yes" : "no") + "</td><td " + ac + ">" + (a ? "yes, its job" : "points at a sibling") + "</td></tr>";
+  }).join("");
+  verdict.textContent = WHY[q];
+}
+document.querySelectorAll("[data-q]").forEach((btn) => {
+  btn.onclick = () => {
+    document.querySelectorAll("[data-q]").forEach((b) => b.setAttribute("aria-pressed", "false"));
+    btn.setAttribute("aria-pressed", "true");
+    render(btn.dataset.q);
+  };
+});
+render("find");
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
