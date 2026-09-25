@@ -4999,7 +4999,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "verify",
     "description": "Grade work that already exists and decide whether it can merge. Runs the project's current unit, integration, and E2E suites plus security scanning and type checking, scores every dimension 0-10, and returns a merge verdict with a VERIFIED-vs-CLAIMED evidence manifest. Writes no test files and edits no source. Use when verifying changes are ready to merge. Use /ork:cover instead when the tests still have to be written.",
     "version": "4.7.0",
-    "sha256": "7c9225a518cfc7e0511780732a908772271abc08dfa900e792531e008d489838",
+    "sha256": "641ea016c455425e215a3ddf1d46ff7aa4310c23c2cfe5427ce6875cceba35c7",
     "author": "OrchestKit",
     "tags": [
       "verification",
