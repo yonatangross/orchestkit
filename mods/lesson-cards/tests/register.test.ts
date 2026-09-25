@@ -479,7 +479,7 @@ describe('a block lesson fails closed: only an explicit Proceed anyway runs it',
 });
 
 describe('the deny is one short line, not a red wall', () => {
-  test('one line, at most 240 characters, id and first sentence only, no fix block', async () => {
+  test('one line, at most 240 characters, id, first sentence and a short Fix', async () => {
     const { hooks } = captureHooks();
     const { $ } = makeFake$({ askAnswer: 'Cancel' });
     await startSession(hooks, $);
@@ -491,7 +491,7 @@ describe('the deny is one short line, not a red wall', () => {
     expect(deny).toContain('[lesson:cancelled-check-is-not-pass]');
     expect(deny).toContain('Cancelled CI tiers are not pass.');
     expect(deny).not.toContain('Never trust a green rollup');
-    expect(deny).not.toContain('Fix:');
+    expect(deny).toContain('Fix: Use gh pr view with --json to check mergeStateStatus.');
   });
 });
 
