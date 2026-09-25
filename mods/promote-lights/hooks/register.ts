@@ -54,7 +54,8 @@ type Hook$ = {
     ) => Promise<{ exitCode: number; stdout: string; stderr: string }>;
   };
   clock: {
-    every: (ms: number, fn: () => void) => { dispose: () => void };
+    // CC 2.1.282 hands back { cancel } only; there is no dispose.
+    every: (ms: number, fn: () => void) => { cancel: () => void };
   };
   store: {
     get: (key: string) => Promise<StoredLights | null>;
@@ -114,11 +115,13 @@ type Tracked = {
   number: number;
   head: string;
   mode: "promote" | "watch";
+  /** Branch whose protection names the required checks: main for a promote, the PR's own base for a watch. */
+  base: string;
 };
 
 // Module state
 let ticking = false;
-let tickInterval: { dispose: () => void } | null = null;
+let tickInterval: { cancel: () => void } | null = null;
 let tracked: Tracked | null = null;
 
 const TICK_MS = 60000;
@@ -141,7 +144,7 @@ function prViewArgv(t: { owner: string; repo: string; number: number }): string[
     "view",
     String(t.number),
     "--json",
-    "headRefOid,state,mergeStateStatus",
+    "headRefOid,state,mergeStateStatus,baseRefName",
     "-R",
     `${t.owner}/${t.repo}`,
   ];
@@ -162,6 +165,9 @@ export const register: Register = (on) => {
     // a demo opened on #4414 from an earlier run while it was told #4428).
     // A new session shows nothing until its own first tick lands.
     await $.store.delete(key);
+    // A tick or a tracked PR from before /clear must not outlive it either.
+    stopTick();
+    tracked = null;
 
     // Demo mode first: a configured watch target needs no promote PR and no
     // session repo.
@@ -206,7 +212,7 @@ export const register: Register = (on) => {
       return next(e);
     }
 
-    tracked = { owner, repo: name, number: promotePR.number, head: promotePR.headRefOid, mode: "promote" };
+    tracked = { owner, repo: name, number: promotePR.number, head: promotePR.headRefOid, mode: "promote", base: "main" };
 
     if (!ticking) {
       startTick($, key);
@@ -353,7 +359,15 @@ async function startWatch($: Hook$, key: string, target: WatchTarget): Promise<s
   }
 
   stopTick();
-  tracked = { owner: target.owner, repo: target.repo, number: target.number, head: details.headRefOid, mode: "watch" };
+  tracked = {
+    owner: target.owner,
+    repo: target.repo,
+    number: target.number,
+    head: details.headRefOid,
+    mode: "watch",
+    // The watched PR's own base; main only when gh did not report one.
+    base: details.baseRefName || "main",
+  };
   startTick($, key);
   const snapshot = await doTick($, key);
   if (snapshot?.lights) {
@@ -374,11 +388,12 @@ async function doTick($: Hook$, key: string): Promise<StoredLights | null> {
 
   const t = tracked;
   const { owner, repo, number: prNumber, head } = t;
+  const base = encodeURIComponent(t.base);
 
   try {
     const [protection, rulesets] = await Promise.all([
-      $.process.run(["gh", "api", `repos/${owner}/${repo}/branches/main/protection`], { timeoutMs: 10000 }),
-      $.process.run(["gh", "api", `repos/${owner}/${repo}/rules/branches/main`], { timeoutMs: 10000 }),
+      $.process.run(["gh", "api", `repos/${owner}/${repo}/branches/${base}/protection`], { timeoutMs: 10000 }),
+      $.process.run(["gh", "api", `repos/${owner}/${repo}/rules/branches/${base}`], { timeoutMs: 10000 }),
     ]);
 
     let requiredContexts = computeRequiredUnion(
@@ -450,7 +465,7 @@ async function doTick($: Hook$, key: string): Promise<StoredLights | null> {
 }
 
 function stopTick(): void {
-  tickInterval?.dispose();
+  tickInterval?.cancel();
   ticking = false;
   tickInterval = null;
 }

@@ -29,7 +29,7 @@ interface Fake$ {
     read: (path: string) => Promise<unknown>;
   };
   clock: {
-    every: (ms: number, fn: () => void) => { dispose: () => void };
+    every: (ms: number, fn: () => void) => { cancel: () => void };
   };
   store: {
     get: (key: string) => Promise<unknown>;
@@ -115,14 +115,14 @@ function makeDispatchingRun(overrides: Record<string, unknown> = {}) {
         stderr: "",
       };
     }
-    if (argv[1] === "api" && argv[2]?.includes("/branches/main/protection")) {
+    if (argv[1] === "api" && /\/branches\/[^/]+\/protection$/.test(argv[2] ?? "")) {
       return {
         exitCode: 0,
         stdout: (overrides.protection as string) ?? PROTECTION_OK,
         stderr: "",
       };
     }
-    if (argv[1] === "api" && argv[2]?.includes("/rules/branches/main")) {
+    if (argv[1] === "api" && /\/rules\/branches\/[^/]+$/.test(argv[2] ?? "")) {
       return {
         exitCode: 0,
         stdout: (overrides.rulesets as string) ?? "[]",
@@ -165,7 +165,8 @@ function createFake$(overrides: Record<string, unknown> = {}): Fake$ {
       read: vi.fn().mockResolvedValue(null),
     },
     clock: {
-      every: vi.fn().mockReturnValue({ dispose: vi.fn() }),
+      // CC 2.1.282 hands back { cancel } only; a fresh handle per call.
+      every: vi.fn(() => ({ cancel: vi.fn() })),
     },
     store: {
       get: vi.fn().mockResolvedValue(null),
@@ -546,16 +547,16 @@ describe("register behavior (mutant-killing)", () => {
     // Start tracking first so there is a clock to stop.
     await handlers.get("session.start")!($, {}, NEXT);
     expect($.clock.every).toHaveBeenCalledTimes(1);
-    const dispose = ($.clock.every as ReturnType<typeof vi.fn>).mock.results[0]
-      .value as { dispose: ReturnType<typeof vi.fn> };
+    const handle = ($.clock.every as ReturnType<typeof vi.fn>).mock.results[0]
+      .value as { cancel: ReturnType<typeof vi.fn> };
 
     const result = (await handlers.get("command.run")!($, { command: "lights", args: "off" }, NEXT)) as {
       text: string;
     };
 
     expect(result).toEqual({ text: "lights: stopped" });
-    // The interval is disposed, so no further ticks fire.
-    expect(dispose.dispose).toHaveBeenCalledTimes(1);
+    // The interval is cancelled, so no further ticks fire.
+    expect(handle.cancel).toHaveBeenCalledTimes(1);
     expect($.store.delete).toHaveBeenCalledWith("lights:yonatangross/orchestkit");
     expect($.ui.invalidate).toHaveBeenCalledWith("ui.render");
   });
@@ -602,9 +603,9 @@ describe("register behavior (mutant-killing)", () => {
     expect(result.text).toContain("4165");
     expect(result.text).not.toBe("no PR tracked");
     // A bare /lights is a read: it neither stops nor re-ticks.
-    const dispose = ($.clock.every as ReturnType<typeof vi.fn>).mock.results[0]
-      .value as { dispose: ReturnType<typeof vi.fn> };
-    expect(dispose.dispose).not.toHaveBeenCalled();
+    const handle = ($.clock.every as ReturnType<typeof vi.fn>).mock.results[0]
+      .value as { cancel: ReturnType<typeof vi.fn> };
+    expect(handle.cancel).not.toHaveBeenCalled();
   });
 
   test("/lights with no tracked state says how to watch any PR", async () => {
@@ -632,8 +633,11 @@ describe("register behavior (mutant-killing)", () => {
     });
 
     await handlers.get("session.start")!($, {}, NEXT);
+    const handle = ($.clock.every as ReturnType<typeof vi.fn>).mock.results[0]
+      .value as { cancel: ReturnType<typeof vi.fn> };
     await handlers.get("turn.complete")!($, {}, NEXT);
 
+    expect(handle.cancel).toHaveBeenCalledTimes(1);
     expect($.store.delete).toHaveBeenCalledWith("lights:yonatangross/orchestkit");
     expect($.ui.invalidate).toHaveBeenCalledWith("ui.render");
   });
@@ -650,8 +654,11 @@ describe("register behavior (mutant-killing)", () => {
     });
 
     await handlers.get("session.start")!($, {}, NEXT);
+    const handle = ($.clock.every as ReturnType<typeof vi.fn>).mock.results[0]
+      .value as { cancel: ReturnType<typeof vi.fn> };
     await handlers.get("turn.complete")!($, {}, NEXT);
 
+    expect(handle.cancel).toHaveBeenCalledTimes(1);
     expect($.store.set).toHaveBeenCalledWith("lights:yonatangross/orchestkit", {
       error: "head moved, stopped",
     });
@@ -772,7 +779,7 @@ describe("watch mode (demo: lights for any open PR)", () => {
 
     const argvs = ($.process.run as ReturnType<typeof vi.fn>).mock.calls.map((c) => (c[0] as string[]).join(" "));
     // Every gh call targets the WATCHED repo, not the session repo.
-    expect(argvs).toContain("gh pr view 77 --json headRefOid,state,mergeStateStatus -R acme/widgets");
+    expect(argvs).toContain("gh pr view 77 --json headRefOid,state,mergeStateStatus,baseRefName -R acme/widgets");
     expect(argvs.some((a) => a.includes("repos/acme/widgets/commits/feedbee1234567/check-runs"))).toBe(true);
     expect(argvs.some((a) => a.includes("yonatangross/orchestkit"))).toBe(false);
 
@@ -847,6 +854,69 @@ describe("watch mode (demo: lights for any open PR)", () => {
       "lights:yonatangross/orchestkit",
       expect.objectContaining({ error: "watch acme/widgets#77: no check runs on feedbee" })
     );
+  });
+
+  test("a re-watch cancels the previous tick before starting the next", async () => {
+    const handlers = captureHandlers(await loadRegister());
+    const $ = createFake$({ protection: "{}", rulesets: "[]", checkRuns: MIXED_RUNS, prView: WATCH_VIEW });
+    await handlers.get("command.run")!($, { command: "lights", args: "watch acme/widgets#77" }, NEXT);
+    await handlers.get("command.run")!($, { command: "lights", args: "watch acme/widgets#78" }, NEXT);
+
+    const handles = ($.clock.every as ReturnType<typeof vi.fn>).mock.results.map(
+      (r) => r.value as { cancel: ReturnType<typeof vi.fn> }
+    );
+    expect(handles).toHaveLength(2);
+    expect(handles[0].cancel).toHaveBeenCalledTimes(1);
+    expect(handles[1].cancel).not.toHaveBeenCalled();
+  });
+
+  test("session.start stops a running watch and forgets it (no stale tick after /clear)", async () => {
+    const handlers = captureHandlers(await loadRegister());
+    const $ = createFake$({ protection: "{}", rulesets: "[]", checkRuns: MIXED_RUNS, prView: WATCH_VIEW, prList: "[]" });
+    await handlers.get("command.run")!($, { command: "lights", args: "watch acme/widgets#77" }, NEXT);
+    const handle = ($.clock.every as ReturnType<typeof vi.fn>).mock.results[0]
+      .value as { cancel: ReturnType<typeof vi.fn> };
+
+    // A new session with no watch configured and no promote PR open.
+    await handlers.get("session.start")!($, {}, NEXT);
+
+    expect(handle.cancel).toHaveBeenCalledTimes(1);
+    expect($.store.delete).toHaveBeenCalledWith("lights:yonatangross/orchestkit");
+    expect($.clock.every).toHaveBeenCalledTimes(1);
+
+    // Nothing is tracked any more: a refresh runs no gh call at all.
+    const callsBefore = ($.process.run as ReturnType<typeof vi.fn>).mock.calls.length;
+    await handlers.get("command.run")!($, { command: "lights", args: "refresh" }, NEXT);
+    expect(($.process.run as ReturnType<typeof vi.fn>).mock.calls.length).toBe(callsBefore);
+    const out = (await handlers.get("command.run")!($, { command: "lights" }, NEXT)) as { text: string };
+    expect(out.text).toContain("no promote PR open");
+  });
+
+  test("a watched PR reads its OWN base branch protection and rules, never main's", async () => {
+    const handlers = captureHandlers(await loadRegister());
+    const $ = createFake$({
+      checkRuns: MIXED_RUNS,
+      prView: JSON.stringify({ headRefOid: "feedbee1234567", state: "OPEN", mergeStateStatus: "BLOCKED", baseRefName: "dev" }),
+    });
+    await handlers.get("command.run")!($, { command: "lights", args: "watch acme/widgets#77" }, NEXT);
+
+    const argvs = ($.process.run as ReturnType<typeof vi.fn>).mock.calls.map((c) => (c[0] as string[]).join(" "));
+    expect(argvs).toContain("gh api repos/acme/widgets/branches/dev/protection");
+    expect(argvs).toContain("gh api repos/acme/widgets/rules/branches/dev");
+    expect(argvs.some((a) => a.includes("/branches/main"))).toBe(false);
+  });
+
+  test("a base branch with a slash is URL-encoded in the protection path", async () => {
+    const handlers = captureHandlers(await loadRegister());
+    const $ = createFake$({
+      checkRuns: MIXED_RUNS,
+      prView: JSON.stringify({ headRefOid: "feedbee1234567", state: "OPEN", mergeStateStatus: "BLOCKED", baseRefName: "release/1.0" }),
+    });
+    await handlers.get("command.run")!($, { command: "lights", args: "watch acme/widgets#77" }, NEXT);
+
+    const argvs = ($.process.run as ReturnType<typeof vi.fn>).mock.calls.map((c) => (c[0] as string[]).join(" "));
+    expect(argvs).toContain("gh api repos/acme/widgets/branches/release%2F1.0/protection");
+    expect(argvs).toContain("gh api repos/acme/widgets/rules/branches/release%2F1.0");
   });
 
   test("a PROMOTE PR with an empty required union still refuses green (no fallback outside watch)", async () => {
