@@ -55,7 +55,7 @@ test.describe('Landing hero', () => {
     expect(desktop.position).toBe('relative');
     expect(desktop.widthPct).toBeGreaterThanOrEqual(40);
     expect(desktop.widthPct).toBeLessThanOrEqual(75);
-    expect(desktop.mask).toMatch(/linear-gradient/);
+    expect(desktop.mask).toMatch(/radial-gradient/);
     // Both layers are cropped to the subject, 840x723 (~1.16). Full-column
     // stretch + cover cropped the conductor (~2x zoom, #4345). Height must
     // track width at that ratio, not the tall copy column.
@@ -75,24 +75,26 @@ test.describe('Landing hero', () => {
     });
     expect(h1Lines).toBe(3);
 
-    // Art sits beside the headline and install copy, and the host picker
-    // starts below both, so nothing leaves the right side bare.
+    // Art sits beside the headline and the install block, and the install box
+    // (host chips + that host's command) is inside the copy column, under the
+    // headline, so nothing leaves the right side bare.
     const anchor = await page.evaluate(() => {
       const box = (s: string) => document.querySelector(s)?.getBoundingClientRect();
       const art = box('.home-hero-art');
       const h1 = box('#hero-heading');
       const copy = box('.home-hero-copy');
-      const picker = box('nav[aria-label*="host" i]');
-      if (!art || !h1 || !copy || !picker) return null;
-      return { art, h1, copy, picker };
+      const install = box('[data-hero-install]');
+      if (!art || !h1 || !copy || !install) return null;
+      return { art, h1, copy, install };
     });
     expect(anchor).not.toBeNull();
-    const { art: a, h1, copy, picker } = anchor!;
+    const { art: a, h1, copy, install } = anchor!;
     expect(a.top).toBeLessThan(h1.bottom);
     const artMid = (a.top + a.bottom) / 2;
     expect(artMid).toBeGreaterThan(copy.top);
     expect(artMid).toBeLessThan(copy.bottom);
-    expect(picker.top).toBeGreaterThan(Math.max(a.bottom, copy.bottom));
+    expect(install.top).toBeGreaterThan(h1.bottom);
+    expect(install.bottom).toBeLessThanOrEqual(copy.bottom + 1);
 
     await page.setViewportSize({ width: 390, height: 844 });
     const mobile = await art.evaluate((el) => {
@@ -156,7 +158,7 @@ test.describe('Landing hero', () => {
     });
     expect(layers.light).toBe(1);
     expect(layers.dark).toBe(0);
-    expect(layers.mask).toMatch(/linear-gradient/);
+    expect(layers.mask).toMatch(/radial-gradient/);
   });
 
   test('theme switch runs the circle reveal and the art entrance', async ({ page, browserName }) => {
@@ -273,7 +275,9 @@ test.describe('Landing changelog', () => {
 
     await page.goto('/changelog');
     await expect(page.getByRole('heading', { name: 'Changelog' })).toBeVisible();
-    await expect(page.getByText('new capability')).toBeVisible();
+    // .first(): the legend chip; the release-mix diagram renders the same words
+    // asynchronously, which made this a strict-mode race.
+    await expect(page.getByText('new capability').first()).toBeVisible();
     // Releases are 10.0.0-beta.N now; RecentVersions links those anchors.
     await expect(page.getByRole('link', { name: /10\.0\.0-beta\.\d+/ }).first()).toBeVisible();
   });
@@ -292,13 +296,14 @@ test.describe('Landing design tokens (no missing CSS variables)', () => {
   test('Get started CTA uses the primary text color', async ({ page }) => {
     await page.goto('/');
 
-    // Hero option A: Get started is a text link (text-fd-primary), which maps
-    // to --color-fd-primary. Probe that token on a throwaway node and require
-    // the CTA color to equal it (any other opaque color must fail).
+    // Get started is a text link (text-fd-primary). Probe that utility on a
+    // throwaway node and require the CTA color to equal it (any other opaque
+    // color must fail). The utility, not the raw --color-fd-primary: in dark
+    // mode primary TEXT is lightened for contrast (axe, 2026-09-25).
     const cta = page.getByRole('link', { name: /get started/i }).first();
     const { color, primary } = await cta.evaluate((el) => {
       const probe = document.createElement('span');
-      probe.style.color = 'var(--color-fd-primary)';
+      probe.className = 'text-fd-primary';
       document.body.appendChild(probe);
       const primaryColor = getComputedStyle(probe).color;
       probe.remove();
