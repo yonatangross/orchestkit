@@ -89,7 +89,11 @@ export function HostInstallGrid({ hosts }: { hosts?: HostId[] }) {
 		? hosts.map((id) => HOST_INSTALL_BY_ID[id])
 		: HOST_INSTALLS;
 	return (
-		<div className="not-prose grid gap-3 sm:grid-cols-2">
+		// Columns by the space the grid actually has, not the viewport: beside the
+		// docs sidebar at 768 to 860px, two columns left 186px cards, narrower
+		// than the unbreakable "architecture-decision-record" in the skills.sh
+		// command. A second column appears only when each card gets 19rem.
+		<div className="not-prose grid gap-3 grid-cols-[repeat(auto-fit,minmax(min(100%,19rem),1fr))]">
 			{list.map((spec) => (
 				<Card key={spec.id} spec={spec} />
 			))}
