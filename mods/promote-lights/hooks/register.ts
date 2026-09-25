@@ -9,19 +9,34 @@
  *
  * Calls:
  * - $.process.run (gh commands)
- * - $.fs.read (.github/branch-protection.json)
  * - $.session.repo
  * - $.clock.every (60s tick)
  * - $.store.get/set
  * - $.ui.status
  * - $.ui.invalidate
- * - $.env.get (PROMOTE_HEAD override)
+ * - $.ui.resolve (the band's Box and Text elements)
+ * - $.env.get (PROMOTE_HEAD override, PROMOTE_LIGHTS_WATCH demo target)
+ *
+ * Two tracking modes share one tick:
+ * - promote: the open promote PR (base main, dev head or promote label) in
+ *   the session repo. An empty required-context union refuses green.
+ * - watch: any open PR in any repo, named with `/lights watch owner/repo#N`
+ *   or PROMOTE_LIGHTS_WATCH. An unprotected repo falls back to every check
+ *   run on the head, so the lights can be shown without a live promote PR.
  */
 
 import { matchAndClassify, isPassing, type ClassifiedLight } from "../src/classify.js";
 import { computeRequiredUnion } from "../src/required.js";
 import { parsePRList, parsePRView, parseCheckRuns, isPromotePR, DEFAULT_PROMOTE_HEAD } from "../src/gh.js";
-import { buildStatusLine, buildBandContent } from "../src/pane.js";
+import { buildStatusLine, buildBand, buildErrorBand, type Elements } from "../src/pane.js";
+import {
+  parseWatchTarget,
+  formatWatchTarget,
+  allCheckNames,
+  WATCH_USAGE,
+  NO_PR_HINT,
+  type WatchTarget,
+} from "../src/watch.js";
 
 /**
  * Minimal $ facade for the calls this module uses, mirroring the
@@ -52,6 +67,7 @@ type Hook$ = {
   ui: {
     status: (line: string) => Promise<void>;
     invalidate: (component: string) => void;
+    resolve: (e: HookEvent) => Promise<Elements>;
   };
   command: {
     register: (spec: { name: string; description: string; argumentHint?: string }) => Promise<unknown>;
@@ -77,10 +93,12 @@ type On = (
 
 export type Register = (on: On) => void;
 
-/** Shape stored under lights:<owner>/<repo>. */
+/** Shape stored under lights:<owner>/<repo> (the SESSION repo, in both modes). */
 type StoredLights = {
   prNumber?: number;
   head?: string;
+  label?: string;
+  mode?: "promote" | "watch";
   lights?: ClassifiedLight[];
   mergeStateStatus?: string;
   hold?: boolean;
@@ -89,18 +107,65 @@ type StoredLights = {
   [key: string]: unknown;
 };
 
+/** The PR the tick follows: which repo to ask gh about, and which head. */
+type Tracked = {
+  owner: string;
+  repo: string;
+  number: number;
+  head: string;
+  mode: "promote" | "watch";
+};
+
 // Module state
 let ticking = false;
 let tickInterval: { dispose: () => void } | null = null;
-let lastPR: { number: number; head: string } | null = null;
+let tracked: Tracked | null = null;
 
 const TICK_MS = 60000;
 
+/** Store key: always under the session repo, so ui.render finds it. */
+function keyFor(repo: { owner: string; name: string } | null): string {
+  return repo ? `lights:${repo.owner}/${repo.name}` : "lights:_session";
+}
+
+function labelFor(t: Tracked): string {
+  return t.mode === "watch"
+    ? `watch ${formatWatchTarget({ owner: t.owner, repo: t.repo, number: t.number })}`
+    : `promote #${t.number}`;
+}
+
+function prViewArgv(t: { owner: string; repo: string; number: number }): string[] {
+  return [
+    "gh",
+    "pr",
+    "view",
+    String(t.number),
+    "--json",
+    "headRefOid,state,mergeStateStatus",
+    "-R",
+    `${t.owner}/${t.repo}`,
+  ];
+}
+
 export const register: Register = (on) => {
-  // Detect open promote PR at session start
   on("session.start", {}, async ($, e, next) => {
-    await $.command.register({ name: "lights", description: "Promote CI lights for the open promote PR", argumentHint: "[off|refresh]" });
+    await $.command.register({
+      name: "lights",
+      description: "CI lights for the open promote PR, or any PR with /lights watch",
+      argumentHint: "[off|refresh|watch owner/repo#N]",
+    });
     const repo = await $.session.repo();
+    const key = keyFor(repo);
+
+    // Demo mode first: a configured watch target needs no promote PR and no
+    // session repo.
+    const watchEnv = await $.env.get("PROMOTE_LIGHTS_WATCH").catch(() => undefined);
+    const watchTarget = parseWatchTarget(watchEnv);
+    if (watchTarget) {
+      await startWatch($, key, watchTarget);
+      return next(e);
+    }
+
     if (!repo) return next(e);
 
     const { owner, name } = repo;
@@ -117,7 +182,7 @@ export const register: Register = (on) => {
       ], { timeoutMs: 15000 });
 
     if (result.exitCode !== 0) {
-      await $.store.set(`lights:${owner}/${name}`, { error: "gh: not found" });
+      await $.store.set(key, { error: "gh: not found" });
       return next(e);
     }
 
@@ -131,16 +196,15 @@ export const register: Register = (on) => {
     const promotePR = prs.find((pr) => isPromotePR(pr, promoteHead));
 
     if (!promotePR) {
-      await $.store.delete(`lights:${owner}/${name}`);
+      await $.store.delete(key);
       return next(e);
     }
 
-    lastPR = { number: promotePR.number, head: promotePR.headRefOid };
+    tracked = { owner, repo: name, number: promotePR.number, head: promotePR.headRefOid, mode: "promote" };
 
     if (!ticking) {
-      ticking = true;
-      tickInterval = $.clock.every(TICK_MS, () => doTick($, owner, name));
-      await doTick($, owner, name);
+      startTick($, key);
+      await doTick($, key);
     }
 
     return next(e);
@@ -149,34 +213,35 @@ export const register: Register = (on) => {
   // Re-check on turn complete in case PR changed
   on("turn.complete", {}, async ($, e, next) => {
     const repo = await $.session.repo();
-    if (!repo || !lastPR) return next(e);
+    if (!tracked) return next(e);
+    const key = keyFor(repo);
+    if (!repo && tracked.mode === "promote") return next(e);
 
-    const result = await $.process.run([
-        "gh",
-        "pr",
-        "view",
-        String(lastPR.number),
-        "--json",
-        "headRefOid,state,mergeStateStatus",
-      ], { timeoutMs: 10000 });
+    const result = await $.process.run(prViewArgv(tracked), { timeoutMs: 10000 });
 
     if (result.exitCode !== 0) return next(e);
 
     const details = parsePRView(result.stdout);
     if (!details || details.state !== "OPEN") {
       stopTick();
-      await $.store.delete(`lights:${repo.owner}/${repo.name}`);
-      lastPR = null;
+      await $.store.delete(key);
+      tracked = null;
       $.ui.invalidate("ui.render");
       return next(e);
     }
 
-    if (details.headRefOid !== lastPR.head) {
+    if (details.headRefOid !== tracked.head) {
+      if (tracked.mode === "watch") {
+        // A watched PR is a demo of any PR: follow the new head.
+        tracked = { ...tracked, head: details.headRefOid };
+        await doTick($, key);
+        return next(e);
+      }
       stopTick();
-      await $.store.set(`lights:${repo.owner}/${repo.name}`, {
+      await $.store.set(key, {
         error: "head moved, stopped",
       });
-      lastPR = null;
+      tracked = null;
       $.ui.invalidate("ui.render");
       return next(e);
     }
@@ -186,77 +251,123 @@ export const register: Register = (on) => {
 
   // Render the AbovePrompt band. Compose, never replace: next(e) always runs so
   // Claude Code's own band and every other plugin's AbovePrompt drawing survive,
-  // and the lights sit above that tree in one column.
+  // and the lights sit above that tree in one column. The downstream tree is an
+  // opaque engine node: it is placed, never mutated. Every node drawn here comes
+  // from $.ui.resolve(e); a plain { type: "Box" } object never draws.
   on("ui.render", { component: "AbovePrompt" }, async ($, e, next) => {
     const downstream = await next(e);
     const repo = await $.session.repo();
-    const key = repo ? `lights:${repo.owner}/${repo.name}` : null;
-    const stored = key ? await $.store.get(key) : null;
+    const stored = await $.store.get(keyFor(repo));
 
-    if (stored && stored.lights && stored.prNumber) {
-      const content = buildBandContent(
+    if (!stored) return downstream;
+
+    let band: unknown = null;
+    if (stored.lights && stored.prNumber) {
+      const els = await $.ui.resolve(e);
+      band = buildBand(
+        els,
+        stored.label ?? `promote #${stored.prNumber}`,
         stored.lights,
-        stored.head?.slice(0, 7) ?? "",
+        stored.head ?? "",
         stored.mergeStateStatus ?? "",
         stored.hold ?? false
       );
-
-      const line = content.map((c) => `${c.symbol} ${c.name}`.trim()).join("  ");
-      const band = { type: "Box", children: [line] };
-      return {
-        type: "Box",
-        props: { flexDirection: "column" },
-        children: downstream ? [band, downstream] : [band],
-      };
+    } else if (stored.error) {
+      const els = await $.ui.resolve(e);
+      band = buildErrorBand(els, stored.error);
     }
 
-    return downstream;
+    if (band === null) return downstream;
+    const { Box } = await $.ui.resolve(e);
+    return Box({
+      flexDirection: "column",
+      children: downstream ? [band, downstream] : [band],
+    });
   });
 
   // Manual control command
   on("command.run", { command: "lights" }, async ($, e) => {
-    const [arg] = (e.args ?? "").trim().split(/\s+/);
+    const trimmed = (e.args ?? "").trim();
+    const [arg] = trimmed.split(/\s+/);
+    const repo = await $.session.repo();
+    const key = keyFor(repo);
 
     if (arg === "off") {
       stopTick();
-      const repo = await $.session.repo();
-      if (repo) await $.store.delete(`lights:${repo.owner}/${repo.name}`);
+      tracked = null;
+      await $.store.delete(key);
       $.ui.invalidate("ui.render");
       return { text: "lights: stopped" };
     }
 
     if (arg === "refresh") {
-      const repo = await $.session.repo();
-      if (repo) await doTick($, repo.owner, repo.name);
+      if (tracked) await doTick($, key);
       return { text: "lights: refreshed" };
     }
 
-    const repo = await $.session.repo();
-    const key = repo ? `lights:${repo.owner}/${repo.name}` : null;
-    const stored = key ? await $.store.get(key) : null;
+    if (arg === "watch") {
+      const target = parseWatchTarget(trimmed.slice("watch".length));
+      if (!target) return { text: WATCH_USAGE };
+      const outcome = await startWatch($, key, target);
+      return { text: outcome };
+    }
 
-    return {
-      text: stored
-        ? buildStatusLine(
-            stored.prNumber ?? 0,
-            stored.lights ?? [],
-            stored.mergeStateStatus ?? "",
-            stored.hold ?? false
-          )
-        : "no PR tracked",
-    };
+    const stored = await $.store.get(key);
+
+    if (stored && stored.lights) {
+      return {
+        text: buildStatusLine(
+          stored.prNumber ?? 0,
+          stored.lights,
+          stored.mergeStateStatus ?? "",
+          stored.hold ?? false,
+          stored.label
+        ),
+      };
+    }
+    if (stored && stored.error) return { text: `lights: ${stored.error}` };
+    return { text: NO_PR_HINT };
   });
 };
 
-async function doTick(
-  $: Hook$,
-  owner: string,
-  repo: string
-): Promise<void> {
-  if (!lastPR) return;
+/**
+ * Point the tick at any open PR. Returns the text /lights watch answers with.
+ */
+async function startWatch($: Hook$, key: string, target: WatchTarget): Promise<string> {
+  const view = await $.process.run(prViewArgv(target), { timeoutMs: 10000 });
+  const details = view.exitCode === 0 ? parsePRView(view.stdout) : null;
+  const name = formatWatchTarget(target);
+  if (!details) {
+    await $.store.set(key, { error: `watch ${name}: gh pr view failed` });
+    $.ui.invalidate("ui.render");
+    return `lights: could not read ${name} (gh pr view exit ${view.exitCode})`;
+  }
+  if (details.state !== "OPEN") {
+    return `lights: ${name} is ${details.state}, not open`;
+  }
 
-  const prNumber = lastPR.number;
-  const head = lastPR.head;
+  stopTick();
+  tracked = { owner: target.owner, repo: target.repo, number: target.number, head: details.headRefOid, mode: "watch" };
+  startTick($, key);
+  const snapshot = await doTick($, key);
+  if (snapshot?.lights) {
+    return buildStatusLine(target.number, snapshot.lights, snapshot.mergeStateStatus ?? "", false, labelFor(tracked));
+  }
+  if (snapshot?.error) return `lights: ${snapshot.error}`;
+  return `lights: watching ${name}`;
+}
+
+function startTick($: Hook$, key: string): void {
+  ticking = true;
+  tickInterval = $.clock.every(TICK_MS, () => doTick($, key));
+}
+
+/** One tick: fetch, classify, store, draw. Returns what it stored. */
+async function doTick($: Hook$, key: string): Promise<StoredLights | null> {
+  if (!tracked) return null;
+
+  const t = tracked;
+  const { owner, repo, number: prNumber, head } = t;
 
   try {
     const [protection, rulesets] = await Promise.all([
@@ -264,17 +375,17 @@ async function doTick(
       $.process.run(["gh", "api", `repos/${owner}/${repo}/rules/branches/main`], { timeoutMs: 10000 }),
     ]);
 
-    const requiredContexts = computeRequiredUnion(
+    let requiredContexts = computeRequiredUnion(
       protection.stdout ?? "",
       rulesets.stdout ?? ""
     );
 
-    if (requiredContexts.length === 0) {
-      await $.store.set(`lights:${owner}/${repo}`, {
-        error: "empty required contexts",
-        prNumber,
-      });
-      return;
+    if (requiredContexts.length === 0 && t.mode === "promote") {
+      // A promote verdict with nothing required would be a green lie.
+      const refused: StoredLights = { error: "empty required contexts", prNumber };
+      await $.store.set(key, refused);
+      $.ui.invalidate("ui.render");
+      return refused;
     }
 
     const checkRunsResult = await $.process.run([
@@ -282,41 +393,53 @@ async function doTick(
         "api",
         `repos/${owner}/${repo}/commits/${head}/check-runs?per_page=100`,
       ], { timeoutMs: 10000 });
-
     const checkRuns = parseCheckRuns(checkRunsResult.stdout ?? "");
-    const lights = matchAndClassify(requiredContexts, checkRuns.check_runs);
 
-    const prViewResult = await $.process.run([
-        "gh",
-        "pr",
-        "view",
-        String(prNumber),
-        "--json",
-        "headRefOid,state,mergeStateStatus",
-      ], { timeoutMs: 10000 });
+    if (requiredContexts.length === 0) {
+      // Watch mode on an unprotected repo: show every check that ran.
+      requiredContexts = allCheckNames(checkRuns.check_runs ?? []);
+      if (requiredContexts.length === 0) {
+        const empty: StoredLights = {
+          error: `watch ${formatWatchTarget({ owner, repo, number: prNumber })}: no check runs on ${head.slice(0, 7)}`,
+          prNumber,
+        };
+        await $.store.set(key, empty);
+        $.ui.invalidate("ui.render");
+        return empty;
+      }
+    }
+
+    const lights = matchAndClassify(requiredContexts, checkRuns.check_runs ?? []);
+
+    const prViewResult = await $.process.run(prViewArgv(t), { timeoutMs: 10000 });
 
     const prDetails = parsePRView(prViewResult.stdout ?? "");
     const mergeStateStatus = prDetails?.mergeStateStatus ?? "";
     const passing = isPassing(lights);
+    const label = labelFor(t);
 
-    await $.store.set(`lights:${owner}/${repo}`, {
+    const snapshot: StoredLights = {
       prNumber,
       head,
+      label,
+      mode: t.mode,
       lights,
       mergeStateStatus,
       hold: false,
       passing,
       ts: Date.now(),
-    });
+    };
+    await $.store.set(key, snapshot);
 
-    const statusLine = buildStatusLine(prNumber, lights, mergeStateStatus, false);
+    const statusLine = buildStatusLine(prNumber, lights, mergeStateStatus, false, label);
     await $.ui.status(statusLine);
     $.ui.invalidate("ui.render");
+    return snapshot;
   } catch (err) {
-    await $.store.set(`lights:${owner}/${repo}`, {
-      error: String(err),
-      prNumber,
-    });
+    const failed: StoredLights = { error: String(err), prNumber };
+    await $.store.set(key, failed);
+    $.ui.invalidate("ui.render");
+    return failed;
   }
 }
 
