@@ -2,9 +2,10 @@ import type { HostId } from "@/components/host-marks";
 import { SITE } from "@/lib/constants";
 import type { LibraryTab } from "@/lib/library-tab";
 
-/** Starter 12. Never the bare `npx skills add yonatangross/orchestkit` firehose. */
+/** Starter 12. Never the bare `npx skills add yonatangross/orchestkit` firehose.
+ *  Mix: top measured skills.sh installs + ork skills we retain (see README Install). */
 export const SKILLS_SH_STARTER =
-	"npx skills add yonatangross/orchestkit -s doctor -s setup -s explore -s implement -s verify -s review-pr -s commit -s expect -s assess -s brainstorm -s create-pr -s remember";
+	"npx skills add yonatangross/orchestkit -s devops-deployment -s responsive-patterns -s architecture-decision-record -s ui-components -s rag-retrieval -s agent-orchestration -s brainstorm -s expect -s auto -s review-pr -s fix-issue -s commit";
 
 export type HostInstallSpec = {
 	id: HostId;

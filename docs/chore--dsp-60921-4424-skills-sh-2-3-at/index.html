@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Starter 12 from measured installs plus our use</title>
+  <style>
+    :root{--bg:#0d1117;--panel:#161b22;--line:#30363d;--text:#e6edf3;--muted:#8b949e;--blue:#58a6ff;--green:#3fb950;--amber:#d29922;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px system-ui,sans-serif;padding:28px}
+    main{max-width:920px;margin:auto}h1{margin:0 0 6px}.sub{color:var(--muted);line-height:1.5;max-width:70ch}
+    .tabs{display:flex;gap:8px;margin:22px 0 14px;flex-wrap:wrap}
+    .tabs button{background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:8px 14px;cursor:pointer;font:inherit}
+    .tabs button.active{border-color:var(--blue);box-shadow:0 0 0 1px var(--blue)}
+    section{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px}
+    table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}
+    th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+    th{color:var(--muted);font-size:11px;text-transform:uppercase}
+    code,pre{font-family:var(--mono)}pre{white-space:pre-wrap;background:#010409;border:1px solid var(--line);border-radius:7px;padding:13px;line-height:1.5;overflow-x:auto}
+    .tag{font:12px var(--mono);color:var(--blue)}.ok{color:var(--green)}.warn{color:var(--amber)}
+    footer{color:var(--muted);font-size:13px;margin-top:18px}
+  </style>
+</head>
+<body><main>
+  <div class="tag">PR playground · skills.sh badge + starter 12</div>
+  <h1>Measured installs meet retained use</h1>
+  <p class="sub">The old starter 12 was a day-one guess (doctor, setup, remember…). Strangers install portable reference skills; we retain orchestration. This PR picks six of each, keeps install totals on the live skills.sh badge, and syncs <code>SKILLS_SH_STARTER</code>.</p>
+
+  <div class="tabs" id="tabs">
+    <button class="active" data-view="after">After (this PR)</button>
+    <button data-view="before">Before</button>
+    <button data-view="why">Why each skill</button>
+  </div>
+
+  <section>
+    <div class="tag" id="label">After</div>
+    <pre id="cmd">npx skills add yonatangross/orchestkit -s devops-deployment -s responsive-patterns -s architecture-decision-record -s ui-components -s rag-retrieval -s agent-orchestration -s brainstorm -s expect -s auto -s review-pr -s fix-issue -s commit</pre>
+    <div id="body"></div>
+  </section>
+
+  <footer>Badge: <a href="https://www.skills.sh/yonatangross/orchestkit" style="color:var(--blue)">skills.sh/yonatangross/orchestkit</a> · Source report 2026-09-25 · Does not touch <code>src/skills/verify</code>.</footer>
+</main>
+<script>
+const views = {
+  after: {
+    label: 'After · measured + retained',
+    cmd: 'npx skills add yonatangross/orchestkit -s devops-deployment -s responsive-patterns -s architecture-decision-record -s ui-components -s rag-retrieval -s agent-orchestration -s brainstorm -s expect -s auto -s review-pr -s fix-issue -s commit',
+    html: '<p class="ok">12 skills. Six top skills.sh installs on our listing, six ork skills we retain. Counts stay on the badge, not in prose.</p>'
+  },
+  before: {
+    label: 'Before · stale day-one pack',
+    cmd: 'npx skills add yonatangross/orchestkit -s doctor -s setup -s explore -s implement -s verify -s review-pr -s commit -s expect -s assess -s brainstorm -s create-pr -s remember',
+    html: '<p class="warn">Matched neither the top installs nor our retention. doctor/setup/remember sat low on both signals.</p>'
+  },
+  why: {
+    label: 'Why each skill',
+    cmd: '(see table)',
+    html: `<table><thead><tr><th>skill</th><th>signal</th><th>why</th></tr></thead><tbody>
+<tr><td><code>devops-deployment</code></td><td>installs</td><td>most-installed cloud skill on our listing</td></tr>
+<tr><td><code>responsive-patterns</code></td><td>installs</td><td>most-installed design skill on our listing</td></tr>
+<tr><td><code>architecture-decision-record</code></td><td>installs</td><td>writing-bucket install leader</td></tr>
+<tr><td><code>ui-components</code></td><td>installs</td><td>design install co-leader</td></tr>
+<tr><td><code>rag-retrieval</code></td><td>installs</td><td>SE install leader</td></tr>
+<tr><td><code>agent-orchestration</code></td><td>installs</td><td>agent-workflow install leader</td></tr>
+<tr><td><code>brainstorm</code></td><td>our use</td><td>our most-retained ork skill</td></tr>
+<tr><td><code>expect</code></td><td>our use</td><td>browser verification we run day to day</td></tr>
+<tr><td><code>auto</code></td><td>our use</td><td>front-door router we actually invoke</td></tr>
+<tr><td><code>review-pr</code></td><td>our use</td><td>ship-loop review we use</td></tr>
+<tr><td><code>fix-issue</code></td><td>our use</td><td>debug loop we use</td></tr>
+<tr><td><code>commit</code></td><td>our use</td><td>ship-loop commit (has a with/without receipt)</td></tr>
+</tbody></table>`
+  }
+};
+const label = document.getElementById('label');
+const cmd = document.getElementById('cmd');
+const body = document.getElementById('body');
+document.getElementById('tabs').addEventListener('click', (e) => {
+  const btn = e.target.closest('button[data-view]');
+  if (!btn) return;
+  document.querySelectorAll('.tabs button').forEach(b => b.classList.toggle('active', b === btn));
+  const v = views[btn.dataset.view];
+  label.textContent = v.label;
+  cmd.textContent = v.cmd;
+  body.innerHTML = v.html;
+});
+document.querySelector('.tabs button.active').click();
+</script>
+</body></html>
