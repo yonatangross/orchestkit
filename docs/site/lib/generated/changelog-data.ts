@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.93",
+    "date": "2026-09-25",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.92...v10.0.0-beta.93",
+    "sections": [
+      {
+        "type": "changed",
+        "heading": "Miscellaneous",
+        "items": [
+          "**skills:** Opus 5.5 budgets, split create-pr and dream ([#4416](https://github.com/yonatangross/orchestkit/issues/4416)) ([e6388d9](https://github.com/yonatangross/orchestkit/commit/e6388d9d2a2361c6ff74a6a70ff513f668ab4114))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.92",
     "date": "2026-09-25",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.91...v10.0.0-beta.92",
