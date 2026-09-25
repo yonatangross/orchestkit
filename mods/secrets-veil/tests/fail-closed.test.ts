@@ -10,7 +10,7 @@
  */
 
 import { describe, test, expect } from "vitest";
-import { register, MAX_MASK_CHARS, MAX_MASK_MS, WITHHELD } from "../hooks/register.js";
+import { register, MAX_MASK_CHARS, MAX_MASK_MS, MAX_STRING_CHARS, WITHHELD } from "../hooks/register.js";
 import { vi } from "vitest";
 
 type RegisteredHook = (...args: unknown[]) => unknown;
@@ -157,6 +157,18 @@ describe("nothing fails open after next(e) ran", () => {
       fake$({}),
       { tool: "Read", args: {} },
       next({ result: { meta: new Map([["k", FAKE_GH]]) } })
+    )) as { deny?: string };
+    expect(out).toEqual({ deny: WITHHELD });
+  });
+});
+
+describe("one oversized value is withheld before mask() runs", () => {
+  test("a single string over the per-value cap yields deny", async () => {
+    const hooks = hooksOf();
+    const out = (await hooks.get("tool.call")!(
+      fake$({}),
+      { tool: "Bash", args: {} },
+      next({ result: { stdout: "b".repeat(MAX_STRING_CHARS + 1) } })
     )) as { deny?: string };
     expect(out).toEqual({ deny: WITHHELD });
   });
