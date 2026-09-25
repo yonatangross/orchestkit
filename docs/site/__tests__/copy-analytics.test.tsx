@@ -67,6 +67,17 @@ describe("install vs setup snippet events", () => {
 		);
 		expect(trackMock).toHaveBeenCalledWith("install_copied", { host: "claude", surface: "docs-card" });
 	});
+
+	it("a two-command terminal install copies as one && line (Codex)", () => {
+		const writeText = vi.mocked(navigator.clipboard.writeText);
+		writeText.mockClear();
+		render(<HostInstall host="codex" />);
+		fireEvent.click(screen.getByRole("button", { name: /^copy codex plugin marketplace add/i }));
+		expect(writeText).toHaveBeenCalledTimes(1);
+		const payload = writeText.mock.calls[0][0];
+		expect(payload).not.toContain("\n");
+		expect(payload).toMatch(/ork-codex && codex plugin add ork-codex@orchestkit-codex$/);
+	});
 });
 
 describe("code_copied on docs code blocks", () => {
