@@ -133,7 +133,7 @@ export function verifyScoringRubricLoader(_input: HookInput, _hookCtx: HookConte
     '  10:  Exemplary, reference implementation',
     'Dimensions (8): correctness(14%), maintainability(14%), security(18%),',
     '  testability(12%), compliance(12%), performance(11%), visual(10%), scalability(9%)',
-    'Gate (src/skills/verify/rubric.json is the single source): composite below 6.0 fails, below 5.0 is BLOCKED; security below 4.0 and compliance below 6.0 each fail the gate',
+    'Gate (src/skills/verify/rubric.json is the single source): composite below 6.0 fails, below 5.0 is BLOCKED; security below 9.0 and any dimension below 3.0 are BLOCKED, compliance below 6.0 caps the verdict',
     'Visual weight = 0.00 for API-only projects (redistribute to other 7)',
   ].join('\n');
 

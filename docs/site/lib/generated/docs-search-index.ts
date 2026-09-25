@@ -1403,7 +1403,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/verify/references",
     "title": "Verify: References",
-    "description": "15 references for the Verify skill: Alternative Comparison; Background task contract: never wait unconditionally; Claude Code; Grading Rubric; Orchestration Mode; Policy As Code; Quality Model; Reachability Proof; Report Template; Streak Gate; Verification Checklist; Verification Manifest; Verification Phases; Versions; Visual Capture"
+    "description": "17 references for the Verify skill: Alternative Comparison; Background task contract: never wait unconditionally; Claude Code; Grading Rubric; Orchestration Mode; Policy As Code; Progressive And Partial Results; Quality Model; Reachability Proof; Report Template; Streak Gate; Task Management; Verification Checklist; Verification Manifest; Verification Phases; Versions; Visual Capture"
   },
   {
     "url": "/docs/reference/skills/verify/rules",
