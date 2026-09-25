@@ -567,3 +567,69 @@ describe("fake $ behavior", () => {
     expect(value).toBeNull();
   });
 });
+
+describe("ui.render AbovePrompt composes with downstream renderers", () => {
+  const STORED = {
+    prNumber: 4165,
+    head: "abc1234def",
+    mergeStateStatus: "CLEAN",
+    hold: false,
+    lights: [{ name: "ci-pr-status", color: "green", conclusion: "success" }],
+  };
+  // What Claude Code's own band, or another plugin's AbovePrompt hook, drew.
+  const DOWNSTREAM = { type: "Box", children: ["downstream band"] };
+
+  beforeEach(() => {
+    vi.resetModules();
+  });
+
+  test("while lights are stored, the downstream renderer still runs and its tree is kept under the band", async () => {
+    const handlers = captureHandlers(await loadRegister());
+    const $ = createFake$();
+    ($.store.get as ReturnType<typeof vi.fn>).mockResolvedValue(STORED);
+    const e = { component: "AbovePrompt", props: {} };
+    const next = vi.fn((_ev?: unknown) => Promise.resolve(DOWNSTREAM));
+
+    const out = (await handlers.get("ui.render")!($, e, next)) as {
+      type: string;
+      props?: { flexDirection?: string };
+      children: unknown[];
+    };
+
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(next).toHaveBeenCalledWith(e);
+    expect(out.type).toBe("Box");
+    expect(out.props?.flexDirection).toBe("column");
+    expect(out.children).toHaveLength(2);
+    expect(JSON.stringify(out.children[0])).toContain("ci-pr-status");
+    expect(out.children[1]).toBe(DOWNSTREAM);
+  });
+
+  test("with no lights stored, the downstream tree is returned unchanged", async () => {
+    const handlers = captureHandlers(await loadRegister());
+    const $ = createFake$();
+    const e = { component: "AbovePrompt", props: {} };
+    const next = vi.fn((_ev?: unknown) => Promise.resolve(DOWNSTREAM));
+
+    const out = await handlers.get("ui.render")!($, e, next);
+
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(next).toHaveBeenCalledWith(e);
+    expect(out).toBe(DOWNSTREAM);
+  });
+
+  test("while lights are stored and nothing is drawn downstream, only the band is returned", async () => {
+    const handlers = captureHandlers(await loadRegister());
+    const $ = createFake$();
+    ($.store.get as ReturnType<typeof vi.fn>).mockResolvedValue(STORED);
+    const next = vi.fn((_ev?: unknown) => Promise.resolve(null));
+
+    const out = (await handlers.get("ui.render")!($, { component: "AbovePrompt", props: {} }, next)) as {
+      children: unknown[];
+    };
+
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(out.children).toHaveLength(1);
+    expect(JSON.stringify(out.children[0])).toContain("ci-pr-status");
+  });
+});

@@ -174,8 +174,11 @@ export const register: Register = (on) => {
     return next(e);
   });
 
-  // Render the AbovePrompt band
+  // Render the AbovePrompt band. Compose, never replace: next(e) always runs so
+  // Claude Code's own band and every other plugin's AbovePrompt drawing survive,
+  // and the lights sit above that tree in one column.
   on("ui.render", { component: "AbovePrompt" }, async ($, e, next) => {
+    const downstream = await next(e);
     const repo = await $.session.repo();
     const key = repo ? `lights:${repo.owner}/${repo.name}` : null;
     const stored = key ? await $.store.get(key) : null;
@@ -189,10 +192,15 @@ export const register: Register = (on) => {
       );
 
       const line = content.map((c) => `${c.symbol} ${c.name}`.trim()).join("  ");
-      return { type: "Box", children: [line] };
+      const band = { type: "Box", children: [line] };
+      return {
+        type: "Box",
+        props: { flexDirection: "column" },
+        children: downstream ? [band, downstream] : [band],
+      };
     }
 
-    return next(e);
+    return downstream;
   });
 
   // Manual control command
