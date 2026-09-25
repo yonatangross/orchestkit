@@ -36,7 +36,8 @@ export const baseOptions: BaseLayoutProps = {
     },
     {
       text: "Cookbook",
-      url: "/docs/cookbook/implement-feature",
+      // The index lists all 8 recipes; nested-url then marks every recipe active.
+      url: "/docs/cookbook",
       active: "nested-url",
     },
     {

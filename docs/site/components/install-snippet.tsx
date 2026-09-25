@@ -47,21 +47,31 @@ export function useTrackedCopy(
 }
 
 /**
- * A shell command that wraps only at spaces. Each token is nowrap because
- * browsers also break after a hard hyphen, which split "--sparse" and
- * "orchestkit-codex" at 390 (QA 2026-09-25).
+ * A shell command that wraps at spaces, and inside a long token only after a
+ * "/" or "#". Segments are nowrap because browsers also break after a hard
+ * hyphen, which split "--sparse" and "orchestkit-codex" at 390; a whole token
+ * nowrap then clipped Devin's 406px git URL (QA 2026-09-25). A <wbr> inside a
+ * nowrap span is ignored, so the break points sit between segment spans.
  */
 export function CommandText({ line }: { line: string }) {
 	const tokens = line.split(" ");
 	return (
 		<span className="min-w-0 [overflow-wrap:anywhere]">
-			{tokens.map((token, i) => (
-				// Tokens can repeat ("--sparse") and never reorder, so the index keys them.
-				<span key={i}>
-					<span className="whitespace-nowrap">{token}</span>
-					{i < tokens.length - 1 ? " " : null}
-				</span>
-			))}
+			{tokens.map((token, i) => {
+				const segments = token.split(/(?<=[/#])(?=.)/);
+				return (
+					// Tokens can repeat ("--sparse") and never reorder, so the index keys them.
+					<span key={i} data-token>
+						{segments.map((segment, j) => (
+							<span key={j}>
+								<span className="whitespace-nowrap">{segment}</span>
+								{j < segments.length - 1 ? <wbr /> : null}
+							</span>
+						))}
+						{i < tokens.length - 1 ? " " : null}
+					</span>
+				);
+			})}
 		</span>
 	);
 }

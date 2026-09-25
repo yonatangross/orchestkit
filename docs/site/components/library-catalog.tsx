@@ -167,8 +167,17 @@ function AgentsGrid() {
   const [query, setQuery] = useState("");
   const [showAll, setShowAll] = useState(false);
   const gridRef = useRef<HTMLDivElement>(null);
+  const showAllRef = useRef<HTMLButtonElement>(null);
+  const collapsingRef = useRef(false);
   useEffect(() => {
-    if (!showAll) return;
+    if (!showAll) {
+      // Back from "Show fewer": focus "Show all" and bring it into view.
+      if (!collapsingRef.current) return;
+      collapsingRef.current = false;
+      showAllRef.current?.focus({ preventScroll: true });
+      showAllRef.current?.scrollIntoView({ block: "center" });
+      return;
+    }
     gridRef.current
       ?.querySelectorAll<HTMLAnchorElement>("a")
       [AGENTS_NARROW_PAGE]?.focus();
@@ -271,11 +280,24 @@ function AgentsGrid() {
       </div>
       {capped ? (
         <button
+          ref={showAllRef}
           type="button"
           onClick={() => setShowAll(true)}
           className="mt-4 flex w-full items-center justify-center gap-1.5 rounded-lg border border-fd-border bg-[var(--color-fd-surface-raised)] px-4 py-2.5 text-sm font-semibold text-fd-primary transition-colors hover:border-fd-primary/40 hover:bg-fd-muted lg:hidden"
         >
           Show all {filtered.length} agents
+        </button>
+      ) : null}
+      {showAll && query.trim() === "" && filtered.length > AGENTS_NARROW_PAGE ? (
+        <button
+          type="button"
+          onClick={() => {
+            collapsingRef.current = true;
+            setShowAll(false);
+          }}
+          className="mt-4 flex w-full items-center justify-center gap-1.5 rounded-lg border border-fd-border bg-[var(--color-fd-surface-raised)] px-4 py-2.5 text-sm font-semibold text-fd-primary transition-colors hover:border-fd-primary/40 hover:bg-fd-muted lg:hidden"
+        >
+          Show fewer agents
         </button>
       ) : null}
     </div>

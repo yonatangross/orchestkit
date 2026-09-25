@@ -186,6 +186,17 @@ export function SkillBrowser() {
   const capped =
     ready && !hasFilters && !showAll && filtered.length > NARROW_PAGE_SIZE;
 
+  // "Show fewer" unmounts itself too: return focus to "Show all" and bring it
+  // into view, so the reader is not left 100 cards below the list.
+  const showAllRef = useRef<HTMLButtonElement>(null);
+  const collapsingRef = useRef(false);
+  useEffect(() => {
+    if (showAll || !collapsingRef.current) return;
+    collapsingRef.current = false;
+    showAllRef.current?.focus({ preventScroll: true });
+    showAllRef.current?.scrollIntoView({ block: "center" });
+  }, [showAll]);
+
   // "Show all" unmounts itself, so hand focus to the first card it revealed.
   useEffect(() => {
     if (!showAll) return;
@@ -359,11 +370,25 @@ export function SkillBrowser() {
           </div>
           {capped ? (
             <button
+              ref={showAllRef}
               type="button"
               onClick={() => setShowAll(true)}
               className="mt-4 flex w-full items-center justify-center gap-1.5 rounded-lg border border-fd-border bg-[var(--color-fd-surface-raised)] px-4 py-2.5 text-sm font-semibold text-fd-primary transition-colors hover:border-fd-primary/40 hover:bg-fd-muted lg:hidden"
             >
               Show all {filtered.length} skills
+            </button>
+          ) : null}
+          {/* The way back: expanded, the phone page ran 18,593px (gate NEW-5). */}
+          {ready && showAll && !hasFilters && filtered.length > NARROW_PAGE_SIZE ? (
+            <button
+              type="button"
+              onClick={() => {
+                setShowAll(false);
+                collapsingRef.current = true;
+              }}
+              className="mt-4 flex w-full items-center justify-center gap-1.5 rounded-lg border border-fd-border bg-[var(--color-fd-surface-raised)] px-4 py-2.5 text-sm font-semibold text-fd-primary transition-colors hover:border-fd-primary/40 hover:bg-fd-muted lg:hidden"
+            >
+              Show fewer skills
             </button>
           ) : null}
         </>

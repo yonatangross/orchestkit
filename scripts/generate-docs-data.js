@@ -324,7 +324,7 @@ function extractSkillMetadata(skillName, skillPath) {
 
   return {
     name: frontmatter.name || skillName,
-    description: frontmatter.description || '',
+    description: displayText(frontmatter.description || ''),
     version: frontmatter.version || '1.0.0',
     sha256,
     author: frontmatter.author || 'OrchestKit',
@@ -381,13 +381,27 @@ function getSkillPlugins(skillName, manifestData, allSkillNames) {
 /**
  * Extract agent metadata from agent .md file
  */
+// Display text for the site: the house writing rule has no em dash, en dash or
+// prose double hyphen, but skill and agent frontmatter still use them, and the
+// library cards print descriptions verbatim (site QA 2026-09-25, item 19). A
+// dash between numbers is a range and becomes a hyphen; any other becomes a
+// comma. Same rules as undash_line in _build-docs-generate.py.
+function displayText(text) {
+  return String(text)
+    .replace(/(\d)\s*[\u2013\u2014]\s*(\d)/g, '$1-$2')
+    .replace(/\s*[\u2013\u2014]\s*/g, ', ')
+    .replace(/\s+-{2}\s+/g, ', ')
+    .replace(/\s+,/g, ',')
+    .replace(/,\s*,/g, ',');
+}
+
 function extractAgentMetadata(agentPath) {
   const content = fs.readFileSync(agentPath, 'utf-8');
   const { frontmatter } = parseYamlFrontmatter(content);
 
   return {
     name: frontmatter.name || path.basename(agentPath, '.md'),
-    description: frontmatter.description || '',
+    description: displayText(frontmatter.description || ''),
     model: frontmatter.model || 'inherit',
     category: frontmatter.category || 'other',
     tools: frontmatter.tools || [],

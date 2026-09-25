@@ -1231,6 +1231,11 @@ article blockquote {
 .shiki span[style*="--shiki-light:#D73A49"] {
   --shiki-light: #b31d28 !important;
 }
+/* github-light orange (#E36209) is 3.34:1 on the code background; #c2410c
+   keeps the hue at 4.96:1 (axe color-contrast, serious, gate 2026-09-25). */
+.shiki span[style*="--shiki-light:#E36209"] {
+  --shiki-light: #c2410c !important;
+}
 .dark .shiki span[style*="--shiki-dark:#6A737D"] {
   --shiki-dark: #8b949e !important;
 }

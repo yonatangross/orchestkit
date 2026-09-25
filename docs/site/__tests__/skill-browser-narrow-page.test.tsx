@@ -61,6 +61,18 @@ describe("SkillBrowser narrow first page", () => {
     await waitFor(() => expect(document.activeElement).toBe(cardButtons()[NARROW_PAGE_SIZE]));
   });
 
+  it("Show fewer collapses back to the first page and returns focus to Show all", async () => {
+    // Expanded, the phone page ran 18,593px with no way back (gate NEW-5).
+    Element.prototype.scrollIntoView ??= () => {};
+    render(<SkillBrowser />);
+    fireEvent.click(await screen.findByRole("button", { name: "Show all 12 skills" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Show fewer skills" }));
+    const showAll = await screen.findByRole("button", { name: "Show all 12 skills" });
+    expect(screen.queryByRole("button", { name: "Show fewer skills" })).toBeNull();
+    expect(cardOf(cardButtons()[NARROW_PAGE_SIZE]).className).toContain("max-lg:hidden");
+    await waitFor(() => expect(document.activeElement).toBe(showAll));
+  });
+
   it("a search shows every match with no cap", async () => {
     render(<SkillBrowser />);
     await screen.findByRole("button", { name: "Show all 12 skills" });

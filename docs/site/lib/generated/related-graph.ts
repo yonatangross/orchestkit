@@ -127,15 +127,15 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/getting-started/agy": {
       "title": "Antigravity",
-      "inbound": 3
+      "inbound": 2
     },
     "/docs/getting-started/claude-code": {
       "title": "Claude Code",
-      "inbound": 7
+      "inbound": 6
     },
     "/docs/getting-started/codex": {
       "title": "Codex",
-      "inbound": 3
+      "inbound": 2
     },
     "/docs/getting-started/configuration": {
       "title": "Configuration",
@@ -143,11 +143,11 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/getting-started/cursor": {
       "title": "Cursor",
-      "inbound": 3
+      "inbound": 2
     },
     "/docs/getting-started/devin": {
       "title": "Devin",
-      "inbound": 2
+      "inbound": 1
     },
     "/docs/getting-started/first-10-minutes": {
       "title": "Your First 10 Minutes",
@@ -163,15 +163,15 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/getting-started/muse": {
       "title": "Muse Code",
-      "inbound": 3
+      "inbound": 2
     },
     "/docs/getting-started/navigating": {
       "title": "Find What You Need",
       "inbound": 2
     },
     "/docs/getting-started/skills-sh": {
-      "title": "skills.sh (Pi, OpenCode, and other clients)",
-      "inbound": 7
+      "title": "Pi, and skills.sh for OpenCode and other clients",
+      "inbound": 6
     },
     "/docs/getting-started/superpowers": {
       "title": "OrchestKit vs Superpowers",
@@ -1446,15 +1446,8 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/guides/orchestkit-on-pi-codex-cursor"
     ],
     "/docs/getting-started/installation": [
-      "/docs/getting-started/agy",
-      "/docs/getting-started/claude-code",
-      "/docs/getting-started/codex",
       "/docs/getting-started/configuration",
-      "/docs/getting-started/cursor",
-      "/docs/getting-started/devin",
       "/docs/getting-started/hosts",
-      "/docs/getting-started/muse",
-      "/docs/getting-started/skills-sh",
       "/docs/getting-started/superpowers",
       "/docs/guides/orchestkit-on-pi-codex-cursor"
     ],

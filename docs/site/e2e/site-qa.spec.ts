@@ -62,6 +62,18 @@ test.describe("Site QA", () => {
 		const card = page.getByRole("button", { name: /^Copy claude plugin marketplace add/ }).first();
 		await expect(card).toBeVisible();
 		expect(await card.evaluate(tokensSplitAcrossLines)).toEqual([]);
+		// And no card's command runs past its card (Devin ran 95px into the next).
+		const overflowing = await page.evaluate(() =>
+			[...document.querySelectorAll("button[aria-label^='Copy ']")]
+				.filter((b) => {
+					const edge = b.getBoundingClientRect().right;
+					const range = document.createRange();
+					range.selectNodeContents(b);
+					return Math.max(...[...range.getClientRects()].map((r) => r.right)) > edge + 0.5;
+				})
+				.map((b) => b.getAttribute("aria-label")?.slice(0, 40)),
+		);
+		expect(overflowing).toEqual([]);
 	});
 
 	test.describe("phone", () => {
@@ -73,10 +85,27 @@ test.describe("Site QA", () => {
 			await expect(command).toContainText("ork-codex@orchestkit-codex");
 			expect(await command.evaluate(tokensSplitAcrossLines)).toEqual([]);
 		});
+
+		// Every host, because Devin's 406px git URL was clipped at 390 while the
+		// other seven fit (gate NEW-1). Nothing may reach past the command box.
+		for (const host of ["claude", "cursor", "codex", "devin", "opencode", "muse", "pi", "agy"]) {
+			test(`the ${host} command stays inside its box at 390`, async ({ page }) => {
+				await page.goto(`/?host=${host}`);
+				const box = page.locator("[data-hero-install]");
+				await expect(box).toBeVisible();
+				const past = await box.evaluate((el) => {
+					const edge = el.getBoundingClientRect().right;
+					const range = document.createRange();
+					range.selectNodeContents(el);
+					return Math.max(...[...range.getClientRects()].map((r) => r.right)) - edge;
+				});
+				expect(past).toBeLessThanOrEqual(0.5);
+			});
+		}
 	});
 });
 
-/** Tokens (runs of non-space) whose glyphs land on more than one line. */
+/** Segments (see below) whose glyphs land on more than one line. */
 function tokensSplitAcrossLines(el: Element): string[] {
 	const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
 	const nodes: { node: Text; start: number }[] = [];
@@ -99,7 +128,9 @@ function tokensSplitAcrossLines(el: Element): string[] {
 		return { node: hit.node, offset: Math.min(pos - hit.start, hit.node.length) };
 	};
 	const broken: string[] = [];
-	for (const m of text.matchAll(/\S+/g)) {
+	// A segment is a run of non-space up to and including a "/" or "#": long
+	// URLs may wrap there on purpose, never inside a segment or at a hyphen.
+	for (const m of text.matchAll(/[^\s/#]+[/#]?|[/#]/g)) {
 		const range = document.createRange();
 		const a = at(m.index ?? 0);
 		const b = at((m.index ?? 0) + m[0].length);
