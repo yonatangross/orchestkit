@@ -4,10 +4,8 @@ import {
   ChangelogLegend,
   RecentVersions,
 } from "@/components/changelog-legend";
-import { ChangelogMermaid } from "@/components/changelog-mermaid";
 import { ChronoBoard } from "@/components/ui/chrono-board";
 import { CHANGELOG_ENTRIES } from "@/lib/generated/changelog-data";
-import { recentTimelineMermaid } from "@/lib/changelog-format";
 import { buildVersionChronoCards } from "@/lib/chrono-board-release";
 import { SITE } from "@/lib/constants";
 
@@ -79,11 +77,8 @@ export default function ChangelogPage() {
         <p className="font-mono text-[11px] font-medium uppercase tracking-[0.06em] text-fd-muted-foreground">
           Recent versions
         </p>
-        {/* The version chips below carry the same six releases; at phone width
-            this diagram rendered at ~3px text. md and up only. */}
-        <div className="hidden md:block">
-          <ChangelogMermaid chart={recentTimelineMermaid(CHANGELOG_ENTRIES, 6)} />
-        </div>
+        {/* One row of version cards. An arrow-chain diagram used to repeat the
+            same six versions above it (QA 2026-09-25, NEW-3). */}
         <RecentVersions entries={CHANGELOG_ENTRIES.slice(0, 6)} />
       </div>
 
