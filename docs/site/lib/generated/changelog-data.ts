@@ -18,6 +18,27 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.96",
+    "date": "2026-09-25",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.95...v10.0.0-beta.96",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**verify:** Phase 2 dispatch runs as a Workflow script ([#4424](https://github.com/yonatangross/orchestkit/issues/4424)) ([65ae19d](https://github.com/yonatangross/orchestkit/commit/65ae19dce174b506edf9399189626e617184bee8))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Documentation",
+        "items": [
+          "**readme:** skills.sh badge and measured starter 12 ([#4426](https://github.com/yonatangross/orchestkit/issues/4426)) ([3d9df6d](https://github.com/yonatangross/orchestkit/commit/3d9df6de147585bc9ce433be02349cd0f457da11))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.95",
     "date": "2026-09-25",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.94...v10.0.0-beta.95",

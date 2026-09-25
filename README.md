@@ -630,6 +630,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.96](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.95...v10.0.0-beta.96)** · 2026-09-25
+
+- **verify:** Phase 2 dispatch runs as a Workflow script (#4424)
+- **readme:** skills.sh badge and measured starter 12 (#4426)
+
 **[v10.0.0-beta.95](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.94...v10.0.0-beta.95)** · 2026-09-25
 
 - **promote-lights:** match only real promote PRs into main (#4420)
@@ -661,11 +666,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **skills:** error-analysis, evals-first failure taxonomy from traces (#4402)
 - **hooks:** exact option grammar for command wrappers in the egress check (#4404)
-
-**[v10.0.0-beta.88](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.87...v10.0.0-beta.88)** · 2026-09-24
-
-- **docs-site:** align three stale landing.spec cases with hero A (#4398)
-- **hooks:** resolve relative interpreter program paths against the effective working directory (#4400)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
