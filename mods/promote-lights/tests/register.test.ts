@@ -29,7 +29,7 @@ interface Fake$ {
     read: (path: string) => Promise<unknown>;
   };
   clock: {
-    every: (ms: number, fn: () => void) => { dispose: () => void };
+    every: (ms: number, fn: () => void) => { cancel: () => void };
   };
   store: {
     get: (key: string) => Promise<unknown>;
@@ -39,6 +39,7 @@ interface Fake$ {
   ui: {
     status: (line: string) => Promise<void>;
     invalidate: (component: string) => void;
+    resolve: (e: unknown) => Promise<Record<string, FakeCtor>>;
   };
   command: {
     register: (spec: { name: string; description: string; argumentHint?: string }) => Promise<unknown>;
@@ -46,6 +47,20 @@ interface Fake$ {
   env: {
     get: (key: string) => Promise<string | undefined>;
   };
+}
+
+/** A node as the fake constructors build it: the same split the engine's h() makes. */
+type FakeNode = { type: string; props: Record<string, unknown>; children: unknown[] };
+type FakeCtor = (props?: Record<string, unknown>) => FakeNode;
+
+/** Mirrors the engine: (name) => (props) => h(name, rest, ...children). */
+function fakeElements(): Record<string, FakeCtor> {
+  const make = (name: string): FakeCtor => (props = {}) => {
+    const { children, ...rest } = props;
+    const list = children === undefined ? [] : Array.isArray(children) ? children : [children];
+    return { type: name, props: rest, children: list };
+  };
+  return { Box: make("Box"), Text: make("Text") };
 }
 
 type Handler = ($: Fake$, e: unknown, next: (ev?: unknown) => Promise<unknown>) => unknown;
@@ -100,14 +115,14 @@ function makeDispatchingRun(overrides: Record<string, unknown> = {}) {
         stderr: "",
       };
     }
-    if (argv[1] === "api" && argv[2]?.includes("/branches/main/protection")) {
+    if (argv[1] === "api" && /\/branches\/[^/]+\/protection$/.test(argv[2] ?? "")) {
       return {
         exitCode: 0,
         stdout: (overrides.protection as string) ?? PROTECTION_OK,
         stderr: "",
       };
     }
-    if (argv[1] === "api" && argv[2]?.includes("/rules/branches/main")) {
+    if (argv[1] === "api" && /\/rules\/branches\/[^/]+$/.test(argv[2] ?? "")) {
       return {
         exitCode: 0,
         stdout: (overrides.rulesets as string) ?? "[]",
@@ -150,7 +165,8 @@ function createFake$(overrides: Record<string, unknown> = {}): Fake$ {
       read: vi.fn().mockResolvedValue(null),
     },
     clock: {
-      every: vi.fn().mockReturnValue({ dispose: vi.fn() }),
+      // CC 2.1.282 hands back { cancel } only; a fresh handle per call.
+      every: vi.fn(() => ({ cancel: vi.fn() })),
     },
     store: {
       get: vi.fn().mockResolvedValue(null),
@@ -160,6 +176,7 @@ function createFake$(overrides: Record<string, unknown> = {}): Fake$ {
     ui: {
       status: vi.fn().mockResolvedValue(undefined),
       invalidate: vi.fn(),
+      resolve: vi.fn(async (_e: unknown) => fakeElements()),
     },
     command: {
       register: vi.fn().mockResolvedValue(undefined),
@@ -263,7 +280,7 @@ describe("register", () => {
 
     expect($.command.register).toHaveBeenCalledTimes(1);
     expect($.command.register).toHaveBeenCalledWith(
-      expect.objectContaining({ name: "lights", argumentHint: "[off|refresh]" })
+      expect.objectContaining({ name: "lights", argumentHint: "[off|refresh|watch owner/repo#N]" })
     );
   });
 });
@@ -308,6 +325,22 @@ describe("register behavior (mutant-killing)", () => {
       error: "gh: not found",
     });
     expect($.clock.every).not.toHaveBeenCalled();
+  });
+
+  test("session.start clears a previous session's lights before it runs gh", async () => {
+    const { register } = await import("../hooks/register.ts");
+    const handlers = captureHandlers({ register });
+    const $ = createFake$({
+      run: vi.fn().mockResolvedValue({ exitCode: 1, stdout: "", stderr: "boom" }),
+    });
+
+    await handlers.get("session.start")!($, {}, NEXT);
+
+    // $.store outlives the session, so the first render must not find old lights.
+    expect($.store.delete).toHaveBeenCalledWith("lights:yonatangross/orchestkit");
+    const cleared = vi.mocked($.store.delete).mock.invocationCallOrder[0];
+    const firstRun = vi.mocked($.process.run).mock.invocationCallOrder[0];
+    expect(cleared).toBeLessThan(firstRun);
   });
 
   test("session.start with no open PR deletes stored state and does not tick", async () => {
@@ -514,16 +547,16 @@ describe("register behavior (mutant-killing)", () => {
     // Start tracking first so there is a clock to stop.
     await handlers.get("session.start")!($, {}, NEXT);
     expect($.clock.every).toHaveBeenCalledTimes(1);
-    const dispose = ($.clock.every as ReturnType<typeof vi.fn>).mock.results[0]
-      .value as { dispose: ReturnType<typeof vi.fn> };
+    const handle = ($.clock.every as ReturnType<typeof vi.fn>).mock.results[0]
+      .value as { cancel: ReturnType<typeof vi.fn> };
 
     const result = (await handlers.get("command.run")!($, { command: "lights", args: "off" }, NEXT)) as {
       text: string;
     };
 
     expect(result).toEqual({ text: "lights: stopped" });
-    // The interval is disposed, so no further ticks fire.
-    expect(dispose.dispose).toHaveBeenCalledTimes(1);
+    // The interval is cancelled, so no further ticks fire.
+    expect(handle.cancel).toHaveBeenCalledTimes(1);
     expect($.store.delete).toHaveBeenCalledWith("lights:yonatangross/orchestkit");
     expect($.ui.invalidate).toHaveBeenCalledWith("ui.render");
   });
@@ -570,12 +603,12 @@ describe("register behavior (mutant-killing)", () => {
     expect(result.text).toContain("4165");
     expect(result.text).not.toBe("no PR tracked");
     // A bare /lights is a read: it neither stops nor re-ticks.
-    const dispose = ($.clock.every as ReturnType<typeof vi.fn>).mock.results[0]
-      .value as { dispose: ReturnType<typeof vi.fn> };
-    expect(dispose.dispose).not.toHaveBeenCalled();
+    const handle = ($.clock.every as ReturnType<typeof vi.fn>).mock.results[0]
+      .value as { cancel: ReturnType<typeof vi.fn> };
+    expect(handle.cancel).not.toHaveBeenCalled();
   });
 
-  test("/lights with no tracked state reports no PR tracked", async () => {
+  test("/lights with no tracked state says how to watch any PR", async () => {
     const { register } = await import("../hooks/register.ts");
     const handlers = captureHandlers({ register });
     const $ = createFake$();
@@ -583,7 +616,8 @@ describe("register behavior (mutant-killing)", () => {
     const result = (await handlers.get("command.run")!($, { command: "lights" }, NEXT)) as {
       text: string;
     };
-    expect(result).toEqual({ text: "no PR tracked" });
+    expect(result.text).toContain("no promote PR open");
+    expect(result.text).toContain("/lights watch owner/repo#123");
     expect($.process.run).not.toHaveBeenCalled();
   });
 
@@ -599,8 +633,11 @@ describe("register behavior (mutant-killing)", () => {
     });
 
     await handlers.get("session.start")!($, {}, NEXT);
+    const handle = ($.clock.every as ReturnType<typeof vi.fn>).mock.results[0]
+      .value as { cancel: ReturnType<typeof vi.fn> };
     await handlers.get("turn.complete")!($, {}, NEXT);
 
+    expect(handle.cancel).toHaveBeenCalledTimes(1);
     expect($.store.delete).toHaveBeenCalledWith("lights:yonatangross/orchestkit");
     expect($.ui.invalidate).toHaveBeenCalledWith("ui.render");
   });
@@ -617,8 +654,11 @@ describe("register behavior (mutant-killing)", () => {
     });
 
     await handlers.get("session.start")!($, {}, NEXT);
+    const handle = ($.clock.every as ReturnType<typeof vi.fn>).mock.results[0]
+      .value as { cancel: ReturnType<typeof vi.fn> };
     await handlers.get("turn.complete")!($, {}, NEXT);
 
+    expect(handle.cancel).toHaveBeenCalledTimes(1);
     expect($.store.set).toHaveBeenCalledWith("lights:yonatangross/orchestkit", {
       error: "head moved, stopped",
     });
@@ -679,7 +719,9 @@ describe("ui.render AbovePrompt composes with downstream renderers", () => {
     expect(out.type).toBe("Box");
     expect(out.props?.flexDirection).toBe("column");
     expect(out.children).toHaveLength(2);
-    expect(JSON.stringify(out.children[0])).toContain("ci-pr-status");
+    // All green: the band is the summary line alone, no per-check line.
+    expect(JSON.stringify(out.children[0])).toContain("#4165");
+    expect(JSON.stringify(out.children[0])).not.toContain("ci-pr-status");
     expect(out.children[1]).toBe(DOWNSTREAM);
   });
 
@@ -708,6 +750,265 @@ describe("ui.render AbovePrompt composes with downstream renderers", () => {
 
     expect(next).toHaveBeenCalledTimes(1);
     expect(out.children).toHaveLength(1);
-    expect(JSON.stringify(out.children[0])).toContain("ci-pr-status");
+    expect(JSON.stringify(out.children[0])).toContain("#4165");
+  });
+});
+
+describe("watch mode (demo: lights for any open PR)", () => {
+  const WATCH_VIEW = JSON.stringify({ headRefOid: "feedbee1234567", state: "OPEN", mergeStateStatus: "BLOCKED" });
+  const MIXED_RUNS = JSON.stringify({
+    total_count: 4,
+    check_runs: [
+      { name: "build", status: "completed", conclusion: "success" },
+      { name: "lint", status: "completed", conclusion: "failure" },
+      { name: "e2e", status: "in_progress", conclusion: null },
+      { name: "build", status: "completed", conclusion: "success" },
+    ],
+  });
+
+  beforeEach(() => {
+    vi.resetModules();
+  });
+
+  test("/lights watch owner/repo#N tracks that PR, falls back to every check run, and pins a status line", async () => {
+    const handlers = captureHandlers(await loadRegister());
+    // Unprotected watched repo: protection and rulesets give an empty union.
+    const $ = createFake$({ protection: "{}", rulesets: "[]", checkRuns: MIXED_RUNS, prView: WATCH_VIEW });
+
+    const out = (await handlers.get("command.run")!($, { command: "lights", args: "watch acme/widgets#77" }, NEXT)) as {
+      text: string;
+    };
+
+    const argvs = ($.process.run as ReturnType<typeof vi.fn>).mock.calls.map((c) => (c[0] as string[]).join(" "));
+    // Every gh call targets the WATCHED repo, not the session repo.
+    expect(argvs).toContain("gh pr view 77 --json headRefOid,state,mergeStateStatus,baseRefName -R acme/widgets");
+    expect(argvs.some((a) => a.includes("repos/acme/widgets/commits/feedbee1234567/check-runs"))).toBe(true);
+    expect(argvs.some((a) => a.includes("yonatangross/orchestkit"))).toBe(false);
+
+    // Stored under the SESSION repo key so ui.render finds it.
+    const stored = ($.store.set as ReturnType<typeof vi.fn>).mock.calls.find(
+      (c) => c[0] === "lights:yonatangross/orchestkit" && (c[1] as { lights?: unknown }).lights
+    )?.[1] as { lights: Array<{ name: string; color: string }>; label: string; passing: boolean; mode: string };
+    expect(stored.mode).toBe("watch");
+    expect(stored.label).toBe("watch acme/widgets#77");
+    expect(stored.lights.map((l) => `${l.name}:${l.color}`)).toEqual(["build:green", "lint:red", "e2e:yellow"]);
+    expect(stored.passing).toBe(false);
+
+    expect(out.text).toContain("watch acme/widgets#77");
+    expect(out.text).toContain("1 green");
+    expect(out.text).toContain("1 red");
+    expect($.ui.status).toHaveBeenCalledWith(expect.stringContaining("watch acme/widgets#77"));
+    expect($.clock.every).toHaveBeenCalledWith(60000, expect.any(Function));
+  });
+
+  test("/lights watch with a bad target answers with usage and runs nothing", async () => {
+    const handlers = captureHandlers(await loadRegister());
+    const $ = createFake$();
+    const out = (await handlers.get("command.run")!($, { command: "lights", args: "watch nonsense" }, NEXT)) as {
+      text: string;
+    };
+    expect(out.text).toContain("usage: /lights watch");
+    expect($.process.run).not.toHaveBeenCalled();
+  });
+
+  test("/lights watch on a closed PR refuses and starts no tick", async () => {
+    const handlers = captureHandlers(await loadRegister());
+    const $ = createFake$({ prView: JSON.stringify({ headRefOid: "x", state: "MERGED", mergeStateStatus: "" }) });
+    const out = (await handlers.get("command.run")!($, { command: "lights", args: "watch acme/widgets 5" }, NEXT)) as {
+      text: string;
+    };
+    expect(out.text).toBe("lights: acme/widgets#5 is MERGED, not open");
+    expect($.clock.every).not.toHaveBeenCalled();
+  });
+
+  test("PROMOTE_LIGHTS_WATCH at session.start watches with no typing and never lists promote PRs", async () => {
+    const handlers = captureHandlers(await loadRegister());
+    const $ = createFake$({
+      protection: "{}",
+      rulesets: "[]",
+      checkRuns: MIXED_RUNS,
+      prView: WATCH_VIEW,
+      envGet: vi.fn(async (k: string) => (k === "PROMOTE_LIGHTS_WATCH" ? "acme/widgets#77" : undefined)),
+    });
+    const next = vi.fn((_ev?: unknown) => Promise.resolve({}));
+
+    await handlers.get("session.start")!($, {}, next);
+
+    expect(next).toHaveBeenCalledTimes(1);
+    const argvs = ($.process.run as ReturnType<typeof vi.fn>).mock.calls.map((c) => (c[0] as string[]).join(" "));
+    expect(argvs.some((a) => a.startsWith("gh pr list"))).toBe(false);
+    expect($.store.set).toHaveBeenCalledWith(
+      "lights:yonatangross/orchestkit",
+      expect.objectContaining({ label: "watch acme/widgets#77", mode: "watch" })
+    );
+  });
+
+  test("a watched PR with no check runs stores a visible error instead of lights", async () => {
+    const handlers = captureHandlers(await loadRegister());
+    const $ = createFake$({
+      protection: "{}",
+      rulesets: "[]",
+      checkRuns: JSON.stringify({ total_count: 0, check_runs: [] }),
+      prView: WATCH_VIEW,
+    });
+    await handlers.get("command.run")!($, { command: "lights", args: "watch acme/widgets#77" }, NEXT);
+    expect($.store.set).toHaveBeenCalledWith(
+      "lights:yonatangross/orchestkit",
+      expect.objectContaining({ error: "watch acme/widgets#77: no check runs on feedbee" })
+    );
+  });
+
+  test("a re-watch cancels the previous tick before starting the next", async () => {
+    const handlers = captureHandlers(await loadRegister());
+    const $ = createFake$({ protection: "{}", rulesets: "[]", checkRuns: MIXED_RUNS, prView: WATCH_VIEW });
+    await handlers.get("command.run")!($, { command: "lights", args: "watch acme/widgets#77" }, NEXT);
+    await handlers.get("command.run")!($, { command: "lights", args: "watch acme/widgets#78" }, NEXT);
+
+    const handles = ($.clock.every as ReturnType<typeof vi.fn>).mock.results.map(
+      (r) => r.value as { cancel: ReturnType<typeof vi.fn> }
+    );
+    expect(handles).toHaveLength(2);
+    expect(handles[0].cancel).toHaveBeenCalledTimes(1);
+    expect(handles[1].cancel).not.toHaveBeenCalled();
+  });
+
+  test("session.start stops a running watch and forgets it (no stale tick after /clear)", async () => {
+    const handlers = captureHandlers(await loadRegister());
+    const $ = createFake$({ protection: "{}", rulesets: "[]", checkRuns: MIXED_RUNS, prView: WATCH_VIEW, prList: "[]" });
+    await handlers.get("command.run")!($, { command: "lights", args: "watch acme/widgets#77" }, NEXT);
+    const handle = ($.clock.every as ReturnType<typeof vi.fn>).mock.results[0]
+      .value as { cancel: ReturnType<typeof vi.fn> };
+
+    // A new session with no watch configured and no promote PR open.
+    await handlers.get("session.start")!($, {}, NEXT);
+
+    expect(handle.cancel).toHaveBeenCalledTimes(1);
+    expect($.store.delete).toHaveBeenCalledWith("lights:yonatangross/orchestkit");
+    expect($.clock.every).toHaveBeenCalledTimes(1);
+
+    // Nothing is tracked any more: a refresh runs no gh call at all.
+    const callsBefore = ($.process.run as ReturnType<typeof vi.fn>).mock.calls.length;
+    await handlers.get("command.run")!($, { command: "lights", args: "refresh" }, NEXT);
+    expect(($.process.run as ReturnType<typeof vi.fn>).mock.calls.length).toBe(callsBefore);
+    const out = (await handlers.get("command.run")!($, { command: "lights" }, NEXT)) as { text: string };
+    expect(out.text).toContain("no promote PR open");
+  });
+
+  test("a watched PR reads its OWN base branch protection and rules, never main's", async () => {
+    const handlers = captureHandlers(await loadRegister());
+    const $ = createFake$({
+      checkRuns: MIXED_RUNS,
+      prView: JSON.stringify({ headRefOid: "feedbee1234567", state: "OPEN", mergeStateStatus: "BLOCKED", baseRefName: "dev" }),
+    });
+    await handlers.get("command.run")!($, { command: "lights", args: "watch acme/widgets#77" }, NEXT);
+
+    const argvs = ($.process.run as ReturnType<typeof vi.fn>).mock.calls.map((c) => (c[0] as string[]).join(" "));
+    expect(argvs).toContain("gh api repos/acme/widgets/branches/dev/protection");
+    expect(argvs).toContain("gh api repos/acme/widgets/rules/branches/dev");
+    expect(argvs.some((a) => a.includes("/branches/main"))).toBe(false);
+  });
+
+  test("a base branch with a slash is URL-encoded in the protection path", async () => {
+    const handlers = captureHandlers(await loadRegister());
+    const $ = createFake$({
+      checkRuns: MIXED_RUNS,
+      prView: JSON.stringify({ headRefOid: "feedbee1234567", state: "OPEN", mergeStateStatus: "BLOCKED", baseRefName: "release/1.0" }),
+    });
+    await handlers.get("command.run")!($, { command: "lights", args: "watch acme/widgets#77" }, NEXT);
+
+    const argvs = ($.process.run as ReturnType<typeof vi.fn>).mock.calls.map((c) => (c[0] as string[]).join(" "));
+    expect(argvs).toContain("gh api repos/acme/widgets/branches/release%2F1.0/protection");
+    expect(argvs).toContain("gh api repos/acme/widgets/rules/branches/release%2F1.0");
+  });
+
+  test("a PROMOTE PR with an empty required union still refuses green (no fallback outside watch)", async () => {
+    const handlers = captureHandlers(await loadRegister());
+    const $ = createFake$({ protection: "{}", rulesets: "[]", checkRuns: MIXED_RUNS });
+    await handlers.get("session.start")!($, {}, NEXT);
+    expect($.store.set).toHaveBeenCalledWith(
+      "lights:yonatangross/orchestkit",
+      expect.objectContaining({ error: "empty required contexts" })
+    );
+    const argvs = ($.process.run as ReturnType<typeof vi.fn>).mock.calls.map((c) => (c[0] as string[]).join(" "));
+    expect(argvs.some((a) => a.includes("check-runs"))).toBe(false);
+  });
+});
+
+describe("ui.render draws with $.ui.resolve elements", () => {
+  beforeEach(() => {
+    vi.resetModules();
+  });
+
+  /** Walk a fake tree and collect every node. */
+  function nodes(tree: unknown): FakeNode[] {
+    const out: FakeNode[] = [];
+    const walk = (n: unknown) => {
+      if (n && typeof n === "object" && "type" in (n as object)) {
+        out.push(n as FakeNode);
+        for (const c of (n as FakeNode).children ?? []) walk(c);
+      }
+    };
+    walk(tree);
+    return out;
+  }
+
+  test("every node of the band comes from a resolved constructor and each light is colored", async () => {
+    const handlers = captureHandlers(await loadRegister());
+    const $ = createFake$();
+    ($.store.get as ReturnType<typeof vi.fn>).mockResolvedValue({
+      prNumber: 77,
+      head: "feedbee1234567",
+      label: "watch acme/widgets#77",
+      mergeStateStatus: "BLOCKED",
+      lights: [
+        { name: "build", color: "green", conclusion: "success" },
+        { name: "lint", color: "red", conclusion: "failure" },
+        { name: "e2e", color: "yellow", conclusion: null },
+        { name: "deploy", color: "cancelled", conclusion: "cancelled" },
+      ],
+    });
+    const e = { component: "AbovePrompt", props: {} };
+    const out = await handlers.get("ui.render")!($, e, vi.fn((_ev?: unknown) => Promise.resolve(null)));
+
+    expect($.ui.resolve).toHaveBeenCalledWith(e);
+    const all = nodes(out);
+    // Only Box and Text, the resolved constructors: no hand-rolled node types.
+    expect(new Set(all.map((n) => n.type))).toEqual(new Set(["Box", "Text"]));
+    const colored = (name: string) =>
+      all.find((n) => n.type === "Text" && n.children.some((c) => typeof c === "string" && c.includes(name)))?.props.color;
+    // Green checks are counted in the summary, not listed; every problem gets its own colored line.
+    expect(colored("build")).toBeUndefined();
+    expect(colored("lint")).toBe("red");
+    expect(colored("e2e")).toBe("yellow");
+    expect(colored("deploy")).toBe("yellow");
+    expect(JSON.stringify(out)).toContain("acme/widgets#77");
+    expect(JSON.stringify(out)).toContain("feedbee  BLOCKED");
+  });
+
+  test("a stored error draws one dim line instead of nothing", async () => {
+    const handlers = captureHandlers(await loadRegister());
+    const $ = createFake$();
+    ($.store.get as ReturnType<typeof vi.fn>).mockResolvedValue({ error: "empty required contexts", prNumber: 4165 });
+    const DOWN = { type: "Box", props: {}, children: ["cc band"] };
+    const out = (await handlers.get("ui.render")!(
+      $,
+      { component: "AbovePrompt", props: {} },
+      vi.fn((_ev?: unknown) => Promise.resolve(DOWN))
+    )) as FakeNode;
+
+    expect(out.type).toBe("Box");
+    expect(out.children).toHaveLength(2);
+    expect(out.children[1]).toBe(DOWN);
+    const errorText = nodes(out.children[0]).find((n) => n.type === "Text");
+    expect(errorText?.props.dimColor).toBe(true);
+    expect(errorText?.children).toEqual(["lights: empty required contexts"]);
+  });
+
+  test("/lights reports a stored error in words", async () => {
+    const handlers = captureHandlers(await loadRegister());
+    const $ = createFake$();
+    ($.store.get as ReturnType<typeof vi.fn>).mockResolvedValue({ error: "head moved, stopped" });
+    const out = (await handlers.get("command.run")!($, { command: "lights", args: "" }, NEXT)) as { text: string };
+    expect(out.text).toBe("lights: head moved, stopped");
   });
 });

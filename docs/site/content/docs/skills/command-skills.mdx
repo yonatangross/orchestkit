@@ -82,9 +82,9 @@ Store and recall decisions, patterns, and release knowledge across sessions.
 
 | Command | What it does | Complexity | Usage |
 |---------|--------------|------------|-------|
-| [`/ork:remember`](/docs/reference/skills/remember) | Stores decisions, patterns, and outcomes in the MCP memory knowledge graph as entities with typed observations and relations. | low | `/ork:remember [decision-or-pattern]` |
-| [`/ork:memory`](/docs/reference/skills/memory) | Unified read-side memory operations including knowledge graph search, session context loading, decision timeline viewing, and Mermaid graph visualization. | low | `/ork:memory [subcommand] [query]` |
-| [`/ork:dream`](/docs/reference/skills/dream) | Nightly memory consolidation, prunes stale entries, merges duplicates, resolves contradictions, rebuilds MEMORY.md index. | medium | `/ork:dream [--dry-run]` |
+| [`/ork:remember`](/docs/reference/skills/remember) | Write-side memory: stores decisions, patterns, and outcomes in the MCP memory knowledge graph as entities with typed observations and relations. | low | `/ork:remember [decision-or-pattern]` |
+| [`/ork:memory`](/docs/reference/skills/memory) | Read-side memory operations on the knowledge graph: search past decisions and patterns, load session context, view decision timelines, render Mermaid graph visualizations. | low | `/ork:memory [subcommand] [query]` |
+| [`/ork:dream`](/docs/reference/skills/dream) | Nightly memory consolidation: prunes stale entries, merges duplicates, resolves contradictions, rebuilds the MEMORY.md index. | medium | `/ork:dream [--dry-run]` |
 | [`/ork:release-sync`](/docs/reference/skills/release-sync) | Syncs latest release content to NotebookLM and HQ Knowledge Base after version tagging. | low | `/ork:release-sync [version]` |
 
 ---
@@ -152,7 +152,7 @@ You do not need to remember which reference skills exist. The command skill know
 
 ## What's Next
 
-- [72 Reference Skills](/docs/skills/reference-skills): the knowledge library that command skills pull from.
+- [71 Reference Skills](/docs/skills/reference-skills): the knowledge library that command skills pull from.
 - [Composing Skills Into Workflows](/docs/skills/skill-composition): how these commands orchestrate agents and skills together.
 - [How Skills Work](/docs/skills/overview): the fundamentals of the skill system.
 

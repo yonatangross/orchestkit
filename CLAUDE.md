@@ -24,7 +24,7 @@ For live component counts (skills / agents / hooks / per-session token cost) run
 
 ```
 src/                    ← SOURCE (edit here!)
-├── skills/<name>/SKILL.md    # 108 skills (YAML frontmatter + Markdown)
+├── skills/<name>/SKILL.md    # 107 skills (YAML frontmatter + Markdown)
 ├── agents/<name>.md          # 36 agents (CC 2.1.78 format)
 ├── settings/<plugin>.settings.json  # Plugin settings (permissions only; CC ignores most keys)
 └── hooks/                    # TypeScript hooks (hooks.json + src/ + dist/)
@@ -81,6 +81,6 @@ Single plugin `ork`. User-invocable skills surface as `/ork:<skillname>`. Counts
 
 ## Version
 
-- **Current**: 10.0.0-beta.96 · **Claude Code**: >= 2.1.277 <!-- x-release-please-version -->
+- **Current**: 10.0.0-beta.99 · **Claude Code**: >= 2.1.277 <!-- x-release-please-version -->
 
 See `CHANGELOG.md` for history. See `src/hooks/README.md` for hook architecture.

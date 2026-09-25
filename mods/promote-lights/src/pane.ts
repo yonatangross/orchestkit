@@ -1,6 +1,6 @@
 /**
  * Band rendering for promote-lights.
- * Draws one row of lights above the prompt using Box and Text.
+ * Draws a summary line plus one line per non-green check above the prompt.
  * No Client module needed - static between ticks.
  */
 
@@ -21,7 +21,8 @@ export function buildStatusLine(
   prNumber: number,
   lights: ClassifiedLight[],
   mergeStateStatus: string,
-  hold: boolean
+  hold: boolean,
+  label?: string
 ): string {
   const counts = {
     green: lights.filter((l) => l.color === "green").length,
@@ -30,7 +31,7 @@ export function buildStatusLine(
     cancelled: lights.filter((l) => l.color === "cancelled").length,
   };
 
-  const parts: string[] = [`promote #${prNumber}`];
+  const parts: string[] = [label ?? `promote #${prNumber}`];
 
   if (counts.green > 0) parts.push(`${counts.green} green`);
   if (counts.yellow > 0) parts.push(`${counts.yellow} yellow`);
@@ -74,6 +75,94 @@ export function buildBandContent(
   });
 
   return result;
+}
+
+/** Text color per light, as the terminal Text element takes it. */
+export const LIGHT_COLORS: Record<string, string> = {
+  green: "green",
+  yellow: "yellow",
+  red: "red",
+  cancelled: "yellow",
+};
+
+/** Element props: children plus whatever the element takes. */
+export type ElementProps = { children?: unknown } & Record<string, unknown>;
+/** A constructor from $.ui.resolve(e): Box, Text and the rest. */
+export type ElementCtor = (props?: ElementProps) => unknown;
+export type Elements = { Box: ElementCtor; Text: ElementCtor };
+
+/** Order for the problem lines: red first, then cancelled, then yellow. */
+const PROBLEM_ORDER: Record<string, number> = { red: 0, cancelled: 1, yellow: 2 };
+
+/** The non-green lights, red then cancelled then yellow, stable within a color. */
+export function problemLights(lights: ClassifiedLight[]): ClassifiedLight[] {
+  return lights
+    .map((l, i) => ({ l, i }))
+    .filter(({ l }) => l.color !== "green")
+    .sort((a, b) => (PROBLEM_ORDER[a.l.color] ?? 0) - (PROBLEM_ORDER[b.l.color] ?? 0) || a.i - b.i)
+    .map(({ l }) => l);
+}
+
+/** The summary label: "#N" for a promote PR, "owner/repo#N" when watching. */
+export function summaryLabel(label: string): string {
+  return label.replace(/^(watch|promote) /, "");
+}
+
+/**
+ * Build the AbovePrompt band from the elements $.ui.resolve(e) hands out.
+ * A plain { type: "Box" } object is not an element on CC 2.1.282 and never
+ * draws, so every node here comes from a constructor.
+ *
+ * Layout (approved 2026-09-26): one summary line always, then one line per
+ * check that is not green, full name, red first. All green is one line.
+ *
+ *   🚦 #4435  3afff24  BLOCKED   19 🟢  0 🟡  2 🔴
+ *      🔴 PR Playground
+ *      🔴 CI Summary
+ */
+export function buildBand(
+  els: Elements,
+  label: string,
+  lights: ClassifiedLight[],
+  headSha: string,
+  mergeStateStatus: string,
+  hold: boolean
+): unknown {
+  const { Box, Text } = els;
+  const count = (color: string) => lights.filter((l) => l.color === color).length;
+  const green = count("green");
+  const yellow = count("yellow");
+  const red = count("red");
+  const cancelled = count("cancelled");
+
+  const runs: unknown[] = [];
+  if (hold) runs.push(Text({ color: "red", bold: true, children: "HOLD " }));
+  runs.push(Text({ bold: true, children: `\u{1F6A6} ${summaryLabel(label)}  ` }));
+  const state = `${headSha.slice(0, 7)}  ${mergeStateStatus}`.trim();
+  if (state) runs.push(Text({ dimColor: true, children: `${state}   ` }));
+  runs.push(Text({ color: "green", children: `${green} ${LIGHT_SYMBOLS.green}  ` }));
+  runs.push(Text({ color: "yellow", children: `${yellow} ${LIGHT_SYMBOLS.yellow}  ` }));
+  runs.push(Text({ color: "red", children: `${red} ${LIGHT_SYMBOLS.red}` }));
+  if (cancelled > 0) {
+    runs.push(Text({ color: "yellow", children: `  ${cancelled} ${LIGHT_SYMBOLS.cancelled}` }));
+  }
+
+  const lines: unknown[] = [Text({ children: runs })];
+  for (const l of problemLights(lights)) {
+    lines.push(
+      Text({
+        color: LIGHT_COLORS[l.color] ?? "red",
+        children: `   ${LIGHT_SYMBOLS[l.color] ?? "?"} ${l.name}`,
+      })
+    );
+  }
+  return Box({ flexDirection: "column", children: lines });
+}
+
+/** One dim line saying why there are no lights, so a failure is never blank. */
+export function buildErrorBand(els: Elements, error: string): unknown {
+  const { Box, Text } = els;
+  return Box({ children: [Text({ dimColor: true, children: `lights: ${error}` })] });
 }
 
 /**

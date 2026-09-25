@@ -624,7 +624,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "auto",
     "description": "Intent-classified router, the front door to OrchestKit and the DEFAULT entry point for any goal-shaped request. Classifies a plain-English goal and routes it to the right specialist skill. Routing is never overhead, so use it even when the target skill seems obvious; skip only when already executing inside another skill (no recursion). Triggers on: auto, do this, figure out, just make, I want, help me, fix, build, improve, any goal description.",
     "version": "1.0.0",
-    "sha256": "69ae495b6611d711c034fecf44b7c39bc38438f381b81e9ccc8d60a2b3f7d9a8",
+    "sha256": "3a3d6f3ae3490ee8cfeb904c60822ace759fa3796f07b126c7de153ca40d005b",
     "author": "OrchestKit",
     "tags": [
       "router",
@@ -1152,7 +1152,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "configure",
     "description": "Interactive wizard for OrchestKit settings: MCP servers, hook permissions, keybindings, and install presets. Use when customizing plugin behavior or managing settings.",
     "version": "1.0.1",
-    "sha256": "3aecca49f9a033872c980a29e68a064481a815a7af7b4dec4a66028e57bdb6a7",
+    "sha256": "6df9f840acdc3b823ed78ac396900f39559975053182935d66a6895164b839d0",
     "author": "OrchestKit",
     "tags": [
       "configuration",
@@ -1192,7 +1192,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "cover",
     "description": "Generate tests that do not exist yet. Analyzes coverage gaps, then writes and runs new test files across three tiers (unit, integration via testcontainers, Playwright E2E), one test-generator agent per tier, healing failures for up to 3 iterations. Use when code has no tests or when raising coverage after implementation. Do NOT use to grade tests that already exist (use /ork:verify) or to run a suite without writing anything new.",
     "version": "1.3.0",
-    "sha256": "0569578920c7b288ed4980d2a9553845be8e198d688cbfe4a2308bd324ad456e",
+    "sha256": "914be936297f5d5d9cf591110446d931d1505ff493636638b538c2993b226645",
     "author": "OrchestKit",
     "tags": [
       "testing",
@@ -2038,9 +2038,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "dream": {
     "name": "dream",
-    "description": "Nightly memory consolidation, prunes stale entries, merges duplicates, resolves contradictions, rebuilds MEMORY.md index. Use when memory files have accumulated over many sessions and need cleanup. Do NOT use for storing new decisions (use remember) or searching memory (use memory).",
+    "description": "Nightly memory consolidation: prunes stale entries, merges duplicates, resolves contradictions, rebuilds the MEMORY.md index. Use when memory files accumulated over many sessions need cleanup. New decisions get stored by remember; searches run through memory; internals live in memory-fabric.",
     "version": "1.1.0",
-    "sha256": "dca2d7ed2d5a411c18f3c163bbffc86905ab439f56b5bfc5f56517d2927ff4a6",
+    "sha256": "8e70d0538fef265fcf076ffa3a529bba37dff414af2cdc1b5a58ef535bc84d65",
     "author": "OrchestKit",
     "tags": [
       "memory",
@@ -3106,9 +3106,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "memory": {
     "name": "memory",
-    "description": "Unified read-side memory operations including knowledge graph search, session context loading, decision timeline viewing, and Mermaid graph visualization. Subcommands: search, load, history, viz, status. Complements /ork:remember (write-side). Use when searching past decisions, loading context, or visualizing the knowledge graph.",
+    "description": "Read-side memory operations on the knowledge graph: search past decisions and patterns, load session context, view decision timelines, render Mermaid graph visualizations. Subcommands: search, load, history, viz, status. Use when finding or reviewing what memory already holds. For storing new knowledge instead, invoke remember; for retrieval internals, memory-fabric; for cleanup, dream.",
     "version": "2.0.1",
-    "sha256": "178a78229c51577771de50c177eeda9c7b87acaeae5d66da8bc0e39292a23031",
+    "sha256": "ccf445ceb025d7e399a1534055cbd9945f3459b8dfe33d08f752f96db3d5cd6e",
     "author": "OrchestKit",
     "tags": [
       "memory",
@@ -3190,9 +3190,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "memory-fabric": {
     "name": "memory-fabric",
-    "description": "Knowledge graph orchestration layer with entity extraction, natural language query parsing, deduplication (>85% similarity), and cross-reference boosting. Unifies search results ranked by recency, relevance, and authority. Use when designing memory retrieval, building entity graphs, or optimizing knowledge graph queries.",
+    "description": "Memory retrieval internals: knowledge graph orchestration with entity extraction, natural language query parsing, deduplication (>85% similarity), and cross-reference boosting over unified recency, relevance, and authority ranking. Use when designing or debugging how memory search itself works. Everyday lookups belong to memory; entry storage to remember; consolidation to dream.",
     "version": "2.1.0",
-    "sha256": "092f5f434c4a2696c389b4dcdb90ec794503aa82010e8301c12749acc602465a",
+    "sha256": "de6bb3846f8b8002ac38076dfc81c1899616991f50d673d340ac95c0abc81889",
     "author": "OrchestKit",
     "tags": [
       "memory",
@@ -4035,9 +4035,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "remember": {
     "name": "remember",
-    "description": "Stores decisions, patterns, and outcomes in the MCP memory knowledge graph as entities with typed observations and relations. Supports recording architectural decisions, anti-patterns, tool preferences, workflow outcomes, and project conventions that persist across sessions. Use when saving patterns, remembering outcomes, recording decisions, or building institutional knowledge.",
+    "description": "Write-side memory: stores decisions, patterns, and outcomes in the MCP memory knowledge graph as entities with typed observations and relations. Use when something worth persisting across sessions was just learned or decided. To search or read existing memory, invoke memory; to debug retrieval internals, memory-fabric; to consolidate, dream.",
     "version": "3.0.1",
-    "sha256": "c4162b168191ccf5d35ebc55e7fe09ba885245fdebb89dcd9f01f0ac0ed0614e",
+    "sha256": "ad2eb0805878d594f2146389516d8887425ced042a4632177e33451a346aaec8",
     "author": "OrchestKit",
     "tags": [
       "memory",
@@ -4167,7 +4167,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "review-pr",
     "description": "PR review using parallel specialized agents for code quality, security, testing, architecture, and performance analysis. Synthesizes findings into a review report with conventional comments (praise/issue/suggestion/nitpick) and approve or request-changes verdict. Use when reviewing pull requests, conducting security audits, or validating changes before merge.",
     "version": "1.9.0",
-    "sha256": "e464c4bc1bfb6716ff8294b75be5f4f3bd5b5895f6e323c553ded269c5462445",
+    "sha256": "428fe9edd972a94577368c624769331e01e89ec7a422c4cfa747fef45bd68897",
     "author": "OrchestKit",
     "tags": [
       "code-review",
@@ -4773,29 +4773,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "test-generator"
     ]
   },
-  "testing-patterns": {
-    "name": "testing-patterns",
-    "description": "Redirect, testing-patterns was split into 5 focused sub-skills. Use when looking for testing-patterns, writing tests, or test automation. Redirects to testing-unit, testing-e2e, testing-integration, testing-llm, or testing-perf.",
-    "version": "2.0.0",
-    "sha256": "01fe9521887b353a91088e1271d8fc97c67d5b059408d596e7f340f48dd9a468",
-    "author": "OrchestKit",
-    "tags": [
-      "testing",
-      "redirect",
-      "deprecated"
-    ],
-    "userInvocable": false,
-    "context": "inherit",
-    "allowedTools": [],
-    "skills": [],
-    "agent": null,
-    "complexity": "low",
-    "structure": {},
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": []
-  },
   "testing-perf": {
     "name": "testing-perf",
     "description": "Performance and load testing patterns, k6 load tests, Locust stress tests, pytest execution optimization (xdist parallel, plugins), test type classification, and performance benchmarking. Use when writing load tests, optimizing test execution speed, or setting up pytest infrastructure.",
@@ -4999,7 +4976,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "verify",
     "description": "Grade work that already exists and decide whether it can merge. Runs the project's current unit, integration, and E2E suites plus security scanning and type checking, scores every dimension 0-10, and returns a merge verdict with a VERIFIED-vs-CLAIMED evidence manifest. Writes no test files and edits no source. Use when verifying changes are ready to merge. Use /ork:cover instead when the tests still have to be written.",
     "version": "4.7.0",
-    "sha256": "cd1048bdd3ec98ef1d2af31c7f9587b971a62f5f403effedab27df1ba034ece6",
+    "sha256": "ede7613d397359c3a83d5e531b0b8ec6a9a856af18e359df1f153fbbc852c1f5",
     "author": "OrchestKit",
     "tags": [
       "verification",

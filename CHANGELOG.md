@@ -5,6 +5,29 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.99](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.98...v10.0.0-beta.99) (2026-09-25)
+
+
+### Bug Fixes
+
+* **secrets-veil:** fail closed when session.start never ran ([#4436](https://github.com/yonatangross/orchestkit/issues/4436)) ([c319189](https://github.com/yonatangross/orchestkit/commit/c31918933abdb5fe8adb08e2dda0aef52a58d0ee))
+
+## [10.0.0-beta.98](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.97...v10.0.0-beta.98) (2026-09-25)
+
+
+### Bug Fixes
+
+* **lesson-cards:** draw cards with $.ui.resolve and ask on block lessons ([#4429](https://github.com/yonatangross/orchestkit/issues/4429)) ([2489dfc](https://github.com/yonatangross/orchestkit/commit/2489dfcf3a88279a89d616f9b25d8fcebe3b9673))
+* **promote-lights:** draw the band with $.ui.resolve, add /lights watch ([#4430](https://github.com/yonatangross/orchestkit/issues/4430)) ([08a4377](https://github.com/yonatangross/orchestkit/commit/08a4377f74503554c59f3940f181f70c726ca37a))
+* **skills:** runnable examples in verify refs, cover, review-pr ([#4424](https://github.com/yonatangross/orchestkit/issues/4424) CodeRabbit follow-up) ([#4433](https://github.com/yonatangross/orchestkit/issues/4433)) ([c42e850](https://github.com/yonatangross/orchestkit/commit/c42e850e8b98b4188f5de4eaf4d427a4c2924746))
+
+## [10.0.0-beta.97](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.96...v10.0.0-beta.97) (2026-09-25)
+
+
+### Bug Fixes
+
+* **secrets-veil:** show a toast with masked value and byte counts ([#4431](https://github.com/yonatangross/orchestkit/issues/4431)) ([974e18b](https://github.com/yonatangross/orchestkit/commit/974e18be7f6486e312336c4e7d049927e2003ce3))
+
 ## [10.0.0-beta.96](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.95...v10.0.0-beta.96) (2026-09-25)
 
 

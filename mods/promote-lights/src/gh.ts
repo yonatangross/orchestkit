@@ -45,6 +45,8 @@ export interface PRDetails {
   headRefOid: string;
   state: string;
   mergeStateStatus: string;
+  /** The PR's base branch; watch mode reads THIS branch's protection. */
+  baseRefName?: string;
 }
 
 export interface CheckRunsResponse {

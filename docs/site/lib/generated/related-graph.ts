@@ -1097,10 +1097,6 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "title": "Testing Llm",
       "inbound": 5
     },
-    "/docs/reference/skills/testing-patterns": {
-      "title": "Testing Patterns",
-      "inbound": 2
-    },
     "/docs/reference/skills/testing-perf": {
       "title": "Testing Perf",
       "inbound": 5
@@ -2026,7 +2022,6 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/reference/skills/testing-e2e",
       "/docs/reference/skills/testing-integration",
       "/docs/reference/skills/testing-llm",
-      "/docs/reference/skills/testing-patterns",
       "/docs/reference/skills/testing-perf",
       "/docs/reference/skills/testing-unit",
       "/docs/reference/skills/ui-components",
@@ -2279,7 +2274,6 @@ export const RELATED_GRAPH: RelatedGraphData = {
     "/docs/reference/skills/testing-e2e": [],
     "/docs/reference/skills/testing-integration": [],
     "/docs/reference/skills/testing-llm": [],
-    "/docs/reference/skills/testing-patterns": [],
     "/docs/reference/skills/testing-perf": [],
     "/docs/reference/skills/testing-unit": [],
     "/docs/reference/skills/ui-components": [],
@@ -2473,7 +2467,6 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/reference/skills/testing-e2e",
       "/docs/reference/skills/testing-integration",
       "/docs/reference/skills/testing-llm",
-      "/docs/reference/skills/testing-patterns",
       "/docs/reference/skills/testing-perf",
       "/docs/reference/skills/testing-unit",
       "/docs/reference/skills/verify"

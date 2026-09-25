@@ -22,7 +22,7 @@ This gives users real-time visibility into multi-agent verification. If any dime
 
 ```python
 for agent_result in verification_results:
-    if "[PARTIAL RESULT]" in agent_result.output: A `maxTurns` stop is also partial since CC 2.1.246 (summary: "stopped at its N-turn limit (partial result; continue it with SendMessage to the task-id)"); continue that agent with `SendMessage` instead of re-spawning it.
+    if "[PARTIAL RESULT]" in agent_result.output:
         # Extract whatever scores the agent produced before crashing
         partial_score = parse_score(agent_result.output)  # May be incomplete
         scores[agent_result.dimension] = {
@@ -31,3 +31,5 @@ for agent_result in verification_results:
         }
         # A 4-dimension score is better than no score. Do NOT re-spawn.
 ```
+
+A `maxTurns` stop is also partial since CC 2.1.246 (summary: "stopped at its N-turn limit (partial result; continue it with SendMessage to the task-id)"); continue that agent with `SendMessage` instead of re-spawning it.

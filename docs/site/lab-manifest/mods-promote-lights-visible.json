@@ -1,0 +1,14 @@
+{
+  "slug": "mods-promote-lights-visible",
+  "source": "docs/fix--mods-promote-lights-visible/index.html",
+  "title": "promote-lights draws its band and can watch any PR",
+  "description": "Shows the CI checks of a pull request as a row of colored lights right above where you type, so you see red before you ask to merge. The band is built from $.ui.resolve(e) elements. /lights watch owner/repo#N or PROMOTE_LIGHTS_WATCH tracks any open PR in any repo. session.start clears stale lights before the first tick.",
+  "tags": [
+    "claude-code",
+    "mods",
+    "function-hooks",
+    "promote-lights",
+    "ci"
+  ],
+  "date": "2026-09-25"
+}

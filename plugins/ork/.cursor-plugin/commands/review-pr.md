@@ -277,12 +277,14 @@ This lets the PR author start addressing blocking issues while remaining agents 
 
 ```python
 for agent_result in review_results:
-    if "[PARTIAL RESULT]" in agent_result.output: A `maxTurns` stop is also partial since CC 2.1.246 (summary: "stopped at its N-turn limit (partial result; continue it with SendMessage to the task-id)"); continue that agent with `SendMessage` instead of re-spawning it.
+    if "[PARTIAL RESULT]" in agent_result.output:
         # A security agent that found 2 issues before crashing > no security review
         findings.extend(parse_findings(agent_result.output))
         findings[-1]["partial"] = True  # Flag in synthesis
         # Do NOT re-spawn — partial findings are still valuable
 ```
+
+A `maxTurns` stop is also partial since CC 2.1.246 (summary: "stopped at its N-turn limit (partial result; continue it with SendMessage to the task-id)"); continue that agent with `SendMessage` instead of re-spawning it.
 
 **Monitor for CI streaming (CC 2.1.98):** Stream CI check output in Phase 4:
 

@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>promote-lights: a compact band, problems only | OrchestKit Lab</title>
+<style>
+  :root { color-scheme: light; font: 17px/1.6 system-ui, sans-serif; background: #faf8f3; color: #1d232a; }
+  body { max-width: 900px; margin: auto; padding: 44px 24px; }
+  h1 { font-size: clamp(1.8rem, 5vw, 2.6rem); line-height: 1.15; }
+  h2 { font-size: 1.2rem; margin-top: 28px; }
+  .eyebrow { color: #2a6f97; letter-spacing: .08em; }
+  .you { font-size: 1.15rem; background: #fff; border: 1px solid #d9d3c7; border-left: 4px solid #1f7a4d; border-radius: 10px; padding: 14px 18px; }
+  pre { font-family: ui-monospace, Menlo, monospace; background: #1e1f1c; color: #f2f2ec; border-radius: 10px; padding: 14px 18px; overflow-x: auto; font-size: 14px; line-height: 1.5; }
+  .note { color: #5b6570; font-size: 14px; }
+  footer { margin-top: 32px; color: #5b6570; font-size: 14px; }
+</style>
+</head>
+<body>
+<p class="eyebrow">ORCHESTKIT LAB · MODS · PROMOTE-LIGHTS</p>
+<h1>The lights band shows problems, not a wall of green</h1>
+<p class="you">Above your prompt you now see one line that says how the pull request is doing, and a separate line for each check that is not green. When everything passes, it is one line.</p>
+
+<h2>Approved design</h2>
+<pre>🚦 #4435  3afff24  BLOCKED   19 🟢  0 🟡  2 🔴
+   🔴 PR Playground
+   🔴 CI Summary
+❯ _</pre>
+<p class="note">One summary line always; then one line per check that is not green, with its full name, red first, then cancelled, then yellow.</p>
+
+<h2>Before</h2>
+<p>Every required check was one entry in a single long row. With 21 checks the row wrapped into four lines, names were cut at 28 characters, and several checks read the same.</p>
+
+<h2>Live on Claude Code (all green: one line)</h2>
+<pre>🚦 yonatangross/orchestkit#4436  0797957  CLEAN   21 🟢  0 🟡  0 🔴
+────────────────────────────────────────────────────────────
+❯ _
+  ⚠ promote-lights: watch yonatangross/orchestkit#4436, 21 green</pre>
+<p class="note">The per-check lines for red, yellow and cancelled are covered by unit tests; no open pull request had a failing required check at the time of the live run.</p>
+
+<footer>Mods load only with CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1. PR fix/promote-lights-compact-band.</footer>
+</body>
+</html>

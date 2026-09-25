@@ -1,0 +1,13 @@
+{
+  "slug": "mods-lesson-cards-visible",
+  "source": "docs/fix--mods-lesson-cards-visible/index.html",
+  "title": "lesson-cards draws its card and asks before a block lesson",
+  "description": "When Claude is about to run something the team already learned the hard way, a card with the lesson appears under that command, and for the serious ones it asks you \"Proceed anyway?\" first. The card is built from $.ui.resolve(e) elements and wrapped beside the row. A block lesson asks through $.ui.ask; Cancel answers { deny }, so the call never runs and the model reads the lesson as the reason.",
+  "tags": [
+    "claude-code",
+    "mods",
+    "function-hooks",
+    "lesson-cards"
+  ],
+  "date": "2026-09-25"
+}

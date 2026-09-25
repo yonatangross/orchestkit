@@ -1,7 +1,7 @@
 // secrets-veil: types.ts - shared type definitions
 // Reused from commit 30720692 and trimmed: the reveal surface (RevealedState,
-// UIPressEvent, CommandRegisterEvent, ui.render/ui.press on OnFn) and ui.log
-// are gone by design. This mod has no reveal path and no ui.log.
+// UIPressEvent, CommandRegisterEvent, ui.render/ui.press on OnFn) is gone by
+// design. This mod has no reveal path; its ui calls carry counts, never values.
 
 /**
  * Configuration for the high-entropy value layer.
@@ -64,8 +64,10 @@ export interface MaskResult {
 
 /**
  * The $ dependency object (subset used by secrets-veil).
- * Deliberately minimal: env reads and one notice. No ui.log, no ui.render,
- * no ui.press, no commands, no process, no http, no store.
+ * Deliberately minimal: env reads, one notice, and the three calls that make
+ * masking visible (toast, status, debug log), each carrying counts only,
+ * never a value. No ui.render, no ui.press, no commands, no process, no
+ * http, no store.
  */
 export interface DollarAPI {
   env: {
@@ -73,6 +75,9 @@ export interface DollarAPI {
   };
   ui: {
     notice(id: string, message: string): void;
+    toast(text: string): Promise<void>;
+    status(line: string): Promise<void>;
+    log(text: string): Promise<void>;
   };
 }
 
@@ -86,7 +91,7 @@ export interface ToolCallEvent {
 }
 
 export interface ToolCallResult {
-  deny?: { reason: string };
+  deny?: string;
   result?: unknown;
   text?: string;
   isError?: boolean;

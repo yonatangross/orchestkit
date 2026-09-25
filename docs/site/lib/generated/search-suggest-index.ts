@@ -11530,30 +11530,6 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
     ]
   },
   {
-    "url": "/docs/reference/skills/testing-patterns",
-    "title": "Testing Patterns",
-    "headings": [
-      "Sub-Skills",
-      "Quick Reference",
-      "Related Skills",
-      "Rules (2)",
-      "Assertions must test observable behavior, not implementation details: MEDIUM",
-      "Why",
-      "Rule",
-      "Incorrect: testing implementation details",
-      "Correct: testing observable behavior",
-      "Assertion Quality Checklist",
-      "When Mocks Are Acceptable",
-      "Tests must not depend on execution order or shared mutable state between test cases: HIGH",
-      "Why",
-      "Rule",
-      "Incorrect: tests share mutable state",
-      "Correct: each test owns its state",
-      "Verification",
-      "Common Isolation Violations"
-    ]
-  },
-  {
     "url": "/docs/reference/skills/testing-perf",
     "title": "Testing Perf",
     "headings": [

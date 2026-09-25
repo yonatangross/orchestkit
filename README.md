@@ -3,7 +3,7 @@
 
 <img src="docs/banner.png" alt="OrchestKit - Stop explaining your stack. Start shipping." width="100%" />
 
-**<!--ork:skills-->108<!--/ork--> skills · <!--ork:agents-->36<!--/ork--> agents · <!--ork:hooks-->171<!--/ork--> hooks**
+**<!--ork:skills-->107<!--/ork--> skills · <!--ork:agents-->36<!--/ork--> agents · <!--ork:hooks-->171<!--/ork--> hooks**
 
 [![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.277-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](./LICENSE)
@@ -107,7 +107,7 @@ OrchestKit gives Claude **persistent knowledge** of production patterns that wor
 
 | Component | Details |
 |-----------|---------|
-| **<!--ork:skills-->108<!--/ork--> Skills** | RAG patterns, FastAPI, React 19, testing, security, database design, ML integration — loaded on-demand, zero overhead |
+| **<!--ork:skills-->107<!--/ork--> Skills** | RAG patterns, FastAPI, React 19, testing, security, database design, ML integration — loaded on-demand, zero overhead |
 | **<!--ork:agents-->36<!--/ork--> Agents** | Specialized personas (backend-architect, frontend-dev, security-auditor) — route tasks to the right expert |
 | **<!--ork:hooks-->171<!--/ork--> Hooks** | Pre-commit checks, git protection, quality gates, browser safety — ship with confidence |
 
@@ -630,6 +630,20 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.99](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.98...v10.0.0-beta.99)** · 2026-09-25
+
+- **secrets-veil:** fail closed when session.start never ran (#4436)
+
+**[v10.0.0-beta.98](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.97...v10.0.0-beta.98)** · 2026-09-25
+
+- **lesson-cards:** draw cards with $.ui.resolve and ask on block lessons (#4429)
+- **promote-lights:** draw the band with $.ui.resolve, add /lights watch (#4430)
+- **skills:** runnable examples in verify refs, cover, review-pr ([#4424](https://github.com/yonatangross/orchestkit/issues/4424) CodeRabbit follow-up) (#4433)
+
+**[v10.0.0-beta.97](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.96...v10.0.0-beta.97)** · 2026-09-25
+
+- **secrets-veil:** show a toast with masked value and byte counts (#4431)
+
 **[v10.0.0-beta.96](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.95...v10.0.0-beta.96)** · 2026-09-25
 
 - **verify:** Phase 2 dispatch runs as a Workflow script (#4424)
@@ -650,22 +664,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.92](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.91...v10.0.0-beta.92)** · 2026-09-25
 
 - **mods:** port the 3 mods to the CC 2.1.282 mods API (#4413)
-
-**[v10.0.0-beta.91](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.90...v10.0.0-beta.91)** · 2026-09-25
-
-- **cover:** heal-loop never rewrites an expected value (#4407)
-- **memory:** drop LIVE claims for removed memory-writer hook (#4410)
-- **memory:** remove stale memory-writer.ts hook reference (#4409)
-
-**[v10.0.0-beta.90](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.89...v10.0.0-beta.90)** · 2026-09-25
-
-- **cover:** gate generated tests on behaviour and target by risk (#4408)
-- **hooks:** word-based wrapper option parsing in the egress check (#4406)
-
-**[v10.0.0-beta.89](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.88...v10.0.0-beta.89)** · 2026-09-24
-
-- **skills:** error-analysis, evals-first failure taxonomy from traces (#4402)
-- **hooks:** exact option grammar for command wrappers in the egress check (#4404)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
