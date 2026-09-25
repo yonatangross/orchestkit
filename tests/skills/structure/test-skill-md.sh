@@ -542,7 +542,7 @@ echo "────────────────────────�
 
 # Expected counts
 EXPECTED_USER_INVOCABLE=36  # page-serve added 2026-09-07 (#3899); paired-probe is model-invocable but NOT slash-invocable: it is a gate applied before reporting a verdict, not a command an operator types, so it stays out of the /ork: menu and off this count
-EXPECTED_INTERNAL=72  # +1: error-analysis, model-invocable workflow kept off the /ork: menu cap (36) 2026-09-24; paired-probe, model-invocable but not slash-invocable (a gate applied before reporting a verdict, not a command an operator types)
+EXPECTED_INTERNAL=71  # +1: error-analysis, model-invocable workflow kept off the /ork: menu cap (36) 2026-09-24; paired-probe, model-invocable but not slash-invocable (a gate applied before reporting a verdict, not a command an operator types); -1: testing-patterns redirect stub retired 2026-09-25
 
 missing_user_invocable=()
 user_invocable_true=()

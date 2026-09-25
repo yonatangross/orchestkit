@@ -54,7 +54,7 @@ Use AskUserQuestion:
 | **Hooks-only** | 0 | 0 | all | Safety, productivity and team coordination hooks |
 | **Monorepo** | all | all | all | Complete + monorepo detection |
 
-Live counts: run `claude plugin details ork` (108 skills, 36 agents on 2026-09-25).
+Live counts: run `claude plugin details ork` (107 skills, 36 agents on 2026-09-25).
 
 ## Step 2: Customize Skill Categories
 
