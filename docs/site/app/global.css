@@ -324,7 +324,9 @@
 }
 
 ::view-transition-new(root) {
-  animation: theme-reveal 560ms var(--ease-out-expo);
+  /* Ease in-out, not ease-out-expo: expo covered the page in ~100ms, so the
+     circle never read as a circle in a recording. */
+  animation: theme-reveal 700ms cubic-bezier(0.65, 0, 0.35, 1);
 }
 
 @keyframes theme-reveal {
