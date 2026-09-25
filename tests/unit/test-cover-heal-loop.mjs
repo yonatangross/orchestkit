@@ -424,7 +424,6 @@ const vetCases = [
   ['fixture added', '', 'beforeEach(() => { db = createTestDb() })', false],
   ['deterministic wait', 'await sleep(300)', 'await vi.advanceTimersByTimeAsync(300)', false],
   ['stale-selector locator swap', "await expect(page.getByTestId('submit')).toBeVisible()", "await expect(page.getByRole('button', { name: 'Submit' })).toBeVisible()", false, 'stale-selector'],
-  ['assertion added', 'expect(a).toBe(1)', 'expect(a).toBe(1)\nexpect(b).toBe(2)', false],
   ['whitespace only', 'expect(a).toBe( 1 )', 'expect(a).toBe(1)', false],
   // c13 probe (5a902387): each turned a failing value assertion green and passed as unchanged.
   ['c13 1: expected value via a const', 'const want = 409\nexpect(res.status).toBe(want)', 'const want = 422\nexpect(res.status).toBe(want)', true],
@@ -655,7 +654,33 @@ const humanCases = [
     [{ before: "test.use({ trace: 'on' })", after: "test.use({ trace: 'on', updateSnapshots: 'all' })" }],
     'snapshot or golden edit needs a human: tests/unit/debounce.test.ts',
   ],
-  ['timeout option raised in an options literal', FLAKY_E, [{ before: "await page.waitForSelector('#total', { timeout: 5000 })", after: "await page.waitForSelector('#total', { timeout: 10000 })" }], null],
+  // HOLD #5 closure rule: a hunk that adds, changes or removes a literal needs a human unless
+  // the literal sits in an import, a plain safe-named binding, a locator swap or a timing call.
+  ['W1 helper argument', FLAKY_E, [{ before: 'expectTotal(cart, 3)', after: 'expectTotal(cart, 2)' }], 'value change needs a human: literal 3 -> 2'],
+  [
+    'W5 push onto an expected container',
+    FLAKY_E,
+    [{ before: 'const expected = [1, 2, 3]', after: 'const expected = [1, 2, 3]\nexpected.push(4)' }],
+    'value change needs a human: literal (none) -> 4',
+  ],
+  ['W12 member write, safe property', FLAKY_E, [{ before: "expected.url = '/home'", after: "expected.url = '/dashboard'" }], "binding change needs a human: expected.url '/home' -> '/dashboard'"],
+  ['W13 subscript write, safe key', FLAKY_E, [{ before: 'want["path"] = "/a"', after: 'want["path"] = "/x"' }], 'binding change needs a human: want["path"] "/a" -> "/x"'],
+  [
+    'literals swapped between two calls',
+    FLAKY_E,
+    [{ before: 'expectTotal(cart, 3)\nsetQuantity(cart, 2)', after: 'expectTotal(cart, 2)\nsetQuantity(cart, 3)' }],
+    'value change needs a human: literal 3, 2 -> 2, 3',
+  ],
+  ['assertion added with a new literal', FLAKY_E, [{ before: 'expect(a).toBe(1)', after: 'expect(a).toBe(1)\nexpect(b).toBe(2)' }], 'value change needs a human: literal (none) -> 2'],
+  [
+    'timeout property in an options literal',
+    FLAKY_E,
+    [{ before: "await page.waitForSelector('#total', { timeout: 5000 })", after: "await page.waitForSelector('#total', { timeout: 10000 })" }],
+    "value change needs a human: literal after awaitpage.waitForSelector('#total' {timeout:5000} -> {timeout:10000}",
+  ],
+  ['wait swapped for a load state', FLAKY_E, [{ before: 'await page.waitForTimeout(500)', after: "await page.waitForLoadState('networkidle')" }], null],
+  ['retry count raised', FLAKY_E, [{ before: 'const RETRIES = 1', after: 'const RETRIES = 5' }], null],
+  ['poll interval raised', FLAKY_E, [{ before: 'const POLL_INTERVAL_MS = 100', after: 'const POLL_INTERVAL_MS = 250' }], null],
   ['callback body edited', FLAKY_E, [{ before: "test('x', async () => {\n  await a()\n})", after: "test('x', async () => {\n  await b()\n})" }], null],
   [
     'locator option swap under stale-selector',

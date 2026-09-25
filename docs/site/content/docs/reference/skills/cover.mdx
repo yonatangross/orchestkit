@@ -822,8 +822,12 @@ whatever the syntax:
 - a member or subscript assignment: `obj.x = v`, `obj['k'] = v`, Python `d['k'] = v`;
 - a merge into an existing object: `Object.assign`, lodash `merge`, `deepmerge`, Python
   `d.update(...)`, or a spread in a changed literal;
-- the contents of an object, array or dict literal (a mock return, a seed list), except a
-  flat options object whose only changed keys are safe names (`\{ timeout: 5000 \}`).
+- the contents of an object, array or dict literal (a mock return, a seed list, an options
+  object such as `\{ timeout: 5000 \}`);
+- any other literal the hunk adds, changes or removes (the closure rule), such as an
+  argument to an `expect*` helper (`expectTotal(cart, 3)` to `2`) or a mutating call on an
+  expected container (`expected.push(4)`). Literals are compared per enclosing call, so a
+  value swapped between two calls is still a change.
 
 Any edit to a snapshot or golden file is held the same way, test file or not: a path under
 `__snapshots__/`, a `*.snap`, a `*.json` under `tests/`, or any path containing `golden` or
@@ -839,10 +843,11 @@ snapshot or golden edit needs a human: tests/golden/order.json
 
 The test stays failing, is withheld from later repair passes, and is never reported as
 healed or as a possible product bug: a person decides which it is. A green run with any
-entry held is reported as `status: "failed"` with `fail_count: -1`. Two exceptions stay
+entry held is reported as `status: "failed"` with `fail_count: -1`. Four exceptions stay
 healable:
 
-- the binding's name ENDS in a safe word. The name is split into words (camelCase,
+- a plain binding whose own name ENDS in a safe word. The safe list never applies to a
+  property of another object: `expected.url` and `want["path"]` are held. The name is split into words (camelCase,
   snake_case, kebab-case, SCREAMING_CASE), trailing unit words (`ms`, `s`, `sec`, `secs`,
   `seconds`, `millis`, `milliseconds`, `min`, `mins`, `minutes`) are dropped, and the last
   word, or the last two joined, must be one of `timeout`, `delay`, `retry`, `retries`,
@@ -852,8 +857,14 @@ healable:
   `hostName` and `timeoutMessage` are held;
 - the fix is `stale-selector` and both values are locator expressions with no literal equal
   to the failure's expected value (`page.getByRole('button', \{ name: 'Old' \})` to `'New'`),
-  or the changed literal is an argument of a locator call. Snapshot and golden edits have no
-  exception.
+  or the changed literal is an argument of a locator call;
+- an import line (`import \{ login \} from '../../src/auth'`, Python `from x import y`): a
+  module path is not a value;
+- the duration or load state passed to a timing call: `waitForTimeout`, `waitForLoadState`
+  (`load`, `domcontentloaded`, `networkidle`), `setTimeout`, `sleep`,
+  `advanceTimersByTime`.
+
+Snapshot and golden edits have no exception.
 
 A binding deleted in one hunk and re-added with a new value in another counts as a change,
 and holds both hunks. Apart from snapshot and golden paths, files outside the test tree

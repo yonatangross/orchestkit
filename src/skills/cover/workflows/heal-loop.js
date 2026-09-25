@@ -471,11 +471,6 @@ function valueBindings(text) {
 	return out;
 }
 
-const lastSegment = (name) => {
-	const m = String(name).match(/(?:\.([A-Za-z_$][\w$]*)|\[\s*["'`]?([^\]"'`]*)["'`]?\s*\])$/);
-	return m ? m[1] || m[2] : String(name);
-};
-
 // Object.assign(target, ...), lodash merge, deepmerge and Python d.update(...): a call that
 // writes into an existing object. Keyed by the line up to the call and the target argument.
 const MERGE_CALL = /(?:\bObject\.assign|\b(?:_|lodash)\.(?:merge|assign|defaults|set)|\bdeepmerge|(?<![\w$.])merge|\.update)\s*\(/g;
@@ -538,28 +533,6 @@ function literalValues(text) {
 	return out;
 }
 
-// A flat object literal whose only changed properties have safe names, like { timeout: 5000 }.
-function safePropertyChange(from, to) {
-	const props = (s) => {
-		if (!/^\{.*\}$/s.test(s)) return null;
-		const map = new Map();
-		for (const part of splitArgs(s.slice(1, -1))) {
-			const m = part.match(/^["']?([A-Za-z_$][\w$]*)["']?:(.+)$/s);
-			if (!m) return null;
-			map.set(m[1], m[2]);
-		}
-		return map;
-	};
-	const was = props(from);
-	const now = props(to);
-	if (!was || !now || was.size !== now.size) return false;
-	for (const [key, value] of was) {
-		if (!now.has(key)) return false;
-		if (now.get(key) !== value && !isSafeBinding(key)) return false;
-	}
-	return true;
-}
-
 const LOCATOR_ARG = /(?:(?:get|query|find)(?:All)?By[A-Z]\w*|locator)\([^()]*$/;
 
 // Snapshot and golden files, and snapshot update flags: every edit needs a human.
@@ -587,7 +560,7 @@ function valueChanges(fix, target, file = { before: new Map(), after: new Map() 
 		const prior = was.has(name) ? was.get(name) : file.before.get(name);
 		const next = now.has(name) ? now.get(name) : file.after.get(name);
 		if (prior === undefined || next === undefined || prior === next) continue;
-		if (isSafeBinding(lastSegment(name)) || isLocatorSwap(fix, target, prior, next)) continue;
+		if ((/^[A-Za-z_$][\w$]*$/.test(name) && isSafeBinding(name)) || isLocatorSwap(fix, target, prior, next)) continue;
 		out.push({ kind: "binding", name, from: prior, to: next });
 	}
 	const mergedBefore = mergeCalls(before);
@@ -602,12 +575,100 @@ function valueChanges(fix, target, file = { before: new Map(), after: new Map() 
 	const expectedText = expectedValue.replace(/^["'`]|["'`]$/g, "");
 	for (const [key, { anchor, value: prior }] of litBefore) {
 		const next = litAfter.get(key)?.value;
-		if (next === undefined || next === prior || safePropertyChange(prior, next)) continue;
+		if (next === undefined || next === prior) continue;
 		if (fix.category === "stale-selector" && LOCATOR_ARG.test(anchor) && !(expectedValue !== "?" && literals(next).includes(expectedText))) continue;
 		if (out.some((c) => c.from.includes(prior) && c.to.includes(next))) continue;
 		out.push({ kind: "value", name: `literal after ${anchor.slice(-40) || "line start"}`, from: prior, to: next });
 	}
 	return out;
+}
+
+const IMPORT_LINE =
+	/^(?:import\s[^;]*?\bfrom\s*["'][^"']+["'];?|import\s*["'][^"']+["'];?|from\s+[\w.]+\s+import\s.+|import\s+[\w.]+(?:\s+as\s+\w+)?)$/;
+const PLAIN_BINDING = /^(?:(?:const|let|var)\s+)?([A-Za-z_$][\w$]*)\s*(?::\s*[^=]+?)?\s*=(?![=>])(.*?);?$/;
+const LOCATOR_CALL = /(?:(?:get|query|find)(?:All)?By[A-Z]\w*|locator)\s*\(/g;
+const TIMING_CALL = /\b(waitForTimeout|waitForLoadState|setTimeout|sleep|advanceTimersByTime(?:Async)?)\s*\(/g;
+const LOAD_STATE = /^["'](?:load|domcontentloaded|networkidle)["']$/;
+
+// Each literal tagged with the call it is an argument of, or else the name the line assigns,
+// so a value swapped between two calls is not cancelled out.
+const LITERAL_TOKEN =
+	/(["'`])(?:\\.|(?!\1).)*\1|\b\d+(?:\.\d+)?\b|\b(?:true|false|null|undefined|None|True|False)\b|([A-Za-z_$][\w$]*)\s*\(|[()]/g;
+function taggedLiterals(line) {
+	const lhs = (line.match(/^(?:(?:const|let|var)\s+)?([^\s=(]+?)\s*(?::\s*[^=]+?)?\s*=(?![=>])/) || [])[1] || "";
+	const stack = [];
+	const out = [];
+	for (const m of line.matchAll(LITERAL_TOKEN)) {
+		if (m[2]) stack.push(m[2]);
+		else if (m[0] === "(") stack.push(stack[stack.length - 1] ?? lhs);
+		else if (m[0] === ")") stack.pop();
+		else out.push(`${stack[stack.length - 1] ?? lhs}\u0000${m[0].replace(/^["'`]|["'`]$/g, "")}`);
+	}
+	return out;
+}
+const untag = (t) => t.slice(t.indexOf("\u0000") + 1);
+
+// Replaces the arguments of each call matched by `pattern` with what `keep` returns.
+function rewriteCalls(line, pattern, keep) {
+	let out = "";
+	let last = 0;
+	for (const m of line.matchAll(pattern)) {
+		if (m.index < last) continue;
+		const open = m.index + m[0].length - 1;
+		const end = closeParen(line, open);
+		out += `${line.slice(last, open + 1)}${keep(m, splitArgs(line.slice(open + 1, end - 1)))})`;
+		last = end;
+	}
+	return out + line.slice(last);
+}
+
+// The literals of a changed line that count as values. A whole line is exempt when it is an
+// import or a plain binding whose own name is on the safe list. Locator arguments in a
+// stale-selector fix and the duration or load state of a timing call are dropped.
+function valueLiterals(line, fix, expectedText) {
+	if (IMPORT_LINE.test(line)) return [];
+	const binding = line.match(PLAIN_BINDING);
+	if (binding && isSafeBinding(binding[1]) && !/(?<![=!<>])=(?![=>])/.test(binding[2])) return [];
+	let rest = line;
+	if (fix.category === "stale-selector") {
+		rest = rewriteCalls(rest, LOCATOR_CALL, (m, args) =>
+			expectedText && args.some((a) => literals(a).includes(expectedText)) ? args.join(",") : "",
+		);
+	}
+	rest = rewriteCalls(rest, TIMING_CALL, (m, args) =>
+		args.filter((a) => !/^\d+(?:\.\d+)?$/.test(a) && !(m[1] === "waitForLoadState" && LOAD_STATE.test(a))).join(","),
+	);
+	return taggedLiterals(rest);
+}
+
+function minus(a, b) {
+	const left = [...b];
+	return a.filter((x) => {
+		const i = left.indexOf(x);
+		if (i === -1) return true;
+		left.splice(i, 1);
+		return false;
+	});
+}
+
+// Closure rule: in a test file, a hunk that adds, changes or removes a literal needs a human
+// unless every such literal sits in an exempt line or call (see valueLiterals).
+function literalChanges(fix, target) {
+	if (!isTestFile(fix.file)) return [];
+	const split = (s) => String(s || "").split("\n").map((l) => l.trim()).filter(Boolean);
+	const was = split(fix.before);
+	const now = split(fix.after);
+	const removed = minus(was, now);
+	const added = minus(now, was);
+	if (!removed.length && !added.length) return [];
+	const [expectedValue] = expectedActual(target);
+	const expectedText = expectedValue === "?" ? "" : expectedValue.replace(/^["'`]|["'`]$/g, "");
+	const all = (lines) => lines.flatMap((l) => taggedLiterals(l));
+	const counted = (lines) => lines.flatMap((l) => valueLiterals(l, fix, expectedText));
+	const gone = minus(counted(removed), all(added)).map(untag);
+	const fresh = minus(counted(added), all(removed)).map(untag);
+	if (!gone.length && !fresh.length) return [];
+	return [{ kind: "value", name: "literal", from: gone.join(", ") || "(none)", to: fresh.join(", ") || "(none)" }];
 }
 
 function bindingsByFile(fixes) {
@@ -937,8 +998,11 @@ ${doNotTouch || "(none)"}
    base url, path, dir, fixture or file word (a unit like Ms may follow: TIMEOUT_MS, apiBaseUrl,
    dataDir), or it is a stale-selector locator swap. The same holds for member and subscript
    assignments (obj.x = v, d['k'] = v), Object.assign, merge or update into an existing object,
-   and the contents of object, array and dict literals. Do NOT edit snapshot or golden files and
-   do NOT update snapshots. The workflow reverts any such change and hands it to a human.
+   and the contents of object, array and dict literals. More generally, do NOT add, change or
+   remove a literal in a test file except in an import, in such a safe-named binding, in a
+   stale-selector locator swap, or as the duration or load state of a wait. Do NOT edit
+   snapshot or golden files and do NOT update snapshots. The workflow reverts any such change
+   and hands it to a human.
 7. Do NOT suppress: no skip, no try/except swallow, no eslint-disable, no type ignore.
 8. Anything you cannot fix within these rules goes in unfixable with the reason.
 
@@ -973,7 +1037,8 @@ or xfail, whatever category you report.`,
 			rejected.push({ fix, reason });
 			continue;
 		}
-		const changes = valueChanges(fix, target, bindingsInFile.get(fix.file));
+		let changes = valueChanges(fix, target, bindingsInFile.get(fix.file));
+		if (!changes.length) changes = literalChanges(fix, target);
 		if (changes.length || (fix.test && needsHuman.has(failureKey({ file: fix.file, test: fix.test })))) {
 			held.push({ fix, reason: holdForHuman(target, fix, changes, iteration).report });
 		} else accepted.push(fix);
