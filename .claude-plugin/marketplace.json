@@ -63,7 +63,7 @@
     {
       "name": "promote-lights",
       "description": "Mod (function hooks): CI lights above the prompt while a promote PR is open, or for any PR with /lights watch owner/repo#N; /lights [off|refresh|watch]. Needs CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1.",
-      "version": "0.0.5",
+      "version": "0.0.6",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonaigross@gmail.com"

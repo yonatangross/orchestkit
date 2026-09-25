@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>promote-lights: at most five problem lines | OrchestKit Lab</title>
+<style>
+  :root { color-scheme: light; font: 17px/1.6 system-ui, sans-serif; background: #faf8f3; color: #1d232a; }
+  body { max-width: 900px; margin: auto; padding: 44px 24px; }
+  h1 { font-size: clamp(1.8rem, 5vw, 2.6rem); line-height: 1.15; }
+  .eyebrow { color: #2a6f97; letter-spacing: .08em; }
+  pre { background: #272822; color: #f8f8f2; border-radius: 10px; padding: 14px 16px; font-size: 14px; }
+  .red { color: #f92672; } .dim { color: #75715e; }
+</style>
+</head>
+<body>
+<p class="eyebrow">ORCHESTKIT LAB · MODS · PROMOTE-LIGHTS</p>
+<h1>At most five problem lines</h1>
+<p>The compact band shows one summary line and then one line per check that is not green. With many failing checks it could grow tall above the prompt, so it now shows at most five problem lines and then one "+N more" line.</p>
+<pre>#9  abc1234  BLOCKED   0 green  0 yellow  7 red
+   <span class="red">check 1</span>
+   <span class="red">check 2</span>
+   <span class="red">check 3</span>
+   <span class="red">check 4</span>
+   <span class="red">check 5</span>
+   <span class="dim">+2 more</span></pre>
+<p>Tests: seven failing checks draw the summary, five lines and "+2 more"; exactly five draw no "more" line.</p>
+</body>
+</html>

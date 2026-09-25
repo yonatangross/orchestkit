@@ -4,7 +4,7 @@ Shows CI status lights above the prompt while a promote PR (base `main`) is open
 
 ## What it does
 
-- Displays a compact AbovePrompt band: one summary line (PR, head, merge state, green/yellow/red counts), then one line per required context that is not green, full name, red first; when everything is green the band is the summary line alone:
+- Displays a compact AbovePrompt band: one summary line (PR, head, merge state, green/yellow/red counts), then one line per required context that is not green, full name, red first, at most 5 such lines with a `+N more` line after them; when everything is green the band is the summary line alone:
 
   ```
   🚦 #4435  3afff24  BLOCKED   19 🟢  0 🟡  2 🔴

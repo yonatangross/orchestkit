@@ -91,6 +91,9 @@ export type ElementProps = { children?: unknown } & Record<string, unknown>;
 export type ElementCtor = (props?: ElementProps) => unknown;
 export type Elements = { Box: ElementCtor; Text: ElementCtor };
 
+/** Most problem lines drawn under the summary; the rest collapse into "+N more". */
+export const MAX_PROBLEM_LINES = 5;
+
 /** Order for the problem lines: red first, then cancelled, then yellow. */
 const PROBLEM_ORDER: Record<string, number> = { red: 0, cancelled: 1, yellow: 2 };
 
@@ -148,13 +151,17 @@ export function buildBand(
   }
 
   const lines: unknown[] = [Text({ children: runs })];
-  for (const l of problemLights(lights)) {
+  const problems = problemLights(lights);
+  for (const l of problems.slice(0, MAX_PROBLEM_LINES)) {
     lines.push(
       Text({
         color: LIGHT_COLORS[l.color] ?? "red",
         children: `   ${LIGHT_SYMBOLS[l.color] ?? "?"} ${l.name}`,
       })
     );
+  }
+  if (problems.length > MAX_PROBLEM_LINES) {
+    lines.push(Text({ dimColor: true, children: `   +${problems.length - MAX_PROBLEM_LINES} more` }));
   }
   return Box({ flexDirection: "column", children: lines });
 }

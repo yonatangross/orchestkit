@@ -1,0 +1,14 @@
+{
+  "slug": "mods-promote-lights-band-cap",
+  "source": "docs/fix--promote-lights-band-cap/index.html",
+  "title": "promote-lights: at most five problem lines",
+  "description": "The compact CI band above the prompt now shows at most five failing or pending checks, then a +N more line, so it never grows tall.",
+  "tags": [
+    "claude-code",
+    "mods",
+    "function-hooks",
+    "promote-lights",
+    "ci"
+  ],
+  "date": "2026-09-26"
+}
