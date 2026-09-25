@@ -164,23 +164,33 @@ test.describe('Landing hero', () => {
     // to finish, so any hero-art-in seen below comes from the switch itself.
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(1200);
-    const running = await page.evaluate(async () => {
+    const clicked = await page.evaluate(() => {
       const button = document.querySelector('[data-theme-toggle] button[aria-label="Light"]') as HTMLButtonElement | null;
-      if (!button || typeof document.startViewTransition !== 'function') return null;
+      if (!button || typeof document.startViewTransition !== 'function') return false;
+      // Record animation starts instead of sampling getAnimations at a fixed
+      // time. On a slow CI runner the view transition's ready resolves ~550ms
+      // after the click and the reveal starts ~780ms after (measured at 6x CPU
+      // throttle), so a 60ms sample saw only hero-art-in (run 36131202725).
+      const seen = new Set<string>();
+      (window as unknown as { __themeAnims: Set<string> }).__themeAnims = seen;
+      document.documentElement.addEventListener('animationstart', (e) => seen.add(e.animationName), true);
       button.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
       button.click();
-      await new Promise((r) => setTimeout(r, 60));
-      return document.documentElement
-        .getAnimations({ subtree: true })
-        .map((a) => (a as CSSAnimation).animationName)
-        .filter(Boolean);
+      return true;
     });
-    test.skip(running === null, 'no View Transitions API in this browser');
-    expect(running).toContain('hero-art-in');
-    // WebKit (the iPhone project) switches the theme but does not list the
-    // ::view-transition pseudo animations in getAnimations, so the reveal is
-    // asserted where it is observable.
-    if (browserName === 'chromium') expect(running).toContain('theme-reveal');
+    test.skip(!clicked, 'no View Transitions API in this browser');
+    // WebKit (the iPhone project) switches the theme but its view-transition
+    // pseudo animations are not observable here, so the reveal is asserted in
+    // Chromium only.
+    const expected = browserName === 'chromium' ? ['hero-art-in', 'theme-reveal'] : ['hero-art-in'];
+    await page.waitForFunction(
+      (names) => {
+        const seen = (window as unknown as { __themeAnims?: Set<string> }).__themeAnims;
+        return !!seen && names.every((n) => seen.has(n));
+      },
+      expected,
+      { timeout: 5000 },
+    );
   });
 
   test('proof strip shows GitHub stars (real number or fallback)', async ({ page }) => {
