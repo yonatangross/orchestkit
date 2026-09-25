@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { HomeLayout } from "fumadocs-ui/layouts/home";
 import { baseOptions } from "@/app/layout.config";
@@ -20,6 +21,13 @@ const POPULAR = [
 // the Markdown and JSON 404 bodies use (lib/not-found-body.ts), rendered here
 // so the HTML representation points at the same places, and so a crawler that
 // only ever parses HTML still finds the sitemap and llms.txt from a dead link.
+
+// A dead link showed the home title in the tab and history (dogfood
+// 2026-09-25). The status is already 404; the title now says so.
+export const metadata: Metadata = {
+	title: "Page not found",
+	description: "That page moved or never existed. Popular pages and the docs are one click away.",
+};
 
 export default function NotFound() {
   return (

@@ -563,8 +563,26 @@
    ON PURPOSE: on docs pages the same `[data-search-full]` marks the
    SIDEBAR search box, which must stay. Cmd/Ctrl-K still opens search
    everywhere (verified: the dialog mounts on the homepage). */
+/* Hiding it outright left /changelog, /community and the 404 with no visible
+   search on desktop, because fumadocs shows its search ICON only below lg
+   (dogfood 2026-09-25). So the bar becomes an icon-only round button: the nav
+   stays plain, and the "Search" text stays in the accessible name. */
 #nd-nav [data-search-full] {
-  display: none !important;
+  font-size: 0;
+  gap: 0;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  justify-content: center;
+  border-radius: 9999px;
+}
+#nd-nav [data-search-full] > :not(svg) {
+  display: none;
+}
+#nd-nav [data-search-full] svg {
+  width: 1rem;
+  height: 1rem;
+  margin: 0;
 }
 
 @media (prefers-reduced-motion: no-preference) {

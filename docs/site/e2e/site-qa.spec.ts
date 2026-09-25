@@ -32,6 +32,21 @@ test.describe("Site QA", () => {
 		});
 	}
 
+	test("a dead link says so in its title", async ({ page }) => {
+		// The 404 carried the home title in the tab and history (dogfood 007).
+		await page.goto("/no-such-page-site-qa");
+		await expect(page).toHaveTitle(/^Page not found/);
+	});
+
+	for (const path of ["/changelog", "/community"]) {
+		test(`search is visible in the nav on ${path} at 1440`, async ({ page }) => {
+			// The only desktop search control was hidden; ⌘K was the only way in (dogfood 006).
+			await page.goto(path);
+			const search = page.locator("#nd-nav").getByRole("button", { name: /^Search/ }).first();
+			await expect(search).toBeVisible();
+		});
+	}
+
 	test("the release banner sits in a named landmark", async ({ page }) => {
 		// axe "region" fired on every route for the unlandmarked banner (QA #22).
 		await page.goto("/");
