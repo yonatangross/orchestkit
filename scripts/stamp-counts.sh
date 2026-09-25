@@ -98,7 +98,8 @@ stamp_marketplace_json() {
   local file="${1:-$PROJECT_ROOT/.claude-plugin/marketplace.json}"
   if [[ ! -f "$file" ]]; then return; fi
 
-  # Stamp top-level .description and the TRACKING entry (source.ref == "main")
+  # Stamp top-level .description and the TRACKING entry (source.ref == "main",
+  # not a mods/ entry: mods carry their own versions and also track main)
   # only, never a pinned channel. Whole-file sed used to rewrite the stable
   # 'ork' entry's counts too (F25 / sc47): same class of bug as the version
   # stamper's old `.plugins[0]` before #3340. Falls back to plugins[0] for a
@@ -115,8 +116,8 @@ stamp_marketplace_json() {
       | gsub("Includes [0-9]+ specialized agents, [0-9]+ commands, and [0-9]+ lifecycle hooks";
            "Includes \($agents) specialized agents, \($invocable) commands, and \($hooks) lifecycle hooks");
     .description |= stamp_top
-    | (if any(.plugins[]; .source.ref? == "main")
-       then (.plugins[] | select(.source.ref? == "main") | .description) |= stamp_plugin
+    | (if any(.plugins[]; (.source.ref? == "main" and ((.source.path? // "") | startswith("mods/") | not)))
+       then (.plugins[] | select((.source.ref? == "main" and ((.source.path? // "") | startswith("mods/") | not))) | .description) |= stamp_plugin
        else (.plugins[0].description) |= stamp_plugin
        end)
   ' "$file" > "${file}.tmp" && mv "${file}.tmp" "$file"
@@ -294,7 +295,8 @@ sync_versions() {
   # .claude-plugin/marketplace.json — top-level .version AND .plugins[0].version
   local marketplace="$PROJECT_ROOT/.claude-plugin/marketplace.json"
   if [[ -f "$marketplace" ]]; then
-    # Stamp the top-level version and the TRACKING entry (source.ref == "main"),
+    # Stamp the top-level version and the TRACKING entry (source.ref == "main",
+    # excluding mods/ entries, which track main but version independently),
     # never a pinned channel. The old `.plugins[0].version = $v` stamped by
     # position, and position 0 is the PINNED stable entry since the channel
     # split (#3340): CI's fresh-build step ran this against the release branch
@@ -304,8 +306,8 @@ sync_versions() {
     # single-entry layout with no tracking ref.
     jq --arg v "$version" '
       .version = $v
-      | (if any(.plugins[]; .source.ref? == "main")
-         then (.plugins[] | select(.source.ref? == "main") | .version) |= $v
+      | (if any(.plugins[]; (.source.ref? == "main" and ((.source.path? // "") | startswith("mods/") | not)))
+         then (.plugins[] | select((.source.ref? == "main" and ((.source.path? // "") | startswith("mods/") | not))) | .version) |= $v
          else .plugins[0].version = $v
          end)' "$marketplace" > "${marketplace}.tmp" && mv "${marketplace}.tmp" "$marketplace"
     synced=$((synced + 1))
