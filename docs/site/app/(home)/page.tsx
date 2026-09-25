@@ -114,7 +114,7 @@ export default async function HomePage() {
       >
         <div className="home-hero-inner relative mx-auto w-full max-w-[var(--hero-max)] px-[var(--hero-pad)] pt-12 pb-10 sm:pt-[72px] sm:pb-12">
           <div className="home-hero-copy relative z-[2] max-w-[520px] text-left max-[900px]:max-w-none">
-            <div className="home-hero-copy-top">
+            <div className="home-hero-copy-top" data-grid-quiet>
               {latest ? (
                 <Link
                   href="/changelog"
@@ -166,7 +166,7 @@ export default async function HomePage() {
               </p>
             </div>
 
-            <div className="home-hero-copy-actions">
+            <div className="home-hero-copy-actions" data-grid-quiet>
               {/* Host first, then that host's one command (operator, 2026-09-25):
                   76% of host picks were not Claude Code, but the hero printed the
                   Claude Code command before the picker. */}
@@ -175,7 +175,7 @@ export default async function HomePage() {
           </div>
           <HomeHeroArt />
 
-          <div className="home-hero-more">
+          <div className="home-hero-more" data-grid-quiet>
             <HomeSearchTrigger />
             <WebMcpSearchForm />
             <div className="mt-4 flex flex-wrap items-center justify-start gap-x-5 gap-y-2 text-[13px] text-fd-muted-foreground min-[901px]:justify-center">

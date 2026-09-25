@@ -722,6 +722,13 @@
 #nd-nav {
   view-transition-name: site-header;
 }
+/* The view-transition-name above makes the header a backdrop root, so the
+   fumadocs backdrop-blur on its surface samples nothing and page text showed
+   through the 80% background on scroll (QA 2026-09-25). Opaque surface. */
+#nd-nav > div,
+#nd-subnav {
+  background-color: var(--color-fd-background);
+}
 #nd-sidebar {
   view-transition-name: docs-sidebar;
 }

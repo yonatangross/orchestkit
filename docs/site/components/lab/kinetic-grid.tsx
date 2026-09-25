@@ -16,6 +16,7 @@ const CELL_SIZE = 55;
 const INFLUENCE_RADIUS = 260;
 const MAX_WARP = 24;
 const LERP_SPEED = 0.08;
+const QUIET_EDGE = 40;
 const LINE_BASE = { r: 180, g: 184, b: 220, a: 0.28 };
 const NODE_BASE_RADIUS = 1.8;
 const NODE_ACTIVE_RADIUS = 3.8;
@@ -134,22 +135,34 @@ export function KineticGrid({ className }: { className?: string }) {
       const pts: Point[][] = [];
       const prox: number[][] = [];
 
+      // Text areas marked data-grid-quiet stay flat: grid points inside them
+      // neither warp nor light up, easing back in over QUIET_EDGE px outside.
+      // The mesh drew lines and nodes across the hero stats line (QA 2026-09-25).
+      const quiet = live
+        ? [...document.querySelectorAll("[data-grid-quiet]")]
+            .map((el) => el.getBoundingClientRect())
+            .filter((r) => r.width > 0 && r.bottom > 0 && r.top < H)
+        : [];
+      const calm = (x: number, y: number) => {
+        let f = 1;
+        for (const r of quiet) {
+          const dx = Math.max(r.left - x, 0, x - r.right);
+          const dy = Math.max(r.top - y, 0, y - r.bottom);
+          f = Math.min(f, Math.min(1, Math.hypot(dx, dy) / QUIET_EDGE));
+        }
+        return f;
+      };
+
       for (let row = 0; row < rows; row++) {
         pts[row] = [];
         prox[row] = [];
         for (let col = 0; col < cols; col++) {
-          const { pt, proximity } = getWarpedPoint(
-            col * cellW,
-            row * cellH,
-            col,
-            row,
-            mouse,
-            ripples,
-            cols,
-            rows,
-          );
-          pts[row][col] = pt;
-          prox[row][col] = proximity;
+          const gx = col * cellW;
+          const gy = row * cellH;
+          const { pt, proximity } = getWarpedPoint(gx, gy, col, row, mouse, ripples, cols, rows);
+          const f = quiet.length ? calm(gx, gy) : 1;
+          pts[row][col] = f === 1 ? pt : { x: gx + (pt.x - gx) * f, y: gy + (pt.y - gy) * f };
+          prox[row][col] = proximity * f;
         }
       }
 

@@ -305,7 +305,9 @@ function FollowUpChip({ spec }: { spec: HostInstallSpec }) {
 }
 
 function HostCommandPanel({ spec, source }: { spec: HostInstallSpec; source: HostSource }) {
-	const payload = spec.copy ?? spec.commands.join("\n");
+	// Terminal commands copy as one line joined with && (as Claude Code does),
+	// so a paste never runs line 1 alone or trips a multi-line paste warning.
+	const payload = spec.copy ?? spec.commands.join(spec.prompt ? " && " : "\n");
 	const { copied, copy } = useTrackedCopy(payload, "install_copied", {
 		host: spec.id,
 		surface: "hero",
@@ -367,24 +369,23 @@ function HostCommandPanel({ spec, source }: { spec: HostInstallSpec; source: Hos
 							<span aria-live="polite">{copied ? "Copied" : "Copy"}</span>
 						</button>
 					</div>
-					{/* One line per command, never wrapped: a wrapped command read as three
-					    commands with the $ on the middle line (operator, 2026-09-25). */}
+					{/* Each command wraps at spaces with a hanging indent: the $ marks only
+					    its first line and the rest lines up with the command text, so a
+					    long command never reads as several (operator, 2026-09-25). The
+					    Codex command was 45% hidden in a sideways scroller (QA). */}
 					<div
-						// Long lines scroll sideways on phones, so the region needs a tab
-						// stop and a name (axe scrollable-region-focusable).
-						tabIndex={0}
-						role="region"
+						role="group"
 						aria-label={`${spec.name} install command`}
-						className="scroll-shadows min-w-0 max-w-full overflow-x-auto px-3 py-2.5 font-mono text-[12.5px] leading-6 text-fd-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-fd-ring xl:text-[13px]"
+						className="min-w-0 px-3 py-2.5 font-mono text-[12.5px] leading-6 text-fd-foreground xl:text-[13px]"
 					>
 						{spec.commands.map((line) => (
-							<div key={line} className="whitespace-pre">
+							<div key={line} className="flex gap-2.5">
 								{spec.prompt ? (
-									<span aria-hidden="true" className="mr-2.5 text-fd-muted-foreground">
+									<span aria-hidden="true" className="shrink-0 text-fd-muted-foreground">
 										$
 									</span>
 								) : null}
-								{line}
+								<span className="min-w-0 whitespace-pre-wrap [overflow-wrap:break-word]">{line}</span>
 							</div>
 						))}
 					</div>

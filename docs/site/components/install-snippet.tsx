@@ -68,7 +68,7 @@ export function InstallSnippet({
 	surface?: CopySurface;
 }) {
 	const lines = typeof text === "string" ? [text] : text;
-	const payload = copyText ?? lines.join("\n");
+	const payload = copyText ?? lines.join(prompt ? " && " : "\n");
 	const { copied, copy } = useTrackedCopy(payload, event, { host, surface });
 
 	return (
@@ -81,12 +81,16 @@ export function InstallSnippet({
 			}
 		>
 			<div className="min-w-0 flex-1 font-mono text-[12.5px] leading-5 text-fd-foreground">
+				{/* Wrap at spaces with a hanging indent after the $. break-all split
+				    "yo / natangross" mid-word on the Installation page (QA 2026-09-25). */}
 				{lines.map((line) => (
-					<div
-						key={line}
-						className={`break-all ${prompt ? "before:mr-1.5 before:text-fd-muted-foreground before:content-['$_']" : ""}`}
-					>
-						{line}
+					<div key={line} className="flex gap-1.5">
+						{prompt ? (
+							<span aria-hidden="true" className="shrink-0 text-fd-muted-foreground">
+								$
+							</span>
+						) : null}
+						<span className="min-w-0 whitespace-pre-wrap [overflow-wrap:break-word]">{line}</span>
 					</div>
 				))}
 			</div>
