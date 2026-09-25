@@ -43,6 +43,7 @@
         "Runs generated tests and identifies failures",
         "Heals failing tests up to 3 iterations maximum",
         "Fixes only test code, never modifies production source code",
+        "Never rewrites an expected value to match current output; reports each value mismatch as 'possible product bug: expected X, got Y (file:line)' and leaves the test failing",
         "Reports remaining failures if not resolved within 3 iterations"
       ]
     },
