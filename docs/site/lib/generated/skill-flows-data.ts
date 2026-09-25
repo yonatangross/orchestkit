@@ -653,7 +653,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "STEP 0b",
             "label": "Select Orchestration Mode",
-            "does": "Load details: Read(\"references/orchestration-mode.md\") for env var check logic, Agent Teams vs Task Tool comparison, and mode selection rules.",
+            "does": "Load details: Read(\"references/orchestration-mode.md\") for env var check logic, Agent Teams vs Agent Tool comparison, and mode selection rules.",
             "out": null,
             "tag": null
           }
@@ -1186,7 +1186,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "STEP 0b",
             "label": "Select Orchestration Mode",
-            "does": "Choose Agent Teams (mesh — agents debate and challenge ideas) or Task tool (star — all report to lead):",
+            "does": "Choose Agent Teams (mesh, agents debate and challenge ideas) or Agent tool (star, all report to lead):",
             "out": null,
             "tag": null
           },
@@ -7422,7 +7422,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "STEP 0b",
             "label": "Select Orchestration Mode",
-            "does": "Load details: Read(\"references/orchestration-mode.md\") for env var check logic, Agent Teams vs Task Tool comparison, and mode selection rules.",
+            "does": "Load details: Read(\"references/orchestration-mode.md\") for env var check logic, Agent Teams vs Agent Tool comparison, and mode selection rules.",
             "out": null,
             "tag": null
           }

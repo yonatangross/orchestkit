@@ -109,7 +109,7 @@ activate_skill() {
 }
 
 spawn_agents() {
-    echo -e "${YELLOW}⚡${RESET} Spawning $1 parallel agents via Task tool..."
+    echo -e "${YELLOW}⚡${RESET} Spawning $1 parallel agents via Agent tool..."
     sleep 0.5
 }
 

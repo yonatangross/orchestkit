@@ -44,7 +44,7 @@ for token in "$ARGUMENTS".split():
         FEATURE_DESC = FEATURE_DESC.replace(token, "").strip()
 ```
 
-Pass `MODEL_OVERRIDE` to all Agent() calls via `model=MODEL_OVERRIDE` when set. Accepts symbolic names (`opus`, `sonnet`, `haiku`, `fable` on harnesses whose Agent tool lists it; note fable is premium API spend after 2026-07-12) or full IDs (`claude-opus-4-8`) per CC 2.1.74.
+Pass `MODEL_OVERRIDE` to all Agent() calls via `model=MODEL_OVERRIDE` when set. Accepts symbolic names (`opus`, `sonnet`, `haiku`, `fable` on harnesses whose Agent tool lists it; note fable is premium API spend after 2026-07-12) or full IDs (`claude-opus-5-5`) per CC 2.1.74.
 
 ---
 
@@ -475,7 +475,7 @@ Load on demand with `Read("references/&lt;file&gt;")`:
 | `agent-teams-phases.md` | Agent Teams mode phases |
 | `interview-mode.md` | Interview/take-home constraints |
 | `blast-radius-clarification.md` | Step 0b: ask-what-before-how blast-radius interview + decisions table |
-| `orchestration-modes.md` | Task tool vs Agent Teams selection |
+| `orchestration-modes.md` | Agent tool vs Agent Teams selection |
 | `feedback-loop.md` | Checkpoint triggers and actions |
 | `cc-enhancements.md` | CC version-specific features |
 | `agent-teams-full-stack.md` | Full-stack pipeline for teams |

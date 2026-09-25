@@ -2,7 +2,7 @@
 
 ## Task Metrics
 
-Task tool results now include `token_count`, `tool_uses`, and `duration_ms`. Use for scope monitoring:
+Agent tool results now include `token_count`, `tool_uses`, and `duration_ms`. Use for scope monitoring:
 
 ```markdown
 ## Phase 5 Metrics (Implementation)

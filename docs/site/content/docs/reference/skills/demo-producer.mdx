@@ -566,7 +566,7 @@ Each content type has a specific template that determines:
 
 ```bash
 # Phase 1: Spawning (2s)
-⚡ Spawning {agent_name} agent via Task tool...
+⚡ Spawning {agent_name} agent via Agent tool...
 
 # Phase 2: Tool Usage (5s)
 ◆ Read: {file_count} files analyzed
@@ -1118,7 +1118,7 @@ activate_skill() {
 }
 
 spawn_agents() {
-    echo -e "${YELLOW}⚡${RESET} Spawning $1 parallel agents via Task tool..."
+    echo -e "${YELLOW}⚡${RESET} Spawning $1 parallel agents via Agent tool..."
     sleep 0.5
 }
 

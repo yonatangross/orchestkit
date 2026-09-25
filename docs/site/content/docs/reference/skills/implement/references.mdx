@@ -864,7 +864,7 @@ After all teammates complete (or when all tasks are done):
 
 ## Cost Comparison
 
-| Metric | Task Tool (5 sequential) | Agent Teams (4 mesh) |
+| Metric | Agent Tool (5 sequential) | Agent Teams (4 mesh) |
 |--------|-------------------------|---------------------|
 | Expected tokens | ~500K | ~1.2M |
 | Wall-clock time | Sequential phases | Overlapping (30-40% faster) |
@@ -877,7 +877,7 @@ After all teammates complete (or when all tasks are done):
 - Feature has > 5 files across both stacks
 - Complexity score >= 3.0
 
-**When Task tool is cheaper and sufficient:**
+**When Agent tool is cheaper and sufficient:**
 - Backend-only or frontend-only scope
 - Independent tasks (audit, test generation)
 - Simple CRUD with clear schema
@@ -887,7 +887,7 @@ After all teammates complete (or when all tasks are done):
 ## When to Use
 
 - **Use Agent Teams** for cross-cutting full-stack features where API contract coordination matters
-- **Use Task Tool** for simpler features where agents work independently
+- **Use Agent Tool** for simpler features where agents work independently
 - **Complexity threshold:** Average score >= 3.0 across 7 dimensions (use `/ork:quality-gates`)
 - **Override:** Set `ORCHESTKIT_PREFER_TEAMS=1` to always use Agent Teams
 
@@ -1135,7 +1135,7 @@ After all teammates complete:
 
 ## Cost Comparison Baseline
 
-| Metric | Task Tool (3 sequential) | Agent Teams (3 mesh) |
+| Metric | Agent Tool (3 sequential) | Agent Teams (3 mesh) |
 |--------|-------------------------|---------------------|
 | Expected tokens | ~150K | ~400K |
 | Wall-clock time | Sequential (3x) | Parallel (1x) |
@@ -1149,7 +1149,7 @@ Track actual values to validate.
 ## When to Use
 
 - **Use Agent Teams** when auditors need to cross-reference findings in real-time
-- **Use Task Tool** for quick, independent audits (single agent sufficient)
+- **Use Agent Tool** for quick, independent audits (single agent sufficient)
 - **Complexity threshold:** Average score >= 3.0 across 7 dimensions
 
 
@@ -1224,7 +1224,7 @@ into a step.
 
 ## Task Metrics
 
-Task tool results now include `token_count`, `tool_uses`, and `duration_ms`. Use for scope monitoring:
+Agent tool results now include `token_count`, `tool_uses`, and `duration_ms`. Use for scope monitoring:
 
 ```markdown
 ## Phase 5 Metrics (Implementation)
@@ -1682,7 +1682,7 @@ else:
 
 ## Comparison Table
 
-| Aspect | Task Tool (star) | Agent Teams (mesh) |
+| Aspect | Agent Tool (star) | Agent Teams (mesh) |
 |--------|------------------|--------------------|
 | Communication | All agents report to lead only | Teammates message each other |
 | API contract | Lead relays between agents | Backend messages frontend directly |
@@ -1693,7 +1693,7 @@ else:
 
 ## Fallback
 
-If Agent Teams mode encounters issues (teammate failures, messaging problems), fall back to Task tool mode for remaining phases. The approaches are compatible — work done in Teams mode transfers to Task tool continuation.
+If Agent Teams mode encounters issues (teammate failures, messaging problems), fall back to Agent tool mode for remaining phases. The approaches are compatible, work done in Teams mode transfers to Agent tool continuation.
 
 
 ### Scope Creep Detection
@@ -2079,7 +2079,7 @@ Use `AskUserQuestion` to verify scope (full-stack / backend-only / frontend-only
 ## Orchestration Mode
 
 - Agent Teams (mesh) when complexity >= 2.5 (GA since CC 2.1.33)
-- Task tool (star) otherwise; `ORCHESTKIT_FORCE_TASK_TOOL=1` to override
+- Agent tool (star) otherwise; `ORCHESTKIT_FORCE_TASK_TOOL=1` to override
 - Load orchestration modes: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/implement/references/orchestration-modes.md")`
 
 ## Tier Override

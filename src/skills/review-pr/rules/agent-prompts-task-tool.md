@@ -1,11 +1,11 @@
 ---
-title: Agent Prompts: Task Tool Mode
+title: Agent Prompts: Agent Tool Mode
 impact: HIGH
 impactDescription: "Defines six parallel reviewer agents for comprehensive PR code review"
 tags: task-tool, review, agents
 ---
 
-# Agent Prompts — Task Tool Mode
+# Agent Prompts, Agent Tool Mode
 
 Launch SIX specialized reviewers in ONE message with `run_in_background: false`.
 

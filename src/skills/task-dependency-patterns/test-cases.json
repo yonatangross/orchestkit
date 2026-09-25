@@ -17,12 +17,12 @@
     {
       "id": "edge-we-have-a-crosscutting",
       "rule": "",
-      "query": "We have a cross-cutting refactor that needs a backend architect and frontend dev working simultaneously on shared contracts. Should I use Task tool subagents or Agent Teams?",
+      "query": "We have a cross-cutting refactor that needs a backend architect and frontend dev working simultaneously on shared contracts. Should I use Agent tool subagents or Agent Teams?",
       "expectedBehavior": [
         "Claude evaluates the criteria table: cross-cutting changes, agents need to communicate",
-        "Recommends Agent Teams over Task tool for this scenario due to mesh communication needs",
+        "Recommends Agent Teams over Agent tool for this scenario due to mesh communication needs",
         "Explains the implicit team (Agent(name=...)), peer-to-peer SendMessage, and shared task list patterns",
-        "Warns about the higher cost (~2.5x) of Agent Teams vs Task tool subagents"
+        "Warns about the higher cost (~2.5x) of Agent Teams vs Agent tool subagents"
       ]
     },
     {

@@ -109,7 +109,7 @@ class AgentBus:
 - No timeout per agent (one slow agent blocks all)
 - No error isolation (one failure crashes workflow)
 - Over-coordination (too much overhead)
-- Using Agent Teams for simple sequential work (use Task tool)
+- Using Agent Teams for simple sequential work (use Agent tool)
 - Broadcasting when a direct message suffices (wastes tokens)
 
 **Incorrect — no conflict resolution strategy:**

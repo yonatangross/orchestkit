@@ -2,20 +2,20 @@
 
 ## Orchestration Mode Selection
 
-Choose **Agent Teams** (mesh -- RCA agents share hypotheses) or **Task tool** (star -- all report to lead):
+Choose **Agent Teams** (mesh, RCA agents share hypotheses) or **Agent tool** (star, all report to lead):
 
 1. Agent Teams mode (GA since CC 2.1.33) -> **recommended for cross-cutting bugs** (backend + frontend + tests)
-2. Task tool mode -> **for focused single-domain bugs**
-3. `ORCHESTKIT_FORCE_TASK_TOOL=1` -> **Task tool** (override)
+2. Agent tool mode -> **for focused single-domain bugs**
+3. `ORCHESTKIT_FORCE_TASK_TOOL=1` -> **Agent tool** (override)
 
-| Aspect | Task Tool | Agent Teams |
+| Aspect | Agent Tool | Agent Teams |
 |--------|-----------|-------------|
 | Hypothesis sharing | Lead relays between agents | Investigators share hypotheses in real-time |
 | Conflicting evidence | Lead resolves | Investigators debate directly |
 | Cost | ~250K tokens | ~600K tokens |
 | Best for | Single-domain bugs | Cross-cutting bugs with multiple hypotheses |
 
-> **Fallback:** If Agent Teams encounters issues, fall back to Task tool for remaining investigation.
+> **Fallback:** If Agent Teams encounters issues, fall back to Agent tool for remaining investigation.
 
 ## RCA Agent Roster (Phase 4)
 

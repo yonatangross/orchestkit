@@ -14,6 +14,8 @@
 - [ ] Add enum constraints where applicable
 - [ ] Provide examples in descriptions
 - [ ] Limit to 5-15 tools per request
+- [ ] On Claude, keep the `tools` array stable across turns; add tools via inline `tool_addition` or `defer_loading` rather than swapping the array
+- [ ] No forced `tool_choice` (`any` or named) on Opus 5.5 or Fable 5.1; use `auto` plus `strict: true`
 
 ## Tool Execution
 

@@ -97,7 +97,7 @@ for token in "$ARGUMENTS".split():
         TARGET = TARGET.replace(token, "").strip()
 ```
 
-Pass `MODEL_OVERRIDE` to all Agent() calls via `model=MODEL_OVERRIDE` when set. Accepts symbolic names (`opus`, `sonnet`, `haiku`, `fable` on harnesses whose Agent tool lists it; note fable is premium API spend after 2026-07-12) or full IDs (`claude-opus-4-8`) per CC 2.1.74.
+Pass `MODEL_OVERRIDE` to all Agent() calls via `model=MODEL_OVERRIDE` when set. Accepts symbolic names (`opus`, `sonnet`, `haiku`, `fable` on harnesses whose Agent tool lists it; note fable is premium API spend after 2026-07-12) or full IDs (`claude-opus-5-5`) per CC 2.1.74.
 
 > **Switching to Opus via `/model` (CC 2.1.144+):** `/model` now changes the model for the current session only, so picking Opus for an assess run no longer persists past it. Press `d` in the picker only to set a default for new sessions.
 
@@ -182,7 +182,7 @@ AskUserQuestion(
 
 ## STEP 0b: Select Orchestration Mode
 
-Load details: `Read("references/orchestration-mode.md")` for env var check logic, Agent Teams vs Task Tool comparison, and mode selection rules.
+Load details: `Read("references/orchestration-mode.md")` for env var check logic, Agent Teams vs Agent Tool comparison, and mode selection rules.
 
 ---
 
@@ -289,7 +289,7 @@ For Phase 2 parallel agents, show each dimension's score **as soon as the evalua
 
 Rate each dimension 0-10 with weighted composite score. Load `Read("../quality-gates/references/unified-scoring-framework.md")` for dimensions, weights, grade interpretation, and per-dimension criteria. Load `Read("references/quality-model.md")` for assess-specific overrides.
 
-Load `Read("references/agent-spawn-definitions.md")` for Task Tool mode spawn patterns and Agent Teams alternative.
+Load `Read("references/agent-spawn-definitions.md")` for Agent Tool mode spawn patterns and Agent Teams alternative.
 
 **Composite Score:** Weighted average of all 6 dimensions (see quality-model.md).
 

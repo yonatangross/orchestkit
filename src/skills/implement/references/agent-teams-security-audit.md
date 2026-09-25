@@ -116,7 +116,7 @@ After all teammates complete:
 
 ## Cost Comparison Baseline
 
-| Metric | Task Tool (3 sequential) | Agent Teams (3 mesh) |
+| Metric | Agent Tool (3 sequential) | Agent Teams (3 mesh) |
 |--------|-------------------------|---------------------|
 | Expected tokens | ~150K | ~400K |
 | Wall-clock time | Sequential (3x) | Parallel (1x) |
@@ -130,5 +130,5 @@ Track actual values to validate.
 ## When to Use
 
 - **Use Agent Teams** when auditors need to cross-reference findings in real-time
-- **Use Task Tool** for quick, independent audits (single agent sufficient)
+- **Use Agent Tool** for quick, independent audits (single agent sufficient)
 - **Complexity threshold:** Average score >= 3.0 across 7 dimensions

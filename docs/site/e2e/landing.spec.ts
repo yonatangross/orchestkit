@@ -166,7 +166,8 @@ test.describe('Landing cookbook recipes', () => {
     }
 
     await expect(page.getByText('NEW', { exact: true })).toBeVisible();
-    await expect(page.getByText('/ork:design-ship')).toBeVisible();
+    // exact: the lazily loaded skill browser also renders design-import's description, which mentions /ork:design-ship
+    await expect(page.getByText('/ork:design-ship', { exact: true })).toBeVisible();
   });
 });
 

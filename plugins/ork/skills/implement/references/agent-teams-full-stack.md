@@ -291,7 +291,7 @@ After all teammates complete (or when all tasks are done):
 
 ## Cost Comparison
 
-| Metric | Task Tool (5 sequential) | Agent Teams (4 mesh) |
+| Metric | Agent Tool (5 sequential) | Agent Teams (4 mesh) |
 |--------|-------------------------|---------------------|
 | Expected tokens | ~500K | ~1.2M |
 | Wall-clock time | Sequential phases | Overlapping (30-40% faster) |
@@ -304,7 +304,7 @@ After all teammates complete (or when all tasks are done):
 - Feature has > 5 files across both stacks
 - Complexity score >= 3.0
 
-**When Task tool is cheaper and sufficient:**
+**When Agent tool is cheaper and sufficient:**
 - Backend-only or frontend-only scope
 - Independent tasks (audit, test generation)
 - Simple CRUD with clear schema
@@ -314,6 +314,6 @@ After all teammates complete (or when all tasks are done):
 ## When to Use
 
 - **Use Agent Teams** for cross-cutting full-stack features where API contract coordination matters
-- **Use Task Tool** for simpler features where agents work independently
+- **Use Agent Tool** for simpler features where agents work independently
 - **Complexity threshold:** Average score >= 3.0 across 7 dimensions (use `/ork:quality-gates`)
 - **Override:** Set `ORCHESTKIT_PREFER_TEAMS=1` to always use Agent Teams

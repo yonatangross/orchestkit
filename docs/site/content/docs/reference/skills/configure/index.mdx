@@ -32,17 +32,22 @@ TARGET = "$ARGUMENTS[1]"   # Optional target, e.g., "memory"
 # $ARGUMENTS is the full string (CC 2.1.59 indexed access)
 ```
 
+Done means `~/.claude/plugins/orchestkit/config.json` is written, the user saw the Step 11 preview, and `/reload-plugins` was advised.
+Budget: at most one AskUserQuestion per step and 11 steps; stop and report at the finish line or the first cap, whichever comes first.
+
 ## Step 1: Choose Preset
 
 Use AskUserQuestion:
 
 | Preset | Skills | Agents | Hooks | Description |
 |--------|--------|--------|-------|-------------|
-| **Complete** | 91 | 31 | 96 | Everything |
-| **Standard** | 91 | 0 | 96 | Skills, no agents |
-| **Lite** | 10 | 0 | 96 | Essential only |
-| **Hooks-only** | 0 | 0 | 96 | Just safety |
-| **Monorepo** | 91 | 31 | 96 | Complete + monorepo detection |
+| **Complete** | all | all | all | Everything |
+| **Standard** | all | 0 | all | Skills, no agents |
+| **Lite** | 28 | 0 | all | Essential only (testing, security, planning) |
+| **Hooks-only** | 0 | 0 | all | Safety, productivity and team coordination hooks |
+| **Monorepo** | all | all | all | Complete + monorepo detection |
+
+Live counts: run `claude plugin details ork` (108 skills, 36 agents on 2026-09-25).
 
 ## Step 2: Customize Skill Categories
 

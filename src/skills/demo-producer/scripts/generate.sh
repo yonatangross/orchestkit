@@ -156,7 +156,7 @@ generate_parallel_agent_section() {
 
     cat >> "$output_script" << 'PARALLEL_HEADER'
     echo
-    echo -e "${YELLOW}⚡${RESET} Spawning parallel agents via Task tool..."
+    echo -e "${YELLOW}⚡${RESET} Spawning parallel agents via Agent tool..."
     sleep 0.3
 PARALLEL_HEADER
 
@@ -555,7 +555,7 @@ SCRIPT_HEADER
 
     cat >> "$output_script" << AGENT_SPAWN
     # Agent spawn
-    echo -e "\${YELLOW}⚡\${RESET} Spawning \${MAGENTA}${DEMO_NAME}\${RESET} agent via Task tool..."
+    echo -e "\${YELLOW}⚡\${RESET} Spawning \${MAGENTA}${DEMO_NAME}\${RESET} agent via Agent tool..."
     sleep 0.5
     echo
 

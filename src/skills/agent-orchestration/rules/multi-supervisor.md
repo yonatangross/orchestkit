@@ -126,7 +126,7 @@ CC 2.1.33 introduces native Agent Teams with peer-to-peer messaging and mesh top
 ### Star vs Mesh Topology
 
 ```
-Star (Task tool):              Mesh (Agent Teams):
+Star (Agent tool):              Mesh (Agent Teams):
       Lead                           Lead (delegate)
      /||\                          /  |  \
     / || \                        /   |   \
@@ -138,7 +138,7 @@ Star (Task tool):              Mesh (Agent Teams):
 
 ```
 Complexity Assessment:
-+-- Score < 3.0  -> Task tool subagents (cheaper, simpler)
++-- Score < 3.0  -> Agent tool subagents (cheaper, simpler)
 +-- Score 3.0-3.5 -> User choice (recommend Teams for cross-cutting)
 +-- Score > 3.5  -> Agent Teams (GA since CC 2.1.33)
 ```
@@ -178,7 +178,7 @@ SendMessage(to="frontend-dev",
 
 ### Cost Comparison
 
-| Scenario | Task Tool | Agent Teams | Ratio |
+| Scenario | Agent Tool | Agent Teams | Ratio |
 |----------|-----------|-------------|-------|
 | 3-agent review | ~150K tokens | ~400K tokens | 2.7x |
 | 8-agent feature | ~500K tokens | ~1.2M tokens | 2.4x |
@@ -192,7 +192,7 @@ SendMessage(to="frontend-dev",
 | Parallelism | Parallelize independent agents |
 | Worker timeout | 30s default |
 | Communication | Shared state, message bus, or SendMessage (CC 2.1.33+) |
-| Topology | Task tool (star) for simple; Agent Teams (mesh) for complex |
+| Topology | Agent tool (star) for simple; Agent Teams (mesh) for complex |
 
 **Incorrect — sequential execution of independent agents:**
 ```python
