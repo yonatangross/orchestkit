@@ -43,18 +43,23 @@ Silence is not allowed: an operator must know the named layer is empty.
 ## Seeing it work
 
 When a tool result had at least one value covered, the mod says so where
-you can see it, with numbers you can check (Claude Code shows each line
-with the plugin name in front):
+you can see it (Claude Code shows each line with the plugin name in front):
 
-- a toast: `masked 1 value in Bash, 40 bytes in, 24 bytes out`
-  (UTF-8 bytes of the covered values, then of the bullets that replaced
-  them; a bullet is 3 bytes, at most 8 per value);
+- a toast: `masked 1 value in Bash`;
 - a status line under the prompt: `3 masked this session`;
-- the same numbers in the debug log via `$.ui.log`, plus
-  the whole result's byte size before and after masking.
+- the byte counts in the debug log only, via `$.ui.log(text, { to: "debug" })`:
+  `40 bytes in, 24 bytes out` (UTF-8 bytes of the covered values, then of the
+  bullets that replaced them; a bullet is 3 bytes, at most 8 per value), plus
+  the whole result's byte size before and after masking. Without `to: "debug"`
+  a `$.ui.log` line lands in the transcript, and a per-secret byte length is a
+  hint about the secret, so it stays out of anything a human or the
+  transcript sees.
 
 These lines carry counts only, never a value. Nothing is shown when nothing
-was masked. A refused toast or status never unmasks a result.
+was masked. A refused toast or status never unmasks a result. Every awaited UI
+call has a deadline through `$.clock.after` (a mod has no ambient timers): 3 s
+for engine calls, 120 s for the copy question, so a stuck call never holds the
+masked result.
 
 ## Copy to your clipboard (opt-in)
 
@@ -64,9 +69,11 @@ your clipboard? It goes to your clipboard only; Claude never sees it." The
 answers are `Copy to clipboard` and `Keep hidden`. `Copy to clipboard` hands
 the first covered value to `$.ui.copy` (OSC 52 in the terminal) and nothing
 else: the tool result the model reads stays masked, and the question, the
-toast, the status line and the log carry counts only. A missing dialog, a
-refused copy or `Keep hidden` all leave the value covered. The option is off by
-default because a dialog on every masked result would be noise.
+toast, the status line and the log carry counts only (the copy toast reads
+`copied to your clipboard; Claude still sees dots`, with no length). A missing
+dialog, a refused or timed-out copy, a question nobody answers within 120 s, or
+`Keep hidden` all leave the value covered. The option is off by default because
+a dialog on every masked result would be noise.
 
 Measured on CC 2.1.282 (2026-09-25): the model read 8 bullets, the debug log
 said `$.ui.copy (secrets-veil): 40 chars, path native, OSC 52 written; copied`,
@@ -82,7 +89,11 @@ and the clipboard held 40 bytes.
   `http.fetch` and `store.*` are absent from the module. Its `$.ui` calls are
   `notice`, `toast`, `status` and `log`, each carrying counts, never a value,
   plus `ask` and `copy` when the copy offer is opted in; only `copy` ever
-  receives a value.
+  receives a value. `$.clock.after` arms the UI deadlines.
+- **No reuse of the unmasked run.** Core 2.1.282 reuses a run's own messages
+  when a `tool.call` answer names it by `ref` and its `result` is undefined or
+  deep-equal. A masked answer always carries a changed `result`; one without a
+  `result` has its `ref` dropped.
 - **No names beyond the 21.** The mod reads only the names listed above.
 
 ## Why your own variable names are not listed

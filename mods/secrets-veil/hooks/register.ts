@@ -11,10 +11,11 @@
  * - tool.call: run the tool via next(), then deep-mask every string in the
  *   result (plain text, result.stdout, and any nested field). When at least
  *   one value was masked, say so where the human can see it: one $.ui.toast
- *   and one $.ui.status line with the count and the UTF-8 byte counts
- *   (bytes of the covered values in, bytes of the bullets out), plus the
- *   same numbers to the debug log via $.ui.log. The numbers never include a
- *   masked value, so the proof reveals nothing.
+ *   and one $.ui.status line with the count only. The UTF-8 byte counts
+ *   (bytes of the covered values in, bytes of the bullets out) go to the
+ *   debug log only ($.ui.log with { to: "debug" }), because a per-secret
+ *   byte length is itself a hint about the secret. Every awaited UI call has
+ *   a timeout, so a stuck dialog or engine call never holds the result.
  *
  * There is no reveal path: no ui.render, no ui.press, no command.register,
  * no hover. Once covered, a value stays covered for the session.
@@ -117,10 +118,68 @@ export function statsOf(covered: Set<string>): MaskStats {
   return stats;
 }
 
-/** The toast line for one masked tool result (Claude Code prefixes the plugin name). */
+/**
+ * The toast line for one masked tool result (Claude Code prefixes the plugin
+ * name). Counts only: a byte length would leak the length of a secret.
+ */
 export function toastText(stats: MaskStats, tool: string): string {
   const noun = stats.values === 1 ? "value" : "values";
-  return `masked ${stats.values} ${noun} in ${tool}, ${stats.bytesIn} bytes in, ${stats.bytesOut} bytes out`;
+  return `masked ${stats.values} ${noun} in ${tool}`;
+}
+
+/** The debug-only line: the byte counts that prove the masking. */
+export function debugText(stats: MaskStats, tool: string, before: number, after: number): string {
+  return `${toastText(stats, tool)}, ${stats.bytesIn} bytes in, ${stats.bytesOut} bytes out; result ${before} bytes before, ${after} bytes after`;
+}
+
+/** A human answers the copy question; every other UI call is a quick engine call. */
+export const ASK_TIMEOUT_MS = 120_000;
+export const UI_TIMEOUT_MS = 3_000;
+
+/** What withTimeout resolves to when the call did not settle in time. */
+export const TIMED_OUT = Symbol("secrets-veil.timed-out");
+
+/**
+ * Run one UI call with a deadline from $.clock.after (a mod has no ambient
+ * timers). A synchronous throw becomes a rejection. If the clock itself is
+ * unavailable the call is awaited without a deadline.
+ */
+export async function withTimeout($: DollarAPI, call: () => unknown, ms: number): Promise<unknown> {
+  const pending = Promise.resolve().then(call);
+  let expire: (value: typeof TIMED_OUT) => void = () => undefined;
+  const timeout = new Promise<typeof TIMED_OUT>((resolve) => {
+    expire = resolve;
+  });
+  let timer: { cancel?: () => void } | undefined;
+  try {
+    timer = $.clock.after(ms, () => expire(TIMED_OUT));
+  } catch {
+    return pending;
+  }
+  try {
+    return await Promise.race([pending, timeout]);
+  } finally {
+    timer?.cancel?.();
+  }
+}
+
+/**
+ * Keep the engine from reusing the unmasked run. Core 2.1.282 compares a
+ * tool.call answer with the run it names by `ref` and reuses that run's own
+ * messages when `result` is undefined or deep-equal
+ * (Qyn=(e,n)=>e.deny===void 0&&(e.result===void 0||e.result===n.result||Ln(e.result)===Ln(n.result))).
+ * A masked answer with a `result` differs, so keeping `ref` is safe and keeps
+ * the run's metadata. A masked answer WITHOUT `result` would be reused
+ * unmasked, so its `ref` is dropped.
+ */
+export function answerFor(masked: unknown, changed: boolean): unknown {
+  if (!changed || masked === null || typeof masked !== "object") return masked;
+  const answer = masked as Record<string, unknown>;
+  if ("ref" in answer && answer.result === undefined) {
+    const { ref: _unmaskedRun, ...rest } = answer;
+    return rest;
+  }
+  return masked;
 }
 
 /**
@@ -135,17 +194,28 @@ async function offerToCopy($: DollarAPI, covered: Set<string>, tool: string): Pr
   if (first === undefined) return;
   let answer: unknown = KEEP;
   try {
-    answer = await $.ui.ask(copyQuestion(covered.size, tool), [COPY, KEEP]);
+    // A timed-out question counts as Keep hidden.
+    answer = await withTimeout($, () => $.ui.ask(copyQuestion(covered.size, tool), [COPY, KEEP]), ASK_TIMEOUT_MS);
   } catch {
     return;
   }
   if (answer !== COPY) return;
   try {
-    const copied = await $.ui.copy({ text: first });
-    await $.ui.toast(
-      copied.isCopied
-        ? `copied ${first.length} characters to your clipboard; Claude still sees dots`
-        : `nothing copied (${copied.reason ?? "no clipboard"}); the value stays covered`
+    const copied = (await withTimeout($, () => $.ui.copy({ text: first }), UI_TIMEOUT_MS)) as
+      | { isCopied: boolean; reason?: string }
+      | typeof TIMED_OUT;
+    const done = copied !== TIMED_OUT && copied.isCopied;
+    const reason = copied === TIMED_OUT ? "timed out" : (copied.reason ?? "no clipboard");
+    // No length in the toast: the length of a secret is a hint about it.
+    await withTimeout(
+      $,
+      () =>
+        $.ui.toast(
+          done
+            ? "copied to your clipboard; Claude still sees dots"
+            : `nothing copied (${reason}); the value stays covered`
+        ),
+      UI_TIMEOUT_MS
     );
   } catch {
     // A refused copy leaves the value covered; masking is already done.
@@ -216,10 +286,15 @@ export function register(on: (event: string, hook: unknown) => void, _options?: 
     // that only the value shapes and entropy are standing guard.
     if (names.length === 0) {
       try {
-        await $.ui.notice(
-          NOTICE_ID,
-          "secrets-veil: no named secret values resolved from the environment; " +
-            "the veil is running on value patterns and entropy only, with no named secrets."
+        await withTimeout(
+          $,
+          () =>
+            $.ui.notice(
+              NOTICE_ID,
+              "secrets-veil: no named secret values resolved from the environment; " +
+                "the veil is running on value patterns and entropy only, with no named secrets."
+            ),
+          UI_TIMEOUT_MS
         );
       } catch {
         // Notice refused; masking continues either way.
@@ -244,12 +319,12 @@ export function register(on: (event: string, hook: unknown) => void, _options?: 
       const line = toastText(stats, tool);
       // Each UI call is best effort: a refused surface never unmasks or fails the result.
       try {
-        await $.ui.toast(line);
+        await withTimeout($, () => $.ui.toast(line), UI_TIMEOUT_MS);
       } catch {
         // Toast refused (no surface, or a host without toasts); the result stays masked.
       }
       try {
-        await $.ui.status(`${maskedThisSession} masked this session`);
+        await withTimeout($, () => $.ui.status(`${maskedThisSession} masked this session`), UI_TIMEOUT_MS);
       } catch {
         // Status refused; the result stays masked.
       }
@@ -257,11 +332,13 @@ export function register(on: (event: string, hook: unknown) => void, _options?: 
         await offerToCopy($, covered, tool);
       }
       try {
-        await $.ui.log(`${line}; result ${utf8Bytes(JSON.stringify(result))} bytes before, ${utf8Bytes(JSON.stringify(masked))} bytes after`);
+        // Byte counts go to the debug log only, never the transcript.
+        const debugLine = debugText(stats, tool, utf8Bytes(JSON.stringify(result)), utf8Bytes(JSON.stringify(masked)));
+        await withTimeout($, () => $.ui.log(debugLine, { to: "debug" }), UI_TIMEOUT_MS);
       } catch {
         // Debug log refused; the result stays masked.
       }
     }
-    return masked;
+    return answerFor(masked, stats.values > 0);
   });
 }
