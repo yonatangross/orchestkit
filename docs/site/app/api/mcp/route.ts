@@ -59,7 +59,7 @@ const TOOLS = [
 			const textBody =
 				hits.length === 0
 					? `No documentation matched "${query}". Try broader terms, or list sections at ${SITE.domain}/docs/llms.txt.`
-					: hits.map((h) => `- ${h.title} — ${h.url}\n  ${h.content}`).join("\n");
+					: hits.map((h) => `- ${h.title}: ${h.url}\n  ${h.content}`).join("\n");
 			return {
 				content: [{ type: "text", text: textBody }],
 				structuredContent: { results: hits },

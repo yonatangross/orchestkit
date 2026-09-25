@@ -33,7 +33,7 @@ export function CommunityDoors() {
 						<span className="mt-2 block text-xl font-semibold tracking-tight text-fd-foreground">
 							WhatsApp
 						</span>
-						<span className="mt-2 block max-w-[28ch] text-sm leading-6 text-fd-muted-foreground">
+						<span className="mt-2 block max-w-[28ch] text-sm leading-6 text-pretty text-fd-muted-foreground">
 							The invite rotates. This is the current door.
 						</span>
 					</span>
@@ -56,7 +56,7 @@ export function CommunityDoors() {
 						<span className="block text-base font-semibold tracking-tight text-fd-foreground">
 							GitHub Discussions
 						</span>
-						<span className="mt-1 block text-sm leading-5 text-fd-muted-foreground">
+						<span className="mt-1 block text-sm leading-5 text-pretty text-fd-muted-foreground">
 							Questions and ideas that should stay findable.
 						</span>
 						<span className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-fd-primary">
@@ -79,7 +79,7 @@ export function CommunityDoors() {
 						<span className="block text-base font-semibold tracking-tight text-fd-foreground">
 							GitHub Issues
 						</span>
-						<span className="mt-1 block text-sm leading-5 text-fd-muted-foreground">
+						<span className="mt-1 block text-sm leading-5 text-pretty text-fd-muted-foreground">
 							Bugs and requests. Include host, version, and doctor.
 						</span>
 						<span className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-fd-primary">

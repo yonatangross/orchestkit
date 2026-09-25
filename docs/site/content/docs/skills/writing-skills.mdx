@@ -1,6 +1,6 @@
 ---
 title: "Create Your Own SKILL.md"
-description: "Step-by-step guide to writing custom skills -- frontmatter template, best practices, directory structure, and testing with npm run test:skills."
+description: "Step-by-step guide to writing custom skills: frontmatter template, best practices, directory structure, and testing with npm run test:skills."
 ---
 
 ## When to Write a Skill
@@ -110,13 +110,13 @@ print(result)
 
 ### Required Fields
 
-**`name`** -- Must match the directory name exactly. Kebab-case only.
+**`name`**: Must match the directory name exactly. Kebab-case only.
 
 ```yaml
 name: cursor-pagination  # Directory: src/skills/cursor-pagination/
 ```
 
-**`description`** -- One line. Start with what the skill does, end with "Use when..." triggers. This is how hooks and agents discover the skill.
+**`description`**: One line. Start with what the skill does, end with "Use when..." triggers. This is how hooks and agents discover the skill.
 
 ```yaml
 # Good: Actionable, includes triggers
@@ -126,30 +126,30 @@ description: "Cursor-based pagination patterns for large datasets. Use when impl
 description: "Pagination stuff."
 ```
 
-**`tags`** -- Keywords for search and auto-suggest. Include technology names, pattern names, and problem domains.
+**`tags`**: Keywords for search and auto-suggest. Include technology names, pattern names, and problem domains.
 
 ```yaml
 tags: [pagination, cursor, offset, api, performance, database]
 ```
 
-**`user-invocable`** -- Set to `true` only if the skill is a command workflow that users invoke with `/ork:skill-name`. Most custom skills should be `false`.
+**`user-invocable`**: Set to `true` only if the skill is a command workflow that users invoke with `/ork:skill-name`. Most custom skills should be `false`.
 
-**`context`** -- Controls execution context:
+**`context`**: Controls execution context:
 
-- `fork` -- Isolated context. Use for most reference skills.
-- `inherit` -- Parent context. Use when the skill needs to read current files or state.
-- `none` -- No context needed. Use for memory operations or pure knowledge lookups.
+- `fork`: Isolated context. Use for most reference skills.
+- `inherit`: Parent context. Use when the skill needs to read current files or state.
+- `none`: No context needed. Use for memory operations or pure knowledge lookups.
 
-**`complexity`** -- Adaptive thinking alignment:
+**`complexity`**: Adaptive thinking alignment:
 
-- `low` -- Quick lookups, simple patterns. Claude spends minimal reasoning tokens.
-- `medium` -- Most implementation patterns. Standard reasoning depth.
-- `high` -- Complex multi-system patterns. Deep reasoning.
-- `max` -- System-wide assessments. Maximum reasoning budget.
+- `low`: Quick lookups, simple patterns. Claude spends minimal reasoning tokens.
+- `medium`: Most implementation patterns. Standard reasoning depth.
+- `high`: Complex multi-system patterns. Deep reasoning.
+- `max`: System-wide assessments. Maximum reasoning budget.
 
 ### Optional Fields
 
-**`argument-hint`** -- Autocomplete hint shown after `/ork:skill-name`. Helps users know what arguments the skill accepts.
+**`argument-hint`**: Autocomplete hint shown after `/ork:skill-name`. Helps users know what arguments the skill accepts.
 
 ```yaml
 argument-hint: "[issue-number]"       # /ork:fix-issue [issue-number]
@@ -157,31 +157,31 @@ argument-hint: "[file-or-topic]"      # /ork:assess [file-or-topic]
 argument-hint: "[search|load|history]" # /ork:memory [search|load|history]
 ```
 
-**`disable-model-invocation`** -- Set to `true` to hide the skill from Claude's prompt listing. The skill is still available via `/ork:skill-name` and agent `skills:` arrays, but Claude won't see it in its context window. Use for niche or rarely-needed skills to save tokens (~3,200 tokens/turn saved by hiding 39 of 105 skills -- exact count varies as skills are added).
+**`disable-model-invocation`**: Set to `true` to hide the skill from Claude's prompt listing. The skill is still available via `/ork:skill-name` and agent `skills:` arrays, but Claude won't see it in its context window. Use for niche or rarely-needed skills to save tokens (~3,200 tokens/turn saved by hiding 39 of 105 skills; exact count varies as skills are added).
 
 ```yaml
 disable-model-invocation: true  # Hidden from prompt listing, still invocable
 ```
 
-**`agent`** -- Which agent primarily uses this skill. Set this for reference skills to create the agent-skill binding.
+**`agent`**: Which agent primarily uses this skill. Set this for reference skills to create the agent-skill binding.
 
 ```yaml
 agent: database-engineer  # This skill loads when database-engineer spawns
 ```
 
-**`skills`** -- Other skills to co-load. Typically used by command skills only.
+**`skills`**: Other skills to co-load. Typically used by command skills only.
 
 ```yaml
 skills: [api-design-framework, unit-testing, memory]
 ```
 
-**`allowedTools`** -- Restricts which tools are available when this skill's context is active.
+**`allowedTools`**: Restricts which tools are available when this skill's context is active.
 
 ```yaml
 allowedTools: [Read, Grep, Glob, Bash]
 ```
 
-**`hooks`** -- Skill-scoped hooks that fire only when this skill is active. Advanced feature.
+**`hooks`**: Skill-scoped hooks that fire only when this skill is active. Advanced feature.
 
 ```yaml
 hooks:
@@ -190,7 +190,7 @@ hooks:
       command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/my-validator"
 ```
 
-**`version`** and **`author`** -- Metadata for tracking changes and ownership.
+**`version`** and **`author`**: Metadata for tracking changes and ownership.
 
 ---
 
@@ -276,11 +276,11 @@ AskUserQuestion(
 <Callout type="warn">
 The `AskUserQuestion` schema is strict and a violation makes the picker silently fail to render (it looks "stuck"). Stay inside these limits:
 
-- **2-4 options per question** (`minItems: 2`, `maxItems: 4`) — need more? split into multiple questions or merge options.
+- **2-4 options per question** (`minItems: 2`, `maxItems: 4`). Need more? Split into multiple questions or merge options.
 - **1-4 questions per call.**
-- **Option fields are exactly `label`, `description`, `preview`** (`additionalProperties: false`). The preview field is `preview`, never `markdown` — `markdown` is rejected.
-- **`preview` renders on single-select only** — do not add it to a `multiSelect: true` question.
-- **No free-text questions** (min 2 options) — ask in plain prose instead.
+- **Option fields are exactly `label`, `description`, `preview`** (`additionalProperties: false`). The preview field is `preview`, never `markdown`; `markdown` is rejected.
+- **`preview` renders on single-select only**: do not add it to a `multiSelect: true` question.
+- **No free-text questions** (min 2 options); ask in plain prose instead.
 
 `tests/skills/structure/test-askuserquestion-schema.sh` (in `npm run test:skills`) enforces all of these.
 </Callout>
@@ -482,6 +482,6 @@ Check that `plugins/ork/skills/cursor-pagination/SKILL.md` exists and contains y
 
 ## What's Next
 
-- [How Skills Work](/docs/skills/overview) -- Understand the full skill lifecycle.
-- [61 Reference Skills](/docs/skills/reference-skills) -- See how existing reference skills are structured.
-- [23 Command Skills](/docs/skills/command-skills) -- If you want to create a command skill workflow.
+- [How Skills Work](/docs/skills/overview): Understand the full skill lifecycle.
+- [Reference Skills](/docs/skills/reference-skills): See how existing reference skills are structured.
+- [Command Skills](/docs/skills/command-skills): If you want to create a command skill workflow.

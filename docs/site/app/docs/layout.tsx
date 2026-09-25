@@ -60,13 +60,46 @@ function withHostPageTree(tree: PageTree.Root): PageTree.Root {
   };
 }
 
+/**
+ * A root folder (Reference) lists its own index page as the first row, right
+ * under the tab switcher that already reads "Reference" and links to the same
+ * page (QA N07). Move that page to the folder's `index`: the sidebar stops
+ * drawing it as a row, and fumadocs still counts it as the tab's first URL.
+ */
+function rootIndexAsFolderIndex(node: PageTree.Node): PageTree.Node {
+  if (node.type !== "folder" || !node.root || node.index) return node;
+  const index = node.children.find(
+    (child): child is PageTree.Item =>
+      child.type === "page" && child.url.split("/").filter(Boolean).length === 2,
+  );
+  if (!index) return node;
+  return {
+    ...node,
+    index,
+    children: node.children.filter((child) => child !== index),
+  };
+}
+
+function withoutRootIndexRows(tree: PageTree.Root): PageTree.Root {
+  // Reference is not listed in the top-level meta.json, so fumadocs files it
+  // under `fallback`; the tab switcher reads both.
+  return {
+    ...tree,
+    children: tree.children.map(rootIndexAsFolderIndex),
+    fallback: tree.fallback && withoutRootIndexRows(tree.fallback),
+  };
+}
+
 export default function Layout({ children }: { children: ReactNode }) {
   return (
     <DocsLayout
-      tree={withHostPageTree(withStationGlyphs(source.pageTree))}
+      tree={withoutRootIndexRows(withHostPageTree(withStationGlyphs(source.pageTree)))}
       sidebar={{
         defaultOpenLevel: 0,
         collapsible: true,
+        // Reference is the only root folder, so its switcher only ever held one
+        // option and repeated the "Reference" link right below it (QA N07).
+        tabs: false,
         // A reader who lands on a deep docs page from search had no install
         // entry in the first viewport (UX flow walk, 2026-09-25).
         banner: (

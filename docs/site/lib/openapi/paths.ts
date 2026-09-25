@@ -82,7 +82,7 @@ const CURSOR_PARAM = {
 	in: "query",
 	required: false,
 	description:
-		'Opaque pagination cursor from a previous response\'s `X-Next-Cursor` header (or `Link: rel="next"`). Omit for the first page. Cursor-based — page contents do not drift between requests.',
+		'Opaque pagination cursor from a previous response\'s `X-Next-Cursor` header (or `Link: rel="next"`). Omit for the first page. Cursor-based: page contents do not drift between requests.',
 	schema: { type: "string" },
 } as const;
 
@@ -225,7 +225,7 @@ export const OPENAPI_PATHS = {
 			operationId: "batchGetMarkdown",
 			summary: "Fetch up to 20 documentation pages as Markdown in one request",
 			description:
-				"Batch read: pass an array of doc URL paths (e.g. `/docs/getting-started/installation`) and receive each page's Markdown in a single response. Per-path failures are reported inline so one bad path does not fail the batch. Reads are idempotent; an `Idempotency-Key` header is echoed back. **Async-job pattern (RFC 7240):** send `Prefer: respond-async` (or `?async=1`) to receive `202 Accepted` with a `Location` header pointing at `/api/jobs/{jobId}`; poll that URL for the job status and result. Jobs are stateless and deterministic — they complete by the first poll.",
+				"Batch read: pass an array of doc URL paths (e.g. `/docs/getting-started/installation`) and receive each page's Markdown in a single response. Per-path failures are reported inline so one bad path does not fail the batch. Reads are idempotent; an `Idempotency-Key` header is echoed back. **Async-job pattern (RFC 7240):** send `Prefer: respond-async` (or `?async=1`) to receive `202 Accepted` with a `Location` header pointing at `/api/jobs/{jobId}`; poll that URL for the job status and result. Jobs are stateless and deterministic: they complete by the first poll.",
 			tags: ["docs"],
 			parameters: [IDEMPOTENCY_KEY_PARAM],
 			requestBody: {

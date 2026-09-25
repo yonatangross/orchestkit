@@ -20,7 +20,7 @@ Local memory is Tier 2 in the public docs model: optional JSONL (JSON Lines) fil
 
 Each file serves a distinct purpose when present. Treat them as optional local artifacts for skills and compaction snapshots, not as an automatic write-ahead queue flushed into the graph by a hook.
 
-## `decisions.jsonl` -- The Decision Log
+## `decisions.jsonl`: The Decision Log
 
 This is the primary local backup when something appends to it. Skill scripts and tooling may write JSONL here for viz and status. There is no `memory-writer` hook that appends automatically.
 
@@ -84,15 +84,15 @@ Skill viz/history scripts may read the last lines of `.claude/memory/decisions.j
 _For deeper graph traversal: use mcp__memory__search_nodes or mcp__memory__open_nodes_
 ```
 
-## `open-problems.jsonl` -- Problem Tracking
+## `open-problems.jsonl`: Problem Tracking
 
 This file tracks unresolved problems and blockers encountered during sessions. Entries include the problem description, related entities, and status.
 
-## `completed-flows.jsonl` -- Workflow Records
+## `completed-flows.jsonl`: Workflow Records
 
 Records of completed multi-step workflows, providing an audit trail of complex operations.
 
-## `tool-preferences.json` -- Learned Preferences
+## `tool-preferences.json`: Learned Preferences
 
 Stores learned tool usage preferences (e.g., preferred editor, testing framework) as a JSON object rather than JSONL.
 
@@ -128,5 +128,5 @@ If local `decisions.jsonl` exists, skill scripts can still use it for viz and st
 
 ## Next Steps
 
-- [Graph Memory](/docs/memory/graph-memory) -- the primary tier for typed entities and relations
-- [Architecture Overview](/docs/memory/overview) -- the full 3-tier system
+- [Graph Memory](/docs/memory/graph-memory): the primary tier for typed entities and relations
+- [Architecture Overview](/docs/memory/overview): the full 3-tier system

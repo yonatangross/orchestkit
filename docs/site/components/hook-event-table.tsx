@@ -7,6 +7,7 @@ import {
 } from "react";
 import Link from "next/link";
 import { LibraryMark } from "@/components/category-mark";
+import { ScrollTable } from "@/components/scroll-table";
 import {
 	Item,
 	ItemContent,
@@ -98,7 +99,7 @@ export function parseHookEventTable(children: ReactNode): HookEventRow[] | null 
 			name: textOf(cells[0]).trim(),
 			matcher: textOf(cells[1]).trim(),
 			behavior: textOf(cells[2]).trim(),
-			description: textOf(cells[3]).trim() || "—",
+			description: textOf(cells[3]).trim() || "-",
 		};
 	});
 }
@@ -201,21 +202,3 @@ export function DocsTable(props: ComponentProps<"table">) {
 	return <ScrollTable {...props} />;
 }
 
-/**
- * Fumadocs' table wrapper (`relative overflow-auto prose-no-margin my-6`) made
- * keyboard-reachable: a wide table scrolls, so the region needs a tab stop and
- * a name (axe scrollable-region-focusable, serious, on the deep reference
- * pages). Same classes, so the layout is unchanged.
- */
-function ScrollTable(props: ComponentProps<"table">) {
-	return (
-		<div
-			tabIndex={0}
-			role="region"
-			aria-label="Table, scrolls sideways"
-			className="scroll-fade relative my-6 overflow-auto prose-no-margin focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-ring"
-		>
-			<table {...props} />
-		</div>
-	);
-}

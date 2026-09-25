@@ -91,10 +91,13 @@ export default async function HomePage() {
   return (
     <main>
       <HomepageStructuredData starCount={stars} />
+      {/* Shown from 1320px only: the page sections are 1200px wide with 28px
+          padding, so below ~1290 the fixed badge sat on the third library
+          card column (QA at 1024). From 1320 it clears the content by 16px. */}
       <a
         href={SITE.github}
         aria-label="OrchestKit on GitHub"
-        className="fixed bottom-5 right-5 z-40 hidden rounded-full ring-2 ring-[var(--yy-george-warm)]/60 transition-transform hover:scale-105 lg:block"
+        className="fixed bottom-5 right-5 z-40 hidden rounded-full ring-2 ring-[var(--yy-george-warm)]/60 transition-transform hover:scale-105 min-[1320px]:block"
       >
         <Image
           src="/brand/george-badge.png"

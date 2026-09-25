@@ -41,7 +41,7 @@ Each agent:
 - Returns a structured result to the parent task
 - Has no direct communication with sibling agents
 
-## Pattern 1: /ork:implement -- Feature Implementation
+## Pattern 1: /ork:implement, Feature Implementation
 
 The `/ork:implement` skill is OrchestKit's most complex orchestration pattern. It runs up to 14 agents across 3 parallel phases, taking a feature request from idea to tested, documented code.
 
@@ -93,7 +93,7 @@ With Opus 4.6's 128K output token limit, each agent generates complete artifacts
 
 ### Why This Works
 
-The key insight is that agents in each phase are independent -- they can work simultaneously without blocking each other. Dependencies only exist between phases:
+The key insight is that agents in each phase are independent: they can work simultaneously without blocking each other. Dependencies only exist between phases:
 
 | Phase 4 (Design) | Phase 5 (Build) | Phase 6 (Validate) |
 |---|---|---|
@@ -106,7 +106,7 @@ The key insight is that agents in each phase are independent -- they can work si
 
 Each phase completes before the next begins. Within each phase, all agents run simultaneously.
 
-## Pattern 2: /ork:review-pr -- Pull Request Review
+## Pattern 2: /ork:review-pr, Pull Request Review
 
 The `/ork:review-pr` skill dispatches 6 specialized reviewers against a pull request simultaneously.
 
@@ -225,7 +225,7 @@ security-layer-auditor     "Defense-in-depth verified"
 
 ## Pattern 4: Nested Delegation (CC 2.1.172+)
 
-Since Claude Code 2.1.172, sub-agents can spawn their own sub-agents -- up to 5 levels deep. Eleven ork agents declare delegation grants (`Agent(ork:<name>)` in their tools frontmatter), and each documents *when* to delegate in a CI-guarded `## Delegation` section.
+Since Claude Code 2.1.172, sub-agents can spawn their own sub-agents, up to 5 levels deep. Eleven ork agents declare delegation grants (`Agent(ork:<name>)` in their tools frontmatter), and each documents *when* to delegate in a CI-guarded `## Delegation` section.
 
 ### The real delegation graph
 
@@ -244,9 +244,9 @@ The deepest declared chain is `infrastructure-architect -> ork:ci-cd-engineer ->
 
 ### Three rules, all live-verified
 
-1. **Use registry names.** Nested spawns must use the namespaced type -- `Agent(subagent_type="ork:database-engineer")`. Bare names fail at dispatch with "Agent type not found". CI fails any bare-name grant or skill example.
-2. **The grant is advisory.** Claude Code does not enforce the parenthesized list -- an agent with the Agent tool can spawn any registry type. The grant steers behavior through prompt documentation only, so each agent's Delegation section is the real control surface.
-3. **Nest bounded, flatten independent.** Delegate only a bounded sub-problem that is explicitly outside the parent's scope (e.g. migration DDL from a data-pipeline task). Independent sub-tasks should be parallel-dispatched from the orchestrator instead -- nesting hides intermediates and multiplies latency.
+1. **Use registry names.** Nested spawns must use the namespaced type: `Agent(subagent_type="ork:database-engineer")`. Bare names fail at dispatch with "Agent type not found". CI fails any bare-name grant or skill example.
+2. **The grant is advisory.** Claude Code does not enforce the parenthesized list; an agent with the Agent tool can spawn any registry type. The grant steers behavior through prompt documentation only, so each agent's Delegation section is the real control surface.
+3. **Nest bounded, flatten independent.** Delegate only a bounded sub-problem that is explicitly outside the parent's scope (e.g. migration DDL from a data-pipeline task). Independent sub-tasks should be parallel-dispatched from the orchestrator instead; nesting hides intermediates and multiplies latency.
 
 ### Depth budget
 
@@ -254,7 +254,7 @@ Treat **3 as the practical ceiling** (CC hard-caps at 5). Note that depth *telem
 
 ## Task Management with TaskCreate and TaskUpdate
 
-All multi-agent workflows use Claude Code's task management system (CC 2.1.16+) to track progress. This is mandatory -- not optional.
+All multi-agent workflows use Claude Code's task management system (CC 2.1.16+) to track progress. This is mandatory, not optional.
 
 ### Creating Tasks
 
@@ -322,11 +322,11 @@ The `/ork:implement` skill includes a dedicated scope creep check (Phase 7). Aft
 
 To create a custom multi-agent pattern:
 
-1. **Identify independent tasks** -- What can run in parallel?
-2. **Choose agents** -- Match each task to the best specialist
-3. **Define phases** -- Group parallel tasks into sequential phases
-4. **Add dependencies** -- Use `addBlockedBy` for ordering
-5. **Collect results** -- Synthesize agent outputs into a single report
+1. **Identify independent tasks**: What can run in parallel?
+2. **Choose agents**: Match each task to the best specialist
+3. **Define phases**: Group parallel tasks into sequential phases
+4. **Add dependencies**: Use `addBlockedBy` for ordering
+5. **Collect results**: Synthesize agent outputs into a single report
 
 Example: A custom "security hardening" workflow:
 
@@ -345,14 +345,14 @@ Task(subagent_type="security-auditor", prompt="Re-scan...")
 
 ## Key Principles
 
-1. **Agents within a phase are independent** -- They share no state and can run in true parallel.
-2. **Phases are sequential** -- Phase N+1 depends on Phase N completing.
-3. **Task management is mandatory** -- Every multi-step workflow tracks progress with TaskCreate/TaskUpdate.
-4. **Agent boundaries are enforced** -- Read-only agents cannot write. Backend agents stay out of frontend.
-5. **Each agent returns a structured result** -- The orchestrator synthesizes individual reports into a unified output.
-6. **128K output means fewer passes** -- Opus 4.6 lets each agent produce complete artifacts, reducing the total number of agents needed compared to smaller output limits.
+1. **Agents within a phase are independent**: They share no state and can run in true parallel.
+2. **Phases are sequential**: Phase N+1 depends on Phase N completing.
+3. **Task management is mandatory**: Every multi-step workflow tracks progress with TaskCreate/TaskUpdate.
+4. **Agent boundaries are enforced**: Read-only agents cannot write. Backend agents stay out of frontend.
+5. **Each agent returns a structured result**: The orchestrator synthesizes individual reports into a unified output.
+6. **128K output means fewer passes**: Opus 4.6 lets each agent produce complete artifacts, reducing the total number of agents needed compared to smaller output limits.
 
 ## What's Next
 
-- [Writing Agents](/docs/agents/writing-agents) -- Build your own agent to add to these workflows
-- [Agents Overview](/docs/agents/overview) -- Full reference of all 36 agents
+- [Writing Agents](/docs/agents/writing-agents): Build your own agent to add to these workflows
+- [Agents Overview](/docs/agents/overview): Full reference of all 36 agents

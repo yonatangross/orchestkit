@@ -82,6 +82,26 @@ describe("LibraryCatalog", () => {
     );
   });
 
+  it("shows a first page of agents below lg, named by the agent", async () => {
+    search = new URLSearchParams("lib=agents");
+    render(<LibraryCatalog />);
+    const showAll = await screen.findByRole("button", { name: /^Show all \d+ agents$/ });
+    const panel = screen.getByRole("tabpanel");
+    const links = Array.from(panel.querySelectorAll("a"));
+    expect(links.length).toBeGreaterThan(8);
+    links.forEach((link, i) => {
+      expect(link.className.includes("max-lg:hidden")).toBe(i >= 8);
+    });
+    // Named by the agent alone, not the whole card text run together (QA #20).
+    const first = links[0];
+    expect(first).toHaveAccessibleName(first.querySelector("h3")?.textContent ?? "");
+    fireEvent.click(showAll);
+    expect(screen.queryByRole("button", { name: /show all/i })).toBeNull();
+    for (const link of panel.querySelectorAll("a")) {
+      expect(link.className).not.toContain("max-lg:hidden");
+    }
+  });
+
   it("moves focus to the newly selected tab on arrow keys", async () => {
     render(<LibraryCatalog />);
     fireEvent.keyDown(screen.getByRole("tablist"), { key: "ArrowRight" });

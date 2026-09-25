@@ -260,4 +260,26 @@ describe("site data bindings", () => {
 		expect(hook?.kind).toBe("hook");
 		expect(hook?.category).toBe("tools"); // hook phase id
 	});
+
+	it("gives a split skill's companion pages their skill's tags and category (QA N02)", () => {
+		const pool = candidatePool();
+		const parent = pool.find((c) => c.url === "/docs/reference/skills/doctor");
+		const part = pool.find(
+			(c) => c.url === "/docs/reference/skills/doctor/references/version-compatibility/01-feature-matrix-part-1",
+		);
+		expect(part?.tags).toEqual(parent?.tags);
+		expect(part?.category).toBe(parent?.category);
+	});
+
+	it("relates a chunk page to its own siblings, not alphabetical strangers (QA N02)", async () => {
+		const base = "/docs/reference/skills/doctor/references/version-compatibility";
+		const related = await getRelatedPages({
+			url: `${base}/01-feature-matrix-part-1`,
+			title: "Doctor: Version Compatibility: Feature Matrix (part 1 of 2)",
+		});
+		const urls = related.map((r) => r.url);
+		expect(urls).toContain(`${base}/00-overview`);
+		expect(urls).toContain(`${base}/02-feature-matrix-part-2`);
+		expect(urls.every((u) => u.startsWith("/docs/reference/skills/doctor"))).toBe(true);
+	});
 });

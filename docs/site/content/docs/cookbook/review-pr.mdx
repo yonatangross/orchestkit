@@ -65,7 +65,7 @@ After fetching the diff (9 changed files, 420 lines), six agents launch in paral
 | `test-generator` | pytest-advanced, integration-testing | Missing coverage, edge cases, mocks |
 | `frontend-performance-engineer` | performance-optimization, caching-strategies | N+1 queries, connection pooling, latency |
 | `backend-system-architect` | api-design-framework, error-handling-rfc9457 | API contracts, error responses |
-| `accessibility-specialist` | wcag-patterns, aria-guidelines | a11y (skipped — no frontend files) |
+| `accessibility-specialist` | wcag-patterns, aria-guidelines | a11y (skipped: no frontend files) |
 
 All results are **synthesized** into a single structured review.
 
@@ -174,7 +174,7 @@ Review posted to PR #42
 The comment uses GitHub markdown with collapsible sections for each category, so it does not overwhelm the PR conversation. Security P0 findings are always expanded and highlighted.
 
 <Callout type="warn">
-P0 security findings block the review with a "Changes Requested" status. P1 findings are flagged but do not block. P2 findings are informational suggestions. The webhook signature vulnerability in this example is a P0 -- the PR should not merge until it is fixed.
+P0 security findings block the review with a "Changes Requested" status. P1 findings are flagged but do not block. P2 findings are informational suggestions. The webhook signature vulnerability in this example is a P0; the PR should not merge until it is fixed.
 </Callout>
 
 ---
@@ -209,22 +209,22 @@ Each security finding is assigned a severity that maps to review actions:
 
 | Severity | Meaning | Review Action |
 |---|---|---|
-| P0 | Exploitable vulnerability | Changes Requested -- blocks merge |
-| P1 | Real issue, requires specific conditions | Flagged -- fix before production |
-| P2 | Hardening suggestion | Informational -- consider improving |
+| P0 | Exploitable vulnerability | Changes Requested, blocks merge |
+| P1 | Real issue, requires specific conditions | Flagged, fix before production |
+| P2 | Hardening suggestion | Informational, consider improving |
 
 ### Skills Auto-Injected
 
 Each agent received its standard skill set plus context-specific skills detected by the `skill-suggester` hook:
 
-- `code-review-playbook` -- Structured review methodology
-- `owasp-top-10` -- Common web vulnerability patterns
-- `defense-in-depth` -- Layered security approach
-- `api-design-framework` -- REST conventions, status codes, error formats
-- `error-handling-rfc9457` -- Problem Details standard
-- `pytest-advanced` -- Test patterns, fixtures, parametrize
-- `performance-optimization` -- N+1 detection, bundle analysis
-- `clean-architecture` -- Separation of concerns, dependency boundaries
+- `code-review-playbook`: Structured review methodology
+- `owasp-top-10`: Common web vulnerability patterns
+- `defense-in-depth`: Layered security approach
+- `api-design-framework`: REST conventions, status codes, error formats
+- `error-handling-rfc9457`: Problem Details standard
+- `pytest-advanced`: Test patterns, fixtures, parametrize
+- `performance-optimization`: N+1 detection, bundle analysis
+- `clean-architecture`: Separation of concerns, dependency boundaries
 
 ---
 
@@ -239,7 +239,7 @@ Each agent received its standard skill set plus context-specific skills detected
 </Callout>
 
 <Callout type="warn">
-**Security findings use severity levels intentionally.** P0 means "do not merge" -- the code has a vulnerability that could be exploited. P1 means "fix before production" -- the issue is real but requires specific conditions. P2 means "consider improving" -- a hardening suggestion rather than a vulnerability.
+**Security findings use severity levels intentionally.** P0 means "do not merge": the code has a vulnerability that could be exploited. P1 means "fix before production": the issue is real but requires specific conditions. P2 means "consider improving": a hardening suggestion rather than a vulnerability.
 </Callout>
 
 <Callout type="info">

@@ -3,6 +3,7 @@ import { HomeLayout } from "fumadocs-ui/layouts/home";
 import { baseOptions } from "@/app/layout.config";
 import { SiteFooter } from "@/components/site-footer";
 import { GeorgeBuried } from "@/components/world/george";
+import { HomeContainer } from "./(home)/home-container";
 import { RECOVERY_LINKS } from "@/lib/not-found-body";
 
 // Human destinations first (visual audit 2026-09-25: the only "where to look
@@ -22,7 +23,7 @@ const POPULAR = [
 
 export default function NotFound() {
   return (
-    <HomeLayout {...baseOptions}>
+    <HomeLayout {...baseOptions} slots={{ container: HomeContainer }}>
       <main className="flex min-h-[calc(100dvh-12rem)] flex-col items-center justify-center px-6 py-16 text-center">
         <GeorgeBuried className="text-fd-muted-foreground" />
         <h1 className="mt-6 text-6xl font-bold tabular-nums">404</h1>

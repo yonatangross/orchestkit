@@ -275,17 +275,23 @@ describe("HostInstallPicker", () => {
 		});
 	});
 
-	it("seeds the roving tab stop on the deep-linked host", async () => {
+	it("makes every host chip its own tab stop, deep link or not", async () => {
+		// Was a roving tabindex: Tab reached one chip and jumped to Copy, and
+		// nothing announced that arrows reach the other 7 hosts (QA #21).
 		search = new URLSearchParams("host=devin");
 		render(<HostInstallPicker />);
 		await waitFor(() =>
 			expect(
-				screen.getByRole("link", { name: "Devin" }).getAttribute("tabindex"),
-			).toBe("0"),
+				screen.getByRole("link", { name: "Devin" }).getAttribute("aria-current"),
+			).toBe("true"),
 		);
-		expect(
-			screen.getByRole("link", { name: "Claude Code" }).getAttribute("tabindex"),
-		).toBe("-1");
+		const group = screen.getByRole("group", { name: "Hosts" });
+		const chips = within(group).getAllByRole("link");
+		expect(chips).toHaveLength(8);
+		for (const chip of chips) {
+			expect(chip.getAttribute("tabindex")).not.toBe("-1");
+			expect(chip.tabIndex).toBe(0);
+		}
 	});
 
 	it("never prerenders cards at opacity 0 under reduced motion", () => {

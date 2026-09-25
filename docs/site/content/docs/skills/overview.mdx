@@ -1,6 +1,6 @@
 ---
 title: How Skills Work
-description: "Skills are reusable knowledge modules -- SKILL.md files with optional references -- that OrchestKit injects into agent context so Claude knows the right patterns for the task at hand."
+description: "Skills are reusable knowledge modules (SKILL.md files with optional references) that OrchestKit injects into agent context so Claude knows the right patterns for the task at hand."
 full: true
 ---
 
@@ -16,7 +16,7 @@ Not sure where to start? Answer 3 quick questions and get personalized skill rec
 
 ## What Is a Skill?
 
-A skill is a Markdown file (`SKILL.md`) containing structured knowledge that Claude Code can load into its context window. Skills are **knowledge, not code**. They do not execute anything. They teach the model *how* to approach a category of work -- API design, database migrations, caching strategies, security patterns, and 55 other topics.
+A skill is a Markdown file (`SKILL.md`) containing structured knowledge that Claude Code can load into its context window. Skills are **knowledge, not code**. They do not execute anything. They teach the model *how* to approach a category of work: API design, database migrations, caching strategies, security patterns, and 55 other topics.
 
 Each skill lives in its own directory under `src/skills/`:
 
@@ -32,8 +32,8 @@ src/skills/api-design-framework/
 
 The `SKILL.md` file has two parts:
 
-1. **YAML frontmatter** -- metadata that tells OrchestKit when and how to use the skill.
-2. **Markdown body** -- the actual knowledge: patterns, code examples, decision tables, checklists.
+1. **YAML frontmatter**: metadata that tells OrchestKit when and how to use the skill.
+2. **Markdown body**: the actual knowledge: patterns, code examples, decision tables, checklists.
 
 Optional `references/` subdirectories hold deeper material that gets loaded progressively when the skill budget allows it.
 
@@ -48,7 +48,7 @@ OrchestKit ships <Count k="skills" /> skills in two categories:
 | **Command** | <Count k="commands" /> | User types `/ork:skill-name` | `user-invocable: true` |
 | **Reference** | <Count k="references" /> | Hooks or agent frontmatter inject it automatically | `user-invocable: false` |
 
-**Command skills** are workflows you run directly -- `/ork:implement`, `/ork:fix-issue`, `/ork:create-pr`. They often orchestrate multiple agents and reference skills behind the scenes.
+**Command skills** are workflows you run directly: `/ork:implement`, `/ork:fix-issue`, `/ork:create-pr`. They often orchestrate multiple agents and reference skills behind the scenes.
 
 **Reference skills** are passive knowledge. They get injected into an agent's context when the agent needs them. A `database-engineer` agent automatically receives `pgvector-search`, `alembic-migrations`, and `zero-downtime-migration` because those skills declare `agent: database-engineer` in their frontmatter.
 
@@ -83,15 +83,15 @@ Here is the end-to-end flow from the moment you type a prompt to the moment Clau
   </Step>
   <Step>
     ### Claude applies skill knowledge
-    The model reads patterns, checklists, and examples — then follows them in its output.
+    The model reads patterns, checklists, and examples, then follows them in its output.
   </Step>
 </Steps>
 
 Three injection paths work together:
 
-1. **Keyword matching** -- The `skill-auto-suggest` hook scans each prompt for keywords (like "database", "auth", "fastapi") and injects up to 3 relevant skills with the highest confidence scores.
-2. **Command skill composition** -- When you invoke a command skill like `/ork:implement`, its frontmatter `skills:` field lists reference skills to load alongside it (e.g., `api-design-framework`, `type-safety-validation`, `unit-testing`).
-3. **Agent frontmatter** -- Each agent's `.md` file in `src/agents/` declares a `skills:` array. When that agent is spawned, those skills are auto-injected into its context.
+1. **Keyword matching**: The `skill-auto-suggest` hook scans each prompt for keywords (like "database", "auth", "fastapi") and injects up to 3 relevant skills with the highest confidence scores.
+2. **Command skill composition**: When you invoke a command skill like `/ork:implement`, its frontmatter `skills:` field lists reference skills to load alongside it (e.g., `api-design-framework`, `type-safety-validation`, `unit-testing`).
+3. **Agent frontmatter**: Each agent's `.md` file in `src/agents/` declares a `skills:` array. When that agent is spawned, those skills are auto-injected into its context.
 
 ---
 
@@ -108,7 +108,7 @@ Every `SKILL.md` starts with YAML frontmatter between `---` delimiters. Here are
 | `argument-hint` | Optional | string | Autocomplete hint shown after `/ork:skill-name` (e.g., `[issue-number]`) |
 | `disable-model-invocation` | Optional | boolean | `true` = hidden from Claude's prompt listing (saves tokens) |
 | `context` | Yes | string | `fork` (isolated context), `inherit` (parent context), `none` (no context needed) |
-| `complexity` | Yes | string | `low`, `medium`, `high`, or `max` -- aligns adaptive thinking budget |
+| `complexity` | Yes | string | `low`, `medium`, `high`, or `max` (aligns adaptive thinking budget) |
 | `version` | Recommended | string | Semver version of the skill content |
 | `author` | Recommended | string | Who maintains this skill |
 | `agent` | Optional | string | Which agent primarily uses this skill (reference skills only) |
@@ -120,9 +120,9 @@ Every `SKILL.md` starts with YAML frontmatter between `---` delimiters. Here are
 
 This field controls how Claude Code runs the skill:
 
-- **`fork`** -- The skill runs in an isolated context. Most common for reference skills. Required for CC 2.1.0+.
-- **`inherit`** -- The skill runs in the parent conversation's context. Used for skills that need to read or modify the current state (like `commit` or `doctor`).
-- **`none`** -- The skill needs no conversation context at all (like `remember`, which writes to the knowledge graph).
+- **`fork`**: The skill runs in an isolated context. Most common for reference skills. Required for CC 2.1.0+.
+- **`inherit`**: The skill runs in the parent conversation's context. Used for skills that need to read or modify the current state (like `commit` or `doctor`).
+- **`none`**: The skill needs no conversation context at all (like `remember`, which writes to the knowledge graph).
 
 ### The `complexity` Field
 
@@ -169,7 +169,7 @@ Many command skills present interactive option pickers with ASCII art previews. 
 
 If you come from a traditional plugin ecosystem, skills may feel unfamiliar. They are not functions, they are not APIs, they are not runtime dependencies. The closest analogy is a **reference card** pinned next to your monitor while you work.
 
-When Claude loads a skill, it reads the patterns and examples the same way a developer reads documentation. The skill does not execute -- it *informs*. The model then applies that knowledge to the current task.
+When Claude loads a skill, it reads the patterns and examples the same way a developer reads documentation. The skill does not execute; it *informs*. The model then applies that knowledge to the current task.
 
 This has practical implications:
 
@@ -181,7 +181,7 @@ This has practical implications:
 
 ## What's Next
 
-- [<Count k="commands" /> Command Skills](/docs/skills/command-skills) -- The full list of `/ork:X` commands you can invoke directly.
-- [<Count k="references" /> Reference Skills](/docs/skills/reference-skills) -- The knowledge library that powers agents behind the scenes.
-- [Composing Skills Into Workflows](/docs/skills/skill-composition) -- How command skills, reference skills, and agents work together.
-- [Create Your Own SKILL.md](/docs/skills/writing-skills) -- Step-by-step guide to adding new skills.
+- [<Count k="commands" /> Command Skills](/docs/skills/command-skills): The full list of `/ork:X` commands you can invoke directly.
+- [<Count k="references" /> Reference Skills](/docs/skills/reference-skills): The knowledge library that powers agents behind the scenes.
+- [Composing Skills Into Workflows](/docs/skills/skill-composition): How command skills, reference skills, and agents work together.
+- [Create Your Own SKILL.md](/docs/skills/writing-skills): Step-by-step guide to adding new skills.

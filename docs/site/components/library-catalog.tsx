@@ -115,9 +115,12 @@ export function LibraryCatalog() {
           </div>
         </div>
 
+        {/* Phones drop the tab marks and tighten the padding: with them the
+            three tabs needed 387px and "Hooks" wrapped alone at 390. */}
         <AnimatedTabs
           ariaLabel="Library primitives"
           layoutId="library-tab-indicator"
+          className="max-sm:[&>a]:px-2.5"
           value={current}
           onChange={select}
           onKeyDown={onTabKeyDown}
@@ -126,7 +129,7 @@ export function LibraryCatalog() {
             href: libraryTabHref(t.id, host),
             label: (
               <>
-                <span className="inline-flex h-5 w-5 items-center justify-center rounded-md bg-fd-muted text-current">
+                <span className="inline-flex h-5 w-5 items-center justify-center rounded-md bg-fd-muted text-current max-sm:hidden">
                   <LibraryMark kind={t.id} className="h-3.5 w-3.5" />
                 </span>
                 {t.label}
@@ -154,8 +157,22 @@ export function LibraryCatalog() {
   );
 }
 
+/**
+ * Cards shown below lg before "Show all", as in the skill browser
+ * (NARROW_PAGE_SIZE there). Not imported: that module carries the skills data.
+ */
+const AGENTS_NARROW_PAGE = 8;
+
 function AgentsGrid() {
   const [query, setQuery] = useState("");
+  const [showAll, setShowAll] = useState(false);
+  const gridRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!showAll) return;
+    gridRef.current
+      ?.querySelectorAll<HTMLAnchorElement>("a")
+      [AGENTS_NARROW_PAGE]?.focus();
+  }, [showAll]);
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return AGENTS;
@@ -166,6 +183,16 @@ function AgentsGrid() {
         a.category.toLowerCase().includes(q),
     );
   }, [query]);
+  // A search always shows every match.
+  const capped =
+    query.trim() === "" && !showAll && filtered.length > AGENTS_NARROW_PAGE;
+  const shownCount = (n: number) => (
+    <>
+      Showing{" "}
+      <span className="font-semibold tabular-nums text-fd-foreground">{n}</span>{" "}
+      of {AGENTS.length} agents
+    </>
+  );
 
   return (
     <div>
@@ -191,14 +218,17 @@ function AgentsGrid() {
         ) : null}
       </div>
       <p className="mb-4 text-sm text-fd-muted-foreground" role="status">
-        Showing{" "}
-        <span className="font-semibold tabular-nums text-fd-foreground">
-          {filtered.length}
-        </span>{" "}
-        of {AGENTS.length} agents
+        {capped ? (
+          <>
+            <span className="lg:hidden">{shownCount(AGENTS_NARROW_PAGE)}</span>
+            <span className="max-lg:hidden">{shownCount(filtered.length)}</span>
+          </>
+        ) : (
+          shownCount(filtered.length)
+        )}
       </p>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {filtered.map((agent) => {
+      <div ref={gridRef} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {filtered.map((agent, index) => {
           const cat =
             CATEGORY_COLORS[agent.category as keyof typeof CATEGORY_COLORS] ??
             CATEGORY_COLORS.other;
@@ -206,7 +236,11 @@ function AgentsGrid() {
             <Link
               key={agent.name}
               href={`/docs/reference/agents/${agent.name}`}
-              className="group rounded-lg border border-fd-border p-4 transition-colors hover:bg-fd-muted"
+              aria-label={agent.name}
+              aria-describedby={`agent-card-${agent.name}-desc`}
+              className={`group rounded-lg border border-fd-border p-4 transition-colors hover:bg-fd-muted${
+                capped && index >= AGENTS_NARROW_PAGE ? " max-lg:hidden" : ""
+              }`}
             >
               <div className="mb-2 flex items-start gap-2.5">
                 <span
@@ -225,13 +259,25 @@ function AgentsGrid() {
                   </span>
                 </div>
               </div>
-              <p className="text-[13px] leading-[1.5] text-fd-muted-foreground">
+              <p
+                id={`agent-card-${agent.name}-desc`}
+                className="text-[13px] leading-[1.5] text-fd-muted-foreground"
+              >
                 {agent.description}
               </p>
             </Link>
           );
         })}
       </div>
+      {capped ? (
+        <button
+          type="button"
+          onClick={() => setShowAll(true)}
+          className="mt-4 flex w-full items-center justify-center gap-1.5 rounded-lg border border-fd-border bg-[var(--color-fd-surface-raised)] px-4 py-2.5 text-sm font-semibold text-fd-primary transition-colors hover:border-fd-primary/40 hover:bg-fd-muted lg:hidden"
+        >
+          Show all {filtered.length} agents
+        </button>
+      ) : null}
     </div>
   );
 }

@@ -1,12 +1,12 @@
 ---
 title: Find What You Need
-description: Hub-and-spoke navigation — find the right skills and agents for your role and task.
+description: "Hub-and-spoke navigation: find the right skills and agents for your role and task."
 ---
 
 import { Card, Cards } from 'fumadocs-ui/components/card';
 import { Count } from '@/components/count';
 
-OrchestKit has <Count k="skills" /> skills and <Count k="agents" /> agents. You don't need to memorize them — this page helps you find exactly what you need.
+OrchestKit has <Count k="skills" /> skills and <Count k="agents" /> agents. You don't need to memorize them; this page helps you find exactly what you need.
 
 ## By Role
 
@@ -17,58 +17,58 @@ Pick your role to see your recommended toolkit:
 **Your agents:** `backend-system-architect`, `database-engineer`, `event-driven-architect`
 
 **Your key skills:**
-- `/ork:implement` — Full feature implementation
-- `python-backend` — FastAPI, async patterns, middleware
-- `database-patterns` — Schema design, indexes, migrations
-- `api-design` — REST endpoint patterns, versioning
-- `async-jobs` — Task queues, background processing
+- `/ork:implement`: Full feature implementation
+- `python-backend`: FastAPI, async patterns, middleware
+- `database-patterns`: Schema design, indexes, migrations
+- `api-design`: REST endpoint patterns, versioning
+- `async-jobs`: Task queues, background processing
 
 ### Frontend Developer
 
 **Your agents:** `frontend-ui-developer`, `frontend-performance-engineer`, `accessibility-specialist`
 
 **Your key skills:**
-- `react-server-components-framework` — RSC patterns, Next.js 16+
-- `ui-components` — Component patterns, design systems
-- `responsive-patterns` — Responsive layouts, mobile-first
-- `zustand-patterns` — State management
-- `performance` — Core Web Vitals, bundle optimization
+- `react-server-components-framework`: RSC patterns, Next.js 16+
+- `ui-components`: Component patterns, design systems
+- `responsive-patterns`: Responsive layouts, mobile-first
+- `zustand-patterns`: State management
+- `performance`: Core Web Vitals, bundle optimization
 
 ### AI / LLM Engineer
 
 **Your agents:** `workflow-architect`, `llm-integrator`, `data-pipeline-engineer`
 
 **Your key skills:**
-- `rag-retrieval` — Retrieval-Augmented Generation
-- `langgraph` — Multi-agent workflows, LangGraph patterns
-- `llm-integration` — Tool use, function calling, streaming
-- `multimodal-llm` — Vision, audio, video processing
+- `rag-retrieval`: Retrieval-Augmented Generation
+- `langgraph`: Multi-agent workflows, LangGraph patterns
+- `llm-integration`: Tool use, function calling, streaming
+- `multimodal-llm`: Vision, audio, video processing
 
 ### DevOps / Platform
 
 **Your agents:** `ci-cd-engineer`, `infrastructure-architect`, `deployment-manager`
 
 **Your key skills:**
-- `devops-deployment` — CI/CD pipelines, Terraform, K8s
-- `monitoring-observability` — Prometheus, Grafana, OpenTelemetry
+- `devops-deployment`: CI/CD pipelines, Terraform, K8s
+- `monitoring-observability`: Prometheus, Grafana, OpenTelemetry
 
 ### Tech Lead
 
 **Your agents:** `system-design-reviewer`, `code-quality-reviewer`, `product-strategist`
 
 **Your key skills:**
-- `/ork:review-pr` — AI-powered code review
-- `architecture-decision-record` — ADR templates
-- `architecture-patterns` — SOLID, hexagonal, clean architecture
-- `quality-gates` — Code quality standards
+- `/ork:review-pr`: AI-powered code review
+- `architecture-decision-record`: ADR templates
+- `architecture-patterns`: SOLID, hexagonal, clean architecture
+- `quality-gates`: Code quality standards
 
 ### Security Engineer
 
 **Your agents:** `security-auditor`, `ai-safety-auditor`, `security-layer-auditor`
 
 **Your key skills:**
-- `security-patterns` — OWASP Top 10, defense-in-depth, input validation
-- `mcp-patterns` — MCP server security
+- `security-patterns`: OWASP Top 10, defense-in-depth, input validation
+- `mcp-patterns`: MCP server security
 
 ## By Task
 
@@ -77,8 +77,8 @@ Pick your role to see your recommended toolkit:
 | Ship a feature fast | `/ork:implement` |
 | Review a PR | `/ork:review-pr` |
 | Fix a GitHub issue | `/ork:fix-issue #123` |
-| Write tests | Just ask — `test-generator` auto-activates |
-| Debug a problem | Just describe it — `debug-investigator` activates |
+| Write tests | Just ask; `test-generator` auto-activates |
+| Debug a problem | Just describe it; `debug-investigator` activates |
 | Create a commit | `/ork:commit` |
 | Run all checks | `/ork:verify` |
 | Search memory | `/ork:memory search "topic"` |
@@ -89,32 +89,13 @@ Pick your role to see your recommended toolkit:
 
 ## By Keyboard Shortcut
 
-There are none, and there cannot be. Claude Code's keybindings bind keys to a closed set of built-in actions (`chat:submit`, `app:toggleTodos`, and so on) — no action runs a slash command, so no plugin can ship a shortcut that invokes a skill. This page previously listed 8 `ctrl+k` chords for skills; they never fired. See [Configuration](/docs/getting-started/configuration#keybindings).
+There are none, and there cannot be. Claude Code's keybindings bind keys to a closed set of built-in actions (`chat:submit`, `app:toggleTodos`, and so on); no action runs a slash command, so no plugin can ship a shortcut that invokes a skill. This page previously listed 8 `ctrl+k` chords for skills; they never fired. See [Configuration](/docs/getting-started/configuration#keybindings).
 
-Type `/ork:` and let autocomplete narrow the list — that is the fast path.
+Type `/ork:` and let autocomplete narrow the list; that is the fast path.
 
 ## By Command
 
-All 18 user-invocable command skills:
-
-| Command | What It Does |
-|---|---|
-| `/ork:implement` | Full feature implementation with parallel agents |
-| `/ork:fix-issue` | Issue to PR in one command |
-| `/ork:verify` | Run tests, security, and quality gates |
-| `/ork:explore` | Deep codebase exploration |
-| `/ork:brainstorm` | Design exploration |
-| `/ork:assess` | Quality rating 0-10 |
-| `/ork:commit` | Conventional commit with analysis |
-| `/ork:create-pr` | PR with summary and test plan |
-| `/ork:review-pr` | Multi-agent code review |
-| `/ork:remember` | Store decisions in knowledge graph |
-| `/ork:memory` | Search, load, sync memory |
-| `/ork:doctor` | Health diagnostics |
-| `/ork:configure` | Plugin settings |
-| `/ork:help` | Skill directory |
-| `/ork:setup` | Onboarding wizard with stack detection |
-| `/ork:visualize-plan` | Visualize planned changes |
+There are <Count k="commands" /> command skills. [Commands You Can Invoke](/docs/skills/command-skills) lists every one, grouped by task, with what it does and the arguments it takes. That page is generated from each skill's frontmatter, so it always matches the plugin you installed.
 
 ## Next Steps
 

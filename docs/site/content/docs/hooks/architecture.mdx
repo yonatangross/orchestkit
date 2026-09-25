@@ -11,7 +11,7 @@ This page is for plugin developers who want to understand how the hook system wo
 
 ## The Bundle System
 
-OrchestKit compiles 171 hooks into **11 event-specific bundles** using esbuild. When Claude Code fires a hook, only the bundle for that event type is loaded -- not the entire codebase.
+OrchestKit compiles 171 hooks into **11 event-specific bundles** using esbuild. When Claude Code fires a hook, only the bundle for that event type is loaded, not the entire codebase.
 
 ```
 hooks.json entry
@@ -179,10 +179,10 @@ Claude Code               stop-fire-and-forget.mjs        background-worker.mjs
 ```
 
 **Safeguards:**
-- **5-minute self-termination** -- `setTimeout` kills the worker to prevent hangs
-- **Orphan cleanup** -- On startup, deletes temp files in `pending/` older than 10 minutes
-- **Parallel execution** -- All hooks run via `Promise.allSettled`, so one failure does not block others
-- **Debug logging** -- Writes to `.claude/logs/hooks/background-worker.log`
+- **5-minute self-termination**: `setTimeout` kills the worker to prevent hangs
+- **Orphan cleanup**: On startup, deletes temp files in `pending/` older than 10 minutes
+- **Parallel execution**: All hooks run via `Promise.allSettled`, so one failure does not block others
+- **Debug logging**: Writes to `.claude/logs/hooks/background-worker.log`
 
 </Tab>
 </Tabs>
@@ -345,7 +345,7 @@ The 45 agent-scoped hooks use 5 underlying hook functions from the `agent.mjs` b
 
 Defined in a SKILL.md file's frontmatter. Fire only when that skill is active. Currently, one skill-scoped hook exists: `skill/redact-secrets`, which is registered in hooks.json under `PostToolUse > Bash` and runs after every Bash command to scan output for leaked secrets.
 
-Skill-scoped hooks are the narrowest scope -- they activate only when the associated skill is loaded into the session.
+Skill-scoped hooks are the narrowest scope: they activate only when the associated skill is loaded into the session.
 
 </Tab>
 </Tabs>
@@ -474,7 +474,7 @@ In addition to `"type": "command"` hooks that spawn a shell process, OrchestKit 
 }
 ```
 
-HTTP hooks are used for analytics, webhook integrations, and external service notifications where the overhead of spawning a Node.js process is unnecessary. They follow the same input/output contract -- the URL receives a JSON POST body matching `HookInput` and returns a JSON response matching `HookResult`.
+HTTP hooks are used for analytics, webhook integrations, and external service notifications where the overhead of spawning a Node.js process is unnecessary. They follow the same input/output contract: the URL receives a JSON POST body matching `HookInput` and returns a JSON response matching `HookResult`.
 
 ## The once:true Pattern (CC 2.1.69+)
 
@@ -502,7 +502,7 @@ Hooks can declare a `"statusMessage"` string in their `hooks.json` registration.
 }
 ```
 
-OrchestKit uses `statusMessage` on 15 hooks -- primarily context loaders, PR enrichers, and setup hooks where execution takes more than a few hundred milliseconds. For fast hooks (under 50ms), omit `statusMessage` to avoid spinner flicker.
+OrchestKit uses `statusMessage` on 15 hooks, primarily context loaders, PR enrichers, and setup hooks where execution takes more than a few hundred milliseconds. For fast hooks (under 50ms), omit `statusMessage` to avoid spinner flicker.
 
 ## Hook Overrides
 
@@ -523,8 +523,8 @@ Hooks can be disabled only at user scope by creating `~/.claude/hook-overrides.j
 
 Every hook invocation is tracked for profiling (Issue #245). After a hook completes, `run-hook.mjs` writes a timing event to two locations:
 
-1. **Session events** -- `.claude/memory/sessions/{session_id}/events.jsonl`
-2. **Cross-project analytics** -- `~/.claude/analytics/hook-timing.jsonl`
+1. **Session events**: `.claude/memory/sessions/{session_id}/events.jsonl`
+2. **Cross-project analytics**: `~/.claude/analytics/hook-timing.jsonl`
 
 Each event records the hook name, duration in milliseconds, success/failure, and a hashed project identifier. Session IDs are validated against `/^[a-zA-Z0-9_-]{1,128}$/` to prevent path traversal (SEC-001).
 

@@ -1,6 +1,6 @@
 ---
 title: "Security Gates and File Guards"
-description: "How OrchestKit blocks dangerous commands, protects sensitive files, and auto-approves safe operations -- the defense-in-depth hooks that run before every tool use."
+description: "How OrchestKit blocks dangerous commands, protects sensitive files, and auto-approves safe operations: the defense-in-depth hooks that run before every tool use."
 ---
 
 import { Callout } from "fumadocs-ui/components/callout";
@@ -8,7 +8,7 @@ import { Tab, Tabs } from "fumadocs-ui/components/tabs";
 
 ## Defense in Depth
 
-OrchestKit implements security at multiple layers. No single hook is responsible for all safety -- instead, hooks compose to form a defense-in-depth chain:
+OrchestKit implements security at multiple layers. No single hook is responsible for all safety; instead, hooks compose to form a defense-in-depth chain:
 
 ```
 PermissionRequest  -->  PreToolUse  -->  Tool Executes  -->  PostToolUse
@@ -189,7 +189,7 @@ The file guard enforces maximum line counts on code files to prevent bloated sin
 
 Non-code files (`.json`, `.md`, `.yaml`, `.css`, `.html`, etc.) are never gated.
 
-**Bloat pattern detection** -- when a file exceeds the line limit, the denial message includes structural signals if detected:
+**Bloat pattern detection**: when a file exceeds the line limit, the denial message includes structural signals if detected:
 
 | Signal | Trigger | Guidance |
 |--------|---------|----------|
@@ -210,7 +210,7 @@ export ORCHESTKIT_MAX_TEST_FILE_LINES=800
 
 **Hook:** `pretool/bash/git-validator`
 **Event:** PreToolUse (Bash)
-**Behavior:** Validates git operations against project conventions — protected branches, commit message format, branch naming, and atomic commit rules.
+**Behavior:** Validates git operations against project conventions: protected branches, commit message format, branch naming, and atomic commit rules.
 
 ### What It Validates
 
@@ -223,9 +223,9 @@ export ORCHESTKIT_MAX_TEST_FILE_LINES=800
 
 ### CLI Proxy Compatibility (RTK)
 
-[RTK (Rust Token Killer)](https://github.com/rtk-ai/rtk) is a high-performance CLI proxy that compresses shell output before it reaches Claude Code's context window, achieving 60-90% token savings. It works by intercepting commands via a PreToolUse hook — `rtk git status` runs `git status` under the hood and compresses the output.
+[RTK (Rust Token Killer)](https://github.com/rtk-ai/rtk) is a high-performance CLI proxy that compresses shell output before it reaches Claude Code's context window, achieving 60-90% token savings. It works by intercepting commands via a PreToolUse hook: `rtk git status` runs `git status` under the hood and compresses the output.
 
-Because RTK prefixes commands with `rtk ` (e.g., `rtk git commit ...` instead of `git commit ...`), the prefixed command would bypass all git validation without normalization — `/^git\s+commit/` wouldn't match `rtk git commit`.
+Because RTK prefixes commands with `rtk ` (e.g., `rtk git commit ...` instead of `git commit ...`), the prefixed command would bypass all git validation without normalization: `/^git\s+commit/` wouldn't match `rtk git commit`.
 
 OrchestKit strips proxy prefixes **before any validation**:
 
@@ -240,10 +240,10 @@ function stripProxyPrefix(cmd: string): string {
 ```
 
 This runs in two locations:
-- **`git-validator`** — strips before commit message, branch name, and protected branch validation
-- **`guardGitCommand()`** — strips before the guard decides whether to activate git-related hooks
+- **`git-validator`**: strips before commit message, branch name, and protected branch validation
+- **`guardGitCommand()`**: strips before the guard decides whether to activate git-related hooks
 
-The stripping is **always active** with zero configuration. When RTK is not in use, the regex simply doesn't match — zero overhead.
+The stripping is **always active** with zero configuration. When RTK is not in use, the regex simply doesn't match: zero overhead.
 
 <Callout type="info">
 Tested with RTK v0.33.1 (March 2026). Added in OrchestKit 7.23.0 (CC 2.1.83). If you use a different CLI proxy that prefixes commands, [open an issue](https://github.com/yonatangross/orchestkit/issues) to add its prefix to the strip pattern.
@@ -265,7 +265,7 @@ Commit message validation runs correctly
 
 ### RTK + OrchestKit Coexistence
 
-Both RTK and OrchestKit use the PreToolUse hook system. They coexist without conflicts — RTK rewrites happen at the Bash execution layer (compressing output), while OrchestKit hooks validate the command _before_ execution.
+Both RTK and OrchestKit use the PreToolUse hook system. They coexist without conflicts: RTK rewrites happen at the Bash execution layer (compressing output), while OrchestKit hooks validate the command _before_ execution.
 
 **Recommended setup:**
 
@@ -304,7 +304,7 @@ Auto-approves bash commands that are known to be read-only or safe:
 | **GitHub CLI** | `gh issue list`, `gh pr view`, `gh repo status`, `gh milestone` |
 | **Testing/linting** | `pytest`, `npm run test`, `npm run lint`, `ruff check`, `mypy` |
 
-Commands not matching any safe pattern fall through to manual user approval -- they are not denied, just not auto-approved.
+Commands not matching any safe pattern fall through to manual user approval; they are not denied, just not auto-approved.
 
 ### Auto-Approve Project Writes
 
@@ -340,7 +340,7 @@ Read, Glob, and Grep operations have an empty hooks array in the `PermissionRequ
 **Hook:** `permission/learning-tracker`
 **Event:** PermissionRequest (Bash)
 
-Tracks which commands the user manually approves over time. This data feeds into pattern learning -- if you consistently approve `docker build` commands, the system notes this for potential future auto-approval.
+Tracks which commands the user manually approves over time. This data feeds into pattern learning: if you consistently approve `docker build` commands, the system notes this for potential future auto-approval.
 
 ## Additional PreToolUse Safety Hooks
 

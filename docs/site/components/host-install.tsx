@@ -14,7 +14,7 @@ import { motion, useReducedMotion } from "motion/react";
 import { ArrowRight, Check, Copy } from "lucide-react";
 import { HostMark, type HostId } from "@/components/host-marks";
 import { SameRouteFade, sameRouteReplace } from "@/components/page-transition";
-import { InstallSnippet, useTrackedCopy } from "@/components/install-snippet";
+import { CommandText, InstallSnippet, useTrackedCopy } from "@/components/install-snippet";
 import { SearchParamsSync } from "@/components/search-params-sync";
 import {
 	HOST_INSTALLS,
@@ -120,10 +120,13 @@ type HostSource = "default" | "deeplink" | "click";
  * The prerendered HTML shows the Claude Code default; a deep link switches to
  * its host right after hydration.
  *
- * Keyboard: one tab stop on the chip group (roving tabindex), arrows move
- * focus, Enter/Space activates. Chips wrap, so ArrowDown/ArrowUp step by the
- * computed column count and fall back to one step when the group is not a
- * grid. prefers-reduced-motion disables the hover lift and ring spring.
+ * Keyboard: every chip is its own tab stop. The chips are links in a nav, and
+ * a roving tabindex hid 7 of the 8 hosts from Tab with nothing announcing the
+ * arrow keys (QA, 2026-09-25). Arrows still move focus as a shortcut and
+ * Enter/Space activates. ArrowDown/ArrowUp step by the computed column count
+ * (the chips are a 4-column grid from 640 to 900px) and fall back to one step
+ * when the group is not a grid. prefers-reduced-motion disables the hover
+ * lift and ring spring.
  */
 export function HostInstallPicker({
 	hosts = ["claude", "cursor", "codex", "devin", "opencode", "muse", "pi", "agy"],
@@ -147,9 +150,6 @@ export function HostInstallPicker({
 		const resolved = known ? fromUrl : fallback;
 		setCurrent(resolved);
 		if (known && params.get("host")) setSource((prev) => (prev === "click" ? prev : "deeplink"));
-		// Seed the roving tab stop on the resolved host so the first Tab after
-		// a ?host= deep link lands on that chip.
-		setFocusIdx(Math.max(0, list.findIndex((item) => item.id === resolved)));
 		setLibraryTab(parseLibraryTab(params.get("lib") ?? undefined));
 	};
 
@@ -226,7 +226,9 @@ export function HostInstallPicker({
 				ref={gridRef}
 				role="group"
 				aria-label="Hosts"
-				className="flex flex-wrap gap-1.5"
+				// Four columns from 640 to 900px: free wrapping there put seven chips
+				// on row one and "Antigravity" alone on row two at 768 (QA).
+				className="flex flex-wrap gap-1.5 sm:max-[900px]:grid sm:max-[900px]:grid-cols-4"
 				onKeyDown={onGridKeyDown}
 			>
 				{list.map((item, index) => {
@@ -239,14 +241,13 @@ export function HostInstallPicker({
 							}}
 							href={homeInstallHref(item.id, libraryTab)}
 							aria-current={selected ? "true" : undefined}
-							tabIndex={index === focusIdx ? 0 : -1}
 							onFocus={() => setFocusIdx(index)}
 							onClick={(e) => pick(e, item.id)}
 							initial={false}
 							whileHover={reduceMotion ? undefined : { y: -1 }}
 							whileTap={reduceMotion ? undefined : { scale: 0.97 }}
 							className={cn(
-								"relative inline-flex h-8 items-center gap-1.5 rounded-full border px-3 text-[13px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-ring",
+								"relative inline-flex h-8 items-center justify-center gap-1.5 rounded-full border px-3 text-[13px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-ring",
 								selected
 									? "border-fd-primary/60 bg-[var(--color-fd-primary-10)] font-semibold text-fd-primary"
 									: "border-fd-border bg-[var(--color-fd-surface-raised)] font-medium text-fd-foreground hover:border-fd-primary/40",
@@ -385,7 +386,7 @@ function HostCommandPanel({ spec, source }: { spec: HostInstallSpec; source: Hos
 										$
 									</span>
 								) : null}
-								<span className="min-w-0 whitespace-pre-wrap [overflow-wrap:break-word]">{line}</span>
+								<CommandText line={line} />
 							</div>
 						))}
 					</div>

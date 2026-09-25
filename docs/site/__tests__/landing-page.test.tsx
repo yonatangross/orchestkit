@@ -108,7 +108,7 @@ vi.mock("..//lib/constants", () => ({
     description:
       "Yonyon is an independent software studio building developer tooling for AI-assisted engineering.",
     disambiguation:
-      "Yonyon here is a software studio (the publisher of OrchestKit) — not the musician of the same name.",
+      "Yonyon here is a software studio (the publisher of OrchestKit), not the musician of the same name.",
     url: "https://orchestkit.yonyon.ai/yonyon",
     wikidata: "https://www.wikidata.org/wiki/Q141457913",
   },

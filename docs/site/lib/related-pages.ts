@@ -117,8 +117,12 @@ export function candidatePool(graph: RelatedGraphData = RELATED_GRAPH): RelatedC
 		let category: string | null = null;
 		let tags: readonly string[] = [];
 		if (kind === "skill") {
-			category = skillCats.get(url) ?? null;
-			tags = SKILLS[slug]?.tags ?? [];
+			// A companion page (skills/<name>/references/...) inherits its
+			// skill's category and tags. Without them it scored like any other
+			// skill page and Related padded with alphabetical strangers (QA N02).
+			const owner = slug.split("/")[0];
+			category = skillCats.get(url) ?? skillCats.get(`/docs/reference/skills/${owner}`) ?? null;
+			tags = SKILLS[slug]?.tags ?? SKILLS[owner]?.tags ?? [];
 		} else if (kind === "agent") {
 			const agent = agentById.get(slug);
 			category = agent?.category ?? null;

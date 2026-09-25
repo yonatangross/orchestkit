@@ -1,6 +1,6 @@
 ---
 title: "171 Hooks: What Fires When"
-description: "TypeScript functions that intercept every Claude Code lifecycle event -- blocking dangerous commands, injecting context, and syncing memory, all invisibly."
+description: "TypeScript functions that intercept every Claude Code lifecycle event: blocking dangerous commands, injecting context, and syncing memory, all invisibly."
 ---
 
 import { Callout } from "fumadocs-ui/components/callout";
@@ -11,7 +11,7 @@ import { Tab, Tabs } from "fumadocs-ui/components/tabs";
 
 A hook is a TypeScript function that runs automatically at specific moments in a Claude Code session. Hooks receive a JSON payload on stdin describing the event (which tool, what input, which session) and return a JSON response on stdout that either allows the operation, blocks it, or injects additional context.
 
-You never call hooks yourself. Claude Code calls them for you -- on every tool use, every prompt, every session start and stop. They are the invisible guardians of your development workflow.
+You never call hooks yourself. Claude Code calls them for you: on every tool use, every prompt, every session start and stop. They are the invisible guardians of your development workflow.
 
 ```typescript
 // The fundamental hook contract
@@ -72,7 +72,7 @@ Setup hooks handle first-run setup, maintenance checks, monorepo detection, and 
 
 **When:** Claude requests permission to use a tool.
 
-3 hooks evaluate the request. Read/Glob/Grep operations are auto-approved (empty hook array -- Claude Code allows them). Safe bash commands (git status, npm test, ls) are auto-approved. Writes within the project directory are auto-approved, excluding `node_modules`, `.git`, and `dist`.
+3 hooks evaluate the request. Read/Glob/Grep operations are auto-approved (empty hook array; Claude Code allows them). Safe bash commands (git status, npm test, ls) are auto-approved. Writes within the project directory are auto-approved, excluding `node_modules`, `.git`, and `dist`.
 </Step>
 
 <Step>
@@ -139,7 +139,7 @@ The largest group: hooks fire based on the tool matcher.
 
 **When:** `.claude/settings.json` or project config changes mid-session (CC 2.1.50+).
 
-Allows hooks to react to configuration updates without restarting the session -- for example, reloading permission rules or refreshing cached settings.
+Allows hooks to react to configuration updates without restarting the session: for example, reloading permission rules or refreshing cached settings.
 </Step>
 
 <Step>
@@ -147,7 +147,7 @@ Allows hooks to react to configuration updates without restarting the session --
 
 **When:** `CLAUDE.md` and `.claude/rules/*.md` files are loaded (CC 2.1.69+).
 
-Fires after all project instructions have been parsed. Useful for hooks that need to validate or augment loaded instructions -- for example, checking for conflicting rules or injecting dynamic context based on instruction content.
+Fires after all project instructions have been parsed. Useful for hooks that need to validate or augment loaded instructions: for example, checking for conflicting rules or injecting dynamic context based on instruction content.
 </Step>
 
 <Step>
@@ -274,7 +274,7 @@ Think of hooks as a security and productivity layer that wraps every action Clau
 - **Before** a bash command runs, the dangerous command blocker checks for `rm -rf /`, `git push --force`, and pipe-to-shell attacks.
 - **Before** a file is written, the file guard blocks modifications to `.env`, `.pem`, and credential files.
 - **On every prompt**, the memory context hook searches the knowledge graph for relevant past decisions.
-- **When a session ends**, 29 background hooks save context, sync memory, and clean up coordination state -- without making the user wait.
+- **When a session ends**, 29 background hooks save context, sync memory, and clean up coordination state, without making the user wait.
 
 You get all of this automatically. No configuration required. The hooks are registered in `hooks.json` and fire based on matcher patterns that Claude Code evaluates against the current tool name.
 

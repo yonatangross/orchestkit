@@ -16,11 +16,11 @@ export const YONYON_FAQS: ReadonlyArray<Faq> = [
 	{
 		question: "Is Yonyon (OrchestKit) related to the musician of the same name?",
 		answer:
-			"No. On this site, Yonyon is an independent software studio — the publisher of OrchestKit, a free, open-source plugin for Claude Code. It is not affiliated with, and should not be confused with, the DJ/music producer who also uses the name Yonyon.",
+			"No. On this site, Yonyon is an independent software studio: the publisher of OrchestKit, a free, open-source plugin for Claude Code. It is not affiliated with, and should not be confused with, the DJ/music producer who also uses the name Yonyon.",
 	},
 	{
 		question: "What does Yonyon make?",
-		answer: `Yonyon builds developer tooling for AI-assisted engineering. Its flagship product is OrchestKit — ${COUNTS.skills} skills, ${COUNTS.agents} agents, and ${COUNTS.hooks} lifecycle hooks for Claude Code, MIT-licensed and free.`,
+		answer: `Yonyon builds developer tooling for AI-assisted engineering. Its flagship product is OrchestKit: ${COUNTS.skills} skills, ${COUNTS.agents} agents, and ${COUNTS.hooks} lifecycle hooks for Claude Code, MIT-licensed and free.`,
 	},
 	{
 		question: "Where are Yonyon's developer resources?",

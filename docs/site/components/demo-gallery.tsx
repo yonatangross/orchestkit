@@ -303,6 +303,12 @@ function GalleryCard({
 }) {
   const catMeta = COMP_CATEGORY_META[composition.category];
   const formatLabel = FORMAT_LABELS[composition.format] ?? composition.format;
+  // Every composition ships a thumbnail (CDN or public/thumbnails), and that
+  // thumbnail IS the preview. "Coming soon" is only true when there is no
+  // video AND the thumbnail failed to load (QA N06: 13 of 14 tiles carried
+  // the pill over a working preview).
+  const [thumbFailed, setThumbFailed] = useState(false);
+  const noPreview = !composition.videoCdn && thumbFailed;
 
   return (
     <button
@@ -316,6 +322,7 @@ function GalleryCard({
         <OptimizedThumbnail
           src={composition.thumbnailCdn ?? `/thumbnails/${composition.id}.png`}
           alt={`Thumbnail for ${formatTitle(composition.id)}`}
+          onError={() => setThumbFailed(true)}
         />
         {/* Format badge — top-right */}
         <span className="absolute right-2 top-2 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur-sm">
@@ -330,13 +337,13 @@ function GalleryCard({
           <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-all group-hover:bg-black/20">
             <Play className="h-8 w-8 text-white opacity-0 drop-shadow-lg transition-opacity group-hover:opacity-90" />
           </div>
-        ) : (
+        ) : noPreview ? (
           <div className="absolute inset-0 flex items-center justify-center bg-black/5">
             <span className="rounded-full bg-fd-muted-foreground/60 px-2.5 py-1 text-[10px] font-semibold text-white backdrop-blur-sm">
               Coming soon
             </span>
           </div>
-        )}
+        ) : null}
       </div>
 
       {/* Card body */}

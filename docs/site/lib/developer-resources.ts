@@ -43,7 +43,7 @@ export const DEVELOPER_RESOURCES: ReadonlyArray<DeveloperResource> = [
 	},
 	{
 		title: "OpenAPI specification",
-		desc: "OpenAPI 3.1 description of the public, read-only docs API — search, Markdown fetch, batch, async jobs.",
+		desc: "OpenAPI 3.1 description of the public, read-only docs API: search, Markdown fetch, batch, async jobs.",
 		href: "/api/openapi",
 	},
 	{
@@ -53,7 +53,7 @@ export const DEVELOPER_RESOURCES: ReadonlyArray<DeveloperResource> = [
 	},
 	{
 		title: "MCP server (stdio, Docker image)",
-		desc: "Run locally: docker run -i --rm ghcr.io/yonatangross/orchestkit-docs-mcp — multi-arch (amd64 + arm64).",
+		desc: "Run locally: docker run -i --rm ghcr.io/yonatangross/orchestkit-docs-mcp. Multi-arch (amd64 + arm64).",
 		href: "https://github.com/yonatangross/orchestkit/pkgs/container/orchestkit-docs-mcp",
 		external: true,
 	},
@@ -76,7 +76,7 @@ export const DEVELOPER_RESOURCES: ReadonlyArray<DeveloperResource> = [
 	},
 	{
 		title: "Authentication policy",
-		desc: "The API is public and anonymous-only — auth.md states it in the WorkOS auth.md shape, with RFC 9728 PRM.",
+		desc: "The API is public and anonymous-only; auth.md states it in the WorkOS auth.md shape, with RFC 9728 PRM.",
 		href: "/auth.md",
 	},
 	{
@@ -86,7 +86,7 @@ export const DEVELOPER_RESOURCES: ReadonlyArray<DeveloperResource> = [
 	},
 	{
 		title: "llms.txt",
-		desc: "Machine-readable site index for AI agents — canonical description, use cases, and resource map.",
+		desc: "Machine-readable site index for AI agents: canonical description, use cases, and resource map.",
 		href: "/llms.txt",
 	},
 	{
@@ -102,7 +102,7 @@ export const DEVELOPER_RESOURCES: ReadonlyArray<DeveloperResource> = [
 	},
 	{
 		title: "MCP registry entry",
-		desc: "io.github.yonatangross/orchestkit on the official Model Context Protocol registry — republished every release.",
+		desc: "io.github.yonatangross/orchestkit on the official Model Context Protocol registry, republished every release.",
 		href: "https://registry.modelcontextprotocol.io/v0/servers?search=io.github.yonatangross/orchestkit",
 		external: true,
 	},

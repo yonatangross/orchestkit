@@ -78,13 +78,18 @@ function VersionRow({
   );
 }
 
+/** Documentation groups parse as "changed"; give them the legend's Docs glyph. */
+function sectionGlyph(section: ChangelogSection): string {
+  return /^doc/i.test(section.heading) ? "📜" : SECTION_GLYPH[section.type];
+}
+
 function SectionBlock({ section }: { section: ChangelogSection }) {
   return (
     <div>
       <h3
         className={`inline-flex items-center gap-1.5 rounded-sm px-1.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${TAG_BG[section.type]}`}
       >
-        <span aria-hidden="true">{SECTION_GLYPH[section.type]}</span>
+        <span aria-hidden="true">{sectionGlyph(section)}</span>
         {section.heading}
       </h3>
       <ul className="mt-2 space-y-3">

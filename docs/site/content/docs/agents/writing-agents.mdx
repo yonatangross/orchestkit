@@ -161,10 +161,10 @@ Choose skills that give the agent the knowledge it needs without bloating its co
 
 ### Guidelines
 
-1. **Start small** -- Begin with 3-5 core skills. You can always add more.
-2. **Match the domain** -- Use skills from the same category as the agent.
-3. **Always include memory** -- Add `remember` and `memory` so the agent can persist and retrieve decisions.
-4. **Check existing agents** -- Look at agents in the same category for skill inspiration.
+1. **Start small**: Begin with 3-5 core skills. You can always add more.
+2. **Match the domain**: Use skills from the same category as the agent.
+3. **Always include memory**: Add `remember` and `memory` so the agent can persist and retrieve decisions.
+4. **Check existing agents**: Look at agents in the same category for skill inspiration.
 
 ### Skills by Domain
 
@@ -182,7 +182,7 @@ Choose skills that give the agent the knowledge it needs without bloating its co
 
 ### Skill Budget Awareness
 
-Claude Code (CC 2.1.33+) scales the skill character budget to 2% of the context window. With a 200K context, each skill gets roughly 1,200 tokens. With a 1M context, that grows to about 6,000 tokens. Design your agent's skill list accordingly -- too many large skills may get truncated.
+Claude Code (CC 2.1.33+) scales the skill character budget to 2% of the context window. With a 200K context, each skill gets roughly 1,200 tokens. With a 1M context, that grows to about 6,000 tokens. Design your agent's skill list accordingly; too many large skills may get truncated.
 
 ## Tool Selection
 
@@ -242,7 +242,7 @@ Currently in the OrchestKit codebase:
 - **1 agent** uses `sonnet`: `demo-producer`
 - **13 agents** use `inherit`
 
-Use `opus` sparingly -- it has higher latency and cost. Reserve it for agents that genuinely need deep reasoning.
+Use `opus` sparingly: it has higher latency and cost. Reserve it for agents that genuinely need deep reasoning.
 
 ## Directive Best Practices
 
@@ -499,6 +499,6 @@ Or test keyword activation by typing a prompt that matches your agent's keywords
 
 ## What's Next
 
-- [Agents Overview](/docs/agents/overview) -- See all 36 existing agents for inspiration
-- [Choosing an Agent](/docs/agents/choosing-an-agent) -- Understand how agents map to tasks
-- [Multi-Agent Patterns](/docs/agents/multi-agent-patterns) -- Learn how agents work together
+- [Agents Overview](/docs/agents/overview): See all 36 existing agents for inspiration
+- [Choosing an Agent](/docs/agents/choosing-an-agent): Understand how agents map to tasks
+- [Multi-Agent Patterns](/docs/agents/multi-agent-patterns): Learn how agents work together

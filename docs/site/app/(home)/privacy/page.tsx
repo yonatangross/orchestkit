@@ -41,7 +41,7 @@ export default function PrivacyPage() {
 				The OrchestKit plugin runs locally inside Claude Code on your machine.
 				Its skills, agents, and hooks execute in your environment. Any memory or
 				telemetry the plugin records is stored locally in your project, under
-				your control — it is not transmitted to OrchestKit.
+				your control; it is not transmitted to OrchestKit.
 			</p>
 
 			<h2>Cookies and tracking</h2>

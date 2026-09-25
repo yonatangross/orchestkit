@@ -46,6 +46,26 @@ export function useTrackedCopy(
 	return { copied, copy };
 }
 
+/**
+ * A shell command that wraps only at spaces. Each token is nowrap because
+ * browsers also break after a hard hyphen, which split "--sparse" and
+ * "orchestkit-codex" at 390 (QA 2026-09-25).
+ */
+export function CommandText({ line }: { line: string }) {
+	const tokens = line.split(" ");
+	return (
+		<span className="min-w-0 [overflow-wrap:anywhere]">
+			{tokens.map((token, i) => (
+				// Tokens can repeat ("--sparse") and never reorder, so the index keys them.
+				<span key={i}>
+					<span className="whitespace-nowrap">{token}</span>
+					{i < tokens.length - 1 ? " " : null}
+				</span>
+			))}
+		</span>
+	);
+}
+
 export function InstallSnippet({
 	text,
 	prompt = true,
@@ -90,7 +110,7 @@ export function InstallSnippet({
 								$
 							</span>
 						) : null}
-						<span className="min-w-0 whitespace-pre-wrap [overflow-wrap:break-word]">{line}</span>
+						<CommandText line={line} />
 					</div>
 				))}
 			</div>

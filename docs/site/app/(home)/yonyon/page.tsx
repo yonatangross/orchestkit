@@ -13,9 +13,9 @@ import { COUNTS, SITE, YONYON } from "@/lib/constants";
 import { YONYON_FAQS } from "@/lib/yonyon-faqs";
 
 export const metadata: Metadata = {
-	title: "Yonyon — the studio behind OrchestKit",
+	title: "Yonyon: the studio behind OrchestKit",
 	description:
-		"Yonyon is the independent software studio that builds and publishes OrchestKit, the curated skills/agents/hooks toolkit for Claude Code. Not the musician — the developer-tooling studio.",
+		"Yonyon is the independent software studio that builds and publishes OrchestKit, the curated skills/agents/hooks toolkit for Claude Code. Not the musician; the developer-tooling studio.",
 	alternates: { canonical: `${SITE.domain}/yonyon` },
 };
 
@@ -72,7 +72,7 @@ export default function YonyonPage() {
 			<h2>The product: OrchestKit</h2>
 			<p>
 				OrchestKit bundles {COUNTS.skills} skills, {COUNTS.agents} agents, and{" "}
-				{COUNTS.hooks} lifecycle hooks into one MIT-licensed package — encoding
+				{COUNTS.hooks} lifecycle hooks into one MIT-licensed package, encoding
 				auth, migration, API, and testing patterns with security and quality
 				gates on by default. It installs from a terminal with{" "}
 				<code>{SITE.installCommand}</code> (Claude Code {SITE.ccVersion}).
@@ -82,27 +82,27 @@ export default function YonyonPage() {
 			<p>Everything is published at predictable, named URLs:</p>
 			<ul>
 				<li>
-					<Link href="/docs">Documentation</Link> — guides, cookbook, and a full
+					<Link href="/docs">Documentation</Link>: guides, cookbook, and a full
 					component reference.
 				</li>
 				<li>
-					<Link href="/developers">Developer resource hub</Link> — the index of
+					<Link href="/developers">Developer resource hub</Link>: the index of
 					machine-readable surfaces.
 				</li>
 				<li>
-					<a href="/api/openapi">OpenAPI spec</a> — read-only API over the docs.
+					<a href="/api/openapi">OpenAPI spec</a>: read-only API over the docs.
 				</li>
 				<li>
-					<a href="/api/mcp">MCP server</a> — connect agents over Streamable
+					<a href="/api/mcp">MCP server</a>: connect agents over Streamable
 					HTTP; see the{" "}
 					<a href="/.well-known/mcp/server-card.json">server card</a>.
 				</li>
 				<li>
-					<a href="/ask">/ask</a> — natural-language query endpoint (NLWeb).
+					<a href="/ask">/ask</a>: natural-language query endpoint (NLWeb).
 				</li>
 				<li>
 					<a href="/llms.txt">llms.txt</a> ·{" "}
-					<a href="/llms-full.txt">llms-full.txt</a> — agent-readable site index.
+					<a href="/llms-full.txt">llms-full.txt</a>: agent-readable site index.
 				</li>
 				<li>
 					<a href={YONYON.wikidata}>Wikidata (Q141457913)</a>, English label
@@ -110,7 +110,7 @@ export default function YonyonPage() {
 					<a href="https://www.wikidata.org/wiki/Q140128295">Q140128295</a>.
 				</li>
 				<li>
-					<a href="https://github.com/yonatangross/orchestkit">GitHub</a> — source,
+					<a href="https://github.com/yonatangross/orchestkit">GitHub</a>: source,
 					issues, and releases.
 				</li>
 			</ul>

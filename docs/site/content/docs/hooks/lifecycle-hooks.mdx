@@ -1,6 +1,6 @@
 ---
 title: "Session Start to Stop"
-description: "How OrchestKit manages the full session lifecycle -- from environment setup and context loading through metrics, compaction, and fire-and-forget cleanup."
+description: "How OrchestKit manages the full session lifecycle, from environment setup and context loading through metrics, compaction, and fire-and-forget cleanup."
 ---
 
 import { Callout } from "fumadocs-ui/components/callout";
@@ -8,7 +8,7 @@ import { Steps, Step } from "fumadocs-ui/components/steps";
 
 ## The Session Lifecycle
 
-A Claude Code session is bookended by startup and shutdown. OrchestKit hooks at every boundary to load context, track metrics, coordinate with other instances, and clean up when you leave -- all without blocking your workflow.
+A Claude Code session is bookended by startup and shutdown. OrchestKit hooks at every boundary to load context, track metrics, coordinate with other instances, and clean up when you leave, all without blocking your workflow.
 
 ```
 Setup (first run)
@@ -54,10 +54,10 @@ When a new session begins, these hooks fire in order:
 
 Spawns a detached background process that runs startup tasks in parallel without blocking the session:
 
-- **pattern-sync-pull** -- Pull learned patterns from previous sessions
-- **coordination-init** -- Register this instance for multi-instance coordination
-- **decision-sync-pull** -- Pull decision history
-- **dependency-version-check** -- Check for outdated dependencies
+- **pattern-sync-pull**: Pull learned patterns from previous sessions
+- **coordination-init**: Register this instance for multi-instance coordination
+- **decision-sync-pull**: Pull decision history
+- **dependency-version-check**: Check for outdated dependencies
 </Step>
 
 <Step>
@@ -65,10 +65,10 @@ Spawns a detached background process that runs startup tasks in parallel without
 
 Loads session state using Context Protocol 2.0. Reads from:
 
-- `.claude/context/session/state.json` -- Previous session state
-- `.claude/context/identity.json` -- Project identity configuration
-- `.claude/context/knowledge/index.json` -- Knowledge index
-- `.claude/context/session/compaction-manifest.json` -- Key decisions and files touched from the last compacted session
+- `.claude/context/session/state.json`: Previous session state
+- `.claude/context/identity.json`: Project identity configuration
+- `.claude/context/knowledge/index.json`: Knowledge index
+- `.claude/context/session/compaction-manifest.json`: Key decisions and files touched from the last compacted session
 
 If an `AGENT_TYPE` environment variable is set (e.g., from `--from-pr` or agent dispatch), the loader also reads agent-specific configuration from `.claude/agents/{agent-type}.md`.
 
@@ -178,57 +178,57 @@ Background worker picks up the payload and runs 7 hooks in parallel
 These hooks run in the background after the session has already exited:
 
 **Core Session (6):**
-- `auto-save-context` -- Save conversation context for next session
-- `session-patterns` -- Extract and persist patterns from the session
-- `issue-work-summary` -- Summarize work done on GitHub issues
-- `calibration-persist` -- Save calibration metrics
-- `session-profile-aggregator` -- Aggregate session profile data
-- `session-end-tracking` -- Final session telemetry
+- `auto-save-context`: Save conversation context for next session
+- `session-patterns`: Extract and persist patterns from the session
+- `issue-work-summary`: Summarize work done on GitHub issues
+- `calibration-persist`: Save calibration metrics
+- `session-profile-aggregator`: Aggregate session profile data
+- `session-end-tracking`: Final session telemetry
 
 **Memory Sync (2):**
-- `graph-queue-sync` -- Flush pending graph memory operations
-- `workflow-preference-learner` -- Learn workflow preferences from session behavior
+- `graph-queue-sync`: Flush pending graph memory operations
+- `workflow-preference-learner`: Learn workflow preferences from session behavior
 
 **Instance Management (3):**
-- `multi-instance-cleanup` -- Clean up multi-instance coordination state
-- `cleanup-instance` -- Remove instance registration
-- `task-completion-check` -- Verify all tasks completed or properly handed off
+- `multi-instance-cleanup`: Clean up multi-instance coordination state
+- `cleanup-instance`: Remove instance registration
+- `task-completion-check`: Verify all tasks completed or properly handed off
 
 **Analysis (3):**
-- `context-compressor` -- Compress session context for storage
-- `auto-remember-continuity` -- Automatically store important decisions for session continuity
-- `security-scan-aggregator` -- Aggregate security findings from the session
+- `context-compressor`: Compress session context for storage
+- `auto-remember-continuity`: Automatically store important decisions for session continuity
+- `security-scan-aggregator`: Aggregate security findings from the session
 
 **Skill Validation (12):**
 - `coverage-check`, `evidence-collector`, `coverage-threshold-gate`, `cross-instance-test-validator`, `di-pattern-enforcer`, `duplicate-code-detector`, `eval-metrics-collector`, `migration-validator`, `review-summary-generator`, `security-summary`, `test-pattern-validator`, `test-runner`
 
 **Heavy Analysis (1):**
-- `full-test-suite` -- Run comprehensive test validation
+- `full-test-suite`: Run comprehensive test validation
 
 ### Background Worker Safeguards
 
 The background worker (`bin/background-worker.mjs`) includes several safety mechanisms:
 
-- **5-minute timeout** -- Self-terminates via `setTimeout` to prevent hangs
-- **Orphan cleanup** -- Removes temp files in `.claude/hooks/pending/` older than 10 minutes
-- **Parallel execution** -- All 7 hooks run via `Promise.allSettled` (failures don't block others)
-- **Debug logging** -- Writes to `.claude/logs/hooks/background-worker.log`
+- **5-minute timeout**: Self-terminates via `setTimeout` to prevent hangs
+- **Orphan cleanup**: Removes temp files in `.claude/hooks/pending/` older than 10 minutes
+- **Parallel execution**: All 7 hooks run via `Promise.allSettled` (failures don't block others)
+- **Debug logging**: Writes to `.claude/logs/hooks/background-worker.log`
 
 ## Multi-Instance Coordination
 
 When multiple Claude Code sessions run on the same project (e.g., one per terminal tab), hooks coordinate through:
 
-1. **Instance registration** -- Each session registers with a unique instance ID at startup
-2. **Heartbeat files** -- Periodic heartbeat updates at `.claude/coordination/heartbeats/`
-3. **File locks** -- The `multi-instance-lock` PreToolUse hook writes locks atomically (temp file + `renameSync`) to prevent concurrent writes to the same file
-4. **Quality gates** -- The `multi-instance-quality-gate` checks if another instance is already working on the same area
+1. **Instance registration**: Each session registers with a unique instance ID at startup
+2. **Heartbeat files**: Periodic heartbeat updates at `.claude/coordination/heartbeats/`
+3. **File locks**: The `multi-instance-lock` PreToolUse hook writes locks atomically (temp file + `renameSync`) to prevent concurrent writes to the same file
+4. **Quality gates**: The `multi-instance-quality-gate` checks if another instance is already working on the same area
 
 <Callout type="warn">
-**SEC-001 -- SQL Injection Prevention:** Instance IDs are validated against `/^[a-zA-Z0-9_\-.:]+$/` before any shell-exec SQLite operations. Invalid IDs are silently rejected.
+**SEC-001 (SQL Injection Prevention):** Instance IDs are validated against `/^[a-zA-Z0-9_\-.:]+$/` before any shell-exec SQLite operations. Invalid IDs are silently rejected.
 </Callout>
 
 <Callout type="warn">
-**SEC-003 -- Atomic File Writes:** Lock files are written to a temp path (`locks.json.{pid}.tmp`) then renamed atomically, preventing TOCTOU race conditions.
+**SEC-003 (Atomic File Writes):** Lock files are written to a temp path (`locks.json.{pid}.tmp`) then renamed atomically, preventing TOCTOU race conditions.
 </Callout>
 
 ## Unified Dispatchers

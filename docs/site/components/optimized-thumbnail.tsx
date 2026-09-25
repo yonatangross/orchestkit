@@ -11,6 +11,8 @@ interface OptimizedThumbnailProps {
   placeholderSize?: number;
   /** Additional opacity class applied to the image (e.g. "opacity-60") */
   opacity?: string;
+  /** Called once when the image fails and the placeholder takes over. */
+  onError?: () => void;
 }
 
 /**
@@ -24,6 +26,7 @@ export function OptimizedThumbnail({
   className = "",
   placeholderSize = 32,
   opacity,
+  onError,
 }: OptimizedThumbnailProps) {
   const [hasError, setHasError] = useState(false);
 
@@ -56,7 +59,10 @@ export function OptimizedThumbnail({
       fill
       sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
       className={`object-cover ${opacity ?? ""} ${className}`.trim()}
-      onError={() => setHasError(true)}
+      onError={() => {
+        setHasError(true);
+        onError?.();
+      }}
     />
   );
 }

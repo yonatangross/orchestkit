@@ -29,7 +29,7 @@ const CHAT: Omit<RoomBubble, "id" | "kind">[] = [
 	{
 		who: "Yonatan",
 		side: "in",
-		text: "Welcome in 👋 This is the live room — ask when something breaks. Wins count too.",
+		text: "Welcome in 👋 This is the live room. Ask when something breaks. Wins count too.",
 		time: "09:12",
 		reaction: "👋 3",
 		...PEOPLE.Yonatan,

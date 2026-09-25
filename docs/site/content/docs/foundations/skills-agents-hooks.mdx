@@ -8,7 +8,7 @@ import { Count } from '@/components/count';
 
 OrchestKit has three types of components. Understanding how they connect is the key to using the toolkit effectively.
 
-## Skills — Reusable Knowledge
+## Skills: Reusable Knowledge
 
 A skill is a markdown file containing expert knowledge about a specific topic. Think of skills as **reference cards** that Claude reads when it needs domain expertise.
 
@@ -25,7 +25,7 @@ src/skills/python-backend/SKILL.md
 | **Command** | <Count k="commands" /> | You invoke directly: `/ork:commit` | `/ork:verify`, `/ork:implement` |
 | **Reference** | <Count k="references" /> | Auto-injected into agents | `python-backend`, `security-patterns` |
 
-Command skills are what you type. Reference skills are what agents read. You never need to invoke a reference skill — the right agent loads the right skills automatically.
+Command skills are what you type. Reference skills are what agents read. You never need to invoke a reference skill; the right agent loads the right skills automatically.
 
 ### Skill Anatomy
 
@@ -42,9 +42,9 @@ agent: backend-system-architect  # Which agent uses this
 ---
 ```
 
-## Agents — Specialized AI Personas
+## Agents: Specialized AI Personas
 
-An agent is a **specialized Claude instance** with a specific role, tools, and injected skills. When you say "design a database schema", OrchestKit spawns the `database-engineer` agent — pre-loaded with schema design skills, migration patterns, and normalization knowledge.
+An agent is a **specialized Claude instance** with a specific role, tools, and injected skills. When you say "design a database schema", OrchestKit spawns the `database-engineer` agent, pre-loaded with schema design skills, migration patterns, and normalization knowledge.
 
 **<Count k="agents" /> agents** covering: backend architecture, frontend UI, security auditing, test generation, debugging, deployment, and more.
 
@@ -87,9 +87,9 @@ Some commands spawn **multiple agents in parallel**. When you run `/ork:review-p
 
 All three run in parallel, then results are synthesized into a single PR review.
 
-## Hooks — Invisible Automation
+## Hooks: Invisible Automation
 
-Hooks are TypeScript functions that **fire automatically** on lifecycle events. You never invoke them — they run in the background on every prompt, tool call, and session transition.
+Hooks are TypeScript functions that **fire automatically** on lifecycle events. You never invoke them; they run in the background on every prompt, tool call, and session transition.
 
 **171 hooks** across 12 categories:
 
@@ -156,5 +156,5 @@ Here's what happens when you say **"Add user auth to the API"**:
 
 ## Next Steps
 
-- **[Choosing a Plugin](/docs/foundations/choosing-a-plugin)** — Plugin installation options
-- **[Installation](/docs/getting-started/installation)** — Get started in 2 minutes
+- **[Choosing a Plugin](/docs/foundations/choosing-a-plugin)**: Plugin installation options
+- **[Installation](/docs/getting-started/installation)**: Get started in 2 minutes

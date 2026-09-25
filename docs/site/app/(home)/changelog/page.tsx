@@ -7,7 +7,7 @@ import {
 import { ChangelogMermaid } from "@/components/changelog-mermaid";
 import { ChronoBoard } from "@/components/ui/chrono-board";
 import { CHANGELOG_ENTRIES } from "@/lib/generated/changelog-data";
-import { howToReadMermaid, recentTimelineMermaid } from "@/lib/changelog-format";
+import { recentTimelineMermaid } from "@/lib/changelog-format";
 import { buildVersionChronoCards } from "@/lib/chrono-board-release";
 import { SITE } from "@/lib/constants";
 
@@ -21,7 +21,7 @@ export default function ChangelogPage() {
   const latest = CHANGELOG_ENTRIES[0];
 
   return (
-    <main className="mx-auto w-full max-w-[960px] px-7 py-16 sm:py-20">
+    <main className="changelog-veil mx-auto w-full max-w-[960px] px-7 py-16 sm:py-20">
       <p className="font-mono text-[11.5px] font-medium uppercase tracking-[0.06em] text-fd-muted-foreground">
         {CHANGELOG_ENTRIES.length} releases
         {latest ? ` · latest ${latest.version}` : ""}
@@ -63,12 +63,9 @@ export default function ChangelogPage() {
         <p className="font-mono text-[11px] font-medium uppercase tracking-[0.06em] text-fd-muted-foreground">
           How to read a release
         </p>
+        {/* A plain key. The same five types used to be drawn again below it as
+            a boxes-and-lines diagram, which read as a sequence (QA 2026-09-25). */}
         <ChangelogLegend />
-        {/* Same content as the chip legend above; at phone width the diagram
-            scaled to ~4px text (visual audit 2026-09-25), so md and up only. */}
-        <div className="hidden md:block">
-          <ChangelogMermaid chart={howToReadMermaid()} />
-        </div>
         <h2
           id="release-activity-heading"
           className="font-mono text-[11px] font-medium uppercase tracking-[0.06em] text-fd-muted-foreground"
