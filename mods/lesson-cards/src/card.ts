@@ -76,7 +76,7 @@ export function cutCodePoints(text: string, max: number): string {
 
 const COMMENT = /^\s*(#|\/\/)/;
 const RIGHT_HEADING = /\b(RIGHT|BEST|FIX|DO)\b/i;
-const WRONG_HEADING = /\b(WRONG|BAD|DON'?T)\b/i;
+const WRONG_HEADING = /\b(WRONG|BAD|DON'?T|DO NOT|NEVER|AVOID)\b/i;
 
 /**
  * The one line of a lesson's fix worth sending with a refusal. Fixes are
@@ -92,13 +92,17 @@ export function shortFix(fix: string | undefined): string | undefined {
   for (const line of lines) {
     if (COMMENT.test(line)) {
       // A neutral comment ends a WRONG block ("use this instead").
-      section = RIGHT_HEADING.test(line) ? 'right' : WRONG_HEADING.test(line) ? 'wrong' : 'none';
+      // WRONG is tested first: "# WRONG: Do not use this" also contains "Do".
+      section = WRONG_HEADING.test(line) ? 'wrong' : RIGHT_HEADING.test(line) ? 'right' : 'none';
       continue;
     }
     if (section === 'right') return cutCodePoints(line, MAX_FIX_CHARS);
     if (section === 'none' && firstNeutral === undefined) firstNeutral = line;
   }
-  const pick = firstNeutral ?? lines.find(l => !COMMENT.test(l)) ?? lines[0];
+  // Never offer a WRONG example as the fix: with no code outside a WRONG
+  // block there is no short fix.
+  const sawHeading = lines.some(l => COMMENT.test(l));
+  const pick = firstNeutral ?? (sawHeading ? undefined : lines[0]);
   return pick === undefined ? undefined : cutCodePoints(pick.replace(/\s+/g, ' '), MAX_FIX_CHARS);
 }
 
@@ -113,8 +117,14 @@ export function denyLine(lesson: MatchedLesson, why: string): string {
   const flat = lesson.message.replace(/\s+/g, ' ').trim();
   const firstSentence = /^(.*?[.!?])(\s|$)/.exec(flat)?.[1] ?? flat;
   const fix = shortFix(lesson.fix);
-  const line = `lesson-cards: ${why}; call not run. [lesson:${lesson.id}] ${firstSentence}${fix ? ` Fix: ${fix}` : ''}`;
-  return cutCodePoints(line, MAX_DENY_CHARS);
+  const head = `lesson-cards: ${why}; call not run. [lesson:${lesson.id}] `;
+  const tail = fix ? ` Fix: ${fix}` : '';
+  // Budget the message around the fix: the fix (already capped) is kept
+  // whole and the first sentence takes what is left, so a long sentence can
+  // never push the fix off the end of the line.
+  const room = MAX_DENY_CHARS - Array.from(head).length - Array.from(tail).length;
+  const message = room >= 4 ? cutCodePoints(firstSentence, room) : '';
+  return cutCodePoints(`${head}${message}${tail}`, MAX_DENY_CHARS);
 }
 
 /**

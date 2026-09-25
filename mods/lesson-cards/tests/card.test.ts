@@ -45,4 +45,26 @@ describe('denyLine', () => {
   test('cutCodePoints leaves short text alone', () => {
     expect(cutCodePoints('abc', 10)).toBe('abc');
   });
+
+  test('a long first sentence is cut, the Fix stays whole', () => {
+    const line = denyLine(lesson('w'.repeat(500) + '.', '# RIGHT\nuse_the_safe_call()'), 'the user chose Cancel');
+    expect(Array.from(line).length).toBeLessThanOrEqual(MAX_DENY_CHARS);
+    expect(line.endsWith(' Fix: use_the_safe_call()')).toBe(true);
+  });
 });
+
+describe('shortFix headings (CodeRabbit)', () => {
+  test('"# WRONG: Do not use this" is a WRONG heading, so its code is never the fix', () => {
+    const fix = '# WRONG: Do not use this\nbad_call()\n\n# RIGHT\ngood_call()';
+    expect(shortFix(fix)).toBe('good_call()');
+  });
+
+  test('a fix with only a WRONG example offers no short fix', () => {
+    expect(shortFix('# WRONG: Do not use this\nbad_call()')).toBeUndefined();
+  });
+
+  test('"# Do not ..." alone is a WRONG heading too', () => {
+    expect(shortFix('# Do not pipe into grep\nls | grep x\n# Use this\nls -1')).toBe('ls -1');
+  });
+});
+
