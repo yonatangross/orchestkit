@@ -1,0 +1,12 @@
+{
+  "slug": "promote-lights-past-30",
+  "source": "docs/chore--dsp-56397-4422-promote-lights/index.html",
+  "title": "promote-lights finds the promote PR past 30",
+  "description": "Interactive proof that promote-lights tracks a promote PR past the first 30 open PRs using server side filtered queries.",
+  "tags": [
+    "mods",
+    "promote-lights",
+    "ci"
+  ],
+  "date": "2026-09-25"
+}

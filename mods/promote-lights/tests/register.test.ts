@@ -475,6 +475,42 @@ describe("register behavior (mutant-killing)", () => {
     );
   });
 
+  test("session.start warns when one promote query fails and uses the other", async () => {
+    const { register } = await import("../hooks/register.ts");
+    const handlers = captureHandlers({ register });
+    const fallback = makeDispatchingRun();
+    const partialRun = vi.fn(
+      async (argv: readonly string[], init?: Record<string, unknown>) => {
+        if (argv[1] === "pr" && argv[2] === "list" && argv.includes("--head")) {
+          return { exitCode: 1, stdout: "", stderr: "rate limited" };
+        }
+        if (argv[1] === "pr" && argv[2] === "list") {
+          return {
+            exitCode: 0,
+            stdout: JSON.stringify([
+              { number: 4418, headRefName: "release/roundup", headRefOid: "abc123def4567", title: "roundup", labels: [{ name: "promote" }] },
+            ]),
+            stderr: "",
+          };
+        }
+        return fallback(argv, init);
+      }
+    );
+    const $ = createFake$({ run: partialRun });
+
+    await handlers.get("session.start")!($, {}, NEXT);
+
+    // The surviving label query still tracks the promote PR.
+    expect($.store.set).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ prNumber: 4418, passing: true })
+    );
+    // And the failed head query is surfaced, never silent.
+    expect($.ui.status).toHaveBeenCalledWith(
+      expect.stringContaining("head query failed")
+    );
+  });
+
   test("session.start tracks a non dev head carrying the promote label", async () => {
     const { register } = await import("../hooks/register.ts");
     const handlers = captureHandlers({ register });
