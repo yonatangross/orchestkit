@@ -27,7 +27,7 @@
 
 import { matchAndClassify, isPassing, type ClassifiedLight } from "../src/classify.js";
 import { computeRequiredUnion } from "../src/required.js";
-import { parsePRList, parsePRView, parseCheckRuns, isPromotePR, DEFAULT_PROMOTE_HEAD } from "../src/gh.js";
+import { parsePRList, parsePRView, parseCheckRuns, isPromotePR, DEFAULT_PROMOTE_HEAD, buildHeadQueryArgs, buildLabelQueryArgs, mergePRLists } from "../src/gh.js";
 import { buildStatusLine, buildBand, buildErrorBand, type Elements } from "../src/pane.js";
 import {
   parseWatchTarget,
@@ -103,6 +103,8 @@ type StoredLights = {
   lights?: ClassifiedLight[];
   mergeStateStatus?: string;
   hold?: boolean;
+  /** True when the promote search ran on one query instead of two. */
+  degraded?: boolean;
   passing?: boolean;
   error?: string;
   /** The token of the session that wrote this entry (see sessionToken). */
@@ -119,6 +121,8 @@ type Tracked = {
   mode: "promote" | "watch";
   /** Branch whose protection names the required checks: main for a promote, the PR's own base for a watch. */
   base: string;
+  /** True when the promote search ran on one query instead of two. */
+  degraded: boolean;
 };
 
 // Module state
@@ -220,22 +224,6 @@ export const register: Register = (on) => {
     if (!repo) return next(e);
 
     const { owner, name } = repo;
-    const result = await $.process.run([
-        "gh",
-        "pr",
-        "list",
-        "--base",
-        "main",
-        "--state",
-        "open",
-        "--json",
-        "number,headRefName,headRefOid,title,labels",
-      ], { timeoutMs: 15000 });
-
-    if (result.exitCode !== 0) {
-      await $.store.set(key, stamp({ error: "gh: not found" }));
-      return next(e);
-    }
 
     // Only a real promote PR matches: dev head (or the configured
     // promote head) with base main, or the promote label. An ordinary
@@ -243,7 +231,40 @@ export const register: Register = (on) => {
     let promoteHead = DEFAULT_PROMOTE_HEAD;
     const configured = await $.env.get("PROMOTE_HEAD").catch(() => undefined);
     if (configured) promoteHead = configured;
-    const prs = parsePRList(result.stdout);
+
+    // Both queries are filtered server side so the result is complete
+    // no matter how many ordinary open PRs the repo has. A single
+    // unfiltered list returns at most 30 PRs by default, which misses
+    // a promote PR sitting past position 30. Settled, never all: one
+    // rejected query degrades the search instead of aborting the start.
+    const [headSettled, labelSettled] = await Promise.allSettled([
+      $.process.run(buildHeadQueryArgs(promoteHead), { timeoutMs: 15000 }),
+      $.process.run(buildLabelQueryArgs(), { timeoutMs: 15000 }),
+    ]);
+    const byHead = headSettled.status === "fulfilled"
+      ? headSettled.value
+      : { exitCode: 1, stdout: "", stderr: String(headSettled.reason) };
+    const byLabel = labelSettled.status === "fulfilled"
+      ? labelSettled.value
+      : { exitCode: 1, stdout: "", stderr: String(labelSettled.reason) };
+
+    if (byHead.exitCode !== 0 && byLabel.exitCode !== 0) {
+      await $.store.set(key, stamp({ error: "gh: not found" }));
+      return next(e);
+    }
+
+    // One failed query must never pass silently: the search is degraded,
+    // the snapshot records it, and the status line keeps saying so.
+    const degraded = byHead.exitCode !== 0 || byLabel.exitCode !== 0;
+    if (degraded) {
+      const failed = byHead.exitCode !== 0 ? "head" : "label";
+      await warnStatus($, `lights: promote ${failed} query failed, continuing with the other`);
+    }
+
+    const prs = mergePRLists(
+      byHead.exitCode === 0 ? parsePRList(byHead.stdout) : [],
+      byLabel.exitCode === 0 ? parsePRList(byLabel.stdout) : []
+    );
     const promotePR = prs.find((pr) => isPromotePR(pr, promoteHead));
 
     if (!promotePR) {
@@ -251,7 +272,7 @@ export const register: Register = (on) => {
       return next(e);
     }
 
-    tracked = { owner, repo: name, number: promotePR.number, head: promotePR.headRefOid, mode: "promote", base: "main" };
+    tracked = { owner, repo: name, number: promotePR.number, head: promotePR.headRefOid, mode: "promote", base: "main", degraded };
 
     if (!ticking) {
       startTick($, key);
@@ -372,7 +393,8 @@ export const register: Register = (on) => {
           stored.lights,
           stored.mergeStateStatus ?? "",
           stored.hold ?? false,
-          stored.label
+          stored.label,
+          stored.degraded ?? false
         ),
       };
     }
@@ -406,11 +428,12 @@ async function startWatch($: Hook$, key: string, target: WatchTarget): Promise<s
     mode: "watch",
     // The watched PR's own base; main only when gh did not report one.
     base: details.baseRefName || "main",
+    degraded: false,
   };
   startTick($, key);
   const snapshot = await doTick($, key);
   if (snapshot?.lights) {
-    return buildStatusLine(target.number, snapshot.lights, snapshot.mergeStateStatus ?? "", false, labelFor(tracked));
+    return buildStatusLine(target.number, snapshot.lights, snapshot.mergeStateStatus ?? "", false, labelFor(tracked), tracked.degraded);
   }
   if (snapshot?.error) return `lights: ${snapshot.error}`;
   return `lights: watching ${name}`;
@@ -486,12 +509,13 @@ async function doTick($: Hook$, key: string): Promise<StoredLights | null> {
       lights,
       mergeStateStatus,
       hold: false,
+      degraded: t.degraded,
       passing,
       ts: Date.now(),
     };
     await $.store.set(key, stamp(snapshot));
 
-    const statusLine = buildStatusLine(prNumber, lights, mergeStateStatus, false, label);
+    const statusLine = buildStatusLine(prNumber, lights, mergeStateStatus, false, label, t.degraded);
     await $.ui.status(statusLine);
     $.ui.invalidate("ui.render");
     return snapshot;
@@ -507,4 +531,16 @@ function stopTick(): void {
   tickInterval?.cancel();
   ticking = false;
   tickInterval = null;
+}
+
+/**
+ * Best effort status sink for warnings: a rejection here must never
+ * abort the tracking that is already set up.
+ */
+async function warnStatus($: Hook$, message: string): Promise<void> {
+  try {
+    await $.ui.status(message);
+  } catch {
+    // Surfacing is best effort; tracking continues without it.
+  }
 }
