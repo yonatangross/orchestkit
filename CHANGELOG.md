@@ -5,6 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.90](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.89...v10.0.0-beta.90) (2026-09-25)
+
+
+### Features
+
+* **cover:** gate generated tests on behaviour and target by risk ([#4408](https://github.com/yonatangross/orchestkit/issues/4408)) ([28111e9](https://github.com/yonatangross/orchestkit/commit/28111e93ff1b73f50bfe911d8d8c98b5e83af61b))
+
+
+### Bug Fixes
+
+* **hooks:** word-based wrapper option parsing in the egress check ([#4406](https://github.com/yonatangross/orchestkit/issues/4406)) ([9e163a0](https://github.com/yonatangross/orchestkit/commit/9e163a081267f7ca4cb21ba4c647dff3fad61bb7))
+
 ## [10.0.0-beta.89](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.88...v10.0.0-beta.89) (2026-09-24)
 
 
