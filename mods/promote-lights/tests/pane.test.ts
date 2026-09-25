@@ -7,7 +7,7 @@
  */
 
 import { describe, test, expect } from "vitest";
-import { buildBand, problemLights, summaryLabel, type Elements } from "../src/pane.js";
+import { buildBand, problemLights, summaryLabel, MAX_PROBLEM_LINES, type Elements } from "../src/pane.js";
 import type { ClassifiedLight } from "../src/classify.js";
 
 type FakeNode = { type: string; props: Record<string, unknown>; children: unknown[] };
@@ -98,3 +98,23 @@ describe("compact band", () => {
     expect(summaryLabel("promote #4435")).toBe("#4435");
   });
 });
+
+describe("problem lines are capped", () => {
+  test("7 red checks draw the summary, 5 problem lines, then +2 more", () => {
+    const lights = Array.from({ length: 7 }, (_, i) => red(`check ${i + 1}`));
+    const band = buildBand(fakeElements(), "#9", lights, "abc1234def", "BLOCKED", false) as FakeNode;
+    expect(MAX_PROBLEM_LINES).toBe(5);
+    expect(band.children).toHaveLength(1 + 5 + 1);
+    expect(textOf(band.children[5])).toContain("check 5");
+    expect(textOf(band.children[6])).toBe("   +2 more");
+    expect(textOf(band.children[0])).toContain("7 \u{1F534}");
+  });
+
+  test("exactly 5 problems draw no +N more line", () => {
+    const lights = Array.from({ length: 5 }, (_, i) => yellow(`job ${i + 1}`));
+    const band = buildBand(fakeElements(), "#9", lights, "abc1234def", "BLOCKED", false) as FakeNode;
+    expect(band.children).toHaveLength(6);
+    expect(band.children.map(textOf).join("|")).not.toContain("more");
+  });
+});
+
