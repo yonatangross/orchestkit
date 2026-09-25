@@ -22,7 +22,7 @@ import {
   type LessonBullet,
 } from '../src/corpus.js';
 import { matchAll, matchFileEdit } from '../src/match.js';
-import { buildCard, formatContext } from '../src/card.js';
+import { buildCard, formatContext, type CardElements } from '../src/card.js';
 import type { MatchedLesson } from '../src/types.js';
 
 /** Minimal $ facade for the events this module uses. */
@@ -38,6 +38,10 @@ type Hook$ = {
   ui: {
     notice: (toolUseId: string, message: string) => Promise<void>;
     invalidate: (component: string) => Promise<void>;
+    /** The AskUserQuestion dialog: resolves to the label the user picked. */
+    ask: (question: string, options: readonly string[]) => Promise<unknown>;
+    /** The element constructors this render may return (Box, Text, ...). */
+    resolve: (e: UiRenderEvent) => Promise<CardElements>;
   };
   command: {
     register: (spec: { name: string; description: string }) => Promise<unknown>;
@@ -54,6 +58,10 @@ type UiRenderEvent = {
   component: string;
   requestId?: string;
 };
+
+/** The two answers the block-lesson dialog offers. */
+export const PROCEED = 'Proceed anyway';
+export const CANCEL = 'Cancel';
 
 type NextFn<E> = (ev: E) => Promise<unknown>;
 
@@ -185,6 +193,29 @@ async function loadCorpus($: Hook$): Promise<Corpus> {
 }
 
 /**
+ * Match one tool call against the corpus: Bash by command, Edit and Write by
+ * file path and new content. Pure over its inputs; the hook owns all I/O.
+ */
+function matchToolCall(e: ToolCallEvent, loaded: Corpus): MatchedLesson[] {
+  const args: Record<string, unknown> = e;
+  if (e.tool === 'Bash') {
+    const command = String(args.command || '');
+    return command ? matchAll(command, loaded.patterns, loaded.bullets) : [];
+  }
+  if (e.tool === 'Edit') {
+    const filePath = String(args.file_path || '');
+    const newContent = String(args.new_string || args.content || '');
+    return filePath ? matchFileEdit(filePath, newContent, loaded.patterns) : [];
+  }
+  if (e.tool === 'Write') {
+    const filePath = String(args.file_path || '');
+    const content = String(args.content || '');
+    return filePath ? matchFileEdit(filePath, content, loaded.patterns) : [];
+  }
+  return [];
+}
+
+/**
  * Register the lesson-cards hooks.
  */
 export function register(on: (event: string, matcherOrHook: unknown, hook?: unknown) => void, _options?: unknown): void {
@@ -196,43 +227,19 @@ export function register(on: (event: string, matcherOrHook: unknown, hook?: unkn
   });
 
   on('tool.call', async ($: Hook$, e: ToolCallEvent, next?: NextFn<ToolCallEvent>) => {
-    const { tool, tool_use_id } = e;
-    const args: Record<string, unknown> = e;
-    const requestId = tool_use_id || `tool-${Date.now()}`;
-
-    // First, let the tool execute
-    const result = next ? ((await next(e)) ?? {}) : {};
+    const requestId = e.tool_use_id || `tool-${Date.now()}`;
 
     if (!corpus) {
-      return result;
+      return next ? ((await next(e)) ?? {}) : {};
     }
 
-    let matches: MatchedLesson[] = [];
-
-    if (tool === 'Bash') {
-      const command = String(args.command || '');
-      if (command) {
-        matches = matchAll(command, corpus.patterns, corpus.bullets);
-      }
-    } else if (tool === 'Edit') {
-      const filePath = String(args.file_path || '');
-      const newContent = String(args.new_string || args.content || '');
-      if (filePath) {
-        matches = matchFileEdit(filePath, newContent, corpus.patterns);
-      }
-    } else if (tool === 'Write') {
-      const filePath = String(args.file_path || '');
-      const content = String(args.content || '');
-      if (filePath) {
-        matches = matchFileEdit(filePath, content, corpus.patterns);
-      }
-    }
-
+    // Match BEFORE the tool runs, so a block lesson can ask first.
+    const matches = matchToolCall(e, corpus);
     if (matches.length === 0) {
-      return result;
+      return next ? ((await next(e)) ?? {}) : {};
     }
 
-    // Store matches for ui.render
+    // Store matches for ui.render: the card draws under this tool row.
     matchMap.set(requestId, matches);
 
     // Try to show notice during permission dialog (only works if dialog is open)
@@ -242,20 +249,41 @@ export function register(on: (event: string, matcherOrHook: unknown, hook?: unkn
       // Notice refused - dialog not open, ignore
     }
 
-    // Add context for model
-    const context = formatContext(matches[0]);
-    return { ...result, context: [context] };
-  });
+    const lesson = matches[0];
+    const context = formatContext(lesson);
 
-  on('ui.render', async ($: Hook$, e: UiRenderEvent, next?: NextFn<UiRenderEvent>) => {
-    if (e.component !== 'ToolUse') {
-      return next ? await next(e) : {};
+    // A block lesson asks the human before the call runs, and only an explicit
+    // "Proceed anyway" runs it. Cancel, Escape (the dialog throws "no answer"),
+    // a typed free-text answer, and no dialog at all (headless -p) all deny:
+    // a block lesson fails closed (estate-6 HOLD on #4429).
+    if (lesson.severity === 'block' && lesson.source === 'pattern') {
+      let answer: unknown;
+      try {
+        answer = await $.ui.ask(`lesson ${lesson.id}: ${lesson.message} Proceed anyway?`, [PROCEED, CANCEL]);
+      } catch {
+        answer = undefined;
+      }
+      if (answer !== PROCEED) {
+        // { deny } is the tool.call refusal CC 2.1.282 reads: the call is not
+        // run and the model sees the reason as a permission denial. A bare
+        // { result: string } is refused for Bash (its output is an object).
+        const why = answer === CANCEL ? 'the user chose Cancel' : 'no explicit "Proceed anyway" came back';
+        return {
+          deny: `lesson-cards: ${why} at lesson ${lesson.id}, so this call did not run. ${formatContext(lesson)}`,
+        };
+      }
     }
 
-    // Get the rendered tree
-    const tree = next ? await next(e) : {};
+    const result = next ? ((await next(e)) ?? {}) : {};
+    return { ...(result as Record<string, unknown>), context: [context] };
+  });
 
-    if (!e.requestId || !matchMap.has(e.requestId)) {
+  // Wrap, never mutate: next(e) hands back an opaque engine node ({ type, ref }),
+  // so the card goes beside it in a new column Box built from $.ui.resolve(e).
+  on('ui.render', { component: 'ToolUse' }, async ($: Hook$, e: UiRenderEvent, next?: NextFn<UiRenderEvent>) => {
+    const tree = next ? await next(e) : null;
+
+    if (e.component !== 'ToolUse' || !e.requestId) {
       return tree;
     }
 
@@ -264,16 +292,9 @@ export function register(on: (event: string, matcherOrHook: unknown, hook?: unkn
       return tree;
     }
 
-    // Append card under the tool row
-    const card = buildCard(matches[0], e.requestId);
-
-    const treeWithCard = tree as { children?: unknown[] };
-    if (!treeWithCard.children) {
-      treeWithCard.children = [];
-    }
-    treeWithCard.children.push(card);
-
-    return tree;
+    const el = await $.ui.resolve(e);
+    const card = buildCard(matches[0], e.requestId, el);
+    return el.Box({ flexDirection: 'column', children: tree ? [tree, card] : [card] });
   });
 
   on('command.run', { command: 'lessons' }, async ($: Hook$) => {
