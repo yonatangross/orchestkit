@@ -614,6 +614,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.90](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.89...v10.0.0-beta.90)** · 2026-09-25
+
+- **cover:** gate generated tests on behaviour and target by risk (#4408)
+- **hooks:** word-based wrapper option parsing in the egress check (#4406)
+
 **[v10.0.0-beta.89](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.88...v10.0.0-beta.89)** · 2026-09-24
 
 - **skills:** error-analysis, evals-first failure taxonomy from traces (#4402)
@@ -649,13 +654,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **security:** XS hardening batch from the 2026-09-17 audit (#4220) (#4383)
 - **skills:** grant Stitch tools the skills call, and guard skill MCP refs (#4376)
 - **skills:** keep rc capture and cleanup working under set -e (sweep T2) (#4387)
-
-**[v10.0.0-beta.82](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.81...v10.0.0-beta.82)** · 2026-09-23
-
-- **docs-site:** hero option A conductor bleed (#4345)
-- **hooks:** load telemetry sinks only from user scope over https (#4218) (#4380)
-- **hooks:** secret-handler AUDIT default and redacted security-audit log (#4379)
-- **skills:** Gemini model IDs and provider wording missed by [#4381](https://github.com/yonatangross/orchestkit/issues/4381) (#4382)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
