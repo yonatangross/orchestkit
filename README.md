@@ -614,6 +614,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.93](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.92...v10.0.0-beta.93)** · 2026-09-25
+
+- **skills:** Opus 5.5 budgets, split create-pr and dream (#4416)
+
 **[v10.0.0-beta.92](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.91...v10.0.0-beta.92)** · 2026-09-25
 
 - **mods:** port the 3 mods to the CC 2.1.282 mods API (#4413)
@@ -647,11 +651,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **hooks:** skip project rules write when global copy is identical (#4393)
 - **hooks:** stdin path handling in egress interpreter argv (#4396)
-
-**[v10.0.0-beta.85](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.84...v10.0.0-beta.85)** · 2026-09-24
-
-- **hooks:** fail-closed interpreter argument classification in egress check (#4394)
-- **hooks:** per-interpreter flag handling in egress pipe check (#4390)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
