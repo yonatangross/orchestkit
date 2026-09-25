@@ -355,7 +355,7 @@
   }
 
   /* Contents of .home-hero-copy become flex siblings of the art so the
-     16:9 band sits under the headline (copy-top), before install CTAs. */
+     host picker and command sit under the headline, before the 16:9 band. */
   .home-hero-copy {
     display: contents;
   }
@@ -365,7 +365,7 @@
   }
 
   .home-hero-art {
-    order: 2;
+    order: 3;
     width: 100%;
     aspect-ratio: 16 / 9;
     margin-top: 8px;
@@ -377,8 +377,16 @@
     object-position: center 30%;
   }
 
+  /* Install before the art on phones: 35% of home sessions are mobile and
+     the median home scroll is 10%, so the command must be on screen one. */
   .home-hero-copy-actions {
-    order: 3;
+    order: 2;
+    /* The desktop grid's align-items:center survives into this flex column.
+       Centred at fit-content, the unwrapped command lines made the block wider
+       than the phone and it spilled past both edges. Stretch it and let it
+       shrink so the lines scroll inside the command box instead. */
+    align-self: stretch;
+    min-width: 0;
   }
 
   .home-hero-more {

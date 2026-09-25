@@ -8,7 +8,6 @@ import { AgentReadinessSection } from "@/components/agent-readiness-section";
 import { HomepageStructuredData } from "@/components/structured-data";
 import { GeorgeMark } from "@/components/world/george";
 import { LibraryCatalog } from "@/components/library-catalog";
-import { CopyInstallButton } from "./copy-button";
 import { WhatsNewStrip } from "@/components/whats-new-strip";
 import { HomeSearchTrigger } from "@/components/home-search-trigger";
 import { HostInstallPicker } from "@/components/host-install";
@@ -168,33 +167,15 @@ export default async function HomePage() {
             </div>
 
             <div className="home-hero-copy-actions">
-              {/* Primary action: the install command itself, above the fold on
-                  375x812 and 1024x768. Other hosts stay in the picker below. */}
-              <div
-                data-hero-install
-                className="mt-6 flex flex-wrap items-center justify-start gap-2.5"
-              >
-                <CopyInstallButton
-                  surface="hero"
-                  className="border-fd-primary/50 bg-[var(--color-fd-surface-raised)] text-fd-foreground hover:border-fd-primary"
-                />
-                <Link
-                  href="/docs/getting-started/first-10-minutes"
-                  className="inline-flex h-10 items-center gap-2 rounded-lg px-3 text-sm font-semibold text-fd-primary underline-offset-2 transition-colors hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-ring motion-reduce:transition-none"
-                >
-                  Get started{" "}
-                  <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-                </Link>
-              </div>
-              <p className="mt-2 text-[12.5px] text-fd-muted-foreground">
-                For Claude Code. On Cursor, Codex, Muse Code, Pi, OpenCode, Devin or Antigravity? Pick your host below.
-              </p>
+              {/* Host first, then that host's one command (operator, 2026-09-25):
+                  76% of host picks were not Claude Code, but the hero printed the
+                  Claude Code command before the picker. */}
+              <HostInstallPicker />
             </div>
           </div>
           <HomeHeroArt />
 
           <div className="home-hero-more">
-            <HostInstallPicker />
             <HomeSearchTrigger />
             <WebMcpSearchForm />
             <div className="mt-4 flex flex-wrap items-center justify-start gap-x-3 gap-y-2 text-[13px] text-fd-muted-foreground min-[901px]:justify-center">

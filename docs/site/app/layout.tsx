@@ -76,7 +76,13 @@ export default function Layout({ children }: { children: ReactNode }) {
 				>
 					Skip to main content
 				</a>
-				<Banner id={`v${SITE.version}`}>{BANNER_TEXT}</Banner>
+				{/* Own row, not sticky (operator, 2026-09-25). Fumadocs pins the banner
+				    sticky top-0 while the nav also sticks at top 0, so after any scroll
+				    the banner text showed through the nav (48px overlap). It now scrolls
+				    away, and changeLayout={false} stops docs layouts reserving its height. */}
+				<Banner id={`v${SITE.version}`} className="relative" changeLayout={false}>
+					{BANNER_TEXT}
+				</Banner>
 				<RootProvider
 					theme={{ defaultTheme: "dark" }}
 					search={{ SearchDialog: CustomSearchDialog }}

@@ -332,24 +332,33 @@ describe("landing page content", () => {
     expect(code).not.toMatch(/searchParams/);
   });
 
-  it("puts one copyable install command in the hero, before the host picker", async () => {
+  it("leads the hero with host chips, then exactly one command for the picked host", async () => {
     const HomePage = (await import("../app/(home)/page")).default;
     const result = await HomePage();
     const { container } = render(result);
 
-    const heroInstall = container.querySelector("[data-hero-install]");
-    expect(heroInstall).toBeTruthy();
-    const copy = within(heroInstall as HTMLElement).getByRole("button", {
-      name: "Copy claude plugin marketplace add yonatangross/orchestkit && claude plugin install ork@orchestkit to clipboard",
-    });
-    const nav = screen.getByRole("navigation", { name: /install by host/i });
-    // The hero command is not the picker's copy, and it comes first in the DOM.
-    expect(nav.contains(copy)).toBe(false);
+    // Host first (operator + PostHog 2026-09-25: 76% of host picks were not
+    // Claude Code), then that host's command, all inside the hero copy column.
+    const copyCol = container.querySelector(".home-hero-copy") as HTMLElement;
+    const nav = within(copyCol).getByRole("navigation", { name: /install by host/i });
+    const box = nav.querySelector("[data-hero-install]") as HTMLElement;
+    expect(box).toBeTruthy();
+    const hosts = within(nav).getByRole("group", { name: "Hosts" });
     expect(
-      copy.compareDocumentPosition(nav) & Node.DOCUMENT_POSITION_FOLLOWING,
+      hosts.compareDocumentPosition(box) & Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
-    // Exactly one hero install command.
-    expect(container.querySelectorAll("[data-hero-install] button").length).toBe(1);
+    // Claude Code is preselected and its box says so.
+    expect(
+      within(hosts).getByRole("link", { name: "Claude Code" }).getAttribute("aria-current"),
+    ).toBe("true");
+    expect(within(box).getByText("Claude Code")).toBeTruthy();
+    // Exactly one install copy button in the hero, and no second Claude-only box.
+    expect(container.querySelectorAll("[data-hero-install]").length).toBe(1);
+    expect(
+      within(box).getAllByRole("button", { name: /copy claude plugin marketplace add/i }),
+    ).toHaveLength(1);
+    // The old "For Claude Code. On Cursor..." sentence is gone.
+    expect(copyCol.textContent).not.toMatch(/Pick your host below/);
   });
 
   it("renders hero A conductor art with priority image and layout hooks", async () => {
@@ -371,21 +380,21 @@ describe("landing page content", () => {
     expect(light?.getAttribute("src")).toBe("/brand/hero-conductor-light.jpg");
     expect(container.querySelectorAll(".home-hero-art img")).toHaveLength(2);
 
-    // Install + Get started stay in the copy column (unchanged CTAs).
+    // Install + Get started stay in the copy column.
     const copyCol = container.querySelector(".home-hero-copy");
     expect(copyCol?.querySelector("[data-hero-install]")).toBeTruthy();
     expect(
       within(copyCol as HTMLElement).getByRole("link", { name: /get started/i }),
     ).toBeTruthy();
 
-    // The host picker lives in the full-width row under the hero, not in the
-    // copy column: in the column it made the copy ~600px taller than the art
-    // and left the right side bare (operator report 2026-09-25).
+    // The compact host picker sits in the copy column; the band under the hero
+    // keeps search, links and proof. The old 8-card picker made the copy
+    // column ~600px taller than the art (operator report 2026-09-25).
     const more = container.querySelector(".home-hero-more");
     expect(more).toBeTruthy();
     const nav = screen.getByRole("navigation", { name: /install by host/i });
-    expect(more?.contains(nav)).toBe(true);
-    expect(copyCol?.contains(nav)).toBe(false);
+    expect(copyCol?.contains(nav)).toBe(true);
+    expect(more?.contains(nav)).toBe(false);
     // The art is a sibling of the copy column in the hero grid.
     const artBox = container.querySelector(".home-hero-art");
     expect(artBox?.parentElement).toBe(copyCol?.parentElement);
@@ -417,14 +426,12 @@ describe("landing page content", () => {
     expect(within(nav).getByRole("link", { name: "Pi" })).toBeTruthy();
     expect(within(nav).getByRole("link", { name: "Muse Code" })).toBeTruthy();
     expect(within(nav).getByRole("link", { name: "OpenCode" })).toBeTruthy();
-    // The hero already shows this exact command above the fold, so the picker
-    // states that in real text instead of printing the same string twice.
+    // The picker is the hero now, so it prints the default host's command once.
     expect(
-      within(nav).queryByRole("button", {
+      within(nav).getAllByRole("button", {
         name: /copy claude plugin marketplace add yonatangross\/orchestkit/i,
       }),
-    ).toBeNull();
-    expect(within(nav).getByText(/same command as above/i)).toBeTruthy();
+    ).toHaveLength(1);
     // The /ork:setup follow-up is genuinely extra, so it stays copyable.
     expect(
       within(nav).getByRole("button", {

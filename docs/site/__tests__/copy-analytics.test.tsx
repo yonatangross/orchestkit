@@ -57,7 +57,7 @@ describe("install vs setup snippet events", () => {
 			screen.getByRole("button", { name: /^copy \/ork:setup to clipboard$/i }),
 		);
 		expect(trackMock).toHaveBeenCalledTimes(1);
-		expect(trackMock).toHaveBeenCalledWith("setup_copied", { host: "claude" });
+		expect(trackMock).toHaveBeenCalledWith("setup_copied", { host: "claude", surface: "docs-card" });
 
 		trackMock.mockClear();
 		fireEvent.click(
@@ -65,7 +65,7 @@ describe("install vs setup snippet events", () => {
 				name: /copy claude plugin marketplace add yonatangross\/orchestkit/i,
 			}),
 		);
-		expect(trackMock).toHaveBeenCalledWith("install_copied", { host: "claude" });
+		expect(trackMock).toHaveBeenCalledWith("install_copied", { host: "claude", surface: "docs-card" });
 	});
 });
 

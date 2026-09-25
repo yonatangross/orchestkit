@@ -330,8 +330,14 @@ export function SetupWizard() {
 						<div className="space-y-2">
 							<InstallSnippet
 								text={commands}
+								copy={
+									spec.copy && commands.join("\n") === spec.commands.join("\n")
+										? spec.copy
+										: undefined
+								}
 								prompt={spec.prompt}
 								host={host}
+								surface="setup-wizard"
 							/>
 							{spec.then ? (
 								<div className="space-y-1.5">
@@ -343,6 +349,7 @@ export function SetupWizard() {
 										prompt={spec.then.prompt}
 										host={host}
 										event="setup_copied"
+										surface="setup-wizard"
 									/>
 								</div>
 							) : null}

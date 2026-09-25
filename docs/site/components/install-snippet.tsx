@@ -12,13 +12,45 @@ import { track } from "@/lib/search-beacon";
  */
 export type SnippetCopyEvent = "install_copied" | "setup_copied";
 
+/**
+ * Where a copy happened. PostHog (2026-09-25) could not tell a hero copy from
+ * a picker or docs copy because only the hero chip sent `surface`; every copy
+ * now carries one.
+ */
+export type CopySurface = "hero" | "docs-card" | "setup-wizard" | "factory-ride";
+
+/** Copy `payload`, fire the funnel event, flip to a check for 2s. */
+export function useTrackedCopy(
+	payload: string,
+	event: SnippetCopyEvent,
+	props: { host?: string; surface?: CopySurface },
+) {
+	const [copied, setCopied] = useState(false);
+	const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+	const copy = () => {
+		navigator.clipboard.writeText(payload).catch(() => {});
+		const eventProps: Record<string, string> = {};
+		if (props.host) eventProps.host = props.host;
+		if (props.surface) eventProps.surface = props.surface;
+		track(event, eventProps);
+		if (timer.current) clearTimeout(timer.current);
+		setCopied(true);
+		timer.current = setTimeout(() => setCopied(false), 2000);
+	};
+	return { copied, copy };
+}
+
 export function InstallSnippet({
 	text,
 	prompt = true,
 	host,
 	event = "install_copied",
+	surface,
+	copy: copyText,
 }: {
 	text: string | string[];
+	/** Clipboard payload when it differs from the displayed lines. */
+	copy?: string;
 	prompt?: boolean;
 	host?: string;
 	/**
@@ -27,19 +59,11 @@ export function InstallSnippet({
 	 * counted as a second install.
 	 */
 	event?: SnippetCopyEvent;
+	surface?: CopySurface;
 }) {
 	const lines = typeof text === "string" ? [text] : text;
-	const payload = lines.join("\n");
-	const [copied, setCopied] = useState(false);
-	const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-	const copy = () => {
-		navigator.clipboard.writeText(payload).catch(() => {});
-		track(event, host ? { host } : {});
-		if (timer.current) clearTimeout(timer.current);
-		setCopied(true);
-		timer.current = setTimeout(() => setCopied(false), 2000);
-	};
+	const payload = copyText ?? lines.join("\n");
+	const { copied, copy } = useTrackedCopy(payload, event, { host, surface });
 
 	return (
 		<button

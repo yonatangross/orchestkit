@@ -232,9 +232,11 @@ describe("HostInstallPicker", () => {
 		render(<HostInstallPicker />);
 		const claude = screen.getByRole("link", { name: "Claude Code" });
 		claude.focus();
+		// Chip order follows demand (PostHog 2026-09-25): Claude, Cursor, Codex,
+		// Devin | OpenCode, Muse Code, Pi, Antigravity.
 		fireEvent.keyDown(claude, { key: "ArrowDown" });
 		expect(document.activeElement).toBe(
-			screen.getByRole("link", { name: "Pi" }),
+			screen.getByRole("link", { name: "OpenCode" }),
 		);
 		fireEvent.keyDown(document.activeElement as Element, { key: "ArrowDown" });
 		expect(document.activeElement).toBe(
@@ -247,7 +249,7 @@ describe("HostInstallPicker", () => {
 		);
 		fireEvent.keyDown(document.activeElement as Element, { key: "ArrowUp" });
 		expect(document.activeElement).toBe(
-			screen.getByRole("link", { name: "Muse Code" }),
+			screen.getByRole("link", { name: "Devin" }),
 		);
 		fireEvent.keyDown(document.activeElement as Element, { key: "Home" });
 		fireEvent.keyDown(document.activeElement as Element, { key: "ArrowUp" });
@@ -318,30 +320,70 @@ describe("HostInstallPicker", () => {
 		vi.restoreAllMocks();
 	});
 
-	it("does not repeat the hero command, and keeps the /ork:setup follow-up", () => {
+	it("shows Claude Code's command one line per command and copies the one-liner", () => {
 		render(<HostInstallPicker />);
-		// Claude Code is the default pick and its command is byte-identical to
-		// the hero's, so the panel says so in real text instead of printing it.
-		expect(
-			screen.queryByRole("button", {
-				name: new RegExp(`copy ${SITE.installCommand}`, "i"),
-			}),
-		).toBeNull();
-		expect(screen.getByText(/same command as above/i)).toBeTruthy();
+		const box = document.querySelector("[data-hero-install]") as HTMLElement;
+		expect(box).toBeTruthy();
+		// Labelled with the host, so a Cursor reader never mistakes it for theirs.
+		expect(within(box).getByText("Claude Code")).toBeTruthy();
+		// Two display lines, not one wrapped line with the $ in the middle.
+		expect(box.textContent).toContain("claude plugin marketplace add yonatangross/orchestkit");
+		expect(box.textContent).toContain("claude plugin install ork@orchestkit");
+		const copy = within(box).getByRole("button", {
+			name: new RegExp(`copy ${SITE.installCommand.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`, "i"),
+		});
+		fireEvent.click(copy);
+		expect(navigator.clipboard.writeText).toHaveBeenCalledWith(SITE.installCommand);
+		expect(track).toHaveBeenCalledWith("install_copied", { host: "claude", surface: "hero" });
 		expect(
 			screen.getByRole("button", { name: /^copy \/ork:setup to clipboard$/i }),
 		).toBeTruthy();
 	});
 
-	it("still renders a copyable command for a host that differs from the hero", async () => {
+	it("labels the command box with the picked host and tags its copy", async () => {
 		search = new URLSearchParams("host=cursor");
 		render(<HostInstallPicker />);
-		expect(
-			await screen.findByRole("button", {
-				name: /copy yonatangross\/orchestkit to clipboard/i,
-			}),
-		).toBeTruthy();
-		expect(screen.queryByText(/same command as above/i)).toBeNull();
+		const copy = await screen.findByRole("button", {
+			name: /copy yonatangross\/orchestkit to clipboard/i,
+		});
+		const box = document.querySelector("[data-hero-install]") as HTMLElement;
+		expect(within(box).getByText("Cursor")).toBeTruthy();
+		fireEvent.click(copy);
+		expect(track).toHaveBeenCalledWith("install_copied", { host: "cursor", surface: "hero" });
+	});
+
+	it("fires install_viewed once, with the host and why it is shown", async () => {
+		const observers: { cb: IntersectionObserverCallback }[] = [];
+		const RealIO = globalThis.IntersectionObserver;
+		globalThis.IntersectionObserver = class {
+			constructor(cb: IntersectionObserverCallback) {
+				observers.push({ cb });
+			}
+			observe() {}
+			disconnect() {}
+			unobserve() {}
+			takeRecords() {
+				return [];
+			}
+		} as unknown as typeof IntersectionObserver;
+		try {
+			search = new URLSearchParams("host=devin");
+			render(<HostInstallPicker />);
+			await waitFor(() =>
+				expect(
+					screen.getByRole("link", { name: "Devin" }).getAttribute("aria-current"),
+				).toBe("true"),
+			);
+			const seen = [{ isIntersecting: true }] as unknown as IntersectionObserverEntry[];
+			for (const o of observers) o.cb(seen, {} as IntersectionObserver);
+			for (const o of observers) o.cb(seen, {} as IntersectionObserver);
+			const calls = vi.mocked(track).mock.calls.filter(([name]) => name === "install_viewed");
+			expect(calls).toEqual([
+				["install_viewed", { host: "devin", source: "deeplink", surface: "hero" }],
+			]);
+		} finally {
+			globalThis.IntersectionObserver = RealIO;
+		}
 	});
 
 	it("copies two Codex lines as one clipboard payload", async () => {

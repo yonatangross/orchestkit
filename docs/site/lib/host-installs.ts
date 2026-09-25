@@ -13,6 +13,12 @@ export type HostInstallSpec = {
 	what: string;
 	where: string;
 	commands: string[];
+	/**
+	 * Clipboard payload when it should differ from the displayed lines. Claude
+	 * Code shows its two commands one per line but copies the `&&` one-liner,
+	 * so a failed marketplace add stops before the install runs.
+	 */
+	copy?: string;
 	/** Show a `$` prefix. Off for marketplace slugs and slash commands. */
 	prompt: boolean;
 	then?: { label: string; commands: string[]; prompt: boolean };
@@ -25,7 +31,8 @@ export const HOST_INSTALLS: readonly HostInstallSpec[] = [
 		href: "/docs/getting-started/claude-code",
 		what: "Full ork plugin: skills, agents, hooks.",
 		where: "Paste in a terminal.",
-		commands: [SITE.installCommand],
+		commands: SITE.installCommand.split(" && "),
+		copy: SITE.installCommand,
 		prompt: true,
 		then: { label: "Then run", commands: ["/ork:setup"], prompt: false },
 	},

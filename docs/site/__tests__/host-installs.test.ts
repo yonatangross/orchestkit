@@ -26,7 +26,10 @@ describe("host install commands", () => {
 	});
 
 	it("keeps Claude on the site-wide install command", () => {
-		expect(HOST_INSTALL_BY_ID.claude.commands).toEqual([SITE.installCommand]);
+		// Shown one command per line (a wrapped one-liner read as three commands),
+		// copied as the && one-liner so a failed marketplace add stops the install.
+		expect(HOST_INSTALL_BY_ID.claude.commands).toEqual(SITE.installCommand.split(" && "));
+		expect(HOST_INSTALL_BY_ID.claude.copy).toBe(SITE.installCommand);
 		expect(HOST_INSTALL_BY_ID.claude.then?.commands).toEqual(["/ork:setup"]);
 	});
 
@@ -93,9 +96,9 @@ describe("host install commands", () => {
 	});
 
 	it("stack hint never swaps Claude, Cursor, or Codex to another plugin", () => {
-		expect(installCommandsForHost("claude", "python")).toEqual([
-			SITE.installCommand,
-		]);
+		expect(installCommandsForHost("claude", "python")).toEqual(
+			SITE.installCommand.split(" && "),
+		);
 		expect(installCommandsForHost("cursor", "backend")).toEqual([
 			"yonatangross/orchestkit",
 		]);
