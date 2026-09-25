@@ -630,6 +630,21 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.98](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.97...v10.0.0-beta.98)** · 2026-09-25
+
+- **lesson-cards:** draw cards with $.ui.resolve and ask on block lessons (#4429)
+- **promote-lights:** draw the band with $.ui.resolve, add /lights watch (#4430)
+- **skills:** runnable examples in verify refs, cover, review-pr ([#4424](https://github.com/yonatangross/orchestkit/issues/4424) CodeRabbit follow-up) (#4433)
+
+**[v10.0.0-beta.97](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.96...v10.0.0-beta.97)** · 2026-09-25
+
+- **secrets-veil:** show a toast with masked value and byte counts (#4431)
+
+**[v10.0.0-beta.96](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.95...v10.0.0-beta.96)** · 2026-09-25
+
+- **verify:** Phase 2 dispatch runs as a Workflow script (#4424)
+- **readme:** skills.sh badge and measured starter 12 (#4426)
+
 **[v10.0.0-beta.95](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.94...v10.0.0-beta.95)** · 2026-09-25
 
 - **promote-lights:** match only real promote PRs into main (#4420)
@@ -651,21 +666,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **cover:** heal-loop never rewrites an expected value (#4407)
 - **memory:** drop LIVE claims for removed memory-writer hook (#4410)
 - **memory:** remove stale memory-writer.ts hook reference (#4409)
-
-**[v10.0.0-beta.90](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.89...v10.0.0-beta.90)** · 2026-09-25
-
-- **cover:** gate generated tests on behaviour and target by risk (#4408)
-- **hooks:** word-based wrapper option parsing in the egress check (#4406)
-
-**[v10.0.0-beta.89](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.88...v10.0.0-beta.89)** · 2026-09-24
-
-- **skills:** error-analysis, evals-first failure taxonomy from traces (#4402)
-- **hooks:** exact option grammar for command wrappers in the egress check (#4404)
-
-**[v10.0.0-beta.88](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.87...v10.0.0-beta.88)** · 2026-09-24
-
-- **docs-site:** align three stale landing.spec cases with hero A (#4398)
-- **hooks:** resolve relative interpreter program paths against the effective working directory (#4400)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

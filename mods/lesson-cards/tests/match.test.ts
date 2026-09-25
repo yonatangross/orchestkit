@@ -215,3 +215,15 @@ describe('repo filtering', () => {
     expect(noMatches.find(m => m.id === 'platform-specific')).toBeUndefined();
   });
 });
+
+describe('matchFileEdit severity order', () => {
+  test('a block match comes first even when a warn pattern is listed before it', () => {
+    const patterns = [
+      { id: 'warn-first', severity: 'warn' as const, category: 'x', file_glob: '**/*.py', check_patterns: ['danger'], message: 'warn' },
+      { id: 'block-second', severity: 'block' as const, category: 'x', file_glob: '**/*.py', check_patterns: ['danger'], message: 'block' },
+      { id: 'warn-third', severity: 'warn' as const, category: 'x', file_glob: '**/*.py', check_patterns: ['danger'], message: 'warn' },
+    ];
+    const ids = matchFileEdit('src/a.py', 'danger', patterns).map(x => x.id);
+    expect(ids).toEqual(['block-second', 'warn-first', 'warn-third']);
+  });
+});

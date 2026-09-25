@@ -397,7 +397,7 @@ Full pattern reference (until-condition gates, partial-result salvage, `TaskOutp
 
 ```python
 for agent_result in test_gen_results:
-    if "[PARTIAL RESULT]" in agent_result.output: A `maxTurns` stop is also partial since CC 2.1.246 (summary: "stopped at its N-turn limit (partial result; continue it with SendMessage to the task-id)"); continue that agent with `SendMessage` instead of re-spawning it.
+    if "[PARTIAL RESULT]" in agent_result.output:
         # Agent crashed: check if it wrote any test files before dying
         partial_tests = Glob(pattern="**/tests/**/*.test.*", path=agent_result.worktree)
         if partial_tests:
@@ -407,6 +407,8 @@ for agent_result in test_gen_results:
                 Bash(command=f"cp {test_file} {main_worktree}/{test_file}")
             # Flag as partial in report
 ```
+
+A `maxTurns` stop is also partial since CC 2.1.246 (summary: "stopped at its N-turn limit (partial result; continue it with SendMessage to the task-id)"); continue that agent with `SendMessage` instead of re-spawning it.
 
 ### SendMessage (Test Healing)
 

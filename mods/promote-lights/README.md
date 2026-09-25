@@ -9,6 +9,23 @@ Shows CI status lights above the prompt while a promote PR (base `main`) is open
 - Polls one REST page per minute, only while the PR is open
 - Stops automatically when the PR merges, closes, or the head moves
 - Shows `HOLD` in red when the latest PR comment starts with `HOLD*`
+- Draws a one-line dim `lights: <reason>` band when it cannot show lights (no required contexts, gh failed, head moved), so a failure is never a blank space
+- Demo mode: `/lights watch owner/repo#N` shows lights for any open PR in any repo, no promote PR needed
+
+## How the band is drawn
+
+The band is built from the `Box` and `Text` elements that `$.ui.resolve(e)` hands the `ui.render` hook. On Claude Code 2.1.282 a plain `{ type: "Box" }` object is not an element and never draws (measured 2026-09-25: the hook settles, nothing appears). The downstream tree from `next(e)` is an opaque engine node, so the band is placed above it in a column and never mutates it.
+
+## Watch mode (demo)
+
+`/lights watch owner/repo#123` (also `owner/repo 123` or a PR URL) points the tick at any open PR:
+
+- every gh call targets the watched repo (`-R owner/repo`); the lights still show in this session's band
+- a watched repo that protects nothing falls back to every check run on the head, worst run per name wins
+- a new push to a watched PR is followed, not stopped (a promote PR still stops on a moved head)
+- `PROMOTE_LIGHTS_WATCH=owner/repo#123` starts watching at session start with no typing, for recorded demos
+
+A real promote PR keeps its stricter rule: an empty required-context union refuses green instead of falling back.
 
 ## Light colors
 
@@ -43,7 +60,8 @@ Calls:
 - `$.session.repo`
 - `$.clock.every`
 - `$.store.get`, `$.store.set`
-- `$.ui.status`, `$.ui.invalidate`
+- `$.ui.status`, `$.ui.invalidate`, `$.ui.resolve`
+- `$.env.get` (`PROMOTE_HEAD`, `PROMOTE_LIGHTS_WATCH`)
 
 Declared capability: `process.run` (can run host processes; gh carries your auth, read-only calls only).
 
@@ -64,6 +82,7 @@ One REST call group per minute. Measured over 10 minutes with a real PR: at most
 - `/lights` - show current status
 - `/lights off` - stop tracking and clear the band
 - `/lights refresh` - force immediate refresh
+- `/lights watch owner/repo#N` - show lights for any open PR (demo mode)
 
 ## Acceptance checklist
 

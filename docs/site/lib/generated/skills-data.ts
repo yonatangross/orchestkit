@@ -1192,7 +1192,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "cover",
     "description": "Generate tests that do not exist yet. Analyzes coverage gaps, then writes and runs new test files across three tiers (unit, integration via testcontainers, Playwright E2E), one test-generator agent per tier, healing failures for up to 3 iterations. Use when code has no tests or when raising coverage after implementation. Do NOT use to grade tests that already exist (use /ork:verify) or to run a suite without writing anything new.",
     "version": "1.3.0",
-    "sha256": "0569578920c7b288ed4980d2a9553845be8e198d688cbfe4a2308bd324ad456e",
+    "sha256": "914be936297f5d5d9cf591110446d931d1505ff493636638b538c2993b226645",
     "author": "OrchestKit",
     "tags": [
       "testing",
@@ -4167,7 +4167,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "review-pr",
     "description": "PR review using parallel specialized agents for code quality, security, testing, architecture, and performance analysis. Synthesizes findings into a review report with conventional comments (praise/issue/suggestion/nitpick) and approve or request-changes verdict. Use when reviewing pull requests, conducting security audits, or validating changes before merge.",
     "version": "1.9.0",
-    "sha256": "e464c4bc1bfb6716ff8294b75be5f4f3bd5b5895f6e323c553ded269c5462445",
+    "sha256": "428fe9edd972a94577368c624769331e01e89ec7a422c4cfa747fef45bd68897",
     "author": "OrchestKit",
     "tags": [
       "code-review",

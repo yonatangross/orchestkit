@@ -21,7 +21,8 @@ export function buildStatusLine(
   prNumber: number,
   lights: ClassifiedLight[],
   mergeStateStatus: string,
-  hold: boolean
+  hold: boolean,
+  label?: string
 ): string {
   const counts = {
     green: lights.filter((l) => l.color === "green").length,
@@ -30,7 +31,7 @@ export function buildStatusLine(
     cancelled: lights.filter((l) => l.color === "cancelled").length,
   };
 
-  const parts: string[] = [`promote #${prNumber}`];
+  const parts: string[] = [label ?? `promote #${prNumber}`];
 
   if (counts.green > 0) parts.push(`${counts.green} green`);
   if (counts.yellow > 0) parts.push(`${counts.yellow} yellow`);
@@ -74,6 +75,57 @@ export function buildBandContent(
   });
 
   return result;
+}
+
+/** Text color per light, as the terminal Text element takes it. */
+export const LIGHT_COLORS: Record<string, string> = {
+  green: "green",
+  yellow: "yellow",
+  red: "red",
+  cancelled: "yellow",
+};
+
+/** Element props: children plus whatever the element takes. */
+export type ElementProps = { children?: unknown } & Record<string, unknown>;
+/** A constructor from $.ui.resolve(e): Box, Text and the rest. */
+export type ElementCtor = (props?: ElementProps) => unknown;
+export type Elements = { Box: ElementCtor; Text: ElementCtor };
+
+/**
+ * Build the AbovePrompt band from the elements $.ui.resolve(e) hands out.
+ * A plain { type: "Box" } object is not an element on CC 2.1.282 and never
+ * draws, so every node here comes from a constructor. One Text holds inline
+ * Text runs so a long row of lights wraps instead of being cut.
+ */
+export function buildBand(
+  els: Elements,
+  label: string,
+  lights: ClassifiedLight[],
+  headSha: string,
+  mergeStateStatus: string,
+  hold: boolean
+): unknown {
+  const { Box, Text } = els;
+  const runs: unknown[] = [];
+  if (hold) runs.push(Text({ color: "red", bold: true, children: "HOLD " }));
+  runs.push(Text({ bold: true, children: `${label}  ` }));
+  for (const l of lights) {
+    runs.push(
+      Text({
+        color: LIGHT_COLORS[l.color] ?? "red",
+        children: `${LIGHT_SYMBOLS[l.color] ?? "?"} ${shortName(l.name, 28)}  `,
+      })
+    );
+  }
+  const tail = `${headSha.slice(0, 7)} ${mergeStateStatus}`.trim();
+  if (tail) runs.push(Text({ dimColor: true, children: tail }));
+  return Box({ children: [Text({ children: runs })] });
+}
+
+/** One dim line saying why there are no lights, so a failure is never blank. */
+export function buildErrorBand(els: Elements, error: string): unknown {
+  const { Box, Text } = els;
+  return Box({ children: [Text({ dimColor: true, children: `lights: ${error}` })] });
 }
 
 /**

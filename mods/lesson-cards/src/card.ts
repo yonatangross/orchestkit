@@ -2,92 +2,64 @@
  * UI tree builder for lesson cards.
  *
  * Creates a Box containing the lesson card that renders under a ToolUse row.
- * Uses plain Box/Text elements - no Client module needed.
+ * The element constructors come from $.ui.resolve(e) in the hooks module: on
+ * CC 2.1.282 a render hook may only return nodes built by those constructors.
+ * A plain { type: 'Box' } object is refused as "not an element" and draws
+ * nothing, which is why the card never showed before (measured 2026-09-25).
  */
 
 import type { MatchedLesson } from './types.js';
 
-// Simple tree node types for UI rendering
-export interface UINode {
-  type: string;
-  props?: Record<string, unknown>;
-  children?: UINode[];
-  key?: string;
-  text?: string;
+/** One element constructor, as handed out by $.ui.resolve(e). */
+export type ElementCtor = (props?: Record<string, unknown>) => unknown;
+
+/** The subset of the resolved element table the card uses. */
+export interface CardElements {
+  Box: ElementCtor;
+  Text: ElementCtor;
+}
+
+/** Border and title color per severity: block red, warn yellow, bullet gray. */
+export function cardColor(lesson: MatchedLesson): 'red' | 'yellow' | 'gray' {
+  if (lesson.source === 'bullet') return 'gray';
+  return lesson.severity === 'block' ? 'red' : 'yellow';
 }
 
 /**
- * Build a lesson card UI tree.
+ * Build a lesson card from resolved elements.
  *
  * Structure:
- * - Border box (1px border)
- *   - Title row: "lesson: <id>"
+ * - Round border box in the severity color
+ *   - Title row: "lesson: <id>" (bold, colored) and the severity word
  *   - Message row
- *   - Fix row (if available)
- *
- * Colors:
- * - block: red border
- * - warn: yellow border
- * - bullet: grey/default border
+ *   - Fix row (dim, if available)
  */
-export function buildCard(lesson: MatchedLesson, requestId: string): UINode {
-  const borderColor = lesson.severity === 'block' ? 'red' :
-                      lesson.severity === 'warn' ? 'yellow' :
-                      'gray';
+export function buildCard(lesson: MatchedLesson, requestId: string, el: CardElements): unknown {
+  const color = cardColor(lesson);
+  const label = lesson.source === 'bullet' ? 'note' : lesson.severity;
 
-  const children: UINode[] = [
-    // Title row
-    {
-      type: 'Box',
-      props: { marginBottom: 1 },
+  const rows: unknown[] = [
+    el.Box({
       children: [
-        {
-          type: 'Text',
-          props: { bold: true, color: borderColor },
-          text: `lesson: ${lesson.id}`,
-        },
+        el.Text({ bold: true, color, children: `lesson: ${lesson.id}` }),
+        el.Text({ dimColor: true, children: `  ${label}` }),
       ],
-    },
-    // Message row
-    {
-      type: 'Box',
-      props: { marginBottom: 1 },
-      children: [
-        {
-          type: 'Text',
-          text: lesson.message,
-        },
-      ],
-    },
+    }),
+    el.Text({ children: lesson.message }),
   ];
 
-  // Fix row (if available)
   if (lesson.fix) {
-    children.push({
-      type: 'Box',
-      props: { marginTop: 1 },
-      children: [
-        {
-          type: 'Text',
-          props: { dimColor: true },
-          text: `Fix: ${lesson.fix}`,
-        },
-      ],
-    });
+    rows.push(el.Text({ dimColor: true, children: `Fix: ${lesson.fix}` }));
   }
 
-  return {
-    type: 'Box',
-    props: {
-      key: `lesson-${requestId}`,
-      borderStyle: 'single',
-      borderColor,
-      paddingX: 1,
-      paddingY: 1,
-      marginTop: 1,
-    },
-    children,
-  };
+  return el.Box({
+    key: `lesson-${requestId}`,
+    flexDirection: 'column',
+    borderStyle: 'round',
+    borderColor: color,
+    paddingX: 1,
+    children: rows,
+  });
 }
 
 /**
