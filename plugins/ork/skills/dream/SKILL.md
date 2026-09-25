@@ -38,7 +38,7 @@ This skill fixes all four problems using deterministic checks only.
 
 **Finish line.** Done means: MEMORY.md is rebuilt from the surviving files and passes the STEP 5.5 verify, the STEP 6 report is printed, and STEPs 7 to 9 have each run or printed a one-line skip reason.
 
-Budget: at most 500 memory files scanned per run, oldest mtime first (the 17 KB ceiling bounds the index, not the run). At the cap, leave unscanned files untouched, still index them in the rebuild, and list the unscanned count in the STEP 6 report; stop and report at the finish line or the first cap, whichever comes first.
+Budget: one read pass over the discovered memory files (STEP 1), one MEMORY.md rewrite (STEP 5), and no subagents (every check is deterministic); stop and report at the finish line or the first cap, whichever comes first.
 
 > **Cadence (CC 2.1.142+):** Reactive compaction now sizes its first summarize attempt to the actual overflow, so long sessions stall mid-turn far less often. The "run nightly" cadence can relax toward "run when memory files accumulate" — consolidation is no longer needed to head off compaction inefficiency.
 
@@ -418,6 +418,8 @@ If `--dry-run`, prefix the entire report with:
 | Memory file has no frontmatter | Treat as EVERGREEN (cannot verify refs without metadata) |
 
 ---
+
+## STEPs 7-8: Housekeeping
 
 After STEP 6: `Read("references/housekeeping.md")` for STEP 7 (orphaned plugin prune offer) and STEP 8 (stale project state hint, preview only, never purge).
 

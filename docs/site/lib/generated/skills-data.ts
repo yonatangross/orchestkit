@@ -1263,7 +1263,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "create-pr",
     "description": "Creates GitHub pull requests with pre-flight validation, conventional title formatting, and structured summary generation. Runs parallel checks (tests, lint, type-check, security) before opening. Supports feature, bugfix, refactor, and hotfix PR types with milestone assignment via gh CLI. Invoke only if the operator named it; an everyday `gh pr create` stays plain tooling. Use when opening PRs or submitting code for review.",
     "version": "2.7.0",
-    "sha256": "6dc3aeb344f15b1c33eae4138f39e3036d8cd670c7dadbbbf53995b94389ad2d",
+    "sha256": "e222087918b58647a8dcbf0bf85270691bfeabe374764d6d42c3da474133d738",
     "author": "OrchestKit",
     "tags": [
       "git",
@@ -2040,7 +2040,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "dream",
     "description": "Nightly memory consolidation — prunes stale entries, merges duplicates, resolves contradictions, rebuilds MEMORY.md index. Use when memory files have accumulated over many sessions and need cleanup. Do NOT use for storing new decisions (use remember) or searching memory (use memory).",
     "version": "1.1.0",
-    "sha256": "b06b123f1759368d9b3af75a7b936a43d4c75541466072c707a4b182611d73fe",
+    "sha256": "0648dbdeb4344859e0522968ae7142f87b7cb7fde0dcdef80ba51bb8a925b46d",
     "author": "OrchestKit",
     "tags": [
       "memory",
@@ -2218,7 +2218,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "expect",
     "description": "Diff-aware AI browser testing — reads the git diff, maps changes to affected pages via the route map, generates a targeted test plan, and executes it via agent-browser (Rust daemon + CDP, ARIA-tree-first) with pass/fail reporting. Use when testing UI changes, verifying PRs before merge, or running regression checks on changed components.",
     "version": "1.2.0",
-    "sha256": "13da8917dca9aae83c614d6afaacb3b91dcc6b90dbe358d7785d279425dbf03f",
+    "sha256": "cdf1770cd8fcde52b53de6c729ab6132c42f577498431c2e6b9346a342e6dd83",
     "author": "OrchestKit",
     "tags": [
       "testing",

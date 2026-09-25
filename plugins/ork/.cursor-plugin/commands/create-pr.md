@@ -296,17 +296,18 @@ echo "PR created: $PR_URL"
 
 After PR creation, schedule CI status monitoring.
 
-Budget: at most 12 CI polls (5-minute cron, so 60 minutes); stop polling when every check has finished or after the 12th poll, whichever comes first, and CronDelete the job at either stop.
+Budget: 60 minutes of CI polling (a 5-minute cron, so at most 12 fires). A cron job repeats one fixed prompt and cannot count its own fires, so the prompt carries a wall-clock deadline computed once at creation; stop when every check has finished or at the deadline, whichever comes first, and CronDelete the job at either stop.
 
 ```python
 # Guard: Skip cron in headless/CI (CLAUDE_CODE_DISABLE_CRON)
 # if env CLAUDE_CODE_DISABLE_CRON is set, run a single check instead
+# deadline_iso = creation time + 60 minutes, in UTC, filled in ONCE here
 CronCreate(
   schedule="*/5 * * * *",
-  prompt="Poll {n}/12 for PR #{pr_number}: gh pr checks {pr_number} --repo {repo}.
+  prompt="Check CI for PR #{pr_number}: gh pr checks {pr_number} --repo {repo}. Deadline {deadline_iso}.
     All pass → CronDelete this job, report success.
     Any fail → CronDelete this job, alert with failure details.
-    Still pending on poll 12 → CronDelete this job, report the pending checks."
+    Still pending and `date -u` is at or past the deadline → CronDelete this job, report the pending checks."
 )
 ```
 
@@ -338,7 +339,7 @@ Write(".claude/chain/pr-created.json", JSON.stringify({
 
 ```
 review-pr {PR_NUMBER}                # Self-review before requesting reviews
-/loop 5m gh pr checks {PR_NUMBER}         # Watch CI until green
+gh pr checks {PR_NUMBER}                  # one-shot status; the CI Monitoring cron polls up to its 60-minute deadline
 /loop 1h gh pr view {PR_NUMBER} --json reviewDecision  # Monitor review status
 ```
 
