@@ -4,7 +4,13 @@ Shows CI status lights above the prompt while a promote PR (base `main`) is open
 
 ## What it does
 
-- Displays one light per required context in an AbovePrompt band
+- Displays a compact AbovePrompt band: one summary line (PR, head, merge state, green/yellow/red counts), then one line per required context that is not green, full name, red first; when everything is green the band is the summary line alone:
+
+  ```
+  🚦 #4435  3afff24  BLOCKED   19 🟢  0 🟡  2 🔴
+     🔴 PR Playground
+     🔴 CI Summary
+  ```
 - Pins a one-line status summary under the prompt
 - Polls one REST page per minute, only while the PR is open
 - Stops automatically when the PR merges, closes, or the head moves
@@ -86,7 +92,7 @@ One REST call group per minute. Measured over 10 minutes with a real PR: at most
 
 ## Acceptance checklist
 
-- [ ] With a real platform promote PR open, the band shows 11 lights for `main` above the prompt within one tick
+- [ ] With a real platform promote PR open, the band shows the summary for its 11 required contexts for `main` above the prompt within one tick, plus one line per context that is not green
 - [ ] A tier that CI cancelled shows warning sign and the pinned line says so
 - [ ] When the head moves the band says "head moved, stopped" and the tick stops
 - [ ] When the PR merges the band clears itself

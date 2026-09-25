@@ -719,7 +719,9 @@ describe("ui.render AbovePrompt composes with downstream renderers", () => {
     expect(out.type).toBe("Box");
     expect(out.props?.flexDirection).toBe("column");
     expect(out.children).toHaveLength(2);
-    expect(JSON.stringify(out.children[0])).toContain("ci-pr-status");
+    // All green: the band is the summary line alone, no per-check line.
+    expect(JSON.stringify(out.children[0])).toContain("#4165");
+    expect(JSON.stringify(out.children[0])).not.toContain("ci-pr-status");
     expect(out.children[1]).toBe(DOWNSTREAM);
   });
 
@@ -748,7 +750,7 @@ describe("ui.render AbovePrompt composes with downstream renderers", () => {
 
     expect(next).toHaveBeenCalledTimes(1);
     expect(out.children).toHaveLength(1);
-    expect(JSON.stringify(out.children[0])).toContain("ci-pr-status");
+    expect(JSON.stringify(out.children[0])).toContain("#4165");
   });
 });
 
@@ -974,12 +976,13 @@ describe("ui.render draws with $.ui.resolve elements", () => {
     expect(new Set(all.map((n) => n.type))).toEqual(new Set(["Box", "Text"]));
     const colored = (name: string) =>
       all.find((n) => n.type === "Text" && n.children.some((c) => typeof c === "string" && c.includes(name)))?.props.color;
-    expect(colored("build")).toBe("green");
+    // Green checks are counted in the summary, not listed; every problem gets its own colored line.
+    expect(colored("build")).toBeUndefined();
     expect(colored("lint")).toBe("red");
     expect(colored("e2e")).toBe("yellow");
     expect(colored("deploy")).toBe("yellow");
-    expect(JSON.stringify(out)).toContain("watch acme/widgets#77");
-    expect(JSON.stringify(out)).toContain("feedbee BLOCKED");
+    expect(JSON.stringify(out)).toContain("acme/widgets#77");
+    expect(JSON.stringify(out)).toContain("feedbee  BLOCKED");
   });
 
   test("a stored error draws one dim line instead of nothing", async () => {
