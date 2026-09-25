@@ -1,25 +1,25 @@
 import type { BaseLayoutProps } from "fumadocs-ui/layouts/shared";
+import Image from "next/image";
 import { SITE } from "@/lib/constants";
 
 export const baseOptions: BaseLayoutProps = {
   nav: {
-    // Vector monogram, not the 128px George raster: shrunk to 22px the
-    // detailed husky read as a blurred round avatar (operator, 2026-09-25),
-    // and components/world/george.tsx keeps the detailed dog out of chrome.
-    // One-color wordmark; the split gradient "Kit" read as a second brand.
+    // George stays the mark (operator, 2026-09-25), cropped to his head
+    // (public/brand/george-nav.png, 84px cut from george-badge.png) and shown
+    // at 30px on a rounded square. The whole 128px badge at 22px, suit and
+    // ring included, read as a blurred round avatar. One-color wordmark; the
+    // split gradient "Kit" read as a second brand.
     title: (
-      <span className="inline-flex items-center gap-2 font-semibold tracking-tight text-fd-foreground">
-        <svg
+      <span className="inline-flex items-center gap-2.5 font-semibold tracking-tight text-fd-foreground">
+        <Image
           data-brand-mark
-          viewBox="0 0 32 32"
-          width={22}
-          height={22}
-          aria-hidden="true"
-          className="shrink-0"
-        >
-          <rect width="32" height="32" rx="8" fill="var(--color-fd-primary)" />
-          <circle cx="16" cy="16" r="7.5" fill="none" stroke="#fff" strokeWidth="3.5" />
-        </svg>
+          src="/brand/george-nav.png"
+          alt=""
+          width={30}
+          height={30}
+          priority
+          className="shrink-0 rounded-md"
+        />
         <span>OrchestKit</span>
       </span>
     ),

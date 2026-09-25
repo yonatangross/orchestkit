@@ -387,11 +387,13 @@ describe("landing page content", () => {
     expect(artBox?.parentElement).toBe(copyCol?.parentElement);
   });
 
-  it("brands the nav with a vector mark and a one-color wordmark", async () => {
+  it("brands the nav with George's head crop and a one-color wordmark", async () => {
     const { baseOptions } = await import("../app/layout.config");
     const { container } = render(<>{baseOptions.nav?.title}</>);
-    expect(container.querySelector("svg[data-brand-mark]")).toBeTruthy();
-    // The 128px George raster read as a blurred avatar at 22px.
+    const mark = container.querySelector("img[data-brand-mark]");
+    expect(mark?.getAttribute("src")).toContain("george-nav.png");
+    expect(mark?.getAttribute("width")).toBe("30");
+    // The whole 128px badge read as a blurred avatar at 22px.
     expect(container.querySelector('img[src*="george-badge"]')).toBeNull();
     expect(container.textContent).toBe("OrchestKit");
     expect(container.querySelector(".bg-clip-text")).toBeNull();
