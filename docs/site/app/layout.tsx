@@ -8,6 +8,7 @@ import type { ReactNode } from "react";
 import { ClientErrorReporter } from "@/components/client-error-reporter";
 import { GitHubClickTracker } from "@/components/github-click-tracker";
 import CustomSearchDialog from "@/components/search-dialog";
+import { ThemeRevealOrigin } from "@/components/theme-reveal-origin";
 import { WebMcpProvider } from "@/components/webmcp-provider";
 import { WebVitalsReporter } from "@/components/web-vitals-reporter";
 import { BANNER_TEXT, PAGE_SUMMARY, SITE, SITE_TITLE } from "@/lib/constants";
@@ -86,6 +87,7 @@ export default function Layout({ children }: { children: ReactNode }) {
 				<WebVitalsReporter />
 				<ClientErrorReporter />
 				<GitHubClickTracker />
+				<ThemeRevealOrigin />
 				<WebMcpProvider />
 			</body>
 		</html>

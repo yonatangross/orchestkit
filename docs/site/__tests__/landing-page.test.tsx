@@ -362,10 +362,14 @@ describe("landing page content", () => {
     expect(container.querySelector(".home-hero-copy")).toBeTruthy();
     expect(container.querySelector(".home-hero-art")).toBeTruthy();
 
-    const art = container.querySelector(".home-hero-art img");
-    expect(art).toBeTruthy();
-    expect(art?.getAttribute("src")).toBe("/brand/hero-a-conductor.png");
-    expect(art?.getAttribute("data-priority")).toBe("true");
+    // One art per theme, both cropped to the subject (2026-09-25). The dark
+    // layer is the default theme's LCP image, so it carries priority.
+    const dark = container.querySelector(".home-hero-art img.home-hero-art-dark");
+    expect(dark?.getAttribute("src")).toBe("/brand/hero-conductor-dark.png");
+    expect(dark?.getAttribute("data-priority")).toBe("true");
+    const light = container.querySelector(".home-hero-art img.home-hero-art-light");
+    expect(light?.getAttribute("src")).toBe("/brand/hero-conductor-light.jpg");
+    expect(container.querySelectorAll(".home-hero-art img")).toHaveLength(2);
 
     // Install + Get started stay in the copy column (unchanged CTAs).
     const copyCol = container.querySelector(".home-hero-copy");

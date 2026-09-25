@@ -203,10 +203,11 @@
 }
 
 /* ============================================================
-   HOME HERO A: left copy + right conductor bleed (~55%)
+   HOME HERO A: left copy + right conductor art, one art per theme
    Reference: approved-design/hero-a-2026-09-22.html
-   Cosmic/dot grid stays on body (unchanged). No new motion here;
-   prefers-reduced-motion already gates body::after cosmic-drift.
+   Cosmic/dot grid stays on body (unchanged). Motion: the theme switch
+   crossfades the art and reveals the page in a circle; both are off
+   under prefers-reduced-motion.
    ============================================================ */
 
 /* Row 1: copy beside the art, both vertically centred on each other.
@@ -216,7 +217,7 @@
    ran ~600px past it, the "broken on a laptop" report of 2026-09-25. */
 .home-hero-inner {
   /* Single source for the container: page.tsx sets max-width and padding
-     from these, and the dark bleed below subtracts the same two values. */
+     from these. */
   --hero-max: 1180px;
   --hero-pad: 28px;
   display: grid;
@@ -245,12 +246,13 @@
   --text-fluid-h1: clamp(2.5rem, 4vw + 1.5rem, 4.25rem);
 }
 
-/* Art box keeps the source ratio (1280x723). Never stretch it to the copy
-   column height: object-fit:cover then cropped the conductor to one arm at
-   about 2x zoom (reviewer-estate-3 HOLD on #4345).
-   Light: a framed card inside column 2. The art is a night scene with an
-   opaque dark ground, so feathering it into a light page left a grey smear
-   and a hard black slab. */
+/* Art box keeps the art's ratio (both layers are cropped to 1.16:1). Never
+   stretch it to the copy column height: object-fit:cover then cropped the
+   conductor to one arm at about 2x zoom (reviewer-estate-3 HOLD on #4345).
+   Capped to column 2, no gutter bleed: the old source was 44% black on the
+   left and the box grew with the viewport, so at 2000px the conductor sat
+   ~490px from the headline (operator, 2026-09-25). Both themes feather every
+   edge into the page, since each theme now has its own art. */
 .home-hero-art {
   position: relative;
   grid-column: 2;
@@ -258,38 +260,86 @@
   align-self: center;
   width: 100%;
   height: auto;
-  aspect-ratio: 1280 / 723;
+  aspect-ratio: 840 / 723;
   z-index: 1;
   pointer-events: none;
-  overflow: hidden;
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-overlay);
-}
-
-/* Dark: the approved mockup A bleed. Column 2 plus the container padding
-   plus the outer gutter, so the art reaches the viewport edge at every
-   desktop width (at 1575px the 1180px cap left ~200px of bare gutter).
-   Every edge that faces page content is feathered; the right edge is the
-   viewport. The section's overflow-x:hidden clips the scrollbar overshoot. */
-.dark .home-hero-art {
-  width: auto;
-  justify-self: stretch;
-  margin-right: calc(-1 * (var(--hero-pad) + max(0px, (100vw - var(--hero-max)) / 2)));
-  border-radius: 0;
-  box-shadow: none;
   -webkit-mask-image:
-    linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.15) 10%, #000 32%),
-    linear-gradient(to bottom, transparent 0%, #000 14%, #000 84%, transparent 100%);
+    linear-gradient(to right, transparent 0%, #000 20%, #000 94%, transparent 100%),
+    linear-gradient(to bottom, transparent 0%, #000 10%, #000 88%, transparent 100%);
   -webkit-mask-composite: source-in;
   mask-image:
-    linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.15) 10%, #000 32%),
-    linear-gradient(to bottom, transparent 0%, #000 14%, #000 84%, transparent 100%);
+    linear-gradient(to right, transparent 0%, #000 20%, #000 94%, transparent 100%),
+    linear-gradient(to bottom, transparent 0%, #000 10%, #000 88%, transparent 100%);
   mask-composite: intersect;
 }
 
 .home-hero-art img {
   object-fit: cover;
-  object-position: right center;
+  object-position: center center;
+}
+
+/* One layer per theme. The incoming layer settles in with a keyframe, not a
+   transition: fumadocs sets next-themes disableTransitionOnChange, which
+   injects transition:none on every element during a theme change, so a
+   transition never runs. The same keyframe gives the art a soft entrance on
+   first load. Inside the circle reveal below it reads as a crossfade. */
+.home-hero-art-layer {
+  opacity: 0;
+}
+
+.dark .home-hero-art-dark,
+:root:not(.dark) .home-hero-art-light {
+  opacity: 1;
+  animation: hero-art-in 900ms var(--ease-out-expo) both;
+}
+
+@keyframes hero-art-in {
+  from {
+    opacity: 0.15;
+    transform: scale(1.04);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dark .home-hero-art-dark,
+  :root:not(.dark) .home-hero-art-light {
+    animation: none;
+  }
+}
+
+/* Theme switch: fumadocs wraps setTheme in document.startViewTransition
+   (layouts/shared/slots/theme-switch.js). Replace the default crossfade with
+   a circle that grows from the pressed toggle (--theme-x/--theme-y are set by
+   components/theme-reveal-origin.tsx). Instant under reduced motion. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-new(root) {
+  animation: theme-reveal 560ms var(--ease-out-expo);
+}
+
+@keyframes theme-reveal {
+  from {
+    clip-path: circle(0 at var(--theme-x, calc(100% - 96px)) var(--theme-y, 76px));
+  }
+  to {
+    clip-path: circle(150vmax at var(--theme-x, calc(100% - 96px)) var(--theme-y, 76px));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-new(root) {
+    animation: none;
+  }
 }
 
 @media (max-width: 900px) {
@@ -312,18 +362,13 @@
     order: 1;
   }
 
-  .home-hero-art,
-  .dark .home-hero-art {
+  .home-hero-art {
     order: 2;
     width: 100%;
-    margin-right: 0;
     aspect-ratio: 16 / 9;
     margin-top: 8px;
-  }
-
-  .dark .home-hero-art {
-    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 18%);
-    mask-image: linear-gradient(to bottom, transparent 0%, #000 18%);
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 18%, #000 88%, transparent 100%);
+    mask-image: linear-gradient(to bottom, transparent 0%, #000 18%, #000 88%, transparent 100%);
   }
 
   .home-hero-art img {

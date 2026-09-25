@@ -30,8 +30,7 @@ test.describe('Landing hero', () => {
     await expect(page.getByRole('navigation', { name: /install by host/i })).toBeVisible();
   });
 
-  test('hero A art bleeds on desktop and stacks as 16:9 under copy on narrow', async ({ page }) => {
-    // The bleed is the dark-mode treatment (approved mockup A); light frames it.
+  test('hero A art sits beside the copy on desktop and stacks as 16:9 under copy on narrow', async ({ page }) => {
     // Pin the stored theme: emulateMedia is a no-op under defaultTheme "dark".
     await page.addInitScript(() => localStorage.setItem('theme', 'dark'));
     await page.setViewportSize({ width: 1440, height: 900 });
@@ -57,14 +56,14 @@ test.describe('Landing hero', () => {
     expect(desktop.widthPct).toBeGreaterThanOrEqual(40);
     expect(desktop.widthPct).toBeLessThanOrEqual(75);
     expect(desktop.mask).toMatch(/linear-gradient/);
-    // Source is 1280x723 (~1.77). Full-column stretch + cover cropped the
-    // conductor (~2x zoom). Height must track width at that ratio, not the
-    // tall copy column (picker/search/proof).
-    expect(desktop.height).toBeGreaterThan(200);
-    expect(desktop.height).toBeLessThan(480);
-    expect(desktop.aspect).toBeGreaterThan(1.6);
-    expect(desktop.aspect).toBeLessThan(2.0);
-    const expectedH = desktop.width * (723 / 1280);
+    // Both layers are cropped to the subject, 840x723 (~1.16). Full-column
+    // stretch + cover cropped the conductor (~2x zoom, #4345). Height must
+    // track width at that ratio, not the tall copy column.
+    expect(desktop.height).toBeGreaterThan(300);
+    expect(desktop.height).toBeLessThan(600);
+    expect(desktop.aspect).toBeGreaterThan(1.1);
+    expect(desktop.aspect).toBeLessThan(1.25);
+    const expectedH = desktop.width * (723 / 840);
     expect(Math.abs(desktop.height - expectedH)).toBeLessThan(12);
 
     // Mockup caps display at 4.25rem so the headline is 3 lines at 1440.
@@ -115,39 +114,73 @@ test.describe('Landing hero', () => {
     expect(mobile.bottom).toBeLessThanOrEqual(installTop + 1);
   });
 
-  for (const width of [1280, 1575, 1920]) {
-    test(`hero art reaches the viewport edge in dark at ${width}px`, async ({ page }) => {
+  for (const width of [1280, 1575, 2000]) {
+    test(`hero art sits right beside the copy in dark at ${width}px`, async ({ page }) => {
       await page.addInitScript(() => localStorage.setItem('theme', 'dark'));
       await page.setViewportSize({ width, height: 900 });
       await page.goto('/');
-      const right = await page
-        .locator('.home-hero-art')
-        .evaluate((el) => el.getBoundingClientRect().right);
-      // The 1180px container cap left a bare gutter right of the art. The
-      // upper bound catches a runaway bleed that the section would clip,
-      // cropping the conductor (20px allows a classic scrollbar).
-      expect(right).toBeGreaterThanOrEqual(width - 1);
-      expect(right).toBeLessThanOrEqual(width + 20);
+      const gap = await page.evaluate(() => {
+        const art = document.querySelector('.home-hero-art')!.getBoundingClientRect();
+        const copy = document.querySelector('.home-hero-copy')!.getBoundingClientRect();
+        return { gap: art.left - copy.right, right: art.right };
+      });
+      // A source 44% black on the left plus a box that grew with the
+      // viewport put the conductor ~490px from the headline at 2000px
+      // (operator, 2026-09-25). Now the art starts one column gap after the
+      // copy and stays inside the 1180px container.
+      expect(gap.gap).toBeGreaterThanOrEqual(0);
+      expect(gap.gap).toBeLessThanOrEqual(40);
+      expect(gap.right).toBeLessThanOrEqual(width / 2 + 590 + 1);
     });
   }
 
-  test('hero art is a framed card in light, never a feathered dark slab', async ({ page }) => {
+  test('light theme shows the light art, never the dark night scene', async ({ page }) => {
     // defaultTheme is "dark" (app/layout.tsx), so pick light the way the
     // theme switch does rather than through prefers-color-scheme.
     await page.addInitScript(() => localStorage.setItem('theme', 'light'));
     await page.setViewportSize({ width: 1575, height: 900 });
     await page.goto('/');
-    const light = await page.locator('.home-hero-art').evaluate((el) => {
-      const cs = getComputedStyle(el);
+    // Let the 900ms entrance keyframe finish before reading opacity.
+    await page.waitForTimeout(1200);
+    const layers = await page.evaluate(() => {
+      const op = (s: string) => Number(getComputedStyle(document.querySelector(s)!).opacity);
+      const art = getComputedStyle(document.querySelector('.home-hero-art')!);
       return {
-        radius: parseFloat(cs.borderTopLeftRadius),
-        mask: cs.maskImage || (cs as CSSStyleDeclaration & { webkitMaskImage?: string }).webkitMaskImage || 'none',
-        right: el.getBoundingClientRect().right,
+        light: op('.home-hero-art-light'),
+        dark: op('.home-hero-art-dark'),
+        mask: art.maskImage || (art as CSSStyleDeclaration & { webkitMaskImage?: string }).webkitMaskImage || 'none',
       };
     });
-    expect(light.radius).toBeGreaterThan(0);
-    expect(light.mask).toBe('none');
-    expect(light.right).toBeLessThan(1575 - 20);
+    expect(layers.light).toBe(1);
+    expect(layers.dark).toBe(0);
+    expect(layers.mask).toMatch(/linear-gradient/);
+  });
+
+  test('theme switch runs the circle reveal and the art entrance', async ({ page, browserName }) => {
+    await page.addInitScript(() => localStorage.setItem('theme', 'dark'));
+    await page.setViewportSize({ width: 1575, height: 900 });
+    await page.goto('/');
+    // Wait for hydration (the toggle's handler) and for the page-load entrance
+    // to finish, so any hero-art-in seen below comes from the switch itself.
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(1200);
+    const running = await page.evaluate(async () => {
+      const button = document.querySelector('[data-theme-toggle] button[aria-label="Light"]') as HTMLButtonElement | null;
+      if (!button || typeof document.startViewTransition !== 'function') return null;
+      button.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+      button.click();
+      await new Promise((r) => setTimeout(r, 60));
+      return document.documentElement
+        .getAnimations({ subtree: true })
+        .map((a) => (a as CSSAnimation).animationName)
+        .filter(Boolean);
+    });
+    test.skip(running === null, 'no View Transitions API in this browser');
+    expect(running).toContain('hero-art-in');
+    // WebKit (the iPhone project) switches the theme but does not list the
+    // ::view-transition pseudo animations in getAnimations, so the reveal is
+    // asserted where it is observable.
+    if (browserName === 'chromium') expect(running).toContain('theme-reveal');
   });
 
   test('proof strip shows GitHub stars (real number or fallback)', async ({ page }) => {
