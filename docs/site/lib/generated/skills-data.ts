@@ -2937,7 +2937,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "llm-integration",
     "description": "LLM integration patterns for function calling, streaming responses, local inference with Ollama, and fine-tuning customization. Use when implementing tool use, SSE streaming, local model deployment, LoRA/QLoRA fine-tuning, or multi-provider LLM APIs.",
     "version": "2.0.0",
-    "sha256": "e5056e22363be9889ed74d9807fb80ba8056eb2fbb585b5cde69e15bf962d9da",
+    "sha256": "4cb2ef6675545053b41e6cc82373d0b8bbfc79c9927a394d8ea21fd5b0b71c24",
     "author": "OrchestKit",
     "tags": [
       "llm",
@@ -4542,7 +4542,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "task-dependency-patterns",
     "description": "Task Management patterns with TaskCreate, TaskUpdate, TaskGet, TaskList tools. Decompose complex work into trackable tasks with dependency chains. Use when managing multi-step implementations, coordinating parallel work, or tracking completion status.",
     "version": "1.0.0",
-    "sha256": "c28cf6dfda9a283de3b11c2422c40e8e2e6c19ad12315789ddfd0a0a86d25a26",
+    "sha256": "6d5f17568168773f19ab924a5b143ac4b01231c6592452c1108b38ca9b2d54c4",
     "author": "OrchestKit",
     "tags": [
       "task-management",

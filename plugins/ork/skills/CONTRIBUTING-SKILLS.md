@@ -487,7 +487,7 @@ Prompt caching works by prefix matching: static system prompt, then tools, then 
 
 1. **Use `context: fork` for complex skills.** Forked skills reuse the parent conversation's cached prefix (system prompt + tools + CLAUDE.md). The fork only adds the skill content as new tokens. This is the most cache-efficient pattern for skills that spawn subagents or do heavy work.
 
-2. **Never suggest model changes in skill instructions.** Switching models mid-conversation rebuilds the entire cache. Use subagents (`Task` tool) for different models — each subagent is a separate conversation with its own cache.
+2. **Never suggest model changes in skill instructions.** Switching models mid-conversation rebuilds the entire cache. Use subagents (`Agent` tool) for different models: each subagent is a separate conversation with its own cache.
 
 3. **Never add or remove tools dynamically.** Tools are part of the cached prefix. Skills should use state transitions via messages (like `EnterPlanMode`), not tool-set changes.
 

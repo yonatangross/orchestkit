@@ -9,7 +9,7 @@ tags: tools, dynamic, selection, embedding, relevance
 
 When you have many tools, select the most relevant subset per query using embeddings.
 
-> **Claude prompt cache (2026-09):** a different `bind_tools()` subset each turn rewrites the top-level `tools` array and breaks the cached prefix; on Opus 5.5 and Fable 5.1 a tools change also invalidates later thinking blocks. On Claude, keep `tools` stable and either mark rarely used tools `defer_loading: true` with tool search, or add a tool mid-conversation with a `tool_addition` block in a mid-conversation system message (beta header `inline-tools-2026-09-15`, not on Sonnet 5). Keep per-query subsets for providers without prompt caching. See https://platform.claude.com/docs/en/build-with-claude/mid-conversation-system-messages#mid-conversation-tool-changes
+> **Claude prompt cache (2026-09):** a different `bind_tools()` subset each turn rewrites the top-level `tools` array and breaks the cached prefix; on Opus 5.5 and Fable 5.1 a tools change also invalidates later thinking blocks. On Claude, keep `tools` stable and either mark rarely used tools `defer_loading: true` with tool search, or add a tool mid-conversation with a `tool_addition` block in a mid-conversation system message (beta header `inline-tools-2026-09-15`, Claude API only, not on Sonnet 5). Keep per-query subsets for providers without prompt caching. See https://platform.claude.com/docs/en/build-with-claude/mid-conversation-system-messages#mid-conversation-tool-changes
 
 **Incorrect — all tools always bound:**
 ```python

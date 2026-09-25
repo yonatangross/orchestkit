@@ -450,8 +450,8 @@ if __name__ == "__main__":
             LLMConfig(
                 name="primary",
                 model="claude-sonnet-5",
-                cost_per_million_input=3.0,
-                cost_per_million_output=15.0,
+                cost_per_million_input=2.0,
+                cost_per_million_output=10.0,
             ),
             fail_rate=0.3,
         )

@@ -52,7 +52,7 @@ def agent_node(state):
 # Use auto with strict tools and name the required tool in the prompt:
 model.bind_tools(tools, tool_choice="auto", strict=True)  # langchain-anthropic >= 1.1.0
 
-# Other providers and Claude models:
+# Other providers and other Claude models:
 model.bind_tools(tools, tool_choice="any")              # At least one tool
 model.bind_tools(tools, tool_choice="search_database")  # Specific tool
 ```
