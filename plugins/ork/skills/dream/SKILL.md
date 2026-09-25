@@ -38,7 +38,7 @@ This skill fixes all four problems using deterministic checks only.
 
 **Finish line.** Done means: MEMORY.md is rebuilt from the surviving files and passes the STEP 5.5 verify, the STEP 6 report is printed, and STEPs 7 to 9 have each run or printed a one-line skip reason.
 
-Budget: one read pass over the discovered memory files (STEP 1), one MEMORY.md rewrite (STEP 5), and no subagents (every check is deterministic); stop and report at the finish line or the first cap, whichever comes first.
+Budget: one read pass over the discovered memory files (STEP 1), one MEMORY.md rewrite (STEP 5) plus the STEP 5.5 trailer rewrite when the index is over budget, and no subagents (every check is deterministic); stop and report at the finish line or the first cap, whichever comes first.
 
 > **Cadence (CC 2.1.142+):** Reactive compaction now sizes its first summarize attempt to the actual overflow, so long sessions stall mid-turn far less often. The "run nightly" cadence can relax toward "run when memory files accumulate" — consolidation is no longer needed to head off compaction inefficiency.
 

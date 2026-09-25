@@ -64,7 +64,7 @@ rationale, ask for one: "Explain why you chose this approach in three sentences.
 
 A finish line alone never tells a long run when to give up. Each skill that loads this rule should state
 its cap as `Budget: at most N agents, N iterations, N minutes` (name the caps that apply). Stop and report at
-the finish line or at the first cap, whichever comes first, and say which one stopped the run.
+the finish line or when the next step would exceed a cap, whichever comes first, and say which one stopped the run.
 
 **Incorrect:** a fourth fix pass because the tests are "almost green", past a two-pass cap.
 **Correct:** stop at the cap, report the remaining failure with its evidence, and say what is needed to
