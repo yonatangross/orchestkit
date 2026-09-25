@@ -18,6 +18,27 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.90",
+    "date": "2026-09-25",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.89...v10.0.0-beta.90",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**cover:** gate generated tests on behaviour and target by risk ([#4408](https://github.com/yonatangross/orchestkit/issues/4408)) ([28111e9](https://github.com/yonatangross/orchestkit/commit/28111e93ff1b73f50bfe911d8d8c98b5e83af61b))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**hooks:** word-based wrapper option parsing in the egress check ([#4406](https://github.com/yonatangross/orchestkit/issues/4406)) ([9e163a0](https://github.com/yonatangross/orchestkit/commit/9e163a081267f7ca4cb21ba4c647dff3fad61bb7))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.89",
     "date": "2026-09-24",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.88...v10.0.0-beta.89",
