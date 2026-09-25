@@ -3,7 +3,7 @@
  * Read-only calls only, using the operator's own auth.
  *
  * Commands used:
- * - gh pr list --base main --state open --json number,headRefOid,title
+ * - gh pr list --base main --state open --json number,headRefName,headRefOid,title,labels
  * - gh api repos/{owner}/{repo}/branches/main/protection
  * - gh api repos/{owner}/{repo}/rules/branches/main
  * - gh api repos/{owner}/{repo}/commits/{head}/check-runs?per_page=100
@@ -17,6 +17,28 @@ export interface PRInfo {
   number: number;
   headRefOid: string;
   title: string;
+  headRefName?: string;
+  labels?: Array<{ name: string } | string>;
+}
+
+/**
+ * Promote PR matching.
+ *
+ * A real promote PR is an open PR with base main whose head is the
+ * promote branch (dev by default, PROMOTE_HEAD when configured) or
+ * which carries the promote label. Any other PR with base main is
+ * ordinary work and must never match.
+ */
+export const DEFAULT_PROMOTE_HEAD = "dev";
+export const PROMOTE_LABEL = "promote";
+
+export function isPromotePR(pr: PRInfo, promoteHead: string = DEFAULT_PROMOTE_HEAD): boolean {
+  if (pr.headRefName !== undefined && pr.headRefName === promoteHead) return true;
+  const labels = pr.labels ?? [];
+  return labels.some((label) => {
+    const name = typeof label === "string" ? label : label.name;
+    return name !== undefined && name.toLowerCase() === PROMOTE_LABEL;
+  });
 }
 
 export interface PRDetails {

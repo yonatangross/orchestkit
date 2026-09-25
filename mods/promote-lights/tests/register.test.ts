@@ -43,6 +43,9 @@ interface Fake$ {
   command: {
     register: (spec: { name: string; description: string; argumentHint?: string }) => Promise<unknown>;
   };
+  env?: {
+    get: (key: string) => Promise<string | undefined>;
+  };
 }
 
 type Handler = ($: Fake$, e: unknown, next: (ev?: unknown) => Promise<unknown>) => unknown;
@@ -62,7 +65,7 @@ function captureHandlers(mod: { register: (on: never) => void }): Map<string, Ha
 }
 
 const PR_LIST_ONE = JSON.stringify([
-  { number: 4165, headRefOid: "abc123def4567", title: "fix(mods): promote-lights" },
+  { number: 4165, headRefName: "dev", headRefOid: "abc123def4567", title: "promote dev", labels: [] },
 ]);
 
 const PROTECTION_OK = JSON.stringify({
@@ -315,6 +318,78 @@ describe("register behavior (mutant-killing)", () => {
     expect($.clock.every).not.toHaveBeenCalled();
   });
 
+  test("session.start with only an ordinary PR into main tracks nothing", async () => {
+    const { register } = await import("../hooks/register.ts");
+    const handlers = captureHandlers({ register });
+    const $ = createFake$({
+      prList: JSON.stringify([
+        { number: 4416, headRefName: "feat/ordinary-work", headRefOid: "fff1112223333", title: "ordinary work", labels: [] },
+      ]),
+    });
+
+    await handlers.get("session.start")!($, {}, NEXT);
+
+    expect($.store.delete).toHaveBeenCalledWith("lights:yonatangross/orchestkit");
+    expect($.clock.every).not.toHaveBeenCalled();
+    expect($.ui.status).not.toHaveBeenCalled();
+  });
+
+  test("session.start skips an ordinary PR and tracks the dev head PR", async () => {
+    const { register } = await import("../hooks/register.ts");
+    const handlers = captureHandlers({ register });
+    const $ = createFake$({
+      prList: JSON.stringify([
+        { number: 4416, headRefName: "feat/ordinary-work", headRefOid: "fff1112223333", title: "ordinary work", labels: [] },
+        { number: 4417, headRefName: "dev", headRefOid: "abc123def4567", title: "promote dev", labels: [] },
+      ]),
+    });
+
+    await handlers.get("session.start")!($, {}, NEXT);
+
+    expect($.clock.every).toHaveBeenCalledTimes(1);
+    expect($.store.set).toHaveBeenCalledWith(
+      "lights:yonatangross/orchestkit",
+      expect.objectContaining({ prNumber: 4417, head: "abc123def4567", passing: true })
+    );
+  });
+
+  test("session.start tracks a non dev head carrying the promote label", async () => {
+    const { register } = await import("../hooks/register.ts");
+    const handlers = captureHandlers({ register });
+    const $ = createFake$({
+      prList: JSON.stringify([
+        { number: 4418, headRefName: "release/roundup", headRefOid: "abc123def4567", title: "roundup", labels: [{ name: "promote" }] },
+      ]),
+    });
+
+    await handlers.get("session.start")!($, {}, NEXT);
+
+    expect($.clock.every).toHaveBeenCalledTimes(1);
+    expect($.store.set).toHaveBeenCalledWith(
+      "lights:yonatangross/orchestkit",
+      expect.objectContaining({ prNumber: 4418, passing: true })
+    );
+  });
+
+  test("session.start honors a configured promote head from the environment", async () => {
+    const { register } = await import("../hooks/register.ts");
+    const handlers = captureHandlers({ register });
+    const $ = createFake$({
+      prList: JSON.stringify([
+        { number: 4419, headRefName: "release", headRefOid: "abc123def4567", title: "promote release", labels: [] },
+      ]),
+    });
+    $.env = { get: vi.fn().mockResolvedValue("release") };
+
+    await handlers.get("session.start")!($, {}, NEXT);
+
+    expect($.clock.every).toHaveBeenCalledTimes(1);
+    expect($.store.set).toHaveBeenCalledWith(
+      "lights:yonatangross/orchestkit",
+      expect.objectContaining({ prNumber: 4419 })
+    );
+  });
+
   test("session.start with a promote PR starts a 60s clock and the first tick classifies all-green as passing", async () => {
     const { register } = await import("../hooks/register.ts");
     const handlers = captureHandlers({ register });
@@ -325,7 +400,7 @@ describe("register behavior (mutant-killing)", () => {
     // CC 2.1.282 process.run takes the argv array positionally plus init,
     // not an { argv, init } object.
     expect($.process.run).toHaveBeenCalledWith(
-      ["gh", "pr", "list", "--base", "main", "--state", "open", "--json", "number,headRefOid,title"],
+      ["gh", "pr", "list", "--base", "main", "--state", "open", "--json", "number,headRefName,headRefOid,title,labels"],
       { timeoutMs: 15000 }
     );
 
