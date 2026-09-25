@@ -9,11 +9,16 @@
  *   patterns + high-entropy tokens). If zero named values resolve, emit one
  *   $.ui.notice: the veil runs on value patterns and entropy only.
  * - tool.call: run the tool via next(), then deep-mask every string in the
- *   result (plain text, result.stdout, and any nested field).
+ *   result (plain text, result.stdout, and any nested field). When at least
+ *   one value was masked, say so where the human can see it: one $.ui.toast
+ *   and one $.ui.status line with the count and the UTF-8 byte counts
+ *   (bytes of the covered values in, bytes of the bullets out), plus the
+ *   same numbers to the debug log via $.ui.log. The numbers never include a
+ *   masked value, so the proof reveals nothing.
  *
  * There is no reveal path: no ui.render, no ui.press, no command.register,
  * no hover. Once covered, a value stays covered for the session.
- * Negative pins: no process.run, no http.fetch, no store.*, no ui.log.
+ * Negative pins: no process.run, no http.fetch, no store.*.
  *
  * The 21 names below are the widely known vendor variable names and are the
  * only names this mod reads. A deployment's own variable names cannot be
@@ -34,27 +39,72 @@ const NOTICE_ID = "secrets-veil";
 /** Module-scope state (per session): the armed mask table. */
 let table: MaskTable | null = null;
 
+/** Module-scope state (per session): values masked since session.start. */
+let maskedThisSession = 0;
+
+/** What one tool result's masking did, in counts and UTF-8 bytes. */
+export interface MaskStats {
+  /** Number of values covered. */
+  values: number;
+  /** UTF-8 bytes of the covered values. */
+  bytesIn: number;
+  /** UTF-8 bytes of the bullets that replaced them. */
+  bytesOut: number;
+}
+
+const encoder = new TextEncoder();
+
+/** UTF-8 byte length of a string. */
+export function utf8Bytes(text: string): number {
+  return encoder.encode(text).length;
+}
+
 /**
  * Deep-mask every string in a tool result. Strings are masked in place in a
  * fresh structure; numbers, booleans and nulls pass through untouched.
  * Covers plain text results (result), structured results (result.stdout,
- * result.stderr) and any nested field.
+ * result.stderr) and any nested field. Adds what it covered to stats.
  */
-function maskDeep(value: unknown, activeTable: MaskTable): unknown {
+function maskDeep(value: unknown, activeTable: MaskTable, covered: Set<string>): unknown {
   if (typeof value === "string") {
-    return mask(value, activeTable).text;
+    const masked = mask(value, activeTable);
+    for (const span of masked.spans) {
+      covered.add(value.slice(span.start, span.end));
+    }
+    return masked.text;
   }
   if (Array.isArray(value)) {
-    return value.map((item) => maskDeep(item, activeTable));
+    return value.map((item) => maskDeep(item, activeTable, covered));
   }
   if (value !== null && typeof value === "object") {
     const out: Record<string, unknown> = {};
     for (const [key, val] of Object.entries(value as Record<string, unknown>)) {
-      out[key] = maskDeep(val, activeTable);
+      out[key] = maskDeep(val, activeTable, covered);
     }
     return out;
   }
   return value;
+}
+
+/**
+ * Count the distinct values covered in one result. A tool result can carry
+ * the same output twice (a Bash result has it in stdout and in text), so a
+ * value is counted once however many fields it appeared in.
+ */
+export function statsOf(covered: Set<string>): MaskStats {
+  const stats: MaskStats = { values: 0, bytesIn: 0, bytesOut: 0 };
+  for (const value of covered) {
+    stats.values += 1;
+    stats.bytesIn += utf8Bytes(value);
+    stats.bytesOut += utf8Bytes("•".repeat(Math.min(8, value.length)));
+  }
+  return stats;
+}
+
+/** The toast line for one masked tool result (Claude Code prefixes the plugin name). */
+export function toastText(stats: MaskStats, tool: string): string {
+  const noun = stats.values === 1 ? "value" : "values";
+  return `masked ${stats.values} ${noun} in ${tool}, ${stats.bytesIn} bytes in, ${stats.bytesOut} bytes out`;
 }
 
 /**
@@ -112,6 +162,7 @@ export function register(on: (event: string, hook: unknown) => void, _options?: 
 
     const names = Object.keys(named);
     table = buildTable(names, named, DEFAULT_PATTERNS, { entropy: true });
+    maskedThisSession = 0;
 
     // FAIL LOUD on an empty named list. Silence is not allowed: say plainly
     // that only the value shapes and entropy are standing guard.
@@ -129,13 +180,37 @@ export function register(on: (event: string, hook: unknown) => void, _options?: 
     return next(e); // a session.start hook must answer (CC 2.1.282 skips a hook that returns nothing)
   });
 
-  on("tool.call", async ($: DollarAPI, _e: ToolCallEvent, next?: (ev: ToolCallEvent) => Promise<ToolCallResult>) => {
+  on("tool.call", async ($: DollarAPI, e: ToolCallEvent, next?: (ev: ToolCallEvent) => Promise<ToolCallResult>) => {
     // First, let the tool execute.
-    const result = next ? ((await next(_e)) ?? {}) : {};
+    const result = next ? ((await next(e)) ?? {}) : {};
     if (!table) {
       // session.start has not armed the veil yet; pass through unchanged.
       return result;
     }
-    return maskDeep(result, table);
+    const covered = new Set<string>();
+    const masked = maskDeep(result, table, covered);
+    const stats = statsOf(covered);
+    if (stats.values > 0) {
+      maskedThisSession += stats.values;
+      const tool = typeof e?.tool === "string" && e.tool.length > 0 ? e.tool : "a tool result";
+      const line = toastText(stats, tool);
+      // Each UI call is best effort: a refused surface never unmasks or fails the result.
+      try {
+        await $.ui.toast(line);
+      } catch {
+        // Toast refused (no surface, or a host without toasts); the result stays masked.
+      }
+      try {
+        await $.ui.status(`${maskedThisSession} masked this session`);
+      } catch {
+        // Status refused; the result stays masked.
+      }
+      try {
+        await $.ui.log(`${line}; result ${utf8Bytes(JSON.stringify(result))} bytes before, ${utf8Bytes(JSON.stringify(masked))} bytes after`);
+      } catch {
+        // Debug log refused; the result stays masked.
+      }
+    }
+    return masked;
   });
 }
