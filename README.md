@@ -614,6 +614,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.94](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.93...v10.0.0-beta.94)** · 2026-09-25
+
+- **skills:** Opus 5.5 wording, model ids, Claude API tool rules (#4415)
+
 **[v10.0.0-beta.93](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.92...v10.0.0-beta.93)** · 2026-09-25
 
 - **skills:** Opus 5.5 budgets, split create-pr and dream (#4416)
@@ -646,11 +650,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.87](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.86...v10.0.0-beta.87)** · 2026-09-24
 
 - **hooks:** fail-closed on shell-expanded interpreter arguments (#4397)
-
-**[v10.0.0-beta.86](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.85...v10.0.0-beta.86)** · 2026-09-24
-
-- **hooks:** skip project rules write when global copy is identical (#4393)
-- **hooks:** stdin path handling in egress interpreter argv (#4396)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

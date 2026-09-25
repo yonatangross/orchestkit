@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.94",
+    "date": "2026-09-25",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.93...v10.0.0-beta.94",
+    "sections": [
+      {
+        "type": "changed",
+        "heading": "Miscellaneous",
+        "items": [
+          "**skills:** Opus 5.5 wording, model ids, Claude API tool rules ([#4415](https://github.com/yonatangross/orchestkit/issues/4415)) ([720af09](https://github.com/yonatangross/orchestkit/commit/720af095f53b9fe6dcafa52fe63f8b57404b0320))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.93",
     "date": "2026-09-25",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.92...v10.0.0-beta.93",
