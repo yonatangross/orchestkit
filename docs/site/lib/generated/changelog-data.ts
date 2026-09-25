@@ -18,6 +18,28 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.91",
+    "date": "2026-09-25",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.90...v10.0.0-beta.91",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**cover:** heal-loop never rewrites an expected value ([#4407](https://github.com/yonatangross/orchestkit/issues/4407)) ([7d8a533](https://github.com/yonatangross/orchestkit/commit/7d8a5336ab6cb8ba3ad15fd862083ae648130ab5))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Documentation",
+        "items": [
+          "**memory:** drop LIVE claims for removed memory-writer hook ([#4410](https://github.com/yonatangross/orchestkit/issues/4410)) ([05982df](https://github.com/yonatangross/orchestkit/commit/05982df7a54c2e049878e54a6b57ac7d57cc49c0))",
+          "**memory:** remove stale memory-writer.ts hook reference ([#4409](https://github.com/yonatangross/orchestkit/issues/4409)) ([ed3e259](https://github.com/yonatangross/orchestkit/commit/ed3e259bc2fa32c9b2dbee99f995d0a84b6e5646))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.90",
     "date": "2026-09-25",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.89...v10.0.0-beta.90",
