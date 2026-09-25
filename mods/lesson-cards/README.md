@@ -36,7 +36,8 @@ Requires Claude Code 2.1.266 or later (first measured `classic.*` binary).
 
 - **Pattern matching**: Matches Bash commands and Edit/Write operations against known lesson patterns from hq-ext
 - **Lessons.md indexing**: Parses bullet points from `~/.claude/hq/floor-*/lessons.md` and indexes by command tokens
-- **Hint cards**: Displays a card under the tool row with lesson id, message, and fix suggestion
+- **Hint cards**: Displays a bordered card under the tool row with lesson id, severity, message, and fix suggestion (red for block, yellow for warn, gray for a lessons.md note)
+- **Proceed anyway?**: A block-severity pattern opens the Claude Code question dialog (`$.ui.ask`) before the call runs. `Cancel` refuses the call with `{ deny }`, so it never runs and the model reads the lesson as the reason. With no dialog available (headless `-p`) the call proceeds and the card and context still land
 - **Model context**: Adds matched lessons to the tool result context for the model to read
 - **Additive**: During pilot, the classic `pretool-lesson-guard --strict` keeps its 12 block-severity denies unchanged
 
@@ -48,7 +49,7 @@ Requires Claude Code 2.1.266 or later (first measured `classic.*` binary).
 | `tool.call` | `{ tool: 'Bash' }` | Match command, return context |
 | `tool.call` | `{ tool: 'Edit' }` | Match file/content, return context |
 | `tool.call` | `{ tool: 'Write' }` | Match file/content, return context |
-| `ui.render` | `{ component: 'ToolUse' }` | Append card under tool row |
+| `ui.render` | `{ component: 'ToolUse' }` | Wrap the row and the card in a column Box built from `$.ui.resolve(e)` |
 | `command.register` | `{}` | Handle `/lessons` command |
 
 ### Calls
@@ -57,6 +58,8 @@ Requires Claude Code 2.1.266 or later (first measured `classic.*` binary).
 - `$.fs.list` - List hq-ext versions and floor directories
 - `$.fs.stat` - Get file mtimes for sorting
 - `$.ui.notice` - Show hint during permission dialog (if open)
+- `$.ui.ask` - Ask "Proceed anyway?" before a block-severity call runs
+- `$.ui.resolve` - The element constructors (`Box`, `Text`) the card is built from. On CC 2.1.282 a render hook may only return nodes built by these; a plain `{ type: 'Box' }` object draws nothing, and the tree `next(e)` returns is an opaque engine node that must be wrapped, never mutated
 - `$.ui.invalidate` - Refresh UI after `/lessons reload`
 
 ### Negative pin (what it does NOT do)
@@ -87,9 +90,14 @@ No state persisted except the in-memory match map, which is safe to drop.
 
 ## Seeing a card in a live session
 
-In an environment with hq-ext installed, pretool-lesson-guard checks commands before tool execution. Block-severity patterns like gh pr checks are denied by the pretool guard first, preventing the tool call from running and rendering a card.
+lesson-cards matches before the tool runs, so its card and its question come before the classic guards inside `next(e)`. With hq-ext installed, a block pattern the user answers `Proceed anyway` still meets pretool-lesson-guard, which keeps its deny. The quoted parts of a command are blanked before matching (shell-faithful), so a pattern inside an `echo "..."` string matches nothing; it has to be in the command itself. Patterns with a `repos` list (for example the `platform` ones) match only in that repo.
 
-To see a hint card in a live session, invoke a command that the hq-ext guard allows:
+Harmless ways to see each surface (measured on CC 2.1.282, 2026-09-25):
+
+- **Warn card**: `echo pgvector/pgvector:pg16` matches `pgvector-pg-version-mismatch` and draws a yellow card under the row.
+- **Block card and question**: `git ls-files mods | grep register` matches `git-ls-files-quotepath-blind`, draws a red card and asks `Proceed anyway?`; `Cancel` denies the call.
+
+Other ways that also work:
 
 1. **Floor lessons bullet**: Run an indexed command from ~/.claude/hq/floor-*/lessons.md, such as vm_stat. The hq-ext guard does not inspect floor bullets, allowing the command to run and display an advisory hint card under the tool row.
 2. **Warn pattern**: Run a command matching a warn-severity pattern, such as alembic stamp head. The hq-ext guard exits 0 for warn-severity patterns, allowing the command to proceed while lesson-cards renders the card and notice.

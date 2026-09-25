@@ -50,7 +50,18 @@ const CORPUS_ENTRIES = PATTERNS.length + 2;
 
 interface Fake$Options {
   noticeThrows?: boolean;
+  /** When set, $.ui.ask exists and answers with this label; unset = no dialog (headless). */
+  askAnswer?: string;
 }
+
+/** A node built by a fake element constructor: the name as type, props spread. */
+type FakeNode = { type: string; key?: string; children?: unknown; [prop: string]: unknown };
+
+/** Stand-in for $.ui.resolve(e): each name is a constructor, like the real table. */
+const fakeElements = {
+  Box: (props: Record<string, unknown> = {}): FakeNode => ({ type: 'Box', ...props }),
+  Text: (props: Record<string, unknown> = {}): FakeNode => ({ type: 'Text', ...props }),
+};
 
 interface Fake$Record {
   $: unknown;
@@ -58,6 +69,7 @@ interface Fake$Record {
   invalidateCalls: string[];
   envGets: string[];
   registeredCommands: Array<{ name: string; description: string }>;
+  asks: Array<{ question: string; options: readonly string[] }>;
 }
 
 function makeFake$(options: Fake$Options = {}): Fake$Record {
@@ -65,6 +77,12 @@ function makeFake$(options: Fake$Options = {}): Fake$Record {
   const invalidateCalls: string[] = [];
   const envGets: string[] = [];
   const registeredCommands: Array<{ name: string; description: string }> = [];
+  const asks: Array<{ question: string; options: readonly string[] }> = [];
+
+  const ask = async (question: string, opts: readonly string[]): Promise<string> => {
+    asks.push({ question, options: opts });
+    return options.askAnswer as string;
+  };
 
   const fake$ = {
     env: {
@@ -130,6 +148,8 @@ function makeFake$(options: Fake$Options = {}): Fake$Record {
       invalidate: async (component: string): Promise<void> => {
         invalidateCalls.push(component);
       },
+      resolve: async (): Promise<typeof fakeElements> => fakeElements,
+      ...(options.askAnswer === undefined ? {} : { ask }),
     },
     command: {
       register: async (spec: { name: string; description: string }): Promise<void> => {
@@ -138,7 +158,7 @@ function makeFake$(options: Fake$Options = {}): Fake$Record {
     },
   };
 
-  return { $: fake$, notices, invalidateCalls, envGets, registeredCommands };
+  return { $: fake$, notices, invalidateCalls, envGets, registeredCommands, asks };
 }
 
 interface CapturedHooks {
@@ -181,7 +201,8 @@ describe('registration', () => {
   test('scopes command.run to the lessons command', () => {
     const { matchers } = captureHooks();
     expect(matchers.get('command.run')).toEqual({ command: 'lessons' });
-    expect([...matchers.keys()]).toEqual(['command.run']);
+    expect(matchers.get('ui.render')).toEqual({ component: 'ToolUse' });
+    expect([...matchers.keys()].sort()).toEqual(['command.run', 'ui.render']);
   });
 });
 
@@ -326,24 +347,23 @@ describe('tool.call', () => {
     expect(callResult.context?.[0]).toContain('[lesson:cancelled-check-is-not-pass]');
     expect(notices).toContain(`${toolUseId}: lesson: cancelled-check-is-not-pass`);
 
+    const downstream = { type: 'engine', ref: 7 };
     const renderTree = (await hooks.get('ui.render')!(
       $,
       { component: 'ToolUse', requestId: toolUseId },
-      asNext<never>({ children: [] })
-    )) as {
-      children: Array<{
-        type: string;
-        props: Record<string, unknown>;
-        children?: Array<{ children?: Array<{ text?: string }> }>;
-      }>;
-    };
+      asNext<never>(downstream)
+    )) as FakeNode & { children: FakeNode[] };
 
-    expect(renderTree.children.length).toBe(1);
-    const card = renderTree.children[0];
+    // Wrapped, never mutated: the engine node stays first and untouched.
+    expect(renderTree.type).toBe('Box');
+    expect(renderTree.children).toHaveLength(2);
+    expect(renderTree.children[0]).toBe(downstream);
+    expect(downstream).toEqual({ type: 'engine', ref: 7 });
+    const card = renderTree.children[1];
     expect(card.type).toBe('Box');
-    expect(card.props.key).toBe(`lesson-${toolUseId}`);
-    expect(card.props.borderColor).toBe('red');
-    expect(card.children?.[0]?.children?.[0]?.text).toBe('lesson: cancelled-check-is-not-pass');
+    expect(card.key).toBe(`lesson-${toolUseId}`);
+    expect(card.borderColor).toBe('red');
+    expect(JSON.stringify(card)).toContain('lesson: cancelled-check-is-not-pass');
   });
 });
 
@@ -355,10 +375,10 @@ describe('ui.render', () => {
 
     await hooks.get('tool.call')!($, { tool: 'Bash', command: 'gh pr checks', tool_use_id: 'tu-1' }, asNext<never>({}));
 
-    const tree = (await hooks.get('ui.render')!($, { component: 'ToolUse', requestId: 'tu-1' }, asNext<never>({ children: [] }))) as { children: Array<{ type: string; props: Record<string, unknown> }> };
-    expect(tree.children.length).toBe(1);
+    const tree = (await hooks.get('ui.render')!($, { component: 'ToolUse', requestId: 'tu-1' }, asNext<never>(null))) as FakeNode & { children: FakeNode[] };
+    expect(tree.children).toHaveLength(1);
     expect(tree.children[0].type).toBe('Box');
-    expect(tree.children[0].props.key).toBe('lesson-tu-1');
+    expect(tree.children[0].key).toBe('lesson-tu-1');
   });
 
   test('passes through non-ToolUse components', async () => {
@@ -379,6 +399,50 @@ describe('ui.render', () => {
     const passthrough = { children: [] };
     const tree = (await hooks.get('ui.render')!($, { component: 'ToolUse', requestId: 'tu-unknown' }, asNext<never>(passthrough))) as { children: unknown[] };
     expect(tree.children.length).toBe(0);
+  });
+});
+
+describe('block lessons ask before the call runs', () => {
+  test('Cancel denies the call without running the tool', async () => {
+    const { hooks } = captureHooks();
+    const { $, asks } = makeFake$({ askAnswer: 'Cancel' });
+    await startSession(hooks, $);
+
+    let ran = false;
+    const next = async (): Promise<unknown> => {
+      ran = true;
+      return { result: 'ran' };
+    };
+    const out = (await hooks.get('tool.call')!($, { tool: 'Bash', command: 'gh pr checks', tool_use_id: 'tu-c' }, next)) as { deny?: string; result?: string };
+
+    expect(ran).toBe(false);
+    expect(asks).toHaveLength(1);
+    expect(asks[0].question).toContain('cancelled-check-is-not-pass');
+    expect(asks[0].options).toEqual(['Proceed anyway', 'Cancel']);
+    expect(out.result).toBeUndefined();
+    expect(out.deny).toContain('chose Cancel');
+    expect(out.deny).toContain('[lesson:cancelled-check-is-not-pass]');
+  });
+
+  test('Proceed anyway runs the tool and keeps the context', async () => {
+    const { hooks } = captureHooks();
+    const { $, asks } = makeFake$({ askAnswer: 'Proceed anyway' });
+    await startSession(hooks, $);
+
+    const out = (await hooks.get('tool.call')!($, { tool: 'Bash', command: 'gh pr checks' }, asNext<never>({ result: 'ran' }))) as { result?: string; context?: string[] };
+    expect(asks).toHaveLength(1);
+    expect(out.result).toBe('ran');
+    expect(out.context?.[0]).toContain('[lesson:cancelled-check-is-not-pass]');
+  });
+
+  test('a warn lesson never asks', async () => {
+    const { hooks } = captureHooks();
+    const { $, asks } = makeFake$({ askAnswer: 'Cancel' });
+    await startSession(hooks, $);
+
+    const out = (await hooks.get('tool.call')!($, { tool: 'Edit', file_path: 'tests/run.py', new_string: 'pytest.main()' }, asNext<never>({ result: 'ran' }))) as { result?: string };
+    expect(asks).toHaveLength(0);
+    expect(out.result).toBe('ran');
   });
 });
 
