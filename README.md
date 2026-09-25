@@ -630,6 +630,13 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.100](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.99...v10.0.0-beta.100)** · 2026-09-25
+
+- **promote-lights:** compact band, one line per failing check (#4440)
+- **lab:** commit missing coderabbit-runnable-examples page (#4439)
+- **evals:** move eval judges and holdout grader to claude-opus-5-5 (#4443)
+- **skills:** retire testing-patterns stub, disambiguate memory cluster (#4428)
+
 **[v10.0.0-beta.99](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.98...v10.0.0-beta.99)** · 2026-09-25
 
 - **secrets-veil:** fail closed when session.start never ran (#4436)
@@ -660,10 +667,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.93](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.92...v10.0.0-beta.93)** · 2026-09-25
 
 - **skills:** Opus 5.5 budgets, split create-pr and dream (#4416)
-
-**[v10.0.0-beta.92](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.91...v10.0.0-beta.92)** · 2026-09-25
-
-- **mods:** port the 3 mods to the CC 2.1.282 mods API (#4413)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
