@@ -975,16 +975,6 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "usedByCount": 3
   },
   {
-    "id": "testing-patterns",
-    "label": "Testing Patterns",
-    "type": "reference",
-    "complexity": "low",
-    "category": "testing",
-    "hasDeps": false,
-    "depCount": 0,
-    "usedByCount": 0
-  },
-  {
     "id": "testing-perf",
     "label": "Testing Perf",
     "type": "reference",

@@ -1,6 +1,6 @@
 {
   "name": "@orchestkit/mod-lesson-cards",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "type": "module",
   "description": "Displays lesson hint cards when tool calls match known patterns. Additive surface during pilot.",
   "scripts": {

@@ -2,7 +2,7 @@
 name: remember
 license: MIT
 compatibility: "Claude Code 2.1.277+. Requires memory MCP server."
-description: "Stores decisions, patterns, and outcomes in the MCP memory knowledge graph as entities with typed observations and relations. Supports recording architectural decisions, anti-patterns, tool preferences, workflow outcomes, and project conventions that persist across sessions. Use when saving patterns, remembering outcomes, recording decisions, or building institutional knowledge."
+description: "Write-side memory: stores decisions, patterns, and outcomes in the MCP memory knowledge graph as entities with typed observations and relations. Use when something worth persisting across sessions was just learned or decided. To search or read existing memory, invoke memory; to debug retrieval internals, memory-fabric; to consolidate, dream."
 argument-hint: "[decision-or-pattern]"
 context: inherit
 version: 3.0.1

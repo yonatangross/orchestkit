@@ -46,8 +46,8 @@ or hot-reloaded mid-session; on CC 2.1.282 a reload re-dispatches
 `session.start` about a second after "reloaded"), the mod arms itself on the
 spot with the same named reads. If those reads fail it falls back to value
 shapes and entropy alone, and if a result cannot be masked at all it is
-withheld with `{ deny }` rather than shown. The same holds for a result that
-is too large or too slow to mask within a fixed cap, a value the veil cannot
+withheld with `{ deny }` rather than shown. The same holds for a result, or a
+single value in it, that is larger than a fixed size cap, a value the veil cannot
 rebuild faithfully (a Buffer, a Map), and any failure the runtime sees in
 the hook: each is withheld, none is passed through.
 

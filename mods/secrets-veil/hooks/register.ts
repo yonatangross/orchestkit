@@ -85,6 +85,13 @@ export function utf8Bytes(text: string): number {
 /** Most characters of string content one result may carry before it is withheld. */
 export const MAX_MASK_CHARS = 8_000_000;
 
+/**
+ * Longest single string handed to mask(). mask() is one synchronous call,
+ * so the time cap below cannot interrupt it; a string over this length is
+ * withheld before the call instead.
+ */
+export const MAX_STRING_CHARS = 1_000_000;
+
 /** Most milliseconds masking one result may take (well inside the hook's own budget). */
 export const MAX_MASK_MS = 4_000;
 
@@ -109,6 +116,9 @@ function maskDeep(value: unknown, activeTable: MaskTable, covered: Set<string>, 
     throw new VeilRefusal("masking ran past its time cap");
   }
   if (typeof value === "string") {
+    if (value.length > MAX_STRING_CHARS) {
+      throw new VeilRefusal("a single value is longer than the masking cap");
+    }
     budget.chars += value.length;
     if (budget.chars > MAX_MASK_CHARS) {
       throw new VeilRefusal("result is larger than the masking cap");

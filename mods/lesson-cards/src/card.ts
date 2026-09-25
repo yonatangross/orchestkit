@@ -62,6 +62,71 @@ export function buildCard(lesson: MatchedLesson, requestId: string, el: CardElem
   });
 }
 
+/** Longest deny line, in code points; the card above it shows the full lesson and fix. */
+export const MAX_DENY_CHARS = 240;
+
+/** Longest short fix inside the deny line, in code points. */
+export const MAX_FIX_CHARS = 110;
+
+/** Cut to at most max code points (Array.from never splits a surrogate pair), marking a cut with "...". */
+export function cutCodePoints(text: string, max: number): string {
+  const points = Array.from(text);
+  return points.length > max ? `${points.slice(0, max - 3).join('')}...` : text;
+}
+
+const COMMENT = /^\s*(#|\/\/)/;
+const RIGHT_HEADING = /\b(RIGHT|BEST|FIX|DO)\b/i;
+const WRONG_HEADING = /\b(WRONG|BAD|DON'?T|DO NOT|NEVER|AVOID)\b/i;
+
+/**
+ * The one line of a lesson's fix worth sending with a refusal. Fixes are
+ * usually WRONG / RIGHT example blocks, so prefer the first code line under a
+ * RIGHT or BEST heading; else the first code line outside a WRONG section;
+ * else the first non-empty line. Undefined when the lesson has no fix.
+ */
+export function shortFix(fix: string | undefined): string | undefined {
+  if (!fix) return undefined;
+  const lines = fix.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+  let section: 'right' | 'wrong' | 'none' = 'none';
+  let firstNeutral: string | undefined;
+  for (const line of lines) {
+    if (COMMENT.test(line)) {
+      // A neutral comment ends a WRONG block ("use this instead").
+      // WRONG is tested first: "# WRONG: Do not use this" also contains "Do".
+      section = WRONG_HEADING.test(line) ? 'wrong' : RIGHT_HEADING.test(line) ? 'right' : 'none';
+      continue;
+    }
+    if (section === 'right') return cutCodePoints(line, MAX_FIX_CHARS);
+    if (section === 'none' && firstNeutral === undefined) firstNeutral = line;
+  }
+  // Never offer a WRONG example as the fix: with no code outside a WRONG
+  // block there is no short fix.
+  const sawHeading = lines.some(l => COMMENT.test(l));
+  const pick = firstNeutral ?? (sawHeading ? undefined : lines[0]);
+  return pick === undefined ? undefined : cutCodePoints(pick.replace(/\s+/g, ' '), MAX_FIX_CHARS);
+}
+
+/**
+ * The one-line reason a refused call carries. Claude Code draws every deny
+ * as a red tool error, so a multi-line lesson here became a red wall that
+ * repeated the card. The deny is also the only thing the model reads about a
+ * refused call, so it keeps the lesson id, the lesson's first sentence and a
+ * short fix: the model learns the alternative, not just that a lesson fired.
+ */
+export function denyLine(lesson: MatchedLesson, why: string): string {
+  const flat = lesson.message.replace(/\s+/g, ' ').trim();
+  const firstSentence = /^(.*?[.!?])(\s|$)/.exec(flat)?.[1] ?? flat;
+  const fix = shortFix(lesson.fix);
+  const head = `lesson-cards: ${why}; call not run. [lesson:${lesson.id}] `;
+  const tail = fix ? ` Fix: ${fix}` : '';
+  // Budget the message around the fix: the fix (already capped) is kept
+  // whole and the first sentence takes what is left, so a long sentence can
+  // never push the fix off the end of the line.
+  const room = MAX_DENY_CHARS - Array.from(head).length - Array.from(tail).length;
+  const message = room >= 4 ? cutCodePoints(firstSentence, room) : '';
+  return cutCodePoints(`${head}${message}${tail}`, MAX_DENY_CHARS);
+}
+
 /**
  * Format lesson context for model consumption.
  *

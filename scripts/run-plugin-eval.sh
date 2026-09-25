@@ -39,7 +39,7 @@ MAX_COST=3
 # cheap. A sonnet agent can overstate the delta for users on a stronger model;
 # the docs say so. Flip with --model / --judge-model.
 AGENT_MODEL=claude-sonnet-5
-JUDGE_MODEL=claude-opus-5
+JUDGE_MODEL=claude-opus-5-5
 EXTRA=()
 
 while [ $# -gt 0 ]; do
