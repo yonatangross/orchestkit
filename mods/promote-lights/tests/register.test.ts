@@ -326,6 +326,22 @@ describe("register behavior (mutant-killing)", () => {
     expect($.clock.every).not.toHaveBeenCalled();
   });
 
+  test("session.start clears a previous session's lights before it runs gh", async () => {
+    const { register } = await import("../hooks/register.ts");
+    const handlers = captureHandlers({ register });
+    const $ = createFake$({
+      run: vi.fn().mockResolvedValue({ exitCode: 1, stdout: "", stderr: "boom" }),
+    });
+
+    await handlers.get("session.start")!($, {}, NEXT);
+
+    // $.store outlives the session, so the first render must not find old lights.
+    expect($.store.delete).toHaveBeenCalledWith("lights:yonatangross/orchestkit");
+    const cleared = vi.mocked($.store.delete).mock.invocationCallOrder[0];
+    const firstRun = vi.mocked($.process.run).mock.invocationCallOrder[0];
+    expect(cleared).toBeLessThan(firstRun);
+  });
+
   test("session.start with no open PR deletes stored state and does not tick", async () => {
     const { register } = await import("../hooks/register.ts");
     const handlers = captureHandlers({ register });

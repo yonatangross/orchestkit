@@ -157,6 +157,12 @@ export const register: Register = (on) => {
     const repo = await $.session.repo();
     const key = keyFor(repo);
 
+    // $.store outlives the session: without this, the first AbovePrompt
+    // render drew the lights a PREVIOUS session stored (measured 2026-09-25:
+    // a demo opened on #4414 from an earlier run while it was told #4428).
+    // A new session shows nothing until its own first tick lands.
+    await $.store.delete(key);
+
     // Demo mode first: a configured watch target needs no promote PR and no
     // session repo.
     const watchEnv = await $.env.get("PROMOTE_LIGHTS_WATCH").catch(() => undefined);
