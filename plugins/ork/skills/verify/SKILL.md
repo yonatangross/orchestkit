@@ -67,7 +67,7 @@ for token in "$ARGUMENTS".split():
 # When set, apply the Streak Gate (see below). Full protocol: references/streak-gate.md
 ```
 
-Pass `MODEL_OVERRIDE` to all Agent() calls via `model=MODEL_OVERRIDE` when set. Accepts symbolic names (`opus`, `sonnet`, `haiku`, `fable` on harnesses whose Agent tool lists it; note fable is premium API spend after 2026-07-12) or full IDs (`claude-opus-5`) per CC 2.1.74.
+Pass `MODEL_OVERRIDE` to all Agent() calls via `model=MODEL_OVERRIDE` when set. Accepts symbolic names (`opus`, `sonnet`, `haiku`, `fable` on harnesses whose Agent tool lists it; note fable is premium API spend after 2026-07-12) or full IDs (`claude-opus-5-5`) per CC 2.1.74.
 
 > **Opus 5.5**: Agents use native adaptive thinking (no MCP sequential-thinking needed). Opus 5.5's own effort default is `medium`, one level below Opus 5's `high`, and CC 2.1.280+ starts a newly released model at its default, so pass `high` or `xhigh` for verification. Extended 128K output supports comprehensive verification reports.
 

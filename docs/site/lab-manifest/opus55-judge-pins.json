@@ -1,0 +1,8 @@
+{
+  "slug": "opus55-judge-pins",
+  "source": "docs/chore--opus55-judge-pins/index.html",
+  "title": "Eval judges and grader move to Claude Opus 5.5",
+  "description": "Three eval defaults and five docs lines move to claude-opus-5-5, with the baseline rerun plan per suite.",
+  "tags": ["evals", "opus-5-5", "audit"],
+  "date": "2026-09-26"
+}

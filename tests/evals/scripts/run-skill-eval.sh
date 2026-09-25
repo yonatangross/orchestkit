@@ -282,7 +282,7 @@ if [[ -n "$HOLDOUT_PROMOTE_SKILL" ]]; then
     HP_CHAMPION_VERSION="$(grep -m1 -E '^version:' "$HP_SKILL_MD" 2>/dev/null | sed -E 's/^version:[[:space:]]*//; s/[[:space:]]*$//')"  # silent: best-effort
     HP_CHAMPION_VERSION="${HP_CHAMPION_VERSION:-null}"
 
-    HP_GRADER_MODEL="${EVAL_GRADING_MODEL:-claude-opus-4-8[1m]}"
+    HP_GRADER_MODEL="${EVAL_GRADING_MODEL:-claude-opus-5-5[1m]}"
 
     echo -e "  Holdout:   ${CYAN}${HP_N:-?}${NC} cases   Margin: ${CYAN}${HP_MARGIN}${NC}   min_pass: ${CYAN}${HP_MIN_PASS}${NC}"
     echo -e "  Rubric:    ${CYAN}${HP_RUBRIC#$REPO_ROOT/}${NC}"
