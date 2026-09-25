@@ -63,6 +63,13 @@ export const metadata: Metadata = {
 	metadataBase: new URL(SITE.domain),
 };
 
+// Dot-free: fumadocs hides a dismissed banner before hydration with the rule
+// `.nd-banner-<key> #<id> { display: none }`, and a version id with dots
+// ("#v10.0.0-beta.96") is an invalid selector the browser drops, so the
+// banner flashed and left a stale offset for returning visitors (review,
+// 2026-09-25). Dismissals keyed on the old dotted id reset once.
+const BANNER_ID = `v${SITE.version.replace(/\./g, "-")}`;
+
 export default function Layout({ children }: { children: ReactNode }) {
 	return (
 		<html
@@ -83,7 +90,7 @@ export default function Layout({ children }: { children: ReactNode }) {
 				    away; BannerOffset feeds docs layouts its visible height, and the
 				    side padding keeps the close X off the text on phones. */}
 				<Banner
-					id={`v${SITE.version}`}
+					id={BANNER_ID}
 					className="relative ps-10 pe-10"
 					changeLayout={false}
 					// A named region, so the announcement sits in a landmark (axe
@@ -93,7 +100,7 @@ export default function Layout({ children }: { children: ReactNode }) {
 				>
 					{BANNER_TEXT}
 				</Banner>
-				<BannerOffset bannerId={`v${SITE.version}`} />
+				<BannerOffset bannerId={BANNER_ID} />
 				<RootProvider
 					theme={{ defaultTheme: "dark" }}
 					search={{ SearchDialog: CustomSearchDialog }}

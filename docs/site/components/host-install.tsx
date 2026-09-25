@@ -2,7 +2,7 @@
 
 import {
 	startTransition,
-	useEffect,
+	useCallback,
 	useRef,
 	useState,
 	type KeyboardEvent,
@@ -318,7 +318,6 @@ function HostCommandPanel({ spec, source }: { spec: HostInstallSpec; source: Hos
 		host: spec.id,
 		surface: "hero",
 	});
-	const boxRef = useRef<HTMLDivElement>(null);
 	const viewed = useRef(false);
 	const latest = useRef({ host: spec.id, source });
 	latest.current = { host: spec.id, source };
@@ -326,9 +325,12 @@ function HostCommandPanel({ spec, source }: { spec: HostInstallSpec; source: Hos
 	// install_viewed: once per page load, when the command box is at least half
 	// on screen. With install_copied it gives a real copy rate per host, which
 	// the pageview count alone could not (PostHog audit 2026-09-25).
-	useEffect(() => {
-		const el = boxRef.current;
-		if (!el || typeof IntersectionObserver === "undefined") return;
+	// A callback ref, because the box remounts on every host change (it sits
+	// inside SameRouteFade keyed on the host): an observer attached once on
+	// mount kept watching the detached first box, so a /?host= deep link could
+	// report the wrong host or nothing (review, 2026-09-25).
+	const boxRef = useCallback((el: HTMLDivElement | null) => {
+		if (!el || viewed.current || typeof IntersectionObserver === "undefined") return;
 		const io = new IntersectionObserver(
 			(entries) => {
 				if (viewed.current || !entries.some((e) => e.isIntersecting)) return;

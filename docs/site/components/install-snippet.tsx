@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Check, Copy } from "lucide-react";
 import { track } from "@/lib/search-beacon";
 
@@ -25,8 +25,18 @@ export function useTrackedCopy(
 	event: SnippetCopyEvent,
 	props: { host?: string; surface?: CopySurface },
 ) {
-	const [copied, setCopied] = useState(false);
+	// "Copied" belongs to the payload that was copied, so switching hosts clears
+	// it at once, and a clipboard write that resolves after the switch cannot
+	// mark the new host (review, 2026-09-25: it carried over for up to 2 s).
+	const [copiedPayload, setCopiedPayload] = useState<string | null>(null);
+	const copied = copiedPayload === payload;
 	const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+	useEffect(
+		() => () => {
+			if (timer.current) clearTimeout(timer.current);
+		},
+		[],
+	);
 	const copy = () => {
 		// The click is the funnel signal, so it is tracked either way; the
 		// "Copied" state only shows once the clipboard write succeeded.
@@ -38,8 +48,8 @@ export function useTrackedCopy(
 			.writeText(payload)
 			.then(() => {
 				if (timer.current) clearTimeout(timer.current);
-				setCopied(true);
-				timer.current = setTimeout(() => setCopied(false), 2000);
+				setCopiedPayload(payload);
+				timer.current = setTimeout(() => setCopiedPayload(null), 2000);
 			})
 			.catch(() => {});
 	};

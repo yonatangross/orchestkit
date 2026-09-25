@@ -413,6 +413,53 @@ describe("HostInstallPicker", () => {
 		}
 	});
 
+	it("observes the box that is on screen, not the one a host change replaced", async () => {
+		// The box remounts on every host change; an observer attached once on
+		// mount kept watching the detached first box (review, 2026-09-25).
+		const observers: { cb: IntersectionObserverCallback; el: Element | null }[] = [];
+		const RealIO = globalThis.IntersectionObserver;
+		globalThis.IntersectionObserver = class {
+			private entry: { cb: IntersectionObserverCallback; el: Element | null };
+			constructor(cb: IntersectionObserverCallback) {
+				this.entry = { cb, el: null };
+				observers.push(this.entry);
+			}
+			observe(el: Element) {
+				this.entry.el = el;
+			}
+			disconnect() {}
+			unobserve() {}
+			takeRecords() {
+				return [];
+			}
+		} as unknown as typeof IntersectionObserver;
+		try {
+			search = new URLSearchParams("host=codex");
+			render(<HostInstallPicker />);
+			await waitFor(() =>
+				expect(screen.getByRole("link", { name: "Codex" }).getAttribute("aria-current")).toBe("true"),
+			);
+			const onScreen = document.querySelector("[data-hero-install]");
+			const seen = [{ isIntersecting: true }] as unknown as IntersectionObserverEntry[];
+			// Only an observer watching the box that is actually in the page can see it.
+			for (const o of observers) if (o.el && o.el === onScreen && o.el.isConnected) o.cb(seen, {} as IntersectionObserver);
+			const calls = vi.mocked(track).mock.calls.filter(([name]) => name === "install_viewed");
+			expect(calls).toEqual([["install_viewed", { host: "codex", source: "deeplink", surface: "hero" }]]);
+		} finally {
+			globalThis.IntersectionObserver = RealIO;
+		}
+	});
+
+	it("does not carry Copied over to the next host", async () => {
+		render(<HostInstallPicker />);
+		fireEvent.click(await screen.findByRole("button", { name: /^copy claude plugin marketplace add/i }));
+		await screen.findByRole("button", { name: /^copied /i });
+		fireEvent.click(screen.getByRole("link", { name: "Cursor" }));
+		const next = await screen.findByRole("button", { name: /copy yonatangross\/orchestkit to clipboard/i });
+		expect(next.textContent).toContain("Copy");
+		expect(next.textContent).not.toContain("Copied");
+	});
+
 	it("copies two Codex lines as one clipboard payload", async () => {
 		search = new URLSearchParams("host=codex");
 		render(<HostInstallPicker />);

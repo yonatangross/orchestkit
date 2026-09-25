@@ -40,6 +40,19 @@ describe("BannerOffset", () => {
 		expect(offset()).toBe("0px");
 	});
 
+	it("drops to 0 when the banner leaves the DOM, with no scroll (returning visitor)", async () => {
+		// fumadocs removes a dismissed banner after hydration, after the first
+		// measurement; the offset stayed at the banner height until a scroll.
+		banner(48);
+		render(<BannerOffset bannerId="v1" />);
+		expect(offset()).toBe("48px");
+		document.getElementById("v1")?.remove();
+		await act(async () => {
+			await Promise.resolve(); // MutationObserver callbacks run as microtasks
+		});
+		expect(offset()).toBe("0px");
+	});
+
 	it("reads 0 when the banner was closed, and cleans up on unmount", () => {
 		const view = render(<BannerOffset bannerId="missing" />);
 		expect(offset()).toBe("0px");

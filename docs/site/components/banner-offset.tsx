@@ -18,11 +18,15 @@ export function BannerOffset({ bannerId }: { bannerId: string }) {
 	useEffect(() => {
 		const root = document.documentElement;
 		let frame = 0;
+		let last = "";
 		const update = () => {
 			frame = 0;
 			const banner = document.getElementById(bannerId);
 			const visible = banner ? Math.max(0, Math.round(banner.getBoundingClientRect().bottom)) : 0;
-			root.style.setProperty("--fd-banner-height", `${visible}px`);
+			const value = `${visible}px`;
+			if (value === last) return;
+			last = value;
+			root.style.setProperty("--fd-banner-height", value);
 		};
 		const schedule = () => {
 			if (!frame) frame = requestAnimationFrame(update);
@@ -32,8 +36,19 @@ export function BannerOffset({ bannerId }: { bannerId: string }) {
 		window.addEventListener("resize", schedule);
 		// The close button removes the banner; re-measure after any click on it.
 		document.addEventListener("click", schedule, true);
+		// A returning visitor's dismissed banner is removed by fumadocs after
+		// hydration, AFTER this effect first measured it, which left a stale
+		// ~48px offset until the first scroll (review, 2026-09-25). Watch the
+		// banner's size and its removal instead of trusting one measurement.
+		const banner = document.getElementById(bannerId);
+		const sized = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(schedule);
+		if (banner) sized?.observe(banner);
+		const removed = new MutationObserver(schedule);
+		removed.observe(banner?.parentElement ?? document.body, { childList: true });
 		return () => {
 			if (frame) cancelAnimationFrame(frame);
+			sized?.disconnect();
+			removed.disconnect();
 			window.removeEventListener("scroll", schedule);
 			window.removeEventListener("resize", schedule);
 			document.removeEventListener("click", schedule, true);

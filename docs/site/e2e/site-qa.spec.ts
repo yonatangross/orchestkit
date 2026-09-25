@@ -47,6 +47,25 @@ test.describe("Site QA", () => {
 		});
 	}
 
+	test("a returning visitor who closed the banner gets no stale offset", async ({ page }) => {
+		// The dotted banner id made fumadocs' pre-hydration hide rule an invalid
+		// selector, and the offset was measured before the banner was removed,
+		// so the docs sidebar kept a ~48px gap until the first scroll (review).
+		await page.goto("/docs/foundations/overview");
+		await page.getByRole("button", { name: "Close Banner" }).click();
+		await page.reload({ waitUntil: "load" });
+		// Past hydration (fumadocs removes the dismissed banner in an effect), with
+		// no scroll, which is when the stale offset used to show.
+		await page.waitForTimeout(1500);
+		const state = await page.evaluate(() => ({
+			offset: getComputedStyle(document.documentElement).getPropertyValue("--fd-banner-height").trim(),
+			scrollY: window.scrollY,
+		}));
+		expect(state.scrollY).toBe(0);
+		await expect(page.getByRole("region", { name: "Release announcement" })).toHaveCount(0);
+		expect(["", "0px"]).toContain(state.offset);
+	});
+
 	test("the release banner sits in a named landmark", async ({ page }) => {
 		// axe "region" fired on every route for the unlandmarked banner (QA #22).
 		await page.goto("/");
