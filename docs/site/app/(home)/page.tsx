@@ -106,7 +106,9 @@ export default async function HomePage() {
         />
       </a>
 
-      {/* Hero A: left copy + right conductor bleed (approved-design/hero-a-2026-09-22.html) */}
+      {/* Hero A: left copy + right conductor bleed (approved-design/hero-a-2026-09-22.html).
+          Row 1 is the mockup (copy beside the art); the host picker, search and
+          links sit in a full-width row 2 so the art never faces an empty column. */}
       <section
         aria-labelledby="hero-heading"
         className="home-hero relative overflow-x-hidden border-b border-fd-border"
@@ -187,59 +189,62 @@ export default async function HomePage() {
               <p className="mt-2 text-[12.5px] text-fd-muted-foreground">
                 For Claude Code. On Cursor, Codex, Muse Code, Pi, OpenCode, Devin or Antigravity? Pick your host below.
               </p>
-              <HostInstallPicker />
-              <HomeSearchTrigger />
-              <WebMcpSearchForm />
-              <div className="mt-4 flex flex-wrap items-center justify-start gap-x-3 gap-y-2 text-[13px] text-fd-muted-foreground">
-                <WhatsAppCommunityLink />
-                <Link
-                  href="/docs/cookbook/implement-feature"
-                  className="text-fd-primary underline-offset-2 hover:underline"
-                >
-                  See the cookbook
-                </Link>
-                <span aria-hidden="true">·</span>
-                <Link
-                  href="/docs/getting-started/configuration"
-                  className="text-fd-primary underline-offset-2 hover:underline"
-                >
-                  Configure your project
-                </Link>
-                <span aria-hidden="true">·</span>
-                <Link
-                  href="/openapi"
-                  className="text-fd-primary underline-offset-2 hover:underline"
-                >
-                  OrchestKit OpenAPI specification
-                </Link>
-                <span aria-hidden="true">·</span>
-                <Link
-                  href="/docs/mcp"
-                  className="text-fd-primary underline-offset-2 hover:underline"
-                >
-                  OrchestKit MCP server
-                </Link>
-                <span aria-hidden="true">·</span>
-                <Link
-                  href="/docs/sdk"
-                  className="text-fd-primary underline-offset-2 hover:underline"
-                >
-                  OrchestKit SDK packages
-                </Link>
-              </div>
-
-              <div className="mt-7 flex flex-wrap items-center justify-start font-mono text-[12px] text-fd-muted-foreground">
-                <StarLink stars={stars} />
-                <span aria-hidden="true" className="h-3 w-px bg-fd-border" />
-                <span className="inline-flex items-center gap-1.5 px-3.5">MIT license</span>
-                <span aria-hidden="true" className="h-3 w-px bg-fd-border" />
-                <span className="inline-flex items-center gap-1.5 px-3.5">
-                  Claude Code ≥ {SITE.ccVersion}
-                </span>
-              </div>
             </div>
           </div>
           <HomeHeroArt />
+
+          <div className="home-hero-more">
+            <HostInstallPicker />
+            <HomeSearchTrigger />
+            <WebMcpSearchForm />
+            <div className="mt-4 flex flex-wrap items-center justify-start gap-x-3 gap-y-2 text-[13px] text-fd-muted-foreground min-[901px]:justify-center">
+              <WhatsAppCommunityLink />
+              <Link
+                href="/docs/cookbook/implement-feature"
+                className="text-fd-primary underline-offset-2 hover:underline"
+              >
+                See the cookbook
+              </Link>
+              <span aria-hidden="true">·</span>
+              <Link
+                href="/docs/getting-started/configuration"
+                className="text-fd-primary underline-offset-2 hover:underline"
+              >
+                Configure your project
+              </Link>
+              <span aria-hidden="true">·</span>
+              <Link
+                href="/openapi"
+                className="text-fd-primary underline-offset-2 hover:underline"
+              >
+                OrchestKit OpenAPI specification
+              </Link>
+              <span aria-hidden="true">·</span>
+              <Link
+                href="/docs/mcp"
+                className="text-fd-primary underline-offset-2 hover:underline"
+              >
+                OrchestKit MCP server
+              </Link>
+              <span aria-hidden="true">·</span>
+              <Link
+                href="/docs/sdk"
+                className="text-fd-primary underline-offset-2 hover:underline"
+              >
+                OrchestKit SDK packages
+              </Link>
+            </div>
+
+            <div className="mt-7 flex flex-wrap items-center justify-start font-mono text-[12px] text-fd-muted-foreground min-[901px]:justify-center">
+              <StarLink stars={stars} />
+              <span aria-hidden="true" className="h-3 w-px bg-fd-border" />
+              <span className="inline-flex items-center gap-1.5 px-3.5">MIT license</span>
+              <span aria-hidden="true" className="h-3 w-px bg-fd-border" />
+              <span className="inline-flex items-center gap-1.5 px-3.5">
+                Claude Code ≥ {SITE.ccVersion}
+              </span>
+            </div>
+          </div>
         </div>
       </section>
 

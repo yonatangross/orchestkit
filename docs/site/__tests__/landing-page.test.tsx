@@ -373,6 +373,28 @@ describe("landing page content", () => {
     expect(
       within(copyCol as HTMLElement).getByRole("link", { name: /get started/i }),
     ).toBeTruthy();
+
+    // The host picker lives in the full-width row under the hero, not in the
+    // copy column: in the column it made the copy ~600px taller than the art
+    // and left the right side bare (operator report 2026-09-25).
+    const more = container.querySelector(".home-hero-more");
+    expect(more).toBeTruthy();
+    const nav = screen.getByRole("navigation", { name: /install by host/i });
+    expect(more?.contains(nav)).toBe(true);
+    expect(copyCol?.contains(nav)).toBe(false);
+    // The art is a sibling of the copy column in the hero grid.
+    const artBox = container.querySelector(".home-hero-art");
+    expect(artBox?.parentElement).toBe(copyCol?.parentElement);
+  });
+
+  it("brands the nav with a vector mark and a one-color wordmark", async () => {
+    const { baseOptions } = await import("../app/layout.config");
+    const { container } = render(<>{baseOptions.nav?.title}</>);
+    expect(container.querySelector("svg[data-brand-mark]")).toBeTruthy();
+    // The 128px George raster read as a blurred avatar at 22px.
+    expect(container.querySelector('img[src*="george-badge"]')).toBeNull();
+    expect(container.textContent).toBe("OrchestKit");
+    expect(container.querySelector(".bg-clip-text")).toBeNull();
   });
 
   it("exposes a copyable install command per host", async () => {

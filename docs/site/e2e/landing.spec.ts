@@ -31,6 +31,8 @@ test.describe('Landing hero', () => {
   });
 
   test('hero A art bleeds on desktop and stacks as 16:9 under copy on narrow', async ({ page }) => {
+    // The bleed is the dark-mode treatment (approved mockup A); light frames it.
+    await page.emulateMedia({ colorScheme: 'dark' });
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/');
 
@@ -48,7 +50,9 @@ test.describe('Landing hero', () => {
         mask: cs.maskImage || (cs as CSSStyleDeclaration & { webkitMaskImage?: string }).webkitMaskImage || '',
       };
     });
-    expect(desktop.position).toBe('absolute');
+    // In flow (grid column 2). Absolute left column 2 empty beside a copy
+    // column ~600px taller than the art (operator report 2026-09-25).
+    expect(desktop.position).toBe('relative');
     expect(desktop.widthPct).toBeGreaterThanOrEqual(40);
     expect(desktop.widthPct).toBeLessThanOrEqual(75);
     expect(desktop.mask).toMatch(/linear-gradient/);
@@ -71,17 +75,24 @@ test.describe('Landing hero', () => {
     });
     expect(h1Lines).toBe(3);
 
-    // Art must sit beside the headline, not vertically centred on the full
-    // copy column. Compare artTop to h1.top (not h1.bottom): a centered
-    // 16:9 box can still clear h1.bottom at 1440x900 (CodeRabbit).
+    // Art sits beside the headline and install copy, and the host picker
+    // starts below both, so nothing leaves the right side bare.
     const anchor = await page.evaluate(() => {
-      const art = document.querySelector('.home-hero-art')?.getBoundingClientRect();
-      const h1 = document.querySelector('#hero-heading')?.getBoundingClientRect();
-      if (!art || !h1) return null;
-      return { artTop: art.top, h1Top: h1.top };
+      const box = (s: string) => document.querySelector(s)?.getBoundingClientRect();
+      const art = box('.home-hero-art');
+      const h1 = box('#hero-heading');
+      const copy = box('.home-hero-copy');
+      const picker = box('nav[aria-label*="host" i]');
+      if (!art || !h1 || !copy || !picker) return null;
+      return { art, h1, copy, picker };
     });
     expect(anchor).not.toBeNull();
-    expect(anchor!.artTop).toBeLessThan(anchor!.h1Top);
+    const { art: a, h1, copy, picker } = anchor!;
+    expect(a.top).toBeLessThan(h1.bottom);
+    const artMid = (a.top + a.bottom) / 2;
+    expect(artMid).toBeGreaterThan(copy.top);
+    expect(artMid).toBeLessThan(copy.bottom);
+    expect(picker.top).toBeGreaterThan(Math.max(a.bottom, copy.bottom));
 
     await page.setViewportSize({ width: 390, height: 844 });
     const mobile = await art.evaluate((el) => {
@@ -101,6 +112,38 @@ test.describe('Landing hero', () => {
     expect(mobile.aspect).toBeLessThan(2.0);
     expect(mobile.top).toBeGreaterThan(h1Bottom - 1);
     expect(mobile.bottom).toBeLessThanOrEqual(installTop + 1);
+  });
+
+  for (const width of [1280, 1575, 1920]) {
+    test(`hero art reaches the viewport edge in dark at ${width}px`, async ({ page }) => {
+      await page.emulateMedia({ colorScheme: 'dark' });
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto('/');
+      const right = await page
+        .locator('.home-hero-art')
+        .evaluate((el) => el.getBoundingClientRect().right);
+      // The 1180px container cap left a bare gutter right of the art.
+      expect(right).toBeGreaterThanOrEqual(width - 1);
+    });
+  }
+
+  test('hero art is a framed card in light, never a feathered dark slab', async ({ page }) => {
+    // defaultTheme is "dark" (app/layout.tsx), so pick light the way the
+    // theme switch does rather than through prefers-color-scheme.
+    await page.addInitScript(() => localStorage.setItem('theme', 'light'));
+    await page.setViewportSize({ width: 1575, height: 900 });
+    await page.goto('/');
+    const light = await page.locator('.home-hero-art').evaluate((el) => {
+      const cs = getComputedStyle(el);
+      return {
+        radius: parseFloat(cs.borderTopLeftRadius),
+        mask: cs.maskImage || (cs as CSSStyleDeclaration & { webkitMaskImage?: string }).webkitMaskImage || 'none',
+        right: el.getBoundingClientRect().right,
+      };
+    });
+    expect(light.radius).toBeGreaterThan(0);
+    expect(light.mask).toBe('none');
+    expect(light.right).toBeLessThan(1575 - 20);
   });
 
   test('proof strip shows GitHub stars (real number or fallback)', async ({ page }) => {

@@ -209,12 +209,32 @@
    prefers-reduced-motion already gates body::after cosmic-drift.
    ============================================================ */
 
+/* Row 1: copy beside the art, both vertically centred on each other.
+   Row 2 (.home-hero-more): picker, search, links and proof across both
+   columns. The art is a grid item in column 2, never absolute: out of flow
+   it left column 2 empty and the long copy column (picker, search, proof)
+   ran ~600px past it, the "broken on a laptop" report of 2026-09-25. */
 .home-hero-inner {
+  --hero-max: 1180px;
+  --hero-pad: 28px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
-  gap: 24px;
-  align-items: start;
-  min-height: min(72vh, 720px);
+  column-gap: 24px;
+  row-gap: 48px;
+  align-items: center;
+}
+
+.home-hero-copy {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.home-hero-more {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  width: 100%;
+  max-width: 760px;
+  justify-self: center;
 }
 
 /* Hero-only display cap (mockup A). Keep global --text-fluid-h1 at 6rem
@@ -223,34 +243,46 @@
   --text-fluid-h1: clamp(2.5rem, 4vw + 1.5rem, 4.25rem);
 }
 
-/* Desktop art box follows source 1280x723. Do not stretch top/bottom to the
-   full copy column (picker/search/proof): that made object-fit:cover crop the
-   conductor to one arm at about 2x zoom (reviewer-estate-3 HOLD on #4345).
-   Top-align with the headline column so art sits beside the copy-top, not
-   centered beside the host picker. */
+/* Art box keeps the source ratio (1280x723). Never stretch it to the copy
+   column height: object-fit:cover then cropped the conductor to one arm at
+   about 2x zoom (reviewer-estate-3 HOLD on #4345).
+   Light: a framed card inside column 2. The art is a night scene with an
+   opaque dark ground, so feathering it into a light page left a grey smear
+   and a hard black slab. */
 .home-hero-art {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: auto;
-  width: 55%;
+  position: relative;
+  grid-column: 2;
+  grid-row: 1;
+  align-self: center;
+  width: 100%;
   height: auto;
   aspect-ratio: 1280 / 723;
-  transform: none;
   z-index: 1;
   pointer-events: none;
-  -webkit-mask-image: linear-gradient(
-    to right,
-    transparent 0%,
-    rgba(0, 0, 0, 0.15) 12%,
-    #000 38%
-  );
-  mask-image: linear-gradient(
-    to right,
-    transparent 0%,
-    rgba(0, 0, 0, 0.15) 12%,
-    #000 38%
-  );
+  overflow: hidden;
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-overlay);
+}
+
+/* Dark: the approved mockup A bleed. Column 2 plus the container padding
+   plus the outer gutter, so the art reaches the viewport edge at every
+   desktop width (at 1575px the 1180px cap left ~200px of bare gutter).
+   Every edge that faces page content is feathered; the right edge is the
+   viewport. The section's overflow-x:hidden clips the scrollbar overshoot. */
+.dark .home-hero-art {
+  width: auto;
+  justify-self: stretch;
+  margin-right: calc(-1 * (var(--hero-pad) + max(0px, (100vw - var(--hero-max)) / 2)));
+  border-radius: 0;
+  box-shadow: none;
+  -webkit-mask-image:
+    linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.15) 10%, #000 32%),
+    linear-gradient(to bottom, transparent 0%, #000 14%, #000 84%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.15) 10%, #000 32%),
+    linear-gradient(to bottom, transparent 0%, #000 14%, #000 84%, transparent 100%);
+  mask-composite: intersect;
 }
 
 .home-hero-art img {
@@ -278,16 +310,16 @@
     order: 1;
   }
 
-  .home-hero-art {
-    position: relative;
+  .home-hero-art,
+  .dark .home-hero-art {
     order: 2;
     width: 100%;
-    height: auto;
+    margin-right: 0;
     aspect-ratio: 16 / 9;
-    inset: auto;
-    top: auto;
-    transform: none;
     margin-top: 8px;
+  }
+
+  .dark .home-hero-art {
     -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 18%);
     mask-image: linear-gradient(to bottom, transparent 0%, #000 18%);
   }
@@ -298,6 +330,12 @@
 
   .home-hero-copy-actions {
     order: 3;
+  }
+
+  .home-hero-more {
+    order: 4;
+    max-width: none;
+    margin-top: 8px;
   }
 }
 
