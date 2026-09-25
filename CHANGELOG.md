@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.95](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.94...v10.0.0-beta.95) (2026-09-25)
+
+
+### Bug Fixes
+
+* **promote-lights:** match only real promote PRs into main ([#4420](https://github.com/yonatangross/orchestkit/issues/4420)) ([7162dd1](https://github.com/yonatangross/orchestkit/commit/7162dd114e7358f4decbfc2c6c95534906057d4c))
+
 ## [10.0.0-beta.94](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.93...v10.0.0-beta.94) (2026-09-25)
 
 
