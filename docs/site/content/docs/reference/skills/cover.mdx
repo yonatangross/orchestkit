@@ -14,7 +14,7 @@ description: "Generate tests that do not exist yet. Analyzes coverage gaps, then
 > **Cover** Generate tests that do not exist yet. Analyzes coverage gaps, then writes and runs new test files across three tiers (unit, integration via testcontainers, Playwright E2E), one test-generator agent per tier, healing failures for up to 3 iterations. Use when code has no tests or when raising coverage after implementation.
 
 
-# Cover — Test Suite Generator
+# Cover: Test Suite Generator
 
 Host-neutral workflow. Invoke by skill name (`cover`). Claude Code slash routing, YAML hook loaders, and `.claude/chain` live in `references/claude-code.md`.
 
@@ -76,7 +76,7 @@ verifies rather than repairing. There is no 4-iteration mode.
 
 ```python
 # Probe MCPs (parallel):
-# memory is alwaysLoad in .mcp.json (CC 2.1.121+, #1541) — probe below kept as fallback for older CC:
+# memory is alwaysLoad in .mcp.json (CC 2.1.121+, #1541). Probe below kept as fallback for older CC:
 ToolSearch(query="select:mcp__memory__search_nodes")
 ToolSearch(query="select:mcp__context7__resolve-library-id")
 
@@ -154,7 +154,7 @@ TaskUpdate(taskId="7", addBlockedBy=["6"])  # Report needs healed suite
 
 # 4. Update status as you progress
 TaskUpdate(taskId="2", status="in_progress")  # When starting
-TaskUpdate(taskId="2", status="completed")    # When done — repeat for each subtask
+TaskUpdate(taskId="2", status="completed")    # When done, repeat for each subtask
 ```
 
 ---
@@ -164,8 +164,8 @@ TaskUpdate(taskId="2", status="completed")    # When done — repeat for each su
 | Phase | Activities | Output |
 |-------|------------|--------|
 | **1. Discovery** | Detect frameworks, scan scope, find untested code | Framework map, file list |
-| **2. Coverage Analysis** | Run existing tests, map gaps per tier | Coverage baseline, gap map |
-| **3. Generation** | Parallel test-generator agents per tier | Test files created |
+| **2. Coverage Analysis** | Run existing tests, rank risk targets per tier | Coverage baseline, risk targets with why |
+| **3. Generation** | Parallel test-generator agents per tier, then behaviour gate | Test files created, gate verdicts |
 | **4. Execution** | Run all generated tests | Pass/fail results |
 | **5. Heal** | Fix failures, re-run (max 3 iterations) | Green test suite |
 | **6. Report** | Coverage delta, test count, summary | Coverage report |
@@ -175,8 +175,8 @@ TaskUpdate(taskId="2", status="completed")    # When done — repeat for each su
 | After Phase | Handoff File | Key Outputs |
 |-------------|-------------|-------------|
 | 1. Discovery | `01-cover-discovery.json` | Frameworks, scope files, tier plan |
-| 2. Analysis | `02-cover-analysis.json` | Baseline coverage, gap map |
-| 3. Generation | `03-cover-generation.json` | Files created, test count per tier |
+| 2. Analysis | `02-cover-analysis.json` | Baseline coverage, risk targets with why |
+| 3. Generation | `03-cover-generation.json` | Files created, test count per tier, behaviour gate verdicts |
 | 5. Heal | `05-cover-healed.json` | Final pass/fail, iterations used |
 
 ---
@@ -186,7 +186,7 @@ TaskUpdate(taskId="2", status="completed")    # When done — repeat for each su
 Detect the project's test infrastructure and scope the work.
 
 ```python
-# PARALLEL — all in ONE message:
+# PARALLEL, all in ONE message:
 # 1. Framework detection (hook handles this, but also scan manually)
 Grep(pattern="vitest|jest|mocha|playwright|cypress", glob="package.json", output_mode="content")
 Grep(pattern="pytest|unittest|hypothesis", glob="pyproject.toml", output_mode="content")
@@ -217,24 +217,18 @@ Grep(pattern=SCOPE, output_mode="files_with_matches")
 
 Load real-service detection details: `Read("references/real-service-detection.md")`
 
-### Phase 2: Coverage Analysis
+### Phase 2: Coverage Analysis and Risk Targets
 
-Run existing tests and identify gaps.
+Run existing tests for a baseline, then pick targets by RISK. Coverage is information for the report, never a target.
 
 ```python
-# Detect and run coverage command
-# TypeScript: npx vitest run --coverage --reporter=json
-# Python: pytest --cov=<scope> --cov-report=json
-# Go: go test -coverprofile=coverage.out ./...
-
-# Parse coverage output to identify:
-# 1. Files with 0% coverage (priority targets)
-# 2. Files below threshold (default 70%)
-# 3. Uncovered functions/methods
-# 4. Untested edge cases (error paths, boundary conditions)
+# Baseline: npx vitest run --coverage --reporter=json | pytest --cov=<scope> --cov-report=json | go test -coverprofile=coverage.out ./...
+# Rank uncovered code by risk and record WHY each target was chosen:
+# changed code, complex branches, error paths, security and money paths, past bugs
+# gap_map[tier] = [{"target": "src/billing/refund.ts:roundRefund", "why": "money path, fixed in #812"}]
 ```
 
-Output coverage baseline to user immediately (progressive output).
+Output the baseline and the risk-ranked targets, each with its why, immediately (progressive output). Signals and how to find them: `Read("references/behaviour-gate.md")`.
 
 ### Phase 3: Generation (Parallel Agents)
 
@@ -247,7 +241,7 @@ Spawn test-generator agents per tier. Launch ALL in ONE message with `run_in_bac
 > gets real isolation. Do not create worktrees by hand before spawning.
 >
 > The new branch's base comes from the `worktree.baseRef` setting, never from a
-> hardcoded branch name. **ork does not set it** — a plugin cannot, and no ork
+> hardcoded branch name. **ork does not set it**: a plugin cannot, and no ork
 > settings file carries it. Unless the operator put `"baseRef": "head"` in
 > `.claude/settings.json` or `~/.claude/settings.json`, CC's default `"fresh"`
 > applies: every tier agent branches from `origin/&lt;default&gt;`, unpushed local
@@ -262,7 +256,7 @@ if "unit" in TIERS:
         subagent_type="ork:test-generator",
         isolation="worktree",
         prompt=f"""Generate unit tests for: {SCOPE}
-        Coverage gaps: {gap_map.unit_gaps}
+        Risk targets, each with why: {gap_map["unit"]}
         Framework: {detected_framework}
         Existing tests: {existing_test_files}
 
@@ -272,18 +266,19 @@ if "unit" in TIERS:
         - MSW/VCR for HTTP mocking (never mock fetch directly)
         - Factory-based test data (FactoryBoy/faker-js)
         - Edge cases: empty input, errors, timeouts, boundary values
-        - Target: 90%+ business logic coverage""",
+        - BEHAVIOUR GATE: write a test ONLY if it asserts an observable result. Never write a
+          mock-call-only, assertion-free, tautological, or source-reading test (references/behaviour-gate.md)""",
         run_in_background=True,
         max_turns=50,
         model=MODEL_OVERRIDE
     )
 
 # Integration + E2E agents follow the same pattern:
-# - subagent_type="ork:test-generator", isolation="worktree", run_in_background=True
+# - subagent_type="ork:test-generator", isolation="worktree", run_in_background=True, same targets + BEHAVIOUR GATE lines
 # - Integration focus: API endpoints (Supertest/httpx), real DB, contract tests (Pact), Zod schema validation
 # - E2E focus: Playwright, semantic locators, Page Object Model, axe-core a11y, visual regression
 #
-# Special case — emulate (Vercel Labs stateful API emulation):
+# Special case: emulate (Vercel Labs stateful API emulation):
 # When integration tests need GitHub/Stripe/Resend/Okta/etc. emulated
 # (HMAC webhooks, parallel port isolation, full config from scratch),
 # spawn emulate-engineer instead of test-generator for that tier:
@@ -291,7 +286,11 @@ if "unit" in TIERS:
 # - Pairs with emulate-seed skill for seed YAML patterns
 ```
 
-Output each agent's results **as soon as it returns** — don't wait for all agents.
+Output each agent's results **as soon as it returns**. Don't wait for all agents.
+
+### Phase 3b: Behaviour Gate
+
+Before Phase 4, run `node "$\{CLAUDE_SKILL_DIR\}/scripts/check-behaviour-tests.mjs" --json &lt;new test files&gt;` over the NEW test files only. Exit 1 lists each rejected test with its rule: (a) only mock-call assertions, (b) no assertion, only tautologies (`expect(true).toBe(true)`), or only not-to-throw when not throwing is not the stated contract, (c) reads or greps source instead of executing it. Delete each rejected test (the whole file on `drop`, which means every recognised test was rejected) or rewrite it to assert an observable result, and re-run until exit 0. Never delete an `unchecked` file or test (no test recognised, or its body is declared elsewhere): review it by hand. Run it again after Phase 5. Record the verdicts in `03-cover-generation.json`. Rules and limits: `Read("references/behaviour-gate.md")`.
 
 > **Focus mode (CC 2.1.101):** In focus mode, include the full coverage report (before/after delta, test count per tier, files created) in your final message.
 
@@ -341,7 +340,7 @@ the Phase 6 report.
 
 Strategy detail (taxonomy table, fix rules, flaky prevention): `Read("references/heal-loop-strategy.md")`
 
-**Boundary: heal fixes TESTS, not source code.** If a test fails because the source code has a bug, report it — don't silently fix production code.
+**Boundary: heal fixes TESTS, not source code.** If a test fails because the source code has a bug, report it. Don't silently fix production code.
 
 ### Phase 6: Report
 
@@ -351,20 +350,19 @@ Full report layout (baseline→after table, tests-generated counts, heal iterati
 
 ### PushNotification on Completion (CC 2.1.110+)
 
-Full `cover` runs (unit + integration + E2E with heal loop) take 15–45 min. After the Phase 6 report is assembled, call `PushNotification(message=f"ork:cover complete — \{SCOPE\}: \{coverage_pct\}% coverage · \{tests_generated\} tests · \{heal_loops\} heal iters", status="proactive")`. Full rule: `Read("../chain-patterns/rules/push-notification-on-completion.md")`.
+Full `cover` runs (unit + integration + E2E with heal loop) take 15-45 min. After the Phase 6 report is assembled, call `PushNotification(message=f"ork:cover complete, \{SCOPE\}: \{tests_kept\} tests kept · \{tests_dropped\} dropped by behaviour gate · \{heal_loops\} heal iters", status="proactive")`. Full rule: `Read("../chain-patterns/rules/push-notification-on-completion.md")`.
 
 ### Coverage Drift Monitor (CC 2.1.71)
 
-Optionally schedule weekly coverage drift detection:
+Optionally schedule a weekly check that the risk targets keep their behaviour tests:
 
 ```python
 # Guard: Skip cron in headless/CI (CLAUDE_CODE_DISABLE_CRON)
 # if env CLAUDE_CODE_DISABLE_CRON is set, run a single check instead
 CronCreate(
   schedule="0 2 * * 0",
-  prompt="Weekly coverage drift check for {SCOPE}: npm test -- --coverage.
-    If coverage >= baseline → CronDelete.
-    If coverage drops > 5% → alert with regression details and recommendation."
+  prompt="Weekly drift check for {SCOPE}: run the tests covering the risk targets in 02-cover-analysis.json.
+    Alert if one was deleted or fails, or if newly changed code has no behaviour test. Coverage is reported as information only."
 )
 ```
 
@@ -373,14 +371,14 @@ CronCreate(
 ## Key Principles
 
 - **Output limits (CC 2.1.77+):** Opus 4.8 defaults to 64k output tokens (128k upper bound). For large test suites, chunk generation across multiple agent turns if output approaches the limit.
-- **Partial reads (CC 2.1.144+):** Read returns a `[PARTIAL view]` first page (not an error) on oversized files — re-read with explicit `offset`/`limit` so coverage analysis sees the whole file.
-- **Tests only** — never modify production source code, only generate test files
-- **Real services when available** — prefer testcontainers/docker-compose over mocks for integration tests because mock/prod divergence causes silent failures in production
-- **Parallel generation** — spawn one test-generator agent per tier in ONE message
-- **Heal, don't loop forever** — max 3 iterations, then report remaining failures
-- **Progressive output** — show results as each agent completes
-- **Factory over fixtures** — use FactoryBoy/faker-js for test data, not hardcoded values
-- **Mock at network level** — MSW/VCR, never mock fetch/axios directly
+- **Partial reads (CC 2.1.144+):** Read returns a `[PARTIAL view]` first page (not an error) on oversized files. Re-read with explicit `offset`/`limit` so coverage analysis sees the whole file.
+- **Tests only**: never modify production source code, only generate test files
+- **Real services when available**: prefer testcontainers/docker-compose over mocks for integration tests because mock/prod divergence causes silent failures in production
+- **Parallel generation**: spawn one test-generator agent per tier in ONE message
+- **Heal, don't loop forever**: max 3 iterations, then report remaining failures
+- **Progressive output**: show results as each agent completes
+- **Factory over fixtures**: use FactoryBoy/faker-js for test data, not hardcoded values
+- **Mock at network level**: MSW/VCR, never mock fetch/axios directly
 
 ---
 
@@ -388,7 +386,7 @@ CronCreate(
 
 ### Context Passing
 
-Each test-generator agent receives: coverage gaps for its tier, test framework config, real-service infrastructure (testcontainers, docker-compose), and fixture patterns from the project.
+Each test-generator agent receives: risk targets (each with why) for its tier, the behaviour gate rules, test framework config, real-service infrastructure (testcontainers, docker-compose), and fixture patterns from the project.
 
 ### Monitor + Partial Results (CC 2.1.98)
 
@@ -407,7 +405,7 @@ Full pattern reference (until-condition gates, partial-result salvage, `TaskOutp
 ```python
 for agent_result in test_gen_results:
     if "[PARTIAL RESULT]" in agent_result.output: A `maxTurns` stop is also partial since CC 2.1.246 (summary: "stopped at its N-turn limit (partial result; continue it with SendMessage to the task-id)"); continue that agent with `SendMessage` instead of re-spawning it.
-        # Agent crashed — check if it wrote any test files before dying
+        # Agent crashed: check if it wrote any test files before dying
         partial_tests = Glob(pattern="**/tests/**/*.test.*", path=agent_result.worktree)
         if partial_tests:
             # 6 passing tests from a crashed agent > 0 tests
@@ -424,7 +422,7 @@ for agent_result in test_gen_results:
 When a generated test fails, the healer agent can request context from the generator:
 
 ```python
-SendMessage(to="test-generator-unit", message="Test user_service_test.py:42 fails — TypeError on mock return. What's the expected shape?")
+SendMessage(to="test-generator-unit", message="Test user_service_test.py:42 fails: TypeError on mock return. What's the expected shape?")
 ```
 
 ### Skill Chain
@@ -444,16 +442,17 @@ All test-generator agents report using: `Read("../../shared/status-protocol.md")
 Done means all of these hold:
 - coverage report shows the before→after delta from the actual coverage command output, not an estimate
 - every generated test file was executed; final pass/fail counts pasted from the runner
-- no production source modified — only test files created; a source bug is reported, never silently patched
+- the behaviour gate exited 0 on the new test files after Phase 5, and every target states why it was chosen
+- no production source modified (only test files created); a source bug is reported, never silently patched
 - failures healed within the iteration budget (≤3, effort-scaled) or reported explicitly with the remaining-failure count
 - each requested tier (unit/integration/e2e) either produced tests or has a stated reason it was skipped
 
 ## Related Skills
 
-- `ork:implement` — generates tests during implementation (Phase 5); use `cover` after for deeper coverage
-- `ork:verify` — grades existing tests 0-10; chain: `implement → cover → verify`
-- `testing-unit` / `testing-integration` / `testing-e2e` — knowledge skills loaded by test-generator agents
-- `ork:commit` — commit generated test files
+- `ork:implement`: generates tests during implementation (Phase 5); use `cover` after for deeper coverage
+- `ork:verify`: grades existing tests 0-10; chain: `implement → cover → verify`
+- `testing-unit` / `testing-integration` / `testing-e2e`: knowledge skills loaded by test-generator agents
+- `ork:commit`: commit generated test files
 
 > **Session recovery (CC 2.1.108+):** After idle periods or interruptions, use `/recap` to restore conversational context alongside checkpoint-resume state. Enabled by default since CC 2.1.110 (even with telemetry disabled).
 
@@ -466,16 +465,97 @@ Load on demand with `Read("references/&lt;file&gt;")`:
 | `real-service-detection.md` | Docker-compose/testcontainers detection, service startup, teardown |
 | `heal-loop-strategy.md` | Failure classification, fix patterns, iteration budget |
 | `coverage-report-template.md` | Report format, delta calculation, gap analysis |
-| `workflows/heal-loop.js` | Phase 5 executor — script-enforced 3-iteration repair loop (run via the Workflow tool) |
+| `behaviour-gate.md` | Risk target signals, the three reject rules, checker usage and limits |
+| `scripts/check-behaviour-tests.mjs` | Phase 3b checker: per-test keep or reject verdicts for new test files |
+| `workflows/heal-loop.js` | Phase 5 executor: script-enforced 3-iteration repair loop (run via the Workflow tool) |
 
 ---
 
-**Version:** 1.2.0 (April 2026) — `$CLAUDE_EFFORT` env var as primary effort signal (CC 2.1.120, #1540)
+**Version:** 1.3.0 (September 2026): behaviour gate (Phase 3b checker) and risk-based targets replace percentage coverage targets
 
 
 ---
 
-## References (4)
+## References (5)
+
+### Behaviour Gate
+
+# Behaviour Gate and Risk Targets
+
+`cover` writes a test only when it asserts behaviour, and it picks what to test by risk,
+never by a coverage percentage. Coverage numbers appear in the report as information only.
+
+## Pick targets by risk (Phase 2)
+
+Rank candidate code by these signals, highest risk first. Every target carries a one-line
+`why` naming the signal that selected it; a target with no signal is not a target.
+
+| Signal | How to find it | Example `why` |
+|--------|----------------|---------------|
+| Changed code | `git diff --name-only &lt;base&gt;...HEAD` in scope | "changed in this branch, no test touches it" |
+| Complex branches | nested conditionals, state machines, many early returns | "5 branches on order state, none exercised" |
+| Error paths | `catch`, `except`, `throw`/`raise`, retries, timeouts | "retry-exhausted branch never runs in a test" |
+| Security paths | auth, permission checks, input validation, secrets, crypto | "role check guards admin export" |
+| Money paths | prices, discounts, tax, refunds, currency rounding | "refund rounds to cents" |
+| Past bugs | `git log --grep='fix' -- &lt;file&gt;`, linked issues, reverts | "fixed twice in 60 days (see git log)" |
+
+Uncovered lines that match no signal (trivial getters, re-exports, generated code) are
+left alone. Handoff shape in `02-cover-analysis.json`:
+
+```json
+{"unit": [{"target": "src/billing/refund.ts:roundRefund", "why": "money path, fixed in #812"}]}
+```
+
+## What a generated test must do (Phase 3)
+
+A test asserts an observable result: a return value, a thrown error type, persisted state,
+an HTTP response, rendered output, a file the code wrote. The checker rejects three shapes.
+
+| Rule | Rejected shape | Write this instead |
+|------|----------------|--------------------|
+| **a** | Every assertion is on mock calls: `toHaveBeenCalled*`, `.mock.calls`, `assert_called*`, `call_count`, `sinon.assert.*` | Also assert what the code returned or changed. Mock-call assertions are fine next to a result assertion. |
+| **b** | No assertion (the test only runs code), only tautologies (`expect(true).toBe(true)`, `assert 1 == 1`: literals compared with literals, or a name with itself), or only `not.toThrow()` / `does_not_raise()` | Assert the result. Keep a not-throw-only test only when not throwing IS the contract, and say so in the test name, a comment, or the docstring ("does not throw on empty input"). |
+| **c** | Reads the code under test as text: `readFileSync` / `open()` / `read_text()` of a source file, `inspect.getsource`, a `grep` / `rg` subprocess, a `?raw` import | Import or call the code and assert on what it does. Reading fixtures and test data is fine. |
+
+## The checker (Phase 3b, again after Phase 5)
+
+```bash
+node "${CLAUDE_SKILL_DIR}/scripts/check-behaviour-tests.mjs" --json <new test files>
+```
+
+Run it over the NEW test files only, never the pre-existing suite. Per file it reports
+`keep`, `partial` (some tests rejected), `drop` (at least one test recognised and every
+recognised test rejected), or `unchecked`. A file is `unchecked` when its language is not
+JavaScript, TypeScript, or Python, when no test case was recognised in it, or when every case
+passes a function declared in another file as its body. A single case can also be
+`unchecked` for that last reason. Each rejected test has its rule, line, and reason. Exit
+`0` means nothing was rejected (every result is `keep` or `unchecked`), `1` means something
+was rejected, and `2` means a usage or read error.
+
+On exit `1`: delete each rejected test, or delete the whole file when its verdict is `drop`,
+or rewrite the test to assert an observable result. Then re-run the checker until it exits
+`0`. Re-run it after Phase 5 as well, because a heal that deletes an assertion to go green is
+a rule (b) failure. Record the final verdicts in `03-cover-generation.json` and list every
+dropped or rewritten test in the report's Behaviour Gate section.
+
+**Never delete an `unchecked` file or test.** Unchecked means the checker could not see the
+test, not that the test is hollow. Apply the same three rules by reading it, and fix it by
+hand only when it breaks one.
+
+## Known limits
+
+The checker is static and heuristic. It recognises `it` / `test` / `fit` / `xit` cases
+(Jest, Vitest, Jasmine, Mocha, Playwright, node:test), `Deno.test`, and tap `t.test`, with an
+inline body or the name of a function declared in the same file. It recognises Jest, Vitest,
+Playwright, node:assert, chai, chai-http, sinon, tap, ava, Deno, pytest, and unittest
+assertions, and Supertest `.expect(...)` on a chain rooted at `request(` / `supertest(`, the
+name the file imports `supertest` as, or an agent variable built from them. An assertion
+whose operands are all literals counts as no assertion. An assertion hidden in a helper counts only if
+the helper is named `expect*` or `assert*` (`assert_*` / `expect_*` in Python), so name
+helpers that way. A read is treated as a source read when its path, or a variable declared
+from that path, names a code file; paths containing `fixture`, `testdata`, or `__snapshots__`
+are exempt.
+
 
 ### Claude Code
 
@@ -513,6 +593,8 @@ Format for the Phase 6 report output.
 
 ## Summary
 
+Coverage is shown as information, never as a target.
+
 | Metric | Before | After | Delta |
 |--------|--------|-------|-------|
 | Unit coverage | {N}% | {N}% | +{N}% |
@@ -531,6 +613,20 @@ Format for the Phase 6 report output.
 
 Heal iterations used: {N}/{maxIterations}   # denominator is 2 or 3, see heal-loop-strategy.md
 
+## Risk Targets
+
+| Target | Why chosen | Tests kept |
+|--------|------------|------------|
+| {file}:{symbol} | {changed code / complex branches / error path / security / money / past bug} | {N} |
+
+## Behaviour Gate
+
+Checker: `scripts/check-behaviour-tests.mjs`, final run exit {0|1}.
+
+| Test | Rule | Action |
+|------|------|--------|
+| {file}:{line} "{name}" | {a: mock calls only / b: no assertion / c: reads source} | {dropped / rewritten} |
+
 ## Files Created
 
 {list of test files created, grouped by tier}
@@ -541,7 +637,7 @@ Heal iterations used: {N}/{maxIterations}   # denominator is 2 or 3, see heal-lo
 
 ## Remaining Gaps
 
-{files or functions still below coverage threshold, with reasons}
+{risk targets still without a behaviour test, with reasons}
 
 ## Failures (if any)
 
@@ -549,8 +645,8 @@ Heal iterations used: {N}/{maxIterations}   # denominator is 2 or 3, see heal-lo
 
 ## Next Steps
 
-- `/ork:verify {SCOPE}` — grade the implementation + tests
-- `/ork:commit` — commit generated test files
+- `/ork:verify {SCOPE}`: grade the implementation + tests
+- `/ork:commit`: commit generated test files
 - Fix source bugs detected during test generation (if any)
 ```
 
@@ -579,14 +675,11 @@ for file in scope_files:
 | Go | `go test -coverprofile=coverage.out ./...` | `coverage.out` |
 | Playwright | Coverage via Istanbul instrumentation | `coverage/` dir |
 
-## Thresholds
+## No Coverage Targets
 
-| Tier | Target | Minimum |
-|------|--------|---------|
-| Unit (business logic) | 90% | 70% |
-| Integration (API boundaries) | 80% | 60% |
-| E2E (critical user flows) | N/A | Key flows covered |
-| Overall | 80% | 70% |
+There is no percentage to reach. Coverage numbers describe the suite; they never decide
+whether to write a test. Targets come from risk (see `behaviour-gate.md`), and a test is
+kept only when it asserts behaviour.
 
 
 ### Heal Loop Strategy
