@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.99](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.98...v10.0.0-beta.99) (2026-09-25)
+
+
+### Bug Fixes
+
+* **secrets-veil:** fail closed when session.start never ran ([#4436](https://github.com/yonatangross/orchestkit/issues/4436)) ([c319189](https://github.com/yonatangross/orchestkit/commit/c31918933abdb5fe8adb08e2dda0aef52a58d0ee))
+
 ## [10.0.0-beta.98](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.97...v10.0.0-beta.98) (2026-09-25)
 
 

@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.99",
+    "date": "2026-09-25",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.98...v10.0.0-beta.99",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**secrets-veil:** fail closed when session.start never ran ([#4436](https://github.com/yonatangross/orchestkit/issues/4436)) ([c319189](https://github.com/yonatangross/orchestkit/commit/c31918933abdb5fe8adb08e2dda0aef52a58d0ee))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.98",
     "date": "2026-09-25",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.97...v10.0.0-beta.98",
