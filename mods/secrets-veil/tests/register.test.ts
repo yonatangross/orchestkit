@@ -74,10 +74,15 @@ function makeFake$(env: Record<string, string> = {}): {
   return { $, notices, toasts, statuses, logs };
 }
 
+/** .catch handlers the module registered, by event. */
+const catches = new Map<string, (...args: unknown[]) => unknown>();
+
 function captureHooks(): Map<string, RegisteredHook> {
   const hooks = new Map<string, RegisteredHook>();
   register((event: string, hook: unknown) => {
     hooks.set(event, hook as RegisteredHook);
+    // The engine's registration: on() returns an object that takes one .catch.
+    return { catch: (handler: (...args: unknown[]) => unknown) => catches.set(event, handler) };
   }, {});
   return hooks;
 }

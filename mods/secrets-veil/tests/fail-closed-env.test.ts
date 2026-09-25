@@ -21,10 +21,15 @@ const FAKE_GH = "gh" + "p_" + "Zq8Lm3Rt7Vx2Kp9Nw4Hy6Bc1Df5Gj0Sa8Ue3";
 /** Synthetic named value: no vendor shape, low entropy, so only the named path masks it. */
 const SYNTHETIC = "veiltest-synthetic-value-42";
 
+/** .catch handlers the module registered, by event. */
+const catches = new Map<string, (...args: unknown[]) => unknown>();
+
 function hooksOf(): Map<string, RegisteredHook> {
   const hooks = new Map<string, RegisteredHook>();
   register((event: string, hook: unknown) => {
     hooks.set(event, hook as RegisteredHook);
+    // The engine's registration: on() returns an object that takes one .catch.
+    return { catch: (handler: (...args: unknown[]) => unknown) => catches.set(event, handler) };
   }, {});
   return hooks;
 }

@@ -65,21 +65,56 @@ export function utf8Bytes(text: string): number {
  * Covers plain text results (result), structured results (result.stdout,
  * result.stderr) and any nested field. Adds what it covered to stats.
  */
-function maskDeep(value: unknown, activeTable: MaskTable, covered: Set<string>): unknown {
+/** Most characters of string content one result may carry before it is withheld. */
+export const MAX_MASK_CHARS = 8_000_000;
+
+/** Most milliseconds masking one result may take (well inside the hook's own budget). */
+export const MAX_MASK_MS = 4_000;
+
+/** Thrown when a result is too large, too slow, or of a shape the veil will not rebuild. */
+export class VeilRefusal extends Error {}
+
+/** Work budget shared by one maskDeep walk. */
+interface MaskBudget {
+  chars: number;
+  deadline: number;
+}
+
+/** A plain object or array: the only containers maskDeep rebuilds faithfully. */
+function isPlainContainer(value: object): boolean {
+  if (Array.isArray(value)) return true;
+  const proto = Object.getPrototypeOf(value);
+  return proto === Object.prototype || proto === null;
+}
+
+function maskDeep(value: unknown, activeTable: MaskTable, covered: Set<string>, budget: MaskBudget): unknown {
+  if (Date.now() > budget.deadline) {
+    throw new VeilRefusal("masking ran past its time cap");
+  }
   if (typeof value === "string") {
+    budget.chars += value.length;
+    if (budget.chars > MAX_MASK_CHARS) {
+      throw new VeilRefusal("result is larger than the masking cap");
+    }
     const masked = mask(value, activeTable);
     for (const span of masked.spans) {
       covered.add(value.slice(span.start, span.end));
     }
     return masked.text;
   }
-  if (Array.isArray(value)) {
-    return value.map((item) => maskDeep(item, activeTable, covered));
-  }
   if (value !== null && typeof value === "object") {
+    // A Buffer, Map, Set or class instance would come back as a plain object
+    // the host may reject for shape, and a rejected answer leaves the
+    // original standing. Refuse it instead of rebuilding it wrong.
+    if (!isPlainContainer(value)) {
+      throw new VeilRefusal("result holds a value the veil cannot rebuild");
+    }
+    if (Array.isArray(value)) {
+      return value.map((item) => maskDeep(item, activeTable, covered, budget));
+    }
     const out: Record<string, unknown> = {};
     for (const [key, val] of Object.entries(value as Record<string, unknown>)) {
-      out[key] = maskDeep(val, activeTable, covered);
+      out[key] = maskDeep(val, activeTable, covered, budget);
     }
     return out;
   }
@@ -185,6 +220,7 @@ async function armLazily($: DollarAPI): Promise<MaskTable> {
     const named = await readNamed($);
     return buildTable(Object.keys(named), named, DEFAULT_PATTERNS, { entropy: true });
   } catch {
+    // Pure and $-free; if even this throws, tool.call's guard answers { deny }.
     return shapesOnlyTable();
   }
 }
@@ -192,7 +228,15 @@ async function armLazily($: DollarAPI): Promise<MaskTable> {
 /**
  * Register the secrets-veil hooks.
  */
-export function register(on: (event: string, hook: unknown) => void, _options?: unknown): void {
+/** What on() returns on CC 2.1.282: a registration that takes one .catch. */
+export interface Registration {
+  catch(handler: (...args: unknown[]) => unknown): unknown;
+}
+
+/** The answer when anything goes wrong after the tool ran: withhold, never pass through. */
+export const WITHHELD = "secrets-veil could not mask this result, so it is withheld rather than shown unmasked.";
+
+export function register(on: (event: string, hook: unknown) => Registration, _options?: unknown): void {
   on("session.start", async ($: DollarAPI, e: { cwd: string }, next: (ev: { cwd: string }) => Promise<unknown>) => {
     const named = await readNamed($);
     const names = Object.keys(named);
@@ -218,43 +262,44 @@ export function register(on: (event: string, hook: unknown) => void, _options?: 
   on("tool.call", async ($: DollarAPI, e: ToolCallEvent, next?: (ev: ToolCallEvent) => Promise<ToolCallResult>) => {
     // First, let the tool execute.
     const result = next ? ((await next(e)) ?? {}) : {};
-    // Never pass a result through unmasked: arm now if session.start has not
-    // (a mod enabled or reloaded mid-session), and fail CLOSED if even the
-    // shapes-only table cannot be built.
-    if (!table) {
-      table = await armLazily($);
-    }
-    let masked: unknown;
-    const covered = new Set<string>();
+    // From here on nothing may fail open: on CC 2.1.282 a hook that fails
+    // after next(e) leaves the original (unmasked) result standing, so every
+    // failure below answers { deny } instead.
     try {
-      masked = maskDeep(result, table, covered);
+      if (!table) {
+        // A mod enabled or reloaded mid-session can see tool.call first.
+        table = await armLazily($);
+      }
+      const covered = new Set<string>();
+      const masked = maskDeep(result, table, covered, { chars: 0, deadline: Date.now() + MAX_MASK_MS });
+      const stats = statsOf(covered);
+      if (stats.values > 0) {
+        maskedThisSession += stats.values;
+        const tool = typeof e?.tool === "string" && e.tool.length > 0 ? e.tool : "a tool result";
+        const line = toastText(stats, tool);
+        // Each UI call is best effort: a refused surface never unmasks or fails the result.
+        try {
+          await $.ui.toast(line);
+        } catch {
+          // Toast refused (no surface, or a host without toasts); the result stays masked.
+        }
+        try {
+          await $.ui.status(`${maskedThisSession} masked this session`);
+        } catch {
+          // Status refused; the result stays masked.
+        }
+        try {
+          await $.ui.log(`${line}; result ${utf8Bytes(JSON.stringify(result))} bytes before, ${utf8Bytes(JSON.stringify(masked))} bytes after`);
+        } catch {
+          // Debug log refused; the result stays masked.
+        }
+      }
+      return masked;
     } catch {
-      return {
-        deny: "secrets-veil could not mask this result, so it is withheld rather than shown unmasked.",
-      };
+      return { deny: WITHHELD };
     }
-    const stats = statsOf(covered);
-    if (stats.values > 0) {
-      maskedThisSession += stats.values;
-      const tool = typeof e?.tool === "string" && e.tool.length > 0 ? e.tool : "a tool result";
-      const line = toastText(stats, tool);
-      // Each UI call is best effort: a refused surface never unmasks or fails the result.
-      try {
-        await $.ui.toast(line);
-      } catch {
-        // Toast refused (no surface, or a host without toasts); the result stays masked.
-      }
-      try {
-        await $.ui.status(`${maskedThisSession} masked this session`);
-      } catch {
-        // Status refused; the result stays masked.
-      }
-      try {
-        await $.ui.log(`${line}; result ${utf8Bytes(JSON.stringify(result))} bytes before, ${utf8Bytes(JSON.stringify(masked))} bytes after`);
-      } catch {
-        // Debug log refused; the result stays masked.
-      }
-    }
-    return masked;
-  });
+  })
+    // The runtime's own failure path (a throw it sees, or the hook overrunning
+    // its budget) also answers { deny }: the last resort, never pass-through.
+    .catch(() => ({ deny: WITHHELD }));
 }
