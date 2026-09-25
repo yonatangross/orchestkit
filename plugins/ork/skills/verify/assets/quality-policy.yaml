@@ -4,7 +4,7 @@ description: Standard verification policy for production code
 
 thresholds:
   composite_minimum: 6.0
-  security_minimum: 7.0
+  security_minimum: 9.0
   coverage_minimum: 70
 
 blockers:
@@ -20,7 +20,7 @@ blockers:
 
   - dimension: security
     condition: below
-    value: 5.0
+    value: 9.0
     message: "Security score below minimum threshold"
 
 warnings:

@@ -215,7 +215,7 @@ A single green is not proof — flaky and order-dependent suites pass once and f
 
 | Range | Level | Description |
 |-------|-------|-------------|
-| 0-3 | Poor | Critical issues, blocks merge |
+| 0-3 | Poor | Critical issues; below 3.0 blocks merge |
 | 4-6 | Adequate | Functional but needs improvement |
 | 7-9 | Good | Ready for merge, minor suggestions |
 | 10 | Excellent | Exemplary, reference quality |
@@ -339,14 +339,14 @@ The composite table above is overridden by per-dimension floors. Thresholds live
 
 | Dimension | Threshold | Effect when below |
 |-----------|-----------|-------------------|
-| Security | `min_blocker` 7.0 | Verdict BLOCKED regardless of composite |
-| Every other dimension | `min_blocker` 3.0 | Verdict BLOCKED regardless of composite (0-3 blocks merge) |
+| Security | `min_blocker` 9.0, fixed for every project (operator decision 2026-09-25) | Verdict BLOCKED regardless of composite; never lowered |
+| Every other dimension | `min_blocker` 3.0 | Verdict BLOCKED regardless of composite (below 3.0 blocks merge) |
 | Compliance | `min_pass` 6.0 | Verdict capped at IMPROVEMENTS RECOMMENDED |
 
 Reporting format — the tripped dimension leads the verdict, with the threshold named:
 
 ```
-Security 3.2/10 (CRITICAL BLOCKER — below min_blocker 7.0)
+Security 3.2/10 (CRITICAL BLOCKER — below min_blocker 9.0)
 ```
 
 A passing composite never clears a tripped `min_blocker`; list every tripped dimension with the fix required to clear it.
@@ -432,7 +432,7 @@ rules:
 blockers:
   - dimension: security
     condition: below
-    value: 5.0
+    value: 9.0
     message: "Security score below minimum"
 
   - check: critical_vulnerabilities
@@ -525,7 +525,7 @@ Code Quality: 7.5/10 — 3 complexity hotspots identified
 [...remaining agents still running...]
 ```
 
-This gives users real-time visibility into multi-agent verification. If any dimension scores below the rubric `min_blocker` for security (7.0), flag it as a **blocker immediately** — the user can terminate early without waiting for remaining agents.
+This gives users real-time visibility into multi-agent verification. If any dimension scores below the its rubric `min_blocker` (security 9.0, every other dimension 3.0), flag it as a **blocker immediately** — the user can terminate early without waiting for remaining agents.
 
 ## Partial results (CC 2.1.98)
 
@@ -1122,7 +1122,7 @@ The streak gate sits *above* the normal verdict — it never loosens a blocker, 
 | READY but `current &lt; target` | **STREAK PROGRESS — `current`/`target`** (not done; run again) |
 | READY and `current >= target` | **READY FOR MERGE** (streak `target`/`target` met) |
 
-Always surface the count: `STREAK 2/3 — one more green to merge` or `streak reset to 0/3 (security 3.2 &lt; 4.0)`. The user must see how close (or how broken) the streak is.
+Always surface the count: `STREAK 2/3 — one more green to merge` or `streak reset to 0/3 (security 3.2 &lt; 9.0)`. The user must see how close (or how broken) the streak is.
 
 ## Wiring into `/goal`
 

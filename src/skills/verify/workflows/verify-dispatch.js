@@ -92,6 +92,7 @@ if (Array.isArray(cfg.dimensions) && cfg.dimensions.length) {
 }
 const SELECTED = AGENTS.filter((a) => wanted.includes(a.focus));
 if (!SELECTED.length) lower("BLOCKED", `no verifier selected at effort ${EFFORT}, nothing was verified`);
+else if (!SELECTED.some((a) => a.focus === "security")) lower("BLOCKED", "security not verified: the security verifier was not selected");
 const VOTES = EFFORT === "xhigh" ? 3 : EFFORT === "high" ? 1 : 0;
 const maxArg = Number(cfg.maxAgents);
 const MAX_AGENTS = Number.isFinite(maxArg) && cfg.maxAgents !== undefined && cfg.maxAgents !== null ? Math.max(1, Math.min(12, Math.floor(maxArg))) : 12;
@@ -102,8 +103,9 @@ const MODEL = cfg.modelOverride ? String(cfg.modelOverride) : undefined;
 // "may tighten these thresholds, never loosen them"). The floors come from the rules
 // the skill grades by: grading-rubric.md (0-3 "Critical issues, blocks merge") and
 // quality-gates unified-scoring-framework.md (security below 7.0 and any critical
-// dimension below 3.0 BLOCK). Compliance keeps min_pass 6.0.
-const FLOOR = { security: { minBlocker: 7.0, minPass: null }, compliance: { minBlocker: 3.0, minPass: 6.0 } };
+// dimension below 3.0 BLOCK). Compliance keeps min_pass 6.0. Security is 9.0 for
+// everyone, a hard block no rubric or project policy lowers (operator decision 2026-09-25).
+const FLOOR = { security: { minBlocker: 9.0, minPass: null }, compliance: { minBlocker: 3.0, minPass: 6.0 } };
 const DEFAULT_FLOOR = { minBlocker: 3.0, minPass: null };
 const num = (v) => {
 	const n = typeof v === "string" && v.trim() !== "" ? Number(v.trim()) : v;
@@ -118,11 +120,11 @@ if (!rubricDims.length) {
 const threshold = (focus) => {
 	const name = RUBRIC_DIM[focus];
 	const floor = FLOOR[name] || DEFAULT_FLOOR;
-	const d = rubricDims.find((x) => x && String(x.name || "").toLowerCase() === name);
-	const mb = num(d?.min_blocker);
-	const mp = num(d?.min_pass);
-	const minBlocker = Math.max(floor.minBlocker, mb ?? -Infinity);
-	const minPass = floor.minPass === null && mp === null ? null : Math.max(floor.minPass ?? -Infinity, mp ?? -Infinity);
+	const ds = rubricDims.filter((x) => x && String(x.name || "").toLowerCase() === name);
+	const mbs = ds.map((d) => num(d.min_blocker)).filter((v) => v !== null);
+	const mps = ds.map((d) => num(d.min_pass)).filter((v) => v !== null);
+	const minBlocker = Math.max(floor.minBlocker, ...mbs);
+	const minPass = floor.minPass === null && !mps.length ? null : Math.max(floor.minPass ?? -Infinity, ...mps);
 	return { minBlocker, minPass };
 };
 
@@ -206,7 +208,9 @@ async function refute(a, finding) {
 			log(`refuter ${v + 1} for ${a.focus} failed (counts as not refuted): ${e && e.message ? e.message : e}`);
 		}
 	}
-	const yes = votes.filter((r) => r.refuted === true && r.command && (finding.kind !== "score" || typeof r.correctedScore === "number"));
+	const backedCmd = (c) => typeof c === "string" && c.trim() !== "";
+	const inRange = (s) => typeof s === "number" && Number.isFinite(s) && s >= 0 && s <= 10;
+	const yes = votes.filter((r) => r.refuted === true && backedCmd(r.command) && (finding.kind !== "score" || inRange(r.correctedScore)));
 	const refuted = VOTES > 0 && yes.length * 2 > VOTES; // majority of PLANNED votes
 	const corrected = refuted && finding.kind === "score" ? Math.min(...yes.map((r) => r.correctedScore)) : null;
 	return { refuted, corrected, votes: votes.length, planned: VOTES };
@@ -226,7 +230,7 @@ const results = await pipeline(
 		return agent(dispatchPrompt(a), opts({ label: `dispatch:${a.focus}`, phase: "Dispatch", schema: DIM_SCHEMA, agentType: a.agentType }));
 	},
 	async (res, a) => {
-		if (!res || !Number.isFinite(res.score)) return { focus: a.focus, agentType: a.agentType, outcome: "NO-RESULT", score: null, effectiveScore: null, evidence: [], blockers: [], refuted: [], claimed: [] };
+		if (!res || typeof res.score !== "number" || !Number.isFinite(res.score) || res.score < 0 || res.score > 10) return { focus: a.focus, agentType: a.agentType, outcome: "NO-RESULT", score: null, effectiveScore: null, evidence: [], blockers: [], refuted: [], claimed: [] };
 		const t = threshold(a.focus);
 		const SEV = ["critical", "high", "medium", "low"];
 		res.blockers = (Array.isArray(res.blockers) ? res.blockers : []).map((b) => (SEV.includes(b.severity) ? b : { ...b, severity: "critical" }));
@@ -253,8 +257,8 @@ const results = await pipeline(
 			evidence: res.evidence,
 			blockers: [...keptCritical, ...res.blockers.filter((b) => b.severity !== "critical")],
 			refuted,
-			backed: res.evidence.filter((e) => e.command).length,
-			claimed: res.evidence.filter((e) => !e.command).map((e) => e.claim),
+			backed: res.evidence.filter((e) => e && typeof e.command === "string" && e.command.trim()).length,
+			claimed: res.evidence.filter((e) => !(e && typeof e.command === "string" && e.command.trim())).map((e) => (e ? e.claim : "(empty evidence item)")),
 		};
 	},
 );
@@ -269,8 +273,8 @@ for (const a of agents) {
 		continue;
 	}
 	const t = threshold(a.focus);
-	if (t.minBlocker !== null && a.effectiveScore < t.minBlocker) lower("BLOCKED", `${a.focus} ${a.effectiveScore}/10 below min_blocker ${t.minBlocker}`);
-	else if (t.minPass !== null && a.effectiveScore < t.minPass) lower("IMPROVEMENTS RECOMMENDED", `${a.focus} ${a.effectiveScore}/10 below min_pass ${t.minPass}`);
+	if (t.minBlocker !== null && !(a.effectiveScore >= t.minBlocker)) lower("BLOCKED", `${a.focus} ${a.effectiveScore}/10 below min_blocker ${t.minBlocker}`);
+	else if (t.minPass !== null && !(a.effectiveScore >= t.minPass)) lower("IMPROVEMENTS RECOMMENDED", `${a.focus} ${a.effectiveScore}/10 below min_pass ${t.minPass}`);
 	for (const b of a.blockers) {
 		const where = b.fileLine ? ` (${b.fileLine})` : "";
 		if (b.severity === "critical") lower("BLOCKED", `${a.focus}: critical blocker not refuted: ${b.issue}${where}`);
@@ -283,6 +287,33 @@ for (const f of SELECTED.filter((a) => !agents.some((r) => r.focus === a.focus))
 	if (f.focus === "security") lower("BLOCKED", "security not verified: the security verifier did not run to a result");
 	else lower("IMPROVEMENTS RECOMMENDED", `${f.focus}: no result`);
 }
+// Composite upper bound (grading-rubric.md: READY needs composite 7.0 or higher, below
+// 5.0 is BLOCKED). Unverified dimensions count as 10 and compliance takes the lower of
+// api and ui, so the bound is never below the real composite: if even the bound misses
+// a band, the real composite does too.
+const WEIGHT = { correctness: 0.14, maintainability: 0.14, performance: 0.11, security: 0.18, scalability: 0.09, testability: 0.12, compliance: 0.12, visual: 0.1 };
+const weightOf = (name) => {
+	const ws = rubricDims.filter((x) => x && String(x.name || "").toLowerCase() === name).map((d) => num(d.weight)).filter((v) => v !== null && v >= 0);
+	return ws.length ? Math.max(...ws) : WEIGHT[name];
+};
+const scored = agents.filter((a) => a.outcome === "SCORED");
+if (scored.length) {
+	const dimScore = {};
+	for (const a of scored) {
+		const n = RUBRIC_DIM[a.focus];
+		dimScore[n] = n in dimScore ? Math.min(dimScore[n], a.effectiveScore) : a.effectiveScore;
+	}
+	let sum = 0;
+	let den = 0;
+	for (const n of Object.keys(WEIGHT)) {
+		const w = weightOf(n);
+		sum += w * (n in dimScore ? dimScore[n] : 10);
+		den += w;
+	}
+	const bound = den > 0 ? sum / den : 0;
+	if (!(bound >= 5.0)) lower("BLOCKED", `composite upper bound ${bound.toFixed(2)} below 5.0`);
+	else if (!(bound >= 7.0)) lower("IMPROVEMENTS RECOMMENDED", `composite upper bound ${bound.toFixed(2)} below 7.0, READY needs 7.0`);
+}
 if (dropped.length) lower("IMPROVEMENTS RECOMMENDED", `${dropped.length} agent spawn(s) dropped at the ${MAX_AGENTS}-agent ceiling`);
 
 // Tests (SKILL.md Phase 3): only outcome=EVIDENCE from scripts/assert-evidence.sh with
@@ -290,16 +321,18 @@ if (dropped.length) lower("IMPROVEMENTS RECOMMENDED", `${dropped.length} agent s
 // optional; without it the cap is PENDING-TESTS and capIfTestsPass says what applies
 // once the gate reports EVIDENCE with exit 0 (anything else there is BLOCKED).
 const capExcludingTests = cap;
-const te = cfg.testEvidence && typeof cfg.testEvidence === "object" ? cfg.testEvidence : null;
+const teRaw = parseMaybeJson(cfg.testEvidence, "testEvidence");
+const te = teRaw && typeof teRaw === "object" && !Array.isArray(teRaw) ? teRaw : null;
 let tests;
 if (!te) {
 	tests = { outcome: "PENDING", exitCode: null, summaryLine: "" };
-	reasons.push("PENDING-TESTS: run scripts/assert-evidence.sh; EVIDENCE with exit 0 gives capIfTestsPass, anything else is BLOCKED");
+	reasons.push("PENDING-TESTS: run scripts/assert-evidence.sh; EVIDENCE with exit 0 and a summary showing at least one passing test and no failures gives capIfTestsPass, anything else is BLOCKED");
 } else {
 	tests = { outcome: String(te.outcome || "COULD-NOT-OBSERVE"), exitCode: typeof te.exitCode === "number" ? te.exitCode : null, summaryLine: String(te.summaryLine || "") };
 	if (tests.outcome !== "EVIDENCE") lower("BLOCKED", `Tests: ${tests.outcome}, no grade from an unobserved run`);
 	else if (tests.exitCode !== 0) lower("BLOCKED", `Tests: EVIDENCE with exit ${tests.exitCode === null ? "unknown (pass exitCode from the EXIT= marker)" : tests.exitCode}`);
-	else if (!tests.summaryLine.trim() || /\b0 (passed|tests?)\b|no tests? (found|ran|run|collected)/i.test(tests.summaryLine)) lower("BLOCKED", `Tests: exit 0 but the summary shows no tests ran ("${tests.summaryLine}")`);
+	else if (typeof te.summaryLine !== "string" || !/\b[1-9]\d*\s+(tests?\s+)?(passed|passing)\b/i.test(te.summaryLine) || /\b[1-9]\d*\s+(tests?\s+)?(failed|failing|errors?)\b/i.test(te.summaryLine))
+		lower("BLOCKED", `Tests: exit 0 but the summary does not show passing tests with no failures ("${tests.summaryLine}")`);
 }
 
 return {
