@@ -47,7 +47,7 @@
     {
       "name": "lesson-cards",
       "description": "Mod (function hooks): lesson hint cards when a tool call matches a known pattern; /lessons reloads. Needs CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1.",
-      "version": "1.0.2",
+      "version": "1.0.3",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonaigross@gmail.com"

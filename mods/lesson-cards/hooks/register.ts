@@ -22,7 +22,7 @@ import {
   type LessonBullet,
 } from '../src/corpus.js';
 import { matchAll, matchFileEdit } from '../src/match.js';
-import { buildCard, formatContext, type CardElements } from '../src/card.js';
+import { buildCard, denyLine, formatContext, type CardElements } from '../src/card.js';
 import type { MatchedLesson } from '../src/types.js';
 
 /** Minimal $ facade for the events this module uses. */
@@ -269,7 +269,7 @@ export function register(on: (event: string, matcherOrHook: unknown, hook?: unkn
         // { result: string } is refused for Bash (its output is an object).
         const why = answer === CANCEL ? 'the user chose Cancel' : 'no explicit "Proceed anyway" came back';
         return {
-          deny: `lesson-cards: ${why} at lesson ${lesson.id}, so this call did not run. ${formatContext(lesson)}`,
+          deny: denyLine(lesson, why),
         };
       }
     }
