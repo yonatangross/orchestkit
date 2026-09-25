@@ -28,7 +28,7 @@ export type ChronoBoardCardModel = {
 
 export const CHRONO_STATUS_LABEL: Record<ChronoTone, string> = {
   live: "Latest",
-  added: "Shipped",
+  added: "Added",
   fixed: "Fixed",
   changed: "Changed",
   removed: "Removed",
