@@ -12,9 +12,14 @@ import { ChangelogMermaid } from "@/components/changelog-mermaid";
 import { SearchParamsSync } from "@/components/search-params-sync";
 import { AGENTS } from "@/lib/generated/shared-data";
 import { COUNTS } from "@/lib/constants";
-import { CATEGORY_COLORS } from "@/lib/category-colors";
+import {
+  CATEGORY_BADGE_CLASS,
+  CATEGORY_COLORS,
+  categoryLabel,
+} from "@/lib/category-colors";
 import {
   groupedHookEvents,
+  hookLifecycleFlow,
   HOOK_LIFECYCLE_CHART,
 } from "@/lib/hook-phases";
 import { parseHostId } from "@/lib/host-installs";
@@ -256,29 +261,29 @@ function AgentsGrid() {
                 capped && index >= AGENTS_NARROW_PAGE ? " max-lg:hidden" : ""
               }`}
             >
-              <div className="mb-2 flex items-start gap-2.5">
+              {/* Same anatomy as the skill card: mark, name, then the badge
+                  leading two clamped description lines. */}
+              <div className="flex items-start gap-3">
                 <span
                   className={`mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${cat.bg} ${cat.color}`}
                 >
                   <CategoryMark category={agent.category} className="h-4 w-4" />
                 </span>
-                <div className="min-w-0">
-                  <h3 className="text-sm font-semibold text-fd-foreground">
+                <div className="min-w-0 flex-1">
+                  <h3 className="truncate text-sm font-semibold text-fd-foreground">
                     {agent.name}
                   </h3>
-                  <span
-                    className={`mt-1 inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] font-medium ${cat.bg} ${cat.color}`}
+                  <p
+                    id={`agent-card-${agent.name}-desc`}
+                    className="mt-1 line-clamp-2 text-xs leading-relaxed text-fd-muted-foreground wrap-anywhere"
                   >
-                    {agent.category}
-                  </span>
+                    <span className={`${CATEGORY_BADGE_CLASS} ${cat.bg} ${cat.color}`}>
+                      {categoryLabel(agent.category)}
+                    </span>{" "}
+                    {agent.description}
+                  </p>
                 </div>
               </div>
-              <p
-                id={`agent-card-${agent.name}-desc`}
-                className="text-[13px] leading-[1.5] text-fd-muted-foreground wrap-anywhere"
-              >
-                {agent.description}
-              </p>
             </Link>
           );
         })}
@@ -309,6 +314,51 @@ function AgentsGrid() {
   );
 }
 
+const HOOK_NODE_CLASS =
+  "rounded-md border border-fd-border bg-fd-background px-2 py-1 font-mono text-xs text-fd-foreground";
+
+/** Phone rendition of HOOK_LIFECYCLE_CHART: the spine, then its fan-out. */
+function HookFlowCompact() {
+  const { spine, branches } = hookLifecycleFlow();
+  const last = spine[spine.length - 1];
+  return (
+    <div
+      data-testid="hook-flow-compact"
+      className="space-y-2 rounded-lg border border-fd-border p-3 md:hidden"
+    >
+      <ol className="flex flex-wrap items-center gap-1.5" aria-label="Lifecycle order">
+        {spine.map((node, i) => (
+          <li key={node} className="flex items-center gap-1.5">
+            {i > 0 ? (
+              <span aria-hidden="true" className="text-xs text-fd-muted-foreground">
+                →
+              </span>
+            ) : null}
+            <span className={HOOK_NODE_CLASS}>{node}</span>
+          </li>
+        ))}
+      </ol>
+      {branches.length > 0 ? (
+        <div className="flex items-start gap-1.5">
+          <span aria-hidden="true" className="py-1 text-xs text-fd-muted-foreground">
+            ↳
+          </span>
+          <ul
+            className="flex flex-wrap gap-1.5"
+            aria-label={`${last} branches to`}
+          >
+            {branches.map((node) => (
+              <li key={node} className={HOOK_NODE_CLASS}>
+                {node}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function HooksFlow() {
   const groups = groupedHookEvents();
   const total = groups.reduce((n, group) => n + group.events.length, 0);
@@ -320,7 +370,12 @@ function HooksFlow() {
         for the hooks that run there.
       </p>
       <div className="mb-8 overflow-x-auto rounded-xl border border-fd-border bg-[var(--color-fd-surface-raised)] p-4">
-        <ChangelogMermaid chart={HOOK_LIFECYCLE_CHART} />
+        {/* The SVG scales to this box, so below md its labels drew at about
+            8px. Phones get the same flow as 12px text instead. */}
+        <div className="max-md:hidden">
+          <ChangelogMermaid chart={HOOK_LIFECYCLE_CHART} />
+        </div>
+        <HookFlowCompact />
       </div>
       <div className="grid gap-4 lg:grid-cols-2">
         {groups.map((group) => (

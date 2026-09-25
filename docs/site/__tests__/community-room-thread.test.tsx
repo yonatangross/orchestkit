@@ -2,8 +2,10 @@ import { act, render } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { CommunityRoomThread } from "@/components/community-room-thread";
 
+/** Times on the live frame, not the invisible final-frame sizer. */
 function times(container: HTMLElement): string[] {
-	return [...(container.textContent ?? "").matchAll(/\d\d:\d\d/g)].map((m) => m[0]);
+	const live = container.querySelector("[data-room-live]");
+	return [...(live?.textContent ?? "").matchAll(/\d\d:\d\d/g)].map((m) => m[0]);
 }
 
 describe("CommunityRoomThread", () => {
@@ -21,6 +23,18 @@ describe("CommunityRoomThread", () => {
 
 		expect(times(container)).toEqual(["09:12", "09:14", "09:15", "09:18"]);
 		expect(container.textContent).toContain("Today");
+		// Every frame renders invisibly in the live frame's grid cell, so the box
+		// holds the tallest frame's height and the page below never moves
+		// (gate 2026-09-25: the opening frame is about 31px taller than the last).
+		const sizers = [...container.querySelectorAll<HTMLElement>("[data-room-sizer]")];
+		expect(sizers).toHaveLength(6);
+		const live = container.querySelector("[data-room-live]");
+		for (const sizer of sizers) {
+			expect(sizer.className.split(" ")).toContain("invisible");
+			expect(sizer.parentElement).toBe(live?.parentElement);
+		}
+		expect(sizers[0].textContent).toContain("09:12");
+		expect(sizers[5].textContent).toContain("16:11");
 
 		const seen = new Set<string>();
 		for (let i = 0; i < 40; i++) {

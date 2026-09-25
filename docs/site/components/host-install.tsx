@@ -17,6 +17,7 @@ import { SameRouteFade, sameRouteReplace } from "@/components/page-transition";
 import { CommandText, InstallSnippet, useTrackedCopy } from "@/components/install-snippet";
 import { SearchParamsSync } from "@/components/search-params-sync";
 import {
+	HOST_IDS,
 	HOST_INSTALLS,
 	HOST_INSTALL_BY_ID,
 	homeInstallHref,
@@ -129,9 +130,9 @@ type HostSource = "default" | "deeplink" | "click";
  * lift and ring spring.
  */
 export function HostInstallPicker({
-	hosts = ["claude", "cursor", "codex", "devin", "opencode", "muse", "pi", "agy"],
+	hosts = HOST_IDS,
 }: {
-	hosts?: HostId[];
+	hosts?: readonly HostId[];
 }) {
 	const router = useRouter();
 	const reduceMotion = useReducedMotion();

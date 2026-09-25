@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { LibraryCatalog } from "@/components/library-catalog";
+import { CATEGORY_BADGE_CLASS, categoryLabel } from "@/lib/category-colors";
 
 vi.mock("next/link", () => ({
   default: ({
@@ -112,6 +113,40 @@ describe("LibraryCatalog", () => {
     const desc = document.getElementById("agent-card-emulate-engineer-desc");
     expect(desc?.textContent).toMatch(/\w+\/\w+\/\w+/);
     expect(desc?.className.split(" ")).toContain("wrap-anywhere");
+  });
+
+  it("labels agent categories like skill badges, inside the clamped description", async () => {
+    // Gate 2026-09-25: agent tags read "testing" / "frontend" while skill
+    // badges read "Testing" / "Frontend".
+    search = new URLSearchParams("lib=agents");
+    render(<LibraryCatalog />);
+    await screen.findByRole("button", { name: /^Show all \d+ agents$/ });
+    const panel = screen.getByRole("tabpanel");
+    for (const link of panel.querySelectorAll("a")) {
+      const desc = link.querySelector("[id^='agent-card-']") as HTMLElement;
+      expect(desc.className.split(" ")).toContain("line-clamp-2");
+      const badge = desc.firstElementChild as HTMLElement;
+      expect(badge.className).toContain(CATEGORY_BADGE_CLASS);
+      const label = badge.textContent ?? "";
+      expect(label.charAt(0)).toBe(label.charAt(0).toUpperCase());
+    }
+    const testing = document.getElementById("agent-card-test-generator-desc");
+    expect(testing?.firstElementChild?.textContent).toBe(categoryLabel("testing"));
+    expect(categoryLabel("testing")).toBe("Testing");
+    expect(categoryLabel("llm")).toBe("LLM");
+  });
+
+  it("draws the hook flow as text below md and keeps the diagram from md up", async () => {
+    search = new URLSearchParams("lib=hooks");
+    render(<LibraryCatalog />);
+    const compact = await screen.findByTestId("hook-flow-compact");
+    expect(compact.className.split(" ")).toContain("md:hidden");
+    expect(compact.textContent).toMatch(/Session.*Prompt.*Tools.*Files.*Agents.*Tasks.*Model/);
+    for (const node of compact.querySelectorAll("li")) {
+      if (node.children.length === 0) expect(node.className).toContain("text-xs");
+    }
+    const diagram = screen.getByTestId("hook-flow").parentElement as HTMLElement;
+    expect(diagram.className.split(" ")).toContain("max-md:hidden");
   });
 
   it("moves focus to the newly selected tab on arrow keys", async () => {

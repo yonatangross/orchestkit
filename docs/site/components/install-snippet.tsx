@@ -56,7 +56,7 @@ export function useTrackedCopy(
 export function CommandText({ line }: { line: string }) {
 	const tokens = line.split(" ");
 	return (
-		<span className="min-w-0 [overflow-wrap:anywhere]">
+		<span data-command className="min-w-0 [overflow-wrap:anywhere]">
 			{tokens.map((token, i) => {
 				const segments = token.split(/(?<=[/#@])(?=.)/);
 				return (

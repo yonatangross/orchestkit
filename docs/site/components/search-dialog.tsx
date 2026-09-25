@@ -272,6 +272,10 @@ export default function CustomSearchDialog(props: SharedProps) {
     const resultPageUrls = new Set(
       resultItems.filter((i) => i.type === "page").map((i) => i.url),
     );
+    // No breadcrumbs on heading suggestions: fumadocs draws the heading "#"
+    // glyph absolutely at the row's top line, which is where the breadcrumb
+    // row sits, so the two overlapped ("Sec#rity Patterns"). The label is
+    // already "Page > Heading", so the breadcrumb only repeated the page.
     const suggestItems = suggestions
       .filter((s) => !resultPageUrls.has(s.url.split("#")[0]))
       .map(
@@ -280,7 +284,6 @@ export default function CustomSearchDialog(props: SharedProps) {
           type: s.via === "heading" ? "heading" : "page",
           url: s.url,
           content: s.label,
-          ...(s.via === "heading" ? { breadcrumbs: [s.title] } : {}),
         }),
       );
     return [...suggestItems, ...resultItems];

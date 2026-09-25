@@ -5,7 +5,11 @@ import { Search, X, ChevronRight, ExternalLink, SearchX } from "lucide-react";
 import { motion } from "motion/react";
 import type { SkillMeta } from "@/lib/generated/types";
 import { SKILLS } from "@/lib/generated/skills-data";
-import { CATEGORY_COLORS } from "@/lib/category-colors";
+import {
+  CATEGORY_BADGE_CLASS,
+  CATEGORY_COLORS,
+  CATEGORY_LABELS,
+} from "@/lib/category-colors";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { createCollection, useOramaCollection } from "@/lib/orama-browser";
 import { Highlight } from "@/components/search-highlight";
@@ -19,61 +23,61 @@ const SKILL_CATEGORY_META: Record<
   { label: string; color: string; bg: string; border: string; dot: string }
 > = {
   development: {
-    label: "Development",
+    label: CATEGORY_LABELS.development,
     ...CATEGORY_COLORS.development,
     border: "border-l-violet-400 dark:border-l-violet-500",
     dot: "bg-violet-500",
   },
   ai: {
-    label: "AI",
+    label: CATEGORY_LABELS.ai,
     ...CATEGORY_COLORS.ai,
     border: "border-l-cyan-400 dark:border-l-cyan-500",
     dot: "bg-cyan-500",
   },
   backend: {
-    label: "Backend",
+    label: CATEGORY_LABELS.backend,
     ...CATEGORY_COLORS.backend,
     border: "border-l-amber-400 dark:border-l-amber-500",
     dot: "bg-amber-500",
   },
   frontend: {
-    label: "Frontend",
+    label: CATEGORY_LABELS.frontend,
     ...CATEGORY_COLORS.frontend,
     border: "border-l-blue-400 dark:border-l-blue-500",
     dot: "bg-blue-500",
   },
   testing: {
-    label: "Testing",
+    label: CATEGORY_LABELS.testing,
     ...CATEGORY_COLORS.testing,
     border: "border-l-sky-400 dark:border-l-sky-500",
     dot: "bg-sky-500",
   },
   security: {
-    label: "Security",
+    label: CATEGORY_LABELS.security,
     ...CATEGORY_COLORS.security,
     border: "border-l-red-400 dark:border-l-red-500",
     dot: "bg-red-500",
   },
   devops: {
-    label: "DevOps",
+    label: CATEGORY_LABELS.devops,
     ...CATEGORY_COLORS.devops,
     border: "border-l-orange-400 dark:border-l-orange-500",
     dot: "bg-orange-500",
   },
   product: {
-    label: "Product",
+    label: CATEGORY_LABELS.product,
     ...CATEGORY_COLORS.product,
     border: "border-l-pink-400 dark:border-l-pink-500",
     dot: "bg-pink-500",
   },
   data: {
-    label: "Data",
+    label: CATEGORY_LABELS.data,
     ...CATEGORY_COLORS.data,
     border: "border-l-indigo-400 dark:border-l-indigo-500",
     dot: "bg-indigo-500",
   },
   research: {
-    label: "Research",
+    label: CATEGORY_LABELS.research,
     ...CATEGORY_COLORS.research,
     border: "border-l-teal-400 dark:border-l-teal-500",
     dot: "bg-teal-500",
@@ -466,7 +470,7 @@ function SkillCard({
             className="mt-1 line-clamp-2 text-xs leading-relaxed text-fd-muted-foreground"
           >
             <span
-              className={`mr-1.5 inline-block rounded px-1.5 py-px align-[1px] text-[11px] font-medium leading-tight ${catMeta.bg} ${catMeta.color}`}
+              className={`${CATEGORY_BADGE_CLASS} ${catMeta.bg} ${catMeta.color}`}
             >
               {catMeta.label}
             </span>{" "}

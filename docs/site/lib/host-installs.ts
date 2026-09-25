@@ -24,6 +24,11 @@ export type HostInstallSpec = {
 	then?: { label: string; commands: string[]; prompt: boolean };
 };
 
+/**
+ * THE host order, by demand (PostHog host picks, 2026-09-25). The home chips,
+ * the Installation grid and the setup wizard all render in this order, so a
+ * host added or moved here moves everywhere at once.
+ */
 export const HOST_INSTALLS: readonly HostInstallSpec[] = [
 	{
 		id: "claude",
@@ -64,6 +69,32 @@ export const HOST_INSTALLS: readonly HostInstallSpec[] = [
 		then: { label: "Then invoke", commands: ["$ork-implement"], prompt: false },
 	},
 	{
+		id: "devin",
+		name: "Devin",
+		href: "/docs/getting-started/devin",
+		what: "The ork plugin from git. 76 skills list; hooks do not load.",
+		where:
+			"Paste in a terminal with the Devin CLI signed in. The #plugins/ork fragment installs the plugin tree directly; a bare install also resolves it via .devin-plugin.",
+		commands: [
+			"devin plugins install https://github.com/yonatangross/orchestkit#plugins/ork",
+		],
+		prompt: true,
+		then: {
+			label: "Then verify",
+			commands: ["devin plugins info ork"],
+			prompt: true,
+		},
+	},
+	{
+		id: "opencode",
+		name: "OpenCode",
+		href: "/docs/getting-started/skills-sh#opencode",
+		what: "Agent Skills via skills.sh. No separate marketplace plugin.",
+		where: "Paste in the repo.",
+		commands: [SKILLS_SH_STARTER],
+		prompt: true,
+	},
+	{
 		id: "muse",
 		name: "Muse Code",
 		href: "/docs/getting-started/muse",
@@ -87,32 +118,6 @@ export const HOST_INSTALLS: readonly HostInstallSpec[] = [
 		prompt: true,
 	},
 	{
-		id: "opencode",
-		name: "OpenCode",
-		href: "/docs/getting-started/skills-sh#opencode",
-		what: "Agent Skills via skills.sh. No separate marketplace plugin.",
-		where: "Paste in the repo.",
-		commands: [SKILLS_SH_STARTER],
-		prompt: true,
-	},
-	{
-		id: "devin",
-		name: "Devin",
-		href: "/docs/getting-started/devin",
-		what: "The ork plugin from git. 76 skills list; hooks do not load.",
-		where:
-			"Paste in a terminal with the Devin CLI signed in. The #plugins/ork fragment installs the plugin tree directly; a bare install also resolves it via .devin-plugin.",
-		commands: [
-			"devin plugins install https://github.com/yonatangross/orchestkit#plugins/ork",
-		],
-		prompt: true,
-		then: {
-			label: "Then verify",
-			commands: ["devin plugins info ork"],
-			prompt: true,
-		},
-	},
-	{
 		id: "agy",
 		name: "Antigravity",
 		href: "/docs/getting-started/agy",
@@ -132,7 +137,8 @@ export const HOST_INSTALL_BY_ID: Record<HostId, HostInstallSpec> = Object.fromEn
 	HOST_INSTALLS.map((spec) => [spec.id, spec]),
 ) as Record<HostId, HostInstallSpec>;
 
-const HOST_IDS = HOST_INSTALLS.map((spec) => spec.id);
+/** Host ids in HOST_INSTALLS order. */
+export const HOST_IDS: readonly HostId[] = HOST_INSTALLS.map((spec) => spec.id);
 
 export function parseHostId(
 	value: string | string[] | undefined,

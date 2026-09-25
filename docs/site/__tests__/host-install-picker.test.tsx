@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
-import { HostInstallPicker } from "@/components/host-install";
+import { HostInstallGrid, HostInstallPicker } from "@/components/host-install";
 import { SITE } from "@/lib/constants";
+import { HOST_INSTALLS } from "@/lib/host-installs";
 import { track } from "@/lib/search-beacon";
 
 vi.mock("next/link", () => ({
@@ -63,6 +64,26 @@ describe("HostInstallPicker", () => {
 		vi
 			.spyOn(window, "matchMedia")
 			.mockImplementation(reducedMotionMatchMedia);
+	});
+
+	it("lists hosts in the same order as the Installation grid", () => {
+		// Gate 2026-09-25: the home chips and /docs/getting-started/installation
+		// disagreed (Devin 4th vs 7th). Both now read HOST_INSTALLS.
+		const names = HOST_INSTALLS.map((spec) => spec.name);
+		const { unmount } = render(<HostInstallPicker />);
+		const chips = names.map((name) => screen.getByRole("link", { name }));
+		for (let i = 1; i < chips.length; i++) {
+			expect(
+				chips[i - 1].compareDocumentPosition(chips[i]) &
+					Node.DOCUMENT_POSITION_FOLLOWING,
+			).toBeTruthy();
+		}
+		unmount();
+		const { container } = render(<HostInstallGrid />);
+		const cards = Array.from(container.querySelectorAll("article")).map(
+			(card) => card.querySelector("p")?.textContent,
+		);
+		expect(cards).toEqual(names);
 	});
 
 	it("Cursor is a host query link, not a dead button", () => {

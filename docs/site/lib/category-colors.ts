@@ -17,3 +17,34 @@ export const CATEGORY_COLORS = {
 } as const;
 
 export type CategoryKey = keyof typeof CATEGORY_COLORS;
+
+/**
+ * Badge text for a category key, shared by skill and agent cards so both read
+ * "Testing", never "testing". Agent-only keys (design, git, llm) live here too.
+ */
+export const CATEGORY_LABELS: Record<string, string> = {
+  development: "Development",
+  ai: "AI",
+  backend: "Backend",
+  frontend: "Frontend",
+  testing: "Testing",
+  security: "Security",
+  devops: "DevOps",
+  product: "Product",
+  data: "Data",
+  research: "Research",
+  quality: "Quality",
+  design: "Design",
+  git: "Git",
+  llm: "LLM",
+  other: "Other",
+};
+
+/** Label for a category key; an unknown key is capitalized, not shown raw. */
+export function categoryLabel(key: string): string {
+  return CATEGORY_LABELS[key] ?? key.charAt(0).toUpperCase() + key.slice(1);
+}
+
+/** Category badge shape on skill and agent cards (colors come from CATEGORY_COLORS). */
+export const CATEGORY_BADGE_CLASS =
+  "mr-1.5 inline-block rounded px-1.5 py-px align-[1px] text-[11px] font-medium leading-tight";

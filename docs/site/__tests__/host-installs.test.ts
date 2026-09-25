@@ -17,10 +17,10 @@ describe("host install commands", () => {
 			"claude",
 			"cursor",
 			"codex",
+			"devin",
+			"opencode",
 			"muse",
 			"pi",
-			"opencode",
-			"devin",
 			"agy",
 		]);
 	});

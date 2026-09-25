@@ -241,6 +241,12 @@ export function CommunityRoomThread({ botLine }: { botLine: string }) {
 	}, [playlist]);
 
 	const visible = windowAt(playlist, endIndex);
+	const frames = useMemo(() => roomTimeline(playlist), [playlist]);
+	const day = (
+		<p className="text-center text-[9px] font-medium tracking-[0.08em] text-fd-muted-foreground uppercase">
+			Today
+		</p>
+	);
 
 	return (
 		<div
@@ -262,18 +268,38 @@ export function CommunityRoomThread({ botLine }: { botLine: string }) {
 						</p>
 					</div>
 				</div>
-				<div className="flex min-h-[268px] flex-col justify-end gap-2.5 px-2.5 py-3">
-					{/* The whole thread is one day, so the label stays for every frame. */}
-					<p className="text-center text-[9px] font-medium tracking-[0.08em] text-fd-muted-foreground uppercase">
-						Today
-					</p>
-					{visible.map((bubble, i) => (
-						<BubbleView
-							key={`${endIndex}-${bubble.id}`}
-							bubble={bubble}
-							pop={motionOn && i === visible.length - 1}
-						/>
+				{/* Every frame also renders invisibly in the same grid cell, so the
+				    box is the tallest frame's height from the server render on.
+				    Frames differ by about 31px (the opening one, with the long
+				    welcome, is tallest) and the page below moved with them (gate
+				    2026-09-25). */}
+				<div className="grid min-h-[268px] px-2.5 py-3">
+					{frames.map((end) => (
+						<div
+							key={end}
+							data-room-sizer
+							className="invisible col-start-1 row-start-1 flex flex-col justify-end gap-2.5"
+						>
+							{day}
+							{windowAt(playlist, end).map((bubble) => (
+								<BubbleView key={bubble.id} bubble={bubble} pop={false} />
+							))}
+						</div>
 					))}
+					<div
+						data-room-live
+						className="col-start-1 row-start-1 flex flex-col justify-end gap-2.5"
+					>
+						{/* The whole thread is one day, so the label stays for every frame. */}
+						{day}
+						{visible.map((bubble, i) => (
+							<BubbleView
+								key={`${endIndex}-${bubble.id}`}
+								bubble={bubble}
+								pop={motionOn && i === visible.length - 1}
+							/>
+						))}
+					</div>
 				</div>
 				<div className="flex items-center gap-2 border-t border-fd-border px-2.5 py-2">
 					<span className="flex-1 rounded-full border border-fd-border bg-[color-mix(in_oklch,var(--color-fd-muted)_50%,transparent)] px-2.5 py-1 text-[10px] text-fd-muted-foreground">
