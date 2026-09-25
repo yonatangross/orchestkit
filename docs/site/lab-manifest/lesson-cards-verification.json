@@ -1,0 +1,12 @@
+{
+  "slug": "lesson-cards-verification",
+  "source": "docs/chore\u002d\u002ddsp-42798-4413-lesson-cards-mod/index.html",
+  "title": "Lesson Cards Mod Verification",
+  "description": "Unit test isolation and live verification for the lesson-cards mod independent of pretool-lesson-guard.",
+  "tags": [
+    "mods",
+    "lesson-cards",
+    "testing"
+  ],
+  "date": "2026-09-25"
+}
