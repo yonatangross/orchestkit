@@ -12,6 +12,7 @@
 [![Ask DeepWiki](https://img.shields.io/badge/Ask-DeepWiki-1A1A2E?style=for-the-badge&logo=bookstack&logoColor=4F9CF9)](https://deepwiki.com/yonatangross/orchestkit)
 
 [![MCP Toplist](https://mcptoplist.com/badge/io.github.yonatangross%2Forchestkit.svg)](https://mcptoplist.com/server/io.github.yonatangross%2Forchestkit)
+[![skills.sh](https://www.skills.sh/b/yonatangross/orchestkit)](https://www.skills.sh/yonatangross/orchestkit)
 
 </div>
 
@@ -75,13 +76,13 @@ Settings → Plugins / marketplaces → add `yonatangross/orchestkit` → enable
 
 ### skills.sh (Cursor, Codex, OpenCode, …)
 
-Starter 12 — doctor, setup, explore, implement, verify, review-pr, commit, expect, assess, brainstorm, create-pr, remember:
+Starter 12 from measured installs plus the ork skills we retain (full why table under [Install](#install)):
 
 ```bash
-npx skills add yonatangross/orchestkit -s doctor -s setup -s explore -s implement -s verify -s review-pr -s commit -s expect -s assess -s brainstorm -s create-pr -s remember
+npx skills add yonatangross/orchestkit -s devops-deployment -s responsive-patterns -s architecture-decision-record -s ui-components -s rag-retrieval -s agent-orchestration -s brainstorm -s expect -s auto -s review-pr -s fix-issue -s commit
 ```
 
-The skill named `implement` is the implement workflow (`/ork:implement` in Claude Code). There is no `ork-implement` on the Claude plugin; Codex uses `$ork-implement` after the Codex pack is installed. Full catalog: `npx skills add yonatangross/orchestkit` (hundreds of SKILL.md files — do not treat that as unique users).
+Full catalog: `npx skills add yonatangross/orchestkit` (hundreds of SKILL.md files; do not treat that as unique users). Live install totals stay on the skills.sh badge above.
 
 ---
 
@@ -300,13 +301,28 @@ anything.
 
 No tiering. No version confusion. Just one powerful plugin.
 
-Not on Claude Code? Pull a **starter 12** into any agent (Cursor, Codex, OpenCode, …) via [skills.sh](https://www.skills.sh/yonatangross/orchestkit) — do not install the whole firehose on day one:
+Not on Claude Code? Pull a **starter 12** into any agent (Cursor, Codex, OpenCode, …) via [skills.sh](https://www.skills.sh/yonatangross/orchestkit) — do not install the whole firehose on day one. Picked from measured skills.sh installs on our listing plus the ork skills we actually retain:
+
+| skill | why |
+|---|---|
+| `devops-deployment` | most-installed cloud skill on our listing |
+| `responsive-patterns` | most-installed design skill on our listing |
+| `architecture-decision-record` | writing-bucket install leader |
+| `ui-components` | design install co-leader |
+| `rag-retrieval` | SE install leader |
+| `agent-orchestration` | agent-workflow install leader |
+| `brainstorm` | our most-retained ork skill |
+| `expect` | browser verification we run day to day |
+| `auto` | front-door router we actually invoke |
+| `review-pr` | ship-loop review we use |
+| `fix-issue` | debug loop we use |
+| `commit` | ship-loop commit (has a with/without receipt) |
 
 ```bash
-npx skills add yonatangross/orchestkit -s doctor -s setup -s explore -s implement -s verify -s review-pr -s commit -s expect -s assess -s brainstorm -s create-pr -s remember
+npx skills add yonatangross/orchestkit -s devops-deployment -s responsive-patterns -s architecture-decision-record -s ui-components -s rag-retrieval -s agent-orchestration -s brainstorm -s expect -s auto -s review-pr -s fix-issue -s commit
 ```
 
-All skills: `npx skills add yonatangross/orchestkit`. The implement skill is [`implement`](https://www.skills.sh/yonatangross/orchestkit/implement), not `ork-implement`.
+All skills: `npx skills add yonatangross/orchestkit`. Live install totals stay on the [skills.sh badge](https://www.skills.sh/yonatangross/orchestkit) above, not hard-coded here.
 
 ### Cursor
 
@@ -534,7 +550,7 @@ manifest) instead:
 ### Antigravity
 
 ```bash
-npx skills add yonatangross/orchestkit -s doctor -s setup -s explore -s implement -s verify -s review-pr -s commit -s expect -s assess -s brainstorm -s create-pr -s remember
+npx skills add yonatangross/orchestkit -s devops-deployment -s responsive-patterns -s architecture-decision-record -s ui-components -s rag-retrieval -s agent-orchestration -s brainstorm -s expect -s auto -s review-pr -s fix-issue -s commit
 ```
 
 Antigravity (`agy`, Google's agentic CLI) reads Agent Skills from a workspace
@@ -614,6 +630,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.96](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.95...v10.0.0-beta.96)** · 2026-09-25
+
+- **verify:** Phase 2 dispatch runs as a Workflow script (#4424)
+- **readme:** skills.sh badge and measured starter 12 (#4426)
+
 **[v10.0.0-beta.95](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.94...v10.0.0-beta.95)** · 2026-09-25
 
 - **promote-lights:** match only real promote PRs into main (#4420)
@@ -645,11 +666,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **skills:** error-analysis, evals-first failure taxonomy from traces (#4402)
 - **hooks:** exact option grammar for command wrappers in the egress check (#4404)
-
-**[v10.0.0-beta.88](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.87...v10.0.0-beta.88)** · 2026-09-24
-
-- **docs-site:** align three stale landing.spec cases with hero A (#4398)
-- **hooks:** resolve relative interpreter program paths against the effective working directory (#4400)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

@@ -1,11 +1,11 @@
 ---
 title: "Verify: References"
-description: "15 references for the Verify skill: Alternative Comparison; Background task contract: never wait unconditionally; Claude Code; Grading Rubric; Orchestration Mode; Policy As Code; Quality Model; Reachability Proof; Report Template; Streak Gate; Verification Checklist; Verification Manifest; Verification Phases; Versions; Visual Capture"
+description: "17 references for the Verify skill: Alternative Comparison; Background task contract: never wait unconditionally; Claude Code; Grading Rubric; Orchestration Mode; Policy As Code; Progressive And Partial Results; Quality Model; Reachability Proof; Report Template; Streak Gate; Task Management; Verification Checklist; Verification Manifest; Verification Phases; Versions; Visual Capture"
 ---
 
 > Part of the [Verify](/docs/reference/skills/verify) skill reference. The main page carries the skill itself; this page holds material that used to sit at the bottom of it.
 
-## References (15)
+## References (17)
 
 ### Alternative Comparison
 
@@ -215,7 +215,7 @@ A single green is not proof — flaky and order-dependent suites pass once and f
 
 | Range | Level | Description |
 |-------|-------|-------------|
-| 0-3 | Poor | Critical issues, blocks merge |
+| 0-3 | Poor | Critical issues; below 3.0 blocks merge |
 | 4-6 | Adequate | Functional but needs improvement |
 | 7-9 | Good | Ready for merge, minor suggestions |
 | 10 | Excellent | Exemplary, reference quality |
@@ -337,13 +337,14 @@ The composite table above is overridden by per-dimension floors. Thresholds live
 
 | Dimension | Threshold | Effect when below |
 |-----------|-----------|-------------------|
-| Security | `min_blocker` 4.0 | Verdict BLOCKED regardless of composite |
+| Security | `min_blocker` 9.0, fixed for every project (operator decision 2026-09-25) | Verdict BLOCKED regardless of composite; never lowered |
+| Every other dimension | `min_blocker` 3.0 | Verdict BLOCKED regardless of composite (below 3.0 blocks merge) |
 | Compliance | `min_pass` 6.0 | Verdict capped at IMPROVEMENTS RECOMMENDED |
 
 Reporting format, the tripped dimension leads the verdict, with the threshold named:
 
 ```
-Security 3.2/10 (CRITICAL BLOCKER — below min_blocker 4.0)
+Security 3.2/10 (CRITICAL BLOCKER — below min_blocker 9.0)
 ```
 
 A passing composite never clears a tripped `min_blocker`; list every tripped dimension with the fix required to clear it.
@@ -371,6 +372,7 @@ else:
 
 ## Decision Rules
 
+0. `/ork:verify` Phase 2 --> **Workflow** by default (`workflows/verify-dispatch.js`); the rules below apply when it falls back to Agent Teams or the Agent tool. `/ork:assess` keeps these rules until its own workflow ships.
 1. Full assessment/verification scope --> **Agent Teams mode** (GA since CC 2.1.33)
 2. Quick/single-dimension scope --> **Agent tool mode**
 3. `ORCHESTKIT_FORCE_TASK_TOOL=1` --> **Agent tool** (override)
@@ -427,7 +429,7 @@ rules:
 blockers:
   - dimension: security
     condition: below
-    value: 5.0
+    value: 9.0
     message: "Security score below minimum"
 
   - check: critical_vulnerabilities
@@ -500,6 +502,43 @@ custom_rules:
 Store at: `.claude/policies/verification-policy.yaml`
 
 Multiple policies: `.claude/policies/{name}-policy.yaml`
+
+
+### Progressive And Partial Results
+
+# Progressive output and partial results
+
+Moved from SKILL.md Phase 2. With `workflows/verify-dispatch.js` the dispatch returns all verifier results together and marks a dead verifier `NO-RESULT`; this is the procedure when Phase 2 runs in Agent Teams or plain Agent mode.
+
+## Progressive Output (CC 2.1.76+)
+
+Output each agent's score **as soon as it completes**, don't wait for all 6-7 agents.
+
+> **Focus mode (CC 2.1.101):** In focus mode, include the full composite score, all dimension scores, and the verdict in your final message, the user didn't see the incremental outputs.
+
+```
+Security:     8.2/10 — No critical vulnerabilities found
+Code Quality: 7.5/10 — 3 complexity hotspots identified
+[...remaining agents still running...]
+```
+
+This gives users real-time visibility into multi-agent verification. If any dimension scores below the its rubric `min_blocker` (security 9.0, every other dimension 3.0), flag it as a **blocker immediately**, the user can terminate early without waiting for remaining agents.
+
+## Partial results (CC 2.1.98)
+
+**Partial results (CC 2.1.98):** If a verification agent fails mid-analysis, synthesize partial scores rather than re-spawning:
+
+```python
+for agent_result in verification_results:
+    if "[PARTIAL RESULT]" in agent_result.output: A `maxTurns` stop is also partial since CC 2.1.246 (summary: "stopped at its N-turn limit (partial result; continue it with SendMessage to the task-id)"); continue that agent with `SendMessage` instead of re-spawning it.
+        # Extract whatever scores the agent produced before crashing
+        partial_score = parse_score(agent_result.output)  # May be incomplete
+        scores[agent_result.dimension] = {
+            "score": partial_score, "partial": True,
+            "note": "Agent crashed — score based on partial analysis"
+        }
+        # A 4-dimension score is better than no score. Do NOT re-spawn.
+```
 
 
 ### Quality Model
@@ -1080,7 +1119,7 @@ The streak gate sits *above* the normal verdict, it never loosens a blocker, it 
 | READY but `current < target` | **STREAK PROGRESS, `current`/`target`** (not done; run again) |
 | READY and `current >= target` | **READY FOR MERGE** (streak `target`/`target` met) |
 
-Always surface the count: `STREAK 2/3 — one more green to merge` or `streak reset to 0/3 (security 3.2 < 4.0)`. The user must see how close (or how broken) the streak is.
+Always surface the count: `STREAK 2/3 — one more green to merge` or `streak reset to 0/3 (security 3.2 < 9.0)`. The user must see how close (or how broken) the streak is.
 
 ## Wiring into `/goal`
 
@@ -1108,6 +1147,40 @@ LOOP_START="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 | Let an IMPROVEMENTS-RECOMMENDED extend the streak | Streak then means "good enough once", not "green N times" | Only `READY FOR MERGE` extends; everything else resets |
 | Streak target of 1 | Identical to single-shot verify, no flakiness defense | N ≥ 2 (3 is the sensible default) |
 | Raise the streak target to force a pass | Gaming in reverse, moving the goalposts | Target is set once, up front, from intent/policy |
+
+
+### Task Management
+
+# Task Management (CC 2.1.16)
+
+
+```python
+# 1. Create main verification task
+TaskCreate(
+  subject="Verify [feature-name] implementation",
+  description="Comprehensive verification with nuanced grading",
+  activeForm="Verifying [feature-name] implementation"
+)
+
+# 2. Create subtasks for 8-phase process
+TaskCreate(subject="Run code quality checks", activeForm="Running quality checks")    # id=2
+TaskCreate(subject="Execute security audit", activeForm="Running security audit")     # id=3
+TaskCreate(subject="Verify test coverage", activeForm="Verifying test coverage")      # id=4
+TaskCreate(subject="Validate API", activeForm="Validating API")                       # id=5
+TaskCreate(subject="Check UI/UX", activeForm="Checking UI/UX")                       # id=6
+TaskCreate(subject="Calculate grades", activeForm="Calculating grades")               # id=7
+TaskCreate(subject="Generate suggestions", activeForm="Generating suggestions")       # id=8
+TaskCreate(subject="Compile report", activeForm="Compiling report")                   # id=9
+
+# 3. Set dependencies — phases 2-6 run in parallel, 7-9 are sequential
+TaskUpdate(taskId="7", addBlockedBy=["2", "3", "4", "5", "6"])  # Grading needs all checks
+TaskUpdate(taskId="8", addBlockedBy=["7"])  # Suggestions need grades
+TaskUpdate(taskId="9", addBlockedBy=["8"])  # Report needs suggestions
+
+# 4. Update status as you progress
+TaskUpdate(taskId="2", status="in_progress")  # When starting
+TaskUpdate(taskId="2", status="completed")    # When done — repeat for each subtask
+```
 
 
 ### Verification Checklist
@@ -1378,7 +1451,7 @@ verdict capped at IMPROVEMENTS RECOMMENDED until VERIFIED or WAIVED.
 
 ## Phase 2: Parallel Agent Dispatch (6 Agents)
 
-Launch ALL agents in ONE message with `run_in_background=True` and `max_turns=25`. Pass `model=MODEL_OVERRIDE` when user specifies `--model=opus` (CC 2.1.72).
+Default: `workflows/verify-dispatch.js` runs this dispatch (SKILL.md Phase 2). Without the Workflow tool, launch ALL agents in ONE message with `run_in_background=True` and `max_turns=25`. Pass `model=MODEL_OVERRIDE` when user specifies `--model=opus` (CC 2.1.72).
 
 | Agent | Focus | Output |
 |-------|-------|--------|
@@ -1395,7 +1468,7 @@ Optionally add `monitoring-engineer` as a **conditional observability verifier**
 
 See [Grading Rubric](grading-rubric.md) for detailed scoring criteria.
 
-### Agent Tool Mode (Default)
+### Agent Tool Mode (fallback)
 
 ```python
 # PARALLEL — All 6 in ONE message

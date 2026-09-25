@@ -1,6 +1,6 @@
 {
   "name": "ork",
-  "version": "10.0.0-beta.95",
+  "version": "10.0.0-beta.96",
   "description": "The Complete AI Development Toolkit — 108 skills, 36 agents, 171 hooks for full-stack development.",
   "author": {
     "name": "Yonatan Gross",
@@ -25,7 +25,8 @@
   "workflows": [
     "skills/audit-full/workflows/audit-full-mapreduce.js",
     "skills/bare-eval/workflows/skill-fitness.js",
-    "skills/cover/workflows/heal-loop.js"
+    "skills/cover/workflows/heal-loop.js",
+    "skills/verify/workflows/verify-dispatch.js"
   ],
   "userConfig": {
     "webhookUrl": {

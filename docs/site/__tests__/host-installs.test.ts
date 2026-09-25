@@ -80,10 +80,14 @@ describe("host install commands", () => {
 	});
 
 	it("gives Muse and OpenCode the starter 12, not the firehose", () => {
-		expect(SKILLS_SH_STARTER).toContain("-s implement");
+		// Measured installs + our retention (README Install table); not the old day-one pack.
+		expect(SKILLS_SH_STARTER).toContain("-s devops-deployment");
+		expect(SKILLS_SH_STARTER).toContain("-s brainstorm");
+		expect(SKILLS_SH_STARTER).not.toContain("-s remember");
 		expect(SKILLS_SH_STARTER).not.toBe(
 			"npx skills add yonatangross/orchestkit",
 		);
+		expect(SKILLS_SH_STARTER.match(/-s /g)).toHaveLength(12);
 		for (const id of ["muse", "opencode"] as const) {
 			expect(HOST_INSTALL_BY_ID[id].commands).toEqual([SKILLS_SH_STARTER]);
 		}

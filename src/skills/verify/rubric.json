@@ -1,13 +1,14 @@
 {
   "rubric": "ork-rubric/1.0",
   "skill": "verify",
-  "description": "Verification grading rubric: 8 dimensions (unified scoring framework + Visual 8th), 0-10 scale, weighted composite. Fails the merge gate below composite 6.0 (BLOCKED verdict below 5.0 per the grade table); security below 4.0 is a hard blocker; compliance below 6.0 fails the gate. When Visual is skipped (API-only projects), its 0.10 weight is redistributed proportionally across the base dimensions. Bands use integer anchors: round a fractional score to the nearest integer before band lookup (3.2 -> 3 -> poor).",
+  "description": "Verification grading rubric: 8 dimensions (unified scoring framework + Visual 8th), 0-10 scale, weighted composite. Fails the merge gate below composite 6.0 (BLOCKED verdict below 5.0 per the grade table); security below 9.0 (fixed for every project) and any dimension below 3.0 are hard blockers; compliance below 6.0 fails the gate. When Visual is skipped (API-only projects), its 0.10 weight is redistributed proportionally across the base dimensions. Bands use integer anchors: round a fractional score to the nearest integer before band lookup (3.2 -> 3 -> poor).",
   "source": "references/grading-rubric.md (weights canonical in references/quality-model.md, extends quality-gates/references/unified-scoring-framework.md)",
   "composite": { "min_pass": 6.0 },
   "dimensions": [
     {
       "name": "correctness",
       "weight": 0.14,
+      "min_blocker": 3.0,
       "bands": [
         { "score_min": 0, "score_max": 0, "label": "failing", "description": "Does not run" },
         { "score_min": 1, "score_max": 3, "label": "poor", "description": "Broken core paths" },
@@ -20,6 +21,7 @@
     {
       "name": "maintainability",
       "weight": 0.14,
+      "min_blocker": 3.0,
       "bands": [
         { "score_min": 0, "score_max": 0, "label": "failing", "description": "Lint/type check fails to run" },
         { "score_min": 1, "score_max": 3, "label": "poor", "description": "Many errors, poor patterns, high complexity" },
@@ -32,6 +34,7 @@
     {
       "name": "performance",
       "weight": 0.11,
+      "min_blocker": 3.0,
       "bands": [
         { "score_min": 0, "score_max": 0, "label": "failing", "description": "Unresponsive or crashes under load" },
         { "score_min": 1, "score_max": 3, "label": "poor", "description": "Severe bottlenecks, resource leaks" },
@@ -44,7 +47,7 @@
     {
       "name": "security",
       "weight": 0.18,
-      "min_blocker": 4.0,
+      "min_blocker": 9.0,
       "bands": [
         { "score_min": 0, "score_max": 0, "label": "failing", "description": "Multiple critical, secrets exposed" },
         { "score_min": 1, "score_max": 3, "label": "poor", "description": "1+ critical or many high vulnerabilities" },
@@ -57,6 +60,7 @@
     {
       "name": "scalability",
       "weight": 0.09,
+      "min_blocker": 3.0,
       "bands": [
         { "score_min": 0, "score_max": 0, "label": "failing", "description": "Cannot handle production load" },
         { "score_min": 1, "score_max": 3, "label": "poor", "description": "Single-instance only, monolithic state" },
@@ -69,6 +73,7 @@
     {
       "name": "testability",
       "weight": 0.12,
+      "min_blocker": 3.0,
       "bands": [
         { "score_min": 0, "score_max": 0, "label": "failing", "description": "< 30% coverage or tests fail to run" },
         { "score_min": 1, "score_max": 3, "label": "poor", "description": "30-49% coverage" },
@@ -81,6 +86,7 @@
     {
       "name": "compliance",
       "weight": 0.12,
+      "min_blocker": 3.0,
       "min_pass": 6.0,
       "bands": [
         { "score_min": 0, "score_max": 0, "label": "failing", "description": "Broken contracts or inaccessible" },
@@ -94,6 +100,7 @@
     {
       "name": "visual",
       "weight": 0.10,
+      "min_blocker": 3.0,
       "description": "Weight is 0.00 for API-only projects — redistributed proportionally across base dimensions (see quality-model.md).",
       "bands": [
         { "score_min": 0, "score_max": 0, "label": "failing", "description": "Page fails to render" },
