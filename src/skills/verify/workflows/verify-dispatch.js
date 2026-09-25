@@ -102,7 +102,7 @@ const MODEL = cfg.modelOverride ? String(cfg.modelOverride) : undefined;
 // Rubric thresholds are FLOORS the rubric may tighten, never loosen (SKILL.md: a policy
 // "may tighten these thresholds, never loosen them"). The floors come from the rules
 // the skill grades by: grading-rubric.md (0-3 "Critical issues, blocks merge") and
-// quality-gates unified-scoring-framework.md (security below 7.0 and any critical
+// quality-gates unified-scoring-framework.md (security below 9.0 and any critical
 // dimension below 3.0 BLOCK). Compliance keeps min_pass 6.0. Security is 9.0 for
 // everyone, a hard block no rubric or project policy lowers (operator decision 2026-09-25).
 const FLOOR = { security: { minBlocker: 9.0, minPass: null }, compliance: { minBlocker: 3.0, minPass: 6.0 } };

@@ -704,9 +704,9 @@ describe('subagent-quality-gate', () => {
       expect(outputWarning).toHaveBeenCalled();
     });
 
-    test('security at exactly threshold (5.0) passes', () => {
+    test('security at exactly the 9.0 floor passes', () => {
       const input = createSubagentStopInput({
-        agent_output: 'Security: 5/10',
+        agent_output: 'Security: 9/10',
       });
 
       subagentQualityGate(input, testCtx);
@@ -715,9 +715,9 @@ describe('subagent-quality-gate', () => {
       expect(outputSilentSuccess).toHaveBeenCalled();
     });
 
-    test('security at 4.9 (just below threshold) blocks', () => {
+    test('security at 8.9 (just below the 9.0 floor) blocks', () => {
       const input = createSubagentStopInput({
-        agent_output: 'Security: 4.9/10',
+        agent_output: 'Security: 8.9/10',
       });
 
       const result = subagentQualityGate(input, testCtx);
@@ -746,7 +746,7 @@ describe('subagent-quality-gate', () => {
       subagentQualityGate(input, testCtx);
 
       expect(outputBlock).toHaveBeenCalledWith(
-        expect.stringContaining('5/10')
+        expect.stringContaining('below minimum 9/10')
       );
     });
 
@@ -771,30 +771,66 @@ describe('subagent-quality-gate', () => {
       expect(outputSilentSuccess).toHaveBeenCalled();
     });
 
-    test('respects custom policy thresholds', () => {
-      // Arrange: policy file exists with custom security_minimum of 7.0
+    const withPolicy = (thresholds: Record<string, unknown>) => {
       vi.mocked(existsSync).mockImplementation((path) => {
         if (typeof path === 'string' && path.includes('verification-policy.json')) return true;
         return false;
       });
       vi.mocked(readFileSync).mockImplementation((path) => {
         if (typeof path === 'string' && path.includes('verification-policy.json')) {
-          return JSON.stringify({
-            thresholds: { security_minimum: 7.0 },
-          });
+          return JSON.stringify({ thresholds });
         }
         return JSON.stringify({});
       });
+    };
 
-      const input = createSubagentStopInput({
-        agent_output: 'Security: 6/10',
-      });
+    test('a policy cannot lower the security floor below 9.0', () => {
+      // 8/10 would pass a 7.0 policy; the floor still blocks it
+      withPolicy({ security_minimum: 7.0 });
 
-      const result = subagentQualityGate(input, testCtx);
+      const result = subagentQualityGate(
+        createSubagentStopInput({ agent_output: 'Security: 8/10' }),
+        testCtx,
+      );
 
-      // 6/10 is below custom threshold of 7.0
+      expect(result.continue).toBe(false);
+      expect(outputBlock).toHaveBeenCalledWith(expect.stringContaining('below minimum 9/10'));
+    });
+
+    test('a per-dimension key cannot lower a security dimension below 9.0', () => {
+      withPolicy({ vulnerability_minimum: 2.0 });
+
+      const result = subagentQualityGate(
+        createSubagentStopInput({ agent_output: 'Vulnerability: 8/10' }),
+        testCtx,
+      );
+
       expect(result.continue).toBe(false);
       expect(outputBlock).toHaveBeenCalled();
+    });
+
+    test('a non-numeric security_minimum falls back to the floor, not open', () => {
+      withPolicy({ security_minimum: 'off' });
+
+      const result = subagentQualityGate(
+        createSubagentStopInput({ agent_output: 'Security: 8/10' }),
+        testCtx,
+      );
+
+      expect(result.continue).toBe(false);
+      expect(outputBlock).toHaveBeenCalled();
+    });
+
+    test('a policy may raise the security floor', () => {
+      withPolicy({ security_minimum: 9.5 });
+
+      const result = subagentQualityGate(
+        createSubagentStopInput({ agent_output: 'Security: 9.2/10' }),
+        testCtx,
+      );
+
+      expect(result.continue).toBe(false);
+      expect(outputBlock).toHaveBeenCalledWith(expect.stringContaining('below minimum 9.5/10'));
     });
 
     test('updates metrics on threshold failure', () => {
