@@ -46,4 +46,20 @@ describe("mask() stays fast on long runs", () => {
     expect(out).toContain(" b ");
     expect(out.endsWith(" c")).toBe(true);
   });
+
+  test("a million characters of BEGIN markers with no END finishes under 200 ms", () => {
+    const marker = "-----" + "BEGIN ";
+    const text = marker.repeat(Math.ceil(1_000_000 / marker.length));
+    const { ms } = timed(text);
+    expect(ms).toBeLessThan(200);
+  });
+
+  test("a million characters of short spaced prefix tokens finishes under 200 ms", () => {
+    const text = ("AK" + "IA ").repeat(200_000);
+    expect(text.length).toBe(1_000_000);
+    const { ms, out } = timed(text);
+    expect(ms).toBeLessThan(200);
+    expect(out).not.toContain("AK" + "IA");
+  });
 });
+

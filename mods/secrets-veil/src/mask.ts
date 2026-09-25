@@ -299,13 +299,20 @@ export function mask(text: string, table: MaskTable): MaskResult {
           value: entry.value,
           name: entry.name,
         });
-        // Resume past this occurrence: overlapping copies add nothing to
-        // mask and rescanning them made long repeats quadratic.
-        searchPos = idx + Math.max(1, entry.value.length);
+        // Every occurrence, overlapping ones included: a copy that starts
+        // inside another must not leave a fragment visible. indexOf keeps
+        // this linear; the spans are unioned below.
+        searchPos = idx + 1;
       }
     } else {
       // Pattern prefix match
       let searchPos = 0;
+      // One forward search for "-----END ": the nearest END at or after a
+      // BEGIN only moves forward, so a cached position (or "none left") is
+      // reused instead of re-searching from every BEGIN (quadratic on many
+      // BEGINs with no END).
+      let endMarkerAt = -2; // -2: not searched yet; -1: none after endSearchFrom
+      let endSearchFrom = 0;
       while (true) {
         const idx = maskedText.indexOf(entry.pattern, searchPos);
         if (idx === -1) break;
@@ -328,7 +335,11 @@ export function mask(text: string, table: MaskTable): MaskResult {
 
         // For BEGIN ... PRIVATE KEY, find the END marker
         if (entry.pattern === "-----BEGIN ") {
-          const endMarker = maskedText.indexOf("-----END ", idx);
+          if (endMarkerAt === -2 || (endMarkerAt !== -1 && endMarkerAt < idx)) {
+            endSearchFrom = idx;
+            endMarkerAt = maskedText.indexOf("-----END ", idx);
+          }
+          const endMarker = endMarkerAt !== -1 && idx >= endSearchFrom ? endMarkerAt : -1;
           if (endMarker !== -1) {
             const finalDash = maskedText.indexOf("-----", endMarker + 10);
             if (finalDash !== -1) {
@@ -352,9 +363,10 @@ export function mask(text: string, table: MaskTable): MaskResult {
           end,
           value: maskedText.slice(idx, end),
         });
-        // Resume at the end of this match, never one character later: a hit
-        // already covers the rest of its run, and restarting inside it
-        // rescanned the same run for every repeated prefix (quadratic).
+        // Resume at the end of this match, never one character later: any
+        // later prefix hit inside [idx, end) would end at the same run end,
+        // so it is already covered, and the overlap step below unions spans
+        // instead of dropping them. Restarting inside the run was quadratic.
         searchPos = Math.max(end, idx + 1);
       }
     }
@@ -423,29 +435,40 @@ export function mask(text: string, table: MaskTable): MaskResult {
     return b.end - a.end; // longer matches first
   });
 
-  // Remove overlapping matches (keep the first/longest)
-  const nonOverlapping: typeof matches = [];
-  let lastEnd = -1;
+  // Union overlapping or touching matches. Dropping a match that starts
+  // inside an earlier one lost its tail whenever it reached further (a
+  // named value ending inside a prefix token, two overlapping named values,
+  // an entropy piece next to a prefix hit), leaving part of a secret
+  // visible. A merged span covers everything any layer matched.
+  const merged: Array<{ start: number; end: number; name?: string; names: number }> = [];
   for (const match of matches) {
-    if (match.start >= lastEnd) {
-      nonOverlapping.push(match);
-      lastEnd = match.end;
+    const last = merged[merged.length - 1];
+    if (last && match.start <= last.end) {
+      if (match.end > last.end) last.end = match.end;
+      if (match.name !== undefined && match.name !== last.name) last.names += 1;
+    } else {
+      merged.push({ start: match.start, end: match.end, name: match.name, names: match.name === undefined ? 0 : 1 });
     }
   }
 
-  // Build masked text and spans (in reverse order to preserve positions)
-  nonOverlapping.reverse();
-  for (const match of nonOverlapping) {
-    const maskedValue = "\u2022".repeat(Math.min(8, match.end - match.start));
-    maskedText =
-      maskedText.slice(0, match.start) + maskedValue + maskedText.slice(match.end);
-    spans.unshift({
-      start: match.start,
-      end: match.end,
-      value: match.value,
-      name: match.name,
+  // Build the masked text in one pass: slices and bullets joined once
+  // (per-span slice + concat + unshift was quadratic on many spans).
+  const parts: string[] = [];
+  let cursor = 0;
+  for (const span of merged) {
+    parts.push(text.slice(cursor, span.start));
+    parts.push("\u2022".repeat(Math.min(8, span.end - span.start)));
+    cursor = span.end;
+    spans.push({
+      start: span.start,
+      end: span.end,
+      value: text.slice(span.start, span.end),
+      // A span merged from several named values names none of them.
+      name: span.names === 1 ? span.name : undefined,
     });
   }
+  parts.push(text.slice(cursor));
+  maskedText = parts.join("");
 
   return { text: maskedText, spans };
 }
