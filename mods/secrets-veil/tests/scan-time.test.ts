@@ -47,19 +47,36 @@ describe("mask() stays fast on long runs", () => {
     expect(out.endsWith(" c")).toBe(true);
   });
 
-  test("a million characters of BEGIN markers with no END finishes under 200 ms", () => {
-    const marker = "-----" + "BEGIN ";
-    const text = marker.repeat(Math.ceil(1_000_000 / marker.length));
-    const { ms } = timed(text);
-    expect(ms).toBeLessThan(200);
+  // The two million-character cases check SCALING, not a wall-clock bound
+  // tuned to one machine: a CI runner measured 206 ms on a case this machine
+  // runs in about 31 ms. Linear work grows about 10x from 100k to 1M; the
+  // old quadratic code grew about 100x (and took 5 to 40 s at 1M). The 1 s
+  // ceiling is a backstop that still fails any quadratic regression.
+  const medianMs = (text: string): number => {
+    const runs: number[] = [];
+    for (let i = 0; i < 3; i++) runs.push(timed(text).ms);
+    runs.sort((a, b) => a - b);
+    return runs[1];
+  };
+  const scaling = (unit: string): { small: number; large: number } => {
+    const small = unit.repeat(Math.ceil(100_000 / unit.length));
+    const large = unit.repeat(Math.ceil(1_000_000 / unit.length));
+    medianMs(small); // warm the JIT so the small run is not inflated
+    return { small: medianMs(small), large: medianMs(large) };
+  };
+
+  test("BEGIN markers with no END scale linearly (10x input, under 20x time) and stay under 1 s at 1M", () => {
+    const { small, large } = scaling("-----" + "BEGIN ");
+    expect(large).toBeLessThan(1000);
+    expect(large).toBeLessThan(Math.max(20 * small, 20));
   });
 
-  test("a million characters of short spaced prefix tokens finishes under 200 ms", () => {
-    const text = ("AK" + "IA ").repeat(200_000);
-    expect(text.length).toBe(1_000_000);
-    const { ms, out } = timed(text);
-    expect(ms).toBeLessThan(200);
-    expect(out).not.toContain("AK" + "IA");
+  test("short spaced prefix tokens scale linearly (10x input, under 20x time), stay under 1 s, and are masked", () => {
+    const unit = "AK" + "IA ";
+    const { small, large } = scaling(unit);
+    expect(large).toBeLessThan(1000);
+    expect(large).toBeLessThan(Math.max(20 * small, 20));
+    expect(timed(unit.repeat(200_000)).out).not.toContain("AK" + "IA");
   });
 });
 
