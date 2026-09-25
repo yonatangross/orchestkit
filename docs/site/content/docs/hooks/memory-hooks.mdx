@@ -1,6 +1,6 @@
 ---
 title: "Memory Bridge and Context Injection"
-description: "How OrchestKit injects past decisions into every prompt, captures new decisions automatically, and syncs memory across sessions through the knowledge graph."
+description: "How OrchestKit validates graph memory writes, suggests capture on async Stop turns, and guards MEMORY.md size, without a dedicated auto-writer hook."
 ---
 
 import { Callout } from "fumadocs-ui/components/callout";
@@ -8,151 +8,45 @@ import { Steps, Step } from "fumadocs-ui/components/steps";
 
 ## The Memory Pipeline
 
-OrchestKit maintains memory across sessions through a pipeline of hooks that capture, store, load, and inject context. The system follows a graph-first architecture: the knowledge graph (via MCP) is always available with zero configuration.
+OrchestKit no longer ships a `memory-writer` hook (or per-prompt `memory-context` / `memory-context-loader` injectors). Memory persistence is skill-driven (graph MCP plus optional filesystem MEMORY.md edits). A small set of hooks still touch the pipeline:
 
 ```
-Session N                                   Session N+1
----------                                   -----------
-User prompt                                 SessionStart
-    |                                           |
-    v                                           v
-memory-context  --->  search graph  --->  memory-context-loader
-(every prompt)        for past decisions    (once, first prompt)
-    |                                           |
-    v                                           v
-Stop (fire-and-forget)                    additionalContext injected
-    |                                     into Claude's context
-    +--> session-summary (graph entity suggestion via additionalContext)
-    +--> auto-remember-continuity
+Session start                         During session                      Stop (every assistant turn, async)
+-------------                         --------------                      --------------------------------
+CC loads MEMORY.md                    /ork:remember -> mcp__memory__*     stop/session-summary
+sync-session-dispatcher               memory-validator (PreToolUse)       (graph entity suggestion; may
+  materializes profile rules          sync-write-edit-dispatcher           land on a later turn)
+                                      (context-file-budget-guard on       stop/handoff-writer
+                                       MEMORY.md / CLAUDE.md writes)      (may cite decisions.jsonl)
+
+                                                                          PreCompact:
+                                                                          pre-compact-saver snapshots
+                                                                          .claude/memory + logs
 ```
 
-## Memory Context Loader (First Prompt)
+## Memory Validator (MCP PreToolUse)
 
-**Hook:** `prompt/memory-context-loader`
-**Event:** UserPromptSubmit (`once: true`)
-**Purpose:** Load recent project decisions as context on the first prompt of every session.
+**Hook:** `pretool/mcp/memory-validator`
+**Event:** PreToolUse (`mcp__memory__*`)
+**Purpose:** Validate knowledge graph operations before they execute.
 
-This hook reads from `.claude/memory/decisions.jsonl` -- a file written by the memory system during previous sessions. Each line is a JSON record containing a decision or preference:
-
-```json
-{
-  "id": "dec_abc123",
-  "type": "decision",
-  "content": {
-    "what": "Use cursor-based pagination for the orders API",
-    "why": "Offset pagination causes timeouts on tables with 1M+ rows"
-  },
-  "entities": ["cursor-pagination", "orders-api"],
-  "metadata": {
-    "timestamp": "2026-01-15T10:30:00Z",
-    "confidence": 0.85,
-    "category": "api",
-    "project": "myproject"
-  }
-}
-```
-
-The hook loads the last 10 decisions, formats them as markdown, and injects them via `additionalContext`:
-
-```markdown
-## Recent Project Decisions
-
-- **[Decision]** Use cursor-based pagination for the orders API _(because: Offset pagination causes timeouts on tables with 1M+ rows)_ [cursor-pagination, orders-api]
-- **[Preference]** Use Tailwind CSS for all new components [frontend, tailwind]
-- **[Decision]** PostgreSQL 16 for the analytics database _(because: Need JSONB and vector support)_ [PostgreSQL, analytics]
-
-_For deeper graph traversal: use mcp__memory__search_nodes or mcp__memory__open_nodes_
-```
-
-### Budget Awareness
-
-The context loader caps output at 3,000 characters to avoid consuming too much of the context window. If there are more decisions than fit within the budget, it truncates with a hint:
-
-```markdown
-- _(additional decisions available via mcp__memory__search_nodes)_
-```
-
-## Memory Context (Every Prompt)
-
-**Hook:** `prompt/memory-context`
-**Event:** UserPromptSubmit (every prompt)
-**Purpose:** Search the knowledge graph for context relevant to the current prompt.
-
-Unlike the context loader (which runs once and injects recent decisions), this hook runs on every prompt and performs keyword-based relevance detection.
-
-### Trigger Detection
-
-The hook checks the prompt against two keyword lists:
-
-**Memory triggers** (suggest memory search would be valuable):
-`add`, `implement`, `create`, `build`, `design`, `refactor`, `update`, `modify`, `fix`, `change`, `continue`, `resume`, `remember`, `previous`, `last time`, `before`, `earlier`, `pattern`, `decision`, `how did we`, `what did we`
-
-**Graph triggers** (suggest relationship queries):
-`relationship`, `related`, `connected`, `depends`, `uses`, `recommends`, `what does.*recommend`, `how does.*work with`
-
-### How It Works
-
-<Steps>
-<Step>
-**Skip check.** If the prompt is shorter than 20 characters, or contains no trigger keywords, the hook returns silently.
-</Step>
-
-<Step>
-**Extract search terms.** Stopwords are removed and the prompt is reduced to 5 key terms.
-</Step>
-
-<Step>
-**Build context hint.** The hook constructs a system message telling Claude how to search:
-
-```
-[Memory Context] For relevant past project decisions,
-use mcp__memory__search_nodes with query="cursor pagination orders"
-```
-</Step>
-
-<Step>
-**Add relationship hints** (if graph triggers detected):
-
-```
-For relationships: mcp__memory__open_nodes on found entities
-| Graph traversal available
-```
-</Step>
-
-<Step>
-**Add agent context** (if an agent is active):
-
-```
-Agent context: database-engineer
-```
-</Step>
-</Steps>
-
-The hook does not execute the graph search itself -- it provides Claude with the instruction to do so. This keeps the hook fast (under 10ms) while giving Claude the information it needs to decide whether to query memory.
-
-### Global vs Project Scope
-
-If the prompt starts with `@global` or mentions "cross-project" or "all projects", the hook switches to global scope:
-
-```
-[Memory Context] For relevant past cross-project decisions...
-```
+Wired in `hooks.json` and `entries/pretool.ts`. Entity creates get size limits (deny on oversized names/observations) plus required-field checks. Relation creates get required-field checks only (no relation size limit). Missing required fields return `outputWarning` and still allow the call. Unknown entity types are logged only (no warning result) and still allow the call.
 
 ## Session Summary (Stop)
 
 **Hook:** `stop/session-summary`
-**Event:** Stop (fire-and-forget via background worker)
-**Purpose:** Suggest graph entity capture at session end for high-activity sessions.
+**Event:** Stop (`async: true` in `hooks.json`)
+**Purpose:** Suggest graph entity capture after assistant turns that clear the activity threshold.
 
-This hook replaced the former `capture-user-intent` and `memory-capture` hooks as part of the graph-first memory architecture. Instead of writing local JSONL files during the session, it runs once at session end and suggests a graph entity via `additionalContext`.
+This is the graph-first replacement for older local-capture hooks. It does not write JSONL or MEMORY.md. Because Stop fires after every assistant turn and this hook is async, the suggestion is delivered on a later turn (or may be lost if the session ends immediately).
 
 ### How It Works
 
-1. Checks whether the session had meaningful work (20+ tool calls). If not, it exits silently.
-2. Builds a session entity name from the date and branch (e.g., `Session-2026-03-06-feat/my-feature`).
+1. Checks whether the session had meaningful work (20 or more tool calls). If not, it exits silently.
+2. Builds a session entity name from the date and branch (for example `Session-2026-03-06-feat/my-feature`).
 3. Classifies the session outcome from the last assistant message (`question`, `summary`, `code`, or `unknown`).
 4. Constructs a `mcp__memory__create_entities` suggestion and returns it via `additionalContext`.
-5. For high-activity sessions (50+ tool calls), nudges the user to run `/ork:remember`.
+5. For high-activity sessions (more than 50 tool calls), nudges the user to run `/ork:remember`.
 
 ```typescript
 // The hook returns a graph entity suggestion, not a local file write
@@ -165,99 +59,64 @@ return {
 };
 ```
 
-This approach avoids local file I/O entirely -- CC's auto memory picks up the `additionalContext` and persists it to the knowledge graph.
+## Handoff Writer (Stop)
 
-## Queue-Based Memory Sync
+**Hook:** `stop/handoff-writer`
+**Event:** Stop (`async: true` in `hooks.json`)
 
-Memory writes are not performed immediately during the session. Instead, they are queued to local JSONL files and flushed at session end via the fire-and-forget stop hooks.
+Runs after every assistant turn (async). Reads recent lines from `.claude/logs/decisions.jsonl` (when present) to enrich the handoff note. That log path is separate from `.claude/memory/decisions.jsonl` used by some skill scripts.
 
-### Graph Queue
+## PreCompact Saver
 
-**File:** `.claude/memory/graph-queue.jsonl`
-**Flushed by:** `stop/graph-queue-sync`
+**Hook:** `lifecycle/pre-compact-saver`
+**Event:** PreCompact
 
-Each queued entry describes an entity or relation to create in the knowledge graph:
+Snapshots local `.claude/memory/*.jsonl` entry counts and recent `.claude/logs/decisions.jsonl` content into session state for post-compaction recovery. Despite older comments in the source header, this hook does not write CC native MEMORY.md.
 
-```json
-{
-  "action": "create_entity",
-  "entity": {
-    "name": "PostgreSQL",
-    "entityType": "Technology",
-    "observations": ["Selected for analytics database", "Chosen for JSONB and vector support"]
-  },
-  "timestamp": "2026-01-15T10:30:00Z"
-}
-```
+## MEMORY.md Budget Guard
 
-```json
-{
-  "action": "create_relation",
-  "relation": {
-    "from": "analytics-database",
-    "to": "PostgreSQL",
-    "relationType": "USES"
-  },
-  "timestamp": "2026-01-15T10:30:00Z"
-}
-```
+**Hook:** `context-file-budget-guard` (via `pretool/write-edit/sync-write-edit-dispatcher`)
+**Event:** PreToolUse (Write / Edit)
 
-At session end, the `graph-queue-sync` hook reads the queue and executes the operations against the knowledge graph MCP.
+Advises when a Write or Edit would push `MEMORY.md` (or `CLAUDE.md`) past its soft size budget. Claude Code still injects MEMORY.md at session start; OrchestKit only warns on oversized edits. There is no OrchestKit hook that auto-appends decisions into MEMORY.md.
 
-## Memory in Subagents
+## What Was Removed
 
-When a subagent is spawned, it inherits memory context from the parent session. Claude uses the agent's domain keywords (e.g., database, schema, migration for `database-engineer`) to search the knowledge graph via `mcp__memory__search_nodes` for relevant entities. This is handled natively by CC's skill matching -- no dedicated hook is needed.
+These names still appear in older docs or illustrative transcripts. They are not registered hooks on main:
 
-## Memory Fabric Initializer
+| Former name | Status |
+|-------------|--------|
+| `memory-writer` / `memory-writer.ts` | Removed. No file, no registry entry. |
+| `memory-context` / `memory-context-loader` | Removed from UserPromptSubmit. Comments still mention a move to SessionStart, but `materializeDecisionRules()` is not implemented. |
+| `auto-remember-continuity` | Removed from Stop. |
+| `graph-queue-sync` | Removed with the mem0/cloud memory cut. |
+| `memory-fabric-init` | Removed. |
 
-**Hook:** `pretool/mcp/memory-fabric-init`
-**Event:** PreToolUse (mcp\_\_memory\_\_\*) (`once: true`)
+## Storage Surfaces (Public Model)
 
-On the first MCP memory tool call of the session, this hook initializes the memory fabric -- setting up the connection to the knowledge graph. It runs once and silently.
+Docs still describe three storage surfaces. `checkMemoryHealth()` in `lib/memory-health.ts` currently only checks whether `.claude/memory/` exists. Claude Code loads MEMORY.md at session start when the file is present:
 
-## Memory Validator
-
-**Hook:** `pretool/mcp/memory-validator`
-**Event:** PreToolUse (mcp\_\_memory\_\_\*)
-
-Validates knowledge graph operations before they execute, ensuring entity names are properly formatted and relation types follow the expected vocabulary.
-
-## The Three-Tier Memory Architecture
-
-OrchestKit's hooks bridge three storage tiers:
-
-| Tier | Storage | Written By | Read By |
-|------|---------|-----------|---------|
-| **1. Knowledge Graph** | MCP `mcp__memory__*` | `session-summary` (stop), `auto-remember-continuity` (stop) | `memory-context` (prompt) |
-| **2. Local JSONL** | `.claude/memory/*.jsonl` | `memory-writer` | `memory-context-loader` (first prompt) |
-| **3. CC Native** | `MEMORY.md` | High-confidence decisions (>= 0.7) auto-written | Claude Code system prompt (automatic) |
+| Surface | Storage | Written By | Read By |
+|---------|---------|-----------|---------|
+| **Knowledge Graph** | MCP `mcp__memory__*` | `/ork:remember` (and agent MCP calls), validated by `memory-validator` | `/ork:memory search`, agent tool use |
+| **Local JSONL** | `.claude/memory/*.jsonl` | Skills/scripts when used; snapshotted by `pre-compact-saver` | Skill status/viz scripts; compaction recovery |
+| **CC Native** | `MEMORY.md` | Skills/agents via Edit/Write; guarded by `context-file-budget-guard` | Claude Code session-start load (automatic) |
 
 <Callout type="info">
-All three tiers require zero configuration and always work. CC Native memory (Tier 3) is written automatically for high-confidence decisions and persists even without OrchestKit installed.
+There is no OrchestKit posttool writer that auto-promotes high-confidence decisions into MEMORY.md. Use `/ork:remember` (graph) and explicit filesystem memory edits when you want durable native memory.
 </Callout>
 
-## Auto-Remember Continuity
+## Profile Rules (SessionStart)
 
-**Hook:** `stop/auto-remember-continuity` (fire-and-forget)
-
-At session end, this hook reviews the session's key decisions and ensures they are stored for the next session. It acts as a safety net, catching any decisions that were not captured during the session's normal flow.
-
-## Profile Injector
-
-**Hook:** `prompt/profile-injector`
-**Event:** UserPromptSubmit (`once: true`)
-
-On the first prompt, this hook injects the user's profile context (project identity, team conventions, preferred tools) from `.claude/context/identity.json`. This is separate from memory -- it provides static configuration rather than learned decisions.
+Profile materialization runs inside `lifecycle/sync-session-dispatcher` at SessionStart (`materializeProfileRules()`). That is identity and conventions, not decision JSONL injection.
 
 ## Summary: Which Hooks Touch Memory?
 
 | Hook | Event | Direction | Frequency |
 |------|-------|-----------|-----------|
-| `memory-context-loader` | UserPromptSubmit | Read (JSONL) | Once per session |
-| `memory-context` | UserPromptSubmit | Read hint (graph) | Every prompt |
-| `session-summary` | Stop | Write hint (graph via additionalContext) | Once at exit |
-| `memory-fabric-init` | PreToolUse (MCP) | Setup | Once per session |
-| `memory-validator` | PreToolUse (MCP) | Validate | Per MCP call |
-| `graph-queue-sync` | Stop | Write (graph) | Once at exit |
-| `auto-remember-continuity` | Stop | Write (all) | Once at exit |
-| `profile-injector` | UserPromptSubmit | Read (config) | Once per session |
+| `memory-validator` | PreToolUse (MCP) | Validate | Per `mcp__memory__*` call |
+| `sync-write-edit-dispatcher` (`context-file-budget-guard`) | PreToolUse (Write/Edit) | Advise | Per MEMORY.md / CLAUDE.md write |
+| `session-summary` | Stop (async) | Write hint (graph via additionalContext) | After each assistant turn when busy enough; delivery may be delayed |
+| `handoff-writer` | Stop (async) | Read (`.claude/logs/decisions.jsonl`) | After each assistant turn (async) |
+| `pre-compact-saver` | PreCompact | Snapshot (local + logs) | On compaction |
+| `sync-session-dispatcher` | SessionStart | Materialize profile rules | Once per startup |

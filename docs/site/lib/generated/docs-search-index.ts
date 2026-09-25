@@ -268,7 +268,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/hooks/memory-hooks",
     "title": "Memory Bridge and Context Injection",
-    "description": "How OrchestKit injects past decisions into every prompt, captures new decisions automatically, and syncs memory across sessions through the knowledge graph."
+    "description": "How OrchestKit validates graph memory writes, suggests capture on async Stop turns, and guards MEMORY.md size, without a dedicated auto-writer hook."
   },
   {
     "url": "/docs/hooks/overview",
@@ -323,7 +323,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/memory/local-memory",
     "title": "Local Session Persistence",
-    "description": "How .claude/memory/ JSONL files provide offline-first durability, queue management, and session backup for OrchestKit memory."
+    "description": "How .claude/memory/ JSONL files act as optional local artifacts for OrchestKit skills, status, and compaction snapshots."
   },
   {
     "url": "/docs/memory/native-cc-memory",

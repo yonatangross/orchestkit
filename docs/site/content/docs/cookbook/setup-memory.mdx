@@ -11,16 +11,16 @@ You have been working on a project for a week. Over that time you made twenty-pl
 
 Then Monday arrives. You open a new Claude Code session. Claude knows none of it. It suggests session cookies. It reaches for offset pagination. Every conversation starts from zero.
 
-OrchestKit solves this with a **3-tier memory architecture** that stores decisions once and surfaces them automatically in every future session. No manual copy-pasting. No re-explaining your stack. Decisions persist across conversations, projects, and machines.
+OrchestKit solves this with a **3-tier memory architecture**: graph MCP for searchable entities, optional local JSONL artifacts, and Claude Code native MEMORY.md for durable session-start context. Graph recall is on demand (`/ork:memory` or MCP tools). MEMORY.md is loaded by Claude Code when present. Session-end hooks only suggest capture; they do not auto-write MEMORY.md.
 
 ## What You'll Use
 
 | Component | Type | Purpose |
 |---|---|---|
-| `/ork:remember` | Command skill | Store decisions, patterns, and context |
+| `/ork:remember` | Command skill | Store decisions, patterns, and context in the knowledge graph (and optionally filesystem memory) |
 | `/ork:memory` | Command skill | Search, load, sync, visualize stored knowledge |
-| `memory-writer` | Hook (posttool) | Auto-writes high-confidence decisions to CC Native |
-| `memory-context-injector` | Hook (prompt) | Searches graph memory on every prompt submit |
+| `session-summary` | Hook (stop, async) | After each assistant turn (when busy enough), suggests a graph entity capture and nudges `/ork:remember`; async output may arrive on a later turn |
+| `memory-validator` | Hook (pretool) | Validates `mcp__memory__*` tool calls before they run |
 | `mcp__memory__*` | MCP server | Graph database for entities and relations |
 
 ## The 3 Memory Tiers
@@ -30,11 +30,11 @@ Before diving into commands, understand what each tier does and when it activate
 | Tier | Storage | Config | Behavior |
 |---|---|---|---|
 | **1. Graph** | MCP `mcp__memory__*` | None (zero-config) | Stores entities with typed relations. Primary tier. Always available. |
-| **2. Local** | `.claude/memory/*.jsonl` | None (auto-created) | JSONL queue files for session persistence and offline backup. |
-| **3. CC Native** | `~/.claude/projects/*/memory/MEMORY.md` | None (auto-sync) | Injected directly into Claude's system prompt. Survives plugin removal. |
+| **2. Local** | `.claude/memory/*.jsonl` | None (auto-created) | Session artifacts and offline backup surfaces used by skills and compaction snapshots. |
+| **3. CC Native** | `~/.claude/projects/*/memory/MEMORY.md` | None | Loaded by Claude Code at session start. Survives plugin removal. Written by skills/agents, not by a dedicated OrchestKit writer hook. |
 
 <Callout type="info">
-All three tiers require zero configuration. They work the moment you install OrchestKit. Tier 1 (Graph) is the primary storage. Tier 2 adds local durability automatically. Tier 3 (CC Native) is written automatically for high-confidence decisions and persists even without OrchestKit installed.
+Graph and MCP memory require zero configuration once the memory MCP server is available. Local JSONL files appear when something writes them. CC Native MEMORY.md is maintained by Claude Code and by explicit skill or agent edits (for example `/ork:remember` filesystem updates). There is no OrchestKit hook that auto-promotes decisions into MEMORY.md.
 </Callout>
 
 ## Step-by-Step
@@ -183,33 +183,37 @@ Focus on a specific entity or limit relationship depth:
 
 ## Behind the Scenes
 
-Here is what happens invisibly every time you interact with Claude in an OrchestKit session.
+Here is what OrchestKit actually wires for memory today (verified against `src/hooks/hooks.json` and the registered entry maps).
 
-### On Every Prompt Submit
+### On Session Start
 
-The `memory-context-injector` hook fires on the `prompt` lifecycle event. It searches the knowledge graph for entities related to keywords in your prompt. If you type "set up the authentication endpoint," the hook finds your JWT decision and injects it into Claude's context -- before Claude even starts thinking about a response.
+`lifecycle/sync-session-dispatcher` materializes profile and antipattern rules into `.claude/rules/`. Claude Code itself loads project `MEMORY.md` at session start. There is no OrchestKit UserPromptSubmit hook that injects recent JSONL decisions on every prompt.
 
-This is why Claude stops suggesting session cookies after you store the JWT decision. The hook silently provides the relevant context on every prompt.
+### On MCP Memory Calls
 
-### On High-Confidence Decisions
+`pretool/mcp/memory-validator` runs on `mcp__memory__*` PreToolUse. It denies oversized entity (and observation) payloads, warns on missing required fields, and only logs unknown entity types (no warning result). Relation creates check required fields only; there is no relation size check.
 
-The `memory-writer` hook monitors for decisions with confidence >= 0.7. When it detects one, it automatically writes to Tier 3 (CC Native MEMORY.md). This file lives at `~/.claude/projects/<your-project>/memory/MEMORY.md` and is injected into Claude's system prompt for every session -- even sessions that do not use OrchestKit.
+### On Stop (after every assistant turn)
 
-This means your most important decisions survive plugin removal, reinstallation, or upgrades. They are baked into Claude's base context.
+`stop/session-summary` and `stop/handoff-writer` are async Stop hooks. Claude Code fires Stop after every assistant turn, not only when you quit. Their output is delivered asynchronously and may land on a later turn. If you end the session right after a qualifying turn, the suggestion may never reach Claude; if you continue, the nudge can recur.
 
-### On Session End
+When the session has had meaningful work (20 or more tool calls), `session-summary` returns an `additionalContext` suggestion to create a session graph entity, and for high-activity sessions (over 50 tool calls) it nudges you to run `/ork:remember`. It does not write local JSONL or MEMORY.md itself.
 
-The `auto-remember-continuity` hook fires on the `stop` lifecycle event. It captures key decisions and context from the current session and persists them to the local queue (Tier 2), ensuring nothing is lost if the session ends unexpectedly or you forget to run `/ork:remember` manually.
+`handoff-writer` may include recent entries from `.claude/logs/decisions.jsonl` in the handoff note when that file exists.
+
+### Before Compaction
+
+`lifecycle/pre-compact-saver` snapshots local `.claude/memory/*.jsonl` entry counts and recent `.claude/logs/decisions.jsonl` lines into session state for diagnostics. Post-compact recovery does not reinject that snapshot into the model. The saver does not promote decisions into MEMORY.md.
 
 ### The Write Path
 
-When you invoke `/ork:remember`, the skill writes to all configured tiers simultaneously:
+When you invoke `/ork:remember`, the skill's primary path is the knowledge graph. Filesystem MEMORY.md updates are agent-side Edit/Write operations when you choose durable auto-memory scope, not a background hook:
 
 | Tier | Storage | Method |
 |---|---|---|
 | **1. Graph** | Knowledge graph | `mcp__memory__create_entities` + `create_relations` |
-| **2. Local** | `.claude/memory/graph-queue.jsonl` | File append |
-| **3. CC Native** | `MEMORY.md` | Written if confidence >= 0.7 |
+| **2. Local** | `.claude/memory/` artifacts | Written by skills/scripts when used; not auto-flushed by a writer hook |
+| **3. CC Native** | `MEMORY.md` | Claude Code loads it at session start; skills/agents edit it explicitly when asked |
 
 ### Entity and Relation Extraction
 
@@ -226,7 +230,7 @@ Graph memory stores explicit relationships between entities: `"JWT" -> USED_FOR 
 ## Tips
 
 <Callout type="info">
-**Store investigation context before ending a session.** Run `/ork:remember "Session summary: completed X, found Y, next steps Z"` before closing. The `auto-remember-continuity` hook captures some context automatically, but explicit summaries are richer, more reliable, and higher confidence -- meaning they are more likely to reach Tier 3 (CC Native).
+**Store investigation context explicitly.** Run `/ork:remember "Session summary: completed X, found Y, next steps Z"` when you want durable recall. `session-summary` only suggests graph capture via additionalContext on Stop turns (async, after each assistant turn when busy enough); it does not persist MEMORY.md for you.
 </Callout>
 
 <Callout type="info">
@@ -246,7 +250,7 @@ Graph memory stores explicit relationships between entities: `"JWT" -> USED_FOR 
 </Callout>
 
 <Callout type="info">
-**Context budget scales automatically.** On CC 2.1.33+, skill injection budgets scale to 2% of your context window. With a 200K context window you get roughly 1200 tokens for memory injection; with 1M context you get roughly 6000 tokens. OrchestKit uses this budget to inject the most relevant decisions first, ranked by recency and confidence.
+**Load memory explicitly when you need it.** There is no per-prompt OrchestKit injector that ranks and injects graph decisions automatically. Use `/ork:memory load` or `/ork:memory search` (or MCP `search_nodes`) to pull relevant context. Keep MEMORY.md concise so Claude Code session-start loading stays useful.
 </Callout>
 
 ## Next Steps
