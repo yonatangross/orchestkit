@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.93](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.92...v10.0.0-beta.93) (2026-09-25)
+
+
+### Miscellaneous
+
+* **skills:** Opus 5.5 budgets, split create-pr and dream ([#4416](https://github.com/yonatangross/orchestkit/issues/4416)) ([e6388d9](https://github.com/yonatangross/orchestkit/commit/e6388d9d2a2361c6ff74a6a70ff513f668ab4114))
+
 ## [10.0.0-beta.92](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.91...v10.0.0-beta.92) (2026-09-25)
 
 
