@@ -59,3 +59,13 @@ Opus 5.5 "always thinks before it replies, and it decides how much. You don't ne
 Do not add "think step by step" or "show your reasoning" to agent or subagent prompts: "A request to
 reproduce its internal reasoning in the reply can be declined." To change depth, change effort. To get a
 rationale, ask for one: "Explain why you chose this approach in three sentences."
+
+### 7. State a budget next to the finish line
+
+A finish line alone never tells a long run when to give up. Each skill that loads this rule should state
+its cap as `Budget: at most N agents, N iterations, N minutes` (name the caps that apply). Stop and report at
+the finish line or when the next step would exceed a cap, whichever comes first, and say which one stopped the run.
+
+**Incorrect:** a fourth fix pass because the tests are "almost green", past a two-pass cap.
+**Correct:** stop at the cap, report the remaining failure with its evidence, and say what is needed to
+go further.

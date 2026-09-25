@@ -2095,8 +2095,8 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           },
           {
             "num": "4b",
-            "label": "Generate PR Playground",
-            "does": "Generate an interactive HTML playground visualizing the PR's changes. CI validates docs/{branch-name}/*.html exists.",
+            "label": "PR Playground",
+            "does": "On every non-bot PR, after Phase 4: Read(\"references/pr-playground.md\") and follow it (archetype, commit to docs/{branch-dir}/, SHA-pinned Live Preview link in the body).",
             "out": null,
             "tag": null
           },
@@ -2216,6 +2216,13 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "",
             "label": "Pipeline Architecture",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
+            "label": "Finish line and budget",
             "does": "",
             "out": null,
             "tag": null
@@ -3140,20 +3147,6 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
             "tag": null
           },
           {
-            "num": "7",
-            "label": "Plugin Housekeeping",
-            "does": "After memory consolidation, check for orphaned auto-installed plugin dependencies and offer to prune them:",
-            "out": null,
-            "tag": null
-          },
-          {
-            "num": "8",
-            "label": "Stale Project State Hint",
-            "does": "After plugin housekeeping, surface a non-blocking suggestion when stale project state exists. Never execute the purge — only preview it.",
-            "out": null,
-            "tag": null
-          },
-          {
             "num": "9",
             "label": "Cross-Repo Promotion Candidates",
             "does": "A memory pattern that shows up in 2+ projects is a capability that outgrew its repo.",
@@ -3602,7 +3595,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "STEP 0b",
             "label": "Select Orchestration Mode",
-            "does": "Choose Agent Teams (mesh) or Task tool (star). Load Read(\"references/agent-selection.md\") for the selection criteria, cost comparison, and task creation patterns.",
+            "does": "Choose Agent Teams (mesh) or Agent (star, the Agent tool). A Workflow-tool mode is planned (a future workflows/rca-fanout.js for Phase 4 RCA) and is not selectable yet. Load Read(\"references/agent-selection.md\") for the selection criteria, cost comparison, and task creation patterns.",
             "out": null,
             "tag": null
           }

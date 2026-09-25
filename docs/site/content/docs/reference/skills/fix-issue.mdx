@@ -95,6 +95,8 @@ Mirrors the memory-consumer pattern from PR #1889 but read-only. Closes orchestk
 
 **Finish line.** Done means: the root cause is confirmed by a failing test that now passes, the full suite is green, and the PR links the issue. Follow `Read("../../shared/rules/long-run-protocol.md")`: keep going when a step needs no input from the user, stop and ask only when you can't continue without them or before anything destructive, check each subagent's evidence before accepting it, and mark anything you couldn't confirm with where you looked.
 
+Budget: at most 5 RCA agents (Phase 4) and 3 fix-test iterations (one iteration = Phase 6 fix, then Phase 7 validation with the full suite); stop and report at the finish line or the first cap, whichever comes first.
+
 ## CRITICAL: Task Management is MANDATORY (CC 2.1.16)
 
 **BEFORE doing ANYTHING else (after MCP probe), create tasks to track progress:**
@@ -218,7 +220,7 @@ Load `Read("rules/evidence-gathering.md")` for detailed workflow adjustments per
 
 ## STEP 0b: Select Orchestration Mode
 
-Choose **Agent Teams** (mesh) or **Task tool** (star). Load `Read("references/agent-selection.md")` for the selection criteria, cost comparison, and task creation patterns.
+Choose **Agent Teams** (mesh) or **Agent** (star, the Agent tool). A Workflow-tool mode is planned (a future `workflows/rca-fanout.js` for Phase 4 RCA) and is not selectable yet. Load `Read("references/agent-selection.md")` for the selection criteria, cost comparison, and task creation patterns.
 
 ## Service Discovery & Visual Inspection
 
