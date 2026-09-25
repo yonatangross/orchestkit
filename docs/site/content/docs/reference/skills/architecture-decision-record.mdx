@@ -5,7 +5,7 @@ description: "ADR templates in the Nygard format with context, decision, consequ
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
-> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+> **Auto-activated**, this skill loads automatically when Claude detects matching context.
 
 <ContextualSkillSidebar slug="architecture-decision-record" />
 
@@ -302,7 +302,7 @@ Questions covering data architecture, UX impact, and system coherence. Ensures d
 | "Users won't do that" | Ask: what if they DO? |
 | "It's just a small feature" | Ask: how does this grow with 100x users? |
 
-**Incorrect — vague answers, missing failure modes:**
+**Incorrect, vague answers, missing failure modes:**
 ```markdown
 ### Reliability Assessment for: User Tagging
 
@@ -321,7 +321,7 @@ Questions covering data architecture, UX impact, and system coherence. Ensures d
 - API changes: Maybe some
 ```
 
-**Correct — specific answers with failure handling:**
+**Correct, specific answers with failure handling:**
 ```markdown
 ### Reliability Assessment for: User Tagging
 
@@ -345,7 +345,7 @@ Questions covering data architecture, UX impact, and system coherence. Ensures d
 
 ### Key Rules
 
-- Data decisions are **hard to change** — get storage right from the start
+- Data decisions are **hard to change**, get storage right from the start
 - Define **target latency** before choosing implementation approach
 - Every API change needs a **type check** across the full stack
 - Failure handling must be **designed**, not discovered in production
@@ -397,7 +397,7 @@ Ask these questions before committing to any architectural decision. Prevents co
 - **100x scenario:** Need dedicated search (Elasticsearch) for tag filtering
 ```
 
-**Incorrect — vague answers, no scale projection:**
+**Incorrect, vague answers, no scale projection:**
 ```markdown
 ### Scale Assessment for: Document Tagging
 
@@ -410,7 +410,7 @@ Ask these questions before committing to any architectural decision. Prevents co
 - **100x scenario:** We'll deal with it later
 ```
 
-**Correct — specific numbers with breakpoint analysis:**
+**Correct, specific numbers with breakpoint analysis:**
 ```markdown
 ### Scale Assessment for: Document Tagging
 
@@ -425,9 +425,9 @@ Ask these questions before committing to any architectural decision. Prevents co
 
 ### Key Rules
 
-- Answer **every** question with specifics — vague answers indicate insufficient analysis
+- Answer **every** question with specifics, vague answers indicate insufficient analysis
 - Project growth to **1 year minimum** before deciding on storage and indexing
-- Identify the **10x breakpoint** — what component fails first under 10x load
+- Identify the **10x breakpoint**, what component fails first under 10x load
 - Read/write ratio determines **caching strategy** and **consistency model**
 - Exponential growth requires **fundamentally different architecture** than linear
 
@@ -505,7 +505,7 @@ def get_tags(request):
                     [doc_id, user.tenant_id])
 ```
 
-**Incorrect — no authorization, trusts frontend, SQL injection:**
+**Incorrect, no authorization, trusts frontend, SQL injection:**
 ```python
 # WRONG: No auth check, SQL injection, no tenant filter
 def get_tags(request):
@@ -513,7 +513,7 @@ def get_tags(request):
     return db.query(f"SELECT * FROM tags WHERE doc_id = '{doc_id}'")
 ```
 
-**Correct — layered security with tenant isolation:**
+**Correct, layered security with tenant isolation:**
 ```python
 def get_tags(request):
     doc_id = request.params["doc_id"]
@@ -537,7 +537,7 @@ def get_tags(request):
 
 - Tenant isolation must be enforced at the **database query level**, not just UI
 - Authorization checks happen at **every layer**, not just the API gateway
-- Assume **every input is malicious** — validate at system boundaries
+- Assume **every input is malicious**, validate at system boundaries
 - PII requires **encryption at rest** and **retention policy**
 - Every access control decision must be **auditable**
 - "Everyone can access" is almost always the **wrong answer**

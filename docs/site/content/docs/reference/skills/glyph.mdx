@@ -207,7 +207,6 @@ part only when the data has nothing for it. The full template with the
 column widths is `templates/inventory.md`; the worked example is in
 `examples/_featured.md`.
 
-&lt;!-- ascii-lint-disable: density-min --&gt;
 ```
 🖥️  MACINTOSH HD  ·  /System/Volumes/Data              header: icon, subject
 [▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░]                                 headline meter
@@ -248,7 +247,6 @@ This block intentionally shows multiple sets together as a key. Authors
 should use ONE set per real diagram; the `single-set` lint rule enforces
 this on production diagrams.
 
-&lt;!-- ascii-lint-disable: single-set,single-arrow-style,density-min --&gt;
 ```
 default:   ┌─┐ │ └─┘  ├─┤ ┬ ┴ ┼
 emphasis:  ┏━┓ ┃ ┗━┛  ┣━┫ ┳ ┻ ╋
@@ -410,14 +408,14 @@ Phase 4  [........????????]  IRREVERSIBLE        (drop column)
 
 ## ASCII Architecture Visualization Patterns
 
-**Incorrect — flat text descriptions:**
+**Incorrect, flat text descriptions:**
 ```
 The system has a frontend that talks to a backend API which uses
 a database and a cache layer. There's also a message queue for
 async processing.
 ```
 
-**Correct — layered architecture diagram:**
+**Correct, layered architecture diagram:**
 ```
 ┌─────────────────────────────────────────────────────┐
 │                    Load Balancer                      │
@@ -495,7 +493,7 @@ GET  /invoices            InvoiceList.tsx        MISSING  !!
 
 ## ASCII Diagram Fundamentals
 
-**Incorrect — inconsistent characters and alignment:**
+**Incorrect, inconsistent characters and alignment:**
 ```
 +-------+    +-------+
 | Frontend | -> | Backend |
@@ -506,7 +504,7 @@ GET  /invoices            InvoiceList.tsx        MISSING  !!
           +--------+
 ```
 
-**Correct — proper box-drawing characters with alignment:**
+**Correct, proper box-drawing characters with alignment:**
 ```
 Box-Drawing Characters:
 ┌─┐│└─┘  Standard weight
@@ -568,7 +566,7 @@ Frontend ------[Wait]--------[Components]=======[Integration]=+
 
 | Rule | Description |
 |------|-------------|
-| Font | Always monospace — box-drawing characters require fixed-width |
+| Font | Always monospace, box-drawing characters require fixed-width |
 | Weight | Standard (─│) for normal, Heavy (━┃) for emphasis |
 | Arrows | Use ─>, ──>, or │ with v/^ for direction |
 | Alignment | Right-pad labels to match column widths |
@@ -602,7 +600,7 @@ GLYPH   SEMANTIC                    DON'T USE FOR
 ▓▒░     fill: high/med/low          decoration
 ```
 
-### Incorrect — generic decoration
+### Incorrect: generic decoration
 
 ```
 * Build passed
@@ -610,7 +608,7 @@ GLYPH   SEMANTIC                    DON'T USE FOR
 - Linter clean
 ```
 
-### Correct — semantic glyphs
+### Correct: semantic glyphs
 
 ```
 ✓ Build passed
@@ -618,7 +616,7 @@ GLYPH   SEMANTIC                    DON'T USE FOR
 ✓ Linter clean
 ```
 
-### Anti-pattern — repurposing a semantic for decoration
+### Anti-pattern: repurposing a semantic for decoration
 
 ```
 ✓ Item 1
@@ -626,17 +624,17 @@ GLYPH   SEMANTIC                    DON'T USE FOR
 ✓ Item 3
 ```
 
-A list of items isn't passing/failing — `✓` is reserved for pass/completed
+A list of items isn't passing/failing, `✓` is reserved for pass/completed
 states. Use `●` for active items and `○` for inactive/pending ones, or
 plain `-` for an unmarked list.
 
-### Anti-pattern — mixing semantically-loaded glyphs with decoration
+### Anti-pattern: mixing semantically-loaded glyphs with decoration
 
 ```
 ■  Phase 1   ✓  Phase 2   ◉  Phase 3
 ```
 
-`■` and `◉` are not in the vocabulary — they read as decoration. Pick
+`■` and `◉` are not in the vocabulary, they read as decoration. Pick
 exactly one glyph from the table above per slot:
 
 ```
@@ -671,7 +669,6 @@ thin table.
 
 ## Anatomy of a render (the reference shape)
 
-&lt;!-- ascii-lint-disable: density-min --&gt;
 ```
 🖥️  MACINTOSH HD  ·  /System/Volumes/Data
 [▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░]
@@ -743,7 +740,6 @@ Domain icons are chat-only; the PR-body validator does not admit them.
 Use these character sets only; it keeps rendering predictable across
 terminals, GitHub, and CI logs.
 
-&lt;!-- ascii-lint-disable: single-set --&gt;
 ```
 Box drawing:  ┌─┐ │ ┘─└   (light)
               ╔═╗ ║ ╝═╚   (heavy, reserve for top-level section headers)

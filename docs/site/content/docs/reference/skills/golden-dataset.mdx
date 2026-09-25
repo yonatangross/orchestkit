@@ -5,7 +5,7 @@ description: "Golden dataset lifecycle patterns for curation, versioning, qualit
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
-> **Not directly invocable** — no slash command and no model auto-selection. An agent loads it explicitly via `Read()`.
+> **Not directly invocable**, no slash command and no model auto-selection. An agent loads it explicitly via `Read()`.
 
 <ContextualSkillSidebar slug="golden-dataset" />
 
@@ -140,12 +140,12 @@ const result = await dataset.runExperiment({
 | Type | Scores | Use for |
 |---|---|---|
 | `Evaluator` | one item | Per-example quality (faithfulness, relevance) |
-| `RunEvaluator` | the whole run | Aggregate assertions — pass rate, mean score, regression checks |
-| `Evaluation` | — | `{ name, value, comment?, metadata?, dataType?, configId? }` |
+| `RunEvaluator` | the whole run | Aggregate assertions, pass rate, mean score, regression checks |
+| `Evaluation` | - | `{ name, value, comment?, metadata?, dataType?, configId? }` |
 
 A per-item `Evaluator` cannot see the other items, so anything comparative belongs in a
 `RunEvaluator`. `createEvaluatorFromAutoevals` wraps an autoevals scorer instead of hand-writing
-one, and `RegressionError` is thrown when a run regresses against a configured baseline — catch it
+one, and `RegressionError` is thrown when a run regresses against a configured baseline, catch it
 to fail CI on a quality drop rather than only on an exception.
 
 Full JS surface: `monitoring-observability/references/langfuse-js-v5.md`.
@@ -217,13 +217,13 @@ House thresholds these must enforce: `references/ork-delta.md`.
 
 Multi-agent curation pipeline with quality scoring, bias detection, and silver-to-gold promotion.
 
-**Incorrect — adding documents without validation:**
+**Incorrect, adding documents without validation:**
 ```python
 # No quality check, no bias detection, no dedup
 dataset.append({"url": url, "content": content})
 ```
 
-**Correct — 9-phase curation workflow:**
+**Correct, 9-phase curation workflow:**
 
 **Phase 1-2: Input and extraction**
 ```python
@@ -288,8 +288,8 @@ quality_score = (
 | Schema change | Major (X.0.0) |
 
 **Key rules:**
-- Never skip the quality analysis phase — it prevents low-quality entries from degrading evaluations
-- Run bias detection on every addition — dataset contamination is hard to reverse
+- Never skip the quality analysis phase, it prevents low-quality entries from degrading evaluations
+- Run bias detection on every addition, dataset contamination is hard to reverse
 - Use the two-tier system (silver/gold) to let borderline documents prove themselves
 - Always validate URL is canonical (not a placeholder) and check for >80% duplicate similarity
 - Minimum requirements: 2+ domain tags, 3+ test queries per document
@@ -474,7 +474,7 @@ async def curate_with_tracing(url: str, doc_id: str, consensus: CurationConsensu
     return {"decision": consensus.decision, "score": consensus.quality_score}
 ```
 
-**Incorrect — Sequential agent execution:**
+**Incorrect, Sequential agent execution:**
 ```python
 # Sequential - 4x slower
 quality_result = await analyze_quality(content)
@@ -483,7 +483,7 @@ domain_result = await analyze_domain(content)
 query_result = await generate_queries(content)
 ```
 
-**Correct — Parallel agent execution:**
+**Correct, Parallel agent execution:**
 ```python
 # Parallel - all agents run concurrently
 quality_task = Agent(subagent_type="ork:code-quality-reviewer", prompt=quality_prompt, run_in_background=True)
@@ -574,13 +574,13 @@ required_queries: 3       # At least 3 test queries
 2. Run semantic similarity against existing document embeddings
 3. Warn if >80% similar to existing document
 
-**Provenance Tracking -- always record:**
+**Provenance Tracking, always record:**
 - Source URL (canonical)
 - Curation date
 - Agent scores (for audit trail)
 - Langfuse trace ID
 
-**Incorrect — Placeholder URL:**
+**Incorrect, Placeholder URL:**
 ```python
 # Missing real source URL
 analysis = Analysis(
@@ -589,7 +589,7 @@ analysis = Analysis(
 )
 ```
 
-**Correct — Real canonical URL:**
+**Correct, Real canonical URL:**
 ```python
 # Real source for re-fetching and validation
 analysis = Analysis(
@@ -599,7 +599,7 @@ analysis = Analysis(
 ```
 
 **Key rules:**
-- Never use placeholder URLs -- always store real canonical source URLs
+- Never use placeholder URLs, always store real canonical source URLs
 - Require minimum 2 domain tags and 3 test queries per entry
 - Score all 4 quality dimensions before inclusion decision
 - Track provenance for full audit trail
@@ -716,12 +716,12 @@ async def verify_golden_dataset() -> dict:
 ```
 
 **Best Practices:**
-1. **Version control backups** -- commit JSON to git for history and diffs
-2. **Validate before deployment** -- run verify before production changes
-3. **Test restore in staging** -- never test restore in production first
-4. **Document changes** -- track additions/removals in metadata
+1. **Version control backups**: commit JSON to git for history and diffs
+2. **Validate before deployment**: run verify before production changes
+3. **Test restore in staging**: never test restore in production first
+4. **Document changes**: track additions/removals in metadata
 
-**Incorrect — Missing URL validation:**
+**Incorrect, Missing URL validation:**
 ```python
 # No URL contract enforcement
 analysis.url = url  # Could be placeholder
@@ -729,7 +729,7 @@ session.add(analysis)
 await session.commit()
 ```
 
-**Correct — Enforcing URL contract:**
+**Correct, Enforcing URL contract:**
 ```python
 # Validate before saving
 valid, msg = validate_url(url)
@@ -743,7 +743,7 @@ await session.commit()
 
 **Key rules:**
 - Always use JSON backup for version control and portability
-- Never store placeholder URLs -- enforce the URL contract
+- Never store placeholder URLs, enforce the URL contract
 - Run all 4 integrity checks (counts, URLs, embeddings, orphans) after every restore
 - SQL dumps for local snapshots only, not version control
 
@@ -862,7 +862,7 @@ poetry run python scripts/backup_golden_dataset.py restore --replace
 poetry run python scripts/backup_golden_dataset.py restore
 ```
 
-**Incorrect — Storing embeddings in backup:**
+**Incorrect, Storing embeddings in backup:**
 ```python
 # Embedding vectors bloat backup file
 backup_data = {
@@ -873,7 +873,7 @@ backup_data = {
 }
 ```
 
-**Correct — Regenerate embeddings on restore:**
+**Correct, Regenerate embeddings on restore:**
 ```python
 # Exclude embeddings from backup
 backup_data = {
@@ -889,7 +889,7 @@ chunk.embedding = embedding  # Fresh with current model
 ```
 
 **Key rules:**
-- Always regenerate embeddings on restore -- never store them in backup
+- Always regenerate embeddings on restore, never store them in backup
 - Commit backups every 10 analyses to avoid huge transactions
 - Verify counts match metadata after every restore
 - Test restore procedures in staging before production
@@ -1050,7 +1050,7 @@ poetry run python scripts/data/add_to_golden_dataset.py check-duplicate \
 poetry run python scripts/data/add_to_golden_dataset.py coverage
 ```
 
-**Incorrect — Unbalanced difficulty distribution:**
+**Incorrect, Unbalanced difficulty distribution:**
 ```python
 # All queries marked "easy"
 queries = [
@@ -1060,7 +1060,7 @@ queries = [
 ]
 ```
 
-**Correct — Balanced difficulty distribution:**
+**Correct, Balanced difficulty distribution:**
 ```python
 # Mix of difficulty levels
 queries = [

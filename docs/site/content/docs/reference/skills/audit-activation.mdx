@@ -16,11 +16,11 @@ description: "Audits sub-agent activation from explicit consumer telemetry roots
 
 # audit-activation
 
-Reports whether OrchestKit's specialized sub-agents are actually being activated, from **real spawn telemetry** — not vibes. Scope is agent *activation*, not skill *quality*.
+Reports whether OrchestKit's specialized sub-agents are actually being activated, from **real spawn telemetry**, not vibes. Scope is agent *activation*, not skill *quality*.
 
-It answers: "Do my specialized agents get spawned, or does the model default to generic Explore/general-purpose?" Read-only — it never edits agents.
+It answers: "Do my specialized agents get spawned, or does the model default to generic Explore/general-purpose?" Read-only, it never edits agents.
 
-> **Why this exists:** a 2026-06 audit found only ~14% of agent spawns hit the 36-agent catalog vs ~74% generic, with 17/36 agents dormant — and that agents fire ~1:1 with how often a high-traffic skill names them via `subagent_type=`. Description rewrites ("use proactively") were A/B-tested and gave Δ0, so this skill measures **wiring + usage**, not description prose. See `docs/feat--activation-audit/`.
+> **Why this exists:** a 2026-06 audit found only ~14% of agent spawns hit the 36-agent catalog vs ~74% generic, with 17/36 agents dormant, and that agents fire ~1:1 with how often a high-traffic skill names them via `subagent_type=`. Description rewrites ("use proactively") were A/B-tested and gave Δ0, so this skill measures **wiring + usage**, not description prose. See `docs/feat--activation-audit/`.
 
 ## Quick Reference
 
@@ -45,7 +45,7 @@ TaskUpdate(taskId="4", addBlockedBy=["3"])
 
 ## Workflow
 
-1. **Run the script FIRST** — every audit starts by running (or, when execution is impossible, explicitly referencing) the deterministic collector:
+1. **Run the script FIRST**: every audit starts by running (or, when execution is impossible, explicitly referencing) the deterministic collector:
 
    ```bash
    bash "${CLAUDE_SKILL_DIR}/scripts/run-activation-audit.sh" \
@@ -55,20 +55,20 @@ TaskUpdate(taskId="4", addBlockedBy=["3"])
    ```
 
    It resolves the catalog beside its source or installed script, while every consumer telemetry root is explicit. It reports attempts, starts, and stop-feed completions separately. Never eyeball JSONL by hand when the script exists.
-2. **Inventory** — let the script resolve its own source or installed `agents/` catalog. Do not point it at a consumer project's agent directory.
-3. **Read telemetry** — `.claude/logs/subagent-spawns.jsonl` carries pretool intent and start events. Triangulate it with the restored global `~/.claude/analytics/agent-usage.jsonl` stop feed when available. The streams have no stable common event ID, so never add them together or infer unique spawns.
-4. **Compute** — all checks from `Read("rules/activation-checks.md")`; the Report Contract below lists the mandatory ones.
-5. **Classify** — bucket every agent using the Four Buckets below (full procedure: `Read("rules/activation-status.md")`).
-6. **Render** — output per `Read("references/output-format.md")`, satisfying the Report Contract.
+2. **Inventory**: let the script resolve its own source or installed `agents/` catalog. Do not point it at a consumer project's agent directory.
+3. **Read telemetry**: `.claude/logs/subagent-spawns.jsonl` carries pretool intent and start events. Triangulate it with the restored global `~/.claude/analytics/agent-usage.jsonl` stop feed when available. The streams have no stable common event ID, so never add them together or infer unique spawns.
+4. **Compute**: all checks from `Read("rules/activation-checks.md")`; the Report Contract below lists the mandatory ones.
+5. **Classify**: bucket every agent using the Four Buckets below (full procedure: `Read("rules/activation-status.md")`).
+6. **Render**: output per `Read("references/output-format.md")`, satisfying the Report Contract.
 
 ## Report Contract (every audit MUST include all six)
 
-1. **Data-source line (first line of the report)** — name `scripts/run-activation-audit.sh`, every explicit consumer `.claude/logs/subagent-spawns.jsonl` root, the UTC window, and the spawn coverage state (`observed`, `missing`, `empty`, or `partial`). State whether `~/.claude/analytics/agent-usage.jsonl` was supplied as a stop feed. A report that presents numbers without these coverage facts is invalid.
-2. **Spawn split** — generic (Explore/general-purpose/Plan) vs **ork-catalog** vs other-plugin, as **counts AND percentages** (e.g. "412 generic (74%) / 78 ork-catalog (14%) / 67 other (12%)"). Never percentages alone.
-3. **Concentration** — the **top-5 agents' share of all catalog spawns** as a percentage (e.g. "top-5 = 81% of catalog spawns"), plus the top-5 list with fire counts.
-4. **Observed-zero-start list** — only when spawn coverage is `observed`, enumerate every catalog agent with zero start events in the supplied roots, one per line with its reference count and bucket. This is not an estate-wide or lifetime dormancy claim. Do not render the list when coverage is missing, empty, or partial.
-5. **Window caveat** — state that observed-zero-start names are absent only from the supplied roots and UTC window. They are a routing signal, not proof of zero estate-wide or lifetime use.
-6. **Four-bucket classification table** (below) + **fix recommendations** — wiring changes only (see Hard Rules).
+1. **Data-source line (first line of the report)**: name `scripts/run-activation-audit.sh`, every explicit consumer `.claude/logs/subagent-spawns.jsonl` root, the UTC window, and the spawn coverage state (`observed`, `missing`, `empty`, or `partial`). State whether `~/.claude/analytics/agent-usage.jsonl` was supplied as a stop feed. A report that presents numbers without these coverage facts is invalid.
+2. **Spawn split**: generic (Explore/general-purpose/Plan) vs **ork-catalog** vs other-plugin, as **counts AND percentages** (e.g. "412 generic (74%) / 78 ork-catalog (14%) / 67 other (12%)"). Never percentages alone.
+3. **Concentration**: the **top-5 agents' share of all catalog spawns** as a percentage (e.g. "top-5 = 81% of catalog spawns"), plus the top-5 list with fire counts.
+4. **Observed-zero-start list**: only when spawn coverage is `observed`, enumerate every catalog agent with zero start events in the supplied roots, one per line with its reference count and bucket. This is not an estate-wide or lifetime dormancy claim. Do not render the list when coverage is missing, empty, or partial.
+5. **Window caveat**: state that observed-zero-start names are absent only from the supplied roots and UTC window. They are a routing signal, not proof of zero estate-wide or lifetime use.
+6. **Four-bucket classification table** (below) + **fix recommendations**, wiring changes only (see Hard Rules).
 
 ## Classification: the Four Buckets (`rules/activation-status.md`)
 
@@ -76,23 +76,23 @@ Bucket by **reference counts**, never by description quality. For each observed-
 
 | Bucket | Condition | Action |
 |--------|-----------|--------|
-| **ACTIVE** | fired ≥1× in the telemetry window | none — it works |
+| **ACTIVE** | fired ≥1× in the telemetry window | none, it works |
 | **MIS-TRIGGERED** | observed zero starts, has references but no real `subagent_type=` spawn from a busy skill | wire a spawn from a high-traffic skill |
 | **NICHE** | observed zero starts, rare-by-nature domain (design, multimodal, perf, IaC, security-LLM) AND wired somewhere | keep - low use expected |
 | **DEAD** | observed zero starts AND **zero references in ANY skill or agent** | prune candidate |
 
-**DEAD requires zero references anywhere** — an agent with even one reference is never DEAD; it is mis-triggered or niche. Only DEAD agents are prune candidates.
+**DEAD requires zero references anywhere**: an agent with even one reference is never DEAD; it is mis-triggered or niche. Only DEAD agents are prune candidates.
 
 ## Hard Rules
 
-- **Never recommend rewriting agent descriptions.** A/B-tested: description rewrites gave Δ0 routing benefit. Dormancy is a **skill-wiring problem** — the fix is always adding a `subagent_type=ork:<name>` spawn from a high-traffic skill (e.g. implement, cover, review-pr), never prose changes.
+- **Never recommend rewriting agent descriptions.** A/B-tested: description rewrites gave Δ0 routing benefit. Dormancy is a **skill-wiring problem**, the fix is always adding a `subagent_type=ork:<name>` spawn from a high-traffic skill (e.g. implement, cover, review-pr), never prose changes.
 - **Classify by reference count, not description quality.** The grep above is the evidence; "the description is vague" is not.
-- **State the telemetry window, supplied roots, and coverage state in EVERY answer** — including classification-only or prune-decision answers. Observed-zero-start is never an estate-wide dormancy claim.
+- **State the telemetry window, supplied roots, and coverage state in EVERY answer**: including classification-only or prune-decision answers. Observed-zero-start is never an estate-wide dormancy claim.
 - **Keep event semantics separate.** Pretool is attempted intent, `source:start` is started activation, and `agent-usage.jsonl` is a stop/completion observation. Cite all supplied sources and never sum them into a unique-spawn claim.
 - **Answer with the report itself, never with only a description of the process.** Even when you cannot execute the script in the current context, render the full contract-format report (state which numbers are from the latest available run vs illustrative).
 - Read-only: this skill never edits agents.
 
-## Example report shape (illustrative numbers — imitate the FORM exactly)
+## Example report shape (illustrative numbers: imitate the FORM exactly)
 
 ```markdown
 Data: scripts/run-activation-audit.sh over /consumer/.claude/logs/subagent-spawns.jsonl (window: 2026-05-23T00:00:00Z to 2026-07-14T00:00:00Z; coverage: observed)
@@ -130,11 +130,11 @@ After this audit, run the deeper experiment if you suspect descriptions: `docs/f
 
 ## Related Skills
 
-- `telemetry-inspect` — validates the telemetry data-plane this skill reads from
-- `analytics` — raw usage queries across projects
-- `doctor` — broader plugin health (manifests, hooks, memory budget)
+- `telemetry-inspect`: validates the telemetry data-plane this skill reads from
+- `analytics`: raw usage queries across projects
+- `doctor`: broader plugin health (manifests, hooks, memory budget)
 
-> Eval note: this skill is direct-only (`disable-model-invocation: true`), so quality evals run in TIER-1 unit mode (`--force-skill`) — routed evals are impossible by construction.
+> Eval note: this skill is direct-only (`disable-model-invocation: true`), so quality evals run in TIER-1 unit mode (`--force-skill`), routed evals are impossible by construction.
 
 
 ---
@@ -152,15 +152,15 @@ What to compute for the activation audit. Explicit consumer roots provide the sp
 
 Classify every `source:start` event's `subagent_type` into one of three buckets:
 
-- **generic CC** — `Explore`, `general-purpose`, `Plan`, `workflow-subagent`, `statusline-setup`
-- **ork catalog** — name (minus the configured namespace prefix) matches a file in the script-resolved catalog
-- **other-plugin** — anything else (`candlekeep-cloud:*`, `claude-code-guide`, `hq-ext:*`)
+- **generic CC**: `Explore`, `general-purpose`, `Plan`, `workflow-subagent`, `statusline-setup`
+- **ork catalog**: name (minus the configured namespace prefix) matches a file in the script-resolved catalog
+- **other-plugin**: anything else (`candlekeep-cloud:*`, `claude-code-guide`, `hq-ext:*`)
 
 Report each as count + % of total. A healthy catalog is NOT dominated by generic.
 
-**Incorrect** — counting only ork spawns and reporting "20 agents fired" with no denominator (looks fine; hides that generic did 74%).
+**Incorrect**: counting only ork spawns and reporting "20 agents fired" with no denominator (looks fine; hides that generic did 74%).
 
-**Correct** — `generic 690 (74%) · ork 130 (14%) · other 107 (11%)` — the ratio is the finding.
+**Correct**: `generic 690 (74%) · ork 130 (14%) · other 107 (11%)`, the ratio is the finding.
 
 ## 2. Per-agent event counts + observed-zero-start set
 
@@ -172,7 +172,7 @@ Report per-agent attempted, started, and completed counts. `fires` is a backward
 
 ## 4. Skill-naming cross-check (the root-cause signal)
 
-For each agent, count how many `src/skills/**/SKILL.md` reference it via a `subagent_type=` spawn for `ork:<name>` (or an `agent: <name>` field). Agents fire ~1:1 with this count — an agent named by 0-1 skills will be dormant regardless of its description. This is what distinguishes "mis-triggered" from "niche".
+For each agent, count how many `src/skills/**/SKILL.md` reference it via a `subagent_type=` spawn for `ork:<name>` (or an `agent: <name>` field). Agents fire ~1:1 with this count, an agent named by 0-1 skills will be dormant regardless of its description. This is what distinguishes "mis-triggered" from "niche".
 
 ```bash
 grep -rl "subagent_type=\"ork:${name}\"\|subagent_type: ork:${name}" src/skills/ | wc -l
@@ -190,7 +190,7 @@ Bucket each agent only after the collector reports `coverage.spawn.state: "obser
 
 | Bucket | Condition | Action |
 |--------|-----------|--------|
-| **ACTIVE** | fired ≥1× in the telemetry window | none — it works |
+| **ACTIVE** | fired ≥1× in the telemetry window | none, it works |
 | **MIS-TRIGGERED** | observed zero starts, but only referenced as a table row / narrative mention / deep-team member - has a real `subagent_type=` spawn in 0-1 high-traffic skills | wire a spawn from a busy skill (fix) |
 | **NICHE** | observed zero starts, legitimately specialized + rarely-needed domain (design, multimodal, perf, IaC, security-LLM), and is wired into at least one relevant skill | keep - low use is expected |
 | **DEAD** | observed zero starts AND no references in ANY skill or agent (truly unreachable) | prune candidate |
@@ -199,26 +199,26 @@ Bucket each agent only after the collector reports `coverage.spawn.state: "obser
 
 - **RARE-DOMAIN set** (low use is inherently expected): design (system/context/tokens), multimodal/media, frontend-perf, IaC/infra, deployment, security-LLM/AI-safety, demo, UI-annotation. An agent whose primary domain is in this set is a NICHE candidate.
 - **WIRED** = referenced by ANY skill or agent in a way that can surface it: a real `subagent_type=`/`agent:` spawn, **OR** membership in an agent-team / agent-selection map / escalation table. Narrative-only prose mentions do NOT count as wired.
-- **REAL BUSY-SKILL SPAWN** = a `subagent_type=ork:<name>` (or `agent: <name>`) issued by a *dispatchable* skill — NOT one whose frontmatter is `user-invocable: false` + `disable-model-invocation: true` (a doc skill can't dispatch).
+- **REAL BUSY-SKILL SPAWN** = a `subagent_type=ork:<name>` (or `agent: <name>`) issued by a *dispatchable* skill, NOT one whose frontmatter is `user-invocable: false` + `disable-model-invocation: true` (a doc skill can't dispatch).
 
 ## Decision procedure (per observed-zero-start agent; stop at the first match)
 
 1. Count references: `grep -rl "ork:<name>\|<name>" src/skills/ src/agents/`. If **0 references anywhere → DEAD** (prune candidate).
-2. **Is its domain in the RARE-DOMAIN set AND is it WIRED?** → **NICHE** (keep — low use expected). Check this BEFORE step 3: a rare-domain agent is niche even if its only wiring is team/selection-map membership, not a busy-skill spawn.
-3. Otherwise (non-rare domain) — has refs but **no REAL BUSY-SKILL SPAWN** → **MIS-TRIGGERED** (wire one from a high-traffic skill).
+2. **Is its domain in the RARE-DOMAIN set AND is it WIRED?** → **NICHE** (keep, low use expected). Check this BEFORE step 3: a rare-domain agent is niche even if its only wiring is team/selection-map membership, not a busy-skill spawn.
+3. Otherwise (non-rare domain), has refs but **no REAL BUSY-SKILL SPAWN** → **MIS-TRIGGERED** (wire one from a high-traffic skill).
 4. Otherwise (non-rare domain WITH a real busy-skill spawn but still observed at zero starts) -> **MIS-TRIGGERED** if the spawn path is itself rarely-run; note the path.
 
 > Ordering matters: step 2 (rare-domain NICHE) is checked before the mis-triggered test, so niche-domain agents (IaC, multimodal, security-LLM, frontend-perf) are not mislabeled mis-triggered just because they lack a busy-skill spawn.
 
 ## Hard rules
 
-- **Never bucket on description quality.** A/B testing showed description rewrites give Δ0 routing benefit — dormancy is a wiring problem, not a prose problem.
+- **Never bucket on description quality.** A/B testing showed description rewrites give Δ0 routing benefit, dormancy is a wiring problem, not a prose problem.
 - **Observed zero starts = absent from supplied roots in the UTC window**, which may have gaps. State coverage and window; treat it as a routing signal, not proof of estate-wide zero.
-- **Watch near-duplicates** — two agents covering the same domain (e.g. `security-layer-auditor` vs `security-auditor`) trend toward DEAD; flag for consolidation before pruning.
+- **Watch near-duplicates**: two agents covering the same domain (e.g. `security-layer-auditor` vs `security-auditor`) trend toward DEAD; flag for consolidation before pruning.
 
-**Incorrect** — "ai-safety-auditor never fired and its description is terse → prune."
+**Incorrect**: "ai-safety-auditor never fired and its description is terse → prune."
 
-**Correct** — "ai-safety-auditor never fired BUT is wired into the security-audit team and LLM-safety is a rare task → NICHE, keep."
+**Correct**: "ai-safety-auditor never fired BUT is wired into the security-audit team and LLM-safety is a rare task → NICHE, keep."
 
 
 

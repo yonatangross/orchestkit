@@ -1,15 +1,15 @@
 ---
 title: "Prioritization"
-description: "Prioritization frameworks — RICE, WSJF, ICE, MoSCoW, and opportunity cost scoring for backlog ranking. Use when prioritizing features, comparing initiatives, justifying roadmap decisions, or evaluating trade-offs between competing work items."
+description: "Prioritization frameworks, RICE, WSJF, ICE, MoSCoW, and opportunity cost scoring for backlog ranking. Use when prioritizing features, comparing initiatives, justifying roadmap decisions, or evaluating trade-offs between competing work items."
 ---
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
-> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+> **Auto-activated**, this skill loads automatically when Claude detects matching context.
 
 <ContextualSkillSidebar slug="prioritization" />
 
-> **Prioritization** Prioritization frameworks — RICE, WSJF, ICE, MoSCoW, and opportunity cost scoring for backlog ranking. Use when prioritizing features, comparing initiatives, justifying roadmap decisions, or evaluating trade-offs between competing work items.
+> **Prioritization** Prioritization frameworks, RICE, WSJF, ICE, MoSCoW, and opportunity cost scoring for backlog ranking. Use when prioritizing features, comparing initiatives, justifying roadmap decisions, or evaluating trade-offs between competing work items.
 
 
 # Prioritization Frameworks
@@ -170,12 +170,12 @@ See [references/rice-scoring-guide.md](references/rice-scoring-guide.md) for det
 
 ## Related Skills
 
-- `product-frameworks` — Full PM toolkit (value prop, market sizing, competitive analysis, user research, business case)
-- `write-prd` — Convert prioritized features into product requirements documents
-- `product-analytics` — Define and instrument the metrics that feed RICE reach/impact scores
-- `okr-design` — Set the objectives that determine which KPIs drive RICE impact scoring
-- `market-sizing` — TAM/SAM/SOM analysis that informs strategic priority
-- `competitive-analysis` — Competitor context that raises or lowers WSJF time criticality scores
+- `product-frameworks`: Full PM toolkit (value prop, market sizing, competitive analysis, user research, business case)
+- `write-prd`: Convert prioritized features into product requirements documents
+- `product-analytics`: Define and instrument the metrics that feed RICE reach/impact scores
+- `okr-design`: Set the objectives that determine which KPIs drive RICE impact scoring
+- `market-sizing`: TAM/SAM/SOM analysis that informs strategic priority
+- `competitive-analysis`: Competitor context that raises or lowers WSJF time criticality scores
 
 ---
 
@@ -216,7 +216,7 @@ A 2x2 matrix for rapid feature sequencing based on expected value and required e
 
 | Quadrant | Action | Example |
 |----------|--------|---------|
-| **Do First** | Ship immediately -- high ROI | Fix broken onboarding step |
+| **Do First** | Ship immediately, high ROI | Fix broken onboarding step |
 | **Quick Win** | Batch into next sprint | Add CSV export button |
 | **Do Next** | Plan and resource properly | Platform migration |
 | **Consider** | Challenge whether to do at all | Redesign rarely-used admin page |
@@ -262,7 +262,7 @@ $X/month (quantified) + [qualitative strategic cost]
 
 ## Trade-Off Flagging Template
 
-When two options compete for the same resources, surface the trade-off explicitly for human decision-makers. Do not make the call -- present the data.
+When two options compete for the same resources, surface the trade-off explicitly for human decision-makers. Do not make the call, present the data.
 
 ```markdown
 ## Trade-Off: [Decision Title]
@@ -293,12 +293,12 @@ Human decides. Key factors to weigh:
 
 When features have dependencies or shared resources, use these sequencing rules:
 
-1. **Highest cost-of-delay first** -- unless blocked by dependencies
-2. **Unblock others early** -- a low-value enabler that unblocks 3 high-value items ships first
-3. **Reduce risk early** -- unknowns first, known work later (fail fast)
-4. **Batch small items** -- group Quick Wins into a single sprint to clear the backlog
+1. **Highest cost-of-delay first**: unless blocked by dependencies
+2. **Unblock others early**: a low-value enabler that unblocks 3 high-value items ships first
+3. **Reduce risk early**: unknowns first, known work later (fail fast)
+4. **Batch small items**: group Quick Wins into a single sprint to clear the backlog
 
-**Incorrect -- prioritizing by gut feel:**
+**Incorrect, prioritizing by gut feel:**
 ```markdown
 Priority list:
 1. AI search (CEO wants it)
@@ -306,7 +306,7 @@ Priority list:
 3. CSV import (seems easy)
 ```
 
-**Correct -- opportunity cost matrix with explicit trade-offs:**
+**Correct, opportunity cost matrix with explicit trade-offs:**
 ```markdown
 Priority list (by cost of delay):
 1. CSV import -- $30K/month blocked deals, 1 week effort (Do First)
@@ -432,14 +432,14 @@ Categorize features by customer satisfaction impact.
 | Analysis paralysis | Set time limits on scoring sessions |
 | Inconsistent scales | Document and share scoring guidelines |
 
-**Incorrect — RICE without documented assumptions:**
+**Incorrect, RICE without documented assumptions:**
 ```markdown
 Feature A: RICE = 8,000
 Feature B: RICE = 12,500
 Priority: B, then A
 ```
 
-**Correct — RICE with transparent scoring:**
+**Correct, RICE with transparent scoring:**
 ```markdown
 Feature B: Smart search with AI
 - Reach: 50,000 users/quarter (active searchers)
@@ -562,11 +562,11 @@ Qualitative prioritization for scope management.
 ## Practical Tips
 
 1. **Calibrate together**: Score several items as a team to align understanding
-2. **Revisit regularly**: Priorities shift -- rescore quarterly
+2. **Revisit regularly**: Priorities shift, rescore quarterly
 3. **Document assumptions**: Why did you give that Impact score?
 4. **Combine frameworks**: Use ICE for quick triage, RICE for final decisions
 
-**Incorrect — MoSCoW without viable Must-Have set:**
+**Incorrect, MoSCoW without viable Must-Have set:**
 ```markdown
 Must Have:
 - User auth, CRUD, search, export, AI features,
@@ -575,7 +575,7 @@ Must Have:
 [Product not viable with just Must-Have items]
 ```
 
-**Correct — Must-Have delivers viable product:**
+**Correct, Must-Have delivers viable product:**
 ```markdown
 Must Have (60% of effort):
 - User authentication

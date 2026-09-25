@@ -5,7 +5,7 @@ description: "Advanced Vite 8 patterns including Rolldown-powered builds, advanc
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
-> **Not directly invocable** — no slash command and no model auto-selection. An agent loads it explicitly via `Read()`.
+> **Not directly invocable**, no slash command and no model auto-selection. An agent loads it explicitly via `Read()`.
 
 <ContextualSkillSidebar slug="vite-advanced" />
 
@@ -154,7 +154,7 @@ export default defineConfig({
 })
 ```
 
-**Correct (Vite 8+ — advancedChunks):**
+**Correct (Vite 8+, advancedChunks):**
 ```typescript
 export default defineConfig({
   build: {
@@ -188,7 +188,7 @@ export default defineConfig({
 })
 ```
 
-**Correct (Vite 7 — manualChunks):**
+**Correct (Vite 7, manualChunks):**
 ```typescript
 export default defineConfig({
   build: {
@@ -207,9 +207,9 @@ export default defineConfig({
 **Key rules:**
 - Separate framework deps into a dedicated vendor chunk with the highest priority so it caches independently from app code.
 - Add a catch-all `vendor` group at lowest priority with `maxSize` to prevent oversized bundles.
-- Use `minShareCount` for shared UI libraries — only extract when imported by 2+ routes.
+- Use `minShareCount` for shared UI libraries, only extract when imported by 2+ routes.
 - When migrating Vite 7 to 8, convert package arrays to regex and make implicit ordering explicit via `priority`.
-- `manualChunks` is deprecated in Vite 8 — prefer `advancedChunks` for new projects.
+- `manualChunks` is deprecated in Vite 8, prefer `advancedChunks` for new projects.
 
 Reference: full `advancedChunks` option list at https://vite.dev/guide/rolldown; house
 chunk-naming and verification rules in `references/ork-delta.md`.
@@ -262,7 +262,7 @@ export default defineConfig({
 })
 ```
 
-**Correct — environment-aware plugins:**
+**Correct, environment-aware plugins:**
 ```typescript
 export function envAwarePlugin(): Plugin {
   return {
@@ -279,7 +279,7 @@ export function envAwarePlugin(): Plugin {
 
 **Key rules:**
 - Put only shared settings at the top level; environment-specific settings go under `environments.client`, `environments.ssr`, etc.
-- Each environment gets its own module graph and build output — never share `outDir` between environments.
+- Each environment gets its own module graph and build output, never share `outDir` between environments.
 - Use `this.environment` in hooks to branch per environment; use `perEnvironmentPlugin()` to skip environments entirely.
 - For edge runtimes, set `resolve.noExternal: true` and `resolve.conditions` for edge-specific package exports.
 - Vite 7 requires Node.js 20.19+ or 22.12+ for `require(esm)` support.
@@ -355,7 +355,7 @@ export default defineConfig({
 ```
 
 **Key rules:**
-- Always externalize peer dependencies via `rolldownOptions.external` — never bundle them.
+- Always externalize peer dependencies via `rolldownOptions.external`, never bundle them.
 - Provide dual formats: ESM (`module`) for bundlers and UMD/CJS (`main`) for legacy consumers; use `exports` map.
 - Generate TypeScript declarations with `vite-plugin-dts`; set `"types"` in top-level and each `exports` entry.
 - Mark CSS in `"sideEffects"` so bundlers preserve styles during tree-shaking.
@@ -416,7 +416,7 @@ export function virtualDataPlugin(data: Record<string, unknown>): Plugin {
 }
 ```
 
-**Correct — enforce and apply modifiers:**
+**Correct, enforce and apply modifiers:**
 ```typescript
 export function preProcessPlugin(): Plugin {
   return {

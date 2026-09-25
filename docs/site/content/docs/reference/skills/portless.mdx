@@ -5,7 +5,7 @@ description: "Named HTTPS .localhost URLs with portless (v0.15.x). Eliminates po
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-green">low</span>
 
-> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+> **Auto-activated**, this skill loads automatically when Claude detects matching context.
 
 <ContextualSkillSidebar slug="portless" />
 
@@ -20,29 +20,29 @@ Named `.localhost` URLs for local development. Replaces `localhost:3000` with `h
 
 ## New in 2026-04 → 2026-07 (portless 0.10.x → 0.15.0)
 
-- **`portless doctor` (0.15.0)** — read-only diagnostics that check Node.js, the state directory, proxy liveness, route entries, hostname resolution, HTTPS CA trust, and LAN prerequisites, then print suggested fixes. Run it before filing an issue or when a `.localhost` URL won't resolve.
-- **HTTP/2 Host forwarding fix (0.15.0)** — the proxy now forwards the HTTP/2 `:authority` as `Host` to HTTP/1.1 backends, fixing apps that read `Host` and previously saw `127.0.0.1` for browser traffic. `--force` takeover cleanup now removes only routes still owned by the exiting process, so a forced takeover no longer deregisters the new owner's route.
-- **`--ngrok` flag (0.14.0)** — share an app publicly via ngrok while local access keeps its `.localhost` URL. Pair with the existing Tailscale/Funnel options when you need a public URL without giving up the named-subdomain dev experience.
-- **Node.js 24+ required (0.13.1, BREAKING)** — the proxy and CLI now require Node.js 24 or newer; older runtimes are unsupported. This release also hardens startup-service persistence so `.localhost` URLs survive reboot reliably.
-- **State directory moved to `~/.portless` (0.11, BREAKING)** — state relocated from scattered/temp locations to `~/.portless`; override with `PORTLESS_STATE_DIR`. Old state from pre-0.11 installs is not migrated automatically.
-- **OS startup service (0.13.0)** — `portless service install` / `service status` / `service uninstall` register a native startup service for the HTTPS proxy across macOS launchd, Linux systemd, and Windows Task Scheduler. `.localhost` URLs survive reboot without a manual `portless proxy start`. `portless clean` removes the service alongside CA + hosts cleanup.
-- **Tailscale readiness preflight (0.13.0)** — `--tailscale` and `--funnel` now validate Tailscale HTTPS + Funnel prerequisites before starting the child process, surfacing actionable errors instead of hanging during registration.
-- **Tailscale integration (0.12.0)** — `--tailscale` shares your app over your tailnet with automatic HTTPS on port 443; `--funnel` exposes it publicly via Tailscale Funnel. Apps receive `PORTLESS_TAILSCALE_URL` so they can reference their own public address. `portless list` now shows tailnet URLs.
-- **Zero-config mode (0.11.0)** — bare `portless` auto-discovers dev scripts from `package.json`. Multi-app monorepos get automatic subdomain assignment; Turborepo task-graph integration is wired in. `portless.json` config file supported. `--script` overrides the default "dev" script.
-- **`portless prune`** — removes orphaned dev servers and stale Tailscale registrations.
-- **`portless clean` (extended)** — now also tears down Tailscale registrations alongside CA + hosts cleanup.
-- **Rsbuild + VitePlus auto-port injection** — same auto-wiring as Vite/Next.
+- **`portless doctor` (0.15.0)**: read-only diagnostics that check Node.js, the state directory, proxy liveness, route entries, hostname resolution, HTTPS CA trust, and LAN prerequisites, then print suggested fixes. Run it before filing an issue or when a `.localhost` URL won't resolve.
+- **HTTP/2 Host forwarding fix (0.15.0)**: the proxy now forwards the HTTP/2 `:authority` as `Host` to HTTP/1.1 backends, fixing apps that read `Host` and previously saw `127.0.0.1` for browser traffic. `--force` takeover cleanup now removes only routes still owned by the exiting process, so a forced takeover no longer deregisters the new owner's route.
+- **`--ngrok` flag (0.14.0)**: share an app publicly via ngrok while local access keeps its `.localhost` URL. Pair with the existing Tailscale/Funnel options when you need a public URL without giving up the named-subdomain dev experience.
+- **Node.js 24+ required (0.13.1, BREAKING)**: the proxy and CLI now require Node.js 24 or newer; older runtimes are unsupported. This release also hardens startup-service persistence so `.localhost` URLs survive reboot reliably.
+- **State directory moved to `~/.portless` (0.11, BREAKING)**: state relocated from scattered/temp locations to `~/.portless`; override with `PORTLESS_STATE_DIR`. Old state from pre-0.11 installs is not migrated automatically.
+- **OS startup service (0.13.0)**: `portless service install` / `service status` / `service uninstall` register a native startup service for the HTTPS proxy across macOS launchd, Linux systemd, and Windows Task Scheduler. `.localhost` URLs survive reboot without a manual `portless proxy start`. `portless clean` removes the service alongside CA + hosts cleanup.
+- **Tailscale readiness preflight (0.13.0)**: `--tailscale` and `--funnel` now validate Tailscale HTTPS + Funnel prerequisites before starting the child process, surfacing actionable errors instead of hanging during registration.
+- **Tailscale integration (0.12.0)**: `--tailscale` shares your app over your tailnet with automatic HTTPS on port 443; `--funnel` exposes it publicly via Tailscale Funnel. Apps receive `PORTLESS_TAILSCALE_URL` so they can reference their own public address. `portless list` now shows tailnet URLs.
+- **Zero-config mode (0.11.0)**: bare `portless` auto-discovers dev scripts from `package.json`. Multi-app monorepos get automatic subdomain assignment; Turborepo task-graph integration is wired in. `portless.json` config file supported. `--script` overrides the default "dev" script.
+- **`portless prune`**: removes orphaned dev servers and stale Tailscale registrations.
+- **`portless clean` (extended)**: now also tears down Tailscale registrations alongside CA + hosts cleanup.
+- **Rsbuild + VitePlus auto-port injection**: same auto-wiring as Vite/Next.
 - **State directory** moved to `~/.portless` (was scattered).
 - **HTTPS on 443 by default** (breaking from 0.9.x http:1355). Valid cert, no setup. `--no-tls` reverts.
-- **`NODE_EXTRA_CA_CERTS` auto-injected (0.10.2)** into child processes — node HTTPS calls trust portless CA with zero setup.
-- **`--wildcard` subdomains** — `https://*.myapp.localhost` for multi-tenant / preview routing.
-- **`portless alias <name> <port>`** — map a docker-compose / emulate port to a named URL without a long-running `run` process.
-- **`portless clean`** — full teardown: stops proxy, removes CA, wipes state, cleans `/etc/hosts`.
-- **`--lan` mode** — mDNS `.local` hostnames reachable across wifi (phone, tablet, other machines) without router config.
-- **Fixed app ports** — `--app-port 3000` / `PORTLESS_APP_PORT` for tools that need a known port (debuggers, docker).
+- **`NODE_EXTRA_CA_CERTS` auto-injected (0.10.2)** into child processes, node HTTPS calls trust portless CA with zero setup.
+- **`--wildcard` subdomains**: `https://*.myapp.localhost` for multi-tenant / preview routing.
+- **`portless alias <name> <port>`**: map a docker-compose / emulate port to a named URL without a long-running `run` process.
+- **`portless clean`**: full teardown: stops proxy, removes CA, wipes state, cleans `/etc/hosts`.
+- **`--lan` mode**: mDNS `.local` hostnames reachable across wifi (phone, tablet, other machines) without router config.
+- **Fixed app ports**: `--app-port 3000` / `PORTLESS_APP_PORT` for tools that need a known port (debuggers, docker).
 - **hosts-sync on by default** for Safari compat (disable with `PORTLESS_SYNC_HOSTS=0`).
-- **HTTP/2 HMR fixes** for Vite/VitePlus/Next.js dev — websocket upgrades no longer break under h2.
-- **Expo / React Native** support — `portless run expo start` gives Metro a stable URL for device QR codes.
+- **HTTP/2 HMR fixes** for Vite/VitePlus/Next.js dev, websocket upgrades no longer break under h2.
+- **Expo / React Native** support, `portless run expo start` gives Metro a stable URL for device QR codes.
 
 ## When to Use
 
@@ -79,7 +79,7 @@ portless service status
 portless service uninstall
 ```
 
-> **0.10.x breaking change:** default switched from `https://app.localhost` to `https://app.localhost` on port 443. Use `--no-tls` to revert. `NODE_EXTRA_CA_CERTS` is injected into child processes automatically (0.10.2) — no manual cert setup. `/etc/hosts` is synced automatically for Safari; disable with `PORTLESS_SYNC_HOSTS=0`.
+> **0.10.x breaking change:** default switched from `https://app.localhost` to `https://app.localhost` on port 443. Use `--no-tls` to revert. `NODE_EXTRA_CA_CERTS` is injected into child processes automatically (0.10.2), no manual cert setup. `/etc/hosts` is synced automatically for Safari; disable with `PORTLESS_SYNC_HOSTS=0`.
 
 ## Framework-Specific Setup
 
@@ -274,7 +274,7 @@ export default defineConfig({
 
 ### FastAPI / Uvicorn
 
-**NOT auto-detected** — uvicorn ignores the `PORT` env var. You MUST pass `--port` and `--host` explicitly:
+**NOT auto-detected**: uvicorn ignores the `PORT` env var. You MUST pass `--port` and `--host` explicitly:
 
 ```bash
 # WRONG — uvicorn ignores PORT, binds to 8000
@@ -296,7 +296,7 @@ Or ensure all routes have consistent trailing slashes.
 
 ### Django
 
-**NOT auto-detected** — pass `$HOST:$PORT` as a positional argument:
+**NOT auto-detected**: pass `$HOST:$PORT` as a positional argument:
 
 ```bash
 # WRONG — Django ignores PORT env var
@@ -346,7 +346,7 @@ portless alias minio 9000
 #   https://minio.localhost
 ```
 
-This is useful for consistency — all services (app and infra) use the same `*.localhost` URL pattern.
+This is useful for consistency, all services (app and infra) use the same `*.localhost` URL pattern.
 
 ## Common Gotchas
 
@@ -379,9 +379,6 @@ Replace with `PORTLESS_URL` or the named `*.localhost` URL.
 
 ### Upstream Oauth
 
-&lt;!-- SYNCED from vercel-labs/portless (skills/oauth/SKILL.md) --&gt;
-&lt;!-- Hash: ea1ec2f9e933d0d258bf3493242244ea562c3428ba7f269e267650e96d28cf60 --&gt;
-&lt;!-- Re-sync: bash scripts/sync-vercel-skills.sh --&gt;
 
 
 # OAuth with Portless
@@ -551,9 +548,6 @@ See [`examples/google-oauth`](../../examples/google-oauth) for a complete workin
 
 ### Upstream
 
-&lt;!-- SYNCED from vercel-labs/portless (skills/portless/SKILL.md) --&gt;
-&lt;!-- Hash: e2b0cf9ec19baa96004442d444552528d19ad45a368153efa837ea516867d443 --&gt;
-&lt;!-- Re-sync: bash scripts/sync-vercel-skills.sh --&gt;
 
 
 # Portless
@@ -936,7 +930,7 @@ portless proxy start -p 8080
 
 ### Framework not respecting PORT
 
-Portless auto-injects the right `--port` flag and, when needed, a matching `--host` flag for frameworks that ignore the `PORT` env var: **Vite**, **VitePlus** (`vp`), **Astro**, **React Router**, **Angular**, **Expo**, and **React Native**. SvelteKit uses Vite internally and is handled automatically. Injection reaches through a package script whose command starts with the framework or a known runner, and only for the framework's server commands (`dev`, `serve`, `preview`, `start`, or a bare `vite`) — `vite build`, `vite optimize`, `vp test` and other non-serving commands reject the flags, so they are left untouched, as is any invocation portless cannot classify (`vp --mode dev build`). It is also skipped for a compound command (`&&`, `|`, `;`), a trailing `#` comment, its own `--` option terminator, an env prefix (`NODE_ENV=production vite`), delegation to another script, and runner flags before the script name (`bun run --bun dev`) — each of those keeps its own port and the app returns 502, so set the port in the script yourself.
+Portless auto-injects the right `--port` flag and, when needed, a matching `--host` flag for frameworks that ignore the `PORT` env var: **Vite**, **VitePlus** (`vp`), **Astro**, **React Router**, **Angular**, **Expo**, and **React Native**. SvelteKit uses Vite internally and is handled automatically. Injection reaches through a package script whose command starts with the framework or a known runner, and only for the framework's server commands (`dev`, `serve`, `preview`, `start`, or a bare `vite`), `vite build`, `vite optimize`, `vp test` and other non-serving commands reject the flags, so they are left untouched, as is any invocation portless cannot classify (`vp --mode dev build`). It is also skipped for a compound command (`&&`, `|`, `;`), a trailing `#` comment, its own `--` option terminator, an env prefix (`NODE_ENV=production vite`), delegation to another script, and runner flags before the script name (`bun run --bun dev`), each of those keeps its own port and the app returns 502, so set the port in the script yourself.
 
 For other frameworks that don't read `PORT`, pass the port manually:
 
@@ -1173,5 +1167,5 @@ Check that:
 
 ## Rollback
 
-If something breaks, remove `portless run --name <name>` from scripts and revert `.env` changes. Portless is additive — removing it just falls back to direct `localhost:PORT`.
+If something breaks, remove `portless run --name <name>` from scripts and revert `.env` changes. Portless is additive, removing it just falls back to direct `localhost:PORT`.
 

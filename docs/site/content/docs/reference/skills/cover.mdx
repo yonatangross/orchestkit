@@ -892,7 +892,7 @@ Instead use:
 
 # Real-Service Detection
 
-Detect and configure real-service infrastructure for integration tests. Real services catch bugs that mocks miss — mock/prod divergence caused silent failures in past incidents.
+Detect and configure real-service infrastructure for integration tests. Real services catch bugs that mocks miss, mock/prod divergence caused silent failures in past incidents.
 
 ## Detection (Phase 1)
 
@@ -929,11 +929,11 @@ docker compose -f docker-compose.test.yml down -v
 ```
 
 Services to look for in compose files:
-- `postgres` / `mysql` / `mongodb` — database
-- `redis` — cache/sessions
-- `rabbitmq` / `kafka` — message queues
-- `elasticsearch` / `opensearch` — search
-- `minio` / `localstack` — S3-compatible storage
+- `postgres` / `mysql` / `mongodb`, database
+- `redis`: cache/sessions
+- `rabbitmq` / `kafka`, message queues
+- `elasticsearch` / `opensearch`, search
+- `minio` / `localstack`, S3-compatible storage
 
 ## Testcontainers Workflow
 

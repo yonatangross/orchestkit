@@ -5,7 +5,7 @@ description: "Reference for Zustand 5.x state management including slices, middl
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-green">low</span>
 
-> **Not directly invocable** — no slash command and no model auto-selection. An agent loads it explicitly via `Read()`.
+> **Not directly invocable**, no slash command and no model auto-selection. An agent loads it explicitly via `Read()`.
 
 <ContextualSkillSidebar slug="zustand-patterns" />
 
@@ -183,10 +183,10 @@ const useStore = create<AppState>()(
 ```
 
 **Key rules:**
-- **Immer** is always innermost -- transforms draft mutations into immutable updates first
-- **subscribeWithSelector** wraps immer -- needs transformed (immutable) state for granular subscriptions
-- **devtools** wraps subscribeWithSelector -- records actions after immer transforms them
-- **persist** is always outermost -- serializes the final, fully transformed state to storage
+- **Immer** is always innermost, transforms draft mutations into immutable updates first
+- **subscribeWithSelector** wraps immer, needs transformed (immutable) state for granular subscriptions
+- **devtools** wraps subscribeWithSelector, records actions after immer transforms them
+- **persist** is always outermost, serializes the final, fully transformed state to storage
 - When using a subset, preserve relative order (e.g., `devtools(immer(...))` not `immer(devtools(...))`)
 
 Reference: upstream middleware docs, https://github.com/pmndrs/zustand/blob/main/docs/reference/middlewares/persist.md and https://github.com/pmndrs/zustand/blob/main/docs/reference/middlewares/immer.md
@@ -260,7 +260,7 @@ persist((set) => ({ theme: 'light', fontSize: 14 }), {
 
 **Key rules:**
 - Never use mutable methods (`push`, `splice`, property assignment) in `set()` without `immer` middleware
-- Never double-wrap the same middleware -- each should appear exactly once
+- Never double-wrap the same middleware, each should appear exactly once
 - Always `import type {} from '@redux-devtools/extension'` when using `devtools`
 - Always provide a `migrate` function when bumping persist `version`
 
@@ -331,8 +331,8 @@ const useStore = create<AppStore>()(
 
 **Key rules:**
 - Type each slice as `StateCreator<CombinedStore, MiddlewareMutators, [], SliceInterface>` for full store type inference
-- Combine with spread: `create<Store>()((...a) => ({ ...createSliceA(...a), ...createSliceB(...a) }))` -- `...a` forwards `set`, `get`, `store`
-- Access other slices via `get()` inside actions, never by importing state directly -- avoids circular dependencies
+- Combine with spread: `create<Store>()((...a) => ({ ...createSliceA(...a), ...createSliceB(...a) }))`, `...a` forwards `set`, `get`, `store`
+- Access other slices via `get()` inside actions, never by importing state directly, avoids circular dependencies
 - Keep each slice in its own file, export only the creator function and interface
 - Declare middleware mutator types in the `StateCreator` generic so TypeScript knows available features
 
@@ -483,7 +483,7 @@ Comprehensive checklist for production-ready Zustand stores.
 ### Multi-Value Selectors
 - [ ] `useShallow` used for selecting multiple related values
 - [ ] Import `useShallow` from `zustand/shallow` (the v5 migration-guide path)
-- [ ] Deprecated: passing an equality fn to `create()` — migrate to `createWithEqualityFn` from `zustand/traditional`
+- [ ] Deprecated: passing an equality fn to `create()`, migrate to `createWithEqualityFn` from `zustand/traditional`
 
 ### Computed Values
 - [ ] Derived state computed in selectors, not stored

@@ -5,14 +5,14 @@ description: "Security wrapper over the upstream agent-browser skill, adding URL
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
-> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+> **Auto-activated**, this skill loads automatically when Claude detects matching context.
 
 <ContextualSkillSidebar slug="browser-tools" />
 
 > **Browser Tools** Security wrapper over the upstream agent-browser skill, adding URL blocklisting, rate limiting, robots.txt enforcement, and scraping guardrails. Use when automating browser workflows that need safety limits.
 
 
-# Browser Tools — Security Wrapper
+# Browser Tools: Security Wrapper
 
 OrchestKit security wrapper for `agent-browser`. **For command reference and usage patterns, use the upstream `agent-browser` skill directly.** This skill adds safety guardrails only.
 
@@ -118,61 +118,61 @@ each other's tabs.
 > so the file contradicted itself.
 
 **Accessibility audits (0.33.0):**
-- **`agent-browser a11y [url]`** — axe-core accessibility audit as a CLI command and a matching MCP tool. Filter by WCAG tag, scope to a selector, and get iframe-aware text or JSON results. The audit engine is embedded, so it runs offline and is CSP-safe (no third-party script injection into the page under test).
+- **`agent-browser a11y [url]`**: axe-core accessibility audit as a CLI command and a matching MCP tool. Filter by WCAG tag, scope to a selector, and get iframe-aware text or JSON results. The audit engine is embedded, so it runs offline and is CSP-safe (no third-party script injection into the page under test).
 - Pairs with the `accessibility-specialist` agent and the `testing-e2e` axe-core guidance: use this for a fast pre-commit sweep, and Playwright + axe for assertions inside a suite.
 
 **Session restore + read (0.30 → 0.31.1):**
-- **`agent-browser read [url]` (0.30.0)** — agent-readable text extraction as a CLI command and MCP tool. URL reads prefer Markdown (try `.md` and nearby `llms.txt`), support outlines, filters, raw and JSON output, headers, and domain/output safeguards; omit the URL to read the rendered active-tab DOM with current browser state.
-- **Restore workflow (0.31.0)** — `--restore` / `--restore-save`, restore-validation flags, worktree-scoped `session id` / `session info`, and `--namespace` give agent runs stable, isolated, auto-restored browser state without hand-managing state files. Session lifecycle hardened with daemon/browser compatibility checks and safer auto-save that won't overwrite good state after a failed restore.
-- **`wait --url` glob patterns (0.30.1)** — `wait --url` / `waitforurl` honor globs like `**/dashboard` against the full active URL.
-- **React renderer fix (0.31.1)** — the `react` commands now pick the react-dom renderer instead of hardcoding renderer id 1, fixing an empty tree read on Next.js 16.3 Turbopack.
+- **`agent-browser read [url]` (0.30.0)**: agent-readable text extraction as a CLI command and MCP tool. URL reads prefer Markdown (try `.md` and nearby `llms.txt`), support outlines, filters, raw and JSON output, headers, and domain/output safeguards; omit the URL to read the rendered active-tab DOM with current browser state.
+- **Restore workflow (0.31.0)**: `--restore` / `--restore-save`, restore-validation flags, worktree-scoped `session id` / `session info`, and `--namespace` give agent runs stable, isolated, auto-restored browser state without hand-managing state files. Session lifecycle hardened with daemon/browser compatibility checks and safer auto-save that won't overwrite good state after a failed restore.
+- **`wait --url` glob patterns (0.30.1)**: `wait --url` / `waitforurl` honor globs like `**/dashboard` against the full active URL.
+- **React renderer fix (0.31.1)**: the `react` commands now pick the react-dom renderer instead of hardcoding renderer id 1, fixing an empty tree read on Next.js 16.3 Turbopack.
 
 **Sandbox helpers (0.29):**
-- **`@agent-browser/sandbox`** — companion helper package for running agent-browser headless inside a Vercel Sandbox / eve ephemeral env (provisions Chrome + the native daemon for you, no host browser needed). Hook's URL/rate/robots checks still apply to whatever the sandboxed session navigates to.
+- **`@agent-browser/sandbox`**: companion helper package for running agent-browser headless inside a Vercel Sandbox / eve ephemeral env (provisions Chrome + the native daemon for you, no host browser needed). Hook's URL/rate/robots checks still apply to whatever the sandboxed session navigates to.
 
 **Built-in MCP server (0.28):**
-- **`agent-browser --mcp`** — runs agent-browser as a Model Context Protocol server over stdio, exposing typed tools (open/snapshot/find/click/extract/...) with paginated capability discovery. Lets you wire browser automation MCP-native — directly into an MCP client — without going through the CLI Bash wrapper. Note: URL policy comes from `sandbox.network` in the operator scope (see Safety Guardrails below), which covers the MCP path and the CLI path equally; the per-path Bash hook that once guarded only the CLI was retired in #3835.
+- **`agent-browser --mcp`**: runs agent-browser as a Model Context Protocol server over stdio, exposing typed tools (open/snapshot/find/click/extract/...) with paginated capability discovery. Lets you wire browser automation MCP-native, directly into an MCP client, without going through the CLI Bash wrapper. Note: URL policy comes from `sandbox.network` in the operator scope (see Safety Guardrails below), which covers the MCP path and the CLI path equally; the per-path Bash hook that once guarded only the CLI was retired in #3835.
 
 **React introspection + perf observability (0.27):**
-- **`react tree` / `react inspect <fiberId>` / `react renders start|stop` / `react suspense`** — first-class React DevTools integration via a vendored MIT-licensed hook embedded in the binary (zero runtime deps). Component-tree visibility, per-fiber props/hooks/state inspection, render profiling with mount/re-render counts and change details, Suspense boundary classification with root-cause grouping. Hook treats fiber state dumps as sensitive — gitignore captures.
-- **`vitals [url]`** — reports Core Web Vitals (LCP, CLS, TTFB, FCP, INP) plus React hydration phases for any page. Useful for perf gates in CI.
-- **`pushstate <url>`** — client-side SPA navigation without a full page load. Pairs with `react renders` to measure SPA route transitions without resetting profiling state.
-- **`--init-script <path>` (repeatable, env `AGENT_BROWSER_INIT_SCRIPTS`)** + **`--enable <feature>` (repeatable, env `AGENT_BROWSER_ENABLE`)** — register scripts before first navigation; `--enable react-devtools` is built-in. Hook treats arbitrary init scripts as code-execution surface — same trust model as `skills get`.
-- **`network route --resource-type <csv>`** — filter intercepted requests by CDP resource type (document, script, xhr, fetch, image, ...). Lets you mock only API calls without breaking page assets.
-- **`cookies set --curl <file>`** — auto-detects JSON, cURL, and Cookie-header formats for bulk cookie import. Hook still treats cookie-set as auth-state injection.
-- **Dashboard behind a reverse proxy** — observability dashboard now works from proxied origins via same-origin proxy. Enables path-based routing for shared dev environments.
+- **`react tree` / `react inspect <fiberId>` / `react renders start|stop` / `react suspense`**: first-class React DevTools integration via a vendored MIT-licensed hook embedded in the binary (zero runtime deps). Component-tree visibility, per-fiber props/hooks/state inspection, render profiling with mount/re-render counts and change details, Suspense boundary classification with root-cause grouping. Hook treats fiber state dumps as sensitive, gitignore captures.
+- **`vitals [url]`**: reports Core Web Vitals (LCP, CLS, TTFB, FCP, INP) plus React hydration phases for any page. Useful for perf gates in CI.
+- **`pushstate <url>`**: client-side SPA navigation without a full page load. Pairs with `react renders` to measure SPA route transitions without resetting profiling state.
+- **`--init-script <path>` (repeatable, env `AGENT_BROWSER_INIT_SCRIPTS`)** + **`--enable <feature>` (repeatable, env `AGENT_BROWSER_ENABLE`)**, register scripts before first navigation; `--enable react-devtools` is built-in. Hook treats arbitrary init scripts as code-execution surface, same trust model as `skills get`.
+- **`network route --resource-type <csv>`**: filter intercepted requests by CDP resource type (document, script, xhr, fetch, image, ...). Lets you mock only API calls without breaking page assets.
+- **`cookies set --curl <file>`**: auto-detects JSON, cURL, and Cookie-header formats for bulk cookie import. Hook still treats cookie-set as auth-state injection.
+- **Dashboard behind a reverse proxy**: observability dashboard now works from proxied origins via same-origin proxy. Enables path-based routing for shared dev environments.
 - Fixed `doctor` generating duplicate check IDs when invoked multiple times in the same process.
-- npm publishing moved to GitHub Actions OIDC trusted publishing — no manually managed npm tokens upstream.
+- npm publishing moved to GitHub Actions OIDC trusted publishing, no manually managed npm tokens upstream.
 
 **Diagnostic tooling + stable IDs (0.26):**
-- `agent-browser doctor` — one-shot environment + Chrome + daemon + config + security + provider + network check. Flags: `--offline`, `--quick`, `--fix`, `--json`. Run before opening an issue to attach a structured snapshot.
-- **Stable tab identifiers** — tabs now use stable string IDs (`t1`, `t2`, ...) with optional memorable labels via `--label`. Survives daemon restart; replaces brittle index-based references.
-- **`core` skill expanded** — comprehensive built-in usage guide covering snapshot-ref-act loops, reading, interaction, waiting, and troubleshooting.
-- **Config JSON Schema** — `$schema` reference enables IDE auto-completion and validation against `https://agent-browser.dev/schema.json`.
+- `agent-browser doctor`: one-shot environment + Chrome + daemon + config + security + provider + network check. Flags: `--offline`, `--quick`, `--fix`, `--json`. Run before opening an issue to attach a structured snapshot.
+- **Stable tab identifiers**: tabs now use stable string IDs (`t1`, `t2`, ...) with optional memorable labels via `--label`. Survives daemon restart; replaces brittle index-based references.
+- **`core` skill expanded**: comprehensive built-in usage guide covering snapshot-ref-act loops, reading, interaction, waiting, and troubleshooting.
+- **Config JSON Schema**: `$schema` reference enables IDE auto-completion and validation against `https://agent-browser.dev/schema.json`.
 - Fixed `--state` flag not loading saved cookies/localStorage at launch; `--help` now leads with the skills section.
 
 **Skill discovery & chat (0.25):**
-- `agent-browser skills list/get <name>` — discover and install capability packs on-demand. Hook treats first-party skills as trusted; warns on arbitrary third-party skill fetches.
-- `agent-browser chat` — single-shot or REPL natural-language driving over the same daemon. Hook pipes transcripts through the same URL/rate/robots checks as scripted commands.
+- `agent-browser skills list/get <name>`: discover and install capability packs on-demand. Hook treats first-party skills as trusted; warns on arbitrary third-party skill fetches.
+- `agent-browser chat`: single-shot or REPL natural-language driving over the same daemon. Hook pipes transcripts through the same URL/rate/robots checks as scripted commands.
 
 **Accessibility-first locators (0.24):**
-- `find` / `getByRole` — semantic locator via CDP accessibility tree (role + name) instead of brittle CSS/ref selectors. Prefer these in new scripts; they survive markup churn and are the locator path assumed by `chat`.
-- `snapshot --urls` — emits resolved URLs alongside refs, removing a round-trip for link-extraction flows.
-- `--annotate` — overlays ref IDs / role labels on screenshots for debugging.
+- `find` / `getByRole`, semantic locator via CDP accessibility tree (role + name) instead of brittle CSS/ref selectors. Prefer these in new scripts; they survive markup churn and are the locator path assumed by `chat`.
+- `snapshot --urls`: emits resolved URLs alongside refs, removing a round-trip for link-extraction flows.
+- `--annotate`: overlays ref IDs / role labels on screenshots for debugging.
 
 **Cloud providers (0.25):**
-- `--provider agentcore` — AWS Bedrock AgentCore cloud browser. Hook treats remote providers as egress surfaces — same URL/robots rules apply, but network routing is disabled (remote scope).
+- `--provider agentcore`: AWS Bedrock AgentCore cloud browser. Hook treats remote providers as egress surfaces, same URL/robots rules apply, but network routing is disabled (remote scope).
 - Browserless + AgentCore both honor `AGENT_BROWSER_PROVIDER` env var.
 
 **Dashboard (0.25):**
-- Embedded dashboard bundled with the binary — no separate install. Open via `agent-browser dashboard` or the `inspect` CDP link. Still flagged as local-proxy attack surface by the hook.
+- Embedded dashboard bundled with the binary, no separate install. Open via `agent-browser dashboard` or the `inspect` CDP link. Still flagged as local-proxy attack surface by the hook.
 
 **Auto-dialog dismissal (0.23.1):**
 - alert / beforeunload dialogs auto-dismissed by default. Opt out with `--no-auto-dialog` when a test needs to assert dialog content.
 
 ## What's New (v0.17 → v0.22.2)
 
-**Breaking changes** — update scripts now:
+**Breaking changes**: update scripts now:
 - `--full` / `-f` moved from global to command-level (v0.21): use `screenshot --full`, NOT `--full screenshot`
 - Auth encryption format changed (v0.17): saved auth states from v0.16.x may not load
 - Auto-dialog dismissal (v0.23.1): alert/beforeunload dialogs are auto-dismissed by default, opt out with `--no-auto-dialog`
@@ -181,20 +181,20 @@ each other's tabs.
 
 | Command | Version | Security Note |
 |---------|---------|---------------|
-| `clipboard read/write/copy/paste` | v0.19 | `read` accesses host clipboard — hook warns |
-| `inspect` / `get cdp-url` | v0.18 | Opens local DevTools proxy — hook warns |
+| `clipboard read/write/copy/paste` | v0.19 | `read` accesses host clipboard, hook warns |
+| `inspect` / `get cdp-url` | v0.18 | Opens local DevTools proxy, hook warns |
 | `batch --json [--bail]` | v0.21 | Batch execute commands from stdin |
-| `network har start/stop [file]` | v0.21 | HAR captures auth tokens — hook warns, treat output as sensitive |
+| `network har start/stop [file]` | v0.21 | HAR captures auth tokens, hook warns, treat output as sensitive |
 | `network request <id>` | v0.22 | View full request/response detail |
 | `network requests --type/--method/--status` | v0.22 | Filter network requests |
 | `dialog dismiss` / `dialog status` | v0.17/v0.22 | Dismiss or check browser dialogs |
 | `upgrade` | v0.21.1 | Self-update (auto-detects npm/Homebrew/Cargo) |
 | `find` / `getByRole` | v0.24 | Semantic locators via CDP a11y tree |
 | `snapshot --urls` / `--annotate` | v0.24 | URL-expanded snapshots, ref overlays |
-| `skills list/get` | v0.25 | Capability pack discovery — hook warns on third-party |
+| `skills list/get` | v0.25 | Capability pack discovery, hook warns on third-party |
 | `chat` (single-shot / REPL) | v0.25 | NL driving; transcripts go through same safety checks |
-| `dashboard` | v0.25 | Embedded debug UI — local proxy attack surface |
-| `react tree` / `react inspect` / `react renders` / `react suspense` | v0.27 | React DevTools introspection — fiber state may contain sensitive props |
+| `dashboard` | v0.25 | Embedded debug UI, local proxy attack surface |
+| `react tree` / `react inspect` / `react renders` / `react suspense` | v0.27 | React DevTools introspection, fiber state may contain sensitive props |
 | `vitals [url]` | v0.27 | Core Web Vitals + React hydration phases |
 | `pushstate <url>` | v0.27 | SPA client-side navigation without full reload |
 
@@ -219,7 +219,7 @@ each other's tabs.
 
 **Platform support:** Brave auto-discovery (v0.20.7), Alpine Linux musl (v0.20.2), Lightpanda engine (v0.17), Browserless.io provider (v0.19), cross-origin iframe traversal (v0.22), AWS Bedrock AgentCore (v0.25).
 
-**Native Rust rewrite (v0.20):** agent-browser is now 100% native Rust — the old Node.js/Playwright daemon (the "sidecar") is **gone**. It drives Chrome directly over CDP, so there is **no Node runtime, no Playwright, and no separate browser-driver process** to install or keep alive. Result: 99x smaller install (710→7 MB), 18x less memory (143→8 MB), 1.6x faster cold start.
+**Native Rust rewrite (v0.20):** agent-browser is now 100% native Rust, the old Node.js/Playwright daemon (the "sidecar") is **gone**. It drives Chrome directly over CDP, so there is **no Node runtime, no Playwright, and no separate browser-driver process** to install or keep alive. Result: 99x smaller install (710→7 MB), 18x less memory (143→8 MB), 1.6x faster cold start.
 
 ## Safety Guardrails (6 rules; URL policy is the sandbox's job)
 
@@ -255,7 +255,7 @@ Rate limits and behavior are configurable via environment variables:
 | `AGENT_BROWSER_ROBOTS_CACHE_TTL` | 3600000 | robots.txt cache TTL (ms) |
 | `AGENT_BROWSER_IGNORE_ROBOTS` | false | Bypass robots.txt enforcement |
 | `AGENT_BROWSER_CONFIRM` | 1 | Use `--confirm-actions` for sensitive ops |
-| `AGENT_BROWSER_IDLE_TIMEOUT_MS` | — | Auto-shutdown daemon after inactivity (ms) |
+| `AGENT_BROWSER_IDLE_TIMEOUT_MS` | - | Auto-shutdown daemon after inactivity (ms) |
 | `AGENT_BROWSER_ENGINE` | chrome | Browser engine (`chrome` or `lightpanda`) |
 | `ORCHESTKIT_AGENT_BROWSER_ALLOW_LOCALHOST` | 1 | Allow `*.localhost` subdomains (RFC 6761) |
 
@@ -296,11 +296,11 @@ git add *.har                                  # NEVER commit HAR captures
 ## Related Skills
 
 - `references/ork-delta.md`: our delta, hook coverage gaps, shared rate-limit budget, local-URL policy
-- `agent-browser` (upstream) — Full command reference and usage patterns
-- `portless` (upstream) — Stable named `.localhost` URLs for local dev servers
-- `ork:web-research-workflow` — Unified decision tree for web research
-- `ork:testing-e2e` — E2E testing patterns including Playwright and webapp testing
-- `ork:api-design` — API design patterns for endpoints discovered during scraping
+- `agent-browser` (upstream), Full command reference and usage patterns
+- `portless` (upstream), Stable named `.localhost` URLs for local dev servers
+- `ork:web-research-workflow`: Unified decision tree for web research
+- `ork:testing-e2e`: E2E testing patterns including Playwright and webapp testing
+- `ork:api-design`: API design patterns for endpoints discovered during scraping
 
 
 ---
@@ -414,25 +414,25 @@ agent-browser auth login my-app --no-navigate
 ```
 
 **Key rules:**
-- Never hardcode passwords, API keys, or tokens in scripts -- always use environment variables
+- Never hardcode passwords, API keys, or tokens in scripts, always use environment variables
 - Never log, echo, or print auth tokens, cookies, or session data to stdout/stderr
 - Set `chmod 600` on all saved state files immediately after creation
 - Store state files in a secure directory (`$HOME/.config/`) rather than world-readable `/tmp/`
 - Use `trap 'rm -f "$STATE_FILE"' EXIT` to clean up auth artifacts when the script exits
 - Use headed mode (`AGENT_BROWSER_HEADED=1`) for 2FA/MFA flows that require manual interaction
-- Use `cookies set` with `--httpOnly --secure` flags for cookie-based session injection — faster than replaying login flows
+- Use `cookies set` with `--httpOnly --secure` flags for cookie-based session injection, faster than replaying login flows
 - Always use `--session-name` (not `--session`) for named session persistence
 - Use `cookies` to debug auth failures before re-logging in
 - Use `storage local clear` and `cookies clear` in cleanup scripts to force fresh authentication
 - Use `--confirm-interactive` for admin panel automation to require manual confirmation on actions
-- Use `vault store`/`vault load` (v0.15) for encrypted credential persistence — requires `AGENT_BROWSER_ENCRYPTION_KEY`
-- Never echo, log, or pipe `AGENT_BROWSER_ENCRYPTION_KEY` — treat it like a password
+- Use `vault store`/`vault load` (v0.15) for encrypted credential persistence, requires `AGENT_BROWSER_ENCRYPTION_KEY`
+- Never echo, log, or pipe `AGENT_BROWSER_ENCRYPTION_KEY`, treat it like a password
 - Use `--confirm-actions` (v0.15) for native CLI-level action gating on sensitive operations
-- Prefer `vault` over `state save` for auth data — vault encrypts at rest, state files are plaintext JSON
-- **v0.17 breaking**: auth encryption format changed — saved auth states from v0.16.x native mode may not load; re-authenticate and re-save
-- **v0.18+**: `KERNEL_API_KEY` is now optional (was required) — remove if not using external credential injection
-- **v0.21+**: HAR captures contain auth tokens — never commit `.har` files, add to `.gitignore`
-- **v0.17+**: auth cookies now persist on browser close — clear cookies explicitly if you need a fresh session
+- Prefer `vault` over `state save` for auth data, vault encrypts at rest, state files are plaintext JSON
+- **v0.17 breaking**: auth encryption format changed, saved auth states from v0.16.x native mode may not load; re-authenticate and re-save
+- **v0.18+**: `KERNEL_API_KEY` is now optional (was required), remove if not using external credential injection
+- **v0.21+**: HAR captures contain auth tokens, never commit `.har` files, add to `.gitignore`
+- **v0.17+**: auth cookies now persist on browser close, clear cookies explicitly if you need a fresh session
 
 - Use `auth login <name> --no-navigate` (v0.38) when the page you want filled is already open (a redirect from an OAuth-adjacent flow, a pre-staged session); it verifies origin before filling instead of blindly navigating over your staged state.
 
@@ -444,7 +444,7 @@ Reference: login flows, the auth vault and state files are upstream, see the `ag
 
 ## Browser: Debug & Recording
 
-Use trace, profiler, and record commands for debugging and bug reports, but always review output files before sharing — they may contain sensitive data (cookies, tokens, form inputs).
+Use trace, profiler, and record commands for debugging and bug reports, but always review output files before sharing, they may contain sensitive data (cookies, tokens, form inputs).
 
 **Incorrect:**
 ```bash
@@ -544,7 +544,7 @@ agent-browser get cdp-url      # Returns CDP WebSocket URL for external tools
 
 ## Clipboard Access (v0.19+)
 
-Clipboard commands access the host clipboard without user interaction — relevant for sandboxed environments.
+Clipboard commands access the host clipboard without user interaction, relevant for sandboxed environments.
 
 ```bash
 agent-browser clipboard read   # Reads host clipboard contents
@@ -554,16 +554,16 @@ agent-browser clipboard paste  # Paste clipboard contents
 ```
 
 **Key rules:**
-- Never trace or record login flows — credentials appear in cleartext in output files
+- Never trace or record login flows, credentials appear in cleartext in output files
 - Load auth state via `vault load` before starting a trace/recording session
 - Review `console` and `errors` output in terminal before redirecting to files
 - Never commit trace, recording, profile, or HAR files to git repositories
-- Use `profiler` for performance analysis — it captures execution timing, not credentials
+- Use `profiler` for performance analysis, it captures execution timing, not credentials
 - Store debug output files in `/tmp/` or ephemeral directories, not project directories
 - Scrub trace files before sharing: remove cookies, localStorage, and network payloads
-- **HAR files contain auth tokens** — add `*.har` to `.gitignore`, treat as sensitive
-- **`inspect` opens DevTools** to local network — only use on trusted machines, not CI/shared envs
-- **`clipboard read`** accesses host clipboard without prompt — be aware in sandboxed contexts
+- **HAR files contain auth tokens**: add `*.har` to `.gitignore`, treat as sensitive
+- **`inspect` opens DevTools** to local network, only use on trusted machines, not CI/shared envs
+- **`clipboard read`** accesses host clipboard without prompt, be aware in sandboxed contexts
 
 Additional key rules (v0.37 to v0.38):
 - Recording defaults to 30 fps (v0.37). Use `--fps 60` for short, motion-heavy takes, and `--fps 10` or lower when file size matters more than smoothness on a long soak.
@@ -633,7 +633,7 @@ done
 - Check `xcrun simctl list devices | grep Booted` before using `--ios-simulator`
 - Test a minimum of 3 device profiles: small phone, large phone, tablet
 - Use `diff screenshot` to compare rendering across devices
-- Do not rely solely on emulation — iOS Simulator provides higher-fidelity results for iOS-specific issues
+- Do not rely solely on emulation, iOS Simulator provides higher-fidelity results for iOS-specific issues
 
 Reference: device emulation and iOS Simulator commands are upstream, see the `agent-browser` skill. Our delta: `references/ork-delta.md`.
 
@@ -706,7 +706,7 @@ portless get app  # → https://app.localhost
 - Always run `portless list` before constructing any localhost URL
 - Use `*.localhost` URLs in all agent-browser commands, curl calls, and test configs
 - Include the Portless service name in screenshots and debug reports for clarity
-- Prefer `portless run` (v0.5+) over manual port management — it injects `--port` and `PORTLESS_URL` automatically
+- Prefer `portless run` (v0.5+) over manual port management, it injects `--port` and `PORTLESS_URL` automatically
 - Use `portless alias` (v0.5+) for services not started by portless (databases, queues)
 - Use `portless get <name>` (v0.6+) to programmatically retrieve URLs in scripts
 - If Portless is not installed, fall back to `lsof -iTCP -sTCP:LISTEN -nP` to discover ports
@@ -813,9 +813,9 @@ agent-browser network requests --clear    # Reset tracked request log
 - Block analytics and tracking scripts with `network route --abort` to preserve rate-limit budget and speed up page loads
 - Always call `network unroute` after extraction to clean up intercepts
 - Use `network requests --clear` between test runs to avoid stale request data
-- Use `--allowed-domains` (v0.16) to restrict navigation to approved domains — prevents accidental crawl escapes
+- Use `--allowed-domains` (v0.16) to restrict navigation to approved domains, prevents accidental crawl escapes
 - Use `--action-policy <path>` (v0.16) to enforce a JSON policy file governing which actions are permitted
-- Use `--max-output <bytes>` (v0.16) to cap command output size — prevents context window blowup from large pages
+- Use `--max-output <bytes>` (v0.16) to cap command output size, prevents context window blowup from large pages
 
 Reference: `references/ork-delta.md` (the rate-limit budget is per hostname and shared machine-wide).
 
@@ -872,13 +872,13 @@ agent-browser get text @e5  # Extract specific content area, not full page
 **Key rules:**
 - Always check `robots.txt` before crawling any domain and honor `Disallow` directives
 - Respect `Crawl-delay` values; default to at least 1 second between requests
-- Never spoof user-agent strings to bypass bot detection -- identify as an automated tool
+- Never spoof user-agent strings to bypass bot detection, identify as an automated tool
 - Do not scrape personal data, auth-gated content, or content behind paywalls without explicit authorization
 - Comply with the site's Terms of Service; when in doubt, do not scrape
 - Use targeted extraction (`get text @e#`) instead of full-page dumps to minimize data collection
-- Use `--user-agent` (v0.16) only to identify your automation — never to spoof a real browser identity
+- Use `--user-agent` (v0.16) only to identify your automation, never to spoof a real browser identity
 - Use `--max-output` (v0.16) to limit extracted content size and reduce data over-collection
-- Respect `--allowed-domains` (v0.16) to scope crawls — prevents accidentally following links to unrelated sites
+- Respect `--allowed-domains` (v0.16) to scope crawls, prevents accidentally following links to unrelated sites
 
 Reference: robots.txt enforcement is done by the `agent-browser-safety` hook, see `references/ork-delta.md` for the commands it does and does not cover.
 
@@ -963,9 +963,6 @@ https://github.com/vercel-labs/agent-browser/blob/main/skills/agent-browser/SKIL
 
 ### Upstream Dogfood
 
-&lt;!-- SYNCED from vercel-labs/agent-browser (skills/dogfood/SKILL.md) --&gt;
-&lt;!-- Hash: 1cf732e6c7eb668ffac12c97add17459f8b633ffc1c40a111f54456a2a3d9afb --&gt;
-&lt;!-- Re-sync: bash scripts/sync-vercel-skills.sh --&gt;
 
 
 # Dogfood
@@ -974,7 +971,7 @@ Systematically explore a web application, find issues, and produce a report with
 
 ## Setup
 
-Only the **Target URL** is required. Everything else has sensible defaults -- use them unless the user explicitly provides an override.
+Only the **Target URL** is required. Everything else has sensible defaults, use them unless the user explicitly provides an override.
 
 | Parameter | Default | Example override |
 |-----------|---------|-----------------|
@@ -986,7 +983,7 @@ Only the **Target URL** is required. Everything else has sensible defaults -- us
 
 If the user says something like "dogfood vercel.com", start immediately with defaults. Do not ask clarifying questions unless authentication is mentioned but credentials are missing.
 
-Always use `agent-browser` directly -- never `npx agent-browser`. The direct binary uses the fast Rust client. `npx` routes through Node.js and is significantly slower.
+Always use `agent-browser` directly, never `npx agent-browser`. The direct binary uses the fast Rust client. `npx` routes through Node.js and is significantly slower.
 
 ## Workflow
 
@@ -1054,7 +1051,7 @@ Identify the main navigation elements and map out the sections to visit.
 
 Read [references/issue-taxonomy.md](references/issue-taxonomy.md) for the full list of what to look for and the exploration checklist.
 
-**Strategy -- work through the app systematically:**
+**Strategy, work through the app systematically:**
 
 - Start from the main navigation. Visit each top-level section.
 - Within each section, test interactive elements: click buttons, fill forms, open dropdowns/modals.
@@ -1075,15 +1072,15 @@ Use your judgment on how deep to go. Spend more time on core features and less o
 
 ### 5. Document Issues (Repro-First)
 
-Steps 4 and 5 happen together -- explore and document in a single pass. When you find an issue, stop exploring and document it immediately before moving on. Do not explore the whole app first and document later.
+Steps 4 and 5 happen together, explore and document in a single pass. When you find an issue, stop exploring and document it immediately before moving on. Do not explore the whole app first and document later.
 
-Every issue must be reproducible. When you find something wrong, do not just note it -- prove it with evidence. The goal is that someone reading the report can see exactly what happened and replay it.
+Every issue must be reproducible. When you find something wrong, do not just note it, prove it with evidence. The goal is that someone reading the report can see exactly what happened and replay it.
 
 **Choose the right level of evidence for the issue:**
 
 #### Interactive / behavioral issues (functional, ux, console errors on action)
 
-These require user interaction to reproduce -- use full repro with video and step-by-step screenshots:
+These require user interaction to reproduce, use full repro with video and step-by-step screenshots:
 
 1. **Start a repro video** _before_ reproducing:
 
@@ -1120,7 +1117,7 @@ agent-browser --session {SESSION} record stop
 
 #### Static / visible-on-load issues (typos, placeholder text, clipped text, misalignment, console errors on load)
 
-These are visible without interaction -- a single annotated screenshot is sufficient. No video, no multi-step repro:
+These are visible without interaction, a single annotated screenshot is sufficient. No video, no multi-step repro:
 
 ```bash
 agent-browser --session {SESSION} screenshot --annotate {OUTPUT_DIR}/screenshots/issue-{NNN}.png
@@ -1137,7 +1134,7 @@ Write a brief description and reference the screenshot in the report. Set **Repr
 
 ### 6. Wrap Up
 
-Aim to find **5-10 well-documented issues**, then wrap up. Depth of evidence matters more than total count -- 5 issues with full repro beats 20 with vague descriptions.
+Aim to find **5-10 well-documented issues**, then wrap up. Depth of evidence matters more than total count, 5 issues with full repro beats 20 with vague descriptions.
 
 After exploring:
 
@@ -1152,29 +1149,29 @@ agent-browser --session {SESSION} close
 
 ## Guidance
 
-- **Repro is everything.** Every issue needs proof -- but match the evidence to the issue. Interactive bugs need video and step-by-step screenshots. Static bugs (typos, placeholder text, visual glitches visible on load) only need a single annotated screenshot.
+- **Repro is everything.** Every issue needs proof, but match the evidence to the issue. Interactive bugs need video and step-by-step screenshots. Static bugs (typos, placeholder text, visual glitches visible on load) only need a single annotated screenshot.
 - **Verify reproducibility before collecting evidence.** Before recording video or taking screenshots, verify the issue is reproducible with at least one retry. If it can't be reproduced consistently, it's not a valid issue.
 - **Don't record video for static issues.** A typo or clipped text doesn't benefit from a video. Save video for issues that involve user interaction, timing, or state changes.
-- **For interactive issues, screenshot each step.** Capture the before, the action, and the after -- so someone can see the full sequence.
+- **For interactive issues, screenshot each step.** Capture the before, the action, and the after, so someone can see the full sequence.
 - **Write repro steps that map to screenshots.** Each numbered step in the report should reference its corresponding screenshot. A reader should be able to follow the steps visually without touching a browser.
 - **Use the right snapshot command.**
-  - `snapshot -i` — for finding clickable/fillable elements (buttons, inputs, links)
-  - `snapshot` (no flag) — for reading page content (text, headings, data lists)
-- **Be thorough but use judgment.** You are not following a test script -- you are exploring like a real user would. If something feels off, investigate.
+  - `snapshot -i`: for finding clickable/fillable elements (buttons, inputs, links)
+  - `snapshot` (no flag), for reading page content (text, headings, data lists)
+- **Be thorough but use judgment.** You are not following a test script, you are exploring like a real user would. If something feels off, investigate.
 - **Write findings incrementally.** Append each issue to the report as you discover it. If the session is interrupted, findings are preserved. Never batch all issues for the end.
 - **Never delete output files.** Do not `rm` screenshots, videos, or the report mid-session. Do not close the session and restart. Work forward, not backward.
 - **Never read the target app's source code.** You are testing as a user, not auditing code. Do not read HTML, JS, or config files of the app under test. All findings must come from what you observe in the browser.
 - **Check the console.** Many issues are invisible in the UI but show up as JS errors or failed requests.
 - **Test like a user, not a robot.** Try common workflows end-to-end. Click things a real user would click. Enter realistic data.
-- **Type like a human.** When filling form fields during video recording, use `type` instead of `fill` -- it types character-by-character. Use `fill` only outside of video recording when speed matters.
-- **Pace repro videos for humans.** Add `sleep 1` between actions and `sleep 2` before the final result screenshot. Videos should be watchable at 1x speed -- a human reviewing the report needs to see what happened, not a blur of instant state changes.
-- **Be efficient with commands.** Batch multiple `agent-browser` commands in a single shell call when they are independent (e.g., `agent-browser ... screenshot ... && agent-browser ... console`). Use `agent-browser --session {SESSION} scroll down 300` for scrolling -- do not use `key` or `evaluate` to scroll.
+- **Type like a human.** When filling form fields during video recording, use `type` instead of `fill`, it types character-by-character. Use `fill` only outside of video recording when speed matters.
+- **Pace repro videos for humans.** Add `sleep 1` between actions and `sleep 2` before the final result screenshot. Videos should be watchable at 1x speed, a human reviewing the report needs to see what happened, not a blur of instant state changes.
+- **Be efficient with commands.** Batch multiple `agent-browser` commands in a single shell call when they are independent (e.g., `agent-browser ... screenshot ... && agent-browser ... console`). Use `agent-browser --session {SESSION} scroll down 300` for scrolling, do not use `key` or `evaluate` to scroll.
 
 ## References
 
 | Reference | When to Read |
 |-----------|--------------|
-| [references/issue-taxonomy.md](references/issue-taxonomy.md) | Start of session -- calibrate what to look for, severity levels, exploration checklist |
+| [references/issue-taxonomy.md](references/issue-taxonomy.md) | Start of session, calibrate what to look for, severity levels, exploration checklist |
 
 ## Templates
 
@@ -1185,9 +1182,6 @@ agent-browser --session {SESSION} close
 
 ### Upstream Electron
 
-&lt;!-- SYNCED from vercel-labs/agent-browser (skills/electron/SKILL.md) --&gt;
-&lt;!-- Hash: 805f619998c2a36bef6899dd9dee974fd227afa3f22d08601d8cff097579d331 --&gt;
-&lt;!-- Re-sync: bash scripts/sync-vercel-skills.sh --&gt;
 
 
 # Electron App Automation
@@ -1424,9 +1418,6 @@ If an app is built with Electron, it supports `--remote-debugging-port` and can 
 
 ### Upstream Sandbox
 
-&lt;!-- SYNCED from vercel-labs/agent-browser (skills/vercel-sandbox/SKILL.md) --&gt;
-&lt;!-- Hash: 7e1b39b7ebb57b9e416722e740a6a21c461d114f1b58aecab40fa1f9e4498e71 --&gt;
-&lt;!-- Re-sync: bash scripts/sync-vercel-skills.sh --&gt;
 
 
 # Browser Automation with Vercel Sandbox
@@ -1591,7 +1582,7 @@ export async function fillAndSubmitForm(url: string, data: Record<string, string
 
 ## Sandbox Snapshots (Fast Startup)
 
-A **sandbox snapshot** is a saved VM image of a Vercel Sandbox with system dependencies + agent-browser + Chromium already installed. Think of it like a Docker image -- instead of installing dependencies from scratch every time, the sandbox boots from the pre-built image.
+A **sandbox snapshot** is a saved VM image of a Vercel Sandbox with system dependencies + agent-browser + Chromium already installed. Think of it like a Docker image, instead of installing dependencies from scratch every time, the sandbox boots from the pre-built image.
 
 This is unrelated to agent-browser's *accessibility snapshot* feature (`agent-browser snapshot`), which dumps a page's accessibility tree. A sandbox snapshot is a Vercel infrastructure concept for fast VM startup.
 
@@ -1708,9 +1699,6 @@ See `examples/environments/` in the agent-browser repo for a working app with th
 
 ### Upstream Slack
 
-&lt;!-- SYNCED from vercel-labs/agent-browser (skills/slack/SKILL.md) --&gt;
-&lt;!-- Hash: 7e3dd7895efb597fa84807db66fe7d3fc6fcdf75b794d4ca4662a59a443e722c --&gt;
-&lt;!-- Re-sync: bash scripts/sync-vercel-skills.sh --&gt;
 
 
 # Slack Automation
@@ -1933,7 +1921,7 @@ agent-browser snapshot -i | grep -c "treeitem"
 - **Cannot access Slack API**: This uses browser automation, not the Slack API. No OAuth, webhooks, or bot tokens needed.
 - **Session-specific**: Screenshots and snapshots are tied to the current browser session.
 - **Rate limiting**: Slack may rate-limit rapid interactions. Add delays between commands if needed.
-- **Workspace-specific**: You interact with your own workspace -- no cross-workspace automation.
+- **Workspace-specific**: You interact with your own workspace, no cross-workspace automation.
 
 ## Debugging
 
@@ -1996,9 +1984,6 @@ echo "See activity.png, dms.png, and unreads.png for full details"
 
 ### Upstream
 
-&lt;!-- SYNCED from vercel-labs/agent-browser (skills/agent-browser/SKILL.md) --&gt;
-&lt;!-- Hash: a7f51582773b122b825aaf2f232e8fead1488a2a141f0916ba45873996d8f6aa --&gt;
-&lt;!-- Re-sync: bash scripts/sync-vercel-skills.sh --&gt;
 
 
 # agent-browser

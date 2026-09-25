@@ -5,12 +5,8 @@ description: "Warns when .mcp.json resolves HIGH-tier MCP servers to @latest."
 
 > Part of the [Doctor](/docs/reference/skills/doctor) skill reference. The main page carries the skill itself; this page holds material that used to sit at the bottom of it.
 
-### Mcp Pinning Check
-
-# MCP Pinning Check (Category 12 sub-check)
-
 Warns when `.mcp.json` resolves HIGH-tier MCP servers to `@latest`. HIGH-tier
-upstream packages are pre-1.0 or beta-surface — a breaking change can land on
+upstream packages are pre-1.0 or beta-surface, a breaking change can land on
 any `npx -y` fetch with no signal.
 
 **Closes:** #1462. Split from #1446 (MCP audit).
@@ -72,7 +68,7 @@ MCP pinning: OK (no HIGH-tier @latest entries)
 
 ## Script
 
-`src/skills/doctor/scripts/check-mcp-pinning.sh` — invokable standalone or via
+`src/skills/doctor/scripts/check-mcp-pinning.sh`: invokable standalone or via
 `/ork:doctor` Category 12.
 
 ```bash
@@ -90,7 +86,6 @@ Exit codes: `0` = OK or absent, `1` = HIGH-tier @latest found, `2` = usage error
 
 ## Tests
 
-`tests/skills/test-mcp-pinning-check.sh` — 18 assertions across 7 fixtures
+`tests/skills/test-mcp-pinning-check.sh`: 18 assertions across 7 fixtures
 covering HIGH/MEDIUM/LOW tier classification, disabled entries, local servers,
 JSON output shape, and missing-file handling.
-

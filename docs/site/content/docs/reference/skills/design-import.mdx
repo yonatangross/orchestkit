@@ -24,7 +24,7 @@ design-import /tmp/handoff-bundle.json             # From local file
 ```
 
 ## When to use
-After exporting a handoff bundle from claude.ai/design. This skill is the **entry point** — it does NOT open a PR, run tests, or deploy. For the end-to-end flow (import → tests → PR), use `design-ship` instead.
+After exporting a handoff bundle from claude.ai/design. This skill is the **entry point**, it does NOT open a PR, run tests, or deploy. For the end-to-end flow (import → tests → PR), use `design-ship` instead.
 
 ## Pipeline
 
@@ -94,9 +94,9 @@ else:
     }])
 ```
 
-## Phase 1 — Parse + validate
+## Phase 1: Parse + validate
 
-Delegate to the orchestrator agent. The agent fetches, extracts the tarball, reads the README + chats, parses the HTML prototypes, and produces a normalized payload. Do NOT reimplement parsing here — the agent owns the (real, tarball-based) schema.
+Delegate to the orchestrator agent. The agent fetches, extracts the tarball, reads the README + chats, parses the HTML prototypes, and produces a normalized payload. Do NOT reimplement parsing here, the agent owns the (real, tarball-based) schema.
 
 ````python
 Agent(
@@ -135,13 +135,13 @@ Agent(
 )
 ````
 
-## Phase 2 — Reconcile tokens
+## Phase 2: Reconcile tokens
 
 Read the normalized `token_diff` from the agent's payload.
 
 | Diff field | Action |
 |---|---|
-| `added` | Append to project's design-tokens.json (or Tailwind config). No prompt — additions are safe. |
+| `added` | Append to project's design-tokens.json (or Tailwind config). No prompt, additions are safe. |
 | `modified` | Show diff. AskUserQuestion: keep project value, accept bundle value, or open editor. |
 | `conflicts` | Block scaffolding. AskUserQuestion to resolve before continuing. |
 
@@ -159,17 +159,17 @@ if token_diff["conflicts"]:
     }])
 ```
 
-## Phase 3 — Dedup components
+## Phase 3: Dedup components
 
 The agent already ran component-search per component. Read decisions from the normalized payload:
 
 | `decision` | Behavior |
 |---|---|
-| `reuse` | Log "skipped (existing: &lt;path&gt;)" — do nothing on disk |
+| `reuse` | Log "skipped (existing: &lt;path&gt;)", do nothing on disk |
 | `adapt` | Pipe through `ork:design-to-code` with `--adapt-from <existing-path>` context |
 | `scaffold` | Pipe through `ork:design-to-code` with the bundle's `tsx_scaffold` as seed |
 
-## Phase 4 — Scaffold
+## Phase 4: Scaffold
 
 For each component with decision `scaffold` or `adapt`, invoke design-to-code:
 
@@ -198,7 +198,7 @@ for component in payload["components"]:
         )
 ````
 
-## Phase 5 — Provenance
+## Phase 5: Provenance
 
 Update the provenance file with the actual file paths written:
 
@@ -212,7 +212,7 @@ provenance["imported_at"] = now()
 Write(payload["provenance_path"], provenance)
 ```
 
-## Output — import manifest
+## Output: import manifest
 
 Print a concise summary (not a wall of JSON):
 
@@ -256,10 +256,10 @@ Next: design-ship <bundle_id>   # to open PR
 | Open PR | `design-ship` |
 | Run tests | `post-design-import` hook → `expect` |
 | Generate Storybook stories | `cover` (called by `design-ship`) |
-| Re-prompt Claude Design | Not yet — no public API |
+| Re-prompt Claude Design | Not yet, no public API |
 
 ## Limitations
 
-- **No public Claude Design API yet**: bundles are one-shot exports. To iterate, re-export from claude.ai/design and re-import. The reverse-path (drift detection + refinement prompt) is tracked in M124 — Claude Design Drift Sync (Bet B): #1391, #1393, #1394, #1395, #1397.
+- **No public Claude Design API yet**: bundles are one-shot exports. To iterate, re-export from claude.ai/design and re-import. The reverse-path (drift detection + refinement prompt) is tracked in M124, Claude Design Drift Sync (Bet B): #1391, #1393, #1394, #1395, #1397.
 - **Schema is provisional**: Claude Design has not published a stable bundle schema. The orchestrator agent adapts to deviations but may need updates as the format stabilizes.
 - **Asset URLs are referenced, not downloaded**: bundle `asset_urls` are kept as-is. If you need them in-repo, run a separate sync step.

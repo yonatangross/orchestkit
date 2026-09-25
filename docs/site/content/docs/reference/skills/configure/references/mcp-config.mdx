@@ -5,10 +5,6 @@ description: "MCPs (Model Context Protocol servers) enhance OrchestKit commands 
 
 > Part of the [Configure](/docs/reference/skills/configure) skill reference. The main page carries the skill itself; this page holds material that used to sit at the bottom of it.
 
-### Mcp Config
-
-# MCP Configuration
-
 MCPs (Model Context Protocol servers) enhance OrchestKit commands but are **NOT required**.
 Commands work without them - MCPs just add extra capabilities.
 
@@ -20,7 +16,7 @@ Commands work without them - MCPs just add extra capabilities.
 | **sequential-thinking** | Structured reasoning | None | Sonnet/Haiku subagents needing multi-step reasoning |
 | **memory** | Knowledge graph | Local file | Decisions, patterns, entities |
 | **tavily** | Web search, extract, crawl | Cloud (Tavily) | /ork:explore, /ork:implement, web-research agents |
-| **stitch** | Official Google Stitch MCP — AI design → HTML/screenshots | Cloud (Google) | /ork:design-to-code, design-context-extractor |
+| **stitch** | Official Google Stitch MCP, AI design → HTML/screenshots | Cloud (Google) | /ork:design-to-code, design-context-extractor |
 | **21st-dev-magic** | React component registry (1.4M devs) | Cloud (21st.dev) | /ork:component-search, frontend-ui-developer |
 | **storybook-mcp** | Project component discovery, testing, previews via Storybook 10.3+ | Local (localhost:6006) | /ork:design-to-code, component-curator, frontend-ui-developer |
 | **notebooklm-mcp** | Google NotebookLM RAG | Cloud (Google) | External knowledge base, research synthesis, studio content |
@@ -39,10 +35,10 @@ Not sure which MCPs to enable? Match your project type:
 | **Design system** | stitch, storybook-mcp, 21st-dev-magic, context7 | Figma extraction, component discovery, registry search |
 | **AI/LLM project** | context7, memory, tavily, fal, sequential-thinking | API docs, pattern memory, research, image/video/TTS inference, structured reasoning |
 | **Generative media** | fal, memory, stitch, 21st-dev-magic | Image/video/audio generation, design extraction, component registry |
-| **Open source library** | context7, memory | Minimal footprint — docs + decision tracking |
+| **Open source library** | context7, memory | Minimal footprint, docs + decision tracking |
 | **Research/analysis** | tavily, memory, notebooklm-mcp | Web search, knowledge graph, RAG synthesis |
 
-All MCPs are optional — OrchestKit works without any. Enable what fits your workflow. See setup instructions for each MCP in the Dependencies section below.
+All MCPs are optional, OrchestKit works without any. Enable what fits your workflow. See setup instructions for each MCP in the Dependencies section below.
 
 ## Default State
 
@@ -68,11 +64,11 @@ no server behind the grant they answer from training data and nothing errors.
 
 CC uses two layers to determine which MCP servers are active. Understanding both prevents configuration contradictions.
 
-**Layer 1: `.mcp.json`** — Server definitions and self-declaration
+**Layer 1: `.mcp.json`**: Server definitions and self-declaration
 - `"disabled": false` (or omitted) → server process starts, tools load
 - `"disabled": true` → server process does NOT start, 0 tokens consumed
 
-**Layer 2: `settings.json` / `settings.local.json`** — User approval
+**Layer 2: `settings.json` / `settings.local.json`**: User approval
 - `enableAllProjectMcpServers: true` → **overrides** Layer 1's `disabled` flag for all servers
 - `enabledMcpjsonServers: [...]` → allowlist of approved servers
 - `disabledMcpjsonServers: [...]` → denylist (takes precedence over allowlist)
@@ -118,7 +114,7 @@ Each connected MCP adds tool definitions to the context window:
 | tavily | 5 | ~2000 |
 | **Total** | **16** | **~4200** |
 
-**MCPSearch (default since CC 2.1.7):** When MCP tool schemas exceed 10% of the context window, CC automatically defers schema loading and uses an `MCPSearch` tool to discover tools on demand — reducing overhead by ~85%.
+**MCPSearch (default since CC 2.1.7):** When MCP tool schemas exceed 10% of the context window, CC automatically defers schema loading and uses an `MCPSearch` tool to discover tools on demand, reducing overhead by ~85%.
 
 With 4 MCPs (~4.2K tokens = 2.1% of 200K), schemas load upfront. This is acceptable. If you add more MCPs and cross the 10% threshold, MCPSearch activates automatically.
 
@@ -273,7 +269,7 @@ When `TAVILY_API_KEY` is set and the Tavily MCP is enabled, agents gain access t
 
 | Component | Type | How it uses Tavily |
 |-----------|------|-------------------|
-| `web-research-analyst` | Agent | Primary research tool — search, extract, crawl |
+| `web-research-analyst` | Agent | Primary research tool, search, extract, crawl |
 | `market-intelligence` | Agent | Market analysis with `"topic": "finance"` search |
 | `product-strategist` | Agent | Competitive landscape with `include_domains` filtering |
 | `ai-safety-auditor` | Agent | Content extraction with injection detection |
@@ -285,7 +281,7 @@ When `TAVILY_API_KEY` is set and the Tavily MCP is enabled, agents gain access t
 **Option A: Local MCP with 1Password (recommended)**
 1. Get a free API key (1,000 credits/month): https://app.tavily.com
 2. Store in 1Password: `op item create --category "API Credential" --title "Tavily API Key" "API Key=tvly-..."`
-3. Use `op read` in `.mcp.json` (see example config above) — the `sh -c` wrapper fetches the key from 1Password at MCP startup
+3. Use `op read` in `.mcp.json` (see example config above), the `sh -c` wrapper fetches the key from 1Password at MCP startup
 
 > **Note:** Claude Code's MCP `env` block only resolves `${ENV_VAR}` syntax, not `op://` references directly. Use the `sh -c "TAVILY_API_KEY=$(op read '...') exec npx ..."` wrapper pattern to read from 1Password at startup.
 
@@ -293,7 +289,7 @@ When `TAVILY_API_KEY` is set and the Tavily MCP is enabled, agents gain access t
 
 **Option B: Remote MCP (hosted, no npx)**
 
-Tavily offers a hosted MCP server — no local process needed. Generate the URL at https://app.tavily.com → "Remote MCP" → "Generate MCP Link":
+Tavily offers a hosted MCP server, no local process needed. Generate the URL at https://app.tavily.com → "Remote MCP" → "Generate MCP Link":
 
 ```json
 "tavily": {
@@ -352,7 +348,7 @@ We floor at `2.1.220`, so all of these apply by default.
 
 ### Reserved server name: `workspace` (CC 2.1.128)
 
-`workspace` is a reserved MCP server name in CC 2.1.128+. Any `.mcp.json` entry using it is silently skipped with a warning. Pick any other identifier — none of OrchestKit's bundled servers use this name.
+`workspace` is a reserved MCP server name in CC 2.1.128+. Any `.mcp.json` entry using it is silently skipped with a warning. Pick any other identifier, none of OrchestKit's bundled servers use this name.
 
 ### `deniedMcpServers` is case-insensitive on hostnames (CC 2.1.129)
 
@@ -375,13 +371,13 @@ $ claude  /mcp
   myserver     connected · 0 tools  ⚠
 ```
 
-A zero-tool count after a successful connection means `tools/list` failed silently — usually a stdio MCP server crashed during the handshake. CC 2.1.132+ retries `tools/list` once automatically, but if the count stays zero, the server is misconfigured.
+A zero-tool count after a successful connection means `tools/list` failed silently, usually a stdio MCP server crashed during the handshake. CC 2.1.132+ retries `tools/list` once automatically, but if the count stays zero, the server is misconfigured.
 
 ### Paginated `tools/list` truncation fixed (CC 2.1.144)
 
-Pre-2.1.144, CC only read the FIRST page of a paginated `tools/list` response — servers exposing 50+ tools silently lost everything past page 1, a classic cause of "why doesn't this MCP tool show up". CC 2.1.144 fixed tools; 2.1.146 fixed the same family for `resources/list`, `resources/templates/list`, and `prompts/list`.
+Pre-2.1.144, CC only read the FIRST page of a paginated `tools/list` response, servers exposing 50+ tools silently lost everything past page 1, a classic cause of "why doesn't this MCP tool show up". CC 2.1.144 fixed tools; 2.1.146 fixed the same family for `resources/list`, `resources/templates/list`, and `prompts/list`.
 
-After upgrading past the fix, verify once per large server: compare the `/mcp` tool count against the server's own registry. If the count is still short on CC ≥ 2.1.144, the bug is in the SERVER's pagination (file upstream there — CC is fixed).
+After upgrading past the fix, verify once per large server: compare the `/mcp` tool count against the server's own registry. If the count is still short on CC ≥ 2.1.144, the bug is in the SERVER's pagination (file upstream there, CC is fixed).
 
 ### Experimental plugin manifest fields move under `experimental` (CC 2.1.129)
 
@@ -399,17 +395,17 @@ CC 2.1.129+ expects plugin manifests to declare experimental fields (e.g. `theme
 }
 ```
 
-OrchestKit no longer ships any experimental fields as of v7.94.0 (the prior `monitors` registration was removed in M168 Phase 1) — see `scripts/build-plugins.sh` for the codegen.
+OrchestKit no longer ships any experimental fields as of v7.94.0 (the prior `monitors` registration was removed in M168 Phase 1), see `scripts/build-plugins.sh` for the codegen.
 
 ### `CLAUDE_CODE_SHELL_PREFIX` no longer corrupts MCP stdio argv (CC 2.1.128)
 
-If you wrap CC in `nix-shell --run`, `direnv exec`, or similar via `CLAUDE_CODE_SHELL_PREFIX`, stdio MCP servers used to receive corrupted argv when their command-line args contained spaces or shell metacharacters. CC 2.1.128 preserves quoting through the prefix wrap. No action required at our floor — just notable history.
+If you wrap CC in `nix-shell --run`, `direnv exec`, or similar via `CLAUDE_CODE_SHELL_PREFIX`, stdio MCP servers used to receive corrupted argv when their command-line args contained spaces or shell metacharacters. CC 2.1.128 preserves quoting through the prefix wrap. No action required at our floor, just notable history.
 
 ## CC 2.1.132 changes
 
 ### `/mcp` shows `needs auth` instead of `failed` for unauthorized claude.ai connectors
 
-Before 2.1.132, an unauthorized claude.ai MCP connector (HTTP 401) showed up in `/mcp` as `failed` — indistinguishable from a server that crashed during connect. CC 2.1.132 reports it as `needs auth`, so the user knows to run the connector's authorization flow.
+Before 2.1.132, an unauthorized claude.ai MCP connector (HTTP 401) showed up in `/mcp` as `failed`, indistinguishable from a server that crashed during connect. CC 2.1.132 reports it as `needs auth`, so the user knows to run the connector's authorization flow.
 
 ```
 $ claude  /mcp
@@ -423,7 +419,7 @@ $ claude  /mcp
 
 Before 2.1.132, MCP servers that connected successfully but then failed `tools/list` (for example, a stdio server crashing right after the handshake) silently appeared as `0 tools` with no error surface. CC 2.1.132 retries `tools/list` exactly once and, if it still fails, displays `connected · tools fetch failed` in `/mcp`. In headless `-p` mode the same status string lands in stderr/output so CI scripts can detect it.
 
-CC 2.1.132 also stops retrying non-transient 4xx connection failures in `-p` mode — auth-required connectors now fail fast instead of consuming the retry budget.
+CC 2.1.132 also stops retrying non-transient 4xx connection failures in `-p` mode, auth-required connectors now fail fast instead of consuming the retry budget.
 
 **OrchestKit impact**: `/ork:doctor`'s MCP check can branch on three concrete states (`needs auth`, `connected · tools fetch failed`, `failed`) instead of conflating all of them as "broken". No `.mcp.json` change needed at our floor.
 
@@ -446,6 +442,6 @@ export CLAUDE_CODE_MCP_CLIENT_KEY=/etc/ssl/claude-client.key
 claude
 ```
 
-**OrchestKit impact**: Enterprise deployments behind corporate proxies (Citrix/VDI, BYOK gateway, ZTNA) can connect to OAuth-protected MCP servers without per-flow workarounds. `.mcp.json` entries for OAuth-protected servers need no special config — the env-var-driven proxy/mTLS setup is honored end-to-end. The `mcp-patterns` SKILL.md and the `building-mcp-server-on-cloudflare` skill both reference this fix; if your customer skill warned users that "MCP OAuth bypasses HTTPS_PROXY", that caveat can be removed at our floor.
+**OrchestKit impact**: Enterprise deployments behind corporate proxies (Citrix/VDI, BYOK gateway, ZTNA) can connect to OAuth-protected MCP servers without per-flow workarounds. `.mcp.json` entries for OAuth-protected servers need no special config, the env-var-driven proxy/mTLS setup is honored end-to-end. The `mcp-patterns` SKILL.md and the `building-mcp-server-on-cloudflare` skill both reference this fix; if your customer skill warned users that "MCP OAuth bypasses HTTPS_PROXY", that caveat can be removed at our floor.
 
 See the `agent-browser` skill for Vercel's headless browser CLI.

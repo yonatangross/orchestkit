@@ -5,7 +5,7 @@ description: "Security patterns for authentication, defense-in-depth, input vali
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-orange">high</span>
 
-> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+> **Auto-activated**, this skill loads automatically when Claude detects matching context.
 
 <ContextualSkillSidebar slug="security-patterns" />
 
@@ -107,7 +107,7 @@ survives in `references/request-context-pattern.md` and sanitized audit logging 
 
 ### `sandbox.network.deniedDomains` (CC 2.1.113+)
 
-Network-layer blocklist enforced before Bash/WebFetch egress — pair with the hook-layer `DENY_PATTERNS` for defense in depth. Settings example:
+Network-layer blocklist enforced before Bash/WebFetch egress, pair with the hook-layer `DENY_PATTERNS` for defense in depth. Settings example:
 
 ```json
 "sandbox": {
@@ -186,7 +186,7 @@ Security patterns for LLM integrations including context separation and output v
 
 ### Context Separation (CRITICAL)
 
-Sensitive IDs and data flow AROUND the LLM, never through it. The LLM sees only content — mapping back to entities happens deterministically after.
+Sensitive IDs and data flow AROUND the LLM, never through it. The LLM sees only content, mapping back to entities happens deterministically after.
 
 ```python
 # CORRECT: IDs bypass the LLM
@@ -277,13 +277,13 @@ Plugin settings follow a 3-tier precedence:
 | 2. Project (`.claude/settings.json`) | Repository config | Yes, by user |
 | 3. User (`~/.claude/settings.json`) | Personal preferences | Final authority |
 
-Security hooks shipped by OrchestKit are **managed defaults** — users can disable them but are warned. Enterprise admins can lock settings via managed profiles.
+Security hooks shipped by OrchestKit are **managed defaults**, users can disable them but are warned. Enterprise admins can lock settings via managed profiles.
 
-> **CC 2.1.166 — managed-settings enforcement fix:** before 2.1.166 a single invalid entry in managed settings silently disabled enforcement of *all* remaining valid policies — one typo could void your entire security lockdown. Require 2.1.166+ when relying on managed profiles, and validate the file before deploying it. The same release fixed `allowedMcpServers`/`deniedMcpServers` predicates not matching when they use `${VAR}` references.
+> **CC 2.1.166, managed-settings enforcement fix:** before 2.1.166 a single invalid entry in managed settings silently disabled enforcement of *all* remaining valid policies, one typo could void your entire security lockdown. Require 2.1.166+ when relying on managed profiles, and validate the file before deploying it. The same release fixed `allowedMcpServers`/`deniedMcpServers` predicates not matching when they use `${VAR}` references.
 
-> **CC 2.1.160 — write prompts:** Claude Code now prompts before writing shell startup files (`.zshenv`, `.zlogin`, `.bash_login`, `~/.config/git/`) and — under `acceptEdits` — build-tool configs that grant code execution (`.npmrc`, `.yarnrc*`, `bunfig.toml`, `.bazelrc`, `.pre-commit-config.yaml`, `.devcontainer/`). Treat these as defense-in-depth defaults: approve deliberately rather than blanket-allowing.
+> **CC 2.1.160, write prompts:** Claude Code now prompts before writing shell startup files (`.zshenv`, `.zlogin`, `.bash_login`, `~/.config/git/`) and, under `acceptEdits`, build-tool configs that grant code execution (`.npmrc`, `.yarnrc*`, `bunfig.toml`, `.bazelrc`, `.pre-commit-config.yaml`, `.devcontainer/`). Treat these as defense-in-depth defaults: approve deliberately rather than blanket-allowing.
 
-> **Permission-rule semantics (≥ 2.1.166):** `allow`/`ask`/`deny` rules gained security-relevant behavior — `Read` deny now hides files from Glob/Grep, deny tool-names accept globs (`"*"` = default-deny), explicit `WebFetch(domain:…)` overrides the preapproved-host auto-allow, relayed `SendMessage` from other sessions carries no authority, and org-managed rules apply for the whole session. See `references/cc-permission-model.md` for the full model + a recommended baseline `settings.json`.
+> **Permission-rule semantics (≥ 2.1.166):** `allow`/`ask`/`deny` rules gained security-relevant behavior, `Read` deny now hides files from Glob/Grep, deny tool-names accept globs (`"*"` = default-deny), explicit `WebFetch(domain:…)` overrides the preapproved-host auto-allow, relayed `SendMessage` from other sessions carries no authority, and org-managed rules apply for the whole session. See `references/cc-permission-model.md` for the full model + a recommended baseline `settings.json`.
 
 > **Cross-session replies land in the parent (CC 2.1.248):** when a subagent sends `SendMessage` to another session, the reply is delivered to the parent session's conversation, never to the subagent; a subagent sends and moves on, the parent reads the answer. Cross-session `SendMessage` / `ListAgents` also work on Bedrock, Vertex and Foundry and with telemetry disabled (CC 2.1.248).
 
@@ -359,11 +359,11 @@ Load on demand with `Read("references/<file>")`:
 - PID namespace isolation on Linux for subprocess sandboxing
 - Prevent Bash permission bypasses via backslash escapes and compound commands
 
-> **CC 2.1.128 — SDK host "Always allow" persistence**: when a user picks "Always allow" from a Bash permission prompt in an SDK host, the grant now persists via `.claude/settings.local.json` instead of evaporating at session end. Audit your SDK consumers' `.gitignore` to confirm `.claude/settings.local.json` is excluded — committing it leaks per-developer Bash auth grants. Project-committed `.claude/settings.json` is unchanged; only the user-machine-local file receives the new entries.
+> **CC 2.1.128, SDK host "Always allow" persistence**: when a user picks "Always allow" from a Bash permission prompt in an SDK host, the grant now persists via `.claude/settings.local.json` instead of evaporating at session end. Audit your SDK consumers' `.gitignore` to confirm `.claude/settings.local.json` is excluded, committing it leaks per-developer Bash auth grants. Project-committed `.claude/settings.json` is unchanged; only the user-machine-local file receives the new entries.
 
-> **CC 2.1.169 — managed MCP enforcement + OTEL cert-path trust:** two policy-bypass classes closed. Enterprise `allowedMcpServers`/`deniedMcpServers` policies were NOT enforced on reconnect, IDE-typed configs, `--mcp-config` servers in the first post-install session, or before remote settings loaded — treat any pre-2.1.169 managed-MCP audit as incomplete on those paths. And untrusted project settings could set OTEL client-certificate paths without trust confirmation (a cloned repo could point telemetry at an attacker cert); now gated behind trust. Both fixes are active at ork's floor (2.1.220).
+> **CC 2.1.169, managed MCP enforcement + OTEL cert-path trust:** two policy-bypass classes closed. Enterprise `allowedMcpServers`/`deniedMcpServers` policies were NOT enforced on reconnect, IDE-typed configs, `--mcp-config` servers in the first post-install session, or before remote settings loaded, treat any pre-2.1.169 managed-MCP audit as incomplete on those paths. And untrusted project settings could set OTEL client-certificate paths without trust confirmation (a cloned repo could point telemetry at an attacker cert); now gated behind trust. Both fixes are active at ork's floor (2.1.220).
 
-> **CC 2.1.163 — home-path deny rules now cover `$HOME` Bash refs**: before this fix a `Read(~/.ssh/**)`-style deny rule blocked the Read tool but NOT a Bash command that reached the same file via `$HOME/.ssh/...` — a silent secrets-read bypass. If you gate home-directory secrets (e.g. `~/.aws/credentials`, `~/.ssh/*`, `~/.gnupg/*`) through permission deny rules, pin your CC floor to `>= 2.1.163`; older builds (`< 2.1.163`) leave the Bash path open — ork's floor is now `2.1.220`, which already includes this fix.
+> **CC 2.1.163, home-path deny rules now cover `$HOME` Bash refs**: before this fix a `Read(~/.ssh/**)`-style deny rule blocked the Read tool but NOT a Bash command that reached the same file via `$HOME/.ssh/...`, a silent secrets-read bypass. If you gate home-directory secrets (e.g. `~/.aws/credentials`, `~/.ssh/*`, `~/.gnupg/*`) through permission deny rules, pin your CC floor to `>= 2.1.163`; older builds (`< 2.1.163`) leave the Bash path open, ork's floor is now `2.1.220`, which already includes this fix.
 
 ### input-validation
 **Keywords:** schema, validate, Zod, Pydantic, sanitize, HTML, XSS, file upload
@@ -523,7 +523,7 @@ class TenantScopedRepository:
 | Least Privilege | AWS IAM | Minimal permissions |
 | Complete Mediation | Saltzer & Schroeder | Every access checked |
 
-**Incorrect — Single-layer auth check is vulnerable if JWT verification is bypassed:**
+**Incorrect, Single-layer auth check is vulnerable if JWT verification is bypassed:**
 ```python
 @app.get("/documents/{doc_id}")
 def get_document(doc_id: UUID, token: str = Header(...)):
@@ -531,7 +531,7 @@ def get_document(doc_id: UUID, token: str = Header(...)):
     return db.query(Document).get(doc_id)
 ```
 
-**Correct — Multi-layer defense verifies auth, validates input, checks authorization, and filters data:**
+**Correct, Multi-layer defense verifies auth, validates input, checks authorization, and filters data:**
 ```python
 @app.get("/documents/{doc_id}")
 async def get_document(doc_id: UUID, ctx: RequestContext = Depends(get_context)):
@@ -550,7 +550,7 @@ async def get_document(doc_id: UUID, ctx: RequestContext = Depends(get_context))
 
 ## LLM Red-Teaming and OWASP LLM Compliance
 
-**Incorrect -- shipping LLM system without adversarial testing:**
+**Incorrect, shipping LLM system without adversarial testing:**
 ```python
 # Only testing happy path, no adversarial inputs
 def test_chatbot():
@@ -558,7 +558,7 @@ def test_chatbot():
     assert response  # No jailbreak, injection, or bias testing!
 ```
 
-**Correct -- DeepTeam red-teaming audit:**
+**Correct, DeepTeam red-teaming audit:**
 ```python
 from deepteam import red_team
 from deepteam.vulnerabilities import (
@@ -626,7 +626,7 @@ Key decisions:
 
 ## NeMo Guardrails and Guardrails AI
 
-**Incorrect -- returning raw LLM output without validation:**
+**Incorrect, returning raw LLM output without validation:**
 ```python
 # No input sanitization, no output validation
 user_input = request.json["message"]
@@ -634,7 +634,7 @@ response = llm.generate(user_input)  # Prompt injection risk!
 return response  # Raw, unvalidated output!
 ```
 
-**Correct -- NeMo Guardrails with Guardrails AI integration:**
+**Correct, NeMo Guardrails with Guardrails AI integration:**
 ```yaml
 # config.yml
 models:
@@ -666,7 +666,7 @@ rails:
       - guardrailsai check output $validator="restricttotopic"
 ```
 
-**Correct -- Colang 2.0 fact-checking rails:**
+**Correct, Colang 2.0 fact-checking rails:**
 ```text
 define flow answer question with facts
   """Enable fact-checking for RAG responses."""
@@ -682,7 +682,7 @@ define flow check hallucination
   bot respond about people
 ```
 
-**Correct -- Guardrails AI validators in Python:**
+**Correct, Guardrails AI validators in Python:**
 ```python
 from guardrails import Guard
 from guardrails.hub import ToxicLanguage, DetectPII, RestrictToTopic, ValidLength
@@ -727,13 +727,13 @@ published?". A package can be fully CVE-clean and still malicious.
 
 ## Lockfile integrity
 
-**Incorrect — install resolves fresh every time:**
+**Incorrect, install resolves fresh every time:**
 ```bash
 npm install          # may pick up a newer transitive release
 pip install -r requirements.txt   # unpinned transitives
 ```
 
-**Correct — install exactly what was reviewed:**
+**Correct, install exactly what was reviewed:**
 ```bash
 npm ci               # fails if package.json and the lockfile disagree
 pip install --require-hashes -r requirements.txt
@@ -748,7 +748,7 @@ does not match, which is precisely the signal you want in CI.
 An internal package name that also exists on a public registry can be shadowed,
 because many resolvers prefer the highest version across all configured sources.
 
-**Correct — scope internal packages and pin the source:**
+**Correct, scope internal packages and pin the source:**
 ```
 # .npmrc
 @yourorg:registry=https://registry.internal.example/
@@ -931,7 +931,7 @@ db.query('SELECT * FROM users WHERE name = ?', [name]);
 | Location | Server-side always |
 | Error messages | Generic (don't leak info) |
 
-**Incorrect — Trusting client-side validation allows attackers to bypass checks:**
+**Incorrect, Trusting client-side validation allows attackers to bypass checks:**
 ```typescript
 // Client-side only
 const email = document.getElementById('email').value;
@@ -941,7 +941,7 @@ if (email.includes('@')) {
 // Attacker can bypass with curl/Postman
 ```
 
-**Correct — Server-side schema validation with Zod ensures all input is validated:**
+**Correct, Server-side schema validation with Zod ensures all input is validated:**
 ```typescript
 app.post('/api/users', validateBody(z.object({
   email: z.email(),
@@ -981,7 +981,7 @@ const sanitizedHtml = DOMPurify.sanitize(userInput, {
 
 ## XSS Prevention
 
-**Safe — textContent and React auto-escaping:**
+**Safe, textContent and React auto-escaping:**
 ```javascript
 // SAFE: textContent escapes HTML entities
 element.textContent = userInput;
@@ -990,7 +990,7 @@ element.textContent = userInput;
 <div>{userInput}</div>  // Auto-escaped
 ```
 
-**Dangerous — innerHTML and dangerouslySetInnerHTML bypass escaping:**
+**Dangerous, innerHTML and dangerouslySetInnerHTML bypass escaping:**
 ```javascript
 // DANGEROUS: innerHTML can execute scripts
 element.innerHTML = userInput;  // NEVER do this with user input
@@ -1063,14 +1063,14 @@ element.textContent = userInput;
 const safe = DOMPurify.sanitize(userInput);
 ```
 
-**Incorrect — Using innerHTML with user content allows XSS script injection:**
+**Incorrect, Using innerHTML with user content allows XSS script injection:**
 ```javascript
 const userComment = "<script>alert('XSS')</script>";
 element.innerHTML = userComment;
 // Script executes, stealing cookies/tokens
 ```
 
-**Correct — Using textContent automatically escapes HTML and prevents XSS:**
+**Correct, Using textContent automatically escapes HTML and prevents XSS:**
 ```javascript
 const userComment = "<script>alert('XSS')</script>";
 element.textContent = userComment;
@@ -1334,7 +1334,7 @@ with propagate_attributes(
 
 How Claude Code's `allow` / `ask` / `deny` permission rules actually behave as of
 the supported floor (every behavior below had shipped by 2.1.166; current floor 2.1.220).
-These are the facts OrchestKit security guidance depends on — get them wrong and a
+These are the facts OrchestKit security guidance depends on, get them wrong and a
 "locked down" config has holes. Each behavior shipped in a specific release; all
 are guaranteed present at the floor.
 
@@ -1347,12 +1347,12 @@ A `Read` deny rule is now a real **secrecy** boundary, not just a read block:
 { "permissions": { "deny": ["Read(./.env*)", "Read(./secrets/**)"] } }
 ```
 
-Matching files no longer appear in `Glob` or `Grep` results either — before 2.1.162
+Matching files no longer appear in `Glob` or `Grep` results either, before 2.1.162
 the agent could still *discover* (and infer from) denied paths via search even though
 it couldn't read them. Treat `Read(deny)` as "this path does not exist for the agent."
 
 - **Use it for:** secrets, key material, customer data dumps, `.env` families.
-- **Pitfall:** a deny rule with a typo silently protects nothing — there is no
+- **Pitfall:** a deny rule with a typo silently protects nothing, there is no
   "unknown path" warning (unlike deny *tool names*, see §2). Verify with a probe
   `Glob` after deploying.
 
@@ -1368,8 +1368,8 @@ The tool-name slot of a deny rule accepts globs, enabling a **default-deny basel
 ```
 
 - `"*"` in a deny rule denies every tool.
-- **Allow** rules *reject* non-MCP globs (you cannot `allow: ["*"]`) — allow stays explicit by design.
-- Unknown tool names in **deny** rules emit a startup **warning** (catches typos — the
+- **Allow** rules *reject* non-MCP globs (you cannot `allow: ["*"]`), allow stays explicit by design.
+- Unknown tool names in **deny** rules emit a startup **warning** (catches typos, the
   safety net §1 lacks). Watch the startup log when authoring deny lists.
 
 ## 3. Explicit WebFetch rules override the preapproved-host auto-allow (2.1.162)
@@ -1397,7 +1397,7 @@ session no longer inherits the originating user's authority.
 Implication for OrchestKit's multi-agent flows (agent-orchestration, mcp-patterns):
 a peer or compromised session **cannot escalate** by asking your session to approve a
 tool call on its behalf. Design fan-out so privileged actions run in the session that
-legitimately holds the authority — do not route approvals through relays.
+legitimately holds the authority, do not route approvals through relays.
 
 ## 5. Org-managed permission rules apply for the whole session (2.1.163)
 
@@ -1409,13 +1409,13 @@ that reach the path via `$HOME`.
 
 - **Require 2.1.163+** when relying on org-managed profiles for a security boundary.
 - Pairs with the 2.1.166 managed-settings enforcement fix (see SKILL.md "Managed Hook
-  Hierarchy") — one invalid entry no longer voids the rest of the policy.
+  Hierarchy"), one invalid entry no longer voids the rest of the policy.
 
 ## 6. Permission rules can match tool input parameters (2.1.178)
 
 Rules now match against a tool's **input parameters**, not just its name, with `*`
 wildcard support. Syntax: `Tool(param:value)`. The headline use is gating subagent
-spawns by model — `Agent(model:opus)` in a deny rule blocks any subagent attempted
+spawns by model, `Agent(model:opus)` in a deny rule blocks any subagent attempted
 with Opus; `Agent(model:*)` denies all model-pinned subagent spawns.
 
 ```jsonc
@@ -1425,7 +1425,7 @@ with Opus; `Agent(model:*)` denies all model-pinned subagent spawns.
 - **Use it for:** a *hard* block on expensive or capability-risky subagent models, or
   parameter-level gates (e.g. specific `Bash` subcommands) that tool-name rules can't
   express. Combine with tool-name + file-path rules for defense-in-depth.
-- **It is static** — a permission rule cannot run logic, read state, output advisory
+- **It is static**: a permission rule cannot run logic, read state, output advisory
   context, or prompt the user. For *advisory* model control (warn-don't-block, cost
   estimates, consent prompts) ork keeps its `model-cost-advisor` and
   `fable-spend-consent` hooks; the two are orthogonal (see `shared/rules/cc-native-first.md`).
@@ -1452,7 +1452,7 @@ actually refused (§3).
 
 # Context Separation Pattern
 
-> **OWASP LLM Top 10 (2025):** This pattern mitigates **LLM07: System Prompt Leakage** — keeping identifiers and internal context out of prompts prevents the model from echoing or leaking system-level data.
+> **OWASP LLM Top 10 (2025):** This pattern mitigates **LLM07: System Prompt Leakage**, keeping identifiers and internal context out of prompts prevents the model from echoing or leaking system-level data.
 
 ## The Problem
 

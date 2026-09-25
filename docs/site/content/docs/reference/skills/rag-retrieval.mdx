@@ -5,7 +5,7 @@ description: "Retrieval-Augmented Generation patterns for grounded LLM responses
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-orange">high</span>
 
-> **Not directly invocable** — no slash command and no model auto-selection. An agent loads it explicitly via `Read()`.
+> **Not directly invocable**, no slash command and no model auto-selection. An agent loads it explicitly via `Read()`.
 
 <ContextualSkillSidebar slug="rag-retrieval" />
 
@@ -59,7 +59,7 @@ Embedding models, chunking strategies, and production optimization.
 
 ## Contextual Retrieval
 
-Anthropic's context-prepending technique — 67% fewer retrieval failures.
+Anthropic's context-prepending technique, 67% fewer retrieval failures.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
@@ -395,7 +395,7 @@ async def adaptive_search(question: str, top_k: int = 10) -> list[dict]:
         return await web_search(question)
 ```
 
-**Incorrect — hardcoded single retrieval strategy:**
+**Incorrect, hardcoded single retrieval strategy:**
 ```python
 async def search(question: str) -> list[dict]:
     # Always uses HyDE regardless of query type
@@ -403,7 +403,7 @@ async def search(question: str) -> list[dict]:
     return await retriever.search_by_embedding(hyde_result.embedding, top_k=10)
 ```
 
-**Correct — adaptive routing based on query characteristics:**
+**Correct, adaptive routing based on query characteristics:**
 ```python
 async def adaptive_search(question: str) -> list[dict]:
     strategy = await route_query(question)  # Choose best approach
@@ -421,7 +421,7 @@ async def adaptive_search(question: str) -> list[dict]:
 - HyDE for abstract/conceptual queries (vocabulary bridging)
 - Decomposition for multi-concept queries (comprehensive coverage)
 - Web search for recent events or out-of-knowledge-base queries
-- Routing adds ~200ms overhead — use heuristics for fast-path decisions
+- Routing adds ~200ms overhead, use heuristics for fast-path decisions
 
 
 ### Apply corrective RAG with quality assurance and web fallback for self-correction: HIGH
@@ -476,7 +476,7 @@ def web_search(state: RAGState) -> dict:
     return {"documents": web_docs, "web_search_needed": False}
 ```
 
-**Incorrect — no fallback path or retry limits:**
+**Incorrect, no fallback path or retry limits:**
 ```python
 def route_after_grading(state: RAGState) -> str:
     if state["web_search_needed"]:
@@ -484,7 +484,7 @@ def route_after_grading(state: RAGState) -> str:
     return "generate"
 ```
 
-**Correct — bounded retries with web fallback:**
+**Correct, bounded retries with web fallback:**
 ```python
 def route_after_grading(state: RAGState) -> str:
     if state["web_search_needed"]:
@@ -523,14 +523,14 @@ Query → [Entity Extraction] → [KG Lookup] → [Vector Search] → [Merge] �
 | GraphRAG | Entity-rich domains | Knowledge graph + vector hybrid |
 | Agentic | Complex multi-step | Full plan-route-act-verify loop |
 
-**Incorrect — vector-only search missing entity relationships:**
+**Incorrect, vector-only search missing entity relationships:**
 ```python
 async def search(query: str) -> list[dict]:
     # Misses relationships between entities
     return await vector_db.search(query, limit=10)
 ```
 
-**Correct — hybrid KG + vector search:**
+**Correct, hybrid KG + vector search:**
 ```python
 async def graph_rag_search(query: str) -> list[dict]:
     entities = await extract_entities(query)  # Extract entities from query
@@ -550,7 +550,7 @@ async def graph_rag_search(query: str) -> list[dict]:
 ### Grade document relevance with Self-RAG to prevent context contamination from irrelevant results: HIGH
 
 
-## Self-RAG — Document Grading
+## Self-RAG: Document Grading
 
 LLM grades retrieved documents for relevance before generation.
 
@@ -600,7 +600,7 @@ def grade_documents(state: RAGState) -> dict:
     }
 ```
 
-**Incorrect — no document grading, all docs used:**
+**Incorrect, no document grading, all docs used:**
 ```python
 def generate(state: RAGState) -> dict:
     # Uses all retrieved docs without quality check
@@ -608,7 +608,7 @@ def generate(state: RAGState) -> dict:
     return {"generation": llm.invoke(context)}
 ```
 
-**Correct — grade documents before generation:**
+**Correct, grade documents before generation:**
 ```python
 def grade_documents(state: RAGState) -> dict:
     filtered_docs = []
@@ -625,13 +625,13 @@ def grade_documents(state: RAGState) -> dict:
 - Binary grading (yes/no) is simpler and more reliable than numeric scores
 - Trigger web search fallback when >50% of docs are filtered out
 - Track relevance scores for debugging and quality monitoring
-- Self-RAG lets the LLM decide when to retrieve — adaptive by design
+- Self-RAG lets the LLM decide when to retrieve, adaptive by design
 
 
 ### Combine contextual embeddings with BM25 hybrid search for maximum retrieval coverage: HIGH
 
 
-## Contextual Retrieval — Hybrid BM25+Vector
+## Contextual Retrieval: Hybrid BM25+Vector
 
 Combine contextual embeddings with BM25 for maximum retrieval quality.
 
@@ -671,7 +671,7 @@ class HybridRetriever:
 | + Contextual + BM25 hybrid | 1.9% |
 | + Contextual + BM25 + reranking | 1.3% |
 
-**Incorrect — vector-only search without BM25:**
+**Incorrect, vector-only search without BM25:**
 ```python
 def search(query: str, query_embedding: np.ndarray, top_k: int = 20) -> list[int]:
     # Misses exact-match queries
@@ -679,7 +679,7 @@ def search(query: str, query_embedding: np.ndarray, top_k: int = 20) -> list[int
     return np.argsort(vector_scores)[::-1][:top_k]
 ```
 
-**Correct — hybrid BM25 + vector with proper weighting:**
+**Correct, hybrid BM25 + vector with proper weighting:**
 ```python
 def search(query: str, query_embedding: np.ndarray, top_k: int = 20) -> list[tuple[int, float]]:
     bm25_scores = self.bm25.get_scores(query.lower().split())
@@ -703,7 +703,7 @@ def search(query: str, query_embedding: np.ndarray, top_k: int = 20) -> list[tup
 ### Build complete contextual retrieval pipeline integrating context generation, embedding, and hybrid search: MEDIUM
 
 
-## Contextual Retrieval — Complete Pipeline
+## Contextual Retrieval: Complete Pipeline
 
 End-to-end pipeline with context generation, hybrid indexing, and retrieval.
 
@@ -758,7 +758,7 @@ async def contextualize_parallel(document: str, chunks: list[str]) -> list[str]:
     return await asyncio.gather(*[process_chunk(c) for c in chunks])
 ```
 
-**Incorrect — missing context generation and hybrid indexing:**
+**Incorrect, missing context generation and hybrid indexing:**
 ```python
 def add_document(self, doc_id: str, text: str):
     # No contextualization, no hybrid indexing
@@ -767,7 +767,7 @@ def add_document(self, doc_id: str, text: str):
     self.chunks.extend(embeddings)
 ```
 
-**Correct — complete pipeline with contextualization and hybrid search:**
+**Correct, complete pipeline with contextualization and hybrid search:**
 ```python
 def add_document(self, doc_id: str, text: str, chunk_size: int = 512):
     raw_chunks = self._chunk_text(text, chunk_size)
@@ -792,7 +792,7 @@ def add_document(self, doc_id: str, text: str, chunk_size: int = 512):
 ### Prepend situational context to chunks before embedding to reduce retrieval failures: HIGH
 
 
-## Contextual Retrieval — Context Prepending
+## Contextual Retrieval: Context Prepending
 
 Prepend situational context to chunks before embedding to preserve document-level meaning.
 
@@ -851,7 +851,7 @@ def contextualize_cached(document: str, chunk: str) -> str:
     return f"{next(b.text for b in response.content if b.type == 'text')}\n\n{chunk}"
 ```
 
-**Incorrect — chunk without document context:**
+**Incorrect, chunk without document context:**
 ```python
 def index_chunk(chunk: str) -> str:
     # Missing document context — retrieval will fail
@@ -859,7 +859,7 @@ def index_chunk(chunk: str) -> str:
     return embedding
 ```
 
-**Correct — prepend situational context before embedding:**
+**Correct, prepend situational context before embedding:**
 ```python
 def contextualize_chunk(document: str, chunk: str) -> str:
     context = client.messages.create(
@@ -878,7 +878,7 @@ def contextualize_chunk(document: str, chunk: str) -> str:
 **Key rules:**
 - Good context: "This chunk is from ACME Corp's Q3 2024 earnings report, specifically the revenue section."
 - Bad context: "This is a chunk from the document." (too generic)
-- Context length: 1-2 sentences — enough without excessive token overhead
+- Context length: 1-2 sentences, enough without excessive token overhead
 - Use prompt caching (ephemeral) for 90% cost reduction when processing many chunks from same doc
 
 
@@ -934,7 +934,7 @@ async def rag_with_citations(question: str) -> dict:
     }
 ```
 
-**Incorrect — no citations, no grounding constraint:**
+**Incorrect, no citations, no grounding constraint:**
 ```python
 async def rag_query(question: str) -> str:
     docs = await vector_db.search(question, limit=5)
@@ -945,7 +945,7 @@ async def rag_query(question: str) -> str:
     return response.content  # No source tracking
 ```
 
-**Correct — citations with grounding constraint:**
+**Correct, citations with grounding constraint:**
 ```python
 async def rag_with_citations(question: str) -> dict:
     docs = await vector_db.search(question, limit=5)
@@ -1022,7 +1022,7 @@ async def rag_with_sufficiency(question: str, top_k: int = 5) -> str:
     return await generate_with_context(question, context)
 ```
 
-**Incorrect — no token budget or sufficiency check:**
+**Incorrect, no token budget or sufficiency check:**
 ```python
 async def rag_query(question: str) -> str:
     docs = await vector_db.search(question, limit=100)  # No limit!
@@ -1030,7 +1030,7 @@ async def rag_query(question: str) -> str:
     return await generate_with_context(question, context)  # No sufficiency check
 ```
 
-**Correct — token budget with sufficiency validation:**
+**Correct, token budget with sufficiency validation:**
 ```python
 async def rag_with_sufficiency(question: str, top_k: int = 5) -> str:
     docs = await vector_db.search(question, limit=top_k)
@@ -1051,7 +1051,7 @@ async def rag_with_sufficiency(question: str, top_k: int = 5) -> str:
 - Keep context under 75% of model limit, reserve for system prompt + response
 - Prioritize highest-relevance documents first
 - Context budget: 4K-8K tokens typical for factual tasks
-- RAG paradoxically increases hallucinations when context is insufficient — use sufficiency check
+- RAG paradoxically increases hallucinations when context is insufficient, use sufficiency check
 - Abstain when confidence > 0.7 and context is insufficient
 
 
@@ -1101,7 +1101,7 @@ def multi_rrf(result_lists: list[list[dict]], k: int = 60) -> list[dict]:
     return [docs[doc_id] for doc_id in ranked_ids]
 ```
 
-**Incorrect — no reciprocal rank fusion, just simple averaging:**
+**Incorrect, no reciprocal rank fusion, just simple averaging:**
 ```python
 def hybrid_search(query: str, top_k: int = 10) -> list:
     semantic = vector_search(query, top_k)
@@ -1110,7 +1110,7 @@ def hybrid_search(query: str, top_k: int = 10) -> list:
     return semantic[:5] + keyword[:5]
 ```
 
-**Correct — proper RRF combination:**
+**Correct, proper RRF combination:**
 ```python
 def reciprocal_rank_fusion(semantic_results: list, keyword_results: list, k: int = 60) -> list:
     scores = {}
@@ -1126,7 +1126,7 @@ def reciprocal_rank_fusion(semantic_results: list, keyword_results: list, k: int
 
 **Key rules:**
 - Default weight split: 40% BM25 / 60% vector (Anthropic research optimal)
-- RRF smoothing constant k=60 is the standard — robust and parameter-free
+- RRF smoothing constant k=60 is the standard, robust and parameter-free
 - Retrieve 3x the final top-k for better RRF coverage (e.g., top-30 for final top-10)
 - Normalize scores before combining if not using RRF
 
@@ -1185,7 +1185,7 @@ class RAGPipeline:
         return merged[:top_k]
 ```
 
-**Incorrect — monolithic retrieval without composition:**
+**Incorrect, monolithic retrieval without composition:**
 ```python
 async def query(question: str) -> list[dict]:
     # No optional stages, fixed pipeline
@@ -1193,7 +1193,7 @@ async def query(question: str) -> list[dict]:
     return docs
 ```
 
-**Correct — composable pipeline with optional stages:**
+**Correct, composable pipeline with optional stages:**
 ```python
 async def query(self, question: str, top_k: int = 10) -> list[dict]:
     queries = [question]
@@ -1224,7 +1224,7 @@ async def query(self, question: str, top_k: int = 10) -> list[dict]:
 - HyDE adds ~500ms latency; use with fallback timeout (2-3s)
 - Reranking adds ~50-500ms; retrieve more (3x), rerank to final top-k
 - Query decomposition only when heuristic detects multi-concept query
-- Each stage is optional — start simple, add stages as needed
+- Each stage is optional, start simple, add stages as needed
 
 
 ### Implement production embedding pipelines with batching, caching, and cost optimization: MEDIUM
@@ -1286,7 +1286,7 @@ response = client.embeddings.create(
 )
 ```
 
-**Incorrect — no caching or batching, wasteful API calls:**
+**Incorrect, no caching or batching, wasteful API calls:**
 ```python
 async def embed_texts(texts: list[str]) -> list[list[float]]:
     results = []
@@ -1299,7 +1299,7 @@ async def embed_texts(texts: list[str]) -> list[list[float]]:
     return results
 ```
 
-**Correct — cached batching with rate limiting:**
+**Correct, cached batching with rate limiting:**
 ```python
 async def batch_embed(texts: list[str], batch_size: int = 100) -> list[list[float]]:
     results = []
@@ -1325,7 +1325,7 @@ async def batch_embed(texts: list[str], batch_size: int = 100) -> list[list[floa
 
 **Key rules:**
 - Late Chunking: Embed full document, extract chunk vectors from contextualized tokens
-- Cache aggressively — same text + model = same embedding, no need to recompute
+- Cache aggressively, same text + model = same embedding, no need to recompute
 - Batch size 100-500 per API call for optimal throughput
 - Matryoshka: Truncate `text-embedding-3-large` from 3072 to 1536 dims with ~2% quality loss
 - Rate limit: 0.1s delay between batches as courtesy to API providers
@@ -1387,14 +1387,14 @@ def chunk_by_sentences(text: str, chunk_size: int = 512) -> list[str]:
     return chunks
 ```
 
-**Incorrect — fixed-size splits without overlap or semantic boundaries:**
+**Incorrect, fixed-size splits without overlap or semantic boundaries:**
 ```python
 def chunk_text(text: str) -> list[str]:
     # Arbitrary splits, no overlap, breaks mid-sentence
     return [text[i:i+500] for i in range(0, len(text), 500)]
 ```
 
-**Correct — semantic boundary chunking with overlap:**
+**Correct, semantic boundary chunking with overlap:**
 ```python
 def chunk_by_sentences(text: str, chunk_size: int = 512, overlap: int = 75) -> list[str]:
     sentences = text.split('. ')
@@ -1421,7 +1421,7 @@ def chunk_by_sentences(text: str, chunk_size: int = 512, overlap: int = 75) -> l
 - Overlap: 10-20% for context continuity between chunks
 - Include metadata (title, source, section) with each chunk
 - Prefer semantic boundaries (headers, paragraphs) over fixed-size splits
-- Not chunking long documents is a common mistake — context gets lost in embeddings
+- Not chunking long documents is a common mistake, context gets lost in embeddings
 
 
 ### Select embedding models and dimensions correctly to ensure index compatibility and quality: HIGH
@@ -1452,12 +1452,12 @@ response = client.embeddings.create(
 vectors = [item.embedding for item in response.data]
 ```
 
-**Model Selection (2026-Q2 — verified current):**
+**Model Selection (2026-Q2, verified current):**
 
 | Model | Dims | Cost | Use Case |
 |-------|------|------|----------|
 | `text-embedding-3-small` | 1536 | $0.02/1M | General purpose (OpenAI) |
-| `text-embedding-3-large` | 3072 | $0.13/1M | High accuracy (OpenAI) — Matryoshka-truncatable |
+| `text-embedding-3-large` | 3072 | $0.13/1M | High accuracy (OpenAI), Matryoshka-truncatable |
 | `voyage-3.5` | 1024 | $0.06/1M | Production (OrchestKit default, launched 2025-05-20) |
 | `voyage-3.5-lite` | 512 | $0.02/1M | Cost-tier, shorter queries, Matryoshka base |
 | `voyage-3.5-large` | 2048 | $0.18/1M | Highest recall, multilingual + code |
@@ -1467,7 +1467,7 @@ vectors = [item.embedding for item in response.data]
 Guidance:
 - Default to `voyage-3.5` unless you have a reason not to. The `-lite` variant is the cost tier for short queries; `-large` wins on recall and multilingual content.
 - `text-embedding-3-large` is still the strongest OpenAI option when you need Matryoshka dim reduction (3072 → 1536) without retraining.
-- `gemini-embedding-001` is the Gemini option; use when you're already on Google's stack or need multilingual beyond Voyage's coverage. It defaults to 3072 dims but supports MRL output truncation (e.g. 768/1536) — set the output dimensionality explicitly if you need cost savings.
+- `gemini-embedding-001` is the Gemini option; use when you're already on Google's stack or need multilingual beyond Voyage's coverage. It defaults to 3072 dims but supports MRL output truncation (e.g. 768/1536), set the output dimensionality explicitly if you need cost savings.
 
 **Similarity Calculation:**
 ```python
@@ -1479,7 +1479,7 @@ def cosine_similarity(a: list[float], b: list[float]) -> float:
 # 1.0 = identical, 0.0 = orthogonal
 ```
 
-**Incorrect — mixing different embedding models:**
+**Incorrect, mixing different embedding models:**
 ```python
 # Index with one model
 docs_embeddings = client.embeddings.create(
@@ -1495,7 +1495,7 @@ query_embedding = client.embeddings.create(
 # Results will be nonsensical due to dimension mismatch
 ```
 
-**Correct — consistent model for queries and documents:**
+**Correct, consistent model for queries and documents:**
 ```python
 MODEL = "text-embedding-3-small"  # Use same model everywhere
 
@@ -1510,10 +1510,10 @@ similarity = cosine_similarity(query_embedding, docs_embeddings[0])
 ```
 
 **Key rules:**
-- Embed queries and documents with the SAME model — never mix
+- Embed queries and documents with the SAME model, never mix
 - Dimension reduction: Can truncate `text-embedding-3-large` to 1536 dims (Matryoshka)
 - Batch size: 100-500 texts per API call for efficiency
-- Cache embeddings — never re-embed unchanged content
+- Cache embeddings, never re-embed unchanged content
 - Most models return normalized vectors (cosine = dot product)
 
 
@@ -1549,7 +1549,7 @@ async def hyde_with_fallback(
 - Keep hypothetical docs concise (100-200 tokens)
 - Combine with query decomposition for best results
 
-**Incorrect — no timeout or fallback, blocking forever:**
+**Incorrect, no timeout or fallback, blocking forever:**
 ```python
 async def hyde_search(query: str) -> list[float]:
     # No timeout! May hang indefinitely
@@ -1557,7 +1557,7 @@ async def hyde_search(query: str) -> list[float]:
     return result.embedding
 ```
 
-**Correct — timeout with graceful fallback:**
+**Correct, timeout with graceful fallback:**
 ```python
 async def hyde_with_fallback(query: str, timeout: float = 3.0) -> list[float]:
     try:
@@ -1570,7 +1570,7 @@ async def hyde_with_fallback(query: str, timeout: float = 3.0) -> list[float]:
 ```
 
 **Key rules:**
-- Always implement timeout fallback — HyDE generation model may be slow or unavailable
+- Always implement timeout fallback, HyDE generation model may be slow or unavailable
 - Default timeout: 2-3 seconds is the sweet spot (balances quality vs latency)
 - Fallback to direct query embedding maintains functionality (just lower quality)
 - Log fallback events to monitor HyDE generation reliability
@@ -1635,7 +1635,7 @@ async def generate_hyde(
 | Natural language questions | Yes |
 | Vocabulary mismatch suspected | Yes |
 
-**Incorrect — embedding the query instead of hypothetical document:**
+**Incorrect, embedding the query instead of hypothetical document:**
 ```python
 async def generate_hyde(query: str) -> HyDEResult:
     response = await llm.chat.completions.create(
@@ -1648,7 +1648,7 @@ async def generate_hyde(query: str) -> HyDEResult:
     return HyDEResult(query, hypothetical_doc, embedding)
 ```
 
-**Correct — embed the hypothetical document:**
+**Correct, embed the hypothetical document:**
 ```python
 async def generate_hyde(query: str) -> HyDEResult:
     response = await llm.chat.completions.create(
@@ -1671,7 +1671,7 @@ async def generate_hyde(query: str) -> HyDEResult:
 - Use fast/cheap model (gpt-5-mini, claude-haiku-4-5) for generation
 - Omit `temperature` on gpt-5-mini (only the default value is accepted on older GPT-5 models); where a model accepts it, 0.3 keeps hypothetical docs consistent and factual
 - Keep hypothetical docs concise: 100-200 tokens
-- Adds ~500ms latency — always implement with timeout fallback
+- Adds ~500ms latency, always implement with timeout fallback
 
 
 ### Generate separate HyDE documents per concept for multi-topic vocabulary bridging: MEDIUM
@@ -1711,7 +1711,7 @@ class HyDEService:
         return result
 ```
 
-**Incorrect — sequential HyDE generation, slow:**
+**Incorrect, sequential HyDE generation, slow:**
 ```python
 async def batch_hyde(concepts: list[str]) -> list[HyDEResult]:
     results = []
@@ -1721,7 +1721,7 @@ async def batch_hyde(concepts: list[str]) -> list[HyDEResult]:
     return results
 ```
 
-**Correct — parallel HyDE generation:**
+**Correct, parallel HyDE generation:**
 ```python
 async def batch_hyde(concepts: list[str]) -> list[HyDEResult]:
     # Parallel generation for all concepts simultaneously
@@ -1731,7 +1731,7 @@ async def batch_hyde(concepts: list[str]) -> list[HyDEResult]:
 
 **Key rules:**
 - For multi-concept queries, decompose first then generate HyDE per concept
-- Cache aggressively — queries often repeat
+- Cache aggressively, queries often repeat
 - Parallel generation with asyncio.gather for all concepts simultaneously
 - Combine with query decomposition for best results on complex queries
 
@@ -1786,7 +1786,7 @@ def chunk_multimodal_document(pdf_path: str) -> list[Chunk]:
     return chunks
 ```
 
-**Incorrect — text-only chunking, loses images and tables:**
+**Incorrect, text-only chunking, loses images and tables:**
 ```python
 def chunk_pdf(pdf_path: str) -> list[str]:
     import fitz
@@ -1797,7 +1797,7 @@ def chunk_pdf(pdf_path: str) -> list[str]:
     return chunks
 ```
 
-**Correct — multimodal chunking with images and captions:**
+**Correct, multimodal chunking with images and captions:**
 ```python
 def chunk_multimodal_document(pdf_path: str) -> list[Chunk]:
     import fitz
@@ -1887,7 +1887,7 @@ def embed_multimodal(texts=None, images=None) -> list[list[float]]:
     return client.multimodal_embed(inputs=inputs, model="voyage-multimodal-3.5").embeddings
 ```
 
-**Incorrect — using text-only embeddings for images:**
+**Incorrect, using text-only embeddings for images:**
 ```python
 def embed_image(image_path: str) -> list[float]:
     # Using text embedding model for images - wrong modality!
@@ -1895,7 +1895,7 @@ def embed_image(image_path: str) -> list[float]:
     return text_embed_model.embed([caption])[0]  # Loses visual features
 ```
 
-**Correct — multimodal embeddings for cross-modal search:**
+**Correct, multimodal embeddings for cross-modal search:**
 ```python
 def embed_image(image_path: str) -> list[float]:
     image = Image.open(image_path)
@@ -1965,7 +1965,7 @@ async def generate_with_context(query: str, chunks: list[Chunk], model: str = "c
     return response.content[0].text
 ```
 
-**Incorrect — no deduplication, fragmented results:**
+**Incorrect, no deduplication, fragmented results:**
 ```python
 async def retrieve(self, query: str, top_k: int = 10) -> list[dict]:
     text_emb = embed_text(query)
@@ -1978,7 +1978,7 @@ async def retrieve(self, query: str, top_k: int = 10) -> list[dict]:
     return text_results + img_results
 ```
 
-**Correct — deduplicated cross-modal results:**
+**Correct, deduplicated cross-modal results:**
 ```python
 async def retrieve(self, query: str, query_image: str = None, top_k: int = 10) -> list[dict]:
     results = []
@@ -2001,11 +2001,11 @@ async def retrieve(self, query: str, query_image: str = None, top_k: int = 10) -
 ```
 
 **Key rules:**
-- Deduplicate by document ID — keep highest scoring result per document
+- Deduplicate by document ID, keep highest scoring result per document
 - Place images before text in generation prompt (attention positioning)
 - Always embed both image features AND text captions for maximum coverage
 - Use hybrid approach: CLIP + text embeddings for best accuracy
-- Missing image URL storage is a common mistake — always store paths for display
+- Missing image URL storage is a common mistake, always store paths for display
 
 
 ### Implement PGVector hybrid search with FULL OUTER JOIN and RRF fusion ranking: HIGH
@@ -2066,7 +2066,7 @@ async def hybrid_search(query: str, query_embedding: list[float], top_k: int = 1
 rrf_score = 1/(k + vector_rank) + 1/(k + keyword_rank)  # k=60 (standard)
 ```
 
-**Incorrect — separate queries without RRF fusion:**
+**Incorrect, separate queries without RRF fusion:**
 ```python
 async def hybrid_search(query: str, embedding: list[float], top_k: int = 10):
     # Separate queries, no fusion!
@@ -2080,7 +2080,7 @@ async def hybrid_search(query: str, embedding: list[float], top_k: int = 10):
     return list(vector_results) + list(keyword_results)
 ```
 
-**Correct — RRF fusion with FULL OUTER JOIN:**
+**Correct, RRF fusion with FULL OUTER JOIN:**
 ```python
 async def hybrid_search(query: str, query_embedding: list[float], top_k: int = 10):
     K = 60  # RRF smoothing constant
@@ -2152,7 +2152,7 @@ SET hnsw.iterative_scan = 'relaxed_order';
 | **Weaknesses** | Exact matches, technical terms | No semantic understanding |
 | **Index** | HNSW (pgvector) | GIN (tsvector) |
 
-**Incorrect — no index, sequential scan on every query:**
+**Incorrect, no index, sequential scan on every query:**
 ```sql
 -- No index! Sequential scan is 17x slower
 SELECT * FROM chunks
@@ -2160,7 +2160,7 @@ ORDER BY embedding <=> '[0.1, 0.2, ...]'::vector
 LIMIT 10;
 ```
 
-**Correct — HNSW index for fast queries:**
+**Correct, HNSW index for fast queries:**
 ```sql
 -- Create HNSW index
 CREATE INDEX idx_chunks_embedding_hnsw ON chunks
@@ -2183,18 +2183,18 @@ LIMIT 10;
 - Set `hnsw.ef_search = 40` at query time for production recall
 - Use `iterative_scan = 'relaxed_order'` for filtered vector queries
 
-## Storage Reduction — halfvec & Binary Quantization (pgvector 0.7+)
+## Storage Reduction: halfvec & Binary Quantization (pgvector 0.7+)
 
 For high-dimensional embeddings (e.g. 3072-dim `gemini-embedding-001` / `text-embedding-3-large`), full `vector` storage and HNSW graphs get expensive. pgvector 0.7+ offers two reductions:
 
-**halfvec — 16-bit floats (~50% storage, negligible recall loss):**
+**halfvec, 16-bit floats (~50% storage, negligible recall loss):**
 ```sql
 ALTER TABLE chunks ALTER COLUMN embedding TYPE halfvec(3072);
 CREATE INDEX ON chunks USING hnsw (embedding halfvec_cosine_ops)
     WITH (m = 16, ef_construction = 64);
 ```
 
-**Binary quantization — bit vectors for a coarse first pass (~32x smaller), then exact rerank:**
+**Binary quantization, bit vectors for a coarse first pass (~32x smaller), then exact rerank:**
 ```sql
 CREATE INDEX ON chunks
     USING hnsw ((binary_quantize(embedding)::bit(3072)) bit_hamming_ops);
@@ -2210,7 +2210,7 @@ LIMIT 10;
 ```
 
 **When to use:**
-- `halfvec`: sensible default for any 1536+ dim embedding — ~50% smaller index, recall within ~0.5%
+- `halfvec`: sensible default for any 1536+ dim embedding, ~50% smaller index, recall within ~0.5%
 - `binary_quantize` + rerank: 3072-dim at very large scale where even halfvec HNSW is too big; expect a recall hit unless you rerank the shortlist exactly
 
 
@@ -2253,7 +2253,7 @@ final = deduplicate_and_rerank(all_results)
 | **Persistence** | ACID | AOF/RDB |
 | **Max dataset** | Billions | Memory-bound (~100M) |
 
-**Incorrect — no metadata filtering, irrelevant results:**
+**Incorrect, no metadata filtering, irrelevant results:**
 ```python
 # Returns all content types mixed together
 results = await session.execute(
@@ -2261,7 +2261,7 @@ results = await session.execute(
 )
 ```
 
-**Correct — filtered search with similarity threshold:**
+**Correct, filtered search with similarity threshold:**
 ```python
 # Filter by content_type and similarity threshold
 results = await session.execute(
@@ -2315,7 +2315,7 @@ CREATE INDEX idx_chunks_content_tsvector ON chunks
     USING gin (content_tsvector);
 ```
 
-**Incorrect — computing tsvector at query time, slow:**
+**Incorrect, computing tsvector at query time, slow:**
 ```sql
 CREATE TABLE chunks (
     id UUID PRIMARY KEY,
@@ -2328,7 +2328,7 @@ SELECT * FROM chunks
 WHERE to_tsvector('english', content) @@ plainto_tsquery('search query');
 ```
 
-**Correct — pre-computed tsvector as GENERATED column:**
+**Correct, pre-computed tsvector as GENERATED column:**
 ```sql
 CREATE TABLE chunks (
     id UUID PRIMARY KEY,
@@ -2351,7 +2351,7 @@ SELECT * FROM chunks WHERE content_tsvector @@ plainto_tsquery('search query');
 ```
 
 **Key rules:**
-- Pre-compute tsvector as GENERATED column — 5-10x faster than `to_tsvector()` at query time
+- Pre-compute tsvector as GENERATED column, 5-10x faster than `to_tsvector()` at query time
 - Use `vector(1024)` for Voyage-3 embeddings (match your model dimension)
 - HNSW index with m=16, ef_construction=64 for production workloads
 - Always include document_id FK for document-level operations
@@ -2405,7 +2405,7 @@ async def decomposed_search(query: str, search_fn, llm, top_k: int = 10) -> list
     return reciprocal_rank_fusion(results_per_concept, k=60)[:top_k]
 ```
 
-**Incorrect — no decomposition, single query for complex topics:**
+**Incorrect, no decomposition, single query for complex topics:**
 ```python
 async def search(query: str, top_k: int = 10) -> list[dict]:
     # "How does authentication affect database performance?"
@@ -2413,7 +2413,7 @@ async def search(query: str, top_k: int = 10) -> list[dict]:
     return await vector_search(query, limit=top_k)
 ```
 
-**Correct — decompose and fuse with RRF:**
+**Correct, decompose and fuse with RRF:**
 ```python
 async def decomposed_search(query: str, top_k: int = 10) -> list[dict]:
     if not is_multi_concept_heuristic(query):
@@ -2436,7 +2436,7 @@ async def decomposed_search(query: str, top_k: int = 10) -> list[dict]:
 - Max 2-4 concepts per query (more increases latency without proportional benefit)
 - Use gpt-5-mini for decomposition (fast, cheap, good at concept extraction)
 - RRF fusion is robust and parameter-free for combining per-concept results
-- Cache decomposition results — same query often asked repeatedly
+- Cache decomposition results, same query often asked repeatedly
 - Set timeout with fallback to original query if decomposition fails
 
 
@@ -2472,7 +2472,7 @@ def is_multi_concept_heuristic(query: str) -> bool:
 | "X and Y in Z" | Yes |
 | "Difference between X, Y, Z" | Yes |
 
-**Incorrect — always decomposing, even for simple queries:**
+**Incorrect, always decomposing, even for simple queries:**
 ```python
 async def search(query: str, top_k: int = 10) -> list[dict]:
     # Always calls LLM for decomposition, even for "What is React?"
@@ -2481,7 +2481,7 @@ async def search(query: str, top_k: int = 10) -> list[dict]:
     return await asyncio.gather(*tasks)
 ```
 
-**Correct — heuristic fast path before LLM decomposition:**
+**Correct, heuristic fast path before LLM decomposition:**
 ```python
 async def search(query: str, top_k: int = 10) -> list[dict]:
     if not is_multi_concept_heuristic(query):  # Sub-millisecond check
@@ -2501,7 +2501,7 @@ def is_multi_concept_heuristic(query: str) -> bool:
 - Heuristic first (sub-millisecond), LLM decomposition only if heuristic triggers
 - Single-concept queries should skip decomposition entirely (no LLM cost)
 - Keywords: "vs", "compared to", "affect", "difference between" indicate multi-concept
-- This is the fast path — always check before calling the LLM decomposer
+- This is the fast path, always check before calling the LLM decomposer
 
 
 ### Combine query decomposition with HyDE for comprehensive vocabulary-bridged retrieval coverage: MEDIUM
@@ -2540,7 +2540,7 @@ async def decomposed_hyde_search(
     return reciprocal_rank_fusion(results_per_concept)[:top_k]
 ```
 
-**Incorrect — sequential decomposition and HyDE, slow:**
+**Incorrect, sequential decomposition and HyDE, slow:**
 ```python
 async def search(query: str, top_k: int = 10) -> list[dict]:
     concepts = await decompose_query(query, llm)
@@ -2552,7 +2552,7 @@ async def search(query: str, top_k: int = 10) -> list[dict]:
     return reciprocal_rank_fusion(all_results)[:top_k]
 ```
 
-**Correct — parallel HyDE generation and search:**
+**Correct, parallel HyDE generation and search:**
 ```python
 async def decomposed_hyde_search(query: str, top_k: int = 10) -> list[dict]:
     concepts = await decomposer.get_concepts(query)
@@ -2577,7 +2577,7 @@ async def decomposed_hyde_search(query: str, top_k: int = 10) -> list[dict]:
 - Decompose first, then HyDE per concept, then parallel search, then RRF fuse
 - Total latency: ~1-2s (decomposition + HyDE generation + parallel search)
 - Cache both decomposition and HyDE results for efficiency
-- This is the most expensive retrieval path — use only when simpler methods fail
+- This is the most expensive retrieval path, use only when simpler methods fail
 
 
 ### Combine base, LLM, and recency scores for robust multi-signal reranking: MEDIUM
@@ -2622,7 +2622,7 @@ class ReRankingService:
             return sorted(documents, key=lambda x: x.get("score", 0), reverse=True)[:top_k]
 ```
 
-**Incorrect — single scoring signal without timeout:**
+**Incorrect, single scoring signal without timeout:**
 ```python
 async def rerank(query: str, documents: list[dict], top_k: int = 10) -> list[dict]:
     # Only uses LLM score, no timeout, no fallback
@@ -2630,7 +2630,7 @@ async def rerank(query: str, documents: list[dict], top_k: int = 10) -> list[dic
     return sorted(documents, key=lambda x: llm_scores.get(x["id"], 0), reverse=True)[:top_k]
 ```
 
-**Correct — combined scoring with timeout fallback:**
+**Correct, combined scoring with timeout fallback:**
 ```python
 async def rerank(query: str, documents: list[dict], top_k: int = 10) -> list[dict]:
     if len(documents) <= top_k:
@@ -2694,14 +2694,14 @@ class CrossEncoderReranker:
 | `BAAI/bge-reranker-large` | ~100ms | Free | Better |
 | `cohere rerank-v4.0-pro` | ~200ms | $1/1K | Best |
 
-**Incorrect — retrieving few, no reranking:**
+**Incorrect, retrieving few, no reranking:**
 ```python
 async def search(query: str) -> list[dict]:
     # Retrieve only 10, no reranking - misses good results
     return await vector_search(query, limit=10)
 ```
 
-**Correct — retrieve many, rerank to few:**
+**Correct, retrieve many, rerank to few:**
 ```python
 async def search_with_reranking(query: str) -> list[dict]:
     # Retrieve many candidates
@@ -2718,7 +2718,7 @@ async def search_with_reranking(query: str) -> list[dict]:
 ```
 
 **Key rules:**
-- Retrieve many (50-100), rerank to few (10) — "retrieve more, rerank less"
+- Retrieve many (50-100), rerank to few (10), "retrieve more, rerank less"
 - Cross-encoder processes query+doc pair together (slow but accurate)
 - Default model: `ms-marco-MiniLM-L6-v2` (good quality, free, ~50ms)
 - Truncate document content to 200-400 chars for reranking efficiency
@@ -2777,7 +2777,7 @@ class CohereReranker:
         return [{**documents[r.index], "score": r.relevance_score} for r in results.results]
 ```
 
-**Incorrect — one LLM call per document, extremely slow:**
+**Incorrect, one LLM call per document, extremely slow:**
 ```python
 async def llm_rerank(query: str, documents: list[dict]) -> list[dict]:
     scores = []
@@ -2790,7 +2790,7 @@ async def llm_rerank(query: str, documents: list[dict]) -> list[dict]:
     return sorted(zip(documents, scores), key=lambda x: x[1], reverse=True)
 ```
 
-**Correct — batch all docs in one LLM call:**
+**Correct, batch all docs in one LLM call:**
 ```python
 async def llm_rerank(query: str, documents: list[dict], top_k: int = 10) -> list[dict]:
     # Batch all docs in ONE LLM call

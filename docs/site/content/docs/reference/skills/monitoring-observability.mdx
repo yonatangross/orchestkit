@@ -5,7 +5,7 @@ description: "Monitoring and observability patterns for Prometheus metrics, Graf
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
-> **Not directly invocable** — no slash command and no model auto-selection. An agent loads it explicitly via `Read()`.
+> **Not directly invocable**, no slash command and no model auto-selection. An agent loads it explicitly via `Read()`.
 
 <ContextualSkillSidebar slug="monitoring-observability" />
 
@@ -84,7 +84,7 @@ Dashboard and health-check patterns. Metric instrumentation and alert-rule synta
 |------|------|-------------|
 | Grafana Dashboards | `rules/monitoring-grafana.md` | Golden Signals, SLO/SLI, health checks |
 
-> **CC 2.1.161 — OTEL resource attributes as metric labels:** `OTEL_RESOURCE_ATTRIBUTES` values are now attached as labels on metric datapoints, so usage metrics can be sliced by custom dimensions (team, repo, environment). Add label selectors to dashboards for multi-tenant / per-team cost and usage tracking.
+> **CC 2.1.161, OTEL resource attributes as metric labels:** `OTEL_RESOURCE_ATTRIBUTES` values are now attached as labels on metric datapoints, so usage metrics can be sliced by custom dimensions (team, repo, environment). Add label selectors to dashboards for multi-tenant / per-team cost and usage tracking.
 
 ## LLM Observability
 
@@ -105,7 +105,7 @@ Detection and alerting for silent failures in LLM agents.
 | Quality Degradation | `rules/silent-degraded-quality.md` | Heuristics + LLM-as-judge, z-score baselines |
 | Silent Alerting | `rules/silent-alerting.md` | Loop detection, token spikes, escalation workflow |
 
-> **CC 2.1.169 — OTEL client-cert paths require trust:** untrusted project settings can no longer set OTEL client-certificate paths without a trust confirmation. If your OTEL exporter uses client certs configured in project `.claude/settings.json`, expect a one-time trust prompt on first use in an untrusted project — telemetry silently not flowing after 2.1.169 is usually this gate, not the collector.
+> **CC 2.1.169, OTEL client-cert paths require trust:** untrusted project settings can no longer set OTEL client-certificate paths without a trust confirmation. If your OTEL exporter uses client certs configured in project `.claude/settings.json`, expect a one-time trust prompt on first use in an untrusted project, telemetry silently not flowing after 2.1.169 is usually this gate, not the collector.
 
 ## Key Decisions
 
@@ -333,7 +333,7 @@ process.on("beforeExit", async () => {
 
 ## Best Practices
 
-1. **Use `from langfuse import observe, get_client`** — NOT `from langfuse.decorators`
+1. **Use `from langfuse import observe, get_client`**: NOT `from langfuse.decorators`
 2. Migration note: v4 removed `langfuse.trace()`. Let `@observe()` auto-create traces.
 3. **Name spans descriptively** (e.g., "retrieval", "generation")
 4. **Use `as_type=` parameter** (v4) for Agent Graph rendering
@@ -341,7 +341,7 @@ process.on("beforeExit", async () => {
 6. **Truncate large inputs/outputs** to 500-1000 chars
 7. **Tag production vs staging** traces for environment filtering
 
-**Incorrect — flat trace without nested spans:**
+**Incorrect, flat trace without nested spans:**
 ```python
 @observe()
 async def analyze(content: str):
@@ -350,7 +350,7 @@ async def analyze(content: str):
     return result  # No visibility into sub-operations
 ```
 
-**Correct — nested spans for full visibility:**
+**Correct, nested spans for full visibility:**
 ```python
 @observe(name="content_analysis")
 async def analyze(content: str):
@@ -392,11 +392,11 @@ async def analyze(content: str):
 
 ## Service Dashboard Structure
 
-1. **Overview** (single row) — Traffic, errors, latency, saturation
-2. **Request breakdown** — By endpoint, method, status code
-3. **Dependencies** — Database, Redis, external APIs
-4. **Resources** — CPU, memory, disk, network
-5. **Business metrics** — Registrations, purchases, LLM costs
+1. **Overview** (single row), Traffic, errors, latency, saturation
+2. **Request breakdown**: By endpoint, method, status code
+3. **Dependencies**: Database, Redis, external APIs
+4. **Resources**: CPU, memory, disk, network
+5. **Business metrics**: Registrations, purchases, LLM costs
 
 ## RED Metrics for Dashboards
 
@@ -413,9 +413,9 @@ histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))
 
 ## USE Metrics for Resources
 
-- **Utilization** — % of resource used
-- **Saturation** — Queue depth, wait time
-- **Errors** — Error count
+- **Utilization**: % of resource used
+- **Saturation**: Queue depth, wait time
+- **Errors**: Error count
 
 ## SLO/SLI Definitions
 
@@ -450,18 +450,18 @@ sum(rate(http_request_duration_seconds_count[30d]))
 
 ## Dashboard Best Practices
 
-1. **Use time ranges** — Last 1h, 6h, 24h, 7d
-2. **Percentiles over averages** — p50, p95, p99
-3. **Color code thresholds** — green/yellow/red
-4. **Include annotations** — deployments, incidents
-5. **Link to runbooks** — from alert panels
+1. **Use time ranges**: Last 1h, 6h, 24h, 7d
+2. **Percentiles over averages**: p50, p95, p99
+3. **Color code thresholds**: green/yellow/red
+4. **Include annotations**: deployments, incidents
+5. **Link to runbooks**: from alert panels
 
-**Incorrect — using average latency hides tail latency:**
+**Incorrect, using average latency hides tail latency:**
 ```text
 avg(http_request_duration_seconds)  # Misleading for user experience
 ```
 
-**Correct — using percentiles shows tail latency:**
+**Correct, using percentiles shows tail latency:**
 ```text
 histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))
 histogram_quantile(0.99, rate(http_request_duration_seconds_bucket[5m]))
@@ -475,7 +475,7 @@ histogram_quantile(0.99, rate(http_request_duration_seconds_bucket[5m]))
 
 Set up alerting for failures that produce no errors but deliver wrong results.
 
-**Incorrect — alerting only on exceptions:**
+**Incorrect, alerting only on exceptions:**
 ```python
 try:
     result = await agent.run()
@@ -484,7 +484,7 @@ except Exception as e:
 # Agent returned gibberish — no exception raised, no alert sent
 ```
 
-**Correct — statistical baseline anomaly detection:**
+**Correct, statistical baseline anomaly detection:**
 ```python
 import numpy as np
 
@@ -537,13 +537,13 @@ class BaselineAnomalyDetector:
 
 Detect gibberish, repetitive, or low-quality LLM outputs that pass basic checks.
 
-**Incorrect — checking only for emptiness:**
+**Incorrect, checking only for emptiness:**
 ```python
 if len(response) > 0:  # Not-empty is not correct
     return response     # Gibberish passes this check
 ```
 
-**Correct — heuristic pre-filter + LLM-as-judge:**
+**Correct, heuristic pre-filter + LLM-as-judge:**
 ```python
 from langfuse import observe, get_client
 
@@ -599,8 +599,8 @@ class LoopDetector:
 
 **Key rules:**
 - Layer detection: heuristics first (cheap), then LLM-as-judge (accurate)
-- Track unique-word ratio — below 0.3 indicates repetitive/stuck output
-- Monitor token consumption per iteration — 3x baseline indicates infinite loop
+- Track unique-word ratio, below 0.3 indicates repetitive/stuck output
+- Monitor token consumption per iteration, 3x baseline indicates infinite loop
 - Log quality scores to Langfuse for trend analysis and drift detection
 - Not-empty and no-error are insufficient quality checks
 
@@ -612,7 +612,7 @@ class LoopDetector:
 
 Detect when LLM agents skip expected tool calls without raising errors.
 
-**Incorrect — assuming success if no error:**
+**Incorrect, assuming success if no error:**
 ```python
 result = await agent.run()
 # No error raised, but agent skipped the search tool entirely
@@ -620,7 +620,7 @@ result = await agent.run()
 return result  # Wrong answer delivered confidently
 ```
 
-**Correct — validate tool usage against expectations:**
+**Correct, validate tool usage against expectations:**
 ```python
 from langfuse import Langfuse
 
@@ -656,7 +656,7 @@ if tool_check["alert"]:
 - Never assume success just because no error was raised
 - Define expected tool lists per agent task and validate after execution
 - Tool skipping is often caused by middleware interference or prompt changes
-- Alert on tool skipping with Critical priority — it produces wrong results silently
+- Alert on tool skipping with Critical priority, it produces wrong results silently
 - Always have a fallback path when expected tools are not called
 
 
@@ -751,9 +751,9 @@ Claude Code CLI
 
 ## API Key Caveat
 
-**Claude Code Free/Pro users**: Cannot use `ANTHROPIC_BASE_URL` — the CLI sends requests directly to Anthropic's API using your subscription. The proxy approach only works with **API key access** (pay-per-token via `ANTHROPIC_API_KEY`).
+**Claude Code Free/Pro users**: Cannot use `ANTHROPIC_BASE_URL`, the CLI sends requests directly to Anthropic's API using your subscription. The proxy approach only works with **API key access** (pay-per-token via `ANTHROPIC_API_KEY`).
 
-**Claude Code Max users**: Same limitation — Max plans route through Anthropic's managed infrastructure, not a configurable base URL.
+**Claude Code Max users**: Same limitation, Max plans route through Anthropic's managed infrastructure, not a configurable base URL.
 
 This means dev-agent-lens is primarily useful for:
 - Self-hosted/enterprise deployments using API keys
@@ -835,7 +835,7 @@ With dev-agent-lens forwarding to Langfuse, each Claude API call creates a trace
 - **Status**: Success/failure, error codes, rate limits
 - **Metadata**: Request headers, retry counts
 
-This is the **API boundary** layer — it sees what crosses the network. It does NOT see:
+This is the **API boundary** layer, it sees what crosses the network. It does NOT see:
 - Which OrchestKit agent spawned the request (use JSONL for that)
 - Which tool CC executed (use CC OTLP for that)
 - Hook execution timing (use JSONL for that)
@@ -1846,7 +1846,7 @@ histogram_quantile(0.95, rate(llm_request_duration_seconds_bucket[5m]))
 
 See `scripts/prometheus-metrics.ts` for complete setup.
 
-## Claude Code OTel Metrics — Notes for Dashboards
+## Claude Code OTel Metrics: Notes for Dashboards
 
 Claude Code emits OTel metrics under the `claude_code.*` namespace. Two metrics that frequently appear on team velocity dashboards:
 
@@ -1857,7 +1857,7 @@ Claude Code emits OTel metrics under the `claude_code.*` namespace. Two metrics 
 
 ### CC 2.1.129: `claude_code.pull_request.count` now counts MCP-filed PRs
 
-Before CC 2.1.129, `claude_code.pull_request.count` only counted PRs/MRs created via shell commands run through the Bash tool (`gh pr create`, `glab mr create`, custom scripts). As of CC 2.1.129, the metric **also counts PRs/MRs filed via MCP tools** — e.g., GitHub MCP server's `create_pull_request`, GitLab MCP equivalents, and any custom MCP server exposing a PR/MR-creation tool.
+Before CC 2.1.129, `claude_code.pull_request.count` only counted PRs/MRs created via shell commands run through the Bash tool (`gh pr create`, `glab mr create`, custom scripts). As of CC 2.1.129, the metric **also counts PRs/MRs filed via MCP tools**, e.g., GitHub MCP server's `create_pull_request`, GitLab MCP equivalents, and any custom MCP server exposing a PR/MR-creation tool.
 
 **Impact on existing dashboards**: a step-function increase at the 2.1.129 cutover for teams where MCP-driven PR creation is non-trivial. The "spike" is a measurement-surface change, not a behavioral change. Annotate the dashboard with the version bump so it isn't misread as a productivity surge.
 

@@ -5,7 +5,7 @@ description: "Automates GitHub releases with semantic versioning, changelog gene
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-green">low</span>
 
-> **Not directly invocable** — no slash command and no model auto-selection. An agent loads it explicitly via `Read()`.
+> **Not directly invocable**, no slash command and no model auto-selection. An agent loads it explicitly via `Read()`.
 
 <ContextualSkillSidebar slug="release-management" />
 
@@ -207,7 +207,7 @@ Before publishing a release:
 3. Breaking changes must include migration instructions
 4. The Breaking Changes section must appear first in the changelog
 
-## Incorrect — incomplete changelog missing breaking changes
+## Incorrect: incomplete changelog missing breaking changes
 
 ```markdown
 # Changelog
@@ -228,7 +228,7 @@ Before publishing a release:
 - The commit `refactor!: rename User model to Account (#232)` is missing
 - No migration instructions for breaking changes
 
-## Correct — complete changelog with migration instructions
+## Correct: complete changelog with migration instructions
 
 ```markdown
 # Changelog
@@ -321,9 +321,9 @@ Before tagging a release:
 1. List all commits since the last release
 2. Classify each commit as patch/minor/major based on its impact
 3. The version bump must match the highest-impact commit
-4. Breaking changes require major bump — no exceptions
+4. Breaking changes require major bump, no exceptions
 
-## Incorrect — bump version without checking changes
+## Incorrect: bump version without checking changes
 
 ```bash
 # Blindly bump patch without reviewing commits
@@ -341,7 +341,7 @@ gh release create "v$NEW" --generate-notes
 # Correct bump should have been MAJOR (2.0.0)
 ```
 
-## Correct — classify commits then determine bump
+## Correct: classify commits then determine bump
 
 ```bash
 #!/bin/bash

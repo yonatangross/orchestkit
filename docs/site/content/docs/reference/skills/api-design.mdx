@@ -5,7 +5,7 @@ description: "API contract design for REST and GraphQL, covering resource shape,
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
-> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+> **Auto-activated**, this skill loads automatically when Claude detects matching context.
 
 <ContextualSkillSidebar slug="api-design" />
 
@@ -261,7 +261,7 @@ Extend RFC 9457 Problem Details with agent-specific operational fields that enab
 
 Provenance: OrchestKit house guidance, not vendor restatement. Landed via #1067 (v7.6.0, 2026-03-15) and maintained for src/skills/api-design; no first-party skill or spec covers agent-facing RFC 9457 extensions.
 
-**Why this matters:** A standard HTML error page costs ~14,000 tokens. A structured RFC 9457 response costs ~250 tokens — a 98% reduction. More importantly, explicit `retryable` and `error_category` fields let agents branch deterministically instead of guessing from status codes.
+**Why this matters:** A standard HTML error page costs ~14,000 tokens. A structured RFC 9457 response costs ~250 tokens, a 98% reduction. More importantly, explicit `retryable` and `error_category` fields let agents branch deterministically instead of guessing from status codes.
 
 ### Agent Extension Fields
 
@@ -325,7 +325,7 @@ Design your categories so agents can branch without reasoning:
 | `config` | No | Escalate to owner |
 | `timeout` | Yes | Retry with exponential backoff |
 | `server_error` | Yes | Retry up to 3 times with backoff |
-| `quota` | No | Escalate — plan upgrade needed |
+| `quota` | No | Escalate, plan upgrade needed |
 | `dependency` | Yes | Retry with backoff |
 | `unsupported` | No | Use alternative method/endpoint |
 
@@ -441,12 +441,12 @@ return {"what_you_should_do": "Please wait 30 seconds and try again"}
 # ↑ Missing retryable: true and retry_after: 30 — agent must parse prose
 ```
 
-**Incorrect — status code only, agent must guess:**
+**Incorrect, status code only, agent must guess:**
 ```python
 return JSONResponse({"error": "Too many requests"}, status_code=429)
 ```
 
-**Correct — structured fields, agent branches deterministically:**
+**Correct, structured fields, agent branches deterministically:**
 ```python
 return JSONResponse(
     content={
@@ -469,9 +469,9 @@ return JSONResponse(
 - Always include `error_category` and `retryable` on every error response
 - Set `retry_after` (seconds) whenever `retryable` is true
 - Set `owner_action_required` when the API consumer cannot self-resolve
-- Keep `what_you_should_do` under 50 words — it enters the LLM context
+- Keep `what_you_should_do` under 50 words, it enters the LLM context
 - Use `Accept` header content negotiation: `application/problem+json` for agents, `text/markdown` for LLMs, `text/html` for browsers
-- Design 8-15 error categories per domain — enough for deterministic branching, few enough to be learnable
+- Design 8-15 error categories per domain, enough for deterministic branching, few enough to be learnable
 - Agents should send `Accept: application/problem+json, */*` to signal structured error preference
 
 
@@ -644,7 +644,7 @@ class AnalyzeRequest(BaseModel):
     )
 ```
 
-**Incorrect — Missing response documentation:**
+**Incorrect, Missing response documentation:**
 ```python
 # No response schema or error docs
 @router.get("/analyses/{id}")
@@ -652,7 +652,7 @@ async def get_analysis(id: str):
     return await service.get(id)
 ```
 
-**Correct — Full OpenAPI documentation:**
+**Correct, Full OpenAPI documentation:**
 ```python
 @router.get(
     "/analyses/{id}",
@@ -800,13 +800,13 @@ type PageInfo {
 {"title": null, "description": ""}  # Clear intent
 ```
 
-**Incorrect — Flat URLs with query params for hierarchy:**
+**Incorrect, Flat URLs with query params for hierarchy:**
 ```typescript
 // Parent relationship in query param
 GET /api/v1/artifacts?analysis_id=abc-123
 ```
 
-**Correct — Hierarchical URLs:**
+**Correct, Hierarchical URLs:**
 ```typescript
 // Express ownership in URL structure
 GET /api/v1/analyses/abc-123/artifacts
@@ -901,7 +901,7 @@ async def list_analyses(
 | Exposing internals | `/users-table` | `/users` |
 | Generic errors | `"Something went wrong"` | `"Email already exists"` |
 
-**Incorrect — Verbs in URLs:**
+**Incorrect, Verbs in URLs:**
 ```python
 # RPC-style endpoints
 POST /createUser
@@ -909,7 +909,7 @@ POST /users/123/delete
 GET /getUserOrders?id=123
 ```
 
-**Correct — REST conventions:**
+**Correct, REST conventions:**
 ```python
 # Resource-oriented
 POST /users
@@ -930,7 +930,7 @@ GET /users/123/orders
 
 ## GraphQL Schema Patterns and FastAPI Integration
 
-**Incorrect -- unprotected GraphQL endpoints:**
+**Incorrect, unprotected GraphQL endpoints:**
 ```python
 # No authentication or authorization
 @strawberry.type
@@ -945,7 +945,7 @@ class User:
     id: int  # Exposes auto-increment ID!
 ```
 
-**Correct -- permission classes for authorization:**
+**Correct, permission classes for authorization:**
 ```python
 from strawberry.permission import BasePermission
 
@@ -976,7 +976,7 @@ class Query:
         return await info.context.user_service.list_all()
 ```
 
-**Correct -- FastAPI integration with context getter:**
+**Correct, FastAPI integration with context getter:**
 ```python
 from strawberry.fastapi import GraphQLRouter
 
@@ -990,7 +990,7 @@ app = FastAPI()
 app.include_router(graphql_router, prefix="/graphql")
 ```
 
-**Correct -- subscriptions with Redis PubSub:**
+**Correct, subscriptions with Redis PubSub:**
 ```python
 @strawberry.type
 class Subscription:
@@ -1012,7 +1012,7 @@ Key decisions:
 
 ## Strawberry GraphQL Schema Design
 
-**Incorrect -- N+1 queries in resolvers:**
+**Incorrect, N+1 queries in resolvers:**
 ```python
 # Making database calls in resolver loops
 @strawberry.type
@@ -1025,7 +1025,7 @@ class Post:
         return await db.get_user(self.author_id)
 ```
 
-**Correct -- DataLoader for batched loading:**
+**Correct, DataLoader for batched loading:**
 ```python
 from strawberry.dataloader import DataLoader
 
@@ -1048,7 +1048,7 @@ class Post:
         return await info.context.user_loader.load(self.author_id)
 ```
 
-**Correct -- type-safe schema with Private fields:**
+**Correct, type-safe schema with Private fields:**
 ```python
 import strawberry
 from strawberry import Private
@@ -1071,7 +1071,7 @@ class CreateUserInput:
     password: str
 ```
 
-**Correct -- union types for mutation error handling:**
+**Correct, union types for mutation error handling:**
 ```python
 @strawberry.type
 class CreateUserSuccess:
@@ -1105,7 +1105,7 @@ Key decisions:
 
 ## gRPC Service Definition and Implementation
 
-**Incorrect -- REST for internal service communication:**
+**Incorrect, REST for internal service communication:**
 ```python
 # Using REST for high-frequency internal calls
 response = requests.post("http://user-service/api/users",
@@ -1113,7 +1113,7 @@ response = requests.post("http://user-service/api/users",
 # High serialization overhead, no compile-time validation, manual error mapping
 ```
 
-**Correct -- protobuf service definition:**
+**Correct, protobuf service definition:**
 ```text
 syntax = "proto3";
 package user.v1;
@@ -1142,7 +1142,7 @@ enum UserStatus {
 }
 ```
 
-**Correct -- async server implementation:**
+**Correct, async server implementation:**
 ```python
 import grpc.aio
 from app.protos import user_service_pb2 as pb2, user_service_pb2_grpc as pb2_grpc
@@ -1161,7 +1161,7 @@ class UserServiceServicer(pb2_grpc.UserServiceServicer):
         return self._to_proto(user)
 ```
 
-**Correct -- client with timeout and retry:**
+**Correct, client with timeout and retry:**
 ```python
 class UserServiceClient:
     def __init__(self, host: str = "localhost:50051"):
@@ -1194,7 +1194,7 @@ Key decisions:
 
 ## gRPC Streaming and Interceptors
 
-**Incorrect -- ignoring stream cancellation:**
+**Incorrect, ignoring stream cancellation:**
 ```python
 # Client may disconnect but server keeps processing
 def ListUsers(self, request, context):
@@ -1202,7 +1202,7 @@ def ListUsers(self, request, context):
         yield self._to_proto(user)  # No cancellation check!
 ```
 
-**Correct -- server streaming with cancellation check:**
+**Correct, server streaming with cancellation check:**
 ```python
 def ListUsers(self, request, context):
     """Server streaming: yield users one by one."""
@@ -1212,7 +1212,7 @@ def ListUsers(self, request, context):
         yield self._to_proto(user)
 ```
 
-**Correct -- bidirectional streaming:**
+**Correct, bidirectional streaming:**
 ```python
 async def UserUpdates(self, request_iterator, context):
     """Bidirectional: receive updates, yield results."""
@@ -1223,7 +1223,7 @@ async def UserUpdates(self, request_iterator, context):
         yield self._to_proto(user)
 ```
 
-**Correct -- auth interceptor:**
+**Correct, auth interceptor:**
 ```python
 class AuthInterceptor(grpc.ServerInterceptor):
     def __init__(self, auth_service):
@@ -1241,7 +1241,7 @@ class AuthInterceptor(grpc.ServerInterceptor):
         return continuation(handler_call_details)
 ```
 
-**Correct -- client retry interceptor with exponential backoff:**
+**Correct, client retry interceptor with exponential backoff:**
 ```python
 class RetryInterceptor(grpc.UnaryUnaryClientInterceptor):
     def __init__(self, max_retries: int = 3):
@@ -1326,9 +1326,9 @@ function verifyTelegramWebhook(req: Request): boolean {
 ## Anti-Patterns
 
 **Incorrect:**
-- Processing webhooks without signature verification — anyone can POST fake messages
-- Synchronous processing of incoming messages — webhook timeout causes retries
-- No idempotency on webhook handlers — duplicate messages on retry
+- Processing webhooks without signature verification, anyone can POST fake messages
+- Synchronous processing of incoming messages, webhook timeout causes retries
+- No idempotency on webhook handlers, duplicate messages on retry
 
 **Correct:**
 - Always verify webhook signatures before processing
@@ -1338,9 +1338,9 @@ function verifyTelegramWebhook(req: Request): boolean {
 
 ## References
 
-- `references/whatsapp-waha.md` — WAHA setup, session lifecycle, message types
-- `references/telegram-bot-api.md` — Bot setup, webhook config, keyboard patterns
-- `references/webhook-security.md` — Signature verification patterns per platform
+- `references/whatsapp-waha.md`: WAHA setup, session lifecycle, message types
+- `references/telegram-bot-api.md`: Bot setup, webhook config, keyboard patterns
+- `references/webhook-security.md`: Signature verification patterns per platform
 
 
 ### Configure Payload CMS 3.0 collections and access control patterns for Next.js: HIGH
@@ -1393,23 +1393,23 @@ export const Posts: CollectionConfig = {
 - **Collection-level**: `read`, `create`, `update`, `delete` functions
 - **Field-level**: Per-field `access` for sensitive data
 - **Role-based**: Check `user.role` in access functions
-- **Local API**: Uses `overrideAccess: true` by default — be explicit when calling from server
+- **Local API**: Uses `overrideAccess: true` by default, be explicit when calling from server
 
 ## Anti-Patterns
 
 **Incorrect:**
-- Using Local API without `overrideAccess: false` in user-facing code — bypasses all access control
-- Putting business logic in hooks instead of service layer — untestable
-- Storing large files in the database — use S3/R2 upload adapter
+- Using Local API without `overrideAccess: false` in user-facing code, bypasses all access control
+- Putting business logic in hooks instead of service layer, untestable
+- Storing large files in the database, use S3/R2 upload adapter
 
 **Correct:**
 - Always set `overrideAccess: false` in API routes that serve user requests
-- Keep hooks thin — validate/transform only, delegate to services
+- Keep hooks thin, validate/transform only, delegate to services
 - Configure upload collections with S3-compatible storage adapter
 
 ## References
 
-- `references/payload-vs-sanity.md` — Detailed comparison, decision matrix, migration paths
+- `references/payload-vs-sanity.md`: Detailed comparison, decision matrix, migration paths
 - Collection design (field types, relationships, blocks, validation) and access control (RBAC, field-level, multi-tenant) are first-party documented: https://payloadcms.com/docs
 
 
@@ -1418,7 +1418,7 @@ export const Posts: CollectionConfig = {
 
 ## Server-Sent Events (SSE) Streaming
 
-**Incorrect -- no keepalive or cleanup:**
+**Incorrect, no keepalive or cleanup:**
 ```python
 # No keepalive, no abort handling, no reconnection support
 @app.get("/stream")
@@ -1429,7 +1429,7 @@ async def stream():
     return StreamingResponse(generate(), media_type="text/event-stream")
 ```
 
-**Correct -- SSE with keepalive and abort handling (Next.js):**
+**Correct, SSE with keepalive and abort handling (Next.js):**
 ```typescript
 export async function GET(req: Request) {
   const encoder = new TextEncoder()
@@ -1461,7 +1461,7 @@ export async function GET(req: Request) {
 }
 ```
 
-**Correct -- LLM token streaming pattern:**
+**Correct, LLM token streaming pattern:**
 ```typescript
 export async function POST(req: Request) {
   const { messages } = await req.json()
@@ -1486,7 +1486,7 @@ export async function POST(req: Request) {
 }
 ```
 
-**Correct -- reconnecting client with exponential backoff:**
+**Correct, reconnecting client with exponential backoff:**
 ```typescript
 class ReconnectingEventSource {
   private eventSource: EventSource | null = null
@@ -1524,7 +1524,7 @@ Key decisions:
 
 ## WebSocket and Async Generator Patterns
 
-**Incorrect -- no message validation or heartbeat:**
+**Incorrect, no message validation or heartbeat:**
 ```python
 # No heartbeat, no validation, no reconnection
 wss.on('connection', (ws) => {
@@ -1534,7 +1534,7 @@ wss.on('connection', (ws) => {
 })
 ```
 
-**Correct -- WebSocket with heartbeat and validation:**
+**Correct, WebSocket with heartbeat and validation:**
 ```typescript
 const wss = new WebSocketServer({ port: 8080 })
 
@@ -1559,14 +1559,14 @@ wss.on('connection', (ws) => {
 })
 ```
 
-**Incorrect -- async generator without cleanup:**
+**Incorrect, async generator without cleanup:**
 ```python
 # Generator not closed if exception occurs mid-iteration
 async for chunk in external_api_stream():  # Resource leak if exception!
     yield process(chunk)
 ```
 
-**Correct -- aclosing() for guaranteed async generator cleanup:**
+**Correct, aclosing() for guaranteed async generator cleanup:**
 ```python
 from contextlib import aclosing
 
@@ -1707,14 +1707,14 @@ async def test_header_versioning(client: AsyncClient):
 | **Best for** | Public APIs | Internal APIs |
 | **Multiple versions** | Separate route trees | Single route tree |
 
-**Incorrect — No default version:**
+**Incorrect, No default version:**
 ```python
 # Breaks when header missing
 async def get_version(x_api_version: str = Header()):
     return int(x_api_version)  # Error if header absent!
 ```
 
-**Correct — Default to latest version:**
+**Correct, Default to latest version:**
 ```python
 # Falls back to latest stable version
 async def get_version(
@@ -1831,7 +1831,7 @@ async def get_user_v2(user_id: str, service: UserService = Depends()):
 | Query Param | `?version=1` | Easy testing | Messy, cache issues |
 | Content-Type | `Accept: application/vnd.api.v1+json` | RESTful | Complex |
 
-**Incorrect — Versioned services:**
+**Incorrect, Versioned services:**
 ```python
 # Services should be version-agnostic
 class UserServiceV1:
@@ -1843,7 +1843,7 @@ class UserServiceV2:
         ...
 ```
 
-**Correct — Version-agnostic services:**
+**Correct, Version-agnostic services:**
 ```python
 # Single service, version handled in response schemas
 class UserService:
@@ -2025,7 +2025,7 @@ Upstream: RFC 8594 (Sunset header), https://www.rfc-editor.org/rfc/rfc8594.html 
 
 ### Payload Vs Sanity
 
-# Payload vs Sanity — CMS Comparison
+# Payload vs Sanity: CMS Comparison
 
 Detailed comparison and decision matrix for choosing between Payload CMS 3.0, Sanity, Strapi, and WordPress.
 
@@ -2055,14 +2055,14 @@ Detailed comparison and decision matrix for choosing between Payload CMS 3.0, Sa
 | **Team** | Payload Cloud ($25/mo) | $99/mo (500K requests) | $29/mo (gold support) |
 | **Enterprise** | Custom | Custom | Custom |
 
-Payload is fully open source — cost is infrastructure only. Sanity's cost scales with API usage.
+Payload is fully open source, cost is infrastructure only. Sanity's cost scales with API usage.
 
 ## Decision Matrix
 
 ### Choose Payload When:
-- Building a **Next.js application** — Payload runs inside your Next.js app
+- Building a **Next.js application**, Payload runs inside your Next.js app
 - You want **full ownership** of data and infrastructure
-- Your team is **TypeScript-first** — config-as-code is natural
+- Your team is **TypeScript-first**, config-as-code is natural
 - You need **custom access control** beyond simple roles
 - Self-hosting is acceptable or preferred
 - You want **one deployment** (CMS + frontend in same app)
@@ -2086,7 +2086,7 @@ Payload is fully open source — cost is infrastructure only. Sanity's cost scal
 - **Non-technical editors** need to manage content independently
 - You need the **largest plugin ecosystem** (100K+ plugins)
 - SEO tooling (Yoast, RankMath) is a core requirement
-- Budget for development is limited — large talent pool
+- Budget for development is limited, large talent pool
 - Content is primarily **blog/marketing pages**
 
 ## Migration Considerations
@@ -2133,10 +2133,10 @@ Single deployment, full control
 
 ## When NOT to Use a Headless CMS
 
-- **Static content** that rarely changes — use Markdown + static site generator
-- **Application data** (user profiles, orders, analytics) — use a database directly
-- **Real-time data** (chat, live feeds) — use purpose-built real-time tools
-- Content that only developers edit — YAML/JSON config files may suffice
+- **Static content** that rarely changes, use Markdown + static site generator
+- **Application data** (user profiles, orders, analytics), use a database directly
+- **Real-time data** (chat, live feeds), use purpose-built real-time tools
+- Content that only developers edit, YAML/JSON config files may suffice
 
 
 ### Rest Patterns
@@ -2980,7 +2980,7 @@ function isReplayAttack(timestamp: number, maxAgeSeconds = 300): boolean {
 }
 ```
 
-**Apply before signature check** — reject stale requests early.
+**Apply before signature check**: reject stale requests early.
 
 ## Idempotency
 
@@ -2999,7 +2999,7 @@ async function processWebhook(messageId: string, handler: () => Promise<void>): 
 - Use `timingSafeEqual` for all signature comparisons (prevents timing attacks)
 - Validate timestamps before checking signatures (cheap rejection of stale requests)
 - Store processed message IDs with TTL (24h is typical) for deduplication
-- Use raw request body for signature verification — parsed JSON may differ from original bytes
+- Use raw request body for signature verification, parsed JSON may differ from original bytes
 
 
 ### Whatsapp Waha
@@ -3127,7 +3127,7 @@ WAHA posts to your webhook URL:
 
 **Key points:**
 - `@c.us` suffix = individual chat, `@g.us` = group chat
-- `id` is unique per message — use for deduplication
+- `id` is unique per message, use for deduplication
 - Media messages have `hasMedia: true` and a separate download endpoint
 - Session status changes also come via webhook (`session.status` event)
 

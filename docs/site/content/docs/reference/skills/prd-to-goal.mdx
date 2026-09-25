@@ -14,20 +14,20 @@ description: "Decomposes a PRD, issue, or spec into a copy-pasteable single `/go
 > **Prd To Goal** Decomposes a PRD, issue, or spec into a copy-pasteable single `/goal until ..., or stop after N turns` line. Use when running /goal against a spec, to reduce acceptance criteria to AND-joined boolean assertions.
 
 
-# prd-to-goal — PRD → /goal Decomposition
+# prd-to-goal: PRD → /goal Decomposition
 
-Converts a PRD / issue / spec into a single copy-pasteable `/goal` line. The hard part of `/goal` is not running it — it is writing an `until` clause that is *convergent* (terminates), *falsifiable* (testable boolean), and *observable* (the agent can actually check it without subjective judgement). This skill makes that decomposition reproducible.
+Converts a PRD / issue / spec into a single copy-pasteable `/goal` line. The hard part of `/goal` is not running it, it is writing an `until` clause that is *convergent* (terminates), *falsifiable* (testable boolean), and *observable* (the agent can actually check it without subjective judgement). This skill makes that decomposition reproducible.
 
 ## 1. When to use
 
 **Use it when:**
 - You have a written PRD, GitHub issue, or spec and want to run `/goal` against it.
 - Past `/goal` runs drifted, looped, or burned tokens because the `until` clause was vague (`until tests pass`, `until done`, `until design is good`).
-- You need to justify the abort budget — turns, tokens, no-progress threshold.
+- You need to justify the abort budget, turns, tokens, no-progress threshold.
 
 **Skip it when:**
 - One-shot bug fix where the failing test *is* the acceptance criterion. Just run `/goal until pnpm test -- auth.spec.ts passes`.
-- No written PRD exists. Run `write-prd` first — vibes do not decompose.
+- No written PRD exists. Run `write-prd` first, vibes do not decompose.
 - The work is destructive or irreversible (DB migrations, mass file deletes). `/goal` retries; you do not want retries on `DROP TABLE`.
 
 ## 2. Inputs the skill accepts
@@ -35,13 +35,13 @@ Converts a PRD / issue / spec into a single copy-pasteable `/goal` line. The har
 | Input | How |
 |---|---|
 | Pasted PRD text | Provide as the argument, or paste into the chat after invoking. |
-| GitHub issue | `gh issue view <N> --json title,body,labels` — the skill reads `body`. |
+| GitHub issue | `gh issue view <N> --json title,body,labels`, the skill reads `body`. |
 | Spec file | Path to a Markdown / text file; the skill `Read`s it. |
 | ADR / design doc | Same as spec file. |
 
 ## 3. The decomposition algorithm
 
-1. **Extract acceptance criteria.** Pull every `MUST`, `SHOULD`, `Definition of Done`, `Acceptance Criteria`, and checkbox-style line. If the doc has none, stop and tell the user to run `write-prd` first — there is nothing to converge on.
+1. **Extract acceptance criteria.** Pull every `MUST`, `SHOULD`, `Definition of Done`, `Acceptance Criteria`, and checkbox-style line. If the doc has none, stop and tell the user to run `write-prd` first, there is nothing to converge on.
 2. **Map each criterion to an observable boolean.** Each criterion must reduce to a single shell-checkable assertion. Examples of observable state:
    - `test -f path/to/file` (file exists)
    - `pnpm test -- pattern passes` (test command exits 0)
@@ -50,13 +50,13 @@ Converts a PRD / issue / spec into a single copy-pasteable `/goal` line. The har
    - `pnpm lint` exits 0
    - `curl -sf $URL` returns 2xx
 3. **Reject non-observable criteria.** Drop or rewrite criteria that depend on subjective judgement (`code is clean`, `design feels right`, `users are happy`). Either find a proxy (`lint exits 0`, `Lighthouse score > 90`, `NPS survey ID exists`) or surface the criterion back to the user as out of scope for `/goal`.
-4. **Compose the `until` clause.** AND-join the observable assertions in priority order — the cheapest, most likely-to-fail check first so the loop short-circuits early. Three to five assertions is the sweet spot; more than seven usually means the PRD is two PRDs.
+4. **Compose the `until` clause.** AND-join the observable assertions in priority order, the cheapest, most likely-to-fail check first so the loop short-circuits early. Three to five assertions is the sweet spot; more than seven usually means the PRD is two PRDs.
 5. **Fold the budget INTO the same condition.** Claude Code accepts one goal per
    session, replace-on-set, and the bound is written inside that single condition
    (`…, or stop after 15 turns`). It is not a second command. Sensible turn caps:
    - `15` for a single feature, `30` for a refactor, `5` for a bug fix.
 
-   > **Never emit a second `/goal` line.** A second line does not add a rail — it
+   > **Never emit a second `/goal` line.** A second line does not add a rail, it
    > parses as a fresh condition, REPLACES the first, and leaves the session
    > goaled on the budget alone with every acceptance assertion discarded. The
    > `abort-if` form this skill used to emit was never Claude Code syntax at all:
@@ -93,13 +93,13 @@ When the user wants graded feedback beyond pass/fail booleans, the skill MAY als
 }
 ```
 
-Scores are 0–10 (`min_pass` = soft floor, `min_blocker` = hard blocker regardless of composite); dimension weights MUST sum to 1.0 — see the schema for the full contract.
+Scores are 0-10 (`min_pass` = soft floor, `min_blocker` = hard blocker regardless of composite); dimension weights MUST sum to 1.0, see the schema for the full contract.
 
-The file is deliberately **user-editable before the `/goal` run** — that is the point. Adjusting weights and `min_pass` thresholds is how the user injects judgement into the loop without rewriting assertions (rubric-as-environment-feedback, Lance Martin 2026-06-09). The post-timeout grader (§8) treats the rubric, if present, as the user's intent — senior to the literal assertion text.
+The file is deliberately **user-editable before the `/goal` run**, that is the point. Adjusting weights and `min_pass` thresholds is how the user injects judgement into the loop without rewriting assertions (rubric-as-environment-feedback, Lance Martin 2026-06-09). The post-timeout grader (§8) treats the rubric, if present, as the user's intent, senior to the literal assertion text.
 
 ## 5. Worked examples
 
-### Example A — Bug fix PRD
+### Example A: Bug fix PRD
 
 Input (issue body):
 
@@ -119,7 +119,7 @@ Output:
 
 Rationale: file existence is the cheapest check; the targeted test is the regression gate; the broad auth suite catches collateral damage.
 
-### Example B — Feature PRD
+### Example B: Feature PRD
 
 Input (PRD excerpt):
 
@@ -141,7 +141,7 @@ Output:
 
 Rationale: route `grep` catches a handler that was stubbed but never wired; the integration spec encodes both 200 and 404; OpenAPI grep enforces the docs MUST; lint guards against half-typed code shipping.
 
-### Example C — Refactor PRD
+### Example C: Refactor PRD
 
 Input (PRD excerpt):
 
@@ -161,11 +161,11 @@ Output:
 /goal until [ $(wc -l < src/auth.ts) -lt 200 ] AND test -f src/auth/strategies/oauth.ts AND test -f src/auth/strategies/jwt.ts AND test -f src/auth/strategies/password.ts AND pnpm test -- tests/auth passes AND pnpm lint passes, or stop after 30 turns
 ```
 
-Rationale: the LOC bound is the convergent signal — without it, `/goal` can keep "improving" forever. File-existence checks pin the structural decomposition; tests + lint guard correctness. Higher budget because refactors run longer than bug fixes.
+Rationale: the LOC bound is the convergent signal, without it, `/goal` can keep "improving" forever. File-existence checks pin the structural decomposition; tests + lint guard correctness. Higher budget because refactors run longer than bug fixes.
 
-## 6. Recipe Library — pre-built loops
+## 6. Recipe Library: pre-built loops
 
-Where §3–5 *generate* a custom `/goal` line from a spec, the recipe library *ships* ready-made ones for the recurring autonomous loops. Each is a loop shape wrapped around an ork worker skill, following the same convergent / falsifiable / budgeted rules as a generated line.
+Where §3-5 *generate* a custom `/goal` line from a spec, the recipe library *ships* ready-made ones for the recurring autonomous loops. Each is a loop shape wrapped around an ork worker skill, following the same convergent / falsifiable / budgeted rules as a generated line.
 
 | Recipe | Use when | Worker |
 |---|---|---|
@@ -178,15 +178,15 @@ Where §3–5 *generate* a custom `/goal` line from a spec, the recipe library *
 | 🎫 Ticket → PR-ready | drive an issue to a CI-green PR | `fix-issue` → `create-pr` |
 | 🧼 Type/lint zero | clear a type/lint backlog without suppressions | fixer agent |
 
-Full recipes — the exact single-line `/goal until …, or stop after N turns` lines, convergent signal, and per-recipe guardrail: `references/recipe-library.md`. That file is the in-repo source intended for an `ork-loops` pack on skills.sh (not yet built; the channel Forward Future's Loop Library uses), so the loop *recipes* can travel while ork supplies the *machinery* each pass runs on.
+Full recipes, the exact single-line `/goal until …, or stop after N turns` lines, convergent signal, and per-recipe guardrail: `references/recipe-library.md`. That file is the in-repo source intended for an `ork-loops` pack on skills.sh (not yet built; the channel Forward Future's Loop Library uses), so the loop *recipes* can travel while ork supplies the *machinery* each pass runs on.
 
 ## 7. Anti-patterns
 
 | Bad | Why it fails | Good |
 |---|---|---|
 | `/goal until tests pass` | Which tests? Existing or new? On which command? The agent can pick whatever subset is already green and claim done. | `/goal until pnpm test -- tests/auth/test_login.py passes AND pnpm test -- tests/auth passes` |
-| `/goal until the code looks clean` | Not falsifiable. The agent cannot check "looks clean" — it will either declare victory immediately or never. | `/goal until pnpm lint passes AND [ $(wc -l < src/auth.ts) -lt 200 ]` |
-| `/goal until done` | Unbounded. There is no terminating condition; combined with a generous `, or stop after 50 turns` this is how runs eat 500K tokens overnight. | Pick 3–5 observable assertions. If you cannot, the PRD is not ready — go to `write-prd`. |
+| `/goal until the code looks clean` | Not falsifiable. The agent cannot check "looks clean", it will either declare victory immediately or never. | `/goal until pnpm lint passes AND [ $(wc -l < src/auth.ts) -lt 200 ]` |
+| `/goal until done` | Unbounded. There is no terminating condition; combined with a generous `, or stop after 50 turns` this is how runs eat 500K tokens overnight. | Pick 3-5 observable assertions. If you cannot, the PRD is not ready, go to `write-prd`. |
 
 ## 8. Post-timeout assertion grader
 
@@ -202,19 +202,19 @@ The grader receives the `/goal` line, `.claude/rubric.json` (if emitted), a comp
 
 | Verdict | Diagnosis | Action |
 |---|---|---|
-| `tighten` | Assertions too weak — agent could satisfy them without real success | Re-run with the stricter revised line |
+| `tighten` | Assertions too weak, agent could satisfy them without real success | Re-run with the stricter revised line |
 | `loosen` | Assertions unsatisfiable as written (wrong path, impossible bound, pre-broken suite) | Re-run with the achievable revised line |
 | `abort` | Task genuinely blocked (missing access, contradictory spec, broken env) | Stop; surface the blocker to the user |
 
-Grading must happen in an independent context window — never self-critique (verifier sub-agents outperform self-critique because the grader does not share the producer's context; Lance Martin, 2026-06-09). Budget: one grader call per timeout, and the grader never loops itself.
+Grading must happen in an independent context window, never self-critique (verifier sub-agents outperform self-critique because the grader does not share the producer's context; Lance Martin, 2026-06-09). Budget: one grader call per timeout, and the grader never loops itself.
 
 Full pattern (prompt template, independence rules, worked example): `${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/references/assertion-grader.md`.
 
 ## 9. Related skills
 
-- `ork:write-prd` — if the input has no acceptance criteria, run this first.
-- `ork:brainstorm` — useful when the PRD itself is contested and you want options before writing the goal.
-- `ork:audit-full` — after `/goal` exits, run audit-full to confirm the assertions actually held end-to-end (the loop trusts the boolean; audit re-checks the intent).
+- `ork:write-prd`: if the input has no acceptance criteria, run this first.
+- `ork:brainstorm`: useful when the PRD itself is contested and you want options before writing the goal.
+- `ork:audit-full`: after `/goal` exits, run audit-full to confirm the assertions actually held end-to-end (the loop trusts the boolean; audit re-checks the intent).
 
 
 ---
@@ -223,19 +223,19 @@ Full pattern (prompt template, independence rules, worked example): `${CLAUDE_PL
 
 ### Recipe Library
 
-# Loop Recipe Library — pre-built `/goal` loops
+# Loop Recipe Library: pre-built `/goal` loops
 
 Pre-written, battle-tested single-line `/goal until …, or stop after N turns` recipes for the recurring autonomous loops. Where `prd-to-goal` *generates* a custom goal line from a spec, this library *ships* ready-made lines for jobs you run over and over.
 
 Each recipe is a **loop shape** (when to stop) wrapped around an **ork skill** (the work each pass does). They follow the same rules as a generated line: AND-joined observable assertions in the `until`, a real turn bound inside the same condition, and a convergent signal so the loop terminates.
 
-> **Distribution (planned):** this library is the in-repo source intended for an `ork-loops` pack on skills.sh — the same channel Forward Future's Loop Library uses (`npx skills add`). The pack itself is not built yet; today the recipes live here. Interop, not competition: we ship the loop *recipes*; ork supplies the *machinery* (rubric gates, 211 safety hooks, parallel agents) each pass runs on.
+> **Distribution (planned):** this library is the in-repo source intended for an `ork-loops` pack on skills.sh, the same channel Forward Future's Loop Library uses (`npx skills add`). The pack itself is not built yet; today the recipes live here. Interop, not competition: we ship the loop *recipes*; ork supplies the *machinery* (rubric gates, 211 safety hooks, parallel agents) each pass runs on.
 
 ## How to use a recipe
 
-1. **Replace the `<TOKENS>`.** Recipes are templates — swap `<TEST_CMD>`, `<COVERAGE_CMD>`, etc. for your project's commands (e.g. `npm test`, `pnpm test`, `pytest`). The `<…>` tokens are the only things you edit.
-2. **Keep the turn budget, inside the same condition.** It is the safety rail, not boilerplate — tighten it, never drop it. Write it as `…, or stop after <N> turns` within the one `/goal` line. Do NOT emit it as a second `/goal` command: Claude Code takes one goal per session with replace-on-set, so a second line replaces the first and discards every acceptance assertion. The `abort-if` form these recipes previously carried was never Claude Code syntax (`grep -c -a -F 'abort-if'` on the 2.1.226 binary returns `0`); it is corrected throughout, see #3312.
-3. **Name the worker.** Each recipe lists the ork skill that should run each pass — invoke it as the loop's worker (`/goal … then run /ork:cover each turn`).
+1. **Replace the `<TOKENS>`.** Recipes are templates, swap `<TEST_CMD>`, `<COVERAGE_CMD>`, etc. for your project's commands (e.g. `npm test`, `pnpm test`, `pytest`). The `<…>` tokens are the only things you edit.
+2. **Keep the turn budget, inside the same condition.** It is the safety rail, not boilerplate, tighten it, never drop it. Write it as `…, or stop after <N> turns` within the one `/goal` line. Do NOT emit it as a second `/goal` command: Claude Code takes one goal per session with replace-on-set, so a second line replaces the first and discards every acceptance assertion. The `abort-if` form these recipes previously carried was never Claude Code syntax (`grep -c -a -F 'abort-if'` on the 2.1.226 binary returns `0`); it is corrected throughout, see #3312.
+3. **Name the worker.** Each recipe lists the ork skill that should run each pass, invoke it as the loop's worker (`/goal … then run /ork:cover each turn`).
 4. **Mind the guardrails.** Every recipe lists the one way the loop gets gamed and how the assertions prevent it.
 
 ## Recipe → theme → worker map
@@ -273,7 +273,7 @@ Each recipe is a **loop shape** (when to stop) wrapped around an **ork skill** (
 /goal until [ $(<ERROR_COUNT_CMD>) -eq 0 ] AND <TEST_CMD> passes, or stop after 25 turns
 ```
 
-**Guardrail:** scope `<ERROR_COUNT_CMD>` to *actionable + reproducible* errors only — filter third-party noise, or the loop chases unfixable errors forever. Never point this at destructive remediation; `/goal` retries, and you don't want retries on data deletion.
+**Guardrail:** scope `<ERROR_COUNT_CMD>` to *actionable + reproducible* errors only, filter third-party noise, or the loop chases unfixable errors forever. Never point this at destructive remediation; `/goal` retries, and you don't want retries on data deletion.
 
 ## 📚 Docs-drift sweep
 
@@ -284,7 +284,7 @@ Each recipe is a **loop shape** (when to stop) wrapped around an **ork skill** (
 /goal until <DOCS_DRIFT_CMD> passes AND <LINK_CHECK_CMD> passes, or stop after 15 turns
 ```
 
-**Guardrail:** `<DOCS_DRIFT_CMD>` must be deterministic (e.g. "regenerated reference == committed reference"), never an LLM "are the docs good?" judgement — subjective checks never converge.
+**Guardrail:** `<DOCS_DRIFT_CMD>` must be deterministic (e.g. "regenerated reference == committed reference"), never an LLM "are the docs good?" judgement, subjective checks never converge.
 
 ## ⚡ Page-load budget
 
@@ -295,18 +295,18 @@ Each recipe is a **loop shape** (when to stop) wrapped around an **ork skill** (
 /goal until [ $(<LCP_MS_CMD>) -le 2000 ] AND <TEST_CMD> passes, or stop after 12 turns
 ```
 
-**Guardrail:** keep `no_progress_for_2_turns` tight — perf loops plateau, and you want to stop *at* the plateau, not grind tokens past it. Always AND the test suite so an "optimization" that breaks behavior can't satisfy the budget.
+**Guardrail:** keep `no_progress_for_2_turns` tight, perf loops plateau, and you want to stop *at* the plateau, not grind tokens past it. Always AND the test suite so an "optimization" that breaks behavior can't satisfy the budget.
 
 ## 🧹 Repository cleanup
 
 **Use when:** memory files, stale branches, or dead state have accumulated.
-**Backs each pass:** `/ork:dream` · **Convergent signal:** the dry-run reports nothing to prune (naturally terminating — each pass strictly reduces the stale set).
+**Backs each pass:** `/ork:dream` · **Convergent signal:** the dry-run reports nothing to prune (naturally terminating, each pass strictly reduces the stale set).
 
 ```
 /goal until <DREAM_DRYRUN_CMD> reports 0 stale AND 0 duplicate AND 0 contradiction, or stop after 8 turns
 ```
 
-**Guardrail:** run dream in **dry-run** inside the `until`-check; let the pass apply the changes. The safest loop here — it converges fast because the stale set only shrinks.
+**Guardrail:** run dream in **dry-run** inside the `until`-check; let the pass apply the changes. The safest loop here, it converges fast because the stale set only shrinks.
 
 ## ✅ Quality streak
 
@@ -318,8 +318,8 @@ rm -f .claude/chain/verify-streak.json   # reset: a stale met:true would exit th
 /goal until jq -e '.met==true' .claude/chain/verify-streak.json   # run /ork:verify --streak=3 each turn, or stop after 15 turns
 ```
 
-**Worker:** `/ork:verify --streak=3` — the native streak gate (#2540, now shipped) re-runs the real suite each turn, increments on READY, and zeroes on any red.
-**Guardrail:** `/goal` reads the `until`-clause at the *top* of each turn, before that turn's verify — so a `met:true` left by a *previous* completed streak (same scope) would exit immediately with zero fresh runs. The `rm` first line resets the ledger so the loop starts cold. Full race write-up: `verify/references/streak-gate.md` ("Stale-ledger guard").
+**Worker:** `/ork:verify --streak=3`, the native streak gate (#2540, now shipped) re-runs the real suite each turn, increments on READY, and zeroes on any red.
+**Guardrail:** `/goal` reads the `until`-clause at the *top* of each turn, before that turn's verify, so a `met:true` left by a *previous* completed streak (same scope) would exit immediately with zero fresh runs. The `rm` first line resets the ledger so the loop starts cold. Full race write-up: `verify/references/streak-gate.md` ("Stale-ledger guard").
 
 ## 🎫 Ticket → PR-ready
 
@@ -330,7 +330,7 @@ rm -f .claude/chain/verify-streak.json   # reset: a stale met:true would exit th
 /goal until gh pr list --head <BRANCH> --json number | jq -e 'length>0' AND gh pr checks <BRANCH> --json state | jq -e 'all(.state=="SUCCESS")', or stop after 20 turns
 ```
 
-**Guardrail:** do **not** put "merged" in the `until`-clause — merging is a human gate (and ork never auto-closes issues; CI closes them on merge via `Closes #N`). Stop at reviewer-ready.
+**Guardrail:** do **not** put "merged" in the `until`-clause, merging is a human gate (and ork never auto-closes issues; CI closes them on merge via `Closes #N`). Stop at reviewer-ready.
 
 ## 🧼 Type/lint zero
 
@@ -341,7 +341,7 @@ rm -f .claude/chain/verify-streak.json   # reset: a stale met:true would exit th
 /goal until <TYPECHECK_CMD> passes AND <LINT_CMD> passes AND [ $(grep -rc "@ts-ignore\|eslint-disable" src | paste -sd+ - | bc) -le <SUPPRESS_BASELINE> ], or stop after 20 turns
 ```
 
-**Guardrail:** the suppression-count clause is load-bearing. Without it the loop "wins" by silencing (`@ts-ignore`, `eslint-disable`) instead of fixing — set `<SUPPRESS_BASELINE>` to the current count so it can only go down.
+**Guardrail:** the suppression-count clause is load-bearing. Without it the loop "wins" by silencing (`@ts-ignore`, `eslint-disable`) instead of fixing, set `<SUPPRESS_BASELINE>` to the current count so it can only go down.
 
 ---
 
@@ -349,10 +349,10 @@ rm -f .claude/chain/verify-streak.json   # reset: a stale met:true would exit th
 
 A recipe is shippable when all four hold (same bar as a `prd-to-goal` line):
 
-- **Convergent** — there is a monotone signal (count → 0, metric → budget, % → target) that the loop drives in one direction. No monotone signal ⇒ no termination.
-- **Falsifiable** — every `until` assertion is a shell-checkable boolean, not a judgement.
-- **Guarded** — you can name the one way the loop gets gamed, and an assertion that blocks it.
-- **Budgeted** — the `, or stop after N turns` bound caps the run, and no-progress. A recipe without a budget is a token fire.
+- **Convergent**: there is a monotone signal (count → 0, metric → budget, % → target) that the loop drives in one direction. No monotone signal ⇒ no termination.
+- **Falsifiable**: every `until` assertion is a shell-checkable boolean, not a judgement.
+- **Guarded**: you can name the one way the loop gets gamed, and an assertion that blocks it.
+- **Budgeted**: the `, or stop after N turns` bound caps the run, and no-progress. A recipe without a budget is a token fire.
 
-If you can't satisfy all four, the job isn't a loop yet — decompose it with `/ork:prd-to-goal` first.
+If you can't satisfy all four, the job isn't a loop yet, decompose it with `/ork:prd-to-goal` first.
 

@@ -1,6 +1,6 @@
 ---
 title: "Ci Debug"
-description: "Diagnose a failing CI run against an 11-pattern playbook. Classifies the failure, cites the relevant memory entry, proposes the exact fix command — but NEVER applies without explicit user approval. Use when a specific PR check or GitHub Actions run failed and you want a diagnosis instead of speculation. Don't use for org-wide CI sweeps (that's /status) or for app-level test failures (the playbook is CI-infra-specific)."
+description: "Diagnose a failing CI run against an 11-pattern playbook. Classifies the failure, cites the relevant memory entry, proposes the exact fix command, but NEVER applies without explicit user approval. Use when a specific PR check or GitHub Actions run failed and you want a diagnosis instead of speculation. Don't use for org-wide CI sweeps (that's /status) or for app-level test failures (the playbook is CI-infra-specific)."
 ---
 
 <span className="badge badge-blue">Command</span> <span className="badge badge-yellow">medium</span>
@@ -11,10 +11,10 @@ description: "Diagnose a failing CI run against an 11-pattern playbook. Classifi
 
 <ContextualSkillSidebar slug="ci-debug" />
 
-> **Ci Debug** Diagnose a failing CI run against an 11-pattern playbook. Classifies the failure, cites the relevant memory entry, proposes the exact fix command — but NEVER applies without explicit user approval. Use when a specific PR check or GitHub Actions run failed and you want a diagnosis instead of speculation.
+> **Ci Debug** Diagnose a failing CI run against an 11-pattern playbook. Classifies the failure, cites the relevant memory entry, proposes the exact fix command, but NEVER applies without explicit user approval. Use when a specific PR check or GitHub Actions run failed and you want a diagnosis instead of speculation.
 
 
-# /ci-debug — classify a failing CI run
+# /ci-debug: classify a failing CI run
 
 Direct response to the recurring CI-debug pattern surfaced by `/insights`: ~12 sessions in 3 weeks doing the same classification dance. This skill encodes the 11 patterns so the dance becomes a lookup.
 
@@ -42,9 +42,9 @@ gh api repos/<owner>/<repo>/actions/runs/<run-id>/jobs \
                    steps: [.steps[] | select(.conclusion=="failure") | {name, number}]}'
 ```
 
-If multiple jobs failed, pick the one with the **shortest duration** — root cause is usually the first failure; later jobs cascade.
+If multiple jobs failed, pick the one with the **shortest duration**, root cause is usually the first failure; later jobs cascade.
 
-**No job in the `fail` bucket but a check won't settle?** If `gh pr checks` shows zero `fail`-bucket entries yet a status sits in `pending` that never resolves (and `gh pr view --json mergeStateStatus` returns `UNSTABLE` while `mergeable=MERGEABLE`), this is a *stuck external status*, not a failure — jump straight to **Pattern #11**. There is no failing log to fetch; classify on the commit-status metadata (`gh api repos/<o>/<r>/commits/<sha>/status`).
+**No job in the `fail` bucket but a check won't settle?** If `gh pr checks` shows zero `fail`-bucket entries yet a status sits in `pending` that never resolves (and `gh pr view --json mergeStateStatus` returns `UNSTABLE` while `mergeable=MERGEABLE`), this is a *stuck external status*, not a failure, jump straight to **Pattern #11**. There is no failing log to fetch; classify on the commit-status metadata (`gh api repos/<o>/<r>/commits/<sha>/status`).
 
 ### 2. Fetch the failing log
 
@@ -72,9 +72,9 @@ Walk the patterns in order. **First match wins.**
 | 8 | **Runner pnpm Rosetta arch drift** | pnpm install fails with "wrong-arch native bin" / dlopen error on a self-hosted runner | `runner-pnpm-rosetta-arch-drift.md` | Restart the affected runner pool; root cause is node x64↔arm64 flips storing wrong-arch native bins in shared cache. |
 | 9 | **Shallow clone false divergence** | `git status` reports diverged but PR was actually merged | `shallow-clone-false-divergence.md` | `git fetch origin <branch> --unshallow` then `gh pr view --merge-commit` to verify. |
 | 10 | **Publish run cancelled** | Publish-tag workflow run shows `conclusion=cancelled`; artifact never lands | `publish-runs-cancelled-need-redrive.md` | Re-fire via `gh workflow run publish-python.yml -f tag=<tag>` (adjust for your publish workflow). |
-| 11 | **Vercel status orphaned (path-skip)** | No job in the `fail` bucket, but `Vercel` appears as a *commit status* (not a check-run) stuck `state=pending` with `created_at == updated_at` and no terminal update; all GitHub Actions checks green; `mergeStateStatus=UNSTABLE` + `mergeable=MERGEABLE` on an unprotected base branch | `vercel-pending-orphaned-on-path-skip.md` | Not a failure — cosmetic. Vercel posted a `pending` status then **skipped** the build (project-root path filter, e.g. a docs-only change that never touches `apps/web`), orphaning the status. Safe to merge: `gh pr merge <n> --repo <owner>/<repo> --squash`. Permanent fix: the Vercel project's **Ignored Build Step** must exit `0` AND report success for skipped paths so the status flips instead of dangling. |
+| 11 | **Vercel status orphaned (path-skip)** | No job in the `fail` bucket, but `Vercel` appears as a *commit status* (not a check-run) stuck `state=pending` with `created_at == updated_at` and no terminal update; all GitHub Actions checks green; `mergeStateStatus=UNSTABLE` + `mergeable=MERGEABLE` on an unprotected base branch | `vercel-pending-orphaned-on-path-skip.md` | Not a failure, cosmetic. Vercel posted a `pending` status then **skipped** the build (project-root path filter, e.g. a docs-only change that never touches `apps/web`), orphaning the status. Safe to merge: `gh pr merge <n> --repo <owner>/<repo> --squash`. Permanent fix: the Vercel project's **Ignored Build Step** must exit `0` AND report success for skipped paths so the status flips instead of dangling. |
 
-The memory references point at user-curated memory files (`~/.claude/projects/<project>/memory/*.md`). If your memory doesn't have them yet, the signature column is enough to classify — the memory citation is a nice-to-have, not required.
+The memory references point at user-curated memory files (`~/.claude/projects/<project>/memory/*.md`). If your memory doesn't have them yet, the signature column is enough to classify, the memory citation is a nice-to-have, not required.
 
 ### 4. Report
 
@@ -118,29 +118,29 @@ it automatically.
 
 ## Headless invocation (permission mode)
 
-`/ci-debug` REQUIRES Bash tool access — `gh pr checks`, `gh run view`, and `gh api .../jobs/.../logs` are how it fetches evidence. In headless `claude -p` runs (ci-sentinel, cron):
+`/ci-debug` REQUIRES Bash tool access, `gh pr checks`, `gh run view`, and `gh api .../jobs/.../logs` are how it fetches evidence. In headless `claude -p` runs (ci-sentinel, cron):
 
-- Use `--permission-mode acceptEdits` — the headless "use tools without prompting" mode. The skill is read-only by design, so this grants nothing risky.
-- **NEVER `dontAsk`** — it silently REFUSES permission-requiring tools (including Bash), so every analysis returns empty output with no error (#1862 Bug C).
-- `claude -p` reports auth/permission failures as JSON on **stdout**, not stderr — capture and log both streams on failure (see `shared/rules/cc-bare-auth-gotcha.md` for the auth side).
+- Use `--permission-mode acceptEdits`, the headless "use tools without prompting" mode. The skill is read-only by design, so this grants nothing risky.
+- **NEVER `dontAsk`**: it silently REFUSES permission-requiring tools (including Bash), so every analysis returns empty output with no error (#1862 Bug C).
+- `claude -p` reports auth/permission failures as JSON on **stdout**, not stderr, capture and log both streams on failure (see `shared/rules/cc-bare-auth-gotcha.md` for the auth side).
 
 ## CRITICAL guardrails
 
 - **NEVER auto-apply a fix.** This skill proposes; the user approves. Wasted cycles from misclassification are exactly the failure mode we're hardening against.
 - **NEVER skip the fetch-log step.** Without the actual error text, classification is guessing. If logs are gone (>90 days old, run deleted), say so and stop.
 - **Cite the exact memory entry** (filename + section heading where relevant) so the user can verify the analogy.
-- **Each classification must have falsifying evidence** — the signature must match. Don't pattern-match on hope.
+- **Each classification must have falsifying evidence**: the signature must match. Don't pattern-match on hope.
 
 ## When to invoke
 
 - A specific CI run / job / PR check has failed and the user wants the diagnosis.
-- The user pastes a run URL or "PR #N is failing — why?".
+- The user pastes a run URL or "PR #N is failing, why?".
 
 ## When NOT to invoke
 
-- For broad "what's failing across the org?" — use `/status` instead.
+- For broad "what's failing across the org?", use `/status` instead.
 - For application-level test failures (the playbook is **CI-infra-specific**, not e.g. pytest failures).
-- Before reading the actual log — don't speculate.
+- Before reading the actual log, don't speculate.
 
 ## Adding patterns
 
@@ -150,10 +150,10 @@ When a novel CI failure surfaces (the UNMATCHED report fires), add a row to the 
 2. **Memory ref**: name the memory file you wrote with the full incident write-up.
 3. **Proposed fix**: the EXACT command line. No prose, no "you might want to". The skill produces commands the user runs; ambiguity defeats the purpose.
 
-Commit the SKILL.md change as `docs(ci-debug): add pattern #N (<short-name>)`. The `ci-sentinel` workflow picks up new patterns automatically on its next sweep — no separate plumbing needed.
+Commit the SKILL.md change as `docs(ci-debug): add pattern #N (<short-name>)`. The `ci-sentinel` workflow picks up new patterns automatically on its next sweep, no separate plumbing needed.
 
 ## Related Skills
 
-- **Composes with** — `ci-sentinel` (the autonomous hourly trigger for this skill against open red PRs).
-- **Anti-pattern** — manually re-running `gh pr checks` and eyeballing the logs across N repos. That's exactly the toil this skill kills.
-- **Upstream** — `/status` for org-wide sweeps that surface WHICH PRs are red; this skill answers WHY.
+- **Composes with**: `ci-sentinel` (the autonomous hourly trigger for this skill against open red PRs).
+- **Anti-pattern**: manually re-running `gh pr checks` and eyeballing the logs across N repos. That's exactly the toil this skill kills.
+- **Upstream**: `/status` for org-wide sweeps that surface WHICH PRs are red; this skill answers WHY.

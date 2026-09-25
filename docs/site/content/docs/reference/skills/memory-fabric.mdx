@@ -5,7 +5,7 @@ description: "Knowledge graph orchestration layer with entity extraction, natura
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-orange">high</span>
 
-> **Not directly invocable** — no slash command and no model auto-selection. An agent loads it explicitly via `Read()`.
+> **Not directly invocable**, no slash command and no model auto-selection. An agent loads it explicitly via `Read()`.
 
 <ContextualSkillSidebar slug="memory-fabric" />
 
@@ -277,7 +277,7 @@ After any graph mutation:
 3. Detect and flag orphaned nodes (no incoming or outgoing relations)
 4. Run deduplication check if a new node was created
 
-## Incorrect — mutate without validation
+## Incorrect: mutate without validation
 
 ```javascript
 // Create entity and relation, assume success
@@ -297,7 +297,7 @@ await mcp__memory__create_relations({
 // Result: dangling relation with invalid "from" reference
 ```
 
-## Correct — mutate then validate
+## Correct: mutate then validate
 
 ```javascript
 // 1. Create entity
@@ -385,7 +385,7 @@ Knowledge graphs accumulate nodes over time. Without staleness detection, querie
 3. Before acting on stale data, verify it is still current
 4. Prune nodes only after user confirmation, never automatically
 
-## Incorrect — treat all graph results as current
+## Incorrect: treat all graph results as current
 
 ```javascript
 // Query returns a 6-month-old decision
@@ -400,7 +400,7 @@ console.log(`Current approach: ${decision.observations[0]}`);
 // Gives outdated guidance with no warning
 ```
 
-## Correct — flag stale results and verify
+## Correct: flag stale results and verify
 
 ```javascript
 const STALE_THRESHOLDS = {

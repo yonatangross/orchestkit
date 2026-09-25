@@ -1,6 +1,6 @@
 ---
 title: "Write Prd"
-description: "Write PRD — Product Requirements Documents with structured 8-section templates, user stories, acceptance criteria, and value proposition validation. Use when writing PRDs, defining product requirements, creating user stories with INVEST criteria, or building go/no-go decision frameworks."
+description: "Write PRD, Product Requirements Documents with structured 8-section templates, user stories, acceptance criteria, and value proposition validation. Use when writing PRDs, defining product requirements, creating user stories with INVEST criteria, or building go/no-go decision frameworks."
 ---
 
 <span className="badge badge-blue">Command</span> <span className="badge badge-yellow">medium</span>
@@ -11,10 +11,10 @@ description: "Write PRD — Product Requirements Documents with structured 8-sec
 
 <ContextualSkillSidebar slug="write-prd" />
 
-> **Write Prd** Write PRD — Product Requirements Documents with structured 8-section templates, user stories, acceptance criteria, and value proposition validation. Use when writing PRDs, defining product requirements, creating user stories with INVEST criteria, or building go/no-go decision frameworks.
+> **Write Prd** Write PRD, Product Requirements Documents with structured 8-section templates, user stories, acceptance criteria, and value proposition validation. Use when writing PRDs, defining product requirements, creating user stories with INVEST criteria, or building go/no-go decision frameworks.
 
 
-# PRD — Product Requirements Document
+# PRD: Product Requirements Document
 
 Translate product vision and research into clear, actionable engineering specifications. Produces `PRD-[product-name].md` output files following an 8-section structure.
 
@@ -100,14 +100,14 @@ Load from rules: `Read("rules/strategy-go-no-go.md")` for stage gate criteria an
 
 ## Rules (Load On-Demand)
 
-- [research-requirements-prd.md](rules/research-requirements-prd.md) — INVEST user stories, PRD template, priority levels, DoR/DoD
-- [strategy-value-prop.md](rules/strategy-value-prop.md) — Value proposition canvas, JTBD framework, fit assessment
-- [strategy-go-no-go.md](rules/strategy-go-no-go.md) — Stage gate criteria, scoring, build/buy/partner decision matrix
+- [research-requirements-prd.md](rules/research-requirements-prd.md): INVEST user stories, PRD template, priority levels, DoR/DoD
+- [strategy-value-prop.md](rules/strategy-value-prop.md): Value proposition canvas, JTBD framework, fit assessment
+- [strategy-go-no-go.md](rules/strategy-go-no-go.md): Stage gate criteria, scoring, build/buy/partner decision matrix
 
 ## References
 
-- [output-templates.md](references/output-templates.md) — Structured JSON output schemas for PRD, business case, and strategy artifacts
-- [value-prop-canvas-guide.md](references/value-prop-canvas-guide.md) — Detailed value proposition canvas facilitation guide
+- [output-templates.md](references/output-templates.md): Structured JSON output schemas for PRD, business case, and strategy artifacts
+- [value-prop-canvas-guide.md](references/value-prop-canvas-guide.md): Detailed value proposition canvas facilitation guide
 
 ## Output
 
@@ -118,7 +118,7 @@ Write(f"PRD-{product_slug}.md", prd_content)
 TaskUpdate(status="completed")
 ```
 
-> **Plan-mode filenames (CC 2.1.111+):** If this skill enters plan mode (via `EnterPlanMode`) before writing the PRD, CC 2.1.111 names the resulting plan file after the prompt stem rather than random words. To get a clean filename, include the product slug in the plan-mode prompt (e.g. `EnterPlanMode("PRD: authentication-rework")` → `plans/prd-authentication-rework.md`). Before 2.1.111, plan filenames were `plans/swift-cobra.md` etc. — review and rename as needed.
+> **Plan-mode filenames (CC 2.1.111+):** If this skill enters plan mode (via `EnterPlanMode`) before writing the PRD, CC 2.1.111 names the resulting plan file after the prompt stem rather than random words. To get a clean filename, include the product slug in the plan-mode prompt (e.g. `EnterPlanMode("PRD: authentication-rework")` → `plans/prd-authentication-rework.md`). Before 2.1.111, plan filenames were `plans/swift-cobra.md` etc., review and rename as needed.
 
 ## Chain: Next Steps
 
@@ -133,11 +133,11 @@ implement PRD-{product-slug}.md
 
 ## Related Skills
 
-- `ork:user-research` — Build user understanding (personas, journey maps, interviews) before writing the PRD
-- `ork:prd-to-goal` — Reduce this PRD's acceptance criteria to a single `/goal until …, or stop after N turns` line
-- `ork:implement` — Execute the implementation plan from the PRD
-- `ork:brainstorm` — Explore solution alternatives before committing to PRD scope
-- `ork:assess` — Rate PRD quality and completeness
+- `ork:user-research`: Build user understanding (personas, journey maps, interviews) before writing the PRD
+- `ork:prd-to-goal`: Reduce this PRD's acceptance criteria to a single `/goal until …, or stop after N turns` line
+- `ork:implement`: Execute the implementation plan from the PRD
+- `ork:brainstorm`: Explore solution alternatives before committing to PRD scope
+- `ork:assess`: Rate PRD quality and completeness
 
 ---
 
@@ -298,12 +298,12 @@ Scenario: Successful login with valid credentials
 | **Security** | All data encrypted at rest and in transit |
 | **Accessibility** | WCAG 2.1 AA compliant |
 
-**Incorrect — Vague user story without acceptance criteria:**
+**Incorrect, Vague user story without acceptance criteria:**
 ```markdown
 As a user, I want better reporting.
 ```
 
-**Correct — INVEST user story with acceptance criteria:**
+**Correct, INVEST user story with acceptance criteria:**
 ```markdown
 As a sales manager,
 I want to see my team's pipeline by stage,
@@ -437,14 +437,14 @@ Is this a core differentiator?
 - Risk sharing is valuable
 - Neither build nor buy fits perfectly
 
-**Incorrect — Go/No-Go without scoring criteria:**
+**Incorrect, Go/No-Go without scoring criteria:**
 ```markdown
 Idea: Build AI feature
 Team: Excited about it
 Decision: GO
 ```
 
-**Correct — Systematic stage gate evaluation:**
+**Correct, Systematic stage gate evaluation:**
 ```markdown
 Gate 3: Business Case
 - [ ] ROI > 15% hurdle rate: YES (22%)
@@ -464,7 +464,7 @@ Decision: GO (>= 7.0 threshold)
 
 ## Jobs-to-be-Done (JTBD) Framework
 
-People don't buy products -- they hire them to do specific jobs.
+People don't buy products, they hire them to do specific jobs.
 
 ### JTBD Statement Format
 
@@ -581,13 +581,13 @@ so I can appear informed in morning meetings.
 | **Strategic alignment** | Every initiative serves the mission |
 | **Reversible decisions** | Prefer options that preserve flexibility |
 
-**Incorrect — Feature-focused instead of job-focused:**
+**Incorrect, Feature-focused instead of job-focused:**
 ```markdown
 Value Proposition:
 "Our app has AI, real-time sync, and dark mode"
 ```
 
-**Correct — JTBD-based value proposition:**
+**Correct, JTBD-based value proposition:**
 ```markdown
 Jobs-to-be-Done:
 When I'm commuting to work,
@@ -927,12 +927,12 @@ Every story must pass all six checks before it's "ready":
 | **S**mall | Completable in 1-5 days |
 | **T**estable | Has explicit acceptance criteria |
 
-**Incorrect — vague story:**
+**Incorrect, vague story:**
 ```markdown
 As a user, I want better reporting.
 ```
 
-**Correct — INVEST story with acceptance criteria:**
+**Correct, INVEST story with acceptance criteria:**
 ```markdown
 As a sales manager,
 I want to see my team's pipeline grouped by stage,

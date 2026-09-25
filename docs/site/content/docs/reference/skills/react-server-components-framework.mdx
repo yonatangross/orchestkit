@@ -5,7 +5,7 @@ description: "Use when building Next.js 16+ apps with React Server Components. C
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
-> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+> **Auto-activated**, this skill loads automatically when Claude detects matching context.
 
 <ContextualSkillSidebar slug="react-server-components-framework" />
 
@@ -18,7 +18,7 @@ description: "Use when building Next.js 16+ apps with React Server Components. C
 
 React Server Components (RSC) enable server-first rendering with client-side interactivity. This skill covers Next.js 16.2 LTS App Router patterns, Server Components, Server Actions, and streaming.
 
-> **Next.js 16.2.6 / React 19.2.6 (security release, May 2026)** — Turbopack is the default bundler (no `--turbo` flag needed), Server Fast Refresh is on by default, and the new `cacheComponents` config flag replaces the legacy `experimental_ppr` escape hatch. For AI-agent debugging Next.js ships **Next DevTools MCP** — wire `npx -y next-devtools-mcp@latest` into `.mcp.json` (it connects via the dev server's `/_next/mcp` endpoint) to inspect render trees and cache boundaries mid-session.
+> **Next.js 16.2.6 / React 19.2.6 (security release, May 2026)**, Turbopack is the default bundler (no `--turbo` flag needed), Server Fast Refresh is on by default, and the new `cacheComponents` config flag replaces the legacy `experimental_ppr` escape hatch. For AI-agent debugging Next.js ships **Next DevTools MCP**, wire `npx -y next-devtools-mcp@latest` into `.mcp.json` (it connects via the dev server's `/_next/mcp` endpoint) to inspect render trees and cache boundaries mid-session.
 
 **When to use this skill:**
 - Building Next.js 16+ applications with the App Router
@@ -143,9 +143,9 @@ export default async function PostPage({
 
 ### Dev Server (Next.js 16.2 LTS)
 
-- **Turbopack default** — `next dev` and `next build` run Turbopack without any flag. Pass `--webpack` only when forced (legacy plugin).
-- **Server Fast Refresh** — Server Components hot-reload on save without losing client state. No extra config; it's on by default in 16.2.
-- **Next DevTools MCP** — register `npx -y next-devtools-mcp@latest` in `.mcp.json`; it attaches to the running dev server over the `/_next/mcp` endpoint and exposes RSC payloads and cache boundaries to an MCP client. Designed for AI agents that need to inspect render trees mid-session without screenshotting. (There is no `next-browser` binary.)
+- **Turbopack default**: `next dev` and `next build` run Turbopack without any flag. Pass `--webpack` only when forced (legacy plugin).
+- **Server Fast Refresh**: Server Components hot-reload on save without losing client state. No extra config; it's on by default in 16.2.
+- **Next DevTools MCP**: register `npx -y next-devtools-mcp@latest` in `.mcp.json`; it attaches to the running dev server over the `/_next/mcp` endpoint and exposes RSC payloads and cache boundaries to an MCP client. Designed for AI agents that need to inspect render trees mid-session without screenshotting. (There is no `next-browser` binary.)
 
 ---
 
@@ -262,7 +262,7 @@ Load full capability details: `Read("references/capability-details.md")`
 
 The `"use cache"` directive in Next.js 16 Cache Components generates cache keys from arguments, closures, and build ID. If user-specific data is fetched inside a cached function without a user-distinguishing key, the first user's response is served to every subsequent user. Runtime APIs (`cookies()`, `headers()`) cannot be called directly inside `"use cache"` blocks.
 
-**Incorrect — runtime API inside cache:**
+**Incorrect, runtime API inside cache:**
 ```tsx
 async function CachedDashboard() {
   'use cache'
@@ -272,7 +272,7 @@ async function CachedDashboard() {
 }
 ```
 
-**Correct — read runtime values outside, pass as arguments:**
+**Correct, read runtime values outside, pass as arguments:**
 ```tsx
 async function DashboardPage() {
   const token = (await cookies()).get('token')?.value ?? ''
@@ -287,7 +287,7 @@ async function CachedDashboard({ token }: { token: string }) {
 }
 ```
 
-**Incorrect — awaiting dynamic promises inside cache:**
+**Incorrect, awaiting dynamic promises inside cache:**
 ```tsx
 async function Cached({ promise }: { promise: Promise<unknown> }) {
   'use cache'
@@ -296,7 +296,7 @@ async function Cached({ promise }: { promise: Promise<unknown> }) {
 }
 ```
 
-**Correct — resolve outside, pass the value:**
+**Correct, resolve outside, pass the value:**
 ```tsx
 async function Parent() {
   const value = await getDynamicValue()
@@ -310,9 +310,9 @@ async function Cached({ value }: { value: string }) {
 ```
 
 **Key rules:**
-- Never call `cookies()`, `headers()`, or read `searchParams` inside a `"use cache"` block — read them in a parent component and pass as serializable arguments.
+- Never call `cookies()`, `headers()`, or read `searchParams` inside a `"use cache"` block, read them in a parent component and pass as serializable arguments.
 - Every argument passed to a cached function becomes part of the cache key. Include user-identifying values (userId, token) to prevent cross-user data leaks.
-- Do not `await` dynamic Promises inside `"use cache"` — resolve them outside and pass the result.
+- Do not `await` dynamic Promises inside `"use cache"`, resolve them outside and pass the result.
 - Nested `"use cache"` functions have isolated scopes; `React.cache` values from an outer function are not visible in an inner one. Cache at the appropriate level and compose via `children`.
 - Use `cacheTag()` with user-scoped tags (e.g., `user-${userId}`) to enable targeted invalidation.
 
@@ -387,9 +387,9 @@ export function ProductFilters() {
 
 **Key rules:**
 - Never add `'use client'` to page or layout files; extract interactive parts into dedicated leaf components.
-- Server Components can render Client Components, but Client Components **cannot** directly import Server Components — use the `children` prop pattern instead.
+- Server Components can render Client Components, but Client Components **cannot** directly import Server Components, use the `children` prop pattern instead.
 - Pass Server Components into Client Components via `children` or render-prop slots so they stay server-rendered.
-- Every module imported by a `'use client'` file is pulled into the client bundle — keep imports minimal.
+- Every module imported by a `'use client'` file is pulled into the client bundle, keep imports minimal.
 
 Reference: first-party `next-best-practices` / `vercel:nextjs` skill (RSC boundaries, composition)
 
@@ -465,7 +465,7 @@ const inputRef = useRef<HTMLInputElement>(null)
 - Use function declarations for components; they are hoisted and consistently identifiable in stack traces.
 - Always annotate the return type as `React.ReactNode` for clarity and type safety.
 - Do not use `React.FC` or `React.FunctionComponent` in React 19 projects.
-- In React 19, pass `ref` as a regular prop — `forwardRef` is no longer required.
+- In React 19, pass `ref` as a regular prop, `forwardRef` is no longer required.
 
 Reference: `references/ork-delta.md` (React.FC and forwardRef ban, house standard); react.dev React 19 upgrade guide
 
@@ -477,7 +477,7 @@ Reference: `references/ork-delta.md` (React.FC and forwardRef ban, house standar
 
 Hydration attaches event listeners to server-rendered HTML. If the client render produces different output than the server render, React throws a hydration mismatch warning and falls back to client-side rendering. Common causes: accessing browser APIs during render, using non-deterministic values (`Date.now()`, `Math.random()`), and conditional rendering based on client-only state.
 
-**Incorrect — non-deterministic value in render:**
+**Incorrect, non-deterministic value in render:**
 ```tsx
 'use client'
 
@@ -487,7 +487,7 @@ function TimestampBadge() {
 }
 ```
 
-**Correct — defer to useEffect:**
+**Correct, defer to useEffect:**
 ```tsx
 'use client'
 
@@ -504,7 +504,7 @@ function TimestampBadge() {
 }
 ```
 
-**Incorrect — browser API access during render:**
+**Incorrect, browser API access during render:**
 ```tsx
 'use client'
 
@@ -515,7 +515,7 @@ function ScreenWidth() {
 }
 ```
 
-**Correct — browser API in useEffect with state:**
+**Correct, browser API in useEffect with state:**
 ```tsx
 'use client'
 
@@ -536,9 +536,9 @@ function ScreenWidth() {
 ```
 
 **Key rules:**
-- Never access `window`, `document`, `navigator`, `localStorage`, or other browser APIs during render — always use `useEffect`.
-- Avoid non-deterministic expressions (`Date.now()`, `Math.random()`, `crypto.randomUUID()`) in JSX — initialize as `null` and set in `useEffect`.
-- Use `suppressHydrationWarning` only for intentional, harmless mismatches — never to silence bugs.
+- Never access `window`, `document`, `navigator`, `localStorage`, or other browser APIs during render, always use `useEffect`.
+- Avoid non-deterministic expressions (`Date.now()`, `Math.random()`, `crypto.randomUUID()`) in JSX, initialize as `null` and set in `useEffect`.
+- Use `suppressHydrationWarning` only for intentional, harmless mismatches, never to silence bugs.
 - For components that depend entirely on browser APIs, use a `ClientOnly` wrapper (mount guard via `useEffect`) or `next/dynamic` with `ssr: false`.
 
 Reference: first-party `next-best-practices` / `vercel:nextjs` skill (hydration); react.dev hydration-mismatch docs
@@ -614,7 +614,7 @@ export function ClientCard({ item, tags, isActive, onAction }: ClientCardProps) 
 - Define event handlers (`onClick`, `onChange`) inside the Client Component, not in the Server Component.
 - Use Server Actions (`'use server'`) when you need to pass callable behavior from server to client.
 - Convert class instances to plain objects before passing: `{ url: myUrl.toString() }` instead of `myUrl`.
-- When in doubt, check if `JSON.stringify(prop)` would succeed — that is a reasonable (though not exact) heuristic.
+- When in doubt, check if `JSON.stringify(prop)` would succeed, that is a reasonable (though not exact) heuristic.
 
 Reference: first-party `next-best-practices` / `vercel:nextjs` skill (RSC boundaries, serializable props)
 

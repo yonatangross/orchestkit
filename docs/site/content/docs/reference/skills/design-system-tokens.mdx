@@ -5,7 +5,7 @@ description: "Design token management with the W3C Design Token spec, three-tier
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
-> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+> **Auto-activated**, this skill loads automatically when Claude detects matching context.
 
 <ContextualSkillSidebar slug="design-system-tokens" />
 
@@ -14,7 +14,7 @@ description: "Design token management with the W3C Design Token spec, three-tier
 
 # Design System Tokens
 
-Design token management following the W3C Design Token Community Group (DTCG) specification. Tokens provide a single source of truth for design decisions — colors, spacing, typography, elevation — shared between design tools (Figma, Penpot) and code (CSS, Tailwind, iOS, Android). Major adopters include Figma (Variables API), Google (Material Design 3), Microsoft (Fluent UI), and Shopify (Polaris).
+Design token management following the W3C Design Token Community Group (DTCG) specification. Tokens provide a single source of truth for design decisions, colors, spacing, typography, elevation, shared between design tools (Figma, Penpot) and code (CSS, Tailwind, iOS, Android). Major adopters include Figma (Variables API), Google (Material Design 3), Microsoft (Fluent UI), and Shopify (Polaris).
 
 ## Quick Reference
 
@@ -75,7 +75,7 @@ W3C DTCG token format (`.tokens.json`):
 
 ## Three-Tier Token Hierarchy
 
-Tokens are organized in three layers — each referencing the layer below:
+Tokens are organized in three layers, each referencing the layer below:
 
 | Tier | Purpose | Example |
 |------|---------|---------|
@@ -101,7 +101,7 @@ This separation enables theme switching (swap alias mappings) without touching c
 
 ## OKLCH Color Space
 
-OKLCH (Oklab Lightness, Chroma, Hue) provides perceptual uniformity — equal numeric changes produce equal visual changes. This solves HSL's problems where `hsl(60, 100%, 50%)` (yellow) appears far brighter than `hsl(240, 100%, 50%)` (blue) at the same lightness.
+OKLCH (Oklab Lightness, Chroma, Hue) provides perceptual uniformity, equal numeric changes produce equal visual changes. This solves HSL's problems where `hsl(60, 100%, 50%)` (yellow) appears far brighter than `hsl(240, 100%, 50%)` (blue) at the same lightness.
 
 ```css
 /* OKLCH: L (0-1 lightness), C (0-0.4 chroma/saturation), H (0-360 hue) */
@@ -135,17 +135,17 @@ Read("rules/tokens-versioning.md")
 
 Style Dictionary transforms W3C tokens into platform-specific outputs (CSS custom properties, Tailwind theme, iOS Swift, Android XML). Configure a single `config.json` to generate all platform outputs from one token source.
 
-> **Style Dictionary 5.x (current)** — pin `style-dictionary >= 5.3.0`. Relevant deltas vs the 4.x documented elsewhere:
+> **Style Dictionary 5.x (current)**, pin `style-dictionary >= 5.3.0`. Relevant deltas vs the 4.x documented elsewhere:
 >
-> - **Native OKLCH output** — the custom `color/oklch` transform required in 4.x is **no longer needed**; the built-in `css/variables` formatter emits OKLCH directly when the input token uses `$type: "color"` with an OKLCH value. Remove hand-rolled transforms.
-> - **DTCG v2025.10 dimension object** — `$type: "dimension"` now takes an object `{ "value": 16, "unit": "px" }` instead of the bare string `"16px"`. 5.3+ parses both, but new tokens should use the object form.
-> - **Hooks API** replaces the 4.x `registerTransform` / `registerFormat` global calls — pass hooks in the config instead for better tree-shaking.
+> - **Native OKLCH output**, the custom `color/oklch` transform required in 4.x is **no longer needed**; the built-in `css/variables` formatter emits OKLCH directly when the input token uses `$type: "color"` with an OKLCH value. Remove hand-rolled transforms.
+> - **DTCG v2025.10 dimension object**, `$type: "dimension"` now takes an object `{ "value": 16, "unit": "px" }` instead of the bare string `"16px"`. 5.3+ parses both, but new tokens should use the object form.
+> - **Hooks API** replaces the 4.x `registerTransform` / `registerFormat` global calls, pass hooks in the config instead for better tree-shaking.
 
 See `rules/tokens-style-dictionary.md` for configuration patterns and custom transforms.
 
 ## Dark Mode & Theming
 
-Token-based theming maps alias tokens to different global values per theme. Dark mode is one theme — you can support any number (high contrast, brand variants, seasonal).
+Token-based theming maps alias tokens to different global values per theme. Dark mode is one theme, you can support any number (high contrast, brand variants, seasonal).
 
 ```css
 :root {
@@ -238,14 +238,14 @@ npx shadcn@latest init --preset b2D0xPaDb  # Luma + Emerald + Geist
 
 ## Agent Integration
 
-The `design-system-architect` agent orchestrates token workflows end-to-end — from Figma Variables extraction through Style Dictionary transformation to theme deployment. When working on token architecture decisions, the agent coordinates with `frontend-ui-developer` for component token consumption and `accessibility` skills for contrast validation.
+The `design-system-architect` agent orchestrates token workflows end-to-end, from Figma Variables extraction through Style Dictionary transformation to theme deployment. When working on token architecture decisions, the agent coordinates with `frontend-ui-developer` for component token consumption and `accessibility` skills for contrast validation.
 
 ## Related Skills
 
-- `ork:ui-components` — Component library patterns (shadcn/ui, Radix)
-- `ork:accessibility` — WCAG compliance, contrast ratios
-- `ork:responsive-patterns` — Responsive breakpoints, fluid typography
-- `ork:figma-design-handoff` — Figma Variables to tokens pipeline
+- `ork:ui-components`: Component library patterns (shadcn/ui, Radix)
+- `ork:accessibility`: WCAG compliance, contrast ratios
+- `ork:responsive-patterns`: Responsive breakpoints, fluid typography
+- `ork:figma-design-handoff`: Figma Variables to tokens pipeline
 
 
 ---
@@ -257,7 +257,7 @@ The `design-system-architect` agent orchestrates token workflows end-to-end — 
 
 ## Token-Level Contrast Enforcement
 
-Validate contrast ratios when tokens are defined, not when components are reviewed. If `--color-text-muted` is `4.3:1` on its paired background, every component using it fails WCAG AA — and no per-component audit will fix the root cause.
+Validate contrast ratios when tokens are defined, not when components are reviewed. If `--color-text-muted` is `4.3:1` on its paired background, every component using it fails WCAG AA, and no per-component audit will fix the root cause.
 
 **Incorrect:**
 ```json
@@ -274,7 +274,7 @@ Validate contrast ratios when tokens are defined, not when components are review
 --color-text-muted: oklch(0.60 0.00 0);
 ```
 
-**Correct — W3C DTCG token with contrast metadata:**
+**Correct, W3C DTCG token with contrast metadata:**
 ```json
 {
   "color": {
@@ -308,7 +308,7 @@ Validate contrast ratios when tokens are defined, not when components are review
 }
 ```
 
-**Correct — Style Dictionary build-time contrast check:**
+**Correct, Style Dictionary build-time contrast check:**
 ```js
 // style-dictionary.config.js
 StyleDictionary.registerAction({
@@ -334,13 +334,13 @@ StyleDictionary.registerAction({
 
 Minimum ratios at token definition level:
 - `--color-text-*` against paired background: >= 4.5:1 (WCAG AA)
-- `--color-text-muted` / `--color-text-subtle`: >= 4.5:1 — "muted" describes tone, not an a11y exemption
+- `--color-text-muted` / `--color-text-subtle`: >= 4.5:1, "muted" describes tone, not an a11y exemption
 - `--color-border-*` against adjacent background: >= 3:1 (WCAG 1.4.11 non-text contrast)
 - `--color-icon-*` conveying information: >= 3:1
 - `--color-interactive-*` (links, button labels): >= 4.5:1 against background; >= 3:1 against surrounding body text
 
 Dark mode:
-- Recalculate every pair independently for dark theme tokens — do not assume inversion produces valid contrast
+- Recalculate every pair independently for dark theme tokens, do not assume inversion produces valid contrast
 - Pure white (`oklch(1.00 0 0)`) on dark backgrounds often exceeds 15:1 and causes eye strain; target 9-12:1
 - Document the dark-mode pairing in `$extensions.a11y` just as you do for light mode
 
@@ -357,7 +357,7 @@ Reference: [references/w3c-token-spec.md](../references/w3c-token-spec.md)
 
 ## OKLCH Color Space
 
-Use OKLCH (Oklab Lightness, Chroma, Hue) for all color token definitions. OKLCH is perceptually uniform — equal numeric changes in lightness produce equal visual changes, unlike HSL where yellow at 50% lightness appears far brighter than blue at 50%.
+Use OKLCH (Oklab Lightness, Chroma, Hue) for all color token definitions. OKLCH is perceptually uniform, equal numeric changes in lightness produce equal visual changes, unlike HSL where yellow at 50% lightness appears far brighter than blue at 50%.
 
 **Incorrect:**
 ```json
@@ -402,7 +402,7 @@ Use OKLCH (Oklab Lightness, Chroma, Hue) for all color token definitions. OKLCH 
 ```
 
 **Key rules:**
-- OKLCH format: `oklch(L C H)` — L: 0-1 lightness, C: 0-0.4 chroma, H: 0-360 hue
+- OKLCH format: `oklch(L C H)`, L: 0-1 lightness, C: 0-0.4 chroma, H: 0-360 hue
 - Generate shade scales by varying L (lightness) while keeping H (hue) constant
 - Reduce C (chroma) slightly at extremes (very light/dark) to stay within sRGB gamut
 - For accessible contrast: ensure 4.5:1 ratio between text and background tokens (WCAG AA)
@@ -418,7 +418,7 @@ Reference: [references/w3c-token-spec.md](../references/w3c-token-spec.md)
 
 ## Spacing and Depth as Tokens
 
-Every spacing value and shadow must come from a named token — no magic numbers. Spacing tokens create visual rhythm through proximity grouping; elevation tokens communicate layer hierarchy through a consistent light-source model.
+Every spacing value and shadow must come from a named token, no magic numbers. Spacing tokens create visual rhythm through proximity grouping; elevation tokens communicate layer hierarchy through a consistent light-source model.
 
 **Incorrect:**
 ```css
@@ -427,7 +427,7 @@ Every spacing value and shadow must come from a named token — no magic numbers
 .dropdown { margin-top: 6px; }
 ```
 
-**Correct — token definitions:**
+**Correct, token definitions:**
 ```json
 {
   "spacing": {
@@ -451,7 +451,7 @@ Every spacing value and shadow must come from a named token — no magic numbers
 }
 ```
 
-**Correct — CSS custom properties:**
+**Correct, CSS custom properties:**
 ```css
 :root {
   --space-xs: 4px;   --space-sm: 8px;   --space-md: 16px;
@@ -475,16 +475,16 @@ Every spacing value and shadow must come from a named token — no magic numbers
 
 Spacing:
 - Base unit is 4px; the scale is geometric: 4, 8, 16, 24, 32, 48, 64
-- Start with generous whitespace, then reduce — under-spaced UIs feel cramped and hard to scan
+- Start with generous whitespace, then reduce, under-spaced UIs feel cramped and hard to scan
 - Use proximity to signal grouping: related elements share a closer spacing step
 - Sibling flow spacing via `* + * { margin-block-start: var(--space-md) }` (owl selector)
 
 Elevation (5 levels, top-left light source):
-- Level 0 — flat, inline: no shadow, use background color change to separate regions
-- Level 1 — raised surfaces (cards, list items): single, subtle contact shadow
-- Level 2 — overlays floating above content (dropdowns, popovers): contact + ambient shadows
-- Level 3 — modal dialogs: pronounced contact shadow, heavier ambient shadow
-- Level 4 — highest-priority floating elements (toasts, command palette): maximum shadow
+- Level 0, flat, inline: no shadow, use background color change to separate regions
+- Level 1, raised surfaces (cards, list items): single, subtle contact shadow
+- Level 2, overlays floating above content (dropdowns, popovers): contact + ambient shadows
+- Level 3, modal dialogs: pronounced contact shadow, heavier ambient shadow
+- Level 4, highest-priority floating elements (toasts, command palette): maximum shadow
 - Every shadow uses two parts: a tight dark contact shadow + a large soft ambient shadow
 
 Flat depth (no shadows needed):
@@ -551,11 +551,11 @@ await sd.buildAllPlatforms();
 ```
 
 **Key rules:**
-- Use Style Dictionary 4.x (ESM) — v3 does not support W3C format natively
+- Use Style Dictionary 4.x (ESM), v3 does not support W3C format natively
 - Enable `outputReferences: true` to preserve alias chains in CSS output
 - Use `@tokens-studio/sd-transforms` for Tokens Studio / Figma Variables compatibility
 - Run token builds in CI to catch reference errors before merge
-- Custom transforms go in `config.mjs` — never patch generated output files
+- Custom transforms go in `config.mjs`, never patch generated output files
 - Separate source files by tier: `tokens/global/`, `tokens/alias/`, `tokens/component/`
 
 Reference: [references/style-dictionary-config.md](../references/style-dictionary-config.md)
@@ -630,8 +630,8 @@ function setTheme(theme) {
 **Key rules:**
 - Use `data-theme` attribute, not CSS classes, for theme selection
 - Use `:root:not([data-theme])` with `prefers-color-scheme` for system preference when no explicit choice is set
-- Components reference only alias tokens (`--color-surface`) — never raw values
-- Dark mode is not just "invert lightness" — reduce chroma and adjust contrast for readability
+- Components reference only alias tokens (`--color-surface`), never raw values
+- Dark mode is not just "invert lightness", reduce chroma and adjust contrast for readability
 - In dark themes, raise surface lightness slightly for elevated elements (cards, modals)
 - Test all themes against WCAG AA contrast requirements (4.5:1 text, 3:1 UI elements)
 
@@ -698,12 +698,12 @@ Organize tokens into three layers: global (raw values), alias (semantic meaning)
 ```
 
 **Key rules:**
-- Global tokens are raw values — colors, sizes, font stacks — never used directly in components
-- Alias tokens add semantic meaning — `action`, `surface`, `onSurface`, `danger` — and reference globals
-- Component tokens scope usage — `button.bg`, `card.border` — and reference aliases
+- Global tokens are raw values, colors, sizes, font stacks, never used directly in components
+- Alias tokens add semantic meaning, `action`, `surface`, `onSurface`, `danger`, and reference globals
+- Component tokens scope usage, `button.bg`, `card.border`, and reference aliases
 - Theme switching remaps alias layer only; component tokens stay unchanged
 - Keep global palette complete (all shades); keep alias layer minimal (only used semantics)
-- A component token referencing a global directly is a code smell — add an alias
+- A component token referencing a global directly is a code smell, add an alias
 
 Reference: [references/token-naming-conventions.md](../references/token-naming-conventions.md)
 
@@ -773,7 +773,7 @@ function migrateCSS(source) {
 - **PATCH** (1.0.x): New tokens, updated `$description`, metadata changes
 - **MINOR** (1.x.0): New token groups, new aliases, deprecated tokens (still functional)
 - **MAJOR** (x.0.0): Removed tokens, renamed tokens, changed `$value` semantics
-- Always deprecate before removing — minimum one minor version between deprecation and removal
+- Always deprecate before removing, minimum one minor version between deprecation and removal
 - Include `replacement` path in deprecation metadata so tooling can auto-migrate
 - Maintain a `CHANGELOG.md` for your token package with migration instructions
 - Run a CI check that flags usage of deprecated tokens in consuming repos
@@ -854,7 +854,7 @@ All design tokens must follow the W3C Design Token Community Group specification
 }
 ```
 
-All children inherit `$type: "dimension"` from the parent group — no need to repeat it.
+All children inherit `$type: "dimension"` from the parent group, no need to repeat it.
 
 Reference: [W3C Design Tokens Specification](https://design-tokens.github.io/community-group/format/)
 
@@ -1124,21 +1124,21 @@ Token files use JSON with the `.tokens.json` extension. Each token is an object 
 The specification defines these token types:
 
 ### Simple Types
-- **`color`** — CSS color value (hex, rgb, oklch, etc.)
-- **`dimension`** — Number with unit (`16px`, `1.5rem`)
-- **`fontFamily`** — Font name string or array
-- **`fontWeight`** — Numeric weight (100-900) or keyword
-- **`duration`** — Time value (`200ms`, `0.3s`)
-- **`cubicBezier`** — Bezier curve array `[x1, y1, x2, y2]`
-- **`number`** — Unitless number
+- **`color`**: CSS color value (hex, rgb, oklch, etc.)
+- **`dimension`**: Number with unit (`16px`, `1.5rem`)
+- **`fontFamily`**: Font name string or array
+- **`fontWeight`**: Numeric weight (100-900) or keyword
+- **`duration`**: Time value (`200ms`, `0.3s`)
+- **`cubicBezier`**: Bezier curve array `[x1, y1, x2, y2]`
+- **`number`**: Unitless number
 
 ### Composite Types
-- **`strokeStyle`** — Border stroke definition
-- **`border`** — Composed of color, width, style
-- **`transition`** — Composed of duration, delay, timing function
-- **`shadow`** — Composed of color, offset, blur, spread
-- **`gradient`** — Array of color stops
-- **`typography`** — Composed of font family, size, weight, line height, letter spacing
+- **`strokeStyle`**: Border stroke definition
+- **`border`**: Composed of color, width, style
+- **`transition`**: Composed of duration, delay, timing function
+- **`shadow`**: Composed of color, offset, blur, spread
+- **`gradient`**: Array of color stops
+- **`typography`**: Composed of font family, size, weight, line height, letter spacing
 
 ## Token References (Aliases)
 
@@ -1194,13 +1194,13 @@ The `$extensions` property allows vendor-specific metadata:
 ## Adoption
 
 Major platforms supporting or converging on the W3C format:
-- **Figma** — Variables API exports W3C-compatible tokens
-- **Tokens Studio** — Figma plugin with full W3C support
-- **Style Dictionary 4.x** — Built-in W3C parser
-- **Google Material Design 3** — Aligned with DTCG concepts
-- **Microsoft Fluent UI** — Token architecture follows DTCG principles
-- **Shopify Polaris** — Uses token hierarchy patterns from DTCG
-- **Salesforce Lightning** — Early DTCG contributor
+- **Figma**: Variables API exports W3C-compatible tokens
+- **Tokens Studio**: Figma plugin with full W3C support
+- **Style Dictionary 4.x**: Built-in W3C parser
+- **Google Material Design 3**: Aligned with DTCG concepts
+- **Microsoft Fluent UI**: Token architecture follows DTCG principles
+- **Shopify Polaris**: Uses token hierarchy patterns from DTCG
+- **Salesforce Lightning**: Early DTCG contributor
 
 ## File Organization
 

@@ -1,13 +1,16 @@
 ---
 title: "Doctor: Version Compatibility: Overview"
-description: "OrchestKit requires Claude Code >= 2.1.277."
+description: "Version Compatibility for the Doctor skill, page 1 of 4: Overview."
 ---
 
 > Part of the [Doctor](/docs/reference/skills/doctor) skill reference. The main page carries the skill itself; this page holds material that used to sit at the bottom of it.
 
-### Version Compatibility
+**Version Compatibility**, page 1 of 4:
 
-# CC Version Compatibility Matrix
+1. **Overview** (this page)
+2. [Feature Matrix (part 1 of 2)](/docs/reference/skills/doctor/references/version-compatibility/01-feature-matrix-part-1)
+3. [Feature Matrix (part 2 of 2)](/docs/reference/skills/doctor/references/version-compatibility/02-feature-matrix-part-2)
+4. [Prompt Caching Recommendation](/docs/reference/skills/doctor/references/version-compatibility/03-prompt-caching-recommendation)
 
 ## Overview
 
@@ -21,7 +24,7 @@ exit criteria. Doctor should compute this list dynamically by scanning
 `src/skills/*/SKILL.md` for frontmatter containing `experimental:` and report
 any skills whose `exit-criteria` is missing or empty as a warning.
 
-Current experimental skills (M139, snapshot — verify via dynamic scan):
+Current experimental skills (M139, snapshot, verify via dynamic scan):
 
 _None._ `ork:agents-view` was removed in favor of the native `claude agents`
 CLI (CC 2.1.139+) plus the parallel-primitives doc at

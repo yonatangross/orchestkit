@@ -95,7 +95,7 @@ for token in "$ARGUMENTS".split():
 EFFORT = EFFORT or "high"  # default when CC < 2.1.120 and no flag
 ```
 
-Use `EFFORT` to gate dimension count, agent count, and the optional `xhigh` uncertainty pass — see "Effort levels" table above. On CC &lt; 2.1.120 the env var is unset; the explicit `--effort=` override is the only path. `doctor` Category 14 reports a provably unsupported `xhigh` request.
+Use `EFFORT` to gate dimension count, agent count, and the optional `xhigh` uncertainty pass, see "Effort levels" table above. On CC &lt; 2.1.120 the env var is unset; the explicit `--effort=` override is the only path. `doctor` Category 14 reports a provably unsupported `xhigh` request.
 
 ---
 
@@ -261,7 +261,7 @@ Output results **incrementally** as each evaluation phase completes:
 | 2. Quality Rating | Each dimension's score as the evaluating agent returns |
 | 3. Pros/Cons | Balanced evaluation summary |
 
-For Phase 2 parallel agents, show each dimension's score **as soon as the evaluating agent returns** — don't wait for all 4 agents. If any dimension scores below 4/10, flag it immediately as a priority concern requiring user attention.
+For Phase 2 parallel agents, show each dimension's score **as soon as the evaluating agent returns**, don't wait for all 4 agents. If any dimension scores below 4/10, flag it immediately as a priority concern requiring user attention.
 
 ---
 
@@ -277,7 +277,7 @@ Load `Read("references/agent-spawn-definitions.md")` for Agent Tool mode spawn p
 
 ## Phase 2.5: Adversarial Refutation (effort-gated)
 
-The assessor that scores a dimension is also its only judge — self-preferential bias.
+The assessor that scores a dimension is also its only judge, self-preferential bias.
 A separate **blind refuter** verifies decision-bearing scores before they reach the
 composite. **Effort gate:** `low`/`medium` skip this phase entirely; `high` runs up-to-4
 single refuters (advisory, no auto-swing); `xhigh` runs 3-refuter majority with auto-revise.
@@ -292,10 +292,10 @@ When `ORK_ALT_MODEL_CMD` is configured and effort is `high`/`xhigh`, one quorum 
 
 Runs after Phase 2 returns, before the composite/grade and Phases 3-7. Refuters are ALWAYS
 isolated `Agent(...)` Task spawns (never team members, even in Agent Teams mode) fed only the
-serialized claim — no producer score, identity, or prose. Revised scores recompute the
+serialized claim, no producer score, identity, or prose. Revised scores recompute the
 composite; the refutation ledger (`02b-refutation.json`) records survived/killed/downgraded
 so wrong scores are auditable. Keep the producer-basis score AND a labeled post-refutation
-score — refutation never silently raises the grade.
+score, refutation never silently raises the grade.
 
 ---
 
@@ -313,9 +313,9 @@ Parse `--render=` from `$ARGUMENTS`. Default is `both`.
 
 | Mode | Behavior |
 |------|----------|
-| `markdown` | Current behavior — markdown assessment report only. No spec emitted. |
+| `markdown` | Current behavior, markdown assessment report only. No spec emitted. |
 | `json-render` | Emit `.claude/chain/assess-dashboard.json` only. Skip markdown report. |
-| `both` | Emit spec **and** markdown. Default — human reads the report, downstream skills parse the spec. |
+| `both` | Emit spec **and** markdown. Default, human reads the report, downstream skills parse the spec. |
 
 When emitting a spec:
 
@@ -360,11 +360,11 @@ Auto-skip conditions (all exit 0, all WARN-logged):
 | Skip reason | Trigger |
 |-------------|---------|
 | `no composite score` | `assessment.json` has no top-level `composite` numeric field |
-| `yg-mcp-core not importable` | `yg-mcp-core>=0.3.0` not installed (orchestkit is public; yg-mcp-core lives on private `pypi.yonyon.ai` — HQ-only) |
+| `yg-mcp-core not importable` | `yg-mcp-core>=0.3.0` not installed (orchestkit is public; yg-mcp-core lives on private `pypi.yonyon.ai`, HQ-only) |
 | `memory MCP unreachable` | memory MCP server down OR `.mcp.json` doesn't define `memory` |
 
 The created entity has:
-- `name`: `<slug-or-dir>@<timestamp>` (stable across re-runs — re-runs create new entities)
+- `name`: `<slug-or-dir>@<timestamp>` (stable across re-runs, re-runs create new entities)
 - `entityType`: `assessment` (override with `--entity-type <type>`)
 - `observations`: `composite=X.XX`, one `<dim>=X.XX` per scored dimension, optional `summary: ...` and `topic: ...`
 
@@ -374,7 +374,7 @@ Mirrors `Yonatan-HQ/hq-ext-plugin#194` (audio_podcast handler) and orchestkit#18
 
 ## Phase 7d: Emit Chain Verdict (stop-gating)
 
-After the composite and grade are final (post-refutation, Phase 2.5), ALWAYS write the machine-readable verdict — this is the stop-gate `implement` reads before Phase 1. Mirror the Phase 7b spec-emit pattern: build, write compact JSON, never write a partial file.
+After the composite and grade are final (post-refutation, Phase 2.5), ALWAYS write the machine-readable verdict, this is the stop-gate `implement` reads before Phase 1. Mirror the Phase 7b spec-emit pattern: build, write compact JSON, never write a partial file.
 
 ```json
 // .claude/chain/assess-verdict.json
@@ -391,11 +391,11 @@ After the composite and grade are final (post-refutation, Phase 2.5), ALWAYS wri
 }
 ```
 
-Verdict rules — thresholds come from `rubric.json` (schema: `../../shared/rubric.schema.json`):
+Verdict rules, thresholds come from `rubric.json` (schema: `../../shared/rubric.schema.json`):
 
 - `verdict = "fail"` when `composite < min_pass` (5.5) **OR** any dimension scores below its `min_blocker`. Otherwise `"pass"`.
-- Every dimension below its `min_blocker` gets a `blockers[]` entry — dimension, score, one evidence-backed reason. `blockers` is `[]` on pass.
-- Scores are the post-refutation numbers — the same ones in the report. Refutation never silently flips a fail to pass.
+- Every dimension below its `min_blocker` gets a `blockers[]` entry, dimension, score, one evidence-backed reason. `blockers` is `[]` on pass.
+- Scores are the post-refutation numbers, the same ones in the report. Refutation never silently flips a fail to pass.
 
 Consumers: `implement` Step -0.5 blocks Phase 1 on `verdict == "fail"` (user must fix-first or explicitly override); Phase 7c memory writeback persists the verdict + dimension scores to the memory graph (add a `verdict=pass|fail` observation) for cross-session learning.
 
@@ -403,7 +403,7 @@ Consumers: `implement` Step -0.5 blocks Phase 1 on `verdict == "fail"` (user mus
 
 ## Self-Reported Uncertainty (`xhigh` effort)
 
-Current-generation models report their own limits far better than older tiers did. When `xhigh` effort is active, enrich each dimension's rating with a `confidence` level and a list of `caveats` — things the model couldn't verify, assumptions it relied on, or cases it didn't test.
+Current-generation models report their own limits far better than older tiers did. When `xhigh` effort is active, enrich each dimension's rating with a `confidence` level and a list of `caveats`, things the model couldn't verify, assumptions it relied on, or cases it didn't test.
 
 Output schema per dimension (JSON):
 
@@ -425,7 +425,7 @@ Rules:
 - **Do not use `confidence` as an auto-gate.** It's a signal for the human reader, not a pass/fail threshold.
 - **`caveats` must be specific.** "Didn't check X" with file paths beats "uncertainty about security".
 - **If a caveat is cheap to resolve, resolve it** instead of recording it. Caveats are for things that genuinely can't be verified within the skill's scope (e.g., production runtime behavior, future input patterns).
-- **Composite score still computes from `score` only** — not weighted by confidence — to keep the number comparable across runs.
+- **Composite score still computes from `score` only**: not weighted by confidence, to keep the number comparable across runs.
 
 ---
 
@@ -471,7 +471,7 @@ Done means all of these hold:
 
 ---
 
-**Version:** 1.8.0 (June 2026) — optional cross-model adversarial refuter lane (provenance + cost gate, #2542)
+**Version:** 1.8.0 (June 2026), optional cross-model adversarial refuter lane (provenance + cost gate, #2542)
 
 
 ---
@@ -487,10 +487,10 @@ When a task scores Level 4-5 (Complex/Very Complex), decompose it into subtasks 
 
 ### Decomposition Approach
 
-1. **Identify independent axes** — separate concerns that can be worked on independently
-2. **Isolate unknowns** — create a spike/research task for each unknown
-3. **Reduce cross-cutting scope** — break into single-module changes
-4. **Sequence by dependency** — order subtasks so blocked items come last
+1. **Identify independent axes**: separate concerns that can be worked on independently
+2. **Isolate unknowns**: create a spike/research task for each unknown
+3. **Reduce cross-cutting scope**: break into single-module changes
+4. **Sequence by dependency**: order subtasks so blocked items come last
 
 ### Strategies by Complexity Driver
 
@@ -518,9 +518,9 @@ When a task scores Level 4-5 (Complex/Very Complex), decompose it into subtasks 
 ### Subtask Validation
 
 Each subtask should score:
-- **Average: 1.0-3.4** (Level 1-3) — manageable
-- **Unknowns: &lt;= 2** — no major research needed
-- **Cross-cutting: &lt;= 2** — limited to 2-3 modules
+- **Average: 1.0-3.4** (Level 1-3), manageable
+- **Unknowns: &lt;= 2**: no major research needed
+- **Cross-cutting: &lt;= 2**: limited to 2-3 modules
 
 If any subtask still scores Level 4+, decompose it again.
 
@@ -536,14 +536,14 @@ If any subtask still scores Level 4+, decompose it again.
 
 ### Key Rules
 
-- Level 4-5 tasks are **never directly implemented** — decompose first
+- Level 4-5 tasks are **never directly implemented**, decompose first
 - Every subtask must score **Level 3 or below** individually
 - Resolve **unknowns** before starting dependent implementation tasks
 - Use **`TaskCreate` with `addBlockedBy`** to enforce subtask ordering
 - Each subtask should be **independently verifiable** with its own tests
 - Prefer **vertical slices** (end-to-end for one feature) over horizontal layers
 
-**Incorrect — Starting Level 5 task without decomposition:**
+**Incorrect, Starting Level 5 task without decomposition:**
 ```
 Task: "Migrate authentication to OAuth2"
 Complexity: 4.8 (Level 5)
@@ -551,7 +551,7 @@ Action: Start implementing directly
 // High failure risk, scope creep likely
 ```
 
-**Correct — Breaking into Level 1-3 subtasks:**
+**Correct, Breaking into Level 1-3 subtasks:**
 ```
 1. Research OAuth2 providers (Level 2, 1-2h)
 2. Add OAuth library dependency (Level 1, 30m)
@@ -616,17 +616,17 @@ Score task complexity across 7 criteria (1-5 each) to determine if a task should
 - Score **all 7 criteria** even for seemingly simple tasks
 - Total of **35 points** maximum, divide by 7 for average
 - Level 4-5 tasks **must be decomposed** before starting implementation
-- Unknowns (criterion 5) is the **highest variance** factor — resolve unknowns first
-- Cross-cutting (criterion 6) indicates **coordination overhead** — account for it in estimates
+- Unknowns (criterion 5) is the **highest variance** factor, resolve unknowns first
+- Cross-cutting (criterion 6) indicates **coordination overhead**, account for it in estimates
 
-**Incorrect — Skipping complexity assessment:**
+**Incorrect, Skipping complexity assessment:**
 ```
 Task: "Add real-time notifications"
 Action: Start coding
 // No idea of scope, likely 3-5x over estimate
 ```
 
-**Correct — Scoring all 7 criteria first:**
+**Correct, Scoring all 7 criteria first:**
 ```
 | Criterion | Score |
 |-----------|-------|
@@ -650,12 +650,12 @@ Action: Decompose into subtasks before starting
 
 ### Adversarial Refutation
 
-# Adversarial Refutation — assess bindings
+# Adversarial Refutation: assess bindings
 
 Thin adapter. Loads the shared engine, then binds it to assess's scoring model.
 
 **Load the engine first:** `Read("${CLAUDE_PLUGIN_ROOT}/shared/rules/adversarial-refutation.md")`
-— the blindness contract, independent-score-first, citation-verify, quorum, cross-file
+the blindness contract, independent-score-first, citation-verify, quorum, cross-file
 UPHELD-default, deterministic-exemption, no-auto-flip, spawn-ceiling, ledger schema, and
 isolated-spawn rules. This file only supplies what's assess-specific.
 
@@ -672,7 +672,7 @@ isolated-spawn rules. This file only supplies what's assess-specific.
 
 ## Scope filter (which scores get a refuter)
 
-A dimension score qualifies only if decision-bearing — ANY of:
+A dimension score qualifies only if decision-bearing, ANY of:
 - score **≥8** (praise-inflation: the assessor patting the subject on the back) or **≤4** (over-penalty)
 - **high-weight** dimension (Security 0.20; Correctness/Maintainability/Compliance 0.15)
 - within **±0.5 of a grade boundary** (refutation could flip the letter grade)
@@ -693,7 +693,7 @@ boundary, and descriptive pros/cons with no score. Bounds spawns to ~2-4 per ass
 ## Isolation note
 
 Even when Phase 2 ran in Agent Teams mode, Phase 2.5 refuters are ALWAYS standalone
-`Agent(...)` Task spawns with **no `team_name`** — fed only the serialized claim from
+`Agent(...)` Task spawns with **no `team_name`**, fed only the serialized claim from
 `02-evaluation.json`. Joining the mesh would leak producer reasoning (engine rule 9).
 
 
@@ -805,9 +805,9 @@ Agent(subagent_type="ork:test-generator", name="test-assessor",
 ExitWorktree(action="keep")
 ```
 
-> **Fallback — Team Formation Failure:** If team formation fails, use standard Phase 2 Task spawns.
+> **Fallback, Team Formation Failure:** If team formation fails, use standard Phase 2 Task spawns.
 >
-> **Fallback — Context Exhaustion:** If agents hit "Context limit reached" before returning scores, collect whatever partial results were produced, then score remaining dimensions yourself using the scoped file list from Phase 1.5. Do NOT re-spawn agents — assess the remaining dimensions inline and proceed to Phase 3.
+> **Fallback, Context Exhaustion:** If agents hit "Context limit reached" before returning scores, collect whatever partial results were produced, then score remaining dimensions yourself using the scoped file list from Phase 1.5. Do NOT re-spawn agents, assess the remaining dimensions inline and proceed to Phase 3.
 
 
 ### Alternative Analysis
@@ -921,7 +921,7 @@ node "${CLAUDE_SKILL_DIR}/scripts/render-spec.mjs" .claude/chain/assess-dashboar
 
 When `--render=json-render` or `--render=both` is passed to `/ork:assess`, Phase 7 emits a json-render-compatible JSON spec to `.claude/chain/assess-dashboard.json` instead of (or in addition to) the markdown report.
 
-The spec follows the **flat element-map format** documented in `ork:mcp-visual-output` — `{ root, elements }` with each element keyed by id and referencing children by id. This matches what `@json-render/mcp` 0.17+ consumes and what downstream skills can parse for structured handoff.
+The spec follows the **flat element-map format** documented in `ork:mcp-visual-output`, `{ root, elements }` with each element keyed by id and referencing children by id. This matches what `@json-render/mcp` 0.17+ consumes and what downstream skills can parse for structured handoff.
 
 ## Catalog
 
@@ -936,7 +936,7 @@ These are the only component types the spec is allowed to use. They map to `@jso
 | `BarMeter` | Per-dimension score 0-10 | `label: string`, `value: number` (0-10), `color?: string` |
 | `Markdown` | Free-text reasoning, caveats | `content: string` |
 
-`color` enum: `green | red | yellow | blue | gray`. Use `green` for ≥8, `yellow` for 5–7.9, `red` for &lt;5.
+`color` enum: `green | red | yellow | blue | gray`. Use `green` for ≥8, `yellow` for 5-7.9, `red` for &lt;5.
 
 ## Example
 
@@ -1023,7 +1023,7 @@ A complete spec for `/ork:assess backend/app/services/auth.py`:
 
 The example above serializes to **~900 tokens** of compact JSON. The equivalent markdown report (using `references/phase-templates.md` + `references/scoring-rubric.md`) for the same content is **~3500 tokens**.
 
-The downstream win: `/ork:implement` reading this spec from `.claude/chain/assess-dashboard.json` knows the lowest-scoring dimension, the high-priority improvements, and the verdict — without re-parsing markdown tables.
+The downstream win: `/ork:implement` reading this spec from `.claude/chain/assess-dashboard.json` knows the lowest-scoring dimension, the high-priority improvements, and the verdict, without re-parsing markdown tables.
 
 ## xhigh effort additions
 
@@ -1122,7 +1122,6 @@ Priority <1.0  = Backlog or skip
 
 ### Orchestration Mode
 
-&lt;!-- SHARED: keep in sync with ../../../verify/references/orchestration-mode.md --&gt;
 # Orchestration Mode Selection
 
 Shared logic for choosing between Agent Teams and Agent tool orchestration in assess/verify skills.
@@ -1280,7 +1279,7 @@ See unified framework for grade thresholds, improvement prioritization, effort/i
 
 ### Scope Discovery
 
-# Phase 1.5: Scope Discovery (CRITICAL -- prevents context exhaustion)
+# Phase 1.5: Scope Discovery (CRITICAL, prevents context exhaustion)
 
 **Before spawning any agents**, build a bounded file list. Agents that receive unbounded targets will exhaust their context windows reading the entire codebase.
 

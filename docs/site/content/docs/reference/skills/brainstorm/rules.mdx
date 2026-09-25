@@ -25,7 +25,7 @@ The brainstorm skill dynamically selects agents based on topic keywords (Step 0)
 | 2-3 | ~100-150K | ~200-300K | Excellent |
 | 4-5 | ~150-250K | ~300-500K | Good |
 | 6-7 | ~250-350K | ~500-700K | Degraded |
-| 8+ | ~350K+ | ~700K+ | Poor -- context exhaustion likely |
+| 8+ | ~350K+ | ~700K+ | Poor, context exhaustion likely |
 
 ## Rules
 
@@ -34,7 +34,7 @@ The brainstorm skill dynamically selects agents based on topic keywords (Step 0)
 - If topic analysis suggests more than 5 agents, prioritize by relevance and merge overlapping roles
 - Document which agents were excluded and why in `00-topic-analysis.json`
 
-**Incorrect -- spawning too many agents for a broad topic:**
+**Incorrect, spawning too many agents for a broad topic:**
 ```python
 # Topic: "brainstorm e-commerce platform architecture"
 # 8 agents spawned -- exceeds limit
@@ -50,7 +50,7 @@ TaskCreate(subject="performance-engineer: load testing")
 # Context exhaustion before design presentation completes
 ```
 
-**Correct -- capping at 5, merging overlapping roles:**
+**Correct, capping at 5, merging overlapping roles:**
 ```python
 # Topic: "brainstorm e-commerce platform architecture"
 # 8 candidates identified, capped to 5 by priority
@@ -116,7 +116,7 @@ These ceilings align with the `scope-appropriate-architecture` skill and `assess
 - If ALL generated ideas exceed the ceiling, generate simpler alternatives before proceeding
 - Never present a ceiling-exceeding idea as the top recommendation
 
-**Incorrect -- recommending enterprise patterns for a hackathon:**
+**Incorrect, recommending enterprise patterns for a hackathon:**
 ```python
 # Tier 2 hackathon, but agents suggest enterprise architecture
 TaskCreate(
@@ -130,7 +130,7 @@ TaskCreate(
 # User cannot implement any of these in a hackathon
 ```
 
-**Correct -- constraining recommendations to tier ceiling:**
+**Correct, constraining recommendations to tier ceiling:**
 ```python
 # Tier 2 hackathon detected, ceiling = Level 2
 ideas_with_ceiling = []
@@ -186,11 +186,11 @@ The divergent phase (Phase 2) is designed to generate 10+ ideas without filterin
 
 The Phase 6 design presentation must include all of these sections:
 
-1. **Recommended approach** -- single top pick with justification
-2. **Runner-up(s)** -- 1-2 alternatives with trade-off comparison
-3. **Trade-off table** -- dimensions (cost, complexity, testability, time-to-ship, scalability, maintainability)
-4. **Next steps** -- concrete actions to begin implementation
-5. **Considered but excluded** -- ideas that were explored and why they were dropped
+1. **Recommended approach**: single top pick with justification
+2. **Runner-up(s)**: 1-2 alternatives with trade-off comparison
+3. **Trade-off table**: dimensions (cost, complexity, testability, time-to-ship, scalability, maintainability)
+4. **Next steps**: concrete actions to begin implementation
+5. **Considered but excluded**: ideas that were explored and why they were dropped
 
 ## Rules
 
@@ -200,7 +200,7 @@ The Phase 6 design presentation must include all of these sections:
 - The final output must ALWAYS include a "Next steps" section with actionable items
 - Never end a brainstorm with "Here are some ideas to consider" without ranking and recommending
 
-**Incorrect -- ending with an unranked idea list:**
+**Incorrect, ending with an unranked idea list:**
 ```python
 # Phase 6 output: just a list, no convergence
 TaskUpdate(subject="Brainstorm: caching strategy", status="completed")
@@ -220,7 +220,7 @@ Let me know which approach interests you!
 # User has 7 options, no ranking, no trade-offs, no next steps
 ```
 
-**Correct -- converged to actionable recommendations:**
+**Correct, converged to actionable recommendations:**
 ```python
 # Phase 6 output: ranked, compared, actionable
 Write(".claude/chain/05-synthesis.json", {
@@ -270,7 +270,7 @@ When brainstorm agents generate 10+ ideas but skip feasibility scoring, the eval
 - Flagged ideas must NOT appear in the top recommendations unless the user explicitly asks for moonshots
 - The feasibility check must consider the detected project tier from Step 0
 
-**Incorrect -- presenting ideas without feasibility scores:**
+**Incorrect, presenting ideas without feasibility scores:**
 ```python
 # Phase 3 output: no scoring, all ideas pass through
 Write(".claude/chain/03-feasibility.json", {
@@ -283,7 +283,7 @@ Write(".claude/chain/03-feasibility.json", {
 # Phase 5 wastes tokens evaluating "Rewrite in Rust" for a Tier 2 hackathon
 ```
 
-**Correct -- every idea scored, unfeasible ones flagged:**
+**Correct, every idea scored, unfeasible ones flagged:**
 ```python
 # Phase 3 output: each idea scored, low-feasibility flagged with reason
 Write(".claude/chain/03-feasibility.json", {
@@ -305,7 +305,7 @@ Write(".claude/chain/03-feasibility.json", {
 ## Integration with Phase Workflow
 
 - Phase 2 generates ideas freely (no filtering)
-- Phase 3 applies this feasibility filter -- every idea gets a score
+- Phase 3 applies this feasibility filter, every idea gets a score
 - Phase 4 evaluates only ideas with `feasibility_score >= 3` in detail
 - Phase 5 synthesis references flagged ideas in a "Considered but excluded" section
 

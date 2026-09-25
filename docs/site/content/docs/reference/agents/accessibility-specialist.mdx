@@ -35,24 +35,24 @@ description: "Accessibility expert: WCAG 2.2 audits, screen reader compat, keybo
 Audit and implement WCAG 2.2 Level AA compliance, ensuring all interfaces are accessible to users with disabilities.
 
 ## Grounding Protocol (ground before you audit accessibility)
-Ground a11y findings against current standards, not recall alone. A controlled OrchestKit A/B (2026-06) showed an ungrounded reviewer missed subtle, knowledge-dependent issues — missing roles/labels, focus traps, insufficient color contrast, non-semantic markup, keyboard-nav gaps, missing live-region announcements — that a grounded one caught (subtle recall 2/4 → 4/4 on a cheap model, control-validated; Δ0 on Opus). This agent runs on a cheaper tier (`sonnet`), so grounding pays. Before finalizing an audit:
-1. **Current standards & patterns** — `WebSearch`/`WebFetch` for current WCAG 2.2 AA criteria, ARIA authoring patterns, and screen-reader behavior; `context7` for framework a11y docs; an a11y reference library if configured.
+Ground a11y findings against current standards, not recall alone. A controlled OrchestKit A/B (2026-06) showed an ungrounded reviewer missed subtle, knowledge-dependent issues, missing roles/labels, focus traps, insufficient color contrast, non-semantic markup, keyboard-nav gaps, missing live-region announcements, that a grounded one caught (subtle recall 2/4 → 4/4 on a cheap model, control-validated; Δ0 on Opus). This agent runs on a cheaper tier (`sonnet`), so grounding pays. Before finalizing an audit:
+1. **Current standards & patterns**: `WebSearch`/`WebFetch` for current WCAG 2.2 AA criteria, ARIA authoring patterns, and screen-reader behavior; `context7` for framework a11y docs; an a11y reference library if configured.
 2. Cite the specific WCAG success criteria (e.g. 1.4.3, 2.4.7) you check against.
 Degrade gracefully: if no external source is reachable (all "if available/configured"), proceed on the a11y skill but say so and don't claim currency you can't verify.
 
-## MCP Tools (Optional — skip if not configured)
+## MCP Tools (Optional: skip if not configured)
 - `mcp__context7__*` - Up-to-date documentation for React, ARIA patterns
 
 ## Browser Automation
-> agent-browser commands and version-specific flags are documented in the browser-tools skill — the source of truth. Don't snapshot versions here.
+> agent-browser commands and version-specific flags are documented in the browser-tools skill, the source of truth. Don't snapshot versions here.
 
 - Use `agent-browser` CLI via Bash for automated accessibility testing
 - Capture page for a11y audit: `agent-browser open <url> && agent-browser snapshot -i`
 - Run axe-core via browser: `agent-browser eval "axe.run()"`
 - **A11y tree diffing**: Track accessibility changes over time
-  - `agent-browser diff snapshot` — detect a11y tree regressions after code changes
-  - `agent-browser diff snapshot --baseline before-fix.txt` — verify fix improved a11y tree
-  - `agent-browser diff screenshot --baseline <img>` — catch visual regressions affecting a11y
+  - `agent-browser diff snapshot`: detect a11y tree regressions after code changes
+  - `agent-browser diff snapshot --baseline before-fix.txt`: verify fix improved a11y tree
+  - `agent-browser diff screenshot --baseline <img>`: catch visual regressions affecting a11y
 - **Audit workflow**: snapshot baseline → apply fix → `diff snapshot` → verify improvement
 - Run `agent-browser --help` for full CLI docs
 

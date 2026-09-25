@@ -5,7 +5,7 @@ description: "Right-sizes architecture to project scope, classifying projects in
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-green">low</span>
 
-> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+> **Auto-activated**, this skill loads automatically when Claude detects matching context.
 
 <ContextualSkillSidebar slug="scope-appropriate-architecture" />
 
@@ -168,7 +168,7 @@ Load on demand with `Read("references/<file>")`:
 
 ## Why
 
-The YAGNI gate and the Tier + 2 rule PREVENT over-engineering — they stop you
+The YAGNI gate and the Tier + 2 rule PREVENT over-engineering, they stop you
 building OAuth2+PKCE for a take-home or CQRS for a todo app. But once that
 correct, tier-appropriate decision is made, it disappears: the code shows the
 simple thing with no record that it was *chosen*, nor what should make you
@@ -176,7 +176,7 @@ revisit it.
 
 A deferred-debt marker is the counterpart. It records the deliberate
 *under*-engineering at the moment you choose it, together with the condition
-that should trigger the upgrade. It is NOT a `TODO` — the `when <trigger>`
+that should trigger the upgrade. It is NOT a `TODO`, the `when <trigger>`
 clause is what turns a forgettable note into a ledger entry that can tell you
 *when* to act.
 
@@ -189,15 +189,15 @@ drop an inline marker on the line where the shortcut lives:
 // ork-debt: <choice>, upgrade to <path>, when <trigger>
 ```
 
-- `<choice>` — the deliberate simplification you made
-- `upgrade to <path>` — what to switch to later (optional but recommended)
-- `when <trigger>` — the condition that should make you revisit (optional, but
+- `<choice>`: the deliberate simplification you made
+- `upgrade to <path>`: what to switch to later (optional but recommended)
+- `when <trigger>`: the condition that should make you revisit (optional, but
   without it the marker degrades to a plain `TODO`)
 
 The comment leader may be `//`, `#`, `--`, `;`, or a block-comment leader, so
 the convention works across languages.
 
-## Correct — record the cut and its trigger
+## Correct: record the cut and its trigger
 
 ```ts
 // ork-debt: session cookies, upgrade to JWT + refresh tokens, when a 2nd service is added
@@ -207,7 +207,7 @@ const session = signCookie(userId);
 db = sqlite3.connect("./app.db")
 ```
 
-## Incorrect — the cut with no trace, or a bare TODO
+## Incorrect: the cut with no trace, or a bare TODO
 
 ```ts
 // TODO: maybe use a real DB later
@@ -216,8 +216,8 @@ const session = signCookie(userId);
 
 **Problems:**
 - No record that the simple choice was *deliberate* (vs an oversight)
-- No upgrade path — the next engineer re-derives it from scratch
-- No trigger — nothing tells you *when* the cut stops being appropriate
+- No upgrade path, the next engineer re-derives it from scratch
+- No trigger, nothing tells you *when* the cut stops being appropriate
 
 ## How it surfaces (automatic, no manual command)
 
@@ -232,9 +232,9 @@ Opt out per hook with `ORK_DISABLE_DEBT_TRACKER=1` / `ORK_DISABLE_DEBT_SURFACER=
 
 ## Relationship to other rules
 
-- `over-engineering-flag.md` — flags building too much for the tier (prevent)
-- `tier-detection-evidence.md` — establishes the tier this cut is scoped to
-- **this rule** — records the deliberate too-little, so it is revisitable (record)
+- `over-engineering-flag.md`: flags building too much for the tier (prevent)
+- `tier-detection-evidence.md`: establishes the tier this cut is scoped to
+- **this rule**: records the deliberate too-little, so it is revisitable (record)
 
 
 ### Flag architecture patterns that exceed the detected project tier by 2+ levels: HIGH
@@ -254,7 +254,7 @@ After detecting the project tier:
 3. Suggest the tier-appropriate alternative
 4. Only allow override with explicit user justification
 
-## Incorrect — recommend enterprise patterns for a prototype
+## Incorrect: recommend enterprise patterns for a prototype
 
 ```markdown
 ## Architecture for Todo App (Tier 2: Hackathon)
@@ -275,7 +275,7 @@ After detecting the project tier:
 - DI container is Tier 4 (2 levels above)
 - A Todo app needs none of this
 
-## Correct — flag over-engineering with tier-appropriate alternatives
+## Correct: flag over-engineering with tier-appropriate alternatives
 
 ```markdown
 ## Architecture for Todo App (Tier 2: Hackathon)
@@ -340,10 +340,10 @@ Flag but allow if the user provides explicit justification:
 
 | Justification | Acceptable |
 |---------------|------------|
-| "We plan to scale to 10K users next quarter" | Yes — document future tier |
-| "Our team already knows this pattern" | Yes — lower learning cost |
-| "I just want to practice DDD" | Yes — learning project |
-| No justification given | No — use tier-appropriate pattern |
+| "We plan to scale to 10K users next quarter" | Yes, document future tier |
+| "Our team already knows this pattern" | Yes, lower learning cost |
+| "I just want to practice DDD" | Yes, learning project |
+| No justification given | No, use tier-appropriate pattern |
 
 
 ### Tier detection must cite evidence from the actual codebase, not assumptions: HIGH
@@ -363,7 +363,7 @@ When detecting project tier:
 3. If signals conflict, cite the conflict and ask the user
 4. Never default to a tier without evidence
 
-## Incorrect — assume tier without evidence
+## Incorrect: assume tier without evidence
 
 ```markdown
 ## Architecture Recommendation
@@ -381,7 +381,7 @@ This looks like a startup MVP, so I recommend:
 - No metrics were gathered
 - If this is actually a Tier 5 enterprise app, every recommendation is wrong
 
-## Correct — cite evidence for tier detection
+## Correct: cite evidence for tier detection
 
 ```markdown
 ## Tier Detection: Tier 3 (Startup/MVP)
@@ -440,7 +440,7 @@ When signals disagree:
 suggest enterprise. Asking user to clarify project intent.
 ```
 
-Do not average or guess — ask the user when signals conflict by more than 1 tier.
+Do not average or guess, ask the user when signals conflict by more than 1 tier.
 
 
 
@@ -495,7 +495,7 @@ src/
 | Repository pattern | Multiple data sources, testability matters |
 | DI (light) | Constructor injection for services, no container yet |
 | Module boundaries | Team ownership, independent deployment later |
-| Background jobs | Email, reports, data sync — can't block requests |
+| Background jobs | Email, reports, data sync, can't block requests |
 | Redis cache | Database bottlenecks are real and measured |
 | Structured logging | Debugging across modules needs correlation |
 
@@ -640,11 +640,11 @@ Guidance for interview assignments, take-home projects, hackathons, and prototyp
 
 ### What Interviewers Actually Evaluate
 
-1. **Clean, readable code** — not architectural patterns
-2. **Working solution** — not infrastructure
-3. **Good naming and structure** — not abstractions
-4. **Thoughtful trade-offs** — documented, not implemented
-5. **Tests for critical paths** — not 100% coverage
+1. **Clean, readable code**: not architectural patterns
+2. **Working solution**: not infrastructure
+3. **Good naming and structure**: not abstractions
+4. **Thoughtful trade-offs**: documented, not implemented
+5. **Tests for critical paths**: not 100% coverage
 
 ### Architecture Pattern
 
@@ -830,8 +830,8 @@ test("createClient throws on missing apiKey", () => {
 | Dependencies | Add what's useful | Minimize ruthlessly |
 | Testing | Test business flows | Test every public API edge case |
 | Docs | Internal wiki | Public, polished, with examples |
-| Error messages | Log and fix | Descriptive — user can't see your code |
-| Types | Nice to have | Essential — API discoverability |
+| Error messages | Log and fix | Descriptive, user can't see your code |
+| Types | Nice to have | Essential, API discoverability |
 | Bundle size | Less critical | Critical for frontend consumers |
 | Node versions | Pick one | Support multiple (LTS at minimum) |
 
@@ -850,11 +850,11 @@ test("createClient throws on missing apiKey", () => {
 
 | Decision | Small Library | Framework |
 |----------|--------------|-----------|
-| Single package | Yes | No — use monorepo |
+| Single package | Yes | No, use monorepo |
 | Tree-shakeable | Essential | Essential |
 | ESM + CJS | Both via dual exports | Both via dual exports |
-| Subpath exports | If > 3 features | Yes — `pkg/feature` |
-| Plugin system | No | Yes — extensibility |
+| Subpath exports | If > 3 features | Yes, `pkg/feature` |
+| Plugin system | No | Yes, extensibility |
 
 
 ### Startup Mvp
@@ -894,7 +894,7 @@ src/
 ### Key Principles
 
 1. **Monolith first.** Always. No exceptions.
-2. **Managed services.** Database, auth, email, storage — all SaaS.
+2. **Managed services.** Database, auth, email, storage, all SaaS.
 3. **One deployment target.** Vercel OR Railway, not both.
 4. **Feature flags over branches.** Ship incomplete features behind flags.
 5. **Server actions over API routes.** Less boilerplate, same safety.
@@ -955,7 +955,7 @@ No custom error hierarchies. No error codes. No RFC 9457. Log it, return a messa
 ## Deployment
 
 - **Platform:** Vercel (frontend-heavy) or Railway (backend-heavy)
-- **CI/CD:** GitHub Actions — lint + test + deploy (3 steps max)
+- **CI/CD:** GitHub Actions, lint + test + deploy (3 steps max)
 - **Environments:** Production + Preview (Vercel auto). No staging.
 - **Monitoring:** Error tracking (Sentry free tier) + uptime (Better Stack free)
 

@@ -1,6 +1,6 @@
 ---
 title: "Expect"
-description: "Diff-aware AI browser testing — reads the git diff, maps changes to affected pages via the route map, generates a targeted test plan, and executes it via agent-browser (Rust daemon + CDP, ARIA-tree-first) with pass/fail reporting. Use when testing UI changes, verifying PRs before merge, or running regression checks on changed components."
+description: "Diff-aware AI browser testing, reads the git diff, maps changes to affected pages via the route map, generates a targeted test plan, and executes it via agent-browser (Rust daemon + CDP, ARIA-tree-first) with pass/fail reporting. Use when testing UI changes, verifying PRs before merge, or running regression checks on changed components."
 ---
 
 <span className="badge badge-blue">Command</span> <span className="badge badge-orange">high</span>
@@ -11,10 +11,10 @@ description: "Diff-aware AI browser testing — reads the git diff, maps changes
 
 <ContextualSkillSidebar slug="expect" />
 
-> **Expect** Diff-aware AI browser testing — reads the git diff, maps changes to affected pages via the route map, generates a targeted test plan, and executes it via agent-browser (Rust daemon + CDP, ARIA-tree-first) with pass/fail reporting. Use when testing UI changes, verifying PRs before merge, or running regression checks on changed components.
+> **Expect** Diff-aware AI browser testing, reads the git diff, maps changes to affected pages via the route map, generates a targeted test plan, and executes it via agent-browser (Rust daemon + CDP, ARIA-tree-first) with pass/fail reporting. Use when testing UI changes, verifying PRs before merge, or running regression checks on changed components.
 
 
-# Expect — Diff-Aware AI Browser Testing
+# Expect: Diff-Aware AI Browser Testing
 
 Analyze git changes, generate targeted test plans, and execute them via AI-driven browser automation.
 
@@ -28,7 +28,7 @@ expect --target branch              # Test all changes on current branch vs main
 expect -y                           # Skip plan review, run immediately
 ```
 
-**Core principle:** Only test what changed. Git diff drives scope — no wasted cycles on unaffected pages.
+**Core principle:** Only test what changed. Git diff drives scope, no wasted cycles on unaffected pages.
 
 
 ## Argument Resolution
@@ -161,9 +161,9 @@ elif TARGET == "commit":
 ```
 
 Classify each changed file into 3 levels:
-1. **Direct** — the file itself changed
-2. **Imported** — a file that imports the changed file
-3. **Routed** — the page/route that renders the changed component
+1. **Direct**: the file itself changed
+2. **Imported**: a file that imports the changed file
+3. **Routed**: the page/route that renders the changed component
 
 Load: `Read("references/diff-scanner.md")`
 
@@ -331,7 +331,7 @@ Route resolution: `app/dashboard/page.tsx` → `/dashboard`, `pages/settings.tsx
 
 ## ARIA snapshot recording (M125 #6)
 
-After a passing run, the `posttool/expect/snapshot-recorder` hook persists the captured ARIA tree to `.claude/state/expect-snapshots/<route-slug>/<parent-commit>.json`. Subsequent `expect <route> --diff` runs compare against the most recent prior snapshot for that route — surfaces structural regressions (added/removed buttons, label changes, hierarchy shifts) without needing a baseline screenshot.
+After a passing run, the `posttool/expect/snapshot-recorder` hook persists the captured ARIA tree to `.claude/state/expect-snapshots/<route-slug>/<parent-commit>.json`. Subsequent `expect <route> --diff` runs compare against the most recent prior snapshot for that route, surfaces structural regressions (added/removed buttons, label changes, hierarchy shifts) without needing a baseline screenshot.
 
 For the snapshot recorder to fire, the expect run output must contain `RUN_COMPLETED|passed`, `ROUTE|<route>`, and `ARIA|<json-summary>` tags. The agent-browser-driven flow already emits these.
 
@@ -342,16 +342,16 @@ For the snapshot recorder to fire, the expect run output must contain `RUN_COMPL
 
 ## When NOT to Use
 
-- **Unit tests** — use `cover` instead
-- **API-only changes** — no browser UI to test
-- **Generated files** — skip build artifacts, lock files
-- **Docs-only changes** — unless you want to verify docs site rendering
+- **Unit tests**: use `cover` instead
+- **API-only changes**: no browser UI to test
+- **Generated files**: skip build artifacts, lock files
+- **Docs-only changes**: unless you want to verify docs site rendering
 
 
 ## Quality Bar
 
 Done means all of these hold:
-- Test-plan scope is derived from the git diff for the chosen `--target` — no unaffected page appears in the plan.
+- Test-plan scope is derived from the git diff for the chosen `--target`, no unaffected page appears in the plan.
 - Every changed file maps to at least one tested route (via `.expect/config.yaml` or inferred convention) OR is explicitly excluded as API-only, generated, or docs-only.
 - Fingerprint check runs first; a diff unchanged since the last run skips execution instead of re-testing.
 - Unless `-y` is passed, the plan is presented for review before any browser action runs.
@@ -362,10 +362,10 @@ Budget: at most 30 minutes total and 5 minutes per page (a slower page is skippe
 
 ## Related Skills
 
-- `agent-browser` — Browser automation engine (required dependency)
-- `ork:cover` — Test suite generation (unit/integration/e2e)
-- `ork:verify` — Grade existing test quality
-- `testing-e2e` — Playwright patterns and best practices
+- `agent-browser`: Browser automation engine (required dependency)
+- `ork:cover`: Test suite generation (unit/integration/e2e)
+- `ork:verify`: Grade existing test quality
+- `testing-e2e`: Playwright patterns and best practices
 
 
 ## References
@@ -391,7 +391,7 @@ Load on demand with `Read("references/<file>")`:
 | `jev-shadow.md` | Opt-in Jev step judge per step: bounded-action Choice + verify Nouls; shadow logs, act drives with fail-closed fallback |
 
 
-**Version:** 1.0.0 (March 2026) — Initial scaffold, M99 milestone
+**Version:** 1.0.0 (March 2026), Initial scaffold, M99 milestone
 
 
 ---
@@ -405,7 +405,7 @@ Load on demand with `Read("references/<file>")`:
 
 All expect artifacts live under `.expect/` with a consistent directory structure.
 
-**Incorrect — scattered artifact locations:**
+**Incorrect, scattered artifact locations:**
 ```bash
 # Wrong: artifacts in random locations
 /tmp/test-screenshot-1.png
@@ -413,7 +413,7 @@ All expect artifacts live under `.expect/` with a consistent directory structure
 ./screenshots/login-fail.png
 ```
 
-**Correct — structured under .expect/:**
+**Correct, structured under .expect/:**
 ```
 .expect/
 ├── config.yaml              # Project config (committed)
@@ -447,13 +447,13 @@ All expect artifacts live under `.expect/` with a consistent directory structure
 
 Only test pages that are connected to the changed files via the 3-level classification.
 
-**Incorrect — testing all pages regardless of diff:**
+**Incorrect, testing all pages regardless of diff:**
 ```python
 # Wrong: testing entire site when only Button.tsx changed
 pages_to_test = ["/", "/about", "/pricing", "/dashboard", "/settings", "/login"]
 ```
 
-**Correct — scoped to affected routes:**
+**Correct, scoped to affected routes:**
 ```python
 # Right: only test pages that render the changed component
 changed = ["src/components/Button.tsx"]
@@ -464,10 +464,10 @@ pages_to_test = routed  # ["/", "/dashboard"] — only pages using Button
 ```
 
 **Key rules:**
-- Always run diff scan before route mapping — never assume scope
+- Always run diff scan before route mapping, never assume scope
 - If route map is empty (no `.expect/config.yaml`, no framework detected), test only `base_url` root
 - Log which level triggered each page test for debugging
-- Respect `ignore_patterns` from config — skip test files, docs, lockfiles
+- Respect `ignore_patterns` from config, skip test files, docs, lockfiles
 
 
 ### When to invalidate fingerprints and force re-run: HIGH
@@ -477,14 +477,14 @@ pages_to_test = routed  # ["/", "/dashboard"] — only pages using Button
 
 Fingerprints must be invalidated when file contents change outside the normal edit flow.
 
-**Incorrect — trusting fingerprints after git operations:**
+**Incorrect, trusting fingerprints after git operations:**
 ```python
 # Wrong: fingerprints match but code is completely different branch
 git checkout feature-branch  # Different code
 /ork:expect                  # "No changes since last run" — WRONG
 ```
 
-**Correct — invalidate on state-changing git operations:**
+**Correct, invalidate on state-changing git operations:**
 ```python
 # Right: clear fingerprints when git state changes
 INVALIDATION_TRIGGERS = [
@@ -500,7 +500,7 @@ INVALIDATION_TRIGGERS = [
 
 **Key rules:**
 - Hash file **contents** (sha256sum), not metadata (mtime)
-- Store fingerprints per target (unstaged/branch/commit) — don't mix
+- Store fingerprints per target (unstaged/branch/commit), don't mix
 - Always re-run if last result was `fail` (even if fingerprints match)
 - `--force` flag bypasses fingerprint check entirely
 - `.expect/fingerprints.json` should be in `.gitignore`
@@ -513,7 +513,7 @@ INVALIDATION_TRIGGERS = [
 
 Always test pages sequentially in a single browser session.
 
-**Incorrect — parallel browser sessions:**
+**Incorrect, parallel browser sessions:**
 ```python
 # Wrong: multiple agents hitting the same app simultaneously
 Agent(prompt="Test /login", run_in_background=True)
@@ -522,7 +522,7 @@ Agent(prompt="Test /settings", run_in_background=True)
 # Risk: shared cookies, race conditions, port conflicts
 ```
 
-**Correct — single agent, sequential navigation:**
+**Correct, single agent, sequential navigation:**
 ```python
 # Right: one agent tests all pages in sequence
 Agent(prompt="""Test these pages in order:
@@ -547,7 +547,7 @@ Navigate between them sequentially. Do not open multiple tabs.""")
 
 Set explicit timeouts for every browser operation and retry transient failures exactly once.
 
-**Incorrect — no timeout, no retry:**
+**Incorrect, no timeout, no retry:**
 ```python
 # Wrong: waits forever if element doesn't exist
 await page.click("#submit-button")
@@ -555,7 +555,7 @@ await page.click("#submit-button")
 assert page.url == "/dashboard"
 ```
 
-**Correct — explicit timeouts with single retry:**
+**Correct, explicit timeouts with single retry:**
 ```python
 # Right: 10s timeout for element interaction
 await page.click("#submit-button", timeout=10000)
@@ -578,7 +578,7 @@ except ElementNotFound:
 | Page navigation | 15s | 1x |
 | Element click/fill | 10s | 1x after 2s wait |
 | Assertion | 5s | No retry |
-| Page crash (5xx) | — | Skip remaining steps on page |
+| Page crash (5xx) | - | Skip remaining steps on page |
 | Network timeout | 15s | 1x |
 
 
@@ -600,7 +600,7 @@ Semantic UI change detection using ARIA tree snapshots instead of pixel-based vi
 | Screenshot diff | Catches visual regressions | Brittle (font rendering, anti-aliasing, viewport), large files |
 | ARIA snapshot | Semantic, tiny diffs, framework-agnostic | Misses purely visual changes (colors, spacing) |
 
-ARIA diffing catches **structural and semantic** changes — missing labels, changed hierarchy, removed interactive elements — which are the changes most likely to break user experience.
+ARIA diffing catches **structural and semantic** changes, missing labels, changed hierarchy, removed interactive elements, which are the changes most likely to break user experience.
 
 ## Snapshot Format
 
@@ -747,7 +747,7 @@ claude "/ork:expect --target branch -y"
 | /ork:expect Exit | CI Behavior |
 |-----------------|-------------|
 | `0` (all pass) | CI passes |
-| `0` (skip — fingerprint) | CI passes (zero-cost) |
+| `0` (skip, fingerprint) | CI passes (zero-cost) |
 | `1` (test failure) | CI fails, artifacts uploaded |
 | `0` + warning (env issue) | CI passes with warning annotation |
 
@@ -886,7 +886,7 @@ Parse git diff output into 3 concurrent data levels for test targeting.
 
 | Mode | Git Command | Use Case |
 |------|-------------|----------|
-| `changes` (default) | `git diff $(merge-base)` | All changes — committed + uncommitted |
+| `changes` (default) | `git diff $(merge-base)` | All changes, committed + uncommitted |
 | `unstaged` | `git diff` | Only uncommitted working tree changes |
 | `branch` | `git diff main...HEAD` | Full branch diff vs main |
 | `commit [hash]` | `git diff {hash}^..{hash}` | Single commit |
@@ -1023,11 +1023,11 @@ If `.expect/config.yaml` specifies an `auth_profile`:
 Bash(f"agent-browser auth login {auth_profile}")
 ```
 
-Auth profiles are managed by agent-browser's vault system — credentials are never stored in `.expect/`.
+Auth profiles are managed by agent-browser's vault system, credentials are never stored in `.expect/`.
 
 ## Session Management
 
-- **One session per run** — sequential page visits, shared auth state
+- **One session per run**: sequential page visits, shared auth state
 - **Session timeout**: 5 minutes per page (configurable)
 - **Cleanup**: agent-browser auto-closes on agent completion
 
@@ -1081,8 +1081,8 @@ if diff.change_score > config.aria_snapshots.diff_threshold:
 
 ## Concurrency Rules
 
-- **Sequential pages** — no parallel browser sessions (see rules/no-parallel-browsers.md)
-- **Background agent** — the runner agent runs in background, lead monitors via status protocol
+- **Sequential pages**: no parallel browser sessions (see rules/no-parallel-browsers.md)
+- **Background agent**: the runner agent runs in background, lead monitors via status protocol
 - **Timeout per page**: 5 min default, configurable in config.yaml
 - **Total run timeout**: 30 min default
 
@@ -1206,7 +1206,7 @@ The review is automatically skipped when:
 - `-y` flag is passed
 - Running in CI (`CI=true`)
 - Fingerprint matched (no test to run)
-- Saved flow replay (`--flow` flag — flow is pre-approved)
+- Saved flow replay (`--flow` flag, flow is pre-approved)
 
 ## Progressive Feedback
 
@@ -1551,14 +1551,14 @@ Architecture analysis of millionco/expect and related tools.
 
 ## millionco/expect
 
-[GitHub: millionco/expect](https://github.com/millionco/expect) — AI-powered browser testing tool.
+[GitHub: millionco/expect](https://github.com/millionco/expect): AI-powered browser testing tool.
 
 ### Key Architecture Decisions
 
-1. **Diff-first**: Uses git diff to determine test scope — doesn't test unchanged code
+1. **Diff-first**: Uses git diff to determine test scope, doesn't test unchanged code
 2. **ARIA over pixels**: Accessibility tree snapshots for semantic UI diffing
 3. **Natural language steps**: Test plans written in plain English, executed by AI
-4. **Fingerprint gating**: SHA-256 hash of file state — zero-cost skip when unchanged
+4. **Fingerprint gating**: SHA-256 hash of file state, zero-cost skip when unchanged
 5. **Failure taxonomy**: 6 categories (app-bug, env-issue, auth-blocked, missing-test-data, selector-drift, agent-misread)
 
 ### What We Adopted
@@ -1591,7 +1591,7 @@ Architecture analysis of millionco/expect and related tools.
 |------|----------|------------|
 | Playwright | Code-first E2E tests | Manual test authoring, no AI |
 | Cypress | Code-first E2E tests | Same as Playwright |
-| agent-browser | AI browser automation | Generic — expect adds diff-awareness |
+| agent-browser | AI browser automation | Generic, expect adds diff-awareness |
 | Meticulous | Visual regression | Pixel-based, not semantic |
 | Chromatic | Storybook visual testing | Component-level, not page-level |
 | testmon | Python test selection | Unit test scope, not browser |
@@ -1666,7 +1666,7 @@ For dynamic routes (`[slug]`, `[id]`), use test values from:
 
 # rrweb Session Recording (#1178)
 
-Full session replay without video encoding — captures DOM mutations and events as lightweight JSON.
+Full session replay without video encoding, captures DOM mutations and events as lightweight JSON.
 
 ## Why rrweb Over Video
 
@@ -1731,7 +1731,7 @@ rrweb:
 
 ## Notes
 
-- rrweb is injected via `eval` — works with any framework, no build step needed
+- rrweb is injected via `eval`, works with any framework, no build step needed
 - Recordings are gitignored (ephemeral, large-ish)
 - Only record on failure by default to minimize storage
 - Future: integrate with report.md to embed replay links in failure details
@@ -1859,7 +1859,7 @@ Adjust test plan depth based on the change target scope.
 
 ## Strategy Definitions
 
-### commit — Narrow Focus
+### commit: Narrow Focus
 ```
 Test depth: NARROW
 Focus: Prove this specific commit works correctly.
@@ -1870,7 +1870,7 @@ Edge cases: Only test edge cases if the commit explicitly handles them.
 Style: Quick validation — this is a single logical change.
 ```
 
-### unstaged — Exact Match
+### unstaged: Exact Match
 ```
 Test depth: EXACT
 Focus: Test exactly what's been modified in the working tree.
@@ -1881,7 +1881,7 @@ Edge cases: Skip — the code may be incomplete.
 Style: Development feedback loop — fast, targeted, forgiving of WIP.
 ```
 
-### changes — Combined (Default)
+### changes: Combined (Default)
 ```
 Test depth: COMBINED
 Focus: Treat committed branch changes + uncommitted edits as one body.
@@ -1893,7 +1893,7 @@ Edge cases: Light — test obvious boundary conditions.
 Style: Pre-push validation — comprehensive but not exhaustive.
 ```
 
-### branch — Thorough Coverage
+### branch: Thorough Coverage
 ```
 Test depth: THOROUGH
 Focus: Full coverage of all changes on this branch vs main.
@@ -1938,7 +1938,7 @@ The test plan generator should respect the flow count range:
 
 ### Test Plan
 
-# AI Test Plan Generation — buildExecutionPrompt (#1169)
+# AI Test Plan Generation: buildExecutionPrompt (#1169)
 
 Core prompt template that generates test plans from diff context using AI agents.
 

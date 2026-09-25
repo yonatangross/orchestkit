@@ -5,7 +5,7 @@ description: "Accessibility patterns for WCAG 2.2 compliance, keyboard focus man
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
-> **Not directly invocable** — no slash command and no model auto-selection. An agent loads it explicitly via `Read()`.
+> **Not directly invocable**, no slash command and no model auto-selection. An agent loads it explicitly via `Read()`.
 
 <ContextualSkillSidebar slug="accessibility" />
 
@@ -66,7 +66,7 @@ WCAG 2.2 AA implementation for inclusive, legally compliant web applications.
 
 ## POUR Exit Criteria
 
-Concrete pass/fail thresholds for each WCAG 2.2 AA criterion — replaces vague "meets requirements" checks.
+Concrete pass/fail thresholds for each WCAG 2.2 AA criterion, replaces vague "meets requirements" checks.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
@@ -74,7 +74,7 @@ Concrete pass/fail thresholds for each WCAG 2.2 AA criterion — replaces vague 
 
 ## Static Anti-Patterns
 
-Grep-able anti-patterns detectable via static analysis or code review — no browser needed.
+Grep-able anti-patterns detectable via static analysis or code review, no browser needed.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
@@ -177,7 +177,7 @@ Vendor tutorials, API references, and criterion walkthroughs removed in the 2026
 
 # Accessibility Anti-Patterns: Static Detection
 
-These patterns are detectable by grep, ESLint, or code review — no browser required.
+These patterns are detectable by grep, ESLint, or code review, no browser required.
 
 ## Anti-Pattern Table
 
@@ -464,7 +464,7 @@ const { buttonProps } = useButton({ onPress: handleClick }, ref);
 <div aria-live="polite" className="sr-only">{errorMessage}</div>
 ```
 
-**Incorrect — div with onClick, no keyboard support:**
+**Incorrect, div with onClick, no keyboard support:**
 ```tsx
 <div onClick={handleClick} className="button">
   Click me
@@ -472,7 +472,7 @@ const { buttonProps } = useButton({ onPress: handleClick }, ref);
 // No keyboard access, no screen reader announcement
 ```
 
-**Correct — useButton hook provides full accessibility:**
+**Correct, useButton hook provides full accessibility:**
 ```tsx
 const ref = useRef<HTMLButtonElement>(null);
 const { buttonProps } = useButton({ onPress: handleClick }, ref);
@@ -685,13 +685,13 @@ function Select(props) {
 <input id="email" placeholder="user@example.com" />
 ```
 
-**Incorrect — Placeholder as label, no explicit association:**
+**Incorrect, Placeholder as label, no explicit association:**
 ```tsx
 <input type="text" placeholder="Enter your email" />
 // Screen readers can't identify field purpose reliably
 ```
 
-**Correct — useTextField with proper label association:**
+**Correct, useTextField with proper label association:**
 ```tsx
 const { labelProps, inputProps } = useTextField({ label: 'Email' }, ref);
 return (
@@ -925,7 +925,7 @@ useEffect(() => inputRef.current?.focus(), []);
 .skip-link { display: none; }
 ```
 
-**Incorrect — Removing focus outline globally:**
+**Incorrect, Removing focus outline globally:**
 ```css
 *:focus {
   outline: none;
@@ -933,7 +933,7 @@ useEffect(() => inputRef.current?.focus(), []);
 /* Violates WCAG 2.4.7, keyboard users can't see focus */
 ```
 
-**Correct — Using focus-visible for keyboard-only indicators:**
+**Correct, Using focus-visible for keyboard-only indicators:**
 ```css
 :focus-visible {
   outline: 3px solid #0052cc;
@@ -954,19 +954,19 @@ Pass/fail thresholds for each principle. Every item must pass before marking a f
 - [ ] Every `<img>` has `alt`. Decorative images use `alt=""`. Complex images use `aria-describedby` pointing to adjacent descriptive text. (1.1.1, Level A)
 - [ ] Normal text contrast >= 4.5:1 against its background. Large text (>= 18pt or >= 14pt bold) contrast >= 3:1. (1.4.3, AA)
 - [ ] UI component boundaries (input borders, icon strokes, button outlines) contrast >= 3:1 against adjacent color. (1.4.11, AA)
-- [ ] No information is conveyed by color alone — every color-coded element also has an icon, pattern, or visible text label. (1.4.1, A)
+- [ ] No information is conveyed by color alone, every color-coded element also has an icon, pattern, or visible text label. (1.4.1, A)
 - [ ] Page content reflows without horizontal scrolling at 320px viewport width (equivalent to 400% zoom on 1280px display). No fixed-width containers wider than 320px. (1.4.10, AA)
 - [ ] Text spacing overrides do not break layout: `line-height: 1.5`, `letter-spacing: 0.12em`, `word-spacing: 0.16em`, `paragraph spacing: 2em` all applied simultaneously produce no clipped or overlapping content. (1.4.12, AA)
 
 ## Operable
 
 - [ ] Every interactive element (links, buttons, inputs, custom widgets) is reachable and activatable via keyboard alone. Tab order follows visual reading order (left-to-right, top-to-bottom for LTR). (2.1.1, A)
-- [ ] No keyboard trap exists — pressing Escape or a documented key sequence always exits any component that receives focus. (2.1.2, A)
+- [ ] No keyboard trap exists, pressing Escape or a documented key sequence always exits any component that receives focus. (2.1.2, A)
 - [ ] A skip link to `<main id="main-content">` is the first focusable element on every page. It becomes visible on focus. (2.4.1, A)
-- [ ] All focus indicators: minimum 2px perimeter outline, >= 3:1 contrast between focused and unfocused states. Default browser outlines are acceptable only if they pass the contrast check. (2.4.11, AA — WCAG 2.2)
-- [ ] Touch targets are >= 24x24 CSS pixels. No adjacent interactive target falls within a 24px radius of another target's boundary. Primary CTAs should be >= 44x44px. (2.5.8, AA — WCAG 2.2)
+- [ ] All focus indicators: minimum 2px perimeter outline, >= 3:1 contrast between focused and unfocused states. Default browser outlines are acceptable only if they pass the contrast check. (2.4.11, AA, WCAG 2.2)
+- [ ] Touch targets are >= 24x24 CSS pixels. No adjacent interactive target falls within a 24px radius of another target's boundary. Primary CTAs should be >= 44x44px. (2.5.8, AA, WCAG 2.2)
 - [ ] No content moves, blinks, scrolls, or auto-updates for more than 3 seconds without a mechanism to pause, stop, or hide it. (2.2.2, A)
-- [ ] Page titles describe topic or purpose uniquely within the site (e.g., "Login — AppName", not just "Login"). (2.4.2, A)
+- [ ] Page titles describe topic or purpose uniquely within the site (e.g., "Login, AppName", not just "Login"). (2.4.2, A)
 
 ## Understandable
 
@@ -1119,14 +1119,14 @@ Content must reflow without horizontal scrolling at 320px width:
 | Fixed-width layouts | Use responsive `max-width` + `width: 100%` |
 | Tiny touch targets | Minimum 24px, 44px for touch devices |
 
-**Incorrect — Insufficient text contrast:**
+**Incorrect, Insufficient text contrast:**
 ```css
 .secondary-text {
   color: #b3b3b3;  /* 2.1:1 ratio on white - fails WCAG AA */
 }
 ```
 
-**Correct — Meeting 4.5:1 contrast minimum:**
+**Correct, Meeting 4.5:1 contrast minimum:**
 ```css
 .secondary-text {
   color: #595959;  /* 7.0:1 ratio on white - passes WCAG AA */
@@ -1153,9 +1153,9 @@ Use the platform. Native HTML elements (`<dialog>`, `<details>`, `<select>`, `<b
 | Custom toggle + aria-checked | `<input type="checkbox">` | Built-in state, label association, form submission |
 | `<div onClick>` | `<button>` | Built-in focus, Enter/Space, role announcement |
 
-## Dialog — Use `<dialog>` + `showModal()`
+## Dialog: Use `<dialog>` + `showModal()`
 
-**Incorrect — Custom modal with manual focus trap:**
+**Incorrect, Custom modal with manual focus trap:**
 ```tsx
 function Modal({ isOpen, onClose, children }) {
   const ref = useRef(null);
@@ -1173,7 +1173,7 @@ function Modal({ isOpen, onClose, children }) {
 }
 ```
 
-**Correct — Native `<dialog>` with built-in focus management:**
+**Correct, Native `<dialog>` with built-in focus management:**
 ```tsx
 function Modal({ children }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -1190,9 +1190,9 @@ function Modal({ children }) {
 dialogRef.current?.showModal();
 ```
 
-## Accordion — Use `<details>` / `<summary>`
+## Accordion: Use `<details>` / `<summary>`
 
-**Incorrect — Custom accordion with ARIA:**
+**Incorrect, Custom accordion with ARIA:**
 ```tsx
 <div role="region">
   <button aria-expanded={open} aria-controls="panel-1"
@@ -1203,7 +1203,7 @@ dialogRef.current?.showModal();
 </div>
 ```
 
-**Correct — Native `<details>` with CSS styling:**
+**Correct, Native `<details>` with CSS styling:**
 ```tsx
 <details>
   <summary>Section Title</summary>
@@ -1232,10 +1232,10 @@ Use custom ARIA only when native elements cannot meet the requirement:
 
 ## Audit Checklist
 
-- [ ] Every `role="dialog"` — can it be `<dialog>`?
-- [ ] Every custom accordion — can it be `<details>`?
-- [ ] Every `<div onClick>` — should it be `<button>` or `<a>`?
-- [ ] Every custom select — does `<select>` + CSS suffice?
+- [ ] Every `role="dialog"`, can it be `<dialog>`?
+- [ ] Every custom accordion, can it be `<details>`?
+- [ ] Every `<div onClick>`, should it be `<button>` or `<a>`?
+- [ ] Every custom select, does `<select>` + CSS suffice?
 - [ ] ARIA attributes are only used where no native equivalent exists
 
 
@@ -1389,14 +1389,14 @@ Always follow h1-h6 order without skipping levels:
 - **Positive tabindex**: Using `tabIndex > 0` disrupts natural tab order
 - **Decorative images without alt=""**: Must use `alt=""` or `role="presentation"`
 
-**Incorrect — Skipping heading levels:**
+**Incorrect, Skipping heading levels:**
 ```tsx
 <h1>Page Title</h1>
 <h3>Subsection</h3>  {/* Skipped h2 */}
 // Screen readers rely on heading hierarchy
 ```
 
-**Correct — Following h1-h6 order without skipping:**
+**Correct, Following h1-h6 order without skipping:**
 ```tsx
 <h1>Page Title</h1>
 <h2>Section</h2>
@@ -1506,7 +1506,7 @@ Test with at least one screen reader:
 | Not testing keyboard navigation | Tab through entire flow manually |
 | Ignoring screen reader announcements | Test with NVDA/VoiceOver for dynamic content |
 
-**Incorrect — Only running automated tests:**
+**Incorrect, Only running automated tests:**
 ```typescript
 test('accessibility', async ({ page }) => {
   await page.goto('/');
@@ -1516,7 +1516,7 @@ test('accessibility', async ({ page }) => {
 });
 ```
 
-**Correct — Combining automated + manual testing:**
+**Correct, Combining automated + manual testing:**
 ```typescript
 test('accessibility - automated', async ({ page }) => {
   await page.goto('/');
@@ -1539,13 +1539,13 @@ test('accessibility - automated', async ({ page }) => {
 
 ## Principle
 
-Users configure their OS for a reason. Honor every preference: reduced motion, color scheme, high contrast, contrast level, and text zoom. These are not optional enhancements — they are accessibility requirements.
+Users configure their OS for a reason. Honor every preference: reduced motion, color scheme, high contrast, contrast level, and text zoom. These are not optional enhancements, they are accessibility requirements.
 
 ## `prefers-reduced-motion`
 
 Disable or shorten animations for users with vestibular disorders.
 
-**Incorrect — Ignoring motion preference:**
+**Incorrect, Ignoring motion preference:**
 ```css
 .card {
   transition: transform 0.5s ease;
@@ -1555,7 +1555,7 @@ Disable or shorten animations for users with vestibular disorders.
 }
 ```
 
-**Correct — Respecting reduced motion:**
+**Correct, Respecting reduced motion:**
 ```css
 .card {
   transition: transform 0.3s ease;
@@ -1578,9 +1578,9 @@ For JS: check `window.matchMedia('(prefers-reduced-motion: reduce)').matches` be
 
 ## `prefers-color-scheme`
 
-**Incorrect:** `body { background: #ffffff; color: #1a1a1a; }` — ignores user preference.
+**Incorrect:** `body { background: #ffffff; color: #1a1a1a; }`, ignores user preference.
 
-**Correct — Adaptive color scheme with CSS custom properties:**
+**Correct, Adaptive color scheme with CSS custom properties:**
 ```css
 :root { color-scheme: light dark; --bg: #ffffff; --text: #1a1a1a; }
 @media (prefers-color-scheme: dark) {
@@ -1591,7 +1591,7 @@ body { background: var(--bg); color: var(--text); }
 
 ## `forced-colors` (Windows High Contrast)
 
-**Incorrect — Ignoring forced-colors mode:**
+**Incorrect, Ignoring forced-colors mode:**
 ```css
 .button {
   background: var(--brand-blue);
@@ -1600,7 +1600,7 @@ body { background: var(--bg); color: var(--text); }
 /* In High Contrast mode: button becomes invisible */
 ```
 
-**Correct — Supporting forced-colors mode:**
+**Correct, Supporting forced-colors mode:**
 ```css
 .button {
   background: var(--brand-blue);
@@ -1653,9 +1653,9 @@ Increase or decrease contrast beyond WCAG minimums on user request.
 
 Content must remain usable at 200% zoom (WCAG 1.4.4) and with user font-size overrides.
 
-**Incorrect:** `width: 960px; font-size: 14px;` — fixed sizes break zoom.
+**Incorrect:** `width: 960px; font-size: 14px;`, fixed sizes break zoom.
 
-**Correct — Relative units that respect zoom:**
+**Correct, Relative units that respect zoom:**
 ```css
 .container { max-width: 60rem; width: 100%; }
 .text { font-size: 0.875rem; line-height: 1.5; }
@@ -1702,7 +1702,7 @@ Upstream: https://react-spectrum.adobe.com/react-aria/FocusScope.html
 
 ### Ux Thresholds Quick
 
-# UI/UX Thresholds — Cognitive Science Quick Reference
+# UI/UX Thresholds: Cognitive Science Quick Reference
 
 ## Contrast & Color
 - Text on background: >= 4.5:1 (normal), >= 3:1 (large text >= 18pt)
@@ -1718,14 +1718,14 @@ Upstream: https://react-spectrum.adobe.com/react-aria/FocusScope.html
 
 ## Cognitive Load
 - Max 5-7 items in any list/menu before grouping (Miller's Law 4±1)
-- Decision time doubles per doubling of options (Hick's Law) — use progressive disclosure
+- Decision time doubles per doubling of options (Hick's Law), use progressive disclosure
 - Acknowledge interactions within 400ms (Doherty Threshold)
 - Recognition over recall: show options, don't ask users to remember
 
 ## Typography & Readability
 - Line length: 50-75 characters (use `max-width: 65ch`)
 - Line-height: 1.4-1.6x for body text
-- No true black (#000) on pure white (#fff) — temper contrast
+- No true black (#000) on pure white (#fff), temper contrast
 
 ## Forms & Errors
 - Top-aligned labels (optimal for all contexts)

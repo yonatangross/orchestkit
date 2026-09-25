@@ -112,6 +112,8 @@ UNSUPPORTED_LANGS = {
 
 
 _INLINE_CODE = re.compile(r"(`+)(.+?)\1")
+_HTML_COMMENT = re.compile(r"<!-{2}.*?-{2}>")
+_HTML_COMMENT_LINE = re.compile(r"^<!-{2}.*-{2}>$")
 
 # Known-safe HTML/MDX component tags that may stay as markup.
 _SAFE_TAGS = {
@@ -166,6 +168,8 @@ def _escape_angle(m: "re.Match[str]") -> str:
 
 def _escape_mdx_text(text: str) -> str:
     """Escape braces and JSX-like angle brackets in plain markdown text."""
+    # An inline HTML comment is invisible in markdown; escaped, it becomes text.
+    text = _HTML_COMMENT.sub("", text)
     text = text.replace("{", "\\{").replace("}", "\\}")
     # Any < ... > pair that is not a safe tag, then any bare < that MDX could
     # read as the start of JSX.
@@ -220,6 +224,12 @@ def sanitize_mdx_body(body: str) -> str:
 
         if in_code_block:
             out.append(line)
+            continue
+
+        # HTML comments (the SYNCED-from provenance markers at the top of synced files) are
+        # invalid MDX, and escaping them printed them as page text on 15 skill
+        # pages (visual QA 2026-09-25). Drop comment-only lines outright.
+        if _HTML_COMMENT_LINE.match(stripped):
             continue
 
         # Outside code blocks: escape braces and JSX-like angles, but never
@@ -459,6 +469,22 @@ def body_h1(body: str) -> str:
     return ""
 
 
+def companion_body(entry: dict) -> str:
+    """Sanitized body for a companion page, minus the file's own `# H1`.
+
+    The page title already renders as the page's only H1, so a leading body
+    H1 (and the `### <file title>` the flat page used) would repeat it.
+    """
+    lines = sanitize_mdx_body(entry["body"]).split("\n")
+    for i, raw in enumerate(lines):
+        if not raw.strip():
+            continue
+        if raw.startswith("# "):
+            del lines[i]
+        break
+    return "\n".join(lines).strip("\n")
+
+
 def _lines_bytes(lines: list[str]) -> int:
     return len("\n".join(lines).encode("utf-8"))
 
@@ -499,14 +525,13 @@ def chunk_file_sections(entry: dict) -> list[tuple[str, str, list[str]]]:
 
     Whole `## Heading` sections are merged greedily under SPLIT_OVER_BYTES. A
     section that alone is over budget is cut by lines, repeating a leading
-    table header row on every part so the table still renders. Every chunk
-    keeps the `### <file title>` heading the flat page carried, so old anchor
-    ids still resolve on the part page.
+    table header row on every part so the table still renders, and each part
+    is labelled "part N of M". Chunks carry no file-title heading: the page
+    title is the H1, and a second copy read as a duplicate title (QA N02).
 
     Returns [(page_title, filename_slug, body_lines), ...] in document order.
     """
     title = subdir_entry_title(entry)
-    title_lines = [f"### {title}", ""]
 
     # Sanitize the whole body first (MDX-hostile braces and angle brackets,
     # unsupported code-fence languages), then cut the sanitized lines into
@@ -516,7 +541,7 @@ def chunk_file_sections(entry: dict) -> list[tuple[str, str, list[str]]]:
     sections: list[tuple[str, list[str]]] = []
     cur_head, cur_lines = "", []
     in_fence = False
-    for line in sanitize_mdx_body(entry["body"]).rstrip("\n").split("\n"):
+    for line in companion_body(entry).split("\n"):
         if line.strip().startswith("```"):
             in_fence = not in_fence
             cur_lines.append(line)
@@ -534,7 +559,7 @@ def chunk_file_sections(entry: dict) -> list[tuple[str, str, list[str]]]:
 
     def push(label: str, slug: str, lines: list[str]) -> None:
         page_title = f"{title}: {label}" if label else title
-        chunks.append((page_title, slug, title_lines + lines))
+        chunks.append((page_title, slug, lines))
 
     label, slug = "", ""
     cur_lines: list[str] = []
@@ -548,17 +573,21 @@ def chunk_file_sections(entry: dict) -> list[tuple[str, str, list[str]]]:
             # after the first, so each part renders as a table instead of a
             # broken fragment of headerless rows.
             header = _section_table_header(lines)
-            part_no, buf = 1, []
+            parts: list[list[str]] = []
+            buf: list[str] = []
             for line in lines:
                 if buf and _lines_bytes(buf) + len(line.encode("utf-8")) + 1 > CHUNK_BUDGET:
-                    prefix = header if part_no > 1 else []
-                    push(f"{head} (part {part_no})", f"{heading_slug(head)}-part-{part_no}", prefix + buf)
-                    part_no += 1
+                    parts.append((header if parts else []) + buf)
                     buf = []
                 buf.append(line)
             if buf:
-                prefix = header if part_no > 1 else []
-                push(f"{head} (part {part_no})", f"{heading_slug(head)}-part-{part_no}", prefix + buf)
+                parts.append((header if parts else []) + buf)
+            for n, part in enumerate(parts, 1):
+                push(
+                    f"{head} (part {n} of {len(parts)})",
+                    f"{heading_slug(head)}-part-{n}",
+                    part,
+                )
             label, slug, cur_lines = "", "", []
             continue
         cur_lines.extend(lines)
@@ -570,9 +599,21 @@ def chunk_file_sections(entry: dict) -> list[tuple[str, str, list[str]]]:
 
 
 def write_part_page(
-    out_file: Path, skill_title: str, skill_url: str, page_title: str, blurb: str, lines: list[str]
+    out_file: Path,
+    skill_title: str,
+    skill_url: str,
+    page_title: str,
+    blurb: str,
+    lines: list[str],
+    nav: list[str] | None = None,
 ) -> None:
-    """Write one companion page of a split skill reference."""
+    """Write one companion page of a split skill reference.
+
+    `nav` lists the sibling pages of a chunked file. Linking siblings to each
+    other is also what lets the Related block find them: without those links
+    a chunk page linked only its parent, and Related padded with unrelated
+    skills in alphabetical order (QA N02).
+    """
     page = [
         "---",
         f"title: {quote_yaml_value(f'{skill_title}: {page_title}')}",
@@ -584,6 +625,7 @@ def write_part_page(
         "that used to sit at the bottom of it.",
         "",
     ]
+    page.extend(nav or [])
     page.extend(lines)
     out_file.parent.mkdir(parents=True, exist_ok=True)
     out_file.write_text("\n".join(page), encoding="utf-8")
@@ -626,7 +668,12 @@ def write_split_skill(
                 page_title = body_h1(entry["body"]) or entry["title"]
                 blurb = first_prose_line(entry["body"]) or f"{page_title} for the {title} skill."
                 out_file = skill_out / subdir_name / f"{stem}.mdx"
-                write_part_page(out_file, title, skill_url, page_title, blurb, entry_lines)
+                impact = entry["frontmatter"].get("impact", "")
+                page_lines = ([f"**Impact:** {impact}", ""] if impact else []) + [
+                    companion_body(entry),
+                    "",
+                ]
+                write_part_page(out_file, title, skill_url, page_title, blurb, page_lines)
                 written.append(out_file)
                 parts.append(
                     (f"{skill_url}/{subdir_name}/{stem}", f"{heading}: {page_title}", blurb)
@@ -635,13 +682,33 @@ def write_split_skill(
 
             chunk_dir = skill_out / subdir_name / stem
             chunks = chunk_file_sections(entry)
+            file_title = subdir_entry_title(entry)
+            chunk_urls = [
+                f"{skill_url}/{subdir_name}/{stem}/{i:02d}-{c[1]}" for i, c in enumerate(chunks)
+            ]
+
+            def short(page_title: str) -> str:
+                prefix = f"{file_title}: "
+                return page_title[len(prefix) :] if page_title.startswith(prefix) else page_title
+
             for i, (page_title, chunk_slug, chunk_lines) in enumerate(chunks):
+                # Positional and derived from the same label as the title, so
+                # the two can never disagree ("(part 1)" vs "Part 2 of 4").
                 blurb = (
-                    first_prose_line("\n".join(chunk_lines))
-                    or f"Part {i + 1} of {len(chunks)} of {entry['title']} for the {title} skill."
+                    f"{file_title} for the {title} skill, page {i + 1} of "
+                    f"{len(chunks)}: {short(page_title)}."
                 )
+                nav = [f"**{file_title}**, page {i + 1} of {len(chunks)}:", ""]
+                for j, (other_title, _, _) in enumerate(chunks):
+                    label = short(other_title)
+                    nav.append(
+                        f"{j + 1}. **{label}** (this page)"
+                        if j == i
+                        else f"{j + 1}. [{label}]({chunk_urls[j]})"
+                    )
+                nav.append("")
                 out_file = chunk_dir / f"{i:02d}-{chunk_slug}.mdx"
-                write_part_page(out_file, title, skill_url, page_title, blurb, chunk_lines)
+                write_part_page(out_file, title, skill_url, page_title, blurb, chunk_lines, nav)
                 written.append(out_file)
                 parts.append(
                     (
@@ -1723,6 +1790,119 @@ def generate_categories(skills_src: str, categories_out: str) -> int:
 
 
 # ---------------------------------------------------------------------------
+# DISPLAY DASHES (house writing rule: no em dash, en dash or prose double hyphen)
+# ---------------------------------------------------------------------------
+
+# Generated pages quote skill, agent and hook sources verbatim, and those
+# sources use em dashes freely (QA finding #19, 2026-09-25). Rather than edit
+# every source file, every generated page gets one display pass on the way
+# out. Code fences and inline code spans are left untouched.
+
+# A bold, code or link term at line start, then a dash, then its definition.
+_DASH_TERM = re.compile(
+    "^(\\s*(?:[-*+]\\s+|\\d+\\.\\s+)?"
+    "(?:\\*\\*[^*]+\\*\\*|`[^`]+`|\\*\\*\\[[^\\]]+\\]\\([^)]*\\)\\*\\*|\\[[^\\]]+\\]\\([^)]*\\)))"
+    "\\s+(?:\u2014|\u2013|-{2})\\s+"
+)
+_DASH_HEADING = re.compile("^(#{1,6}\\s+[^\u2014\u2013]*?)\\s+(?:\u2014|\u2013|-{2})\\s+")
+# Only a double-quoted title may take a colon: in a plain YAML scalar `: `
+# starts a mapping and the whole page fails to parse.
+_DASH_TITLE = re.compile('^(title:\\s*"[^"\u2014\u2013]*?)\\s+(?:\u2014|\u2013|-{2})\\s+')
+_FRONTMATTER_PLAIN = re.compile(r"""^(\s*[\w-]+:\s*)([^\s"'\[{|>].*)$""")
+_DASH_LONE_CELL = re.compile("(?<=\\|)(?:\\s*[\u2014\u2013]\\s*|\\s+-{2}\\s+)(?=\\|)")
+# A table delimiter row (only pipes, hyphens, colons, spaces) is structure, never prose.
+_TABLE_DELIM = re.compile(r"^\s*\|?\s*:?-+:?\s*(?:\|\s*:?-+:?\s*)*\|?\s*$")
+# An en dash between word characters is a numeric or version range.
+_DASH_RANGE = re.compile("(?<=\\w)\u2013(?=\\w)")
+_DASH_PROSE = re.compile("\\s*[\u2014\u2013]\\s*|\\s+-{2}(?=\\s|$)\\s*")
+_DASH_TIDY = (
+    (re.compile(r",\s*([,.;:!?)\]])"), r"\1"),
+    (re.compile(r"([(\[])\s*,\s*"), r"\1"),
+)
+
+
+def _undash_prose(text: str) -> str:
+    """Replace dashes in one run of prose that holds no inline code."""
+    new = _DASH_PROSE.sub(", ", _DASH_RANGE.sub("-", text))
+    if new != text:
+        for pattern, repl in _DASH_TIDY:
+            new = pattern.sub(repl, new)
+    return new
+
+
+def undash_line(line: str) -> str:
+    """Rewrite the display dashes on one non-fenced MDX line."""
+    if _TABLE_DELIM.match(line):
+        return line
+    for pattern in (_DASH_TERM, _DASH_HEADING, _DASH_TITLE):
+        m = pattern.match(line)
+        if m:
+            head = m.group(1)
+            # A colon already in the lead-in (a heading, a title value) makes
+            # the dash a comma; a term that ends in `:` just drops it.
+            if pattern is _DASH_TERM:
+                sep = " " if head.rstrip("*`").endswith(":") else ": "
+            else:
+                lead_in = head.split(":", 1)[1] if pattern is _DASH_TITLE else head
+                sep = ", " if ":" in lead_in else ": "
+            line = head + sep + line[m.end() :]
+            break
+    before = line
+    line = _escape_outside_inline_code(_DASH_LONE_CELL.sub(" - ", line), _undash_prose)
+    if line == before:
+        return line
+    # A dash that opened or closed a wrapped line leaves a stray comma edge.
+    indent = line[: len(line) - len(line.lstrip())]
+    body = line.lstrip()
+    if body.startswith(", "):
+        body = body[2:]
+    if body.endswith(", "):
+        body = body[:-1]
+    return indent + body
+
+
+def undash_page(text: str) -> str:
+    """Apply `undash_line` to every line outside a code fence.
+
+    Frontmatter values that are plain (unquoted) YAML scalars only ever get
+    commas, never a colon.
+    """
+    out, in_fence = [], False
+    lines = text.split("\n")
+    fm_end = -1
+    if lines and lines[0].strip() == "---":
+        fm_end = next((i for i, ln in enumerate(lines[1:], 1) if ln.strip() == "---"), -1)
+    for i, line in enumerate(lines):
+        if 0 < i < fm_end:
+            plain = _FRONTMATTER_PLAIN.match(line)
+            if plain:
+                line = plain.group(1) + _undash_prose(plain.group(2)).rstrip(", ")
+            else:
+                line = undash_line(line)
+        elif line.strip().startswith(("```", "~~~")):
+            in_fence = not in_fence
+        elif not in_fence:
+            line = undash_line(line)
+        out.append(line)
+    return "\n".join(out)
+
+
+def undash_generated_pages(*targets: str) -> int:
+    """Run `undash_page` over generated MDX files; returns files rewritten."""
+    changed = 0
+    for target in filter(None, targets):
+        root = Path(target)
+        files = [root] if root.is_file() else sorted(root.rglob("*.mdx"))
+        for f in files:
+            text = f.read_text(encoding="utf-8")
+            new = undash_page(text)
+            if new != text:
+                f.write_text(new, encoding="utf-8")
+                changed += 1
+    return changed
+
+
+# ---------------------------------------------------------------------------
 # MAIN
 # ---------------------------------------------------------------------------
 
@@ -1879,6 +2059,202 @@ def generate_reference_skills(skills_src: str, out_file: str) -> int:
     return count
 
 
+# Task sections for the Command Skills page. Membership only groups the
+# tables: a user-invocable skill missing from every list still gets a row
+# under "More Commands", so a new command can never drop off the page. A slug
+# listed here that is no longer user-invocable is ignored.
+COMMAND_SECTIONS = [
+    (
+        "Build and Explore",
+        "Plan, build, and fix features, from a plain-English goal to working code.",
+        [
+            "auto",
+            "implement",
+            "fix-issue",
+            "explore",
+            "brainstorm",
+            "assess",
+            "write-prd",
+            "prd-to-goal",
+            "swarm-migrate",
+        ],
+    ),
+    (
+        "Test and Verify",
+        "Write missing tests, run the suites, and check changes in a real browser.",
+        ["cover", "verify", "expect"],
+    ),
+    (
+        "Git, GitHub, and CI",
+        "Commits, pull requests, reviews, and failing CI runs.",
+        ["commit", "create-pr", "review-pr", "ci-debug", "ci-sentinel"],
+    ),
+    (
+        "Design to Code",
+        "Turn mockups, screenshots, and design handoffs into components.",
+        [
+            "design-import",
+            "design-ship",
+            "design-to-code",
+            "design-context-extract",
+            "design-stylecards",
+            "component-search",
+        ],
+    ),
+    (
+        "Memory and Knowledge",
+        "Store and recall decisions, patterns, and release knowledge across sessions.",
+        ["remember", "memory", "dream", "release-sync"],
+    ),
+    (
+        "Dev Loop and Visuals",
+        "Local dev URLs, served pages, and visual answers in chat.",
+        ["dev", "page-serve", "glyph", "visualize-plan"],
+    ),
+    (
+        "Plugin Management",
+        "Set up, diagnose, and inspect OrchestKit itself.",
+        ["setup", "doctor", "help", "audit-activation", "telemetry-inspect"],
+    ),
+]
+
+_SENTENCE_END = re.compile(r"(?<=[A-Za-z0-9)`'\"][.!?])\s+(?=[A-Z])")
+
+
+def _plain_dashes(text: str) -> str:
+    """House rule for generated copy: no em dash, en dash, or double hyphen."""
+    text = re.sub("\\s*[\u2014\u2013]\\s*", ", ", text)
+    return re.sub(r"\s+--\s+", ", ", text)
+
+
+def _first_sentence(text: str) -> str:
+    return _SENTENCE_END.split(text.strip(), maxsplit=1)[0]
+
+
+def generate_command_skills(skills_src: str, out_file: str, reference_count: int) -> int:
+    """Generate the Command Skills page from skill frontmatter.
+
+    Lists every `user-invocable: true` skill, so the title count, the body
+    count, and the tables all come from one read of src/skills and cannot
+    disagree (the hand-kept page said 18 in its title, 35 in its body, and
+    listed 17 of 36). Returns the count.
+    """
+    commands: dict[str, dict] = {}
+    for skill_dir in sorted(d for d in Path(skills_src).iterdir() if d.is_dir()):
+        skill_file = skill_dir / "SKILL.md"
+        if not skill_file.exists():
+            continue
+        meta, _ = parse_frontmatter(skill_file.read_text(encoding="utf-8"))
+        if meta.get("user-invocable", False) is True:
+            commands[skill_dir.name] = meta
+
+    count = len(commands)
+    placed: set[str] = set()
+    sections: list[tuple[str, str, list[str]]] = []
+    for title, blurb, slugs in COMMAND_SECTIONS:
+        rows = [s for s in slugs if s in commands and s not in placed]
+        placed.update(rows)
+        if rows:
+            sections.append((title, blurb, rows))
+    rest = sorted(s for s in commands if s not in placed)
+    if rest:
+        sections.append(("More Commands", "Commands not yet filed under a task above.", rest))
+
+    def row(slug: str) -> str:
+        meta = commands[slug]
+        desc = _ref_table_cell(_plain_dashes(_first_sentence(meta.get("description", "") or "")))
+        hint = (meta.get("argument-hint", "") or "").strip()
+        usage = _ref_table_cell(f"`/ork:{slug} {hint}`" if hint else f"`/ork:{slug}`")
+        cplx = meta.get("complexity", "") or "-"
+        return f"| [`/ork:{slug}`](/docs/reference/skills/{slug}) | {desc} | {cplx} | {usage} |"
+
+    lines = [
+        "---",
+        f'title: "{count} Commands You Can Invoke"',
+        'description: "Every /ork: command skill in OrchestKit, grouped by task, with '
+        'what it does and the arguments it takes."',
+        "---",
+        "",
+        "{/* GENERATED by scripts/_build-docs-generate.py from skill frontmatter. "
+        "Do not edit by hand. */}",
+        "",
+        "## What Are Command Skills?",
+        "",
+        f"Command skills are the **{count} skills** with `user-invocable: true` in "
+        "their frontmatter. You trigger them by typing `/ork:<name>` in Claude Code. "
+        "Each one is a structured workflow that guides Claude through a multi-step "
+        "process, often spawning parallel agents and pulling in reference skills "
+        "automatically.",
+        "",
+        "Command skills differ from reference skills in three ways:",
+        "",
+        "1. **You invoke them explicitly** with the `/ork:` prefix.",
+        "2. **They define workflows**, not just knowledge: step-by-step processes "
+        "with decision points.",
+        "3. **They compose other skills** via the `skills:` frontmatter field, "
+        "pulling in reference skills as needed.",
+        "",
+    ]
+
+    for title, blurb, rows in sections:
+        lines += ["---", "", f"## {title}", "", blurb, ""]
+        lines += ["| Command | What it does | Complexity | Usage |"]
+        lines += ["|---------|--------------|------------|-------|"]
+        lines += [row(s) for s in rows]
+        lines.append("")
+
+    example = "implement" if "implement" in commands else next(iter(commands), "")
+    composed = commands.get(example, {}).get("skills") or []
+    if composed:
+        lines += [
+            "---",
+            "",
+            "## How Command Skills Compose Reference Skills",
+            "",
+            "Every command skill lists the skills it needs in its frontmatter "
+            f"`skills:` field. When you invoke it, those skills load into context. "
+            f"For example, `/ork:{example}` pulls in:",
+            "",
+            "```yaml",
+            "skills:",
+            *[f"  - {s}" for s in composed],
+            "```",
+            "",
+            "You do not need to remember which reference skills exist. The command "
+            "skill knows what knowledge it needs and loads it.",
+            "",
+        ]
+
+    lines += [
+        "---",
+        "",
+        "## Chaining Commands in a Session",
+        "",
+        "```",
+        "/ork:explore                          # Understand the codebase",
+        "/ork:implement search feature         # Build the feature",
+        "/ork:verify                           # Validate the implementation",
+        "/ork:commit                           # Commit the changes",
+        "/ork:create-pr                        # Open a pull request",
+        "```",
+        "",
+        "---",
+        "",
+        "## What's Next",
+        "",
+        f"- [{reference_count} Reference Skills](/docs/skills/reference-skills): the "
+        "knowledge library that command skills pull from.",
+        "- [Composing Skills Into Workflows](/docs/skills/skill-composition): how "
+        "these commands orchestrate agents and skills together.",
+        "- [How Skills Work](/docs/skills/overview): the fundamentals of the skill system.",
+        "",
+    ]
+
+    Path(out_file).write_text("\n".join(lines) + "\n", encoding="utf-8")
+    print(f"Generated command-skills page: {count} command skills in {len(sections)} sections")
+    return count
+
+
 def main():
     skills_src = os.environ["SKILLS_SRC"]
     agents_src = os.environ["AGENTS_SRC"]
@@ -1900,7 +2276,23 @@ def main():
     # Reference-skills narrative page, generated from frontmatter (#2120)
     refskills_out = os.environ.get("REFSKILLS_OUT", "")
     if refskills_out:
-        generate_reference_skills(skills_src, refskills_out)
+        ref_count = generate_reference_skills(skills_src, refskills_out)
+        # Its sibling, from the same frontmatter, so the two pages always
+        # split the skill total the same way.
+        generate_command_skills(
+            skills_src,
+            str(Path(refskills_out).with_name("command-skills.mdx")),
+            ref_count,
+        )
+
+    # House writing rule on every generated page (QA finding #19)
+    cmdskills_out = (
+        str(Path(refskills_out).with_name("command-skills.mdx")) if refskills_out else ""
+    )
+    undashed = undash_generated_pages(
+        skills_out, agents_out, hooks_out, categories_out, refskills_out, cmdskills_out
+    )
+    print(f"Normalized display dashes on {undashed} generated pages")
 
     # Update reference meta.json
     print("Updating reference meta.json...")

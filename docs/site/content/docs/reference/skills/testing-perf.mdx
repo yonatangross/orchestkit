@@ -1,15 +1,15 @@
 ---
 title: "Testing Perf"
-description: "Performance and load testing patterns — k6 load tests, Locust stress tests, pytest execution optimization (xdist parallel, plugins), test type classification, and performance benchmarking. Use when writing load tests, optimizing test execution speed, or setting up pytest infrastructure."
+description: "Performance and load testing patterns, k6 load tests, Locust stress tests, pytest execution optimization (xdist parallel, plugins), test type classification, and performance benchmarking. Use when writing load tests, optimizing test execution speed, or setting up pytest infrastructure."
 ---
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
-> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+> **Auto-activated**, this skill loads automatically when Claude detects matching context.
 
 <ContextualSkillSidebar slug="testing-perf" />
 
-> **Testing Perf** Performance and load testing patterns — k6 load tests, Locust stress tests, pytest execution optimization (xdist parallel, plugins), test type classification, and performance benchmarking. Use when writing load tests, optimizing test execution speed, or setting up pytest infrastructure.
+> **Testing Perf** Performance and load testing patterns, k6 load tests, Locust stress tests, pytest execution optimization (xdist parallel, plugins), test type classification, and performance benchmarking. Use when writing load tests, optimizing test execution speed, or setting up pytest infrastructure.
 
 
 # Performance & Load Testing Patterns
@@ -65,12 +65,12 @@ export default function () {
 
 Run: `k6 run --out json=results.json tests/load/api.js`
 
-### k6 v1.0+ (May 2025) — what changed
+### k6 v1.0+ (May 2025): what changed
 
-- **Native TypeScript**: `k6 run tests/load/api.ts` — no compilation step needed.
+- **Native TypeScript**: `k6 run tests/load/api.ts`, no compilation step needed.
 - **Auto extension provisioning**: `k6 run` pulls required extensions automatically; manual `xk6 build` is superseded for most workflows.
-- **Browser module import**: `import browser from 'k6/browser'` — **the old `k6/experimental/browser` path was removed in v0.52+**. Any generated code using `/experimental/` will fail.
-- **OTLP output built in**: `k6 run --out experimental-opentelemetry=...` — stream results straight to your tracing backend.
+- **Browser module import**: `import browser from 'k6/browser'`, **the old `k6/experimental/browser` path was removed in v0.52+**. Any generated code using `/experimental/` will fail.
+- **OTLP output built in**: `k6 run --out experimental-opentelemetry=...`, stream results straight to your tracing backend.
 
 ```typescript
 import http from 'k6/http'
@@ -158,9 +158,9 @@ def db_engine(worker_id):
 
 ## Related Skills
 
-- `ork:testing-unit` — Unit testing patterns, pytest fixtures
-- `ork:testing-e2e` — End-to-end performance testing with Playwright
-- `ork:performance` — Core Web Vitals and optimization patterns
+- `ork:testing-unit`: Unit testing patterns, pytest fixtures
+- `ork:testing-e2e`: End-to-end performance testing with Playwright
+- `ork:performance`: Core Web Vitals and optimization patterns
 
 
 ---
@@ -174,13 +174,13 @@ def db_engine(worker_id):
 
 Track and enforce test coverage to identify untested critical paths.
 
-**Incorrect — running tests without coverage:**
+**Incorrect, running tests without coverage:**
 ```bash
 pytest tests/  # No coverage data — can't identify gaps
 npm run test   # No --coverage flag — blind to untested code
 ```
 
-**Correct — coverage with gap analysis:**
+**Correct, coverage with gap analysis:**
 ```bash
 # Python: pytest-cov with missing line report
 poetry run pytest tests/unit/ \
@@ -216,7 +216,7 @@ npm run test -- --coverage --coverageReporters=text --coverageReporters=lcov
 - Set minimum coverage thresholds in CI to prevent regression
 - Focus on covering critical paths (auth, payments) before chasing overall percentage
 - HTML coverage reports (`htmlcov/`) help visualize gap areas during development
-- Coverage numbers alone do not indicate test quality — pair with mutation testing for confidence
+- Coverage numbers alone do not indicate test quality, pair with mutation testing for confidence
 
 ---
 
@@ -224,13 +224,13 @@ npm run test -- --coverage --coverageReporters=text --coverageReporters=lcov
 
 Run tests in parallel with smart failure handling and scope-based execution.
 
-**Incorrect — running everything sequentially with full output:**
+**Incorrect, running everything sequentially with full output:**
 ```bash
 # Runs all tests sequentially, floods output, no failure control
 pytest tests/ -v
 ```
 
-**Correct — scoped execution with failure limits and coverage:**
+**Correct, scoped execution with failure limits and coverage:**
 ```bash
 # Backend with coverage and failure limit
 cd backend
@@ -256,10 +256,10 @@ poetry run pytest tests/unit/ -k "test_name" -v
 | `path/to/test.py` | Specific file |
 | `test_name` | Specific test |
 
-**Failure analysis — launch 3 parallel analyzers on failure:**
-1. Backend Failure Analysis — root cause, fix suggestions
-2. Frontend Failure Analysis — component issues, mock problems
-3. Coverage Gap Analysis — low coverage areas
+**Failure analysis, launch 3 parallel analyzers on failure:**
+1. Backend Failure Analysis, root cause, fix suggestions
+2. Frontend Failure Analysis, component issues, mock problems
+3. Coverage Gap Analysis, low coverage areas
 
 **Key pytest options:**
 
@@ -273,7 +273,7 @@ poetry run pytest tests/unit/ -k "test_name" -v
 
 **Key rules:**
 - Use `--maxfail=3` in CI for fast feedback without overwhelming output
-- Use `--tb=short` by default — `--tb=long` only when debugging specific failures
+- Use `--tb=short` by default, `--tb=long` only when debugging specific failures
 - Run `--lf` (last-failed) during development for rapid iteration
 - Always include `--cov` in CI runs to track coverage trends
 - Use `--watch` mode during frontend development for continuous feedback
@@ -336,7 +336,7 @@ const successRate = new Rate('success_rate');
 | Thresholds | p95 &lt; 500ms, errors &lt; 1% |
 | Duration | 5-10 min for load, 4h+ for soak |
 
-**Incorrect — No thresholds, tests pass even with poor performance:**
+**Incorrect, No thresholds, tests pass even with poor performance:**
 ```javascript
 export const options = {
   stages: [{ duration: '1m', target: 20 }]
@@ -344,7 +344,7 @@ export const options = {
 };
 ```
 
-**Correct — Thresholds enforce performance requirements:**
+**Correct, Thresholds enforce performance requirements:**
 ```javascript
 export const options = {
   stages: [{ duration: '1m', target: 20 }],
@@ -394,7 +394,7 @@ class APIUser(HttpUser):
 | Task weights | Higher weight = more frequent |
 | Authentication | Use on_start for login |
 
-**Incorrect — No authentication flow, requests fail:**
+**Incorrect, No authentication flow, requests fail:**
 ```python
 class APIUser(HttpUser):
     @task
@@ -402,7 +402,7 @@ class APIUser(HttpUser):
         self.client.get("/api/analyses")  # 401 Unauthorized
 ```
 
-**Correct — Login in on_start before tasks:**
+**Correct, Login in on_start before tasks:**
 ```python
 class APIUser(HttpUser):
     def on_start(self):
@@ -472,7 +472,7 @@ export const options = {
 - Unrealistic load profiles
 - Missing error rate thresholds
 
-**Incorrect — No warmup, sudden load spike:**
+**Incorrect, No warmup, sudden load spike:**
 ```javascript
 export const options = {
   vus: 100,
@@ -481,7 +481,7 @@ export const options = {
 };
 ```
 
-**Correct — Gradual ramp-up with warmup period:**
+**Correct, Gradual ramp-up with warmup period:**
 ```javascript
 export const options = {
   stages: [
@@ -533,7 +533,7 @@ def test_complex_analysis():
 | CI fast path | `pytest -m "not slow"` for PR checks |
 | Nightly | `pytest` (all markers) for full coverage |
 
-**Incorrect — Using markers without registering them:**
+**Incorrect, Using markers without registering them:**
 ```python
 @pytest.mark.slow
 def test_complex():
@@ -541,7 +541,7 @@ def test_complex():
 # Pytest warns: PytestUnknownMarkWarning
 ```
 
-**Correct — Register markers in pyproject.toml:**
+**Correct, Register markers in pyproject.toml:**
 ```toml
 [tool.pytest.ini_options]
 markers = [
@@ -589,7 +589,7 @@ def db_engine(worker_id):
 | Fixture scope | `session` for expensive, `function` for mutable |
 | Async testing | pytest-asyncio with auto mode |
 
-**Incorrect — Shared database across workers causes conflicts:**
+**Incorrect, Shared database across workers causes conflicts:**
 ```python
 @pytest.fixture(scope="session")
 def db_engine():
@@ -597,7 +597,7 @@ def db_engine():
     # Workers overwrite each other's data
 ```
 
-**Correct — Isolated database per worker:**
+**Correct, Isolated database per worker:**
 ```python
 @pytest.fixture(scope="session")
 def db_engine(worker_id):
@@ -660,14 +660,14 @@ def temp_db():
 | Async testing | pytest-asyncio with auto mode |
 | Fixture scope | Function default, session for expensive setup |
 
-**Incorrect — Expensive fixture without session scope:**
+**Incorrect, Expensive fixture without session scope:**
 ```python
 @pytest.fixture
 def ml_model():
     return load_large_model()  # 5s, reloaded EVERY test
 ```
 
-**Correct — Session-scoped fixture for expensive setup:**
+**Correct, Session-scoped fixture for expensive setup:**
 ```python
 @pytest.fixture(scope="session")
 def ml_model():

@@ -14,7 +14,7 @@ description: "One-command dev loop boot. Spins up portless (named HTTPS subdomai
 > **Dev** One-command dev loop boot. Spins up portless (named HTTPS subdomain), emulate (stateful API mocks), the project's dev server, and an agent-browser session, all keyed to the current git branch. Use when starting a feature branch, switching worktrees, or returning to a project after a break. Skips silently with install hints when prerequisite binaries are missing.
 
 
-# dev — Lab-Stack Boot
+# dev: Lab-Stack Boot
 
 One command boots the four moving parts of a Vercel-Labs-flavored dev loop:
 
@@ -25,22 +25,22 @@ One command boots the four moving parts of a Vercel-Labs-flavored dev loop:
 
 State lives in `.claude/state/dev-stack.json`. Teardown via `dev stop` reads the PIDs and signals SIGTERM in reverse boot order.
 
-> **Paired with `expect`:** the agent-browser session that `dev` warms is the same one `expect` (and the M125 #2 auto-trigger) attach to — no second startup latency on the first UI test.
+> **Paired with `expect`:** the agent-browser session that `dev` warms is the same one `expect` (and the M125 #2 auto-trigger) attach to, no second startup latency on the first UI test.
 
 ## When to invoke
 
 | Situation | Command |
 |---|---|
 | Start work on a new branch | `dev` |
-| Resume after a session break | `dev` (idempotent — skips already-live processes) |
+| Resume after a session break | `dev` (idempotent, skips already-live processes) |
 | Tear down before deleting branch | `dev stop` |
 | Inspect state | `dev status` |
 | Share preview with stakeholder | `dev --share` (tailnet) or `dev --funnel` (public) |
 | Time-boxed live demo | `dev --live 4` (public funnel, 4-hour expiry) |
 
-> **Resuming a backgrounded dev session (CC 2.1.144+):** Sessions started via `claude --bg` now appear in `/resume` alongside interactive ones, marked `bg` — use `/resume` as the direct recovery path after a crash or session end instead of navigating the agent view.
+> **Resuming a backgrounded dev session (CC 2.1.144+):** Sessions started via `claude --bg` now appear in `/resume` alongside interactive ones, marked `bg`, use `/resume` as the direct recovery path after a crash or session end instead of navigating the agent view.
 >
-> **Background shell sessions (CC 2.1.154+):** In `claude agents`, type `! <command>` to run a shell command as a backgrounded session you can attach to and detach from — also available as `claude --bg --exec '<command>'`. Useful for long dev-loop processes (watchers, builds, servers) you want to monitor without holding a terminal.
+> **Background shell sessions (CC 2.1.154+):** In `claude agents`, type `! <command>` to run a shell command as a backgrounded session you can attach to and detach from, also available as `claude --bg --exec '<command>'`. Useful for long dev-loop processes (watchers, builds, servers) you want to monitor without holding a terminal.
 
 ## Modes (M127)
 
@@ -51,7 +51,7 @@ State lives in `.claude/state/dev-stack.json`. Teardown via `dev stop` reads the
 | `--funnel` | `portless --funnel ...` | **public on the internet** | required |
 | `--live N` | `portless --funnel ...` + N-hour expiry | **public**, tracked in `live-demos.jsonl` | required |
 
-Tailscale is **optional** — required only behind `--share`/`--funnel`/`--live`. Default `dev` is unchanged for users who don't share.
+Tailscale is **optional**, required only behind `--share`/`--funnel`/`--live`. Default `dev` is unchanged for users who don't share.
 
 When `turbo.json` or `package.json` workspaces is detected (#1562), the boot uses
 **bare `portless`** (zero-config) which auto-discovers each workspace's dev
@@ -60,7 +60,7 @@ list subdomains via `portless list` or `dev status`.
 
 ## Boot sequence
 
-`portless` is a **wrapper**, not a sidecar — `portless <slug> <pkg-mgr> run dev` is one fused command that owns the dev server's lifecycle. `boot.sh` tracks the wrapper PID; `stop.sh` walks its process tree to clean up children.
+`portless` is a **wrapper**, not a sidecar, `portless <slug> <pkg-mgr> run dev` is one fused command that owns the dev server's lifecycle. `boot.sh` tracks the wrapper PID; `stop.sh` walks its process tree to clean up children.
 
 ```
 0. Detect package manager      pnpm > yarn > bun > npm   (lockfile-based)
@@ -110,7 +110,7 @@ When `--share` / `--funnel` / `--live` is used (M127 #1561 / #1565), `share` bec
 }
 ```
 
-`mode` is `"single"` (default) or `"monorepo"` (when `turbo.json`/workspaces detected). Note `portlessWrapper` (not `portless` + `devServer`) — portless owns the dev server. Full schema: `references/state-schema.md`.
+`mode` is `"single"` (default) or `"monorepo"` (when `turbo.json`/workspaces detected). Note `portlessWrapper` (not `portless` + `devServer`), portless owns the dev server. Full schema: `references/state-schema.md`.
 
 ## Auto-surfaced hints (M127)
 
@@ -134,7 +134,7 @@ $ dev
 Skipping boot — install missing tools and re-run.
 ```
 
-`portless`, `agent-browser`, and `jq` are required. `emulate` is **optional** — required only if `emulate.config.yaml` exists. The boot is all-or-nothing on the required set; with no emulate config the boot proceeds without emulators.
+`portless`, `agent-browser`, and `jq` are required. `emulate` is **optional**, required only if `emulate.config.yaml` exists. The boot is all-or-nothing on the required set; with no emulate config the boot proceeds without emulators.
 
 `CI=1` short-circuits the boot (exits 0 immediately).
 
@@ -162,7 +162,7 @@ Stop walks the wrapper's process tree (`pgrep -P` recursively) and SIGTERMs desc
 
 ## Worktree behavior
 
-Each git worktree gets its own subdomain — `feat-foo.localhost` and `feat-bar.localhost` coexist on the same machine. The state file lives under each worktree's `.claude/state/`, so `dev` from one worktree doesn't see the other's processes.
+Each git worktree gets its own subdomain, `feat-foo.localhost` and `feat-bar.localhost` coexist on the same machine. The state file lives under each worktree's `.claude/state/`, so `dev` from one worktree doesn't see the other's processes.
 
 ## Idempotency
 
@@ -179,14 +179,14 @@ Liveness probe: `process.kill(pid, 0)` against each tracked PID. If any are dead
 
 ## How agent-browser composes
 
-The session name **equals** the subdomain — agent-browser commands targeting that session don't need a `--session` flag if it's the only one connected:
+The session name **equals** the subdomain, agent-browser commands targeting that session don't need a `--session` flag if it's the only one connected:
 
 ```bash
 agent-browser open "https://feat-m125-lane-b.localhost/dashboard"
 # implicit session = "feat-m125-lane-b" because it's the only one
 ```
 
-`expect` (M125 #2) reads the dev-stack state file and reuses this same session — no second handshake.
+`expect` (M125 #2) reads the dev-stack state file and reuses this same session, no second handshake.
 
 ## Integration with expect (M125 #2)
 
@@ -197,14 +197,14 @@ When auto-expect fires after a `.tsx` edit, it:
 3. Drives agent-browser against `<baseUrl><route>` using the live session.
 4. Records the ARIA snapshot to memory keyed by `(route, parentCommit)` (M125 #6).
 
-If the dev stack isn't live, auto-expect skips silently — `dev` is the prerequisite, not a hard dep.
+If the dev stack isn't live, auto-expect skips silently, `dev` is the prerequisite, not a hard dep.
 
 ## When NOT to use
 
-- **CI** — set `CI=1`; the skill exits 0 without booting.
-- **Production deploys** — never; this is dev-loop only.
-- **Non-Vercel-Labs stacks** — falls back to install hints; you can still run the underlying tools manually.
-- **Inside a `tmux -CC` session** — agent-browser dashboard incompatible with iTerm2 tmux integration.
+- **CI**: set `CI=1`; the skill exits 0 without booting.
+- **Production deploys**: never; this is dev-loop only.
+- **Non-Vercel-Labs stacks**: falls back to install hints; you can still run the underlying tools manually.
+- **Inside a `tmux -CC` session**: agent-browser dashboard incompatible with iTerm2 tmux integration.
 
 ## Scripts
 
@@ -246,10 +246,10 @@ Stops when: all 4 dev-loop services (portless + emulate + dev-server + agent-bro
 
 ## Related skills
 
-- `expect` — diff-aware browser tests; reuses the agent-browser session this skill warms
-- `emulate-seed` — generates the emulator config that step 3 consumes
-- `portless` (skill) — underlying tool docs
-- `browser-tools` (skill) — agent-browser command reference
+- `expect`: diff-aware browser tests; reuses the agent-browser session this skill warms
+- `emulate-seed`: generates the emulator config that step 3 consumes
+- `portless` (skill), underlying tool docs
+- `browser-tools` (skill), agent-browser command reference
 
 
 ---
@@ -326,7 +326,7 @@ fi
 **Key rules:**
 - Check state file existence BEFORE any side effects
 - Liveness probe = `kill -0 <pid>` (POSIX signal-0; doesn't actually signal, just checks)
-- "Live" = at least one tracked PID still running (not all — partial death is recoverable)
+- "Live" = at least one tracked PID still running (not all, partial death is recoverable)
 - Stale state file (file exists, all PIDs dead) → clean it up and proceed to boot
 - Exit code 0 for the no-op case (this is success, not error)
 - Atomic state write: `tmp.json` + `os.replace` so crashes mid-write don't leave half-files
@@ -339,7 +339,7 @@ Reference: `main()` in `src/skills/dev/scripts/boot.sh`, `status.sh --quiet`
 
 ## Lab-Stack Prerequisites
 
-Boot must verify all four binaries (`portless`, `emulate`, `agent-browser`, plus a runnable `dev` script) are present BEFORE touching any of them. If any are missing, exit 0 with install hints — never spin up a partial stack.
+Boot must verify all four binaries (`portless`, `emulate`, `agent-browser`, plus a runnable `dev` script) are present BEFORE touching any of them. If any are missing, exit 0 with install hints, never spin up a partial stack.
 
 **Incorrect:**
 ```bash
@@ -363,10 +363,10 @@ require portless && require emulate && require agent-browser || {
 
 **Key rules:**
 - Check ALL four prerequisites before starting ANY of them
-- Exit code 0 (not 1) when missing prereqs — this is a graceful skip, not an error
+- Exit code 0 (not 1) when missing prereqs, this is a graceful skip, not an error
 - Print explicit `Install: npm i -g <pkg>` hints alongside missing binary
 - Honor `CI=1` env var: skip boot entirely (CI doesn't need a dev server)
-- Don't auto-install — let the user decide
+- Don't auto-install, let the user decide
 
 ## Optional prerequisites (M127 #1561)
 
@@ -419,7 +419,7 @@ rm -f .claude/state/dev-stack.json
 - emulate stops before portless (emulate uses portless's TLS for callbacks)
 - portless stops LAST (its CA + /etc/hosts cleanup is a separate concern)
 - SIGTERM with 5-second SIGKILL fallback per process
-- Always remove the state file last — if anything in the chain throws, leave the file so `status.sh` can show the user what's stuck
+- Always remove the state file last, if anything in the chain throws, leave the file so `status.sh` can show the user what's stuck
 
 Reference: `src/skills/dev/scripts/stop.sh`
 
@@ -431,9 +431,9 @@ Reference: `src/skills/dev/scripts/stop.sh`
 
 ### Boot Sequence
 
-# /ork:dev boot sequence — annotated walkthrough
+# /ork:dev boot sequence, annotated walkthrough
 
-Verified against real CLI surfaces (2026-04-27): `portless 0.10.x`, `emulate 0.4.x`, `agent-browser 0.25.x+`. The actual implementation lives at `scripts/boot.sh` — this doc explains *why* each step does what it does.
+Verified against real CLI surfaces (2026-04-27): `portless 0.10.x`, `emulate 0.4.x`, `agent-browser 0.25.x+`. The actual implementation lives at `scripts/boot.sh`, this doc explains *why* each step does what it does.
 
 ## Architecture
 
@@ -474,7 +474,7 @@ Verified against real CLI surfaces (2026-04-27): `portless 0.10.x`, `emulate 0.4
    └────────────────────────────────────────┘
 ```
 
-## Step 0 — detect package manager
+## Step 0: detect package manager
 
 | Signal | Manager |
 |---|---|
@@ -483,7 +483,7 @@ Verified against real CLI surfaces (2026-04-27): `portless 0.10.x`, `emulate 0.4
 | `bun.lockb` | bun |
 | (else) | npm |
 
-## Step 1 — resolve subdomain slug
+## Step 1: resolve subdomain slug
 
 ```
 git rev-parse --abbrev-ref HEAD                # feat/m125-lane-b
@@ -495,36 +495,36 @@ git rev-parse --abbrev-ref HEAD                # feat/m125-lane-b
 
 Detached HEAD → falls back to `dev`. No git repo → also `dev`.
 
-## Step 2 — `portless proxy start`
+## Step 2: `portless proxy start`
 
 ```bash
 portless list >/dev/null 2>&1 || portless proxy start
 ```
 
-The proxy daemon is shared. If it's already running, leave it alone — don't pass `--lan` or `--no-tls` flags that would conflict with the existing settings (`portless` rejects starts with mismatched flags). Only start it if `portless list` fails.
+The proxy daemon is shared. If it's already running, leave it alone, don't pass `--lan` or `--no-tls` flags that would conflict with the existing settings (`portless` rejects starts with mismatched flags). Only start it if `portless list` fails.
 
 The user is responsible for the proxy's flavor (TLS on/off, LAN mode, custom port). `boot.sh` only ensures it's *running*.
 
 ### Why no `portless start --domain`?
 
-That syntax doesn't exist. The proxy doesn't take a domain — domains come from the wrapped commands.
+That syntax doesn't exist. The proxy doesn't take a domain, domains come from the wrapped commands.
 
-## Step 3 — emulate (sidecar, optional)
+## Step 3: emulate (sidecar, optional)
 
 ```bash
 [[ -f emulate.config.yaml ]] && ( exec emulate --seed emulate.config.yaml ) &
 ```
 
 `emulate` runs in foreground by default; we shell-background. Real flags (verified):
-- `emulate` — start all services
-- `emulate --service vercel,github` — selective
-- `emulate --seed config.yaml` — load seed config
-- `emulate init` — generate starter
-- `emulate list` — list available services
+- `emulate`: start all services
+- `emulate --service vercel,github`: selective
+- `emulate --seed config.yaml`: load seed config
+- `emulate init`: generate starter
+- `emulate list`: list available services
 
 The `emulate up` subcommand from earlier docs **does not exist**.
 
-## Step 4 — wrap the dev server in portless
+## Step 4: wrap the dev server in portless
 
 ```bash
 ( cd "${PROJECT_DIR}" && exec portless "${slug}" "${pkg_mgr}" run dev >>"${LOG_FILE}" 2>&1 ) &
@@ -534,37 +534,37 @@ wrap_pid=$!
 **Critical**: the `exec` matters. Without it, `$!` captures the subshell PID, not portless's. When stop.sh later kills `wrap_pid`, it kills a dead subshell while portless + dev keep running orphaned. With `exec`, the subshell is replaced by portless and `$!` is the real wrapper.
 
 portless gives the child:
-- `PORT` — random port in 4000-4999
-- `HOST` — usually 127.0.0.1
-- `PORTLESS_URL` — public URL (`https://<slug>.localhost[:proxyport]`)
-- `NODE_EXTRA_CA_CERTS` — path to portless CA (so node child trusts the local TLS)
+- `PORT`: random port in 4000-4999
+- `HOST`: usually 127.0.0.1
+- `PORTLESS_URL`: public URL (`https://<slug>.localhost[:proxyport]`)
+- `NODE_EXTRA_CA_CERTS`: path to portless CA (so node child trusts the local TLS)
 
-## Step 5 — wait for portless to register the route, then wait-on the dev server
+## Step 5: wait for portless to register the route, then wait-on the dev server
 
 Two-stage wait:
 
-1. Poll `portless get <slug>` for up to 30s — returns the canonical URL (with the proxy's actual port) once portless registers the route.
-2. `npx wait-on <url>` for another 30s — confirms the dev server is responding through the proxy.
+1. Poll `portless get <slug>` for up to 30s, returns the canonical URL (with the proxy's actual port) once portless registers the route.
+2. `npx wait-on <url>` for another 30s, confirms the dev server is responding through the proxy.
 
 Skipping stage 1 risks racing portless's registration; skipping stage 2 races the dev server's startup.
 
-## Step 6 — agent-browser session
+## Step 6: agent-browser session
 
 ```bash
 AGENT_BROWSER_SESSION="${slug}" agent-browser open "${base_url}" >>"${LOG_FILE}" 2>&1 || true
 ```
 
-Sessions in agent-browser 0.25.x are **lazy** — they don't have daemons, they're just isolation namespaces. Setting `AGENT_BROWSER_SESSION=<name>` is equivalent to `--session <name>` flag. The browser actually starts on first navigation. Pre-warming with `open <base_url>` registers the session as active, so subsequent `/ork:expect` runs reuse the same session by name.
+Sessions in agent-browser 0.25.x are **lazy**, they don't have daemons, they're just isolation namespaces. Setting `AGENT_BROWSER_SESSION=<name>` is equivalent to `--session <name>` flag. The browser actually starts on first navigation. Pre-warming with `open <base_url>` registers the session as active, so subsequent `/ork:expect` runs reuse the same session by name.
 
-## Step 7 — atomic state write
+## Step 7: atomic state write
 
 `jq -n` builds the JSON in one pass; we write to `<file>.tmp` and `mv` to the final path. If the script is killed mid-write, we don't leave a half-written state file.
 
 State shape: see `references/state-schema.md`.
 
-## Step 8 — summary
+## Step 8: summary
 
-Plain stderr text — never JSON. The summary is consumed by humans only; the state file is the machine-readable record.
+Plain stderr text, never JSON. The summary is consumed by humans only; the state file is the machine-readable record.
 
 ## Teardown order (`scripts/stop.sh`)
 
@@ -636,19 +636,19 @@ interface DevStackState {
 
 ## What the file does NOT contain
 
-- **The portless proxy daemon's PID** — it's a shared, long-lived service. boot.sh only ensures it's running; stop.sh deliberately leaves it alone.
-- **The dev server's child PID** — it's a child of `portlessWrapper`, discovered at teardown via `pgrep -P`.
-- **The agent-browser browser process PID** — sessions are lazy, no daemon.
+- **The portless proxy daemon's PID**: it's a shared, long-lived service. boot.sh only ensures it's running; stop.sh deliberately leaves it alone.
+- **The dev server's child PID**: it's a child of `portlessWrapper`, discovered at teardown via `pgrep -P`.
+- **The agent-browser browser process PID**: sessions are lazy, no daemon.
 
 ## Liveness contract
 
-A "live" stack has the `portlessWrapper.pid` responding to `process.kill(pid, 0)`. If that PID is dead, the route is unregistered and the wrapped dev server is gone — even if the state file still exists. `status.sh --quiet` returns exit 0 only when at least one tracked PID (wrapper or emulate) is alive.
+A "live" stack has the `portlessWrapper.pid` responding to `process.kill(pid, 0)`. If that PID is dead, the route is unregistered and the wrapped dev server is gone, even if the state file still exists. `status.sh --quiet` returns exit 0 only when at least one tracked PID (wrapper or emulate) is alive.
 
 ## Reader contract
 
 External consumers (other hooks, skills, the user via `cat`) MUST treat the file as read-only and tolerate it not existing. Writers go through `scripts/boot.sh` and `scripts/stop.sh`.
 
-The hook `posttool/ui-change-detector` reads `baseUrl` to inject the dev URL into the auto-expect nudge — if the file is missing or malformed, the hook silently skips (graceful no-op).
+The hook `posttool/ui-change-detector` reads `baseUrl` to inject the dev URL into the auto-expect nudge, if the file is missing or malformed, the hook silently skips (graceful no-op).
 
 ## Worktree isolation
 

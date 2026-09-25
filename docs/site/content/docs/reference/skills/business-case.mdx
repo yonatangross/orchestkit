@@ -5,7 +5,7 @@ description: "Business case analysis with ROI, NPV, IRR, payback period, and TCO
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
-> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+> **Auto-activated**, this skill loads automatically when Claude detects matching context.
 
 <ContextualSkillSidebar slug="business-case" />
 
@@ -122,8 +122,8 @@ Key hidden costs to never omit:
 
 | Category | Build | Buy |
 |----------|-------|-----|
-| Opportunity cost | Yes — team blocked from other work | No |
-| Switching costs | N/A | Yes — vendor lock-in |
+| Opportunity cost | Yes, team blocked from other work | No |
+| Switching costs | N/A | Yes, vendor lock-in |
 | Downtime risk | You own uptime | Partial SLA coverage |
 | Security/compliance | Your responsibility | Shared |
 
@@ -139,16 +139,16 @@ Key hidden costs to never omit:
 
 ## References
 
-- [ROI & Financial Metrics](rules/business-roi.md) — NPV, IRR, payback period formulas with code examples
-- [Cost-Benefit & TCO](rules/business-cost-benefit.md) — Build vs. buy TCO template, hidden costs, sensitivity analysis
-- [ROI Calculation Guide](references/roi-calculation-guide.md) — Detailed cost breakdown (CAPEX/OPEX/opportunity cost)
-- [Build-Buy-Partner Decision](references/build-buy-partner-decision.md) — Scoring matrix across 5 dimensions
+- [ROI & Financial Metrics](rules/business-roi.md): NPV, IRR, payback period formulas with code examples
+- [Cost-Benefit & TCO](rules/business-cost-benefit.md): Build vs. buy TCO template, hidden costs, sensitivity analysis
+- [ROI Calculation Guide](references/roi-calculation-guide.md): Detailed cost breakdown (CAPEX/OPEX/opportunity cost)
+- [Build-Buy-Partner Decision](references/build-buy-partner-decision.md): Scoring matrix across 5 dimensions
 
 ## Related Skills
 
-- `ork:market-sizing` — Size the opportunity before building the business case
-- `ork:competitive-analysis` — Assess competitive context and moat for the investment
-- `ork:product-frameworks` — Full product strategy toolkit (prioritization, OKRs, personas)
+- `ork:market-sizing`: Size the opportunity before building the business case
+- `ork:competitive-analysis`: Assess competitive context and moat for the investment
+- `ork:product-frameworks`: Full product strategy toolkit (prioritization, OKRs, personas)
 
 ---
 
@@ -294,7 +294,7 @@ Operational Costs (Annual)
 +-- Security/compliance
 ```
 
-**Incorrect — Ignoring hidden costs and opportunity cost:**
+**Incorrect, Ignoring hidden costs and opportunity cost:**
 ```markdown
 ## Cost Analysis
 Total development cost: $500,000
@@ -302,7 +302,7 @@ Expected benefit: $1M over 3 years
 ROI: 100% - APPROVED
 ```
 
-**Correct — Comprehensive TCO with hidden costs:**
+**Correct, Comprehensive TCO with hidden costs:**
 ```markdown
 ## 3-Year TCO Analysis
 Development: $500,000
@@ -341,7 +341,7 @@ ROI = ($1,000,000 - $500,000) / $500,000 x 100% = 100%
 
 ## Net Present Value (NPV)
 
-Gold standard for project evaluation -- discounts future cash flows to present value.
+Gold standard for project evaluation, discounts future cash flows to present value.
 
 ```
 NPV = Sum(Cash Flow_t / (1 + r)^t) - Initial Investment
@@ -417,14 +417,14 @@ Payback Period = Initial Investment / Annual Cash Flow
 | Sunk cost fallacy | Evaluate future costs/benefits only |
 | Confirmation bias | Have skeptic review the case |
 
-**Incorrect — Using simple ROI without time value of money:**
+**Incorrect, Using simple ROI without time value of money:**
 ```markdown
 Investment: $500,000
 Total benefits over 5 years: $1,000,000
 ROI = ($1M - $500K) / $500K = 100% - APPROVED
 ```
 
-**Correct — Using NPV to account for time value:**
+**Correct, Using NPV to account for time value:**
 ```python
 npv = calculate_npv(
     initial_investment=500_000,

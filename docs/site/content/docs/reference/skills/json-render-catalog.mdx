@@ -5,7 +5,7 @@ description: "json-render component catalog patterns for AI-safe generative UI. 
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
-> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+> **Auto-activated**, this skill loads automatically when Claude detects matching context.
 
 <ContextualSkillSidebar slug="json-render-catalog" />
 
@@ -14,7 +14,7 @@ description: "json-render component catalog patterns for AI-safe generative UI. 
 
 # json-render Component Catalogs
 
-json-render (Vercel Labs, 12.9K stars, Apache-2.0) is a framework for AI-safe generative UI. AI generates flat-tree JSON (or YAML) specs constrained to a developer-defined catalog — the catalog is the contract between your design system and AI output. If a component or prop is not in the catalog, AI cannot generate it.
+json-render (Vercel Labs, 12.9K stars, Apache-2.0) is a framework for AI-safe generative UI. AI generates flat-tree JSON (or YAML) specs constrained to a developer-defined catalog, the catalog is the contract between your design system and AI output. If a component or prop is not in the catalog, AI cannot generate it.
 
 ## Storybook → catalog import (#1529, 2026-04)
 
@@ -27,29 +27,29 @@ node "${CLAUDE_SKILL_DIR}/scripts/storybook-to-catalog.mjs" storybook-manifest.j
   --project-root .
 ```
 
-Storybook becomes the single source of truth — adding a story automatically expands the AI-allowed surface; removing one shrinks it. AI safety is enforced at import: callbacks, raw object props, and `z.any()` are dropped. Full mapping: `references/storybook-import.md`. Companion fixture for testing: `references/storybook-fixture.json`.
+Storybook becomes the single source of truth, adding a story automatically expands the AI-allowed surface; removing one shrinks it. AI safety is enforced at import: callbacks, raw object props, and `z.any()` are dropped. Full mapping: `references/storybook-import.md`. Companion fixture for testing: `references/storybook-fixture.json`.
 
 ## New in 2026-04 → 2026-08 (json-render 0.14 → 0.20)
 
-- **Named slots (0.20)** — `UIElement` gains `slots?: Record<string, string[]>`, a catalog declares which it accepts via `slots: ["default", "header", "footer"]`, and a React registry component receives named content as `slots?.header` while `children` stays the default slot. Prefer this over encoding layout regions as separate sibling elements.
-- **Nested repeats and item-scoped visibility (0.20)** — `repeat.statePath` accepts an item-relative `{"$item": "employees"}` form (new `RepeatStatePath` type plus `resolveRepeatStatePath` / `resolveRepeatItemStatePath`), and a `repeat` combined with `visible: {"$item": "status", "eq": "todo"}` on the same element now filters items instead of erroring. `validateSpec` gains `invalid_visible`, `repeat_without_children`, `repeat_item_outside_scope` and `repeat_state_mismatch` issue codes.
-- **Custom directives API (0.19)** — `@json-render/core` now ships `defineDirective`, letting you declare new JSON shapes (e.g. `$format`, `$math`) that resolve to computed values at render time. Directives compose by nesting and resolve inside-out. All four renderers (React, Vue, Svelte, Solid) have built-in directive resolution. This is the safe escape hatch for computed values without widening the catalog to `z.any()`.
-- **`@json-render/directives` package (0.19)** — seven ready-made directives: `$format` (date / currency / number / percent via `Intl`), `$math` (add, subtract, multiply, divide, mod, min, max, round, floor, ceil, abs), `$concat`, `$count`, `$truncate`, `$pluralize`, `$join`. Plus `createI18nDirective` for `$t` translation keys with `{{param}}` interpolation, and `standardDirectives` for one-line registration. Register once, use in any spec — AI no longer needs string-mangling or duplicated literals.
-- **Devtools ecosystem (0.18)** — five new packages: `@json-render/devtools` core + framework adapters for React, Vue, Svelte, Solid. Inspector panel has six tabs (Spec, State, Actions, Stream, Catalog, Pick) with DOM element picking that maps back to spec keys. Tree-shakes to `null` in production. Companion Next.js demo app shipped with AI-chat + catalog integration. Action observer infrastructure exposed for adapters to mirror events into the panel.
-- **Zod 4 fix (0.18)** — `formatZodType` now correctly handles `z.record()`, `z.default()`, and `z.literal()` (previously produced empty/wrong prompt output).
-- **Three edit modes (0.14)** — `patch` (RFC 6902), `merge` (RFC 7396), `diff` (unified) for progressive AI refinements. `buildEditUserPrompt()` + `diffToPatches()` + `deepMergeSpec()` in `@json-render/core`.
-- **`@json-render/yaml` (0.14)** — official YAML wire format + streaming parser; `buildUserPrompt({ format: 'yaml' })`.
-- **`@json-render/ink` (0.15)** — render catalogs to terminal UIs (Ink-based, 20+ components) using the same spec.
-- **`@json-render/next` (0.16)** — generate full Next.js apps (routes, layouts, SSR, metadata) from a single spec.
-- **`@json-render/shadcn-svelte` (0.16)** — 36-component Svelte 5 + Tailwind mirror of the React shadcn catalog.
-- **shadcn catalog at 36 components** (was documented as 29 — the count was wrong even at 0.13). Use `@json-render/shadcn` as-is, or spread `shadcnComponentDefinitions` together with your own definitions.
+- **Named slots (0.20)**: `UIElement` gains `slots?: Record<string, string[]>`, a catalog declares which it accepts via `slots: ["default", "header", "footer"]`, and a React registry component receives named content as `slots?.header` while `children` stays the default slot. Prefer this over encoding layout regions as separate sibling elements.
+- **Nested repeats and item-scoped visibility (0.20)**: `repeat.statePath` accepts an item-relative `{"$item": "employees"}` form (new `RepeatStatePath` type plus `resolveRepeatStatePath` / `resolveRepeatItemStatePath`), and a `repeat` combined with `visible: {"$item": "status", "eq": "todo"}` on the same element now filters items instead of erroring. `validateSpec` gains `invalid_visible`, `repeat_without_children`, `repeat_item_outside_scope` and `repeat_state_mismatch` issue codes.
+- **Custom directives API (0.19)**: `@json-render/core` now ships `defineDirective`, letting you declare new JSON shapes (e.g. `$format`, `$math`) that resolve to computed values at render time. Directives compose by nesting and resolve inside-out. All four renderers (React, Vue, Svelte, Solid) have built-in directive resolution. This is the safe escape hatch for computed values without widening the catalog to `z.any()`.
+- **`@json-render/directives` package (0.19)**: seven ready-made directives: `$format` (date / currency / number / percent via `Intl`), `$math` (add, subtract, multiply, divide, mod, min, max, round, floor, ceil, abs), `$concat`, `$count`, `$truncate`, `$pluralize`, `$join`. Plus `createI18nDirective` for `$t` translation keys with `{{param}}` interpolation, and `standardDirectives` for one-line registration. Register once, use in any spec, AI no longer needs string-mangling or duplicated literals.
+- **Devtools ecosystem (0.18)**: five new packages: `@json-render/devtools` core + framework adapters for React, Vue, Svelte, Solid. Inspector panel has six tabs (Spec, State, Actions, Stream, Catalog, Pick) with DOM element picking that maps back to spec keys. Tree-shakes to `null` in production. Companion Next.js demo app shipped with AI-chat + catalog integration. Action observer infrastructure exposed for adapters to mirror events into the panel.
+- **Zod 4 fix (0.18)**: `formatZodType` now correctly handles `z.record()`, `z.default()`, and `z.literal()` (previously produced empty/wrong prompt output).
+- **Three edit modes (0.14)**: `patch` (RFC 6902), `merge` (RFC 7396), `diff` (unified) for progressive AI refinements. `buildEditUserPrompt()` + `diffToPatches()` + `deepMergeSpec()` in `@json-render/core`.
+- **`@json-render/yaml` (0.14)**: official YAML wire format + streaming parser; `buildUserPrompt({ format: 'yaml' })`.
+- **`@json-render/ink` (0.15)**: render catalogs to terminal UIs (Ink-based, 20+ components) using the same spec.
+- **`@json-render/next` (0.16)**: generate full Next.js apps (routes, layouts, SSR, metadata) from a single spec.
+- **`@json-render/shadcn-svelte` (0.16)**: 36-component Svelte 5 + Tailwind mirror of the React shadcn catalog.
+- **shadcn catalog at 36 components** (was documented as 29, the count was wrong even at 0.13). Use `@json-render/shadcn` as-is, or spread `shadcnComponentDefinitions` together with your own definitions.
 - **`@json-render/react-three-fiber`** ships 19 components (verified 2026-07-31 against the upstream skill; do not restate the roster here, see Upstream coverage).
-- **`@json-render/mcp`** — upgrade plain MCP tool JSON into interactive iframes inside Claude/Cursor/ChatGPT conversations. See the `ork:mcp-visual-output` skill.
+- **`@json-render/mcp`**: upgrade plain MCP tool JSON into interactive iframes inside Claude/Cursor/ChatGPT conversations. See the `ork:mcp-visual-output` skill.
 - **MCP multi-surface**: same spec renders to React, PDF (`@json-render/react-pdf`), email (`@json-render/react-email`), terminal (Ink), Next.js apps, and Remotion videos.
 
-## Directives — @json-render/directives (0.19)
+## Directives: @json-render/directives (0.19)
 
-Directives are the safe escape hatch for computed values. AI emits a `$`-prefixed object, the renderer resolves it inside-out before the component receives props — the catalog stays strict (no `z.any()` widening) and the spec stays declarative. The `@json-render/directives` package ships seven prebuilt directives plus an i18n factory; `standardDirectives` exports them as one array for one-line registration. Directives nest freely (e.g. `$format` wrapping `$math`) and are resolved by all four renderer integrations (React, Vue, Svelte, Solid).
+Directives are the safe escape hatch for computed values. AI emits a `$`-prefixed object, the renderer resolves it inside-out before the component receives props, the catalog stays strict (no `z.any()` widening) and the spec stays declarative. The `@json-render/directives` package ships seven prebuilt directives plus an i18n factory; `standardDirectives` exports them as one array for one-line registration. Directives nest freely (e.g. `$format` wrapping `$math`) and are resolved by all four renderer integrations (React, Vue, Svelte, Solid).
 
 ### Registration
 
@@ -79,7 +79,7 @@ const { registry } = defineRegistry(catalog, { components })
 | Directive | Purpose | Minimal usage |
 |-----------|---------|---------------|
 | `$format` | `Intl`-based formatting for `date`, `currency`, `number`, `percent`. Supports `locale`, `currency`, `notation`, and `style: "relative"` for human-readable date deltas. | `{ "$format": "currency", "value": 1299, "currency": "USD" }` → `$1,299.00` |
-| `$math` | Arithmetic — `add`, `subtract`, `multiply`, `divide`, `mod`, `min`, `max`, `round`, `floor`, `ceil`, `abs`. Division by zero returns `0`; non-numeric inputs coerce to `0`. | `{ "$math": "multiply", "a": { "$state": "/qty" }, "b": 9.99 }` |
+| `$math` | Arithmetic, `add`, `subtract`, `multiply`, `divide`, `mod`, `min`, `max`, `round`, `floor`, `ceil`, `abs`. Division by zero returns `0`; non-numeric inputs coerce to `0`. | `{ "$math": "multiply", "a": { "$state": "/qty" }, "b": 9.99 }` |
 | `$concat` | Joins an array of dynamic values into a string, resolving each element through the directive pipeline first. | `{ "$concat": ["Hello, ", { "$state": "/user/name" }, "!"] }` |
 | `$count` | Length of an array or string; `0` for anything else. | `{ "$count": { "$state": "/items" } }` |
 | `$truncate` | Truncate to `length` (default 100) with optional `suffix` (default `...`). No-op if already short enough. | `{ "$truncate": { "$state": "/bio" }, "length": 80 }` |
@@ -90,7 +90,7 @@ const { registry } = defineRegistry(catalog, { components })
 
 ### Custom directives via `defineDirective`
 
-`defineDirective` lives in `@json-render/core` (0.19+). A directive declares a Zod schema for its JSON shape and a `resolve(raw, ctx)` function — use `resolvePropValue(raw.field, ctx)` to recursively resolve any nested directive or state reference before computing.
+`defineDirective` lives in `@json-render/core` (0.19+). A directive declares a Zod schema for its JSON shape and a `resolve(raw, ctx)` function, use `resolvePropValue(raw.field, ctx)` to recursively resolve any nested directive or state reference before computing.
 
 ```ts
 import { defineDirective, resolvePropValue } from '@json-render/core'
@@ -107,7 +107,7 @@ export const initialsDirective = defineDirective({
 })
 ```
 
-Spread into the renderer alongside `standardDirectives`: `directives={[...standardDirectives, initialsDirective]}`. Keep the schema tight — directives are the only place where AI gets to emit non-catalog JSON, so let Zod enforce shape just like a component prop.
+Spread into the renderer alongside `standardDirectives`: `directives={[...standardDirectives, initialsDirective]}`. Keep the schema tight, directives are the only place where AI gets to emit non-catalog JSON, so let Zod enforce shape just like a component prop.
 
 ## Upstream coverage (do not restate)
 
@@ -141,13 +141,13 @@ Our delta, the part no upstream doc carries: `references/ork-delta.md`.
 
 ## How json-render Works
 
-1. **Developer defines a catalog** — Zod-typed component definitions with constrained props
-2. **AI generates a spec** — flat-tree JSON/YAML referencing only catalog components
-3. **Runtime renders the spec** — `<Renderer>` component validates and renders each element
+1. **Developer defines a catalog**: Zod-typed component definitions with constrained props
+2. **AI generates a spec**: flat-tree JSON/YAML referencing only catalog components
+3. **Runtime renders the spec**: `<Renderer>` component validates and renders each element
 
 The catalog is the safety boundary. AI can only reference types that exist in the catalog, and props are validated against Zod schemas at runtime. This prevents hallucinated components and invalid props from reaching the UI.
 
-## Quick Start — 3 Steps
+## Quick Start: 3 Steps
 
 ### Step 1: Define a Catalog
 
@@ -243,7 +243,7 @@ function App({ spec }: { spec: JsonRenderSpec }) {
 
 ## Spec Format
 
-The JSON spec is a flat tree — no nesting, just IDs and references. Field-by-field
+The JSON spec is a flat tree, no nesting, just IDs and references. Field-by-field
 documentation (`root`, `elements`, `props`, `children`, `on`, `watch`, `state`, and the
 `$state` / `$bindState` / `$cond` / `$template` / `$computed` expressions) is upstream in
 https://github.com/vercel-labs/json-render `skills/core/SKILL.md`.
@@ -288,7 +288,7 @@ Event handlers, watch bindings, the built-in actions (`setState`, `pushState`,
 https://github.com/vercel-labs/json-render `skills/react/SKILL.md` and the per-adapter
 skills. Do not restate the roster here; see `references/ork-delta.md` for why.
 
-## YAML Mode — 30% Fewer Tokens
+## YAML Mode: 30% Fewer Tokens
 
 For standalone (non-streaming) generation, YAML specs use ~30% fewer tokens than JSON:
 
@@ -311,7 +311,7 @@ Use JSON for inline mode / streaming (JSON Patch RFC 6902 over JSONL requires JS
 
 ## Progressive Streaming
 
-json-render supports progressive rendering during streaming. As the AI generates spec elements, they render immediately — the user sees the UI building in real-time. This uses JSON Patch (RFC 6902) operations streamed over JSONL:
+json-render supports progressive rendering during streaming. As the AI generates spec elements, they render immediately, the user sees the UI building in real-time. This uses JSON Patch (RFC 6902) operations streamed over JSONL:
 
 ```jsonl
 {"op":"add","path":"/elements/card-1","value":{"type":"Card","props":{"title":"Dashboard"},"children":[]}}
@@ -319,9 +319,9 @@ json-render supports progressive rendering during streaming. As the AI generates
 {"op":"add","path":"/elements/card-1/children/-","value":"btn-1"}
 ```
 
-Elements render as soon as their props are complete — no waiting for the full spec.
+Elements render as soon as their props are complete, no waiting for the full spec.
 
-## @json-render/shadcn — 36 Pre-Built Components
+## @json-render/shadcn: 36 Pre-Built Components
 
 The `@json-render/shadcn` package provides a production-ready catalog of 36 components
 with Zod schemas already defined. The component list and prop schemas are upstream in
@@ -370,7 +370,7 @@ const components = { ...shadcnComponents, ...lumaComponents }
 
 **Detection pattern:** Read `components.json` → `"style"` field to determine which overrides to apply. Style-specific class names: Luma (`rounded-4xl`, `shadow-md`, `gap-6`), Nova (compact `px-2 py-1`), Lyra (`rounded-none`).
 
-## Edit Modes — patch / merge / diff (0.14+)
+## Edit Modes: patch / merge / diff (0.14+)
 
 For updating specs after initial render (AI-driven refinements, user edits, partial regenerations), core ships three universal edit modes:
 
@@ -391,20 +391,20 @@ const patches = diffToPatches(aiResponse)
 const next = deepMergeSpec(currentSpec, patches)
 ```
 
-`buildUserPrompt()` also gained `format` and `serializer` options in 0.14 — pick YAML for standalone specs and JSON for streaming.
+`buildUserPrompt()` also gained `format` and `serializer` options in 0.14, pick YAML for standalone specs and JSON for streaming.
 
 ## Package Ecosystem
 
 Core + 23 renderer/integration packages covering web, mobile, terminal, 3D, codegen, and state management. Load `references/package-ecosystem.md` for the full list organized by category.
 
 **Added since 0.13:**
-- `@json-render/yaml` (0.14) — YAML wire format + streaming parser
-- `@json-render/ink` (0.15) — terminal UI renderer (Ink-based, 20+ components)
-- `@json-render/next` (0.16) — generates full Next.js apps (routes, layouts, SSR, metadata)
-- `@json-render/shadcn-svelte` (0.16) — 36-component Svelte 5 mirror of the React shadcn catalog
+- `@json-render/yaml` (0.14), YAML wire format + streaming parser
+- `@json-render/ink` (0.15), terminal UI renderer (Ink-based, 20+ components)
+- `@json-render/next` (0.16), generates full Next.js apps (routes, layouts, SSR, metadata)
+- `@json-render/shadcn-svelte` (0.16), 36-component Svelte 5 mirror of the React shadcn catalog
 - `@json-render/react-three-fiber` ships 19 components (verified 2026-07-31; roster lives upstream)
-- `@json-render/devtools` + framework adapters (0.18) — six-tab inspector panel, DOM picker, tree-shakes to `null` in prod
-- `@json-render/directives` (0.19) — seven Intl/math/string directives + `createI18nDirective` + `standardDirectives` registration helper
+- `@json-render/devtools` + framework adapters (0.18), six-tab inspector panel, DOM picker, tree-shakes to `null` in prod
+- `@json-render/directives` (0.19), seven Intl/math/string directives + `createI18nDirective` + `standardDirectives` registration helper
 
 ## When to Use vs When NOT to Use
 
@@ -415,10 +415,10 @@ Core + 23 renderer/integration packages covering web, mobile, terminal, 3D, code
 - You are building generative UI features (dashboards, reports, forms from natural language)
 
 **Do NOT use json-render when:**
-- Building static, developer-authored UI — use components directly
-- AI generates code (JSX/TSX) rather than specs — use standard code generation
-- You need full creative freedom without catalog constraints — json-render is deliberately restrictive
-- Performance-critical rendering with thousands of elements — the flat-tree abstraction adds overhead
+- Building static, developer-authored UI, use components directly
+- AI generates code (JSX/TSX) rather than specs, use standard code generation
+- You need full creative freedom without catalog constraints, json-render is deliberately restrictive
+- Performance-critical rendering with thousands of elements, the flat-tree abstraction adds overhead
 
 ## Migrating from Custom GenUI
 
@@ -461,23 +461,23 @@ Choosing JSON vs YAML for token efficiency.
 |----------|----------------|
 | Custom vs shadcn catalog | Start with shadcn, extend with custom types for domain-specific components |
 | JSON vs YAML spec format | YAML for standalone mode (30% fewer tokens), JSON for inline/streaming |
-| Zod constraint strictness | Tighter is better — use z.enum over z.string, z.array().max() over unbounded |
+| Zod constraint strictness | Tighter is better, use z.enum over z.string, z.array().max() over unbounded |
 | State management adapter | Match your app's existing state library (Zustand, Redux, Jotai, XState) |
 
 ## Common Mistakes
 
-1. Using `z.any()` or `z.unknown()` in catalog props — defeats the purpose of catalog constraints, AI can generate anything
-2. Always using JSON specs — wastes 30% tokens when inline/streaming is not needed (use YAML in standalone mode)
-3. Nesting component definitions — json-render uses a flat tree; all elements are siblings referenced by ID
-4. Re-declaring shadcn components instead of spreading `shadcnComponentDefinitions` — you lose the upstream Zod bounds
-5. Not setting `.max()` on arrays — AI can generate unbounded lists that break layouts
+1. Using `z.any()` or `z.unknown()` in catalog props, defeats the purpose of catalog constraints, AI can generate anything
+2. Always using JSON specs, wastes 30% tokens when inline/streaming is not needed (use YAML in standalone mode)
+3. Nesting component definitions, json-render uses a flat tree; all elements are siblings referenced by ID
+4. Re-declaring shadcn components instead of spreading `shadcnComponentDefinitions`, you lose the upstream Zod bounds
+5. Not setting `.max()` on arrays, AI can generate unbounded lists that break layouts
 
 ## Related Skills
 
-- `ork:ai-ui-generation` — AI-assisted UI generation patterns for v0, Bolt, Cursor
-- `ork:ui-components` — shadcn/ui component patterns and CVA variants
-- `ork:component-search` — Finding and evaluating React/Vue components
-- `ork:design-to-code` — Converting designs to production code
+- `ork:ai-ui-generation`: AI-assisted UI generation patterns for v0, Bolt, Cursor
+- `ork:ui-components`: shadcn/ui component patterns and CVA variants
+- `ork:component-search`: Finding and evaluating React/Vue components
+- `ork:design-to-code`: Converting designs to production code
 
 
 ---
@@ -489,7 +489,7 @@ Choosing JSON vs YAML for token efficiency.
 
 ## Catalog Definition with defineCatalog and Zod
 
-Every json-render project starts with a catalog — a Zod-typed registry of components the AI is allowed to generate. The catalog is the contract: if a type is not in the catalog, it cannot appear in specs.
+Every json-render project starts with a catalog, a Zod-typed registry of components the AI is allowed to generate. The catalog is the contract: if a type is not in the catalog, it cannot appear in specs.
 
 **Incorrect:**
 ```typescript
@@ -603,7 +603,7 @@ Reference: https://github.com/nicholasgriffintn/json-render
 
 ## Prop Constraints for AI Safety
 
-Catalog props are the primary defense against AI hallucination. Every prop should be as tightly constrained as possible — bounded strings, explicit enums, capped arrays. The tighter the constraints, the more predictable and safe the AI output.
+Catalog props are the primary defense against AI hallucination. Every prop should be as tightly constrained as possible, bounded strings, explicit enums, capped arrays. The tighter the constraints, the more predictable and safe the AI output.
 
 **Incorrect:**
 ```typescript
@@ -679,10 +679,10 @@ DateRange: {
 ```
 
 **Key rules:**
-- Never use `z.any()`, `z.unknown()`, or bare `z.record()` in catalog props — these bypass AI safety
+- Never use `z.any()`, `z.unknown()`, or bare `z.record()` in catalog props, these bypass AI safety
 - Always set `.max()` on strings and arrays to prevent unbounded generation
-- Use `z.enum()` instead of `z.string()` whenever possible — enums constrain AI to valid values
-- Add `.default()` to optional boolean and enum props — prevents undefined gaps in rendered output
+- Use `z.enum()` instead of `z.string()` whenever possible, enums constrain AI to valid values
+- Add `.default()` to optional boolean and enum props, prevents undefined gaps in rendered output
 - Use `.refine()` for cross-field validation (date ranges, conditional requirements)
 - Test constraints by checking: "Can AI generate a value that would break my UI?" If yes, tighten the schema
 
@@ -692,9 +692,9 @@ Reference: https://zod.dev
 ### Token Optimization: YAML Mode: MEDIUM
 
 
-## Token Optimization — YAML Mode
+## Token Optimization: YAML Mode
 
-json-render supports both JSON and YAML spec formats. YAML uses ~30% fewer tokens than equivalent JSON because it eliminates braces, brackets, quotes around keys, and trailing commas. For standalone mode (formerly "generate"), YAML is the default choice. Note: "generate"/"chat" mode names were deprecated in v0.12.1 — use "standalone"/"inline" instead.
+json-render supports both JSON and YAML spec formats. YAML uses ~30% fewer tokens than equivalent JSON because it eliminates braces, brackets, quotes around keys, and trailing commas. For standalone mode (formerly "generate"), YAML is the default choice. Note: "generate"/"chat" mode names were deprecated in v0.12.1, use "standalone"/"inline" instead.
 
 **Incorrect:**
 ```typescript
@@ -781,14 +781,14 @@ A spec with 5 components:
 - YAML: ~310 tokens
 - Savings: ~140 tokens (31%)
 
-At scale (100 specs/day, $3/M input tokens with Haiku): ~$0.04/day savings. The real value is in output token reduction — LLMs generate fewer tokens in YAML format, which reduces latency.
+At scale (100 specs/day, $3/M input tokens with Haiku): ~$0.04/day savings. The real value is in output token reduction, LLMs generate fewer tokens in YAML format, which reduces latency.
 
 **Key rules:**
-- Use YAML for standalone mode — it reduces both input and output tokens by ~30%
-- Use JSON for inline mode / streaming — JSON Patch (RFC 6902) operates on JSON, not YAML
-- Convert YAML to a spec with `createYamlStreamCompiler()` — `push(text)` then `flush()`. There is no sync `parseYamlSpec()`
+- Use YAML for standalone mode, it reduces both input and output tokens by ~30%
+- Use JSON for inline mode / streaming, JSON Patch (RFC 6902) operates on JSON, not YAML
+- Convert YAML to a spec with `createYamlStreamCompiler()`, `push(text)` then `flush()`. There is no sync `parseYamlSpec()`
 - Generate the system prompt with `yamlPrompt(catalog)` rather than hand-writing it, so it tracks the catalog
-- Do not mix formats in a single spec — pick one and stay consistent
+- Do not mix formats in a single spec, pick one and stay consistent
 - Measure token usage with your provider's tokenizer to validate savings for your specific catalogs
 
 Reference: https://github.com/nicholasgriffintn/json-render
@@ -858,7 +858,7 @@ shadcn/ui composition itself
 
 # json-render Package Ecosystem
 
-23 packages under the `@json-render` scope, organized by category. All packages share the same spec format — a spec generated for React works with Vue, Svelte, React Native, PDF, and email renderers.
+23 packages under the `@json-render` scope, organized by category. All packages share the same spec format, a spec generated for React works with Vue, Svelte, React Native, PDF, and email renderers.
 
 ## Foundation
 
@@ -1003,14 +1003,14 @@ Storybook stories
 
 ## Storybook ArgType → Zod mapping
 
-The script applies a deterministic mapping. Anything outside this list is **dropped from the catalog** with a warning — AI safety first; you can add it back manually after review.
+The script applies a deterministic mapping. Anything outside this list is **dropped from the catalog** with a warning, AI safety first; you can add it back manually after review.
 
 | Storybook arg | Zod | Notes |
 |---|---|---|
 | `{ control: 'text' }` | `z.string().max(500)` | Length cap prevents prompt-injection-via-text |
 | `{ control: 'number' }` | `z.number()` | If `min`/`max` set, applied via `.min().max()` |
-| `{ control: 'boolean' }` | `z.boolean()` | — |
-| `{ control: 'select', options: [...] }` | `z.enum([...])` | Best case — fully constrained |
+| `{ control: 'boolean' }` | `z.boolean()` | - |
+| `{ control: 'select', options: [...] }` | `z.enum([...])` | Best case, fully constrained |
 | `{ control: 'radio', options: [...] }` | `z.enum([...])` | Same |
 | `{ control: 'color' }` | `z.string().regex(/^#[0-9a-fA-F]{6}$/)` | Hex only |
 | `{ control: 'date' }` | `z.iso.datetime()` | ISO-8601 |
@@ -1073,7 +1073,7 @@ export const components: InferCatalogComponents<typeof catalog> = {
 }
 ```
 
-The `components.tsx` import paths are derived from the story file paths in the manifest (e.g. `src/components/Card/Card.stories.tsx` → `import { Card } from '../components/Card/Card'`). Always review the imports — story file colocation conventions vary.
+The `components.tsx` import paths are derived from the story file paths in the manifest (e.g. `src/components/Card/Card.stories.tsx` → `import { Card } from '../components/Card/Card'`). Always review the imports, story file colocation conventions vary.
 
 ## Validation
 
@@ -1090,7 +1090,7 @@ On any validation failure the script exits 1 and emits no files. The dropped-pro
 The `genui-architect` agent has a "Storybook import" task path (see agent file). When the user has a Storybook setup, the agent should:
 
 1. Probe for the Storybook MCP via `ToolSearch(query="+storybook list-all-documentation")`
-2. If available, capture the manifest and run this script — emit the catalog as the **starting point**
+2. If available, capture the manifest and run this script, emit the catalog as the **starting point**
 3. Hand-tune individual schemas where AI safety demands tighter constraints than the auto-mapping produces
 4. Verify the catalog is wired by sample-rendering a few stories via `mcp__storybook-mcp__preview-stories`
 
@@ -1098,5 +1098,5 @@ When Storybook MCP is **not** available, fall back to the existing manual catalo
 
 ## Why this matters
 
-Without this importer, teams using both Storybook and json-render maintain two parallel definitions: the story file (props + canonical examples) and the catalog (Zod schemas). They drift. The Storybook manifest already carries everything needed to generate the catalog — emitting it once and regenerating on demand keeps Storybook as the single source of truth and eliminates the drift class entirely.
+Without this importer, teams using both Storybook and json-render maintain two parallel definitions: the story file (props + canonical examples) and the catalog (Zod schemas). They drift. The Storybook manifest already carries everything needed to generate the catalog, emitting it once and regenerating on demand keeps Storybook as the single source of truth and eliminates the drift class entirely.
 

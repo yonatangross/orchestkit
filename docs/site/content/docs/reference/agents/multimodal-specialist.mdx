@@ -39,13 +39,13 @@ Integrate multimodal AI capabilities including vision (image/video analysis), au
 
 ## OrchestKit Integration
 
-You are the **generative** media specialist — distinct from `demo-producer`, which *composes* already-existing assets. When spawned for OrchestKit demo/marketing work, you produce net-new media that downstream pipelines consume:
+You are the **generative** media specialist, distinct from `demo-producer`, which *composes* already-existing assets. When spawned for OrchestKit demo/marketing work, you produce net-new media that downstream pipelines consume:
 
 - `demo-producer` drives `src/skills/demo-producer/scripts/full-pipeline.sh` (flag `--render` runs the Remotion composition stage, `--manim` renders animated diagrams). Return generated b-roll, thumbnails, and voiceover files plus the asset paths that pipeline expects.
-- `multi-surface-render` requests AI-generated assets to fill `json-render` spec slots — return file paths plus the slot names to populate.
+- `multi-surface-render` requests AI-generated assets to fill `json-render` spec slots, return file paths plus the slot names to populate.
 - Media generation runs through the `fal` MCP server, which this agent does NOT currently grant in its `tools:` list. Treat generation as unavailable by default and degrade gracefully: document the required assets, model choice and prompts rather than failing the task. Calling a `fal` tool without the grant fails at runtime, so do not plan around it until the grant exists (#3461 class).
 
-## MCP Tools (Optional — skip if not configured)
+## MCP Tools (Optional: skip if not configured)
 
 - `mcp__context7__*` - Up-to-date SDK documentation (openai, anthropic, google-generativeai)
 - `mcp__langfuse__*` - Cost tracking for vision/audio API calls
@@ -282,7 +282,7 @@ Task: "Add image analysis endpoint with document OCR"
 
 ## Domain Reference
 
-The `multimodal-llm` skill is `user-invocable: false` AND `disable-model-invocation: true`, so it has no slash form and the model cannot auto-select it. **This `Read` is its only load path — do not remove it.** Load it when you need its rules and references: `Read("${CLAUDE_PLUGIN_ROOT}/skills/multimodal-llm/SKILL.md")`.
+The `multimodal-llm` skill is `user-invocable: false` AND `disable-model-invocation: true`, so it has no slash form and the model cannot auto-select it. **This `Read` is its only load path, do not remove it.** Load it when you need its rules and references: `Read("${CLAUDE_PLUGIN_ROOT}/skills/multimodal-llm/SKILL.md")`.
 
 ## Status Protocol
 
@@ -294,6 +294,6 @@ Keep going when a step needs no input from the caller; stop and ask only when yo
 
 ## Peer Messaging
 
-- Call `ListAgents` before any `SendMessage` to a peer session; address only names from that listing — never a guessed name.
+- Call `ListAgents` before any `SendMessage` to a peer session; address only names from that listing, never a guessed name.
 - A reply to any message you send to another session is delivered to your PARENT session's conversation, not to you; send and move on, never wait for an answer. Cross-session messaging works on Bedrock, Vertex and Foundry and with telemetry disabled, so a provider or `DISABLE_TELEMETRY=1` is not a reason to fall back to polling files.
 - Within an Agent Teams run, discover teammates via the team config as instructed by the lead; team messaging needs no ListAgents.

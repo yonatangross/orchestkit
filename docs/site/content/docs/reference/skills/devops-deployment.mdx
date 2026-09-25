@@ -5,7 +5,7 @@ description: "Use when setting up CI/CD pipelines, containerizing applications, 
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
-> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+> **Auto-activated**, this skill loads automatically when Claude detects matching context.
 
 <ContextualSkillSidebar slug="devops-deployment" />
 
@@ -402,10 +402,10 @@ ALTER TABLE users ALTER COLUMN email SET NOT NULL;
 
 **Key rules:**
 - Always deploy migrations before the application code that depends on them
-- Never add a NOT NULL column in a single step — use the 3-phase pattern (add nullable, backfill, add constraint)
+- Never add a NOT NULL column in a single step, use the 3-phase pattern (add nullable, backfill, add constraint)
 - Always write a `downgrade()` function so migrations can be rolled back (`alembic downgrade -1`)
 - Always review auto-generated migrations before applying (`alembic revision --autogenerate`)
-- Test rollback procedures regularly — do not assume `downgrade()` works without verification
+- Test rollback procedures regularly, do not assume `downgrade()` works without verification
 - Column renames require a view alias to maintain backward compatibility during rollout
 
 Reference: https://alembic.sqlalchemy.org/en/latest/tutorial.html for revision/upgrade/downgrade mechanics; `ork:database-patterns` for the Python migration workflow.
@@ -473,8 +473,8 @@ tests/
 ```
 
 **Key rules:**
-- Never run containers as root — always create a non-root user with `USER` directive
-- Never pass secrets via `ARG` or `ENV` in the Dockerfile — they are visible in `docker history`
+- Never run containers as root, always create a non-root user with `USER` directive
+- Never pass secrets via `ARG` or `ENV` in the Dockerfile, they are visible in `docker history`
 - Always use a `.dockerignore` to exclude `.env`, `.git`, `node_modules`, and test files
 - Use `COPY --chown` to set file ownership without a separate `chown` layer
 - Prefer minimal base images (`-alpine`) to reduce the CVE surface area
@@ -585,7 +585,7 @@ Reference: `references/docker-patterns.md` (lines 7-50)
 - Use Railway's **shared variables** for cross-service config (DATABASE_URL, REDIS_URL)
 - **Service-specific** variables override shared ones
 - Reference other vars: `${{shared.DATABASE_URL}}`
-- Never hardcode secrets — use Railway's encrypted env vars
+- Never hardcode secrets, use Railway's encrypted env vars
 
 ## Database Provisioning
 
@@ -614,10 +614,10 @@ railway shell              # Open shell in service
 ## Anti-Patterns
 
 **Incorrect:**
-- Running `railway up` from CI without `railway link` — deploys to wrong project
-- Using Dockerfile when Nixpacks handles the stack — unnecessary complexity
-- Storing secrets in railway.json — use env vars
-- Skipping healthcheck config — Railway can't detect failed deploys
+- Running `railway up` from CI without `railway link`, deploys to wrong project
+- Using Dockerfile when Nixpacks handles the stack, unnecessary complexity
+- Storing secrets in railway.json, use env vars
+- Skipping healthcheck config, Railway can't detect failed deploys
 
 **Correct:**
 - Configure healthcheckPath for all web services
@@ -627,9 +627,9 @@ railway shell              # Open shell in service
 
 ## References
 
-- `references/railway-json-config.md` — Full railway.json schema and examples
-- `references/nixpacks-customization.md` — Custom build configs, environment detection
-- `references/multi-service-setup.md` — Monorepo deploy, service networking
+- `references/railway-json-config.md`: Full railway.json schema and examples
+- `references/nixpacks-customization.md`: Custom build configs, environment detection
+- `references/multi-service-setup.md`: Monorepo deploy, service networking
 
 
 
@@ -1052,7 +1052,7 @@ API_URL=http://${{api.RAILWAY_PRIVATE_DOMAIN}}:${{api.PORT}}
 **Key points:**
 - Private networking uses internal DNS, no public internet
 - Zero egress costs between services
-- Always use the `PORT` variable — not hardcoded ports
+- Always use the `PORT` variable, not hardcoded ports
 - Services must listen on `0.0.0.0` (not `localhost`)
 
 ## Common Architectures
@@ -1082,7 +1082,7 @@ Use reference variables for cross-service connections:
 
 Railway deploys services in parallel by default. If you need ordering (e.g., run migrations before starting web):
 1. Put migrations in the API service's `startCommand`
-2. Use healthchecks — dependent services will retry connections until the API is healthy
+2. Use healthchecks, dependent services will retry connections until the API is healthy
 3. For strict ordering, use separate deploy triggers via Railway CLI
 
 
@@ -1304,7 +1304,7 @@ Upstream: the in-repo `ork:testing-perf`, `ork:security-patterns` and
 
 # railway.json Configuration
 
-Complete reference for `railway.json` schema — the primary way to configure build and deploy behavior on Railway.
+Complete reference for `railway.json` schema, the primary way to configure build and deploy behavior on Railway.
 
 ## Full Schema
 
@@ -1336,7 +1336,7 @@ Complete reference for `railway.json` schema — the primary way to configure bu
 
 | Builder | When to Use |
 |---------|-------------|
-| `NIXPACKS` | Default — auto-detects language and builds (Node, Python, Go, Rust, etc.) |
+| `NIXPACKS` | Default, auto-detects language and builds (Node, Python, Go, Rust, etc.) |
 | `DOCKERFILE` | Complex builds, multi-stage images, custom system deps |
 | `PAKETO` | Cloud Native Buildpacks alternative |
 

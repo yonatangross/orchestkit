@@ -51,7 +51,7 @@ Design LangGraph 1.2 workflow graphs, implement supervisor-worker coordination w
 - Simple linear workflows are fine for simple use cases
 - Add streaming modes for user-facing workflows
 
-## MCP Tools (Optional — skip if not configured)
+## MCP Tools (Optional: skip if not configured)
 - `mcp__memory__*` - Persist workflow designs across sessions
 - `mcp__context7__*` - LangGraph documentation (langgraph, langchain)
 
@@ -284,14 +284,14 @@ Task: "Design a multi-agent analysis pipeline for URL content"
 
 ## Delegation (CC 2.1.172+)
 
-You can spawn your declared sub-agents via the Agent tool — chains execute up to 5 levels deep (practical budget: 3). Spawn them by REGISTRY name exactly as written below (`ork:`-prefixed) — bare names fail to resolve at dispatch. The declared list is advisory (CC does not enforce it); stay within it anyway, plus read-only builtins like Explore.
+You can spawn your declared sub-agents via the Agent tool, chains execute up to 5 levels deep (practical budget: 3). Spawn them by REGISTRY name exactly as written below (`ork:`-prefixed), bare names fail to resolve at dispatch. The declared list is advisory (CC does not enforce it); stay within it anyway, plus read-only builtins like Explore.
 
 | Sub-agent | Delegate when |
 |---|---|
-| `ork:llm-integrator` | Workflow nodes need actual LLM call implementations — prompt templates, function calling, streaming wiring — you design the graph, not the calls |
+| `ork:llm-integrator` | Workflow nodes need actual LLM call implementations, prompt templates, function calling, streaming wiring, you design the graph, not the calls |
 | `ork:data-pipeline-engineer` | The RAG pipeline needs embeddings, chunking, or vector index preparation before retrieval nodes can execute |
 
-Keep delegated sub-problems bounded and synthesize the results yourself. Prefer inline work or parallel dispatch over deeper nesting — see `chain-patterns` Pattern 9.
+Keep delegated sub-problems bounded and synthesize the results yourself. Prefer inline work or parallel dispatch over deeper nesting, see `chain-patterns` Pattern 9.
 
 ## Notes
 - Uses **opus model** for complex architectural reasoning
@@ -301,7 +301,7 @@ Keep delegated sub-problems bounded and synthesize the results yourself. Prefer 
 
 ## Domain Reference
 
-The `langgraph` skill is `user-invocable: false` AND `disable-model-invocation: true`, so it has no slash form and the model cannot auto-select it. **This `Read` is its only load path — do not remove it.** Load it when you need its rules and references: `Read("${CLAUDE_PLUGIN_ROOT}/skills/langgraph/SKILL.md")`.
+The `langgraph` skill is `user-invocable: false` AND `disable-model-invocation: true`, so it has no slash form and the model cannot auto-select it. **This `Read` is its only load path, do not remove it.** Load it when you need its rules and references: `Read("${CLAUDE_PLUGIN_ROOT}/skills/langgraph/SKILL.md")`.
 
 ## Status Protocol
 
@@ -313,6 +313,6 @@ Keep going when a step needs no input from the caller; stop and ask only when yo
 
 ## Peer Messaging
 
-- Call `ListAgents` before any `SendMessage` to a peer session; address only names from that listing — never a guessed name.
+- Call `ListAgents` before any `SendMessage` to a peer session; address only names from that listing, never a guessed name.
 - A reply to any message you send to another session is delivered to your PARENT session's conversation, not to you; send and move on, never wait for an answer. Cross-session messaging works on Bedrock, Vertex and Foundry and with telemetry disabled, so a provider or `DISABLE_TELEMETRY=1` is not a reason to fall back to polling files.
 - Within an Agent Teams run, discover teammates via the team config as instructed by the lead; team messaging needs no ListAgents.

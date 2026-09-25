@@ -1,15 +1,15 @@
 ---
 title: "Testing Llm"
-description: "LLM and AI testing patterns — mock responses, evaluation with DeepEval/RAGAS, structured output validation, and agentic test patterns (generator, healer, planner). Use when testing AI features, validating LLM outputs, or building evaluation pipelines."
+description: "LLM and AI testing patterns, mock responses, evaluation with DeepEval/RAGAS, structured output validation, and agentic test patterns (generator, healer, planner). Use when testing AI features, validating LLM outputs, or building evaluation pipelines."
 ---
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
-> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+> **Auto-activated**, this skill loads automatically when Claude detects matching context.
 
 <ContextualSkillSidebar slug="testing-llm" />
 
-> **Testing Llm** LLM and AI testing patterns — mock responses, evaluation with DeepEval/RAGAS, structured output validation, and agentic test patterns (generator, healer, planner). Use when testing AI features, validating LLM outputs, or building evaluation pipelines.
+> **Testing Llm** LLM and AI testing patterns, mock responses, evaluation with DeepEval/RAGAS, structured output validation, and agentic test patterns (generator, healer, planner). Use when testing AI features, validating LLM outputs, or building evaluation pipelines.
 
 
 # LLM & AI Testing Patterns
@@ -108,7 +108,7 @@ print(metric.score, metric.reason)
 # 0.62  "Response addresses the topic but omits the date asked for."
 ```
 
-**RAGAS** uses a class-based metric API — instantiate metric classes and pass an `EvaluationDataset`. `llm=` is optional; omit it to use the configured default grader:
+**RAGAS** uses a class-based metric API, instantiate metric classes and pass an `EvaluationDataset`. `llm=` is optional; omit it to use the configured default grader:
 
 ```python
 from ragas import evaluate
@@ -200,12 +200,12 @@ its refusal to touch test logic are house limits rather than vendor defaults.
 
 For every LLM integration, cover these paths:
 
-- **Empty/null inputs** -- empty strings, None values
-- **Long inputs** -- truncation behavior near token limits
-- **Timeouts** -- fail-open vs fail-closed behavior
-- **Schema violations** -- invalid structured output
-- **Prompt injection** -- adversarial input resistance
-- **Unicode** -- non-ASCII characters in prompts and responses
+- **Empty/null inputs**: empty strings, None values
+- **Long inputs**: truncation behavior near token limits
+- **Timeouts**: fail-open vs fail-closed behavior
+- **Schema violations**: invalid structured output
+- **Prompt injection**: adversarial input resistance
+- **Unicode**: non-ASCII characters in prompts and responses
 
 See `checklists/llm-test-checklist.md` for the complete checklist.
 
@@ -222,9 +222,9 @@ See `checklists/llm-test-checklist.md` for the complete checklist.
 
 ## Related Skills
 
-- `ork:testing-unit` — Unit testing fundamentals, AAA pattern
-- `ork:testing-integration` — Integration testing for AI pipelines
-- `ork:golden-dataset` — Evaluation dataset management
+- `ork:testing-unit`: Unit testing fundamentals, AAA pattern
+- `ork:testing-integration`: Integration testing for AI pipelines
+- `ork:golden-dataset`: Evaluation dataset management
 - `ork:testing-e2e` owns the Planner and Generator agent workflow and the Playwright locator ladder
 - `ork:testing-perf` owns the latency and load budgets referenced in `references/ork-delta.md`
 
@@ -266,7 +266,7 @@ assert_test(test_case, metrics)
 | Hallucination | &lt;= 0.3 | No fabricated facts |
 | Context Precision | >= 0.7 | Retrieved contexts relevant |
 
-**Incorrect — Testing only the output exists:**
+**Incorrect, Testing only the output exists:**
 ```python
 def test_llm_response():
     result = get_llm_answer("What is Paris?")
@@ -274,7 +274,7 @@ def test_llm_response():
     # No quality validation
 ```
 
-**Correct — Testing multiple quality dimensions:**
+**Correct, Testing multiple quality dimensions:**
 ```python
 test_case = LLMTestCase(
     input="What is the capital of France?",
@@ -330,7 +330,7 @@ async def test_structured_output():
 | Timeout | Always test with &lt; 1s timeout |
 | Edge cases | Test all null/empty paths |
 
-**Incorrect — No schema validation on LLM output:**
+**Incorrect, No schema validation on LLM output:**
 ```python
 async def test_llm_response():
     result = await get_llm_response("test query")
@@ -338,7 +338,7 @@ async def test_llm_response():
     assert result["confidence"] > 0  # No type checking
 ```
 
-**Correct — Pydantic validation ensures schema correctness:**
+**Correct, Pydantic validation ensures schema correctness:**
 ```python
 class LLMResponse(BaseModel):
     answer: str = Field(min_length=1)
@@ -399,7 +399,7 @@ async def test_llm_integration():
 | Timeout | Always test with &lt; 1s timeout |
 | Edge cases | Test all null/empty paths |
 
-**Incorrect — Testing against live LLM API in CI:**
+**Incorrect, Testing against live LLM API in CI:**
 ```python
 async def test_summarize():
     response = await openai.chat.completions.create(
@@ -409,7 +409,7 @@ async def test_summarize():
     # Slow, expensive, non-deterministic
 ```
 
-**Correct — Mocking LLM for fast, deterministic tests:**
+**Correct, Mocking LLM for fast, deterministic tests:**
 ```python
 @pytest.fixture
 def mock_llm():
@@ -472,14 +472,14 @@ def vcr_config():
 - Not filtering sensitive data
 - Missing cassettes in git
 
-**Incorrect — Recording mode allows live API calls in CI:**
+**Incorrect, Recording mode allows live API calls in CI:**
 ```python
 @pytest.fixture(scope="module")
 def vcr_config():
     return {"record_mode": "all"}  # Makes live calls in CI
 ```
 
-**Correct — CI uses 'none' mode to prevent live calls:**
+**Correct, CI uses 'none' mode to prevent live calls:**
 ```python
 @pytest.fixture(scope="module")
 def vcr_config():
@@ -593,7 +593,7 @@ def score_item(item):
             return 1
 ```
 
-`start_observation` returns a span object, not a context manager — putting it inside `with` raises `TypeError` ("does not support the context manager protocol" on 3.11+). The `with` form is `start_as_current_observation`. Prefer `@observe` when the function boundary is the span — but never around `run_experiment` itself: it copies one context for every item, so all item spans would share a single trace_id.
+`start_observation` returns a span object, not a context manager, putting it inside `with` raises `TypeError` ("does not support the context manager protocol" on 3.11+). The `with` form is `start_as_current_observation`. Prefer `@observe` when the function boundary is the span, but never around `run_experiment` itself: it copies one context for every item, so all item spans would share a single trace_id.
 
 ## Dataset run
 
@@ -607,7 +607,7 @@ def task(*, item, **kwargs):
 result = dataset.run_experiment(name="golden-v4", task=task)
 ```
 
-Local items, no remote dataset: `langfuse.run_experiment(name="...", data=[...], task=task)` — the kwarg is `data`, not `dataset`.
+Local items, no remote dataset: `langfuse.run_experiment(name="...", data=[...], task=task)`, the kwarg is `data`, not `dataset`.
 
 Existing traces, not a dataset: `langfuse.run_batched_evaluation(scope="traces", mapper=to_inputs, evaluators=[...])`. That reader still talks to the platform v3 traces API. Do not use it as a substitute for `dataset.run_experiment` on a golden set.
 

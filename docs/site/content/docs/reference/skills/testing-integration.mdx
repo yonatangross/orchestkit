@@ -1,15 +1,15 @@
 ---
 title: "Testing Integration"
-description: "Integration and contract testing patterns — API endpoint tests, component integration, database testing, Pact contract verification, property-based testing, and Zod schema validation. Use when testing API boundaries, verifying contracts, or validating cross-service integration."
+description: "Integration and contract testing patterns, API endpoint tests, component integration, database testing, Pact contract verification, property-based testing, and Zod schema validation. Use when testing API boundaries, verifying contracts, or validating cross-service integration."
 ---
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
-> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+> **Auto-activated**, this skill loads automatically when Claude detects matching context.
 
 <ContextualSkillSidebar slug="testing-integration" />
 
-> **Testing Integration** Integration and contract testing patterns — API endpoint tests, component integration, database testing, Pact contract verification, property-based testing, and Zod schema validation. Use when testing API boundaries, verifying contracts, or validating cross-service integration.
+> **Testing Integration** Integration and contract testing patterns, API endpoint tests, component integration, database testing, Pact contract verification, property-based testing, and Zod schema validation. Use when testing API boundaries, verifying contracts, or validating cross-service integration.
 
 
 # Integration & Contract Testing
@@ -87,13 +87,13 @@ convention and the matcher table. The rules that have no upstream home at all li
 
 ---
 
-## Stateful API Testing (emulate — FIRST CHOICE)
+## Stateful API Testing (emulate: FIRST CHOICE)
 
-For GitHub, Vercel, and Google API integration tests, **emulate is the first choice**. It provides full state machines that model real API behavior — not static mocks.
+For GitHub, Vercel, and Google API integration tests, **emulate is the first choice**. It provides full state machines that model real API behavior, not static mocks.
 
 | Tool | Best For |
 |------|----------|
-| **emulate** | Stateful API tests (GitHub/Vercel/Google) — FIRST CHOICE |
+| **emulate** | Stateful API tests (GitHub/Vercel/Google), FIRST CHOICE |
 | Pact | Cross-team contract verification |
 | MSW | Frontend HTTP mocking (simple request/response) |
 | Nock | Node.js unit-level HTTP interception |
@@ -104,9 +104,9 @@ See `rules/emulate-stateful-testing.md` for the full decision matrix, seed-start
 
 ## Testcontainers (real dependencies in CI)
 
-When contract tests and emulate aren't enough — e.g. testing against real Postgres, Redis, Kafka, or an S3-compatible store — **Testcontainers** spins up ephemeral Docker containers per test and tears them down afterward. `path_patterns` above already matches `**/testcontainers/**`; use these patterns there.
+When contract tests and emulate aren't enough, e.g. testing against real Postgres, Redis, Kafka, or an S3-compatible store, **Testcontainers** spins up ephemeral Docker containers per test and tears them down afterward. `path_patterns` above already matches `**/testcontainers/**`; use these patterns there.
 
-**Target**: `testcontainers >= 11.0.0` (Node) — v11 (Q1 2026) added named-network auto-cleanup, reusable containers via `.withReuse()`, and first-class Podman support.
+**Target**: `testcontainers >= 11.0.0` (Node), v11 (Q1 2026) added named-network auto-cleanup, reusable containers via `.withReuse()`, and first-class Podman support.
 
 ### Node.js (testcontainers-node)
 
@@ -239,12 +239,12 @@ async def test_create_user(client: AsyncClient):
 
 ## Key Principles
 
-1. **Test at boundaries** -- API inputs, database queries, service calls, external integrations
-2. **Fresh state per test** -- In-memory databases, transaction rollback, no shared mutable state
-3. **Use matchers in contracts** -- `Like()`, `EachLike()`, `Term()` instead of exact values
-4. **Property-based for invariants** -- Roundtrip, idempotence, commutativity properties
-5. **Validate schemas at edges** -- Zod `.safeParse()` at every API boundary
-6. **Evidence-backed completion** -- Exit code 0, coverage reports, timestamps
+1. **Test at boundaries**: API inputs, database queries, service calls, external integrations
+2. **Fresh state per test**: In-memory databases, transaction rollback, no shared mutable state
+3. **Use matchers in contracts**: `Like()`, `EachLike()`, `Term()` instead of exact values
+4. **Property-based for invariants**: Roundtrip, idempotence, commutativity properties
+5. **Validate schemas at edges**: Zod `.safeParse()` at every API boundary
+6. **Evidence-backed completion**: Exit code 0, coverage reports, timestamps
 
 ---
 
@@ -260,11 +260,11 @@ async def test_create_user(client: AsyncClient):
 
 ## Related Skills
 
-- `ork:testing-unit` — Unit testing patterns, fixtures, mocking
-- `ork:testing-e2e` — End-to-end Playwright tests
-- `ork:emulate-seed` — Seed configuration authoring for emulate providers
-- `ork:database-patterns` — Database schema and migration patterns
-- `ork:api-design` — API design patterns for endpoint testing
+- `ork:testing-unit`: Unit testing patterns, fixtures, mocking
+- `ork:testing-e2e`: End-to-end Playwright tests
+- `ork:emulate-seed`: Seed configuration authoring for emulate providers
+- `ork:database-patterns`: Database schema and migration patterns
+- `ork:api-design`: API design patterns for endpoint testing
 
 
 ---
@@ -280,10 +280,10 @@ async def test_create_user(client: AsyncClient):
 
 | Tool | Use When | Stateful? | API Fidelity |
 |------|----------|-----------|--------------|
-| **emulate** (FIRST CHOICE) | GitHub/Vercel/Google API tests | Yes — full state machines | HIGH — realistic transitions |
-| Pact | Cross-team contract verification | No — contract snapshots | MEDIUM — schema-level |
-| MSW | Frontend HTTP mocking, simple request/response | No — static handlers | LOW — manual stubs |
-| Nock | Node.js HTTP interception, unit-level | No — recorded responses | LOW — replay only |
+| **emulate** (FIRST CHOICE) | GitHub/Vercel/Google API tests | Yes, full state machines | HIGH, realistic transitions |
+| Pact | Cross-team contract verification | No, contract snapshots | MEDIUM, schema-level |
+| MSW | Frontend HTTP mocking, simple request/response | No, static handlers | LOW, manual stubs |
+| Nock | Node.js HTTP interception, unit-level | No, recorded responses | LOW, replay only |
 
 ## Pattern: Seed -> Start -> Test -> Assert State
 
@@ -328,7 +328,7 @@ describe('GitHub PR workflow', () => {
 | `VERCEL_API_BASE` | Override Vercel API base URL to emulate |
 | `GOOGLE_API_BASE` | Override Google API base URL to emulate |
 
-**Incorrect -- mocking GitHub API responses with nock for stateful tests:**
+**Incorrect, mocking GitHub API responses with nock for stateful tests:**
 ```typescript
 // Nock cannot model state transitions — merge won't update PR state
 nock('https://api.github.com')
@@ -339,7 +339,7 @@ nock('https://api.github.com')
   .reply(200, { state: 'closed', merged: true }); // Manually faked — no real state machine
 ```
 
-**Correct -- using emulate with seed config for full state machine testing:**
+**Correct, using emulate with seed config for full state machine testing:**
 ```typescript
 const emulator = await createEmulator({
   service: 'github',
@@ -355,8 +355,8 @@ expect(pr.data.state).toBe('closed'); // Real state machine, not faked
 
 ## Related Skills
 
-- `emulate-seed` — Seed configuration authoring for emulate providers
-- `testing-e2e` — E2E tests can also use emulate backends
+- `emulate-seed`: Seed configuration authoring for emulate providers
+- `testing-e2e`: E2E tests can also use emulate backends
 
 
 ### Validate API contract correctness and error handling through HTTP-level integration tests: HIGH
@@ -422,7 +422,7 @@ async def test_create_user(client: AsyncClient):
 | Service layer | 80%+ |
 | Component interactions | 70%+ |
 
-**Incorrect — Only testing happy path:**
+**Incorrect, Only testing happy path:**
 ```typescript
 test('creates user', async () => {
   const response = await request(app)
@@ -433,7 +433,7 @@ test('creates user', async () => {
 });
 ```
 
-**Correct — Testing both success and error cases:**
+**Correct, Testing both success and error cases:**
 ```typescript
 test('creates user with valid data', async () => {
   const response = await request(app)
@@ -452,7 +452,7 @@ test('rejects invalid email', async () => {
 
 ## RFC 9457 Error Response Assertions
 
-When APIs return RFC 9457 Problem Details, assert the structured fields — not just status codes:
+When APIs return RFC 9457 Problem Details, assert the structured fields, not just status codes:
 
 ```typescript
 // Assert RFC 9457 structure on error responses
@@ -476,7 +476,7 @@ test('rate limit returns structured error with retry_after', async () => {
 });
 ```
 
-**Incorrect — asserting only status code:**
+**Incorrect, asserting only status code:**
 ```typescript
 test('returns 429', async () => {
   const response = await request(app).get('/api/data');
@@ -485,7 +485,7 @@ test('returns 429', async () => {
 });
 ```
 
-**Correct — asserting RFC 9457 structure for agent consumers:**
+**Correct, asserting RFC 9457 structure for agent consumers:**
 ```typescript
 test('returns structured 429 with retry signal', async () => {
   const response = await request(app).get('/api/data');
@@ -529,7 +529,7 @@ test('form submits and shows success', async () => {
 - Assert on user-visible outcomes, not implementation details
 - Use `findBy*` for async assertions (auto-waits)
 
-**Incorrect — Testing implementation details:**
+**Incorrect, Testing implementation details:**
 ```typescript
 test('form updates state', () => {
   const { result } = renderHook(() => useFormState());
@@ -539,7 +539,7 @@ test('form updates state', () => {
 });
 ```
 
-**Correct — Testing user-visible behavior:**
+**Correct, Testing user-visible behavior:**
 ```typescript
 test('form submits and shows success', async () => {
   const user = userEvent.setup();
@@ -593,7 +593,7 @@ def db_session():
 - Testing against production APIs
 - Slow setup/teardown
 
-**Incorrect — Shared database state across tests:**
+**Incorrect, Shared database state across tests:**
 ```python
 engine = create_engine("sqlite:///test.db")  # File-based, persistent
 
@@ -602,7 +602,7 @@ def test_create_user():
     # Leaves data behind for next test
 ```
 
-**Correct — Fresh in-memory database per test:**
+**Correct, Fresh in-memory database per test:**
 ```python
 @pytest.fixture(scope="function")
 def db_session():
@@ -620,7 +620,7 @@ def db_session():
 
 ## Zod Schema Validation Testing
 
-**Incorrect -- no validation at API boundaries:**
+**Incorrect, no validation at API boundaries:**
 ```typescript
 // Trusting external data without validation
 app.post('/users', (req, res) => {
@@ -632,7 +632,7 @@ app.post('/users', (req, res) => {
 const data: any = await fetch('/api').then(r => r.json())
 ```
 
-**Correct -- Zod schema validation at boundaries:**
+**Correct, Zod schema validation at boundaries:**
 ```typescript
 import { z } from 'zod'
 
@@ -654,7 +654,7 @@ if (!result.success) {
 const user: User = result.data
 ```
 
-**Correct -- branded types to prevent ID confusion:**
+**Correct, branded types to prevent ID confusion:**
 ```typescript
 const UserId = z.uuid().brand<'UserId'>()
 const AnalysisId = z.uuid().brand<'AnalysisId'>()
@@ -666,7 +666,7 @@ function deleteAnalysis(id: AnalysisId): void { /* ... */ }
 deleteAnalysis(userId) // Compile error: UserId not assignable to AnalysisId
 ```
 
-**Correct -- exhaustive type checking:**
+**Correct, exhaustive type checking:**
 ```typescript
 function assertNever(x: never): never {
   throw new Error("Unexpected value: " + x)
@@ -761,7 +761,7 @@ pact-broker can-i-deploy \
 | Consumer selectors | mainBranch + deployedOrReleased |
 | Matchers | Use Like(), EachLike() for flexibility |
 
-**Incorrect — Hardcoding exact values in contract:**
+**Incorrect, Hardcoding exact values in contract:**
 ```python
 .will_respond_with(200, body={
     "id": "user-123",  # Breaks if ID changes
@@ -769,7 +769,7 @@ pact-broker can-i-deploy \
 })
 ```
 
-**Correct — Using matchers for flexible contracts:**
+**Correct, Using matchers for flexible contracts:**
 ```python
 .will_respond_with(200, body={
     "id": Like("user-123"),  # Matches any string
@@ -839,7 +839,7 @@ def test_username(name):
     User(name=name)
 ```
 
-**Incorrect — Not tracking model state, missing invariant violations:**
+**Incorrect, Not tracking model state, missing invariant violations:**
 ```python
 class CartStateMachine(RuleBasedStateMachine):
     @rule(item=st.text())
@@ -848,7 +848,7 @@ class CartStateMachine(RuleBasedStateMachine):
         # Not tracking expected state
 ```
 
-**Correct — Tracking model state to verify invariants:**
+**Correct, Tracking model state to verify invariants:**
 ```python
 class CartStateMachine(RuleBasedStateMachine):
     def __init__(self):
@@ -869,13 +869,13 @@ class CartStateMachine(RuleBasedStateMachine):
 
 ## Evidence Verification for Task Completion
 
-**Incorrect -- claiming completion without proof:**
+**Incorrect, claiming completion without proof:**
 ```markdown
 "I've implemented the login feature. It should work correctly."
 # No tests run, no build verified, no evidence collected
 ```
 
-**Correct -- evidence-backed task completion:**
+**Correct, evidence-backed task completion:**
 ```markdown
 "I've implemented the login feature. Evidence:
 - Tests: Exit code 0, 12 tests passed, 0 failed
@@ -932,7 +932,7 @@ mypy .                 # Type checker
 ```
 
 Key principles:
-- Show, don't tell -- no task is complete without verifiable evidence
+- Show, don't tell, no task is complete without verifiable evidence
 - Never fake evidence or mark tasks complete on failed evidence
 - Exit code 0 is the universal success indicator
 - Re-collect evidence after any changes
@@ -994,14 +994,14 @@ def test_normalize_idempotent(text):
 | Deadline | Disable for slow tests, 200ms default |
 | Stateful tests | RuleBasedStateMachine for state machines |
 
-**Incorrect — Testing specific examples only:**
+**Incorrect, Testing specific examples only:**
 ```python
 def test_sort():
     assert sort([3, 1, 2]) == [1, 2, 3]
     # Only tests one specific case
 ```
 
-**Correct — Testing universal properties for all inputs:**
+**Correct, Testing universal properties for all inputs:**
 ```python
 @given(st.lists(st.integers()))
 def test_sort_properties(lst):

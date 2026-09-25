@@ -5,7 +5,7 @@ description: "Responsive design with Container Queries, fluid typography, cqi/cq
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
-> **Not directly invocable** — no slash command and no model auto-selection. An agent loads it explicitly via `Read()`.
+> **Not directly invocable**, no slash command and no model auto-selection. An agent loads it explicitly via `Read()`.
 
 <ContextualSkillSidebar slug="responsive-patterns" />
 
@@ -216,7 +216,7 @@ Load on demand with `Read("references/<file>")`:
 
 Use Motion (Framer Motion) for React component animations and View Transitions API for page navigation with consistent presets.
 
-**Incorrect — inline animation values without presets:**
+**Incorrect, inline animation values without presets:**
 ```tsx
 // WRONG: Inconsistent animation values, no reduced-motion support
 <motion.div
@@ -228,7 +228,7 @@ Use Motion (Framer Motion) for React component animations and View Transitions A
 </motion.div>
 ```
 
-**Correct — centralized presets with AnimatePresence:**
+**Correct, centralized presets with AnimatePresence:**
 ```tsx
 // lib/animations.ts — Single source of truth
 export const fadeInUp = {
@@ -291,7 +291,7 @@ function ProductCard({ product }: { product: Product }) {
 - Animate only `transform` and `opacity` for 60fps (hardware accelerated)
 - Use centralized preset files, never inline animation values
 - Always wrap conditional renders in `AnimatePresence` for exit animations
-- Respect `prefers-reduced-motion: reduce` — disable or shorten animations
+- Respect `prefers-reduced-motion: reduce`, disable or shorten animations
 - Keep transitions under 400ms to avoid blocking user interaction
 - Use View Transitions API for page navigation, Motion for component animations
 
@@ -303,7 +303,7 @@ function ProductCard({ product }: { product: Product }) {
 
 Use CSS Scroll-Driven Animations API for performant, declarative scroll-linked effects without JavaScript.
 
-**Incorrect — JavaScript scroll listener (jank-prone):**
+**Incorrect, JavaScript scroll listener (jank-prone):**
 ```javascript
 // WRONG: Scroll listeners run on main thread, cause jank
 window.addEventListener('scroll', () => {
@@ -313,7 +313,7 @@ window.addEventListener('scroll', () => {
 });
 ```
 
-**Correct — CSS Scroll-Driven Animations (compositor thread):**
+**Correct, CSS Scroll-Driven Animations (compositor thread):**
 ```css
 /* Reading progress bar — zero JavaScript */
 .progress-bar {
@@ -401,7 +401,7 @@ window.addEventListener('scroll', () => {
 - Use `scroll(root block)` for page-level progress, `view()` for element visibility
 - `animation-range` controls when animation starts/ends relative to viewport
 - Never use JavaScript scroll listeners for visual effects (use CSS or IntersectionObserver)
-- Respect `prefers-reduced-motion` — disable parallax and motion effects
+- Respect `prefers-reduced-motion`, disable parallax and motion effects
 
 
 ### Use intrinsically responsive layouts with auto-fit, clamp, and container queries instead of media query breakpoints: HIGH
@@ -411,7 +411,7 @@ window.addEventListener('scroll', () => {
 
 Build layouts that adapt to available space without media queries. Use `auto-fit`/`minmax()` for grids, `clamp()` for fluid values, and container queries for component logic.
 
-**Incorrect — many media query breakpoints for component internals:**
+**Incorrect, many media query breakpoints for component internals:**
 ```css
 /* WRONG: Breakpoint soup for a simple card grid */
 .card-grid {
@@ -428,7 +428,7 @@ Build layouts that adapt to available space without media queries. Use `auto-fit
 @media (min-width: 1024px) { .card-title { font-size: 1.5rem; } }
 ```
 
-**Correct — intrinsic sizing, zero breakpoints:**
+**Correct, intrinsic sizing, zero breakpoints:**
 ```css
 /* Auto-adapting grid: columns appear/disappear based on space */
 .card-grid {
@@ -497,7 +497,7 @@ Build layouts that adapt to available space without media queries. Use `auto-fit
 ```
 
 **Key rules:**
-- Use `repeat(auto-fit, minmax(MIN, 1fr))` for grids — columns adapt automatically
+- Use `repeat(auto-fit, minmax(MIN, 1fr))` for grids, columns adapt automatically
 - Use `clamp(min, preferred, max)` for font-size, padding, gap, and margin
 - Reserve `@media` queries for page-level structure (sidebar, nav, footer layout)
 - Use `@container` queries for component-level responsive logic
@@ -694,7 +694,7 @@ small { font-size: var(--font-size-sm); }
 
 Use `grid-template-columns: subgrid` and `grid-template-rows: subgrid` to inherit parent grid tracks in nested elements. Baseline 2023+ (Chrome 117, Safari 16, Firefox 71).
 
-**Incorrect — manually duplicating parent grid columns:**
+**Incorrect, manually duplicating parent grid columns:**
 ```css
 /* WRONG: Nested grid duplicates parent's column definition */
 .parent-grid {
@@ -713,7 +713,7 @@ Use `grid-template-columns: subgrid` and `grid-template-rows: subgrid` to inheri
 /* If parent columns change, every child must be updated */
 ```
 
-**Correct — subgrid inherits parent tracks automatically:**
+**Correct, subgrid inherits parent tracks automatically:**
 ```css
 .parent-grid {
   display: grid;
@@ -773,7 +773,7 @@ Use `grid-template-columns: subgrid` and `grid-template-rows: subgrid` to inheri
 - `grid-row: span N` is required so the child occupies tracks to inherit
 - Subgrid works for columns, rows, or both simultaneously
 - Combine with `auto-fit`/`minmax()` on parent for responsive card grids
-- Subgrid inherits the parent's `gap` — override with `gap` on the child if needed
+- Subgrid inherits the parent's `gap`, override with `gap` on the child if needed
 - Baseline 2023+: Chrome 117+, Safari 16+, Firefox 71+, Edge 117+
 
 
@@ -784,14 +784,14 @@ Use `grid-template-columns: subgrid` and `grid-template-rows: subgrid` to inheri
 
 Implement offline-first patterns, background sync, install prompts, and web app manifests for native-like PWA experiences.
 
-**Incorrect — no offline fallback or install handling:**
+**Incorrect, no offline fallback or install handling:**
 ```javascript
 // WRONG: App crashes when offline
 // No service worker fallback, no install prompt handling
 // Users get browser error page instead of offline experience
 ```
 
-**Correct — offline status hook and install prompt:**
+**Correct, offline status hook and install prompt:**
 ```tsx
 // useOnlineStatus hook
 export function useOnlineStatus() {
@@ -887,7 +887,7 @@ registerRoute(
 
 Configure service workers with Workbox 7.x for reliable caching, update management, and installability.
 
-**Incorrect — service worker without update strategy:**
+**Incorrect, service worker without update strategy:**
 ```javascript
 // WRONG: No skipWaiting means users stuck on old version
 self.addEventListener('install', (event) => {
@@ -900,7 +900,7 @@ self.addEventListener('install', (event) => {
 // Missing: skipWaiting, clientsClaim, no update prompt
 ```
 
-**Correct — Workbox with proper caching strategies:**
+**Correct, Workbox with proper caching strategies:**
 ```javascript
 import { registerRoute } from 'workbox-routing';
 import { CacheFirst, NetworkFirst, StaleWhileRevalidate } from 'workbox-strategies';
@@ -1128,7 +1128,7 @@ function ResponsiveImage({
 
 Use `env(safe-area-inset-*)` for notches/cutouts and viewport segment media queries for foldable-aware layouts.
 
-**Incorrect — ignoring safe areas and foldable considerations:**
+**Incorrect, ignoring safe areas and foldable considerations:**
 ```css
 /* WRONG: Content hidden behind notch or fold hinge */
 .app-header {
@@ -1142,7 +1142,7 @@ Use `env(safe-area-inset-*)` for notches/cutouts and viewport segment media quer
 }
 ```
 
-**Correct — safe area insets for notches and cutouts:**
+**Correct, safe area insets for notches and cutouts:**
 ```css
 /* Respect device safe areas (notch, rounded corners, home indicator) */
 .app-header {
@@ -1223,9 +1223,9 @@ Chrome DevTools → Device toolbar → Select "Surface Duo" or "Galaxy Fold"
 - Add `viewport-fit=cover` to the viewport meta tag to enable safe area insets
 - Use `@media (horizontal-viewport-segments: 2)` for side-by-side foldable layouts
 - Use `@media (vertical-viewport-segments: 2)` for top-bottom foldable layouts
-- Keep the hinge/fold area empty — never place interactive content on the seam
+- Keep the hinge/fold area empty, never place interactive content on the seam
 - Test on Chrome DevTools foldable emulators (Surface Duo, Galaxy Fold)
-- Use progressive enhancement — foldable styles layer on top of base layout
+- Use progressive enhancement, foldable styles layer on top of base layout
 
 
 ### Touch target sizing, thumb zones, and mobile interaction principles (Fitts's Law applied): HIGH
@@ -1235,7 +1235,7 @@ Chrome DevTools → Device toolbar → Select "Surface Duo" or "Galaxy Fold"
 
 Apply Fitts's Law and thumb-zone ergonomics to make mobile interfaces fast, reachable, and accessible.
 
-**Incorrect — blocked zoom and undersized targets:**
+**Incorrect, blocked zoom and undersized targets:**
 ```html
 <!-- WRONG: user-scalable=no and maximum-scale=1 are both WCAG violations -->
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
@@ -1245,7 +1245,7 @@ Apply Fitts's Law and thumb-zone ergonomics to make mobile interfaces fast, reac
 .icon-btn { width: 24px; height: 24px; }
 ```
 
-**Correct — proper viewport and 44px minimum tap areas:**
+**Correct, proper viewport and 44px minimum tap areas:**
 ```html
 <!-- CORRECT: Never restrict zoom — users with low vision need it -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -1265,7 +1265,7 @@ Apply Fitts's Law and thumb-zone ergonomics to make mobile interfaces fast, reac
 .secondary-action { min-height: 24px; min-width: 24px; margin: 12px; }
 ```
 
-**Thumb zone — bottom of screen is easy reach; top is hard:**
+**Thumb zone, bottom of screen is easy reach; top is hard:**
 ```tsx
 // PRIMARY actions → bottom 1/3 (easy reach)
 // SECONDARY actions → middle 1/3 (comfortable)
@@ -1310,7 +1310,7 @@ function FAB({ onClick }: { onClick: () => void }) {
 @media (min-width: 1024px) { .card { flex-direction: row; } }
 ```
 
-**Gestures — enhance, never require:**
+**Gestures, enhance, never require:**
 ```tsx
 // CORRECT: swipe is optional; close button is always present
 function BottomSheet({ onClose }: { onClose: () => void }) {
@@ -1329,8 +1329,8 @@ function BottomSheet({ onClose }: { onClose: () => void }) {
 - Minimum touch target: 44x44px (iOS) / 48x48dp (Material) for all primary interactions
 - WCAG 2.5.8 minimum: 24x24px when spacing buffer of 24px separates it from adjacent targets
 - Icon buttons smaller than 44px must use `padding` or a pseudo-element to expand the tap area
-- `user-scalable=no` and `maximum-scale=1` in viewport meta are WCAG accessibility violations — never use them
-- Bottom 1/3 of screen = easy reach — primary actions and navigation belong here
+- `user-scalable=no` and `maximum-scale=1` in viewport meta are WCAG accessibility violations, never use them
+- Bottom 1/3 of screen = easy reach, primary actions and navigation belong here
 - Prefer bottom tab bars over top navigation on mobile; FAB goes bottom-right
 - Always pair swipe/long-press gestures with a visible button alternative
 - Use `env(safe-area-inset-bottom)` on bottom nav and FABs to clear the home indicator

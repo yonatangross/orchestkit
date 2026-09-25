@@ -5,7 +5,7 @@ description: "OKR trees, KPI dashboards, North Star Metric, leading/lagging indi
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
-> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+> **Auto-activated**, this skill loads automatically when Claude detects matching context.
 
 <ContextualSkillSidebar slug="okr-design" />
 
@@ -18,7 +18,7 @@ Structure goals, decompose metrics into KPI trees, identify leading indicators, 
 
 ## OKR Structure
 
-Objectives are qualitative and inspiring. Key Results are quantitative and outcome-focused — never a list of outputs.
+Objectives are qualitative and inspiring. Key Results are quantitative and outcome-focused, never a list of outputs.
 
 ```
 Objective: Qualitative, inspiring goal (70% achievable stretch)
@@ -146,7 +146,7 @@ Events:
   feature_activated { user_id, feature_name, activation_method }
 ```
 
-Event naming: `object_action` in snake_case — `user_signed_up`, `feature_activated`, `subscription_upgraded`.
+Event naming: `object_action` in snake_case, `user_signed_up`, `feature_activated`, `subscription_upgraded`.
 
 See [rules/metrics-instrumentation.md](rules/metrics-instrumentation.md) for the full metric definition template, alerting thresholds, and dashboard design principles.
 
@@ -210,12 +210,12 @@ See [rules/metrics-experiment-design.md](rules/metrics-experiment-design.md) for
 
 ## Related Skills
 
-- `prioritization` — RICE, WSJF, ICE, MoSCoW scoring; OKRs define which KPIs drive RICE impact
-- `product-frameworks` — Full PM toolkit: value prop, competitive analysis, user research, business case
-- `product-analytics` — Instrument and query the metrics defined in OKR trees
-- `write-prd` — Embed success metrics and experiment hypotheses into product requirements
-- `market-sizing` — TAM/SAM/SOM that anchors North Star Metric targets
-- `competitive-analysis` — Competitor benchmarks that inform KR targets
+- `prioritization`: RICE, WSJF, ICE, MoSCoW scoring; OKRs define which KPIs drive RICE impact
+- `product-frameworks`: Full PM toolkit: value prop, competitive analysis, user research, business case
+- `product-analytics`: Instrument and query the metrics defined in OKR trees
+- `write-prd`: Embed success metrics and experiment hypotheses into product requirements
+- `market-sizing`: TAM/SAM/SOM that anchors North Star Metric targets
+- `competitive-analysis`: Competitor benchmarks that inform KR targets
 
 ---
 
@@ -312,9 +312,9 @@ Output (North Star): Weekly Active Teams
 
 ### Experiment Targeting
 
-- **Target input metrics** -- they are directly actionable
-- **Guard output metrics** -- they confirm the input metric change translates to real value
-- **Monitor adjacent inputs** -- ensure one input improvement does not cannibalize another
+- **Target input metrics**: they are directly actionable
+- **Guard output metrics**: they confirm the input metric change translates to real value
+- **Monitor adjacent inputs**: ensure one input improvement does not cannibalize another
 
 ## Pre-Launch Checklist
 
@@ -325,7 +325,7 @@ Output (North Star): Weekly Active Teams
 - [ ] Dashboard or alerts configured for guardrail metrics
 - [ ] Rollback procedure documented
 
-**Incorrect -- launching without guardrails:**
+**Incorrect, launching without guardrails:**
 ```markdown
 Experiment: New checkout flow
 Hypothesis: Will increase conversions
@@ -333,7 +333,7 @@ Plan: Ship to 100% of users on Monday
 Success: Conversions go up
 ```
 
-**Correct -- structured experiment with guardrails:**
+**Correct, structured experiment with guardrails:**
 ```markdown
 Experiment: New checkout flow
 Hypothesis: Reducing steps from 4 to 2 will increase
@@ -489,7 +489,7 @@ We believe [change] will cause [metric] to [improve by X%]
 4. 100% rollout
 ```
 
-**Incorrect — Inconsistent event naming:**
+**Incorrect, Inconsistent event naming:**
 ```json
 {
   "event": "UserSignup",
@@ -498,7 +498,7 @@ We believe [change] will cause [metric] to [improve by X%]
 }
 ```
 
-**Correct — Consistent object_action naming:**
+**Correct, Consistent object_action naming:**
 ```json
 {
   "event": "user_signed_up",
@@ -599,13 +599,13 @@ Baseline + target for each metric in the tree.
 
 ## Best Practices
 
-- **Keep trees 3 levels deep** -- deeper than that and it loses clarity
-- **Every metric has an owner** -- no orphan metrics
-- **Leading indicators at the leaves** -- actionable by teams
-- **Lagging indicators at the root** -- confirms outcomes
-- **Dashboard the tree** -- make it visible to the whole organization
+- **Keep trees 3 levels deep**: deeper than that and it loses clarity
+- **Every metric has an owner**: no orphan metrics
+- **Leading indicators at the leaves**: actionable by teams
+- **Lagging indicators at the root**: confirms outcomes
+- **Dashboard the tree**: make it visible to the whole organization
 
-**Incorrect — Flat metrics without hierarchy:**
+**Incorrect, Flat metrics without hierarchy:**
 ```markdown
 Q1 Goals:
 - Increase revenue
@@ -613,7 +613,7 @@ Q1 Goals:
 - Reduce churn
 ```
 
-**Correct — KPI tree with cause-effect relationships:**
+**Correct, KPI tree with cause-effect relationships:**
 ```markdown
 Revenue (Lagging)
 ├── New Revenue = Leads × Conv Rate (Leading)
@@ -728,7 +728,7 @@ Leading:
 - **Use lagging indicators** to validate that leading indicators actually predict outcomes
 - **Adjust leading indicators** when correlation breaks down
 
-**Incorrect — Only tracking lagging indicators:**
+**Incorrect, Only tracking lagging indicators:**
 ```markdown
 Monthly Review:
 - Revenue: $485K (missed $500K target)
@@ -737,7 +737,7 @@ Monthly Review:
 [Too late to fix - no early warning]
 ```
 
-**Correct — Paired leading + lagging indicators:**
+**Correct, Paired leading + lagging indicators:**
 ```markdown
 Weekly (Leading):
 - Active users: 12,500 → trend down, investigate
@@ -850,7 +850,7 @@ Individual OKRs (optional, aligns to team)
 | Static goals | Review and adjust quarterly |
 | No baselines | Establish current state before setting targets |
 
-**Incorrect — Outputs instead of outcomes:**
+**Incorrect, Outputs instead of outcomes:**
 ```markdown
 Objective: Build a great product
 
@@ -860,7 +860,7 @@ Key Results:
 - Hold 20 customer interviews
 ```
 
-**Correct — Outcome-focused key results:**
+**Correct, Outcome-focused key results:**
 ```markdown
 Objective: Become the #1 choice for enterprise teams
 

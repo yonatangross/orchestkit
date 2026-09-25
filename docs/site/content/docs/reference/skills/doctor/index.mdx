@@ -26,7 +26,7 @@ FLAG = "$ARGUMENTS[0]"       # First token: -v, --verbose, --json, --category=X
 # $ARGUMENTS[0], $ARGUMENTS[1] for indexed access (CC 2.1.59)
 ```
 
-## STEP 0: Choose Scope (AskUserQuestion — M118 #1464)
+## STEP 0: Choose Scope (AskUserQuestion, M118 #1464)
 
 A full doctor run takes ~20s. Most invocations only need one slice. Ask the user up-front so voice-flow shortcuts ("just the MCPs") map cleanly:
 
@@ -50,7 +50,7 @@ AskUserQuestion(questions=[{
 }])
 ```
 
-Skip the prompt entirely when the scope is unambiguous from the invocation. The fast scopes (3-8s) are 3-7× faster than the full run — voice users say "just the MCPs" and get a 5s answer.
+Skip the prompt entirely when the scope is unambiguous from the invocation. The fast scopes (3-8s) are 3-7× faster than the full run, voice users say "just the MCPs" and get a 5s answer.
 
 ## Overview
 
@@ -112,9 +112,9 @@ doctor --json    # Machine-readable for CI
 | **0. Installed Plugins** | Auto-detects ork plugin, counts skills/agents | load `rules/diagnostic-checks.md` |
 | **1. Skills** | Frontmatter, context field, token budget, links, **activation-channel reachability** (no orphaned user-invocable skills) | load `references/skills-validation.md` |
 | **2. Agents** | Frontmatter, model, skill refs, tool refs | load `references/agents-validation.md` |
-| **3. Hooks** | hooks.json schema, bundles, async patterns — across all three hook scopes: **global**, **agent-scoped**, and **skill-scoped**. Detects the common hook problems: missing files (registered but not on disk), syntax errors in hooks.json or bundles, permission issues (non-executable scripts), and stale references (entries pointing at renamed/removed handlers) | load `references/hook-validation.md` |
+| **3. Hooks** | hooks.json schema, bundles, async patterns, across all three hook scopes: **global**, **agent-scoped**, and **skill-scoped**. Detects the common hook problems: missing files (registered but not on disk), syntax errors in hooks.json or bundles, permission issues (non-executable scripts), and stale references (entries pointing at renamed/removed handlers) | load `references/hook-validation.md` |
 
-> **Activation-channel orphans (repo / pre-release):** a user-invocable skill should be reachable by more than a human typing it — via a chain (another skill references `/ork:<skill>`), a subagent grant (`skills:` in `src/agents/*.md`), or a background trigger. A skill with none is an "island" that silently rots. In a repo checkout, run `npm run test:manifests:channels` (gated in CI via `test:manifests`). Fix an island by wiring any one channel, or add it to `STANDALONE_ALLOWLIST` with a justification.
+> **Activation-channel orphans (repo / pre-release):** a user-invocable skill should be reachable by more than a human typing it, via a chain (another skill references `/ork:<skill>`), a subagent grant (`skills:` in `src/agents/*.md`), or a background trigger. A skill with none is an "island" that silently rots. In a repo checkout, run `npm run test:manifests:channels` (gated in CI via `test:manifests`). Fix an island by wiring any one channel, or add it to `STANDALONE_ALLOWLIST` with a justification.
 
 ### Categories 4-5: System Health
 
@@ -123,11 +123,11 @@ doctor --json    # Machine-readable for CI
 | **4. Memory** | .claude/memory/ graph integrity + queue depth; auto-memory MEMORY.md index budget; per-agent `.claude/agent-memory/NAME/MEMORY.md` (orphans, staleness, 150-line warn, secret/PII) | load `references/memory-health.md` and `references/agent-memory-dir.md` |
 | **5. Build** | plugins/ sync with src/, manifest counts, orphans | load `rules/diagnostic-checks.md` |
 
-> **Analytics writer liveness (System Health):** the local analytics pipeline has several independent JSONL writers under `~/.claude/analytics/` (skill-usage, agent-usage, hook-timing). A writer can die silently while its siblings stay hot — observed once for four months (skill-usage.jsonl, 2026-03 to 2026-07). The check is a peer comparison: flag any watched file whose last write is ≥48h old while a sibling wrote within 24h (`stat -f '%m %N' ~/.claude/analytics/*.jsonl`). The `lifecycle/analytics-liveness-check` SessionStart hook runs the same comparison continuously.
+> **Analytics writer liveness (System Health):** the local analytics pipeline has several independent JSONL writers under `~/.claude/analytics/` (skill-usage, agent-usage, hook-timing). A writer can die silently while its siblings stay hot, observed once for four months (skill-usage.jsonl, 2026-03 to 2026-07). The check is a peer comparison: flag any watched file whose last write is ≥48h old while a sibling wrote within 24h (`stat -f '%m %N' ~/.claude/analytics/*.jsonl`). The `lifecycle/analytics-liveness-check` SessionStart hook runs the same comparison continuously.
 >
-> A flagged writer means the write path was dropped from dispatch, so check **both** surfaces — `src/hooks/hooks.json` AND the entries map (`src/hooks/src/entries/*.ts`). A hook present in one but not the other is registered-looking and silently dead: the #959 failure class. `telemetry-inspect` gives the per-file deep dive, covering the field-level defects this structural check cannot see: constant fields and phantom rows, the two classes fixed in #3034 and #3035 (both closed 2026-07-20). Cite them as prior art, not as open work.
+> A flagged writer means the write path was dropped from dispatch, so check **both** surfaces, `src/hooks/hooks.json` AND the entries map (`src/hooks/src/entries/*.ts`). A hook present in one but not the other is registered-looking and silently dead: the #959 failure class. `telemetry-inspect` gives the per-file deep dive, covering the field-level defects this structural check cannot see: constant fields and phantom rows, the two classes fixed in #3034 and #3035 (both closed 2026-07-20). Cite them as prior art, not as open work.
 >
-> *(Category numbering in this file is inconsistent between the Overview list above and these tables — the Overview numbers 4 as Hook Health, the tables number 4 as Memory. This check belongs to System Health regardless of which numbering a reader follows.)*
+> *(Category numbering in this file is inconsistent between the Overview list above and these tables, the Overview numbers 4 as Hook Health, the tables number 4 as Memory. This check belongs to System Health regardless of which numbering a reader follows.)*
 
 ### Categories 6-9: Infrastructure
 
@@ -193,7 +193,7 @@ WARNING: effort is set to `xhigh`, but <model-id> matches XHIGH_UNSUPPORTED_PREF
 
 ## Report Format
 
-Every category reports an explicit **pass / warn / fail** status, and every warn or fail comes with **specific fix steps** for that failure type (the exact command to run, file to edit, or config to change) — doctor diagnoses AND prescribes, it never just lists problems.
+Every category reports an explicit **pass / warn / fail** status, and every warn or fail comes with **specific fix steps** for that failure type (the exact command to run, file to edit, or config to change), doctor diagnoses AND prescribes, it never just lists problems.
 
 > Load `Read("references/report-format.md")` for ASCII report templates, JSON CI output schema, and exit codes.
 
@@ -201,7 +201,7 @@ Every category reports an explicit **pass / warn / fail** status, and every warn
 
 > Load `Read("references/remediation-guide.md")` for the full results interpretation table and troubleshooting steps for common failures (skills validation, build sync, memory).
 
-> **Bisect with `--safe-mode` (CC 2.1.169+):** when doctor findings don't explain a misbehaving session, restart with `claude --safe-mode` (or `CLAUDE_CODE_SAFE_MODE=1`) — it disables ALL customizations (CLAUDE.md, plugins incl. ork, skills, hooks, MCP). If the problem disappears, it's a customization; re-enable halves to isolate. If it persists, it's CC itself — file upstream.
+> **Bisect with `--safe-mode` (CC 2.1.169+):** when doctor findings don't explain a misbehaving session, restart with `claude --safe-mode` (or `CLAUDE_CODE_SAFE_MODE=1`), it disables ALL customizations (CLAUDE.md, plugins incl. ork, skills, hooks, MCP). If the problem disappears, it's a customization; re-enable halves to isolate. If it persists, it's CC itself, file upstream.
 
 > **Host load vs session load (macOS):** when doctor findings say the session is healthy but the machine is slow, do not diagnose from `memory_pressure`'s "System-wide memory free percentage": it once read 84% free while 59 of 64 GB was in use and swap stood at 6.9 of 8 GB, and the first culprit named from that number was wrong (the real load was a test suite in another project). Read the evidence before naming anything: `sysctl vm.swapusage` for swap, `vm_stat` for the memory split, and a process tree (e.g. `ps aux | sort -nrk 3 | head`) for who is actually consuming.
 
@@ -209,9 +209,9 @@ Every category reports an explicit **pass / warn / fail** status, and every warn
 
 > **CC 2.1.69+**: Run `/reload-plugins` to activate plugin changes in the current session without restarting.
 >
-> **CC 2.1.116+**: `/reload-plugins` and background plugin auto-update now **auto-install missing plugin dependencies** from marketplaces you've already added. If `ork:doctor` flagged a plugin-load failure due to a missing dep, `/reload-plugins` resolves it in place — no manual `plugin install` step needed.
+> **CC 2.1.116+**: `/reload-plugins` and background plugin auto-update now **auto-install missing plugin dependencies** from marketplaces you've already added. If `ork:doctor` flagged a plugin-load failure due to a missing dep, `/reload-plugins` resolves it in place, no manual `plugin install` step needed.
 >
-> **CC 2.1.152+**: For non-plugin **skills** in a skill directory (`~/.claude/skills/` or `.claude/skills/`), run `/reload-skills` to re-scan without restarting — the skill analogue of `/reload-plugins`.
+> **CC 2.1.152+**: For non-plugin **skills** in a skill directory (`~/.claude/skills/` or `.claude/skills/`), run `/reload-skills` to re-scan without restarting, the skill analogue of `/reload-plugins`.
 
 ## Chain: Deeper Audit
 
@@ -221,7 +221,7 @@ Every category reports an explicit **pass / warn / fail** status, and every warn
 > telemetry-inspect
 > ```
 >
-> `doctor` validates structure (manifests, hooks, skills, agents); `telemetry-inspect` validates the *data plane* — every telemetry writer's row count, schema lock, growth trend, and orphaned analytics files that structural checks don't cover.
+> `doctor` validates structure (manifests, hooks, skills, agents); `telemetry-inspect` validates the *data plane*, every telemetry writer's row count, schema lock, growth trend, and orphaned analytics files that structural checks don't cover.
 
 ## Related Skills
 
@@ -274,7 +274,7 @@ This reference is split across 20 pages so each stays under the 25K-token page b
 - [References: Schema Validation](/docs/reference/skills/doctor/references/schema-validation): OrchestKit uses JSON schemas to validate configuration files.
 - [References: Check 16: Operator Settings Posture](/docs/reference/skills/doctor/references/settings-posture): a scope Claude Code actually reads.
 - [References: Skills Validation](/docs/reference/skills/doctor/references/skills-validation): OrchestKit includes 108 skills validated against frontmatter requirements and content standards.
-- [References: Version Compatibility: Overview](/docs/reference/skills/doctor/references/version-compatibility/00-overview): OrchestKit requires Claude Code >= 2.1.277.
-- [References: Version Compatibility: Feature Matrix (part 1)](/docs/reference/skills/doctor/references/version-compatibility/01-feature-matrix-part-1): Part 2 of 4 of Version Compatibility for the Doctor skill.
-- [References: Version Compatibility: Feature Matrix (part 2)](/docs/reference/skills/doctor/references/version-compatibility/02-feature-matrix-part-2): Reading: on this account a user-tier hooks module (mods/lesson-cards via --plugin-dir) does NOT load with CLAUDECODEENABLEFUNCTIONHOOKS unset; the debug log...
-- [References: Version Compatibility: Prompt Caching Recommendation](/docs/reference/skills/doctor/references/version-compatibility/03-prompt-caching-recommendation): For API-key, Bedrock, Vertex, or Foundry users running long OrchestKit sessions (brainstorm, implement, cover chains), enable 1-hour prompt caching
+- [References: Version Compatibility: Overview](/docs/reference/skills/doctor/references/version-compatibility/00-overview): Version Compatibility for the Doctor skill, page 1 of 4: Overview.
+- [References: Version Compatibility: Feature Matrix (part 1 of 2)](/docs/reference/skills/doctor/references/version-compatibility/01-feature-matrix-part-1): Version Compatibility for the Doctor skill, page 2 of 4: Feature Matrix (part 1 of 2).
+- [References: Version Compatibility: Feature Matrix (part 2 of 2)](/docs/reference/skills/doctor/references/version-compatibility/02-feature-matrix-part-2): Version Compatibility for the Doctor skill, page 3 of 4: Feature Matrix (part 2 of 2).
+- [References: Version Compatibility: Prompt Caching Recommendation](/docs/reference/skills/doctor/references/version-compatibility/03-prompt-caching-recommendation): Version Compatibility for the Doctor skill, page 4 of 4: Prompt Caching Recommendation.

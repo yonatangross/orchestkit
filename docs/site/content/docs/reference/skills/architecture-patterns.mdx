@@ -5,14 +5,13 @@ description: "Architecture validation and patterns for clean architecture, backe
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-orange">high</span>
 
-> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+> **Auto-activated**, this skill loads automatically when Claude detects matching context.
 
 <ContextualSkillSidebar slug="architecture-patterns" />
 
 > **Architecture Patterns** Architecture validation and patterns for clean architecture, backend structure enforcement, project structure validation, test standards, and context-aware sizing. Use when designing system boundaries, enforcing layered architecture, validating project structure, defining test standards, or choosing the right architecture tier for project scope.
 
 
-&lt;!-- directive-density: intentional (teaches anti-patterns; NEVER markers describe real layering violations, not aspirational guidance) --&gt;
 
 # Architecture Patterns
 
@@ -142,8 +141,8 @@ Context-aware backend architecture enforcement. Rules adjust strictness based on
 **Enforcement procedure:**
 1. Read project tier from `scope-appropriate-architecture` context (set during brainstorm/implement Step 0)
 2. If no tier set, auto-detect using signals in `Read("rules/right-sizing-tiers.md")`
-3. Apply tier-based enforcement matrix — skip rules marked OFF for detected tier
-4. **Security rules are tier-independent** — always enforce SQL parameterization, input validation, auth checks
+3. Apply tier-based enforcement matrix, skip rules marked OFF for detected tier
+4. **Security rules are tier-independent**: always enforce SQL parameterization, input validation, auth checks
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
@@ -309,7 +308,7 @@ async def get_users(db: AsyncSession):  # Missing Depends()
 | Direct instantiation | Service() without Depends | Use Depends(get_service) |
 | Missing await | Sync calls in async | Add await or use executor |
 
-**Incorrect — direct service instantiation in router:**
+**Incorrect, direct service instantiation in router:**
 ```typescript
 @router.get("/users/{user_id}")
 async def get_user(user_id: int, db: AsyncSession = Depends(get_db)) {
@@ -318,7 +317,7 @@ async def get_user(user_id: int, db: AsyncSession = Depends(get_db)) {
 }
 ```
 
-**Correct — dependency injection with Depends:**
+**Correct, dependency injection with Depends:**
 ```typescript
 @router.get("/users/{user_id}")
 async def get_user(
@@ -380,7 +379,7 @@ async def get_user(user_id: int, service: UserService = Depends(get_user_service
         raise HTTPException(404, "User not found")
 ```
 
-**Incorrect — database logic in router layer:**
+**Incorrect, database logic in router layer:**
 ```typescript
 @router.post("/users")
 async def create_user(data: UserCreate, db: AsyncSession = Depends(get_db)) {
@@ -391,7 +390,7 @@ async def create_user(data: UserCreate, db: AsyncSession = Depends(get_db)) {
 }
 ```
 
-**Correct — router delegates to service layer:**
+**Correct, router delegates to service layer:**
 ```typescript
 @router.post("/users")
 async def create_user(
@@ -438,7 +437,7 @@ await loop.run_in_executor(None, sync_function)
 - Domain exceptions in domain layer, HTTP conversion in routers only
 - All database operations must use `await`
 
-**Incorrect — missing await on async database operation:**
+**Incorrect, missing await on async database operation:**
 ```typescript
 async function getUser(db: AsyncSession, userId: number) {
     result = db.execute(select(User).where(User.id === userId));  // Missing await
@@ -446,7 +445,7 @@ async function getUser(db: AsyncSession, userId: number) {
 }
 ```
 
-**Correct — properly awaiting async database calls:**
+**Correct, properly awaiting async database calls:**
 ```typescript
 async function getUser(db: AsyncSession, userId: number) {
     result = await db.execute(select(User).where(User.id === userId));
@@ -525,7 +524,7 @@ def get_analysis_service(db: AsyncSession = Depends(get_db)) -> AnalysisService:
 | Protocol vs ABC | Protocol (structural typing) |
 | Dataclass vs Pydantic | Dataclass for domain, Pydantic for API |
 
-**Incorrect — service directly depends on concrete implementation:**
+**Incorrect, service directly depends on concrete implementation:**
 ```typescript
 class AnalysisService {
     constructor() {
@@ -534,7 +533,7 @@ class AnalysisService {
 }
 ```
 
-**Correct — service depends on abstraction via protocol:**
+**Correct, service depends on abstraction via protocol:**
 ```typescript
 class IAnalysisRepository(Protocol):
     async def get_by_id(self, id: str) -> Analysis | None: ...
@@ -602,7 +601,7 @@ backend/app/
 - Driving adapters call inward (routes -> services)
 - Driven adapters are called outward (services -> repositories)
 
-**Incorrect — domain layer importing infrastructure:**
+**Incorrect, domain layer importing infrastructure:**
 ```typescript
 // In domains/analysis/services.py
 from infrastructure.repositories.postgres import PostgresAnalysisRepository  // Violates hex arch
@@ -612,7 +611,7 @@ class AnalysisService:
         self.repo = PostgresAnalysisRepository()
 ```
 
-**Correct — domain depends only on ports:**
+**Correct, domain depends only on ports:**
 ```typescript
 // In domains/analysis/repositories.py (port)
 class IAnalysisRepository(Protocol):
@@ -690,7 +689,7 @@ class AnalysisAggregate:
 | Transaction boundary | Service layer, not repository |
 | Event publishing | Collect in aggregate, publish after commit |
 
-**Incorrect — mutable value object violates immutability:**
+**Incorrect, mutable value object violates immutability:**
 ```typescript
 @dataclass
 class AnalysisType:  // Mutable by default
@@ -701,7 +700,7 @@ analysis_type = AnalysisType("security", 2)
 analysis_type.depth = 5  // Can mutate, breaks value object contract
 ```
 
-**Correct — frozen dataclass ensures immutability:**
+**Correct, frozen dataclass ensures immutability:**
 ```typescript
 @dataclass(frozen=True)  // Immutable
 class AnalysisType:
@@ -720,7 +719,7 @@ analysis_type.depth = 5  // FrozenInstanceError
 
 Context-aware recommendations for ORM, auth, error handling, and testing by project tier.
 
-**Incorrect — rolling custom auth for an MVP:**
+**Incorrect, rolling custom auth for an MVP:**
 ```python
 # MVP with 0 users, building custom JWT from scratch
 import jwt
@@ -740,7 +739,7 @@ def create_refresh_token(user_id: str) -> str:
 # +200 LOC for token rotation, revocation, middleware...
 ```
 
-**Correct — managed auth for MVP, custom for production:**
+**Correct, managed auth for MVP, custom for production:**
 ```python
 # MVP: Use managed auth (Supabase/Clerk/Auth0)
 from supabase import create_client
@@ -782,7 +781,7 @@ supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 | CQRS | +300-800 | Read/write models diverge 50%+ |
 
 **Key rules:**
-- MVP auth should use managed services (Supabase, Clerk, Auth0) — auth is a solved problem
+- MVP auth should use managed services (Supabase, Clerk, Auth0), auth is a solved problem
 - Interview testing needs only 3-5 smoke tests proving it works, not 80% coverage
 - Error handling for interviews: try/except with clear HTTP codes, not RFC 9457
 - Add abstractions only when pain appears, not preemptively
@@ -797,7 +796,7 @@ Match architecture complexity to project scope using concrete signals. Read the 
 
 **Enforcement rule:** When reviewing or generating code, check the detected tier FIRST. If a pattern is marked OFF for the current tier, do not suggest or enforce it. If marked WARN, mention the concern but don't block. If marked BLOCK, enforce strictly.
 
-**Incorrect — enterprise patterns for a take-home:**
+**Incorrect, enterprise patterns for a take-home:**
 ```python
 # 4-hour interview take-home with full hexagonal architecture
 # app/domain/repositories/user_repository.py
@@ -811,7 +810,7 @@ class PostgresUserRepository:
     # +300 LOC for a single CRUD entity
 ```
 
-**Correct — right-sized for context:**
+**Correct, right-sized for context:**
 ```python
 # Interview: flat, 3-5 files, 300-600 LOC total
 # main.py — everything in one file
@@ -847,12 +846,12 @@ def list_todos():
 
 | Signal | Interview | MVP | Production | Enterprise |
 |--------|-----------|-----|------------|------------|
-| README mentions take-home | Yes | — | — | — |
-| File count &lt; 10 | Yes | — | — | — |
-| No CI config | — | Yes | — | — |
-| File count &lt; 50 | — | Yes | — | — |
-| Has k8s/terraform | — | — | — | Yes |
-| Has monorepo (packages/) | — | — | — | Yes |
+| README mentions take-home | Yes | - | - | - |
+| File count &lt; 10 | Yes | - | - | - |
+| No CI config | - | Yes | - | - |
+| File count &lt; 50 | - | Yes | - | - |
+| Has k8s/terraform | - | - | - | Yes |
+| Has monorepo (packages/) | - | - | - | Yes |
 
 **Tier-based rule enforcement:**
 
@@ -865,12 +864,12 @@ def list_todos():
 | OpenAPI documentation | OFF | OFF | WARN | BLOCK |
 
 **Key rules:**
-- Default to layered architecture — 80% of projects need layered, not hexagonal
-- Interview threshold is &lt; 10 files — demonstrate thinking, not scaffolding
+- Default to layered architecture, 80% of projects need layered, not hexagonal
+- Interview threshold is &lt; 10 files, demonstrate thinking, not scaffolding
 - Add repository pattern only when 3+ query consumers exist
 - Add CQRS only when read/write models differ by 50%+
 - Security patterns (SQL parameterization, input validation, auth) are ALWAYS enforced regardless of tier
-- User can override detected tier explicitly — respect manual overrides
+- User can override detected tier explicitly, respect manual overrides
 
 
 ### Enforce unidirectional imports to prevent circular dependencies and maintain clean architecture: HIGH
@@ -930,13 +929,13 @@ ALLOWED: app/routers/router_users.py, app/services/user_service.py
 BLOCKED: app/user_service.py (not in services/), app/services/router_users.py (router in services/)
 ```
 
-**Incorrect — feature importing from app layer:**
+**Incorrect, feature importing from app layer:**
 ```typescript
 // In src/features/auth/components/LoginForm.tsx
 import { RootLayout } from '@/app/layout';  // Violates unidirectional flow
 ```
 
-**Correct — feature imports from shared/components only:**
+**Correct, feature imports from shared/components only:**
 ```typescript
 // In src/features/auth/components/LoginForm.tsx
 import { Button } from '@/components/ui/Button';  // Correct direction
@@ -1010,13 +1009,13 @@ import { Button } from '@/components/Button';
 
 Barrel files break tree-shaking, cause circular dependencies, and slow builds.
 
-**Incorrect — excessive nesting depth:**
+**Incorrect, excessive nesting depth:**
 ```typescript
 // 6 levels deep
 src/features/dashboard/widgets/analytics/charts/line/LineChart.tsx
 ```
 
-**Correct — flattened to maximum 4 levels:**
+**Correct, flattened to maximum 4 levels:**
 ```typescript
 // 4 levels, clear hierarchy
 src/features/dashboard/charts/LineChart.tsx
@@ -1093,14 +1092,14 @@ def test_email_validation(self, email: str, expected: bool):
     assert is_valid_email(email) == expected
 ```
 
-**Incorrect — missing AAA structure, unclear test logic:**
+**Incorrect, missing AAA structure, unclear test logic:**
 ```typescript
 test('discount works', () => {
     expect(new DiscountCalculator().calculate(createOrder({ total: 150 }))).toBe(15);
 });
 ```
 
-**Correct — clear AAA sections make test readable:**
+**Correct, clear AAA sections make test readable:**
 ```typescript
 test('should apply 10% discount for orders over $100', () => {
     // Arrange
@@ -1171,7 +1170,7 @@ def db_engine():
 - Include cleanup via `yield` in fixtures
 - 100% coverage required for all new code
 
-**Incorrect — fixture without cleanup leaks resources:**
+**Incorrect, fixture without cleanup leaks resources:**
 ```python
 @pytest.fixture
 def db_session():
@@ -1179,7 +1178,7 @@ def db_session():
     return session  # No cleanup, connection leak
 ```
 
-**Correct — yield ensures cleanup runs:**
+**Correct, yield ensures cleanup runs:**
 ```python
 @pytest.fixture
 def db_session():
@@ -1243,7 +1242,7 @@ BLOCKED:
 - Use "should" or "when" patterns for clarity
 - Place all tests in dedicated test directories
 
-**Incorrect — vague test name provides no context:**
+**Incorrect, vague test name provides no context:**
 ```typescript
 test('works', () => {
     const result = calculateTotal([10, 20]);
@@ -1251,7 +1250,7 @@ test('works', () => {
 });
 ```
 
-**Correct — descriptive name documents behavior:**
+**Correct, descriptive name documents behavior:**
 ```typescript
 test('should sum all item prices when calculating order total', () => {
     const result = calculateTotal([10, 20]);

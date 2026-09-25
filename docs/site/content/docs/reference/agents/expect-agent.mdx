@@ -143,7 +143,7 @@ When testing forms:
 
 ## Status Protocol
 
-Report EVERY step using this exact format. The lead agent parses these lines, and PostToolUse hooks (M125 #6 — `posttool/expect/snapshot-recorder`) match on the `ROUTE|` and `ARIA|` tags.
+Report EVERY step using this exact format. The lead agent parses these lines, and PostToolUse hooks (M125 #6, `posttool/expect/snapshot-recorder`) match on the `ROUTE|` and `ARIA|` tags.
 
 ```
 ROUTE|/login                          # ← required at the start of each route
@@ -167,8 +167,8 @@ Format: `EVENT|payload`. Seven events: `STEP_START`, `STEP_DONE`, `ASSERTION_FAI
 
 ### ROUTE / ARIA emission rules
 
-- **`ROUTE|<path>`** — emit ONCE per route, BEFORE the first STEP_START on that route. The path is the route component (e.g. `/dashboard`, `/login`, `/`), not the full URL.
-- **`ARIA|<json-or-text>`** — emit ONCE per route, AFTER the last STEP_DONE / ASSERTION_FAILED on that route. Capture from `agent-browser snapshot --json` output, then strip newlines (`tr -d '\n'`) and cap at 8KB. If the snapshot exceeds 8KB, emit only the first 8KB — the snapshot recorder caps anyway.
+- **`ROUTE|<path>`**: emit ONCE per route, BEFORE the first STEP_START on that route. The path is the route component (e.g. `/dashboard`, `/login`, `/`), not the full URL.
+- **`ARIA|<json-or-text>`**: emit ONCE per route, AFTER the last STEP_DONE / ASSERTION_FAILED on that route. Capture from `agent-browser snapshot --json` output, then strip newlines (`tr -d '\n'`) and cap at 8KB. If the snapshot exceeds 8KB, emit only the first 8KB, the snapshot recorder caps anyway.
 - **`JEV_SHADOW|<step-id>|<one-line-json>`** : emit ONLY the stdout of `scripts/jev-shadow.sh`, verbatim, right after the step's Jev call and before its STEP_DONE. Never hand-build the line, and never emit it when `ORK_EXPECT_JEV` and `ORK_EXPECT_JEV_SHADOW` are both unset (the script emits nothing then anyway). In shadow mode it logs the Jev pick with probabilities beside your pick plus per-step agreement. In act mode the same record additionally carries `path` and `executed_action`, and `executed_action` is what you run.
 - For multi-route runs, emit `ROUTE|...` and `ARIA|...` per route. The hook persists each separately under `.claude/state/expect-snapshots/<route-slug>/<parent-commit>.json`.
 
@@ -223,7 +223,7 @@ Error occurs
 2. **4-failure circuit breaker.** If 4 consecutive steps fail, STOP the entire run. Output `RUN_COMPLETED|failed|Stopped after 4 consecutive failures`.
 3. **5-minute page timeout.** If a single page takes longer than 5 minutes, skip remaining steps.
 4. **No blind clicking.** Always `snapshot -i` before interacting. Never guess element selectors.
-5. **Screenshot on failure only.** Don't screenshot every step — only on `ASSERTION_FAILED`.
+5. **Screenshot on failure only.** Don't screenshot every step, only on `ASSERTION_FAILED`.
 6. **FORBIDDEN: `agent-browser chat`.** The `chat` subcommand bypasses the STEP_START / STEP_DONE status protocol, disables the ARIA-first workflow, and makes freeform LLM navigation decisions that can't be parsed by the lead agent. Never invoke it from this agent under any circumstance. Use the explicit `open` / `snapshot -i` / `click` / `fill` pipeline instead.
 
 ## Integration
@@ -234,6 +234,6 @@ Error occurs
 
 ## Peer Messaging
 
-- Call `ListAgents` before any `SendMessage` to a peer session; address only names from that listing — never a guessed name.
+- Call `ListAgents` before any `SendMessage` to a peer session; address only names from that listing, never a guessed name.
 - A reply to any message you send to another session is delivered to your PARENT session's conversation, not to you; send and move on, never wait for an answer. Cross-session messaging works on Bedrock, Vertex and Foundry and with telemetry disabled, so a provider or `DISABLE_TELEMETRY=1` is not a reason to fall back to polling files.
 - Within an Agent Teams run, discover teammates via the team config as instructed by the lead; team messaging needs no ListAgents.

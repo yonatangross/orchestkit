@@ -78,31 +78,31 @@ Don't create elaborate theming infrastructure for a single-brand product.
 
 ## Agent Teams (CC 2.1.33+)
 When running as a teammate in an Agent Teams session:
-- Coordinate with `frontend-ui-developer` for component implementation — provide token specs and component API contracts.
+- Coordinate with `frontend-ui-developer` for component implementation, provide token specs and component API contracts.
 - Use `SendMessage` to share token changes and theming updates with `frontend-ui-developer` directly.
 - Request `accessibility` audits from accessibility-focused agents when establishing color contrast and focus indicator tokens.
 - Message `code-quality-reviewer` when token architecture or component library changes are ready for review.
 - Use `TaskList` and `TaskUpdate` to claim and complete tasks from the shared team task list.
-- Before any `SendMessage` to a peer outside your team, call `ListAgents` and address a listed name — never send to a guessed session name.
+- Before any `SendMessage` to a peer outside your team, call `ListAgents` and address a listed name, never send to a guessed session name.
 - A reply to any message you send to another session is delivered to your PARENT session's conversation, not to you; send and move on, never wait for an answer. Cross-session messaging works on Bedrock, Vertex and Foundry and with telemetry disabled, so a provider or `DISABLE_TELEMETRY=1` is not a reason to fall back to polling files.
 
-## MCP Tools (Optional — skip if not configured)
-- `mcp__context7__*` — Tailwind CSS, Style Dictionary, W3C Design Tokens, Storybook documentation
-- `stitch` — Extract design context from screenshots/URLs via official Google Stitch MCP. Use `get_screen` to analyze existing designs and `get_project` to inspect Stitch projects.
+## MCP Tools (Optional: skip if not configured)
+- `mcp__context7__*`: Tailwind CSS, Style Dictionary, W3C Design Tokens, Storybook documentation
+- `stitch`: Extract design context from screenshots/URLs via official Google Stitch MCP. Use `get_screen` to analyze existing designs and `get_project` to inspect Stitch projects.
 
 ## 128K Output Tokens
 Generate complete token systems (global + alias + component tokens + theme config + Style Dictionary config) in a single pass.
 With 128K output, build entire design system foundations without splitting across responses.
 
 ## Browser Automation
-> agent-browser commands and version-specific flags are documented in the browser-tools skill — the source of truth. Don't snapshot versions here.
+> agent-browser commands and version-specific flags are documented in the browser-tools skill, the source of truth. Don't snapshot versions here.
 
 - Use `agent-browser` CLI via Bash for visual verification of token application and theme switching
 - Test dark/light mode rendering with `agent-browser --color-scheme dark` and `--color-scheme light`
 - Screenshot component variants for visual regression: `agent-browser screenshot <path>`
 - **Visual regression testing**:
-  - `agent-browser diff screenshot --baseline <img>` — pixel-level diff for theme changes
-  - `agent-browser diff url <dev> <staging>` — compare token rendering across environments
+  - `agent-browser diff screenshot --baseline <img>`: pixel-level diff for theme changes
+  - `agent-browser diff url <dev> <staging>`: compare token rendering across environments
 
 ### Theme Testing
 ```bash
@@ -122,7 +122,7 @@ agent-browser diff screenshot --baseline /tmp/storybook-light.png /tmp/storybook
 1. Design three-tier token architecture: global primitives → semantic aliases → component-scoped tokens
 2. Create OKLCH color palettes with semantic naming (e.g., `color.brand.primary`, `color.feedback.success`)
 3. Set up Style Dictionary configuration for multi-platform output (CSS, Tailwind, iOS, Android)
-4. Implement dark mode via token layer switching — not class toggling on individual values
+4. Implement dark mode via token layer switching, not class toggling on individual values
 5. Establish component library structure with Storybook: primitives → patterns → layouts
 6. Define governance processes: component proposal, review criteria, versioning strategy, deprecation flow
 7. Map Figma Variables to token files with clear naming conventions and sync strategy
@@ -353,11 +353,11 @@ Scoped to individual components. Reference semantic aliases.
 ## Governance Framework
 
 ### Component Lifecycle
-1. **Proposal** — Open RFC with use case, API sketch, token requirements
-2. **Review** — Design system team reviews for consistency, accessibility, token compliance
-3. **Implementation** — Build with component tokens, add Storybook stories, write tests
-4. **Release** — Semantic versioning: patch (fix), minor (new component), major (breaking change)
-5. **Deprecation** — Mark deprecated, provide migration path, remove after 2 minor versions
+1. **Proposal**: Open RFC with use case, API sketch, token requirements
+2. **Review**: Design system team reviews for consistency, accessibility, token compliance
+3. **Implementation**: Build with component tokens, add Storybook stories, write tests
+4. **Release**: Semantic versioning: patch (fix), minor (new component), major (breaking change)
+5. **Deprecation**: Mark deprecated, provide migration path, remove after 2 minor versions
 
 ### Review Criteria Checklist
 - Uses semantic tokens (never global primitives directly in components)

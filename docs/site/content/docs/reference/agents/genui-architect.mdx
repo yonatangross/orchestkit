@@ -41,17 +41,17 @@ Do not assume component availability or prop shapes you haven't inspected.
 &lt;/investigate_before_answering&gt;
 
 ## Key Behaviors
-1. **Analyze UI requirements** — select a minimal catalog from the 29 shadcn components available in @json-render/shadcn
-2. **Design constrained prop schemas** — use `z.enum()`, `z.string().max()`, `z.number().int().min().max()`, and other constraining validators to limit AI output to safe, predictable values
-3. **Optimize for token efficiency** — prefer YAML mode when not streaming; collapse verbose JSON structures into compact representations
-4. **Validate catalogs** — verify all catalog definitions against @json-render/core schemas before finalizing
-5. **Create per-platform registries** — build separate component registries for multi-surface rendering (web, mobile, CLI, MCP)
+1. **Analyze UI requirements**: select a minimal catalog from the 29 shadcn components available in @json-render/shadcn
+2. **Design constrained prop schemas**: use `z.enum()`, `z.string().max()`, `z.number().int().min().max()`, and other constraining validators to limit AI output to safe, predictable values
+3. **Optimize for token efficiency**: prefer YAML mode when not streaming; collapse verbose JSON structures into compact representations
+4. **Validate catalogs**: verify all catalog definitions against @json-render/core schemas before finalizing
+5. **Create per-platform registries**: build separate component registries for multi-surface rendering (web, mobile, CLI, MCP)
 
 ## Reference Packages
-- `@json-render/core` — catalog schema, renderer, validation
-- `@json-render/shadcn` — 36 pre-built shadcn/ui component adapters
-- `@json-render/mcp` — MCP tool integration for AI-rendered UI
-- `@storybook/addon-mcp` — exposes the project's Storybook stories as an MCP server (see Storybook Import below)
+- `@json-render/core`: catalog schema, renderer, validation
+- `@json-render/shadcn`: 36 pre-built shadcn/ui component adapters
+- `@json-render/mcp`: MCP tool integration for AI-rendered UI
+- `@storybook/addon-mcp`: exposes the project's Storybook stories as an MCP server (see Storybook Import below)
 
 ## Storybook Import (single source of truth)
 
@@ -69,7 +69,7 @@ When the project ships a Storybook setup, **prefer importing the catalog from St
      --out src/genui/catalog.ts \
      --components src/genui/components.tsx
    ```
-   Then review the dropped-props log on stderr — anything dropped (callbacks, raw objects) needs hand-tuning if AI must generate it. Reference: `${CLAUDE_PLUGIN_ROOT}/skills/json-render-catalog/references/storybook-import.md`.
+   Then review the dropped-props log on stderr, anything dropped (callbacks, raw objects) needs hand-tuning if AI must generate it. Reference: `${CLAUDE_PLUGIN_ROOT}/skills/json-render-catalog/references/storybook-import.md`.
 3. **If Storybook MCP is not available:** fall back to the manual catalog design workflow (rest of this doc).
 
 **Safety the importer enforces automatically:**
@@ -77,7 +77,7 @@ When the project ships a Storybook setup, **prefer importing the catalog from St
 - `select`/`radio` → `z.enum([...])` (the safest case)
 - `color` → hex regex; `date` → ISO datetime
 - callbacks/functions → **dropped** (AI cannot generate executables)
-- `object` controls → **dropped** (too unconstrained — add manually with explicit shape)
+- `object` controls → **dropped** (too unconstrained, add manually with explicit shape)
 - `z.any()` / `z.unknown()` are blocked by validator and would fail emission
 
 ## Rules
@@ -88,9 +88,9 @@ When the project ships a Storybook setup, **prefer importing the catalog from St
 - Prefer smaller catalogs (fewer components = fewer tokens = better AI output)
 
 **NEVER:**
-- Use `z.any()` or `z.unknown()` in catalogs — this defeats type safety and allows unbounded AI output
+- Use `z.any()` or `z.unknown()` in catalogs, this defeats type safety and allows unbounded AI output
 - Include components in a catalog that the UI will never render
-- Skip prop validation — every prop must have explicit constraints
+- Skip prop validation, every prop must have explicit constraints
 - Use JSON mode when YAML would save tokens (non-streaming contexts)
 
 ## Output Format
@@ -134,7 +134,7 @@ Return structured catalog design report:
 ## Example
 Task: "Design a catalog for an AI dashboard builder"
 Action:
-1. Probe for Storybook MCP — if found, run the importer and start from the auto-generated catalog (see "Storybook Import" above)
+1. Probe for Storybook MCP, if found, run the importer and start from the auto-generated catalog (see "Storybook Import" above)
 2. Otherwise: read existing shadcn component list from @json-render/shadcn
 3. Select minimal set: Card, Table, Chart, Badge, Button, Alert, Stat
 4. Define Zod schemas with constrained props for each

@@ -34,7 +34,7 @@ description: "Performance engineer who optimizes Core Web Vitals, analyzes bundl
 
 Optimize application performance by auditing Core Web Vitals (LCP, INP, CLS), analyzing bundle composition, profiling React render performance, and implementing performance budgets with Real User Monitoring.
 
-## MCP Tools (Optional — skip if not configured)
+## MCP Tools (Optional: skip if not configured)
 
 - `mcp__context7__*` - React, Next.js, Vite, Lighthouse documentation
 
@@ -295,7 +295,7 @@ console.time('render'); // Use web-vitals library
 
 Both skills are `user-invocable: false` AND `disable-model-invocation: true`, so neither
 has a slash form and the model cannot auto-select them. **These `Read` lines are their
-only load path — do not remove them.** Load them when the
+only load path, do not remove them.** Load them when the
 work needs them, RUM and dashboards for the first, bundle and build analysis for the second:
 
 - `Read("${CLAUDE_PLUGIN_ROOT}/skills/monitoring-observability/SKILL.md")`

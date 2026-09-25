@@ -1,15 +1,15 @@
 ---
 title: "Testing Unit"
-description: "Unit testing patterns for isolated business logic tests — AAA pattern, parametrized tests (test.each, @pytest.mark.parametrize), fixture scoping (function/module/session), mocking with MSW/VCR at network level, and test data management with factories (FactoryBoy, faker-js). Use when writing unit tests, setting up mocks, structuring test data, optimizing test speed, choosing fixture scope, or reducing test boilerplate. Covers Vitest, Jest, pytest."
+description: "Unit testing patterns for isolated business logic tests, AAA pattern, parametrized tests (test.each, @pytest.mark.parametrize), fixture scoping (function/module/session), mocking with MSW/VCR at network level, and test data management with factories (FactoryBoy, faker-js). Use when writing unit tests, setting up mocks, structuring test data, optimizing test speed, choosing fixture scope, or reducing test boilerplate. Covers Vitest, Jest, pytest."
 ---
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
-> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+> **Auto-activated**, this skill loads automatically when Claude detects matching context.
 
 <ContextualSkillSidebar slug="testing-unit" />
 
-> **Testing Unit** Unit testing patterns for isolated business logic tests — AAA pattern, parametrized tests (test.each, @pytest.mark.parametrize), fixture scoping (function/module/session), mocking with MSW/VCR at network level, and test data management with factories (FactoryBoy, faker-js). Use when writing unit tests, setting up mocks, structuring test data, optimizing test speed, choosing fixture scope, or reducing test boilerplate. Covers Vitest, Jest, pytest.
+> **Testing Unit** Unit testing patterns for isolated business logic tests, AAA pattern, parametrized tests (test.each, @pytest.mark.parametrize), fixture scoping (function/module/session), mocking with MSW/VCR at network level, and test data management with factories (FactoryBoy, faker-js). Use when writing unit tests, setting up mocks, structuring test data, optimizing test speed, choosing fixture scope, or reducing test boilerplate. Covers Vitest, Jest, pytest.
 
 
 # Unit Testing Patterns
@@ -23,7 +23,7 @@ Each category has individual rule files in `rules/` loaded on-demand, plus refer
 1. **AAA structure**: Every test MUST follow Arrange-Act-Assert. Use `// Arrange`, `// Act`, `// Assert` comments for clarity.
 2. **Parametrize, don't duplicate**: Use `test.each` (TypeScript) or `@pytest.mark.parametrize` (Python) when testing multiple inputs. Never copy-paste the same test body with different values.
 3. **Fixture scoping matters**: Use `scope="function"` (default) for mutable data. Use `scope="module"` or `scope="session"` ONLY for expensive read-only resources (DB engines, ML models). Mutable data with shared scope causes flaky tests.
-4. **Speed target**: Each unit test should run under **100ms**. If it's slower, you're likely hitting I/O — mock it.
+4. **Speed target**: Each unit test should run under **100ms**. If it's slower, you're likely hitting I/O, mock it.
 5. **Mock at the network level**: Use MSW (TypeScript) or VCR.py (Python) to intercept HTTP at the network layer. Never mock `fetch`/`axios`/`requests` directly.
 
 ## Quick Reference
@@ -46,7 +46,7 @@ Core patterns for structuring isolated unit tests with clear phases and efficien
 | Fixture Scoping | `rules/unit-fixture-scoping.md` | function/module/session scope selection |
 | Parametrized Tests | `rules/unit-parametrized.md` | test.each / @pytest.mark.parametrize |
 
-**Reference:** `references/aaa-pattern.md` — detailed AAA implementation with checklist
+**Reference:** `references/aaa-pattern.md`, detailed AAA implementation with checklist
 
 ## HTTP Mocking
 
@@ -58,14 +58,14 @@ Network-level request interception for deterministic tests without hitting real 
 | VCR.py | `rules/mocking-vcr.md` | Record/replay HTTP cassettes (Python) |
 
 **References:**
-- `references/msw-2x-api.md` — full MSW 2.x API (handlers, GraphQL, WebSocket, passthrough)
-- `references/stateful-testing.md` — Hypothesis RuleBasedStateMachine for stateful tests
+- `references/msw-2x-api.md`: full MSW 2.x API (handlers, GraphQL, WebSocket, passthrough)
+- `references/stateful-testing.md`: Hypothesis RuleBasedStateMachine for stateful tests
 
 **Checklists:**
-- `checklists/msw-setup-checklist.md` — MSW installation, handler setup, test writing
-- `checklists/vcr-checklist.md` — VCR configuration, sensitive data filtering, CI setup
+- `checklists/msw-setup-checklist.md`: MSW installation, handler setup, test writing
+- `checklists/vcr-checklist.md`: VCR configuration, sensitive data filtering, CI setup
 
-**Examples:** `examples/handler-patterns.md` — CRUD, error simulation, auth flow, file upload handlers
+**Examples:** `examples/handler-patterns.md`, CRUD, error simulation, auth flow, file upload handlers
 
 ## Test Data Management
 
@@ -77,9 +77,9 @@ Factories, fixtures, and seeding patterns for isolated, realistic test data.
 | Data Fixtures | `rules/data-fixtures.md` | JSON fixtures with composition |
 | Seeding & Cleanup | `rules/data-seeding-cleanup.md` | Automated DB seeding and teardown |
 
-**Reference:** `references/factory-patterns.md` — advanced factory patterns (Sequence, SubFactory, Traits)
+**Reference:** `references/factory-patterns.md`, advanced factory patterns (Sequence, SubFactory, Traits)
 
-**Checklist:** `checklists/test-data-checklist.md` — data generation, cleanup, isolation verification
+**Checklist:** `checklists/test-data-checklist.md`, data generation, cleanup, isolation verification
 
 ## Quick Start
 
@@ -164,7 +164,7 @@ class TestUserService:
 
 ### aroundEach / aroundAll (preferred for DB transactions)
 
-Wraps each test in setup/teardown — cleaner than separate `beforeEach`/`afterEach` for transactions:
+Wraps each test in setup/teardown, cleaner than separate `beforeEach`/`afterEach` for transactions:
 
 ```typescript
 test.aroundEach(async (runTest, { db }) => {
@@ -201,7 +201,7 @@ const assertPair = vi.defineHelper((a, b) => {
 
 ### Test Tags
 
-Filter tests by tags in CLI — useful for CI fast paths:
+Filter tests by tags in CLI, useful for CI fast paths:
 
 ```typescript
 // vitest.config.ts
@@ -220,7 +220,7 @@ vitest --tags-filter="(unit or integration) and !slow"
 
 ### Agent Reporter
 
-Minimal output (failures only) — use in AI agent / CI contexts:
+Minimal output (failures only), use in AI agent / CI contexts:
 
 ```bash
 AI_AGENT=copilot vitest    # auto-detect agent mode
@@ -236,7 +236,7 @@ AI_AGENT=copilot vitest    # auto-detect agent mode
 | HTTP mocking (Python) | VCR.py with cassettes, filter sensitive data |
 | Test data | Factories (FactoryBoy/faker-js) over hardcoded fixtures |
 | Fixture scope | `scope="function"` for mutable (default). `module`/`session` ONLY for expensive immutable resources |
-| Execution time | Under **100ms** per unit test — if slower, mock external calls |
+| Execution time | Under **100ms** per unit test, if slower, mock external calls |
 | Coverage target | 90%+ business logic, 100% critical paths |
 
 ## Common Mistakes
@@ -246,8 +246,8 @@ AI_AGENT=copilot vitest    # auto-detect agent mode
 3. **Shared mutable state** between tests via module-scoped fixtures (flaky tests)
 4. **Hard-coded test data** with duplicate IDs (test conflicts in parallel runs)
 5. **No cleanup** after database seeding (state leaks between tests)
-6. **Over-mocking** — testing your mocks instead of your code (false confidence)
-7. **Verbose throw mocking** — `mockImplementation(() => { throw err })` instead of `mockThrow(err)` (Vitest 4.1+)
+6. **Over-mocking**: testing your mocks instead of your code (false confidence)
+7. **Verbose throw mocking**: `mockImplementation(() => { throw err })` instead of `mockThrow(err)` (Vitest 4.1+)
 
 ## Scripts
 
@@ -323,7 +323,7 @@ const createAnalysis = (overrides = {}) => ({
 | Faker | Use for realistic random data |
 | Scope | Function-scoped for isolation |
 
-**Incorrect — Hard-coded test data that causes conflicts:**
+**Incorrect, Hard-coded test data that causes conflicts:**
 ```python
 def test_create_user():
     user = User(id=1, email="test@example.com")
@@ -331,7 +331,7 @@ def test_create_user():
     # Hard-coded ID causes failures when test runs multiple times
 ```
 
-**Correct — Factory-generated data with realistic randomization:**
+**Correct, Factory-generated data with realistic randomization:**
 ```python
 def test_create_user():
     user = UserFactory()  # Generates unique email, random name
@@ -398,7 +398,7 @@ def completed_workflow(user_with_analyses):
     return user_with_analyses
 ```
 
-**Incorrect — Fixtures with hard-coded state that breaks isolation:**
+**Incorrect, Fixtures with hard-coded state that breaks isolation:**
 ```python
 @pytest.fixture(scope="module")  # Shared across tests
 def user():
@@ -408,7 +408,7 @@ def test_update_user(user):
     user["email"] = "updated@example.com"  # Mutates shared state
 ```
 
-**Correct — Function-scoped fixtures with composition:**
+**Correct, Function-scoped fixtures with composition:**
 ```python
 @pytest.fixture
 def user():
@@ -469,7 +469,7 @@ async def clean_database(db_session):
 - No cleanup after tests
 - Over-complex fixtures
 
-**Incorrect — No cleanup, leaving database polluted:**
+**Incorrect, No cleanup, leaving database polluted:**
 ```python
 @pytest.fixture
 async def seeded_db(db_session):
@@ -480,7 +480,7 @@ async def seeded_db(db_session):
     # No cleanup, state persists across tests
 ```
 
-**Correct — Automatic cleanup after each test:**
+**Correct, Automatic cleanup after each test:**
 ```python
 @pytest.fixture(autouse=True)
 async def clean_database(db_session):
@@ -566,7 +566,7 @@ server.use(http.get('/api/...', () => HttpResponse.json({...})))
 | Override scope | Per-test with `server.use()` |
 | Unhandled requests | Error (catch missing mocks) |
 
-**Incorrect — Mocking fetch directly:**
+**Incorrect, Mocking fetch directly:**
 ```typescript
 jest.spyOn(global, 'fetch').mockResolvedValue({
   json: async () => ({ data: 'mocked' })
@@ -574,7 +574,7 @@ jest.spyOn(global, 'fetch').mockResolvedValue({
 // Brittle, doesn't match real network behavior
 ```
 
-**Correct — Network-level mocking with MSW:**
+**Correct, Network-level mocking with MSW:**
 ```typescript
 server.use(
   http.get('/api/users/:id', ({ params }) => {
@@ -652,7 +652,7 @@ def filter_request_body(request):
 | Cassette format | YAML (readable) |
 | Sensitive data | Always filter headers/body |
 
-**Incorrect — Not filtering sensitive data from cassettes:**
+**Incorrect, Not filtering sensitive data from cassettes:**
 ```python
 @pytest.fixture(scope="module")
 def vcr_config():
@@ -660,7 +660,7 @@ def vcr_config():
     # Missing: filter_headers for API keys
 ```
 
-**Correct — Filtering sensitive headers and query params:**
+**Correct, Filtering sensitive headers and query params:**
 ```python
 @pytest.fixture(scope="module")
 def vcr_config():
@@ -743,7 +743,7 @@ class TestCalculateDiscount:
 - Shared state between tests
 - Over-mocking (testing mocks not code)
 
-**Incorrect — Testing implementation details:**
+**Incorrect, Testing implementation details:**
 ```typescript
 test('updates internal state', () => {
   const service = new UserService();
@@ -752,7 +752,7 @@ test('updates internal state', () => {
 });
 ```
 
-**Correct — Testing public behavior with AAA pattern:**
+**Correct, Testing public behavior with AAA pattern:**
 ```typescript
 test('updates user email', () => {
   // Arrange
@@ -811,14 +811,14 @@ def db_engine():
 | Dependencies | None (mock everything external) |
 | Coverage tool | c8, nyc, pytest-cov |
 
-**Incorrect — Function-scoped fixture for expensive read-only resource:**
+**Incorrect, Function-scoped fixture for expensive read-only resource:**
 ```python
 @pytest.fixture  # scope="function" is default
 def compiled_regex():
     return re.compile(r"complex.*pattern")  # Recompiled every test
 ```
 
-**Correct — Module-scoped fixture for expensive read-only resource:**
+**Correct, Module-scoped fixture for expensive read-only resource:**
 ```python
 @pytest.fixture(scope="module")
 def compiled_regex():
@@ -884,7 +884,7 @@ def test_access_matrix(role, status):
     assert user.can_modify() == expected
 ```
 
-**Incorrect — Duplicating test logic for each edge case:**
+**Incorrect, Duplicating test logic for each edge case:**
 ```typescript
 test('validates empty email', () => {
   expect(isValidEmail('')).toBe(false);
@@ -897,7 +897,7 @@ test('validates missing domain', () => {
 });
 ```
 
-**Correct — Parametrized test covers all edge cases:**
+**Correct, Parametrized test covers all edge cases:**
 ```typescript
 test.each([
   ['', false],

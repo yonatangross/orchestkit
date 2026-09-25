@@ -43,7 +43,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/cookbook/claude-design-handoff": {
       "title": "Claude Design → PR",
-      "inbound": 0
+      "inbound": 1
     },
     "/docs/cookbook/create-demo-video": {
       "title": "Create a Demo Video",
@@ -95,7 +95,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/cookbook/task-management": {
       "title": "Task Management Patterns",
-      "inbound": 0
+      "inbound": 1
     },
     "/docs/foundations": {
       "title": "Foundations",
@@ -147,7 +147,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/getting-started/devin": {
       "title": "Devin",
-      "inbound": 1
+      "inbound": 2
     },
     "/docs/getting-started/first-10-minutes": {
       "title": "Your First 10 Minutes",
@@ -311,7 +311,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/agents/data-pipeline-engineer": {
       "title": "Data Pipeline Engineer",
-      "inbound": 1
+      "inbound": 2
     },
     "/docs/reference/agents/database-engineer": {
       "title": "Database Engineer",
@@ -399,7 +399,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/agents/release-engineer": {
       "title": "Release Engineer",
-      "inbound": 1
+      "inbound": 2
     },
     "/docs/reference/agents/security-auditor": {
       "title": "Security Auditor",
@@ -423,7 +423,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/agents/workflow-architect": {
       "title": "Workflow Architect",
-      "inbound": 1
+      "inbound": 2
     },
     "/docs/reference/hooks": {
       "title": "Hooks Reference",
@@ -587,7 +587,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/skills/agent-orchestration": {
       "title": "Agent Orchestration",
-      "inbound": 1
+      "inbound": 2
     },
     "/docs/reference/skills/ai-ui-generation": {
       "title": "Ai Ui Generation",
@@ -595,7 +595,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/skills/analytics": {
       "title": "Analytics",
-      "inbound": 1
+      "inbound": 2
     },
     "/docs/reference/skills/animation-motion-design": {
       "title": "Animation Motion Design",
@@ -615,7 +615,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/skills/assess": {
       "title": "Assess",
-      "inbound": 2
+      "inbound": 4
     },
     "/docs/reference/skills/async-jobs": {
       "title": "Async Jobs",
@@ -623,15 +623,15 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/skills/audit-activation": {
       "title": "Audit Activation",
-      "inbound": 3
+      "inbound": 4
     },
     "/docs/reference/skills/audit-full": {
       "title": "Audit Full",
-      "inbound": 2
+      "inbound": 3
     },
     "/docs/reference/skills/auto": {
       "title": "Auto",
-      "inbound": 2
+      "inbound": 4
     },
     "/docs/reference/skills/bare-eval": {
       "title": "Bare Eval",
@@ -639,7 +639,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/skills/brainstorm": {
       "title": "Brainstorm",
-      "inbound": 6
+      "inbound": 7
     },
     "/docs/reference/skills/brainstorm/checklists": {
       "title": "Brainstorm: Checklists",
@@ -671,11 +671,11 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/skills/ci-debug": {
       "title": "Ci Debug",
-      "inbound": 3
+      "inbound": 5
     },
     "/docs/reference/skills/ci-sentinel": {
       "title": "Ci Sentinel",
-      "inbound": 3
+      "inbound": 4
     },
     "/docs/reference/skills/code-review-playbook": {
       "title": "Code Review Playbook",
@@ -683,7 +683,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/skills/commit": {
       "title": "Commit",
-      "inbound": 2
+      "inbound": 3
     },
     "/docs/reference/skills/competitive-analysis": {
       "title": "Competitive Analysis",
@@ -691,11 +691,11 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/skills/component-search": {
       "title": "Component Search",
-      "inbound": 8
+      "inbound": 9
     },
     "/docs/reference/skills/configure": {
       "title": "Configure",
-      "inbound": 7
+      "inbound": 9
     },
     "/docs/reference/skills/configure/references/cc-version-settings": {
       "title": "Configure: CC Version-Specific Settings",
@@ -723,11 +723,11 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/skills/cover": {
       "title": "Cover",
-      "inbound": 3
+      "inbound": 4
     },
     "/docs/reference/skills/create-pr": {
       "title": "Create Pr",
-      "inbound": 2
+      "inbound": 5
     },
     "/docs/reference/skills/database-patterns": {
       "title": "Database Patterns",
@@ -735,23 +735,23 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/skills/demo-producer": {
       "title": "Demo Producer",
-      "inbound": 2
+      "inbound": 3
     },
     "/docs/reference/skills/design-context-extract": {
       "title": "Design Context Extract",
-      "inbound": 8
+      "inbound": 9
     },
     "/docs/reference/skills/design-import": {
       "title": "Design Import",
-      "inbound": 3
+      "inbound": 4
     },
     "/docs/reference/skills/design-ship": {
       "title": "Design Ship",
-      "inbound": 3
+      "inbound": 4
     },
     "/docs/reference/skills/design-stylecards": {
       "title": "Design Stylecards",
-      "inbound": 3
+      "inbound": 4
     },
     "/docs/reference/skills/design-system-tokens": {
       "title": "Design System Tokens",
@@ -759,11 +759,11 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/skills/design-to-code": {
       "title": "Design To Code",
-      "inbound": 5
+      "inbound": 6
     },
     "/docs/reference/skills/dev": {
       "title": "Dev",
-      "inbound": 3
+      "inbound": 4
     },
     "/docs/reference/skills/devops-deployment": {
       "title": "Devops Deployment",
@@ -775,7 +775,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/skills/doctor": {
       "title": "Doctor",
-      "inbound": 21
+      "inbound": 23
     },
     "/docs/reference/skills/doctor/references/agent-memory-dir": {
       "title": "Doctor: Per-agent memory directory",
@@ -835,19 +835,19 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/skills/doctor/references/version-compatibility/00-overview": {
       "title": "Doctor: Version Compatibility: Overview",
-      "inbound": 1
+      "inbound": 4
     },
     "/docs/reference/skills/doctor/references/version-compatibility/01-feature-matrix-part-1": {
-      "title": "Doctor: Version Compatibility: Feature Matrix (part 1)",
-      "inbound": 1
+      "title": "Doctor: Version Compatibility: Feature Matrix (part 1 of 2)",
+      "inbound": 4
     },
     "/docs/reference/skills/doctor/references/version-compatibility/02-feature-matrix-part-2": {
-      "title": "Doctor: Version Compatibility: Feature Matrix (part 2)",
-      "inbound": 1
+      "title": "Doctor: Version Compatibility: Feature Matrix (part 2 of 2)",
+      "inbound": 4
     },
     "/docs/reference/skills/doctor/references/version-compatibility/03-prompt-caching-recommendation": {
       "title": "Doctor: Version Compatibility: Prompt Caching Recommendation",
-      "inbound": 1
+      "inbound": 4
     },
     "/docs/reference/skills/doctor/rules": {
       "title": "Doctor: Rules",
@@ -855,7 +855,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/skills/documentation-patterns": {
       "title": "Documentation Patterns",
-      "inbound": 1
+      "inbound": 2
     },
     "/docs/reference/skills/domain-driven-design": {
       "title": "Domain Driven Design",
@@ -863,23 +863,27 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/skills/dream": {
       "title": "Dream",
-      "inbound": 2
+      "inbound": 4
     },
     "/docs/reference/skills/emulate-seed": {
       "title": "Emulate Seed",
+      "inbound": 4
+    },
+    "/docs/reference/skills/error-analysis": {
+      "title": "Error Analysis",
       "inbound": 3
     },
     "/docs/reference/skills/errors": {
       "title": "Errors",
-      "inbound": 2
+      "inbound": 3
     },
     "/docs/reference/skills/expect": {
       "title": "Expect",
-      "inbound": 4
+      "inbound": 5
     },
     "/docs/reference/skills/explore": {
       "title": "Explore",
-      "inbound": 2
+      "inbound": 4
     },
     "/docs/reference/skills/figma-design-handoff": {
       "title": "Figma Design Handoff",
@@ -887,23 +891,23 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/skills/fix-issue": {
       "title": "Fix Issue",
-      "inbound": 3
+      "inbound": 6
     },
     "/docs/reference/skills/github-operations": {
       "title": "Github Operations",
-      "inbound": 7
+      "inbound": 8
     },
     "/docs/reference/skills/glyph": {
       "title": "Glyph",
-      "inbound": 2
+      "inbound": 3
     },
     "/docs/reference/skills/golden-dataset": {
       "title": "Golden Dataset",
-      "inbound": 1
+      "inbound": 2
     },
     "/docs/reference/skills/help": {
       "title": "Help",
-      "inbound": 2
+      "inbound": 3
     },
     "/docs/reference/skills/i18n-date-patterns": {
       "title": "I18n Date Patterns",
@@ -911,7 +915,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/skills/implement": {
       "title": "Implement",
-      "inbound": 5
+      "inbound": 6
     },
     "/docs/reference/skills/implement/checklists": {
       "title": "Implement: Checklists",
@@ -931,7 +935,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/skills/issue-progress-tracking": {
       "title": "Issue Progress Tracking",
-      "inbound": 1
+      "inbound": 3
     },
     "/docs/reference/skills/json-render-catalog": {
       "title": "Json Render Catalog",
@@ -939,7 +943,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/skills/langgraph": {
       "title": "Langgraph",
-      "inbound": 3
+      "inbound": 4
     },
     "/docs/reference/skills/llm-integration": {
       "title": "Llm Integration",
@@ -959,11 +963,11 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/skills/memory": {
       "title": "Memory",
-      "inbound": 35
+      "inbound": 37
     },
     "/docs/reference/skills/memory-fabric": {
       "title": "Memory Fabric",
-      "inbound": 1
+      "inbound": 2
     },
     "/docs/reference/skills/monitoring-observability": {
       "title": "Monitoring Observability",
@@ -979,15 +983,15 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/skills/okr-design": {
       "title": "Okr Design",
-      "inbound": 2
+      "inbound": 3
     },
     "/docs/reference/skills/page-serve": {
       "title": "Page Serve",
-      "inbound": 2
+      "inbound": 3
     },
     "/docs/reference/skills/paired-probe": {
       "title": "Paired Probe",
-      "inbound": 1
+      "inbound": 2
     },
     "/docs/reference/skills/performance": {
       "title": "Performance",
@@ -999,7 +1003,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/skills/prd-to-goal": {
       "title": "Prd To Goal",
-      "inbound": 4
+      "inbound": 5
     },
     "/docs/reference/skills/prioritization": {
       "title": "Prioritization",
@@ -1007,7 +1011,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/skills/product-analytics": {
       "title": "Product Analytics",
-      "inbound": 2
+      "inbound": 3
     },
     "/docs/reference/skills/product-frameworks": {
       "title": "Product Frameworks",
@@ -1023,7 +1027,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/skills/rag-retrieval": {
       "title": "Rag Retrieval",
-      "inbound": 2
+      "inbound": 3
     },
     "/docs/reference/skills/react-server-components-framework": {
       "title": "React Server Components Framework",
@@ -1031,15 +1035,15 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/skills/release-management": {
       "title": "Release Management",
-      "inbound": 1
+      "inbound": 2
     },
     "/docs/reference/skills/release-sync": {
       "title": "Release Sync",
-      "inbound": 3
+      "inbound": 4
     },
     "/docs/reference/skills/remember": {
       "title": "Remember",
-      "inbound": 35
+      "inbound": 37
     },
     "/docs/reference/skills/responsive-patterns": {
       "title": "Responsive Patterns",
@@ -1047,11 +1051,11 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/skills/review-pr": {
       "title": "Review Pr",
-      "inbound": 4
+      "inbound": 5
     },
     "/docs/reference/skills/scope-appropriate-architecture": {
       "title": "Scope Appropriate Architecture",
-      "inbound": 2
+      "inbound": 3
     },
     "/docs/reference/skills/security-patterns": {
       "title": "Security Patterns",
@@ -1059,7 +1063,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/skills/setup": {
       "title": "Setup",
-      "inbound": 3
+      "inbound": 5
     },
     "/docs/reference/skills/storybook-mcp-integration": {
       "title": "Storybook Mcp Integration",
@@ -1071,15 +1075,15 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/skills/swarm-migrate": {
       "title": "Swarm Migrate",
-      "inbound": 2
+      "inbound": 3
     },
     "/docs/reference/skills/task-dependency-patterns": {
       "title": "Task Dependency Patterns",
-      "inbound": 1
+      "inbound": 3
     },
     "/docs/reference/skills/telemetry-inspect": {
       "title": "Telemetry Inspect",
-      "inbound": 4
+      "inbound": 5
     },
     "/docs/reference/skills/testing-e2e": {
       "title": "Testing E2e",
@@ -1115,7 +1119,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/skills/verify": {
       "title": "Verify",
-      "inbound": 6
+      "inbound": 7
     },
     "/docs/reference/skills/verify/checklists": {
       "title": "Verify: Checklists",
@@ -1131,7 +1135,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/skills/visualize-plan": {
       "title": "Visualize Plan",
-      "inbound": 3
+      "inbound": 6
     },
     "/docs/reference/skills/vite-advanced": {
       "title": "Vite Advanced",
@@ -1143,7 +1147,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/skills/write-prd": {
       "title": "Write Prd",
-      "inbound": 4
+      "inbound": 5
     },
     "/docs/reference/skills/zustand-patterns": {
       "title": "Zustand Patterns",
@@ -1210,8 +1214,8 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "inbound": 0
     },
     "/docs/skills/command-skills": {
-      "title": "18 Commands You Can Invoke",
-      "inbound": 10
+      "title": "36 Commands You Can Invoke",
+      "inbound": 11
     },
     "/docs/skills/dependency-graph": {
       "title": "Skill Dependency Graph",
@@ -1294,6 +1298,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     "/docs/analytics": [],
     "/docs/changelog": [],
     "/docs/cookbook": [
+      "/docs/cookbook/claude-design-handoff",
       "/docs/cookbook/create-demo-video",
       "/docs/cookbook/fix-github-issue",
       "/docs/cookbook/implement-feature",
@@ -1305,7 +1310,8 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/cookbook/roles/security-engineer",
       "/docs/cookbook/roles/tech-lead",
       "/docs/cookbook/security-audit",
-      "/docs/cookbook/setup-memory"
+      "/docs/cookbook/setup-memory",
+      "/docs/cookbook/task-management"
     ],
     "/docs/cookbook/claude-design-handoff": [
       "/docs/cookbook/implement-feature",
@@ -1445,6 +1451,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/getting-started/codex",
       "/docs/getting-started/configuration",
       "/docs/getting-started/cursor",
+      "/docs/getting-started/devin",
       "/docs/getting-started/hosts",
       "/docs/getting-started/muse",
       "/docs/getting-started/skills-sh",
@@ -1458,6 +1465,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     ],
     "/docs/getting-started/navigating": [
       "/docs/getting-started/configuration",
+      "/docs/skills/command-skills",
       "/docs/skills/overview"
     ],
     "/docs/getting-started/skills-sh": [
@@ -1710,6 +1718,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/reference/skills/testing-unit"
     ],
     "/docs/reference/agents/eval-runner": [
+      "/docs/reference/skills/error-analysis",
       "/docs/reference/skills/memory",
       "/docs/reference/skills/remember",
       "/docs/reference/skills/testing-integration",
@@ -1970,6 +1979,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/reference/skills/domain-driven-design",
       "/docs/reference/skills/dream",
       "/docs/reference/skills/emulate-seed",
+      "/docs/reference/skills/error-analysis",
       "/docs/reference/skills/errors",
       "/docs/reference/skills/expect",
       "/docs/reference/skills/explore",
@@ -2179,16 +2189,28 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/reference/skills/doctor"
     ],
     "/docs/reference/skills/doctor/references/version-compatibility/00-overview": [
-      "/docs/reference/skills/doctor"
+      "/docs/reference/skills/doctor",
+      "/docs/reference/skills/doctor/references/version-compatibility/01-feature-matrix-part-1",
+      "/docs/reference/skills/doctor/references/version-compatibility/02-feature-matrix-part-2",
+      "/docs/reference/skills/doctor/references/version-compatibility/03-prompt-caching-recommendation"
     ],
     "/docs/reference/skills/doctor/references/version-compatibility/01-feature-matrix-part-1": [
-      "/docs/reference/skills/doctor"
+      "/docs/reference/skills/doctor",
+      "/docs/reference/skills/doctor/references/version-compatibility/00-overview",
+      "/docs/reference/skills/doctor/references/version-compatibility/02-feature-matrix-part-2",
+      "/docs/reference/skills/doctor/references/version-compatibility/03-prompt-caching-recommendation"
     ],
     "/docs/reference/skills/doctor/references/version-compatibility/02-feature-matrix-part-2": [
-      "/docs/reference/skills/doctor"
+      "/docs/reference/skills/doctor",
+      "/docs/reference/skills/doctor/references/version-compatibility/00-overview",
+      "/docs/reference/skills/doctor/references/version-compatibility/01-feature-matrix-part-1",
+      "/docs/reference/skills/doctor/references/version-compatibility/03-prompt-caching-recommendation"
     ],
     "/docs/reference/skills/doctor/references/version-compatibility/03-prompt-caching-recommendation": [
-      "/docs/reference/skills/doctor"
+      "/docs/reference/skills/doctor",
+      "/docs/reference/skills/doctor/references/version-compatibility/00-overview",
+      "/docs/reference/skills/doctor/references/version-compatibility/01-feature-matrix-part-1",
+      "/docs/reference/skills/doctor/references/version-compatibility/02-feature-matrix-part-2"
     ],
     "/docs/reference/skills/doctor/rules": [
       "/docs/reference/skills/doctor"
@@ -2197,6 +2219,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     "/docs/reference/skills/domain-driven-design": [],
     "/docs/reference/skills/dream": [],
     "/docs/reference/skills/emulate-seed": [],
+    "/docs/reference/skills/error-analysis": [],
     "/docs/reference/skills/errors": [],
     "/docs/reference/skills/expect": [],
     "/docs/reference/skills/explore": [],
@@ -2311,17 +2334,27 @@ export const RELATED_GRAPH: RelatedGraphData = {
     "/docs/skills/by-category/ai-llm": [
       "/docs/reference/agents/llm-integrator",
       "/docs/reference/agents/multimodal-specialist",
+      "/docs/reference/agents/workflow-architect",
+      "/docs/reference/skills/agent-orchestration",
+      "/docs/reference/skills/auto",
       "/docs/reference/skills/chain-patterns",
+      "/docs/reference/skills/doctor",
+      "/docs/reference/skills/dream",
       "/docs/reference/skills/langgraph",
       "/docs/reference/skills/llm-integration",
       "/docs/reference/skills/mcp-patterns",
       "/docs/reference/skills/mcp-visual-output",
+      "/docs/reference/skills/memory",
+      "/docs/reference/skills/memory-fabric",
       "/docs/reference/skills/multimodal-llm",
       "/docs/reference/skills/rag-retrieval",
       "/docs/reference/skills/react-server-components-framework",
+      "/docs/reference/skills/remember",
       "/docs/reference/skills/setup",
       "/docs/reference/skills/storybook-mcp-integration",
-      "/docs/reference/skills/testing-llm"
+      "/docs/reference/skills/task-dependency-patterns",
+      "/docs/reference/skills/testing-llm",
+      "/docs/reference/skills/visualize-plan"
     ],
     "/docs/skills/by-category/backend": [
       "/docs/reference/agents/backend-system-architect",
@@ -2332,22 +2365,39 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/reference/skills/architecture-decision-record",
       "/docs/reference/skills/architecture-patterns",
       "/docs/reference/skills/async-jobs",
+      "/docs/reference/skills/audit-full",
       "/docs/reference/skills/database-patterns",
       "/docs/reference/skills/distributed-systems",
       "/docs/reference/skills/domain-driven-design",
+      "/docs/reference/skills/explore",
       "/docs/reference/skills/langgraph",
-      "/docs/reference/skills/python-backend"
+      "/docs/reference/skills/python-backend",
+      "/docs/reference/skills/scope-appropriate-architecture",
+      "/docs/reference/skills/visualize-plan"
     ],
     "/docs/skills/by-category/devops": [
       "/docs/reference/agents/ci-cd-engineer",
       "/docs/reference/agents/deployment-manager",
       "/docs/reference/agents/infrastructure-architect",
       "/docs/reference/agents/monitoring-engineer",
+      "/docs/reference/agents/release-engineer",
+      "/docs/reference/skills/analytics",
       "/docs/reference/skills/ci-debug",
       "/docs/reference/skills/ci-sentinel",
+      "/docs/reference/skills/configure",
+      "/docs/reference/skills/create-pr",
       "/docs/reference/skills/devops-deployment",
+      "/docs/reference/skills/documentation-patterns",
+      "/docs/reference/skills/emulate-seed",
+      "/docs/reference/skills/fix-issue",
+      "/docs/reference/skills/github-operations",
+      "/docs/reference/skills/issue-progress-tracking",
       "/docs/reference/skills/monitoring-observability",
+      "/docs/reference/skills/okr-design",
       "/docs/reference/skills/portless",
+      "/docs/reference/skills/product-analytics",
+      "/docs/reference/skills/release-management",
+      "/docs/reference/skills/setup",
       "/docs/reference/skills/telemetry-inspect",
       "/docs/reference/skills/web-research-workflow"
     ],
@@ -2384,6 +2434,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/reference/agents/product-strategist",
       "/docs/reference/skills/business-case",
       "/docs/reference/skills/competitive-analysis",
+      "/docs/reference/skills/demo-producer",
       "/docs/reference/skills/market-sizing",
       "/docs/reference/skills/okr-design",
       "/docs/reference/skills/prd-to-goal",
@@ -2407,13 +2458,23 @@ export const RELATED_GRAPH: RelatedGraphData = {
     ],
     "/docs/skills/by-category/testing": [
       "/docs/reference/agents/code-quality-reviewer",
+      "/docs/reference/agents/data-pipeline-engineer",
       "/docs/reference/agents/test-generator",
+      "/docs/reference/skills/assess",
       "/docs/reference/skills/bare-eval",
+      "/docs/reference/skills/ci-debug",
       "/docs/reference/skills/code-review-playbook",
       "/docs/reference/skills/cover",
+      "/docs/reference/skills/create-pr",
       "/docs/reference/skills/emulate-seed",
+      "/docs/reference/skills/error-analysis",
+      "/docs/reference/skills/errors",
       "/docs/reference/skills/expect",
+      "/docs/reference/skills/fix-issue",
+      "/docs/reference/skills/golden-dataset",
+      "/docs/reference/skills/paired-probe",
       "/docs/reference/skills/quality-gates",
+      "/docs/reference/skills/rag-retrieval",
       "/docs/reference/skills/review-pr",
       "/docs/reference/skills/storybook-testing",
       "/docs/reference/skills/testing-e2e",
@@ -2425,6 +2486,48 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/reference/skills/verify"
     ],
     "/docs/skills/by-category/workflows": [
+      "/docs/reference/skills/assess",
+      "/docs/reference/skills/audit-activation",
+      "/docs/reference/skills/auto",
+      "/docs/reference/skills/brainstorm",
+      "/docs/reference/skills/ci-debug",
+      "/docs/reference/skills/ci-sentinel",
+      "/docs/reference/skills/commit",
+      "/docs/reference/skills/component-search",
+      "/docs/reference/skills/configure",
+      "/docs/reference/skills/cover",
+      "/docs/reference/skills/create-pr",
+      "/docs/reference/skills/design-context-extract",
+      "/docs/reference/skills/design-import",
+      "/docs/reference/skills/design-ship",
+      "/docs/reference/skills/design-stylecards",
+      "/docs/reference/skills/design-to-code",
+      "/docs/reference/skills/dev",
+      "/docs/reference/skills/doctor",
+      "/docs/reference/skills/dream",
+      "/docs/reference/skills/expect",
+      "/docs/reference/skills/explore",
+      "/docs/reference/skills/fix-issue",
+      "/docs/reference/skills/glyph",
+      "/docs/reference/skills/help",
+      "/docs/reference/skills/implement",
+      "/docs/reference/skills/issue-progress-tracking",
+      "/docs/reference/skills/langgraph",
+      "/docs/reference/skills/memory",
+      "/docs/reference/skills/page-serve",
+      "/docs/reference/skills/prd-to-goal",
+      "/docs/reference/skills/release-sync",
+      "/docs/reference/skills/remember",
+      "/docs/reference/skills/review-pr",
+      "/docs/reference/skills/setup",
+      "/docs/reference/skills/swarm-migrate",
+      "/docs/reference/skills/task-dependency-patterns",
+      "/docs/reference/skills/telemetry-inspect",
+      "/docs/reference/skills/verify",
+      "/docs/reference/skills/visualize-plan",
+      "/docs/reference/skills/write-prd"
+    ],
+    "/docs/skills/command-skills": [
       "/docs/reference/skills/assess",
       "/docs/reference/skills/audit-activation",
       "/docs/reference/skills/auto",
@@ -2460,9 +2563,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/reference/skills/telemetry-inspect",
       "/docs/reference/skills/verify",
       "/docs/reference/skills/visualize-plan",
-      "/docs/reference/skills/write-prd"
-    ],
-    "/docs/skills/command-skills": [
+      "/docs/reference/skills/write-prd",
       "/docs/skills/overview",
       "/docs/skills/reference-skills",
       "/docs/skills/skill-composition"

@@ -5,10 +5,6 @@ description: "OrchestKit used to emit hook events over two channels that POSTed 
 
 > Part of the [Configure](/docs/reference/skills/configure) skill reference. The main page carries the skill itself; this page holds material that used to sit at the bottom of it.
 
-### Http Hooks
-
-# HTTP Hooks and Streaming Telemetry (CC 2.1.63+)
-
 > **Channel 1 is gone.** The per-event native HTTP hook generator (`generate-http-hooks`,
 > `npm run generate:http-hooks`) was deprecated in #1861 and deleted in #3867. Nothing in
 > OrchestKit writes `type: "http"` entries into `settings.local.json` any more, and
@@ -81,4 +77,3 @@ the variable is unset in the launching shell.
 
 Remove `webhookUrl` from `.claude/orchestration/config.json` (or unset
 `ORCHESTKIT_HOOK_TOKEN`). Plugin command hooks continue working independently.
-

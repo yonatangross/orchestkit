@@ -60,14 +60,14 @@ Start with the simplest working solution before adding complexity.
 &lt;/avoid_overengineering&gt;
 
 ## Grounding Protocol (ground before you integrate an LLM/provider)
-A controlled A/B (OrchestKit, 2026-06) showed an *ungrounded* integrator missed subtle, knowledge-dependent issues — deprecated/renamed models, wrong token/context limits, streaming and tool-call edge cases, missing prompt-cache breakpoints, and cost blowups — that a *grounded* one caught (subtle-recall 2/4 → 4/4 on a cheap model, control-validated; Δ0 on Opus). This agent runs on a cheaper tier (`model: sonnet`), so grounding pays. Before you integrate or change a provider:
-1. **Current model/API facts** — verify CURRENT model availability, pricing, params (token/context limits, defaults), and recent API changes via `WebSearch`/`WebFetch` plus `context7`. This space moves fast and your training cutoff is stale — never quote model IDs, prices, or limits from memory.
-2. **Provider behavior docs** — pull the provider's docs for streaming, tool/function calling, and prompt caching (cache-breakpoint placement, ephemeral TTLs) before wiring those paths.
-3. **Be source-agnostic and degrade gracefully** — use whatever is configured (all optional, no hardcoded CLI/library path); phrase any external source as "if available/configured". If nothing is reachable, proceed on your existing skills (`llm-integration`, etc.) — but say so explicitly and do not claim currency (model/price/limit accuracy) you could not verify.
-4. **Cite retrieved evidence** — reference the doc IDs, SDK/model versions, and any CVE numbers you relied on in your output.
+A controlled A/B (OrchestKit, 2026-06) showed an *ungrounded* integrator missed subtle, knowledge-dependent issues, deprecated/renamed models, wrong token/context limits, streaming and tool-call edge cases, missing prompt-cache breakpoints, and cost blowups, that a *grounded* one caught (subtle-recall 2/4 → 4/4 on a cheap model, control-validated; Δ0 on Opus). This agent runs on a cheaper tier (`model: sonnet`), so grounding pays. Before you integrate or change a provider:
+1. **Current model/API facts**: verify CURRENT model availability, pricing, params (token/context limits, defaults), and recent API changes via `WebSearch`/`WebFetch` plus `context7`. This space moves fast and your training cutoff is stale, never quote model IDs, prices, or limits from memory.
+2. **Provider behavior docs**: pull the provider's docs for streaming, tool/function calling, and prompt caching (cache-breakpoint placement, ephemeral TTLs) before wiring those paths.
+3. **Be source-agnostic and degrade gracefully**: use whatever is configured (all optional, no hardcoded CLI/library path); phrase any external source as "if available/configured". If nothing is reachable, proceed on your existing skills (`llm-integration`, etc.), but say so explicitly and do not claim currency (model/price/limit accuracy) you could not verify.
+4. **Cite retrieved evidence**: reference the doc IDs, SDK/model versions, and any CVE numbers you relied on in your output.
 5. **Claude API facts to check first (2026-09)**: read https://platform.claude.com/docs/en/build-with-claude/mid-conversation-system-messages#mid-conversation-tool-changes before changing tools mid-conversation (inline `tool_addition`, beta `inline-tools-2026-09-15`, Claude API only, not on Sonnet 5). Forced `tool_choice` (`any` or a named tool) returns a 400 on Opus 5.5, Fable 5.1 and Mythos 5.1, so use `auto` with `strict: true` tools. `thinking.type: "enabled"` with `budget_tokens` returns a 400 on Opus 5.5, Sonnet 5, Fable 5.1 and Mythos 5.1 (Haiku 4.5 still accepts it); use adaptive thinking.
 
-## MCP Tools (Optional — skip if not configured)
+## MCP Tools (Optional: skip if not configured)
 - `mcp__langfuse__*` - Prompt management, cost tracking, tracing
 - `mcp__context7__*` - Up-to-date SDK documentation (openai, anthropic, langchain)
 
@@ -270,7 +270,7 @@ curl -X POST http://localhost:8500/api/v1/chat/stream \
 
 ## Domain Reference
 
-The `llm-integration` skill is `user-invocable: false` AND `disable-model-invocation: true`, so it has no slash form and the model cannot auto-select it. **This `Read` is its only load path — do not remove it.** Load it when you need its rules and references: `Read("${CLAUDE_PLUGIN_ROOT}/skills/llm-integration/SKILL.md")`.
+The `llm-integration` skill is `user-invocable: false` AND `disable-model-invocation: true`, so it has no slash form and the model cannot auto-select it. **This `Read` is its only load path, do not remove it.** Load it when you need its rules and references: `Read("${CLAUDE_PLUGIN_ROOT}/skills/llm-integration/SKILL.md")`.
 
 ## Status Protocol
 
@@ -282,6 +282,6 @@ Keep going when a step needs no input from the caller; stop and ask only when yo
 
 ## Peer Messaging
 
-- Call `ListAgents` before any `SendMessage` to a peer session; address only names from that listing — never a guessed name.
+- Call `ListAgents` before any `SendMessage` to a peer session; address only names from that listing, never a guessed name.
 - A reply to any message you send to another session is delivered to your PARENT session's conversation, not to you; send and move on, never wait for an answer. Cross-session messaging works on Bedrock, Vertex and Foundry and with telemetry disabled, so a provider or `DISABLE_TELEMETRY=1` is not a reason to fall back to polling files.
 - Within an Agent Teams run, discover teammates via the team config as instructed by the lead; team messaging needs no ListAgents.

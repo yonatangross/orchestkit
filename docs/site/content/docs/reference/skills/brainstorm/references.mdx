@@ -189,7 +189,7 @@ Challenge templates for assumption testing. Find hidden flaws before implementat
 
 - "How would you test the critical path without mocking everything?"
 - "What happens when the external dependency is unavailable during testing?"
-- "Show me the integration test — can it run in CI without special infrastructure?"
+- "Show me the integration test, can it run in CI without special infrastructure?"
 - "How many mocks/stubs does a single test need? If more than 3, the design has coupling issues."
 - "Can a new developer write a test for this without reading the entire codebase?"
 
@@ -330,12 +330,12 @@ Rate each idea 0-10 across seven dimensions with weighted scoring.
 | Score | Criteria |
 |-------|----------|
 | 9-10 | Removes code/concepts while improving or maintaining the result |
-| 7-8 | Neutral complexity — replaces existing with equivalent simplicity |
+| 7-8 | Neutral complexity, replaces existing with equivalent simplicity |
 | 5-6 | Adds moderate complexity proportional to value delivered |
 | 3-4 | Adds significant complexity for marginal gain |
 | 0-2 | Adds ugly complexity, new abstractions, new concepts for little benefit |
 
-> "A small improvement that adds ugly complexity is not worth it. Removing something and getting equal or better results is a great outcome — that's a simplification win." — autoresearch design principle
+> "A small improvement that adds ugly complexity is not worth it. Removing something and getting equal or better results is a great outcome, that's a simplification win.", autoresearch design principle
 
 ## Composite Formula
 
@@ -953,7 +953,7 @@ Agent(subagent_type="ork:security-auditor", prompt="...", run_in_background=True
 Agent(subagent_type="ork:backend-system-architect", prompt="...", run_in_background=True)
 ```
 
-**Collecting results (CC 2.1.76):** When background agents complete, check for `[PARTIAL RESULT]` tag in the response. Partial results contain usable ideas but may be incomplete — include them in the idea pool but flag them for extra scrutiny in Phase 3. A `maxTurns` stop is also partial since CC 2.1.246 (summary: "stopped at its N-turn limit (partial result; continue it with SendMessage to the task-id)"); continue that agent with `SendMessage` instead of re-spawning it.
+**Collecting results (CC 2.1.76):** When background agents complete, check for `[PARTIAL RESULT]` tag in the response. Partial results contain usable ideas but may be incomplete, include them in the idea pool but flag them for extra scrutiny in Phase 3. A `maxTurns` stop is also partial since CC 2.1.246 (summary: "stopped at its N-turn limit (partial result; continue it with SendMessage to the task-id)"); continue that agent with `SendMessage` instead of re-spawning it.
 
 **Divergent mindset instruction for agents:**
 ```
@@ -971,7 +971,7 @@ DIVERGENT MODE: Generate as many approaches as possible.
 
 ## Phase 3: Keep / Discard / Crash Gate
 
-Binary viability gate inspired by [autoresearch](https://github.com/karpathy/autoresearch). No scoring — just a fast yes/no/unknown per idea. Save detailed scoring for Phase 4.
+Binary viability gate inspired by [autoresearch](https://github.com/karpathy/autoresearch). No scoring, just a fast yes/no/unknown per idea. Save detailed scoring for Phase 4.
 
 **Time budget: 10 seconds per idea.** For each idea from Phase 2, answer ONE question: *"If we built this, would it work?"*
 
@@ -979,13 +979,13 @@ Binary viability gate inspired by [autoresearch](https://github.com/karpathy/aut
 |--------|----------|--------|
 | **keep** | Could work with known technology for this tier | → Phase 4 |
 | **discard** | Fundamentally broken, OVERKILL for tier, or duplicates a prior `discard` in experiment journal | → Drop |
-| **crash** | Can't assess — missing information or ambiguous scope | → Flag for user, skip |
+| **crash** | Can't assess, missing information or ambiguous scope | → Flag for user, skip |
 
 **Discard reasons** (tag each discard for experiment journal):
-- `overkill` — exceeds project tier complexity ceiling
-- `infeasible` — requires technology/resources not available
-- `duplicate` — too similar to a previously discarded approach
-- `untestable` — no seam for testing core logic without real services
+- `overkill`: exceeds project tier complexity ceiling
+- `infeasible`: requires technology/resources not available
+- `duplicate`: too similar to a previously discarded approach
+- `untestable`: no seam for testing core logic without real services
 
 **Experiment journal check** (if `.claude/experiments/brainstorm-{topic}.tsv` exists):
 ```python
@@ -1028,7 +1028,7 @@ if critical_concerns > 0:
     composite *= 0.7  # 30% penalty
 ```
 
-See `evaluation-rubric.md` for the Simplicity scoring guide — scores net complexity change, not implementation difficulty. Removing code for equal results scores 9-10.
+See `evaluation-rubric.md` for the Simplicity scoring guide, scores net complexity change, not implementation difficulty. Removing code for equal results scores 9-10.
 
 ---
 
@@ -1080,7 +1080,7 @@ Present in 200-300 word sections:
 After each section: "Does this look right so far?"
 
 **Living plan output (Phase 6.4, optional):** if the user asked for a playground or the synthesis is a
-multi-wave plan, ALSO emit a living plan playground (see SKILL.md Phase 6.4) — waves from Phase 5,
+multi-wave plan, ALSO emit a living plan playground (see SKILL.md Phase 6.4), waves from Phase 5,
 scores from Phase 4, discards from Phase 3, per-item "done when" evidence. Later sessions update the
 same file's `lpp-state` JSON as work executes; never fork a second file for the same plan.
 

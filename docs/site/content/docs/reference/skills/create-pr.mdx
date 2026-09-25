@@ -124,7 +124,7 @@ Output results **incrementally** during PR creation:
 | Tests | Test results, lint/typecheck status |
 | PR created | PR URL, CI status link |
 
-For feature PRs with 3 parallel agents, show each agent's result **as it returns** — don't wait for all agents before running local tests.
+For feature PRs with 3 parallel agents, show each agent's result **as it returns**, don't wait for all agents before running local tests.
 
 ---
 
@@ -212,9 +212,9 @@ If it exists, generate agent attribution sections for the PR body:
    - **Credits Roll**: Collapsible `<details>` section grouped by execution stage (Lead/Parallel/Follow-up)
 4. Each agent entry has: `agent` (type), `stage` (0=lead, 1=parallel, 2=follow-up), `duration_ms`, `summary`
 
-If the ledger doesn't exist or is empty, skip this step — create PR normally.
+If the ledger doesn't exist or is empty, skip this step, create PR normally.
 
-> **CC 2.1.183 — `attribution.sessionUrl`:** Web and Remote Control sessions append a claude.ai session link to the PR body. For public repos where that link should not be exposed, set `attribution.sessionUrl: false` (`/config attribution.sessionUrl=false`) before creating the PR. ork's agent-attribution sections above are independent of this setting.
+> **CC 2.1.183, `attribution.sessionUrl`:** Web and Remote Control sessions append a claude.ai session link to the PR body. For public repos where that link should not be exposed, set `attribution.sessionUrl: false` (`/config attribution.sessionUrl=false`) before creating the PR. ork's agent-attribution sections above are independent of this setting.
 
 ### Phase 3c: CodeRabbit CLI pre-review (before `gh pr create`)
 
@@ -336,11 +336,11 @@ Write(".claude/chain/pr-created.json", JSON.stringify({
 
 ## Rules
 
-1. **NO junk files** — Don't create files in repo root
-2. **Run validation locally** — Don't spawn agents for lint/test
-3. **All content goes to GitHub** — PR body via `gh pr create --body`
-4. **Keep it simple** — One command to create PR
-5. **Respect the `gh` rate-limit hint (CC ≥ 2.1.116)** — when the Bash tool surfaces a GitHub rate-limit hint after a `gh` call (e.g. in a `/loop 5m gh pr checks …` watcher), **stop the loop and wait for reset** — do not blind-retry. See `ork:github-operations` for the full guidance.
+1. **NO junk files**: Don't create files in repo root
+2. **Run validation locally**: Don't spawn agents for lint/test
+3. **All content goes to GitHub**: PR body via `gh pr create --body`
+4. **Keep it simple**: One command to create PR
+5. **Respect the `gh` rate-limit hint (CC ≥ 2.1.116)**: when the Bash tool surfaces a GitHub rate-limit hint after a `gh` call (e.g. in a `/loop 5m gh pr checks …` watcher), **stop the loop and wait for reset**, do not blind-retry. See `ork:github-operations` for the full guidance.
 
 ## Next Steps (suggest to user after PR creation)
 
@@ -368,12 +368,12 @@ Done means all of these hold:
 
 ## Related Skills
 
-- `ork:commit` — Create commits before PRs
-- `ork:review-pr` — Review PRs after creation
+- `ork:commit`: Create commits before PRs
+- `ork:review-pr`: Review PRs after creation
 
 ## Picker fallback (#1795)
 
-If the `AskUserQuestion` picker stalls (schema break, not a CC input bug — orchestkit#1795, now guarded by tests/skills/structure/test-askuserquestion-schema.sh), set `ORK_ASK_FALLBACK=text` before starting CC. The `lifecycle/ask-fallback-injector` hook injects a reminder telling the assistant to pose options inline as a numbered list and ask the user to reply with the option number.
+If the `AskUserQuestion` picker stalls (schema break, not a CC input bug, orchestkit#1795, now guarded by tests/skills/structure/test-askuserquestion-schema.sh), set `ORK_ASK_FALLBACK=text` before starting CC. The `lifecycle/ask-fallback-injector` hook injects a reminder telling the assistant to pose options inline as a numbered list and ask the user to reply with the option number.
 
 ## References
 
@@ -444,9 +444,9 @@ ISSUE=$(echo "$BRANCH" | grep -oE '[0-9]+' | head -1)
 ```
 
 **Edge cases:**
-- No issue: omit number — `chore/update-deps`
+- No issue: omit number, `chore/update-deps`
 - Multiple issues: use primary issue number, mention others in PR body
-- Long descriptions: truncate — branch names are for identification, not documentation
+- Long descriptions: truncate, branch names are for identification, not documentation
 
 
 ### Diff Size Guidelines: MEDIUM
@@ -514,22 +514,22 @@ Every PR body must include standard sections. Use `gh pr create --body` with a H
 
 **Required sections:**
 
-1. **Summary** — 1-2 sentences describing what and why (not how)
-2. **Changes** — Bulleted list of what changed (for quick scanning)
-3. **Test Plan** — Checkbox list of verification steps taken
-4. **Issue reference** — `Closes #N` to auto-close the linked issue on merge
+1. **Summary**: 1-2 sentences describing what and why (not how)
+2. **Changes**: Bulleted list of what changed (for quick scanning)
+3. **Test Plan**: Checkbox list of verification steps taken
+4. **Issue reference**: `Closes #N` to auto-close the linked issue on merge
 
 **Optional sections (include when relevant):**
 
-- **Breaking Changes** — Migration steps if behavior changes
-- **Screenshots** — For UI changes
-- **Deployment Notes** — Environment variables, migrations, infrastructure
+- **Breaking Changes**: Migration steps if behavior changes
+- **Screenshots**: For UI changes
+- **Deployment Notes**: Environment variables, migrations, infrastructure
 
 **Key rules:**
 - Always use `Closes #N` (not `Fixes` or `Resolves`) for consistency with CI auto-close
 - End body with `Generated with [Claude Code](https://claude.com/claude-code)` footer
 - Use `--body "$(cat <<'EOF' ... EOF)"` HEREDOC pattern for multi-line bodies
-- Keep Summary focused on "why" — the diff shows "what"
+- Keep Summary focused on "why", the diff shows "what"
 - Test Plan checkboxes should reflect actual verification, not aspirational items
 
 **Incorrect:**
@@ -603,9 +603,9 @@ feat(#456): add user profile page with avatar upload
 | `perf` | Performance improvement |
 
 **Edge cases:**
-- Breaking changes: add `!` after scope — `feat(#123)!: redesign auth flow`
-- Multiple issues: use primary issue — `fix(#123): resolve race condition`
-- No issue: omit scope parens — `chore: update dependencies`
+- Breaking changes: add `!` after scope, `feat(#123)!: redesign auth flow`
+- Multiple issues: use primary issue, `fix(#123): resolve race condition`
+- No issue: omit scope parens, `chore: update dependencies`
 
 
 ### Pre-Flight Validation: CRITICAL
@@ -617,14 +617,14 @@ Every PR creation must pass these checks before the `gh pr create` command runs.
 
 **Checklist (all must pass):**
 
-1. **Branch check** — Not on `main` or `dev`. Create a feature branch first.
-2. **Clean working tree** — No uncommitted changes (`git status --porcelain` is empty). Commit or stash first.
-3. **Remote push** — Branch exists on remote. Push with `-u` if needed.
-4. **Tests pass** — Run the project's test suite. At minimum: unit tests with `-x` (fail fast).
-5. **Lint clean** — No linting errors from the project's linter (ruff, eslint, etc.).
-6. **Type check clean** — No type errors (mypy, tsc, pyright) if project uses type checking.
-7. **No secrets** — No API keys, tokens, or credentials in the diff. Check with `git diff --cached` patterns.
-8. **Visual-style clean** — PR title + body pass the Visual-Style lint (the CI check that has bitten non-bot PRs repeatedly). The body must use only the 12-glyph vocabulary; the classic trap is `✓`/`✗` (U+2713/U+2717) — use the white-check / red-X instead. Run the SAME engine CI runs, against your drafted title + body file, BEFORE `gh pr create`:
+1. **Branch check**: Not on `main` or `dev`. Create a feature branch first.
+2. **Clean working tree**: No uncommitted changes (`git status --porcelain` is empty). Commit or stash first.
+3. **Remote push**: Branch exists on remote. Push with `-u` if needed.
+4. **Tests pass**: Run the project's test suite. At minimum: unit tests with `-x` (fail fast).
+5. **Lint clean**: No linting errors from the project's linter (ruff, eslint, etc.).
+6. **Type check clean**: No type errors (mypy, tsc, pyright) if project uses type checking.
+7. **No secrets**: No API keys, tokens, or credentials in the diff. Check with `git diff --cached` patterns.
+8. **Visual-style clean**: PR title + body pass the Visual-Style lint (the CI check that has bitten non-bot PRs repeatedly). The body must use only the 12-glyph vocabulary; the classic trap is `✓`/`✗` (U+2713/U+2717), use the white-check / red-X instead. Run the SAME engine CI runs, against your drafted title + body file, BEFORE `gh pr create`:
    ```bash
    bin/check-pr-visual-style.sh --title "<your title>" --body-file /tmp/pr-body.md
    ```
@@ -670,10 +670,10 @@ npm test -- --bail
 ```
 
 **Blocking vs warning:**
-- Steps 1-3: **BLOCK** — Cannot proceed
+- Steps 1-3: **BLOCK**, Cannot proceed
 - Steps 4-6: **BLOCK** for Feature/Bug fix, **WARN** for Quick
-- Step 7 (secrets): **ALWAYS BLOCK** — No exceptions
-- Step 8 (visual-style): **ALWAYS BLOCK** — it is a hard CI gate (bypass only via the `visual-style-override` label, used sparingly)
+- Step 7 (secrets): **ALWAYS BLOCK**, No exceptions
+- Step 8 (visual-style): **ALWAYS BLOCK**, it is a hard CI gate (bypass only via the `visual-style-override` label, used sparingly)
 
 
 ### Review Readiness Criteria: HIGH
@@ -721,7 +721,7 @@ gh pr ready
 - Use `gh pr create --draft` for draft PRs
 - Convert draft to ready with `gh pr ready`
 - Never force-request review on a draft PR
-- If unsure, default to draft — it is easier to mark ready than to un-request review
+- If unsure, default to draft, it is easier to mark ready than to un-request review
 
 **Agent validation:**
 - For Feature PRs: launch security-auditor + test-generator + code-quality-reviewer agents
@@ -788,7 +788,7 @@ gh pr checks
 
 ## Issue Auto-Close
 
-Using `Closes #N` in the PR body auto-closes the issue when the PR merges to the default branch. This is handled by GitHub, not CI — but only works when merging to `main`/`dev` (the repository's default branch).
+Using `Closes #N` in the PR body auto-closes the issue when the PR merges to the default branch. This is handled by GitHub, not CI, but only works when merging to `main`/`dev` (the repository's default branch).
 
 
 ### Coderabbit Cli Prereview
@@ -1178,7 +1178,7 @@ Implement user authentication with JWT tokens.
 - **Merge commit**: Preserves individual commits. Best when commit history is clean and tells a story.
 - **Rebase merge**: Linear history. Best for small, single-commit PRs.
 
-Let the repository's merge strategy setting guide this — do not override per-PR unless there is a reason.
+Let the repository's merge strategy setting guide this, do not override per-PR unless there is a reason.
 
 
 ### Parallel Validation Agents
@@ -1258,7 +1258,7 @@ Agent(
 | Feature | All 3 (security + tests + quality) |
 | Bug fix | test-generator only |
 | Refactor | code-quality-reviewer only |
-| Quick | None — skip agent validation |
+| Quick | None, skip agent validation |
 
 ## After Agent Results
 
@@ -1387,13 +1387,13 @@ EOF
 
 ### Pr Playground
 
-# Phase 4b: Generate PR Playground (REQUIRED — CI blocks without it)
+# Phase 4b: Generate PR Playground (REQUIRED, CI blocks without it)
 
 Generate an interactive HTML playground visualizing the PR's changes. CI validates `docs/{branch-name}/*.html` exists.
 
 > **Requires** the `playground` plugin (external): `/plugin marketplace add anthropics/claude-plugins-official && /plugin install playground`
 
-**First classify the archetype** — a feature PR must not ship as a flat dashboard.
+**First classify the archetype**: a feature PR must not ship as a flat dashboard.
 `Read("${CLAUDE_PLUGIN_ROOT}/shared/rules/playground-visual-standard.md")` and apply its §0 routing rule:
 
 - **Visual PR** (adds/changes a user-facing feature, flow, or a prioritization/decision surface) →
@@ -1401,8 +1401,8 @@ Generate an interactive HTML playground visualizing the PR's changes. CI validat
   `${CLAUDE_PLUGIN_ROOT}/shared/assets/playground-exemplars/` (`user-story-player.template.html`
   or `decision-board.template.html`), and bring full design firepower (the `frontend-design` skill /
   the `ork:frontend-ui-developer` agent). When delegating to `playground:playground`, brief it with the
-  **archetype + persona + tokens** — never hand it a pre-built HTML blob.
-- **Non-visual PR** (infra/CI/refactor/config/docs) → **DASHBOARD** — the default summary below is fine.
+  **archetype + persona + tokens**: never hand it a pre-built HTML blob.
+- **Non-visual PR** (infra/CI/refactor/config/docs) → **DASHBOARD**, the default summary below is fine.
 
 ```python
 BRANCH=$(git branch --show-current)

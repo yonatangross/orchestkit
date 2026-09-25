@@ -1,15 +1,15 @@
 ---
 title: "Testing Patterns"
-description: "Redirect — testing-patterns was split into 5 focused sub-skills. Use when looking for testing-patterns, writing tests, or test automation. Redirects to testing-unit, testing-e2e, testing-integration, testing-llm, or testing-perf."
+description: "Redirect, testing-patterns was split into 5 focused sub-skills. Use when looking for testing-patterns, writing tests, or test automation. Redirects to testing-unit, testing-e2e, testing-integration, testing-llm, or testing-perf."
 ---
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-green">low</span>
 
-> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+> **Auto-activated**, this skill loads automatically when Claude detects matching context.
 
 <ContextualSkillSidebar slug="testing-patterns" />
 
-> **Testing Patterns** Redirect — testing-patterns was split into 5 focused sub-skills. Use when looking for testing-patterns, writing tests, or test automation. Redirects to testing-unit, testing-e2e, testing-integration, testing-llm, or testing-perf.
+> **Testing Patterns** Redirect, testing-patterns was split into 5 focused sub-skills. Use when looking for testing-patterns, writing tests, or test automation. Redirects to testing-unit, testing-e2e, testing-integration, testing-llm, or testing-perf.
 
 
 # Testing Patterns (Redirect)
@@ -38,11 +38,11 @@ testing-perf          # Performance and load testing
 
 ## Related Skills
 
-- `ork:testing-unit` — Unit testing: AAA pattern, fixtures, mocking, factories
-- `ork:testing-e2e` — E2E testing: Playwright, page objects, visual regression
-- `ork:testing-integration` — Integration testing: API endpoints, database, contracts
-- `ork:testing-llm` — LLM testing: mock responses, DeepEval/RAGAS evaluation
-- `ork:testing-perf` — Performance testing: k6, Locust, pytest-xdist
+- `ork:testing-unit`: Unit testing: AAA pattern, fixtures, mocking, factories
+- `ork:testing-e2e`: E2E testing: Playwright, page objects, visual regression
+- `ork:testing-integration`: Integration testing: API endpoints, database, contracts
+- `ork:testing-llm`: LLM testing: mock responses, DeepEval/RAGAS evaluation
+- `ork:testing-perf`: Performance testing: k6, Locust, pytest-xdist
 
 
 ---
@@ -56,7 +56,7 @@ testing-perf          # Performance and load testing
 
 ## Why
 
-Tests that assert implementation details (internal method calls, private state, specific SQL queries) break on every refactor even when the behavior is unchanged. This creates a maintenance burden where developers spend more time fixing tests than writing features — and the tests never catch real bugs.
+Tests that assert implementation details (internal method calls, private state, specific SQL queries) break on every refactor even when the behavior is unchanged. This creates a maintenance burden where developers spend more time fixing tests than writing features, and the tests never catch real bugs.
 
 ## Rule
 
@@ -70,7 +70,7 @@ Assertions must NOT verify:
 2. Private state or internal data structures
 3. Specific implementation mechanisms (SQL text, HTTP internals)
 
-## Incorrect — testing implementation details
+## Incorrect: testing implementation details
 
 ```typescript
 test("creates user", async () => {
@@ -100,7 +100,7 @@ def test_process_order(mocker):
     mock_calc.assert_called_once_with(order.items, order.discount)
 ```
 
-## Correct — testing observable behavior
+## Correct: testing observable behavior
 
 ```typescript
 test("creates user and returns it with generated id", async () => {
@@ -152,17 +152,17 @@ expect(() => service.create(invalid)).toThrow(); // Error behavior
 
 | Scenario | Mock OK | Assert On |
 |----------|---------|-----------|
-| External API calls | Yes — mock the HTTP client | Response handling behavior |
-| Database in unit tests | Yes — mock the repository | Return values and errors |
-| Internal private methods | No — do not mock | Test via public interface |
-| Time-dependent logic | Yes — mock `Date.now` | Correct output for given time |
-| File system | Yes — mock fs calls | Correct file content written |
+| External API calls | Yes, mock the HTTP client | Response handling behavior |
+| Database in unit tests | Yes, mock the repository | Return values and errors |
+| Internal private methods | No, do not mock | Test via public interface |
+| Time-dependent logic | Yes, mock `Date.now` | Correct output for given time |
+| File system | Yes, mock fs calls | Correct file content written |
 
 
 ### Tests must not depend on execution order or shared mutable state between test cases: HIGH
 
 
-# Test Isolation — No Shared State or Order Dependency
+# Test Isolation: No Shared State or Order Dependency
 
 ## Why
 
@@ -176,7 +176,7 @@ Every test must:
 3. Pass when run in isolation (`test.only` / `-k test_name`)
 4. Pass when run in any order (shuffle mode)
 
-## Incorrect — tests share mutable state
+## Incorrect: tests share mutable state
 
 ```typescript
 // Shared state between tests — order dependent
@@ -215,7 +215,7 @@ def test_cache_is_empty():
     assert len(_cache) == 0
 ```
 
-## Correct — each test owns its state
+## Correct: each test owns its state
 
 ```typescript
 describe("UserService", () => {

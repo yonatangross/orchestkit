@@ -5,7 +5,7 @@ description: "Implements internationalization (i18n) in React applications. Cove
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-green">low</span>
 
-> **Not directly invocable** — no slash command and no model auto-selection. An agent loads it explicitly via `Read()`.
+> **Not directly invocable**, no slash command and no model auto-selection. An agent loads it explicitly via `Read()`.
 
 <ContextualSkillSidebar slug="i18n-date-patterns" />
 
@@ -361,8 +361,8 @@ const formatted = formatNumber(number);
 **Key rules:**
 - Use `t('key', { variable })` with ICU MessageFormat placeholders instead of string concatenation or template literals
 - Use `useFormatting()` hooks (`formatILS`, `formatList`, `formatNumber`, `formatPercent`) instead of hardcoded symbols or manual formatting
-- Never call `.join()` on arrays for user-facing list display — use `formatList()` or `formatListOr()` which handle locale-specific conjunctions
-- Never call `toLocaleString()` directly — it bypasses the app's locale management and cannot react to language changes
+- Never call `.join()` on arrays for user-facing list display, use `formatList()` or `formatListOr()` which handle locale-specific conjunctions
+- Never call `toLocaleString()` directly, it bypasses the app's locale management and cannot react to language changes
 
 Reference: `references/formatting-utilities.md` (lines 132-167)
 
@@ -372,7 +372,7 @@ Reference: `references/formatting-utilities.md` (lines 132-167)
 
 ## i18n: ICU Plural Rules
 
-ICU MessageFormat provides locale-aware pluralization via `{variable, plural, ...}` syntax in translation files. Hardcoding plural logic in JavaScript with ternaries or conditionals only works for English (`one`/`other`) and breaks for languages with more plural categories — Hebrew has a dual form, Arabic has six forms (zero, one, two, few, many, other).
+ICU MessageFormat provides locale-aware pluralization via `{variable, plural, ...}` syntax in translation files. Hardcoding plural logic in JavaScript with ternaries or conditionals only works for English (`one`/`other`) and breaks for languages with more plural categories, Hebrew has a dual form, Arabic has six forms (zero, one, two, few, many, other).
 
 ### Never use conditional logic in code for plurals
 
@@ -435,7 +435,7 @@ Hebrew uses a `two` (dual) form. Arabic uses `zero`, `one`, `two`, `few`, `many`
 ```
 
 **Key rules:**
-- Never use ternaries, conditionals, or template literals for pluralization — always use ICU `{count, plural, ...}` in translation files
+- Never use ternaries, conditionals, or template literals for pluralization, always use ICU `{count, plural, ...}` in translation files
 - Every `plural` message must include the `other` category as a mandatory fallback
 - Provide locale-specific categories (`two` for Hebrew, `few`/`many` for Arabic, Slavic languages) in the respective translation files
 - Use `=0` exact match for zero/empty states instead of relying on the `zero` plural category
@@ -448,7 +448,7 @@ Reference: `references/ork-delta.md` for the house ICU decisions (i18next-icu pl
 
 ## i18n: Trans Component
 
-The `<Trans>` component from `react-i18next` embeds React elements (links, bold, icons) inside translated strings. Without it, developers split translations around JSX — breaking word order in other locales — or resort to `dangerouslySetInnerHTML`, which introduces XSS vulnerabilities.
+The `<Trans>` component from `react-i18next` embeds React elements (links, bold, icons) inside translated strings. Without it, developers split translations around JSX, breaking word order in other locales, or resort to `dangerouslySetInnerHTML`, which introduces XSS vulnerabilities.
 
 ### Never concatenate translated strings with JSX between them
 
@@ -504,8 +504,8 @@ import { Trans } from 'react-i18next';
 ```
 
 **Key rules:**
-- Never split a sentence across multiple `t()` calls with JSX between them — use a single `<Trans>` with `components` mapping
-- Never use `dangerouslySetInnerHTML` for rich translated text — `<Trans>` provides safe component interpolation
+- Never split a sentence across multiple `t()` calls with JSX between them, use a single `<Trans>` with `components` mapping
+- Never use `dangerouslySetInnerHTML` for rich translated text, `<Trans>` provides safe component interpolation
 - Prefer named component tags (`<link>`, `<bold>`) over indexed tags (`<0>`, `<1>`) in translation strings
 - Use `t()` for plain text and `<Trans>` only when JSX elements must appear inside the translated string
 
