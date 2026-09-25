@@ -1,0 +1,8 @@
+{
+  "slug": "promote-lights-real-promote-only",
+  "source": "docs/chore\u002d\u002ddsp-42766-4413-promote-lights/index.html",
+  "title": "Promote Lights: Real Promote Only",
+  "description": "Interactive proof that promote-lights tracks only real promote PRs into main.",
+  "tags": ["mods", "promote-lights", "ci"],
+  "date": "2026-09-25"
+}

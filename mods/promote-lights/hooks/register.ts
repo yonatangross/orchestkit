@@ -15,11 +15,12 @@
  * - $.store.get/set
  * - $.ui.status
  * - $.ui.invalidate
+ * - $.env.get (PROMOTE_HEAD override)
  */
 
 import { matchAndClassify, isPassing, type ClassifiedLight } from "../src/classify.js";
 import { computeRequiredUnion } from "../src/required.js";
-import { parsePRList, parsePRView, parseCheckRuns } from "../src/gh.js";
+import { parsePRList, parsePRView, parseCheckRuns, isPromotePR, DEFAULT_PROMOTE_HEAD } from "../src/gh.js";
 import { buildStatusLine, buildBandContent } from "../src/pane.js";
 
 /**
@@ -44,6 +45,9 @@ type Hook$ = {
     get: (key: string) => Promise<StoredLights | null>;
     set: (key: string, value: unknown) => Promise<void>;
     delete: (key: string) => Promise<void>;
+  };
+  env: {
+    get: (key: string) => Promise<string | undefined>;
   };
   ui: {
     status: (line: string) => Promise<void>;
@@ -109,7 +113,7 @@ export const register: Register = (on) => {
         "--state",
         "open",
         "--json",
-        "number,headRefOid,title",
+        "number,headRefName,headRefOid,title,labels",
       ], { timeoutMs: 15000 });
 
     if (result.exitCode !== 0) {
@@ -117,8 +121,14 @@ export const register: Register = (on) => {
       return next(e);
     }
 
+    // Only a real promote PR matches: dev head (or the configured
+    // promote head) with base main, or the promote label. An ordinary
+    // PR with base main must never match.
+    let promoteHead = DEFAULT_PROMOTE_HEAD;
+    const configured = await $.env.get("PROMOTE_HEAD").catch(() => undefined);
+    if (configured) promoteHead = configured;
     const prs = parsePRList(result.stdout);
-    const promotePR = prs[0];
+    const promotePR = prs.find((pr) => isPromotePR(pr, promoteHead));
 
     if (!promotePR) {
       await $.store.delete(`lights:${owner}/${name}`);
