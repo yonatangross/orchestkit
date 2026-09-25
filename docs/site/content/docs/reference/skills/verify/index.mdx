@@ -103,7 +103,7 @@ AskUserQuestion(
 
 Load details: `Read("references/orchestration-mode.md")` for env var check logic, Agent Teams vs Agent Tool comparison, and mode selection rules.
 
-Choose **Agent Teams** (mesh, verifiers share findings) or **Agent tool** (star, all report to lead) based on the orchestration mode reference.
+Default: **Workflow** (star, `workflows/verify-dispatch.js` runs Phase 2). Choose **Agent Teams** (mesh, verifiers share findings) when findings need debate, or the plain **Agent tool** (star) when the Workflow tool is unavailable, per the orchestration mode reference.
 
 ---
 
@@ -151,35 +151,9 @@ CronCreate(
 
 **Finish line.** Done means: every selected dimension has a score backed by a command you ran this session, and the report separates VERIFIED from CLAIMED. Follow `Read("../../shared/rules/long-run-protocol.md")`: keep going when a step needs no input from the user, stop and ask only when you can't continue without them or before anything destructive, check each subagent's evidence before accepting it, and mark anything you couldn't confirm with where you looked.
 
-## Task Management (CC 2.1.16)
+## Task Management
 
-```python
-# 1. Create main verification task
-TaskCreate(
-  subject="Verify [feature-name] implementation",
-  description="Comprehensive verification with nuanced grading",
-  activeForm="Verifying [feature-name] implementation"
-)
-
-# 2. Create subtasks for 8-phase process
-TaskCreate(subject="Run code quality checks", activeForm="Running quality checks")    # id=2
-TaskCreate(subject="Execute security audit", activeForm="Running security audit")     # id=3
-TaskCreate(subject="Verify test coverage", activeForm="Verifying test coverage")      # id=4
-TaskCreate(subject="Validate API", activeForm="Validating API")                       # id=5
-TaskCreate(subject="Check UI/UX", activeForm="Checking UI/UX")                       # id=6
-TaskCreate(subject="Calculate grades", activeForm="Calculating grades")               # id=7
-TaskCreate(subject="Generate suggestions", activeForm="Generating suggestions")       # id=8
-TaskCreate(subject="Compile report", activeForm="Compiling report")                   # id=9
-
-# 3. Set dependencies — phases 2-6 run in parallel, 7-9 are sequential
-TaskUpdate(taskId="7", addBlockedBy=["2", "3", "4", "5", "6"])  # Grading needs all checks
-TaskUpdate(taskId="8", addBlockedBy=["7"])  # Suggestions need grades
-TaskUpdate(taskId="9", addBlockedBy=["8"])  # Report needs suggestions
-
-# 4. Update status as you progress
-TaskUpdate(taskId="2", status="in_progress")  # When starting
-TaskUpdate(taskId="2", status="completed")    # When done — repeat for each subtask
-```
+Create the main verification task and one subtask per phase, with grading blocked on the checks: `Read("references/task-management.md")`.
 
 ---
 
@@ -210,21 +184,18 @@ Load details: `Read("references/verification-phases.md")` for complete phase det
 | frontend-ui-developer | React 19, Zod, a11y | UI 0-10 |
 | python-performance-engineer | Latency, resources, scaling | Performance 0-10 |
 
-Launch ALL agents in ONE message with `run_in_background=True` and `max_turns=25`.
+Do NOT hand-roll the dispatch. Start Phase 3's test run (below) in the background, then run the executor:
 
-### Progressive Output (CC 2.1.76+)
-
-Output each agent's score **as soon as it completes** — don't wait for all 6-7 agents.
-
-> **Focus mode (CC 2.1.101):** In focus mode, include the full composite score, all dimension scores, and the verdict in your final message — the user didn't see the incremental outputs.
-
-```
-Security:     8.2/10 — No critical vulnerabilities found
-Code Quality: 7.5/10 — 3 complexity hotspots identified
-[...remaining agents still running...]
+```python
+Workflow(
+  scriptPath="${CLAUDE_SKILL_DIR}/workflows/verify-dispatch.js",
+  args={"effort": EFFORT, "scope": "<diff summary from Phase 1>", "rubric": <rubric.json>,
+        "dimensions": DIMS, "modelOverride": MODEL_OVERRIDE}
+)   # add "testEvidence": {"outcome", "exitCode", "summaryLine"} if assert-evidence.sh already ran
+# DIMS from STEP 0a: Full -> omit; "Security & code quality" -> ["security", "quality"]; Tests only / Quick check -> skip Phase 2
 ```
 
-This gives users real-time visibility into multi-agent verification. If any dimension scores below the `security_minimum` threshold (default 5.0), flag it as a **blocker immediately** — the user can terminate early without waiting for remaining agents.
+**The script owns the mechanics, not the prose.** It spawns the effort-scaled verifiers (security first) with an evidence schema, sends critical blockers and low scores to refuters (1 vote at high, 3 at xhigh, majority of planned votes, each refutation backed by a command), enforces a 12-agent ceiling, and returns `verdictCap` with `reasons`. Anything it cannot establish lowers the cap: an unknown dimension, a missing rubric, a score with no command-backed evidence, a CLAIMED item, a dead verifier. Without `testEvidence` it returns `PENDING-TESTS` plus `capIfTestsPass`: after the gate below, the cap is `capIfTestsPass` only for EVIDENCE with exit 0, otherwise BLOCKED. Phase 4 grades within the cap, never above it.
 
 ### Monitor + Partial Results (CC 2.1.98)
 
@@ -250,21 +221,7 @@ Measured (#3263): three backgrounded suites wrote **0 bytes**, npm's own banner 
 
 Full pattern reference (when to use vs. `TaskOutput`, until-condition gates, anti-patterns): `Read("../chain-patterns/references/monitor-patterns.md")`.
 
-**Partial results (CC 2.1.98):** If a verification agent fails mid-analysis, synthesize partial scores rather than re-spawning:
-
-```python
-for agent_result in verification_results:
-    if "[PARTIAL RESULT]" in agent_result.output: A `maxTurns` stop is also partial since CC 2.1.246 (summary: "stopped at its N-turn limit (partial result; continue it with SendMessage to the task-id)"); continue that agent with `SendMessage` instead of re-spawning it.
-        # Extract whatever scores the agent produced before crashing
-        partial_score = parse_score(agent_result.output)  # May be incomplete
-        scores[agent_result.dimension] = {
-            "score": partial_score, "partial": True,
-            "note": "Agent crashed — score based on partial analysis"
-        }
-        # A 4-dimension score is better than no score. Do NOT re-spawn.
-```
-
-> **Cross-session replies land in the parent (CC 2.1.248):** when a subagent sends `SendMessage` to another session, the reply is delivered to the parent session's conversation, never to the subagent; a subagent sends and moves on, the parent reads the answer. Cross-session `SendMessage` / `ListAgents` also work on Bedrock, Vertex and Foundry and with telemetry disabled (CC 2.1.248).
+Progressive output and partial results in Agent Teams or plain Agent mode: `Read("references/progressive-and-partial-results.md")`.
 
 ### Phase 2.5: Visual Capture (NEW — runs in parallel with Phase 2)
 
@@ -503,5 +460,5 @@ unexpectedly. It refuses the verdict rather than the check.
 This reference is split across 4 pages so each stays under the 25K-token page budget. The rules and reference material that used to sit at the bottom of this page now live at:
 
 - [Rules](/docs/reference/skills/verify/rules): 2 rules for the Verify skill: Evidence Collection Patterns; Scoring Rubric
-- [References](/docs/reference/skills/verify/references): 15 references for the Verify skill: Alternative Comparison; Background task contract: never wait unconditionally; Claude Code; Grading Rubric; Orchestration Mode; Policy As Code; Quality Model; Reachability Proof; Report Template; Streak Gate; Verification Checklist; Verification Manifest; Verification Phases; Versions; Visual Capture
+- [References](/docs/reference/skills/verify/references): 17 references for the Verify skill: Alternative Comparison; Background task contract: never wait unconditionally; Claude Code; Grading Rubric; Orchestration Mode; Policy As Code; Progressive And Partial Results; Quality Model; Reachability Proof; Report Template; Streak Gate; Task Management; Verification Checklist; Verification Manifest; Verification Phases; Versions; Visual Capture
 - [Checklists](/docs/reference/skills/verify/checklists): 1 checklists for the Verify skill: Verification Checklist

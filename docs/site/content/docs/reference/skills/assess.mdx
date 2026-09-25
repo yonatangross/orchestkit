@@ -1143,6 +1143,7 @@ else:
 
 ## Decision Rules
 
+0. `/ork:verify` Phase 2 --> **Workflow** by default (`workflows/verify-dispatch.js`); the rules below apply when it falls back to Agent Teams or the Agent tool. `/ork:assess` keeps these rules until its own workflow ships.
 1. Full assessment/verification scope --> **Agent Teams mode** (GA since CC 2.1.33)
 2. Quick/single-dimension scope --> **Agent tool mode**
 3. `ORCHESTKIT_FORCE_TASK_TOOL=1` --> **Agent tool** (override)

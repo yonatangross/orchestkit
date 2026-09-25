@@ -18,7 +18,7 @@
 
 ## Phase 2: Parallel Agent Dispatch (6 Agents)
 
-Launch ALL agents in ONE message with `run_in_background=True` and `max_turns=25`. Pass `model=MODEL_OVERRIDE` when user specifies `--model=opus` (CC 2.1.72).
+Default: `workflows/verify-dispatch.js` runs this dispatch (SKILL.md Phase 2). Without the Workflow tool, launch ALL agents in ONE message with `run_in_background=True` and `max_turns=25`. Pass `model=MODEL_OVERRIDE` when user specifies `--model=opus` (CC 2.1.72).
 
 | Agent | Focus | Output |
 |-------|-------|--------|
@@ -35,7 +35,7 @@ Optionally add `monitoring-engineer` as a **conditional observability verifier**
 
 See [Grading Rubric](grading-rubric.md) for detailed scoring criteria.
 
-### Agent Tool Mode (Default)
+### Agent Tool Mode (fallback)
 
 ```python
 # PARALLEL — All 6 in ONE message
