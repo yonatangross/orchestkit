@@ -299,7 +299,9 @@ export function mask(text: string, table: MaskTable): MaskResult {
           value: entry.value,
           name: entry.name,
         });
-        searchPos = idx + 1;
+        // Resume past this occurrence: overlapping copies add nothing to
+        // mask and rescanning them made long repeats quadratic.
+        searchPos = idx + Math.max(1, entry.value.length);
       }
     } else {
       // Pattern prefix match
@@ -350,7 +352,10 @@ export function mask(text: string, table: MaskTable): MaskResult {
           end,
           value: maskedText.slice(idx, end),
         });
-        searchPos = idx + 1;
+        // Resume at the end of this match, never one character later: a hit
+        // already covers the rest of its run, and restarting inside it
+        // rescanned the same run for every repeated prefix (quadratic).
+        searchPos = Math.max(end, idx + 1);
       }
     }
   }

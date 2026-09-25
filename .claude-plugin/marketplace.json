@@ -79,7 +79,7 @@
     {
       "name": "secrets-veil",
       "description": "Mod (function hooks): masks secret values in tool results before the model reads them. Needs CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1.",
-      "version": "0.0.4",
+      "version": "0.0.5",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonaigross@gmail.com"

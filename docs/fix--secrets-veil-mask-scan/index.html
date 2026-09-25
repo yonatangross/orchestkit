@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>secrets-veil: masking stays fast on long lines | OrchestKit Lab</title>
+<style>
+  :root { color-scheme: light; font: 17px/1.6 system-ui, sans-serif; background: #faf8f3; color: #1d232a; }
+  body { max-width: 900px; margin: auto; padding: 44px 24px; }
+  h1 { font-size: clamp(1.8rem, 5vw, 2.6rem); line-height: 1.15; }
+  .eyebrow { color: #2a6f97; letter-spacing: .08em; }
+  table { border-collapse: collapse; width: 100%; font-size: 15px; margin-top: 12px; }
+  td, th { border: 1px solid #d9d3c7; padding: 6px 10px; text-align: left; }
+</style>
+</head>
+<body>
+<p class="eyebrow">ORCHESTKIT LAB · MODS · SECRETS-VEIL</p>
+<h1>Masking stays fast on long lines</h1>
+<p>Some long single-line outputs (minified code, repeated tokens) made the masker rescan the same text over and over, which could hold a session for several seconds. The scan now moves past each match instead of restarting inside it, and a single value over a fixed size is withheld rather than scanned.</p>
+<table>
+  <tr><th>Input (about 100k characters, one line)</th><th>Before</th><th>After</th></tr>
+  <tr><td>a repeated key prefix</td><td>11.0 s</td><td>under 200 ms (test bound)</td></tr>
+  <tr><td>minified text with a prefix inside ordinary words</td><td>5.1 s</td><td>under 200 ms (test bound)</td></tr>
+</table>
+<p>Tests bound both cases at 200 ms, prove repeated values are still masked everywhere, and prove an oversized single value is withheld.</p>
+</body>
+</html>
