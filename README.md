@@ -614,6 +614,12 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.91](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.90...v10.0.0-beta.91)** · 2026-09-25
+
+- **cover:** heal-loop never rewrites an expected value (#4407)
+- **memory:** drop LIVE claims for removed memory-writer hook (#4410)
+- **memory:** remove stale memory-writer.ts hook reference (#4409)
+
 **[v10.0.0-beta.90](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.89...v10.0.0-beta.90)** · 2026-09-25
 
 - **cover:** gate generated tests on behaviour and target by risk (#4408)
@@ -646,14 +652,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.84](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.83...v10.0.0-beta.84)** · 2026-09-23
 
 - **git-hooks:** opt-in targeted pre-push mode with a 2-slot governor (#4238) (#4389)
-
-**[v10.0.0-beta.83](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.82...v10.0.0-beta.83)** · 2026-09-23
-
-- **hooks:** emit PermissionRequest decision.behavior for auto-approve (#4374)
-- **hooks:** read tool_response and lock attribution state (sweep T1) (#4386)
-- **security:** XS hardening batch from the 2026-09-17 audit (#4220) (#4383)
-- **skills:** grant Stitch tools the skills call, and guard skill MCP refs (#4376)
-- **skills:** keep rc capture and cleanup working under set -e (sweep T2) (#4387)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
