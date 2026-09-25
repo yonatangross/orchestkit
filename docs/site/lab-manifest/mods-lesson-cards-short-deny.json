@@ -1,0 +1,13 @@
+{
+  "slug": "mods-lesson-cards-short-deny",
+  "source": "docs/fix--lesson-cards-short-deny/index.html",
+  "title": "lesson-cards: a stopped call is one line, not a red wall",
+  "description": "When a block lesson stops a command, the refusal is now one short line (lesson id and first sentence) instead of repeating the whole lesson and fix as a red error wall under the card.",
+  "tags": [
+    "claude-code",
+    "mods",
+    "function-hooks",
+    "lesson-cards"
+  ],
+  "date": "2026-09-26"
+}

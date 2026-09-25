@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>lesson-cards: a stopped call is one line, not a red wall | OrchestKit Lab</title>
+<style>
+  :root { color-scheme: light; font: 17px/1.6 system-ui, sans-serif; background: #faf8f3; color: #1d232a; }
+  body { max-width: 900px; margin: auto; padding: 44px 24px; }
+  h1 { font-size: clamp(1.8rem, 5vw, 2.6rem); line-height: 1.15; }
+  h2 { font-size: 1.2rem; margin-top: 28px; }
+  .eyebrow { color: #2a6f97; letter-spacing: .08em; }
+  pre { background: #272822; color: #f8f8f2; border-radius: 10px; padding: 14px 16px; white-space: pre-wrap; font-size: 14px; }
+  .bad { color: #f92672; }
+</style>
+</head>
+<body>
+<p class="eyebrow">ORCHESTKIT LAB · MODS · CC 2.1.282</p>
+<h1>A stopped call is one line, not a red wall</h1>
+<p>When a block lesson stops a command (Cancel, Escape, no answer), Claude Code draws the refusal as a red tool error. The refusal used to repeat the whole lesson and its multi-line fix, so the pane showed the same text twice: once in the card, then again as a red wall. Now the refusal is one short line with the lesson id and its first sentence; the card above keeps the full lesson and fix.</p>
+<h2>Before</h2>
+<pre><span class="bad">Error: lesson-cards: no explicit "Proceed anyway" came back at lesson git-ls-files-quotepath-blind, so this call did not run.
+[lesson:git-ls-files-quotepath-blind] A "not tracked" read from `git ls-files` is blind to non-ASCII paths. ...
+  (about 15 more red lines: the full lesson and every fix example)</span></pre>
+<h2>After</h2>
+<pre><span class="bad">Error: lesson-cards: no explicit "Proceed anyway" came back; call not run. [lesson:git-ls-files-quotepath-blind] A "not tracked" read from `git ls-files` is blind to non-ASCII paths.</span></pre>
+<p>One line, at most 240 characters. Tests pin the shape: no newline, the id and first sentence present, no fix block.</p>
+</body>
+</html>

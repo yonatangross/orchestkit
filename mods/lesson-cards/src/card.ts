@@ -62,6 +62,21 @@ export function buildCard(lesson: MatchedLesson, requestId: string, el: CardElem
   });
 }
 
+/** Longest deny line; the card above it already shows the full lesson and fix. */
+export const MAX_DENY_CHARS = 240;
+
+/**
+ * The one-line reason a refused call carries. Claude Code draws every deny
+ * as a red tool error, so a multi-line lesson here became a red wall that
+ * repeated the card; one line keeps the reason and points at the lesson id.
+ */
+export function denyLine(lesson: MatchedLesson, why: string): string {
+  const flat = lesson.message.replace(/\s+/g, ' ').trim();
+  const firstSentence = /^(.*?[.!?])(\s|$)/.exec(flat)?.[1] ?? flat;
+  const line = `lesson-cards: ${why}; call not run. [lesson:${lesson.id}] ${firstSentence}`;
+  return line.length > MAX_DENY_CHARS ? `${line.slice(0, MAX_DENY_CHARS - 3)}...` : line;
+}
+
 /**
  * Format lesson context for model consumption.
  *

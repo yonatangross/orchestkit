@@ -478,6 +478,23 @@ describe('a block lesson fails closed: only an explicit Proceed anyway runs it',
   }
 });
 
+describe('the deny is one short line, not a red wall', () => {
+  test('one line, at most 240 characters, id and first sentence only, no fix block', async () => {
+    const { hooks } = captureHooks();
+    const { $ } = makeFake$({ askAnswer: 'Cancel' });
+    await startSession(hooks, $);
+
+    const out = (await hooks.get('tool.call')!($, { tool: 'Bash', command: 'gh pr checks' }, asNext<never>({ result: 'ran' }))) as { deny?: string };
+    const deny = out.deny ?? '';
+    expect(deny).not.toContain('\n');
+    expect(deny.length).toBeLessThanOrEqual(240);
+    expect(deny).toContain('[lesson:cancelled-check-is-not-pass]');
+    expect(deny).toContain('Cancelled CI tiers are not pass.');
+    expect(deny).not.toContain('Never trust a green rollup');
+    expect(deny).not.toContain('Fix:');
+  });
+});
+
 describe('command.run', () => {
   test('/lessons reloads the corpus and invalidates ui.render', async () => {
     const { hooks } = captureHooks();
