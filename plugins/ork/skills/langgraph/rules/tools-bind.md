@@ -48,8 +48,8 @@ def agent_node(state):
 
 **Require a tool call:**
 ```python
-# Opus 5.5 and Fable 5.1: forced tool_choice ("any" or a named tool) returns a 400.
-# Use auto with strict tools and name the required tool in the prompt:
+# Opus 5.5, Fable 5.1 and Mythos 5.1: forced tool_choice ("any" or a named tool) returns a 400.
+# Use auto (best effort, not a guarantee) with strict tools and name the required tool in the prompt:
 model.bind_tools(tools, tool_choice="auto", strict=True)  # langchain-anthropic >= 1.1.0
 
 # Other providers and other Claude models:

@@ -64,8 +64,7 @@ async def analyze_with_langchain(content: str, analysis_id: str) -> str:
 
     # Create LLM with callback
     llm = ChatAnthropic(
-        model="claude-sonnet-5",
-        temperature=1.0,
+        model="claude-sonnet-5",  # 5-series: no temperature/top_p/top_k (non-default values return a 400)
         max_tokens=4096,
         callbacks=[langfuse_handler],  # Pass as list!
     )

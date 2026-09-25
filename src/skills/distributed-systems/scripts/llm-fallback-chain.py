@@ -68,7 +68,7 @@ class LLMConfig:
     api_key: str | None = None
     timeout: float = 30.0
     max_tokens: int = 4096
-    temperature: float = 0.7
+    temperature: float = 0.7  # not sent to Claude 5-series models (non-default sampling params return a 400)
     # Cost per 1M tokens (input, output)
     cost_per_million_input: float = 1.0
     cost_per_million_output: float = 3.0
@@ -386,8 +386,10 @@ class QualityAwareFallbackChain(LLMFallbackChain):
                 extra={"attempt": attempt + 1},
             )
 
-            # Adjust parameters for retry
-            kwargs["temperature"] = max(0.3, kwargs.get("temperature", 0.7) - 0.15)
+            # Adjust parameters for retry. Claude 5-series models reject non-default
+            # sampling params with a 400, so only lower temperature for other models.
+            if not self.primary.config.model.startswith(("claude-sonnet-5", "claude-opus-5", "claude-fable-5")):
+                kwargs["temperature"] = max(0.3, kwargs.get("temperature", 0.7) - 0.15)
 
         # Return best effort with warning
         if best_response:
