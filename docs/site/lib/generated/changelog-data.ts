@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.97",
+    "date": "2026-09-25",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.96...v10.0.0-beta.97",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**secrets-veil:** show a toast with masked value and byte counts ([#4431](https://github.com/yonatangross/orchestkit/issues/4431)) ([974e18b](https://github.com/yonatangross/orchestkit/commit/974e18be7f6486e312336c4e7d049927e2003ce3))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.96",
     "date": "2026-09-25",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.95...v10.0.0-beta.96",
