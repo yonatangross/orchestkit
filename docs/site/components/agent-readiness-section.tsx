@@ -12,7 +12,10 @@ const MCP_REGISTRY_URL =
 export function AgentReadinessSection() {
 	return (
 		<section aria-labelledby="agents-heading" className="border-b border-fd-border">
-			<div className="mx-auto max-w-[820px] px-7 py-14">
+			{/* Long code spans (the Go module path, MCP URL, registry id) may break
+			    anywhere: unbreakable, the Go path made the page 7px wider than a
+			    390px phone (overflow bisect, 2026-09-25). */}
+			<div className="mx-auto max-w-[820px] px-7 py-14 [&_code]:[overflow-wrap:anywhere]">
 				<h2 id="agents-heading" className="text-2xl font-semibold tracking-tight text-fd-foreground">
 					Built for AI agents, too
 				</h2>

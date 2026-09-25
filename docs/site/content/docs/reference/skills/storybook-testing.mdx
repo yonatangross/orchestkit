@@ -130,7 +130,7 @@ export default defineConfig({
 ## Key Principles
 
 - **Stories are tests.** Every story with a `play()` function is an executable interaction test that runs in Vitest.
-- **CSF3 + `satisfies` for type safety.** Use `satisfies Meta&lt;typeof Component&gt;` for full type inference on args and play functions.
+- **CSF3 + `satisfies` for type safety.** Use `satisfies Meta<typeof Component>` for full type inference on args and play functions.
 - **Module automocking (SB 10).** Register `sb.mock(import(...))` in `.storybook/preview.ts`, configure per-story with `mocked()` in `beforeEach`. Never use `vi.mock` in story files. No factory functions — `sb.mock` is build-time, not runtime.
 - **TurboSnap for CI speed.** Only snapshot stories affected by code changes — reduces Chromatic usage by 60-90%.
 - **Accessibility is not optional.** The a11y addon runs axe-core scans on every story and gates CI on violations.
@@ -142,7 +142,7 @@ export default defineConfig({
 
 | Anti-Pattern | Why It Fails | Use Instead |
 |-------------|-------------|-------------|
-| CSF2 `Template.bind(\{\})` | Deprecated, no type inference, will be removed in SB 11 | CSF3 object stories with `satisfies` |
+| CSF2 `Template.bind({})` | Deprecated, no type inference, will be removed in SB 11 | CSF3 object stories with `satisfies` |
 | `@storybook/test-runner` package | Deprecated since Storybook 9 | `@storybook/addon-vitest` |
 | `vi.mock()` in story files | Leaks between stories, breaks isolation | Register `sb.mock(import(...))` in preview.ts, configure with `mocked()` in beforeEach |
 | Full Chromatic snapshots on every PR | Expensive and slow | TurboSnap with `onlyChanged: true` |
@@ -302,8 +302,8 @@ const config: StorybookConfig = {
 - A11y violations appear in the Storybook panel AND fail as Vitest test assertions in CI.
 - Configure rules per-story via `parameters.a11y.config.rules` to enable/disable specific axe rules.
 - Use `tags: ['!a11y']` to exclude specific stories from a11y checks (e.g., intentional error states).
-- Always provide accessible names: `aria-label` for icon buttons, `&lt;label&gt;` for inputs, headings for sections.
-- Test keyboard navigation in play functions: `userEvent.tab()`, `userEvent.keyboard('\{Enter\}')`.
+- Always provide accessible names: `aria-label` for icon buttons, `<label>` for inputs, headings for sections.
+- Test keyboard navigation in play functions: `userEvent.tab()`, `userEvent.keyboard('{Enter}')`.
 
 Reference: `references/storybook-ci-strategy.md`
 
@@ -480,7 +480,7 @@ Reference: `references/storybook-ci-strategy.md`
 
 ## Storybook: CSF3 Typesafe Story Factories
 
-Storybook 10 uses Component Story Format 3 (CSF3) where stories are plain objects instead of template-bound functions. Use `satisfies Meta&lt;typeof Component&gt;` on the meta export for full TypeScript inference on args, decorators, and play functions.
+Storybook 10 uses Component Story Format 3 (CSF3) where stories are plain objects instead of template-bound functions. Use `satisfies Meta<typeof Component>` on the meta export for full TypeScript inference on args, decorators, and play functions.
 
 **Incorrect:**
 ```tsx
@@ -550,11 +550,11 @@ export const WithLongLabel: Story = {
 ```
 
 **Key rules:**
-- Always use `satisfies Meta&lt;typeof Component&gt;` (not `as Meta`) — `satisfies` preserves the inferred type while `as` erases it.
-- Define `type Story = StoryObj&lt;typeof meta&gt;` after the default export for per-story type inference.
+- Always use `satisfies Meta<typeof Component>` (not `as Meta`) — `satisfies` preserves the inferred type while `as` erases it.
+- Define `type Story = StoryObj<typeof meta>` after the default export for per-story type inference.
 - Use `fn()` from `@storybook/test` for action args instead of `action()` — `fn()` integrates with Vitest assertions.
 - Remove `title` from meta — Storybook 9 auto-generates titles from file paths.
-- Each story is a plain object with `args`, not a function bound via `Template.bind(\{\})`.
+- Each story is a plain object with `args`, not a function bound via `Template.bind({})`.
 
 Reference: `references/storybook-migration-guide.md`
 
@@ -1029,7 +1029,7 @@ jobs:
 
 #### 1. CSF2 Deprecated (Still Works)
 
-CSF2 `Template.bind(\{\})` still works in SB 10 for backwards compatibility, but is deprecated and will be removed in SB 11. Migrate to CSF3 object format:
+CSF2 `Template.bind({})` still works in SB 10 for backwards compatibility, but is deprecated and will be removed in SB 11. Migrate to CSF3 object format:
 
 ```tsx
 // CSF3 (recommended)

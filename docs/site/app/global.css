@@ -236,7 +236,9 @@
   grid-column: 1 / -1;
   grid-row: 2;
   width: 100%;
-  max-width: 760px;
+  /* Wide enough for the quick-links row on one line from 1024 up (at 760px
+     "OrchestKit SDK packages" wrapped alone). Search stays 440px, centred. */
+  max-width: 1000px;
   justify-self: center;
 }
 
@@ -244,6 +246,15 @@
    for factory-ride and other surfaces. */
 .home-hero {
   --text-fluid-h1: clamp(2.5rem, 4vw + 1.5rem, 4.25rem);
+}
+
+/* 901 to 1279px: the copy column is ~440 to 560px, and at the fluid size
+   "Stop explaining" did not fit, leaving "Stop" alone on line one at 1024.
+   Scale the headline to the column in that band only. */
+@media (min-width: 901px) and (max-width: 1279px) {
+  .home-hero {
+    --text-fluid-h1: clamp(2.5rem, 2.6vw + 1.2rem, 3.4rem);
+  }
 }
 
 /* Art box keeps the art's ratio (both layers are cropped to 1.16:1). Never
@@ -1167,4 +1178,36 @@ article blockquote {
 }
 #nd-page .scroll-shadows {
   --scroll-shadow-bg: var(--color-fd-background);
+}
+
+/* Wide docs tables: the background shadows above cannot show here, because
+   the table's own cell backgrounds paint over the wrapper. Fade the edge that
+   has more content instead, driven by the table's own scroll position. With
+   nothing to scroll, the scroll timeline is inactive, the offsets stay 0 and
+   the mask is fully opaque. Browsers without scroll timelines show no fade. */
+@property --scroll-fade-start {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+@property --scroll-fade-end {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+@keyframes scroll-fade {
+  from {
+    --scroll-fade-start: 0px;
+    --scroll-fade-end: 40px;
+  }
+  to {
+    --scroll-fade-start: 40px;
+    --scroll-fade-end: 0px;
+  }
+}
+.scroll-fade {
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 var(--scroll-fade-start), #000 calc(100% - var(--scroll-fade-end)), transparent);
+  mask-image: linear-gradient(to right, transparent, #000 var(--scroll-fade-start), #000 calc(100% - var(--scroll-fade-end)), transparent);
+  animation: scroll-fade linear both;
+  animation-timeline: scroll(self inline);
 }

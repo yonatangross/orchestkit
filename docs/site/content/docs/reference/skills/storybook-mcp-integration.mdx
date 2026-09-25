@@ -28,7 +28,7 @@ Use the Storybook MCP server (`@storybook/addon-mcp`) to give agents awareness o
 | Toolset | Tool | Purpose | Key Inputs |
 |---------|------|---------|------------|
 | **dev** | `get-storybook-story-instructions` | Guidance on writing stories + interaction tests | none |
-| **dev** | `preview-stories` | Returns preview URLs for stories (embeddable) | `stories[]: \{storyId\}` or `\{absoluteStoryPath, exportName\}` |
+| **dev** | `preview-stories` | Returns preview URLs for stories (embeddable) | `stories[]: {storyId}` or `{absoluteStoryPath, exportName}` |
 | **docs** | `list-all-documentation` | Full component + docs manifest index | none |
 | **docs** | `get-documentation` | Props, first 3 stories, story index, docs | `id` (required), `storybookId` (optional) |
 | **docs** | `get-documentation-for-story` | Full story source + component docs | `componentId`, `storyName` (required) |
@@ -76,7 +76,7 @@ ToolSearch(query="+storybook list-all-documentation")
 
 ## Rule Details
 
-Load rules on demand with `Read("rules/&lt;file&gt;")`:
+Load rules on demand with `Read("rules/<file>")`:
 
 | Rule | Impact | Description |
 |------|--------|-------------|
@@ -97,7 +97,7 @@ Filter toolsets via `X-MCP-Toolsets` header to reduce agent context:
 ## Chromatic Remote Publishing
 
 For teams using Chromatic, the docs toolset is publishable remotely:
-- Published at `https://&lt;chromatic-storybook-url&gt;/mcp`
+- Published at `https://<chromatic-storybook-url>/mcp`
 - Only docs toolset available remotely (dev + testing need local Storybook)
 - Useful for cross-team design system discovery without running Storybook locally
 

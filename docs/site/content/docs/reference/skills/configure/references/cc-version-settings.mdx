@@ -392,7 +392,7 @@ CC 2.1.116 closes a prior escape where sandbox auto-allow could bypass the dange
 
 ### Agent Frontmatter `hooks:` Fire in `--agent` Main-Thread Mode
 
-Before 2.1.116, agent-scoped hooks (defined in `src/agents/&lt;name&gt;.md` frontmatter) only fired when the agent ran as a subagent via the `Task` tool. As of 2.1.116, they also fire when a user invokes the agent as their main thread via `claude --agent &lt;name&gt;`.
+Before 2.1.116, agent-scoped hooks (defined in `src/agents/<name>.md` frontmatter) only fired when the agent ran as a subagent via the `Task` tool. As of 2.1.116, they also fire when a user invokes the agent as their main thread via `claude --agent <name>`.
 
 **Impact for OrchestKit**: All 14 agent hooks in OrchestKit are defensive `PreToolUse`/`PostToolUse` blockers (dangerous-command-blocker, ci-safety-check, deployment-safety-check, migration-safety-check, etc.). Main-thread firing is a **net positive** — users who pick an OrchestKit agent as their default get the same safety rails that subagent runs get.
 
@@ -411,7 +411,7 @@ Before 2.1.116, agent-scoped hooks (defined in `src/agents/&lt;name&gt;.md` fron
 
 ### `--plugin-dir` Now Accepts `.zip` Archives
 
-CC 2.1.128 extends `--plugin-dir` so it accepts a path to a `.zip` plugin archive in addition to an unpacked directory. Combined with the new `--plugin-url &lt;url&gt;` flag in 2.1.129 (see below), this enables a URL → download → load workflow for one-off plugin trials without committing the plugin to a marketplace or unpacking it manually.
+CC 2.1.128 extends `--plugin-dir` so it accepts a path to a `.zip` plugin archive in addition to an unpacked directory. Combined with the new `--plugin-url <url>` flag in 2.1.129 (see below), this enables a URL → download → load workflow for one-off plugin trials without committing the plugin to a marketplace or unpacking it manually.
 
 ```bash
 # Load a plugin from a local zip
@@ -449,9 +449,9 @@ OTEL_SERVICE_NAME=my-app \
 
 When an MCP server reconnects mid-session, CC 2.1.128 no longer flushes the full re-announced tool-name list into the conversation. Re-announced tools are summarized by server prefix instead — e.g., `mcp__github__* (37 tools re-registered)` rather than 37 separate lines.
 
-**Impact**: Cosmetic for end users (less noise in transcript). Material for anyone parsing audit logs or transcripts for tool-call surface area — the prior heuristic of grepping `mcp__&lt;server&gt;__` to enumerate connected tools breaks because reconnect events emit summaries, not enumerations. Use the initial connect event (still full enumeration) as the source of truth, and treat reconnect summaries as deltas only.
+**Impact**: Cosmetic for end users (less noise in transcript). Material for anyone parsing audit logs or transcripts for tool-call surface area — the prior heuristic of grepping `mcp__<server>__` to enumerate connected tools breaks because reconnect events emit summaries, not enumerations. Use the initial connect event (still full enumeration) as the source of truth, and treat reconnect summaries as deltas only.
 
-See `$\{CLAUDE_PLUGIN_ROOT\}/skills/mcp-patterns/references/mcp-audit-runbook.md` for the updated reconnect-event handling.
+See `${CLAUDE_PLUGIN_ROOT}/skills/mcp-patterns/references/mcp-audit-runbook.md` for the updated reconnect-event handling.
 
 ### SDK Hosts: "Always allow" Writes to .claude/settings.local.json
 
@@ -496,9 +496,9 @@ Before 2.1.129, `Bash(mkdir *)` and `Bash(touch *)` allow rules in `.claude/sett
 
 **Impact for OrchestKit**: Skills that scaffold project structure (`ork:implement`, `ork:cover`, `ork:portless`) no longer need `Bash(mkdir:./*)`-style explicit path enumeration to silence prompts on project-relative `mkdir`/`touch` calls. If your `.claude/settings.local.json` has accumulated workaround entries from older CC, they're now redundant — the canonical glob form works.
 
-### `--plugin-url &lt;url&gt;` for One-Off `.zip` Plugin Loading
+### `--plugin-url <url>` for One-Off `.zip` Plugin Loading
 
-CC 2.1.129 adds `--plugin-url &lt;url&gt;` which fetches a plugin `.zip` archive from a URL and loads it for the current session only. Pairs with the `.zip` support in `--plugin-dir` (CC 2.1.128, see above) — `--plugin-url` is the network-fetch convenience wrapper.
+CC 2.1.129 adds `--plugin-url <url>` which fetches a plugin `.zip` archive from a URL and loads it for the current session only. Pairs with the `.zip` support in `--plugin-dir` (CC 2.1.128, see above) — `--plugin-url` is the network-fetch convenience wrapper.
 
 ```bash
 # Try a plugin without committing to a marketplace install
@@ -535,7 +535,7 @@ claude
 
 **Breaking for**: Anyone who relied on `/model` listing custom gateway models in 2.1.126–2.1.128 — the picker now shows only the static built-in list unless the env var is set.
 
-**Action for OrchestKit**: None on the plugin side. `ork:setup` and `ork:llm-integration` reference the env var so users hitting "my fine-tuned model disappeared from `/model`" know the one-line fix. See also `$\{CLAUDE_PLUGIN_ROOT\}/skills/llm-integration/references/model-selection.md`.
+**Action for OrchestKit**: None on the plugin side. `ork:setup` and `ork:llm-integration` reference the env var so users hitting "my fine-tuned model disappeared from `/model`" know the one-line fix. See also `${CLAUDE_PLUGIN_ROOT}/skills/llm-integration/references/model-selection.md`.
 
 ### claude_code.pull_request.count Now Counts MCP-Filed PRs
 
@@ -545,7 +545,7 @@ The `claude_code.pull_request.count` OTel metric counted PRs/MRs created via the
 
 **Counter labels**: The metric still emits the same labels (`provider`, `result`); MCP-filed PRs are not specially labeled. If you need to distinguish MCP-vs-shell origins, add a derived metric in your collector that joins on tool-name from a separate `claude_code.tool.use` event stream.
 
-**Action for OrchestKit**: None on the plugin side. The `ork:telemetry-inspect` skill enumerates this metric — see `$\{CLAUDE_PLUGIN_ROOT\}/skills/monitoring-observability/references/metrics-collection.md` for collector-side guidance.
+**Action for OrchestKit**: None on the plugin side. The `ork:telemetry-inspect` skill enumerates this metric — see `${CLAUDE_PLUGIN_ROOT}/skills/monitoring-observability/references/metrics-collection.md` for collector-side guidance.
 
 ## CC 2.1.132 Settings
 
@@ -581,7 +581,7 @@ Before 2.1.133, when multiple CC sessions shared the same credentials and a refr
 
 **Impact for OrchestKit**: OrchestKit's worktree-isolation workflow (see `chain-patterns/references/worktree-agent-pattern.md`) routinely runs concurrent CC sessions against the same machine credentials — one per worktree per agent. Before 2.1.133, a single refresh-token race could 401 every session at once mid-run, killing in-flight `/ork:implement`, `/ork:cover`, and `/ork:verify` chains. No setting change required — the floor in `shared/cc-support.json` (≥ 2.1.220) already guarantees the fix is active.
 
-If you ever do hit a "all sessions 401 at the same moment" symptom on a supported floor, the cause is no longer this race — see `$\{CLAUDE_PLUGIN_ROOT\}/skills/doctor/references/remediation-guide.md` for recovery steps.
+If you ever do hit a "all sessions 401 at the same moment" symptom on a supported floor, the cause is no longer this race — see `${CLAUDE_PLUGIN_ROOT}/skills/doctor/references/remediation-guide.md` for recovery steps.
 
 ### Remote Control Stop/Interrupt Now Cancels CLI Session
 
@@ -628,7 +628,7 @@ claude --add-dir Z:\share\project
 
 ### `worktree.baseRef` Setting — Default Changed to `"fresh"` ⚠ behavior change
 
-CC 2.1.133 adds the `worktree.baseRef` setting (`"fresh"` | `"head"`) that controls where `--worktree`, `EnterWorktree`, and agent-isolation worktrees branch from. **The default is `"fresh"`**, which means new worktrees branch from `origin/&lt;default-branch&gt;` — **not** from your local `HEAD`.
+CC 2.1.133 adds the `worktree.baseRef` setting (`"fresh"` | `"head"`) that controls where `--worktree`, `EnterWorktree`, and agent-isolation worktrees branch from. **The default is `"fresh"`**, which means new worktrees branch from `origin/<default-branch>` — **not** from your local `HEAD`.
 
 This is a regression for OrchestKit users. From CC 2.1.128 through 2.1.132, `EnterWorktree` branched from local `HEAD`, which is what OrchestKit's worktree-isolation pattern (`chain-patterns/references/worktree-agent-pattern.md`) relies on: unpushed commits in the parent worktree need to be visible to spawned agents. With the new `"fresh"` default, those unpushed commits are silently dropped when the worktree is created.
 
@@ -650,11 +650,11 @@ This is a regression for OrchestKit users. From CC 2.1.128 through 2.1.132, `Ent
 { "worktree": { "baseRef": "head" } }
 ```
 
-**Choose `"fresh"` only if** you intentionally want every new worktree to start from `origin/&lt;default&gt;` (e.g., clean-room agent runs that should never inherit local WIP). For the common OrchestKit flow — spawn an agent in a worktree to do work on top of an in-progress local branch — `"head"` is the only correct value.
+**Choose `"fresh"` only if** you intentionally want every new worktree to start from `origin/<default>` (e.g., clean-room agent runs that should never inherit local WIP). For the common OrchestKit flow — spawn an agent in a worktree to do work on top of an in-progress local branch — `"head"` is the only correct value.
 
 **Impact for OrchestKit**: All of `ork:implement`, `ork:cover`, `ork:fix-issue`, `ork:verify`, and any custom skill that calls `Agent(... isolation: "worktree")` is affected. Without `worktree.baseRef: "head"`, agents start from origin and miss every unpushed local commit — `tsc` will fail with "cannot find module" for code you just wrote, tests will run against stale source, and PRs will appear empty of your in-progress work.
 
-**Nobody sets this for you, and nothing detects that it is missing.** ork cannot ship it — a plugin's bundled `settings.json` supplies only the `agent` and `subagentStatusLine` keys, so the value has to be in an operator scope. And no `ork:doctor` category reads `worktree.baseRef`: Check 16 (Operator Settings Posture) covers credential-read denies, the `sandbox` block and agent-teams, not this key. Treat it as a manual pre-flight. The symptom and recovery are written up in `$\{CLAUDE_PLUGIN_ROOT\}/skills/doctor/references/remediation-guide.md` ("EnterWorktree drops my unpushed commits") — that entry is a troubleshooting page you read after being bitten, not an automated check.
+**Nobody sets this for you, and nothing detects that it is missing.** ork cannot ship it — a plugin's bundled `settings.json` supplies only the `agent` and `subagentStatusLine` keys, so the value has to be in an operator scope. And no `ork:doctor` category reads `worktree.baseRef`: Check 16 (Operator Settings Posture) covers credential-read denies, the `sandbox` block and agent-teams, not this key. Treat it as a manual pre-flight. The symptom and recovery are written up in `${CLAUDE_PLUGIN_ROOT}/skills/doctor/references/remediation-guide.md` ("EnterWorktree drops my unpushed commits") — that entry is a troubleshooting page you read after being bitten, not an automated check.
 
 ### `sandbox.bwrapPath` / `sandbox.socatPath` Managed Settings (Linux/WSL)
 
@@ -782,7 +782,7 @@ CC 2.1.133 restores documented behavior: subagents inherit the full skill regist
 Skill({ name: 'ork:architecture-patterns' });
 ```
 
-**Impact for OrchestKit**: **Direct, immediate** — every OrchestKit agent in `src/agents/*` that uses `skills:` in its frontmatter relies on this discovery path. Before 2.1.133, Task-delegated work in `ork:implement`, `ork:cover`, `ork:verify`, `ork:fix-issue`, `ork:review-pr`, and `ork:explore` could silently fall back to non-skill behavior because the Skill tool returned "skill not found" inside the subagent. At our floor the fix is implicit — no agent-frontmatter or settings change is required. If you maintain custom agents that worked around this by inlining skill content into the agent body, you can now revert to a clean `Skill(\{ name: ... \})` call.
+**Impact for OrchestKit**: **Direct, immediate** — every OrchestKit agent in `src/agents/*` that uses `skills:` in its frontmatter relies on this discovery path. Before 2.1.133, Task-delegated work in `ork:implement`, `ork:cover`, `ork:verify`, `ork:fix-issue`, `ork:review-pr`, and `ork:explore` could silently fall back to non-skill behavior because the Skill tool returned "skill not found" inside the subagent. At our floor the fix is implicit — no agent-frontmatter or settings change is required. If you maintain custom agents that worked around this by inlining skill content into the agent body, you can now revert to a clean `Skill({ name: ... })` call.
 
 ## CC 2.1.136 Settings
 
@@ -818,7 +818,7 @@ CC 2.1.136 adds a new permission-classifier tier: `settings.autoMode.hard_deny`.
 
 ### Plan Mode Now Blocks Writes Even With Matching `Edit(...)` Allow Rule ⚠ behavior change
 
-Before 2.1.136, plan mode had a security gap: if a user had an `Edit(&lt;path&gt;)` allow rule defined for normal sessions, that rule **bypassed plan mode's no-write contract** — the rule's allow effect leaked into plan mode and let writes through silently. Plan mode is supposed to be a read-only / proposal-only context; the bypass meant a session running in plan mode could still mutate files if the path matched any persisted allow rule.
+Before 2.1.136, plan mode had a security gap: if a user had an `Edit(<path>)` allow rule defined for normal sessions, that rule **bypassed plan mode's no-write contract** — the rule's allow effect leaked into plan mode and let writes through silently. Plan mode is supposed to be a read-only / proposal-only context; the bypass meant a session running in plan mode could still mutate files if the path matched any persisted allow rule.
 
 CC 2.1.136 fixes the bypass: plan mode now blocks writes regardless of allow rules. The only way to write in plan mode is to exit plan mode (`ExitPlanMode`) first.
 
@@ -879,7 +879,7 @@ When the primary model is not found (e.g. a pinned model ID that no longer resol
 
 **Action for OrchestKit**: Set a `--fallback-model` (or the `ANTHROPIC_SMALL_FAST_MODEL` / model settings your gateway supports) so a renamed or de-listed primary degrades gracefully rather than bricking the session. Pairs with the gateway model-discovery note above — if `/model` lists fewer models than expected, a fallback keeps long `ork:implement`/`ork:brainstorm` runs alive. No plugin-side change required.
 
-> **Related 2.1.152 items** (full table in `$\{CLAUDE_PLUGIN_ROOT\}/skills/doctor/references/version-compatibility.md`): `permissionMode: "auto"` no longer needs opt-in consent; the sandbox-enabled warning now shows in condensed startup; and a new `MessageDisplay` hook event can transform/hide assistant text (ork ships no MessageDisplay hook — recognized in the `HookEvent` union for future use).
+> **Related 2.1.152 items** (full table in `${CLAUDE_PLUGIN_ROOT}/skills/doctor/references/version-compatibility.md`): `permissionMode: "auto"` no longer needs opt-in consent; the sandbox-enabled warning now shows in condensed startup; and a new `MessageDisplay` hook event can transform/hide assistant text (ork ships no MessageDisplay hook — recognized in the `HookEvent` union for future use).
 
 ## CC 2.1.172–179 Settings
 
@@ -958,7 +958,7 @@ disallowedTools: [mcp__tavily, mcp__tavily__*]
 
 ### Nested `.claude/skills` + Closest-Wins Precedence (2.1.178)
 
-Skills in nested `.claude/skills/` directories now load when you work on files there; on a name clash the nested skill appears as `&lt;dir&gt;:&lt;name&gt;` so both stay reachable. More broadly, the agent / workflow / output-style **closest to the working directory wins** on a name collision, and project-scope workflow saves now target the closest existing `.claude/workflows/`.
+Skills in nested `.claude/skills/` directories now load when you work on files there; on a name clash the nested skill appears as `<dir>:<name>` so both stay reachable. More broadly, the agent / workflow / output-style **closest to the working directory wins** on a name collision, and project-scope workflow saves now target the closest existing `.claude/workflows/`.
 
 **Action for OrchestKit**: informational for monorepo users — a package can host its own `packages/api/.claude/skills/` without colliding with the root. ork ships its skills via the `ork` plugin, not `.claude/skills`, so no packaging change.
 

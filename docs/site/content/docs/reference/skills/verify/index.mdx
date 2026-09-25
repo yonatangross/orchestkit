@@ -272,7 +272,7 @@ Load details: `Read("references/visual-capture.md")` for auto-detection, route d
 
 **Summary**: Auto-detects project framework, starts dev server, discovers routes, uses agent-browser to screenshot each route, evaluates with Claude vision, generates self-contained `gallery.html` with base64-embedded images.
 
-**Output**: `verification-output/\{timestamp\}/gallery.html` — open in browser to see all screenshots with AI evaluations, scores, and annotation diffs.
+**Output**: `verification-output/{timestamp}/gallery.html` — open in browser to see all screenshots with AI evaluations, scores, and annotation diffs.
 
 **Graceful degradation**: If no frontend detected or server won't start, skips visual capture with a warning — never blocks verification.
 
@@ -303,7 +303,7 @@ A single green is not proof — flaky and order-dependent suites pass once and f
 - `--streak=N` (N ≥ 2; 3 is the sensible default). Absent ⇒ today's single pass/fail behavior, unchanged. Target may also come from `.claude/policies/verification-policy.json` (`"streak_target"`); the flag wins.
 - The gate sits **above** the verdict — it never loosens a blocker, it only withholds "done" until the streak is met. Each run re-executes the *actual* tests (no cached passes — that independence is the whole point).
 - Reset rule: **any** non-`READY FOR MERGE` verdict (tripped blocker, failing test, or IMPROVEMENTS RECOMMENDED) zeroes the count. No partial credit.
-- The verdict surfaces the count: `STREAK 2/3 — one more green to merge`, or `streak reset to 0/3 (security 3.2 &lt; 4.0)`.
+- The verdict surfaces the count: `STREAK 2/3 — one more green to merge`, or `streak reset to 0/3 (security 3.2 < 4.0)`.
 - This is the native mechanism the `prd-to-goal` quality-streak recipe (#2539) leans on. Pair it with a `/goal` loop, but **`rm` the ledger first** — `/goal` reads `until` before the turn's verify, so a stale `met:true` exits with zero runs (see streak-gate.md "Stale-ledger guard").
 
 Full protocol — ledger schema, run loop, `/goal` wiring, and `cover` reuse: `Read("references/streak-gate.md")`.
@@ -400,7 +400,7 @@ Load details: `Read("references/report-template.md")` for full format. Summary:
 
 ## References
 
-Load on demand with `Read("references/&lt;file&gt;")`:
+Load on demand with `Read("references/<file>")`:
 
 | File | Content |
 |------|---------|
@@ -419,7 +419,7 @@ Load on demand with `Read("references/&lt;file&gt;")`:
 
 ## Rules
 
-Load on demand with `Read("rules/&lt;file&gt;")`:
+Load on demand with `Read("rules/<file>")`:
 
 | File | Content |
 |------|---------|
@@ -430,7 +430,7 @@ Load on demand with `Read("rules/&lt;file&gt;")`:
 
 Load `Read("../../shared/rules/verification-gate.md")` — the minimum 5-step gate that applies to ALL completion claims across all skills. This is non-negotiable: NO COMPLETION CLAIMS WITHOUT FRESH VERIFICATION EVIDENCE.
 
-Producer findings must also satisfy the evidence-replay gate (machine-checkable `\{file, line, quote\}` or `\{command, expected_output\}`, replayed before entering any verdict or score): `Read("../../shared/rules/evidence-replay.md")`.
+Producer findings must also satisfy the evidence-replay gate (machine-checkable `{file, line, quote}` or `{command, expected_output}`, replayed before entering any verdict or score): `Read("../../shared/rules/evidence-replay.md")`.
 
 ### Anti-Sycophancy Protocol
 

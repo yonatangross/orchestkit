@@ -58,7 +58,7 @@ Two servers connect but fail per call without a usable key:
 
 - **tavily** needs `TAVILY_API_KEY` (via 1Password). It connects, then every tool call fails.
 - **context7** is keyless on the free tier. It also connects with a *bad* key, or with a
-  `$\{CONTEXT7_API_KEY\}` that never expanded, and only fails at call time. A connected
+  `${CONTEXT7_API_KEY}` that never expanded, and only fails at call time. A connected
   context7 is therefore never evidence that a Pro key is in use.
 
 **context7 is the one prerequisite here.** 22 of 36 agents grant `mcp__context7__*`; with
@@ -237,7 +237,7 @@ export CONTEXT7_API_KEY="ctx7sk-..."
 ### Verifying the key is actually in use
 
 `tools/list` returns HTTP 200 for **every** auth state: no header, a garbage bearer, an
-unexpanded `$\{CONTEXT7_API_KEY\}` literal, or a valid key. A connection check and a green
+unexpanded `${CONTEXT7_API_KEY}` literal, or a valid key. A connection check and a green
 tool count therefore prove nothing about authentication. Only a real query discriminates.
 With a bad or unexpanded key it comes back with:
 
@@ -246,7 +246,7 @@ Invalid API key. Please check your API key. API keys should start with 'ctx7sk' 
 ```
 
 Rule: do not add the `Authorization` header until the variable is exported. A header that
-expands to the literal `$\{CONTEXT7_API_KEY\}` connects, lists two tools, and fails every
+expands to the literal `${CONTEXT7_API_KEY}` connects, lists two tools, and fails every
 query, which reads like an upstream outage instead of a local config error.
 
 There is no anonymous fallback. An unset `CONTEXT7_API_KEY` does not make the hosted server
@@ -287,9 +287,9 @@ When `TAVILY_API_KEY` is set and the Tavily MCP is enabled, agents gain access t
 2. Store in 1Password: `op item create --category "API Credential" --title "Tavily API Key" "API Key=tvly-..."`
 3. Use `op read` in `.mcp.json` (see example config above) — the `sh -c` wrapper fetches the key from 1Password at MCP startup
 
-> **Note:** Claude Code's MCP `env` block only resolves `$\{ENV_VAR\}` syntax, not `op://` references directly. Use the `sh -c "TAVILY_API_KEY=$(op read '...') exec npx ..."` wrapper pattern to read from 1Password at startup.
+> **Note:** Claude Code's MCP `env` block only resolves `${ENV_VAR}` syntax, not `op://` references directly. Use the `sh -c "TAVILY_API_KEY=$(op read '...') exec npx ..."` wrapper pattern to read from 1Password at startup.
 
-> **Placeholders:** replace every `op://` segment above, not just `&lt;vault&gt;`: `&lt;vault&gt;` is your 1Password vault name (`Private` for individual accounts, your team/org vault name otherwise), `&lt;item&gt;` is the entry holding the key, and `&lt;field&gt;` is the field inside it (e.g. `op://&lt;vault&gt;/&lt;item&gt;/&lt;field&gt;`).
+> **Placeholders:** replace every `op://` segment above, not just `<vault>`: `<vault>` is your 1Password vault name (`Private` for individual accounts, your team/org vault name otherwise), `<item>` is the entry holding the key, and `<field>` is the field inside it (e.g. `op://<vault>/<item>/<field>`).
 
 **Option B: Remote MCP (hosted, no npx)**
 
@@ -314,7 +314,7 @@ Agents fall back to WebFetch (Haiku-summarized) → agent-browser (full headless
 | context7 | None |
 | sequential-thinking | None |
 | memory | None (creates `.claude/memory/` automatically) |
-| tavily | 1Password: `op read 'op://&lt;vault&gt;/&lt;item&gt;/&lt;field&gt;'` (free: https://app.tavily.com) |
+| tavily | 1Password: `op read 'op://<vault>/<item>/<field>'` (free: https://app.tavily.com) |
 | notebooklm-mcp | `uv tool install notebooklm-mcp-cli` + `nlm login` + `nlm setup add claude-code` |
 | stitch | API key from [stitch.withgoogle.com/settings](https://stitch.withgoogle.com/settings). Add via: `claude mcp add stitch --transport http https://stitch.googleapis.com/mcp --header "X-Goog-Api-Key: YOUR-KEY" -s user` |
 | 21st-dev-magic | API key from https://21st.dev (free tier available). Set `TWENTYFIRST_DEV_API_KEY` env var |

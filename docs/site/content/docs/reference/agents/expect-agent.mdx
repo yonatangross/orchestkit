@@ -36,16 +36,16 @@ Execute all browser automation via `agent-browser` CLI:
 
 | Command | Usage | Example |
 |---------|-------|---------|
-| `open &lt;url&gt;` | Navigate to page | `agent-browser open http://localhost:3000/login` |
+| `open <url>` | Navigate to page | `agent-browser open http://localhost:3000/login` |
 | `snapshot` | Full ARIA accessibility tree | `agent-browser snapshot` |
 | `snapshot -i` | Interactive elements only | `agent-browser snapshot -i` |
-| `click &lt;sel&gt;` | Click element | `agent-browser click "Submit"` |
+| `click <sel>` | Click element | `agent-browser click "Submit"` |
 | `click @ref` | Click by snapshot ref | `agent-browser click @e15` |
-| `fill &lt;sel&gt; &lt;text&gt;` | Clear and type into input | `agent-browser fill @e8 "test@example.com"` |
-| `select &lt;sel&gt; &lt;val&gt;` | Select dropdown option | `agent-browser select @e12 "United States"` |
+| `fill <sel> <text>` | Clear and type into input | `agent-browser fill @e8 "test@example.com"` |
+| `select <sel> <val>` | Select dropdown option | `agent-browser select @e12 "United States"` |
 | `screenshot` | Capture viewport | `agent-browser screenshot` |
 | `screenshot --annotate` | Labeled screenshot for debugging | `agent-browser screenshot --annotate` |
-| `eval &lt;js&gt;` | Run JavaScript in page | `agent-browser eval "document.title"` |
+| `eval <js>` | Run JavaScript in page | `agent-browser eval "document.title"` |
 | `wait --load networkidle` | Wait for page to settle | `agent-browser wait --load networkidle` |
 | `snapshot --delta` (0.38+) | Cheap re-check after an in-page action | `agent-browser snapshot --delta` |
 
@@ -167,15 +167,15 @@ Format: `EVENT|payload`. Seven events: `STEP_START`, `STEP_DONE`, `ASSERTION_FAI
 
 ### ROUTE / ARIA emission rules
 
-- **`ROUTE|&lt;path&gt;`** — emit ONCE per route, BEFORE the first STEP_START on that route. The path is the route component (e.g. `/dashboard`, `/login`, `/`), not the full URL.
-- **`ARIA|&lt;json-or-text&gt;`** — emit ONCE per route, AFTER the last STEP_DONE / ASSERTION_FAILED on that route. Capture from `agent-browser snapshot --json` output, then strip newlines (`tr -d '\n'`) and cap at 8KB. If the snapshot exceeds 8KB, emit only the first 8KB — the snapshot recorder caps anyway.
-- **`JEV_SHADOW|&lt;step-id&gt;|&lt;one-line-json&gt;`** : emit ONLY the stdout of `scripts/jev-shadow.sh`, verbatim, right after the step's Jev call and before its STEP_DONE. Never hand-build the line, and never emit it when `ORK_EXPECT_JEV` and `ORK_EXPECT_JEV_SHADOW` are both unset (the script emits nothing then anyway). In shadow mode it logs the Jev pick with probabilities beside your pick plus per-step agreement. In act mode the same record additionally carries `path` and `executed_action`, and `executed_action` is what you run.
-- For multi-route runs, emit `ROUTE|...` and `ARIA|...` per route. The hook persists each separately under `.claude/state/expect-snapshots/&lt;route-slug&gt;/&lt;parent-commit&gt;.json`.
+- **`ROUTE|<path>`** — emit ONCE per route, BEFORE the first STEP_START on that route. The path is the route component (e.g. `/dashboard`, `/login`, `/`), not the full URL.
+- **`ARIA|<json-or-text>`** — emit ONCE per route, AFTER the last STEP_DONE / ASSERTION_FAILED on that route. Capture from `agent-browser snapshot --json` output, then strip newlines (`tr -d '\n'`) and cap at 8KB. If the snapshot exceeds 8KB, emit only the first 8KB — the snapshot recorder caps anyway.
+- **`JEV_SHADOW|<step-id>|<one-line-json>`** : emit ONLY the stdout of `scripts/jev-shadow.sh`, verbatim, right after the step's Jev call and before its STEP_DONE. Never hand-build the line, and never emit it when `ORK_EXPECT_JEV` and `ORK_EXPECT_JEV_SHADOW` are both unset (the script emits nothing then anyway). In shadow mode it logs the Jev pick with probabilities beside your pick plus per-step agreement. In act mode the same record additionally carries `path` and `executed_action`, and `executed_action` is what you run.
+- For multi-route runs, emit `ROUTE|...` and `ARIA|...` per route. The hook persists each separately under `.claude/state/expect-snapshots/<route-slug>/<parent-commit>.json`.
 
 ### Why these tags exist
 
-Without `ROUTE|` and `ARIA|` in `tool_output`, the snapshot-recorder hook silently skips. With them, each successful run leaves a per-route snapshot keyed by parent commit, and `/ork:expect &lt;route&gt; --diff` (future) can diff against the last green.
-- Step IDs: `\{page\}-\{number\}` (e.g., `login-1`, `dashboard-3`)
+Without `ROUTE|` and `ARIA|` in `tool_output`, the snapshot-recorder hook silently skips. With them, each successful run leaves a per-route snapshot keyed by parent commit, and `/ork:expect <route> --diff` (future) can diff against the last green.
+- Step IDs: `{page}-{number}` (e.g., `login-1`, `dashboard-3`)
 - Keep descriptions concise (under 80 chars)
 
 Keep going when a step needs no input from the caller; stop and ask only when you can't continue without it, or before anything destructive (deleting data, force-pushing, changing anything outside the repository). Mark anything you couldn't confirm, and say where you looked.

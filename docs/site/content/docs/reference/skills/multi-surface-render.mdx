@@ -201,8 +201,8 @@ All `@json-render/*` renderers are verified against **0.20.0** (`@json-render/co
 The 0.19.0 to 0.20.0 export surface went 84 to 87 symbols with zero removals, so every
 API documented here still resolves. 0.20.0 adds named slots (`slots?: Record<string,
 string[]>` on `UIElement`, with catalogs declaring `slots: ["default", "header", ...]`),
-nested repeats via an item-relative `repeat.statePath` of the form `\{"$item": "employees"\}`,
-and item-scoped visibility so a `repeat` plus `visible: \{"$item": ...\}` on the same element
+nested repeats via an item-relative `repeat.statePath` of the form `{"$item": "employees"}`,
+and item-scoped visibility so a `repeat` plus `visible: {"$item": ...}` on the same element
 filters items instead of failing. One breaking change, which no rule in this skill uses:
 `ActionExecutionContext.executeAction` now takes an `ActionBinding` rather than a bare
 action name, which only affects hand-written custom renderer bridges.
@@ -218,7 +218,7 @@ is the house delta: `references/ork-delta.md` plus the five rules.
 |-------|--------|
 | Full renderer signatures and option objects (`renderToBuffer` / `renderToFile` / `renderToStream`, `renderToHtml` / `renderToPlainText`, `renderToSvg` / `renderToPng`, Remotion exports) | `references/upstream-pdf.md`, `upstream-email.md`, `upstream-image.md`, `upstream-remotion.md` (vendored verbatim; re-sync with `bash scripts/sync-vercel-skills.sh`) |
 | Standard component rosters per target (`Document`, `Page`, `Table`, email `Section` / `Row` / `Column`, Remotion transitions and effects) | the same four vendored `references/upstream-*.md` files |
-| `&lt;Renderer&gt;` props, `defineRegistry`, `useUIStream` | https://github.com/vercel-labs/json-render/tree/main/packages/react. The 0.19 prop-shape correction (no `catalog` prop, no top-level `onError`) is a house finding and stays in `rules/react-renderer.md` |
+| `<Renderer>` props, `defineRegistry`, `useUIStream` | https://github.com/vercel-labs/json-render/tree/main/packages/react. The 0.19 prop-shape correction (no `catalog` prop, no top-level `onError`) is a house finding and stays in `rules/react-renderer.md` |
 | Email client constraints: 600px container, table layout, inline styles, absolute image URLs | `references/upstream-email.md` ("Email Best Practices") |
 | Satori CSS support matrix | https://github.com/vercel/satori. The working subset this skill designs image registries against stays in `rules/video-image-renderer.md` |
 | react-pdf style property support (flexbox set, no grid) | https://react-pdf.org/styling |
@@ -325,11 +325,11 @@ Decision criteria for choosing the right renderer target.
 
 ### React Renderer
 
-Web rendering with the `&lt;Renderer&gt;` component.
+Web rendering with the `<Renderer>` component.
 
 | Rule | File | Key Pattern |
 |------|------|-------------|
-| React Renderer | `rules/react-renderer.md` | `&lt;Renderer&gt;` component, streaming, error boundaries |
+| React Renderer | `rules/react-renderer.md` | `<Renderer>` component, streaming, error boundaries |
 
 ### PDF & Email Renderer
 
@@ -370,7 +370,7 @@ Creating platform-specific registries for a shared catalog.
 
 1. Building separate component trees for each surface — defeats the purpose; share the catalog and spec
 2. Using Puppeteer to screenshot React for PDF generation — slow, fragile; use native react-pdf rendering
-3. One giant registry covering all platforms — impossible since PDF uses `&lt;View&gt;`/`&lt;Text&gt;`, web uses `<div>`/`<span>`
+3. One giant registry covering all platforms — impossible since PDF uses `<View>`/`<Text>`, web uses `<div>`/`<span>`
 4. Forgetting Satori limitations — no CSS grid, limited flexbox; design image registries with these constraints
 5. Duplicating catalog definitions per surface — one catalog, many registries; the catalog is the contract
 
@@ -480,7 +480,7 @@ export const pdfRegistry = {
 
 ## React Renderer
 
-The `&lt;Renderer&gt;` component from `@json-render/react` validates specs against the catalog at runtime and renders each element using the registry. Never parse specs manually.
+The `<Renderer>` component from `@json-render/react` validates specs against the catalog at runtime and renders each element using the registry. Never parse specs manually.
 
 **Incorrect — parsing the spec manually:**
 ```tsx
@@ -517,8 +517,8 @@ function Dashboard({ spec }) {
 ```
 
 **Key rules:**
-- Build the registry with `defineRegistry(catalog, \{ components \})` — this binds catalog validation to the registry; `&lt;Renderer&gt;` receives only `spec` and `registry` (no `catalog` prop in 0.19)
-- `RendererProps` is `\{ spec, registry, loading?, fallback? \}` — no `catalog`, `components`, `directives`, or `onError` at top level
+- Build the registry with `defineRegistry(catalog, { components })` — this binds catalog validation to the registry; `<Renderer>` receives only `spec` and `registry` (no `catalog` prop in 0.19)
+- `RendererProps` is `{ spec, registry, loading?, fallback? }` — no `catalog`, `components`, `directives`, or `onError` at top level
 - Use `fallback` prop for loading states during progressive streaming
 - Wrap in a React error boundary for graceful degradation
 - For streaming specs (AI generating in real-time), the Renderer updates progressively as elements arrive
@@ -624,7 +624,7 @@ export const emailRegistry = {
 - Registry components receive the same props defined in the catalog Zod schema
 - Never add platform-specific props to the catalog — the catalog is platform-agnostic
 - Organize registries in `./registries/web.ts`, `./registries/pdf.ts`, `./registries/email.ts`
-- Use `InferCatalogComponents&lt;typeof catalog&gt;` type to ensure registries match the catalog
+- Use `InferCatalogComponents<typeof catalog>` type to ensure registries match the catalog
 
 ### Type-Safe Registry Pattern
 
@@ -694,7 +694,7 @@ const png = await renderToPng(spec, { registry: imageRegistry, width: 1200, heig
 - Match target to output format: PDF document = `react-pdf`, HTML email = `react-email`, image = `image`
 - Never use Puppeteer/Playwright to screenshot a React page for PDF — use native `@json-render/react-pdf`
 - Never build custom MJML/HTML templates when `@json-render/react-email` exists
-- If output is a file (PDF, PNG, MP4), use the server-side renderer — not the React `&lt;Renderer&gt;` component
+- If output is a file (PDF, PNG, MP4), use the server-side renderer — not the React `<Renderer>` component
 - Multiple targets in one project is the normal case — that is the entire point of json-render
 
 ### Selection Checklist
@@ -793,7 +793,7 @@ const png = await renderToPng(spec, {
 ```
 
 **Key rules:**
-- Use `Renderer` from `@json-render/remotion` for videos, passing `\{ spec, components \}`. There is no `JsonRenderComposition` export, and no `catalog` or `registry` prop: timing and dimensions live on Remotion's `Composition`
+- Use `Renderer` from `@json-render/remotion` for videos, passing `{ spec, components }`. There is no `JsonRenderComposition` export, and no `catalog` or `registry` prop: timing and dimensions live on Remotion's `Composition`
 - Use `renderToPng` for OG images (1200x630 standard) — Satori is server-side, no browser needed
 - Satori has CSS limitations: no CSS grid, limited flexbox, no `position: absolute` nesting — design image registries accordingly
 - Image registries must use inline styles only — Satori does not support className or CSS files
@@ -837,7 +837,7 @@ pointer; see "Upstream coverage (do not restate)" in `SKILL.md`.
 Why: distilled from the retired `references/renderer-api.md`; no traced incident. That file claimed
 `catalog` was a required option on every renderer and that `renderToBuffer` accepted `pageSize`,
 `orientation` and `margins`. `references/upstream-pdf.md` ("Render APIs") documents the 0.19 second
-argument as `\{ registry?, state?, handlers? \}`, and page size, orientation and margins are props of
+argument as `{ registry?, state?, handlers? }`, and page size, orientation and margins are props of
 the `Page` component, not render options. `SKILL.md` and `rules/react-renderer.md` already carried
 the corrected shape, so the skill shipped two contradicting answers to the same question.
 
@@ -848,11 +848,11 @@ verbatim by `scripts/sync-vercel-skills.sh`; re-sync before trusting any API cla
 
 Why: distilled from the retired `references/renderer-api.md`; no traced incident. This rule earned
 itself the same day it was written. The retired file and every hand-written Remotion snippet in this
-skill used `&lt;JsonRenderComposition fps durationInFrames width height&gt;`, while
+skill used `<JsonRenderComposition fps durationInFrames width height>`, while
 `references/upstream-remotion.md` listed `Renderer` under Key Exports. The vendored file was right:
 `check-import-symbols.mjs` later confirmed against `@json-render/remotion@0.19.0` that
 `JsonRenderComposition` has never been exported at all. The snippets were corrected to
-`Renderer(\{ spec, components \})` on 2026-07-31, with fps and durationInFrames moved onto Remotion's
+`Renderer({ spec, components })` on 2026-07-31, with fps and durationInFrames moved onto Remotion's
 own `Composition` where they belong. When a hand-written snippet disagrees with the synced file, the
 synced file breaks the tie and the snippet is the thing that gets corrected.
 
@@ -1016,7 +1016,7 @@ const html = await renderToHtml(spec, { registry });
 
 ## Visibility and State
 
-Supports `visible` conditions, `$state`, `$cond`, repeat (`repeat.statePath`), nested repeat paths with `\{ "$item": "field" \}`, and the same expression syntax as `@json-render/react`. Use `state` in `RenderOptions` when rendering server-side so expressions resolve.
+Supports `visible` conditions, `$state`, `$cond`, repeat (`repeat.statePath`), nested repeat paths with `{ "$item": "field" }`, and the same expression syntax as `@json-render/react`. Use `state` in `RenderOptions` when rendering server-side so expressions resolve.
 
 ## Server-Safe Import
 
@@ -1090,7 +1090,7 @@ All components accept a `style` prop (object) for inline styles. Use inline styl
 ## Email Best Practices
 
 - Keep width constrained (e.g. Container max-width 600px).
-- Use inline styles or React Email's style props; many clients strip `&lt;style&gt;` blocks.
+- Use inline styles or React Email's style props; many clients strip `<style>` blocks.
 - Prefer table-based layout (Section, Row, Column) for broad client support.
 - Use absolute URLs for images; many clients block relative or cid: references in some contexts.
 - Test in multiple clients (Gmail, Outlook, Apple Mail); use a preview tool or Litmus-like service when possible.
@@ -1269,7 +1269,7 @@ stream.pipe(res);
 await renderToFile(spec, "./output.pdf");
 ```
 
-All render functions accept an optional second argument: `\{ registry?, state?, handlers? \}`.
+All render functions accept an optional second argument: `{ registry?, state?, handlers? }`.
 
 ## Standard Components
 
@@ -1326,7 +1326,7 @@ const buffer = await renderToBuffer(spec, { registry });
 
 Pass a `StateStore` for full control over state:
 
-Nested lists can set `repeat.statePath` to `\{ "$item": "field" \}` inside an enclosing repeat.
+Nested lists can set `repeat.statePath` to `{ "$item": "field" }` inside an enclosing repeat.
 
 ```typescript
 import { createStateStore } from "@json-render/react-pdf";

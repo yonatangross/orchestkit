@@ -99,10 +99,10 @@ With 128K output, build entire design system foundations without splitting acros
 
 - Use `agent-browser` CLI via Bash for visual verification of token application and theme switching
 - Test dark/light mode rendering with `agent-browser --color-scheme dark` and `--color-scheme light`
-- Screenshot component variants for visual regression: `agent-browser screenshot &lt;path&gt;`
+- Screenshot component variants for visual regression: `agent-browser screenshot <path>`
 - **Visual regression testing**:
   - `agent-browser diff screenshot --baseline <img>` — pixel-level diff for theme changes
-  - `agent-browser diff url &lt;dev&gt; &lt;staging&gt;` — compare token rendering across environments
+  - `agent-browser diff url <dev> <staging>` — compare token rendering across environments
 
 ### Theme Testing
 ```bash
@@ -442,7 +442,7 @@ Action: Build real token infrastructure with:
 
 ## Status Protocol
 
-Report using the standardized status protocol. Load: `Read("$\{CLAUDE_PLUGIN_ROOT\}/shared/status-protocol.md")`.
+Report using the standardized status protocol. Load: `Read("${CLAUDE_PLUGIN_ROOT}/shared/status-protocol.md")`.
 
 Your final output MUST include a `status` field: **DONE**, **DONE_WITH_CONCERNS**, **BLOCKED**, or **NEEDS_CONTEXT**. Never report DONE if you have concerns. Never silently produce work you are unsure about.
 

@@ -69,7 +69,7 @@ When the project ships a Storybook setup, **prefer importing the catalog from St
      --out src/genui/catalog.ts \
      --components src/genui/components.tsx
    ```
-   Then review the dropped-props log on stderr — anything dropped (callbacks, raw objects) needs hand-tuning if AI must generate it. Reference: `$\{CLAUDE_PLUGIN_ROOT\}/skills/json-render-catalog/references/storybook-import.md`.
+   Then review the dropped-props log on stderr — anything dropped (callbacks, raw objects) needs hand-tuning if AI must generate it. Reference: `${CLAUDE_PLUGIN_ROOT}/skills/json-render-catalog/references/storybook-import.md`.
 3. **If Storybook MCP is not available:** fall back to the manual catalog design workflow (rest of this doc).
 
 **Safety the importer enforces automatically:**
@@ -145,7 +145,7 @@ Action:
 
 ## Status Protocol
 
-Report using the standardized status protocol. Load: `Read("$\{CLAUDE_PLUGIN_ROOT\}/shared/status-protocol.md")`.
+Report using the standardized status protocol. Load: `Read("${CLAUDE_PLUGIN_ROOT}/shared/status-protocol.md")`.
 
 Your final output MUST include a `status` field: **DONE**, **DONE_WITH_CONCERNS**, **BLOCKED**, or **NEEDS_CONTEXT**. Never report DONE if you have concerns. Never silently produce work you are unsure about.
 

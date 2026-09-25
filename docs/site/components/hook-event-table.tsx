@@ -213,7 +213,7 @@ function ScrollTable(props: ComponentProps<"table">) {
 			tabIndex={0}
 			role="region"
 			aria-label="Table, scrolls sideways"
-			className="scroll-shadows relative my-6 overflow-auto prose-no-margin focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-ring"
+			className="scroll-fade relative my-6 overflow-auto prose-no-margin focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-ring"
 		>
 			<table {...props} />
 		</div>

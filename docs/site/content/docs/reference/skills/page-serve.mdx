@@ -17,7 +17,7 @@ description: "Hand a human a rendered HTML page at a stable HTTPS URL. Registers
 # page-serve, give a human a URL
 
 An agent that renders a page for a human needs a way to hand it over. The pattern
-that grew in sessions was `python3 -m http.server 8991` plus `portless alias &lt;name&gt; 8991`
+that grew in sessions was `python3 -m http.server 8991` plus `portless alias <name> 8991`
 typed by hand: no record of the process, no stop, servers outliving the session,
 and one measured night (2026-09-06) where the same session did it twice and the
 server was still up the next morning. This skill is that pattern with a state file,
@@ -25,12 +25,12 @@ a stop, a status, and a loud failure when the URL contract cannot be met.
 
 ## The contract
 
-- The URL is `https://&lt;name&gt;.localhost/&lt;file&gt;`. No port, ever. portless's 443 service
+- The URL is `https://<name>.localhost/<file>`. No port, ever. portless's 443 service
   owns the port; a `:1355` or `:8991` in the URL is the pre-service fallback and the
   skill refuses rather than emit one.
 - One static server per name, on a free loopback port, rooted at the file's
   directory (so sibling assets resolve) or at the directory you pass.
-- State in `.claude/state/page-serve/&lt;name&gt;.json`: root, file, port, pid, url, time.
+- State in `.claude/state/page-serve/<name>.json`: root, file, port, pid, url, time.
   `status` re-measures pid, route, and HTTP on every call; it never trusts the file.
 - Idempotent per name: same name + same root reuses the live server; a different root
   replaces it; `--force` on the alias overrides a stale route with the same name.
@@ -53,9 +53,9 @@ and the exact `stop=` line to paste. Put the `url=` line in your reply's Open se
 
 | Invocation | Script | What happens |
 |---|---|---|
-| `&lt;path&gt; [flags]` | `scripts/serve.sh` | prerequisites, server, alias, state, curl check, optional screenshot |
+| `<path> [flags]` | `scripts/serve.sh` | prerequisites, server, alias, state, curl check, optional screenshot |
 | `status [--json]` | `scripts/status.sh` | one line per served page: server up/dead, route registered/missing, HTTP code |
-| `stop &lt;name&gt;` or `stop --all` | `scripts/stop.sh` | alias removed, server killed, state and screenshot deleted; every step reports |
+| `stop <name>` or `stop --all` | `scripts/stop.sh` | alias removed, server killed, state and screenshot deleted; every step reports |
 
 ## Failure modes, all loud
 
@@ -90,7 +90,7 @@ rendered correctly: read the image before claiming the page looks right
 ## Retiring the old pattern (#3900)
 
 Any skill or page that tells an agent to run `python3 -m http.server` or to type
-`portless alias` by hand should say `page-serve &lt;path&gt;` instead. As of this
+`portless alias` by hand should say `page-serve <path>` instead. As of this
 skill's first release, `grep -rln 'http.server' src/skills` is empty; the pattern
 lived in session habits and in hq-ext, so the sweep is glyph, playground,
 visualize-plan and expect (the four that hand a human a page) plus hq-ext's glyph.

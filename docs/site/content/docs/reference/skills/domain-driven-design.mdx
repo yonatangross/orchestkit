@@ -173,7 +173,7 @@ boundaries, invariants, and sizing, which live in full in `rules/`.
 
 ## References
 
-Load on demand with `Read("references/&lt;file&gt;")`:
+Load on demand with `Read("references/<file>")`:
 | File | Content |
 |------|---------|
 | `ork-delta.md` | House rules: UUIDv7, event drain ordering, ACL boundary, source layout |
@@ -531,7 +531,7 @@ Upstream: https://docs.python.org/3/library/dataclasses.html states the rule ("a
 
 ## Cross-context reads go through an ACL that returns a frozen local value object
 
-Why: house boundary decision, because Orders holds a `ProductSnapshot` frozen at order time rather than a Catalog `Product`, so a Catalog model change cannot reach the Orders domain and an order keeps the price it was placed at; `shared_kernel/` is deliberately capped at `Money`, `Email`, and `Address` (everything else is duplicated per context on purpose), and ACLs live at `&lt;context&gt;/infrastructure/acl/` so a cross-context import is visible in the path itself. Distilled from the retired `references/bounded-contexts.md`; no traced incident.
+Why: house boundary decision, because Orders holds a `ProductSnapshot` frozen at order time rather than a Catalog `Product`, so a Catalog model change cannot reach the Orders domain and an order keeps the price it was placed at; `shared_kernel/` is deliberately capped at `Money`, `Email`, and `Address` (everything else is duplicated per context on purpose), and ACLs live at `<context>/infrastructure/acl/` so a cross-context import is visible in the path itself. Distilled from the retired `references/bounded-contexts.md`; no traced incident.
 Upstream: https://learn.microsoft.com/en-us/azure/architecture/patterns/anti-corruption-layer for the translation-layer pattern and its cost.
 
 ## Convert Money to integer minor units inside the payment ACL, never in the domain
@@ -541,12 +541,12 @@ Upstream: https://docs.stripe.com/currencies documents the minor-unit convention
 
 ## Events carry IDs and primitives, never whole entities
 
-Why: house serialization contract, because events are published to a Redis Stream via `XADD`, whose value is a flat field map, so an embedded entity both fails to serialize cleanly and ships mutable state that is already stale by the time a subscriber reads it; the house payload is IDs plus an explicit `\{amount, currency\}` pair, and event class names stay past tense (`OrderPlaced`, not `PlaceOrder`) because the name is the wire contract other contexts subscribe to. Distilled from the retired `references/domain-events.md`; no traced incident.
+Why: house serialization contract, because events are published to a Redis Stream via `XADD`, whose value is a flat field map, so an embedded entity both fails to serialize cleanly and ships mutable state that is already stale by the time a subscriber reads it; the house payload is IDs plus an explicit `{amount, currency}` pair, and event class names stay past tense (`OrderPlaced`, not `PlaceOrder`) because the name is the wire contract other contexts subscribe to. Distilled from the retired `references/domain-events.md`; no traced incident.
 Upstream: https://redis.io/docs/latest/commands/xadd/ for the field-map value shape, and the Microsoft domain-events page above for past-tense naming and event immutability.
 
 ## Layer the source tree by bounded context first, architectural layer second
 
-Why: house layout, because `src/&lt;context&gt;/\{domain,application,infrastructure\}` with `shared_kernel/` as a sibling makes an illegal import (`orders.domain` reaching into `catalog.domain`) readable as a path violation in review and in a lint rule, which a layer-first tree (`src/domain/orders`, `src/domain/catalog`) cannot express. Distilled from the retired `references/bounded-contexts.md`; no traced incident.
+Why: house layout, because `src/<context>/{domain,application,infrastructure}` with `shared_kernel/` as a sibling makes an illegal import (`orders.domain` reaching into `catalog.domain`) readable as a path violation in review and in a lint rule, which a layer-first tree (`src/domain/orders`, `src/domain/catalog`) cannot express. Distilled from the retired `references/bounded-contexts.md`; no traced incident.
 Upstream: the `architecture-patterns` skill in this plugin owns layered-architecture enforcement and project-structure validation.
 
 ## Validate Money in __post_init__: non-negative amount, exactly 3-character currency
@@ -572,7 +572,7 @@ Upstream: none; house entity convention
 ## Domain events carry the flat four-key envelope
 
 Why: distilled from the retired `references/domain-events.md`; `to_dict()` returned
-exactly `\{event_id, event_type, occurred_at, payload\}` with `occurred_at` in ISO 8601.
+exactly `{event_id, event_type, occurred_at, payload}` with `occurred_at` in ISO 8601.
 Subscribing bounded contexts parse those four keys, so the envelope is a wire contract
 between contexts, not an implementation detail. The delta entry above covers the payload
 interior; this covers the envelope around it. Redis stream docs describe XADD field pairs

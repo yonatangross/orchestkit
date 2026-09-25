@@ -137,7 +137,7 @@ own, and bounding it converts a silent hang into a reported failure.
 
 ## The executable form of this contract
 
-`scripts/assert-evidence.sh &lt;logfile&gt; [--task-id &lt;id|none&gt;] [--pid &lt;pid&gt;] [--banner-re &lt;re&gt;] [--json]`
+`scripts/assert-evidence.sh <logfile> [--task-id <id|none>] [--pid <pid>] [--banner-re <re>] [--json]`
 implements rules 1-3: EVIDENCE (0) / NO-BANNER (1) / usage (2) / COULD-NOT-OBSERVE (3) /
 STILL-RUNNING (4). Phase 3 runs it before any grade; only EVIDENCE may be graded.
 The banner regex defaults to npm's `> pkg@ver script` line; pass `--banner-re` for other
@@ -186,7 +186,7 @@ under #3235.
 Slash invoke: `/ork:verify`
 
 YAML `hooks:` / `command:` lines in this skill's frontmatter stay Claude-only.
-They use `$\{CLAUDE_PLUGIN_ROOT\}/hooks/bin/run-hook.mjs` and are ignored by pi.
+They use `${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs` and are ignored by pi.
 
 Session chain files live at `.claude/chain/` (state.json, decisions.json, capabilities.json).
 Other hosts should persist equivalent run state in their own session store.
@@ -502,7 +502,7 @@ custom_rules:
 
 Store at: `.claude/policies/verification-policy.yaml`
 
-Multiple policies: `.claude/policies/\{name\}-policy.yaml`
+Multiple policies: `.claude/policies/{name}-policy.yaml`
 
 
 ### Quality Model
@@ -512,7 +512,7 @@ Multiple policies: `.claude/policies/\{name\}-policy.yaml`
 Extends the unified scoring framework with Visual as the 8th dimension.
 
 > **Canonical source**: `quality-gates/references/unified-scoring-framework.md`
-> Load: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/quality-gates/references/unified-scoring-framework.md")`
+> Load: `Read("${CLAUDE_PLUGIN_ROOT}/skills/quality-gates/references/unified-scoring-framework.md")`
 
 ## verify-Specific Extensions
 
@@ -599,7 +599,7 @@ Record both runs in the manifest row. A proof with only step 5 is not a proof.
 
 ### Rule 1: commit before mutating
 
-`git checkout -- &lt;file&gt;` restores the file to **HEAD**, not to the working state you had
+`git checkout -- <file>` restores the file to **HEAD**, not to the working state you had
 before the mutation. If the change is still uncommitted when you mutate, step 4 reverts
 the mutation *and the change together*, silently destroying the work. This has already
 cost a real fix plus roughly forty lines of a new guard in one stroke.
@@ -1067,7 +1067,7 @@ ledger.last_run_ts = now_iso()             # stamp THIS run — the freshness pr
 write_atomic(".claude/chain/verify-streak.json", ledger)   # tmp + rename, never in-place
 ```
 
-**Atomic write (concurrency safety).** The ledger *is* the counter, so a torn or last-writer-wins write corrupts the whole feature. Two verify runs on the same scope (e.g. parallel worktrees) must not race: write to `verify-streak.json.tmp.&lt;pid&gt;` then `rename()` over the target (an atomic filesystem op on POSIX). Never mutate the file in place. If two runs still interleave, rename-last-wins loses at most one increment — it never leaves a half-written ledger.
+**Atomic write (concurrency safety).** The ledger *is* the counter, so a torn or last-writer-wins write corrupts the whole feature. Two verify runs on the same scope (e.g. parallel worktrees) must not race: write to `verify-streak.json.tmp.<pid>` then `rename()` over the target (an atomic filesystem op on POSIX). Never mutate the file in place. If two runs still interleave, rename-last-wins loses at most one increment — it never leaves a half-written ledger.
 
 **Reset rule:** a streak breaks on *any* non-`READY FOR MERGE` verdict — a tripped dimension blocker, a failing test, or an IMPROVEMENTS-RECOMMENDED. One red zeroes the count. There is no partial credit.
 
@@ -1080,10 +1080,10 @@ The streak gate sits *above* the normal verdict — it never loosens a blocker, 
 | Streak state | Reported verdict |
 |---|---|
 | this run not READY (blocker/fail) | the normal verdict (BLOCKED / IMPROVEMENTS RECOMMENDED) + `streak reset to 0/N` |
-| READY but `current &lt; target` | **STREAK PROGRESS — `current`/`target`** (not done; run again) |
+| READY but `current < target` | **STREAK PROGRESS — `current`/`target`** (not done; run again) |
 | READY and `current >= target` | **READY FOR MERGE** (streak `target`/`target` met) |
 
-Always surface the count: `STREAK 2/3 — one more green to merge` or `streak reset to 0/3 (security 3.2 &lt; 4.0)`. The user must see how close (or how broken) the streak is.
+Always surface the count: `STREAK 2/3 — one more green to merge` or `streak reset to 0/3 (security 3.2 < 4.0)`. The user must see how close (or how broken) the streak is.
 
 ## Wiring into `/goal`
 
@@ -1594,7 +1594,7 @@ Agent(
 )
 ```
 
-**Output**: `verification-output/\{timestamp\}/` folder with screenshots, AI evaluations (JSON), and `gallery.html`.
+**Output**: `verification-output/{timestamp}/` folder with screenshots, AI evaluations (JSON), and `gallery.html`.
 
 ---
 
@@ -1758,7 +1758,7 @@ Grep(pattern="(app|router)\\.(get|post)\\([\"'](/[^\"']*)", glob="**/*.{ts,js}",
 ```
 
 ### Fallback
-If no routes discovered, screenshot just the root URL: `http://localhost:\{port\}/`
+If no routes discovered, screenshot just the root URL: `http://localhost:{port}/`
 
 ### Max Routes
 Cap at **20 routes** to keep gallery manageable and generation fast. Prioritize:

@@ -584,7 +584,7 @@ Reference: `references/docker-patterns.md` (lines 7-50)
 
 - Use Railway's **shared variables** for cross-service config (DATABASE_URL, REDIS_URL)
 - **Service-specific** variables override shared ones
-- Reference other vars: `$\{\{shared.DATABASE_URL\}\}`
+- Reference other vars: `${{shared.DATABASE_URL}}`
 - Never hardcode secrets — use Railway's encrypted env vars
 
 ## Database Provisioning
@@ -597,7 +597,7 @@ Railway provisions managed databases with one click:
 ## Multi-Service Setup
 
 - Use **monorepo** config: set `rootDirectory` per service
-- Internal networking: services communicate via `$\{\{service.RAILWAY_PRIVATE_DOMAIN\}\}:port`
+- Internal networking: services communicate via `${{service.RAILWAY_PRIVATE_DOMAIN}}:port`
 - Shared env groups for common config
 
 ## Railway CLI
@@ -1074,9 +1074,9 @@ Use Railway's shared variables (project-level) for values needed by all services
 - `LOG_LEVEL=info`
 
 Use reference variables for cross-service connections:
-- `DATABASE_URL=$\{\{Postgres.DATABASE_URL\}\}`
-- `REDIS_URL=$\{\{Redis.REDIS_URL\}\}`
-- `API_URL=http://$\{\{api.RAILWAY_PRIVATE_DOMAIN\}\}:$\{\{api.PORT\}\}`
+- `DATABASE_URL=${{Postgres.DATABASE_URL}}`
+- `REDIS_URL=${{Redis.REDIS_URL}}`
+- `API_URL=http://${{api.RAILWAY_PRIVATE_DOMAIN}}:${{api.PORT}}`
 
 ## Deploy Order
 
@@ -1186,12 +1186,12 @@ House rules that survive after the vendor tutorials were routed to their first-p
 Everything here is a threshold, a working config, or an ordering constraint we actually rely on.
 Vendor mechanics live upstream; see the "Upstream coverage" table in `SKILL.md`.
 
-A "retired `&lt;path&gt;`" in a Why line is a historical citation of a file that was deleted in this
+A "retired `<path>`" in a Why line is a historical citation of a file that was deleted in this
 change, not a live pointer. Do not try to open those paths.
 
 ## Give every CI workflow a concurrency group keyed on workflow and ref
 
-Why: distilled from the retired `examples/github-actions-cicd.md`; no traced incident. The house shape is `group: $\{\{ github.workflow \}\}-$\{\{ github.ref \}\}` with `cancel-in-progress: true`, so a force-push to a PR branch cannot leave two runs racing toward the same deploy target.
+Why: distilled from the retired `examples/github-actions-cicd.md`; no traced incident. The house shape is `group: ${{ github.workflow }}-${{ github.ref }}` with `cancel-in-progress: true`, so a force-push to a PR branch cannot leave two runs racing toward the same deploy target.
 Upstream: https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax
 
 ## Keep CI feedback under 5 minutes by path-filtering per service
@@ -1206,7 +1206,7 @@ Upstream: https://docs.github.com/en/actions/tutorials/use-containerized-service
 
 ## Deploy the exact image SHA that CI tested, never a rebuild
 
-Why: house rule. The retired `examples/github-actions-cicd.md` tagged images `$\{\{ github.sha \}\}` at build time but then deployed with `aws ecs update-service --force-new-deployment`, which pins nothing and re-pulls whatever the task definition points at. That gap is the reason this rule is written down rather than assumed: tag with the SHA AND reference that tag in the deploy step, so "the artifact we tested" and "the artifact we shipped" are byte-for-byte identical. Production deploys additionally sit behind `environment: production` for the approval gate.
+Why: house rule. The retired `examples/github-actions-cicd.md` tagged images `${{ github.sha }}` at build time but then deployed with `aws ecs update-service --force-new-deployment`, which pins nothing and re-pulls whatever the task definition points at. That gap is the reason this rule is written down rather than assumed: tag with the SHA AND reference that tag in the deploy step, so "the artifact we tested" and "the artifact we shipped" are byte-for-byte identical. Production deploys additionally sit behind `environment: production` for the approval gate.
 Upstream: https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/manage-environments
 
 ## Invalidate the CDN after the object sync, never before
@@ -1251,7 +1251,7 @@ Upstream: https://developer.hashicorp.com/terraform/language/backend/s3
 
 ## Rehearse the rollback, do not just document it
 
-Why: distilled from the retired `references/environment-management.md` and `checklists/production-readiness.md`; both carried the same standing instruction, that a rollback path is only real once it has been executed. The three house handles are `helm rollback &lt;release&gt; &lt;revision&gt;`, `kubectl rollout undo deployment/&lt;name&gt;`, and `alembic downgrade -1`, and the same rehearsal rule applies to backup restore, not only to backup creation.
+Why: distilled from the retired `references/environment-management.md` and `checklists/production-readiness.md`; both carried the same standing instruction, that a rollback path is only real once it has been executed. The three house handles are `helm rollback <release> <revision>`, `kubectl rollout undo deployment/<name>`, and `alembic downgrade -1`, and the same rehearsal rule applies to backup restore, not only to backup creation.
 Upstream: https://helm.sh/docs/helm/helm_rollback/
 
 ## Alert on the house thresholds, and always require a dwell window

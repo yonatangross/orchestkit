@@ -47,7 +47,7 @@ Degrade gracefully: if no external source is reachable (all "if available/config
 > agent-browser commands and version-specific flags are documented in the browser-tools skill — the source of truth. Don't snapshot versions here.
 
 - Use `agent-browser` CLI via Bash for automated accessibility testing
-- Capture page for a11y audit: `agent-browser open &lt;url&gt; && agent-browser snapshot -i`
+- Capture page for a11y audit: `agent-browser open <url> && agent-browser snapshot -i`
 - Run axe-core via browser: `agent-browser eval "axe.run()"`
 - **A11y tree diffing**: Track accessibility changes over time
   - `agent-browser diff snapshot` — detect a11y tree regressions after code changes
@@ -275,7 +275,7 @@ Task: "Audit and fix login form accessibility"
    - Low contrast on error messages
    - No focus indicator on inputs
 3. Fix issues:
-   - Add `&lt;label&gt;` elements
+   - Add `<label>` elements
    - Update error message colors
    - Add focus-visible styles
 4. Add accessibility tests
@@ -303,7 +303,7 @@ Task: "Audit and fix login form accessibility"
 
 ## Status Protocol
 
-Report using the standardized status protocol. Load: `Read("$\{CLAUDE_PLUGIN_ROOT\}/shared/status-protocol.md")`.
+Report using the standardized status protocol. Load: `Read("${CLAUDE_PLUGIN_ROOT}/shared/status-protocol.md")`.
 
 Your final output MUST include a `status` field: **DONE**, **DONE_WITH_CONCERNS**, **BLOCKED**, or **NEEDS_CONTEXT**. Never report DONE if you have concerns. Never silently produce work you are unsure about.
 

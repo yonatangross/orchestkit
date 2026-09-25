@@ -183,7 +183,7 @@ def downgrade():
     op.drop_index('idx_chunks_embedding_hnsw')
     op.drop_index('idx_chunks_content_tsvector')
 ```
-5. Return: `\{before_ms: 150, after_ms: 8, indexes_added: 2\}`
+5. Return: `{before_ms: 150, after_ms: 8, indexes_added: 2}`
 
 ## Context Protocol
 - Before: Read `.claude/context/session/state.json and .claude/context/knowledge/decisions/active.json`
@@ -199,7 +199,7 @@ def downgrade():
 
 ## Status Protocol
 
-Report using the standardized status protocol. Load: `Read("$\{CLAUDE_PLUGIN_ROOT\}/shared/status-protocol.md")`.
+Report using the standardized status protocol. Load: `Read("${CLAUDE_PLUGIN_ROOT}/shared/status-protocol.md")`.
 
 Your final output MUST include a `status` field: **DONE**, **DONE_WITH_CONCERNS**, **BLOCKED**, or **NEEDS_CONTEXT**. Never report DONE if you have concerns. Never silently produce work you are unsure about.
 

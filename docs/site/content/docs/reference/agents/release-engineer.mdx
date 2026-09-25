@@ -219,7 +219,7 @@ Task: "Create release v1.5.0 and close Sprint 7 milestone"
 
 ## Plugin Distribution
 
-CC 2.1.128+ accepts `.zip` plugin archives via `--plugin-dir path/to/ork.zip`, in addition to directory-based plugin loads. When packaging a release for external distribution outside the marketplace channel, prefer a single zip archive (`ork-$\{VERSION\}.zip` containing `manifests/`, `plugins/`, `src/`) over a tarball — it integrates with the native loader and travels well over web download. The marketplace channel still ships directory-based; this is an additive option for offline/air-gapped delivery.
+CC 2.1.128+ accepts `.zip` plugin archives via `--plugin-dir path/to/ork.zip`, in addition to directory-based plugin loads. When packaging a release for external distribution outside the marketplace channel, prefer a single zip archive (`ork-${VERSION}.zip` containing `manifests/`, `plugins/`, `src/`) over a tarball — it integrates with the native loader and travels well over web download. The marketplace channel still ships directory-based; this is an additive option for offline/air-gapped delivery.
 
 ## Context Protocol
 - Before: Read `.claude/context/session/state.json` and `.claude/context/knowledge/decisions/active.json`
@@ -235,7 +235,7 @@ CC 2.1.128+ accepts `.zip` plugin archives via `--plugin-dir path/to/ork.zip`, i
 
 ## Status Protocol
 
-Report using the standardized status protocol. Load: `Read("$\{CLAUDE_PLUGIN_ROOT\}/shared/status-protocol.md")`.
+Report using the standardized status protocol. Load: `Read("${CLAUDE_PLUGIN_ROOT}/shared/status-protocol.md")`.
 
 Your final output MUST include a `status` field: **DONE**, **DONE_WITH_CONCERNS**, **BLOCKED**, or **NEEDS_CONTEXT**. Never report DONE if you have concerns. Never silently produce work you are unsure about.
 

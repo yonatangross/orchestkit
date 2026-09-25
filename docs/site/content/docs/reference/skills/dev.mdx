@@ -18,7 +18,7 @@ description: "One-command dev loop boot. Spins up portless (named HTTPS subdomai
 
 One command boots the four moving parts of a Vercel-Labs-flavored dev loop:
 
-1. **portless** → named HTTPS `https://&lt;branch&gt;.localhost` (no port collisions across worktrees)
+1. **portless** → named HTTPS `https://<branch>.localhost` (no port collisions across worktrees)
 2. **emulate** → stateful API emulators on the same origin via `@emulators/adapter-next`
 3. **dev server** → `pnpm dev` / `npm run dev` / `yarn dev` (auto-detected)
 4. **agent-browser** → pre-warmed session named after the branch
@@ -40,13 +40,13 @@ State lives in `.claude/state/dev-stack.json`. Teardown via `dev stop` reads the
 
 > **Resuming a backgrounded dev session (CC 2.1.144+):** Sessions started via `claude --bg` now appear in `/resume` alongside interactive ones, marked `bg` — use `/resume` as the direct recovery path after a crash or session end instead of navigating the agent view.
 >
-> **Background shell sessions (CC 2.1.154+):** In `claude agents`, type `! &lt;command&gt;` to run a shell command as a backgrounded session you can attach to and detach from — also available as `claude --bg --exec '&lt;command&gt;'`. Useful for long dev-loop processes (watchers, builds, servers) you want to monitor without holding a terminal.
+> **Background shell sessions (CC 2.1.154+):** In `claude agents`, type `! <command>` to run a shell command as a backgrounded session you can attach to and detach from — also available as `claude --bg --exec '<command>'`. Useful for long dev-loop processes (watchers, builds, servers) you want to monitor without holding a terminal.
 
 ## Modes (M127)
 
 | Flag | Wraps | Reach | Tailscale CLI |
 |---|---|---|---|
-| (none) | `portless &lt;slug&gt; &lt;pkg-mgr&gt; run dev` | `https://&lt;branch&gt;.localhost` only | not required |
+| (none) | `portless <slug> <pkg-mgr> run dev` | `https://<branch>.localhost` only | not required |
 | `--share` | `portless --tailscale ...` | tailnet members on `https://*.ts.net` | required |
 | `--funnel` | `portless --funnel ...` | **public on the internet** | required |
 | `--live N` | `portless --funnel ...` + N-hour expiry | **public**, tracked in `live-demos.jsonl` | required |
@@ -60,7 +60,7 @@ list subdomains via `portless list` or `dev status`.
 
 ## Boot sequence
 
-`portless` is a **wrapper**, not a sidecar — `portless &lt;slug&gt; &lt;pkg-mgr&gt; run dev` is one fused command that owns the dev server's lifecycle. `boot.sh` tracks the wrapper PID; `stop.sh` walks its process tree to clean up children.
+`portless` is a **wrapper**, not a sidecar — `portless <slug> <pkg-mgr> run dev` is one fused command that owns the dev server's lifecycle. `boot.sh` tracks the wrapper PID; `stop.sh` walks its process tree to clean up children.
 
 ```
 0. Detect package manager      pnpm > yarn > bun > npm   (lockfile-based)
@@ -194,7 +194,7 @@ When auto-expect fires after a `.tsx` edit, it:
 
 1. Reads `.claude/state/dev-stack.json` to find the agent-browser session and base URL.
 2. Computes the affected route from the file path (`app/dashboard/page.tsx` → `/dashboard`).
-3. Drives agent-browser against `&lt;baseUrl&gt;&lt;route&gt;` using the live session.
+3. Drives agent-browser against `<baseUrl><route>` using the live session.
 4. Records the ARIA snapshot to memory keyed by `(route, parentCommit)` (M125 #6).
 
 If the dev stack isn't live, auto-expect skips silently — `dev` is the prerequisite, not a hard dep.
@@ -325,7 +325,7 @@ fi
 
 **Key rules:**
 - Check state file existence BEFORE any side effects
-- Liveness probe = `kill -0 &lt;pid&gt;` (POSIX signal-0; doesn't actually signal, just checks)
+- Liveness probe = `kill -0 <pid>` (POSIX signal-0; doesn't actually signal, just checks)
 - "Live" = at least one tracked PID still running (not all — partial death is recoverable)
 - Stale state file (file exists, all PIDs dead) → clean it up and proceed to boot
 - Exit code 0 for the no-op case (this is success, not error)
@@ -364,7 +364,7 @@ require portless && require emulate && require agent-browser || {
 **Key rules:**
 - Check ALL four prerequisites before starting ANY of them
 - Exit code 0 (not 1) when missing prereqs — this is a graceful skip, not an error
-- Print explicit `Install: npm i -g &lt;pkg&gt;` hints alongside missing binary
+- Print explicit `Install: npm i -g <pkg>` hints alongside missing binary
 - Honor `CI=1` env var: skip boot entirely (CI doesn't need a dev server)
 - Don't auto-install — let the user decide
 
@@ -437,7 +437,7 @@ Verified against real CLI surfaces (2026-04-27): `portless 0.10.x`, `emulate 0.4
 
 ## Architecture
 
-`portless` is a **wrapper**, not a sidecar: `portless &lt;name&gt; &lt;cmd&gt;` spawns `&lt;cmd&gt;` with `PORT=&lt;auto&gt;`, registers `https://&lt;name&gt;.localhost` against the portless proxy, and tears down the route when `&lt;cmd&gt;` exits. The `boot.sh` script runs `portless &lt;slug&gt; &lt;pkg-mgr&gt; run dev` as a single fused process and tracks the portless wrapper PID.
+`portless` is a **wrapper**, not a sidecar: `portless <name> <cmd>` spawns `<cmd>` with `PORT=<auto>`, registers `https://<name>.localhost` against the portless proxy, and tears down the route when `<cmd>` exits. The `boot.sh` script runs `portless <slug> <pkg-mgr> run dev` as a single fused process and tracks the portless wrapper PID.
 
 ```
    ┌──────────────── shared, long-lived ───────────────┐
@@ -536,15 +536,15 @@ wrap_pid=$!
 portless gives the child:
 - `PORT` — random port in 4000-4999
 - `HOST` — usually 127.0.0.1
-- `PORTLESS_URL` — public URL (`https://&lt;slug&gt;.localhost[:proxyport]`)
+- `PORTLESS_URL` — public URL (`https://<slug>.localhost[:proxyport]`)
 - `NODE_EXTRA_CA_CERTS` — path to portless CA (so node child trusts the local TLS)
 
 ## Step 5 — wait for portless to register the route, then wait-on the dev server
 
 Two-stage wait:
 
-1. Poll `portless get &lt;slug&gt;` for up to 30s — returns the canonical URL (with the proxy's actual port) once portless registers the route.
-2. `npx wait-on &lt;url&gt;` for another 30s — confirms the dev server is responding through the proxy.
+1. Poll `portless get <slug>` for up to 30s — returns the canonical URL (with the proxy's actual port) once portless registers the route.
+2. `npx wait-on <url>` for another 30s — confirms the dev server is responding through the proxy.
 
 Skipping stage 1 risks racing portless's registration; skipping stage 2 races the dev server's startup.
 
@@ -554,11 +554,11 @@ Skipping stage 1 risks racing portless's registration; skipping stage 2 races th
 AGENT_BROWSER_SESSION="${slug}" agent-browser open "${base_url}" >>"${LOG_FILE}" 2>&1 || true
 ```
 
-Sessions in agent-browser 0.25.x are **lazy** — they don't have daemons, they're just isolation namespaces. Setting `AGENT_BROWSER_SESSION=&lt;name&gt;` is equivalent to `--session &lt;name&gt;` flag. The browser actually starts on first navigation. Pre-warming with `open &lt;base_url&gt;` registers the session as active, so subsequent `/ork:expect` runs reuse the same session by name.
+Sessions in agent-browser 0.25.x are **lazy** — they don't have daemons, they're just isolation namespaces. Setting `AGENT_BROWSER_SESSION=<name>` is equivalent to `--session <name>` flag. The browser actually starts on first navigation. Pre-warming with `open <base_url>` registers the session as active, so subsequent `/ork:expect` runs reuse the same session by name.
 
 ## Step 7 — atomic state write
 
-`jq -n` builds the JSON in one pass; we write to `&lt;file&gt;.tmp` and `mv` to the final path. If the script is killed mid-write, we don't leave a half-written state file.
+`jq -n` builds the JSON in one pass; we write to `<file>.tmp` and `mv` to the final path. If the script is killed mid-write, we don't leave a half-written state file.
 
 State shape: see `references/state-schema.md`.
 
@@ -584,7 +584,7 @@ remove .claude/state/dev-stack.json
 
 ### Why walk the process tree?
 
-`portless` doesn't always propagate SIGTERM cleanly to its child. Tested on macOS: killing only the wrapper PID leaves the wrapped Next.js process orphaned, holding its port. `pgrep -P &lt;wrap_pid&gt;` enumerates immediate children; we recurse to grand-descendants and SIGTERM leaves-first so each parent sees its children gone before being killed itself.
+`portless` doesn't always propagate SIGTERM cleanly to its child. Tested on macOS: killing only the wrapper PID leaves the wrapped Next.js process orphaned, holding its port. `pgrep -P <wrap_pid>` enumerates immediate children; we recurse to grand-descendants and SIGTERM leaves-first so each parent sees its children gone before being killed itself.
 
 
 ### State Schema

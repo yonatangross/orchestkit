@@ -769,7 +769,7 @@ class OrderSagaWorkflow:
 
 | Decision | Recommendation |
 |----------|----------------|
-| Workflow ID | Business-meaningful, idempotent (e.g., `order-\{order_id\}`) |
+| Workflow ID | Business-meaningful, idempotent (e.g., `order-{order_id}`) |
 | Task queue | Per-service or per-workflow-type |
 | Determinism | Use `workflow.random()`, `workflow.now()` — never stdlib |
 | I/O | Always via activities, never directly in workflows |
@@ -1056,7 +1056,7 @@ Why: house retry budget. `retry_backoff=True`, `retry_backoff_max=600`, `retry_j
 Upstream: https://docs.celeryq.dev/en/stable/userguide/tasks.html
 
 ## Make a retried task idempotent at two layers
-Why: house rule for money-moving and record-creating tasks. Layer one is a Redis marker keyed `processed:&lt;domain&gt;:&lt;id&gt;` with an 86400s TTL, checked before the side effect; layer two is the vendor's own idempotency key on the outbound call. Layer one alone loses the race between a worker crash and the marker write, so both are required, in that order. Distilled from the retired retry-strategies.md; no traced incident.
+Why: house rule for money-moving and record-creating tasks. Layer one is a Redis marker keyed `processed:<domain>:<id>` with an 86400s TTL, checked before the side effect; layer two is the vendor's own idempotency key on the outbound call. Layer one alone loses the race between a worker crash and the marker write, so both are required, in that order. Distilled from the retired retry-strategies.md; no traced incident.
 Upstream: https://docs.celeryq.dev/en/stable/userguide/tasks.html
 
 ## Give every lock a TTL longer than the task hard time limit
@@ -1126,7 +1126,7 @@ Upstream: https://docs.celeryq.dev/en/stable/userguide/monitoring.html
 
 Why: distilled from the retired `references/result-backends.md`; the house lifecycle is a
 named vocabulary, not a single generic PROGRESS state, with meta shaped
-`\{step, total, description\}`. `rules/jobs-monitoring.md` retains only PROGRESS, so the
+`{step, total, description}`. `rules/jobs-monitoring.md` retains only PROGRESS, so the
 named stages live here. A polling client that has to infer progress from a percentage
 cannot tell "still validating" from "stuck uploading", which is the distinction the
 vocabulary exists to expose. Custom states also require `result_expires=86400` to stay

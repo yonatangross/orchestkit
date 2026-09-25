@@ -269,7 +269,7 @@ Pipe the output into the user-facing markdown report (or use it as-is). This gua
 
 ## Phase 6.5 — Notebook summary (signal-fired, optional)
 
-After the session synthesis lands, optionally invoke `scripts/post_explore_summary.py &lt;session-dir&gt;` to auto-emit a notebook-backed summary of the exploration. Self-skips on every non-happy-path so it never breaks the run:
+After the session synthesis lands, optionally invoke `scripts/post_explore_summary.py <session-dir>` to auto-emit a notebook-backed summary of the exploration. Self-skips on every non-happy-path so it never breaks the run:
 
 ```bash
 python3 ${CLAUDE_SKILL_DIR}/scripts/post_explore_summary.py "$CLAUDE_JOB_DIR"
@@ -279,11 +279,11 @@ Auto-skip conditions (all exit 0, all WARN-logged):
 
 | Skip reason | Trigger |
 |-------------|---------|
-| `signal absent` | `len(dirs_scanned) &lt; 3` (or field missing on `explore-output.json`) |
+| `signal absent` | `len(dirs_scanned) < 3` (or field missing on `explore-output.json`) |
 | `yg-mcp-core not importable` | `yg-mcp-core>=0.3.0` not installed (orchestkit is public; yg-mcp-core lives on private `pypi.yonyon.ai` — HQ-only) |
 | `hq-content MCP unreachable` | MCP server down OR `.mcp.json` doesn't define `hq-content` |
 
-Session dir must contain `explore-output.json` (with `dirs_scanned: list[str]`, optional `synthesis: str`, required `notebook_id: str`). Handoff JSON at `&lt;session-dir&gt;/explore-summary.json` records `status` (`fired` / `skipped`) and `summary_path` on success.
+Session dir must contain `explore-output.json` (with `dirs_scanned: list[str]`, optional `synthesis: str`, required `notebook_id: str`). Handoff JSON at `<session-dir>/explore-summary.json` records `status` (`fired` / `skipped`) and `summary_path` on success.
 
 Mirrors the `brainstorm` post-synth podcast pattern from PR #1889. Closes orchestkit#1893.
 
@@ -777,7 +777,7 @@ Database: PostgreSQL users table
 Slash invoke: `/ork:explore`
 
 YAML `hooks:` / `command:` lines in this skill's frontmatter stay Claude-only.
-They use `$\{CLAUDE_PLUGIN_ROOT\}/hooks/bin/run-hook.mjs` and are ignored by pi.
+They use `${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs` and are ignored by pi.
 
 Session chain files live at `.claude/chain/` (state.json, decisions.json, capabilities.json).
 Other hosts should persist equivalent run state in their own session store.
@@ -888,7 +888,7 @@ overall = (readability + maintainability + testability + complexity + documentat
 
 When `--render=json-render` or `--render=both` is passed to `/ork:explore`, Phase 8 emits a json-render-compatible JSON spec to `.claude/chain/explore-dashboard.json` instead of (or in addition to) the markdown report.
 
-The spec follows the **flat element-map format** documented in `ork:mcp-visual-output` — `\{ root, elements \}` with each element keyed by id and referencing children by id. This is the format consumed by `@json-render/mcp` 0.17+ when an MCP host iframe-renders it, and is also consumable by downstream skills as a structured handoff.
+The spec follows the **flat element-map format** documented in `ork:mcp-visual-output` — `{ root, elements }` with each element keyed by id and referencing children by id. This is the format consumed by `@json-render/mcp` 0.17+ when an MCP host iframe-renders it, and is also consumable by downstream skills as a structured handoff.
 
 ## Catalog
 
@@ -897,8 +897,8 @@ These are the only component types the spec is allowed to use. They map to `@jso
 | Type | Purpose | Required Props |
 |------|---------|----------------|
 | `Card` | Section wrapper with optional title | `title?: string` |
-| `StatGrid` | 2–6 metrics in a grid | `items: \{ label, value, trend?, color? \}[]` |
-| `DataTable` | Tabular rows | `columns: \{ key, label \}[]`, `rows: Record&lt;string,string&gt;[]` |
+| `StatGrid` | 2–6 metrics in a grid | `items: { label, value, trend?, color? }[]` |
+| `DataTable` | Tabular rows | `columns: { key, label }[]`, `rows: Record<string,string>[]` |
 | `StatusBadge` | Single status indicator | `label: string`, `status: success|warning|error|info|pending` |
 | `BarMeter` | 0-10 score bar | `label: string`, `value: number` (0-10), `color?: string` |
 | `Heatmap` | Coupling/dependency matrix | `xLabels: string[]`, `yLabels: string[]`, `cells: number[][]` |

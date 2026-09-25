@@ -1046,8 +1046,8 @@ def pact():
 | Matcher | Purpose | Example |
 |---------|---------|---------|
 | `Like(value)` | Match type, not value | `Like("user-123")` |
-| `EachLike(template, min)` | Array of matching items | `EachLike(\{"id": Like("x")\}, minimum=1)` |
-| `Term(regex, example)` | Regex pattern match | `Term(r"\\d\{4\}-\\d\{2\}-\\d\{2\}", "2024-01-15")` |
+| `EachLike(template, min)` | Array of matching items | `EachLike({"id": Like("x")}, minimum=1)` |
+| `Term(regex, example)` | Regex pattern match | `Term(r"\\d{4}-\\d{2}-\\d{2}", "2024-01-15")` |
 | `Format().uuid()` | UUID format | Auto-validates UUID strings |
 | `Format().iso_8601_datetime()` | ISO datetime | `2024-01-15T10:30:00Z` |
 

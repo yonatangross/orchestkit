@@ -72,7 +72,12 @@ type FormatFilter = "all" | "landscape" | "vertical" | "square";
 
 // ── Utilities ────────────────────────────────────────────────
 function formatTitle(id: string): string {
-  return id.replace(/([A-Z])/g, " $1").trim();
+  // Split camelCase but keep acronym runs together: "ReviewPR" -> "Review PR",
+  // not "Review P R" (visual audit 2026-09-25). "CIN-Commit" keeps its prefix.
+  return id
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/([A-Z]+)([A-Z][a-z])/g, "$1 $2")
+    .trim();
 }
 
 // Derive unique categories from composition data

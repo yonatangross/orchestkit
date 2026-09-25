@@ -35,7 +35,7 @@ Converts a PRD / issue / spec into a single copy-pasteable `/goal` line. The har
 | Input | How |
 |---|---|
 | Pasted PRD text | Provide as the argument, or paste into the chat after invoking. |
-| GitHub issue | `gh issue view &lt;N&gt; --json title,body,labels` — the skill reads `body`. |
+| GitHub issue | `gh issue view <N> --json title,body,labels` — the skill reads `body`. |
 | Spec file | Path to a Markdown / text file; the skill `Read`s it. |
 | ADR / design doc | Same as spec file. |
 
@@ -45,8 +45,8 @@ Converts a PRD / issue / spec into a single copy-pasteable `/goal` line. The har
 2. **Map each criterion to an observable boolean.** Each criterion must reduce to a single shell-checkable assertion. Examples of observable state:
    - `test -f path/to/file` (file exists)
    - `pnpm test -- pattern passes` (test command exits 0)
-   - `gh pr view &lt;N&gt; --json state | jq -r .state == "MERGED"`
-   - `wc -l &lt; src/auth.ts` returns a number within bound
+   - `gh pr view <N> --json state | jq -r .state == "MERGED"`
+   - `wc -l < src/auth.ts` returns a number within bound
    - `pnpm lint` exits 0
    - `curl -sf $URL` returns 2xx
 3. **Reject non-observable criteria.** Drop or rewrite criteria that depend on subjective judgement (`code is clean`, `design feels right`, `users are happy`). Either find a proxy (`lint exits 0`, `Lighthouse score > 90`, `NPS survey ID exists`) or surface the criterion back to the user as out of scope for `/goal`.
@@ -79,7 +79,7 @@ emit a goal line at all when the input has no observable acceptance criteria
 
 ### Optional: rubric emission (`.claude/rubric.json`)
 
-When the user wants graded feedback beyond pass/fail booleans, the skill MAY also emit `.claude/rubric.json` conforming to `ork-rubric/1.0` (schema: `$\{CLAUDE_PLUGIN_ROOT\}/shared/rubric.schema.json`), mapping each acceptance criterion to one dimension:
+When the user wants graded feedback beyond pass/fail booleans, the skill MAY also emit `.claude/rubric.json` conforming to `ork-rubric/1.0` (schema: `${CLAUDE_PLUGIN_ROOT}/shared/rubric.schema.json`), mapping each acceptance criterion to one dimension:
 
 ```json
 {
@@ -185,7 +185,7 @@ Full recipes — the exact single-line `/goal until …, or stop after N turns` 
 | Bad | Why it fails | Good |
 |---|---|---|
 | `/goal until tests pass` | Which tests? Existing or new? On which command? The agent can pick whatever subset is already green and claim done. | `/goal until pnpm test -- tests/auth/test_login.py passes AND pnpm test -- tests/auth passes` |
-| `/goal until the code looks clean` | Not falsifiable. The agent cannot check "looks clean" — it will either declare victory immediately or never. | `/goal until pnpm lint passes AND [ $(wc -l &lt; src/auth.ts) -lt 200 ]` |
+| `/goal until the code looks clean` | Not falsifiable. The agent cannot check "looks clean" — it will either declare victory immediately or never. | `/goal until pnpm lint passes AND [ $(wc -l < src/auth.ts) -lt 200 ]` |
 | `/goal until done` | Unbounded. There is no terminating condition; combined with a generous `, or stop after 50 turns` this is how runs eat 500K tokens overnight. | Pick 3–5 observable assertions. If you cannot, the PRD is not ready — go to `write-prd`. |
 
 ## 8. Post-timeout assertion grader
@@ -208,7 +208,7 @@ The grader receives the `/goal` line, `.claude/rubric.json` (if emitted), a comp
 
 Grading must happen in an independent context window — never self-critique (verifier sub-agents outperform self-critique because the grader does not share the producer's context; Lance Martin, 2026-06-09). Budget: one grader call per timeout, and the grader never loops itself.
 
-Full pattern (prompt template, independence rules, worked example): `$\{CLAUDE_PLUGIN_ROOT\}/skills/chain-patterns/references/assertion-grader.md`.
+Full pattern (prompt template, independence rules, worked example): `${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/references/assertion-grader.md`.
 
 ## 9. Related skills
 
@@ -233,8 +233,8 @@ Each recipe is a **loop shape** (when to stop) wrapped around an **ork skill** (
 
 ## How to use a recipe
 
-1. **Replace the `&lt;TOKENS&gt;`.** Recipes are templates — swap `&lt;TEST_CMD&gt;`, `&lt;COVERAGE_CMD&gt;`, etc. for your project's commands (e.g. `npm test`, `pnpm test`, `pytest`). The `&lt;…&gt;` tokens are the only things you edit.
-2. **Keep the turn budget, inside the same condition.** It is the safety rail, not boilerplate — tighten it, never drop it. Write it as `…, or stop after &lt;N&gt; turns` within the one `/goal` line. Do NOT emit it as a second `/goal` command: Claude Code takes one goal per session with replace-on-set, so a second line replaces the first and discards every acceptance assertion. The `abort-if` form these recipes previously carried was never Claude Code syntax (`grep -c -a -F 'abort-if'` on the 2.1.226 binary returns `0`); it is corrected throughout, see #3312.
+1. **Replace the `<TOKENS>`.** Recipes are templates — swap `<TEST_CMD>`, `<COVERAGE_CMD>`, etc. for your project's commands (e.g. `npm test`, `pnpm test`, `pytest`). The `<…>` tokens are the only things you edit.
+2. **Keep the turn budget, inside the same condition.** It is the safety rail, not boilerplate — tighten it, never drop it. Write it as `…, or stop after <N> turns` within the one `/goal` line. Do NOT emit it as a second `/goal` command: Claude Code takes one goal per session with replace-on-set, so a second line replaces the first and discards every acceptance assertion. The `abort-if` form these recipes previously carried was never Claude Code syntax (`grep -c -a -F 'abort-if'` on the 2.1.226 binary returns `0`); it is corrected throughout, see #3312.
 3. **Name the worker.** Each recipe lists the ork skill that should run each pass — invoke it as the loop's worker (`/goal … then run /ork:cover each turn`).
 4. **Mind the guardrails.** Every recipe lists the one way the loop gets gamed and how the assertions prevent it.
 
@@ -273,7 +273,7 @@ Each recipe is a **loop shape** (when to stop) wrapped around an **ork skill** (
 /goal until [ $(<ERROR_COUNT_CMD>) -eq 0 ] AND <TEST_CMD> passes, or stop after 25 turns
 ```
 
-**Guardrail:** scope `&lt;ERROR_COUNT_CMD&gt;` to *actionable + reproducible* errors only — filter third-party noise, or the loop chases unfixable errors forever. Never point this at destructive remediation; `/goal` retries, and you don't want retries on data deletion.
+**Guardrail:** scope `<ERROR_COUNT_CMD>` to *actionable + reproducible* errors only — filter third-party noise, or the loop chases unfixable errors forever. Never point this at destructive remediation; `/goal` retries, and you don't want retries on data deletion.
 
 ## 📚 Docs-drift sweep
 
@@ -284,7 +284,7 @@ Each recipe is a **loop shape** (when to stop) wrapped around an **ork skill** (
 /goal until <DOCS_DRIFT_CMD> passes AND <LINK_CHECK_CMD> passes, or stop after 15 turns
 ```
 
-**Guardrail:** `&lt;DOCS_DRIFT_CMD&gt;` must be deterministic (e.g. "regenerated reference == committed reference"), never an LLM "are the docs good?" judgement — subjective checks never converge.
+**Guardrail:** `<DOCS_DRIFT_CMD>` must be deterministic (e.g. "regenerated reference == committed reference"), never an LLM "are the docs good?" judgement — subjective checks never converge.
 
 ## ⚡ Page-load budget
 
@@ -341,7 +341,7 @@ rm -f .claude/chain/verify-streak.json   # reset: a stale met:true would exit th
 /goal until <TYPECHECK_CMD> passes AND <LINT_CMD> passes AND [ $(grep -rc "@ts-ignore\|eslint-disable" src | paste -sd+ - | bc) -le <SUPPRESS_BASELINE> ], or stop after 20 turns
 ```
 
-**Guardrail:** the suppression-count clause is load-bearing. Without it the loop "wins" by silencing (`@ts-ignore`, `eslint-disable`) instead of fixing — set `&lt;SUPPRESS_BASELINE&gt;` to the current count so it can only go down.
+**Guardrail:** the suppression-count clause is load-bearing. Without it the loop "wins" by silencing (`@ts-ignore`, `eslint-disable`) instead of fixing — set `<SUPPRESS_BASELINE>` to the current count so it can only go down.
 
 ---
 

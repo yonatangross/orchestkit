@@ -20,7 +20,7 @@ Patterns for generating, reviewing, and integrating UI components produced by AI
 > - **v0.dev → v0.app** (Jan 2026 rebrand) — expanded from component scaffolding to full-stack app generation with shipping targets (Vercel, Cloudflare, Railway). v0.app MCP server (`@vercel/v0-mcp`) exposes generation as an MCP tool, so agents can call it programmatically.
 > - **Google Stitch** — design-first generation via `stitch.withgoogle.com/docs/mcp`. Produces multi-screen apps (up to 5 interconnected screens) with React/HTML + PNG. Strong when input is a screenshot, URL, or DESIGN.md file.
 > - **Bolt Cloud** (StackBlitz, 2026) — Bolt now runs the dev environment in the cloud (no local WebContainer). Integrates with GitHub and supports persistent databases. Best for full-stack prototypes with backend + deploy.
-> - **v0.app** and **Stitch** both integrate with shadcn/ui styles; pair with the `shadcn apply &lt;style&gt;` CLI (v4) to reuse generated output.
+> - **v0.app** and **Stitch** both integrate with shadcn/ui styles; pair with the `shadcn apply <style>` CLI (v4) to reuse generated output.
 
 ## Quick Reference
 
@@ -41,9 +41,9 @@ Patterns for generating, reviewing, and integrating UI components produced by AI
 | Multi-surface / MCP visual output | json-render | Single catalog renders to any surface — FIRST CHOICE |
 | Type-safe component catalog | json-render | Schema-driven specs with per-platform registries |
 | Streaming UI from AI agents | json-render | Structured JSON specs render progressively |
-| New component from scratch | v0.app | Full scaffold with shadcn/ui, Tailwind, a11y. Pair with `shadcn apply &lt;style&gt;` for style consistency |
+| New component from scratch | v0.app | Full scaffold with shadcn/ui, Tailwind, a11y. Pair with `shadcn apply <style>` for style consistency |
 | Full-stack app with deploy | v0.app | Jan 2026 expansion — routes, DB, auth, Vercel/Cloudflare deploy in one generation |
-| Design-driven (screenshot/URL/DESIGN.md) | Google Stitch | `generate_screen_from_text` (once; no retry) + `get_screen(name="projects/\{project\}/screens/\{screen\}")` |
+| Design-driven (screenshot/URL/DESIGN.md) | Google Stitch | `generate_screen_from_text` (once; no retry) + `get_screen(name="projects/{project}/screens/{screen}")` |
 | Multi-screen flow from a visual source | Google Stitch | Strongest when grounded in an existing design |
 | Full-stack prototype with persistent backend | Bolt Cloud | Cloud dev env, GitHub integration, databases |
 | Incremental change in existing codebase | Cursor | Understands project context, imports, tokens |
@@ -496,7 +496,7 @@ export function StatusBadge({
 
 1. **Extract tokens** — Replace all hardcoded colors (`green-100`, `#3b82f6`) with semantic tokens (`bg-primary`, `text-muted-foreground`)
 2. **Apply CVA variants** — Convert conditional className strings to `cva()` variant definitions with `defaultVariants`
-3. **Add TypeScript props** — Create explicit interface extending HTML element props + `VariantProps&lt;typeof variants&gt;`
+3. **Add TypeScript props** — Create explicit interface extending HTML element props + `VariantProps<typeof variants>`
 4. **Wire to design system** — Import `cn()` utility, accept `className` prop for composition, use `forwardRef` if needed
 5. **Verify theme** — Test light mode, dark mode, and high contrast — tokens must resolve correctly in all themes
 
@@ -506,7 +506,7 @@ export function StatusBadge({
 |------|-------------------|-------------------|
 | Colors | `bg-blue-500`, `text-gray-600` | `bg-primary`, `text-muted-foreground` |
 | Variants | Ternary chains in className | `cva()` with named variants |
-| Props | `\{ status: string \}` | `StatusBadgeProps` with union types |
+| Props | `{ status: string }` | `StatusBadgeProps` with union types |
 | Composition | No className prop | `cn(variants(), className)` |
 | Theme | Light mode only | Verified in light, dark, high contrast |
 
@@ -574,7 +574,7 @@ export function UserCard({ user, onSelect }: UserCardProps) {
 
 | # | Check | What to Look For |
 |---|-------|-----------------|
-| 1 | **Semantic HTML** | `&lt;button&gt;` not `<div onClick>`, `&lt;nav&gt;`, `&lt;main&gt;`, `&lt;article&gt;` |
+| 1 | **Semantic HTML** | `<button>` not `<div onClick>`, `<nav>`, `<main>`, `<article>` |
 | 2 | **ARIA roles** | Interactive elements have labels, live regions for dynamic content |
 | 3 | **Design tokens** | No hardcoded hex/rgb/hsl — use Tailwind semantic classes (`bg-primary`) |
 | 4 | **TypeScript props** | Explicit interface, no `any`, proper event handler types |
@@ -588,7 +588,7 @@ export function UserCard({ user, onSelect }: UserCardProps) {
 **Key rules:**
 - Run through all 10 points for every AI-generated component — no exceptions
 - Flag any hardcoded color, spacing, or typography value as a blocking issue
-- Interactive `<div>` or `<span>` elements must be converted to `&lt;button&gt;` or `<a>`
+- Interactive `<div>` or `<span>` elements must be converted to `<button>` or `<a>`
 - Missing TypeScript props interface is a blocking issue — AI often uses implicit `any`
 
 Reference: https://www.w3.org/WAI/ARIA/apg/patterns/
@@ -678,7 +678,7 @@ DO NOT use arbitrary Tailwind values like bg-[#3b82f6].
 
 **Key rules:**
 - Include the full token injection block in every AI prompt — AI tools cannot read your CSS variables
-- Flag any `bg-[#...]`, `text-[#...]`, or inline `style=\{\{ color: "..." \}\}` as a blocking review issue
+- Flag any `bg-[#...]`, `text-[#...]`, or inline `style={{ color: "..." }}` as a blocking review issue
 - After generation, search-and-replace any remaining hardcoded values with token classes
 - Verify dark mode works — hardcoded values are invisible against dark backgrounds
 - Use OKLCH for new token definitions — wider gamut and perceptually uniform lightness
@@ -822,16 +822,16 @@ Top 10 failure modes of AI-generated UI components, ordered by frequency. Each i
 ## 1. Hardcoded Color Values
 
 **Frequency:** Very common (80%+ of AI output)
-**Problem:** AI generates `bg-[#3b82f6]`, `text-[#64748b]`, or inline `style=\{\{ color: "#..." \}\}` instead of design tokens.
-**Detection:** `grep -rn 'bg-\[#\|text-\[#\|border-\[#\|style=\{\{' src/components/`
+**Problem:** AI generates `bg-[#3b82f6]`, `text-[#64748b]`, or inline `style={{ color: "#..." }}` instead of design tokens.
+**Detection:** `grep -rn 'bg-\[#\|text-\[#\|border-\[#\|style={{' src/components/`
 **Fix:** Replace with semantic token classes: `bg-primary`, `text-muted-foreground`, `border-border`.
 
 ## 2. Non-Semantic HTML
 
 **Frequency:** Very common
-**Problem:** AI uses `<div onClick>` instead of `&lt;button&gt;`, `<div>` instead of `&lt;nav&gt;`, `<span>` for headings.
+**Problem:** AI uses `<div onClick>` instead of `<button>`, `<div>` instead of `<nav>`, `<span>` for headings.
 **Detection:** ESLint `jsx-a11y/no-noninteractive-element-interactions`, `jsx-a11y/click-events-have-key-events`.
-**Fix:** Replace with semantic elements: `&lt;button&gt;`, `&lt;nav&gt;`, `&lt;main&gt;`, `&lt;article&gt;`, `&lt;section&gt;`.
+**Fix:** Replace with semantic elements: `<button>`, `<nav>`, `<main>`, `<article>`, `<section>`.
 
 ## 3. Missing Loading/Error States
 
@@ -843,7 +843,7 @@ Top 10 failure modes of AI-generated UI components, ordered by frequency. Each i
 ## 4. Implicit `any` TypeScript
 
 **Frequency:** Common
-**Problem:** AI generates `function Card(\{ data \})` without TypeScript interface, creating implicit `any`.
+**Problem:** AI generates `function Card({ data })` without TypeScript interface, creating implicit `any`.
 **Detection:** `tsc --noEmit` with `strict: true` in tsconfig.
 **Fix:** Add explicit props interface with union types for variants.
 
@@ -852,7 +852,7 @@ Top 10 failure modes of AI-generated UI components, ordered by frequency. Each i
 **Frequency:** Common
 **Problem:** AI imports entire icon libraries (`import * from "lucide-react"`) or unused dependencies.
 **Detection:** `size-limit` CI check, ESLint `no-unused-imports` rule.
-**Fix:** Import individual icons: `import \{ Search, ChevronDown \} from "lucide-react"`.
+**Fix:** Import individual icons: `import { Search, ChevronDown } from "lucide-react"`.
 
 ## 6. Missing Focus Management
 
@@ -878,7 +878,7 @@ Top 10 failure modes of AI-generated UI components, ordered by frequency. Each i
 ## 9. String Concatenation for Classes
 
 **Frequency:** Moderate
-**Problem:** AI generates `className=\{"base " + (active ? "bg-blue-500" : "bg-gray-200")\}` instead of CVA or `cn()`.
+**Problem:** AI generates `className={"base " + (active ? "bg-blue-500" : "bg-gray-200")}` instead of CVA or `cn()`.
 **Detection:** Grep for template literals or string concatenation in className.
 **Fix:** Use `cn()` from `@/lib/utils` or CVA for variant-based styling. See `rules/ai-refactoring-conformance.md`.
 

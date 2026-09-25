@@ -239,7 +239,7 @@ After ADAPT produces a working React component, register it as a json-render cat
 
 1. **Generate Zod schema** — Derive a Zod schema from the component's TypeScript props
 2. **Add catalog entry** — Register in the project's `defineCatalog()` call with props schema and children declaration
-3. **Verify rendering** — Confirm the component renders correctly through `&lt;Render catalog=\{catalog\} /&gt;` path
+3. **Verify rendering** — Confirm the component renders correctly through `<Render catalog={catalog} />` path
 
 ```typescript
 import { z } from 'zod'
@@ -327,7 +327,7 @@ Done means all of these hold:
 - Every prop is TypeScript-typed; data-bearing props carry Zod validation.
 - Stage 2 checked existing components (Storybook, then 21st.dev, then filesystem) before generating from scratch, and the chosen match source is named.
 - When storybook-mcp is available, the component passes `run-story-tests` (component + a11y) before handoff, self-healing within at most 3 attempts.
-- Output follows the `\{ComponentName\}/` structure — component, test, and barrel export.
+- Output follows the `{ComponentName}/` structure — component, test, and barrel export.
 - Each skipped stage (json-render catalog, Storybook verify) is taken ONLY when its dependency is absent, and the skip is stated with its reason.
 
 ## Related Skills
@@ -432,6 +432,6 @@ export const catalogWithLayout = {
 - Always use `.max()` bounds on strings and arrays to prevent unbounded AI generation
 - Use `z.enum()` for any prop with a finite set of valid values
 - Set `children: false` for data-display components, `children: true` for layout wrappers
-- Compose with object spread (`\{ ...base, ...custom \}`); `@json-render/core` exports no catalog-merge helper
+- Compose with object spread (`{ ...base, ...custom }`); `@json-render/core` exports no catalog-merge helper
 - Export the Zod schema alongside the component for reuse in tests and type generation
 

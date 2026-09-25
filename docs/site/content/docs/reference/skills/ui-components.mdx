@@ -110,7 +110,7 @@ Configure visually at [ui.shadcn.com/create](https://ui.shadcn.com/create) → p
 
 | Command | Purpose |
 |---------|---------|
-| `npx shadcn@latest apply &lt;style&gt;` | Apply a published style (e.g. `luma`, `nova`, `lyra`) to the current project — re-skins existing components without re-adding them |
+| `npx shadcn@latest apply <style>` | Apply a published style (e.g. `luma`, `nova`, `lyra`) to the current project — re-skins existing components without re-adding them |
 | `npx shadcn@latest info` | Show resolved config: registry, style, tokens, components present, Tailwind version |
 | `npx shadcn@latest skills` | List the `shadcn/skills` registry — Claude Code- and Cursor-ready skill packs that bundle CLI commands with agent guidance |
 | `npx shadcn@latest build` | Build a custom registry (already-documented) — pair with `apply` to ship a private style |
@@ -326,12 +326,12 @@ Cascade layers give you explicit control over which styles win, regardless of sp
 
 | Layer | Purpose | Example |
 |-------|---------|---------|
-| `reset` | Normalize browser defaults | `*, *::before \{ box-sizing: border-box; margin: 0; \}` |
-| `base` | Element-level defaults | `body \{ font-family: var(--font-sans); \}` |
-| `tokens` | Design tokens / CSS custom properties | `:root \{ --color-primary: oklch(0.6 0.2 250); \}` |
-| `components` | Component-scoped styles | `.card \{ border-radius: var(--radius-md); \}` |
-| `utilities` | Tailwind or utility classes | `.sr-only \{ position: absolute; ... \}` |
-| `overrides` | Page-specific or one-off overrides | `.hero-banner .card \{ padding: 3rem; \}` |
+| `reset` | Normalize browser defaults | `*, *::before { box-sizing: border-box; margin: 0; }` |
+| `base` | Element-level defaults | `body { font-family: var(--font-sans); }` |
+| `tokens` | Design tokens / CSS custom properties | `:root { --color-primary: oklch(0.6 0.2 250); }` |
+| `components` | Component-scoped styles | `.card { border-radius: var(--radius-md); }` |
+| `utilities` | Tailwind or utility classes | `.sr-only { position: absolute; ... }` |
+| `overrides` | Page-specific or one-off overrides | `.hero-banner .card { padding: 3rem; }` |
 
 ## Assigning Third-Party CSS to Early Layers
 
@@ -467,7 +467,7 @@ const buttonVariants = cva(
 
 - **Keyboard Navigation**: All interactive elements must be keyboard accessible
 - **Focus Management**: Use focus traps in modals, maintain logical focus order
-- **Semantic HTML**: Use `&lt;button&gt;`, `&lt;nav&gt;`, `&lt;main&gt;` instead of generic divs
+- **Semantic HTML**: Use `<button>`, `<nav>`, `<main>` instead of generic divs
 - **ARIA Attributes**: `aria-label`, `aria-expanded`, `aria-controls`, `aria-live`
 - **No positive tabindex**: Using `tabindex > 0` disrupts natural tab order
 
@@ -1193,7 +1193,7 @@ const paymentSchema = z.discriminatedUnion('method', [
 - Share Zod schemas between client and server — single source of truth
 - Always validate on server even if client validation passes (never trust client)
 - Use `safeParse` (not `parse`) for server actions to return errors instead of throwing
-- Use `z.infer&lt;typeof schema&gt;` for automatic TypeScript types
+- Use `z.infer<typeof schema>` for automatic TypeScript types
 - Async validation: combine with `mode: 'onBlur'` to avoid excessive API calls
 - Custom error messages in every `.email()`, `.min()`, `.refine()` call
 
@@ -1390,7 +1390,7 @@ export const AddItem: Story = {
 
 ## Key Rules
 
-- Use CSF3 format (`satisfies Meta&lt;typeof Component&gt;`) for type safety
+- Use CSF3 format (`satisfies Meta<typeof Component>`) for type safety
 - Add `tags: ['autodocs']` for automatic documentation generation
 - Create one story per meaningful visual state (empty, loading, error, populated)
 - Use `play()` functions to test interactions without E2E overhead
@@ -1516,7 +1516,7 @@ module.exports = {
 - Container queries are native — do not install `@tailwindcss/container-queries`
 - Use `@sm:`, `@md:`, `@lg:` variants for container-width breakpoints
 - Use `@max-*:` variants for max-width container queries
-- Name containers with `@container/&lt;name&gt;` for targeted queries
+- Name containers with `@container/<name>` for targeted queries
 - Use `/name` suffix on variants to target specific named containers
 - Migrate existing `tailwind.config.js` to `@theme` block when upgrading to v4
 
@@ -1708,7 +1708,7 @@ Why: House convention carried since the v2.0 consolidation of shadcn-patterns
 and radix-primitives into src/skills/ui-components (metadata.json, Feb 2026).
 Upstream treats generated component files as yours to edit; ork forbids it
 (this SKILL.md's FORBIDDEN list) because edited generated files silently lose
-every fix the next `npx shadcn@latest add` or `apply &lt;style&gt;` would bring, the
+every fix the next `npx shadcn@latest add` or `apply <style>` would bring, the
 same generated-file-drift class this repo guards against in plugins/. The
 convention was asserted by the test-cases.json case `shadcn-customization`
 until the 2026-07-31 wrap-plus-delta thinning removed the rule file it traced

@@ -29,7 +29,7 @@ create-pr "Add user authentication"
 >
 > | Host family | CLI |
 > |---|---|
-> | github / github-enterprise | `gh pr create` (with `GH_HOST=&lt;host&gt;` for GHE) |
+> | github / github-enterprise | `gh pr create` (with `GH_HOST=<host>` for GHE) |
 > | gitlab / gitlab-self | `glab mr create` |
 > | bitbucket | `bb pr create` |
 >
@@ -69,7 +69,7 @@ gh pr create --base "$PARENT_BRANCH" --title "$TYPE(#$ISSUE): ... [2/3]" \
 
 Phase 1's guard still applies: never open from `main` or `dev`, never with a dirty tree. Record
 `git rev-parse "origin/$PARENT_BRANCH"` in the body; after the parent is squash-merged that sha
-is the upstream argument that `git rebase --onto "origin/$BASE" &lt;that-sha&gt; &lt;branch&gt;` needs, and
+is the upstream argument that `git rebase --onto "origin/$BASE" <that-sha> <branch>` needs, and
 the branch itself is gone. Squash recovery, depth cap, draft trap: `Read("references/stacked-pr.md")`.
 
 ---
@@ -201,10 +201,10 @@ git diff "origin/$BASE...HEAD" --stat
 
 ### Phase 3b: Agent Attribution (automatic)
 
-Before creating the PR, check for the branch activity ledger at `.claude/agents/activity/\{branch\}.jsonl`.
+Before creating the PR, check for the branch activity ledger at `.claude/agents/activity/{branch}.jsonl`.
 If it exists, generate agent attribution sections for the PR body:
 
-1. Read `.claude/agents/activity/\{branch\}.jsonl` (one JSON object per line, full branch history)
+1. Read `.claude/agents/activity/{branch}.jsonl` (one JSON object per line, full branch history)
 2. Deduplicate by agent type (keep the entry with longest duration for each agent)
 3. Generate the following sections to append to the PR body:
    - **Badge row**: shields.io badges for agent count, tests generated, vulnerabilities
@@ -352,7 +352,7 @@ gh pr checks {PR_NUMBER}                  # one-shot status; the CI Monitoring c
 
 ## Verification Gate
 
-Before claiming PR is ready, apply: `Read("$\{CLAUDE_PLUGIN_ROOT\}/shared/rules/verification-gate.md")`. All tests must pass with fresh evidence. All CI checks green. No "should be fine."
+Before claiming PR is ready, apply: `Read("${CLAUDE_PLUGIN_ROOT}/shared/rules/verification-gate.md")`. All tests must pass with fresh evidence. All CI checks green. No "should be fine."
 
 ## Quality Bar
 
@@ -377,7 +377,7 @@ If the `AskUserQuestion` picker stalls (schema break, not a CC input bug — orc
 
 ## References
 
-Load on demand with `Read("references/&lt;file&gt;")`:
+Load on demand with `Read("references/<file>")`:
 | File | Content |
 |------|---------|
 | `references/pr-body-templates.md` | PR body templates |
@@ -403,7 +403,7 @@ Load on demand with `Read("references/&lt;file&gt;")`:
 
 Branch names enable automated issue extraction and PR categorization.
 
-**Pattern:** `&lt;type&gt;/&lt;issue&gt;-&lt;short-description&gt;`
+**Pattern:** `<type>/<issue>-<short-description>`
 
 **Examples:**
 ```
@@ -528,7 +528,7 @@ Every PR body must include standard sections. Use `gh pr create --body` with a H
 **Key rules:**
 - Always use `Closes #N` (not `Fixes` or `Resolves`) for consistency with CI auto-close
 - End body with `Generated with [Claude Code](https://claude.com/claude-code)` footer
-- Use `--body "$(cat &lt;&lt;'EOF' ... EOF)"` HEREDOC pattern for multi-line bodies
+- Use `--body "$(cat <<'EOF' ... EOF)"` HEREDOC pattern for multi-line bodies
 - Keep Summary focused on "why" — the diff shows "what"
 - Test Plan checkboxes should reflect actual verification, not aspirational items
 
@@ -940,14 +940,14 @@ that was never installed.
 For each unresolved thread, spawn a refuter in ONE message: an isolated `Agent` (no
 `team_name`), `subagent_type="ork:code-quality-reviewer"` (`ork:security-auditor` for a
 security category). Give it `path`, `line`, `title`, `body`, and the diff slice
-`git diff origin/$BASE...HEAD -- &lt;path&gt;`; instruct it to REFUTE the finding against that diff
-and return `\{"refuted": true|false, "reason": "&lt;one sentence&gt;"\}`, defaulting to `refuted: true`
+`git diff origin/$BASE...HEAD -- <path>`; instruct it to REFUTE the finding against that diff
+and return `{"refuted": true|false, "reason": "<one sentence>"}`, defaulting to `refuted: true`
 when the failure scenario cannot be reproduced. Refuters never edit files.
 
 | Outcome | Action on the branch | Reply on the thread |
 |---|---|---|
-| Survived (`refuted: false`) | Fix in the same branch, commit, push | `Fixed in &lt;sha&gt;: &lt;one line&gt;` |
-| Refuted (`refuted: true`) | Nothing | `Dismissed: &lt;the one-sentence reason&gt;` |
+| Survived (`refuted: false`) | Fix in the same branch, commit, push | `Fixed in <sha>: <one line>` |
+| Refuted (`refuted: true`) | Nothing | `Dismissed: <the one-sentence reason>` |
 
 ```bash
 bash "$H" "$PR_NUMBER" --reply "$THREAD_ID" "Fixed in $(git rev-parse --short HEAD): <what changed>"
@@ -956,7 +956,7 @@ bash "$H" "$PR_NUMBER" --unresolved | jq length     # must print 0 before procee
 ```
 
 A fix push re-runs CI, so re-verify green afterwards. CodeRabbit may post new threads on the
-fix commit; give those exactly one more pass, then dismiss the rest with `Deferred to #&lt;issue&gt;`
+fix commit; give those exactly one more pass, then dismiss the rest with `Deferred to #<issue>`
 and a filed issue, so the phase terminates instead of looping.
 
 
@@ -1103,7 +1103,7 @@ Operator action, not automatable from a session (it is a web OAuth grant):
    and enabled under the right org or account.
 
 Then prove it with a PR, not with the settings page: open one and wait for
-`gh pr view &lt;n&gt; --json reviews,comments` to show a `coderabbitai[bot]` entry. A green
+`gh pr view <n> --json reviews,comments` to show a `coderabbitai[bot]` entry. A green
 config and a checked box are not a posted review.
 
 ## Public repositories are free
@@ -1389,16 +1389,16 @@ EOF
 
 # Phase 4b: Generate PR Playground (REQUIRED — CI blocks without it)
 
-Generate an interactive HTML playground visualizing the PR's changes. CI validates `docs/\{branch-name\}/*.html` exists.
+Generate an interactive HTML playground visualizing the PR's changes. CI validates `docs/{branch-name}/*.html` exists.
 
 > **Requires** the `playground` plugin (external): `/plugin marketplace add anthropics/claude-plugins-official && /plugin install playground`
 
 **First classify the archetype** — a feature PR must not ship as a flat dashboard.
-`Read("$\{CLAUDE_PLUGIN_ROOT\}/shared/rules/playground-visual-standard.md")` and apply its §0 routing rule:
+`Read("${CLAUDE_PLUGIN_ROOT}/shared/rules/playground-visual-standard.md")` and apply its §0 routing rule:
 
 - **Visual PR** (adds/changes a user-facing feature, flow, or a prioritization/decision surface) →
   **USER-STORY PLAYER** or **DECISION BOARD**. Build to the standard: adapt the matching exemplar at
-  `$\{CLAUDE_PLUGIN_ROOT\}/shared/assets/playground-exemplars/` (`user-story-player.template.html`
+  `${CLAUDE_PLUGIN_ROOT}/shared/assets/playground-exemplars/` (`user-story-player.template.html`
   or `decision-board.template.html`), and bring full design firepower (the `frontend-design` skill /
   the `ork:frontend-ui-developer` agent). When delegating to `playground:playground`, brief it with the
   **archetype + persona + tokens** — never hand it a pre-built HTML blob.
@@ -1448,20 +1448,20 @@ Add a "Live Preview" section to the PR body:
 > not control, with none of its CSP applied. The plain blob link shows source rather
 > than a rendered page; that is the accepted trade-off for not handing a third party
 > the content. To get a *rendered* first-party page, publish the playground to the
-> Lab instead: add `docs/site/lab-manifest/&lt;slug&gt;.json` (one fragment per entry) and
+> Lab instead: add `docs/site/lab-manifest/<slug>.json` (one fragment per entry) and
 > run `npm run build`, which serves it under the site's own `/lab` CSP. The
 > `lab-data.ts` aggregate is generated at build, dev and test time and is not
 > committed, so there is no conflict to resolve on it: publish a playground with
 > one fragment under `docs/site/lab-manifest/` and rebuild.
 
 > **Pin the SHA, never the branch.** GitHub deletes the head branch on merge, so a
-> `blob/\{BRANCH\}/` URL returns 404 the moment the PR lands. That silently broke the
+> `blob/{BRANCH}/` URL returns 404 the moment the PR lands. That silently broke the
 > playground link on every merged PR through #3147. A commit SHA stays reachable
-> indefinitely because GitHub retains `refs/pull/&lt;N&gt;/head`, so the same URL works
+> indefinitely because GitHub retains `refs/pull/<N>/head`, so the same URL works
 > during review and after merge. Verified: branch form 404, SHA form 200, on a PR
 > whose branch was already deleted.
 
-> **Why required:** CI Stage 1d (`playground-check`) blocks merge if `docs/\{branch-dir\}/*.html` is missing. Bot PRs (dependabot, release-please) are exempt.
+> **Why required:** CI Stage 1d (`playground-check`) blocks merge if `docs/{branch-dir}/*.html` is missing. Bot PRs (dependabot, release-please) are exempt.
 
 
 ### Stacked Pr

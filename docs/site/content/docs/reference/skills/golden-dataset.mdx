@@ -141,7 +141,7 @@ const result = await dataset.runExperiment({
 |---|---|---|
 | `Evaluator` | one item | Per-example quality (faithfulness, relevance) |
 | `RunEvaluator` | the whole run | Aggregate assertions — pass rate, mean score, regression checks |
-| `Evaluation` | — | `\{ name, value, comment?, metadata?, dataType?, configId? \}` |
+| `Evaluation` | — | `{ name, value, comment?, metadata?, dataType?, configId? }` |
 
 A per-item `Evaluator` cannot see the other items, so anything comparative belongs in a
 `RunEvaluator`. `createEvaluatorFromAutoevals` wraps an autoevals scorer instead of hand-writing

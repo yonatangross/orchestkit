@@ -181,7 +181,7 @@ test('insert user', async ({ db }) => {
 
 ### mockThrow / mockThrowOnce
 
-Replaces the verbose `mockImplementation(() => \{ throw err \})` pattern:
+Replaces the verbose `mockImplementation(() => { throw err })` pattern:
 
 ```typescript
 const fn = vi.fn()
@@ -247,7 +247,7 @@ AI_AGENT=copilot vitest    # auto-detect agent mode
 4. **Hard-coded test data** with duplicate IDs (test conflicts in parallel runs)
 5. **No cleanup** after database seeding (state leaks between tests)
 6. **Over-mocking** — testing your mocks instead of your code (false confidence)
-7. **Verbose throw mocking** — `mockImplementation(() => \{ throw err \})` instead of `mockThrow(err)` (Vitest 4.1+)
+7. **Verbose throw mocking** — `mockImplementation(() => { throw err })` instead of `mockThrow(err)` (Vitest 4.1+)
 
 ## Scripts
 

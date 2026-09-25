@@ -31,7 +31,7 @@ on top of them, in `references/ork-delta.md`, the `rules/` files, and the checkl
 
 | Topic | First-party source |
 |-------|--------------------|
-| Basic store, `create&lt;State&gt;()()`, actions, async actions | https://github.com/pmndrs/zustand/blob/main/docs/reference/apis/create.md |
+| Basic store, `create<State>()()`, actions, async actions | https://github.com/pmndrs/zustand/blob/main/docs/reference/apis/create.md |
 | Slices pattern (splitting and combining stores) | https://github.com/pmndrs/zustand/blob/main/docs/learn/guides/slices-pattern.md |
 | Typing slices and middleware mutator tuples | https://github.com/pmndrs/zustand/blob/main/docs/learn/guides/advanced-typescript.md |
 | Immer middleware (draft mutations) | https://github.com/pmndrs/zustand/blob/main/docs/reference/middlewares/immer.md |
@@ -113,7 +113,7 @@ Load Read("references/anti-patterns-and-integration.md") for anti-pattern exampl
 
 ## References
 
-Load on demand with `Read("references/&lt;file&gt;")`:
+Load on demand with `Read("references/<file>")`:
 
 | File | Content |
 |------|---------|
@@ -261,7 +261,7 @@ persist((set) => ({ theme: 'light', fontSize: 14 }), {
 **Key rules:**
 - Never use mutable methods (`push`, `splice`, property assignment) in `set()` without `immer` middleware
 - Never double-wrap the same middleware -- each should appear exactly once
-- Always `import type \{\} from '@redux-devtools/extension'` when using `devtools`
+- Always `import type {} from '@redux-devtools/extension'` when using `devtools`
 - Always provide a `migrate` function when bumping persist `version`
 
 Reference: `references/ork-delta.md` (secret handling) and https://github.com/pmndrs/zustand/blob/main/docs/reference/middlewares/persist.md (version and migrate)
@@ -330,8 +330,8 @@ const useStore = create<AppStore>()(
 ```
 
 **Key rules:**
-- Type each slice as `StateCreator&lt;CombinedStore, MiddlewareMutators, [], SliceInterface&gt;` for full store type inference
-- Combine with spread: `create&lt;Store&gt;()((...a) => (\{ ...createSliceA(...a), ...createSliceB(...a) \}))` -- `...a` forwards `set`, `get`, `store`
+- Type each slice as `StateCreator<CombinedStore, MiddlewareMutators, [], SliceInterface>` for full store type inference
+- Combine with spread: `create<Store>()((...a) => ({ ...createSliceA(...a), ...createSliceB(...a) }))` -- `...a` forwards `set`, `get`, `store`
 - Access other slices via `get()` inside actions, never by importing state directly -- avoids circular dependencies
 - Keep each slice in its own file, export only the creator function and interface
 - Declare middleware mutator types in the `StateCreator` generic so TypeScript knows available features
@@ -435,7 +435,7 @@ Upstream: https://github.com/pmndrs/zustand/blob/main/docs/reference/middlewares
 ## Type each slice with the store's middleware mutator tuple
 
 Why: `rules/zustand-slice-pattern.md` and the `zustand-slice-pattern` case in `test-cases.json`
-both grade on `StateCreator&lt;Store, [['zustand/immer', never]], [], Slice&gt;`, so the mutator tuple is
+both grade on `StateCreator<Store, [['zustand/immer', never]], [], Slice>`, so the mutator tuple is
 a graded house convention here, not an optional stylistic choice. Its only worked example lived in
 the retired middleware-composition.md, so the pointer is recorded here instead. Distilled from the
 retired middleware-composition.md; no traced incident.
@@ -457,9 +457,9 @@ Comprehensive checklist for production-ready Zustand stores.
 
 ### TypeScript Configuration
 - [ ] Store interface defined with all state and actions
-- [ ] `create&lt;State&gt;()()` double-call pattern used for type inference
+- [ ] `create<State>()()` double-call pattern used for type inference
 - [ ] Action return types are `void` (mutations via `set()`)
-- [ ] `type \{\} from '@redux-devtools/extension'` imported for devtools typing
+- [ ] `type {} from '@redux-devtools/extension'` imported for devtools typing
 
 ### Store Structure
 - [ ] Single store with slices (not multiple separate stores)
@@ -477,7 +477,7 @@ Comprehensive checklist for production-ready Zustand stores.
 
 ### Basic Selectors
 - [ ] Every state access uses a selector
-- [ ] No full-store destructuring: `const \{ x, y \} = useStore()` ❌
+- [ ] No full-store destructuring: `const { x, y } = useStore()` ❌
 - [ ] Selectors are granular (one value per selector when possible)
 
 ### Multi-Value Selectors

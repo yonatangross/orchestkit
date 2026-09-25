@@ -528,7 +528,7 @@ fi
 
 # Index budget (STEP 5.5)
 
-`scripts/index-budget.mjs &lt;memory_dir&gt; [--ceiling N] [--handoff-days 7] [--entry-days 30] [--apply] [--json]`
+`scripts/index-budget.mjs <memory_dir> [--ceiling N] [--handoff-days 7] [--entry-days 30] [--apply] [--json]`
 
 ## Why a script
 
@@ -567,7 +567,7 @@ fall through to hook trimming in the rebuild step, then warn. Nothing is ever de
 ## Apply
 
 `--apply` copies `MEMORY.md` to `.MEMORY.md.prev` first, removes the proposed lines from
-`MEMORY.md`, appends them to `MEMORY-ARCHIVE.md` under `## Moved from MEMORY.md &lt;date&gt; (N)`
+`MEMORY.md`, appends them to `MEMORY-ARCHIVE.md` under `## Moved from MEMORY.md <date> (N)`
 (creating the archive with a short header if absent), rewrites the single trailer to link
 `MEMORY-ARCHIVE.md` by exact name, re-verifies the invariant from disk, and exits 1 if it fails.
 The archive is not budgeted: it is read on demand, never auto-loaded.
@@ -604,7 +604,7 @@ Rules:
 - **Never `mv` over an existing name.** Two runs on the same day can select the
   same filename; `mv -n` refuses silently, which is the failure mode this whole
   file exists to prevent. Test first and suffix on collision:
-  `[ -e "$dest" ] && dest="$\{dest%.md\}.2.md"`.
+  `[ -e "$dest" ] && dest="${dest%.md}.2.md"`.
 - **Sweep on the NEXT run, not this one.** Deleting a 7-day-old trash directory
   at the start of a run means a session that dreams twice in one day still has
   yesterday's safety net. Sweeping at the end means a crash mid-run leaves the

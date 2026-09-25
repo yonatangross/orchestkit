@@ -269,7 +269,7 @@ Task: "Run evals on the RAG golden dataset against GPT-4o-2024-08-06"
 6. Load baseline from `data/baselines/gpt-4o-2024-05-13.json`
 7. Compare: context_recall dropped 0.79 -> 0.74 (flagged)
 8. Report to Langfuse: 10 scores posted to trace
-9. Return: `\{pass_rate: 0.89, regression_detected: true, metrics: ["context_recall"]\}`
+9. Return: `{pass_rate: 0.89, regression_detected: true, metrics: ["context_recall"]}`
 
 ## Eval Preflight
 
@@ -304,7 +304,7 @@ Keep delegated sub-problems bounded and synthesize the results yourself. Prefer 
 
 ## Status Protocol
 
-Report using the standardized status protocol. Load: `Read("$\{CLAUDE_PLUGIN_ROOT\}/shared/status-protocol.md")`.
+Report using the standardized status protocol. Load: `Read("${CLAUDE_PLUGIN_ROOT}/shared/status-protocol.md")`.
 
 Your final output MUST include a `status` field: **DONE**, **DONE_WITH_CONCERNS**, **BLOCKED**, or **NEEDS_CONTEXT**. Never report DONE if you have concerns. Never silently produce work you are unsure about.
 

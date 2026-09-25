@@ -20,9 +20,9 @@ Patterns for building, composing, and securing Model Context Protocol servers. B
 >
 > **Deploying to Cloudflare?** See the `building-mcp-server-on-cloudflare` skill for Workers-specific deployment patterns.
 
-> **Pin `mcp&lt;2` until you migrate.** Every Python snippet in this skill targets the v1 SDK
+> **Pin `mcp<2` until you migrate.** Every Python snippet in this skill targets the v1 SDK
 > (`from mcp.server.fastmcp import FastMCP`). The Python SDK released **2.0.0**, `pip install mcp`
-> now resolves to it, and upstream's own README says to keep a `&lt;2` upper bound on your requirement
+> now resolves to it, and upstream's own README says to keep a `<2` upper bound on your requirement
 > until you have migrated. `FastMCP` does not appear anywhere in the 2.0 README, so treat these
 > snippets as v1-only rather than assuming they still apply. v1.x continues to receive critical bug
 > and security fixes on its own branch. Verified 2026-07-31.
@@ -144,9 +144,9 @@ claude --mcp-debug "query the local test server"
 export CLAUDE_MCP_DEBUG=1
 ```
 
-Use alongside the MCP Inspector (`npx @modelcontextprotocol/inspector &lt;cmd&gt;`) — Inspector gives you the client-side frame view, `--mcp-debug` gives you what Claude actually saw.
+Use alongside the MCP Inspector (`npx @modelcontextprotocol/inspector <cmd>`) — Inspector gives you the client-side frame view, `--mcp-debug` gives you what Claude actually saw.
 
-> **CC 2.1.128 — reconnect tool summarization**: when a server reconnects mid-session, re-announced tools are summarized as `mcp__&lt;server&gt;__* (N tools re-registered)` instead of being enumerated line-by-line. Use the **initial connect** event as the source of truth for tool inventory; treat reconnect summaries as deltas only. See `references/mcp-audit-runbook.md` for grep recipes that work across both formats.
+> **CC 2.1.128 — reconnect tool summarization**: when a server reconnects mid-session, re-announced tools are summarized as `mcp__<server>__* (N tools re-registered)` instead of being enumerated line-by-line. Use the **initial connect** event as the source of truth for tool inventory; treat reconnect summaries as deltas only. See `references/mcp-audit-runbook.md` for grep recipes that work across both formats.
 
 > **CC 2.1.133 — MCP OAuth honors HTTP(S)_PROXY / NO_PROXY / mTLS**: the full MCP OAuth flow (discovery, dynamic client registration, token exchange, token refresh) now respects standard proxy and client-certificate env vars end-to-end. Enterprise deployments behind corporate proxies no longer need OAuth-specific workarounds — the same `HTTPS_PROXY` / `NO_PROXY` / `NODE_EXTRA_CA_CERTS` config that already routes MCP transport now also routes auth. See `configure/references/cc-version-settings.md` (CC 2.1.133 section) for the env-var example. The companion deployment skill `building-mcp-server-on-cloudflare` can drop any prior "proxy-aware OAuth requires manual handling" caveat at this floor.
 
@@ -173,8 +173,8 @@ async def search(query: str) -> str:
 1. No lifecycle management (connection/resource leaks on shutdown)
 2. Missing input validation on tool arguments
 3. Returning secrets in tool output (API keys, credentials)
-   - CC 2.1.161 mitigates this at the CLI layer: `claude mcp list/get/add` no longer expands `$\{VAR\}` references and redacts credential headers and URL secrets in terminal output — but server code must still never return secrets in tool *results*. `/mcp` also collapses never-signed-in connectors behind a "Show unused connectors" row.
-   - CC 2.1.186 adds `claude mcp login &lt;name&gt;` / `claude mcp logout &lt;name&gt;` for OAuth-backed servers (HTTP/SSE/connector). Pass `--no-browser` to print the authorization URL instead of opening a browser — the supported path for SSH/headless/remote sessions (paste the redirect URL back when prompted), so interactive-only auth never blocks automated setup.
+   - CC 2.1.161 mitigates this at the CLI layer: `claude mcp list/get/add` no longer expands `${VAR}` references and redacts credential headers and URL secrets in terminal output — but server code must still never return secrets in tool *results*. `/mcp` also collapses never-signed-in connectors behind a "Show unused connectors" row.
+   - CC 2.1.186 adds `claude mcp login <name>` / `claude mcp logout <name>` for OAuth-backed servers (HTTP/SSE/connector). Pass `--no-browser` to print the authorization URL instead of opening a browser — the supported path for SSH/headless/remote sessions (paste the redirect URL back when prompted), so interactive-only auth never blocks automated setup.
 4. Unbounded response sizes without `_meta` annotation — use `_meta["anthropic/maxResultSizeChars"]` to declare intentionally large results (DB schemas, API specs) so clients/hooks don't truncate them
 5. Trusting tool descriptions without sanitization (injection risk)
 6. No hash verification on tool invocations (rug pull vulnerability)
@@ -1132,7 +1132,7 @@ capabilities = {
 ```
 
 **Key rules:**
-- Always cap iteration count and use `toolChoice: \{mode: "none"\}` on the final turn to force a text response
+- Always cap iteration count and use `toolChoice: {mode: "none"}` on the final turn to force a text response
 - Tool result messages MUST contain only `tool_result` blocks -- never mix with text or image content
 - Every `tool_use` block (by `id`) must have a matching `tool_result` (by `toolUseId`) before the next assistant turn
 - Clients MUST declare `sampling.tools` capability; servers MUST NOT send tool-enabled requests without it
@@ -1886,11 +1886,11 @@ After each audit:
 1. Update the "Upstream latest" and "Last published" columns
 2. Update the "Last audited" header with today's date
 3. If tier classification changes (e.g., a 0.x server hits 1.0), update the Risk Tier table
-4. Commit with message `chore: refresh MCP version audit matrix (\{YYYY-MM-DD\})`
+4. Commit with message `chore: refresh MCP version audit matrix ({YYYY-MM-DD})`
 
 ## When to escalate to a full consumer audit
 
-Trigger a consumer-side review (read every `mcp__&lt;name&gt;__*` call site) when any of:
+Trigger a consumer-side review (read every `mcp__<name>__*` call site) when any of:
 - MCP upstream emits a major version bump
 - Upstream changelog mentions "breaking" or "removed"
 - A skill's MCP-using phase starts failing in production after the fetch
@@ -1899,7 +1899,7 @@ Trigger a consumer-side review (read every `mcp__&lt;name&gt;__*` call site) whe
 ## Escape hatch: pin a specific version
 
 Pinning applies to the **npx stdio** transport only. A hosted HTTP entry
-(`\{"type": "http", "url": "..."\}`) carries no npm package and therefore nothing to pin;
+(`{"type": "http", "url": "..."}`) carries no npm package and therefore nothing to pin;
 upstream versions it server-side. If you need a frozen version, you are choosing stdio.
 
 To freeze a stdio server at a known-good version, edit `.mcp.json`:
@@ -1973,8 +1973,8 @@ Tracks OrchestKit's integrated MCP servers against upstream latest. Sourced from
 ## Audit Method
 
 1. `.mcp.json` enumerates project-level servers
-2. `npm view &lt;pkg&gt; version` + `time.modified` for each
-3. Primary consumer located via `grep -rln "mcp__&lt;name&gt;__"` in `src/skills/` and `src/agents/`
+2. `npm view <pkg> version` + `time.modified` for each
+3. Primary consumer located via `grep -rln "mcp__<name>__"` in `src/skills/` and `src/agents/`
 
 ## Matrix
 
@@ -2016,7 +2016,7 @@ and running the package, per project.
 Two consequences for this matrix:
 
 - A hosted entry has **no npm version to pin**. `check-mcp-pinning.sh` finds no package
-  token in it and classifies the server as `&lt;unknown&gt;`, which it skips. That is correct
+  token in it and classifies the server as `<unknown>`, which it skips. That is correct
   behaviour, not a regression: version pinning is a property of the npx transport only.
 - The version column above still matters for the stdio fallback. `4.0.2` is the concrete
   pin to use when one is needed.
@@ -2036,11 +2036,11 @@ silently, so a version bump is never a reason to rewrite a tool name.
 Free is 1,000 requests against public repositories, with no key. Context7 Pro is $10 per
 seat per month for 5,000 requests per seat plus private repo parsing, then $10 per
 additional 1,000. Keys have the form `ctx7sk-...` and are supplied as
-`Authorization: Bearer $\{CONTEXT7_API_KEY\}` on the hosted transport or `--api-key` on
+`Authorization: Bearer ${CONTEXT7_API_KEY}` on the hosted transport or `--api-key` on
 stdio. Never write a literal key into a tracked file.
 
 **Auth caveat.** `tools/list` returns HTTP 200 for every auth state (no header, garbage bearer,
-unexpanded `$\{CONTEXT7_API_KEY\}` literal, valid key), so a connection check can never
+unexpanded `${CONTEXT7_API_KEY}` literal, valid key), so a connection check can never
 confirm a key. Only `tools/call` discriminates: a bad key returns
 `Invalid API key. Please check your API key. API keys should start with 'ctx7sk' prefix.`
 

@@ -25,7 +25,7 @@ This skill provides comprehensive guidance for implementing internationalization
 - Embedding React components in translated text
 - Supporting RTL languages (Hebrew, Arabic)
 
-**Bundled Resources** (load with `Read("&lt;path&gt;")`):
+**Bundled Resources** (load with `Read("<path>")`):
 - `references/formatting-utilities.md` - useFormatting hook API reference
 - `references/ork-delta.md` - House decisions and working config that upstream docs do not carry
 - `checklists/i18n-checklist.md` - Implementation and review checklist
@@ -120,7 +120,7 @@ import { Trans } from 'react-i18next';
 />
 ```
 
-House rules for `&lt;Trans&gt;` live in `rules/i18n-trans-component.md`; the plural-plus-rich-text
+House rules for `<Trans>` live in `rules/i18n-trans-component.md`; the plural-plus-rich-text
 ordering constraint lives in `references/ork-delta.md`. For the full component API see the
 upstream table below.
 
@@ -135,8 +135,8 @@ These topics are owned by first-party docs. Read them there instead of re-derivi
 | ICU plural, select, selectordinal, offset and nested message grammar | https://formatjs.github.io/docs/core-concepts/icu-syntax/ and https://unicode-org.github.io/icu/userguide/format_parse/messages/ | `rules/i18n-icu-plurals.md` keeps the house subset in full: no ternary pluralization, the mandatory `other` arm, `=0` for zero states, Hebrew dual and Arabic categories |
 | Which plural categories a given locale actually has | https://cldr.unicode.org/index/cldr-spec/plural-rules | none, read upstream |
 | ICU number skeletons inside a message (`::currency/ILS`) | https://unicode-org.github.io/icu/userguide/format_parse/numbers/skeletons.html | `references/ork-delta.md` keeps only the ILS skeleton decision |
-| In-message date and time forms (`\{date, date, medium\}`) and `offset:` plurals | https://unicode-org.github.io/icu/userguide/format_parse/messages/ | nothing; fetch it upstream |
-| `&lt;Trans&gt;` API: named vs indexed tags, self-closing tags, `TransProps` typing | https://react.i18next.com/latest/trans-component | `rules/i18n-trans-component.md` keeps the house subset in full: never split a sentence across `t()` calls, never `dangerouslySetInnerHTML`, prefer named tags over indexed |
+| In-message date and time forms (`{date, date, medium}`) and `offset:` plurals | https://unicode-org.github.io/icu/userguide/format_parse/messages/ | nothing; fetch it upstream |
+| `<Trans>` API: named vs indexed tags, self-closing tags, `TransProps` typing | https://react.i18next.com/latest/trans-component | `rules/i18n-trans-component.md` keeps the house subset in full: never split a sentence across `t()` calls, never `dangerouslySetInnerHTML`, prefer named tags over indexed |
 | Wiring the ICU parser into i18next | https://github.com/i18next/i18next-icu | `references/ork-delta.md` keeps the decision and why suffix keys are not enough |
 | `Intl.ListFormat` primitive behind `useFormatting` | https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/ListFormat | `references/formatting-utilities.md` keeps the house hook API |
 | `Intl.NumberFormat` primitive behind `useFormatting` | https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat | `references/formatting-utilities.md` keeps the house hook API |
@@ -197,7 +197,7 @@ dangerouslySetInnerHTML             // Use <Trans> component
 | Ordinals | `formatOrdinal(n)` from `useFormatting` |
 | Dates | `formatDate(date)` from `@/lib/dates` |
 | Plurals | ICU MessageFormat in translation files |
-| Rich text | `&lt;Trans&gt;` component |
+| Rich text | `<Trans>` component |
 | RTL check | `isRTL` from `useFormatting` |
 
 ---
@@ -359,7 +359,7 @@ const formatted = formatNumber(number);
 ```
 
 **Key rules:**
-- Use `t('key', \{ variable \})` with ICU MessageFormat placeholders instead of string concatenation or template literals
+- Use `t('key', { variable })` with ICU MessageFormat placeholders instead of string concatenation or template literals
 - Use `useFormatting()` hooks (`formatILS`, `formatList`, `formatNumber`, `formatPercent`) instead of hardcoded symbols or manual formatting
 - Never call `.join()` on arrays for user-facing list display — use `formatList()` or `formatListOr()` which handle locale-specific conjunctions
 - Never call `toLocaleString()` directly — it bypasses the app's locale management and cannot react to language changes
@@ -372,7 +372,7 @@ Reference: `references/formatting-utilities.md` (lines 132-167)
 
 ## i18n: ICU Plural Rules
 
-ICU MessageFormat provides locale-aware pluralization via `\{variable, plural, ...\}` syntax in translation files. Hardcoding plural logic in JavaScript with ternaries or conditionals only works for English (`one`/`other`) and breaks for languages with more plural categories — Hebrew has a dual form, Arabic has six forms (zero, one, two, few, many, other).
+ICU MessageFormat provides locale-aware pluralization via `{variable, plural, ...}` syntax in translation files. Hardcoding plural logic in JavaScript with ternaries or conditionals only works for English (`one`/`other`) and breaks for languages with more plural categories — Hebrew has a dual form, Arabic has six forms (zero, one, two, few, many, other).
 
 ### Never use conditional logic in code for plurals
 
@@ -435,7 +435,7 @@ Hebrew uses a `two` (dual) form. Arabic uses `zero`, `one`, `two`, `few`, `many`
 ```
 
 **Key rules:**
-- Never use ternaries, conditionals, or template literals for pluralization — always use ICU `\{count, plural, ...\}` in translation files
+- Never use ternaries, conditionals, or template literals for pluralization — always use ICU `{count, plural, ...}` in translation files
 - Every `plural` message must include the `other` category as a mandatory fallback
 - Provide locale-specific categories (`two` for Hebrew, `few`/`many` for Arabic, Slavic languages) in the respective translation files
 - Use `=0` exact match for zero/empty states instead of relying on the `zero` plural category
@@ -448,7 +448,7 @@ Reference: `references/ork-delta.md` for the house ICU decisions (i18next-icu pl
 
 ## i18n: Trans Component
 
-The `&lt;Trans&gt;` component from `react-i18next` embeds React elements (links, bold, icons) inside translated strings. Without it, developers split translations around JSX — breaking word order in other locales — or resort to `dangerouslySetInnerHTML`, which introduces XSS vulnerabilities.
+The `<Trans>` component from `react-i18next` embeds React elements (links, bold, icons) inside translated strings. Without it, developers split translations around JSX — breaking word order in other locales — or resort to `dangerouslySetInnerHTML`, which introduces XSS vulnerabilities.
 
 ### Never concatenate translated strings with JSX between them
 
@@ -504,12 +504,12 @@ import { Trans } from 'react-i18next';
 ```
 
 **Key rules:**
-- Never split a sentence across multiple `t()` calls with JSX between them — use a single `&lt;Trans&gt;` with `components` mapping
-- Never use `dangerouslySetInnerHTML` for rich translated text — `&lt;Trans&gt;` provides safe component interpolation
-- Prefer named component tags (`&lt;link&gt;`, `&lt;bold&gt;`) over indexed tags (`&lt;0&gt;`, `&lt;1&gt;`) in translation strings
-- Use `t()` for plain text and `&lt;Trans&gt;` only when JSX elements must appear inside the translated string
+- Never split a sentence across multiple `t()` calls with JSX between them — use a single `<Trans>` with `components` mapping
+- Never use `dangerouslySetInnerHTML` for rich translated text — `<Trans>` provides safe component interpolation
+- Prefer named component tags (`<link>`, `<bold>`) over indexed tags (`<0>`, `<1>`) in translation strings
+- Use `t()` for plain text and `<Trans>` only when JSX elements must appear inside the translated string
 
-Reference: `references/ork-delta.md` for the plural-plus-rich-text ordering constraint. Full `&lt;Trans&gt;` API: https://react.i18next.com/latest/trans-component
+Reference: `references/ork-delta.md` for the plural-plus-rich-text ordering constraint. Full `<Trans>` API: https://react.i18next.com/latest/trans-component
 
 
 
@@ -732,17 +732,17 @@ const { locale, isRTL } = useFormatting();
 # i18n and Date Patterns Skill: OrchestKit Delta
 
 Ork-specific house decisions and working config for `src/skills/i18n-date-patterns`.
-Vendor mechanics (the full ICU MessageFormat grammar, the react-i18next `&lt;Trans&gt;` API
+Vendor mechanics (the full ICU MessageFormat grammar, the react-i18next `<Trans>` API
 surface, per-locale CLDR plural category tables) are deliberately not restated here.
 See "Upstream coverage (do not restate)" in SKILL.md for the first-party source that
-owns each removed topic. The house subset of the ICU plural and `&lt;Trans&gt;` rules did
+owns each removed topic. The house subset of the ICU plural and `<Trans>` rules did
 not move: it still lives in `rules/i18n-icu-plurals.md` and `rules/i18n-trans-component.md`.
 
 ## Load ICU support through the i18next-icu plugin, not i18next suffix keys
 Why: House config, distilled from the retired `icu-messageformat.md`, which
 pinned `i18next-icu v2.4.1` as the runtime that parses these messages; no traced incident.
 This matters because everything else in the skill assumes ICU syntax is live: every
-`\{count, plural, ...\}` string in `rules/i18n-icu-plurals.md`, the `=0` zero states in
+`{count, plural, ...}` string in `rules/i18n-icu-plurals.md`, the `=0` zero states in
 `checklists/i18n-checklist.md`, and the plural example in `examples/component-i18n-example.md`
 are inert text under a plain i18next install, which resolves plurals through `_one` / `_other`
 key suffixes instead. Suffix keys also cannot express Hebrew's dual or Arabic's six
@@ -754,8 +754,8 @@ Upstream: https://github.com/i18next/i18next-icu
 Why: House currency decision. `rules/i18n-formatting-antipatterns.md` bans a literal
 shekel sign in JSX and routes code-side money through `formatILS()` from `useFormatting`
 (`references/formatting-utilities.md`). The retired `icu-messageformat.md`
-carried the matching in-message form, `\{amount, number, ::currency/ILS\}`, and it is the
-only variant that keeps the two paths agreeing: a bare `\{amount, number\}` inside a message
+carried the matching in-message form, `{amount, number, ::currency/ILS}`, and it is the
+only variant that keeps the two paths agreeing: a bare `{amount, number}` inside a message
 formats the digits and silently drops the currency, which pushes the author straight back
 to concatenating the symbol the rule forbids. Distilled from the retired file; no traced
 incident.
@@ -764,11 +764,11 @@ Upstream: https://unicode-org.github.io/icu/userguide/format_parse/numbers/skele
 ## Keep ICU plural branches inside the Trans i18nKey and map each tag once
 Why: Ordering constraint recovered from the retired `trans-component.md`;
 no traced incident. When a message is both pluralized and rich, ICU picks the plural
-branch first and `&lt;Trans&gt;` maps component tags afterwards, so every branch of the message
-has to repeat the same tag names (`&lt;bold&gt;` in the `=0`, `one` and `other` arms alike) and
+branch first and `<Trans>` maps component tags afterwards, so every branch of the message
+has to repeat the same tag names (`<bold>` in the `=0`, `one` and `other` arms alike) and
 `count` has to arrive via `values`, not as a prop. One `components` map then covers all
 branches. The tempting alternative, choosing the plural in JSX and wrapping each outcome
-in its own `&lt;Trans&gt;`, re-creates exactly the split-sentence word-order break that
+in its own `<Trans>`, re-creates exactly the split-sentence word-order break that
 `rules/i18n-trans-component.md` exists to stop in RTL locales.
 Upstream: https://react.i18next.com/latest/trans-component
 
@@ -777,7 +777,7 @@ Why: House decision recorded in SKILL.md's Quick Reference and in
 `references/formatting-utilities.md`: ordinals come from `formatOrdinal()` in
 `useFormatting`, which reads the app's current locale, the same way `formatList` and
 `formatNumber` do. The retired `icu-messageformat.md` taught the alternative,
-`\{position, selectordinal, one \{#st\} two \{#nd\} few \{#rd\} other \{#th\}\}`, whose `st`/`nd`/`rd`/`th`
+`{position, selectordinal, one {#st} two {#nd} few {#rd} other {#th}}`, whose `st`/`nd`/`rd`/`th`
 suffixes are hardcoded English and go wrong the moment the app renders `he`. Reach for
 `selectordinal` only when the ordinal sits inside a translated sentence, and then write the
 suffix branches separately in each locale file. Distilled from the retired file; no traced
@@ -812,10 +812,10 @@ Use this checklist when adding or reviewing i18n in the application components.
 ### Formatting
 
 - [ ] Import `useFormatting` from `@/hooks` for locale-aware data
-- [ ] Currency uses `formatILS()` not `₪$\{price\}`
+- [ ] Currency uses `formatILS()` not `₪${price}`
 - [ ] Lists use `formatList()` not `.join(', ')`
 - [ ] Ordinals use `formatOrdinal()` not hardcoded suffixes
-- [ ] Percentages use `formatPercent()` not `$\{n\}%`
+- [ ] Percentages use `formatPercent()` not `${n}%`
 
 ### Dates & Times
 
@@ -834,7 +834,7 @@ Use this checklist when adding or reviewing i18n in the application components.
 
 ### Rich Text
 
-- [ ] Embedded components use `&lt;Trans&gt;` component
+- [ ] Embedded components use `<Trans>` component
 - [ ] No string concatenation with JSX
 - [ ] No `dangerouslySetInnerHTML` for translated content
 
@@ -1019,12 +1019,12 @@ function InvoiceSummary({ invoice }) {
 | Pattern | Wrong | Correct |
 |---------|-------|---------|
 | Strings | `"Invoice"` | `t('invoices:title')` |
-| Currency | `₪$\{total\}` | `formatILS(total)` |
+| Currency | `₪${total}` | `formatILS(total)` |
 | Lists | `items.join(', ')` | `formatList(items)` |
 | Dates | `date.toLocaleDateString()` | `formatDate(date)` |
-| Plurals | `count === 1 ? 'item' : 'items'` | `t('key', \{ count \})` |
-| Ordinals | `$\{n\}st` | `formatOrdinal(n)` |
-| Rich text | String concat with JSX | `&lt;Trans&gt;` component |
+| Plurals | `count === 1 ? 'item' : 'items'` | `t('key', { count })` |
+| Ordinals | `${n}st` | `formatOrdinal(n)` |
+| Rich text | String concat with JSX | `<Trans>` component |
 | Debug | `console.log()` | Remove before commit |
 
 ---

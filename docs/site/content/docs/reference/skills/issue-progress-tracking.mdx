@@ -43,7 +43,7 @@ git checkout -b issue/$ARGUMENTS[0]-brief-description
 
 **Rules:**
 - Always branch from the default branch (main/dev)
-- Branch name format: `issue/&lt;number&gt;-&lt;brief-description&gt;`
+- Branch name format: `issue/<number>-<brief-description>`
 - Never work directly on main/dev
 
 ---
@@ -124,7 +124,7 @@ gh issue edit $ARGUMENTS[0] --add-label "status:in-review" --remove-label "statu
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
 | Label prefix | `status:` | Consistent with GitHub conventions |
-| Branch format | `issue/&lt;N&gt;-desc` | Links branch to issue automatically |
+| Branch format | `issue/<N>-desc` | Links branch to issue automatically |
 | Commit reference | `type(#N):` | Conventional commits + issue linking |
 | Progress comments | Manual | Keeps humans in the loop |
 
@@ -212,7 +212,7 @@ git checkout -b issue/123-add-user-auth
 
 **Key rules:**
 - Always pull latest default branch before branching
-- Branch name format: `issue/&lt;number&gt;-&lt;brief-kebab-description&gt;`
+- Branch name format: `issue/<number>-<brief-kebab-description>`
 - Label the issue before starting work — prevents duplicate effort
 - Comment briefly what approach you plan to take
 

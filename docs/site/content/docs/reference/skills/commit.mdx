@@ -63,7 +63,7 @@ AskUserQuestion(questions=[{
 
 **Mode-specific guards:**
 
-- **Amend HEAD** — verify HEAD is not on origin (`git rev-list HEAD..origin/&lt;branch&gt;` empty); if it is published, refuse and recommend "New commit" instead.
+- **Amend HEAD** — verify HEAD is not on origin (`git rev-list HEAD..origin/<branch>` empty); if it is published, refuse and recommend "New commit" instead.
 - **New commit + push** — re-check the protected-branch rule from Phase 1 before pushing; if HEAD's branch is `main`/`master`/`dev`, abort.
 - **Stash first** — `git stash push -k -m "ork:commit autostash"` (keep-index), commit, then `git stash pop` after push success.
 
@@ -122,14 +122,14 @@ git diff            # Unstaged changes
 
 ### Phase 3b: Agent Attribution (automatic)
 
-Before committing, check for the branch activity ledger at `.claude/agents/activity/\{branch\}.jsonl`.
+Before committing, check for the branch activity ledger at `.claude/agents/activity/{branch}.jsonl`.
 If it exists and has entries since the last commit, include them in the commit message:
 
-1. Read `.claude/agents/activity/\{branch\}.jsonl` (one JSON object per line)
+1. Read `.claude/agents/activity/{branch}.jsonl` (one JSON object per line)
 2. Filter entries where `ts` is after the last commit timestamp (`git log -1 --format=%cI`)
-3. Skip agents with `duration_ms &lt; 5000` (advisory-only agents go in PR, not commits)
+3. Skip agents with `duration_ms < 5000` (advisory-only agents go in PR, not commits)
 4. Add an **"Agents Involved:"** section between the commit body and the Co-Authored-By trailer
-5. Add per-agent `Co-Authored-By` trailers: `Co-Authored-By: ork:\{agent\} &lt;noreply@orchestkit.dev&gt;`
+5. Add per-agent `Co-Authored-By` trailers: `Co-Authored-By: ork:{agent} <noreply@orchestkit.dev>`
 
 If the ledger doesn't exist or is empty, skip this step — commit normally.
 
@@ -244,7 +244,7 @@ Each category has individual rule files in `rules/` loaded on-demand:
 
 ## References
 
-Load on demand with `Read("references/&lt;file&gt;")`:
+Load on demand with `Read("references/<file>")`:
 | File | Content |
 |------|---------|
 | `references/conventional-commits.md` | Conventional commits specification |
@@ -903,7 +903,7 @@ the check mean something.
 ### After the parent is SQUASH-merged
 
 Record the parent tip **before** the merge. Once the branch is deleted that sha survives only
-as the merged PR's `headRefOid` (`gh pr view &lt;N&gt; --json headRefOid`).
+as the merged PR's `headRefOid` (`gh pr view <N> --json headRefOid`).
 
 ```bash
 OLD_PARENT=$(git rev-parse origin/feature/auth-base)   # BEFORE the parent merges
@@ -921,7 +921,7 @@ git push --force-with-lease=feature/auth-service:"$OLD_TIP" origin feature/auth-
 gh pr edit 102 --base "$TRUNK"   # only if GitHub did not retarget it already
 ```
 
-The `&lt;upstream&gt;` argument is always the parent tip the branch actually contains, so a deeper
+The `<upstream>` argument is always the parent tip the branch actually contains, so a deeper
 layer re-parents onto layer 2's NEW tip first, then repeats this after layer 2 lands.
 
 ### What the retarget looks like from the outside
@@ -934,8 +934,8 @@ never wait for a second event after seeing the first: both arrive together.
 **Key rules:**
 - Read the trunk from `origin/HEAD`; never hardcode `main`
 - Rebase, never merge the trunk into a layer: a merge commit makes the stack unmergeable
-- After a squash, use `git rebase --onto &lt;trunk&gt; &lt;old-parent-tip&gt; &lt;branch&gt;`
-- Always `--force-with-lease=&lt;branch&gt;:&lt;expected-sha&gt;`, never bare `--force`
+- After a squash, use `git rebase --onto <trunk> <old-parent-tip> <branch>`
+- Always `--force-with-lease=<branch>:<expected-sha>`, never bare `--force`
 - Rebase in dependency order: the layer closest to the trunk first
 
 
@@ -989,7 +989,7 @@ gh pr create --base feature/auth-service --title "feat(#100): Add login UI [3/3]
 Slash invoke: `/ork:commit`
 
 YAML `hooks:` / `command:` lines in this skill's frontmatter stay Claude-only.
-They use `$\{CLAUDE_PLUGIN_ROOT\}/hooks/bin/run-hook.mjs` and are ignored by pi.
+They use `${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs` and are ignored by pi.
 
 Session chain files live at `.claude/chain/` (state.json, decisions.json, capabilities.json).
 Other hosts should persist equivalent run state in their own session store.

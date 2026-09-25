@@ -2011,7 +2011,7 @@ table in SKILL.md points at their first-party sources. Only rules with a house
 decision or a scar behind them live here.
 
 ## Put problem type URIs on your own API domain under /problems/
-Why: House convention carried since the error-handling-rfc9457 skill was consolidated into api-design v2.0.0 (metadata.json, February 2026). OrchestKit examples standardize on `https://api.orchestkit.dev/problems/&lt;kebab-slug&gt;` so error `type` URIs stay stable, documentable at their URL, and greppable across services (see examples/fastapi-problem-details.md for the full registry in use).
+Why: House convention carried since the error-handling-rfc9457 skill was consolidated into api-design v2.0.0 (metadata.json, February 2026). OrchestKit examples standardize on `https://api.orchestkit.dev/problems/<kebab-slug>` so error `type` URIs stay stable, documentable at their URL, and greppable across services (see examples/fastapi-problem-details.md for the full registry in use).
 Upstream: RFC 9457 Problem Details, https://www.rfc-editor.org/rfc/rfc9457.html
 
 ## Raise typed Problem exceptions, never bare HTTPException
@@ -3815,9 +3815,9 @@ GET /api/v1/analyze/{analysis_id}/artifact
 }
 ```
 
-**Design Decision**: Hierarchical URL (`/analyze/\{id\}/artifact`)
+**Design Decision**: Hierarchical URL (`/analyze/{id}/artifact`)
 - **Why**: Expresses relationship: "artifact belongs to analysis"
-- **Alternative considered**: `/artifacts?analysis_id=\{id\}` (rejected: less RESTful)
+- **Alternative considered**: `/artifacts?analysis_id={id}` (rejected: less RESTful)
 
 #### 2. Get Artifact by ID
 
@@ -4077,9 +4077,9 @@ async def stream_analysis_progress_endpoint(
 
 ### 3. Hierarchical URLs for Relationships
 
-**Pattern**: `/parent/\{id\}/child` for 1:1 or 1:many relationships
-- `/analyze/\{analysis_id\}/artifact` - Analysis has one latest artifact
-- `/teams/\{team_id\}/members` - Team has many members
+**Pattern**: `/parent/{id}/child` for 1:1 or 1:many relationships
+- `/analyze/{analysis_id}/artifact` - Analysis has one latest artifact
+- `/teams/{team_id}/members` - Team has many members
 
 **Benefit**: Clear relationship modeling
 

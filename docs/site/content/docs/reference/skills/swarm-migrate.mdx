@@ -28,7 +28,7 @@ This skill exists because the 275-session insights showed **25 sessions burned c
 
 ## Inputs
 
-A YAML spec at `swarm-specs/&lt;name&gt;.yaml`:
+A YAML spec at `swarm-specs/<name>.yaml`:
 
 ```yaml
 name: bump-actions-checkout-v4
@@ -126,9 +126,9 @@ ledger is the truth.
 
 ## Phase 1 — Spec validation
 
-Load `&lt;spec-file.yaml&gt;`. Verify:
+Load `<spec-file.yaml>`. Verify:
 
-- Every `repos[].path` exists and is a git repo (use `git -C &lt;path&gt; rev-parse` checks).
+- Every `repos[].path` exists and is a git repo (use `git -C <path> rev-parse` checks).
 - The `transform.command` returns 0 in a dry-run mode (or `transform.type: codemod` resolves to a known codemod registered in `swarm-specs/codemods/`).
 - Every `upstream` reference points to a declared repo (no dangling deps).
 - `pr.body_file` exists and is non-empty.
@@ -160,12 +160,12 @@ Write `.swarm-state.json` at the repo root running the skill:
 
 For each repo in the current wave, in parallel (bounded by `max_parallel`):
 
-1. **Worktree** — create an isolated worktree at `&lt;repo&gt;/../&lt;repo&gt;-swarm-&lt;spec-name&gt;` off `origin/&lt;base&gt;`. Never mutate the live working tree.
-2. **Branch** — `git checkout -b &lt;branch_prefix&gt;-&lt;short-sha&gt;`.
-3. **Transform** — run `transform.command` (or apply codemod). Capture stdout to `.swarm-logs/&lt;repo&gt;-transform.log`.
+1. **Worktree** — create an isolated worktree at `<repo>/../<repo>-swarm-<spec-name>` off `origin/<base>`. Never mutate the live working tree.
+2. **Branch** — `git checkout -b <branch_prefix>-<short-sha>`.
+3. **Transform** — run `transform.command` (or apply codemod). Capture stdout to `.swarm-logs/<repo>-transform.log`.
 4. **Verify** — run each `verify[].command`, assert exit matches `expect`. On mismatch, mark repo `skipped` in ledger with reason, do not push.
 5. **Push + PR** — push branch, open PR via `gh pr create`. Update ledger with PR URL.
-6. **Watch CI** — poll `gh pr checks &lt;n&gt;` every 45s up to `ci_gate.timeout_minutes`. Update `ci_state` in ledger on every state transition.
+6. **Watch CI** — poll `gh pr checks <n>` every 45s up to `ci_gate.timeout_minutes`. Update `ci_state` in ledger on every state transition.
 
 Use the `Agent` tool with `subagent_type: ork:git-operations-engineer` for steps 1–5 to keep main context lean. The coordinator only reads the ledger.
 
@@ -185,12 +185,12 @@ After every wave, check the ledger:
 If a downstream repo's worker hits a merge conflict on rebase (because an upstream merged), the worker:
 
 1. Re-fetches the upstream's merge commit SHA.
-2. Attempts `git rebase origin/&lt;base&gt;`. If clean → push, ledger update.
+2. Attempts `git rebase origin/<base>`. If clean → push, ledger update.
 3. If conflicts → mark the conflict files in the ledger, do NOT auto-resolve, surface to the coordinator. Conflicts are the most common place auto-fixers ship broken code.
 
 ## Phase 6 — Final report
 
-When all waves complete (or the swarm pauses/aborts), emit a single markdown report under `.swarm-logs/&lt;spec-name&gt;-report.md`:
+When all waves complete (or the swarm pauses/aborts), emit a single markdown report under `.swarm-logs/<spec-name>-report.md`:
 
 ```markdown
 # Swarm report: bump-actions-checkout-v4

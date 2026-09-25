@@ -43,7 +43,7 @@ TARGET=$(bash "${CLAUDE_SKILL_DIR}/scripts/resolve-target.sh" $ARGUMENTS)  # one
 |---|---|---|
 | `pr` | `123`, `#123`, a PR URL, `ORCHESTKIT_PR_URL`, or the current branch's open PR (no argument) | `PR_NUMBER`; the `gh pr view/diff/checks` commands below |
 | `range` | `base...head` or `base..head`, e.g. `origin/main...origin/qa` | `git diff base...head`, `git log base..head`; skip `gh pr checks` and Phase 6 submit |
-| `ref` | a branch or ref that resolves | `gh pr view &lt;ref&gt;`: open PR, treat as `pr`; none, review `&lt;default&gt;...&lt;ref&gt;` as `range` |
+| `ref` | a branch or ref that resolves | `gh pr view <ref>`: open PR, treat as `pr`; none, review `<default>...<ref>` as `range` |
 | `ask` | anything else, or no argument and no PR | **STOP** and `AskUserQuestion` for a PR number or ref range |
 
 Never substitute `HEAD`, the current checkout, or its branch for a target the user did not name. On `ask`, stop and ask. State the resolved target in your first line of output, and use `PR_NUMBER` (or the range) consistently in every later command and agent prompt.
@@ -88,7 +88,7 @@ The CLI runs the same multi-agent review (`code-quality`, `security-auditor`, `t
 
 This keeps the skill thin: built-in CLI wins for "ultra" depth; the OrchestKit skill wins for `--render`-style customization, focused review modes (security-only, perf-only), and offline scenarios.
 
-> **vs built-in `/code-review` (CC 2.1.223; background since 2.1.218):** as of CC 2.1.223 `/review` is simply an **alias of `/code-review`**, so the fast-single-pass vs multi-agent split this note used to draw (CC 2.1.202) no longer exists. One built-in command reviews the current diff or a PR (`/code-review &lt;level&gt; &lt;pr#&gt;`), and with no level it **reuses the level you typed last**, so type a level to change it. Depth is the level: low/medium give fewer high-confidence findings, high and above broaden coverage, and `ultra` runs a deep multi-agent cloud review. `--comment` posts findings as inline PR comments; `--fix` applies them to the working tree. From CC 2.1.257 `--comment` also posts on GitLab merge requests via `glab mr note`. Backgrounding arrived in two steps, and the distinction is load-bearing: CC 2.1.218 backgrounded review **forks** (#3092), while user-typed commands stayed interactive, which is why this skill's own frontmatter sets `background: false` (#3093). CC 2.1.232 extended it to **all efforts**, so `/code-review` now runs as a background subagent whatever level you pass. Review work no longer fills your conversation, and stacked slash commands keep it as their review target. It is not redundant with this skill: reach for `/code-review &lt;level&gt; &lt;pr#&gt;` for CC's own pass, and `review-pr` for the deep multi-dimensional audit (6-7 parallel specialized agents covering security, tests, architecture and performance, plus memory-KG context, domain-aware selection, adversarial refutation, and a synthesized approve/comment/request-changes verdict with KG writeback). Quick pass → built-in `/code-review`; high-stakes project-aware audit → ork. (#1940)
+> **vs built-in `/code-review` (CC 2.1.223; background since 2.1.218):** as of CC 2.1.223 `/review` is simply an **alias of `/code-review`**, so the fast-single-pass vs multi-agent split this note used to draw (CC 2.1.202) no longer exists. One built-in command reviews the current diff or a PR (`/code-review <level> <pr#>`), and with no level it **reuses the level you typed last**, so type a level to change it. Depth is the level: low/medium give fewer high-confidence findings, high and above broaden coverage, and `ultra` runs a deep multi-agent cloud review. `--comment` posts findings as inline PR comments; `--fix` applies them to the working tree. From CC 2.1.257 `--comment` also posts on GitLab merge requests via `glab mr note`. Backgrounding arrived in two steps, and the distinction is load-bearing: CC 2.1.218 backgrounded review **forks** (#3092), while user-typed commands stayed interactive, which is why this skill's own frontmatter sets `background: false` (#3093). CC 2.1.232 extended it to **all efforts**, so `/code-review` now runs as a background subagent whatever level you pass. Review work no longer fills your conversation, and stacked slash commands keep it as their review target. It is not redundant with this skill: reach for `/code-review <level> <pr#>` for CC's own pass, and `review-pr` for the deep multi-dimensional audit (6-7 parallel specialized agents covering security, tests, architecture and performance, plus memory-KG context, domain-aware selection, adversarial refutation, and a synthesized approve/comment/request-changes verdict with KG writeback). Quick pass → built-in `/code-review`; high-stakes project-aware audit → ork. (#1940)
 
 ---
 
@@ -145,7 +145,7 @@ TaskUpdate(taskId="2", status="completed")    # When done
 >
 > | Family | CLI |
 > |---|---|
-> | `github` / `github-enterprise` | `gh pr view/diff/checks` (with `GH_HOST=&lt;enterprise-host&gt;` for GHE) |
+> | `github` / `github-enterprise` | `gh pr view/diff/checks` (with `GH_HOST=<enterprise-host>` for GHE) |
 > | `gitlab` / `gitlab-self` | `glab mr view/diff/ci` (or REST `/projects/:id/merge_requests/:iid`) |
 > | `bitbucket` | `bb pr` (or REST `/repositories/:ws/:repo/pullrequests/:id`) |
 >
@@ -228,7 +228,7 @@ Before spawning agents, load project-specific review context from memory:
 PROJECT_CONTEXT = Read("${MEMORY_DIR}/review-pr-context.md")  # Falls back gracefully if missing
 ```
 
-All agent prompts receive `$\{PROJECT_CONTEXT\}` so they know project conventions, security patterns, and known weaknesses from prior reviews.
+All agent prompts receive `${PROJECT_CONTEXT}` so they know project conventions, security patterns, and known weaknesses from prior reviews.
 
 ### Structured Output
 
@@ -359,7 +359,7 @@ gh pr review $PR_NUMBER --request-changes -b "Review message"
 
 ## Phase 8c — Verdict KG writeback (signal-fired, optional)
 
-After the verdict is submitted, optionally invoke `scripts/verdict_writeback.py &lt;review-dir&gt;` to persist the verdict + findings to the memory MCP knowledge graph. Self-skips on every non-happy-path so it never breaks the review:
+After the verdict is submitted, optionally invoke `scripts/verdict_writeback.py <review-dir>` to persist the verdict + findings to the memory MCP knowledge graph. Self-skips on every non-happy-path so it never breaks the review:
 
 ```bash
 python3 ${CLAUDE_SKILL_DIR}/scripts/verdict_writeback.py "$CLAUDE_JOB_DIR"
@@ -369,11 +369,11 @@ Auto-skip conditions (all exit 0, all WARN-logged):
 
 | Skip reason | Trigger |
 |-------------|---------|
-| `signal absent` | `verdict` missing OR not in `\{approve, request-changes, comment\}` |
+| `signal absent` | `verdict` missing OR not in `{approve, request-changes, comment}` |
 | `yg-mcp-core not importable` | `yg-mcp-core>=0.3.0` not installed (orchestkit is public; yg-mcp-core lives on private `pypi.yonyon.ai` — HQ-only) |
 | `memory MCP unreachable` | MCP server down OR `.mcp.json` doesn't define `memory` |
 
-Review dir must contain `review-output.json` (with `verdict`, `repo`, `pr_number`, optional `findings: [\{level, msg\}]`, optional `changed_paths: list[str]`). Handoff JSON at `&lt;review-dir&gt;/verdict-writeback.json` records `status` (`fired` / `skipped`) + the constructed `entity_name` (`review::&lt;repo&gt;#&lt;n&gt;@&lt;ts&gt;`).
+Review dir must contain `review-output.json` (with `verdict`, `repo`, `pr_number`, optional `findings: [{level, msg}]`, optional `changed_paths: list[str]`). Handoff JSON at `<review-dir>/verdict-writeback.json` records `status` (`fired` / `skipped`) + the constructed `entity_name` (`review::<repo>#<n>@<ts>`).
 
 Mirrors the `assess` memory_writeback pattern from PR #1889. Closes orchestkit#1894.
 
@@ -447,13 +447,13 @@ Done means all of these hold:
 
 ### vs. the built-in `/review` and `/code-review` (CC 2.1.223+)
 
-As of CC 2.1.223, `/review` is an **alias of `/code-review`**: there is one built-in review command, and depth comes from the level argument (`/code-review &lt;level&gt; &lt;pr#&gt;`; with no level it reuses the level you typed last; `ultra` runs the deep multi-agent cloud review). The earlier CC 2.1.202 split between a fast single-pass `/review` and a multi-agent `/code-review` no longer exists. Since CC 2.1.232, `/code-review` runs as a **background subagent at every effort level**: the review no longer fills your conversation, results arrive when it completes, and slash commands stacked after it keep it as their review target, so don't wait inline for its output the way older docs assumed. 2.1.218 backgrounded review forks only (#3092); 2.1.232 is what generalized it to user-typed invocations too.
+As of CC 2.1.223, `/review` is an **alias of `/code-review`**: there is one built-in review command, and depth comes from the level argument (`/code-review <level> <pr#>`; with no level it reuses the level you typed last; `ultra` runs the deep multi-agent cloud review). The earlier CC 2.1.202 split between a fast single-pass `/review` and a multi-agent `/code-review` no longer exists. Since CC 2.1.232, `/code-review` runs as a **background subagent at every effort level**: the review no longer fills your conversation, results arrive when it completes, and slash commands stacked after it keep it as their review target, so don't wait inline for its output the way older docs assumed. 2.1.218 backgrounded review forks only (#3092); 2.1.232 is what generalized it to user-typed invocations too.
 
-Reach for `review-pr` instead when you want the **full OrchestKit audit**: parallel code-quality, security, testing, architecture, and performance passes with memory-KG project context, domain-aware agent selection, adversarial refutation, and a synthesized approve / request-changes verdict written back to the knowledge graph. They are complementary: quick pass at a chosen depth is the built-in `/code-review &lt;level&gt; &lt;pr#&gt;` (or its alias `/review`); the high-stakes project-aware audit is `review-pr`.
+Reach for `review-pr` instead when you want the **full OrchestKit audit**: parallel code-quality, security, testing, architecture, and performance passes with memory-KG project context, domain-aware agent selection, adversarial refutation, and a synthesized approve / request-changes verdict written back to the knowledge graph. They are complementary: quick pass at a chosen depth is the built-in `/code-review <level> <pr#>` (or its alias `/review`); the high-stakes project-aware audit is `review-pr`.
 
 ## References
 
-Load on demand with `Read("references/&lt;file&gt;")`:
+Load on demand with `Read("references/<file>")`:
 
 | File | Content |
 |------|---------|
@@ -466,7 +466,7 @@ Load on demand with `Read("references/&lt;file&gt;")`:
 | `validation-commands.md` | Build/test/lint commands |
 | `task-metrics-template.md` | Task metrics format |
 
-Rules: `Read("rules/&lt;file&gt;")`:
+Rules: `Read("rules/<file>")`:
 
 | File | Content |
 |------|---------|
@@ -977,7 +977,7 @@ if pr_contains_llm_code:
 
 Thin adapter. Loads the shared engine, then binds it to review-pr's finding + verdict model.
 
-**Load the engine first:** `Read("$\{CLAUDE_PLUGIN_ROOT\}/shared/rules/adversarial-refutation.md")`
+**Load the engine first:** `Read("${CLAUDE_PLUGIN_ROOT}/shared/rules/adversarial-refutation.md")`
 — the blindness contract, independent-score-first, citation-verify, quorum, cross-file
 UPHELD-default, deterministic-exemption, no-auto-flip, spawn-ceiling, ledger schema, and
 isolated-spawn rules. This file only supplies what's review-pr-specific.
@@ -1037,7 +1037,7 @@ Joining the mesh would leak producer reasoning via `SendMessage` history (engine
 Slash invoke: `/ork:review-pr`
 
 YAML `hooks:` / `command:` lines in this skill's frontmatter stay Claude-only.
-They use `$\{CLAUDE_PLUGIN_ROOT\}/hooks/bin/run-hook.mjs` and are ignored by pi.
+They use `${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs` and are ignored by pi.
 
 Session chain files live at `.claude/chain/` (state.json, decisions.json, capabilities.json).
 Other hosts should persist equivalent run state in their own session store.
@@ -1056,7 +1056,7 @@ Write(".claude/chain/capabilities.json", { memory, timestamp })
 
 # Cross-Model Adversarial Refuter (provenance + cost gate)
 
-Operational doc for the optional **cross-model** lane of the adversarial-refutation engine, used by `review-pr` (Phase 4.5) and `assess` (Phase 2.5). Loads on top of the engine (`$\{CLAUDE_PLUGIN_ROOT\}/shared/rules/adversarial-refutation.md`) and the skill's bindings adapter — this file only adds the alternate-model wiring.
+Operational doc for the optional **cross-model** lane of the adversarial-refutation engine, used by `review-pr` (Phase 4.5) and `assess` (Phase 2.5). Loads on top of the engine (`${CLAUDE_PLUGIN_ROOT}/shared/rules/adversarial-refutation.md`) and the skill's bindings adapter — this file only adds the alternate-model wiring.
 
 > Pseudocode below is **illustrative prompt-doc**, not a real API — function names (`build_neutral_claim()`, `run()`, etc.) name the steps Claude performs, not symbols to import.
 
@@ -1127,7 +1127,7 @@ under_cross_model_budget() =
 
 - Default cap **4** cross-model spawns/run (inside the engine §8 ceiling). `ORK_CROSS_MODEL_MAX=0` disables; `ORK_CROSS_MODEL=0` is the master kill switch (checked first).
 - Over the cap → refute the top-K cross-model, the rest **same-model only**, flagged `cross_model: "skipped — budget"` in the report (never silently truncated, engine §8).
-- **Prompt once before the first spawn** (consent, not just disclosure — aligns with `/ultrareview`, which asks first for the same external spend; #2556). Ask via AskUserQuestion and proceed only on approval; on decline, fall back to the same-model lane (never "no refutation"). The `ORK_ALT_MODEL_CMD` env var + high-effort gate express *configuration*, not per-run consent — a configured command shouldn't silently bill on every run. Prompt copy: `🔀 Cross-model refutation will make up to N calls to &lt;model&gt; via ORK_ALT_MODEL_CMD (external, billed by your provider). Run it? [Yes / Same-model only]`. Skip the prompt only when `ORK_CROSS_MODEL_CONSENT=1` is set (a durable pre-authorization for unattended/`-p` runs), mirroring the standing-authorization carve-out.
+- **Prompt once before the first spawn** (consent, not just disclosure — aligns with `/ultrareview`, which asks first for the same external spend; #2556). Ask via AskUserQuestion and proceed only on approval; on decline, fall back to the same-model lane (never "no refutation"). The `ORK_ALT_MODEL_CMD` env var + high-effort gate express *configuration*, not per-run consent — a configured command shouldn't silently bill on every run. Prompt copy: `🔀 Cross-model refutation will make up to N calls to <model> via ORK_ALT_MODEL_CMD (external, billed by your provider). Run it? [Yes / Same-model only]`. Skip the prompt only when `ORK_CROSS_MODEL_CONSENT=1` is set (a durable pre-authorization for unattended/`-p` runs), mirroring the standing-authorization carve-out.
 
 ## Run loop (per qualifying finding — illustrative)
 
@@ -1152,7 +1152,7 @@ for finding in qualifying_findings_ranked:            # engine §8 dedup + rank 
 
 A cross-model vote that fails to parse, times out, or returns no citation → treated as **UPHELD** (engine §3). A flaky alternate model can never *weaken* a finding.
 
-**Parser contract.** `ORK_ALT_MODEL_CMD` must emit exactly the `ork-cross-model-refuter/1.0` shape — `\{verdict, independent_band, citation\}` — pinned in [`cross-model-output.schema.json`](./cross-model-output.schema.json) so `parse_refuter_json` never improvises the shape (#2556). `verdict ∈ \{UPHELD, DOWNGRADE, OVERTURN, KILL\}`; `independent_band` is the model's own blind `lo-hi` band on 0–10 (engine §1); `citation` is a `file:line` or `null`. Anything off-contract (extra keys, bad verdict, non-JSON) is parse-failure → UPHELD. A stub implementation for tests lives at `tests/fixtures/cross-model-refuter/stub-alt-model.sh`.
+**Parser contract.** `ORK_ALT_MODEL_CMD` must emit exactly the `ork-cross-model-refuter/1.0` shape — `{verdict, independent_band, citation}` — pinned in [`cross-model-output.schema.json`](./cross-model-output.schema.json) so `parse_refuter_json` never improvises the shape (#2556). `verdict ∈ {UPHELD, DOWNGRADE, OVERTURN, KILL}`; `independent_band` is the model's own blind `lo-hi` band on 0–10 (engine §1); `citation` is a `file:line` or `null`. Anything off-contract (extra keys, bad verdict, non-JSON) is parse-failure → UPHELD. A stub implementation for tests lives at `tests/fixtures/cross-model-refuter/stub-alt-model.sh`.
 
 ## Decision / reset rules
 
@@ -1219,7 +1219,7 @@ mcp__memory__add_observations(observations=[{
 | Public fork, `yg-mcp-core` not installed | This manual pattern (interactive) |
 | Headless CI without HQ creds | Skip both — Phase 8c exits 0 |
 
-The two paths produce the same KG shape (entity name `PR-\{number\}-Review`, entityType `code-review`). Either path is safe; don't run both.
+The two paths produce the same KG shape (entity name `PR-{number}-Review`, entityType `code-review`). Either path is safe; don't run both.
 
 
 ### Orchestration Mode Selection
@@ -1423,7 +1423,7 @@ Use metrics to:
 
 Claude Code 2.1.111 ships a built-in `/ultrareview` — parallel multi-agent deep review (Pro/Max users get 3 free per month). It overlaps this skill's Phase 3 but goes deeper. It's not free, so never fire it by default — offer it only when a trigger justifies the cost, and always ask the user before burning a quota.
 
-Reliability note (CC 2.1.212): `/ultrareview &lt;PR#&gt;` PR references parse correctly, branch fetch works for branches not checked out locally, and billing no longer misfires after `/clear`.
+Reliability note (CC 2.1.212): `/ultrareview <PR#>` PR references parse correctly, branch fetch works for branches not checked out locally, and billing no longer misfires after `/clear`.
 
 ## Trigger evaluation (automatic, after Phase 3)
 

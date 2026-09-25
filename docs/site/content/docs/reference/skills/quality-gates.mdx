@@ -49,7 +49,7 @@ This skill teaches agents how to assess task complexity, enforce quality gates, 
 | 4 - Complex | 10-25 | 500-1500 | 8-24 hr | 4-6 deps, significant unknowns |
 | 5 - Very Complex | 25+ | 1500+ | 24+ hr | 7+ deps, many unknowns |
 
-The table above is the canonical rubric. Score with `max(file_count, LOC, dependency_count, unknowns)`, not an average: one Level 5 axis makes the task Level 5. Run `scripts/assess-complexity.md` or `scripts/analyze-codebase.sh &lt;target&gt;` to measure the inputs.
+The table above is the canonical rubric. Score with `max(file_count, LOC, dependency_count, unknowns)`, not an average: one Level 5 axis makes the task Level 5. Run `scripts/assess-complexity.md` or `scripts/analyze-codebase.sh <target>` to measure the inputs.
 
 ### Blocking Thresholds
 
@@ -74,7 +74,7 @@ The escalation protocol and gate decision logic are both in "Quick Reference" be
 
 ## References
 
-Load on demand with `Read("references/&lt;file&gt;")`:
+Load on demand with `Read("references/<file>")`:
 | File | Content |
 |------|---------|
 | `ork-delta.md` | OrchestKit-specific scars and house decisions: line-counting correctness, fail-open policy, gate self-monitoring, non-bypassable categories |
@@ -583,7 +583,7 @@ or a house decision that survived the thinning of the restated tutorials.
 Bare filenames in the `Why:` lines (for example `gate-patterns.md`) name files retired
 by that thinning. They are provenance, not load pointers, and no longer exist on disk.
 
-## Count files and lines with `awk 'END\{print NR\}'`, never `xargs wc -l | tail -1`
+## Count files and lines with `awk 'END{print NR}'`, never `xargs wc -l | tail -1`
 
 Why: PR #2973 (commit `740dd9c02`) found this skill's own `scripts/analyze-codebase.sh`
 and `scripts/assess-complexity.md` shipping the `xargs wc -l | tail -1` recipe. xargs

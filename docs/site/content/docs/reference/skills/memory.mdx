@@ -19,7 +19,7 @@ description: "Unified read-side memory operations including knowledge graph sear
 Unified read-side memory skill with subcommands for searching, loading, syncing, history, and visualization.
 
 > **Cross-session read strategy (Opus 5.5 / CC 2.1.111+):** Opus 5.5 reads filesystem memory reliably across sessions. When loading context at session start, prefer the layered read order:
-> 1. `~/.claude/projects/&lt;slug&gt;/memory/MEMORY.md` (durable index — load first, always)
+> 1. `~/.claude/projects/<slug>/memory/MEMORY.md` (durable index — load first, always)
 > 2. `.claude/chain/state.json` + most recent `NN-*.json` handoff (session continuation)
 > 3. MCP `mcp__memory__search_nodes` for anything the filesystem index doesn't answer (typed graph traversal)
 >
@@ -289,9 +289,9 @@ Search past decisions, patterns, and entities from the knowledge graph.
 | Flag | Behavior |
 |------|----------|
 | (default) | Search graph |
-| `--limit &lt;n&gt;` | Max results (default: 10) |
-| `--category &lt;cat&gt;` | Filter by category |
-| `--agent &lt;agent-id&gt;` | Filter results to a specific agent's memories |
+| `--limit <n>` | Max results (default: 10) |
+| `--category <cat>` | Filter by category |
+| `--agent <agent-id>` | Filter results to a specific agent's memories |
 | `--global` | Search cross-project best practices |
 
 **Context-Aware Result Limits:**

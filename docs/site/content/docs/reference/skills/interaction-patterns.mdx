@@ -177,7 +177,7 @@ Fitts's Law touch targets (44px mobile), top-aligned labels, Poka-Yoke error pre
 
 1. **Keyboard parity** — Every mouse interaction MUST have a keyboard equivalent. No drag-only, no hover-only.
 2. **Skeleton over spinner** — Use content-shaped placeholders for data loading; reserve spinners for indeterminate actions.
-3. **Native HTML first** — Prefer `&lt;dialog&gt;`, `<details>`, `role="feed"` over custom implementations.
+3. **Native HTML first** — Prefer `<dialog>`, `<details>`, `role="feed"` over custom implementations.
 4. **Progressive enhancement** — Features should work without JS where possible, then enhance with interaction.
 5. **Announce state changes** — Use `aria-live` regions to announce dynamic content changes to screen readers.
 6. **Respect scroll position** — Back navigation must restore scroll position; infinite scroll must not lose user's place.
@@ -517,7 +517,7 @@ Cognitive science principles for form design: Fitts's Law for target acquisition
 
 ### Label Placement: Top-Aligned
 
-**Incorrect:** `&lt;input placeholder="Enter your email" /&gt;` — placeholder disappears on focus, fails a11y.
+**Incorrect:** `<input placeholder="Enter your email" />` — placeholder disappears on focus, fails a11y.
 
 **Correct:**
 ```tsx
@@ -536,7 +536,7 @@ Cognitive science principles for form design: Fitts's Law for target acquisition
 </div>
 ```
 
-**Key rules:** top-aligned labels are fastest (NNG eye-tracking); never placeholder-only; mark optional fields not required ones; group with `&lt;fieldset&gt;` + `&lt;legend&gt;`.
+**Key rules:** top-aligned labels are fastest (NNG eye-tracking); never placeholder-only; mark optional fields not required ones; group with `<fieldset>` + `<legend>`.
 
 ### Error Handling: Poka-Yoke (Mistake-Proofing) with React Hook Form + Zod
 
@@ -604,7 +604,7 @@ function ContactForm() {
 
 **Key rules (Smart Defaults — Postel's Law):**
 - Pre-fill sensible defaults — never start from zero
-- Use `&lt;select&gt;` / radio for known options — constrain inputs to prevent errors at the source
+- Use `<select>` / radio for known options — constrain inputs to prevent errors at the source
 - Validate on `blur`, NOT `keydown` — keystroke validation fires while the user is still typing
 - Remember prior choices in multi-step flows (`sessionStorage` or URL state)
 - Context-aware defaults: country from locale, date format from region
@@ -729,7 +729,7 @@ Reference: https://www.w3.org/WAI/ARIA/apg/patterns/feed/
 
 ## Modal vs Drawer vs Inline
 
-Choose the right overlay pattern: `&lt;dialog&gt;` modal for confirmations and critical actions, drawer (side panel) for detail views and forms, inline expansion for simple toggles and previews.
+Choose the right overlay pattern: `<dialog>` modal for confirmations and critical actions, drawer (side panel) for detail views and forms, inline expansion for simple toggles and previews.
 
 **Incorrect:**
 ```tsx
@@ -802,7 +802,7 @@ function ProductList({ products }: Props) {
 }
 ```
 
-### Modal with Native `&lt;dialog&gt;`
+### Modal with Native `<dialog>`
 
 ```tsx
 // Use native <dialog> for confirmations — built-in focus trap and Escape handling
@@ -836,7 +836,7 @@ function DeleteConfirmation({ onConfirm, onCancel }: Props) {
 
 | Scenario | Pattern | Why |
 |----------|---------|-----|
-| Delete confirmation | Modal (`&lt;dialog&gt;`) | Critical action, needs focus lock |
+| Delete confirmation | Modal (`<dialog>`) | Critical action, needs focus lock |
 | Item detail view | Drawer (side panel) | Preserves list context |
 | Settings toggle | Inline expansion | Simple, no overlay needed |
 | Multi-field form | Drawer | Space for inputs, closeable |
@@ -844,7 +844,7 @@ function DeleteConfirmation({ onConfirm, onCancel }: Props) {
 | Image preview | Inline / lightbox | Quick glance, no form inputs |
 
 **Key rules:**
-- Use native `&lt;dialog&gt;` element for modals — built-in `showModal()`, focus trap, Escape to close
+- Use native `<dialog>` element for modals — built-in `showModal()`, focus trap, Escape to close
 - Modal = critical actions only (delete, confirm, acknowledge). Never for browsing.
 - Drawer = detail views, forms, settings panels. Preserves page context.
 - Inline = simple toggles, previews, small expansions. No overlay, no focus trap.
@@ -1291,7 +1291,7 @@ function handleTabKeyDown(e: React.KeyboardEvent, tabs: Tab[], activeTab: string
 **Key rules:**
 - Show scroll arrows only when content overflows — check `scrollWidth > clientWidth`
 - Use `role="tablist"`, `role="tab"`, and `role="tabpanel"` with `aria-selected` and `aria-controls`
-- Only the active tab has `tabIndex=\{0\}`; all others get `tabIndex=\{-1\}` (roving tabindex)
+- Only the active tab has `tabIndex={0}`; all others get `tabIndex={-1}` (roving tabindex)
 - Arrow keys navigate between tabs; Tab key moves focus to the panel content
 - For 10+ tabs, add an overflow dropdown menu ("More...") showing hidden tabs
 - Hide scrollbar with CSS `scrollbar-width: none` (or Tailwind plugin `scrollbar-none`) but keep scroll arrows visible
@@ -1429,7 +1429,7 @@ A catalog of UI interaction patterns with when-to-use guidance. Organized by int
 |---------|-------------|-------------|------|
 | Skeleton screen | Content loading with known layout | `animate-pulse` divs matching content shape | `aria-busy="true"` |
 | Inline spinner | Button/form submission | Spinner replacing button text | `aria-busy`, disable button |
-| Progress bar | Measurable operations (upload, export) | `&lt;progress&gt;` element | `aria-valuenow`, `aria-valuemax` |
+| Progress bar | Measurable operations (upload, export) | `<progress>` element | `aria-valuenow`, `aria-valuemax` |
 | Optimistic update | Low-risk mutations (like, bookmark) | Immediate UI change, rollback on error | Announce rollback |
 
 ## Scrolling & Pagination
@@ -1454,7 +1454,7 @@ A catalog of UI interaction patterns with when-to-use guidance. Organized by int
 
 | Pattern | When to Use | Key Element | a11y |
 |---------|-------------|-------------|------|
-| Modal dialog | Confirmations, critical actions | `&lt;dialog&gt;` element | Focus trap, `aria-modal` |
+| Modal dialog | Confirmations, critical actions | `<dialog>` element | Focus trap, `aria-modal` |
 | Drawer / Side panel | Detail views, forms, settings | Slide-in panel | `role="complementary"` |
 | Popover | Context menus, dropdowns | Popover API or floating-ui | `aria-haspopup`, focus management |
 | Lightbox | Image/video preview | Full-screen overlay | Focus trap, Escape to close |
@@ -1475,7 +1475,7 @@ A catalog of UI interaction patterns with when-to-use guidance. Organized by int
 |---------|-------------|-------------|------|
 | Tabs | 2-6 related views | `role="tablist"` | Arrow key navigation |
 | Scrollable tabs | 7+ tabs | Scroll arrows + overflow menu | Roving tabindex |
-| Breadcrumbs | Deep hierarchies | `&lt;nav aria-label="Breadcrumb"&gt;` | `aria-current="page"` |
+| Breadcrumbs | Deep hierarchies | `<nav aria-label="Breadcrumb">` | `aria-current="page"` |
 | Stepper / Wizard | Multi-step processes | Step indicators + back/next | `aria-current="step"` |
 
 ## Feedback
@@ -1489,7 +1489,7 @@ A catalog of UI interaction patterns with when-to-use guidance. Organized by int
 
 ## Selection Guidelines
 
-1. **Prefer native HTML** — `&lt;dialog&gt;`, `<details>`, `&lt;progress&gt;` over custom implementations
+1. **Prefer native HTML** — `<dialog>`, `<details>`, `<progress>` over custom implementations
 2. **Match complexity to task** — Tooltip for a hint, modal for a critical decision
 3. **Mobile-first** — Ensure touch targets are 44x44px minimum, swipe actions have button fallbacks
 4. **Keyboard always** — Every pattern must be operable via keyboard alone
@@ -1524,7 +1524,7 @@ Keyboard shortcuts and interaction patterns for all interactive components, alig
 | Tab | Move focus into tab panel |
 | Enter / Space | Activate focused tab (manual activation mode) |
 
-## Dialog (`&lt;dialog&gt;`)
+## Dialog (`<dialog>`)
 
 | Key | Action |
 |-----|--------|
@@ -1596,7 +1596,7 @@ Keyboard shortcuts and interaction patterns for all interactive components, alig
 
 ## General Principles
 
-1. **Roving tabindex** — In composite widgets (tabs, menus), only one item has `tabIndex=\{0\}`. Arrow keys move focus. Tab leaves the widget.
+1. **Roving tabindex** — In composite widgets (tabs, menus), only one item has `tabIndex={0}`. Arrow keys move focus. Tab leaves the widget.
 2. **Focus visible** — All focusable elements must have a visible focus indicator (`:focus-visible` outline).
 3. **Focus restoration** — When closing overlays, return focus to the element that triggered the overlay.
 4. **No keyboard traps** — Users must always be able to navigate away from any component using Tab or Escape.
@@ -1671,7 +1671,7 @@ Is the operation measurable (known total)?
 ### Progress Bar
 
 - Show percentage and/or time estimate for operations > 5s
-- Use `&lt;progress&gt;` element for semantic HTML
+- Use `<progress>` element for semantic HTML
 - Update smoothly — avoid jumps larger than 10%
 - Show indeterminate state if total is temporarily unknown
 

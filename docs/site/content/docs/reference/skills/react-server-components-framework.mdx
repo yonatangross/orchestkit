@@ -151,7 +151,7 @@ export default async function PostPage({
 
 ## References
 
-Load on demand with `Read("references/&lt;file&gt;")`:
+Load on demand with `Read("references/<file>")`:
 | File | Content |
 |------|---------|
 | `ork-delta.md` | House rules and scars: fabricated-API corrections from PR #2143, React 19 house conventions (2026-07-31 distillation) |
@@ -314,7 +314,7 @@ async function Cached({ value }: { value: string }) {
 - Every argument passed to a cached function becomes part of the cache key. Include user-identifying values (userId, token) to prevent cross-user data leaks.
 - Do not `await` dynamic Promises inside `"use cache"` — resolve them outside and pass the result.
 - Nested `"use cache"` functions have isolated scopes; `React.cache` values from an outer function are not visible in an inner one. Cache at the appropriate level and compose via `children`.
-- Use `cacheTag()` with user-scoped tags (e.g., `user-$\{userId\}`) to enable targeted invalidation.
+- Use `cacheTag()` with user-scoped tags (e.g., `user-${userId}`) to enable targeted invalidation.
 
 Reference: first-party `next-cache-components` / `vercel:next-cache-components` skill (constraints, pitfalls); house scars: `references/ork-delta.md`
 
@@ -613,7 +613,7 @@ export function ClientCard({ item, tags, isActive, onAction }: ClientCardProps) 
 **Key rules:**
 - Define event handlers (`onClick`, `onChange`) inside the Client Component, not in the Server Component.
 - Use Server Actions (`'use server'`) when you need to pass callable behavior from server to client.
-- Convert class instances to plain objects before passing: `\{ url: myUrl.toString() \}` instead of `myUrl`.
+- Convert class instances to plain objects before passing: `{ url: myUrl.toString() }` instead of `myUrl`.
 - When in doubt, check if `JSON.stringify(prop)` would succeed — that is a reasonable (though not exact) heuristic.
 
 Reference: first-party `next-best-practices` / `vercel:nextjs` skill (RSC boundaries, serializable props)
@@ -727,7 +727,7 @@ Each entry below exists because OrchestKit shipped a wrong or house-specific
 version of it first.
 
 ## Pass a cacheLife profile as the second argument to revalidateTag
-Why: PR #2143 (2026-05-31 library-currency audit, next-react cluster) caught this skill teaching the fabricated one-argument form. In Next.js 16 the real signature is `revalidateTag(tag, profile)` (for example `'max'` or `\{ expire: 3600 \}`); the one-argument call is deprecated and a TypeScript error, there is no array overload (loop one call per tag), and read-your-writes invalidation uses `updateTag(tag)` instead.
+Why: PR #2143 (2026-05-31 library-currency audit, next-react cluster) caught this skill teaching the fabricated one-argument form. In Next.js 16 the real signature is `revalidateTag(tag, profile)` (for example `'max'` or `{ expire: 3600 }`); the one-argument call is deprecated and a TypeScript error, there is no array overload (loop one call per tag), and read-your-writes invalidation uses `updateTag(tag)` instead.
 Upstream: skill next-cache-components / vercel:next-cache-components (marketplace)
 
 ## Import proxy.ts types from next/server, never from a next/proxy module
@@ -735,7 +735,7 @@ Why: PR #2143 removed a fully fabricated `next/proxy` API (ProxyRequest, ProxyRe
 Upstream: skill next-upgrade / vercel:next-upgrade (marketplace)
 
 ## Write 'use cache' as a directive, not a cache() wrapper from next/cache
-Why: PR #2143 removed a fabricated `import \{ cache \} from 'next/cache'` wrapper this skill had documented. The real API is the `'use cache'` directive (plus `'use cache: remote'` and `'use cache: private'` in 16.2) with the `cacheLife()` / `cacheTag()` helpers, whose `unstable_` prefix was dropped in 16.2; the `experimental_ppr` flag is replaced by `cacheComponents: true` in next.config.ts.
+Why: PR #2143 removed a fabricated `import { cache } from 'next/cache'` wrapper this skill had documented. The real API is the `'use cache'` directive (plus `'use cache: remote'` and `'use cache: private'` in 16.2) with the `cacheLife()` / `cacheTag()` helpers, whose `unstable_` prefix was dropped in 16.2; the `experimental_ppr` flag is replaced by `cacheComponents: true` in next.config.ts.
 Upstream: skill next-cache-components / vercel:next-cache-components (marketplace)
 
 ## Format Server Action Zod errors with z.treeifyError, not .flatten

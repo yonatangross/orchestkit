@@ -45,7 +45,7 @@ export default function NotFound() {
         </div>
         <nav aria-label="Popular pages" className="mt-10 max-w-xl">
           <p className="text-sm text-fd-muted-foreground">Popular pages</p>
-          <ul className="mt-2 flex flex-wrap justify-center gap-x-5 gap-y-1.5 text-sm font-medium">
+          <ul className="mt-2 grid grid-cols-3 justify-items-center gap-x-5 gap-y-1.5 text-sm font-medium sm:flex sm:flex-wrap sm:justify-center">
             {POPULAR.map((l) => (
               <li key={l.href}>
                 <Link href={l.href} className="text-fd-primary underline-offset-4 hover:underline">

@@ -199,11 +199,11 @@ Task: "Research the market for AI workflow builders"
 
 ## Domain Reference
 
-The `product-frameworks` skill is `user-invocable: false` AND `disable-model-invocation: true`, so it has no slash form and the model cannot auto-select it. **This `Read` is its only load path — do not remove it.** Load it when you need its rules and references: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/product-frameworks/SKILL.md")`.
+The `product-frameworks` skill is `user-invocable: false` AND `disable-model-invocation: true`, so it has no slash form and the model cannot auto-select it. **This `Read` is its only load path — do not remove it.** Load it when you need its rules and references: `Read("${CLAUDE_PLUGIN_ROOT}/skills/product-frameworks/SKILL.md")`.
 
 ## Status Protocol
 
-Report using the standardized status protocol. Load: `Read("$\{CLAUDE_PLUGIN_ROOT\}/shared/status-protocol.md")`.
+Report using the standardized status protocol. Load: `Read("${CLAUDE_PLUGIN_ROOT}/shared/status-protocol.md")`.
 
 Your final output MUST include a `status` field: **DONE**, **DONE_WITH_CONCERNS**, **BLOCKED**, or **NEEDS_CONTEXT**. Never report DONE if you have concerns. Never silently produce work you are unsure about.
 

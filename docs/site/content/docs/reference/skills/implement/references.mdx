@@ -189,7 +189,7 @@ Agent(
 
 ### Phase 4 — Teams Mode
 
-In Agent Teams mode, 4 teammates form a team (`implement-\{feature-slug\}`) instead of independent Task spawns. The workflow-architect role is handled by the lead or omitted for simpler features. Teammates message architecture decisions to each other in real-time.
+In Agent Teams mode, 4 teammates form a team (`implement-{feature-slug}`) instead of independent Task spawns. The workflow-architect role is handled by the lead or omitted for simpler features. Teammates message architecture decisions to each other in real-time.
 
 See [Agent Teams Full-Stack Pipeline](agent-teams-full-stack.md) for spawn prompts.
 
@@ -1175,7 +1175,7 @@ into a step.
 
 | # | Tier | Why it's high blast-radius | Example question |
 |---|------|----------------------------|------------------|
-| 1 | Data model / schema / migration | An answer reshapes every downstream layer | "New table, or a column on `&lt;Y&gt;`? Nullable? Backfill?" |
+| 1 | Data model / schema / migration | An answer reshapes every downstream layer | "New table, or a column on `<Y>`? Nullable? Backfill?" |
 | 2 | Auth / security / trust boundary | Sets who can act + the threat model | "Who calls this — portal user, admin, service token?" |
 | 3 | API contract / breaking change | Ripples to every consumer | "Change an existing response shape, or add a new endpoint?" |
 | 4 | Data volume / performance / scale | Sets the algorithm + index strategy | "Expected cardinality / hot path / concurrency?" |
@@ -1273,7 +1273,7 @@ Resume later with full context preserved.
 Slash invoke: `/ork:implement`
 
 YAML `hooks:` / `command:` lines in this skill's frontmatter stay Claude-only.
-They use `$\{CLAUDE_PLUGIN_ROOT\}/hooks/bin/run-hook.mjs` and are ignored by pi.
+They use `${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs` and are ignored by pi.
 
 Session chain files live at `.claude/chain/` (state.json, decisions.json, capabilities.json).
 Other hosts should persist equivalent run state in their own session store.
@@ -1435,8 +1435,8 @@ behavior in CC ≤ 2.1.153.** Tracked at
 Don't use `isolation="worktree"` on parallel agent spawns. Instead:
 
 1. The **lead** creates one worktree per agent BEFORE spawning, using
-   `git worktree add -b &lt;branch&gt; &lt;path&gt; origin/main`.
-2. Each agent prompt starts with `FIRST: cd &lt;worktree-path&gt;. THEN ...`.
+   `git worktree add -b <branch> <path> origin/main`.
+2. Each agent prompt starts with `FIRST: cd <worktree-path>. THEN ...`.
 3. Each agent commits + pushes + opens a PR from its own worktree.
 
 Result: 4-22 tool-uses per agent (vs 60-86 with broken isolation),
@@ -1524,7 +1524,7 @@ worktree.
 To make the pattern reliable:
 
 1. **`cd` must be the FIRST Bash call.** Wrap it in a header like
-   `FIRST: cd &lt;path&gt;. THEN: ...` so the agent can't skip it.
+   `FIRST: cd <path>. THEN: ...` so the agent can't skip it.
 2. **Forbid touching the primary tree.** Add to the prompt: "Do not
    `cd` out of this worktree. All commits, pushes, and PRs originate
    from \{worktree-path\}."
@@ -1532,7 +1532,7 @@ To make the pattern reliable:
    1 reference doc, commit + push + open PR. Iterate via follow-up
    commits." This converts the 60-tool cliff into an 18-22 first
    checkpoint.
-4. **Explicit branch.** Always pass `-b feat/&lt;slug&gt;-&lt;role&gt;` to the
+4. **Explicit branch.** Always pass `-b feat/<slug>-<role>` to the
    `git worktree add` — never let the agent decide its own branch
    (collisions cause the original thrash).
 
@@ -1544,7 +1544,7 @@ To make the pattern reliable:
 - **EnterWorktree (operator-level):** This is the model-managed,
   not-agent-managed worktree tool. It works fine and is unrelated.
   **CC 2.1.206:** `EnterWorktree` now asks for confirmation before entering a
-  worktree OUTSIDE `.claude/worktrees/`. This `../\{slug\}-\{branch\}` convention is
+  worktree OUTSIDE `.claude/worktrees/`. This `../{slug}-{branch}` convention is
   always outside that directory, so expect a one-time confirmation prompt per
   external worktree. Headless/non-interactive flows that can't answer the prompt
   should place worktrees under `.claude/worktrees/` instead.
@@ -1821,7 +1821,7 @@ git branch feat/{feature}/tests
 
 The **lead** creates worktrees before spawning teammates:
 
-Worktrees go INSIDE the repo at `.worktrees/&lt;task&gt;`. A sibling path (`../\{project\}-backend`)
+Worktrees go INSIDE the repo at `.worktrees/<task>`. A sibling path (`../{project}-backend`)
 sits outside the session's project directory, so the harness silently bounces any `cd` into it
 and the teammate ends up operating on the PRIMARY tree — platform#9870 (#3319).
 
@@ -1857,9 +1857,9 @@ Include the worktree path in each teammate's spawn prompt:
 
 | Teammate | Worktree | Working Directory |
 |----------|----------|-------------------|
-| backend-architect | `../\{project\}-backend/` | Full project access, writes to backend dirs |
-| frontend-dev | `../\{project\}-frontend/` | Full project access, writes to frontend dirs |
-| test-engineer | `../\{project\}-tests/` | Full project access, writes to test dirs |
+| backend-architect | `../{project}-backend/` | Full project access, writes to backend dirs |
+| frontend-dev | `../{project}-frontend/` | Full project access, writes to frontend dirs |
+| test-engineer | `../{project}-tests/` | Full project access, writes to test dirs |
 | code-reviewer | Main worktree | Read-only, reviews across all worktrees |
 
 **Spawn prompt addition:**
@@ -1966,7 +1966,7 @@ Project configs and auto-memory are **automatically shared** across worktrees (C
 
 Before spawning teammates:
 
-- [ ] Feature branch exists (`feat/\{feature\}`)
+- [ ] Feature branch exists (`feat/{feature}`)
 - [ ] Role branches created from feature branch
 - [ ] Worktrees added for each implementing teammate
 - [ ] Each teammate's spawn prompt includes worktree path
@@ -2055,7 +2055,7 @@ Scan codebase for: README keywords (take-home, interview), `.github/workflows/`,
 
 | Signal | Tier | Architecture Ceiling |
 |--------|------|---------------------|
-| README says "take-home", time limit | **1. Interview** (load `$\{CLAUDE_PLUGIN_ROOT\}/skills/implement/references/interview-mode.md`) | Flat files, 8-15 files |
+| README says "take-home", time limit | **1. Interview** (load `${CLAUDE_PLUGIN_ROOT}/skills/implement/references/interview-mode.md`) | Flat files, 8-15 files |
 | &lt; 10 files, no CI | **2. Hackathon** | Single file if possible |
 | `.github/workflows/`, managed DB | **3. MVP** | MVC monolith |
 | Module boundaries, Redis, queues | **4. Growth** | Modular monolith, DI |
@@ -2080,7 +2080,7 @@ Use `AskUserQuestion` to verify scope (full-stack / backend-only / frontend-only
 
 - Agent Teams (mesh) when complexity >= 2.5 (GA since CC 2.1.33)
 - Agent tool (star) otherwise; `ORCHESTKIT_FORCE_TASK_TOOL=1` to override
-- Load orchestration modes: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/implement/references/orchestration-modes.md")`
+- Load orchestration modes: `Read("${CLAUDE_PLUGIN_ROOT}/skills/implement/references/orchestration-modes.md")`
 
 ## Tier Override
 
@@ -2123,8 +2123,8 @@ EnterWorktree(path="/path/to/existing/worktree")
 ```
 
 This creates (or switches into):
-- New branch `feat-\{feature-slug\}` from HEAD (or reuses existing worktree)
-- Working directory at `.claude/worktrees/feat-\{feature-slug\}/`
+- New branch `feat-{feature-slug}` from HEAD (or reuses existing worktree)
+- Working directory at `.claude/worktrees/feat-{feature-slug}/`
 - Session CWD switches to the worktree automatically
 
 **Tip (CC 2.1.105+):** When a worktree already exists from a prior session, use the `path` parameter to switch into it instead of creating a new one. Check with `git worktree list` first.
@@ -2210,8 +2210,8 @@ Isolate feature work in dedicated worktrees for clean development and easy rollb
 
 ## Setup Commands
 
-Put the worktree INSIDE the repo, at `.worktrees/&lt;task&gt;`. Never at a sibling
-`../&lt;repo&gt;-&lt;task&gt;`: a sibling path sits outside the session's project directory, and the
+Put the worktree INSIDE the repo, at `.worktrees/<task>`. Never at a sibling
+`../<repo>-<task>`: a sibling path sits outside the session's project directory, and the
 harness bounces any `cd` that leaves it. The command appears to succeed, then every later
 command runs in the PRIMARY tree. That is the failure behind platform#9870, where work was
 committed onto another agent's branch (#3319).
@@ -2294,7 +2294,7 @@ git worktree remove .worktrees/auth
 
 ## Best Practices
 
-1. **Location:** Always `.worktrees/&lt;task&gt;` inside the repo, never a sibling `../project-task`
+1. **Location:** Always `.worktrees/<task>` inside the repo, never a sibling `../project-task`
 2. **Short-lived:** Merge within 1-3 days
 3. **One feature per worktree:** Don't mix concerns
 4. **Regular sync:** Rebase from main frequently

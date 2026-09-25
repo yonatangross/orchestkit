@@ -79,7 +79,7 @@ TaskUpdate(taskId="2", status="completed")    # When done
 | 2. Stack | Classify detected stack, confidence levels | — | Stack profile |
 | 3. Safety | Check existing config, confirm scope (user/project) | Read, AskUserQuestion | Install confirmation |
 | 3.5. Configure | Interactive project configuration wizard → writes env block to per-project settings | Read, Write, AskUserQuestion | Configured settings file |
-| 3.6. Protect | Deliver ork's canonical `permissions.deny` payload to an ENFORCING scope (a plugin settings.json is inert: CC reads only `agent`/`subagentStatusLine`, #3835). Run `node $\{CLAUDE_SKILL_DIR\}/scripts/write-operator-permissions.mjs --scope user --dry-run`, show the additions and the print-only sandbox suggestion, then ONLY on an explicit yes rerun without `--dry-run`. The script backs up the file and prints the one-command rollback. Never write without the dry-run + consent pair. | Bash, AskUserQuestion | Enforced deny rules + rollback line |
+| 3.6. Protect | Deliver ork's canonical `permissions.deny` payload to an ENFORCING scope (a plugin settings.json is inert: CC reads only `agent`/`subagentStatusLine`, #3835). Run `node ${CLAUDE_SKILL_DIR}/scripts/write-operator-permissions.mjs --scope user --dry-run`, show the additions and the print-only sandbox suggestion, then ONLY on an explicit yes rerun without `--dry-run`. The script backs up the file and prints the one-command rollback. Never write without the dry-run + consent pair. | Bash, AskUserQuestion | Enforced deny rules + rollback line |
 | 4. Skills | Match stack to skills, suggest custom skills | Grep, Glob | Skill recommendations |
 | 5. MCPs | Recommend MCPs based on stack and gaps | Read, Bash | MCP recommendations |
 | 6. Score | Compute readiness score (0-10, 6 dimensions) | All above data | Readiness score |
@@ -118,7 +118,7 @@ Offers three install scopes: User-only (recommended, invisible to teammates), Pr
 
 > **TUI mode (CC 2.1.110+):** Recommend `/tui fullscreen` for flicker-free rendering during long sessions. Pair with `autoScrollEnabled: false` in `/config` for manual scroll control during brainstorm/implement output review. The `/focus` command provides a condensed view (prompt + one-line tool summaries + final response).
 
-> **Plugin install (CC 2.1.157+):** Plugins in `.claude/skills` auto-load without a marketplace — for local/dev installs, placing a plugin there is enough. `claude plugin init &lt;name&gt;` scaffolds a new plugin skeleton in `.claude/skills`.
+> **Plugin install (CC 2.1.157+):** Plugins in `.claude/skills` auto-load without a marketplace — for local/dev installs, placing a plugin there is enough. `claude plugin init <name>` scaffolds a new plugin skeleton in `.claude/skills`.
 
 > **`--dangerously-skip-permissions` policy (CC 2.1.121 + 2.1.126, #1583):** the flag's scope expanded substantially. As of 2.1.126 it bypasses prompts for writes to `.claude/`, `.git/`, `.vscode/`, shell config files (`~/.bashrc`, `~/.zshrc`, etc.), and "other previously-protected paths" — on top of `.claude/skills/`, `.claude/agents/`, `.claude/commands/` already bypassed since 2.1.121. Only catastrophic removal commands (e.g., `rm -rf /`) still prompt. **Recommend against this flag for shared workstations, CI runners, and onboarding sessions.** Suggest the auto-approve permission hooks in `src/hooks/README.md` instead — they offer fine-grained allow-listing without disabling the safety net wholesale. The setup wizard should warn (not block) if the user enables this flag during configure.
 
@@ -140,7 +140,7 @@ Check installed vs recommended MCPs by reading `.mcp.json` and `~/.claude/settin
 
 **CC 2.1.121+ tip (#1541):** for the universally-needed T2 trio (memory, context7, sequential-thinking), recommend setting `"alwaysLoad": true` in their `.mcp.json` entries. This skips per-skill `ToolSearch` probes and shaves ~150ms off cold starts. The key is silently ignored on older CC, so it's safe to add eagerly.
 
-**Plugin lifecycle cleanup (CC 2.1.121+, #1544):** mention `claude plugin uninstall &lt;name&gt; --prune` in the cleanup section — it cascades and removes auto-installed deps that became orphaned. Standalone `claude plugin prune` runs the same cleanup without uninstalling anything; `dream` runs it weekly.
+**Plugin lifecycle cleanup (CC 2.1.121+, #1544):** mention `claude plugin uninstall <name> --prune` in the cleanup section — it cascades and removes auto-installed deps that became orphaned. Standalone `claude plugin prune` runs the same cleanup without uninstalling anything; `dream` runs it weekly.
 
 ## Phase 6: Readiness Score
 
@@ -224,16 +224,16 @@ This is useful for teams with multiple plugin sources — e.g., a shared org-wid
 
 For evaluating a plugin without committing to a marketplace install — useful for trialing a coworker's branch build, a CI-produced PR artifact, or an OrchestKit pre-release `.zip` before it's published:
 
-- **`--plugin-dir &lt;path-to-zip&gt;`** (CC 2.1.128+): load a local `.zip` archive as a plugin for the session. Same flag that previously only accepted directories, now also accepts archives.
+- **`--plugin-dir <path-to-zip>`** (CC 2.1.128+): load a local `.zip` archive as a plugin for the session. Same flag that previously only accepted directories, now also accepts archives.
   ```bash
   claude --plugin-dir ./vendor/some-plugin.zip
   ```
-- **`--plugin-url &lt;url&gt;`** (CC 2.1.129+): fetch a `.zip` from a URL and load it for the current session only. The plugin is discarded when CC exits — nothing is written to `~/.claude/plugins/`.
+- **`--plugin-url <url>`** (CC 2.1.129+): fetch a `.zip` from a URL and load it for the current session only. The plugin is discarded when CC exits — nothing is written to `~/.claude/plugins/`.
   ```bash
   claude --plugin-url https://example.com/some-plugin.zip
   ```
 
-Both are session-scoped trial paths; for permanent install, use the standard `/plugin install` flow against a marketplace. See `$\{CLAUDE_PLUGIN_ROOT\}/skills/configure/references/cc-version-settings.md` § CC 2.1.128/2.1.129 for the full notes.
+Both are session-scoped trial paths; for permanent install, use the standard `/plugin install` flow against a marketplace. See `${CLAUDE_PLUGIN_ROOT}/skills/configure/references/cc-version-settings.md` § CC 2.1.128/2.1.129 for the full notes.
 
 ## CLI Flags
 
@@ -263,7 +263,7 @@ Load preset details: `Read("references/presets.md")`
 
 ## References
 
-Load on demand with `Read("references/&lt;file&gt;")`:
+Load on demand with `Read("references/<file>")`:
 
 | File | Content |
 |------|---------|
@@ -464,13 +464,13 @@ AskUserQuestion(questions=[{
 
 A server that connects is not a server that is authenticated. context7 answers
 `tools/list` with HTTP 200 for every auth state: no header, a garbage bearer, an
-unexpanded `$\{CONTEXT7_API_KEY\}` literal, or a valid key. Reporting "context7 ready"
+unexpanded `${CONTEXT7_API_KEY}` literal, or a valid key. Reporting "context7 ready"
 from a connection check says nothing about whether the user's key works.
 
 Two consequences for Phase 5:
 
 - Never write an `Authorization` header that references an environment variable the user
-  has not exported. The literal `$\{CONTEXT7_API_KEY\}` reaches the server, connects, lists
+  has not exported. The literal `${CONTEXT7_API_KEY}` reaches the server, connects, lists
   two tools, and then fails every query with
   `Invalid API key. Please check your API key. API keys should start with 'ctx7sk' prefix.`
   Omitting the header entirely gives a working free tier instead.
@@ -759,7 +759,7 @@ paths:
 - Use standard error response format
 ```
 
-Rules without `paths:` load unconditionally. Glob patterns supported: `**/*.ts`, `src/**/*`, `*.\{ts,tsx\}`.
+Rules without `paths:` load unconditionally. Glob patterns supported: `**/*.ts`, `src/**/*`, `*.{ts,tsx}`.
 
 ### User-Level Rules
 
@@ -880,7 +880,7 @@ AskUserQuestion(questions=[{
 
 If **Custom** selected: ask for the comma-separated list inline.
 
-Generated env var: `ORCHESTKIT_PROTECTED_BRANCHES=&lt;value&gt;`
+Generated env var: `ORCHESTKIT_PROTECTED_BRANCHES=<value>`
 
 ### Step 2: Commit Format Enforcement
 
@@ -906,7 +906,7 @@ AskUserQuestion(questions=[{
 }])
 ```
 
-Generated env var: `ORCHESTKIT_COMMIT_SCOPE=&lt;value&gt;`
+Generated env var: `ORCHESTKIT_COMMIT_SCOPE=<value>`
 
 ### Step 3: Local Dev Browser Access
 
@@ -928,7 +928,7 @@ AskUserQuestion(questions=[{
 }])
 ```
 
-Generated env var: `ORCHESTKIT_AGENT_BROWSER_ALLOW_LOCALHOST=&lt;value&gt;`
+Generated env var: `ORCHESTKIT_AGENT_BROWSER_ALLOW_LOCALHOST=<value>`
 
 ### Step 4: Performance Telemetry
 
@@ -950,7 +950,7 @@ AskUserQuestion(questions=[{
 }])
 ```
 
-Generated env var: `ORCHESTKIT_PERF_SNAPSHOT_ENABLED=&lt;value&gt;`
+Generated env var: `ORCHESTKIT_PERF_SNAPSHOT_ENABLED=<value>`
 
 ### Step 5: Log Verbosity
 
@@ -976,7 +976,7 @@ AskUserQuestion(questions=[{
 }])
 ```
 
-Generated env var: `ORCHESTKIT_LOG_LEVEL=&lt;value&gt;`
+Generated env var: `ORCHESTKIT_LOG_LEVEL=<value>`
 
 ## Step 6: Webhook Telemetry
 
@@ -1389,7 +1389,7 @@ http-sink (built-in):        analytics events -> <webhookUrl>  (HMAC-SHA256, bat
 usage-summary-reporter:      SessionEnd summary -> <webhookUrl> (same URL + token)
 ```
 
-Both activate when `webhookUrl` is set in `.claude/orchestration/config.json` (or `ORCHESTKIT_HOOK_URL`) AND `ORCHESTKIT_HOOK_TOKEN` is exported in the launching shell. Extra sinks can be declared under `telemetry.sinks[]` in `.claude/settings.local.json` (`\{ "type": "http", "url", "token", "hmacSecret"? \}`).
+Both activate when `webhookUrl` is set in `.claude/orchestration/config.json` (or `ORCHESTKIT_HOOK_URL`) AND `ORCHESTKIT_HOOK_TOKEN` is exported in the launching shell. Extra sinks can be declared under `telemetry.sinks[]` in `.claude/settings.local.json` (`{ "type": "http", "url", "token", "hmacSecret"? }`).
 
 The per-event native HTTP hook generator (`generate-http-hooks`, channel 1) was deleted in #3867. Nothing writes `type: "http"` entries into `settings.local.json`; do not add them by hand for telemetry.
 

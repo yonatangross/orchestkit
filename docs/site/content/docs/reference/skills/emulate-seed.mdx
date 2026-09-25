@@ -114,7 +114,7 @@ npx emulate init --service github
 | **Google OAuth** | `:4002` | OAuth 2.0 authorize, token exchange, userinfo |
 | **Slack** | `:4003` | Chat, conversations, users, reactions, OAuth v2 with consent UI |
 | **Apple Auth** | `:4004` | Sign in with Apple — OIDC discovery, JWKS (RS256), auth flow, token exchange |
-| **Microsoft Entra** | `:4005` | OAuth 2.0/OIDC v2.0, authorization code + PKCE, refresh token rotation, v1 token endpoint, Graph `/users/\{id\}` |
+| **Microsoft Entra** | `:4005` | OAuth 2.0/OIDC v2.0, authorization code + PKCE, refresh token rotation, v1 token endpoint, Graph `/users/{id}` |
 | **AWS** | `:4006` | S3 buckets, SQS queues, IAM users/roles, STS identity |
 | **MongoDB Atlas** *(0.4+)* | `:4007` | Admin API v2 (projects, clusters, DB users) + Data API v1 (full CRUD + aggregate) |
 | **Okta** *(0.4+)* | `:4008` | OIDC discovery, JWKS, authorize/token/userinfo/revoke/introspect, Users/Groups/Apps CRUD |
@@ -957,19 +957,19 @@ Full list of supported API endpoints per emulate service.
 
 ## Microsoft Entra ID (`:4005`)
 
-- `GET /\{tenant\}/v2.0/.well-known/openid-configuration` — OIDC discovery
-- `GET /\{tenant\}/oauth2/v2.0/authorize` — Authorization code + PKCE
-- `POST /\{tenant\}/oauth2/v2.0/token` — Token exchange with refresh rotation
-- `GET /\{tenant\}/oauth2/v2.0/logout` — Logout endpoint
+- `GET /{tenant}/v2.0/.well-known/openid-configuration` — OIDC discovery
+- `GET /{tenant}/oauth2/v2.0/authorize` — Authorization code + PKCE
+- `POST /{tenant}/oauth2/v2.0/token` — Token exchange with refresh rotation
+- `GET /{tenant}/oauth2/v2.0/logout` — Logout endpoint
 
 ## AWS (`:4006`)
 
 ### S3
-- `PUT /\{bucket\}` — Create bucket
+- `PUT /{bucket}` — Create bucket
 - `GET /` — List buckets
-- `PUT /\{bucket\}/\{key\}` — Put object
-- `GET /\{bucket\}/\{key\}` — Get object
-- `DELETE /\{bucket\}/\{key\}` — Delete object
+- `PUT /{bucket}/{key}` — Put object
+- `GET /{bucket}/{key}` — Get object
+- `DELETE /{bucket}/{key}` — Delete object
 
 ### SQS
 - `POST /` — CreateQueue, SendMessage, ReceiveMessage, DeleteMessage
@@ -1183,7 +1183,7 @@ The key remains stable across `github.reset()`. Explicit keys are not included i
 
 ## Auth
 
-Pass tokens as `Authorization: Bearer &lt;token&gt;` or `Authorization: token &lt;token&gt;`.
+Pass tokens as `Authorization: Bearer <token>` or `Authorization: token <token>`.
 
 ```bash
 curl http://localhost:4001/user \
@@ -1194,7 +1194,7 @@ Public repo endpoints work without auth. Private repos and write operations requ
 
 ### GitHub App JWT
 
-Configure apps in the seed config with a private key. Sign a JWT with `\{ iss: "&lt;app_id&gt;" \}` using RS256. The emulator verifies the signature and resolves the app.
+Configure apps in the seed config with a private key. Sign a JWT with `{ iss: "<app_id>" }` using RS256. The emulator verifies the signature and resolves the app.
 
 ```yaml
 github:
@@ -1940,7 +1940,7 @@ curl http://localhost:4002/.well-known/openid-configuration
 curl http://localhost:4002/oauth2/v3/certs
 ```
 
-Returns `\{ "keys": [] \}`. ID tokens are signed with HS256 using an internal secret.
+Returns `{ "keys": [] }`. ID tokens are signed with HS256 using an internal secret.
 
 ### Authorization
 
@@ -2373,7 +2373,7 @@ const vercel = await createEmulator({ service: 'vercel', port: 4000 })
 
 ## Auth
 
-Pass tokens as `Authorization: Bearer &lt;token&gt;`. All endpoints accept `teamId` or `slug` query params for team scoping.
+Pass tokens as `Authorization: Bearer <token>`. All endpoints accept `teamId` or `slug` query params for team scoping.
 
 ```bash
 curl http://localhost:4000/v2/user \
@@ -2696,7 +2696,7 @@ VERCEL_BLOB_API_URL=http://localhost:4000/api/blob
 BLOB_READ_WRITE_TOKEN=vercel_blob_rw_mystore_secret
 ```
 
-Any token of the form `vercel_blob_rw_&lt;storeId&gt;_&lt;secret&gt;` is accepted; the store id is parsed from the token.
+Any token of the form `vercel_blob_rw_<storeId>_<secret>` is accepted; the store id is parsed from the token.
 
 ```typescript
 import { put, head, list, del } from '@vercel/blob'
@@ -2893,12 +2893,12 @@ npx emulate list
 | `-p, --port` | `4000` | Base port (auto-increments per service) |
 | `-s, --service` | all | Comma-separated services to enable |
 | `--seed` | auto-detect | Path to seed config (YAML or JSON) |
-| `--base-url` | none | Override advertised base URL (supports `\{service\}` template) |
+| `--base-url` | none | Override advertised base URL (supports `{service}` template) |
 | `--portless` | off | Serve over HTTPS via portless (auto-registers aliases) |
 
 The port can also be set via `EMULATE_PORT` or `PORT` environment variables.
 
-The advertised base URL (used in OAuth redirects, webhook URLs, etc.) can be overridden via `--base-url`, the `EMULATE_BASE_URL` env var (supports `\{service\}` template), or per-service `baseUrl` in the seed config. When running under portless, the `PORTLESS_URL` env var is also detected automatically.
+The advertised base URL (used in OAuth redirects, webhook URLs, etc.) can be overridden via `--base-url`, the `EMULATE_BASE_URL` env var (supports `{service}` template), or per-service `baseUrl` in the seed config. When running under portless, the `PORTLESS_URL` env var is also detected automatically.
 
 ## Programmatic API
 
@@ -2928,7 +2928,7 @@ await vercel.close()
 | `service` | *(required)* | `'vercel'`, `'github'`, `'google'`, `'slack'`, `'apple'`, `'microsoft'`, `'okta'`, `'aws'`, `'resend'`, `'stripe'`, `'mongoatlas'`, `'clerk'`, `'linear'`, or `'twilio'` |
 | `port` | `4000` | Port for the HTTP server |
 | `seed` | none | Inline seed data (same shape as YAML config) |
-| `baseUrl` | none | Override advertised base URL. Per-service `baseUrl` in seed config takes highest priority, then this option, then `EMULATE_BASE_URL` env var (supports `\{service\}`), then `PORTLESS_URL` (supports `\{service\}`, automatically set by the `portless` CLI wrapper), then `http://localhost:&lt;port&gt;`. |
+| `baseUrl` | none | Override advertised base URL. Per-service `baseUrl` in seed config takes highest priority, then this option, then `EMULATE_BASE_URL` env var (supports `{service}`), then `PORTLESS_URL` (supports `{service}`, automatically set by the `portless` CLI wrapper), then `http://localhost:<port>`. |
 
 ### Instance Methods
 
@@ -2968,7 +2968,7 @@ Configuration is optional. The CLI auto-detects config files in this order:
 3. `service-emulator.config.yaml` / `.yml`
 4. `service-emulator.config.json`
 
-Or pass `--seed &lt;file&gt;` explicitly. Run `npx emulate init` to generate a starter file.
+Or pass `--seed <file>` explicitly. Run `npx emulate init` to generate a starter file.
 
 ### Config Structure
 
@@ -3117,7 +3117,7 @@ aws:
 
 ### Auth
 
-Tokens map to users. Pass them as `Authorization: Bearer &lt;token&gt;` or `Authorization: token &lt;token&gt;`. When no tokens are configured, a default `test_token_admin` is created for the `admin` user.
+Tokens map to users. Pass them as `Authorization: Bearer <token>` or `Authorization: token <token>`. When no tokens are configured, a default `test_token_admin` is created for the `admin` user.
 
 Each service also has a fallback user. If no token is provided, requests authenticate as the first seeded user.
 
@@ -3150,7 +3150,7 @@ npx emulate start --base-url "https://{service}.myproxy.test"
 EMULATE_BASE_URL="https://{service}.myproxy.test" npx emulate start
 ```
 
-The `PORTLESS_URL` env var is automatically set by the `portless` CLI wrapper when running a command through it (e.g. `portless github.emulate emulate start`), typically to a value like `https://\{service\}.emulate.localhost`. It supports `\{service\}` interpolation, just like `--base-url` and `EMULATE_BASE_URL`. When no explicit `baseUrl` is provided, it is used as a fallback.
+The `PORTLESS_URL` env var is automatically set by the `portless` CLI wrapper when running a command through it (e.g. `portless github.emulate emulate start`), typically to a value like `https://{service}.emulate.localhost`. It supports `{service}` interpolation, just like `--base-url` and `EMULATE_BASE_URL`. When no explicit `baseUrl` is provided, it is used as a fallback.
 
 Per-service overrides in the seed config (these take highest priority over all other base URL sources):
 
@@ -3230,5 +3230,5 @@ packages/
     aws/             # AWS S3, SQS, IAM, STS plugin
 ```
 
-The core provides a generic `Store` with typed `Collection&lt;T&gt;` instances supporting CRUD, indexing, filtering, and pagination. Each service plugin registers routes with the shared internal app and uses the store for state.
+The core provides a generic `Store` with typed `Collection<T>` instances supporting CRUD, indexing, filtering, and pagination. Each service plugin registers routes with the shared internal app and uses the store for state.
 

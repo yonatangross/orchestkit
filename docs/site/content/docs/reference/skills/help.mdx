@@ -57,7 +57,7 @@ if not matches:
 ```
 
 If BOTH probes return zero files, say so plainly ("could not locate the OrchestKit
-skills directory, checked `$\{CLAUDE_PLUGIN_ROOT\}/skills` and `src/skills`") and stop.
+skills directory, checked `${CLAUDE_PLUGIN_ROOT}/skills` and `src/skills`") and stop.
 Do NOT substitute a remembered list of skill names. Any such list is stale by
 construction and a confident wrong answer is worse than no answer.
 
@@ -153,7 +153,7 @@ For each skill in the category, render:
 ### "Show all" — Full Listing
 
 If user picks "Show all", render ALL user-invocable skills grouped by category from
-STEP 0 data, then close with the derived total: `\{TOTAL\} user-invocable skills`.
+STEP 0 data, then close with the derived total: `{TOTAL} user-invocable skills`.
 Print `TOTAL` from `len(matches)`. Never type a number you did not just count.
 
 ---

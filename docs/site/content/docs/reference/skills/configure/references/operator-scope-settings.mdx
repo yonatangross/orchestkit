@@ -319,7 +319,7 @@ unquoted, which is a real way to conclude a live key does not exist.
 | `sandbox.credentials.envVars[].name` / `.mode` | schema-confirmed | stage 1 |
 
 The credential entry shapes are read from the zod schema in the binary, not inferred
-from ork's old block: `files[]` is `\{path, mode\}` and `envVars[]` is `\{name, mode\}`,
+from ork's old block: `files[]` is `{path, mode}` and `envVars[]` is `{name, mode}`,
 with `mode` constrained to `"deny"` or `"mask"`. On macOS and Windows `mask` degrades
 to `deny`.
 
@@ -331,7 +331,7 @@ to `deny`.
   default is `false`: warn, then run unsandboxed. Consider flipping it after stage 2
   holds, when a silent fallback to unsandboxed is the thing you want to hear about.
 - `filesystem.allowWrite`. Real key. ork's old value was
-  `["$\{projectDir\}", "/tmp", "~/.claude"]` and that interpolation is not something
+  `["${projectDir}", "/tmp", "~/.claude"]` and that interpolation is not something
   this file verified against user-scope settings. The schema documents path resolution
   as absolute, `~` expanded, or relative to the settings file root, which for user
   settings is `~/.claude`. Omitting the key keeps the default rather than shipping an
@@ -351,5 +351,5 @@ weaker than it looks, but weaker is not nothing. #3322 retires it **after** the
 sandbox is observed firing, not before.
 
 Doctor's own account of the gap, including the measured hook-coverage probes, is in
-`$\{CLAUDE_PLUGIN_ROOT\}/skills/doctor/references/settings-posture.md`.
+`${CLAUDE_PLUGIN_ROOT}/skills/doctor/references/settings-posture.md`.
 

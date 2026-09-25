@@ -46,14 +46,14 @@ Direct response to the 275-session insights audit (2026-05-16): 14 ci-debugging 
 - **Does not page.** Novel failures get a `🆕` flag in the comment; you find them on your normal status sweep, not via a notification storm.
 - **Does not analyze closed/merged PRs.**
 - **Does not roam outside the repo it's installed in.** This is per-repo by design. Org-wide sweep is a different shape — that's what `/status` is for.
-- **Does not act on untrusted text.** CI logs and PR titles/bodies are untrusted input that may carry prompt injection. Per `Read("$\{CLAUDE_PLUGIN_ROOT\}/shared/rules/untrusted-input-quarantine.md")`, the classifier reads them read-only and extracts the failure class as structured facts; the propose-don't-apply design (no auto-push) already keeps the actor away from the raw bytes — quarantine makes that explicit, and deterministic signals (exit codes, test output) bypass the reader as ground truth.
+- **Does not act on untrusted text.** CI logs and PR titles/bodies are untrusted input that may carry prompt injection. Per `Read("${CLAUDE_PLUGIN_ROOT}/shared/rules/untrusted-input-quarantine.md")`, the classifier reads them read-only and extracts the failure class as structured facts; the propose-don't-apply design (no auto-push) already keeps the actor away from the raw bytes — quarantine makes that explicit, and deterministic signals (exit codes, test output) bypass the reader as ground truth.
 
 ## Why it's safe to run unattended
 
 | Risk | Mitigation |
 |---|---|
 | Token cost runaway | `ORK_SENTINEL_DAILY_TOKEN_BUDGET=1000000` ceiling, enforced by the workflow's first step. Resets daily. |
-| Duplicate comments on the same SHA | Marker `&lt;!-- ork:ci-sentinel sha=&lt;short&gt; -->` on every comment; workflow scans existing comments before posting. |
+| Duplicate comments on the same SHA | Marker `<!-- ork:ci-sentinel sha=<short> -->` on every comment; workflow scans existing comments before posting. |
 | Wrong-classification spam | Propose-don't-apply means the worst outcome is a noisy but accurate-looking comment. You can collapse them; you can't unmerge a bad auto-fix. |
 | Stuck PR keeps re-classifying | Idempotent on SHA — only re-runs if you push new commits. |
 | Sentinel itself breaking CI | Runs on `ubuntu-latest`, no `pull_request` trigger, no `push` trigger. Cannot block any other workflow. |
@@ -61,7 +61,7 @@ Direct response to the 275-session insights audit (2026-05-16): 14 ci-debugging 
 ## Install on a new repo
 
 1. Copy `.github/workflows/ci-sentinel.yml` from the OrchestKit repo into the target repo (this skill ships it).
-2. Mint a Max-plan OAuth token with `claude setup-token`, then add it as the `CLAUDE_CODE_OAUTH_TOKEN` secret: `gh secret set CLAUDE_CODE_OAUTH_TOKEN -R &lt;owner&gt;/&lt;repo&gt;`. The workflow reads this natively from job-level env; `ANTHROPIC_API_KEY` is **not** used any more, and setting it alone leaves the run red: the workflow's auth canary hard-fails when `CLAUDE_CODE_OAUTH_TOKEN` is unset or expired.
+2. Mint a Max-plan OAuth token with `claude setup-token`, then add it as the `CLAUDE_CODE_OAUTH_TOKEN` secret: `gh secret set CLAUDE_CODE_OAUTH_TOKEN -R <owner>/<repo>`. The workflow reads this natively from job-level env; `ANTHROPIC_API_KEY` is **not** used any more, and setting it alone leaves the run red: the workflow's auth canary hard-fails when `CLAUDE_CODE_OAUTH_TOKEN` is unset or expired.
 3. (Optional) Adjust `ORK_SENTINEL_DAILY_TOKEN_BUDGET` env in the workflow.
 4. Trigger a manual run with `inputs.dry_run = true` to validate the wiring.
 5. Once a dry-run posts no comments and looks healthy in the job summary, let the daily cron take over.

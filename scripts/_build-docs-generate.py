@@ -111,6 +111,85 @@ UNSUPPORTED_LANGS = {
 }
 
 
+_INLINE_CODE = re.compile(r"(`+)(.+?)\1")
+
+# Known-safe HTML/MDX component tags that may stay as markup.
+_SAFE_TAGS = {
+    "br",
+    "hr",
+    "img",
+    "a",
+    "div",
+    "span",
+    "p",
+    "ul",
+    "ol",
+    "li",
+    "table",
+    "thead",
+    "tbody",
+    "tr",
+    "td",
+    "th",
+    "strong",
+    "em",
+    "code",
+    "pre",
+    "blockquote",
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5",
+    "h6",
+    "sup",
+    "sub",
+    "details",
+    "summary",
+    "Callout",
+    "Card",
+    "Tab",
+    "Tabs",
+    "Steps",
+    "Step",
+}
+
+
+def _escape_angle(m: "re.Match[str]") -> str:
+    full = m.group(0)
+    # Keep a known safe tag: <tag or </tag
+    tag_match = re.match(r"</?([a-zA-Z]\w*)", full)
+    if tag_match and tag_match.group(1) in _SAFE_TAGS:
+        return full
+    return full.replace("<", "&lt;").replace(">", "&gt;")
+
+
+def _escape_mdx_text(text: str) -> str:
+    """Escape braces and JSX-like angle brackets in plain markdown text."""
+    text = text.replace("{", "\\{").replace("}", "\\}")
+    # Any < ... > pair that is not a safe tag, then any bare < that MDX could
+    # read as the start of JSX.
+    text = re.sub(r"<[^>]*>", _escape_angle, text)
+    text = re.sub(r"<(?![a-zA-Z/!&])", "&lt;", text)
+    return text
+
+
+def _escape_outside_inline_code(line: str, escape=_escape_mdx_text) -> str:
+    """Apply `escape` to everything except inline code spans.
+
+    MDX renders inline code literally, so escaping inside it put visible
+    backslashes and entities on generated pages (`$\\{ENV_VAR\\}`,
+    `&lt;style&gt;`), visual audit 2026-09-25.
+    """
+    out, pos = [], 0
+    for m in _INLINE_CODE.finditer(line):
+        out.append(escape(line[pos : m.start()]))
+        out.append(m.group(0))
+        pos = m.end()
+    out.append(escape(line[pos:]))
+    return "".join(out)
+
+
 def sanitize_mdx_body(body: str) -> str:
     """Escape MDX-incompatible content from raw markdown.
 
@@ -143,63 +222,10 @@ def sanitize_mdx_body(body: str) -> str:
             out.append(line)
             continue
 
-        # Outside code blocks: escape curly braces
-        line = line.replace("{", "\\{").replace("}", "\\}")
-
-        # Escape ALL < that could be interpreted as JSX by MDX.
-        # Only keep known-safe HTML/MDX component tags.
-        safe_tags = {
-            "br",
-            "hr",
-            "img",
-            "a",
-            "div",
-            "span",
-            "p",
-            "ul",
-            "ol",
-            "li",
-            "table",
-            "thead",
-            "tbody",
-            "tr",
-            "td",
-            "th",
-            "strong",
-            "em",
-            "code",
-            "pre",
-            "blockquote",
-            "h1",
-            "h2",
-            "h3",
-            "h4",
-            "h5",
-            "h6",
-            "sup",
-            "sub",
-            "details",
-            "summary",
-            "Callout",
-            "Card",
-            "Tab",
-            "Tabs",
-            "Steps",
-            "Step",
-        }
-
-        def escape_angle(m):
-            full = m.group(0)
-            # Check if it's a known safe tag: <tag or </tag
-            tag_match = re.match(r"</?([a-zA-Z]\w*)", full)
-            if tag_match and tag_match.group(1) in safe_tags:
-                return full
-            return full.replace("<", "&lt;").replace(">", "&gt;")
-
-        # Match any < ... > pair, or bare < followed by non-space
-        line = re.sub(r"<[^>]*>", escape_angle, line)
-        # Also catch bare < not followed by space or already-escaped
-        line = re.sub(r"<(?![a-zA-Z/!&])", "&lt;", line)
+        # Outside code blocks: escape braces and JSX-like angles, but never
+        # inside inline code spans: MDX renders those literally, so an escape
+        # there shows up on the page (`$\\{ENV_VAR\\}`, `&lt;style&gt;`).
+        line = _escape_outside_inline_code(line)
 
         out.append(line)
 
@@ -1728,13 +1754,17 @@ AGENT_SECTION_TITLES = {
 
 
 def _ref_table_cell(text: str) -> str:
-    """Escape a description for an MDX table cell (pipes, braces, angles)."""
-    return (
-        text.replace("|", "\\|")
-        .replace("{", "\\{")
-        .replace("}", "\\}")
-        .replace("<", "&lt;")
-        .replace(">", "&gt;")
+    """Escape a description for an MDX table cell (pipes, braces, angles).
+
+    Pipes are escaped everywhere, since a GFM table splits on them even inside
+    a code span. Braces and angles are left alone inside inline code, which
+    MDX renders literally.
+    """
+    return _escape_outside_inline_code(
+        text.replace("|", "\\|"),
+        lambda s: (
+            s.replace("{", "\\{").replace("}", "\\}").replace("<", "&lt;").replace(">", "&gt;")
+        ),
     )
 
 

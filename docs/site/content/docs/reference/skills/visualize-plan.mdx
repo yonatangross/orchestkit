@@ -139,7 +139,7 @@ AskUserQuestion(
 Probe **capabilities** now so STEP 5 can offer only what will actually work. **Do not ask
 anything at this step.** Full procedure: `Read("references/format-dispatch.md")`.
 
-Use the established MCP-probe pattern — `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/chain-patterns/references/mcp-detection.md")` — not ad-hoc checks:
+Use the established MCP-probe pattern — `Read("${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/references/mcp-detection.md")` — not ad-hoc checks:
 
 ```python
 # infographic is available IFF the notebooklm studio tool resolves:
@@ -254,12 +254,12 @@ Render the selected sections into the `FORMATS` chosen in STEP 0.5. **ASCII alwa
 | Format | Action |
 |--------|--------|
 | ASCII | Native render (above) — always, the floor |
-| Playground | Classify the archetype (below), then hand the plan brief to the `playground` skill → write `docs/&lt;branch-dir&gt;/plan-viz.html`, then serve it with `page-serve docs/&lt;branch-dir&gt;/plan-viz.html` and put the printed `url=` in the reply's Open section (never a bare path or a hand-started http.server) |
+| Playground | Classify the archetype (below), then hand the plan brief to the `playground` skill → write `docs/<branch-dir>/plan-viz.html`, then serve it with `page-serve docs/<branch-dir>/plan-viz.html` and put the printed `url=` in the reply's Open section (never a bare path or a hand-started http.server) |
 | Infographic | Run the `notebooklm` `studio_create(artifact_type=infographic\|slides)` flow — **fire-and-notify**, poll `studio_status`, never await |
 | All | ASCII inline now + the rest linked as they finish |
-| Charts (marks *within* Playground / Infographic) | For sections with quantitative marks — **[3] Risk, [5] Impact, [6] Blast Radius** — pick the form via `/dataviz` (`choosing-a-form`) and the palette via its 6-check formula, then run `validate_palette.js`. On validator FAIL **or** `/dataviz` absent, fall back to the ASCII-card layout. Chrome stays ork tokens (§2 of `playground-visual-standard.md`); only the data marks come from the validated palette. See `$\{CLAUDE_PLUGIN_ROOT\}/shared/rules/chart-encoding-standard.md`. |
+| Charts (marks *within* Playground / Infographic) | For sections with quantitative marks — **[3] Risk, [5] Impact, [6] Blast Radius** — pick the form via `/dataviz` (`choosing-a-form`) and the palette via its 6-check formula, then run `validate_palette.js`. On validator FAIL **or** `/dataviz` absent, fall back to the ASCII-card layout. Chrome stays ork tokens (§2 of `playground-visual-standard.md`); only the data marks come from the validated palette. See `${CLAUDE_PLUGIN_ROOT}/shared/rules/chart-encoding-standard.md`. |
 
-`&lt;branch-dir&gt;` = branch with `/` → `--` (same path the PR Playground gate checks). The filename is
+`<branch-dir>` = branch with `/` → `--` (same path the PR Playground gate checks). The filename is
 **always `plan-viz.html`** — not `index.html`, not a topic name. One name is what makes slug lookup
 and the artifact gallery work at all.
 
@@ -270,7 +270,7 @@ and the artifact gallery work at all.
 > sections `[0]`–`[5]`, a table twin per chart, the copy-prompt bar, and the reduced-motion gate.
 > If the plan instead demonstrates a *user-facing flow* or a *prioritization/decision*, route to the
 > **user-story-player** or **decision-board** archetype. Apply the §0 routing rule in
-> `Read("$\{CLAUDE_PLUGIN_ROOT\}/shared/rules/playground-visual-standard.md")` and run its §10
+> `Read("${CLAUDE_PLUGIN_ROOT}/shared/rules/playground-visual-standard.md")` and run its §10
 > self-audit — including the DASHBOARD rows — before declaring done.
 >
 > **Backlog to dispatch?** If the plan is a backlog the user must prioritize **and route to execution**,
@@ -325,15 +325,15 @@ AskUserQuestion(questions=[{"question": "What next?", "header": "Actions",
 ```
 
 Anything squeezed out by the cap stays reachable by asking — the menu is a shortcut, not the
-whole surface. `Write to designs/\{branch\}.md` (template: `assets/plan-report.md`) is one of these.
+whole surface. `Write to designs/{branch}.md` (template: `assets/plan-report.md`) is one of these.
 
 Upgrading reuses the plan brief built in STEP 1 — **no recomputation**
 (see `references/format-dispatch.md`). If nothing richer is available, the question drops to
 drill-deeper / issues / done.
 
-**Write to file:** Save full report to `designs/\{branch-name\}.md` using `assets/plan-report.md` template.
+**Write to file:** Save full report to `designs/{branch-name}.md` using `assets/plan-report.md` template.
 
-**Generate issues:** For each execution phase, create a GitHub issue with title `[\{component\}] \{phase_description\}`, labels (component + `risk:\{level\}`), milestone, body from plan sections, and blocked-by references.
+**Generate issues:** For each execution phase, create a GitHub issue with title `[{component}] {phase_description}`, labels (component + `risk:{level}`), milestone, body from plan sections, and blocked-by references.
 
 **Store in memory:** Save plan summary to knowledge graph for future comparison:
 
@@ -384,7 +384,7 @@ Available when user selects "Drill deeper". Load `Read("references/deep-dives.md
 
 ## References
 
-Load on demand with `Read("references/&lt;file&gt;")`:
+Load on demand with `Read("references/<file>")`:
 | File | Content |
 |------|---------|
 | `visualization-tiers.md` | Progressive disclosure tiers and header field computation |
@@ -410,7 +410,7 @@ them match `references/*-patterns.md` exactly, so they are safe to imitate direc
 
 ## Assets
 
-Load on demand with `Read("assets/&lt;file&gt;")`:
+Load on demand with `Read("assets/<file>")`:
 | File | Content |
 |------|---------|
 | `plan-report.md` | Full mustache-style report template |
@@ -424,7 +424,7 @@ Done means all of these hold:
 - File and line counts come from `scripts/analyze-impact.sh`, not estimated or guessed.
 - Every rendered section answers its reviewer question; a section with no content is skipped with a one-line reason, never padded.
 - **Section [3] names the point of no return by phase id** (`--- POINT OF NO RETURN (after P3) ---`), not by implication, and each pre-mortem states a **mechanism** — trigger, sequence, resulting bad state — not a category. "Migration risk" is a heading; "P2 ships while an in-flight retry queue still points at the inline charge path, so the same invoice is charged twice" is a pre-mortem. This is the section's measured failure mode, not a style preference: `rules/section-rendering.md` §[3] carries the falsifiable test for both.
-- Section [0] Before/After maps base (`git show origin/main:&lt;path&gt;`) against head (working tree), marking each node `[+]`/`[~]`/`[-]`, and is skipped with a note when nothing structural changed.
+- Section [0] Before/After maps base (`git show origin/main:<path>`) against head (working tree), marking each node `[+]`/`[~]`/`[-]`, and is skipped with a note when nothing structural changed.
 - ASCII renders first/inline regardless of chosen format; any async format (infographic) is fired-and-notified, never awaited.
 - The plan summary is stored to the memory knowledge graph for cross-session comparison (skipped under `--quick`).
 - **Zero blocking questions before the first render.** Source is auto-detected (asked only when
@@ -588,7 +588,7 @@ Keep both columns to the same component set so the eye diffs by position. Annota
 
 ## Playground (HTML) format
 
-Render the two graphs as a side-by-side Mermaid `flowchart`, with changed nodes class-styled (`classDef added`, `removed`, `changed`) and a toggle to overlay only the delta. The `playground` skill wraps it in the standard single-file explorer. Write to `docs/&lt;branch-dir&gt;/plan-viz.html`.
+Render the two graphs as a side-by-side Mermaid `flowchart`, with changed nodes class-styled (`classDef added`, `removed`, `changed`) and a toggle to overlay only the delta. The `playground` skill wraps it in the standard single-file explorer. Write to `docs/<branch-dir>/plan-viz.html`.
 
 ## NotebookLM infographic format
 
@@ -950,8 +950,8 @@ both prioritize and dispatch** — issues to triage, PRD phases to schedule, a w
 Plain prioritization with no execution step → use `decision-board.template.html`. A single linear
 flow → `user-story-player`. &lt;2 decision signals → dashboard (the standard doesn't apply).
 
-Copyable exemplar: `$\{CLAUDE_PLUGIN_ROOT\}/shared/assets/playground-exemplars/decision-router.template.html`
-— swap the `CARDS` array, keep the engine. Real-data example: `docs/&lt;branch-dir&gt;/decision-router-board.html`.
+Copyable exemplar: `${CLAUDE_PLUGIN_ROOT}/shared/assets/playground-exemplars/decision-router.template.html`
+— swap the `CARDS` array, keep the engine. Real-data example: `docs/<branch-dir>/decision-router-board.html`.
 
 ## STEP A — seed CARDS from real data
 
@@ -984,7 +984,7 @@ mapping is the whole point:
 
 | Strategy | Emits / runs as | Reliability · cost |
 |----------|-----------------|--------------------|
-| single | `/ork:&lt;skill&gt;` (fans out ork agents internally) | ~85–95% · 1× |
+| single | `/ork:<skill>` (fans out ork agents internally) | ~85–95% · 1× |
 | workflow | the **Workflow** tool — `pipeline` or `orchestrator-worker` | ~80–90% · 1× |
 | nested | an ork lead agent → sub-agents (Task/Agent), recurse ≤depth | ~70–80% · ~1.5× |
 | teams | **Agent Teams** — implicit team, `Agent(name=)` + `SendMessage` mesh | ~60–70% · ~3× |
@@ -1056,7 +1056,7 @@ Sequential Block C (verification):
 
 ### Rules
 - Group steps into sequential and parallel blocks
-- Show `&lt;- blocks #N` for dependency constraints
+- Show `<- blocks #N` for dependency constraints
 - Include time estimates for each step
 - Always start with a backup step for data-touching migrations
 - Always end with verification (smoke test + monitoring)
@@ -1204,7 +1204,7 @@ The format front-door (STEP 0.5) picks **how** to render; STEP 2 picks **which**
 
 Gate the format options by what's actually available, so the picker never offers a path that will fail:
 
-Use the established MCP-probe pattern (`Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/chain-patterns/references/mcp-detection.md")`) — not invented helpers:
+Use the established MCP-probe pattern (`Read("${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/references/mcp-detection.md")`) — not invented helpers:
 
 ```python
 ToolSearch(query="select:mcp__notebooklm-mcp__studio_create")   # infographic gate
@@ -1228,28 +1228,28 @@ Hide unavailable options from the AskUserQuestion list and add a one-line instal
 | Format | How | Output | Blocks? |
 |--------|-----|--------|---------|
 | ASCII + emojis | Native — render sections per `rules/section-rendering.md` | In chat | n/a (always first) |
-| Interactive playground | Classify archetype (§0 of the visual standard), build the plan brief, hand to the `playground` skill | `docs/&lt;branch-dir&gt;/plan-viz.html` | No — write then link |
+| Interactive playground | Classify archetype (§0 of the visual standard), build the plan brief, hand to the `playground` skill | `docs/<branch-dir>/plan-viz.html` | No — write then link |
 | NotebookLM infographic/slides | Build a source doc, run the notebooklm `studio_create(artifact_type=infographic\|slides)` flow | `.png`/slides artifact | **No — fire-and-notify** |
 | All available | Fan out: ASCII inline now + the others as they finish | all of the above | No |
 
-`&lt;branch-dir&gt;` = current branch with `/` → `--` (matches the PR Playground CI gate path, so the playground also satisfies that gate for free).
+`<branch-dir>` = current branch with `/` → `--` (matches the PR Playground CI gate path, so the playground also satisfies that gate for free).
 
 > **Archetype before generation.** Most plan visualizations are a **DASHBOARD** (the default card grid).
 > But a plan that demonstrates a *user-facing flow* or a *prioritization/decision* should be a
-> **user-story-player** or **decision-board** — `Read("$\{CLAUDE_PLUGIN_ROOT\}/shared/rules/playground-visual-standard.md")`
+> **user-story-player** or **decision-board** — `Read("${CLAUDE_PLUGIN_ROOT}/shared/rules/playground-visual-standard.md")`
 > for the §0 routing rule, the token/glass/motion spec, and the exemplars to adapt
 > (`shared/assets/playground-exemplars/`). Brief the `playground` skill with archetype + persona, not raw HTML.
 >
 > **Decision-router variant.** When the board is a *backlog the user must both prioritize and dispatch*
 > (issues to triage, PRD phases to schedule, a wave to route), use the **execution-router** board: each
 > card routes to an ork strategy (single/workflow/nested/teams/swarm) over the full 36-agent registry and
-> emits a **plan-only** invocation. Seeding recipe + strategy→tooling map: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/visualize-plan/references/decision-router.md")`.
+> emits a **plan-only** invocation. Seeding recipe + strategy→tooling map: `Read("${CLAUDE_PLUGIN_ROOT}/skills/visualize-plan/references/decision-router.md")`.
 
 ## Mermaid inside tabs
 
 Never `startOnLoad: true` inside a tabbed or collapsible layout; render on activate instead.
 
-`mermaid.initialize(\{ startOnLoad: true \})` renders every `.mermaid` node once, on page load. A tab or `<details>` that starts hidden has a zero-size layout box, so mermaid cannot measure it. The diagram stays broken after the panel is shown, because showing it does not re-render. This is a layout-timing failure, not a syntax one.
+`mermaid.initialize({ startOnLoad: true })` renders every `.mermaid` node once, on page load. A tab or `<details>` that starts hidden has a zero-size layout box, so mermaid cannot measure it. The diagram stays broken after the panel is shown, because showing it does not re-render. This is a layout-timing failure, not a syntax one.
 
 ```js
 mermaid.initialize({ startOnLoad: false, theme: 'dark' });
@@ -1289,7 +1289,7 @@ sub-route in the visual standard). The contract:
    ```
 
    - **Exactly one hit** → you are UPDATING that file. Merge into it (step 2) wherever it lives.
-   - **No hits** → you are AUTHORING. Write `docs/&lt;branch-dir&gt;/plan-viz.html` (step 5).
+   - **No hits** → you are AUTHORING. Write `docs/<branch-dir>/plan-viz.html` (step 5).
    - **More than one hit** → STOP. The plan already forked. Say so, name both paths, and ask which
      survives; `git mv` the survivor and delete the other in the same commit. Do not write a third.
 
@@ -1430,7 +1430,7 @@ no causal sequence of how failure occurs."*
                charge path, so the same invoice is charged twice."
 ```
 
-Write it as `&lt;trigger&gt; → &lt;sequence&gt; → &lt;bad end state&gt;`. The test: can a reader say
+Write it as `<trigger> → <sequence> → <bad end state>`. The test: can a reader say
 *when* it fires and *what state it leaves behind*? If it reads like a section heading,
 it is still a category.
 
@@ -1618,7 +1618,7 @@ deleted:   1 file        -214
 tests:     2 files touched
 ```
 
-Explore agent maps components at `git show origin/main:&lt;path&gt;` (base) vs the working tree (head).
+Explore agent maps components at `git show origin/main:<path>` (base) vs the working tree (head).
 Both maps feed section [0] **and** the plan brief that any richer format will consume.
 
 ## STEP 2 — tier 1 header (always)
@@ -1730,7 +1730,7 @@ Picking the dashboard copies `plan-dashboard.template.html` and replaces **only*
 ## What "good" looked like here
 
 - Every number came from `analyze-impact.sh`, not estimated.
-- [0] compared `git show origin/main:&lt;path&gt;` against the working tree, not two guesses.
+- [0] compared `git show origin/main:<path>` against the working tree, not two guesses.
 - Each risk carries a *mechanism* ("how"), not a category. "Migration is risky" is not a risk.
 - The point of no return is stated once, loudly, and matches the reversibility field in the header.
 - The HTML reused the template; the only authored content was JSON.
@@ -1772,7 +1772,7 @@ Exit 0, one hit → **UPDATE that file, wherever it lives.** Not the branch-deri
 | Exit | Meaning | Action |
 |---|---|---|
 | 0 | one match | Merge into the printed path |
-| 1 | no match | Author `docs/&lt;branch-dir&gt;/plan-viz.html` |
+| 1 | no match | Author `docs/<branch-dir>/plan-viz.html` |
 | 2 | **already forked** | STOP. Name both paths, ask which survives, `git mv` + delete in one commit |
 
 ## The merge (never an overwrite)

@@ -119,7 +119,7 @@ describes this as real-time notifications with detailed information about what
 was attempted and why it was blocked. Nothing in a CC session surfaces those
 rows, so this sub-check runs a bounded, read-only query and reports what it sees.
 
-**Script:** `$\{CLAUDE_PLUGIN_ROOT\}/skills/doctor/scripts/check-sandbox-violations.sh`
+**Script:** `${CLAUDE_PLUGIN_ROOT}/skills/doctor/scripts/check-sandbox-violations.sh`
 
 ```bash
 # Bounded, read-only. Verified live 2026-08-21 on Darwin 25.5.0:

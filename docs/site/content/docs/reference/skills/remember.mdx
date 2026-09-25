@@ -18,7 +18,7 @@ description: "Stores decisions, patterns, and outcomes in the MCP memory knowled
 
 > **Filesystem vs MCP memory (Opus 5.5 guidance, CC 2.1.111+):** Opus 5.5 reads filesystem memory reliably across multi-session work. Use that to your advantage:
 > - **Short-lived handoff state** (current phase, task in-progress, pending approvals) → `.claude/chain/*.json` files. Small, structured, session-scoped.
-> - **Durable auto-memory** (user facts, feedback, project conventions) → `~/.claude/projects/&lt;slug&gt;/memory/*.md` files with a one-line index in `MEMORY.md`. Read on every session start.
+> - **Durable auto-memory** (user facts, feedback, project conventions) → `~/.claude/projects/<slug>/memory/*.md` files with a one-line index in `MEMORY.md`. Read on every session start.
 > - **Cross-session knowledge graph** (typed entities + relations for query traversal) → MCP memory server (this skill's default path). Best when future sessions will *search* for patterns.
 >
 > The three are complementary, not alternatives. Prefer fs for anything you'd want to grep; prefer MCP for anything you'd want to traverse.
@@ -74,8 +74,8 @@ remember --global <text>                   # Store as cross-project best practic
 | (default) | Write to graph |
 | `--success` | Mark as successful pattern |
 | `--failed` | Mark as anti-pattern |
-| `--category &lt;cat&gt;` | Set category |
-| `--agent &lt;agent-id&gt;` | Scope memory to a specific agent |
+| `--category <cat>` | Set category |
+| `--agent <agent-id>` | Scope memory to a specific agent |
 | `--global` | Store as cross-project best practice |
 
 ## Categories
@@ -174,7 +174,7 @@ AskUserQuestion(questions=[
 - "This project" is always the scope default.
 - "This session only" returns immediately without writing — useful when the user wants to surface a fact for the conversation but not commit it.
 
-**Global memory writes** route to `~/.claude/memory/&lt;filename&gt;.md` instead of the project-local memory directory. The MEMORY.md index is updated in whichever scope was selected (project- or user-level).
+**Global memory writes** route to `~/.claude/memory/<filename>.md` instead of the project-local memory directory. The MEMORY.md index is updated in whichever scope was selected (project- or user-level).
 
 Load entity extraction rules, type assignment, relationship patterns, and graph creation examples: `Read("references/graph-operations.md")`
 
@@ -196,7 +196,7 @@ When updating `.claude/memory/MEMORY.md` or project memory files:
 
 ## References
 
-Load on demand with `Read("references/&lt;file&gt;")`:
+Load on demand with `Read("references/<file>")`:
 
 | File | Content |
 |------|---------|

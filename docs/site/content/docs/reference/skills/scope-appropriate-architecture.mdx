@@ -148,7 +148,7 @@ The detected tier is passed as context to constrain downstream decisions.
 
 ## References
 
-Load on demand with `Read("references/&lt;file&gt;")`:
+Load on demand with `Read("references/<file>")`:
 | File | Content |
 |------|---------|
 | `interview-takehome.md` | Tiers 1-2 in detail |
@@ -176,7 +176,7 @@ revisit it.
 
 A deferred-debt marker is the counterpart. It records the deliberate
 *under*-engineering at the moment you choose it, together with the condition
-that should trigger the upgrade. It is NOT a `TODO` — the `when &lt;trigger&gt;`
+that should trigger the upgrade. It is NOT a `TODO` — the `when <trigger>`
 clause is what turns a forgettable note into a ledger entry that can tell you
 *when* to act.
 
@@ -189,9 +189,9 @@ drop an inline marker on the line where the shortcut lives:
 // ork-debt: <choice>, upgrade to <path>, when <trigger>
 ```
 
-- `&lt;choice&gt;` — the deliberate simplification you made
-- `upgrade to &lt;path&gt;` — what to switch to later (optional but recommended)
-- `when &lt;trigger&gt;` — the condition that should make you revisit (optional, but
+- `<choice>` — the deliberate simplification you made
+- `upgrade to <path>` — what to switch to later (optional but recommended)
+- `when <trigger>` — the condition that should make you revisit (optional, but
   without it the marker degrades to a plain `TODO`)
 
 The comment leader may be `//`, `#`, `--`, `;`, or a block-comment leader, so

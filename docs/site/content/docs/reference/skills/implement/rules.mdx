@@ -106,7 +106,7 @@ Large refactors, sweeping renames, signature migrations, or any `ork:implement` 
 For every batch:
 
 1. **Make the change** (Agent edits up to `N` files).
-2. **Run the relevant tests** (`npm test -- &lt;scope&gt;` or framework equivalent).
+2. **Run the relevant tests** (`npm test -- <scope>` or framework equivalent).
 3. **If green**: commit the batch with a descriptive message, proceed to next batch.
 4. **If red**: stop. Do not proceed to the next batch. Debug with the failing batch still uncommitted. Fix the issue before touching more files.
 5. **Never skip step 4** with `// TODO`, `# type: ignore`, or `eslint-disable` — those suppress the signal the batch was too large.
@@ -231,7 +231,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 
 - Never go more than 2 phases without a commit
 - Commit even if tests are not yet written — partial progress beats total loss
-- Use specific `git add &lt;files&gt;` instead of `git add -A` to avoid committing artifacts
+- Use specific `git add <files>` instead of `git add -A` to avoid committing artifacts
 - If a phase fails, commit the passing phases first, then address the failure
 - Include phase number in commit messages for traceability during resume
 - Handoff JSON files (`.claude/chain/*.json`) should be committed alongside code

@@ -279,7 +279,7 @@ Plugin settings follow a 3-tier precedence:
 
 Security hooks shipped by OrchestKit are **managed defaults** — users can disable them but are warned. Enterprise admins can lock settings via managed profiles.
 
-> **CC 2.1.166 — managed-settings enforcement fix:** before 2.1.166 a single invalid entry in managed settings silently disabled enforcement of *all* remaining valid policies — one typo could void your entire security lockdown. Require 2.1.166+ when relying on managed profiles, and validate the file before deploying it. The same release fixed `allowedMcpServers`/`deniedMcpServers` predicates not matching when they use `$\{VAR\}` references.
+> **CC 2.1.166 — managed-settings enforcement fix:** before 2.1.166 a single invalid entry in managed settings silently disabled enforcement of *all* remaining valid policies — one typo could void your entire security lockdown. Require 2.1.166+ when relying on managed profiles, and validate the file before deploying it. The same release fixed `allowedMcpServers`/`deniedMcpServers` predicates not matching when they use `${VAR}` references.
 
 > **CC 2.1.160 — write prompts:** Claude Code now prompts before writing shell startup files (`.zshenv`, `.zlogin`, `.bash_login`, `~/.config/git/`) and — under `acceptEdits` — build-tool configs that grant code execution (`.npmrc`, `.yarnrc*`, `bunfig.toml`, `.bazelrc`, `.pre-commit-config.yaml`, `.devcontainer/`). Treat these as defense-in-depth defaults: approve deliberately rather than blanket-allowing.
 
@@ -310,7 +310,7 @@ get_client().start_observation(name="llm", input=raw_prompt)  # Unmasked observa
 
 ## Detailed Documentation
 
-Load on demand with `Read("references/&lt;file&gt;")`:
+Load on demand with `Read("references/<file>")`:
 
 | File | Content |
 |------|---------|
@@ -363,7 +363,7 @@ Load on demand with `Read("references/&lt;file&gt;")`:
 
 > **CC 2.1.169 — managed MCP enforcement + OTEL cert-path trust:** two policy-bypass classes closed. Enterprise `allowedMcpServers`/`deniedMcpServers` policies were NOT enforced on reconnect, IDE-typed configs, `--mcp-config` servers in the first post-install session, or before remote settings loaded — treat any pre-2.1.169 managed-MCP audit as incomplete on those paths. And untrusted project settings could set OTEL client-certificate paths without trust confirmation (a cloned repo could point telemetry at an attacker cert); now gated behind trust. Both fixes are active at ork's floor (2.1.220).
 
-> **CC 2.1.163 — home-path deny rules now cover `$HOME` Bash refs**: before this fix a `Read(~/.ssh/**)`-style deny rule blocked the Read tool but NOT a Bash command that reached the same file via `$HOME/.ssh/...` — a silent secrets-read bypass. If you gate home-directory secrets (e.g. `~/.aws/credentials`, `~/.ssh/*`, `~/.gnupg/*`) through permission deny rules, pin your CC floor to `>= 2.1.163`; older builds (`&lt; 2.1.163`) leave the Bash path open — ork's floor is now `2.1.220`, which already includes this fix.
+> **CC 2.1.163 — home-path deny rules now cover `$HOME` Bash refs**: before this fix a `Read(~/.ssh/**)`-style deny rule blocked the Read tool but NOT a Bash command that reached the same file via `$HOME/.ssh/...` — a silent secrets-read bypass. If you gate home-directory secrets (e.g. `~/.aws/credentials`, `~/.ssh/*`, `~/.gnupg/*`) through permission deny rules, pin your CC floor to `>= 2.1.163`; older builds (`< 2.1.163`) leave the Bash path open — ork's floor is now `2.1.220`, which already includes this fix.
 
 ### input-validation
 **Keywords:** schema, validate, Zod, Pydantic, sanitize, HTML, XSS, file upload
@@ -1833,7 +1833,7 @@ runtime on v4: `z.string().email()/.url()/.uuid()` are removed (use top-level `z
 `z.url()`, `z.uuid()`); `ZodError.errors` is removed (use `.issues`); the `ZodIssueCode`
 enum is removed (issue codes live on `z.core`, pass string codes like `"custom"`);
 `z.setErrorMap`/`ZodErrorMap` are removed (pass the unified `error` param per schema, or
-`z.config(\{ customError \})` globally).
+`z.config({ customError })` globally).
 
 Upstream: https://zod.dev/v4/changelog (context7: /colinhacks/zod)
 
@@ -3086,7 +3086,7 @@ Before any prompt is sent to an LLM, audit it for forbidden content:
 
 | Pattern | Regex | Why Block |
 |---------|-------|-----------|
-| UUID | `[0-9a-f]\{8\}-[0-9a-f]\{4\}-...` | Hallucination, cross-tenant |
+| UUID | `[0-9a-f]{8}-[0-9a-f]{4}-...` | Hallucination, cross-tenant |
 | API Key | `api[_-]?key` | Secret exposure |
 | Token | `token\s*[:=]` | Auth exposure |
 | Password | `password\s*[:=]` | Credential exposure |

@@ -80,8 +80,8 @@ Tokens are organized in three layers — each referencing the layer below:
 | Tier | Purpose | Example |
 |------|---------|---------|
 | **Global** | Raw values | `color.blue.500 = oklch(0.55 0.18 250)` |
-| **Alias** | Semantic meaning | `color.primary = \{color.blue.500\}` |
-| **Component** | Scoped usage | `button.bg = \{color.primary\}` |
+| **Alias** | Semantic meaning | `color.primary = {color.blue.500}` |
+| **Component** | Scoped usage | `button.bg = {color.primary}` |
 
 This separation enables theme switching (swap alias mappings) without touching component tokens.
 
@@ -138,7 +138,7 @@ Style Dictionary transforms W3C tokens into platform-specific outputs (CSS custo
 > **Style Dictionary 5.x (current)** — pin `style-dictionary >= 5.3.0`. Relevant deltas vs the 4.x documented elsewhere:
 >
 > - **Native OKLCH output** — the custom `color/oklch` transform required in 4.x is **no longer needed**; the built-in `css/variables` formatter emits OKLCH directly when the input token uses `$type: "color"` with an OKLCH value. Remove hand-rolled transforms.
-> - **DTCG v2025.10 dimension object** — `$type: "dimension"` now takes an object `\{ "value": 16, "unit": "px" \}` instead of the bare string `"16px"`. 5.3+ parses both, but new tokens should use the object form.
+> - **DTCG v2025.10 dimension object** — `$type: "dimension"` now takes an object `{ "value": 16, "unit": "px" }` instead of the bare string `"16px"`. 5.3+ parses both, but new tokens should use the object form.
 > - **Hooks API** replaces the 4.x `registerTransform` / `registerFormat` global calls — pass hooks in the config instead for better tree-shaking.
 
 See `rules/tokens-style-dictionary.md` for configuration patterns and custom transforms.
@@ -217,7 +217,7 @@ npx shadcn@latest init --preset b2D0xPaDb  # Luma + Emerald + Geist
 | Hierarchy | Three-tier: global, alias, component |
 | Build tool | Style Dictionary 4.x with W3C parser |
 | Theming | CSS custom properties with `data-theme` attribute |
-| Token references | Use `\{path.to.token\}` alias syntax |
+| Token references | Use `{path.to.token}` alias syntax |
 
 ## Anti-Patterns (FORBIDDEN)
 
@@ -477,7 +477,7 @@ Spacing:
 - Base unit is 4px; the scale is geometric: 4, 8, 16, 24, 32, 48, 64
 - Start with generous whitespace, then reduce — under-spaced UIs feel cramped and hard to scan
 - Use proximity to signal grouping: related elements share a closer spacing step
-- Sibling flow spacing via `* + * \{ margin-block-start: var(--space-md) \}` (owl selector)
+- Sibling flow spacing via `* + * { margin-block-start: var(--space-md) }` (owl selector)
 
 Elevation (5 levels, top-left light source):
 - Level 0 — flat, inline: no shadow, use background color change to separate regions
@@ -838,7 +838,7 @@ All design tokens must follow the W3C Design Token Community Group specification
 - File extension should be `.tokens.json` for tooling auto-detection
 - Use `$extensions` for vendor-specific metadata (deprecation, figma-mapping, etc.)
 - Token names use camelCase; group names use camelCase
-- References use curly brace syntax: `"\{color.primary\}"` to alias another token
+- References use curly brace syntax: `"{color.primary}"` to alias another token
 
 **W3C token group inheritance:**
 ```json

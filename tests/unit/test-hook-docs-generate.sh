@@ -35,6 +35,15 @@ legacy = mod.hook_name_from_command(
 )
 assert legacy[1] == "dangerous-command-blocker", legacy
 
+# Inline code renders literally in MDX, so the escapers must leave it alone
+# (a visible `$\{VAR\}` on the reference pages, 2026-09-25) and still escape
+# the prose around it.
+body = mod.sanitize_mdx_body("`${ENV_VAR}` and `<style>` in {x} <foo>")
+assert body.startswith("`${ENV_VAR}` and `<style>`"), body
+assert "\\{x\\}" in body and "&lt;foo&gt;" in body, body
+cell = mod._ref_table_cell("`/goal <c>` a|b {x}")
+assert cell == "`/goal <c>` a\\|b \\{x\\}", cell
+
 for label in mod.BEHAVIOR_BADGES.values():
     assert "🔇" not in label, label
     assert "\U0001f507" not in label, label

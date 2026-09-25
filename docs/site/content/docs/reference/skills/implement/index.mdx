@@ -101,7 +101,7 @@ Thresholds influence behavior:
 |---|---|
 | `> 50%` | Normal — all optional depth (devil's advocate, visual capture, deep exploration). |
 | `20-50%` | Efficient — skip optional depth; keep core phases. Warn user once. |
-| `&lt; 20%` | Conservation — finish current phase, emit a handoff with next steps, do not start new work. |
+| `< 20%` | Conservation — finish current phase, emit a handoff with next steps, do not start new work. |
 
 When CC's native task-budget API ships GA, replace the estimate with the real signal; the thresholds and behavior stay the same.
 
@@ -184,9 +184,9 @@ ExitPlanMode()
 ```
 
 If worktree selected:
-1. Call `EnterWorktree(name: "feat-\{slug\}")` to create isolated branch
+1. Call `EnterWorktree(name: "feat-{slug}")` to create isolated branch
 2. All agents work in the worktree directory
-3. On completion, merge back: `git checkout \{original-branch\} && git merge feat-\{slug\}`
+3. On completion, merge back: `git checkout {original-branch} && git merge feat-{slug}`
 4. If merge conflicts arise, present diff to user via `AskUserQuestion`
 
 Load worktree details: `Read("references/worktree-isolation-mode.md")`
@@ -313,7 +313,7 @@ Full pattern reference (when to use vs. `TaskOutput`, until-condition gates, par
 subagent bypass of the worktree-isolation guard was fixed in CC 2.1.154 and
 completed in 2.1.203; ork's floor is >= 2.1.220, so every supported session gets
 real isolation. Full pattern, plus the 2.1.206 caveat that `EnterWorktree`
-now prompts for confirmation on ork's out-of-tree `../&lt;repo&gt;-&lt;task&gt;` convention:
+now prompts for confirmation on ork's out-of-tree `../<repo>-<task>` convention:
 `Read("../chain-patterns/references/worktree-agent-pattern.md")`
 
 *Historical (CC &lt;= 2.1.153 only):* the param thrashed the primary worktree's HEAD
@@ -467,7 +467,7 @@ Done means all of these hold:
 
 ## References
 
-Load on demand with `Read("references/&lt;file&gt;")`:
+Load on demand with `Read("references/<file>")`:
 
 | File | Content |
 |------|---------|

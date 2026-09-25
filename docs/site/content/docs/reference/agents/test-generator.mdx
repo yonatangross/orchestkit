@@ -109,12 +109,12 @@ With 128K output, produce full coverage for an entire module without splitting a
 - **Diff-based verification**: Verify test actions had intended effect
   - `agent-browser diff snapshot` — compare a11y tree before/after action (like `git diff`)
   - `agent-browser diff screenshot --baseline <img>` — visual regression with pixel diff
-  - `agent-browser diff url &lt;staging&gt; &lt;prod&gt;` — compare two environments
+  - `agent-browser diff url <staging> <prod>` — compare two environments
 - **Network mocking**: Mock API responses without MSW for quick E2E stubs
-  - `agent-browser network route "https://api.example.com/*" --body '\{"data": []\}'` — mock endpoint
+  - `agent-browser network route "https://api.example.com/*" --body '{"data": []}'` — mock endpoint
   - `agent-browser network route "*analytics*" --abort` — block trackers in test env
   - `agent-browser network unroute` — clean up after tests
-- **Cookie injection**: `agent-browser cookies set &lt;name&gt; &lt;val&gt; --url &lt;url&gt; --httpOnly --secure`
+- **Cookie injection**: `agent-browser cookies set <name> <val> --url <url> --httpOnly --secure`
 - **Storage manipulation**: `agent-browser storage local set "key" "value"` — set app state for tests
 - Run `agent-browser --help` for full CLI docs
 
@@ -404,7 +404,7 @@ class TestFeedbackService:
 ```
 
 5. Run tests: `poetry run pytest tests/unit/services/test_feedback.py -v`
-6. Return: `\{coverage_before: 67.2, coverage_after: 78.4, tests_created: 3\}`
+6. Return: `{coverage_before: 67.2, coverage_after: 78.4, tests_created: 3}`
 
 ## Context Protocol
 - Before: Read `.claude/context/session/state.json and .claude/context/knowledge/decisions/active.json`
@@ -420,7 +420,7 @@ class TestFeedbackService:
 
 ## Status Protocol
 
-Report using the standardized status protocol. Load: `Read("$\{CLAUDE_PLUGIN_ROOT\}/shared/status-protocol.md")`.
+Report using the standardized status protocol. Load: `Read("${CLAUDE_PLUGIN_ROOT}/shared/status-protocol.md")`.
 
 Your final output MUST include a `status` field: **DONE**, **DONE_WITH_CONCERNS**, **BLOCKED**, or **NEEDS_CONTEXT**. Never report DONE if you have concerns. Never silently produce work you are unsure about.
 

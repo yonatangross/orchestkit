@@ -31,14 +31,14 @@ Storybook becomes the single source of truth — adding a story automatically ex
 
 ## New in 2026-04 → 2026-08 (json-render 0.14 → 0.20)
 
-- **Named slots (0.20)** — `UIElement` gains `slots?: Record&lt;string, string[]&gt;`, a catalog declares which it accepts via `slots: ["default", "header", "footer"]`, and a React registry component receives named content as `slots?.header` while `children` stays the default slot. Prefer this over encoding layout regions as separate sibling elements.
-- **Nested repeats and item-scoped visibility (0.20)** — `repeat.statePath` accepts an item-relative `\{"$item": "employees"\}` form (new `RepeatStatePath` type plus `resolveRepeatStatePath` / `resolveRepeatItemStatePath`), and a `repeat` combined with `visible: \{"$item": "status", "eq": "todo"\}` on the same element now filters items instead of erroring. `validateSpec` gains `invalid_visible`, `repeat_without_children`, `repeat_item_outside_scope` and `repeat_state_mismatch` issue codes.
+- **Named slots (0.20)** — `UIElement` gains `slots?: Record<string, string[]>`, a catalog declares which it accepts via `slots: ["default", "header", "footer"]`, and a React registry component receives named content as `slots?.header` while `children` stays the default slot. Prefer this over encoding layout regions as separate sibling elements.
+- **Nested repeats and item-scoped visibility (0.20)** — `repeat.statePath` accepts an item-relative `{"$item": "employees"}` form (new `RepeatStatePath` type plus `resolveRepeatStatePath` / `resolveRepeatItemStatePath`), and a `repeat` combined with `visible: {"$item": "status", "eq": "todo"}` on the same element now filters items instead of erroring. `validateSpec` gains `invalid_visible`, `repeat_without_children`, `repeat_item_outside_scope` and `repeat_state_mismatch` issue codes.
 - **Custom directives API (0.19)** — `@json-render/core` now ships `defineDirective`, letting you declare new JSON shapes (e.g. `$format`, `$math`) that resolve to computed values at render time. Directives compose by nesting and resolve inside-out. All four renderers (React, Vue, Svelte, Solid) have built-in directive resolution. This is the safe escape hatch for computed values without widening the catalog to `z.any()`.
-- **`@json-render/directives` package (0.19)** — seven ready-made directives: `$format` (date / currency / number / percent via `Intl`), `$math` (add, subtract, multiply, divide, mod, min, max, round, floor, ceil, abs), `$concat`, `$count`, `$truncate`, `$pluralize`, `$join`. Plus `createI18nDirective` for `$t` translation keys with `\{\{param\}\}` interpolation, and `standardDirectives` for one-line registration. Register once, use in any spec — AI no longer needs string-mangling or duplicated literals.
+- **`@json-render/directives` package (0.19)** — seven ready-made directives: `$format` (date / currency / number / percent via `Intl`), `$math` (add, subtract, multiply, divide, mod, min, max, round, floor, ceil, abs), `$concat`, `$count`, `$truncate`, `$pluralize`, `$join`. Plus `createI18nDirective` for `$t` translation keys with `{{param}}` interpolation, and `standardDirectives` for one-line registration. Register once, use in any spec — AI no longer needs string-mangling or duplicated literals.
 - **Devtools ecosystem (0.18)** — five new packages: `@json-render/devtools` core + framework adapters for React, Vue, Svelte, Solid. Inspector panel has six tabs (Spec, State, Actions, Stream, Catalog, Pick) with DOM element picking that maps back to spec keys. Tree-shakes to `null` in production. Companion Next.js demo app shipped with AI-chat + catalog integration. Action observer infrastructure exposed for adapters to mirror events into the panel.
 - **Zod 4 fix (0.18)** — `formatZodType` now correctly handles `z.record()`, `z.default()`, and `z.literal()` (previously produced empty/wrong prompt output).
 - **Three edit modes (0.14)** — `patch` (RFC 6902), `merge` (RFC 7396), `diff` (unified) for progressive AI refinements. `buildEditUserPrompt()` + `diffToPatches()` + `deepMergeSpec()` in `@json-render/core`.
-- **`@json-render/yaml` (0.14)** — official YAML wire format + streaming parser; `buildUserPrompt(\{ format: 'yaml' \})`.
+- **`@json-render/yaml` (0.14)** — official YAML wire format + streaming parser; `buildUserPrompt({ format: 'yaml' })`.
 - **`@json-render/ink` (0.15)** — render catalogs to terminal UIs (Ink-based, 20+ components) using the same spec.
 - **`@json-render/next` (0.16)** — generate full Next.js apps (routes, layouts, SSR, metadata) from a single spec.
 - **`@json-render/shadcn-svelte` (0.16)** — 36-component Svelte 5 + Tailwind mirror of the React shadcn catalog.
@@ -78,15 +78,15 @@ const { registry } = defineRegistry(catalog, { components })
 
 | Directive | Purpose | Minimal usage |
 |-----------|---------|---------------|
-| `$format` | `Intl`-based formatting for `date`, `currency`, `number`, `percent`. Supports `locale`, `currency`, `notation`, and `style: "relative"` for human-readable date deltas. | `\{ "$format": "currency", "value": 1299, "currency": "USD" \}` → `$1,299.00` |
-| `$math` | Arithmetic — `add`, `subtract`, `multiply`, `divide`, `mod`, `min`, `max`, `round`, `floor`, `ceil`, `abs`. Division by zero returns `0`; non-numeric inputs coerce to `0`. | `\{ "$math": "multiply", "a": \{ "$state": "/qty" \}, "b": 9.99 \}` |
-| `$concat` | Joins an array of dynamic values into a string, resolving each element through the directive pipeline first. | `\{ "$concat": ["Hello, ", \{ "$state": "/user/name" \}, "!"] \}` |
-| `$count` | Length of an array or string; `0` for anything else. | `\{ "$count": \{ "$state": "/items" \} \}` |
-| `$truncate` | Truncate to `length` (default 100) with optional `suffix` (default `...`). No-op if already short enough. | `\{ "$truncate": \{ "$state": "/bio" \}, "length": 80 \}` |
-| `$pluralize` | Singular/plural/zero selection. Prepends the count automatically (`"3 items"`, `"1 item"`, or the literal `zero` form). | `\{ "$pluralize": \{ "$state": "/cart/count" \}, "zero": "no items", "one": "item", "other": "items" \}` |
-| `$join` | Join an array with a `separator` (default `", "`). | `\{ "$join": \{ "$state": "/tags" \}, "separator": " · " \}` |
+| `$format` | `Intl`-based formatting for `date`, `currency`, `number`, `percent`. Supports `locale`, `currency`, `notation`, and `style: "relative"` for human-readable date deltas. | `{ "$format": "currency", "value": 1299, "currency": "USD" }` → `$1,299.00` |
+| `$math` | Arithmetic — `add`, `subtract`, `multiply`, `divide`, `mod`, `min`, `max`, `round`, `floor`, `ceil`, `abs`. Division by zero returns `0`; non-numeric inputs coerce to `0`. | `{ "$math": "multiply", "a": { "$state": "/qty" }, "b": 9.99 }` |
+| `$concat` | Joins an array of dynamic values into a string, resolving each element through the directive pipeline first. | `{ "$concat": ["Hello, ", { "$state": "/user/name" }, "!"] }` |
+| `$count` | Length of an array or string; `0` for anything else. | `{ "$count": { "$state": "/items" } }` |
+| `$truncate` | Truncate to `length` (default 100) with optional `suffix` (default `...`). No-op if already short enough. | `{ "$truncate": { "$state": "/bio" }, "length": 80 }` |
+| `$pluralize` | Singular/plural/zero selection. Prepends the count automatically (`"3 items"`, `"1 item"`, or the literal `zero` form). | `{ "$pluralize": { "$state": "/cart/count" }, "zero": "no items", "one": "item", "other": "items" }` |
+| `$join` | Join an array with a `separator` (default `", "`). | `{ "$join": { "$state": "/tags" }, "separator": " · " }` |
 
-`createI18nDirective(\{ locale, messages, fallbackLocale? \})` registers a `$t` directive with `\{\{param\}\}` interpolation: `\{ "$t": "greeting", "params": \{ "name": "Ada" \} \}`.
+`createI18nDirective({ locale, messages, fallbackLocale? })` registers a `$t` directive with `{{param}}` interpolation: `{ "$t": "greeting", "params": { "name": "Ada" } }`.
 
 ### Custom directives via `defineDirective`
 
@@ -107,7 +107,7 @@ export const initialsDirective = defineDirective({
 })
 ```
 
-Spread into the renderer alongside `standardDirectives`: `directives=\{[...standardDirectives, initialsDirective]\}`. Keep the schema tight — directives are the only place where AI gets to emit non-catalog JSON, so let Zod enforce shape just like a component prop.
+Spread into the renderer alongside `standardDirectives`: `directives={[...standardDirectives, initialsDirective]}`. Keep the schema tight — directives are the only place where AI gets to emit non-catalog JSON, so let Zod enforce shape just like a component prop.
 
 ## Upstream coverage (do not restate)
 
@@ -121,7 +121,7 @@ delta: our Storybook import path, our catalog constraints, and the scars in
 | Spec format, dynamic prop expressions (`$state` / `$bindState` / `$cond` / `$template` / `$computed`), `watch`, visibility | https://github.com/vercel-labs/json-render `skills/core/SKILL.md` and `skills/react/SKILL.md` |
 | Built-in actions (`setState`, `pushState`, `removeState`, `validateForm`) and the event system | https://github.com/vercel-labs/json-render `skills/react/SKILL.md` |
 | shadcn component roster and prop schemas (36 components, React and Svelte) | `vercel:shadcn` skill, plus https://github.com/vercel-labs/json-render `skills/shadcn/SKILL.md` and `skills/shadcn-svelte/SKILL.md` |
-| Per-renderer components and APIs (Vue, Svelte, Solid, React Native, Ink, Next.js, PDF, email, image, Remotion, react-three-fiber) | https://github.com/vercel-labs/json-render `skills/&lt;package&gt;/SKILL.md` |
+| Per-renderer components and APIs (Vue, Svelte, Solid, React Native, Ink, Next.js, PDF, email, image, Remotion, react-three-fiber) | https://github.com/vercel-labs/json-render `skills/<package>/SKILL.md` |
 | YAML wire format, fences, streaming compiler, edit modes | https://github.com/vercel-labs/json-render `skills/yaml/SKILL.md` |
 | State adapters (`zustandStateStore`, `reduxStateStore`, `jotaiStateStore`, `xstateStoreStateStore`) | https://github.com/vercel-labs/json-render `skills/zustand/SKILL.md`, `skills/redux/SKILL.md`, `skills/jotai/SKILL.md`, `skills/xstate/SKILL.md` |
 | MCP Apps integration (`createMcpApp`, iframe client) | `ork:mcp-visual-output`, plus https://github.com/vercel-labs/json-render `skills/mcp/SKILL.md` |
@@ -143,7 +143,7 @@ Our delta, the part no upstream doc carries: `references/ork-delta.md`.
 
 1. **Developer defines a catalog** — Zod-typed component definitions with constrained props
 2. **AI generates a spec** — flat-tree JSON/YAML referencing only catalog components
-3. **Runtime renders the spec** — `&lt;Renderer&gt;` component validates and renders each element
+3. **Runtime renders the spec** — `<Renderer>` component validates and renders each element
 
 The catalog is the safety boundary. AI can only reference types that exist in the catalog, and props are validated against Zod schemas at runtime. This prevents hallucinated components and invalid props from reaching the UI.
 
@@ -188,7 +188,7 @@ export const catalog = defineCatalog(schema, {
 
 ### LLM Structured Output Compatibility
 
-Use `jsonSchema(\{ strict: true \})` to export catalog schemas compatible with LLM structured output APIs (OpenAI, Anthropic, Gemini):
+Use `jsonSchema({ strict: true })` to export catalog schemas compatible with LLM structured output APIs (OpenAI, Anthropic, Gemini):
 
 ```typescript
 // jsonSchema is a METHOD on the Catalog instance, not a top-level export.
@@ -592,7 +592,7 @@ const appCatalog = {
 - Every component in the catalog must have a `props` Zod schema and a `children` declaration
 - Use `.max()`, `.min()`, and `.default()` on all schemas to bound what AI can generate
 - Use typed children arrays (`['Button']`) for containers that should only accept specific child types
-- Compose catalogs with object spread (`\{ ...base, ...custom \}`). There is no merge helper in `@json-render/core`; validation lives in each definition's Zod schema and spreading preserves it
+- Compose catalogs with object spread (`{ ...base, ...custom }`). There is no merge helper in `@json-render/core`; validation lives in each definition's Zod schema and spreading preserves it
 - Export the catalog type for use in component implementations: `type AppCatalog = typeof catalog`
 
 Reference: https://github.com/nicholasgriffintn/json-render
@@ -660,7 +660,7 @@ GoodComponent: {
 | List items | `z.array(z.any())` | `z.array(schema).min(1).max(20)` |
 | Numeric | `z.number()` | `z.number().int().min(0).max(100)` |
 | Boolean flags | (no constraint) | `z.boolean().default(false)` |
-| Freeform object | `z.record(z.any())` | `z.object(\{ specific: z.string() \})` |
+| Freeform object | `z.record(z.any())` | `z.object({ specific: z.string() })` |
 | URL/image | `z.string()` | `z.url().max(2048)` |
 
 ### Refinements for Complex Validation
@@ -870,10 +870,10 @@ shadcn/ui composition itself
 
 | Package | Framework | Notes |
 |---------|-----------|-------|
-| `@json-render/react` | React 18/19 | `&lt;Render&gt;` component, hooks, streaming support |
-| `@json-render/vue` | Vue 3 | `&lt;Render&gt;` component, composables |
-| `@json-render/svelte` | Svelte 5 | `&lt;Render&gt;` component, runes-compatible |
-| `@json-render/solid` | SolidJS | `&lt;Render&gt;` component, fine-grained reactivity |
+| `@json-render/react` | React 18/19 | `<Render>` component, hooks, streaming support |
+| `@json-render/vue` | Vue 3 | `<Render>` component, composables |
+| `@json-render/svelte` | Svelte 5 | `<Render>` component, runes-compatible |
+| `@json-render/solid` | SolidJS | `<Render>` component, fine-grained reactivity |
 
 ## Component Libraries
 
@@ -1007,15 +1007,15 @@ The script applies a deterministic mapping. Anything outside this list is **drop
 
 | Storybook arg | Zod | Notes |
 |---|---|---|
-| `\{ control: 'text' \}` | `z.string().max(500)` | Length cap prevents prompt-injection-via-text |
-| `\{ control: 'number' \}` | `z.number()` | If `min`/`max` set, applied via `.min().max()` |
-| `\{ control: 'boolean' \}` | `z.boolean()` | — |
-| `\{ control: 'select', options: [...] \}` | `z.enum([...])` | Best case — fully constrained |
-| `\{ control: 'radio', options: [...] \}` | `z.enum([...])` | Same |
-| `\{ control: 'color' \}` | `z.string().regex(/^#[0-9a-fA-F]\{6\}$/)` | Hex only |
-| `\{ control: 'date' \}` | `z.iso.datetime()` | ISO-8601 |
-| `\{ control: 'object' \}` | **DROPPED** | Too open-ended for AI safety; add manually with explicit shape |
-| `\{ control: 'array' \}` | `z.array(z.string()).max(20)` | Length cap; assumed string elements |
+| `{ control: 'text' }` | `z.string().max(500)` | Length cap prevents prompt-injection-via-text |
+| `{ control: 'number' }` | `z.number()` | If `min`/`max` set, applied via `.min().max()` |
+| `{ control: 'boolean' }` | `z.boolean()` | — |
+| `{ control: 'select', options: [...] }` | `z.enum([...])` | Best case — fully constrained |
+| `{ control: 'radio', options: [...] }` | `z.enum([...])` | Same |
+| `{ control: 'color' }` | `z.string().regex(/^#[0-9a-fA-F]{6}$/)` | Hex only |
+| `{ control: 'date' }` | `z.iso.datetime()` | ISO-8601 |
+| `{ control: 'object' }` | **DROPPED** | Too open-ended for AI safety; add manually with explicit shape |
+| `{ control: 'array' }` | `z.array(z.string()).max(20)` | Length cap; assumed string elements |
 | TypeScript `ReactNode` | `children: 'allowed'` | Marks the catalog entry as a container |
 | TypeScript `() => void` (callbacks) | **DROPPED** | AI cannot generate functions; the registry wires them |
 
@@ -1073,7 +1073,7 @@ export const components: InferCatalogComponents<typeof catalog> = {
 }
 ```
 
-The `components.tsx` import paths are derived from the story file paths in the manifest (e.g. `src/components/Card/Card.stories.tsx` → `import \{ Card \} from '../components/Card/Card'`). Always review the imports — story file colocation conventions vary.
+The `components.tsx` import paths are derived from the story file paths in the manifest (e.g. `src/components/Card/Card.stories.tsx` → `import { Card } from '../components/Card/Card'`). Always review the imports — story file colocation conventions vary.
 
 ## Validation
 

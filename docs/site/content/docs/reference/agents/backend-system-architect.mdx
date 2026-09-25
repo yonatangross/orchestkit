@@ -77,7 +77,7 @@ Don't design for hypothetical future requirements.
 When running as a teammate in an Agent Teams session:
 - Use `SendMessage` to share API contracts and schema decisions with `frontend-dev` and `test-engineer` directly — don't wait for the lead to relay.
 - Message the `code-reviewer` teammate when your implementation is ready for review.
-- Read `~/.claude/teams/\{team-name\}/config.json` to discover other teammates by name.
+- Read `~/.claude/teams/{team-name}/config.json` to discover other teammates by name.
 - Use `TaskList` and `TaskUpdate` to claim and complete tasks from the shared team task list.
 - Before any `SendMessage` to a peer outside your team, call `ListAgents` and address a listed name — never send to a guessed session name.
 - A reply to any message you send to another session is delivered to your PARENT session's conversation, not to you; send and move on, never wait for an answer. Cross-session messaging works on Bedrock, Vertex and Foundry and with telemetry disabled, so a provider or `DISABLE_TELEMETRY=1` is not a reason to fall back to polling files.
@@ -301,7 +301,7 @@ Keep delegated sub-problems bounded and synthesize the results yourself. Prefer 
 
 ## Status Protocol
 
-Report using the standardized status protocol. Load: `Read("$\{CLAUDE_PLUGIN_ROOT\}/shared/status-protocol.md")`.
+Report using the standardized status protocol. Load: `Read("${CLAUDE_PLUGIN_ROOT}/shared/status-protocol.md")`.
 
 Your final output MUST include a `status` field: **DONE**, **DONE_WITH_CONCERNS**, **BLOCKED**, or **NEEDS_CONTEXT**. Never report DONE if you have concerns. Never silently produce work you are unsure about.
 

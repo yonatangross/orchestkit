@@ -95,9 +95,9 @@ Use the universal generator:
 ```
 
 This creates:
-- `orchestkit-demos/scripts/demo-\{name\}.sh` - Bash simulator
-- `orchestkit-demos/tapes/sim-\{name\}.tape` - VHS horizontal
-- `orchestkit-demos/tapes/sim-\{name\}-vertical.tape` - VHS vertical
+- `orchestkit-demos/scripts/demo-{name}.sh` - Bash simulator
+- `orchestkit-demos/tapes/sim-{name}.tape` - VHS horizontal
+- `orchestkit-demos/tapes/sim-{name}-vertical.tape` - VHS vertical
 
 ### Phase 4: Record VHS
 
@@ -168,11 +168,11 @@ Experiments/    → WIP content
 ```
 
 #### ID Naming Conventions
-- Landscape: `\{SkillName\}` (e.g., `Implement`, `Verify`)
-- Vertical: `V-TTR-\{SkillName\}`, `V-PZ-\{SkillName\}`, `V-SM-\{SkillName\}`
-- Square: `SQ-TTR-\{SkillName\}`, `SQ-PZ-\{SkillName\}`, `SQ-SM-\{SkillName\}`
-- Templates: `TPL-\{ComponentType\}` (e.g., `TPL-TriTerminalRace`)
-- Experiments: `EXP-\{Name\}`
+- Landscape: `{SkillName}` (e.g., `Implement`, `Verify`)
+- Vertical: `V-TTR-{SkillName}`, `V-PZ-{SkillName}`, `V-SM-{SkillName}`
+- Square: `SQ-TTR-{SkillName}`, `SQ-PZ-{SkillName}`, `SQ-SM-{SkillName}`
+- Templates: `TPL-{ComponentType}` (e.g., `TPL-TriTerminalRace`)
+- Experiments: `EXP-{Name}`
 
 ### Phase 6: Render Final
 
@@ -264,7 +264,7 @@ Keep delegated sub-problems bounded and synthesize the results yourself. Prefer 
 
 ## Status Protocol
 
-Report using the standardized status protocol. Load: `Read("$\{CLAUDE_PLUGIN_ROOT\}/shared/status-protocol.md")`.
+Report using the standardized status protocol. Load: `Read("${CLAUDE_PLUGIN_ROOT}/shared/status-protocol.md")`.
 
 Your final output MUST include a `status` field: **DONE**, **DONE_WITH_CONCERNS**, **BLOCKED**, or **NEEDS_CONTEXT**. Never report DONE if you have concerns. Never silently produce work you are unsure about.
 

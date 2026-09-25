@@ -102,7 +102,7 @@ Anti-patterns (FORBIDDEN):
 Removed in 1.58/1.59 — do NOT use:
 - `_react=ComponentName[prop=value]` and `_vue=...` component selector engines — **removed in 1.58**
 - `:light` selector suffix — **removed**
-- `launch(\{ devtools: true \})` option — **removed**; use `args: ['--auto-open-devtools-for-tabs']`
+- `launch({ devtools: true })` option — **removed**; use `args: ['--auto-open-devtools-for-tabs']`
 
 ## Page Objects
 
@@ -137,7 +137,7 @@ Workflow: Planner (explores app, creates specs) -> Generator (reads spec, tests 
 
 **New in Playwright 1.59 (Apr 2026) — relevant for AI agents:**
 
-- `page.screencast(\{ start, stop, showActions \})` — unified video + real-time JPEG frame streaming. Lets a Healer agent read frames mid-run for visual assertion without writing video files.
+- `page.screencast({ start, stop, showActions })` — unified video + real-time JPEG frame streaming. Lets a Healer agent read frames mid-run for visual assertion without writing video files.
 - `browser.bind()` / `npx playwright-cli attach` — attach to a running browser from an MCP client mid-test; useful for Healer to inspect a hung or failing CI run.
 - `locator.normalize()` — rewrites a brittle locator to best-practice equivalents. Pair with Healer to auto-upgrade `getByTestId` → `getByRole` where possible.
 
@@ -1192,19 +1192,19 @@ Test with at least one screen reader:
   - [ ] Can navigate by heading (H key in screen reader)
 
 - [ ] **Landmarks**
-  - [ ] `&lt;header&gt;`, `&lt;nav&gt;`, `&lt;main&gt;`, `&lt;footer&gt;` present
+  - [ ] `<header>`, `<nav>`, `<main>`, `<footer>` present
   - [ ] Multiple landmarks of same type have unique labels
   - [ ] Can navigate by landmark (D key in screen reader)
 
 - [ ] **Lists**
-  - [ ] Navigation uses `<ul>` or `&lt;nav&gt;`
+  - [ ] Navigation uses `<ul>` or `<nav>`
   - [ ] Related items grouped in lists
   - [ ] Screen reader announces list with item count
 
 #### Interactive Elements
 
 - [ ] **Forms**
-  - [ ] All inputs have associated `&lt;label&gt;` or `aria-label`
+  - [ ] All inputs have associated `<label>` or `aria-label`
   - [ ] Required fields announced as required
   - [ ] Error messages announced when they appear
   - [ ] Field types announced (email, password, number)
@@ -1648,7 +1648,7 @@ Comprehensive checklist for planning, implementing, and maintaining E2E tests wi
 ### Performance
 - [ ] Run tests in parallel where possible
 - [ ] Minimize test execution time (mock slow APIs)
-- [ ] Use `test.describe.configure(\{ mode: 'parallel' \})`
+- [ ] Use `test.describe.configure({ mode: 'parallel' })`
 - [ ] Avoid unnecessary waits (`waitForTimeout`)
 - [ ] Use strategic waits (`waitForSelector`, `waitForLoadState`)
 - [ ] Optimize page load times (disable unnecessary assets)

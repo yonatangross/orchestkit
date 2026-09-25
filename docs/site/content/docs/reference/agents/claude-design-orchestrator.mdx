@@ -73,7 +73,7 @@ When running as a teammate:
 
 ### Wire format
 
-The URL `https://api.anthropic.com/v1/design/h/&lt;hash&gt;?open_file=&lt;Name&gt;.html` returns:
+The URL `https://api.anthropic.com/v1/design/h/<hash>?open_file=<Name>.html` returns:
 
 - **Content-Type:** `application/gzip`
 - **Body:** a `.tar.gz` archive, typically 2–20 KB
@@ -91,8 +91,8 @@ The URL `https://api.anthropic.com/v1/design/h/&lt;hash&gt;?open_file=&lt;Name&g
 ### Key facts
 
 1. **Prototypes are HTML**, not a JSON `components[]` manifest. The README explicitly tells the coding agent to recreate them in whatever technology fits the target codebase, and **not** to copy the prototype's internal structure.
-2. **Tokens are inline `:root \{ --var: ... \}` CSS custom properties**, not a separate JSON file. Extract from the HTML's `&lt;style&gt;` block.
-3. Each HTML file may carry an `EDITMODE` JSON block in a comment (`/*EDITMODE-BEGIN*/\{...\}/*EDITMODE-END*/`) for design-time state (slider defaults). **Design-time only — discard during scaffolding.**
+2. **Tokens are inline `:root { --var: ... }` CSS custom properties**, not a separate JSON file. Extract from the HTML's `<style>` block.
+3. Each HTML file may carry an `EDITMODE` JSON block in a comment (`/*EDITMODE-BEGIN*/{...}/*EDITMODE-END*/`) for design-time state (slider defaults). **Design-time only — discard during scaffolding.**
 4. **Chat transcripts are load-bearing.** They contain the user's intent, clarifying questions, and the iteration history. Read them before parsing the HTML — the README explicitly says so.
 5. **Empty bundles are valid.** If the assistant was waiting for clarification, `project/` is absent. The orchestrator MUST detect this and surface "bundle incomplete — assistant was waiting for X/Y/Z" rather than crashing.
 6. **The `open_file` query param** hints which HTML is the primary one when there are multiple.
@@ -151,7 +151,7 @@ These defaults are the design-time state from the assistant's last refinement. C
 
 ### Prior JSON shape — DO NOT EXPECT
 
-The first Bet A iteration expected `bundle.components[]`, `bundle.design_tokens\{\}`, `bundle.asset_manifest[]`. **None of these exist in real bundles.** Components are HTML files; tokens are inline CSS; assets are inline `&lt;link&gt;`/`<img>` references. If a future Claude Design API ships structured manifests, this section can grow — until then, expect the tarball.
+The first Bet A iteration expected `bundle.components[]`, `bundle.design_tokens{}`, `bundle.asset_manifest[]`. **None of these exist in real bundles.** Components are HTML files; tokens are inline CSS; assets are inline `<link>`/`<img>` references. If a future Claude Design API ships structured manifests, this section can grow — until then, expect the tarball.
 
 ## Concrete Objectives
 1. **Fetch + parse** the handoff bundle (URL via WebFetch, file via Read)
@@ -160,7 +160,7 @@ The first Bet A iteration expected `bundle.components[]`, `bundle.design_tokens\
 4. **Dedup components** — for each proposed component, run `component-search` (Storybook MCP first, then 21st.dev, then filesystem grep)
 5. **Decide per component**: reuse existing | scaffold new | propose adaptation
 6. **Emit normalized payload** for downstream skills to consume
-7. **Persist provenance** — write `.claude/design-handoffs/&lt;bundle-id&gt;.json` with mapping bundle→files→PR
+7. **Persist provenance** — write `.claude/design-handoffs/<bundle-id>.json` with mapping bundle→files→PR
 
 ## Normalized Output Payload
 
@@ -200,7 +200,7 @@ The first Bet A iteration expected `bundle.components[]`, `bundle.design_tokens\
 
 ## Standards
 - Bundle IDs are SHA256 of canonical bundle URL or absolute file path
-- Provenance files written to `.claude/design-handoffs/&lt;bundle-id&gt;.json`
+- Provenance files written to `.claude/design-handoffs/<bundle-id>.json`
 - Token reconciliation uses W3C Design Token format
 - Component naming follows project convention (PascalCase, mirror existing structure)
 
@@ -212,7 +212,7 @@ The first Bet A iteration expected `bundle.components[]`, `bundle.design_tokens\
 
 ## Status Protocol
 
-Report using the standardized status protocol. Load: `Read("$\{CLAUDE_PLUGIN_ROOT\}/shared/status-protocol.md")`.
+Report using the standardized status protocol. Load: `Read("${CLAUDE_PLUGIN_ROOT}/shared/status-protocol.md")`.
 
 Your final output MUST include a `status` field: **DONE**, **DONE_WITH_CONCERNS**, **BLOCKED**, or **NEEDS_CONTEXT**. Never report DONE if a token conflict was unresolved or a component decision was ambiguous — escalate to NEEDS_CONTEXT.
 

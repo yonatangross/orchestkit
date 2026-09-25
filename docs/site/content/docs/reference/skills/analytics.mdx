@@ -116,7 +116,7 @@ Each category has individual rule files in `rules/` loaded on-demand:
 
 - All files are JSONL (newline-delimited JSON) format
 - For large files (>50MB), use streaming `jq` without `-s` — load `Read("rules/large-file-streaming.md")`
-- Rotated files: `&lt;name&gt;.&lt;YYYY-MM&gt;.jsonl` — include for historical queries
+- Rotated files: `<name>.<YYYY-MM>.jsonl` — include for historical queries
 - `team` field only present during team/swarm sessions
 - `pid` is a 12-char SHA256 hash — irreversible, for grouping only
 
@@ -486,7 +486,7 @@ function AccessibleChart({ data, title }: { data: ChartData[]; title: string }) 
 
 **Key rules:**
 - Always wrap charts in `ResponsiveContainer` with a parent that has explicit height
-- Disable animations on real-time/frequently-updating charts (`isAnimationActive=\{false\}`)
+- Disable animations on real-time/frequently-updating charts (`isAnimationActive={false}`)
 - Use custom tooltips for branded UX instead of default
 - Add `figure` role and `aria-label` for accessibility
 - Limit data points to prevent rendering performance issues
@@ -585,7 +585,7 @@ Note: `dailyModelTokens` only has total tokens per model, not split by type. Est
 |-------|------|-----------|-------------|
 | 1 (lowest) | `src/hooks/src/lib/models.vocab.json` `pricing` | `input_per_mtok`, `output_per_mtok`, `cache_read_per_mtok`, `cache_write_per_mtok` | OrchestKit, pinned to the CC binary by the nightly pricing canary |
 | 2 | `~/.claude/orchestkit-pricing.json` `models` | same as layer 1, partial table allowed | the user |
-| 3 | managed `modelPricing.overrides` | CC's `\{ "input", "output", "cacheRead", "cacheWrite" \}`, all four required, each 0 to 10000 | the org, in the OS managed settings file |
+| 3 | managed `modelPricing.overrides` | CC's `{ "input", "output", "cacheRead", "cacheWrite" }`, all four required, each 0 to 10000 | the org, in the OS managed settings file |
 | last | managed `modelPricing.multiplier` | number in (0, 1], scales every rate including overrides | the org |
 
 The managed file is the one CC itself reads for org policy, and nothing else: `/Library/Application Support/ClaudeCode/managed-settings.json` on macOS, `/etc/claude-code/managed-settings.json` on Linux and WSL, `C:\Program Files\ClaudeCode\managed-settings.json` on Windows. A `modelPricing` block in user, project or `--settings` files is ignored, the same as CC ignores it there.
@@ -631,7 +631,7 @@ Location: `~/.claude/analytics/`
 
 | Source | Path | Contents |
 |--------|------|----------|
-| CC session logs | `~/.claude/projects/\{encoded-path\}/*.jsonl` | Full conversation with per-turn token usage |
+| CC session logs | `~/.claude/projects/{encoded-path}/*.jsonl` | Full conversation with per-turn token usage |
 | CC stats cache | `~/.claude/stats-cache.json` | Pre-aggregated daily model tokens, session counts |
 | CC history | `~/.claude/history.jsonl` | Command history across all projects |
 
@@ -639,7 +639,7 @@ Location: `~/.claude/analytics/`
 
 - All OrchestKit files use newline-delimited JSON (JSONL)
 - Each line is a self-contained JSON object
-- Rotated files follow pattern `&lt;name&gt;.&lt;YYYY-MM&gt;.jsonl` — include them in queries for historical data
+- Rotated files follow pattern `<name>.<YYYY-MM>.jsonl` — include them in queries for historical data
 - The `team` field is only present for entries recorded during team/swarm sessions
 - `pid` is a 12-char SHA256 hash of the project path — irreversible, used for grouping
 
@@ -899,7 +899,7 @@ jq -s 'map(select(.command_name != null))
   | sort_by(-.total)' ~/.claude/otel/user-prompts.jsonl 2>/dev/null
 ```
 
-Output shape: `[\{command: "/ork:implement", total: 47, user: 42, model: 5\}, …]`.
+Output shape: `[{command: "/ork:implement", total: 47, user: 42, model: 5}, …]`.
 
 Falls back to `[]` if the file is absent — render as "no OTEL data available (upgrade to CC ≥ 2.1.117)".
 
@@ -1002,7 +1002,7 @@ jq -s 'map(select(.invocation_trigger != null))
   | sort_by(-.total)' ~/.claude/otel/skill-activated.jsonl 2>/dev/null
 ```
 
-Output shape: `[\{skill: "frontend-design", total: 23, user_slash: 4, claude_proactive: 17, nested_skill: 2, proactive_ratio: 73\}, …]`.
+Output shape: `[{skill: "frontend-design", total: 23, user_slash: 4, claude_proactive: 17, nested_skill: 2, proactive_ratio: 73}, …]`.
 
 **Reading the data:**
 - High `proactive_ratio` (>50%) → description is doing its job; model is finding the skill from intent.
@@ -1051,12 +1051,12 @@ Parse and visualize CC session JSONL files to understand what happened in a sess
 ## Usage
 
 - `/ork:analytics session latest` — most recent session
-- `/ork:analytics session &lt;partial-id&gt;` — match by prefix (e.g., `08ed1436`)
-- `/ork:analytics session &lt;full-uuid&gt;` — exact match
+- `/ork:analytics session <partial-id>` — match by prefix (e.g., `08ed1436`)
+- `/ork:analytics session <full-uuid>` — exact match
 
 ## Step 1: Locate the Session File
 
-CC session logs live at `~/.claude/projects/\{encoded-project-path\}/`.
+CC session logs live at `~/.claude/projects/{encoded-project-path}/`.
 
 The encoded path replaces `/` with `-` in the project directory path.
 Example: `/Users/foo/coding/bar` becomes `-Users-foo-coding-bar`

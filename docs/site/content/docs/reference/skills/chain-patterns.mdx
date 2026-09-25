@@ -205,17 +205,17 @@ SendMessage(to="api-designer", message="Now implement the schema you designed")
 - Skills suggest `/loop` in "Next Steps" for user-initiated monitoring
 
 **When to suggest /loop in Next Steps:**
-- After creating a PR → `/loop 5m gh pr checks \{pr_number\}`
+- After creating a PR → `/loop 5m gh pr checks {pr_number}`
 - After running tests → `/loop 10m npm test`
-- After deployment → `/loop 1h check health at \{endpoint\}`
-- After verification → `/loop 30m verify \{scope\}`
+- After deployment → `/loop 1h check health at {endpoint}`
+- After verification → `/loop 30m verify {scope}`
 
 **Dynamic /loop (self-paced):** omitting the interval (e.g. `/loop gh pr checks 42`) lets the model pace itself via scheduled wakeups. Rules:
 - Never schedule short-interval polling for harness-tracked background work; completion re-invokes automatically.
 - Always set a long fallback heartbeat, 1200s or more, as the safety net.
 - Pick delays from how fast the watched EXTERNAL state actually changes: a ~8 minute CI run deserves one ~480s check, not eight 60s checks.
 
-> **CC 2.1.169 — `/cd` keeps the cache across directory moves:** chains that hop between repos or into manually created worktrees should use `/cd &lt;dir&gt;` instead of ending the session — the prompt cache survives the move, so the next phase doesn't re-pay full context ingest. (Self-hosted runner chains can also export `.claude/chain/` artifacts in the new `post-session` hook before the workspace is deleted.)
+> **CC 2.1.169 — `/cd` keeps the cache across directory moves:** chains that hop between repos or into manually created worktrees should use `/cd <dir>` instead of ending the session — the prompt cache survives the move, so the next phase doesn't re-pay full context ingest. (Self-hosted runner chains can also export `.claude/chain/` artifacts in the new `post-session` hook before the workspace is deleted.)
 
 ## Pattern 9: Nested Delegation (CC 2.1.172)
 
@@ -314,7 +314,7 @@ SendMessage(to="ci-watcher", message="PR #42: all required checks green, safe to
 
 ## References
 
-Load on demand with `Read("references/&lt;file&gt;")`:
+Load on demand with `Read("references/<file>")`:
 
 | File | Content |
 |------|---------|
@@ -511,7 +511,7 @@ PushNotification(
 return final_report
 ```
 
-The title names the skill; the body summarizes the outcome in one line. Users filter their notification center by title, so keep it stable: `"ork:&lt;skill&gt; complete"` or `"ork:&lt;skill&gt; needs input"`.
+The title names the skill; the body summarizes the outcome in one line. Users filter their notification center by title, so keep it stable: `"ork:<skill> complete"` or `"ork:<skill> needs input"`.
 
 ## Graceful fallback
 
@@ -636,7 +636,7 @@ Grader output:
 }
 ```
 
-Counter-case (same line, different evidence): `src/x.ts` exists but contains only `export \{\}`, and `tests_pass` is green because no test imports it. Verdict is `tighten` — the revised line adds substance checks so an empty stub can no longer satisfy the set:
+Counter-case (same line, different evidence): `src/x.ts` exists but contains only `export {}`, and `tests_pass` is green because no test imports it. Verdict is `tighten` — the revised line adds substance checks so an empty stub can no longer satisfy the set:
 
 ```
 /goal until grep -q "export function transform" src/x.ts AND npm test -- tests/x.spec.ts passes AND lint_clean, or stop after 15 turns
@@ -841,7 +841,7 @@ error points at the exact character.
 ```
 
 **The rule that kills all three:** inside any `agent()` / `log()` string — no backticks, no
-`$\{...\}`, no TS syntax. For multi-line prompts, concatenate single-quoted lines instead of
+`${...}`, no TS syntax. For multi-line prompts, concatenate single-quoted lines instead of
 reaching for a backtick template:
 
 ```js
@@ -850,7 +850,7 @@ agent(['Do X.', 'Then Y.', 'Return JSON only.'].join('\n'))   // backtick-free, 
 
 **When it keeps parse-failing:** stop re-sending the whole 180-line blob and guessing. Every
 `Workflow` run persists its script to a file — `Write`/`Edit` that `.js` (where a stray backtick
-is visible) and re-run with `Workflow(\{scriptPath\})`. Two more parse traps: `meta` must be a
+is visible) and re-run with `Workflow({scriptPath})`. Two more parse traps: `meta` must be a
 pure literal (no vars/calls/spreads), and `Date.now()` / `Math.random()` / argless `new Date()`
 throw at runtime — pass timestamps in via `args`.
 
@@ -983,7 +983,7 @@ Decision test: would a regular Claude Code session finish this in five minutes? 
 need a workflow at all (the article's own first warning). Reach for one only for the long,
 parallel, structured, or adversarial classes above.
 
-**Committed templates in ork** (run via `Workflow(\{scriptPath: "$\{CLAUDE_PLUGIN_ROOT\}/skills/chain-patterns/workflows/&lt;file&gt;"\})`):
+**Committed templates in ork** (run via `Workflow({scriptPath: "${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/workflows/<file>"})`):
 
 | Template | Skill | Shape |
 |----------|-------|-------|
@@ -995,12 +995,12 @@ Both are TEMPLATES — pass `args` (skills / shards) per run; don't treat them a
 ### Plugin-shipped workflows MUST be `.js` — `.mjs` is silently dropped
 
 ork ships these three through the plugin `workflows/` directory, so they also resolve by name as
-`/ork:skill-fitness`, `/ork:audit-full-mapreduce`, `/ork:heal-loop` (namespaced `$\{plugin\}:$\{meta.name\}`).
+`/ork:skill-fitness`, `/ork:audit-full-mapreduce`, `/ork:heal-loop` (namespaced `${plugin}:${meta.name}`).
 That only works because the files end in `.js`.
 
 The plugin workflow scanner filters on `name.endsWith(".js")` and returns `null` for anything else
 with **no warning at all**. A `.mjs` file is dropped before its `meta` is ever parsed, so the
-workflow simply does not exist: `Workflow(\{name\})` answers `not found`, and nothing anywhere says
+workflow simply does not exist: `Workflow({name})` answers `not found`, and nothing anywhere says
 why. Verified against the installed CC binary and reproduced live — renaming one shipped `.mjs` to
 `.js` and reloading made it resolve immediately.
 
@@ -1011,7 +1011,7 @@ extension is a known authoring trap upstream; the plugin path just doesn't tell 
 Two consequences worth remembering:
 - Name a new plugin workflow `.js`, never `.mjs`, whatever your editor suggests.
 - Absence of an error is not evidence of loading. Confirm a plugin workflow registered by
-  calling it by name, not by seeing the file in `plugins/&lt;name&gt;/workflows/`.
+  calling it by name, not by seeing the file in `plugins/<name>/workflows/`.
 
 ## Untrusted input → quarantine
 
@@ -1452,7 +1452,7 @@ Before 2.1.118, a hook that needed MCP context had two options, both bad:
 | Old approach | Cost | Failure mode |
 |---|---|---|
 | Spawn a subagent via `Agent()` from inside the hook | 30–60s + ~150K tokens | Hook timeouts, context budget blown |
-| Shell out to `npx -y &lt;mcp-server&gt;` and parse stdout | 2–5s + brittle parser | npm cache misses, MCP version drift, ad-hoc auth |
+| Shell out to `npx -y <mcp-server>` and parse stdout | 2–5s + brittle parser | npm cache misses, MCP version drift, ad-hoc auth |
 
 Both forced hooks into either expensive (subagent) or fragile (shell) territory for what should be a simple tool call.
 
@@ -1673,7 +1673,7 @@ CC 2.1.118 added the `claude plugin tag` CLI command for tagging plugin releases
 
 ## What It Does
 
-`claude plugin tag &lt;version&gt;` runs validation across the plugin manifest hierarchy:
+`claude plugin tag <version>` runs validation across the plugin manifest hierarchy:
 
 | Check | Source of truth | Failure mode |
 |---|---|---|
@@ -1684,7 +1684,7 @@ CC 2.1.118 added the `claude plugin tag` CLI command for tagging plugin releases
 | No uncommitted changes in plugins/ | working tree | Tag rejected |
 | Plugin can be loaded | `claude plugin validate` (CC ≥ 2.1.77) | Tag rejected |
 
-If all pass, an annotated git tag `v&lt;version&gt;` is created locally; pushing it triggers downstream release automation (GitHub Release, NotebookLM sync, etc.).
+If all pass, an annotated git tag `v<version>` is created locally; pushing it triggers downstream release automation (GitHub Release, NotebookLM sync, etc.).
 
 ## OrchestKit Adoption
 
@@ -1773,11 +1773,11 @@ CC 2.1.119 extends `--from-pr` to accept GitLab MR, Bitbucket PR, and GitHub Ent
 
 | Host family | URL pattern | Detection regex |
 |---|---|---|
-| github.com (public) | `https://github.com/\{owner\}/\{repo\}/pull/\{n\}` | `^https://github\.com/` |
-| GitHub Enterprise | `https://\{host\}/\{owner\}/\{repo\}/pull/\{n\}` (host suffix `.github.&lt;corp&gt;`) | `\.github\.[a-z]+/` |
-| GitLab.com | `https://gitlab.com/\{owner\}/\{repo\}/-/merge_requests/\{n\}` | `^https://gitlab\.com/` |
-| Self-hosted GitLab | `https://gitlab.\{corp\}/\{group\}/\{repo\}/-/merge_requests/\{n\}` | `^https://gitlab\.` |
-| Bitbucket Cloud | `https://bitbucket.org/\{owner\}/\{repo\}/pull-requests/\{n\}` | `^https://bitbucket\.org/` |
+| github.com (public) | `https://github.com/{owner}/{repo}/pull/{n}` | `^https://github\.com/` |
+| GitHub Enterprise | `https://{host}/{owner}/{repo}/pull/{n}` (host suffix `.github.<corp>`) | `\.github\.[a-z]+/` |
+| GitLab.com | `https://gitlab.com/{owner}/{repo}/-/merge_requests/{n}` | `^https://gitlab\.com/` |
+| Self-hosted GitLab | `https://gitlab.{corp}/{group}/{repo}/-/merge_requests/{n}` | `^https://gitlab\.` |
+| Bitbucket Cloud | `https://bitbucket.org/{owner}/{repo}/pull-requests/{n}` | `^https://bitbucket\.org/` |
 
 ## Skill Adoption
 
@@ -2014,7 +2014,7 @@ else:
 
 Use `isolation: "worktree"` when spawning agents that write files in parallel. Each agent gets its own copy of the repo — no merge conflicts.
 
-> **Isolation is enforced, not advisory (CC 2.1.216+):** a worktree-isolated subagent can no longer redirect git into the shared checkout via `git -C &lt;path&gt;`, `--git-dir`, or the `GIT_DIR`/`GIT_WORK_TREE` env vars — CC 2.1.216 closed that escape. Write coordinator prompts accordingly: a worker that "helpfully" targets the parent repo with `git -C` now fails instead of silently mutating the shared tree, so route any parent-tree git through the coordinator, never through an isolated worker (#3068).
+> **Isolation is enforced, not advisory (CC 2.1.216+):** a worktree-isolated subagent can no longer redirect git into the shared checkout via `git -C <path>`, `--git-dir`, or the `GIT_DIR`/`GIT_WORK_TREE` env vars — CC 2.1.216 closed that escape. Write coordinator prompts accordingly: a worker that "helpfully" targets the parent repo with `git -C` now fails instead of silently mutating the shared tree, so route any parent-tree git through the coordinator, never through an isolated worker (#3068).
 
 ## When to Use
 
@@ -2071,7 +2071,7 @@ worktrees natively again. Do not re-register anything on `WorktreeCreate` —
 
 ## Required Setting (CC ≥ 2.1.133)
 
-CC 2.1.133 reintroduced a `worktree.baseRef` setting whose default `"fresh"` branches new worktrees from `origin/&lt;default-branch&gt;` — **not** from local `HEAD`. OrchestKit's agent-isolation pattern needs unpushed commits to be visible to spawned agents, so set:
+CC 2.1.133 reintroduced a `worktree.baseRef` setting whose default `"fresh"` branches new worktrees from `origin/<default-branch>` — **not** from local `HEAD`. OrchestKit's agent-isolation pattern needs unpushed commits to be visible to spawned agents, so set:
 
 ```json
 {
@@ -2089,25 +2089,25 @@ Add this to `.claude/settings.json` (project) or `~/.claude/settings.json` (user
 
 ## Branch base (CC 2.1.128–2.1.132 default, CC 2.1.133+ with `baseRef: "head"`)
 
-With `worktree.baseRef: "head"` (or any CC in the 2.1.128–2.1.132 window where this was the default), `EnterWorktree` creates the new branch from **local `HEAD`**, not from `origin/&lt;default-branch&gt;`. This means:
+With `worktree.baseRef: "head"` (or any CC in the 2.1.128–2.1.132 window where this was the default), `EnterWorktree` creates the new branch from **local `HEAD`**, not from `origin/<default-branch>`. This means:
 
 - Unpushed commits in the parent worktree are preserved in the new worktree
 - No need to `git push` before spawning isolated agents
 - Parent and child see the same uncommitted history
 
-CC ≤ 2.1.127 branched from `origin/&lt;default-branch&gt;`, which silently dropped local-only commits. CC 2.1.128–2.1.132 changed the default to local `HEAD`. CC 2.1.133 added the explicit `worktree.baseRef` setting and reverted the default back to `"fresh"` (origin/&lt;default&gt;) — see "Required Setting" above. We floor at `2.1.220`, so the setting is the single source of truth.
+CC ≤ 2.1.127 branched from `origin/<default-branch>`, which silently dropped local-only commits. CC 2.1.128–2.1.132 changed the default to local `HEAD`. CC 2.1.133 added the explicit `worktree.baseRef` setting and reverted the default back to `"fresh"` (origin/&lt;default&gt;) — see "Required Setting" above. We floor at `2.1.220`, so the setting is the single source of truth.
 
 > **CC 2.1.154 — nested-worktree HEAD fix**: `worktree.baseRef: "head"` previously resolved to the **main checkout's** HEAD (not the current worktree's) when spawning subagents or calling `EnterWorktree` from *inside* a linked worktree. 2.1.154 fixed this, so `"head"` is now reliable for nested/recursive worktree spawns too. Also in 2.1.154: subagents in background sessions no longer bypass the worktree-isolation guard, so `Agent(isolation:"worktree")` is safe for parallel spawns — the manual pre-create workaround (`implement/references/manual-worktree-pattern.md`) is superseded.
 >
 > **CC 2.1.203 — residual shell-command leak closed**: the 2.1.154 guard was not complete — worktree-isolated subagents could still *sometimes run shell commands in the parent checkout* instead of their own worktree (CC 2.1.203 changelog). Through CC 2.1.202, an isolated agent's `git`/build commands could fire against the primary tree. 2.1.203 closes the leak — and ork's floor is now 2.1.220, so every supported session is past the leak window; the 2.1.183–2.1.202 known-risk note applies only to historical sessions below the floor.
 >
-> **CC 2.1.206 — external-worktree confirmation**: `EnterWorktree` now prompts for confirmation before entering a worktree **outside** `.claude/worktrees/`. ork's convention (`../&lt;repo&gt;-&lt;task&gt;`) is always outside that directory, so any `EnterWorktree` into a pre-created external worktree now triggers a one-time prompt. Interactive operators just confirm; headless/agent-driven flows that can't answer should either use `Agent(isolation:"worktree")` (which manages its own worktree under `.claude/worktrees/`) or expect and pre-authorize the prompt.
+> **CC 2.1.206 — external-worktree confirmation**: `EnterWorktree` now prompts for confirmation before entering a worktree **outside** `.claude/worktrees/`. ork's convention (`../<repo>-<task>`) is always outside that directory, so any `EnterWorktree` into a pre-created external worktree now triggers a one-time prompt. Interactive operators just confirm; headless/agent-driven flows that can't answer should either use `Agent(isolation:"worktree")` (which manages its own worktree under `.claude/worktrees/`) or expect and pre-authorize the prompt.
 >
 > **CC 2.1.221 — `/fork` makes its own worktree**: sessions forked with `/fork` now create a new worktree of their own instead of working in the original session's checkout (CC 2.1.221 changelog). This changes nothing about `Agent(isolation:"worktree")`; it closes the *manual* route to the failure this pattern exists to prevent, where forking a session left two sessions writing into one tree. Through 2.1.220, `/fork` was a shared-checkout operation.
 >
 > **CC 2.1.222 — the guard's fourth patch**: worktree-isolated sessions **and** their subagents could still run destructive git commands against the main checkout; 2.1.222 fixes that and states isolation now applies to file edits and Bash in *every session type* (CC 2.1.222 changelog). The changelog does not enumerate which session types were leaking, so the honest reading is scope, not mechanism: the same guard has now been patched in 2.1.154, 2.1.203, 2.1.216 and 2.1.222, each release closing a hole the previous one left open. Two consequences. (1) ork's floor is `2.1.220`, so a session sitting exactly at the floor is still inside this leak window. Run parallel worktree agents on 2.1.222+ if the workers touch git. (2) Treat isolation as a strong default rather than a security boundary: keep the coordinator the only writer to the parent tree, which is the same instruction the 2.1.216 note at the top of this file already gives.
 
-> **CC 2.1.133 — concurrent-session stability**: Running multiple worktree-isolated agents in parallel shares one refresh token across sessions. Before 2.1.133 a refresh-token race could 401 every session at once. At our floor this is fixed — concurrent worktree sessions are stable. See `$\{CLAUDE_PLUGIN_ROOT\}/skills/configure/references/cc-version-settings.md` (CC 2.1.133 section) for the full fix description.
+> **CC 2.1.133 — concurrent-session stability**: Running multiple worktree-isolated agents in parallel shares one refresh token across sessions. Before 2.1.133 a refresh-token race could 401 every session at once. At our floor this is fixed — concurrent worktree sessions are stable. See `${CLAUDE_PLUGIN_ROOT}/skills/configure/references/cc-version-settings.md` (CC 2.1.133 section) for the full fix description.
 
 ## Limitations
 

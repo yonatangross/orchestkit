@@ -72,7 +72,7 @@ TaskUpdate(taskId="4", addBlockedBy=["3"])
 
 ## Classification: the Four Buckets (`rules/activation-status.md`)
 
-Bucket by **reference counts**, never by description quality. For each observed-zero-start agent, count its real spawn references: `grep -rc "subagent_type=ork:&lt;name&gt;" src/skills/` (plus `agent:`/team-map mentions in `src/agents/`). **Show the evidence**: cite that grep command in the report and put each agent's ref-count (with an example source file, e.g. `src/skills/cover/SKILL.md`) in the classification table. The telemetry observation proves only starts in supplied roots; the grep proves wiring. Render classification only when coverage is `observed`.
+Bucket by **reference counts**, never by description quality. For each observed-zero-start agent, count its real spawn references: `grep -rc "subagent_type=ork:<name>" src/skills/` (plus `agent:`/team-map mentions in `src/agents/`). **Show the evidence**: cite that grep command in the report and put each agent's ref-count (with an example source file, e.g. `src/skills/cover/SKILL.md`) in the classification table. The telemetry observation proves only starts in supplied roots; the grep proves wiring. Render classification only when coverage is `observed`.
 
 | Bucket | Condition | Action |
 |--------|-----------|--------|
@@ -85,7 +85,7 @@ Bucket by **reference counts**, never by description quality. For each observed-
 
 ## Hard Rules
 
-- **Never recommend rewriting agent descriptions.** A/B-tested: description rewrites gave Δ0 routing benefit. Dormancy is a **skill-wiring problem** — the fix is always adding a `subagent_type=ork:&lt;name&gt;` spawn from a high-traffic skill (e.g. implement, cover, review-pr), never prose changes.
+- **Never recommend rewriting agent descriptions.** A/B-tested: description rewrites gave Δ0 routing benefit. Dormancy is a **skill-wiring problem** — the fix is always adding a `subagent_type=ork:<name>` spawn from a high-traffic skill (e.g. implement, cover, review-pr), never prose changes.
 - **Classify by reference count, not description quality.** The grep above is the evidence; "the description is vague" is not.
 - **State the telemetry window, supplied roots, and coverage state in EVERY answer** — including classification-only or prune-decision answers. Observed-zero-start is never an estate-wide dormancy claim.
 - **Keep event semantics separate.** Pretool is attempted intent, `source:start` is started activation, and `agent-usage.jsonl` is a stop/completion observation. Cite all supplied sources and never sum them into a unique-spawn claim.
@@ -172,7 +172,7 @@ Report per-agent attempted, started, and completed counts. `fires` is a backward
 
 ## 4. Skill-naming cross-check (the root-cause signal)
 
-For each agent, count how many `src/skills/**/SKILL.md` reference it via a `subagent_type=` spawn for `ork:&lt;name&gt;` (or an `agent: &lt;name&gt;` field). Agents fire ~1:1 with this count — an agent named by 0-1 skills will be dormant regardless of its description. This is what distinguishes "mis-triggered" from "niche".
+For each agent, count how many `src/skills/**/SKILL.md` reference it via a `subagent_type=` spawn for `ork:<name>` (or an `agent: <name>` field). Agents fire ~1:1 with this count — an agent named by 0-1 skills will be dormant regardless of its description. This is what distinguishes "mis-triggered" from "niche".
 
 ```bash
 grep -rl "subagent_type=\"ork:${name}\"\|subagent_type: ork:${name}" src/skills/ | wc -l
@@ -199,11 +199,11 @@ Bucket each agent only after the collector reports `coverage.spawn.state: "obser
 
 - **RARE-DOMAIN set** (low use is inherently expected): design (system/context/tokens), multimodal/media, frontend-perf, IaC/infra, deployment, security-LLM/AI-safety, demo, UI-annotation. An agent whose primary domain is in this set is a NICHE candidate.
 - **WIRED** = referenced by ANY skill or agent in a way that can surface it: a real `subagent_type=`/`agent:` spawn, **OR** membership in an agent-team / agent-selection map / escalation table. Narrative-only prose mentions do NOT count as wired.
-- **REAL BUSY-SKILL SPAWN** = a `subagent_type=ork:&lt;name&gt;` (or `agent: &lt;name&gt;`) issued by a *dispatchable* skill — NOT one whose frontmatter is `user-invocable: false` + `disable-model-invocation: true` (a doc skill can't dispatch).
+- **REAL BUSY-SKILL SPAWN** = a `subagent_type=ork:<name>` (or `agent: <name>`) issued by a *dispatchable* skill — NOT one whose frontmatter is `user-invocable: false` + `disable-model-invocation: true` (a doc skill can't dispatch).
 
 ## Decision procedure (per observed-zero-start agent; stop at the first match)
 
-1. Count references: `grep -rl "ork:&lt;name&gt;\|&lt;name&gt;" src/skills/ src/agents/`. If **0 references anywhere → DEAD** (prune candidate).
+1. Count references: `grep -rl "ork:<name>\|<name>" src/skills/ src/agents/`. If **0 references anywhere → DEAD** (prune candidate).
 2. **Is its domain in the RARE-DOMAIN set AND is it WIRED?** → **NICHE** (keep — low use expected). Check this BEFORE step 3: a rare-domain agent is niche even if its only wiring is team/selection-map membership, not a busy-skill spawn.
 3. Otherwise (non-rare domain) — has refs but **no REAL BUSY-SKILL SPAWN** → **MIS-TRIGGERED** (wire one from a high-traffic skill).
 4. Otherwise (non-rare domain WITH a real busy-skill spawn but still observed at zero starts) -> **MIS-TRIGGERED** if the spawn path is itself rarely-run; note the path.
@@ -263,5 +263,5 @@ Sort: ACTIVE (by fires desc), then MIS-TRIGGERED, NICHE, DEAD.
 
 ## --json mode
 
-When invoked with `--json`, emit schema version 1 with `\{ window, catalog, coverage, totals:\{attempted,started,completed,unattributed,catalog,...\}, agents:[\{name,attempted,started,fires,completed,skillRefs\}], observed_zero_starts \}`. `fires` is a compatibility alias for `started`; `totals.ork` is a compatibility alias for `totals.catalog` under the default namespace; no field represents unique spawns. Useful for chaining into a dashboard.
+When invoked with `--json`, emit schema version 1 with `{ window, catalog, coverage, totals:{attempted,started,completed,unattributed,catalog,...}, agents:[{name,attempted,started,fires,completed,skillRefs}], observed_zero_starts }`. `fires` is a compatibility alias for `started`; `totals.ork` is a compatibility alias for `totals.catalog` under the default namespace; no field represents unique spawns. Useful for chaining into a dashboard.
 

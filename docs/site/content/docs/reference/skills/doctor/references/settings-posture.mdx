@@ -88,7 +88,7 @@ at info level when absent; never fail on it.
 ## The check
 
 Read-only. Never prints an environment variable's **value** (presence is tested with
-`[ -n "$\{VAR+x\}" ]`), and never writes a settings file.
+`[ -n "${VAR+x}" ]`), and never writes a settings file.
 
 ```bash
 U="$HOME/.claude/settings.json";  UL="$HOME/.claude/settings.local.json"
@@ -149,7 +149,7 @@ machine, and for every other user of the same repo.
 
 Measured on a real machine, 2026-08-09, CC 2.1.226. `~/.claude/settings.json` carries 20
 top-level keys and `permissions.deny` holds 5 entries, all five of them MCP tool names
-from a single private server (`mcp__&lt;server&gt;__&lt;tool&gt;`, four message-send tools and one
+from a single private server (`mcp__<server>__<tool>`, four message-send tools and one
 session-logout). Not one is a credential-read rule.
 
 That shape is the common one and it is the point of this check: operators reach for
@@ -223,5 +223,5 @@ Five rules can look like a configured posture while covering nothing this check 
 - **Hook-coverage claims in this file are dated.** They were measured against
   `src/hooks/bin/run-hook.mjs` on 2026-08-09 with `rm -rf /` as a passing control.
   Re-run the probes before citing them: an unregistered hook key returns
-  `\{"continue":true\}` with no decision, which reads exactly like an allow.
+  `{"continue":true}` with no decision, which reads exactly like an allow.
 

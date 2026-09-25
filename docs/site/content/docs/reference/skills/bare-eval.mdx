@@ -109,7 +109,7 @@ Before CC 2.1.119, `--print` mode ran with the full default tool set regardless 
 |---|---|
 | Eval graders that relied on unrestricted tool access may now fail | Audit grader prompts for tools they actually need; whitelist explicitly via the agent's `tools:` frontmatter |
 | Eval results match interactive runs | Reproducibility improves — grading what the model can actually do, not what it could do in an unsandboxed `--print` |
-| `--agent &lt;name&gt;` also honors `permissionMode` in `--print` | Permission-gated tools (Bash, Edit) require either `permissionMode: acceptEdits` or explicit allowlists in the agent definition |
+| `--agent <name>` also honors `permissionMode` in `--print` | Permission-gated tools (Bash, Edit) require either `permissionMode: acceptEdits` or explicit allowlists in the agent definition |
 
 Migration test:
 
@@ -176,7 +176,7 @@ Treat it as a **template**, not a verbatim script — adapt the `SKILLS` list an
 
 ## Holdout Bake-Off Grading
 
-The holdout-promotion gate grades a **champion** and a **challenger** SKILL.md over the same sealed holdout via bare-mode forked graders — the canonical consumer of the determinism contract above: identical grader + identical `ork-rubric/1.0` + identical sealed set, with `CLAUDE_CODE_FORK_SUBAGENT=1` so the only variable is the version under test. Both `--bare` constraints apply (requires `ANTHROPIC_API_KEY`, bills tokens directly → on-demand / CI only). Run it with `bash tests/evals/scripts/run-skill-eval.sh --holdout-promote &lt;skill&gt;`.
+The holdout-promotion gate grades a **champion** and a **challenger** SKILL.md over the same sealed holdout via bare-mode forked graders — the canonical consumer of the determinism contract above: identical grader + identical `ork-rubric/1.0` + identical sealed set, with `CLAUDE_CODE_FORK_SUBAGENT=1` so the only variable is the version under test. Both `--bare` constraints apply (requires `ANTHROPIC_API_KEY`, bills tokens directly → on-demand / CI only). Run it with `bash tests/evals/scripts/run-skill-eval.sh --holdout-promote <skill>`.
 
 ## Related
 

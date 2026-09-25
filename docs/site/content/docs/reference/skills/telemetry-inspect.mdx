@@ -31,7 +31,7 @@ One-shot health check for OrchestKit's telemetry pipeline. Reports writer activi
 1. **Writer activity** — for each registered telemetry file, recent write count (from mtime scan) and last-write delta
 2. **File health** — size (warn at 256 KB, critical at 1 MB), line count, mtime
 3. **Schema lock status** — which files have validators in `lib/telemetry-schemas.ts`
-4. **Orphan detection** — files on disk under `.claude/\{telemetry,logs,state,feedback\}/` that aren't in the registry (possible stale writer or new file needing schema), plus inventory rows whose writer hook no longer exists in `src/hooks/src/` (dead writer → orphan)
+4. **Orphan detection** — files on disk under `.claude/{telemetry,logs,state,feedback}/` that aren't in the registry (possible stale writer or new file needing schema), plus inventory rows whose writer hook no longer exists in `src/hooks/src/` (dead writer → orphan)
 5. **Growth trend** — bytes per hour since session start (fire alert if > 100 KB/hr)
 6. **Coordination layer (M168)** — live counts from `sessions.db` (running sessions, held locks, pending worktree links, skill invocations) plus write throughput from `coordination-metrics.jsonl`
 7. **Runtime fired-census** — which hooks actually *fired*, from the per-invocation records `run-hook.mjs` writes to `~/.claude/analytics/hook-timing.jsonl`. Checks 1–4 answer "is the file being written?"; this answers "is the *writer* running at all?" — the upstream question. A hook can be wired and reachable (the closure gate proves that statically) and still never fire: #2886 shipped exactly that with 12 green tests.
@@ -87,7 +87,7 @@ Summary
 1. **List known files** — read `lib/telemetry-schemas.ts`'s `SCHEMA_LOCKED` inventory for the 7 locked paths. Extend with the unlocked paths listed in the skill-local `references/telemetry-inventory.md`.
 2. **Cross-check inventory writers against the registry closure** — never trust the inventory blindly:
    - Run `node src/hooks/scripts/validate-registry.mjs` (from the OrchestKit repo root; skip gracefully if not in the OrchestKit repo) and confirm it passes.
-   - For every writer named in the inventory (e.g. `posttool/metrics-bridge`), verify the source file exists: `test -f src/hooks/src/&lt;writer&gt;.ts`.
+   - For every writer named in the inventory (e.g. `posttool/metrics-bridge`), verify the source file exists: `test -f src/hooks/src/<writer>.ts`.
    - Any inventory writer that is NOT a live `src/hooks/src/` file is **ORPHANED — report 🔴**, never "expected-but-empty". Its file(s) on disk are orphans regardless of freshness, and the inventory row is stale (flag it for removal).
 3. **For each file**:
    - Use `Glob` to resolve `.claude/state/ork-metrics-*.json` pattern → may be multiple
@@ -98,7 +98,7 @@ Summary
    - size > 256 KB → warn
    - mtime > 7 days → "no recent writes"
    - line count 0 → "no writes"
-5. **Orphan scan** — `Bash find .claude/\{telemetry,logs,state,feedback\} -type f` cross-check against registered paths. Any on-disk files not in inventory → orphan. Merge in dead-writer orphans from step 2.
+5. **Orphan scan** — `Bash find .claude/{telemetry,logs,state,feedback} -type f` cross-check against registered paths. Any on-disk files not in inventory → orphan. Merge in dead-writer orphans from step 2.
 6. **Runtime fired-census** — steps 1–5 ask "is the file being written?". This asks the upstream question: "does the writer hook run at all?"
    - Run `node src/hooks/scripts/fired-census.mjs --json` (OrchestKit repo only; skip gracefully elsewhere — it exits 0 and prints an absent-census notice if `~/.claude/analytics/hook-timing.jsonl` doesn't exist yet).
    - Report the class counts (`totals`), and the `versions.skewed` line **verbatim when true** — the census is written by the INSTALLED plugin across ALL projects, while the closure comes from this tree, so `NEVER` on a hook newer than the installed build is expected, not a finding.
@@ -127,7 +127,7 @@ sqlite3 "$DB" "SELECT COUNT(*) FROM sessions WHERE status='running'"            
 sqlite3 "$DB" "SELECT COUNT(*) FROM skill_invocation"                                 # skill invocations
 ```
 
-**Write throughput** — `coordination-metrics.jsonl` is append-only `\{ts, metric, count\}` lines emitted async by `lib/metrics-emitter.ts` on every `sessions.db` write. Event rate ≈ recent `sessions_db_write` lines:
+**Write throughput** — `coordination-metrics.jsonl` is append-only `{ts, metric, count}` lines emitted async by `lib/metrics-emitter.ts` on every `sessions.db` write. Event rate ≈ recent `sessions_db_write` lines:
 
 ```bash
 M="$HOME/.local/state/orchestkit/coordination-metrics.jsonl"
@@ -172,7 +172,7 @@ Writers do not hard-code directories — they go through four helpers. Know thes
 | Helper | Source | Target directory |
 |--------|--------|------------------|
 | `writeTelemetryEvent()` | `lib/telemetry-jsonl.ts` | `.claude/telemetry/` (or plugin-data/telemetry on CC ≥ 2.1.78) |
-| `appendEventLog(file, entry)` | `lib/event-logger.ts:17` | `&lt;project&gt;/.claude/logs/` |
+| `appendEventLog(file, entry)` | `lib/event-logger.ts:17` | `<project>/.claude/logs/` |
 | `appendAnalytics(file, entry)` | `lib/analytics.ts:55` | `getAnalyticsDir()` = `~/.claude/analytics/` — HOME-relative, not project-relative (NOT `.claude/logs/`, NOT `.claude/memory/`) |
 | `logHook()` / `logPermissionFeedback()` | `lib/log.ts:51,75` | `getLogDir()` = `.claude/logs/` |
 

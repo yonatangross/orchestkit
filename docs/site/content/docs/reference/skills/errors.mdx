@@ -341,7 +341,7 @@ except ConnectionRefusedError as e:
 | Symptom | Likely Root Cause | Do NOT Do |
 |---------|-------------------|-----------|
 | `undefined is not an object` | Missing null check or broken data flow | Wrap in try/catch |
-| `connection refused` | Service not running or wrong config | Add `catch \{ pass \}` |
+| `connection refused` | Service not running or wrong config | Add `catch { pass }` |
 | `command not found` | Missing dependency | Add `\|\| true` |
 | `permission denied` | Wrong user or file permissions | Run as root |
 | `ENOSPC` | Disk full | Delete random files |

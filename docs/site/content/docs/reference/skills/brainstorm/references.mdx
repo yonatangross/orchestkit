@@ -14,7 +14,7 @@ description: "12 references for the Brainstorm skill: Claude Code; Common Pitfal
 Slash invoke: `/ork:brainstorm`
 
 YAML `hooks:` / `command:` lines in this skill's frontmatter stay Claude-only.
-They use `$\{CLAUDE_PLUGIN_ROOT\}/hooks/bin/run-hook.mjs` and are ignored by pi.
+They use `${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs` and are ignored by pi.
 
 Session chain files live at `.claude/chain/` (state.json, decisions.json, capabilities.json).
 Other hosts should persist equivalent run state in their own session store.
@@ -801,7 +801,7 @@ append_to_journal(baseline, "keep", "-", current_commit, "baseline")
 
 ## 3. Optimization loop
 
-See `$\{CLAUDE_PLUGIN_ROOT\}/skills/chain-patterns/references/experiment-journal.md` for journal format.
+See `${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/references/experiment-journal.md` for journal format.
 
 ```python
 # LOOP (until user interrupts or trajectory == "stuck" for 5+ iterations):
@@ -829,7 +829,7 @@ ToolSearch(query="select:mcp__memory__search_nodes")  # CC < 2.1.121 fallback (a
 ToolSearch(query="select:mcp__sequential-thinking__sequentialthinking")
 ```
 
-Detailed detection patterns: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/chain-patterns/references/mcp-detection.md")`.
+Detailed detection patterns: `Read("${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/references/mcp-detection.md")`.
 
 ## Store capabilities
 
@@ -987,7 +987,7 @@ Binary viability gate inspired by [autoresearch](https://github.com/karpathy/aut
 - `duplicate` — too similar to a previously discarded approach
 - `untestable` — no seam for testing core logic without real services
 
-**Experiment journal check** (if `.claude/experiments/brainstorm-\{topic\}.tsv` exists):
+**Experiment journal check** (if `.claude/experiments/brainstorm-{topic}.tsv` exists):
 ```python
 # Pre-filter: skip ideas similar to previous 'discard' entries
 prior = Read(f".claude/experiments/brainstorm-{topic_slug}.tsv")

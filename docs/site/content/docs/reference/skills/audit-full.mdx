@@ -77,7 +77,7 @@ Before loading files, estimate whether the codebase fits in context.
 
 Load: `Read("references/token-budget-planning.md")` for estimation rules (tokens/line by file type), budget allocation tables, auto-exclusion list, and fallback dialog when codebase exceeds budget.
 
-Run estimation: `bash $\{CLAUDE_SKILL_DIR\}/scripts/estimate-tokens.sh /path/to/project`
+Run estimation: `bash ${CLAUDE_SKILL_DIR}/scripts/estimate-tokens.sh /path/to/project`
 
 ### Two tiers — pick by the estimate
 
@@ -165,7 +165,7 @@ anchors on its own reasoning). `low`/`medium` skip this step; `high` runs single
 refuters; `xhigh` runs the engine's quorum (3 for CRITICAL, 2 for HIGH).
 
 Load the protocol + audit-full bindings: `Read("references/adversarial-refutation.md")`
-(which loads the shared engine `$\{CLAUDE_PLUGIN_ROOT\}/shared/rules/adversarial-refutation.md`).
+(which loads the shared engine `${CLAUDE_PLUGIN_ROOT}/shared/rules/adversarial-refutation.md`).
 
 These refuters are audit-full's **only** sub-agent spawns (the producer is single-context),
 always isolated `Agent(...)` with no `team_name`, fed only a neutral claim (category +
@@ -200,7 +200,7 @@ PushNotification(
 )
 ```
 
-Full rule: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/chain-patterns/rules/push-notification-on-completion.md")`.
+Full rule: `Read("${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/rules/push-notification-on-completion.md")`.
 
 ---
 
@@ -248,7 +248,7 @@ Stops when: zero critical issues remain across 3 consecutive passes, or a struct
 
 ## References
 
-Load on demand with `Read("references/&lt;file&gt;")`:
+Load on demand with `Read("references/<file>")`:
 | File | Content |
 |------|---------|
 | `references/security-audit-guide.md` | Cross-file vulnerability patterns |
@@ -319,7 +319,7 @@ Every finding must include:
 
 **Vulnerable code:**
   ```typescript
-  const query = `SELECT * FROM users WHERE id = $\{req.params.id\}`;
+  const query = `SELECT * FROM users WHERE id = ${req.params.id}`;
   await db.execute(query);
   ```
 
@@ -427,7 +427,7 @@ find src/api src/auth src/middleware \
 
 Thin adapter. Loads the shared engine, then binds it to audit-full's severity-ranked findings.
 
-**Load the engine first:** `Read("$\{CLAUDE_PLUGIN_ROOT\}/shared/rules/adversarial-refutation.md")`
+**Load the engine first:** `Read("${CLAUDE_PLUGIN_ROOT}/shared/rules/adversarial-refutation.md")`
 — the blindness contract, independent-score-first, citation-verify, quorum, cross-file
 UPHELD-default, deterministic-exemption, no-auto-flip, spawn-ceiling, ledger schema, and
 isolated-spawn rules. This file only supplies what's audit-full-specific.
@@ -596,7 +596,7 @@ src/utils/ → src/auth/     : 0 imports (good, utils is generic)
 
 | Violation | Example | Fix |
 |-----------|---------|-----|
-| DB in route handler | `router.get('/', async (req, res) => \{ db.query(...) \})` | Extract to service layer |
+| DB in route handler | `router.get('/', async (req, res) => { db.query(...) })` | Extract to service layer |
 | Business logic in middleware | Auth middleware doing role-based access with complex rules | Move to use-case layer |
 | HTTP in domain | Domain entity calling external API | Inject via port/adapter |
 | UI logic in API | API returning HTML-formatted strings | Return data, format in frontend |

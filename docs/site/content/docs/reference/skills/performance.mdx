@@ -312,7 +312,7 @@ These topics used to be restated in this skill's references, checklists, and exa
 
 ## References
 
-Load on demand with `Read("references/&lt;file&gt;")`:
+Load on demand with `Read("references/<file>")`:
 | File | Content |
 |------|---------|
 | `ork-delta.md` | OrchestKit floors, scars, and house decisions for this skill |
@@ -474,7 +474,7 @@ async def on_user_updated(event: UserUpdatedEvent, cache: CacheAside):
 **Key rules:**
 - Always set TTL (1h default, 5min for volatile data)
 - Use `orjson` for serialization performance over `json`
-- Key naming: `\{entity\}:\{id\}` or `\{entity\}:\{id\}:\{field\}`
+- Key naming: `{entity}:{id}` or `{entity}:{id}:{field}`
 - Stampede prevention: use distributed locks for expensive computations
 - Event-based invalidation for writes, TTL for reads
 - Never use cache as primary storage (data loss risk)
@@ -908,7 +908,7 @@ useEffect(() => { fetchData().then(setData); }, []);
 1. **Never** lazy-load the LCP image
 2. **Always** use `fetchpriority="high"` on LCP images
 3. **Always** server-render LCP content
-4. **Preload** critical resources in `&lt;head&gt;`
+4. **Preload** critical resources in `<head>`
 5. **Preconnect** to third-party origins used for LCP
 6. Target **&lt;= 2.0s** for 2026 thresholds
 
@@ -985,7 +985,7 @@ higher quality for small thumbnails (already small files).
 **Key rules:**
 - **Prefer** AVIF as primary format with WebP fallback
 - **Use** quality 72-78 for AVIF and WebP (visually lossless for most photos)
-- **Always** include a JPEG/PNG fallback in `&lt;picture&gt;`
+- **Always** include a JPEG/PNG fallback in `<picture>`
 - **Use** progressive JPEG for any remaining JPEG images
 - **Automate** format conversion in the build pipeline, not manually
 
@@ -1090,7 +1090,7 @@ function imgixUrl(src: string, width: number, quality = 80) {
 **Key rules:**
 - **Always** provide `sizes` alongside `srcset` for width descriptors
 - **Use** 3-4 srcset breakpoints (400, 800, 1200, 1600) for most images
-- **Use** `&lt;picture&gt;` with `media` for art direction (different crops)
+- **Use** `<picture>` with `media` for art direction (different crops)
 - **Delegate** resizing to a CDN rather than shipping multiple static files
 - **Set** explicit `width` and `height` to prevent CLS
 
@@ -2742,7 +2742,7 @@ analyses = await session.execute(
 |------------|----------|---------|
 | **B-tree** | Equality, range queries | `WHERE created_at > '2025-01-01'` |
 | **GIN** | Full-text search, JSONB | `WHERE content_tsvector @@ to_tsquery('python')` |
-| **HNSW** | Vector similarity | `ORDER BY embedding &lt;=&gt; '[0.1, 0.2, ...]'` |
+| **HNSW** | Vector similarity | `ORDER BY embedding <=> '[0.1, 0.2, ...]'` |
 | **Hash** | Exact equality only | `WHERE id = 'abc123'` (rare) |
 
 **Index Creation Examples:**
@@ -3346,7 +3346,7 @@ def upgrade():
 
 **Reproduce issue:**
 1. Start analysis via API
-2. Frontend subscribes to SSE `/progress/\{analysis_id\}`
+2. Frontend subscribes to SSE `/progress/{analysis_id}`
 3. Backend immediately publishes "analysis_started" event
 4. Frontend connects 200ms later → misses early events
 

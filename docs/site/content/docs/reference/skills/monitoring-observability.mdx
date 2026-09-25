@@ -1558,7 +1558,7 @@ The JS/TS SDK is a **different major** from Python and a different package layou
 Do not translate a Python snippet by guessing the JS name.
 
 Every symbol below was taken from the published type declarations at 5.9.1
-(`cdn.jsdelivr.net/npm/@langfuse/&lt;pkg&gt;@5.9.1/dist/index.d.ts`). If you add one, verify it the
+(`cdn.jsdelivr.net/npm/@langfuse/<pkg>@5.9.1/dist/index.d.ts`). If you add one, verify it the
 same way. This file previously documented `LangfuseExporter`, a class that has never existed.
 
 ## Package map
@@ -1636,10 +1636,10 @@ evaluator shapes are easy to confuse.
 
 | Type | Shape |
 |---|---|
-| `ExperimentTask` | `(params) => Promise&lt;any&gt;`, receives `input`, `expectedOutput`, `metadata` |
-| `Evaluator` | `(params) => Promise&lt;Evaluation \| Evaluation[]&gt;`, scores ONE item |
-| `RunEvaluator` | `(params) => Promise&lt;Evaluation \| Evaluation[]&gt;`, scores the WHOLE run |
-| `Evaluation` | `\{ name, value, comment?, metadata?, dataType?, configId? \}` |
+| `ExperimentTask` | `(params) => Promise<any>`, receives `input`, `expectedOutput`, `metadata` |
+| `Evaluator` | `(params) => Promise<Evaluation \| Evaluation[]>`, scores ONE item |
+| `RunEvaluator` | `(params) => Promise<Evaluation \| Evaluation[]>`, scores the WHOLE run |
+| `Evaluation` | `{ name, value, comment?, metadata?, dataType?, configId? }` |
 
 Use `Evaluator` for per-item quality and `RunEvaluator` for aggregate assertions (pass rate,
 mean score). A per-item evaluator cannot see the other items, so an aggregate check written as
@@ -1650,7 +1650,7 @@ an `Evaluator` silently measures the wrong thing.
 CI on quality drops rather than only on exceptions.
 
 On the older AI SDK v6 line there is no integration package: set
-`experimental_telemetry: \{ isEnabled: true \}` on the call and let `LangfuseSpanProcessor`
+`experimental_telemetry: { isEnabled: true }` on the call and let `LangfuseSpanProcessor`
 collect it.
 
 ## Cross-references
@@ -1869,9 +1869,9 @@ sum(rate(claude_code.pull_request.count[5m])) by (provider)
   - on(provider) sum(rate(claude_code.tool.use{tool=~"Bash"}[5m]))
 ```
 
-(In practice, hold a separate counter in your collector that increments only on `claude_code.tool.use\{tool=~"mcp__.*"\}` co-occurring with a PR-creation event.)
+(In practice, hold a separate counter in your collector that increments only on `claude_code.tool.use{tool=~"mcp__.*"}` co-occurring with a PR-creation event.)
 
-**See also**: `$\{CLAUDE_PLUGIN_ROOT\}/skills/telemetry-inspect/SKILL.md` and `$\{CLAUDE_PLUGIN_ROOT\}/skills/configure/references/cc-version-settings.md` (CC 2.1.129 section) for the upstream changelog reference.
+**See also**: `${CLAUDE_PLUGIN_ROOT}/skills/telemetry-inspect/SKILL.md` and `${CLAUDE_PLUGIN_ROOT}/skills/configure/references/cc-version-settings.md` (CC 2.1.129 section) for the upstream changelog reference.
 
 ### Ork Delta
 
@@ -1939,7 +1939,7 @@ Why: two shipped scars. `LangfuseExporter` was documented across four files in t
 never been exported by any published version of `@langfuse/otel`, and `@langfuse/vercel` was
 documented for months and was never published at all (the real package is
 `@langfuse/vercel-ai-sdk`). No version gate can catch a symbol that never existed, so the check
-has to happen at authoring time: `curl registry.npmjs.org/&lt;pkg&gt;/latest` for the package, then
+has to happen at authoring time: `curl registry.npmjs.org/<pkg>/latest` for the package, then
 read the published `dist/index.d.ts` for the symbol. Related trap: `@langfuse/core` is an
 internal utility package with no `Langfuse` export, so it is never the client.
 

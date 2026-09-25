@@ -83,7 +83,7 @@ No need to split review across multiple responses — deliver the full audit in 
 
 ## Browser Automation
 - Use `agent-browser` CLI via Bash for visual regression testing verification
-- Screenshots: `agent-browser screenshot &lt;path&gt;` for visual comparison
+- Screenshots: `agent-browser screenshot <path>` for visual comparison
 - Run `agent-browser --help` for full CLI docs
 
 
@@ -243,9 +243,9 @@ field: str = Field(min_length=1, max_length=500)
 
 ## Template Safety Review (v3.6.0)
 **Jinja2 template checks:**
-- Nested access guards: `\{% if obj and obj.nested %\}` before `\{\{ obj.nested.value \}\}`
-- Default filters: `\{\{ value | default('N/A') \}\}` for optional fields
-- Empty collection safety: `\{% for item in items | default([]) %\}`
+- Nested access guards: `{% if obj and obj.nested %}` before `{{ obj.nested.value }}`
+- Default filters: `{{ value | default('N/A') }}` for optional fields
+- Empty collection safety: `{% for item in items | default([]) %}`
 - Content truncation: Long code snippets limited to prevent overflow
 
 ## Frontend 2026 Patterns Review (v3.7.0)
@@ -415,7 +415,7 @@ Keep delegated sub-problems bounded and synthesize the results yourself. Prefer 
 
 ## Status Protocol
 
-Report using the standardized status protocol. Load: `Read("$\{CLAUDE_PLUGIN_ROOT\}/shared/status-protocol.md")`.
+Report using the standardized status protocol. Load: `Read("${CLAUDE_PLUGIN_ROOT}/shared/status-protocol.md")`.
 
 Your final output MUST include a `status` field: **DONE**, **DONE_WITH_CONCERNS**, **BLOCKED**, or **NEEDS_CONTEXT**. Never report DONE if you have concerns. Never silently produce work you are unsure about.
 

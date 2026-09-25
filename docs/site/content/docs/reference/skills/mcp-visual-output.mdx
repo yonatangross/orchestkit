@@ -58,7 +58,7 @@ What are you doing?
 1. **Define a catalog** -- typed component schemas using `defineCatalog()` + Zod
 2. **Register with MCP** -- `createMcpApp()` for new servers or `registerJsonRenderTool()` for existing ones
 3. **AI generates specs** -- the model produces a JSON spec conforming to the catalog
-4. **Iframe renders it** -- a bundled React app inside a sandboxed iframe renders the spec with `useJsonRenderApp()` + `&lt;Renderer /&gt;`
+4. **Iframe renders it** -- a bundled React app inside a sandboxed iframe renders the spec with `useJsonRenderApp()` + `<Renderer />`
 
 The AI never writes HTML or CSS. It produces a structured JSON spec that references catalog components by type. The iframe app renders those components using a pre-built registry.
 
@@ -482,7 +482,7 @@ registerJsonRenderTool(server, {
 **Key rules:**
 - Always provide both `catalog` and `html` -- the catalog defines what the AI can generate, the html renders it
 - `createMcpApp()` is async and returns `McpServer` directly — there is no `.start()` method; connect a transport after awaiting
-- `createMcpApp()` requires `name`, `version`, and `tool: \{ name, description \}` — all are required in 0.19
+- `createMcpApp()` requires `name`, `version`, and `tool: { name, description }` — all are required in 0.19
 - `registerJsonRenderTool()` requires `catalog`, `name`, `title`, `description`, and `resourceUri` — all required in 0.19
 - The html bundle must be a self-contained single-file app (all JS/CSS inlined) because it loads inside a sandboxed iframe with no external script access by default
 - Use `createMcpApp()` when building a server whose primary purpose is visual output
@@ -1204,7 +1204,7 @@ function McpAppView({ registry }) {
 
 ## Client API (`@json-render/mcp/app`)
 
-- `useJsonRenderApp(options?)` - React hook, returns `\{ spec, loading, connected, error, callServerTool \}`
+- `useJsonRenderApp(options?)` - React hook, returns `{ spec, loading, connected, error, callServerTool }`
 - `buildAppHtml(options)` - generate HTML from bundled JS/CSS
 
 ## Building the iframe HTML

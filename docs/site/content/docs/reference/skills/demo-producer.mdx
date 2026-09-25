@@ -38,7 +38,7 @@ demo-producer --live 4           # Live preview via dev --live (4-hour public fu
 `--live N` is a thin wrapper around `dev --live N`: it boots the dev stack
 behind `portless --funnel` (publicly exposed via Tailscale Funnel), records an
 expiry of `N` hours into `.claude/state/live-demos.jsonl`, and prints a public
-URL plus `&lt;iframe&gt;` snippet for embedding in customer emails or docs pages.
+URL plus `<iframe>` snippet for embedding in customer emails or docs pages.
 
 ```bash
 demo-producer --live 4
@@ -196,7 +196,7 @@ PushNotification(
 )
 ```
 
-Full rule: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/chain-patterns/rules/push-notification-on-completion.md")`.
+Full rule: `Read("${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/rules/push-notification-on-completion.md")`.
 
 ## Best Practices
 
@@ -231,7 +231,7 @@ Core rule: If content doesn't earn its screen time, cut it.
 
 ## References
 
-Load on demand with `Read("references/&lt;file&gt;")`:
+Load on demand with `Read("references/<file>")`:
 | File | Content |
 |------|---------|
 | `template-system.md` | Template architecture and SkillDemoConfig interface |
