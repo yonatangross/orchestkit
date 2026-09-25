@@ -128,20 +128,20 @@ Write(".claude/chain/exploration.json", JSON.stringify({
 
 ---
 
-Choose **Agent Teams** (mesh) or **Task tool** (star):
+Choose **Agent Teams** (mesh) or **Agent tool** (star):
 
 1. Agent Teams mode (GA since CC 2.1.33) → **recommended for 4+ agents**
-2. Task tool mode → **for quick/single-focus exploration**
-3. `ORCHESTKIT_FORCE_TASK_TOOL=1` → **Task tool** (override)
+2. Agent tool mode → **for quick/single-focus exploration**
+3. `ORCHESTKIT_FORCE_TASK_TOOL=1` → **Agent tool** (override)
 
-| Aspect | Task Tool | Agent Teams |
+| Aspect | Agent Tool | Agent Teams |
 |--------|-----------|-------------|
 | Discovery sharing | Lead synthesizes after all complete | Explorers share discoveries as they go |
 | Cross-referencing | Lead connects dots | Data flow explorer alerts architecture explorer |
 | Cost | ~150K tokens | ~400K tokens |
 | Best for | Quick/focused searches | Deep full-codebase exploration |
 
-> **Fallback:** If Agent Teams encounters issues, fall back to Task tool for remaining exploration.
+> **Fallback:** If Agent Teams encounters issues, fall back to Agent tool for remaining exploration.
 
 > **Model cost (CC 2.1.198+):** the built-in Explore agent inherits the session model **capped at Opus** — it no longer runs on haiku. From a premium-model session (Opus, Fable), budget Explore fan-outs at Opus rates; there is no knob to pin the built-in Explore back to haiku. ork's own explorer agents can still pin a cheaper model via frontmatter.
 
@@ -224,7 +224,7 @@ mcp__memory__search_nodes(query="architecture")
 
 ### Phase 3: Parallel Deep Exploration (4 Agents)
 
-Load `Read("rules/exploration-agents.md")` for Task tool mode prompts.
+Load `Read("rules/exploration-agents.md")` for Agent tool mode prompts.
 
 Load `Read("rules/agent-teams-mode.md")` for Agent Teams alternative.
 

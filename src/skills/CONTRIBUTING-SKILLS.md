@@ -798,7 +798,7 @@ For complex skills where agents benefit from debate/cross-pollination, offer a m
 ```
 
 Decision guidance:
-- **Star (Task tool)**: Independent tasks, cost-sensitive, < 3 agents
+- **Star (Agent tool)**: Independent tasks, cost-sensitive, < 3 agents
 - **Mesh (Agent Teams)**: Cross-cutting concerns, agents need to talk, 3+ agents
 
 ### Skill Chain Dependencies

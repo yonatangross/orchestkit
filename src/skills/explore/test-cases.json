@@ -55,7 +55,7 @@
         "Launches multiple named agents with team_name for coordinated parallel exploration",
         "Agents share discoveries in real-time by messaging each other with found entry points",
         "Lets teammates wind down at turn end after report generation (no TeamDelete; CC 2.1.178+)",
-        "Falls back to standard Task tool spawns if team formation fails"
+        "Falls back to standard Agent tool spawns if team formation fails"
       ]
     },
     {

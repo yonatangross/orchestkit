@@ -84,12 +84,12 @@ Weight is **per leg, not per route**. A PR review can be a Heavy security leg pl
      |            |             |
   intent       show the     invoke the
   + weight     route        target skill;
-  out loud     + nod        follow ITS phases
+  one line     + nod        follow ITS phases
 ```
 
-### 1. Classify (reason out loud first)
+### 1. Classify
 
-State your reasoning **before** committing to a route — this triggers chain-of-thought and is the single biggest accuracy lever (Anthropic, *Writing Effective Tools for Agents*). Example: *"'get latency under 200ms' names a metric + a direction → optimize, not fix."*
+Name the route and the one signal that decided it in a single short line. Example: *"'get latency under 200ms' names a metric + a direction, so optimize, not fix."*
 
 Apply the disambiguation rules (most specific wins; explicit verb beats inferred intent). **The load-bearing one: explicit verb wins** — "Fix the slow query" → `fix`, not `optimize`. For the full ordered ruleset (all 7, including the truly-ambiguous fallback), `references/routing-rules.md` is canonical.
 

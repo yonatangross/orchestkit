@@ -1,6 +1,6 @@
 # Task Metrics Template (CC 2.1.30)
 
-Task tool results now include efficiency metrics. After parallel agents complete, report:
+Agent tool results now include efficiency metrics. After parallel agents complete, report:
 
 ```markdown
 ## Review Efficiency

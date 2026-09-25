@@ -71,7 +71,7 @@ async def generate_analysis(content: str, context: list[str]) -> str:
     get_client().update_current_observation(
         input={"content": content[:500], "context": context},  # Truncated
         output=response_text[:500],  # Truncated
-        model="claude-sonnet-4-6",
+        model="claude-sonnet-5",
         usage={"input_tokens": input_tokens, "output_tokens": output_tokens, "unit": "TOKENS"},
         metadata={"temperature": 1.0, "max_tokens": 4096},
     )
@@ -143,7 +143,7 @@ async def generate_with_scoring(content: str) -> str:
     get_client().update_current_observation(
         input=content[:500],
         output=response_text[:500],
-        model="claude-sonnet-4-6",
+        model="claude-sonnet-5",
         usage={"input_tokens": 800, "output_tokens": 400, "unit": "TOKENS"},
     )
 

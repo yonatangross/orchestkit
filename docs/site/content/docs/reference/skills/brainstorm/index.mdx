@@ -178,20 +178,20 @@ Full sub-flow (metric question, baseline, loop body): `Read("references/iterativ
 
 ## STEP 0b: Select Orchestration Mode (skip for Tier 1-2)
 
-Choose **Agent Teams** (mesh — agents debate and challenge ideas) or **Task tool** (star — all report to lead):
+Choose **Agent Teams** (mesh, agents debate and challenge ideas) or **Agent tool** (star, all report to lead):
 
 1. Agent Teams mode (GA since CC 2.1.33) → **recommended for 3+ agents** (real-time debate produces better ideas)
-2. Task tool mode → **for quick ideation**
-3. `ORCHESTKIT_FORCE_TASK_TOOL=1` → **Task tool** (override)
+2. Agent tool mode → **for quick ideation**
+3. `ORCHESTKIT_FORCE_TASK_TOOL=1` → **Agent tool** (override)
 
-| Aspect | Task Tool | Agent Teams |
+| Aspect | Agent Tool | Agent Teams |
 |--------|-----------|-------------|
 | Idea generation | Each agent generates independently | Agents riff on each other's ideas |
 | Devil's advocate | Lead challenges after all complete | Agents challenge each other in real-time |
 | Cost | ~150K tokens | ~400K tokens |
 | Best for | Quick ideation, constrained design | Open exploration, deep evaluation |
 
-> **Fallback:** If Agent Teams encounters issues, fall back to Task tool for remaining phases.
+> **Fallback:** If Agent Teams encounters issues, fall back to Agent tool for remaining phases.
 
 ---
 

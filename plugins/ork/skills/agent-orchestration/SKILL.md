@@ -78,7 +78,7 @@ Patterns for autonomous LLM reasoning: ReAct (Reasoning + Acting), Plan-and-Exec
 
 Fan-out/fan-in parallelism, supervisor routing with dependency ordering, conflict resolution (confidence-based or LLM arbitration), result synthesis, and CC Agent Teams (mesh topology for peer messaging in CC 2.1.33+).
 
-**Key decisions:** 3-8 specialists, parallelize independent agents, use Task tool (star) for simple work, Agent Teams (mesh) for cross-cutting concerns.
+**Key decisions:** 3-8 specialists, parallelize independent agents. Pick one of three modes: the Agent tool (star) for simple work, Agent Teams (mesh) for cross-cutting concerns, and a Workflow for large background fan-out you check back on later.
 
 ## Alternative Frameworks
 
@@ -121,7 +121,7 @@ Local tutorials for these topics were retired; consult the first-party source an
 | Max loop steps | 5-15 (prevent infinite loops) |
 | Agent count | 3-8 specialists per workflow |
 | Framework | Match to team expertise + use case |
-| Topology | Task tool (star) for simple; Agent Teams (mesh) for complex |
+| Topology | Agent tool (star) for simple; Agent Teams (mesh) for complex; Workflow for large background fan-out |
 | Scenario count | Always 3: simple, medium, complex |
 
 ## Common Mistakes
@@ -133,7 +133,7 @@ Local tutorials for these topics were retired; consult the first-party source an
   - Note (CC 2.1.157): `claude agents` honors the `agent` field in `settings.json` for dispatched sessions; `--agent <name>` overrides it — pin the agent type explicitly when dispatching.
 - Missing synthesis step (raw agent outputs not useful)
 - Mixing frameworks in one project (complexity explosion)
-- Using Agent Teams for simple sequential work (use Task tool)
+- Using Agent Teams for simple sequential work (use the Agent tool)
 - Sequential instead of parallel scenarios (defeats purpose)
 
 ## Related Skills

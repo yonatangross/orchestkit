@@ -31,7 +31,7 @@ tool-coverage: illustrative
 ## Overview
 
 Claude Code 2.1.16 introduces a native Task Management System with four tools:
-> **CC 2.1.233 caveat:** the Task tools are removed for the newest models unless `CLAUDE_CODE_ENABLE_TODO_TOOLS=1` is set in user or managed settings (or the shell). ork cannot ship that flag (CC reads only `permissions` from plugin settings), so treat every Task-tool call in this skill as conditional on the operator's environment.
+> **CC 2.1.233 caveat:** the Agent tools are removed for the newest models unless `CLAUDE_CODE_ENABLE_TODO_TOOLS=1` is set in user or managed settings (or the shell). ork cannot ship that flag (CC reads only `permissions` from plugin settings), so treat every Task-tool call in this skill as conditional on the operator's environment.
 
 - **TaskCreate**: Create new tasks with subject, description, and activeForm
 - **TaskUpdate**: Update status (pending → in_progress → completed), set dependencies
@@ -138,9 +138,9 @@ Agent Teams provides multi-agent coordination with shared task lists and peer-to
 
 > **Cross-session replies land in the parent (CC 2.1.248):** when a subagent sends `SendMessage` to another session, the reply is delivered to the parent session's conversation, never to the subagent; a subagent sends and moves on, the parent reads the answer. Cross-session `SendMessage` / `ListAgents` also work on Bedrock, Vertex and Foundry and with telemetry disabled (CC 2.1.248).
 
-### When to Use Teams vs Task Tool
+### When to Use Teams vs Agent Tool
 
-| Criteria | Task Tool (subagents) | Agent Teams |
+| Criteria | Agent Tool (subagents) | Agent Teams |
 |----------|----------------------|-------------|
 | Independent tasks | Yes | Overkill |
 | Cross-cutting changes | Limited | Yes |
@@ -197,7 +197,7 @@ When using Agent Teams, if context limit is reached mid-workflow:
 - Leaving tasks in_progress when blocked
 - Not marking tasks completed after finishing
 - Using broadcast for messages that only concern one teammate
-- Spawning teams for simple sequential work (use Task tool instead)
+- Spawning teams for simple sequential work (use Agent tool instead)
 
 ## Related Skills
 

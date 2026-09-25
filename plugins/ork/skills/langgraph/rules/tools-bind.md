@@ -46,9 +46,14 @@ def agent_node(state):
     return {"messages": [response]}
 ```
 
-**Force specific tool:**
+**Require a tool call:**
 ```python
-model.bind_tools(tools, tool_choice="any")             # At least one tool
+# Opus 5.5 and Fable 5.1: forced tool_choice ("any" or a named tool) returns a 400.
+# Use auto with strict tools and name the required tool in the prompt:
+model.bind_tools(tools, tool_choice="auto", strict=True)  # langchain-anthropic >= 1.1.0
+
+# Other providers and Claude models:
+model.bind_tools(tools, tool_choice="any")              # At least one tool
 model.bind_tools(tools, tool_choice="search_database")  # Specific tool
 ```
 
@@ -56,6 +61,6 @@ model.bind_tools(tools, tool_choice="search_database")  # Specific tool
 - Always `bind_tools()` before invoking the model
 - Use descriptive `@tool` docstrings — LLM uses them to decide which tool to call
 - Keep 5-10 tools max per agent (use dynamic selection for more)
-- Use `tool_choice` when a specific tool is required
+- Use `tool_choice` when a specific tool is required, except on Opus 5.5 or Fable 5.1 (400): there use `auto` plus `strict` tools and a prompt that names the tool
 
 Reference: [LangGraph Tool Calling](https://langchain-ai.github.io/langgraph/concepts/agentic_concepts/#tool-calling-agent)

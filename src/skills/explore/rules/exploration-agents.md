@@ -1,11 +1,11 @@
 ---
-title: Spawn parallel exploration agents using Task tool for concurrent codebase analysis
+title: Spawn parallel exploration agents using Agent tool for concurrent codebase analysis
 impact: HIGH
 impactDescription: "Defines parallel agent spawning pattern for concurrent codebase exploration"
 tags: agents, exploration, task-tool
 ---
 
-# Exploration Agents (Task Tool Mode)
+# Exploration Agents (Agent Tool Mode)
 
 Launch 4 specialized explorers in ONE message with `run_in_background: true`:
 

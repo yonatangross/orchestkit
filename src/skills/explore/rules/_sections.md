@@ -10,7 +10,7 @@ version: 1.0.0
 Patterns for spawning and coordinating parallel exploration agents.
 
 - `agent-teams-mode.md` -- Multi-agent team formation with real-time discovery sharing
-- `exploration-agents.md` -- Task tool mode with 4 parallel background explorers
+- `exploration-agents.md`, Agent tool mode with 4 parallel background explorers
 
 ## 2. Code Analysis -- MEDIUM -- 3 rules
 

@@ -299,7 +299,7 @@ Bash(command="gh pr checks $PR_NUMBER --watch 2>&1", run_in_background=true)
 Monitor(pid=ci_watch_id)  # Each status change → notification
 ```
 
-See [Agent Prompts -- Task Tool Mode](rules/agent-prompts-task-tool.md) for the 6 parallel agent prompts.
+See [Agent Prompts, Agent Tool Mode](rules/agent-prompts-task-tool.md) for the 6 parallel agent prompts.
 
 See [Agent Prompts -- Agent Teams Mode](rules/agent-prompts-agent-teams.md) for the mesh alternative.
 
@@ -462,7 +462,7 @@ Load on demand with `Read("references/&lt;file&gt;")`:
 | `adversarial-refutation.md` | Blind-refuter bindings (Phase 4.5) — loads the shared engine |
 | `cross-model-refuter.md` | Optional non-Claude refuter lane (provenance + cost gate) |
 | `ultrareview-gate.md` | Phase 3.5 /ultrareview trigger eval, prompt, opt-out |
-| `orchestration-mode-selection.md` | Task tool vs Agent Teams |
+| `orchestration-mode-selection.md` | Agent tool vs Agent Teams |
 | `validation-commands.md` | Build/test/lint commands |
 | `task-metrics-template.md` | Task metrics format |
 
@@ -470,7 +470,7 @@ Rules: `Read("rules/&lt;file&gt;")`:
 
 | File | Content |
 |------|---------|
-| `agent-prompts-task-tool.md` | Agent prompts for Task tool mode |
+| `agent-prompts-task-tool.md` | Agent prompts for Agent tool mode |
 | `agent-prompts-agent-teams.md` | Agent prompts for Agent Teams mode |
 - [AI Code Review Agent](rules/ai-code-review-agent.md)
 
@@ -619,13 +619,13 @@ turn-end too (CC 2.1.183), so a long check can outlive the teammate and still be
 collected at synthesis. To force-stop a teammate left spinning on a background
 task, press `Ctrl+F` twice (foreground/Stop).
 
-> **Fallback:** If team formation fails, use standard Task tool spawns from [agent-prompts-task-tool.md](agent-prompts-task-tool.md).
+> **Fallback:** If team formation fails, use standard Agent tool spawns from [agent-prompts-task-tool.md](agent-prompts-task-tool.md).
 
 
-### Agent Prompts: Task Tool Mode: HIGH
+### Agent Prompts: Agent Tool Mode: HIGH
 
 
-# Agent Prompts — Task Tool Mode
+# Agent Prompts, Agent Tool Mode
 
 Launch SIX specialized reviewers in ONE message with `run_in_background: false`.
 
@@ -1226,20 +1226,20 @@ The two paths produce the same KG shape (entity name `PR-\{number\}-Review`, ent
 
 # Orchestration Mode Selection
 
-Choose **Agent Teams** (mesh -- reviewers cross-reference findings) or **Task tool** (star -- all report to lead):
+Choose **Agent Teams** (mesh, reviewers cross-reference findings) or **Agent tool** (star, all report to lead):
 
 1. Agent Teams mode (GA since CC 2.1.33) -> **recommended for full review with 6+ agents**
-2. Task tool mode -> **for quick/focused review**
-3. `ORCHESTKIT_FORCE_TASK_TOOL=1` -> **Task tool** (override)
+2. Agent tool mode -> **for quick/focused review**
+3. `ORCHESTKIT_FORCE_TASK_TOOL=1` -> **Agent tool** (override)
 
-| Aspect | Task Tool | Agent Teams |
+| Aspect | Agent Tool | Agent Teams |
 |--------|-----------|-------------|
 | Communication | All reviewers report to lead | Reviewers cross-reference findings |
 | Security + quality overlap | Lead deduplicates | security-auditor messages code-quality-reviewer directly |
 | Cost | ~200K tokens | ~500K tokens |
 | Best for | Quick/focused reviews | Full reviews with cross-cutting concerns |
 
-> **Fallback:** If Agent Teams encounters issues, fall back to Task tool for remaining review.
+> **Fallback:** If Agent Teams encounters issues, fall back to Agent tool for remaining review.
 
 
 ### Review Report Template
@@ -1398,7 +1398,7 @@ question: Is there a reason we're not using the existing `UserService` here?
 
 # Task Metrics Template (CC 2.1.30)
 
-Task tool results now include efficiency metrics. After parallel agents complete, report:
+Agent tool results now include efficiency metrics. After parallel agents complete, report:
 
 ```markdown
 ## Review Efficiency

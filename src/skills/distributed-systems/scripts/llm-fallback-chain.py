@@ -9,7 +9,7 @@ Multi-model fallback implementation with:
 
 Usage:
     chain = LLMFallbackChain(
-        primary=LLMProvider("claude-sonnet-4-6"),
+        primary=LLMProvider("claude-sonnet-5"),
         fallbacks=[LLMProvider("gpt-5-mini")],
         cache=semantic_cache,
     )
@@ -449,7 +449,7 @@ if __name__ == "__main__":
         primary = MockLLMProvider(
             LLMConfig(
                 name="primary",
-                model="claude-sonnet-4-6",
+                model="claude-sonnet-5",
                 cost_per_million_input=3.0,
                 cost_per_million_output=15.0,
             ),

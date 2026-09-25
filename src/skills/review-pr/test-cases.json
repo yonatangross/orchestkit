@@ -65,7 +65,7 @@
         "Evaluates whether the PR review requires cross-cutting communication between review agents",
         "Recommends Agent Teams when reviewers need mesh communication across backend and frontend",
         "Uses the implicit team (Agent(name=...)) with peer-to-peer SendMessage for coordinated multi-agent review efforts",
-        "Warns about higher cost of Agent Teams approximately 2.5x compared to sequential Task tool review"
+        "Warns about higher cost of Agent Teams approximately 2.5x compared to sequential Agent tool review"
       ]
     }
   ]

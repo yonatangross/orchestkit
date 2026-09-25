@@ -320,7 +320,7 @@ Bash(command="gh pr checks $PR_NUMBER --watch 2>&1", run_in_background=true)
 Monitor(pid=ci_watch_id)  # Each status change → notification
 ```
 
-See [Agent Prompts -- Task Tool Mode](rules/agent-prompts-task-tool.md) for the 6 parallel agent prompts.
+See [Agent Prompts, Agent Tool Mode](rules/agent-prompts-task-tool.md) for the 6 parallel agent prompts.
 
 See [Agent Prompts -- Agent Teams Mode](rules/agent-prompts-agent-teams.md) for the mesh alternative.
 
@@ -483,7 +483,7 @@ Load on demand with `Read("references/<file>")`:
 | `adversarial-refutation.md` | Blind-refuter bindings (Phase 4.5) — loads the shared engine |
 | `cross-model-refuter.md` | Optional non-Claude refuter lane (provenance + cost gate) |
 | `ultrareview-gate.md` | Phase 3.5 /ultrareview trigger eval, prompt, opt-out |
-| `orchestration-mode-selection.md` | Task tool vs Agent Teams |
+| `orchestration-mode-selection.md` | Agent tool vs Agent Teams |
 | `validation-commands.md` | Build/test/lint commands |
 | `task-metrics-template.md` | Task metrics format |
 
@@ -491,6 +491,6 @@ Rules: `Read("rules/<file>")`:
 
 | File | Content |
 |------|---------|
-| `agent-prompts-task-tool.md` | Agent prompts for Task tool mode |
+| `agent-prompts-task-tool.md` | Agent prompts for Agent tool mode |
 | `agent-prompts-agent-teams.md` | Agent prompts for Agent Teams mode |
 - [AI Code Review Agent](rules/ai-code-review-agent.md)

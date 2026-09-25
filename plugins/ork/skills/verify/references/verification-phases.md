@@ -35,7 +35,7 @@ Optionally add `monitoring-engineer` as a **conditional observability verifier**
 
 See [Grading Rubric](grading-rubric.md) for detailed scoring criteria.
 
-### Task Tool Mode (Default)
+### Agent Tool Mode (Default)
 
 ```python
 # PARALLEL — All 6 in ONE message

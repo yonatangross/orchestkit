@@ -95,7 +95,7 @@ model = FastLanguageModel.get_peft_model(model, r=16, lora_alpha=32)
 
 ## Function Calling
 
-Enable LLMs to use external tools and return structured data. Use strict mode schemas (2026 best practice) for reliability. Limit to 5-15 tools per request, validate all inputs with Pydantic/Zod, and return errors as tool results.
+Enable LLMs to use external tools and return structured data. Use strict mode schemas (2026 best practice) for reliability. On Claude keep the `tools` array stable across turns so the prompt cache holds; add tools mid-session with an inline `tool_addition` (beta `inline-tools-2026-09-15`, not on Sonnet 5) or `defer_loading` instead of swapping subsets (https://platform.claude.com/docs/en/build-with-claude/mid-conversation-system-messages#mid-conversation-tool-changes). Forced `tool_choice` (`any` or a named tool) returns a 400 on Opus 5.5 and Fable 5.1; use `auto` with `strict: true` tools. Limit to 5-15 tools per request (use `defer_loading` beyond that on Claude). Validate all inputs with Pydantic/Zod, and return errors as tool results.
 
 - `calling-tool-definition.md` -- Strict mode schemas, OpenAI/Anthropic formats, LangChain binding
 - `calling-parallel.md` -- Parallel tool execution, asyncio.gather, strict mode constraints

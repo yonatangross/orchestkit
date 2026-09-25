@@ -99,9 +99,9 @@ AskUserQuestion(
 
 ## STEP 0b: Select Orchestration Mode
 
-Load details: `Read("skills/verify/references/orchestration-mode.md")` for env var check logic, Agent Teams vs Task Tool comparison, and mode selection rules.
+Load details: `Read("skills/verify/references/orchestration-mode.md")` for env var check logic, Agent Teams vs Agent Tool comparison, and mode selection rules.
 
-Choose **Agent Teams** (mesh -- verifiers share findings) or **Task tool** (star -- all report to lead) based on the orchestration mode reference.
+Choose **Agent Teams** (mesh, verifiers share findings) or **Agent tool** (star, all report to lead) based on the orchestration mode reference.
 
 
 ### MCP Probe + Resume
@@ -400,7 +400,7 @@ Load on demand with `Read("references/<file>")`:
 | `verification-manifest.md` | VERIFIED‑vs‑CLAIMED provenance ledger: states, verdict rule, claim sources, template, anti‑patterns |
 | `reachability-proof.md` | REACHED‑vs‑UNREACHED: the mutate→red→restore→green proof, commit-first and call-site rules, verdict cap, anti‑patterns |
 | `alternative-comparison.md` | Approach comparison template |
-| `orchestration-mode.md` | Agent Teams vs Task Tool |
+| `orchestration-mode.md` | Agent Teams vs Agent Tool |
 | `policy-as-code.md` | Verification policy configuration |
 | `verification-checklist.md` | Pre-flight checklist |
 | `streak-gate.md` | `--streak=N` consecutive-pass gate: ledger schema, reset rule, `/goal` wiring, cover reuse |

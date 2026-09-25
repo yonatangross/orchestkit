@@ -2969,9 +2969,14 @@ def agent_node(state):
     return {"messages": [response]}
 ```
 
-**Force specific tool:**
+**Require a tool call:**
 ```python
-model.bind_tools(tools, tool_choice="any")             # At least one tool
+# Opus 5.5 and Fable 5.1: forced tool_choice ("any" or a named tool) returns a 400.
+# Use auto with strict tools and name the required tool in the prompt:
+model.bind_tools(tools, tool_choice="auto", strict=True)  # langchain-anthropic >= 1.1.0
+
+# Other providers and Claude models:
+model.bind_tools(tools, tool_choice="any")              # At least one tool
 model.bind_tools(tools, tool_choice="search_database")  # Specific tool
 ```
 
@@ -2979,7 +2984,7 @@ model.bind_tools(tools, tool_choice="search_database")  # Specific tool
 - Always `bind_tools()` before invoking the model
 - Use descriptive `@tool` docstrings — LLM uses them to decide which tool to call
 - Keep 5-10 tools max per agent (use dynamic selection for more)
-- Use `tool_choice` when a specific tool is required
+- Use `tool_choice` when a specific tool is required, except on Opus 5.5 or Fable 5.1 (400): there use `auto` plus `strict` tools and a prompt that names the tool
 
 Reference: [LangGraph Tool Calling](https://langchain-ai.github.io/langgraph/concepts/agentic_concepts/#tool-calling-agent)
 
@@ -2990,6 +2995,8 @@ Reference: [LangGraph Tool Calling](https://langchain-ai.github.io/langgraph/con
 ## Dynamic Tool Selection
 
 When you have many tools, select the most relevant subset per query using embeddings.
+
+> **Claude prompt cache (2026-09):** a different `bind_tools()` subset each turn rewrites the top-level `tools` array and breaks the cached prefix; on Opus 5.5 and Fable 5.1 a tools change also invalidates later thinking blocks. On Claude, keep `tools` stable and either mark rarely used tools `defer_loading: true` with tool search, or add a tool mid-conversation with a `tool_addition` block in a mid-conversation system message (beta header `inline-tools-2026-09-15`, not on Sonnet 5). Keep per-query subsets for providers without prompt caching. See https://platform.claude.com/docs/en/build-with-claude/mid-conversation-system-messages#mid-conversation-tool-changes
 
 **Incorrect — all tools always bound:**
 ```python

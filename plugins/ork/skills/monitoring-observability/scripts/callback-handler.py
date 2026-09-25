@@ -64,7 +64,7 @@ async def analyze_with_langchain(content: str, analysis_id: str) -> str:
 
     # Create LLM with callback
     llm = ChatAnthropic(
-        model="claude-sonnet-4-6",
+        model="claude-sonnet-5",
         temperature=1.0,
         max_tokens=4096,
         callbacks=[langfuse_handler],  # Pass as list!
@@ -96,7 +96,7 @@ async def run_langgraph_workflow(content: str, analysis_id: str):
     )
 
     # Create LLMs with shared handler
-    llm = ChatAnthropic(model="claude-sonnet-4-6", callbacks=[langfuse_handler])
+    llm = ChatAnthropic(model="claude-sonnet-5", callbacks=[langfuse_handler])
 
     # Define nodes
     async def security_node(state):
@@ -140,7 +140,7 @@ async def stream_analysis_with_tracing(content: str, analysis_id: str):
     )
 
     llm = ChatAnthropic(
-        model="claude-sonnet-4-6",
+        model="claude-sonnet-5",
         streaming=True,
         callbacks=[langfuse_handler],
     )
@@ -185,7 +185,7 @@ async def batch_analyze_with_tracing(items: list[str], batch_id: str):
             tags=["batch", "production"],
         )
 
-        llm = ChatAnthropic(model="claude-sonnet-4-6", callbacks=[item_handler])
+        llm = ChatAnthropic(model="claude-sonnet-5", callbacks=[item_handler])
 
         messages = [HumanMessage(content=f"Analyze: {item}")]
         response = await llm.ainvoke(messages)
@@ -221,7 +221,7 @@ async def multi_context_analysis(content: str, analysis_id: str):
 
     # Generation LLM
     generation_llm = ChatAnthropic(
-        model="claude-sonnet-4-6",  # More capable for generation
+        model="claude-sonnet-5",  # More capable for generation
         callbacks=[generation_handler],
     )
 
@@ -250,7 +250,7 @@ async def high_throughput_analysis(items: list[str]):
         sample_rate=0.2,
     )
 
-    llm = ChatAnthropic(model="claude-sonnet-4-6", callbacks=[langfuse_handler])
+    llm = ChatAnthropic(model="claude-sonnet-5", callbacks=[langfuse_handler])
 
     results = []
     for item in items:
@@ -277,7 +277,7 @@ if __name__ == "__main__":
     # Trace structure:
     # Session: analysis_abc123
     # └── ChatAnthropic.ainvoke (auto-traced)
-    #     ├── model: claude-sonnet-4-6
+    #     ├── model: claude-sonnet-5
     #     ├── input_tokens: 150
     #     ├── output_tokens: 300
     #     └── cost: $0.0045

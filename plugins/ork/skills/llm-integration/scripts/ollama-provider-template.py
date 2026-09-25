@@ -325,7 +325,7 @@ def get_llm_provider(task_type: TaskType = TaskType.REASONING) -> OllamaProvider
     # available (Fairwind Program only). Prices live in models.vocab.json.
     model = {
         TaskType.REASONING: "gemini-3.8-flash",
-        TaskType.CODING: "claude-sonnet-4-6",
+        TaskType.CODING: "claude-sonnet-5",
         TaskType.GENERAL: "claude-haiku-4-5-20251001",
     }.get(task_type, "claude-haiku-4-5-20251001")
 

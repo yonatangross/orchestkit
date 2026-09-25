@@ -2,7 +2,7 @@
 
 Dimension-to-agent mapping and spawn patterns for Phase 2.
 
-## Task Tool Mode (Default)
+## Agent Tool Mode (Default)
 
 For each dimension, spawn a background agent with **scope constraints**:
 

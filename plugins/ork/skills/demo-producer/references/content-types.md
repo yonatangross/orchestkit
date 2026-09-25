@@ -44,7 +44,7 @@ Each content type has a specific template that determines:
 
 ```bash
 # Phase 1: Spawning (2s)
-⚡ Spawning {agent_name} agent via Task tool...
+⚡ Spawning {agent_name} agent via Agent tool...
 
 # Phase 2: Tool Usage (5s)
 ◆ Read: {file_count} files analyzed
