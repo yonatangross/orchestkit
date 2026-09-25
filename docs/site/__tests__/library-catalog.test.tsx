@@ -102,6 +102,18 @@ describe("LibraryCatalog", () => {
     }
   });
 
+  it("caps the phone agent column at the page, so Show all cannot widen it", async () => {
+    // emulate-engineer's 13-provider slash list made every card 588px at 390 (dogfood ISSUE-001).
+    search = new URLSearchParams("lib=agents");
+    render(<LibraryCatalog />);
+    await screen.findByRole("button", { name: /^Show all \d+ agents$/ });
+    const grid = screen.getByRole("tabpanel").querySelector("a")?.parentElement as HTMLElement;
+    expect(grid.className.split(" ")).toContain("grid-cols-1");
+    const desc = document.getElementById("agent-card-emulate-engineer-desc");
+    expect(desc?.textContent).toMatch(/\w+\/\w+\/\w+/);
+    expect(desc?.className.split(" ")).toContain("wrap-anywhere");
+  });
+
   it("moves focus to the newly selected tab on arrow keys", async () => {
     render(<LibraryCatalog />);
     fireEvent.keyDown(screen.getByRole("tablist"), { key: "ArrowRight" });

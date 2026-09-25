@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { SITE } from "@/lib/constants";
 
 export type RoomKind = "chat" | "bot";
@@ -111,12 +111,20 @@ export function buildRoomPlaylist(botLine: string): RoomBubble[] {
 	return [...chat.slice(0, 5), bot, ...chat.slice(5)];
 }
 
-function windowAt(playlist: RoomBubble[], endIndex: number): RoomBubble[] {
-	const out: RoomBubble[] = [];
-	for (let i = WINDOW - 1; i >= 0; i--) {
-		out.push(playlist[(endIndex - i + playlist.length) % playlist.length]);
-	}
+/**
+ * The last message index of each frame the thread shows: the opening window,
+ * then one new message at a time up to the last. It plays once and stops.
+ * Looping wrapped 16:11 straight into 09:12 with no new day between them.
+ */
+export function roomTimeline(playlist: RoomBubble[]): number[] {
+	const out: number[] = [];
+	for (let i = Math.min(WINDOW, playlist.length) - 1; i < playlist.length; i++) out.push(i);
 	return out;
+}
+
+/** The messages on screen when `endIndex` is the newest one. */
+export function windowAt(playlist: RoomBubble[], endIndex: number): RoomBubble[] {
+	return playlist.slice(Math.max(0, endIndex - WINDOW + 1), endIndex + 1);
 }
 
 function WhatsAppGlyph({ className }: { className?: string }) {
@@ -176,13 +184,17 @@ function BubbleView({ bubble, pop }: { bubble: RoomBubble; pop: boolean }) {
 	);
 }
 
-/** Animated example thread. Humans tick often; the OrchestKit bot once per demo day. */
+/**
+ * Animated example thread, one day of the room. The server render and reduced
+ * motion show the day's last messages, bot included. With motion, the day
+ * replays once from its first message when the phone nears the viewport, and
+ * stops on the same last messages.
+ */
 export function CommunityRoomThread({ botLine }: { botLine: string }) {
-	const playlist = buildRoomPlaylist(botLine);
-	const startIndex = playlist.length - 1;
-	const [endIndex, setEndIndex] = useState(startIndex);
+	const playlist = useMemo(() => buildRoomPlaylist(botLine), [botLine]);
+	const [endIndex, setEndIndex] = useState(playlist.length - 1);
 	const [motionOn, setMotionOn] = useState(false);
-	const indexRef = useRef(startIndex);
+	const rootRef = useRef<HTMLDivElement>(null);
 
 	useEffect(() => {
 		const reduced =
@@ -190,24 +202,49 @@ export function CommunityRoomThread({ botLine }: { botLine: string }) {
 			window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 		if (reduced) return undefined;
 
-		setMotionOn(true);
+		const timeline = roomTimeline(playlist);
 		let timer = 0;
-		const step = () => {
-			const next = (indexRef.current + 1) % playlist.length;
-			indexRef.current = next;
+		let frame = 0;
+		const advance = () => {
+			frame += 1;
+			const next = timeline[frame];
 			setEndIndex(next);
-			const hold = playlist[next].kind === "bot" ? BOT_HOLD_MS : CHAT_MS;
-			timer = window.setTimeout(step, hold);
+			if (frame >= timeline.length - 1) return;
+			timer = window.setTimeout(advance, playlist[next].kind === "bot" ? BOT_HOLD_MS : CHAT_MS);
 		};
-		timer = window.setTimeout(step, CHAT_MS);
-		return () => window.clearTimeout(timer);
-	}, [playlist.length]);
+		const play = () => {
+			setMotionOn(true);
+			setEndIndex(timeline[0]);
+			timer = window.setTimeout(advance, CHAT_MS);
+		};
+
+		const el = rootRef.current;
+		if (!el || typeof IntersectionObserver !== "function") {
+			play();
+			return () => window.clearTimeout(timer);
+		}
+		// The bottom margin starts the replay just before the phone scrolls in,
+		// so the jump back to 09:12 happens off screen.
+		const observer = new IntersectionObserver(
+			(entries) => {
+				if (!entries.some((entry) => entry.isIntersecting)) return;
+				observer.disconnect();
+				play();
+			},
+			{ rootMargin: "0px 0px 160px 0px" },
+		);
+		observer.observe(el);
+		return () => {
+			observer.disconnect();
+			window.clearTimeout(timer);
+		};
+	}, [playlist]);
 
 	const visible = windowAt(playlist, endIndex);
-	const showDayMark = visible.some((bubble) => bubble.kind === "bot");
 
 	return (
 		<div
+			ref={rootRef}
 			aria-hidden="true"
 			className="mx-auto w-[236px] rounded-[1.75rem] border border-fd-border bg-[color-mix(in_oklch,var(--color-fd-foreground)_7%,transparent)] p-1.5 shadow-[var(--shadow-overlay)]"
 		>
@@ -226,11 +263,10 @@ export function CommunityRoomThread({ botLine }: { botLine: string }) {
 					</div>
 				</div>
 				<div className="flex min-h-[268px] flex-col justify-end gap-2.5 px-2.5 py-3">
-					{showDayMark ? (
-						<p className="text-center text-[9px] font-medium tracking-[0.08em] text-fd-muted-foreground uppercase">
-							Today
-						</p>
-					) : null}
+					{/* The whole thread is one day, so the label stays for every frame. */}
+					<p className="text-center text-[9px] font-medium tracking-[0.08em] text-fd-muted-foreground uppercase">
+						Today
+					</p>
 					{visible.map((bubble, i) => (
 						<BubbleView
 							key={`${endIndex}-${bubble.id}`}

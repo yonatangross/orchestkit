@@ -2,7 +2,7 @@
 // Created: 2026-09-25
 
 import { describe, expect, it } from "vitest";
-import { buildRoomPlaylist } from "@/components/community-room-thread";
+import { buildRoomPlaylist, roomTimeline, windowAt } from "@/components/community-room-thread";
 
 describe("buildRoomPlaylist", () => {
 	const playlist = buildRoomPlaylist("Daily digest line");
@@ -22,5 +22,30 @@ describe("buildRoomPlaylist", () => {
 
 	it("gives every bubble a unique id", () => {
 		expect(new Set(playlist.map((b) => b.id)).size).toBe(playlist.length);
+	});
+});
+
+describe("roomTimeline", () => {
+	const playlist = buildRoomPlaylist("Daily digest line");
+	const timeline = roomTimeline(playlist);
+
+	it("plays the day once, from its first message to its last, without wrapping", () => {
+		// Looping showed 16:11 and then 09:12 with no new day between them (dogfood ISSUE-003).
+		expect(windowAt(playlist, timeline[0])[0]).toBe(playlist[0]);
+		expect(timeline.at(-1)).toBe(playlist.length - 1);
+		for (let i = 1; i < timeline.length; i++) expect(timeline[i]).toBe(timeline[i - 1] + 1);
+	});
+
+	it("never shows an earlier time below a later one in any frame", () => {
+		for (const end of timeline) {
+			const times = windowAt(playlist, end).map((b) => b.time);
+			expect(times).toEqual([...times].sort());
+		}
+	});
+
+	it("rests on a frame that carries the bot line, the reduced motion view", () => {
+		const last = windowAt(playlist, playlist.length - 1);
+		expect(last).toHaveLength(4);
+		expect(last.some((b) => b.kind === "bot")).toBe(true);
 	});
 });

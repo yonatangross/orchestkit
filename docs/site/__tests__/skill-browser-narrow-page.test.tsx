@@ -51,6 +51,15 @@ describe("SkillBrowser narrow first page", () => {
     expect(status.querySelector(".max-lg\\:hidden")?.textContent).toMatch(/Showing\s*12\s*of 12 skills/);
   });
 
+  it("caps the phone column at the page, so a long truncated name cannot widen it", async () => {
+    // Show all rendered react-server-components-framework and the auto column grew
+    // to its full nowrap width, 25px past the gutter (dogfood ISSUE-001).
+    render(<SkillBrowser />);
+    await screen.findByRole("button", { name: "Show all 12 skills" });
+    const grid = cardOf(cardButtons()[0]).parentElement as HTMLElement;
+    expect(grid.className.split(" ")).toContain("grid-cols-1");
+  });
+
   it("Show all reveals every card and moves focus to the first one it revealed", async () => {
     render(<SkillBrowser />);
     fireEvent.click(await screen.findByRole("button", { name: "Show all 12 skills" }));

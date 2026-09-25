@@ -779,12 +779,23 @@
 }
 
 /* ============================================================
-   INLINE CODE IN TABLES — Prevent line-breaking at hyphens
+   INLINE CODE IN TABLES: wraps with its cell
    ============================================================ */
 
+/* Code used to be nowrap here, which made every command and path one
+   unbreakable box: a 90 character command set a 705px column and the feature
+   matrix laid out 1707px wide on a 390px phone. Code now wraps at spaces and
+   hyphens like the prose around it, and a token longer than its column
+   breaks where it must. A cell holding code keeps a floor, so a column of
+   short names is not squeezed to one character per line. */
 :where(table) :is(td, th) code {
-  white-space: nowrap;
-  word-break: keep-all;
+  white-space: normal;
+  word-break: normal;
+  overflow-wrap: anywhere;
+}
+
+:where(table) td:has(code) {
+  min-width: 6rem;
 }
 
 /* ============================================================
@@ -1274,15 +1285,11 @@ article blockquote {
 }
 
 /* Wide docs tables: the background shadows above cannot show here, because
-   the table's own cell backgrounds paint over the wrapper. Fade the edge that
-   has more content instead, driven by the table's own scroll position. With
-   nothing to scroll, the scroll timeline is inactive, the offsets stay 0 and
-   the mask is fully opaque. Browsers without scroll timelines show no fade. */
-@property --scroll-fade-start {
-  syntax: "<length>";
-  inherits: false;
-  initial-value: 0px;
-}
+   the table's own cell backgrounds paint over the wrapper. Fade the right
+   edge while there is more to the right instead, driven by the table's own
+   scroll position. With nothing to scroll, the scroll timeline is inactive,
+   the offset stays 0 and the mask is fully opaque. Browsers without scroll
+   timelines show no fade. */
 @property --scroll-fade-end {
   syntax: "<length>";
   inherits: false;
@@ -1290,17 +1297,43 @@ article blockquote {
 }
 @keyframes scroll-fade {
   from {
-    --scroll-fade-start: 0px;
     --scroll-fade-end: 40px;
   }
   to {
-    --scroll-fade-start: 40px;
     --scroll-fade-end: 0px;
   }
 }
 .scroll-fade {
-  -webkit-mask-image: linear-gradient(to right, transparent, #000 var(--scroll-fade-start), #000 calc(100% - var(--scroll-fade-end)), transparent);
-  mask-image: linear-gradient(to right, transparent, #000 var(--scroll-fade-start), #000 calc(100% - var(--scroll-fade-end)), transparent);
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - var(--scroll-fade-end)), transparent);
+  mask-image: linear-gradient(to right, #000 calc(100% - var(--scroll-fade-end)), transparent);
   animation: scroll-fade linear both;
   animation-timeline: scroll(self inline);
+}
+
+/* The first column stays put while a wide table scrolls, so every row keeps
+   its label on screen. Fumadocs gives the table overflow hidden for its
+   rounded corners, which would make the table itself the sticky container;
+   clip keeps the corners without that. The left fade is replaced by a shadow
+   on the pinned column, which only shows once the table has scrolled. */
+.scroll-fade > table {
+  overflow: clip;
+}
+@keyframes scroll-pin-edge {
+  from {
+    box-shadow: none;
+  }
+  4%,
+  to {
+    box-shadow: 6px 0 8px -6px color-mix(in oklch, var(--color-fd-foreground) 55%, transparent);
+  }
+}
+.scroll-fade :is(td, th):first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  animation: scroll-pin-edge linear both;
+  animation-timeline: scroll(nearest inline);
+}
+.scroll-fade td:first-child {
+  background-color: var(--color-fd-card);
 }

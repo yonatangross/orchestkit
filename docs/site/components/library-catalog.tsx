@@ -236,7 +236,12 @@ function AgentsGrid() {
           shownCount(filtered.length)
         )}
       </p>
-      <div ref={gridRef} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      {/* grid-cols-1 caps the phone column at the page, as in the skill grid.
+          With no template the auto column grew to the widest card's
+          min-content: emulate-engineer's description holds one slash-joined
+          list of 13 providers, so "Show all" made every card 588px on a 390px
+          phone. The description may break that list (wrap-anywhere). */}
+      <div ref={gridRef} className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {filtered.map((agent, index) => {
           const cat =
             CATEGORY_COLORS[agent.category as keyof typeof CATEGORY_COLORS] ??
@@ -270,7 +275,7 @@ function AgentsGrid() {
               </div>
               <p
                 id={`agent-card-${agent.name}-desc`}
-                className="text-[13px] leading-[1.5] text-fd-muted-foreground"
+                className="text-[13px] leading-[1.5] text-fd-muted-foreground wrap-anywhere"
               >
                 {agent.description}
               </p>

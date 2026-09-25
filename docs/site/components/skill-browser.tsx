@@ -350,7 +350,12 @@ export function SkillBrowser() {
         </div>
       ) : (
         <>
-          <div ref={gridRef} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {/* grid-cols-1 caps the phone column at the page. With no template the
+              one auto column grew to the widest card's min-content, the full
+              width of a truncated name, so "Show all" (which renders
+              react-server-components-framework) pushed every card 25px past
+              the gutter (dogfood ISSUE-001). */}
+          <div ref={gridRef} className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {filtered.map((entry, index) => (
               <SkillCard
                 key={entry.key}
