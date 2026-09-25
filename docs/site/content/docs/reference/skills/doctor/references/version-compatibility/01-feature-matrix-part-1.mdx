@@ -249,7 +249,7 @@ description: "Version Compatibility for the Doctor skill, page 2 of 4: Feature M
 | Plugin skill name stability | 2.1.94 | `"skills": ["./"]` uses frontmatter `name` for invocation, stable across install methods | Invocation name depends on directory basename |
 | `${CLAUDE_PLUGIN_ROOT}` local-marketplace fix | 2.1.94 | Resolves to installed cache (not marketplace source) for local-marketplace plugins | File lookups point at wrong directory |
 | Plugin hooks CLAUDE_PLUGIN_ROOT fix | 2.1.94 | Plugin hooks no longer fail with "No such file or directory" when env var unset | Hooks fail cold-start on some platforms |
-| Default effort `high` | 2.1.94 | Default effort level is `high` for API-key/Bedrock/Vertex/Foundry/Team/Enterprise users (use `/effort low` or `/effort medium` to reduce) | Default `medium`, token budgets scaled conservatively |
+| Default effort `high` | 2.1.94 | Default effort level is `high` for API key, Bedrock, Vertex, Foundry, Team and Enterprise users (use `/effort low` or `/effort medium` to reduce) | Default `medium`, token budgets scaled conservatively |
 | 429 rate-limit surface | 2.1.94 | Agents no longer stuck after 429 with long Retry-After, error surfaces immediately | Agents appear stuck, silent wait |
 | SDK/print mode partial response fix | 2.1.94 | Preserves partial assistant response on interrupt mid-stream | Partial responses lost, breaks bare-eval/eval-runner |
 | `--resume` across worktrees | 2.1.94 | Resume sessions from other worktrees of the same repo directly (was: print `cd` command) | Must cd manually to resume worktree session |
