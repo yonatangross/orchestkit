@@ -345,11 +345,13 @@ function HostCommandPanel({ spec, source }: { spec: HostInstallSpec; source: Hos
 					data-hero-install
 					className="overflow-hidden rounded-[10px] border border-[color-mix(in_oklch,var(--color-fd-primary)_45%,var(--color-fd-border))] bg-[var(--color-fd-surface-raised)]"
 				>
-					<div className="flex items-center justify-between gap-3 border-b border-fd-border px-3 py-2 text-[12.5px] text-fd-muted-foreground">
-						<span className="min-w-0 truncate">
-							<span className="font-semibold text-fd-foreground">{spec.name}</span>
-							<span aria-hidden="true"> · </span>
-							{spec.where}
+					<div className="flex items-start justify-between gap-3 border-b border-fd-border px-3 py-2 text-[12.5px] text-fd-muted-foreground">
+						{/* The "where" line wraps instead of truncating: for Cursor, Devin,
+						    Muse and Antigravity it is the only instruction (UI finish gate,
+						    2026-09-25: "Settings → Plugins. Paste the ..." cut off at 390). */}
+						<span className="min-w-0">
+							<span className="block font-semibold text-fd-foreground">{spec.name}</span>
+							<span className="block leading-5">{spec.where}</span>
 						</span>
 						<button
 							type="button"

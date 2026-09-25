@@ -9,7 +9,7 @@ import Image from "next/image";
  * Desktop: an in-flow grid item in column 2, never absolute (see
  * .home-hero-art in global.css), feathered at the edges in both themes.
  * The theme switch crossfades the two layers (.home-hero-art-layer).
- * Mobile ≤900px: 16:9 band under the headline.
+ * Mobile ≤900px: 4:3 band under the install block.
  */
 export function HomeHeroArt() {
   return (

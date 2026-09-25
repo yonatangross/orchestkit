@@ -1162,8 +1162,8 @@ article blockquote {
   background:
     linear-gradient(to right, var(--scroll-shadow-bg) 30%, transparent) left / 24px 100% no-repeat local,
     linear-gradient(to left, var(--scroll-shadow-bg) 30%, transparent) right / 24px 100% no-repeat local,
-    radial-gradient(farthest-side at 0 50%, color-mix(in oklch, var(--color-fd-foreground) 22%, transparent), transparent) left / 10px 100% no-repeat scroll,
-    radial-gradient(farthest-side at 100% 50%, color-mix(in oklch, var(--color-fd-foreground) 22%, transparent), transparent) right / 10px 100% no-repeat scroll;
+    radial-gradient(farthest-side at 0 50%, color-mix(in oklch, var(--color-fd-foreground) 45%, transparent), transparent) left / 16px 100% no-repeat scroll,
+    radial-gradient(farthest-side at 100% 50%, color-mix(in oklch, var(--color-fd-foreground) 45%, transparent), transparent) right / 16px 100% no-repeat scroll;
 }
 #nd-page .scroll-shadows {
   --scroll-shadow-bg: var(--color-fd-background);

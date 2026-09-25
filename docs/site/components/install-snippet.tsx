@@ -28,14 +28,20 @@ export function useTrackedCopy(
 	const [copied, setCopied] = useState(false);
 	const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 	const copy = () => {
-		navigator.clipboard.writeText(payload).catch(() => {});
+		// The click is the funnel signal, so it is tracked either way; the
+		// "Copied" state only shows once the clipboard write succeeded.
 		const eventProps: Record<string, string> = {};
 		if (props.host) eventProps.host = props.host;
 		if (props.surface) eventProps.surface = props.surface;
 		track(event, eventProps);
-		if (timer.current) clearTimeout(timer.current);
-		setCopied(true);
-		timer.current = setTimeout(() => setCopied(false), 2000);
+		navigator.clipboard
+			.writeText(payload)
+			.then(() => {
+				if (timer.current) clearTimeout(timer.current);
+				setCopied(true);
+				timer.current = setTimeout(() => setCopied(false), 2000);
+			})
+			.catch(() => {});
 	};
 	return { copied, copy };
 }
