@@ -57,13 +57,17 @@ export default function NotFound() {
         </nav>
         <nav aria-label="For agents and crawlers" className="mt-8 max-w-xl">
           <p className="text-xs text-fd-muted-foreground">For agents and crawlers</p>
-          <ul className="mt-2 flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs">
+          <ul className="mt-1 flex flex-wrap justify-center gap-x-4 text-sm">
             {RECOVERY_LINKS.map((l) => (
               <li key={l.href}>
+                {/* No prefetch: these are API and file endpoints (prefetching
+                    /api/search?query= logged a 400 on every 404 view), and py-1
+                    keeps a 24px tap target (axe target-size). */}
                 <Link
                   href={l.href}
                   title={l.desc}
-                  className="text-fd-muted-foreground underline underline-offset-4 transition-colors hover:text-fd-foreground"
+                  prefetch={false}
+                  className="inline-block py-1 text-fd-muted-foreground underline underline-offset-4 transition-colors hover:text-fd-foreground"
                 >
                   {l.title}
                 </Link>

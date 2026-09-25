@@ -30,7 +30,7 @@ test.describe('Landing hero', () => {
     await expect(page.getByRole('navigation', { name: /install by host/i })).toBeVisible();
   });
 
-  test('hero A art sits beside the copy on desktop and stacks as 16:9 under copy on narrow', async ({ page }) => {
+  test('hero A art sits beside the copy on desktop and stacks as 4:3 under the install on narrow', async ({ page }) => {
     // Pin the stored theme: emulateMedia is a no-op under defaultTheme "dark".
     await page.addInitScript(() => localStorage.setItem('theme', 'dark'));
     await page.setViewportSize({ width: 1440, height: 900 });
@@ -106,12 +106,15 @@ test.describe('Landing hero', () => {
       };
     });
     const h1Bottom = await page.locator('#hero-heading').evaluate((el) => el.getBoundingClientRect().bottom);
-    const installTop = await page.locator('[data-hero-install]').evaluate((el) => el.getBoundingClientRect().top);
+    const installBottom = await page.locator('[data-hero-install]').evaluate((el) => el.getBoundingClientRect().bottom);
     expect(mobile.position).toBe('relative');
-    expect(mobile.aspect).toBeGreaterThan(1.6);
-    expect(mobile.aspect).toBeLessThan(2.0);
+    // 4:3 band (the art is cropped to its subject; 16:9 cut the outer players).
+    expect(mobile.aspect).toBeGreaterThan(1.25);
+    expect(mobile.aspect).toBeLessThan(1.45);
+    // Phones: install first, art after it (35% of home sessions are mobile,
+    // median home scroll 10%, so the command must be on screen one).
     expect(mobile.top).toBeGreaterThan(h1Bottom - 1);
-    expect(mobile.bottom).toBeLessThanOrEqual(installTop + 1);
+    expect(mobile.top).toBeGreaterThanOrEqual(installBottom - 1);
   });
 
   for (const width of [1280, 1575, 2000]) {

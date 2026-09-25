@@ -1,5 +1,7 @@
 import type * as PageTree from "fumadocs-core/page-tree";
 import { DocsLayout } from "fumadocs-ui/layouts/docs";
+import { ArrowRight } from "lucide-react";
+import Link from "next/link";
 import type { ReactNode } from "react";
 import { baseOptions } from "@/app/layout.config";
 import { HostMark, HOST_PAGE_ICONS } from "@/components/host-marks";
@@ -62,7 +64,21 @@ export default function Layout({ children }: { children: ReactNode }) {
   return (
     <DocsLayout
       tree={withHostPageTree(withStationGlyphs(source.pageTree))}
-      sidebar={{ defaultOpenLevel: 0, collapsible: true }}
+      sidebar={{
+        defaultOpenLevel: 0,
+        collapsible: true,
+        // A reader who lands on a deep docs page from search had no install
+        // entry in the first viewport (UX flow walk, 2026-09-25).
+        banner: (
+          <Link
+            href="/docs/getting-started/installation"
+            className="flex items-center justify-between gap-2 rounded-lg border border-fd-primary/30 bg-[var(--color-fd-primary-10)] px-3 py-2 text-sm font-medium text-fd-primary transition-colors hover:border-fd-primary/60"
+          >
+            Install OrchestKit
+            <ArrowRight className="size-3.5 shrink-0" aria-hidden="true" />
+          </Link>
+        ),
+      }}
       {...baseOptions}
     >
       {children}
