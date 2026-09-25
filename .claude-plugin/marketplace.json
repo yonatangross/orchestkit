@@ -43,6 +43,54 @@
         "path": "plugins/ork",
         "ref": "main"
       }
+    },
+    {
+      "name": "lesson-cards",
+      "description": "Mod (function hooks): lesson hint cards when a tool call matches a known pattern; /lessons reloads. Needs CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1.",
+      "version": "1.0.1",
+      "author": {
+        "name": "Yonatan Gross",
+        "email": "yonaigross@gmail.com"
+      },
+      "category": "development",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/yonatangross/orchestkit.git",
+        "path": "mods/lesson-cards",
+        "ref": "main"
+      }
+    },
+    {
+      "name": "promote-lights",
+      "description": "Mod (function hooks): CI lights above the prompt while a promote PR is open; /lights [off|refresh]. Needs CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1.",
+      "version": "0.0.2",
+      "author": {
+        "name": "Yonatan Gross",
+        "email": "yonaigross@gmail.com"
+      },
+      "category": "development",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/yonatangross/orchestkit.git",
+        "path": "mods/promote-lights",
+        "ref": "main"
+      }
+    },
+    {
+      "name": "secrets-veil",
+      "description": "Mod (function hooks): masks secret values in tool results before the model reads them. Needs CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1.",
+      "version": "0.0.2",
+      "author": {
+        "name": "Yonatan Gross",
+        "email": "yonaigross@gmail.com"
+      },
+      "category": "security",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/yonatangross/orchestkit.git",
+        "path": "mods/secrets-veil",
+        "ref": "main"
+      }
     }
   ]
 }

@@ -61,7 +61,7 @@ function maskDeep(value: unknown, activeTable: MaskTable): unknown {
  * Register the secrets-veil hooks.
  */
 export function register(on: (event: string, hook: unknown) => void, _options?: unknown): void {
-  on("session.start", async ($: DollarAPI) => {
+  on("session.start", async ($: DollarAPI, e: { cwd: string }, next: (ev: { cwd: string }) => Promise<unknown>) => {
     const named: Record<string, string> = {};
 
     // One literal call site per vendor name. Keep a value only when it is at
@@ -126,6 +126,7 @@ export function register(on: (event: string, hook: unknown) => void, _options?: 
         // Notice refused; masking continues either way.
       }
     }
+    return next(e); // a session.start hook must answer (CC 2.1.282 skips a hook that returns nothing)
   });
 
   on("tool.call", async ($: DollarAPI, _e: ToolCallEvent, next?: (ev: ToolCallEvent) => Promise<ToolCallResult>) => {

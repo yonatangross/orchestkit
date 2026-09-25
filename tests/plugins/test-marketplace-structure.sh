@@ -53,7 +53,9 @@ echo "--- Test 2: Validate source path format ---"
 #
 # The invariant, per shape:
 #   string source  -> must start "./plugins/"
-#   object source  -> its .path must start "plugins/" (same rule, repo-relative)
+#   object source  -> its .path must start "plugins/" (same rule, repo-relative),
+#                     or be exactly "mods/<entry name>": function-hook mods live in
+#                     mods/, not in the built plugins/ tree
 INVALID_SOURCES=$(jq -r '
   .plugins[]
   | select((.source | type) == "string")
@@ -62,16 +64,17 @@ INVALID_SOURCES=$(jq -r '
 INVALID_OBJECT_PATHS=$(jq -r '
   .plugins[]
   | select((.source | type) == "object")
-  | select((.source.path // "") | startswith("plugins/") | not)
+  | select(((.source.path // "") | startswith("plugins/")) | not)
+  | select((.source.path // "") != ("mods/" + .name))
   | "  \(.name): path=\(.source.path // "<missing>")"' "$MARKETPLACE_JSON")
 if [[ -n "$INVALID_SOURCES" || -n "$INVALID_OBJECT_PATHS" ]]; then
   echo "❌ ERROR: Found plugins with invalid source format:"
   [[ -n "$INVALID_SOURCES" ]] && echo "$INVALID_SOURCES"
   [[ -n "$INVALID_OBJECT_PATHS" ]] && echo "$INVALID_OBJECT_PATHS"
-  echo "   String sources must be './plugins/{name}'; object sources must set path 'plugins/{name}'"
+  echo "   String sources must be './plugins/{name}'; object sources must set path 'plugins/{name}' or 'mods/{name}'"
   ERRORS=$((ERRORS + 1))
 else
-  echo "✓ All plugins resolve under plugins/ (string or object source)"
+  echo "✓ All plugins resolve under plugins/ or mods/<name> (string or object source)"
 fi
 
 # Test 3: Root .claude-plugin should only contain marketplace.json
@@ -152,6 +155,7 @@ echo "--- Test 6: Plugin count verification ---"
 # Count plugins using jq if available, otherwise use grep with context
 if command -v jq &>/dev/null; then
   PLUGIN_COUNT=$(jq '.plugins | length' "$MARKETPLACE_JSON")
+  MOD_ENTRY_COUNT=$(jq '[.plugins[] | select((.source | type) == "object" and ((.source.path // "") | startswith("mods/")))] | length' "$MARKETPLACE_JSON")
 else
   # Fallback: count lines with "source": (each plugin has exactly one)
   PLUGIN_COUNT=$(grep -c '"source":' "$MARKETPLACE_JSON" || echo "0")
@@ -160,6 +164,13 @@ echo "  Total plugins in marketplace: $PLUGIN_COUNT"
 
 PLUGIN_DIRS=$(find "$REPO_ROOT/plugins" -maxdepth 1 -mindepth 1 -type d | wc -l | tr -d ' ')
 echo "  Plugin directories: $PLUGIN_DIRS"
+# Mod entries point into mods/, not plugins/: compare them against mods/ dirs and
+# the rest against plugins/ dirs.
+MOD_DIRS=0
+if [[ -d "$REPO_ROOT/mods" ]]; then
+  MOD_DIRS=$(find "$REPO_ROOT/mods" -maxdepth 1 -mindepth 1 -type d | wc -l | tr -d ' ')
+fi
+echo "  Mod entries: ${MOD_ENTRY_COUNT:-0}, mod directories: $MOD_DIRS"
 
 # An empty plugins array clears Tests 1, 2, 4 and 5 by having nothing to
 # iterate; this was the only check that noticed, and it only warned
@@ -167,8 +178,11 @@ echo "  Plugin directories: $PLUGIN_DIRS"
 if [[ $PLUGIN_COUNT -eq 0 ]]; then
   echo "❌ ERROR: marketplace.json lists zero plugins; Tests 1 to 5 examined nothing"
   ERRORS=$((ERRORS + 1))
-elif [[ $PLUGIN_COUNT -ne $PLUGIN_DIRS ]]; then
-  echo "⚠ WARNING: Mismatch between marketplace entries ($PLUGIN_COUNT) and plugin directories ($PLUGIN_DIRS)"
+elif [[ $((PLUGIN_COUNT - ${MOD_ENTRY_COUNT:-0})) -ne $PLUGIN_DIRS ]]; then
+  echo "⚠ WARNING: Mismatch between marketplace entries ($((PLUGIN_COUNT - ${MOD_ENTRY_COUNT:-0})) outside mods/) and plugin directories ($PLUGIN_DIRS)"
+  WARNINGS=$((WARNINGS + 1))
+elif [[ ${MOD_ENTRY_COUNT:-0} -gt 0 && ${MOD_ENTRY_COUNT:-0} -ne $MOD_DIRS ]]; then
+  echo "⚠ WARNING: Mismatch between mod entries (${MOD_ENTRY_COUNT:-0}) and mod directories ($MOD_DIRS)"
   WARNINGS=$((WARNINGS + 1))
 else
   echo "✓ Marketplace entries match plugin directories"

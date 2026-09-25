@@ -2,14 +2,25 @@
  * Unit tests for the shipped hooks module (hooks/register.ts).
  *
  * Drives the real register(on, options) export with a captured on() and a
- * fake $ facade, then invokes the registered hooks directly.
+ * fake $ facade shaped like the CC 2.1.282 mods API, then invokes the
+ * registered hooks directly.
  */
 
 import { describe, test, expect } from 'vitest';
 import { register } from '../hooks/register.js';
-import type { FsEntry, FileStat, $ } from '../src/types.js';
 
 type RegisteredHook = (...args: unknown[]) => unknown;
+
+/** FsEntry / FsStat as the 2.1.282 mods API sends them (kind, mtimeMs). */
+type FakeFsEntry = { name: string; kind: 'file' | 'dir' | 'other' };
+type FakeFsStat = { size: number; mtimeMs: number; kind: 'file' | 'dir' | 'other' };
+
+/**
+ * A mod has no process.env, so HOME must come from $.env. The fake fs only
+ * answers under this path; a module that fell back to process.env.HOME would
+ * load an empty corpus and every match assertion below would fail.
+ */
+const FAKE_HOME = '/home/lesson-tester';
 
 const PATTERNS = [
   {
@@ -20,37 +31,72 @@ const PATTERNS = [
     message: 'Cancelled CI tiers are not pass. Never trust a green rollup on a moved head.',
     example_fix: 'Use gh pr view with --json to check mergeStateStatus.',
   },
+  {
+    id: 'no-pytest-main',
+    severity: 'warn',
+    category: 'test',
+    file_glob: '**/*.py',
+    check_patterns: ['pytest\\.main'],
+    tool_names: ['Edit', 'Write'],
+    message: 'Run tests with uv run pytest, not pytest.main.',
+  },
 ];
 
 const FLOOR_ALPHA_LESSONS = '## gh-api-pagination\n\n- gh api --paginate for endpoints that return arrays\n';
 const FLOOR_BETA_LESSONS = '## git-safety\n\n- Always verify merge state before trusting green\n';
 
+/** 2 patterns + 1 bullet per floor lessons.md. */
+const CORPUS_ENTRIES = PATTERNS.length + 2;
+
 interface Fake$Options {
   noticeThrows?: boolean;
 }
 
-function makeFake$(options: Fake$Options = {}): { $: $; notices: string[]; invalidateCalls: string[] } {
+interface Fake$Record {
+  $: unknown;
+  notices: string[];
+  invalidateCalls: string[];
+  envGets: string[];
+  registeredCommands: Array<{ name: string; description: string }>;
+}
+
+function makeFake$(options: Fake$Options = {}): Fake$Record {
   const notices: string[] = [];
   const invalidateCalls: string[] = [];
+  const envGets: string[] = [];
+  const registeredCommands: Array<{ name: string; description: string }> = [];
 
   const fake$ = {
+    env: {
+      get: async (name: string): Promise<string | undefined> => {
+        envGets.push(name);
+        return name === 'HOME' ? FAKE_HOME : undefined;
+      },
+    },
     fs: {
-      list: async (path: string): Promise<FsEntry[] | null> => {
+      list: async (path: string): Promise<FakeFsEntry[] | null> => {
+        if (!path.startsWith(`${FAKE_HOME}/`)) {
+          return null;
+        }
         if (path.includes('hq-ext')) {
           return [
-            { name: '1.62.9', isDirectory: true, isFile: false },
-            { name: '1.62.10', isDirectory: true, isFile: false },
-            { name: 'loose-file', isDirectory: false, isFile: true },
+            { name: '1.62.9', kind: 'dir' },
+            { name: '1.62.10', kind: 'dir' },
+            { name: 'loose-file', kind: 'file' },
           ];
         }
         return [
-          { name: 'floor-alpha', isDirectory: true, isFile: false },
-          { name: 'floor-beta', isDirectory: true, isFile: false },
-          { name: 'notes', isDirectory: true, isFile: false },
+          { name: 'floor-alpha', kind: 'dir' },
+          { name: 'floor-beta', kind: 'dir' },
+          { name: 'floor-file', kind: 'file' },
+          { name: 'notes', kind: 'dir' },
         ];
       },
-      read: async (path: string): Promise<string | Uint8Array> => {
-        if (path.includes('lesson-patterns.json')) {
+      read: async (path: string): Promise<string> => {
+        if (!path.startsWith(`${FAKE_HOME}/`)) {
+          throw new Error(`read outside HOME: ${path}`);
+        }
+        if (path.includes('1.62.10/configs/lesson-patterns.json')) {
           return JSON.stringify(PATTERNS);
         }
         if (path.includes('floor-alpha')) {
@@ -61,12 +107,15 @@ function makeFake$(options: Fake$Options = {}): { $: $; notices: string[]; inval
         }
         throw new Error(`unexpected read: ${path}`);
       },
-      stat: async (path: string): Promise<FileStat | null> => {
+      stat: async (path: string): Promise<FakeFsStat | null> => {
+        if (!path.startsWith(`${FAKE_HOME}/`)) {
+          return null;
+        }
         if (path.includes('floor-alpha')) {
-          return { size: 10, mtime: 200, isFile: true, isDirectory: false };
+          return { size: 10, mtimeMs: 200, kind: 'file' };
         }
         if (path.includes('floor-beta')) {
-          return { size: 10, mtime: 100, isFile: true, isDirectory: false };
+          return { size: 10, mtimeMs: 100, kind: 'file' };
         }
         return null;
       },
@@ -82,61 +131,113 @@ function makeFake$(options: Fake$Options = {}): { $: $; notices: string[]; inval
         invalidateCalls.push(component);
       },
     },
-  } as unknown as $;
+    command: {
+      register: async (spec: { name: string; description: string }): Promise<void> => {
+        registeredCommands.push(spec);
+      },
+    },
+  };
 
-  return { $: fake$, notices, invalidateCalls };
+  return { $: fake$, notices, invalidateCalls, envGets, registeredCommands };
 }
 
-function captureHooks(): Map<string, RegisteredHook> {
+interface CapturedHooks {
+  hooks: Map<string, RegisteredHook>;
+  matchers: Map<string, unknown>;
+}
+
+/** Captures both on(event, hook) and on(event, matcher, hook) registrations. */
+function captureHooks(): CapturedHooks {
   const hooks = new Map<string, RegisteredHook>();
-  register((event: string, hook: unknown) => {
-    hooks.set(event, hook as RegisteredHook);
+  const matchers = new Map<string, unknown>();
+  register((event: string, matcherOrHook: unknown, hook?: unknown) => {
+    if (hook === undefined) {
+      hooks.set(event, matcherOrHook as RegisteredHook);
+    } else {
+      matchers.set(event, matcherOrHook);
+      hooks.set(event, hook as RegisteredHook);
+    }
   }, {});
-  return hooks;
+  return { hooks, matchers };
 }
 
 function asNext<E>(result: unknown): (ev: E) => Promise<unknown> {
   return async () => result;
 }
 
+const SESSION_EVENT = { cwd: '/repo', isInteractive: true };
+
+/** session.start must hand the event on: CC 2.1.282 skips a hook that returns nothing. */
+async function startSession(hooks: Map<string, RegisteredHook>, $: unknown): Promise<unknown> {
+  return hooks.get('session.start')!($, SESSION_EVENT, async (ev: unknown) => ({ forwarded: ev }));
+}
+
 describe('registration', () => {
   test('registers the four required hooks', () => {
-    const hooks = captureHooks();
-    expect([...hooks.keys()].sort()).toEqual(['command.register', 'session.start', 'tool.call', 'ui.render']);
+    const { hooks } = captureHooks();
+    expect([...hooks.keys()].sort()).toEqual(['command.run', 'session.start', 'tool.call', 'ui.render']);
+  });
+
+  test('scopes command.run to the lessons command', () => {
+    const { matchers } = captureHooks();
+    expect(matchers.get('command.run')).toEqual({ command: 'lessons' });
+    expect([...matchers.keys()]).toEqual(['command.run']);
   });
 });
 
 describe('session.start', () => {
+  // corpus is module state: this must run before any test starts a session
   test('tool.call passes through before session.start loads the corpus', async () => {
-    const hooks = captureHooks();
+    const { hooks } = captureHooks();
     const { $ } = makeFake$();
     const next = asNext<never>({});
-    const result = (await hooks.get('tool.call')!($, { tool: 'Bash', args: { command: 'gh pr checks' } }, next)) as Record<string, unknown>;
+    const result = (await hooks.get('tool.call')!($, { tool: 'Bash', command: 'gh pr checks' }, next)) as Record<string, unknown>;
     expect(result).toEqual({});
   });
 
-  test('loads patterns and newest three floor lessons', async () => {
-    const hooks = captureHooks();
+  test('returns next(e) so the hook is not skipped', async () => {
+    const { hooks } = captureHooks();
     const { $ } = makeFake$();
-    await hooks.get('session.start')!($);
+    const result = await startSession(hooks, $);
+    expect(result).toEqual({ forwarded: SESSION_EVENT });
+  });
+
+  test('declares /lessons with $.command.register', async () => {
+    const { hooks } = captureHooks();
+    const { $, registeredCommands } = makeFake$();
+    await startSession(hooks, $);
+    expect(registeredCommands).toEqual([{ name: 'lessons', description: 'Reload the lesson cards corpus' }]);
+  });
+
+  test('reads HOME from $.env', async () => {
+    const { hooks } = captureHooks();
+    const { $, envGets } = makeFake$();
+    await startSession(hooks, $);
+    expect(envGets).toContain('HOME');
+  });
+
+  test('loads patterns and newest three floor lessons', async () => {
+    const { hooks } = captureHooks();
+    const { $ } = makeFake$();
+    await startSession(hooks, $);
 
     const next = asNext<never>({});
-    const matched = (await hooks.get('tool.call')!($, { tool: 'Bash', args: { command: 'gh pr view && gh pr checks' } }, next)) as { context?: string[] };
+    const matched = (await hooks.get('tool.call')!($, { tool: 'Bash', command: 'gh pr view && gh pr checks' }, next)) as { context?: string[] };
     expect(matched.context?.[0]).toContain('[lesson:cancelled-check-is-not-pass]');
 
-    const bullet = (await hooks.get('tool.call')!($, { tool: 'Bash', args: { command: 'gh api --paginate repos/o/r/issues' } }, next)) as { context?: string[] };
+    const bullet = (await hooks.get('tool.call')!($, { tool: 'Bash', command: 'gh api --paginate repos/o/r/issues' }, next)) as { context?: string[] };
     expect(bullet.context?.[0]).toContain('[lesson:gh-api-pagination]');
   });
 
   test('clears the match map between sessions', async () => {
-    const hooks = captureHooks();
+    const { hooks } = captureHooks();
     const { $ } = makeFake$();
 
-    await hooks.get('session.start')!($);
+    await startSession(hooks, $);
     const next = asNext<never>({});
-    await hooks.get('tool.call')!($, { tool: 'Bash', args: { command: 'gh pr checks' }, tool_use_id: 'seed-1' }, next);
+    await hooks.get('tool.call')!($, { tool: 'Bash', command: 'gh pr checks', tool_use_id: 'seed-1' }, next);
 
-    await hooks.get('session.start')!($);
+    await startSession(hooks, $);
     const tree = (await hooks.get('ui.render')!($, { component: 'ToolUse', requestId: 'seed-1' }, asNext<never>({ children: [] }))) as { children: unknown[] };
     expect(tree.children.length).toBe(0);
   });
@@ -144,65 +245,78 @@ describe('session.start', () => {
 
 describe('tool.call', () => {
   test('returns context for a matched block pattern', async () => {
-    const hooks = captureHooks();
+    const { hooks } = captureHooks();
     const { $ } = makeFake$();
-    await hooks.get('session.start')!($);
+    await startSession(hooks, $);
 
     const next = asNext<never>({ result: 'ok' });
-    const result = (await hooks.get('tool.call')!($, { tool: 'Bash', args: { command: 'gh pr checks' } }, next)) as { result?: string; context?: string[] };
+    const result = (await hooks.get('tool.call')!($, { tool: 'Bash', command: 'gh pr checks' }, next)) as { result?: string; context?: string[] };
     expect(result.result).toBe('ok');
     expect(result.context?.length).toBe(1);
     expect(result.context?.[0]).toContain('lesson:cancelled-check-is-not-pass');
   });
 
   test('returns the next result unchanged when nothing matches', async () => {
-    const hooks = captureHooks();
+    const { hooks } = captureHooks();
     const { $ } = makeFake$();
-    await hooks.get('session.start')!($);
+    await startSession(hooks, $);
 
     const next = asNext<never>({ result: 'ok' });
-    const result = (await hooks.get('tool.call')!($, { tool: 'Bash', args: { command: 'echo hello' } }, next)) as Record<string, unknown>;
+    const result = (await hooks.get('tool.call')!($, { tool: 'Bash', command: 'echo hello' }, next)) as Record<string, unknown>;
     expect(result).toEqual({ result: 'ok' });
   });
 
   test('notifies the ui when a dialog is open', async () => {
-    const hooks = captureHooks();
+    const { hooks } = captureHooks();
     const { $, notices } = makeFake$();
-    await hooks.get('session.start')!($);
+    await startSession(hooks, $);
 
-    await hooks.get('tool.call')!($, { tool: 'Bash', args: { command: 'gh pr checks' }, tool_use_id: 'tu-9' }, asNext<never>({}));
+    await hooks.get('tool.call')!($, { tool: 'Bash', command: 'gh pr checks', tool_use_id: 'tu-9' }, asNext<never>({}));
     expect(notices).toEqual(['tu-9: lesson: cancelled-check-is-not-pass']);
   });
 
   test('survives a refused ui.notice', async () => {
-    const hooks = captureHooks();
+    const { hooks } = captureHooks();
     const { $ } = makeFake$({ noticeThrows: true });
-    await hooks.get('session.start')!($);
+    await startSession(hooks, $);
 
     const next = asNext<never>({});
-    const result = (await hooks.get('tool.call')!($, { tool: 'Bash', args: { command: 'gh pr checks' } }, next)) as { context?: string[] };
+    const result = (await hooks.get('tool.call')!($, { tool: 'Bash', command: 'gh pr checks' }, next)) as { context?: string[] };
     expect(result.context?.length).toBe(1);
   });
 
   test('matches Write content against patterns via file_path', async () => {
-    const hooks = captureHooks();
+    const { hooks } = captureHooks();
     const { $ } = makeFake$();
-    await hooks.get('session.start')!($);
+    await startSession(hooks, $);
 
-    // No file_glob or check_patterns on the ci pattern, so Write does not match
+    // No file_glob or check_patterns on the ci pattern, and notes.md is outside the py glob, so Write does not match
     const next = asNext<never>({});
-    const result = (await hooks.get('tool.call')!($, { tool: 'Write', args: { file_path: 'notes.md', content: 'gh pr checks' } }, next)) as Record<string, unknown>;
+    const result = (await hooks.get('tool.call')!($, { tool: 'Write', file_path: 'notes.md', content: 'gh pr checks' }, next)) as Record<string, unknown>;
     expect(result).toEqual({});
+  });
+
+  test('matches Edit new_string against check_patterns', async () => {
+    const { hooks } = captureHooks();
+    const { $ } = makeFake$();
+    await startSession(hooks, $);
+
+    const next = asNext<never>({});
+    const matched = (await hooks.get('tool.call')!($, { tool: 'Edit', file_path: 'tests/run.py', old_string: 'pass', new_string: 'pytest.main()' }, next)) as { context?: string[] };
+    expect(matched.context?.[0]).toContain('[lesson:no-pytest-main]');
+
+    const clean = (await hooks.get('tool.call')!($, { tool: 'Edit', file_path: 'tests/run.py', old_string: 'pytest.main()', new_string: 'pass' }, next)) as Record<string, unknown>;
+    expect(clean).toEqual({});
   });
 });
 
 describe('ui.render', () => {
   test('appends a lesson card for a matched requestId', async () => {
-    const hooks = captureHooks();
+    const { hooks } = captureHooks();
     const { $ } = makeFake$();
-    await hooks.get('session.start')!($);
+    await startSession(hooks, $);
 
-    await hooks.get('tool.call')!($, { tool: 'Bash', args: { command: 'gh pr checks' }, tool_use_id: 'tu-1' }, asNext<never>({}));
+    await hooks.get('tool.call')!($, { tool: 'Bash', command: 'gh pr checks', tool_use_id: 'tu-1' }, asNext<never>({}));
 
     const tree = (await hooks.get('ui.render')!($, { component: 'ToolUse', requestId: 'tu-1' }, asNext<never>({ children: [] }))) as { children: Array<{ type: string; props: Record<string, unknown> }> };
     expect(tree.children.length).toBe(1);
@@ -211,9 +325,9 @@ describe('ui.render', () => {
   });
 
   test('passes through non-ToolUse components', async () => {
-    const hooks = captureHooks();
+    const { hooks } = captureHooks();
     const { $ } = makeFake$();
-    await hooks.get('session.start')!($);
+    await startSession(hooks, $);
 
     const passthrough = { children: ['keep'] };
     const tree = await hooks.get('ui.render')!($, { component: 'Tool' }, asNext<never>(passthrough));
@@ -221,9 +335,9 @@ describe('ui.render', () => {
   });
 
   test('returns the tree unchanged for an unknown requestId', async () => {
-    const hooks = captureHooks();
+    const { hooks } = captureHooks();
     const { $ } = makeFake$();
-    await hooks.get('session.start')!($);
+    await startSession(hooks, $);
 
     const passthrough = { children: [] };
     const tree = (await hooks.get('ui.render')!($, { component: 'ToolUse', requestId: 'tu-unknown' }, asNext<never>(passthrough))) as { children: unknown[] };
@@ -231,26 +345,19 @@ describe('ui.render', () => {
   });
 });
 
-describe('command.register', () => {
+describe('command.run', () => {
   test('/lessons reloads the corpus and invalidates ui.render', async () => {
-    const hooks = captureHooks();
+    const { hooks } = captureHooks();
     const { $, invalidateCalls } = makeFake$();
-    await hooks.get('session.start')!($);
+    await startSession(hooks, $);
 
-    const result = (await hooks.get('command.register')!($, { command: '/lessons' })) as { message?: string };
-    expect(result.message).toBe('Lessons reloaded');
+    const result = (await hooks.get('command.run')!($, { command: 'lessons' })) as { text?: string };
+    expect(result.text).toBe(`Lessons reloaded (${CORPUS_ENTRIES} entries)`);
     expect(invalidateCalls).toEqual(['ui.render']);
 
     // Corpus still works after the reload
     const next = asNext<never>({});
-    const matched = (await hooks.get('tool.call')!($, { tool: 'Bash', args: { command: 'gh pr checks' } }, next)) as { context?: string[] };
+    const matched = (await hooks.get('tool.call')!($, { tool: 'Bash', command: 'gh pr checks' }, next)) as { context?: string[] };
     expect(matched.context?.length).toBe(1);
-  });
-
-  test('unknown commands return an empty object', async () => {
-    const hooks = captureHooks();
-    const { $ } = makeFake$();
-    const result = await hooks.get('command.register')!($, { command: '/something-else' });
-    expect(result).toEqual({});
   });
 });

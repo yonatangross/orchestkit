@@ -72,8 +72,8 @@ sync_versions() {
   if [[ -f "$marketplace" ]]; then
     jq --arg v "$version" '
       .version = $v
-      | (if any(.plugins[]; .source.ref? == "main")
-         then (.plugins[] | select(.source.ref? == "main") | .version) |= $v
+      | (if any(.plugins[]; (.source.ref? == "main" and ((.source.path? // "") | startswith("mods/") | not)))
+         then (.plugins[] | select((.source.ref? == "main" and ((.source.path? // "") | startswith("mods/") | not))) | .version) |= $v
          else .
          end)' "$marketplace" > "$marketplace.tmp"
     mv "$marketplace.tmp" "$marketplace"
