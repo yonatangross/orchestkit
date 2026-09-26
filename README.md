@@ -630,6 +630,12 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.115](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.114...v10.0.0-beta.115)** · 2026-09-26
+
+- **ci:** reject untracked generated lab copies (#4480)
+- **docs:** validate npm hosts and advertise markdown twins (#4481)
+- **scripts:** require schema evidence for hook exemptions (#4478)
+
 **[v10.0.0-beta.114](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.113...v10.0.0-beta.114)** · 2026-09-26
 
 - **hooks:** preserve consumer file content in write-headers (#4475)
@@ -659,10 +665,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.108](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.107...v10.0.0-beta.108)** · 2026-09-26
 
 - **evals:** Opus 5.5 judge baselines (#4456)
-
-**[v10.0.0-beta.107](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.106...v10.0.0-beta.107)** · 2026-09-26
-
-- **lesson-cards:** draw the lesson once, in the card (#4453)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
