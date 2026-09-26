@@ -65,6 +65,7 @@ write_fixture_binary() {
         }
         console.log(`({hookEventName:R("CwdChanged")})({additionalContext:o().optional()})`);
         console.log(`({hookEventName:R("CwdChanged"),nested:{additionalContext:o().optional()}})`);
+        console.log(`({hookEventName:R("CwdChanged"),extraadditionalContext:o().optional()})`);
       });
     ' "$gen_mod" "$prose_event"
   } > "$FIX/bin/claude"

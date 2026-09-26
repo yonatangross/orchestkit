@@ -286,9 +286,9 @@ function hasDirectProperty(schemaObject, property) {
     if (depth !== 1 || !schemaObject.startsWith(property, i)) continue;
     const before = schemaObject[i - 1] ?? '';
     const after = schemaObject[i + property.length] ?? '';
-    if (/[$\\w]/.test(before) || /[$\\w]/.test(after)) continue;
+    if (/[$\w]/.test(before) || /[$\w]/.test(after)) continue;
     let cursor = i + property.length;
-    while (/\\s/.test(schemaObject[cursor] ?? '')) cursor += 1;
+    while (/\s/.test(schemaObject[cursor] ?? '')) cursor += 1;
     if (schemaObject[cursor] === ':') return true;
   }
   return false;
