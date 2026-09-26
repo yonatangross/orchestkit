@@ -55,13 +55,13 @@ assert.equal(normalizeModelId("claude-opus-5-5-20260901"), "claude-opus-5-5");
     cache_creation_input_tokens: 100_000,
     cache_read_input_tokens: 100_000,
   };
+  // 0.1 MTok each at Opus 5.5 ($4/$20/$5/$0.2) = $2.92; Opus 5 = $3.675.
   const right = ledgerCostUsd("claude-opus-5-5[1m]", usage, pricing);
   const wrongOpus5 = ledgerCostUsd("claude-opus-5", usage, pricing);
-  assert.ok(Math.abs(right.total - 4.1) < 1e-9);
-  assert.ok(Math.abs(wrongOpus5.total - 5.625) < 1e-9);
-  assert.ok(
-    relativeCostDiff(wrongOpus5.total, right.total) > COST_MISMATCH_MAX_REL,
-  );
+  assert.ok(Math.abs(right.total - 2.92) < 1e-9);
+  assert.ok(Math.abs(wrongOpus5.total - 3.675) < 1e-9);
+  assert.equal(right.total, ledgerCostUsd("claude-opus-5-5-20260901", usage, pricing).total);
+  assert.ok(right.total !== wrongOpus5.total);
 }
 
 {
