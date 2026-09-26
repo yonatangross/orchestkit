@@ -1,6 +1,6 @@
 {
   "slug": "mods-lesson-cards-cancel-plain",
-  "source": "docs/fix--lesson-cards-cancel-plain/index.html",
+  "source": "docs/fix--lesson-cards-cancel-plain-no-dup/index.html",
   "title": "lesson-cards: a cancel drops the Fix",
   "description": "Cancel and Escape deny keep the plain why and lesson id, and drop Fix. Claude Code may still glue Error:; this mod does not add its own Cancelled: head.",
   "tags": [
