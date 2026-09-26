@@ -15,6 +15,7 @@ import { COUNTS } from "@/lib/constants";
 import {
   CATEGORY_BADGE_CLASS,
   CATEGORY_COLORS,
+  categoryBorder,
   categoryLabel,
 } from "@/lib/category-colors";
 import {
@@ -257,7 +258,7 @@ function AgentsGrid() {
               href={`/docs/reference/agents/${agent.name}`}
               aria-label={agent.name}
               aria-describedby={`agent-card-${agent.name}-desc`}
-              className={`group rounded-lg border border-fd-border p-4 transition-colors hover:bg-fd-muted${
+              className={`group rounded-lg border border-fd-border border-l-[3px] ${categoryBorder(agent.category)} p-4 transition-colors hover:bg-fd-muted${
                 capped && index >= AGENTS_NARROW_PAGE ? " max-lg:hidden" : ""
               }`}
             >

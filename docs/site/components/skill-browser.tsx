@@ -7,6 +7,7 @@ import type { SkillMeta } from "@/lib/generated/types";
 import { SKILLS } from "@/lib/generated/skills-data";
 import {
   CATEGORY_BADGE_CLASS,
+  CATEGORY_BORDER_CLASS,
   CATEGORY_COLORS,
   CATEGORY_LABELS,
 } from "@/lib/category-colors";
@@ -25,61 +26,61 @@ const SKILL_CATEGORY_META: Record<
   development: {
     label: CATEGORY_LABELS.development,
     ...CATEGORY_COLORS.development,
-    border: "border-l-violet-400 dark:border-l-violet-500",
+    border: CATEGORY_BORDER_CLASS.development,
     dot: "bg-violet-500",
   },
   ai: {
     label: CATEGORY_LABELS.ai,
     ...CATEGORY_COLORS.ai,
-    border: "border-l-cyan-400 dark:border-l-cyan-500",
+    border: CATEGORY_BORDER_CLASS.ai,
     dot: "bg-cyan-500",
   },
   backend: {
     label: CATEGORY_LABELS.backend,
     ...CATEGORY_COLORS.backend,
-    border: "border-l-amber-400 dark:border-l-amber-500",
+    border: CATEGORY_BORDER_CLASS.backend,
     dot: "bg-amber-500",
   },
   frontend: {
     label: CATEGORY_LABELS.frontend,
     ...CATEGORY_COLORS.frontend,
-    border: "border-l-blue-400 dark:border-l-blue-500",
+    border: CATEGORY_BORDER_CLASS.frontend,
     dot: "bg-blue-500",
   },
   testing: {
     label: CATEGORY_LABELS.testing,
     ...CATEGORY_COLORS.testing,
-    border: "border-l-sky-400 dark:border-l-sky-500",
+    border: CATEGORY_BORDER_CLASS.testing,
     dot: "bg-sky-500",
   },
   security: {
     label: CATEGORY_LABELS.security,
     ...CATEGORY_COLORS.security,
-    border: "border-l-red-400 dark:border-l-red-500",
+    border: CATEGORY_BORDER_CLASS.security,
     dot: "bg-red-500",
   },
   devops: {
     label: CATEGORY_LABELS.devops,
     ...CATEGORY_COLORS.devops,
-    border: "border-l-orange-400 dark:border-l-orange-500",
+    border: CATEGORY_BORDER_CLASS.devops,
     dot: "bg-orange-500",
   },
   product: {
     label: CATEGORY_LABELS.product,
     ...CATEGORY_COLORS.product,
-    border: "border-l-pink-400 dark:border-l-pink-500",
+    border: CATEGORY_BORDER_CLASS.product,
     dot: "bg-pink-500",
   },
   data: {
     label: CATEGORY_LABELS.data,
     ...CATEGORY_COLORS.data,
-    border: "border-l-indigo-400 dark:border-l-indigo-500",
+    border: CATEGORY_BORDER_CLASS.data,
     dot: "bg-indigo-500",
   },
   research: {
     label: CATEGORY_LABELS.research,
     ...CATEGORY_COLORS.research,
-    border: "border-l-teal-400 dark:border-l-teal-500",
+    border: CATEGORY_BORDER_CLASS.research,
     dot: "bg-teal-500",
   },
 };

@@ -48,3 +48,30 @@ export function categoryLabel(key: string): string {
 /** Category badge shape on skill and agent cards (colors come from CATEGORY_COLORS). */
 export const CATEGORY_BADGE_CLASS =
   "mr-1.5 inline-block rounded px-1.5 py-px align-[1px] text-[11px] font-medium leading-tight";
+
+/**
+ * Left-border accent per category, shared by skill and agent cards so both
+ * read as one library (agent cards had none; follow-up to #4414). Full class
+ * strings, so Tailwind emits them.
+ */
+export const CATEGORY_BORDER_CLASS: Record<string, string> = {
+  development: "border-l-violet-400 dark:border-l-violet-500",
+  ai: "border-l-cyan-400 dark:border-l-cyan-500",
+  backend: "border-l-amber-400 dark:border-l-amber-500",
+  frontend: "border-l-blue-400 dark:border-l-blue-500",
+  testing: "border-l-sky-400 dark:border-l-sky-500",
+  security: "border-l-red-400 dark:border-l-red-500",
+  devops: "border-l-orange-400 dark:border-l-orange-500",
+  product: "border-l-pink-400 dark:border-l-pink-500",
+  data: "border-l-indigo-400 dark:border-l-indigo-500",
+  research: "border-l-teal-400 dark:border-l-teal-500",
+  quality: "border-l-lime-400 dark:border-l-lime-500",
+  design: "border-l-fuchsia-400 dark:border-l-fuchsia-500",
+  git: "border-l-emerald-400 dark:border-l-emerald-500",
+  llm: "border-l-cyan-400 dark:border-l-cyan-500",
+};
+
+/** Border accent for a category key; unknown keys get the neutral border. */
+export function categoryBorder(key: string): string {
+  return CATEGORY_BORDER_CLASS[key] ?? "border-l-fd-border";
+}

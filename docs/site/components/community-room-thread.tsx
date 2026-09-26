@@ -242,6 +242,7 @@ export function CommunityRoomThread({ botLine }: { botLine: string }) {
 
 	const visible = windowAt(playlist, endIndex);
 	const frames = useMemo(() => roomTimeline(playlist), [playlist]);
+	const lastEnd = frames[frames.length - 1];
 	const day = (
 		<p className="text-center text-[9px] font-medium tracking-[0.08em] text-fd-muted-foreground uppercase">
 			Today
@@ -272,13 +273,15 @@ export function CommunityRoomThread({ botLine }: { botLine: string }) {
 				    box is the tallest frame's height from the server render on.
 				    Frames differ by about 31px (the opening one, with the long
 				    welcome, is tallest) and the page below moved with them (gate
-				    2026-09-25). */}
+				    2026-09-25). Reduced motion only ever shows the last frame, so
+				    there the earlier sizers drop out by media query; reserving the
+				    tallest left 31px empty above "Today" (follow-up to #4414). */}
 				<div className="grid min-h-[268px] px-2.5 py-3">
 					{frames.map((end) => (
 						<div
 							key={end}
 							data-room-sizer
-							className="invisible col-start-1 row-start-1 flex flex-col justify-end gap-2.5"
+							className={`invisible col-start-1 row-start-1 flex flex-col justify-end gap-2.5${end === lastEnd ? "" : " motion-reduce:hidden"}`}
 						>
 							{day}
 							{windowAt(playlist, end).map((bubble) => (
