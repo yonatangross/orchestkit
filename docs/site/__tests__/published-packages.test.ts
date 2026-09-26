@@ -22,32 +22,7 @@ const cliPkg = JSON.parse(
 	readFileSync(resolve(__dirname, "../../../packages/cli/package.json"), "utf8"),
 ) as { name: string; bin?: Record<string, string> };
 
-function isPublishedCliPackageUrl(href: string): boolean {
-	try {
-		const url = new URL(href);
-		return (
-			url.hostname === "www.npmjs.com" &&
-			url.pathname === `/package/${cliPkg.name}`
-		);
-	} catch {
-		return false;
-	}
-}
-
-const npmPackageLookalikes = [
-	`https://evil.test/?redirect=https://www.npmjs.com/package/${cliPkg.name}`,
-	`https://npmjs.com/package/${cliPkg.name}`,
-	`https://www.npmjs.com/package/${cliPkg.name}/versions`,
-	`https://www.npmjs.com/package/not-${cliPkg.name}`,
-];
-
-function expectNpmPackageLookalikesRejected(
-	matchesPackageUrl: (href: string) => boolean,
-): void {
-	for (const href of npmPackageLookalikes) {
-		expect(matchesPackageUrl(href), href).toBe(false);
-	}
-}
+const publishedCliUrl = `https://www.npmjs.com/package/${cliPkg.name}`;
 
 const llmsTxt = readFileSync(
 	resolve(__dirname, "../app/llms.txt/route.ts"),
@@ -55,24 +30,14 @@ const llmsTxt = readFileSync(
 );
 
 describe("the site's CLI claim matches the package that ships", () => {
-	const entry = DEVELOPER_RESOURCES.find((r) =>
-		isPublishedCliPackageUrl(r.href),
-	);
+	const entry = DEVELOPER_RESOURCES.find((r) => r.title === "CLI (npm)");
 
 	it("the developer hub links the CLI on npm", () => {
 		expect(entry, "no npm package entry in DEVELOPER_RESOURCES").toBeDefined();
 	});
 
 	it("links the exact package name from packages/cli/package.json", () => {
-		expect(entry?.href).toBe(`https://www.npmjs.com/package/${cliPkg.name}`);
-	});
-
-	it("rejects lookalike URLs that are not the published npm package", () => {
-		expectNpmPackageLookalikesRejected(isPublishedCliPackageUrl);
-	});
-
-	it("detects removal of the package URL guard", () => {
-		expect(() => expectNpmPackageLookalikesRejected(() => true)).toThrow();
+		expect(entry?.href).toBe(publishedCliUrl);
 	});
 
 	it("only advertises command names the package actually declares", () => {

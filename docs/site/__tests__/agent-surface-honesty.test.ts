@@ -136,20 +136,23 @@ describe("Markdown alternate is advertised only where a twin exists", () => {
 		}
 	});
 
-	it("standalone Markdown twins advertise their own routes", () => {
+	it("standalone Markdown twins advertise a route served by their handler", async () => {
 		const pages = [
-			["pricing", pricingMetadata, "/pricing.md"],
-			["api policy", apiPolicyMetadata, "/api-policy.md"],
+			["pricing", pricingMetadata, getPricingMd, "/pricing.md"],
+			["api policy", apiPolicyMetadata, getApiPolicyMd, "/api-policy.md"],
 		] as const;
 
-		for (const [name, metadata, markdownPath] of pages) {
-			const assertAlternate = (types: unknown) => {
-				expect((types as Record<string, unknown> | undefined)?.["text/markdown"], name).toBe(
-					`${ORIGIN}${markdownPath}`,
-				);
-			};
-			assertAlternate(metadata.alternates?.types);
-			expect(() => assertAlternate(undefined)).toThrow();
+		for (const [name, metadata, get, markdownPath] of pages) {
+			expect(
+				(metadata.alternates?.types as Record<string, unknown> | undefined)?.[
+					"text/markdown"
+				],
+				name,
+			).toBe(`${ORIGIN}${markdownPath}`);
+			const markdown = await get().text();
+			expect(parseFrontmatter(markdown).canonical, name).toBe(
+				`${ORIGIN}${markdownPath.slice(0, -3)}`,
+			);
 		}
 	});
 
