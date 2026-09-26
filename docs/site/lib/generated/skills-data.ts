@@ -151,7 +151,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "analytics",
     "description": "Queries local analytics across OrchestKit projects for agent usage, skill frequency, hook timing, team activity, session replay, cost estimation, and model delegation trends. Privacy-safe with hashed project IDs. Supports time-range filtering and comparative analysis. Use when reviewing performance, estimating costs, or understanding usage patterns.",
     "version": "2.1.0",
-    "sha256": "5e47aff7d25f8541fda67b39191086dcd7989c31ef26aba047d673f055d11bd2",
+    "sha256": "91d0aded81ecfcf52b6395e1a9a498291eaed3a86d03ad217cd336460770a8a7",
     "author": "OrchestKit",
     "tags": [
       "analytics",
@@ -189,6 +189,7 @@ export const SKILLS: Record<string, SkillMeta> = {
         "data-locations.md",
         "jq-queries.md",
         "otel-fields.md",
+        "otel-gateway-source.md",
         "session-replay.md",
         "trends-analysis.md"
       ]

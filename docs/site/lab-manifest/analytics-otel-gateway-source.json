@@ -1,0 +1,12 @@
+{
+  "slug": "analytics-otel-gateway-source",
+  "title": "OTel gateway source explorer",
+  "description": "Explore synthetic Loki and Prometheus availability, discovered names, and local fallback behavior.",
+  "source": "docs/feat\u002d\u002danalytics-otel-gateway-source/index.html",
+  "tags": [
+    "analytics",
+    "otel",
+    "review"
+  ],
+  "date": "2026-09-26"
+}

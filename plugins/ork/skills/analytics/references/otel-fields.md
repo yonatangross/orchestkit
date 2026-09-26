@@ -67,6 +67,8 @@ Exports land in `~/.claude/otel/` (when OTEL export is enabled in `settings.json
 ~/.claude/otel/skill-activated.jsonl    # invocation_trigger                    (2.1.126)
 ```
 
+For sessions on other machines or in the cloud, a collector (Loki + Prometheus) holds the same events and metrics with per-lane and per-harness splits: see `otel-gateway-source.md`. Select the remote source only after the user names its endpoints and discovery confirms the available names.
+
 When OTEL export is disabled the files simply do not exist — queries below handle this with `2>/dev/null` and empty-result fallbacks.
 
 ## Dashboard panels
@@ -226,5 +228,6 @@ Include these panels in `summary` when **any** of the three OTEL files are prese
 ## Related
 
 - `src/skills/analytics/references/jq-queries.md` — base queries for non-OTEL JSONL sources.
+- `src/skills/analytics/references/otel-gateway-source.md`: the remote source (Loki + Prometheus) for the same panels, plus per-lane and per-harness splits.
 - `src/skills/analytics/references/cost-estimation.md` — per-model pricing; combines with Panel 2 for dollar-denominated breakdowns.
 - `src/hooks/src/lib/cc-version-matrix.ts` — `otel_command_attrs` entry gates these fields behind `MIN_CC_VERSION = 2.1.117`.
