@@ -1,0 +1,8 @@
+{
+  "slug": "evals-opus-5-5-judge-baselines",
+  "source": "docs/chore--evals-opus-5-5-judge-baselines/index.html",
+  "title": "Opus 5.5 judge baselines",
+  "description": "Paid Opus 5.5 judge baseline reruns after the judge pin move: re-pilot matrix, holdout grader scores, and the holdout script fix that reads .target.",
+  "tags": ["evals", "opus-5-5", "baselines"],
+  "date": "2026-09-26"
+}
