@@ -1,6 +1,6 @@
 {
   "name": "lesson-cards",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Displays lesson hint cards when tool calls match known patterns. Additive surface during pilot; the classic --strict guard keeps its 12 block-severity denies.",
   "author": {
     "name": "Yonatan Gross",

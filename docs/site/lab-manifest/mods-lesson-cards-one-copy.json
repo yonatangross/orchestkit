@@ -1,0 +1,13 @@
+{
+  "slug": "mods-lesson-cards-one-copy",
+  "source": "docs/fix--lesson-cards-one-copy/index.html",
+  "title": "lesson-cards: the lesson is drawn once, in the card",
+  "description": "A block lesson printed its paragraph three times: card, Proceed anyway question, and deny line. Now the card is the only copy; the question is the title only and the deny is why, the lesson id and a short fix.",
+  "tags": [
+    "claude-code",
+    "mods",
+    "function-hooks",
+    "lesson-cards"
+  ],
+  "date": "2026-09-26"
+}

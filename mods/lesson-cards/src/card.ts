@@ -107,24 +107,24 @@ export function shortFix(fix: string | undefined): string | undefined {
 }
 
 /**
- * The one-line reason a refused call carries. Claude Code draws every deny
- * as a red tool error, so a multi-line lesson here became a red wall that
- * repeated the card. The deny is also the only thing the model reads about a
- * refused call, so it keeps the lesson id, the lesson's first sentence and a
- * short fix: the model learns the alternative, not just that a lesson fired.
+ * The block-lesson question: the lesson title and "Proceed anyway?" only.
+ * The card above the dialog already shows the lesson; repeating the message
+ * here drew the same paragraph twice on screen.
+ */
+export function askQuestion(lesson: MatchedLesson): string {
+  return `lesson ${lesson.id}: Proceed anyway?`;
+}
+
+/**
+ * The one-line reason a refused call carries: why, the lesson id and a short
+ * fix. Claude Code draws every mod deny as "Error: <deny>", so any lesson text
+ * here drew the card's paragraph a third time. The model still learns the
+ * alternative from the fix.
  */
 export function denyLine(lesson: MatchedLesson, why: string): string {
-  const flat = lesson.message.replace(/\s+/g, ' ').trim();
-  const firstSentence = /^(.*?[.!?])(\s|$)/.exec(flat)?.[1] ?? flat;
   const fix = shortFix(lesson.fix);
-  const head = `lesson-cards: ${why}; call not run. [lesson:${lesson.id}] `;
   const tail = fix ? ` Fix: ${fix}` : '';
-  // Budget the message around the fix: the fix (already capped) is kept
-  // whole and the first sentence takes what is left, so a long sentence can
-  // never push the fix off the end of the line.
-  const room = MAX_DENY_CHARS - Array.from(head).length - Array.from(tail).length;
-  const message = room >= 4 ? cutCodePoints(firstSentence, room) : '';
-  return cutCodePoints(`${head}${message}${tail}`, MAX_DENY_CHARS);
+  return cutCodePoints(`${why} [lesson:${lesson.id}]${tail}`, MAX_DENY_CHARS);
 }
 
 /**

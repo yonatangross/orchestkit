@@ -22,7 +22,7 @@ import {
   type LessonBullet,
 } from '../src/corpus.js';
 import { matchAll, matchFileEdit } from '../src/match.js';
-import { buildCard, denyLine, formatContext, type CardElements } from '../src/card.js';
+import { askQuestion, buildCard, denyLine, formatContext, type CardElements } from '../src/card.js';
 import type { MatchedLesson } from '../src/types.js';
 
 /** Minimal $ facade for the events this module uses. */
@@ -69,6 +69,8 @@ type SessionStartEvent = { cwd: string; isInteractive: boolean };
 
 // Module-scope state (per session)
 let corpus: Corpus | null = null;
+/** False for a headless (-p) session: there is no dialog to ask. */
+let interactive = true;
 const matchMap = new Map<string, MatchedLesson[]>();
 
 /**
@@ -221,6 +223,7 @@ function matchToolCall(e: ToolCallEvent, loaded: Corpus): MatchedLesson[] {
 export function register(on: (event: string, matcherOrHook: unknown, hook?: unknown) => void, _options?: unknown): void {
   on('session.start', async ($: Hook$, e: SessionStartEvent, next: NextFn<SessionStartEvent>) => {
     corpus = await loadCorpus($);
+    interactive = e.isInteractive !== false;
     matchMap.clear();
     await $.command.register({ name: 'lessons', description: 'Reload the lesson cards corpus' });
     return next(e);
@@ -257,17 +260,26 @@ export function register(on: (event: string, matcherOrHook: unknown, hook?: unkn
     // a typed free-text answer, and no dialog at all (headless -p) all deny:
     // a block lesson fails closed (estate-6 HOLD on #4429).
     if (lesson.severity === 'block' && lesson.source === 'pattern') {
+      const canAsk = interactive && typeof $.ui.ask === 'function';
       let answer: unknown;
-      try {
-        answer = await $.ui.ask(`lesson ${lesson.id}: ${lesson.message} Proceed anyway?`, [PROCEED, CANCEL]);
-      } catch {
-        answer = undefined;
+      let dismissed = false;
+      if (canAsk) {
+        try {
+          answer = await $.ui.ask(askQuestion(lesson), [PROCEED, CANCEL]);
+        } catch {
+          // Escape: the dialog throws "no answer (the dialog was dismissed)".
+          dismissed = true;
+        }
       }
       if (answer !== PROCEED) {
         // { deny } is the tool.call refusal CC 2.1.282 reads: the call is not
         // run and the model sees the reason as a permission denial. A bare
         // { result: string } is refused for Bash (its output is an object).
-        const why = answer === CANCEL ? 'the user chose Cancel' : 'no explicit "Proceed anyway" came back';
+        const why = !canAsk
+          ? 'Not run: no dialog to confirm.'
+          : answer === CANCEL || dismissed
+            ? 'Cancelled by you; not run.'
+            : 'Not run: no "Proceed anyway".';
         return {
           deny: denyLine(lesson, why),
         };
