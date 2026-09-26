@@ -351,10 +351,12 @@ EOF
 )
         # grader stderr is non-actionable subprocess noise; an empty/unparseable
         # result is handled by the caller (case skipped + logged).
+        # Pass --model so EVAL_GRADING_MODEL / the Opus 5.5 default is what
+        # actually runs (previously the pin was ledger-only).
         if [[ "$BARE_MODE" == "true" ]]; then
-            out=$(claude -p "$grade_prompt" --bare --print --max-turns 1 --json-schema "$HP_GRADER_SCHEMA" --output-format json < /dev/null 2>/dev/null)  # silent: best-effort
+            out=$(claude -p "$grade_prompt" --bare --print --max-turns 1 --model "$HP_GRADER_MODEL" --json-schema "$HP_GRADER_SCHEMA" --output-format json < /dev/null 2>/dev/null)  # silent: best-effort
         else
-            out=$(claude -p "$grade_prompt" --print --max-turns 3 --json-schema "$HP_GRADER_SCHEMA" --output-format json < /dev/null 2>/dev/null)  # silent: best-effort
+            out=$(claude -p "$grade_prompt" --print --max-turns 3 --model "$HP_GRADER_MODEL" --json-schema "$HP_GRADER_SCHEMA" --output-format json < /dev/null 2>/dev/null)  # silent: best-effort
         fi
         # The result JSON carries the schema-shaped object under .structured_output.
         structured=$(echo "$out" | jq -c '.structured_output // empty' 2>/dev/null)  # silent: best-effort
@@ -388,8 +390,9 @@ EOF
     while IFS= read -r _case || [[ -n "$_case" ]]; do
         [[ -z "$_case" ]] && continue
         _cid="$(echo "$_case" | jq -r '.id // "?"' 2>/dev/null)"  # silent: best-effort
-        _cprompt="$(echo "$_case" | jq -r '.prompt // ""' 2>/dev/null)"  # silent: best-effort
-        _cmust="$(echo "$_case" | jq -r '(.must // []) | join("\n- ")' 2>/dev/null)"  # silent: best-effort
+        # assess holdout.jsonl uses .target; older shapes used .prompt / .must.
+        _cprompt="$(echo "$_case" | jq -r '.prompt // .target // ""' 2>/dev/null)"  # silent: best-effort
+        _cmust="$(echo "$_case" | jq -r '(.must // .expected.notes // "") | if type=="array" then join("\n- ") else . end' 2>/dev/null)"  # silent: best-effort
         [[ -n "$_cmust" ]] && _cmust="- $_cmust"
 
         echo -e "  ${CYAN}grading${NC} case ${_cid}..."
