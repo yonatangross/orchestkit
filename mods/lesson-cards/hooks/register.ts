@@ -63,8 +63,12 @@ type UiRenderEvent = {
 export const PROCEED = 'Proceed anyway';
 export const CANCEL = 'Cancel';
 
-/** The tail of the $.ui.ask throw when the person presses Escape. */
-const DISMISSED = 'the dialog was dismissed';
+/**
+ * What the $.ui.ask throw carries when the person presses Escape. CC 2.1.283
+ * puts its tool rejection text there; the dismiss text is its fallback when
+ * the dialog returns no text.
+ */
+const DISMISSED = ["The user doesn't want to proceed with this tool use", 'the dialog was dismissed'];
 
 type NextFn<E> = (ev: E) => Promise<unknown>;
 
@@ -271,9 +275,10 @@ export function register(on: (event: string, matcherOrHook: unknown, hook?: unkn
           answer = await $.ui.ask(askQuestion(lesson), [PROCEED, CANCEL]);
           outcome = 'answered';
         } catch (err) {
-          // Escape throws "$.ui.ask: no answer (the dialog was dismissed)". Any
-          // other throw (no ask, a refused dialog) is not the user cancelling.
-          outcome = err instanceof Error && err.message.includes(DISMISSED) ? 'dismissed' : 'no-dialog';
+          // Escape throws "$.ui.ask: no answer (<rejection text>)". Any other
+          // throw (no ask, a refused dialog) is not the user cancelling.
+          const message = err instanceof Error ? err.message : '';
+          outcome = DISMISSED.some((tail) => message.includes(tail)) ? 'dismissed' : 'no-dialog';
         }
       }
       if (answer !== PROCEED) {

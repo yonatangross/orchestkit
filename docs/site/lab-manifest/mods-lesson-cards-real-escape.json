@@ -1,0 +1,13 @@
+{
+  "slug": "mods-lesson-cards-real-escape",
+  "source": "docs/fix--lesson-cards-real-escape/index.html",
+  "title": "lesson-cards: Escape reads as cancelled by you",
+  "description": "On CC 2.1.283, Escape on the Proceed anyway question throws the tool rejection text, not the dismiss text, so 1.0.4 printed 'no dialog to confirm'. 1.0.5 matches both and pins the live throw in a test.",
+  "tags": [
+    "claude-code",
+    "mods",
+    "function-hooks",
+    "lesson-cards"
+  ],
+  "date": "2026-09-26"
+}
