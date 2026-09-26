@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.109",
+    "date": "2026-09-26",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.108...v10.0.0-beta.109",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**lesson-cards:** read the real Escape throw as cancelled by you ([#4462](https://github.com/yonatangross/orchestkit/issues/4462)) ([fd5961d](https://github.com/yonatangross/orchestkit/commit/fd5961d086ea888ee6dbbab246c95e5b24a8dbe7))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.108",
     "date": "2026-09-26",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.107...v10.0.0-beta.108",
