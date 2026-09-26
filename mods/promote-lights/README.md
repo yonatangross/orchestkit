@@ -35,11 +35,13 @@ A real promote PR keeps its stricter rule: an empty required-context union refus
 
 ## Only this session's lights
 
-Lights are kept in `$.store`, which outlives a Claude Code session, and the
-band can be drawn before `session.start` runs. Every stored entry therefore
-carries a token of the process that wrote it, and the band and `/lights`
-ignore any entry with another token (or none). A new session never shows the
-previous session's lights, even for a moment.
+Lights are kept in `$.store`, which outlives a Claude Code session and is
+shared by every session on the machine, and the band can be drawn before
+`session.start` runs. Each session therefore stores its lights under its own
+key (the repo plus a session token), stamps the entry with that token, and
+draws only its own entry. Two live sessions on the same repo keep separate
+bands, and a new session (including a `/clear`, which rotates the token and
+removes the previous entry) never shows older lights, even for a moment.
 
 ## Light colors
 
