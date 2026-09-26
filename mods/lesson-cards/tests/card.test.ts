@@ -30,12 +30,11 @@ describe('denyLine', () => {
     expect(line).not.toContain('\n');
   });
 
-  test('a user cancel is plain: Cancelled: head, lesson id, no Fix, no Error:', () => {
+  test('a user cancel is plain: reason, lesson id, no Fix', () => {
     const line = denyLine(lesson('First sentence here.\nSecond line.', '# WRONG\nold()\n# RIGHT\nnew()'), 'Cancelled by you; not run.');
-    expect(line).toBe('Cancelled: Cancelled by you; not run. [lesson:l1]');
+    expect(line).toBe('Cancelled by you; not run. [lesson:l1]');
     expect(line).not.toContain('Fix:');
-    expect(line).not.toMatch(/^Error:/);
-    expect(line.startsWith('Cancelled: ')).toBe(true);
+    expect(line).not.toMatch(/^Cancelled: Cancelled/);
   });
 
   test('no fix, no Fix label', () => {
@@ -59,7 +58,7 @@ describe('denyLine', () => {
     const line = denyLine(lesson('w'.repeat(500) + '.', '# RIGHT\nuse_the_safe_call()'), 'Cancelled by you; not run.');
     expect(line).not.toContain('www');
     expect(line).not.toContain('Fix:');
-    expect(line.startsWith('Cancelled: ')).toBe(true);
+    expect(line.startsWith('Cancelled by you; not run.')).toBe(true);
   });
 
   test('a long message on a real block keeps the Fix whole', () => {

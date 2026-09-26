@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>lesson-cards: a cancel is not an Error | OrchestKit Lab</title>
+<title>lesson-cards: a cancel drops the Fix | OrchestKit Lab</title>
 <style>
   :root { color-scheme: light; font: 17px/1.6 system-ui, sans-serif; background: #faf8f3; color: #1d232a; }
   body { max-width: 900px; margin: auto; padding: 44px 24px; }
@@ -18,17 +18,19 @@
 </head>
 <body>
 <p class="eyebrow">ORCHESTKIT LAB · MODS · CC 2.1.283</p>
-<h1>A cancel is not an Error</h1>
-<p>In lesson-cards 1.0.5 (beta.109), Escape and Cancel already said <code>Cancelled by you; not run.</code>, but Claude Code still drew <code>Error:</code> in front and the deny line still carried a <code>Fix:</code> hint. A user cancel is not a failure, and a Fix hint on a cancel is noise. lesson-cards 1.0.6 starts the cancel deny with <code>Cancelled: </code> (Claude Code leaves that prefix alone, same as <code>Error: </code>) and drops the Fix line. The lesson id stays. Other refuses (no dialog, no exact Proceed anyway) still keep a short Fix for the model.</p>
+<h1>A cancel drops the Fix</h1>
+<p>In lesson-cards 1.0.5, Escape and Cancel already said <code>Cancelled by you; not run.</code>, but the deny still carried a <code>Fix:</code> hint. A user cancel is not a failure, so 1.0.6 keeps that plain why (plus the lesson id) and drops Fix. Claude Code's tool-result renderer (2.1.283) still glues <code>Error: </code> unless the deny already starts with <code>Error: </code> or <code>Cancelled: </code>; this mod does not add its own <code>Cancelled: </code> head, because that would read <code>Cancelled: Cancelled by you</code>. Other refuses (no dialog, no exact Proceed anyway) still keep a short Fix for the model.</p>
 <p>
   <label><input type="radio" name="v" value="before"> Before (1.0.5)</label>
   <label><input type="radio" name="v" value="after" checked> After (1.0.6)</label>
 </p>
 <pre class="dim">Claude Code tool-result renderer (2.1.283):
 if startsWith("Error: ") or startsWith("Cancelled: ") → leave alone
-else → glue "Error: " in front</pre>
+else → glue "Error: " in front
+(mod deny is the why string; CC wraps it, then Fp decides the prefix)</pre>
 <pre id="before" hidden><span class="bad">Error: Cancelled by you; not run. [lesson:git-ls-files-quotepath-blind] Fix: git ls-files -z | tr '\0' '\n' | grep -qxF "$name"</span></pre>
-<pre id="after"><span class="ok">Cancelled: Cancelled by you; not run. [lesson:git-ls-files-quotepath-blind]</span></pre>
+<pre id="after"><span class="ok">Error: Cancelled by you; not run. [lesson:git-ls-files-quotepath-blind]</span>
+<span class="dim">(plain why, lesson id, no Fix; Error: is still CC glue)</span></pre>
 <script>
   for (const r of document.querySelectorAll('input[name=v]')) {
     r.addEventListener('change', () => {

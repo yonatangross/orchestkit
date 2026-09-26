@@ -117,9 +117,8 @@ export function askQuestion(lesson: MatchedLesson): string {
 
 /**
  * True when why is a user cancel (Cancel button or Escape). Those must not
- * look like failures: no Fix line, and a "Cancelled: " head so Claude Code's
- * tool-result renderer leaves the string alone instead of prefixing "Error: ".
- * (CC 2.1.283: startsWith("Error: ") || startsWith("Cancelled: ") passes through.)
+ * look like failures: no Fix line. The card above the row already shows the
+ * lesson and the alternative.
  */
 export function isUserCancel(why: string): boolean {
   return why === 'Cancelled by you; not run.' || why.startsWith('Cancelled: ');
@@ -127,20 +126,17 @@ export function isUserCancel(why: string): boolean {
 
 /**
  * The one-line reason a refused call carries: why, the lesson id, and (for a
- * real block, not a user cancel) a short fix. Claude Code draws a mod deny as
- * "Error: <deny>" unless the deny already starts with "Error: " or "Cancelled: ".
- * A cancel is not an error, so it uses the Cancelled: head and omits Fix; the
- * card above the row already shows the lesson and the alternative.
+ * real block, not a user cancel) a short fix. A cancel is not a failure, so it
+ * omits Fix. Claude Code's tool-result renderer (2.1.283) still glues
+ * "Error: " in front of any deny that does not already start with "Error: "
+ * or "Cancelled: "; we do not add our own Cancelled: head (that would read
+ * "Cancelled: Cancelled by you"), so the on-screen line stays the plain why
+ * the operator asked for, with CC's Error: prefix if any.
  */
 export function denyLine(lesson: MatchedLesson, why: string): string {
-  const cancel = isUserCancel(why);
-  // CC leaves "Cancelled: ..." alone (no "Error:" glue). Keep the human phrase.
-  const head = why === 'Cancelled by you; not run.'
-    ? 'Cancelled: Cancelled by you; not run.'
-    : why;
-  const fix = cancel ? undefined : shortFix(lesson.fix);
+  const fix = isUserCancel(why) ? undefined : shortFix(lesson.fix);
   const tail = fix ? ` Fix: ${fix}` : '';
-  return cutCodePoints(`${head} [lesson:${lesson.id}]${tail}`, MAX_DENY_CHARS);
+  return cutCodePoints(`${why} [lesson:${lesson.id}]${tail}`, MAX_DENY_CHARS);
 }
 
 /**
