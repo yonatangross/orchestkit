@@ -19,18 +19,17 @@
 <body>
 <p class="eyebrow">ORCHESTKIT LAB · MODS · CC 2.1.283</p>
 <h1>A cancel drops the Fix</h1>
-<p>In lesson-cards 1.0.5, Escape and Cancel said <code>Cancelled by you; not run.</code> and still carried a <code>Fix:</code> hint. A user cancel is not a failure, so 1.0.6 drops Fix and starts the deny with <code>Cancelled: </code> so Claude Code's 2.1.283 tool-result renderer leaves it alone (same pass-through as <code>Error: </code>). The rest is <code>by you; not run. Waiting for your next instruction.</code>, so Cancelled is said once. Other refuses (no dialog, no exact Proceed anyway) still keep a short Fix for the model.</p>
+<p>In lesson-cards 1.0.5, Escape and Cancel said <code>Cancelled by you; not run.</code> and still carried a <code>Fix:</code> hint. A user cancel is not a failure, so 1.0.6 drops Fix and returns only <code>by you; not run.</code> (plus the lesson id). Claude Code adds the <code>Cancelled: </code> head, so the on-screen line reads <code>Cancelled: by you; not run. [lesson:…]</code> once. Other refuses (no dialog, no exact Proceed anyway) still keep a short Fix for the model.</p>
 <p>
   <label><input type="radio" name="v" value="before"> Before (1.0.5)</label>
   <label><input type="radio" name="v" value="after" checked> After (1.0.6)</label>
 </p>
-<pre class="dim">Claude Code tool-result renderer (2.1.283):
-if startsWith("Error: ") or startsWith("Cancelled: ") → leave alone
-else → glue "Error: " in front
-(mod deny starts with Cancelled: so Fp leaves it alone)</pre>
+<pre class="dim">Our deny: by you; not run. [lesson:id]
+CC adds Cancelled: → Cancelled: by you; not run. [lesson:id]
+(no Fix; Cancelled said once)</pre>
 <pre id="before" hidden><span class="bad">Error: Cancelled by you; not run. [lesson:git-ls-files-quotepath-blind] Fix: git ls-files -z | tr '\0' '\n' | grep -qxF "$name"</span></pre>
-<pre id="after"><span class="ok">Cancelled: by you; not run. Waiting for your next instruction. [lesson:git-ls-files-quotepath-blind]</span>
-<span class="dim">(Cancelled: once, lesson id, no Fix; CC does not glue Error:)</span></pre>
+<pre id="after"><span class="ok">Cancelled: by you; not run. [lesson:git-ls-files-quotepath-blind]</span>
+<span class="dim">(CC Cancelled: head + our by you; not run.; no Fix)</span></pre>
 <script>
   for (const r of document.querySelectorAll('input[name=v]')) {
     r.addEventListener('change', () => {
