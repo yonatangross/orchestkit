@@ -1,0 +1,12 @@
+{
+  "slug": "backlog-4333-schema-evidence",
+  "title": "Schema exemptions need evidence",
+  "description": "Toggle schema proof, classification overlap and binary prose to inspect the additionalContext exemption gate.",
+  "source": "docs/fix\u002d\u002dbacklog-4333-schema-evidence/index.html",
+  "tags": [
+    "ci",
+    "regression",
+    "review"
+  ],
+  "date": "2026-09-26"
+}
