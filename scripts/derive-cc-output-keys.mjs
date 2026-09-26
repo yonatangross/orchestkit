@@ -67,6 +67,8 @@ const EXIT_OK = 0;
 const EXIT_DRIFT = 1;
 const EXIT_CANNOT_OBSERVE = 2;
 const EXIT_UNREVIEWED = 3;
+const MAX_SCHEMA_SCAN_CHARS = 64 * 1024;
+const MAX_SCHEMA_CANDIDATES = 128;
 
 /**
  * Resolve the real binary, not the shim. TWO layouts ship it and only one of
@@ -94,6 +96,17 @@ const EXIT_UNREVIEWED = 3;
  */
 function findBinary() {
   return binaryFromVersionsDir() ?? binaryFromPath();
+}
+
+/** Use a specific observed artifact when reproducing an evidence record. */
+function binaryFromOverride(requested) {
+  try {
+    const path = realpathSync(requested);
+    if (!statSync(path).isFile()) return null;
+    return { path, version: versionNear(path) ?? 'unknown' };
+  } catch {
+    return null;
+  }
 }
 
 /** The native installer's layout: a versioned file per release. */
@@ -199,7 +212,11 @@ function additionalContextSchemaEventsFrom(strings) {
   const event = /hookEventName:R\("([A-Za-z]+)"\)/g;
   for (const m of strings.matchAll(event)) {
     const schemaObject = enclosingEventObject(strings, m.index);
-    if (schemaObject && hasDirectProperty(schemaObject, 'additionalContext')) {
+    if (
+      schemaObject &&
+      (hasDirectProperty(schemaObject.source, 'additionalContext') ||
+        hasAdditionalContextExtension(strings, schemaObject.end, 'additionalContext'))
+    ) {
       found.add(m[1]);
     }
   }
@@ -207,21 +224,25 @@ function additionalContextSchemaEventsFrom(strings) {
 }
 
 function enclosingEventObject(strings, eventIndex) {
+  const minimumStart = Math.max(0, eventIndex - MAX_SCHEMA_SCAN_CHARS);
+  const maximumEnd = Math.min(strings.length, eventIndex + MAX_SCHEMA_SCAN_CHARS);
   let start = strings.lastIndexOf('{', eventIndex);
-  while (start >= 0) {
-    const end = matchingBrace(strings, start);
+  let candidates = 0;
+  while (start >= minimumStart && candidates < MAX_SCHEMA_CANDIDATES) {
+    const end = matchingBrace(strings, start, maximumEnd);
     if (end >= eventIndex && braceDepthAt(strings, start, eventIndex) === 1) {
-      return strings.slice(start, end + 1);
+      return { source: strings.slice(start, end + 1), end };
     }
     start = strings.lastIndexOf('{', start - 1);
+    candidates += 1;
   }
   return null;
 }
 
-function matchingBrace(strings, start) {
+function matchingBrace(strings, start, maximumEnd = strings.length) {
   let depth = 0;
   let quote = null;
-  for (let i = start; i < strings.length; i += 1) {
+  for (let i = start; i < maximumEnd; i += 1) {
     const ch = strings[i];
     if (quote) {
       if (ch === '\\') i += 1;
@@ -238,6 +259,30 @@ function matchingBrace(strings, start) {
     }
   }
   return -1;
+}
+
+/**
+ * A schema generator may add a field with `u({...}).extend({...})`. The
+ * extension is part of the same schema expression, so accept only a direct
+ * property in the immediately chained extension object. Dynamic spreads stay
+ * unproven because this extractor cannot safely resolve their source.
+ */
+function hasAdditionalContextExtension(strings, schemaEnd, property) {
+  const suffixEnd = Math.min(strings.length, schemaEnd + MAX_SCHEMA_SCAN_CHARS);
+  const suffix = strings.slice(schemaEnd + 1, suffixEnd);
+  const extension = /^\s*\)\s*\.extend\s*\(\s*\{/.exec(suffix);
+  if (!extension) return false;
+
+  const extensionStart = schemaEnd + 1 + extension[0].lastIndexOf('{');
+  const extensionEnd = matchingBrace(
+    strings,
+    extensionStart,
+    Math.min(strings.length, extensionStart + MAX_SCHEMA_SCAN_CHARS),
+  );
+  return (
+    extensionEnd >= 0 &&
+    hasDirectProperty(strings.slice(extensionStart, extensionEnd + 1), property)
+  );
 }
 
 function braceDepthAt(strings, start, index) {
@@ -323,8 +368,14 @@ async function main() {
   const check = process.argv.includes('--check');
   if (check) requireSpec();
 
-  const bin = findBinary();
+  const requestedBinary = process.env.CC_OUTPUT_KEYS_BINARY;
+  const bin = requestedBinary ? binaryFromOverride(requestedBinary) : findBinary();
   if (!bin) {
+    if (requestedBinary) {
+      console.error(`CANNOT OBSERVE: CC_OUTPUT_KEYS_BINARY is not a usable file: ${requestedBinary}`);
+      console.error('  The explicit binary pin is authoritative, so no fallback binary was used.');
+      process.exit(EXIT_CANNOT_OBSERVE);
+    }
     console.error('CANNOT OBSERVE: no CC binary found. Looked in both known layouts:');
     console.error(`    native: ${join(homedir(), '.local/share/claude/versions')}/<x.y.z>`);
     console.error('    npm:    `claude` on PATH, symlinks followed');
@@ -403,6 +454,7 @@ async function main() {
     schemaEvents: binaryAdditionalContextSchema,
     corroboratedEvents: binaryAdditionalContext,
   });
+  printSchemaEvidence(schemaAcceptedAdditionalContext, binaryAdditionalContextSchema);
 
   const acDrift = arbitrateSet({
     label: 'EVENTS_WITH_ADDITIONAL_CONTEXT',
@@ -496,6 +548,16 @@ function inspectAdditionalContextSchemaEvidence({
   }
 
   return { invalid: overlap.length > 0 || missingSchema.length > 0 };
+}
+
+function printSchemaEvidence(schemaAccepted, schemaEvents) {
+  console.log('\nSCHEMA EVIDENCE [ADDITIONAL_CONTEXT_SCHEMA_ACCEPTED]:');
+  for (const event of [...schemaAccepted].sort()) {
+    const verdict = schemaEvents.has(event)
+      ? 'resolved in this binary output-schema variant'
+      : 'MISSING from this binary output-schema variant';
+    console.log(`  ${event}: ${verdict}`);
+  }
 }
 
 /**

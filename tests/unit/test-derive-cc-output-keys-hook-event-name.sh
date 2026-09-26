@@ -20,7 +20,7 @@ FIX="$(mktemp -d "${TMPDIR:-/tmp}/ork-hen-arbitrate.XXXXXX")"
 cleanup() { rm -rf "$FIX"; }
 trap cleanup EXIT
 
-mkdir -p "$FIX/tree/scripts" "$FIX/tree/src/hooks/bin" "$FIX/tree/spec" "$FIX/bin" "$FIX/home"
+mkdir -p "$FIX/tree/scripts" "$FIX/tree/src/hooks/bin" "$FIX/tree/spec" "$FIX/bin" "$FIX/empty-bin" "$FIX/home"
 cp "$SCRIPT" "$FIX/tree/scripts/"
 cp "$GEN_SRC" "$FIX/tree/src/hooks/bin/"
 cp "$SPEC_SRC" "$FIX/tree/spec/"
@@ -33,6 +33,7 @@ write_fixture_binary() {
   local label="$1"
   local gen_mod="$2"
   local prose_event="${3:-}"
+  local extension_event="${4:-}"
   {
     echo "hookSpecificOutput fixture binary: ${label}"
     node -e '
@@ -58,7 +59,11 @@ write_fixture_binary() {
           if (henReviewed.has(e)) continue;
           const nested = acSchema.has(e) ? ",metadata:{unrelated:o().optional()}" : "";
           const additionalContext = acSchema.has(e) ? ",additionalContext:o().optional()" : "";
-          console.log(`({hookEventName:R("${e}")${nested}${additionalContext}})`);
+          if (e === process.argv[3] && acSchema.has(e)) {
+            console.log(`u({hookEventName:R("${e}")}).extend({additionalContext:o().optional()})`);
+          } else {
+            console.log(`({hookEventName:R("${e}")${nested}${additionalContext}})`);
+          }
         }
         if (process.argv[2]) {
           console.log(`Hook-specific output for the ${process.argv[2]} event. additionalContext is non-error feedback delivered to the model.`);
@@ -67,7 +72,7 @@ write_fixture_binary() {
         console.log(`({hookEventName:R("CwdChanged"),nested:{additionalContext:o().optional()}})`);
         console.log(`({hookEventName:R("CwdChanged"),extraadditionalContext:o().optional()})`);
       });
-    ' "$gen_mod" "$prose_event"
+    ' "$gen_mod" "$prose_event" "$extension_event"
   } > "$FIX/bin/claude"
   chmod +x "$FIX/bin/claude"
 }
@@ -76,6 +81,28 @@ run_check() {
   local out="$1"
   ( cd "$FIX/tree" && HOME="$FIX/home" PATH="$FIX/bin:$PATH" \
       node scripts/derive-cc-output-keys.mjs --check >"$out" 2>&1 )
+}
+
+run_check_with_pinned_binary() {
+  local out="$1"
+  local node_dir
+  local option_dash=-
+  local check_option="${option_dash}${option_dash}check"
+  node_dir="$(dirname "$(command -v node)")"
+  ( cd "$FIX/tree" && HOME="$FIX/home" PATH="$FIX/empty-bin:/usr/bin:$node_dir" \
+      CC_OUTPUT_KEYS_BINARY="$FIX/bin/claude" \
+      node scripts/derive-cc-output-keys.mjs "$check_option" >"$out" 2>&1 )
+}
+
+has_schema_drift() {
+  local out="$1"
+  local event="$2"
+  awk -v event="$event" '
+    /^DRIFT \[ADDITIONAL_CONTEXT_SCHEMA_ACCEPTED\]:/ { active = 1; next }
+    active && $0 == "  " event { found = 1 }
+    active && /^[^ ]/ { active = 0 }
+    END { exit found ? 0 : 1 }
+  ' "$out"
 }
 
 pass=0
@@ -95,6 +122,63 @@ if [[ "$rc" -eq 0 ]] && grep -q 'PostCompact' "$OUT"; then
 else
   bad "clean set exited $rc or did not mention PostCompact (want 0 + reviewed log)"; cat "$OUT"
 fi
+
+# 1a. A named binary path resolves the same fixture and reports its check.
+OUT="$FIX/pinned-binary.out"
+rc=0
+run_check_with_pinned_binary "$OUT" || rc=$?
+if [[ "$rc" -eq 0 ]] && grep -q 'SCHEMA EVIDENCE' "$OUT"; then
+  ok "pinned binary path runs the schema check"
+else
+  bad "pinned binary path exited $rc or omitted schema evidence"; cat "$OUT"
+fi
+
+# 1aa. An invalid pin must not fall back to the fixture found on PATH.
+OUT="$FIX/pinned-binary-missing.out"
+rc=0
+pin_option_dash=-
+pin_check_option="${pin_option_dash}${pin_option_dash}check"
+( cd "$FIX/tree" && HOME="$FIX/home" PATH="$FIX/bin:$PATH" \
+    CC_OUTPUT_KEYS_BINARY="$FIX/missing-claude" \
+    node scripts/derive-cc-output-keys.mjs "$pin_check_option" >"$OUT" 2>&1 ) || rc=$?
+if [[ "$rc" -eq 2 ]] && grep -q 'explicit binary pin is authoritative' "$OUT"; then
+  ok "invalid binary pin exits cannot-observe without PATH fallback"
+else
+  bad "invalid binary pin exited $rc or fell back to PATH"; cat "$OUT"
+fi
+
+# 1b. A direct field supplied by the schema's immediate extend call is proof.
+write_fixture_binary "schema extension evidence" "$GEN" "" "Notification"
+OUT="$FIX/schema-extension.out"
+rc=0
+run_check "$OUT" || rc=$?
+if [[ "$rc" -eq 0 ]] && grep -q '^  Notification: resolved in this binary output-schema variant$' "$OUT"; then
+  ok "schema extension resolves Notification with explicit evidence output"
+else
+  bad "schema extension exited $rc or omitted Notification evidence"; cat "$OUT"
+fi
+
+# 1c. Removing chained-extension recognition makes that schema entry fail.
+node -e '
+  const fs = require("fs");
+  const p = process.argv[1];
+  let s = fs.readFileSync(p, "utf8");
+  const before = s;
+  s = s.replace(" ||\n        hasAdditionalContextExtension(strings, schemaObject.end, '\''additionalContext'\'')", "");
+  if (s === before) { console.error("mutation failed: extension check not found"); process.exit(2); }
+  fs.writeFileSync(p, s);
+' "$FIX/tree/scripts/derive-cc-output-keys.mjs"
+
+OUT="$FIX/schema-extension-removed.out"
+rc=0
+run_check "$OUT" || rc=$?
+if [[ "$rc" -eq 3 ]] && has_schema_drift "$OUT" "Notification"; then
+  ok "removing extension recognition fails Notification on the schema DRIFT line"
+else
+  bad "removing extension recognition exited $rc or missed schema DRIFT"; cat "$OUT"
+fi
+
+cp "$SCRIPT" "$FIX/tree/scripts/derive-cc-output-keys.mjs"
 
 # ── 2. Planted missing: binary has CwdChanged, generated set does not ───────
 cp "$GEN_SRC" "$GEN"
@@ -276,7 +360,7 @@ write_fixture_binary "schema-reviewed-overlap" "$GEN_SRC"
 OUT="$FIX/schema-reviewed-overlap.out"
 rc=0
 run_check "$OUT" || rc=$?
-if [[ "$rc" -eq 3 ]] && grep -q 'ADDITIONAL_CONTEXT_SCHEMA_ACCEPTED' "$OUT" && grep -q 'Notification' "$OUT"; then
+if [[ "$rc" -eq 3 ]] && has_schema_drift "$OUT" "Notification"; then
   ok "overlapping schema and reviewed entries exit 3"
 else
   bad "classification overlap exited $rc or did not name Notification"; cat "$OUT"
