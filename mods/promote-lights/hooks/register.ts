@@ -12,7 +12,7 @@
  * - $.session.repo
  * - $.clock.every (60s tick)
  * - $.store.get/set
- * - $.ui.status
+ * - $.ui.status (startup warnings; cleared once the band draws)
  * - $.ui.invalidate
  * - $.ui.resolve (the band's Box and Text elements)
  * - $.env.get (PROMOTE_HEAD override, PROMOTE_LIGHTS_WATCH demo target)
@@ -66,7 +66,8 @@ type Hook$ = {
     get: (key: string) => Promise<string | undefined>;
   };
   ui: {
-    status: (line: string) => Promise<void>;
+    /** undefined clears the line. */
+    status: (line: string | undefined) => Promise<void>;
     invalidate: (component: string) => void;
     resolve: (e: HookEvent) => Promise<Elements>;
   };
@@ -342,7 +343,8 @@ export const register: Register = (on) => {
         stored.lights,
         stored.head ?? "",
         stored.mergeStateStatus ?? "",
-        stored.hold ?? false
+        stored.hold ?? false,
+        stored.degraded ?? false
       );
     } else if (stored.error) {
       const els = await $.ui.resolve(e);
@@ -515,8 +517,10 @@ async function doTick($: Hook$, key: string): Promise<StoredLights | null> {
     };
     await $.store.set(key, stamp(snapshot));
 
-    const statusLine = buildStatusLine(prNumber, lights, mergeStateStatus, false, label, t.degraded);
-    await $.ui.status(statusLine);
+    // The band draws this state; a status line too showed it twice. Clear
+    // it (also drops a startup warning, which the band's DEGRADED now keeps).
+    // A collapsed band is not visible to a mod, so /lights answers the line.
+    await $.ui.status(undefined);
     $.ui.invalidate("ui.render");
     return snapshot;
   } catch (err) {
