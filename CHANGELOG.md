@@ -5,6 +5,15 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.115](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.114...v10.0.0-beta.115) (2026-09-26)
+
+
+### Bug Fixes
+
+* **ci:** reject untracked generated lab copies ([#4480](https://github.com/yonatangross/orchestkit/issues/4480)) ([a80ff12](https://github.com/yonatangross/orchestkit/commit/a80ff12ebf0586774fabd404e171b2802a5fc181))
+* **docs:** validate npm hosts and advertise markdown twins ([#4481](https://github.com/yonatangross/orchestkit/issues/4481)) ([6f21d5c](https://github.com/yonatangross/orchestkit/commit/6f21d5c1e225cbd44db06a1afa8d89e02a9a4fd9))
+* **scripts:** require schema evidence for hook exemptions ([#4478](https://github.com/yonatangross/orchestkit/issues/4478)) ([ad3085d](https://github.com/yonatangross/orchestkit/commit/ad3085d2590d547ea4c322d2fa29c3671ae6d3a7))
+
 ## [10.0.0-beta.114](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.113...v10.0.0-beta.114) (2026-09-26)
 
 
