@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.105",
+    "date": "2026-09-26",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.104...v10.0.0-beta.105",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**promote-lights:** draw the lights once, in the band ([#4454](https://github.com/yonatangross/orchestkit/issues/4454)) ([30bc6e0](https://github.com/yonatangross/orchestkit/commit/30bc6e0132e0e547b6e754525c3b2dd06017873b))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.104",
     "date": "2026-09-26",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.103...v10.0.0-beta.104",
