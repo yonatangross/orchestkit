@@ -16,4 +16,6 @@ Seal: sha256:a84112128cbf... (7 cases). Decision: ACCEPTED (incumbent retained).
 
 Dry-run estimate before spend: 7 cases, 14 grader calls, est USD 0.58 bare / 1.16 with 2x fudge (under the $10 gate). Ran on Max plan OAuth after Dev and Prod API keys returned credit-balance-too-low.
 
-Script fixes landed with this baseline so the grader pin is real: pass `--model` into the holdout `claude -p` calls, and read `.target` from assess holdout.jsonl.
+No promotion-ledger row is committed: champion-vs-champion scaffold yields delta 0 by construction, so a ledger ACCEPTED line would be a no-op. Scores above are the baseline artifact.
+
+Script fixes in the same PR (intentional, not noise): pass `--model` into the holdout `claude -p` calls, and read `.target` / `.expected.notes` because on main 0 of 7 assess holdout rows have `.prompt` or `.must`.
