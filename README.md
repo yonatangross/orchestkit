@@ -630,6 +630,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.105](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.104...v10.0.0-beta.105)** · 2026-09-26
+
+- **promote-lights:** draw the lights once, in the band (#4454)
+
 **[v10.0.0-beta.104](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.103...v10.0.0-beta.104)** · 2026-09-26
 
 - **secrets-veil:** opt-in copy of a masked value to the clipboard (#4437)
@@ -665,10 +669,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **lesson-cards:** draw cards with $.ui.resolve and ask on block lessons (#4429)
 - **promote-lights:** draw the band with $.ui.resolve, add /lights watch (#4430)
 - **skills:** runnable examples in verify refs, cover, review-pr ([#4424](https://github.com/yonatangross/orchestkit/issues/4424) CodeRabbit follow-up) (#4433)
-
-**[v10.0.0-beta.97](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.96...v10.0.0-beta.97)** · 2026-09-25
-
-- **secrets-veil:** show a toast with masked value and byte counts (#4431)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
