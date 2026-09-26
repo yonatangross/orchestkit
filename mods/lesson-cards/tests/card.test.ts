@@ -55,7 +55,7 @@ describe('denyLine', () => {
 });
 
 describe('askQuestion', () => {
-  test('the lesson title and "Proceed anyway?" only', () => {
+  test('the lesson id and "Proceed anyway?" only', () => {
     expect(askQuestion(lesson('A long lesson paragraph.'))).toBe('lesson l1: Proceed anyway?');
   });
 });

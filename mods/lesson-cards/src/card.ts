@@ -107,7 +107,7 @@ export function shortFix(fix: string | undefined): string | undefined {
 }
 
 /**
- * The block-lesson question: the lesson title and "Proceed anyway?" only.
+ * The block-lesson question: the lesson id and "Proceed anyway?" only.
  * The card above the dialog already shows the lesson; repeating the message
  * here drew the same paragraph twice on screen.
  */
