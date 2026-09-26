@@ -630,6 +630,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.103](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.102...v10.0.0-beta.103)** · 2026-09-26
+
+- **promote-lights:** find promote PR past first 30 open PRs (#4435)
+- **site:** put the home hero art in the grid and redraw the nav mark (#4414)
+
 **[v10.0.0-beta.102](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.101...v10.0.0-beta.102)** · 2026-09-26
 
 - **promote-lights:** never draw another session's stored lights (#4447)
@@ -665,10 +670,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **verify:** Phase 2 dispatch runs as a Workflow script (#4424)
 - **readme:** skills.sh badge and measured starter 12 (#4426)
-
-**[v10.0.0-beta.95](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.94...v10.0.0-beta.95)** · 2026-09-25
-
-- **promote-lights:** match only real promote PRs into main (#4420)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
