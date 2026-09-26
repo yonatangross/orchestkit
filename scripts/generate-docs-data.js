@@ -412,8 +412,13 @@ function displayMarkdown(md) {
 }
 
 // displayText on every string in a derived structure (the skill flow graphs).
+// A lone dash there is an empty-value placeholder, so it becomes empty and the
+// page omits it; as "-" it rendered "-> -" on phases with no output.
 function displayDeep(value) {
-  if (typeof value === 'string') return displayText(value);
+  if (typeof value === 'string') {
+    const text = displayText(value);
+    return text === '-' ? '' : text;
+  }
   if (Array.isArray(value)) return value.map(displayDeep);
   if (value && typeof value === 'object') {
     return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, displayDeep(v)]));

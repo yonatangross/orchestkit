@@ -193,7 +193,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/getting-started/installation",
     "title": "Installation",
-    "description": "Install OrchestKit. Pick a host: Claude Code, Cursor, Codex, Devin, Pi, Muse Code, Antigravity, or skills.sh for OpenCode and other clients."
+    "description": "Install OrchestKit. Pick a host: Claude Code, Cursor, Codex, Devin, OpenCode (and other skills.sh clients), Muse Code, Pi or Antigravity."
   },
   {
     "url": "/docs/getting-started/muse",
