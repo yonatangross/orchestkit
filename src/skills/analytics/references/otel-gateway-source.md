@@ -50,7 +50,7 @@ with the exact verified selector supplied in Step 1 before using a LogQL query.
 Cost per skill and per agent, 7 days (the metric carries `skill.name`,
 `agent.name`, `plugin.name`, `effort` per the Claude Code monitoring docs):
 
-```promql
+```text
 sum by (skill_name) (increase(claude_code_cost_usage_USD_total[7d]))
 sum by (agent_name) (increase(claude_code_cost_usage_USD_total[7d]))
 sum by (effort)     (increase(claude_code_cost_usage_USD_total[7d]))
@@ -60,14 +60,14 @@ Cost and tokens per lane and per harness, when the sessions carry resource
 attributes such as `hq.lane` and `hq.harness` (a floor that sets
 `OTEL_RESOURCE_ATTRIBUTES`, or a gateway that stamps them):
 
-```promql
+```text
 sum by (hq_lane)    (increase(claude_code_cost_usage_USD_total[1d]))
 sum by (hq_harness) (increase(claude_code_token_usage_tokens_total[1d]))
 ```
 
 Tool calls and tool error rate per tool, from log events:
 
-```logql
+```text
 sum by (tool_name) (count_over_time(<verified-stream-selector> | json | event_name="tool_result" [1d]))
 sum by (tool_name) (count_over_time(<verified-stream-selector> | json | event_name="tool_result" | success="false" [1d]))
 ```
