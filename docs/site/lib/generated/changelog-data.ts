@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.112",
+    "date": "2026-09-26",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.111...v10.0.0-beta.112",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**lesson-cards:** 1.0.7 Cancelled: by you; Waiting text ([#4470](https://github.com/yonatangross/orchestkit/issues/4470)) ([add98ae](https://github.com/yonatangross/orchestkit/commit/add98ae110b38d24f52c7bdbb9851f76bf37d5e3))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.111",
     "date": "2026-09-26",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.110...v10.0.0-beta.111",
