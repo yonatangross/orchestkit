@@ -5,6 +5,14 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.114](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.113...v10.0.0-beta.114) (2026-09-26)
+
+
+### Bug Fixes
+
+* **hooks:** preserve consumer file content in write-headers ([#4475](https://github.com/yonatangross/orchestkit/issues/4475)) ([bb0a7ae](https://github.com/yonatangross/orchestkit/commit/bb0a7aed3052a514b3908fecfbee4823985e7497))
+* **hooks:** stop antipattern-warning overwriting tracked project rules ([#4476](https://github.com/yonatangross/orchestkit/issues/4476)) ([bf0e999](https://github.com/yonatangross/orchestkit/commit/bf0e999dd41b1c56271c3388a91a9678ccbb4c04))
+
 ## [10.0.0-beta.113](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.112...v10.0.0-beta.113) (2026-09-26)
 
 

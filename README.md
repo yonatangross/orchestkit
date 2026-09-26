@@ -630,6 +630,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.114](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.113...v10.0.0-beta.114)** · 2026-09-26
+
+- **hooks:** preserve consumer file content in write-headers (#4475)
+- **hooks:** stop antipattern-warning overwriting tracked project rules (#4476)
+
 **[v10.0.0-beta.113](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.112...v10.0.0-beta.113)** · 2026-09-26
 
 - **tests:** isolate pre-push Test 12 from the real tree's hooks install (#4473)
@@ -658,10 +663,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.107](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.106...v10.0.0-beta.107)** · 2026-09-26
 
 - **lesson-cards:** draw the lesson once, in the card (#4453)
-
-**[v10.0.0-beta.106](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.105...v10.0.0-beta.106)** · 2026-09-26
-
-- **site:** polish after [#4414](https://github.com/yonatangross/orchestkit/issues/4414): chat gap, host order, card border (#4452)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
