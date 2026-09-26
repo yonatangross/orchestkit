@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.110](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.109...v10.0.0-beta.110) (2026-09-26)
+
+
+### Bug Fixes
+
+* **promote-lights:** a rejected status clear keeps the lights ([#4464](https://github.com/yonatangross/orchestkit/issues/4464)) ([665bcf4](https://github.com/yonatangross/orchestkit/commit/665bcf4ce608ee0e80a68bcc07f3a4ab6b641aa1))
+
 ## [10.0.0-beta.109](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.108...v10.0.0-beta.109) (2026-09-26)
 
 
