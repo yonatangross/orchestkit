@@ -1,0 +1,12 @@
+{
+  "slug": "backlog-4459-lab-copy-tracking",
+  "title": "A generated copy still needs a commit",
+  "description": "Explore why a rebuilt Lab page can pass a tracked diff while its public copy is absent from the commit.",
+  "source": "docs/fix\u002d\u002dbacklog-4459-lab-drift/index.html",
+  "tags": [
+    "ci",
+    "regression",
+    "review"
+  ],
+  "date": "2026-09-26"
+}
