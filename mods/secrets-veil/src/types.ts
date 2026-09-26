@@ -73,11 +73,20 @@ export interface DollarAPI {
   env: {
     get(name: string): Promise<string | undefined>;
   };
+  clock: {
+    /** One-shot timer; the mod sandbox has no ambient timers. */
+    after(ms: number, fn: () => void): { cancel?: () => void };
+  };
   ui: {
     notice(id: string, message: string): void;
     toast(text: string): Promise<void>;
     status(line: string): Promise<void>;
-    log(text: string): Promise<void>;
+    /** { to: "debug" } writes the debug log only; the default is the transcript. */
+    log(text: string, options?: { to?: "transcript" | "debug" }): Promise<void>;
+    /** Opt-in only: the AskUserQuestion dialog, resolves to the picked label. */
+    ask(question: string, options: readonly string[]): Promise<unknown>;
+    /** Opt-in only: writes to the human's clipboard (OSC 52); the model never sees it. */
+    copy(spec: { text: string }): Promise<{ isCopied: boolean; reason?: string }>;
   };
 }
 

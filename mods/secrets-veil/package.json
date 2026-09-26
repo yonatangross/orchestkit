@@ -1,6 +1,6 @@
 {
   "name": "@orchestkit/mod-secrets-veil",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "type": "module",
   "description": "Claude Code mod that masks secret values in tool results before the model reads them",
   "scripts": {

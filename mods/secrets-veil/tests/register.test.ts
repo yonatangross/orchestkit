@@ -41,13 +41,37 @@ type RegisteredHook = (...args: unknown[]) => unknown;
  *  so masking it proves the named-value path, not the shape or entropy paths. */
 const SYNTHETIC = "veiltest-synthetic-value-42";
 
-function makeFake$(env: Record<string, string> = {}): {
+interface CopyOptions {
+  /** When set, $.ui.ask exists and answers with this label. */
+  askAnswer?: string;
+  /** What $.ui.copy reports; defaults to copied. */
+  copyResult?: { isCopied: boolean; reason?: string };
+  /** When true, $.ui.ask never answers (a human who walked away). */
+  hangAsk?: boolean;
+}
+
+/** A timer armed through the fake $.clock.after. */
+interface FakeTimer {
+  ms: number;
+  fire: () => void;
+  cancelled: boolean;
+}
+
+function makeFake$(env: Record<string, string> = {}, copyOptions: CopyOptions = {}): {
   $: unknown;
   notices: string[];
   toasts: string[];
   statuses: string[];
   logs: string[];
+  logTargets: Array<string | undefined>;
+  asks: string[];
+  copies: string[];
+  timers: FakeTimer[];
 } {
+  const logTargets: Array<string | undefined> = [];
+  const timers: FakeTimer[] = [];
+  const asks: string[] = [];
+  const copies: string[] = [];
   const notices: string[] = [];
   const toasts: string[] = [];
   const statuses: string[] = [];
@@ -55,6 +79,17 @@ function makeFake$(env: Record<string, string> = {}): {
   const $ = {
     env: {
       get: async (name: string): Promise<string | undefined> => env[name],
+    },
+    clock: {
+      after: (ms: number, fn: () => void): { cancel: () => void } => {
+        const timer: FakeTimer = { ms, fire: fn, cancelled: false };
+        timers.push(timer);
+        return {
+          cancel: (): void => {
+            timer.cancelled = true;
+          },
+        };
+      },
     },
     ui: {
       notice: async (id: string, message: string): Promise<void> => {
@@ -66,12 +101,26 @@ function makeFake$(env: Record<string, string> = {}): {
       status: async (line: string): Promise<void> => {
         statuses.push(line);
       },
-      log: async (text: string): Promise<void> => {
+      log: async (text: string, options?: { to?: string }): Promise<void> => {
         logs.push(text);
+        logTargets.push(options?.to);
       },
+      ...(copyOptions.askAnswer === undefined
+        ? {}
+        : {
+            ask: (question: string): Promise<string> => {
+              asks.push(question);
+              if (copyOptions.hangAsk) return new Promise<string>(() => undefined);
+              return Promise.resolve(copyOptions.askAnswer as string);
+            },
+            copy: async (spec: { text: string }): Promise<{ isCopied: boolean; reason?: string }> => {
+              copies.push(spec.text);
+              return copyOptions.copyResult ?? { isCopied: true };
+            },
+          }),
     },
   };
-  return { $, notices, toasts, statuses, logs };
+  return { $, notices, toasts, statuses, logs, logTargets, asks, copies, timers };
 }
 
 /** .catch handlers the module registered, by event. */
@@ -345,9 +394,9 @@ describe("visible proof: toast, status and byte counts", () => {
   const FAKE_GH = "gh" + "p_" + "Zq8Lm3Rt7Vx2Kp9Nw4Hy6Bc1Df5Gj0Sa8Ue3";
   const BULLET_BYTES = 3; // U+2022 is 3 bytes in UTF-8
 
-  test("a masked value fires one toast with the count and UTF-8 byte counts", async () => {
+  test("a masked value fires one count-only toast; byte counts go to the debug log only", async () => {
     const hooks = captureHooks();
-    const { $, toasts, statuses, logs } = makeFake$({});
+    const { $, toasts, statuses, logs, logTargets } = makeFake$({});
     await startSession(hooks, $);
 
     const out = await hooks.get("tool.call")!(
@@ -357,12 +406,12 @@ describe("visible proof: toast, status and byte counts", () => {
     );
     expect(JSON.stringify(out)).not.toContain(FAKE_GH);
     expect(FAKE_GH.length).toBe(40);
-    expect(toasts).toEqual([
-      `masked 1 value in Bash, 40 bytes in, ${8 * BULLET_BYTES} bytes out`,
-    ]);
+    // No length anywhere a human or the transcript sees it.
+    expect(toasts).toEqual(["masked 1 value in Bash"]);
     expect(statuses).toEqual(["1 masked this session"]);
     expect(logs).toHaveLength(1);
-    expect(logs[0]).toContain("40 bytes in, 24 bytes out");
+    expect(logTargets).toEqual(["debug"]);
+    expect(logs[0]).toContain(`40 bytes in, ${8 * BULLET_BYTES} bytes out`);
     expect(logs[0]).toMatch(/result \d+ bytes before, \d+ bytes after/);
     // No UI line ever carries the value itself.
     for (const line of [...toasts, ...statuses, ...logs]) {
@@ -382,10 +431,7 @@ describe("visible proof: toast, status and byte counts", () => {
     );
     await hooks.get("tool.call")!($, { tool: "Bash", args: {} }, asNext({ result: `again ${SYNTHETIC}` }));
 
-    const synBytes = new TextEncoder().encode(SYNTHETIC).length;
-    expect(toasts[0]).toBe(
-      `masked 2 values in Read, ${synBytes + 40} bytes in, ${16 * BULLET_BYTES} bytes out`
-    );
+    expect(toasts[0]).toBe("masked 2 values in Read");
     expect(statuses).toEqual(["2 masked this session", "3 masked this session"]);
   });
 
@@ -401,7 +447,7 @@ describe("visible proof: toast, status and byte counts", () => {
       asNext({ result: { stdout: line, stderr: "" }, text: line })
     );
     expect(JSON.stringify(out)).not.toContain(FAKE_GH);
-    expect(toasts).toEqual([`masked 1 value in Bash, 40 bytes in, ${8 * BULLET_BYTES} bytes out`]);
+    expect(toasts).toEqual(["masked 1 value in Bash"]);
     expect(statuses).toEqual(["1 masked this session"]);
   });
 
@@ -438,5 +484,146 @@ describe("visible proof: toast, status and byte counts", () => {
     const out = await hooks.get("tool.call")!($, { tool: "Bash", args: {} }, asNext({ result: `x ${FAKE_GH}` }));
     expect(resultText(out)).not.toContain(FAKE_GH);
     expect(resultText(out)).toContain("•".repeat(8));
+  });
+});
+
+describe("opt-in copy offer: the value goes to the clipboard, never to the model", () => {
+  const FAKE_GH = "gh" + "p_" + "Zq8Lm3Rt7Vx2Kp9Nw4Hy6Bc1Df5Gj0Sa8Ue3";
+  const RESULT = { result: { stdout: `FAKE_TOKEN=${FAKE_GH}\n` } };
+
+  test("Copy to clipboard hands the raw value to $.ui.copy and the model still reads dots", async () => {
+    const hooks = captureHooks();
+    const { $, asks, copies, toasts, statuses, logs } = makeFake$(
+      { SECRETS_VEIL_OFFER_COPY: "1" },
+      { askAnswer: "Copy to clipboard" }
+    );
+    await startSession(hooks, $);
+
+    const out = await hooks.get("tool.call")!($, { tool: "Bash", args: {} }, asNext(RESULT));
+
+    expect(copies).toEqual([FAKE_GH]);
+    expect(asks).toHaveLength(1);
+    // The model-visible result stays masked: no raw value, bullets present.
+    expect(JSON.stringify(out)).not.toContain(FAKE_GH);
+    expect(JSON.stringify(out)).toContain("\u2022".repeat(8));
+    // Nothing the terminal or the log shows carries the value either.
+    for (const line of [...asks, ...toasts, ...statuses, ...logs]) {
+      expect(line).not.toContain(FAKE_GH);
+    }
+    expect(toasts).toContain("copied to your clipboard; Claude still sees dots");
+    // No visible line gives the length of the secret.
+    for (const line of [...asks, ...toasts, ...statuses]) {
+      expect(line).not.toMatch(/\b40\b/);
+    }
+  });
+
+  test("Keep hidden copies nothing", async () => {
+    const hooks = captureHooks();
+    const { $, asks, copies } = makeFake$({ SECRETS_VEIL_OFFER_COPY: "1" }, { askAnswer: "Keep hidden" });
+    await startSession(hooks, $);
+    const out = await hooks.get("tool.call")!($, { tool: "Bash", args: {} }, asNext(RESULT));
+    expect(asks).toHaveLength(1);
+    expect(copies).toEqual([]);
+    expect(JSON.stringify(out)).not.toContain(FAKE_GH);
+  });
+
+  test("without SECRETS_VEIL_OFFER_COPY=1 there is no dialog and no copy", async () => {
+    const hooks = captureHooks();
+    const { $, asks, copies } = makeFake$({}, { askAnswer: "Copy to clipboard" });
+    await startSession(hooks, $);
+    await hooks.get("tool.call")!($, { tool: "Bash", args: {} }, asNext(RESULT));
+    expect(asks).toEqual([]);
+    expect(copies).toEqual([]);
+  });
+
+  test("a failed copy says so and still never leaks the value", async () => {
+    const hooks = captureHooks();
+    const { $, copies, toasts } = makeFake$(
+      { SECRETS_VEIL_OFFER_COPY: "1" },
+      { askAnswer: "Copy to clipboard", copyResult: { isCopied: false, reason: "no-clipboard" } }
+    );
+    await startSession(hooks, $);
+    const out = await hooks.get("tool.call")!($, { tool: "Bash", args: {} }, asNext(RESULT));
+    expect(copies).toEqual([FAKE_GH]);
+    expect(toasts).toContain("nothing copied (no-clipboard); the value stays covered");
+    expect(JSON.stringify(out)).not.toContain(FAKE_GH);
+  });
+});
+
+describe("deadlines on awaited UI calls", () => {
+  const FAKE_GH = "gh" + "p_" + "Zq8Lm3Rt7Vx2Kp9Nw4Hy6Bc1Df5Gj0Sa8Ue3";
+
+  test("a question nobody answers times out as Keep hidden and the masked result still returns", async () => {
+    const hooks = captureHooks();
+    const { $, asks, copies, timers } = makeFake$(
+      { SECRETS_VEIL_OFFER_COPY: "1" },
+      { askAnswer: "Copy to clipboard", hangAsk: true }
+    );
+    await startSession(hooks, $);
+
+    const pending = hooks.get("tool.call")!(
+      $,
+      { tool: "Bash", args: {} },
+      asNext({ ref: 7, result: { stdout: `FAKE_TOKEN=${FAKE_GH}\n` } })
+    ) as Promise<unknown>;
+
+    // Let the hook reach the question, then expire the question's deadline.
+    for (let i = 0; i < 20 && asks.length === 0; i++) await Promise.resolve();
+    expect(asks).toHaveLength(1);
+    const askTimer = timers.find((t) => t.ms === 120_000 && !t.cancelled);
+    expect(askTimer).toBeDefined();
+    askTimer!.fire();
+
+    const out = await pending;
+    expect(copies).toEqual([]);
+    expect(JSON.stringify(out)).not.toContain(FAKE_GH);
+    expect(JSON.stringify(out)).toContain("\u2022".repeat(8));
+  });
+
+  test("every settled call cancels its deadline", async () => {
+    const hooks = captureHooks();
+    const { $, timers } = makeFake$({});
+    await startSession(hooks, $);
+    await hooks.get("tool.call")!($, { tool: "Bash", args: {} }, asNext({ result: `x ${FAKE_GH}` }));
+    expect(timers.length).toBeGreaterThan(0);
+    expect(timers.every((t) => t.cancelled)).toBe(true);
+  });
+});
+
+describe("the answer never lets core reuse the unmasked run", () => {
+  const FAKE_GH = "gh" + "p_" + "Zq8Lm3Rt7Vx2Kp9Nw4Hy6Bc1Df5Gj0Sa8Ue3";
+
+  test("a masked answer with a result keeps ref and a result that differs from the run's", async () => {
+    const hooks = captureHooks();
+    const { $ } = makeFake$({});
+    await startSession(hooks, $);
+    const run = { ref: 7, result: { stdout: `FAKE_TOKEN=${FAKE_GH}\n` } };
+    const out = (await hooks.get("tool.call")!($, { tool: "Bash", args: {} }, asNext(run))) as Record<string, unknown>;
+    expect(out.ref).toBe(7);
+    // Core reuses the run only when result is undefined or deep-equal; this one differs.
+    expect(out.result).toBeDefined();
+    expect(JSON.stringify(out.result)).not.toBe(JSON.stringify(run.result));
+  });
+
+  test("a masked answer without a result drops ref, so core cannot reuse the unmasked run", async () => {
+    const hooks = captureHooks();
+    const { $ } = makeFake$({});
+    await startSession(hooks, $);
+    const out = (await hooks.get("tool.call")!(
+      $,
+      { tool: "Bash", args: {} },
+      asNext({ ref: 7, text: `FAKE_TOKEN=${FAKE_GH}\n` })
+    )) as Record<string, unknown>;
+    expect("ref" in out).toBe(false);
+    expect(JSON.stringify(out)).not.toContain(FAKE_GH);
+  });
+
+  test("an answer with nothing masked is returned as is, ref included", async () => {
+    const hooks = captureHooks();
+    const { $ } = makeFake$({});
+    await startSession(hooks, $);
+    const run = { ref: 7, text: "hello" };
+    const out = await hooks.get("tool.call")!($, { tool: "Bash", args: {} }, asNext(run));
+    expect(out).toEqual(run);
   });
 });
