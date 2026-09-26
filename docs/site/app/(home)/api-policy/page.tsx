@@ -28,7 +28,10 @@ export const metadata: Metadata = {
 	// suffix) so a name-keyed search for "OrchestKit API" lands here.
 	title: `${SITE.name} API Versioning, Deprecation & Sunset Policy`,
 	description: `How the ${SITE.name} by Yonyon docs API is versioned, how deprecations are announced (RFC 8594 Deprecation and Sunset headers), and the ${SUNSET_NOTICE_MONTHS}-month sunset guarantee.`,
-	alternates: { canonical: `${SITE.domain}/api-policy` },
+	alternates: {
+		canonical: `${SITE.domain}/api-policy`,
+		types: { "text/markdown": `${SITE.domain}/api-policy.md` },
+	},
 };
 
 // Minimal inline-Markdown renderer for the policy strings, which use `code`,
