@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.116",
+    "date": "2026-09-26",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.115...v10.0.0-beta.116",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**analytics:** add an OTEL gateway source (Loki + Prometheus) ([#4479](https://github.com/yonatangross/orchestkit/issues/4479)) ([e50f3e0](https://github.com/yonatangross/orchestkit/commit/e50f3e0a40dcfb25d9a0dbeaa00bf2d62590b227))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.115",
     "date": "2026-09-26",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.114...v10.0.0-beta.115",
