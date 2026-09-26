@@ -5,6 +5,14 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0-beta.103](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.102...v10.0.0-beta.103) (2026-09-26)
+
+
+### Bug Fixes
+
+* **promote-lights:** find promote PR past first 30 open PRs ([#4435](https://github.com/yonatangross/orchestkit/issues/4435)) ([ab35c75](https://github.com/yonatangross/orchestkit/commit/ab35c7558f203b2e9acb34bf88ab4fc4f4068367))
+* **site:** put the home hero art in the grid and redraw the nav mark ([#4414](https://github.com/yonatangross/orchestkit/issues/4414)) ([522646b](https://github.com/yonatangross/orchestkit/commit/522646b9008fd1f69cfe5e6d713bae5050708c54))
+
 ## [10.0.0-beta.102](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.101...v10.0.0-beta.102) (2026-09-26)
 
 
