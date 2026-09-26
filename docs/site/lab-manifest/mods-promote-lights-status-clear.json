@@ -1,0 +1,13 @@
+{
+  "slug": "mods-promote-lights-status-clear",
+  "source": "docs/fix--promote-lights-status-clear/index.html",
+  "title": "promote-lights: a failed status clear keeps the lights",
+  "description": "In 0.0.9 a rejected status-line clear was caught by the tick, which stored an error over the good snapshot, so the band showed the error instead of the lights. 0.0.10 makes the clear best effort.",
+  "tags": [
+    "claude-code",
+    "mods",
+    "function-hooks",
+    "promote-lights"
+  ],
+  "date": "2026-09-26"
+}
