@@ -32,6 +32,7 @@ cp "$SPEC_SRC" "$FIX/tree/spec/"
 write_fixture_binary() {
   local label="$1"
   local gen_mod="$2"
+  local prose_event="${3:-}"
   {
     echo "hookSpecificOutput fixture binary: ${label}"
     node -e '
@@ -54,10 +55,18 @@ write_fixture_binary() {
             ? m.HOOK_EVENT_NAME_REVIEWED_EXCEPTIONS
             : new Set();
         for (const e of m.EVENTS_WITH_HOOK_EVENT_NAME) {
-          if (!henReviewed.has(e)) console.log(`hookEventName:R("${e}")`);
+          if (henReviewed.has(e)) continue;
+          const nested = acSchema.has(e) ? ",metadata:{unrelated:o().optional()}" : "";
+          const additionalContext = acSchema.has(e) ? ",additionalContext:o().optional()" : "";
+          console.log(`({hookEventName:R("${e}")${nested}${additionalContext}})`);
         }
+        if (process.argv[2]) {
+          console.log(`Hook-specific output for the ${process.argv[2]} event. additionalContext is non-error feedback delivered to the model.`);
+        }
+        console.log(`({hookEventName:R("CwdChanged")})({additionalContext:o().optional()})`);
+        console.log(`({hookEventName:R("CwdChanged"),nested:{additionalContext:o().optional()}})`);
       });
-    ' "$gen_mod"
+    ' "$gen_mod" "$prose_event"
   } > "$FIX/bin/claude"
   chmod +x "$FIX/bin/claude"
 }
@@ -200,6 +209,88 @@ if [[ $? -eq 0 ]]; then
   ok "fixture builder omits R(PostCompact) while keeping the reviewed exception"
 else
   bad "fixture builder still emits or drops PostCompact inconsistently"; cat "$VACUOUS"
+fi
+
+# 6. A neighbouring or nested key does not count as CwdChanged schema evidence.
+cp "$GEN_SRC" "$GEN"
+node -e '
+  const fs = require("fs");
+  const p = process.argv[1];
+  let s = fs.readFileSync(p, "utf8");
+  const needle = "export const ADDITIONAL_CONTEXT_SCHEMA_ACCEPTED = new Set([";
+  const i = s.indexOf(needle);
+  if (i < 0) { console.error("plant failed: schema set not found"); process.exit(2); }
+  const insertAt = i + needle.length;
+  s = s.slice(0, insertAt) + "\n  '\''CwdChanged'\''," + s.slice(insertAt);
+  fs.writeFileSync(p, s);
+' "$GEN"
+
+write_fixture_binary "schema-evidence-missing" "$GEN_SRC"
+OUT="$FIX/schema-evidence-missing.out"
+rc=0
+run_check "$OUT" || rc=$?
+if [[ "$rc" -eq 3 ]] && grep -q 'ADDITIONAL_CONTEXT_SCHEMA_ACCEPTED' "$OUT" && grep -q 'CwdChanged' "$OUT"; then
+  ok "schema-accepted CwdChanged without a local variant exits 3"
+else
+  bad "schema evidence gate exited $rc or did not name CwdChanged"; cat "$OUT"
+fi
+
+# 7. Removing the schema gate reproduces the former false pass.
+node -e '
+  const fs = require("fs");
+  const p = process.argv[1];
+  let s = fs.readFileSync(p, "utf8");
+  const before = s;
+  s = s.replace(" || acSchemaEvidence.invalid", "");
+  if (s === before) { console.error("mutation failed: schema gate condition not found"); process.exit(2); }
+  fs.writeFileSync(p, s);
+' "$FIX/tree/scripts/derive-cc-output-keys.mjs"
+
+OUT="$FIX/schema-gate-removed.out"
+rc=0
+run_check "$OUT" || rc=$?
+if [[ "$rc" -eq 0 ]]; then
+  ok "removing the schema gate makes planted CwdChanged pass"
+else
+  bad "removing the schema gate exited $rc (want 0)"; cat "$OUT"
+fi
+
+cp "$SCRIPT" "$FIX/tree/scripts/derive-cc-output-keys.mjs"
+
+# 8. A schema-only entry cannot also claim trace-and-observe evidence.
+cp "$GEN_SRC" "$GEN"
+node -e '
+  const fs = require("fs");
+  const p = process.argv[1];
+  let s = fs.readFileSync(p, "utf8");
+  const needle = "export const ADDITIONAL_CONTEXT_REVIEWED_EXCEPTIONS = new Set([";
+  const i = s.indexOf(needle);
+  if (i < 0) { console.error("plant failed: reviewed set not found"); process.exit(2); }
+  const insertAt = i + needle.length;
+  s = s.slice(0, insertAt) + "\n  '\''Notification'\''," + s.slice(insertAt);
+  fs.writeFileSync(p, s);
+' "$GEN"
+
+write_fixture_binary "schema-reviewed-overlap" "$GEN_SRC"
+OUT="$FIX/schema-reviewed-overlap.out"
+rc=0
+run_check "$OUT" || rc=$?
+if [[ "$rc" -eq 3 ]] && grep -q 'ADDITIONAL_CONTEXT_SCHEMA_ACCEPTED' "$OUT" && grep -q 'Notification' "$OUT"; then
+  ok "overlapping schema and reviewed entries exit 3"
+else
+  bad "classification overlap exited $rc or did not name Notification"; cat "$OUT"
+fi
+
+# 9. A binary-prose-correlated schema entry is stale and should be removed.
+cp "$GEN_SRC" "$GEN"
+write_fixture_binary "schema-entry-now-prose-corroborated" "$GEN_SRC" "Notification"
+OUT="$FIX/schema-stale.out"
+rc=0
+run_check "$OUT" || rc=$?
+if [[ "$rc" -eq 0 ]] && grep -q 'STALE \[ADDITIONAL_CONTEXT_SCHEMA_ACCEPTED\]' "$OUT" && grep -q 'Notification' "$OUT"; then
+  ok "schema entry with binary prose evidence is reported stale"
+else
+  bad "stale schema report exited $rc or did not name Notification"; cat "$OUT"
 fi
 
 echo ""
