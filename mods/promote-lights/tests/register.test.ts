@@ -931,6 +931,18 @@ describe("the lights are drawn once: the band, never the status line too", () =>
     expect(statusTexts.map(copies).reduce((a, b) => a + b, 0)).toBe(0);
     expect(statusTexts.filter((t) => /green|yellow|red/.test(t))).toEqual([]);
   });
+
+  test("a rejected status clear keeps the lights, never an error, in the store", async () => {
+    const handlers = captureHandlers(await loadRegister());
+    const $ = createFake$();
+    ($.ui.status as ReturnType<typeof vi.fn>).mockRejectedValue(new Error("status refused"));
+
+    await handlers.get("session.start")!($, {}, NEXT);
+
+    const stored = ($.store.set as ReturnType<typeof vi.fn>).mock.calls.map((c) => c[1] as Record<string, unknown>);
+    expect(stored.at(-1)?.lights).toBeDefined();
+    expect(stored.filter((s) => s.error !== undefined)).toEqual([]);
+  });
 });
 
 const WATCH_VIEW = JSON.stringify({ headRefOid: "feedbee1234567", state: "OPEN", mergeStateStatus: "BLOCKED" });

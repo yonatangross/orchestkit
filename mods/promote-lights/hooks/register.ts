@@ -255,7 +255,7 @@ export const register: Register = (on) => {
     }
 
     // One failed query must never pass silently: the search is degraded,
-    // the snapshot records it, and the status line keeps saying so.
+    // the snapshot records it, and the band keeps saying DEGRADED.
     const degraded = byHead.exitCode !== 0 || byLabel.exitCode !== 0;
     if (degraded) {
       const failed = byHead.exitCode !== 0 ? "head" : "label";
@@ -520,7 +520,7 @@ async function doTick($: Hook$, key: string): Promise<StoredLights | null> {
     // The band draws this state; a status line too showed it twice. Clear
     // it (also drops a startup warning, which the band's DEGRADED now keeps).
     // A collapsed band is not visible to a mod, so /lights answers the line.
-    await $.ui.status(undefined);
+    await clearStatus($);
     $.ui.invalidate("ui.render");
     return snapshot;
   } catch (err) {
@@ -546,5 +546,14 @@ async function warnStatus($: Hook$, message: string): Promise<void> {
     await $.ui.status(message);
   } catch {
     // Surfacing is best effort; tracking continues without it.
+  }
+}
+
+/** Best effort too: a rejected clear must never replace the stored lights with an error. */
+async function clearStatus($: Hook$): Promise<void> {
+  try {
+    await $.ui.status(undefined);
+  } catch {
+    // The band already carries the state; a stale line is cosmetic.
   }
 }
