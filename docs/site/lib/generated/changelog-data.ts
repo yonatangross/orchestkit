@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.0.0-beta.102",
+    "date": "2026-09-26",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.101...v10.0.0-beta.102",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**promote-lights:** never draw another session's stored lights ([#4447](https://github.com/yonatangross/orchestkit/issues/4447)) ([335754e](https://github.com/yonatangross/orchestkit/commit/335754e51acb4fc765bd05a5f507ea38fcbedeee))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.0.0-beta.101",
     "date": "2026-09-25",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.100...v10.0.0-beta.101",
