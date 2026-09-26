@@ -114,6 +114,13 @@ jobs:
               exit 1
             fi
           done
+          # A rebuild can recreate a Lab copy omitted from the commit.
+          # Require every published copy to be tracked before checking drift.
+          if [ -n "$(git ls-files -o docs/site/public/lab/)" ]; then
+            echo "::error::Untracked Lab copies: add the generated pages to the commit."
+            git ls-files -o docs/site/public/lab/
+            exit 1
+          fi
           if ! git diff --quiet -- "${GENERATED[@]}"; then
             echo "::error::Build drift detected! Run 'npm run build' and commit the changes (${GENERATED[*]})."
             git diff --stat -- "${GENERATED[@]}"

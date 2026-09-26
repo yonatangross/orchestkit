@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>A generated copy still needs a commit</title><meta name="description" content="Explore why a rebuilt Lab page can pass a tracked diff while its public copy is absent from the commit.">
+<style>body{margin:0;background:#101827;color:#e7edf6;font:17px/1.6 system-ui,sans-serif}main{max-width:940px;margin:auto;padding:44px 22px 80px}h1{font-size:clamp(2rem,5vw,3rem);line-height:1.15}h2{font-size:1.25rem}a{color:#9dc8ff}section{margin:26px 0;padding:24px;background:#192438;border:1px solid #425471;border-radius:14px}label{display:block;margin:14px 0}input,select,button{font:inherit;max-width:100%;box-sizing:border-box}input[type=text],select{display:block;width:100%;padding:10px;margin-top:8px;background:#0c1320;color:#fff;border:1px solid #8193ae;border-radius:6px}input[type=checkbox]{width:20px;height:20px;vertical-align:middle;margin-right:10px}button{padding:7px 12px;border:1px solid #8193ae;border-radius:6px;background:#243754;color:white;cursor:pointer;margin:4px}button:hover,button:focus-visible{background:#385782}*:focus-visible{outline:3px solid #ffd477;outline-offset:3px}.results{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px}.result{padding:16px;border:1px solid #8193ae;border-radius:8px}.result strong{display:block;font-size:1.55rem}.pass{color:#85ecc5}.fail{color:#ffb3a8}.muted{color:#bdcbe0}code{overflow-wrap:anywhere;font-size:.9em}table{width:100%;border-collapse:collapse}th,td{padding:10px;text-align:left;border-bottom:1px solid #425471}</style><!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="A generated copy still needs a commit"><meta property="og:description" content="Explore why a rebuilt Lab page can pass a tracked diff while its public copy is absent from the commit."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/backlog-4459-lab-copy-tracking.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="A generated copy still needs a commit"><meta name="twitter:description" content="Explore why a rebuilt Lab page can pass a tracked diff while its public copy is absent from the commit."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head><body><main>
+<header><p class="muted">OrchestKit review playground | Issue 4459</p><h1>A generated copy still needs a commit</h1><p>Explore why a rebuilt Lab page can pass a tracked diff while its public copy is absent from the commit.</p><p><a href="https://github.com/yonatangross/orchestkit/pull/4480">Review draft PR 4480</a></p></header>
+<section aria-labelledby="scenario-heading">
+<h2 id="scenario-heading">Choose the state after the build</h2>
+<label for="scenario">Lab copy scenario<select id="scenario">
+<option value="untracked">Fragment exists; build recreated an untracked copy</option>
+<option value="clean">Generated copy is tracked and current</option>
+<option value="drift">Tracked copy differs from the build</option>
+<option value="other">Lab is clean; an unrelated file is untracked</option>
+</select></label>
+<div class="results" aria-live="polite">
+<div class="result">Previous tracked-diff check<strong id="before"></strong></div>
+<div class="result">Check with copy tracking<strong id="after"></strong></div>
+</div><p id="reason"></p>
+</section>
+<section><h2>What the fix proves</h2><p>The build may recreate a missing public copy. An unchanged tracked diff then says nothing about whether that copy was included in the commit. The new guard requires generated Lab copies to be tracked before applying the existing content-drift check.</p><p>The regression creates a temporary Git tree, generates a copy, removes it from the index, and generates it again. Removing the new guard reproduces the old false pass. Tracking the copy restores a pass.</p><p><a href="https://github.com/yonatangross/orchestkit/blob/fix/backlog-4459-lab-drift/tests/ci/test-lab-copy-tracking.mjs">Read the executable regression</a></p></section>
+<p class="muted">This interactive model explains the change. The linked regression tests and CI establish its behavior.</p>
+</main><script>const scenario = document.getElementById('scenario');
+function update() {
+  const value = scenario.value;
+  const before = value === 'drift' ? 'FAIL' : 'PASS';
+  const after = value === 'drift' || value === 'untracked' ? 'FAIL' : 'PASS';
+  for (const [id, verdict] of [['before', before], ['after', after]]) {
+    const node = document.getElementById(id);
+    node.textContent = verdict;
+    node.className = verdict === 'PASS' ? 'pass' : 'fail';
+  }
+  document.getElementById('reason').textContent = {
+    untracked: 'The old check passes because an untracked copy has no tracked diff. The new guard requires adding that copy to the commit.',
+    clean: 'Both checks pass: the generated copy is tracked and current.',
+    drift: 'Both checks fail: tracked content differs from the build.',
+    other: 'Both checks pass: the tracking guard is scoped to published Lab copies.'
+  }[value];
+}
+scenario.addEventListener('change', update);
+update();</script><!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body></html>
