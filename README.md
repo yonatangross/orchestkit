@@ -630,6 +630,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.0.0-beta.102](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.101...v10.0.0-beta.102)** · 2026-09-26
+
+- **promote-lights:** never draw another session's stored lights (#4447)
+
 **[v10.0.0-beta.101](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.100...v10.0.0-beta.101)** · 2026-09-25
 
 - **promote-lights:** cap the band at five problem lines (#4445)
@@ -665,10 +669,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.0.0-beta.95](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.94...v10.0.0-beta.95)** · 2026-09-25
 
 - **promote-lights:** match only real promote PRs into main (#4420)
-
-**[v10.0.0-beta.94](https://github.com/yonatangross/orchestkit/compare/v10.0.0-beta.93...v10.0.0-beta.94)** · 2026-09-25
-
-- **skills:** Opus 5.5 wording, model ids, Claude API tool rules (#4415)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
