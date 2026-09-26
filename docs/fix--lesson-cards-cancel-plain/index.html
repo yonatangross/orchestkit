@@ -19,10 +19,10 @@
 <body>
 <p class="eyebrow">ORCHESTKIT LAB · MODS · CC 2.1.283</p>
 <h1>A cancel drops the Fix</h1>
-<p>In lesson-cards 1.0.5, Escape and Cancel said <code>Cancelled by you; not run.</code> and still carried a <code>Fix:</code> hint. A user cancel is not a failure, so 1.0.6 drops Fix and keeps a <code>Cancelled: </code> head (Claude Code 2.1.283 leaves that alone instead of gluing <code>Error: </code>). The rest is <code>by you; not run.</code>, so Cancelled is said once. On-screen: <code>Cancelled: by you; not run. [lesson:…]</code>. Other refuses still keep a short Fix for the model.</p>
+<p>In lesson-cards 1.0.5, Escape and Cancel said <code>Cancelled by you; not run.</code> and still carried a <code>Fix:</code> hint. A user cancel is not a failure, so 1.0.7 drops Fix and keeps a <code>Cancelled: </code> head (Claude Code 2.1.283 leaves that alone instead of gluing <code>Error: </code>). The rest is <code>by you; not run.</code>, so Cancelled is said once. On-screen: <code>Cancelled: by you; not run. [lesson:…]</code>. Other refuses still keep a short Fix for the model.</p>
 <p>
   <label><input type="radio" name="v" value="before"> Before (1.0.5)</label>
-  <label><input type="radio" name="v" value="after" checked> After (1.0.6)</label>
+  <label><input type="radio" name="v" value="after" checked> After (1.0.7)</label>
 </p>
 <pre class="dim">Claude Code tool-result renderer (2.1.283):
 if startsWith("Error: ") or startsWith("Cancelled: ") → leave alone

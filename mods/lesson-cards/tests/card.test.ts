@@ -34,6 +34,7 @@ describe('denyLine', () => {
     const why = 'Cancelled: by you; not run.';
     const line = denyLine(lesson('First sentence here.\nSecond line.', '# WRONG\nold()\n# RIGHT\nnew()'), why);
     expect(line).toBe('Cancelled: by you; not run. [lesson:l1]');
+    expect(line.startsWith('Cancelled: ')).toBe(true);
     expect(line).not.toContain('Fix:');
     expect(line).not.toMatch(/^Cancelled: Cancelled/);
   });
